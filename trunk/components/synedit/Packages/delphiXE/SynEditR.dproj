@@ -1,4 +1,4 @@
-	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
 			<ProjectGuid>{3989c409-0738-47b7-a024-aa0e95cac986}</ProjectGuid>
 			<MainSource>SynEditR.dpk</MainSource>
@@ -25,17 +25,15 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_AssertionsAtRuntime>false</DCC_AssertionsAtRuntime>
+			<DCC_WriteableConstants>true</DCC_WriteableConstants>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<RuntimeOnlyPackage>true</RuntimeOnlyPackage>
 			<DCC_DependencyCheckOutputName>..\..\build\SynEditR.bpl</DCC_DependencyCheckOutputName>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
-			<DCC_TypedAtParameter>true</DCC_TypedAtParameter>
-			<DCC_RangeChecking>true</DCC_RangeChecking>
 			<DCC_Description>SynEdit component suite runtime</DCC_Description>
-			<DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
 			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<GenDll>true</GenDll>
-			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
 			<GenPackage>true</GenPackage>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
