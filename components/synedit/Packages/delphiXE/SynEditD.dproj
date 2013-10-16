@@ -25,17 +25,13 @@
 			<Base>true</Base>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Base)'!=''">
+			<DCC_WriteableConstants>true</DCC_WriteableConstants>
 			<DCC_UnitAlias>WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE;$(DCC_UnitAlias)</DCC_UnitAlias>
 			<DCC_DependencyCheckOutputName>..\..\build\SynEditD.bpl</DCC_DependencyCheckOutputName>
 			<DCC_ImageBase>00400000</DCC_ImageBase>
 			<DCC_Description>SynEdit component suite</DCC_Description>
-			<DCC_TypedAtParameter>true</DCC_TypedAtParameter>
-			<DCC_RangeChecking>true</DCC_RangeChecking>
 			<DesignOnlyPackage>true</DesignOnlyPackage>
-			<DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
 			<GenDll>true</GenDll>
-			<DCC_IntegerOverflowCheck>true</DCC_IntegerOverflowCheck>
-			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
 			<GenPackage>true</GenPackage>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
