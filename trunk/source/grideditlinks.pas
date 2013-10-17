@@ -1515,6 +1515,8 @@ begin
   dt := FTableColumn.Connection.GetDataTypeByName(FCellText);
   CatNode := FTreeSelect.GetFirst;
   while Assigned(CatNode) do begin
+    // Since recent update to VT 5.2.1 we need to initialize root nodes by hand for some reason:
+    FTreeSelect.ReinitNode(CatNode, True);
     if CatNode.Index = Cardinal(dt.Category) then begin
       TypeNode := FTreeSelect.GetFirstChild(CatNode);
       while Assigned(TypeNode) do begin
