@@ -2610,6 +2610,9 @@ var
         FileNames.Add(rx.Match[1])
       else
         AbsentFiles.Add(rx.Match[1]);
+      // Remove match from input string, so the second call to GetFileNames without quotes
+      // does not detect filenames cut at whitespace
+      Delete(CommandLine, rx.MatchPos[1], rx.MatchLen[1]);
       if not rx.ExecNext then
         break;
     end;
