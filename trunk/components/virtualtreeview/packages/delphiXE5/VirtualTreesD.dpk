@@ -1,5 +1,6 @@
 package VirtualTreesD;
 
+{$R *.res}
 {$R '..\..\Resources\VirtualTreesD.dcr'}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
@@ -23,6 +24,7 @@ package VirtualTreesD;
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
+{$DEFINE DEBUG}
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'VirtualTreeView Controls'}
 {$DESIGNONLY}
