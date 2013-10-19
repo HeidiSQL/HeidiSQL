@@ -103,7 +103,7 @@ object connform: Tconnform
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking]
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag, toEditOnClick]
     TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-    TreeOptions.SelectionOptions = [toRightClickSelect]
+    TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
     OnCreateEditor = ListSessionsCreateEditor
     OnDblClick = btnOpenClick
     OnDragOver = ListSessionsDragOver
