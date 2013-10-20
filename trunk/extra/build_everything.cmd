@@ -76,7 +76,7 @@ set mad_dir=%base_dir%\..\madCollection
 set compiler=dcc32.exe
 set params=--no-config
 set params=%params% -DDEBUG -GD
-set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE
+set params=%params% -aWinTypes=Windows;WinProcs=Windows;DbiProcs=BDE;DbiTypes=BDE;DbiErrs=BDE;System.Actions=ActnList
 set params=%params% -B
 set params=%params% -W-SYMBOL_PLATFORM
 set params=%params% -i"%base_dir%\source"
