@@ -81,7 +81,8 @@ type
     FUpDown: TUpDown;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean; NewValue: SmallInt; Direction: TUpDownDirection);
+    procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean;
+      NewValue: {$IF CompilerVersion<26}SmallInt{$ELSE}Integer{$IFEND}; Direction: TUpDownDirection);
     procedure UpDownMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DoOnTimer(Sender: TObject);
     procedure ModifyDate(Offset: Integer);
@@ -634,7 +635,7 @@ end;
 
 
 procedure TDateTimeEditorLink.UpDownChangingEx(Sender: TObject; var AllowChange: Boolean;
-  NewValue: SmallInt; Direction: TUpDownDirection);
+  NewValue: {$IF CompilerVersion<26}SmallInt{$ELSE}Integer{$IFEND}; Direction: TUpDownDirection);
 begin
   if FTimer.Enabled then
     Exit;
