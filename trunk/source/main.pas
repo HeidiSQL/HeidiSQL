@@ -5,8 +5,6 @@ unit Main;
 // Main-window
 // -------------------------------------
 
-{$I compilers.inc}
-
 interface
 
 uses

@@ -227,7 +227,6 @@
 			<RcCompile Include="..\..\res\manifest.rc">
 				<Form>manifest.res</Form>
 			</RcCompile>
-			<None Include="..\..\source\compilers.inc"/>
 			<None Include="..\..\source\const.inc"/>
 			<BuildConfiguration Include="Debug">
 				<Key>Cfg_2</Key>
