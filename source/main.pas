@@ -11733,6 +11733,7 @@ var
   Raw: String;
   Item: TQueryHistoryItem;
 begin
+  inherited Create(TQueryHistoryItemComparer.Create, True);
   AppSettings.SessionPath := SessionPath + '\' + REGKEY_QUERYHISTORY;
   ValueNames := AppSettings.GetValueNames;
   for i:=0 to ValueNames.Count-1 do begin
@@ -11764,7 +11765,7 @@ begin
     end;
   end;
   // Sort by date
-  Sort(TQueryHistoryItemComparer.Create);
+  Sort;
   ValueNames.Free;
   AppSettings.ResetPath;
 end;
