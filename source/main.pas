@@ -6413,12 +6413,12 @@ end;
 
 procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
-  idx: Integer;
+  idx, i: Integer;
   Tabs: TTabSet;
   Rect: TRect;
   Org: TPoint;
   ResultTab: TResultTab;
-  HintSQL: String;
+  HintSQL: TStringList;
 begin
   // Display some hint with row/col count + SQL when mouse hovers over result tab
   if (FLastHintMousepos.X = x) and (FLastHintMousepos.Y = Y) then
@@ -6429,13 +6429,21 @@ begin
   if (idx = -1) or (idx = FLastHintControlIndex) then
     Exit;
   FLastHintControlIndex := idx;
+
+  // Make SQL readable for the tooltip balloon. WrapText() is unsuitable here.
+  // See issue #2014
+  // Also, wee need to work around the awful looking balloon text:
+  // http://qc.embarcadero.com/wc/qcmain.aspx?d=73771
   ResultTab := ActiveQueryTab.ResultTabs[idx];
-  HintSQL := sstr(ResultTab.Results.SQL, SIZE_KB);
-  HintSQL := WrapText(HintSQL, CRLF, ['.',' ',#9,'-',',',';'], 100);
-  HintSQL := Trim(HintSQL);
+  HintSQL := TStringList.Create;
+  HintSQL.Text := Trim(ResultTab.Results.SQL);
+  for i:=0 to HintSQL.Count-1 do begin
+    HintSQL[i] := sstr(HintSQL[i], 100);
+    HintSQL[i] := StringReplace(HintSQL[i], #9, '    ', [rfReplaceAll]);
+  end;
   BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
-    FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF +
-    HintSQL;
+    FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF + CRLF +
+    Trim(sstr(HintSQL.Text, SIZE_KB));
   Rect := Tabs.ItemRect(idx);
   Org := Tabs.ClientOrigin;
   OffsetRect(Rect, Org.X, Org.Y);
