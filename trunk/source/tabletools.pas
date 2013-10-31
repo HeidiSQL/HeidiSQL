@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections,
-  dbconnection, helpers, Menus, gnugettext, DateUtils, SynZip;
+  dbconnection, helpers, Menus, gnugettext, DateUtils, System.Zip;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -525,8 +525,8 @@ var
   DBObj: TDBObject;
   i: Integer;
   Conn: TDBConnection;
-  FileName, FileNameZip: TFileName;
-  ZipWriter: TZipWrite;
+  FileName, FileNameZip, FileNameInZip: TFileName;
+  Zip: TZipFile;
   StartTime: Cardinal;
   LogRow: TStringlist;
 
@@ -676,9 +676,13 @@ begin
       AddNotes('', '', _('Compressing')+'...', '');
       StartTime := GetTickCount;
       FileNameZip := FExportFileName;
-      ZipWriter := TZipWrite.Create(FileNameZip);
-      ZipWriter.AddDeflated(FileName);
-      ZipWriter.Free;
+      if FileExists(FileNameZip) then
+        DeleteFile(FileNameZip);
+      Zip := TZipFile.Create;
+      Zip.Open(FileNameZip, zmWrite);
+      FileNameInZip := ExtractFileName(ChangeFileExt(FileNameZip, '.sql'));
+      Zip.Add(FileName, FileNameInZip);
+      Zip.Close;
       DeleteFile(FileName);
       LogRow := FResults.Last;
       LogRow[2] := _('Compressing done.');
