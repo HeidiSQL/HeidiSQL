@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Generics.Collections, VirtualTrees,
+  Dialogs, StdCtrls, Generics.Collections, VirtualTrees, extra_controls,
   dbconnection, gnugettext;
 
 type
-  TfrmSyncDB = class(TForm)
+  TfrmSyncDB = class(TFormWithSizeGrip)
     treeSource: TVirtualStringTree;
     lblSource: TLabel;
     grpTarget: TGroupBox;
@@ -109,7 +109,6 @@ begin
   Caption := MainForm.actSynchronizeDatabase.Caption;
   TranslateComponent(Self);
   InheritFont(Font);
-  SetWindowSizeGrip(Self.Handle, True);
   FixVT(treeSource);
   FixVT(treeDifferences);
 

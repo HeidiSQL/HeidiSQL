@@ -10,12 +10,12 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections,
+  VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
   dbconnection, helpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
-  TfrmTableTools = class(TForm)
+  TfrmTableTools = class(TFormWithSizeGrip)
     btnCloseOrCancel: TButton;
     pnlTop: TPanel;
     TreeObjects: TVirtualStringTree;
@@ -221,7 +221,6 @@ begin
   comboExportOutputTarget.Text := '';
 
   // Various
-  SetWindowSizeGrip( Self.Handle, True );
   FixVT(TreeObjects);
   FixVT(ResultGrid);
   FResults := TObjectList<TStringList>.Create;

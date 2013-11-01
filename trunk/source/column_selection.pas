@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls,
-  helpers, gnugettext;
+  helpers, gnugettext, extra_controls;
 
 type
-  TColumnSelectionForm = class(TForm)
+  TColumnSelectionForm = class(TFormWithSizeGrip)
     btnCancel: TButton;
     btnOK: TButton;
     chkSelectAll: TCheckBox;
@@ -45,7 +45,6 @@ procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   TranslateComponent(Self);
-  SetWindowSizeGrip(Self.Handle, True);
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
   Height := AppSettings.ReadInt(asColumnSelectorHeight);
 end;

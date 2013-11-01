@@ -10,11 +10,11 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
-  SynRegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math,
+  SynRegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math, extra_controls,
   dbconnection, mysql_structures, gnugettext;
 
 type
-  Tloaddataform = class(TForm)
+  Tloaddataform = class(TFormWithSizeGrip)
     btnImport: TButton;
     btnCancel: TButton;
     lblDatabase: TLabel;
@@ -94,7 +94,6 @@ procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
   InheritFont(Font);
-  SetWindowSizeGrip(Handle, True);
   // Restore settings
   Width := AppSettings.ReadInt(asCSVImportWindowWidth);
   Height := AppSettings.ReadInt(asCSVImportWindowHeight);

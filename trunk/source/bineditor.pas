@@ -4,12 +4,12 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, gnugettext;
+  ComCtrls, ToolWin, Dialogs, SysUtils, gnugettext, extra_controls;
 
 {$I const.inc}
 
 type
-  TfrmBinEditor = class(TForm)
+  TfrmBinEditor = class(TFormWithSizeGrip)
     memoText: TMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
@@ -101,7 +101,6 @@ begin
     btnWrap.Click;
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
-  SetWindowSizeGrip(Handle, True);
   memoText.SelectAll;
   memoText.SetFocus;
   memoTextChange(Sender);

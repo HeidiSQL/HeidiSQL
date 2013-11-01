@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
-  ShellApi, Math, Graphics, ComCtrls, ToolWin,
+  ShellApi, Math, Graphics, ComCtrls, ToolWin, extra_controls,
   dbconnection, mysql_structures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext, helpers;
 
 type
@@ -25,7 +25,7 @@ type
   end;
   PFileInfo = ^TFileInfo;
 
-  TfrmInsertFiles = class(TForm)
+  TfrmInsertFiles = class(TFormWithSizeGrip)
     btnInsert: TButton;
     btnCancel: TButton;
     OpenDialog: TOpenDialog;
@@ -119,7 +119,6 @@ begin
   TranslateComponent(Self);
   ListFiles.Images := GetSystemImageList;
   DragAcceptFiles(Handle, True);
-  SetWindowSizeGrip(Self.Handle, True);
   InheritFont(Font);
   MainForm.RestoreListSetup(ListColumns);
   MainForm.RestoreListSetup(ListFiles);

@@ -5,7 +5,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
-  ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr,
+  ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr, extra_controls,
   dbconnection, helpers, VirtualTrees, Menus, gnugettext;
 
 {$I const.inc}
@@ -40,7 +40,7 @@ type
 
   EInputError = class(Exception);
 
-  TUserManagerForm = class(TForm)
+  TUserManagerForm = class(TFormWithSizeGrip)
     btnCancel: TButton;
     btnSave: TButton;
     pnlLeft: TPanel;
@@ -211,7 +211,6 @@ begin
   Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
   Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
   pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);
-  SetWindowSizeGrip( Self.Handle, True );
   FixVT(listUsers);
   FixVT(treePrivs);
   Mainform.RestoreListSetup(listUsers);

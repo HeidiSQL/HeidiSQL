@@ -40,7 +40,8 @@ uses
   exportgrid in '..\..\source\exportgrid.pas' {frmExportGrid},
   syncdb in '..\..\source\syncdb.pas' {frmSyncDB},
   gnugettext in '..\..\source\gnugettext.pas',
-  JumpList in '..\..\source\JumpList.pas';
+  JumpList in '..\..\source\JumpList.pas',
+	extra_controls in '..\..\source\extra_controls.pas';
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}

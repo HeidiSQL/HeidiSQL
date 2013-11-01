@@ -3,11 +3,11 @@ unit selectdbobject;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, Graphics,
+  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, Graphics, extra_controls,
   dbconnection, gnugettext;
 
 type
-  TfrmSelectDBObject = class(TForm)
+  TfrmSelectDBObject = class(TFormWithSizeGrip)
     TreeDBO: TVirtualStringTree;
     btnOK: TButton;
     btnCancel: TButton;
@@ -65,7 +65,6 @@ begin
   TranslateComponent(Self);
   Width := AppSettings.ReadInt(asSelectDBOWindowWidth);
   Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
-  SetWindowSizeGrip( Self.Handle, True );
   InheritFont(Font);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;
   FixVT(TreeDBO);

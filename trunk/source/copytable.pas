@@ -4,11 +4,11 @@ unit copytable;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
+  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, extra_controls,
   dbconnection, VirtualTrees, SynEdit, SynMemo, Menus, gnugettext;
 
 type
-  TCopyTableForm = class(TForm)
+  TCopyTableForm = class(TFormWithSizeGrip)
     editNewTablename: TEdit;
     lblNewTablename: TLabel;
     btnCancel: TButton;
@@ -71,7 +71,6 @@ begin
   InheritFont(Font);
   Width := AppSettings.ReadInt(asCopyTableWindowWidth);
   Height := AppSettings.ReadInt(asCopyTableWindowHeight);
-  SetWindowSizeGrip(Handle, True);
   MainForm.SetupSynEditors;
   FixVT(TreeElements);
   FColumns := TTableColumnList.Create;
