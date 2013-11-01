@@ -17,7 +17,7 @@ uses
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  JumpList, System.Actions, pngimage;
+  JumpList, System.Actions, System.UITypes, pngimage;
 
 
 type
@@ -1389,15 +1389,13 @@ var
   i, j, MonitorIndex: Integer;
   Bar: TControl;
   ToolButton: TToolButton;
-  datafontname: String;
-  datafontsize : Integer;
   QueryTab: TQueryTab;
   Action: TAction;
   dwInfoSize,           // Size of VERSIONINFO structure
   dwVerSize,            // Size of Version Info Data
   dwWnd: DWORD;         // Handle for the size call.
   FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
-  ptrVerBuf, Translation, Info: Pointer;
+  ptrVerBuf: Pointer;
   DpiScaleFactor: Double;
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
@@ -1451,7 +1449,9 @@ begin
   // Idea taken from http://ruminatedrumblings.blogspot.com/2008/04/detecting-virtualized-environment.html
   NTHandle := LoadLibrary('NTDLL.DLL');
   if NTHandle>32 then
-    wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name');
+    wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name')
+  else
+    wine_nt_to_unix_file_name := nil;
   FIsWine := Assigned(wine_nt_to_unix_file_name);
   FreeLibrary(NTHandle);
 
@@ -3128,7 +3128,7 @@ begin
   end;
 
   if DoRunFiles then begin
-    if (Win32MajorVersion >= 6) and ThemeServices.ThemesEnabled then begin
+    if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
       Dialog := TTaskDialog.Create(Self);
       Dialog.Caption := _('Opening large files');
       Dialog.Text := f_('Selected files have a size of %s', [FormatByteNumber(FilesizeSum, 1)]);
