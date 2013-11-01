@@ -4,13 +4,13 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  dbconnection, mysql_structures, ComCtrls, gnugettext, SynRegExpr;
+  dbconnection, mysql_structures, ComCtrls, gnugettext, SynRegExpr, extra_controls;
 
 type
   TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
   EVariableError = class(Exception);
 
-  TfrmEditVariable = class(TForm)
+  TfrmEditVariable = class(TFormWithSizeGrip)
     btnOK: TButton;
     btnCancel: TButton;
     grpScope: TGroupBox;
@@ -57,7 +57,6 @@ procedure TfrmEditVariable.FormCreate(Sender: TObject);
 begin
   InheritFont(Font);
   TranslateComponent(Self);
-  SetWindowSizeGrip(Handle, True);
   Width := AppSettings.ReadInt(asEditVarWindowWidth);
   Height := AppSettings.ReadInt(asEditVarWindowHeight);
 end;

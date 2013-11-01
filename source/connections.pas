@@ -10,11 +10,11 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX,
+  VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls,
   dbconnection, gnugettext;
 
 type
-  Tconnform = class(TForm)
+  Tconnform = class(TFormWithSizeGrip)
     btnCancel: TButton;
     btnOpen: TButton;
     btnSave: TButton;
@@ -178,7 +178,6 @@ begin
   // Fix GUI stuff
   TranslateComponent(Self);
   InheritFont(Font);
-  SetWindowSizeGrip(Handle, True);
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
   ListSessions.Width := AppSettings.ReadInt(asSessionManagerListWidth);

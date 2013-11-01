@@ -4,12 +4,12 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
-  Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI,
+  Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI, extra_controls,
   SynURIOpener, SynEdit, VirtualTrees, Graphics,
   dbconnection, gnugettext;
 
 type
-  TfrmSQLhelp = class(TForm)
+  TfrmSQLhelp = class(TFormWithSizeGrip)
     URIOpenerDescription: TSynURIOpener;
     URIHighlighter: TSynURISyn;
     URIOpenerExample: TSynURIOpener;
@@ -81,7 +81,6 @@ procedure TfrmSQLhelp.FormCreate(Sender: TObject);
 begin
   // Set window-layout
   InheritFont(Font);
-  SetWindowSizeGrip(Handle, True);
   Top := AppSettings.ReadInt(asSQLHelpWindowTop);
   Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
   Width := AppSettings.ReadInt(asSQLHelpWindowWidth);

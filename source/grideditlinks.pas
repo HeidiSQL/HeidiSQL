@@ -915,9 +915,7 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.ParentBackground := False;
-  FPanel.Width := AppSettings.ReadInt(asSetEditorWidth);
-  FPanel.Height := AppSettings.ReadInt(asSetEditorHeight);
-  SetWindowSizeGrip(FPanel.Handle, True);
+  FPanel.Height := 150;
   FPanel.OnResize := PanelResize;
   FPanel.OnExit := DoEndEdit;
 
@@ -1002,6 +1000,7 @@ begin
   R := GetCellRect(False);
   FPanel.Top := R.Top;
   FPanel.Left := R.Left;
+  FPanel.Width := R.Width;
 
   FBtnOk.Width := (FPanel.Width - 3*margin) div 2;
   FBtnOk.Left := margin;
