@@ -938,8 +938,6 @@ end;
 
 destructor TSetEditorLink.Destroy;
 begin
-  AppSettings.WriteInt(asSetEditorWidth, FPanel.Width);
-  AppSettings.WriteInt(asSetEditorHeight, FPanel.Height);
   FreeAndNil(FPanel);
   inherited;
 end;
