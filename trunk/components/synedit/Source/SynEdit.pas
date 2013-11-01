@@ -1327,6 +1327,7 @@ end;
   // is very hard (impossible) to work with if you want to put more than one
   // format on it at a time.
   RetryCount := 0;
+  Success := False;
   while not Success do
   try
     Clipboard.Open;
