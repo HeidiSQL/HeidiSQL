@@ -13,7 +13,7 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext, Themes,
-  Character, ImgList;
+  Character, ImgList, System.UITypes;
 
 type
 
@@ -2451,7 +2451,7 @@ var
     cap := _(BtnCaption);
     for i:=1 to Length(cap) do begin
       // Auto apply hotkey
-      if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and TCharacter.IsLetter(cap[i]) then begin
+      if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and Character.TCharacter.IsLetter(cap[i]) then begin
         Hotkeys := Hotkeys + LowerCase(cap[i]);
         Insert('&', cap, i);
         break;
@@ -2461,7 +2461,7 @@ var
     Btn.ModalResult := BtnResult;
   end;
 begin
-  if (Win32MajorVersion >= 6) and ThemeServices.ThemesEnabled then begin
+  if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
     // Use modern task dialog on Vista and above
     Dialog := TTaskDialog.Create(nil);
     Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
@@ -2933,7 +2933,7 @@ end;
 
 procedure TSQLBatch.SetSQL(Value: String);
 var
-  i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset, LastNewLineOffset: Integer;
+  i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset: Integer;
   c, n, LastStringEncloser: Char;
   Delim, DelimTest, QueryTest: String;
   InString, InComment, InBigComment, InEscape: Boolean;

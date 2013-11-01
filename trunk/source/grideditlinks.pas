@@ -8,7 +8,7 @@ uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
   dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext,
-  StrUtils;
+  StrUtils, System.UITypes;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -82,7 +82,7 @@ type
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure UpDownChangingEx(Sender: TObject; var AllowChange: Boolean;
-      NewValue: {$IF CompilerVersion<26}SmallInt{$ELSE}Integer{$IFEND}; Direction: TUpDownDirection);
+      NewValue: Integer; Direction: TUpDownDirection);
     procedure UpDownMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure DoOnTimer(Sender: TObject);
     procedure ModifyDate(Offset: Integer);
@@ -635,7 +635,7 @@ end;
 
 
 procedure TDateTimeEditorLink.UpDownChangingEx(Sender: TObject; var AllowChange: Boolean;
-  NewValue: {$IF CompilerVersion<26}SmallInt{$ELSE}Integer{$IFEND}; Direction: TUpDownDirection);
+  NewValue: Integer; Direction: TUpDownDirection);
 begin
   if FTimer.Enabled then
     Exit;

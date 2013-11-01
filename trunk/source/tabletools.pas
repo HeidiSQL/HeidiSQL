@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections,
-  dbconnection, helpers, Menus, gnugettext, DateUtils, System.Zip;
+  dbconnection, helpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
