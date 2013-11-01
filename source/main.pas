@@ -8,7 +8,7 @@ unit Main;
 interface
 
 uses
-  Windows, SysUtils, Classes, GraphicEx, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
+  Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
@@ -17,7 +17,7 @@ uses
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  JumpList, System.Actions;
+  JumpList, System.Actions, pngimage;
 
 
 type
@@ -2759,10 +2759,7 @@ var
   Content, Header: AnsiString;
   ContentStream: TMemoryStream;
   StrLen: Integer;
-  GraphicClass: TGraphicExGraphicClass;
   Graphic: TGraphic;
-  AllExtensions: TStringList;
-  i: Integer;
 begin
   // Load BLOB contents into preview area
   Grid := ActiveGrid;
@@ -2784,32 +2781,22 @@ begin
     ContentStream := TMemoryStream.Create;
     ContentStream.Write(Content[1], StrLen);
     ContentStream.Position := 0;
-    GraphicClass := FileFormatList.GraphicFromContent(ContentStream);
     Graphic := nil;
     ContentStream.Position := 0;
     ImgType := 'UnknownType';
-    if GraphicClass <> nil then begin
-      AllExtensions := TStringList.Create;
-      FileFormatList.GetExtensionList(AllExtensions);
-      for i:=0 to AllExtensions.Count-1 do begin
-        if FileFormatList.GraphicFromExtension(AllExtensions[i]) = GraphicClass then begin
-          ImgType := UpperCase(AllExtensions[i]);
-          break;
-        end;
-      end;
-      Graphic := GraphicClass.Create;
-    end else begin
-      Header := Copy(Content, 1, 50);
-      if Copy(Header, 7, 4) = 'JFIF' then begin
-        ImgType := 'JPEG';
-        Graphic := TJPEGImage.Create;
-      end else if Copy(Header, 1, 3) = 'GIF' then begin
-        ImgType := 'GIF';
-        Graphic := TGIFImage.Create;
-      end else if Copy(Header, 1, 2) = 'BM' then begin
-        ImgType := 'BMP';
-        Graphic := TBitmap.Create;
-      end;
+    Header := Copy(Content, 1, 50);
+    if Copy(Header, 7, 4) = 'JFIF' then begin
+      ImgType := 'JPEG';
+      Graphic := TJPEGImage.Create;
+    end else if Copy(Header, 1, 3) = 'GIF' then begin
+      ImgType := 'GIF';
+      Graphic := TGIFImage.Create;
+    end else if Copy(Header, 1, 2) = 'BM' then begin
+      ImgType := 'BMP';
+      Graphic := TBitmap.Create;
+    end else if Copy(Header, 2, 3) = 'PNG' then begin
+      ImgType := 'PNG';
+      Graphic := TPngImage.Create;
     end;
     if Assigned(Graphic) then begin
       try
