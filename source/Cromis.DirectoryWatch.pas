@@ -42,6 +42,18 @@
  *  - Initial code rewrite from "FnugryDirWatch"
  * 16/01/2010 (1.0.1)
  *  - Refactored the main watch loop
+ * 18/03/2011 (1.1.0)
+ *  - 64 bit compiler compatible
+ *  - Fixed thread termination bug
+ * 12/06/2012 (1.2.0)
+ *  - WaitForFileReady added. Waits until file is free to be used
+ * 11/07/2012 (1.2.1)
+ *  - Close the FChangeEvent handle
+ * 21/07/2012 (1.3.0)
+ *  - Added buffer size property, so that the user can control the size of buffer
+ *  - Added OnError event handler, so user get notified of all errors
+ *  - Check the result of ReadDirectoryChangesW with GetOverlappedResult.
+      This way we can check if buffer overflow happens and trigger an error.
  * ============================================================================
 *)
 
@@ -50,7 +62,7 @@ unit Cromis.DirectoryWatch;
 interface
 
 uses
-   Windows, SysUtils, Classes, Messages;
+   Windows, SysUtils, Classes, Messages, SyncObjs, DateUtils;
 
 const
   FILE_NOTIFY_CHANGE_FILE_NAME   = $00000001;
@@ -64,6 +76,7 @@ const
 
 const
   cShutdownTimeout = 3000;
+  cFileWaitTimeout = 0;
   
 type
   // the filters that control when the watch is triggered
@@ -78,7 +91,11 @@ type
   TFileChangeNotifyEvent = procedure(const Sender: TObject;
                                      const Action: TWatchAction;
                                      const FileName: string
-                                     ) of object;
+                                     ) of Object;
+  TOnError = procedure(const Sender: TObject;
+                       const ErrorCode: Integer;
+                       const ErrorMessage: string
+                       ) of Object;
 
   TDirectoryWatch = class
   private
@@ -86,9 +103,11 @@ type
     FWatchActions : TWatchActions;
     FWatchSubTree : Boolean;
     FWatchThread  : TThread;
+    FBufferSize   : Integer;
     FWndHandle    : HWND;
     FDirectory    : string;
-    FAbortEvent   : Cardinal;
+    FAbortEvent   : THandle;
+    FOnError      : TOnError;
     FOnChange     : TNotifyEvent;
     FOnNotify     : TFileChangeNotifyEvent;
     procedure WatchWndProc(var Msg: TMessage);
@@ -115,11 +134,16 @@ type
     property WatchSubTree: Boolean read FWatchSubTree write SetWatchSubTree;
     property WatchOptions: TWatchOptions read FWatchOptions write SetWatchOptions;
     property WatchActions: TWatchActions read FWatchActions write SetWatchActions;
+    property BufferSize: Integer read FBufferSize write FBufferSize;
     property Directory: string read FDirectory write SetDirectory;
     // notification properties. Notify about internal and exernal changes
     property OnNotify: TFileChangeNotifyEvent read FOnNotify write FOnNotify;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
+    property OnError: TOnError read FOnError write FOnError;
   end;
+
+  // waits for the file to be ready (it is not in use anymore) or timeout occurs
+  procedure WaitForFileReady(const FileName: string; const Timeout: Cardinal = cFileWaitTimeout);
 
 implementation
 
@@ -143,38 +167,61 @@ const
   cErrorInWatchThread = 'Error "%s" in watch thread. Error code: %d';
   cErrorCreateWatchError = 'Error trying to create file handle for "%s". Error code: %d';
 
-const
-  IO_BUFFER_LEN = 32 * SizeOf(TFILE_NOTIFY_INFORMATION);
-  
 type
   TDirWatchThread = class(TThread)
   private
-     FWatchSubTree : Boolean;
-     FAbortEvent   : Cardinal;
-     FChangeEvent  : Cardinal;
-     FWndHandle    : Cardinal;
-     FDirHandle    : Cardinal;
-     FDirectory    : string;
-     FIOResult     : Pointer;
-     FFilter       : Integer;
+    FWatchSubTree : Boolean;
+    FAbortEvent   : THandle;
+    FChangeEvent  : THandle;
+    FBufferSize   : Integer;
+    FWndHandle    : HWND;
+    FDirHandle    : THandle;
+    FDirectory    : string;
+    FIOResult     : Pointer;
+    FFilter       : Integer;
+    procedure SignalError(const ErrorMessage: string; ErrorCode: Cardinal = 0);
   protected
-     procedure Execute; override;
+    procedure Execute; override;
   public
-     constructor Create(const Directory: string;
-                        const WndHandle: Cardinal;
-                        const AbortEvent: Cardinal;
-                        const TypeFilter: Cardinal;
-                        const aWatchSubTree: Boolean);
-     destructor Destroy; override;
+    constructor Create(const Directory: string;
+                       const WndHandle: HWND;
+                       const BufferSize: Integer;
+                       const AbortEvent: THandle;
+                       const TypeFilter: Cardinal;
+                       const aWatchSubTree: Boolean);
+    destructor Destroy; override;
   end;
+
+procedure WaitForFileReady(const FileName: string; const Timeout: Cardinal);
+var
+  hFile: THandle;
+  StartTime: TDateTime;
+begin
+  StartTime := Now;
+
+  // wait to close
+  while (MilliSecondsBetween(Now, StartTime) < Timeout) or (Timeout = 0) do
+  begin
+    hFile := CreateFile(PChar(FileName), GENERIC_READ, 0, nil, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0);
+
+    if hFile <> INVALID_HANDLE_VALUE then
+    begin
+      CloseHandle(hFile);
+      Break;
+    end;
+
+    // wait for file
+    Sleep(50);
+  end;
+end;
 
 procedure TDirWatchThread.Execute;
 var
   NotifyData: PFILE_NOTIFY_INFORMATION;
-  Events: array[0..1] of THandle;
+  Events: array [0..1] of THandle;
+  ErrorMessage: string;
   WaitResult: DWORD;
-  NextEntry: Integer;
-  ErrorMsg: PWideChar;
+  NextEntry: Cardinal;
   FileName: PWideChar;
   Overlap: TOverlapped;
   ResSize: Cardinal;
@@ -188,9 +235,9 @@ begin
 
   while not Terminated do
   try
-    if ReadDirectoryChangesW(FDirHandle, FIOResult, IO_BUFFER_LEN, FWatchSubtree, FFilter, @ResSize, @Overlap, nil) then
+    if ReadDirectoryChangesW(FDirHandle, FIOResult, FBufferSize, FWatchSubtree, FFilter, @ResSize, @Overlap, nil) then
     begin
-      WaitResult := WaitForMultipleObjects(2, @Events[0], FALSE, INFINITE);
+      WaitResult := WaitForMultipleObjects(Length(Events), @Events, FALSE, INFINITE);
 
       // check if we have terminated the thread
       if WaitResult <> WAIT_OBJECT_0 then
@@ -198,39 +245,74 @@ begin
         Terminate;
         Exit;
       end;
-      
+
       if WaitResult = WAIT_OBJECT_0 then
       begin
-        NotifyData := FIOResult;
+        if GetOverlappedResult(FDirHandle, Overlap, ResSize, False) then
+        begin
+          NotifyData := FIOResult;
 
-        repeat
-          NextEntry := NotifyData^.NextEntryOffset;
+          // check overflow
+          if ResSize = 0 then
+          begin
+            ErrorMessage := SysErrorMessage(ERROR_NOTIFY_ENUM_DIR);
+            SignalError(ErrorMessage, ERROR_NOTIFY_ENUM_DIR);
+          end;
 
-          // get memory for filename and fill it with data
-          GetMem(FileName, NotifyData^.FileNameLength + 2);
-          Move(NotifyData^.FileName, Pointer(FileName)^, NotifyData^.FileNameLength);
-          PWord(Cardinal(FileName) + NotifyData^.FileNameLength)^ := 0;
+          repeat
+            NextEntry := NotifyData^.NextEntryOffset;
 
-          // send the message about the filename information and advance to the next entry
-          PostMessage(FWndHandle, WM_DIRWATCH_NOTIFY, NotifyData^.Action, LParam(FileName));
-          Inc(DWORD(NotifyData), NextEntry);
-        until (NextEntry = 0);
+            // get memory for filename and fill it with data
+            GetMem(FileName, NotifyData^.FileNameLength + SizeOf(WideChar));
+            Move(NotifyData^.FileName, Pointer(FileName)^, NotifyData^.FileNameLength);
+            PWord(Cardinal(FileName) + NotifyData^.FileNameLength)^ := 0;
+
+            // send the message about the filename information and advance to the next entry
+            PostMessage(FWndHandle, WM_DIRWATCH_NOTIFY, NotifyData^.Action, LParam(FileName));
+            PByte(NotifyData) := PByte(DWORD(NotifyData) + NextEntry);
+          until (NextEntry = 0);
+        end
+        else
+        begin
+          ErrorMessage := SysErrorMessage(GetLastError);
+          SignalError(ErrorMessage);
+        end;
       end;
+    end
+    else
+    begin
+      ErrorMessage := SysErrorMessage(GetLastError);
+      SignalError(ErrorMessage);
     end;
   except
     on E :Exception do
     begin
-      GetMem(ErrorMsg, Length(E.Message) + 2);
-      Move(E.Message, Pointer(ErrorMsg)^, Length(E.Message));
-      PWord(Cardinal(ErrorMsg) + Cardinal(Length(E.Message)))^ := 0;
-      PostMessage(FWndHandle, WM_DIRWATCH_ERROR, GetLastError, LPARAM(ErrorMsg));
+      ErrorMessage := E.Message;
+      SignalError(ErrorMessage);
     end;
   end;
 end;
 
+procedure TDirWatchThread.SignalError(const ErrorMessage: string; ErrorCode: Cardinal);
+var
+  ErrorMsg: PChar;
+  MessageSize: Integer;
+begin
+  if ErrorCode = 0 then
+    ErrorCode := GetLastError;
+
+  // calculate the size of the error message buffer
+  MessageSize := Length(ErrorMessage) * SizeOf(Char) + SizeOf(WideChar);
+
+  GetMem(ErrorMsg, MessageSize);
+  StrPCopy(ErrorMsg, ErrorMessage);
+  PostMessage(FWndHandle, WM_DIRWATCH_ERROR, ErrorCode, LPARAM(ErrorMsg));
+end;
+
 constructor TDirWatchThread.Create(const Directory: string;
-                                   const WndHandle: Cardinal;
-                                   const AbortEvent: Cardinal;
+                                   const WndHandle: HWND;
+                                   const BufferSize: Integer;
+                                   const AbortEvent: THandle;
                                    const TypeFilter: Cardinal;
                                    const aWatchSubTree: Boolean);
 begin
@@ -258,15 +340,13 @@ begin
    FAbortEvent := AbortEvent;
 
    // allocate the buffer memory
-   GetMem(FIOResult, IO_BUFFER_LEN);
+   FBufferSize := BufferSize * SizeOf(TFILE_NOTIFY_INFORMATION);
+   GetMem(FIOResult, FBufferSize);
 
    FWatchSubTree := aWatchSubtree;
    FWndHandle := WndHandle;
    FDirectory := Directory;
    FFilter := TypeFilter;
-
-   // make sure we free the thread
-   FreeOnTerminate := True;
 
    inherited Create(False);
 end;
@@ -274,6 +354,8 @@ end;
 
 destructor TDirWatchThread.Destroy;
 begin
+   CloseHandle(FChangeEvent);
+
    if FDirHandle <> INVALID_HANDLE_VALUE  then
      CloseHandle(FDirHandle);
    if Assigned(FIOResult) then
@@ -291,6 +373,7 @@ begin
     FAbortEvent := CreateEvent(nil, FALSE, FALSE, nil);
     FWatchThread := TDirWatchThread.Create(Directory,
                                            FWndHandle,
+                                           FBufferSize,
                                            FAbortEvent,
                                            MakeFilter,
                                            WatchSubtree);
@@ -300,21 +383,23 @@ end;
 procedure TDirectoryWatch.ReleaseWatchThread;
 var
   AResult: Cardinal;
+  ThreadHandle: THandle;
 begin
   if FWatchThread <> nil then
   begin
+    ThreadHandle := FWatchThread.Handle;
     // set and close event
     SetEvent(FAbortEvent);
-    CloseHandle(FAbortEvent);
 
     // wait and block until thread is finished
-    AResult := WaitForSingleObject(FWatchThread.Handle, cShutdownTimeout);
+    AResult := WaitForSingleObject(ThreadHandle, cShutdownTimeout);
 
     // check if we timed out
     if AResult = WAIT_TIMEOUT then
-      TerminateThread(FWatchThread.Handle, 0);
+      TerminateThread(ThreadHandle, 0);
 
-    FWatchThread := nil;
+    FreeAndNil(FWatchThread);
+    CloseHandle(FAbortEvent);
   end;
 
 end;
@@ -359,6 +444,7 @@ constructor TDirectoryWatch.Create;
 begin
    FWndHandle := AllocateHWnd(WatchWndProc);
    FWatchSubtree := True;
+   FBufferSize := 32;
 
    // construct the default watch actions and options
    FWatchActions := [waAdded, waRemoved, waModified, waRenamedOld, waRenamedNew];
@@ -423,11 +509,11 @@ begin
      //
      begin
         try
-          ErrorMessage := WideCharToString(PWideChar(Msg.lParam));
+          ErrorMessage := StrPas(PChar(Msg.lParam));
           ErrorCode := Msg.WParam;
-          Stop;
 
-          raise Exception.CreateFmt(cErrorInWatchThread, [ErrorMessage, ErrorCode]);
+          if Assigned(FOnError) then
+            FOnError(Self, ErrorCode, ErrorMessage);
         finally
           if Msg.lParam <> 0 then
             FreeMem(Pointer(Msg.lParam));
