@@ -125,7 +125,6 @@ type
     function EndEdit: Boolean; override;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
     procedure SetBounds(R: TRect); override;
-    procedure PanelResize(Sender: TObject);
   end;
 
   // Inplace editor with button
@@ -916,7 +915,6 @@ begin
   FPanel.Parent := FParentForm;
   FPanel.ParentBackground := False;
   FPanel.Height := 150;
-  FPanel.OnResize := PanelResize;
   FPanel.OnExit := DoEndEdit;
 
   FCheckList := TCheckListBox.Create(FPanel);
@@ -1016,11 +1014,6 @@ begin
   FCheckList.Height := FBtnOk.Top - margin - FCheckList.Top;
 end;
 
-
-procedure TSetEditorLink.PanelResize(Sender: TObject);
-begin
-  SetBounds(FPanel.ClientRect);
-end;
 
 
 { TInplaceEditorLink }
