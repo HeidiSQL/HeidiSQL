@@ -15,7 +15,7 @@ unit gnugettext;
 (*  Contributors: Peter Thornqvist, Troy Wolbrink,            *)
 (*                Frank Andreas de Groot, Igor Siticov,       *)
 (*                Jacques Garcia Vazquez, Igor Gitman,        *)
-(*                Arvid Winkelsdorf                           *)
+(*                Arvid Winkelsdorf, Thomas Mueller           *)
 (*                                                            *)
 (*  See http://dybdahl.dk/dxgettext/ for more information     *)
 (*                                                            *)
@@ -49,63 +49,111 @@ interface
 // Use DefaultInstance.DebugLogToFile() to write the log to a file.
 { $define DXGETTEXTDEBUG}
 
+// ### LO - Workaround aka hack for programs compiled with German Delphi
+//
+// If the current OS Language is not German, immediately add a Delphi RTL domain
+// to the resource domains and bind the text domain to a fixed German->English
+// translation.
+// Using a fixed German->English translation because the OS
+// Language may not be one of the installed translations.
+// Otherwise the German RTL resourcestrings will not be translated.
+// This results in German menu shortcuts 'Strg+', 'Umsch+' instead of
+// 'Ctrl+', 'Shift+' and so on.
+//
+// Since there is no way to automatically determine whether the compiling version
+// is German, you must enable the following conditional define to enable it.
+// Be warned: This has not been thoroughly tested.
+// Default is turned off.
+{.$define dx_German_Delphi_fix}  
+
+// if the conditional dx_SupportsResources is defined the .mo files
+// can also be added to the executable as Windows resources
+// Be warned: This has not been thoroughly tested.
+// Default is turned off.
+{.$define dx_SupportsResources}
+
 {$ifdef VER140}
   // Delphi 6
-  {$DEFINE DELPHI2007OROLDER}
-{$ifdef MSWINDOWS}
-  {$DEFINE DELPHI6OROLDER}
-{$endif}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
 {$endif}
 {$ifdef VER150}
   // Delphi 7
-  {$DEFINE DELPHI2007OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
 {$endif}
 {$ifdef VER160}
   // Delphi 8
-  {$DEFINE DELPHI2007OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
 {$endif}
 {$ifdef VER170}
   // Delphi 2005
-  {$DEFINE DELPHI2007OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
 {$endif}
 {$ifdef VER180}
   // Delphi 2006
-  {$DEFINE DELPHI2007OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
 {$endif}
 {$ifdef VER190}
   // Delphi 2007
-  {$DEFINE DELPHI2007OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
 {$endif}
 {$ifdef VER200}
   // Delphi 2009 with Unicode
-  {$DEFINE DELPHI2009OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
+  {$DEFINE dx_StringList_has_OwnsObjects}
 {$endif}
 {$ifdef VER210}
   // Delphi 2010 with Unicode
-  {$DEFINE DELPHI2010OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
+  {$DEFINE dx_StringList_has_OwnsObjects}
 {$endif}
 {$ifdef VER220}
   // Delphi 2011/XE with Unicode
-  {$DEFINE DELPHI2011OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_Hinstance_is_Integer}
+  {$DEFINE dx_NativeInt_is_Integer}
+  {$DEFINE dx_StringList_has_OwnsObjects}
 {$endif}
 {$ifdef VER230}
   // Delphi 2012/XE2 with Unicode
-  {$DEFINE DELPHI2012OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
 {$endif}
 {$ifdef VER240}
   // Delphi 2013/XE3 with Unicode
-  {$DEFINE DELPHI2013OROLDER}
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
 {$endif}
 
-{$ifdef DELPHI2007OROLDER}
-  {$DEFINE DELPHI2011OROLDER}
-{$endif}
-{$ifdef DELPHI2009OROLDER}
-  {$DEFINE DELPHI2011OROLDER}
-{$endif}
-{$ifdef DELPHI2010OROLDER}
-  {$DEFINE DELPHI2011OROLDER}
-{$endif}
+{$ifdef dx_has_Unsafe_Warnings}
+  {$WARN UNSAFE_TYPE OFF}
+  {$WARN UNSAFE_CODE OFF}
+  {$WARN UNSAFE_CAST OFF}
+{$endif dx_has_Unsafe_Warnings}
 
 uses
 {$ifdef MSWINDOWS}
@@ -116,6 +164,9 @@ uses
   CWString,
 {$endif}
 {$endif}
+{$IFDEF dx_has_WideStrings}
+  WideStrings,
+{$ENDIF dx_has_WideStrings}
   Classes, StrUtils, SysUtils, TypInfo;
 
 (*****************************************************************************)
@@ -240,14 +291,6 @@ procedure HookIntoResourceStrings (enabled:boolean=true; SupportPackages:boolean
 (*                                                                           *)
 (*****************************************************************************)
 
-{$ifdef MSWINDOWS}
-{$ifndef DELPHI6OROLDER}
-{$WARN UNSAFE_TYPE OFF}
-{$WARN UNSAFE_CODE OFF}
-{$WARN UNSAFE_CAST OFF}
-{$endif}
-{$endif}
-
 type
   TOnDebugLine = Procedure (Sender: TObject; const Line: String; var Discard: Boolean) of Object;  // Set Discard to false if output should still go to ordinary debug log
   TGetPluralForm=function (Number:Longint):Integer;
@@ -265,7 +308,8 @@ type
       Users:Integer; /// Reference count. If it reaches zero, this object should be destroyed.
       constructor Create (const filename: FilenameString;
                           const Offset: int64; Size: int64;
-                          const xUseMemoryMappedFiles: Boolean);
+                          const xUseMemoryMappedFiles: Boolean;
+                          const ResName: string);
       destructor Destroy; override;
       function gettext(const msgid: RawUtf8String;var found:boolean): RawUtf8String; // uses mo file and utf-8
       property isSwappedArchitecture:boolean read doswap;
@@ -398,6 +442,9 @@ type
       procedure UnregisterWhenNewLanguageListener(Listener: IGnuGettextInstanceWhenNewLanguageListener);
     protected
       procedure TranslateStrings (sl:TStrings;const TextDomain:DomainString);
+      {$IFDEF dx_has_WideStrings}
+      procedure TranslateWideStrings (sl: TWideStrings;const TextDomain:DomainString);
+      {$ENDIF dx_has_WideStrings}
 
       // Override these three, if you want to inherited from this class
       // to create a new class that handles other domain and language dependent
@@ -484,6 +531,13 @@ type
     class
       offset,size:int64;
     end;
+{$IFDEF dx_SupportsResources}
+  TResourceFileInfo = class
+  public
+    ResourceName: string;
+    constructor Create(const _ResourceName: string);
+  end;
+{$ENDIF dx_SupportsResources}
   TFileLocator=
     class // This class finds files even when embedded inside executable
       constructor Create;
@@ -496,6 +550,9 @@ type
     private
       basedirectory:FilenameString;
       filelist:TStringList; //Objects are TEmbeddedFileInfo. Filenames are relative to .exe file
+{$IFDEF dx_SupportsResources}
+      FResourceList: TStringList; // Objects are TResourceFileInfo, Filenames are relative to .exe file
+{$ENDIF dx_SupportsResources}
       MoFilesCS:TMultiReadExclusiveWriteSynchronizer;
       MoFiles:TStringList; // Objects are filenames+offset, objects are TMoFile
       function ReadInt64 (str:TStream):int64;
@@ -950,25 +1007,18 @@ begin
   DefaultInstance.UseLanguage(LanguageCode);
 end;
 
-// Delphi6: use integer (does not know NativeInt)
-// Delphi7: use integer (knows NativeInt, but it's not documented)
-// Delphi2005: use integer (knows NativeInt, but it's not documented)
-// Delphi2006: use integer (knows NativeInt, but it's not documented)
-// Delphi2007: use integer (knows NativeInt, but it's not documented)
-// Delphi2009: use integer (knows NativeInt, but it's not documented but mentioned where constants are documented)
-// Delphi2010: use integer (knows NativeInt and it's documented)
-// Delphi2011/XE: use integer (knows NativeInt and it's documented)
-// Delphi2012/XE2: use nativeint
-// DelphiX2013/XE3: use nativeint
-
 type
-{$IFDEF DELPHI2011OROLDER}
+{$ifdef dx_Hinstance_is_Integer}
   THInstanceType = Integer;
-  TNativeInt = Integer;
-{$ELSE}
+{$else dx_Hinstance_is_Integer}
   THInstanceType = NativeInt;
+{$endif dx_Hinstance_is_Integer}
+
+{$ifdef dx_NativeInt_is_Integer}
+  TNativeInt = Integer;
+{$else dx_NativeInt_is_Integer}
   TNativeInt= NativeInt;
-{$ENDIF}
+{$endif dx_NativeInt_is_Integer}
 
 type
   PStrData = ^TStrData;
@@ -1820,10 +1870,14 @@ begin
             tkString, tkLString :
               old := GetStrProp(AnObject, PropName);
             tkWString :
-              old := GetWideStrProp(AnObject, PropName);
+              old :=
+                {$IFDEF dx_GetStrProp_reads_unicode}GetStrProp{$ELSE}GetWideStrProp{$ENDIF}
+                  (AnObject, PropName);
             {$IFDEF UNICODE}
             tkUString :
-              old := GetUnicodeStrProp(AnObject, PropName);
+              old :=
+                {$IFDEF dx_GetStrProp_reads_unicode}GetStrProp{$ELSE}GetUnicodeStrProp{$ENDIF}
+                  (AnObject, PropName);
             {$ENDIF}
           else
             raise Exception.Create ('Internal error: Illegal property type. This problem needs to be solved by a programmer, try to find a workaround.');
@@ -1895,11 +1949,11 @@ begin
   DebugWriteln ('----------------------------------------------------------------------');
   DebugWriteln ('TranslateProperties() was called for an object of class '+AnObject.ClassName+' with domain "'+textdomain+'".');
   {$endif}
+
+  if textdomain='' then
+    textdomain:=curmsgdomain;
   if TP_Retranslator<>nil then
-    if textdomain = '' then
-      (TP_Retranslator as TTP_Retranslator).TextDomain:=curmsgdomain
-    else
-      (TP_Retranslator as TTP_Retranslator).TextDomain:=textdomain;
+    (TP_Retranslator as TTP_Retranslator).TextDomain:=textdomain;
   {$ifdef FPC}
   DoneList:=TCSStringList.Create;
   TodoList:=TCSStringList.Create;
@@ -2001,6 +2055,13 @@ begin
           if Count<>0 then
             FreeMem (PropList);
         end;
+        {$IFDEF dx_has_WideStrings}
+        if AnObject is TWideStrings then begin
+          if ((AnObject as TWideStrings).Text<>'') and (TP_Retranslator<>nil) then
+            (TP_Retranslator as TTP_Retranslator).Remember(AnObject, 'Text', (AnObject as TWideStrings).Text);
+          TranslateWideStrings (AnObject as TWideStrings,TextDomain);
+        end;
+        {$ENDIF dx_has_WideStrings}
         if AnObject is TStrings then begin
           if ((AnObject as TStrings).Text<>'') and (TP_Retranslator<>nil) then
             (TP_Retranslator as TTP_Retranslator).Remember(AnObject, 'Text', (AnObject as TStrings).Text);
@@ -2114,24 +2175,24 @@ var
   line: string;
   i: integer;
   s:TStringList;
-  {$ifdef DELPHI2009OROLDER}
+  {$ifdef dx_StringList_has_OwnsObjects}
   slAsTStringList:TStringList;
   originalOwnsObjects: Boolean;
-  {$endif}
+  {$endif dx_StringList_has_OwnsObjects}
 begin
   if sl.Count > 0 then begin
-    // From D2009 onward, the TStringList class has a OwnsObjects property, just like
-    // TObjectList has. This means that when we will be calling Clear on the given
+    {$ifdef dx_StringList_has_OwnsObjects}
+    // From D2009 onward, the TStringList class has an OwnsObjects property, just like
+    // TObjectList has. This means that if we call Clear on the given
     // list in the sl parameter, we could destroy the objects it contains.
     // To avoid this we must disable OwnsObjects while we replace the strings, but
     // only if sl is a TStringList instance and if using Delphi 2009 or upper.
-    {$ifdef DELPHI2009OROLDER}
     originalOwnsObjects := False; // avoid warning
     if sl is TStringList then
       slAsTStringList := TStringList(sl)
     else
       slAsTStringList := nil;
-    {$endif}
+    {$endif dx_StringList_has_OwnsObjects}
 
     sl.BeginUpdate;
     try
@@ -2150,21 +2211,21 @@ begin
               s.Strings[i]:=dgettext(TextDomain,line);
         end;
 
-        {$ifdef DELPHI2009OROLDER}
+        {$ifdef dx_StringList_has_OwnsObjects}
         if Assigned(slAsTStringList) then begin
           originalOwnsObjects := slAsTStringList.OwnsObjects;
           slAsTStringList.OwnsObjects := False;
         end;
-        {$endif}
+        {$endif dx_StringList_has_OwnsObjects}
         try
           // same here, we don't want to modify the properties of the orignal string list
           sl.Clear;
           sl.AddStrings(s);
         finally
-          {$ifdef DELPHI2009OROLDER}
+          {$ifdef dx_StringList_has_OwnsObjects}
           if Assigned(slAsTStringList) then
             slAsTStringList.OwnsObjects := originalOwnsObjects;
-          {$endif}
+          {$endif dx_StringList_has_OwnsObjects}
         end;
       finally
         FreeAndNil (s);
@@ -2174,6 +2235,75 @@ begin
     end;
   end;
 end;
+
+{$IFDEF dx_has_WideStrings}
+procedure TGnuGettextInstance.TranslateWideStrings(sl: TWideStrings;
+  const TextDomain: DomainString);
+var
+  line: string;
+  i: integer;
+  s:TWideStringList;
+  {$ifdef dx_StringList_has_OwnsObjects}
+  slAsTStringList:TWideStringList;
+  originalOwnsObjects: Boolean;
+  {$endif dx_StringList_has_OwnsObjects}
+begin
+  if sl.Count > 0 then begin
+    {$ifdef dx_StringList_has_OwnsObjects}
+    // From D2009 onward, the TStringList class has a OwnsObjects property, just like
+    // TObjectList has. This means that if we call Clear on the given
+    // list in the sl parameter, we could destroy the objects it contains.
+    // To avoid this we must disable OwnsObjects while we replace the strings, but
+    // only if sl is a TStringList instance and if using Delphi 2009 or upper.
+    originalOwnsObjects := False; // avoid warning
+    if sl is TWideStringList then
+      slAsTStringList := TWideStringList(sl)
+    else
+      slAsTStringList := nil;
+    {$endif dx_StringList_has_OwnsObjects}
+
+    sl.BeginUpdate;
+    try
+      s := TWideStringList.Create;
+      try
+        // don't use Assign here as it will propagate the Sorted property (among others)
+        // in versions of Delphi from Delphi XE ownard
+        s.AddStrings(sl);
+
+        for i:=0 to s.Count-1 do begin
+          line := s.Strings[i];
+          if line<>'' then
+            if TextDomain = '' then
+              s.Strings[i] := ComponentGettext(line)
+            else
+              s.Strings[i] := dgettext(TextDomain,line);
+        end;
+
+        {$ifdef dx_StringList_has_OwnsObjects}
+        if Assigned(slAsTStringList) then begin
+          originalOwnsObjects := slAsTStringList.OwnsObjects;
+          slAsTStringList.OwnsObjects := False;
+        end;
+        {$endif dx_StringList_has_OwnsObjects}
+        try
+          // same here, we don't want to modify the properties of the orignal string list
+          sl.Clear;
+          sl.AddStrings(s);
+        finally
+          {$ifdef dx_StringList_has_OwnsObjects}
+          if Assigned(slAsTStringList) then
+            slAsTStringList.OwnsObjects := originalOwnsObjects;
+          {$endif dx_StringList_has_OwnsObjects}
+        end;
+      finally
+        FreeAndNil (s);
+      end;
+    finally
+      sl.EndUpdate;
+    end;
+  end;
+end;
+{$ENDIF dx_has_WideStrings}
 
 function TGnuGettextInstance.GetTranslatorNameAndEmail: TranslatedUnicodeString;
 begin
@@ -2815,15 +2945,36 @@ begin
   filelist.CaseSensitive:=False;
   {$endif}
   filelist.Sorted:=True;
+{$IFDEF dx_SupportsResources}
+  FResourceList := TStringList.Create;
+  FResourceList.Duplicates := dupError;
+  FResourceList.CaseSensitive := False;
+  FResourceList.Sorted := True;
+{$ENDIF dx_SupportsResources}
 end;
 
 destructor TFileLocator.Destroy;
+var
+  Idx: integer;
 begin
-  while filelist.count<>0 do begin
-    filelist.Objects[0].Free;
-    filelist.Delete (0);
+{$IFDEF dx_SupportsResources}
+  if Assigned(FResourceList) then begin
+    while FResourceList.Count > 0 do begin
+      Idx := FResourceList.Count - 1;
+      FResourceList.Objects[Idx].Free;
+      FResourceList.Delete(Idx);
+    end;
+    FreeAndNil(FResourceList);
+  end;
+{$ENDIF dx_SupportsResources}
+
+  while filelist.count > 0 do begin
+    Idx := filelist.Count - 1;
+    filelist.Objects[Idx].Free;
+    filelist.Delete (Idx);
   end;
   FreeAndNil (filelist);
+
   FreeAndNil (MoFiles);
   FreeAndNil (MoFilesCS);
   inherited;
@@ -2832,12 +2983,33 @@ end;
 function TFileLocator.FileExists(filename: FilenameString): boolean;
 var
   idx:integer;
+{$IFDEF dx_SupportsResources}
+  ResName: string;
+  HResInfo: HRSRC;
+{$ENDIF dx_SupportsResources}
 begin
   if LeftStr(filename,length(basedirectory))=basedirectory then begin
     // Cut off basedirectory if the file is located beneath that base directory
     filename:=MidStr(filename,length(basedirectory)+1,maxint);
   end;
   Result:=filelist.Find(filename,idx);
+
+{$IFDEF dx_SupportsResources}
+  if not Result then begin
+    Result := FResourceList.Find(filename, Idx);
+    if not Result then begin
+      ResName := UpperCase(filename);
+      ResName := StringReplace(ResName,  '/', '_', [rfReplaceAll]);
+      ResName := StringReplace(ResName,  '\', '_', [rfReplaceAll]);
+      ResName := StringReplace(ResName, '_LC_MESSAGES_', '_', [rfReplaceAll]);
+      ResName := StringReplace(ResName, '.MO', '', [rfReplaceAll]);
+      HResInfo := FindResource(hInstance, PChar(ResName), RT_RCDATA);
+      Result := (HResInfo <> 0);
+      if Result then
+        FResourceList.AddObject(filename, TResourceFileInfo.Create(ResName));
+    end;
+  end;
+{$ENDIF dx_SupportsResources}
 end;
 
 function TFileLocator.GetMoFile(filename: FilenameString; DebugLogger:TDebugLogger): TMoFile;
@@ -2847,10 +3019,12 @@ var
   idxname:FilenameString;
   Offset, Size: Int64;
   realfilename:FilenameString;
+  ResName: string;
 begin
   // Find real filename
   offset:=0;
   size:=0;
+  Resname := '';
   realfilename:=filename;
   if LeftStr(filename,length(basedirectory))=basedirectory then begin
     filename:=MidStr(filename,length(basedirectory)+1,maxint);
@@ -2863,7 +3037,19 @@ begin
       {$ifdef DXGETTEXTDEBUG}
       DebugLogger ('Instead of '+filename+', using '+realfilename+' from offset '+IntTostr(offset)+', size '+IntToStr(size));
       {$endif}
+    end
+{$IFDEF dx_SupportsResources}
+    else begin
+      Idx := FResourceList.IndexOf(filename);
+      if Idx <> -1 then begin
+        realfilename := ExecutableFilename;
+        ResName := (FResourceList.Objects[Idx] as TResourceFileInfo).ResourceName;
+  {$ifdef DXGETTEXTDEBUG}
+      DebugLogger ('Instead of '+filename+', using resource '+ResName+' from '+realfilename);
+  {$endif}
+      end;
     end;
+{$ENDIF dx_SupportsResources}
   end;
 
 
@@ -2874,11 +3060,16 @@ begin
   // Find TMoFile object
   MoFilesCS.BeginWrite;
   try
-    idxname:=realfilename+' //\\ '+IntToStr(offset);
+{$IFDEF dx_SupportsResources}
+    if ResName <> '' then begin
+      idxname := realfilename + ' //\\ ' + ResName;
+    end else
+{$ENDIF dx_SupportsResources}
+      idxname:=realfilename+' //\\ '+IntToStr(offset);
     if MoFiles.Find(idxname, idx) then begin
       Result:=MoFiles.Objects[idx] as TMoFile;
     end else begin
-      Result:=TMoFile.Create (realfilename, Offset, Size, UseMemoryMappedFiles);
+      Result:=TMoFile.Create (realfilename, Offset, Size, UseMemoryMappedFiles, ResName);
       MoFiles.AddObject(idxname, Result);
     end;
     Inc (Result.Users);
@@ -3153,11 +3344,12 @@ end;
 
 constructor TMoFile.Create(const filename: FilenameString;
                            const Offset: int64; Size: int64;
-                           const xUseMemoryMappedFiles: Boolean);
+                           const xUseMemoryMappedFiles: Boolean;
+                           const ResName: string);
 var
   i:cardinal;
   nn:integer;
-  mofile:TFileStream;
+  mofile:TStream;
 begin
   if sizeof(i) <> 4 then
     raise EGGProgrammingError.Create('TDomain in gnugettext is written for an architecture that has 32 bit integers.');
@@ -3170,6 +3362,20 @@ begin
   FUseMemoryMappedFiles := False;
   {$endif}
 
+{$IFDEF dx_SupportsResources}
+  if ResName <> '' then begin
+    // Read the whole file into memory
+    mofile:=TResourceStream.Create(HInstance, ResName, RT_RCDATA);
+    try
+      size := mofile.Size;
+      Getmem (momemoryHandle, size);
+      momemory := momemoryHandle;
+      mofile.ReadBuffer(momemory^, size);
+    finally
+      FreeAndNil(mofile);
+    end;
+  end else
+{$endif dx_SupportsResources}
   if FUseMemoryMappedFiles then
   begin
     // Map the mo file into memory and let the operating system decide how to cache
@@ -3308,8 +3514,50 @@ begin
   end;
 end;
 
+{$ifdef dx_German_Delphi_fix}  
+  // ### LO - Workaround for programs compiled with German Delphi
+  //
+  // If the current OS Language is not German, immediately add a Delphi RTL domain
+  // to the resource domains and bind the text domain to a fixed German->English
+  // translation.
+  // Using a fixed German->English translation because the OS
+  // Language may not be one of the installed translations.
+  // Otherwise the German RTL resourcestrings will not be translated.
+  // This results in German menu shortcuts 'Strg+', 'Umsch+' instead of
+  // 'Ctrl+', 'Shift+' and so on.
+ 
+procedure CheckForGermanDelphi;
+const
+  DefaultRTLDomain = 'delphi'; // German to English translation of Delphi RTL strings
+  DefaultShortcuts = 'shortcuts'; // German to English translation of ressource strings
+
+  procedure AddAndBindDomain(szDomain: DomainString);
+  begin
+    AddDomainForResourceString(szDomain);
+    with DefaultInstance do
+      bindtextdomainToFile(szDomain, DefaultDomainDirectory + '\' + szDomain + '.mo');
+  end;
+
+begin
+  if not AnsiStartsText('de', GetCurrentLanguage) then begin
+    AddAndBindDomain(DefaultShortcuts);
+    AddAndBindDomain(DefaultRTLDomain);
+  end;
+end;
+{$endif dx_German_Delphi_fix}
+
 var
   param0:string;
+
+{$IFDEF dx_SupportsResources}
+{ TResourceFileInfo }
+
+constructor TResourceFileInfo.Create(const _ResourceName: string);
+begin
+  inherited Create;
+  ResourceName := _ResourceName;
+end;
+{$ENDIF dx_SupportsResources}
 
 initialization
   {$ifdef DXGETTEXTDEBUG}
@@ -3366,6 +3614,10 @@ initialization
   if (param0<>'delphi32.exe') and (param0<>'kylix') and (param0<>'bds.exe') then
     HookIntoResourceStrings (AutoCreateHooks,false);
   param0:='';
+
+{$ifdef dx_German_Delphi_fix}  
+  CheckForGermanDelphi;
+{$endif dx_German_Delphi_fix} 
 
 finalization
   FreeAndNil (DefaultInstance);
