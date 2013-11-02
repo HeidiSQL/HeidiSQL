@@ -5998,6 +5998,7 @@ var
   CellFocused, InDataGrid, HasNullValue, HasNotNullValue: Boolean;
   RowNumber: PCardinal;
   Node: PVirtualNode;
+  OldDataLocalNumberFormat: Boolean;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
@@ -6029,6 +6030,8 @@ begin
   Node := Grid.GetFirstSelected;
   HasNullValue := False;
   HasNotNullValue := False;
+  OldDataLocalNumberFormat := DataLocalNumberFormat;
+  DataLocalNumberFormat := False;
   while Assigned(Node) do begin
     AnyGridEnsureFullRow(Grid, Node);
     RowNumber := Grid.GetNodeData(Node);
@@ -6050,6 +6053,7 @@ begin
     if Length(QF1.Hint) > SIZE_MB then
       Break;
   end;
+  DataLocalNumberFormat := OldDataLocalNumberFormat;
   if HasNotNullValue then begin
     QF1.Hint := Col + ' IN (' + Copy(QF1.Hint, 1, Length(QF1.Hint)-2) + ')';
     QF2.Hint := Col + ' NOT IN (' + Copy(QF2.Hint, 1, Length(QF2.Hint)-2) + ')';
