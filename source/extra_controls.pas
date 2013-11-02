@@ -3,7 +3,7 @@ unit extra_controls;
 interface
 
 uses
-  Classes, SysUtils, Forms, Windows, Messages;
+  Classes, SysUtils, Forms, Windows, Messages, System.Types;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
