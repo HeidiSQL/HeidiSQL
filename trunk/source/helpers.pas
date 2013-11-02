@@ -12,8 +12,8 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, mysql_structures, SynMemo, Menus, WinInet, synacode, gnugettext, Themes,
-  Character, ImgList, System.UITypes;
+  dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
+  Character, ImgList, System.UITypes, IdUri;
 
 type
 
@@ -240,7 +240,7 @@ type
   function decrypt(str: String): String;
   function HTMLSpecialChars(str: String): String;
   function BestTableName(Data: TDBQuery): String;
-  function EncodeURLElementUnicode(const Value: String): String;
+  function EncodeURLParam(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
   function MakeInt( Str: String ) : Int64;
@@ -492,10 +492,10 @@ begin
 end;
 
 
-function EncodeURLElementUnicode(const Value: String): String;
+function EncodeURLParam(const Value: String): String;
 begin
-  // Unicode String version of synacode.pas:EncodeURLElement
-  Result := String(EncodeURLElement(UTF8Encode(Value)));
+  // Encode critical chars in url parameter
+  Result := TIdUri.ParamsEncode(Value);
 end;
 
 
@@ -2342,7 +2342,7 @@ begin
       mtWarning:      Dialog.MainIcon := tdiWarning;
       mtError: begin
         Dialog.MainIcon := tdiError;
-        Dialog.FooterText := '<a href="http://www.google.com/search?q='+EncodeURLElementUnicode(Copy(Msg, 1, 1000))+'">'+_('Find some help on this error')+'</a>';
+        Dialog.FooterText := '<a href="http://www.google.com/search?q='+EncodeURLParam(Copy(Msg, 1, 1000))+'">'+_('Find some help on this error')+'</a>';
         Dialog.FooterIcon := tdiInformation;
       end;
       mtInformation:  Dialog.MainIcon := tdiInformation;
