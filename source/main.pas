@@ -2264,7 +2264,7 @@ begin
     place := 'updatecheck'
   else
     place := 'main';
-  ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLElementUnicode(place));
+  ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
 end;
 
 
@@ -11447,7 +11447,7 @@ begin
       //   = 2 : Valid donator
       rx := TRegExpr.Create;
       CheckWebpage := THttpDownload.Create(MainForm);
-      CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLElementUnicode(Email);
+      CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email);
       CheckWebpage.TimeOut := 3;
       TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
       try

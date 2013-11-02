@@ -106,8 +106,8 @@ Former development contributors: David Dindorp, Francisco Ernesto Teixeira
 
 Sven Lorenz (graphics), Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL),
 Mathias Rauen (madExcept), Maël Hörz (SynEdit, MPL), Serhiy Perevoznyk (JumpList),
-Jordan Russell (Inno Setup), Lukas Gebauer (Ararat Synapse), Iztok Kacin
-(Cromis.DirectoryWatch, BSD License), Mark James (Silk icons, Creative Commons 2.5)
+Jordan Russell (Inno Setup), Iztok Kacin (Cromis.DirectoryWatch, BSD License),
+Mark James (Silk icons, Creative Commons 2.5)
 
 Thanks to Transifex.com for a free translation account, and the following translators:
 David Rodrigues (initiator and Portuguese), Richard van Laak (Dutch),
