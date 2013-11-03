@@ -6835,9 +6835,6 @@ procedure TMainForm.AnyGridGetHint(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var LineBreakStyle:
     TVTTooltipLineBreakStyle; var HintText: String);
 var
-  r : TRect;
-  DisplayedWidth,
-  NeededWidth : Integer;
   Tree: TVirtualStringTree;
 begin
   // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
