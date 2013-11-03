@@ -404,7 +404,10 @@ begin
     Exit;
 
   CreateInRoot := (Sender = menuNewSessionInRoot) or (Sender = menuNewFolderInRoot);
-  ParentSess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+  if Assigned(ListSessions.FocusedNode) then
+    ParentSess := ListSessions.GetNodeData(ListSessions.FocusedNode)
+  else
+    ParentSess := nil;
   if CreateInRoot then
     ParentNode := nil
   else begin
