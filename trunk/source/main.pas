@@ -6846,13 +6846,6 @@ begin
     HintText := Tree.Text[Node, Column];
     HintText := sstr(HintText, SIZE_KB);
     LineBreakStyle := hlbForceMultiLine;
-    // Check if the list has shortened the text
-    r := Tree.GetDisplayRect(Node, Column, True);
-    DisplayedWidth := r.Right-r.Left;
-    NeededWidth := Canvas.TextWidth(HintText) + Tree.TextMargin*2;
-    // Disable displaying hint if text is displayed completely in list
-    if NeededWidth <= DisplayedWidth then
-      HintText := '';
   end;
 end;
 
