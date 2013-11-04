@@ -290,14 +290,13 @@ begin
   comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
 
-  // Restore output option. Use Server preselection in tmSQLExport mode only, to avoid
-  // unwanted connects in other modes.
+  // Restore output option. Avoid server preselection to avoid unwanted connects.
+  // See issue #3411
   idx := AppSettings.ReadInt(asExportSQLOutput);
-  if (idx = -1) or (idx >= comboExportOutputType.Items.Count) then
-    idx := 0;
-  if (copy(comboExportOutputType.Items[idx], 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER)
-    and (ToolMode <> tmSQLExport) then
-    idx := 0;
+  if (idx = -1)
+    or (idx >= comboExportOutputType.Items.Count)
+    or (copy(comboExportOutputType.Items[idx], 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER)
+    then idx := 0;
   comboExportOutputType.ItemIndex := idx;
   comboExportOutputType.OnChange(Sender);
 
