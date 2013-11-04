@@ -13,7 +13,7 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
-  Character, ImgList, System.UITypes, IdUri;
+  Character, ImgList, System.UITypes;
 
 type
 
@@ -493,9 +493,20 @@ end;
 
 
 function EncodeURLParam(const Value: String): String;
+var
+  i: Integer;
+  c: Char;
+const
+  UnsafeChars: String = '*<>#%"{}|\^[]`?&+';
 begin
   // Encode critical chars in url parameter
-  Result := TIdUri.ParamsEncode(Value);
+  Result := '';
+  for c in Value do begin
+    if (Pos(c, UnsafeChars)>0) or (Ord(c) < 33) or (Ord(c) > 128) then
+      Result := Result + '%'+IntToHex(Ord(c), 2)
+    else
+      Result := Result + c;
+  end;
 end;
 
 
