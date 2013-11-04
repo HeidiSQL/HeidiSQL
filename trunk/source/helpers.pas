@@ -494,7 +494,6 @@ end;
 
 function EncodeURLParam(const Value: String): String;
 var
-  i: Integer;
   c: Char;
 const
   UnsafeChars: String = '*<>#%"{}|\^[]`?&+';
