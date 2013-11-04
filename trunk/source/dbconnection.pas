@@ -1088,7 +1088,7 @@ begin
       ntMySQL_SSHtunnel: begin
         // Build plink.exe command line
         // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-        PlinkCmd := FParameters.SSHPlinkExe + ' -ssh ';
+        PlinkCmd := '"'+FParameters.SSHPlinkExe + '" -ssh ';
         if FParameters.SSHUser <> '' then
           PlinkCmd := PlinkCmd + FParameters.SSHUser + '@';
         if FParameters.SSHHost <> '' then
