@@ -16,7 +16,6 @@ type
     lblStatus: TLabel;
     memoRelease: TMemo;
     memoBuild: TMemo;
-    imgDonate: TImage;
     procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
     procedure btnReleaseClick(Sender: TObject);
@@ -57,8 +56,6 @@ begin
   AutoClose := False;
   InheritFont(Font);
   TranslateComponent(Self);
-  imgDonate.OnClick := MainForm.imgDonate.OnClick;
-  imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
 end;
 
 {**

@@ -2260,8 +2260,6 @@ begin
   Dialog := (Sender as TImage).Parent;
   if Dialog is TAboutBox then
     place := 'about'
-  else if Dialog is TfrmUpdateCheck then
-    place := 'updatecheck'
   else
     place := 'main';
   ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
