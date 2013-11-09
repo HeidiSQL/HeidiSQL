@@ -120,13 +120,13 @@ type
 
   TMainForm = class(TForm)
     MainMenu1: TMainMenu;
-    File1: TMenuItem;
+    MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
-    Help1: TMenuItem;
+    MainMenuHelp: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
     menuAbout: TMenuItem;
-    Edit1: TMenuItem;
+    MainMenuEdit: TMenuItem;
     CopyItem: TMenuItem;
     PasteItem: TMenuItem;
     StatusBar: TStatusBar;
@@ -135,7 +135,7 @@ type
     actPaste: TAction;
     actNewWindow: TAction;
     actExitApplication: TAction;
-    Extra1: TMenuItem;
+    MainMenuTools: TMenuItem;
     FlushUserPrivileges1: TMenuItem;
     N5: TMenuItem;
     Flush1: TMenuItem;
@@ -155,8 +155,6 @@ type
     menuMaintenance: TMenuItem;
     actPrintList: TAction;
     actCopyTable: TAction;
-    ControlBar1: TControlBar;
-    ToolBarStandard: TToolBar;
     ToolButton9: TToolButton;
     tlbSep1: TToolButton;
     ToolButton5: TToolButton;
@@ -167,7 +165,6 @@ type
     ButtonImportTextfile: TToolButton;
     ButtonExport: TToolButton;
     ButtonUserManager: TToolButton;
-    ToolBarData: TToolBar;
     actUndo: TEditUndo;
     ToolButton14: TToolButton;
     actExecuteQuery: TAction;
@@ -237,7 +234,6 @@ type
     actQueryWordWrap: TAction;
     actQueryFind: TAction;
     actQueryReplace: TAction;
-    ToolBarQuery: TToolBar;
     btnExecuteQuery: TToolButton;
     btnLoadSQL: TToolButton;
     btnSaveSQL: TToolButton;
@@ -481,7 +477,7 @@ type
     actBlobAsText: TAction;
     btnBlobAsText: TToolButton;
     actQueryFindAgain: TAction;
-    Search1: TMenuItem;
+    MainMenuSearch: TMenuItem;
     Findtext1: TMenuItem;
     actQueryFindAgain1: TMenuItem;
     Replacetext1: TMenuItem;
@@ -566,12 +562,22 @@ type
     N2: TMenuItem;
     Save1: TMenuItem;
     Saveassnippet1: TMenuItem;
-    imgDonate: TImage;
     ToolBarTree: TToolBar;
     editDatabaseFilter: TButtonedEdit;
     editTableFilter: TButtonedEdit;
     btnTreeFavorites: TToolButton;
     actFavoriteObjectsOnly: TAction;
+    CoolBarMainMenu: TCoolBar;
+    ToolBarMainMenu: TToolBar;
+    ToolBarMainButtons: TToolBar;
+    pnlMainMenu: TPanel;
+    btnFile: TToolButton;
+    btnEdit: TToolButton;
+    btnSearch: TToolButton;
+    btnTools: TToolButton;
+    btnHelp: TToolButton;
+    lblDonate: TLabel;
+    lblUpdateAvailable: TLabel;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -742,7 +748,7 @@ type
       NewHeight: Integer; var Resize: Boolean);
     procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure File1Click(Sender: TObject);
+    procedure MainMenuFileClick(Sender: TObject);
     procedure HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -906,7 +912,7 @@ type
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
-    procedure imgDonateClick(Sender: TObject);
+    procedure DonateClick(Sender: TObject);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ApplicationDeActivate(Sender: TObject);
     procedure DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
@@ -1319,6 +1325,9 @@ begin
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
+var
+  i: Integer;
+  BandId: String;
 begin
   // Destroy dialogs
   FreeAndNil(FSearchReplaceDialog);
@@ -1336,12 +1345,13 @@ begin
   Connections.Clear;
 
   // Save various settings
-  AppSettings.WriteInt(asToolbar2Left, ToolBarStandard.Left);
-  AppSettings.WriteInt(asToolBar2Top, ToolBarStandard.Top);
-  AppSettings.WriteInt(asToolBarDataLeft, ToolBarData.Left);
-  AppSettings.WriteInt(asToolBarDataTop, ToolBarData.Top);
-  AppSettings.WriteInt(asToolBarQueryLeft, ToolBarQuery.Left);
-  AppSettings.WriteInt(asToolBarQueryTop, ToolBarQuery.Top);
+  for i:=0 to CoolBarMainMenu.Bands.Count-1 do begin
+    BandId := IntToStr(CoolBarMainMenu.Bands[i].Id);
+    logsql('BandId: '+BandId);
+    AppSettings.WriteInt(asCoolBandIndex, CoolBarMainMenu.Bands[i].Index, BandId);
+    AppSettings.WriteBool(asCoolBandBreak, CoolBarMainMenu.Bands[i].Break, BandId);
+    AppSettings.WriteInt(asCoolBandWidth, CoolBarMainMenu.Bands[i].Width, BandId);
+  end;
   AppSettings.WriteBool(asStopOnErrorsInBatchMode, actQueryStopOnErrors.Checked);
   AppSettings.WriteBool(asDisplayBLOBsAsText, actBlobAsText.Checked);
   AppSettings.WriteString(asDelimiter, FDelimiter);
@@ -1387,7 +1397,6 @@ end;
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   i, j, MonitorIndex: Integer;
-  Bar: TControl;
   ToolButton: TToolButton;
   QueryTab: TQueryTab;
   Action: TAction;
@@ -1402,6 +1411,7 @@ var
   NTHandle: THandle;
   TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
+  CoolBand: TCoolBand;
 begin
   caption := APPNAME;
 
@@ -1420,16 +1430,11 @@ begin
 
   // Fix drop down buttons on main toolbar. Same as r4304.
   // Caused by missing Application.MainFormOnTaskBar
-  for i:=0 to ControlBar1.ControlCount-1 do begin
-    Bar := ControlBar1.Controls[i];
-    if Bar is TToolBar then begin
-      for j:=0 to (Bar as TToolBar).ButtonCount-1 do begin
-        ToolButton := (Bar as TToolBar).Buttons[j];
-        if ToolButton.Style = tbsDropDown then begin
-          ToolButton.Style := tbsButton;
-          ToolButton.Style := tbsDropDown;
-        end;
-      end;
+  for i:=0 to ToolBarMainButtons.ButtonCount-1 do begin
+    ToolButton := ToolBarMainButtons.Buttons[i];
+    if ToolButton.Style = tbsDropDown then begin
+      ToolButton.Style := tbsButton;
+      ToolButton.Style := tbsDropDown;
     end;
   end;
 
@@ -1521,6 +1526,8 @@ begin
   // Simulated link label, has non inherited blue font color
   InheritFont(lblExplainProcess.Font);
   InheritFont(lblExplainProcessAnalyzer.Font);
+  InheritFont(lblUpdateAvailable.Font);
+  InheritFont(lblDonate.Font);
 
   StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
   // Upscale panels in non-96-DPI mode
@@ -1581,13 +1588,16 @@ begin
   MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
   MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
-  // Position of Toolbars
-  ToolBarStandard.Left := AppSettings.ReadInt(asToolbar2Left);
-  ToolBarStandard.Top := AppSettings.ReadInt(asToolbar2Top);
-  ToolBarData.Left := AppSettings.ReadInt(asToolbarDataLeft);
-  ToolBarData.Top := AppSettings.ReadInt(asToolbarDataTop);
-  ToolBarQuery.Left := AppSettings.ReadInt(asToolBarQueryLeft);
-  ToolBarQuery.Top := AppSettings.ReadInt(asToolBarQueryTop);
+  // Configure toolbars
+  for i:=0 to CoolBarMainMenu.Bands.Count-1 do begin
+    CoolBand := TCoolBand(CoolBarMainMenu.Bands.FindItemID(i));
+    CoolBand.Index := AppSettings.ReadInt(asCoolBandIndex, IntToStr(CoolBand.ID), CoolBand.Index);
+    CoolBand.Break := AppSettings.ReadBool(asCoolBandBreak, IntToStr(CoolBand.ID), CoolBand.Break);
+    CoolBand.Width := AppSettings.ReadInt(asCoolBandWidth, IntToStr(CoolBand.ID), CoolBand.Width);
+  end;
+  FHasDonatedDatabaseCheck := nbUnset;
+  lblDonate.Visible := HasDonated(True) <> nbTrue;
+
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
@@ -1688,11 +1698,6 @@ begin
   FGridCopying := False;
   FGridPasting := False;
 
-  FHasDonatedDatabaseCheck := nbUnset;
-  imgDonate.Width := 122;
-  imgDonate.Height := 22;
-  imgDonate.Visible := HasDonated(True) <> nbTrue;
-
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 
   // Detect timezone offset in seconds, once
@@ -1740,10 +1745,21 @@ begin
     UpdatecheckInterval := AppSettings.ReadInt(asUpdatecheckInterval);
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
       frm := TfrmUpdateCheck.Create(Self);
-      frm.AutoClose := True;
-      frm.CheckForBuildsInAutoMode := AppSettings.ReadBool(asUpdatecheckBuilds);
-      frm.ShowModal;
-      FreeAndNil(frm);
+      try
+        frm.ReadCheckFile;
+        lblUpdateAvailable.Visible := frm.btnBuild.Enabled or frm.btnRelease.Enabled;
+        if frm.btnRelease.Enabled then
+          lblUpdateAvailable.Font.Color := clRed;
+        // Show the dialog if release is available, or - when wanted - build checks are activated
+        if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
+          or frm.btnRelease.Enabled then begin
+          frm.ShowModal;
+        end;
+      except
+        on E:Exception do
+          LogSQL(E.Message);
+      end;
+      frm.Free;
     end;
   end;
 
@@ -2218,7 +2234,7 @@ begin
 end;
 
 
-procedure TMainForm.File1Click(Sender: TObject);
+procedure TMainForm.MainMenuFileClick(Sender: TObject);
 var
   Item: TMenuItem;
   i: Integer;
@@ -2251,18 +2267,19 @@ begin
 end;
 
 
-procedure TMainForm.imgDonateClick(Sender: TObject);
+procedure TMainForm.DonateClick(Sender: TObject);
 var
   Dialog: TWinControl;
   place: String;
 begin
   // Click on one of the various donate buttons
-  Dialog := (Sender as TImage).Parent;
-  if Dialog is TAboutBox then
-    place := 'about'
-  else
-    place := 'main';
-  ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
+  Dialog := GetParentFormOrFrame(TWinControl(Sender));
+  if Dialog = nil then
+    ErrorDialog(f_('Could not determine parent form of this %s', [Sender.ClassName]))
+  else begin
+    place := LowerCase(Dialog.UnitName);
+    ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
+  end;
 end;
 
 

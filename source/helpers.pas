@@ -132,8 +132,7 @@ type
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asRememberFilters,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
-    asMainWinHeight, asMainWinOnMonitor, asToolBar2Left, asToolBar2Top, asToolBarDataLeft,
-    asToolBarDataTop, asToolBarQueryLeft, asToolBarQueryTop, asQuerymemoheight, asDbtreewidth,
+    asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
     asWrapLongLines, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight,
     asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
@@ -3053,12 +3052,9 @@ begin
   InitSetting(asMainWinWidth,                     'MainWinWidth',                          800);
   InitSetting(asMainWinHeight,                    'MainWinHeight',                         600);
   InitSetting(asMainWinOnMonitor,                 'MainWinOnMonitor',                      1);
-  InitSetting(asToolBar2Left,                     'ToolBar2Left',                          11);
-  InitSetting(asToolBar2Top,                      'ToolBar2Top',                           2);
-  InitSetting(asToolBarDataLeft,                  'ToolBarDataLeft',                       343);
-  InitSetting(asToolBarDataTop,                   'ToolBarDataTop',                        2);
-  InitSetting(asToolBarQueryLeft,                 'ToolBarQueryLeft',                      494);
-  InitSetting(asToolBarQueryTop,                  'ToolBarQueryTop',                       2);
+  InitSetting(asCoolBandIndex,                    'CoolBand%sIndex',                       -1);
+  InitSetting(asCoolBandBreak,                    'CoolBand%sBreak',                       0, True);
+  InitSetting(asCoolBandWidth,                    'CoolBand%sWidth',                       0);
   InitSetting(asQuerymemoheight,                  'querymemoheight',                       100);
   InitSetting(asDbtreewidth,                      'dbtreewidth',                           170);
   InitSetting(asDataPreviewHeight,                'DataPreviewHeight',                     100);
