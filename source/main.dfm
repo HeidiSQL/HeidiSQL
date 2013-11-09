@@ -2735,7 +2735,7 @@ object MainForm: TMainForm
     object actFavoriteObjectsOnly: TAction
       Category = 'Various'
       AutoCheck = True
-      Caption = 'actFavoriteObjectsOnly'
+      Caption = 'Show only favorites'
       Hint = 'Show only favorite tree items'
       ImageIndex = 112
       OnExecute = actFavoriteObjectsOnlyExecute
@@ -9064,6 +9064,10 @@ object MainForm: TMainForm
       end
       object menuSelectBGColor: TMenuItem
         Action = actSelectTreeBackground
+      end
+      object actFavoriteObjectsOnly1: TMenuItem
+        Action = actFavoriteObjectsOnly
+        AutoCheck = True
       end
     end
     object menuPrint: TMenuItem
