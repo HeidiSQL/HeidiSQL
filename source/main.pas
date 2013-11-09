@@ -7188,6 +7188,9 @@ var
 begin
   Idx := Sender.GetNodeData(Node);
   Results := GridResult(Sender);
+  // See issue #3416
+  if (Results = nil) and (Sender <> ListVariables) then
+    Exit;
   if Results <> nil then
     Results.RecNo := Idx^;
 
