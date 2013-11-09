@@ -1348,7 +1348,6 @@ begin
   // Save various settings
   for i:=0 to CoolBarMainMenu.Bands.Count-1 do begin
     BandId := IntToStr(CoolBarMainMenu.Bands[i].Id);
-    logsql('BandId: '+BandId);
     AppSettings.WriteInt(asCoolBandIndex, CoolBarMainMenu.Bands[i].Index, BandId);
     AppSettings.WriteBool(asCoolBandBreak, CoolBarMainMenu.Bands[i].Break, BandId);
     AppSettings.WriteInt(asCoolBandWidth, CoolBarMainMenu.Bands[i].Width, BandId);
@@ -1590,15 +1589,11 @@ begin
   MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
   // Configure toolbars
-  try
-    for i:=0 to CoolBarMainMenu.Bands.Count-1 do begin
-      CoolBand := TCoolBand(CoolBarMainMenu.Bands.FindItemID(i));
-      CoolBand.Index := AppSettings.ReadInt(asCoolBandIndex, IntToStr(CoolBand.ID), CoolBand.Index);
-      CoolBand.Break := AppSettings.ReadBool(asCoolBandBreak, IntToStr(CoolBand.ID), CoolBand.Break);
-      CoolBand.Width := AppSettings.ReadInt(asCoolBandWidth, IntToStr(CoolBand.ID), CoolBand.Width);
-    end;
-  except
-    // Temporarily silenced
+  for i:=0 to CoolBarMainMenu.Bands.Count-1 do begin
+    CoolBand := TCoolBand(CoolBarMainMenu.Bands.FindItemID(i));
+    CoolBand.Index := AppSettings.ReadInt(asCoolBandIndex, IntToStr(CoolBand.ID), CoolBand.Index);
+    CoolBand.Break := AppSettings.ReadBool(asCoolBandBreak, IntToStr(CoolBand.ID), CoolBand.Break);
+    CoolBand.Width := AppSettings.ReadInt(asCoolBandWidth, IntToStr(CoolBand.ID), CoolBand.Width);
   end;
   FHasDonatedDatabaseCheck := nbUnset;
   lblDonate.Visible := HasDonated(True) <> nbTrue;
