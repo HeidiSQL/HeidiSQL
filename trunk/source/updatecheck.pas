@@ -16,25 +16,21 @@ type
     lblStatus: TLabel;
     memoRelease: TMemo;
     memoBuild: TMemo;
+    imgDonate: TImage;
     procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
     procedure btnReleaseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
-    CheckfileDownload: THttpDownLoad;
     ReleaseURL, BuildURL : String;
     FLastStatusUpdate: Cardinal;
-    FCheckFilename: String;
     procedure Status(txt: String);
-    procedure ReadCheckFile;
     procedure DownloadProgress(Sender: TObject);
   public
     { Public declarations }
-    AutoClose: Boolean; // Automatically close dialog after detecting no available downloads
     BuildRevision: Integer;
-    CheckForBuildsInAutoMode: Boolean;
-    BuildSize: Integer;
+    procedure ReadCheckFile;
   end;
 
 implementation
@@ -53,9 +49,10 @@ uses main;
 procedure TfrmUpdateCheck.FormCreate(Sender: TObject);
 begin
   // Should be false by default. Callers can set this to True after Create()
-  AutoClose := False;
   InheritFont(Font);
   TranslateComponent(Self);
+  imgDonate.OnClick := MainForm.DonateClick;
+  imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
 end;
 
 {**
@@ -73,26 +70,10 @@ end;
 }
 procedure TfrmUpdateCheck.FormShow(Sender: TObject);
 begin
-  Status(_('Initializing')+' ...');
   Caption := f_('Check for %s updates', [APPNAME]) + ' ...';
-
-  // Init GUI controls
-  btnRelease.Enabled := False;
-  btnBuild.Enabled := False;
-  memoRelease.Clear;
-  memoBuild.Clear;
-
-  // Prepare download
-  CheckfileDownload := THttpDownload.Create(Self);
-  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&t='+DateTimeToStr(Now);
-  FCheckFilename := GetTempDir + APPNAME + '_updatecheck.ini';
-
-  // Download the check file
   Screen.Cursor := crHourglass;
   try
     Status(_('Downloading check file')+' ...');
-    CheckfileDownload.SendRequest(FCheckFilename);
-    Status(_('Reading check file')+' ...');
     ReadCheckFile;
     // Developer versions probably have "unknown" (0) as revision,
     // which makes it impossible to compare the revisions.
@@ -102,25 +83,12 @@ begin
       Status(f_('Your %s is up-to-date (no update available).', [APPNAME]))
     else if groupRelease.Enabled or btnBuild.Enabled then
       Status(_('Updates available.'));
-    // Remember when we did the updatecheck to enable the automatic interval
-    AppSettings.WriteString(asUpdatecheckLastrun, DateTimeToStr(Now));
   except
     // Do not popup errors, just display them in the status label
     on E:Exception do
       Status(E.Message);
   end;
-  if FileExists(FCheckFilename) then
-    DeleteFile(FCheckFilename);
-  FreeAndNil(CheckfileDownload);
   Screen.Cursor := crDefault;
-
-  // For automatic updatechecks this dialog should close if no updates are available.
-  // Using PostMessage, as Self.Close or ModalResult := mrCancel does not work
-  // as expected in FormShow
-  if AutoClose
-    and (not groupRelease.Enabled)
-    and ((not CheckForBuildsInAutoMode) or (not btnBuild.Enabled)) then
-    PostMessage(Self.Handle, WM_CLOSE, 0, 0);
 end;
 
 
@@ -129,17 +97,36 @@ end;
 }
 procedure TfrmUpdateCheck.ReadCheckFile;
 var
-  Ini : TIniFile;
-  ReleaseVersion : String;
+  CheckfileDownload: THttpDownLoad;
+  CheckFilename: String;
+  Ini: TIniFile;
+  ReleaseVersion: String;
   ReleaseRevision: Integer;
-  Note : String;
-  Compiled : TDateTime;
+  Note: String;
+  Compiled: TDateTime;
 const
   INISECT_RELEASE = 'Release';
   INISECT_BUILD = 'Build';
 begin
+  // Init GUI controls
+  btnRelease.Enabled := False;
+  btnBuild.Enabled := False;
+  memoRelease.Clear;
+  memoBuild.Clear;
+
+  // Prepare download
+  CheckfileDownload := THttpDownload.Create(Self);
+  CheckfileDownload.TimeOut := 5;
+  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&t='+DateTimeToStr(Now);
+  CheckFilename := GetTempDir + APPNAME + '_updatecheck.ini';
+
+  // Download the check file
+  CheckfileDownload.SendRequest(CheckFilename);
+  // Remember when we did the updatecheck to enable the automatic interval
+  AppSettings.WriteString(asUpdatecheckLastrun, DateTimeToStr(Now));
+
   // Read [Release] section of check file
-  Ini := TIniFile.Create(FCheckFilename);
+  Ini := TIniFile.Create(CheckFilename);
   if Ini.SectionExists(INISECT_RELEASE) then begin
     ReleaseVersion := Ini.ReadString(INISECT_RELEASE, 'Version', 'unknown');
     ReleaseRevision := Ini.ReadInteger(INISECT_RELEASE, 'Revision', 0);
@@ -164,7 +151,6 @@ begin
   if Ini.SectionExists(INISECT_BUILD) then begin
     BuildRevision := Ini.ReadInteger(INISECT_BUILD, 'Revision', 0);
     BuildURL := Ini.ReadString(INISECT_BUILD, 'URL', '');
-    BuildSize := Ini.ReadInteger(INISECT_BUILD, 'Size', 0);
     memoBuild.Lines.Add(f_('Revision %d (yours: %d)', [BuildRevision, Mainform.AppVerRevision]));
     FileAge(ParamStr(0), Compiled);
     memoBuild.Lines.Add(f_('Compiled: %s (yours: %s)', [Ini.ReadString(INISECT_BUILD, 'Date', ''), DateToStr(Compiled)]));
@@ -177,6 +163,10 @@ begin
     // before having installed the new release.
     btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not btnRelease.Enabled));
   end;
+
+  if FileExists(CheckFilename) then
+    DeleteFile(CheckFilename);
+  FreeAndNil(CheckfileDownload);
 end;
 
 

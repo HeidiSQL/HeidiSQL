@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-10-13 21:22+0100\n"
+"PO-Revision-Date: 2013-11-09 07:28+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -5678,3 +5678,7 @@ msgstr ""
 #. InitConnection, JumpList
 msgid "Recent sessions"
 msgstr "Recent sessions"
+
+# GetParentFormOrFrame
+msgid "Could not determine parent form of this %s"
+msgstr "Could not determine parent form of this %s"
