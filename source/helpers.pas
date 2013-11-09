@@ -3052,7 +3052,7 @@ begin
   InitSetting(asMainWinWidth,                     'MainWinWidth',                          800);
   InitSetting(asMainWinHeight,                    'MainWinHeight',                         600);
   InitSetting(asMainWinOnMonitor,                 'MainWinOnMonitor',                      1);
-  InitSetting(asCoolBandIndex,                    'CoolBand%sIndex',                       -1);
+  InitSetting(asCoolBandIndex,                    'CoolBand%sIndex',                       0);
   InitSetting(asCoolBandBreak,                    'CoolBand%sBreak',                       0, True);
   InitSetting(asCoolBandWidth,                    'CoolBand%sWidth',                       0);
   InitSetting(asQuerymemoheight,                  'querymemoheight',                       100);
