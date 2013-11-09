@@ -578,6 +578,7 @@ type
     btnHelp: TToolButton;
     lblDonate: TLabel;
     lblUpdateAvailable: TLabel;
+    actFavoriteObjectsOnly1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
