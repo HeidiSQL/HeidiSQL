@@ -1795,7 +1795,7 @@ object MainForm: TMainForm
     Left = 424
     Top = 152
     object MainMenuFile: TMenuItem
-      Caption = '&File'
+      Caption = 'File'
       Hint = 'File related commands'
       OnClick = MainMenuFileClick
       object Sessionmanager1: TMenuItem
@@ -1846,7 +1846,7 @@ object MainForm: TMainForm
       end
     end
     object MainMenuEdit: TMenuItem
-      Caption = '&Edit'
+      Caption = 'Edit'
       Hint = 'Edit commands'
       object CopyItem: TMenuItem
         Action = actCopy
@@ -1890,7 +1890,7 @@ object MainForm: TMainForm
       end
     end
     object MainMenuTools: TMenuItem
-      Caption = '&Tools'
+      Caption = 'Tools'
       object Nexttab1: TMenuItem
         Action = actNextTab
       end
@@ -1959,7 +1959,7 @@ object MainForm: TMainForm
       end
     end
     object MainMenuHelp: TMenuItem
-      Caption = '&Help'
+      Caption = 'Help'
       Hint = 'Help topics'
       object menuSQLHelp1: TMenuItem
         Action = actSQLhelp
