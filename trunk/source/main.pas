@@ -964,6 +964,7 @@ type
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
     FPreferencesDialog: Toptionsform;
+    FCreateDatabaseDialog: TCreateDatabaseForm;
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
@@ -1961,12 +1962,11 @@ end;
 
 
 procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
-var
-  Dialog: TCreateDatabaseForm;
 begin
   // Create database:
-  Dialog := TCreateDatabaseForm.Create(Self);
-  Dialog.ShowModal;
+  FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
+  FCreateDatabaseDialog.ShowModal;
+  FreeAndNil(FCreateDatabaseDialog);
 end;
 
 
@@ -1984,7 +1984,7 @@ begin
   // Preferences
   FPreferencesDialog := Toptionsform.Create(Self);
   FPreferencesDialog.ShowModal;
-  // Gets freed in Dialog.FormClose
+  FreeAndNil(FPreferencesDialog);
 end;
 
 procedure TMainForm.actReadmeExecute(Sender: TObject);
@@ -9455,7 +9455,6 @@ end;
 procedure TMainForm.menuEditObjectClick(Sender: TObject);
 var
   Obj: PDBObject;
-  Dialog: TCreateDatabaseForm;
 begin
   if ListTables.Focused then begin
     // Got here from ListTables.OnDblClick or ListTables's context menu item "Edit"
@@ -9467,10 +9466,11 @@ begin
     Obj := DBtree.GetNodeData(DBtree.FocusedNode);
     case Obj.NodeType of
       lntDb: begin
-        Dialog := TCreateDatabaseForm.Create(Self);
-        Dialog.modifyDB := ActiveDatabase;
-        if Dialog.ShowModal = mrOk then
+        FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
+        FCreateDatabaseDialog.modifyDB := ActiveDatabase;
+        if FCreateDatabaseDialog.ShowModal = mrOk then
           RefreshTree;
+        FreeAndNil(FCreateDatabaseDialog);
       end;
       lntTable..lntEvent:
         SetMainTab(tabEditor);
@@ -10316,10 +10316,12 @@ begin
   Editors.Add(SynMemoFilter);
   Editors.Add(SynMemoProcessView);
   Editors.Add(SynMemoSQLLog);
-  if Assigned(ActiveObjectEditor) and (ActiveObjectEditor <> nil) then
+  if Assigned(ActiveObjectEditor) then
     FindEditors(ActiveObjectEditor);
-  if Assigned(FPreferencesDialog) and (FPreferencesDialog <> nil) then
+  if Assigned(FPreferencesDialog) then
     Editors.Add(FPreferencesDialog.SynMemoSQLSample);
+  if Assigned(FCreateDatabaseDialog) then
+    Editors.Add(FCreateDatabaseDialog.SynMemoCreateCode);
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]

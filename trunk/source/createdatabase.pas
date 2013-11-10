@@ -256,7 +256,6 @@ procedure TCreateDatabaseForm.FormClose(Sender: TObject; var Action:
     TCloseAction);
 begin
   modifyDB := '';
-  Action := caFree;
 end;
 
 

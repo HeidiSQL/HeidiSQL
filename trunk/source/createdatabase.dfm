@@ -116,7 +116,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Gutter.Width = 0
     ReadOnly = True
     RightEdge = 0
-    ScrollBars = ssNone
+    ScrollBars = ssVertical
     WordWrap = True
     FontSmoothing = fsmNone
   end
