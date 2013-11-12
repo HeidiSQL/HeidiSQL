@@ -1583,7 +1583,6 @@ begin
   if AppSettings.ReadBool(asMainWinMaximized) then
     WindowState := wsMaximized;
   // ... and monitor placement
-  AppSettings.ReadInt(asMainWinOnMonitor);
   MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
   MonitorIndex := Max(0, MonitorIndex);
   MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);

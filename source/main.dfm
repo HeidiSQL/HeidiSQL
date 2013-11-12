@@ -10,6 +10,7 @@ object MainForm: TMainForm
   Font.Name = 'Default'
   Font.Style = []
   OldCreateOrder = True
+  Position = poDesigned
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -1018,6 +1019,8 @@ object MainForm: TMainForm
             Caption = 'No data available for this item.'
             Layout = tlCenter
             WordWrap = True
+            ExplicitWidth = 147
+            ExplicitHeight = 13
           end
           object pnlDataTop: TPanel
             Left = 0
@@ -1369,7 +1372,7 @@ object MainForm: TMainForm
               Columns = <
                 item
                   Position = 0
-                  Width = 87
+                  Width = 70
                   WideText = 'Main column'
                 end
                 item
@@ -1516,6 +1519,7 @@ object MainForm: TMainForm
         ParentFont = False
         Layout = tlCenter
         OnClick = DonateClick
+        ExplicitHeight = 13
       end
       object lblUpdateAvailable: TLabel
         AlignWithMargins = True
@@ -1536,6 +1540,7 @@ object MainForm: TMainForm
         Layout = tlCenter
         Visible = False
         OnClick = actUpdateCheckExecute
+        ExplicitHeight = 13
       end
       object ToolBarMainMenu: TToolBar
         Left = 0
@@ -1554,7 +1559,7 @@ object MainForm: TMainForm
           Top = 0
           Hint = 'File related commands'
           AutoSize = True
-          Caption = '&File'
+          Caption = 'File'
           Grouped = True
           MenuItem = MainMenuFile
         end
@@ -1563,7 +1568,7 @@ object MainForm: TMainForm
           Top = 0
           Hint = 'Edit commands'
           AutoSize = True
-          Caption = '&Edit'
+          Caption = 'Edit'
           Grouped = True
           MenuItem = MainMenuEdit
         end
@@ -1579,7 +1584,7 @@ object MainForm: TMainForm
           Left = 100
           Top = 0
           AutoSize = True
-          Caption = '&Tools'
+          Caption = 'Tools'
           Grouped = True
           MenuItem = MainMenuTools
         end
@@ -1588,7 +1593,7 @@ object MainForm: TMainForm
           Top = 0
           Hint = 'Help topics'
           AutoSize = True
-          Caption = '&Help'
+          Caption = 'Help'
           Grouped = True
           MenuItem = MainMenuHelp
         end
@@ -2754,7 +2759,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101B80050011C0310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101B8005001200310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000F0020000010020000000000000F0
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
