@@ -1277,34 +1277,31 @@ begin
     AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
 
   // Recreate Win7 taskbar jump list with sessions used in the last month, ordered by the number of connects
-  FJumpList.Clear;
-  SessionPaths := TStringList.Create;
-  SortedSessions := TStringList.Create;
-  AppSettings.GetSessionPaths('', SessionPaths);
-  for SessionPath in SessionPaths do begin
-    AppSettings.SessionPath := SessionPath;
-    DummyDate := StrToDateTime('2000-01-01');
-    LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
-    if DaysBetween(LastConnect, Now) <= 30 then
-      SortedSessions.Values[SessionPath] := IntToStr(AppSettings.ReadInt(asConnectCount));
-  end;
-  SessionPaths.Free;
-  AppSettings.ResetPath;
-  SortedSessions.CustomSort(StringListCompareByValue);
-  for i:=0 to SortedSessions.Count-1 do begin
-    JumpTask := TJumpTask.Create;
-    JumpTask.Title := SortedSessions.Names[i]+' ('+FormatNumber(SortedSessions.ValueFromIndex[i], True)+')';
-    JumpTask.ApplicationPath := ParamStr(0);
-    JumpTask.Arguments := '-d="'+SortedSessions.Names[i]+'"';
-    JumpTask.CustomCategory := _('Recent sessions');
-    FJumpList.JumpItems.Add(JumpTask);
-  end;
-  SortedSessions.Free;
-  try
+  if Assigned(FJumpList) then begin
+    FJumpList.Clear;
+    SessionPaths := TStringList.Create;
+    SortedSessions := TStringList.Create;
+    AppSettings.GetSessionPaths('', SessionPaths);
+    for SessionPath in SessionPaths do begin
+      AppSettings.SessionPath := SessionPath;
+      DummyDate := StrToDateTime('2000-01-01');
+      LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
+      if DaysBetween(LastConnect, Now) <= 30 then
+        SortedSessions.Values[SessionPath] := IntToStr(AppSettings.ReadInt(asConnectCount));
+    end;
+    SessionPaths.Free;
+    AppSettings.ResetPath;
+    SortedSessions.CustomSort(StringListCompareByValue);
+    for i:=0 to SortedSessions.Count-1 do begin
+      JumpTask := TJumpTask.Create;
+      JumpTask.Title := SortedSessions.Names[i]+' ('+FormatNumber(SortedSessions.ValueFromIndex[i], True)+')';
+      JumpTask.ApplicationPath := ParamStr(0);
+      JumpTask.Arguments := '-d="'+SortedSessions.Names[i]+'"';
+      JumpTask.CustomCategory := _('Recent sessions');
+      FJumpList.JumpItems.Add(JumpTask);
+    end;
+    SortedSessions.Free;
     FJumpList.Apply;
-  except
-    on E:Exception do
-      LogSQL(E.Message, lcError);
   end;
 end;
 
@@ -1710,8 +1707,10 @@ begin
   FTimeZoneOffset := FTimeZoneOffset * 60;
 
   // Initialize taskbar jump list
-  FJumpList := TJumpList.Create;
-  FJumpList.ApplicationId := APPNAME;
+  if not FIsWine then begin
+    FJumpList := TJumpList.Create;
+    FJumpList.ApplicationId := APPNAME + IntToStr(GetExecutableBits);
+  end;
 end;
 
 
