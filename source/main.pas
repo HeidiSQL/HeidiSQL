@@ -8939,7 +8939,9 @@ begin
   Conn := ActiveConnection;
   DBname := Conn.AllDatabases[Idx^];
   if Conn.DbObjectsCached(DBname) then
-    Objects := Conn.GetDBObjects(DBname);
+    Objects := Conn.GetDBObjects(DBname)
+  else
+    Objects := nil;
   CellText := '';
   case Column of
     0: CellText := DBname;
