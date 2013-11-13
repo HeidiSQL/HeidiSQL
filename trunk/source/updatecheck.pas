@@ -117,7 +117,7 @@ begin
   // Prepare download
   CheckfileDownload := THttpDownload.Create(Self);
   CheckfileDownload.TimeOut := 5;
-  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&t='+DateTimeToStr(Now);
+  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&bits='+IntToStr(GetExecutableBits)+'&t='+DateTimeToStr(Now);
   CheckFilename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
