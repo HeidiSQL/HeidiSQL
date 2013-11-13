@@ -609,6 +609,7 @@ begin
                 PCol.OrgPrivs.Add(rxTemp.Match[1]);
                 PCol.GrantCode := PCol.GrantCode + rxTemp.Match[1] + ' ('+Trim(Cols[j])+')' + ', ';
               end;
+              Cols.Free;
 
             end;
             if not rxTemp.ExecNext then
@@ -702,7 +703,6 @@ begin
     FreeAndNil(Grants);
     FreeAndNil(CloneGrants);
     FreeAndNil(AllPnames);
-    FreeAndNil(Cols);
   end;
 
   // Populate privilege tree
