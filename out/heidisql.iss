@@ -37,6 +37,7 @@ OutputDir={#OutDir}
 OutputBaseFilename={#ProgName}_{#ProgShortVersion}_Setup
 UninstallDisplayIcon={app}\{#ProgExeName}
 SetupIconFile={#ResourceDir}mainicon.ico
+ArchitecturesInstallIn64BitMode=x64
 UsePreviousAppDir=yes
 DirExistsWarning=auto
 PrivilegesRequired=none
@@ -60,12 +61,15 @@ Type: files; Name: "{app}\donate.url"
 Type: files; Name: "{app}\function.txt"
 
 [Files]
-Source: "{#ProgExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ProgNameLower}64.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "{#ProgNameLower}32.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "libmysql.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "plugins\*.dll"; DestDir: "{app}\plugins"; Flags: ignoreversion
+Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{commonappdata}\{#ProgName}\Snippets";
 
 [Icons]

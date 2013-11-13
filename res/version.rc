@@ -7,7 +7,7 @@
     BEGIN
       BLOCK "040904E4"
       BEGIN
-        VALUE "FileDescription", "%APPNAME% %APPVER% 32 Bit\000"
+        VALUE "FileDescription", "%APPNAME% %APPVER%\000"
         VALUE "ProductName", "%APPNAME%\000"
         VALUE "LegalCopyright", "See GPL license\000"
       END
