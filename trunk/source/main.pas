@@ -2772,7 +2772,7 @@ procedure TMainForm.UpdatePreviewPanel;
 var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
   ImgType: String;
   Content, Header: AnsiString;
   ContentStream: TMemoryStream;
@@ -2876,7 +2876,7 @@ procedure TMainForm.actDataSaveBlobToFileExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
   Content: AnsiString;
   FileStream: TFileStream;
   StrLen: Integer;
@@ -3475,7 +3475,7 @@ procedure TMainForm.actDataDeleteExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Node, FocusAfterDelete: PVirtualNode;
-  RowNum: PCardinal;
+  RowNum: PInt64;
   Results: TDBQuery;
   Nodes: TNodeArray;
   i: Integer;
@@ -4201,8 +4201,8 @@ var
   DupeNode, NewNode: PVirtualNode;
   Grid: TVirtualStringTree;
   Results: TDBQuery;
-  RowNum: Cardinal;
-  DupeNum: PCardinal;
+  RowNum: Int64;
+  DupeNum: PInt64;
   i: Integer;
   Value: String;
   IsNull, AllowNewNode: Boolean;
@@ -4220,7 +4220,7 @@ begin
     if Sender = actDataDuplicateRow then
       DupeNode := Grid.FocusedNode;
     RowNum := Results.InsertRow;
-    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, PCardinal(RowNum));
+    NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, PInt64(RowNum));
     SelectNode(Grid, NewNode);
     if Assigned(DupeNode) then begin
       // Copy values from source row, ensure we have whole cell data
@@ -4287,7 +4287,7 @@ procedure TMainForm.actDataCancelChangesExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
   Node, FocNode: PVirtualNode;
 begin
   // Cancel INSERT or UPDATE mode
@@ -4461,7 +4461,7 @@ end;
 
 function TMainForm.AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
 var
-  RowNum: PCardinal;
+  RowNum: PInt64;
   Data: TDBQuery;
 begin
   // Load remaining data on a partially loaded row in data grid
@@ -4479,7 +4479,7 @@ procedure TMainForm.DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnl
 var
   Node: PVirtualNode;
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
 begin
   // Load remaining data of all grid rows
   Results := GridResult(Grid);
@@ -4502,7 +4502,8 @@ var
   vt: TVirtualStringTree;
   Select: String;
   RefreshingData, IsKeyColumn: Boolean;
-  i, Offset, ColLen, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
+  i, ColLen, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
+  Offset: Int64;
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
   WantedColumns: TTableColumnList;
   c: TTableColumn;
@@ -4808,7 +4809,7 @@ end;
 procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var
-  Idx: PCardinal;
+  Idx: PInt64;
 begin
   // Display multiline grid rows
   if AppSettings.ReadInt(asGridRowLineCount) = 1 then
@@ -4825,8 +4826,7 @@ end;
 
 procedure TMainForm.AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
-  NodeDataSize := SizeOf(Cardinal);
-  LogSQL('NodeDataSize of '+Sender.Name+': '+IntToStr(NodeDataSize)+', must not be smaller than Pointer size: '+IntToStr(SizeOf(Pointer)), lcDebug);
+  NodeDataSize := SizeOf(Int64);
 end;
 
 
@@ -5068,7 +5068,7 @@ var
   GridHasChanges, EnableTimestamp: Boolean;
   Grid: TVirtualStringTree;
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
 begin
   Grid := ActiveGrid;
   Results := nil;
@@ -6015,7 +6015,7 @@ var
   i: Integer;
   Col, Value: String;
   CellFocused, InDataGrid, HasNullValue, HasNotNullValue: Boolean;
-  RowNumber: PCardinal;
+  RowNumber: PInt64;
   Node: PVirtualNode;
   OldDataLocalNumberFormat: Boolean;
 const
@@ -7120,7 +7120,7 @@ procedure TMainForm.ListVariablesPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
-  Idx: PCardinal;
+  Idx: PInt64;
   i, tmp: Integer;
   VarName, SessionVal, GlobalVal: String;
   dcat: TDBDatatypeCategoryIndex;
@@ -7157,7 +7157,7 @@ procedure TMainForm.HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtu
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
   Results: TDBQuery;
-  Idx: PCardinal;
+  Idx: PInt64;
   IsIdle: Boolean;
 begin
   if (Column <> (Sender as TVirtualStringTree).Header.MainColumn) then
@@ -7201,7 +7201,7 @@ end;
 procedure TMainForm.HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
-  Idx: PCardinal;
+  Idx: PInt64;
   Results: TDBQuery;
   ValIsBytes, ValIsNumber: Boolean;
   ValCount, CommandCount: Int64;
@@ -8040,7 +8040,7 @@ procedure TMainForm.AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   EditingAndFocused: Boolean;
-  RowNumber: PCardinal;
+  RowNumber: PInt64;
   Results: TDBQuery;
   Timestamp: Int64;
 begin
@@ -8113,7 +8113,7 @@ procedure TMainForm.AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanva
 var
   cl: TColor;
   r: TDBQuery;
-  RowNumber: PCardinal;
+  RowNumber: PInt64;
 begin
   if Column = NoColumn then
     Exit;
@@ -8143,7 +8143,7 @@ procedure TMainForm.AnyGridAfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas
   Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
 var
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
 begin
   // Don't waist time
   if Column = NoColumn then Exit;
@@ -8217,7 +8217,7 @@ end;
 
 procedure TMainForm.actDataSetNullExecute(Sender: TObject);
 var
-  RowNum: PCardinal;
+  RowNum: PInt64;
   Grid: TVirtualStringTree;
   Results: TDBQuery;
 begin
@@ -8265,7 +8265,7 @@ end;
 procedure TMainForm.AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
   Timestamp: Int64;
   IsNull: Boolean;
 begin
@@ -8300,7 +8300,7 @@ procedure TMainForm.AnyGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
     Boolean);
 var
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
 begin
   // Detect changed focus and update row
   Allowed := True;
@@ -8412,7 +8412,7 @@ var
   ForeignKeys: TForeignKeyList;
   ForeignResults, Results: TDBQuery;
   Conn: TDBConnection;
-  RowNum: PCardinal;
+  RowNum: PInt64;
 begin
   VT := Sender as TVirtualStringTree;
   Results := GridResult(VT);
@@ -8618,7 +8618,7 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
 var
   r: TDBQuery;
   cl, clNull, clEven, clOdd: TColor;
-  RowNumber: PCardinal;
+  RowNumber: PInt64;
   isEven: Boolean;
 begin
   if Column = -1 then
@@ -9159,7 +9159,7 @@ var
   APalette: HPalette;
   Exporter: TSynExporterHTML;
   Results: TDBQuery;
-  RowNum: PCardinal;
+  RowNum: PInt64;
 begin
   // Copy text from a focused control to clipboard
   Success := False;
