@@ -348,7 +348,7 @@ type
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
       function GetDatatypeByName(Datatype: String): TDBDatatype;
-      function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
+      function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
       function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
       property ThreadId: Cardinal read GetThreadId;
@@ -516,7 +516,7 @@ type
       function HasResult: Boolean; virtual; abstract;
       procedure CheckEditable;
       procedure DeleteRow;
-      function InsertRow: Cardinal;
+      function InsertRow: Int64;
       procedure SetCol(Column: Integer; NewText: String; Null: Boolean; IsFunction: Boolean);
       function EnsureFullRow(Refresh: Boolean): Boolean;
       function HasFullData: Boolean;
@@ -3728,7 +3728,7 @@ begin
 end;
 
 
-function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Cardinal): String;
+function TDBConnection.ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
 begin
   QueryType := UpperCase(QueryType);
   Result := QueryType + ' ';
@@ -4511,7 +4511,7 @@ begin
 end;
 
 
-function TDBQuery.InsertRow: Cardinal;
+function TDBQuery.InsertRow: Int64;
 var
   Row, OtherRow: TRowData;
   c: TCellData;
@@ -4541,6 +4541,7 @@ begin
   end;
   Row.Inserted := True;
   // Find highest unused recno of inserted rows and use that for this row
+  // Important: do not raise higher than what TVirtualStringTree.RootNodeCount can hold!
   Result := High(Cardinal);
   while True do begin
     InUse := False;

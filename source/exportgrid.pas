@@ -355,7 +355,7 @@ var
   GridData: TDBQuery;
   Node: PVirtualNode;
   Col, ExcludeCol: TColumnIndex;
-  RowNum: PCardinal;
+  RowNum: PInt64;
   SelectionSize, AllSize: Int64;
 begin
   GridData := Mainform.GridResult(Grid);
@@ -463,7 +463,7 @@ var
   SelectionOnly: Boolean;
   i: Integer;
   NodeCount: Cardinal;
-  RowNum: PCardinal;
+  RowNum: PInt64;
   HTML: TStream;
   S: TStringStream;
   Exporter: TSynExporterHTML;
