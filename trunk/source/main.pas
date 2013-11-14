@@ -1277,7 +1277,7 @@ begin
     AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
 
   // Recreate Win7 taskbar jump list with sessions used in the last month, ordered by the number of connects
-  if Assigned(FJumpList) then begin
+  if Assigned(FJumpList) then try
     FJumpList.Clear;
     SessionPaths := TStringList.Create;
     SortedSessions := TStringList.Create;
@@ -1301,7 +1301,12 @@ begin
       FJumpList.JumpItems.Add(JumpTask);
     end;
     SortedSessions.Free;
+    // Seems to randomly produce access violations, not only on Wine
+    // See issue #3428
     FJumpList.Apply;
+  except
+    on E:Exception do
+      LogSQL(E.Message, lcError);
   end;
 end;
 
