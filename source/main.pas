@@ -4826,6 +4826,7 @@ end;
 procedure TMainForm.AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
   NodeDataSize := SizeOf(Cardinal);
+  LogSQL('NodeDataSize of '+Sender.Name+': '+IntToStr(NodeDataSize)+', must not be smaller than Pointer size: '+IntToStr(SizeOf(Pointer)), lcDebug);
 end;
 
 
