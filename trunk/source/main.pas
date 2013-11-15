@@ -1781,7 +1781,7 @@ begin
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used SVN revision
       StatsCall := THttpDownload.Create(Self);
-      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision);
+      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) + '&bits=' + IntToStr(GetExecutableBits);
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
