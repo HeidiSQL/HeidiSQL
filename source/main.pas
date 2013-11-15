@@ -922,6 +922,8 @@ type
     procedure actFavoriteObjectsOnlyExecute(Sender: TObject);
     procedure DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
+    procedure lblMenuMouseEnter(Sender: TObject);
+    procedure lblMenuMouseLeave(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2283,6 +2285,24 @@ begin
     place := LowerCase(Dialog.UnitName);
     ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
   end;
+end;
+
+
+procedure TMainForm.lblMenuMouseEnter(Sender: TObject);
+var
+  lbl: TLabel;
+begin
+  lbl := Sender as TLabel;
+  lbl.Font.Style := lbl.Font.Style + [fsUnderline];
+end;
+
+
+procedure TMainForm.lblMenuMouseLeave(Sender: TObject);
+var
+  lbl: TLabel;
+begin
+  lbl := Sender as TLabel;
+  lbl.Font.Style := lbl.Font.Style - [fsUnderline];
 end;
 
 

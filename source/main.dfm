@@ -1519,6 +1519,8 @@ object MainForm: TMainForm
         ParentFont = False
         Layout = tlCenter
         OnClick = DonateClick
+        OnMouseEnter = lblMenuMouseEnter
+        OnMouseLeave = lblMenuMouseLeave
         ExplicitHeight = 13
       end
       object lblUpdateAvailable: TLabel
@@ -1540,6 +1542,8 @@ object MainForm: TMainForm
         Layout = tlCenter
         Visible = False
         OnClick = actUpdateCheckExecute
+        OnMouseEnter = lblMenuMouseEnter
+        OnMouseLeave = lblMenuMouseLeave
         ExplicitHeight = 13
       end
       object ToolBarMainMenu: TToolBar
