@@ -326,7 +326,6 @@ type
     menuExporttables: TMenuItem;
     popupListHeader: TVTHeaderPopupMenu;
     SynCompletionProposal: TSynCompletionProposal;
-    ParameterCompletionProposal: TSynCompletionProposal;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
     QF13: TMenuItem;
@@ -641,8 +640,6 @@ type
     procedure SynCompletionProposalExecute(Kind: SynCompletionType;
       Sender: TObject; var CurrentInput: String; var x, y: Integer;
       var CanExecute: Boolean);
-    procedure ParameterCompletionProposalExecute(Kind: SynCompletionType; Sender: TObject;
-      var CurrentInput: string; var x, y: Integer; var CanExecute: Boolean);
     procedure PageControlMainChange(Sender: TObject);
     procedure PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
     procedure PageControlHostChange(Sender: TObject);
@@ -1527,7 +1524,6 @@ begin
 
   InheritFont(Font);
   InheritFont(SynCompletionProposal.Font);
-  InheritFont(ParameterCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
   InheritFont(lblExplainProcess.Font);
   InheritFont(lblExplainProcessAnalyzer.Font);
@@ -1565,7 +1561,6 @@ begin
 
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);
-  ParameterCompletionProposal.AddEditor(SynMemoFilter);
 
   // Fix node height on Virtual Trees for current DPI settings
   FixVT(DBTree);
@@ -5466,71 +5461,6 @@ begin
     end;
 
   end;
-  rx.Free;
-end;
-
-
-procedure TMainForm.ParameterCompletionProposalExecute(Kind: SynCompletionType; Sender: TObject; var CurrentInput: string;
-  var x, y: Integer; var CanExecute: Boolean);
-var
-  LeftText, Identifier: String;
-  rx: TRegExpr;
-  i: Integer;
-  DbObjects: TDBObjectList;
-  DbObj: TDbObject;
-  Params: TRoutineParamList;
-  ItemText: String;
-  Prop: TSynCompletionProposal;
-begin
-  // Display hint on function and procedure parameters
-
-  // Activated in preferences?
-  if not AppSettings.ReadBool(asCompletionProposal) then begin
-    CanExecute := False;
-    Exit;
-  end;
-
-  Prop := TSynCompletionProposal(Sender);
-  Prop.ItemList.Clear;
-  LeftText := Copy(Prop.Form.CurrentEditor.LineText, 0, Prop.Form.CurrentEditor.CaretX-1);
-  rx := TRegExpr.Create;
-  rx.Expression := '\b([\w\d]+)[`]?\(([^\(]*)$';
-  if rx.Exec(LeftText) then begin
-    Identifier := rx.Match[1];
-    // Tell proposal which parameter should be highlighted/bold
-    Prop.Form.CurrentIndex := 0;
-    for i:=1 to rx.MatchLen[2] do begin
-      if rx.Match[2][i] = ',' then
-        Prop.Form.CurrentIndex := Prop.Form.CurrentIndex + 1;
-    end;
-
-    // Find matching function or procedure object(s)
-    DbObjects := ActiveConnection.GetDBObjects(ActiveConnection.Database, False);
-    for DbObj in DbObjects do begin
-      if (CompareText(DbObj.Name, Identifier)=0) and (DbObj.NodeType in [lntFunction, lntProcedure]) then begin
-        Params := TRoutineParamList.Create(True);
-        DbObj.Connection.ParseRoutineStructure(DbObj, Params);
-        ItemText := '';
-        for i:=0 to Params.Count-1 do
-          ItemText := ItemText + '"' + Params[i].Name + ': ' + Params[i].Datatype + '", ';
-        Delete(ItemText, Length(ItemText)-2, 2);
-        Prop.ItemList.Add(ItemText);
-      end;
-    end;
-
-    // Find matching server function(s)
-    for i:=Low(MySqlFunctions) to High(MySqlFunctions) do begin
-      if CompareText(MySqlFunctions[i].Name, Identifier)=0 then begin
-        ItemText := '"' + Copy(MySqlFunctions[i].Declaration, 2, Length(MySqlFunctions[i].Declaration)-2) + '"';
-        ItemText := StringReplace(ItemText, ',', '","', [rfReplaceAll]);
-        Prop.ItemList.Add(ItemText);
-      end;
-    end;
-
-
-  end;
-
-  CanExecute := Prop.ItemList.Count > 0;
   rx.Free;
 end;
 
@@ -9580,7 +9510,6 @@ begin
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
   SynCompletionProposal.AddEditor(QueryTab.Memo);
-  ParameterCompletionProposal.AddEditor(QueryTab.Memo);
 
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
   QueryTab.spltHelpers.Parent := QueryTab.pnlMemo;

@@ -9759,30 +9759,4 @@ object MainForm: TMainForm
     Left = 504
     Top = 152
   end
-  object ParameterCompletionProposal: TSynCompletionProposal
-    DefaultType = ctParams
-    Options = [scoLimitToMatchedText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
-    ClBackground = clInfoBk
-    Width = 0
-    EndOfTokenChr = '()[]. '
-    TriggerChars = '('
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -11
-    Font.Name = 'MS Sans Serif'
-    Font.Style = []
-    TitleFont.Charset = DEFAULT_CHARSET
-    TitleFont.Color = clBtnText
-    TitleFont.Height = -11
-    TitleFont.Name = 'Default'
-    TitleFont.Style = [fsBold]
-    Columns = <>
-    Images = ImageListMain
-    OnExecute = ParameterCompletionProposalExecute
-    ShortCut = 24608
-    Editor = SynMemoQuery
-    TimerInterval = 500
-    Left = 592
-    Top = 101
-  end
 end
