@@ -190,6 +190,7 @@ var
   ResHandle: THandle;
   ResPointer: PChar;
   Stream: TMemoryStream;
+  BuildSizeDownloaded: Int64;
 begin
   Download := THttpDownload.Create(Self);
   Download.URL := BuildURL;
@@ -210,6 +211,9 @@ begin
     // Check if downloaded file exists
     if not FileExists(DownloadFilename) then
       Raise Exception.CreateFmt(_('Downloaded file not found: %s'), [DownloadFilename]);
+    BuildSizeDownloaded := _GetFileSize(DownloadFilename);
+    if (Download.ContentLength > 0) and (BuildSizeDownloaded < Download.ContentLength) then
+      Raise Exception.CreateFmt(_('Downloaded file corrupted: %s (Size is %d and should be %d)'), [DownloadFilename, BuildSizeDownloaded, Download.ContentLength]);
 
     Status(_('Update in progress')+' ...');
     ResInfoblockHandle := FindResource(HInstance, 'UPDATER', 'EXE');
