@@ -3320,8 +3320,8 @@ begin
     AllKeys.Free;
     rx.Free;
   except
-    on E:Exception do
-      ErrorDialog(E.Message);
+    on E:Exception do // Prefer ShowMessage, see http://www.heidisql.com/forum.php?t=14001
+      ShowMessage('Error: '+E.Message);
   end;
   FRegistry.Free;
   inherited;
