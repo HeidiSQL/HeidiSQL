@@ -3349,7 +3349,7 @@ var
   i: Integer;
 begin
   // Click on quick-session menu item:
-  SessionPath := (Sender as TMenuItem).Caption;
+  SessionPath := StripHotkey((Sender as TMenuItem).Caption);
   Node := nil;
   // Probably wanted session was clicked before: navigate to last node
   for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
