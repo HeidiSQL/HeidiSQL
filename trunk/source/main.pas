@@ -2955,7 +2955,7 @@ begin
     // drop table selected in tree view.
     case ActiveDBObj.NodeType of
       lntDb: begin
-        if MessageDialog(f_('Drop Database "%s"?', [Conn.Database]), f_('WARNING: You will lose all objects in database %s!', [Conn.Database]), mtConfirmation, [mbok,mbcancel]) <> mrok then
+        if MessageDialog(f_('Drop Database "%s"?', [Conn.Database]), f_('WARNING: You will lose all objects in database %s!', [Conn.Database]), mtCriticalConfirmation, [mbok,mbcancel]) <> mrok then
           Abort;
         try
           db := Conn.Database;
@@ -2997,7 +2997,7 @@ begin
   for DBObject in ObjectList do
     msg := msg + DBObject.Name + ', ';
   Delete(msg, Length(msg)-1, 2);
-  if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtConfirmation, [mbok,mbcancel]) = mrOk then begin
+  if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtCriticalConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
       if Conn.ServerVersionInt >= 40014 then
