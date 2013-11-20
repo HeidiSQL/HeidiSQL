@@ -5201,7 +5201,8 @@ procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
 var
   Proposal: TSynCompletionProposal;
   rx: TRegExpr;
-  ImageIndex: Integer;
+  ImageIndex, f: Integer;
+  FunctionDeclaration: String;
 begin
   Proposal := Sender as TSynCompletionProposal;
   // Surround identifiers with backticks if it is a column, table, routine, db
@@ -5209,8 +5210,15 @@ begin
   rx.Expression := '\\image\{(\d+)\}';
   if rx.Exec(Proposal.ItemList[Index]) then begin
     ImageIndex := MakeInt(rx.Match[1]);
-    if not (ImageIndex in [ICONINDEX_KEYWORD, ICONINDEX_FUNCTION, 113]) then
-      Value := ActiveConnection.QuoteIdent(Value, False);
+    if not (ImageIndex in [ICONINDEX_KEYWORD, ICONINDEX_FUNCTION, 113]) then begin
+      FunctionDeclaration := '';
+      f := Pos('(', Value);
+      if f > 0 then begin
+        FunctionDeclaration := Copy(Value, f, Length(Value));
+        Delete(Value, f, Length(Value));
+      end;
+      Value := ActiveConnection.QuoteIdent(Value, False) + FunctionDeclaration;
+    end;
   end;
   rx.Free;
   Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
@@ -5253,9 +5261,28 @@ var
   procedure AddTable(Obj: TDBObject);
   var
     DisplayText: String;
+    FunctionDeclaration: String;
+    FuncParams: TRoutineParamList;
+    FuncParam: TRoutineParam;
   begin
-    DisplayText := Format(SYNCOMPLETION_PATTERN, [Obj.ImageIndex, LowerCase(_(Obj.ObjType)), Obj.Name]);
-    Proposal.AddItem(DisplayText, Obj.Name);
+    // Append routine parameter declaration
+    FunctionDeclaration := '';
+    if Obj.NodeType in [lntProcedure, lntFunction] then begin
+      FuncParams := TRoutineParamList.Create(True);
+      Obj.Connection.ParseRoutineStructure(Obj, FuncParams);
+      for FuncParam in FuncParams do begin
+        FunctionDeclaration := FunctionDeclaration + FuncParam.Name + ', ';
+      end;
+      if FunctionDeclaration <> '' then begin
+        Delete(FunctionDeclaration, Length(FunctionDeclaration)-1, 2);
+        FunctionDeclaration := '(' + FunctionDeclaration + ')';
+      end;
+      FuncParams.Free;
+    end;
+
+    DisplayText := Format(SYNCOMPLETION_PATTERN,
+      [Obj.ImageIndex, LowerCase(_(Obj.ObjType)), Obj.Name, FunctionDeclaration]);
+    Proposal.AddItem(DisplayText, Obj.Name+FunctionDeclaration);
   end;
 
   procedure AddColumns(const LeftToken: String);
@@ -5288,7 +5315,7 @@ var
         end;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
-          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name]) );
+          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '']) );
         end;
         Columns.Free;
         break;
@@ -5330,7 +5357,7 @@ begin
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         Proposal.InsertList.Add(Results.Col(0));
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0)+'   \color{clSilver}= '+StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])] ) );
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0), ' ('+StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])+')'] ) );
         Results.Next;
       end;
     except
@@ -5418,7 +5445,7 @@ begin
       // All databases
       for i:=0 to Conn.AllDatabases.Count-1 do begin
         Proposal.InsertList.Add(ActiveConnection.AllDatabases[i]);
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Conn.AllDatabases[i]]));
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Conn.AllDatabases[i], '']));
       end;
 
       // Tables from current db
@@ -5435,14 +5462,14 @@ begin
         // Hide unsupported functions
         if MySqlFunctions[i].Version > Conn.ServerVersionInt then
           continue;
-        Proposal.InsertList.Add( MySQLFunctions[i].Name + MySQLFunctions[i].Declaration );
-        Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name + '\color{clGrayText}' + MySQLFunctions[i].Declaration] ) );
+        Proposal.InsertList.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name, MySQLFunctions[i].Declaration]));
       end;
 
       // Keywords
       for i:=0 to MySQLKeywords.Count-1 do begin
-        Proposal.InsertList.Add( MySQLKeywords[i] );
-        Proposal.ItemList.Add( Format(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i]] ) );
+        Proposal.InsertList.Add(MySQLKeywords[i]);
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i], '']) );
       end;
 
       // Procedure params
@@ -5454,7 +5481,7 @@ begin
           else if Param.Context = 'INOUT' then ImageIndex := 122
           else ImageIndex := -1;
           Proposal.InsertList.Add(Param.Name);
-          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ImageIndex, Param.Datatype, Param.Name]));
+          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ImageIndex, Param.Datatype, Param.Name, '']));
         end;
       end;
 
