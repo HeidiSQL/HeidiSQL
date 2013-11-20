@@ -327,6 +327,7 @@ var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
   SystemImageList: TImageList;
+  mtCriticalConfirmation: TMsgDlgType = mtCustom;
 
 
 implementation
@@ -2324,6 +2325,8 @@ var
     end;
     Btn.Caption := cap;
     Btn.ModalResult := BtnResult;
+    if (DlgType = mtCriticalConfirmation) and (BtnResult = mrCancel) then
+      Btn.Default := True;
   end;
 begin
   if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
