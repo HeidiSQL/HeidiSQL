@@ -221,7 +221,7 @@ begin
       Columns := DBObject.Connection.GetResults('SHOW COLUMNS FROM '+DBObject.Connection.QuoteIdent(comboTable.Text));
       while not Columns.Eof do begin
         Proposal.InsertList.Add(Columns.Col('Field'));
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field')]) );
+        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field'), '']) );
         Columns.Next;
       end;
     except
