@@ -64,7 +64,7 @@ object frmSearchReplace: TfrmSearchReplace
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Replace &all'
-    ModalResult = 8
+    ModalResult = 12
     TabOrder = 9
     OnClick = DoSearchReplace
     ExplicitTop = 223
