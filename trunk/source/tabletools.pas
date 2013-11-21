@@ -226,7 +226,6 @@ begin
   FResults := TObjectList<TStringList>.Create;
   PreSelectObjects := TDBObjectList.Create(False);
   FModifiedDbs := TStringList.Create;
-  FModifiedDbs.Duplicates := dupIgnore;
   FFindSeeResultSQL := TStringList.Create;
 
   // Popup menu
@@ -1579,8 +1578,10 @@ begin
         DBObj.Connection.Query('DROP VIEW '+DBObj.QuotedName);
       end;
     end;
-    FModifiedDbs.Add(DBObj.Database);
-    FModifiedDbs.Add(comboBulkTableEditDatabase.Text);
+    if FModifiedDbs.IndexOf(DBObj.Database) = -1 then
+      FModifiedDbs.Add(DBObj.Database);
+    if FModifiedDbs.IndexOf(comboBulkTableEditDatabase.Text) = -1 then
+      FModifiedDbs.Add(comboBulkTableEditDatabase.Text);
   end;
   if (DBObj.NodeType = lntTable) and chkBulkTableEditEngine.Checked then begin
     if MainForm.ActiveConnection.ServerVersionInt < 40018 then
