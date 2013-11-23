@@ -995,7 +995,6 @@ type
     function ConfirmTabClose(PageIndex: Integer): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
     procedure ConnectionReady(Connection: TDBConnection; Database: String);
-    procedure DBObjectsCleared(Connection: TDBConnection; Database: String);
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
     procedure UpdateLineCharPanel;
     procedure SetSnippetFilenames;
@@ -3013,6 +3012,7 @@ begin
         Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
       // Refresh ListTables + dbtree so the dropped tables are gone:
       Conn.ClearDbObjects(ActiveDatabase);
+      RefreshTree;
       SetActiveDatabase(Conn.Database, Conn);
     except
       on E:EDatabaseError do
@@ -3397,7 +3397,6 @@ begin
   Connection := Params.CreateConnection(Self);
   Connection.OnLog := LogSQL;
   Connection.OnConnected := ConnectionReady;
-  Connection.OnDBObjectsCleared := DBObjectsCleared;
   Connection.OnDatabaseChanged := DatabaseChanged;
   Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   try
@@ -7735,36 +7734,6 @@ begin
   // Manually trigger changed focused tree node, to display the right server vendor
   // and version. Also required on reconnects.
   DBtree.OnFocusChanged(DBtree, DBtree.FocusedNode, DBtree.FocusedColumn);
-end;
-
-
-procedure TMainForm.DBObjectsCleared(Connection: TDBConnection; Database: String);
-var
-  Node: PVirtualNode;
-  WasExpanded: Boolean;
-begin
-  // Avoid AVs while processing FormDestroy
-  if csDestroying in ComponentState then
-    Exit;
-  // Reload objects in ListTables ...
-  InvalidateVT(ListTables, VTREE_NOTLOADED, False);
-  // ... and in database tree
-  Node := FindDBNode(DBTree, Connection, Database);
-  if Assigned(Node) then begin
-    WasExpanded := DBTree.Expanded[Node];
-    // Will trigger OnFocusChanged:
-    DBTree.ResetNode(Node);
-    DBtree.Expanded[Node] := WasExpanded;
-    {
-    // Earlier code, replaced by above ResetNode, not sure if that causes new errors.
-    // See issue #2645
-    Tree.ReinitNode(Node, False);
-    if Tree.Expanded[Node] then
-      Tree.ReinitChildren(Node, False)
-    else
-      Tree.ResetNode(Node);
-    }
-  end;
 end;
 
 

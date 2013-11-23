@@ -257,7 +257,6 @@ type
       FOnLog: TDBLogEvent;
       FOnConnected: TDBEvent;
       FOnDatabaseChanged: TDBEvent;
-      FOnDBObjectsCleared: TDBEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FWarningCount: Cardinal;
@@ -389,7 +388,6 @@ type
       property OnLog: TDBLogEvent read FOnLog write FOnLog;
       property OnConnected: TDBEvent read FOnConnected write FOnConnected;
       property OnDatabaseChanged: TDBEvent read FOnDatabaseChanged write FOnDatabaseChanged;
-      property OnDBObjectsCleared: TDBEvent read FOnDBObjectsCleared write FOnDBObjectsCleared;
   end;
   TDBConnectionList = TObjectList<TDBConnection>;
 
@@ -959,7 +957,6 @@ end;
 destructor TDBConnection.Destroy;
 begin
   if Active then Active := False;
-  FOnDBObjectsCleared := nil;
   ClearCache(True);
   FKeepAliveTimer.Free;
   FFavorites.Free;
@@ -2840,15 +2837,11 @@ end;
 procedure TDBConnection.ClearDbObjects(db: String);
 var
   i: Integer;
-  TriggerClearEvent: Boolean;
 begin
   // Free cached database object list
   for i:=FDatabaseCache.Count-1 downto 0 do begin
     if FDatabaseCache[i].Database = db then begin
-      TriggerClearEvent := FDatabaseCache[i].OnlyNodeType=lntNone;
       FDatabaseCache.Delete(i);
-      if TriggerClearEvent and Assigned(FOnDBObjectsCleared) then
-        FOnDBObjectsCleared(Self, db);
     end;
   end;
 end;
