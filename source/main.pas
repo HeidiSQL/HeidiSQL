@@ -11452,6 +11452,8 @@ begin
   DirectoryWatch := TDirectoryWatch.Create;
   DirectoryWatch.WatchSubTree := False;
   DirectoryWatch.OnNotify := DirectoryWatchNotify;
+  // Do not trigger useless file deletion messages, see issue #2948
+  DirectoryWatch.WatchActions := DirectoryWatch.WatchActions - [waRemoved];
   // Timer which postpones calling waModified event code until buffers have been saved
   MemofileModifiedTimer := TTimer.Create(Memo);
   MemofileModifiedTimer.Interval := 1000;
