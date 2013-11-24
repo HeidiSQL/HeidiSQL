@@ -4648,9 +4648,11 @@ begin
     // Include db name for cases in which dbtree is switching databases and pending updates are in process
     Select := Select + ' FROM '+DBObj.QuotedDbAndTableName;
 
-    // Append WHERE clause
+    // Append WHERE clause, and gracefully allow superfluous WHERE from user input
     if SynMemoFilter.GetTextLen > 0 then begin
-      Select := Select + ' WHERE ' + SynMemoFilter.Text;
+      if UpperCase(getFirstWord(SynMemoFilter.Text)) <> 'WHERE' then
+        Select := Select + ' WHERE';
+      Select := Select + ' ' + SynMemoFilter.Text;
       tbtnDataFilter.ImageIndex := 108;
     end else
       tbtnDataFilter.ImageIndex := 107;
