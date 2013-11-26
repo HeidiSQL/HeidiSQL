@@ -283,8 +283,16 @@ begin
   MainForm.EnableProgress(ProgressBarSteps);
 
   // Truncate table before importing
-  if chkTruncateTable.Checked then
+  if chkTruncateTable.Checked then try
     FConnection.Query('TRUNCATE TABLE ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
+  except
+    try
+      FConnection.Query('DELETE FROM ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
+    except
+      on E:EDatabaseError do
+        ErrorDialog(_('Cannot truncate table'), E.Message);
+    end;
+  end;
 
   ColumnCount := 0;
   for i:=0 to chkListColumns.Items.Count-1 do begin
