@@ -37,21 +37,21 @@ object optionsform: Toptionsform
         353)
       object lblMySQLBinaries: TLabel
         Left = 8
-        Top = 219
+        Top = 235
         Width = 152
         Height = 13
         Caption = 'MySQL command line programs:'
       end
       object lblLanguage: TLabel
         Left = 8
-        Top = 273
+        Top = 289
         Width = 189
         Height = 13
         Caption = 'Application language (requires restart):'
       end
       object lblCustomSnippetsDirectory: TLabel
         Left = 8
-        Top = 246
+        Top = 262
         Width = 129
         Height = 13
         Caption = 'Custom snippets directory:'
@@ -153,7 +153,7 @@ object optionsform: Toptionsform
       end
       object chkColorBars: TCheckBox
         Left = 8
-        Top = 190
+        Top = 206
         Width = 310
         Height = 17
         Caption = 'Display bars in various list columns'
@@ -162,7 +162,7 @@ object optionsform: Toptionsform
       end
       object cboxColorBars: TColorBox
         Left = 272
-        Top = 188
+        Top = 204
         Width = 319
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
@@ -172,7 +172,7 @@ object optionsform: Toptionsform
       end
       object editMySQLBinaries: TButtonedEdit
         Left = 272
-        Top = 216
+        Top = 232
         Width = 319
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -188,7 +188,7 @@ object optionsform: Toptionsform
       end
       object comboAppLanguage: TComboBox
         Left = 272
-        Top = 270
+        Top = 286
         Width = 319
         Height = 21
         Style = csDropDownList
@@ -198,7 +198,7 @@ object optionsform: Toptionsform
       end
       object editCustomSnippetsDirectory: TButtonedEdit
         Left = 272
-        Top = 243
+        Top = 259
         Width = 319
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -211,6 +211,18 @@ object optionsform: Toptionsform
         OnChange = Modified
         OnDblClick = editCustomSnippetsDirectoryRightButtonClick
         OnRightButtonClick = editCustomSnippetsDirectoryRightButtonClick
+      end
+      object chkFullTableStatus: TCheckBox
+        Left = 8
+        Top = 178
+        Width = 583
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 
+          'Get full table status (disable to speed up on databases with man' +
+          'y InnoDB tables)'
+        TabOrder = 13
+        OnClick = Modified
       end
     end
     object tabLogging: TTabSheet

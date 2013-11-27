@@ -2977,7 +2977,33 @@ begin
   // Tables and views
   Results := nil;
   try
-    Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
+    AppSettings.ResetPath;
+    if AppSettings.ReadBool(asFullTableStatus) or (UpperCase(db) = 'INFORMATION_SCHEMA') then begin
+      Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
+    end else begin
+      Results := GetResults('SELECT '+
+          QuoteIdent('TABLE_NAME')+' AS '+QuoteIdent('Name')+', '+
+          QuoteIdent('ENGINE')+' AS '+QuoteIdent('Engine')+', '+
+          QuoteIdent('VERSION')+' AS '+QuoteIdent('Version')+', '+
+          QuoteIdent('TABLE_COLLATION')+' AS '+QuoteIdent('Collation')+', '+
+          QuoteIdent('TABLE_COMMENT')+' AS '+QuoteIdent('Comment')+', '+
+          'NULL AS '+QuoteIdent('Create_time')+', '+
+          'NULL AS '+QuoteIdent('Update_time')+', '+
+          'NULL AS '+QuoteIdent('Data_length')+', '+
+          'NULL AS '+QuoteIdent('Index_length')+', '+
+          'NULL AS '+QuoteIdent('Rows')+', '+
+          'NULL AS '+QuoteIdent('Auto_increment')+', '+
+          'NULL AS '+QuoteIdent('Row_format')+', '+
+          'NULL AS '+QuoteIdent('Avg_row_length')+', '+
+          'NULL AS '+QuoteIdent('Max_data_length')+', '+
+          'NULL AS '+QuoteIdent('Data_free')+', '+
+          'NULL AS '+QuoteIdent('Check_time')+', '+
+          'NULL AS '+QuoteIdent('Checksum')+', '+
+          'NULL AS '+QuoteIdent('Create_options')+
+        ' FROM INFORMATION_SCHEMA.TABLES'+
+        ' WHERE TABLE_SCHEMA='+EscapeString(db)+' AND TABLE_TYPE='+EscapeString('BASE TABLE')
+        );
+    end;
   except
     on E:EDatabaseError do;
   end;
