@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-11-09 07:28+0100\n"
+"PO-Revision-Date: 2013-11-27 06:53+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2572,6 +2572,14 @@ msgstr ""
 "Count in usage statistics. This option, if enabled, will cause HeidiSQL to "
 "ping heidisql.com at most once every month.  This is used to count the used "
 "HeidiSQL and MySQL versions."
+
+# Options > Miscellaneous
+msgid ""
+"Get full table status (disable to speed up on databases with many InnoDB "
+"tables)"
+msgstr ""
+"Get full table status (disable to speed up on databases with many InnoDB "
+"tables)"
 
 #. optionsform..pagecontrolMain..tabMisc..chkAllowMultiInstances..Caption
 #: options.dfm:141
