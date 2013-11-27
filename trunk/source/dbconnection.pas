@@ -3001,7 +3001,7 @@ begin
           'NULL AS '+QuoteIdent('Checksum')+', '+
           'NULL AS '+QuoteIdent('Create_options')+
         ' FROM INFORMATION_SCHEMA.TABLES'+
-        ' WHERE TABLE_SCHEMA='+EscapeString(db)+' AND TABLE_TYPE='+EscapeString('BASE TABLE')
+        ' WHERE TABLE_SCHEMA='+EscapeString(db)+' AND TABLE_TYPE IN('+EscapeString('BASE TABLE')+', '+EscapeString('VIEW')+')'
         );
     end;
   except
