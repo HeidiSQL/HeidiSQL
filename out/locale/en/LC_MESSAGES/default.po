@@ -1099,6 +1099,10 @@ msgstr "Table:"
 msgid "Columns:"
 msgstr "Columns:"
 
+# CSV import
+msgid "Cannot truncate table"
+msgstr "Cannot truncate table"
+
 #. frmLogin..Caption
 #. frmLogin..btnOK..Caption
 #: loginform.dfm:5 loginform.dfm:29
