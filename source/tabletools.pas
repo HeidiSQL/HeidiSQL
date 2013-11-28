@@ -135,7 +135,7 @@ type
     FObjectSizes, FObjectSizesDone, FObjectSizesDoneExact: Int64;
     procedure SetToolMode(Value: TToolMode);
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
-    procedure AddResults(SQL: String);
+    procedure AddResults(SQL: String; Connection: TDBConnection);
     procedure AddNotes(Col1, Col2, Col3, Col4: String);
     procedure SetupResultGrid(Results: TDBQuery=nil);
     procedure UpdateResultGrid;
@@ -727,7 +727,7 @@ begin
   if chkChanged.Enabled and chkChanged.Checked then SQL := SQL + ' CHANGED';
   if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
   if chkForUpgrade.Enabled and chkForUpgrade.Checked then SQL := SQL + ' FOR UPGRADE';
-  AddResults(SQL);
+  AddResults(SQL, DBObj.Connection);
 end;
 
 
@@ -760,7 +760,7 @@ begin
       SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
         + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
         + SQL;
-      AddResults(SQL);
+      AddResults(SQL, DBObj.Connection);
     end else
       AddNotes(DBObj.Database, DBObj.Name, f_('%s%s doesn''t have columns of selected type (%s).', [STRSKIPPED, DBObj.ObjType, comboDatatypes.Text]), '');
   end;
@@ -789,7 +789,7 @@ begin
 end;
 
 
-procedure TfrmTableTools.AddResults(SQL: String);
+procedure TfrmTableTools.AddResults(SQL: String; Connection: TDBConnection);
 var
   i: Integer;
   Row: TStringList;
@@ -797,7 +797,7 @@ var
   Value: String;
 begin
   // Execute query and append results into grid
-  Results := MainForm.ActiveConnection.GetResults(SQL);
+  Results := Connection.GetResults(SQL);
   if Results = nil then
     Exit;
 
@@ -1218,6 +1218,7 @@ begin
     esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
     IntToStr(DBObj.Rows)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
     '0 AS '+DBObj.Connection.QuoteIdent('Duration')
+    , DBObj.Connection
     );
   ToFile := (comboExportOutputType.Text = OUTPUT_FILE) or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED);
   ToDir := comboExportOutputType.Text = OUTPUT_DIR;
@@ -1556,6 +1557,7 @@ begin
     esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
     esc('Updating...')+' AS '+DBObj.Connection.QuoteIdent('Operation')+', '+
     ''''' AS '+DBObj.Connection.QuoteIdent('Result')
+    , DBObj.Connection
     );
   Specs := TStringList.Create;
   if chkBulkTableEditDatabase.Checked and (comboBulkTableEditDatabase.Text <> DBObj.Database) then begin
