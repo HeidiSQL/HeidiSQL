@@ -584,7 +584,7 @@ type
     procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure AfterFormCreate;
+    procedure AfterFormShow;
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
@@ -921,6 +921,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure lblMenuMouseEnter(Sender: TObject);
     procedure lblMenuMouseLeave(Sender: TObject);
+    procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -929,6 +930,7 @@ type
     FAppVerRevision: Integer;
     FAppVersion: String;
 
+    FAfterFormShowFinished: Boolean;
     FLastHintMousepos: TPoint;
     FLastHintControlIndex: Integer;
     FDelimiter: String;
@@ -1415,6 +1417,7 @@ var
   CoolBand: TCoolBand;
 begin
   caption := APPNAME;
+  FAfterFormShowFinished := False;
 
   // First time translation via dxgettext.
   // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
@@ -1718,7 +1721,7 @@ end;
 {**
   Check for connection parameters on commandline or show connections form.
 }
-procedure TMainForm.AfterFormCreate;
+procedure TMainForm.AfterFormShow;
 var
   LastSessions, FileNames: TStringlist;
   Connection: TDBConnection;
@@ -11282,6 +11285,18 @@ procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
 begin
   // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
   tabsetQueryMouseLeave(Sender);
+end;
+
+
+procedure TMainForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+begin
+  // Show up session manager in first idle time. MainForm is visible at this point.
+  // See http://www.heidisql.com/forum.php?t=14133
+  if not FAfterFormShowFinished then begin
+    FAfterFormShowFinished := False;
+    AfterFormShow;
+    Done := True;
+  end;
 end;
 
 

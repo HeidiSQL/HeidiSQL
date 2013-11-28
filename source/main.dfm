@@ -9756,6 +9756,7 @@ object MainForm: TMainForm
   end
   object ApplicationEvents1: TApplicationEvents
     OnDeactivate = ApplicationEvents1Deactivate
+    OnIdle = ApplicationEvents1Idle
     Left = 504
     Top = 152
   end
