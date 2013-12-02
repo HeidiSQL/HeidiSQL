@@ -127,7 +127,6 @@ type
     SynMemoSQLSample: TSynMemo;
     editCustomSnippetsDirectory: TButtonedEdit;
     lblCustomSnippetsDirectory: TLabel;
-    chkFullTableStatus: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -257,7 +256,6 @@ begin
   AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
   AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
   AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
-  AppSettings.WriteBool(asFullTableStatus, chkFullTableStatus.Checked);
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
@@ -435,7 +433,6 @@ begin
   updownUpdatecheckInterval.Position := AppSettings.ReadInt(asUpdatecheckInterval);
   chkUpdatecheckClick(Sender);
   chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
-  chkFullTableStatus.Checked := AppSettings.ReadBool(asFullTableStatus);
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
