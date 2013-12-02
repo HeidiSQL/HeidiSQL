@@ -92,6 +92,7 @@ type
     chkLocalTimeZone: TCheckBox;
     editStartupScript: TButtonedEdit;
     lblStartupScript: TLabel;
+    chkFullTableStatus: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -313,6 +314,7 @@ begin
   Sess.NetType := TNetType(comboNetType.ItemIndex);
   Sess.Compressed := chkCompressed.Checked;
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
+  Sess.FullTableStatus := chkFullTableStatus.Checked;
   Sess.AllDatabasesStr := comboDatabases.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
   Sess.SSHPlinkExe := editSSHPlinkExe.Text;
@@ -510,6 +512,7 @@ begin
     Result.StartupScriptFilename := editStartupScript.Text;
     Result.Compressed := chkCompressed.Checked;
     Result.LocalTimeZone := chkLocalTimeZone.Checked;
+    Result.FullTableStatus := chkFullTableStatus.Checked;
   end;
 end;
 
@@ -746,6 +749,7 @@ begin
     updownPort.Position := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
+    chkFullTableStatus.Checked := Sess.FullTableStatus;
     comboDatabases.Text := Sess.AllDatabasesStr;
     editStartupScript.Text := Sess.StartupScriptFilename;
     editSSHPlinkExe.Text := Sess.SSHPlinkExe;
@@ -948,6 +952,7 @@ begin
       or (Sess.Port <> updownPort.Position)
       or (Sess.Compressed <> chkCompressed.Checked)
       or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
+      or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
       or (Sess.AllDatabasesStr <> comboDatabases.Text)

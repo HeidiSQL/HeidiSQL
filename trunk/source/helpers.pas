@@ -3280,7 +3280,7 @@ begin
   InitSetting(asDonatedEmail,                     'DonatedEmail',                          0, False, '');
   InitSetting(asFavoriteObjects,                  'FavoriteObjects',                       0, False, '', True);
   InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False);
-  InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True);
+  InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True, '', True);
 end;
 
 

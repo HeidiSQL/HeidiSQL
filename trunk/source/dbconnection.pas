@@ -176,7 +176,7 @@ type
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter: Integer;
-      FLoginPrompt, FCompressed, FLocalTimeZone, FWindowsAuth, FWantSSL, FIsFolder: Boolean;
+      FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus, FWindowsAuth, FWantSSL, FIsFolder: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
       function GetImageIndex: Integer;
@@ -215,6 +215,7 @@ type
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Compressed: Boolean read FCompressed write FCompressed;
       property LocalTimeZone: Boolean read FLocalTimeZone write FLocalTimeZone;
+      property FullTableStatus: Boolean read FFullTableStatus write FFullTableStatus;
       property SSHHost: String read FSSHHost write FSSHHost;
       property SSHPort: Integer read FSSHPort write FSSHPort;
       property SSHUser: String read FSSHUser write FSSHUser;
@@ -705,6 +706,7 @@ begin
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
     FCompressed := AppSettings.ReadBool(asCompressed);
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
+    FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
     FLastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
@@ -736,6 +738,7 @@ begin
     AppSettings.WriteInt(asNetType, Integer(FNetType));
     AppSettings.WriteBool(asCompressed, FCompressed);
     AppSettings.WriteBool(asLocalTimeZone, FLocalTimeZone);
+    AppSettings.WriteBool(asFullTableStatus, FFullTableStatus);
     AppSettings.WriteString(asDatabases, FAllDatabases);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
     AppSettings.WriteString(asSSHtunnelHost, FSSHHost);
@@ -2977,7 +2980,7 @@ begin
   // Tables and views
   Results := nil;
   try
-    AppSettings.ResetPath;
+    AppSettings.SessionPath := Parameters.SessionPath;
     if AppSettings.ReadBool(asFullTableStatus) or (UpperCase(db) = 'INFORMATION_SCHEMA') then begin
       Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
     end else begin

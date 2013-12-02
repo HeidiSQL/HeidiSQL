@@ -647,7 +647,7 @@ object connform: Tconnform
       end
       object chkLocalTimeZone: TCheckBox
         Left = 120
-        Top = 130
+        Top = 180
         Width = 172
         Height = 17
         Hint = 
@@ -655,7 +655,7 @@ object connform: Tconnform
           ', for MySQL 4.1.3+'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Set client time zone'
-        TabOrder = 4
+        TabOrder = 5
         OnClick = Modification
       end
       object editStartupScript: TButtonedEdit
@@ -667,10 +667,23 @@ object connform: Tconnform
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 5
+        TabOrder = 4
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
+      end
+      object chkFullTableStatus: TCheckBox
+        Left = 120
+        Top = 203
+        Width = 172
+        Height = 17
+        Hint = 
+          'Disable to speed up internal queries on databases with many Inno' +
+          'DB tables'
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Get full table status'
+        TabOrder = 6
+        OnClick = Modification
       end
     end
     object tabStatistics: TTabSheet
