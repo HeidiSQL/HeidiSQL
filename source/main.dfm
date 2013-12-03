@@ -11,6 +11,7 @@ object MainForm: TMainForm
   Font.Style = []
   OldCreateOrder = True
   Position = poDesigned
+  ShowHint = True
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
