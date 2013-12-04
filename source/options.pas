@@ -177,6 +177,9 @@ type
   end;
 
 
+function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
+
+
 implementation
 uses main, helpers;
 {$R *.DFM}
@@ -357,17 +360,24 @@ begin
 end;
 
 
+// Callback function used by EnumFontFamilies()
+function EnumFixedProc(
+  lpelf: PEnumLogFont;
+  lpntm: PNewTextMetric;
+  FontType: Integer;
+  Data: LPARAM
+  ): Integer; stdcall;
+begin
+  Result := 1;  // don't cancel
+  if (lpelf^.elfLogFont.lfPitchAndFamily and FIXED_PITCH) <> 0 then
+    (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
+end;
+
+
 procedure Toptionsform.FormCreate(Sender: TObject);
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
-  // Callback function used by EnumFontFamilies()
-  function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Integer; Data: LPARAM): Integer; stdcall;
-  begin
-    Result := 1;  // don't cancel
-    if (lpelf^.elfLogFont.lfPitchAndFamily and FIXED_PITCH) <> 0 then
-      (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
-  end;
 begin
   TranslateComponent(Self);
   InheritFont(Font);
@@ -390,7 +400,7 @@ begin
     comboGridTextColors.Items.Add(DatatypeCategories[dtc].Name);
 
   // SQL
-  EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, NativeInt(Pointer(comboSQLFontName.Items)));
+  EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Sorted := True;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
     #9'''String literal'' AS lit' + CRLF +
