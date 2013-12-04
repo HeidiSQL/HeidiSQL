@@ -390,7 +390,7 @@ begin
     comboGridTextColors.Items.Add(DatatypeCategories[dtc].Name);
 
   // SQL
-  EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
+  EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, NativeInt(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Sorted := True;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
     #9'''String literal'' AS lit' + CRLF +
