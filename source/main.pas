@@ -8151,7 +8151,8 @@ begin
     // Refresh grid, and restore X scroll offset, so the just clicked column is still at the same place.
     LeftColPos := Sender.Columns[HitInfo.Column].Left;
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, True);
-    Sender.Treeview.OffsetX := -(Sender.Columns[HitInfo.Column].Left - Sender.Treeview.OffsetX - LeftColPos);
+    if Sender.Columns.Count > HitInfo.Column then // See issue #3309
+      Sender.Treeview.OffsetX := -(Sender.Columns[HitInfo.Column].Left - Sender.Treeview.OffsetX - LeftColPos);
   end else begin
     frm := TColumnSelectionForm.Create(self);
     // Position new form relative to btn's position
