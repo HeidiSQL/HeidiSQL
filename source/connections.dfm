@@ -85,7 +85,6 @@ object connform: Tconnform
     Margins.Bottom = 40
     Align = alLeft
     DragMode = dmAutomatic
-    EditDelay = 250
     Header.AutoSizeIndex = -1
     Header.Font.Charset = DEFAULT_CHARSET
     Header.Font.Color = clWindowText
