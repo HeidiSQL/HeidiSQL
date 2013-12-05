@@ -6624,7 +6624,6 @@ var
 begin
   VT := Sender as TVirtualStringTree;
   Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
-  OperationRunning(True);
 end;
 
 
