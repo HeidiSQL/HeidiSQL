@@ -4799,10 +4799,14 @@ begin
   if DBObject.NodeType = lntTable then begin
     if (not IsLimited) and (not IsFiltered) then
       RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
-    else if DBObject.Connection.Parameters.NetTypeGroup = ngMySQL then
-      RowsTotal := MakeInt(DBObject.Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'))
-    else
-      RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT COUNT(*) FROM '+DBObject.QuotedName));
+    else case DBObject.Connection.Parameters.NetTypeGroup of
+      ngMySQL:
+        RowsTotal := MakeInt(DBObject.Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
+      ngMSSQL:
+        RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT SUM(rows) FROM sys.partitions WHERE index_id IN (0, 1) AND object_id = object_id('+esc(DBObject.Database+'.'+DBObject.Schema+'.'+DBObject.Name)+')'));
+      else
+        RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT COUNT(*) FROM '+DBObject.QuotedName));
+    end;
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
       if DBObject.Engine = 'InnoDB' then
