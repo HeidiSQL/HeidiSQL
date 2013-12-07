@@ -401,6 +401,7 @@ begin
     DBObject.CreateCode := '';
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
+    MainForm.tabData.TabVisible := True;
     Mainform.RefreshTree(DBObject);
     Mainform.RefreshHelperNode(HELPERNODE_COLUMNS);
     ResetModificationFlags;
