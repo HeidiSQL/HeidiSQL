@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-12-02 06:39+0100\n"
+"PO-Revision-Date: 2013-12-07 15:09+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1966,6 +1966,13 @@ msgstr "SQL help browser"
 #: main.dfm:2153 main.dfm:2154
 msgid "Refresh"
 msgstr "Refresh"
+
+# Full table status refresh
+msgid "Full status refresh"
+msgstr "Full status refresh"
+
+msgid "Get full statistics refresh on table data. Slow on InnoDB tables!"
+msgstr "Get full statistics refresh on table data. Slow on InnoDB tables!"
 
 #. MainForm..ActionList1..actImportCSV..Caption
 #: main.dfm:2161

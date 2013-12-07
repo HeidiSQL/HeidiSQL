@@ -578,6 +578,9 @@ type
     lblDonate: TLabel;
     lblUpdateAvailable: TLabel;
     actFavoriteObjectsOnly1: TMenuItem;
+    Fullstatusrefresh1: TMenuItem;
+    N10: TMenuItem;
+    actFullRefresh: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -921,6 +924,7 @@ type
       Shift: TShiftState; X, Y: Integer);
     procedure lblMenuMouseEnter(Sender: TObject);
     procedure lblMenuMouseLeave(Sender: TObject);
+    procedure actFullRefreshExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1245,6 +1249,20 @@ begin
     on E:EDatabaseError do
       ErrorDialog(E.Message);
   end;
+end;
+
+
+procedure TMainForm.actFullRefreshExecute(Sender: TObject);
+var
+  OldFullTableStatusSetting: Boolean;
+  Conn: TDBConnection;
+begin
+  // Temorarily enable full table status when it's disabled
+  Conn := ActiveConnection;
+  OldFullTableStatusSetting := Conn.Parameters.FullTableStatus;
+  Conn.Parameters.FullTableStatus := True;
+  actRefresh.Execute;
+  Conn.Parameters.FullTableStatus := OldFullTableStatusSetting;
 end;
 
 
@@ -5109,6 +5127,7 @@ begin
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
   inGrid := Assigned(Grid) and (ActiveControl = Grid);
 
+  actFullRefresh.Enabled := PageControlMain.ActivePage = tabDatabase;
   actDataInsert.Enabled := inGrid and Assigned(Results);
   actDataDuplicateRow.Enabled := inGrid and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataDelete.Enabled := inGrid and (Grid.SelectedCount > 0);

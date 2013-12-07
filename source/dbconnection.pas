@@ -2980,8 +2980,7 @@ begin
   // Tables and views
   Results := nil;
   try
-    AppSettings.SessionPath := Parameters.SessionPath;
-    if AppSettings.ReadBool(asFullTableStatus) or (UpperCase(db) = 'INFORMATION_SCHEMA') then begin
+    if Parameters.FullTableStatus or (UpperCase(db) = 'INFORMATION_SCHEMA') then begin
       Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
     end else begin
       Results := GetResults('SELECT '+
