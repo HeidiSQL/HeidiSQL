@@ -7385,7 +7385,12 @@ begin
               CellText := FormatByteNumber(DBObjects.DataSize);
             end;
           end;
-        lntTable: CellText := FormatByteNumber(DBObj.Size);
+        lntTable: begin
+            if DBObj.Size >= 0 then
+              CellText := FormatByteNumber(DBObj.Size)
+            else
+              CellText := '';
+          end
         else CellText := ''; // Applies for views/procs/... which have no size
       end;
   end;
