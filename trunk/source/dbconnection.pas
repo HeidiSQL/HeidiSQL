@@ -1157,6 +1157,17 @@ begin
       raise EDatabaseError.Create(Error);
     end else begin
       FActive := True;
+      // Catch late init_connect error by firing mysql_ping(), which detects a broken
+      // connection without running into some access violation. See issue #3464.
+      Ping(False);
+      if not FActive then
+        raise EDatabaseError.CreateFmt(_('Connection closed immediately after it was established. '+
+          'This is mostly caused by an "%s" server variable which has errors in itself, '+
+          'or your user account does not have the required privileges for it to run.'+CRLF+CRLF+
+          'You may ask someone with SUPER privileges'+CRLF+
+          '* either to fix the "%s" variable,'+CRLF+
+          '* or to grant you missing privileges.'),
+          ['init_connect', 'init_connect']);
       Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       CharacterSet := 'utf8';
       CurCharset := CharacterSet;
