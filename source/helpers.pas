@@ -208,6 +208,7 @@ type
       procedure WriteString(Index: TAppSettingIndex; Value: String; FormatName: String=''); overload;
       procedure WriteString(ValueName, Value: String); overload;
       function GetDefaultInt(Index: TAppSettingIndex): Integer;
+      function GetDefaultBool(Index: TAppSettingIndex): Boolean;
       function GetDefaultString(Index: TAppSettingIndex): String;
       function GetValueName(Index: TAppSettingIndex): String;
       function GetValueNames: TStringList;
@@ -3474,6 +3475,13 @@ function TAppSettings.GetDefaultInt(Index: TAppSettingIndex): Integer;
 begin
   // Return default integer value
   Result := FSettings[Index].DefaultInt;
+end;
+
+
+function TAppSettings.GetDefaultBool(Index: TAppSettingIndex): Boolean;
+begin
+  // Return default boolean value
+  Result := FSettings[Index].DefaultBool;
 end;
 
 

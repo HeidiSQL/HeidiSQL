@@ -652,6 +652,7 @@ begin
   FSSLCertificate := '';
   FSSLCACertificate := '';
   FStartupScriptFilename := '';
+  FFullTableStatus := AppSettings.GetDefaultBool(asFullTableStatus);
   FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
   FLastConnect := 0;
   FCounter := 0;
