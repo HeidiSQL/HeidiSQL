@@ -2312,13 +2312,13 @@ object MainForm: TMainForm
     end
     object actExportSettings: TAction
       Category = 'Export/Import'
-      Caption = 'Export settings ...'
+      Caption = 'Export settings file ...'
       ImageIndex = 100
       OnExecute = actExportSettingsExecute
     end
     object actImportSettings: TAction
       Category = 'Export/Import'
-      Caption = 'Import settings ...'
+      Caption = 'Import settings file ...'
       ImageIndex = 101
       OnExecute = actImportSettingsExecute
     end

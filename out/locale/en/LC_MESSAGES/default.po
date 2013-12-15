@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2013-12-10 06:46+0100\n"
+"PO-Revision-Date: 2013-12-15 07:08+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -252,8 +252,8 @@ msgstr "Start"
 #. connform..PageControlDetails..tabStart..btnImportSettings..Caption
 #. MainForm..ActionList1..actImportSettings..Caption
 #: connections.dfm:212 main.dfm:2174
-msgid "Import settings ..."
-msgstr "Import settings ..."
+msgid "Import settings file ..."
+msgstr "Import settings file ..."
 
 #. connform..PageControlDetails..tabSettings..Caption
 #. frmEventEditor..PageControlMain..tabSettings..Caption
@@ -345,8 +345,8 @@ msgstr ""
 
 #. connform..PageControlDetails..tabSettings..chkLocalTimeZone..Caption
 #: connections.dfm:408
-msgid "Set client time zone"
-msgstr "Set client time zone"
+msgid "Use own client time zone"
+msgstr "Use own client time zone"
 
 # Session > Advanced
 msgid "Get full table status"
@@ -413,9 +413,8 @@ msgstr "Doubleclick to select plink.exe ..."
 msgid "PuTTY private key (*.ppk)"
 msgstr "PuTTY private key (*.ppk)"
 
-#. connform..PageControlDetails..tabSSLOptions..Caption
 #. UserManagerForm..pnlRight..PageControlSettings..tabSSL..Caption
-#: connections.dfm:596 usermanager.dfm:468
+#: usermanager.dfm:468
 msgid "SSL options"
 msgstr "SSL options"
 
@@ -474,11 +473,6 @@ msgstr "New session"
 #: connections.dfm:759
 msgid "New folder"
 msgstr "New folder"
-
-#. connform..popupNew..menuNewSession..Caption
-#: connections.dfm:781
-msgid "Session"
-msgstr "Session"
 
 #. connform..popupNew..menuNewFolder..Caption
 #: connections.dfm:786
@@ -1986,8 +1980,8 @@ msgstr "Import a CSV or tab delimited file"
 
 #. MainForm..ActionList1..actExportSettings..Caption
 #: main.dfm:2168
-msgid "Export settings ..."
-msgstr "Export settings ..."
+msgid "Export settings file ..."
+msgstr "Export settings file ..."
 
 #. MainForm..ActionList1..actPreferences..Caption
 #. optionsform..Caption
@@ -3788,16 +3782,16 @@ msgid "not available"
 msgstr "not available"
 
 #: connections.pas:789
-msgid "Successful connects: %d"
-msgstr "Successful connects: %d"
+msgid "successful connects: %d"
+msgstr "successful connects: %d"
 
 #: connections.pas:791
 msgid "unsuccessful"
 msgstr "unsuccessful"
 
 #: connections.pas:793
-msgid "Unsuccessful connects: %d"
-msgstr "Unsuccessful connects: %d"
+msgid "unsuccessful connects: %d"
+msgstr "unsuccessful connects: %d"
 
 #: connections.pas:954
 msgid "Save modifications?"

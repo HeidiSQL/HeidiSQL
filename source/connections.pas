@@ -815,11 +815,11 @@ begin
   Refused := AppSettings.ReadInt(asRefusedCount);
   lblCounterRight.Enabled := Connects + Refused > 0;
   if Connects > 0 then begin
-    lblCounterRight.Caption := f_('Successful connects: %d', [Connects]);
+    lblCounterRight.Caption := f_('successful connects: %d', [Connects]);
     if Refused > 0 then
       lblCounterRight.Caption := lblCounterRight.Caption + ', '+_('unsuccessful')+': '+IntToStr(Refused);
   end else if Refused > 0 then
-    lblCounterRight.Caption := f_('Unsuccessful connects: %d', [Refused]);
+    lblCounterRight.Caption := f_('unsuccessful connects: %d', [Refused]);
   Invalidate;
 end;
 
