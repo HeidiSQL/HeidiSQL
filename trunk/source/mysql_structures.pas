@@ -980,7 +980,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        dtcBinary;
+      Category:        dtcInteger;
     ),
     (
       Index:           dtChar;
