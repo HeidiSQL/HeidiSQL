@@ -653,7 +653,7 @@ object connform: Tconnform
           'Use your client time zone in date/time SQL functions, e.g. NOW()' +
           ', for MySQL 4.1.3+'
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Set client time zone'
+        Caption = 'Use own client time zone'
         TabOrder = 5
         OnClick = Modification
       end
@@ -701,9 +701,9 @@ object connform: Tconnform
       object lblCounterLeft: TLabel
         Left = 3
         Top = 50
-        Width = 43
+        Width = 104
         Height = 13
-        Caption = 'Counter:'
+        Caption = 'Connection attempts:'
       end
       object lblCreatedLeft: TLabel
         Left = 3
