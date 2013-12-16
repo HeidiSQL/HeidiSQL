@@ -284,7 +284,7 @@ begin
   if DBObject.Name = '' then begin
     // Creating new table
     editName.Text := '';
-    if DBObject.Connection.Parameters.NetTypeGroup = ngMySQL then
+    if DBObject.Connection.Parameters.IsMySQL then
       comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
     PageControlMain.ActivePage := tabBasic;
   end else begin
@@ -495,7 +495,7 @@ begin
   // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error.
   // Also, do this after the data type was altered, if from TEXT > VARCHAR e.g.
   for i:=0 to FColumns.Count-1 do begin
-    if (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL)
+    if DBObject.Connection.Parameters.IsMySQL
       and (FColumns[i].FStatus = esModified)
       and (FColumns[i].DefaultType = cdtNothing)
       and (FColumns[i].OldDataType.HasDefault)
@@ -987,7 +987,7 @@ begin
     0: Result := False;
     3: Result := Col.DataType.HasLength;
     4: begin
-      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.IsMySQL);
       if (not Result) and Col.Unsigned then begin
         Col.Unsigned := False;
         Col.Status := esModified;
@@ -1008,7 +1008,7 @@ begin
       end;
     end;
     6: begin
-      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.IsMySQL);
       if (not Result) and Col.ZeroFill then begin
         Col.ZeroFill := False;
         Col.Status := esModified;

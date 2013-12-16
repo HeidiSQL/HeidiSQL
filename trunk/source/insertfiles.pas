@@ -630,7 +630,7 @@ begin
               // Import binaries as-is (byte for byte), and auto-detect encoding of text files.
               if FileInfo.IsBinary then begin
                 FileContent := '';
-                if FConnection.Parameters.NetTypeGroup = ngMySQL then
+                if FConnection.Parameters.IsMySQL then
                   FileContent := '_binary ';
                 FileContent := FileContent + '0x' + BinToWideHex(ReadBinaryFile(FileInfo.Filename, 0))
               end else

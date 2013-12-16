@@ -2746,7 +2746,7 @@ var
 begin
   // Sub menu with EXPLAIN items pops up
   SQL := GetCurrentQuery(ActiveQueryTab);
-  actExplainCurrentQuery.Enabled := ActiveConnection.Parameters.NetTypeGroup = ngMySQL;
+  actExplainCurrentQuery.Enabled := ActiveConnection.Parameters.IsMySQL;
   actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled;
 end;
 
@@ -3050,7 +3050,7 @@ var
 begin
   // Launch mysql.exe
   Conn := ActiveConnection;
-  if Conn.Parameters.NetTypeGroup <> ngMySQL then
+  if not Conn.Parameters.IsMySQL then
     ErrorDialog(_('Command line only works on MySQL connections.'))
   else begin
     if FIsWine then begin
@@ -4648,7 +4648,7 @@ begin
               ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
               ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
             end;
-          end else if (DBObj.Connection.Parameters.NetTypeGroup=ngMSSQL)
+          end else if DBObj.Connection.Parameters.IsMSSQL
             and (c.DataType.Index=dtTimestamp)
             then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
@@ -6989,8 +6989,7 @@ begin
     SynMemoProcessView.Text := _('Please select a process in the above list.');
     SynMemoProcessView.Color := clBtnFace;
   end;
-  lblExplainProcess.Enabled := enableSQLView
-    and (ActiveConnection.Parameters.NetTypeGroup = ngMySQL);
+  lblExplainProcess.Enabled := enableSQLView and ActiveConnection.Parameters.IsMySQL;
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
   lblExplainProcessAnalyzer.Enabled := lblExplainProcess.Enabled;
   menuExplainAnalyzer.Enabled := lblExplainProcess.Enabled;
@@ -8970,7 +8969,7 @@ begin
   // Status + command statistics only available in MySQL
   if ((vt=ListStatus) or (vt=ListCommandStats))
     and (Conn <> nil)
-    and (Conn.Parameters.NetTypeGroup <> ngMySQL) then begin
+    and (not Conn.Parameters.IsMySQL) then begin
     vt.Clear;
     vt.EmptyListMessage := f_('Not available on %s', [Conn.Parameters.NetTypeName(Conn.Parameters.NetType, False)]);
     vt.Tag := VTREE_LOADED;
