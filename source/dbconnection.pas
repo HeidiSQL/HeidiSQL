@@ -189,6 +189,8 @@ type
       function CreateQuery(AOwner: TComponent): TDBQuery;
       function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
       function GetNetTypeGroup: TNetTypeGroup;
+      function IsMySQL: Boolean;
+      function IsMSSQL: Boolean;
       function IsMariaDB: Boolean;
       function IsPercona: Boolean;
       function IsTokudb: Boolean;
@@ -838,6 +840,18 @@ begin
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
+end;
+
+
+function TConnectionParameters.IsMySQL: Boolean;
+begin
+  Result := NetTypeGroup = ngMySQL;
+end;
+
+
+function TConnectionParameters.IsMSSQL: Boolean;
+begin
+  Result := NetTypeGroup = ngMSSQL;
 end;
 
 
@@ -2452,7 +2466,7 @@ begin
   else begin
     // Fallback for target tables which do not yet exist. For example in copytable dialog.
     Result := QuoteIdent(DB) + '.';
-    if Parameters.NetTypeGroup = ngMSSQL then
+    if Parameters.IsMSSQL then
       Result := Result + '.';
     Result := Result + QuoteIdent(Obj);
   end;
@@ -4731,7 +4745,7 @@ begin
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
           Val := Cell.NewText;
-          if (Datatype(i).Index = dtBit) and (FConnection.Parameters.NetTypeGroup=ngMySQL) then
+          if (Datatype(i).Index = dtBit) and FConnection.Parameters.IsMySQL then
             Val := 'b' + Connection.EscapeString(Val);
         end;
         dtcBinary, dtcSpatial:
@@ -4739,6 +4753,8 @@ begin
         else begin
           if Datatype(i).Index in [dtNchar, dtNvarchar, dtNtext] then
             Val := 'N' + Connection.EscapeString(Cell.NewText)
+          else if (Datatype(i).Index in [dtDate, dtDateTime]) and FConnection.Parameters.IsMSSQL then
+            Val := 'CONVERT(DATETIME, '+Connection.EscapeString(Cell.NewText)+', 120)'
           else
             Val := Connection.EscapeString(Cell.NewText);
         end;
@@ -5276,7 +5292,7 @@ end;
 function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;
 begin
   Result := '';
-  if FConnection.Parameters.NetTypeGroup = ngMSSQL then begin
+  if FConnection.Parameters.IsMSSQL then begin
     if Schema <> '' then
       Result := Result + Connection.QuoteIdent(Schema, AlwaysQuote);
     Result := Result + '.';

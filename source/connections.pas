@@ -1014,7 +1014,7 @@ begin
         lblHost.Caption := _('Socket name:')
       else
         lblHost.Caption := _('Hostname / IP:');
-      chkWindowsAuth.Enabled := Params.NetTypeGroup = ngMSSQL;
+      chkWindowsAuth.Enabled := Params.IsMSSQL;
       lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
       editUsername.Enabled := lblUsername.Enabled;
