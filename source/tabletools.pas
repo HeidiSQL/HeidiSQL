@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, helpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes;
+  dbconnection, helpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -294,7 +294,7 @@ begin
   idx := AppSettings.ReadInt(asExportSQLOutput);
   if (idx = -1)
     or (idx >= comboExportOutputType.Items.Count)
-    or (copy(comboExportOutputType.Items[idx], 1, Length(OUTPUT_SERVER)) = OUTPUT_SERVER)
+    or StartsStr(OUTPUT_SERVER, comboExportOutputType.Items[idx])
     then idx := 0;
   comboExportOutputType.ItemIndex := idx;
   comboExportOutputType.OnChange(Sender);
@@ -341,7 +341,8 @@ begin
       AppSettings.WriteBool(asExportSQLCreateDatabases, chkExportDatabasesCreate.Checked);
       AppSettings.WriteBool(asExportSQLCreateTables, chkExportTablesCreate.Checked);
       AppSettings.WriteInt(asExportSQLDataHow, comboExportData.ItemIndex);
-      AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
+      if not StartsStr(OUTPUT_SERVER, comboExportOutputType.Text) then
+        AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
 
       if comboExportOutputType.Text = OUTPUT_FILE then begin
         comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
