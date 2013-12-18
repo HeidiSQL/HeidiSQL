@@ -1431,7 +1431,7 @@ var
   rx: TRegExpr;
 begin
   rx := TRegExpr.Create;
-  rx.Expression := '^([\d\.\/\:]+|.*%.*|[\w\d]{4}\:.*|)$';
+  rx.Expression := '^(localhost|[\d\.\/\:]+|.*%.*|[\w\d]{4}\:.*)$';
   Result := not rx.Exec(Host);
   rx.Free;
 end;
