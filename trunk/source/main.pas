@@ -6184,7 +6184,10 @@ begin
         Item := TMenuItem.Create(QFvalues);
         QFvalues.Add(Item);
       end;
-      Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
+      if Data.IsNull(Col) then
+        Item.Hint := Conn.QuoteIdent(Col)+' IS NULL'
+      else
+        Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
       Item.Caption := sstr(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
       Item.OnClick := QuickFilterClick;
       Data.Next;
