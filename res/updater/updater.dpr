@@ -3,6 +3,8 @@ program updater;
 { A window which terminates running HeidiSQL instances and moves the downloaded update file to
   its desired directory. Avoids to use any VCL unit, to keep the executable small. }
 
+{$R manifest.RES}
+
 uses
   Windows, Messages, Tlhelp32, psapi;
 
