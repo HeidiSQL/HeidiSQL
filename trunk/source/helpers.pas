@@ -1960,7 +1960,8 @@ begin
     Dat.dwData := SecondInstMsgId;
     Dat.lpData := ParamStrToBlob(Dat.cbData);
     SendMessage(Wnd, WM_COPYDATA, 0, LPARAM(@Dat));
-    FreeMemory(Dat.lpData);
+    // Leads to an AV in 64bit mode. See issue #3475:
+    // FreeMemory(Dat.lpData);
 
     // Bring first instance to front
     if not IsWindowVisible(Wnd) then
