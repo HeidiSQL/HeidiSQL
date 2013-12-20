@@ -3576,8 +3576,6 @@ var
   a: TAction;
 begin
   // Create a new table, view, etc.
-  tabEditor.TabVisible := True;
-  SetMainTab(tabEditor);
   a := Sender as TAction;
   Obj := TDBObject.Create(ActiveConnection);
   Obj.Database := ActiveDatabase;
@@ -9421,6 +9419,9 @@ begin
     ActiveObjectEditor.Parent := tabEditor;
     MainForm.SetupSynEditors;
   end;
+  // Prefill editor with selected items. See issue #3477.
+  ActiveObjectEditor.FocusedTables := GetFocusedObjects(Obj, [lntTable]);
+  SetMainTab(tabEditor);
   ActiveObjectEditor.Init(Obj);
   UpdateFilterPanel(Self);
 end;
@@ -10142,6 +10143,7 @@ procedure TMainForm.SetMainTab(Page: TTabSheet);
 begin
   // Safely switch main tab
   if (Page <> nil) and (not FTreeRefreshInProgress) then begin
+    Page.TabVisible := True;
     PagecontrolMain.ActivePage := Page;
     PageControlMain.OnChange(Page);
   end;

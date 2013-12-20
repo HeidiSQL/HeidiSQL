@@ -127,6 +127,14 @@ begin
       Raise Exception.Create(_('Trigger definition not found!'));
   end else begin
     editName.Text := '';
+    if FocusedTables.Count > 0 then begin
+      for i:=0 to comboTable.Items.Count-1 do begin
+        if comboTable.Items[i] = FocusedTables[0].Name then begin
+          comboTable.ItemIndex := i;
+          Break;
+        end;
+      end;
+    end;
   end;
   Modification(Self);
   Modified := False;
