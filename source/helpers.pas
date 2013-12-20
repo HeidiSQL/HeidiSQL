@@ -29,7 +29,9 @@ type
     private
       FModified: Boolean;
       FDefiners: TStringList;
+      FFocusedTables: TDBObjectList;
       procedure SetModified(Value: Boolean);
+      procedure SetFocusedTables(Value: TDBObjectList);
     protected
     public
       DBObject: TDBObject;
@@ -39,6 +41,7 @@ type
       function DeInit: TModalResult;
       function GetDefiners: TStringList;
       property Modified: Boolean read FModified write SetModified;
+      property FocusedTables: TDBObjectList read FFocusedTables write SetFocusedTables;
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
   TDBObjectEditorClass = class of TDBObjectEditor;
@@ -1800,16 +1803,26 @@ begin
   Align := alClient;
   InheritFont(Font);
   ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
+  FocusedTables := nil;
 end;
 
 destructor TDBObjectEditor.Destroy;
 begin
+  FFocusedTables.Free;
   inherited;
 end;
 
 procedure TDBObjectEditor.SetModified(Value: Boolean);
 begin
   FModified := Value;
+end;
+
+procedure TDBObjectEditor.SetFocusedTables(Value: TDBObjectList);
+begin
+  if Value = nil then
+    FFocusedTables := TDBObjectList.Create(False)
+  else
+    FFocusedTables := Value;
 end;
 
 procedure TDBObjectEditor.Init(Obj: TDBObject);
