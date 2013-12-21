@@ -142,7 +142,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 2
-        OnChange = Modification
+        OnChange = comboChange
       end
       object comboTiming: TComboBox
         Left = 84
@@ -151,7 +151,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         Height = 21
         Style = csDropDownList
         TabOrder = 3
-        OnChange = Modification
+        OnChange = comboChange
       end
       object comboEvent: TComboBox
         Left = 247
@@ -160,7 +160,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         Height = 21
         Style = csDropDownList
         TabOrder = 4
-        OnChange = Modification
+        OnChange = comboChange
       end
     end
     object tabCreateCode: TTabSheet

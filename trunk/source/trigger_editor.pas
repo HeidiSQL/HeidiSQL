@@ -36,6 +36,7 @@ type
     procedure SynCompletionProposalStatementExecute(Kind: SynCompletionType; Sender: TObject;
       var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
     procedure comboDefinerDropDown(Sender: TObject);
+    procedure comboChange(Sender: TObject);
   private
     { Private declarations }
     function ComposeCreateStatement: String;
@@ -169,6 +170,15 @@ end;
 procedure TfrmTriggerEditor.btnSaveClick(Sender: TObject);
 begin
   ApplyModifications;
+end;
+
+
+procedure TfrmTriggerEditor.comboChange(Sender: TObject);
+begin
+  // Auto generate trigger name as long as it was not user-edited. See issue #3477.
+  if (DBObject.Name = '') and (not editName.Modified) then
+    editName.Text := comboTable.Text+'_'+LowerCase(comboTiming.Text)+'_'+LowerCase(comboEvent.Text);
+  Modification(Sender);
 end;
 
 
