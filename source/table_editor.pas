@@ -592,6 +592,9 @@ begin
         Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spChangeColumn), [OldColName, ColSpec]))
       else if Col.Status in [esAddedUntouched, esAddedModified] then
         Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spAddColumn), [ColSpec]));
+      // MSSQL wants one ALTER TABLE query per ADD/CHANGE COLUMN
+      if DBObject.Connection.Parameters.NetTypeGroup = ngMSSQL then
+        AddQuery;
     end;
     PreviousCol := Col;
     Node := listColumns.GetNextSibling(Node);
