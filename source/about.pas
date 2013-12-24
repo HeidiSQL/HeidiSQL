@@ -79,6 +79,7 @@ begin
   end;
   imgDonate.Visible := Check <> nbTrue;
   MainForm.lblDonate.Visible := imgDonate.Visible;
+  MainForm.imgDonate.Visible := imgDonate.Visible;
 end;
 
 

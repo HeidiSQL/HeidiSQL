@@ -1615,6 +1615,7 @@ begin
   end;
   FHasDonatedDatabaseCheck := nbUnset;
   lblDonate.Visible := HasDonated(True) <> nbTrue;
+  imgDonate.Visible := lblDonate.Visible;
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
@@ -1768,6 +1769,7 @@ begin
       try
         frm.ReadCheckFile;
         lblUpdateAvailable.Visible := frm.btnBuild.Enabled or frm.btnRelease.Enabled;
+        imgUpdateAvailable.Visible := lblUpdateAvailable.Visible;
         if frm.btnRelease.Enabled then
           lblUpdateAvailable.Font.Color := clRed;
         // Show the dialog if release is available, or - when wanted - build checks are activated
