@@ -581,6 +581,8 @@ type
     Fullstatusrefresh1: TMenuItem;
     N10: TMenuItem;
     actFullRefresh: TAction;
+    imgDonate: TImage;
+    imgUpdateAvailable: TImage;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -2304,8 +2306,13 @@ procedure TMainForm.lblMenuMouseEnter(Sender: TObject);
 var
   lbl: TLabel;
 begin
-  lbl := Sender as TLabel;
-  lbl.Font.Style := lbl.Font.Style + [fsUnderline];
+  lbl := nil;
+  if (Sender = lblDonate) or (Sender = imgDonate) then
+    lbl := lblDonate
+  else if (Sender = lblUpdateAvailable) or (Sender = imgUpdateAvailable) then
+    lbl := lblUpdateAvailable;
+  if lbl <> nil then
+    lbl.Font.Style := lbl.Font.Style + [fsUnderline];
 end;
 
 
@@ -2313,7 +2320,12 @@ procedure TMainForm.lblMenuMouseLeave(Sender: TObject);
 var
   lbl: TLabel;
 begin
-  lbl := Sender as TLabel;
+  lbl := nil;
+  if (Sender = lblDonate) or (Sender = imgDonate) then
+    lbl := lblDonate
+  else if (Sender = lblUpdateAvailable) or (Sender = imgUpdateAvailable) then
+    lbl := lblUpdateAvailable;
+  if lbl <> nil then
   lbl.Font.Style := lbl.Font.Style - [fsUnderline];
 end;
 
