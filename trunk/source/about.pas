@@ -115,7 +115,7 @@ begin
   // Assign text
   Caption := f_('About %s', [APPNAME]);
   lblAppName.Caption := APPNAME;
-  lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion;
+  lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion + ' (' + IntToStr(GetExecutableBits) + ' Bit)';
   lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
   lblAppWebpage.Hint := AppDomain;
