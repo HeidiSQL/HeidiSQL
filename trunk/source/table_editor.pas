@@ -593,7 +593,7 @@ begin
       else if Col.Status in [esAddedUntouched, esAddedModified] then
         Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spAddColumn), [ColSpec]));
       // MSSQL wants one ALTER TABLE query per ADD/CHANGE COLUMN
-      if DBObject.Connection.Parameters.NetTypeGroup = ngMSSQL then
+      if DBObject.Connection.Parameters.IsMSSQL then
         AddQuery;
     end;
     PreviousCol := Col;
@@ -602,8 +602,12 @@ begin
 
   // Deleted columns, not available as Node in above loop
   for i:=0 to FColumns.Count-1 do begin
-    if FColumns[i].Status = esDeleted then
+    if FColumns[i].Status = esDeleted then begin
       Specs.Add('DROP COLUMN '+DBObject.Connection.QuoteIdent(FColumns[i].OldName));
+      // MSSQL wants one ALTER TABLE query per DROP COLUMN
+      if DBObject.Connection.Parameters.IsMSSQL then
+        AddQuery;
+    end;
   end;
 
   // Drop indexes, also changed indexes, which will be readded below
