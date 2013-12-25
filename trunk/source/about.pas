@@ -78,8 +78,7 @@ begin
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
   imgDonate.Visible := Check <> nbTrue;
-  MainForm.lblDonate.Visible := imgDonate.Visible;
-  MainForm.imgDonate.Visible := imgDonate.Visible;
+  MainForm.btnDonate.Visible := imgDonate.Visible;
 end;
 
 
@@ -110,7 +109,7 @@ begin
   lblAppName.Font.Size := 14;
   InheritFont(lblAppWebpage.Font);
   imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
-  imgDonate.OnClick := MainForm.lblDonate.OnClick;
+  imgDonate.OnClick := MainForm.btnDonate.OnClick;
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text

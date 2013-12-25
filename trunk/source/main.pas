@@ -575,14 +575,13 @@ type
     btnSearch: TToolButton;
     btnTools: TToolButton;
     btnHelp: TToolButton;
-    lblDonate: TLabel;
-    lblUpdateAvailable: TLabel;
     actFavoriteObjectsOnly1: TMenuItem;
     Fullstatusrefresh1: TMenuItem;
     N10: TMenuItem;
     actFullRefresh: TAction;
-    imgDonate: TImage;
-    imgUpdateAvailable: TImage;
+    ToolBarExtraButtons: TToolBar;
+    btnDonate: TToolButton;
+    btnUpdateAvailable: TToolButton;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -924,8 +923,6 @@ type
     procedure actFavoriteObjectsOnlyExecute(Sender: TObject);
     procedure DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
-    procedure lblMenuMouseEnter(Sender: TObject);
-    procedure lblMenuMouseLeave(Sender: TObject);
     procedure actFullRefreshExecute(Sender: TObject);
   private
     // Executable file details
@@ -1546,8 +1543,6 @@ begin
   // Simulated link label, has non inherited blue font color
   InheritFont(lblExplainProcess.Font);
   InheritFont(lblExplainProcessAnalyzer.Font);
-  InheritFont(lblUpdateAvailable.Font);
-  InheritFont(lblDonate.Font);
 
   StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
   // Upscale panels in non-96-DPI mode
@@ -1614,8 +1609,7 @@ begin
     CoolBand.Width := AppSettings.ReadInt(asCoolBandWidth, IntToStr(CoolBand.ID), CoolBand.Width);
   end;
   FHasDonatedDatabaseCheck := nbUnset;
-  lblDonate.Visible := HasDonated(True) <> nbTrue;
-  imgDonate.Visible := lblDonate.Visible;
+  btnDonate.Visible := HasDonated(True) <> nbTrue;
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
@@ -1768,10 +1762,7 @@ begin
       frm := TfrmUpdateCheck.Create(Self);
       try
         frm.ReadCheckFile;
-        lblUpdateAvailable.Visible := frm.btnBuild.Enabled or frm.btnRelease.Enabled;
-        imgUpdateAvailable.Visible := lblUpdateAvailable.Visible;
-        if frm.btnRelease.Enabled then
-          lblUpdateAvailable.Font.Color := clRed;
+        btnUpdateAvailable.Visible := frm.btnBuild.Enabled or frm.btnRelease.Enabled;
         // Show the dialog if release is available, or - when wanted - build checks are activated
         if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
           or frm.btnRelease.Enabled then begin
@@ -2301,34 +2292,6 @@ begin
     place := LowerCase(Dialog.UnitName);
     ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
   end;
-end;
-
-
-procedure TMainForm.lblMenuMouseEnter(Sender: TObject);
-var
-  lbl: TLabel;
-begin
-  lbl := nil;
-  if (Sender = lblDonate) or (Sender = imgDonate) then
-    lbl := lblDonate
-  else if (Sender = lblUpdateAvailable) or (Sender = imgUpdateAvailable) then
-    lbl := lblUpdateAvailable;
-  if lbl <> nil then
-    lbl.Font.Style := lbl.Font.Style + [fsUnderline];
-end;
-
-
-procedure TMainForm.lblMenuMouseLeave(Sender: TObject);
-var
-  lbl: TLabel;
-begin
-  lbl := nil;
-  if (Sender = lblDonate) or (Sender = imgDonate) then
-    lbl := lblDonate
-  else if (Sender = lblUpdateAvailable) or (Sender = imgUpdateAvailable) then
-    lbl := lblUpdateAvailable;
-  if lbl <> nil then
-  lbl.Font.Style := lbl.Font.Style - [fsUnderline];
 end;
 
 
