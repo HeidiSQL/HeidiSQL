@@ -1586,6 +1586,7 @@ object MainForm: TMainForm
           AutoSize = True
           Caption = 'Update available'
           ImageIndex = 94
+          Visible = False
           OnClick = actUpdateCheckExecute
         end
       end
