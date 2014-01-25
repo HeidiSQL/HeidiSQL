@@ -141,7 +141,7 @@ type
     asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
     asSSLCert, asSSLCA, asNetType, asCompressed, asLocalTimeZone,
-    asStartupScriptFilename, asDatabases, asDatabaseFilter, asTableFilter, asExportSQLCreateDatabases,
+    asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asExportSQLCreateDatabases,
     asExportSQLCreateTables, asExportSQLDataHow, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asGridExportOutputCopy, asGridExportOutputFile,
     asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
@@ -3144,6 +3144,7 @@ begin
   InitSetting(asLocalTimeZone,                    'LocalTimeZone',                         0, False, '', True);
   InitSetting(asStartupScriptFilename,            'StartupScriptFilename',                 0, False, '', True);
   InitSetting(asDatabases,                        'Databases',                             0, False, '', True);
+  InitSetting(asComment,                          'Comment',                               0, False, '', True);
   InitSetting(asDatabaseFilter,                   'DatabaseFilter',                        0, False, '');
   InitSetting(asTableFilter,                      'TableFilter',                           0, False, '');
   InitSetting(asExportSQLCreateDatabases,         'ExportSQL_CreateDatabases',             0, False);

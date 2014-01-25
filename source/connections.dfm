@@ -145,6 +145,12 @@ object connform: Tconnform
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 5
         WideText = 'Counter'
+      end
+      item
+        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+        Position = 6
+        Width = 10
+        WideText = 'Comment'
       end>
   end
   object btnNew: TButton
@@ -264,6 +270,13 @@ object connform: Tconnform
         Height = 13
         Caption = 'Databases:'
       end
+      object lblComment: TLabel
+        Left = 3
+        Top = 241
+        Width = 49
+        Height = 13
+        Caption = 'Comment:'
+      end
       object chkCompressed: TCheckBox
         Left = 120
         Top = 190
@@ -370,6 +383,15 @@ object connform: Tconnform
         Enabled = False
         TabOrder = 3
         OnClick = chkLoginPromptClick
+      end
+      object memoComment: TMemo
+        Left = 120
+        Top = 238
+        Width = 172
+        Height = 44
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        TabOrder = 10
+        OnChange = Modification
       end
     end
     object tabSSHtunnel: TTabSheet
