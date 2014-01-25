@@ -93,6 +93,8 @@ type
     editStartupScript: TButtonedEdit;
     lblStartupScript: TLabel;
     chkFullTableStatus: TCheckBox;
+    lblComment: TLabel;
+    memoComment: TMemo;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -316,6 +318,7 @@ begin
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.FullTableStatus := chkFullTableStatus.Checked;
   Sess.AllDatabasesStr := comboDatabases.Text;
+  Sess.Comment := memoComment.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
   Sess.SSHPlinkExe := editSSHPlinkExe.Text;
   Sess.SSHHost := editSSHhost.Text;
@@ -497,6 +500,7 @@ begin
     else
       Result.Port := 0;
     Result.AllDatabasesStr := comboDatabases.Text;
+    Result.Comment := memoComment.Text;
     Result.SSHHost := editSSHHost.Text;
     Result.SSHPort := MakeInt(editSSHPort.Text);
     Result.SSHUser := editSSHuser.Text;
@@ -575,6 +579,7 @@ begin
         else
           CellText := '';
       5: CellText := FormatNumber(Sess.Counter);
+      6: CellText := Sess.Comment;
     end;
   end;
 end;
@@ -751,6 +756,7 @@ begin
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
     comboDatabases.Text := Sess.AllDatabasesStr;
+    memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
     editSSHPlinkExe.Text := Sess.SSHPlinkExe;
     editSSHHost.Text := Sess.SSHHost;
@@ -956,6 +962,7 @@ begin
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
       or (Sess.AllDatabasesStr <> comboDatabases.Text)
+      or (Sess.Comment <> memoComment.Text)
       or (Sess.SSHHost <> editSSHHost.Text)
       or (IntToStr(Sess.SSHPort) <> editSSHPort.Text)
       or (Sess.SSHPlinkExe <> editSSHPlinkExe.Text)

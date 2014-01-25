@@ -172,7 +172,7 @@ type
   TConnectionParameters = class(TObject)
     strict private
       FNetType: TNetType;
-      FHostname, FUsername, FPassword, FAllDatabases, FStartupScriptFilename,
+      FHostname, FUsername, FPassword, FAllDatabases, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter: Integer;
@@ -214,6 +214,7 @@ type
       property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
+      property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property Compressed: Boolean read FCompressed write FCompressed;
       property LocalTimeZone: Boolean read FLocalTimeZone write FLocalTimeZone;
@@ -694,6 +695,7 @@ begin
     FWindowsAuth := AppSettings.ReadBool(asWindowsAuth);
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FAllDatabases := AppSettings.ReadString(asDatabases);
+    FComment := AppSettings.ReadString(asComment);
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
     FSSHPort := AppSettings.ReadInt(asSSHtunnelHostPort);
     FSSHUser := AppSettings.ReadString(asSSHtunnelUser);
@@ -743,6 +745,7 @@ begin
     AppSettings.WriteBool(asLocalTimeZone, FLocalTimeZone);
     AppSettings.WriteBool(asFullTableStatus, FFullTableStatus);
     AppSettings.WriteString(asDatabases, FAllDatabases);
+    AppSettings.WriteString(asComment, FComment);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
     AppSettings.WriteString(asSSHtunnelHost, FSSHHost);
     AppSettings.WriteInt(asSSHtunnelHostPort, FSSHPort);
