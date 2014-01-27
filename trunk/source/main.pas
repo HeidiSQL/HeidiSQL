@@ -1090,6 +1090,7 @@ type
     procedure SetProgressState(State: TProgressbarState);
     procedure TaskDialogHyperLinkClicked(Sender: TObject);
     function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
+    procedure ApplyVTFilter(FromTimer: Boolean);
 end;
 
 
@@ -6998,18 +6999,26 @@ end;
 
 
 procedure TMainForm.TimerFilterVTTimer(Sender: TObject);
+begin
+  // Disable timer to avoid filtering in a loop
+  TimerFilterVT.Enabled := False;
+
+  // Code moved into this procedure in order to call it by different way
+  ApplyVTFilter(True);
+end;
+
+
+procedure TMainForm.ApplyVTFilter(FromTimer: Boolean);
 var
-  Node : PVirtualNode;
-  VT : TVirtualStringTree;
-  i : Integer;
-  match : Boolean;
-  search : String;
+  Node: PVirtualNode;
+  VT: TVirtualStringTree;
+  i: Integer;
+  match: Boolean;
+  search: String;
   tab: TTabSheet;
   VisibleCount: Cardinal;
   CellText: String;
 begin
-  // Disable timer to avoid filtering in a loop
-  TimerFilterVT.Enabled := False;
   // Find the correct VirtualTree that shall be filtered
   tab := PageControlMain.ActivePage;
   if tab = tabHost then
@@ -7071,7 +7080,11 @@ begin
       + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
   end else
     lblFilterVTInfo.Caption := '';
-  VT.Invalidate;
+
+  if FromTimer then
+    VT.Invalidate
+  else
+    InvalidateVT(VT, VTREE_LOADED, true);
 end;
 
 
@@ -7756,6 +7769,10 @@ procedure TMainForm.DatabaseChanged(Connection: TDBConnection; Database: String)
 begin
   // Immediately force db icons to repaint, so the user sees the active db state
   DBtree.Repaint;
+
+  // Clear Filter issue 3466
+  FFilterTextDatabase := '';
+
   if ActiveQueryHelpers <> nil then
     ActiveQueryHelpers.Invalidate;
 end;
@@ -7882,6 +7899,8 @@ begin
       editDatabaseFilter.OnChange(editDatabaseFilter);
     if editTableFilter.Text <> '' then
       editTableFilter.OnChange(editTableFilter);
+    if editFilterVT.Text <> '' then
+      ApplyVTFilter(False);
   end;
 end;
 
