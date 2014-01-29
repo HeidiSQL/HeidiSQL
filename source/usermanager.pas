@@ -1004,14 +1004,19 @@ procedure TUserManagerForm.btnAddUserClick(Sender: TObject);
 var
   P: TPrivObj;
   User: TUser;
-  NodeUser: PUser;
+  OldUser, NodeUser: PUser;
   Node: PVirtualNode;
+  NewHost: String;
 begin
   // Create new or clone existing user
   if Sender = btnCloneUser then begin
     CloneGrants := TStringList.Create;
     for P in FPrivObjects do
       CloneGrants.Add(P.GrantCode);
+    OldUser := listUsers.GetNodeData(listUsers.FocusedNode);
+    NewHost := OldUser.Host;
+  end else begin
+    NewHost := 'localhost';
   end;
   // Try to unfocus current user which triggers saving modifications.
   listUsers.FocusedNode := nil;
@@ -1019,7 +1024,7 @@ begin
     Exit;
   User := TUser.Create;
   User.Username := _('Unnamed');
-  User.Host := 'localhost';
+  User.Host := NewHost;
   FUsers.Add(User);
   FAdded := True;
   InvalidateVT(listUsers, VTREE_NOTLOADED, True);
