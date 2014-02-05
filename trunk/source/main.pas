@@ -1071,7 +1071,6 @@ type
     procedure RestoreListSetup( List: TVirtualStringTree );
     procedure UpdateEditorTab;
     procedure SetWindowCaption;
-    procedure OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
     procedure DefaultHandler(var Message); override;
     procedure SetupSynEditors;
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
@@ -1099,10 +1098,6 @@ var
   SecondInstMsgId: UINT = 0;
 
 const
-  // Customized messages
-  MSG_UPDATECHECK = WM_USER + 1;
-  MSG_PREFERENCES = WM_USER + 2;
-  MSG_ABOUT = WM_USER + 3;
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
 
 {$I const.inc}
@@ -10119,21 +10114,6 @@ begin
   Cap := Cap + ' ' + FAppVersion;
   Caption := Cap;
   Application.Title := Cap;
-end;
-
-
-procedure TMainForm.OnMessageHandler(var Msg: TMsg; var Handled: Boolean);
-begin
-  // Clicks on system window menu get handled here
-  if Msg.message = WM_SYSCOMMAND then begin
-    Handled := True;
-    case Msg.wParam of
-      MSG_UPDATECHECK: Mainform.actUpdateCheck.Execute;
-      MSG_PREFERENCES: Mainform.actPreferences.Execute;
-      MSG_ABOUT: Mainform.actAboutBox.Execute;
-      else Handled := False;
-    end;
-  end;
 end;
 
 
