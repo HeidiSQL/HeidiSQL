@@ -51,7 +51,7 @@ object connform: Tconnform
     OnClick = btnSaveClick
   end
   object btnOpen: TButton
-    Left = 320
+    Left = 234
     Top = 331
     Width = 80
     Height = 25
@@ -59,11 +59,11 @@ object connform: Tconnform
     Caption = 'Open'
     Default = True
     Enabled = False
-    TabOrder = 5
+    TabOrder = 4
     OnClick = btnOpenClick
   end
   object btnCancel: TButton
-    Left = 406
+    Left = 320
     Top = 331
     Width = 80
     Height = 25
@@ -71,7 +71,7 @@ object connform: Tconnform
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 6
+    TabOrder = 5
   end
   object ListSessions: TVirtualStringTree
     AlignWithMargins = True
@@ -188,7 +188,7 @@ object connform: Tconnform
     ActivePage = tabSettings
     Align = alClient
     Images = MainForm.ImageListMain
-    TabOrder = 4
+    TabOrder = 7
     object tabStart: TTabSheet
       Caption = 'Start'
       ImageIndex = 112
@@ -760,6 +760,18 @@ object connform: Tconnform
       end
     end
   end
+  object btnMore: TButton
+    Left = 406
+    Top = 331
+    Width = 80
+    Height = 25
+    Anchors = [akRight, akBottom]
+    Caption = 'More'
+    DropDownMenu = popupMore
+    Style = bsSplitButton
+    TabOrder = 6
+    OnClick = btnMoreClick
+  end
   object popupSessions: TPopupMenu
     Images = MainForm.ImageListMain
     Left = 23
@@ -828,6 +840,25 @@ object connform: Tconnform
       Caption = 'Folder in selected folder'
       ImageIndex = 174
       OnClick = btnNewClick
+    end
+  end
+  object popupMore: TPopupMenu
+    Left = 24
+    Top = 144
+    object Preferences1: TMenuItem
+      Action = MainForm.actPreferences
+    end
+    object Checkforupdates1: TMenuItem
+      Action = MainForm.actUpdateCheck
+    end
+    object Importsettingsfile1: TMenuItem
+      Action = MainForm.actImportSettings
+    end
+    object Exportsettingsfile1: TMenuItem
+      Action = MainForm.actExportSettings
+    end
+    object About1: TMenuItem
+      Action = MainForm.actAboutBox
     end
   end
 end

@@ -93,6 +93,13 @@ type
     editStartupScript: TButtonedEdit;
     lblStartupScript: TLabel;
     chkFullTableStatus: TCheckBox;
+    btnMore: TButton;
+    popupMore: TPopupMenu;
+    Checkforupdates1: TMenuItem;
+    About1: TMenuItem;
+    Preferences1: TMenuItem;
+    Exportsettingsfile1: TMenuItem;
+    Importsettingsfile1: TMenuItem;
     lblComment: TLabel;
     memoComment: TMemo;
     procedure FormCreate(Sender: TObject);
@@ -141,6 +148,7 @@ type
     procedure ListSessionsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
       DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
       Pt: TPoint; var Effect: Integer; Mode: TDropMode);
+    procedure btnMoreClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -173,7 +181,6 @@ var
   LastActiveSession: String;
   LastSessions: TStringList;
   PSess: PConnectionParameters;
-  hSysMenu: THandle;
   nt: TNetType;
   Node: PVirtualNode;
   Params: TConnectionParameters;
@@ -215,13 +222,6 @@ begin
       SelectNode(ListSessions, Node);
     Node := ListSessions.GetNext(Node);
   end;
-
-  // Add own menu items to system menu
-  hSysMenu := GetSystemMenu(Handle, False);
-  AppendMenu(hSysMenu, MF_SEPARATOR, 0, #0);
-  AppendMenu(hSysMenu, MF_STRING, MSG_UPDATECHECK, PChar(Mainform.actUpdateCheck.Caption));
-  AppendMenu(hSysMenu, MF_STRING, MSG_PREFERENCES, PChar(Mainform.actPreferences.Caption));
-  AppendMenu(hSysMenu, MF_STRING, MSG_ABOUT, PChar(Mainform.actAboutBox.Caption));
 end;
 
 
@@ -337,6 +337,15 @@ begin
   FSessionModified := False;
   ListSessions.Invalidate;
   ValidateControls;
+end;
+
+
+procedure Tconnform.btnMoreClick(Sender: TObject);
+var
+  btn: TButton;
+begin
+  btn := Sender as TButton;
+  btn.DropDownMenu.Popup(btn.ClientOrigin.X, btn.ClientOrigin.Y+btn.Height);
 end;
 
 

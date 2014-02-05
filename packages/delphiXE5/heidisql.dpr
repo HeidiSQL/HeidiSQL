@@ -70,7 +70,6 @@ begin
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
-    Application.OnMessage := Mainform.OnMessageHandler;
     MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
     Application.MainFormOnTaskBar := True;
