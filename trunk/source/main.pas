@@ -13,7 +13,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
-  CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, Math, ExtDlgs, Registry, AppEvnts,
+  CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
@@ -9128,12 +9128,11 @@ var
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   Success, DoCut: Boolean;
-  SQLStream: TMemoryStream;
   IsResultGrid: Boolean;
   ClpFormat: Word;
   ClpData: THandle;
   APalette: HPalette;
-  Exporter: TSynExporterHTML;
+  Exporter: TSynExporterRTF;
   Results: TDBQuery;
   RowNum: PInt64;
 begin
@@ -9189,15 +9188,16 @@ begin
     end else if Control is TSynMemo then begin
       SynMemo := Control as TSynMemo;
       if SynMemo.SelAvail then begin
-        // Create both text and HTML clipboard format, so rich text applications can paste highlighted SQL
-        Exporter := TSynExporterHTML.Create(Self);
+        // Create both text and RTF clipboard format, so rich text applications can paste highlighted SQL
+        Clipboard.Open;
+        Clipboard.AsText := SynMemo.SelText;
+        Exporter := TSynExporterRTF.Create(Self);
         Exporter.Highlighter := SynSQLSyn1;
         Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
         if DoCut then SynMemo.CutToClipboard
         else SynMemo.CopyToClipboard;
-        SQLStream := TMemoryStream.Create;
-        Exporter.SaveToStream(SQLStream);
-        StreamToClipboard(nil, SQLStream, False);
+        Exporter.CopyToClipboard;
+        Clipboard.Close;
         Exporter.Free;
         Success := True;
       end;
