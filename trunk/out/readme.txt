@@ -1,4 +1,4 @@
-Some infos around HeidiSQL
+﻿Some infos around HeidiSQL
 
 Project website: http://www.heidisql.com/
 Google Code: http://code.google.com/p/heidisql/
@@ -100,9 +100,9 @@ make a donation here: http://www.heidisql.com/donate.php
 
 *** Credits:
 
-Author: Ansgar Becker
-
-Former development contributors: David Dindorp, Francisco Ernesto Teixeira
+Author: Ansgar Becker (Germany)
+Development contributor: Adrien Granger (France)
+Former development contributors: David Dindorp (Denmark), Francisco Ernesto Teixeira (Brazil)
 
 Sven Lorenz (graphics), Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL),
 Mathias Rauen (madExcept), Maël Hörz (SynEdit, MPL), Serhiy Perevoznyk (JumpList),
