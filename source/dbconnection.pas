@@ -1243,7 +1243,7 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, Error, NetLib, DataSource: String;
+  tmpdb, Error, NetLib, DataSource, QuotedPassword: String;
   rx: TRegExpr;
   i: Integer;
 begin
@@ -1272,8 +1272,14 @@ begin
     DataSource := Parameters.Hostname;
     if (Parameters.NetType = ntMSSQL_TCPIP) and (Parameters.Port <> 0) then
       DataSource := DataSource + ','+IntToStr(Parameters.Port);
+    // Quote password, just in case there is a semicolon or a double quote in it.
+    // See http://forums.asp.net/t/1957484.aspx?Passwords+ending+with+semi+colon+as+the+terminal+element+in+connection+strings+
+    if Pos('"', Parameters.Password) > 0 then
+      QuotedPassword := ''''+Parameters.Password+''''
+    else
+      QuotedPassword := '"'+Parameters.Password+'"';
     FAdoHandle.ConnectionString := 'Provider=SQLOLEDB;'+
-      'Password='+Parameters.Password+';'+
+      'Password='+QuotedPassword+';'+
       'Persist Security Info=True;'+
       'User ID='+Parameters.Username+';'+
       'Network Library='+NetLib+';'+
