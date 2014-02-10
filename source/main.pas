@@ -11233,7 +11233,7 @@ begin
                   end;
                 end;
              HELPERNODE_BINDING: begin
-				          // If value is empty, display MsgBindParamNoValue
+                  // If value is empty, display MsgBindParamNoValue
                   if StrLen(PChar(Tab.ListBindParams[Node.Index].Value))>0 then
                     CellText := Tab.ListBindParams[Node.Index].Value
                   else
@@ -11391,7 +11391,8 @@ begin
   RefreshHelperNode(HELPERNODE_SNIPPETS);
 end;
 
-  
+
+
 procedure TMainForm.treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 var

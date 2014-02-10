@@ -376,7 +376,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 651
         Height = 303
-        ActivePage = tabQuery
+        ActivePage = tabHost
         Align = alClient
         HotTrack = True
         Images = ImageListMain
@@ -390,10 +390,6 @@ object MainForm: TMainForm
         object tabHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 1
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 0
@@ -405,14 +401,9 @@ object MainForm: TMainForm
             Images = ImageListMain
             TabOrder = 0
             OnChange = PageControlHostChange
-            ExplicitHeight = 275
             object tabDatabases: TTabSheet
               Caption = 'Databases'
               ImageIndex = 5
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListDatabases: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -495,10 +486,6 @@ object MainForm: TMainForm
             object tabVariables: TTabSheet
               Caption = 'Variables'
               ImageIndex = 137
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -549,7 +536,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 2
-                    Width = 275
+                    Width = 271
                     WideText = 'Global'
                   end>
               end
@@ -557,10 +544,6 @@ object MainForm: TMainForm
             object tabStatus: TTabSheet
               Caption = 'Status'
               ImageIndex = 13
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListStatus: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -604,7 +587,7 @@ object MainForm: TMainForm
                   item
                     Alignment = taRightJustify
                     Position = 1
-                    Width = 275
+                    Width = 271
                     WideText = 'Value'
                   end
                   item
@@ -624,10 +607,6 @@ object MainForm: TMainForm
             object tabProcessList: TTabSheet
               Caption = 'Processes'
               ImageIndex = 57
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object spltProcessList: TSplitter
                 Left = 0
                 Top = 172
@@ -710,7 +689,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 7
-                    Width = 145
+                    Width = 141
                     WideText = 'Info'
                   end>
               end
@@ -801,10 +780,6 @@ object MainForm: TMainForm
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 145
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListCommandStats: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -866,7 +841,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 4
-                    Width = 215
+                    Width = 211
                     WideText = 'Percentage'
                   end>
               end
@@ -876,10 +851,6 @@ object MainForm: TMainForm
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 5
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ListTables: TVirtualStringTree
             Left = 0
             Top = 0
@@ -1035,18 +1006,10 @@ object MainForm: TMainForm
         object tabEditor: TTabSheet
           Caption = 'Table'
           ImageIndex = 14
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
         end
         object tabData: TTabSheet
           Caption = 'Data'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object lblSorryNoData: TLabel
             Left = 0
             Top = 91
@@ -2804,7 +2767,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101BA005001800310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101BA005001500310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000F0020000010020000000000000F0
       0200000000000000000000000000000000000000000000000000000000000000
       000000000000000000031B0B1A78000000000000000000000000000000000000
