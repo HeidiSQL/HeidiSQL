@@ -2417,10 +2417,12 @@ begin
   // Check if there is bind parameters
   if tab.ListBindParams.Count > 0 then begin
     NewSQL := Batch.SQL;
-	// Replace all parameters by their values
-	// by descending to avoid having problems with similar variables name (eg test & test1)
+	  // Replace all parameters by their values
+	  // by descending to avoid having problems with similar variables name (eg test & test1)
     for BindParamItem := tab.ListBindParams.Count-1 downto 0 do begin
-      NewSQL := StringReplace(NewSQL, tab.ListBindParams.Items[BindParamItem].Parameter, tab.ListBindParams.Items[BindParamItem].Value,[rfReplaceAll]);
+      // Do the Replace only if there is a value
+      if StrLen(PChar(tab.ListBindParams.Items[BindParamItem].Value))>0 then
+        NewSQL := StringReplace(NewSQL, tab.ListBindParams.Items[BindParamItem].Parameter, tab.ListBindParams.Items[BindParamItem].Value,[rfReplaceAll]);
     end;
 
     Batch.SQL := NewSQL;
