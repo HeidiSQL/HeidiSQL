@@ -109,6 +109,7 @@ const
   HELPERNODE_SNIPPETS = 3;
   HELPERNODE_HISTORY = 4;
   HELPERNODE_PROFILE = 5;
+  HELPERNODE_BINDING = 6;
 
   // A set of characters which need not to be quoted
   IDENTCHARS = ['A'..'Z', 'a'..'z', '0'..'9', '_'];

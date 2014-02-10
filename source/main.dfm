@@ -376,7 +376,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 651
         Height = 303
-        ActivePage = tabHost
+        ActivePage = tabQuery
         Align = alClient
         HotTrack = True
         Images = ImageListMain
@@ -390,6 +390,10 @@ object MainForm: TMainForm
         object tabHost: TTabSheet
           Caption = 'Host'
           ImageIndex = 1
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object PageControlHost: TPageControl
             Left = 0
             Top = 0
@@ -401,9 +405,14 @@ object MainForm: TMainForm
             Images = ImageListMain
             TabOrder = 0
             OnChange = PageControlHostChange
+            ExplicitHeight = 275
             object tabDatabases: TTabSheet
               Caption = 'Databases'
               ImageIndex = 5
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListDatabases: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -486,6 +495,10 @@ object MainForm: TMainForm
             object tabVariables: TTabSheet
               Caption = 'Variables'
               ImageIndex = 137
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListVariables: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -536,7 +549,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 2
-                    Width = 271
+                    Width = 275
                     WideText = 'Global'
                   end>
               end
@@ -544,6 +557,10 @@ object MainForm: TMainForm
             object tabStatus: TTabSheet
               Caption = 'Status'
               ImageIndex = 13
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListStatus: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -587,7 +604,7 @@ object MainForm: TMainForm
                   item
                     Alignment = taRightJustify
                     Position = 1
-                    Width = 271
+                    Width = 275
                     WideText = 'Value'
                   end
                   item
@@ -607,6 +624,10 @@ object MainForm: TMainForm
             object tabProcessList: TTabSheet
               Caption = 'Processes'
               ImageIndex = 57
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object spltProcessList: TSplitter
                 Left = 0
                 Top = 172
@@ -689,7 +710,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 7
-                    Width = 141
+                    Width = 145
                     WideText = 'Info'
                   end>
               end
@@ -780,6 +801,10 @@ object MainForm: TMainForm
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 145
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListCommandStats: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -841,7 +866,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 4
-                    Width = 211
+                    Width = 215
                     WideText = 'Percentage'
                   end>
               end
@@ -851,6 +876,10 @@ object MainForm: TMainForm
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 5
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ListTables: TVirtualStringTree
             Left = 0
             Top = 0
@@ -1006,10 +1035,18 @@ object MainForm: TMainForm
         object tabEditor: TTabSheet
           Caption = 'Table'
           ImageIndex = 14
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
         object tabData: TTabSheet
           Caption = 'Data'
           ImageIndex = 41
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object lblSorryNoData: TLabel
             Left = 0
             Top = 91
@@ -1318,6 +1355,7 @@ object MainForm: TMainForm
               RightEdge = 0
               TabWidth = 3
               WantTabs = True
+              OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
               OnStatusChange = SynMemoQueryStatusChange
@@ -1358,10 +1396,12 @@ object MainForm: TMainForm
               TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSpanColumns, toAutoTristateTracking, toAutoDeleteMovedNodes]
               TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
               TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-              TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
               OnBeforeCellPaint = treeQueryHelpersBeforeCellPaint
               OnContextPopup = treeQueryHelpersContextPopup
+              OnCreateEditor = treeQueryHelpersCreateEditor
               OnDblClick = treeQueryHelpersDblClick
+              OnEditing = treeQueryHelpersEditing
               OnFocusChanging = treeQueryHelpersFocusChanging
               OnFreeNode = treeQueryHelpersFreeNode
               OnGetText = treeQueryHelpersGetText
@@ -1369,6 +1409,8 @@ object MainForm: TMainForm
               OnGetImageIndex = treeQueryHelpersGetImageIndex
               OnInitChildren = treeQueryHelpersInitChildren
               OnInitNode = treeQueryHelpersInitNode
+              OnNewText = treeQueryHelpersNewText
+              OnNodeClick = treeQueryHelpersNodeClick
               OnResize = treeQueryHelpersResize
               Columns = <
                 item
@@ -2762,7 +2804,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101BA005001500310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101BA005001800310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000F0020000010020000000000000F0
       0200000000000000000000000000000000000000000000000000000000000000
       000000000000000000031B0B1A78000000000000000000000000000000000000
@@ -9763,5 +9805,11 @@ object MainForm: TMainForm
     OnDeactivate = ApplicationEvents1Deactivate
     Left = 504
     Top = 152
+  end
+  object TimerBindParams: TTimer
+    Enabled = False
+    OnTimer = TimerBindParamsTimer
+    Left = 688
+    Top = 296
   end
 end
