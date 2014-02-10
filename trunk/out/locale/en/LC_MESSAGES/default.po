@@ -4846,6 +4846,10 @@ msgstr "Query history"
 msgid "Query profile"
 msgstr "Query profile"
 
+#: main.pas:11166
+msgid "Bind Parameters"
+msgstr "Bind Parameters"
+
 #: main.pas:10404
 msgid "today"
 msgstr "today"
@@ -4853,6 +4857,10 @@ msgstr "today"
 #: main.pas:10406
 msgid "yesterday"
 msgstr "yesterday"
+
+#: main.pas:11221
+msgid "Set Value"
+msgstr "Set Value"
 
 #: main.pas:10548
 msgid "Error with snippets directory: %s"

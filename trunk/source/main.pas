@@ -21,6 +21,23 @@ uses
 
 
 type
+  TBindParamItem = class(TObject)
+    Parameter: String;
+    Value: String;
+    Keep: Boolean;
+  end;
+
+  TBindParam = class(TObjectList<TBindParamItem>)
+    private
+    public
+      constructor Create();
+      function FindParameter(Param: String) : Integer;
+      procedure CleanToKeep;
+  end;
+  TBindParamItemComparer = class(TComparer<TBindParamItem>)
+    function Compare(const Left, Right: TBindParamItem): Integer; override;
+  end;
+
   TQueryTab = class;
   TResultTab = class(TObject)
     Results: TDBQuery;
@@ -59,6 +76,7 @@ type
       ProfileTime, MaxProfileTime: Extended;
       LeftOffsetInMemo: Integer;
       HistoryDays: TStringList;
+      ListBindParams: TBindParam;
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
@@ -582,6 +600,7 @@ type
     ToolBarExtraButtons: TToolBar;
     btnDonate: TToolButton;
     btnUpdateAvailable: TToolButton;
+    TimerBindParams: TTimer;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -924,6 +943,16 @@ type
     procedure DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure actFullRefreshExecute(Sender: TObject);
+    procedure TimerBindParamsTimer(Sender: TObject);
+    procedure treeQueryHelpersEditing(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+    procedure treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+    procedure treeQueryHelpersNodeClick(Sender: TBaseVirtualTree;
+      const HitInfo: THitInfo);
+    procedure treeQueryHelpersNewText(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; NewText: string);
+    procedure SynMemoQueryChange(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2364,6 +2393,8 @@ var
   ProfileNode: PVirtualNode;
   Batch: TSQLBatch;
   Tab: TQueryTab;
+  BindParamItem: Integer;
+  NewSQL: String;
 begin
   Screen.Cursor := crHourGlass;
   Tab := ActiveQueryTab;
@@ -2381,6 +2412,18 @@ begin
   end else begin
     Batch.SQL := Tab.Memo.Text;
     Tab.LeftOffsetInMemo := 0;
+  end;
+
+  // Check if there is bind parameters
+  if tab.ListBindParams.Count > 0 then begin
+    NewSQL := Batch.SQL;
+	// Replace all parameters by their values
+	// by descending to avoid having problems with similar variables name (eg test & test1)
+    for BindParamItem := tab.ListBindParams.Count-1 downto 0 do begin
+      NewSQL := StringReplace(NewSQL, tab.ListBindParams.Items[BindParamItem].Parameter, tab.ListBindParams.Items[BindParamItem].Value,[rfReplaceAll]);
+    end;
+
+    Batch.SQL := NewSQL;
   end;
 
   EnableProgress(Batch.Count);
@@ -5569,6 +5612,78 @@ begin
 end;
 
 
+procedure TMainForm.TimerBindParamsTimer(Sender: TObject);
+var
+  Tab: TQueryTab;
+  QueryMemo: TSynMemo;
+  rx: TRegExpr;
+  BindParamItem : TBindParamItem;
+  Item: Integer;
+  Node : PVirtualNode;
+  IsExpanded : Boolean;
+begin
+  TimerBindParams.Enabled := False;
+
+  Tab := ActiveQueryTab;
+  QueryMemo := ActiveSynMemo;
+
+  // Check current Query memo to find all parameters with regular expression ( :params )
+  rx := TRegExpr.Create;
+  rx.Expression := ':\w+';
+  if rx.Exec(QueryMemo.Text) then while true do begin
+    // Prepare TBindParamItem
+    BindParamItem := TBindParamItem.Create;
+    BindParamItem.Parameter := rx.Match[0];
+    BindParamItem.Value := '';
+    BindParamItem.Keep := True;
+
+    // Check if parameter already exists
+    Item := Tab.ListBindParams.FindParameter(rx.Match[0]);
+
+    // If exists, seet Keep to true else add TBindParamItem
+    if Item <> -1 then
+      Tab.ListBindParams.Items[Item].Keep := True
+    else
+      Tab.ListBindParams.add(BindParamItem);
+
+    // Try to find next parameter
+    if not rx.ExecNext then
+        break;
+  end;
+
+  // Sort list ascending
+  Tab.ListBindParams.Sort;
+  // Delete all parameters where variable is to False
+  Tab.ListBindParams.CleanToKeep;
+
+  // Expande Bind Params node by default
+  IsExpanded := True;
+
+  // Check if there is bind params to set or not Bind Param node on VT
+  if Tab.ListBindParams.Count > 0 then begin
+    // Check if there is already Node for Bind Params
+    // If yes, delete the node and rebuild it
+    if Tab.treeHelpers.RootNodeCount = 7 then begin
+      // Get Bind Params Node
+      Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
+      // Get old expanded State
+      IsExpanded := Tab.treeHelpers.Expanded[Node];
+      // Delete last Node
+      Tab.treeHelpers.RootNodeCount := 6;
+    end;
+
+    // Add Bind Param Node
+    Tab.treeHelpers.RootNodeCount := 7;
+    // Get Bind Params Node
+    Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
+    // Set old expanded State
+    Tab.treeHelpers.Expanded[Node] := IsExpanded;
+  end
+  else Tab.treeHelpers.RootNodeCount := 6;
+
+end;
+
+
 procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 var
   ConnectedTime: Integer;
@@ -5711,6 +5826,14 @@ begin
   Memo.CaretY := y div Memo.LineHeight + Memo.TopLine;
   if not Memo.Focused then
     Memo.SetFocus;
+end;
+
+
+procedure TMainForm.SynMemoQueryChange(Sender: TObject);
+begin
+  // Reset timer
+  TimerBindParams.Enabled := False;
+  TimerBindParams.Enabled := True;
 end;
 
 
@@ -9529,6 +9652,7 @@ begin
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
+  QueryTab.Memo.OnChange := SynMemoQuery.OnChange;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
@@ -9553,12 +9677,16 @@ begin
   QueryTab.treeHelpers.DragType := treeQueryHelpers.DragType;
   QueryTab.treeHelpers.OnBeforeCellPaint := treeQueryHelpers.OnBeforeCellPaint;
   QueryTab.treeHelpers.OnContextPopup := treeQueryHelpers.OnContextPopup;
+  QueryTab.treeHelpers.OnCreateEditor := treeQueryHelpers.OnCreateEditor;
   QueryTab.treeHelpers.OnDblClick := treeQueryHelpers.OnDblClick;
+  QueryTab.treeHelpers.OnEditing := treeQueryHelpers.OnEditing;
   QueryTab.treeHelpers.OnFreeNode := treeQueryHelpers.OnFreeNode;
   QueryTab.treeHelpers.OnGetImageIndex := treeQueryHelpers.OnGetImageIndex;
   QueryTab.treeHelpers.OnGetText := treeQueryHelpers.OnGetText;
   QueryTab.treeHelpers.OnInitChildren := treeQueryHelpers.OnInitChildren;
   QueryTab.treeHelpers.OnInitNode := treeQueryHelpers.OnInitNode;
+  QueryTab.treeHelpers.OnNewText := treeQueryHelpers.OnNewText;
+  QueryTab.treeHelpers.OnNodeClick := treeQueryHelpers.OnNodeClick;
   QueryTab.treeHelpers.OnPaintText := treeQueryHelpers.OnPaintText;
   QueryTab.treeHelpers.OnResize := treeQueryHelpers.OnResize;
   for i:=0 to treeQueryHelpers.Header.Columns.Count-1 do begin
@@ -9570,7 +9698,9 @@ begin
   QueryTab.treeHelpers.Header.Options := treeQueryHelpers.Header.Options;
   QueryTab.treeHelpers.Header.AutoSizeIndex := treeQueryHelpers.Header.AutoSizeIndex;
   QueryTab.treeHelpers.IncrementalSearch := treeQueryHelpers.IncrementalSearch;
-  QueryTab.treeHelpers.RootNodeCount := treeQueryHelpers.RootNodeCount;
+  // Set to 6 and not treeQueryHelpers.RootNodeCount in order don't show Bind Params node,
+  // If there is no Parameters in Query Memo
+  QueryTab.treeHelpers.RootNodeCount := 6;
   QueryTab.treeHelpers.TextMargin := treeQueryHelpers.TextMargin;
   FixVT(QueryTab.treeHelpers);
 
@@ -10909,6 +11039,19 @@ begin
         TargetCanvas.Font.Color := clGrayText;
     end;
   end;
+
+  // If there is no value for bind variable, the font style is Italic and Underline
+  if (Sender.GetNodeLevel(Node)=1)
+    and (Column=1)
+    and (Node.Parent.Index=HELPERNODE_BINDING) then begin
+      Tab := GetQueryTabByHelpers(Sender);
+      if StrLen(PChar(Tab.ListBindParams.Items[Node.Index].Value)) = 0 then
+        TargetCanvas.Font.Style := [fsItalic]+[fsUnderline];
+
+      TargetCanvas.Font.Color := clGrayText;
+
+    end;
+  
 end;
 
 
@@ -10927,6 +11070,17 @@ var
 begin
   m := ActiveQueryMemo;
   m.DragDrop(Sender, m.CaretX, m.CaretY);
+end;
+
+
+procedure TMainForm.treeQueryHelpersEditing(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+begin
+  // If current column is value of Bind Param, we allow editing
+  if (Column = 1)
+    and (Sender.FocusedNode.Parent.Index = HELPERNODE_BINDING) then begin
+      Allowed := True;
+    end
 end;
 
 
@@ -10985,6 +11139,7 @@ begin
          HELPERNODE_SNIPPETS: ImageIndex := 51;
          HELPERNODE_HISTORY: ImageIndex := 149;
          HELPERNODE_PROFILE: ImageIndex := 145;
+         HELPERNODE_BINDING: ImageIndex := 119;
        end;
     1: case Node.Parent.Index of
          HELPERNODE_COLUMNS: ImageIndex := 42;
@@ -10993,6 +11148,7 @@ begin
          HELPERNODE_SNIPPETS: ImageIndex := 68;
          HELPERNODE_HISTORY: ImageIndex := 80;
          HELPERNODE_PROFILE: ImageIndex := 145;
+         HELPERNODE_BINDING: ImageIndex := 42;
        end;
   end;
 end;
@@ -11026,6 +11182,7 @@ begin
                   if Assigned(Tab.QueryProfile) then
                     CellText := CellText + ' ('+FormatNumber(Tab.ProfileTime, 6)+'s)';
                 end;
+             HELPERNODE_BINDING: CellText := _('Bind Parameters');
            end;
         1: case Node.Parent.Index of
              HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
@@ -11052,6 +11209,7 @@ begin
                     CellText := Tab.QueryProfile.Col(Column);
                   end;
                 end;
+             HELPERNODE_BINDING: CellText := Tab.ListBindParams[Node.Index].Parameter;
            end;
         2: case Node.Parent.Parent.Index of
              HELPERNODE_HISTORY: begin
@@ -11073,6 +11231,13 @@ begin
                     Tab.QueryProfile.RecNo := Node.Index;
                     CellText := FormatNumber(Tab.QueryProfile.Col(Column))+'s';
                   end;
+                end;
+             HELPERNODE_BINDING: begin
+				          // If value is empty, display MsgBindParamNoValue
+                  if StrLen(PChar(Tab.ListBindParams[Node.Index].Value))>0 then
+                    CellText := Tab.ListBindParams[Node.Index].Value
+                  else
+                    CellText := _('Set Value');
                 end;
              else CellText := '';
            end;
@@ -11103,6 +11268,34 @@ begin
         Include(InitialStates, ivsHasChildren);
     end;
   end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersNewText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; NewText: string);
+var
+  Tree: TVirtualStringTree;
+  QueryTab: TQueryTab;
+begin
+  Tree:= Sender as TVirtualStringTree;
+  QueryTab := ActiveQueryTab;
+
+  // Save new param value
+  QueryTab.ListBindParams.Items[Sender.FocusedNode.Index].Value := NewText;
+
+  Tree.RepaintNode(Node);
+end;
+
+
+procedure TMainForm.treeQueryHelpersNodeClick(Sender: TBaseVirtualTree;
+  const HitInfo: THitInfo);
+var
+  Tree: TVirtualStringTree;
+begin
+  Tree := Sender as TVirtualStringTree;
+  // If the column is clicked a parameter value, it goes directly into the edit mode
+  if (HitInfo.HitNode.Parent.Index = HELPERNODE_BINDING) and (HitInfo.HitColumn = 1) then
+    Tree.EditNode(Sender.FocusedNode,Sender.FocusedColumn);
 end;
 
 
@@ -11153,6 +11346,7 @@ begin
          end;
          HELPERNODE_PROFILE: if not Assigned(Tab.QueryProfile) then ChildCount := 0
             else ChildCount := Tab.QueryProfile.RecordCount;
+         HELPERNODE_BINDING: ChildCount := Tab.ListBindParams.Count;
        end;
     1: case Node.Parent.Index of
       HELPERNODE_HISTORY: begin
@@ -11197,8 +11391,7 @@ begin
   RefreshHelperNode(HELPERNODE_SNIPPETS);
 end;
 
-
-
+  
 procedure TMainForm.treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 var
@@ -11244,6 +11437,19 @@ begin
         menuClearQueryHistory.Enabled := True;
     end;
   end;
+end;
+
+
+procedure TMainForm.treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+var
+ InplaceEditor: TInplaceEditorLink;
+ VT: TVirtualStringTree;
+begin
+  VT := Sender as TVirtualStringTree;
+  InplaceEditor := TInplaceEditorLink.Create(VT);
+  InplaceEditor.ButtonVisible := true;
+  EditLink := InplaceEditor;
 end;
 
 
@@ -11475,6 +11681,8 @@ begin
   MemofileModifiedTimer.Enabled := False;
   MemofileModifiedTimer.OnTimer := MemofileModifiedTimerNotify;
   LastSaveTime := 0;
+  // Contain 2 columns of String : Params & Values
+  ListBindParams := TBindParam.Create;
 end;
 
 
@@ -11482,6 +11690,7 @@ destructor TQueryTab.Destroy;
 begin
   ResultTabs.Clear;
   DirectoryWatch.Free;
+  ListBindParams.Free;
 end;
 
 
@@ -11759,6 +11968,64 @@ begin
     Result := 1;
 end;
 
+
+{ TBindParam }
+
+
+procedure TBindParam.CleanToKeep;
+var
+  BindParamItem: Integer;
+begin
+  // Check for each parameter if there is to be deleted
+  for BindParamItem := self.Count - 1 downto 0 do begin
+    if self.Items[BindParamItem].Keep = False then
+      Self.Delete(BindParamItem)
+  end;
+
+  // Set False all items for the next call
+  for BindParamItem := 0 to self.Count - 1 do
+      self.Items[BindParamItem].Keep := False;
+end;
+
+
+constructor TBindParam.Create;
+begin
+  inherited Create(TBindParamItemComparer.Create);
+end;
+
+
+function TBindParam.FindParameter(Param: String): Integer;
+var
+  ParamItem: Integer;
+begin
+  // Return Item index (if found) or -1
+  Result := -1;
+  for ParamItem := 0 to self.Count-1 do begin
+    if StrComp( PChar(Param) , PChar(Self.Items[ParamItem].Parameter))= 0 then begin
+      Result := ParamItem;
+      Break;
+    end;
+  end;
+end;
+
+
+{ TBindParamItemComparer }
+
+
+function TBindParamItemComparer.Compare(const Left,
+  Right: TBindParamItem): Integer;
+var
+  CompResult: Integer;
+begin
+  // Simple sort method for a TDBObjectList
+  CompResult :=   CompareText(Left.Parameter,Right.Parameter);
+  if CompResult < 0 then
+    Result := -1
+  else if CompResult = 0 then
+    Result := 0
+  else
+    Result := 1;
+end;
 
 end.
 
