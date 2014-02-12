@@ -17,7 +17,7 @@ uses
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  JumpList, System.Actions, System.UITypes, pngimage;
+  JumpList, System.Actions, System.UITypes, pngimage, System.RegularExpressions;
 
 
 type
@@ -5618,9 +5618,10 @@ procedure TMainForm.TimerBindParamsTimer(Sender: TObject);
 var
   Tab: TQueryTab;
   QueryMemo: TSynMemo;
-  rx: TRegExpr;
+  rx: TRegEx;
+  RXmatch: TMatchCollection;
   BindParamItem : TBindParamItem;
-  Item: Integer;
+  Item, I: Integer;
   Node : PVirtualNode;
   IsExpanded : Boolean;
 begin
@@ -5630,27 +5631,33 @@ begin
   QueryMemo := ActiveSynMemo;
 
   // Check current Query memo to find all parameters with regular expression ( :params )
-  rx := TRegExpr.Create;
-  rx.Expression := ':\w+';
-  if rx.Exec(QueryMemo.Text) then while true do begin
-    // Prepare TBindParamItem
-    BindParamItem := TBindParamItem.Create;
-    BindParamItem.Parameter := rx.Match[0];
-    BindParamItem.Value := '';
-    BindParamItem.Keep := True;
+  rx := TRegEx.Create('(?<!\w):\w+');
 
-    // Check if parameter already exists
-    Item := Tab.ListBindParams.FindParameter(rx.Match[0]);
+  // If Regex found results
+  if rx.IsMatch(QueryMemo.Text) then begin
 
-    // If exists, seet Keep to true else add TBindParamItem
-    if Item <> -1 then
-      Tab.ListBindParams.Items[Item].Keep := True
-    else
-      Tab.ListBindParams.add(BindParamItem);
+    // Get All results
+    RXmatch := rx.Matches(QueryMemo.Text);
 
-    // Try to find next parameter
-    if not rx.ExecNext then
-        break;
+    for I := 0 to RXmatch.Count - 1 do begin
+      // Prepare TBindParamItem
+      BindParamItem := TBindParamItem.Create;
+      BindParamItem.Parameter := RXmatch.Item[i].Value;
+      BindParamItem.Value := '';
+      BindParamItem.Keep := True;
+
+      // Check if parameter already exists
+      Item := Tab.ListBindParams.FindParameter(RXmatch.Item[i].Value);
+
+      // If exists, seet Keep to true else add TBindParamItem
+      if Item <> -1 then
+        Tab.ListBindParams.Items[Item].Keep := True
+      else
+        Tab.ListBindParams.add(BindParamItem);
+
+    end;
+
+
   end;
 
   // Sort list ascending
