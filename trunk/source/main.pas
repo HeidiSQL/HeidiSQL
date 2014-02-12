@@ -11191,7 +11191,7 @@ begin
                   if Assigned(Tab.QueryProfile) then
                     CellText := CellText + ' ('+FormatNumber(Tab.ProfileTime, 6)+'s)';
                 end;
-             HELPERNODE_BINDING: CellText := _('Bind Parameters');
+             HELPERNODE_BINDING: CellText := _('Bind parameters');
            end;
         1: case Node.Parent.Index of
              HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
@@ -11246,7 +11246,7 @@ begin
                   if StrLen(PChar(Tab.ListBindParams[Node.Index].Value))>0 then
                     CellText := Tab.ListBindParams[Node.Index].Value
                   else
-                    CellText := _('Set Value');
+                    CellText := _('Set value');
                 end;
              else CellText := '';
            end;
