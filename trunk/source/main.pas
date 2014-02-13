@@ -8597,10 +8597,15 @@ begin
       case Results.DataType(Column).Index of
         dtDate: NowText := DateToStr(Now);
         dtTime: NowText := TimeToStr(Now);
+        // Add this case to prevent error with datatype year and sql_mode STRICT_TRANS_TABLES
+        // who absolutly want year and not date time
+        // http://www.heidisql.com/forum.php?t=14728
+        dtYear: NowText := FormatDateTime('yyyy',Now);
         else NowText := DateTimeToStr(Now);
       end;
       MicroSecondsPrecision := MakeInt(Results.ColAttributes(Column).LengthSet);
-      if MicroSecondsPrecision > 0 then
+      // Don't generate MicroSecond when DataType is Year
+      if (MicroSecondsPrecision > 0) and (Results.DataType(Column).Index <> dtYear ) then
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
