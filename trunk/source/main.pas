@@ -5623,6 +5623,7 @@ var
   Item: Integer;
   Node : PVirtualNode;
   IsExpanded : Boolean;
+  FoundParam : String;
 begin
   TimerBindParams.Enabled := False;
 
@@ -5631,16 +5632,21 @@ begin
 
   // Check current Query memo to find all parameters with regular expression ( :params )
   rx := TRegExpr.Create;
-  rx.Expression := ':\w+';
+  // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
+  rx.Expression := '^:\w+|\W:\w+';
   if rx.Exec(QueryMemo.Text) then while true do begin
+
+    // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
+    FoundParam := Copy(rx.Match[0],Pos(':',PChar(rx.Match[0])),StrLen(PChar(rx.Match[0]))-Pos(':',PChar(rx.Match[0]))+1);
+
     // Prepare TBindParamItem
     BindParamItem := TBindParamItem.Create;
-    BindParamItem.Parameter := rx.Match[0];
+    BindParamItem.Parameter := FoundParam;
     BindParamItem.Value := '';
     BindParamItem.Keep := True;
 
     // Check if parameter already exists
-    Item := Tab.ListBindParams.FindParameter(rx.Match[0]);
+    Item := Tab.ListBindParams.FindParameter(FoundParam);
 
     // If exists, seet Keep to true else add TBindParamItem
     if Item <> -1 then
