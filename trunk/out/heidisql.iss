@@ -26,6 +26,7 @@ AppUpdatesURL={#WebSite}download.php
 AppContact={#ProgNameLower}@anse.de
 AppReadmeFile={app}\readme.txt
 
+CloseApplications=yes
 DefaultDirName={pf}\{#ProgName}
 DefaultGroupName={#ProgName}
 LicenseFile=license.txt
