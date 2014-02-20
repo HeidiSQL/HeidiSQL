@@ -373,8 +373,19 @@ var
   i: Integer;
   Rename: String;
 begin
+  // Check if all indexes have at least one column
+  // If not, exit early
+  for i := 0 to FKeys.Count-1 do begin
+    if FKeys.Items[i].Columns.Count = 0 then begin
+      ErrorDialog( f_('%s Index "%s" does not contain any column. You can add columns using drag''n drop from the columns list.', [FKeys.Items[i].IndexType, FKeys.Items[i].Name]));
+      Result := mrAbort;
+      Exit;
+    end;
+  end;
+
   // Create or alter table
   Result := mrOk;
+
   if DBObject.Name = '' then
     Batch := ComposeCreateStatement
   else
