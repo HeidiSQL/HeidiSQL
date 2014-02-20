@@ -5111,6 +5111,10 @@ msgstr "Selected operations cannot be applied to a %s"
 msgid "Unhandled tree level"
 msgstr "Unhandled tree level"
 
+#: table_editor.pas:380
+msgid "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
+msgstr "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
+
 #: table_editor.pas:476
 msgid "Composing ALTER statement ..."
 msgstr "Composing ALTER statement ..."
