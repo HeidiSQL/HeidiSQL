@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-02-05 10:38+0100\n"
+"PO-Revision-Date: 2014-02-27 13:48+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.6.3\n"
+"X-Generator: Poedit 1.6.4\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -2418,6 +2418,10 @@ msgstr "Compressing"
 #: main.dfm:8757
 msgid "Insert value"
 msgstr "Insert value"
+
+# Data grid context menu
+msgid "This is a UNIX timestamp column"
+msgstr "This is a UNIX timestamp column"
 
 #. MainForm..popupDataGrid..DataInsertValue..DataDateTime..Hint
 #: main.dfm:8773
@@ -5112,8 +5116,12 @@ msgid "Unhandled tree level"
 msgstr "Unhandled tree level"
 
 #: table_editor.pas:380
-msgid "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
-msgstr "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
+msgid ""
+"%s Index \"%s\" does not contain any column. You can add columns using "
+"drag''n drop from the columns list."
+msgstr ""
+"%s Index \"%s\" does not contain any column. You can add columns using "
+"drag''n drop from the columns list."
 
 #: table_editor.pas:476
 msgid "Composing ALTER statement ..."
