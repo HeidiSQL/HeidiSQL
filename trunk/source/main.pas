@@ -5637,7 +5637,7 @@ begin
   if rx.Exec(QueryMemo.Text) then while true do begin
 
     // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
-    FoundParam := Copy(rx.Match[0],Pos(':',PChar(rx.Match[0])),StrLen(PChar(rx.Match[0]))-Pos(':',PChar(rx.Match[0]))+1);
+    FoundParam := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
 
     // Prepare TBindParamItem
     BindParamItem := TBindParamItem.Create;
