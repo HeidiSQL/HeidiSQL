@@ -160,7 +160,7 @@ type
     FModified, FAdded: Boolean;
     CloneGrants: TStringList;
     FPrivObjects: TPrivObjList;
-    PrivsGlobal, PrivsDb, PrivsTable, PrivsRoutine, PrivsColumn: TStringList;
+    PrivsGlobal, PrivsDb, PrivsTable, PrivsView, PrivsRoutine, PrivsColumn: TStringList;
     FConnection: TDBConnection;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
@@ -259,6 +259,7 @@ begin
   PrivsGlobal := InitPrivList('FILE,PROCESS,RELOAD,SHUTDOWN');
   PrivsDb := InitPrivList('');
   PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
+  PrivsView := InitPrivList('');
   PrivsRoutine := InitPrivList('GRANT');
   PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
 
@@ -272,8 +273,9 @@ begin
     PrivsRoutine.Add('EXECUTE');
   end;
   if Version >= 50001 then begin
-    PrivsTable.Add('CREATE VIEW');
-    PrivsTable.Add('SHOW VIEW');
+    PrivsView.Add('DROP');
+    PrivsView.Add('CREATE VIEW');
+    PrivsView.Add('SHOW VIEW');
   end;
   if Version >= 50003 then begin
     PrivsGlobal.Add('CREATE USER');
@@ -305,6 +307,8 @@ begin
   PrivsDb.CustomSort(ComparePrivs);
   PrivsTable.Sorted := False;
   PrivsTable.CustomSort(ComparePrivs);
+  PrivsView.Sorted := False;
+  PrivsView.CustomSort(ComparePrivs);
   PrivsRoutine.Sorted := False;
   PrivsRoutine.CustomSort(ComparePrivs);
   PrivsColumn.Sorted := False;
@@ -367,6 +371,7 @@ begin
   FreeAndNil(PrivsGlobal);
   FreeAndNil(PrivsDb);
   FreeAndNil(PrivsTable);
+  FreeAndNil(PrivsView);
   FreeAndNil(PrivsRoutine);
   FreeAndNil(PrivsColumn);
   Action := caFree;
@@ -465,6 +470,8 @@ var
   rxTemp, rxGrant: TRegExpr;
   i, j: Integer;
   UserSelected: Boolean;
+  Objects: TDBObjectList;
+  Obj: TDBObject;
 begin
   // Parse and display privileges of focused user
   UserSelected := Assigned(Node);
@@ -496,6 +503,7 @@ begin
     AllPNames.AddStrings(PrivsGlobal);
     AllPNames.AddStrings(PrivsDb);
     AllPNames.AddStrings(PrivsTable);
+    AllPNames.AddStrings(PrivsView);
     AllPNames.AddStrings(PrivsRoutine);
     AllPNames.AddStrings(PrivsColumn);
 
@@ -566,8 +574,15 @@ begin
             P.DBObj.NodeType := lntProcedure;
             P.AllPrivileges := PrivsRoutine;
           end else begin
-            P.DBObj.NodeType := lntTable;
-            P.AllPrivileges := PrivsTable;
+            Objects := P.DBObj.Connection.GetDBObjects(P.DBObj.Database);
+            Obj := P.DBObj.Connection.FindObject(P.DBObj.Database, P.DBObj.Name);
+            if (Obj <> nil) and (Obj.NodeType = lntView) then begin
+              P.DBObj.NodeType := lntView;
+              P.AllPrivileges := PrivsView;
+            end else begin
+              P.DBObj.NodeType := lntTable;
+              P.AllPrivileges := PrivsTable;
+            end;
           end;
         end;
 
@@ -933,7 +948,7 @@ begin
           CellText := _('Global privileges');
         lntDb:
           CellText := _('Database')+': '+p.DBObj.Database;
-        lntTable, lntProcedure, lntFunction:
+        lntTable, lntView, lntProcedure, lntFunction:
           CellText := p.DBObj.ObjType+': '+p.DBObj.Database+'.'+p.DBObj.Name;
         lntColumn:
           CellText := p.DBObj.ObjType+': '+p.DBObj.Database+'.'+p.DBObj.Name+'.'+p.DBObj.Column;
@@ -1056,7 +1071,7 @@ begin
   if not Assigned(DBObj) then
     Exit;
   // Check for unsupported object type, selectable in tree
-  if not (DBObj.NodeType in [lntDb, lntTable, lntFunction, lntProcedure, lntColumn]) then begin
+  if not (DBObj.NodeType in [lntDb, lntTable, lntView, lntFunction, lntProcedure, lntColumn]) then begin
     ErrorDialog(f_('Objects of type %s cannot be part of privileges.', [_(DBObj.ObjType)]));
     Exit;
   end;
@@ -1074,6 +1089,7 @@ begin
     lntNone: Priv.AllPrivileges := PrivsGlobal;
     lntDb: Priv.AllPrivileges := PrivsDb;
     lntTable: Priv.AllPrivileges := PrivsTable;
+    lntView: Priv.AllPrivileges := PrivsView;
     lntFunction, lntProcedure: Priv.AllPrivileges := PrivsRoutine;
     lntColumn: Priv.AllPrivileges := PrivsColumn;
   end;
@@ -1164,9 +1180,11 @@ begin
         lntDb:
           OnObj := P.DBObj.QuotedDatabase + '.*';
         lntTable, lntFunction, lntProcedure:
-          OnObj := GetObjectType(P.DBObj.ObjType) + P.DBObj.QuotedDatabase + '.' + P.DBObj.QuotedName;
+          OnObj := GetObjectType(P.DBObj.ObjType) + P.DBObj.QuotedDbAndTableName;
+        lntView:
+          OnObj := GetObjectType('TABLE') + P.DBObj.QuotedDbAndTableName;
         lntColumn:
-          OnObj := GetObjectType('TABLE') + P.DBObj.QuotedDatabase + '.' + P.DBObj.QuotedName;
+          OnObj := GetObjectType('TABLE') + P.DBObj.QuotedDbAndTableName;
         else
           raise Exception.CreateFmt(_('Unhandled privilege object: %s'), [_(P.DBObj.ObjType)]);
       end;
