@@ -160,7 +160,7 @@ type
     FModified, FAdded: Boolean;
     CloneGrants: TStringList;
     FPrivObjects: TPrivObjList;
-    PrivsGlobal, PrivsDb, PrivsTable, PrivsView, PrivsRoutine, PrivsColumn: TStringList;
+    PrivsGlobal, PrivsDb, PrivsTable, PrivsRoutine, PrivsColumn: TStringList;
     FConnection: TDBConnection;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
@@ -259,7 +259,6 @@ begin
   PrivsGlobal := InitPrivList('FILE,PROCESS,RELOAD,SHUTDOWN');
   PrivsDb := InitPrivList('');
   PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
-  PrivsView := InitPrivList('');
   PrivsRoutine := InitPrivList('GRANT');
   PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
 
@@ -273,9 +272,8 @@ begin
     PrivsRoutine.Add('EXECUTE');
   end;
   if Version >= 50001 then begin
-    PrivsView.Add('DROP');
-    PrivsView.Add('CREATE VIEW');
-    PrivsView.Add('SHOW VIEW');
+    PrivsTable.Add('CREATE VIEW');
+    PrivsTable.Add('SHOW VIEW');
   end;
   if Version >= 50003 then begin
     PrivsGlobal.Add('CREATE USER');
@@ -307,8 +305,6 @@ begin
   PrivsDb.CustomSort(ComparePrivs);
   PrivsTable.Sorted := False;
   PrivsTable.CustomSort(ComparePrivs);
-  PrivsView.Sorted := False;
-  PrivsView.CustomSort(ComparePrivs);
   PrivsRoutine.Sorted := False;
   PrivsRoutine.CustomSort(ComparePrivs);
   PrivsColumn.Sorted := False;
@@ -371,7 +367,6 @@ begin
   FreeAndNil(PrivsGlobal);
   FreeAndNil(PrivsDb);
   FreeAndNil(PrivsTable);
-  FreeAndNil(PrivsView);
   FreeAndNil(PrivsRoutine);
   FreeAndNil(PrivsColumn);
   Action := caFree;
@@ -470,7 +465,6 @@ var
   rxTemp, rxGrant: TRegExpr;
   i, j: Integer;
   UserSelected: Boolean;
-  Objects: TDBObjectList;
   Obj: TDBObject;
 begin
   // Parse and display privileges of focused user
@@ -503,7 +497,6 @@ begin
     AllPNames.AddStrings(PrivsGlobal);
     AllPNames.AddStrings(PrivsDb);
     AllPNames.AddStrings(PrivsTable);
-    AllPNames.AddStrings(PrivsView);
     AllPNames.AddStrings(PrivsRoutine);
     AllPNames.AddStrings(PrivsColumn);
 
@@ -574,15 +567,12 @@ begin
             P.DBObj.NodeType := lntProcedure;
             P.AllPrivileges := PrivsRoutine;
           end else begin
-            Objects := P.DBObj.Connection.GetDBObjects(P.DBObj.Database);
             Obj := P.DBObj.Connection.FindObject(P.DBObj.Database, P.DBObj.Name);
-            if (Obj <> nil) and (Obj.NodeType = lntView) then begin
-              P.DBObj.NodeType := lntView;
-              P.AllPrivileges := PrivsView;
-            end else begin
+            if (Obj <> nil) and (Obj.NodeType = lntView) then
+              P.DBObj.NodeType := lntView
+            else
               P.DBObj.NodeType := lntTable;
-              P.AllPrivileges := PrivsTable;
-            end;
+            P.AllPrivileges := PrivsTable;
           end;
         end;
 
@@ -1088,8 +1078,7 @@ begin
   case Priv.DBObj.NodeType of
     lntNone: Priv.AllPrivileges := PrivsGlobal;
     lntDb: Priv.AllPrivileges := PrivsDb;
-    lntTable: Priv.AllPrivileges := PrivsTable;
-    lntView: Priv.AllPrivileges := PrivsView;
+    lntTable, lntView: Priv.AllPrivileges := PrivsTable;
     lntFunction, lntProcedure: Priv.AllPrivileges := PrivsRoutine;
     lntColumn: Priv.AllPrivileges := PrivsColumn;
   end;
