@@ -5161,6 +5161,7 @@ begin
   actDataPostChanges.Enabled := GridHasChanges;
   actDataCancelChanges.Enabled := GridHasChanges;
   actDataSaveBlobToFile.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actGridEditFunction.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataPreview.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actUnixTimestampColumn.Enabled := inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
@@ -6143,6 +6144,7 @@ begin
   actDataResetSorting.Enabled := InDataGrid;
   menuSQLHelpData.Enabled := InDataGrid;
   Refresh3.Enabled := InDataGrid;
+  actGridEditFunction.Enabled := CellFocused;
 
   if not CellFocused then
     Exit;
