@@ -70,7 +70,6 @@ type
     lblSSHkeyfile: TLabel;
     lblDownloadPlink: TLabel;
     editDatabases: TButtonedEdit;
-    popupDatabases: TPopupMenu;
     lblDatabase: TLabel;
     chkLoginPrompt: TCheckBox;
     lblPlinkTimeout: TLabel;
@@ -157,6 +156,7 @@ type
     FServerVersion: String;
     FSessionColor: TColor;
     FSettingsImportWaitTime: Cardinal;
+    FPopupDatabases: TPopupMenu;
     procedure RefreshSessions(ParentNode: PVirtualNode);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
@@ -744,6 +744,7 @@ begin
   tabStatistics.TabVisible := SessionFocused;
   menuNewSessionInFolder.Enabled := InFolder;
   menuNewFolderInFolder.Enabled := InFolder;
+  FreeAndNil(FPopupDatabases);
 
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;
@@ -920,30 +921,34 @@ var
   p: TPoint;
   Databases: TStringList;
 begin
-  // Try to connect and lookup database names
-  Params := CurrentParams;
-  Connection := Params.CreateConnection(Self);
-  Connection.Parameters.AllDatabasesStr := '';
-  Connection.LogPrefix := SelectedSessionPath;
-  Connection.OnLog := Mainform.LogSQL;
-  popupDatabases.Items.Clear;
-  Databases := Explode(';', editDatabases.Text);
-  Screen.Cursor := crHourglass;
-  try
-    Connection.Active := True;
-    for DB in Connection.AllDatabases do begin
-      Item := TMenuItem.Create(popupDatabases);
-      Item.Caption := DB;
-      Item.OnClick := MenuDatabasesClick;
-      Item.Checked := Databases.IndexOf(DB) > -1;
-      popupDatabases.Items.Add(Item);
+  if FPopupDatabases = nil then begin
+    // Try to connect and lookup database names
+    Params := CurrentParams;
+    Connection := Params.CreateConnection(Self);
+    Connection.Parameters.AllDatabasesStr := '';
+    Connection.LogPrefix := SelectedSessionPath;
+    Connection.OnLog := Mainform.LogSQL;
+    FPopupDatabases := TPopupMenu.Create(Self);
+    FPopupDatabases.AutoHotkeys := maManual;
+    Databases := Explode(';', editDatabases.Text);
+    Screen.Cursor := crHourglass;
+    try
+      Connection.Active := True;
+      for DB in Connection.AllDatabases do begin
+        Item := TMenuItem.Create(FPopupDatabases);
+        Item.Caption := DB;
+        Item.OnClick := MenuDatabasesClick;
+        Item.Checked := Databases.IndexOf(DB) > -1;
+        Item.AutoCheck := True;
+        FPopupDatabases.Items.Add(Item);
+      end;
+    except
+      // Silence connection errors here - should be sufficient to log them
     end;
-  except
-    // Silence connection errors here - should be sufficient to log them
+    FreeAndNil(Connection);
   end;
-  FreeAndNil(Connection);
   p := editDatabases.ClientToScreen(editDatabases.ClientRect.BottomRight);
-  popupDatabases.Popup(p.X-editDatabases.Images.Width, p.Y);
+  FPopupDatabases.Popup(p.X-editDatabases.Images.Width, p.Y);
   Screen.Cursor := crDefault;
 end;
 
@@ -956,7 +961,7 @@ var
 begin
   Item := Sender as TMenuItem;
   Databases := Explode(';', editDatabases.Text);
-  if not Item.Checked then
+  if Item.Checked then
     Databases.Add(Item.Caption)
   else
     Databases.Delete(Databases.IndexOf(Item.Caption));
@@ -1020,6 +1025,11 @@ begin
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
+    if (Sender=editHost) or (Sender=editUsername) or (Sender=editPassword) or
+      (Sender=comboNetType) or (Sender=chkWindowsAuth) or (Sender=editPort) then begin
+      // Be sure to use the modified connection params next time the user clicks the "Databases" pulldown
+      FreeAndNil(FPopupDatabases);
+    end;
 
     ListSessions.Repaint;
     ValidateControls;

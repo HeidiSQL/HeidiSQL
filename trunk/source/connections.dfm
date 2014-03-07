@@ -864,9 +864,4 @@ object connform: Tconnform
       Action = MainForm.actAboutBox
     end
   end
-  object popupDatabases: TPopupMenu
-    AutoHotkeys = maManual
-    Left = 104
-    Top = 144
-  end
 end
