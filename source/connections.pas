@@ -69,7 +69,8 @@ type
     editSSHPrivateKey: TButtonedEdit;
     lblSSHkeyfile: TLabel;
     lblDownloadPlink: TLabel;
-    comboDatabases: TComboBox;
+    editDatabases: TButtonedEdit;
+    popupDatabases: TPopupMenu;
     lblDatabase: TLabel;
     chkLoginPrompt: TCheckBox;
     lblPlinkTimeout: TLabel;
@@ -132,7 +133,7 @@ type
     procedure editSSHPlinkExeChange(Sender: TObject);
     procedure editHostChange(Sender: TObject);
     procedure lblDownloadPlinkClick(Sender: TObject);
-    procedure comboDatabasesDropDown(Sender: TObject);
+    procedure editDatabasesRightButtonClick(Sender: TObject);
     procedure chkLoginPromptClick(Sender: TObject);
     procedure ListSessionsGetNodeDataSize(Sender: TBaseVirtualTree;
       var NodeDataSize: Integer);
@@ -162,6 +163,7 @@ type
     procedure FinalizeModifications(var CanProceed: Boolean);
     procedure ValidateControls;
     function NodeSessionNames(Node: PVirtualNode; var RegKey: String): TStringList;
+    procedure MenuDatabasesClick(Sender: TObject);
   public
     { Public declarations }
   end;
@@ -317,7 +319,7 @@ begin
   Sess.Compressed := chkCompressed.Checked;
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.FullTableStatus := chkFullTableStatus.Checked;
-  Sess.AllDatabasesStr := comboDatabases.Text;
+  Sess.AllDatabasesStr := editDatabases.Text;
   Sess.Comment := memoComment.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
   Sess.SSHPlinkExe := editSSHPlinkExe.Text;
@@ -508,7 +510,7 @@ begin
       Result.Port := updownPort.Position
     else
       Result.Port := 0;
-    Result.AllDatabasesStr := comboDatabases.Text;
+    Result.AllDatabasesStr := editDatabases.Text;
     Result.Comment := memoComment.Text;
     Result.SSHHost := editSSHHost.Text;
     Result.SSHPort := MakeInt(editSSHPort.Text);
@@ -764,7 +766,7 @@ begin
     chkCompressed.Checked := Sess.Compressed;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
-    comboDatabases.Text := Sess.AllDatabasesStr;
+    editDatabases.Text := Sess.AllDatabasesStr;
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
     editSSHPlinkExe.Text := Sess.SSHPlinkExe;
@@ -909,10 +911,14 @@ begin
 end;
 
 
-procedure Tconnform.comboDatabasesDropDown(Sender: TObject);
+procedure Tconnform.editDatabasesRightButtonClick(Sender: TObject);
 var
   Connection: TDBConnection;
   Params: TConnectionParameters;
+  Item: TMenuItem;
+  DB: String;
+  p: TPoint;
+  Databases: TStringList;
 begin
   // Try to connect and lookup database names
   Params := CurrentParams;
@@ -920,16 +926,43 @@ begin
   Connection.Parameters.AllDatabasesStr := '';
   Connection.LogPrefix := SelectedSessionPath;
   Connection.OnLog := Mainform.LogSQL;
-  comboDatabases.Items.Clear;
+  popupDatabases.Items.Clear;
+  Databases := Explode(';', editDatabases.Text);
   Screen.Cursor := crHourglass;
   try
     Connection.Active := True;
-    comboDatabases.Items := Connection.AllDatabases;
+    for DB in Connection.AllDatabases do begin
+      Item := TMenuItem.Create(popupDatabases);
+      Item.Caption := DB;
+      Item.OnClick := MenuDatabasesClick;
+      Item.Checked := Databases.IndexOf(DB) > -1;
+      popupDatabases.Items.Add(Item);
+    end;
   except
     // Silence connection errors here - should be sufficient to log them
   end;
   FreeAndNil(Connection);
+  p := editDatabases.ClientToScreen(editDatabases.ClientRect.BottomRight);
+  popupDatabases.Popup(p.X-editDatabases.Images.Width, p.Y);
   Screen.Cursor := crDefault;
+end;
+
+
+procedure Tconnform.MenuDatabasesClick(Sender: TObject);
+var
+  Item: TMenuItem;
+  Databases: TStringList;
+  SelStart: Integer;
+begin
+  Item := Sender as TMenuItem;
+  Databases := Explode(';', editDatabases.Text);
+  if not Item.Checked then
+    Databases.Add(Item.Caption)
+  else
+    Databases.Delete(Databases.IndexOf(Item.Caption));
+  SelStart := editDatabases.SelStart;
+  editDatabases.Text := implodestr(';', Databases);
+  editDatabases.SelStart := SelStart;
 end;
 
 
@@ -970,7 +1003,7 @@ begin
       or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
-      or (Sess.AllDatabasesStr <> comboDatabases.Text)
+      or (Sess.AllDatabasesStr <> editDatabases.Text)
       or (Sess.Comment <> memoComment.Text)
       or (Sess.SSHHost <> editSSHHost.Text)
       or (IntToStr(Sess.SSHPort) <> editSSHPort.Text)
