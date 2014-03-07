@@ -352,17 +352,6 @@ object connform: Tconnform
           'SSH tunnel'
           'MSSQL')
       end
-      object comboDatabases: TComboBox
-        Left = 120
-        Top = 213
-        Width = 172
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 9
-        TextHint = 'Separated by semicolon'
-        OnChange = Modification
-        OnDropDown = comboDatabasesDropDown
-      end
       object chkLoginPrompt: TCheckBox
         Left = 120
         Top = 69
@@ -392,6 +381,20 @@ object connform: Tconnform
         Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 10
         OnChange = Modification
+      end
+      object editDatabases: TButtonedEdit
+        Left = 120
+        Top = 213
+        Width = 172
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.ImageListMain
+        RightButton.ImageIndex = 75
+        RightButton.Visible = True
+        TabOrder = 9
+        TextHint = 'Separated by semicolon'
+        OnChange = Modification
+        OnRightButtonClick = editDatabasesRightButtonClick
       end
     end
     object tabSSHtunnel: TTabSheet
@@ -860,5 +863,10 @@ object connform: Tconnform
     object About1: TMenuItem
       Action = MainForm.actAboutBox
     end
+  end
+  object popupDatabases: TPopupMenu
+    AutoHotkeys = maManual
+    Left = 104
+    Top = 144
   end
 end
