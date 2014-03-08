@@ -54,6 +54,7 @@ CloseApplications=yes
 ShowLanguageDialog=auto
 DefaultDirName={pf}\{#ProgName}
 DefaultGroupName={#ProgName}
+AllowNoIcons=yes
 LicenseFile=license.txt
 ChangesAssociations=yes
 WizardImageFile={#ResourceDir}installer-logo.bmp
