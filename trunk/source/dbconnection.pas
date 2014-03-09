@@ -99,7 +99,7 @@ type
       FStatus: TEditingStatus;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
-      function SQLCode: String;
+      function SQLCode(OverrideCollation: String=''): String;
       function ValueList: TStringList;
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
@@ -3467,6 +3467,7 @@ begin
     // Default value
     Col.DefaultType := cdtNothing;
     Col.DefaultText := '';
+    rxCol.Expression := 'CURRENT_TIMESTAMP(\(\d+\))?(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d+\))?)?';
     if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
@@ -3477,10 +3478,12 @@ begin
         Col.DefaultType := cdtNull;
         Col.DefaultText := 'NULL';
         Delete(ColSpec, 1, 5);
-      end else if UpperCase(Copy(ColSpec, 1, 17)) = 'CURRENT_TIMESTAMP' then begin
+      end else if rxCol.Exec(ColSpec) then begin
         Col.DefaultType := cdtCurTS;
         Col.DefaultText := 'CURRENT_TIMESTAMP';
-        Delete(ColSpec, 1, 18);
+        if rxCol.Match[2] <> '' then
+          Col.DefaultType := cdtCurTSUpdateTS;
+        Delete(ColSpec, 1, rxCol.MatchLen[0]);
       end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') then begin
         InLiteral := True;
         LiteralStart := Pos('''', ColSpec)+1;
@@ -3497,15 +3500,6 @@ begin
         Col.DefaultText := StringReplace(Col.DefaultText, '\''', '''', [rfReplaceAll]);
         Delete(ColSpec, 1, i);
       end;
-    end;
-    if UpperCase(Copy(ColSpec, 1, 27)) = 'ON UPDATE CURRENT_TIMESTAMP' then begin
-      // Adjust default type
-      case Col.DefaultType of
-        cdtText: Col.DefaultType := cdtTextUpdateTS;
-        cdtNull: Col.DefaultType := cdtNullUpdateTS;
-        cdtCurTS: Col.DefaultType := cdtCurTSUpdateTS;
-      end;
-      Delete(ColSpec, 1, 28);
     end;
 
     // Comment
@@ -5343,9 +5337,10 @@ begin
   FStatus := Value;
 end;
 
-function TTableColumn.SQLCode: String;
+function TTableColumn.SQLCode(OverrideCollation: String=''): String;
 var
   IsVirtual: Boolean;
+  Text, TSLen: String;
 begin
   Result := FConnection.QuoteIdent(Name) + ' ' +DataType.Name;
   IsVirtual := (Expression <> '') and (Virtuality <> '');
@@ -5361,15 +5356,37 @@ begin
     Result := Result + ' NULL';
   end;
   if DefaultType <> cdtNothing then begin
-    Result := Result + ' ' + GetColumnDefaultClause(DefaultType, DataType.Index, DefaultText);
+    Text := esc(DefaultText);
+    // Support BIT syntax in MySQL
+    if DataType.Index = dtBit then
+      Text := 'b'+Text;
+    TSLen := '';
+    if LengthSet <> '' then
+      TSLen := '('+LengthSet+')';
+    Result := Result + ' ';
+    case DefaultType of
+      // cdtNothing:
+      cdtText:           Result := Result + 'DEFAULT '+Text;
+      cdtTextUpdateTS:   Result := Result + 'DEFAULT '+Text+' ON UPDATE CURRENT_TIMESTAMP'+TSLen;
+      cdtNull:           Result := Result + 'DEFAULT NULL';
+      cdtNullUpdateTS:   Result := Result + 'DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP'+TSLen;
+      cdtCurTS:          Result := Result + 'DEFAULT CURRENT_TIMESTAMP'+TSLen;
+      cdtCurTSUpdateTS:  Result := Result + 'DEFAULT CURRENT_TIMESTAMP'+TSLen+' ON UPDATE CURRENT_TIMESTAMP'+TSLen;
+      cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
+    end;
     Result := TrimRight(Result); // Remove whitespace for columns without default value
   end;
   if IsVirtual then
     Result := Result + ' AS ('+Expression+') '+Virtuality;
   if Comment <> '' then
     Result := Result + ' COMMENT '+esc(Comment);
-  if Collation <> '' then
-    Result := Result + ' COLLATE '+esc(Collation);
+  if Collation <> '' then begin
+    Result := Result + ' COLLATE ';
+    if OverrideCollation <> '' then
+      Result := Result + esc(OverrideCollation)
+    else
+      Result := Result + esc(Collation);
+  end;
 end;
 
 
