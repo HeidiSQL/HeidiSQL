@@ -5575,8 +5575,10 @@ var
   Obj: PDBObject;
 begin
   // Tables and views can be renamed, routines cannot
-  Obj := Sender.GetNodeData(Node);
-  Allowed := Obj.NodeType in [lntTable, lntView];
+  if Assigned(Node) then begin
+    Obj := Sender.GetNodeData(Node);
+    Allowed := Obj.NodeType in [lntTable, lntView];
+  end;
 end;
 
 
