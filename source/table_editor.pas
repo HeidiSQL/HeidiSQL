@@ -469,7 +469,7 @@ end;
 function TfrmTableEditor.ComposeAlterStatement: TSQLBatch;
 var
   Specs: TStringList;
-  ColSpec, IndexSQL, SQL, OldColName: String;
+  ColSpec, IndexSQL, SQL, OldColName, OverrideCollation: String;
   i: Integer;
   Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
@@ -558,36 +558,10 @@ begin
     Mainform.ProgressStep;
     Col := listColumns.GetNodeData(Node);
     if Col.Status <> esUntouched then begin
-      ColSpec := DBObject.Connection.QuoteIdent(Col.Name);
-      ColSpec := ColSpec + ' ' + Col.DataType.Name;
-      IsVirtual := (Col.Expression <> '') and (Col.Virtuality <> '');
-      if (Col.LengthSet <> '') and Col.DataType.HasLength then
-        ColSpec := ColSpec + '(' + Col.LengthSet + ')';
-      if (Col.DataType.Category in [dtcInteger, dtcReal]) and Col.Unsigned then
-        ColSpec := ColSpec + ' UNSIGNED';
-      if (Col.DataType.Category in [dtcInteger, dtcReal]) and Col.ZeroFill then
-        ColSpec := ColSpec + ' ZEROFILL';
-      if not IsVirtual then begin
-        if not Col.AllowNull then
-          ColSpec := ColSpec + ' NOT';
-        ColSpec := ColSpec + ' NULL';
-      end;
-      if Col.DefaultType <> cdtNothing then begin
-        ColSpec := ColSpec + ' ' + GetColumnDefaultClause(Col.DefaultType, Col.DataType.Index, Col.DefaultText);
-        ColSpec := TrimRight(ColSpec); // Remove whitespace for columns without default value
-      end;
-      if IsVirtual then
-        ColSpec := ColSpec + ' AS ('+Col.Expression+') '+Col.Virtuality;
-      if Col.Comment <> '' then
-        ColSpec := ColSpec + ' COMMENT '+esc(Col.Comment);
-      if Col.Collation <> '' then begin
-        ColSpec := ColSpec + ' COLLATE ';
-        // TODO: Is this the only reason why we don't just use Col.SQLCode?
-        if chkCharsetConvert.Checked then
-          ColSpec := ColSpec + esc(comboCollation.Text)
-        else
-          ColSpec := ColSpec + esc(Col.Collation);
-      end;
+      OverrideCollation := '';
+      if chkCharsetConvert.Checked then
+        OverrideCollation := comboCollation.Text;
+      ColSpec := Col.SQLCode(OverrideCollation);
       // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
       if DBObject.Connection.ServerVersionInt >= 40001 then begin
         if PreviousCol = nil then

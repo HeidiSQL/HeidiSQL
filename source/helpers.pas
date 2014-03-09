@@ -306,7 +306,6 @@ type
   function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
   function GetColumnDefaultType(var Text: String): TColumnDefaultType;
-  function GetColumnDefaultClause(DefaultType: TColumnDefaultType; DataTypeIndex: TDBDatatypeIndex; Text: String): String;
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
@@ -2145,25 +2144,6 @@ function GetColumnDefaultType(var Text: String): TColumnDefaultType;
 begin
   Result := TColumnDefaultType(MakeInt(Copy(Text, 1, 1)));
   Text := Copy(Text, 2, Length(Text)-1);
-end;
-
-
-function GetColumnDefaultClause(DefaultType: TColumnDefaultType; DataTypeIndex: TDBDatatypeIndex; Text: String): String;
-begin
-  Text := esc(Text);
-  // Support BIT syntax in MySQL
-  if DataTypeIndex = dtBit then
-    Text := 'b'+Text;
-  case DefaultType of
-    cdtNothing:        Result := '';
-    cdtText:           Result := 'DEFAULT '+Text;
-    cdtTextUpdateTS:   Result := 'DEFAULT '+Text+' ON UPDATE CURRENT_TIMESTAMP';
-    cdtNull:           Result := 'DEFAULT NULL';
-    cdtNullUpdateTS:   Result := 'DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP';
-    cdtCurTS:          Result := 'DEFAULT CURRENT_TIMESTAMP';
-    cdtCurTSUpdateTS:  Result := 'DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP';
-    cdtAutoInc:        Result := 'AUTO_INCREMENT';
-  end;
 end;
 
 
