@@ -360,7 +360,7 @@ begin
   Param := Parameters[Node.Index];
   case Column of
     1: Param.Name := NewText;
-    2: Param.Datatype := NewText;
+    2: Param.Datatype := UpperCase(NewText);
     3: Param.Context := NewText;
   end;
   Modification(Sender);
