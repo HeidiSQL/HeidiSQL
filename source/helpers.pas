@@ -2478,7 +2478,7 @@ begin
   // Add leading (and trailing) space, so the regular expressions can request a mandantory space
   // before (and after) each param (and filename) including the first one (and last one)
   ExeName := ExtractFileName(ParamStr(0));
-  CommandLine := Copy(CommandLine, Pos(ExeName, CommandLine)+Length(ExeName)+1, Length(CommandLine));
+  CommandLine := Copy(CommandLine, Pos(ExeName, CommandLine)+Length(ExeName), Length(CommandLine));
   CommandLine := CommandLine + ' ';
   rx := TRegExpr.Create;
   SessName := GetParamValue('d', 'description');
