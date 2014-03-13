@@ -282,6 +282,7 @@ begin
   comboCollation.ItemIndex := -1;
   memoUnionTables.Clear;
   comboInsertMethod.ItemIndex := -1;
+  SynMemoPartitions.Clear;
 
   if DBObject.Name = '' then begin
     // Creating new table
