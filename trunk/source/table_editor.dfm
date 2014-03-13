@@ -683,6 +683,40 @@ object frmTableEditor: TfrmTableEditor
         FontSmoothing = fsmNone
       end
     end
+    object tabPartitions: TTabSheet
+      Caption = 'Partitions'
+      ImageIndex = 186
+      object SynMemoPartitions: TSynMemo
+        Left = 0
+        Top = 0
+        Width = 593
+        Height = 121
+        SingleLineMode = False
+        Align = alClient
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -13
+        Font.Name = 'Courier New'
+        Font.Style = []
+        PopupMenu = popupSQLmemo
+        TabOrder = 0
+        Gutter.AutoSize = True
+        Gutter.DigitCount = 2
+        Gutter.Font.Charset = DEFAULT_CHARSET
+        Gutter.Font.Color = clWindowText
+        Gutter.Font.Height = -11
+        Gutter.Font.Name = 'Courier New'
+        Gutter.Font.Style = []
+        Gutter.LeftOffset = 2
+        Gutter.ShowLineNumbers = True
+        Highlighter = MainForm.SynSQLSyn1
+        Lines.Strings = (
+          'SynMemoPartitions')
+        Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+        ReadOnly = True
+        FontSmoothing = fsmNone
+      end
+    end
   end
   object pnlColumnsTop: TPanel
     AlignWithMargins = True
