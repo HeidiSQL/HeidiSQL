@@ -88,6 +88,8 @@ type
     listForeignKeys: TVirtualStringTree;
     menuCopyColumns: TMenuItem;
     menuPasteColumns: TMenuItem;
+    tabPartitions: TTabSheet;
+    SynMemoPartitions: TSynMemo;
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);
@@ -328,6 +330,12 @@ begin
       memoComment.Lines.Text := DBObject.Connection.UnescapeString(rx.Match[1])
     else
       memoComment.Lines.Clear;
+    rx.Expression := '\b(PARTITION\s+.+)(\*/)';
+    if rx.Exec(DBObject.CreateCode) then
+      SynMemoPartitions.Text := rx.Match[1]
+    else
+      SynMemoPartitions.Clear;
+
     DBObject.Connection.ParseTableStructure(DBObject.CreateCode, FColumns, FKeys, FForeignKeys);
   end;
   listColumns.RootNodeCount := FColumns.Count;
@@ -693,6 +701,8 @@ begin
     SQL := SQL + 'UNION=('+memoUnionTables.Text+')' + CRLF;
   if comboInsertMethod.Enabled and (comboInsertMethod.Text <> '') then
     SQL := SQL + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
+  if SynMemoPartitions.GetTextLen > 0 then
+    SQL := SQL +  '/*!50100 ' + SynMemoPartitions.Text + ' */';
   Result := TSQLBatch.Create;
   Result.SQL := Trim(SQL);
 end;

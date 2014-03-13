@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-02-27 13:48+0100\n"
+"PO-Revision-Date: 2014-03-13 05:56+0100\n"
 "Last-Translator: Ansgar Becker <heidisql@anse.de>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -686,6 +686,10 @@ msgstr "CREATE code"
 #: event_editor.dfm:331 table_editor.dfm:650
 msgid "ALTER code"
 msgstr "ALTER code"
+
+# Table editor
+msgid "Partitions"
+msgstr "Partitions"
 
 #. frmExportGrid..Caption
 #: exportgrid.dfm:5
