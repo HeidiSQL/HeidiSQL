@@ -72,6 +72,7 @@ begin
     Application.CreateForm(TMainForm, MainForm);
     MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
+    Application.OnShowHint := MainForm.ApplicationShowHint;
     Application.MainFormOnTaskBar := True;
     Application.Run;
   end;

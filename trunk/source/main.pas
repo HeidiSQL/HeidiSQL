@@ -936,6 +936,7 @@ type
     procedure DonateClick(Sender: TObject);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ApplicationDeActivate(Sender: TObject);
+    procedure ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
     procedure DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
@@ -11529,6 +11530,26 @@ begin
   // Does not work for some reason in TApplicationEvents.OnDeactivate
   SynCompletionProposal.Form.Enabled := False;
   // Gets activated again in SynCompletionProposalExecute
+end;
+
+
+procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
+var
+  MainTabIndex, QueryTabIndex: integer;
+  pt: TPoint;
+begin
+  // Show full filename in tab hint. See issue #3527
+  // Code taken from http://www.delphipraxis.net/97988-tabsheet-hint-funktioniert-nicht.html
+  if HintInfo.HintControl = PageControlMain then begin
+    pt := PageControlMain.ScreenToClient(Mouse.CursorPos);
+    MainTabIndex := GetMainTabAt(pt.X, pt.Y);
+    QueryTabIndex := MainTabIndex - tabQuery.PageIndex;
+    if (QueryTabIndex >= 0) and (QueryTabIndex < QueryTabs.Count) then
+      HintStr := QueryTabs[QueryTabIndex].MemoFilename;
+    if HintStr = '' then
+      HintStr := PageControlMain.Pages[MainTabIndex].Caption;
+    HintInfo.ReshowTimeout := 1000;
+  end;
 end;
 
 
