@@ -930,7 +930,6 @@ begin
     Connection.OnLog := Mainform.LogSQL;
     FPopupDatabases := TPopupMenu.Create(Self);
     FPopupDatabases.AutoHotkeys := maManual;
-    Databases := Explode(';', editDatabases.Text);
     Screen.Cursor := crHourglass;
     try
       Connection.Active := True;
@@ -938,7 +937,6 @@ begin
         Item := TMenuItem.Create(FPopupDatabases);
         Item.Caption := DB;
         Item.OnClick := MenuDatabasesClick;
-        Item.Checked := Databases.IndexOf(DB) > -1;
         Item.AutoCheck := True;
         FPopupDatabases.Items.Add(Item);
       end;
@@ -947,6 +945,14 @@ begin
     end;
     FreeAndNil(Connection);
   end;
+
+  // Check/uncheck items, based on semicolon list
+  Databases := Explode(';', editDatabases.Text);
+  for Item in FPopupDatabases.Items do begin
+    Item.Checked := Databases.IndexOf(Item.Caption) > -1;
+  end;
+  Databases.Free;
+
   p := editDatabases.ClientToScreen(editDatabases.ClientRect.BottomRight);
   FPopupDatabases.Popup(p.X-editDatabases.Images.Width, p.Y);
   Screen.Cursor := crDefault;
