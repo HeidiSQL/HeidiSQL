@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-03-13 05:56+0100\n"
+"PO-Revision-Date: 2014-03-19 11:25+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2133,6 +2133,14 @@ msgstr "&Next tab"
 #: main.dfm:2386
 msgid "Next tab|Go to the next tab"
 msgstr "Next tab|Go to the next tab"
+
+#. Main menu: Tools
+msgid "Previous result tab"
+msgstr "Previous result tab"
+
+#. Main menu: Tools
+msgid "Next result tab"
+msgstr "Next result tab"
 
 #. MainForm..ActionList1..actSelectAll..Caption
 #: main.dfm:2393
