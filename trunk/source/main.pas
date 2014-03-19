@@ -601,6 +601,10 @@ type
     btnDonate: TToolButton;
     btnUpdateAvailable: TToolButton;
     TimerBindParams: TTimer;
+    actPreviousResult: TAction;
+    actNextResult: TAction;
+    Previousresulttab1: TMenuItem;
+    Nextresulttab1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -954,6 +958,8 @@ type
     procedure treeQueryHelpersNewText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; NewText: string);
     procedure SynMemoQueryChange(Sender: TObject);
+    procedure actPreviousResultExecute(Sender: TObject);
+    procedure actNextResultExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -5166,6 +5172,8 @@ begin
   actDataPreview.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actUnixTimestampColumn.Enabled := inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
+  actPreviousResult.Enabled := inDataOrQueryTabNotEmpty;
+  actNextResult.Enabled := inDataOrQueryTabNotEmpty;
 
   // Activate export-options if we're on Data- or Query-tab
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
@@ -11698,6 +11706,36 @@ begin
   end;
   Result := FHasDonatedDatabaseCheck;
   Screen.Cursor := crDefault;
+end;
+
+
+procedure TMainForm.actPreviousResultExecute(Sender: TObject);
+var
+  Tab: TQueryTab;
+begin
+  // Go back to the result tab left to the active one
+  Tab := ActiveQueryTab;
+  if Tab <> nil then begin
+    if Tab.tabsetQuery.TabIndex > 0 then
+      Tab.tabsetQuery.SelectNext(False)
+    else
+      MessageBeep(MB_ICONEXCLAMATION);
+  end;
+end;
+
+
+procedure TMainForm.actNextResultExecute(Sender: TObject);
+var
+  Tab: TQueryTab;
+begin
+  // Advance to the next result tab
+  Tab := ActiveQueryTab;
+  if Tab <> nil then begin
+    if Tab.tabsetQuery.TabIndex < Tab.tabsetQuery.Tabs.Count-1 then
+      Tab.tabsetQuery.SelectNext(True)
+    else
+      MessageBeep(MB_ICONEXCLAMATION);
+  end;
 end;
 
 

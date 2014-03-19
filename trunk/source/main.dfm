@@ -1893,11 +1893,17 @@ object MainForm: TMainForm
     end
     object MainMenuTools: TMenuItem
       Caption = 'Tools'
+      object Previoustab1: TMenuItem
+        Action = actPreviousTab
+      end
       object Nexttab1: TMenuItem
         Action = actNextTab
       end
-      object Previoustab1: TMenuItem
-        Action = actPreviousTab
+      object Previousresulttab1: TMenuItem
+        Action = actPreviousResult
+      end
+      object Nextresulttab1: TMenuItem
+        Action = actNextResult
       end
       object Flush1: TMenuItem
         Caption = 'Flush'
@@ -2752,6 +2758,20 @@ object MainForm: TMainForm
       Hint = 'Show only favorite tree items'
       ImageIndex = 112
       OnExecute = actFavoriteObjectsOnlyExecute
+    end
+    object actPreviousResult: TAction
+      Category = 'Data'
+      Caption = 'Previous result tab'
+      ImageIndex = 117
+      ShortCut = 32805
+      OnExecute = actPreviousResultExecute
+    end
+    object actNextResult: TAction
+      Category = 'Data'
+      Caption = 'Next result tab'
+      ImageIndex = 116
+      ShortCut = 32807
+      OnExecute = actNextResultExecute
     end
   end
   object menuConnections: TPopupMenu
