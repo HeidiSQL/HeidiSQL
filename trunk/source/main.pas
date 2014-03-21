@@ -6567,6 +6567,9 @@ begin
   if (idx = -1) or (idx = FLastHintControlIndex) then
     Exit;
   FLastHintControlIndex := idx;
+  // Check if user wants these balloon hints
+  if not AppSettings.ReadBool(asHintsOnResultTabs) then
+    Exit;
 
   // Make SQL readable for the tooltip balloon. WrapText() is unsuitable here.
   // See issue #2014
