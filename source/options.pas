@@ -127,6 +127,7 @@ type
     SynMemoSQLSample: TSynMemo;
     editCustomSnippetsDirectory: TButtonedEdit;
     lblCustomSnippetsDirectory: TLabel;
+    chkHintsOnResultTabs: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -286,6 +287,7 @@ begin
   AppSettings.WriteInt(asRowBackgroundEven, cboxRowBackgroundEven.Selected);
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
+  AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
 
   // Data editing
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
@@ -497,6 +499,7 @@ begin
   cboxRowBackgroundEven.Selected := AppSettings.ReadInt(asRowBackgroundEven);
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
+  chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);
 
   // Data editing
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);

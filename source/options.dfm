@@ -842,6 +842,16 @@ object optionsform: Toptionsform
         TabOrder = 14
         OnClick = Modified
       end
+      object chkHintsOnResultTabs: TCheckBox
+        Left = 8
+        Top = 216
+        Width = 577
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Pop up SQL text over result tabs'
+        TabOrder = 15
+        OnClick = Modified
+      end
     end
     object tabDataEditing: TTabSheet
       Caption = 'Data editing'
