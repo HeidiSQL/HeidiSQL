@@ -1106,7 +1106,7 @@ begin
       ntMySQL_SSHtunnel: begin
         // Build plink.exe command line
         // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-        PlinkCmd := '"'+FParameters.SSHPlinkExe + '" -ssh ';
+        PlinkCmd := '/C echo y | "'+FParameters.SSHPlinkExe + '" -ssh ';
         if FParameters.SSHUser <> '' then
           PlinkCmd := PlinkCmd + FParameters.SSHUser + '@';
         if FParameters.SSHHost <> '' then
@@ -1129,7 +1129,7 @@ begin
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
         FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
         StartupInfo.cb := SizeOf(TStartupInfo);
-        if CreateProcess(nil, PChar(PlinkCmd), nil, nil, false,
+        if CreateProcess(PChar('C:\Windows\System32\cmd.exe'), PChar(PlinkCmd), nil, nil, false,
           CREATE_DEFAULT_ERROR_MODE + NORMAL_PRIORITY_CLASS + CREATE_NO_WINDOW,
           nil, nil, StartupInfo, FPlinkProcInfo) then begin
           WaitForSingleObject(FPlinkProcInfo.hProcess, FParameters.SSHTimeout*1000);
