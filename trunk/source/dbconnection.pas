@@ -1129,7 +1129,7 @@ begin
         FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
         FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
         StartupInfo.cb := SizeOf(TStartupInfo);
-        if CreateProcess(PChar('C:\Windows\System32\cmd.exe'), PChar(PlinkCmd), nil, nil, false,
+        if CreateProcess(PChar(GetEnvironmentVariable('COMSPEC')), PChar(PlinkCmd), nil, nil, false,
           CREATE_DEFAULT_ERROR_MODE + NORMAL_PRIORITY_CLASS + CREATE_NO_WINDOW,
           nil, nil, StartupInfo, FPlinkProcInfo) then begin
           WaitForSingleObject(FPlinkProcInfo.hProcess, FParameters.SSHTimeout*1000);
