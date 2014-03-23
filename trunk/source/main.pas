@@ -11557,8 +11557,6 @@ begin
     QueryTabIndex := MainTabIndex - tabQuery.PageIndex;
     if (QueryTabIndex >= 0) and (QueryTabIndex < QueryTabs.Count) then
       HintStr := QueryTabs[QueryTabIndex].MemoFilename;
-    if HintStr = '' then
-      HintStr := PageControlMain.Pages[MainTabIndex].Caption;
     HintInfo.ReshowTimeout := 1000;
   end;
 end;
