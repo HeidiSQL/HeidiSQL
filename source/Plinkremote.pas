@@ -216,7 +216,7 @@ begin
     end else
     begin
       if Assigned(OnError) then
-        OnError(Self, f_('Could not run "%s"' [AFilename]));
+        OnError(Self, f_('Could not run "%s"', [AFilename]));
     end;
   end;
 end;
