@@ -41,7 +41,9 @@ uses
   syncdb in '..\..\source\syncdb.pas' {frmSyncDB},
   gnugettext in '..\..\source\gnugettext.pas',
   JumpList in '..\..\source\JumpList.pas',
-	extra_controls in '..\..\source\extra_controls.pas';
+  extra_controls in '..\..\source\extra_controls.pas',
+  Plinkremote in '..\..\source\plinkremote.pas',
+  UPipeThread in '..\..\source\UPipeThread.pas';
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\version.RES}
