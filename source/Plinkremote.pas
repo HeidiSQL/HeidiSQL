@@ -19,7 +19,7 @@ unit Plinkremote;
 interface
 
 uses
-  Windows, StrUtils, SysUtils, Classes, Controls, Forms, Dialogs, UPipeThread;
+  Windows, StrUtils, SysUtils, Classes, Controls, Forms, Dialogs, UPipeThread, gnugettext;
 
 const
   LINE_FEED = #10;
@@ -121,6 +121,8 @@ type
 
 implementation
 
+uses helpers;
+
 function TPlinkRemote.CreatePipeEx(var pv_pipe: TPipe): boolean;
 const
   k_pipe_buffer_size = 8192;
@@ -214,7 +216,7 @@ begin
     end else
     begin
       if Assigned(OnError) then
-        OnError(Self, 'Prozess "'+AFilename+'" konnte nicht gestartet werden!');
+        OnError(Self, f_('Could not run "%s"' [AFilename]));
     end;
   end;
 end;
@@ -346,7 +348,7 @@ begin
     if not FileExists(Filename)then
     begin
       if Assigned(OnError) then
-        OnError(Self, 'Datei nicht gefunden: ' + Filename);
+        OnError(Self, f_('File not found: %s', [Filename]));
     end
     else begin
       // --start program
@@ -355,7 +357,7 @@ begin
     end;
   end
   else if Assigned(OnError) then
-    OnError(Self, 'Prozess: ' + FFilename + ' bereits gestartet!!');
+    OnError(Self, f_('Process %s already started.', [FFilename]));
 end;
 
 procedure TPlinkRemote.Terminate;
@@ -494,7 +496,7 @@ begin
   if Pos('host key is not cached in the registry', buffer) > 0 then
   begin
     result:= true;
-    if MessageDlg(Buffer, mtInformation, [mbYes, mbNo], 0) = mrYes then
+    if MessageDialog(_('Accept and cache host key?'), Buffer, mtConfirmation, [mbYes, mbNo]) = mrYes then
       SendText('y')
     else
       SendText('n');
@@ -502,7 +504,7 @@ begin
   if Pos('host key does not match the one PuTTY', buffer) > 0 then
   begin
     result:= true;
-    if MessageDlg(Buffer, mtError, [mbYes, mbNo], 0) = mrYes then
+    if MessageDialog(_('Accept changed host key?'), Buffer, mtConfirmation, [mbYes, mbNo]) = mrYes then
       SendText('y')
     else
       SendText('n');
