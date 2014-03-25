@@ -19,7 +19,7 @@ unit Plinkremote;
 interface
 
 uses
-  Windows, StrUtils, SysUtils, Classes, Controls, Forms, Dialogs, UPipeThread, gnugettext;
+  Windows, StrUtils, SysUtils, Classes, Controls, Forms, Dialogs, UPipeThread, gnugettext, AnsiStrings;
 
 const
   LINE_FEED = #10;
@@ -238,14 +238,14 @@ const cMaxLength = 255;
 var PText : PAnsiChar;
 begin
   Result:='';
-  PText:=AnsiStrAlloc(cMaxLength);
+  PText:=AnsiStrings.AnsiStrAlloc(cMaxLength);
   while AText <> '' do begin
-    StrPCopy(PText, copy(AText, 1, cMaxLength-1));
+    AnsiStrings.StrPCopy(PText, copy(AText, 1, cMaxLength-1));
     OemToAnsi(PText, PText);
-    Result:=Result + StrPas(PText);
+    Result:=Result + AnsiStrings.StrPas(PText);
     delete(AText, 1, cMaxLength-1);
   end;
-  StrDispose(PText);
+  AnsiStrings.StrDispose(PText);
 end;
 
 function TPlinkRemote.ReadPipe(const APipe: TPipe): String;
