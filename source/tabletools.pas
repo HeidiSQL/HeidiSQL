@@ -754,7 +754,7 @@ begin
             ngMySQL:
               SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR ';
             ngMSSQL:
-              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
+              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+memoFindText.Text+'%') + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
           end;
         end else begin
           case DBObj.Connection.Parameters.NetTypeGroup of
