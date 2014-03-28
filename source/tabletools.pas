@@ -749,14 +749,19 @@ begin
     SQL := '';
     for Col in Columns do begin
       if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
-        if chkCaseSensitive.Checked then
-          SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR '
-        else begin
+        if chkCaseSensitive.Checked then begin
+          case DBObj.Connection.Parameters.NetTypeGroup of
+            ngMySQL:
+              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR ';
+            ngMSSQL:
+              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
+          end;
+        end else begin
           case DBObj.Connection.Parameters.NetTypeGroup of
             ngMySQL:
               SQL := SQL + 'LOWER(CONVERT('+DBObj.Connection.QuoteIdent(Col.Name)+' USING '+DBObj.Connection.CharacterSet+')) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
             ngMSSQL:
-              SQL := SQL + 'LOWER('+DBObj.Connection.QuoteIdent(Col.Name)+') LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
+              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
           end;
         end;
       end;
