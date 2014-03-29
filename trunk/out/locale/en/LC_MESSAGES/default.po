@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-03-25 11:13+0100\n"
+"PO-Revision-Date: 2014-03-29 07:54+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -3945,6 +3945,18 @@ msgstr "SSL parameters successfully set."
 #: dbconnection.pas:1151
 msgid "Attempt to create plink.exe process, waiting %ds for response ..."
 msgstr "Attempt to create plink.exe process, waiting %ds for response ..."
+
+#. Plink connection
+msgid "Error creating I/O pipes"
+msgstr "Error creating I/O pipes"
+
+#. PLink connection
+msgid "Error reading I/O pipes"
+msgstr "Error reading I/O pipes"
+
+#. Plink connection
+msgid "PLink cancelled"
+msgstr "PLink cancelled"
 
 #: dbconnection.pas:1162
 msgid "PLink exited unexpected. Command line was: %s"

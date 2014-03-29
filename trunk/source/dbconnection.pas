@@ -5,15 +5,18 @@ interface
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext;
+  gnugettext, AnsiStrings, Controls, Forms;
 
 
 type
+  {$M+} // Needed to add published properties
+
   { TDBObjectList and friends }
 
   TListNodeType = (lntNone, lntDb, lntGroup, lntTable, lntView, lntFunction, lntProcedure, lntTrigger, lntEvent, lntColumn);
   TListNodeTypes = Set of TListNodeType;
   TDBConnection = class;
+  TConnectionParameters = class;
   TDBQuery = class;
   TDBQueryList = TObjectList<TDBQuery>;
   TDBObject = class(TPersistent)
@@ -146,22 +149,48 @@ type
 
   // Structures for in-memory changes of a TMySQLQuery
   TCellData = class(TObject)
-    NewText, OldText: String;
-    NewIsNull, OldIsNull: Boolean;
-    NewIsFunction, OldIsFunction: Boolean;
-    Modified: Boolean;
-    destructor Destroy; override;
+    public
+      NewText, OldText: String;
+      NewIsNull, OldIsNull: Boolean;
+      NewIsFunction, OldIsFunction: Boolean;
+      Modified: Boolean;
+      destructor Destroy; override;
   end;
   TRowData = class(TObjectList<TCellData>)
-    RecNo: Int64;
-    Inserted: Boolean;
+    public
+      RecNo: Int64;
+      Inserted: Boolean;
   end;
   TUpdateData = TObjectList<TRowData>;
 
   // Custom exception class for any connection or database related error
   EDatabaseError = class(Exception);
 
-  {$M+} // Needed to add published properties
+  // PLink.exe related
+  TProcessPipe = class(TObject)
+    public
+      ReadHandle: THandle;
+      WriteHandle: THandle;
+      constructor Create;
+      destructor Destroy; override;
+  end;
+  TPlink = class(TObject)
+    private
+      FProcessInfo: TProcessInformation;
+      FInPipe: TProcessPipe;
+      FOutPipe: TProcessPipe;
+      FErrorPipe: TProcessPipe;
+      FConnection: TDBConnection;
+      function ReadPipe(const Pipe: TProcessPipe): String;
+      function AsciiToAnsi(Text: AnsiString): AnsiString;
+      function CleanEscSeq(const Buffer: String): String;
+      procedure SendText(Text: String);
+     public
+      procedure Connect;
+      constructor Create(Connection: TDBConnection);
+      destructor Destroy; override;
+  end;
+
 
   { TConnectionParameters and friends }
 
@@ -403,12 +432,11 @@ type
     private
       FHandle: PMYSQL;
       FLastRawResults: TMySQLRawResults;
-      FPlinkProcInfo: TProcessInformation;
+      FPlink: TPlink;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
-      procedure ClosePlink;
       function GetThreadId: Cardinal; override;
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
@@ -633,6 +661,294 @@ var
 implementation
 
 uses helpers, loginform;
+
+
+{ TProcessPipe }
+
+constructor TProcessPipe.Create;
+var
+  Success: Boolean;
+begin
+  inherited;
+  Success := CreatePipe(ReadHandle, WriteHandle, nil, 8192);
+  if Success then
+    Success := DuplicateHandle(
+      GetCurrentProcess, ReadHandle,
+      GetCurrentProcess, @ReadHandle, 0, True,
+      DUPLICATE_CLOSE_SOURCE OR DUPLICATE_SAME_ACCESS
+    );
+  if Success then
+    Success := DuplicateHandle(
+      GetCurrentProcess, WriteHandle,
+      GetCurrentProcess, @WriteHandle, 0, True,
+      DUPLICATE_CLOSE_SOURCE OR DUPLICATE_SAME_ACCESS
+    );
+  if not Success then
+    raise EDatabaseError.Create(_('Error creating I/O pipes'));
+end;
+
+
+destructor TProcessPipe.Destroy;
+begin
+  CloseHandle(ReadHandle);
+  CloseHandle(WriteHandle);
+  inherited;
+end;
+
+
+
+{ TPlink }
+
+constructor TPlink.Create(Connection: TDBConnection);
+begin
+  inherited Create;
+  FConnection := Connection;
+  FInPipe := TProcessPipe.Create;
+  FOutPipe := TProcessPipe.Create;
+  FErrorPipe := TProcessPipe.Create;
+end;
+
+
+destructor TPlink.Destroy;
+begin
+  FConnection.Log(lcInfo, f_('Closing plink.exe process #%d ...', [FProcessInfo.dwProcessId]));
+  TerminateProcess(FProcessInfo.hProcess, 0);
+  CloseHandle(FProcessInfo.hProcess);
+  CloseHandle(FProcessInfo.hThread);
+  FInPipe.Free;
+  FOutPipe.Free;
+  FErrorPipe.Free;
+  inherited;
+end;
+
+
+procedure TPlink.Connect;
+var
+  PlinkParameters, PlinkCmdDisplay: String;
+  OutText, ErrorText: String;
+  rx: TRegExpr;
+  StartupInfo: TStartupInfo;
+  ExitCode: LongWord;
+  Waited, ReturnedSomethingAt: Integer;
+begin
+  // Build plink.exe command line
+  // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
+  PlinkParameters := '-ssh ';
+  if FConnection.Parameters.SSHUser <> '' then
+    PlinkParameters := PlinkParameters + FConnection.Parameters.SSHUser + '@';
+  if FConnection.Parameters.SSHHost <> '' then
+    PlinkParameters := PlinkParameters + FConnection.Parameters.SSHHost
+  else
+    PlinkParameters := PlinkParameters + FConnection.Parameters.Hostname;
+  if FConnection.Parameters.SSHPassword <> '' then
+    PlinkParameters := PlinkParameters + ' -pw "' + FConnection.Parameters.SSHPassword + '"';
+  if FConnection.Parameters.SSHPort > 0 then
+    PlinkParameters := PlinkParameters + ' -P ' + IntToStr(FConnection.Parameters.SSHPort);
+  if FConnection.Parameters.SSHPrivateKey <> '' then
+    PlinkParameters := PlinkParameters + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
+  PlinkParameters := PlinkParameters + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
+  rx := TRegExpr.Create;
+  rx.Expression := '(-pw\s+")[^"]*(")';
+  PlinkCmdDisplay := FConnection.Parameters.SSHPlinkExe + ' ' + rx.Replace(PlinkParameters, '${1}******${2}', True);
+  FConnection.Log(lcInfo, f_('Attempt to create plink.exe process, waiting %ds for response ...', [FConnection.Parameters.SSHTimeout]));
+
+  // Prepare process
+  FillChar(StartupInfo, SizeOf(StartupInfo), 0);
+  StartupInfo.cb := SizeOf(StartupInfo);
+  StartupInfo.dwFlags := STARTF_USESHOWWINDOW or STARTF_USESTDHANDLES;
+  StartupInfo.wShowWindow := SW_HIDE;
+  StartupInfo.hStdInput:= FInPipe.ReadHandle;
+  StartupInfo.hStdError:= FErrorPipe.WriteHandle;
+  StartupInfo.hStdOutput:= FOutPipe.WriteHandle;
+
+  // Create plink.exe process
+  FillChar(FProcessInfo, SizeOf(FProcessInfo), 0);
+  if not CreateProcess(
+       PChar(FConnection.Parameters.SSHPlinkExe),
+       PChar(PlinkParameters),
+       nil,
+       nil,
+       true,
+       CREATE_DEFAULT_ERROR_MODE or CREATE_NEW_CONSOLE or NORMAL_PRIORITY_CLASS,
+       nil,
+       PChar(GetCurrentDir),
+       StartupInfo,
+       FProcessInfo) then begin
+    raise EDatabaseError.CreateFmt(_('Could not execute PLink: %s'), [CRLF+PlinkCmdDisplay]);
+  end;
+
+  // Wait until timeout has finished, or some text returned.
+  // Parse pipe output and probably show some message in a dialog.
+  Waited := 0;
+  ReturnedSomethingAt := -1;
+  while Waited < FConnection.Parameters.SSHTimeout*1000 do begin
+    Inc(Waited, 200);
+    WaitForSingleObject(FProcessInfo.hProcess, 200);
+    GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
+    if ExitCode <> STILL_ACTIVE then
+      raise EDatabaseError.CreateFmt(_('PLink exited unexpected. Command line was: %s'), [CRLF+PlinkCmdDisplay]);
+
+    OutText := ReadPipe(FOutPipe);
+    ErrorText := ReadPipe(FErrorPipe);
+    if (OutText <> '') or (ErrorText <> '') then
+      ReturnedSomethingAt := Waited;
+
+    if OutText <> '' then begin
+      rx.Expression := '^[^\.]+\.';
+      if rx.Exec(OutText) then
+        MessageDialog('PLink: '+rx.Match[0], OutText, mtInformation, [mbOK])
+      else
+        MessageDialog('PLink:', OutText, mtInformation, [mbOK]);
+    end;
+
+    if ErrorText <> '' then begin
+      rx.Expression := '([^\.]+\?)\s*\(y\/n\s*(,[^\)]+)?\)\s*$';
+      if rx.Exec(ErrorText) then begin
+        case MessageDialog(Trim(rx.Match[1]), ErrorText, mtConfirmation, [mbYes, mbNo, mbCancel]) of
+          mrYes:
+            SendText('y');
+          mrNo:
+            SendText('n');
+          mrCancel: begin
+            Destroy;
+            raise EDatabaseError.Create(_('PLink cancelled'));
+          end;
+        end;
+      end else begin
+        MessageDialog('PLink:', ErrorText, mtError, [mbOK]);
+      end;
+    end;
+
+    // Exit loop after 1s idletime when there was output earlier
+    if (ReturnedSomethingAt > 0) and (Waited >= ReturnedSomethingAt+1000) then
+      Break;
+    
+    Application.ProcessMessages;
+  end;
+  rx.Free;
+end;
+
+
+function TPlink.ReadPipe(const Pipe: TProcessPipe): String;
+var
+  BufferReadCount, OutLen: Cardinal;
+  BytesRemaining: Cardinal;
+  Buffer: array [0..1023] of AnsiChar;
+  R: AnsiString;
+begin
+  Result := '';
+  if Pipe.ReadHandle = INVALID_HANDLE_VALUE then
+    raise EDatabaseError.Create(_('Error reading I/O pipes'));
+
+  // Check if there is data to read from stdout
+  PeekNamedPipe(Pipe.ReadHandle, nil, 0, nil, @BufferReadCount, nil);
+
+  if BufferReadCount <> 0 then begin
+    FillChar(Buffer, sizeof(Buffer), 'z');
+    // Read by 1024 bytes chunks
+    BytesRemaining := BufferReadCount;
+    OutLen := 0;
+    while BytesRemaining >= 1024 do begin
+      // Read stdout pipe
+      ReadFile(Pipe.ReadHandle, Buffer, 1024, BufferReadCount, nil);
+      Dec(BytesRemaining, BufferReadCount);
+
+      SetLength(R, OutLen + BufferReadCount);
+      Move(Buffer, R[OutLen + 1], BufferReadCount);
+      Inc(OutLen, BufferReadCount);
+    end;
+
+    if BytesRemaining > 0 then begin
+      ReadFile(Pipe.ReadHandle, Buffer, BytesRemaining, BufferReadCount, nil);
+      SetLength(R, OutLen + BufferReadCount);
+      Move(Buffer, R[OutLen + 1], BufferReadCount);
+    end;
+
+    R := AsciiToAnsi(R);
+    {$WARNINGS OFF}
+    Result := AnsiToUtf8(R);
+    {$WARNINGS ON}
+
+    Result := CleanEscSeq(Result);
+  end;
+
+  Result := StringReplace(Result, #13+CRLF, CRLF, [rfReplaceAll]);
+end;
+
+
+function TPlink.AsciiToAnsi(Text: AnsiString): AnsiString;
+const
+  cMaxLength = 255;
+var
+  PText: PAnsiChar;
+begin
+  Result := '';
+  PText := AnsiStrings.AnsiStrAlloc(cMaxLength);
+  while Text <> '' do begin
+    AnsiStrings.StrPCopy(PText, copy(Text, 1, cMaxLength-1));
+    OemToAnsi(PText, PText);
+    Result := Result + AnsiStrings.StrPas(PText);
+    Delete(Text, 1, cMaxLength-1);
+  end;
+  AnsiStrings.StrDispose(PText);
+end;
+
+
+function TPlink.CleanEscSeq(const Buffer: String): String;
+var
+  i: Integer;
+  chr: Char;
+  EscFlag, Process: Boolean;
+  EscBuffer: String[80];
+begin
+  Result := '';
+  EscFlag := False;
+  for i:=1 to Length(Buffer) do begin
+    chr := buffer[I];
+    if EscFLag then begin
+      Process := False;
+      if (Length(EscBuffer) = 0) and CharInSet(Chr, ['D', 'M', 'E', 'H', '7', '8', '=', '>', '<']) then
+        Process := True
+      else if (Length(EscBuffer) = 1) and (EscBuffer[1] in ['(', ')', '*', '+']) then
+        Process := True
+      else if CharInSet(Chr, ['0'..'9', ';', '?', ' '])
+        or ((Length(EscBuffer) = 0) and CharInSet(chr, ['[', '(', ')', '*', '+']))
+        then begin
+        {$WARNINGS OFF}
+        EscBuffer := EscBuffer + Chr;
+        {$WARNINGS ON}
+        if Length(EscBuffer) >= High(EscBuffer) then begin
+          MessageBeep(MB_ICONASTERISK);
+          EscBuffer := '';
+          EscFlag := FALSE;
+        end;
+      end else
+        Process := True;
+
+      if Process then begin
+        EscBuffer := '';
+        EscFlag := False;
+      end;
+    end else if chr = #27 then begin
+      EscBuffer := '';
+      EscFlag := True;
+    end;
+    Result := Result + chr;
+  end;
+end;
+
+
+procedure TPlink.SendText(Text: String);
+var
+  WrittenBytes: Cardinal;
+  TextA: AnsiString;
+begin
+  {$WARNINGS OFF}
+  TextA := Utf8ToAnsi(Text);
+  {$WARNINGS ON}
+  if TextA <> '' then
+    WriteFile(FInPipe.WriteHandle, TextA[1], Length(TextA), WrittenBytes, nil);
+end;
 
 
 
@@ -1055,14 +1371,11 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
-  Error, tmpdb, FinalHost, FinalSocket, PlinkCmd, PlinkCmdDisplay, StatusName: String;
+  Error, tmpdb, FinalHost, FinalSocket, StatusName: String;
   CurCharset: String;
-  StartupInfo: TStartupInfo;
-  ExitCode: LongWord;
   sslca, sslkey, sslcert: PAnsiChar;
   PluginDir: AnsiString;
   Vars, Status: TDBQuery;
-  rx: TRegExpr;
 begin
   if Value and (FHandle = nil) then begin
     DoBeforeConnect;
@@ -1104,42 +1417,9 @@ begin
       end;
 
       ntMySQL_SSHtunnel: begin
-        // Build plink.exe command line
-        // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-        PlinkCmd := '/C echo y | "'+FParameters.SSHPlinkExe + '" -ssh ';
-        if FParameters.SSHUser <> '' then
-          PlinkCmd := PlinkCmd + FParameters.SSHUser + '@';
-        if FParameters.SSHHost <> '' then
-          PlinkCmd := PlinkCmd + FParameters.SSHHost
-        else
-          PlinkCmd := PlinkCmd + FParameters.Hostname;
-        if FParameters.SSHPassword <> '' then
-          PlinkCmd := PlinkCmd + ' -pw "' + FParameters.SSHPassword + '"';
-        if FParameters.SSHPort > 0 then
-          PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FParameters.SSHPort);
-        if FParameters.SSHPrivateKey <> '' then
-          PlinkCmd := PlinkCmd + ' -i "' + FParameters.SSHPrivateKey + '"';
-        PlinkCmd := PlinkCmd + ' -N -L ' + IntToStr(FParameters.SSHLocalPort) + ':' + FParameters.Hostname + ':' + IntToStr(FParameters.Port);
-        rx := TRegExpr.Create;
-        rx.Expression := '(-pw\s+")[^"]*(")';
-        PlinkCmdDisplay := rx.Replace(PlinkCmd, '${1}******${2}', True);
-        rx.Free;
-        Log(lcInfo, f_('Attempt to create plink.exe process, waiting %ds for response ...', [FParameters.SSHTimeout]));
         // Create plink.exe process
-        FillChar(FPlinkProcInfo, SizeOf(TProcessInformation), 0);
-        FillChar(StartupInfo, SizeOf(TStartupInfo), 0);
-        StartupInfo.cb := SizeOf(TStartupInfo);
-        if CreateProcess(PChar(GetEnvironmentVariable('COMSPEC')), PChar(PlinkCmd), nil, nil, false,
-          CREATE_DEFAULT_ERROR_MODE + NORMAL_PRIORITY_CLASS + CREATE_NO_WINDOW,
-          nil, nil, StartupInfo, FPlinkProcInfo) then begin
-          WaitForSingleObject(FPlinkProcInfo.hProcess, FParameters.SSHTimeout*1000);
-          GetExitCodeProcess(FPlinkProcInfo.hProcess, ExitCode);
-          if ExitCode <> STILL_ACTIVE then
-            raise EDatabaseError.CreateFmt(_('PLink exited unexpected. Command line was: %s'), [CRLF+PlinkCmdDisplay]);
-        end else begin
-          ClosePlink;
-          raise EDatabaseError.CreateFmt(_('Could not execute PLink: %s'), [CRLF+PlinkCmdDisplay]);
-        end;
+        FPlink := TPlink.Create(Self);
+        FPlink.Connect;
         FinalHost := 'localhost';
         FinalPort := FParameters.SSHLocalPort;
       end;
@@ -1171,7 +1451,8 @@ begin
       Log(lcError, Error);
       FConnectionStarted := 0;
       FHandle := nil;
-      ClosePlink;
+      if FPlink <> nil then
+        FPlink.Free;
       raise EDatabaseError.Create(Error);
     end else begin
       FActive := True;
@@ -1234,7 +1515,8 @@ begin
     ClearCache(False);
     FConnectionStarted := 0;
     FHandle := nil;
-    ClosePlink;
+    if FPlink <> nil then
+      FPlink.Free;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 
@@ -1575,16 +1857,6 @@ begin
   // Ping server in intervals, without automatically reconnecting
   if Active and (FLockedByThread = nil) then
     Ping(False);
-end;
-
-
-procedure TMySQLConnection.ClosePlink;
-begin
-  if FPlinkProcInfo.hProcess <> 0 then begin
-    Log(lcInfo, f_('Closing plink.exe process #%d ...', [FPlinkProcInfo.dwProcessId]));
-    TerminateProcess(FPlinkProcInfo.hProcess, 0);
-    CloseHandle(FPlinkProcInfo.hProcess);
-  end;
 end;
 
 
