@@ -552,6 +552,12 @@ begin
             editPassword.TextHint := FConnection.UnescapeString(rxGrant.Match[10]);
             // Set password for changed user, to silence the error message about invalid length
             User.Password := editPassword.TextHint;
+          end else begin
+            // Set password for cloned user
+            User.Password := FConnection.UnescapeString(rxGrant.Match[10]);
+            editPassword.Text := User.Password;
+            editRepeatPassword.Text := User.Password;
+            editPassword.Modified := True;
           end;
         end else if (rxGrant.Match[6] = '*') then begin
           P.DBObj.NodeType := lntDb;
@@ -1011,7 +1017,7 @@ var
   User: TUser;
   OldUser, NodeUser: PUser;
   Node: PVirtualNode;
-  NewHost: String;
+  NewHost, NewPassword, NewUsername: String;
 begin
   // Create new or clone existing user
   if Sender = btnCloneUser then begin
@@ -1020,16 +1026,21 @@ begin
       CloneGrants.Add(P.GrantCode);
     OldUser := listUsers.GetNodeData(listUsers.FocusedNode);
     NewHost := OldUser.Host;
+    NewUsername := OldUser.Username;
+    NewPassword := OldUser.Password;
   end else begin
     NewHost := 'localhost';
+    NewUsername := _('Unnamed');
+    NewPassword := '';
   end;
   // Try to unfocus current user which triggers saving modifications.
   listUsers.FocusedNode := nil;
   if Assigned(listUsers.FocusedNode) then
     Exit;
   User := TUser.Create;
-  User.Username := _('Unnamed');
+  User.Username := NewUsername;
   User.Host := NewHost;
+  User.Password := NewPassword;
   FUsers.Add(User);
   FAdded := True;
   InvalidateVT(listUsers, VTREE_NOTLOADED, True);
@@ -1154,8 +1165,13 @@ begin
     PasswordSet := False;
     if FAdded and (FConnection.ServerVersionInt >= 50002) then begin
       Create := 'CREATE USER '+UserHost;
-      if editPassword.Modified then
-        Create := Create + ' IDENTIFIED BY '+esc(editPassword.Text);
+      if editPassword.Modified then begin
+        // Add "PASSWORD" clause when it's a hash already
+        if (Copy(editPassword.Text, 1, 1) = '*') and (Length(editPassword.Text) = 41) then
+          Create := Create + ' IDENTIFIED BY PASSWORD '+esc(editPassword.Text)
+        else
+          Create := Create + ' IDENTIFIED BY '+esc(editPassword.Text);
+      end;
       FConnection.Query(Create);
       PasswordSet := True;
     end;
