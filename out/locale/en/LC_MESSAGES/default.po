@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-03-29 07:54+0100\n"
+"PO-Revision-Date: 2014-03-30 07:49+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -392,26 +392,6 @@ msgstr "Download plink.exe"
 #: connections.dfm:487
 msgid "plink.exe timeout:"
 msgstr "plink.exe timeout:"
-
-#. SSH tunnel
-msgid "Could not run \"%s\""
-msgstr "Could not run \"%s\""
-
-#. SSH tunnel
-msgid "File not found: %s"
-msgstr "File not found: %s"
-
-#. SSH tunnel
-msgid "Process %s already started."
-msgstr "Process %s already started."
-
-#. SSH tunnel
-msgid "Accept and cache host key?"
-msgstr "Accept and cache host key?"
-
-#. SSH tunnel
-msgid "Accept changed host key?"
-msgstr "Accept changed host key?"
 
 #. connform..PageControlDetails..tabSSHtunnel..editSSHUser..TextHint
 #: connections.dfm:508
