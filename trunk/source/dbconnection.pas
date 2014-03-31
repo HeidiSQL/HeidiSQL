@@ -802,9 +802,9 @@ begin
     end;
 
     if ErrorText <> '' then begin
-      rx.Expression := '([^\.]+\?)\s*\(y\/n\s*(,[^\)]+)?\)\s*$';
+      rx.Expression := '([^\.]+\?)(\s*\(y\/n\s*(,[^\)]+)?\)\s*)$';
       if rx.Exec(ErrorText) then begin
-        case MessageDialog(Trim(rx.Match[1]), ErrorText, mtConfirmation, [mbYes, mbNo, mbCancel]) of
+        case MessageDialog(Trim(rx.Match[1]), Copy(ErrorText, 1, Length(ErrorText)-rx.MatchLen[2]), mtConfirmation, [mbYes, mbNo, mbCancel]) of
           mrYes:
             SendText('y');
           mrNo:
