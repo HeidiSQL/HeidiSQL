@@ -990,7 +990,9 @@ begin
     0: Result := False;
     3: Result := Col.DataType.HasLength;
     4: begin
-      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.IsMySQL);
+      Result := (Col.DataType.Category in [dtcInteger, dtcReal])
+        and (Col.DataType.Index <> dtBit)
+        and (DBObject.Connection.Parameters.IsMySQL);
       if (not Result) and Col.Unsigned then begin
         Col.Unsigned := False;
         Col.Status := esModified;
@@ -1011,7 +1013,9 @@ begin
       end;
     end;
     6: begin
-      Result := (Col.DataType.Category in [dtcInteger, dtcReal]) and (DBObject.Connection.Parameters.IsMySQL);
+      Result := (Col.DataType.Category in [dtcInteger, dtcReal])
+        and (Col.DataType.Index <> dtBit)
+        and (DBObject.Connection.Parameters.IsMySQL);
       if (not Result) and Col.ZeroFill then begin
         Col.ZeroFill := False;
         Col.Status := esModified;
