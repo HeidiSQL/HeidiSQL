@@ -3446,22 +3446,6 @@ begin
   Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
   try
     Connection.Active := True;
-  except
-    on E:EDatabaseError do
-      ErrorDialog(E.Message);
-  end;
-
-  // attempt to establish connection
-  if not Connection.Active then begin
-    // attempt failed
-    if AppSettings.SessionPathExists(Params.SessionPath) then begin
-      // Save "refused" counter
-      AppSettings.SessionPath := Params.SessionPath;
-      AppSettings.WriteInt(asRefusedCount, AppSettings.ReadInt(asRefusedCount)+1);
-    end;
-    Result := False;
-    FreeAndNil(Connection);
-  end else begin
     // We have a connection
     Result := True;
     FConnections.Add(Connection);
@@ -3524,7 +3508,21 @@ begin
     // Tree node filtering needs a hit once when connected
     editDatabaseTableFilterChange(Self);
 
+  except
+    on E:EDatabaseError do begin
+      ErrorDialog(E.Message);
+      // attempt failed
+      if AppSettings.SessionPathExists(Params.SessionPath) then begin
+        // Save "refused" counter
+        AppSettings.SessionPath := Params.SessionPath;
+        AppSettings.WriteInt(asRefusedCount, AppSettings.ReadInt(asRefusedCount)+1);
+      end;
+      Result := False;
+      FreeAndNil(Connection);
+      showmessage('Connection.Active = false');
+    end;
   end;
+
   StoreLastSessions;
   ShowStatusMsg;
 end;
