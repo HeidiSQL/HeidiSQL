@@ -3519,7 +3519,6 @@ begin
       end;
       Result := False;
       FreeAndNil(Connection);
-      showmessage('Connection.Active = false');
     end;
   end;
 
