@@ -2898,10 +2898,7 @@ begin
   Result := inherited;
   if not Assigned(Result) then begin
     try
-      FAllDatabases := GetCol('SELECT '+QuoteIdent('catalog_name')+ // Use "schema" when using schemata
-        ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('schemata')+
-        ' GROUP BY '+QuoteIdent('catalog_name')
-        );
+      FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
     except on E:EDatabaseError do
       FAllDatabases := TStringList.Create;
     end;
