@@ -195,8 +195,9 @@ type
   { TConnectionParameters and friends }
 
   TNetType = (ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel,
-    ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC);
-  TNetTypeGroup = (ngMySQL, ngMSSQL);
+    ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
+    ntPgSQL_TCPIP);
+  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);
 
   TConnectionParameters = class(TObject)
     strict private
@@ -324,7 +325,7 @@ type
       procedure DoAfterConnect; virtual;
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal; virtual; abstract;
-      function GetCharacterSet: String; virtual; abstract;
+      function GetCharacterSet: String; virtual;
       procedure SetCharacterSet(CharsetName: String); virtual; abstract;
       function GetLastErrorCode: Cardinal; virtual; abstract;
       function GetLastError: String; virtual; abstract;
@@ -368,7 +369,7 @@ type
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
-      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; virtual; abstract;
+      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; virtual;
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
@@ -469,7 +470,6 @@ type
       procedure SetActive(Value: Boolean); override;
       procedure DoAfterConnect; override;
       function GetThreadId: Cardinal; override;
-      function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
       function GetLastError: String; override;
@@ -484,9 +484,39 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
-      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; override;
       function MaxAllowedPacket: Int64; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
+  end;
+
+  TPQConnectStatus = (CONNECTION_OK, CONNECTION_BAD, CONNECTION_STARTED, CONNECTION_MADE, CONNECTION_AWAITING_RESPONSE, CONNECTION_AUTH_OK, CONNECTION_SETENV, CONNECTION_SSL_STARTUP, CONNECTION_NEEDED);
+  TPQPing = (PQPING_OK, PQPING_REJECT, PQPING_NO_RESPONSE, PQPING_NO_ATTEMPT);
+  PPGconn = Pointer;
+  PPGresult = Pointer;
+  POid = Integer;
+  TPGRawResults = Array of PPGresult;
+  TPQerrorfields = (PG_DIAG_SEVERITY, PG_DIAG_SQLSTATE, PG_DIAG_MESSAGE_PRIMARY, PG_DIAG_MESSAGE_DETAIL, PG_DIAG_MESSAGE_HINT, PG_DIAG_STATEMENT_POSITION, PG_DIAG_INTERNAL_POSITION, PG_DIAG_INTERNAL_QUERY, PG_DIAG_CONTEXT, PG_DIAG_SOURCE_FILE, PG_DIAG_SOURCE_LINE, PG_DIAG_SOURCE_FUNCTION);
+  TPgConnection = class(TDBConnection)
+    private
+      FHandle: PPGconn;
+      FLastRawResults: TPGRawResults;
+      FLastErrorHint: String;
+      procedure SetActive(Value: Boolean); override;
+      procedure DoBeforeConnect; override;
+      function GetThreadId: Cardinal; override;
+      procedure SetCharacterSet(CharsetName: String); override;
+      procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
+      function GetLastErrorCode: Cardinal; override;
+      function GetLastError: String; override;
+      function GetAllDatabases: TStringList; override;
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      function Ping(Reconnect: Boolean): Boolean; override;
+      function GetLastResults: TDBQueryList; override;
+      function MaxAllowedPacket: Int64; override;
+      property LastRawResults: TPGRawResults read FLastRawResults;
   end;
 
 
@@ -612,6 +642,25 @@ type
       function TableName: String; override;
   end;
 
+  TPGQuery = class(TDBQuery)
+    private
+      FCurrentResults: PPGresult;
+      FRecNoLocal: Integer;
+      FResultList: TPGRawResults;
+      procedure SetRecNo(Value: Int64); override;
+    public
+      destructor Destroy; override;
+      procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
+      function ColIsKeyPart(Column: Integer): Boolean; override;
+      function IsNull(Column: Integer): Boolean; overload; override;
+      function HasResult: Boolean; override;
+      function DatabaseName: String; override;
+      function TableName: String; override;
+  end;
+
 function mysql_authentication_dialog_ask(
     Handle: PMYSQL;
     _type: Integer;
@@ -657,6 +706,28 @@ var
   mysql_thread_init: function: Byte; stdcall;
   mysql_thread_end: procedure; stdcall;
   mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
+
+  LibPqPath: String = 'libpq.dll';
+  LibPqHandle: HMODULE;
+  PQconnectdb: function(const ConnInfo: PAnsiChar): PPGconn cdecl;
+  PQerrorMessage: function(const Handle: PPGconn): PAnsiChar cdecl;
+  PQresultErrorMessage: function(const Result: PPGresult): PAnsiChar cdecl;
+  PQresultErrorField: function(const Result: PPGresult; fieldcode: Integer): PAnsiChar;
+  PQfinish: procedure(const Handle: PPGconn);
+  PQstatus: function(const Handle: PPGconn): TPQConnectStatus cdecl;
+  PQping: function(const Handle: PPGconn): TPQPing cdecl;
+  PQsendQuery: function(const Handle: PPGconn; command: PAnsiChar): Integer cdecl;
+  PQgetResult: function(const Handle: PPGconn): PPGresult cdecl;
+  PQbackendPID: function(const Handle: PPGconn): Integer cdecl;
+  PQcmdTuples: function(Result: PPGresult): PAnsiChar; cdecl;
+  PQntuples: function(Result: PPGresult): Integer; cdecl;
+  PQclear: procedure(Result: PPGresult); cdecl;
+  PQnfields: function(Result: PPGresult): Integer; cdecl;
+  PQfname: function(const Result: PPGresult; column_number: Integer): PAnsiChar; cdecl;
+  PQftype: function(const Result: PPGresult; column_number: Integer): POid; cdecl;
+  PQgetvalue: function(const Result: PPGresult; row_number: Integer; column_number: Integer): PAnsiChar; cdecl;
+  PQgetlength: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
+  PQgetisnull: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
 
 implementation
 
@@ -1087,6 +1158,8 @@ begin
       Result := TMySQLConnection.Create(AOwner);
     ngMSSQL:
       Result := TAdoDBConnection.Create(AOwner);
+    ngPgSQL:
+      Result := TPgConnection.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1101,6 +1174,8 @@ begin
       Result := TMySQLQuery.Create(AOwner);
     ngMSSQL:
       Result := TAdoDBQuery.Create(AOwner);
+    ngPgSQL:
+      Result := TPGQuery.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1140,11 +1215,15 @@ begin
       Result := 'Microsoft SQL Server (Banyan VINES, '+_('experimental')+')';
     ntMSSQL_RPC:
       Result := 'Microsoft SQL Server (Windows RPC, '+_('experimental')+')';
+    ntPgSQL_TCPIP:
+      Result := 'PostgreSQL ('+_('experimental')+')';
   end else case NetType of
     ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
       Result := My;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP:
       Result := 'MS SQL';
+    ntPgSQL_TCPIP:
+      Result := 'PostgreSQL';
   end;
 end;
 
@@ -1156,6 +1235,8 @@ begin
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
+    ntPgSQL_TCPIP:
+      Result := ngPgSQL;
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1291,6 +1372,19 @@ begin
 end;
 
 
+constructor TPgConnection.Create(AOwner: TComponent);
+var
+  i: Integer;
+begin
+  inherited;
+  FQuoteChar := '"';
+  FQuoteChars := '"';
+  SetLength(FDatatypes, Length(PostGreSQLDatatypes));
+  for i:=0 to High(PostGreSQLDatatypes) do
+    FDatatypes[i] := PostGreSQLDatatypes[i];
+end;
+
+
 destructor TDBConnection.Destroy;
 begin
   if Active then Active := False;
@@ -1309,16 +1403,37 @@ begin
 end;
 
 
+destructor TPgConnection.Destroy;
+begin
+  if Active then Active := False;
+  //FreeAndNil(FHandle);
+  inherited;
+end;
+
+
 function TDBConnection.GetDatatypeByName(Datatype: String): TDBDatatype;
 var
   i: Integer;
+  Match: Boolean;
+  rx: TRegExpr;
 begin
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  Match := False;
   for i:=0 to High(FDatatypes) do begin
-    if AnsiCompareText(FDatatypes[i].Name, Datatype) = 0 then begin
+    Match := AnsiCompareText(FDatatypes[i].Name, Datatype) = 0;
+    if (not Match) and (FDatatypes[i].Names <> '') then begin
+      rx.Expression := '\b('+FDatatypes[i].Names+')\b';
+      Match := rx.Exec(Datatype);
+    end;
+    if Match then begin
       Result := FDatatypes[i];
       break;
     end;
   end;
+  rx.Free;
+  if (not Match) and (FParameters.NetTypeGroup = ngPgSQL) then
+    Result := FDatatypes[11];
 end;
 
 
@@ -1337,6 +1452,18 @@ begin
       ClientVersion := ' ('+DecodeApiString(mysql_get_client_info)+')';
     LibMysqlHandle := 0;
     raise EDatabaseError.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.', [LibMysqlPath+ClientVersion, APPNAME, APPNAME]));
+  end;
+end;
+
+
+procedure TPgConnection.AssignProc(var Proc: FARPROC; Name: PAnsiChar);
+begin
+  // Map library procedure to internal procedure
+  Log(lcDebug, f_('Assign procedure "%s"', [Name]));
+  Proc := GetProcAddress(LibPqHandle, Name);
+  if Proc = nil then begin
+    LibPqHandle := 0;
+    raise EDatabaseError.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.', [LibPqPath, APPNAME, APPNAME]));
   end;
 end;
 
@@ -1644,6 +1771,58 @@ begin
 end;
 
 
+procedure TPgConnection.SetActive(Value: Boolean);
+var
+  ConnInfo, Error, tmpdb: String;
+begin
+  if Value then begin
+    DoBeforeConnect;
+    ConnInfo := 'host='''+FParameters.Hostname+''' '+
+      'port='''+IntToStr(FParameters.Port)+''' '+
+      'user='''+FParameters.Username+''' ' +
+      'password='''+FParameters.Password+''' '+
+      'application_name='''+APPNAME+'''';
+    FHandle := PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
+    if PQstatus(FHandle) = CONNECTION_BAD then begin
+      Error := LastError;
+      Log(lcError, Error);
+      FConnectionStarted := 0;
+      FHandle := nil;
+      raise EDatabaseError.Create(Error);
+    end;
+    FActive := True;
+    FServerVersionUntouched := GetVar('SELECT VERSION()');
+    FConnectionStarted := GetTickCount div 1000;
+    Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
+    FIsUnicode := True;
+    try
+      FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
+    except
+      FServerUptime := -1;
+    end;
+
+    DoAfterConnect;
+
+    if FDatabase <> '' then begin
+      tmpdb := FDatabase;
+      FDatabase := '';
+      try
+        Database := tmpdb;
+      except
+        FDatabase := tmpdb;
+        Database := '';
+      end;
+    end;
+  end else begin
+    PQfinish(FHandle);
+    FActive := False;
+    ClearCache(False);
+    FConnectionStarted := 0;
+    Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
+  end;
+end;
+
+
 procedure TDBConnection.DoBeforeConnect;
 var
   UsingPass: String;
@@ -1690,6 +1869,16 @@ begin
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_CATALOG';
     end;
+    ngPgSQL: begin
+      FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
+      // FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
+      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER';
+      FSQLSpecifities[spAddColumn] := 'ADD %s';
+      FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
+      FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
+      FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
+      FSQLSpecifities[spISTableSchemaCol] := 'table_schema';
+    end;
 
   end;
 
@@ -1735,6 +1924,43 @@ begin
       AssignProc(@mysql_thread_end, 'mysql_thread_end');
       AssignProc(@mysql_warning_count, 'mysql_warning_count');
       Log(lcDebug, LibMysqlPath + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
+    end;
+  end;
+  inherited;
+end;
+
+
+procedure TPgConnection.DoBeforeConnect;
+begin
+  // Init lib before actually connecting.
+  // Each connection has its own library handle
+  if LibPqHandle = 0 then begin
+    Log(lcDebug, f_('Loading library file %s ...', [LibPqPath]));
+    LibPqHandle := LoadLibrary(PWideChar(LibPqPath));
+    if LibPqHandle = 0 then
+      raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.'), [LibPqPath, ExtractFileName(ParamStr(0))])
+    else begin
+      AssignProc(@PQconnectdb, 'PQconnectdb');
+      AssignProc(@PQerrorMessage, 'PQerrorMessage');
+      AssignProc(@PQresultErrorMessage, 'PQresultErrorMessage');
+      AssignProc(@PQresultErrorField, 'PQresultErrorField');
+      AssignProc(@PQfinish, 'PQfinish');
+      AssignProc(@PQstatus, 'PQstatus');
+      AssignProc(@PQping, 'PQping');
+      AssignProc(@PQsendQuery, 'PQsendQuery');
+      AssignProc(@PQgetResult, 'PQgetResult');
+      AssignProc(@PQbackendPID, 'PQbackendPID');
+      AssignProc(@PQcmdTuples, 'PQcmdTuples');
+      AssignProc(@PQntuples, 'PQntuples');
+      AssignProc(@PQclear, 'PQclear');
+      AssignProc(@PQnfields, 'PQnfields');
+      AssignProc(@PQfname, 'PQfname');
+      AssignProc(@PQftype, 'PQftype');
+      AssignProc(@PQgetvalue, 'PQgetvalue');
+      AssignProc(@PQgetlength, 'PQgetlength');
+      AssignProc(@PQgetisnull, 'PQgetisnull');
+
+      Log(lcDebug, LibPqPath + ' v??' + ' loaded.');
     end;
   end;
   inherited;
@@ -1844,6 +2070,23 @@ begin
       if Reconnect then
         Active := True;
     end;
+  end;
+  Result := FActive;
+  // Restart keep-alive timer
+  FKeepAliveTimer.Enabled := False;
+  FKeepAliveTimer.Enabled := True;
+end;
+
+
+function TPGConnection.Ping(Reconnect: Boolean): Boolean;
+begin
+  Log(lcDebug, 'Ping server ...');
+  if (FHandle=nil) or (PQping(FHandle) <> PQPING_OK) then begin
+    // Be sure to release some stuff before reconnecting
+  //log(lcinfo, 'TPGConnection.Ping reconnect: handle:'+inttostr(integer(FHandle=nil))+' '+inttostr(integer(PQping(FHandle))));
+    //Active := False;
+    //if Reconnect then
+    //  Active := True;
   end;
   Result := FActive;
   // Restart keep-alive timer
@@ -2028,6 +2271,93 @@ begin
 end;
 
 
+procedure TPGConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+var
+  TimerStart: Cardinal;
+  QueryResult: PPGresult;
+  QueryStatus: Integer;
+  NativeSQL: AnsiString;
+begin
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+    Log(lcDebug, _('Waiting for running query to finish ...'));
+    try
+      FLockedByThread.WaitFor;
+    except
+      on E:EThread do;
+    end;
+  end;
+
+  Ping(True);
+  Log(LogCategory, SQL);
+  FLastQuerySQL := SQL;
+  if IsUnicode then
+    NativeSQL := UTF8Encode(SQL)
+  else
+    NativeSQL := AnsiString(SQL);
+  TimerStart := GetTickCount;
+  SetLength(FLastRawResults, 0);
+  FResultCount := 0;
+  FRowsFound := 0;
+  FRowsAffected := 0;
+  FWarningCount := 0;
+
+  QueryStatus := PQsendQuery(FHandle, PAnsiChar(NativeSQL));
+
+  FLastQueryDuration := GetTickCount - TimerStart;
+  FLastQueryNetworkDuration := 0;
+  if QueryStatus <> 1 then begin
+    Log(lcError, GetLastError);
+    raise EDatabaseError.Create(GetLastError);
+  end else begin
+    FRowsAffected := 0;
+    FRowsFound := 0;
+    TimerStart := GetTickCount;
+    QueryResult := PQgetResult(FHandle);
+    FLastQueryNetworkDuration := GetTickCount - TimerStart;
+
+    if UpperCase(Copy(SQL, 1, 10)) = 'SET SCHEMA' then begin
+      // First query did not return a result and fired USE...
+      FDatabase := Trim(Copy(SQL, 11, Length(SQL)));
+      FDatabase := Copy(FDatabase, 2, Length(FDatabase)-2);
+      Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
+      if Assigned(FOnDatabaseChanged) then
+        FOnDatabaseChanged(Self, Database);
+    end;
+
+    while QueryResult <> nil do begin
+      if PQnfields(QueryResult) > 0 then begin
+        // Statement returned a result set
+        Inc(FRowsFound, PQntuples(QueryResult));
+        if DoStoreResult then begin
+          SetLength(FLastRawResults, Length(FLastRawResults)+1);
+          FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
+        end else begin
+          PQclear(QueryResult);
+        end;
+      end else begin
+        Inc(FRowsAffected, StrToIntDef(String(PQcmdTuples(QueryResult)), 0));
+      end;
+      if LastError <> '' then begin
+        SetLength(FLastRawResults, 0);
+        Log(lcError, GetLastError);
+        // Clear remaining results, to avoid "another command is already running"
+        while QueryResult <> nil do begin
+          PQclear(QueryResult);
+          QueryResult := PQgetResult(FHandle);
+        end;
+        raise EDatabaseError.Create(GetLastError);
+      end;
+      // more results?
+      Inc(FStatementNum);
+      QueryResult := PQgetResult(FHandle);
+    end;
+    FResultCount := Length(FLastRawResults);
+
+  end;
+
+end;
+
+
 function TMySQLConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
@@ -2045,6 +2375,22 @@ end;
 
 
 function TAdoDBConnection.GetLastResults: TDBQueryList;
+var
+  r: TDBQuery;
+  i: Integer;
+begin
+  Result := TDBQueryList.Create(False);
+  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
+    r := Parameters.CreateQuery(nil);
+    r.Connection := Self;
+    r.SQL := FLastQuerySQL;
+    r.Execute(False, i);
+    Result.Add(r);
+  end;
+end;
+
+
+function TPGConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
   i: Integer;
@@ -2137,7 +2483,7 @@ begin
 end;
 
 
-function TAdoDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
+function TDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
   Cols, Keys: TDBQuery;
   ConstraintName, MaxLen: String;
@@ -2223,6 +2569,8 @@ begin
         ' AND TABLE_CATALOG='+EscapeString(Database)+
         SchemaClauseIS('TABLE')
         );
+      if FParameters.NetTypeGroup = ngPgSQL then
+        Result := 'CREATE VIEW ' + QuoteIdent(Name) + ' AS ' + Result;
     end;
 
     lntFunction: begin
@@ -2261,8 +2609,14 @@ begin
       FDatabase := Value;
       if Assigned(FOnDatabaseChanged) then
         FOnDatabaseChanged(Self, Value);
-    end else
-      Query('USE '+QuoteIdent(Value), False);
+    end else begin
+      case FParameters.NetTypeGroup of
+        ngPgSQL:
+          Query('SET SCHEMA '+EscapeString(Value), False);
+        else
+          Query('USE '+QuoteIdent(Value), False);
+      end;
+    end;
     SetObjectNamesInSelectedDB;
   end;
 end;
@@ -2293,18 +2647,30 @@ begin
 end;
 
 
-{**
-  Return currently used character set
-}
-function TMySQLConnection.GetCharacterSet: String;
+function TPGConnection.GetThreadId: Cardinal;
 begin
-  Result := DecodeAPIString(mysql_character_set_name(FHandle));
+  if FThreadId = 0 then begin
+    Ping(False);
+    if FActive then
+      FThreadID := PQbackendPID(FHandle);
+  end;
+  Result := FThreadID;
 end;
 
 
-function TAdoDBConnection.GetCharacterSet: String;
+{**
+  Return currently used character set
+}
+function TDBConnection.GetCharacterSet: String;
 begin
   Result := '';
+end;
+
+
+function TMySQLConnection.GetCharacterSet: String;
+begin
+  Result := inherited;
+  Result := DecodeAPIString(mysql_character_set_name(FHandle));
 end;
 
 
@@ -2323,6 +2689,12 @@ begin
 end;
 
 
+procedure TPGConnection.SetCharacterSet(CharsetName: String);
+begin
+  // Not in use. No charset stuff going on here?
+end;
+
+
 function TMySQLConnection.GetLastErrorCode: Cardinal;
 begin
   Result := mysql_errno(FHandle);
@@ -2336,6 +2708,12 @@ begin
     Result := FAdoHandle.Errors[FAdoHandle.Errors.Count-1].NativeError
   else
     Result := 0;
+end;
+
+
+function TPgConnection.GetLastErrorCode: Cardinal;
+begin
+  Result := Cardinal(PQstatus(FHandle));
 end;
 
 
@@ -2387,6 +2765,13 @@ begin
 end;
 
 
+function TPgConnection.GetLastError: String;
+begin
+  Result := DecodeAPIString(PQerrorMessage(FHandle));
+  Result := Trim(Result);
+end;
+
+
 {**
   Get version string as normalized integer
   "5.1.12-beta-community-123" => 50112
@@ -2399,7 +2784,7 @@ begin
   Result := 0;
   rx := TRegExpr.Create;
   case FParameters.NetTypeGroup of
-    ngMySQL: begin
+    ngMySQL, ngPgSQL: begin
       rx.Expression := '(\d+)\.(\d+)\.(\d+)';
       if rx.Exec(FServerVersionUntouched) then begin
         Result := StrToIntDef(rx.Match[1], 0) *10000 +
@@ -2432,7 +2817,7 @@ var
   major, minor, build: Integer;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL: begin
+    ngMySQL, ngPgSQL: begin
       v := IntToStr(ServerVersionInt);
       major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
       minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
@@ -2508,6 +2893,23 @@ begin
 end;
 
 
+function TPGConnection.GetAllDatabases: TStringList;
+begin
+  Result := inherited;
+  if not Assigned(Result) then begin
+    try
+      FAllDatabases := GetCol('SELECT '+QuoteIdent('catalog_name')+ // Use "schema" when using schemata
+        ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('schemata')+
+        ' GROUP BY '+QuoteIdent('catalog_name')
+        );
+    except on E:EDatabaseError do
+      FAllDatabases := TStringList.Create;
+    end;
+    Result := FAllDatabases;
+  end;
+end;
+
+
 function TDBConnection.RefreshAllDatabases: TStringList;
 begin
   FreeAndNil(FAllDatabases);
@@ -2565,7 +2967,7 @@ var
   c1, c2, c3, c4, EscChar: Char;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL: begin
+    ngMySQL, ngPgSQL: begin
       c1 := '''';
       c2 := '\';
       c3 := '%';
@@ -3001,6 +3403,13 @@ end;
 function TAdoDBConnection.MaxAllowedPacket: Int64;
 begin
   // No clue what MS SQL allows
+  Result := SIZE_MB;
+end;
+
+
+function TPGConnection.MaxAllowedPacket: Int64;
+begin
+  // No clue what PostgreSQL allows
   Result := SIZE_MB;
 end;
 
@@ -3488,6 +3897,55 @@ begin
 end;
 
 
+procedure TPGConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+var
+  obj: TDBObject;
+  Results: TDBQuery;
+  tp: String;
+begin
+  // Tables, views and procedures
+  Results := nil;
+  try
+    Results := GetResults('SELECT *,'+
+      ' pg_table_size(CONCAT(t.TABLE_SCHEMA, ''.'', t.TABLE_NAME)) AS data_length,'+
+      ' pg_relation_size(CONCAT(t.TABLE_SCHEMA, ''.'', t.TABLE_NAME)) AS index_length,'+
+      ' c.reltuples, obj_description(c.oid) AS comment'+
+      ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
+      ' LEFT JOIN '+QuoteIdent('pg_class')+' c ON c.relname=t.table_name'+
+      ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON (n.oid = c.relnamespace)'+
+      ' WHERE t.'+QuoteIdent('table_catalog')+'='+EscapeString(db)  // Use table_schema when using schemata
+      );
+  except
+    on E:EDatabaseError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('table_name');
+      obj.Created := 0;
+      obj.Updated := 0;
+      obj.Database := db;
+      obj.Schema := Results.Col('table_schema'); // Remove when using schemata
+      obj.Comment := Results.Col('comment');
+      obj.Rows := StrToIntDef(Results.Col('reltuples'), obj.Rows);
+      obj.DataLen := StrToIntDef(Results.Col('data_length'), obj.DataLen);
+      obj.IndexLen := StrToIntDef(Results.Col('index_length'), obj.IndexLen);
+      obj.Size := obj.DataLen + obj.IndexLen;
+      Inc(Cache.FDataSize, Obj.Size);
+      Cache.FLargestObjectSize := Max(Cache.FLargestObjectSize, Obj.Size);
+      tp := Results.Col('table_type', True);
+      if tp = 'VIEW' then
+        obj.NodeType := lntView
+      else
+        obj.NodeType := lntTable;
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  end;
+end;
+
+
 procedure TDBConnection.SetObjectNamesInSelectedDB;
 var
   i: Integer;
@@ -3887,14 +4345,13 @@ begin
     Columns.Clear;
     rx := TRegExpr.Create;
     rx.Expression := '(\((.+)\))(\s+unsigned)?(\s+zerofill)?';
-    SchemaClause := '';
+    SchemaClause := 'AND '+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database);
     if DBObj.Schema <> '' then
       SchemaClause := 'AND TABLE_SCHEMA='+EscapeString(DBObj.Schema);
     Results := GetResults('SELECT * '+
       'FROM INFORMATION_SCHEMA.COLUMNS '+
       'WHERE '+
       '  TABLE_NAME='+EscapeString(DBObj.Name)+' '+
-      '  AND '+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database)+' '+
       SchemaClause
       );
     while not Results.Eof do begin
@@ -4070,6 +4527,11 @@ begin
         Result := Result + IntToStr(Offset) + ', ';
       Result := Result + IntToStr(Limit);
     end;
+    ngPgSQL: begin
+      Result := Result + QueryBody + ' LIMIT ' + IntToStr(Limit);
+      if Offset > 0 then
+        Result := Result + ' OFFSET ' + IntToStr(Offset);
+    end;
   end;
 end;
 
@@ -4137,6 +4599,17 @@ begin
     FResultList[i].Close;
     FResultList[i].Free;
   end;
+  SetLength(FResultList, 0);
+  inherited;
+end;
+
+
+destructor TPGQuery.Destroy;
+var
+  i: Integer;
+begin
+  if HasResult then for i:=Low(FResultList) to High(FResultList) do
+    PQclear(FResultList[i]);
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -4346,6 +4819,84 @@ begin
 end;
 
 
+procedure TPGQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
+var
+  i, j, NumFields: Integer;
+  NumResults: Integer;
+  FieldTypeOID: POid;
+  LastResult: PPGresult;
+  TypeFound: Boolean;
+  rx: TRegExpr;
+begin
+  if UseRawResult = -1 then begin
+    Connection.Query(FSQL, FStoreResult);
+    UseRawResult := 0;
+  end;
+  if Connection.ResultCount > UseRawResult then
+    LastResult := TPGConnection(Connection).LastRawResults[UseRawResult]
+  else
+    LastResult := nil;
+  if AddResult and (Length(FResultList) = 0) then
+    AddResult := False;
+  if AddResult then
+    NumResults := Length(FResultList)+1
+  else begin
+    for i:=Low(FResultList) to High(FResultList) do
+      PQclear(FResultList[i]);
+    NumResults := 1;
+    FRecordCount := 0;
+    FAutoIncrementColumn := -1;
+    FEditingPrepared := False;
+  end;
+  if LastResult <> nil then begin
+    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    SetLength(FResultList, NumResults);
+    FResultList[NumResults-1] := LastResult;
+    FRecordCount := FRecordCount + PQntuples(LastResult);
+  end;
+  if not AddResult then begin
+    if HasResult then begin
+      // FCurrentResults is normally done in SetRecNo, but never if result has no rows
+      FCurrentResults := LastResult;
+      NumFields := PQnfields(LastResult);
+      SetLength(FColumnTypes, NumFields);
+      SetLength(FColumnLengths, NumFields);
+      SetLength(FColumnFlags, NumFields);
+      FColumnNames.Clear;
+      FColumnOrgNames.Clear;
+      rx := TRegExpr.Create;
+      for i:=0 to NumFields-1 do begin
+        FColumnNames.Add(Connection.DecodeAPIString(PQfname(LastResult, i)));
+        FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
+        FieldTypeOID :=  PQftype(LastResult, i);
+        TypeFound := False;
+        for j:=0 to High(FConnection.Datatypes) do begin
+          if FConnection.Datatypes[j].NativeTypes = '' then
+            Continue;
+          rx.Expression := '\b('+FConnection.Datatypes[j].NativeTypes+')\b';
+          if rx.Exec(IntToStr(FieldTypeOID)) then begin
+            FColumnTypes[i] := FConnection.Datatypes[j];
+            TypeFound := True;
+            break;
+          end;
+        end;
+        if not TypeFound then begin
+          // Fall back to text type
+          FColumnTypes[i] := FConnection.Datatypes[11];
+        end;
+      end;
+      rx.Free;
+      FRecNo := -1;
+      First;
+    end else begin
+      SetLength(FColumnTypes, 0);
+      SetLength(FColumnLengths, 0);
+      SetLength(FColumnFlags, 0);
+    end;
+  end;
+end;
+
+
 procedure TDBQuery.SetColumnOrgNames(Value: TStringList);
 begin
   // Retrieve original column names from caller
@@ -4491,6 +5042,56 @@ begin
 end;
 
 
+procedure TPGQuery.SetRecNo(Value: Int64);
+var
+  i, j: Integer;
+  RowFound: Boolean;
+  Row: TRowData;
+  NumRows: Int64;
+begin
+  if Value = FRecNo then
+    Exit;
+  if (not FEditingPrepared) and (Value >= RecordCount) then begin
+    FRecNo := RecordCount;
+    FEof := True;
+  end else begin
+
+    // Find row in edited data
+    RowFound := False;
+    if FEditingPrepared then begin
+      for Row in FUpdateData do begin
+        if Row.RecNo = Value then begin
+          FCurrentUpdateRow := Row;
+          for i:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
+          RowFound := True;
+          break;
+        end;
+      end;
+    end;
+
+    // Row not edited data - find it in normal result
+    if not RowFound then begin
+      NumRows := 0;
+      for i:=Low(FResultList) to High(FResultList) do begin
+        Inc(NumRows, PQntuples(FResultList[i]));
+        if NumRows > Value then begin
+          FCurrentResults := FResultList[i];
+          FRecNoLocal := PQntuples(FCurrentResults)-(NumRows-Value);
+          FCurrentUpdateRow := nil;
+          for j:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[j] := PQgetlength(FCurrentResults, FRecNoLocal, j);
+          break;
+        end;
+      end;
+    end;
+
+    FRecNo := Value;
+    FEof := False;
+  end;
+end;
+
+
 function TDBQuery.ColumnCount: Integer;
 begin
   Result := ColumnNames.Count;
@@ -4570,11 +5171,32 @@ begin
 end;
 
 
+function TPGQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
+var
+  AnsiStr: AnsiString;
+begin
+  if (Column > -1) and (Column < ColumnCount) then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      Result := FCurrentUpdateRow[Column].NewText;
+    end else begin
+      SetString(AnsiStr, PQgetvalue(FCurrentResults, FRecNoLocal, Column), FColumnLengths[Column]);
+      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then
+        Result := String(AnsiStr)
+      else
+        Result := Connection.DecodeAPIString(AnsiStr);
+    end;
+  end else if not IgnoreErrors then
+    Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+end;
+
+
 function TDBQuery.Col(ColumnName: String; IgnoreErrors: Boolean=False): String;
 var
   idx: Integer;
 begin
   idx := ColumnNames.IndexOf(ColumnName);
+  if idx = -1 then
+    idx := ColumnNames.IndexOf(LowerCase(ColumnName));
   if idx > -1 then
     Result := Col(idx)
   else if not IgnoreErrors then
@@ -4695,6 +5317,12 @@ begin
 end;
 
 
+function TPGQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+begin
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and UNIQUE_KEY_FLAG) = UNIQUE_KEY_FLAG;
@@ -4702,6 +5330,12 @@ end;
 
 
 function TAdoDBQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
+begin
+  Result := False;
+end;
+
+
+function TPGQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := False;
 end;
@@ -4716,6 +5350,12 @@ end;
 function TAdoDbQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := FCurrentResults.Fields[Column].IsIndexField;
+end;
+
+
+function TPGQuery.ColIsKeyPart(Column: Integer): Boolean;
+begin
+  Result := False;
 end;
 
 
@@ -4746,6 +5386,15 @@ begin
 end;
 
 
+function TPGQuery.IsNull(Column: Integer): Boolean;
+begin
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow[Column].NewIsNull
+  else
+    Result := PQgetisnull(FCurrentResults, FRecNoLocal, Column) = 1;
+end;
+
+
 function TDBQuery.IsFunction(Column: Integer): Boolean;
 begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then
@@ -4762,6 +5411,12 @@ end;
 
 
 function TAdoDBQuery.HasResult: Boolean;
+begin
+  Result := Length(FResultList) > 0;
+end;
+
+
+function TPGQuery.HasResult: Boolean;
 begin
   Result := Length(FResultList) > 0;
 end;
@@ -5173,6 +5828,13 @@ begin
 end;
 
 
+function TPGQuery.DatabaseName: String;
+begin
+  // TODO
+  Result := Connection.Database;
+end;
+
+
 function TMySQLQuery.TableName: String;
 var
   Field: PMYSQL_FIELD;
@@ -5230,6 +5892,12 @@ begin
   rx.Free;
   if Result = '' then
     raise EDatabaseError.Create('Could not determine name of table.');
+end;
+
+
+function TPGQuery.TableName: String;
+begin
+  // TODO
 end;
 
 
@@ -5561,7 +6229,10 @@ end;
 
 function TDBObject.QuotedDatabase(AlwaysQuote: Boolean=True): String;
 begin
-  Result := Connection.QuoteIdent(Database, AlwaysQuote);
+  if FConnection.Parameters.NetTypeGroup = ngPgSQL then
+    Result := Connection.QuoteIdent(Schema, AlwaysQuote)
+  else
+    Result := Connection.QuoteIdent(Database, AlwaysQuote);
 end;
 
 function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;

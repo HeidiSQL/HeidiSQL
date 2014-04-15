@@ -1085,7 +1085,7 @@ begin
       editUsername.Enabled := lblUsername.Enabled;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP, ntPgSQL_TCPIP];
       if (Params.NetType = ntMSSQL_TCPIP) and (Pos('\', editHost.Text) > 0) then
         lblPort.Enabled := False; // Named instance without port
       editPort.Enabled := lblPort.Enabled;

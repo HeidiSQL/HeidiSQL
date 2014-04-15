@@ -3742,6 +3742,8 @@ begin
         end;
       ngMSSQL:
         Query := 'EXEC ';
+      else
+        raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Obj.Connection.Parameters.NetType)]);
     end;
     Parameters := TRoutineParamList.Create;
     Obj.Connection.ParseRoutineStructure(Obj, Parameters);
@@ -3765,6 +3767,8 @@ begin
           ParamValues := '(' + ImplodeStr(', ', Params) + ')';
         ngMSSQL:
           ParamValues := ' ' + ImplodeStr(' ', Params);
+        else
+          raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Obj.Connection.Parameters.NetType)]);
       end;
       Query := Query + ParamValues;
       Tab.Memo.Text := Query;
@@ -4671,7 +4675,7 @@ begin
           then begin
             case DBObj.Connection.Parameters.NetTypeGroup of
               ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
-              ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngMySQL, ngPgSQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
             end;
           end else if DBObj.Connection.Parameters.IsMSSQL
             and (c.DataType.Index=dtTimestamp)
@@ -4716,7 +4720,7 @@ begin
     if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then begin
       case DBObj.Connection.Parameters.NetTypeGroup of
         ngMSSQL: Offset := 0; // Does not support offset in all server versions
-        ngMySQL: Offset := DataGridResult.RecordCount;
+        ngMySQL, ngPgSQL: Offset := DataGridResult.RecordCount;
       end;
     end;
     Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset, Offset);
@@ -7790,6 +7794,8 @@ begin
           SynSQLSyn1.SQLDialect := sqlMySQL;
         ngMSSQL:
           SynSQLSyn1.SQLDialect := sqlMSSQL2K;
+        ngPgSQL:
+          SynSQLSyn1.SQLDialect := sqlPostgres;
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
@@ -9217,6 +9223,19 @@ begin
             'FROM '+Conn.QuoteIdent('sys')+'.'+Conn.QuoteIdent('sysprocesses')+' AS '+Conn.QuoteIdent('p')+
             ', '+Conn.GetSQLSpecifity(spDatabaseTable)+' AS '+Conn.QuoteIdent('d')+
             ' WHERE '+Conn.QuoteIdent('p')+'.'+Conn.QuoteIdent('dbid')+'='+Conn.QuoteIdent('d')+'.'+Conn.GetSQLSpecifity(spDatabaseTableId)
+            );
+        end;
+        ngPgSQL: begin
+          Results := Conn.GetResults('SELECT '+
+            Conn.QuoteIdent('pid')+
+            ', '+Conn.QuoteIdent('usename')+
+            ', '+Conn.QuoteIdent('client_addr')+
+            ', '+Conn.QuoteIdent('datname')+
+            ', application_name '+
+            ', EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - '+Conn.QuoteIdent('query_start')+')::INTEGER'+
+            ', '+Conn.QuoteIdent('state')+
+            ', '+Conn.QuoteIdent('query')+
+            ' FROM '+Conn.QuoteIdent('pg_stat_activity')
             );
         end;
       end;
