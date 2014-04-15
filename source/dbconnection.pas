@@ -1299,6 +1299,7 @@ begin
       else if IsInfobright then Result := 173;
     end;
     ngMSSQL: Result := 123;
+    ngPgSQL: Result := 187;
     else Result := ICONINDEX_SERVER;
   end;
 end;
