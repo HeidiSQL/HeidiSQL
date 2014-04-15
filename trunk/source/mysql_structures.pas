@@ -181,8 +181,8 @@ type
     MYSQL_OPT_SSL_VERIFY_SERVER_CERT, MYSQL_PLUGIN_DIR, MYSQL_DEFAULT_AUTH);
 
   // MySQL data types
-  TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint,
-    dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtMoney, dtSmallmoney,
+  TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint, dtSerial, dtBigSerial,
+    dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
     dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
@@ -197,7 +197,9 @@ type
   TDBDatatype = record
     Index:           TDBDatatypeIndex;
     NativeType:      Cardinal; // See field types
+    NativeTypes:     String; // Same as above, but for multiple postgresql oid's
     Name:            String;
+    Names:           String;
     Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
@@ -1115,6 +1117,206 @@ var
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcOther;
+    )
+  );
+
+  PostgreSQLDatatypes: Array[0..16] of TDBDatatype =
+  (
+    (
+      Index:           dtSmallint;
+      NativeTypes:     '21';
+      Name:            'SMALLINT';
+      Names:           'smallint|int2';
+      Description:     'Small-range integer. Range: -32768 to +32767. Storage Size: 2 Bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtInt;
+      NativeTypes:     '23';
+      Name:            'INTEGER';
+      Names:           'integer|int4|int|oid';
+      Description:     'Typical choice for integer. Range: -2147483648 to +2147483647. Storage Size: 4 Bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtBigint;
+      NativeTypes:     '20';
+      Name:            'BIGINT';
+      Names:           'bigint|int8';
+      Description:     'Large-range integer. Range: -9223372036854775808 to 9223372036854775807. Storage Size: 8 Bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtSerial;
+      Name:            'SERIAL';
+      Names:           'serial|serial4';
+      Description:     'Autoincrementing integer. Range: 1 to 2147483647. Storage Size: 4 Bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtBigSerial;
+      Name:            'BIGSERIAL';
+      Names:           'bigserial|serial8';
+      Description:     'Large autoincrementing integer. Range: 1 to 9223372036854775807. Storage Size: 8 Bytes.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtNumeric;
+      NativeTypes:     '1700';
+      Name:            'NUMERIC';
+      Names:           'numeric|float8|decimal';
+      Description:     'User-specified precision, exact. Range: no limit. Storage Size: variable.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtReal;
+      NativeTypes:     '700';
+      Name:            'REAL';
+      Names:           'real|float4';
+      Description:     'Variable-precision, inexact. Range: 6 decimal digits precision. Storage Size: 4 Bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtDoublePrecision;
+      NativeTypes:     '701|1700';
+      Name:            'DOUBLE PRECISION';
+      Names:           'double precision|float8';
+      Description:     'Variable-precision, inexact. Range: 15 decimal digits precision. Storage Size: 8 Bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtMoney;
+      NativeTypes:     '790';
+      Name:            'MONEY';
+      Description:     'Currency amount. Range: -92233720368547758.08 to +92233720368547758.07. Storage Size: 8 Bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtChar;
+      NativeTypes:     '18';
+      Name:            'CHAR';
+      Description:     'Fixed-length, blank padded.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtVarchar;
+      NativeTypes:     '18|19|24|1043|1186|1042|1043|650|869|829|1560|1562';
+      Name:            'VARCHAR';
+      Names:           'interval|char|bpchar|varchar|bit|varbit|name|enum|cidr|inet|macaddr|regproc|character varying';
+      Description:     'Variable-length with limit.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtText;
+      NativeTypes:     '25|1034|22|30|143|629|651|719|791|1000|1028|1040|1041|1115|1182|1183|1185|1187|1231|1263|1270|1561|1563|2201|2207|2211|2949|2951|3643|3644|3645|3735|3770';
+      Name:            'TEXT';
+      Names:           'text|int2vector|oidvector|bool';
+      Description:     'Variable unlimited length.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtDate;
+      NativeTypes:     '1082';
+      Name:            'DATE';
+      Description:     'Calendar date (year, month, day).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtTime;
+      NativeTypes:     '1083';
+      Name:            'TIME';
+      Description:     'Time of day.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtDatetime;
+      NativeTypes:     '1082|1114|1184|702';
+      Name:            'TIMESTAMP';
+      Names:           'timestamp|datetime|timestamptz|abstime';
+      Description:     'Date and time.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtDate;
+      NativeTypes:     '1082';
+      Name:            'DATE';
+      Description:     'Calendar date (year, month, day).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtBlob;
+      NativeTypes:     '17';
+      Name:            'BYTEA';
+      Description:     'Binary data ("byte array").';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcBinary;
     )
   );
 
