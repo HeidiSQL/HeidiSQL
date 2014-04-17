@@ -1774,15 +1774,18 @@ end;
 
 procedure TPgConnection.SetActive(Value: Boolean);
 var
-  ConnInfo, Error, tmpdb: String;
+  dbname, ConnInfo, Error, tmpdb: String;
 begin
   if Value then begin
     DoBeforeConnect;
+    dbname := FParameters.AllDatabasesStr;
+    if dbname = '' then
+      dbname := 'template1';
     ConnInfo := 'host='''+FParameters.Hostname+''' '+
       'port='''+IntToStr(FParameters.Port)+''' '+
       'user='''+FParameters.Username+''' ' +
       'password='''+FParameters.Password+''' '+
-      'dbname=''template1'' '+
+      'dbname='''+dbname+''' '+
       'application_name='''+APPNAME+'''';
     FHandle := PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
     if PQstatus(FHandle) = CONNECTION_BAD then begin
@@ -2496,9 +2499,9 @@ var
   function SchemaClauseIS(Prefix: String): String;
   begin
     if Schema <> '' then
-      Result := ' AND '+Prefix+'_SCHEMA='+EscapeString(Schema)
+      Result := Prefix+'_SCHEMA='+EscapeString(Schema)
     else
-      Result := '';
+      Result := 'TABLE_CATALOG='+EscapeString(Database);
   end;
 
 begin
@@ -2508,7 +2511,6 @@ begin
 
       // Retrieve column details from IS
       Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
-        'TABLE_CATALOG='+EscapeString(Database) +
         SchemaClauseIS('TABLE') +
         ' AND TABLE_NAME='+EscapeString(Name)
         );
@@ -2534,9 +2536,8 @@ begin
         ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
         ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
         '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
-        '   AND K.TABLE_CATALOG='+EscapeString(Database)+
-        '	  AND K.TABLE_NAME='+EscapeString(Name)+
-        SchemaClauseIS('K.TABLE')+
+        '   AND K.TABLE_NAME='+EscapeString(Name)+
+        '   AND '+SchemaClauseIS('K.TABLE')+
         ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
         ' ORDER BY K.ORDINAL_POSITION');
       ConstraintName := '';
@@ -2568,8 +2569,7 @@ begin
       Result := GetVar('SELECT VIEW_DEFINITION'+
         ' FROM INFORMATION_SCHEMA.VIEWS'+
         ' WHERE TABLE_NAME='+EscapeString(Name)+
-        ' AND TABLE_CATALOG='+EscapeString(Database)+
-        SchemaClauseIS('TABLE')
+        ' AND '+SchemaClauseIS('TABLE')
         );
       if FParameters.NetTypeGroup = ngPgSQL then
         Result := 'CREATE VIEW ' + QuoteIdent(Name) + ' AS ' + Result;
@@ -2580,8 +2580,7 @@ begin
         ' FROM INFORMATION_SCHEMA.ROUTINES'+
         ' WHERE ROUTINE_NAME='+EscapeString(Name)+
         ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
-        ' AND ROUTINE_CATALOG='+EscapeString(Database)+
-        SchemaClauseIS('ROUTINE')
+        ' AND '+SchemaClauseIS('ROUTINE')
         );
     end;
 
@@ -2590,8 +2589,7 @@ begin
         ' FROM INFORMATION_SCHEMA.ROUTINES'+
         ' WHERE ROUTINE_NAME='+EscapeString(Name)+
         ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
-        ' AND ROUTINE_CATALOG='+EscapeString(Database)+
-        SchemaClauseIS('ROUTINE')
+        ' AND '+SchemaClauseIS('ROUTINE')
         );
     end;
 
@@ -2900,7 +2898,11 @@ begin
   Result := inherited;
   if not Assigned(Result) then begin
     try
-      FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
+      // Query is.schemata when using schemata, for databases use pg_database
+      //FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
+      FAllDatabases := GetCol('SELECT '+QuoteIdent('schema_name')+
+        ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('schemata')+
+        ' ORDER BY '+QuoteIdent('schema_name'));
     except on E:EDatabaseError do
       FAllDatabases := TStringList.Create;
     end;
@@ -3912,7 +3914,7 @@ begin
       ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
       ' LEFT JOIN '+QuoteIdent('pg_class')+' c ON c.relname=t.table_name'+
       ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON (n.oid = c.relnamespace)'+
-      ' WHERE t.'+QuoteIdent('table_catalog')+'='+EscapeString(db)  // Use table_schema when using schemata
+      ' WHERE t.'+QuoteIdent('table_schema')+'='+EscapeString(db)  // Use table_schema when using schemata
       );
   except
     on E:EDatabaseError do;
@@ -4344,9 +4346,10 @@ begin
     Columns.Clear;
     rx := TRegExpr.Create;
     rx.Expression := '(\((.+)\))(\s+unsigned)?(\s+zerofill)?';
-    SchemaClause := 'AND '+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database);
     if DBObj.Schema <> '' then
-      SchemaClause := 'AND TABLE_SCHEMA='+EscapeString(DBObj.Schema);
+      SchemaClause := 'AND TABLE_SCHEMA='+EscapeString(DBObj.Schema)
+    else
+      SchemaClause := 'AND '+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database);
     Results := GetResults('SELECT * '+
       'FROM INFORMATION_SCHEMA.COLUMNS '+
       'WHERE '+
