@@ -1782,6 +1782,7 @@ begin
       'port='''+IntToStr(FParameters.Port)+''' '+
       'user='''+FParameters.Username+''' ' +
       'password='''+FParameters.Password+''' '+
+      'dbname=''template1'' '+
       'application_name='''+APPNAME+'''';
     FHandle := PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
     if PQstatus(FHandle) = CONNECTION_BAD then begin
