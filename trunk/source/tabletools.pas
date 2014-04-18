@@ -755,6 +755,8 @@ begin
               SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR ';
             ngMSSQL:
               SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+memoFindText.Text+'%') + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
+            ngPgSQL:
+              SQL := SQL + 'CAST(' + DBObj.Connection.QuoteIdent(Col.Name) + ' AS text) LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
           end;
         end else begin
           case DBObj.Connection.Parameters.NetTypeGroup of
@@ -762,6 +764,8 @@ begin
               SQL := SQL + 'LOWER(CONVERT('+DBObj.Connection.QuoteIdent(Col.Name)+' USING '+DBObj.Connection.CharacterSet+')) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
             ngMSSQL:
               SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
+            ngPgSQL:
+              SQL := SQL + 'LOWER(CAST('+DBObj.Connection.QuoteIdent(Col.Name)+' AS TEXT)) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
           end;
         end;
       end;
@@ -770,7 +774,7 @@ begin
       Delete(SQL, Length(SQL)-3, 3);
       FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE ' + SQL;
       case DBObj.Connection.Parameters.NetTypeGroup of
-        ngMySQL:
+        ngMySQL, ngPgSQL:
           SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
             + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
             + SQL;
