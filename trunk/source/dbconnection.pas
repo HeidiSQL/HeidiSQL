@@ -2501,7 +2501,7 @@ var
     if Schema <> '' then
       Result := Prefix+'_SCHEMA='+EscapeString(Schema)
     else
-      Result := 'TABLE_CATALOG='+EscapeString(Database);
+      Result := Prefix+'_CATALOG='+EscapeString(Database);
   end;
 
 begin
