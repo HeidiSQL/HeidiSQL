@@ -7489,7 +7489,7 @@ begin
             CellText := CellText + ' (' + FormatNumber(Sender.ChildCount[Node]) + ')';
         end;
         lntTable..lntEvent: begin
-          if DBObj.Schema <> '' then
+          if (DBObj.Schema <> '') and (DBObj.Connection.Parameters.NetTypeGroup = ngMSSQL) then
             CellText := DBObj.Schema + '.' + DBObj.Name
           else
             CellText := DBObj.Name;
