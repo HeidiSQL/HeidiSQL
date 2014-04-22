@@ -2586,8 +2586,6 @@ end;
   Set "Database" property and select that db if connected
 }
 procedure TDBConnection.SetDatabase(Value: String);
-var
-  SQL: String;
 begin
   Log(lcDebug, 'SetDatabase('+Value+'), FDatabase: '+FDatabase);
   if Value <> FDatabase then begin
@@ -2597,9 +2595,10 @@ begin
         FOnDatabaseChanged(Self, Value);
     end else begin
       if FParameters.NetTypeGroup = ngPgSQL then
-        SQL := Format(GetSQLSpecifity(spUSEQuery), [EscapeString(Value)])
+        Value := EscapeString(Value)
       else
-        SQL := Format(GetSQLSpecifity(spUSEQuery), [QuoteIdent(Value)])
+        Value := QuoteIdent(Value);
+      Query(Format(GetSQLSpecifity(spUSEQuery), [Value]), False);
     end;
     SetObjectNamesInSelectedDB;
   end;
