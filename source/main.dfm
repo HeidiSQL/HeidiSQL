@@ -1361,6 +1361,7 @@ object MainForm: TMainForm
               TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
               TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
               OnBeforeCellPaint = treeQueryHelpersBeforeCellPaint
+              OnChecking = treeQueryHelpersChecking
               OnContextPopup = treeQueryHelpersContextPopup
               OnCreateEditor = treeQueryHelpersCreateEditor
               OnDblClick = treeQueryHelpersDblClick
