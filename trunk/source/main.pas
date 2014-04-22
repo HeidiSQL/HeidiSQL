@@ -77,6 +77,7 @@ type
       LeftOffsetInMemo: Integer;
       HistoryDays: TStringList;
       ListBindParams: TBindParam;
+      CheckParam: Boolean;      
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
@@ -958,6 +959,8 @@ type
     procedure treeQueryHelpersNewText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; NewText: string);
     procedure SynMemoQueryChange(Sender: TObject);
+    procedure treeQueryHelpersChecking(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
     procedure actPreviousResultExecute(Sender: TObject);
     procedure actNextResultExecute(Sender: TObject);
   private
@@ -1755,6 +1758,9 @@ begin
     else RaiseLastOSError;
   end;
   FTimeZoneOffset := FTimeZoneOffset * 60;
+
+  // Set noderoot for query helpers box
+  treeQueryHelpers.RootNodeCount := 7;
 
   // Initialize taskbar jump list
   if not FIsWine then begin
@@ -5646,7 +5652,8 @@ begin
   // Check current Query memo to find all parameters with regular expression ( :params )
   rx := TRegExpr.Create;
   // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
-  rx.Expression := '^:\w+|\W:\w+';
+  // Don't use ^:\w+|\W:[^\W:]\w+ because it detect IP v6
+  rx.Expression := '([^:\w]|^):\w+';
   if rx.Exec(QueryMemo.Text) then while true do begin
 
     // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
@@ -5677,30 +5684,23 @@ begin
   // Delete all parameters where variable is to False
   Tab.ListBindParams.CleanToKeep;
 
-  // Expande Bind Params node by default
+  // If the bind parameter node exists, delete and rebuild it.
   IsExpanded := True;
-
-  // Check if there is bind params to set or not Bind Param node on VT
   if Tab.ListBindParams.Count > 0 then begin
-    // Check if there is already Node for Bind Params
-    // If yes, delete the node and rebuild it
     if Tab.treeHelpers.RootNodeCount = 7 then begin
-      // Get Bind Params Node
       Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
-      // Get old expanded State
-      IsExpanded := Tab.treeHelpers.Expanded[Node];
-      // Delete last Node
-      Tab.treeHelpers.RootNodeCount := 6;
+      if Node.ChildCount = 0 then
+        IsExpanded := True
+      else
+        IsExpanded := Tab.treeHelpers.Expanded[Node];
+      Tab.treeHelpers.DeleteChildren(Node);
     end;
 
-    // Add Bind Param Node
-    Tab.treeHelpers.RootNodeCount := 7;
-    // Get Bind Params Node
     Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
-    // Set old expanded State
     Tab.treeHelpers.Expanded[Node] := IsExpanded;
   end
-  else Tab.treeHelpers.RootNodeCount := 6;
+  else
+    Tab.treeHelpers.DeleteChildren(Node);
 
 end;
 
@@ -5851,10 +5851,25 @@ end;
 
 
 procedure TMainForm.SynMemoQueryChange(Sender: TObject);
+var
+  Tab: TQueryTab;
+  Node: PVirtualNode;
 begin
-  // Reset timer
+  // Check if bind param detection is enabled for text size <1M
+  // Uncheck checkbox if it's bigger
+  Tab := ActiveQueryTab;
   TimerBindParams.Enabled := False;
-  TimerBindParams.Enabled := True;
+
+  if Tab.CheckParam then begin
+    if Tab.Memo.GetTextLen < SIZE_MB then begin
+      TimerBindParams.Enabled := True;
+    end
+    else begin
+      MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
+      Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
+      Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
+    end;
+  end;
 end;
 
 
@@ -9743,9 +9758,7 @@ begin
   QueryTab.treeHelpers.Header.Options := treeQueryHelpers.Header.Options;
   QueryTab.treeHelpers.Header.AutoSizeIndex := treeQueryHelpers.Header.AutoSizeIndex;
   QueryTab.treeHelpers.IncrementalSearch := treeQueryHelpers.IncrementalSearch;
-  // Set to 6 and not treeQueryHelpers.RootNodeCount in order don't show Bind Params node,
-  // If there is no Parameters in Query Memo
-  QueryTab.treeHelpers.RootNodeCount := 6;
+  QueryTab.treeHelpers.RootNodeCount := treeQueryHelpers.RootNodeCount;
   QueryTab.treeHelpers.TextMargin := treeQueryHelpers.TextMargin;
   FixVT(QueryTab.treeHelpers);
 
@@ -11306,6 +11319,8 @@ begin
       Include(InitialStates, ivsHasChildren);
       if Node.Index = HELPERNODE_PROFILE then
         Node.CheckType := ctCheckbox;
+      if Node.Index = HELPERNODE_BINDING then
+        Node.CheckType := ctCheckbox;
     end;
     1: begin
       AppSettings.ResetPath;
@@ -11436,6 +11451,43 @@ begin
   RefreshHelperNode(HELPERNODE_SNIPPETS);
 end;
 
+
+procedure TMainForm.treeQueryHelpersChecking(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
+var
+  Tab: TQueryTab;
+  Tree: TVirtualStringTree;
+begin
+  // Disallow checkbox clicking on "Bind parameters" when text too big
+  Tree := Sender as TVirtualStringTree;
+  Tab := GetQueryTabByHelpers(Sender);
+
+  case Sender.GetNodeLevel(Node) of
+    0: case Node.Index of
+      HELPERNODE_BINDING: begin
+        if NewState = csCheckedNormal then begin
+          if Tab.Memo.GetTextLen < SIZE_MB then begin
+            Allowed := True;
+            Tab.CheckParam := True;
+            TimerBindParams.Enabled := False;
+            TimerBindParams.Enabled := True;
+          end
+          else begin
+            Allowed := False;
+            MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
+          end;
+        end
+        else begin
+          Allowed := True;
+          Tab.CheckParam := False;
+          Tab.ListBindParams.Clear;
+          Tree.DeleteChildren(Node);
+          NewState := csUncheckedNormal;
+        end;
+      end;
+    end;
+  end;
+end;
 
 
 procedure TMainForm.treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint;

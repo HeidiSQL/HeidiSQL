@@ -4894,6 +4894,10 @@ msgstr "Set value"
 msgid "Error with snippets directory: %s"
 msgstr "Error with snippets directory: %s"
 
+#: main.pas:11463
+msgid "The query is too long to enable detection of bind parameters"
+msgstr "The query is too long to enable detection of bind parameters"
+
 #: main.pas:10790
 msgid "Close file and query tab?"
 msgstr "Close file and query tab?"
