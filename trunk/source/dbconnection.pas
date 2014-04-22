@@ -276,7 +276,8 @@ type
     spEmptyTable, spRenameTable, spCurrentUserHost,
     spAddColumn, spChangeColumn,
     spSessionVariables, spGlobalVariables,
-    spISTableSchemaCol);
+    spISTableSchemaCol,
+    spUSEQuery);
 
   TDBConnection = class(TComponent)
     private
@@ -323,6 +324,7 @@ type
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
+      procedure DetectUSEQuery(SQL: String); virtual;
       procedure SetDatabase(Value: String);
       function GetThreadId: Cardinal; virtual; abstract;
       function GetCharacterSet: String; virtual;
@@ -1863,6 +1865,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
+      FSQLSpecifities[spUSEQuery] := 'USE %s';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -1873,6 +1876,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment');
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_CATALOG';
+      FSQLSpecifities[spUSEQuery] := 'USE %s';
     end;
     ngPgSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -1883,6 +1887,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISTableSchemaCol] := 'table_schema';
+      FSQLSpecifities[spUSEQuery] := 'SET SCHEMA %s';
     end;
 
   end;
@@ -2168,16 +2173,8 @@ begin
       raise EDatabaseError.Create(GetLastError);
     end;
 
-    if (QueryResult = nil) and (UpperCase(Copy(SQL, 1, 3)) = 'USE') then begin
-      // First query did not return a result and fired USE...
-      if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
-        FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
-        FDatabase := DeQuoteIdent(FDatabase);
-        Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
-        if Assigned(FOnDatabaseChanged) then
-          FOnDatabaseChanged(Self, Database);
-      end;
-    end;
+    if QueryResult = nil then
+      DetectUSEQuery(SQL);
 
     while QueryStatus=0 do begin
       if QueryResult <> nil then begin
@@ -2259,13 +2256,7 @@ begin
     end;
     FResultCount := Length(FLastRawResults);
 
-    if UpperCase(Copy(SQL, 1, 3)) = 'USE' then begin
-      FDatabase := Trim(Copy(SQL, 4, Length(SQL)-3));
-      FDatabase := DeQuoteIdent(FDatabase);
-      Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
-      if Assigned(FOnDatabaseChanged) then
-        FOnDatabaseChanged(Self, Database);
-    end;
+    DetectUSEQuery(SQL);
   except
     on E:EOleException do begin
       FLastError := E.Message;
@@ -2320,14 +2311,7 @@ begin
     QueryResult := PQgetResult(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
 
-    if UpperCase(Copy(SQL, 1, 10)) = 'SET SCHEMA' then begin
-      // First query did not return a result and fired USE...
-      FDatabase := Trim(Copy(SQL, 11, Length(SQL)));
-      FDatabase := Copy(FDatabase, 2, Length(FDatabase)-2);
-      Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
-      if Assigned(FOnDatabaseChanged) then
-        FOnDatabaseChanged(Self, Database);
-    end;
+    DetectUSEQuery(SQL);
 
     while QueryResult <> nil do begin
       if PQnfields(QueryResult) > 0 then begin
@@ -2602,6 +2586,8 @@ end;
   Set "Database" property and select that db if connected
 }
 procedure TDBConnection.SetDatabase(Value: String);
+var
+  SQL: String;
 begin
   Log(lcDebug, 'SetDatabase('+Value+'), FDatabase: '+FDatabase);
   if Value <> FDatabase then begin
@@ -2610,15 +2596,36 @@ begin
       if Assigned(FOnDatabaseChanged) then
         FOnDatabaseChanged(Self, Value);
     end else begin
-      case FParameters.NetTypeGroup of
-        ngPgSQL:
-          Query('SET SCHEMA '+EscapeString(Value), False);
-        else
-          Query('USE '+QuoteIdent(Value), False);
-      end;
+      if FParameters.NetTypeGroup = ngPgSQL then
+        SQL := Format(GetSQLSpecifity(spUSEQuery), [EscapeString(Value)])
+      else
+        SQL := Format(GetSQLSpecifity(spUSEQuery), [QuoteIdent(Value)])
     end;
     SetObjectNamesInSelectedDB;
   end;
+end;
+
+
+procedure TDBConnection.DetectUSEQuery(SQL: String);
+var
+  rx: TRegExpr;
+  Quotes: String;
+begin
+  // Detect query for switching current working database or schema
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.Expression := '^'+GetSQLSpecifity(spUSEQuery);
+  Quotes := QuoteRegExprMetaChars(FQuoteChars+''';');
+  rx.Expression := StringReplace(rx.Expression, ' ', '\s+', [rfReplaceAll]);
+  rx.Expression := StringReplace(rx.Expression, '%s', '['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
+  if rx.Exec(SQL) then begin
+    FDatabase := Trim(rx.Match[1]);
+    FDatabase := DeQuoteIdent(FDatabase);
+    Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
+    if Assigned(FOnDatabaseChanged) then
+      FOnDatabaseChanged(Self, Database);
+  end;
+  rx.Free;
 end;
 
 
