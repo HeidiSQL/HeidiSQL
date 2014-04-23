@@ -2090,6 +2090,10 @@ begin
   // control catches focus on startup, which is ugly.
   if DBtree.CanFocus then
     DBtree.SetFocus;
+
+  // Apply resize event and call it once here in OnShow, when the form has its final dimensions
+  OnResize := FormResize;
+  OnResize(Sender);
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);

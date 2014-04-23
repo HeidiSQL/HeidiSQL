@@ -16,7 +16,6 @@ object MainForm: TMainForm
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
-  OnResize = FormResize
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
@@ -376,7 +375,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 651
         Height = 303
-        ActivePage = tabHost
+        ActivePage = tabQuery
         Align = alClient
         HotTrack = True
         Images = ImageListMain
@@ -1275,6 +1274,7 @@ object MainForm: TMainForm
             Height = 96
             Align = alTop
             BevelOuter = bvNone
+            Constraints.MinHeight = 50
             TabOrder = 0
             OnCanResize = pnlQueryMemoCanResize
             object spltQueryHelpers: TSplitter
@@ -2788,7 +2788,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101BC005001800310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101BC005001840310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000000003000001002000000000000000
       0300000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
