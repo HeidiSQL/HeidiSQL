@@ -375,7 +375,7 @@ object MainForm: TMainForm
         Top = 0
         Width = 651
         Height = 303
-        ActivePage = tabQuery
+        ActivePage = tabHost
         Align = alClient
         HotTrack = True
         Images = ImageListMain
@@ -1274,7 +1274,6 @@ object MainForm: TMainForm
             Height = 96
             Align = alTop
             BevelOuter = bvNone
-            Constraints.MinHeight = 50
             TabOrder = 0
             OnCanResize = pnlQueryMemoCanResize
             object spltQueryHelpers: TSplitter
