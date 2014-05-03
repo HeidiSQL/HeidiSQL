@@ -1208,15 +1208,15 @@ begin
     ntMySQL_SSHtunnel:
       Result := My+' (SSH tunnel)';
     ntMSSQL_NamedPipe:
-      Result := 'Microsoft SQL Server (named pipe, '+_('experimental')+')';
+      Result := 'Microsoft SQL Server (named pipe)';
     ntMSSQL_TCPIP:
-      Result := 'Microsoft SQL Server (TCP/IP, '+_('experimental')+')';
+      Result := 'Microsoft SQL Server (TCP/IP)';
     ntMSSQL_SPX:
-      Result := 'Microsoft SQL Server (SPX/IPX, '+_('experimental')+')';
+      Result := 'Microsoft SQL Server (SPX/IPX)';
     ntMSSQL_VINES:
-      Result := 'Microsoft SQL Server (Banyan VINES, '+_('experimental')+')';
+      Result := 'Microsoft SQL Server (Banyan VINES)';
     ntMSSQL_RPC:
-      Result := 'Microsoft SQL Server (Windows RPC, '+_('experimental')+')';
+      Result := 'Microsoft SQL Server (Windows RPC)';
     ntPgSQL_TCPIP:
       Result := 'PostgreSQL ('+_('experimental')+')';
   end else case NetType of
