@@ -617,6 +617,13 @@ object connform: Tconnform
         Caption = 'Startup script:'
         FocusControl = editStartupScript
       end
+      object lblQueryTimeout: TLabel
+        Left = 3
+        Top = 183
+        Width = 73
+        Height = 13
+        Caption = 'Query timeout:'
+      end
       object editSSLPrivateKey: TButtonedEdit
         Left = 120
         Top = 36
@@ -671,7 +678,7 @@ object connform: Tconnform
       end
       object chkLocalTimeZone: TCheckBox
         Left = 120
-        Top = 180
+        Top = 212
         Width = 172
         Height = 17
         Hint = 
@@ -679,7 +686,7 @@ object connform: Tconnform
           ', for MySQL 4.1.3+'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use own client time zone'
-        TabOrder = 5
+        TabOrder = 7
         OnClick = Modification
       end
       object editStartupScript: TButtonedEdit
@@ -698,7 +705,7 @@ object connform: Tconnform
       end
       object chkFullTableStatus: TCheckBox
         Left = 120
-        Top = 203
+        Top = 235
         Width = 172
         Height = 17
         Hint = 
@@ -706,8 +713,28 @@ object connform: Tconnform
           'DB tables'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Get full table status'
-        TabOrder = 6
+        TabOrder = 8
         OnClick = Modification
+      end
+      object editQueryTimeout: TEdit
+        Left = 120
+        Top = 180
+        Width = 90
+        Height = 21
+        NumbersOnly = True
+        TabOrder = 5
+        Text = '0'
+        OnChange = Modification
+      end
+      object updownQueryTimeout: TUpDown
+        Left = 210
+        Top = 180
+        Width = 16
+        Height = 21
+        Associate = editQueryTimeout
+        Max = 2147483646
+        TabOrder = 6
+        Wrap = True
       end
     end
     object tabStatistics: TTabSheet
