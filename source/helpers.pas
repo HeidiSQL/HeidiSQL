@@ -140,7 +140,7 @@ type
     asUser, asPassword, asWindowsAuth, asLoginPrompt, asPort,
     asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
-    asSSLCert, asSSLCA, asNetType, asCompressed, asLocalTimeZone,
+    asSSLCert, asSSLCA, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout,
     asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asExportSQLCreateDatabases,
     asExportSQLCreateTables, asExportSQLDataHow, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asGridExportOutputCopy, asGridExportOutputFile,
@@ -3123,6 +3123,7 @@ begin
   InitSetting(asNetType,                          'NetType',                               Integer(ntMySQL_TCPIP), False, '', True);
   InitSetting(asCompressed,                       'Compressed',                            0, False, '', True);
   InitSetting(asLocalTimeZone,                    'LocalTimeZone',                         0, False, '', True);
+  InitSetting(asQueryTimeout,                     'QueryTimeout',                          30, False, '', True);
   InitSetting(asStartupScriptFilename,            'StartupScriptFilename',                 0, False, '', True);
   InitSetting(asDatabases,                        'Databases',                             0, False, '', True);
   InitSetting(asComment,                          'Comment',                               0, False, '', True);

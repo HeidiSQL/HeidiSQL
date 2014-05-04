@@ -102,6 +102,9 @@ type
     Importsettingsfile1: TMenuItem;
     lblComment: TLabel;
     memoComment: TMemo;
+    lblQueryTimeout: TLabel;
+    editQueryTimeout: TEdit;
+    updownQueryTimeout: TUpDown;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -317,6 +320,7 @@ begin
   Sess.Port := updownPort.Position;
   Sess.NetType := TNetType(comboNetType.ItemIndex);
   Sess.Compressed := chkCompressed.Checked;
+  Sess.QueryTimeout := updownQueryTimeout.Position;
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.FullTableStatus := chkFullTableStatus.Checked;
   Sess.AllDatabasesStr := editDatabases.Text;
@@ -526,6 +530,7 @@ begin
     Result.SSLCACertificate := editSSLCACertificate.Text;
     Result.StartupScriptFilename := editStartupScript.Text;
     Result.Compressed := chkCompressed.Checked;
+    Result.QueryTimeout := updownQueryTimeout.Position;
     Result.LocalTimeZone := chkLocalTimeZone.Checked;
     Result.FullTableStatus := chkFullTableStatus.Checked;
   end;
@@ -765,6 +770,7 @@ begin
     chkWindowsAuth.Checked := Sess.WindowsAuth;
     updownPort.Position := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
+    updownQueryTimeout.Position := Sess.QueryTimeout;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
     editDatabases.Text := Sess.AllDatabasesStr;
@@ -1010,6 +1016,7 @@ begin
       or (Sess.WindowsAuth <> chkWindowsAuth.Checked)
       or (Sess.Port <> updownPort.Position)
       or (Sess.Compressed <> chkCompressed.Checked)
+      or (Sess.QueryTimeout <> updownQueryTimeout.Position)
       or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
       or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
@@ -1098,6 +1105,9 @@ begin
       lblSSLCertificate.Enabled := Params.WantSSL;
       editSSLCertificate.Enabled := Params.WantSSL;
       tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
+      lblQueryTimeout.Enabled := Params.NetTypeGroup in [ngMSSQL, ngPgSQL];
+      editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
+      updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       Params.Free;
     end;
   end;

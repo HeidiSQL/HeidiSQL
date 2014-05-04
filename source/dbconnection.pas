@@ -205,7 +205,7 @@ type
       FHostname, FUsername, FPassword, FAllDatabases, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
-      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter: Integer;
+      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout: Integer;
       FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus, FWindowsAuth, FWantSSL, FIsFolder: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
@@ -246,6 +246,7 @@ type
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
       property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
+      property QueryTimeout: Integer read FQueryTimeout write FQueryTimeout;
       property Compressed: Boolean read FCompressed write FCompressed;
       property LocalTimeZone: Boolean read FLocalTimeZone write FLocalTimeZone;
       property FullTableStatus: Boolean read FFullTableStatus write FFullTableStatus;
@@ -1099,6 +1100,7 @@ begin
     FSSLCACertificate := AppSettings.ReadString(asSSLCA);
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
     FCompressed := AppSettings.ReadBool(asCompressed);
+    FQueryTimeout := AppSettings.ReadInt(asQueryTimeout);
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
@@ -1132,6 +1134,7 @@ begin
     AppSettings.WriteInt(asNetType, Integer(FNetType));
     AppSettings.WriteBool(asCompressed, FCompressed);
     AppSettings.WriteBool(asLocalTimeZone, FLocalTimeZone);
+    AppSettings.WriteInt(asQueryTimeout, FQueryTimeout);
     AppSettings.WriteBool(asFullTableStatus, FFullTableStatus);
     AppSettings.WriteString(asDatabases, FAllDatabases);
     AppSettings.WriteString(asComment, FComment);
@@ -1710,6 +1713,7 @@ begin
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
       FIsUnicode := True;
+      FAdoHandle.CommandTimeout := Parameters.QueryTimeout;
       try
         // Gracefully accept failure on MS Azure (SQL Server 11), which does not have a sysprocesses table
         FServerUptime := StrToIntDef(GetVar('SELECT DATEDIFF(SECOND, '+QuoteIdent('login_time')+', CURRENT_TIMESTAMP) FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('sysprocesses')+' WHERE '+QuoteIdent('spid')+'=1'), -1);
@@ -1802,6 +1806,7 @@ begin
     FConnectionStarted := GetTickCount div 1000;
     Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
     FIsUnicode := True;
+    Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout));
     try
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
     except
