@@ -16,6 +16,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Align = alTop
     Caption = 'Routine body:'
     FocusControl = SynMemoBody
+    ExplicitWidth = 68
   end
   object lblDisabledWhy: TLabel
     Left = 256
@@ -109,7 +110,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Top = 3
     Width = 600
     Height = 166
-    ActivePage = tabOptions
+    ActivePage = tabCreateCode
     Align = alTop
     Images = MainForm.ImageListMain
     TabOrder = 0
@@ -383,6 +384,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
+        PopupMenu = popupSQLmemo
         TabOrder = 0
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
@@ -406,5 +408,19 @@ object frmRoutineEditor: TfrmRoutineEditor
     Anchors = [akRight, akBottom]
     Images = MainForm.ImageListMain
     TabOrder = 5
+  end
+  object popupSQLmemo: TPopupMenu
+    Images = MainForm.ImageListMain
+    Left = 47
+    Top = 244
+    object Selectall1: TMenuItem
+      Action = MainForm.actSelectAll
+    end
+    object Copy1: TMenuItem
+      Action = MainForm.actCopy
+    end
+    object Saveastextfile1: TMenuItem
+      Action = MainForm.actSaveSynMemoToTextfile
+    end
   end
 end

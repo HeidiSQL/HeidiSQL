@@ -2773,6 +2773,15 @@ object MainForm: TMainForm
       ShortCut = 32807
       OnExecute = actNextResultExecute
     end
+    object actSaveSynMemoToTextfile: TAction
+      Category = 'Various'
+      Caption = 'Save as textfile...'
+      Hint = 'Save contents to a textfile'
+      ImageIndex = 10
+      ShortCut = 16467
+      OnExecute = actSaveSynMemoToTextfileExecute
+      OnUpdate = ValidateControls
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -9600,9 +9609,7 @@ object MainForm: TMainForm
       Caption = '-'
     end
     object Saveastextfile1: TMenuItem
-      Caption = 'Save as textfile...'
-      ImageIndex = 10
-      OnClick = Saveastextfile1Click
+      Action = actSaveSynMemoToTextfile
     end
     object menuLogToFile: TMenuItem
       Caption = 'Log to file'
