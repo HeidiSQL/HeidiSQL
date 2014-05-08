@@ -606,6 +606,7 @@ type
     actNextResult: TAction;
     Previousresulttab1: TMenuItem;
     Nextresulttab1: TMenuItem;
+    actSaveSynMemoToTextfile: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -691,7 +692,6 @@ type
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
     procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TStrings);
     procedure popupHostPopup(Sender: TObject);
-    procedure Saveastextfile1Click(Sender: TObject);
     procedure popupDBPopup(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
     procedure QFvaluesClick(Sender: TObject);
@@ -817,7 +817,7 @@ type
     function GetQueryTabByHelpers(FindTree: TBaseVirtualTree): TQueryTab;
     function ActiveQueryMemo: TSynMemo;
     function ActiveQueryHelpers: TVirtualStringTree;
-    function ActiveSynMemo: TSynMemo;
+    function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
     function QueryTabActive: Boolean;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
@@ -963,6 +963,7 @@ type
       Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
     procedure actPreviousResultExecute(Sender: TObject);
     procedure actNextResultExecute(Sender: TObject);
+    procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1013,6 +1014,7 @@ type
     FGridPasting: Boolean;
     FHasDonatedDatabaseCheck: TThreeStateBoolean;
     FFocusedTables: TDBObjectList;
+    FLastActionUpdate: Cardinal;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -3803,7 +3805,7 @@ begin
   if not Assigned(FSearchReplaceDialog) then
     FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
   FSearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
-  if (ActiveSynMemo <> nil) or (ActiveGrid <> nil) then
+  if (ActiveSynMemo(False) <> nil) or (ActiveGrid <> nil) then
     FSearchReplaceDialog.ShowModal;
 end;
 
@@ -3818,7 +3820,7 @@ begin
   NeedDialog := not Assigned(FSearchReplaceDialog);
   if Assigned(FSearchReplaceDialog) then begin
     NeedDialog := NeedDialog or ((FSearchReplaceDialog.Grid = nil) and (FSearchReplaceDialog.Editor = nil));
-    Editor := ActiveSynMemo;
+    Editor := ActiveSynMemo(False);
     Grid := ActiveGrid;
     NeedDialog := NeedDialog or ((Grid = nil) and (Editor = nil));
     if (Editor <> nil) and (Editor.Focused) then
@@ -3941,6 +3943,27 @@ begin
     Dialog.Keyword := keyword;
   end else
     ErrorDialog(_('SQL help not available.'), f_('HELP <keyword> requires %s or newer.', ['MySQL 4.1']));
+end;
+
+
+procedure TMainForm.actSaveSynMemoToTextfileExecute(Sender: TObject);
+var
+  Memo: TSynMemo;
+  Dialog: TSaveDialog;
+  Item: TMenuItem;
+begin
+  // Save to textfile, from any TSynMemo (SQL log, "CREATE code" tab in editor, ...)
+  Dialog := TSaveDialog.Create(Self);
+  Dialog.Options := Dialog.Options + [ofOverwritePrompt];
+  Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
+  Dialog.DefaultExt := 'sql';
+  if Dialog.Execute then begin
+    Item := (Sender as TAction).ActionComponent as TMenuItem;
+    Memo := (Item.GetParentMenu as TPopupMenu).PopupComponent as TSynMemo;
+    Screen.Cursor := crHourGlass;
+    SaveUnicodeFile(Dialog.FileName, Memo.Text);
+    Screen.Cursor := crDefault;
+  end;
 end;
 
 
@@ -5135,7 +5158,6 @@ begin
 end;
 
 
-
 {***
   Enable/disable various buttons and menu items.
   Invoked when
@@ -5151,6 +5173,13 @@ var
   Results: TDBQuery;
   RowNum: PInt64;
 begin
+  // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
+
+  // Ensure this quite complex procedure is not called 100 times when a (popup-)menu pops up
+  if FLastActionUpdate >= GetTickCount-100 then
+    Exit;
+  FLastActionUpdate := GetTickCount;
+
   Grid := ActiveGrid;
   Results := nil;
   GridHasChanges := False;
@@ -5189,6 +5218,8 @@ begin
   // Activate export-options if we're on Data- or Query-tab
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
+
+  actSaveSynMemoToTextfile.Enabled := ActiveSynMemo(True) <> nil;
 
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
@@ -5651,7 +5682,7 @@ begin
   TimerBindParams.Enabled := False;
 
   Tab := ActiveQueryTab;
-  QueryMemo := ActiveSynMemo;
+  QueryMemo := ActiveSynMemo(False);
 
   // Check current Query memo to find all parameters with regular expression ( :params )
   rx := TRegExpr.Create;
@@ -6083,20 +6114,6 @@ begin
     menuEditVariable.Hint := _(SUnsupported);
 end;
 
-procedure TMainForm.Saveastextfile1Click(Sender: TObject);
-begin
-  with TSaveDialog.Create(self) do begin
-    Filter := _('Text files')+' (*.txt)|*.txt|'+_('All Files')+' (*.*)|*.*';
-    DefaultExt := 'txt';
-    FilterIndex := 1;
-    Options := [ofOverwritePrompt,ofHideReadOnly,ofEnableSizing];
-    if Execute then begin
-      Screen.Cursor := crHourglass;
-      SynMemoSQLLog.Lines.SaveToFile(Filename);
-      Screen.Cursor := crdefault;
-    end;
-  end;
-end;
 
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
@@ -10225,7 +10242,7 @@ begin
 end;
 
 
-function TMainForm.ActiveSynMemo: TSynMemo;
+function TMainForm.ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
 var
   Control: TWinControl;
 begin
@@ -10234,7 +10251,7 @@ begin
   if Control is TCustomSynEdit then begin
     Result := Control as TSynMemo;
     // We have a few readonly-SynMemos which we'll ignore here
-    if Result.ReadOnly then
+    if (not AcceptReadOnlyMemo) and Result.ReadOnly then
       Result := nil;
   end;
   if (not Assigned(Result)) and QueryTabActive then
@@ -10544,7 +10561,7 @@ var
   NewSQL: String;
 begin
   // Reformat SQL query
-  m := ActiveSynMemo;
+  m := ActiveSynMemo(False);
   if not Assigned(m) then begin
     ErrorDialog(_('Cannot reformat'), _('Please select a non-readonly SQL editor first.'));
     Exit;
@@ -11643,7 +11660,7 @@ var
   IsComment: Boolean;
 begin
   // Un/comment selected SQL
-  Editor := ActiveSynMemo;
+  Editor := ActiveSynMemo(False);
   Editor.UndoList.AddGroupBreak;
   rx := TRegExpr.Create;
   rx.Expression := '^(\s*)(\-\- |#)?(.*)$';

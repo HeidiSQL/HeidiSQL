@@ -90,6 +90,7 @@ type
     menuPasteColumns: TMenuItem;
     tabPartitions: TTabSheet;
     SynMemoPartitions: TSynMemo;
+    Saveastextfile1: TMenuItem;
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);

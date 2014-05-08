@@ -2479,10 +2479,13 @@ msgstr "Table too large (>%s), avoiding long running SELECT query"
 msgid "Copy line to new query tab"
 msgstr "Copy line to new query tab"
 
-#. MainForm..popupSqlLog..Saveastextfile1..Caption
-#: main.dfm:9017
+#. Action: Save SynMemo to textfile
 msgid "Save as textfile..."
 msgstr "Save as textfile..."
+
+#. Action: Save SynMemo to textfile
+msgid "Save contents to a textfile"
+msgstr "Save contents to a textfile"
 
 #. MainForm..popupSqlLog..menuLogToFile..Caption
 #: main.dfm:9022

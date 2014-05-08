@@ -87,7 +87,7 @@ var
   IsQueryTab: Boolean;
 begin
   // Populate "Search in" pulldown with grid and editor
-  _Editor := MainForm.ActiveSynMemo;
+  _Editor := MainForm.ActiveSynMemo(False);
   _Grid := MainForm.ActiveGrid;
   comboSearchIn.Items.Clear;
   IsQueryTab := MainForm.IsQueryTab(MainForm.PageControlMain.ActivePageIndex, True);
