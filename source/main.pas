@@ -1014,7 +1014,6 @@ type
     FGridPasting: Boolean;
     FHasDonatedDatabaseCheck: TThreeStateBoolean;
     FFocusedTables: TDBObjectList;
-    FLastActionUpdate: Cardinal;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -5174,11 +5173,6 @@ var
   RowNum: PInt64;
 begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
-
-  // Ensure this quite complex procedure is not called 100 times when a (popup-)menu pops up
-  if FLastActionUpdate >= GetTickCount-100 then
-    Exit;
-  FLastActionUpdate := GetTickCount;
 
   Grid := ActiveGrid;
   Results := nil;
