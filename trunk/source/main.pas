@@ -9657,6 +9657,7 @@ begin
   QueryTab.treeHelpers.DragMode := treeQueryHelpers.DragMode;
   QueryTab.treeHelpers.DragType := treeQueryHelpers.DragType;
   QueryTab.treeHelpers.OnBeforeCellPaint := treeQueryHelpers.OnBeforeCellPaint;
+  QueryTab.treeHelpers.OnChecking := treeQueryHelpers.OnChecking;
   QueryTab.treeHelpers.OnContextPopup := treeQueryHelpers.OnContextPopup;
   QueryTab.treeHelpers.OnCreateEditor := treeQueryHelpers.OnCreateEditor;
   QueryTab.treeHelpers.OnDblClick := treeQueryHelpers.OnDblClick;
