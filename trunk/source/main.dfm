@@ -2539,6 +2539,7 @@ object MainForm: TMainForm
       ImageIndex = 118
       ShortCut = 16449
       OnExecute = actSelectAllExecute
+      OnUpdate = ValidateControls
     end
     object actCreateRoutine: TAction
       Category = 'Database'
