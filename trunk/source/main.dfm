@@ -1317,7 +1317,6 @@ object MainForm: TMainForm
               RightEdge = 0
               TabWidth = 3
               WantTabs = True
-              OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
               OnStatusChange = SynMemoQueryStatusChange
@@ -9927,11 +9926,5 @@ object MainForm: TMainForm
     OnDeactivate = ApplicationEvents1Deactivate
     Left = 504
     Top = 152
-  end
-  object TimerBindParams: TTimer
-    Enabled = False
-    OnTimer = TimerBindParamsTimer
-    Left = 688
-    Top = 296
   end
 end

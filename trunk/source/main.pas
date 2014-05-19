@@ -50,8 +50,12 @@ type
   TResultTabs = TObjectList<TResultTab>;
   TQueryTab = class(TComponent)
     private
+      FMemo: TSynMemo;
       FMemoFilename: String;
+      procedure SetMemo(Value: TSynMemo);
       procedure SetMemoFilename(Value: String);
+      procedure TimerLastChangeOnTimer(Sender: TObject);
+      procedure MemoOnChange(Sender: TObject);
     public
       Number: Integer;
       ExecutionThread: TQueryThread;
@@ -59,7 +63,6 @@ type
       pnlMemo: TPanel;
       pnlHelpers: TPanel;
       treeHelpers: TVirtualStringTree;
-      Memo: TSynMemo;
       MemoFileRenamed: Boolean;
       MemoLineBreaks: TLineBreaks;
       DirectoryWatch: TDirectoryWatch;
@@ -77,13 +80,15 @@ type
       LeftOffsetInMemo: Integer;
       HistoryDays: TStringList;
       ListBindParams: TBindParam;
-      CheckParam: Boolean;      
+      CheckParam: Boolean;
+      TimerLastChange: TTimer;
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
       function LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
       property ActiveResultTab: TResultTab read GetActiveResultTab;
+      property Memo: TSynMemo read FMemo write SetMemo;
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -601,7 +606,6 @@ type
     ToolBarExtraButtons: TToolBar;
     btnDonate: TToolButton;
     btnUpdateAvailable: TToolButton;
-    TimerBindParams: TTimer;
     actPreviousResult: TAction;
     actNextResult: TAction;
     Previousresulttab1: TMenuItem;
@@ -949,7 +953,6 @@ type
     procedure DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure actFullRefreshExecute(Sender: TObject);
-    procedure TimerBindParamsTimer(Sender: TObject);
     procedure treeQueryHelpersEditing(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     procedure treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
@@ -958,7 +961,6 @@ type
       const HitInfo: THitInfo);
     procedure treeQueryHelpersNewText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; NewText: string);
-    procedure SynMemoQueryChange(Sender: TObject);
     procedure treeQueryHelpersChecking(Sender: TBaseVirtualTree;
       Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
     procedure actPreviousResultExecute(Sender: TObject);
@@ -5662,78 +5664,6 @@ begin
 end;
 
 
-procedure TMainForm.TimerBindParamsTimer(Sender: TObject);
-var
-  Tab: TQueryTab;
-  QueryMemo: TSynMemo;
-  rx: TRegExpr;
-  BindParamItem : TBindParamItem;
-  Item: Integer;
-  Node : PVirtualNode;
-  IsExpanded : Boolean;
-  FoundParam : String;
-begin
-  TimerBindParams.Enabled := False;
-
-  Tab := ActiveQueryTab;
-  QueryMemo := ActiveSynMemo(False);
-
-  // Check current Query memo to find all parameters with regular expression ( :params )
-  rx := TRegExpr.Create;
-  // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
-  // Don't use ^:\w+|\W:[^\W:]\w+ because it detect IP v6
-  rx.Expression := '([^:\w]|^):\w+';
-  if rx.Exec(QueryMemo.Text) then while true do begin
-
-    // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
-    FoundParam := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
-
-    // Prepare TBindParamItem
-    BindParamItem := TBindParamItem.Create;
-    BindParamItem.Parameter := FoundParam;
-    BindParamItem.Value := '';
-    BindParamItem.Keep := True;
-
-    // Check if parameter already exists
-    Item := Tab.ListBindParams.FindParameter(FoundParam);
-
-    // If exists, seet Keep to true else add TBindParamItem
-    if Item <> -1 then
-      Tab.ListBindParams.Items[Item].Keep := True
-    else
-      Tab.ListBindParams.add(BindParamItem);
-
-    // Try to find next parameter
-    if not rx.ExecNext then
-        break;
-  end;
-
-  // Sort list ascending
-  Tab.ListBindParams.Sort;
-  // Delete all parameters where variable is to False
-  Tab.ListBindParams.CleanToKeep;
-
-  // If the bind parameter node exists, delete and rebuild it.
-  IsExpanded := True;
-  if Tab.ListBindParams.Count > 0 then begin
-    if Tab.treeHelpers.RootNodeCount = 7 then begin
-      Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
-      if Node.ChildCount = 0 then
-        IsExpanded := True
-      else
-        IsExpanded := Tab.treeHelpers.Expanded[Node];
-      Tab.treeHelpers.DeleteChildren(Node);
-    end;
-
-    Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
-    Tab.treeHelpers.Expanded[Node] := IsExpanded;
-  end
-  else
-    Tab.treeHelpers.DeleteChildren(Node);
-
-end;
-
-
 procedure TMainForm.TimerConnectedTimer(Sender: TObject);
 var
   ConnectedTime: Integer;
@@ -5876,29 +5806,6 @@ begin
   Memo.CaretY := y div Memo.LineHeight + Memo.TopLine;
   if not Memo.Focused then
     Memo.SetFocus;
-end;
-
-
-procedure TMainForm.SynMemoQueryChange(Sender: TObject);
-var
-  Tab: TQueryTab;
-  Node: PVirtualNode;
-begin
-  // Check if bind param detection is enabled for text size <1M
-  // Uncheck checkbox if it's bigger
-  Tab := ActiveQueryTab;
-  TimerBindParams.Enabled := False;
-
-  if Tab.CheckParam then begin
-    if Tab.Memo.GetTextLen < SIZE_MB then begin
-      TimerBindParams.Enabled := True;
-    end
-    else begin
-      MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
-      Node := FindNode(Tab.treeHelpers, HELPERNODE_BINDING, nil);
-      Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
-    end;
-  end;
 end;
 
 
@@ -9727,7 +9634,6 @@ begin
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
-  QueryTab.Memo.OnChange := SynMemoQuery.OnChange;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
@@ -11484,8 +11390,8 @@ begin
           if Tab.Memo.GetTextLen < SIZE_MB then begin
             Allowed := True;
             Tab.CheckParam := True;
-            TimerBindParams.Enabled := False;
-            TimerBindParams.Enabled := True;
+            Tab.TimerLastChange.Enabled := False;
+            Tab.TimerLastChange.Enabled := True;
           end
           else begin
             Allowed := False;
@@ -11842,6 +11748,9 @@ begin
   MemofileModifiedTimer.Enabled := False;
   MemofileModifiedTimer.OnTimer := MemofileModifiedTimerNotify;
   LastSaveTime := 0;
+  TimerLastChange := TTimer.Create(Self);
+  TimerLastChange.Enabled := False;
+  TimerLastChange.OnTimer := TimerLastChangeOnTimer;
   // Contain 2 columns of String : Params & Values
   ListBindParams := TBindParam.Create;
 end;
@@ -11852,6 +11761,7 @@ begin
   ResultTabs.Clear;
   DirectoryWatch.Free;
   ListBindParams.Free;
+  TimerLastChange.Free;
 end;
 
 
@@ -11898,6 +11808,15 @@ begin
       end;
 
   end;
+end;
+
+
+procedure TQueryTab.SetMemo(Value: TSynMemo);
+begin
+  // Apply existing SynMemo and its events (only OnChange yet).
+  // TODO: Move more Memo events from TMainForm.actNewQueryTabExecute here, and keep there procedures in TQueryTab.
+  FMemo := Value;
+  FMemo.OnChange := MemoOnChange;
 end;
 
 
@@ -12002,6 +11921,93 @@ begin
   end else
     DirectoryWatch.Stop;
 end;
+
+
+procedure TQueryTab.MemoOnChange(Sender: TObject);
+var
+  Node: PVirtualNode;
+begin
+  // Check if bind param detection is enabled for text size <1M
+  // Uncheck checkbox if it's bigger
+  TimerLastChange.Enabled := False;
+
+  if CheckParam then begin
+    if Memo.GetTextLen < SIZE_MB then begin
+      TimerLastChange.Enabled := True;
+    end
+    else begin
+      MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
+      Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+      treeHelpers.CheckState[Node] := csUncheckedNormal;
+    end;
+  end;
+end;
+
+
+procedure TQueryTab.TimerLastChangeOnTimer(Sender: TObject);
+var
+  rx: TRegExpr;
+  BindParamItem : TBindParamItem;
+  Item: Integer;
+  Node : PVirtualNode;
+  IsExpanded : Boolean;
+  FoundParam : String;
+begin
+  TimerLastChange.Enabled := False;
+
+  // Check current Query memo to find all parameters with regular expression ( :params )
+  rx := TRegExpr.Create;
+  // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
+  // Don't use ^:\w+|\W:[^\W:]\w+ because it detect IP v6
+  rx.Expression := '([^:\w]|^):\w+';
+  if rx.Exec(Memo.Text) then while true do begin
+
+    // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
+    FoundParam := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
+
+    // Prepare TBindParamItem
+    BindParamItem := TBindParamItem.Create;
+    BindParamItem.Parameter := FoundParam;
+    BindParamItem.Value := '';
+    BindParamItem.Keep := True;
+
+    // Check if parameter already exists
+    Item := ListBindParams.FindParameter(FoundParam);
+
+    // If exists, seet Keep to true else add TBindParamItem
+    if Item <> -1 then
+      ListBindParams.Items[Item].Keep := True
+    else
+      ListBindParams.add(BindParamItem);
+
+    // Try to find next parameter
+    if not rx.ExecNext then
+      break;
+  end;
+
+  // Sort list ascending
+  ListBindParams.Sort;
+  // Delete all parameters where variable is to False
+  ListBindParams.CleanToKeep;
+
+  // If the bind parameter node exists, delete and rebuild it.
+  IsExpanded := True;
+  Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+  if ListBindParams.Count > 0 then begin
+    if treeHelpers.RootNodeCount = 7 then begin
+      if Node.ChildCount = 0 then
+        IsExpanded := True
+      else
+        IsExpanded := treeHelpers.Expanded[Node];
+      treeHelpers.DeleteChildren(Node);
+    end;
+    Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+    treeHelpers.Expanded[Node] := IsExpanded;
+  end else
+    treeHelpers.DeleteChildren(Node);
+
+end;
+
 
 
 
