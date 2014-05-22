@@ -6661,10 +6661,7 @@ begin
     Conn := ActiveConnection;
     while Assigned(Node) do begin
       db := ListDatabases.Text[Node, 0];
-      if db = ActiveDatabase then
-        RefreshTree
-      else
-        Conn.GetDBObjects(db, True);
+      Conn.GetDBObjects(db, True);
       ListDatabases.RepaintNode(Node);
       DBtree.RepaintNode(FindDBNode(DBtree, Conn, db));
       Node := GetNextNode(ListDatabases, Node, True);
