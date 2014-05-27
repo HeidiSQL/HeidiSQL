@@ -4209,22 +4209,25 @@ begin
     // Default value
     Col.DefaultType := cdtNothing;
     Col.DefaultText := '';
-    rxCol.Expression := 'CURRENT_TIMESTAMP(\(\d+\))?(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d+\))?)?';
+    rxCol.Expression := '(NULL|CURRENT_TIMESTAMP(\(\d+\))?)(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d+\))?)?';
     if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
       Delete(ColSpec, 1, 15);
     end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
       Delete(ColSpec, 1, 8);
-      if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then begin
-        Col.DefaultType := cdtNull;
-        Col.DefaultText := 'NULL';
-        Delete(ColSpec, 1, 5);
-      end else if rxCol.Exec(ColSpec) then begin
-        Col.DefaultType := cdtCurTS;
-        Col.DefaultText := 'CURRENT_TIMESTAMP';
-        if rxCol.Match[2] <> '' then
-          Col.DefaultType := cdtCurTSUpdateTS;
+      if rxCol.Exec(ColSpec) then begin
+        if rxCol.Match[1] = 'NULL' then begin
+          Col.DefaultType := cdtNull;
+          Col.DefaultText := 'NULL';
+          if rxCol.Match[3] <> '' then
+            Col.DefaultType := cdtNullUpdateTS;
+        end else begin
+          Col.DefaultType := cdtCurTS;
+          Col.DefaultText := 'CURRENT_TIMESTAMP';
+          if rxCol.Match[3] <> '' then
+            Col.DefaultType := cdtCurTSUpdateTS;
+        end;
         Delete(ColSpec, 1, rxCol.MatchLen[0]);
       end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') then begin
         InLiteral := True;
