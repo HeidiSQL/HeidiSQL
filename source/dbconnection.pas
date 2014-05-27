@@ -825,7 +825,6 @@ begin
   rx.Expression := '(-pw\s+")[^"]*(")';
   PlinkCmdDisplay := FConnection.Parameters.SSHPlinkExe + ' ' + rx.Replace(PlinkParameters, '${1}******${2}', True);
   FConnection.Log(lcInfo, f_('Attempt to create plink.exe process, waiting %ds for response ...', [FConnection.Parameters.SSHTimeout]));
-  FConnection.Log(lcInfo, PlinkCmdDisplay);
 
   // Prepare process
   FillChar(StartupInfo, SizeOf(StartupInfo), 0);
@@ -1618,7 +1617,6 @@ begin
         Status.Next;
       end;
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
-      log(lcinfo, FServerVersionUntouched);
       Vars := GetSessionVariables(False);
       while not Vars.Eof do begin
         if Vars.Col(0) = 'version_compile_os' then
@@ -1631,7 +1629,6 @@ begin
           FServerVersionUntouched := FServerVersionUntouched + ' - ' + Vars.Col(1);
         Vars.Next;
       end;
-      log(lcinfo, FServerVersionUntouched);
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -2103,7 +2100,7 @@ begin
   Log(lcDebug, 'Ping server ...');
   if (FHandle=nil) or (PQping(FHandle) <> PQPING_OK) then begin
     // Be sure to release some stuff before reconnecting
-  log(lcinfo, 'TPGConnection.Ping reconnect: handle:'+inttostr(integer(FHandle=nil))+' '+inttostr(integer(PQping(FHandle))));
+  //log(lcinfo, 'TPGConnection.Ping reconnect: handle:'+inttostr(integer(FHandle=nil))+' '+inttostr(integer(PQping(FHandle))));
     //Active := False;
     //if Reconnect then
     //  Active := True;
@@ -2911,17 +2908,19 @@ end;
 
 function TPGConnection.GetAllDatabases: TStringList;
 begin
-  // Do not inherit, as in PG we cannot use the
-  if not Assigned(FAllDatabases) then try
-    // Query is.schemata when using schemata, for databases use pg_database
-    //FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
-    FAllDatabases := GetCol('SELECT '+QuoteIdent('schema_name')+
-      ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('schemata')+
-      ' ORDER BY '+QuoteIdent('schema_name'));
-  except on E:EDatabaseError do
-    FAllDatabases := TStringList.Create;
+  Result := inherited;
+  if not Assigned(Result) then begin
+    try
+      // Query is.schemata when using schemata, for databases use pg_database
+      //FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
+      FAllDatabases := GetCol('SELECT '+QuoteIdent('schema_name')+
+        ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('schemata')+
+        ' ORDER BY '+QuoteIdent('schema_name'));
+    except on E:EDatabaseError do
+      FAllDatabases := TStringList.Create;
+    end;
+    Result := FAllDatabases;
   end;
-  Result := FAllDatabases;
 end;
 
 
@@ -3940,7 +3939,7 @@ begin
       obj.Name := Results.Col('table_name');
       obj.Created := 0;
       obj.Updated := 0;
-      //obj.Database := db;
+      obj.Database := db;
       obj.Schema := Results.Col('table_schema'); // Remove when using schemata
       obj.Comment := Results.Col('comment');
       obj.Rows := StrToIntDef(Results.Col('reltuples'), obj.Rows);
