@@ -101,8 +101,9 @@ make a donation here: http://www.heidisql.com/donate.php
 *** Credits:
 
 Author: Ansgar Becker (Germany)
-Development contributor: Adrien Granger (France)
-Former development contributors: David Dindorp (Denmark), Francisco Ernesto Teixeira (Brazil)
+
+Former development contributors: Adrien Granger (France), David Dindorp (Denmark),
+Francisco Ernesto Teixeira (Brazil)
 
 Sven Lorenz (graphics), Mike Lischke + Timo Tegtmeier (VirtualTreeView, GLPL),
 Mathias Rauen (madExcept), Maël Hörz (SynEdit, MPL), Serhiy Perevoznyk (JumpList),
