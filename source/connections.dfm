@@ -302,7 +302,7 @@ object connform: Tconnform
         Width = 16
         Height = 21
         Associate = editPort
-        Max = 65535
+        Max = 2147483647
         TabOrder = 7
         Thousands = False
         Wrap = True
