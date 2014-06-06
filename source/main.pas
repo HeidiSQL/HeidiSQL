@@ -7142,7 +7142,7 @@ begin
     // Search for given text in node's captions
     if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
       CellText := VT.Text[Node, i];
-      if Pos( search, LowerCase(CellText)) > 0 then begin
+      if (Pos( search, LowerCase(CellText)) > 0) or (Pos(search, UnformatNumber(CellText)) > 0) then begin
         match := True;
         break;
       end;
