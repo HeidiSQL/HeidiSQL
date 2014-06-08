@@ -96,7 +96,10 @@ Source: "libpq64.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: Is64BitIn
 Source: "libpq32.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl-864.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl32.dll"; DestDir: "{app}"; DestName: "libintl.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "ssleay32.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "ssleay32-64.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "ssleay32-32.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libeay32-64.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libeay32-32.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{commonappdata}\{#ProgName}\Snippets";
