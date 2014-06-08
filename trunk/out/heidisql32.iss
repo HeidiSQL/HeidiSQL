@@ -93,7 +93,8 @@ Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Flags: ignoreversion
 Source: "libpq32.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Flags: ignoreversion
 Source: "libintl32.dll"; DestDir: "{app}"; DestName: "libintl.dll"; Flags: ignoreversion
-Source: "ssleay32.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "ssleay32-32.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Flags: ignoreversion
+Source: "libeay32-32.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Flags: ignoreversion
 Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{commonappdata}\{#ProgName}\Snippets";
 
