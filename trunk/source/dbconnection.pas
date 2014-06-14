@@ -4104,10 +4104,9 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+['+Quotes+']([^'+Quotes+']+)['+Quotes+']\s(\w+)';
+  rx.Expression := '^\s+['+Quotes+'](.+)['+Quotes+']\s(\w+)';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
-  CreateTable := StringReplace(CreateTable, FQuoteChar+FQuoteChar, QuoteReplacement, [rfReplaceAll]);
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Columns) then
       break;
@@ -4124,8 +4123,8 @@ begin
 
     Col := TTableColumn.Create(Self);
     Columns.Add(Col);
-    Col.Name := DeQuoteIdent(rx.Match[1]);
-    Col.Name := StringReplace(Col.Name, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
+    Col.Name := rx.Match[1];
+    Col.Name := StringReplace(Col.Name, FQuoteChar+FQuoteChar, FQuoteChar, [rfReplaceAll]);
     Col.OldName := Col.Name;
     Col.Status := esUntouched;
     Col.LengthCustomized := False;
