@@ -2484,6 +2484,7 @@ var
   Cols, Keys: TDBQuery;
   ConstraintName, MaxLen: String;
   ColNames: TStringList;
+  Rows: TStringList;
 
   // Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
   // TODO: Does not work on MSSQL 2000
@@ -2567,21 +2568,43 @@ begin
     end;
 
     lntFunction: begin
-      Result := GetVar('SELECT ROUTINE_DEFINITION'+
-        ' FROM INFORMATION_SCHEMA.ROUTINES'+
-        ' WHERE ROUTINE_NAME='+EscapeString(Name)+
-        ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
-        ' AND '+SchemaClauseIS('ROUTINE')
-        );
+      case Parameters.NetTypeGroup of
+        ngMSSQL: begin
+          // Tested on MS SQL 8.0 and 11.0
+          // See http://www.heidisql.com/forum.php?t=12495
+          Rows := GetCol('EXEC sp_helptext '+EscapeString(Name));
+          // Do not use Rows.Text, as the rows already include a trailing linefeed
+          Result := implodestr('', Rows);
+          Rows.Free;
+        end;
+        else begin
+          Result := GetVar('SELECT ROUTINE_DEFINITION'+
+            ' FROM INFORMATION_SCHEMA.ROUTINES'+
+            ' WHERE ROUTINE_NAME='+EscapeString(Name)+
+            ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
+            ' AND '+SchemaClauseIS('ROUTINE')
+            );
+        end;
+      end;
     end;
 
     lntProcedure: begin
-      Result := GetVar('SELECT ROUTINE_DEFINITION'+
-        ' FROM INFORMATION_SCHEMA.ROUTINES'+
-        ' WHERE ROUTINE_NAME='+EscapeString(Name)+
-        ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
-        ' AND '+SchemaClauseIS('ROUTINE')
-        );
+      case Parameters.NetTypeGroup of
+        ngMSSQL: begin
+          // See comments above
+          Rows := GetCol('EXEC sp_helptext '+EscapeString(Name));
+          Result := implodestr('', Rows);
+          Rows.Free;
+        end;
+        else begin
+          Result := GetVar('SELECT ROUTINE_DEFINITION'+
+            ' FROM INFORMATION_SCHEMA.ROUTINES'+
+            ' WHERE ROUTINE_NAME='+EscapeString(Name)+
+            ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
+            ' AND '+SchemaClauseIS('ROUTINE')
+            );
+        end;
+      end;
     end;
 
   end;
