@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-03-30 07:49+0100\n"
+"PO-Revision-Date: 2014-06-15 20:06+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -3981,6 +3981,10 @@ msgstr "OLE DB property \"%s\": %s"
 #: dbconnection.pas:1389
 msgid "Loading library file %s ..."
 msgstr "Loading library file %s ..."
+
+#. DLL loading fails on one procedure
+msgid "Library error in %s: Could not find procedure address for \"%s\""
+msgstr "Library error in %s: Could not find procedure address for \"%s\""
 
 #: dbconnection.pas:1392
 msgid ""

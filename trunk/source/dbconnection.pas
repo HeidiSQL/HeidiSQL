@@ -1469,6 +1469,7 @@ begin
   Proc := GetProcAddress(LibPqHandle, Name);
   if Proc = nil then begin
     LibPqHandle := 0;
+    Log(lcDebug, f_('Library error in %s: Could not find procedure address for "%s"', [LibPqPath, Name]));
     raise EDatabaseError.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.', [LibPqPath, APPNAME, APPNAME]));
   end;
 end;
