@@ -1803,6 +1803,7 @@ begin
     UpdatecheckInterval := AppSettings.ReadInt(asUpdatecheckInterval);
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
       frm := TfrmUpdateCheck.Create(Self);
+      frm.btnCancel.Caption := _('Skip');
       try
         frm.ReadCheckFile;
         btnUpdateAvailable.Visible := frm.btnBuild.Enabled or frm.btnRelease.Enabled;
