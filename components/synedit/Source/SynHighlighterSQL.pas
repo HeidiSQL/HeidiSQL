@@ -1437,7 +1437,7 @@ end;
 procedure TSynSQLSyn.MinusProc;
 begin
   Inc(Run);
-  if fLine[Run] = '-' then
+  if (fLine[Run] = '-') and (fLine[Run+1] = ' ') then
   begin
     fTokenID := tkComment;
     repeat
