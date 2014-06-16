@@ -5773,3 +5773,7 @@ msgstr "Recent sessions"
 # GetParentFormOrFrame
 msgid "Could not determine parent form of this %s"
 msgstr "Could not determine parent form of this %s"
+
+# Button on update check dialog, appearing right after application start
+msgid "Skip"
+msgstr "Skip"
