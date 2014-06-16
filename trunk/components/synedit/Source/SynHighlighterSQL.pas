@@ -1198,7 +1198,7 @@ begin
   Result := 0;
   while IsIdentChar(Str^) do
   begin
-    FoundDoubleMinus := (Str^ = '-') and ((Str + 1)^ = '-');
+    FoundDoubleMinus := (Str^ = '-') and ((Str + 1)^ = '-') and ((Str + 2)^ = ' ');
     if FoundDoubleMinus then Break;
 {$IFOPT Q-}
     Result := 2 * Result + GetOrd;
@@ -1409,7 +1409,7 @@ begin
   else
     while IsIdentChar(fLine[Run]) do
     begin
-      FoundDoubleMinus := (fLine[Run] = '-') and (fLine[Run + 1] = '-');
+      FoundDoubleMinus := (fLine[Run] = '-') and (fLine[Run + 1] = '-') and (fLine[Run + 2] = ' ');
       if FoundDoubleMinus then Break;
       inc(Run);
     end;
@@ -1657,7 +1657,7 @@ begin
     fTokenID := tkVariable;
     i := Run;
     repeat
-      FoundDoubleMinus := (fLine[i] = '-') and (fLine[i + 1] = '-');
+      FoundDoubleMinus := (fLine[i] = '-') and (fLine[i + 1] = '-') and (fLine[i + 2] = ' ');
       if FoundDoubleMinus then Break;
       Inc(i);
     until not IsIdentChar(fLine[i]);
