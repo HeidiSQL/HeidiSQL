@@ -3054,7 +3054,10 @@ begin
   InitSetting(asRestoreLastUsedDB,                'RestoreLastUsedDB',                     0, True);
   InitSetting(asLastUsedDB,                       'lastUsedDB',                            0, False, '', True);
   InitSetting(asTreeBackground,                   'TreeBackground',                        clNone, False, '', True);
-  InitSetting(asFontName,                         'FontName',                              0, False, 'Courier New');
+  if Screen.Fonts.IndexOf('Consolas') > -1 then
+    InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
+  else
+    InitSetting(asFontName,                       'FontName',                              0, False, 'Courier New');
   InitSetting(asFontSize,                         'FontSize',                              9);
   InitSetting(asTabWidth,                         'TabWidth',                              3);
   InitSetting(asDataFontName,                     'DataFontName',                          0, False, 'Tahoma');
