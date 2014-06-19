@@ -6234,8 +6234,10 @@ begin
   Conn := DbObj.Connection;
   MaxSize := SIZE_GB;
   if DbObj.Size < MaxSize then begin
-    Data := Conn.GetResults('SELECT '+Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName+
-      ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col)+' LIMIT 30');
+    Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT',
+      Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName+' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col),
+      30,
+      0));
     for i:=0 to Data.RecordCount-1 do begin
       if QFvalues.Count > i then
         Item := QFvalues[i]
