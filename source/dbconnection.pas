@@ -343,6 +343,7 @@ type
       function GetServerUptime: Integer;
       function GetCurrentUserHostCombination: String;
       function DecodeAPIString(a: AnsiString): String;
+      function ExtractIdentifier(var SQL: String): String;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetObjectNamesInSelectedDB;
@@ -4052,6 +4053,44 @@ begin
 end;
 
 
+function TDBConnection.ExtractIdentifier(var SQL: String): String;
+var
+  i, LeftPos, RightPos: Integer;
+begin
+  // Return first identifier from SQL and remove it from the original string
+  // Backticks are escaped by a second backtick
+  Result := '';
+
+  // Find left start position
+  LeftPos := 0;
+  for i:=1 to Length(SQL) do begin
+    if Pos(SQL[i], FQuoteChars) > 0 then begin
+      LeftPos := i+1;
+      Break;
+    end;
+  end;
+
+  // Step forward for each character of the identifier
+  i := LeftPos;
+  RightPos := LeftPos;
+  while i < Length(SQL) do begin
+    if Pos(SQL[i], FQuoteChars) > 0 then begin
+      if SQL[i+1] = SQL[i] then
+        Inc(i)
+      else begin
+        RightPos := i;
+        Break;
+      end;
+    end;
+    Result := Result + SQL[i];
+    Inc(i);
+  end;
+
+  if RightPos > LeftPos then
+    Delete(SQL, 1, RightPos+1);
+end;
+
+
 function TDBConnection.ConnectionInfo: TStringList;
 var
   Infos, Val: String;
@@ -4128,34 +4167,25 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+['+Quotes+'](.+)['+Quotes+']\s(\w+)';
+  rx.Expression := '^\s+(.+),?$';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Columns) then
       break;
-    ColSpec := '';
-    for i:=rx.MatchPos[2]+rx.MatchLen[2] to Length(CreateTable) do begin
-      if CharInSet(CreateTable[i], [#13, #10]) then
-        break;
-      ColSpec := ColSpec + CreateTable[i];
-    end;
-
-    // Strip trailing comma
-    if (ColSpec <> '') and (ColSpec[Length(ColSpec)] = ',') then
-      Delete(ColSpec, Length(ColSpec), 1);
+    ColSpec := rx.Match[1];
 
     Col := TTableColumn.Create(Self);
     Columns.Add(Col);
-    Col.Name := rx.Match[1];
-    Col.Name := StringReplace(Col.Name, FQuoteChar+FQuoteChar, FQuoteChar, [rfReplaceAll]);
+    Col.Name := ExtractIdentifier(ColSpec);
     Col.OldName := Col.Name;
     Col.Status := esUntouched;
     Col.LengthCustomized := False;
 
     // Datatype
-    Col.DataType := GetDatatypeByName(UpperCase(rx.Match[2]));
-    Col.OldDataType := GetDatatypeByName(UpperCase(rx.Match[2]));
+    Col.DataType := GetDatatypeByName(getFirstWord(ColSpec));
+    Col.OldDataType := GetDatatypeByName(getFirstWord(ColSpec));
+    Delete(ColSpec, 1, Length(getFirstWord(ColSpec)));
 
     // Length / Set
     // Various datatypes, e.g. BLOBs, don't have any length property
