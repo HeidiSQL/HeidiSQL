@@ -493,7 +493,6 @@ type
   end;
 
   TPQConnectStatus = (CONNECTION_OK, CONNECTION_BAD, CONNECTION_STARTED, CONNECTION_MADE, CONNECTION_AWAITING_RESPONSE, CONNECTION_AUTH_OK, CONNECTION_SETENV, CONNECTION_SSL_STARTUP, CONNECTION_NEEDED);
-  TPQPing = (PQPING_OK, PQPING_REJECT, PQPING_NO_RESPONSE, PQPING_NO_ATTEMPT);
   PPGconn = Pointer;
   PPGresult = Pointer;
   POid = Integer;
@@ -719,7 +718,6 @@ var
   PQresultErrorField: function(const Result: PPGresult; fieldcode: Integer): PAnsiChar;
   PQfinish: procedure(const Handle: PPGconn);
   PQstatus: function(const Handle: PPGconn): TPQConnectStatus cdecl;
-  PQping: function(const Handle: PPGconn): TPQPing cdecl;
   PQsendQuery: function(const Handle: PPGconn; command: PAnsiChar): Integer cdecl;
   PQgetResult: function(const Handle: PPGconn): PPGresult cdecl;
   PQbackendPID: function(const Handle: PPGconn): Integer cdecl;
@@ -1965,7 +1963,6 @@ begin
       AssignProc(@PQresultErrorField, 'PQresultErrorField');
       AssignProc(@PQfinish, 'PQfinish');
       AssignProc(@PQstatus, 'PQstatus');
-      AssignProc(@PQping, 'PQping');
       AssignProc(@PQsendQuery, 'PQsendQuery');
       AssignProc(@PQgetResult, 'PQgetResult');
       AssignProc(@PQbackendPID, 'PQbackendPID');
@@ -2098,14 +2095,30 @@ end;
 
 
 function TPGConnection.Ping(Reconnect: Boolean): Boolean;
+var
+  PingResult: PPGResult;
+  IsBroken: Boolean;
+  PingStatus: Integer;
 begin
   Log(lcDebug, 'Ping server ...');
-  if (FHandle=nil) or (PQping(FHandle) <> PQPING_OK) then begin
-    // Be sure to release some stuff before reconnecting
-  //log(lcinfo, 'TPGConnection.Ping reconnect: handle:'+inttostr(integer(FHandle=nil))+' '+inttostr(integer(PQping(FHandle))));
-    //Active := False;
-    //if Reconnect then
-    //  Active := True;
+  if FActive then begin
+    IsBroken := FHandle = nil;
+    if not IsBroken then begin
+      PingStatus := PQsendQuery(FHandle, PAnsiChar(''));
+      IsBroken := PingStatus <> 1;
+      PingResult := PQgetResult(FHandle);
+      while PingResult <> nil do begin
+        PQclear(PingResult);
+        PingResult := PQgetResult(FHandle);
+      end;
+    end;
+
+    if IsBroken then begin
+      // Be sure to release some stuff before reconnecting
+      Active := False;
+      if Reconnect then
+        Active := True;
+    end;
   end;
   Result := FActive;
   // Restart keep-alive timer
