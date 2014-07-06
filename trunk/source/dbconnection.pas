@@ -4180,7 +4180,7 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+(.+),?$';
+  rx.Expression := '^\s+(['+Quotes+'].+),?$';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
   if rx.Exec(CreateTable) then while true do begin
