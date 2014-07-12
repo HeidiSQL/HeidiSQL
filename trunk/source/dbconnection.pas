@@ -378,6 +378,7 @@ type
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
+      function GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
       procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
@@ -3589,6 +3590,32 @@ begin
 end;
 
 
+function TDBConnection.GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
+var
+  dt: TDateTime;
+begin
+  // Return date/time string value as expected by server
+  case Parameters.NetTypeGroup of
+    ngMSSQL: begin
+      dt := StrToDateTime(Input);
+      case Datatype of
+        dtDate:
+          Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy', dt);
+        dtTime:
+          Result := SysUtils.FormatDateTime('hh":"nn":"ss', dt);
+        dtYear:
+          Result := SysUtils.FormatDateTime('yyyy', dt);
+        dtDatetime:
+          Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy hh":"nn":"ss', dt);
+      end;
+    end;
+    else
+      Result := Input;
+  end;
+end;
+
+
+
 procedure TDBConnection.ClearCache(IncludeDBObjects: Boolean);
 begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
@@ -5768,7 +5795,7 @@ begin
           if Datatype(i).Index in [dtNchar, dtNvarchar, dtNtext] then
             Val := 'N' + Connection.EscapeString(Cell.NewText)
           else if (Datatype(i).Index in [dtDate, dtDateTime]) and FConnection.Parameters.IsMSSQL then
-            Val := 'CONVERT(DATETIME, '+Connection.EscapeString(Cell.NewText)+', 120)'
+            Val := Connection.EscapeString(Connection.GetDateTimeValue(Cell.NewText, Datatype(i).Index))
           else
             Val := Connection.EscapeString(Cell.NewText);
         end;
@@ -6070,6 +6097,8 @@ begin
             Result := Result + '=' + ColVal;
           end;
         end;
+        dtcTemporal:
+          Result := Result + '=' + Connection.EscapeString(Connection.GetDateTimeValue(ColVal, DataType(j).Index));
         dtcBinary:
           Result := Result + '=' + HexValue(ColVal);
         else
