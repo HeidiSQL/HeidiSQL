@@ -5794,7 +5794,7 @@ begin
         else begin
           if Datatype(i).Index in [dtNchar, dtNvarchar, dtNtext] then
             Val := 'N' + Connection.EscapeString(Cell.NewText)
-          else if (Datatype(i).Index in [dtDate, dtDateTime]) and FConnection.Parameters.IsMSSQL then
+          else if Datatype(i).Category = dtcTemporal then
             Val := Connection.EscapeString(Connection.GetDateTimeValue(Cell.NewText, Datatype(i).Index))
           else
             Val := Connection.EscapeString(Cell.NewText);
