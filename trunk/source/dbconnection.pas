@@ -3597,16 +3597,21 @@ begin
   // Return date/time string value as expected by server
   case Parameters.NetTypeGroup of
     ngMSSQL: begin
-      dt := StrToDateTime(Input);
-      case Datatype of
-        dtDate:
-          Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy', dt);
-        dtTime:
-          Result := SysUtils.FormatDateTime('hh":"nn":"ss', dt);
-        dtYear:
-          Result := SysUtils.FormatDateTime('yyyy', dt);
-        dtDatetime:
-          Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy hh":"nn":"ss', dt);
+      try
+        dt := StrToDateTime(Input);
+        case Datatype of
+          dtDate:
+            Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy', dt);
+          dtTime:
+            Result := SysUtils.FormatDateTime('hh":"nn":"ss', dt);
+          dtYear:
+            Result := SysUtils.FormatDateTime('yyyy', dt);
+          dtDatetime:
+            Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy hh":"nn":"ss', dt);
+        end;
+      except
+        on E:EConvertError do
+          Result := Input;
       end;
     end;
     else
