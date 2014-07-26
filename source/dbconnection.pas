@@ -399,6 +399,7 @@ type
       property ServerVersionUntouched: String read FServerVersionUntouched;
       function ServerVersionStr: String;
       function ServerVersionInt: Integer;
+      function NdbClusterVersionInt: Integer;
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
       property WarningCount: Cardinal read FWarningCount;
@@ -2882,6 +2883,25 @@ begin
       Result := IntToStr(major) + '.' + IntToStr(minor);
     end;
   end;
+end;
+
+
+function TDBConnection.NdbClusterVersionInt: Integer;
+var
+  rx: TRegExpr;
+  v1, v2: String;
+begin
+  // 5.6.17-ndb-7.3.5
+  Result := 0;
+
+  rx := TRegExpr.Create;
+  rx.Expression := '[\d+\.]+-ndb-(\d+)\.(\d+)\.(\d+)';
+  if rx.Exec(FServerVersionUntouched) then begin
+    Result := StrToIntDef(rx.Match[1], 0) *10000 +
+      StrToIntDef(rx.Match[2], 0) *100 +
+      StrToIntDef(rx.Match[3], 0);
+  end;
+  rx.Free;
 end;
 
 
