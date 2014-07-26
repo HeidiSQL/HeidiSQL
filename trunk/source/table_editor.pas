@@ -1816,7 +1816,9 @@ begin
   treeIndexes.EndEditNode;
   listForeignKeys.EndEditNode;
   if PageControlMain.ActivePage = tabForeignKeys then begin
-    SupportsForeignKeys := LowerCase(comboEngine.Text) = 'innodb';
+    // Foreign keys supported by InnoDB engine and NDB cluster. See http://www.heidisql.com/forum.php?t=16059
+    SupportsForeignKeys := (LowerCase(comboEngine.Text) = 'innodb')
+      or (DBObject.Connection.NdbClusterVersionInt >= 70300);
     ListForeignKeys.Enabled := SupportsForeignKeys;
     tlbForeignKeys.Enabled := SupportsForeignKeys;
     pnlNoForeignKeys.Caption := f_('The selected table engine (%s) does not support foreign keys.', [comboEngine.Text]);
