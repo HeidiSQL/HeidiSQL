@@ -939,13 +939,19 @@ begin
     Screen.Cursor := crHourglass;
     try
       Connection.Active := True;
-      for DB in Connection.AllDatabases do begin
+      if Params.NetTypeGroup = ngPgSQL then
+        Databases := Connection.GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE')
+      else
+        Databases := Connection.AllDatabases;
+      for DB in Databases do begin
         Item := TMenuItem.Create(FPopupDatabases);
         Item.Caption := DB;
         Item.OnClick := MenuDatabasesClick;
         Item.AutoCheck := True;
+        Item.RadioItem := Params.NetTypeGroup = ngPgSQL;
         FPopupDatabases.Items.Add(Item);
       end;
+      Databases.Free;
     except
       // Silence connection errors here - should be sufficient to log them
     end;
@@ -971,12 +977,11 @@ var
   Databases: TStringList;
   SelStart: Integer;
 begin
-  Item := Sender as TMenuItem;
-  Databases := Explode(';', editDatabases.Text);
-  if Item.Checked then
-    Databases.Add(Item.Caption)
-  else
-    Databases.Delete(Databases.IndexOf(Item.Caption));
+  Databases := TStringList.Create;
+  for Item in FPopupDatabases.Items do begin
+    if Item.Checked then
+      Databases.Add(Item.Caption);
+  end;
   SelStart := editDatabases.SelStart;
   editDatabases.Text := implodestr(';', Databases);
   editDatabases.SelStart := SelStart;
@@ -988,16 +993,15 @@ var
   Params: TConnectionParameters;
 begin
   // Autoset default port number as long as that was not modified by user
-  if (not editPort.Modified) and (FLoaded) then begin
-    Params := CurrentParams;
+  Params := CurrentParams;
+  if (not editPort.Modified) and (FLoaded) then
     case Params.NetTypeGroup of
       ngMySQL:
         updownPort.Position := MakeInt(AppSettings.GetDefaultString(asPort));
       ngMSSQL:
         updownPort.Position := 1433;
     end;
-    FreeAndNil(Params);
-  end;
+  FreeAndNil(Params);
   Modification(Sender);
 end;
 
@@ -1097,6 +1101,10 @@ begin
         lblPort.Enabled := False; // Named instance without port
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
+      if Params.NetTypeGroup = ngPgSQL then
+        lblDatabase.Caption := _('Database')+':'
+      else
+        lblDatabase.Caption := _('Databases')+':';
       chkWantSSL.Enabled := Params.NetType = ntMySQL_TCPIP;
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
