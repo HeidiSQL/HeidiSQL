@@ -1788,9 +1788,11 @@ var
 begin
   if Value then begin
     DoBeforeConnect;
+    // Simon Riggs:
+    // "You should connect as "postgres" database by default, with an option to change. Don't use template1"
     dbname := FParameters.AllDatabasesStr;
     if dbname = '' then
-      dbname := 'template1';
+      dbname := 'postgres';
     ConnInfo := 'host='''+FParameters.Hostname+''' '+
       'port='''+IntToStr(FParameters.Port)+''' '+
       'user='''+FParameters.Username+''' ' +
@@ -2967,8 +2969,9 @@ end;
 
 function TPGConnection.GetAllDatabases: TStringList;
 begin
-  Result := inherited;
-  if not Assigned(Result) then begin
+  // In PostgreSQL, we display schemata, not databases.
+  // The AllDatabasesStr is used to set the single database name
+  if not Assigned(FAllDatabases) then begin
     try
       // Query is.schemata when using schemata, for databases use pg_database
       //FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
@@ -2978,8 +2981,8 @@ begin
     except on E:EDatabaseError do
       FAllDatabases := TStringList.Create;
     end;
-    Result := FAllDatabases;
   end;
+  Result := FAllDatabases;
 end;
 
 
