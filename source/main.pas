@@ -3004,6 +3004,7 @@ var
   ObjectList: TDBObjectList;
   Editor: TDBObjectEditor;
   Conn: TDBConnection;
+  DisableForeignKeys: Boolean;
 begin
   Conn := ActiveConnection;
 
@@ -3058,7 +3059,8 @@ begin
   if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtCriticalConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
-      if Conn.ServerVersionInt >= 40014 then
+      DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014);
+      if DisableForeignKeys then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
@@ -3067,7 +3069,7 @@ begin
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
       end;
-      if Conn.ServerVersionInt >= 40014 then
+      if DisableForeignKeys then
         Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
       // Refresh ListTables + dbtree so the dropped tables are gone:
       Conn.ClearDbObjects(ActiveDatabase);
