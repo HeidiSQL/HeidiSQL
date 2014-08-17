@@ -2891,11 +2891,9 @@ end;
 function TDBConnection.NdbClusterVersionInt: Integer;
 var
   rx: TRegExpr;
-  v1, v2: String;
 begin
   // 5.6.17-ndb-7.3.5
   Result := 0;
-
   rx := TRegExpr.Create;
   rx.Expression := '[\d+\.]+-ndb-(\d+)\.(\d+)\.(\d+)';
   if rx.Exec(FServerVersionUntouched) then begin
