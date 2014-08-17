@@ -4014,8 +4014,8 @@ begin
   Results := nil;
   try
     Results := GetResults('SELECT *,'+
-      ' pg_table_size(CONCAT(t.TABLE_SCHEMA, ''.'', t.TABLE_NAME)) AS data_length,'+
-      ' pg_relation_size(CONCAT(t.TABLE_SCHEMA, ''.'', t.TABLE_NAME)) AS index_length,'+
+      ' pg_table_size(t.TABLE_SCHEMA || ''.'' || t.TABLE_NAME) AS data_length,'+
+      ' pg_relation_size(t.TABLE_SCHEMA || ''.'' || t.TABLE_NAME) AS index_length,'+
       ' c.reltuples, obj_description(c.oid) AS comment'+
       ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
       ' LEFT JOIN '+QuoteIdent('pg_class')+' c ON c.relname=t.table_name'+
