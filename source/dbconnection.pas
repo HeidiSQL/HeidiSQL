@@ -385,7 +385,7 @@ type
       procedure ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
-      function GetDatatypeByName(Datatype: String): TDBDatatype;
+      function GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
       function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -1418,22 +1418,25 @@ begin
 end;
 
 
-function TDBConnection.GetDatatypeByName(Datatype: String): TDBDatatype;
+function TDBConnection.GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean): TDBDatatype;
 var
   i: Integer;
   Match: Boolean;
   rx: TRegExpr;
+  Types: String;
 begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   Match := False;
   for i:=0 to High(FDatatypes) do begin
-    Match := AnsiCompareText(FDatatypes[i].Name, Datatype) = 0;
-    if (not Match) and (FDatatypes[i].Names <> '') then begin
-      rx.Expression := '\b('+FDatatypes[i].Names+')\b';
-      Match := rx.Exec(Datatype);
-    end;
+    Types := FDatatypes[i].Name;
+    if FDatatypes[i].Names <> '' then
+      Types := Types + '|' + FDatatypes[i].Names;
+    rx.Expression := '\b('+Types+')\b';
+    Match := rx.Exec(Datatype);
     if Match then begin
+      if DeleteFromSource then
+        Delete(DataType, 1, rx.MatchLen[1]);
       Result := FDatatypes[i];
       break;
     end;
@@ -4249,9 +4252,8 @@ begin
     Col.LengthCustomized := False;
 
     // Datatype
-    Col.DataType := GetDatatypeByName(getFirstWord(ColSpec));
-    Col.OldDataType := GetDatatypeByName(getFirstWord(ColSpec));
-    Delete(ColSpec, 1, Length(getFirstWord(ColSpec)));
+    Col.DataType := GetDatatypeByName(ColSpec, True);
+    Col.OldDataType := Col.DataType;
 
     // Length / Set
     // Various datatypes, e.g. BLOBs, don't have any length property
@@ -4446,7 +4448,7 @@ var
   rx: TRegExpr;
   Col: TTableColumn;
   Results: TDBQuery;
-  SchemaClause: String;
+  SchemaClause, DataType: String;
 begin
   if CreateCode <> '' then begin
     // CREATE
@@ -4496,7 +4498,8 @@ begin
       Columns.Add(Col);
       Col.Name := Results.Col('COLUMN_NAME');
       Col.AllowNull := UpperCase(Results.Col('IS_NULLABLE')) = 'YES';
-      Col.DataType := GetDatatypeByName(Results.Col('DATA_TYPE'));
+      DataType := Results.Col('DATA_TYPE');
+      Col.DataType := GetDatatypeByName(DataType, False);
       if Results.ColExists('COLUMN_TYPE') then begin
         // Use MySQL's proprietary column_type - the only way to get SET and ENUM values
         if rx.Exec(Results.Col('COLUMN_TYPE')) then begin
