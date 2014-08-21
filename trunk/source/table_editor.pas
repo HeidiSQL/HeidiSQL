@@ -733,6 +733,7 @@ var
   FocusedCol: PTableColumn;
   fn, NewNode: PVirtualNode;
   idx: Integer;
+  DefaultType: String;
 begin
   // Add new column after selected one
   if listColumns.IsEditing then
@@ -758,7 +759,8 @@ begin
     NewCol.Collation := '';
   end else begin
     idx := listColumns.RootNodeCount;
-    NewCol.DataType := DBObject.Connection.GetDatatypeByName('INT');
+    DefaultType := 'INT';
+    NewCol.DataType := DBObject.Connection.GetDatatypeByName(DefaultType, False);
     NewCol.Unsigned := False;
     NewCol.AllowNull := True;
     NewCol.DefaultType := cdtNothing;
@@ -1150,7 +1152,7 @@ begin
       Col.Name := NewText;
     end;
     2: begin // Data type
-      Col.DataType := DBObject.Connection.GetDatatypeByName(NewText);
+      Col.DataType := DBObject.Connection.GetDatatypeByName(NewText, False);
       // Reset length/set for column types which don't support that
       if not Col.DataType.HasLength then
         Col.LengthSet := '';
