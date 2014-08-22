@@ -4019,8 +4019,8 @@ begin
       ' pg_relation_size(t.TABLE_SCHEMA || ''.'' || t.TABLE_NAME) AS index_length,'+
       ' c.reltuples, obj_description(c.oid) AS comment'+
       ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
-      ' LEFT JOIN '+QuoteIdent('pg_class')+' c ON c.relname=t.table_name'+
-      ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON (n.oid = c.relnamespace)'+
+      ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON t.table_schema = n.nspname'+
+      ' LEFT JOIN '+QuoteIdent('pg_class')+' c ON n.oid = c.relnamespace AND c.relname=t.table_name'+
       ' WHERE t.'+QuoteIdent('table_schema')+'='+EscapeString(db)  // Use table_schema when using schemata
       );
   except
