@@ -186,7 +186,7 @@ type
     dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit,
+    dtEnum, dtSet, dtBit, dtVarBit,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier,
     dtPoint, dtLinestring, dtPolygon, dtGeometry, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection);
 
@@ -1120,7 +1120,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..16] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..18] of TDBDatatype =
   (
     (
       Index:           dtSmallint;
@@ -1178,6 +1178,30 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtVarBit;
+      NativeTypes:     '1562';
+      Name:            'BIT VARYING';
+      Names:           'bit varying|varbit';
+      Description:     'Variable-length bit string.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtBit;
+      NativeTypes:     '1560';
+      Name:            'BIT';
+      Names:           'bit';
+      Description:     'Fixed-length bit string.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
       Category:        dtcInteger;
     ),
     (
@@ -1240,9 +1264,9 @@ var
     ),
     (
       Index:           dtVarchar;
-      NativeTypes:     '18|19|24|1043|1186|1042|1043|650|869|829|1560|1562';
+      NativeTypes:     '18|19|24|1043|1186|1042|1043|650|869|829';
       Name:            'VARCHAR';
-      Names:           'interval|char|bpchar|varchar|bit|varbit|name|enum|cidr|inet|macaddr|regproc|character varying';
+      Names:           'interval|char|bpchar|varchar|name|enum|cidr|inet|macaddr|regproc|character varying';
       Description:     'Variable-length with limit.';
       HasLength:       True;
       RequiresLength:  False;
