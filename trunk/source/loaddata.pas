@@ -155,7 +155,7 @@ end;
 procedure Tloaddataform.grpParseMethodClick(Sender: TObject);
 var
   ServerWillParse: Boolean;
-  Charset, DefCharset, dbcreate: String;
+  Charset, DefCharset, dbcreate, Item: String;
   v: Integer;
   CharsetTable: TDBQuery;
   rx: TRegExpr;
@@ -188,7 +188,11 @@ begin
       CharsetTable := FConnection.CharsetTable;
       CharsetTable.First;
       while not CharsetTable.Eof do begin
-        comboEncoding.Items.Add(CharsetTable.Col(1) + ' ('+CharsetTable.Col(0)+')');
+        if IsNotEmpty(CharsetTable.Col(0)) then
+          Item := CharsetTable.Col(0);
+        if IsNotEmpty(CharsetTable.Col(1)) then
+          Item := CharsetTable.Col(1) + ' ('+Item+')';
+        comboEncoding.Items.Add(Item);
         if (SelectedCharsetIndex = -1) and (Charset = CharsetTable.Col(0)) then
           SelectedCharsetIndex := comboEncoding.Items.Count-1;
         CharsetTable.Next;
