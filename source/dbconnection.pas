@@ -513,6 +513,7 @@ type
       function GetLastErrorCode: Cardinal; override;
       function GetLastError: String; override;
       function GetAllDatabases: TStringList; override;
+      function GetCharsetTable: TDBQuery; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -3422,6 +3423,18 @@ begin
   if not Assigned(FCharsetTable) then
     FCharsetTable := GetResults('SELECT '+QuoteIdent('name')+' AS '+QuoteIdent('Charset')+', '+QuoteIdent('description')+' AS '+QuoteIdent('Description')+
       ' FROM '+QuotedDbAndTableName('master', 'syscharsets')
+      );
+  Result := FCharsetTable;
+end;
+
+
+function TPgConnection.GetCharsetTable: TDBQuery;
+begin
+  inherited;
+  if not Assigned(FCharsetTable) then
+    FCharsetTable := GetResults('SELECT PG_ENCODING_TO_CHAR('+QuoteIdent('encid')+') AS '+QuoteIdent('Charset')+', '+EscapeString('')+' AS '+QuoteIdent('Description')+' FROM ('+
+      'SELECT '+QuoteIdent('conforencoding')+' AS '+QuoteIdent('encid')+' FROM '+QuoteIdent('pg_conversion')+', '+QuoteIdent('pg_database')+' '+
+      'WHERE '+QuoteIdent('contoencoding')+'='+QuoteIdent('encoding')+' AND '+QuoteIdent('datname')+'=CURRENT_DATABASE()) AS '+QuoteIdent('e')
       );
   Result := FCharsetTable;
 end;
