@@ -4681,9 +4681,12 @@ begin
       Result := Result + IntToStr(Limit);
     end;
     ngPgSQL: begin
-      Result := Result + QueryBody + ' LIMIT ' + IntToStr(Limit);
-      if Offset > 0 then
-        Result := Result + ' OFFSET ' + IntToStr(Offset);
+      if QueryType = 'SELECT' then begin
+        Result := Result + QueryBody + ' LIMIT ' + IntToStr(Limit);
+        if Offset > 0 then
+          Result := Result + ' OFFSET ' + IntToStr(Offset);
+      end else
+        Result := Result + QueryBody;
     end;
   end;
 end;
