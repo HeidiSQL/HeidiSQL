@@ -4696,7 +4696,7 @@ function TDBConnection.LikeClauseTail: String;
 begin
   case FParameters.NetTypeGroup of
     ngMSSQL: Result := ' ESCAPE ' + EscapeString('\');
-    ngMySQL: Result := '';
+    else Result := '';
   end;
 end;
 
