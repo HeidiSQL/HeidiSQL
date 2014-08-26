@@ -188,7 +188,7 @@ type
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
     dtEnum, dtSet, dtBit, dtVarBit,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier,
-    dtPoint, dtLinestring, dtPolygon, dtGeometry, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection);
+    dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection);
 
   // MySQL data type categorization
   TDBDatatypeCategoryIndex = (dtcInteger, dtcReal, dtcText, dtcBinary, dtcTemporal, dtcSpatial, dtcOther);
@@ -1120,7 +1120,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..18] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..25] of TDBDatatype =
   (
     (
       Index:           dtSmallint;
@@ -1341,6 +1341,83 @@ var
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcBinary;
+    ),
+    (
+      Index:           dtPoint;
+      NativeTypes:     '600';
+      Name:            'POINT';
+      Description:     'Point on a plane (x,y). Storage size: 16 bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcSpatial;
+    ),
+    (
+      Index:           dtLinestring;
+      NativeTypes:     '628';
+      Name:            'LINE';
+      Description:     'Infinite line ((x1,y1),(x2,y2)). Storage size: 32 bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcSpatial;
+    ),
+    (
+      Index:           dtLineSegment;
+      NativeTypes:     '601';
+      Name:            'LSEG';
+      Description:     'Finite line segment ((x1,y1),(x2,y2)). Storage size: 32 bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcSpatial;
+    ),
+    (
+      Index:           dtBox;
+      NativeTypes:     '603';
+      Name:            'BOX';
+      Description:     'Rectangular box ((x1,y1),(x2,y2)). Storage size: 32 bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcSpatial;
+    ),
+    (
+      Index:           dtPath;
+      NativeTypes:     '602';
+      Name:            'PATH';
+      Description:     'Closed path (similar to polygon) ((x1,y1),...). Storage size: 16+16n bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcSpatial;
+    ),
+    (
+      Index:           dtPolygon;
+      NativeTypes:     '604';
+      Name:            'POLYGON';
+      Description:     'Closed path (similar to polygon) ((x1,y1),...). Storage size: 40+16n bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcSpatial;
+    ),
+    (
+      Index:           dtCircle;
+      NativeTypes:     '718';
+      Name:            'CIRCLE';
+      Description:     'Circle <(x,y),r> (center point and radius). Storage size: 24 bytes.';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcSpatial;
     )
   );
 
