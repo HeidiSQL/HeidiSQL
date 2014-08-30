@@ -186,9 +186,10 @@ type
     dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit,
+    dtEnum, dtSet, dtBit, dtVarBit, dtBool,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier,
-    dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection);
+    dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
+    );
 
   // MySQL data type categorization
   TDBDatatypeCategoryIndex = (dtcInteger, dtcReal, dtcText, dtcBinary, dtcTemporal, dtcSpatial, dtcOther);
@@ -1120,7 +1121,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..25] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..26] of TDBDatatype =
   (
     (
       Index:           dtSmallint;
@@ -1418,6 +1419,18 @@ var
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcSpatial;
+    ),
+    (
+      Index:           dtBool;
+      NativeTypes:     '16';
+      Name:            'BOOLEAN';
+      Names:           'boolean|bool';
+      Description:     'State of true or false. Storage size: 1 byte.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
     )
   );
 
