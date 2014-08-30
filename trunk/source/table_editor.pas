@@ -573,7 +573,7 @@ begin
         OverrideCollation := comboCollation.Text;
       ColSpec := Col.SQLCode(OverrideCollation);
       // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-      if DBObject.Connection.ServerVersionInt >= 40001 then begin
+      if (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL) and (DBObject.Connection.ServerVersionInt >= 40001) then begin
         if PreviousCol = nil then
           ColSpec := ColSpec + ' FIRST'
         else
