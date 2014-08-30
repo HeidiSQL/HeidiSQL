@@ -5338,6 +5338,8 @@ begin
       SetString(AnsiStr, PQgetvalue(FCurrentResults, FRecNoLocal, Column), FColumnLengths[Column]);
       if Datatype(Column).Category in [dtcBinary, dtcSpatial] then
         Result := String(AnsiStr)
+      else if Datatype(Column).Index = dtbool then
+        if AnsiStr='t' then Result := 'true' else Result := 'false'
       else
         Result := Connection.DecodeAPIString(AnsiStr);
     end;
@@ -5431,8 +5433,12 @@ begin
   Result.QuoteChar := '''';
   Result.Delimiter := ',';
   ColAttr := ColAttributes(Column);
-  if Assigned(ColAttr) and (ColAttr.DataType.Index in [dtEnum, dtSet]) then
-    Result.DelimitedText := ColAttr.LengthSet;
+  if Assigned(ColAttr) then case ColAttr.DataType.Index of
+    dtEnum, dtSet:
+      Result.DelimitedText := ColAttr.LengthSet;
+    dtBool:
+      Result.DelimitedText := 'true,false';
+  end;
 end;
 
 

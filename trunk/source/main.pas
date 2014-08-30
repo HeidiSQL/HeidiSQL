@@ -8548,7 +8548,7 @@ begin
   TypeCat := Results.DataType(Column).Category;
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
-  else if (Results.DataType(Column).Index = dtEnum) and AppSettings.ReadBool(asFieldEditorEnum) then begin
+  else if (Results.DataType(Column).Index in [dtEnum, dtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
     EnumEditor := TEnumEditorLink.Create(VT);
     EnumEditor.ValueList := Results.ValueList(Column);
     EditLink := EnumEditor;
