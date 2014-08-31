@@ -1444,7 +1444,7 @@ begin
   end;
   rx.Free;
   if (not Match) and (FParameters.NetTypeGroup = ngPgSQL) then
-    Result := FDatatypes[11];
+    Result := FDatatypes[0];
 end;
 
 

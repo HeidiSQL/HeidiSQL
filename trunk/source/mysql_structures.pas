@@ -186,7 +186,7 @@ type
     dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit, dtBool,
+    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtUnknown,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
@@ -1121,8 +1121,19 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..26] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..27] of TDBDatatype =
   (
+    (
+      Index:           dtUnknown;
+      NativeTypes:     '99999';
+      Name:            'UNKNOWN';
+      Description:     'Unknown data type';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
+    ),
     (
       Index:           dtSmallint;
       NativeTypes:     '21';
