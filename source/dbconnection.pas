@@ -1433,7 +1433,7 @@ begin
     Types := FDatatypes[i].Name;
     if FDatatypes[i].Names <> '' then
       Types := Types + '|' + FDatatypes[i].Names;
-    rx.Expression := '\b('+Types+')\b';
+    rx.Expression := '^('+Types+')\b';
     Match := rx.Exec(Datatype);
     if Match then begin
       if DeleteFromSource then
