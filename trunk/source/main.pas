@@ -5106,6 +5106,8 @@ begin
         CellText := Obj.Schema + '.' + Obj.Name
       else
         CellText := Obj.Name;
+      if Sender.IsEditing and (Node = Sender.FocusedNode) then
+        CellText := Obj.Name;
     end;
     1: if Obj.Rows > -1 then CellText := FormatNumber(Obj.Rows);
     2: if Obj.Size > -1 then CellText := FormatByteNumber(Obj.Size);
@@ -5648,7 +5650,15 @@ begin
   // Try to rename, on any error abort and don't rename ListItem
   try
     // rename table
-    sql := Obj.Connection.GetSQLSpecifity(spRenameTable);
+    case Obj.NodeType of
+      lntTable:
+        sql := Obj.Connection.GetSQLSpecifity(spRenameTable);
+      lntView:
+        sql := Obj.Connection.GetSQLSpecifity(spRenameView);
+      else
+        raise EDatabaseError.Create('Cannot rename '+Obj.ObjType);
+    end;
+
     sql := Format(sql, [Obj.QuotedName, Obj.Connection.QuoteIdent(NewText)]);
     Obj.Connection.Query(sql);
 

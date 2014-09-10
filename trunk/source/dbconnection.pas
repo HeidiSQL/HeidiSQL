@@ -274,7 +274,7 @@ type
   TDBDataTypeArray = Array of TDBDataType;
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
-    spEmptyTable, spRenameTable, spCurrentUserHost,
+    spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost,
     spAddColumn, spChangeColumn,
     spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
@@ -1874,6 +1874,7 @@ begin
     ngMySQL: begin
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
+      FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
@@ -1885,6 +1886,7 @@ begin
     ngMSSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
       FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
+      FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
@@ -1895,7 +1897,8 @@ begin
     end;
     ngPgSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
-      // FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
+      FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
+      FSQLSpecifities[spRenameView] := 'ALTER VIEW %s RENAME TO %s';
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER';
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
