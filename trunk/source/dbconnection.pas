@@ -4078,12 +4078,15 @@ var
 begin
   // Add object names to additional stringlist
   if Assigned(FObjectNamesInSelectedDB) then begin
+    ObjNames := '';
     if DbObjectsCached(FDatabase) then begin
       Objects := GetDbObjects(FDatabase);
-      for i:=0 to Objects.Count-1 do
-        ObjNames := ObjNames + Objects[i].Name + CRLF;
-    end else
-      ObjNames := '';
+      // Limit slow highlighter to 1000 table names. See http://www.heidisql.com/forum.php?t=16307
+      if Objects.Count < 1000 then begin
+        for i:=0 to Objects.Count-1 do
+          ObjNames := ObjNames + Objects[i].Name + CRLF;
+      end;
+    end;
     if FObjectNamesInSelectedDB.Text <> ObjNames then
       FObjectNamesInSelectedDB.Text := ObjNames;
   end;
