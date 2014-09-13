@@ -1743,6 +1743,13 @@ begin
       rx.Expression := '^([^\r\n]+)';
       if rx.Exec(FServerVersionUntouched) then
         FServerVersionUntouched := rx.Match[1];
+      try
+        // Try to get more exact server version to avoid displaying "20.14" in some cases
+        FServerVersionUntouched := GetVar('SELECT SERVERPROPERTY('+EscapeString('ProductVersion')+')');
+      except
+        // Above query only works on SQL Server 2008 and newer
+        // Keep value from SELECT @@VERSION on older servers
+      end;
       rx.Free;
       FRealHostname := Parameters.Hostname;
 
@@ -2866,6 +2873,12 @@ begin
         v2 := rx.Match[2];
         Result := StrToIntDef(v1, 0) *100 +
           StrToIntDef(v2, 0);
+      end else begin
+        rx.Expression := '(\d+)[,\.](\d+)[,\.](\d+)[,\.](\d+)';
+        if rx.Exec(FServerVersionUntouched) then begin
+          Result := StrToIntDef(rx.Match[1], 0) *100 +
+            StrToIntDef(rx.Match[2], 0);
+        end;
       end;
     end;
   end;
