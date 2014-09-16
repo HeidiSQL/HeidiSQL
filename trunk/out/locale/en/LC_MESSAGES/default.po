@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-06-15 20:06+0100\n"
+"PO-Revision-Date: 2014-09-16 21:13+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -4337,6 +4337,22 @@ msgstr "Settings successfully restored from %s"
 #: main.pas:2142
 msgid "Splitting SQL queries ..."
 msgstr "Splitting SQL queries ..."
+
+#. Query execution
+msgid "Unsafe queries found"
+msgstr "Unsafe queries found"
+
+#. Query execution
+msgid "Checking queries for unsafe UPDATEs/DELETEs ..."
+msgstr "Checking queries for unsafe UPDATEs/DELETEs ..."
+
+#. Query execution
+msgid ""
+"Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please "
+"confirm that you know what you''re doing."
+msgstr ""
+"Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please "
+"confirm that you know what you''re doing."
 
 #: main.pas:2166
 msgid ""
