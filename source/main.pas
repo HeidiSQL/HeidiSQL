@@ -2415,7 +2415,10 @@ var
   Batch: TSQLBatch;
   Tab: TQueryTab;
   BindParamItem: Integer;
-  NewSQL: String;
+  NewSQL, msg, Command: String;
+  Query: TSQLSentence;
+  rx: TRegExpr;
+  ContainsUnsafeQueries, DoExecute: Boolean;
 begin
   Screen.Cursor := crHourGlass;
   Tab := ActiveQueryTab;
@@ -2449,25 +2452,57 @@ begin
     Batch.SQL := NewSQL;
   end;
 
-  EnableProgress(Batch.Count);
-  Tab.ResultTabs.Clear;
-  Tab.tabsetQuery.Tabs.Clear;
-  FreeAndNil(Tab.QueryProfile);
-  ProfileNode := FindNode(Tab.treeHelpers, HELPERNODE_PROFILE, nil);
-  Tab.DoProfile := Assigned(ProfileNode) and (Tab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
-  if Tab.DoProfile then try
-    ActiveConnection.Query('SET profiling=1');
-  except
-    on E:EDatabaseError do begin
-      ErrorDialog(f_('Query profiling requires %s or later, and the server must not be configured with %s.', ['MySQL 5.0.37', '--disable-profiling']), E.Message);
-      Tab.DoProfile := False;
+  DoExecute := True;
+  if AppSettings.ReadBool(asWarnUnsafeUpdates) then begin
+    ShowStatusMsg(_('Checking queries for unsafe UPDATEs/DELETEs ...'));
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    rx.Expression := '\sWHERE\s';
+    ContainsUnsafeQueries := False;
+    for Query in Batch do begin
+      Command := UpperCase(getFirstWord(Query.SQL));
+      if ((Command = 'UPDATE') or (Command = 'DELETE')) and (not rx.Exec(Query.SQL)) then begin
+        ContainsUnsafeQueries := True;
+        Break;
+      end;
+    end;
+    rx.Free;
+    if ContainsUnsafeQueries then begin
+      Screen.Cursor := crDefault;
+      msg := _('Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re doing.');
+      case MessageDialog(_('Unsafe queries found'), msg, mtConfirmation, [mbYes, mbNo], asWarnUnsafeUpdates) of
+        mrYes:
+          DoExecute := True; // Proceed to query execution below
+        mrNo:
+          DoExecute := False;
+      end;
     end;
   end;
 
-  // Start the execution thread
-  Screen.Cursor := crAppStart;
-  Tab.QueryRunning := True;
-  Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch, Tab.Number);
+
+  if DoExecute then begin
+    Screen.Cursor := crHourGlass;
+    EnableProgress(Batch.Count);
+    Tab.ResultTabs.Clear;
+    Tab.tabsetQuery.Tabs.Clear;
+    FreeAndNil(Tab.QueryProfile);
+    ProfileNode := FindNode(Tab.treeHelpers, HELPERNODE_PROFILE, nil);
+    Tab.DoProfile := Assigned(ProfileNode) and (Tab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
+    if Tab.DoProfile then try
+      ActiveConnection.Query('SET profiling=1');
+    except
+      on E:EDatabaseError do begin
+        ErrorDialog(f_('Query profiling requires %s or later, and the server must not be configured with %s.', ['MySQL 5.0.37', '--disable-profiling']), E.Message);
+        Tab.DoProfile := False;
+      end;
+    end;
+
+    // Start the execution thread
+    Screen.Cursor := crAppStart;
+    Tab.QueryRunning := True;
+    Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch, Tab.Number);
+  end;
+
   ValidateQueryControls(Sender);
 end;
 

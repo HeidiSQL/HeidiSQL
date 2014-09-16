@@ -157,7 +157,8 @@ type
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
-    asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory, asPromptSaveFileOnTabClose,
+    asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory,
+    asPromptSaveFileOnTabClose, asWarnUnsafeUpdates,
     asCompletionProposal, asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
@@ -3216,6 +3217,7 @@ begin
   DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets\';
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
+  InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
   InitSetting(asTabsToSpaces,                     'TabsToSpaces',                          0, False);
   InitSetting(asFilterPanel,                      'FilterPanel',                           0, False);
