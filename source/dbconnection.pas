@@ -1666,7 +1666,7 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, Error, NetLib, DataSource, QuotedPassword: String;
+  tmpdb, Error, NetLib, DataSource, QuotedPassword, ServerVersion: String;
   rx: TRegExpr;
   i: Integer;
 begin
@@ -1745,7 +1745,9 @@ begin
         FServerVersionUntouched := rx.Match[1];
       try
         // Try to get more exact server version to avoid displaying "20.14" in some cases
-        FServerVersionUntouched := GetVar('SELECT SERVERPROPERTY('+EscapeString('ProductVersion')+')');
+        ServerVersion := GetVar('SELECT SERVERPROPERTY('+EscapeString('ProductVersion')+')');
+        if ExecRegExpr('(\d+)\.(\d+)\.(\d+)\.(\d+)', ServerVersion) then
+          FServerVersionUntouched := ServerVersion;
       except
         // Above query only works on SQL Server 2008 and newer
         // Keep value from SELECT @@VERSION on older servers
