@@ -4040,14 +4040,19 @@ procedure TPGConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
   obj: TDBObject;
   Results: TDBQuery;
-  tp: String;
+  tp, SchemaTable: String;
 begin
   // Tables, views and procedures
   Results := nil;
   try
+    // See http://www.heidisql.com/forum.php?t=16429
+    if ServerVersionInt >= 70300 then
+      SchemaTable := 'QUOTE_IDENT(t.TABLE_SCHEMA) || '+EscapeString('.')+' || QUOTE_IDENT(t.TABLE_NAME)'
+    else
+      SchemaTable := EscapeString(FQuoteChar)+' || t.TABLE_SCHEMA || '+EscapeString(FQuoteChar+'.'+FQuoteChar)+' || t.TABLE_NAME || '+EscapeString(FQuoteChar);
     Results := GetResults('SELECT *,'+
-      ' pg_table_size(t.TABLE_SCHEMA || ''.'' || t.TABLE_NAME) AS data_length,'+
-      ' pg_relation_size(t.TABLE_SCHEMA || ''.'' || t.TABLE_NAME) AS index_length,'+
+      ' pg_table_size('+SchemaTable+') AS data_length,'+
+      ' pg_relation_size('+SchemaTable+') AS index_length,'+
       ' c.reltuples, obj_description(c.oid) AS comment'+
       ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
       ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON t.table_schema = n.nspname'+
