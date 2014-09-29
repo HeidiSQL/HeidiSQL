@@ -5793,3 +5793,7 @@ msgstr "Could not determine parent form of this %s"
 # Button on update check dialog, appearing right after application start
 msgid "Skip"
 msgstr "Skip"
+
+#. SetCharacterSet()
+msgid "Characterset"
+msgstr "Characterset"
