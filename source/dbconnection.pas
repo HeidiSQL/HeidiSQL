@@ -1332,6 +1332,7 @@ constructor TDBConnection.Create(AOwner: TComponent);
 begin
   inherited;
   FParameters := TConnectionParameters.Create;
+  FStatementNum := 0;
   FRowsFound := 0;
   FRowsAffected := 0;
   FWarningCount := 0;
@@ -1511,7 +1512,6 @@ var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
   Error, tmpdb, FinalHost, FinalSocket, StatusName: String;
-  CurCharset: String;
   sslca, sslkey, sslcert: PAnsiChar;
   PluginDir: AnsiString;
   Vars, Status: TDBQuery;
@@ -1607,10 +1607,18 @@ begin
           '* or to grant you missing privileges.'),
           ['init_connect', 'init_connect']);
       Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
-      CharacterSet := 'utf8';
-      CurCharset := CharacterSet;
-      Log(lcDebug, 'Characterset: '+CurCharset);
-      FIsUnicode := CurCharset = 'utf8';
+      try
+        CharacterSet := 'utf8mb4';
+      except
+        on E:EDatabaseError do try
+          Log(lcError, E.Message);
+          CharacterSet := 'utf8';
+        except
+          on E:EDatabaseError do
+            Log(lcError, E.Message);
+        end;
+      end;
+      Log(lcInfo, _('Characterset')+': '+GetCharacterSet);
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
       Status := GetResults('SHOW STATUS');
@@ -2749,8 +2757,15 @@ end;
   Switch character set
 }
 procedure TMySQLConnection.SetCharacterSet(CharsetName: String);
+var
+  Return: Integer;
 begin
-  mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
+  FStatementNum := 0;
+  Return := mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
+  if Return <> 0 then
+    raise EDatabaseError.Create(LastError)
+  else
+    FIsUnicode := Pos('utf8', LowerCase(CharsetName)) = 1;
 end;
 
 
@@ -2796,6 +2811,7 @@ var
   Msg, Additional: String;
   rx: TRegExpr;
 begin
+  Result := '';
   Msg := DecodeAPIString(mysql_error(FHandle));
   // Find "(errno: 123)" in message and add more meaningful message from perror.exe
   rx := TRegExpr.Create;
@@ -2806,10 +2822,11 @@ begin
       Msg := Msg + CRLF + CRLF + Additional;
   end;
   rx.Free;
-  if FStatementNum = 1 then
-    Result := f_(MsgSQLError, [LastErrorCode, Msg])
-  else
-    Result := f_(MsgSQLErrorMultiStatements, [LastErrorCode, FStatementNum, Msg]);
+  case FStatementNum of
+    0: Result := Msg;
+    1: Result := f_(MsgSQLError, [LastErrorCode, Msg]);
+    else Result := f_(MsgSQLErrorMultiStatements, [LastErrorCode, FStatementNum, Msg]);
+  end;
 end;
 
 
