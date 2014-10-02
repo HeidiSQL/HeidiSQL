@@ -10885,10 +10885,7 @@ begin
       Killer.LogPrefix := _('Helper connection');
       Killer.OnLog := LogSQL;
       Killer.Active := True;
-      KillCommand := 'KILL ';
-      if Killer.ServerVersionInt >= 50000 then
-        KillCommand := KillCommand + 'QUERY ';
-      KillCommand := KillCommand + IntToStr(ActiveConnection.ThreadId);
+      KillCommand := Format(Killer.GetSQLSpecifity(spKillQuery), [ActiveConnection.ThreadId]);
       Killer.Query(KillCommand);
       Killer.Active := False;
       Killer.Free;
