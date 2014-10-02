@@ -278,7 +278,7 @@ type
     spAddColumn, spChangeColumn,
     spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
-    spUSEQuery);
+    spUSEQuery, spKillQuery);
 
   TDBConnection = class(TComponent)
     private
@@ -1899,6 +1899,7 @@ begin
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
+      FSQLSpecifities[spKillQuery] := 'KILL %d';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -1911,6 +1912,7 @@ begin
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_CATALOG';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
+      FSQLSpecifities[spKillQuery] := 'KILL %d';
     end;
     ngPgSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -1923,6 +1925,7 @@ begin
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISTableSchemaCol] := 'table_schema';
       FSQLSpecifities[spUSEQuery] := 'SET SCHEMA %s';
+      FSQLSpecifities[spKillQuery] := 'SELECT pg_cancel_backend(%d)';
     end;
 
   end;
@@ -2057,6 +2060,8 @@ begin
     end;
   end;
 
+  if ServerVersionInt >= 50000 then
+    FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
 end;
 
 
