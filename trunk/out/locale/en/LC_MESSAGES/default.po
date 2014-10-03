@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-10-03 11:59+0100\n"
+"PO-Revision-Date: 2014-10-03 14:40+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2203,6 +2203,10 @@ msgstr "Bulk table editor"
 #: main.dfm:2447
 msgid "Create a trigger"
 msgstr "Create a trigger"
+
+#. Error when reading trigger definition from SHOW CREATE TRIGGER
+msgid "Result from previous query does not contain expected pattern: %s"
+msgstr "Result from previous query does not contain expected pattern: %s"
 
 #. MainForm..ActionList1..actSaveSQL..Hint
 #: main.dfm:2455
