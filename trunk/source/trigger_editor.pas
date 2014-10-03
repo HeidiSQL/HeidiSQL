@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  SynCompletionProposal,
+  SynCompletionProposal, SynRegExpr,
   dbconnection, mysql_structures, helpers, gnugettext, ComCtrls;
 
 type
@@ -88,6 +88,8 @@ var
   DBObjects: TDBObjectList;
   i: Integer;
   Found: Boolean;
+  Body: String;
+  rx: TRegExpr;
 begin
   inherited;
   editName.Text := '';
@@ -117,7 +119,24 @@ begin
         comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
         comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
         comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
-        SynMemoBody.Text := Definitions.Col('Statement');
+        rx := TRegExpr.Create;
+        rx.ModifierI := True;
+        rx.Expression := 'FOR\s+EACH\s+ROW\s+(.+)$';
+        try
+          // "Statement" column from SHOW TRIGGERS does not escape single quotes where required.
+          // See http://www.heidisql.com/forum.php?t=16501
+          Body := DBObject.Connection.GetCreateCode(DBObject.Database, DBObject.Schema, DBObject.Name, lntTrigger);
+          if rx.Exec(Body) then
+            Body := rx.Match[1]
+          else
+            raise EDatabaseError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
+        except
+          on E:EDatabaseError do begin
+            DBObject.Connection.Log(lcError, E.Message);
+            Body := Definitions.Col('Statement');
+          end;
+        end;
+        SynMemoBody.Text := Body;
         Found := True;
         break;
       end;
