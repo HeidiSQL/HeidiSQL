@@ -4027,7 +4027,7 @@ begin
   try
     Results := GetResults('SELECT *, '+SchemaSelect+' AS '+EscapeString('schema')+
       ' FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
-      ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+')');
+      ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+', '+EscapeString('TF')+')');
   except
     on E:EDatabaseError do;
   end;
@@ -4049,7 +4049,7 @@ begin
         obj.NodeType := lntView
       else if tp = 'TR' then
         obj.NodeType := lntTrigger
-      else if tp = 'FN' then
+      else if (tp = 'FN') or (tp = 'TF') then
         obj.NodeType := lntFunction;
       Results.Next;
     end;
