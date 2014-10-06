@@ -1936,7 +1936,6 @@ end;
 procedure TMySQLConnection.DoBeforeConnect;
 begin
   // Init libmysql before actually connecting.
-  // Each connection has its own library handle
   if LibMysqlHandle = 0 then begin
     Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
     LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
