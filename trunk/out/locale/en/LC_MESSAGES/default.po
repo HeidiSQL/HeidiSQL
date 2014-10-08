@@ -1235,8 +1235,8 @@ msgstr "Hides the filter panel"
 msgid "Clear filter"
 msgstr "Clear filter"
 
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabDatabases..Caption
-#: main.dfm:615
+#. Host > Databases tab
+#. Session manager > Settings tabs
 msgid "Databases"
 msgstr "Databases"
 
