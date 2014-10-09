@@ -55,27 +55,41 @@ object ColumnSelectionForm: TColumnSelectionForm
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Sort alphabetically'
     TabOrder = 2
-    OnClick = chkSortClick
+    OnClick = PopulateList
   end
   object chkSelectAll: TCheckBox
     Left = 8
-    Top = 169
-    Width = 168
+    Top = 6
+    Width = 49
     Height = 17
-    Anchors = [akLeft, akRight, akBottom]
-    Caption = 'Select / Deselect all'
+    Hint = 'Select / Deselect all'
+    Caption = 'All'
     TabOrder = 3
     OnClick = chkSelectAllClick
   end
   object chklistColumns: TCheckListBox
-    Left = 0
-    Top = 0
-    Width = 184
-    Height = 163
+    Left = 8
+    Top = 31
+    Width = 168
+    Height = 150
     OnClickCheck = chklistColumnsClickCheck
-    Align = alTop
     Anchors = [akLeft, akTop, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 4
+  end
+  object editFilter: TButtonedEdit
+    Left = 63
+    Top = 4
+    Width = 113
+    Height = 21
+    Anchors = [akLeft, akTop, akRight]
+    Images = MainForm.ImageListMain
+    LeftButton.ImageIndex = 146
+    LeftButton.Visible = True
+    RightButton.ImageIndex = 26
+    TabOrder = 5
+    TextHint = 'Filter'
+    OnChange = PopulateList
+    OnLeftButtonClick = editFilterLeftButtonClick
   end
 end
