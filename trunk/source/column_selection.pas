@@ -3,7 +3,7 @@ unit column_selection;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls,
+  Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, SysUtils,
   helpers, gnugettext, extra_controls;
 
 type
@@ -13,18 +13,22 @@ type
     chkSelectAll: TCheckBox;
     chklistColumns: TCheckListBox;
     chkSort: TCheckBox;
+    editFilter: TButtonedEdit;
     procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure chklistColumnsClickCheck(Sender: TObject);
     procedure chkSelectAllClick(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
-    procedure chkSortClick(Sender: TObject);
+    procedure PopulateList(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDeactivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure editFilterLeftButtonClick(Sender: TObject);
   private
     { Private declarations }
+    FCheckedColumns: TStringList;
+    FLastFilter: String;
   public
     { Public declarations }
   end;
@@ -47,6 +51,7 @@ begin
   TranslateComponent(Self);
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
   Height := AppSettings.ReadInt(asColumnSelectorHeight);
+  FCheckedColumns := TStringList.Create;
 end;
 
 
@@ -54,6 +59,7 @@ procedure TColumnSelectionForm.FormDestroy(Sender: TObject);
 begin
   AppSettings.WriteInt(asColumnSelectorWidth, Width );
   AppSettings.WriteInt(asColumnSelectorHeight, Height );
+  FCheckedColumns.Free;
 end;
 
 
@@ -63,11 +69,18 @@ end;
 procedure TColumnSelectionForm.FormShow(Sender: TObject);
 var
   i: Integer;
+  Col: String;
 begin
+  FCheckedColumns.Clear;
   for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
-    chklistColumns.Items.Add(Mainform.SelectedTableColumns[i].Name);
-    chklistColumns.Checked[i] := (Mainform.DataGridHiddenColumns.Count = 0) or
-      (Mainform.DataGridHiddenColumns.IndexOf(chklistColumns.Items[i]) = -1);
+    Col := Mainform.SelectedTableColumns[i].Name;
+    chklistColumns.Items.Add(Col);
+    if (Mainform.DataGridHiddenColumns.Count = 0) or
+      (Mainform.DataGridHiddenColumns.IndexOf(chklistColumns.Items[i]) = -1)
+      then begin
+      FCheckedColumns.Add(Col);
+      chklistColumns.Checked[i] := True;
+    end;
   end;
 
   // Call check-event to update state of "Select / Deselect all" checkbox
@@ -113,6 +126,18 @@ begin
 end;
 
 
+procedure TColumnSelectionForm.editFilterLeftButtonClick(Sender: TObject);
+begin
+  if IsNotEmpty(editFilter.Text) then begin
+    FLastFilter := editFilter.Text;
+    editFilter.Text := '';
+  end else if IsNotEmpty(FLastFilter) then begin
+    editFilter.Text := FLastFilter;
+    FLastFilter := '';
+  end;
+end;
+
+
 {**
   Click within column list
   Updates state of "Select / deselect all" checkbox
@@ -120,62 +145,49 @@ end;
 procedure TColumnSelectionForm.chklistColumnsClickCheck(Sender: TObject);
 var
   i : Integer;
-  allSelected, noneSelected : Boolean;
+  AllSelected, NoneSelected : Boolean;
 begin
-  allselected := True;
-  noneSelected := True;
-  for i := 0 to chklistColumns.Items.Count - 1 do
-  begin
+  Allselected := True;
+  NoneSelected := True;
+  for i:=0 to chklistColumns.Items.Count-1 do begin
     if chklistColumns.Checked[i] then
-    begin
-      noneSelected := False;
-    end
+      NoneSelected := False
     else
-    begin
-      allSelected := False;
-    end;
+      AllSelected := False;
   end;
-  if noneSelected then
+  if NoneSelected then
     chkSelectAll.State := cbUnchecked
-  else if allSelected then
+  else if AllSelected then
     chkSelectAll.State := cbChecked
   else
     chkSelectAll.State := cbGrayed;
-
 end;
 
 
 {**
   Sort / Unsort the list with fields
 }
-procedure TColumnSelectionForm.chkSortClick(Sender: TObject);
+procedure TColumnSelectionForm.PopulateList(Sender: TObject);
 var
-  checkedfields : TStringList;
   i: Integer;
+  Col: String;
 begin
-  // Memorize checked items in a list
-  checkedfields := TStringList.Create;
-  for i := 0 to chklistColumns.Items.Count - 1 do begin
-    if chklistColumns.Checked[i] then
-      checkedfields.Add(chklistColumns.Items[i]);
-  end;
-
-  chklistColumns.Sorted := TCheckBox(Sender).Checked;
-
   // Setting Sorted to false doesn't resort anything in the list.
   // So we have to add all items again in original order
-  if not chklistColumns.Sorted then begin
-    // Add all fieldnames again
-    chklistColumns.Items.BeginUpdate;
-    chklistColumns.Clear;
-    for i:=0 to Mainform.SelectedTableColumns.Count-1 do
-      chklistColumns.Items.Add(Mainform.SelectedTableColumns[i].Name);
-    chklistColumns.Items.EndUpdate;
+  chklistColumns.Sorted := chkSort.Checked;
+  // Add all fieldnames again
+  chklistColumns.Items.BeginUpdate;
+  chklistColumns.Clear;
+  for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
+    Col := Mainform.SelectedTableColumns[i].Name;
+    if IsEmpty(editFilter.Text) or (Pos(LowerCase(editFilter.Text), LowerCase(Col)) > 0) then
+      chklistColumns.Items.Add(Col);
   end;
+  chklistColumns.Items.EndUpdate;
 
-  // check those which are in the checkedfields list
-  for i := 0 to chklistColumns.Items.Count-1 do begin
-    chklistColumns.Checked[i] := checkedfields.IndexOf( chklistColumns.Items[i] ) > -1;
+  // check those which remembered as checked
+  for i:=0 to chklistColumns.Items.Count-1 do begin
+    chklistColumns.Checked[i] := FCheckedColumns.IndexOf(chklistColumns.Items[i]) > -1;
   end;
 end;
 
