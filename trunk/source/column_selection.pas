@@ -33,8 +33,6 @@ type
     { Public declarations }
   end;
 
-var
-  reg_name : String;
 
 implementation
 
