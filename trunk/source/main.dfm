@@ -1971,6 +1971,9 @@ object MainForm: TMainForm
       object menuSQLHelp1: TMenuItem
         Action = actSQLhelp
       end
+      object menuReadme: TMenuItem
+        Action = actHelp
+      end
       object N8: TMenuItem
         Caption = '-'
       end
@@ -1985,9 +1988,6 @@ object MainForm: TMainForm
       end
       object menuFeaturetracker: TMenuItem
         Action = actWebChangelog
-      end
-      object menuReadme: TMenuItem
-        Action = actReadme
       end
       object menuAbout: TMenuItem
         Action = actAboutBox
@@ -2388,12 +2388,12 @@ object MainForm: TMainForm
       ImageIndex = 68
       OnExecute = actWebbrowse
     end
-    object actReadme: TAction
+    object actHelp: TAction
       Category = 'Various'
-      Caption = 'Readme'
-      Hint = 'Open readme file'
-      ImageIndex = 68
-      OnExecute = actReadmeExecute
+      Caption = 'General help'
+      Hint = 'Generel online help document'
+      ImageIndex = 99
+      OnExecute = actHelpExecute
     end
     object actSaveSQLAs: TAction
       Category = 'SQL'

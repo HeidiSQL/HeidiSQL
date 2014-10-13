@@ -13,9 +13,6 @@ uses
 type
   TAboutBox = class(TForm)
     btnClose: TButton;
-    btnForum: TButton;
-    gboxCredits: TGroupBox;
-    memoCredits: TMemo;
     lblAppName: TLabel;
     lblAppVersion: TLabel;
     lblAppCompiled: TLabel;
@@ -26,6 +23,7 @@ type
     lblDonated: TLabel;
     editDonated: TEdit;
     btnDonatedOK: TButton;
+    lblCredits: TLabel;
     procedure OpenURL(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -54,11 +52,20 @@ end;
 
 procedure TAboutBox.MouseOver(Sender: TObject; Shift: TShiftState;
   X, Y: Integer);
+var
+  i: Integer;
+  lbl: TLabel;
 begin
-  lblAppWebpage.Font.Color := clBlue;
-  if (Sender is TLabel) then
-  begin
-    TLabel(Sender).Font.Color := clRed;
+  for i:=0 to ComponentCount-1 do begin
+    if Components[i] is TLabel then begin
+      lbl := TLabel(Components[i]);
+      if lbl.Font.Color = clRed then
+        lbl.Font.Color := clBlue;
+    end;
+  end;
+  if (Sender is TLabel) then begin
+    lbl := Sender as TLabel;
+    lbl.Font.Color := clRed;
   end;
 end;
 
@@ -96,9 +103,6 @@ begin
 end;
 
 procedure TAboutBox.FormShow(Sender: TObject);
-var
-  ReadMe, Credits: String;
-  rx: TRegExpr;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -118,25 +122,8 @@ begin
   lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion + ' (' + IntToStr(GetExecutableBits) + ' Bit)';
   lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
-  lblAppWebpage.Hint := AppDomain;
-  // Read credits from readme.txt
-  rx := TRegExpr.Create;
-  try
-    ReadMe := ReadTextFile(ExtractFilePath(ParamStr(0)) + 'readme.txt', TEncoding.UTF8);
-    rx.Expression := '\*\*\* Credits\:\s+(\S.+)$';
-    if rx.Exec(ReadMe) then begin
-      Credits := rx.Match[1];
-      // Turn linebreaks into single spaces, and let TMemo.WordWrap insert fitting linebreaks
-      rx.Expression := '(\S)'+CRLF+'(\S)';
-      Credits := rx.Replace(Credits, '${1} ${2}', True);
-      Credits := Trim(Credits);
-      memoCredits.Text := Credits;
-    end;
-  except
-    on E:Exception do
-      memoCredits.Text := E.Message;
-  end;
-  rx.Free;
+  lblAppWebpage.Hint := AppDomain+'?place='+EncodeURLParam(lblAppWebpage.Name);
+  lblCredits.Hint := AppDomain + 'help.php?place='+EncodeURLParam(lblCredits.Name)+'#credits';
 
   Screen.Cursor := crDefault;
 end;

@@ -3,8 +3,8 @@ object AboutBox: TAboutBox
   Top = 105
   BorderStyle = bsDialog
   Caption = 'About'
-  ClientHeight = 462
-  ClientWidth = 607
+  ClientHeight = 315
+  ClientWidth = 481
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,8 +17,8 @@ object AboutBox: TAboutBox
   OnMouseMove = MouseOver
   OnShow = FormShow
   DesignSize = (
-    607
-    462)
+    481
+    315)
   PixelsPerInch = 96
   TextHeight = 13
   object lblAppName: TLabel
@@ -301,7 +301,7 @@ object AboutBox: TAboutBox
   end
   object imgDonate: TImage
     Left = 117
-    Top = 128
+    Top = 152
     Width = 250
     Height = 45
     Cursor = crHandPoint
@@ -1373,14 +1373,32 @@ object AboutBox: TAboutBox
   end
   object lblDonated: TLabel
     Left = 117
-    Top = 179
+    Top = 203
     Width = 210
     Height = 13
     Caption = 'I have donated per following email address:'
   end
+  object lblCredits: TLabel
+    Left = 117
+    Top = 97
+    Width = 34
+    Height = 13
+    Cursor = crHandPoint
+    Caption = 'Credits'
+    Color = clBtnFace
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clBlue
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentColor = False
+    ParentFont = False
+    OnClick = OpenURL
+    OnMouseMove = MouseOver
+  end
   object btnClose: TButton
-    Left = 499
-    Top = 429
+    Left = 373
+    Top = 282
     Width = 100
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1388,31 +1406,23 @@ object AboutBox: TAboutBox
     Caption = 'Close'
     Default = True
     ModalResult = 1
-    TabOrder = 5
-  end
-  object btnForum: TButton
-    Left = 8
-    Top = 429
-    Width = 120
-    Height = 25
-    Action = MainForm.actWebForum
-    Anchors = [akLeft, akBottom]
-    Images = MainForm.ImageListMain
-    TabOrder = 4
-    WordWrap = True
+    TabOrder = 3
+    ExplicitLeft = 499
+    ExplicitTop = 429
   end
   object btnUpdateCheck: TButton
     Left = 117
-    Top = 97
+    Top = 282
     Width = 250
     Height = 25
     Action = MainForm.actUpdateCheck
+    Anchors = [akLeft, akRight, akBottom]
     Images = MainForm.ImageListMain
     TabOrder = 0
   end
   object editDonated: TEdit
     Left = 117
-    Top = 198
+    Top = 222
     Width = 180
     Height = 21
     TabOrder = 1
@@ -1422,32 +1432,11 @@ object AboutBox: TAboutBox
   end
   object btnDonatedOK: TButton
     Left = 303
-    Top = 196
+    Top = 220
     Width = 64
     Height = 25
     Caption = 'OK'
     TabOrder = 2
     OnClick = btnDonatedOKClick
-  end
-  object gboxCredits: TGroupBox
-    Left = 8
-    Top = 227
-    Width = 591
-    Height = 196
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Caption = 'Credits'
-    TabOrder = 3
-    object memoCredits: TMemo
-      Left = 2
-      Top = 15
-      Width = 587
-      Height = 179
-      Align = alClient
-      BorderStyle = bsNone
-      Color = clBtnFace
-      ReadOnly = True
-      ScrollBars = ssVertical
-      TabOrder = 0
-    end
   end
 end

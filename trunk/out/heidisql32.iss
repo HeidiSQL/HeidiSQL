@@ -50,7 +50,7 @@ AppPublisherURL={#WebSite}
 AppSupportURL={#WebSite}forum.php
 AppUpdatesURL={#WebSite}download.php
 AppContact={#ProgNameLower}@anse.de
-AppReadmeFile={app}\readme.txt
+AppReadmeFile=http://www.heidisql.com/help.php?place=installer
 
 CloseApplications=yes
 ShowLanguageDialog=auto
@@ -87,7 +87,6 @@ Type: files; Name: "{app}\function.txt"
 
 [Files]
 Source: "{#ProgNameLower}32.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Flags: ignoreversion
-Source: "readme.txt"; DestDir: "{app}"; Flags: ignoreversion isreadme
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Flags: ignoreversion
@@ -100,7 +99,7 @@ Source: "Snippets\*.sql"; DestDir: "{commonappdata}\{#ProgName}\Snippets";
 
 [Icons]
 Name: "{group}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"
-Name: "{group}\Readme file"; Filename: "{app}\readme.txt"
+Name: "{group}\General help"; Filename: "http://www.heidisql.com/help.php?place=startmenu"
 Name: "{userdesktop}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"; MinVersion: 4,4; Tasks: desktopicon
 
 [Registry]

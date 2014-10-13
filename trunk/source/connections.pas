@@ -105,6 +105,7 @@ type
     lblQueryTimeout: TLabel;
     editQueryTimeout: TEdit;
     updownQueryTimeout: TUpDown;
+    menuMoreGeneralHelp: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
