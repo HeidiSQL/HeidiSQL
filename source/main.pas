@@ -245,7 +245,7 @@ type
     actWebDownloadpage: TAction;
     actWebForum: TAction;
     actWebChangelog: TAction;
-    actReadme: TAction;
+    actHelp: TAction;
     actSaveSQL: TAction;
     actSaveSQLAs: TAction;
     actSaveSQLselection: TAction;
@@ -653,7 +653,7 @@ type
     procedure actQueryFindReplaceExecute(Sender: TObject);
     procedure actQueryStopOnErrorsExecute(Sender: TObject);
     procedure actQueryWordWrapExecute(Sender: TObject);
-    procedure actReadmeExecute(Sender: TObject);
+    procedure actHelpExecute(Sender: TObject);
     procedure actRefreshExecute(Sender: TObject);
     procedure actRemoveFilterExecute(Sender: TObject);
     procedure actSaveSQLExecute(Sender: TObject);
@@ -2043,10 +2043,10 @@ begin
   FreeAndNil(FPreferencesDialog);
 end;
 
-procedure TMainForm.actReadmeExecute(Sender: TObject);
+procedure TMainForm.actHelpExecute(Sender: TObject);
 begin
-  // show readme.txt
-  ShellExec( 'readme.txt', ExtractFilePath(paramstr(0)) );
+  // Display readme document
+  ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam((Sender as TAction).ActionComponent.Name));
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);

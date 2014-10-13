@@ -873,6 +873,7 @@ object connform: Tconnform
     end
   end
   object popupMore: TPopupMenu
+    Images = MainForm.ImageListMain
     Left = 24
     Top = 144
     object Preferences1: TMenuItem
@@ -886,6 +887,9 @@ object connform: Tconnform
     end
     object Exportsettingsfile1: TMenuItem
       Action = MainForm.actExportSettings
+    end
+    object menuMoreGeneralHelp: TMenuItem
+      Action = MainForm.actHelp
     end
     object About1: TMenuItem
       Action = MainForm.actAboutBox
