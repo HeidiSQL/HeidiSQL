@@ -965,8 +965,12 @@ var Node: PVirtualNode;
 begin
   Node := listColumns.FocusedNode;
   btnRemoveColumn.Enabled := listColumns.SelectedCount > 0;
-  btnMoveUpColumn.Enabled := Assigned(Node) and (Node <> listColumns.GetFirst);
-  btnMoveDownColumn.Enabled := Assigned(Node) and (Node <> listColumns.GetLast);
+  btnMoveUpColumn.Enabled := Assigned(Node)
+    and (Node <> listColumns.GetFirst)
+    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+  btnMoveDownColumn.Enabled := Assigned(Node)
+    and (Node <> listColumns.GetLast)
+    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
 
   menuRemoveColumn.Enabled := btnRemoveColumn.Enabled;
   menuMoveUpColumn.Enabled := btnMoveUpColumn.Enabled;
