@@ -2045,8 +2045,8 @@ end;
 
 procedure TMainForm.actHelpExecute(Sender: TObject);
 begin
-  // Display readme document
-  ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam((Sender as TAction).ActionComponent.Name));
+  // Display help document
+  Help(Sender, '');
 end;
 
 procedure TMainForm.FormResize(Sender: TObject);

@@ -13,7 +13,7 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
-  Character, ImgList, System.UITypes;
+  Character, ImgList, System.UITypes, ActnList;
 
 type
 
@@ -322,6 +322,7 @@ type
   function GetSystemImageList: TImageList;
   function GetSystemImageIndex(Filename: String): Integer;
   function GetExecutableBits: Byte;
+  procedure Help(Sender: TObject; Anchor: String);
 
 
 var
@@ -2657,6 +2658,21 @@ begin
 end;
 
 
+procedure Help(Sender: TObject; Anchor: String);
+var
+  Place: String;
+begin
+  // Go to online help page
+  if Sender is TAction then
+    Place := (Sender as TAction).ActionComponent.Name
+  else if Sender is TControl then
+    Place := (Sender as TControl).Name
+  else
+    Place := 'unhandled-'+Sender.ClassName;
+  if IsNotEmpty(Anchor) then
+    Anchor := '#'+Anchor;
+  ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
+end;
 
 
 

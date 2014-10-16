@@ -1,7 +1,7 @@
 object connform: Tconnform
   Left = 288
   Top = 129
-  BorderIcons = [biSystemMenu]
+  BorderIcons = [biSystemMenu, biHelp]
   Caption = 'Session manager'
   ClientHeight = 364
   ClientWidth = 494

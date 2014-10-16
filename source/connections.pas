@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls,
+  VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
   dbconnection, gnugettext;
 
 type
@@ -168,6 +168,8 @@ type
     procedure ValidateControls;
     function NodeSessionNames(Node: PVirtualNode; var RegKey: String): TStringList;
     procedure MenuDatabasesClick(Sender: TObject);
+    procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
+    procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
   public
     { Public declarations }
   end;
@@ -180,6 +182,25 @@ uses Main, helpers, grideditlinks;
 {$I const.inc}
 
 {$R *.DFM}
+
+
+procedure Tconnform.WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ;
+begin
+  if Msg.HitTest = HTHELP then
+    Msg.Result := 0 // "eat" the message
+  else
+    inherited;
+end;
+
+
+procedure Tconnform.WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ;
+begin
+  if Msg.HitTest = HTHELP then begin
+    Msg.Result := 0;
+    Help(Self, 'connecting');
+  end else
+    inherited;
+end;
 
 
 procedure Tconnform.FormCreate(Sender: TObject);
