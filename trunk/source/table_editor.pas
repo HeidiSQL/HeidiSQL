@@ -2275,7 +2275,7 @@ end;
 procedure TfrmTableEditor.btnHelpClick(Sender: TObject);
 begin
   // Help button
-  Mainform.CallSQLHelpWithKeyword('CREATE TABLE');
+  Help(Self, 'createtable');
 end;
 
 
