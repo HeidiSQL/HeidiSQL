@@ -5578,8 +5578,19 @@ end;
 
 
 function TDBQuery.IsNull(Column: String): Boolean;
+var
+  i, idx: Integer;
 begin
-  Result := IsNull(FColumnNames.IndexOf(Column));
+  idx := -1;
+  for i:=0 to FColumnNames.Count-1 do begin
+    if CompareText(Column, FColumnNames[i]) = 0 then begin
+      idx := i;
+      break;
+    end;
+  end;
+  if idx = -1 then
+    raise EDatabaseError.CreateFmt(_('Column "%s" not available.'), [Column]);
+  Result := IsNull(idx);
 end;
 
 
