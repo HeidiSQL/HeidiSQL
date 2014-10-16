@@ -30,6 +30,7 @@ type
     procedure editDonatedEnter(Sender: TObject);
     procedure editDonatedExit(Sender: TObject);
     procedure btnDonatedOKClick(Sender: TObject);
+    procedure lblCreditsClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -123,11 +124,15 @@ begin
   lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
   lblAppWebpage.Hint := AppDomain+'?place='+EncodeURLParam(lblAppWebpage.Name);
-  lblCredits.Hint := AppDomain + 'help.php?place='+EncodeURLParam(lblCredits.Name)+'#credits';
 
   Screen.Cursor := crDefault;
 end;
 
+
+procedure TAboutBox.lblCreditsClick(Sender: TObject);
+begin
+  Help(Sender, 'credits');
+end;
 
 end.
 

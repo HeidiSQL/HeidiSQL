@@ -1393,7 +1393,7 @@ object AboutBox: TAboutBox
     Font.Style = []
     ParentColor = False
     ParentFont = False
-    OnClick = OpenURL
+    OnClick = lblCreditsClick
     OnMouseMove = MouseOver
   end
   object btnClose: TButton
@@ -1407,8 +1407,6 @@ object AboutBox: TAboutBox
     Default = True
     ModalResult = 1
     TabOrder = 3
-    ExplicitLeft = 499
-    ExplicitTop = 429
   end
   object btnUpdateCheck: TButton
     Left = 117
