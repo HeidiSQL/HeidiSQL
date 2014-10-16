@@ -2565,6 +2565,11 @@ begin
         if Cols.Col('IS_NULLABLE') = 'NO' then
           Result := Result + ' NOT';
         Result := Result + ' NULL';
+        if Cols.IsNull('COLUMN_DEFAULT') then
+          Result := Result + ' DEFAULT NULL'
+        else begin
+          Result := Result + ' DEFAULT ' + Cols.Col('COLUMN_DEFAULT');
+        end;
         Result := Result + ',';
         Cols.Next;
       end;
@@ -4427,6 +4432,9 @@ begin
         Col.DefaultText := EscapeString(UnescapeString(Col.DefaultText), False, False);
         Col.DefaultText := StringReplace(Col.DefaultText, '\''', '''', [rfReplaceAll]);
         Delete(ColSpec, 1, i);
+      end else begin
+        Col.DefaultType := cdtText;
+        Col.DefaultText := getFirstWord(ColSpec, False);
       end;
     end;
 

@@ -264,7 +264,7 @@ type
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
-  function getFirstWord( text: String ): String;
+  function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Cardinal; DisplaySeconds: Boolean): String;
@@ -933,7 +933,7 @@ end;
   @param string Given text
   @return string First word-boundary
 }
-function getFirstWord( text: String ): String;
+function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
 var
   i : Integer;
   wordChars, wordCharsFirst : TSysCharSet;
@@ -945,7 +945,10 @@ begin
   // while not breaking getFirstWord in situations where the second
   // or later char can be a number (fx the collation in createdatabase).
   wordChars := ['a'..'z', 'A'..'Z', '0'..'9', '_', '-'];
-  wordCharsFirst := wordChars - ['0'..'9'];
+  if MustStartWithWordChar then
+    wordCharsFirst := wordChars - ['0'..'9']
+  else
+    wordCharsFirst := wordChars;
   i := 1;
 
   // Find beginning of the first word, ignoring non-alphanumeric chars at the very start
