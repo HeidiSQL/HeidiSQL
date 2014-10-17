@@ -3021,9 +3021,9 @@ begin
     try
       // Query is.schemata when using schemata, for databases use pg_database
       //FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
-      FAllDatabases := GetCol('SELECT '+QuoteIdent('schema_name')+
-        ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('schemata')+
-        ' ORDER BY '+QuoteIdent('schema_name'));
+      FAllDatabases := GetCol('SELECT '+QuoteIdent('nspname')+
+        ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+
+        ' ORDER BY '+QuoteIdent('nspname'));
     except on E:EDatabaseError do
       FAllDatabases := TStringList.Create;
     end;
