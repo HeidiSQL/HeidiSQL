@@ -2391,7 +2391,7 @@ object MainForm: TMainForm
     object actHelp: TAction
       Category = 'Various'
       Caption = 'General help'
-      Hint = 'Generel online help document'
+      Hint = 'General online help document'
       ImageIndex = 99
       OnExecute = actHelpExecute
     end

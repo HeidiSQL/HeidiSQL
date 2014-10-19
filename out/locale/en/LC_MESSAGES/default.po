@@ -604,12 +604,12 @@ msgid "Help"
 msgstr "Help"
 
 #. General help action
-msgid "Generel help"
-msgstr "Generel help"
+msgid "General help"
+msgstr "General help"
 
 #. General help action
-msgid "Generel online help document"
-msgstr "Generel online help document"
+msgid "General online help document"
+msgstr "General online help document"
 
 #. frmEventEditor..lblBody..Caption
 #: event_editor.dfm:17
