@@ -119,21 +119,27 @@ begin
         comboTable.ItemIndex := comboTable.Items.IndexOf(Definitions.Col('Table'));
         comboTiming.ItemIndex := comboTiming.Items.IndexOf(UpperCase(Definitions.Col('Timing')));
         comboEvent.ItemIndex := comboEvent.Items.IndexOf(UpperCase(Definitions.Col('Event')));
-        rx := TRegExpr.Create;
-        rx.ModifierI := True;
-        rx.Expression := 'FOR\s+EACH\s+ROW\s+(.+)$';
-        try
-          // "Statement" column from SHOW TRIGGERS does not escape single quotes where required.
-          // See http://www.heidisql.com/forum.php?t=16501
-          Body := DBObject.Connection.GetCreateCode(DBObject.Database, DBObject.Schema, DBObject.Name, lntTrigger);
-          if rx.Exec(Body) then
-            Body := rx.Match[1]
-          else
-            raise EDatabaseError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
-        except
-          on E:EDatabaseError do begin
-            DBObject.Connection.Log(lcError, E.Message);
-            Body := Definitions.Col('Statement');
+        // "Statement" column from SHOW TRIGGERS does not escape single quotes where required.
+        // See http://www.heidisql.com/forum.php?t=16501
+        // But SHOW CREATE TRIGGER was introduced in MySQL 5.1.21
+        // See http://www.heidisql.com/forum.php?t=16662
+        if DBObject.Connection.ServerVersionInt < 50121 then begin
+          Body := Definitions.Col('Statement');
+        end else begin
+          rx := TRegExpr.Create;
+          rx.ModifierI := True;
+          rx.Expression := 'FOR\s+EACH\s+ROW\s+(.+)$';
+          try
+            Body := DBObject.Connection.GetCreateCode(DBObject.Database, DBObject.Schema, DBObject.Name, lntTrigger);
+            if rx.Exec(Body) then
+              Body := rx.Match[1]
+            else
+              raise EDatabaseError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
+          except
+            on E:EDatabaseError do begin
+              DBObject.Connection.Log(lcError, E.Message);
+              Body := Definitions.Col('Statement');
+            end;
           end;
         end;
         SynMemoBody.Text := Body;
