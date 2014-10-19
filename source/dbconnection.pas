@@ -549,6 +549,7 @@ type
       FEditingPrepared: Boolean;
       FUpdateData: TUpdateData;
       FDBObject: TDBObject;
+      FFormatSettings: TFormatSettings;
       procedure SetRecNo(Value: Int64); virtual; abstract;
       procedure SetColumnOrgNames(Value: TStringList);
       procedure SetDBObject(Value: TDBObject);
@@ -4770,6 +4771,7 @@ begin
   FColumnOrgNames.CaseSensitive := True;
   FStoreResult := True;
   FDBObject := nil;
+  FFormatSettings := TFormatSettings.Create('en-US');
 end;
 
 
@@ -5366,7 +5368,12 @@ begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
       try
-        Result := FCurrentResults.Fields[Column].AsString;
+        case Datatype(Column).Category of
+          dtcReal:
+            Result := FloatToStr(FCurrentResults.Fields[Column].AsExtended, FFormatSettings);
+          else
+            Result := FCurrentResults.Fields[Column].AsString;
+        end;
       except
         Result := String(FCurrentResults.Fields[Column].AsAnsiString);
       end;
@@ -5375,7 +5382,7 @@ begin
           Result := '1'
         else
           Result := '0';
-      end;
+      end
     end;
   end else if not IgnoreErrors then
     Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
