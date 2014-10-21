@@ -2611,13 +2611,23 @@ begin
     end;
 
     lntView: begin
-      Result := GetVar('SELECT VIEW_DEFINITION'+
-        ' FROM INFORMATION_SCHEMA.VIEWS'+
-        ' WHERE TABLE_NAME='+EscapeString(Name)+
-        ' AND '+SchemaClauseIS('TABLE')
-        );
-      if FParameters.NetTypeGroup = ngPgSQL then
-        Result := 'CREATE VIEW ' + QuoteIdent(Name) + ' AS ' + Result;
+      case FParameters.NetTypeGroup of
+        ngPgSQL: begin
+          // Prefer pg_catalog tables. See http://www.heidisql.com/forum.php?t=16213#p16685
+          Result := 'CREATE VIEW ' + QuoteIdent(Name) + ' AS ' + GetVar('SELECT '+QuoteIdent('definition')+
+            ' FROM '+QuoteIdent('pg_views')+
+            ' WHERE '+QuoteIdent('viewname')+'='+EscapeString(Name)+
+            ' AND '+QuoteIdent('schemaname')+'='+EscapeString(Schema)
+            );
+        end;
+        else begin
+          Result := GetVar('SELECT VIEW_DEFINITION'+
+            ' FROM INFORMATION_SCHEMA.VIEWS'+
+            ' WHERE TABLE_NAME='+EscapeString(Name)+
+            ' AND '+SchemaClauseIS('TABLE')
+            );
+        end;
+      end;
     end;
 
     lntFunction: begin
