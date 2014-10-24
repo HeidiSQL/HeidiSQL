@@ -2577,14 +2577,40 @@ begin
       Cols.Free;
 
       // Retrieve primary and unique key details from IS
-      Keys := GetResults('SELECT C.CONSTRAINT_NAME, C.CONSTRAINT_TYPE, K.COLUMN_NAME'+
-        ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
-        ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
-        '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
-        '   AND K.TABLE_NAME='+EscapeString(Name)+
-        '   AND '+SchemaClauseIS('K.TABLE')+
-        ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
-        ' ORDER BY K.ORDINAL_POSITION');
+      // For PostgreSQL there seem to be privilege problems in IS.
+      // See http://www.heidisql.com/forum.php?t=16213
+      case Parameters.NetTypeGroup of
+        ngPgSQL: begin
+          Keys := GetResults('SELECT '+QuoteIdent('c')+'.'+QuoteIdent('conname')+' AS '+QuoteIdent('CONSTRAINT_NAME')+', '+
+            'CASE '+QuoteIdent('c')+'.'+QuoteIdent('contype')+' '+
+            'WHEN '+EscapeString('c')+' THEN '+EscapeString('CHECK')+' '+
+            'WHEN '+EscapeString('f')+' THEN '+EscapeString('FOREIGN KEY')+' '+
+            'WHEN '+EscapeString('p')+' THEN '+EscapeString('PRIMARY KEY')+' '+
+            'WHEN '+EscapeString('u')+' THEN '+EscapeString('UNIQUE')+' '+
+            'END AS '+QuoteIdent('CONSTRAINT_TYPE')+', '+
+            QuoteIdent('a')+'.'+QuoteIdent('attname')+' AS '+QuoteIdent('COLUMN_NAME')+' '+
+            'FROM '+QuoteIdent('pg_constraint')+' AS '+QuoteIdent('c')+' '+
+            'LEFT JOIN '+QuoteIdent('pg_class')+' '+QuoteIdent('t')+' ON '+QuoteIdent('c')+'.'+QuoteIdent('conrelid')+'='+QuoteIdent('t')+'.'+QuoteIdent('oid')+' '+
+            'LEFT JOIN '+QuoteIdent('pg_attribute')+' '+QuoteIdent('a')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('oid')+'='+QuoteIdent('a')+'.'+QuoteIdent('attrelid')+' '+
+            'LEFT JOIN '+QuoteIdent('pg_namespace')+' '+QuoteIdent('n')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('relnamespace')+'='+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
+            'WHERE c.contype IN ('+EscapeString('p')+', '+EscapeString('u')+') '+
+            'AND '+QuoteIdent('a')+'.'+QuoteIdent('attnum')+'=ANY('+QuoteIdent('c')+'.'+QuoteIdent('conkey')+') '+
+            'AND '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Schema)+' '+
+            'AND '+QuoteIdent('t')+'.'+QuoteIdent('relname')+'='+EscapeString(Name)+' '+
+            'ORDER BY '+QuoteIdent('a')+'.'+QuoteIdent('attnum')
+            );
+        end;
+        else begin
+          Keys := GetResults('SELECT C.CONSTRAINT_NAME, C.CONSTRAINT_TYPE, K.COLUMN_NAME'+
+            ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
+            ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
+            '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
+            '   AND K.TABLE_NAME='+EscapeString(Name)+
+            '   AND '+SchemaClauseIS('K.TABLE')+
+            ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
+            ' ORDER BY K.ORDINAL_POSITION');
+        end;
+      end;
       ConstraintName := '';
       ColNames := TStringList.Create;
       while not Keys.Eof do begin
