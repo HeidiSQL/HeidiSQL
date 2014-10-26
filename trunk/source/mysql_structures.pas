@@ -815,7 +815,7 @@ var
 
   );
 
-  MSSQLDatatypes: array [0..28] of TDBDatatype =
+  MSSQLDatatypes: array [0..29] of TDBDatatype =
   (
     (
       Index: dtTinyint;
@@ -959,6 +959,16 @@ var
       Index:           dtDatetime;
       Name:            'DATETIME';
       Description:     'Date and time data from January 1, 1753, through December 31, 9999, with an accuracy of three-hundredths of a second, or 3.33 milliseconds.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtDatetime;
+      Name:            'DATETIME2';
+      Description:     'Date and time data from January 1,1 AD through December 31, 9999 AD, with an accuracy of three-hundredths of a second, or 3.33 milliseconds.';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
