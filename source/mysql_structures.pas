@@ -1148,7 +1148,8 @@ var
     ),
     (
       Index:           dtInt;
-      NativeTypes:     '23';
+      // 26 = oid, 28 = xid
+      NativeTypes:     '23|26|28';
       Name:            'INTEGER';
       Names:           'integer|int4|int|oid';
       Description:     'Typical choice for integer. Range: -2147483648 to +2147483647. Storage Size: 4 Bytes.';
