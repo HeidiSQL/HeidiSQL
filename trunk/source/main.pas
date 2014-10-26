@@ -3793,6 +3793,8 @@ begin
         end;
       ngMSSQL:
         Query := 'EXEC ';
+      ngPgSQL:
+        Query := 'SELECT ';
       else
         raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Obj.Connection.Parameters.NetType)]);
     end;
@@ -3814,7 +3816,7 @@ begin
       Parameters.Free;
       ParamValues := '';
       case Obj.Connection.Parameters.NetTypeGroup of
-        ngMySQL:
+        ngMySQL, ngPgSQL:
           ParamValues := '(' + ImplodeStr(', ', Params) + ')';
         ngMSSQL:
           ParamValues := ' ' + ImplodeStr(' ', Params);

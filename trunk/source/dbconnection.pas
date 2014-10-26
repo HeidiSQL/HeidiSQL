@@ -346,6 +346,7 @@ type
       function ExtractIdentifier(var SQL: String): String;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
+      function NativeToNamedColumnType(NativeType: Integer): TDBDatatype;
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
@@ -2529,10 +2530,11 @@ end;
 
 function TDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
-  Cols, Keys: TDBQuery;
+  Cols, Keys, ProcDetails: TDBQuery;
   ConstraintName, MaxLen: String;
-  ColNames: TStringList;
+  ColNames, ArgNames, ArgTypes, Arguments: TStringList;
   Rows: TStringList;
+  i: Integer;
 
   // Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
   // TODO: Does not work on MSSQL 2000
@@ -2665,6 +2667,31 @@ begin
           // Do not use Rows.Text, as the rows already include a trailing linefeed
           Result := implodestr('', Rows);
           Rows.Free;
+        end;
+        ngPgSQL: begin
+          Result := 'CREATE FUNCTION '+QuoteIdent(Name);
+          ProcDetails := GetResults('SELECT '+
+            QuoteIdent('p')+'.'+QuoteIdent('prosrc')+', '+
+            QuoteIdent('p')+'.'+QuoteIdent('proargnames')+', '+
+            QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+', '+
+            QuoteIdent('p')+'.'+QuoteIdent('prorettype')+' '+
+            'FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+' AS '+QuoteIdent('n')+' '+
+            'JOIN '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_proc')+' AS '+QuoteIdent('p')+' ON '+QuoteIdent('p')+'.'+QuoteIdent('pronamespace')+' = '+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
+            'WHERE '+
+            QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Database)+
+            'AND '+QuoteIdent('p')+'.'+QuoteIdent('proname')+'='+EscapeString(Name)
+            );
+          ArgNames := Explode(',', Copy(ProcDetails.Col('proargnames'), 2, Length(ProcDetails.Col('proargnames'))-2));
+          ArgTypes := Explode(',', Copy(ProcDetails.Col('proargtypes'), 2, Length(ProcDetails.Col('proargtypes'))-2));
+          Arguments := TStringList.Create;
+          for i:=0 to ArgNames.Count-1 do begin
+            Arguments.Add(ArgNames[i] + ' ' + NativeToNamedColumnType(MakeInt(ArgTypes[i])).Name);
+          end;
+          Result := Result + '(' + implodestr(',', Arguments) + ') '+
+            'RETURNS '+NativeToNamedColumnType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
+            'AS $$ '+ProcDetails.Col('prosrc')+' $$'
+            // TODO: 'LANGUAGE SQL IMMUTABLE STRICT'
+            ;
         end;
         else begin
           Result := GetVar('SELECT ROUTINE_DEFINITION'+
@@ -4150,6 +4177,56 @@ begin
     end;
     FreeAndNil(Results);
   end;
+
+  // Stored functions. No procedures in PostgreSQL.
+  // See http://dba.stackexchange.com/questions/2357/what-are-the-differences-between-stored-procedures-and-stored-functions
+  try
+    Results := GetResults('SELECT '+QuoteIdent('p')+'.'+QuoteIdent('proname')+' '+
+      'FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+' AS '+QuoteIdent('n')+' '+
+      'JOIN '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_proc')+' AS '+QuoteIdent('p')+' ON '+QuoteIdent('p')+'.'+QuoteIdent('pronamespace')+' = '+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
+      'WHERE '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(db)
+      );
+  except
+    on E:EDatabaseError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('proname');
+      obj.Database := db;
+      obj.NodeType := lntFunction;
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  end;
+
+end;
+
+
+function TDBConnection.NativeToNamedColumnType(NativeType: Integer): TDBDatatype;
+var
+  i: Integer;
+  rx: TRegExpr;
+  TypeFound: Boolean;
+begin
+  rx := TRegExpr.Create;
+  TypeFound := False;
+  for i:=0 to High(Datatypes) do begin
+    if Datatypes[i].NativeTypes = '' then
+      Continue;
+    rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
+    if rx.Exec(IntToStr(NativeType)) then begin
+      Result := Datatypes[i];
+      TypeFound := True;
+      break;
+    end;
+  end;
+  if not TypeFound then begin
+    // Fall back to text type
+    Result := Datatypes[0];
+    Log(lcError, f_('Unknown column type oid #%d.', [NativeType]));
+  end;
 end;
 
 
@@ -5070,7 +5147,7 @@ end;
 
 procedure TPGQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
-  i, j, NumFields: Integer;
+  i, NumFields: Integer;
   NumResults: Integer;
   FieldTypeOID: POid;
   LastResult: PPGresult;
@@ -5119,20 +5196,7 @@ begin
         FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
         FieldTypeOID :=  PQftype(LastResult, i);
         TypeFound := False;
-        for j:=0 to High(FConnection.Datatypes) do begin
-          if FConnection.Datatypes[j].NativeTypes = '' then
-            Continue;
-          rx.Expression := '\b('+FConnection.Datatypes[j].NativeTypes+')\b';
-          if rx.Exec(IntToStr(FieldTypeOID)) then begin
-            FColumnTypes[i] := FConnection.Datatypes[j];
-            TypeFound := True;
-            break;
-          end;
-        end;
-        if not TypeFound then begin
-          // Fall back to text type
-          FColumnTypes[i] := FConnection.Datatypes[11];
-        end;
+        FColumnTypes[i] := FConnection.NativeToNamedColumnType(FieldTypeOID);
       end;
       rx.Free;
       FRecNo := -1;
