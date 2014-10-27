@@ -486,12 +486,17 @@ var
   Node: PVirtualNode;
   IsVirtual: Boolean;
 
-  procedure AddQuery;
+  procedure FinishSpecs;
   begin
     if Specs.Count > 0 then begin
       SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs)) + ';' + CRLF;
       Specs.Clear;
     end;
+  end;
+
+  procedure AddQuery(Query: String);
+  begin
+    SQL := SQL + Format(Query, [DBObject.QuotedName]) + ';' + CRLF;
   end;
 begin
   // Compose ALTER query, called by buttons and for SQL code tab
@@ -509,7 +514,7 @@ begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
       Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(FForeignKeys[i].OldKeyName));
   end;
-  AddQuery;
+  FinishSpecs;
 
   // Special case for removed default values on columns, which can neither be done in
   // ALTER TABLE ... CHANGE COLUMN query, as there is no "no default" clause, nor by
@@ -523,7 +528,7 @@ begin
       then
       Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
   end;
-  AddQuery;
+  FinishSpecs;
 
   if memoComment.Tag = MODIFIEDFLAG then
     Specs.Add('COMMENT=' + esc(memoComment.Text));
@@ -582,14 +587,30 @@ begin
       case DBObject.Connection.Parameters.NetTypeGroup of
         ngMySQL: OldColName := DBObject.Connection.QuoteIdent(Col.OldName);
         ngMSSQL: OldColName := '';
+        // PostgreSQL?? What does this?
       end;
       if Col.Status = esModified then
         Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spChangeColumn), [OldColName, ColSpec]))
       else if Col.Status in [esAddedUntouched, esAddedModified] then
         Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spAddColumn), [ColSpec]));
-      // MSSQL wants one ALTER TABLE query per ADD/CHANGE COLUMN
-      if DBObject.Connection.Parameters.IsMSSQL then
-        AddQuery;
+
+      // MSSQL + Postgres want one ALTER TABLE query per ADD/CHANGE COLUMN
+      case DBObject.Connection.Parameters.NetTypeGroup of
+        ngMySQL:;
+        ngMSSQL: begin
+          FinishSpecs;
+          AddQuery('EXECUTE sp_addextendedproperty '+DBObject.Connection.EscapeString('MS_Description')+', '+
+            DBObject.Connection.EscapeString(Col.Comment)+', '+
+            DBObject.Connection.EscapeString('user')+', '+DBObject.Connection.EscapeString(DBObject.Connection.Parameters.Username)+', '+
+            DBObject.Connection.EscapeString('table')+', '+DBObject.Connection.EscapeString(DBObject.Name)+', '+
+            DBObject.Connection.EscapeString('column')+', '+DBObject.Connection.EscapeString(Col.Name)
+            );
+        end;
+        ngPgSQL: begin
+          FinishSpecs;
+          AddQuery('COMMENT ON COLUMN %s.'+DBObject.Connection.QuoteIdent(Col.Name)+' IS '+DBObject.Connection.EscapeString(Col.Comment));
+        end;
+      end;
     end;
     PreviousCol := Col;
     Node := listColumns.GetNextSibling(Node);
@@ -601,7 +622,7 @@ begin
       Specs.Add('DROP COLUMN '+DBObject.Connection.QuoteIdent(FColumns[i].OldName));
       // MSSQL wants one ALTER TABLE query per DROP COLUMN
       if DBObject.Connection.Parameters.IsMSSQL then
-        AddQuery;
+        FinishSpecs;
     end;
   end;
 
@@ -635,7 +656,7 @@ begin
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
   end;
 
-  AddQuery;
+  FinishSpecs;
 
   Result := TSQLBatch.Create;
   Result.SQL := SQL;
@@ -705,6 +726,19 @@ begin
     SQL := SQL + 'INSERT_METHOD='+comboInsertMethod.Text + CRLF;
   if SynMemoPartitions.GetTextLen > 0 then
     SQL := SQL +  '/*!50100 ' + SynMemoPartitions.Text + ' */';
+  SQL := SQL + ';' + CRLF;
+
+  if DBObject.Connection.Parameters.IsPostgreSQL then begin
+    Node := listColumns.GetFirst;
+    while Assigned(Node) do begin
+      Col := listColumns.GetNodeData(Node);
+      SQL := SQL + 'COMMENT ON COLUMN '+
+        DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
+        ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + CRLF;
+      Node := listColumns.GetNextSibling(Node);
+    end;
+  end;
+
   Result := TSQLBatch.Create;
   Result.SQL := Trim(SQL);
 end;
