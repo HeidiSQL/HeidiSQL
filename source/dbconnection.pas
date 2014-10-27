@@ -2552,10 +2552,34 @@ begin
       Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
 
       // Retrieve column details from IS
-      Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
-        SchemaClauseIS('TABLE') +
-        ' AND TABLE_NAME='+EscapeString(Name)
-        );
+      case Parameters.NetTypeGroup of
+        ngPgSQL: begin
+          Cols := GetResults('SELECT DISTINCT '+
+            '  a.attname AS column_name, '+
+            '  FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, '+
+            '  CASE a.attnotnull WHEN false THEN '+EscapeString('YES')+' ELSE '+EscapeString('NO')+' END AS IS_NULLABLE, '+
+            '  com.description AS column_comment, '+
+            '  def.adsrc AS column_default, '+
+            '  NULL AS character_maximum_length '+
+            'FROM pg_attribute AS a '+
+            'JOIN pg_class AS pgc ON pgc.oid = a.attrelid '+
+            'LEFT JOIN pg_description AS com ON (pgc.oid = com.objoid AND a.attnum = com.objsubid) '+
+            'LEFT JOIN pg_attrdef AS def ON (a.attrelid = def.adrelid AND a.attnum = def.adnum) '+
+            'WHERE '+
+            '  a.attnum > 0 '+
+            '  AND pgc.oid = a.attrelid '+
+            '  AND pg_table_is_visible(pgc.oid) '+
+            '  AND NOT a.attisdropped '+
+            '  AND pgc.relname = '+EscapeString(Name)
+          );
+        end;
+        else begin
+          Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
+            SchemaClauseIS('TABLE') +
+            ' AND TABLE_NAME='+EscapeString(Name)
+            );
+        end;
+      end;
       while not Cols.Eof do begin
         Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
         if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
@@ -2573,6 +2597,9 @@ begin
         else begin
           Result := Result + ' DEFAULT ' + Cols.Col('COLUMN_DEFAULT');
         end;
+        // The following is wrong syntax in PostgreSQL, but helps ParseTableStructure to find the comment
+        if Cols.ColExists('column_comment') then
+          Result := Result + ' COMMENT ' + EscapeString(Cols.Col('column_comment'));
         Result := Result + ',';
         Cols.Next;
       end;
@@ -6658,7 +6685,7 @@ begin
   end;
   if IsVirtual then
     Result := Result + ' AS ('+Expression+') '+Virtuality;
-  if Comment <> '' then
+  if (Comment <> '') and FConnection.Parameters.IsMySQL then
     Result := Result + ' COMMENT '+esc(Comment);
   if Collation <> '' then begin
     Result := Result + ' COLLATE ';
