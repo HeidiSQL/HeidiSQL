@@ -221,6 +221,7 @@ type
       function GetNetTypeGroup: TNetTypeGroup;
       function IsMySQL: Boolean;
       function IsMSSQL: Boolean;
+      function IsPostgreSQL: Boolean;
       function IsMariaDB: Boolean;
       function IsPercona: Boolean;
       function IsTokudb: Boolean;
@@ -1261,6 +1262,12 @@ end;
 function TConnectionParameters.IsMSSQL: Boolean;
 begin
   Result := NetTypeGroup = ngMSSQL;
+end;
+
+
+function TConnectionParameters.IsPostgreSQL: Boolean;
+begin
+  Result := NetTypeGroup = ngPgSQL;
 end;
 
 
