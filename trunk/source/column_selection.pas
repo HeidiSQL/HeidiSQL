@@ -170,6 +170,12 @@ var
   i: Integer;
   Col: String;
 begin
+  // Remember currently selected items
+  FCheckedColumns.Clear;
+  for i:=0 to chklistColumns.Items.Count-1 do begin
+    if chklistColumns.Checked[i] then
+      FCheckedColumns.Add(chklistColumns.Items[i]);
+  end;
   // Setting Sorted to false doesn't resort anything in the list.
   // So we have to add all items again in original order
   chklistColumns.Sorted := chkSort.Checked;
