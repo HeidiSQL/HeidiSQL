@@ -506,7 +506,6 @@ type
     private
       FHandle: PPGconn;
       FLastRawResults: TPGRawResults;
-      FLastErrorHint: String;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       function GetThreadId: Cardinal; override;
