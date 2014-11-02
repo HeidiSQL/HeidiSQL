@@ -4566,7 +4566,7 @@ begin
             Col.DefaultType := cdtCurTSUpdateTS;
         end;
         Delete(ColSpec, 1, rxCol.MatchLen[0]);
-      end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') then begin
+      end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') or (Copy(ColSpec, 1, 2) = '(''') then begin
         InLiteral := True;
         LiteralStart := Pos('''', ColSpec)+1;
         for i:=LiteralStart to Length(ColSpec) do begin
