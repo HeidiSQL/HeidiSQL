@@ -1291,7 +1291,9 @@ begin
 
   // Disable non working default options per data type
   // But leave checked option enabled, regardless of if that is a valid default option or not
-  FRadioCurTS.Enabled := FRadioCurTS.Checked or (FTableColumn.DataType.Index = dtTimestamp);
+  FRadioCurTS.Enabled := FRadioCurTS.Checked
+    or (FTableColumn.DataType.Index = dtTimestamp)
+    or ((FTableColumn.Connection.ServerVersionInt >= 50605) and (FTableColumn.DataType.Index = dtDateTime));
   FCheckCurTS.Enabled := FCheckCurTS.Checked or FRadioCurTS.Enabled;
   FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FTableColumn.DataType.Category = dtcInteger);
 
