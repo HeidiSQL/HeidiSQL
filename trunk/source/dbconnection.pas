@@ -2560,8 +2560,9 @@ begin
       // Retrieve column details from IS
       case Parameters.NetTypeGroup of
         ngPgSQL: begin
-          Cols := GetResults('SELECT DISTINCT '+
-            '  a.attname AS column_name, '+
+          Cols := GetResults('SELECT '+
+            '  DISTINCT a.attname AS column_name, '+
+            '  a.attnum, '+
             '  FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, '+
             '  CASE a.attnotnull WHEN false THEN '+EscapeString('YES')+' ELSE '+EscapeString('NO')+' END AS IS_NULLABLE, '+
             '  com.description AS column_comment, '+
@@ -2576,7 +2577,8 @@ begin
             '  AND pgc.oid = a.attrelid '+
             '  AND pg_table_is_visible(pgc.oid) '+
             '  AND NOT a.attisdropped '+
-            '  AND pgc.relname = '+EscapeString(Name)
+            '  AND pgc.relname = '+EscapeString(Name)+' '+
+            'ORDER BY a.attnum'
           );
         end;
         else begin
