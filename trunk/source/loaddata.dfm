@@ -355,7 +355,7 @@ object loaddataform: Tloaddataform
       Left = 245
       Top = 91
       Width = 23
-      Height = 44
+      Height = 66
       Align = alNone
       Anchors = [akTop, akRight]
       AutoSize = True
@@ -375,7 +375,15 @@ object loaddataform: Tloaddataform
         Top = 22
         Caption = 'btnColDown'
         ImageIndex = 75
+        Wrap = True
         OnClick = btnColMoveClick
+      end
+      object btnCheckAll: TToolButton
+        Left = 0
+        Top = 44
+        Caption = 'Select / Deselect all'
+        ImageIndex = 128
+        OnClick = btnCheckAllClick
       end
     end
   end
