@@ -17,10 +17,12 @@ type
     memoRelease: TMemo;
     memoBuild: TMemo;
     imgDonate: TImage;
+    btnChangelog: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
     procedure btnReleaseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure btnChangelogClick(Sender: TObject);
   private
     { Private declarations }
     ReleaseURL, BuildURL : String;
@@ -176,6 +178,12 @@ end;
 procedure TfrmUpdateCheck.btnReleaseClick(Sender: TObject);
 begin
   ShellExec(APPDOMAIN+'download.php?download=installer');
+end;
+
+
+procedure TfrmUpdateCheck.btnChangelogClick(Sender: TObject);
+begin
+  ShellExec(APPDOMAIN+'download.php?place='+EncodeURLParam(TButton(Sender).Name)+'#nightlybuilds');
 end;
 
 

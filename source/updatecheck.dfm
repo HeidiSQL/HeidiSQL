@@ -1142,7 +1142,7 @@ object frmUpdateCheck: TfrmUpdateCheck
       Left = 6
       Top = 16
       Width = 355
-      Height = 143
+      Height = 113
       Anchors = [akLeft, akTop, akRight, akBottom]
       BorderStyle = bsNone
       Color = clBtnFace
@@ -1151,6 +1151,15 @@ object frmUpdateCheck: TfrmUpdateCheck
       ReadOnly = True
       ScrollBars = ssVertical
       TabOrder = 1
+    end
+    object btnChangelog: TButton
+      Left = 6
+      Top = 130
+      Width = 355
+      Height = 25
+      Caption = 'View changelog'
+      TabOrder = 2
+      OnClick = btnChangelogClick
     end
   end
   object groupRelease: TGroupBox
