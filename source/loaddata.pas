@@ -52,6 +52,7 @@ type
     chkLowPriority: TCheckBox;
     chkLocalNumbers: TCheckBox;
     chkTruncateTable: TCheckBox;
+    btnCheckAll: TToolButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
@@ -67,6 +68,7 @@ type
     procedure comboEncodingSelect(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure chklistColumnsClick(Sender: TObject);
+    procedure btnCheckAllClick(Sender: TObject);
   private
     { Private declarations }
     Encoding: TEncoding;
@@ -616,11 +618,40 @@ end;
 
 
 procedure Tloaddataform.chklistColumnsClick(Sender: TObject);
+var
+  i, CheckedNum: Integer;
 begin
   btnColDown.Enabled := (chklistColumns.ItemIndex > -1)
     and (chklistColumns.ItemIndex < chklistColumns.Count-1);
   btnColUp.Enabled := (chklistColumns.ItemIndex > -1)
     and (chklistColumns.ItemIndex > 0);
+  // Toggle icon when none is selected
+  CheckedNum := 0;
+  for i:=0 to chklistColumns.Items.Count-1 do begin
+    if chklistColumns.Checked[i] then
+      Inc(CheckedNum);
+  end;
+  if CheckedNum < chklistColumns.Items.Count then
+    btnCheckAll.ImageIndex := 128
+  else
+    btnCheckAll.ImageIndex := 127;
+end;
+
+
+procedure Tloaddataform.btnCheckAllClick(Sender: TObject);
+var
+  i, CheckedNum: Integer;
+begin
+  CheckedNum := 0;
+  for i:=0 to chklistColumns.Items.Count-1 do begin
+    if chklistColumns.Checked[i] then
+      Inc(CheckedNum);
+  end;
+  if CheckedNum < chklistColumns.Items.Count then
+    chklistColumns.CheckAll(cbChecked)
+  else
+    chklistColumns.CheckAll(cbUnchecked);
+  chklistColumns.OnClick(Sender);
 end;
 
 
