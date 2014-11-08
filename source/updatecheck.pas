@@ -175,7 +175,7 @@ end;
 }
 procedure TfrmUpdateCheck.btnReleaseClick(Sender: TObject);
 begin
-  ShellExec(ReleaseURL);
+  ShellExec(APPDOMAIN+'download.php?download=installer');
 end;
 
 
