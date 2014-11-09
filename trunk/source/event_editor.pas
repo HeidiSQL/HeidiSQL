@@ -399,14 +399,8 @@ end;
 
 
 procedure TfrmEventEditor.btnHelpClick(Sender: TObject);
-var
-  keyword: String;
 begin
-  if DBObject.Name = '' then
-    keyword := 'CREATE EVENT'
-  else
-    keyword := 'ALTER EVENT';
-  Mainform.CallSQLHelpWithKeyword(keyword);
+  Help(Self, 'createevent');
 end;
 
 

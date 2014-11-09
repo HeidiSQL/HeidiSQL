@@ -115,14 +115,8 @@ end;
   Lookup "Create|Alter View" in SQL help
 }
 procedure TfrmView.btnHelpClick(Sender: TObject);
-var
-  keyword: String;
 begin
-  if DBObject.Name = '' then
-    keyword := 'CREATE VIEW'
-  else
-    keyword := 'ALTER VIEW';
-  Mainform.CallSQLHelpWithKeyword(keyword);
+  Help(Self, 'createview');
 end;
 
 

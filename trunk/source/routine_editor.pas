@@ -564,7 +564,7 @@ end;
 procedure TfrmRoutineEditor.btnHelpClick(Sender: TObject);
 begin
   // Help button
-  Mainform.CallSQLHelpWithKeyword('CREATE PROCEDURE');
+  Help(Self, 'createroutine');
 end;
 
 

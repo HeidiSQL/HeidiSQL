@@ -277,7 +277,7 @@ end;
 
 procedure TfrmTriggerEditor.btnHelpClick(Sender: TObject);
 begin
-  Mainform.CallSQLHelpWithKeyword('TRIGGERS');
+  Help(Self, 'createtrigger');
 end;
 
 
