@@ -2440,7 +2440,7 @@ procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectio
 var
   rx: TRegExpr;
   ExeName, SessName, Host, User, Pass, Socket: String;
-  Port: Integer;
+  Port, NetType: Integer;
   AbsentFiles: TStringList;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -2501,6 +2501,7 @@ begin
 
   // Test if params were passed. If given, override previous values loaded from registry.
   // Enables the user to log into a session with a different, non-stored user: -dSession -uSomeOther
+  NetType := StrToIntDef(GetParamValue('n', 'nettype'), 0);
   Host := GetParamValue('h', 'host');
   User := GetParamValue('u', 'user');
   Pass := GetParamValue('p', 'password');
@@ -2512,6 +2513,12 @@ begin
     if not Assigned(ConnectionParams) then begin
       ConnectionParams := TConnectionParameters.Create;
       ConnectionParams.SessionPath := SessName;
+    end;
+    if NetType <> 0 then ConnectionParams.NetType := TNetType(NetType);
+    try
+      ConnectionParams.GetNetTypeGroup;
+    except
+      ConnectionParams.NetType := ntMySQL_TCPIP;
     end;
     if Host <> '' then ConnectionParams.Hostname := Host;
     if User <> '' then ConnectionParams.Username := User;
