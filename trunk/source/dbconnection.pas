@@ -347,7 +347,7 @@ type
       function ExtractIdentifier(var SQL: String): String;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
-      function NativeToNamedColumnType(NativeType: Integer): TDBDatatype;
+      function NativeToNamedColumnType(NativeType: Integer; Identifier: String=''): TDBDatatype;
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
@@ -2537,7 +2537,7 @@ end;
 function TDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
   Cols, Keys, ProcDetails: TDBQuery;
-  ConstraintName, MaxLen: String;
+  ConstraintName, MaxLen, ArgDataType: String;
   ColNames, ArgNames, ArgTypes, Arguments: TStringList;
   Rows: TStringList;
   i: Integer;
@@ -2717,12 +2717,16 @@ begin
             'AND '+QuoteIdent('p')+'.'+QuoteIdent('proname')+'='+EscapeString(Name)
             );
           ArgNames := Explode(',', Copy(ProcDetails.Col('proargnames'), 2, Length(ProcDetails.Col('proargnames'))-2));
-          ArgTypes := Explode(',', Copy(ProcDetails.Col('proargtypes'), 2, Length(ProcDetails.Col('proargtypes'))-2));
+          ArgTypes := Explode(' ', Copy(ProcDetails.Col('proargtypes'), 2, Length(ProcDetails.Col('proargtypes'))-2));
           Arguments := TStringList.Create;
           for i:=0 to ArgNames.Count-1 do begin
-            Arguments.Add(ArgNames[i] + ' ' + NativeToNamedColumnType(MakeInt(ArgTypes[i])).Name);
+            if ArgTypes.Count > i then
+              ArgDataType := NativeToNamedColumnType(MakeInt(ArgTypes[i]), ArgNames[i]).Name
+            else
+              ArgDataType := '';
+            Arguments.Add(ArgNames[i] + ' ' + ArgDataType);
           end;
-          Result := Result + '(' + implodestr(',', Arguments) + ') '+
+          Result := Result + '(' + implodestr(', ', Arguments) + ') '+
             'RETURNS '+NativeToNamedColumnType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
             'AS $$ '+ProcDetails.Col('prosrc')+' $$'
             // TODO: 'LANGUAGE SQL IMMUTABLE STRICT'
@@ -4239,7 +4243,7 @@ begin
 end;
 
 
-function TDBConnection.NativeToNamedColumnType(NativeType: Integer): TDBDatatype;
+function TDBConnection.NativeToNamedColumnType(NativeType: Integer; Identifier: String=''): TDBDatatype;
 var
   i: Integer;
   rx: TRegExpr;
@@ -4258,9 +4262,12 @@ begin
     end;
   end;
   if not TypeFound then begin
-    // Fall back to text type
+    // Fall back to unknown type
     Result := Datatypes[0];
-    Log(lcError, f_('Unknown column type oid #%d.', [NativeType]));
+    if Identifier <> '' then
+      Log(lcError, f_('Unknown datatype oid #%d for "%s". Fall back to %s.', [NativeType, Identifier, Result.Name]))
+    else
+      Log(lcError, f_('Unknown datatype oid #%d. Fall back to %s.', [NativeType, Result.Name]));
   end;
 end;
 
@@ -5231,7 +5238,7 @@ begin
         FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
         FieldTypeOID :=  PQftype(LastResult, i);
         TypeFound := False;
-        FColumnTypes[i] := FConnection.NativeToNamedColumnType(FieldTypeOID);
+        FColumnTypes[i] := FConnection.NativeToNamedColumnType(FieldTypeOID, FColumnNames[FColumnNames.Count-1]);
       end;
       rx.Free;
       FRecNo := -1;
