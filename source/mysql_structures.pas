@@ -183,7 +183,7 @@ type
   // MySQL data types
   TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint, dtSerial, dtBigSerial,
     dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
-    dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp,
+    dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp, dtInterval,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
     dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtUnknown,
@@ -1131,7 +1131,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..27] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..28] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1287,9 +1287,9 @@ var
     ),
     (
       Index:           dtVarchar;
-      NativeTypes:     '18|19|24|1043|1186|1042|1043|650|869|829';
+      NativeTypes:     '18|19|24|1043|1042|1043|650|869|829';
       Name:            'VARCHAR';
-      Names:           'interval|char|bpchar|varchar|name|enum|cidr|inet|macaddr|regproc|character varying';
+      Names:           'char|bpchar|varchar|name|enum|cidr|inet|macaddr|regproc|character varying';
       Description:     'Variable-length with limit.';
       HasLength:       True;
       RequiresLength:  False;
@@ -1348,6 +1348,17 @@ var
       NativeTypes:     '1082';
       Name:            'DATE';
       Description:     'Calendar date (year, month, day).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtInterval;
+      NativeTypes:     '1186';
+      Name:            'INTERVAL';
+      Description:     'time interval	from -178000000 years to 178000000 years';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
