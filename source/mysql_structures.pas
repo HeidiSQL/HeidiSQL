@@ -1161,7 +1161,7 @@ var
       // 26 = oid, 28 = xid
       NativeTypes:     '23|26|28';
       Name:            'INTEGER';
-      Names:           'integer|int4|int|oid';
+      Names:           'integer|int4|int|oid|xid';
       Description:     'Typical choice for integer. Range: -2147483648 to +2147483647. Storage Size: 4 Bytes.';
       HasLength:       False;
       RequiresLength:  False;
@@ -1276,8 +1276,9 @@ var
     ),
     (
       Index:           dtChar;
-      NativeTypes:     '18';
+      NativeTypes:     '18|1042';
       Name:            'CHAR';
+      Names:           'CHARACTER';
       Description:     'Fixed-length, blank padded.';
       HasLength:       True;
       RequiresLength:  False;
@@ -1287,7 +1288,7 @@ var
     ),
     (
       Index:           dtVarchar;
-      NativeTypes:     '18|19|24|1043|1042|1043|650|869|829';
+      NativeTypes:     '18|19|24|1043|1043|650|869|829';
       Name:            'VARCHAR';
       Names:           'char|bpchar|varchar|name|enum|cidr|inet|macaddr|regproc|character varying';
       Description:     'Variable-length with limit.';
@@ -1299,7 +1300,7 @@ var
     ),
     (
       Index:           dtText;
-      NativeTypes:     '25|1034|22|30|143|629|651|719|791|1000|1028|1040|1041|1115|1182|1183|1185|1187|1231|1263|1270|1561|1563|2201|2207|2211|2949|2951|3643|3644|3645|3735|3770';
+      NativeTypes:     '25|22|30|143|629|651|719|791|1000|1028|1040|1041|1115|1182|1183|1185|1187|1231|1263|1270|1561|1563|2201|2207|2211|2949|2951|3643|3644|3645|3735|3770';
       Name:            'TEXT';
       Names:           'text|int2vector|oidvector|bool';
       Description:     'Variable unlimited length.';
