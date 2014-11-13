@@ -2563,6 +2563,7 @@ begin
           Cols := GetResults('SELECT '+
             '  DISTINCT a.attname AS column_name, '+
             '  a.attnum, '+
+            '  a.atttypid, '+ // Data type oid. See NativeToNamedColumnType()
             '  FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, '+
             '  CASE a.attnotnull WHEN false THEN '+EscapeString('YES')+' ELSE '+EscapeString('NO')+' END AS IS_NULLABLE, '+
             '  com.description AS column_comment, '+
@@ -2589,6 +2590,8 @@ begin
         end;
       end;
       while not Cols.Eof do begin
+        if Cols.ColExists('atttypid') then
+          Log(lcDebug, 'Column "'+Cols.Col('COLUMN_NAME')+'" => oid #'+Cols.Col('atttypid'));
         Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
         if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
           MaxLen := Cols.Col('CHARACTER_MAXIMUM_LENGTH');
