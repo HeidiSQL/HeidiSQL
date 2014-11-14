@@ -1190,7 +1190,7 @@ begin
       Col.Name := NewText;
     end;
     2: begin // Data type
-      Col.DataType := DBObject.Connection.GetDatatypeByName(NewText, False);
+      Col.DataType := DBObject.Connection.GetDatatypeByName(NewText, False, Col.Name);
       // Reset length/set for column types which don't support that
       if not Col.DataType.HasLength then
         Col.LengthSet := '';
