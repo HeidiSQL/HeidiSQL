@@ -347,7 +347,6 @@ type
       function ExtractIdentifier(var SQL: String): String;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
-      function NativeToNamedColumnType(NativeType: Integer; Identifier: String=''): TDBDatatype;
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
@@ -387,7 +386,8 @@ type
       procedure ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
-      function GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean): TDBDatatype;
+      function GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean; Identifier: String=''): TDBDatatype;
+      function GetDatatypeByNativeType(NativeType: Integer; Identifier: String=''): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
       function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
@@ -1428,12 +1428,12 @@ begin
 end;
 
 
-function TDBConnection.GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean): TDBDatatype;
+function TDBConnection.GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean; Identifier: String=''): TDBDatatype;
 var
   i: Integer;
   Match: Boolean;
   rx: TRegExpr;
-  Types: String;
+  Types, tmp: String;
 begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
@@ -1442,18 +1442,62 @@ begin
     Types := FDatatypes[i].Name;
     if FDatatypes[i].Names <> '' then
       Types := Types + '|' + FDatatypes[i].Names;
-    rx.Expression := '^(\"?)('+Types+')(\"?)(\s|\()';
-    Match := rx.Exec(Datatype);
+    rx.Expression := '^('+Types+')\b(\[\])?';
+    Match := rx.Exec(DataType);
     if Match then begin
-      if DeleteFromSource then
-        Delete(DataType, 1, rx.MatchLen[1]+rx.MatchLen[2]+rx.MatchLen[3]);
-      Result := FDatatypes[i];
+      if (FParameters.NetTypeGroup = ngPgSQL) and (rx.MatchLen[2] > 0) then begin
+        // TODO: detect array style datatypes, e.g. TEXT[]
+      end else begin
+        if DeleteFromSource then
+          Delete(DataType, 1, rx.MatchLen[1]);
+        Result := FDatatypes[i];
+        break;
+      end;
+    end;
+  end;
+  if (not Match) and (FParameters.NetTypeGroup = ngPgSQL) then begin
+    // Fall back to unknown type
+    Result := Datatypes[0];
+    rx.Expression := '^(\S+)';
+    if rx.Exec(DataType) then
+      tmp := rx.Match[1]
+    else
+      tmp := DataType;
+    if Identifier <> '' then
+      Log(lcError, f_('Unknown datatype "%s" for "%s". Fall back to %s.', [tmp, Identifier, Result.Name]))
+    else
+      Log(lcError, f_('Unknown datatype "%s". Fall back to %s.', [tmp, Result.Name]));
+  end;
+  rx.Free;
+end;
+
+
+function TDBConnection.GetDatatypeByNativeType(NativeType: Integer; Identifier: String=''): TDBDatatype;
+var
+  i: Integer;
+  rx: TRegExpr;
+  TypeFound: Boolean;
+begin
+  rx := TRegExpr.Create;
+  TypeFound := False;
+  for i:=0 to High(Datatypes) do begin
+    if Datatypes[i].NativeTypes = '' then
+      Continue;
+    rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
+    if rx.Exec(IntToStr(NativeType)) then begin
+      Result := Datatypes[i];
+      TypeFound := True;
       break;
     end;
   end;
-  rx.Free;
-  if (not Match) and (FParameters.NetTypeGroup = ngPgSQL) then
-    Result := FDatatypes[0];
+  if not TypeFound then begin
+    // Fall back to unknown type
+    Result := Datatypes[0];
+    if Identifier <> '' then
+      Log(lcError, f_('Unknown datatype oid #%d for "%s". Fall back to %s.', [NativeType, Identifier, Result.Name]))
+    else
+      Log(lcError, f_('Unknown datatype oid #%d. Fall back to %s.', [NativeType, Result.Name]));
+  end;
 end;
 
 
@@ -2537,7 +2581,7 @@ end;
 function TDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
   Cols, Keys, ProcDetails: TDBQuery;
-  ConstraintName, MaxLen, ArgDataType: String;
+  ConstraintName, MaxLen, DataType: String;
   ColNames, ArgNames, ArgTypes, Arguments: TStringList;
   Rows: TStringList;
   i: Integer;
@@ -2563,7 +2607,7 @@ begin
           Cols := GetResults('SELECT '+
             '  DISTINCT a.attname AS column_name, '+
             '  a.attnum, '+
-            '  a.atttypid, '+ // Data type oid. See NativeToNamedColumnType()
+            '  a.atttypid, '+ // Data type oid. See GetDatatypeByNativeType()
             '  FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, '+
             '  CASE a.attnotnull WHEN false THEN '+EscapeString('YES')+' ELSE '+EscapeString('NO')+' END AS IS_NULLABLE, '+
             '  com.description AS column_comment, '+
@@ -2592,7 +2636,9 @@ begin
       while not Cols.Eof do begin
         if Cols.ColExists('atttypid') then
           Log(lcDebug, 'Column "'+Cols.Col('COLUMN_NAME')+'" => oid #'+Cols.Col('atttypid'));
-        Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + UpperCase(Cols.Col('DATA_TYPE'));
+        DataType := Cols.Col('DATA_TYPE');
+        DataType := DataType.ToUpper.DeQuotedString('"');
+        Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + DataType;
         if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
           MaxLen := Cols.Col('CHARACTER_MAXIMUM_LENGTH');
           if MaxLen = '-1' then
@@ -2724,13 +2770,13 @@ begin
           Arguments := TStringList.Create;
           for i:=0 to ArgNames.Count-1 do begin
             if ArgTypes.Count > i then
-              ArgDataType := NativeToNamedColumnType(MakeInt(ArgTypes[i]), ArgNames[i]).Name
+              DataType := GetDatatypeByNativeType(MakeInt(ArgTypes[i]), ArgNames[i]).Name
             else
-              ArgDataType := '';
-            Arguments.Add(ArgNames[i] + ' ' + ArgDataType);
+              DataType := '';
+            Arguments.Add(ArgNames[i] + ' ' + DataType);
           end;
           Result := Result + '(' + implodestr(', ', Arguments) + ') '+
-            'RETURNS '+NativeToNamedColumnType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
+            'RETURNS '+GetDatatypeByNativeType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
             'AS $$ '+ProcDetails.Col('prosrc')+' $$'
             // TODO: 'LANGUAGE SQL IMMUTABLE STRICT'
             ;
@@ -4246,35 +4292,6 @@ begin
 end;
 
 
-function TDBConnection.NativeToNamedColumnType(NativeType: Integer; Identifier: String=''): TDBDatatype;
-var
-  i: Integer;
-  rx: TRegExpr;
-  TypeFound: Boolean;
-begin
-  rx := TRegExpr.Create;
-  TypeFound := False;
-  for i:=0 to High(Datatypes) do begin
-    if Datatypes[i].NativeTypes = '' then
-      Continue;
-    rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
-    if rx.Exec(IntToStr(NativeType)) then begin
-      Result := Datatypes[i];
-      TypeFound := True;
-      break;
-    end;
-  end;
-  if not TypeFound then begin
-    // Fall back to unknown type
-    Result := Datatypes[0];
-    if Identifier <> '' then
-      Log(lcError, f_('Unknown datatype oid #%d for "%s". Fall back to %s.', [NativeType, Identifier, Result.Name]))
-    else
-      Log(lcError, f_('Unknown datatype oid #%d. Fall back to %s.', [NativeType, Result.Name]));
-  end;
-end;
-
-
 procedure TDBConnection.SetObjectNamesInSelectedDB;
 var
   i: Integer;
@@ -4476,7 +4493,7 @@ begin
     Col.LengthCustomized := False;
 
     // Datatype
-    Col.DataType := GetDatatypeByName(ColSpec, True);
+    Col.DataType := GetDatatypeByName(ColSpec, True, Col.Name);
     Col.OldDataType := Col.DataType;
 
     // Length / Set
@@ -4726,7 +4743,7 @@ begin
       Col.Name := Results.Col('COLUMN_NAME');
       Col.AllowNull := UpperCase(Results.Col('IS_NULLABLE')) = 'YES';
       DataType := Results.Col('DATA_TYPE');
-      Col.DataType := GetDatatypeByName(DataType, False);
+      Col.DataType := GetDatatypeByName(DataType, False, Col.Name);
       if Results.ColExists('COLUMN_TYPE') then begin
         // Use MySQL's proprietary column_type - the only way to get SET and ENUM values
         if rx.Exec(Results.Col('COLUMN_TYPE')) then begin
@@ -5241,7 +5258,7 @@ begin
         FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
         FieldTypeOID :=  PQftype(LastResult, i);
         TypeFound := False;
-        FColumnTypes[i] := FConnection.NativeToNamedColumnType(FieldTypeOID, FColumnNames[FColumnNames.Count-1]);
+        FColumnTypes[i] := FConnection.GetDatatypeByNativeType(FieldTypeOID, FColumnNames[FColumnNames.Count-1]);
       end;
       rx.Free;
       FRecNo := -1;

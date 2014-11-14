@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2014-11-13 19:40+0100\n"
+"PO-Revision-Date: 2014-11-14 18:02+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -5818,3 +5818,11 @@ msgstr "Unknown datatype oid #%d. Fall back to %s."
 #. Error happening when facing unknown native data types, mainly in PostgreSQL tables and routines. Name of column or argument passed here as a hint for the user.
 msgid "Unknown datatype oid #%d for \"%s\". Fall back to %s."
 msgstr "Unknown datatype oid #%d for \"%s\". Fall back to %s."
+
+#. Error happening when facing unknown named data types.
+msgid "Unknown datatype \"%s\" for \"%s\". Fall back to %s."
+msgstr "Unknown datatype \"%s\" for \"%s\". Fall back to %s."
+
+#. Error happening when facing unknown named data types. Name of column or argument passed here as a hint for the user.
+msgid "Unknown datatype \"%s\". Fall back to %s."
+msgstr "Unknown datatype \"%s\". Fall back to %s."

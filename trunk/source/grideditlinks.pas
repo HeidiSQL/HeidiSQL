@@ -1505,7 +1505,7 @@ begin
   FTreeSelect.Font.Size := FCellFont.Size;
 
   // Find and select current datatype in tree
-  dt := FTableColumn.Connection.GetDataTypeByName(FCellText, False);
+  dt := FTableColumn.Connection.GetDataTypeByName(FCellText, False, FTableColumn.Name);
   CatNode := FTreeSelect.GetFirst;
   while Assigned(CatNode) do begin
     // Since recent update to VT 5.2.1 we need to initialize root nodes by hand for some reason:
@@ -1629,7 +1629,7 @@ begin
     FMemoHelp.Width := Min(250, FTreeSelect.Left);
     FMemoHelp.Left := FTreeSelect.Left - FMemoHelp.Width + (Integer(FTreeSelect.Indent) Div 2);
     FMemoHelp.Top := FTreeSelect.Top + R.Top + 3;
-    FMemoHelp.Text := FTableColumn.Connection.GetDatatypeByName(NodeText, False).Description;
+    FMemoHelp.Text := FTableColumn.Connection.GetDatatypeByName(NodeText, False, FTableColumn.Name).Description;
     // Calc height of memo
     bmp := TBitMap.Create;
     bmp.Canvas.Font.Assign(FMemoHelp.Font);
