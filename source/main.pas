@@ -1016,6 +1016,8 @@ type
     FGridPasting: Boolean;
     FHasDonatedDatabaseCheck: TThreeStateBoolean;
     FFocusedTables: TDBObjectList;
+    FCaptions: TStringList;
+    FLastCaptionChange: Cardinal;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1650,6 +1652,12 @@ begin
   end;
   FHasDonatedDatabaseCheck := nbUnset;
   btnDonate.Visible := HasDonated(True) <> nbTrue;
+  FCaptions := Explode(',',
+    f_('Become a donor of the %s project', [AppName])+','+
+    _('Donate')+','+
+    _('Send a donation')+','+
+    f_('Donate to the %s project', [AppName])
+    );
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
@@ -11575,6 +11583,18 @@ begin
   tabsetQueryMouseLeave(Sender);
 end;
 
+
+procedure TMainForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+var
+  i: Integer;
+begin
+  if FLastCaptionChange < GetTickCount-10000 then begin
+    Randomize;
+    i := RandomRange(0, FCaptions.Count);
+    btnDonate.Caption := FCaptions[i];
+    FLastCaptionChange := GetTickCount;
+  end;
+end;
 
 procedure TMainForm.ApplicationDeActivate(Sender: TObject);
 begin
