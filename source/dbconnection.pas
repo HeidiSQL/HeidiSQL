@@ -1430,7 +1430,7 @@ end;
 
 function TDBConnection.GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean; Identifier: String=''): TDBDatatype;
 var
-  i: Integer;
+  i, MatchLen: Integer;
   Match: Boolean;
   rx: TRegExpr;
   Types, tmp: String;
@@ -1438,24 +1438,30 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   Match := False;
+  MatchLen := 0;
   for i:=0 to High(FDatatypes) do begin
     Types := FDatatypes[i].Name;
     if FDatatypes[i].Names <> '' then
       Types := Types + '|' + FDatatypes[i].Names;
     rx.Expression := '^('+Types+')\b(\[\])?';
     Match := rx.Exec(DataType);
-    if Match then begin
+    // Prefer a later match which is longer than the one found before.
+    // See http://www.heidisql.com/forum.php?t=17061
+    if Match and (rx.MatchLen[1] > MatchLen) then begin
       if (FParameters.NetTypeGroup = ngPgSQL) and (rx.MatchLen[2] > 0) then begin
         // TODO: detect array style datatypes, e.g. TEXT[]
       end else begin
-        if DeleteFromSource then
-          Delete(DataType, 1, rx.MatchLen[1]);
+        MatchLen := rx.MatchLen[1];
         Result := FDatatypes[i];
-        break;
       end;
     end;
   end;
-  if (not Match) and (FParameters.NetTypeGroup = ngPgSQL) then begin
+
+  if (MatchLen > 0) and DeleteFromSource then begin
+    Delete(DataType, 1, MatchLen);
+  end;
+
+  if (MatchLen = 0) and (FParameters.NetTypeGroup = ngPgSQL) then begin
     // Fall back to unknown type
     Result := Datatypes[0];
     rx.Expression := '^(\S+)';
