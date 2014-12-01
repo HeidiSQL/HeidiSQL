@@ -4653,6 +4653,7 @@ var
   c: TTableColumn;
   OldScrollOffset: TPoint;
   DBObj: TDBObject;
+  rx: TRegExpr;
 
   procedure InitColumn(idx: Integer; TblCol: TTableColumn);
   var
@@ -4785,9 +4786,12 @@ begin
 
     // Append WHERE clause, and gracefully allow superfluous WHERE from user input
     if SynMemoFilter.GetTextLen > 0 then begin
-      if UpperCase(getFirstWord(SynMemoFilter.Text)) <> 'WHERE' then
-        Select := Select + ' WHERE';
-      Select := Select + ' ' + SynMemoFilter.Text;
+      rx := TRegExpr.Create;
+      rx.ModifierI := True;
+      rx.Expression := '^\s*WHERE\s+';
+      SynMemoFilter.Text := rx.Replace(SynMemoFilter.Text, '');
+      rx.Free;
+      Select := Select + ' WHERE ' + SynMemoFilter.Text;
       tbtnDataFilter.ImageIndex := 108;
     end else
       tbtnDataFilter.ImageIndex := 107;
