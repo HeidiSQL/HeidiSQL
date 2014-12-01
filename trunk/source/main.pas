@@ -5796,7 +5796,7 @@ begin
   if Filter <> '' then begin
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
-    if KeyPressed(VK_SHIFT) then
+    if KeyPressed(VK_SHIFT) and (Pos(Filter, SynmemoFilter.Text) = 0) and (Pos(SynmemoFilter.Text, Filter) = 0) then
       SynmemoFilter.SelText := SynmemoFilter.Text + ' AND ' + Filter
     else
       SynmemoFilter.SelText := Filter;
@@ -6272,7 +6272,7 @@ var
   Data: TDBQuery;
   DbObj: TDBObject;
   Conn: TDBConnection;
-  Col: String;
+  Col, Query: String;
   TableCol: TTableColumn;
   Item: TMenuItem;
   i: Integer;
@@ -6293,10 +6293,11 @@ begin
   Conn := DbObj.Connection;
   MaxSize := SIZE_GB;
   if DbObj.Size < MaxSize then begin
-    Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT',
-      Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName+' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col),
-      30,
-      0));
+    Query := Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
+    if SynMemoFilter.Text <> '' then
+      Query := Query + ' WHERE ' + SynMemoFilter.Text;
+    Query := Query + ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col);
+    Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT', Query, 30, 0));
     for i:=0 to Data.RecordCount-1 do begin
       if QFvalues.Count > i then
         Item := QFvalues[i]
@@ -6309,6 +6310,12 @@ begin
       else
         Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
       Item.Caption := sstr(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
+      if SynMemoFilter.Text <> '' then begin
+        if Pos(Item.Hint, SynMemoFilter.Text) > 0 then
+          Item.Hint := SynMemoFilter.Text
+        else
+          Item.Hint := SynMemoFilter.Text + ' AND ' + Item.Hint;
+      end;
       Item.OnClick := QuickFilterClick;
       Data.Next;
     end;
