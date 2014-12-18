@@ -4795,6 +4795,7 @@ begin
       tbtnDataFilter.ImageIndex := 108;
     end else
       tbtnDataFilter.ImageIndex := 107;
+    SynMemoFilter.OnStatusChange(SynMemoFilter, []);
 
     // Append ORDER clause
     if Length(DataGridSortColumns) > 0 then begin
