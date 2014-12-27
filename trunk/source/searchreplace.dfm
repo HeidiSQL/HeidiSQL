@@ -1,11 +1,13 @@
 object frmSearchReplace: TfrmSearchReplace
   Left = 0
   Top = 0
-  BorderStyle = bsDialog
+  BorderIcons = []
   Caption = 'Search and replace text'
-  ClientHeight = 290
-  ClientWidth = 388
+  ClientHeight = 282
+  ClientWidth = 384
   Color = clBtnFace
+  Constraints.MinHeight = 320
+  Constraints.MinWidth = 400
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -17,8 +19,8 @@ object frmSearchReplace: TfrmSearchReplace
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    388
-    290)
+    384
+    282)
   PixelsPerInch = 96
   TextHeight = 13
   object lblSearch: TLabel
@@ -32,7 +34,7 @@ object frmSearchReplace: TfrmSearchReplace
   object lblReplaceHint: TLabel
     Left = 90
     Top = 87
-    Width = 259
+    Width = 255
     Height = 13
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Replacement can have \n for new lines and \t for tabs'
@@ -47,8 +49,8 @@ object frmSearchReplace: TfrmSearchReplace
     Caption = 'Search in:'
   end
   object btnCancel: TButton
-    Left = 305
-    Top = 257
+    Left = 301
+    Top = 249
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -58,8 +60,8 @@ object frmSearchReplace: TfrmSearchReplace
     TabOrder = 10
   end
   object btnReplaceAll: TButton
-    Left = 224
-    Top = 257
+    Left = 220
+    Top = 249
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -67,7 +69,6 @@ object frmSearchReplace: TfrmSearchReplace
     ModalResult = 12
     TabOrder = 9
     OnClick = DoSearchReplace
-    ExplicitTop = 223
   end
   object chkReplace: TCheckBox
     Left = 8
@@ -81,7 +82,7 @@ object frmSearchReplace: TfrmSearchReplace
   object comboSearch: TComboBox
     Left = 90
     Top = 37
-    Width = 290
+    Width = 286
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
@@ -92,7 +93,7 @@ object frmSearchReplace: TfrmSearchReplace
   object comboReplace: TComboBox
     Left = 90
     Top = 62
-    Width = 290
+    Width = 286
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     Enabled = False
@@ -104,7 +105,7 @@ object frmSearchReplace: TfrmSearchReplace
   object grpOptions: TGroupBox
     Left = 8
     Top = 109
-    Width = 372
+    Width = 368
     Height = 69
     Anchors = [akLeft, akTop, akRight]
     Caption = '&Options'
@@ -149,7 +150,7 @@ object frmSearchReplace: TfrmSearchReplace
     Left = 8
     Top = 184
     Width = 120
-    Height = 67
+    Height = 59
     Anchors = [akLeft, akTop, akBottom]
     Caption = '&Direction'
     ItemIndex = 0
@@ -162,7 +163,7 @@ object frmSearchReplace: TfrmSearchReplace
     Left = 134
     Top = 184
     Width = 120
-    Height = 67
+    Height = 59
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Or&igin'
     ItemIndex = 1
@@ -174,8 +175,8 @@ object frmSearchReplace: TfrmSearchReplace
   object grpScope: TRadioGroup
     Left = 260
     Top = 184
-    Width = 120
-    Height = 67
+    Width = 116
+    Height = 59
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = '&Scope'
     ItemIndex = 0
@@ -185,8 +186,8 @@ object frmSearchReplace: TfrmSearchReplace
     TabOrder = 7
   end
   object btnOK: TButton
-    Left = 143
-    Top = 257
+    Left = 139
+    Top = 249
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -199,7 +200,7 @@ object frmSearchReplace: TfrmSearchReplace
   object comboSearchIn: TComboBox
     Left = 90
     Top = 10
-    Width = 290
+    Width = 286
     Height = 21
     Style = csDropDownList
     Anchors = [akLeft, akTop, akRight]
