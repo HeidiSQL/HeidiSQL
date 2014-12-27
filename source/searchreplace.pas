@@ -5,10 +5,10 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
   ExtCtrls, SynMemo, SynEditTypes, gnugettext, VirtualTrees, SynRegExpr,
-  SynEditRegexSearch, SynEditMiscClasses, SynEditSearch;
+  SynEditRegexSearch, SynEditMiscClasses, SynEditSearch, extra_controls;
 
 type
-  TfrmSearchReplace = class(TForm)
+  TfrmSearchReplace = class(TFormWithSizeGrip)
     btnCancel: TButton;
     btnReplaceAll: TButton;
     lblSearch: TLabel;
