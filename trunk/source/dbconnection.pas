@@ -1437,7 +1437,6 @@ var
 begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
-  Match := False;
   MatchLen := 0;
   for i:=0 to High(FDatatypes) do begin
     Types := FDatatypes[i].Name;
@@ -5224,7 +5223,6 @@ var
   NumResults: Integer;
   FieldTypeOID: POid;
   LastResult: PPGresult;
-  TypeFound: Boolean;
   rx: TRegExpr;
 begin
   if UseRawResult = -1 then begin
@@ -5268,7 +5266,6 @@ begin
         FColumnNames.Add(Connection.DecodeAPIString(PQfname(LastResult, i)));
         FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
         FieldTypeOID :=  PQftype(LastResult, i);
-        TypeFound := False;
         FColumnTypes[i] := FConnection.GetDatatypeByNativeType(FieldTypeOID, FColumnNames[FColumnNames.Count-1]);
       end;
       rx.Free;
