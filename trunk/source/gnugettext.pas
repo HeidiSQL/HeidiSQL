@@ -15,7 +15,9 @@ unit gnugettext;
 (*  Contributors: Peter Thornqvist, Troy Wolbrink,            *)
 (*                Frank Andreas de Groot, Igor Siticov,       *)
 (*                Jacques Garcia Vazquez, Igor Gitman,        *)
-(*                Arvid Winkelsdorf, Thomas Mueller           *)
+(*                Arvid Winkelsdorf,                          *)
+(*                Thomas Mueller (dummzeuch)                  *)
+(*                Olivier Sannier (obones)                    *)
 (*                                                            *)
 (*  See http://dybdahl.dk/dxgettext/ for more information     *)
 (*                                                            *)
@@ -114,7 +116,7 @@ interface
 {$endif}
 {$ifdef VER185}
   // Delphi 2007
-  {$DEFINE dx_has_Unsafe_Warnings}        
+  {$DEFINE dx_has_Unsafe_Warnings}
   {$DEFINE dx_has_WideStrings}
   {$DEFINE dx_Hinstance_is_Integer}
   {$DEFINE dx_NativeInt_is_Integer}
@@ -183,6 +185,7 @@ interface
   {$DEFINE dx_has_Inline}
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
 {$endif}
 {$ifdef VER260}
   // Delphi XE5
@@ -193,6 +196,7 @@ interface
   {$DEFINE dx_has_Inline}
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
 {$endif}
 
 {$ifdef dx_has_Unsafe_Warnings}
@@ -210,10 +214,13 @@ uses
   CWString,
 {$endif}
 {$endif}
+{$IFDEF dx_midstr_in_AnsiStrings}
+  System.AnsiStrings,
+{$ENDIF dx_midstr_in_AnsiStrings}
 {$IFDEF dx_has_WideStrings}
   WideStrings,
 {$ENDIF dx_has_WideStrings}
-  Classes, StrUtils, SysUtils, TypInfo;
+  Types, Classes, StrUtils, SysUtils, TypInfo;
 
 (*****************************************************************************)
 (*                                                                           *)
@@ -243,6 +250,7 @@ function gettext_NoExtract(const szMsgId: MsgIdString): TranslatedUnicodeString;
 function gettext_NoOp(const szMsgId: MsgIdString): TranslatedUnicodeString;
 function dgettext(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
 function dgettext_NoExtract(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
+function dgettext_NoOp(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
 function dngettext(const szDomain: DomainString; const singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
 function ngettext(const singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
 function ngettext_NoExtract(const singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
@@ -429,6 +437,8 @@ type
     public
       Enabled:Boolean;      /// Set this to false to disable translations
       DesignTimeCodePage:Integer;  /// See MultiByteToWideChar() in Win32 API for documentation
+      SearchAllDomains: Boolean;  /// Should gettext and ngettext look in all other known domains after the current one
+
       constructor Create;
       destructor Destroy; override;
       procedure UseLanguage(LanguageCode: LanguageString);
@@ -466,6 +476,7 @@ type
       {$endif}
       function dgettext(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString; overload; virtual;
       function dgettext_NoExtract(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
+      function dgettext_NoOp(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
       function dngettext(const szDomain: DomainString; const singular,plural:MsgIdString;Number:longint):TranslatedUnicodeString; overload; virtual;
       function dngettext_NoExtract(const szDomain: DomainString; const singular,plural:MsgIdString;Number:longint):TranslatedUnicodeString;
       procedure textdomain(const szDomain: DomainString);
@@ -488,9 +499,9 @@ type
       procedure RegisterWhenNewLanguageListener(Listener: IGnuGettextInstanceWhenNewLanguageListener);
       procedure UnregisterWhenNewLanguageListener(Listener: IGnuGettextInstanceWhenNewLanguageListener);
     protected
-      procedure TranslateStrings (_sl:TStrings;const TextDomain:DomainString);
+      procedure TranslateStrings (sl:TStrings;const TextDomain:DomainString);
       {$IFDEF dx_has_WideStrings}
-      procedure TranslateWideStrings (_sl: TWideStrings;const TextDomain:DomainString);
+      procedure TranslateWideStrings (sl: TWideStrings;const TextDomain:DomainString);
       {$ENDIF dx_has_WideStrings}
 
       // Override these three, if you want to inherited from this class
@@ -549,6 +560,11 @@ uses
   'Delphi 6, Delphi 7 and later versions. If you use other versions, please'
   'get the gnugettext.pas version from the Delphi 5 directory.'
 {$endif}
+{$endif}
+
+{$ifdef dx_NativeUInt_is_Cardinal}
+type
+  NativeUInt = cardinal;
 {$endif}
 
 (**************************************************************************)
@@ -722,6 +738,13 @@ begin
   Result:=s;
 end;
 
+{$ifdef dx_midstr_in_AnsiStrings}
+function MidStr(const AText: RawUtf8String; const AStart, ACount: Integer): RawUtf8String; overload; inline;
+begin
+  Result := System.AnsiStrings.MidStr(AText, AStart, ACount);
+end;
+{$endif dx_midstr_in_AnsiStrings}
+
 function EnsureLineBreakInTranslatedString (s:RawUtf8String):RawUtf8String;
 {$ifdef MSWINDOWS}
 var
@@ -779,6 +802,16 @@ begin
     Result:=MsgId;
     exit;
   end;
+
+  // First, get the value from the default domain
+  if Assigned(Instance) then
+    Result:=Instance.dgettext(Instance.curmsgdomain, MsgId)
+  else
+    Result:=dgettext(DefaultInstance.curmsgdomain, MsgId);
+  if Result<>MsgId then
+    exit;
+
+  // If it was not in the default domain, then go through the others
   ComponentDomainListCS.BeginRead;
   try
     for i:=0 to ComponentDomainList.Count-1 do begin
@@ -848,6 +881,17 @@ begin
   // This can sometimes be necessary, and by using this function,
   // the source code scanner will not trigger warnings.
   Result := dgettext(szDomain, szMsgId);
+end;
+
+function dgettext_NoOp(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
+begin
+  //*** With this function Strings can be added to the po-file without beeing
+  //    ResourceStrings (dxgettext will add the string and this function will
+  //    return it without a change)
+  //    see gettext manual
+  //      4.7 - Special Cases of Translatable Strings
+  //      http://www.gnu.org/software/hello/manual/gettext/Special-cases.html#Special-cases
+  Result := DefaultInstance.dgettext_NoOp(szDomain, szMsgId);
 end;
 
 function dngettext(const szDomain: DomainString; const singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
@@ -1079,76 +1123,6 @@ begin
     end;
   end;
   Result := langcode;
-end;
-
-const GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS = $00000004;
-const GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT = $00000002;
-
-function GetModuleHandleEx(dwFlags: DWORD; lpModuleName: PChar; out phModule: HMODULE): BOOL; stdcall; external kernel32 name 'GetModuleHandleExA';
-
-{$ifndef dx_has_LpVoid}
-type
-  LPVOID = Pointer;
-{$endif dx_has_LpVoid}
-
-type
-{$ifdef dx_NativeUInt_is_Cardinal}
-  TNativeUInt = Cardinal;
-{$else}
-  TNativeUInt = NativeUInt;
-{$endif dx_NativeUInt_is_Cardinal}
-
-type
-  TModuleInfo = record
-    lpBaseOfDll: LPVOID;
-    SizeOfImage: DWORD;
-    EntryPoint: LPVOID;
-  end;
-
-function GetModuleInformation(hProcess: THANDLE; hModule: HMODULE; var lpmodinfo: TModuleInfo; cb: DWORD): BOOL; stdcall; external 'psapi' name 'GetModuleInformation';
-
-function GetModuleRegionInfoByAddr(Addr: Pointer; out Base: Pointer; out Size: TNativeUInt): Boolean;
-var
-  Tmm: TMemoryBasicInformation;
-  DllModule: HMODULE;
-  ModuleInfo: TModuleInfo;
-begin
-  Result := GetModuleHandleEx(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS or GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, Addr, DllModule);
-  if Result then
-  begin
-    ZeroMemory(@ModuleInfo, SizeOf(ModuleInfo));
-    Result := GetModuleInformation(GetCurrentProcess, DllModule, ModuleInfo, SizeOf(ModuleInfo));
-    if Result then
-    begin
-      Base := ModuleInfo.lpBaseOfDll;
-      Size := ModuleInfo.SizeOfImage;
-    end;
-  end
-  else
-  begin
-    ZeroMemory(@Tmm, SizeOf(Tmm));
-    Result := VirtualQuery(addr, Tmm, SizeOf(Tmm)) = SizeOf(Tmm);
-    if Result then
-    begin
-      Base := Tmm.AllocationBase;
-      Size := (TNativeUInt(Addr) - TNativeUInt(Base)) * 2;
-    end;
-  end;
-end;
-
-var
-  FModuleBase:Pointer;
-  FModuleSize:TNativeUInt;
-
-function AddrInModule(Addr: Pointer): Boolean; {$ifdef dx_has_Inline}inline;{$endif}
-begin
-  Result := (TNativeUInt(Addr) >= TNativeUInt(FModuleBase)) and
-            (TNativeUInt(Addr) < TNativeUInt(FModuleBase) + FModuleSize);
-end;
-
-procedure SetupModuleInfo;
-begin
-  GetModuleRegionInfoByAddr(@SetupModuleInfo, FModuleBase, FModuleSize);
 end;
 {$endif}
 
@@ -1688,6 +1662,7 @@ begin
   {$endif}
   curGetPluralForm:=GetPluralForm2EN;
   Enabled:=True;
+  SearchAllDomains:=False;
   curmsgdomain:=DefaultTextDomain;
   savefileCS := TMultiReadExclusiveWriteSynchronizer.Create;
   domainlist := TStringList.Create;
@@ -1777,6 +1752,11 @@ begin
   Result:=dgettext(szDomain,szMsgId);
 end;
 
+function TGnuGettextInstance.dgettext_NoOp(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
+begin
+  Result := gettext_NoOp( szMsgId);
+end;
+
 function TGnuGettextInstance.GetCurrentLanguage: LanguageString;
 begin
   Result:=curlang;
@@ -1790,15 +1770,37 @@ end;
 {$ifndef UNICODE}
 function TGnuGettextInstance.gettext(
   const szMsgId: ansistring): TranslatedUnicodeString;
+var
+  domain: DomainString;
+  domainIndex: Integer;
 begin
   Result := dgettext(curmsgdomain, szMsgId);
+  if SearchAllDomains then begin
+    domainIndex := 0;
+    while (Result = szMsgId) and (domainIndex < domainlist.count) do begin
+      domain := domainlist[domainIndex];
+      Result := dgettext(domain, szMsgId);
+      Inc(domainIndex);
+  	end;
+  end;
 end;
 {$endif}
 
 function TGnuGettextInstance.gettext(
   const szMsgId: MsgIdString): TranslatedUnicodeString;
+var
+  domain: DomainString;
+  domainIndex: Integer;
 begin
   Result := dgettext(curmsgdomain, szMsgId);
+  if SearchAllDomains then begin
+    domainIndex := 0;
+    while (Result = szMsgId) and (domainIndex < domainlist.count) do begin
+      domain := domainlist[domainIndex];
+      Result := dgettext(domain, szMsgId);
+      Inc(domainIndex);
+  	end;
+  end;
 end;
 
 function TGnuGettextInstance.gettext_NoExtract(
@@ -2053,7 +2055,7 @@ begin
             if TP_Retranslator<>nil then
               (TP_Retranslator as TTP_Retranslator).Remember(AnObject, PropName, old);
             if textdomain = '' then
-              ws := ComponentGettext(old)
+              ws := ComponentGettext(old, Self)
             else
               ws := dgettext(textdomain,old);
             if ws <> old then begin
@@ -2159,10 +2161,11 @@ begin
   DebugWriteln ('TranslateProperties() was called for an object of class '+AnObject.ClassName+' with domain "'+textdomain+'".');
   {$endif}
 
-  if textdomain='' then
-    textdomain:=curmsgdomain;
   if TP_Retranslator<>nil then
-    (TP_Retranslator as TTP_Retranslator).TextDomain:=textdomain;
+    if textdomain = '' then
+      (TP_Retranslator as TTP_Retranslator).TextDomain:=curmsgdomain
+    else
+      (TP_Retranslator as TTP_Retranslator).TextDomain:=textdomain;
   {$ifdef FPC}
   DoneList:=TCSStringList.Create;
   TodoList:=TCSStringList.Create;
@@ -2382,17 +2385,17 @@ begin
   {$endif}
 end;
 
-procedure TGnuGettextInstance.TranslateStrings(_sl: TStrings;const TextDomain:DomainString);
+procedure TGnuGettextInstance.TranslateStrings(sl: TStrings;const TextDomain:DomainString);
 var
   line: string;
   i: integer;
   tempSL: TStringList;
+  slAsTStringList:TStringList;
   {$ifdef dx_StringList_has_OwnsObjects}
-  slAsTStringList: TStringList;
   originalOwnsObjects: Boolean;
   {$endif dx_StringList_has_OwnsObjects}
 begin
-  if _sl.Count > 0 then begin
+  if sl.Count > 0 then begin
     {$ifdef dx_StringList_has_OwnsObjects}
     // From D2009 onward, the TStringList class has an OwnsObjects property, just like
     // TObjectList has. This means that if we call Clear on the given
@@ -2400,31 +2403,31 @@ begin
     // To avoid this we must disable OwnsObjects while we replace the strings, but
     // only if sl is a TStringList instance and if using Delphi 2009 or later.
     originalOwnsObjects := False; // avoid warning
-    if _sl is TStringList then
-      slAsTStringList := TStringList(_sl)
+    {$endif dx_StringList_has_OwnsObjects}
+    if sl is TStringList then
+      slAsTStringList := TStringList(sl)
     else
       slAsTStringList := nil;
-    {$endif dx_StringList_has_OwnsObjects}
 
-    _sl.BeginUpdate;
+    sl.BeginUpdate;
     try
       tempSL:=TStringList.Create;
       try
         // don't use Assign here as it will propagate the Sorted property (among others)
         // in versions of Delphi from Delphi XE onward
-        tempSL.AddStrings(_sl);
+        tempSL.AddStrings(sl);
 
         for i:=0 to tempSL.Count-1 do begin
           line:=tempSL.Strings[i];
           if line<>'' then
             if TextDomain = '' then
-              tempSL.Strings[i]:=ComponentGettext(line)
+              tempSL.Strings[i]:=ComponentGettext(line, Self)
             else
               tempSL.Strings[i]:=dgettext(TextDomain,line);
         end;
 
         //DH Fix 2013-09-19: Only refill sl if changed
-        if _sl.Text<>tempSL.Text then
+        if sl.Text<>tempSL.Text then
         begin
           {$ifdef dx_StringList_has_OwnsObjects}
           if Assigned(slAsTStringList) then begin
@@ -2433,7 +2436,6 @@ begin
           end;
           {$endif dx_StringList_has_OwnsObjects}
           try
-            {$ifdef dx_StringList_has_OwnsObjects}
             if Assigned(slAsTStringList) and slAsTStringList.Sorted then
             begin
               // TStringList doesn't release the objects in PutObject, so we use this to get
@@ -2441,21 +2443,20 @@ begin
               // but do a ClearObject in Clear.
               //
               // todo: Check whether this should be
-              //   if _sl is TStringList then
+              //   if sl is TStringList then
               // instead.
-              if _sl.ClassType <> TStringList then
-                for I := 0 to _sl.Count - 1 do
-                  _sl.Objects[I] := nil;
+              if sl.ClassType <> TStringList then
+                for I := 0 to sl.Count - 1 do
+                  sl.Objects[I] := nil;
 
               // same here, we don't use assign because we don't want to modify the properties of the orignal string list
-              _sl.Clear;
-              _sl.AddStrings(tempSL);
+              sl.Clear;
+              sl.AddStrings(tempSL);
             end
             else
-            {$endif dx_StringList_has_OwnsObjects}
             begin
-              for i := 0 to _sl.Count - 1 do
-                _sl[i] := tempSL[i];
+              for i := 0 to sl.Count - 1 do
+                sl[i] := tempSL[i];
             end;
           finally
             {$ifdef dx_StringList_has_OwnsObjects}
@@ -2468,24 +2469,24 @@ begin
         FreeAndNil (tempSL);
       end;
     finally
-      _sl.EndUpdate;
+      sl.EndUpdate;
     end;
   end;
 end;
 
 {$IFDEF dx_has_WideStrings}
-procedure TGnuGettextInstance.TranslateWideStrings(_sl: TWideStrings;
+procedure TGnuGettextInstance.TranslateWideStrings(sl: TWideStrings;
   const TextDomain: DomainString);
 var
   line: string;
   i: integer;
   tempSL:TWideStringList;
-  {$ifdef dx_StringList_has_OwnsObjects}
   slAsTWideStringList:TWideStringList;
+  {$ifdef dx_StringList_has_OwnsObjects}
   originalOwnsObjects: Boolean;
   {$endif dx_StringList_has_OwnsObjects}
 begin
-  if _sl.Count > 0 then begin
+  if sl.Count > 0 then begin
     {$ifdef dx_StringList_has_OwnsObjects}
     // From D2009 onward, the TWideStringList class has an OwnsObjects property, just like
     // TObjectList has. This means that if we call Clear on the given
@@ -2493,31 +2494,31 @@ begin
     // To avoid this we must disable OwnsObjects while we replace the strings, but
     // only if sl is a TWideStringList instance and if using Delphi 2009 or later.
     originalOwnsObjects := False; // avoid warning
-    if _sl is TWideStringList then
-      slAsTWideStringList := TWideStringList(_sl)
+    {$endif dx_StringList_has_OwnsObjects}
+    if sl is TWideStringList then
+      slAsTWideStringList := TWideStringList(sl)
     else
       slAsTWideStringList := nil;
-    {$endif dx_StringList_has_OwnsObjects}
 
-    _sl.BeginUpdate;
+    sl.BeginUpdate;
     try
       tempSL:=TWideStringList.Create;
       try
         // don't use Assign here as it will propagate the Sorted property (among others)
         // in versions of Delphi from Delphi XE ownard
-        tempSL.AddStrings(_sl);
+        tempSL.AddStrings(sl);
 
         for i:=0 to tempSL.Count-1 do begin
           line:=tempSL.Strings[i];
           if line<>'' then
             if TextDomain = '' then
-              tempSL.Strings[i]:=ComponentGettext(line)
+              tempSL.Strings[i]:=ComponentGettext(line, Self)
             else
               tempSL.Strings[i]:=dgettext(TextDomain,line);
         end;
 
         //DH Fix 2013-09-19: Only refill sl if changed
-        if _sl.Text<>tempSL.Text then
+        if sl.Text<>tempSL.Text then
         begin
           {$ifdef dx_StringList_has_OwnsObjects}
           if Assigned(slAsTWideStringList) then begin
@@ -2526,7 +2527,6 @@ begin
           end;
           {$endif dx_StringList_has_OwnsObjects}
           try
-            {$ifdef dx_StringList_has_OwnsObjects}
             if Assigned(slAsTWideStringList) and slAsTWideStringList.Sorted then
             begin
               // TWideStringList doesn't release the objects in PutObject, so we use this to get
@@ -2534,21 +2534,20 @@ begin
               // but do a ClearObject in Clear.
               //
               // todo: Check whether this should be
-              //   if _sl is TWideStringList then
+              //   if sl is TWideStringList then
               // instead.
-              if _sl.ClassType <> TWideStringList then
-                for I := 0 to _sl.Count - 1 do
-                  _sl.Objects[I] := nil;
+              if sl.ClassType <> TWideStringList then
+                for I := 0 to sl.Count - 1 do
+                  sl.Objects[I] := nil;
 
               // same here, we don't use assign because we don't want to modify the properties of the orignal string list
-              _sl.Clear;
-              _sl.AddStrings(tempSL);
+              sl.Clear;
+              sl.AddStrings(tempSL);
             end
             else
-            {$endif dx_StringList_has_OwnsObjects}
             begin
-              for i := 0 to _sl.Count - 1 do
-                _sl[i] := tempSL[i];
+              for i := 0 to sl.Count - 1 do
+                sl[i] := tempSL[i];
             end;
           finally
             {$ifdef dx_StringList_has_OwnsObjects}
@@ -2561,7 +2560,7 @@ begin
         FreeAndNil (tempSL);
       end;
     finally
-      _sl.EndUpdate;
+      sl.EndUpdate;
     end;
   end;
 end;
@@ -2635,15 +2634,37 @@ end;
 {$ifndef UNICODE}
 function TGnuGettextInstance.ngettext(const singular, plural: ansistring;
   Number: Integer): TranslatedUnicodeString;
+var
+  domain: DomainString;
+  domainIndex: Integer;
 begin
   Result := dngettext(curmsgdomain, singular, plural, Number);
+  if SearchAllDomains then begin
+    domainIndex := 0;
+    while (Result <> singular) and (Result <> plural) and (domainIndex < domainlist.count) do begin
+      domain := domainlist[domainIndex];
+      Result := dngettext(domain, singular, plural, Number);
+      Inc(domainIndex);
+  	end;
+  end;
 end;
 {$endif}
 
 function TGnuGettextInstance.ngettext(const singular, plural: MsgIdString;
   Number: Integer): TranslatedUnicodeString;
+var
+  domain: DomainString;
+  domainIndex: Integer;
 begin
   Result := dngettext(curmsgdomain, singular, plural, Number);
+  if SearchAllDomains then begin
+    domainIndex := 0;
+    while (Result <> singular) and (Result <> plural) and (domainIndex < domainlist.count) do begin
+      domain := domainlist[domainIndex];
+      Result := dngettext(domain, singular, plural, Number);
+      Inc(domainIndex);
+  	end;
+  end;
 end;
 
 function TGnuGettextInstance.ngettext_NoExtract(const singular,
@@ -3160,7 +3181,7 @@ begin
         offset := tableoffset;
         Assert(sizeof(offset)=8);
         while (true) and (fs.Position<headerendpos) do begin
-          fs.Seek(offset,soFromBeginning);
+          fs.Position := offset;
           offset:=ReadInt64(fs);
           if offset=0 then
             exit;
@@ -3705,7 +3726,7 @@ begin
         size := mofile.Size;
       Getmem (momemoryHandle, size);
       momemory := momemoryHandle;
-      mofile.Seek(offset, soFromBeginning);
+      mofile.Position := offset;
       mofile.ReadBuffer(momemory^, size);
     finally
       FreeAndNil(mofile);
@@ -3907,7 +3928,7 @@ begin
   while (i<interceptorClassDatas.Count) and (Result=nil) do
   begin
     proxyClassData:=interceptorClassDatas[i];
-    if PProxyClassData(proxyClassData)^.Parent^=aClass then
+    if (PProxyClassData(proxyClassData)^.Parent^=aClass) or (PProxyClassData(proxyClassData)^.SelfPtr=aClass) then
       Result:=proxyClassData;
 
     Inc(i);
@@ -3931,8 +3952,8 @@ var
   proxyClassData:Pointer;
   objClassData:PProxyClassData;
   size,classOfs:Integer;
-  p:PAnsiChar;
   beforeDestructionVmtAddr:PPointer;
+  hookedClassNameLength:Cardinal;
 begin
   if IndexOf(obj)<0 then
   begin
@@ -3940,26 +3961,34 @@ begin
     proxyClassData:=findInterceptorClassData(obj.ClassType);
     if proxyClassData=nil then
     begin
-      // All virtual method pointers are located after the start of the metaclass
-      // and the last one is followed by an invalid address.
-      // So to figure out the size, we walk the memory looking for the first
-      // invalid address.
+      // According to Allen Bauer, we know that the ClassName is stored right after the
+      // virtual method pointers.
+      // So to figure out the size, we take the difference between the start of the VMT
+      // and the location of ClassName.
+      // See the following link for reference:
+      // http://stackoverflow.com/questions/760513/where-can-i-find-information-on-the-structure-of-the-delphi-vmt
       objClassData:=getClassData(obj.ClassType);
-      p:=PAnsiChar(objClassData)+classofs;
-      while AddrInModule(PPointer(p)^) do
-        Inc(p, SizeOf(Pointer));
-      size:=NativeUInt(p)-NativeUInt(objClassData);
+      hookedClassNameLength:=Length(objClassData.ClassName^)+3;
+      if hookedClassNameLength>255 then
+        hookedClassNameLength:=255;
+      size:=NativeUInt(objClassData.ClassName)-NativeUInt(objClassData)+hookedClassNameLength+2;
 
       proxyClassData:=AllocMem(size);
       interceptorClassDatas.Add(proxyClassData);
 
       proxyClass:=TClass(PAnsiChar(proxyClassData) + classOfs);
 
-      // Copy everything from the original class data then adjust SelfPtr to point to ourselves
-      // and the parent pointer to the address of the original data SelfPtr.
+      // Copy everything from the original class data then do the following adjustments:
+      // - Parent points to the address of the original data SelfPtr.
+      // - SelfPtr points to ourselves
+      // - ClassName points at the end of our structure to respect compiler layout (see above)
+      // - ClassName gets a suffix as it helps when debugging
       System.Move(objClassData^, proxyClassData^, size);
       PProxyClassData(proxyClassData)^.Parent:=@(objClassData^.SelfPtr);
       PProxyClassData(proxyClassData)^.SelfPtr:=proxyClass;
+      PProxyClassData(proxyClassData)^.ClassName:=PShortString(PAnsiChar(proxyClassData)+size-hookedClassNameLength-2);
+      SetLength(PProxyClassData(proxyClassData)^.ClassName^,hookedClassNameLength);
+      System.Move(AnsiString('!dx'#0),(PAnsiChar(PProxyClassData(proxyClassData)^.ClassName)+hookedClassNameLength+1-3)^,4);
 
       // Place our BeforeDestruction virtual method in the metaclass VMT
       beforeDestructionVmtAddr:=GetBeforeDestructionVmtAddress(proxyClass);
@@ -4054,7 +4083,6 @@ initialization
   {$ifdef MSWINDOWS}
   SetLength(ExecutableFilename, GetModuleFileName(HInstance,
     PChar(ExecutableFilename), Length(ExecutableFilename)));
-  SetupModuleInfo;
   {$endif}
   {$ifdef LINUX}
   if ModuleIsLib or ModuleIsPackage then
@@ -4112,4 +4140,6 @@ finalization
   FreeAndNil (KnownRetranslators);
 
 end.
+
+
 
