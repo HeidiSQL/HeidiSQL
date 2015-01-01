@@ -124,6 +124,7 @@ begin
   lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
   lblAppWebpage.Caption := AppDomain;
   lblAppWebpage.Hint := AppDomain+'?place='+EncodeURLParam(lblAppWebpage.Name);
+  ImageHeidisql.Hint := AppDomain+'?place='+EncodeURLParam(ImageHeidisql.Name);
 
   Screen.Cursor := crDefault;
 end;
