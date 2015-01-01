@@ -50,6 +50,7 @@ type
     procedure editFilterChange(Sender: TObject);
     procedure editFilterRightButtonClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
 
   private
     { Private declarations }
@@ -265,6 +266,12 @@ begin
   AppSettings.WriteInt(asSQLHelpWindowHeight, Height );
   AppSettings.WriteInt(asSQLHelpPnlLeftWidth, pnlLeft.Width );
   AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, memoDescription.Height );
+end;
+
+
+procedure TfrmSQLhelp.FormShow(Sender: TObject);
+begin
+  editFilter.SetFocus;
 end;
 
 
