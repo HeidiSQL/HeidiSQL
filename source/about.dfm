@@ -76,7 +76,6 @@ object AboutBox: TAboutBox
     Width = 90
     Height = 90
     Cursor = crHandPoint
-    Hint = 'http://www.heidisql.com/'
     AutoSize = True
     Picture.Data = {
       0954506E67496D61676589504E470D0A1A0A0000000D494844520000005A0000
