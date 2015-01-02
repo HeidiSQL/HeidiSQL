@@ -4153,7 +4153,11 @@ begin
 
   // Events
   if ServerVersionInt >= 50100 then try
-    Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
+    if InformationSchemaObjects.IndexOf('EVENTS') > -1 then
+      Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
+        ' FROM information_schema.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
+    else
+      Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
   except
     on E:EDatabaseError do;
   end;
@@ -4163,6 +4167,11 @@ begin
         Obj := TDBObject.Create(Self);
         Cache.Add(obj);
         Obj.Name := Results.Col('Name');
+        Obj.Created := ParseDateTime(Results.Col('CREATED', True));
+        Obj.Updated := ParseDateTime(Results.Col('LAST_ALTERED', True));
+        Obj.LastChecked := ParseDateTime(Results.Col('STARTS', True));
+        Obj.Comment := Results.Col('EVENT_COMMENT', True);
+        Obj.Size := Length(Results.Col('EVENT_DEFINITION', True));
         Obj.Database := db;
         Obj.NodeType := lntEvent;
       end;
