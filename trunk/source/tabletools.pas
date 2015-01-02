@@ -329,6 +329,9 @@ end;
 
 
 procedure TfrmTableTools.SaveSettings(Sender: TObject);
+var
+  i: Integer;
+  Items: TStringList;
 begin
   case ToolMode of
     tmFind: begin
@@ -344,14 +347,26 @@ begin
       if not StartsStr(OUTPUT_SERVER, comboExportOutputType.Text) then
         AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
 
+      // Remove duplicates from recent file pulldown
+      if (comboExportOutputType.Text = OUTPUT_FILE)
+        or (comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED)
+        or (comboExportOutputType.Text = OUTPUT_DIR)
+        then begin
+        Items := TStringList.Create;
+        Items.Assign(comboExportOutputTarget.Items);
+        Items.Insert(0, comboExportOutputTarget.Text);
+        for i:=Items.Count-1 downto 1 do begin
+          if Items[i] = comboExportOutputTarget.Text then
+            Items.Delete(i);
+        end;
+        comboExportOutputTarget.Items.Assign(Items);
+      end;
+
       if comboExportOutputType.Text = OUTPUT_FILE then begin
-        comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
         AppSettings.WriteString(asExportSQLFilenames, comboExportOutputTarget.Items.Text);
       end else if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then begin
-        comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
         AppSettings.WriteString(asExportZIPFilenames, comboExportOutputTarget.Items.Text);
       end else if comboExportOutputType.Text = OUTPUT_DIR then begin
-        comboExportOutputTarget.Items.Insert(0, comboExportOutputTarget.Text);
         AppSettings.WriteString(asExportSQLDirectories, comboExportOutputTarget.Items.Text);
       end else if comboExportOutputType.Text = OUTPUT_DB then begin
         AppSettings.WriteString(asExportSQLDatabase, comboExportOutputTarget.Text);
