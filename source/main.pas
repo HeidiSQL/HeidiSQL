@@ -5738,9 +5738,9 @@ begin
   if (Conn <> nil) and Conn.Active then begin
     // Calculate and display connection-time. Also, on any connect or reconnect, update server version panel.
     ConnectedTime := Conn.ConnectionUptime;
-    ShowStatusMsg('Connected: ' + FormatTimeNumber(ConnectedTime, False), 2);
+    ShowStatusMsg(_('Connected')+': ' + FormatTimeNumber(ConnectedTime, False), 2);
   end else begin
-    ShowStatusMsg('Disconnected.', 2);
+    ShowStatusMsg(_('Disconnected'), 2);
   end;
 end;
 
