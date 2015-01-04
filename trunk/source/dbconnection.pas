@@ -2752,7 +2752,7 @@ begin
         ngMSSQL: begin
           // Tested on MS SQL 8.0 and 11.0
           // See http://www.heidisql.com/forum.php?t=12495
-          Rows := GetCol('EXEC sp_helptext '+EscapeString(Name));
+          Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name));
           // Do not use Rows.Text, as the rows already include a trailing linefeed
           Result := implodestr('', Rows);
           Rows.Free;
@@ -2801,7 +2801,7 @@ begin
       case Parameters.NetTypeGroup of
         ngMSSQL: begin
           // See comments above
-          Rows := GetCol('EXEC sp_helptext '+EscapeString(Name));
+          Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name));
           Result := implodestr('', Rows);
           Rows.Free;
         end;
