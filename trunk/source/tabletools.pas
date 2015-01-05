@@ -72,6 +72,10 @@ type
     menuCheckByType: TMenuItem;
     menuCheckNone: TMenuItem;
     chkForUpgrade: TCheckBox;
+    lblInsertSize: TLabel;
+    editInsertSize: TEdit;
+    updownInsertSize: TUpDown;
+    lblInsertSizeUnit: TLabel;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -204,6 +208,7 @@ begin
   chkExportTablesCreate.Checked := AppSettings.ReadBool(asExportSQLCreateTables);
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
   comboExportData.ItemIndex := AppSettings.ReadInt(asExportSQLDataHow);
+  updownInsertSize.Position := AppSettings.ReadInt(asExportSQLDataInsertSize);
   // Add hardcoded output options and session names from registry
   comboExportOutputType.Items.Text :=
     OUTPUT_FILE + CRLF +
@@ -344,6 +349,9 @@ begin
       AppSettings.WriteBool(asExportSQLCreateDatabases, chkExportDatabasesCreate.Checked);
       AppSettings.WriteBool(asExportSQLCreateTables, chkExportTablesCreate.Checked);
       AppSettings.WriteInt(asExportSQLDataHow, comboExportData.ItemIndex);
+      if comboExportData.ItemIndex > 0 then
+        AppSettings.WriteInt(asExportSQLDataInsertSize, updownInsertSize.Position);
+
       if not StartsStr(OUTPUT_SERVER, comboExportOutputType.Text) then
         AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
 
@@ -420,6 +428,10 @@ begin
   end else if tabsTools.ActivePage = tabSQLExport then begin
     btnExecute.Caption := _('Export');
     btnExecute.Enabled := SomeChecked and ((comboExportOutputTarget.Text <> '') or (not comboExportOutputTarget.Enabled));
+    lblInsertSize.Enabled := comboExportData.ItemIndex > 0;
+    editInsertSize.Enabled := lblInsertSize.Enabled;
+    updownInsertSize.Enabled := lblInsertSize.Enabled;
+    lblInsertSizeUnit.Enabled := lblInsertSize.Enabled;
   end else if tabsTools.ActivePage = tabBulkTableEdit then begin
     btnExecute.Caption := _('Update');
     chkBulkTableEditCollation.Enabled := MainForm.ActiveConnection.IsUnicode;
@@ -1534,7 +1546,7 @@ begin
             Row := Row + ')';
             // Break if stream would increase over the barrier of 1MB, and throw away current row
             if (not IsFirstRowInChunk)
-              and (ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > SIZE_MB*0.9)
+              and (ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > updownInsertSize.Position*SIZE_KB*0.9)
               then
               break;
             Inc(RowCount);

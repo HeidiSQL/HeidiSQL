@@ -116,9 +116,9 @@ object frmTableTools: TfrmTableTools
       TabOrder = 1
       object ResultGrid: TVirtualStringTree
         Left = 0
-        Top = 153
+        Top = 180
         Width = 380
-        Height = 183
+        Height = 156
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.Images = MainForm.ImageListMain
@@ -143,7 +143,7 @@ object frmTableTools: TfrmTableTools
         Left = 0
         Top = 0
         Width = 380
-        Height = 153
+        Height = 180
         ActivePage = tabSQLexport
         Align = alTop
         Images = MainForm.ImageListMain
@@ -154,7 +154,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 39
           DesignSize = (
             372
-            124)
+            151)
           object lblOperation: TLabel
             Left = 3
             Top = 14
@@ -258,7 +258,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 30
           DesignSize = (
             372
-            124)
+            151)
           object lblFindText: TLabel
             Left = 3
             Top = 14
@@ -268,7 +268,7 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 80
+            Top = 98
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
@@ -278,7 +278,7 @@ object frmTableTools: TfrmTableTools
             Left = 208
             Top = 11
             Width = 161
-            Height = 60
+            Height = 78
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
@@ -286,7 +286,7 @@ object frmTableTools: TfrmTableTools
           end
           object comboDataTypes: TComboBox
             Left = 208
-            Top = 77
+            Top = 95
             Width = 161
             Height = 21
             Style = csDropDownList
@@ -295,7 +295,7 @@ object frmTableTools: TfrmTableTools
           end
           object chkCaseSensitive: TCheckBox
             Left = 208
-            Top = 104
+            Top = 122
             Width = 161
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
@@ -308,7 +308,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 9
           DesignSize = (
             372
-            124)
+            151)
           object lblExportData: TLabel
             Left = 3
             Top = 50
@@ -318,7 +318,7 @@ object frmTableTools: TfrmTableTools
           end
           object lblExportOutputType: TLabel
             Left = 3
-            Top = 77
+            Top = 104
             Width = 38
             Height = 13
             Caption = 'Output:'
@@ -339,21 +339,35 @@ object frmTableTools: TfrmTableTools
           end
           object lblExportOutputTarget: TLabel
             Left = 2
-            Top = 103
+            Top = 130
             Width = 46
             Height = 13
             Caption = 'Filename:'
           end
+          object lblInsertSize: TLabel
+            Left = 3
+            Top = 77
+            Width = 84
+            Height = 13
+            Caption = 'Max INSERT size:'
+          end
+          object lblInsertSizeUnit: TLabel
+            Left = 242
+            Top = 77
+            Width = 115
+            Height = 13
+            Caption = 'KB (0 = Single INSERTs)'
+          end
           object btnExportOutputTargetSelect: TButton
             Left = 346
-            Top = 100
+            Top = 127
             Width = 23
             Height = 21
             Hint = 'Browse filesystem'
             Anchors = [akTop, akRight]
             ImageIndex = 10
             Images = MainForm.ImageListMain
-            TabOrder = 7
+            TabOrder = 9
             OnClick = btnExportOutputTargetSelectClick
           end
           object chkExportDatabasesCreate: TCheckBox
@@ -400,28 +414,47 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             TabOrder = 4
+            OnChange = ValidateControls
           end
           object comboExportOutputType: TComboBox
             Left = 100
-            Top = 74
+            Top = 101
             Width = 269
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
-            TabOrder = 5
+            TabOrder = 7
             OnChange = comboExportOutputTypeChange
           end
           object comboExportOutputTarget: TComboBox
             Left = 100
-            Top = 100
+            Top = 127
             Width = 243
             Height = 21
             Anchors = [akLeft, akTop, akRight]
             ParentShowHint = False
             ShowHint = True
-            TabOrder = 6
+            TabOrder = 8
             Text = 'comboExportOutputTarget'
             OnChange = comboExportOutputTargetChange
+          end
+          object editInsertSize: TEdit
+            Left = 100
+            Top = 74
+            Width = 120
+            Height = 21
+            TabOrder = 5
+            Text = '0'
+          end
+          object updownInsertSize: TUpDown
+            Left = 220
+            Top = 74
+            Width = 16
+            Height = 21
+            Associate = editInsertSize
+            Max = 2147483647
+            TabOrder = 6
+            Wrap = True
           end
         end
         object tabBulkTableEdit: TTabSheet
@@ -429,7 +462,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 19
           DesignSize = (
             372
-            124)
+            151)
           object chkBulkTableEditDatabase: TCheckBox
             Left = 3
             Top = 5
