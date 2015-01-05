@@ -4592,7 +4592,7 @@ begin
     // Default value
     Col.DefaultType := cdtNothing;
     Col.DefaultText := '';
-    rxCol.Expression := '(NULL|CURRENT_TIMESTAMP(\(\d+\))?)(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d+\))?)?';
+    rxCol.Expression := '(NULL|CURRENT_TIMESTAMP(\(\d+\))?|\''[^\'']+\'')(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d+\))?)?';
     if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
@@ -4605,11 +4605,16 @@ begin
           Col.DefaultText := 'NULL';
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtNullUpdateTS;
-        end else begin
+        end else if rxCol.Match[1] = 'CURRENT_TIMESTAMP' then begin
           Col.DefaultType := cdtCurTS;
           Col.DefaultText := 'CURRENT_TIMESTAMP';
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtCurTSUpdateTS;
+        end else begin
+          Col.DefaultType := cdtText;
+          Col.DefaultText := ExtractLiteral(ColSpec, '');
+          if rxCol.Match[3] <> '' then
+            Col.DefaultType := cdtTextUpdateTS;
         end;
         Delete(ColSpec, 1, rxCol.MatchLen[0]);
       end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') or (Copy(ColSpec, 1, 2) = '(''') then begin
@@ -4634,7 +4639,7 @@ begin
     end;
 
     // Comment
-    Col.Comment := ExtractComment(ColSpec);
+    Col.Comment := ExtractLiteral(ColSpec, 'COMMENT');
 
     if not rx.ExecNext then
       break;
@@ -4904,7 +4909,7 @@ begin
     if not rx.Exec(Body) then
       break;
   end;
-  Obj.Comment := ExtractComment(Body);
+  Obj.Comment := ExtractLiteral(Body, 'COMMENT');
   Obj.Body := TrimLeft(Body);
   rx.Free;
 end;
