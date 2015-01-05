@@ -251,7 +251,7 @@ type
   function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function fixNewlines(txt: String): String;
-  function ExtractComment(var SQL: String): String;
+  function ExtractLiteral(var SQL: String; Prefix: String): String;
   function GetShellFolder(CSIDL: integer): string;
   // Common directories
   function DirnameCommonAppData: String;
@@ -706,7 +706,7 @@ begin
 end;
 
 
-function ExtractComment(var SQL: String): String;
+function ExtractLiteral(var SQL: String; Prefix: String): String;
 var
   i, LitStart: Integer;
   InLiteral: Boolean;
@@ -716,7 +716,10 @@ begin
   // Single quotes are escaped by a second single quote
   Result := '';
   rx := TRegExpr.Create;
-  rx.Expression := '^\s*COMMENT\s+''';
+  if Prefix.IsEmpty then
+    rx.Expression := '^\s*'''
+  else
+    rx.Expression := '^\s*'+QuoteRegExprMetaChars(Prefix)+'\s+''';
   rx.ModifierI := True;
   if rx.Exec(SQL) then begin
     LitStart := rx.MatchLen[0]+1;
