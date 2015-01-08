@@ -4605,18 +4605,19 @@ begin
           Col.DefaultText := 'NULL';
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtNullUpdateTS;
+          Delete(ColSpec, 1, rxCol.MatchLen[0]);
         end else if rxCol.Match[1] = 'CURRENT_TIMESTAMP' then begin
           Col.DefaultType := cdtCurTS;
           Col.DefaultText := 'CURRENT_TIMESTAMP';
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtCurTSUpdateTS;
+          Delete(ColSpec, 1, rxCol.MatchLen[0]);
         end else begin
           Col.DefaultType := cdtText;
           Col.DefaultText := ExtractLiteral(ColSpec, '');
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtTextUpdateTS;
         end;
-        Delete(ColSpec, 1, rxCol.MatchLen[0]);
       end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') or (Copy(ColSpec, 1, 2) = '(''') then begin
         InLiteral := True;
         LiteralStart := Pos('''', ColSpec)+1;
