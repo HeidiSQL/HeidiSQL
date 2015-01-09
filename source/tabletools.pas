@@ -368,6 +368,7 @@ begin
             Items.Delete(i);
         end;
         comboExportOutputTarget.Items.Assign(Items);
+        Items.Free;
       end;
 
       if comboExportOutputType.Text = OUTPUT_FILE then begin
