@@ -3092,7 +3092,7 @@ begin
   InitSetting(asTabWidth,                         'TabWidth',                              3);
   InitSetting(asDataFontName,                     'DataFontName',                          0, False, 'Tahoma');
   InitSetting(asDataFontSize,                     'DataFontSize',                          8);
-  InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, False);
+  InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
