@@ -3272,7 +3272,7 @@ begin
   InitSetting(asFieldEditorDatetimePrefill,       'FieldEditor_Datetime_Prefill',          0, True);
   InitSetting(asFieldEditorEnum,                  'FieldEditor_Enum',                      0, True);
   InitSetting(asFieldEditorSet,                   'FieldEditor_Set',                       0, True);
-  InitSetting(asFieldNullBackground,              'Field_NullBackground',                  $00FF00FF);
+  InitSetting(asFieldNullBackground,              'Field_NullBackground',                  clNone);
   InitSetting(asRowBackgroundEven,                'RowBackgroundEven',                     clNone);
   InitSetting(asRowBackgroundOdd,                 'RowBackgroundOdd',                      clNone);
   InitSetting(asGroupTreeObjects,                 'GroupTreeObjects',                      0, False);
