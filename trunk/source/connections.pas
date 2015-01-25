@@ -106,6 +106,7 @@ type
     editQueryTimeout: TEdit;
     updownQueryTimeout: TUpDown;
     menuMoreGeneralHelp: TMenuItem;
+    menuRename: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -153,6 +154,7 @@ type
       DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
       Pt: TPoint; var Effect: Integer; Mode: TDropMode);
     procedure btnMoreClick(Sender: TObject);
+    procedure menuRenameClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -769,6 +771,7 @@ begin
   tabSSHtunnel.TabVisible := SessionFocused;
   tabAdvanced.TabVisible := SessionFocused;
   tabStatistics.TabVisible := SessionFocused;
+  menuRename.Enabled := Assigned(Node);
   menuNewSessionInFolder.Enabled := InFolder;
   menuNewFolderInFolder.Enabled := InFolder;
   FreeAndNil(FPopupDatabases);
@@ -1007,6 +1010,13 @@ begin
   SelStart := editDatabases.SelStart;
   editDatabases.Text := implodestr(';', Databases);
   editDatabases.SelStart := SelStart;
+end;
+
+
+procedure Tconnform.menuRenameClick(Sender: TObject);
+begin
+  // Start node editor to rename a session
+  ListSessions.EditNode(ListSessions.FocusedNode, ListSessions.Header.MainColumn);
 end;
 
 

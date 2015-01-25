@@ -806,6 +806,13 @@ object connform: Tconnform
     Images = MainForm.ImageListMain
     Left = 23
     Top = 83
+    object menuRename: TMenuItem
+      Caption = 'Rename'
+      Enabled = False
+      ImageIndex = 58
+      ShortCut = 113
+      OnClick = menuRenameClick
+    end
     object menuSave: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
