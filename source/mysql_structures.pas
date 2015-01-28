@@ -187,7 +187,7 @@ type
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
     dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtUnknown,
-    dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier,
+    dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
 
@@ -815,7 +815,7 @@ var
 
   );
 
-  MSSQLDatatypes: array [0..29] of TDBDatatype =
+  MSSQLDatatypes: array [0..30] of TDBDatatype =
   (
     (
       Index: dtTinyint;
@@ -1123,6 +1123,16 @@ var
       Index:           dtUniqueidentifier;
       Name:            'UNIQUEIDENTIFIER';
       Description:     'A globally unique identifier (GUID).';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtHierarchyid;
+      Name:            'HIERARCHYID';
+      Description:     'Represents a position in a hierarchy.';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;

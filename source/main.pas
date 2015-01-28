@@ -4762,10 +4762,10 @@ begin
               ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
               ngPgSQL: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 0, ' + IntToStr(GRIDMAXDATA) + '), ';
             end;
-          end else if DBObj.Connection.Parameters.IsMSSQL
-            and (c.DataType.Index=dtTimestamp)
-            then begin
+          end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
+          end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtHierarchyid) then begin
+            Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ';
           end else begin
             Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
             Inc(FullColumnCount);
