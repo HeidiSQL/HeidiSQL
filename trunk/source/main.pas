@@ -3680,8 +3680,6 @@ var
   TableOrView: TDBObject;
   Objects: TDBObjectList;
   Names: String;
-  DisableForeignKeys: Boolean;
-  Conn: TDBConnection;
 begin
   // Delete rows from selected tables and views
 
@@ -3702,17 +3700,11 @@ begin
       mtConfirmation, [mbOk, mbCancel]) = mrOk then begin
       Screen.Cursor := crHourglass;
       EnableProgress(Objects.Count);
-      Conn := ActiveConnection;
       try
-        DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014);
-        if DisableForeignKeys then
-          Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
         for TableOrView in Objects do begin
           TableOrView.Connection.Query(TableOrView.Connection.GetSQLSpecifity(spEmptyTable) + TableOrView.QuotedName);
           ProgressStep;
         end;
-        if DisableForeignKeys then
-          Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
         actRefresh.Execute;
       except
         on E:EDatabaseError do begin
