@@ -186,7 +186,7 @@ type
     dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp, dtInterval,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtUnknown,
+    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtJson, dtUnknown,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
@@ -1141,7 +1141,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..28] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..29] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1470,6 +1470,18 @@ var
       Name:            'BOOLEAN';
       Names:           'boolean|bool';
       Description:     'State of true or false. Storage size: 1 byte.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtJson;
+      NativeTypes:     '114';
+      Name:            'JSON';
+      Names:           'json';
+      Description:     'JavaScript Object Notation data';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
