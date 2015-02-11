@@ -5664,7 +5664,13 @@ begin
     case ColAttr.DataType.Index of
       dtChar, dtVarchar, dtBinary, dtVarBinary, dtBit: Result := MakeInt(ColAttr.LengthSet);
       dtTinyText, dtTinyBlob: Result := 255;
-      dtText, dtBlob: Result := 65535;
+      dtText, dtBlob: begin
+        case FConnection.Parameters.NetTypeGroup of
+          ngMySQL: Result := 65535;
+          ngMSSQL: Result := MaxInt;
+          ngPgSQL: Result := High(Int64);
+        end;
+      end;
       dtMediumText, dtMediumBlob: Result := 16777215;
       dtLongText, dtLongBlob: Result := 4294967295;
     end;
