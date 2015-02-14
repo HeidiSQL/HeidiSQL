@@ -6085,6 +6085,7 @@ procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   Obj: PDBObject;
   HasFocus, IsDbOrObject: Boolean;
+  Version: Integer;
 begin
   // DBtree and ListTables both use popupDB as menu
   if DBtreeClicked(Sender) then begin
@@ -6128,10 +6129,13 @@ begin
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
   end;
-  actCreateView.Enabled := actCreateView.Enabled and (ActiveConnection.ServerVersionInt >= 50001);
-  actCreateRoutine.Enabled := actCreateRoutine.Enabled and (ActiveConnection.ServerVersionInt >= 50003);
-  actCreateTrigger.Enabled := actCreateTrigger.Enabled and (ActiveConnection.ServerVersionInt >= 50002);
-  actCreateEvent.Enabled := actCreateEvent.Enabled and (ActiveConnection.ServerVersionInt >= 50100);
+  if ActiveConnection.Parameters.IsMySQL then begin
+    Version := ActiveConnection.ServerVersionInt;
+    actCreateView.Enabled := actCreateView.Enabled and (Version >= 50001);
+    actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Version >= 50003);
+    actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Version >= 50002);
+    actCreateEvent.Enabled := actCreateEvent.Enabled and (Version >= 50100);
+  end;
 end;
 
 
