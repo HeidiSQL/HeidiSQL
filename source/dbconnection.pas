@@ -6481,6 +6481,7 @@ begin
   NodeType := lntNone;
   Name := '';
   Database := '';
+  Schema := '';
   Rows := -1;
   Size := -1;
   Created := 0;

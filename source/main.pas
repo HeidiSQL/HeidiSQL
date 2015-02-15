@@ -1019,6 +1019,7 @@ type
     FFocusedTables: TDBObjectList;
     FCaptions: TStringList;
     FLastCaptionChange: Cardinal;
+    FListTablesSorted: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -5112,6 +5113,7 @@ begin
   vt.OffsetXY := ScrollOffset;
   vt.EndUpdate;
   vt.Tag := VTREE_LOADED;
+  FListTablesSorted := False;
   ShowStatusMsg(Msg, 0);
   ShowStatusMsg;
   ValidateControls(Self);
@@ -5190,11 +5192,12 @@ var
   Conn: TDBConnection;
 begin
   Conn := ActiveConnection;
-  if Conn <> nil then begin
-    Obj := Sender.GetNodeData(Node);
+  Obj := Sender.GetNodeData(Node);
+  if (Conn <> nil) and (not Conn.Database.IsEmpty) then begin
     Objects := Conn.GetDBObjects(Conn.Database, False, FActiveObjectGroup);
     Obj^ := Objects[Node.Index];
-  end;
+  end else
+    Obj^ := nil;
 end;
 
 
@@ -6789,7 +6792,8 @@ var
   VT: TVirtualStringTree;
 begin
   VT := Sender as TVirtualStringTree;
-  Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
+  if Assigned(Node1) and Assigned(Node2) then
+    Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
 end;
 
 
@@ -11611,6 +11615,13 @@ begin
     btnDonate.Caption := FCaptions[i];
     FLastCaptionChange := GetTickCount;
   end;
+  // Sort list tables in idle time, so ListTables.TreeOptions.AutoSort does not crash the list
+  // when dropping a right-clicked database
+  if (PageControlMain.ActivePage = tabDatabase) and (not FListTablesSorted) then begin
+    ListTables.SortTree(ListTables.Header.SortColumn, ListTables.Header.SortDirection);
+    FListTablesSorted := True;
+  end;
+
 end;
 
 procedure TMainForm.ApplicationDeActivate(Sender: TObject);
