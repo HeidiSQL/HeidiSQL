@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees,
+  ComCtrls, ToolWin, VirtualTrees, SynRegExpr,
   dbconnection, helpers, gnugettext, Vcl.Menus;
 
 type
@@ -360,11 +360,22 @@ procedure TfrmRoutineEditor.listParametersNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   Param: TRoutineParam;
+  rx: TRegExpr;
 begin
   Param := Parameters[Node.Index];
   case Column of
     1: Param.Name := NewText;
-    2: Param.Datatype := UpperCase(NewText);
+    2: begin
+      rx := TRegExpr.Create;
+      rx.ModifierG := True;
+      rx.Expression := '^(\w+)(.*)$';
+      if rx.Exec(NewText) then
+        NewText := UpperCase(rx.Match[1]) + rx.Match[2]
+      else
+        NewText := UpperCase(NewText);
+      rx.Free;
+      Param.Datatype := NewText;
+    end;
     3: Param.Context := NewText;
   end;
   Modification(Sender);
