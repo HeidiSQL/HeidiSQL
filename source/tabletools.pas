@@ -33,7 +33,7 @@ type
     chkChanged: TCheckBox;
     chkUseFrm: TCheckBox;
     lblOptions: TLabel;
-    btnHelp: TButton;
+    btnHelpMaintenance: TButton;
     tabFind: TTabSheet;
     lblFindText: TLabel;
     memoFindText: TMemo;
@@ -76,10 +76,11 @@ type
     editInsertSize: TEdit;
     updownInsertSize: TUpDown;
     lblInsertSizeUnit: TLabel;
+    btnHelpSQLExport: TButton;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure btnHelpClick(Sender: TObject);
+    procedure btnHelpMaintenanceClick(Sender: TObject);
     procedure TreeObjectsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: String);
     procedure TreeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -120,6 +121,7 @@ type
       var ContentRect: TRect);
     procedure CheckAllClick(Sender: TObject);
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure btnHelpSQLExportClick(Sender: TObject);
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -538,9 +540,15 @@ begin
 end;
 
 
-procedure TfrmTableTools.btnHelpClick(Sender: TObject);
+procedure TfrmTableTools.btnHelpMaintenanceClick(Sender: TObject);
 begin
   Mainform.CallSQLHelpWithKeyword(UpperCase(comboOperation.Text) + ' TABLE');
+end;
+
+
+procedure TfrmTableTools.btnHelpSQLExportClick(Sender: TObject);
+begin
+  Help(Sender, 'sqlexport');
 end;
 
 

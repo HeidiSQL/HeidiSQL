@@ -233,7 +233,7 @@ object frmTableTools: TfrmTableTools
             TabOrder = 6
             OnClick = ValidateControls
           end
-          object btnHelp: TButton
+          object btnHelpMaintenance: TButton
             Left = 294
             Top = 38
             Width = 75
@@ -241,7 +241,7 @@ object frmTableTools: TfrmTableTools
             Anchors = [akTop, akRight]
             Caption = 'Help'
             TabOrder = 7
-            OnClick = btnHelpClick
+            OnClick = btnHelpMaintenanceClick
           end
           object chkForUpgrade: TCheckBox
             Left = 81
@@ -455,6 +455,16 @@ object frmTableTools: TfrmTableTools
             Max = 2147483647
             TabOrder = 6
             Wrap = True
+          end
+          object btnHelpSQLExport: TButton
+            Left = 294
+            Top = 3
+            Width = 75
+            Height = 25
+            Anchors = [akTop, akRight]
+            Caption = 'Help'
+            TabOrder = 10
+            OnClick = btnHelpSQLExportClick
           end
         end
         object tabBulkTableEdit: TTabSheet
