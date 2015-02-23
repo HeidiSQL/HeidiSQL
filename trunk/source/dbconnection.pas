@@ -2672,23 +2672,21 @@ begin
       // See http://www.heidisql.com/forum.php?t=16213
       case Parameters.NetTypeGroup of
         ngPgSQL: begin
-          Keys := GetResults('SELECT '+QuoteIdent('c')+'.'+QuoteIdent('conname')+' AS '+QuoteIdent('CONSTRAINT_NAME')+', '+
-            'CASE '+QuoteIdent('c')+'.'+QuoteIdent('contype')+' '+
-            'WHEN '+EscapeString('c')+' THEN '+EscapeString('CHECK')+' '+
-            'WHEN '+EscapeString('f')+' THEN '+EscapeString('FOREIGN KEY')+' '+
-            'WHEN '+EscapeString('p')+' THEN '+EscapeString('PRIMARY KEY')+' '+
-            'WHEN '+EscapeString('u')+' THEN '+EscapeString('UNIQUE')+' '+
-            'END AS '+QuoteIdent('CONSTRAINT_TYPE')+', '+
-            QuoteIdent('a')+'.'+QuoteIdent('attname')+' AS '+QuoteIdent('COLUMN_NAME')+' '+
-            'FROM '+QuoteIdent('pg_constraint')+' AS '+QuoteIdent('c')+' '+
-            'LEFT JOIN '+QuoteIdent('pg_class')+' '+QuoteIdent('t')+' ON '+QuoteIdent('c')+'.'+QuoteIdent('conrelid')+'='+QuoteIdent('t')+'.'+QuoteIdent('oid')+' '+
-            'LEFT JOIN '+QuoteIdent('pg_attribute')+' '+QuoteIdent('a')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('oid')+'='+QuoteIdent('a')+'.'+QuoteIdent('attrelid')+' '+
-            'LEFT JOIN '+QuoteIdent('pg_namespace')+' '+QuoteIdent('n')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('relnamespace')+'='+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
-            'WHERE c.contype IN ('+EscapeString('p')+', '+EscapeString('u')+') '+
-            'AND '+QuoteIdent('a')+'.'+QuoteIdent('attnum')+'=ANY('+QuoteIdent('c')+'.'+QuoteIdent('conkey')+') '+
-            'AND '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Schema)+' '+
-            'AND '+QuoteIdent('t')+'.'+QuoteIdent('relname')+'='+EscapeString(Name)+' '+
-            'ORDER BY '+QuoteIdent('a')+'.'+QuoteIdent('attnum')
+          Keys := GetResults('WITH ndx_list AS '+
+            '(SELECT pg_index.indexrelid FROM pg_index, pg_class '+
+            'WHERE pg_class.relname='+EscapeString(Name)+' AND pg_class.oid = pg_index.indrelid), ndx_cols AS '+
+            '('+
+            'SELECT pg_class.relname, UNNEST(i.indkey) AS col_ndx, '+
+            'CASE i.indisprimary WHEN true THEN '+EscapeString('PRIMARY')+' ELSE CASE i.indisunique WHEN true THEN '+EscapeString('UNIQUE')+' ELSE '+EscapeString('KEY')+' END END AS CONSTRAINT_TYPE '+
+            'FROM pg_class, pg_index i '+
+            'WHERE pg_class.oid=i.indexrelid '+
+            'AND pg_class.oid IN (SELECT indexrelid FROM ndx_list) '+
+            ') '+
+            'SELECT ndx_cols.relname AS CONSTRAINT_NAME, ndx_cols.CONSTRAINT_TYPE, a.attname AS COLUMN_NAME '+
+            'FROM pg_class c, pg_attribute a '+
+            'JOIN ndx_cols ON (a.attnum=ndx_cols.col_ndx) '+
+            'WHERE c.oid='+EscapeString(Name)+'::regclass '+
+            'AND a.attrelid=c.oid'
             );
         end;
         else begin
