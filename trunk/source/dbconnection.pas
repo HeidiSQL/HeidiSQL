@@ -3837,13 +3837,13 @@ begin
         dt := StrToDateTime(Input);
         case Datatype of
           dtDate:
-            Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy', dt);
+            Result := SysUtils.FormatDateTime('yyyy"-"mm"-"dd', dt);
           dtTime:
             Result := SysUtils.FormatDateTime('hh":"nn":"ss', dt);
           dtYear:
             Result := SysUtils.FormatDateTime('yyyy', dt);
           dtDatetime:
-            Result := SysUtils.FormatDateTime('dd"/"mm"/"yyyy hh":"nn":"ss', dt);
+            Result := SysUtils.FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss', dt);
         end;
       except
         on E:EConvertError do
