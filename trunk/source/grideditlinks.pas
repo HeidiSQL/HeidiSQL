@@ -8,7 +8,7 @@ uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
   dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext,
-  StrUtils, System.UITypes;
+  StrUtils, System.UITypes, SynRegExpr;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -562,7 +562,7 @@ begin
   case FTableColumn.DataType.Index of
     dtDate:
       FMaskEdit.EditMask := '0000-00-00;1; ';
-    dtDatetime, dtTimestamp, dtInt, dtBigint: begin
+    dtDatetime, dtDatetime2, dtTimestamp, dtInt, dtBigint: begin
         if MicroSecondsPrecision > 0 then
           FMaskEdit.EditMask := '0000-00-00 00\:00\:00.'+StringOfChar('0', MicroSecondsPrecision)+';1; '
         else
@@ -738,7 +738,7 @@ begin
         text := DateToStr(d);
       end;
 
-      dtDateTime, dtTimestamp, dtInt, dtBigint: begin
+      dtDateTime, dtDateTime2, dtTimestamp, dtInt, dtBigint: begin
         dt := StrToDateTime(FMaskEdit.Text);
         case FMaskEdit.SelStart of
           0..3: dt := IncYear(dt, Offset);
@@ -803,8 +803,22 @@ end;
 
 
 function TDateTimeEditorLink.MicroSecondsPrecision: Integer;
+var
+  rx: TRegExpr;
 begin
-  Result := MakeInt(FTableColumn.LengthSet);
+  if not FTableColumn.LengthSet.IsEmpty then
+    Result := MakeInt(FTableColumn.LengthSet)
+  else begin
+    // Find default length of supported microseconds in datatype definition
+    // See mysql_structures
+    rx := TRegExpr.Create;
+    rx.Expression := '\.([^\.]+)$';
+    if rx.Exec(FTableColumn.DataType.Format) then
+      Result := rx.MatchLen[1]
+    else
+      Result := 0;
+    rx.Free;
+  end;
   // No microseconds for UNIX timestamp columns
   if FTableColumn.DataType.Index in [dtInt, dtBigint] then
     Result := 0;

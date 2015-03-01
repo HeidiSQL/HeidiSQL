@@ -183,7 +183,7 @@ type
   // MySQL data types
   TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint, dtSerial, dtBigSerial,
     dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
-    dtDate, dtTime, dtYear, dtDatetime, dtSmalldatetime, dtTimestamp, dtInterval,
+    dtDate, dtTime, dtYear, dtDatetime, dtDatetime2, dtSmalldatetime, dtTimestamp, dtInterval,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
     dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtJson, dtUnknown,
@@ -207,6 +207,7 @@ type
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     DefLengthSet:    String;  // Should be set for types which require a length/set
+    Format:          String;  // Used for date/time values when displaying and generating queries
     Category:        TDBDatatypeCategoryIndex;
   end;
 
@@ -403,6 +404,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
     (
@@ -417,6 +419,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (
@@ -434,6 +437,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy';
       Category:        dtcTemporal;
     ),
     (
@@ -449,6 +453,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (
@@ -466,6 +471,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (
@@ -941,6 +947,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (
@@ -953,6 +960,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
     (
@@ -963,16 +971,18 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy-mm-dd hh:nn:ss.zzz';
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetime;
+      Index:           dtDatetime2;
       Name:            'DATETIME2';
       Description:     'Date and time data from January 1,1 AD through December 31, 9999 AD, with an accuracy of three-hundredths of a second, or 3.33 milliseconds.';
-      HasLength:       False;
+      HasLength:       True;
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy-mm-dd hh:nn:ss.zzzzzzz';
       Category:        dtcTemporal;
     ),
     (
@@ -983,6 +993,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (
@@ -1329,6 +1340,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
     (
@@ -1340,6 +1352,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      Format:          'hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (
@@ -1352,6 +1365,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (
@@ -1363,6 +1377,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
     (
@@ -1374,6 +1389,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
     (

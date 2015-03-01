@@ -2111,7 +2111,7 @@ begin
   if ((ServerVersionInt >= 50300) and Parameters.IsMariaDB) or
     ((ServerVersionInt >= 50604) and (not Parameters.IsMariaDB)) then begin
     for i:=Low(FDatatypes) to High(FDatatypes) do begin
-      if FDatatypes[i].Index in [dtDatetime, dtTime, dtTimestamp] then
+      if FDatatypes[i].Index in [dtDatetime, dtDatetime2, dtTime, dtTimestamp] then
         FDatatypes[i].HasLength := True;
     end;
   end;
@@ -2644,13 +2644,20 @@ begin
         DataType := Cols.Col('DATA_TYPE');
         DataType := DataType.ToUpper.DeQuotedString('"');
         Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + DataType;
+        MaxLen := '';
         if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
           MaxLen := Cols.Col('CHARACTER_MAXIMUM_LENGTH');
           if MaxLen = '-1' then
-            Result := Result + '(max)'
-          else
-            Result := Result + '(' + MaxLen + ')';
+            MaxLen := 'max';
+        end else if not Cols.IsNull('NUMERIC_PRECISION') then begin
+          MaxLen := Cols.Col('NUMERIC_PRECISION');
+          if not Cols.IsNull('NUMERIC_SCALE') then
+            MaxLen := MaxLen + ',' + Cols.Col('NUMERIC_SCALE');
+        end else if not Cols.IsNull('DATETIME_PRECISION') then begin
+          MaxLen := Cols.Col('DATETIME_PRECISION');
         end;
+        if not MaxLen.IsEmpty then
+          Result := Result + '(' + MaxLen + ')';
         if Cols.Col('IS_NULLABLE') = 'NO' then
           Result := Result + ' NOT';
         Result := Result + ' NULL';
@@ -3827,32 +3834,10 @@ end;
 
 
 function TDBConnection.GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
-var
-  dt: TDateTime;
 begin
   // Return date/time string value as expected by server
-  case Parameters.NetTypeGroup of
-    ngMSSQL: begin
-      try
-        dt := StrToDateTime(Input);
-        case Datatype of
-          dtDate:
-            Result := SysUtils.FormatDateTime('yyyy"-"mm"-"dd', dt);
-          dtTime:
-            Result := SysUtils.FormatDateTime('hh":"nn":"ss', dt);
-          dtYear:
-            Result := SysUtils.FormatDateTime('yyyy', dt);
-          dtDatetime:
-            Result := SysUtils.FormatDateTime('yyyy"-"mm"-"dd hh":"nn":"ss', dt);
-        end;
-      except
-        on E:EConvertError do
-          Result := Input;
-      end;
-    end;
-    else
-      Result := Input;
-  end;
+  // Not sure why there was a conversion required in earlier versions.
+  Result := Input;
 end;
 
 
@@ -5554,6 +5539,8 @@ begin
         case Datatype(Column).Category of
           dtcReal:
             Result := FloatToStr(FCurrentResults.Fields[Column].AsExtended, FFormatSettings);
+          dtcTemporal:
+            Result := FormatDateTime(Datatype(Column).Format, FCurrentResults.Fields[Column].AsFloat);
           else
             Result := FCurrentResults.Fields[Column].AsString;
         end;
@@ -5792,9 +5779,10 @@ begin
       break;
     end;
   end;
-  if idx = -1 then
-    raise EDatabaseError.CreateFmt(_('Column "%s" not available.'), [Column]);
-  Result := IsNull(idx);
+  if idx > -1 then
+    Result := IsNull(idx)
+  else
+    Result := True;
 end;
 
 
