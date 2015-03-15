@@ -484,7 +484,6 @@ var
   Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
   Node: PVirtualNode;
-  IsVirtual: Boolean;
 
   procedure FinishSpecs;
   begin
