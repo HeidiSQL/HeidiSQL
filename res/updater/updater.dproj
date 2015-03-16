@@ -1,7 +1,7 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{24E2AAD6-CDE7-46EC-95BD-79028373B17A}</ProjectGuid>
-        <ProjectVersion>15.1</ProjectVersion>
+        <ProjectVersion>15.2</ProjectVersion>
         <MainSource>updater.dpr</MainSource>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
@@ -50,7 +50,7 @@
         <DCC_F>false</DCC_F>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_Locale>1033</VerInfo_Locale>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
