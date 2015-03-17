@@ -4945,8 +4945,10 @@ begin
         RowsTotal := MakeInt(DBObject.Connection.GetVar('SHOW TABLE STATUS LIKE '+esc(DBObject.Name), 'Rows'));
       ngMSSQL:
         RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT SUM(rows) FROM sys.partitions WHERE index_id IN (0, 1) AND object_id = object_id('+esc(DBObject.Database+'.'+DBObject.Schema+'.'+DBObject.Name)+')'));
+      ngPgSQL:
+        RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT reltuples FROM pg_class AS c LEFT JOIN pg_namespace AS n ON (n.oid = c.relnamespace) WHERE c.relkind='+esc('r')+' AND n.nspname='+esc(DBObject.Database)+' AND c.relname='+esc(DBObject.Name)));
       else
-        RowsTotal := MakeInt(DBObject.Connection.GetVar('SELECT COUNT(*) FROM '+DBObject.QuotedName));
+        raise Exception.Create(MsgUnhandledNetType);
     end;
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
