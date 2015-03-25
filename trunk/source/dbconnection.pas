@@ -4252,9 +4252,9 @@ begin
       obj.Database := db;
       obj.Schema := Results.Col('table_schema'); // Remove when using schemata
       obj.Comment := Results.Col('comment');
-      obj.Rows := StrToIntDef(Results.Col('reltuples'), obj.Rows);
-      obj.DataLen := StrToIntDef(Results.Col('data_length'), obj.DataLen);
-      obj.IndexLen := StrToIntDef(Results.Col('index_length'), obj.IndexLen);
+      obj.Rows := StrToInt64Def(Results.Col('reltuples'), obj.Rows);
+      obj.DataLen := StrToInt64Def(Results.Col('data_length'), obj.DataLen);
+      obj.IndexLen := StrToInt64Def(Results.Col('index_length'), obj.IndexLen);
       obj.Size := obj.DataLen + obj.IndexLen;
       Inc(Cache.FDataSize, Obj.Size);
       Cache.FLargestObjectSize := Max(Cache.FLargestObjectSize, Obj.Size);
