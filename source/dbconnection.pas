@@ -4227,12 +4227,12 @@ begin
       SchemaTable := EscapeString(FQuoteChar)+' || t.TABLE_SCHEMA || '+EscapeString(FQuoteChar+'.'+FQuoteChar)+' || t.TABLE_NAME || '+EscapeString(FQuoteChar);
     // See http://www.heidisql.com/forum.php?t=16996
     if ServerVersionInt >= 90000 then
-      SizeClause := 'pg_table_size('+SchemaTable+')'
+      SizeClause := 'pg_table_size('+SchemaTable+')::bigint'
     else
       SizeClause := 'NULL';
     Results := GetResults('SELECT *,'+
       ' '+SizeClause+' AS data_length,'+
-      ' pg_relation_size('+SchemaTable+') AS index_length,'+
+      ' pg_relation_size('+SchemaTable+')::bigint AS index_length,'+
       ' c.reltuples, obj_description(c.oid) AS comment'+
       ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
       ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON t.table_schema = n.nspname'+
