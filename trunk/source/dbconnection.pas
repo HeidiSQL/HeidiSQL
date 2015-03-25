@@ -2679,21 +2679,24 @@ begin
       // See http://www.heidisql.com/forum.php?t=16213
       case Parameters.NetTypeGroup of
         ngPgSQL: begin
-          Keys := GetResults('WITH ndx_list AS '+
-            '(SELECT pg_index.indexrelid FROM pg_index, pg_class '+
-            'WHERE pg_class.relname='+EscapeString(Name)+' AND pg_class.oid = pg_index.indrelid), ndx_cols AS '+
-            '('+
-            'SELECT pg_class.relname, UNNEST(i.indkey) AS col_ndx, '+
-            'CASE i.indisprimary WHEN true THEN '+EscapeString('PRIMARY')+' ELSE CASE i.indisunique WHEN true THEN '+EscapeString('UNIQUE')+' ELSE '+EscapeString('KEY')+' END END AS CONSTRAINT_TYPE '+
-            'FROM pg_class, pg_index i '+
-            'WHERE pg_class.oid=i.indexrelid '+
-            'AND pg_class.oid IN (SELECT indexrelid FROM ndx_list) '+
-            ') '+
+          Keys := GetResults('WITH ndx_list AS ('+
+            '    SELECT pg_index.indexrelid, pg_class.oid'+
+            '    FROM pg_index, pg_class'+
+            '    WHERE pg_class.relname = '+EscapeString(Name)+
+            '    AND pg_class.oid = pg_index.indrelid'+
+            '  ),'+
+            '  ndx_cols AS ('+
+            '    SELECT pg_class.relname, UNNEST(i.indkey) AS col_ndx,'+
+            '    CASE i.indisprimary WHEN true THEN '+EscapeString('PRIMARY')+' ELSE CASE i.indisunique WHEN true THEN '+EscapeString('UNIQUE')+' ELSE '+EscapeString('KEY')+' END END AS CONSTRAINT_TYPE,'+
+            '    pg_class.oid'+
+            '    FROM pg_class'+
+            '    JOIN pg_index i ON (pg_class.oid = i.indexrelid)'+
+            '    JOIN ndx_list ON (pg_class.oid = ndx_list.indexrelid)'+
+            '  )'+
             'SELECT ndx_cols.relname AS CONSTRAINT_NAME, ndx_cols.CONSTRAINT_TYPE, a.attname AS COLUMN_NAME '+
-            'FROM pg_class c, pg_attribute a '+
-            'JOIN ndx_cols ON (a.attnum=ndx_cols.col_ndx) '+
-            'WHERE c.oid='+EscapeString(Name)+'::regclass '+
-            'AND a.attrelid=c.oid'
+            'FROM pg_attribute a '+
+            'JOIN ndx_cols ON (a.attnum = ndx_cols.col_ndx) '+
+            'JOIN ndx_list ON (ndx_list.oid = a.attrelid AND ndx_list.indexrelid = ndx_cols.oid)'
             );
         end;
         else begin
