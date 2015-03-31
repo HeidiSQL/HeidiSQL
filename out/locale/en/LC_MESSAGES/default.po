@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-03-31 10:42+0100\n"
+"PO-Revision-Date: 2015-03-31 10:58+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2562,8 +2562,8 @@ msgstr "Set interval ..."
 
 #. optionsform..pagecontrolMain..tabMisc..Caption
 #: options.dfm:35
-msgid "Miscellaneous"
-msgstr "Miscellaneous"
+msgid "General"
+msgstr "General"
 
 #. Preferences
 msgid "Custom snippets directory:"
@@ -4461,12 +4461,8 @@ msgid "Command line only works on MySQL connections."
 msgstr "Command line only works on MySQL connections."
 
 #: main.pas:2802
-msgid ""
-"You need to tell %s where your MySQL binaries reside, in Tools > Preferences "
-"> Miscellaneous."
-msgstr ""
-"You need to tell %s where your MySQL binaries reside, in Tools > Preferences "
-"> Miscellaneous."
+msgid "You need to tell %s where your MySQL binaries reside, in %s > %s > %s."
+msgstr "You need to tell %s where your MySQL binaries reside, in %s > %s > %s."
 
 #: main.pas:2803
 msgid "Current setting is: \"%s\""
@@ -4866,12 +4862,8 @@ msgid "The current editor is empty."
 msgstr "The current editor is empty."
 
 #: main.pas:9950
-msgid ""
-"Preventing second application instance - disabled in Tools > Preferences > "
-"Miscellaneous."
-msgstr ""
-"Preventing second application instance - disabled in Tools > Preferences > "
-"Miscellaneous."
+msgid "Preventing second application instance - disabled in %s > %s > %s."
+msgstr "Preventing second application instance - disabled in %s > %s > %s."
 
 #: main.pas:10047
 msgid "Sorting grid nodes ..."

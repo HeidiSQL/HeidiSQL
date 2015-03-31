@@ -3152,7 +3152,7 @@ begin
     if (Length(path)>0) and (path[Length(path)] <> sep) then
       path := path + sep;
     if not FileExists(path+cmd, true) then begin
-      ErrorDialog(f_('You need to tell %s where your MySQL binaries reside, in Tools > Preferences > Miscellaneous.', [APPNAME])+
+      ErrorDialog(f_('You need to tell %s where your MySQL binaries reside, in %s > %s > %s.', [APPNAME, _('Tools'), _('Preferences'), _('General')])+
         CRLF+CRLF+f_('Current setting is: "%s"', [path]));
     end else begin
       p := '';
@@ -10784,7 +10784,7 @@ var
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
-    LogSQL(_('Preventing second application instance - disabled in Tools > Preferences > Miscellaneous.'), lcInfo);
+    LogSQL(f_('Preventing second application instance - disabled in %s > %s > %s.', [_('Tools'), _('Preferences'), _('General')]), lcInfo);
     ConnectionParams := nil;
     ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
     if not RunQueryFiles(FileNames, nil) then begin
