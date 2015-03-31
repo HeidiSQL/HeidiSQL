@@ -31,7 +31,7 @@ object optionsform: Toptionsform
     OnChange = pagecontrolMainChange
     OnChanging = pagecontrolMainChanging
     object tabMisc: TTabSheet
-      Caption = 'Miscellaneous'
+      Caption = 'General'
       DesignSize = (
         594
         353)
