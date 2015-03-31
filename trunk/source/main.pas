@@ -4902,7 +4902,7 @@ begin
     EnumerateRecentFilters;
     ColWidths.Free;
     if Integer(vt.RootNodeCount) = MaximumRows then
-      LogSQL(f_('Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in Tools > Preferences > Data.', [FormatNumber(MaximumRows)]), lcInfo);
+      LogSQL(f_('Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in %s > %s > %s.', [FormatNumber(MaximumRows), _('Tools'), _('Preferences'), _('Data')]), lcInfo);
   end;
   vt.Tag := VTREE_LOADED;
   DataGridFullRowMode := False;
@@ -10525,7 +10525,7 @@ begin
       except
         on E:ESynKeyError do begin
           LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to Tools > Preferences > Shortcuts to change this settings.',
-            [ShortCutToText(Shortcut1), ShortCutToText(Shortcut2), EditorCommandToCodeString(Keystroke.Command), E.Message]), lcError);
+            [ShortCutToText(Shortcut1), ShortCutToText(Shortcut2), EditorCommandToCodeString(Keystroke.Command), E.Message, _('Tools'), _('Preferences'), _('Shortcuts')]), lcError);
         end;
       end;
     end else
