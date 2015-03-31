@@ -1047,7 +1047,7 @@ object optionsform: Toptionsform
     Width = 177
     Height = 25
     Anchors = [akLeft, akBottom]
-    Caption = 'Factory defaults'
+    Caption = 'Restore defaults'
     TabOrder = 0
     OnClick = btnRestoreDefaultsClick
   end

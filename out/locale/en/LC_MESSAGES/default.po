@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-02-16 20:05+0100\n"
+"PO-Revision-Date: 2015-03-31 10:42+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2861,8 +2861,8 @@ msgstr "Apply"
 
 #. optionsform..btnRestoreDefaults..Caption
 #: options.dfm:965
-msgid "Factory defaults"
-msgstr "Factory defaults"
+msgid "Restore defaults"
+msgstr "Restore defaults"
 
 #. printlistForm..Caption
 #: printlist.dfm:5

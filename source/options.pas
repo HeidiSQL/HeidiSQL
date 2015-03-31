@@ -718,7 +718,7 @@ var
   ValueList: TStringlist;
   i: Integer;
 begin
-  // Factory defaults
+  // Restore defaults
   if MessageDialog(_('Reset all preference options to default values?'),
     _('This also applies to automatic settings, e.g. toolbar positions.'),
     mtConfirmation, [mbOK, mbCancel]) = mrCancel then
