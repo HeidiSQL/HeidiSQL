@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-04-02 11:53+0100\n"
+"PO-Revision-Date: 2015-04-02 18:59+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2672,8 +2672,8 @@ msgstr "Errors"
 
 #. optionsform..pagecontrolMain..tabLogging..chkLogEventUserFiredSQL..Caption
 #: options.dfm:294
-msgid "User fired SQL queries"
-msgstr "User fired SQL queries"
+msgid "User-generated SQL queries"
+msgstr "User-generated SQL queries"
 
 #. optionsform..pagecontrolMain..tabLogging..chkLogEventSQL..Caption
 #: options.dfm:303

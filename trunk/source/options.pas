@@ -70,7 +70,7 @@ type
     editLogDir: TButtonedEdit;
     lblLogLevel: TLabel;
     chkLogEventErrors: TCheckBox;
-    chkLogEventUserFiredSQL: TCheckBox;
+    chkLogEventUserGeneratedSQL: TCheckBox;
     chkLogEventSQL: TCheckBox;
     chkLogEventInfo: TCheckBox;
     chkLogEventDebug: TCheckBox;
@@ -236,7 +236,7 @@ begin
   AppSettings.WriteInt(asLogsqlwidth, updownLogSnip.Position);
   AppSettings.WriteString(asSessionLogsDirectory, editLogDir.Text);
   AppSettings.WriteBool(asLogErrors, chkLogEventErrors.Checked);
-  AppSettings.WriteBool(asLogUserSQL, chkLogEventUserFiredSQL.Checked);
+  AppSettings.WriteBool(asLogUserSQL, chkLogEventUserGeneratedSQL.Checked);
   AppSettings.WriteBool(asLogSQL, chkLogEventSQL.Checked);
   AppSettings.WriteBool(asLogInfos, chkLogEventInfo.Checked);
   AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
@@ -459,7 +459,7 @@ begin
   chkLogToFile.Checked := AppSettings.ReadBool(asLogToFile);
   editLogDir.Text := AppSettings.ReadString(asSessionLogsDirectory);
   chkLogEventErrors.Checked := AppSettings.ReadBool(asLogErrors);
-  chkLogEventUserFiredSQL.Checked := AppSettings.ReadBool(asLogUserSQL);
+  chkLogEventUserGeneratedSQL.Checked := AppSettings.ReadBool(asLogUserSQL);
   chkLogEventSQL.Checked := AppSettings.ReadBool(asLogSQL);
   chkLogEventInfo.Checked := AppSettings.ReadBool(asLogInfos);
   chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
