@@ -30,7 +30,7 @@ type
     btnApply: TButton;
     tabSQL: TTabSheet;
     chkAutoReconnect: TCheckBox;
-    tabDataAppearance: TTabSheet;
+    tabTextFormatting: TTabSheet;
     lblDataFont: TLabel;
     comboDataFontName: TComboBox;
     editDataFontSize: TEdit;
@@ -465,7 +465,7 @@ begin
   chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
   chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);
 
-  // Default Column-Width in DBGrids:
+  // Default column width in grids:
   updownMaxColWidth.Position := AppSettings.ReadInt(asMaxColWidth);
   editGridRowCountStep.Text := IntToStr(AppSettings.ReadInt(asDatagridRowsPerStep));
   editGridRowCountMax.Text := IntToStr(AppSettings.ReadInt(asDatagridMaximumRows));

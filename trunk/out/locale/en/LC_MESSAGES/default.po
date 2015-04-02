@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-04-02 18:59+0100\n"
+"PO-Revision-Date: 2015-04-02 19:07+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2756,8 +2756,8 @@ msgstr "Italic"
 
 #. optionsform..pagecontrolMain..tabData..lblMaxColWidth..Caption
 #: options.dfm:613
-msgid "Maximum column-width in data-grids:"
-msgstr "Maximum column-width in data-grids:"
+msgid "Maximum column width in data-grids:"
+msgstr "Maximum column width in data-grids:"
 
 #. optionsform..pagecontrolMain..tabData..lblDataFont..Caption
 #: options.dfm:628
@@ -2785,18 +2785,18 @@ msgid "NULL background color (use \"None\" to disable):"
 msgstr "NULL background color (use \"None\" to disable):"
 
 #. Preferences
-msgid "Data appearance"
-msgstr "Data appearance"
+msgid "Text formatting"
+msgstr "Text formatting"
 
 #. Preferences
 msgid "Data editing"
 msgstr "Data editing"
 
-#. Preferences > Data appearance
+#. Preferences > Text formatting
 msgid "Alternating row background:"
 msgstr "Alternating row background:"
 
-#. Preferences > Data appearance
+#. Preferences > Text formatting
 msgid "Local number format"
 msgstr "Local number format"
 
