@@ -130,7 +130,7 @@ type
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asHintsOnResultTabs,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
-    asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asRememberFilters,
+    asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
@@ -3103,7 +3103,7 @@ begin
   InitSetting(asDatagridMaximumRows,              'DatagridMaximumRows',                   100000);
   InitSetting(asDatagridRowsPerStep,              'DatagridRowsPerStep',                   1000);
   InitSetting(asGridRowLineCount,                 'GridRowLineCount',                      1);
-  InitSetting(asRememberFilters,                  'RememberFilters',                       0, True);
+  InitSetting(asReuseEditorConfiguration,         'ReuseEditorConfiguration',              0, True);
   InitSetting(asLogToFile,                        'LogToFile',                             0, False);
   InitSetting(asMainWinMaximized,                 'MainWinMaximized',                      0, False);
   InitSetting(asMainWinLeft,                      'MainWinLeft',                           100);
