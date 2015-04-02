@@ -620,8 +620,8 @@ object optionsform: Toptionsform
         FontSmoothing = fsmNone
       end
     end
-    object tabDataAppearance: TTabSheet
-      Caption = 'Data appearance'
+    object tabTextFormatting: TTabSheet
+      Caption = 'Text formatting'
       ImageIndex = 4
       DesignSize = (
         594
@@ -629,9 +629,9 @@ object optionsform: Toptionsform
       object lblMaxColWidth: TLabel
         Left = 8
         Top = 11
-        Width = 177
+        Width = 176
         Height = 13
-        Caption = 'Maximum column-width in data-grids:'
+        Caption = 'Maximum column width in data-grids:'
       end
       object lblDataFontHint: TLabel
         Left = 516
