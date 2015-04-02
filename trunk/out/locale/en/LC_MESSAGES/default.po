@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-03-31 11:11+0100\n"
+"PO-Revision-Date: 2015-04-02 11:53+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1341,6 +1341,7 @@ msgid "Command"
 msgstr "Command"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
+#. Data grid > Insert value
 #: main.dfm:888
 msgid "Time"
 msgstr "Time"
@@ -5654,8 +5655,13 @@ msgid "Allows the following replacement patterns:"
 msgstr "Allows the following replacement patterns:"
 
 #. Table tools
+#. Data grid > Insert value
 msgid "Date and time"
 msgstr "Date and time"
+
+#. Data grid > Insert value
+msgid "Date"
+msgstr "Date"
 
 #. Table tools
 msgid "Day of month"
@@ -5834,3 +5840,9 @@ msgstr "Unknown datatype \"%s\" for \"%s\". Fall back to %s."
 #. Error happening when facing unknown named data types. Name of column or argument passed here as a hint for the user.
 msgid "Unknown datatype \"%s\". Fall back to %s."
 msgstr "Unknown datatype \"%s\". Fall back to %s."
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "GUID without braces"
+msgstr "GUID without braces"

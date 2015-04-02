@@ -6373,17 +6373,17 @@ var
   Col: TTableColumn;
 begin
   DecodeDateTime(Now, y, m, d, h, i, s, ms);
-  DataDateTime.Caption := 'DATETIME: ' + Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,i,s]);
-  DataDate.Caption := 'DATE: ' + Format('%.4d-%.2d-%.2d', [y,m,d]);
-  DataTime.Caption := 'TIME: ' + Format('%.2d:%.2d:%.2d', [h,i,s]);
-  DataYear.Caption := 'YEAR: ' + Format('%.4d', [y]);
+  DataDateTime.Caption := Format('%s: %.4d-%.2d-%.2d %.2d:%.2d:%.2d', [_('Date and time'), y,m,d,h,i,s]);
+  DataDate.Caption := Format('%s: %.4d-%.2d-%.2d', [_('Date'), y,m,d]);
+  DataTime.Caption := Format('%s: %.2d:%.2d:%.2d', [_('Time'), h,i,s]);
+  DataYear.Caption := Format('%s: %.4d', [_('Year'), y]);
   GetSystemTime(SystemTime);
   UnixTimestamp := DateTimeToUnix(SystemTimeToDateTime(SystemTime));
   DataUNIXtimestamp.Caption := _('UNIX Timestamp')+': ' + IntToStr(UnixTimestamp);
   CreateGuid(Uid);
   StrUid := GuidToString(Uid);
-  DataGUID.Caption := 'GUID: ' + StrUid;
-  DataGUIDwobraces.Caption := 'GUID without braces: ' + Copy(StrUid, 2, Length(StrUid)-2);
+  DataGUID.Caption := _('GUID') + ': ' + StrUid;
+  DataGUIDwobraces.Caption := _('GUID without braces') + ': ' + Copy(StrUid, 2, Length(StrUid)-2);
 
   ColNum := DataGrid.FocusedColumn;
   DataDefaultValue.Caption := _('Default value')+': ?';
