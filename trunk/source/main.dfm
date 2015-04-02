@@ -9359,6 +9359,9 @@ object MainForm: TMainForm
         ImageIndex = 28
         OnClick = InsertValue
       end
+      object N11: TMenuItem
+        Caption = '-'
+      end
       object DataDateTime: TMenuItem
         Caption = 'datetime'
         Hint = 'Insert datetime-value'
@@ -9389,8 +9392,16 @@ object MainForm: TMainForm
         ImageIndex = 80
         OnClick = InsertValue
       end
+      object N12: TMenuItem
+        Caption = '-'
+      end
       object DataGUID: TMenuItem
         Caption = 'GUID'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
+      object DataGUIDwobraces: TMenuItem
+        Caption = 'GUID without braces'
         ImageIndex = 112
         OnClick = InsertValue
       end
