@@ -315,12 +315,12 @@ object optionsform: Toptionsform
         TabOrder = 6
         OnClick = Modified
       end
-      object chkLogEventUserFiredSQL: TCheckBox
+      object chkLogEventUserGeneratedSQL: TCheckBox
         Left = 202
         Top = 113
         Width = 240
         Height = 17
-        Caption = 'User fired SQL queries'
+        Caption = 'User-generated SQL queries'
         TabOrder = 7
         OnClick = Modified
       end
