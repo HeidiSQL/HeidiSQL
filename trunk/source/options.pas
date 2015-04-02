@@ -107,13 +107,13 @@ type
     cboxRowBackgroundOdd: TColorBox;
     cboxRowBackgroundEven: TColorBox;
     Label2: TLabel;
-    tabDataEditing: TTabSheet;
+    tabEditorConfiguration: TTabSheet;
     chkEditorBinary: TCheckBox;
     chkEditorDatetime: TCheckBox;
     chkPrefillDateTime: TCheckBox;
     chkEditorEnum: TCheckBox;
     chkEditorSet: TCheckBox;
-    chkRememberFilters: TCheckBox;
+    chkReuseEditorConfiguration: TCheckBox;
     chkForeignDropDown: TCheckBox;
     chkLocalNumberFormat: TCheckBox;
     lblSQLColElement: TLabel;
@@ -289,13 +289,13 @@ begin
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
   AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
 
-  // Data editing
+  // Editor Configuration
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
   AppSettings.WriteBool(asFieldEditorDatetime, chkEditorDatetime.Checked);
   AppSettings.WriteBool(asFieldEditorDatetimePrefill, chkPrefillDatetime.Checked);
   AppSettings.WriteBool(asFieldEditorEnum, chkEditorEnum.Checked);
   AppSettings.WriteBool(asFieldEditorSet, chkEditorSet.Checked);
-  AppSettings.WriteBool(asRememberFilters, chkRememberFilters.Checked);
+  AppSettings.WriteBool(asReuseEditorConfiguration, chkReuseEditorConfiguration.Checked);
   AppSettings.WriteBool(asForeignDropDown, chkForeignDropDown.Checked);
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
@@ -501,13 +501,13 @@ begin
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
   chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);
 
-  // Data editing
+  // Editor Configuration
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);
   chkEditorDatetime.Checked := AppSettings.ReadBool(asFieldEditorDatetime);
   chkPrefillDateTime.Checked := AppSettings.ReadBool(asFieldEditorDatetimePrefill);
   chkEditorEnum.Checked := AppSettings.ReadBool(asFieldEditorEnum);
   chkEditorSet.Checked := AppSettings.ReadBool(asFieldEditorEnum);
-  chkRememberFilters.Checked := AppSettings.ReadBool(asRememberFilters);
+  chkReuseEditorConfiguration.Checked := AppSettings.ReadBool(asReuseEditorConfiguration);
   chkForeignDropDown.Checked := AppSettings.ReadBool(asForeignDropDown);
 
   // Shortcuts

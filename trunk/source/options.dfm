@@ -853,8 +853,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
     end
-    object tabDataEditing: TTabSheet
-      Caption = 'Data editing'
+    object tabEditorConfiguration: TTabSheet
+      Caption = 'Editor Configuration'
       ImageIndex = 6
       DesignSize = (
         594
@@ -909,13 +909,13 @@ object optionsform: Toptionsform
         TabOrder = 4
         OnClick = Modified
       end
-      object chkRememberFilters: TCheckBox
+      object chkReuseEditorConfiguration: TCheckBox
         Left = 8
         Top = 139
         Width = 577
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Remember filters, sorting and column selection across sessions'
+        Caption = 'Reuse previous configuration settings on restart'
         TabOrder = 5
       end
       object chkForeignDropDown: TCheckBox
@@ -924,7 +924,7 @@ object optionsform: Toptionsform
         Width = 577
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Drop down values from foreign table in InnoDB rows'
+        Caption = 'Show values in foreign key columns'
         TabOrder = 6
       end
     end

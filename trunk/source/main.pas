@@ -1998,7 +1998,7 @@ begin
       end;
 
       // Remove filters if unwanted
-      if not AppSettings.ReadBool(asRememberFilters) then begin
+      if not AppSettings.ReadBool(asReuseEditorConfiguration) then begin
         AppSettings.SessionPath := Item.Parameters.SessionPath;
         Keys := AppSettings.GetKeyNames;
         rx := TRegExpr.Create;
