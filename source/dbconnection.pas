@@ -829,6 +829,7 @@ begin
   rx.Expression := '(-pw\s+")[^"]*(")';
   PlinkCmdDisplay := FConnection.Parameters.SSHPlinkExe + ' ' + rx.Replace(PlinkParameters, '${1}******${2}', True);
   FConnection.Log(lcInfo, f_('Attempt to create plink.exe process, waiting %ds for response ...', [FConnection.Parameters.SSHTimeout]));
+  FConnection.Log(lcInfo, PlinkCmdDisplay);
 
   // Prepare process
   FillChar(StartupInfo, SizeOf(StartupInfo), 0);
