@@ -2661,9 +2661,11 @@ begin
         if Cols.Col('IS_NULLABLE') = 'NO' then
           Result := Result + ' NOT';
         Result := Result + ' NULL';
-        if Cols.IsNull('COLUMN_DEFAULT') then
-          Result := Result + ' DEFAULT NULL'
-        else begin
+        if Cols.IsNull('COLUMN_DEFAULT') then begin
+          // Check whether column can be null. Otherwise, leave away DEFAULT clause.
+          if Cols.Col('IS_NULLABLE') <> 'NO' then
+            Result := Result + ' DEFAULT NULL'
+        end else begin
           Result := Result + ' DEFAULT ' + Cols.Col('COLUMN_DEFAULT');
         end;
         // The following is wrong syntax in PostgreSQL, but helps ParseTableStructure to find the comment
