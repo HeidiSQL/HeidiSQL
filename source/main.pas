@@ -611,6 +611,9 @@ type
     Previousresulttab1: TMenuItem;
     Nextresulttab1: TMenuItem;
     actSaveSynMemoToTextfile: TAction;
+    DataGUIDwobraces: TMenuItem;
+    N11: TMenuItem;
+    N12: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -6363,6 +6366,7 @@ procedure TMainForm.DataInsertValueClick(Sender: TObject);
 var
   y, m, d, h, i, s, ms: Word;
   Uid: TGuid;
+  StrUid: String;
   UnixTimestamp: Int64;
   SystemTime: TSystemTime;
   ColNum: TColumnIndex;
@@ -6377,7 +6381,9 @@ begin
   UnixTimestamp := DateTimeToUnix(SystemTimeToDateTime(SystemTime));
   DataUNIXtimestamp.Caption := _('UNIX Timestamp')+': ' + IntToStr(UnixTimestamp);
   CreateGuid(Uid);
-  DataGUID.Caption := 'GUID: ' + GuidToString(Uid);
+  StrUid := GuidToString(Uid);
+  DataGUID.Caption := 'GUID: ' + StrUid;
+  DataGUIDwobraces.Caption := 'GUID without braces: ' + Copy(StrUid, 2, Length(StrUid)-2);
 
   ColNum := DataGrid.FocusedColumn;
   DataDefaultValue.Caption := _('Default value')+': ?';
