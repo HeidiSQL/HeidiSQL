@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-04-02 19:22+0100\n"
+"PO-Revision-Date: 2015-04-03 22:00+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2711,8 +2711,8 @@ msgstr "Maximum result sets:"
 
 #. optionsform..pagecontrolMain..tabSQL..chkCompletionProposal..Caption
 #: options.dfm:418
-msgid "Enable completion proposal"
-msgstr "Enable completion proposal"
+msgid "Enable autocompletion"
+msgstr "Enable autocompletion"
 
 #. optionsform..pagecontrolMain..tabSQL..chkTabsToSpaces..Caption
 #: options.dfm:427

@@ -472,7 +472,7 @@ object optionsform: Toptionsform
         Width = 577
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Enable completion proposal'
+        Caption = 'Enable autocompletion'
         TabOrder = 5
         OnClick = Modified
       end
