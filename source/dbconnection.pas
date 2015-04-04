@@ -227,6 +227,7 @@ type
       function IsTokudb: Boolean;
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
+      function IsAzure: Boolean;
       property ImageIndex: Integer read GetImageIndex;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
@@ -1301,6 +1302,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsAzure: Boolean;
+begin
+  Result := Pos('azure', LowerCase(ServerVersion)) > 0;
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   if IsFolder then
@@ -1775,6 +1782,8 @@ begin
       'Data Source='+DataSource+';'+
       'Application Name='+AppName+';'
       ;
+    if not Parameters.AllDatabasesStr.IsEmpty then
+      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
     if Parameters.WindowsAuth then
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;';
     try
@@ -2144,6 +2153,8 @@ begin
       FSQLSpecifities[spDbObjectsTypeCol] := 'type';
     end;
   end;
+  if Parameters.IsAzure and (not Parameters.AllDatabasesStr.IsEmpty) then
+    SetDatabase(Parameters.AllDatabasesStr);
 end;
 
 
@@ -2848,7 +2859,8 @@ begin
         Value := EscapeString(Value)
       else
         Value := QuoteIdent(Value);
-      Query(Format(GetSQLSpecifity(spUSEQuery), [Value]), False);
+      if not Parameters.IsAzure then
+        Query(Format(GetSQLSpecifity(spUSEQuery), [Value]), False);
     end;
     SetObjectNamesInSelectedDB;
   end;
