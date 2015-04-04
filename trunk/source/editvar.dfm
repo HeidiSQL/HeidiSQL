@@ -145,7 +145,7 @@ object frmEditVariable: TfrmEditVariable
       Text = '0'
     end
     object UpDownNumber: TUpDown
-      Left = 252
+      Left = 251
       Top = 50
       Width = 16
       Height = 21
