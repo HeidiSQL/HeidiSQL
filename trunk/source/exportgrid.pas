@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki, efPHPArray);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki, efPHPArray, efMarkDown);
 
   TfrmExportGrid = class(TForm)
     btnOK: TButton;
@@ -69,9 +69,9 @@ type
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
     const FFormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'));
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'));
     const FFormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'));
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'));
     procedure SaveDialogTypeChange(Sender: TObject);
     function GetExportFormat: TGridExportFormat;
     procedure SetExportFormat(Value: TGridExportFormat);
@@ -184,6 +184,8 @@ begin
       editTerminator.Text := FCSVTerminator;
       editNull.Text := FCSVNull;
     end;
+    efMarkDown:
+      editNull.Text := FCSVNull;
     else begin
       editSeparator.Text := '';
       editEncloser.Text := '';
@@ -192,7 +194,7 @@ begin
     end;
   end;
 
-  chkIncludeQuery.Enabled := ExportFormat in [efHTML, efXML];
+  chkIncludeQuery.Enabled := ExportFormat in [efHTML, efXML, efMarkDown];
   Enable := ExportFormat = efCSV;
   lblSeparator.Enabled := Enable;
   editSeparator.Enabled := Enable;
@@ -203,7 +205,7 @@ begin
   lblTerminator.Enabled := Enable;
   editTerminator.Enabled := Enable;
   editTerminator.RightButton.Enabled := Enable;
-  lblNull.Enabled := ExportFormat in [efExcel, efCSV];
+  lblNull.Enabled := ExportFormat in [efExcel, efCSV, efMarkDown];
   editNull.Enabled := lblNull.Enabled;
   editNull.RightButton.Enabled := lblNull.Enabled;
   btnOK.Enabled := radioOutputCopyToClipboard.Checked or (radioOutputFile.Checked and (editFilename.Text <> ''));
@@ -393,7 +395,7 @@ begin
   // Remember csv settings
   Edit := Sender as TButtonedEdit;
   case ExportFormat of
-    efExcel: begin
+    efExcel, efMarkDown: begin
       if Edit = editNull then             FCSVNull := Edit.Text;
     end;
     efCSV: begin
@@ -491,7 +493,7 @@ begin
     NodeCount := Grid.RootNodeCount;
   MainForm.EnableProgress(NodeCount);
   TableName := BestTableName(GridData);
-  ExcludeCol := -1;
+  ExcludeCol := NoColumn;
   if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
     ExcludeCol := GridData.AutoIncrementColumn;
 
@@ -640,6 +642,40 @@ begin
         Header := '$'+TableName+' = array('+CRLF;
     end;
 
+    efMarkDown: begin
+      Separator := ' | ';
+      Encloser := '';
+      Terminator := CRLF;
+      Header := Header + TableName + CRLF + '---' + CRLF;
+      if chkIncludeQuery.Checked then
+        Header := Header + '```sql' + CRLF + GridData.SQL + CRLF + '```' + CRLF;
+      Header := Header + TrimLeft(Separator);
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        if Col <> ExcludeCol then begin
+          if chkIncludeColumnNames.Checked then
+            Header := Header + Grid.Header.Columns[Col].Text + Separator
+          else
+            Header := Header + Separator
+        end;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Header := Header + Terminator;
+      // Write an extra line with dashes below the heading, otherwise the table won't parse
+      Header := Header + TrimLeft(Separator);
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        if Col <> ExcludeCol then begin
+          Header := Header + '-';
+          if GridData.DataType(Col).Category in [dtcInteger, dtcReal] then
+            Header := Header + ':';
+          Header := Header + Separator;
+        end;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Header := Header + Terminator;
+    end;
+
   end;
   S.WriteString(Header);
 
@@ -688,6 +724,8 @@ begin
 
       efPHPArray: tmp := #9 + 'array( // row #'+FormatNumber(GridData.RecNo)+CRLF;
 
+      efMarkDown: tmp := '| ';
+
       else tmp := '';
     end;
 
@@ -700,7 +738,7 @@ begin
           Data := GridData.Col(Col);
         // Keep formatted numeric values
         if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
-          and (ExportFormat in [efExcel, efHTML]) then
+          and (ExportFormat in [efExcel, efHTML, efMarkDown]) then
             Data := FormatNumber(Data, False);
 
         case ExportFormat of
@@ -710,11 +748,11 @@ begin
             tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
           end;
 
-          efExcel, efCSV, efLaTeX, efWiki: begin
+          efExcel, efCSV, efLaTeX, efWiki, efMarkDown: begin
             // Escape encloser characters inside data per de-facto CSV.
             Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-            if GridData.IsNull(Col) and (ExportFormat in [efExcel, efCSV]) then
-              Data := FCSVNull
+            if GridData.IsNull(Col) and (ExportFormat in [efExcel, efCSV, efMarkDown]) then
+              Data := editNull.Text
             else
               Data := Encloser + Data + Encloser;
             tmp := tmp + Data + Separator;
@@ -787,6 +825,8 @@ begin
       end;
       efPHPArray:
         tmp := tmp + #9 + '),' + CRLF;
+      efMarkDown:
+        tmp := tmp + Terminator;
     end;
     S.WriteString(tmp);
 
