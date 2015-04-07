@@ -1321,7 +1321,10 @@ begin
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173;
     end;
-    ngMSSQL: Result := 123;
+    ngMSSQL: begin
+      Result := 123;
+      if IsAzure then Result := 188;
+    end;
     ngPgSQL: Result := 187;
     else Result := ICONINDEX_SERVER;
   end;
@@ -1822,7 +1825,7 @@ begin
         // Try to get more exact server version to avoid displaying "20.14" in some cases
         ServerVersion := GetVar('SELECT SERVERPROPERTY('+EscapeString('ProductVersion')+')');
         if ExecRegExpr('(\d+)\.(\d+)\.(\d+)\.(\d+)', ServerVersion) then
-          FServerVersionUntouched := ServerVersion;
+          FServerVersionUntouched := Copy(FServerVersionUntouched, 1, Pos(' - ', FServerVersionUntouched)+2) + ServerVersion;
       except
         // Above query only works on SQL Server 2008 and newer
         // Keep value from SELECT @@VERSION on older servers
@@ -2153,8 +2156,6 @@ begin
       FSQLSpecifities[spDbObjectsTypeCol] := 'type';
     end;
   end;
-  if Parameters.IsAzure and (not Parameters.AllDatabasesStr.IsEmpty) then
-    SetDatabase(Parameters.AllDatabasesStr);
 end;
 
 
@@ -2859,8 +2860,7 @@ begin
         Value := EscapeString(Value)
       else
         Value := QuoteIdent(Value);
-      if not Parameters.IsAzure then
-        Query(Format(GetSQLSpecifity(spUSEQuery), [Value]), False);
+      Query(Format(GetSQLSpecifity(spUSEQuery), [Value]), False);
     end;
     SetObjectNamesInSelectedDB;
   end;
