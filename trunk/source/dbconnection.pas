@@ -48,6 +48,7 @@ type
       function QuotedName(AlwaysQuote: Boolean=True): String;
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
+      function RowCount: Int64;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property OverlayImageIndex: Integer read GetOverlayImageIndex;
@@ -346,6 +347,7 @@ type
       function GetCurrentUserHostCombination: String;
       function DecodeAPIString(a: AnsiString): String;
       function ExtractIdentifier(var SQL: String): String;
+      function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetObjectNamesInSelectedDB;
@@ -457,6 +459,7 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
+      function GetRowCount(Obj: TDBObject): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
       procedure SetLockedByThread(Value: TThread); override;
     public
@@ -486,6 +489,7 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetInformationSchemaObjects: TStringList; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -524,6 +528,7 @@ type
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
       function MaxAllowedPacket: Int64; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
   end;
 
@@ -3728,6 +3733,49 @@ begin
 end;
 
 
+function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a mysql table
+  Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
+  Result := MakeInt(Rows);
+end;
+
+
+function TAdoDBConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a mssql table
+  if ServerVersionInt >= 900 then begin
+    Rows := GetVar('SELECT SUM('+QuoteIdent('rows')+') FROM '+QuoteIdent('sys')+'.'+QuoteIdent('partitions')+
+      ' WHERE '+QuoteIdent('index_id')+' IN (0, 1)'+
+      ' AND '+QuoteIdent('object_id')+' = object_id('+EscapeString(Obj.Database+'.'+Obj.Schema+'.'+Obj.Name)+')'
+      );
+  end else begin
+    Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Schema)+'.'+QuoteIdent(Obj.Name));
+  end;
+  Result := MakeInt(Rows);
+end;
+
+
+function TPgConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a postgres table
+  Rows := GetVar('SELECT '+QuoteIdent('reltuples')+'::bigint FROM '+QuoteIdent('pg_class')+
+    ' LEFT JOIN '+QuoteIdent('pg_namespace')+
+    '   ON ('+QuoteIdent('pg_namespace')+'.'+QuoteIdent('oid')+' = '+QuoteIdent('pg_class')+'.'+QuoteIdent('relnamespace')+')'+
+    ' WHERE '+QuoteIdent('pg_class')+'.'+QuoteIdent('relkind')+'='+EscapeString('r')+
+    ' AND '+QuoteIdent('pg_namespace')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
+    ' AND '+QuoteIdent('pg_class')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)
+    );
+  Result := MakeInt(Rows);
+end;
+
+
 function TDBConnection.GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
 begin
   // Return some version specific SQL clause or snippet
@@ -6687,6 +6735,11 @@ end;
 function TDBObject.QuotedColumn(AlwaysQuote: Boolean=True): String;
 begin
   Result := Connection.QuoteIdent(Column, AlwaysQuote);
+end;
+
+function TDBObject.RowCount: Int64;
+begin
+  Result := Connection.GetRowCount(Self);
 end;
 
 
