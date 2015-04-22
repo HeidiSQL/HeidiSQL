@@ -3113,7 +3113,7 @@ begin
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
-        Conn.Query('DROP '+UpperCase(DBObject.ObjType)+' '+DBObject.QuotedName);
+        DBObject.Drop;
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
       end;
