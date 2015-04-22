@@ -43,6 +43,7 @@ type
       NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
       procedure Assign(Source: TPersistent); override;
+      procedure Drop;
       function IsSameAs(CompareTo: TDBObject): Boolean;
       function QuotedDatabase(AlwaysQuote: Boolean=True): String;
       function QuotedName(AlwaysQuote: Boolean=True): String;
@@ -353,6 +354,7 @@ type
       procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
+      procedure Drop(Obj: TDBObject); virtual;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -521,6 +523,7 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCharsetTable: TDBQuery; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+      procedure Drop(Obj: TDBObject); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -2799,7 +2802,7 @@ begin
             'AND '+QuoteIdent('p')+'.'+QuoteIdent('proname')+'='+EscapeString(Name)
             );
           ArgNames := Explode(',', Copy(ProcDetails.Col('proargnames'), 2, Length(ProcDetails.Col('proargnames'))-2));
-          ArgTypes := Explode(' ', Copy(ProcDetails.Col('proargtypes'), 2, Length(ProcDetails.Col('proargtypes'))-2));
+          ArgTypes := Explode(' ', Copy(ProcDetails.Col('proargtypes'), 1, Length(ProcDetails.Col('proargtypes'))));
           Arguments := TStringList.Create;
           for i:=0 to ArgNames.Count-1 do begin
             if ArgTypes.Count > i then
@@ -3776,6 +3779,39 @@ begin
     ' AND '+QuoteIdent('pg_class')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)
     );
   Result := MakeInt(Rows);
+end;
+
+
+procedure TDBConnection.Drop(Obj: TDBObject);
+begin
+  Query('DROP '+UpperCase(Obj.ObjType)+' '+Obj.QuotedName);
+end;
+
+
+procedure TPgConnection.Drop(Obj: TDBObject);
+var
+  sql: String;
+  i: Integer;
+  Params: TRoutineParamList;
+begin
+  case Obj.NodeType of
+    lntFunction, lntProcedure: begin
+      sql := 'DROP '+UpperCase(Obj.ObjType)+' '+Obj.QuotedName+'(';
+      Params := TRoutineParamList.Create;
+      ParseRoutineStructure(Obj, Params);
+      for i:=0 to Params.Count-1 do begin
+        if Obj.NodeType = lntProcedure then
+          sql := sql + Params[i].Context + ' ';
+        sql := sql + QuoteIdent(Params[i].Name) + ' ' + Params[i].Datatype;
+        if i < Params.Count-1 then
+          sql := sql + ', ';
+      end;
+      sql := sql + ')';
+      Query(sql);
+    end;
+    else
+      inherited;
+  end;
 end;
 
 
@@ -6743,6 +6779,11 @@ end;
 function TDBObject.RowCount: Int64;
 begin
   Result := Connection.GetRowCount(Self);
+end;
+
+procedure TDBObject.Drop;
+begin
+  Connection.Drop(Self);
 end;
 
 
