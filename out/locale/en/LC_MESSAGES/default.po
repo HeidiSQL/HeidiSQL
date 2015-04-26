@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-04-03 22:00+0100\n"
+"PO-Revision-Date: 2015-04-26 15:27+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -4346,6 +4346,10 @@ msgstr "Registry dump, deprecated"
 #: main.pas:2101
 msgid "Settings successfully restored from %s"
 msgstr "Settings successfully restored from %s"
+
+#. Automatic export of portable settings
+msgid "Portable settings file written, with %d changes."
+msgstr "Portable settings file written, with %d changes."
 
 #: main.pas:2142
 msgid "Splitting SQL queries ..."

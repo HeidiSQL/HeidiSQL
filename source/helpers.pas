@@ -226,8 +226,10 @@ type
       procedure ResetPath;
       property SessionPath: String read FSessionPath write SetSessionPath;
       property PortableMode: Boolean read FPortableMode;
+      property Writes: Integer read FWrites;
       procedure ImportSettings(Filename: String);
-      procedure ExportSettings(Filename: String);
+      procedure ExportSettings(Filename: String); overload;
+      procedure ExportSettings; overload;
   end;
 
 
@@ -3791,6 +3793,11 @@ begin
   SaveUnicodeFile(FileName, Content);
 end;
 
+
+procedure TAppSettings.ExportSettings;
+begin
+  ExportSettings(FSettingsFile);
+end;
 
 
 
