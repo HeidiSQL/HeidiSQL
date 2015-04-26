@@ -1023,6 +1023,8 @@ type
     FCaptions: TStringList;
     FLastCaptionChange: Cardinal;
     FListTablesSorted: Boolean;
+    FLastPortableSettingsSave: Cardinal;
+    FLastAppSettingsWrites: Integer;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1783,6 +1785,10 @@ begin
     FJumpList := TJumpList.Create;
     FJumpList.ApplicationId := APPNAME + IntToStr(GetExecutableBits);
   end;
+
+  FLastCaptionChange := 0;
+  FLastPortableSettingsSave := 0;
+  FLastAppSettingsWrites := 0;
 end;
 
 
@@ -11615,14 +11621,23 @@ begin
     btnDonate.Caption := FCaptions[i];
     FLastCaptionChange := GetTickCount;
   end;
+  if AppSettings.PortableMode and (FLastPortableSettingsSave < GetTickCount-60000) then begin
+    if AppSettings.Writes > FLastAppSettingsWrites then begin
+      AppSettings.ExportSettings;
+      LogSQL(f_('Portable settings file written, with %d changes.', [AppSettings.Writes-FLastAppSettingsWrites]), lcDebug);
+    end;
+    FLastAppSettingsWrites := AppSettings.Writes;
+    FLastPortableSettingsSave := GetTickCount;
+  end;
+
   // Sort list tables in idle time, so ListTables.TreeOptions.AutoSort does not crash the list
   // when dropping a right-clicked database
   if (PageControlMain.ActivePage = tabDatabase) and (not FListTablesSorted) then begin
     ListTables.SortTree(ListTables.Header.SortColumn, ListTables.Header.SortDirection);
     FListTablesSorted := True;
   end;
-
 end;
+
 
 procedure TMainForm.ApplicationDeActivate(Sender: TObject);
 begin
