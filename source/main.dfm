@@ -2384,7 +2384,7 @@ object MainForm: TMainForm
     object actWebChangelog: TAction
       Category = 'Various'
       Caption = 'Changelog'
-      Hint = 'http://code.google.com/p/heidisql/source/list'
+      Hint = 'https://sourceforge.net/p/heidisql/code/HEAD/log/?path=/'
       ImageIndex = 68
       OnExecute = actWebbrowse
     end

@@ -1088,7 +1088,7 @@ begin
     if (FNetType > High(TNetType)) or (FNetType < Low(TNetType)) then begin
       ErrorDialog(f_('Broken "NetType" value (%d) found in settings for session "%s".', [Integer(FNetType), FSessionPath])
         +CRLF+CRLF+
-        f_('Please report that on %s', ['http://code.google.com/p/heidisql/issues/detail?id=2958'])
+        f_('Please report that on %s', ['https://sourceforge.net/p/heidisql/tickets/2958/'])
         );
       FNetType := ntMySQL_TCPIP;
     end;
