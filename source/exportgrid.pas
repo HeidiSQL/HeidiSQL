@@ -7,7 +7,7 @@ uses
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki, efPHPArray, efMarkDown);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
 
   TfrmExportGrid = class(TForm)
     btnOK: TButton;
@@ -69,9 +69,9 @@ type
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
     const FFormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'));
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
     const FFormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'));
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'), ('JSON'));
     procedure SaveDialogTypeChange(Sender: TObject);
     function GetExportFormat: TGridExportFormat;
     procedure SetExportFormat(Value: TGridExportFormat);
@@ -194,7 +194,7 @@ begin
     end;
   end;
 
-  chkIncludeQuery.Enabled := ExportFormat in [efHTML, efXML, efMarkDown];
+  chkIncludeQuery.Enabled := ExportFormat in [efHTML, efXML, efMarkDown, efJSON];
   Enable := ExportFormat = efCSV;
   lblSeparator.Enabled := Enable;
   editSeparator.Enabled := Enable;
@@ -676,6 +676,16 @@ begin
       Header := Header + Terminator;
     end;
 
+    efJSON: begin
+      // JavaScript Object Notation
+      Header := '{' + CRLF;
+      if chkIncludeQuery.Checked then
+        Header := Header + #9 + '"query": "'+HTMLSpecialChars(GridData.SQL)+'",' + CRLF
+      else
+        Header := Header + #9 + '"table": "'+HTMLSpecialChars(TableName)+'",' + CRLF ;
+      Header := Header + #9 + '"rows":' + CRLF + #9 + '[';
+    end;
+
   end;
   S.WriteString(Header);
 
@@ -725,6 +735,13 @@ begin
       efPHPArray: tmp := #9 + 'array( // row #'+FormatNumber(GridData.RecNo)+CRLF;
 
       efMarkDown: tmp := '| ';
+
+      efJSON: begin
+        if chkIncludeColumnNames.Checked then
+          tmp := CRLF + #9#9 + '{' + CRLF
+        else
+          tmp := CRLF + #9#9 + '[' + CRLF
+      end
 
       else tmp := '';
     end;
@@ -803,6 +820,25 @@ begin
               tmp := tmp + #9#9 + Data + ','+CRLF;
           end;
 
+          efJSON: begin
+            tmp := tmp + #9#9#9;
+            if chkIncludeColumnNames.Checked then
+              tmp := tmp + '"'+HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '": ';
+            if GridData.IsNull(Col) then
+              tmp := tmp + 'null,' +CRLF
+            else begin
+              case GridData.DataType(Col).Category of
+                dtcInteger, dtcReal:
+                  tmp := tmp + data;
+                dtcBinary, dtcSpatial:
+                  tmp := tmp + '"' + Data + '"';
+                else
+                  tmp := tmp + '"' + HTMLSpecialChars(Data) + '"'
+              end;
+              tmp := tmp + ',' + CRLF;
+            end;
+          end;
+
         end;
       end;
 
@@ -827,6 +863,13 @@ begin
         tmp := tmp + #9 + '),' + CRLF;
       efMarkDown:
         tmp := tmp + Terminator;
+      efJSON: begin
+        Delete(tmp, length(tmp)-2,2);
+        if chkIncludeColumnNames.Checked then
+          tmp := tmp + #9#9 + '},'
+        else
+          tmp := tmp + #9#9 + '],';
+      end;
     end;
     S.WriteString(tmp);
 
@@ -858,6 +901,10 @@ begin
       tmp := ');' + CRLF;
       if radioOutputFile.Checked then
         tmp := tmp + '?>';
+    end;
+    efJSON: begin
+      S.Size := S.Size - 1;
+      tmp := CRLF + #9 + ']' + CRLF + '}';
     end;
     else
       tmp := '';
