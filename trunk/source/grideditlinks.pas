@@ -911,7 +911,7 @@ begin
   // Work around a magic automatic TAB key arriving the editor if the user got
   // into this cell via TAB. Only seen for a TComboBox with style=csDropDown.
   // See issue #2809
-  if not (AllowCustomText and (GetTickCount-FBeginEditTime < 200)) then
+  if (not AllowCustomText) and (GetTickCount-FBeginEditTime > 200) then
     inherited;
 end;
 
