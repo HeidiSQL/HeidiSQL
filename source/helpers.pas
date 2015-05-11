@@ -13,7 +13,7 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
-  Character, ImgList, System.UITypes, ActnList;
+  Character, ImgList, System.UITypes, ActnList, WinSock;
 
 type
 
@@ -325,6 +325,7 @@ type
   function GetSystemImageIndex(Filename: String): Integer;
   function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
+  function PortOpen(Port: Word): Boolean;
 
 
 var
@@ -2687,6 +2688,29 @@ begin
   if IsNotEmpty(Anchor) then
     Anchor := '#'+Anchor;
   ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
+end;
+
+
+function PortOpen(Port: Word): Boolean;
+var
+  client: sockaddr_in;
+  sock: Integer;
+  ret: Integer;
+  wsdata: WSAData;
+begin
+  Result := True;
+  ret := WSAStartup($0002, wsdata);
+  if ret<>0 then
+    Exit;
+  try
+    client.sin_family := AF_INET;
+    client.sin_port := htons(Port);
+    client.sin_addr.s_addr := inet_addr(PAnsiChar('127.0.0.1'));
+    sock := socket(AF_INET, SOCK_STREAM, 0);
+    Result := connect(sock, client, SizeOf(client)) <> 0;
+  finally
+    WSACleanup;
+  end;
 end;
 
 
