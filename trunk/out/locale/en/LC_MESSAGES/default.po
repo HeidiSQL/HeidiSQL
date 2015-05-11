@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-04-26 15:27+0100\n"
+"PO-Revision-Date: 2015-05-11 19:49+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -3961,6 +3961,10 @@ msgstr "PLink exited unexpected. Command line was: %s"
 #: dbconnection.pas:1165
 msgid "Could not execute PLink: %s"
 msgstr "Could not execute PLink: %s"
+
+#. Plink connection
+msgid "Could not execute PLink: Port %d already in use."
+msgstr "Could not execute PLink: Port %d already in use."
 
 msgid ""
 "Connection closed immediately after it was established. This is mostly "

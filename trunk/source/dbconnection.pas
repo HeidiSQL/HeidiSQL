@@ -818,6 +818,10 @@ var
   ExitCode: LongWord;
   Waited, ReturnedSomethingAt: Integer;
 begin
+  // Check if local port is open
+  if not PortOpen(FConnection.Parameters.SSHLocalPort) then
+    raise EDatabaseError.CreateFmt(_('Could not execute PLink: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
+
   // Build plink.exe command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
   PlinkParameters := '-ssh ';
