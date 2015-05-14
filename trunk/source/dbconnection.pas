@@ -322,7 +322,7 @@ type
       FQuoteChar: Char;
       FQuoteChars: String;
       FDatatypes: TDBDataTypeArray;
-      FThreadID: Cardinal;
+      FThreadID: Int64;
       FSQLSpecifities: Array[TSQLSpecifityId] of String;
       FKeepAliveTimer: TTimer;
       FFavorites: TStringList;
@@ -331,7 +331,7 @@ type
       procedure DoAfterConnect; virtual;
       procedure DetectUSEQuery(SQL: String); virtual;
       procedure SetDatabase(Value: String);
-      function GetThreadId: Cardinal; virtual; abstract;
+      function GetThreadId: Int64; virtual; abstract;
       function GetCharacterSet: String; virtual;
       procedure SetCharacterSet(CharsetName: String); virtual; abstract;
       function GetLastErrorCode: Cardinal; virtual; abstract;
@@ -396,7 +396,7 @@ type
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
       function LikeClauseTail: String;
       property Parameters: TConnectionParameters read FParameters write FParameters;
-      property ThreadId: Cardinal read GetThreadId;
+      property ThreadId: Int64 read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
       property ServerUptime: Integer read GetServerUptime;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
@@ -451,7 +451,7 @@ type
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
-      function GetThreadId: Cardinal; override;
+      function GetThreadId: Int64; override;
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
@@ -483,7 +483,7 @@ type
       FLastError: String;
       procedure SetActive(Value: Boolean); override;
       procedure DoAfterConnect; override;
-      function GetThreadId: Cardinal; override;
+      function GetThreadId: Int64; override;
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
       function GetLastError: String; override;
@@ -515,7 +515,7 @@ type
       FLastRawResults: TPGRawResults;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
-      function GetThreadId: Cardinal; override;
+      function GetThreadId: Int64; override;
       procedure SetCharacterSet(CharsetName: String); override;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       function GetLastErrorCode: Cardinal; override;
@@ -2905,29 +2905,29 @@ end;
 {**
   Return current thread id
 }
-function TMySQLConnection.GetThreadId: Cardinal;
+function TMySQLConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then
-      FThreadID := mysql_thread_id(FHandle);
+      FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
   end;
   Result := FThreadID;
 end;
 
 
-function TAdoDBConnection.GetThreadId: Cardinal;
+function TAdoDBConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then
-      FThreadID := StrToIntDef(GetVar('SELECT @@SPID'), 0);
+      FThreadID := StrToInt64Def(GetVar('SELECT @@SPID'), 0);
   end;
   Result := FThreadID;
 end;
 
 
-function TPGConnection.GetThreadId: Cardinal;
+function TPGConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
