@@ -1152,7 +1152,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..29] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..30] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1503,6 +1503,18 @@ var
       HasBinary:       False;
       HasDefault:      False;
       Category:        dtcOther;
+    ),
+    (
+      Index:           dtUniqueidentifier;
+      NativeTypes:     '2950';
+      Name:            'UUID';
+      Names:           'uuid';
+      Description:     'The data type uuid stores Universally Unique Identifiers (UUID) as defined by RFC 4122, ISO/IEC 9834-8:2005, and related standards.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      Category:        dtcText;
     )
   );
 
