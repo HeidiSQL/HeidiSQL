@@ -206,6 +206,7 @@ type
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
+    LoadPart:        Boolean; // Select per SUBSTR() or LEFT()
     DefLengthSet:    String;  // Should be set for types which require a length/set
     Format:          String;  // Used for date/time values when displaying and generating queries
     Category:        TDBDatatypeCategoryIndex;
@@ -287,6 +288,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -300,6 +302,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -313,6 +316,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -326,6 +330,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -339,6 +344,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -355,6 +361,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -371,6 +378,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -389,6 +397,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '10,0';
       Category:        dtcReal;
     ),
@@ -404,6 +413,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
@@ -419,6 +429,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -437,6 +448,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy';
       Category:        dtcTemporal;
     ),
@@ -453,6 +465,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -471,6 +484,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -488,6 +502,7 @@ var
       RequiresLength:  True;
       HasBinary:       True;
       HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '50';
       Category:        dtcText;
     ),
@@ -509,6 +524,7 @@ var
       RequiresLength:  True;
       HasBinary:       True; // MySQL-Help says the opposite but it's valid for older versions at least.
       HasDefault:      True;
+      LoadPart:        True;
       DefLengthSet:    '50';
       Category:        dtcText;
     ),
@@ -525,6 +541,7 @@ var
       RequiresLength:  False;
       HasBinary:       True;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcText;
     ),
     (
@@ -543,6 +560,7 @@ var
       RequiresLength:  False;
       HasBinary:       True;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -558,6 +576,7 @@ var
       RequiresLength:  False;
       HasBinary:       True;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -576,6 +595,7 @@ var
       RequiresLength:  False;
       HasBinary:       True;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -590,6 +610,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '50';
       Category:        dtcBinary;
     ),
@@ -605,6 +626,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        True;
       DefLengthSet:    '50';
       Category:        dtcBinary;
     ),
@@ -620,6 +642,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcBinary;
     ),
     (
@@ -637,6 +660,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcBinary;
     ),
     (
@@ -651,6 +675,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcBinary;
     ),
     (
@@ -667,6 +692,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcBinary;
     ),
     (
@@ -682,6 +708,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '''Y'',''N''';
       Category:        dtcOther;
     ),
@@ -698,6 +725,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '''Value A'',''Value B''';
       Category:        dtcOther;
     ),
@@ -712,6 +740,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -724,6 +753,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -738,6 +768,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -752,6 +783,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -763,6 +795,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -776,6 +809,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -789,6 +823,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -803,6 +838,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -816,6 +852,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     )
 
@@ -831,6 +868,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -841,6 +879,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -851,6 +890,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -861,6 +901,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -871,6 +912,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -881,6 +923,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '10,0';
       Category:        dtcReal;
     ),
@@ -892,6 +935,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '10,0';
       Category:        dtcReal;
     ),
@@ -903,6 +947,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -913,6 +958,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -923,6 +969,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -933,6 +980,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -947,6 +995,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -960,6 +1009,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
@@ -971,6 +1021,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss.zzz';
       Category:        dtcTemporal;
     ),
@@ -982,6 +1033,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss.zzzzzzz';
       Category:        dtcTemporal;
     ),
@@ -993,6 +1045,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -1004,6 +1057,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1014,6 +1068,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        True;
       DefLengthSet:    '50';
       Category:        dtcText;
     ),
@@ -1025,6 +1080,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        True;
       DefLengthSet:    '50';
       Category:        dtcText;
     ),
@@ -1036,6 +1092,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -1046,6 +1103,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        True;
       DefLengthSet:    '50';
       Category:        dtcText;
     ),
@@ -1057,6 +1115,7 @@ var
       RequiresLength:  True;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        True;
       DefLengthSet:    '50';
       Category:        dtcText;
     ),
@@ -1068,6 +1127,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -1078,6 +1138,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcBinary;
     ),
     (
@@ -1088,6 +1149,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcBinary;
     ),
     (
@@ -1098,6 +1160,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcBinary;
     ),
     (
@@ -1108,6 +1171,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcOther;
     ),
     (
@@ -1118,6 +1182,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcOther;
     ),
     (
@@ -1128,6 +1193,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcOther;
     ),
     (
@@ -1138,6 +1204,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcOther;
     ),
     (
@@ -1148,6 +1215,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcOther;
     )
   );
@@ -1163,6 +1231,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcOther;
     ),
     (
@@ -1175,6 +1244,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1188,6 +1258,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1200,6 +1271,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1211,6 +1283,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1222,6 +1295,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1234,6 +1308,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1246,6 +1321,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
+      LoadPart:        False;
       Category:        dtcInteger;
     ),
     (
@@ -1258,6 +1334,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -1270,6 +1347,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -1282,6 +1360,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -1293,6 +1372,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcReal;
     ),
     (
@@ -1305,6 +1385,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -1317,6 +1398,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -1329,6 +1411,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (
@@ -1340,6 +1423,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
@@ -1352,6 +1436,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Format:          'hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -1365,6 +1450,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -1377,6 +1463,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd';
       Category:        dtcTemporal;
     ),
@@ -1389,6 +1476,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Format:          'yyyy-mm-dd hh:nn:ss';
       Category:        dtcTemporal;
     ),
@@ -1401,6 +1489,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        True;
       Category:        dtcBinary;
     ),
     (
@@ -1412,6 +1501,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -1423,6 +1513,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -1434,6 +1525,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -1445,6 +1537,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -1456,6 +1549,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -1467,6 +1561,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -1478,6 +1573,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcSpatial;
     ),
     (
@@ -1490,6 +1586,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcOther;
     ),
     (
@@ -1502,7 +1599,8 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
-      Category:        dtcOther;
+      LoadPart:        False;
+      Category:        dtcText;
     ),
     (
       Index:           dtUniqueidentifier;
@@ -1514,6 +1612,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcText;
     )
   );
