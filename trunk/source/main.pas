@@ -4762,8 +4762,7 @@ begin
         then begin
         if not DataGridFullRowMode
           and (KeyCols.Count > 0) // We need a sufficient key to be able to load remaining row data
-          and (c.DataType.Category in [dtcText, dtcBinary])
-          and (not (c.DataType.Index in [dtImage])) // Cannot cast certain data types
+          and (c.DataType.LoadPart)
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
           and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
