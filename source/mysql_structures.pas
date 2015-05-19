@@ -185,8 +185,9 @@ type
     dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
     dtDate, dtTime, dtYear, dtDatetime, dtDatetime2, dtSmalldatetime, dtTimestamp, dtInterval,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
+    dtJson, dtCidr, dtInet, dtMacaddr,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtJson, dtUnknown,
+    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtUnknown,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
@@ -1220,7 +1221,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..30] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..33] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1390,9 +1391,9 @@ var
     ),
     (
       Index:           dtVarchar;
-      NativeTypes:     '18|19|24|1043|1043|650|869|829';
+      NativeTypes:     '18|19|24|1043|1043';
       Name:            'VARCHAR';
-      Names:           'char|bpchar|varchar|name|enum|cidr|inet|macaddr|regproc|character varying';
+      Names:           'char|bpchar|varchar|name|enum|regproc|character varying';
       Description:     'Variable-length with limit.';
       HasLength:       True;
       RequiresLength:  False;
@@ -1412,6 +1413,45 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        True;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtCidr;
+      NativeTypes:     '650';
+      Name:            'CIDR';
+      Names:           'cidr';
+      Description:     'IPv4 and IPv6 networks. Storage size: 7 or 19 bytes';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtInet;
+      NativeTypes:     '869';
+      Name:            'INET';
+      Names:           'inet';
+      Description:     'IPv4 and IPv6 hosts and networks. Storage size: 7 or 19 bytes';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtMacaddr;
+      NativeTypes:     '829';
+      Name:            'MACADDR';
+      Names:           'macaddr';
+      Description:     'MAC addresses. Storage size: 6 bytes';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcText;
     ),
     (
