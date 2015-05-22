@@ -6761,13 +6761,12 @@ end;
 
 function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;
 begin
-  Result := '';
+  Result := Name;
   if FConnection.Parameters.IsMSSQL then begin
     if Schema <> '' then
-      Result := Result + Connection.QuoteIdent(Schema, AlwaysQuote);
-    Result := Result + '.';
+      Result := Schema + '.' + Result;
   end;
-  Result := Result + Connection.QuoteIdent(Name, AlwaysQuote);
+  Result := Connection.QuoteIdent(Result, AlwaysQuote);
 end;
 
 function TDBObject.QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
