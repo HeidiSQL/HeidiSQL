@@ -46,7 +46,7 @@ type
       procedure Drop;
       function IsSameAs(CompareTo: TDBObject): Boolean;
       function QuotedDatabase(AlwaysQuote: Boolean=True): String;
-      function QuotedName(AlwaysQuote: Boolean=True): String;
+      function QuotedName(AlwaysQuote: Boolean=True; SeparateSegments: Boolean=True): String;
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function RowCount: Int64;
@@ -6759,14 +6759,25 @@ begin
     Result := Connection.QuoteIdent(Database, AlwaysQuote);
 end;
 
-function TDBObject.QuotedName(AlwaysQuote: Boolean=True): String;
+function TDBObject.QuotedName(AlwaysQuote: Boolean=True; SeparateSegments: Boolean=True): String;
 begin
-  Result := Name;
+  Result := '';
   if FConnection.Parameters.IsMSSQL then begin
-    if Schema <> '' then
-      Result := Schema + '.' + Result;
+    // MSSQL expects schema separated from table, and in some situations the whole string quoted as a whole
+    if Schema <> '' then begin
+      if SeparateSegments then
+        Result := Result + Connection.QuoteIdent(Schema, AlwaysQuote)
+      else
+        Result := Result + Schema;
+    end;
+    Result := Result + '.';
+    if SeparateSegments then
+      Result := Result + Connection.QuoteIdent(Name, AlwaysQuote)
+    else
+      Result := Connection.QuoteIdent(Result + Name, AlwaysQuote);
+  end else begin
+    Result := Result + Connection.QuoteIdent(Name, AlwaysQuote);
   end;
-  Result := Connection.QuoteIdent(Result, AlwaysQuote);
 end;
 
 function TDBObject.QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;

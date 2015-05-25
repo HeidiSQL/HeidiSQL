@@ -5715,7 +5715,7 @@ begin
         raise EDatabaseError.Create('Cannot rename '+Obj.ObjType);
     end;
 
-    sql := Format(sql, [Obj.QuotedName, Obj.Connection.QuoteIdent(NewText)]);
+    sql := Format(sql, [Obj.QuotedName(True, False), Obj.Connection.QuoteIdent(NewText)]);
     Obj.Connection.Query(sql);
 
     if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
