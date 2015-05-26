@@ -3549,6 +3549,7 @@ begin
     // Process startup script
     StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
     if StartupScript <> '' then begin
+      StartupScript := ExpandFileName(StartupScript);
       if not FileExists(StartupScript) then
         ErrorDialog(f_('Startup script file not found: %s', [StartupScript]))
       else begin

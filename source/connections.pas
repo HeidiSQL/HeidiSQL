@@ -1206,7 +1206,11 @@ begin
   end;
 
   if Selector.Execute then begin
-    Edit.Text := Selector.FileName;
+    // Remove path if it's the application directory
+    if ExtractFilePath(Selector.FileName) = ExtractFilePath(Application.ExeName) then
+      Edit.Text := ExtractFileName(Selector.FileName)
+    else
+      Edit.Text := Selector.FileName;
     Modification(Selector);
   end;
   Selector.Free;
