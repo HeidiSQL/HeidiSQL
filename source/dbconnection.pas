@@ -2667,7 +2667,7 @@ begin
         if Cols.ColExists('atttypid') then
           Log(lcDebug, 'Column "'+Cols.Col('COLUMN_NAME')+'" => oid #'+Cols.Col('atttypid'));
         DataType := Cols.Col('DATA_TYPE');
-        DataType := DataType.ToUpper.DeQuotedString('"');
+        DataType := DataType.ToUpperInvariant.DeQuotedString('"');
         Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + DataType;
         MaxLen := '';
         if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
