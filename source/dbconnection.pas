@@ -3944,10 +3944,24 @@ end;
 
 
 function TDBConnection.GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
+var
+  rx: TRegExpr;
 begin
   // Return date/time string value as expected by server
-  // Not sure why there was a conversion required in earlier versions.
-  Result := Input;
+  case Parameters.NetTypeGroup of
+    ngMSSQL: begin
+      rx := TRegExpr.Create;
+      rx.Expression := '^(\d+\-\d+\-\d+)\s(\d+\:.+)$';
+      Result := Input;
+      if rx.Exec(Input) then begin
+        // Inject "T" between date and time, for MSSQL. See http://www.heidisql.com/forum.php?t=18441
+        Result := rx.Match[1] + 'T' + rx.Match[2];
+      end;
+      rx.Free;
+    end;
+    else
+      Result := Input;
+  end;
 end;
 
 
