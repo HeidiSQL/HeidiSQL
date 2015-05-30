@@ -1797,7 +1797,8 @@ begin
       'Data Source='+DataSource+';'+
       'Application Name='+AppName+';'
       ;
-    if not Parameters.AllDatabasesStr.IsEmpty then
+    // Pass Database setting to connection string. Required on MS Azure?
+    if (not Parameters.AllDatabasesStr.IsEmpty) and (Pos(';', Parameters.AllDatabasesStr)=0) then
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
     if Parameters.WindowsAuth then
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;';
