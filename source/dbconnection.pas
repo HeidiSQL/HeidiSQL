@@ -4584,7 +4584,7 @@ var
   ColSpec, Quotes: String;
   rx, rxCol: TRegExpr;
   i, LiteralStart: Integer;
-  InLiteral: Boolean;
+  InLiteral, IsLiteral: Boolean;
   Col: TTableColumn;
   Key: TTableKey;
   ForeignKey: TForeignKey;
@@ -4706,7 +4706,9 @@ begin
       Delete(ColSpec, 1, 15);
     end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
       Delete(ColSpec, 1, 8);
-      if rxCol.Exec(ColSpec) then begin
+      // Literal values may match the regex as well. See http://www.heidisql.com/forum.php?t=17862
+      IsLiteral := (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') or (Copy(ColSpec, 1, 2) = '(''');
+      if rxCol.Exec(ColSpec) and (not IsLiteral) then begin
         if rxCol.Match[1] = 'NULL' then begin
           Col.DefaultType := cdtNull;
           Col.DefaultText := 'NULL';
@@ -4725,7 +4727,7 @@ begin
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtTextUpdateTS;
         end;
-      end else if (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') or (Copy(ColSpec, 1, 2) = '(''') then begin
+      end else if IsLiteral then begin
         InLiteral := True;
         LiteralStart := Pos('''', ColSpec)+1;
         for i:=LiteralStart to Length(ColSpec) do begin
