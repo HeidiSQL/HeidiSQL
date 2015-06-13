@@ -128,6 +128,8 @@ type
     editCustomSnippetsDirectory: TButtonedEdit;
     lblCustomSnippetsDirectory: TLabel;
     chkHintsOnResultTabs: TCheckBox;
+    lblLineBreakStyle: TLabel;
+    comboLineBreakStyle: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -297,6 +299,11 @@ begin
   AppSettings.WriteBool(asFieldEditorSet, chkEditorSet.Checked);
   AppSettings.WriteBool(asReuseEditorConfiguration, chkReuseEditorConfiguration.Checked);
   AppSettings.WriteBool(asForeignDropDown, chkForeignDropDown.Checked);
+  case comboLineBreakStyle.ItemIndex of
+    1: AppSettings.WriteInt(asLineBreakStyle, Integer(lbsUnix));
+    2: AppSettings.WriteInt(asLineBreakStyle, Integer(lbsMac));
+    else AppSettings.WriteInt(asLineBreakStyle, Integer(lbsWindows));
+  end;
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
@@ -427,6 +434,7 @@ begin
   end;
   FShortcutCategories.Add(_('SQL editing'));
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
+  comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
 end;
 
 
@@ -509,6 +517,11 @@ begin
   chkEditorSet.Checked := AppSettings.ReadBool(asFieldEditorEnum);
   chkReuseEditorConfiguration.Checked := AppSettings.ReadBool(asReuseEditorConfiguration);
   chkForeignDropDown.Checked := AppSettings.ReadBool(asForeignDropDown);
+  case TLineBreaks(AppSettings.ReadInt(asLineBreakStyle)) of
+    lbsNone, lbsWindows: comboLineBreakStyle.ItemIndex := 0;
+    lbsUnix: comboLineBreakStyle.ItemIndex := 1;
+    lbsMac: comboLineBreakStyle.ItemIndex := 2;
+  end;
 
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);

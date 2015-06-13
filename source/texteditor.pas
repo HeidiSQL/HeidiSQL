@@ -90,8 +90,10 @@ var
   Detected: TMenuItem;
 begin
   DetectedLineBreaks := ScanLineBreaks(text);
+  if DetectedLineBreaks = lbsNone then
+    DetectedLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   case DetectedLineBreaks of
-    lbsWindows, lbsNone: Detected := menuWindowsLB;
+    lbsWindows: Detected := menuWindowsLB;
     lbsUnix: Detected := menuUnixLB;
     lbsMac: Detected := menuMacLB;
     lbsWide: Detected := menuWideLB;
@@ -126,7 +128,7 @@ var
 begin
   Selected := Sender as TMenuItem;
   case DetectedLineBreaks of
-    lbsWindows, lbsNone: Detected := menuWindowsLB;
+    lbsWindows: Detected := menuWindowsLB;
     lbsUnix: Detected := menuUnixLB;
     lbsMac: Detected := menuMacLB;
     lbsWide: Detected := menuWideLB;
