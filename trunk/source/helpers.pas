@@ -928,7 +928,15 @@ end;
   @param string Working directory, only usefull is first param is a system command
 }
 procedure ShellExec(cmd: String; path: String=''; params: String='');
+var
+  Msg: String;
 begin
+  Msg := 'Executing shell command: "'+cmd+'"';
+  if not path.IsEmpty then
+    Msg := Msg + ' path: "'+path+'"';
+  if not params.IsEmpty then
+    Msg := Msg + ' params: "'+params+'"';
+  MainForm.LogSQL(Msg, lcDebug);
   ShellExecute(0, 'open', PChar(cmd), PChar(params), PChar(path), SW_SHOWNORMAL);
 end;
 
