@@ -168,7 +168,7 @@ type
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asForeignDropDown, asQueryHistoryEnabled,
-    asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus,
+    asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3335,6 +3335,7 @@ begin
   InitSetting(asFavoriteObjects,                  'FavoriteObjects',                       0, False, '', True);
   InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False);
   InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True, '', True);
+  InitSetting(asLineBreakStyle,                   'LineBreakStyle',                        Integer(lbsNone));
 end;
 
 

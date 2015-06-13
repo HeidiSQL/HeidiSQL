@@ -859,6 +859,13 @@ object optionsform: Toptionsform
       DesignSize = (
         594
         353)
+      object lblLineBreakStyle: TLabel
+        Left = 8
+        Top = 188
+        Width = 111
+        Height = 13
+        Caption = 'Default linebreak style:'
+      end
       object chkEditorBinary: TCheckBox
         Left = 8
         Top = 8
@@ -926,6 +933,14 @@ object optionsform: Toptionsform
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show values in foreign key columns'
         TabOrder = 6
+      end
+      object comboLineBreakStyle: TComboBox
+        Left = 314
+        Top = 185
+        Width = 271
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 7
       end
     end
     object tabShortcuts: TTabSheet
