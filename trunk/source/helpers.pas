@@ -333,7 +333,7 @@ var
   MutexHandle: THandle = 0;
   SystemImageList: TImageList;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
-
+  ConfirmIcon: TIcon;
 
 implementation
 
@@ -2342,10 +2342,12 @@ begin
       mtWarning: Dialog.Caption := _('Warning');
       mtError: Dialog.Caption := _('Error');
       mtInformation: Dialog.Caption := _('Information');
-      mtConfirmation: Dialog.Caption := _('Confirm');
+      mtConfirmation, mtCustom: Dialog.Caption := _('Confirm');
     end;
     if Title <> Dialog.Caption then
       Dialog.Title := Title;
+    if MainForm.ActiveConnection <> nil then
+      Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
     rx.Expression := 'https?\:\/\/\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
@@ -2353,15 +2355,25 @@ begin
 
     // Main icon, and footer link
     case DlgType of
-      mtWarning:      Dialog.MainIcon := tdiWarning;
+      mtWarning:
+        Dialog.MainIcon := tdiWarning;
       mtError: begin
         Dialog.MainIcon := tdiError;
         Dialog.FooterText := '<a href="http://www.google.com/search?q='+EncodeURLParam(Copy(Msg, 1, 1000))+'">'+_('Find some help on this error')+'</a>';
         Dialog.FooterIcon := tdiInformation;
       end;
-      mtInformation:  Dialog.MainIcon := tdiInformation;
-      mtConfirmation: Dialog.MainIcon := tdiInformation;
-      else            Dialog.MainIcon := tdiNone;
+      mtInformation:
+        Dialog.MainIcon := tdiInformation;
+      mtConfirmation, mtCustom: begin
+        if not Assigned(ConfirmIcon) then begin
+          ConfirmIcon := TIcon.Create;
+          ConfirmIcon.LoadFromResourceName(hInstance, 'ICONQUESTION');
+        end;
+        Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
+        Dialog.CustomMainIcon := ConfirmIcon;
+      end;
+      else
+        Dialog.MainIcon := tdiNone;
     end;
 
     // Add buttons
