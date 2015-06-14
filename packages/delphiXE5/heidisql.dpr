@@ -44,6 +44,7 @@ uses
   extra_controls in '..\..\source\extra_controls.pas';
 
 {$R ..\..\res\icon.RES}
+{$R ..\..\res\icon-question.RES}
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
 {$R ..\..\res\updater.RES}
