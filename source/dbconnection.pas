@@ -816,11 +816,17 @@ var
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
-  Waited, ReturnedSomethingAt: Integer;
+  Waited, ReturnedSomethingAt, PortChecks: Integer;
 begin
   // Check if local port is open
-  if not PortOpen(FConnection.Parameters.SSHLocalPort) then
-    raise EDatabaseError.CreateFmt(_('Could not execute PLink: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
+  PortChecks := 0;
+  while not PortOpen(FConnection.Parameters.SSHLocalPort) do begin
+    Inc(PortChecks);
+    if PortChecks >= 20 then
+      raise EDatabaseError.CreateFmt(_('Could not execute PLink: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
+    FConnection.Log(lcInfo, f_('Port #%d in use. Checking if #%d is available...', [FConnection.Parameters.SSHLocalPort, FConnection.Parameters.SSHLocalPort+1]));
+    FConnection.Parameters.SSHLocalPort := FConnection.Parameters.SSHLocalPort + 1;
+  end;
 
   // Build plink.exe command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
