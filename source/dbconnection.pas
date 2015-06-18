@@ -2889,7 +2889,7 @@ end;
 procedure TDBConnection.DetectUSEQuery(SQL: String);
 var
   rx: TRegExpr;
-  Quotes: String;
+  Quotes, EscapeFunction: String;
 begin
   // Detect query for switching current working database or schema
   rx := TRegExpr.Create;
@@ -2897,7 +2897,11 @@ begin
   rx.Expression := '^'+GetSQLSpecifity(spUSEQuery);
   Quotes := QuoteRegExprMetaChars(FQuoteChars+''';');
   rx.Expression := StringReplace(rx.Expression, ' ', '\s+', [rfReplaceAll]);
-  rx.Expression := StringReplace(rx.Expression, '%s', '['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
+  if Parameters.NetTypeGroup = ngPgSQL then
+    EscapeFunction := 'E'
+  else
+    EscapeFunction := '';
+  rx.Expression := StringReplace(rx.Expression, '%s', EscapeFunction+'['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
   if rx.Exec(SQL) then begin
     FDatabase := Trim(rx.Match[1]);
     FDatabase := DeQuoteIdent(FDatabase);
@@ -3337,6 +3341,8 @@ begin
   if DoQuote then begin
     // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
+    if FParameters.NetTypeGroup = ngPgSQL then
+      Result := 'E' + Result;
   end;
 end;
 
@@ -3446,6 +3452,8 @@ var
   Quote: Char;
 begin
   Result := Identifier;
+  if (FParameters.NetTypeGroup = ngPgSQL) and (Pos('E''', Result) = 1) then
+    Result := Copy(Result, 2, Length(Result));
   if (Length(Identifier)>0) and (Result[1] = FQuoteChar) and (Result[Length(Identifier)] = FQuoteChar) then
     Result := Copy(Result, 2, Length(Result)-2);
   if Glue <> #0 then
