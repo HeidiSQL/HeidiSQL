@@ -2013,7 +2013,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISTableSchemaCol] := 'table_schema';
-      FSQLSpecifities[spUSEQuery] := 'SET SCHEMA %s';
+      FSQLSpecifities[spUSEQuery] := 'SET search_path TO %s';
       FSQLSpecifities[spKillQuery] := 'SELECT pg_cancel_backend(%d)';
     end;
 
