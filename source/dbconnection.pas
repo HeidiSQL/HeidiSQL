@@ -4034,7 +4034,7 @@ begin
   // Parse SQL date/time string value into a TDateTime
   Result := 0;
   rx := TRegExpr.Create;
-  rx.Expression := '^(\d{4})\-(\d{2})\-(\d{2}) (\d{2})\:(\d{2})\:(\d{2})$';
+  rx.Expression := '^(\d{4})\-(\d{2})\-(\d{2}) (\d{2})\:(\d{2})\:(\d{2})';
   if rx.Exec(Str) then try
     Result := EncodeDateTime(
       StrToIntDef(rx.Match[1], 0),
