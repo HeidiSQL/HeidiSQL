@@ -6362,6 +6362,7 @@ end;
 
 procedure TMainForm.DataInsertValueClick(Sender: TObject);
 var
+  Timestamp: TDateTime;
   y, m, d, h, i, s, ms: Word;
   Uid: TGuid;
   StrUid: String;
@@ -6370,7 +6371,8 @@ var
   ColNum: TColumnIndex;
   Col: TTableColumn;
 begin
-  DecodeDateTime(Now, y, m, d, h, i, s, ms);
+  Timestamp := ActiveConnection.ParseDateTime(ActiveConnection.GetVar('SELECT CURRENT_TIMESTAMP'));
+  DecodeDateTime(Timestamp, y, m, d, h, i, s, ms);
   DataDateTime.Caption := Format('%s: %.4d-%.2d-%.2d %.2d:%.2d:%.2d', [_('Date and time'), y,m,d,h,i,s]);
   DataDate.Caption := Format('%s: %.4d-%.2d-%.2d', [_('Date'), y,m,d]);
   DataTime.Caption := Format('%s: %.2d:%.2d:%.2d', [_('Time'), h,i,s]);
