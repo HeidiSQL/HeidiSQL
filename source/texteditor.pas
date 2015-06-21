@@ -5,13 +5,14 @@ interface
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
-  helpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions;
+  helpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
+  Vcl.ExtCtrls;
 
 {$I const.inc}
 
 type
   TfrmTextEditor = class(TFormWithSizeGrip)
-    memoText: TMemo;
+    Panel1: TPanel;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
     btnLoadText: TToolButton;
@@ -50,6 +51,7 @@ type
     FStopping: Boolean;
     DetectedLineBreaks,
     SelectedLineBreaks: TLineBreaks;
+    memoText: TLineNormalizingMemo;
     procedure SetModified(NewVal: Boolean);
   public
     function GetText: String;
@@ -86,7 +88,6 @@ end;
 
 procedure TfrmTextEditor.SetText(text: String);
 var
-  LB: String;
   Detected: TMenuItem;
 begin
   DetectedLineBreaks := ScanLineBreaks(text);
@@ -102,21 +103,7 @@ begin
   end;
   if Assigned(Detected) then
     SelectLineBreaks(Detected);
-
-  // Replace consistent linebreaks with CRLF so they're displayed properly
-  LB := '';
-  case DetectedLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
-    text := StringReplace(text, LB, CRLF, [rfReplaceAll]);
-
-  // TODO: Find out why the Delphi IDE insists hinting that this
-  //       property is ANSI when it is in fact a WideString.
   memoText.Text := text;
-
   memoText.SelectAll;
   Modified := False;
 end;
@@ -167,6 +154,13 @@ end;
 
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
+  memoText := TLineNormalizingMemo.Create(Self);
+  memoText.Parent := Self;
+  memoText.Align := alClient;
+  memoText.ScrollBars := ssBoth;
+  memoText.WantTabs := True;
+  memoText.OnChange := memoTextChange;
+  memoText.OnKeyDown := memoTextKeyDown;
   InheritFont(Font);
   // Use same text properties as in query/find/replace actions
   actSearchFind.Caption := MainForm.actQueryFind.Caption;
