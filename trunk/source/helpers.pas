@@ -502,7 +502,7 @@ function EncodeURLParam(const Value: String): String;
 var
   c: Char;
 const
-  UnsafeChars: String = '*<>#%"{}|\^[]`?&+';
+  UnsafeChars: String = '*<>#%"{}|\^[]`?&+;';
 begin
   // Encode critical chars in url parameter
   Result := '';
