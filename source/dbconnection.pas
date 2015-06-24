@@ -3952,7 +3952,7 @@ begin
     Results.Next;
   end;
   Raw := Raw + CRLF;
-  URL := 'http://mariadb.org/explain_analyzer/api/1/?raw_explain='+EncodeURLParam(Raw)+'&client='+APPNAME;
+  URL := 'https://mariadb.org/explain_analyzer/analyze/?raw_explain='+EncodeURLParam(Raw)+'&client='+APPNAME;
   ShellExec(URL);
 end;
 
