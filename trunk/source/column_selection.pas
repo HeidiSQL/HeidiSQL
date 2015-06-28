@@ -94,16 +94,17 @@ end;
 }
 procedure TColumnSelectionForm.btnOKClick(Sender: TObject);
 var
-  i : Integer;
+  i: Integer;
+  Col: String;
 begin
   // Prepare string for storing in registry.
   // Use quote-character as separator to ensure columnnames can
   // be extracted safely later
   Mainform.DataGridHiddenColumns.Clear;
-  for i := 0 to chklistColumns.Items.Count - 1 do
-  begin
-    if not chklistColumns.Checked[i] then
-      Mainform.DataGridHiddenColumns.Add(chklistColumns.Items[i]);
+  for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
+    Col := Mainform.SelectedTableColumns[i].Name;
+    if FCheckedColumns.IndexOf(Col) = -1 then
+      Mainform.DataGridHiddenColumns.Add(Col);
   end;
   InvalidateVT(Mainform.DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   btnCancel.OnClick(Sender);
@@ -116,11 +117,19 @@ end;
 procedure TColumnSelectionForm.chkSelectAllClick(Sender: TObject);
 var
   cb: TCheckBox;
+  i: Integer;
 begin
   // Avoid executing when checkbox was toggled by code (see proc below)
   cb := Sender as TCheckBox;
-  if cb.Focused then
+  if cb.Focused then begin
     chklistColumns.CheckAll(cb.State);
+    for i:=0 to chklistColumns.Items.Count-1 do begin
+      if (FCheckedColumns.IndexOf(chklistColumns.Items[i]) = -1) and (cb.State = cbChecked) then
+        FCheckedColumns.Add(chklistColumns.Items[i]);
+      if (FCheckedColumns.IndexOf(chklistColumns.Items[i]) > -1) and (cb.State = cbUnchecked) then
+        FCheckedColumns.Delete(FCheckedColumns.IndexOf(chklistColumns.Items[i]));
+    end;
+  end;
 end;
 
 
@@ -145,6 +154,14 @@ var
   i : Integer;
   AllSelected, NoneSelected : Boolean;
 begin
+  // Add or remove clicked item from list
+  if chklistColumns.ItemIndex > -1 then begin
+    if chklistColumns.Checked[chklistColumns.ItemIndex] then
+      FCheckedColumns.Add(chklistColumns.Items[chklistColumns.ItemIndex])
+    else
+      FCheckedColumns.Delete(FCheckedColumns.IndexOf(chklistColumns.Items[chklistColumns.ItemIndex]));
+  end;
+
   Allselected := True;
   NoneSelected := True;
   for i:=0 to chklistColumns.Items.Count-1 do begin
@@ -170,12 +187,6 @@ var
   i: Integer;
   Col: String;
 begin
-  // Remember currently selected items
-  FCheckedColumns.Clear;
-  for i:=0 to chklistColumns.Items.Count-1 do begin
-    if chklistColumns.Checked[i] then
-      FCheckedColumns.Add(chklistColumns.Items[i]);
-  end;
   // Setting Sorted to false doesn't resort anything in the list.
   // So we have to add all items again in original order
   chklistColumns.Sorted := chkSort.Checked;
