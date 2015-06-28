@@ -243,7 +243,7 @@ var
   Version: Integer;
   Users: TDBQuery;
   U: TUser;
-  tmp: String;
+  tmp, PasswordCol: String;
   SkipNameResolve: Boolean;
 
 function InitPrivList(Values: String): TStringList;
@@ -261,6 +261,7 @@ begin
   PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
   PrivsRoutine := InitPrivList('GRANT');
   PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
+  PasswordCol := 'password';
 
   if Version >= 40002 then begin
     PrivsGlobal.Add('REPLICATION CLIENT');
@@ -293,6 +294,10 @@ begin
     PrivsDb.Add('PROXY');
   end;
   }
+  if Version >= 50706 then begin
+    PasswordCol := 'authentication_string';
+  end;
+
 
   PrivsTable.AddStrings(PrivsColumn);
   PrivsDb.AddStrings(PrivsTable);
@@ -317,7 +322,7 @@ begin
     SkipNameResolve := LowerCase(tmp) = 'on';
     FConnection.Query('FLUSH PRIVILEGES');
     Users := FConnection.GetResults(
-      'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+FConnection.QuoteIdent('password')+' '+
+      'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+FConnection.QuoteIdent(PasswordCol)+' '+
       'FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user')
       );
     FUsers := TUserList.Create(True);
@@ -325,7 +330,7 @@ begin
       U := TUser.Create;
       U.Username := Users.Col('user');
       U.Host := Users.Col('host');
-      U.Password := Users.Col('password');
+      U.Password := Users.Col(PasswordCol);
       U.Problem := upNone;
       if Length(U.Password) = 0 then
         U.Problem := upEmptyPassword;
