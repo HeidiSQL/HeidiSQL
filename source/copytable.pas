@@ -376,10 +376,10 @@ begin
   TargetTable := FConnection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
 
   // Watch out if target table exists
-  TableExistence := FConnection.GetVar('SELECT '+FConnection.QuoteIdent('TABLE_NAME')+
-    ' FROM '+FConnection.QuoteIdent('information_schema')+'.'+FConnection.QuoteIdent('TABLES')+
+  TableExistence := FConnection.GetVar('SELECT '+FConnection.QuoteIdent('table_name')+
+    ' FROM '+FConnection.QuoteIdent('information_schema')+'.'+FConnection.QuoteIdent('tables')+
     ' WHERE '+FConnection.QuoteIdent(FConnection.GetSQLSpecifity(spISTableSchemaCol))+'='+FConnection.EscapeString(comboDatabase.Text)+
-    ' AND '+FConnection.QuoteIdent('TABLE_NAME')+'='+FConnection.EscapeString(editNewTablename.Text)
+    ' AND '+FConnection.QuoteIdent('table_name')+'='+FConnection.EscapeString(editNewTablename.Text)
     );
   if TableExistence <> '' then begin
     if MessageDialog(_('Target table exists. Drop it and overwrite?'), mtConfirmation, [mbYes, mbCancel]) = mrCancel then begin
