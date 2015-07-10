@@ -14,10 +14,7 @@ unit VTAccessibilityFactory;
 interface
 
 uses
-  {$if CompilerVersion >= 18}
-    oleacc, // MSAA support in Delphi 2006 or higher
-  {$ifend}
-  Classes, VirtualTrees;
+  Winapi.oleacc, System.Classes, VirtualTrees;
 
 type
   IVTAccessibleProvider = interface
@@ -25,23 +22,24 @@ type
   end;
 
   TVTAccessibilityFactory = class(TObject)
-  private
+  strict private class var
+    FAccessibilityAvailable: Boolean;
+    FVTAccessibleFactory: TVTAccessibilityFactory;
+  strict private
     FAccessibleProviders: TInterfaceList;
+  private
+    class procedure FreeFactory;
   public
     constructor Create;
     destructor Destroy; override;
     function CreateIAccessible(ATree: TBaseVirtualTree): IAccessible;
+    class function GetAccessibilityFactory: TVTAccessibilityFactory; static;
     procedure RegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
     procedure UnRegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
   end;
 
-function GetAccessibilityFactory: TVTAccessibilityFactory;
-
+  
 implementation
-
-var
-  VTAccessibleFactory: TVTAccessibilityFactory = nil;
-  AccessibilityAvailable: Boolean = False;
 
 { TVTAccessibilityFactory }
 
@@ -109,6 +107,11 @@ begin
   inherited Destroy;
 end;
 
+class procedure TVTAccessibilityFactory.FreeFactory;
+begin
+  FVTAccessibleFactory.Free;
+end;
+
 procedure TVTAccessibilityFactory.RegisterAccessibleProvider(
   AProvider: IVTAccessibleProvider);
 // Ads a provider if it is not already registered
@@ -125,21 +128,20 @@ begin
     FAccessibleProviders.Remove(AProvider);
 end;
 
-function GetAccessibilityFactory: TVTAccessibilityFactory;
-
+class function TVTAccessibilityFactory.GetAccessibilityFactory: TVTAccessibilityFactory;
 // Accessibility helper function to create a singleton class that will create or return
 // the IAccessible interface for the tree and the focused node.
 
 begin
   // first, check if we've loaded the library already
-  if not AccessibilityAvailable then
-    AccessibilityAvailable := True;
-  if AccessibilityAvailable then
+  if not FAccessibilityAvailable then
+    FAccessibilityAvailable := True;
+  if FAccessibilityAvailable then
   begin
     // Check to see if the class has already been created.
-    if VTAccessibleFactory = nil then
-      VTAccessibleFactory := TVTAccessibilityFactory.Create;
-    Result := VTAccessibleFactory;
+    if FVTAccessibleFactory = nil then
+      FVTAccessibleFactory := TVTAccessibilityFactory.Create;
+    Result := FVTAccessibleFactory;
   end
   else
     Result := nil;
@@ -148,6 +150,8 @@ end;
 initialization
 
 finalization
-  VTAccessibleFactory.Free;
+  TVTAccessibilityFactory.FreeFactory;
 
 end.
+
+
