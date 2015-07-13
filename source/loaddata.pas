@@ -136,14 +136,26 @@ end;
 
 procedure Tloaddataform.FormShow(Sender: TObject);
 begin
-  // read dbs and Tables from treeview
   FConnection := MainForm.ActiveConnection;
+
+  // Disable features supported in MySQL only, if active connection is not MySQL
+  if not FConnection.Parameters.IsMySQL then begin
+    grpParseMethod.ItemIndex := 1;
+    grpDuplicates.ItemIndex := 0;
+  end;
+  grpParseMethod.Controls[0].Enabled := FConnection.Parameters.IsMySQL;
+  grpDuplicates.Controls[1].Enabled := FConnection.Parameters.IsMySQL;
+  grpDuplicates.Controls[2].Enabled := FConnection.Parameters.IsMySQL;
+  chkLowPriority.Enabled := FConnection.Parameters.IsMySQL;
+
+  // Read databases and tables from active connection
   comboDatabase.Items.Clear;
   comboDatabase.Items.Assign(FConnection.AllDatabases);
-  comboDatabase.ItemIndex := comboDatabase.Items.IndexOf( Mainform.ActiveDatabase );
+  comboDatabase.ItemIndex := comboDatabase.Items.IndexOf(Mainform.ActiveDatabase);
   if comboDatabase.ItemIndex = -1 then
     comboDatabase.ItemIndex := 0;
   comboDatabaseChange(Sender);
+
   editFilename.SetFocus;
 end;
 
@@ -318,7 +330,7 @@ begin
     end;
     MainForm.LogSQL(FormatNumber(RowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
     // SHOW WARNINGS is implemented as of MySQL 4.1.0
-    if FConnection.ServerVersionInt >= 40100 then begin
+    if FConnection.Parameters.IsMySQL and (FConnection.ServerVersionInt >= 40100) then begin
       Warnings := FConnection.GetResults('SHOW WARNINGS');
       while not Warnings.Eof do begin
         MainForm.LogSQL(Warnings.Col(0)+' ('+Warnings.Col(1)+'): '+Warnings.Col(2), lcError);
@@ -361,7 +373,7 @@ var
   i: Integer;
 begin
   SQL := 'LOAD DATA ';
-  if chkLowPriority.Checked then
+  if chkLowPriority.Checked and chkLowPriority.Enabled then
     SQL := SQL + 'LOW_PRIORITY ';
   SQL := SQL + 'LOCAL INFILE ' + esc(editFilename.Text) + ' ';
   case grpDuplicates.ItemIndex of
@@ -468,7 +480,7 @@ var
       end;
       if SQL = '' then begin
         LowPrio := '';
-        if chkLowPriority.Checked then
+        if chkLowPriority.Checked and chkLowPriority.Enabled then
           LowPrio := 'LOW_PRIORITY ';
         case grpDuplicates.ItemIndex of
           0: SQL := 'INSERT '+LowPrio;
