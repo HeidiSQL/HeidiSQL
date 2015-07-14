@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-06-14 08:50+0100\n"
+"PO-Revision-Date: 2015-07-14 16:34+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -432,6 +432,22 @@ msgstr "SSL CA certificate:"
 #: connections.dfm:622
 msgid "SSL certificate:"
 msgstr "SSL certificate:"
+
+#. Session manager
+msgid "SSL cipher:"
+msgstr "SSL cipher:"
+
+msgid "Path to key file"
+msgstr "Path to key file"
+
+msgid "Path to certificate authority file"
+msgstr "Path to certificate authority file"
+
+msgid "Path to certificate file"
+msgstr "Path to certificate file"
+
+msgid "List of permissible ciphers to use for SSL encryption"
+msgstr "List of permissible ciphers to use for SSL encryption"
 
 #. connform..PageControlDetails..tabSSLOptions..chkWantSSL..Caption
 #: connections.dfm:673
