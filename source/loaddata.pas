@@ -440,7 +440,7 @@ var
   Contents: String;
   EnclTest, TermTest, LineTermTest: String;
   Value, SQL: String;
-  IsEncl, IsTerm, IsLineTerm: Boolean;
+  IsEncl, IsTerm, IsLineTerm, IsEof: Boolean;
   InEncl: Boolean;
   OutStream: TMemoryStream;
 
@@ -574,14 +574,17 @@ begin
     IsEncl := TestLeftChars(EnclTest, Encl, EnclLen);
     IsTerm := TestLeftChars(TermTest, Term, TermLen);
     IsLineTerm := TestLeftChars(LineTermTest, LineTerm, LineTermLen) and (ValueCount >= ColumnCount-1);
+    IsEof := P = ContentLen;
 
     Value := Value + Contents[P];
 
     if IsEncl then
       InEncl := not InEncl;
 
-    if not InEncl then begin
-      if IsTerm then begin
+    if IsEof or (not InEncl) then begin
+      if IsEof then begin
+        AddValue;
+      end else if IsTerm then begin
         SetLength(Value, Length(Value)-TermLen);
         AddValue;
       end else if IsLineTerm then begin
