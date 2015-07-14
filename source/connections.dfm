@@ -4,10 +4,10 @@ object connform: Tconnform
   BorderIcons = [biSystemMenu, biHelp]
   Caption = 'Session manager'
   ClientHeight = 364
-  ClientWidth = 494
+  ClientWidth = 649
   Color = clBtnFace
   Constraints.MinHeight = 400
-  Constraints.MinWidth = 510
+  Constraints.MinWidth = 665
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
@@ -22,13 +22,13 @@ object connform: Tconnform
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    494
+    649
     364)
   PixelsPerInch = 96
   TextHeight = 13
   object splitterMain: TSplitter
     AlignWithMargins = True
-    Left = 175
+    Left = 208
     Top = 8
     Width = 8
     Height = 316
@@ -51,7 +51,7 @@ object connform: Tconnform
     OnClick = btnSaveClick
   end
   object btnOpen: TButton
-    Left = 234
+    Left = 389
     Top = 331
     Width = 80
     Height = 25
@@ -63,7 +63,7 @@ object connform: Tconnform
     OnClick = btnOpenClick
   end
   object btnCancel: TButton
-    Left = 320
+    Left = 475
     Top = 331
     Width = 80
     Height = 25
@@ -77,13 +77,14 @@ object connform: Tconnform
     AlignWithMargins = True
     Left = 8
     Top = 8
-    Width = 167
+    Width = 200
     Height = 316
     Margins.Left = 8
     Margins.Top = 8
     Margins.Right = 0
     Margins.Bottom = 40
     Align = alLeft
+    Constraints.MinWidth = 200
     DragMode = dmAutomatic
     Header.AutoSizeIndex = -1
     Header.Font.Charset = DEFAULT_CHARSET
@@ -149,7 +150,7 @@ object connform: Tconnform
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 6
-        Width = 10
+        Width = 33
         WideText = 'Comment'
       end>
   end
@@ -177,15 +178,15 @@ object connform: Tconnform
   end
   object PageControlDetails: TPageControl
     AlignWithMargins = True
-    Left = 183
+    Left = 216
     Top = 8
-    Width = 303
+    Width = 425
     Height = 316
     Margins.Left = 0
     Margins.Top = 8
     Margins.Right = 8
     Margins.Bottom = 40
-    ActivePage = tabSettings
+    ActivePage = tabStart
     Align = alClient
     Images = MainForm.ImageListMain
     TabOrder = 7
@@ -196,7 +197,7 @@ object connform: Tconnform
         AlignWithMargins = True
         Left = 10
         Top = 10
-        Width = 275
+        Width = 397
         Height = 161
         Margins.Left = 10
         Margins.Top = 10
@@ -222,7 +223,7 @@ object connform: Tconnform
       Caption = 'Settings'
       ImageIndex = 39
       DesignSize = (
-        295
+        417
         287)
       object lblPort: TLabel
         Left = 3
@@ -280,7 +281,7 @@ object connform: Tconnform
       object chkCompressed: TCheckBox
         Left = 120
         Top = 190
-        Width = 172
+        Width = 294
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
@@ -310,7 +311,7 @@ object connform: Tconnform
       object editPassword: TEdit
         Left = 120
         Top = 140
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -320,7 +321,7 @@ object connform: Tconnform
       object editUsername: TEdit
         Left = 120
         Top = 115
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 4
@@ -329,7 +330,7 @@ object connform: Tconnform
       object editHost: TEdit
         Left = 120
         Top = 42
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -338,7 +339,7 @@ object connform: Tconnform
       object comboNetType: TComboBox
         Left = 120
         Top = 9
-        Width = 172
+        Width = 294
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -355,7 +356,7 @@ object connform: Tconnform
       object chkLoginPrompt: TCheckBox
         Left = 120
         Top = 69
-        Width = 172
+        Width = 294
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt for credentials'
@@ -365,7 +366,7 @@ object connform: Tconnform
       object chkWindowsAuth: TCheckBox
         Left = 120
         Top = 92
-        Width = 172
+        Width = 294
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use Windows authentication'
@@ -376,8 +377,8 @@ object connform: Tconnform
       object memoComment: TMemo
         Left = 120
         Top = 238
-        Width = 172
-        Height = 44
+        Width = 294
+        Height = 40
         Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 10
         OnChange = Modification
@@ -385,7 +386,7 @@ object connform: Tconnform
       object editDatabases: TButtonedEdit
         Left = 120
         Top = 213
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -401,7 +402,7 @@ object connform: Tconnform
       Caption = 'SSH tunnel'
       ImageIndex = 147
       DesignSize = (
-        295
+        417
         287)
       object lblSSHLocalPort: TLabel
         Left = 3
@@ -476,7 +477,7 @@ object connform: Tconnform
       object editSSHlocalport: TEdit
         Left = 120
         Top = 187
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
@@ -487,7 +488,7 @@ object connform: Tconnform
       object editSSHUser: TEdit
         Left = 120
         Top = 79
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 3
@@ -498,7 +499,7 @@ object connform: Tconnform
       object editSSHPassword: TEdit
         Left = 120
         Top = 106
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -510,7 +511,7 @@ object connform: Tconnform
       object editSSHPlinkExe: TButtonedEdit
         Left = 120
         Top = 9
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -526,7 +527,7 @@ object connform: Tconnform
       object editSSHhost: TEdit
         Left = 120
         Top = 52
-        Width = 108
+        Width = 230
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -534,7 +535,7 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHport: TEdit
-        Left = 234
+        Left = 356
         Top = 52
         Width = 58
         Height = 21
@@ -547,7 +548,7 @@ object connform: Tconnform
       object editSSHPrivateKey: TButtonedEdit
         Left = 120
         Top = 160
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
@@ -583,7 +584,7 @@ object connform: Tconnform
       Caption = 'Advanced'
       ImageIndex = 98
       DesignSize = (
-        295
+        417
         287)
       object lblSSLPrivateKey: TLabel
         Left = 3
@@ -611,7 +612,7 @@ object connform: Tconnform
       end
       object lblStartupScript: TLabel
         Left = 3
-        Top = 156
+        Top = 168
         Width = 69
         Height = 13
         Caption = 'Startup script:'
@@ -619,21 +620,29 @@ object connform: Tconnform
       end
       object lblQueryTimeout: TLabel
         Left = 3
-        Top = 183
+        Top = 195
         Width = 73
         Height = 13
         Caption = 'Query timeout:'
       end
+      object lblSSLcipher: TLabel
+        Left = 3
+        Top = 120
+        Width = 53
+        Height = 13
+        Caption = 'SSL cipher:'
+      end
       object editSSLPrivateKey: TButtonedEdit
         Left = 120
         Top = 36
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
         TabOrder = 1
+        TextHint = 'Path to key file'
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -641,13 +650,14 @@ object connform: Tconnform
       object editSSLCACertificate: TButtonedEdit
         Left = 120
         Top = 65
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
         TabOrder = 2
+        TextHint = 'Path to certificate authority file'
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -655,13 +665,14 @@ object connform: Tconnform
       object editSSLCertificate: TButtonedEdit
         Left = 120
         Top = 92
-        Width = 172
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
         TabOrder = 3
+        TextHint = 'Path to certificate file'
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
@@ -669,7 +680,7 @@ object connform: Tconnform
       object chkWantSSL: TCheckBox
         Left = 120
         Top = 13
-        Width = 191
+        Width = 313
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use SSL'
@@ -678,70 +689,80 @@ object connform: Tconnform
       end
       object chkLocalTimeZone: TCheckBox
         Left = 120
-        Top = 212
-        Width = 172
+        Top = 224
+        Width = 294
         Height = 17
         Hint = 
           'Use your client time zone in date/time SQL functions, e.g. NOW()' +
           ', for MySQL 4.1.3+'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use own client time zone'
-        TabOrder = 7
+        TabOrder = 8
         OnClick = Modification
       end
       object editStartupScript: TButtonedEdit
         Left = 120
-        Top = 153
-        Width = 172
+        Top = 165
+        Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 4
+        TabOrder = 5
         OnChange = Modification
         OnDblClick = PickFile
         OnRightButtonClick = PickFile
       end
       object chkFullTableStatus: TCheckBox
         Left = 120
-        Top = 235
-        Width = 172
+        Top = 247
+        Width = 294
         Height = 17
         Hint = 
           'Disable to speed up internal queries on databases with many Inno' +
           'DB tables'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Get full table status'
-        TabOrder = 8
+        TabOrder = 9
         OnClick = Modification
       end
       object editQueryTimeout: TEdit
         Left = 120
-        Top = 180
+        Top = 192
         Width = 90
         Height = 21
         NumbersOnly = True
-        TabOrder = 5
+        TabOrder = 6
         Text = '0'
         OnChange = Modification
       end
       object updownQueryTimeout: TUpDown
         Left = 210
-        Top = 180
+        Top = 192
         Width = 16
         Height = 21
         Associate = editQueryTimeout
         Max = 2147483646
-        TabOrder = 6
+        TabOrder = 7
         Wrap = True
+      end
+      object editSSLcipher: TEdit
+        Left = 120
+        Top = 119
+        Width = 294
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 4
+        TextHint = 'List of permissible ciphers to use for SSL encryption'
+        OnChange = Modification
       end
     end
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 145
       DesignSize = (
-        295
+        417
         287)
       object lblLastConnectLeft: TLabel
         Left = 3
@@ -774,7 +795,7 @@ object connform: Tconnform
       object lblCounterRight: TLabel
         Left = 120
         Top = 50
-        Width = 172
+        Width = 294
         Height = 47
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -791,7 +812,7 @@ object connform: Tconnform
     end
   end
   object btnMore: TButton
-    Left = 406
+    Left = 561
     Top = 331
     Width = 80
     Height = 25

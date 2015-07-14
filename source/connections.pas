@@ -107,6 +107,8 @@ type
     updownQueryTimeout: TUpDown;
     menuMoreGeneralHelp: TMenuItem;
     menuRename: TMenuItem;
+    lblSSLcipher: TLabel;
+    editSSLcipher: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -362,6 +364,7 @@ begin
   Sess.SSLPrivateKey := editSSLPrivateKey.Text;
   Sess.SSLCertificate := editSSLCertificate.Text;
   Sess.SSLCACertificate := editSSLCACertificate.Text;
+  Sess.SSLCipher := editSSLCipher.Text;
   Sess.SaveToRegistry;
 
   FSessionModified := False;
@@ -552,6 +555,7 @@ begin
     Result.SSLPrivateKey := editSSLPrivateKey.Text;
     Result.SSLCertificate := editSSLCertificate.Text;
     Result.SSLCACertificate := editSSLCACertificate.Text;
+    Result.SSLCipher := editSSLCipher.Text;
     Result.StartupScriptFilename := editStartupScript.Text;
     Result.Compressed := chkCompressed.Checked;
     Result.QueryTimeout := updownQueryTimeout.Position;
@@ -813,6 +817,7 @@ begin
     editSSLPrivateKey.Text := Sess.SSLPrivateKey;
     editSSLCertificate.Text := Sess.SSLCertificate;
     editSSLCACertificate.Text := Sess.SSLCACertificate;
+    editSSLCipher.Text := Sess.SSLCipher;
     FServerVersion := Sess.ServerVersion;
     FSessionColor := Sess.SessionColor;
   end;
@@ -1070,7 +1075,8 @@ begin
       or (Sess.WantSSL <> chkWantSSL.Checked)
       or (Sess.SSLPrivateKey <> editSSLPrivateKey.Text)
       or (Sess.SSLCertificate <> editSSLCertificate.Text)
-      or (Sess.SSLCACertificate <> editSSLCACertificate.Text);
+      or (Sess.SSLCACertificate <> editSSLCACertificate.Text)
+      or (Sess.SSLCipher <> editSSLCipher.Text);
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
@@ -1144,6 +1150,8 @@ begin
       editSSLCACertificate.Enabled := Params.WantSSL;
       lblSSLCertificate.Enabled := Params.WantSSL;
       editSSLCertificate.Enabled := Params.WantSSL;
+      lblSSLcipher.Enabled := Params.WantSSL;
+      editSSLcipher.Enabled := Params.WantSSL;
       tabSSHtunnel.TabVisible := Params.NetType = ntMySQL_SSHtunnel;
       lblQueryTimeout.Enabled := Params.NetTypeGroup in [ngMSSQL, ngPgSQL];
       editQueryTimeout.Enabled := lblQueryTimeout.Enabled;

@@ -205,7 +205,7 @@ type
     strict private
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FAllDatabases, FComment, FStartupScriptFilename,
-      FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FServerVersion,
+      FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout: Integer;
       FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus, FWindowsAuth, FWantSSL, FIsFolder: Boolean;
@@ -266,6 +266,7 @@ type
       property SSLPrivateKey: String read FSSLPrivateKey write FSSLPrivateKey;
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
+      property SSLCipher: String read FSSLCipher write FSSLCipher;
   end;
   PConnectionParameters = ^TConnectionParameters;
 
@@ -1068,6 +1069,7 @@ begin
   FSSLPrivateKey := '';
   FSSLCertificate := '';
   FSSLCACertificate := '';
+  FSSLCipher := '';
   FStartupScriptFilename := '';
   FFullTableStatus := AppSettings.GetDefaultBool(asFullTableStatus);
   FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
@@ -1122,6 +1124,7 @@ begin
     FWantSSL := AppSettings.ReadBool(asSSLActive, '', FSSLPrivateKey<>'');
     FSSLCertificate := AppSettings.ReadString(asSSLCert);
     FSSLCACertificate := AppSettings.ReadString(asSSLCA);
+    FSSLCipher := AppSettings.ReadString(asSSLCipher);
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
     FCompressed := AppSettings.ReadBool(asCompressed);
     FQueryTimeout := AppSettings.ReadInt(asQueryTimeout);
@@ -1174,6 +1177,7 @@ begin
     AppSettings.WriteString(asSSLKey, FSSLPrivateKey);
     AppSettings.WriteString(asSSLCert, FSSLCertificate);
     AppSettings.WriteString(asSSLCA, FSSLCACertificate);
+    AppSettings.WriteString(asSSLCipher, FSSLCipher);
     AppSettings.ResetPath;
     AppSettings.WriteString(asPlinkExecutable, FSSHPlinkExe);
   end;
@@ -1598,7 +1602,7 @@ var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
   Error, tmpdb, FinalHost, FinalSocket, StatusName: String;
-  sslca, sslkey, sslcert: PAnsiChar;
+  sslca, sslkey, sslcert, sslcipher: PAnsiChar;
   PluginDir: AnsiString;
   Vars, Status: TDBQuery;
 begin
@@ -1619,19 +1623,22 @@ begin
           sslkey := nil;
           sslcert := nil;
           sslca := nil;
+          sslcipher := nil;
           if FParameters.SSLPrivateKey <> '' then
  	          sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
           if FParameters.SSLCertificate <> '' then
  	          sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
           if FParameters.SSLCACertificate <> '' then
  	          sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
+          if FParameters.SSLCipher <> '' then
+ 	          sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
           { TODO : Use Cipher and CAPath parameters }
           mysql_ssl_set(FHandle,
             sslkey,
             sslcert,
             sslca,
             nil,
-            nil);
+            sslcipher);
           Log(lcInfo, _('SSL parameters successfully set.'));
         end;
       end;
