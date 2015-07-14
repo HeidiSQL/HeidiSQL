@@ -2867,6 +2867,8 @@ end;
   Set "Database" property and select that db if connected
 }
 procedure TDBConnection.SetDatabase(Value: String);
+var
+  s: String;
 begin
   Log(lcDebug, 'SetDatabase('+Value+'), FDatabase: '+FDatabase);
   if Value <> FDatabase then begin
@@ -2875,11 +2877,15 @@ begin
       if Assigned(FOnDatabaseChanged) then
         FOnDatabaseChanged(Self, Value);
     end else begin
-      if FParameters.NetTypeGroup = ngPgSQL then
-        Value := EscapeString(Value)
-      else
-        Value := QuoteIdent(Value);
-      Query(Format(GetSQLSpecifity(spUSEQuery), [Value]), False);
+      if FParameters.NetTypeGroup = ngPgSQL then begin
+        s := EscapeString(Value);
+        // Always keep public schema in search path, so one can use procedures from it without prefixing
+        // See http://www.heidisql.com/forum.php?t=18581#p18905
+        if Value <> 'public' then
+          s := s + ', ' + EscapeString('public');
+      end else
+        s := QuoteIdent(Value);
+      Query(Format(GetSQLSpecifity(spUSEQuery), [s]), False);
     end;
     SetObjectNamesInSelectedDB;
   end;
