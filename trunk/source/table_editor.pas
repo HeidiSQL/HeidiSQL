@@ -495,6 +495,7 @@ var
 
   procedure AddQuery(Query: String);
   begin
+    FinishSpecs;
     SQL := SQL + Format(Query, [DBObject.QuotedName]) + ';' + CRLF;
   end;
 begin
@@ -529,8 +530,16 @@ begin
   end;
   FinishSpecs;
 
-  if memoComment.Tag = MODIFIEDFLAG then
-    Specs.Add('COMMENT=' + esc(memoComment.Text));
+  if memoComment.Tag = MODIFIEDFLAG then begin
+    case DBObject.Connection.Parameters.NetTypeGroup of
+      ngMySQL, ngMSSQL: begin
+        Specs.Add('COMMENT=' + esc(memoComment.Text));
+      end;
+      ngPgSQL: begin
+        AddQuery('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+DBObject.Connection.EscapeString(memoComment.Text));
+      end;
+    end;
+  end;
   if (comboCollation.Tag = MODIFIEDFLAG) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE=' + esc(comboCollation.Text));
   if comboEngine.Tag = MODIFIEDFLAG then begin
@@ -597,7 +606,6 @@ begin
       case DBObject.Connection.Parameters.NetTypeGroup of
         ngMySQL:;
         ngMSSQL: begin
-          FinishSpecs;
           AddQuery('EXECUTE sp_addextendedproperty '+DBObject.Connection.EscapeString('MS_Description')+', '+
             DBObject.Connection.EscapeString(Col.Comment)+', '+
             DBObject.Connection.EscapeString('user')+', '+DBObject.Connection.EscapeString(DBObject.Connection.Parameters.Username)+', '+
@@ -606,7 +614,6 @@ begin
             );
         end;
         ngPgSQL: begin
-          FinishSpecs;
           AddQuery('COMMENT ON COLUMN %s.'+DBObject.Connection.QuoteIdent(Col.Name)+' IS '+DBObject.Connection.EscapeString(Col.Comment));
         end;
       end;
