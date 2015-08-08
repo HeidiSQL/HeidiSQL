@@ -1,4 +1,4 @@
-unit Main;
+ï»¿unit Main;
 
 
 // -------------------------------------
@@ -1567,7 +1567,7 @@ begin
         miFunction.Caption := '&-';
       miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration + ' - ' + sstr(MySqlFunctions[j].Description, 200);
       // Prevent generating a seperator for ShortHint and LongHint
-      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
+      miFunction.Hint := StringReplace( miFunction.Hint, '|', 'Â¦', [rfReplaceAll] );
       miFunction.Tag := j;
       // Place menuitem on menu
       miFunction.OnClick := insertFunction;
@@ -1954,7 +1954,7 @@ begin
   Connection := ActiveConnection;
   // Find and remove connection node from tree
   Node := GetRootNode(DBtree, Connection);
-  DBTree.DeleteNode(Node, True);
+  DBTree.DeleteNode(Node);
   FConnections.Remove(Connection);
   // TODO: focus last session?
   SelectNode(DBtree, GetNextNode(DBtree, nil));
@@ -2570,7 +2570,7 @@ begin
     except on E:EDatabaseError do
       TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
-    TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + '×' + FormatNumber(Results.RecordCount) + ')';
+    TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + 'Ã—' + FormatNumber(Results.RecordCount) + ')';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
 
     NewTab.Grid.BeginUpdate;
@@ -6609,7 +6609,7 @@ begin
     HintSQL[i] := sstr(HintSQL[i], 100);
     HintSQL[i] := StringReplace(HintSQL[i], #9, '    ', [rfReplaceAll]);
   end;
-  BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
+  BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns Ã— ' +
     FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF + CRLF +
     Trim(sstr(HintSQL.Text, SIZE_KB));
   Rect := Tabs.ItemRect(idx);
@@ -10310,7 +10310,7 @@ var
   Cap: String;
 begin
   // Set window caption and taskbar text
-  Cap := DBtree.Path(DBtree.FocusedNode, 0, ttNormal, '\') + ' - ' + APPNAME;
+  Cap := DBtree.Path(DBtree.FocusedNode, 0, '\') + ' - ' + APPNAME;
   if AppSettings.PortableMode then
     Cap := Cap + ' Portable';
   Cap := Cap + ' ' + FAppVersion;
