@@ -116,8 +116,6 @@ uses
 
 const
   cResizeToFitMenuItemName = 'VT_ResizeToFitMenuItem';
-type
-  TVirtualTreeCast = class(TBaseVirtualTree); // Necessary to make the header accessible.
 
 //----------------- TVTHeaderPopupMenu ---------------------------------------------------------------------------------
 
@@ -126,7 +124,7 @@ procedure TVTHeaderPopupMenu.DoAddHeaderPopupItem(const Column: TColumnIndex; ou
 begin
   Cmd := apNormal;
   if Assigned(FOnAddHeaderPopupItem) then
-    FOnAddHeaderPopupItem(TVirtualTreeCast(PopupComponent), Column, Cmd);
+    FOnAddHeaderPopupItem((PopupComponent as TBaseVirtualTree), Column, Cmd);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -135,7 +133,7 @@ procedure TVTHeaderPopupMenu.DoColumnChange(Column: TColumnIndex; Visible: Boole
 
 begin
   if Assigned(FOnColumnChange) then
-    FOnColumnChange(TVirtualTreeCast(PopupComponent), Column, Visible);
+    FOnColumnChange((PopupComponent as TBaseVirtualTree), Column, Visible);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -145,11 +143,11 @@ procedure TVTHeaderPopupMenu.OnMenuItemClick(Sender: TObject);
 begin
   if Assigned(PopupComponent) and (PopupComponent is TBaseVirtualTree) then begin
     if TVTMenuItem(Sender).Name = cResizeToFitMenuItemName then begin
-      TVirtualTreeCast(PopupComponent).Header.AutoFitColumns();
+      TBaseVirtualTree(PopupComponent).Header.AutoFitColumns();
     end
     else begin
       with TVTMenuItem(Sender),
-        TVirtualTreeCast(PopupComponent).Header.Columns.Items[Tag] do
+        TBaseVirtualTree(PopupComponent).Header.Columns.Items[Tag] do
       begin
         if Checked then
           Options := Options - [coVisible]
@@ -191,7 +189,7 @@ begin
     end;//poResizeToFitItem
 
     // Add column menu items.
-    with TVirtualTreeCast(PopupComponent).Header do
+    with (PopupComponent as TBaseVirtualTree).Header do
     begin
       if hoShowImages in Options then
         Self.Images := Images
