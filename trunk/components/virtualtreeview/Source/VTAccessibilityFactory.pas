@@ -1,5 +1,28 @@
 unit VTAccessibilityFactory;
 
+// The contents of this file are subject to the Mozilla Public License
+// Version 1.1 (the "License"); you may not use this file except in compliance
+// with the License. You may obtain a copy of the License at http://www.mozilla.org/MPL/
+//
+// Alternatively, you may redistribute this library, use and/or modify it under the terms of the
+// GNU Lesser General Public License as published by the Free Software Foundation;
+// either version 2.1 of the License, or (at your option) any later version.
+// You may obtain a copy of the LGPL at http://www.gnu.org/copyleft/.
+//
+// Software distributed under the License is distributed on an "AS IS" basis,
+// WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for the
+// specific language governing rights and limitations under the License.
+//
+// The original code is VirtualTrees.pas, released September 30, 2000.
+//
+// The initial developer of the original code is digital publishing AG (Munich, Germany, www.digitalpublishing.de),
+// written by Mike Lischke (public@soft-gems.net, www.soft-gems.net).
+//
+// Portions created by digital publishing AG are Copyright
+// (C) 1999-2001 digital publishing AG. All Rights Reserved.
+//----------------------------------------------------------------------------------------------------------------------
+
+
 // class to create IAccessibles for the tree passed into it.
 // If not already assigned, creates IAccessibles for the tree itself
 // and the focused item
@@ -14,7 +37,7 @@ unit VTAccessibilityFactory;
 interface
 
 uses
-  Winapi.oleacc, System.Classes, VirtualTrees;
+  System.Classes, Winapi.oleacc, VirtualTrees;
 
 type
   IVTAccessibleProvider = interface
@@ -34,8 +57,8 @@ type
     destructor Destroy; override;
     function CreateIAccessible(ATree: TBaseVirtualTree): IAccessible;
     class function GetAccessibilityFactory: TVTAccessibilityFactory; static;
-    procedure RegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
-    procedure UnRegisterAccessibleProvider(AProvider: IVTAccessibleProvider);
+    procedure RegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
+    procedure UnRegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
   end;
 
   
@@ -112,16 +135,14 @@ begin
   FVTAccessibleFactory.Free;
 end;
 
-procedure TVTAccessibilityFactory.RegisterAccessibleProvider(
-  AProvider: IVTAccessibleProvider);
+procedure TVTAccessibilityFactory.RegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
 // Ads a provider if it is not already registered
 begin
   if FAccessibleProviders.IndexOf(AProvider) < 0 then
     FAccessibleProviders.Add(AProvider)
 end;
 
-procedure TVTAccessibilityFactory.UnRegisterAccessibleProvider(
-  AProvider: IVTAccessibleProvider);
+procedure TVTAccessibilityFactory.UnRegisterAccessibleProvider(const AProvider: IVTAccessibleProvider);
 // Unregisters/removes an IAccessible provider if it is present
 begin
   if FAccessibleProviders.IndexOf(AProvider) >= 0 then

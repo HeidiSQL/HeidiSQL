@@ -99,6 +99,13 @@
         <DCCReference Include="..\..\Source\VTHeaderPopup.pas"/>
         <DCCReference Include="..\..\Source\VTAccessibilityFactory.pas"/>
         <DCCReference Include="..\..\Source\VTAccessibility.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.StyleHooks.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Classes.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.WorkerThread.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.ClipBoard.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Utils.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Actions.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Export.pas"/>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
