@@ -80,12 +80,12 @@ type
       LeftOffsetInMemo: Integer;
       HistoryDays: TStringList;
       ListBindParams: TBindParam;
-      CheckParam: Boolean;
       TimerLastChange: TTimer;
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
       function LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+      function BindParamsActivated: Boolean;
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
       property ActiveResultTab: TResultTab read GetActiveResultTab;
       property Memo: TSynMemo read FMemo write SetMemo;
@@ -11469,17 +11469,17 @@ var
   Tab: TQueryTab;
   Tree: TVirtualStringTree;
 begin
-  // Disallow checkbox clicking on "Bind parameters" when text too big
   Tree := Sender as TVirtualStringTree;
   Tab := GetQueryTabByHelpers(Sender);
 
   case Sender.GetNodeLevel(Node) of
+
     0: case Node.Index of
       HELPERNODE_BINDING: begin
+        // Disallow checkbox clicking on "Bind parameters" when text too big
         if NewState = csCheckedNormal then begin
           if Tab.Memo.GetTextLen < SIZE_MB then begin
             Allowed := True;
-            Tab.CheckParam := True;
             Tab.TimerLastChange.Enabled := False;
             Tab.TimerLastChange.Enabled := True;
           end
@@ -11490,14 +11490,15 @@ begin
         end
         else begin
           Allowed := True;
-          Tab.CheckParam := False;
           Tab.ListBindParams.Clear;
           Tree.DeleteChildren(Node);
           NewState := csUncheckedNormal;
         end;
       end;
     end;
+
   end;
+
 end;
 
 
@@ -12028,6 +12029,16 @@ begin
 end;
 
 
+function TQueryTab.BindParamsActivated: Boolean;
+var
+  Node: PVirtualNode;
+begin
+  // Check if bind params checkbox is checked
+  Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+  Result := treeHelpers.CheckState[Node] in CheckedStates;
+end;
+
+
 procedure TQueryTab.SetMemoFilename(Value: String);
 begin
   FMemoFilename := Value;
@@ -12049,7 +12060,7 @@ begin
   // Uncheck checkbox if it's bigger
   TimerLastChange.Enabled := False;
 
-  if CheckParam then begin
+  if BindParamsActivated then begin
     if Memo.GetTextLen < SIZE_MB then begin
       TimerLastChange.Enabled := True;
     end
