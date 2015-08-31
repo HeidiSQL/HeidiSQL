@@ -11482,6 +11482,7 @@ begin
             Allowed := True;
             Tab.TimerLastChange.Enabled := False;
             Tab.TimerLastChange.Enabled := True;
+            LogSQL('Bind parameters enabled', lcDebug);
           end
           else begin
             Allowed := False;
@@ -11493,6 +11494,7 @@ begin
           Tab.ListBindParams.Clear;
           Tree.DeleteChildren(Node);
           NewState := csUncheckedNormal;
+          LogSQL('Bind parameters disabled', lcDebug);
         end;
       end;
     end;
@@ -12082,6 +12084,7 @@ var
   IsExpanded : Boolean;
   FoundParam : String;
 begin
+  MainForm.LogSQL('Bind parameter detection...', lcDebug);
   TimerLastChange.Enabled := False;
 
   // Check current Query memo to find all parameters with regular expression ( :params )
@@ -12135,6 +12138,7 @@ begin
   end else
     treeHelpers.DeleteChildren(Node);
 
+  MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
 end;
 
 
