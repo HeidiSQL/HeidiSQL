@@ -11492,10 +11492,10 @@ begin
         else begin
           Allowed := True;
           Tab.ListBindParams.Clear;
-          Tree.DeleteChildren(Node);
           NewState := csUncheckedNormal;
           LogSQL('Bind parameters disabled', lcDebug);
         end;
+        Tree.ResetNode(Node);
       end;
     end;
 
