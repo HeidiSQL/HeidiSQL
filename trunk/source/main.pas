@@ -11477,7 +11477,7 @@ begin
     0: case Node.Index of
       HELPERNODE_BINDING: begin
         // Disallow checkbox clicking on "Bind parameters" when text too big
-        if NewState = csCheckedNormal then begin
+        if NewState in CheckedStates then begin
           if Tab.Memo.GetTextLen < SIZE_MB then begin
             Allowed := True;
             Tab.TimerLastChange.Enabled := False;
@@ -12131,7 +12131,7 @@ begin
         IsExpanded := True
       else
         IsExpanded := treeHelpers.Expanded[Node];
-      treeHelpers.DeleteChildren(Node);
+      treeHelpers.ReinitChildren(Node, True);
     end;
     Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
     treeHelpers.Expanded[Node] := IsExpanded;
