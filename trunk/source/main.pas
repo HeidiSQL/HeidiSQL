@@ -11251,7 +11251,11 @@ begin
                   if Assigned(Tab.QueryProfile) then
                     CellText := CellText + ' ('+FormatNumber(Tab.ProfileTime, 6)+'s)';
                 end;
-             HELPERNODE_BINDING: CellText := _('Bind parameters');
+             HELPERNODE_BINDING: begin
+                  CellText := _('Bind parameters');
+                  if(Tab.BindParamsActivated) then
+                    CellText := CellText + ' ('+FormatNumber(Tab.ListBindParams.Count)+')';
+                end;
            end;
         1: case Node.Parent.Index of
              HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
@@ -11493,9 +11497,9 @@ begin
           Allowed := True;
           Tab.ListBindParams.Clear;
           NewState := csUncheckedNormal;
+          Tree.ResetNode(Node);
           LogSQL('Bind parameters disabled', lcDebug);
         end;
-        Tree.ResetNode(Node);
       end;
     end;
 
@@ -12079,13 +12083,13 @@ procedure TQueryTab.TimerLastChangeOnTimer(Sender: TObject);
 var
   rx: TRegExpr;
   BindParamItem : TBindParamItem;
-  Item: Integer;
+  Item, ParamCountBefore: Integer;
   Node : PVirtualNode;
-  IsExpanded : Boolean;
   FoundParam : String;
 begin
   MainForm.LogSQL('Bind parameter detection...', lcDebug);
   TimerLastChange.Enabled := False;
+  ParamCountBefore := ListBindParams.Count;
 
   // Check current Query memo to find all parameters with regular expression ( :params )
   rx := TRegExpr.Create;
@@ -12122,21 +12126,12 @@ begin
   // Delete all parameters where variable is to False
   ListBindParams.CleanToKeep;
 
-  // If the bind parameter node exists, delete and rebuild it.
-  IsExpanded := True;
-  Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
-  if ListBindParams.Count > 0 then begin
-    if treeHelpers.RootNodeCount = 7 then begin
-      if Node.ChildCount = 0 then
-        IsExpanded := True
-      else
-        IsExpanded := treeHelpers.Expanded[Node];
-      treeHelpers.ReinitChildren(Node, True);
-    end;
+  // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
+  MainForm.RefreshHelperNode(HELPERNODE_BINDING);
+  if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
     Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
-    treeHelpers.Expanded[Node] := IsExpanded;
-  end else
-    treeHelpers.DeleteChildren(Node);
+    treeHelpers.Expanded[Node] := True;
+  end;
 
   MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
 end;
