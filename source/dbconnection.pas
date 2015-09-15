@@ -327,6 +327,7 @@ type
       FSQLSpecifities: Array[TSQLSpecifityId] of String;
       FKeepAliveTimer: TTimer;
       FFavorites: TStringList;
+      FPrefetchResults: TDBQueryList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -356,6 +357,8 @@ type
       procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
       procedure Drop(Obj: TDBObject); virtual;
+      procedure PrefetchResults(SQL: String);
+      procedure FreeResults(Results: TDBQuery);
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -381,6 +384,7 @@ type
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; virtual;
+      procedure PrefetchCreateCode(Objects: TDBObjectList);
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
@@ -392,6 +396,7 @@ type
       procedure ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
+      procedure PurgePrefetchResults;
       function GetDatatypeByName(var DataType: String; DeleteFromSource: Boolean; Identifier: String=''): TDBDatatype;
       function GetDatatypeByNativeType(NativeType: Integer; Identifier: String=''): TDBDatatype;
       function ApplyLimitClause(QueryType, QueryBody: String; Limit, Offset: Int64): String;
@@ -2870,6 +2875,29 @@ begin
 end;
 
 
+procedure TDBConnection.PrefetchCreateCode(Objects: TDBObjectList);
+var
+  Queries: TStringList;
+  Obj: TDBObject;
+begin
+  // Cache some queries used in GetCreateCode for mass operations. See TMainForm.SynCompletionProposalExecute
+  Queries := TStringList.Create;
+  for Obj in Objects do begin
+    case Parameters.NetTypeGroup of
+      ngMySQL: begin
+        if Obj.NodeType <> lntView then
+          Queries.Add('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name));
+      end;
+      ngMSSQL: begin
+        if Obj.NodeType in [lntFunction, lntProcedure] then
+          Queries.Add('EXEC sp_helptext '+EscapeString(Obj.Schema+'.'+Obj.Name));
+      end;
+    end;
+  end;
+  PrefetchResults(implodestr(';', Queries));
+end;
+
+
 {**
   Set "Database" property and select that db if connected
 }
@@ -3256,16 +3284,62 @@ end;
 
 
 function TDBConnection.GetResults(SQL: String): TDBQuery;
+var
+  Query: TDBQuery;
 begin
-  Result := Parameters.CreateQuery(Self);
-  Result.Connection := Self;
-  Result.SQL := SQL;
-  try
-    Result.Execute;
-  except
-    FreeAndNil(Result);
-    Raise;
+  Result := nil;
+
+  // Look up query result in cache
+  if Assigned(FPrefetchResults) then begin
+    for Query in FPrefetchResults do begin
+      if Query.SQL = SQL then begin
+        Result := Query;
+        Log(lcDebug, 'Using cached result for query: '+sstr(SQL, 100));
+        Break;
+      end;
+    end;
   end;
+
+  // Fire query
+  if Result = nil then begin
+    Result := Parameters.CreateQuery(Self);
+    Result.Connection := Self;
+    Result.SQL := SQL;
+    try
+      Result.Execute;
+    except
+      FreeAndNil(Result);
+      Raise;
+    end;
+  end;
+end;
+
+
+procedure TDBConnection.PrefetchResults(SQL: String);
+var
+  LastResults: TDBQueryList;
+  Batch: TSQLBatch;
+  i: Integer;
+begin
+  Query(SQL, True);
+  Batch := TSQLBatch.Create;
+  Batch.SQL := SQL;
+  FreeAndNil(FPrefetchResults);
+  FPrefetchResults := TDBQueryList.Create(True);
+  LastResults := GetLastResults;
+  for i:=0 to LastResults.Count-1 do begin
+    FPrefetchResults.Add(LastResults[i]);
+    FPrefetchResults[i].SQL := Batch[i].SQL;
+  end;
+  Batch.Free;
+end;
+
+
+procedure TDBConnection.FreeResults(Results: TDBQuery);
+begin
+  // Free query result if it is not in prefetch cache
+  if (not Assigned(FPrefetchResults)) or (not FPrefetchResults.Contains(Results)) then
+    FreeAndNil(Results);
 end;
 
 
@@ -3525,7 +3599,7 @@ begin
     Result.Add(Results.Col(Column));
     Results.Next;
   end;
-  FreeAndNil(Results);
+  FreeResults(Results);
 end;
 
 
@@ -3541,7 +3615,7 @@ begin
     Result := Results.Col(Column)
   else
     Result := '';
-  FreeAndNil(Results);
+  FreeResults(Results);
 end;
 
 
@@ -3557,7 +3631,7 @@ begin
     Result := Results.Col(Column)
   else
     Result := '';
-  FreeAndNil(Results);
+  FreeResults(Results);
 end;
 
 
@@ -3996,6 +4070,7 @@ end;
 procedure TDBConnection.ClearCache(IncludeDBObjects: Boolean);
 begin
   // Free cached lists and results. Called when the connection was closed and/or destroyed
+  PurgePrefetchResults;
   FreeAndNil(FCollationTable);
   FreeAndNil(FCharsetTable);
   FreeAndNil(FSessionVariables);
@@ -5049,6 +5124,14 @@ begin
   Obj.Comment := ExtractLiteral(Body, 'COMMENT');
   Obj.Body := TrimLeft(Body);
   rx.Free;
+end;
+
+
+procedure TDBConnection.PurgePrefetchResults;
+begin
+  // Remove cached results
+  if Assigned(FPrefetchResults) then
+    FreeAndNil(FPrefetchResults);
 end;
 
 
