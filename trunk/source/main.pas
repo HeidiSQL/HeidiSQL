@@ -5589,8 +5589,10 @@ begin
         // Tables from specific database
         Screen.Cursor := crHourGlass;
         DBObjects := Conn.GetDBObjects(Conn.AllDatabases[i]);
+        Conn.PrefetchCreateCode(DBObjects);
         for j:=0 to DBObjects.Count-1 do
           AddTable(DBObjects[j]);
+        Conn.PurgePrefetchResults;
         Screen.Cursor := crDefault;
       end;
     end;
@@ -5611,8 +5613,10 @@ begin
       // Tables from current db
       if Conn.Database <> '' then begin
         DBObjects := Conn.GetDBObjects(Conn.Database);
+        Conn.PrefetchCreateCode(DBObjects);
         for j:=0 to DBObjects.Count-1 do
           AddTable(DBObjects[j]);
+        Conn.PurgePrefetchResults;
         if Token1 <> '' then // assume that we have already a dbname in memo
           Proposal.Position := Conn.AllDatabases.Count;
       end;
