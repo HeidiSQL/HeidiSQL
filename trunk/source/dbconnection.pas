@@ -2806,7 +2806,10 @@ begin
         ngMSSQL: begin
           // Tested on MS SQL 8.0 and 11.0
           // See http://www.heidisql.com/forum.php?t=12495
-          Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name));
+          if not Schema.IsEmpty then
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name))
+          else
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Database+'.'+Name));
           // Do not use Rows.Text, as the rows already include a trailing linefeed
           Result := implodestr('', Rows);
           Rows.Free;
@@ -2855,7 +2858,10 @@ begin
       case Parameters.NetTypeGroup of
         ngMSSQL: begin
           // See comments above
-          Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name));
+          if not Schema.IsEmpty then
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name))
+          else
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Database+'.'+Name));
           Result := implodestr('', Rows);
           Rows.Free;
         end;
@@ -2889,8 +2895,12 @@ begin
           Queries.Add('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name));
       end;
       ngMSSQL: begin
-        if Obj.NodeType in [lntFunction, lntProcedure] then
-          Queries.Add('EXEC sp_helptext '+EscapeString(Obj.Schema+'.'+Obj.Name));
+        if Obj.NodeType in [lntFunction, lntProcedure] then begin
+          if not Obj.Schema.IsEmpty then
+            Queries.Add('EXEC sp_helptext '+EscapeString(Obj.Schema+'.'+Obj.Name))
+          else
+            Queries.Add('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name))
+        end;
       end;
     end;
   end;
