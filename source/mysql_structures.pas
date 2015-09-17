@@ -188,7 +188,7 @@ type
     dtJson, dtCidr, dtInet, dtMacaddr,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
     dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtUnknown,
-    dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid,
+    dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid, dtXML,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
 
@@ -859,7 +859,7 @@ var
 
   );
 
-  MSSQLDatatypes: array [0..30] of TDBDatatype =
+  MSSQLDatatypes: array [0..31] of TDBDatatype =
   (
     (
       Index: dtTinyint;
@@ -1212,6 +1212,17 @@ var
       Index:           dtHierarchyid;
       Name:            'HIERARCHYID';
       Description:     'Represents a position in a hierarchy.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtXML;
+      Name:            'XML';
+      Description:     'Lets you store XML documents and fragments.';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
