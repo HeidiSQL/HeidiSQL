@@ -162,20 +162,22 @@ uses main, mysql_structures;
 
 const
   STRSKIPPED: String = 'Skipped - ';
-  OUTPUT_FILE = 'Single .sql file';
-  OUTPUT_FILE_COMPRESSED = 'ZIP compressed .sql file';
-  OUTPUT_CLIPBOARD = 'Clipboard';
-  OUTPUT_DIR = 'Directory - one file per object in database subdirectories';
-  OUTPUT_DB = 'Database';
-  OUTPUT_SERVER = 'Server: ';
-  DATA_NO = 'No data';
-  DATA_REPLACE = 'DELETE + INSERT (truncate existing data)';
-  DATA_INSERT = 'INSERT';
-  DATA_INSERTNEW = 'INSERT IGNORE (do not update existing)';
-  DATA_UPDATE = 'REPLACE existing data';
   EXPORT_FILE_FOOTER = '/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */;'+CRLF+
     '/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;'+CRLF+
     '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
+
+var
+  OUTPUT_FILE,
+  OUTPUT_FILE_COMPRESSED,
+  OUTPUT_CLIPBOARD,
+  OUTPUT_DIR,
+  OUTPUT_DB,
+  OUTPUT_SERVER,
+  DATA_NO,
+  DATA_REPLACE,
+  DATA_INSERT,
+  DATA_INSERTNEW,
+  DATA_UPDATE : String;
 
 {$R *.DFM}
 
@@ -190,6 +192,17 @@ var
   Obj: TDBObject;
 begin
   TranslateComponent(Self);
+  OUTPUT_FILE := _('Single .sql file');
+  OUTPUT_FILE_COMPRESSED := _('ZIP compressed .sql file');
+  OUTPUT_CLIPBOARD := _('Clipboard');
+  OUTPUT_DIR := _('Directory - one file per object in database subdirectories');
+  OUTPUT_DB := _('Database');
+  OUTPUT_SERVER := _('Server')+': ';
+  DATA_NO := _('No data');
+  DATA_REPLACE := _('Delete + insert (truncate existing data)');
+  DATA_INSERT := _('Insert');
+  DATA_INSERTNEW := _('Insert ignore (do not update existing)');
+  DATA_UPDATE := _('Replace existing data');
 
   // Restore GUI setup
   InheritFont(Font);
@@ -290,9 +303,9 @@ begin
   // CHECKSUM available since MySQL 4.1.1
   idx := comboOperation.ItemIndex;
   if idx = -1 then idx := 0;
-  comboOperation.Items.CommaText := 'Check,Analyze,Checksum,Optimize,Repair';
+  comboOperation.Items.CommaText := _('Check')+','+_('Analyze')+','+_('Checksum')+','+_('Optimize')+','+_('Repair');
   if Mainform.ActiveConnection.ServerVersionInt < 40101 then
-    comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, 'Checksum', 'Checksum ('+_(SUnsupported)+')', [rfReplaceAll]);
+    comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, _('Checksum'), _('Checksum')+' ('+_(SUnsupported)+')', [rfReplaceAll]);
   comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
 

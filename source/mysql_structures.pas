@@ -7,7 +7,7 @@ unit mysql_structures;
 interface
 
 uses
-  Classes, Graphics, Windows, SysUtils;
+  Classes, Graphics, Windows, SysUtils, gnugettext;
 
 {$I const.inc}
 
@@ -7397,6 +7397,8 @@ var
 
   );
 
+  dti: TDBDatatypeCategoryIndex;
+
 
   function GetFunctionCategories: TStringList;
 
@@ -7534,6 +7536,11 @@ MySQLErrorCodes := Explode(',', '0=No error,'+
   '150=Foreign key constraint is incorrectly formed,'+
   '151=Cannot add a child row,'+
   '152=Cannot delete a parent row');
+
+// Translate data type categories
+for dti:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
+  DatatypeCategories[dti].Name := _(DatatypeCategories[dti].Name);
+end;
 
 
 end.
