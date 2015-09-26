@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-07-14 16:34+0100\n"
+"PO-Revision-Date: 2015-09-26 14:16+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.7.1\n"
+"X-Generator: Poedit 1.8.5\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -102,12 +102,11 @@ msgstr "Load binary file"
 #. frmTextEditor..tlbStandard..btnCancel..Hint
 #. frmTextEditor..tlbStandard..btnCancel..Caption
 #. frmUpdateCheck..btnCancel..Caption
-#: bineditor.dfm:82 bineditor.dfm:83 clickfilter.dfm:26
-#: column_selection.dfm:35 connections.dfm:72 copytable.dfm:64
-#: createdatabase.dfm:95 data_sorting.dfm:52 editvar.dfm:44 exportgrid.dfm:44
-#: insertfiles.dfm:47 loaddata.dfm:46 options.dfm:932 printlist.dfm:58
-#: searchreplace.dfm:48 selectdbobject.dfm:96 texteditor.dfm:90
-#: texteditor.dfm:91 updatecheck.dfm:41
+#: bineditor.dfm:82 bineditor.dfm:83 clickfilter.dfm:26 column_selection.dfm:35
+#: connections.dfm:72 copytable.dfm:64 createdatabase.dfm:95
+#: data_sorting.dfm:52 editvar.dfm:44 exportgrid.dfm:44 insertfiles.dfm:47
+#: loaddata.dfm:46 options.dfm:932 printlist.dfm:58 searchreplace.dfm:48
+#: selectdbobject.dfm:96 texteditor.dfm:90 texteditor.dfm:91 updatecheck.dfm:41
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -1221,6 +1220,9 @@ msgstr "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 #. Tree favorites button
 msgid "Show only favorite tree items"
 msgstr "Show only favorite tree items"
+
+msgid "Show only favorites"
+msgstr "Show only favorites"
 
 #. MainForm..panelTop..pnlLeft..DBtree......WideText
 #. MainForm..panelTop..pnlRight..PageControlMain..tabDatabase..ListTables......WideText
@@ -3003,6 +3005,9 @@ msgstr "Replacement can have \\n for new lines and \\t for tabs"
 #: searchreplace.dfm:58
 msgid "Replace &all"
 msgstr "Replace &all"
+
+msgid "Search in:"
+msgstr "Search in:"
 
 #. frmSearchReplace..chkReplace..Caption
 #: searchreplace.dfm:67
@@ -5874,3 +5879,84 @@ msgstr "GUID"
 
 msgid "GUID without braces"
 msgstr "GUID without braces"
+
+msgid "Query timeout:"
+msgstr "Query timeout:"
+
+msgid "Connection attempts:"
+msgstr "Connection attempts:"
+
+msgid "Pop up SQL text over result tabs"
+msgstr "Pop up SQL text over result tabs"
+
+msgid "Default linebreak style:"
+msgstr "Default linebreak style:"
+
+msgid "Check"
+msgstr "Check"
+
+msgid "Optimize"
+msgstr "Optimize"
+
+msgid "Repair"
+msgstr "Repair"
+
+msgid "Integer"
+msgstr "Integer"
+
+msgid "Real"
+msgstr "Real"
+
+msgid "Text"
+msgstr "Text"
+
+msgid "Temporal (time)"
+msgstr "Temporal (time)"
+
+msgid "Spatial (geometry)"
+msgstr "Spatial (geometry)"
+
+msgid "Other"
+msgstr "Other"
+
+msgid "Single .sql file"
+msgstr "Single .sql file"
+
+msgid "ZIP compressed .sql file"
+msgstr "ZIP compressed .sql file"
+
+msgid "Clipboard"
+msgstr "Clipboard"
+
+msgid "Server"
+msgstr "Server"
+
+msgid "Delete + insert (truncate existing data)"
+msgstr "Delete + insert (truncate existing data)"
+
+msgid "Insert"
+msgstr "Insert"
+
+msgid "Insert ignore (do not update existing)"
+msgstr "Insert ignore (do not update existing)"
+
+msgid "Replace existing data"
+msgstr "Replace existing data"
+
+msgid "Flush"
+msgstr "Flush"
+
+msgid "View changelog"
+msgstr "View changelog"
+
+msgid "Become a donor of the %s project"
+msgstr "Become a donor of the %s project"
+
+msgid "Donate"
+msgstr "Donate"
+
+msgid "Send a donation"
+msgstr "Send a donation"
+
+msgid "Donate to the %s project"
+msgstr "Donate to the %s project"
