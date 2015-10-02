@@ -1020,7 +1020,6 @@ type
     FGridPasting: Boolean;
     FHasDonatedDatabaseCheck: TThreeStateBoolean;
     FFocusedTables: TDBObjectList;
-    FCaptions: TStringList;
     FLastCaptionChange: Cardinal;
     FListTablesSorted: Boolean;
     FLastPortableSettingsSave: Cardinal;
@@ -1479,6 +1478,7 @@ var
   TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
   CoolBand: TCoolBand;
+  DonateCaptions: TStringList;
 begin
   caption := APPNAME;
 
@@ -1659,12 +1659,16 @@ begin
   end;
   FHasDonatedDatabaseCheck := nbUnset;
   btnDonate.Visible := HasDonated(True) <> nbTrue;
-  FCaptions := Explode(',',
+  // Select random donate button caption
+  DonateCaptions := Explode(',',
     f_('Become a donor of the %s project', [AppName])+','+
     _('Donate')+','+
     _('Send a donation')+','+
     f_('Donate to the %s project', [AppName])
     );
+  Randomize;
+  i := RandomRange(0, DonateCaptions.Count);
+  btnDonate.Caption := DonateCaptions[i];
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
@@ -11625,15 +11629,7 @@ end;
 
 
 procedure TMainForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
-var
-  i: Integer;
 begin
-  if FLastCaptionChange < GetTickCount-10000 then begin
-    Randomize;
-    i := RandomRange(0, FCaptions.Count);
-    btnDonate.Caption := FCaptions[i];
-    FLastCaptionChange := GetTickCount;
-  end;
   if AppSettings.PortableMode and (FLastPortableSettingsSave < GetTickCount-60000) then begin
     if AppSettings.Writes > FLastAppSettingsWrites then begin
       AppSettings.ExportSettings;
