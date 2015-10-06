@@ -303,9 +303,9 @@ begin
   // CHECKSUM available since MySQL 4.1.1
   idx := comboOperation.ItemIndex;
   if idx = -1 then idx := 0;
-  comboOperation.Items.CommaText := _('Check')+','+_('Analyze')+','+_('Checksum')+','+_('Optimize')+','+_('Repair');
+  comboOperation.Items.CommaText := 'Check,Analyze,Checksum,Optimize,Repair';
   if Mainform.ActiveConnection.ServerVersionInt < 40101 then
-    comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, _('Checksum'), _('Checksum')+' ('+_(SUnsupported)+')', [rfReplaceAll]);
+    comboOperation.Items.Text := StringReplace(comboOperation.Items.Text, 'Checksum', 'Checksum ('+_(SUnsupported)+')', [rfReplaceAll]);
   comboOperation.ItemIndex := idx;
   comboOperation.OnChange(Sender);
 
