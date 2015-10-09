@@ -5552,9 +5552,10 @@ begin
 
     // 2. Parse FROM clause, detect relevant table/view, probably aliased
     rx.ModifierG := True;
-    rx.Expression := '\b(FROM|INTO|UPDATE)\s+(.+)(WHERE|HAVING|ORDER|GROUP)?';
+    rx.ModifierI := True;
+    rx.Expression := '\b(FROM|INTO|UPDATE)\s+(IGNORE\s+)?(.+)(WHERE|HAVING|ORDER|GROUP)?';
     if rx.Exec(sql) then begin
-      TableClauses := rx.Match[2];
+      TableClauses := rx.Match[3];
       // Ensure tables in JOIN clause(s) are splitted by comma
       TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
       // Split table clauses by commas
