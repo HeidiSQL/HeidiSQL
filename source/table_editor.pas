@@ -608,7 +608,7 @@ begin
         ngMSSQL: begin
           AddQuery('EXECUTE sp_addextendedproperty '+DBObject.Connection.EscapeString('MS_Description')+', '+
             DBObject.Connection.EscapeString(Col.Comment)+', '+
-            DBObject.Connection.EscapeString('user')+', '+DBObject.Connection.EscapeString(DBObject.Connection.Parameters.Username)+', '+
+            DBObject.Connection.EscapeString('Schema')+', '+DBObject.Connection.EscapeString(DBObject.Schema)+', '+
             DBObject.Connection.EscapeString('table')+', '+DBObject.Connection.EscapeString(DBObject.Name)+', '+
             DBObject.Connection.EscapeString('column')+', '+DBObject.Connection.EscapeString(Col.Name)
             );
