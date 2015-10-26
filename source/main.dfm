@@ -164,7 +164,6 @@ object MainForm: TMainForm
         OnAfterCellPaint = DBtreeAfterCellPaint
         OnBeforeCellPaint = DBtreeBeforeCellPaint
         OnChange = DBtreeChange
-        OnDblClick = DBtreeDblClick
         OnExpanded = DBtreeExpanded
         OnExpanding = DBtreeExpanding
         OnFocusChanged = DBtreeFocusChanged
