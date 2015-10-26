@@ -738,7 +738,6 @@ type
     procedure SetMainTab(Page: TTabSheet);
     procedure DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
-    procedure DBtreeDblClick(Sender: TObject);
     procedure DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var
         ImageIndex: Integer);
@@ -7958,22 +7957,6 @@ begin
 
   if ActiveQueryHelpers <> nil then
     ActiveQueryHelpers.Invalidate;
-end;
-
-
-procedure TMainForm.DBtreeDblClick(Sender: TObject);
-var
-  DBObj: PDBObject;
-  m: TSynMemo;
-begin
-  // Paste DB or table name into query window on treeview double click.
-  if QueryTabActive and Assigned(DBtree.FocusedNode) then begin
-    DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
-    if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
-      m := ActiveQueryMemo;
-      m.DragDrop(Sender, m.CaretX, m.CaretY);
-    end;
-  end;
 end;
 
 
