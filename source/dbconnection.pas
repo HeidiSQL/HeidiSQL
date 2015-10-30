@@ -2629,7 +2629,7 @@ end;
 
 function TDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
 var
-  Cols, Keys, ProcDetails: TDBQuery;
+  Cols, Keys, ProcDetails, Comments: TDBQuery;
   ConstraintName, MaxLen, DataType: String;
   ColNames, ArgNames, ArgTypes, Arguments: TStringList;
   Rows: TStringList;
@@ -2649,6 +2649,7 @@ begin
   case NodeType of
     lntTable: begin
       Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
+      Comments := nil;
 
       // Retrieve column details from IS
       case Parameters.NetTypeGroup of
@@ -2679,6 +2680,17 @@ begin
           Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
             SchemaClauseIS('TABLE') +
             ' AND TABLE_NAME='+EscapeString(Name)
+            );
+          // Comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
+          Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
+            'FROM sys.extended_properties AS prop '+
+            'INNER JOIN sys.all_objects o ON prop.major_id = o.object_id '+
+            'INNER JOIN sys.schemas s ON o.schema_id = s.schema_id '+
+            'INNER JOIN sys.columns AS c ON prop.major_id = c.object_id AND prop.minor_id = c.column_id '+
+            'WHERE '+
+            '  prop.name='+EscapeString('MS_Description')+
+            '  AND s.name='+EscapeString(Schema)+
+            '  AND o.name='+EscapeString(Name)
             );
         end;
       end;
@@ -2714,7 +2726,17 @@ begin
         end;
         // The following is wrong syntax in PostgreSQL, but helps ParseTableStructure to find the comment
         if Cols.ColExists('column_comment') then
-          Result := Result + ' COMMENT ' + EscapeString(Cols.Col('column_comment'));
+          Result := Result + ' COMMENT ' + EscapeString(Cols.Col('column_comment'))
+        else if Comments <> nil then begin
+          // Find column comment from separate result
+          while not Comments.Eof do begin
+            if Comments.Col('column')=Cols.Col('COLUMN_NAME') then begin
+              Result := Result + ' COMMENT ' + EscapeString(Comments.Col('comment'));
+              Break;
+            end;
+          end;
+        end;
+
         Result := Result + ',';
         Cols.Next;
       end;
