@@ -159,7 +159,7 @@ type
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asWarnUnsafeUpdates,
-    asCompletionProposal, asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory,
+    asCompletionProposal, asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
@@ -1668,18 +1668,26 @@ end;
 procedure InheritFont(AFont: TFont);
 var
   LogFont: TLogFont;
+  GUIFontName: String;
 begin
-  // Apply system font for a given font. See issue #3204.
-  // Code taken from http://www.gerixsoft.com/blog/delphi/system-font
-  if SystemParametersInfo(SPI_GETICONTITLELOGFONT, SizeOf(TLogFont), @LogFont, 0) then begin
-    AFont.Height := LogFont.lfHeight;
-    AFont.Orientation := LogFont.lfOrientation;
-    AFont.Charset := TFontCharset(LogFont.lfCharSet);
-    AFont.Name := PChar(@LogFont.lfFaceName);
-    case LogFont.lfPitchAndFamily and $F of
-      VARIABLE_PITCH: AFont.Pitch := fpVariable;
-      FIXED_PITCH: AFont.Pitch := fpFixed;
-      else AFont.Pitch := fpDefault;
+  GUIFontName := AppSettings.ReadString(asGUIFontName);
+  if not GUIFontName.IsEmpty then begin
+    // Apply user specified font
+    AFont.Name := GUIFontName;
+    AFont.Size := AppSettings.ReadInt(asGUIFontSize);
+  end else begin
+    // Apply system font. See issue #3204.
+    // Code taken from http://www.gerixsoft.com/blog/delphi/system-font
+    if SystemParametersInfo(SPI_GETICONTITLELOGFONT, SizeOf(TLogFont), @LogFont, 0) then begin
+      AFont.Height := LogFont.lfHeight;
+      AFont.Orientation := LogFont.lfOrientation;
+      AFont.Charset := TFontCharset(LogFont.lfCharSet);
+      AFont.Name := PChar(@LogFont.lfFaceName);
+      case LogFont.lfPitchAndFamily and $F of
+        VARIABLE_PITCH: AFont.Pitch := fpVariable;
+        FIXED_PITCH: AFont.Pitch := fpFixed;
+        else AFont.Pitch := fpDefault;
+      end;
     end;
   end;
 end;
@@ -3301,6 +3309,8 @@ begin
   InitSetting(asAllowMultipleInstances,           'AllowMultipleInstances',                0, True);
   InitSetting(asFindDialogSearchHistory,          'FindDialogSearchHistory',               0, False, '');
   InitSetting(asFindDialogReplaceHistory,         'FindDialogReplaceHistory',              0, False, '');
+  InitSetting(asGUIFontName,                      'GUIFontName',                           0, False, '');
+  InitSetting(asGUIFontSize,                      'GUIFontSize',                           8);
   InitSetting(asMaxQueryResults,                  'MaxQueryResults',                       10);
   InitSetting(asLogErrors,                        'LogErrors',                             0, True);
   InitSetting(asLogUserSQL,                       'LogUserSQL',                            0, True);

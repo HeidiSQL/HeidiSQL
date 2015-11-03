@@ -1608,6 +1608,7 @@ begin
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
+  InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
   QueryTabs := TObjectList<TQueryTab>.Create(True);
@@ -9776,6 +9777,7 @@ begin
   QueryTab.tabsetQuery := TTabSet.Create(QueryTab.TabSheet);
   QueryTab.tabsetQuery.Parent := QueryTab.TabSheet;
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
+  InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
   QueryTab.tabsetQuery.Style := tabsetQuery.Style;
   QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;
