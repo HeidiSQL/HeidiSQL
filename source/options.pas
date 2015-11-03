@@ -130,6 +130,11 @@ type
     chkHintsOnResultTabs: TCheckBox;
     lblLineBreakStyle: TLabel;
     comboLineBreakStyle: TComboBox;
+    lblGUIFont: TLabel;
+    comboGUIFont: TComboBox;
+    editGUIFontSize: TEdit;
+    updownGUIFontSize: TUpDown;
+    lblGUIFontSize: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -167,6 +172,7 @@ type
     procedure editMySQLBinariesRightButtonClick(Sender: TObject);
     procedure editGridRowCountExit(Sender: TObject);
     procedure editCustomSnippetsDirectoryRightButtonClick(Sender: TObject);
+    procedure comboGUIFontChange(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -276,6 +282,12 @@ begin
     AppSettings.WriteString(asAppLanguage, LangCode);
   end else
     AppSettings.WriteString(asAppLanguage, '');
+  if comboGUIFont.ItemIndex = 0 then
+    AppSettings.WriteString(asGUIFontName, '')
+  else
+    AppSettings.WriteString(asGUIFontName, comboGUIFont.Text);
+  AppSettings.WriteInt(asGUIFontSize, updownGUIFontSize.Position);
+
   AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
   AppSettings.WriteInt(asFieldColorNumeric, FGridTextColors[dtcInteger]);
@@ -403,6 +415,9 @@ begin
     comboAppLanguage.Items.Add(FLanguages.ValueFromIndex[i]);
   end;
 
+  comboGUIFont.Items.Assign(Screen.Fonts);
+  comboGUIFont.Items.Insert(0, '<'+_('Default system font')+'>');
+
   // Data
   // Populate datatype categories pulldown
   for dtc:=Low(TDBDatatypeCategoryIndex) to High(TDBDatatypeCategoryIndex) do
@@ -440,7 +455,7 @@ end;
 
 procedure Toptionsform.FormShow(Sender: TObject);
 var
-  LangCode: String;
+  LangCode, GUIFont: String;
 begin
   screen.Cursor := crHourGlass;
 
@@ -459,6 +474,13 @@ begin
   editCustomSnippetsDirectory.Text := AppSettings.ReadString(asCustomSnippetsDirectory);
   LangCode := AppSettings.ReadString(asAppLanguage);
   comboAppLanguage.ItemIndex := comboAppLanguage.Items.IndexOf(FLanguages.Values[LangCode]);
+  GUIFont := AppSettings.ReadString(asGUIFontName);
+  if GUIFont.IsEmpty then
+    comboGUIFont.ItemIndex := 0
+  else
+    comboGUIFont.ItemIndex := comboGUIFont.Items.IndexOf(GUIFont);
+  updownGUIFontSize.Position := AppSettings.ReadInt(asGUIFontSize);
+  comboGUIFont.OnChange(comboGUIFont);
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
 
   // Logging
@@ -656,6 +678,19 @@ procedure Toptionsform.comboGridTextColorsSelect(Sender: TObject);
 begin
   // Data type category selected
   colorboxGridTextColors.Selected := FGridTextColors[TDBDatatypeCategoryIndex(comboGridTextColors.ItemIndex)];
+end;
+
+
+procedure Toptionsform.comboGUIFontChange(Sender: TObject);
+var
+  UseCustomFont: Boolean;
+begin
+  // System font selected
+  UseCustomFont := comboGUIFont.ItemIndex > 0;
+  editGUIFontSize.Enabled := UseCustomFont;
+  updownGUIFontSize.Enabled := UseCustomFont;
+  lblGUIFontSize.Enabled := UseCustomFont;
+  Modified(Sender);
 end;
 
 

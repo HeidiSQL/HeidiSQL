@@ -287,11 +287,13 @@ object MainForm: TMainForm
           Images = ImageListMain
           LeftButton.ImageIndex = 5
           LeftButton.Visible = True
+          RightButton.ImageIndex = 26
           TabOrder = 0
           TextHint = 'Database filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
         end
         object editTableFilter: TButtonedEdit
           Left = 50
@@ -302,11 +304,13 @@ object MainForm: TMainForm
           Images = ImageListMain
           LeftButton.ImageIndex = 14
           LeftButton.Visible = True
+          RightButton.ImageIndex = 26
           TabOrder = 1
           TextHint = 'Table filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
         end
         object btnTreeFavorites: TToolButton
           Left = 100
@@ -332,15 +336,8 @@ object MainForm: TMainForm
         BevelOuter = bvNone
         TabOrder = 0
         Visible = False
-        object lblFilterVT: TLabel
-          Left = 36
-          Top = 6
-          Width = 28
-          Height = 13
-          Caption = 'Filter:'
-        end
         object lblFilterVTInfo: TLabel
-          Left = 239
+          Left = 333
           Top = 6
           Width = 66
           Height = 13
@@ -356,7 +353,7 @@ object MainForm: TMainForm
           OnClick = actFilterPanelExecute
         end
         object editFilterVT: TButtonedEdit
-          Left = 70
+          Left = 164
           Top = 3
           Width = 154
           Height = 21
@@ -367,6 +364,26 @@ object MainForm: TMainForm
           TabOrder = 0
           OnChange = editFilterVTChange
           OnRightButtonClick = editFilterVTRightButtonClick
+        end
+        object radioFilterVT: TRadioButton
+          Left = 27
+          Top = 2
+          Width = 55
+          Height = 17
+          Caption = 'Filter:'
+          Checked = True
+          TabOrder = 1
+          TabStop = True
+          OnClick = editFilterVTChange
+        end
+        object radioHighlightVT: TRadioButton
+          Left = 88
+          Top = 2
+          Width = 70
+          Height = 17
+          Caption = 'Highlight:'
+          TabOrder = 2
+          OnClick = editFilterVTChange
         end
       end
       object PageControlMain: TPageControl
@@ -2781,6 +2798,12 @@ object MainForm: TMainForm
       OnExecute = actSaveSynMemoToTextfileExecute
       OnUpdate = ValidateControls
     end
+    object actRenameQueryTab: TAction
+      Category = 'File'
+      Caption = 'Rename query tab'
+      ImageIndex = 58
+      ShortCut = 16497
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -2795,7 +2818,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101BD005001F80310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101BD005001FC0310001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000000003000001002000000000000000
       0300000000000000000000000000000000000000000000000000000000000000
       00000000000000000004000000080000000C0000000C00000008000000030000
@@ -9893,6 +9916,9 @@ object MainForm: TMainForm
       Caption = 'Close query tab'
       ImageIndex = 133
       OnClick = menuCloseQueryTab
+    end
+    object Renamequerytab1: TMenuItem
+      Action = actRenameQueryTab
     end
   end
   object TimerFilterVT: TTimer

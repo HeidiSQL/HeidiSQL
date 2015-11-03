@@ -56,6 +56,21 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Custom snippets directory:'
       end
+      object lblGUIFont: TLabel
+        Left = 8
+        Top = 300
+        Width = 131
+        Height = 13
+        Caption = 'GUI font (requires restart):'
+      end
+      object lblGUIFontSize: TLabel
+        Left = 578
+        Top = 300
+        Width = 10
+        Height = 13
+        Anchors = [akTop, akRight]
+        Caption = 'pt'
+      end
       object chkAutoReconnect: TCheckBox
         Left = 8
         Top = 31
@@ -211,6 +226,38 @@ object optionsform: Toptionsform
         OnChange = Modified
         OnDblClick = editCustomSnippetsDirectoryRightButtonClick
         OnRightButtonClick = editCustomSnippetsDirectoryRightButtonClick
+      end
+      object comboGUIFont: TComboBox
+        Left = 272
+        Top = 297
+        Width = 218
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 13
+        OnChange = comboGUIFontChange
+      end
+      object editGUIFontSize: TEdit
+        Left = 496
+        Top = 297
+        Width = 57
+        Height = 21
+        Anchors = [akTop, akRight]
+        TabOrder = 14
+        Text = '8'
+        OnChange = Modified
+      end
+      object updownGUIFontSize: TUpDown
+        Left = 553
+        Top = 297
+        Width = 16
+        Height = 21
+        Anchors = [akTop, akRight]
+        Associate = editGUIFontSize
+        Min = 4
+        Position = 8
+        TabOrder = 15
+        OnChanging = anyUpDownLimitChanging
       end
     end
     object tabLogging: TTabSheet

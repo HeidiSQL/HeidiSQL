@@ -87,12 +87,8 @@ object connform: Tconnform
     Constraints.MinWidth = 200
     DragMode = dmAutomatic
     Header.AutoSizeIndex = -1
-    Header.Font.Charset = DEFAULT_CHARSET
-    Header.Font.Color = clWindowText
-    Header.Font.Height = -11
-    Header.Font.Name = 'Tahoma'
-    Header.Font.Style = []
     Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+    Header.ParentFont = True
     Header.PopupMenu = MainForm.popupListHeader
     Header.SortColumn = 0
     HintMode = hmTooltip
