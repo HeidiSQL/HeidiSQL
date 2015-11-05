@@ -969,6 +969,7 @@ type
     procedure actNextResultExecute(Sender: TObject);
     procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+    procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -9885,6 +9886,13 @@ begin
 end;
 
 
+procedure TMainForm.editDatabaseTableFilterRightButtonClick(Sender: TObject);
+begin
+  // Click on right button of database/table filter
+  TButtonedEdit(Sender).Clear;
+end;
+
+
 procedure TMainForm.editDatabaseTableFilterChange(Sender: TObject);
 var
   Node: PVirtualNode;
@@ -9943,6 +9951,9 @@ begin
 
   rxdb.Free;
   rxtable.Free;
+
+  editDatabaseFilter.RightButton.Visible := editDatabaseFilter.Text <> '';
+  editTableFilter.RightButton.Visible := editTableFilter.Text <> '';
 end;
 
 
