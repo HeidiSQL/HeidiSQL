@@ -287,11 +287,13 @@ object MainForm: TMainForm
           Images = ImageListMain
           LeftButton.ImageIndex = 5
           LeftButton.Visible = True
+          RightButton.ImageIndex = 26
           TabOrder = 0
           TextHint = 'Database filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
         end
         object editTableFilter: TButtonedEdit
           Left = 50
@@ -302,11 +304,13 @@ object MainForm: TMainForm
           Images = ImageListMain
           LeftButton.ImageIndex = 14
           LeftButton.Visible = True
+          RightButton.ImageIndex = 26
           TabOrder = 1
           TextHint = 'Table filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
         end
         object btnTreeFavorites: TToolButton
           Left = 100
