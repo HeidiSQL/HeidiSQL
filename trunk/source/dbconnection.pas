@@ -2734,6 +2734,7 @@ begin
               Result := Result + ' COMMENT ' + EscapeString(Comments.Col('comment'));
               Break;
             end;
+            Comments.Next;
           end;
         end;
 
