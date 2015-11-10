@@ -4793,14 +4793,6 @@ begin
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
     end;
 
-    // Virtual columns
-    rxCol.Expression := '^AS \((.+)\)\s+(VIRTUAL|PERSISTENT)\s*';
-    if rxCol.Exec(ColSpec) then begin
-      Col.Expression := rxCol.Match[1];
-      Col.Virtuality := rxCol.Match[2];
-      Delete(ColSpec, 1, rxCol.MatchLen[0]);
-    end;
-
     // Collation - probably not present when charset present
     rxCol.Expression := '^COLLATE (\w+)\b\s*';
     if rxCol.Exec(ColSpec) then begin
@@ -4818,6 +4810,14 @@ begin
           Collations.Next;
         end;
       end;
+    end;
+
+    // Virtual columns
+    rxCol.Expression := '^AS \((.+)\)\s+(VIRTUAL|PERSISTENT)\s*';
+    if rxCol.Exec(ColSpec) then begin
+      Col.Expression := rxCol.Match[1];
+      Col.Virtuality := rxCol.Match[2];
+      Delete(ColSpec, 1, rxCol.MatchLen[0]);
     end;
 
     // Allow NULL
