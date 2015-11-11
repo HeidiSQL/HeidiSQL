@@ -164,6 +164,7 @@ object MainForm: TMainForm
         OnAfterCellPaint = DBtreeAfterCellPaint
         OnBeforeCellPaint = DBtreeBeforeCellPaint
         OnChange = DBtreeChange
+        OnDblClick = DBtreeDblClick
         OnExpanded = DBtreeExpanded
         OnExpanding = DBtreeExpanding
         OnFocusChanged = DBtreeFocusChanged
@@ -9238,6 +9239,10 @@ object MainForm: TMainForm
       object menuAutoExpand: TMenuItem
         Caption = 'Auto expand on click'
         OnClick = menuAutoExpandClick
+      end
+      object menuDoubleClickInsertsNodeText: TMenuItem
+        Caption = 'Doubleclick inserts node text'
+        OnClick = menuDoubleClickInsertsNodeTextClick
       end
       object menuSelectBGColor: TMenuItem
         Action = actSelectTreeBackground
