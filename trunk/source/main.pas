@@ -614,6 +614,7 @@ type
     DataGUIDwobraces: TMenuItem;
     N11: TMenuItem;
     N12: TMenuItem;
+    menuDoubleClickInsertsNodeText: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -970,6 +971,8 @@ type
     procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
+    procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
+    procedure DBtreeDblClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1720,6 +1723,8 @@ begin
     menuShowSizeColumn.Click;
   if AppSettings.ReadBool(asAutoExpand) then
     menuAutoExpand.Click;
+  if AppSettings.ReadBool(asDoubleClickInsertsNodeText) then
+    menuDoubleClickInsertsNodeText.Click;
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListDatabases);
@@ -6683,6 +6688,17 @@ begin
 end;
 
 
+procedure TMainForm.menuDoubleClickInsertsNodeTextClick(Sender: TObject);
+var
+  Item: TMenuItem;
+begin
+  // Activate doubleclick node feature
+  Item := Sender as TMenuItem;
+  Item.Checked := not Item.Checked;
+  AppSettings.ResetPath;
+  AppSettings.WriteBool(asDoubleClickInsertsNodeText, Item.Checked);
+end;
+
 {**
   Load snippet at cursor
 }
@@ -7954,6 +7970,22 @@ begin
 
   if ActiveQueryHelpers <> nil then
     ActiveQueryHelpers.Invalidate;
+end;
+
+
+procedure TMainForm.DBtreeDblClick(Sender: TObject);
+var
+  DBObj: PDBObject;
+  m: TSynMemo;
+begin
+  // Paste DB or table name into query window on treeview double click.
+  if AppSettings.ReadBool(asDoubleClickInsertsNodeText) and QueryTabActive and Assigned(DBtree.FocusedNode) then begin
+    DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
+    if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
+      m := ActiveQueryMemo;
+      m.DragDrop(Sender, m.CaretX, m.CaretY);
+    end;
+  end;
 end;
 
 
