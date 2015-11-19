@@ -5364,7 +5364,7 @@ begin
           end else if (Field.flags and SET_FLAG) = SET_FLAG then begin
             if FConnection.Datatypes[j].Index = dtSet then
               FColumnTypes[i] := FConnection.Datatypes[j];
-          end else if Field._type = FConnection.Datatypes[j].NativeType then begin
+          end else if Field._type = Cardinal(FConnection.Datatypes[j].NativeType) then begin
             // Text and Blob types share the same constants (see FIELD_TYPEs)
             // Some function results return binary collation up to the latest versions. Work around
             // that by checking if this field is a real table field
