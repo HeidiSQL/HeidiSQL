@@ -276,7 +276,7 @@ var
   );
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array [0..35] of TDBDatatype =
+  MySQLDatatypes: array [0..36] of TDBDatatype =
   (
     (
       Index:           dtTinyint;
@@ -597,6 +597,24 @@ var
       HasBinary:       True;
       HasDefault:      False;
       LoadPart:        True;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtJson;
+      NativeType:      FIELD_TYPE_JSON;
+      Name:            'JSON';
+      Description:     'JSON' + CRLF +
+        'Documents stored in JSON columns are converted to an internal format that '+
+        'permits quick read access to document elements. When the server later must '+
+        'read a JSON value stored in this binary format, the value need not be parsed '+
+        'from a text representation. The binary format is structured to enable the '+
+        'server to look up subobjects or nested values directly by key or array index '+
+        'without reading all values before or after them in the document.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcText;
     ),
     (
