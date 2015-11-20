@@ -4834,10 +4834,10 @@ begin
     end;
 
     // Virtual columns
-    rxCol.Expression := '^AS \((.+)\)\s+(VIRTUAL|PERSISTENT)\s*';
+    rxCol.Expression := '^(GENERATED ALWAYS)? AS \((.+)\)\s+(VIRTUAL|PERSISTENT|STORED)\s*';
     if rxCol.Exec(ColSpec) then begin
-      Col.Expression := rxCol.Match[1];
-      Col.Virtuality := rxCol.Match[2];
+      Col.Expression := rxCol.Match[2];
+      Col.Virtuality := rxCol.Match[3];
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
     end;
 
