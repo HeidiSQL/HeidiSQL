@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-11-11 21:25+0100\n"
+"PO-Revision-Date: 2015-11-26 21:27+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.8.5\n"
+"X-Generator: Poedit 1.8.6\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -4994,6 +4994,10 @@ msgstr "Saving file ..."
 #: options.pas:386
 msgid "Active line background"
 msgstr "Active line background"
+
+#. Preferences
+msgid "Brace matching color"
+msgstr "Brace matching color"
 
 #: options.pas:395
 msgid "SQL editing"

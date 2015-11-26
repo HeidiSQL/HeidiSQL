@@ -256,6 +256,8 @@ begin
     AppSettings.WriteInt(asHighlighterStyle, Attri.IntegerStyle, Attri.Name);
   end;
   AppSettings.WriteString(asSQLColActiveLine, ColorToString(SynMemoSQLSample.ActiveLineColor));
+  AppSettings.WriteString(asSQLColMatchingBraceForeground, ColorToString(MainForm.MatchingBraceForegroundColor));
+  AppSettings.WriteString(asSQLColMatchingBraceBackground, ColorToString(MainForm.MatchingBraceBackgroundColor));
 
   AppSettings.WriteInt(asMaxColWidth, updownMaxColWidth.Position);
   AppSettings.WriteInt(asDatagridRowsPerStep, StrToIntDef(editGridRowCountStep.Text, -1));
@@ -439,6 +441,7 @@ begin
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
   end;
   comboSQLColElement.Items.Add(_('Active line background'));
+  comboSQLColElement.Items.Add(_('Brace matching color'));
   comboSQLColElement.ItemIndex := 0;
 
   // Shortcuts
@@ -568,6 +571,9 @@ begin
   Foreground := cboxSQLColForeground.Selected;
   Background := cboxSQLColBackground.Selected;
   if AttriIdx = comboSQLColElement.Items.Count-1 then begin
+    MainForm.MatchingBraceForegroundColor := Foreground;
+    MainForm.MatchingBraceBackgroundColor := Background;
+  end else if AttriIdx = comboSQLColElement.Items.Count-2 then begin
     SynMemoSQLSample.ActiveLineColor := Foreground;
   end else begin
     Attri := SynSqlSynSQLSample.Attribute[AttriIdx];
@@ -710,6 +716,11 @@ var
 begin
   AttriIdx := comboSQLColElement.ItemIndex;
   if AttriIdx = comboSQLColElement.Items.Count-1 then begin
+    Foreground := MainForm.MatchingBraceForegroundColor;
+    Background := MainForm.MatchingBraceBackgroundColor;
+    chkSQLBold.Enabled := False;
+    chkSQLItalic.Enabled := False;
+  end else if AttriIdx = comboSQLColElement.Items.Count-2 then begin
     Foreground := SynMemoSQLSample.ActiveLineColor;
     Background := clNone;
     chkSQLBold.Enabled := False;

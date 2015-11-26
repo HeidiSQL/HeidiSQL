@@ -1085,6 +1085,8 @@ type
     SelectedTableForeignKeys: TForeignKeyList;
     SelectedTableTimestampColumns: TStringList;
     FilterPanelManuallyOpened: Boolean;
+    MatchingBraceForegroundColor,
+    MatchingBraceBackgroundColor: TColor;
 
     // Task button interface
     TaskbarList: ITaskbarList;
@@ -6055,8 +6057,8 @@ begin
         Editor.Canvas.Font.Style := Attri.Style;
 
         if (TransientType = ttAfter) then begin
-          Editor.Canvas.Font.Color := clBlack;
-          Editor.Canvas.Brush.Color := clAqua;
+          Editor.Canvas.Font.Color := MatchingBraceForegroundColor;
+          Editor.Canvas.Brush.Color := MatchingBraceBackgroundColor;
         end else begin
           Editor.Canvas.Font.Color := Attri.Foreground;
           Editor.Canvas.Brush.Color := Attri.Background;
@@ -10528,6 +10530,9 @@ begin
   else
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
   ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
+  MatchingBraceForegroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
+  MatchingBraceBackgroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
+
   for i:=0 to Editors.Count-1 do begin
     Editor := Editors[i] as TSynMemo;
     LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);

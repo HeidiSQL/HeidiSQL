@@ -130,6 +130,7 @@ type
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asHintsOnResultTabs,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
+    asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asQuerymemoheight, asDbtreewidth,
@@ -3153,6 +3154,8 @@ begin
   InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs\');
   InitSetting(asLogHorizontalScrollbar,           'LogHorizontalScrollbar',                0, False);
   InitSetting(asSQLColActiveLine,                 'SQLColActiveLine',                      0, False, 'clNone');
+  InitSetting(asSQLColMatchingBraceForeground,    'SQLColMatchingBraceForeground',         0, False, 'clBlack');
+  InitSetting(asSQLColMatchingBraceBackground,    'SQLColMatchingBraceBackground',         0, False, 'clAqua');
   InitSetting(asMaxColWidth,                      'MaxColWidth',                           300);
   InitSetting(asDatagridMaximumRows,              'DatagridMaximumRows',                   100000);
   InitSetting(asDatagridRowsPerStep,              'DatagridRowsPerStep',                   1000);
