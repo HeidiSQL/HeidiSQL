@@ -540,7 +540,7 @@ begin
     rxTemp.ModifierI := True;
     rxGrant := TRegExpr.Create;
     rxGrant.ModifierI := True;
-    rxGrant.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?(\*|`([^`]+)`)\.(\*|`([^`]+)`)\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+.+)?$';
+    rxGrant.Expression := '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?(\*|[`"]([^`"]+)[`"])\.(\*|[`"]([^`"]+)[`"])\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+.+)?$';
 
     for i:=0 to Grants.Count-1 do begin
       // Find selected priv objects via regular expression
