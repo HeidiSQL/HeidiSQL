@@ -9832,8 +9832,8 @@ begin
   // Set splitter positions
   QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
   QueryTab.pnlMemo.Top := pnlQueryMemo.Top;
-  QueryTab.spltQuery.Top := spltQuery.Top;
   QueryTab.tabsetQuery.Top := tabsetQuery.Top;
+  QueryTab.spltQuery.Top := spltQuery.Top;
   QueryTab.treeHelpers.Width := treeQueryHelpers.Width;
 
   // Show new tab
