@@ -1862,6 +1862,8 @@ begin
         // Keep value from SELECT @@VERSION on older servers
       end;
       rx.Free;
+      // See http://www.heidisql.com/forum.php?t=19779
+      Query('SET TEXTSIZE 2147483647');
       FRealHostname := Parameters.Hostname;
 
       // Show up dynamic connection properties, probably useful for debugging
