@@ -615,6 +615,8 @@ type
     N11: TMenuItem;
     N12: TMenuItem;
     menuDoubleClickInsertsNodeText: TMenuItem;
+    actRunSQL: TAction;
+    RunSQLfiles1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1057,7 +1059,7 @@ type
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
-    function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
+    function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
     procedure RunQueryFile(Filename: String; Encoding: TEncoding);
     procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
@@ -1935,7 +1937,7 @@ begin
   end;
 
   // Load SQL file(s) by command line
-  if not RunQueryFiles(FileNames, nil) then begin
+  if not RunQueryFiles(FileNames, nil, false) then begin
     for i:=0 to FileNames.Count-1 do begin
       Tab := ActiveOrEmptyQueryTab(False);
       Tab.LoadContents(FileNames[i], True, nil);
@@ -3232,7 +3234,7 @@ begin
   Dialog.EncodingIndex := 0;
   if Dialog.Execute then begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
-    if not RunQueryFiles(Dialog.Files, Encoding) then begin
+    if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
       ConsiderActiveTab := True;
       for i:=0 to Dialog.Files.Count-1 do begin
         Tab := ActiveOrEmptyQueryTab(ConsiderActiveTab);
@@ -3247,7 +3249,7 @@ begin
 end;
 
 
-function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding): Boolean;
+function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
 var
   i: Integer;
   Filesize, FilesizeSum: Int64;
@@ -3272,7 +3274,7 @@ begin
     end;
   end;
   // Check if one or more files are large
-  DoRunFiles := False;
+  DoRunFiles := ForceRun;
   PopupFileList := TStringList.Create;
   FilesizeSum := 0;
   for i:=0 to Filenames.Count-1 do begin
@@ -3283,7 +3285,10 @@ begin
   end;
 
   if DoRunFiles then begin
-    if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
+    if ForceRun then begin
+      // Don't ask, just run files
+      DialogResult := mrYes;
+    end else if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
       Dialog := TTaskDialog.Create(Self);
       Dialog.Caption := _('Opening large files');
       Dialog.Text := f_('Selected files have a size of %s', [FormatByteNumber(FilesizeSum, 1)]);
@@ -4209,7 +4214,7 @@ begin
   end;
   FileList := TStringList.Create;
   FileList.Add(Filename);
-  if not RunQueryFiles(FileList, nil) then begin
+  if not RunQueryFiles(FileList, nil, false) then begin
     Tab := ActiveOrEmptyQueryTab(True);
     Tab.LoadContents(Filename, True, nil);
     SetMainTab(Tab.TabSheet);
@@ -5974,7 +5979,7 @@ var
 begin
   // One or more files from explorer or somewhere else was dropped onto the
   // query-memo - load their contents into seperate tabs
-  if not RunQueryFiles(AFiles, nil) then begin
+  if not RunQueryFiles(AFiles, nil, False) then begin
     for i:=0 to AFiles.Count-1 do begin
       Tab := ActiveOrEmptyQueryTab(False);
       Tab.LoadContents(AFiles[i], False, nil);
@@ -10830,7 +10835,7 @@ begin
     LogSQL(f_('Preventing second application instance - disabled in %s > %s > %s.', [_('Tools'), _('Preferences'), _('General')]), lcInfo);
     ConnectionParams := nil;
     ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
-    if not RunQueryFiles(FileNames, nil) then begin
+    if not RunQueryFiles(FileNames, nil, False) then begin
       for i:=0 to FileNames.Count-1 do begin
         Tab := ActiveOrEmptyQueryTab(False);
         Tab.LoadContents(FileNames[i], True, nil);
