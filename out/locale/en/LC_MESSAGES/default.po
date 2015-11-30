@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-11-26 21:27+0100\n"
+"PO-Revision-Date: 2015-11-30 11:54+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -1879,6 +1879,12 @@ msgstr "Dump database objects to an SQL file"
 #: main.dfm:2037 main.dfm:2038
 msgid "Load SQL file..."
 msgstr "Load SQL file..."
+
+msgid "Run SQL file..."
+msgstr "Run SQL file..."
+
+msgid "Run SQL file(s) directly, without loading into the editor"
+msgstr "Run SQL file(s) directly, without loading into the editor"
 
 #. MainForm..ActionList1..actDropObjects..Caption
 #: main.dfm:2045
