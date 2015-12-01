@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2015-11-30 11:54+0100\n"
+"PO-Revision-Date: 2015-12-01 14:38+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -833,11 +833,6 @@ msgstr "Include auto increment column"
 msgid "Include SQL query"
 msgstr "Include SQL query"
 
-#. frmExportGrid..popupCSVchar..menuCSVtab..Caption
-#: exportgrid.dfm:261
-msgid "Tab"
-msgstr "Tab"
-
 #. frmExportGrid..popupCSVchar..menuCSVcomma..Caption
 #: exportgrid.dfm:266
 msgid "Comma"
@@ -1159,11 +1154,6 @@ msgstr "&Password:"
 #: main.dfm:10 main.dfm:930 main.dfm:947 main.dfm:9356 table_editor.dfm:143
 msgid "Default"
 msgstr "Default"
-
-#. MainForm..ControlBar1..ToolBarStandard..ToolButton14..Hint
-#: main.dfm:160
-msgid "Undo"
-msgstr "Undo"
 
 #. MainForm..ControlBar1..ToolBarData..Caption
 #. MainForm..panelTop..pnlRight..PageControlMain..tabData..Caption
@@ -3299,20 +3289,6 @@ msgstr "Remove index"
 #: table_editor.dfm:473
 msgid "Clear indexes"
 msgstr "Clear indexes"
-
-#. frmTableEditor..PageControlMain..tabIndexes..tlbIndexes..btnMoveUpIndex..Caption
-#. frmTableEditor..pnlColumnsTop..tlbColumns..btnMoveUpColumn..Caption
-#. frmTableEditor..popupIndexes..menuMoveUpIndex..Caption
-#: table_editor.dfm:483 table_editor.dfm:734 table_editor.dfm:777
-msgid "Up"
-msgstr "Up"
-
-#. frmTableEditor..PageControlMain..tabIndexes..tlbIndexes..btnMoveDownIndex..Caption
-#. frmTableEditor..pnlColumnsTop..tlbColumns..btnMoveDownColumn..Caption
-#. frmTableEditor..popupIndexes..menuMoveDownIndex..Caption
-#: table_editor.dfm:492 table_editor.dfm:742 table_editor.dfm:783
-msgid "Down"
-msgstr "Down"
 
 #. frmTableEditor..PageControlMain..tabForeignKeys..Caption
 #: table_editor.dfm:499 copytable.pas:256
@@ -5979,3 +5955,231 @@ msgstr "Default system font"
 
 msgid "Doubleclick inserts node text"
 msgstr "Doubleclick inserts node text"
+
+msgid "Up"
+msgstr "Up"
+
+msgid "Sel Up"
+msgstr "Sel Up"
+
+msgid "Scroll Up"
+msgstr "Scroll Up"
+
+msgid "Down"
+msgstr "Down"
+
+msgid "Sel Down"
+msgstr "Sel Down"
+
+msgid "Scroll Down"
+msgstr "Scroll Down"
+
+msgid "Left"
+msgstr "Left"
+
+msgid "Sel Left"
+msgstr "Sel Left"
+
+msgid "Word Left"
+msgstr "Word Left"
+
+msgid "Sel Word Left"
+msgstr "Sel Word Left"
+
+msgid "Right"
+msgstr "Right"
+
+msgid "Sel Right"
+msgstr "Sel Right"
+
+msgid "Word Right"
+msgstr "Word Right"
+
+msgid "Sel Word Right"
+msgstr "Sel Word Right"
+
+msgid "Page Down"
+msgstr "Page Down"
+
+msgid "Sel Page Down"
+msgstr "Sel Page Down"
+
+msgid "Page Bottom"
+msgstr "Page Bottom"
+
+msgid "Sel Page Bottom"
+msgstr "Sel Page Bottom"
+
+msgid "Page Up"
+msgstr "Page Up"
+
+msgid "Sel Page Up"
+msgstr "Sel Page Up"
+
+msgid "Page Top"
+msgstr "Page Top"
+
+msgid "Sel Page Top"
+msgstr "Sel Page Top"
+
+msgid "Line Start"
+msgstr "Line Start"
+
+msgid "Sel Line Start"
+msgstr "Sel Line Start"
+
+msgid "Editor Top"
+msgstr "Editor Top"
+
+msgid "Sel Editor Top"
+msgstr "Sel Editor Top"
+
+msgid "Line End"
+msgstr "Line End"
+
+msgid "Sel Line End"
+msgstr "Sel Line End"
+
+msgid "Editor Bottom"
+msgstr "Editor Bottom"
+
+msgid "Sel Editor Bottom"
+msgstr "Sel Editor Bottom"
+
+msgid "Toggle Mode"
+msgstr "Toggle Mode"
+
+msgid "Delete Char"
+msgstr "Delete Char"
+
+msgid "Delete Last Char"
+msgstr "Delete Last Char"
+
+msgid "Delete Last Word"
+msgstr "Delete Last Word"
+
+msgid "Line Break"
+msgstr "Line Break"
+
+msgid "Tab"
+msgstr "Tab"
+
+msgid "Shift Tab"
+msgstr "Shift Tab"
+
+msgid "Context Help"
+msgstr "Context Help"
+
+msgid "Select All"
+msgstr "Select All"
+
+msgid "Copy"
+msgstr "Copy"
+
+msgid "Paste"
+msgstr "Paste"
+
+msgid "Cut"
+msgstr "Cut"
+
+msgid "Block Indent"
+msgstr "Block Indent"
+
+msgid "Block Unindent"
+msgstr "Block Unindent"
+
+msgid "Insert Line"
+msgstr "Insert Line"
+
+msgid "Delete Word"
+msgstr "Delete Word"
+
+msgid "Delete Line"
+msgstr "Delete Line"
+
+msgid "Delete E O L"
+msgstr "Delete E O L"
+
+msgid "Undo"
+msgstr "Undo"
+
+msgid "Redo"
+msgstr "Redo"
+
+msgid "Goto Marker 0"
+msgstr "Goto Marker 0"
+
+msgid "Goto Marker 1"
+msgstr "Goto Marker 1"
+
+msgid "Goto Marker 2"
+msgstr "Goto Marker 2"
+
+msgid "Goto Marker 3"
+msgstr "Goto Marker 3"
+
+msgid "Goto Marker 4"
+msgstr "Goto Marker 4"
+
+msgid "Goto Marker 5"
+msgstr "Goto Marker 5"
+
+msgid "Goto Marker 6"
+msgstr "Goto Marker 6"
+
+msgid "Goto Marker 7"
+msgstr "Goto Marker 7"
+
+msgid "Goto Marker 8"
+msgstr "Goto Marker 8"
+
+msgid "Goto Marker 9"
+msgstr "Goto Marker 9"
+
+msgid "Set Marker 0"
+msgstr "Set Marker 0"
+
+msgid "Set Marker 1"
+msgstr "Set Marker 1"
+
+msgid "Set Marker 2"
+msgstr "Set Marker 2"
+
+msgid "Set Marker 3"
+msgstr "Set Marker 3"
+
+msgid "Set Marker 4"
+msgstr "Set Marker 4"
+
+msgid "Set Marker 5"
+msgstr "Set Marker 5"
+
+msgid "Set Marker 6"
+msgstr "Set Marker 6"
+
+msgid "Set Marker 7"
+msgstr "Set Marker 7"
+
+msgid "Set Marker 8"
+msgstr "Set Marker 8"
+
+msgid "Set Marker 9"
+msgstr "Set Marker 9"
+
+msgid "Normal Select"
+msgstr "Normal Select"
+
+msgid "Column Select"
+msgstr "Column Select"
+
+msgid "Line Select"
+msgstr "Line Select"
+
+msgid "Match Bracket"
+msgstr "Match Bracket"
+
+msgid "Upper Case Block"
+msgstr "Upper Case Block"
+
+msgid "Lower Case Block"
+msgstr "Lower Case Block"
