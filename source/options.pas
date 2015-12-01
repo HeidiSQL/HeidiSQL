@@ -862,6 +862,7 @@ begin
             CellText := CellText + ' ';
           CellText := CellText + t[i];
         end;
+        CellText := _(CellText);
       end else if Assigned(Data.Action) then begin
         CellText := Data.Action.Caption;
         CellText := StripHotkey(CellText);
