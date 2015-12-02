@@ -997,17 +997,17 @@ object optionsform: Toptionsform
         594
         353)
       object lblShortcut1: TLabel
-        Left = 199
-        Top = 69
+        Left = 306
+        Top = 64
         Width = 45
         Height = 13
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Shortcut:'
       end
       object lblShortcutHint: TLabel
-        Left = 199
-        Top = 8
-        Width = 211
+        Left = 306
+        Top = 3
+        Width = 279
         Height = 55
         Anchors = [akLeft, akTop, akBottom]
         AutoSize = False
@@ -1015,8 +1015,8 @@ object optionsform: Toptionsform
         WordWrap = True
       end
       object lblShortcut2: TLabel
-        Left = 199
-        Top = 112
+        Left = 306
+        Top = 107
         Width = 98
         Height = 13
         Anchors = [akLeft, akTop, akBottom]
@@ -1025,7 +1025,7 @@ object optionsform: Toptionsform
       object TreeShortcutItems: TVirtualStringTree
         Left = 0
         Top = 0
-        Width = 190
+        Width = 300
         Height = 353
         Align = alLeft
         Header.AutoSizeIndex = 0
@@ -1046,9 +1046,9 @@ object optionsform: Toptionsform
         Columns = <>
       end
       object Shortcut1: TSynHotKey
-        Left = 199
-        Top = 86
-        Width = 207
+        Left = 306
+        Top = 81
+        Width = 279
         Height = 19
         HotKey = 32768
         Modifiers = []
@@ -1057,9 +1057,9 @@ object optionsform: Toptionsform
         OnExit = ShortcutExit
       end
       object Shortcut2: TSynHotKey
-        Left = 199
-        Top = 130
-        Width = 207
+        Left = 306
+        Top = 125
+        Width = 279
         Height = 19
         HotKey = 32768
         Modifiers = []
