@@ -9835,7 +9835,9 @@ begin
   SetupSynEditors;
 
   // Set splitter positions
-  QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
+  // Use a reasonable default height for the query editor, to prevent a splitter problem
+  // See http://www.heidisql.com/forum.php?t=19952
+  QueryTab.pnlMemo.Height := 150;
   QueryTab.pnlMemo.Top := pnlQueryMemo.Top;
   QueryTab.tabsetQuery.Top := tabsetQuery.Top;
   QueryTab.spltQuery.Top := spltQuery.Top;
