@@ -9741,6 +9741,7 @@ begin
   QueryTab.pnlMemo.Parent := QueryTab.TabSheet;
   QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
   QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
+  QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
@@ -9772,6 +9773,7 @@ begin
   QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlMemo);
   QueryTab.treeHelpers.Parent := QueryTab.pnlMemo;
   QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
+  QueryTab.treeHelpers.Width := treeQueryHelpers.Width;
   QueryTab.treeHelpers.PopupMenu := treeQueryHelpers.PopupMenu;
   QueryTab.treeHelpers.Images := treeQueryHelpers.Images;
   QueryTab.treeHelpers.DragMode := treeQueryHelpers.DragMode;
@@ -9816,6 +9818,8 @@ begin
 
   QueryTab.tabsetQuery := TTabSet.Create(QueryTab.TabSheet);
   QueryTab.tabsetQuery.Parent := QueryTab.TabSheet;
+  // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
+  QueryTab.tabsetQuery.Top := QueryTab.spltQuery.Top + QueryTab.spltQuery.Height;
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
   InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
@@ -9833,15 +9837,6 @@ begin
   QueryTab.tabsetQuery.OnMouseLeave := tabsetQuery.OnMouseLeave;
 
   SetupSynEditors;
-
-  // Set splitter positions
-  // Use a reasonable default height for the query editor, to prevent a splitter problem
-  // See http://www.heidisql.com/forum.php?t=19952
-  QueryTab.pnlMemo.Height := 150;
-  QueryTab.pnlMemo.Top := pnlQueryMemo.Top;
-  QueryTab.tabsetQuery.Top := tabsetQuery.Top;
-  QueryTab.spltQuery.Top := spltQuery.Top;
-  QueryTab.treeHelpers.Width := treeQueryHelpers.Width;
 
   // Show new tab
   SetMainTab(QueryTab.TabSheet);
