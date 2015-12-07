@@ -1343,6 +1343,7 @@ object MainForm: TMainForm
               Width = 191
               Height = 96
               Align = alRight
+              Constraints.MinWidth = 10
               DragMode = dmAutomatic
               DragType = dtVCL
               Header.AutoSizeIndex = 0
