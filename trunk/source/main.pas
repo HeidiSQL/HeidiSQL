@@ -9746,6 +9746,7 @@ begin
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
+  QueryTab.Memo.Left := SynMemoQuery.Left;
   QueryTab.Memo.Options := SynMemoQuery.Options;
   QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
   QueryTab.Memo.TabWidth := SynMemoQuery.TabWidth;
@@ -9766,6 +9767,7 @@ begin
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
   QueryTab.spltHelpers.Parent := QueryTab.pnlMemo;
   QueryTab.spltHelpers.Align := spltQueryHelpers.Align;
+  QueryTab.spltHelpers.Left := spltQueryHelpers.Left;
   QueryTab.spltHelpers.Cursor := spltQueryHelpers.Cursor;
   QueryTab.spltHelpers.ResizeStyle := spltQueryHelpers.ResizeStyle;
   QueryTab.spltHelpers.Width := spltQueryHelpers.Width;
@@ -9773,7 +9775,9 @@ begin
   QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlMemo);
   QueryTab.treeHelpers.Parent := QueryTab.pnlMemo;
   QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
+  QueryTab.treeHelpers.Left := treeQueryHelpers.Left;
   QueryTab.treeHelpers.Width := treeQueryHelpers.Width;
+  QueryTab.treeHelpers.Constraints.MinWidth := treeQueryHelpers.Constraints.MinWidth;
   QueryTab.treeHelpers.PopupMenu := treeQueryHelpers.PopupMenu;
   QueryTab.treeHelpers.Images := treeQueryHelpers.Images;
   QueryTab.treeHelpers.DragMode := treeQueryHelpers.DragMode;
