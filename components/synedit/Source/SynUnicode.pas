@@ -954,7 +954,15 @@ begin
         System.Move(ByteOrderMask[0], SA[1], BytesRead); // max 6 bytes = 6 chars
         if Size > BytesRead then
           Stream.Read(SA[7], Size - BytesRead); // first 6 chars were copied by System.Move
+          SW := UTF8Decode(SA);
+          if SW <> '' then
+           begin
+           FSaveFormat := sfUTF8;
+           SetTextStr(SW);
+           Loaded := True;
+           end;
       end;
+      if not Loaded then
       SetTextStr(SA);
     end;
   finally
@@ -998,6 +1006,18 @@ begin
   Stream := TFileStream.Create(FileName, fmCreate);
   try
     SaveToStream(Stream);
+  finally
+    Stream.Free;
+  end;
+end;
+
+procedure TUnicodeStrings.SaveToFile(const FileName: TFileName; WithBOM: Boolean);
+var
+  Stream: TStream;
+begin
+  Stream := TFileStream.Create(FileName, fmCreate);
+  try
+    SaveToStream(Stream, WithBOM);
   finally
     Stream.Free;
   end;
@@ -3162,7 +3182,7 @@ var
           if (Length(BOM) <> Length(UTF8BOM)) or
             not CompareMem(@BOM[0], @UTF8BOM[0], Length(UTF8BOM))
           then
-            Stream.Seek(-Length(BOM), soCurrent)
+            Stream.Seek(-Length(BOM), soFromCurrent)
           else
             Result := True;
         end;
@@ -3173,7 +3193,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMLE)) or
             not CompareMem(@BOM[0], @UTF16BOMLE[0], Length(UTF16BOMLE))
           then
-            Stream.Seek(-Length(BOM), soCurrent)
+            Stream.Seek(-Length(BOM), soFromCurrent)
           else
             Result := True;
         end;
@@ -3184,7 +3204,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMBE)) or
             not CompareMem(@BOM[0], @UTF16BOMBE[0], Length(UTF16BOMBE))
           then
-            Stream.Seek(-Length(BOM), soCurrent)
+            Stream.Seek(-Length(BOM), soFromCurrent)
           else
             Result := True;
         end;

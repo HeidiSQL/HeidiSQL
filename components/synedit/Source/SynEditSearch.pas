@@ -207,9 +207,7 @@ begin
       begin
         if I = PatLen then
         begin
-          case fWhole of
-            True: if not TestWholeWord then break;
-          end;
+          if fWhole and not TestWholeWord then break;
           inc(fCount);
           Result := Run - Origin - Patlen + 2;
           exit;

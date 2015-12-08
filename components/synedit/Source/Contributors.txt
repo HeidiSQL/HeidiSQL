@@ -9,7 +9,7 @@ Contributors to the SynEdit project:
     Mattias Gaertner, Michael Beck, Michael Hieke, Mike Gibbard,
     Morten J. Skovrup, Murad Kakabayev, Pieter Polak, Primoz Gabrijelcic,
     Roman Silin, Ruggero Bandera, Satya, Stefan van As, Steve Sutherland,
-    Sven Blankenberg, Tony De Buys, Woo Young Bum, Roman Kassebaum
+    Sven Blankenberg, Tony De Buys, Woo Young Bum
 
 
 Most of the files in the SynEdit package are based on mwEdit version 0.92a.

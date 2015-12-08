@@ -66,7 +66,7 @@ uses
 
 type
   TOnCheckMarker = procedure (Sender: TObject; var StartPos, MarkerLen: Integer;
-    var MarkerText: UnicodeString; Line: Integer) of object;
+    var MarkerText: UnicodeString; Line: Integer; const LineStr: string) of object;
 
   TScheme = class(TCollectionItem)
   private
@@ -200,7 +200,8 @@ type
     function GetMarkers(Index: Integer): TMarker;
     property Markers[Index: Integer]: TMarker read GetMarkers;
     procedure DoCheckMarker(Scheme:TScheme; StartPos, MarkerLen: Integer;
-      const MarkerText: UnicodeString; Start: Boolean; Line: Integer);
+      const MarkerText: UnicodeString; Start: Boolean; Line: Integer;
+      const LineStr: string);
     procedure SetOnCustomRange(const Value: TCustomRangeEvent);
   protected
     fSchemes: TSchemes;
@@ -662,7 +663,8 @@ begin
 end;
 
 procedure TSynMultiSyn.DoCheckMarker(Scheme:TScheme; StartPos, MarkerLen: Integer;
-  const MarkerText: UnicodeString; Start: Boolean; Line: Integer);
+  const MarkerText: UnicodeString; Start: Boolean; Line: Integer;
+  const LineStr: string);
 var
   aStartPos: Integer;
   aMarkerLen: Integer;
@@ -672,9 +674,9 @@ begin
   aMarkerLen := MarkerLen;
   aMarkerText := MarkerText;
   if Start and Assigned(Scheme.OnCheckStartMarker) then
-    Scheme.OnCheckStartMarker(Self, aStartPos, aMarkerLen, aMarkerText, Line)
+    Scheme.OnCheckStartMarker(Self, aStartPos, aMarkerLen, aMarkerText, Line, LineStr)
   else if not Start and Assigned(Scheme.OnCheckEndMarker) then
-    Scheme.OnCheckEndMarker(Self, aStartPos, aMarkerLen, aMarkerText, Line);
+    Scheme.OnCheckEndMarker(Self, aStartPos, aMarkerLen, aMarkerText, Line, LineStr);
   if (aMarkerText <> '') and (aMarkerLen > 0) then
   begin
     fMarkers.Add(TMarker.Create(Scheme.Index, aStartPos, aMarkerLen, Start,
@@ -907,7 +909,7 @@ begin
         begin
           iExpr := Copy(Value, iParser.MatchPos[0] + iEaten, iParser.MatchLen[0]);
           DoCheckMarker(iScheme, iParser.MatchPos[0] + iEaten, iParser.MatchLen[0],
-            iExpr, False, LineNumber);
+            iExpr, False, LineNumber, Value);
           Delete(iLine, 1, iParser.MatchPos[0] - 1 + iParser.MatchLen[0]);
           Inc(iEaten, iParser.MatchPos[0] - 1 + iParser.MatchLen[0]);
           iScheme := nil;
@@ -930,7 +932,7 @@ begin
           if iParser.Exec(iLine) then begin
             iExpr := Copy(Value, iParser.MatchPos[0] + iEaten, iParser.MatchLen[0]);
             DoCheckMarker(iScheme, iParser.MatchPos[0] + iEaten, iParser.MatchLen[0],
-              iExpr, True, LineNumber);
+              iExpr, True, LineNumber, Value);
             Delete(iLine, 1, iParser.MatchPos[0] - 1 + iParser.MatchLen[0]);
             Inc(iEaten, iParser.MatchPos[0] - 1 + iParser.MatchLen[0]);
             break;

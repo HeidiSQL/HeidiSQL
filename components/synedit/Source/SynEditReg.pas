@@ -127,6 +127,7 @@ uses
   // SynEdit components
   SynEdit,
   SynMemo,
+  SynEditDocumentManager,
   {$IFNDEF SYN_DELPHI_PE}
   SynDBEdit,
   {$ENDIF}
@@ -137,7 +138,7 @@ uses
   SynEditExport,
   SynExportHTML,
   SynExportRTF,
-  SynExportTeX,      
+  SynExportTeX,
   SynHighlighterMulti,
   SynCompletionProposal,
   SynEditPythonBehaviour,
@@ -181,6 +182,7 @@ uses
   SynHighlighterInno,
   SynHighlighterJava,
   SynHighlighterJScript,
+  SynHighlighterJSON,
   SynHighlighterKix,
   SynHighlighterModelica,
   SynHighlighterM3,   
@@ -248,7 +250,8 @@ begin
     TSynExporterTeX, TSynEditPythonBehaviour, TSynMultiSyn,
     TSynCompletionProposal, TSynAutoComplete, TSynMacroRecorder,
     TSynEditPrint, TSynEditPrintPreview, TSynAutoCorrect,
-    TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener, TSynHotKey]);
+    TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener, TSynHotKey,
+    TSynEditDocumentManager]);
 {$IFDEF SYN_COMPILER_4_UP}
   RegisterComponents(SYNS_ComponentsPage, [TSynHighlighterManager]);
 {$ENDIF}
@@ -260,7 +263,7 @@ begin
     TSynM3Syn, TSynPasSyn, TSynVBSyn, TSynCobolSyn, TSynCSSyn,
     // internet
     TSynCssSyn, TSynHTMLSyn, TSynJScriptSyn, TSynPHPSyn, TSynVBScriptSyn,
-    TSynXMLSyn, TSynVrml97Syn,
+    TSynXMLSyn, TSynJSONSyn, TSynVrml97Syn,
     //interpreted
     TSynAWKSyn, TSynBATSyn,
     {$ifdef SYN_DELPHI_2009_UP}

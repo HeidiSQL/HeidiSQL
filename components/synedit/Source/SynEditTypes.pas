@@ -81,6 +81,9 @@ type
   TBufferCoord = record
     Char: integer;
     Line: integer;
+    {$IFDEF SYN_COMPILER_10_UP}
+    class operator Equal(a, b: TBufferCoord): Boolean;
+    {$ENDIF}
   end;
 
   // Codehunter patch: added TBufferBlock
@@ -89,11 +92,17 @@ type
     BeginChar,
     EndLine,
     EndChar: Integer;
+    {$IFDEF SYN_COMPILER_10_UP}
+    class operator Equal(a, b: TBufferBlock): Boolean;
+    {$ENDIF}
   end;
 
   TDisplayCoord = record
     Column: integer;
     Row: integer;
+    {$IFDEF SYN_COMPILER_10_UP}
+    class operator Equal(a, b: TDisplayCoord): Boolean;
+    {$ENDIF}
   end;
 
 function DisplayCoord(AColumn, ARow: Integer): TDisplayCoord;
@@ -112,5 +121,31 @@ begin
   Result.Char := AChar;
   Result.Line := ALine;
 end;
+
+{$IFDEF SYN_COMPILER_10_UP}
+
+{ TBufferCoord }
+
+class operator TBufferCoord.Equal(a, b: TBufferCoord): Boolean;
+begin
+  Result := (a.Char = b.Char) and (a.Line = b.Line);
+end;
+
+{ TBufferBlock }
+
+class operator TBufferBlock.Equal(a, b: TBufferBlock): Boolean;
+begin
+  Result := (a.BeginLine = b.BeginLine) and (a.BeginChar = b.BeginChar) and
+    (a.EndLine = b.EndLine) and (a.EndChar = b.EndChar);
+end;
+
+{ TDisplayCoord }
+
+class operator TDisplayCoord.Equal(a, b: TDisplayCoord): Boolean;
+begin
+  Result := (a.Row = b.Row) and (a.Column = b.Column);
+end;
+
+{$ENDIF}
 
 end.

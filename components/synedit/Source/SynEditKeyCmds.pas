@@ -201,6 +201,7 @@ const
   ecUpperCaseBlock  = 625; // apply to current selection, or current char if no selection
   ecLowerCaseBlock  = 626;
   ecToggleCaseBlock = 627;
+  ecTitleCaseBlock  = 628;
 
   ecString          = 630;  //Insert a whole string
 
@@ -318,7 +319,7 @@ type
 {$ENDIF}
 
 const
-  EditorCommandStrs: array[0..100] of TIdentMapEntry = (
+  EditorCommandStrs: array[0..101] of TIdentMapEntry = (
     (Value: ecNone; Name: 'ecNone'),
     (Value: ecLeft; Name: 'ecLeft'),
     (Value: ecRight; Name: 'ecRight'),
@@ -419,6 +420,7 @@ const
     (Value: ecUpperCaseBlock; Name: 'ecUpperCaseBlock'),
     (Value: ecLowerCaseBlock; Name: 'ecLowerCaseBlock'),
     (Value: ecToggleCaseBlock; Name: 'ecToggleCaseBlock'),
+    (Value: ecTitleCaseBlock; Name: 'ecTitleCaseBlock'),
     (Value: ecString; Name:'ecString'));
 
 procedure GetEditorCommandValues(Proc: TGetStrProc);

@@ -59,7 +59,8 @@ type
     tkSpace, tkString, tkSymbol, tkUnknown, tkFloat, tkHex, tkDirec, tkChar);
 
   TRangeState = (rsANil, rsAnsi, rsAnsiAsm, rsAsm, rsBor, rsBorAsm, rsProperty,
-    rsExports, rsDirective, rsDirectiveAsm, rsHereDocSingle, rsHereDocDouble, rsUnKnown);
+    rsExports, rsDirective, rsDirectiveAsm, rsHereDocSingle, rsHereDocDouble,
+    rsType, rsUnknown);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function : TtkTokenKind of object;
@@ -76,8 +77,9 @@ type
     fRange: TRangeState;
     fCommentClose : Char;
     fIdentFuncTable: array[0..388] of TIdentFuncTableFunc;
-    fKeyWords : TAnsiStringList;
-    fKeyWords_PropertyScoped : TAnsiStringList;
+    fKeywords: TAnsiStringList;
+    fKeywordsPropertyScoped: TAnsiStringList;
+    fKeywordsTypeScoped: TAnsiStringList;
     fTokenID: TtkTokenKind;
     fStringAttri: TSynHighlighterAttributes;
     fCharAttri: TSynHighlighterAttributes;
@@ -92,11 +94,13 @@ type
     fIdentifierAttri: TSynHighlighterAttributes;
     fSpaceAttri: TSynHighlighterAttributes;
     function AltFunc: TtkTokenKind;
-    function KeyWordFunc: TtkTokenKind;
+    function KeywordFunc: TtkTokenKind;
     function FuncAsm: TtkTokenKind;
     function FuncEnd: TtkTokenKind;
     function FuncPropertyScoped: TtkTokenKind;
     function FuncProperty: TtkTokenKind;
+    function FuncTypeScoped: TtkTokenKind;
+    function FuncType: TtkTokenKind;
     function HashKey(Str: PWideChar): Cardinal;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure InitIdent;
@@ -186,10 +190,10 @@ uses
 
 const
    // if the language is case-insensitive keywords *must* be in lowercase
-   cKeyWords: array[1..95] of UnicodeString = (
+   cKeywords: array[1..94] of UnicodeString = (
       'abstract', 'and', 'array', 'as', 'asm',
       'begin', 'break', 'case', 'cdecl', 'class', 'const', 'constructor',
-      'contains', 'continue', 'deprecated', 'destructor',
+      'continue', 'deprecated', 'destructor',
       'div', 'do', 'downto', 'else', 'end', 'ensure', 'except', 'exit',
       'export', 'exports', 'external', 'final', 'finalization',
       'finally', 'for', 'forward', 'function', 'helper', 'if',
@@ -204,125 +208,20 @@ const
       'then', 'to', 'try', 'type', 'unit', 'until',
       'uses', 'var', 'virtual', 'while', 'xor'
   );
-  cKeyWords_PropertyScoped: array [0..4] of UnicodeString = (
+  cKeywordsPropertyScoped: array [0..4] of UnicodeString = (
       'default', 'index', 'read', 'stored', 'write'
+  );
+  cKeywordsTypeScoped: array [0..1] of UnicodeString = (
+      'enum', 'flag'
   );
 
 function TAnsiStringList.CompareStrings(const S1, S2: string): Integer;
 begin
-   Result:=CompareText(S1, S2);
+   Result := CompareText(S1, S2);
 end;
 
-function TSynDWSSyn.HashKey(Str: PWideChar): Cardinal;
-var
-   c : Word;
-begin
-   Result:=0;
-   while IsIdentChar(Str^) do begin
-      c:=Ord(Str^);
-      if c in [Ord('A')..Ord('Z')] then
-         c := c + (Ord('a')-Ord('A'));
-      Result := Result * 692 + c * 171;
-      inc(Str);
-   end;
-   fStringLen := Str - fToIdent;
-   Result := Result mod Cardinal(Length(fIdentFuncTable));
-end;
 
-function TSynDWSSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
-var
-  Key: Cardinal;
-begin
-  fToIdent := MayBe;
-  Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key]
-  else
-    Result := tkIdentifier;
-end;
-
-procedure TSynDWSSyn.InitIdent;
-
-   procedure SetIdentFunc(h : Integer; const func : TIdentFuncTableFunc);
-   begin
-      fIdentFuncTable[h]:=func;
-   end;
-
-var
-  i : Integer;
-begin
-   for i:=Low(cKeyWords) to High(cKeyWords) do begin
-      SetIdentFunc(HashKey(@cKeyWords[i][1]), KeyWordFunc);
-      fKeyWords.Add(cKeyWords[i]);
-   end;
-
-   for i:=0 to High(cKeyWords_PropertyScoped) do begin
-      SetIdentFunc(HashKey(@cKeyWords_PropertyScoped[i][1]), FuncPropertyScoped);
-      fKeyWords_PropertyScoped.Add(cKeyWords_PropertyScoped[i]);
-   end;
-
-   for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
-      if @fIdentFuncTable[i] = nil then
-         fIdentFuncTable[i] := AltFunc;
-
-   SetIdentFunc(HashKey('asm'), FuncAsm);
-   SetIdentFunc(HashKey('end'), FuncEnd);
-   SetIdentFunc(HashKey('property'), FuncProperty);
-
-   fKeyWords.Sorted:=True;
-end;
-
-function TSynDWSSyn.AltFunc: TtkTokenKind;
-begin
-  Result := tkIdentifier
-end;
-
-function TSynDWSSyn.KeyWordFunc: TtkTokenKind;
-var
-   buf : String;
-begin
-   SetString(buf, fToIdent, fStringLen);
-   if (fKeyWords.IndexOf(buf)>=0) and (FLine[Run - 1] <> '&') then
-      Result := tkKey
-   else Result := tkIdentifier
-end;
-
-function TSynDWSSyn.FuncAsm: TtkTokenKind;
-begin
-   if IsCurrentToken('asm') then begin
-      Result := tkKey;
-      fRange := rsAsm;
-      fAsmStart := True;
-   end else Result:=KeyWordFunc;
-end;
-
-function TSynDWSSyn.FuncEnd: TtkTokenKind;
-begin
-   if IsCurrentToken('end') then begin
-      Result := tkKey;
-      fRange := rsUnknown;
-   end else Result:=KeyWordFunc;
-end;
-
-// FuncPropertyScoped
-//
-function TSynDWSSyn.FuncPropertyScoped: TtkTokenKind;
-var
-   buf : String;
-begin
-   SetString(buf, fToIdent, fStringLen);
-   if (fRange = rsProperty) and (fKeyWords_PropertyScoped.IndexOf(buf)>=0) then
-      Result:=tkKey
-   else Result:=KeyWordFunc;
-end;
-
-function TSynDWSSyn.FuncProperty: TtkTokenKind;
-begin
-   if IsCurrentToken('property') then begin
-      Result := tkKey;
-      fRange := rsProperty;
-   end else Result:=KeyWordFunc;
-end;
+{ TSynDWSSyn }
 
 constructor TSynDWSSyn.Create(AOwner: TComponent);
 begin
@@ -330,17 +229,17 @@ begin
   fCaseSensitive := True; // bypass automatic lowercase, we handle it here
 
   fAsmAttri := TSynHighlighterAttributes.Create(SYNS_AttrAssembler, SYNS_FriendlyAttrAssembler);
-  fAsmAttri.Foreground:=RGB(128, 0, 0);
+  fAsmAttri.Foreground := RGB(128, 0, 0);
   AddAttribute(fAsmAttri);
 
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Foreground:=clGreen;
-  fCommentAttri.Style:= [fsItalic];
+  fCommentAttri.Foreground := clGreen;
+  fCommentAttri.Style := [fsItalic];
   AddAttribute(fCommentAttri);
 
   fDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
   fDirecAttri.Foreground := TColor($808000);
-  fDirecAttri.Style:= [fsItalic];
+  fDirecAttri.Style := [fsItalic];
   AddAttribute(fDirecAttri);
 
   fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
@@ -378,8 +277,9 @@ begin
   AddAttribute(fSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  fKeyWords:=TAnsiStringList.Create;
-  fKeyWords_PropertyScoped:=TAnsiStringList.Create;
+  fKeywords := TAnsiStringList.Create;
+  fKeywordsPropertyScoped := TAnsiStringList.Create;
+  fKeywordsTypeScoped := TAnsiStringList.Create;
 
   InitIdent;
   fRange := rsUnknown;
@@ -391,9 +291,152 @@ end;
 //
 destructor TSynDWSSyn.Destroy;
 begin
-   inherited;
-   fKeyWords.Free;
-   fKeyWords_PropertyScoped.Free;
+  inherited;
+  fKeywords.Free;
+  fKeywordsPropertyScoped.Free;
+  fKeywordsTypeScoped.Free;
+end;
+
+function TSynDWSSyn.HashKey(Str: PWideChar): Cardinal;
+var
+   c : Word;
+begin
+   Result := 0;
+   while IsIdentChar(Str^) do begin
+      c := Ord(Str^);
+      if c in [Ord('A')..Ord('Z')] then
+         c := c + (Ord('a') - Ord('A'));
+      Result := Result * 692 + c * 171;
+      inc(Str);
+   end;
+   fStringLen := Str - fToIdent;
+   Result := Result mod Cardinal(Length(fIdentFuncTable));
+end;
+
+function TSynDWSSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
+var
+  Key: Cardinal;
+begin
+  fToIdent := MayBe;
+  Key := HashKey(MayBe);
+  if Key <= High(fIdentFuncTable) then
+    Result := fIdentFuncTable[Key]
+  else
+    Result := tkIdentifier;
+end;
+
+procedure TSynDWSSyn.InitIdent;
+
+   procedure SetIdentFunc(h : Integer; const func : TIdentFuncTableFunc);
+   begin
+      fIdentFuncTable[h] := func;
+   end;
+
+var
+  i : Integer;
+begin
+  for i := Low(cKeywords) to High(cKeywords) do
+  begin
+    SetIdentFunc(HashKey(@cKeywords[i][1]), KeywordFunc);
+    fKeywords.Add(cKeywords[i]);
+  end;
+
+  for i := 0 to High(cKeywordsPropertyScoped) do
+  begin
+    SetIdentFunc(HashKey(@cKeywordsPropertyScoped[i][1]), FuncPropertyScoped);
+    fKeywordsPropertyScoped.Add(cKeywordsPropertyScoped[i]);
+  end;
+
+  for i := 0 to High(cKeywordsTypeScoped) do
+  begin
+    SetIdentFunc(HashKey(@cKeywordsTypeScoped[i][1]), FuncTypeScoped);
+    fKeywordsTypeScoped.Add(cKeywordsTypeScoped[i]);
+  end;
+
+  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+    if @fIdentFuncTable[i] = nil then
+      fIdentFuncTable[i] := AltFunc;
+
+  SetIdentFunc(HashKey('asm'), FuncAsm);
+  SetIdentFunc(HashKey('end'), FuncEnd);
+  SetIdentFunc(HashKey('property'), FuncProperty);
+  SetIdentFunc(HashKey('type'), FuncType);
+
+  fKeywords.Sorted := True;
+end;
+
+function TSynDWSSyn.AltFunc: TtkTokenKind;
+begin
+  Result := tkIdentifier
+end;
+
+function TSynDWSSyn.KeywordFunc: TtkTokenKind;
+var
+   buf : String;
+begin
+   SetString(buf, fToIdent, fStringLen);
+   if (fKeywords.IndexOf(buf)>=0) and (FLine[Run - 1] <> '&') then
+      Result := tkKey
+   else Result := tkIdentifier
+end;
+
+function TSynDWSSyn.FuncAsm: TtkTokenKind;
+begin
+   if IsCurrentToken('asm') then begin
+      Result := tkKey;
+      fRange := rsAsm;
+      fAsmStart := True;
+   end else Result := KeywordFunc;
+end;
+
+function TSynDWSSyn.FuncEnd: TtkTokenKind;
+begin
+   if IsCurrentToken('end') then begin
+      Result := tkKey;
+      fRange := rsUnknown;
+   end else Result := KeywordFunc;
+end;
+
+function TSynDWSSyn.FuncTypeScoped: TtkTokenKind;
+var
+   buf: String;
+begin
+  SetString(buf, fToIdent, fStringLen);
+  if (fRange = rsType) and (fKeywordsTypeScoped.IndexOf(buf) >= 0) then
+    Result := tkKey
+  else
+    Result := KeywordFunc;
+end;
+
+function TSynDWSSyn.FuncType: TtkTokenKind;
+begin
+  if IsCurrentToken('type') then
+  begin
+    Result := tkKey;
+    fRange := rsType;
+  end else Result := KeywordFunc;
+end;
+
+function TSynDWSSyn.FuncPropertyScoped: TtkTokenKind;
+var
+   buf: String;
+begin
+  SetString(buf, fToIdent, fStringLen);
+  if (fRange = rsProperty) and (fKeywordsPropertyScoped.IndexOf(buf) >= 0) then
+    Result := tkKey
+  else
+    Result := KeywordFunc;
+end;
+
+function TSynDWSSyn.FuncProperty: TtkTokenKind;
+begin
+  if IsCurrentToken('property') then
+  begin
+    Result := tkKey;
+    fRange := rsProperty;
+  end
+  else
+    Result := KeywordFunc;
 end;
 
 procedure TSynDWSSyn.AddressOpProc;
@@ -523,23 +566,22 @@ end;
 
 procedure TSynDWSSyn.LoadDelphiStyle;
 
-
-   procedure AddKeyword( const AName : string );
+   procedure AddKeyword(const AName : string);
    var
      I : integer;
    begin
      I := HashKey( @AName[1] );
-     fIdentFuncTable[I]:= KeyWordFunc;
-     fKeyWords.Add(AName);
+     fIdentFuncTable[I] := KeywordFunc;
+     fKeywords.Add(AName);
    end;
 
-   procedure RemoveKeyword( const AName : string );
+   procedure RemoveKeyword(const AName : string);
    var
      I : integer;
    begin
-     I := fKeyWords.IndexOf(AName);
+     I := fKeywords.IndexOf(AName);
      if I <> -1 then
-       fKeywords.Delete( I );
+       fKeywords.Delete(I);
    end;
 
 const
@@ -563,12 +605,12 @@ begin
   CommentAttri.Foreground := clComment;
 
   // These are keywords highlighted in Delphi but not in TSynDWSSyn ..
-  for i:=Low(cKeywordsToAdd) to High(cKeywordsToAdd) do
-    AddKeyword( cKeywordsToAdd[i] );
+  for i := Low(cKeywordsToAdd) to High(cKeywordsToAdd) do
+    AddKeyword(cKeywordsToAdd[i]);
 
   // These are keywords highlighted in TSynDWSSyn but not in Delphi...
-  for i:=Low(cKeywordsToRemove) to High(cKeywordsToRemove) do
-    RemoveKeyword( cKeywordsToRemove[i] );
+  for i := Low(cKeywordsToRemove) to High(cKeywordsToRemove) do
+    RemoveKeyword(cKeywordsToRemove[i]);
 end;
 
 procedure TSynDWSSyn.LowerProc;
@@ -737,15 +779,17 @@ end;
 procedure TSynDWSSyn.StringAposMultiProc;
 begin
   fTokenID := tkString;
-  Inc(Run);
+  if (Run>0) or IsLineEnd(Run+1) then
+     Inc(Run);
   fRange := rsHereDocSingle;
   while not IsLineEnd(Run) do
   begin
     if fLine[Run] = '''' then begin
       Inc(Run);
-      if fLine[Run] <> '''' then
+      if fLine[Run] <> '''' then begin
         fRange := rsUnknown;
         break;
+      end;
     end;
     Inc(Run);
   end;
@@ -754,15 +798,29 @@ end;
 procedure TSynDWSSyn.StringQuoteProc;
 begin
   fTokenID := tkString;
-  Inc(Run);
-  fRange := rsHereDocDouble;
+  if fRange <> rsHereDocDouble then
+  begin
+    fRange := rsHereDocDouble;
+    Inc(Run);
+  end else
+  begin
+    if IsLineEnd(Run) then
+    begin
+      Inc(Run);
+      Exit;
+    end;
+  end;
+
   while not IsLineEnd(Run) do
   begin
-    if fLine[Run] = '"' then begin
+    if fLine[Run] = '"' then
+    begin
       Inc(Run);
       if fLine[Run] <> '"' then
+      begin
         fRange := rsUnknown;
         break;
+      end;
     end;
     Inc(Run);
   end;
@@ -898,7 +956,7 @@ end;
 
 procedure TSynDWSSyn.ResetRange;
 begin
-  fRange:= rsUnknown;
+  fRange := rsUnknown;
 end;
 
 function TSynDWSSyn.GetSampleSource: UnicodeString;
@@ -986,4 +1044,3 @@ initialization
 {$ENDIF}
 
 end.
-

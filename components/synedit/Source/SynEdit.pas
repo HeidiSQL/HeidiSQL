@@ -135,8 +135,8 @@ var
   SynEditClipboardFormat: UINT;
 
 type
-	TBufferCoord = SynEditTypes.TBufferCoord;
-	TDisplayCoord = SynEditTypes.TDisplayCoord;
+  TBufferCoord = SynEditTypes.TBufferCoord;
+  TDisplayCoord = SynEditTypes.TDisplayCoord;
 
 {$IFDEF SYN_CLX}
   TSynBorderStyle = bsNone..bsSingle;
@@ -178,7 +178,7 @@ type
   TGutterPaintEvent = procedure(Sender: TObject; aLine: Integer;
     X, Y: Integer) of object;
 
-  TSynEditCaretType = (ctVerticalLine, ctHorizontalLine, ctHalfBlock, ctBlock);
+  TSynEditCaretType = (ctVerticalLine, ctHorizontalLine, ctHalfBlock, ctBlock, ctVerticalLine2);
 
   TSynStateFlag = (sfCaretChanged, sfScrollbarChanged, sfLinesChanging,
     sfIgnoreNextChar, sfCaretVisible, sfDblClicked, sfPossibleGutterClick,
@@ -6830,6 +6830,12 @@ begin
         ch := fTextHeight - 2;
         FCaretOffset := Point(0, 0);
       end;
+    ctVerticalLine2:
+      begin
+      cw := 2;
+      ch := fTextHeight + 1;
+      FCaretOffset := Point(0, 0);
+      end;
     else
     begin // ctVerticalLine
       cw := 2;
@@ -7166,9 +7172,9 @@ begin
           MoveCaretAndSelection(CaretXY, CaretNew, Command = ecSelWordRight);
         end;
       ecSelWord:
-      	begin
-      	  SetSelWord;
-      	end;
+        begin
+          SetSelWord;
+        end;
       ecSelectAll:
         begin
           SelectAll;
@@ -7202,11 +7208,11 @@ begin
                     begin
                       BackCounter := CaretY - 2;
                       //It's better not to have if statement inside loop
-                      if (eoTrimTrailingSpaces in Options) and (Len = 0) then
+                      if (eoTrimTrailingSpaces in Options) then
                         while BackCounter >= 0 do
                         begin
                           SpaceCount2 := LeftSpacesEx(Lines[BackCounter], True);
-                          if SpaceCount2 < SpaceCount1 then
+                          if (SpaceCount2 > 0) and (SpaceCount2 < SpaceCount1) then
                             break;
                           Dec(BackCounter);
                         end
@@ -7214,7 +7220,7 @@ begin
                         while BackCounter >= 0 do
                         begin
                           SpaceCount2 := LeftSpaces(Lines[BackCounter]);
-                          if SpaceCount2 < SpaceCount1 then
+                          if (SpaceCount2 > 0) and (SpaceCount2 < SpaceCount1) then
                             break;
                           Dec(BackCounter);
                         end;
@@ -7260,13 +7266,23 @@ begin
                     if SpaceCount1 > 0 then
                     begin
                       BackCounter := CaretY - 2;
-                      while BackCounter >= 0 do
-                      begin
-                        SpaceCount2 := LeftSpaces(Lines[BackCounter]);
-                        if SpaceCount2 < SpaceCount1 then
-                          break;
-                        Dec(BackCounter);
-                      end;
+                      //It's better not to have if statement inside loop
+                      if (eoTrimTrailingSpaces in Options) then
+                        while BackCounter >= 0 do
+                        begin
+                          SpaceCount2 := LeftSpacesEx(Lines[BackCounter], True);
+                          if (SpaceCount2 > 0) and (SpaceCount2 < SpaceCount1) then
+                            break;
+                          Dec(BackCounter);
+                        end
+                      else
+                        while BackCounter >= 0 do
+                        begin
+                          SpaceCount2 := LeftSpaces(Lines[BackCounter]);
+                          if (SpaceCount2 > 0) and (SpaceCount2 < SpaceCount1) then
+                            break;
+                          Dec(BackCounter);
+                        end;
                       if (BackCounter = -1) and (SpaceCount2 > SpaceCount1) then
                         SpaceCount2 := 0;
                     end;
@@ -7722,7 +7738,8 @@ begin
       ecTitleCase,
       ecUpperCaseBlock,
       ecLowerCaseBlock,
-      ecToggleCaseBlock:
+      ecToggleCaseBlock,
+      ecTitleCaseBlock:
         if not ReadOnly then DoCaseChange(Command);
       ecUndo:
         begin
@@ -8332,7 +8349,7 @@ begin
   if csDesigning in ComponentState then
     exit;
 
-	Msg.Result := 1;
+  Msg.Result := 1;
 
 {$IFDEF SYN_COMPILER_4_UP}
   // In some occasions Windows will not properly initialize mouse wheel, but
@@ -9002,12 +9019,21 @@ procedure TCustomSynEdit.DoCaseChange(const Cmd: TSynEditorCommand);
     end;
   end;
 
+  function TitleCase(const aStr: UnicodeString): UnicodeString;
+  var
+    i: Integer;
+  begin
+   Result:=SynWideLowerCase(aStr);
+   for i := 1 to Length(Result) do
+   if (i = 1) or IsWordBreakChar(Result[i-1]) then Result[i] := SynWideUpperCase(Result[i])[1];
+  end;
+
 var
   w: UnicodeString;
   oldCaret, oldBlockBegin, oldBlockEnd: TBufferCoord;
   bHadSel : Boolean;
 begin
-  Assert((Cmd >= ecUpperCase) and (Cmd <= ecToggleCaseBlock));
+  Assert((Cmd >= ecUpperCase) and (Cmd <= ecTitleCaseBlock));
   if SelAvail then
   begin
     bHadSel := True;
@@ -9059,8 +9085,8 @@ begin
           w := SynWideLowerCase(w);
         ecToggleCase, ecToggleCaseBlock:
           w := ToggleCase(w);
-        ecTitleCase:
-          w := SynWideUpperCase(w[1]) + SynWideLowerCase(Copy(w, 2, Length(w)));
+        ecTitleCase, ecTitleCaseBlock:
+          w := TitleCase(w);
       end;
       BeginUndoBlock;
       try
