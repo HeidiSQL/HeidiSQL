@@ -9,9 +9,9 @@ WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for
 the specific language governing rights and limitations under the License.
 
 Code template generated with SynGen.
-The original code is: C:\Users\Public\Code\SynEdit\SynGen\LLVM_IR.pas, released 2013-03-30.
+The original code is: SynHighlighterLLVM.pas, released 2013-03-30.
 Description: Syntax Parser/Highlighter
-The initial author of this file is Christian.
+The initial author of this file is Christian-W. Budde.
 Copyright (c) 2013, all rights reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -164,15 +164,6 @@ uses
 {$ELSE}
   SynEditStrConst;
 {$ENDIF}
-
-resourcestring
-  SYNS_FilterLLVMIR = 'LLVM IR files (*.ll)|*.ll';
-  SYNS_LangLLVMIR = 'LLVM IR';
-  SYNS_FriendlyLangLLVMIR = 'LLVM Intermediate Representation';
-  SYNS_AttrConstant = 'Constant';
-  SYNS_FriendlyAttrConstant = 'Constant';
-  SYNS_AttrInstructions = 'Instructions';
-  SYNS_FriendlyAttrInstructions = 'Instructions';
 
 const
   // as this language is case-insensitive keywords *must* be in lowercase

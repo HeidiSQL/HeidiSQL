@@ -101,6 +101,7 @@
         <DCCReference Include="..\..\Source\SynDBEdit.pas"/>
         <DCCReference Include="..\..\Source\SynEdit.pas"/>
         <DCCReference Include="..\..\Source\SynEditAutoComplete.pas"/>
+        <DCCReference Include="..\..\Source\SynEditDocumentManager.pas"/>
         <DCCReference Include="..\..\Source\SynEditExport.pas"/>
         <DCCReference Include="..\..\Source\SynEditHighlighter.pas"/>
         <DCCReference Include="..\..\Source\SynEditKbdHandler.pas"/>
@@ -165,6 +166,7 @@
         <DCCReference Include="..\..\Source\SynHighlighterInno.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterJava.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterJScript.pas"/>
+        <DCCReference Include="..\..\Source\SynHighlighterJSON.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterKix.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterM3.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterModelica.pas"/>

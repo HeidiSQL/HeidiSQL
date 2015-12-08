@@ -96,6 +96,7 @@ type
     function SaveToFile(Ini: TIniFile): Boolean;
 {$ENDIF}
   public
+    procedure SetColors(Foreground, Background: TColor);
     property FriendlyName: UnicodeString read fFriendlyName;
     property IntegerStyle: Integer read GetStyleFromInt write SetStyleFromInt;
     property Name: string read fName;
@@ -647,6 +648,16 @@ begin
   end;
 end;
 
+procedure TSynHighlighterAttributes.SetColors(Foreground, Background: TColor);
+begin
+  if (fForeGround <> Foreground) or (fBackground <> Background) then
+  begin
+    fForeGround := Foreground;
+    fBackground := Background;
+    Changed;
+  end;
+end;
+
 procedure TSynHighlighterAttributes.SetForeground(Value: TColor);
 begin
   if fForeGround <> Value then
@@ -1108,12 +1119,10 @@ end;
 
 function TSynCustomHighlighter.IsIdentChar(AChar: WideChar): Boolean;
 begin
-  case AChar of
-    '_', '0'..'9', 'A'..'Z', 'a'..'z':
-      Result := True;
+  if IsWordBreakChar(Achar) then
+      Result := False
     else
-      Result := False;
-  end;
+      Result := True;
 end;
 
 function TSynCustomHighlighter.IsKeyword(const AKeyword: UnicodeString): Boolean;

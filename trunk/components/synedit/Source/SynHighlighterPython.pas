@@ -1,4 +1,4 @@
-{-------------------------------------------------------------------------------
+ï»¿{-------------------------------------------------------------------------------
 The contents of this file are subject to the Mozilla Public License
 Version 1.1 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@ The Original Code is based on the odPySyn.pas file from the
 mwEdit component suite by Martin Waldenburg and other developers, the Initial
 Author of this file is Olivier Deckmyn.
 Portions created by M.Utku Karatas and Dennis Chuah.
-Unicode translation by Maël Hörz.
+Unicode translation by MaÃ«l HÃ¶rz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -186,10 +186,11 @@ const
   // No need to localise keywords!
 
   // List of keywords
-  KEYWORDCOUNT = 29;
+  KEYWORDCOUNT = 32;
   KEYWORDS: array [1..KEYWORDCOUNT] of UnicodeString =
     (
     'and',
+    'as',
     'assert',
     'break',
     'class',
@@ -209,6 +210,7 @@ const
     'in',
     'is',
     'lambda',
+    'nonlocal',
     'not',
     'or',
     'pass',
@@ -217,6 +219,7 @@ const
     'return',
     'try',
     'while',
+    'with',
     'yield'
     );
 
@@ -342,6 +345,10 @@ begin
      (MayBe[fStringLen - 3] <> '_') then
     Result := tkSystemDefined
 
+  // Check for names of class and functions - not optimal
+  else if ( (WideCompareStr(Trim(Copy(fLine, 0, Length(fLine) - Length(fToIdent))), 'def')=0)   or (WideCompareStr(Trim(Copy(fLine, 0, Length(fLine) - Length(fToIdent))), 'class')=0) ) then
+       Result := tkSystemDefined
+
   // Else, hey, it is an ordinary run-of-the-mill identifier!
   else
     Result := tkIdentifier;
@@ -357,6 +364,8 @@ begin
   FKeywords.Sorted := True; 
   FKeywords.Duplicates := dupError;
   FKeywords.Assign (GetKeywordIdentifiers);
+  if not FKeywords.Sorted then
+  FKeywords.Sort;
 
   fRange := rsUnknown;
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);

@@ -1,5 +1,6 @@
 package SynEditR;
 
+{$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -42,6 +43,7 @@ contains
   SynDBEdit in '..\..\Source\SynDBEdit.pas',
   SynEdit in '..\..\Source\SynEdit.pas',
   SynEditAutoComplete in '..\..\Source\SynEditAutoComplete.pas',
+  SynEditDocumentManager in '..\..\Source\SynEditDocumentManager.pas',
   SynEditExport in '..\..\Source\SynEditExport.pas',
   SynEditHighlighter in '..\..\Source\SynEditHighlighter.pas',
   SynEditKbdHandler in '..\..\Source\SynEditKbdHandler.pas',
@@ -98,6 +100,7 @@ contains
   SynHighlighterInno in '..\..\Source\SynHighlighterInno.pas',
   SynHighlighterJava in '..\..\Source\SynHighlighterJava.pas',
   SynHighlighterJScript in '..\..\Source\SynHighlighterJScript.pas',
+  SynHighlighterJSON in '..\..\Source\SynHighlighterJSON.pas',
   SynHighlighterKix in '..\..\Source\SynHighlighterKix.pas',
   SynHighlighterM3 in '..\..\Source\SynHighlighterM3.pas',
   SynHighlighterModelica in '..\..\Source\SynHighlighterModelica.pas',

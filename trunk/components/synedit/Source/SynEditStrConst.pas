@@ -74,6 +74,7 @@ const
   SYNS_AttrCharacter            =  'Character';
   SYNS_AttrClass                =  'Class';
   SYNS_AttrColor                =  'ColorValue';
+  SYNS_AttrConstant             =  'Constant';
   SYNS_AttrComment              =  'Comment';
   SYNS_AttrCondition            =  'Condition';
   SYNS_AttrConditionalComment   =  'ConditionalComment';
@@ -105,6 +106,7 @@ const
   SYNS_AttrInclude              =  'Include';
   SYNS_AttrIndicator            =  'IndicatorArea';
   SYNS_AttrIndirect             =  'Indirect';
+  SYNS_AttrInstructions         =  'Instructions';
   SYNS_AttrInvalidSymbol        =  'InvalidSymbol';
   SYNS_AttrInternalFunction     =  'InternalFunction';
   SYNS_AttrKey                  =  'Key';
@@ -231,6 +233,7 @@ const
   SYNS_LangCache                =  'CacheObjectScript';
   SYNS_LangCSS                  =  'CascadingStyleSheet';
   SYNS_LangJScript              =  'JavaScript';
+  SYNS_LangJSON                 =  'JSON';
   SYNS_LangKIX                  =  'KiXtart';
   SYNS_LangBaan                 =  'Baan_4GL';
   SYNS_LangFoxpro               =  'Foxpro';
@@ -255,6 +258,7 @@ const
   SYNS_LangDOT                  =  'DOT_Graph_Drawing_Description_language';
   SYNS_LangEiffel               =  'Eiffel';
   SYNS_LangLDraw                =  'LEGO_LDraw';
+  SYNS_LangLLVMIR               =  'LLVM IR';
   SYNS_LangUnknown              =  '<Unknown>';
   SYNS_LangURI                  =  'URI';
   SYNS_LangVrml97               =  'Vrml97';
@@ -285,6 +289,7 @@ resourcestring
   SYNS_FriendlyAttrComment              =  'Comment';
   SYNS_FriendlyAttrCondition            =  'Condition';
   SYNS_FriendlyAttrConditionalComment   =  'Conditional Comment';
+  SYNS_FriendlyAttrConstant             =  'Constant';
   SYNS_FriendlyAttrDataType             =  'Data Type';
   SYNS_FriendlyAttrDebugLines           =  'Debugging Lines';
   SYNS_FriendlyAttrDefaultPackage       =  'Default Packages';
@@ -313,8 +318,9 @@ resourcestring
   SYNS_FriendlyAttrInclude              =  'Include';
   SYNS_FriendlyAttrIndicator            =  'Indicator Area';
   SYNS_FriendlyAttrIndirect             =  'Indirect';
-  SYNS_FriendlyAttrInvalidSymbol        =  'Invalid Symbol';
+  SYNS_FriendlyAttrInstructions         =  'Instructions';
   SYNS_FriendlyAttrInternalFunction     =  'Internal Function';
+  SYNS_FriendlyAttrInvalidSymbol        =  'Invalid Symbol';
   SYNS_FriendlyAttrKey                  =  'Key';
   SYNS_FriendlyAttrLabel                =  'Label';
   SYNS_FriendlyAttrLace                 =  'Lace';
@@ -334,7 +340,7 @@ resourcestring
   SYNS_FriendlyAttrOperatorAndSymbols   =  'Operator And Symbols';
   SYNS_FriendlyAttrOpLine               =  'OpLine';
   SYNS_FriendlyAttrOptions              =  'Options';
-  SYNS_FriendlyAttrPath                 =  'Pathname';    
+  SYNS_FriendlyAttrPath                 =  'Pathname';
   SYNS_FriendlyAttrPLSQL                =  'PL/SQL Reserved Word';
   SYNS_FriendlyAttrPragma               =  'Pragma';
   SYNS_FriendlyAttrPredefined           =  'Predefined';
@@ -458,6 +464,7 @@ resourcestring
   SYNS_FilterCache              =  'Cache Files (*.mac;*.inc;*.int)|*.mac;*.inc;*.int';
   SYNS_FilterCSS                =  'Cascading Stylesheets (*.css)|*.css';
   SYNS_FilterJScript            =  'Javascript Files (*.js)|*.js';
+  SYNS_FilterJSON               =  'JSON Files (*.json)|*.json';
   SYNS_FilterKIX                =  'KiXtart Scripts (*.kix)|*.kix';
   SYNS_FilterBaan               =  'Baan 4GL Files (*.cln)|*.cln';
   SYNS_FilterFoxpro             =  'Foxpro Files (*.prg)|*.prg';
@@ -481,6 +488,7 @@ resourcestring
   SYNS_FilterDOT                =  'DOT Graph Drawing Description (*.dot)|*.dot';
   SYNS_FilterEiffel             =  'Eiffel (*.e;*.ace)|*.e;*.ace';
   SYNS_FilterLDraw              =  'LEGO LDraw Files (*.ldr)|*.ldr';
+  SYNS_FilterLLVMIR             =  'LLVM IR files (*.ll)|*.ll';
   SYNS_FilterURI                =  'All Files (*.*)|*.*';
   SYNS_FilterVrml97             =  'Vrml97/X3D World (*.wrl;*.wrml;*.vrl;*.vrml;*.x3d)|*.wrl;*.wrml;*.vrl;*.vrml;*.x3d';
 
@@ -516,6 +524,7 @@ resourcestring
   SYNS_FriendlyLangCache                =  'Cache Object Script';
   SYNS_FriendlyLangCSS                  =  'Cascading Style Sheet';
   SYNS_FriendlyLangJScript              =  'JavaScript';
+  SYNS_FriendlyLangJSON                 =  'JSON';
   SYNS_FriendlyLangKIX                  =  'KiXtart';
   SYNS_FriendlyLangBaan                 =  'Baan 4GL';
   SYNS_FriendlyLangFoxpro               =  'Foxpro';
@@ -540,7 +549,8 @@ resourcestring
   SYNS_FriendlyLangDOT                  =  'DOT Graph Drawing Description language';
   SYNS_FriendlyLangEiffel               =  'Eiffel';
   SYNS_FriendlyLangLDraw                =  'LEGO LDraw';
-  SYNS_FriendlyLangUnknown              =  '<Unknown>';  
+  SYNS_FriendlyLangLLVMIR               =  'LLVM Intermediate Representation';
+  SYNS_FriendlyLangUnknown              =  '<Unknown>';
   SYNS_FriendlyLangURI                  =  'URI';
   SYNS_FriendlyLangVrml97               =  'Vrml97';
 
