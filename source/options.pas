@@ -348,18 +348,7 @@ begin
   Mainform.SetupSynEditors;
 
   // Set relevant properties in mainform
-  Mainform.DataGrid.Font.Name := comboDataFontName.Text;
-  Mainform.DataGrid.Font.Size := updownDataFontSize.Position;
-  FixVT(Mainform.DataGrid, updownGridRowsLineCount.Position);
-  for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
-    QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
-    for j:=0 to QueryTab.ResultTabs.Count-1 do begin
-      Grid := QueryTab.ResultTabs[j].Grid;
-      Grid.Font.Name := comboDataFontName.Text;
-      Grid.Font.Size := updownDataFontSize.Position;
-      FixVT(Grid, updownGridRowsLineCount.Position);
-    end;
-  end;
+  MainForm.ApplyFontToGrids;
 
   Mainform.LogToFile := chkLogToFile.Checked;
   DatatypeCategories[dtcInteger].Color := FGridTextColors[dtcInteger];

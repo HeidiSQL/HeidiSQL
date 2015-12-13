@@ -1147,6 +1147,7 @@ type
     procedure TaskDialogHyperLinkClicked(Sender: TObject);
     function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
     procedure ApplyVTFilter(FromTimer: Boolean);
+    procedure ApplyFontToGrids;
 end;
 
 
@@ -7288,6 +7289,28 @@ begin
 end;
 
 
+procedure TMainForm.ApplyFontToGrids;
+var
+  i, j: Integer;
+  QueryTab: TQueryTab;
+  Grid: TVirtualStringTree;
+begin
+  // Apply somehow changed font settings to all existing grids
+  DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
+  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+  FixVT(Mainform.DataGrid, AppSettings.ReadInt(asGridRowLineCount));
+  for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
+    QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
+    for j:=0 to QueryTab.ResultTabs.Count-1 do begin
+      Grid := QueryTab.ResultTabs[j].Grid;
+      Grid.Font.Name := AppSettings.ReadString(asDataFontName);
+      Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+      FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+    end;
+  end;
+end;
+
+
 procedure TMainForm.ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
@@ -8424,10 +8447,11 @@ procedure TMainForm.AnyGridMouseWheel(Sender: TObject; Shift: TShiftState; Wheel
 var
   VT: TVirtualStringTree;
   Node: PVirtualNode;
+  NewFontSize: Integer;
 begin
   // Advance to next or previous grid node on Shift+MouseWheel
+  VT := Sender as TVirtualStringTree;
   if KeyPressed(VK_SHIFT) then begin
-    VT := Sender as TVirtualStringTree;
     if Assigned(VT.FocusedNode) then begin
       if WheelDelta > 0 then
         Node := VT.FocusedNode.PrevSibling
@@ -8438,6 +8462,16 @@ begin
         Handled := True;
       end;
     end;
+  end else if KeyPressed(VK_CONTROL) then begin
+    NewFontSize := VT.Font.Size;
+    if WheelDelta > 0 then
+      NewFontSize := NewFontSize + 1
+    else
+      NewFontSize := NewFontSize - 1;
+    NewFontSize := Max(NewFontSize, 1);
+    AppSettings.ResetPath;
+    AppSettings.WriteInt(asDataFontSize, NewFontSize);
+    ApplyFontToGrids;
   end;
 end;
 
