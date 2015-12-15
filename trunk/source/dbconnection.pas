@@ -2950,7 +2950,8 @@ begin
       end;
     end;
   end;
-  PrefetchResults(implodestr(';', Queries));
+  if Queries.Count > 0 then
+    PrefetchResults(implodestr(';', Queries));
 end;
 
 
