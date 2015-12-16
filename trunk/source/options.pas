@@ -222,12 +222,10 @@ end;
 }
 procedure Toptionsform.Apply(Sender: TObject);
 var
-  i, j: Integer;
+  i: Integer;
   Attri: TSynHighlighterAttributes;
-  Grid: TVirtualStringTree;
   CatNode, ItemNode: PVirtualNode;
   Data: PShortcutItemData;
-  QueryTab: TQueryTab;
   LangCode: String;
 begin
   Screen.Cursor := crHourGlass;
