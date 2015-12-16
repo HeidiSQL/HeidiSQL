@@ -160,7 +160,8 @@ type
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asWarnUnsafeUpdates,
-    asCompletionProposal, asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
+    asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow,
+    asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
@@ -3307,6 +3308,8 @@ begin
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
+  InitSetting(asCompletionProposalWidth,          'CompletionProposalWidth',               350);
+  InitSetting(asCompletionProposalNbLinesInWindow,'CompletionProposalNbLinesInWindow',     12);
   InitSetting(asTabsToSpaces,                     'TabsToSpaces',                          0, False);
   InitSetting(asFilterPanel,                      'FilterPanel',                           0, False);
   InitSetting(asAllowMultipleInstances,           'AllowMultipleInstances',                0, True);

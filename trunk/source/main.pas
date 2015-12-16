@@ -1431,6 +1431,8 @@ begin
   AppSettings.WriteString(asDelimiter, FDelimiter);
   AppSettings.WriteInt(asQuerymemoheight, pnlQueryMemo.Height);
   AppSettings.WriteInt(asQueryhelperswidth, treeQueryHelpers.Width);
+  AppSettings.WriteInt(asCompletionProposalWidth, SynCompletionProposal.Width);
+  AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.NbLinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, pnlLeft.width);
   AppSettings.WriteBool(asGroupTreeObjects, actGroupObjects.Checked);
   AppSettings.WriteInt(asDataPreviewHeight, pnlPreview.Height);
@@ -1744,6 +1746,10 @@ begin
     Action := TAction(ActionList1.Actions[i]);
     Action.ShortCut := AppSettings.ReadInt(asActionShortcut1, Action.Name, Action.ShortCut);
   end;
+
+  // Size of completion proposal window
+  SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
+  SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 
   // Place progressbar on the statusbar
   ProgressBarStatus.Parent := StatusBar;
