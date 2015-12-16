@@ -5573,6 +5573,9 @@ begin
       TableClauses := rx.Match[3];
       // Ensure tables in JOIN clause(s) are splitted by comma
       TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
+      // Remove surrounding parentheses
+      TableClauses := StringReplace(TableClauses, '(', ' ', [rfReplaceAll]);
+      TableClauses := StringReplace(TableClauses, ')', ' ', [rfReplaceAll]);
       // Split table clauses by commas
       Tables := TStringList.Create;
       Tables.Delimiter := ',';
