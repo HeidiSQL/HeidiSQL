@@ -2510,7 +2510,7 @@ begin
     if ContainsUnsafeQueries then begin
       Screen.Cursor := crDefault;
       msg := _('Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re doing.');
-      DoExecute := MessageDialog(_('Unsafe queries found'), msg, mtConfirmation, [mbYes, mbNo], asWarnUnsafeUpdates) = mrYes;
+      DoExecute := MessageDialog(_('Run unsafe queries without a WHERE clause?'), msg, mtConfirmation, [mbYes, mbNo], asWarnUnsafeUpdates) = mrYes;
     end;
   end;
 
