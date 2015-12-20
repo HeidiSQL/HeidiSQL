@@ -1175,9 +1175,11 @@ var
   i: Integer;
   Col: PTableColumn;
   Key: TTableKey;
+  WasModified: Boolean;
 begin
   // Column property edited
   Col := Sender.GetNodeData(Node);
+  WasModified := True;
   case Column of
     1: begin // Name of column
       for i:=0 to FColumns.Count-1 do begin
@@ -1227,8 +1229,13 @@ begin
 
     end; // Length / Set
     3: begin
-      Col.LengthSet := NewText;
-      Col.LengthCustomized := True;
+      if Col.DataType.RequiresLength and (NewText='') then begin
+        WasModified := False;
+        ErrorDialog(f_('Column data type %s requires a length/set', [Col.DataType.Name]));
+      end else begin
+        Col.LengthSet := NewText;
+        Col.LengthCustomized := True;
+      end;
     end;
     // 4 + 5 are checkboxes - handled in OnClick
     7: begin // Default value
@@ -1242,8 +1249,10 @@ begin
     10: Col.Expression := NewText;
     11: Col.Virtuality := NewText;
   end;
-  Col.Status := esModified;
-  Modification(Sender);
+  if WasModified then begin
+    Col.Status := esModified;
+    Modification(Sender);
+  end;
 end;
 
 
