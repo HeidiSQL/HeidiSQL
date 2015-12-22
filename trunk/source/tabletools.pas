@@ -1265,7 +1265,7 @@ var
   ColumnList: TTableColumnList;
   Column: TTableColumn;
   Quoter: TDBConnection;
-  TargetFileName: String;
+  TargetFileName, SetCharsetCode: String;
 const
   TempDelim = '//';
 
@@ -1332,6 +1332,11 @@ begin
       ExportStream := TMemoryStream.Create;
   end;
   if not FHeaderCreated then begin
+    if DBObj.Connection.CharacterSet = 'utf8mb4' then
+      SetCharsetCode := '/*!40101 SET NAMES utf8 */;' + CRLF +
+        '/*!50503 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF
+    else
+      SetCharsetCode := '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF;
     Header := '-- --------------------------------------------------------' + CRLF +
       Format('-- %-30s%s', [_('Host')+':', DBObj.Connection.Parameters.HostName]) + CRLF +
       Format('-- %-30s%s', [_('Server version')+':', DBObj.Connection.ServerVersionUntouched]) + CRLF +
@@ -1339,7 +1344,7 @@ begin
       Format('-- %-30s%s', [APPNAME + ' ' + _('Version')+':', Mainform.AppVersion]) + CRLF +
       '-- --------------------------------------------------------' + CRLF + CRLF +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
-      '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF +
+      SetCharsetCode +
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
       '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
