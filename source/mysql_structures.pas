@@ -187,7 +187,7 @@ type
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtJson, dtCidr, dtInet, dtMacaddr,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtUnknown,
+    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtRegClass, dtUnknown,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid, dtXML,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
@@ -1255,7 +1255,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..33] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..34] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1656,6 +1656,19 @@ var
       Name:            'BOOLEAN';
       Names:           'boolean|bool';
       Description:     'State of true or false. Storage size: 1 byte.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtRegClass;
+      NativeTypes:     '2205';
+      Name:            'REGCLASS';
+      Names:           'regclass';
+      Description:     'Relation name';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
