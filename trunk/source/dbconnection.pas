@@ -747,6 +747,7 @@ var
   PQnfields: function(Result: PPGresult): Integer; cdecl;
   PQfname: function(const Result: PPGresult; column_number: Integer): PAnsiChar; cdecl;
   PQftype: function(const Result: PPGresult; column_number: Integer): POid; cdecl;
+  PQftable: function(const Result: PPGresult; column_number: Integer): POid; cdecl;
   PQgetvalue: function(const Result: PPGresult; row_number: Integer; column_number: Integer): PAnsiChar; cdecl;
   PQgetlength: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
   PQgetisnull: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
@@ -2105,6 +2106,7 @@ begin
       AssignProc(@PQnfields, 'PQnfields');
       AssignProc(@PQfname, 'PQfname');
       AssignProc(@PQftype, 'PQftype');
+      AssignProc(@PQftable, 'PQftable');
       AssignProc(@PQgetvalue, 'PQgetvalue');
       AssignProc(@PQgetlength, 'PQgetlength');
       AssignProc(@PQgetisnull, 'PQgetisnull');
@@ -6601,8 +6603,18 @@ end;
 
 
 function TPGQuery.TableName: String;
+var
+  FieldTypeOID: POid;
+  i: Integer;
 begin
-  // TODO
+  // Get table name from a result set
+  Result := '';
+  for i:=0 to ColumnCount-1 do begin
+    FieldTypeOID := PQftable(FCurrentResults, i);
+    Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
+    if Result <> '' then
+      Break;
+  end;
 end;
 
 
