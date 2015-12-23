@@ -1198,7 +1198,7 @@ begin
   Result := 0;
   while IsIdentChar(Str^) do
   begin
-    FoundDoubleMinus := (Str^ = '-') and ((Str + 1)^ = '-') and ((Str + 2)^ = ' ');
+    FoundDoubleMinus := (Str^ = '-') and ((Str + 1)^ = '-') and CharInSet((Str + 2)^, [' ', #9]);
     if FoundDoubleMinus then Break;
 {$IFOPT Q-}
     Result := 2 * Result + GetOrd;
@@ -1401,7 +1401,7 @@ begin
   else
     while IsIdentChar(fLine[Run]) do
     begin
-      FoundDoubleMinus := (fLine[Run] = '-') and (fLine[Run + 1] = '-') and (fLine[Run + 2] = ' ');
+      FoundDoubleMinus := (fLine[Run] = '-') and (fLine[Run + 1] = '-') and CharInSet(fLine[Run + 2], [' ', #9]);
       if FoundDoubleMinus then Break;
       inc(Run);
     end;
@@ -1429,7 +1429,7 @@ end;
 procedure TSynSQLSyn.MinusProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '-') and (fLine[Run+1] = ' ') then
+  if (fLine[Run] = '-') and CharInSet(fLine[Run+1], [' ', #9]) then
   begin
     fTokenID := tkComment;
     repeat
@@ -1649,7 +1649,7 @@ begin
     fTokenID := tkVariable;
     i := Run;
     repeat
-      FoundDoubleMinus := (fLine[i] = '-') and (fLine[i + 1] = '-') and (fLine[i + 2] = ' ');
+      FoundDoubleMinus := (fLine[i] = '-') and (fLine[i + 1] = '-') and CharInSet(fLine[i + 2], [' ', #9]);
       if FoundDoubleMinus then Break;
       Inc(i);
     until not IsIdentChar(fLine[i]);
