@@ -4839,7 +4839,7 @@ begin
     end;
 
     // Virtual columns
-    rxCol.Expression := '^(GENERATED ALWAYS)? AS \((.+)\)\s+(VIRTUAL|PERSISTENT|STORED)\s*';
+    rxCol.Expression := '^(GENERATED ALWAYS)?\s*AS\s+\((.+)\)\s+(VIRTUAL|PERSISTENT|STORED)\s*';
     if rxCol.Exec(ColSpec) then begin
       Col.Expression := rxCol.Match[2];
       Col.Virtuality := rxCol.Match[3];
