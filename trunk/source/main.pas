@@ -4787,16 +4787,16 @@ begin
           and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
             case DBObj.Connection.Parameters.NetTypeGroup of
-              ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
-              ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
-              ngPgSQL: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name, False) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name, False) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngPgSQL: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name, False) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
             end;
           end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtTimestamp) then begin
-            Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
+            Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name, False) + ' AS INT), ';
           end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtHierarchyid) then begin
-            Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ';
+            Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name, False) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ';
           end else begin
-            Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
+            Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name, False) + ', ';
             Inc(FullColumnCount);
           end;
         WantedColumns.Add(c);
