@@ -794,7 +794,9 @@ begin
               Data := 'NULL'
             else if GridData.DataType(Col).Index = dtBit then
               Data := 'b' + esc(Data)
-            else if not (GridData.DataType(Col).Category in [dtcInteger, dtcReal, dtcBinary, dtcSpatial]) then
+            else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
+              or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
+              then
               Data := esc(Data)
             else if Data = '' then
               Data := esc(Data);
