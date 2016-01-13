@@ -3,7 +3,7 @@ object frmTableTools: TfrmTableTools
   Top = 126
   Caption = 'Table tools'
   ClientHeight = 383
-  ClientWidth = 544
+  ClientWidth = 764
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,7 +17,7 @@ object frmTableTools: TfrmTableTools
   OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    544
+    764
     383)
   PixelsPerInch = 96
   TextHeight = 13
@@ -30,7 +30,7 @@ object frmTableTools: TfrmTableTools
     Caption = 'lblCheckedSize'
   end
   object btnCloseOrCancel: TButton
-    Left = 441
+    Left = 661
     Top = 350
     Width = 95
     Height = 25
@@ -45,7 +45,7 @@ object frmTableTools: TfrmTableTools
     AlignWithMargins = True
     Left = 8
     Top = 8
-    Width = 528
+    Width = 748
     Height = 336
     Margins.Left = 8
     Margins.Top = 8
@@ -109,7 +109,7 @@ object frmTableTools: TfrmTableTools
     object pnlRight: TPanel
       Left = 148
       Top = 0
-      Width = 380
+      Width = 600
       Height = 336
       Align = alClient
       BevelOuter = bvNone
@@ -117,7 +117,7 @@ object frmTableTools: TfrmTableTools
       object ResultGrid: TVirtualStringTree
         Left = 0
         Top = 180
-        Width = 380
+        Width = 600
         Height = 156
         Align = alClient
         Header.AutoSizeIndex = -1
@@ -142,7 +142,7 @@ object frmTableTools: TfrmTableTools
       object tabsTools: TPageControl
         Left = 0
         Top = 0
-        Width = 380
+        Width = 600
         Height = 180
         ActivePage = tabSQLexport
         Align = alTop
@@ -153,7 +153,7 @@ object frmTableTools: TfrmTableTools
           Caption = 'Maintenance'
           ImageIndex = 39
           DesignSize = (
-            372
+            592
             151)
           object lblOperation: TLabel
             Left = 3
@@ -172,7 +172,7 @@ object frmTableTools: TfrmTableTools
           object comboOperation: TComboBox
             Left = 80
             Top = 11
-            Width = 288
+            Width = 508
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -234,7 +234,7 @@ object frmTableTools: TfrmTableTools
             OnClick = ValidateControls
           end
           object btnHelpMaintenance: TButton
-            Left = 294
+            Left = 514
             Top = 38
             Width = 75
             Height = 25
@@ -257,7 +257,7 @@ object frmTableTools: TfrmTableTools
           Caption = 'Find text'
           ImageIndex = 30
           DesignSize = (
-            372
+            592
             151)
           object lblFindText: TLabel
             Left = 3
@@ -277,7 +277,7 @@ object frmTableTools: TfrmTableTools
           object memoFindText: TMemo
             Left = 208
             Top = 11
-            Width = 161
+            Width = 381
             Height = 78
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
@@ -287,7 +287,7 @@ object frmTableTools: TfrmTableTools
           object comboDataTypes: TComboBox
             Left = 208
             Top = 95
-            Width = 161
+            Width = 381
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
@@ -296,7 +296,7 @@ object frmTableTools: TfrmTableTools
           object chkCaseSensitive: TCheckBox
             Left = 208
             Top = 122
-            Width = 161
+            Width = 381
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
             Caption = 'Case sensitive'
@@ -307,7 +307,7 @@ object frmTableTools: TfrmTableTools
           Caption = 'SQL export'
           ImageIndex = 9
           DesignSize = (
-            372
+            592
             151)
           object lblExportData: TLabel
             Left = 3
@@ -359,7 +359,7 @@ object frmTableTools: TfrmTableTools
             Caption = 'KB (0 = Single INSERTs)'
           end
           object btnExportOutputTargetSelect: TButton
-            Left = 346
+            Left = 566
             Top = 127
             Width = 23
             Height = 21
@@ -409,7 +409,7 @@ object frmTableTools: TfrmTableTools
           object comboExportData: TComboBox
             Left = 100
             Top = 47
-            Width = 269
+            Width = 489
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -419,7 +419,7 @@ object frmTableTools: TfrmTableTools
           object comboExportOutputType: TComboBox
             Left = 100
             Top = 101
-            Width = 269
+            Width = 489
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -429,7 +429,7 @@ object frmTableTools: TfrmTableTools
           object comboExportOutputTarget: TComboBox
             Left = 100
             Top = 127
-            Width = 243
+            Width = 463
             Height = 21
             Anchors = [akLeft, akTop, akRight]
             ParentShowHint = False
@@ -457,7 +457,7 @@ object frmTableTools: TfrmTableTools
             Wrap = True
           end
           object btnHelpSQLExport: TButton
-            Left = 294
+            Left = 514
             Top = 3
             Width = 75
             Height = 25
@@ -465,13 +465,26 @@ object frmTableTools: TfrmTableTools
             Caption = 'Help'
             TabOrder = 10
             OnClick = btnHelpSQLExportClick
+            ExplicitLeft = 294
+          end
+          object btnExportOptions: TButton
+            Left = 464
+            Top = 72
+            Width = 125
+            Height = 25
+            Anchors = [akTop, akRight]
+            Caption = 'Options'
+            DropDownMenu = popupExportOptions
+            Style = bsSplitButton
+            TabOrder = 11
+            OnClick = btnExportOptionsClick
           end
         end
         object tabBulkTableEdit: TTabSheet
           Caption = 'Bulk table editor'
           ImageIndex = 19
           DesignSize = (
-            372
+            592
             151)
           object chkBulkTableEditDatabase: TCheckBox
             Left = 3
@@ -485,7 +498,7 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditDatabase: TComboBox
             Left = 208
             Top = 3
-            Width = 160
+            Width = 380
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -513,7 +526,7 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditCollation: TComboBox
             Left = 208
             Top = 49
-            Width = 160
+            Width = 380
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -532,7 +545,7 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditEngine: TComboBox
             Left = 208
             Top = 26
-            Width = 160
+            Width = 380
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -551,7 +564,7 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditCharset: TComboBox
             Left = 208
             Top = 72
-            Width = 160
+            Width = 380
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
@@ -563,7 +576,7 @@ object frmTableTools: TfrmTableTools
     end
   end
   object btnExecute: TButton
-    Left = 340
+    Left = 560
     Top = 350
     Width = 95
     Height = 25
@@ -573,7 +586,7 @@ object frmTableTools: TfrmTableTools
     OnClick = Execute
   end
   object btnSeeResults: TButton
-    Left = 216
+    Left = 436
     Top = 350
     Width = 118
     Height = 25
@@ -598,6 +611,18 @@ object frmTableTools: TfrmTableTools
     end
     object menuCheckByType: TMenuItem
       Caption = 'Check ...'
+    end
+  end
+  object popupExportOptions: TPopupMenu
+    Left = 176
+    Top = 352
+    object menuExportAddComments: TMenuItem
+      AutoCheck = True
+      Caption = 'Add comments'
+    end
+    object menuExportRemoveAutoIncrement: TMenuItem
+      AutoCheck = True
+      Caption = 'Remove AUTO_INCREMENT clauses'
     end
   end
 end
