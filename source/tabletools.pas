@@ -77,6 +77,10 @@ type
     updownInsertSize: TUpDown;
     lblInsertSizeUnit: TLabel;
     btnHelpSQLExport: TButton;
+    btnExportOptions: TButton;
+    popupExportOptions: TPopupMenu;
+    menuExportAddComments: TMenuItem;
+    menuExportRemoveAutoIncrement: TMenuItem;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -122,6 +126,7 @@ type
     procedure CheckAllClick(Sender: TObject);
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure btnHelpSQLExportClick(Sender: TObject);
+    procedure btnExportOptionsClick(Sender: TObject);
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -224,6 +229,8 @@ begin
   comboExportData.Items.Text := DATA_NO+CRLF +DATA_REPLACE+CRLF +DATA_INSERT+CRLF +DATA_INSERTNEW+CRLF +DATA_UPDATE;
   comboExportData.ItemIndex := AppSettings.ReadInt(asExportSQLDataHow);
   updownInsertSize.Position := AppSettings.ReadInt(asExportSQLDataInsertSize);
+  menuExportAddComments.Checked := AppSettings.ReadBool(asExportSQLAddComments);
+  menuExportRemoveAutoIncrement.Checked := AppSettings.ReadBool(asExportSQLRemoveAutoIncrement);
   // Add hardcoded output options and session names from registry
   comboExportOutputType.Items.Text :=
     OUTPUT_FILE + CRLF +
@@ -366,6 +373,8 @@ begin
       AppSettings.WriteInt(asExportSQLDataHow, comboExportData.ItemIndex);
       if comboExportData.ItemIndex > 0 then
         AppSettings.WriteInt(asExportSQLDataInsertSize, updownInsertSize.Position);
+      AppSettings.WriteBool(asExportSQLAddComments, menuExportAddComments.Checked);
+      AppSettings.WriteBool(asExportSQLRemoveAutoIncrement, menuExportRemoveAutoIncrement.Checked);
 
       if not StartsStr(OUTPUT_SERVER, comboExportOutputType.Text) then
         AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
@@ -1180,6 +1189,15 @@ begin
 end;
 
 
+procedure TfrmTableTools.btnExportOptionsClick(Sender: TObject);
+var
+  btn: TButton;
+begin
+  btn := Sender as TButton;
+  btn.DropDownMenu.Popup(btn.ClientOrigin.X, btn.ClientOrigin.Y+btn.Height);
+end;
+
+
 procedure TfrmTableTools.btnExportOutputTargetSelectClick(Sender: TObject);
 var
   SaveDialog: TSaveDialog;
@@ -1337,16 +1355,21 @@ begin
         '/*!50503 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF
     else
       SetCharsetCode := '/*!40101 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF;
-    Header := '-- --------------------------------------------------------' + CRLF +
-      Format('-- %-30s%s', [_('Host')+':', DBObj.Connection.Parameters.HostName]) + CRLF +
-      Format('-- %-30s%s', [_('Server version')+':', DBObj.Connection.ServerVersionUntouched]) + CRLF +
-      Format('-- %-30s%s', [_('Server OS')+':', DBObj.Connection.ServerOS]) + CRLF +
-      Format('-- %-30s%s', [APPNAME + ' ' + _('Version')+':', Mainform.AppVersion]) + CRLF +
-      '-- --------------------------------------------------------' + CRLF + CRLF +
+    Header := '';
+    if menuExportAddComments.Checked then begin
+      Header := Header +
+        '-- --------------------------------------------------------' + CRLF +
+        Format('-- %-30s%s', [_('Host')+':', DBObj.Connection.Parameters.HostName]) + CRLF +
+        Format('-- %-30s%s', [_('Server version')+':', DBObj.Connection.ServerVersionUntouched]) + CRLF +
+        Format('-- %-30s%s', [_('Server OS')+':', DBObj.Connection.ServerOS]) + CRLF +
+        Format('-- %-30s%s', [APPNAME + ' ' + _('Version')+':', Mainform.AppVersion]) + CRLF +
+        '-- --------------------------------------------------------' + CRLF + CRLF;
+    end;
+    Header := Header +
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       SetCharsetCode +
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
-      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;';
+      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;' + CRLF;
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
     Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     Output('/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */', True, False, False, True, True);
@@ -1359,7 +1382,8 @@ begin
     FinalDbName := comboExportOutputTarget.Text;
   NeedsDBStructure := FinalDbName <> ExportLastDatabase;
   if chkExportDatabasesDrop.Checked or chkExportDatabasesCreate.Checked then begin
-    Output(CRLF+CRLF+'-- '+f_('Dumping database structure for %s', [DBObj.Database])+CRLF, False, NeedsDBStructure, False, False, False);
+    if menuExportAddComments.Checked then
+      Output(CRLF+'-- '+f_('Dumping database structure for %s', [DBObj.Database])+CRLF, False, NeedsDBStructure, False, False, False);
     if chkExportDatabasesDrop.Checked and chkExportDatabasesDrop.Enabled then
       Output('DROP DATABASE IF EXISTS '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
     if chkExportDatabasesCreate.Checked and chkExportDatabasesCreate.Enabled then begin
@@ -1382,7 +1406,8 @@ begin
 
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
-    Output(CRLF+CRLF+'-- '+f_('Dumping structure for %s %s.%s', [_(LowerCase(DBObj.ObjType)), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
+    if menuExportAddComments.Checked then
+      Output(CRLF+'-- '+f_('Dumping structure for %s %s.%s', [_(LowerCase(DBObj.ObjType)), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
@@ -1395,8 +1420,8 @@ begin
         case DBObj.NodeType of
           lntTable: begin
             Struc := DBObj.CreateCode;
-            // Remove AUTO_INCREMENT clause if no data gets exported
-            if comboExportData.Text = DATA_NO then begin
+            // Remove AUTO_INCREMENT clause
+            if menuExportRemoveAutoIncrement.Checked then begin
               rx := TRegExpr.Create;
               rx.ModifierI := True;
               rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
@@ -1423,8 +1448,10 @@ begin
               // Create temporary VIEW replacement
               ColumnList := TTableColumnList.Create(True);
               DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj, ColumnList, Dummy, Dummy, Dummy, Dummy, Dummy);
-              Struc := '-- '+_('Creating temporary table to overcome VIEW dependency errors')+CRLF+
-                'CREATE TABLE ';
+              Struc := '';
+              if menuExportAddComments.Checked then
+                Struc := Struc + '-- '+_('Creating temporary table to overcome VIEW dependency errors')+CRLF;
+              Struc := Struc + 'CREATE TABLE ';
               if ToDb then
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName) + '.';
               Struc := Struc + Quoter.QuoteIdent(DBObj.Name)+' (';
@@ -1438,8 +1465,10 @@ begin
               Struc := Struc + CRLF + ') ENGINE=MyISAM';
               ColumnList.Free;
             end else begin
-              Struc := '-- '+_('Removing temporary table and create final VIEW structure')+CRLF+
-                'DROP TABLE IF EXISTS ';
+              Struc := '';
+              if menuExportAddComments.Checked then
+                Struc := Struc + '-- '+_('Removing temporary table and create final VIEW structure')+CRLF;
+              Struc := Struc + 'DROP TABLE IF EXISTS ';
               if ToDb then
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';
               Struc := Struc + Quoter.QuoteIdent(DBObj.Name);
@@ -1501,14 +1530,17 @@ begin
   if DBObj.NodeType = lntTable then begin
     // Table data
     if comboExportData.Text = DATA_NO then begin
-      Output(CRLF+'-- '+_('Data exporting was unselected.')+CRLF, False, True, True, False, False);
+      if menuExportAddComments.Checked then
+        Output(CRLF+'-- '+_('Data exporting was unselected.')+CRLF, False, True, True, False, False);
     end else if DBObj.Engine = 'MRG_MYISAM' then begin
-      Output(CRLF+'-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF, False, True, True, False, False);
+      if menuExportAddComments.Checked then
+        Output(CRLF+'-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF, False, True, True, False, False);
     end else begin
       tmp := FormatNumber(DBObj.Rows)+' rows';
       if LowerCase(DBObj.Engine) = 'innodb' then
         tmp := '~'+tmp+' ('+_('approximately')+')';
-      Output(CRLF+'-- '+f_('Dumping data for table %s.%s: %s', [DBObj.Database, DBObj.Name, tmp])+CRLF, False, True, True, False, False);
+      if menuExportAddComments.Checked then
+        Output(CRLF+'-- '+f_('Dumping data for table %s.%s: %s', [DBObj.Database, DBObj.Name, tmp])+CRLF, False, True, True, False, False);
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
       if ToDb then
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
