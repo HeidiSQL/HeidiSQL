@@ -1373,6 +1373,7 @@ begin
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
     Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     Output('/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */', True, False, False, True, True);
+    Output(CRLF, False, True, True, False, False);
     FHeaderCreated := True;
   end;
 
@@ -1397,6 +1398,7 @@ begin
         Struc := 'CREATE DATABASE IF NOT EXISTS '+Quoter.QuoteIdent(FinalDbName);
       Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);
       Output('USE '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
+      Output(CRLF, False, NeedsDBStructure, False, False, NeedsDBStructure);
     end;
   end;
   if ToServer and (not chkExportDatabasesCreate.Checked) then begin
@@ -1407,7 +1409,7 @@ begin
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
     if menuExportAddComments.Checked then
-      Output(CRLF+'-- '+f_('Dumping structure for %s %s.%s', [_(LowerCase(DBObj.ObjType)), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
+      Output('-- '+f_('Dumping structure for %s %s.%s', [_(LowerCase(DBObj.ObjType)), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
     if chkExportTablesDrop.Checked then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
@@ -1517,6 +1519,7 @@ begin
         end;
         Struc := fixNewlines(Struc);
         Output(Struc, True, True, True, True, True);
+        Output(CRLF, False, True, True, True, True);
       except
         on E:EDatabaseError do begin
           // Catch the exception message and dump it into the export file for debugging reasons
@@ -1531,16 +1534,16 @@ begin
     // Table data
     if comboExportData.Text = DATA_NO then begin
       if menuExportAddComments.Checked then
-        Output(CRLF+'-- '+_('Data exporting was unselected.')+CRLF, False, True, True, False, False);
+        Output('-- '+_('Data exporting was unselected.')+CRLF, False, True, True, False, False);
     end else if DBObj.Engine = 'MRG_MYISAM' then begin
       if menuExportAddComments.Checked then
-        Output(CRLF+'-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF, False, True, True, False, False);
+        Output('-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF, False, True, True, False, False);
     end else begin
       tmp := FormatNumber(DBObj.Rows)+' rows';
       if LowerCase(DBObj.Engine) = 'innodb' then
         tmp := '~'+tmp+' ('+_('approximately')+')';
       if menuExportAddComments.Checked then
-        Output(CRLF+'-- '+f_('Dumping data for table %s.%s: %s', [DBObj.Database, DBObj.Name, tmp])+CRLF, False, True, True, False, False);
+        Output('-- '+f_('Dumping data for table %s.%s: %s', [DBObj.Database, DBObj.Name, tmp])+CRLF, False, True, True, False, False);
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
       if ToDb then
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
@@ -1627,6 +1630,7 @@ begin
 
       end;
       Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
+      Output(CRLF, False, True, True, True, True);
       // Cosmetic fix for estimated InnoDB row count
       DBObj.Rows := RowCount;
       LogStatistic(RowCount);
