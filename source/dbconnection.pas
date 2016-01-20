@@ -6381,9 +6381,9 @@ begin
         Val := Cell.NewText
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
-          Val := Cell.NewText;
+          Val := Connection.EscapeString(Cell.NewText);
           if (Datatype(i).Index = dtBit) and FConnection.Parameters.IsMySQL then
-            Val := 'b' + Connection.EscapeString(Val);
+            Val := 'b' + Val;
         end;
         dtcBinary, dtcSpatial:
           Val := HexValue(Cell.NewText);
