@@ -147,7 +147,8 @@ type
     procedure SetToolMode(Value: TToolMode);
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
     procedure AddResults(SQL: String; Connection: TDBConnection);
-    procedure AddNotes(Col1, Col2, Col3, Col4: String);
+    procedure AddNotes(Col1, Col2, Col3, Col4: String); overload;
+    procedure AddNotes(DBObject: TDBObject; Msg1, Msg2: String); overload;
     procedure SetupResultGrid(Results: TDBQuery=nil);
     procedure UpdateResultGrid;
     procedure DoMaintenance(DBObj: TDBObject);
@@ -599,7 +600,7 @@ var
       on E:EDatabaseError do begin
         // The above SQL can easily throw an exception, e.g. if a table is corrupted.
         // In such cases we create a dummy row, including the error message
-        AddNotes(DBObj.Database, DBObj.Name, 'error', E.Message)
+        AddNotes(DBObj, 'error', E.Message)
       end;
       on E:EFCreateError do begin
         // Occurs when export output file can not be created
@@ -775,7 +776,7 @@ var
   SQL: String;
 begin
   if not (DBObj.NodeType in [lntTable, lntView]) then begin
-    AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' cannot be maintained.', '');
+    AddNotes(DBObj, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' cannot be maintained.', '');
     Exit;
   end;
   SQL := UpperCase(comboOperation.Text) + ' TABLE ' + DBObj.QuotedDatabase + '.' + DBObj.QuotedName;
@@ -794,57 +795,93 @@ procedure TfrmTableTools.DoFind(DBObj: TDBObject);
 var
   Columns: TTableColumnList;
   Col: TTableColumn;
-  SQL, Dummy: String;
+  SQL, Dummy, Column, RoutineDefinitionColumn, FindText, FindTextJokers: String;
 begin
   FFindSeeResultSQL.Add('');
+
+  FindText := memoFindText.Text;
+  FindTextJokers := '%'+FindText+'%';
+  RoutineDefinitionColumn := DBObj.Connection.QuoteIdent('ROUTINE_DEFINITION');
+  if not chkCaseSensitive.Checked then begin
+    FindText := LowerCase(FindText);
+    FindTextJokers := LowerCase(FindTextJokers);
+    RoutineDefinitionColumn := 'LOWER('+RoutineDefinitionColumn+')';
+  end;
+
   Columns := TTableColumnList.Create(True);
   case DBObj.NodeType of
     lntTable: DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
     lntView: DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
-    else AddNotes(DBObj.Database, DBObj.Name, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' does not contain rows.', '');
+    lntProcedure, lntFunction: ;
+    // TODO: Triggers + Events
+    else AddNotes(DBObj, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' does not contain rows.', '');
   end;
-  if Columns.Count > 0 then begin
-    SQL := '';
-    for Col in Columns do begin
-      if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
-        if chkCaseSensitive.Checked then begin
-          case DBObj.Connection.Parameters.NetTypeGroup of
-            ngMySQL:
-              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name) + ' LIKE BINARY ' + esc('%'+memoFindText.Text+'%') + ' OR ';
-            ngMSSQL:
-              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+memoFindText.Text+'%') + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
-            ngPgSQL:
-              SQL := SQL + 'CAST(' + DBObj.Connection.QuoteIdent(Col.Name) + ' AS text) LIKE ' + esc('%'+memoFindText.Text+'%') + ' OR ';
-          end;
-        end else begin
-          case DBObj.Connection.Parameters.NetTypeGroup of
-            ngMySQL:
-              SQL := SQL + 'LOWER(CONVERT('+DBObj.Connection.QuoteIdent(Col.Name)+' USING '+DBObj.Connection.CharacterSet+')) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
-            ngMSSQL:
-              SQL := SQL + DBObj.Connection.QuoteIdent(Col.Name)+' LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
-            ngPgSQL:
-              SQL := SQL + 'LOWER(CAST('+DBObj.Connection.QuoteIdent(Col.Name)+' AS TEXT)) LIKE ' + esc('%'+LowerCase(memoFindText.Text)+'%') + ' OR ';
+  case DBObj.NodeType of
+    lntTable, lntView: begin
+      if Columns.Count > 0 then begin
+        SQL := '';
+        for Col in Columns do begin
+          Column := DBObj.Connection.QuoteIdent(Col.Name);
+          if not chkCaseSensitive.Checked then
+            Column := 'LOWER('+Column+')';
+          if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
+            if chkCaseSensitive.Checked then begin
+              case DBObj.Connection.Parameters.NetTypeGroup of
+                ngMySQL:
+                  SQL := SQL + Column + ' LIKE BINARY ' + esc(FindTextJokers) + ' OR ';
+                ngMSSQL:
+                  SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
+                ngPgSQL:
+                  SQL := SQL + 'CAST(' + Column + ' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
+              end;
+            end else begin
+              case DBObj.Connection.Parameters.NetTypeGroup of
+                ngMySQL:
+                  SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') LIKE ' + esc(FindTextJokers) + ' OR ';
+                ngMSSQL:
+                  SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' OR ';
+                ngPgSQL:
+                  SQL := SQL + 'CAST('+Column+' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
+              end;
+            end;
           end;
         end;
+        if SQL <> '' then begin
+          Delete(SQL, Length(SQL)-3, 3);
+          FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE ' + SQL;
+          case DBObj.Connection.Parameters.NetTypeGroup of
+            ngMySQL, ngPgSQL:
+              SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
+                + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + SQL;
+            ngMSSQL:
+              SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
+                + 'CONVERT(VARCHAR(10), ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1)) + ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + SQL;
+          end;
+          AddResults(SQL, DBObj.Connection);
+        end else
+          AddNotes(DBObj, f_('%s%s doesn''t have columns of selected type (%s).', [STRSKIPPED, DBObj.ObjType, comboDatatypes.Text]), '');
       end;
     end;
-    if SQL <> '' then begin
-      Delete(SQL, Length(SQL)-3, 3);
-      FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE ' + SQL;
-      case DBObj.Connection.Parameters.NetTypeGroup of
-        ngMySQL, ngPgSQL:
-          SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-            + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
-            + SQL;
-        ngMSSQL:
-          SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-            + 'CONVERT(VARCHAR(10), ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1)) + ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
-            + SQL;
+
+    lntProcedure, lntFunction: begin
+      if DBObj.Connection.InformationSchemaObjects.IndexOf('ROUTINES') > -1 then begin
+        SQL := 'SELECT '+
+          esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', '+
+          esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', '+
+          'CEIL((LENGTH('+RoutineDefinitionColumn+') - LENGTH(REPLACE('+RoutineDefinitionColumn+', '+esc(FindText)+', '+esc('')+'))) / LENGTH('+esc(FindText)+')) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '+
+          '0 AS '+DBObj.Connection.QuoteIdent('Relevance')+
+          'FROM '+DBObj.Connection.QuoteIdent('INFORMATION_SCHEMA')+'.'+DBObj.Connection.QuoteIdent('ROUTINES')+' '+
+          'WHERE '+DBObj.Connection.QuoteIdent('ROUTINE_SCHEMA')+'='+esc(DBObj.Database)+' AND '+DBObj.Connection.QuoteIdent('ROUTINE_NAME')+'='+esc(DBObj.Name);
+        AddResults(SQL, DBObj.Connection);
+      end else begin
+        AddNotes(DBObj, f_('%s%s missing.', [STRSKIPPED, 'INFORMATION_SCHEMA.ROUTINES']), '');
       end;
-      AddResults(SQL, DBObj.Connection);
-    end else
-      AddNotes(DBObj.Database, DBObj.Name, f_('%s%s doesn''t have columns of selected type (%s).', [STRSKIPPED, DBObj.ObjType, comboDatatypes.Text]), '');
+    end;
+
   end;
+
   Columns.Free;
 end;
 
@@ -918,6 +955,12 @@ begin
   Row.Add(Col4);
   FResults.Add(Row);
   UpdateResultGrid;
+end;
+
+
+procedure TfrmTableTools.AddNotes(DBObject: TDBObject; Msg1, Msg2: String);
+begin
+  AddNotes(DBObject.Database, DBObject.Name, Msg1, Msg2);
 end;
 
 
