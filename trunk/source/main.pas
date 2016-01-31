@@ -7054,7 +7054,7 @@ begin
     Tree := TVirtualStringTree(Sender);
     HintText := Tree.Text[Node, Column];
     HintText := sstr(HintText, SIZE_KB);
-    LineBreakStyle := hlbForceMultiLine;
+    LineBreakStyle := hlbForceSingleLine;
   end;
 end;
 
