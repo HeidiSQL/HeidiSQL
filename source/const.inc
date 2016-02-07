@@ -56,6 +56,14 @@ const
   {Pebibyte} SIZE_PB = 1125899906842624;
   {Exbibyte} SIZE_EB = 1152921504606846976;
 
+  // Size of byte units for formatting purposes
+  {Kibibyte} FSIZE_KB = 1000;
+  {Mebibyte} FSIZE_MB = 1024000;
+  {Gibibyte} FSIZE_GB = 1048576000;
+  {Tebibyte} FSIZE_TB = 1073741824000;
+  {Pebibyte} FSIZE_PB = 1099511627776000;
+  {Exbibyte} FSIZE_EB = 1125899906842624000;
+
   // Abbreviations of byte unit names
   {Bytes} NAME_BYTES = ' B';
   {Kibibyte} NAME_KB = ' KiB';
