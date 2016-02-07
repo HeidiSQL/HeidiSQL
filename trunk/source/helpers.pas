@@ -1014,15 +1014,15 @@ end;
 }
 function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
 begin
-  if Bytes >= SIZE_PB then
+  if Bytes >= FSIZE_PB then
     Result := FormatNumber( Bytes / SIZE_PB, Decimals ) + NAME_PB
-  else if Bytes >= SIZE_TB then
+  else if Bytes >= FSIZE_TB then
     Result := FormatNumber( Bytes / SIZE_TB, Decimals ) + NAME_TB
-  else if Bytes >= SIZE_GB then
+  else if Bytes >= FSIZE_GB then
     Result := FormatNumber( Bytes / SIZE_GB, Decimals ) + NAME_GB
-  else if Bytes >= SIZE_MB then
+  else if Bytes >= FSIZE_MB then
     Result := FormatNumber( Bytes / SIZE_MB, Decimals ) + NAME_MB
-  else if Bytes >= SIZE_KB then
+  else if Bytes >= FSIZE_KB then
     Result := FormatNumber( Bytes / SIZE_KB, Decimals ) + NAME_KB
   else
     Result := FormatNumber( Bytes ) + NAME_BYTES
