@@ -10834,7 +10834,7 @@ begin
   // Resize "Size" column in dbtree to hold widest possible byte numbers without cutting text
   VT := Sender as TVirtualStringTree;
   if (VT.Header.Columns.Count >= 2) and (coVisible in VT.Header.Columns[1].Options) then
-    VT.Header.Columns[1].Width := TextWidth(VT.Canvas, FormatByteNumber(SIZE_KB*999)) + VT.TextMargin*2 + 4;
+    VT.Header.Columns[1].Width := TextWidth(VT.Canvas, FormatByteNumber(SIZE_MB*100)) + VT.TextMargin*2 + 8;
 end;
 
 
