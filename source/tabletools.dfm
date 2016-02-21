@@ -365,7 +365,7 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Hint = 'Browse filesystem'
             Anchors = [akTop, akRight]
-            ImageIndex = 10
+            ImageIndex = 51
             Images = MainForm.ImageListMain
             TabOrder = 9
             OnClick = btnExportOutputTargetSelectClick
