@@ -1116,7 +1116,7 @@ begin
       comboExportOutputTarget.ItemIndex := 0;
     lblExportOutputTarget.Caption := _('Filename')+':';
     btnExportOutputTargetSelect.Enabled := True;
-    btnExportOutputTargetSelect.ImageIndex := 10;
+    btnExportOutputTargetSelect.ImageIndex := 51;
   end else if comboExportOutputType.Text = OUTPUT_DIR then begin
     comboExportOutputTarget.Style := csDropDown;
     comboExportOutputTarget.Hint := FilenameHint;
