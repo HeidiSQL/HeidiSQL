@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2016-01-23 10:52+0100\n"
+"PO-Revision-Date: 2016-03-05 19:33+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -5868,6 +5868,9 @@ msgstr "GUID without braces"
 
 msgid "Query timeout:"
 msgstr "Query timeout:"
+
+msgid "Ping every X seconds:"
+msgstr "Ping every X seconds:"
 
 msgid "Connection attempts:"
 msgstr "Connection attempts:"

@@ -109,6 +109,9 @@ type
     menuRename: TMenuItem;
     lblSSLcipher: TLabel;
     editSSLcipher: TEdit;
+    lblKeepAlive: TLabel;
+    editKeepAlive: TEdit;
+    updownKeepAlive: TUpDown;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -347,6 +350,7 @@ begin
   Sess.NetType := TNetType(comboNetType.ItemIndex);
   Sess.Compressed := chkCompressed.Checked;
   Sess.QueryTimeout := updownQueryTimeout.Position;
+  Sess.KeepAlive := updownKeepAlive.Position;
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.FullTableStatus := chkFullTableStatus.Checked;
   Sess.AllDatabasesStr := editDatabases.Text;
@@ -559,6 +563,7 @@ begin
     Result.StartupScriptFilename := editStartupScript.Text;
     Result.Compressed := chkCompressed.Checked;
     Result.QueryTimeout := updownQueryTimeout.Position;
+    Result.KeepAlive := updownKeepAlive.Position;
     Result.LocalTimeZone := chkLocalTimeZone.Checked;
     Result.FullTableStatus := chkFullTableStatus.Checked;
   end;
@@ -800,6 +805,7 @@ begin
     updownPort.Position := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
     updownQueryTimeout.Position := Sess.QueryTimeout;
+    updownKeepAlive.Position := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
     editDatabases.Text := Sess.AllDatabasesStr;
@@ -1058,6 +1064,7 @@ begin
       or (Sess.Port <> updownPort.Position)
       or (Sess.Compressed <> chkCompressed.Checked)
       or (Sess.QueryTimeout <> updownQueryTimeout.Position)
+      or (Sess.KeepAlive <> updownKeepAlive.Position)
       or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
       or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
