@@ -628,6 +628,13 @@ object connform: Tconnform
         Height = 13
         Caption = 'SSL cipher:'
       end
+      object lblKeepAlive: TLabel
+        Left = 3
+        Top = 224
+        Width = 106
+        Height = 13
+        Caption = 'Ping every X seconds:'
+      end
       object editSSLPrivateKey: TButtonedEdit
         Left = 120
         Top = 36
@@ -685,7 +692,7 @@ object connform: Tconnform
       end
       object chkLocalTimeZone: TCheckBox
         Left = 120
-        Top = 224
+        Top = 246
         Width = 294
         Height = 17
         Hint = 
@@ -712,7 +719,7 @@ object connform: Tconnform
       end
       object chkFullTableStatus: TCheckBox
         Left = 120
-        Top = 247
+        Top = 269
         Width = 294
         Height = 17
         Hint = 
@@ -752,6 +759,24 @@ object connform: Tconnform
         TabOrder = 4
         TextHint = 'List of permissible ciphers to use for SSL encryption'
         OnChange = Modification
+      end
+      object editKeepAlive: TEdit
+        Left = 120
+        Top = 219
+        Width = 90
+        Height = 21
+        TabOrder = 10
+        Text = '0'
+        OnChange = Modification
+      end
+      object updownKeepAlive: TUpDown
+        Left = 210
+        Top = 219
+        Width = 16
+        Height = 21
+        Associate = editKeepAlive
+        Max = 86400
+        TabOrder = 11
       end
     end
     object tabStatistics: TTabSheet

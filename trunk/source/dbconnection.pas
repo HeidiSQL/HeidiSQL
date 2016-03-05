@@ -207,7 +207,7 @@ type
       FHostname, FUsername, FPassword, FAllDatabases, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
-      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout: Integer;
+      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
       FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus, FWindowsAuth, FWantSSL, FIsFolder: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
@@ -251,6 +251,7 @@ type
       property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property QueryTimeout: Integer read FQueryTimeout write FQueryTimeout;
+      property KeepAlive: Integer read FKeepAlive write FKeepAlive;
       property Compressed: Boolean read FCompressed write FCompressed;
       property LocalTimeZone: Boolean read FLocalTimeZone write FLocalTimeZone;
       property FullTableStatus: Boolean read FFullTableStatus write FFullTableStatus;
@@ -1134,6 +1135,7 @@ begin
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
     FCompressed := AppSettings.ReadBool(asCompressed);
     FQueryTimeout := AppSettings.ReadInt(asQueryTimeout);
+    FKeepAlive := AppSettings.ReadInt(asKeepAlive);
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
@@ -1168,6 +1170,7 @@ begin
     AppSettings.WriteBool(asCompressed, FCompressed);
     AppSettings.WriteBool(asLocalTimeZone, FLocalTimeZone);
     AppSettings.WriteInt(asQueryTimeout, FQueryTimeout);
+    AppSettings.WriteInt(asKeepAlive, FKeepAlive);
     AppSettings.WriteBool(asFullTableStatus, FFullTableStatus);
     AppSettings.WriteString(asDatabases, FAllDatabases);
     AppSettings.WriteString(asComment, FComment);
@@ -1394,8 +1397,6 @@ begin
   FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
-  FKeepAliveTimer.Interval := 20000;
-  FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
   FFavorites := TStringList.Create;
 end;
 
@@ -2125,6 +2126,10 @@ begin
   FParameters.ServerVersion := FServerVersionUntouched;
   if Assigned(FOnConnected) then
     FOnConnected(Self, FDatabase);
+  if FParameters.KeepAlive > 0 then begin
+    FKeepAliveTimer.Interval := FParameters.KeepAlive * 1000;
+    FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
+  end;
 end;
 
 

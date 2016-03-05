@@ -141,7 +141,7 @@ type
     asUser, asPassword, asWindowsAuth, asLoginPrompt, asPort,
     asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
-    asSSLCert, asSSLCA, asSSLCipher, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout,
+    asSSLCert, asSSLCA, asSSLCipher, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
     asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asExportSQLCreateDatabases,
     asExportSQLCreateTables, asExportSQLDataHow, asExportSQLDataInsertSize, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLRemoveAutoIncrement,
@@ -3217,6 +3217,7 @@ begin
   InitSetting(asCompressed,                       'Compressed',                            0, False, '', True);
   InitSetting(asLocalTimeZone,                    'LocalTimeZone',                         0, False, '', True);
   InitSetting(asQueryTimeout,                     'QueryTimeout',                          30, False, '', True);
+  InitSetting(asKeepAlive,                        'KeepAlive',                             20, False, '', True);
   InitSetting(asStartupScriptFilename,            'StartupScriptFilename',                 0, False, '', True);
   InitSetting(asDatabases,                        'Databases',                             0, False, '', True);
   InitSetting(asComment,                          'Comment',                               0, False, '', True);
