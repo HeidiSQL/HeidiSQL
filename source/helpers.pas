@@ -13,7 +13,7 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
-  Character, ImgList, System.UITypes, ActnList, WinSock;
+  Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils;
 
 type
 
@@ -329,6 +329,7 @@ type
   function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
   function PortOpen(Port: Word): Boolean;
+  function IsValidFilePath(FilePath: String): Boolean;
 
 
 var
@@ -2742,6 +2743,22 @@ begin
   finally
     WSACleanup;
   end;
+end;
+
+
+function IsValidFilePath(FilePath: String): Boolean;
+var
+  Pieces: TStringList;
+  i: Integer;
+begin
+  // Check file path for invalid characters. See http://www.heidisql.com/forum.php?t=20873
+  Result := True;
+  Pieces := TStringList.Create;
+  SplitRegExpr('[\\\/]', FilePath, Pieces);
+  for i:=1 to Pieces.Count-1 do begin
+    Result := Result and TPath.HasValidFileNameChars(Pieces[i], False);
+  end;
+  Pieces.Free;
 end;
 
 

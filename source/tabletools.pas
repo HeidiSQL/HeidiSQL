@@ -1384,6 +1384,8 @@ begin
       FExportFileName := TargetFileName;
       if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then
         TargetFileName := ChangeFileExt(TargetFileName, '_temp.sql');
+      if not IsValidFilePath(TargetFileName) then
+        raise EFCreateError.CreateFmt(_('Filename or path contains illegal characters: "%s"'), [TargetFilename]);
       ExportStream := TFileStream.Create(TargetFileName, fmCreate or fmOpenWrite);
     end;
     // ToDir handled above
