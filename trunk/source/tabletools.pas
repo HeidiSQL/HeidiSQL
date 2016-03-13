@@ -869,18 +869,14 @@ begin
     end;
 
     lntProcedure, lntFunction: begin
-      if DBObj.Connection.InformationSchemaObjects.IndexOf('routines') > -1 then begin
-        SQL := 'SELECT '+
-          esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', '+
-          esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', '+
-          DBObj.Connection.GetSQLSpecifity(spFuncCeil)+'(('+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+RoutineDefinitionColumn+') - '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'(REPLACE('+RoutineDefinitionColumn+', '+esc(FindText)+', '+esc('')+'))) / '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+esc(FindText)+')) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '+
-          '0 AS '+DBObj.Connection.QuoteIdent('Relevance')+
-          'FROM '+DBObj.Connection.QuoteIdent('information_schema')+'.'+DBObj.Connection.QuoteIdent('routines')+' '+
-          'WHERE '+DBObj.Connection.QuoteIdent(RoutineSchemaColumn)+'='+esc(DBObj.Database)+' AND '+DBObj.Connection.QuoteIdent('routine_name')+'='+esc(DBObj.Name);
-        AddResults(SQL, DBObj.Connection);
-      end else begin
-        AddNotes(DBObj, f_('%s%s missing.', [STRSKIPPED, 'information_schema.routines']), '');
-      end;
+      SQL := 'SELECT '+
+        esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', '+
+        esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', '+
+        DBObj.Connection.GetSQLSpecifity(spFuncCeil)+'(('+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+RoutineDefinitionColumn+') - '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'(REPLACE('+RoutineDefinitionColumn+', '+esc(FindText)+', '+esc('')+'))) / '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+esc(FindText)+')) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '+
+        '0 AS '+DBObj.Connection.QuoteIdent('Relevance')+
+        'FROM '+DBObj.Connection.QuoteIdent('information_schema')+'.'+DBObj.Connection.QuoteIdent('routines')+' '+
+        'WHERE '+DBObj.Connection.QuoteIdent(RoutineSchemaColumn)+'='+esc(DBObj.Database)+' AND '+DBObj.Connection.QuoteIdent('routine_name')+'='+esc(DBObj.Name);
+      AddResults(SQL, DBObj.Connection);
     end;
 
   end;
