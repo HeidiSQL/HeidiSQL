@@ -284,7 +284,8 @@ type
     spAddColumn, spChangeColumn,
     spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
-    spUSEQuery, spKillQuery);
+    spUSEQuery, spKillQuery,
+    spFuncLength, spFuncCeil);
 
   TDBConnection = class(TComponent)
     private
@@ -2005,6 +2006,8 @@ begin
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
+      FSQLSpecifities[spFuncLength] := 'LENGTH';
+      FSQLSpecifities[spFuncCeil] := 'CEIL';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -2018,6 +2021,8 @@ begin
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_CATALOG';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
+      FSQLSpecifities[spFuncLength] := 'LEN';
+      FSQLSpecifities[spFuncCeil] := 'CEILING';
     end;
     ngPgSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -2031,6 +2036,8 @@ begin
       FSQLSpecifities[spISTableSchemaCol] := 'table_schema';
       FSQLSpecifities[spUSEQuery] := 'SET search_path TO %s';
       FSQLSpecifities[spKillQuery] := 'SELECT pg_cancel_backend(%d)';
+      FSQLSpecifities[spFuncLength] := 'LENGTH';
+      FSQLSpecifities[spFuncCeil] := 'CEIL';
     end;
 
   end;
