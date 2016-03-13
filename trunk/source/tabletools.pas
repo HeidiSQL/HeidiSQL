@@ -795,18 +795,21 @@ procedure TfrmTableTools.DoFind(DBObj: TDBObject);
 var
   Columns: TTableColumnList;
   Col: TTableColumn;
-  SQL, Dummy, Column, RoutineDefinitionColumn, FindText, FindTextJokers: String;
+  SQL, Dummy, Column, RoutineDefinitionColumn, RoutineSchemaColumn, FindText, FindTextJokers: String;
 begin
   FFindSeeResultSQL.Add('');
 
   FindText := memoFindText.Text;
   FindTextJokers := '%'+FindText+'%';
-  RoutineDefinitionColumn := DBObj.Connection.QuoteIdent('ROUTINE_DEFINITION');
+  RoutineDefinitionColumn := DBObj.Connection.QuoteIdent('routine_definition');
   if not chkCaseSensitive.Checked then begin
     FindText := LowerCase(FindText);
     FindTextJokers := LowerCase(FindTextJokers);
     RoutineDefinitionColumn := 'LOWER('+RoutineDefinitionColumn+')';
   end;
+  RoutineSchemaColumn := 'routine_schema';
+  if DBObj.Connection.Parameters.IsMSSQL then
+    RoutineSchemaColumn := 'routine_catalog';
 
   Columns := TTableColumnList.Create(True);
   case DBObj.NodeType of
@@ -866,17 +869,17 @@ begin
     end;
 
     lntProcedure, lntFunction: begin
-      if DBObj.Connection.InformationSchemaObjects.IndexOf('ROUTINES') > -1 then begin
+      if DBObj.Connection.InformationSchemaObjects.IndexOf('routines') > -1 then begin
         SQL := 'SELECT '+
           esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', '+
           esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', '+
-          'CEIL((LENGTH('+RoutineDefinitionColumn+') - LENGTH(REPLACE('+RoutineDefinitionColumn+', '+esc(FindText)+', '+esc('')+'))) / LENGTH('+esc(FindText)+')) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '+
+          DBObj.Connection.GetSQLSpecifity(spFuncCeil)+'(('+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+RoutineDefinitionColumn+') - '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'(REPLACE('+RoutineDefinitionColumn+', '+esc(FindText)+', '+esc('')+'))) / '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+esc(FindText)+')) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '+
           '0 AS '+DBObj.Connection.QuoteIdent('Relevance')+
-          'FROM '+DBObj.Connection.QuoteIdent('INFORMATION_SCHEMA')+'.'+DBObj.Connection.QuoteIdent('ROUTINES')+' '+
-          'WHERE '+DBObj.Connection.QuoteIdent('ROUTINE_SCHEMA')+'='+esc(DBObj.Database)+' AND '+DBObj.Connection.QuoteIdent('ROUTINE_NAME')+'='+esc(DBObj.Name);
+          'FROM '+DBObj.Connection.QuoteIdent('information_schema')+'.'+DBObj.Connection.QuoteIdent('routines')+' '+
+          'WHERE '+DBObj.Connection.QuoteIdent(RoutineSchemaColumn)+'='+esc(DBObj.Database)+' AND '+DBObj.Connection.QuoteIdent('routine_name')+'='+esc(DBObj.Name);
         AddResults(SQL, DBObj.Connection);
       end else begin
-        AddNotes(DBObj, f_('%s%s missing.', [STRSKIPPED, 'INFORMATION_SCHEMA.ROUTINES']), '');
+        AddNotes(DBObj, f_('%s%s missing.', [STRSKIPPED, 'information_schema.routines']), '');
       end;
     end;
 
