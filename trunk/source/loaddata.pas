@@ -612,11 +612,12 @@ var
   Dialog: TOpenTextFileDialog;
   TestStream: TFileStream;
 begin
+  AppSettings.ResetPath;
   Dialog := TOpenTextFileDialog.Create(Self);
   Dialog.Filter := _('CSV files')+' (*.csv)|*.csv|'+_('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
   Dialog.DefaultExt := 'csv';
   Dialog.Encodings.Assign(Mainform.FileEncodings);
-  Dialog.EncodingIndex := 0;
+  Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if Dialog.Execute then begin
     editfilename.Text := Dialog.FileName;
     Encoding := Mainform.GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
@@ -627,6 +628,7 @@ begin
     end;
     SelectedCharsetIndex := -1;
     grpParseMethod.OnClick(Sender);
+    AppSettings.WriteInt(asFileDialogEncoding, Dialog.EncodingIndex, Self.Name);
   end;
   Dialog.Free;
 end;

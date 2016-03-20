@@ -3233,12 +3233,13 @@ var
   Tab: TQueryTab;
   ConsiderActiveTab: Boolean;
 begin
+  AppSettings.ResetPath;
   Dialog := TOpenTextFileDialog.Create(Self);
   Dialog.Options := Dialog.Options + [ofAllowMultiSelect];
   Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
   Dialog.DefaultExt := 'sql';
   Dialog.Encodings.Assign(FileEncodings);
-  Dialog.EncodingIndex := 0;
+  Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if Dialog.Execute then begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
     if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
@@ -3251,6 +3252,7 @@ begin
           SetMainTab(Tab.TabSheet);
       end;
     end;
+    AppSettings.WriteInt(asFileDialogEncoding, Dialog.EncodingIndex, Self.Name);
   end;
   Dialog.Free;
 end;
