@@ -172,6 +172,7 @@ type
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asDoubleClickInsertsNodeText, asForeignDropDown, asQueryHistoryEnabled,
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
+    asFileDialogEncoding,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3387,6 +3388,7 @@ begin
   InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False);
   InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True, '', True);
   InitSetting(asLineBreakStyle,                   'LineBreakStyle',                        Integer(lbsNone));
+  InitSetting(asFileDialogEncoding,               'FileDialogEncoding_%s',                 0);
 end;
 
 

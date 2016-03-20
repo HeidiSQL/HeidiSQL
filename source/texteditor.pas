@@ -231,16 +231,18 @@ procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
 var
   d: TOpenTextFileDialog;
 begin
+  AppSettings.ResetPath;
   d := TOpenTextFileDialog.Create(Self);
   d.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
   d.FilterIndex := 0;
   d.Encodings.Assign(MainForm.FileEncodings);
-  d.EncodingIndex := 0;
+  d.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if d.Execute then try
     Screen.Cursor := crHourglass;
     memoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
     if (memoText.MaxLength > 0) and (Length(memoText.Text) > memoText.MaxLength) then
       memoText.Text := copy(memoText.Text, 0, memoText.MaxLength);
+    AppSettings.WriteInt(asFileDialogEncoding, d.EncodingIndex, Self.Name);
   finally
     Screen.Cursor := crDefault;
   end;
