@@ -8191,27 +8191,53 @@ end;
 
 procedure TMainForm.editFilterSearchChange(Sender: TObject);
 var
-  Clause, Line: String;
+  Clause, Line, Condition: String;
+  Conditions: TStringList;
   i: Integer;
   ed: TEdit;
   Conn: TDBConnection;
+  rx: TRegExpr;
 begin
   ed := TEdit(Sender);
   Clause := '';
-  Conn := ActiveConnection;
   if ed.Text <> '' then begin
-    Line := '';
+
+    Conn := ActiveConnection;
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    Conditions := TStringList.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
-      if i > 0 then
+      // The normal case: do a LIKE comparison
+      Condition := Conn.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
+      if not SelectedTableColumns[i].DataType.ValueMustMatch.IsEmpty then begin
+        // Use an exact comparison for some PostgreSQL data types to overcome SQL errors, e.g. UUID, INT etc.
+        // Also, prevent other errors by matching the value against a certain regular expression.
+        // If it does not match, leave this column away.
+        // See http://www.heidisql.com/forum.php?t=20953
+        rx.Expression := SelectedTableColumns[i].DataType.ValueMustMatch;
+        if rx.Exec(ed.Text) then
+          Condition := Conn.QuoteIdent(SelectedTableColumns[i].Name) + '=' + Conn.EscapeString(ed.Text)
+        else
+          Condition := '';
+      end;
+      if not Condition.IsEmpty then
+        Conditions.Add(Condition);
+    end;
+    rx.Free;
+
+    Line := '';
+    for i:=0 to Conditions.Count-1 do begin
+      if Length(Line) > 0 then
         Line := Line + ' OR ';
-      Line := Line + Conn.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ''%' + esc(ed.Text, True, False)+'%''';
+      Line := Line + Conditions[i];
       // Add linebreak near right window edge
-      if (Length(Line) > SynMemoFilter.CharsInWindow-30) or (i = SelectedTableColumns.Count-1) then begin
+      if (Length(Line) > SynMemoFilter.CharsInWindow-30) or (i = Conditions.Count-1) then begin
         Clause := Clause + Line + CRLF;
         Line := '';
       end;
     end;
     Clause := Clause + Conn.LikeClauseTail;
+
   end;
   SynMemoFilter.UndoList.AddGroupBreak;
   SynMemoFilter.SelectAll;
