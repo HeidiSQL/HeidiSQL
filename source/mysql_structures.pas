@@ -215,6 +215,7 @@ type
     LoadPart:        Boolean; // Select per SUBSTR() or LEFT()
     DefLengthSet:    String;  // Should be set for types which require a length/set
     Format:          String;  // Used for date/time values when displaying and generating queries
+    ValueMustMatch:  String;
     Category:        TDBDatatypeCategoryIndex;
   end;
 
@@ -1280,6 +1281,7 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
+      ValueMustMatch:  '^\d{1,5}$';
       Category:        dtcInteger;
     ),
     (
@@ -1294,6 +1296,7 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
+      ValueMustMatch:  '^\d{1,10}$';
       Category:        dtcInteger;
     ),
     (
@@ -1307,6 +1310,7 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
+      ValueMustMatch:  '^\d{1,19}$';
       Category:        dtcInteger;
     ),
     (
@@ -1700,6 +1704,7 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
+      ValueMustMatch:  '^\{?[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{12}\}?$';
       Category:        dtcText;
     )
   );
