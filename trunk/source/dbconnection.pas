@@ -2538,15 +2538,19 @@ function TAdoDBConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
   i: Integer;
+  Batch: TSQLBatch;
 begin
   Result := TDBQueryList.Create(False);
+  Batch := TSQLBatch.Create;
+  Batch.SQL := FLastQuerySQL;
   for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
     r := Parameters.CreateQuery(nil);
     r.Connection := Self;
-    r.SQL := FLastQuerySQL;
+    r.SQL := Batch[i].SQL;
     r.Execute(False, i);
     Result.Add(r);
   end;
+  Batch.Free;
 end;
 
 
@@ -6601,21 +6605,9 @@ end;
 function TAdoDBQuery.TableName: String;
 var
   rx: TRegExpr;
-  i, QueryIndex: Integer;
-  Batch: TSQLBatch;
 begin
-  // Find the query string for the current results in the SQL batch
-  for i:=0 to Length(FResultList)-1 do begin
-    if FCurrentResults = FResultList[i] then begin
-      QueryIndex := i;
-      Break;
-    end;
-  end;
-  Batch := TSQLBatch.Create;
-  Batch.SQL := SQL;
   // Untested with joins, compute columns and views
-  Result := GetTableNameFromSQLEx(Batch[QueryIndex].SQL, idMixCase);
-  Batch.Free;
+  Result := GetTableNameFromSQLEx(SQL, idMixCase);
   rx := TRegExpr.Create;
   rx.Expression := '\.([^\.]+)$';
   if rx.Exec(Result) then
