@@ -6601,9 +6601,21 @@ end;
 function TAdoDBQuery.TableName: String;
 var
   rx: TRegExpr;
+  i, QueryIndex: Integer;
+  Batch: TSQLBatch;
 begin
+  // Find the query string for the current results in the SQL batch
+  for i:=0 to Length(FResultList)-1 do begin
+    if FCurrentResults = FResultList[i] then begin
+      QueryIndex := i;
+      Break;
+    end;
+  end;
+  Batch := TSQLBatch.Create;
+  Batch.SQL := SQL;
   // Untested with joins, compute columns and views
-  Result := GetTableNameFromSQLEx(SQL, idMixCase);
+  Result := GetTableNameFromSQLEx(Batch[QueryIndex].SQL, idMixCase);
+  Batch.Free;
   rx := TRegExpr.Create;
   rx.Expression := '\.([^\.]+)$';
   if rx.Exec(Result) then
