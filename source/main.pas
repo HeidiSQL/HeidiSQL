@@ -1207,6 +1207,7 @@ begin
       if Conn <> nil then
         ImageIndex := Conn.Parameters.ImageIndex;
     end;
+    5: ImageIndex := 190;
     6: begin
       if Panel.Text = _(SIdle) then
         ImageIndex := 151 // Green dot
@@ -5694,6 +5695,9 @@ procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 var
   Conn: TDBConnection;
   Uptime: Integer;
+  SystemTime: TSystemTime;
+  tmp: TDateTime;
+  utcs: String;
 begin
   // Display server uptime
   Conn := ActiveConnection;
@@ -5702,9 +5706,16 @@ begin
     if Uptime >= 0 then
       ShowStatusMsg(_('Uptime')+': '+FormatTimeNumber(Conn.ServerUptime, False), 4)
     else
-      ShowStatusMsg(_('Uptime')+': '+_('unknown'), 4)
+      ShowStatusMsg(_('Uptime')+': '+_('unknown'), 4);
   end else
     ShowStatusMsg('', 4);
+
+  // Display UTC date/time
+  GetSystemTime(SystemTime);
+  tmp := EncodeDate(SystemTime.wYear, SystemTime.wMonth, SystemTime.wDay) +
+    EncodeTime(SystemTime.wHour, SystemTime.wMinute, SystemTime.wSecond, SystemTime.wMilliseconds);
+  DateTimeToString(utcs, 'ddddd t', tmp);
+  ShowStatusMsg('UTC: ' + utcs, 5);
 end;
 
 
