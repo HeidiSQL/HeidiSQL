@@ -1665,6 +1665,7 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
+      ValueMustMatch:  '^(true|false)$';
       Category:        dtcOther;
     ),
     (
