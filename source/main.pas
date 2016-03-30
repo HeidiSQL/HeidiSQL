@@ -8238,7 +8238,7 @@ begin
 
     Line := '';
     for i:=0 to Conditions.Count-1 do begin
-      if Length(Line) > 0 then
+      if i > 0 then
         Line := Line + ' OR ';
       Line := Line + Conditions[i];
       // Add linebreak near right window edge
