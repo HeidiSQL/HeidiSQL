@@ -573,7 +573,6 @@ type
       procedure SetDBObject(Value: TDBObject);
       procedure CreateUpdateRow;
       function GetKeyColumns: TStringList;
-      function GetWhereClause: String;
       function GridQuery(QueryType, QueryBody: String): String;
     public
       constructor Create(AOwner: TComponent); override;
@@ -599,6 +598,7 @@ type
       function IsNull(Column: String): Boolean; overload;
       function IsFunction(Column: Integer): Boolean;
       function HasResult: Boolean; virtual; abstract;
+      function GetWhereClause: String;
       procedure CheckEditable;
       procedure DeleteRow;
       function InsertRow: Int64;
@@ -6688,6 +6688,7 @@ var
 begin
   // Compose WHERE clause including values from best key for editing
   NeededCols := GetKeyColumns;
+  Result := '';
 
   for i:=0 to NeededCols.Count-1 do begin
     j := FColumnOrgNames.IndexOf(NeededCols[i]);
