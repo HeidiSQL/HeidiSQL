@@ -2546,7 +2546,10 @@ begin
   for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
     r := Parameters.CreateQuery(nil);
     r.Connection := Self;
-    r.SQL := Batch[i].SQL;
+    if Batch.Count > i then
+      r.SQL := Batch[i].SQL
+    else // See http://www.heidisql.com/forum.php?t=21036
+      r.SQL := Batch.SQL;
     r.Execute(False, i);
     Result.Add(r);
   end;
