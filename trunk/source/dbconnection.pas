@@ -2100,7 +2100,7 @@ begin
     Log(lcDebug, f_('Loading library file %s ...', [LibWithPath]));
     LibPqHandle := LoadLibrary(PWideChar(LibWithPath));
     if LibPqHandle = 0 then
-      raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.'), [LibPqPath, ExtractFileName(ParamStr(0))])
+      raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.%s'), [LibPqPath, ExtractFileName(ParamStr(0)), CRLF+CRLF+SysErrorMessage(System.GetLastError)])
     else begin
       AssignProc(@PQconnectdb, 'PQconnectdb');
       AssignProc(@PQerrorMessage, 'PQerrorMessage');
