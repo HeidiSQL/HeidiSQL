@@ -2090,18 +2090,15 @@ end;
 
 
 procedure TPgConnection.DoBeforeConnect;
-var
-  LibWithPath: String;
 begin
   // Init lib before actually connecting.
   // Each connection has its own library handle
   if LibPqHandle = 0 then begin
-    LibWithPath := ExtractFileDir(Application.ExeName) + '\' + LibPqPath;
-    if not FileExists(LibWithPath) then
+    Log(lcDebug, f_('Loading library file %s ...', [LibPqPath]));
+    LibPqHandle := LoadLibrary(PWideChar(LibPqPath));
+    if LibPqHandle = 0 then
       raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.'), [LibPqPath, ExtractFileName(ParamStr(0))])
     else begin
-      Log(lcDebug, f_('Loading library file %s ...', [LibWithPath]));
-      LibPqHandle := LoadLibrary(PWideChar(LibWithPath));
       AssignProc(@PQconnectdb, 'PQconnectdb');
       AssignProc(@PQerrorMessage, 'PQerrorMessage');
       AssignProc(@PQresultErrorMessage, 'PQresultErrorMessage');
