@@ -753,6 +753,7 @@ var
   PQgetvalue: function(const Result: PPGresult; row_number: Integer; column_number: Integer): PAnsiChar; cdecl;
   PQgetlength: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
   PQgetisnull: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
+  PQlibVersion: function(): Integer; cdecl;
 
 implementation
 
@@ -2118,8 +2119,9 @@ begin
       AssignProc(@PQgetvalue, 'PQgetvalue');
       AssignProc(@PQgetlength, 'PQgetlength');
       AssignProc(@PQgetisnull, 'PQgetisnull');
+      AssignProc(@PQlibVersion, 'PQlibVersion');
 
-      Log(lcDebug, LibPqPath + ' v??' + ' loaded.');
+      Log(lcDebug, LibPqPath + ' v' + IntToStr(PQlibVersion) + ' loaded.');
     end;
   end;
   inherited;
@@ -4709,7 +4711,8 @@ end;
 
 function TDBConnection.ConnectionInfo: TStringList;
 var
-  Infos, Val: String;
+  Infos, Val, v: String;
+  major, minor, build: Integer;
   rx: TRegExpr;
 
   function EvalBool(B: Boolean): String;
@@ -4735,7 +4738,7 @@ begin
       Result.Values['max_allowed_packet'] := FormatByteNumber(MaxAllowedPacket);
     case Parameters.NetTypeGroup of
       ngMySQL: begin
-        Result.Values[_('Client version (libmysql)')] := DecodeApiString(mysql_get_client_info);
+        Result.Values[f_('Client version (%s)', [LibMysqlPath])] := DecodeApiString(mysql_get_client_info);
         Infos := DecodeApiString(mysql_stat((Self as TMySQLConnection).FHandle));
         rx := TRegExpr.Create;
         rx.ModifierG := False;
@@ -4754,6 +4757,14 @@ begin
       end;
 
       ngMSSQL: ; // Nothing specific yet
+
+      ngPgSQL: begin
+        v := IntToStr(PQlibVersion);
+        major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
+        minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
+        build := StrToIntDef(Copy(v, Length(v)-1, 2), 0);
+        Result.Values[f_('Client version (%s)', [LibPqPath])] := IntToStr(major) + '.' + IntToStr(minor) + '.' + IntToStr(build);
+      end;
     end;
   end;
 end;
