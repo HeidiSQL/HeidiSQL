@@ -10,7 +10,7 @@ object frmRoutineEditor: TfrmRoutineEditor
   object lblSQLcode: TLabel
     AlignWithMargins = True
     Left = 3
-    Top = 175
+    Top = 183
     Width = 600
     Height = 13
     Align = alTop
@@ -26,6 +26,15 @@ object frmRoutineEditor: TfrmRoutineEditor
     Anchors = [akLeft, akBottom]
     Caption = 'You have no privilege to this routine.'
     Visible = False
+  end
+  object spltTop: TSplitter
+    Left = 0
+    Top = 172
+    Width = 606
+    Height = 8
+    Cursor = crSizeNS
+    Align = alTop
+    ResizeStyle = rsUpdate
   end
   object btnSave: TButton
     Left = 165
@@ -62,9 +71,9 @@ object frmRoutineEditor: TfrmRoutineEditor
   object SynMemoBody: TSynMemo
     AlignWithMargins = True
     Left = 3
-    Top = 194
+    Top = 202
     Width = 600
-    Height = 250
+    Height = 242
     Margins.Bottom = 40
     SingleLineMode = False
     Align = alClient
@@ -110,8 +119,9 @@ object frmRoutineEditor: TfrmRoutineEditor
     Top = 3
     Width = 600
     Height = 166
-    ActivePage = tabCreateCode
+    ActivePage = tabOptions
     Align = alTop
+    Constraints.MinHeight = 166
     Images = MainForm.ImageListMain
     TabOrder = 0
     object tabOptions: TTabSheet
