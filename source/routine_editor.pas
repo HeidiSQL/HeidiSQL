@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr,
-  dbconnection, helpers, gnugettext, Vcl.Menus;
+  dbconnection, helpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
 
 type
   TFrame = TDBObjectEditor;
@@ -48,6 +48,7 @@ type
     Selectall1: TMenuItem;
     Copy1: TMenuItem;
     Saveastextfile1: TMenuItem;
+    spltTop: TSplitter;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
