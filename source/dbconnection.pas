@@ -2860,6 +2860,18 @@ begin
             ' AND '+QuoteIdent('schemaname')+'='+EscapeString(Schema)
             );
         end;
+        ngMSSQL: begin
+          // Overcome 4000 character limit in IS.VIEW_DEFINITION
+          // See http://www.heidisql.com/forum.php?t=21097
+          Result := GetVar('SELECT '+QuoteIdent('MODS')+'.'+QuoteIdent('DEFINITION')+
+            ' FROM '+QuoteIdent('SYS')+'.'+QuoteIdent('OBJECTS')+' '+QuoteIdent('OBJ')+
+            ' JOIN '+QuoteIdent('SYS')+'.'+QuoteIdent('SQL_MODULES')+' AS '+QuoteIdent('MODS')+' ON '+QuoteIdent('OBJ')+'.'+QuoteIdent('OBJECT_ID')+'='+QuoteIdent('MODS')+'.'+QuoteIdent('OBJECT_ID')+
+            ' JOIN '+QuoteIdent('SYS')+'.'+QuoteIdent('SCHEMAS')+' AS '+QuoteIdent('SCHS')+' ON '+QuoteIdent('OBJ')+'.'+QuoteIdent('SCHEMA_ID')+'='+QuoteIdent('SCHS')+'.'+QuoteIdent('SCHEMA_ID')+
+            ' WHERE '+QuoteIdent('OBJ')+'.'+QuoteIdent('TYPE')+'='+EscapeString('V')+
+            '   AND '+QuoteIdent('SCHS')+'.'+QuoteIdent('NAME')+'='+EscapeString(Schema)+
+            '   AND '+QuoteIdent('OBJ')+'.'+QuoteIdent('NAME')+'='+EscapeString(Name)
+            );
+        end;
         else begin
           Result := GetVar('SELECT VIEW_DEFINITION'+
             ' FROM INFORMATION_SCHEMA.VIEWS'+
