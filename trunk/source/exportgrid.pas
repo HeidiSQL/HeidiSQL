@@ -797,7 +797,7 @@ begin
           efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
             if GridData.IsNull(Col) then
               Data := 'NULL'
-            else if GridData.DataType(Col).Index = dtBit then
+            else if (GridData.DataType(Col).Index = dtBit) and GridData.Connection.Parameters.IsMySQL then
               Data := 'b' + esc(Data)
             else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
               or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
