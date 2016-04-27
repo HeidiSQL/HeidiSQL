@@ -534,8 +534,9 @@ end;
 
 function TfrmRoutineEditor.ComposeCreateStatement(NameOfObject: String): String;
 var
-  ProcOrFunc: String;
+  ProcOrFunc, tmp: String;
   i: Integer;
+  Params: TStringList;
 begin
   case comboType.ItemIndex of
     0: ProcOrFunc := 'PROCEDURE';
@@ -545,23 +546,26 @@ begin
   if comboDefiner.Text <> '' then
     Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
   Result := Result + ProcOrFunc+' '+DBObject.Connection.QuoteIdent(NameOfObject)+'(';
+  Params := TStringList.Create;
   for i:=0 to Parameters.Count-1 do begin
+    tmp := '';
     if ProcOrFunc = 'PROCEDURE' then
-      Result := Result + Parameters[i].Context + ' ';
-    Result := Result + DBObject.Connection.QuoteIdent(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
-    if i < Parameters.Count-1 then
-      Result := Result + ', ';
+      tmp := tmp + Parameters[i].Context + ' ';
+    tmp := tmp + DBObject.Connection.QuoteIdent(Parameters[i].Name) + ' ' + Parameters[i].Datatype;
+    Params.Add(tmp);
   end;
+  if Params.Count > 0 then
+    Result := Result + CRLF + #9 + implodestr(','+CRLF+#9, Params) + CRLF;
   Result := Result + ')'+CRLF;
   if comboReturns.Enabled then
-    Result := Result + #9 + 'RETURNS '+comboReturns.Text+CRLF;
-  Result := Result + #9 + 'LANGUAGE SQL'+CRLF + #9;
+    Result := Result + 'RETURNS '+comboReturns.Text+CRLF;
+  Result := Result + 'LANGUAGE SQL'+CRLF;
   if not chkDeterministic.Checked then
     Result := Result + 'NOT ';
   Result := Result + 'DETERMINISTIC'+CRLF
-    + #9 + UpperCase(comboDataAccess.Text)+CRLF
-    + #9 + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+CRLF
-    + #9 + 'COMMENT ' + esc(editComment.Text)+CRLF
+    + UpperCase(comboDataAccess.Text)+CRLF
+    + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+CRLF
+    + 'COMMENT ' + esc(editComment.Text)+CRLF
     + SynMemoBody.Text;
 end;
 
