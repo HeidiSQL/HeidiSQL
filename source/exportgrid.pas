@@ -482,475 +482,486 @@ begin
       Exit;
   end;
 
-  Screen.Cursor := crHourglass;
+  try
+    Screen.Cursor := crHourglass;
 
-  SelectionOnly := grpSelection.ItemIndex = 0;
-  Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
-  GridData := Mainform.GridResult(Grid);
-  if SelectionOnly then
-    NodeCount := Grid.SelectedCount
-  else
-    NodeCount := Grid.RootNodeCount;
-  MainForm.EnableProgress(NodeCount);
-  TableName := BestTableName(GridData);
-  ExcludeCol := NoColumn;
-  if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
-    ExcludeCol := GridData.AutoIncrementColumn;
+    SelectionOnly := grpSelection.ItemIndex = 0;
+    Mainform.DataGridEnsureFullRows(Grid, SelectionOnly);
+    GridData := Mainform.GridResult(Grid);
+    if SelectionOnly then
+      NodeCount := Grid.SelectedCount
+    else
+      NodeCount := Grid.RootNodeCount;
+    MainForm.EnableProgress(NodeCount);
+    TableName := BestTableName(GridData);
+    ExcludeCol := NoColumn;
+    if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
+      ExcludeCol := GridData.AutoIncrementColumn;
 
-  if radioOutputCopyToClipboard.Checked then
-    Encoding := TEncoding.UTF8
-  else begin
-    Encoding := MainForm.GetEncodingByName(comboEncoding.Text);
-    // Add selected file to file list, and sort it onto the top of the list
-    i := FRecentFiles.IndexOf(editFilename.Text);
-    if i > -1 then
-      FRecentFiles.Delete(i);
-    FRecentFiles.Insert(0, editFilename.Text);
-    for i:=FRecentFiles.Count-1 downto 10 do
-      FRecentFiles.Delete(i);
-  end;
-  S := TStringStream.Create(Header, Encoding);
-  Header := '';
-  case ExportFormat of
-    efHTML: begin
-      Header :=
-        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
-        '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
-        '<html>' + CRLF +
-        '  <head>' + CRLF +
-        '    <title>' + TableName + '</title>' + CRLF +
-        '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
-        '    <meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + CRLF +
-        '    <style type="text/css">' + CRLF +
-        '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
-        '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'", Arial, Helvetica, sans-serif; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
-        '      table, td {border: 1px solid silver;}' + CRLF +
-        '      table {border-collapse: collapse;}' + CRLF;
-      Col := Grid.Header.Columns.GetFirstVisibleColumn;
-      while Col > NoColumn do begin
-        // Adjust preferred width of columns.
-        Header := Header +
-         '      thead .col' + IntToStr(Col) + ' {width: ' + IntToStr(Grid.Header.Columns[Col].Width) + 'px;}' + CRLF;
-        // Right-justify all cells to match the grid on screen.
-        if Grid.Header.Columns[Col].Alignment = taRightJustify then
-          Header := Header + '      .col' + IntToStr(Col) + ' {text-align: right;}' + CRLF;
-        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-      end;
-      Header := Header +
-        '    </style>' + CRLF +
-        '  </head>' + CRLF + CRLF +
-        '  <body>' + CRLF + CRLF;
-      if chkIncludeQuery.Checked then
-        Header := Header + '<p style="font-family: monospace; white-space: pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
-      Header := Header + '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF;
-      if chkIncludeColumnNames.Checked then begin
-        Header := Header +
-          '      <thead>' + CRLF +
-          '        <tr>' + CRLF;
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
-        while Col > NoColumn do begin
-          if Col <> ExcludeCol then
-            Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
-          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-        end;
-        Header := Header +
-          '        </tr>' + CRLF +
-          '      </thead>' + CRLF;
-      end;
-      Header := Header +
-        '      <tbody>' + CRLF;
+    if radioOutputCopyToClipboard.Checked then
+      Encoding := TEncoding.UTF8
+    else begin
+      Encoding := MainForm.GetEncodingByName(comboEncoding.Text);
+      // Add selected file to file list, and sort it onto the top of the list
+      i := FRecentFiles.IndexOf(editFilename.Text);
+      if i > -1 then
+        FRecentFiles.Delete(i);
+      FRecentFiles.Insert(0, editFilename.Text);
+      for i:=FRecentFiles.Count-1 downto 10 do
+        FRecentFiles.Delete(i);
     end;
-
-    efExcel, efCSV: begin
-      Separator := GridData.Connection.UnescapeString(editSeparator.Text);
-      Encloser := GridData.Connection.UnescapeString(editEncloser.Text);
-      Terminator := GridData.Connection.UnescapeString(editTerminator.Text);
-      if chkIncludeColumnNames.Checked then begin
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
-        while Col > NoColumn do begin
-          // Alter column name in header if data is not raw.
-          if Col <> ExcludeCol then begin
-            Data := Grid.Header.Columns[Col].Text;
-            if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-              Data := 'HEX(' + Data + ')';
-            // Add header item.
-            if Header <> '' then
-              Header := Header + Separator;
-            Header := Header + Encloser + Data + Encloser;
-          end;
-          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-        end;
-        Header := Header + Terminator;
-      end;
-    end;
-
-    efXML: begin
-      // Imitate mysqldump's XML style
-      Header := '<?xml version="1.0" encoding="'+MainForm.GetCharsetByEncoding(Encoding)+'"?>' + CRLF + CRLF;
-      if chkIncludeQuery.Checked then
-        Header := Header + '<resultset statement="'+HTMLSpecialChars(GridData.SQL)+'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' + CRLF
-      else
-        Header := Header + '<table_data name="'+HTMLSpecialChars(TableName)+'">' + CRLF;
-    end;
-
-    efLaTeX: begin
-      Header := '\begin{tabular}';
-      Separator := ' & ';
-      Encloser := '';
-      Terminator := '\\ '+CRLF;
-      Header := Header + '{';
-      Col := Grid.Header.Columns.GetFirstVisibleColumn;
-      while Col > NoColumn do begin
-        if Col <> ExcludeCol then
-          Header := Header + ' c ';
-        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-      end;
-      Header := Header + '}' + CRLF;
-      if chkIncludeColumnNames.Checked then begin
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
-        while Col > NoColumn do begin
-          if Col <> ExcludeCol then
-            Header := Header + Grid.Header.Columns[Col].Text + Separator;
-          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-        end;
-        Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
-        Header := Header + Terminator;
-      end;
-    end;
-
-    efWiki: begin
-      Separator := ' || ';
-      Encloser := '';
-      Terminator := ' ||'+CRLF;
-      if chkIncludeColumnNames.Checked then begin
-        Header := '|| ';
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
-        while Col > NoColumn do begin
-          if Col <> ExcludeCol then
-            Header := Header + '*' + Grid.Header.Columns[Col].Text + '*' + Separator;
-          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-        end;
-        Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
-        Header := Header + Terminator;
-      end;
-    end;
-
-    efPHPArray: begin
-      if radioOutputFile.Checked then
-        Header := '<?php'+CRLF+'$'+TableName+' = array('+CRLF
-      else
-        Header := '$'+TableName+' = array('+CRLF;
-    end;
-
-    efMarkDown: begin
-      Separator := ' | ';
-      Encloser := '';
-      Terminator := CRLF;
-      Header := Header + TableName + CRLF + '---' + CRLF;
-      if chkIncludeQuery.Checked then
-        Header := Header + '```sql' + CRLF + GridData.SQL + CRLF + '```' + CRLF;
-      Header := Header + TrimLeft(Separator);
-      Col := Grid.Header.Columns.GetFirstVisibleColumn;
-      while Col > NoColumn do begin
-        if Col <> ExcludeCol then begin
-          if chkIncludeColumnNames.Checked then
-            Header := Header + Grid.Header.Columns[Col].Text + Separator
-          else
-            Header := Header + Separator
-        end;
-        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-      end;
-      Header := Header + Terminator;
-      // Write an extra line with dashes below the heading, otherwise the table won't parse
-      Header := Header + TrimLeft(Separator);
-      Col := Grid.Header.Columns.GetFirstVisibleColumn;
-      while Col > NoColumn do begin
-        if Col <> ExcludeCol then begin
-          Header := Header + '-';
-          if GridData.DataType(Col).Category in [dtcInteger, dtcReal] then
-            Header := Header + ':';
-          Header := Header + Separator;
-        end;
-        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
-      end;
-      Header := Header + Terminator;
-    end;
-
-    efJSON: begin
-      // JavaScript Object Notation
-      Header := '{' + CRLF;
-      if chkIncludeQuery.Checked then
-        Header := Header + #9 + '"query": "'+HTMLSpecialChars(GridData.SQL)+'",' + CRLF
-      else
-        Header := Header + #9 + '"table": "'+HTMLSpecialChars(TableName)+'",' + CRLF ;
-      Header := Header + #9 + '"rows":' + CRLF + #9 + '[';
-    end;
-
-  end;
-  S.WriteString(Header);
-
-  Node := GetNextNode(Grid, nil, SelectionOnly);
-  while Assigned(Node) do begin
-    // Update status once in a while.
-    if (Node.Index+1) mod 100 = 0 then begin
-      MainForm.ShowStatusMsg(f_('Exporting row %s of %s (%d%%, %s)',
-        [FormatNumber(Node.Index+1),
-        FormatNumber(NodeCount),
-        Trunc((Node.Index+1) / NodeCount *100),
-        FormatByteNumber(S.Size)]
-        ));
-      MainForm.ProgressStep;
-    end;
-    RowNum := Grid.GetNodeData(Node);
-    GridData.RecNo := RowNum^;
-
-    // Row preamble
+    S := TStringStream.Create(Header, Encoding);
+    Header := '';
     case ExportFormat of
-      efHTML: tmp := '        <tr>' + CRLF;
-
-      efXML: tmp := #9'<row>' + CRLF;
-
-      efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
-        tmp := '';
-        if ExportFormat = efSQLDeleteInsert then begin
-          tmp := tmp + 'DELETE FROM ' + GridData.Connection.QuoteIdent(Tablename) + ' WHERE' + GridData.GetWhereClause + ';' + CRLF;
+      efHTML: begin
+        Header :=
+          '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
+          '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
+          '<html>' + CRLF +
+          '  <head>' + CRLF +
+          '    <title>' + TableName + '</title>' + CRLF +
+          '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
+          '    <meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + CRLF +
+          '    <style type="text/css">' + CRLF +
+          '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
+          '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'", Arial, Helvetica, sans-serif; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
+          '      table, td {border: 1px solid silver;}' + CRLF +
+          '      table {border-collapse: collapse;}' + CRLF;
+        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        while Col > NoColumn do begin
+          // Adjust preferred width of columns.
+          Header := Header +
+           '      thead .col' + IntToStr(Col) + ' {width: ' + IntToStr(Grid.Header.Columns[Col].Width) + 'px;}' + CRLF;
+          // Right-justify all cells to match the grid on screen.
+          if Grid.Header.Columns[Col].Alignment = taRightJustify then
+            Header := Header + '      .col' + IntToStr(Col) + ' {text-align: right;}' + CRLF;
+          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
-
-        if ExportFormat in [efSQLInsert, efSQLDeleteInsert] then
-          tmp := tmp + 'INSERT'
-        else
-          tmp := tmp + 'REPLACE';
-        tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
+        Header := Header +
+          '    </style>' + CRLF +
+          '  </head>' + CRLF + CRLF +
+          '  <body>' + CRLF + CRLF;
+        if chkIncludeQuery.Checked then
+          Header := Header + '<p style="font-family: monospace; white-space: pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
+        Header := Header + '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF;
         if chkIncludeColumnNames.Checked then begin
-          tmp := tmp + ' (';
+          Header := Header +
+            '      <thead>' + CRLF +
+            '        <tr>' + CRLF;
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
-              tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
+              Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
-          Delete(tmp, Length(tmp)-1, 2);
-          tmp := tmp + ')';
+          Header := Header +
+            '        </tr>' + CRLF +
+            '      </thead>' + CRLF;
         end;
-        tmp := tmp + ' VALUES (';
+        Header := Header +
+          '      <tbody>' + CRLF;
       end;
 
-      efWiki: tmp := TrimLeft(Separator);
-
-      efPHPArray: tmp := #9 + 'array( // row #'+FormatNumber(GridData.RecNo)+CRLF;
-
-      efMarkDown: tmp := '| ';
-
-      efJSON: begin
-        if chkIncludeColumnNames.Checked then
-          tmp := CRLF + #9#9 + '{' + CRLF
-        else
-          tmp := CRLF + #9#9 + '[' + CRLF
-      end
-
-      else tmp := '';
-    end;
-
-    Col := Grid.Header.Columns.GetFirstVisibleColumn;
-    while Col > NoColumn do begin
-      if Col <> ExcludeCol then begin
-        if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-          Data := GridData.HexValue(Col)
-        else
-          Data := GridData.Col(Col);
-        // Keep formatted numeric values
-        if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
-          and (ExportFormat in [efExcel, efHTML, efMarkDown]) then
-            Data := FormatNumber(Data, False);
-
-        case ExportFormat of
-          efHTML: begin
-            // Escape HTML control characters in data.
-            Data := HTMLSpecialChars(Data);
-            tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
-          end;
-
-          efExcel, efCSV, efLaTeX, efWiki, efMarkDown: begin
-            // Escape encloser characters inside data per de-facto CSV.
-            Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-            if GridData.IsNull(Col) and (ExportFormat in [efExcel, efCSV, efMarkDown]) then
-              Data := editNull.Text
-            else
-              Data := Encloser + Data + Encloser;
-            tmp := tmp + Data + Separator;
-          end;
-
-          efXML: begin
-            // Print cell start tag.
-            tmp := tmp + #9#9'<field';
-            if chkIncludeColumnNames.Checked then
-              tmp := tmp + ' name="' + HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '"';
-            if GridData.IsNull(Col) then
-              tmp := tmp + ' xsi:nil="true" />' + CRLF
-            else begin
+      efExcel, efCSV: begin
+        Separator := GridData.Connection.UnescapeString(editSeparator.Text);
+        Encloser := GridData.Connection.UnescapeString(editEncloser.Text);
+        Terminator := GridData.Connection.UnescapeString(editTerminator.Text);
+        if chkIncludeColumnNames.Checked then begin
+          Col := Grid.Header.Columns.GetFirstVisibleColumn;
+          while Col > NoColumn do begin
+            // Alter column name in header if data is not raw.
+            if Col <> ExcludeCol then begin
+              Data := Grid.Header.Columns[Col].Text;
               if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-                tmp := tmp + ' format="hex"';
-              tmp := tmp + '>' + HTMLSpecialChars(Data) + '</field>' + CRLF;
+                Data := 'HEX(' + Data + ')';
+              // Add header item.
+              if Header <> '' then
+                Header := Header + Separator;
+              Header := Header + Encloser + Data + Encloser;
             end;
+            Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
-
-          efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
-            if GridData.IsNull(Col) then
-              Data := 'NULL'
-            else if (GridData.DataType(Col).Index = dtBit) and GridData.Connection.Parameters.IsMySQL then
-              Data := 'b' + esc(Data)
-            else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
-              or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
-              then
-              Data := esc(Data)
-            else if Data = '' then
-              Data := esc(Data);
-            tmp := tmp + Data + ', ';
-          end;
-
-          efPHPArray: begin
-            if GridData.IsNull(Col) then
-              Data := 'NULL'
-            else case GridData.DataType(Col).Category of
-              dtcInteger, dtcReal: begin
-                // Remove zeropadding to avoid octal => integer conversion in PHP
-                Data := FormatNumber(Data);
-                Data := UnformatNumber(Data);
-              end;
-              else
-                Data := EscapePHP(Data);
-            end;
-
-            if chkIncludeColumnNames.Checked then
-              tmp := tmp + #9#9 + EscapePHP(Grid.Header.Columns[Col].Text) + ' => ' + Data + ','+CRLF
-            else
-              tmp := tmp + #9#9 + Data + ','+CRLF;
-          end;
-
-          efJSON: begin
-            tmp := tmp + #9#9#9;
-            if chkIncludeColumnNames.Checked then
-              tmp := tmp + '"'+HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '": ';
-            if GridData.IsNull(Col) then
-              tmp := tmp + 'null,' +CRLF
-            else begin
-              case GridData.DataType(Col).Category of
-                dtcInteger, dtcReal:
-                  tmp := tmp + data;
-                dtcBinary, dtcSpatial:
-                  tmp := tmp + '"' + Data + '"';
-                else
-                  tmp := tmp + '"' + HTMLSpecialChars(Data) + '"'
-              end;
-              tmp := tmp + ',' + CRLF;
-            end;
-          end;
-
+          Header := Header + Terminator;
         end;
       end;
 
-      Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      efXML: begin
+        // Imitate mysqldump's XML style
+        Header := '<?xml version="1.0" encoding="'+MainForm.GetCharsetByEncoding(Encoding)+'"?>' + CRLF + CRLF;
+        if chkIncludeQuery.Checked then
+          Header := Header + '<resultset statement="'+HTMLSpecialChars(GridData.SQL)+'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' + CRLF
+        else
+          Header := Header + '<table_data name="'+HTMLSpecialChars(TableName)+'">' + CRLF;
+      end;
+
+      efLaTeX: begin
+        Header := '\begin{tabular}';
+        Separator := ' & ';
+        Encloser := '';
+        Terminator := '\\ '+CRLF;
+        Header := Header + '{';
+        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        while Col > NoColumn do begin
+          if Col <> ExcludeCol then
+            Header := Header + ' c ';
+          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+        end;
+        Header := Header + '}' + CRLF;
+        if chkIncludeColumnNames.Checked then begin
+          Col := Grid.Header.Columns.GetFirstVisibleColumn;
+          while Col > NoColumn do begin
+            if Col <> ExcludeCol then
+              Header := Header + Grid.Header.Columns[Col].Text + Separator;
+            Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+          end;
+          Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
+          Header := Header + Terminator;
+        end;
+      end;
+
+      efWiki: begin
+        Separator := ' || ';
+        Encloser := '';
+        Terminator := ' ||'+CRLF;
+        if chkIncludeColumnNames.Checked then begin
+          Header := '|| ';
+          Col := Grid.Header.Columns.GetFirstVisibleColumn;
+          while Col > NoColumn do begin
+            if Col <> ExcludeCol then
+              Header := Header + '*' + Grid.Header.Columns[Col].Text + '*' + Separator;
+            Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+          end;
+          Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
+          Header := Header + Terminator;
+        end;
+      end;
+
+      efPHPArray: begin
+        if radioOutputFile.Checked then
+          Header := '<?php'+CRLF+'$'+TableName+' = array('+CRLF
+        else
+          Header := '$'+TableName+' = array('+CRLF;
+      end;
+
+      efMarkDown: begin
+        Separator := ' | ';
+        Encloser := '';
+        Terminator := CRLF;
+        Header := Header + TableName + CRLF + '---' + CRLF;
+        if chkIncludeQuery.Checked then
+          Header := Header + '```sql' + CRLF + GridData.SQL + CRLF + '```' + CRLF;
+        Header := Header + TrimLeft(Separator);
+        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        while Col > NoColumn do begin
+          if Col <> ExcludeCol then begin
+            if chkIncludeColumnNames.Checked then
+              Header := Header + Grid.Header.Columns[Col].Text + Separator
+            else
+              Header := Header + Separator
+          end;
+          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+        end;
+        Header := Header + Terminator;
+        // Write an extra line with dashes below the heading, otherwise the table won't parse
+        Header := Header + TrimLeft(Separator);
+        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        while Col > NoColumn do begin
+          if Col <> ExcludeCol then begin
+            Header := Header + '-';
+            if GridData.DataType(Col).Category in [dtcInteger, dtcReal] then
+              Header := Header + ':';
+            Header := Header + Separator;
+          end;
+          Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+        end;
+        Header := Header + Terminator;
+      end;
+
+      efJSON: begin
+        // JavaScript Object Notation
+        Header := '{' + CRLF;
+        if chkIncludeQuery.Checked then
+          Header := Header + #9 + '"query": "'+HTMLSpecialChars(GridData.SQL)+'",' + CRLF
+        else
+          Header := Header + #9 + '"table": "'+HTMLSpecialChars(TableName)+'",' + CRLF ;
+        Header := Header + #9 + '"rows":' + CRLF + #9 + '[';
+      end;
+
+    end;
+    S.WriteString(Header);
+
+    Node := GetNextNode(Grid, nil, SelectionOnly);
+    while Assigned(Node) do begin
+      // Update status once in a while.
+      if (Node.Index+1) mod 100 = 0 then begin
+        MainForm.ShowStatusMsg(f_('Exporting row %s of %s (%d%%, %s)',
+          [FormatNumber(Node.Index+1),
+          FormatNumber(NodeCount),
+          Trunc((Node.Index+1) / NodeCount *100),
+          FormatByteNumber(S.Size)]
+          ));
+        MainForm.ProgressStep;
+      end;
+      RowNum := Grid.GetNodeData(Node);
+      GridData.RecNo := RowNum^;
+
+      // Row preamble
+      case ExportFormat of
+        efHTML: tmp := '        <tr>' + CRLF;
+
+        efXML: tmp := #9'<row>' + CRLF;
+
+        efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+          tmp := '';
+          if ExportFormat = efSQLDeleteInsert then begin
+            tmp := tmp + 'DELETE FROM ' + GridData.Connection.QuoteIdent(Tablename) + ' WHERE' + GridData.GetWhereClause + ';' + CRLF;
+          end;
+
+          if ExportFormat in [efSQLInsert, efSQLDeleteInsert] then
+            tmp := tmp + 'INSERT'
+          else
+            tmp := tmp + 'REPLACE';
+          tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
+          if chkIncludeColumnNames.Checked then begin
+            tmp := tmp + ' (';
+            Col := Grid.Header.Columns.GetFirstVisibleColumn;
+            while Col > NoColumn do begin
+              if Col <> ExcludeCol then
+                tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
+              Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+            end;
+            Delete(tmp, Length(tmp)-1, 2);
+            tmp := tmp + ')';
+          end;
+          tmp := tmp + ' VALUES (';
+        end;
+
+        efWiki: tmp := TrimLeft(Separator);
+
+        efPHPArray: tmp := #9 + 'array( // row #'+FormatNumber(GridData.RecNo)+CRLF;
+
+        efMarkDown: tmp := '| ';
+
+        efJSON: begin
+          if chkIncludeColumnNames.Checked then
+            tmp := CRLF + #9#9 + '{' + CRLF
+          else
+            tmp := CRLF + #9#9 + '[' + CRLF
+        end
+
+        else tmp := '';
+      end;
+
+      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      while Col > NoColumn do begin
+        if Col <> ExcludeCol then begin
+          if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+            Data := GridData.HexValue(Col)
+          else
+            Data := GridData.Col(Col);
+          // Keep formatted numeric values
+          if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
+            and (ExportFormat in [efExcel, efHTML, efMarkDown]) then
+              Data := FormatNumber(Data, False);
+
+          case ExportFormat of
+            efHTML: begin
+              // Escape HTML control characters in data.
+              Data := HTMLSpecialChars(Data);
+              tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
+            end;
+
+            efExcel, efCSV, efLaTeX, efWiki, efMarkDown: begin
+              // Escape encloser characters inside data per de-facto CSV.
+              Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+              if GridData.IsNull(Col) and (ExportFormat in [efExcel, efCSV, efMarkDown]) then
+                Data := editNull.Text
+              else
+                Data := Encloser + Data + Encloser;
+              tmp := tmp + Data + Separator;
+            end;
+
+            efXML: begin
+              // Print cell start tag.
+              tmp := tmp + #9#9'<field';
+              if chkIncludeColumnNames.Checked then
+                tmp := tmp + ' name="' + HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '"';
+              if GridData.IsNull(Col) then
+                tmp := tmp + ' xsi:nil="true" />' + CRLF
+              else begin
+                if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+                  tmp := tmp + ' format="hex"';
+                tmp := tmp + '>' + HTMLSpecialChars(Data) + '</field>' + CRLF;
+              end;
+            end;
+
+            efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+              if GridData.IsNull(Col) then
+                Data := 'NULL'
+              else if (GridData.DataType(Col).Index = dtBit) and GridData.Connection.Parameters.IsMySQL then
+                Data := 'b' + esc(Data)
+              else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
+                or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
+                then
+                Data := esc(Data)
+              else if Data = '' then
+                Data := esc(Data);
+              tmp := tmp + Data + ', ';
+            end;
+
+            efPHPArray: begin
+              if GridData.IsNull(Col) then
+                Data := 'NULL'
+              else case GridData.DataType(Col).Category of
+                dtcInteger, dtcReal: begin
+                  // Remove zeropadding to avoid octal => integer conversion in PHP
+                  Data := FormatNumber(Data);
+                  Data := UnformatNumber(Data);
+                end;
+                else
+                  Data := EscapePHP(Data);
+              end;
+
+              if chkIncludeColumnNames.Checked then
+                tmp := tmp + #9#9 + EscapePHP(Grid.Header.Columns[Col].Text) + ' => ' + Data + ','+CRLF
+              else
+                tmp := tmp + #9#9 + Data + ','+CRLF;
+            end;
+
+            efJSON: begin
+              tmp := tmp + #9#9#9;
+              if chkIncludeColumnNames.Checked then
+                tmp := tmp + '"'+HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '": ';
+              if GridData.IsNull(Col) then
+                tmp := tmp + 'null,' +CRLF
+              else begin
+                case GridData.DataType(Col).Category of
+                  dtcInteger, dtcReal:
+                    tmp := tmp + data;
+                  dtcBinary, dtcSpatial:
+                    tmp := tmp + '"' + Data + '"';
+                  else
+                    tmp := tmp + '"' + HTMLSpecialChars(Data) + '"'
+                end;
+                tmp := tmp + ',' + CRLF;
+              end;
+            end;
+
+          end;
+        end;
+
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+
+      // Row epilogue
+      case ExportFormat of
+        efHTML:
+          tmp := tmp + '        </tr>' + CRLF;
+        efExcel, efCSV, efLaTeX, efWiki: begin
+          Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
+          tmp := tmp + Terminator;
+        end;
+        efXML:
+          tmp := tmp + #9'</row>' + CRLF;
+        efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+          Delete(tmp, Length(tmp)-1, 2);
+          tmp := tmp + ');' + CRLF;
+        end;
+        efPHPArray:
+          tmp := tmp + #9 + '),' + CRLF;
+        efMarkDown:
+          tmp := tmp + Terminator;
+        efJSON: begin
+          Delete(tmp, length(tmp)-2,2);
+          if chkIncludeColumnNames.Checked then
+            tmp := tmp + #9#9 + '},'
+          else
+            tmp := tmp + #9#9 + '],';
+        end;
+      end;
+      S.WriteString(tmp);
+
+      Node := GetNextNode(Grid, Node, SelectionOnly);
     end;
 
-    // Row epilogue
+    // Footer
     case ExportFormat of
-      efHTML:
-        tmp := tmp + '        </tr>' + CRLF;
-      efExcel, efCSV, efLaTeX, efWiki: begin
-        Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
-        tmp := tmp + Terminator;
+      efHTML: begin
+        tmp :=
+          '      </tbody>' + CRLF +
+          '    </table>' + CRLF + CRLF +
+          '    <p>' + CRLF +
+          '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
+          '      by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + CRLF +
+          '    </p>' + CRLF + CRLF +
+          '  </body>' + CRLF +
+          '</html>' + CRLF;
       end;
-      efXML:
-        tmp := tmp + #9'</row>' + CRLF;
-      efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
-        Delete(tmp, Length(tmp)-1, 2);
-        tmp := tmp + ');' + CRLF;
-      end;
-      efPHPArray:
-        tmp := tmp + #9 + '),' + CRLF;
-      efMarkDown:
-        tmp := tmp + Terminator;
-      efJSON: begin
-        Delete(tmp, length(tmp)-2,2);
-        if chkIncludeColumnNames.Checked then
-          tmp := tmp + #9#9 + '},'
+      efXML: begin
+        if chkIncludeQuery.Checked then
+          tmp := '</resultset>' + CRLF
         else
-          tmp := tmp + #9#9 + '],';
+          tmp := '</table_data>' + CRLF;
       end;
+      efLaTeX:
+        tmp := '\end{tabular}' + CRLF;
+      efPHPArray: begin
+        tmp := ');' + CRLF;
+        if radioOutputFile.Checked then
+          tmp := tmp + '?>';
+      end;
+      efJSON: begin
+        S.Size := S.Size - 1;
+        tmp := CRLF + #9 + ']' + CRLF + '}';
+      end;
+      else
+        tmp := '';
     end;
     S.WriteString(tmp);
 
-    Node := GetNextNode(Grid, Node, SelectionOnly);
-  end;
-
-  // Footer
-  case ExportFormat of
-    efHTML: begin
-      tmp :=
-        '      </tbody>' + CRLF +
-        '    </table>' + CRLF + CRLF +
-        '    <p>' + CRLF +
-        '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
-        '      by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + CRLF +
-        '    </p>' + CRLF + CRLF +
-        '  </body>' + CRLF +
-        '</html>' + CRLF;
-    end;
-    efXML: begin
-      if chkIncludeQuery.Checked then
-        tmp := '</resultset>' + CRLF
-      else
-        tmp := '</table_data>' + CRLF;
-    end;
-    efLaTeX:
-      tmp := '\end{tabular}' + CRLF;
-    efPHPArray: begin
-      tmp := ');' + CRLF;
-      if radioOutputFile.Checked then
-        tmp := tmp + '?>';
-    end;
-    efJSON: begin
-      S.Size := S.Size - 1;
-      tmp := CRLF + #9 + ']' + CRLF + '}';
-    end;
-    else
-      tmp := '';
-  end;
-  S.WriteString(tmp);
-
-  if radioOutputCopyToClipboard.Checked then begin
-    HTML := nil;
-    // SynEdit's exporter is slow on large strings, see issue #2903
-    if S.Size < 100*SIZE_KB then begin
-      case ExportFormat of
-        efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
-          Exporter := TSynExporterHTML.Create(Self);
-          Exporter.Highlighter := MainForm.SynSQLSyn1;
-          Exporter.ExportAll(Explode(CRLF, S.DataString));
-          HTML := TMemoryStream.Create;
-          Exporter.SaveToStream(HTML);
-          Exporter.Free;
+    if radioOutputCopyToClipboard.Checked then begin
+      HTML := nil;
+      // SynEdit's exporter is slow on large strings, see issue #2903
+      if S.Size < 100*SIZE_KB then begin
+        case ExportFormat of
+          efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+            Exporter := TSynExporterHTML.Create(Self);
+            Exporter.Highlighter := MainForm.SynSQLSyn1;
+            Exporter.ExportAll(Explode(CRLF, S.DataString));
+            HTML := TMemoryStream.Create;
+            Exporter.SaveToStream(HTML);
+            Exporter.Free;
+          end;
+          efHTML: HTML := S;
         end;
-        efHTML: HTML := S;
+      end;
+      StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
+    end else begin
+      try
+        S.SaveToFile(Filename);
+      except
+        on E:EFCreateError do begin
+          // Keep form open if file cannot be created
+          ModalResult := mrNone;
+          MainForm.SetProgressState(pbsError);
+          ErrorDialog(E.Message);
+        end;
       end;
     end;
-    StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
-  end else begin
-    try
-      S.SaveToFile(Filename);
-    except
-      on E:EFCreateError do begin
-        // Keep form open if file cannot be created
-        ModalResult := mrNone;
-        MainForm.SetProgressState(pbsError);
-        ErrorDialog(E.Message);
-      end;
-    end;
+    Mainform.ShowStatusMsg(_('Freeing data...'));
+    FreeAndNil(S);
+
+  except
+    // Whole export code wrapped here
+    on E:EDatabaseError do begin
+      Screen.Cursor := crDefault;
+      ErrorDialog(E.Message);
+    end
+    else
+      raise;
   end;
 
   Mainform.DisableProgress;
-  Mainform.ShowStatusMsg(_('Freeing data...'));
-  FreeAndNil(S);
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
