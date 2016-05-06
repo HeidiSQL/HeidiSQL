@@ -7084,7 +7084,7 @@ begin
   if DefaultType <> cdtNothing then begin
     Text := esc(DefaultText);
     // Support BIT syntax in MySQL
-    if DataType.Index = dtBit then
+    if (DataType.Index = dtBit) and FConnection.Parameters.IsMySQL then
       Text := 'b'+Text;
     TSLen := '';
     if LengthSet <> '' then
