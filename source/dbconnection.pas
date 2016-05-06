@@ -3298,7 +3298,7 @@ begin
     if FParameters.AllDatabasesStr <> '' then begin
       FAllDatabases := TStringList.Create;
       rx := TRegExpr.Create;
-      rx.Expression := '[^;\s]+';
+      rx.Expression := '[^;]+';
       rx.ModifierG := True;
       if rx.Exec(FParameters.AllDatabasesStr) then while true do begin
         // Add if not a duplicate
