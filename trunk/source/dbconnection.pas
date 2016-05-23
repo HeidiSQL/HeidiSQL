@@ -5525,7 +5525,7 @@ begin
           ftVarBytes:
             TypeIndex := dtVarbinary;
           ftFloat:
-            TypeIndex := dtEnum;
+            TypeIndex := dtFloat;
           ftDate:
             TypeIndex := dtDate;
           ftTime:
