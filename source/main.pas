@@ -4839,8 +4839,11 @@ begin
     if Length(DataGridSortColumns) > 0 then begin
       Select := Select + ' ORDER BY ' + ComposeOrderClause(DataGridSortColumns);
       tbtnDataSorting.ImageIndex := 108;
-    end else
+      tbtnDataSorting.Caption := _('Sorting') + ' ('+IntToStr(Length(DataGridSortColumns))+')';
+    end else begin
       tbtnDataSorting.ImageIndex := 107;
+      tbtnDataSorting.Caption := _('Sorting');
+    end;
 
     // Append LIMIT clause
     Offset := 0;
