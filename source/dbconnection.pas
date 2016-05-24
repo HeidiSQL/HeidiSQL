@@ -3421,7 +3421,8 @@ begin
   LastResults := GetLastResults;
   for i:=0 to LastResults.Count-1 do begin
     FPrefetchResults.Add(LastResults[i]);
-    FPrefetchResults[i].SQL := Batch[i].SQL;
+    if Batch.Count > i then
+      FPrefetchResults[i].SQL := Batch[i].SQL;
   end;
   Batch.Free;
 end;
