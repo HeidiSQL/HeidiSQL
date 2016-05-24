@@ -4897,6 +4897,7 @@ begin
         tbtnDataColumns.ImageIndex := 107
       else
         tbtnDataColumns.ImageIndex := 108;
+      tbtnDataColumns.Caption := _('Columns') + ' ('+IntToStr(VisibleColumns)+'/'+IntToStr(SelectedTableColumns.Count)+')';
 
       // Autoset or restore column width
       for i:=0 to vt.Header.Columns.Count-1 do begin
