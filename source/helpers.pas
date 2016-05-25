@@ -153,7 +153,7 @@ type
     asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
     asCSVImportDuplicateHandling, asCSVImportParseMethod, asUpdatecheck, asUpdatecheckBuilds,
     asUpdatecheckInterval, asUpdatecheckLastrun, asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
-    asTableToolsFindText, asTableToolsDatatype, asTableToolsFindCaseSensitive, asFileImportWindowWidth, asFileImportWindowHeight,
+    asTableToolsFindText, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
     asEditVarWindowWidth, asEditVarWindowHeight, asUsermanagerWindowWidth, asUsermanagerWindowHeight, asUsermanagerListWidth,
     asSelectDBOWindowWidth, asSelectDBOWindowHeight, asSessionManagerListWidth, asSessionManagerWindowWidth, asSessionManagerWindowHeight,
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
@@ -3290,6 +3290,7 @@ begin
   InitSetting(asTableToolsFindText,               'TableTools_FindText',                   0, False, '');
   InitSetting(asTableToolsDatatype,               'TableTools_Datatype',                   0);
   InitSetting(asTableToolsFindCaseSensitive,      'TableTools_FindCaseSensitive',          0, False);
+  InitSetting(asTableToolsFindMatchType,          'TableToolsFindMatchType',               0);
   InitSetting(asFileImportWindowWidth,            'FileImport_WindowWidth',                530);
   InitSetting(asFileImportWindowHeight,           'FileImport_WindowHeight',               530);
   InitSetting(asEditVarWindowWidth,               'EditVar_WindowWidth',                   300);

@@ -81,6 +81,8 @@ type
     popupExportOptions: TPopupMenu;
     menuExportAddComments: TMenuItem;
     menuExportRemoveAutoIncrement: TMenuItem;
+    comboMatchType: TComboBox;
+    lblMatchType: TLabel;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -223,6 +225,7 @@ begin
     comboDatatypes.Items.Add(DatatypeCategories[dtc].Name);
   comboDatatypes.ItemIndex := AppSettings.ReadInt(asTableToolsDatatype);
   chkCaseSensitive.Checked := AppSettings.ReadBool(asTableToolsFindCaseSensitive);
+  comboMatchType.ItemIndex := AppSettings.ReadInt(asTableToolsFindMatchType);
 
   // SQL export tab
   chkExportDatabasesCreate.Checked := AppSettings.ReadBool(asExportSQLCreateDatabases);
@@ -366,6 +369,7 @@ begin
       AppSettings.WriteString(asTableToolsFindText, memoFindText.Text);
       AppSettings.WriteInt(asTableToolsDatatype, comboDatatypes.ItemIndex);
       AppSettings.WriteBool(asTableToolsFindCaseSensitive, chkCaseSensitive.Checked);
+      AppSettings.WriteInt(asTableToolsFindMatchType, comboMatchType.ItemIndex);
     end;
 
     tmSQLExport: begin
@@ -800,7 +804,13 @@ begin
   FFindSeeResultSQL.Add('');
 
   FindText := memoFindText.Text;
-  FindTextJokers := '%'+FindText+'%';
+  case comboMatchType.ItemIndex of
+    0: FindTextJokers := '%'+FindText+'%';
+    1: FindTextJokers := FindText;
+    2: FindTextJokers := '%'+FindText;
+    3: FindTextJokers := FindText+'%';
+  end;
+
   RoutineDefinitionColumn := DBObj.Connection.QuoteIdent('routine_definition');
   if not chkCaseSensitive.Checked then begin
     FindText := LowerCase(FindText);
@@ -825,10 +835,10 @@ begin
         SQL := '';
         for Col in Columns do begin
           Column := DBObj.Connection.QuoteIdent(Col.Name);
-          if not chkCaseSensitive.Checked then
-            Column := 'LOWER('+Column+')';
           if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
-            if chkCaseSensitive.Checked then begin
+            if (Col.DataType.Category in [dtcInteger, dtcReal]) and (comboMatchType.ItemIndex=1) then begin
+              SQL := SQL + Column + '=' + UnformatNumber(FindText) + ' OR ';
+            end else if chkCaseSensitive.Checked then begin
               case DBObj.Connection.Parameters.NetTypeGroup of
                 ngMySQL:
                   SQL := SQL + Column + ' LIKE BINARY ' + esc(FindTextJokers) + ' OR ';
@@ -838,6 +848,7 @@ begin
                   SQL := SQL + 'CAST(' + Column + ' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
               end;
             end else begin
+              Column := 'LOWER('+Column+')';
               case DBObj.Connection.Parameters.NetTypeGroup of
                 ngMySQL:
                   SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') LIKE ' + esc(FindTextJokers) + ' OR ';

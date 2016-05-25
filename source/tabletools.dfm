@@ -268,17 +268,24 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 98
+            Top = 83
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
             Caption = 'Search in column types:'
           end
+          object lblMatchType: TLabel
+            Left = 3
+            Top = 129
+            Width = 58
+            Height = 13
+            Caption = 'Match type:'
+          end
           object memoFindText: TMemo
             Left = 208
             Top = 11
             Width = 381
-            Height = 78
+            Height = 59
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
@@ -286,7 +293,7 @@ object frmTableTools: TfrmTableTools
           end
           object comboDataTypes: TComboBox
             Left = 208
-            Top = 95
+            Top = 76
             Width = 381
             Height = 21
             Style = csDropDownList
@@ -295,12 +302,28 @@ object frmTableTools: TfrmTableTools
           end
           object chkCaseSensitive: TCheckBox
             Left = 208
-            Top = 122
+            Top = 103
             Width = 381
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
             Caption = 'Case sensitive'
             TabOrder = 2
+          end
+          object comboMatchType: TComboBox
+            Left = 208
+            Top = 126
+            Width = 381
+            Height = 21
+            Style = csDropDownList
+            Anchors = [akLeft, akRight, akBottom]
+            ItemIndex = 0
+            TabOrder = 3
+            Text = 'Left and right wildcard'
+            Items.Strings = (
+              'Left and right wildcard'
+              'Exact match'
+              'Left wildcard'
+              'Right wildcard')
           end
         end
         object tabSQLexport: TTabSheet
