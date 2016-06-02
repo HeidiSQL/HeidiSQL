@@ -617,6 +617,8 @@ type
     menuDoubleClickInsertsNodeText: TMenuItem;
     actRunSQL: TAction;
     RunSQLfiles1: TMenuItem;
+    actPreferencesLogging: TAction;
+    Loggingpreferences1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1687,6 +1689,8 @@ begin
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
   actSingleQueries.Checked := AppSettings.ReadBool(asSingleQueries);
   actBatchInOneGo.Checked := not AppSettings.ReadBool(asSingleQueries);
+  actPreferencesLogging.ImageIndex := actPreferences.ImageIndex;
+  actPreferencesLogging.OnExecute := actPreferences.OnExecute;
 
   pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
   treeQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
@@ -2080,6 +2084,8 @@ procedure TMainForm.actPreferencesExecute(Sender: TObject);
 begin
   // Preferences
   FPreferencesDialog := Toptionsform.Create(Self);
+  if Sender = actPreferencesLogging then
+    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabLogging;
   FPreferencesDialog.ShowModal;
   FreeAndNil(FPreferencesDialog);
 end;

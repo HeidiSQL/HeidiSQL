@@ -2341,6 +2341,10 @@ object MainForm: TMainForm
       ImageIndex = 98
       OnExecute = actPreferencesExecute
     end
+    object actPreferencesLogging: TAction
+      Category = 'Tools'
+      Caption = 'Logging preferences'
+    end
     object actFlushHosts: TAction
       Category = 'Tools'
       Caption = 'Hosts'
@@ -9636,9 +9640,6 @@ object MainForm: TMainForm
       Action = actLogHorizontalScrollbar
       AutoCheck = True
     end
-    object N15: TMenuItem
-      Caption = '-'
-    end
     object Saveastextfile1: TMenuItem
       Action = actSaveSynMemoToTextfile
     end
@@ -9651,6 +9652,12 @@ object MainForm: TMainForm
       Enabled = False
       ImageIndex = 51
       OnClick = menuOpenLogFolderClick
+    end
+    object N15: TMenuItem
+      Caption = '-'
+    end
+    object Loggingpreferences1: TMenuItem
+      Action = actPreferencesLogging
     end
   end
   object TimerRefresh: TTimer
