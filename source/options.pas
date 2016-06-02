@@ -135,6 +135,7 @@ type
     editGUIFontSize: TEdit;
     updownGUIFontSize: TUpDown;
     lblGUIFontSize: TLabel;
+    chkHorizontalScrollbar: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -247,6 +248,7 @@ begin
   AppSettings.WriteBool(asLogInfos, chkLogEventInfo.Checked);
   AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
   AppSettings.WriteBool(asQueryHistoryEnabled, chkQueryHistory.Checked);
+  AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
     AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.Name);
@@ -349,6 +351,8 @@ begin
   MainForm.ApplyFontToGrids;
 
   Mainform.LogToFile := chkLogToFile.Checked;
+  MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
+  MainForm.actLogHorizontalScrollbar.OnExecute(MainForm.actLogHorizontalScrollbar);
   DatatypeCategories[dtcInteger].Color := FGridTextColors[dtcInteger];
   DatatypeCategories[dtcReal].Color := FGridTextColors[dtcReal];
   DatatypeCategories[dtcText].Color := FGridTextColors[dtcText];
@@ -484,6 +488,7 @@ begin
   chkLogEventInfo.Checked := AppSettings.ReadBool(asLogInfos);
   chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
   chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);
+  chkHorizontalScrollbar.Checked := AppSettings.ReadBool(asLogHorizontalScrollbar);
 
   // Default column width in grids:
   updownMaxColWidth.Position := AppSettings.ReadInt(asMaxColWidth);

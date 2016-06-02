@@ -422,6 +422,16 @@ object optionsform: Toptionsform
         Height = 17
         Caption = 'Enable query history'
         TabOrder = 11
+        OnClick = Modified
+      end
+      object chkHorizontalScrollbar: TCheckBox
+        Left = 8
+        Top = 223
+        Width = 434
+        Height = 17
+        Caption = 'Horizontal scrollbar'
+        TabOrder = 12
+        OnClick = Modified
       end
     end
     object tabSQL: TTabSheet
