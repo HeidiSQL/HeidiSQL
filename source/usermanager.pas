@@ -553,16 +553,21 @@ begin
         if (rxGrant.Match[4] = '*') and (rxGrant.Match[6] = '*') then begin
           P.DBObj.NodeType := lntNone;
           P.AllPrivileges := PrivsGlobal;
-          if not FAdded then begin
-            editPassword.TextHint := FConnection.UnescapeString(rxGrant.Match[10]);
-            // Set password for changed user, to silence the error message about invalid length
-            User.Password := editPassword.TextHint;
-          end else begin
-            // Set password for cloned user
-            User.Password := FConnection.UnescapeString(rxGrant.Match[10]);
-            editPassword.Text := User.Password;
-            editRepeatPassword.Text := User.Password;
-            editPassword.Modified := True;
+          // http://dev.mysql.com/doc/refman/5.7/en/show-grants.html
+          // As of MySQL 5.7.6, SHOW GRANTS output does not include IDENTIFIED BY PASSWORD clauses.
+          // Use the SHOW CREATE USER statement instead. See Section 14.7.5.12, "SHOW CREATE USER Syntax".
+          if FConnection.Parameters.IsMySQL and (FConnection.ServerVersionInt < 50706) then begin
+            if not FAdded then begin
+              editPassword.TextHint := FConnection.UnescapeString(rxGrant.Match[10]);
+              // Set password for changed user, to silence the error message about invalid length
+              User.Password := editPassword.TextHint;
+            end else begin
+              // Set password for cloned user
+              User.Password := FConnection.UnescapeString(rxGrant.Match[10]);
+              editPassword.Text := User.Password;
+              editRepeatPassword.Text := User.Password;
+              editPassword.Modified := True;
+            end;
           end;
         end else if (rxGrant.Match[6] = '*') then begin
           P.DBObj.NodeType := lntDb;
