@@ -2754,6 +2754,7 @@ begin
           Result := Result + ' COMMENT ' + EscapeString(Cols.Col('column_comment'))
         else if Comments <> nil then begin
           // Find column comment from separate result
+          Comments.First;
           while not Comments.Eof do begin
             if Comments.Col('column')=Cols.Col('COLUMN_NAME') then begin
               Result := Result + ' COMMENT ' + EscapeString(Comments.Col('comment'));
