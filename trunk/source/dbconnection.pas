@@ -3293,6 +3293,7 @@ end;
 function TDBConnection.GetAllDatabases: TStringList;
 var
   rx: TRegExpr;
+  dbname: String;
 begin
   // Get user passed delimited list
   if not Assigned(FAllDatabases) then begin
@@ -3303,8 +3304,9 @@ begin
       rx.ModifierG := True;
       if rx.Exec(FParameters.AllDatabasesStr) then while true do begin
         // Add if not a duplicate
-        if FAllDatabases.IndexOf(rx.Match[0]) = -1 then
-          FAllDatabases.Add(rx.Match[0]);
+        dbname := Trim(rx.Match[0]);
+        if FAllDatabases.IndexOf(dbname) = -1 then
+          FAllDatabases.Add(dbname);
         if not rx.ExecNext then
           break;
       end;
