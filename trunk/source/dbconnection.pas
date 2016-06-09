@@ -4738,8 +4738,10 @@ var
 begin
   Log(lcDebug, 'Get connection details ...');
   Result := TStringList.Create;
-  if Assigned(Parameters) then
+  if Assigned(Parameters) then begin
     Result.Values[_('Host')] := Parameters.Hostname;
+    Result.Values[_('Network type')] := Parameters.NetTypeName(Parameters.NetType, True);
+  end;
   Ping(False);
   Result.Values[_('Connected')] := EvalBool(FActive);
   if FActive then begin
