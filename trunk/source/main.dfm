@@ -79,7 +79,7 @@ object MainForm: TMainForm
       end
       item
         Style = psOwnerDraw
-        Width = 105
+        Width = 170
       end
       item
         Width = 170
