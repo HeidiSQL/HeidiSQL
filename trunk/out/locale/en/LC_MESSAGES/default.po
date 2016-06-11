@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2016-05-25 20:50+0200\n"
+"PO-Revision-Date: 2016-06-11 09:23+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -3827,21 +3827,13 @@ msgstr ""
 msgid "unknown or never"
 msgstr "unknown or never"
 
-#: connections.pas:765
-msgid "not available"
-msgstr "not available"
-
 #: connections.pas:789
-msgid "successful connects: %d"
-msgstr "successful connects: %d"
+msgid "Successful connects:"
+msgstr "Successful connects:"
 
 #: connections.pas:791
-msgid "unsuccessful"
-msgstr "unsuccessful"
-
-#: connections.pas:793
-msgid "unsuccessful connects: %d"
-msgstr "unsuccessful connects: %d"
+msgid "Unsuccessful connects:"
+msgstr "Unsuccessful connects:"
 
 #: connections.pas:954
 msgid "Save modifications?"

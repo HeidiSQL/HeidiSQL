@@ -795,9 +795,9 @@ object connform: Tconnform
       object lblCounterLeft: TLabel
         Left = 3
         Top = 50
-        Width = 104
+        Width = 100
         Height = 13
-        Caption = 'Connection attempts:'
+        Caption = 'Successful connects:'
       end
       object lblCreatedLeft: TLabel
         Left = 3
@@ -807,28 +807,39 @@ object connform: Tconnform
         Caption = 'Created:'
       end
       object lblCreatedRight: TLabel
-        Left = 120
+        Left = 204
         Top = 12
         Width = 5
         Height = 13
         Caption = '?'
       end
-      object lblCounterRight: TLabel
-        Left = 120
+      object lblCounterRight1: TLabel
+        Left = 204
         Top = 50
-        Width = 294
-        Height = 47
-        Anchors = [akLeft, akTop, akRight]
-        AutoSize = False
+        Width = 5
+        Height = 13
         Caption = '?'
-        WordWrap = True
       end
       object lblLastConnectRight: TLabel
-        Left = 120
+        Left = 204
         Top = 31
         Width = 5
         Height = 13
         Caption = '?'
+      end
+      object lblCounterRight2: TLabel
+        Left = 204
+        Top = 69
+        Width = 5
+        Height = 13
+        Caption = '?'
+      end
+      object lblCounterLeft2: TLabel
+        Left = 3
+        Top = 69
+        Width = 112
+        Height = 13
+        Caption = 'Unsuccessful connects:'
       end
     end
   end

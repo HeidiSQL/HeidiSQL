@@ -51,7 +51,7 @@ type
     lblCounterLeft: TLabel;
     lblCreatedLeft: TLabel;
     lblCreatedRight: TLabel;
-    lblCounterRight: TLabel;
+    lblCounterRight1: TLabel;
     lblLastConnectRight: TLabel;
     tabSSHtunnel: TTabSheet;
     editSSHlocalport: TEdit;
@@ -112,6 +112,8 @@ type
     lblKeepAlive: TLabel;
     editKeepAlive: TEdit;
     updownKeepAlive: TUpDown;
+    lblCounterRight2: TLabel;
+    lblCounterLeft2: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -842,7 +844,6 @@ end;
 procedure Tconnform.TimerStatisticsTimer(Sender: TObject);
 var
   LastConnect, Created, DummyDate: TDateTime;
-  Connects, Refused: Integer;
 begin
   // Continuously update statistics labels
   lblLastConnectRight.Caption := _('unknown or never');
@@ -851,8 +852,8 @@ begin
   lblCreatedRight.Caption := _('unknown');
   lblCreatedRight.Hint := '';
   lblCreatedRight.Enabled := False;
-  lblCounterRight.Caption := _('not available');
-  lblCounterRight.Enabled := False;
+  lblCounterRight1.Caption := '';
+  lblCounterRight2.Caption := '';
 
   if not Assigned(ListSessions.FocusedNode) then
     Exit;
@@ -871,15 +872,8 @@ begin
     lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
     lblCreatedRight.Enabled := True;
   end;
-  Connects := AppSettings.ReadInt(asConnectCount);
-  Refused := AppSettings.ReadInt(asRefusedCount);
-  lblCounterRight.Enabled := Connects + Refused > 0;
-  if Connects > 0 then begin
-    lblCounterRight.Caption := f_('successful connects: %d', [Connects]);
-    if Refused > 0 then
-      lblCounterRight.Caption := lblCounterRight.Caption + ', '+_('unsuccessful')+': '+IntToStr(Refused);
-  end else if Refused > 0 then
-    lblCounterRight.Caption := f_('unsuccessful connects: %d', [Refused]);
+  lblCounterRight1.Caption := FormatNumber(AppSettings.ReadInt(asConnectCount));
+  lblCounterRight2.Caption := FormatNumber(AppSettings.ReadInt(asRefusedCount));
   Invalidate;
 end;
 
