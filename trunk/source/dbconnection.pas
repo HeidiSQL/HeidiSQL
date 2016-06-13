@@ -757,7 +757,7 @@ var
 
 implementation
 
-uses helpers, loginform;
+uses helpers, loginform, change_password;
 
 
 { TProcessPipe }
@@ -1614,6 +1614,7 @@ var
   sslca, sslkey, sslcert, sslcipher: PAnsiChar;
   PluginDir: AnsiString;
   Vars, Status: TDBQuery;
+  PasswordChangeDialog: TfrmPasswordChange;
 begin
   if Value and (FHandle = nil) then begin
     DoBeforeConnect;
@@ -1667,7 +1668,7 @@ begin
     end;
 
     // Gather client options
-    ClientFlags := CLIENT_LOCAL_FILES or CLIENT_INTERACTIVE or CLIENT_PROTOCOL_41 or CLIENT_MULTI_STATEMENTS;
+    ClientFlags := CLIENT_LOCAL_FILES or CLIENT_INTERACTIVE or CLIENT_PROTOCOL_41 or CLIENT_MULTI_STATEMENTS or CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS;
     if Parameters.Compressed then
       ClientFlags := ClientFlags or CLIENT_COMPRESS;
     if Parameters.WantSSL then
@@ -1708,6 +1709,28 @@ begin
           '* either to fix the "%s" variable,'+CRLF+
           '* or to grant you missing privileges.'),
           ['init_connect', 'init_connect']);
+      // Try to fire the very first query against the server, which probably run into the following error:
+      // "Error 1820: You must SET PASSWORD before executing this statement"
+      try
+        ThreadId;
+      except
+        on E:EDatabaseError do begin
+          if GetLastErrorCode =  1820 then begin
+            PasswordChangeDialog := TfrmPasswordChange.Create(Self);
+            PasswordChangeDialog.lblHeading.Caption := GetLastError;
+            PasswordChangeDialog.ShowModal;
+            if PasswordChangeDialog.ModalResult = mrOk then begin
+              if ExecRegExpr('\sALTER USER\s', GetLastError) then
+                Query('ALTER USER USER() IDENTIFIED BY '+EscapeString(PasswordChangeDialog.editPassword.Text))
+              else
+                Query('SET PASSWORD=PASSWORD('+EscapeString(PasswordChangeDialog.editPassword.Text)+')');
+            end else // Dialog cancelled
+              Raise;
+            PasswordChangeDialog.Free;
+          end else
+            Raise;
+        end;
+      end;
       Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       try
         CharacterSet := 'utf8mb4';

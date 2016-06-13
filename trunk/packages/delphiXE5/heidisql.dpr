@@ -41,7 +41,8 @@ uses
   syncdb in '..\..\source\syncdb.pas' {frmSyncDB},
   gnugettext in '..\..\source\gnugettext.pas',
   JumpList in '..\..\source\JumpList.pas',
-  extra_controls in '..\..\source\extra_controls.pas';
+  extra_controls in '..\..\source\extra_controls.pas',
+  change_password in '..\..\source\change_password.pas' {frmPasswordChange};
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\icon-question.RES}
