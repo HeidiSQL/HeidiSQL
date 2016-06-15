@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, extra_controls, gnugettext,
-  Vcl.Menus, Clipbrd;
+  Vcl.Menus, Clipbrd, Vcl.ComCtrls, System.Math;
 
 type
   TfrmPasswordChange = class(TFormWithSizeGrip)
@@ -29,6 +29,7 @@ type
     menuDummy4: TMenuItem;
     menuDummy5: TMenuItem;
     btnCopyToClipboard: TButton;
+    progressbarPasswordStrength: TProgressBar;
     procedure editPasswordChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure editPasswordKeyDown(Sender: TObject; var Key: Word;
@@ -38,6 +39,7 @@ type
     procedure btnCopyToClipboardClick(Sender: TObject);
   private
     { Private-Deklarationen }
+    procedure CheckPasswordStrength;
   public
     { Public-Deklarationen }
   end;
@@ -110,6 +112,7 @@ begin
   // User has entered something on one or both password fields
   btnOK.Enabled := False;
   btnCopyToClipboard.Enabled := False;
+  progressbarPasswordStrength.Visible := False;
 
   if editPassword.Text = '' then begin
     editPassword.PasswordChar := #0;
@@ -119,9 +122,11 @@ begin
     if editPassword.Text <> editRepeatPassword.Text then
       lblStatus.Caption := _('Error: Passwords do not match!')
     else begin
-      lblStatus.Caption := '';
+      lblStatus.Caption := _('Password strength:');
       btnOK.Enabled := True;
       btnCopyToClipboard.Enabled := True;
+      progressbarPasswordStrength.Visible := True;
+      CheckPasswordStrength;
     end;
   end;
 end;
@@ -131,6 +136,31 @@ procedure TfrmPasswordChange.editPasswordKeyDown(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
   editPassword.OnChange(Sender);
+end;
+
+
+procedure TfrmPasswordChange.CheckPasswordStrength;
+var
+  i, Distance, LastOrd: Integer;
+  p: String;
+begin
+  // Simple password-strength checker
+  // Calculates the distance between all character codes, and give it a bonus for longer passwords
+  p := editPassword.Text;
+  Distance := 0;
+  LastOrd := -1;
+  for i:=1 to Length(p) do begin
+    if LastOrd > -1 then
+      Inc(Distance, Abs(LastOrd - Ord(p[i])));
+    LastOrd := Ord(p[i]);
+  end;
+  Inc(Distance, Length(p)*10);
+  progressbarPasswordStrength.Position := Round(progressbarPasswordStrength.Max / 500 * Distance);
+  case progressbarPasswordStrength.Position of
+    0..20: progressbarPasswordStrength.State := pbsError;
+    21..50: progressbarPasswordStrength.State := pbsPaused;
+    51..100: progressbarPasswordStrength.State := pbsNormal;
+  end;
 end;
 
 
