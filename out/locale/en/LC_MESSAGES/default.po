@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2016-06-11 09:23+0200\n"
+"PO-Revision-Date: 2016-06-15 21:13+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -6208,3 +6208,27 @@ msgstr "%s%s missing."
 
 msgid "Filename or path contains illegal characters: \"%s\""
 msgstr "Filename or path contains illegal characters: \"%s\""
+
+msgid "Please change your password"
+msgstr "Please change your password"
+
+msgid "Error: Passwords do not match!"
+msgstr "Error: Passwords do not match!"
+
+msgid "New password:"
+msgstr "New password:"
+
+msgid "Type new password or select a suggestion"
+msgstr "Type new password or select a suggestion"
+
+msgid "Repeat new password:"
+msgstr "Repeat new password:"
+
+msgid "Retype password"
+msgstr "Retype password"
+
+msgid "Change expired password"
+msgstr "Change expired password"
+
+msgid "Password strength:"
+msgstr "Password strength:"
