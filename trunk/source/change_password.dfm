@@ -82,6 +82,7 @@ object frmPasswordChange: TfrmPasswordChange
     Images = MainForm.ImageListMain
     PasswordChar = '*'
     TabOrder = 1
+    TextHint = 'Retype password'
     OnChange = editPasswordChange
     OnClick = editPasswordChange
     OnKeyDown = editPasswordKeyDown
@@ -118,6 +119,13 @@ object frmPasswordChange: TfrmPasswordChange
     Images = MainForm.ImageListMain
     TabOrder = 4
     OnClick = btnCopyToClipboardClick
+  end
+  object progressbarPasswordStrength: TProgressBar
+    Left = 146
+    Top = 131
+    Width = 302
+    Height = 17
+    TabOrder = 5
   end
   object popupPassword: TPopupMenu
     Left = 344
