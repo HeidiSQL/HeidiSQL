@@ -108,22 +108,27 @@ end;
 
 
 procedure TfrmPasswordChange.editPasswordChange(Sender: TObject);
+var
+  PasswordsMatch: Boolean;
 begin
   // User has entered something on one or both password fields
   btnOK.Enabled := False;
   btnCopyToClipboard.Enabled := False;
   progressbarPasswordStrength.Visible := False;
+  if Sender = editPassword then
+    editRepeatPassword.Modified := False;
 
   if editPassword.Text = '' then begin
     editPassword.PasswordChar := #0;
     lblStatus.Caption := _('Please change your password')
   end else begin
     editPassword.PasswordChar := '*';
-    if editPassword.Text <> editRepeatPassword.Text then
+    PasswordsMatch := editPassword.Text = editRepeatPassword.Text;
+    if editRepeatPassword.Modified and (not PasswordsMatch) then
       lblStatus.Caption := _('Error: Passwords do not match!')
     else begin
       lblStatus.Caption := _('Password strength:');
-      btnOK.Enabled := True;
+      btnOK.Enabled := PasswordsMatch;
       btnCopyToClipboard.Enabled := True;
       progressbarPasswordStrength.Visible := True;
       CheckPasswordStrength;
