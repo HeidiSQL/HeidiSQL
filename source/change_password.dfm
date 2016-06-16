@@ -93,6 +93,7 @@ object frmPasswordChange: TfrmPasswordChange
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
+    Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 2
