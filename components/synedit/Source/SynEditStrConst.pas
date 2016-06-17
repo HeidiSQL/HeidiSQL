@@ -128,12 +128,13 @@ const
   SYNS_AttrOperatorAndSymbols   =  'OperatorAndSymbols';
   SYNS_AttrOpLine               =  'OpLine';
   SYNS_AttrOptions              =  'Options';
-  SYNS_AttrPath                 =  'PathName';  
+  SYNS_AttrPath                 =  'PathName';
   SYNS_AttrPLSQL                =  'PLSQL-ReservedWord';
   SYNS_AttrPragma               =  'Pragma';
   SYNS_AttrPredefined           =  'Predefined';
   SYNS_AttrPreprocessor         =  'Preprocessor';
   SYNS_AttrProcessingInstr      =  'ProcessingInstruction';
+  SYNS_AttrProcName             =  'ProcName';
   SYNS_AttrProperty             =  'Property';
   SYNS_AttrQuad                 =  'Quad';
   SYNS_AttrQualifier            =  'Qualifier';
@@ -346,6 +347,7 @@ resourcestring
   SYNS_FriendlyAttrPredefined           =  'Predefined';
   SYNS_FriendlyAttrPreprocessor         =  'Preprocessor';
   SYNS_FriendlyAttrProcessingInstr      =  'Processing Instruction';
+  SYNS_FriendlyAttrProcName             =  'Procedure name';
   SYNS_FriendlyAttrProperty             =  'Property';
   SYNS_FriendlyAttrQuad                 =  'Quad';
   SYNS_FriendlyAttrQualifier            =  'Qualifier';

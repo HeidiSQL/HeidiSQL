@@ -682,16 +682,21 @@ var
   Key: string;
 begin
   Key := Reg.CurrentPath;
-  if Reg.OpenKeyReadOnly(Name) then
+  if Reg.KeyExists(Name) then
   begin
-    if Reg.ValueExists('Background') then
-      Background := Reg.ReadInteger('Background');
-    if Reg.ValueExists('Foreground') then
-      Foreground := Reg.ReadInteger('Foreground');
-    if Reg.ValueExists('Style') then
-      IntegerStyle := Reg.ReadInteger('Style');
-    reg.OpenKeyReadOnly('\' + Key);
-    Result := True;
+    if Reg.OpenKeyReadOnly(Name) then
+    begin
+      if Reg.ValueExists('Background') then
+        Background := Reg.ReadInteger('Background');
+      if Reg.ValueExists('Foreground') then
+        Foreground := Reg.ReadInteger('Foreground');
+      if Reg.ValueExists('Style') then
+        IntegerStyle := Reg.ReadInteger('Style');
+      reg.OpenKeyReadOnly('\' + Key);
+      Result := True;
+    end
+    else
+      Result := False;
   end
   else
     Result := False;

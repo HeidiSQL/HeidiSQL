@@ -192,7 +192,7 @@ type
     FHeightBuffer: Integer;
     FColumns: TProposalColumns;
     procedure SetCurrentString(const Value: UnicodeString);
-    procedure MoveLine(cnt: Integer);
+    procedure MoveLine(cnt: Integer; const WrapAround: Boolean = False);
     procedure ScrollbarOnChange(Sender: TObject);
     procedure ScrollbarOnScroll(Sender: TObject; ScrollCode: TScrollCode; var ScrollPos: Integer);
     procedure ScrollbarOnEnter(Sender: TObject);
@@ -1480,12 +1480,12 @@ begin
         if ssCtrl in Shift then
           Position := 0
         else
-          MoveLine(-1);
+          MoveLine(-1, True);
       SYNEDIT_DOWN:
         if ssCtrl in Shift then
           Position := FAssignedList.Count - 1
         else
-          MoveLine(1);
+          MoveLine(1, True);
       SYNEDIT_BACK:
         if (Shift = []) then
         begin
@@ -1792,19 +1792,27 @@ begin
   ActiveControl := nil;
 end;
 
-procedure TSynBaseCompletionProposalForm.MoveLine(cnt: Integer);
+procedure TSynBaseCompletionProposalForm.MoveLine(cnt: Integer; const WrapAround: Boolean = False);
+var
+  NewPosition: Integer;
 begin
-  if (cnt > 0) then begin
-    if (Position < (FAssignedList.Count - cnt)) then
-      Position := Position + cnt
+  NewPosition := Position + cnt;
+  if (NewPosition < 0) then
+  begin
+    if WrapAround then
+      NewPosition := FAssignedList.Count + NewPosition
     else
-      Position := FAssignedList.Count - 1;
-  end else begin
-    if (Position + cnt) > 0 then
-      Position := Position + cnt
+      NewPosition := 0;
+  end
+  else if (NewPosition >= FAssignedList.Count) then
+  begin
+    if WrapAround then
+      NewPosition := NewPosition - FAssignedList.Count
     else
-      Position := 0;
+      NewPosition := FAssignedList.Count - 1;
   end;
+
+  Position := NewPosition
 end;
 
 function TSynBaseCompletionProposalForm.LogicalToPhysicalIndex(Index: Integer): Integer;
@@ -2450,7 +2458,20 @@ begin
     exit;
   end;
 
+{$IFDEF SYN_DELPHI_XE_UP}
+  if Assigned(Application.MainForm) then
+  begin
+    Form.PopupMode := pmExplicit;
+    Form.PopupParent := Application.MainForm;
+  end
+  else
+  begin
+    Form.PopupMode := pmNone;
+    Form.FormStyle := fsStayOnTop;
+  end;
+{$ELSE}
   Form.FormStyle := fsStayOnTop;
+{$ENDIF}
 
   if Assigned(Form.CurrentEditor) then
   begin

@@ -190,12 +190,12 @@ uses
 
 const
    // if the language is case-insensitive keywords *must* be in lowercase
-   cKeywords: array[1..94] of UnicodeString = (
+   cKeywords: array[1..96] of UnicodeString = (
       'abstract', 'and', 'array', 'as', 'asm',
       'begin', 'break', 'case', 'cdecl', 'class', 'const', 'constructor',
       'continue', 'deprecated', 'destructor',
-      'div', 'do', 'downto', 'else', 'end', 'ensure', 'except', 'exit',
-      'export', 'exports', 'external', 'final', 'finalization',
+      'div', 'do', 'downto', 'else', 'end', 'ensure', 'empty', 'except',
+      'exit', 'export', 'exports', 'external', 'final', 'finalization',
       'finally', 'for', 'forward', 'function', 'helper', 'if',
       'implementation', 'implements', 'implies', 'in', 'inherited',
       'initialization', 'inline', 'interface', 'is', 'lambda', 'lazy', 'library',
@@ -204,7 +204,7 @@ const
       'pascal', 'partial', 'private', 'procedure', 'program', 'property',
       'protected', 'public', 'published', 'raise', 'record',
       'register', 'reintroduce', 'repeat', 'require', 'resourcestring',
-      'sar', 'sealed', 'set', 'shl', 'shr', 'static', 'step',
+      'sar', 'sealed', 'set', 'shl', 'shr', 'static', 'strict', 'step',
       'then', 'to', 'try', 'type', 'unit', 'until',
       'uses', 'var', 'virtual', 'while', 'xor'
   );
@@ -391,10 +391,15 @@ end;
 
 function TSynDWSSyn.FuncEnd: TtkTokenKind;
 begin
-   if IsCurrentToken('end') then begin
+  if IsCurrentToken('end') then begin
+    if (FLine[Run - 1] <> '&') then
+    begin
       Result := tkKey;
       fRange := rsUnknown;
-   end else Result := KeywordFunc;
+    end
+    else
+      Result := tkIdentifier;
+  end else Result := KeywordFunc;
 end;
 
 function TSynDWSSyn.FuncTypeScoped: TtkTokenKind;
@@ -412,8 +417,13 @@ function TSynDWSSyn.FuncType: TtkTokenKind;
 begin
   if IsCurrentToken('type') then
   begin
-    Result := tkKey;
-    fRange := rsType;
+    if (FLine[Run - 1] <> '&') then
+    begin
+      Result := tkKey;
+      fRange := rsType;
+    end
+    else
+      Result := tkIdentifier;
   end else Result := KeywordFunc;
 end;
 
