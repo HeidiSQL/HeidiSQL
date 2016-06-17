@@ -37,6 +37,7 @@ type
     procedure menuPasswordClick(Sender: TObject);
     procedure menuPasswordInsert(Sender: TObject);
     procedure btnCopyToClipboardClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private-Deklarationen }
     procedure CheckPasswordStrength;
@@ -52,6 +53,13 @@ implementation
 uses main, helpers;
 
 {$R *.dfm}
+
+
+procedure TfrmPasswordChange.FormCreate(Sender: TObject);
+begin
+  TranslateComponent(Self);
+  InheritFont(Font);
+end;
 
 
 procedure TfrmPasswordChange.FormShow(Sender: TObject);
