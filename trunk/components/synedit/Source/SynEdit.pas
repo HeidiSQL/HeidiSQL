@@ -165,6 +165,8 @@ type
 
   TSpecialLineColorsEvent = procedure(Sender: TObject; Line: Integer;
     var Special: Boolean; var FG, BG: TColor) of object;
+  TSpecialTokenAttributesEvent = procedure(Sender: TObject; ALine, APos: Integer; const AToken: string;
+    var ASpecial: Boolean; var FG, BG: TColor; var AStyle: TFontStyles) of object;
 
   TTransientType = (ttBefore, ttAfter);
   TPaintTransient = procedure(Sender: TObject; Canvas: TCanvas;
@@ -473,6 +475,7 @@ type
     fOnProcessUserCommand: TProcessCommandEvent;
     fOnReplaceText: TReplaceTextEvent;
     fOnSpecialLineColors: TSpecialLineColorsEvent;
+    fOnSpecialTokenAttributes: TSpecialTokenAttributesEvent;
     fOnContextHelp: TContextHelpEvent;
     fOnPaintTransient: TPaintTransient;
     fOnScroll: TScrollEvent;
@@ -742,6 +745,8 @@ type
       Line, Column: Integer): TSynReplaceAction; virtual;
     function DoOnSpecialLineColors(Line: Integer;
       var Foreground, Background: TColor): Boolean; virtual;
+    procedure DoOnSpecialTokenAttributes(ALine, APos: Integer; const AToken: string; var FG, BG: TColor;
+      var AStyle: TFontStyles);
     procedure DoOnStatusChange(Changes: TSynStatusChanges); virtual;
     function GetSelEnd: integer;
     function GetSelStart: integer;
@@ -1015,6 +1020,8 @@ type
       write fOnReplaceText;
     property OnSpecialLineColors: TSpecialLineColorsEvent
       read fOnSpecialLineColors write fOnSpecialLineColors;
+    property OnSpecialTokenAttributes: TSpecialTokenAttributesEvent
+      read fOnSpecialTokenAttributes write fOnSpecialTokenAttributes;
     property OnStatusChange: TStatusChangeEvent
       read fOnStatusChange write fOnStatusChange;
     property OnPaintTransient: TPaintTransient
@@ -1556,6 +1563,9 @@ begin
     begin
       Style := Style and not WS_BORDER;
       ExStyle := ExStyle or WS_EX_CLIENTEDGE;
+      // avoid flicker while scrolling or resizing
+      if CheckWin32Version(5, 1) then
+        ExStyle := ExStyle or WS_EX_COMPOSITED;
     end;
 
 {$IFNDEF UNICODE}
@@ -2573,6 +2583,7 @@ begin
   nL1 := Max(TopLine + rcClip.Top div fTextHeight, TopLine);
   nL2 := MinMax(TopLine + (rcClip.Bottom + fTextHeight - 1) div fTextHeight,
     1, DisplayLineCount);
+
   // Now paint everything while the caret is hidden.
   HideCaret;
   try
@@ -2590,14 +2601,19 @@ begin
       rcDraw.Left := Max(rcDraw.Left, fGutterWidth);
       PaintTextLines(rcDraw, nL1, nL2, nC1, nC2);
     end;
-    PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
+
+    // consider paint lock (inserted by CWBudde, 30th of July 2015)
+    if PaintLock = 0 then
+      PluginsAfterPaint(Canvas, rcClip, nL1, nL2);
 {$IFDEF SYN_CLX}
     if iRestoreViewPort then
       QPainter_setViewport(Canvas.Handle, 0, 0, Width, Height);
 {$ENDIF}
     // If there is a custom paint handler call it.
-    DoOnPaint;
-    DoOnPaintTransient(ttAfter);
+    if PaintLock = 0 then
+      DoOnPaint;
+    if PaintLock = 0 then
+      DoOnPaintTransient(ttAfter);
   finally
     UpdateCaret;
   end;
@@ -3447,6 +3463,8 @@ var
     vLastChar: Integer;
     vStartRow: Integer;
     vEndRow: Integer;
+    TokenFG, TokenBG: TColor;
+    TokenStyle: TFontStyles;
   begin
     // Initialize rcLine for drawing. Note that Top and Bottom are updated
     // inside the loop. Get only the starting point for this.
@@ -3629,11 +3647,19 @@ var
               // It's at least partially visible. Get the token attributes now.
               attr := fHighlighter.GetTokenAttribute;
               if Assigned(attr) then
-                AddHighlightToken(sToken, nTokenPos, nTokenLen, attr.Foreground,
-                  attr.Background, attr.Style)
+              begin
+                TokenFG := attr.Foreground;
+                TokenBG := attr.Background;
+                TokenStyle := attr.Style;
+              end
               else
-                AddHighlightToken(sToken, nTokenPos, nTokenLen, colFG, colBG,
-                  Font.Style);
+              begin
+                TokenFG := colFG;
+                TokenBG := colBG;
+                TokenStyle := Font.Style;
+              end;
+              DoOnSpecialTokenAttributes(nLine, nTokenPos, sToken, TokenFG, TokenBG, TokenStyle);
+              AddHighlightToken(sToken, nTokenPos, nTokenLen, TokenFG, TokenBG, TokenStyle);
             end;
             // Let the highlighter scan the next token.
             fHighlighter.Next;
@@ -4341,6 +4367,7 @@ var
   var
     x, MarkOffset, MarkOffset2: Integer;
     UpdateMarks: Boolean;
+    Count: Integer;
   begin
     UpdateMarks := False;
     MarkOffset := 0;
@@ -4402,9 +4429,14 @@ var
           MarkOffset := 1;
         end;
     end;
+
     // Update marks
     if UpdateMarks then
-      DoLinesDeleted(BB.Line + MarkOffset2, BE.Line - BB.Line + MarkOffset);
+    begin
+      Count := BE.Line - BB.Line + MarkOffset;
+      if Count > 0 then
+        DoLinesDeleted(BB.Line + MarkOffset2, Count);
+    end;
   end;
 
   procedure InsertText;
@@ -5111,12 +5143,15 @@ begin
           nil, 0);
         DragQueryPoint(THandle(Msg.wParam), Point);
 
+{$IFNDEF UNICODE}
         if Win32PlatformIsUnicode then
+{$ENDIF}
           for i := 0 to iNumberDropped - 1 do
           begin
             DragQueryFileW(THandle(Msg.wParam), i, FileNameW,
               sizeof(FileNameW) div 2);
             FilesList.Add(FileNameW)
+{$IFNDEF UNICODE}
           end
         else
           for i := 0 to iNumberDropped - 1 do
@@ -5124,6 +5159,7 @@ begin
             DragQueryFileA(THandle(Msg.wParam), i, FileNameA,
               sizeof(FileNameA));
             FilesList.Add(UnicodeString(FileNameA))
+{$ENDIF}
           end;
         fOnDropFiles(Self, Point.X, Point.Y, FilesList);
       finally
@@ -9913,6 +9949,18 @@ begin
     fOnSpecialLineColors(Self, Line, Result, Foreground, Background);
 end;
 
+procedure TCustomSynEdit.DoOnSpecialTokenAttributes(ALine, APos: Integer; const AToken: string; var FG, BG: TColor;
+  var AStyle: TFontStyles);
+var
+  Special: Boolean;
+begin
+  if Assigned(fOnSpecialTokenAttributes) then
+  begin
+    Special := False;
+    fOnSpecialTokenAttributes(Self, ALine, APos, AToken, Special, FG, BG, AStyle);
+  end;
+end;
+
 procedure TCustomSynEdit.InvalidateLine(Line: Integer);
 var
   rcInval: TRect;
@@ -10312,25 +10360,41 @@ begin
 end;
 
 function TCustomSynEdit.GetWordAtRowCol(XY: TBufferCoord): UnicodeString;
+
+// TODO: consider removing the use of Low/High(string) since this code is anyway not zero-based strings ready
+{$IFNDEF SYN_COMPILER_17_UP}
+  function Low(AStr: UnicodeString): Integer; {$IFDEF SYN_COMPILER_9_UP}inline;{$ENDIF}
+  begin
+    Result := 1;
+  end;
+
+  function High(AStr: UnicodeString): Integer; {$IFDEF SYN_COMPILER_9_UP}inline;{$ENDIF}
+  begin
+    Result := Length(AStr);
+  end;
+{$ENDIF}
+
 var
   Line: UnicodeString;
-  Len, Stop: Integer;
+  Start, Stop: Integer;
 begin
   Result := '';
   if (XY.Line >= 1) and (XY.Line <= Lines.Count) then
   begin
     Line := Lines[XY.Line - 1];
-    Len := Length(Line);
-    if Len = 0 then Exit;
-    if (XY.Char >= 1) and (XY.Char <= Len + 1) and IsIdentChar(Line[XY.Char]) then
+    if (Length(Line) > 0) and
+       ((XY.Char >= Low(Line)) and (XY.Char <= High(Line))) and
+       IsIdentChar(Line[XY.Char]) then
     begin
-      Stop := XY.Char;
-      while (Stop <= Len) and IsIdentChar(Line[Stop]) do
-        Inc(Stop);
-      while (XY.Char > 1) and IsIdentChar(Line[XY.Char - 1]) do
-        Dec(XY.Char);
-      if Stop > XY.Char then
-        Result := Copy(Line, XY.Char, Stop - XY.Char);
+       Start := XY.Char;
+       while (Start > Low(Line)) and IsIdentChar(Line[Start - 1]) do
+          Dec(Start);
+
+       Stop := XY.Char + 1;
+       while (Stop <= High(Line)) and IsIdentChar(Line[Stop]) do
+          Inc(Stop);
+
+       Result := Copy(Line, Start, Stop - Start);
     end;
   end;
 end;
@@ -10638,7 +10702,7 @@ function TCustomSynEdit.RowColToCharIndex(RowCol: TBufferCoord): Integer;
 var
   synEditStringList : TSynEditStringList;
 begin
-  RowCol.Line := Min(Lines.Count, RowCol.Line) - 1;
+  RowCol.Line := Max(0, Min(Lines.Count, RowCol.Line) - 1);
   synEditStringList := (FLines as TSynEditStringList);
   // CharIndexToRowCol assumes a line break size of two
   Result :=  synEditStringList.LineCharIndex(RowCol.Line)

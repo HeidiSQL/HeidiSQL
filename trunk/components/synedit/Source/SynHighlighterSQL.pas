@@ -78,7 +78,7 @@ type
   TtkTokenKind = (tkComment, tkDatatype, tkDefaultPackage, tkException,
     tkFunction, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace, tkPLSQL,
     tkSQLPlus, tkString, tkSymbol, tkTableName, tkUnknown, tkVariable,
-    tkConditionalComment, tkDelimitedIdentifier);
+    tkConditionalComment, tkDelimitedIdentifier, tkProcName);
 
   TRangeState = (rsUnknown, rsComment, rsString, rsConditionalComment);
 
@@ -91,6 +91,7 @@ type
     fRange: TRangeState;
     fTokenID: TtkTokenKind;
     fKeywords: TSynHashEntryList;
+    fProcNames: TUnicodeStrings;
     fTableNames: TUnicodeStrings;
     fFunctionNames: TUniCodeStrings;
     fDialect: TSQLDialect;
@@ -110,6 +111,7 @@ type
     fStringAttri: TSynHighlighterAttributes;
     fSymbolAttri: TSynHighlighterAttributes;
     fTableNameAttri: TSynHighlighterAttributes;
+    fProcNameAttri: TSynHighlighterAttributes;
     fVariableAttri: TSynHighlighterAttributes;
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
@@ -118,8 +120,11 @@ type
     procedure SetTableNames(const Value: TUnicodeStrings);
     procedure SetFunctionNames(const Value: TUnicodeStrings);
     procedure PutFunctionNamesInKeywordList;
+    procedure FunctionNamesChanged(Sender: TObject);
+    procedure ProcNamesChanged(Sender: TObject);
     procedure TableNamesChanged(Sender: TObject);
     procedure InitializeKeywordLists;
+    procedure PutProcNamesInKeywordList;
     procedure PutTableNamesInKeywordList;
     procedure AndSymbolProc;
     procedure AsciiCharProc;
@@ -145,6 +150,7 @@ type
     procedure VariableProc;
     procedure UnknownProc;
     procedure AnsiCProc;
+    procedure SetProcNames(const Value: TUnicodeStrings);
   protected
     function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
@@ -198,8 +204,11 @@ type
       write fStringAttri;
     property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
       write fSymbolAttri;
+    property ProcNameAttri: TSynHighlighterAttributes read fProcNameAttri
+      write fProcNameAttri;
     property TableNameAttri: TSynHighlighterAttributes read fTableNameAttri
       write fTableNameAttri;
+    property ProcNames: TUnicodeStrings read fProcNames write SetProcNames;
     property TableNames: TUnicodeStrings read fTableNames write SetTableNames;
     property FunctionNames: TUnicodeStrings read fFunctionNames write SetFunctionNames;
     property VariableAttri: TSynHighlighterAttributes read fVariableAttri
@@ -1239,11 +1248,15 @@ begin
   fCaseSensitive := False;
 
   fKeywords := TSynHashEntryList.Create;
+
+  fProcNames := TUnicodeStringList.Create;
+  TUnicodeStringList(fProcNames).OnChange := ProcNamesChanged;
+
   fTableNames := TUnicodeStringList.Create;
   TUnicodeStringList(fTableNames).OnChange := TableNamesChanged;
 
   fFunctionNames := TunicodeStringList.Create;
-  TUnicodeStringList(fFunctionNames).OnChange := TableNamesChanged;
+  TUnicodeStringList(fFunctionNames).OnChange := FunctionNamesChanged;
 
   fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   fCommentAttri.Style := [fsItalic];
@@ -1286,6 +1299,8 @@ begin
   AddAttribute(fStringAttri);
   fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
   AddAttribute(fSymbolAttri);
+  fProcNameAttri := TSynHighlighterAttributes.Create(SYNS_AttrProcName, SYNS_FriendlyAttrProcName);
+  AddAttribute(fProcNameAttri);
   fTableNameAttri := TSynHighlighterAttributes.Create(SYNS_AttrTableName, SYNS_FriendlyAttrTableName);
   AddAttribute(fTableNameAttri);
   fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
@@ -1300,6 +1315,7 @@ end;
 destructor TSynSQLSyn.Destroy;
 begin
   fKeywords.Free;
+  fProcNames.Free;
   fTableNames.Free;
   fFunctionNames.Free;
   inherited Destroy;
@@ -1499,6 +1515,16 @@ begin
   fTokenID := tkSymbol;
   Inc(Run);
   if CharInSet(fLine[Run], ['=', '+']) then Inc(Run);
+end;
+
+procedure TSynSQLSyn.FunctionNamesChanged(Sender: TObject);
+begin
+  InitializeKeywordLists;
+end;
+
+procedure TSynSQLSyn.ProcNamesChanged(Sender: TObject);
+begin
+  InitializeKeywordLists;
 end;
 
 procedure TSynSQLSyn.SlashProc;
@@ -1783,6 +1809,7 @@ begin
     tkSQLPlus: Result := fSQLPlusAttri;
     tkString: Result := fStringAttri;
     tkSymbol: Result := fSymbolAttri;
+    tkProcName: Result := fProcNameAttri;
     tkTableName: Result := fTableNameAttri;
     tkVariable: Result := fVariableAttri;
     tkUnknown: Result := fIdentifierAttri;
@@ -1891,15 +1918,39 @@ begin
   end;
 end;
 
+procedure TSynSQLSyn.PutProcNamesInKeywordList;
+var
+  i: Integer;
+  Entry: TSynHashEntry;
+begin
+  for i := 0 to fProcNames.Count - 1 do
+  begin
+    Entry := fKeywords[HashKey(PWideChar(fProcNames[i]))];
+    while Assigned(Entry) do
+    begin
+      if SynWideLowerCase(Entry.Keyword) = SynWideLowerCase(fProcNames[i]) then
+        Break;
+      Entry := Entry.Next;
+    end;
+    if not Assigned(Entry) then
+      DoAddKeyword(fProcNames[i], Ord(tkProcName));
+  end;
+end;
+
 procedure TSynSQLSyn.InitializeKeywordLists;
 var
   I: Integer;
 begin
+{$IFDEF LIST_CLEAR_NOT_VIRTUAL}
+  fKeywords.DeleteEntries;
+{$ELSE}
   fKeywords.Clear;
+{$ENDIF}
 
   for I := 0 to Ord(High(TtkTokenKind)) - 1 do
     EnumerateKeywords(I, GetKeywords(I), IsIdentChar, DoAddKeyword);
 
+  PutProcNamesInKeywordList;
   PutTableNamesInKeywordList;
   PutFunctionNamesInKeywordList;
   DefHighlightChange(Self);
@@ -1916,7 +1967,12 @@ end;
 
 procedure TSynSQLSyn.SetFunctionNames(const Value: TUnicodeStrings);
 begin
-  fFunctionNames := Value;
+  fFunctionNames.Assign(Value);
+end;
+
+procedure TSynSQLSyn.SetProcNames(const Value: TUnicodeStrings);
+begin
+  fProcNames.Assign(Value);
 end;
 
 function TSynSQLSyn.GetSampleSource: UnicodeString;

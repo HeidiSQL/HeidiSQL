@@ -201,7 +201,8 @@ type
     procedure LoadFromFile(const FileName: TFileName); virtual;
     procedure LoadFromStream(Stream: TStream); virtual;
     procedure Move(CurIndex, NewIndex: Integer); virtual;
-    procedure SaveToFile(const FileName: TFileName); virtual;
+    procedure SaveToFile(const FileName: TFileName); overload; virtual;
+    procedure SaveToFile(const FileName: TFileName; WithBOM: Boolean); overload; virtual;
     procedure SaveToStream(Stream: TStream; WithBOM: Boolean = True); virtual;
     procedure SetTextStr(const Value: UnicodeString); virtual;
 
@@ -3182,7 +3183,7 @@ var
           if (Length(BOM) <> Length(UTF8BOM)) or
             not CompareMem(@BOM[0], @UTF8BOM[0], Length(UTF8BOM))
           then
-            Stream.Seek(-Length(BOM), soFromCurrent)
+            Stream.Seek(-Length(BOM), {$IFDEF SYN_DELPHI_XE4_UP}soCurrent{$ELSE}soFromCurrent{$ENDIF})
           else
             Result := True;
         end;
@@ -3193,7 +3194,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMLE)) or
             not CompareMem(@BOM[0], @UTF16BOMLE[0], Length(UTF16BOMLE))
           then
-            Stream.Seek(-Length(BOM), soFromCurrent)
+            Stream.Seek(-Length(BOM), {$IFDEF SYN_DELPHI_XE4_UP}soCurrent{$ELSE}soFromCurrent{$ENDIF})
           else
             Result := True;
         end;
@@ -3204,7 +3205,7 @@ var
           if (Length(BOM) <> Length(UTF16BOMBE)) or
             not CompareMem(@BOM[0], @UTF16BOMBE[0], Length(UTF16BOMBE))
           then
-            Stream.Seek(-Length(BOM), soFromCurrent)
+            Stream.Seek(-Length(BOM), {$IFDEF SYN_DELPHI_XE4_UP}soCurrent{$ELSE}soFromCurrent{$ENDIF})
           else
             Result := True;
         end;
