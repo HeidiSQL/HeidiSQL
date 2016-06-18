@@ -300,6 +300,7 @@ type
       FOnLog: TDBLogEvent;
       FOnConnected: TDBEvent;
       FOnDatabaseChanged: TDBEvent;
+      FOnObjectnamesChanged: TDBEvent;
       FRowsFound: Int64;
       FRowsAffected: Int64;
       FWarningCount: Cardinal;
@@ -317,7 +318,6 @@ type
       FSessionVariables: TDBQuery;
       FInformationSchemaObjects: TStringList;
       FDatabaseCache: TDatabaseCache;
-      FObjectNamesInSelectedDB: TStrings;
       FResultCount: Integer;
       FStatementNum: Cardinal;
       FCurrentUserHostCombination: String;
@@ -355,7 +355,6 @@ type
       function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
-      procedure SetObjectNamesInSelectedDB;
       procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
       procedure Drop(Obj: TDBObject); virtual;
@@ -430,7 +429,6 @@ type
       property CharsetTable: TDBQuery read GetCharsetTable;
       property CharsetList: TStringList read GetCharsetList;
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
-      property ObjectNamesInSelectedDB: TStrings read FObjectNamesInSelectedDB write FObjectNamesInSelectedDB;
       property ResultCount: Integer read FResultCount;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
@@ -443,6 +441,7 @@ type
       property OnLog: TDBLogEvent read FOnLog write FOnLog;
       property OnConnected: TDBEvent read FOnConnected write FOnConnected;
       property OnDatabaseChanged: TDBEvent read FOnDatabaseChanged write FOnDatabaseChanged;
+      property OnObjectnamesChanged: TDBEvent read FOnObjectnamesChanged write FOnObjectnamesChanged;
   end;
   TDBConnectionList = TObjectList<TDBConnection>;
 
@@ -3038,7 +3037,8 @@ begin
         s := QuoteIdent(Value);
       Query(Format(GetSQLSpecifity(spUSEQuery), [s]), False);
     end;
-    SetObjectNamesInSelectedDB;
+    if Assigned(FOnObjectnamesChanged) then
+      FOnObjectnamesChanged(Self, FDatabase);
   end;
 end;
 
@@ -4300,7 +4300,8 @@ begin
     Cache.Sort;
     // Add list of objects in this database to cached list of all databases
     FDatabaseCache.Add(Cache);
-    SetObjectNamesInSelectedDB;
+    if Assigned(FOnObjectnamesChanged) then
+      FOnObjectnamesChanged(Self, FDatabase);
   end;
 
   Result := nil;
@@ -4636,29 +4637,6 @@ begin
     FreeAndNil(Results);
   end;
 
-end;
-
-
-procedure TDBConnection.SetObjectNamesInSelectedDB;
-var
-  i: Integer;
-  Objects: TDBObjectList;
-  ObjNames: String;
-begin
-  // Add object names to additional stringlist
-  if Assigned(FObjectNamesInSelectedDB) then begin
-    ObjNames := '';
-    if DbObjectsCached(FDatabase) then begin
-      Objects := GetDbObjects(FDatabase);
-      // Limit slow highlighter to 1000 table names. See http://www.heidisql.com/forum.php?t=16307
-      if Objects.Count < 1000 then begin
-        for i:=0 to Objects.Count-1 do
-          ObjNames := ObjNames + Objects[i].Name + CRLF;
-      end;
-    end;
-    if FObjectNamesInSelectedDB.Text <> ObjNames then
-      FObjectNamesInSelectedDB.Text := ObjNames;
-  end;
 end;
 
 
