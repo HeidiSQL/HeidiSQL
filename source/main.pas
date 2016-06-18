@@ -1057,6 +1057,7 @@ type
     procedure UpdateFilterPanel(Sender: TObject);
     procedure ConnectionReady(Connection: TDBConnection; Database: String);
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
+    procedure ObjectnamesChanged(Connection: TDBConnection; Database: String);
     procedure UpdateLineCharPanel;
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
@@ -3547,7 +3548,7 @@ begin
   Connection.OnLog := LogSQL;
   Connection.OnConnected := ConnectionReady;
   Connection.OnDatabaseChanged := DatabaseChanged;
-  Connection.ObjectNamesInSelectedDB := SynSQLSyn1.TableNames;
+  Connection.OnObjectnamesChanged := ObjectnamesChanged;
   try
     Connection.Active := True;
     // We have a connection
@@ -8038,6 +8039,45 @@ begin
 
   if ActiveQueryHelpers <> nil then
     ActiveQueryHelpers.Invalidate;
+end;
+
+
+procedure TMainForm.ObjectnamesChanged(Connection: TDBConnection; Database: String);
+var
+  DBObjects: TDBObjectList;
+  Obj: TDBObject;
+  TableNames, ProcNames: TStringList;
+begin
+  // Tell SQL highlighter about names of tables and procedures in selected database
+  SynSQLSyn1.TableNames.Clear;
+  SynSQLSyn1.ProcNames.Clear;
+  if Connection.DbObjectsCached(Database) then begin
+    DBObjects := Connection.GetDBObjects(Database);
+    TableNames := TStringList.Create;
+    TableNames.BeginUpdate;
+    ProcNames := TStringList.Create;
+    ProcNames.BeginUpdate;
+    for Obj in DBObjects do begin
+      case Obj.NodeType of
+        lntTable, lntView: begin
+          // Limit slow highlighter to 1000 table names. See http://www.heidisql.com/forum.php?t=16307
+          // ... and here: https://github.com/SynEdit/SynEdit/issues/28
+          if TableNames.Count < 1000 then
+            TableNames.Add(Obj.Name);
+        end;
+        lntProcedure, lntFunction: begin
+          if ProcNames.Count < 1000 then
+            ProcNames.Add(Obj.Name);
+        end;
+      end;
+    end;
+    TableNames.EndUpdate;
+    ProcNames.EndUpdate;
+    SynSQLSyn1.TableNames.Text := TableNames.Text;
+    SynSQLSyn1.ProcNames.Text := ProcNames.Text;
+    TableNames.Free;
+    ProcNames.Free;
+  end;
 end;
 
 
