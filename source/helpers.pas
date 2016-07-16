@@ -561,8 +561,7 @@ begin
   try
     Result := Trunc(MakeFloat(Str));
   except
-    on E:EInvalidOp do
-      Result := 0;
+    Result := 0;
   end;
 end;
 
