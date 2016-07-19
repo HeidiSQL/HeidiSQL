@@ -5427,7 +5427,7 @@ begin
               IsBinary := (Field.charsetnr = COLLATION_BINARY) and (Field.org_table <> '')
             else
               IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (FConnection.Datatypes[j].Category = dtcText) then
+            if IsBinary and (FConnection.Datatypes[j].Index in [dtTinytext..dtLongtext]) then
               continue;
             FColumnTypes[i] := FConnection.Datatypes[j];
             break;
