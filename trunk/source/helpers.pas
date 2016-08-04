@@ -2478,7 +2478,7 @@ procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectio
 var
   rx: TRegExpr;
   ExeName, SessName, Host, User, Pass, Socket: String;
-  Port, NetType: Integer;
+  Port, NetType, WindowsAuth: Integer;
   AbsentFiles: TStringList;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -2545,6 +2545,7 @@ begin
   Pass := GetParamValue('p', 'password');
   Socket := GetParamValue('S', 'socket');
   Port := StrToIntDef(GetParamValue('P', 'port'), 0);
+  WindowsAuth := StrToIntDef(GetParamValue('W', 'winauth'), -1);
   // Leave out support for startup script, seems reasonable for command line connecting
 
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
@@ -2566,6 +2567,9 @@ begin
       ConnectionParams.Hostname := Socket;
       ConnectionParams.NetType := ntMySQL_NamedPipe;
     end;
+    if WindowsAuth in [0,1] then
+      ConnectionParams.WindowsAuth := Boolean(WindowsAuth);
+
     // Ensure we have a session name to pass to InitConnection
     if (ConnectionParams.SessionPath = '') and (ConnectionParams.Hostname <> '') then
       ConnectionParams.SessionPath := ConnectionParams.Hostname;
