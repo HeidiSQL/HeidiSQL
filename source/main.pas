@@ -580,7 +580,6 @@ type
     menuTreeOptions: TMenuItem;
     menuClearDataTabFilter: TMenuItem;
     actUnixTimestampColumn: TAction;
-    actTimestampColumn1: TMenuItem;
     LoadSQLfile2: TMenuItem;
     N2: TMenuItem;
     Save1: TMenuItem;
@@ -619,6 +618,11 @@ type
     RunSQLfiles1: TMenuItem;
     actPreferencesLogging: TAction;
     Loggingpreferences1: TMenuItem;
+    Gridviewoptions1: TMenuItem;
+    hisisaUNIXtimestampcolumn1: TMenuItem;
+    ViewbinarydataastextinsteadofHEX2: TMenuItem;
+    actPreferencesData: TAction;
+    Datapreferences1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1692,6 +1696,8 @@ begin
   actBatchInOneGo.Checked := not AppSettings.ReadBool(asSingleQueries);
   actPreferencesLogging.ImageIndex := actPreferences.ImageIndex;
   actPreferencesLogging.OnExecute := actPreferences.OnExecute;
+  actPreferencesData.ImageIndex := actPreferences.ImageIndex;
+  actPreferencesData.OnExecute := actPreferences.OnExecute;
 
   pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
   treeQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
@@ -2086,7 +2092,9 @@ begin
   // Preferences
   FPreferencesDialog := Toptionsform.Create(Self);
   if Sender = actPreferencesLogging then
-    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabLogging;
+    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabLogging
+  else if Sender = actPreferencesData then
+    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabTextFormatting;
   FPreferencesDialog.ShowModal;
   FreeAndNil(FPreferencesDialog);
 end;

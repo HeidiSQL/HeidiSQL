@@ -2345,6 +2345,10 @@ object MainForm: TMainForm
       Category = 'Tools'
       Caption = 'Logging preferences'
     end
+    object actPreferencesData: TAction
+      Category = 'Tools'
+      Caption = 'Data grid preferences'
+    end
     object actFlushHosts: TAction
       Category = 'Tools'
       Caption = 'Hosts'
@@ -9430,18 +9434,28 @@ object MainForm: TMainForm
         OnClick = InsertValue
       end
     end
-    object actTimestampColumn1: TMenuItem
-      Action = actUnixTimestampColumn
-      AutoCheck = True
-    end
-    object ViewasHTML1: TMenuItem
-      Action = actDataPreview
+    object InsertfilesintoBLOBfields3: TMenuItem
+      Action = actInsertFiles
     end
     object SaveBLOBtofile1: TMenuItem
       Action = actDataSaveBlobToFile
     end
-    object InsertfilesintoBLOBfields3: TMenuItem
-      Action = actInsertFiles
+    object Gridviewoptions1: TMenuItem
+      Caption = 'Grid view options'
+      object hisisaUNIXtimestampcolumn1: TMenuItem
+        Action = actUnixTimestampColumn
+        AutoCheck = True
+      end
+      object ViewasHTML1: TMenuItem
+        Action = actDataPreview
+      end
+      object ViewbinarydataastextinsteadofHEX2: TMenuItem
+        Action = actBlobAsText
+        AutoCheck = True
+      end
+      object Datapreferences1: TMenuItem
+        Action = actPreferencesData
+      end
     end
     object N4a: TMenuItem
       Caption = '-'
