@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2016-06-15 21:13+0200\n"
+"PO-Revision-Date: 2016-08-05 12:54+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -6232,3 +6232,15 @@ msgstr "Change expired password"
 
 msgid "Password strength:"
 msgstr "Password strength:"
+
+#. Menu item for jumping to "Logging" tab in preferences window
+msgid "Logging preferences"
+msgstr "Logging preferences"
+
+#. Menu item for jumping to "Data" tab in preferences window
+msgid "Data grid preferences"
+msgstr "Data grid preferences"
+
+#. Menu item with some sub items for configuring data grids
+msgid "Grid view options"
+msgstr "Grid view options"
