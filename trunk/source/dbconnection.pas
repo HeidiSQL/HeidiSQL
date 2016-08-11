@@ -820,7 +820,7 @@ end;
 
 procedure TPlink.Connect;
 var
-  PlinkParameters, PlinkCmdDisplay: String;
+  PlinkCmd, PlinkCmdDisplay: String;
   OutText, ErrorText: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
@@ -839,23 +839,23 @@ begin
 
   // Build plink.exe command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-  PlinkParameters := '-ssh ';
+  PlinkCmd := FConnection.Parameters.SSHPlinkExe + ' -ssh ';
   if FConnection.Parameters.SSHUser <> '' then
-    PlinkParameters := PlinkParameters + FConnection.Parameters.SSHUser + '@';
+    PlinkCmd := PlinkCmd + FConnection.Parameters.SSHUser + '@';
   if FConnection.Parameters.SSHHost <> '' then
-    PlinkParameters := PlinkParameters + FConnection.Parameters.SSHHost
+    PlinkCmd := PlinkCmd + FConnection.Parameters.SSHHost
   else
-    PlinkParameters := PlinkParameters + FConnection.Parameters.Hostname;
+    PlinkCmd := PlinkCmd + FConnection.Parameters.Hostname;
   if FConnection.Parameters.SSHPassword <> '' then
-    PlinkParameters := PlinkParameters + ' -pw "' + FConnection.Parameters.SSHPassword + '"';
+    PlinkCmd := PlinkCmd + ' -pw "' + FConnection.Parameters.SSHPassword + '"';
   if FConnection.Parameters.SSHPort > 0 then
-    PlinkParameters := PlinkParameters + ' -P ' + IntToStr(FConnection.Parameters.SSHPort);
+    PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FConnection.Parameters.SSHPort);
   if FConnection.Parameters.SSHPrivateKey <> '' then
-    PlinkParameters := PlinkParameters + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
-  PlinkParameters := PlinkParameters + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
+    PlinkCmd := PlinkCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
+  PlinkCmd := PlinkCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
   rx := TRegExpr.Create;
   rx.Expression := '(-pw\s+")[^"]*(")';
-  PlinkCmdDisplay := FConnection.Parameters.SSHPlinkExe + ' ' + rx.Replace(PlinkParameters, '${1}******${2}', True);
+  PlinkCmdDisplay := rx.Replace(PlinkCmd, '${1}******${2}', True);
   FConnection.Log(lcInfo, f_('Attempt to create plink.exe process, waiting %ds for response ...', [FConnection.Parameters.SSHTimeout]));
   FConnection.Log(lcInfo, PlinkCmdDisplay);
 
@@ -871,8 +871,8 @@ begin
   // Create plink.exe process
   FillChar(FProcessInfo, SizeOf(FProcessInfo), 0);
   if not CreateProcess(
-       PChar(FConnection.Parameters.SSHPlinkExe),
-       PChar(PlinkParameters),
+       nil,
+       PChar(PlinkCmd),
        nil,
        nil,
        true,
