@@ -1296,7 +1296,9 @@ var AModifiersInt : integer) : boolean;
  begin
   Result := true;
   IsOn := true;
+  {$IFNDEF SYN_COMPILER_24_UP}
   Mask := 0; // prevent compiler warning
+  {$ENDIF}
   for i := 1 to length (AModifiers) do
    if AModifiers [i] = '-'
     then IsOn := false

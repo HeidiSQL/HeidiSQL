@@ -63,6 +63,9 @@ uses
   QSynEditPrintTypes,
   QSynEditPrintMargins,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   Graphics,
   Forms,

@@ -83,7 +83,7 @@ uses
   Themes,
   {$ENDIF}
   {$IFDEF SYN_COMPILER_17_UP}
-  UITypes,
+  Types, UITypes,
   {$ENDIF}
   SynUnicode,
 {$ENDIF}
@@ -1564,7 +1564,7 @@ begin
       Style := Style and not WS_BORDER;
       ExStyle := ExStyle or WS_EX_CLIENTEDGE;
       // avoid flicker while scrolling or resizing
-      if CheckWin32Version(5, 1) then
+      if not (csDesigning in ComponentState) and CheckWin32Version(5, 1) then
         ExStyle := ExStyle or WS_EX_COMPOSITED;
     end;
 
@@ -5129,7 +5129,9 @@ end;
 procedure TCustomSynEdit.WMDropFiles(var Msg: TMessage);
 var
   i, iNumberDropped: Integer;
+  {$IFNDEF UNICODE}
   FileNameA: array[0..MAX_PATH - 1] of AnsiChar;
+  {$ENDIF}
   FileNameW: array[0..MAX_PATH - 1] of WideChar;
   Point: TPoint;
   FilesList: TUnicodeStringList;

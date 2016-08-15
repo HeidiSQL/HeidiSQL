@@ -55,6 +55,10 @@ unit SynHighlighterSQL;
 
 interface
 
+{$IFDEF SYN_COMPILER_12_UP}
+  {$DEFINE USE_TABLE_DICTIONARY}
+{$ENDIF}
+
 uses
 {$IFDEF SYN_CLX}
   Types,
@@ -71,6 +75,9 @@ uses
   SynHighlighterHashEntries,
   SynUnicode,
 {$ENDIF}
+  {$IFDEF USE_TABLE_DICTIONARY}
+  Generics.Collections,
+  {$ENDIF}
   SysUtils,
   Classes;
 
@@ -93,6 +100,9 @@ type
     fKeywords: TSynHashEntryList;
     fProcNames: TUnicodeStrings;
     fTableNames: TUnicodeStrings;
+    {$IFDEF USE_TABLE_DICTIONARY}
+    fTableDict: TDictionary<string, Boolean>;
+    {$ENDIF}
     fFunctionNames: TUniCodeStrings;
     fDialect: TSQLDialect;
     fCommentAttri: TSynHighlighterAttributes;
@@ -1238,7 +1248,12 @@ begin
       end;
     Entry := Entry.Next;
   end;
-  Result := tkIdentifier;
+  {$IFDEF USE_TABLE_DICTIONARY}
+  if fTableDict.ContainsKey(SynWideLowerCase(Copy(StrPas(fToIdent), 1, fStringLen))) then
+    Result := tkTableName
+  else
+  {$ENDIF}
+    Result := tkIdentifier;
 end;
 
 constructor TSynSQLSyn.Create(AOwner: TComponent);
@@ -1254,6 +1269,9 @@ begin
 
   fTableNames := TUnicodeStringList.Create;
   TUnicodeStringList(fTableNames).OnChange := TableNamesChanged;
+  {$IFDEF USE_TABLE_DICTIONARY}
+  fTableDict := TDictionary<string, Boolean>.Create;
+  {$ENDIF}
 
   fFunctionNames := TunicodeStringList.Create;
   TUnicodeStringList(fFunctionNames).OnChange := FunctionNamesChanged;
@@ -1317,6 +1335,9 @@ begin
   fKeywords.Free;
   fProcNames.Free;
   fTableNames.Free;
+  {$IFDEF USE_TABLE_DICTIONARY}
+  fTableDict.Free;
+  {$ENDIF}
   fFunctionNames.Free;
   inherited Destroy;
 end;
@@ -1895,7 +1916,12 @@ begin
       Entry := Entry.Next;
     end;
     if not Assigned(Entry) then
+    {$IFDEF USE_TABLE_DICTIONARY}
+      if not fTableDict.ContainsKey(SynWideLowerCase(fTableNames[i])) then
+        fTableDict.Add(SynWideLowerCase(fTableNames[i]), True);
+    {$ELSE}
       DoAddKeyword(fTableNames[i], Ord(tkTableName));
+    {$ENDIF}
   end;
 end;
 
@@ -1946,6 +1972,9 @@ begin
 {$ELSE}
   fKeywords.Clear;
 {$ENDIF}
+  {$IFDEF USE_TABLE_DICTIONARY}
+  fTableDict.Clear;
+  {$ENDIF}
 
   for I := 0 to Ord(High(TtkTokenKind)) - 1 do
     EnumerateKeywords(I, GetKeywords(I), IsIdentChar, DoAddKeyword);

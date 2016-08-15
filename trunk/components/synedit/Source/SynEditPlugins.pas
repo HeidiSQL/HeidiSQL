@@ -52,6 +52,9 @@ uses
   QSynEditKeyCmds,
   QSynUnicode,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  Types,
+  {$ENDIF}
   Windows,
   Menus,
   SynEdit,

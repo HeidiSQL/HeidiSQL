@@ -63,6 +63,9 @@ uses
   QSynEditMiscClasses,
   QSynEditKeyCmds,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  Types,
+  {$ENDIF}
   Windows,
   Messages,
   Graphics,

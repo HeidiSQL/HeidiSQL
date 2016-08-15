@@ -65,6 +65,9 @@ uses
   {$IFDEF SYN_COMPILER_7}
   Themes,
   {$ENDIF}
+  {$IFDEF SYN_COMPILER_17_UP}
+  Types,
+  {$ENDIF}
   Windows,
   Controls,
   Messages,

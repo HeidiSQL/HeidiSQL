@@ -111,6 +111,9 @@ uses
   QSynUnicode,
   QGraphics,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   SynEditPrintTypes,
   SynEditPrintMargins,

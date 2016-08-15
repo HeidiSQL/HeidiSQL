@@ -68,6 +68,9 @@ uses
   QSynEdit,
   QSynUnicode,  
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  Types, UITypes,
+  {$ENDIF}
   Windows,
   Messages,
   Graphics,

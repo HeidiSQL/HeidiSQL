@@ -107,6 +107,9 @@ uses
   QSynEditHighlighter,
   QSynUnicode,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   Graphics,
   Printers,
