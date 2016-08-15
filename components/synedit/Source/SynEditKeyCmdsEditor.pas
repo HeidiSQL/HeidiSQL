@@ -57,6 +57,12 @@ uses
   QButtons,
   QSynEditKeyCmds,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_15_UP}
+  Types,
+  {$ENDIF}
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   Messages,
   Graphics,

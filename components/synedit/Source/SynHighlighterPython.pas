@@ -224,14 +224,13 @@ const
     );
 
   // List of non-keyword identifiers
-  NONKEYWORDCOUNT = 66;
+  NONKEYWORDCOUNT = 65;
   NONKEYWORDS: array [1..NONKEYWORDCOUNT] of UnicodeString =
     (
     '__future__',
     '__import__',
     'abs',
     'apply',
-    'as',
     'buffer',
     'callable',
     'chr',

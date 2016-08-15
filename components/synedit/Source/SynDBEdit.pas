@@ -256,7 +256,7 @@ end;
 
 procedure TCustomDBSynEdit.CMGetDataLink(var Msg: TMessage);
 begin
-  Msg.Result := Integer(FDataLink);
+  Msg.Result := LRESULT(FDataLink);
 end;
 {$ENDIF}
 

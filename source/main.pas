@@ -8068,14 +8068,12 @@ begin
     for Obj in DBObjects do begin
       case Obj.NodeType of
         lntTable, lntView: begin
-          // Limit slow highlighter to 1000 table names. See http://www.heidisql.com/forum.php?t=16307
+          // Slow highlighter enhanced by uschuster. See http://www.heidisql.com/forum.php?t=16307
           // ... and here: https://github.com/SynEdit/SynEdit/issues/28
-          if TableNames.Count < 1000 then
-            TableNames.Add(Obj.Name);
+          TableNames.Add(Obj.Name);
         end;
         lntProcedure, lntFunction: begin
-          if ProcNames.Count < 1000 then
-            ProcNames.Add(Obj.Name);
+          ProcNames.Add(Obj.Name);
         end;
       end;
     end;

@@ -57,6 +57,9 @@ uses
   QSynEditKeyCmds,
   QSynEditMiscClasses,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  UITypes,
+  {$ENDIF}
   Windows,
   Messages,
   Graphics,

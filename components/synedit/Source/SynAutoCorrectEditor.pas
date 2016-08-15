@@ -50,6 +50,9 @@ uses
   QSynAutoCorrect,
   QSynUnicode,
 {$ELSE}
+  {$IFDEF SYN_COMPILER_17_UP}
+  Types,
+  {$ENDIF}
   Windows,  Messages, Graphics, Controls, Forms, Dialogs, ExtCtrls, StdCtrls,
   Buttons, Registry,
   SynAutoCorrect,
