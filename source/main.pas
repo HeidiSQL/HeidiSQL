@@ -2690,16 +2690,16 @@ begin
   end;
 
   // Gather meta info for logging
-  MetaInfo := 'Affected rows: '+FormatNumber(Thread.RowsAffected)+
+  MetaInfo := _('Affected rows')+': '+FormatNumber(Thread.RowsAffected)+
     '  '+_('Found rows')+': '+FormatNumber(Thread.RowsFound)+
     '  '+_('Warnings')+': '+FormatNumber(Thread.WarningCount)+
     '  '+_('Duration for')+' ' + FormatNumber(Thread.BatchPosition);
   if Thread.BatchPosition < Thread.Batch.Count then
     MetaInfo := MetaInfo + ' of ' + FormatNumber(Thread.Batch.Count);
   if Thread.Batch.Count = 1 then
-    MetaInfo := MetaInfo + ' query'
+    MetaInfo := MetaInfo + ' ' + _('query')
   else
-    MetaInfo := MetaInfo + ' queries';
+    MetaInfo := MetaInfo + ' ' + _('queries');
   if Thread.QueryTime < 60*1000 then
     MetaInfo := MetaInfo + ': '+FormatNumber(Thread.QueryTime/1000, 3) +' sec.'
   else
