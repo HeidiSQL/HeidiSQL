@@ -34,13 +34,13 @@ type
   private
     { Private declarations }
     FConnection: TDBConnection;
-    function GetSelectedObject: TDBObject;
+    function GetSelectedObjects: TDBObjectList;
   public
     { Public declarations }
-    property SelectedObject: TDBObject read GetSelectedObject;
+    property SelectedObjects: TDBObjectList read GetSelectedObjects;
   end;
 
-function SelectDBO: TDBObject;
+function SelectDBObjects: TDBObjectList;
 
 implementation
 
@@ -48,14 +48,14 @@ uses main, helpers;
 
 {$R *.dfm}
 
-function SelectDBO: TDBObject;
+function SelectDBObjects: TDBObjectList;
 var
   Dialog: TfrmSelectDBObject;
 begin
   Dialog := TfrmSelectDBObject.Create(Mainform);
   Result := nil;
   if Dialog.ShowModal = mrOK then
-    Result := Dialog.SelectedObject;
+    Result := Dialog.SelectedObjects;
   Dialog.Free;
 end;
 
@@ -67,6 +67,7 @@ begin
   Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
   InheritFont(Font);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;
+  TreeDBO.TreeOptions.SelectionOptions := TreeDBO.TreeOptions.SelectionOptions + [toMultiSelect];
   FixVT(TreeDBO);
   FConnection := MainForm.ActiveConnection;
 end;
@@ -101,29 +102,37 @@ begin
 end;
 
 
-function TfrmSelectDBObject.GetSelectedObject: TDBObject;
+function TfrmSelectDBObject.GetSelectedObjects: TDBObjectList;
 var
+  Obj: TDBObject;
   DBObj: PDBObject;
+  Node: PVirtualNode;
 begin
   // Return currently selected object, either from tree node or from edit boxes
-  Result := nil;
+  Result := TDBObjectList.Create;
   if editDb.Modified then begin
-    Result := TDBObject.Create(FConnection);
-    Result.Database := editDb.Text;
-    Result.NodeType := lntDb;
-  end else if Assigned(TreeDBO.FocusedNode) then begin
-    DBObj := TreeDBO.GetNodeData(TreeDBO.FocusedNode);
-    Result := TDBObject.Create(DBObj.Connection);
-    Result.Assign(DBObj^);
-    // Database privileges can be wildcarded. Tables/columns not so.
-    if Result.NodeType = lntDb then
-      Result.Database := esc(Result.Database, True, False);
-    if Result.NodeType = lntNone then begin
-      Result.NodeType := lntDb;
-      Result.Database := '%';
+    Obj := TDBObject.Create(FConnection);
+    Obj.Database := editDb.Text;
+    Obj.NodeType := lntDb;
+    Result.Add(Obj);
+  end else if TreeDBO.SelectedCount > 0 then begin
+    Node := GetNextNode(TreeDBO, nil, True);
+    while Assigned(Node) do begin
+      DBObj := TreeDBO.GetNodeData(Node);
+      Obj := TDBObject.Create(DBObj.Connection);
+      Obj.Assign(DBObj^);
+      // Database privileges can be wildcarded. Tables/columns not so.
+      if Obj.NodeType = lntDb then
+        Obj.Database := esc(Obj.Database, True, False);
+      if Obj.NodeType = lntNone then begin
+        Obj.NodeType := lntDb;
+        Obj.Database := '%';
+      end;
+      Result.Add(Obj);
+      Node := GetNextNode(TreeDBO, Node, True);
     end;
   end;
-  // Let the result be nil to indicate we have no selected node
+  // Let the result be empty to indicate we have no selected node
 end;
 
 procedure TfrmSelectDBObject.TreeDBOFocusChanged(Sender: TBaseVirtualTree;
