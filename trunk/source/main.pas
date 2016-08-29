@@ -981,6 +981,7 @@ type
     procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
     procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
     procedure DBtreeDblClick(Sender: TObject);
+    procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -7238,6 +7239,13 @@ end;
 procedure TMainForm.editFilterVTRightButtonClick(Sender: TObject);
 begin
   (Sender as TButtonedEdit).Clear;
+end;
+
+
+procedure TMainForm.editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
+begin
+  if Key = #27 then
+    (Sender as TButtonedEdit).OnRightButtonClick(Sender);
 end;
 
 

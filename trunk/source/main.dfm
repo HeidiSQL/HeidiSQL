@@ -294,6 +294,7 @@ object MainForm: TMainForm
           TextHint = 'Database filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
           OnRightButtonClick = editDatabaseTableFilterRightButtonClick
         end
@@ -311,6 +312,7 @@ object MainForm: TMainForm
           TextHint = 'Table filter'
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
           OnRightButtonClick = editDatabaseTableFilterRightButtonClick
         end
