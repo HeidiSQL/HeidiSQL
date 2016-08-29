@@ -1073,51 +1073,59 @@ end;
 
 procedure TUserManagerForm.btnAddObjectClick(Sender: TObject);
 var
-  DBObj: TDBObject;
+  DBObjects: TDBObjectList;
+  DBObject: TDBObject;
   Priv: TPrivObj;
   Node, Child: PVirtualNode;
+  ObjectExists: Boolean;
 begin
-  // Add new privilege object
-  DBObj := SelectDBO;
-  if not Assigned(DBObj) then
+  // Add new privilege object(s)
+  DBObjects := SelectDBObjects;
+  if (not Assigned(DBObjects)) or (DBObjects.Count = 0) then
     Exit;
-  // Check for unsupported object type, selectable in tree
-  if not (DBObj.NodeType in [lntDb, lntTable, lntView, lntFunction, lntProcedure, lntColumn]) then begin
-    ErrorDialog(f_('Objects of type %s cannot be part of privileges.', [_(DBObj.ObjType)]));
-    Exit;
-  end;
-  // Check if this would be a duplicate object
-  for Priv in FPrivObjects do begin
-    if Priv.DBObj.IsSameAs(DBObj) then begin
-      ErrorDialog(_('Selected object is already accessible.'));
-      Exit;
-    end;
-  end;
+  for DBObject in DBObjects do begin
 
-  Priv := TPrivObj.Create;
-  Priv.DBObj := DBObj;
-  case Priv.DBObj.NodeType of
-    lntNone: Priv.AllPrivileges := PrivsGlobal;
-    lntDb: Priv.AllPrivileges := PrivsDb;
-    lntTable, lntView: Priv.AllPrivileges := PrivsTable;
-    lntFunction, lntProcedure: Priv.AllPrivileges := PrivsRoutine;
-    lntColumn: Priv.AllPrivileges := PrivsColumn;
+    // Check for unsupported object type, selectable in tree
+    if not (DBObject.NodeType in [lntDb, lntTable, lntView, lntFunction, lntProcedure, lntColumn]) then begin
+      ErrorDialog(f_('Objects of type %s cannot be part of privileges.', [_(DBObject.ObjType)]));
+      Continue;
+    end;
+    // Check if this would be a duplicate object
+    ObjectExists := False;
+    for Priv in FPrivObjects do begin
+      if Priv.DBObj.IsSameAs(DBObject) then
+        ObjectExists := True;
+    end;
+    if ObjectExists then begin
+      ErrorDialog(_('Selected object is already accessible.'));
+      Continue;
+    end;
+
+    Priv := TPrivObj.Create;
+    Priv.DBObj := DBObject;
+    case Priv.DBObj.NodeType of
+      lntNone: Priv.AllPrivileges := PrivsGlobal;
+      lntDb: Priv.AllPrivileges := PrivsDb;
+      lntTable, lntView: Priv.AllPrivileges := PrivsTable;
+      lntFunction, lntProcedure: Priv.AllPrivileges := PrivsRoutine;
+      lntColumn: Priv.AllPrivileges := PrivsColumn;
+    end;
+    // Assign minimum privileges
+    case Priv.DBObj.NodeType of
+      lntFunction, lntProcedure: Priv.AddedPrivs.Add('EXECUTE');
+      else Priv.AddedPrivs.Add('SELECT');
+    end;
+    Priv.Added := True;
+    FPrivObjects.Add(Priv);
+    Node := treePrivs.AddChild(nil);
+    Child := treePrivs.GetFirstChild(Node);
+    while Assigned(Child) do
+      Child := treePrivs.GetNextSibling(Child);
+    treePrivs.Expanded[Node] := True;
+    treePrivs.SetFocus;
+    SelectNode(treePrivs, Node);
+    Modified := True;
   end;
-  // Assign minimum privileges
-  case Priv.DBObj.NodeType of
-    lntFunction, lntProcedure: Priv.AddedPrivs.Add('EXECUTE');
-    else Priv.AddedPrivs.Add('SELECT');
-  end;
-  Priv.Added := True;
-  FPrivObjects.Add(Priv);
-  Node := treePrivs.AddChild(nil);
-  Child := treePrivs.GetFirstChild(Node);
-  while Assigned(Child) do
-    Child := treePrivs.GetNextSibling(Child);
-  treePrivs.Expanded[Node] := True;
-  treePrivs.SetFocus;
-  SelectNode(treePrivs, Node);
-  Modified := True;
 end;
 
 
