@@ -623,6 +623,22 @@ type
     ViewbinarydataastextinsteadofHEX2: TMenuItem;
     actPreferencesData: TAction;
     Datapreferences1: TMenuItem;
+    actGotoDbTree: TAction;
+    actGotoFilter: TAction;
+    actGotoTab1: TAction;
+    actGotoTab2: TAction;
+    actGotoTab3: TAction;
+    actGotoTab4: TAction;
+    actGotoTab5: TAction;
+    MainMenuGoto: TMenuItem;
+    actGotoFilter1: TMenuItem;
+    actGotoDbTree1: TMenuItem;
+    actGotoTab11: TMenuItem;
+    actGotoTab12: TMenuItem;
+    actGotoTab31: TMenuItem;
+    actGotoTab41: TMenuItem;
+    actGotoTab51: TMenuItem;
+    ToolButton11: TToolButton;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -982,6 +998,9 @@ type
     procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
     procedure DBtreeDblClick(Sender: TObject);
     procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
+    procedure actGotoDbTreeExecute(Sender: TObject);
+    procedure actGotoFilterExecute(Sender: TObject);
+    procedure actGotoTabNumberExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1327,6 +1346,50 @@ begin
   Conn.Parameters.FullTableStatus := True;
   actRefresh.Execute;
   Conn.Parameters.FullTableStatus := OldFullTableStatusSetting;
+end;
+
+
+procedure TMainForm.actGotoDbTreeExecute(Sender: TObject);
+begin
+  DBtree.SetFocus;
+end;
+
+
+procedure TMainForm.actGotoFilterExecute(Sender: TObject);
+begin
+  editTableFilter.SetFocus;
+end;
+
+
+procedure TMainForm.actGotoTabNumberExecute(Sender: TObject);
+var
+  i, Visibles, WantedIndex: Integer;
+begin
+  // Set focus on tab by numeric index
+  if Sender = actGotoTab1 then
+    WantedIndex := 0
+  else if Sender = actGotoTab2 then
+    WantedIndex := 1
+  else if Sender = actGotoTab3 then
+    WantedIndex := 2
+  else if Sender = actGotoTab4 then
+    WantedIndex := 3
+  else if Sender = actGotoTab5 then
+    WantedIndex := 4;
+  i := 0;
+  Visibles := 0;
+  while true do begin
+    if i >= PageControlMain.PageCount then
+      Break;
+    if PageControlMain.Pages[i].TabVisible then begin
+      if Visibles = WantedIndex then begin
+        PageControlMain.ActivePageIndex := i;
+        Break;
+      end;
+      Inc(Visibles);
+    end;
+    Inc(i);
+  end;
 end;
 
 

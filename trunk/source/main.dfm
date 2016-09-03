@@ -1514,7 +1514,7 @@ object MainForm: TMainForm
       object ToolBarMainMenu: TToolBar
         Left = 0
         Top = 0
-        Width = 168
+        Width = 222
         Height = 23
         Align = alLeft
         AutoSize = True
@@ -1557,8 +1557,16 @@ object MainForm: TMainForm
           Grouped = True
           MenuItem = MainMenuTools
         end
+        object ToolButton11: TToolButton
+          Left = 146
+          Top = 0
+          AutoSize = True
+          Caption = 'Go to'
+          Grouped = True
+          MenuItem = MainMenuGoto
+        end
         object btnHelp: TToolButton
-          Left = 136
+          Left = 186
           Top = 0
           Hint = 'Help topics'
           AutoSize = True
@@ -1974,6 +1982,30 @@ object MainForm: TMainForm
       end
       object MenuPreferences: TMenuItem
         Action = actPreferences
+      end
+    end
+    object MainMenuGoto: TMenuItem
+      Caption = 'Go to'
+      object actGotoFilter1: TMenuItem
+        Action = actGotoFilter
+      end
+      object actGotoDbTree1: TMenuItem
+        Action = actGotoDbTree
+      end
+      object actGotoTab11: TMenuItem
+        Action = actGotoTab1
+      end
+      object actGotoTab12: TMenuItem
+        Action = actGotoTab2
+      end
+      object actGotoTab31: TMenuItem
+        Action = actGotoTab3
+      end
+      object actGotoTab41: TMenuItem
+        Action = actGotoTab4
+      end
+      object actGotoTab51: TMenuItem
+        Action = actGotoTab5
       end
     end
     object MainMenuHelp: TMenuItem
@@ -2807,6 +2839,48 @@ object MainForm: TMainForm
       ShortCut = 16467
       OnExecute = actSaveSynMemoToTextfileExecute
       OnUpdate = ValidateControls
+    end
+    object actGotoDbTree: TAction
+      Category = 'Various'
+      Caption = 'Database tree'
+      ShortCut = 16452
+      OnExecute = actGotoDbTreeExecute
+    end
+    object actGotoFilter: TAction
+      Category = 'Various'
+      Caption = 'Table filter'
+      ShortCut = 16453
+      OnExecute = actGotoFilterExecute
+    end
+    object actGotoTab1: TAction
+      Category = 'Various'
+      Caption = 'Tab 1'
+      ShortCut = 16433
+      OnExecute = actGotoTabNumberExecute
+    end
+    object actGotoTab2: TAction
+      Category = 'Various'
+      Caption = 'Tab 2'
+      ShortCut = 16434
+      OnExecute = actGotoTabNumberExecute
+    end
+    object actGotoTab3: TAction
+      Category = 'Various'
+      Caption = 'Tab 3'
+      ShortCut = 16435
+      OnExecute = actGotoTabNumberExecute
+    end
+    object actGotoTab4: TAction
+      Category = 'Various'
+      Caption = 'Tab 4'
+      ShortCut = 16436
+      OnExecute = actGotoTabNumberExecute
+    end
+    object actGotoTab5: TAction
+      Category = 'Various'
+      Caption = 'Tab 5'
+      ShortCut = 16437
+      OnExecute = actGotoTabNumberExecute
     end
   end
   object menuConnections: TPopupMenu
