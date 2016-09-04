@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2016-08-22 19:20+0200\n"
+"PO-Revision-Date: 2016-09-04 13:00+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -6250,3 +6250,45 @@ msgstr "Data grid preferences"
 #. Menu item with some sub items for configuring data grids
 msgid "Grid view options"
 msgstr "Grid view options"
+
+msgid "Go to"
+msgstr "Go to"
+
+msgid "Database tree"
+msgstr "Database tree"
+
+msgid "Go to database tree"
+msgstr "Go to database tree"
+
+msgid "Go to table filter"
+msgstr "Go to table filter"
+
+msgid "Tab 1"
+msgstr "Tab 1"
+
+msgid "Go to tab 1"
+msgstr "Go to tab 1"
+
+msgid "Tab 2"
+msgstr "Tab 2"
+
+msgid "Go to tab 2"
+msgstr "Go to tab 2"
+
+msgid "Tab 3"
+msgstr "Tab 3"
+
+msgid "Go to tab 3"
+msgstr "Go to tab 3"
+
+msgid "Tab 4"
+msgstr "Tab 4"
+
+msgid "Go to tab 4"
+msgstr "Go to tab 4"
+
+msgid "Tab 5"
+msgstr "Tab 5"
+
+msgid "Go to tab 5"
+msgstr "Go to tab 5"
