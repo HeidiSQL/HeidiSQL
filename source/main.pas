@@ -2344,7 +2344,7 @@ begin
   // Shorthand for various places where we would normally have to add all these conditions
   Result := (Sender = DataGrid)
     and (Column > NoColumn)
-    and (DataGridResult.DataType(Column).Index in [dtInt, dtBigint])
+    and (DataGridResult.DataType(Column).Category in [dtcInteger, dtcReal])
     and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1);
 end;
 
@@ -5361,7 +5361,7 @@ begin
       Results.RecNo := RowNum^;
       GridHasChanges := Results.Modified or Results.Inserted;
       if Grid.FocusedColumn > NoColumn then
-        EnableTimestamp := Results.DataType(Grid.FocusedColumn).Index in [dtInt, dtBigint];
+        EnableTimestamp := Results.DataType(Grid.FocusedColumn).Category in [dtcInteger, dtcReal];
     end;
   end;
   inDataTab := PageControlMain.ActivePage = tabData;
@@ -8450,7 +8450,7 @@ begin
         if FGridCopying then begin
           CellText := Results.Col(Column);
         end else if HandleUnixTimestampColumn(Sender, Column) then begin
-          Timestamp := MakeInt(Results.Col(Column));
+          Timestamp := MakeInt(Results.Col(Column), False);
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
         end else begin
