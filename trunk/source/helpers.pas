@@ -250,8 +250,8 @@ type
   function EncodeURLParam(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
-  function MakeInt(Str: String; FromLocaleFormat: Boolean=True) : Int64;
-  function MakeFloat(Str: String; FromLocaleFormat: Boolean=True): Extended;
+  function MakeInt(Str: String) : Int64;
+  function MakeFloat(Str: String): Extended;
   function CleanupNumber(Str: String): String;
   function IsNumeric(Str: String): Boolean;
   function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
@@ -555,11 +555,11 @@ end;
   @param string String-number
   @return int64
 }
-function MakeInt(Str: String; FromLocaleFormat: Boolean=True): Int64;
+function MakeInt(Str: String): Int64;
 begin
   // Result has to be of integer type
   try
-    Result := Trunc(MakeFloat(Str, FromLocaleFormat));
+    Result := Trunc(MakeFloat(Str));
   except
     Result := 0;
   end;
@@ -617,15 +617,13 @@ end;
   @param String text representation of a number
   @return Extended
 }
-function MakeFloat(Str: String; FromLocaleFormat: Boolean=True): Extended;
+function MakeFloat(Str: String): Extended;
 var
   p_kb, p_mb, p_gb, p_tb, p_pb : Integer;
 begin
   // Convert result to a floating point value to ensure
   // we don't discard decimal digits for the next step
-  if FromLocaleFormat then
-    Str := CleanupNumber(Str);
-  Result := StrToFloat(Str);
+  Result := StrToFloat(CleanupNumber(Str));
 
   // Detect if the string was previously formatted by FormatByteNumber
   // and convert it back by multiplying it with its byte unit

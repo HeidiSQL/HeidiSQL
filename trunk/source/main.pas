@@ -8450,7 +8450,7 @@ begin
         if FGridCopying then begin
           CellText := Results.Col(Column);
         end else if HandleUnixTimestampColumn(Sender, Column) then begin
-          Timestamp := MakeInt(Results.Col(Column), False);
+          Timestamp := MakeInt(Results.Col(Column));
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
         end else begin
