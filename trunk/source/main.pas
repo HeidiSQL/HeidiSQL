@@ -1055,6 +1055,7 @@ type
     FListTablesSorted: Boolean;
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
+    FFormatSettings: TFormatSettings;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1886,6 +1887,7 @@ begin
   FLastCaptionChange := 0;
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
+  FFormatSettings := TFormatSettings.Create('en-US');
 end;
 
 
@@ -8450,7 +8452,12 @@ begin
         if FGridCopying then begin
           CellText := Results.Col(Column);
         end else if HandleUnixTimestampColumn(Sender, Column) then begin
-          Timestamp := MakeInt(Results.Col(Column));
+          try
+            Timestamp := Trunc(StrToFloat(Results.Col(Column), FFormatSettings));
+          except
+            on E:EConvertError do
+              Timestamp := 0;
+          end;
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
         end else begin
