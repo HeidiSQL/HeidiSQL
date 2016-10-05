@@ -7158,7 +7158,11 @@ begin
     Tree := TVirtualStringTree(Sender);
     HintText := Tree.Text[Node, Column];
     HintText := sstr(HintText, SIZE_KB);
-    LineBreakStyle := hlbForceSingleLine;
+    // See http://www.heidisql.com/forum.php?t=20458#p20548
+    if Sender = DBtree then
+      LineBreakStyle := hlbForceSingleLine
+    else
+      LineBreakStyle := hlbForceMultiLine;
   end;
 end;
 
