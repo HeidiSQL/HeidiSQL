@@ -81,7 +81,7 @@ begin
     nbUnset:
       MessageDialog(_('Could not check donation state.'), mtWarning, [mbOK]);
     nbFalse:
-      ErrorDialog(_('Not a valid donators email address'));
+      ErrorDialog(_('Not a valid donor email address'));
     nbTrue:
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
