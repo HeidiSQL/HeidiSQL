@@ -12052,8 +12052,8 @@ begin
       // Check heidisql.com/hasdonated.php?email=...
       // HasDonatedDatabaseCheck
       //   = 0 : No check yet done
-      //   = 1 : Not a donator
-      //   = 2 : Valid donator
+      //   = 1 : Not a donor
+      //   = 2 : Valid donor
       rx := TRegExpr.Create;
       CheckWebpage := THttpDownload.Create(MainForm);
       CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email);

@@ -54,8 +54,8 @@ msgid "Thanks for donating!"
 msgstr "Thanks for donating!"
 
 #. About dialog
-msgid "Not a valid donators email address"
-msgstr "Not a valid donators email address"
+msgid "Not a valid donor email address"
+msgstr "Not a valid donor email address"
 
 #. About dialog
 msgid "Could not check donation state."
