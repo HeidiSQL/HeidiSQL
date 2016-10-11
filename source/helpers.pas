@@ -2604,6 +2604,7 @@ begin
   Arguments := TStringList.Create;
 
   if Assigned(DBObj) then begin
+    Arguments.Values['session'] := goodfilename(DBObj.Connection.Parameters.SessionName);
     Arguments.Values['host'] := goodfilename(DBObj.Connection.Parameters.Hostname);
     Arguments.Values['u'] := goodfilename(DBObj.Connection.Parameters.Username);
     Arguments.Values['db'] := goodfilename(DBObj.Database);
@@ -2629,6 +2630,7 @@ function GetOutputFilenamePlaceholders: TStringList;
 begin
   // Return a list with valid placeholder=>description pairs
   Result := TStringList.Create;
+  Result.Values['session'] := _('Session name');
   Result.Values['host'] := _('Hostname');
   Result.Values['u'] := _('Username');
   Result.Values['db'] := _('Database');
