@@ -11194,7 +11194,13 @@ begin
       Killer.OnLog := LogSQL;
       Killer.Active := True;
       KillCommand := Format(Killer.GetSQLSpecifity(spKillQuery), [ActiveConnection.ThreadId]);
-      Killer.Query(KillCommand);
+      try
+        Killer.Query(KillCommand);
+      except
+        on E:EDatabaseError do begin
+          MessageDialog(E.Message, mtError, [mbOK]);
+        end;
+      end;
       Killer.Active := False;
       Killer.Free;
     end;
