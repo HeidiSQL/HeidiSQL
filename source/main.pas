@@ -1611,12 +1611,16 @@ begin
   FreeLibrary(NTHandle);
 
   // Taskbar button interface for Windows 7
-  if CheckWin32Version(6, 1) then begin
+  // Possibly fails. See http://www.heidisql.com/forum.php?t=22451
+  if CheckWin32Version(6, 1) then
+  try
     TaskbarList := CreateComObject(CLSID_TaskbarList) as ITaskbarList;
     TaskbarList.HrInit;
     Supports(TaskbarList, IID_ITaskbarList2, TaskbarList2);
     Supports(TaskbarList, IID_ITaskbarList3, TaskbarList3);
     Supports(TaskbarList, IID_ITaskbarList4, TaskbarList4);
+  except
+    on E:EOleSysError do;
   end;
 
   // Ensure directory exists
