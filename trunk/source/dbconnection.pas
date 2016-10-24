@@ -5420,19 +5420,18 @@ begin
               FColumnTypes[i] := FConnection.Datatypes[j];
           end else if Field._type = Cardinal(FConnection.Datatypes[j].NativeType) then begin
             // Text and Blob types share the same constants (see FIELD_TYPEs)
-            // Some function results return binary collation up to the latest versions. Work around
-            // that by checking if this field is a real table field
-            // See http://bugs.mysql.com/bug.php?id=10201
+            // See http://dev.mysql.com/doc/refman/5.7/en/c-api-data-structures.html
             if Connection.IsUnicode then
-              IsBinary := (Field.charsetnr = COLLATION_BINARY) and (Field.org_table <> '')
+              IsBinary := Field.charsetnr = COLLATION_BINARY
             else
               IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (FConnection.Datatypes[j].Index in [dtTinytext..dtLongtext]) then
+            if IsBinary and (FConnection.Datatypes[j].Index in [dtChar..dtLongtext]) then
               continue;
             FColumnTypes[i] := FConnection.Datatypes[j];
             break;
           end;
         end;
+        FConnection.Log(lcDebug, 'Detected column type for '+FColumnNames[i]+': '+FColumnTypes[i].Name);
       end;
       FRecNo := -1;
       First;
