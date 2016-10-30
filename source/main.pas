@@ -1367,6 +1367,7 @@ var
   i, Visibles, WantedIndex: Integer;
 begin
   // Set focus on tab by numeric index
+  WantedIndex := -1;
   if Sender = actGotoTab1 then
     WantedIndex := 0
   else if Sender = actGotoTab2 then
