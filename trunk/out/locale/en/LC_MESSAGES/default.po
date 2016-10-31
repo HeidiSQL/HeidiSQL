@@ -4748,8 +4748,8 @@ msgid "Displaying objects from \"%s\" ..."
 msgstr "Displaying objects from \"%s\" ..."
 
 #: main.pas:4784
-msgid "Ignoring own process id #%s when trying to kill it."
-msgstr "Ignoring own process id #%s when trying to kill it."
+msgid "Ignoring own process id #%d when trying to kill it."
+msgstr "Ignoring own process id #%d when trying to kill it."
 
 #: main.pas:5158
 msgid "Uptime"

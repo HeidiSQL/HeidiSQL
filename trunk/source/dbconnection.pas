@@ -284,7 +284,7 @@ type
     spAddColumn, spChangeColumn,
     spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
-    spUSEQuery, spKillQuery,
+    spUSEQuery, spKillQuery, spKillProcess,
     spFuncLength, spFuncCeil);
 
   TDBConnection = class(TComponent)
@@ -2029,6 +2029,7 @@ begin
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
+      FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
     end;
@@ -2044,6 +2045,7 @@ begin
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_CATALOG';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
+      FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LEN';
       FSQLSpecifities[spFuncCeil] := 'CEILING';
     end;
@@ -2059,6 +2061,7 @@ begin
       FSQLSpecifities[spISTableSchemaCol] := 'table_schema';
       FSQLSpecifities[spUSEQuery] := 'SET search_path TO %s';
       FSQLSpecifities[spKillQuery] := 'SELECT pg_cancel_backend(%d)';
+      FSQLSpecifities[spKillProcess] := 'SELECT pg_cancel_backend(%d)';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
     end;

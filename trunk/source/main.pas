@@ -5441,7 +5441,7 @@ end;
 procedure TMainForm.KillProcess(Sender: TObject);
 var
   t: Boolean;
-  pid: String;
+  pid: Int64;
   Node: PVirtualNode;
   Conn: TDBConnection;
 begin
@@ -5452,12 +5452,12 @@ begin
   begin
     Node := GetNextNode(ListProcesses, nil, True);
     while Assigned(Node) do begin
-      pid := ListProcesses.Text[Node, ListProcesses.Header.MainColumn];
+      pid := StrToInt64Def(ListProcesses.Text[Node, ListProcesses.Header.MainColumn], 0);
       // Don't kill own process
-      if pid = IntToStr(Conn.ThreadId) then
-        LogSQL(f_('Ignoring own process id #%s when trying to kill it.', [pid]))
+      if pid = Conn.ThreadId then
+        LogSQL(f_('Ignoring own process id #%d when trying to kill it.', [pid]))
       else try
-        Conn.Query('KILL '+pid);
+        Conn.Query(Format(Conn.GetSQLSpecifity(spKillProcess), [pid]));
       except
         on E:EDatabaseError do begin
           if Conn.LastErrorCode <> 1094 then
