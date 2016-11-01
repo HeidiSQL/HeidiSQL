@@ -8363,7 +8363,7 @@ begin
     Conditions := TStringList.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       // The normal case: do a LIKE comparison
-      Condition := Conn.QuoteIdent(SelectedTableColumns[i].Name) + ' LIKE ''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
+      Condition := SelectedTableColumns[i].CastAsText + ' LIKE ''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
       if not SelectedTableColumns[i].DataType.ValueMustMatch.IsEmpty then begin
         // Use an exact comparison for some PostgreSQL data types to overcome SQL errors, e.g. UUID, INT etc.
         // Also, prevent other errors by matching the value against a certain regular expression.

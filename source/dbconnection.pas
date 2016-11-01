@@ -106,6 +106,7 @@ type
       destructor Destroy; override;
       function SQLCode(OverrideCollation: String=''): String;
       function ValueList: TStringList;
+      function CastAsText: String;
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
   end;
@@ -7133,6 +7134,19 @@ begin
   Result.Delimiter := ',';
   if DataType.Index in [dtEnum, dtSet] then
     Result.DelimitedText := LengthSet;
+end;
+
+
+function TTableColumn.CastAsText: String;
+begin
+  // Cast data types which are incompatible to string functions to text columns
+  Result := FConnection.QuoteIdent(Name);
+  if DataType.Index = dtUnknown then
+    case FConnection.Parameters.NetTypeGroup of
+      ngMySQL: Result := 'CAST('+Result+' AS CHAR)';
+      ngMSSQL: Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(SIZE_MB)+'))';
+      ngPgSQL: Result := Result + '::text';
+    end;
 end;
 
 
