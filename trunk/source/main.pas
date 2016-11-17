@@ -4915,7 +4915,7 @@ begin
       rx.Expression := '^\s*WHERE\s+';
       SynMemoFilter.Text := rx.Replace(SynMemoFilter.Text, '');
       rx.Free;
-      Select := Select + ' WHERE ' + SynMemoFilter.Text;
+      Select := Select + ' WHERE ' + SynMemoFilter.Text + CRLF;
       tbtnDataFilter.ImageIndex := 108;
     end else
       tbtnDataFilter.ImageIndex := 107;
@@ -4954,7 +4954,7 @@ begin
       end;
       DataGridResult.Connection := DBObj.Connection;
       DataGridResult.DBObject := DBObj;
-      DataGridResult.SQL := Select;
+      DataGridResult.SQL := Trim(Select);
       DataGridResult.Execute(Offset > 0);
       DataGridResult.ColumnOrgNames := WantedColumnOrgnames;
       try
