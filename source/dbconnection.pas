@@ -2117,12 +2117,20 @@ end;
 
 
 procedure TPgConnection.DoBeforeConnect;
+var
+  LibWithPath: String;
 begin
   // Init lib before actually connecting.
   // Each connection has its own library handle
   if LibPqHandle = 0 then begin
     Log(lcDebug, f_('Loading library file %s ...', [LibPqPath]));
     LibPqHandle := LoadLibrary(PWideChar(LibPqPath));
+    if LibPqHandle = 0 then begin
+      // Try with explicit file path if the path-less did not succeed. See http://www.heidisql.com/forum.php?t=22514
+      LibWithPath := ExtractFileDir(Application.ExeName) + '\' + LibPqPath;
+      Log(lcInfo, f_('Trying to load library with full path: %s', [LibWithPath]));
+      LibPqHandle := LoadLibrary(PWideChar(LibWithPath));
+    end;
     if LibPqHandle = 0 then
       raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.'), [LibPqPath, ExtractFileName(ParamStr(0))])
     else begin
