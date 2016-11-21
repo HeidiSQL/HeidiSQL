@@ -1963,7 +1963,7 @@ begin
     FConnectionStarted := GetTickCount div 1000;
     Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
     FIsUnicode := True;
-    Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout));
+    Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout*1000));
     try
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
     except
