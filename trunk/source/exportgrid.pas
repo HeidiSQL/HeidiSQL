@@ -831,7 +831,7 @@ begin
             efJSON: begin
               tmp := tmp + #9#9#9;
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + '"'+HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '": ';
+                tmp := tmp + EscapePHP(HTMLSpecialChars(Grid.Header.Columns[Col].Text)) + ': ';
               if GridData.IsNull(Col) then
                 tmp := tmp + 'null,' +CRLF
               else begin
@@ -839,9 +839,9 @@ begin
                   dtcInteger, dtcReal:
                     tmp := tmp + data;
                   dtcBinary, dtcSpatial:
-                    tmp := tmp + '"' + Data + '"';
+                    tmp := tmp + EscapePHP(Data);
                   else
-                    tmp := tmp + '"' + HTMLSpecialChars(Data) + '"'
+                    tmp := tmp + EscapePHP(HTMLSpecialChars(Data))
                 end;
                 tmp := tmp + ',' + CRLF;
               end;
