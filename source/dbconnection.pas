@@ -3070,7 +3070,7 @@ begin
     EscapeFunction := 'E'
   else
     EscapeFunction := '';
-  rx.Expression := StringReplace(rx.Expression, '%s', EscapeFunction+'['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
+  rx.Expression := StringReplace(rx.Expression, '%s', EscapeFunction+'['+Quotes+']?(.+)['+Quotes+']?', [rfReplaceAll]);
   if rx.Exec(SQL) then begin
     FDatabase := Trim(rx.Match[1]);
     FDatabase := DeQuoteIdent(FDatabase);
