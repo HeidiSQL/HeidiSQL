@@ -451,8 +451,8 @@ begin
   Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
   Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
   Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
-  Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
-  Result := '''' + Result + '''';
+  Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
+  Result := '"' + Result + '"';
 end;
 
 
