@@ -681,9 +681,9 @@ begin
         // JavaScript Object Notation
         Header := '{' + CRLF;
         if chkIncludeQuery.Checked then
-          Header := Header + #9 + '"query": "'+HTMLSpecialChars(GridData.SQL)+'",' + CRLF
+          Header := Header + #9 + '"query": '+EscapePHP(GridData.SQL)+',' + CRLF
         else
-          Header := Header + #9 + '"table": "'+HTMLSpecialChars(TableName)+'",' + CRLF ;
+          Header := Header + #9 + '"table": '+EscapePHP(TableName)+',' + CRLF ;
         Header := Header + #9 + '"rows":' + CRLF + #9 + '[';
       end;
 
@@ -831,17 +831,15 @@ begin
             efJSON: begin
               tmp := tmp + #9#9#9;
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + EscapePHP(HTMLSpecialChars(Grid.Header.Columns[Col].Text)) + ': ';
+                tmp := tmp + EscapePHP(Grid.Header.Columns[Col].Text) + ': ';
               if GridData.IsNull(Col) then
                 tmp := tmp + 'null,' +CRLF
               else begin
                 case GridData.DataType(Col).Category of
                   dtcInteger, dtcReal:
-                    tmp := tmp + data;
-                  dtcBinary, dtcSpatial:
-                    tmp := tmp + EscapePHP(Data);
+                    tmp := tmp + Data;
                   else
-                    tmp := tmp + EscapePHP(HTMLSpecialChars(Data))
+                    tmp := tmp + EscapePHP(Data)
                 end;
                 tmp := tmp + ',' + CRLF;
               end;
