@@ -738,7 +738,7 @@ begin
 
         efWiki: tmp := TrimLeft(Separator);
 
-        efPHPArray: tmp := #9 + 'array( // row #'+FormatNumber(GridData.RecNo)+CRLF;
+        efPHPArray: tmp := #9 + 'array('+CRLF;
 
         efMarkDown: tmp := '| ';
 
