@@ -1,17 +1,17 @@
 object frmEventEditor: TfrmEventEditor
   Left = 0
   Top = 0
-  Width = 672
-  Height = 438
+  Width = 700
+  Height = 500
   TabOrder = 0
   DesignSize = (
-    672
-    438)
+    700
+    500)
   object lblBody: TLabel
     AlignWithMargins = True
     Left = 3
     Top = 175
-    Width = 666
+    Width = 694
     Height = 13
     Align = alTop
     Caption = 'Execution body:'
@@ -21,8 +21,8 @@ object frmEventEditor: TfrmEventEditor
     AlignWithMargins = True
     Left = 3
     Top = 194
-    Width = 666
-    Height = 214
+    Width = 694
+    Height = 276
     Margins.Bottom = 30
     SingleLineMode = False
     Align = alClient
@@ -50,7 +50,7 @@ object frmEventEditor: TfrmEventEditor
   end
   object btnHelp: TButton
     Left = 3
-    Top = 410
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -60,7 +60,7 @@ object frmEventEditor: TfrmEventEditor
   end
   object btnDiscard: TButton
     Left = 84
-    Top = 410
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -70,7 +70,7 @@ object frmEventEditor: TfrmEventEditor
   end
   object btnSave: TButton
     Left = 165
-    Top = 410
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -83,7 +83,7 @@ object frmEventEditor: TfrmEventEditor
     AlignWithMargins = True
     Left = 3
     Top = 3
-    Width = 666
+    Width = 694
     Height = 166
     ActivePage = tabSettings
     Align = alTop
@@ -94,7 +94,7 @@ object frmEventEditor: TfrmEventEditor
       Caption = 'Settings'
       ImageIndex = 39
       DesignSize = (
-        658
+        686
         137)
       object lblName: TLabel
         Left = 3
@@ -131,7 +131,7 @@ object frmEventEditor: TfrmEventEditor
       object chkDropAfterExpiration: TCheckBox
         Left = 84
         Top = 57
-        Width = 571
+        Width = 599
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Drop event after expiration'
@@ -141,7 +141,7 @@ object frmEventEditor: TfrmEventEditor
       object editComment: TEdit
         Left = 84
         Top = 30
-        Width = 571
+        Width = 599
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -161,7 +161,7 @@ object frmEventEditor: TfrmEventEditor
       object comboDefiner: TComboBox
         Left = 489
         Top = 3
-        Width = 166
+        Width = 194
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 4

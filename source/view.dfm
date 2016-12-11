@@ -1,12 +1,12 @@
 object frmView: TfrmView
   Left = 0
   Top = 0
-  Width = 451
-  Height = 304
+  Width = 700
+  Height = 500
   TabOrder = 0
   DesignSize = (
-    451
-    304)
+    700
+    500)
   object lblName: TLabel
     Left = 3
     Top = 6
@@ -23,8 +23,8 @@ object frmView: TfrmView
   end
   object lblDisabledWhy: TLabel
     Left = 280
-    Top = 276
-    Width = 167
+    Top = 472
+    Width = 416
     Height = 25
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
@@ -66,8 +66,8 @@ object frmView: TfrmView
   object SynMemoBody: TSynMemo
     Left = 3
     Top = 143
-    Width = 444
-    Height = 128
+    Width = 693
+    Height = 324
     SingleLineMode = False
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
@@ -104,7 +104,7 @@ object frmView: TfrmView
   end
   object btnDiscard: TButton
     Left = 84
-    Top = 276
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -114,7 +114,7 @@ object frmView: TfrmView
   end
   object btnSave: TButton
     Left = 162
-    Top = 276
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -126,7 +126,7 @@ object frmView: TfrmView
   object rgCheck: TRadioGroup
     Left = 215
     Top = 32
-    Width = 232
+    Width = 481
     Height = 86
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Check option for updates'
@@ -140,7 +140,7 @@ object frmView: TfrmView
   end
   object btnHelp: TButton
     Left = 3
-    Top = 276
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -151,7 +151,7 @@ object frmView: TfrmView
   object comboDefiner: TComboBox
     Left = 280
     Top = 3
-    Width = 167
+    Width = 416
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
