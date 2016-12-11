@@ -33,16 +33,16 @@ object frmView: TfrmView
     Visible = False
   end
   object lblDefiner: TLabel
-    Left = 215
+    Left = 408
     Top = 6
     Width = 39
     Height = 13
     Caption = 'Definer:'
   end
   object editName: TEdit
-    Left = 64
+    Left = 84
     Top = 3
-    Width = 145
+    Width = 310
     Height = 21
     TabOrder = 0
     Text = 'editName'
@@ -52,7 +52,7 @@ object frmView: TfrmView
   object rgAlgorithm: TRadioGroup
     Left = 3
     Top = 32
-    Width = 206
+    Width = 391
     Height = 86
     Caption = 'Algorithm'
     ItemIndex = 0
@@ -124,9 +124,9 @@ object frmView: TfrmView
     OnClick = btnSaveClick
   end
   object rgCheck: TRadioGroup
-    Left = 215
+    Left = 408
     Top = 32
-    Width = 481
+    Width = 288
     Height = 86
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Check option for updates'
@@ -149,9 +149,9 @@ object frmView: TfrmView
     OnClick = btnHelpClick
   end
   object comboDefiner: TComboBox
-    Left = 280
+    Left = 489
     Top = 3
-    Width = 416
+    Width = 207
     Height = 21
     Anchors = [akLeft, akTop, akRight]
     TabOrder = 1
