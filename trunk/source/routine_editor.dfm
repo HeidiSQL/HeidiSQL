@@ -1,17 +1,17 @@
 object frmRoutineEditor: TfrmRoutineEditor
   Left = 0
   Top = 0
-  Width = 606
-  Height = 484
+  Width = 700
+  Height = 500
   TabOrder = 0
   DesignSize = (
-    606
-    484)
+    700
+    500)
   object lblSQLcode: TLabel
     AlignWithMargins = True
     Left = 3
     Top = 183
-    Width = 600
+    Width = 694
     Height = 13
     Align = alTop
     Caption = 'Routine body:'
@@ -20,7 +20,7 @@ object frmRoutineEditor: TfrmRoutineEditor
   end
   object lblDisabledWhy: TLabel
     Left = 256
-    Top = 460
+    Top = 476
     Width = 177
     Height = 13
     Anchors = [akLeft, akBottom]
@@ -30,7 +30,7 @@ object frmRoutineEditor: TfrmRoutineEditor
   object spltTop: TSplitter
     Left = 0
     Top = 172
-    Width = 606
+    Width = 700
     Height = 8
     Cursor = crSizeNS
     Align = alTop
@@ -38,7 +38,7 @@ object frmRoutineEditor: TfrmRoutineEditor
   end
   object btnSave: TButton
     Left = 165
-    Top = 455
+    Top = 471
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -49,7 +49,7 @@ object frmRoutineEditor: TfrmRoutineEditor
   end
   object btnDiscard: TButton
     Left = 84
-    Top = 455
+    Top = 471
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -60,7 +60,7 @@ object frmRoutineEditor: TfrmRoutineEditor
   end
   object btnHelp: TButton
     Left = 3
-    Top = 455
+    Top = 471
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -72,8 +72,8 @@ object frmRoutineEditor: TfrmRoutineEditor
     AlignWithMargins = True
     Left = 3
     Top = 202
-    Width = 600
-    Height = 242
+    Width = 694
+    Height = 258
     Margins.Bottom = 40
     SingleLineMode = False
     Align = alClient
@@ -117,7 +117,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     AlignWithMargins = True
     Left = 3
     Top = 3
-    Width = 600
+    Width = 694
     Height = 166
     ActivePage = tabOptions
     Align = alTop
@@ -128,7 +128,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       Caption = 'Options'
       ImageIndex = 39
       DesignSize = (
-        592
+        686
         137)
       object lblName: TLabel
         Left = 3
@@ -188,7 +188,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       object chkDeterministic: TCheckBox
         Left = 84
         Top = 114
-        Width = 508
+        Width = 602
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = '&Deterministic'
@@ -198,7 +198,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       object editComment: TEdit
         Left = 84
         Top = 35
-        Width = 505
+        Width = 599
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 2
@@ -208,7 +208,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       object comboSecurity: TComboBox
         Left = 489
         Top = 87
-        Width = 100
+        Width = 194
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -218,7 +218,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       object comboDataAccess: TComboBox
         Left = 489
         Top = 62
-        Width = 100
+        Width = 194
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -256,7 +256,7 @@ object frmRoutineEditor: TfrmRoutineEditor
       object comboDefiner: TComboBox
         Left = 489
         Top = 8
-        Width = 100
+        Width = 194
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -272,7 +272,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Left = 82
         Top = 0
         Width = 510
-        Height = 137
+        Height = 138
         Align = alClient
         DragImageKind = diMainColumnOnly
         DragMode = dmAutomatic
@@ -306,7 +306,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
-            Width = 321
+            Width = 325
             WideText = 'Name'
           end
           item
@@ -326,7 +326,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Left = 0
         Top = 0
         Width = 82
-        Height = 137
+        Height = 138
         Align = alLeft
         AutoSize = True
         ButtonWidth = 82
@@ -410,8 +410,8 @@ object frmRoutineEditor: TfrmRoutineEditor
     end
   end
   object btnRunProc: TButton
-    Left = 439
-    Top = 455
+    Left = 533
+    Top = 471
     Width = 164
     Height = 25
     Action = MainForm.actRunRoutines

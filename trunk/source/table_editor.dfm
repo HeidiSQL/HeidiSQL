@@ -1,17 +1,17 @@
 object frmTableEditor: TfrmTableEditor
   Left = 0
   Top = 0
-  Width = 607
-  Height = 391
+  Width = 700
+  Height = 500
   TabOrder = 0
   DesignSize = (
-    607
-    391)
+    700
+    500)
   object SplitterTopBottom: TSplitter
     AlignWithMargins = True
     Left = 3
     Top = 153
-    Width = 601
+    Width = 694
     Height = 8
     Cursor = crSizeNS
     Margins.Top = 0
@@ -21,7 +21,7 @@ object frmTableEditor: TfrmTableEditor
   end
   object btnSave: TButton
     Left = 165
-    Top = 362
+    Top = 471
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -32,7 +32,7 @@ object frmTableEditor: TfrmTableEditor
   end
   object btnDiscard: TButton
     Left = 84
-    Top = 362
+    Top = 471
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -42,7 +42,7 @@ object frmTableEditor: TfrmTableEditor
   end
   object btnHelp: TButton
     Left = 3
-    Top = 362
+    Top = 471
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -54,8 +54,8 @@ object frmTableEditor: TfrmTableEditor
     AlignWithMargins = True
     Left = 3
     Top = 186
-    Width = 601
-    Height = 173
+    Width = 694
+    Height = 282
     Margins.Bottom = 32
     Align = alClient
     Constraints.MinHeight = 70
@@ -172,7 +172,7 @@ object frmTableEditor: TfrmTableEditor
     AlignWithMargins = True
     Left = 3
     Top = 3
-    Width = 601
+    Width = 694
     Height = 150
     Margins.Bottom = 0
     ActivePage = tabBasic
@@ -188,7 +188,7 @@ object frmTableEditor: TfrmTableEditor
       ExplicitWidth = 0
       ExplicitHeight = 0
       DesignSize = (
-        593
+        686
         121)
       object lblName: TLabel
         Left = 4
@@ -207,7 +207,7 @@ object frmTableEditor: TfrmTableEditor
       object editName: TEdit
         Left = 96
         Top = 3
-        Width = 496
+        Width = 589
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
@@ -218,8 +218,8 @@ object frmTableEditor: TfrmTableEditor
       object memoComment: TMemo
         Left = 96
         Top = 30
-        Width = 496
-        Height = 84
+        Width = 589
+        Height = 80
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoComment')
@@ -237,7 +237,7 @@ object frmTableEditor: TfrmTableEditor
       ExplicitWidth = 0
       ExplicitHeight = 0
       DesignSize = (
-        593
+        686
         121)
       object lblAutoinc: TLabel
         Left = 4
@@ -333,7 +333,7 @@ object frmTableEditor: TfrmTableEditor
       object memoUnionTables: TMemo
         Left = 408
         Top = 49
-        Width = 184
+        Width = 277
         Height = 44
         Anchors = [akLeft, akTop, akRight]
         Lines.Strings = (
@@ -344,7 +344,7 @@ object frmTableEditor: TfrmTableEditor
       object comboInsertMethod: TComboBox
         Left = 408
         Top = 95
-        Width = 184
+        Width = 277
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -362,7 +362,7 @@ object frmTableEditor: TfrmTableEditor
       object comboCollation: TComboBox
         Left = 408
         Top = 3
-        Width = 65
+        Width = 158
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -373,7 +373,7 @@ object frmTableEditor: TfrmTableEditor
       object comboEngine: TComboBox
         Left = 408
         Top = 26
-        Width = 184
+        Width = 277
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -381,7 +381,7 @@ object frmTableEditor: TfrmTableEditor
         OnSelect = comboEngineSelect
       end
       object chkCharsetConvert: TCheckBox
-        Left = 481
+        Left = 574
         Top = 5
         Width = 107
         Height = 17
@@ -394,15 +394,11 @@ object frmTableEditor: TfrmTableEditor
     object tabIndexes: TTabSheet
       Caption = 'Indexes'
       ImageIndex = 13
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object treeIndexes: TVirtualStringTree
         AlignWithMargins = True
         Left = 69
         Top = 0
-        Width = 521
+        Width = 614
         Height = 121
         Margins.Top = 0
         Margins.Bottom = 0
@@ -435,7 +431,7 @@ object frmTableEditor: TfrmTableEditor
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
-            Width = 341
+            Width = 430
             WideText = 'Name'
           end
           item
@@ -750,7 +746,7 @@ object frmTableEditor: TfrmTableEditor
     AlignWithMargins = True
     Left = 3
     Top = 161
-    Width = 601
+    Width = 694
     Height = 22
     Margins.Top = 0
     Margins.Bottom = 0
@@ -762,9 +758,9 @@ object frmTableEditor: TfrmTableEditor
     TabOrder = 1
     object tlbColumns: TToolBar
       AlignWithMargins = True
-      Left = 0
+      Left = 100
       Top = 0
-      Width = 501
+      Width = 594
       Height = 22
       Margins.Left = 100
       Margins.Top = 0

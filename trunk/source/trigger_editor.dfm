@@ -1,12 +1,12 @@
 object frmTriggerEditor: TfrmTriggerEditor
   Left = 0
   Top = 0
-  Width = 477
-  Height = 332
+  Width = 700
+  Height = 500
   TabOrder = 0
   DesignSize = (
-    477
-    332)
+    700
+    500)
   object lblBody: TLabel
     Left = 3
     Top = 141
@@ -17,8 +17,8 @@ object frmTriggerEditor: TfrmTriggerEditor
   object SynMemoBody: TSynMemo
     Left = 3
     Top = 160
-    Width = 471
-    Height = 138
+    Width = 694
+    Height = 306
     SingleLineMode = False
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
@@ -39,7 +39,7 @@ object frmTriggerEditor: TfrmTriggerEditor
   end
   object btnHelp: TButton
     Left = 3
-    Top = 304
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -49,7 +49,7 @@ object frmTriggerEditor: TfrmTriggerEditor
   end
   object btnDiscard: TButton
     Left = 84
-    Top = 304
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -59,7 +59,7 @@ object frmTriggerEditor: TfrmTriggerEditor
   end
   object btnSave: TButton
     Left = 165
-    Top = 304
+    Top = 472
     Width = 75
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -72,7 +72,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     AlignWithMargins = True
     Left = 3
     Top = 3
-    Width = 471
+    Width = 694
     Height = 132
     ActivePage = tabOptions
     Align = alTop
@@ -82,7 +82,7 @@ object frmTriggerEditor: TfrmTriggerEditor
       Caption = 'Options'
       ImageIndex = 39
       DesignSize = (
-        463
+        686
         103)
       object lblDefiner: TLabel
         Left = 247
@@ -116,7 +116,7 @@ object frmTriggerEditor: TfrmTriggerEditor
       object comboDefiner: TComboBox
         Left = 304
         Top = 3
-        Width = 156
+        Width = 379
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
@@ -137,7 +137,7 @@ object frmTriggerEditor: TfrmTriggerEditor
       object comboTable: TComboBox
         Left = 84
         Top = 30
-        Width = 376
+        Width = 599
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
