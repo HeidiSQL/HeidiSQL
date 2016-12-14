@@ -16,7 +16,7 @@ object frmView: TfrmView
   end
   object lblSelect: TLabel
     Left = 3
-    Top = 124
+    Top = 149
     Width = 85
     Height = 13
     Caption = 'Select statement:'
@@ -39,6 +39,13 @@ object frmView: TfrmView
     Height = 13
     Caption = 'Definer:'
   end
+  object lblSecurity: TLabel
+    Left = 408
+    Top = 32
+    Width = 64
+    Height = 13
+    Caption = 'SQL security:'
+  end
   object editName: TEdit
     Left = 84
     Top = 3
@@ -51,7 +58,7 @@ object frmView: TfrmView
   end
   object rgAlgorithm: TRadioGroup
     Left = 3
-    Top = 32
+    Top = 57
     Width = 391
     Height = 86
     Caption = 'Algorithm'
@@ -65,9 +72,9 @@ object frmView: TfrmView
   end
   object SynMemoBody: TSynMemo
     Left = 3
-    Top = 143
+    Top = 168
     Width = 693
-    Height = 324
+    Height = 299
     SingleLineMode = False
     Anchors = [akLeft, akTop, akRight, akBottom]
     Font.Charset = DEFAULT_CHARSET
@@ -125,7 +132,7 @@ object frmView: TfrmView
   end
   object rgCheck: TRadioGroup
     Left = 408
-    Top = 32
+    Top = 57
     Width = 288
     Height = 86
     Anchors = [akLeft, akTop, akRight]
@@ -158,5 +165,15 @@ object frmView: TfrmView
     Text = 'comboDefiner'
     OnChange = Modification
     OnDropDown = comboDefinerDropDown
+  end
+  object comboSecurity: TComboBox
+    Left = 489
+    Top = 30
+    Width = 207
+    Height = 21
+    Style = csDropDownList
+    Anchors = [akLeft, akTop, akRight]
+    TabOrder = 8
+    OnChange = Modification
   end
 end

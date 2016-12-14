@@ -2675,6 +2675,8 @@ begin
         Result := Result + 'ALGORITHM='+Uppercase(Algorithm)+' ';
       if Definer <> '' then
         Result := Result + 'DEFINER='+QuoteIdent(Definer, True, '@')+' ';
+      if not SQLSecurity.IsEmpty then
+        Result := Result + 'SQL SECURITY '+SQLSecurity+' ';
       Result := Result + 'VIEW '+Obj.QuotedName+' AS '+AlternativeSelectCode+' ';
       // WITH .. CHECK OPTION is already contained in the source
     end;
@@ -5065,15 +5067,18 @@ begin
     rx.Expression := 'CREATE\s+(OR\s+REPLACE\s+)?'+
       '(ALGORITHM\s*=\s*(\w*)\s*)?'+
       '(DEFINER\s*=\s*(\S+)\s+)?'+
-      '(SQL\s+SECURITY\s+\w+\s+)?'+
+      '(SQL\s+SECURITY\s+(\S+)\s+)?'+
       'VIEW\s+[^\(]+\s+'+
       '(\([^\)]+\)\s+)?'+
       'AS\s+(.+)(\s+WITH\s+(\w+\s+)?CHECK\s+OPTION\s*)?$';
     if rx.Exec(CreateCode) then begin
       Algorithm := rx.Match[3];
       Definer := DeQuoteIdent(rx.Match[5], '@');
-      CheckOption := Trim(rx.Match[10]);
-      SelectCode := rx.Match[8];
+      SQLSecurity := rx.Match[7];
+      if SQLSecurity.IsEmpty then
+        SQLSecurity := 'DEFINER';
+      CheckOption := Trim(rx.Match[11]);
+      SelectCode := rx.Match[9];
     end else
       raise Exception.CreateFmt(_('Regular expression did not match the VIEW code in %s: %s'), ['ParseViewStructure()', CRLF+CRLF+CreateCode]);
     rx.Free;
