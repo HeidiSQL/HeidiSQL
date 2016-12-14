@@ -22,6 +22,8 @@ type
     lblDisabledWhy: TLabel;
     lblDefiner: TLabel;
     comboDefiner: TComboBox;
+    lblSecurity: TLabel;
+    comboSecurity: TComboBox;
     procedure btnHelpClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnDiscardClick(Sender: TObject);
@@ -54,6 +56,8 @@ begin
   SynMemoBody.Highlighter := Mainform.SynSQLSyn1;
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   editName.MaxLength := NAME_LEN;
+  comboSecurity.Items.Add('Definer');
+  comboSecurity.Items.Add('Invoker');
 end;
 
 
@@ -63,6 +67,7 @@ end;
 procedure TfrmView.Init(Obj: TDBObject);
 var
   Algorithm, CheckOption, SelectCode, Definer, SQLSecurity: String;
+  i: Integer;
 begin
   inherited;
   lblDisabledWhy.Font.Color := clRed;
@@ -78,6 +83,12 @@ begin
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);
     if rgCheck.ItemIndex = -1 then
       rgCheck.ItemIndex := 0;
+    for i:=0 to comboSecurity.Items.Count-1 do begin
+      if LowerCase(SQLSecurity) = LowerCase(comboSecurity.Items[i]) then begin
+        comboSecurity.ItemIndex := i;
+        Break;
+      end;
+    end;
     SynMemoBody.Text := SelectCode;
     // User may not be allowed to run SHOW CREATE VIEW, in which case we have an empty CreateCode.
     // Disable editor in this case.
@@ -93,6 +104,7 @@ begin
     rgAlgorithm.ItemIndex := 0;
     rgCheck.Enabled := True;
     rgCheck.ItemIndex := 0;
+    comboSecurity.ItemIndex := 0;
     SynMemoBody.Text := 'SELECT ';
     lblDisabledWhy.Hide;
   end;
@@ -155,6 +167,8 @@ begin
     sql := sql + 'ALGORITHM = '+Uppercase(rgAlgorithm.Items[rgAlgorithm.ItemIndex])+' ';
   if comboDefiner.Text <> '' then
     sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
+  if comboSecurity.Text <> '' then
+    sql := sql + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+' ';
   sql := sql + 'VIEW ' + viewname+' AS '+SynMemoBody.Text+' ';
   if rgCheck.Enabled and (rgCheck.ItemIndex > 0) then
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
