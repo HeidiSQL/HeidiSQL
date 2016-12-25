@@ -667,7 +667,7 @@ begin
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
           if Col <> ExcludeCol then begin
-            Header := Header + '-';
+            Header := Header + '---';
             if GridData.DataType(Col).Category in [dtcInteger, dtcReal] then
               Header := Header + ':';
             Header := Header + Separator;
