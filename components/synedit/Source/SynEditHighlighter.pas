@@ -1174,7 +1174,7 @@ begin
   Delta := Run - fOldRun;
   while Delta > 0 do
   begin
-    while fExpandedLine[ExpandedRun] = FillerChar do
+    while (Length(fExpandedLine) < ExpandedRun) and (fExpandedLine[ExpandedRun] = FillerChar) do
       inc(ExpandedRun);
     inc(ExpandedRun);
     dec(Delta);
