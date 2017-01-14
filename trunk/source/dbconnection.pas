@@ -4742,7 +4742,7 @@ end;
 
 function TDBConnection.ConnectionInfo: TStringList;
 var
-  Infos, Val, v: String;
+  Infos, Val, v, ConnectionString: String;
   major, minor, build: Integer;
   rx: TRegExpr;
 
@@ -4789,7 +4789,16 @@ begin
         rx.Free;
       end;
 
-      ngMSSQL: ; // Nothing specific yet
+      ngMSSQL: begin
+        // clear out password
+        ConnectionString := TAdoDBConnection(Self).FAdoHandle.ConnectionString;
+        rx := TRegExpr.Create;
+        rx.ModifierI := True;
+        rx.Expression := '(\Wpassword=)([^;]*)';
+        ConnectionString := rx.Replace(ConnectionString, '${1}******', True);
+        rx.Free;
+        Result.Values[_('Connection string')] := ConnectionString;
+      end;
 
       ngPgSQL: begin
         v := IntToStr(PQlibVersion);

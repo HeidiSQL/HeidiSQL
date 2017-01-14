@@ -1001,6 +1001,7 @@ type
     procedure actGotoDbTreeExecute(Sender: TObject);
     procedure actGotoFilterExecute(Sender: TObject);
     procedure actGotoTabNumberExecute(Sender: TObject);
+    procedure StatusBarClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1219,6 +1220,38 @@ begin
 end;
 
 
+procedure TMainForm.StatusBarClick(Sender: TObject);
+var
+  Click: TPoint;
+  i, j: Integer;
+  PanelRect: TRect;
+  Infos: TStringList;
+  InfoText: String;
+begin
+  // Handle click events on specific statusbar panels
+  Click := StatusBar.ScreenToClient(Mouse.CursorPos);
+  LogSQL(inttostr(click.X)+':'+inttostr(click.Y));
+  for i:=0 to StatusBar.Panels.Count-1 do begin
+    SendMessage(StatusBar.Handle, SB_GETRECT, i, Integer(@PanelRect));
+    if PtInRect(PanelRect, Click) then begin
+      // We found the clicked panel
+      case i of
+        3: begin
+          Infos := ActiveConnection.ConnectionInfo;
+          InfoText := '';
+          for j:=0 to Infos.Count-1 do begin
+            InfoText := InfoText + Infos.Names[j] + ': ' + Infos.ValueFromIndex[j] + CRLF + CRLF;
+          end;
+          MessageDialog(Trim(InfoText), mtInformation, [mbOK]);
+        end;
+      end;
+      Break;
+    end;
+
+  end;
+
+end;
+
 procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
   const Rect: TRect);
 var
@@ -1281,7 +1314,7 @@ begin
     Infos := ActiveConnection.ConnectionInfo;
     BalloonHint1.Description := '';
     for i:=0 to Infos.Count-1 do
-      BalloonHint1.Description := BalloonHint1.Description + Infos.Names[i] + ': ' + Infos.ValueFromIndex[i] + CRLF;
+      BalloonHint1.Description := BalloonHint1.Description + Infos.Names[i] + ': ' + sstr(Infos.ValueFromIndex[i],100) + CRLF;
     BalloonHint1.Description := Trim(BalloonHint1.Description);
     OffsetRect(PanelRect, Bar.ClientOrigin.X, Bar.ClientOrigin.Y);
     BalloonHint1.ShowHint(PanelRect);
