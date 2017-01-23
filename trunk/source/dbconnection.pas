@@ -2073,13 +2073,19 @@ end;
 
 
 procedure TMySQLConnection.DoBeforeConnect;
+var
+  msg: String;
 begin
   // Init libmysql before actually connecting.
   if LibMysqlHandle = 0 then begin
     Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
     LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
-    if LibMysqlHandle = 0 then
-      raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.'), [LibMysqlPath, ExtractFileName(ParamStr(0))])
+    if LibMysqlHandle = 0 then begin
+      msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.', [LibMysqlPath, ExtractFileName(ParamStr(0))]);
+      if Windows.GetLastError <> 0 then
+        msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
+      raise EDatabaseError.Create(msg);
+    end
     else begin
       AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
       AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
@@ -2118,7 +2124,7 @@ end;
 
 procedure TPgConnection.DoBeforeConnect;
 var
-  LibWithPath: String;
+  LibWithPath, msg: String;
 begin
   // Init lib before actually connecting.
   // Each connection has its own library handle
@@ -2131,8 +2137,12 @@ begin
       Log(lcInfo, f_('Trying to load library with full path: %s', [LibWithPath]));
       LibPqHandle := LoadLibrary(PWideChar(LibWithPath));
     end;
-    if LibPqHandle = 0 then
-      raise EDatabaseError.CreateFmt(_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.'), [LibPqPath, ExtractFileName(ParamStr(0))])
+    if LibPqHandle = 0 then begin
+      msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.', [LibPqPath, ExtractFileName(ParamStr(0))]);
+      if Windows.GetLastError <> 0 then
+        msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
+      raise EDatabaseError.Create(msg);
+    end
     else begin
       AssignProc(@PQconnectdb, 'PQconnectdb');
       AssignProc(@PQerrorMessage, 'PQerrorMessage');
