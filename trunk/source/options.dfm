@@ -680,8 +680,8 @@ object optionsform: Toptionsform
         FontSmoothing = fsmNone
       end
     end
-    object tabTextFormatting: TTabSheet
-      Caption = 'Text formatting'
+    object tabGridFormatting: TTabSheet
+      Caption = 'Grid formatting'
       ImageIndex = 41
       DesignSize = (
         710
@@ -913,8 +913,8 @@ object optionsform: Toptionsform
         OnClick = Modified
       end
     end
-    object tabEditorConfiguration: TTabSheet
-      Caption = 'Editor Configuration'
+    object tabDataEditors: TTabSheet
+      Caption = 'Data editors'
       ImageIndex = 33
       DesignSize = (
         710
@@ -982,7 +982,7 @@ object optionsform: Toptionsform
         Width = 693
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Reuse previous configuration settings on restart'
+        Caption = 'Remember filters, sorting and column selection across sessions'
         TabOrder = 5
       end
       object chkForeignDropDown: TCheckBox
