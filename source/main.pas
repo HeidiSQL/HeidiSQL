@@ -2198,7 +2198,7 @@ begin
   if Sender = actPreferencesLogging then
     FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabLogging
   else if Sender = actPreferencesData then
-    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabTextFormatting;
+    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabGridFormatting;
   FPreferencesDialog.ShowModal;
   FreeAndNil(FPreferencesDialog);
 end;

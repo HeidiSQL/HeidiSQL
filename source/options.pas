@@ -30,7 +30,7 @@ type
     btnApply: TButton;
     tabSQL: TTabSheet;
     chkAutoReconnect: TCheckBox;
-    tabTextFormatting: TTabSheet;
+    tabGridFormatting: TTabSheet;
     lblDataFont: TLabel;
     comboDataFontName: TComboBox;
     editDataFontSize: TEdit;
@@ -107,7 +107,7 @@ type
     cboxRowBackgroundOdd: TColorBox;
     cboxRowBackgroundEven: TColorBox;
     Label2: TLabel;
-    tabEditorConfiguration: TTabSheet;
+    tabDataEditors: TTabSheet;
     chkEditorBinary: TCheckBox;
     chkEditorDatetime: TCheckBox;
     chkPrefillDateTime: TCheckBox;
