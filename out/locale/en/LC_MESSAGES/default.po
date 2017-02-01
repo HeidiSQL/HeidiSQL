@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2016-11-20 22:19+0100\n"
+"PO-Revision-Date: 2017-02-01 06:51+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2799,18 +2799,18 @@ msgid "NULL background color (use \"None\" to disable):"
 msgstr "NULL background color (use \"None\" to disable):"
 
 #. Preferences
-msgid "Text formatting"
-msgstr "Text formatting"
+msgid "Grid formatting"
+msgstr "Grid formatting"
 
 #. Preferences
-msgid "Editor Configuration"
-msgstr "Editor Configuration"
+msgid "Data editors"
+msgstr "Data editors"
 
-#. Preferences > Text formatting
+#. Preferences > Grid formatting
 msgid "Alternating row background:"
 msgstr "Alternating row background:"
 
-#. Preferences > Text formatting
+#. Preferences > Grid formatting
 msgid "Local number format"
 msgstr "Local number format"
 
@@ -2841,8 +2841,8 @@ msgstr "Prefill empty date/time fields with current date/time"
 
 #. optionsform..pagecontrolMain..tabData..chkRememberFilters..Caption
 #: options.dfm:838
-msgid "Reuse previous configuration settings on restart"
-msgstr "Reuse previous configuration settings on restart"
+msgid "Remember filters, sorting and column selection across sessions"
+msgstr "Remember filters, sorting and column selection across sessions"
 
 #. Preferences > Data
 msgid "Show values in foreign key columns"
