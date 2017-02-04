@@ -1,0 +1,7 @@
+{
+  "id": "{1FD66E41-B157-4C69-BC56-BCC3CCF0C47E}",
+	"license_type": "MPL-1.1",
+  "picture": "Logo.png",
+	"platforms": "Win32;Win64",
+	"package_compiler_min": 21
+}
