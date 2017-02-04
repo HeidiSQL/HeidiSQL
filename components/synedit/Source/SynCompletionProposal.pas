@@ -162,6 +162,7 @@ type
     fClSelectText: TColor;
     FClTitleBackground: TColor;
     fClBackGround: TColor;
+    fClBackgroundBorder: TColor;
     Bitmap: TBitmap; // used for drawing
     TitleBitmap: TBitmap; // used for title-drawing
     FCurrentEditor: TCustomSynEdit;
@@ -274,6 +275,7 @@ type
     property ClSelect: TColor read FClSelect write FClSelect default clHighlight;
     property ClSelectedText: TColor read FClSelectText write FClSelectText default clHighlightText;
     property ClBackground: TColor read FClBackGround write FClBackGround default clWindow;
+    property ClBackgroundBorder: TColor read fClBackgroundBorder write fClBackgroundBorder default clBtnFace;
     property ClTitleBackground: TColor read FClTitleBackground write FClTitleBackground default clBtnFace;
     property ItemHeight: Integer read FItemHeight write SetItemHeight default 0;
     property Margin: Integer read FMargin write FMargin default 2;
@@ -338,8 +340,8 @@ type
     procedure SetParameterToken(const Value: TCompletionParameter);
     function GetDefaultKind: SynCompletionType;
     procedure SetDefaultKind(const Value: SynCompletionType);
-    function GetClBack: TColor;
-    procedure SetClBack(const Value: TColor);
+    function GetClBack(AIndex: Integer): TColor;
+    procedure SetClBack(AIndex: Integer; const Value: TColor);
     function GetClSelectedText: TColor;
     procedure SetClSelectedText(const Value: TColor);
     function GetEndOfTokenChar: UnicodeString;
@@ -407,7 +409,8 @@ type
     property NbLinesInWindow: Integer read FNbLinesInWindow write SetNbLinesInWindow default 8;
     property ClSelect: TColor read GetClSelect write SetClSelect default clHighlight;
     property ClSelectedText: TColor read GetClSelectedText write SetClSelectedText default clHighlightText;
-    property ClBackground: TColor read GetClBack write SetClBack default clWindow;
+    property ClBackground: TColor index 1 read GetClBack write SetClBack default clWindow;
+    property ClBackgroundBorder: TColor index 2 read GetClBack write SetClBack default clBtnFace;
     property ClTitleBackground: TColor read GetClTitleBackground write SetClTitleBackground default clBtnFace;
     property Width: Integer read FWidth write SetWidth default 260;
     property EndOfTokenChr: UnicodeString read GetEndOfTokenChar write SetEndOfTokenChar;
@@ -1270,6 +1273,7 @@ begin
   ClSelect := clHighlight;
   ClSelectedText := clHighlightText;
   ClBackground := clWindow;
+  ClBackgroundBorder := clBtnFace;
   ClTitleBackground := clBtnFace;
 
 
@@ -1654,7 +1658,7 @@ begin
     with Bitmap do
     begin
       ResetCanvas;
-      Canvas.Pen.Color := clBtnFace;
+      Canvas.Pen.Color := fClBackgroundBorder;
       Canvas.Rectangle(0, 0, ClientWidth - FScrollbar.Width, ClientHeight);
       for i := 0 to Min(FLinesInWindow - 1, FAssignedList.Count - 1) do
       begin
@@ -2655,14 +2659,22 @@ begin
 {$ENDIF}
 end;
 
-function TSynBaseCompletionProposal.GetClBack: TColor;
+function TSynBaseCompletionProposal.GetClBack(AIndex: Integer): TColor;
 begin
-  Result := Form.ClBackground;
+  case AIndex of
+    1: Result := Form.ClBackground;
+    2: Result := Form.ClBackgroundBorder;
+    else
+      Result := clNone;
+  end;
 end;
 
-procedure TSynBaseCompletionProposal.SetClBack(const Value: TColor);
+procedure TSynBaseCompletionProposal.SetClBack(AIndex: Integer; const Value: TColor);
 begin
-  Form.ClBackground := Value
+  case AIndex of
+    1: Form.ClBackground := Value;
+    2: Form.ClBackgroundBorder := Value;
+  end;
 end;
 
 function TSynBaseCompletionProposal.GetClSelectedText: TColor;
