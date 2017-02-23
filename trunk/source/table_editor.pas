@@ -256,7 +256,8 @@ begin
   inherited;
   FLoaded := False;
   comboEngine.Items := DBObject.Connection.TableEngines;
-  comboEngine.ItemIndex := comboEngine.Items.IndexOf(DBObject.Connection.TableEngineDefault);
+  comboEngine.Items.Insert(0, '<'+_('Server default')+'>');
+  comboEngine.ItemIndex := 0;
   comboCollation.Items := DBObject.Connection.CollationList;
   if DBObject.Connection.Parameters.IsMariaDB then begin
     with listColumns.Header do begin
@@ -542,7 +543,7 @@ begin
   end;
   if (comboCollation.Tag = MODIFIEDFLAG) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE=' + esc(comboCollation.Text));
-  if comboEngine.Tag = MODIFIEDFLAG then begin
+  if (comboEngine.Tag = MODIFIEDFLAG) and (comboEngine.ItemIndex > 0) then begin
     if DBObject.Connection.ServerVersionInt < 40018 then
       Specs.Add('TYPE=' + comboEngine.Text)
     else
@@ -710,7 +711,7 @@ begin
     SQL := SQL + 'COMMENT='+esc(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
     SQL := SQL + 'COLLATE='+esc(comboCollation.Text) + CRLF;
-  if comboEngine.Text <> '' then begin
+  if (comboEngine.Text <> '') and (comboEngine.ItemIndex > 0) then begin
     if DBObject.Connection.ServerVersionInt < 40018 then
       SQL := SQL + 'TYPE='+comboEngine.Text + CRLF
     else
