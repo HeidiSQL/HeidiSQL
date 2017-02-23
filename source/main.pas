@@ -8517,7 +8517,7 @@ begin
       end;
       else begin
         CellText := Results.Col(Column);
-        if (Length(CellText) = GRIDMAXDATA) and (not Results.HasFullData) then
+        if (Length(CellText) = GRIDMAXDATA) and (not Results.HasFullData) and (Sender = DataGrid) then
           CellText := CellText + ' [...]';
       end;
     end;
