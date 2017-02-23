@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2017-02-01 06:51+0100\n"
+"PO-Revision-Date: 2017-02-23 18:14+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -3247,6 +3247,10 @@ msgstr "Default collation:"
 #: table_editor.dfm:286
 msgid "Engine:"
 msgstr "Engine:"
+
+#. Server's default table engine (e.g.)
+msgid "Server default"
+msgstr "Server default"
 
 #. frmTableEditor..PageControlMain..tabOptions..chkChecksum..Caption
 #: table_editor.dfm:310
