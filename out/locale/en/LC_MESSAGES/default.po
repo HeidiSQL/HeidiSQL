@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2017-02-23 18:14+0100\n"
+"PO-Revision-Date: 2017-02-28 20:21+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -519,6 +519,10 @@ msgstr "WHERE clause for data copying:"
 #: copytable.dfm:145 main.dfm:9256
 msgid "Recent filters"
 msgstr "Recent filters"
+
+#. Copy table dialog
+msgid "Please select the required index for the %s flag."
+msgstr "Please select the required index for the %s flag."
 
 #. CreateDatabaseForm..Caption
 #: createdatabase.dfm:5 createdatabase.pas:92
