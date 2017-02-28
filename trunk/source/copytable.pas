@@ -358,7 +358,7 @@ end;
 
 procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
-  CreateCode, InsertCode, TargetTable, DataCols: String;
+  CreateCode, InsertCode, TargetTable, DataCols, Msg: String;
   TableExistence: String;
   ParentNode, Node: PVirtualNode;
   DoData, AutoIncGetsKey, AutoIncRemoved, TableHasAutoInc: Boolean;
@@ -425,7 +425,8 @@ begin
     AutoIncRemoved := False;
     if Column.DefaultType = cdtAutoInc then begin
       for Key in SelectedKeys do begin
-        if ((Key.IndexType = PKEY) or (Key.IndexType = UKEY)) and (Key.Columns.IndexOf(Column.Name) > -1) then begin
+        // Don't check index type, MySQL allows auto-increment columns on nearly all indexes
+        if Key.Columns.IndexOf(Column.Name) > -1 then begin
           AutoIncGetsKey := True;
           Break;
         end;
@@ -494,7 +495,10 @@ begin
   except
     on E:EDatabaseError do begin
       Screen.Cursor := crDefault;
-      ErrorDialog(E.Message);
+      Msg := E.Message;
+      if FConnection.LastErrorCode = 1075 then
+        Msg := Msg + CRLF + CRLF +  f_('Please select the required index for the %s flag.', ['auto_increment']);
+      ErrorDialog(Msg);
       ModalResult := mrNone;
     end;
   end;
