@@ -1803,6 +1803,7 @@ begin
   case TreeObjects.GetNodeLevel(TreeObjects.FocusedNode) of
     1: DBNode := TreeObjects.FocusedNode;
     2: DBNode := TreeObjects.FocusedNode.Parent;
+    3: DBNode := TreeObjects.FocusedNode.Parent.Parent;
     else raise Exception.Create(_('Unhandled tree level'));
   end;
   ObjNode := TreeObjects.GetFirstChild(DBNode);
@@ -1812,7 +1813,7 @@ begin
     if CheckNone then
       TreeObjects.CheckState[ObjNode] := csUncheckedNormal
     else begin
-      if (WantedType = lntNone) or (DBObj.NodeType = WantedType) then
+      if (WantedType = lntNone) or (DBObj.NodeType = WantedType) or (DBObj.GroupType = WantedType) then
         TreeObjects.CheckState[ObjNode] := csCheckedNormal
       else
         TreeObjects.CheckState[ObjNode] := csUncheckedNormal;
