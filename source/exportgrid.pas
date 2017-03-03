@@ -587,7 +587,7 @@ begin
 
       efXML: begin
         // Imitate mysqldump's XML style
-        Header := '<?xml version="1.0" encoding="'+MainForm.GetCharsetByEncoding(Encoding)+'"?>' + CRLF + CRLF;
+        Header := '<?xml version="1.0" encoding="'+GetHTMLCharsetByEncoding(Encoding)+'"?>' + CRLF + CRLF;
         if chkIncludeQuery.Checked then
           Header := Header + '<resultset statement="'+HTMLSpecialChars(GridData.SQL)+'" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' + CRLF
         else
