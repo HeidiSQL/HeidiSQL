@@ -278,7 +278,7 @@ end;
 procedure TfrmSQLhelp.ButtonOnlinehelpClick(Sender: TObject);
 begin
   // Link/redirect to mysql.com for further help
-  ShellExec( APPDOMAIN + 'sqlhelp.php?mysqlversion='+inttostr(MainForm.ActiveConnection.ServerVersionInt)+
+  ShellExec(GetAppWebsite(True) + 'sqlhelp.php?mysqlversion='+inttostr(MainForm.ActiveConnection.ServerVersionInt)+
     '&keyword='+EncodeURLParam(keyword));
 end;
 

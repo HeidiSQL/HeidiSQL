@@ -12,7 +12,7 @@ const
 
   // General things
   APPNAME = 'HeidiSQL';
-  APPDOMAIN = 'https://www.heidisql.com/';
+  APPDOMAIN = 'www.heidisql.com';
   REGKEY_SESSIONS = 'Servers';
   REGKEY_QUERYHISTORY = 'QueryHistory';
   REGKEY_RECENTFILTERS = 'RecentFilters';
