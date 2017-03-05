@@ -331,6 +331,7 @@ type
   procedure Help(Sender: TObject; Anchor: String);
   function PortOpen(Port: Word): Boolean;
   function IsValidFilePath(FilePath: String): Boolean;
+  function GetAppWebsite(Secure: Boolean): String;
 
 
 var
@@ -2742,7 +2743,7 @@ begin
     Place := 'unhandled-'+Sender.ClassName;
   if IsNotEmpty(Anchor) then
     Anchor := '#'+Anchor;
-  ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
+  ShellExec(GetAppWebsite(True)+'help.php?place='+EncodeURLParam(Place)+Anchor);
 end;
 
 
@@ -2784,6 +2785,15 @@ begin
   Pieces.Free;
 end;
 
+
+function GetAppWebsite(Secure: Boolean): String;
+begin
+  // Get project web url, with or without ssl
+  if Secure then
+    Result := 'https://' + APPDOMAIN + '/'
+  else
+    Result := 'http://' + APPDOMAIN + '/';
+end;
 
 
 

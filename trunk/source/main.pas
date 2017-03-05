@@ -1990,7 +1990,7 @@ begin
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used SVN revision
       StatsCall := THttpDownload.Create(Self);
-      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) + '&bits=' + IntToStr(GetExecutableBits);
+      StatsCall.URL := GetAppWebsite(True) + 'savestats.php?c=' + IntToStr(FAppVerRevision) + '&bits=' + IntToStr(GetExecutableBits);
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
@@ -2498,7 +2498,7 @@ begin
     ErrorDialog(f_('Could not determine parent form of this %s', [Sender.ClassName]))
   else begin
     place := LowerCase(Dialog.UnitName);
-    ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
+    ShellExec(GetAppWebsite(True) + 'donatebutton.php?place=' + EncodeURLParam(place));
   end;
 end;
 
@@ -12100,7 +12100,7 @@ begin
       //   = 2 : Valid donor
       rx := TRegExpr.Create;
       CheckWebpage := THttpDownload.Create(MainForm);
-      CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email);
+      CheckWebpage.URL := GetAppWebsite(False) + 'hasdonated.php?email='+EncodeURLParam(Email);
       CheckWebpage.TimeOut := 3;
       TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
       try
