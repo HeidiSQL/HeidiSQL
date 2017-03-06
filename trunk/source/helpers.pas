@@ -148,8 +148,12 @@ type
     asGridExportOutputCopy, asGridExportOutputFile,
     asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
     asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportIncludeQuery,
-    asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asGridExportNull, asCSVImportSeparator,
-    asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
+    asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asGridExportNull,
+
+    asGridExportClpFormat, asGridExportClpColumnNames, asGridExportClpIncludeAutoInc,
+    asGridExportClpSeparator, asGridExportClpEncloser, asGridExportClpTerminator, asGridExportClpNull,
+
+    asCSVImportSeparator, asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
     asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
     asCSVImportDuplicateHandling, asCSVImportParseMethod, asUpdatecheck, asUpdatecheckBuilds,
     asUpdatecheckInterval, asUpdatecheckLastrun, asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
@@ -3299,6 +3303,15 @@ begin
   InitSetting(asGridExportEncloser,               'GridExportEncloser',                    0, False, '');
   InitSetting(asGridExportTerminator,             'GridExportTerminator',                  0, False, '\r\n');
   InitSetting(asGridExportNull,                   'GridExportNull',                        0, False, '\N');
+  // Copy to clipboard defaults:
+  InitSetting(asGridExportClpFormat,              'GridExportClpFormat',                   0);
+  InitSetting(asGridExportClpColumnNames,         'GridExportClpColumnNames',              0, False);
+  InitSetting(asGridExportClpIncludeAutoInc,      'GridExportClpAutoInc',                  0, True);
+  InitSetting(asGridExportClpSeparator,           'GridExportClpSeparator',                0, False, ';');
+  InitSetting(asGridExportClpEncloser,            'GridExportClpEncloser',                 0, False, '');
+  InitSetting(asGridExportClpTerminator,          'GridExportClpTerminator',               0, False, '\r\n');
+  InitSetting(asGridExportClpNull,                'GridExportClpNull',                     0, False, '\N');
+
   InitSetting(asCSVImportSeparator,               'CSVSeparatorV2',                        0, False, ';');
   InitSetting(asCSVImportEncloser,                'CSVEncloserV2',                         0, False, '"');
   InitSetting(asCSVImportTerminator,              'CSVTerminator',                         0, False, '\r\n');
