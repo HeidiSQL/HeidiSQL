@@ -4,6 +4,7 @@ object MainForm: TMainForm
   ClientHeight = 486
   ClientWidth = 824
   Color = clBtnFace
+  DoubleBuffered = True
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
