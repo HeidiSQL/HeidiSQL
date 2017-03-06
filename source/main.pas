@@ -1046,7 +1046,6 @@ type
     FPreferencesDialog: Toptionsform;
     FCreateDatabaseDialog: TCreateDatabaseForm;
     FGridEditFunctionMode: Boolean;
-    FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
     FGridCopying: Boolean;
     FGridPasting: Boolean;
@@ -8714,7 +8713,6 @@ var
   Results: TDBQuery;
   RowNum: PInt64;
   Timestamp: Int64;
-  IsNull: Boolean;
 begin
   Results := GridResult(Sender);
   RowNum := Sender.GetNodeData(Node);
@@ -8728,8 +8726,7 @@ begin
       end else
         NewText := NewText;
     end;
-    IsNull := FGridPasting and FClipboardHasNull;
-    Results.SetCol(Column, NewText, IsNull, FGridEditFunctionMode);
+    Results.SetCol(Column, NewText, False, FGridEditFunctionMode);
   except
     on E:EDatabaseError do
       ErrorDialog(E.Message);
@@ -9622,14 +9619,12 @@ var
   ClpData: THandle;
   APalette: HPalette;
   Exporter: TSynExporterRTF;
-  Results: TDBQuery;
-  RowNum: PInt64;
+  ExportDialog: TfrmExportGrid;
 begin
   // Copy text from a focused control to clipboard
   Success := False;
   Control := Screen.ActiveControl;
   DoCut := Sender = actCut;
-  FClipboardHasNull := False;
   SendingControl := (Sender as TAction).ActionComponent;
   Screen.Cursor := crHourglass;
   try
@@ -9657,16 +9652,10 @@ begin
         IsResultGrid := Grid = ActiveGrid;
         FGridCopying := True;
         if IsResultGrid then begin
-          // Handle NULL values in grids, see issue #3171
-          AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
-          Results := GridResult(Grid);
-          RowNum := Grid.GetNodeData(Grid.FocusedNode);
-          Results.RecNo := RowNum^;
-          if Results.IsNull(Grid.FocusedColumn) then begin
-            Clipboard.AsText := '';
-            FClipboardHasNull := True;
-          end else
-            Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+          ExportDialog := TfrmExportGrid.Create(Sender as TAction);
+          ExportDialog.Grid := Grid;
+          ExportDialog.btnOK.Click;
+          ExportDialog.Free;
           if DoCut then
             Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
         end else

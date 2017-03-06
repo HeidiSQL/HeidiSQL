@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext;
+  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList;
 
 type
   TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
@@ -48,6 +48,7 @@ type
     chkIncludeQuery: TCheckBox;
     lblNull: TLabel;
     editNull: TButtonedEdit;
+    btnSetClipboardDefaults: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CalcSize(Sender: TObject);
@@ -62,12 +63,14 @@ type
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure grpFormatClick(Sender: TObject);
+    procedure btnSetClipboardDefaultsClick(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
     FCSVSeparator, FCSVEncloser, FCSVTerminator, FCSVNull: String;
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
+    FHiddenCopyMode: Boolean;
     const FFormatToFileExtension: Array[TGridExportFormat] of String =
       (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
     const FFormatToDescription: Array[TGridExportFormat] of String =
@@ -110,14 +113,29 @@ begin
   grpFormat.Items.Clear;
   for FormatDesc in FFormatToDescription do
     grpFormat.Items.Add(FormatDesc);
-  grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
-  grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
-  chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
-  chkIncludeQuery.Checked := AppSettings.ReadBool(asGridExportIncludeQuery);
-  FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
-  FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
-  FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
-  FCSVNull := AppSettings.ReadString(asGridExportNull);
+  FHiddenCopyMode := (Owner = MainForm.actCopy) or (Owner = MainForm.actCut);
+
+  if FHiddenCopyMode then begin
+    grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportClpFormat);
+    grpSelection.ItemIndex := 0; // Always use selected cells in copy mode
+    chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportClpColumnNames);
+    chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportClpIncludeAutoInc);
+    chkIncludeQuery.Checked := False; // Always off in copy mode
+    FCSVSeparator := AppSettings.ReadString(asGridExportClpSeparator);
+    FCSVEncloser := AppSettings.ReadString(asGridExportClpEncloser);
+    FCSVTerminator := AppSettings.ReadString(asGridExportClpTerminator);
+    FCSVNull := AppSettings.ReadString(asGridExportClpNull);
+  end else begin
+    grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
+    grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
+    chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
+    chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
+    chkIncludeQuery.Checked := AppSettings.ReadBool(asGridExportIncludeQuery);
+    FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
+    FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
+    FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
+    FCSVNull := AppSettings.ReadString(asGridExportNull);
+  end;
   ValidateControls(Sender);
 end;
 
@@ -125,7 +143,7 @@ end;
 procedure TfrmExportGrid.FormDestroy(Sender: TObject);
 begin
   // Store settings
-  if ModalResult = mrOK then begin
+  if (ModalResult = mrOK) and (not FHiddenCopyMode) then begin
     AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
     AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);
     AppSettings.WriteString(asGridExportFilename, editFilename.Text);
@@ -147,7 +165,7 @@ end;
 procedure TfrmExportGrid.FormShow(Sender: TObject);
 begin
   // Show dialog. Expect "Grid" property to be set now by the caller.
-  chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
+  chkIncludeAutoIncrement.OnClick := CalcSize;
   CalcSize(Sender);
 end;
 
@@ -349,6 +367,21 @@ procedure TfrmExportGrid.PutFilenamePlaceholder(Sender: TObject);
 begin
   // Put filename placeholder
   editFilename.SelText := (Sender as TMenuItem).Hint;
+end;
+
+
+procedure TfrmExportGrid.btnSetClipboardDefaultsClick(Sender: TObject);
+begin
+  // Store copy-to-clipboard settings
+  AppSettings.ResetPath;
+  AppSettings.WriteInt(asGridExportClpFormat, grpFormat.ItemIndex);
+  AppSettings.WriteBool(asGridExportClpColumnNames, chkIncludeColumnNames.Checked);
+  AppSettings.WriteBool(asGridExportClpIncludeAutoInc, chkIncludeAutoIncrement.Checked);
+  AppSettings.WriteString(asGridExportClpSeparator, FCSVSeparator);
+  AppSettings.WriteString(asGridExportClpEncloser, FCSVEncloser);
+  AppSettings.WriteString(asGridExportClpTerminator, FCSVTerminator);
+  AppSettings.WriteString(asGridExportClpNull, FCSVNull);
+  MessageDialog(_('Clipboard settings changed.'), mtInformation, [mbOK]);
 end;
 
 

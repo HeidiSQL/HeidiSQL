@@ -249,7 +249,6 @@ object frmExportGrid: TfrmExportGrid
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Include auto increment column'
       TabOrder = 1
-      OnClick = CalcSize
     end
     object chkIncludeQuery: TCheckBox
       Left = 6
@@ -274,10 +273,22 @@ object frmExportGrid: TfrmExportGrid
       OnRightButtonClick = editCSVRightButtonClick
     end
   end
+  object btnSetClipboardDefaults: TButton
+    Left = 8
+    Top = 399
+    Width = 153
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save clipboard settings'
+    ImageIndex = 4
+    Images = MainForm.ImageListMain
+    TabOrder = 6
+    OnClick = btnSetClipboardDefaultsClick
+  end
   object popupCSVchar: TPopupMenu
     AutoHotkeys = maManual
-    Left = 24
-    Top = 390
+    Left = 224
+    Top = 6
     object menuCSVtab: TMenuItem
       Caption = 'Tab'
       Hint = '\t'
@@ -346,7 +357,7 @@ object frmExportGrid: TfrmExportGrid
   object popupRecentFiles: TPopupMenu
     AutoHotkeys = maManual
     OnPopup = popupRecentFilesPopup
-    Left = 112
-    Top = 390
+    Left = 312
+    Top = 6
   end
 end
