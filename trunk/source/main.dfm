@@ -2883,6 +2883,14 @@ object MainForm: TMainForm
       ShortCut = 16437
       OnExecute = actGotoTabNumberExecute
     end
+    object actCopyRows: TAction
+      Category = 'Various'
+      Caption = 'Copy selected rows'
+      Hint = 'Copy selected rows in custom format'
+      ImageIndex = 155
+      ShortCut = 24643
+      OnExecute = actCopyOrCutExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -9445,6 +9453,9 @@ object MainForm: TMainForm
     Top = 248
     object Copy3: TMenuItem
       Action = actCopy
+    end
+    object Copyselectedrows1: TMenuItem
+      Action = actCopyRows
     end
     object Paste2: TMenuItem
       Action = actPaste

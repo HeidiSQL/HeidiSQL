@@ -113,7 +113,7 @@ begin
   grpFormat.Items.Clear;
   for FormatDesc in FFormatToDescription do
     grpFormat.Items.Add(FormatDesc);
-  FHiddenCopyMode := (Owner = MainForm.actCopy) or (Owner = MainForm.actCut);
+  FHiddenCopyMode := Owner = MainForm.actCopyRows;
 
   if FHiddenCopyMode then begin
     grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportClpFormat);
