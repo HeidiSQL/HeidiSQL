@@ -2253,9 +2253,20 @@ end;
 
 
 function TMySQLConnection.Ping(Reconnect: Boolean): Boolean;
+var
+  IsDead: Boolean;
 begin
   Log(lcDebug, 'Ping server ...');
-  if (FHandle=nil) or (mysql_ping(FHandle) <> 0) then begin
+  IsDead := True;
+  try
+    IsDead := (FHandle=nil) or (mysql_ping(FHandle) <> 0);
+  except
+    // silence dumb exceptions from mysql_ping
+    on E:Exception do
+      Log(lcError, E.Message);
+  end;
+
+  if IsDead then begin
     // Be sure to release some stuff before reconnecting
     Active := False;
     if Reconnect then
