@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2017-03-06 20:22+0100\n"
+"PO-Revision-Date: 2017-03-07 21:07+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -3353,6 +3353,14 @@ msgstr "Remove column"
 #: table_editor.dfm:798
 msgid "Copy selected columns"
 msgstr "Copy selected columns"
+
+#. grid export
+msgid "Copy selected rows"
+msgstr "Copy selected rows"
+
+#. grid export
+msgid "Copy selected rows in custom format"
+msgstr "Copy selected rows in custom format"
 
 #. frmTableEditor..popupColumns..menuPasteColumns..Caption
 #: table_editor.dfm:803
