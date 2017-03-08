@@ -1659,6 +1659,12 @@ begin
     on E:EOleSysError do;
   end;
 
+  // Reduce flicker on Windows 10
+  if CheckWin32Version(6, 2) then begin
+    DoubleBuffered := True;
+  end;
+
+
   // Ensure directory exists
   ForceDirectories(DirnameUserAppData);
 
