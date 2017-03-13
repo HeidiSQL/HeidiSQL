@@ -2754,7 +2754,7 @@ var
   History: TQueryHistory;
   HistoryItem: TQueryHistoryItem;
   Warnings: TDBQuery;
-  HistoryNum, MaxWarnings, RegItemsSize: Integer;
+  HistoryNum, MaxWarnings, RegItemsSize, KeepDays: Integer;
   DoDelete, ValueFound: Boolean;
   MinDate: TDateTime;
 
@@ -2877,6 +2877,7 @@ begin
     and (Thread.Batch.Size <= SIZE_MB)
     then begin
     ShowStatusMsg(_('Updating query history ...'));
+    KeepDays := AppSettings.ReadInt(asQueryHistoryKeepDays);
 
     // Load all items so we can clean up
     History := TQueryHistory.Create(Thread.Connection.Parameters.SessionPath);
@@ -2901,7 +2902,7 @@ begin
     // Delete old items
     // Delete items which exceed a max datasize barrier
     AppSettings.SessionPath := Thread.Connection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
-    MinDate := IncDay(Now, -30);
+    MinDate := IncDay(Now, -KeepDays);
     RegItemsSize := Thread.Batch.Size;
     for HistoryItem in History do begin
       Inc(RegItemsSize, Length(HistoryItem.SQL));
