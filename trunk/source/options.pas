@@ -136,6 +136,9 @@ type
     updownGUIFontSize: TUpDown;
     lblGUIFontSize: TLabel;
     chkHorizontalScrollbar: TCheckBox;
+    editQueryHistoryKeepDays: TEdit;
+    updownQueryHistoryKeepDays: TUpDown;
+    lblQueryHistoryKeepDays: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -174,6 +177,7 @@ type
     procedure editGridRowCountExit(Sender: TObject);
     procedure editCustomSnippetsDirectoryRightButtonClick(Sender: TObject);
     procedure comboGUIFontChange(Sender: TObject);
+    procedure chkQueryHistoryClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -248,6 +252,7 @@ begin
   AppSettings.WriteBool(asLogInfos, chkLogEventInfo.Checked);
   AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
   AppSettings.WriteBool(asQueryHistoryEnabled, chkQueryHistory.Checked);
+  AppSettings.WriteInt(asQueryHistoryKeepDays, updownQueryHistoryKeepDays.Position);
   AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
@@ -488,6 +493,7 @@ begin
   chkLogEventInfo.Checked := AppSettings.ReadBool(asLogInfos);
   chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
   chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);
+  updownQueryHistoryKeepDays.Position := AppSettings.ReadInt(asQueryHistoryKeepDays);
   chkHorizontalScrollbar.Checked := AppSettings.ReadBool(asLogHorizontalScrollbar);
 
   // Default column width in grids:
@@ -668,6 +674,15 @@ end;
 procedure Toptionsform.chkLogToFileClick(Sender: TObject);
 begin
   editLogDir.Enabled := TCheckBox(Sender).Checked;
+  Modified(Sender);
+end;
+
+
+procedure Toptionsform.chkQueryHistoryClick(Sender: TObject);
+begin
+  editQueryHistoryKeepDays.Enabled := chkQueryHistory.Checked;
+  updownQueryHistoryKeepDays.Enabled := chkQueryHistory.Checked;
+  lblQueryHistoryKeepDays.Enabled := chkQueryHistory.Checked;
   Modified(Sender);
 end;
 

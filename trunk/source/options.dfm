@@ -304,6 +304,13 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Log events:'
       end
+      object lblQueryHistoryKeepDays: TLabel
+        Left = 278
+        Top = 201
+        Width = 209
+        Height = 13
+        Caption = 'days to keep queries before removing them'
+      end
       object editLogLines: TEdit
         Left = 202
         Top = 8
@@ -421,11 +428,11 @@ object optionsform: Toptionsform
       object chkQueryHistory: TCheckBox
         Left = 8
         Top = 200
-        Width = 429
+        Width = 176
         Height = 17
         Caption = 'Enable query history'
         TabOrder = 11
-        OnClick = Modified
+        OnClick = chkQueryHistoryClick
       end
       object chkHorizontalScrollbar: TCheckBox
         Left = 8
@@ -435,6 +442,29 @@ object optionsform: Toptionsform
         Caption = 'Horizontal scrollbar'
         TabOrder = 12
         OnClick = Modified
+      end
+      object editQueryHistoryKeepDays: TEdit
+        Left = 202
+        Top = 198
+        Width = 53
+        Height = 21
+        Enabled = False
+        TabOrder = 13
+        Text = '1'
+        OnChange = Modified
+      end
+      object updownQueryHistoryKeepDays: TUpDown
+        Left = 255
+        Top = 198
+        Width = 16
+        Height = 21
+        Associate = editQueryHistoryKeepDays
+        Enabled = False
+        Min = 1
+        Max = 365
+        Position = 1
+        TabOrder = 14
+        OnChanging = anyUpDownLimitChanging
       end
     end
     object tabSQL: TTabSheet

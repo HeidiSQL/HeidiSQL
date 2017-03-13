@@ -174,7 +174,8 @@ type
     asFieldEditorSet, asFieldNullBackground, asRowBackgroundEven, asRowBackgroundOdd, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
-    asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asDoubleClickInsertsNodeText, asForeignDropDown, asQueryHistoryEnabled,
+    asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asDoubleClickInsertsNodeText, asForeignDropDown,
+    asQueryHistoryEnabled, asQueryHistoryKeepDays,
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
     asFileDialogEncoding,
     asUnused);
@@ -3427,6 +3428,7 @@ begin
   InitSetting(asDoubleClickInsertsNodeText,       'DoubleClickInsertsNodeText',            0, True);
   InitSetting(asForeignDropDown,                  'ForeignDropDown',                       0, True);
   InitSetting(asQueryHistoryEnabled,              'QueryHistory',                          0, True);
+  InitSetting(asQueryHistoryKeepDays,             'QueryHistoryKeeypDays',                 30);
   InitSetting(asColumnSelectorWidth,              'ColumnSelectorWidth',                   200, False, '');
   InitSetting(asColumnSelectorHeight,             'ColumnSelectorHeight',                  270, False, '');
   InitSetting(asDonatedEmail,                     'DonatedEmail',                          0, False, '');

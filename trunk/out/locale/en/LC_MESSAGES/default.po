@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2017-03-07 21:07+0100\n"
+"PO-Revision-Date: 2017-03-13 21:17+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/"
 "language/en/)\n"
@@ -2719,6 +2719,9 @@ msgstr "Debug messages"
 #. Preferences
 msgid "Enable query history"
 msgstr "Enable query history"
+
+msgid "days to keep queries before removing them"
+msgstr "days to keep queries before removing them"
 
 #. optionsform..pagecontrolMain..tabSQL..lblFont..Caption
 #: options.dfm:357
