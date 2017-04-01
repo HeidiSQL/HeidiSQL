@@ -4969,9 +4969,9 @@ begin
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtNullUpdateTS;
           Delete(ColSpec, 1, rxCol.MatchLen[0]);
-        end else if rxCol.Match[1] = 'CURRENT_TIMESTAMP' then begin
+        end else if StartsText('CURRENT_TIMESTAMP', rxCol.Match[1]) then begin
           Col.DefaultType := cdtCurTS;
-          Col.DefaultText := 'CURRENT_TIMESTAMP';
+          Col.DefaultText := rxCol.Match[1];
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtCurTSUpdateTS;
           Delete(ColSpec, 1, rxCol.MatchLen[0]);
