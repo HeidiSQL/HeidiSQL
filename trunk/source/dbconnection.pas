@@ -1177,6 +1177,7 @@ begin
     AppSettings.WriteString(asDatabases, FAllDatabases);
     AppSettings.WriteString(asComment, FComment);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
+    AppSettings.WriteInt(asTreeBackground, FSessionColor);
     AppSettings.WriteString(asSSHtunnelHost, FSSHHost);
     AppSettings.WriteInt(asSSHtunnelHostPort, FSSHPort);
     AppSettings.WriteString(asSSHtunnelUser, FSSHUser);
