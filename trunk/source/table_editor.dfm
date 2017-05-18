@@ -183,10 +183,6 @@ object frmTableEditor: TfrmTableEditor
     object tabBasic: TTabSheet
       Caption = 'Basic'
       ImageIndex = 14
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         686
         121)
@@ -232,10 +228,6 @@ object frmTableEditor: TfrmTableEditor
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         686
         121)
@@ -508,10 +500,6 @@ object frmTableEditor: TfrmTableEditor
     object tabForeignKeys: TTabSheet
       Caption = 'Foreign keys'
       ImageIndex = 136
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object tlbForeignKeys: TToolBar
         Left = 0
         Top = 0
@@ -630,10 +618,6 @@ object frmTableEditor: TfrmTableEditor
     object tabPartitions: TTabSheet
       Caption = 'Partitions'
       ImageIndex = 186
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoPartitions: TSynMemo
         Left = 0
         Top = 0
@@ -646,7 +630,6 @@ object frmTableEditor: TfrmTableEditor
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        PopupMenu = popupSQLmemo
         TabOrder = 0
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
@@ -668,10 +651,6 @@ object frmTableEditor: TfrmTableEditor
     object tabCREATEcode: TTabSheet
       Caption = 'CREATE code'
       ImageIndex = 119
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoCREATEcode: TSynMemo
         Left = 0
         Top = 0
@@ -684,7 +663,6 @@ object frmTableEditor: TfrmTableEditor
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        PopupMenu = popupSQLmemo
         TabOrder = 0
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
@@ -706,10 +684,6 @@ object frmTableEditor: TfrmTableEditor
     object tabALTERCode: TTabSheet
       Caption = 'ALTER code'
       ImageIndex = 119
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object SynMemoALTERcode: TSynMemo
         Left = 0
         Top = 0
@@ -722,7 +696,6 @@ object frmTableEditor: TfrmTableEditor
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        PopupMenu = popupSQLmemo
         TabOrder = 0
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
@@ -903,21 +876,6 @@ object frmTableEditor: TfrmTableEditor
     object menuAddToIndex: TMenuItem
       Caption = 'Add to index'
       ImageIndex = 13
-    end
-  end
-  object popupSQLmemo: TPopupMenu
-    Images = MainForm.ImageListMain
-    OnPopup = popupSQLmemoPopup
-    Left = 376
-    Top = 360
-    object menuSQLSelectAll: TMenuItem
-      Action = MainForm.actSelectAll
-    end
-    object menuSQLCopy: TMenuItem
-      Action = MainForm.actCopy
-    end
-    object Saveastextfile1: TMenuItem
-      Action = MainForm.actSaveSynMemoToTextfile
     end
   end
 end

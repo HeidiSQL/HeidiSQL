@@ -5394,6 +5394,7 @@ var
   inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty, inGrid: Boolean;
   GridHasChanges, EnableTimestamp: Boolean;
   Grid: TVirtualStringTree;
+  inSynMemo, inSynMemoEditable: Boolean;
   Results: TDBQuery;
   RowNum: PInt64;
 begin
@@ -5438,7 +5439,15 @@ begin
   actExportData.Enabled := inDataOrQueryTabNotEmpty;
   actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
-  actSaveSynMemoToTextfile.Enabled := ActiveSynMemo(True) <> nil;
+  inSynMemo := ActiveSynMemo(True) <> nil;
+  inSynMemoEditable := inSynMemo and (not ActiveSynMemo(True).ReadOnly);
+  actSaveSynMemoToTextfile.Enabled := inSynMemo;
+  actToggleComment.Enabled := inSynMemoEditable;
+  if inSynMemo then begin
+    actCut.Enabled := inSynMemoEditable;
+    actPaste.Enabled := inSynMemoEditable;
+  end;
+
 
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
