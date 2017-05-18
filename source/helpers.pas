@@ -1854,6 +1854,7 @@ var
   SynMemo: TSynMemo;
   popup: TPopupMenu;
   Item: TMenuItem;
+  i: Integer;
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
@@ -1867,23 +1868,44 @@ begin
     if Assigned(editName) and editName.CanFocus then
       editName.SetFocus;
   end;
-  SynMemo := FindComponent('SynMemoBody') as TSynMemo;
-  if Assigned(SynMemo) and (not Assigned(SynMemo.PopupMenu)) then begin
+
+  for i:=0 to ComponentCount-1 do begin
+    if not(Components[i] is TSynMemo) then
+      Continue;
+
+    SynMemo := Components[i] as TSynMemo;
+    if (not Assigned(SynMemo)) or Assigned(SynMemo.PopupMenu) then
+      Continue;
+
     popup := TPopupMenu.Create(Self);
     popup.Images := MainForm.ImageListMain;
+
     Item := TMenuItem.Create(popup);
     Item.Action := MainForm.actCopy;
     popup.Items.Add(Item);
+
     Item := TMenuItem.Create(popup);
     Item.Action := MainForm.actCut;
     popup.Items.Add(Item);
+
     Item := TMenuItem.Create(popup);
     Item.Action := MainForm.actPaste;
     popup.Items.Add(Item);
+
     Item := TMenuItem.Create(popup);
     Item.Action := MainForm.actSelectAll;
     popup.Items.Add(Item);
+
+    Item := TMenuItem.Create(popup);
+    Item.Action := MainForm.actSaveSynMemoToTextfile;
+    popup.Items.Add(Item);
+
+    Item := TMenuItem.Create(popup);
+    Item.Action := MainForm.actToggleComment;
+    popup.Items.Add(Item);
+
     SynMemo.PopupMenu := popup;
+
   end;
 
 end;

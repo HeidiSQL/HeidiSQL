@@ -81,16 +81,12 @@ type
     btnClearForeignKeys: TToolButton;
     menuCopyColumnCell: TMenuItem;
     N2: TMenuItem;
-    popupSQLmemo: TPopupMenu;
-    menuSQLCopy: TMenuItem;
-    menuSQLSelectAll: TMenuItem;
     pnlNoForeignKeys: TPanel;
     listForeignKeys: TVirtualStringTree;
     menuCopyColumns: TMenuItem;
     menuPasteColumns: TMenuItem;
     tabPartitions: TTabSheet;
     SynMemoPartitions: TSynMemo;
-    Saveastextfile1: TMenuItem;
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);
@@ -170,7 +166,6 @@ type
       var InitialStates: TVirtualNodeInitStates);
     procedure listColumnsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure listColumnsNodeMoved(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure popupSQLmemoPopup(Sender: TObject);
     procedure listColumnsKeyPress(Sender: TObject; var Key: Char);
     procedure vtHandleClickOrKeyPress(Sender: TVirtualStringTree;
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
@@ -1883,6 +1878,13 @@ begin
     else
       ListForeignKeys.Margins.Bottom := GetTextHeight(pnlNoForeignKeys.Font)+4;
     ListForeignKeys.Repaint;
+  end
+  // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
+  else if PageControlMain.ActivePage = tabCREATEcode then begin
+    SynMemoCreateCode.SetFocus;
+  end
+  else if PageControlMain.ActivePage = tabALTERcode then begin
+    SynMemoAlterCode.SetFocus;
   end;
   UpdateSQLcode;
 end;
@@ -2330,16 +2332,6 @@ procedure TfrmTableEditor.btnHelpClick(Sender: TObject);
 begin
   // Help button
   Help(Self, 'createtable');
-end;
-
-
-procedure TfrmTableEditor.popupSQLmemoPopup(Sender: TObject);
-begin
-  // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
-  if PageControlMain.ActivePage = tabCREATEcode then
-    SynMemoCreateCode.SetFocus
-  else if PageControlMain.ActivePage = tabALTERcode then
-    SynMemoAlterCode.SetFocus;
 end;
 
 

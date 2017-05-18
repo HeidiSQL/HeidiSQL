@@ -394,7 +394,6 @@ object frmRoutineEditor: TfrmRoutineEditor
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        PopupMenu = popupSQLmemo
         TabOrder = 0
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
@@ -418,19 +417,5 @@ object frmRoutineEditor: TfrmRoutineEditor
     Anchors = [akRight, akBottom]
     Images = MainForm.ImageListMain
     TabOrder = 5
-  end
-  object popupSQLmemo: TPopupMenu
-    Images = MainForm.ImageListMain
-    Left = 47
-    Top = 244
-    object Selectall1: TMenuItem
-      Action = MainForm.actSelectAll
-    end
-    object Copy1: TMenuItem
-      Action = MainForm.actCopy
-    end
-    object Saveastextfile1: TMenuItem
-      Action = MainForm.actSaveSynMemoToTextfile
-    end
   end
 end

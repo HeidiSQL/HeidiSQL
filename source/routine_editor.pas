@@ -44,10 +44,6 @@ type
     btnMoveUpParam: TToolButton;
     btnMoveDownParam: TToolButton;
     lblDisabledWhy: TLabel;
-    popupSQLmemo: TPopupMenu;
-    Selectall1: TMenuItem;
-    Copy1: TMenuItem;
-    Saveastextfile1: TMenuItem;
     spltTop: TSplitter;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
