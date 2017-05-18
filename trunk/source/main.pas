@@ -12032,6 +12032,7 @@ begin
     end;
     Editor.SelText := ImplodeStr(CRLF, Sel);
   end;
+  Editor.OnChange(Sender);
 end;
 
 
