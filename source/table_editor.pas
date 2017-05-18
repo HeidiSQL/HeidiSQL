@@ -1881,10 +1881,12 @@ begin
   end
   // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
   else if PageControlMain.ActivePage = tabCREATEcode then begin
-    SynMemoCreateCode.SetFocus;
+    if SynMemoCreateCode.CanFocus then
+      SynMemoCreateCode.SetFocus;
   end
   else if PageControlMain.ActivePage = tabALTERcode then begin
-    SynMemoAlterCode.SetFocus;
+    if SynMemoALTERcode.CanFocus then
+      SynMemoAlterCode.SetFocus;
   end;
   UpdateSQLcode;
 end;
