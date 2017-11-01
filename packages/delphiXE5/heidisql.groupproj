@@ -15,6 +15,9 @@
         <Projects Include="..\..\components\synedit\Packages\delphiXE5\SynEditD.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\..\components\detours\packages\DelphiXE5\detours.dproj">
+            <Dependencies/>
+        </Projects>
         <Projects Include="heidisql.dproj">
             <Dependencies/>
         </Projects>
@@ -62,6 +65,15 @@
     <Target Name="SynEditD:Make">
         <MSBuild Projects="..\..\components\synedit\Packages\delphiXE5\SynEditD.dproj" Targets="Make"/>
     </Target>
+    <Target Name="detours">
+        <MSBuild Projects="..\..\components\detours\packages\DelphiXE5\detours.dproj"/>
+    </Target>
+    <Target Name="detours:Clean">
+        <MSBuild Projects="..\..\components\detours\packages\DelphiXE5\detours.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="detours:Make">
+        <MSBuild Projects="..\..\components\detours\packages\DelphiXE5\detours.dproj" Targets="Make"/>
+    </Target>
     <Target Name="heidisql">
         <MSBuild Projects="heidisql.dproj"/>
     </Target>
@@ -72,13 +84,13 @@
         <MSBuild Projects="heidisql.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="VirtualTreesR;VirtualTreesD;SynEditR;SynEditD;heidisql"/>
+        <CallTarget Targets="VirtualTreesR;VirtualTreesD;SynEditR;SynEditD;detours;heidisql"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="VirtualTreesR:Clean;VirtualTreesD:Clean;SynEditR:Clean;SynEditD:Clean;heidisql:Clean"/>
+        <CallTarget Targets="VirtualTreesR:Clean;VirtualTreesD:Clean;SynEditR:Clean;SynEditD:Clean;detours:Clean;heidisql:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="VirtualTreesR:Make;VirtualTreesD:Make;SynEditR:Make;SynEditD:Make;heidisql:Make"/>
+        <CallTarget Targets="VirtualTreesR:Make;VirtualTreesD:Make;SynEditR:Make;SynEditD:Make;detours:Make;heidisql:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

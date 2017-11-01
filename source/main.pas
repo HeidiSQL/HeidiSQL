@@ -17,7 +17,7 @@ uses
   routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  JumpList, System.Actions, System.UITypes, pngimage;
+  JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix;
 
 
 type
