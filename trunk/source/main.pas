@@ -1232,7 +1232,6 @@ var
 begin
   // Handle click events on specific statusbar panels
   Click := StatusBar.ScreenToClient(Mouse.CursorPos);
-  LogSQL(inttostr(click.X)+':'+inttostr(click.Y));
   for i:=0 to StatusBar.Panels.Count-1 do begin
     SendMessage(StatusBar.Handle, SB_GETRECT, i, Integer(@PanelRect));
     if PtInRect(PanelRect, Click) then begin
