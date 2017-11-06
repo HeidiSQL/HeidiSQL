@@ -4858,13 +4858,15 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierS := False;
   rx.ModifierM := True;
-  rx.Expression := '^\s+(['+Quotes+'].+),?$';
+  rx.Expression := '^\s+['+Quotes+']';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Columns) then
       break;
-    ColSpec := rx.Match[1];
+    ColSpec := Copy(CreateTable, rx.MatchPos[0], SIZE_MB);
+    ColSpec := Copy(ColSpec, 1, Pos(#10, ColSpec));
+    ColSpec := Trim(ColSpec);
 
     Col := TTableColumn.Create(Self);
     Columns.Add(Col);
@@ -6354,6 +6356,7 @@ begin
     (FCurrentUpdateRow[Column].NewIsNull <> FCurrentUpdateRow[Column].OldIsNull) or
     (FCurrentUpdateRow[Column].NewIsFunction <> FCurrentUpdateRow[Column].OldIsFunction)
     ;
+  // TODO: check if column allows NULL, otherwise force .Modified
 end;
 
 
