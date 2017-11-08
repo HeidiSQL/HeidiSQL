@@ -1602,6 +1602,9 @@ begin
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
       if ToDb then
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
+      // Parse columns, so we can check for special things like virtual columns
+      ColumnList := TTableColumnList.Create(True);
+      DBObj.Connection.ParseTableStructure(DBObj.CreateCode, ColumnList, nil, nil);
       Offset := 0;
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
@@ -1626,8 +1629,10 @@ begin
         else if comboExportData.Text = DATA_UPDATE then
           BaseInsert := 'REPLACE INTO ';
         BaseInsert := BaseInsert + TargetDbAndObject + ' (';
-        for i:=0 to Data.ColumnCount-1 do
-          BaseInsert := BaseInsert + Quoter.QuoteIdent(Data.ColumnNames[i]) + ', ';
+        for i:=0 to Data.ColumnCount-1 do begin
+          if ColumnList[i].Virtuality.IsEmpty then
+            BaseInsert := BaseInsert + Quoter.QuoteIdent(Data.ColumnNames[i]) + ', ';
+        end;
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
         BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
@@ -1639,6 +1644,8 @@ begin
             if not IsFirstRowInChunk then
               Row := Row + ','+CRLF+#9+'(';
             for i:=0 to Data.ColumnCount-1 do begin
+              if not ColumnList[i].Virtuality.IsEmpty then
+                Continue;
               if Data.IsNull(i) then
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
@@ -1657,9 +1664,9 @@ begin
                 end;
                 else Row := Row + esc(Data.Col(i));
               end;
-              if i<Data.ColumnCount-1 then
-                Row := Row + ', ';
+              Row := Row + ', ';
             end;
+            Delete(Row, Length(Row)-1, 2);
             Row := Row + ')';
             // Break if stream would increase over the barrier of 1MB, and throw away current row
             if (not IsFirstRowInChunk)
