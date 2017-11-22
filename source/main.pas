@@ -5102,6 +5102,9 @@ begin
     Exit; // Only data tab has a top label
 
   DBObject := ActiveDbObj;
+  if DBObject = nil then // Some cases have no object, don't let them crash
+    Exit;
+
   cap := ActiveDatabase + '.' + DBObject.Name;
   IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
   IsFiltered := SynMemoFilter.GetTextLen > 0;
@@ -6054,7 +6057,7 @@ begin
   // dragging an object over the query-memo
   Memo := ActiveQueryMemo;
   src := Source as TControl;
-  // Accepting drag's from DBTree and QueryHelpers
+  // Accepting drag's from the same editor, from DBTree and from QueryHelpers
   H := ActiveQueryHelpers;
   Accept := (src = DBtree) or ((src = H) and Assigned(H.FocusedNode) and (H.GetNodeLevel(H.FocusedNode) in [1,2]));
   // set x-position of cursor
@@ -6119,13 +6122,13 @@ begin
             Delete(Text, Length(Text)-1, 2);
           end;
         end;
-        2:
-          case Tree.FocusedNode.Parent.Parent.Index of
-            HELPERNODE_HISTORY: begin
-              History := ActiveQueryTab.HistoryDays.Objects[Tree.FocusedNode.Parent.Index] as TQueryHistory;
-              Text := History[Tree.FocusedNode.Index].SQL;
-            end;
+      2:
+        case Tree.FocusedNode.Parent.Parent.Index of
+          HELPERNODE_HISTORY: begin
+            History := ActiveQueryTab.HistoryDays.Objects[Tree.FocusedNode.Parent.Index] as TQueryHistory;
+            Text := History[Tree.FocusedNode.Index].SQL;
           end;
+        end;
     end;
   end else
     raise Exception.Create(_('Unspecified source control in drag''n drop operation!'));
