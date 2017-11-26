@@ -424,14 +424,8 @@ begin
   // SQL
   EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Sorted := True;
-  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
-    #9'''String literal'' AS lit' + CRLF +
-    'FROM tableA AS ta -- A comment' + CRLF +
-    'WHERE `columnA` IS NULL; # More comment' + CRLF +
-    CRLF +
-    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB' + CRLF +
-    #9'(id INT, name VARCHAR(30) DEFAULT "standard")';
-  SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
+  SynMemoSQLSample.Text := SynMemoSQLSample.Highlighter.SampleSource;
+  SynSQLSynSQLSample.TableNames.CommaText := 't,sample';
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSyn1.Attribute[i]);
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
