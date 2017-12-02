@@ -2505,6 +2505,14 @@ object MainForm: TMainForm
       ShortCut = 16471
       OnExecute = actClearEditorExecute
     end
+    object actClearQueryLog: TAction
+      Category = 'SQL'
+      Caption = 'Clear'
+      Hint = 'Clear query log'
+      ImageIndex = 58
+      ShortCut = 16465
+      OnExecute = actClearEditorExecute
+    end
     object actQueryStopOnErrors: TAction
       Category = 'SQL'
       AutoCheck = True
@@ -9734,9 +9742,7 @@ object MainForm: TMainForm
       OnClick = Copylinetonewquerytab1Click
     end
     object Clear2: TMenuItem
-      Caption = 'Clear'
-      ImageIndex = 58
-      OnClick = Clear2Click
+      Action = actClearQueryLog
     end
     object menuLogHorizontalScrollbar: TMenuItem
       Action = actLogHorizontalScrollbar

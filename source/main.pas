@@ -641,6 +641,7 @@ type
     ToolButton11: TToolButton;
     actCopyRows: TAction;
     Copyselectedrows1: TMenuItem;
+    actClearQueryLog: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -717,7 +718,6 @@ type
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: String);
     procedure TimerConnectedTimer(Sender: TObject);
-    procedure Clear2Click(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
     procedure AutoRefreshSetInterval(Sender: TObject);
     procedure AutoRefreshToggle(Sender: TObject);
@@ -2289,9 +2289,12 @@ procedure TMainForm.actClearEditorExecute(Sender: TObject);
 var
   m: TSynMemo;
 begin
-  if Sender = actClearQueryEditor then
+  if Sender = actClearQueryEditor then begin
     m := ActiveQueryMemo
-  else begin
+  end else if Sender = actClearQueryLog then begin
+    m := SynMemoSQLLog;
+    m.Gutter.LineNumberStart := m.Gutter.LineNumberStart + m.Lines.Count;
+  end else begin
     m := SynMemoFilter;
     editFilterSearch.Clear;
   end;
@@ -2299,12 +2302,13 @@ begin
   m.SelText := '';
   m.SelStart := 0;
   m.SelEnd := 0;
-  if QueryTabActive then begin
+  if Sender = actClearQueryEditor then begin
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
   end;
-  if m = SynMemoFilter then
+  if m = SynMemoFilter then begin
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+  end;
 end;
 
 
@@ -5937,16 +5941,6 @@ begin
   end else begin
     ShowStatusMsg(_('Disconnected'), 2);
   end;
-end;
-
-
-procedure TMainForm.Clear2Click(Sender: TObject);
-begin
-  // clear history-memo
-  Screen.Cursor := crHourglass;
-  SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + SynMemoSQLLog.Lines.Count;
-  SynMemoSQLLog.Lines.Clear;
-  Screen.Cursor := crDefault;
 end;
 
 
