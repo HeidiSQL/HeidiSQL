@@ -4020,13 +4020,19 @@ end;
 
 
 procedure TMainForm.actQueryFindReplaceExecute(Sender: TObject);
+var
+  OldDataLocalNumberFormat: Boolean;
 begin
   // Display search + replace dialog
   if not Assigned(FSearchReplaceDialog) then
     FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
   FSearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
-  if (ActiveSynMemo(False) <> nil) or (ActiveGrid <> nil) then
+  if (ActiveSynMemo(False) <> nil) or (ActiveGrid <> nil) then begin
+    OldDataLocalNumberFormat := DataLocalNumberFormat;
+    DataLocalNumberFormat := False;
     FSearchReplaceDialog.ShowModal;
+    DataLocalNumberFormat := OldDataLocalNumberFormat;
+  end;
 end;
 
 
@@ -4035,6 +4041,7 @@ var
   NeedDialog: Boolean;
   Editor: TSynMemo;
   Grid: TVirtualStringTree;
+  OldDataLocalNumberFormat: Boolean;
 begin
   // F3 - search or replace again, using previous settings
   NeedDialog := not Assigned(FSearchReplaceDialog);
@@ -4052,8 +4059,11 @@ begin
   if NeedDialog then
     actQueryFindReplaceExecute(Sender)
   else begin
+    OldDataLocalNumberFormat := DataLocalNumberFormat;
+    DataLocalNumberFormat := False;
     Exclude(FSearchReplaceDialog.Options, ssoEntireScope);
     FSearchReplaceDialog.DoSearchReplace(Sender);
+    DataLocalNumberFormat := OldDataLocalNumberFormat;
   end;
 end;
 
