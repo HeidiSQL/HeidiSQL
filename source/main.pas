@@ -12134,7 +12134,7 @@ begin
       //   = 2 : Valid donor
       rx := TRegExpr.Create;
       CheckWebpage := THttpDownload.Create(MainForm);
-      CheckWebpage.URL := GetAppWebsite(False) + 'hasdonated.php?email='+EncodeURLParam(Email);
+      CheckWebpage.URL := GetAppWebsite(True) + 'hasdonated.php?email='+EncodeURLParam(Email);
       CheckWebpage.TimeOut := 3;
       TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
       try
