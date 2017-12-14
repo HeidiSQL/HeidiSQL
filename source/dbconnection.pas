@@ -4727,38 +4727,41 @@ end;
 function TDBConnection.ExtractIdentifier(var SQL: String): String;
 var
   i, LeftPos, RightPos: Integer;
+  rx: TRegExpr;
+  LeftQuote, LeftQuoteRx: String;
 begin
   // Return first identifier from SQL and remove it from the original string
   // Backticks are escaped by a second backtick
+  // Other chars from FQuoteChars are not escaped
+  // Worst case: `"mycolumn``"`
   Result := '';
+  rx := TRegExpr.Create;
 
-  // Find left start position
-  LeftPos := 0;
-  for i:=1 to Length(SQL) do begin
-    if Pos(SQL[i], FQuoteChars) > 0 then begin
-      LeftPos := i+1;
-      Break;
-    end;
-  end;
+  // Find first quote char on the left and expect the same char on the right
+  rx.Expression := '['+QuoteRegExprMetaChars(FQuoteChars)+']';
+  if rx.Exec(SQL) then begin
+    LeftQuote := rx.Match[0];
+    LeftPos := rx.MatchPos[0] + 1;
 
-  // Step forward for each character of the identifier
-  i := LeftPos;
-  RightPos := LeftPos;
-  while i < Length(SQL) do begin
-    if Pos(SQL[i], FQuoteChars) > 0 then begin
-      if SQL[i+1] = SQL[i] then
-        Inc(i)
-      else begin
-        RightPos := i;
-        Break;
+    // Step forward for each character of the identifier
+    i := LeftPos;
+    RightPos := LeftPos;
+    while i < Length(SQL) do begin
+      if SQL[i] = LeftQuote then begin
+        if SQL[i+1] = SQL[i] then // take doubled/escaped quote char into account
+          Inc(i)
+        else begin
+          RightPos := i;
+          Break;
+        end;
       end;
+      Result := Result + SQL[i];
+      Inc(i);
     end;
-    Result := Result + SQL[i];
-    Inc(i);
-  end;
 
-  if RightPos > LeftPos then
-    Delete(SQL, 1, RightPos+1);
+    if RightPos > LeftPos then
+      Delete(SQL, 1, RightPos+1);
+  end;
 end;
 
 
