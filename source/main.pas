@@ -7396,10 +7396,12 @@ var
   VT: TVirtualStringTree;
   i: Integer;
   match: Boolean;
-  search: String;
   tab: TTabSheet;
   VisibleCount: Cardinal;
   CellText: String;
+  rx: TRegExpr;
+  OldDataLocalNumberFormat: Boolean;
+  OldImageIndex: Integer;
 begin
   // Find the correct VirtualTree that shall be filtered
   tab := PageControlMain.ActivePage;
@@ -7439,30 +7441,43 @@ begin
     Exit;
   // Loop through all nodes and hide non matching
   Node := VT.GetFirst;
-  search := LowerCase( editFilterVT.Text );
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.Expression := editFilterVT.Text;
+  try
+    rx.Exec('abc');
+  except
+    on E:ERegExpr do begin
+      if rx.Expression <> '' then begin
+        LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
+        rx.Expression := '';
+      end;
+    end;
+  end;
   VisibleCount := 0;
+  OldDataLocalNumberFormat := DataLocalNumberFormat;
+  DataLocalNumberFormat := False;
+  // Display hour glass instead of X icon
+  OldImageIndex := editFilterVT.RightButton.ImageIndex;
+  editFilterVT.RightButton.ImageIndex := 150;
+  editFilterVT.Repaint;
+
   while Assigned(Node) do begin
     // Don't filter anything if the filter text is empty
-    match := search = '';
+    match := rx.Expression = '';
     // Search for given text in node's captions
     if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
       CellText := VT.Text[Node, i];
-      if Pos( search, LowerCase(CellText)) > 0 then begin
-        match := True;
+      match := rx.Exec(CellText);
+      if match then
         break;
-      end;
-      // Search for unformatted numbers. Only if text to find is a number, to reduce CPU load for other cases.
-      if IsNumeric(search) then if Pos(search, UnformatNumber(CellText)) > 0 then begin
-        match := True;
-        break;
-      end;
     end;
     VT.IsVisible[Node] := match;
     if match then
       inc(VisibleCount);
     Node := VT.GetNext(Node);
   end;
-  if search <> '' then begin
+  if rx.Expression <> '' then begin
     lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
       + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
   end else
@@ -7472,6 +7487,9 @@ begin
     VT.Invalidate
   else
     InvalidateVT(VT, VTREE_LOADED, true);
+  DataLocalNumberFormat := OldDataLocalNumberFormat;
+  editFilterVT.RightButton.ImageIndex := OldImageIndex;
+  rx.Free;
 end;
 
 

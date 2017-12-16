@@ -374,6 +374,7 @@ object MainForm: TMainForm
           RightButton.ImageIndex = 26
           RightButton.Visible = True
           TabOrder = 0
+          TextHint = 'Regular expression'
           OnChange = editFilterVTChange
           OnRightButtonClick = editFilterVTRightButtonClick
         end
