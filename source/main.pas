@@ -9436,7 +9436,12 @@ begin
   Idx := Sender.GetNodeData(Node);
 
   Conn := ActiveConnection;
-  DBname := Conn.AllDatabases[Idx^];
+  if Idx^ < Conn.AllDatabases.Count then begin
+    DBname := Conn.AllDatabases[Idx^];
+  end else begin
+    // Probably a database were dropped shortly before.
+    DBname := '';
+  end;
   if Conn.DbObjectsCached(DBname) then
     Objects := Conn.GetDBObjects(DBname)
   else
