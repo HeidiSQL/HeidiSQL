@@ -286,7 +286,8 @@ type
     spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
-    spFuncLength, spFuncCeil);
+    spFuncLength, spFuncCeil,
+    spLockedTables);
 
   TDBConnection = class(TComponent)
     private
@@ -435,6 +436,7 @@ type
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
+      function GetLockedTableCount(db: String): Integer;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -2034,6 +2036,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spLockedTables] := '';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -2050,6 +2053,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LEN';
       FSQLSpecifities[spFuncCeil] := 'CEILING';
+      FSQLSpecifities[spLockedTables] := '';
     end;
     ngPgSQL: begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
@@ -2066,6 +2070,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'SELECT pg_cancel_backend(%d)';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spLockedTables] := '';
     end;
 
   end;
@@ -2225,6 +2230,9 @@ begin
 
   if ServerVersionInt >= 50000 then
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
+
+  if ServerVersionInt >= 50124 then
+    FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE in_use!=0';
 end;
 
 
@@ -3994,6 +4002,24 @@ function TPGConnection.MaxAllowedPacket: Int64;
 begin
   // No clue what PostgreSQL allows
   Result := SIZE_MB;
+end;
+
+
+function TDBConnection.GetLockedTableCount(db: String): Integer;
+var
+  sql: String;
+  LockedTables: TStringList;
+begin
+  // Find tables which are currently locked.
+  // Used to prevent waiting time in GetDBObjects.
+  sql := GetSQLSpecifity(spLockedTables);
+  if sql.IsEmpty then begin
+    Result := 0;
+  end else begin
+    LockedTables := GetCol(Format(sql, [QuoteIdent(db,False)]));
+    Result := LockedTables.Count;
+    LockedTables.Free;
+  end;
 end;
 
 

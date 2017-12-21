@@ -3693,7 +3693,10 @@ begin
       RestoreLastActiveDatabase := AppSettings.ReadBool(asRestoreLastUsedDB);
       AppSettings.SessionPath := Params.SessionPath;
       LastActiveDatabase := AppSettings.ReadString(asLastUsedDB);
-      if RestoreLastActiveDatabase and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1) then begin
+      if RestoreLastActiveDatabase
+        and (Connection.AllDatabases.IndexOf(LastActiveDatabase) >- 1)
+        and (Connection.GetLockedTableCount(LastActiveDatabase) = 0)
+        then begin
         SetActiveDatabase(LastActiveDatabase, Connection);
         DBNode := FindDBNode(DBtree, Connection, LastActiveDatabase);
         if Assigned(DBNode) then
