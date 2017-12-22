@@ -1516,9 +1516,9 @@ begin
     else
       tmp := DataType;
     if Identifier <> '' then
-      Log(lcError, f_('Unknown datatype "%s" for "%s". Fall back to %s.', [tmp, Identifier, Result.Name]))
+      Log(lcError, f_('Unknown datatype "%0:s" for "%1:s". Fall back to %2:s.', [tmp, Identifier, Result.Name]))
     else
-      Log(lcError, f_('Unknown datatype "%s". Fall back to %s.', [tmp, Result.Name]));
+      Log(lcError, f_('Unknown datatype "%0:s". Fall back to %1:s.', [tmp, Result.Name]));
   end;
   rx.Free;
 end;
@@ -1546,9 +1546,9 @@ begin
     // Fall back to unknown type
     Result := Datatypes[0];
     if Identifier <> '' then
-      Log(lcError, f_('Unknown datatype oid #%d for "%s". Fall back to %s.', [NativeType, Identifier, Result.Name]))
+      Log(lcError, f_('Unknown datatype oid #%0:d for "%1:s". Fall back to %2:s.', [NativeType, Identifier, Result.Name]))
     else
-      Log(lcError, f_('Unknown datatype oid #%d. Fall back to %s.', [NativeType, Result.Name]));
+      Log(lcError, f_('Unknown datatype oid #%0:d. Fall back to %1:s.', [NativeType, Result.Name]));
   end;
 end;
 
