@@ -595,6 +595,7 @@ type
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsKeyPart(Column: Integer): Boolean; virtual; abstract;
+      function ColIsVirtual(Column: Integer): Boolean;
       function ColAttributes(Column: Integer): TTableColumn;
       function IsNull(Column: Integer): Boolean; overload; virtual; abstract;
       function IsNull(Column: String): Boolean; overload;
@@ -615,6 +616,7 @@ type
       function TableName: String; virtual; abstract;
       function QuotedDbAndTableName: String;
       procedure DiscardModifications;
+      procedure PrepareColumnAttributes;
       procedure PrepareEditing;
       property RecNo: Int64 read FRecNo write SetRecNo;
       property Eof: Boolean read FEof;
@@ -6109,7 +6111,7 @@ begin
   Result := nil;
   if (Column < 0) or (Column >= FColumnOrgNames.Count) then
     raise EDatabaseError.CreateFmt(_('Column #%s not available.'), [IntToStr(Column)]);
-  if FEditingPrepared then begin
+  if FColumns <> nil then begin
     for i:=0 to FColumns.Count-1 do begin
       if FColumns[i].Name = FColumnOrgNames[Column] then begin
         Result := FColumns[i];
@@ -6178,6 +6180,18 @@ end;
 function TPGQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := False;
+end;
+
+
+function TDBQuery.ColIsVirtual(Column: Integer): Boolean;
+var
+  Col: TTableColumn;
+begin
+  Result := False;
+  Col := ColAttributes(Column);
+  if Col <> nil then begin
+    Result := not Col.Virtuality.IsEmpty;
+  end;
 end;
 
 
@@ -6256,17 +6270,14 @@ begin
 end;
 
 
-procedure TDBQuery.PrepareEditing;
+procedure TDBQuery.PrepareColumnAttributes;
 var
   CreateCode, Dummy, DB: String;
   DBObjects: TDBObjectList;
   LObj, Obj: TDBObject;
 begin
   // Try to fetch column names and keys
-  if FEditingPrepared then
-    Exit;
   // This is probably a VIEW, so column names need to be fetched differently
-
   Obj := nil;
   if FDBObject <> nil then
     Obj := FDBObject
@@ -6293,7 +6304,16 @@ begin
       Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
     lntView:
       Connection.ParseViewStructure(CreateCode, Obj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
-  end;  
+  end;
+end;
+
+
+procedure TDBQuery.PrepareEditing;
+begin
+  // Try to fetch column names and keys and init update data
+  if FEditingPrepared then
+    Exit;
+  PrepareColumnAttributes;
   FreeAndNil(FUpdateData);
   FUpdateData := TUpdateData.Create(True);
   FEditingPrepared := True;

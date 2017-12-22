@@ -759,7 +759,7 @@ begin
             tmp := tmp + ' (';
             Col := Grid.Header.Columns.GetFirstVisibleColumn;
             while Col > NoColumn do begin
-              if Col <> ExcludeCol then
+              if (Col <> ExcludeCol) and (not GridData.ColIsVirtual(Col)) then
                 tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
               Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
             end;
@@ -829,7 +829,9 @@ begin
             end;
 
             efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
-              if GridData.IsNull(Col) then
+              if GridData.ColIsVirtual(Col) then
+                Data := ''
+              else if GridData.IsNull(Col) then
                 Data := 'NULL'
               else if (GridData.DataType(Col).Index = dtBit) and GridData.Connection.Parameters.IsMySQL then
                 Data := 'b' + esc(Data)
@@ -839,7 +841,8 @@ begin
                 Data := esc(Data)
               else if Data = '' then
                 Data := esc(Data);
-              tmp := tmp + Data + ', ';
+              if not Data.IsEmpty then
+                tmp := tmp + Data + ', ';
             end;
 
             efPHPArray: begin

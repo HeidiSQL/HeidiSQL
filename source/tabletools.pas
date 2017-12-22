@@ -1602,9 +1602,6 @@ begin
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
       if ToDb then
         TargetDbAndObject := Quoter.QuoteIdent(FinalDbName) + '.' + TargetDbAndObject;
-      // Parse columns, so we can check for special things like virtual columns
-      ColumnList := TTableColumnList.Create(True);
-      DBObj.Connection.ParseTableStructure(DBObj.CreateCode, ColumnList, nil, nil);
       Offset := 0;
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
@@ -1623,6 +1620,7 @@ begin
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;
+        Data.PrepareColumnAttributes;
         BaseInsert := 'INSERT INTO ';
         if comboExportData.Text = DATA_INSERTNEW then
           BaseInsert := 'INSERT IGNORE INTO '
@@ -1630,7 +1628,7 @@ begin
           BaseInsert := 'REPLACE INTO ';
         BaseInsert := BaseInsert + TargetDbAndObject + ' (';
         for i:=0 to Data.ColumnCount-1 do begin
-          if ColumnList[i].Virtuality.IsEmpty then
+          if not Data.ColIsVirtual(i) then
             BaseInsert := BaseInsert + Quoter.QuoteIdent(Data.ColumnNames[i]) + ', ';
         end;
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
@@ -1644,7 +1642,7 @@ begin
             if not IsFirstRowInChunk then
               Row := Row + ','+CRLF+#9+'(';
             for i:=0 to Data.ColumnCount-1 do begin
-              if not ColumnList[i].Virtuality.IsEmpty then
+              if Data.ColIsVirtual(i) then
                 Continue;
               if Data.IsNull(i) then
                 Row := Row + 'NULL'

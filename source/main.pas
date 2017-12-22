@@ -4533,7 +4533,6 @@ var
   i: Integer;
   Value: String;
   IsNull, AllowNewNode: Boolean;
-  TableCol: TTableColumn;
 begin
   Grid := ActiveGrid;
   Results := GridResult(Grid);
@@ -4559,8 +4558,7 @@ begin
           continue; // Ignore invisible key column
         if Results.ColIsPrimaryKeyPart(i) then
           continue; // Empty value for primary key column
-        TableCol := Results.ColAttributes(i);
-        if (TableCol <> nil) and (not TableCol.Virtuality.IsEmpty) then
+        if Results.ColIsVirtual(i) then
           continue; // Don't copy virtual column value
         Results.RecNo := DupeNum^;
         Value := Results.Col(i);
