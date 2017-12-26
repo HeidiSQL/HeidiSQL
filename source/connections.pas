@@ -226,6 +226,8 @@ begin
   InheritFont(Font);
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
+  Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);
+  Top := AppSettings.ReadInt(asSessionManagerWindowTop, '', Top);
   ListSessions.Width := AppSettings.ReadInt(asSessionManagerListWidth);
   splitterMain.OnMoved(Sender);
   FixVT(ListSessions);
@@ -290,6 +292,8 @@ begin
   AppSettings.WriteInt(asSessionManagerListWidth, ListSessions.Width);
   AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
   AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
+  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
+  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
   MainForm.SaveListSetup(ListSessions);
 end;
 

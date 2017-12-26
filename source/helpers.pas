@@ -159,7 +159,8 @@ type
     asUpdatecheckInterval, asUpdatecheckLastrun, asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
     asTableToolsFindText, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
     asEditVarWindowWidth, asEditVarWindowHeight, asUsermanagerWindowWidth, asUsermanagerWindowHeight, asUsermanagerListWidth,
-    asSelectDBOWindowWidth, asSelectDBOWindowHeight, asSessionManagerListWidth, asSessionManagerWindowWidth, asSessionManagerWindowHeight,
+    asSelectDBOWindowWidth, asSelectDBOWindowHeight,
+    asSessionManagerListWidth, asSessionManagerWindowWidth, asSessionManagerWindowHeight, asSessionManagerWindowLeft, asSessionManagerWindowTop,
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
@@ -3371,6 +3372,8 @@ begin
   InitSetting(asSessionManagerListWidth,          'SessionManager_ListWidth',              220);
   InitSetting(asSessionManagerWindowWidth,        'SessionManager_WindowWidth',            700);
   InitSetting(asSessionManagerWindowHeight,       'SessionManager_WindowHeight',           420);
+  InitSetting(asSessionManagerWindowLeft,         'SessionManager_WindowLeft',             50);
+  InitSetting(asSessionManagerWindowTop,          'SessionManager_WindowTop',              50);
   InitSetting(asCopyTableWindowHeight,            'CopyTable_WindowHeight',                340);
   InitSetting(asCopyTableWindowWidth,             'CopyTable_WindowWidth',                 380);
   InitSetting(asCopyTableColumns,                 'CopyTable_Columns',                     0, True);
