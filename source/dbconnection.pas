@@ -4760,7 +4760,7 @@ function TDBConnection.ExtractIdentifier(var SQL: String): String;
 var
   i, LeftPos, RightPos: Integer;
   rx: TRegExpr;
-  LeftQuote, LeftQuoteRx: String;
+  LeftQuote: String;
 begin
   // Return first identifier from SQL and remove it from the original string
   // Backticks are escaped by a second backtick
