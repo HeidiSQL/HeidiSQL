@@ -2691,7 +2691,11 @@ begin
   end;
   try
     // Try to fetch original VIEW code from .frm file
-    AlternativeSelectCode := GetVar('SELECT LOAD_FILE(CONCAT(IFNULL(@@GLOBAL.datadir, CONCAT(@@GLOBAL.basedir, '+EscapeString('data/')+')), '+EscapeString(Database+'/'+Name+'.frm')+'))');
+    AlternativeSelectCode := GetVar('SELECT CAST(LOAD_FILE('+
+      'CONCAT('+
+        'IFNULL(@@GLOBAL.datadir, CONCAT(@@GLOBAL.basedir, '+EscapeString('data/')+')), '+
+        EscapeString(Database+'/'+Name+'.frm')+')'+
+      ') AS CHAR CHARACTER SET utf8)');
     rx := TRegExpr.Create;
     rx.ModifierI := True;
     rx.ModifierG := False;
