@@ -47,7 +47,7 @@ The highlighter formats DOT source code ref.: http://www.research.att.com/sw/too
 unit SynHighlighterDOT;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -85,7 +85,7 @@ type
     tkValue,
     tkSymbol);
 
-  TRangeState = (rsUnKnown, rsCStyleComment, rsString);
+  TRangeState = (rsUnknown, rsCStyleComment, rsString);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
@@ -93,20 +93,20 @@ type
 type
   TSynDOTSyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
-    fTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..786] of TIdentFuncTableFunc;
-    fArrowHeadAttri: TSynHighlighterAttributes;
-    fAttributeAttri: TSynHighlighterAttributes;
-    fCommentAttri: TSynHighlighterAttributes;
-    fDirectionsAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fShapeAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fValueAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
+    FRange: TRangeState;
+    FTokenID: TtkTokenKind;
+    FIdentFuncTable: array[0..786] of TIdentFuncTableFunc;
+    FArrowHeadAttri: TSynHighlighterAttributes;
+    FAttributeAttri: TSynHighlighterAttributes;
+    FCommentAttri: TSynHighlighterAttributes;
+    FDirectionsAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FShapeAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FValueAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function FuncAll(Index: Integer): TtkTokenKind;
     function FuncAppendix(Index: Integer): TtkTokenKind;
@@ -279,26 +279,26 @@ type
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
     function GetKeyWords(TokenKind: Integer): UnicodeString; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
      function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
-    property ArrowHeadAttri: TSynHighlighterAttributes read fArrowHeadAttri write fArrowHeadAttri;
-    property AttributeAttri: TSynHighlighterAttributes read fAttributeAttri write fAttributeAttri;
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
-    property DirectionsAttri: TSynHighlighterAttributes read fDirectionsAttri write fDirectionsAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property ShapeAttri: TSynHighlighterAttributes read fShapeAttri write fShapeAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
-    property ValueAttri: TSynHighlighterAttributes read fValueAttri write fValueAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri write fSymbolAttri;
+    property ArrowHeadAttri: TSynHighlighterAttributes read FArrowHeadAttri write FArrowHeadAttri;
+    property AttributeAttri: TSynHighlighterAttributes read FAttributeAttri write FAttributeAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
+    property DirectionsAttri: TSynHighlighterAttributes read FDirectionsAttri write FDirectionsAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property ShapeAttri: TSynHighlighterAttributes read FShapeAttri write FShapeAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri write FStringAttri;
+    property ValueAttri: TSynHighlighterAttributes read FValueAttri write FValueAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri write FSymbolAttri;
   end;
 
 implementation
@@ -388,10 +388,10 @@ begin
   while IsIdentChar(Str^) do
   begin
     Result := Result * 63 + Ord(Str^) * 331;
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 787;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -399,10 +399,10 @@ function TSynDOTSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -411,156 +411,156 @@ procedure TSynDOTSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  fIdentFuncTable[132] := FuncAll;
-  fIdentFuncTable[509] := FuncAppendix;
-  fIdentFuncTable[188] := FuncArrowhead;
-  fIdentFuncTable[72] := FuncArrowsize;
-  fIdentFuncTable[65] := FuncArrowtail;
-  fIdentFuncTable[149] := FuncAuto;
-  fIdentFuncTable[752] := FuncBack;
-  fIdentFuncTable[130] := FuncBgcolor;
-  fIdentFuncTable[536] := FuncBold;
-  fIdentFuncTable[266] := FuncBoth;
-  fIdentFuncTable[169] := FuncBottomlabel;
-  fIdentFuncTable[4] := FuncBox;
-  fIdentFuncTable[206] := FuncCenter;
-  fIdentFuncTable[666] := FuncCircle;
-  fIdentFuncTable[533] := FuncClusterrank;
-  fIdentFuncTable[85] := FuncColor;
-  fIdentFuncTable[327] := FuncComment;
-  fIdentFuncTable[278] := FuncCompound;
-  fIdentFuncTable[481] := FuncConcentrate;
-  fIdentFuncTable[425] := FuncConstraint;
-  fIdentFuncTable[573] := FuncDecorate;
-  fIdentFuncTable[302] := FuncDiamond;
-  fIdentFuncTable[272] := FuncDigraph;
-  fIdentFuncTable[79] := FuncDir;
-  fIdentFuncTable[621] := FuncDistortion;
-  fIdentFuncTable[726] := FuncDot;
-  fIdentFuncTable[419] := FuncDotted;
-  fIdentFuncTable[104] := FuncDoublecircle;
-  fIdentFuncTable[90] := FuncDoubleoctagon;
-  fIdentFuncTable[377] := FuncE;
-  fIdentFuncTable[783] := FuncEdge;
-  fIdentFuncTable[614] := FuncEgg;
-  fIdentFuncTable[319] := FuncEllipse;
-  fIdentFuncTable[409] := FuncFalse;
-  fIdentFuncTable[641] := FuncFill;
-  fIdentFuncTable[461] := FuncFillcolor;
-  fIdentFuncTable[631] := FuncFilled;
-  fIdentFuncTable[508] := FuncFixedsize;
-  fIdentFuncTable[237] := FuncFontcolor;
-  fIdentFuncTable[435] := FuncFontname;
-  fIdentFuncTable[60] := FuncFontpath;
-  fIdentFuncTable[685] := FuncFontsize;
-  fIdentFuncTable[235] := FuncForward;
-  fIdentFuncTable[141] := FuncGlobal;
-  fIdentFuncTable[693] := FuncGraph;
-  fIdentFuncTable[730] := FuncGroup;
-  fIdentFuncTable[212] := FuncHeadlabel;
-  fIdentFuncTable[171] := FuncHeadport;
-  fIdentFuncTable[749] := FuncHeadurl;
-  fIdentFuncTable[78] := FuncHeight;
-  fIdentFuncTable[51] := FuncHexagon;
-  fIdentFuncTable[701] := FuncHouse;
-  fIdentFuncTable[177] := FuncId;
-  fIdentFuncTable[603] := FuncInv;
-  fIdentFuncTable[280] := FuncInvdot;
-  fIdentFuncTable[660] := FuncInvhouse;
-  fIdentFuncTable[261] := FuncInvodot;
-  fIdentFuncTable[467] := FuncInvtrapezium;
-  fIdentFuncTable[258] := FuncInvtriangle;
-  fIdentFuncTable[628] := FuncLabel;
-  fIdentFuncTable[557] := FuncLabelangle;
-  fIdentFuncTable[507] := FuncLabeldistance;
-  fIdentFuncTable[575] := FuncLabelfloat;
-  fIdentFuncTable[584] := FuncLabelfontcolor;
-  fIdentFuncTable[192] := FuncLabelfontname;
-  fIdentFuncTable[650] := FuncLabelfontsize;
-  fIdentFuncTable[724] := FuncLabeljust;
-  fIdentFuncTable[625] := FuncLabelloc;
-  fIdentFuncTable[172] := FuncLayer;
-  fIdentFuncTable[315] := FuncLayers;
-  fIdentFuncTable[464] := FuncLhead;
-  fIdentFuncTable[341] := FuncLtail;
-  fIdentFuncTable[469] := FuncMargin;
-  fIdentFuncTable[274] := FuncMax;
-  fIdentFuncTable[699] := FuncMcircle;
-  fIdentFuncTable[253] := FuncMclimit;
-  fIdentFuncTable[391] := FuncMdiamond;
-  fIdentFuncTable[399] := FuncMerged;
-  fIdentFuncTable[92] := FuncMin;
-  fIdentFuncTable[423] := FuncMinimum;
-  fIdentFuncTable[589] := FuncMinlen;
-  fIdentFuncTable[493] := FuncMrecord;
-  fIdentFuncTable[705] := FuncMsquare;
-  fIdentFuncTable[472] := FuncMultiples;
-  fIdentFuncTable[208] := FuncN;
-  fIdentFuncTable[102] := FuncNe;
-  fIdentFuncTable[75] := FuncNode;
-  fIdentFuncTable[202] := FuncNodesep;
-  fIdentFuncTable[50] := FuncNone;
-  fIdentFuncTable[386] := FuncNormal;
-  fIdentFuncTable[70] := FuncNslimit;
-  fIdentFuncTable[551] := FuncNw;
-  fIdentFuncTable[81] := FuncOctagon;
-  fIdentFuncTable[364] := FuncOdot;
-  fIdentFuncTable[663] := FuncOnto;
-  fIdentFuncTable[565] := FuncOrdering;
-  fIdentFuncTable[300] := FuncOrientation;
-  fIdentFuncTable[135] := FuncPage;
-  fIdentFuncTable[706] := FuncPagedir;
-  fIdentFuncTable[252] := FuncParallelogram;
-  fIdentFuncTable[723] := FuncPeripheries;
-  fIdentFuncTable[167] := FuncPlaintext;
-  fIdentFuncTable[256] := FuncPoint;
-  fIdentFuncTable[117] := FuncPolygon;
-  fIdentFuncTable[402] := FuncQuantum;
-  fIdentFuncTable[753] := FuncRank;
-  fIdentFuncTable[246] := FuncRankdir;
-  fIdentFuncTable[773] := FuncRanksep;
-  fIdentFuncTable[369] := FuncRatio;
-  fIdentFuncTable[460] := FuncRecord;
-  fIdentFuncTable[74] := FuncRegular;
-  fIdentFuncTable[363] := FuncRemincross;
-  fIdentFuncTable[281] := FuncRotate;
-  fIdentFuncTable[289] := FuncS;
-  fIdentFuncTable[652] := FuncSame;
-  fIdentFuncTable[439] := FuncSamehead;
-  fIdentFuncTable[316] := FuncSametail;
-  fIdentFuncTable[354] := FuncSamplepoints;
-  fIdentFuncTable[483] := FuncSe;
-  fIdentFuncTable[372] := FuncSearchsize;
-  fIdentFuncTable[599] := FuncSection;
-  fIdentFuncTable[588] := FuncShape;
-  fIdentFuncTable[87] := FuncShapefile;
-  fIdentFuncTable[757] := FuncSides;
-  fIdentFuncTable[195] := FuncSink;
-  fIdentFuncTable[540] := FuncSize;
-  fIdentFuncTable[333] := FuncSkew;
-  fIdentFuncTable[248] := FuncSource;
-  fIdentFuncTable[640] := FuncStrict;
-  fIdentFuncTable[520] := FuncStyle;
-  fIdentFuncTable[477] := FuncSubgraph;
-  fIdentFuncTable[145] := FuncSw;
-  fIdentFuncTable[174] := FuncTaillabel;
-  fIdentFuncTable[756] := FuncTailport;
-  fIdentFuncTable[580] := FuncTailurl;
-  fIdentFuncTable[596] := FuncToplabel;
-  fIdentFuncTable[570] := FuncTrapezium;
-  fIdentFuncTable[351] := FuncTriangle;
-  fIdentFuncTable[514] := FuncTripleoctagon;
-  fIdentFuncTable[624] := FuncTrue;
-  fIdentFuncTable[115] := FuncUrl;
-  fIdentFuncTable[39] := FuncW;
-  fIdentFuncTable[128] := FuncWeight;
-  fIdentFuncTable[241] := FuncWhen;
-  fIdentFuncTable[702] := FuncWidth;
-  fIdentFuncTable[245] := FuncZ;
+  FIdentFuncTable[132] := FuncAll;
+  FIdentFuncTable[509] := FuncAppendix;
+  FIdentFuncTable[188] := FuncArrowhead;
+  FIdentFuncTable[72] := FuncArrowsize;
+  FIdentFuncTable[65] := FuncArrowtail;
+  FIdentFuncTable[149] := FuncAuto;
+  FIdentFuncTable[752] := FuncBack;
+  FIdentFuncTable[130] := FuncBgcolor;
+  FIdentFuncTable[536] := FuncBold;
+  FIdentFuncTable[266] := FuncBoth;
+  FIdentFuncTable[169] := FuncBottomlabel;
+  FIdentFuncTable[4] := FuncBox;
+  FIdentFuncTable[206] := FuncCenter;
+  FIdentFuncTable[666] := FuncCircle;
+  FIdentFuncTable[533] := FuncClusterrank;
+  FIdentFuncTable[85] := FuncColor;
+  FIdentFuncTable[327] := FuncComment;
+  FIdentFuncTable[278] := FuncCompound;
+  FIdentFuncTable[481] := FuncConcentrate;
+  FIdentFuncTable[425] := FuncConstraint;
+  FIdentFuncTable[573] := FuncDecorate;
+  FIdentFuncTable[302] := FuncDiamond;
+  FIdentFuncTable[272] := FuncDigraph;
+  FIdentFuncTable[79] := FuncDir;
+  FIdentFuncTable[621] := FuncDistortion;
+  FIdentFuncTable[726] := FuncDot;
+  FIdentFuncTable[419] := FuncDotted;
+  FIdentFuncTable[104] := FuncDoublecircle;
+  FIdentFuncTable[90] := FuncDoubleoctagon;
+  FIdentFuncTable[377] := FuncE;
+  FIdentFuncTable[783] := FuncEdge;
+  FIdentFuncTable[614] := FuncEgg;
+  FIdentFuncTable[319] := FuncEllipse;
+  FIdentFuncTable[409] := FuncFalse;
+  FIdentFuncTable[641] := FuncFill;
+  FIdentFuncTable[461] := FuncFillcolor;
+  FIdentFuncTable[631] := FuncFilled;
+  FIdentFuncTable[508] := FuncFixedsize;
+  FIdentFuncTable[237] := FuncFontcolor;
+  FIdentFuncTable[435] := FuncFontname;
+  FIdentFuncTable[60] := FuncFontpath;
+  FIdentFuncTable[685] := FuncFontsize;
+  FIdentFuncTable[235] := FuncForward;
+  FIdentFuncTable[141] := FuncGlobal;
+  FIdentFuncTable[693] := FuncGraph;
+  FIdentFuncTable[730] := FuncGroup;
+  FIdentFuncTable[212] := FuncHeadlabel;
+  FIdentFuncTable[171] := FuncHeadport;
+  FIdentFuncTable[749] := FuncHeadurl;
+  FIdentFuncTable[78] := FuncHeight;
+  FIdentFuncTable[51] := FuncHexagon;
+  FIdentFuncTable[701] := FuncHouse;
+  FIdentFuncTable[177] := FuncId;
+  FIdentFuncTable[603] := FuncInv;
+  FIdentFuncTable[280] := FuncInvdot;
+  FIdentFuncTable[660] := FuncInvhouse;
+  FIdentFuncTable[261] := FuncInvodot;
+  FIdentFuncTable[467] := FuncInvtrapezium;
+  FIdentFuncTable[258] := FuncInvtriangle;
+  FIdentFuncTable[628] := FuncLabel;
+  FIdentFuncTable[557] := FuncLabelangle;
+  FIdentFuncTable[507] := FuncLabeldistance;
+  FIdentFuncTable[575] := FuncLabelfloat;
+  FIdentFuncTable[584] := FuncLabelfontcolor;
+  FIdentFuncTable[192] := FuncLabelfontname;
+  FIdentFuncTable[650] := FuncLabelfontsize;
+  FIdentFuncTable[724] := FuncLabeljust;
+  FIdentFuncTable[625] := FuncLabelloc;
+  FIdentFuncTable[172] := FuncLayer;
+  FIdentFuncTable[315] := FuncLayers;
+  FIdentFuncTable[464] := FuncLhead;
+  FIdentFuncTable[341] := FuncLtail;
+  FIdentFuncTable[469] := FuncMargin;
+  FIdentFuncTable[274] := FuncMax;
+  FIdentFuncTable[699] := FuncMcircle;
+  FIdentFuncTable[253] := FuncMclimit;
+  FIdentFuncTable[391] := FuncMdiamond;
+  FIdentFuncTable[399] := FuncMerged;
+  FIdentFuncTable[92] := FuncMin;
+  FIdentFuncTable[423] := FuncMinimum;
+  FIdentFuncTable[589] := FuncMinlen;
+  FIdentFuncTable[493] := FuncMrecord;
+  FIdentFuncTable[705] := FuncMsquare;
+  FIdentFuncTable[472] := FuncMultiples;
+  FIdentFuncTable[208] := FuncN;
+  FIdentFuncTable[102] := FuncNe;
+  FIdentFuncTable[75] := FuncNode;
+  FIdentFuncTable[202] := FuncNodesep;
+  FIdentFuncTable[50] := FuncNone;
+  FIdentFuncTable[386] := FuncNormal;
+  FIdentFuncTable[70] := FuncNslimit;
+  FIdentFuncTable[551] := FuncNw;
+  FIdentFuncTable[81] := FuncOctagon;
+  FIdentFuncTable[364] := FuncOdot;
+  FIdentFuncTable[663] := FuncOnto;
+  FIdentFuncTable[565] := FuncOrdering;
+  FIdentFuncTable[300] := FuncOrientation;
+  FIdentFuncTable[135] := FuncPage;
+  FIdentFuncTable[706] := FuncPagedir;
+  FIdentFuncTable[252] := FuncParallelogram;
+  FIdentFuncTable[723] := FuncPeripheries;
+  FIdentFuncTable[167] := FuncPlaintext;
+  FIdentFuncTable[256] := FuncPoint;
+  FIdentFuncTable[117] := FuncPolygon;
+  FIdentFuncTable[402] := FuncQuantum;
+  FIdentFuncTable[753] := FuncRank;
+  FIdentFuncTable[246] := FuncRankdir;
+  FIdentFuncTable[773] := FuncRanksep;
+  FIdentFuncTable[369] := FuncRatio;
+  FIdentFuncTable[460] := FuncRecord;
+  FIdentFuncTable[74] := FuncRegular;
+  FIdentFuncTable[363] := FuncRemincross;
+  FIdentFuncTable[281] := FuncRotate;
+  FIdentFuncTable[289] := FuncS;
+  FIdentFuncTable[652] := FuncSame;
+  FIdentFuncTable[439] := FuncSamehead;
+  FIdentFuncTable[316] := FuncSametail;
+  FIdentFuncTable[354] := FuncSamplepoints;
+  FIdentFuncTable[483] := FuncSe;
+  FIdentFuncTable[372] := FuncSearchsize;
+  FIdentFuncTable[599] := FuncSection;
+  FIdentFuncTable[588] := FuncShape;
+  FIdentFuncTable[87] := FuncShapefile;
+  FIdentFuncTable[757] := FuncSides;
+  FIdentFuncTable[195] := FuncSink;
+  FIdentFuncTable[540] := FuncSize;
+  FIdentFuncTable[333] := FuncSkew;
+  FIdentFuncTable[248] := FuncSource;
+  FIdentFuncTable[640] := FuncStrict;
+  FIdentFuncTable[520] := FuncStyle;
+  FIdentFuncTable[477] := FuncSubgraph;
+  FIdentFuncTable[145] := FuncSw;
+  FIdentFuncTable[174] := FuncTaillabel;
+  FIdentFuncTable[756] := FuncTailport;
+  FIdentFuncTable[580] := FuncTailurl;
+  FIdentFuncTable[596] := FuncToplabel;
+  FIdentFuncTable[570] := FuncTrapezium;
+  FIdentFuncTable[351] := FuncTriangle;
+  FIdentFuncTable[514] := FuncTripleoctagon;
+  FIdentFuncTable[624] := FuncTrue;
+  FIdentFuncTable[115] := FuncUrl;
+  FIdentFuncTable[39] := FuncW;
+  FIdentFuncTable[128] := FuncWeight;
+  FIdentFuncTable[241] := FuncWhen;
+  FIdentFuncTable[702] := FuncWidth;
+  FIdentFuncTable[245] := FuncZ;
 end;
 
 function TSynDOTSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -1744,77 +1744,77 @@ end;
 
 procedure TSynDOTSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynDOTSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynDOTSyn.CRProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
-  if fLine[Run] = #10 then
-    inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
+  if FLine[Run] = #10 then
+    Inc(Run);
 end;
 
 procedure TSynDOTSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynDOTSyn.DirectionsProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '>') or (fLine[Run] = '-') then
+  if (FLine[Run] = '>') or (FLine[Run] = '-') then
   begin
-    fTokenID := tkDirections;
-    inc(Run);
+    FTokenID := tkDirections;
+    Inc(Run);
   end
   else
-    fTokenID := tkSymbol;
+    FTokenID := tkSymbol;
 end;
 
 procedure TSynDOTSyn.CStyleCommentOpenProc;
 begin
   Inc(Run);
-  if fLine[Run] = '/' then
+  if FLine[Run] = '/' then
   begin
-    fTokenID := tkComment;
-    inc(Run, 2);
+    FTokenID := tkComment;
+    Inc(Run, 2);
     while not IsLineEnd(Run) do Inc(Run);
     Exit;
   end;
-  if fLine[Run] = '*' then
+  if FLine[Run] = '*' then
   begin
-    fRange := rsCStyleComment;
+    FRange := rsCStyleComment;
     CStyleCommentProc;
-    fTokenID := tkComment;
+    FTokenID := tkComment;
   end
   else
-    fTokenID := tkIdentifier;
+    FTokenID := tkIdentifier;
 end;
 
 procedure TSynDOTSyn.CStyleCommentProc;
 begin
-  case fLine[Run] of
+  case FLine[Run] of
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
     else
     begin
-      fTokenID := tkComment;
+      FTokenID := tkComment;
       repeat
-        if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then
+        if (FLine[Run] = '*') and (FLine[Run + 1] = '/') then
         begin
           Inc(Run, 2);
-          fRange := rsUnKnown;
+          FRange := rsUnknown;
           Break;
         end;
         if not IsLineEnd(Run) then
@@ -1827,19 +1827,19 @@ end;
 procedure TSynDOTSyn.StringOpenProc;
 begin
   Inc(Run);
-  fRange := rsString;
+  FRange := rsString;
   StringProc;
-  fTokenID := tkString;
+  FTokenID := tkString;
 end;
 
 procedure TSynDOTSyn.StringProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   repeat
-    if fLine[Run] = '''' then
+    if FLine[Run] = '''' then
     begin
       Inc(Run, 1);
-      fRange := rsUnKnown;
+      FRange := rsUnknown;
       Break;
     end;
     if not IsLineEnd(Run) then
@@ -1851,88 +1851,88 @@ constructor TSynDOTSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := False;
+  FCaseSensitive := False;
 
-  fArrowHeadAttri := TSynHighLighterAttributes.Create(SYNS_AttrArrowHead, SYNS_FriendlyAttrArrowHead);
-  fArrowHeadAttri.Foreground := clRed;
-  AddAttribute(fArrowHeadAttri);
+  FArrowHeadAttri := TSynHighLighterAttributes.Create(SYNS_AttrArrowHead, SYNS_FriendlyAttrArrowHead);
+  FArrowHeadAttri.Foreground := clRed;
+  AddAttribute(FArrowHeadAttri);
 
-  fAttributeAttri := TSynHighLighterAttributes.Create(SYNS_AttrAttribute, SYNS_FriendlyAttrAttribute);
-  AddAttribute(fAttributeAttri);
+  FAttributeAttri := TSynHighLighterAttributes.Create(SYNS_AttrAttribute, SYNS_FriendlyAttrAttribute);
+  AddAttribute(FAttributeAttri);
 
-  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style := [fsItalic];
-  fCommentAttri.Foreground := clNavy;
-  AddAttribute(fCommentAttri);
+  FCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style := [fsItalic];
+  FCommentAttri.Foreground := clNavy;
+  AddAttribute(FCommentAttri);
 
-  fDirectionsAttri := TSynHighLighterAttributes.Create(SYNS_AttrDirections, SYNS_FriendlyAttrDirections);
-  fDirectionsAttri.Style := [fsBold];
-  fDirectionsAttri.Foreground := clYellow;
-  AddAttribute(fDirectionsAttri);
+  FDirectionsAttri := TSynHighLighterAttributes.Create(SYNS_AttrDirections, SYNS_FriendlyAttrDirections);
+  FDirectionsAttri.Style := [fsBold];
+  FDirectionsAttri.Foreground := clYellow;
+  AddAttribute(FDirectionsAttri);
 
-  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
+  FIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
 
-  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  AddAttribute(fKeyAttri);
+  FKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  AddAttribute(FKeyAttri);
 
-  fShapeAttri := TSynHighLighterAttributes.Create(SYNS_AttrShape, SYNS_FriendlyAttrShape);
-  fShapeAttri.Style := [fsBold];
-  fShapeAttri.Foreground := clRed;
-  AddAttribute(fShapeAttri);
+  FShapeAttri := TSynHighLighterAttributes.Create(SYNS_AttrShape, SYNS_FriendlyAttrShape);
+  FShapeAttri.Style := [fsBold];
+  FShapeAttri.Foreground := clRed;
+  AddAttribute(FShapeAttri);
 
-  fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
+  FSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
 
-  fStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(fStringAttri);
+  FStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(FStringAttri);
 
-  fValueAttri := TSynHighLighterAttributes.Create(SYNS_AttrValue, SYNS_FriendlyAttrValue);
-  fValueAttri.Style := [fsItalic];
-  fValueAttri.Foreground := clRed;
-  AddAttribute(fValueAttri);
+  FValueAttri := TSynHighLighterAttributes.Create(SYNS_AttrValue, SYNS_FriendlyAttrValue);
+  FValueAttri.Style := [fsItalic];
+  FValueAttri.Foreground := clRed;
+  AddAttribute(FValueAttri);
 
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  fSymbolAttri.Style := [fsBold];
-  fSymbolAttri.Foreground := clGreen;
-  AddAttribute(fSymbolAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  FSymbolAttri.Style := [fsBold];
+  FSymbolAttri.Foreground := clGreen;
+  AddAttribute(FSymbolAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  fDefaultFilter := SYNS_FilterDOT;
-  fRange := rsUnknown;
+  FDefaultFilter := SYNS_FilterDOT;
+  FRange := rsUnknown;
 end;
 
 procedure TSynDOTSyn.IdentProc;
 begin
-  fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do
+  FTokenID := IdentKind((FLine + Run));
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do
     Inc(Run);
 end;
 
 procedure TSynDOTSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynDOTSyn.SymbolProc;
 begin
-  inc(Run);
-  fTokenId := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynDOTSyn.Next;
 begin
-  fTokenPos := Run;
-  case fRange of
+  FTokenPos := Run;
+  case FRange of
     rsCStyleComment: CStyleCommentProc;
   else
     begin
-      fRange := rsUnknown;
-      case fLine[Run] of
+      FRange := rsUnknown;
+      case FLine[Run] of
         #0: NullProc;
         #10: LFProc;
         #13: CRProc;
@@ -1949,15 +1949,15 @@ begin
   inherited;
 end;
 
-function TSynDOTSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;
+function TSynDOTSyn.GetDefaultAttribute(Index: Integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -1965,7 +1965,7 @@ end;
 
 function TSynDOTSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynDOTSyn.GetKeyWords(TokenKind: Integer): UnicodeString;
@@ -1992,32 +1992,32 @@ end;
 
 function TSynDOTSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynDOTSyn.GetTokenAttribute: TSynHighLighterAttributes;
 begin
   case GetTokenID of
-    tkArrowHead: Result := fArrowHeadAttri;
-    tkAttribute: Result := fAttributeAttri;
-    tkComment: Result := fCommentAttri;
-    tkDirections: Result := fDirectionsAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkShape: Result := fShapeAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkValue: Result := fValueAttri;
-    tkUnknown: Result := fIdentifierAttri;
-    tkSymbol: Result := fSymbolAttri;
+    tkArrowHead: Result := FArrowHeadAttri;
+    tkAttribute: Result := FAttributeAttri;
+    tkComment: Result := FCommentAttri;
+    tkDirections: Result := FDirectionsAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkShape: Result := FShapeAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkValue: Result := FValueAttri;
+    tkUnknown: Result := FIdentifierAttri;
+    tkSymbol: Result := FSymbolAttri;
   else
     Result := nil;
   end;
 end;
 
-function TSynDOTSyn.GetTokenKind: integer;
+function TSynDOTSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynDOTSyn.GetSampleSource: UnicodeString;
@@ -2067,7 +2067,7 @@ end;
 
 function TSynDOTSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterDOT;
+  Result := FDefaultFilter <> SYNS_FilterDOT;
 end;
 
 function TSynDOTSyn.IsIdentChar(AChar: WideChar): Boolean;
@@ -2087,17 +2087,17 @@ end;
 
 procedure TSynDOTSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 end;
 
 procedure TSynDOTSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 function TSynDOTSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 class function TSynDOTSyn.GetFriendlyLanguageName: UnicodeString;

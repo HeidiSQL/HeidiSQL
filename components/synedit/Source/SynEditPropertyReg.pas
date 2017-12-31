@@ -120,7 +120,7 @@ type
   public
     procedure Edit; override;
     function GetAttributes: TPropertyAttributes; override;
-    function GetValue:string; override;
+    function GetValue: string; override;
   end;
 
   TSynAutoCorrectComponentEditor = class(TDefaultEditor)

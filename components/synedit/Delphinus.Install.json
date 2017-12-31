@@ -1,31 +1,21 @@
 {
-        "search_pathes": 
-    [
-        {
-            "pathes": "Source",
-            "platforms": "Win32;Win64"
-        }
-    ],
-    "browsing_pathes": 
-    [
-        {
-            "pathes": "Source",
-            "platforms": "Win32;Win64"
-        }
-    ],
+  "search_pathes": [{
+    "pathes": "Source",
+    "platforms": "Win32;Win64"
+  }],
 
-    "source_folders":
-    [
-        {
-            "folder": "Source",
-            "base": ".",
-            "recursive": true,
-            "filter": "*"
-        }
-    ],
+  "browsing_pathes": [{
+    "pathes": "Source",
+    "platforms": "Win32;Win64"
+  }],
 
-	"projects":
-	[
+  "source_folders": [{
+    "folder": ".",
+    "recursive": true,
+    "filter": "*"
+  }],
+
+	"projects": [
 		{
 			"project": "Packages\\2010\\SynEdit.groupproj",
 			"compiler_min": 21,
@@ -72,14 +62,19 @@
 			"compiler_max": 29
 		},
 		{
-			"project": "Packages\\RX\\SynEdit.groupproj",
+			"project": "Packages\\10S\\SynEdit.groupproj",
 			"compiler_min": 30,
 			"compiler_max": 30
 		},
 		{
-			"project": "Packages\\RX1\\SynEdit.groupproj",
+			"project": "Packages\\101B\\SynEdit.groupproj",
 			"compiler_min": 31,
 			"compiler_max": 31
+		},
+		{
+			"project": "Packages\\102T\\SynEdit.groupproj",
+			"compiler_min": 32,
+			"compiler_max": 32
 		}
 	]
 }

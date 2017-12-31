@@ -48,7 +48,7 @@ The highlighter formats JavaScript source code highlighting keywords, strings, n
 unit SynHighlighterJScript;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -65,7 +65,11 @@ uses
   SynEditHighlighter,
   SynUnicode,
 {$ENDIF}
-  SysUtils, Classes;
+{$IFDEF SYN_CodeFolding}
+  SynEditCodeFolding,
+{$ENDIF}
+  SysUtils,
+  Classes;
 
 type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkNumber, tkSpace,
@@ -77,20 +81,24 @@ type
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
 type
+{$IFDEF SYN_CodeFolding}
+  TSynJScriptSyn = class(TSynCustomCodeFoldingHighlighter)
+{$ELSE}
   TSynJScriptSyn = class(TSynCustomHighLighter)
+{$ENDIF}
   private
-    fRange: TRangeState;
+    FRange: TRangeState;
     FTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..5152] of TIdentFuncTableFunc;
-    fCommentAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fNonReservedKeyAttri: TSynHighlighterAttributes;
-    fEventAttri: TSynHighlighterAttributes;
-    fNumberAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
+    FIdentFuncTable: array[0..5152] of TIdentFuncTableFunc;
+    FCommentAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FNonReservedKeyAttri: TSynHighlighterAttributes;
+    FEventAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function FuncAbs(Index: Integer): TtkTokenKind;
     function FuncAbstract(Index: Integer): TtkTokenKind;
@@ -207,7 +215,7 @@ type
     function FuncFrames(Index: Integer): TtkTokenKind;
     function FuncFromcharcode(Index: Integer): TtkTokenKind;
     function FuncFunction(Index: Integer): TtkTokenKind;
-    function FuncFunction2(Index: Integer): TtkTokenKind;    
+    function FuncFunction2(Index: Integer): TtkTokenKind;
     function FuncGetdate(Index: Integer): TtkTokenKind;
     function FuncGetday(Index: Integer): TtkTokenKind;
     function FuncGetelementbyid(Index: Integer): TtkTokenKind;
@@ -506,32 +514,36 @@ type
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
+{$IFDEF SYN_CodeFolding}
+    procedure ScanForFoldRanges(FoldRanges: TSynFoldRanges;
+      LinesToScan: TStrings; FromLine: Integer; ToLine: Integer); override;
+{$ENDIF}
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
-      write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property NonReservedKeyAttri: TSynHighlighterAttributes read fNonReservedKeyAttri write fNonReservedKeyAttri;
-    property EventAttri: TSynHighlighterAttributes read fEventAttri write fEventAttri;
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
-      write fNumberAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri
-      write fStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
-      write fSymbolAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
+      write FCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
+      write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property NonReservedKeyAttri: TSynHighlighterAttributes read FNonReservedKeyAttri write FNonReservedKeyAttri;
+    property EventAttri: TSynHighlighterAttributes read FEventAttri write FEventAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
+      write FNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
+      write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri
+      write FStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
+      write FSymbolAttri;
   end;
 
 implementation
@@ -895,10 +907,10 @@ begin
   while IsIdentChar(Str^) do
   begin
     Result := Result * 751 + Ord(Str^) * 148;
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 5153;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -906,10 +918,10 @@ function TSynJScriptSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -918,409 +930,409 @@ procedure TSynJScriptSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  fIdentFuncTable[4966] := FuncAbs;
-  fIdentFuncTable[2170] := FuncAbstract;
-  fIdentFuncTable[520] := FuncAcos;
-  fIdentFuncTable[319] := FuncAction;
-  fIdentFuncTable[4368] := FuncAlert;
-  fIdentFuncTable[2070] := FuncAlign;
-  fIdentFuncTable[1500] := FuncAlinkcolor;
-  fIdentFuncTable[2362] := FuncAll;
-  fIdentFuncTable[2706] := FuncAll;
-  fIdentFuncTable[4383] := FuncAnchor;
-  fIdentFuncTable[491] := FuncAnchor;
-  fIdentFuncTable[2516] := FuncAnchors;
-  fIdentFuncTable[2207] := FuncAppcodename;
-  fIdentFuncTable[1993] := FuncApplet;
-  fIdentFuncTable[1805] := FuncApplets;
-  fIdentFuncTable[965] := FuncAppname;
-  fIdentFuncTable[416] := FuncAppversion;
-  fIdentFuncTable[2052] := FuncArea;
-  fIdentFuncTable[618] := FuncArguments;
-  fIdentFuncTable[3950] := FuncArguments;
-  fIdentFuncTable[2987] := FuncArray;
-  fIdentFuncTable[4131] := FuncAsin;
-  fIdentFuncTable[5117] := FuncAtan;
-  fIdentFuncTable[1999] := FuncAtan2;
-  fIdentFuncTable[3356] := FuncBack;
-  fIdentFuncTable[3954] := FuncBackground;
-  fIdentFuncTable[2882] := FuncBgcolor;
-  fIdentFuncTable[1824] := FuncBig;
-  fIdentFuncTable[4067] := FuncBlink;
-  fIdentFuncTable[1709] := FuncBlur;
-  fIdentFuncTable[483] := FuncBody;
-  fIdentFuncTable[243] := FuncBold;
-  fIdentFuncTable[4200] := FuncBoolean;
-  fIdentFuncTable[3265] := FuncBoolean2;
-  fIdentFuncTable[563] := FuncBorder;
-  fIdentFuncTable[2857] := FuncBottom;
-  fIdentFuncTable[2410] := FuncBreak;
-  fIdentFuncTable[223] := FuncButton;
-  fIdentFuncTable[575] := FuncByte;
-  fIdentFuncTable[3204] := FuncCall;
-  fIdentFuncTable[1125] := FuncCallee;
-  fIdentFuncTable[3049] := FuncCaller;
-  fIdentFuncTable[3037] := FuncCaptureevents;
-  fIdentFuncTable[2101] := FuncCase;
-  fIdentFuncTable[2105] := FuncCatch;
-  fIdentFuncTable[4662] := FuncCeil;
-  fIdentFuncTable[3938] := FuncChar;
-  fIdentFuncTable[3046] := FuncCharat;
-  fIdentFuncTable[3724] := FuncCharcodeat;
-  fIdentFuncTable[4522] := FuncCheckbox;
-  fIdentFuncTable[2127] := FuncChecked;
-  fIdentFuncTable[1908] := FuncClass;
-  fIdentFuncTable[417] := FuncClear;
-  fIdentFuncTable[4574] := FuncClearinterval;
-  fIdentFuncTable[2626] := FuncCleartimeout;
-  fIdentFuncTable[55] := FuncClick;
-  fIdentFuncTable[3783] := FuncClose;
-  fIdentFuncTable[3615] := FuncClosed;
-  fIdentFuncTable[1688] := FuncColor;
-  fIdentFuncTable[2712] := FuncComplete;
-  fIdentFuncTable[2889] := FuncConcat;
-  fIdentFuncTable[3503] := FuncConfirm;
-  fIdentFuncTable[820] := FuncConst;
-  fIdentFuncTable[3079] := FuncConstructor;
-  fIdentFuncTable[3092] := FuncContinue;
-  fIdentFuncTable[4022] := FuncCookie;
-  fIdentFuncTable[4452] := FuncCos;
-  fIdentFuncTable[1188] := FuncCurrent;
-  fIdentFuncTable[1955] := FuncDate;
-  fIdentFuncTable[1095] := FuncDebugger;
-  fIdentFuncTable[1389] := FuncDefault;
-  fIdentFuncTable[2881] := FuncDefaultchecked;
-  fIdentFuncTable[2879] := FuncDefaultselected;
-  fIdentFuncTable[3607] := FuncDefaultstatus;
-  fIdentFuncTable[1234] := FuncDefaultvalue;
-  fIdentFuncTable[214] := FuncDelete;
-  fIdentFuncTable[1929] := FuncDescription;
-  fIdentFuncTable[1046] := FuncDisplay;
-  fIdentFuncTable[748] := FuncDo;
-  fIdentFuncTable[5075] := FuncDocument;
-  fIdentFuncTable[4671] := FuncDomain;
-  fIdentFuncTable[4176] := FuncDouble;
-  fIdentFuncTable[5059] := FuncE;
-  fIdentFuncTable[581] := FuncElements;
-  fIdentFuncTable[4413] := FuncElse;
-  fIdentFuncTable[2919] := FuncEmbed;
-  fIdentFuncTable[2346] := FuncEmbeds;
-  fIdentFuncTable[3190] := FuncEnabledplugin;
-  fIdentFuncTable[4627] := FuncEncoding;
-  fIdentFuncTable[3716] := FuncEnum;
-  fIdentFuncTable[1147] := FuncEscape;
-  fIdentFuncTable[1465] := FuncEval;
-  fIdentFuncTable[3807] := FuncEvent;
-  fIdentFuncTable[2060] := FuncExp;
-  fIdentFuncTable[1298] := FuncExport;
-  fIdentFuncTable[1114] := FuncExtends;
-  fIdentFuncTable[1069] := FuncFalse;
-  fIdentFuncTable[4097] := FuncFgcolor;
-  fIdentFuncTable[2508] := FuncFilename;
-  fIdentFuncTable[271] := FuncFileupload;
-  fIdentFuncTable[3365] := FuncFinal;
-  fIdentFuncTable[587] := FuncFinally;
-  fIdentFuncTable[2843] := FuncFind;
-  fIdentFuncTable[931] := FuncFixed;
-  fIdentFuncTable[1921] := FuncFloat;
-  fIdentFuncTable[730] := FuncFloat2;
-  fIdentFuncTable[1491] := FuncFloor;
-  fIdentFuncTable[4111] := FuncFocus;
-  fIdentFuncTable[4774] := FuncFontcolor;
-  fIdentFuncTable[4932] := FuncFontsize;
-  fIdentFuncTable[407] := FuncFor;
-  fIdentFuncTable[2968] := FuncForm;
-  fIdentFuncTable[4469] := FuncForm;
-  fIdentFuncTable[2370] := FuncForms;
-  fIdentFuncTable[1279] := FuncForward;
-  fIdentFuncTable[4402] := FuncFrame;
-  fIdentFuncTable[2522] := FuncFrames;
-  fIdentFuncTable[3737] := FuncFromcharcode;
-  fIdentFuncTable[2666] := FuncFunction;
-  fIdentFuncTable[1982] := FuncFunction2;
-  fIdentFuncTable[1111] := FuncGetdate;
-  fIdentFuncTable[1176] := FuncGetday;
-  fIdentFuncTable[553] := FuncGetelementbyid;
-  fIdentFuncTable[966] := FuncGetfullyear;
-  fIdentFuncTable[2918] := FuncGethours;
-  fIdentFuncTable[1735] := FuncGetmilliseconds;
-  fIdentFuncTable[3823] := FuncGetminutes;
-  fIdentFuncTable[4549] := FuncGetmonth;
-  fIdentFuncTable[978] := FuncGetseconds;
-  fIdentFuncTable[1102] := FuncGettime;
-  fIdentFuncTable[4707] := FuncGettimezoneoffset;
-  fIdentFuncTable[4493] := FuncGetutcdate;
-  fIdentFuncTable[3536] := FuncGetutcday;
-  fIdentFuncTable[5080] := FuncGetutcfullyear;
-  fIdentFuncTable[671] := FuncGetutchours;
-  fIdentFuncTable[1795] := FuncGetutcmilliseconds;
-  fIdentFuncTable[974] := FuncGetutcminutes;
-  fIdentFuncTable[2302] := FuncGetutcmonth;
-  fIdentFuncTable[3282] := FuncGetutcseconds;
-  fIdentFuncTable[2212] := FuncGetyear;
-  fIdentFuncTable[2940] := FuncGlobal;
-  fIdentFuncTable[4400] := FuncGo;
-  fIdentFuncTable[4552] := FuncGoto;
-  fIdentFuncTable[269] := FuncHandleevent;
-  fIdentFuncTable[2358] := FuncHash;
-  fIdentFuncTable[380] := FuncHeight;
-  fIdentFuncTable[911] := FuncHidden;
-  fIdentFuncTable[2645] := FuncHistory;
-  fIdentFuncTable[1710] := FuncHistory;
-  fIdentFuncTable[3710] := FuncHome;
-  fIdentFuncTable[2928] := FuncHost;
-  fIdentFuncTable[3996] := FuncHostname;
-  fIdentFuncTable[2246] := FuncHref;
-  fIdentFuncTable[991] := FuncHspace;
-  fIdentFuncTable[3785] := FuncIf;
-  fIdentFuncTable[1177] := FuncImage;
-  fIdentFuncTable[1997] := FuncImages;
-  fIdentFuncTable[706] := FuncImplements;
-  fIdentFuncTable[3582] := FuncImport;
-  fIdentFuncTable[4969] := FuncIn;
-  fIdentFuncTable[1137] := FuncIndex;
-  fIdentFuncTable[656] := FuncIndexof;
-  fIdentFuncTable[4918] := FuncInfinity;
-  fIdentFuncTable[5096] := FuncInnerheight;
-  fIdentFuncTable[5008] := FuncInnerwidth;
-  fIdentFuncTable[999] := FuncInput;
-  fIdentFuncTable[3585] := FuncInstanceof;
-  fIdentFuncTable[545] := FuncInt;
-  fIdentFuncTable[124] := FuncInterface;
-  fIdentFuncTable[2465] := FuncIsfinite;
-  fIdentFuncTable[1266] := FuncIsnan;
-  fIdentFuncTable[1711] := FuncItalics;
-  fIdentFuncTable[963] := FuncJava;
-  fIdentFuncTable[4225] := FuncJavaenabled;
-  fIdentFuncTable[3229] := FuncJoin;
-  fIdentFuncTable[2913] := FuncLastindexof;
-  fIdentFuncTable[2778] := FuncLastmodified;
-  fIdentFuncTable[3139] := FuncLayer;
-  fIdentFuncTable[2021] := FuncLayers;
-  fIdentFuncTable[2770] := FuncLeft;
-  fIdentFuncTable[1083] := FuncLength;
-  fIdentFuncTable[4263] := FuncLink;
-  fIdentFuncTable[611] := FuncLink;
-  fIdentFuncTable[2947] := FuncLinkcolor;
-  fIdentFuncTable[3943] := FuncLinks;
-  fIdentFuncTable[986] := FuncLn10;
-  fIdentFuncTable[5149] := FuncLn2;
-  fIdentFuncTable[4694] := FuncLocation;
-  fIdentFuncTable[2489] := FuncLocation;
-  fIdentFuncTable[3213] := FuncLocationbar;
-  fIdentFuncTable[2812] := FuncLog;
-  fIdentFuncTable[3420] := FuncLog10e;
-  fIdentFuncTable[3346] := FuncLog2e;
-  fIdentFuncTable[3808] := FuncLogon;
-  fIdentFuncTable[1030] := FuncLong;
-  fIdentFuncTable[2430] := FuncLowsrc;
-  fIdentFuncTable[830] := FuncMatch;
-  fIdentFuncTable[1454] := FuncMath;
-  fIdentFuncTable[4163] := FuncMax;
-  fIdentFuncTable[962] := FuncMax_value;
-  fIdentFuncTable[165] := FuncMenubar;
-  fIdentFuncTable[1767] := FuncMethod;
-  fIdentFuncTable[2068] := FuncMimetype;
-  fIdentFuncTable[568] := FuncMimetypes;
-  fIdentFuncTable[398] := FuncMin;
-  fIdentFuncTable[1580] := FuncMin_value;
-  fIdentFuncTable[3868] := FuncMoveby;
-  fIdentFuncTable[3688] := FuncMoveto;
-  fIdentFuncTable[147] := FuncName;
-  fIdentFuncTable[624] := FuncNan;
-  fIdentFuncTable[709] := FuncNative;
-  fIdentFuncTable[3619] := FuncNavigator;
-  fIdentFuncTable[1798] := FuncNavigator;
-  fIdentFuncTable[2749] := FuncNegative_infinity;
-  fIdentFuncTable[2232] := FuncNetscape;
-  fIdentFuncTable[4150] := FuncNew;
-  fIdentFuncTable[3691] := FuncNext;
-  fIdentFuncTable[3186] := FuncNull;
-  fIdentFuncTable[4687] := FuncNull2;
-  fIdentFuncTable[811] := FuncNumber;
-  fIdentFuncTable[655] := FuncObject;
-  fIdentFuncTable[4718] := FuncOnabort;
-  fIdentFuncTable[3216] := FuncOnblur;
-  fIdentFuncTable[4506] := FuncOnchange;
-  fIdentFuncTable[4236] := FuncOnclick;
-  fIdentFuncTable[1962] := FuncOndblclick;
-  fIdentFuncTable[3283] := FuncOnerror;
-  fIdentFuncTable[1618] := FuncOnfocus;
-  fIdentFuncTable[2711] := FuncOnkeydown;
-  fIdentFuncTable[698] := FuncOnkeypress;
-  fIdentFuncTable[2845] := FuncOnkeyup;
-  fIdentFuncTable[9] := FuncOnload;
-  fIdentFuncTable[1175] := FuncOnmousedown;
-  fIdentFuncTable[1116] := FuncOnmousemove;
-  fIdentFuncTable[720] := FuncOnmouseout;
-  fIdentFuncTable[356] := FuncOnmouseover;
-  fIdentFuncTable[2930] := FuncOnmouseup;
-  fIdentFuncTable[1494] := FuncOnreset;
-  fIdentFuncTable[1591] := FuncOnselect;
-  fIdentFuncTable[233] := FuncOnsubmit;
-  fIdentFuncTable[1527] := FuncOnunload;
-  fIdentFuncTable[309] := FuncOpen;
-  fIdentFuncTable[3742] := FuncOpener;
-  fIdentFuncTable[3624] := FuncOption;
-  fIdentFuncTable[3038] := FuncOptions;
-  fIdentFuncTable[3129] := FuncOuterheight;
-  fIdentFuncTable[617] := FuncOuterwidth;
-  fIdentFuncTable[1183] := FuncPackage;
-  fIdentFuncTable[4634] := FuncPackages;
-  fIdentFuncTable[4499] := FuncPagex;
-  fIdentFuncTable[1543] := FuncPagexoffset;
-  fIdentFuncTable[4647] := FuncPagey;
-  fIdentFuncTable[4043] := FuncPageyoffset;
-  fIdentFuncTable[4818] := FuncParent;
-  fIdentFuncTable[2306] := FuncParse;
-  fIdentFuncTable[2092] := FuncParsefloat;
-  fIdentFuncTable[2800] := FuncParseint;
-  fIdentFuncTable[756] := FuncPassword;
-  fIdentFuncTable[1065] := FuncPathname;
-  fIdentFuncTable[433] := FuncPersonalbar;
-  fIdentFuncTable[3413] := FuncPi;
-  fIdentFuncTable[4421] := FuncPlatform;
-  fIdentFuncTable[4802] := FuncPlugin;
-  fIdentFuncTable[3917] := FuncPlugins;
-  fIdentFuncTable[3630] := FuncPort;
-  fIdentFuncTable[4426] := FuncPositive_infinity;
-  fIdentFuncTable[5137] := FuncPow;
-  fIdentFuncTable[4810] := FuncPrevious;
-  fIdentFuncTable[602] := FuncPrint;
-  fIdentFuncTable[958] := FuncPrivate;
-  fIdentFuncTable[3968] := FuncPrompt;
-  fIdentFuncTable[1326] := FuncProtected;
-  fIdentFuncTable[1815] := FuncProtocol;
-  fIdentFuncTable[4437] := FuncPrototype;
-  fIdentFuncTable[3260] := FuncPublic;
-  fIdentFuncTable[1600] := FuncRadio;
-  fIdentFuncTable[2803] := FuncRandom;
-  fIdentFuncTable[2045] := FuncReferrer;
-  fIdentFuncTable[2270] := FuncRefresh;
-  fIdentFuncTable[4495] := FuncRegexp;
-  fIdentFuncTable[2008] := FuncReleaseevents;
-  fIdentFuncTable[4401] := FuncReload;
-  fIdentFuncTable[1148] := FuncReplace;
-  fIdentFuncTable[3987] := FuncReset;
-  fIdentFuncTable[2796] := FuncReset;
-  fIdentFuncTable[4116] := FuncResizeby;
-  fIdentFuncTable[3936] := FuncResizeto;
-  fIdentFuncTable[1610] := FuncReturn;
-  fIdentFuncTable[3457] := FuncReverse;
-  fIdentFuncTable[1857] := FuncRight;
-  fIdentFuncTable[4450] := FuncRound;
-  fIdentFuncTable[5041] := FuncRouteevent;
-  fIdentFuncTable[100] := FuncScreen;
-  fIdentFuncTable[3727] := FuncScroll;
-  fIdentFuncTable[3112] := FuncScrollbars;
-  fIdentFuncTable[195] := FuncScrollby;
-  fIdentFuncTable[15] := FuncScrollto;
-  fIdentFuncTable[4544] := FuncSearch;
-  fIdentFuncTable[1271] := FuncSelect;
-  fIdentFuncTable[2532] := FuncSelect;
-  fIdentFuncTable[2708] := FuncSelected;
-  fIdentFuncTable[5089] := FuncSelectedindex;
-  fIdentFuncTable[2283] := FuncSelf;
-  fIdentFuncTable[4756] := FuncSetdate;
-  fIdentFuncTable[517] := FuncSetfullyear;
-  fIdentFuncTable[4389] := FuncSethours;
-  fIdentFuncTable[2365] := FuncSetinterval;
-  fIdentFuncTable[1057] := FuncSetmilliseconds;
-  fIdentFuncTable[2377] := FuncSetminutes;
-  fIdentFuncTable[867] := FuncSetmonth;
-  fIdentFuncTable[4685] := FuncSetseconds;
-  fIdentFuncTable[4747] := FuncSettime;
-  fIdentFuncTable[1862] := FuncSettimeout;
-  fIdentFuncTable[3047] := FuncSetutcdate;
-  fIdentFuncTable[5010] := FuncSetutcfullyear;
-  fIdentFuncTable[222] := FuncSetutchours;
-  fIdentFuncTable[2284] := FuncSetutcmilliseconds;
-  fIdentFuncTable[5073] := FuncSetutcminutes;
-  fIdentFuncTable[3374] := FuncSetutcmonth;
-  fIdentFuncTable[707] := FuncSetutcseconds;
-  fIdentFuncTable[2225] := FuncSetyear;
-  fIdentFuncTable[3661] := FuncShort;
-  fIdentFuncTable[2910] := FuncSin;
-  fIdentFuncTable[523] := FuncSlice;
-  fIdentFuncTable[1345] := FuncSmall;
-  fIdentFuncTable[3822] := FuncSort;
-  fIdentFuncTable[239] := FuncSplit;
-  fIdentFuncTable[1224] := FuncSqrt;
-  fIdentFuncTable[4716] := FuncSqrt1_2;
-  fIdentFuncTable[3194] := FuncSqrt2;
-  fIdentFuncTable[1932] := FuncSrc;
-  fIdentFuncTable[482] := FuncStart;
-  fIdentFuncTable[684] := FuncStatic;
-  fIdentFuncTable[2201] := FuncStatus;
-  fIdentFuncTable[1836] := FuncStatusbar;
-  fIdentFuncTable[3389] := FuncStop;
-  fIdentFuncTable[4740] := FuncStrike;
-  fIdentFuncTable[4796] := FuncString;
-  fIdentFuncTable[1006] := FuncStyle;
-  fIdentFuncTable[283] := FuncSub;
-  fIdentFuncTable[5066] := FuncSubmit;
-  fIdentFuncTable[1174] := FuncSubmit;
-  fIdentFuncTable[3496] := FuncSubstr;
-  fIdentFuncTable[2071] := FuncSubstring;
-  fIdentFuncTable[4785] := FuncSuffixes;
-  fIdentFuncTable[2355] := FuncSup;
-  fIdentFuncTable[4953] := FuncSuper;
-  fIdentFuncTable[3170] := FuncSwitch;
-  fIdentFuncTable[4968] := FuncSynchronized;
-  fIdentFuncTable[4084] := FuncTags;
-  fIdentFuncTable[2789] := FuncTaint;
-  fIdentFuncTable[215] := FuncTaintenabled;
-  fIdentFuncTable[3896] := FuncTan;
-  fIdentFuncTable[5087] := FuncTarget;
-  fIdentFuncTable[4075] := FuncText;
-  fIdentFuncTable[4055] := FuncText;
-  fIdentFuncTable[2681] := FuncTextarea;
-  fIdentFuncTable[2382] := FuncThis;
-  fIdentFuncTable[4217] := FuncThrow;
-  fIdentFuncTable[2507] := FuncThrows;
-  fIdentFuncTable[1027] := FuncTitle;
-  fIdentFuncTable[2422] := FuncTogmtstring;
-  fIdentFuncTable[4448] := FuncTolocalestring;
-  fIdentFuncTable[857] := FuncTolowercase;
-  fIdentFuncTable[4611] := FuncToolbar;
-  fIdentFuncTable[4058] := FuncTop;
-  fIdentFuncTable[983] := FuncTosource;
-  fIdentFuncTable[3962] := FuncTostring;
-  fIdentFuncTable[4977] := FuncTouppercase;
-  fIdentFuncTable[2536] := FuncToutcstring;
-  fIdentFuncTable[4990] := FuncTransient;
-  fIdentFuncTable[1928] := FuncTrue;
-  fIdentFuncTable[3889] := FuncTry;
-  fIdentFuncTable[3925] := FuncType;
-  fIdentFuncTable[3121] := FuncTypeof;
-  fIdentFuncTable[4305] := FuncUndefined;
-  fIdentFuncTable[2484] := FuncUndefined;
-  fIdentFuncTable[3518] := FuncUnescape;
-  fIdentFuncTable[4070] := FuncUntaint;
-  fIdentFuncTable[836] := FuncUnwatch;
-  fIdentFuncTable[3893] := FuncUrl;
-  fIdentFuncTable[747] := FuncUseragent;
-  fIdentFuncTable[3278] := FuncUtc;
-  fIdentFuncTable[1621] := FuncValue;
-  fIdentFuncTable[5048] := FuncValueof;
-  fIdentFuncTable[1890] := FuncVar;
-  fIdentFuncTable[910] := FuncVisibility;
-  fIdentFuncTable[2454] := FuncVlinkcolor;
-  fIdentFuncTable[996] := FuncVoid;
-  fIdentFuncTable[418] := FuncVspace;
-  fIdentFuncTable[4708] := FuncWatch;
-  fIdentFuncTable[3178] := FuncWhile;
-  fIdentFuncTable[1729] := FuncWidth;
-  fIdentFuncTable[2916] := FuncWindow;
-  fIdentFuncTable[4177] := FuncWindow;
-  fIdentFuncTable[4646] := FuncWith;
-  fIdentFuncTable[519] := FuncWrite;
-  fIdentFuncTable[4841] := FuncWriteln;
-  fIdentFuncTable[4030] := FuncZindex;
+  FIdentFuncTable[4966] := FuncAbs;
+  FIdentFuncTable[2170] := FuncAbstract;
+  FIdentFuncTable[520] := FuncAcos;
+  FIdentFuncTable[319] := FuncAction;
+  FIdentFuncTable[4368] := FuncAlert;
+  FIdentFuncTable[2070] := FuncAlign;
+  FIdentFuncTable[1500] := FuncAlinkcolor;
+  FIdentFuncTable[2362] := FuncAll;
+  FIdentFuncTable[2706] := FuncAll;
+  FIdentFuncTable[4383] := FuncAnchor;
+  FIdentFuncTable[491] := FuncAnchor;
+  FIdentFuncTable[2516] := FuncAnchors;
+  FIdentFuncTable[2207] := FuncAppcodename;
+  FIdentFuncTable[1993] := FuncApplet;
+  FIdentFuncTable[1805] := FuncApplets;
+  FIdentFuncTable[965] := FuncAppname;
+  FIdentFuncTable[416] := FuncAppversion;
+  FIdentFuncTable[2052] := FuncArea;
+  FIdentFuncTable[618] := FuncArguments;
+  FIdentFuncTable[3950] := FuncArguments;
+  FIdentFuncTable[2987] := FuncArray;
+  FIdentFuncTable[4131] := FuncAsin;
+  FIdentFuncTable[5117] := FuncAtan;
+  FIdentFuncTable[1999] := FuncAtan2;
+  FIdentFuncTable[3356] := FuncBack;
+  FIdentFuncTable[3954] := FuncBackground;
+  FIdentFuncTable[2882] := FuncBgcolor;
+  FIdentFuncTable[1824] := FuncBig;
+  FIdentFuncTable[4067] := FuncBlink;
+  FIdentFuncTable[1709] := FuncBlur;
+  FIdentFuncTable[483] := FuncBody;
+  FIdentFuncTable[243] := FuncBold;
+  FIdentFuncTable[4200] := FuncBoolean;
+  FIdentFuncTable[3265] := FuncBoolean2;
+  FIdentFuncTable[563] := FuncBorder;
+  FIdentFuncTable[2857] := FuncBottom;
+  FIdentFuncTable[2410] := FuncBreak;
+  FIdentFuncTable[223] := FuncButton;
+  FIdentFuncTable[575] := FuncByte;
+  FIdentFuncTable[3204] := FuncCall;
+  FIdentFuncTable[1125] := FuncCallee;
+  FIdentFuncTable[3049] := FuncCaller;
+  FIdentFuncTable[3037] := FuncCaptureevents;
+  FIdentFuncTable[2101] := FuncCase;
+  FIdentFuncTable[2105] := FuncCatch;
+  FIdentFuncTable[4662] := FuncCeil;
+  FIdentFuncTable[3938] := FuncChar;
+  FIdentFuncTable[3046] := FuncCharat;
+  FIdentFuncTable[3724] := FuncCharcodeat;
+  FIdentFuncTable[4522] := FuncCheckbox;
+  FIdentFuncTable[2127] := FuncChecked;
+  FIdentFuncTable[1908] := FuncClass;
+  FIdentFuncTable[417] := FuncClear;
+  FIdentFuncTable[4574] := FuncClearinterval;
+  FIdentFuncTable[2626] := FuncCleartimeout;
+  FIdentFuncTable[55] := FuncClick;
+  FIdentFuncTable[3783] := FuncClose;
+  FIdentFuncTable[3615] := FuncClosed;
+  FIdentFuncTable[1688] := FuncColor;
+  FIdentFuncTable[2712] := FuncComplete;
+  FIdentFuncTable[2889] := FuncConcat;
+  FIdentFuncTable[3503] := FuncConfirm;
+  FIdentFuncTable[820] := FuncConst;
+  FIdentFuncTable[3079] := FuncConstructor;
+  FIdentFuncTable[3092] := FuncContinue;
+  FIdentFuncTable[4022] := FuncCookie;
+  FIdentFuncTable[4452] := FuncCos;
+  FIdentFuncTable[1188] := FuncCurrent;
+  FIdentFuncTable[1955] := FuncDate;
+  FIdentFuncTable[1095] := FuncDebugger;
+  FIdentFuncTable[1389] := FuncDefault;
+  FIdentFuncTable[2881] := FuncDefaultchecked;
+  FIdentFuncTable[2879] := FuncDefaultselected;
+  FIdentFuncTable[3607] := FuncDefaultstatus;
+  FIdentFuncTable[1234] := FuncDefaultvalue;
+  FIdentFuncTable[214] := FuncDelete;
+  FIdentFuncTable[1929] := FuncDescription;
+  FIdentFuncTable[1046] := FuncDisplay;
+  FIdentFuncTable[748] := FuncDo;
+  FIdentFuncTable[5075] := FuncDocument;
+  FIdentFuncTable[4671] := FuncDomain;
+  FIdentFuncTable[4176] := FuncDouble;
+  FIdentFuncTable[5059] := FuncE;
+  FIdentFuncTable[581] := FuncElements;
+  FIdentFuncTable[4413] := FuncElse;
+  FIdentFuncTable[2919] := FuncEmbed;
+  FIdentFuncTable[2346] := FuncEmbeds;
+  FIdentFuncTable[3190] := FuncEnabledplugin;
+  FIdentFuncTable[4627] := FuncEncoding;
+  FIdentFuncTable[3716] := FuncEnum;
+  FIdentFuncTable[1147] := FuncEscape;
+  FIdentFuncTable[1465] := FuncEval;
+  FIdentFuncTable[3807] := FuncEvent;
+  FIdentFuncTable[2060] := FuncExp;
+  FIdentFuncTable[1298] := FuncExport;
+  FIdentFuncTable[1114] := FuncExtends;
+  FIdentFuncTable[1069] := FuncFalse;
+  FIdentFuncTable[4097] := FuncFgcolor;
+  FIdentFuncTable[2508] := FuncFilename;
+  FIdentFuncTable[271] := FuncFileupload;
+  FIdentFuncTable[3365] := FuncFinal;
+  FIdentFuncTable[587] := FuncFinally;
+  FIdentFuncTable[2843] := FuncFind;
+  FIdentFuncTable[931] := FuncFixed;
+  FIdentFuncTable[1921] := FuncFloat;
+  FIdentFuncTable[730] := FuncFloat2;
+  FIdentFuncTable[1491] := FuncFloor;
+  FIdentFuncTable[4111] := FuncFocus;
+  FIdentFuncTable[4774] := FuncFontcolor;
+  FIdentFuncTable[4932] := FuncFontsize;
+  FIdentFuncTable[407] := FuncFor;
+  FIdentFuncTable[2968] := FuncForm;
+  FIdentFuncTable[4469] := FuncForm;
+  FIdentFuncTable[2370] := FuncForms;
+  FIdentFuncTable[1279] := FuncForward;
+  FIdentFuncTable[4402] := FuncFrame;
+  FIdentFuncTable[2522] := FuncFrames;
+  FIdentFuncTable[3737] := FuncFromcharcode;
+  FIdentFuncTable[2666] := FuncFunction;
+  FIdentFuncTable[1982] := FuncFunction2;
+  FIdentFuncTable[1111] := FuncGetdate;
+  FIdentFuncTable[1176] := FuncGetday;
+  FIdentFuncTable[553] := FuncGetelementbyid;
+  FIdentFuncTable[966] := FuncGetfullyear;
+  FIdentFuncTable[2918] := FuncGethours;
+  FIdentFuncTable[1735] := FuncGetmilliseconds;
+  FIdentFuncTable[3823] := FuncGetminutes;
+  FIdentFuncTable[4549] := FuncGetmonth;
+  FIdentFuncTable[978] := FuncGetseconds;
+  FIdentFuncTable[1102] := FuncGettime;
+  FIdentFuncTable[4707] := FuncGettimezoneoffset;
+  FIdentFuncTable[4493] := FuncGetutcdate;
+  FIdentFuncTable[3536] := FuncGetutcday;
+  FIdentFuncTable[5080] := FuncGetutcfullyear;
+  FIdentFuncTable[671] := FuncGetutchours;
+  FIdentFuncTable[1795] := FuncGetutcmilliseconds;
+  FIdentFuncTable[974] := FuncGetutcminutes;
+  FIdentFuncTable[2302] := FuncGetutcmonth;
+  FIdentFuncTable[3282] := FuncGetutcseconds;
+  FIdentFuncTable[2212] := FuncGetyear;
+  FIdentFuncTable[2940] := FuncGlobal;
+  FIdentFuncTable[4400] := FuncGo;
+  FIdentFuncTable[4552] := FuncGoto;
+  FIdentFuncTable[269] := FuncHandleevent;
+  FIdentFuncTable[2358] := FuncHash;
+  FIdentFuncTable[380] := FuncHeight;
+  FIdentFuncTable[911] := FuncHidden;
+  FIdentFuncTable[2645] := FuncHistory;
+  FIdentFuncTable[1710] := FuncHistory;
+  FIdentFuncTable[3710] := FuncHome;
+  FIdentFuncTable[2928] := FuncHost;
+  FIdentFuncTable[3996] := FuncHostname;
+  FIdentFuncTable[2246] := FuncHref;
+  FIdentFuncTable[991] := FuncHspace;
+  FIdentFuncTable[3785] := FuncIf;
+  FIdentFuncTable[1177] := FuncImage;
+  FIdentFuncTable[1997] := FuncImages;
+  FIdentFuncTable[706] := FuncImplements;
+  FIdentFuncTable[3582] := FuncImport;
+  FIdentFuncTable[4969] := FuncIn;
+  FIdentFuncTable[1137] := FuncIndex;
+  FIdentFuncTable[656] := FuncIndexof;
+  FIdentFuncTable[4918] := FuncInfinity;
+  FIdentFuncTable[5096] := FuncInnerheight;
+  FIdentFuncTable[5008] := FuncInnerwidth;
+  FIdentFuncTable[999] := FuncInput;
+  FIdentFuncTable[3585] := FuncInstanceof;
+  FIdentFuncTable[545] := FuncInt;
+  FIdentFuncTable[124] := FuncInterface;
+  FIdentFuncTable[2465] := FuncIsfinite;
+  FIdentFuncTable[1266] := FuncIsnan;
+  FIdentFuncTable[1711] := FuncItalics;
+  FIdentFuncTable[963] := FuncJava;
+  FIdentFuncTable[4225] := FuncJavaenabled;
+  FIdentFuncTable[3229] := FuncJoin;
+  FIdentFuncTable[2913] := FuncLastindexof;
+  FIdentFuncTable[2778] := FuncLastmodified;
+  FIdentFuncTable[3139] := FuncLayer;
+  FIdentFuncTable[2021] := FuncLayers;
+  FIdentFuncTable[2770] := FuncLeft;
+  FIdentFuncTable[1083] := FuncLength;
+  FIdentFuncTable[4263] := FuncLink;
+  FIdentFuncTable[611] := FuncLink;
+  FIdentFuncTable[2947] := FuncLinkcolor;
+  FIdentFuncTable[3943] := FuncLinks;
+  FIdentFuncTable[986] := FuncLn10;
+  FIdentFuncTable[5149] := FuncLn2;
+  FIdentFuncTable[4694] := FuncLocation;
+  FIdentFuncTable[2489] := FuncLocation;
+  FIdentFuncTable[3213] := FuncLocationbar;
+  FIdentFuncTable[2812] := FuncLog;
+  FIdentFuncTable[3420] := FuncLog10e;
+  FIdentFuncTable[3346] := FuncLog2e;
+  FIdentFuncTable[3808] := FuncLogon;
+  FIdentFuncTable[1030] := FuncLong;
+  FIdentFuncTable[2430] := FuncLowsrc;
+  FIdentFuncTable[830] := FuncMatch;
+  FIdentFuncTable[1454] := FuncMath;
+  FIdentFuncTable[4163] := FuncMax;
+  FIdentFuncTable[962] := FuncMax_value;
+  FIdentFuncTable[165] := FuncMenubar;
+  FIdentFuncTable[1767] := FuncMethod;
+  FIdentFuncTable[2068] := FuncMimetype;
+  FIdentFuncTable[568] := FuncMimetypes;
+  FIdentFuncTable[398] := FuncMin;
+  FIdentFuncTable[1580] := FuncMin_value;
+  FIdentFuncTable[3868] := FuncMoveby;
+  FIdentFuncTable[3688] := FuncMoveto;
+  FIdentFuncTable[147] := FuncName;
+  FIdentFuncTable[624] := FuncNan;
+  FIdentFuncTable[709] := FuncNative;
+  FIdentFuncTable[3619] := FuncNavigator;
+  FIdentFuncTable[1798] := FuncNavigator;
+  FIdentFuncTable[2749] := FuncNegative_infinity;
+  FIdentFuncTable[2232] := FuncNetscape;
+  FIdentFuncTable[4150] := FuncNew;
+  FIdentFuncTable[3691] := FuncNext;
+  FIdentFuncTable[3186] := FuncNull;
+  FIdentFuncTable[4687] := FuncNull2;
+  FIdentFuncTable[811] := FuncNumber;
+  FIdentFuncTable[655] := FuncObject;
+  FIdentFuncTable[4718] := FuncOnabort;
+  FIdentFuncTable[3216] := FuncOnblur;
+  FIdentFuncTable[4506] := FuncOnchange;
+  FIdentFuncTable[4236] := FuncOnclick;
+  FIdentFuncTable[1962] := FuncOndblclick;
+  FIdentFuncTable[3283] := FuncOnerror;
+  FIdentFuncTable[1618] := FuncOnfocus;
+  FIdentFuncTable[2711] := FuncOnkeydown;
+  FIdentFuncTable[698] := FuncOnkeypress;
+  FIdentFuncTable[2845] := FuncOnkeyup;
+  FIdentFuncTable[9] := FuncOnload;
+  FIdentFuncTable[1175] := FuncOnmousedown;
+  FIdentFuncTable[1116] := FuncOnmousemove;
+  FIdentFuncTable[720] := FuncOnmouseout;
+  FIdentFuncTable[356] := FuncOnmouseover;
+  FIdentFuncTable[2930] := FuncOnmouseup;
+  FIdentFuncTable[1494] := FuncOnreset;
+  FIdentFuncTable[1591] := FuncOnselect;
+  FIdentFuncTable[233] := FuncOnsubmit;
+  FIdentFuncTable[1527] := FuncOnunload;
+  FIdentFuncTable[309] := FuncOpen;
+  FIdentFuncTable[3742] := FuncOpener;
+  FIdentFuncTable[3624] := FuncOption;
+  FIdentFuncTable[3038] := FuncOptions;
+  FIdentFuncTable[3129] := FuncOuterheight;
+  FIdentFuncTable[617] := FuncOuterwidth;
+  FIdentFuncTable[1183] := FuncPackage;
+  FIdentFuncTable[4634] := FuncPackages;
+  FIdentFuncTable[4499] := FuncPagex;
+  FIdentFuncTable[1543] := FuncPagexoffset;
+  FIdentFuncTable[4647] := FuncPagey;
+  FIdentFuncTable[4043] := FuncPageyoffset;
+  FIdentFuncTable[4818] := FuncParent;
+  FIdentFuncTable[2306] := FuncParse;
+  FIdentFuncTable[2092] := FuncParsefloat;
+  FIdentFuncTable[2800] := FuncParseint;
+  FIdentFuncTable[756] := FuncPassword;
+  FIdentFuncTable[1065] := FuncPathname;
+  FIdentFuncTable[433] := FuncPersonalbar;
+  FIdentFuncTable[3413] := FuncPi;
+  FIdentFuncTable[4421] := FuncPlatform;
+  FIdentFuncTable[4802] := FuncPlugin;
+  FIdentFuncTable[3917] := FuncPlugins;
+  FIdentFuncTable[3630] := FuncPort;
+  FIdentFuncTable[4426] := FuncPositive_infinity;
+  FIdentFuncTable[5137] := FuncPow;
+  FIdentFuncTable[4810] := FuncPrevious;
+  FIdentFuncTable[602] := FuncPrint;
+  FIdentFuncTable[958] := FuncPrivate;
+  FIdentFuncTable[3968] := FuncPrompt;
+  FIdentFuncTable[1326] := FuncProtected;
+  FIdentFuncTable[1815] := FuncProtocol;
+  FIdentFuncTable[4437] := FuncPrototype;
+  FIdentFuncTable[3260] := FuncPublic;
+  FIdentFuncTable[1600] := FuncRadio;
+  FIdentFuncTable[2803] := FuncRandom;
+  FIdentFuncTable[2045] := FuncReferrer;
+  FIdentFuncTable[2270] := FuncRefresh;
+  FIdentFuncTable[4495] := FuncRegexp;
+  FIdentFuncTable[2008] := FuncReleaseevents;
+  FIdentFuncTable[4401] := FuncReload;
+  FIdentFuncTable[1148] := FuncReplace;
+  FIdentFuncTable[3987] := FuncReset;
+  FIdentFuncTable[2796] := FuncReset;
+  FIdentFuncTable[4116] := FuncResizeby;
+  FIdentFuncTable[3936] := FuncResizeto;
+  FIdentFuncTable[1610] := FuncReturn;
+  FIdentFuncTable[3457] := FuncReverse;
+  FIdentFuncTable[1857] := FuncRight;
+  FIdentFuncTable[4450] := FuncRound;
+  FIdentFuncTable[5041] := FuncRouteevent;
+  FIdentFuncTable[100] := FuncScreen;
+  FIdentFuncTable[3727] := FuncScroll;
+  FIdentFuncTable[3112] := FuncScrollbars;
+  FIdentFuncTable[195] := FuncScrollby;
+  FIdentFuncTable[15] := FuncScrollto;
+  FIdentFuncTable[4544] := FuncSearch;
+  FIdentFuncTable[1271] := FuncSelect;
+  FIdentFuncTable[2532] := FuncSelect;
+  FIdentFuncTable[2708] := FuncSelected;
+  FIdentFuncTable[5089] := FuncSelectedindex;
+  FIdentFuncTable[2283] := FuncSelf;
+  FIdentFuncTable[4756] := FuncSetdate;
+  FIdentFuncTable[517] := FuncSetfullyear;
+  FIdentFuncTable[4389] := FuncSethours;
+  FIdentFuncTable[2365] := FuncSetinterval;
+  FIdentFuncTable[1057] := FuncSetmilliseconds;
+  FIdentFuncTable[2377] := FuncSetminutes;
+  FIdentFuncTable[867] := FuncSetmonth;
+  FIdentFuncTable[4685] := FuncSetseconds;
+  FIdentFuncTable[4747] := FuncSettime;
+  FIdentFuncTable[1862] := FuncSettimeout;
+  FIdentFuncTable[3047] := FuncSetutcdate;
+  FIdentFuncTable[5010] := FuncSetutcfullyear;
+  FIdentFuncTable[222] := FuncSetutchours;
+  FIdentFuncTable[2284] := FuncSetutcmilliseconds;
+  FIdentFuncTable[5073] := FuncSetutcminutes;
+  FIdentFuncTable[3374] := FuncSetutcmonth;
+  FIdentFuncTable[707] := FuncSetutcseconds;
+  FIdentFuncTable[2225] := FuncSetyear;
+  FIdentFuncTable[3661] := FuncShort;
+  FIdentFuncTable[2910] := FuncSin;
+  FIdentFuncTable[523] := FuncSlice;
+  FIdentFuncTable[1345] := FuncSmall;
+  FIdentFuncTable[3822] := FuncSort;
+  FIdentFuncTable[239] := FuncSplit;
+  FIdentFuncTable[1224] := FuncSqrt;
+  FIdentFuncTable[4716] := FuncSqrt1_2;
+  FIdentFuncTable[3194] := FuncSqrt2;
+  FIdentFuncTable[1932] := FuncSrc;
+  FIdentFuncTable[482] := FuncStart;
+  FIdentFuncTable[684] := FuncStatic;
+  FIdentFuncTable[2201] := FuncStatus;
+  FIdentFuncTable[1836] := FuncStatusbar;
+  FIdentFuncTable[3389] := FuncStop;
+  FIdentFuncTable[4740] := FuncStrike;
+  FIdentFuncTable[4796] := FuncString;
+  FIdentFuncTable[1006] := FuncStyle;
+  FIdentFuncTable[283] := FuncSub;
+  FIdentFuncTable[5066] := FuncSubmit;
+  FIdentFuncTable[1174] := FuncSubmit;
+  FIdentFuncTable[3496] := FuncSubstr;
+  FIdentFuncTable[2071] := FuncSubstring;
+  FIdentFuncTable[4785] := FuncSuffixes;
+  FIdentFuncTable[2355] := FuncSup;
+  FIdentFuncTable[4953] := FuncSuper;
+  FIdentFuncTable[3170] := FuncSwitch;
+  FIdentFuncTable[4968] := FuncSynchronized;
+  FIdentFuncTable[4084] := FuncTags;
+  FIdentFuncTable[2789] := FuncTaint;
+  FIdentFuncTable[215] := FuncTaintenabled;
+  FIdentFuncTable[3896] := FuncTan;
+  FIdentFuncTable[5087] := FuncTarget;
+  FIdentFuncTable[4075] := FuncText;
+  FIdentFuncTable[4055] := FuncText;
+  FIdentFuncTable[2681] := FuncTextarea;
+  FIdentFuncTable[2382] := FuncThis;
+  FIdentFuncTable[4217] := FuncThrow;
+  FIdentFuncTable[2507] := FuncThrows;
+  FIdentFuncTable[1027] := FuncTitle;
+  FIdentFuncTable[2422] := FuncTogmtstring;
+  FIdentFuncTable[4448] := FuncTolocalestring;
+  FIdentFuncTable[857] := FuncTolowercase;
+  FIdentFuncTable[4611] := FuncToolbar;
+  FIdentFuncTable[4058] := FuncTop;
+  FIdentFuncTable[983] := FuncTosource;
+  FIdentFuncTable[3962] := FuncTostring;
+  FIdentFuncTable[4977] := FuncTouppercase;
+  FIdentFuncTable[2536] := FuncToutcstring;
+  FIdentFuncTable[4990] := FuncTransient;
+  FIdentFuncTable[1928] := FuncTrue;
+  FIdentFuncTable[3889] := FuncTry;
+  FIdentFuncTable[3925] := FuncType;
+  FIdentFuncTable[3121] := FuncTypeof;
+  FIdentFuncTable[4305] := FuncUndefined;
+  FIdentFuncTable[2484] := FuncUndefined;
+  FIdentFuncTable[3518] := FuncUnescape;
+  FIdentFuncTable[4070] := FuncUntaint;
+  FIdentFuncTable[836] := FuncUnwatch;
+  FIdentFuncTable[3893] := FuncUrl;
+  FIdentFuncTable[747] := FuncUseragent;
+  FIdentFuncTable[3278] := FuncUtc;
+  FIdentFuncTable[1621] := FuncValue;
+  FIdentFuncTable[5048] := FuncValueof;
+  FIdentFuncTable[1890] := FuncVar;
+  FIdentFuncTable[910] := FuncVisibility;
+  FIdentFuncTable[2454] := FuncVlinkcolor;
+  FIdentFuncTable[996] := FuncVoid;
+  FIdentFuncTable[418] := FuncVspace;
+  FIdentFuncTable[4708] := FuncWatch;
+  FIdentFuncTable[3178] := FuncWhile;
+  FIdentFuncTable[1729] := FuncWidth;
+  FIdentFuncTable[2916] := FuncWindow;
+  FIdentFuncTable[4177] := FuncWindow;
+  FIdentFuncTable[4646] := FuncWith;
+  FIdentFuncTable[519] := FuncWrite;
+  FIdentFuncTable[4841] := FuncWriteln;
+  FIdentFuncTable[4030] := FuncZindex;
 end;
 
 function TSynJScriptSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -4413,105 +4425,105 @@ constructor TSynJScriptSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := True;
+  FCaseSensitive := True;
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style := [fsItalic];
-  AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  AddAttribute(fKeyAttri);
-  fNonReservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword, SYNS_FriendlyAttrNonReservedKeyword);
-  AddAttribute(fNonReservedKeyAttri);
-  fEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent, SYNS_FriendlyAttrEvent);
-  AddAttribute(fEventAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(fSymbolAttri);
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style := [fsItalic];
+  AddAttribute(FCommentAttri);
+  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
+  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  AddAttribute(FKeyAttri);
+  FNonReservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword, SYNS_FriendlyAttrNonReservedKeyword);
+  AddAttribute(FNonReservedKeyAttri);
+  FEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent, SYNS_FriendlyAttrEvent);
+  AddAttribute(FEventAttri);
+  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(FNumberAttri);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
+  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(FStringAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(FSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  fDefaultFilter := SYNS_FilterJScript;
-  fRange := rsUnknown;
+  FDefaultFilter := SYNS_FilterJScript;
+  FRange := rsUnknown;
 end;
 
 procedure TSynJScriptSyn.AndSymbolProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '&']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '&']) then Inc(Run);
 end;
 
 procedure TSynJScriptSyn.CommentProc;
 begin
-  if fLine[Run] = #0 then
+  if FLine[Run] = #0 then
     NullProc
   else
   begin
-    fTokenID := tkComment;
+    FTokenID := tkComment;
     repeat
-      if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then
+      if (FLine[Run] = '*') and (FLine[Run + 1] = '/') then
       begin
-        fRange := rsUnKnown;
-        inc(Run, 2);
-        break;
+        FRange := rsUnknown;
+        Inc(Run, 2);
+        Break;
       end;
-      inc(Run);
+      Inc(Run);
     until IsLineEnd(Run);
   end;
 end;
 
 procedure TSynJScriptSyn.CRProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
-  if fLine[Run] = #10 then inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
+  if FLine[Run] = #10 then Inc(Run);
 end;
 
 procedure TSynJScriptSyn.IdentProc;
 begin
-  fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do inc(Run);
+  FTokenID := IdentKind((FLine + Run));
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do Inc(Run);
 end;
 
 procedure TSynJScriptSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynJScriptSyn.MinusProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '-', '>']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '-', '>']) then Inc(Run);
 end;
 
 procedure TSynJScriptSyn.ModSymbolProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if fLine[Run] = '=' then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if FLine[Run] = '=' then Inc(Run);
 end;
 
 procedure TSynJScriptSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynJScriptSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       '0'..'9', '.', 'a'..'f', 'A'..'F', 'x', 'X':
         Result := True;
       else
@@ -4521,7 +4533,7 @@ procedure TSynJScriptSyn.NumberProc;
 
   function IsHexChar(Run: Integer): Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       '0'..'9', 'a'..'f', 'A'..'F':
         Result := True;
       else
@@ -4533,7 +4545,7 @@ var
   idx1: Integer; // token[1]
   isHex: Boolean;
 begin
-  fTokenID := tkNumber;
+  FTokenID := tkNumber;
   isHex := False;
   idx1 := Run;
   Inc(Run);
@@ -4561,80 +4573,81 @@ end;
 
 procedure TSynJScriptSyn.OrSymbolProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '|']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '|']) then Inc(Run);
 end;
 
 procedure TSynJScriptSyn.PlusProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '+']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '+']) then Inc(Run);
 end;
 
 procedure TSynJScriptSyn.PointProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if (fLine[Run] = '.') and (fLine[Run + 1] = '.') then inc(Run, 2);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if (FLine[Run] = '.') and (FLine[Run + 1] = '.') then Inc(Run, 2);
 end;
 
 procedure TSynJScriptSyn.SlashProc;
 begin
   Inc(Run);
-  case fLine[Run] of
+  case FLine[Run] of
     '/': begin
-           fTokenID := tkComment;
+           FTokenID := tkComment;
            repeat
              Inc(Run);
            until IsLineEnd(Run);
          end;
     '*': begin
-           fTokenID := tkComment;
-           fRange := rsAnsi;
+           FTokenID := tkComment;
+           FRange := rsAnsi;
            repeat
              Inc(Run);
-             if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then begin
-               fRange := rsUnKnown;
+             if (FLine[Run] = '*') and (FLine[Run + 1] = '/') then begin
+               FRange := rsUnknown;
                Inc(Run, 2);
-               break;
+               Break;
              end;
            until IsLineEnd(Run);
          end;
     '=': begin
            Inc(Run);
-           fTokenID := tkSymbol;
+           FTokenID := tkSymbol;
          end;
     else
-      fTokenID := tkSymbol;
+      FTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynJScriptSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynJScriptSyn.StarProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if fLine[Run] = '=' then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if FLine[Run] = '=' then Inc(Run);
 end;
 
 procedure TSynJScriptSyn.StringProc;
 var
   l_strChar: UnicodeString;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   l_strChar := FLine[Run];   // We could have '"' or #39
-  if (FLine[Run + 1] = l_strChar) and (FLine[Run + 2] = l_strChar) then inc(Run, 2);
+  if (FLine[Run + 1] = l_strChar) and (FLine[Run + 2] = l_strChar) then Inc(Run, 2);
   repeat
-    if IsLineEnd(Run) then break;
-    inc(Run);
+    if IsLineEnd(Run) then
+      Break;
+    Inc(Run);
   until (FLine[Run] = l_strChar) and (FLine[Pred(Run)] <> '\');
   if not IsLineEnd(Run) then
     Inc(Run);
@@ -4642,23 +4655,23 @@ end;
 
 procedure TSynJScriptSyn.SymbolProc;
 begin
-  inc(Run);
-  fTokenId := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynJScriptSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynJScriptSyn.Next;
 begin
-  fTokenPos := Run;
-  if fRange = rsANSI then
+  FTokenPos := Run;
+  if FRange = rsANSI then
     CommentProc
   else
-    case fLine[Run] of
+    case FLine[Run] of
       '&': AndSymbolProc;
       #13: CRProc;
       'A'..'Z', 'a'..'z', '_': IdentProc;
@@ -4681,15 +4694,15 @@ begin
   inherited;
 end;
 
-function TSynJScriptSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynJScriptSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -4697,54 +4710,171 @@ end;
 
 function TSynJScriptSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynJScriptSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 function TSynJScriptSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynJScriptSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := fCommentAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkNonReservedKey: Result := fNonReservedKeyAttri;
-    tkEvent: Result := fEventAttri;
-    tkNumber: Result := fNumberAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fIdentifierAttri;
+    tkComment: Result := FCommentAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkNonReservedKey: Result := FNonReservedKeyAttri;
+    tkEvent: Result := FEventAttri;
+    tkNumber: Result := FNumberAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkSymbol: Result := FSymbolAttri;
+    tkUnknown: Result := FIdentifierAttri;
     else Result := nil;
   end;
 end;
 
-function TSynJScriptSyn.GetTokenKind: integer;
+function TSynJScriptSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 procedure TSynJScriptSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 end;
+
+{$IFDEF SYN_CodeFolding}
+procedure TSynJScriptSyn.ScanForFoldRanges(FoldRanges: TSynFoldRanges;
+  LinesToScan: TStrings; FromLine, ToLine: Integer);
+var
+  CurLine: String;
+  Line: Integer;
+
+  function LineHasChar(Line: Integer; character: char;
+  StartCol : Integer): boolean; // faster than Pos!
+  var
+    i: Integer;
+  begin
+    result := false;
+    for I := StartCol to Length(CurLine) do begin
+      if CurLine[i] = character then begin
+        // Char must have proper highlighting (ignore stuff inside comments...)
+        if GetHighlighterAttriAtRowCol(LinesToScan, Line, I) <> fCommentAttri then begin
+          result := true;
+          break;
+        end;
+      end;
+    end;
+  end;
+
+  function FindBraces(Line: Integer) : Boolean;
+  Var
+    Col : Integer;
+  begin
+    Result := False;
+
+    for Col := 1 to Length(CurLine) do
+    begin
+      // We've found a starting character
+      if CurLine[col] = '{' then
+      begin
+        // Char must have proper highlighting (ignore stuff inside comments...)
+        if GetHighlighterAttriAtRowCol(LinesToScan, Line, Col) <> fCommentAttri then
+        begin
+          // And ignore lines with both opening and closing chars in them
+          if not LineHasChar(Line, '}', col + 1) then begin
+            FoldRanges.StartFoldRange(Line + 1, 1);
+            Result := True;
+          end;
+          // Skip until a newline
+          break;
+        end;
+      end else if CurLine[col] = '}' then
+      begin
+        if GetHighlighterAttriAtRowCol(LinesToScan, Line, Col) <> fCommentAttri then
+        begin
+          // And ignore lines with both opening and closing chars in them
+          if not LineHasChar(Line, '{', col + 1) then begin
+            FoldRanges.StopFoldRange(Line + 1, 1);
+            Result := True;
+          end;
+          // Skip until a newline
+          break;
+        end;
+      end;
+    end; // for Col
+  end;
+
+  function FoldRegion(Line: Integer): Boolean;
+  Var
+    S : string;
+  begin
+    Result := False;
+    S := TrimLeft(CurLine);
+    if Uppercase(Copy(S, 1, 9)) = '//#REGION' then
+    begin
+      FoldRanges.StartFoldRange(Line + 1, FoldRegionType);
+      Result := True;
+    end
+    else if Uppercase(Copy(S, 1, 12)) = '//#ENDREGION' then
+    begin
+      FoldRanges.StopFoldRange(Line + 1, FoldRegionType);
+      Result := True;
+    end;
+  end;
+
+begin
+  for Line := FromLine to ToLine do
+  begin
+    // Deal first with Multiline comments (Fold Type 2)
+    if TRangeState(GetLineRange(LinesToScan, Line)) = rsANSI then
+    begin
+      if TRangeState(GetLineRange(LinesToScan, Line - 1)) <> rsANSI then
+        FoldRanges.StartFoldRange(Line + 1, 2)
+      else
+        FoldRanges.NoFoldInfo(Line + 1);
+      Continue;
+    end
+    else if TRangeState(GetLineRange(LinesToScan, Line - 1)) = rsANSI then
+    begin
+      FoldRanges.StopFoldRange(Line + 1, 2);
+      Continue;
+    end;
+
+    CurLine := LinesToScan[Line];
+
+    // Skip empty lines
+    if CurLine = '' then begin
+      FoldRanges.NoFoldInfo(Line + 1);
+      Continue;
+    end;
+
+    // Find Fold regions
+    if FoldRegion(Line) then
+      Continue;
+
+    // Find an braces on this line  (Fold Type 1)
+    if not FindBraces(Line) then
+      FoldRanges.NoFoldInfo(Line + 1);
+  end; // while Line
+end;
+{$ENDIF}
 
 procedure TSynJScriptSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 function TSynJScriptSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterJScript;
+  Result := FDefaultFilter <> SYNS_FilterJScript;
 end;
 
 class function TSynJScriptSyn.GetLanguageName: string;

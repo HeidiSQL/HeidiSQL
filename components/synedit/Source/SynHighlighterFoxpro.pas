@@ -48,7 +48,7 @@ Thanks to Martin Waldenburg.
 unit SynHighlighterFoxpro;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -78,14 +78,14 @@ type
   TSynFoxproSyn = class(TSynCustomHighlighter)
   private
     FTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..17908] of TIdentFuncTableFunc;
-    fCommentAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fNumberAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
+    FIdentFuncTable: array[0..17908] of TIdentFuncTableFunc;
+    FCommentAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function KeyWordFunc(Index: Integer): TtkTokenKind;
     function HashKey(Str: PWideChar): Cardinal;
@@ -131,27 +131,27 @@ type
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
-      write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
-      write fNumberAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri
-      write fStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
-      write fSymbolAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
+      write FCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
+      write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
+      write FNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
+      write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri
+      write FStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
+      write FSymbolAttri;
   end;
 
 implementation
@@ -1243,10 +1243,10 @@ begin
   while IsIdentChar(Str^) do
   begin
     Result := Result * 934 + Ord(Str^) * 420;
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 17909;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -1254,10 +1254,10 @@ function TSynFoxproSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -1266,13 +1266,13 @@ procedure TSynFoxproSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
-    if @fIdentFuncTable[i] = nil then
-      fIdentFuncTable[i] := KeyWordFunc;
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
+    if @FIdentFuncTable[i] = nil then
+      FIdentFuncTable[i] := KeyWordFunc;
 end;
 
 function TSynFoxproSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -1292,25 +1292,25 @@ constructor TSynFoxproSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := False;
+  FCaseSensitive := False;
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  AddAttribute(fKeyAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(fSymbolAttri);
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  AddAttribute(FCommentAttri);
+  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
+  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  AddAttribute(FKeyAttri);
+  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(FNumberAttri);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
+  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(FStringAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(FSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  fDefaultFilter := SYNS_FilterFoxpro;
+  FDefaultFilter := SYNS_FilterFoxpro;
 end;
 
 procedure TSynFoxproSyn.AndSymbolProc;
@@ -1318,76 +1318,79 @@ begin
   case FLine[Run + 1] of
     '&':                               {Comments}
       begin
-        inc(Run, 2);
-        fTokenID := tkComment;
+        Inc(Run, 2);
+        FTokenID := tkComment;
         while FLine[Run] <> #0 do
         begin
           case FLine[Run] of
-            #10, #13: break;
+            #10, #13:
+              Break;
           end; //case
-          inc(Run);
+          Inc(Run);
         end;
       end;
   else                                 {and}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynFoxproSyn.AsciiCharProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   repeat
     case FLine[Run] of
-      #0, #10, #13: break;
+      #0, #10, #13:
+        Break;
     end;
-    inc(Run);
+    Inc(Run);
   until FLine[Run] = #39;
-  if FLine[Run] <> #0 then inc(Run);
+  if FLine[Run] <> #0 then Inc(Run);
 end;
 
 procedure TSynFoxproSyn.AtSymbolProc;
 begin
-  fTokenID := tkKey;
-  inc(Run);
+  FTokenID := tkKey;
+  Inc(Run);
 end;
 
 procedure TSynFoxproSyn.BraceOpenProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   repeat
     case FLine[Run] of
-      #0, #10, #13: break;
+      #0, #10, #13:
+        Break;
       #92:
-        if FLine[Run + 1] = #10 then inc(Run);
+        if FLine[Run + 1] = #10 then Inc(Run);
     end;
-    inc(Run);
+    Inc(Run);
   until FLine[Run] = '}';
-  if FLine[Run] <> #0 then inc(Run);
+  if FLine[Run] <> #0 then Inc(Run);
 end;
 
 procedure TSynFoxproSyn.CRProc;
 begin
-  fTokenID := tkSpace;
+  FTokenID := tkSpace;
   case FLine[Run + 1] of
-    #10: inc(Run, 2);
-    else inc(Run);
+    #10: Inc(Run, 2);
+    else Inc(Run);
   end;
 end;
 
 procedure TSynFoxproSyn.ColonProc;
 begin
   {colon}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.CommaProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.EqualProc;
@@ -1395,52 +1398,52 @@ begin
   case FLine[Run + 1] of
     '=':                               {logical equal}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {assign}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynFoxproSyn.GreaterProc;
 begin
-  Case FLine[Run + 1] of
+  case FLine[Run + 1] of
     '=':                               {greater than or equal to}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '>':
       begin
         if FLine[Run + 2] = '=' then   {shift right assign}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {shift right}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {greater than}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynFoxproSyn.IdentProc;
 begin
-  fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do inc(Run);
+  FTokenID := IdentKind((FLine + Run));
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do Inc(Run);
 end;
 
 procedure TSynFoxproSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynFoxproSyn.LowerProc;
@@ -1448,21 +1451,21 @@ begin
   case FLine[Run + 1] of
     '=':                               {less than or equal to}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '<':
       begin
         if FLine[Run + 2] = '=' then   {shift left assign}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {shift left}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {less than}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
@@ -1470,35 +1473,35 @@ end;
 procedure TSynFoxproSyn.MinusProc;
 begin
   {subtract}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.ModSymbolProc;
 begin
   {mod}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.NotSymbolProc;
 begin
   {not}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynFoxproSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       '0'..'9', '.', 'x', 'X', 'e', 'E', 'f', 'F':
         Result := True;
       else
@@ -1507,30 +1510,31 @@ procedure TSynFoxproSyn.NumberProc;
   end;
 
 begin
-  inc(Run);
-  fTokenID := tkNumber;
+  Inc(Run);
+  FTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
-        if FLine[Run + 1] = '.' then break;
+        if FLine[Run + 1] = '.' then
+          Break;
     end;
-    inc(Run);
+    Inc(Run);
   end;
 end;
 
 procedure TSynFoxproSyn.OrSymbolProc;
 begin
   {or}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.PlusProc;
 begin
   {subtract}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.PointProc;
@@ -1539,8 +1543,8 @@ begin
     (SynWideUpperCase(FLine[Run + 1]) = 'F')) and     {.f.}
     (FLine[Run + 2] = '.') then
   begin
-    inc(Run, 3);
-    fTokenID := tkSymbol;
+    Inc(Run, 3);
+    FTokenID := tkSymbol;
   end
   else if (((SynWideUpperCase(FLine[Run + 1]) = 'A') and
     (SynWideUpperCase(FLine[Run + 2]) = 'N') and
@@ -1550,133 +1554,136 @@ begin
     (SynWideUpperCase(FLine[Run + 3]) = 'T'))) and   {.not.}
     (FLine[Run + 4] = '.') then
   begin
-    inc(Run, 5);
-    fTokenID := tkSymbol;
+    Inc(Run, 5);
+    FTokenID := tkSymbol;
   end
   else if (SynWideUpperCase(FLine[Run + 1]) = 'O') and
     (SynWideUpperCase(FLine[Run + 2]) = 'R') and
     (FLine[Run + 3] = '.') then  {.or.}
   begin
-    inc(Run, 4);
-    fTokenID := tkSymbol;
+    Inc(Run, 4);
+    FTokenID := tkSymbol;
   end
   else                                 {point}
   begin
-    inc(Run);
-    fTokenID := tkSymbol;
+    Inc(Run);
+    FTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynFoxproSyn.QuestionProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.RoundCloseProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.RoundOpenProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.SemiColonProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.SlashProc;
 begin
   {division}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynFoxproSyn.SquareCloseProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.SquareOpenProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.StarProc;
 begin
-  if (Run = 0) or (WideTrim(Copy(fLine, 1, Run)) = '') then
+  if (Run = 0) or (WideTrim(Copy(FLine, 1, Run)) = '') then
   begin                        {Foxpro Comments}
-    inc(Run);
-    fTokenID := tkComment;
+    Inc(Run);
+    FTokenID := tkComment;
     while FLine[Run] <> #0 do
     begin
       case FLine[Run] of
-        #10, #13: break;
+        #10, #13:
+          Break;
       end;
-      inc(Run);
+      Inc(Run);
     end;
   end
   else
   begin
     {star}
-    inc(Run);
-    fTokenID := tkSymbol;
+    Inc(Run);
+    FTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynFoxproSyn.StringProc;
 begin
-  fTokenID := tkString;
-  if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then inc(Run, 2);
+  FTokenID := tkString;
+  if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then Inc(Run, 2);
   repeat
     case FLine[Run] of
-      #0, #10, #13: break;
+      #0, #10, #13:
+        Break;
       #92:
-        if FLine[Run + 1] = #10 then inc(Run);
+        if FLine[Run + 1] = #10 then
+          Inc(Run);
     end;
-    inc(Run);
+    Inc(Run);
   until FLine[Run] = #34;
-  if FLine[Run] <> #0 then inc(Run);
+  if FLine[Run] <> #0 then Inc(Run);
 end;
 
 procedure TSynFoxproSyn.TildeProc;
 begin
-  inc(Run);
-  fTokenId := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.XOrSymbolProc;
 begin
   {xor}
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynFoxproSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynFoxproSyn.Next;
 begin
-  fTokenPos := Run;
-  case fLine[Run] of
+  FTokenPos := Run;
+  case FLine[Run] of
     '&': AndSymbolProc;
     #39: AsciiCharProc;
     '@': AtSymbolProc;
@@ -1714,15 +1721,15 @@ begin
   inherited;
 end;
 
-function TSynFoxproSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynFoxproSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -1730,37 +1737,38 @@ end;
 
 function TSynFoxproSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynFoxproSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynFoxproSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := fCommentAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkNumber: Result := fNumberAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fIdentifierAttri;
-    else Result := nil;
+    tkComment: Result := FCommentAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkNumber: Result := FNumberAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkSymbol: Result := FSymbolAttri;
+    tkUnknown: Result := FIdentifierAttri;
+    else
+      Result := nil;
   end;
 end;
 
-function TSynFoxproSyn.GetTokenKind: integer;
+function TSynFoxproSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynFoxproSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterFoxpro;
+  Result := FDefaultFilter <> SYNS_FilterFoxpro;
 end;
 
 class function TSynFoxproSyn.GetLanguageName: string;                    

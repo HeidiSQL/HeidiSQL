@@ -1,5 +1,5 @@
 {==============================================================================
-  Content:  TheTextDrawer, a helper class for drawing of
+  Content:  TSynTextDrawer, a helper class for drawing of
             fixed-pitched font characters
  ==============================================================================
   The contents of this file are subject to the Mozilla Public License Ver. 1.0
@@ -41,16 +41,16 @@
             09/16/1999  HANAI Tohru
                         Redesigned for multi-bytes character drawing.
             09/19/1999  HANAI Tohru
-                        Since TheTextDrawer grew fat it was split into three
-                        classes - TheFontStock, TheTextDrawer and TheTextDrawerEx.
-                        Currently it should avoid TheTextDrawer because it is
-                        slower than TheTextDrawer.
+                        Since TSynTextDrawer grew fat it was split into three
+                        classes - TSynFontStock, TSynTextDrawer and TheTextDrawerEx.
+                        Currently it should avoid TSynTextDrawer because it is
+                        slower than TSynTextDrawer.
             09/25/1999  HANAI Tohru
                         Added internally definition of LeadBytes for Delphi 2
             10/01/1999  HANAI Tohru
                         To save font resources, now all fonts data are shared
-                        among all of TheFontStock instances. With this changing,
-                        there added a new class `TheFontsInfoManager' to manage
+                        among all of TSynFontStock instances. With this changing,
+                        there added a new class `TSynFontsInfoManager' to manage
                         those shared data.
             10/09/1999  HANAI Tohru
                         Added BaseStyle property to TheFontFont class.
@@ -72,35 +72,35 @@ uses
   Types, UITypes,
   {$ENDIF}
   SynUnicode,
+  SynEditTypes,
   SysUtils,
   Classes,
   Windows,
-  Graphics,
-  Math;
+  Graphics;
 
 const
-  FontStyleCount = Ord(High(TFontStyle)) +1;
+  FontStyleCount = Ord(High(TFontStyle)) + 1;
   FontStyleCombineCount = (1 shl FontStyleCount);
-  
+
 type
   PIntegerArray = ^TIntegerArray;
   TIntegerArray = array[0..MaxInt div SizeOf(Integer) - 1] of Integer;
 
-  TheStockFontPatterns = 0..FontStyleCombineCount -1;
+  TSynStockFontPatterns = 0..FontStyleCombineCount - 1;
 
-  PheFontData = ^TheFontData;
-  TheFontData = record
+  PSynFontData = ^TSynFontData;
+  TSynFontData = record
     Style: TFontStyles;
     Handle: HFont;
     CharAdv: Integer;
     CharHeight: Integer;
   end;
 
-  PheFontsData = ^TheFontsData;
-  TheFontsData = array[TheStockFontPatterns] of TheFontData;
+  PSynFontsData = ^TSynFontsData;
+  TSynFontsData = array[TSynStockFontPatterns] of TSynFontData;
 
-  PheSharedFontsInfo = ^TheSharedFontsInfo;
-  TheSharedFontsInfo = record
+  PSynSharedFontsInfo = ^TSynSharedFontsInfo;
+  TSynSharedFontsInfo = record
     // reference counters
     RefCount: Integer;
     LockCount: Integer;
@@ -108,52 +108,54 @@ type
     BaseFont: TFont;
     BaseLF: TLogFont;
     IsTrueType: Boolean;
-    FontsData: TheFontsData;
+    FontsData: TSynFontsData;
   end;
 
-  { TheStockFontManager }
+  { TSynStockFontManager }
 
-  TheFontsInfoManager = class
+  TSynFontsInfoManager = class
   private
     FFontsInfo: TList;
-    function FindFontsInfo(const LF: TLogFont): PheSharedFontsInfo;
+    function FindFontsInfo(const LF: TLogFont): PSynSharedFontsInfo;
     function CreateFontsInfo(ABaseFont: TFont;
-      const LF: TLogFont): PheSharedFontsInfo;
-    procedure DestroyFontHandles(pFontsInfo: PheSharedFontsInfo);
+      const LF: TLogFont): PSynSharedFontsInfo;
+    procedure DestroyFontHandles(pFontsInfo: PSynSharedFontsInfo);
     procedure RetrieveLogFontForComparison(ABaseFont: TFont; var LF: TLogFont);
   public
     constructor Create;
     destructor Destroy; override;
-    procedure LockFontsInfo(pFontsInfo: PheSharedFontsInfo);
-    procedure UnLockFontsInfo(pFontsInfo: PheSharedFontsInfo);
-    function GetFontsInfo(ABaseFont: TFont): PheSharedFontsInfo;
-    procedure ReleaseFontsInfo(pFontsInfo: PheSharedFontsInfo);
+
+    procedure LockFontsInfo(pFontsInfo: PSynSharedFontsInfo);
+    procedure UnLockFontsInfo(pFontsInfo: PSynSharedFontsInfo);
+    function GetFontsInfo(ABaseFont: TFont): PSynSharedFontsInfo;
+    procedure ReleaseFontsInfo(pFontsInfo: PSynSharedFontsInfo);
   end;
 
-  { TheFontStock }
+  { TSynFontStock }
 
   TTextOutOptions = set of (tooOpaque, tooClipped);
 
-  TheExtTextOutProc = procedure (X, Y: Integer; fuOptions: TTextOutOptions;
+  TSynExtTextOutProc = procedure (X, Y: Integer; fuOptions: TTextOutOptions;
     const ARect: TRect; const Text: UnicodeString; Length: Integer) of object;
 
-  EheFontStockException = class(Exception);
+  ESynFontStockException = class(ESynError);
 
-  TheFontStock = class
+  TSynFontStock = class
   private
-    // private DC
+    // Private DC
     FDC: HDC;
     FDCRefCount: Integer;
 
     // Shared fonts
-    FpInfo: PheSharedFontsInfo;
+    FpInfo: PSynSharedFontsInfo;
     FUsingFontHandles: Boolean;
 
     // Current font
     FCrntFont: HFONT;
     FCrntStyle: TFontStyles;
-    FpCrntFontData: PheFontData;
-    // local font info
+    FpCrntFontData: PSynFontData;
+
+    // Local font info
     FBaseLF: TLogFont;
     function GetBaseFont: TFont;
     function GetIsTrueType: Boolean;
@@ -164,17 +166,20 @@ type
     function CalcFontAdvance(DC: HDC; pCharHeight: PInteger): Integer; virtual;
     function GetCharAdvance: Integer; virtual;
     function GetCharHeight: Integer; virtual;
-    function GetFontData(idx: Integer): PheFontData; virtual;
+    function GetFontData(idx: Integer): PSynFontData; virtual;
     procedure UseFontHandles;
     procedure ReleaseFontsInfo;
     procedure SetBaseFont(Value: TFont); virtual;
     procedure SetStyle(Value: TFontStyles); virtual;
-    property FontData[idx: Integer]: PheFontData read GetFontData;
-    property FontsInfo: PheSharedFontsInfo read FpInfo;
+
+    property FontData[idx: Integer]: PSynFontData read GetFontData;
+    property FontsInfo: PSynSharedFontsInfo read FpInfo;
   public
     constructor Create(InitialFont: TFont); virtual;
     destructor Destroy; override;
+
     procedure ReleaseFontHandles; virtual;
+
     property BaseFont: TFont read GetBaseFont;
     property Style: TFontStyles read FCrntStyle write SetStyle;
     property FontHandle: HFONT read FCrntFont;
@@ -183,26 +188,26 @@ type
     property IsTrueType: Boolean read GetIsTrueType;
   end;
 
-  { TheTextDrawer }
-  EheTextDrawerException = class(Exception);
+  { TSynTextDrawer }
+  ESynTextDrawerException = class(ESynError);
 
-  TheTextDrawer = class(TObject)
+  TSynTextDrawer = class(TObject)
   private
     FDC: HDC;
     FSaveDC: Integer;
 
     // Font information
-    FFontStock: TheFontStock;
+    FFontStock: TSynFontStock;
     FStockBitmap: TBitmap;
     FCalcExtentBaseStyle: TFontStyles;
     FBaseCharWidth: Integer;
     FBaseCharHeight: Integer;
 
-    // current font and properties
+    // Current font and properties
     FCrntFont: HFONT;
     FETODist: PIntegerArray;
 
-    // current font attributes
+    // Current font attributes
     FColor: TColor;
     FBkColor: TColor;
     FCharExtra: Integer;
@@ -211,33 +216,36 @@ type
     FDrawingCount: Integer;
 
     // GetCharABCWidthsW cache
-    FCharABCWidthCache : array [0..127] of TABC;
-    FCharWidthCache : array [0..127] of Integer;
-
+    FCharABCWidthCache: array [0..127] of TABC;
+    FCharWidthCache: array [0..127] of Integer;
   protected
     procedure ReleaseETODist; virtual;
     procedure AfterStyleSet; virtual;
     procedure DoSetCharExtra(Value: Integer); virtual;
     procedure FlushCharABCWidthCache;
     function GetCachedABCWidth(c : Cardinal; var abc : TABC) : Boolean;
+
     property StockDC: HDC read FDC;
     property DrawingCount: Integer read FDrawingCount;
-    property FontStock: TheFontStock read FFontStock;
+    property FontStock: TSynFontStock read FFontStock;
     property BaseCharWidth: Integer read FBaseCharWidth;
     property BaseCharHeight: Integer read FBaseCharHeight;
-
   public
     constructor Create(CalcExtentBaseStyle: TFontStyles; BaseFont: TFont); virtual;
     destructor Destroy; override;
+
     function GetCharWidth: Integer; virtual;
     function GetCharHeight: Integer; virtual;
+
     procedure BeginDrawing(DC: HDC); virtual;
     procedure EndDrawing; virtual;
+
     procedure TextOut(X, Y: Integer; Text: PWideChar; Length: Integer); virtual;
     procedure ExtTextOut(X, Y: Integer; Options: TTextOutOptions; ARect: TRect;
       Text: PWideChar; Length: Integer); virtual;
     function TextExtent(const Text: UnicodeString): TSize; overload;
     function TextExtent(Text: PWideChar; Count: Integer): TSize; overload;
+    function TextWidth(const Char: WideChar): Integer; overload;
     function TextWidth(const Text: UnicodeString): Integer; overload;
     function TextWidth(Text: PWideChar; Count: Integer): Integer; overload;
     procedure SetBaseFont(Value: TFont); virtual;
@@ -247,6 +255,7 @@ type
     procedure SetBackColor(Value: TColor); virtual;
     procedure SetCharExtra(Value: Integer); virtual;
     procedure ReleaseTemporaryResources; virtual;
+
     property CharWidth: Integer read GetCharWidth;
     property CharHeight: Integer read GetCharHeight;
     property BaseFont: TFont write SetBaseFont;
@@ -257,33 +266,30 @@ type
     property CharExtra: Integer read FCharExtra write SetCharExtra;
   end;
 
-function GetFontsInfoManager: TheFontsInfoManager;
+function GetFontsInfoManager: TSynFontsInfoManager;
 
 function UniversalExtTextOut(DC: HDC; X, Y: Integer; Options: TTextOutOptions;
   Rect: TRect; Str: PWideChar; Count: Integer; ETODist: PIntegerArray): Boolean;
 
 implementation
 
-{$IFDEF SYN_UNISCRIBE}
 uses
-  SynUsp10;
+  Math
+{$IFDEF SYN_UNISCRIBE}
+  , SynUsp10
 {$ENDIF}
+  ;
 
 var
-  gFontsInfoManager: TheFontsInfoManager;
+  GFontsInfoManager: TSynFontsInfoManager;
 
 { utility routines }
 
-function GetFontsInfoManager: TheFontsInfoManager;
+function GetFontsInfoManager: TSynFontsInfoManager;
 begin
-  if not Assigned(gFontsInfoManager) then
-    gFontsInfoManager := TheFontsInfoManager.Create;
-  Result := gFontsInfoManager;
-end;
-
-function Min(x, y: integer): integer;
-begin
-  if x < y then Result := x else Result := y;
+  if not Assigned(GFontsInfoManager) then
+    GFontsInfoManager := TSynFontsInfoManager.Create;
+  Result := GFontsInfoManager;
 end;
 
 // UniversalExtTextOut uses UniScribe where available for the best possible
@@ -351,26 +357,26 @@ begin
   end;
 end;
 
-{ TheFontsInfoManager }
+{ TSynFontsInfoManager }
 
-procedure TheFontsInfoManager.LockFontsInfo(
-  pFontsInfo: PheSharedFontsInfo);
+procedure TSynFontsInfoManager.LockFontsInfo(
+  pFontsInfo: PSynSharedFontsInfo);
 begin
   Inc(pFontsInfo^.LockCount);
 end;
 
-constructor TheFontsInfoManager.Create;
+constructor TSynFontsInfoManager.Create;
 begin
   inherited;
 
   FFontsInfo := TList.Create;
 end;
 
-function TheFontsInfoManager.CreateFontsInfo(ABaseFont: TFont;
-  const LF: TLogFont): PheSharedFontsInfo;
+function TSynFontsInfoManager.CreateFontsInfo(ABaseFont: TFont;
+  const LF: TLogFont): PSynSharedFontsInfo;
 begin
   New(Result);
-  FillChar(Result^, SizeOf(TheSharedFontsInfo), 0);
+  FillChar(Result^, SizeOf(TSynSharedFontsInfo), 0);
   with Result^ do
     try
       BaseFont := TFont.Create;
@@ -384,8 +390,8 @@ begin
   end;
 end;
 
-procedure TheFontsInfoManager.UnlockFontsInfo(
-  pFontsInfo: PheSharedFontsInfo);
+procedure TSynFontsInfoManager.UnlockFontsInfo(
+  pFontsInfo: PSynSharedFontsInfo);
 begin
   with pFontsInfo^ do
   begin
@@ -395,16 +401,16 @@ begin
   end;
 end;
 
-destructor TheFontsInfoManager.Destroy;
+destructor TSynFontsInfoManager.Destroy;
 begin
-  gFontsInfoManager := nil;
+  GFontsInfoManager := nil;
   
   if Assigned(FFontsInfo) then
   begin
     while FFontsInfo.Count > 0 do
     begin
-      ASSERT(1 = PheSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1])^.RefCount);
-      ReleaseFontsInfo(PheSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1]));
+      Assert(1 = PSynSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1])^.RefCount);
+      ReleaseFontsInfo(PSynSharedFontsInfo(FFontsInfo[FFontsInfo.Count - 1]));
     end;
     FFontsInfo.Free;
   end;
@@ -412,13 +418,13 @@ begin
   inherited;
 end;
 
-procedure TheFontsInfoManager.DestroyFontHandles(
-  pFontsInfo: PheSharedFontsInfo);
+procedure TSynFontsInfoManager.DestroyFontHandles(
+  pFontsInfo: PSynSharedFontsInfo);
 var
   i: Integer;
 begin
   with pFontsInfo^ do
-    for i := Low(TheStockFontPatterns) to High(TheStockFontPatterns) do
+    for i := Low(TSynStockFontPatterns) to High(TSynStockFontPatterns) do
       with FontsData[i] do
         if Handle <> 0 then
         begin
@@ -427,25 +433,25 @@ begin
         end;
 end;
 
-function TheFontsInfoManager.FindFontsInfo(
-  const LF: TLogFont): PheSharedFontsInfo;
+function TSynFontsInfoManager.FindFontsInfo(
+  const LF: TLogFont): PSynSharedFontsInfo;
 var
   i: Integer;
 begin
   for i := 0 to FFontsInfo.Count - 1 do
   begin
-    Result := PheSharedFontsInfo(FFontsInfo[i]);
+    Result := PSynSharedFontsInfo(FFontsInfo[i]);
     if CompareMem(@(Result^.BaseLF), @LF, SizeOf(TLogFont)) then
       Exit;
   end;
   Result := nil;
 end;
 
-function TheFontsInfoManager.GetFontsInfo(ABaseFont: TFont): PheSharedFontsInfo;
+function TSynFontsInfoManager.GetFontsInfo(ABaseFont: TFont): PSynSharedFontsInfo;
 var
   LF: TLogFont;
 begin
-  ASSERT(Assigned(ABaseFont));
+  Assert(Assigned(ABaseFont));
 
   RetrieveLogFontForComparison(ABaseFont, LF);
   Result := FindFontsInfo(LF);
@@ -459,18 +465,13 @@ begin
     Inc(Result^.RefCount);
 end;
 
-procedure TheFontsInfoManager.ReleaseFontsInfo(pFontsInfo: PheSharedFontsInfo);
+procedure TSynFontsInfoManager.ReleaseFontsInfo(pFontsInfo: PSynSharedFontsInfo);
 begin
-  ASSERT(Assigned(pFontsInfo));
+  Assert(Assigned(pFontsInfo));
 
   with pFontsInfo^ do
   begin
-{$IFDEF HE_ASSERT}
-    ASSERT(LockCount < RefCount,
-      'Call DeactivateFontsInfo before calling this.');
-{$ELSE}
-    ASSERT(LockCount < RefCount);
-{$ENDIF}
+    Assert(LockCount < RefCount, 'Call DeactivateFontsInfo before calling this.');
     if RefCount > 1 then
       Dec(RefCount)
     else
@@ -483,7 +484,7 @@ begin
   end;
 end;
 
-procedure TheFontsInfoManager.RetrieveLogFontForComparison(ABaseFont: TFont;
+procedure TSynFontsInfoManager.RetrieveLogFontForComparison(ABaseFont: TFont;
   var LF: TLogFont);
 var
   pEnd: PChar;
@@ -499,11 +500,11 @@ begin
   end;
 end;
 
-{ TheFontStock }
+{ TSynFontStock }
 
 // CalcFontAdvance : Calculation a advance of a character of a font.
 //  [*]hCalcFont will be selected as FDC's font if FDC wouldn't be zero.
-function TheFontStock.CalcFontAdvance(DC: HDC; pCharHeight: PInteger): Integer;
+function TSynFontStock.CalcFontAdvance(DC: HDC; pCharHeight: PInteger): Integer;
 var
   TM: TTextMetric;
   ABC: TABC;
@@ -535,47 +536,47 @@ begin
     pCharHeight^ := Abs(TM.tmHeight) {+ TM.tmInternalLeading};
 end;
 
-constructor TheFontStock.Create(InitialFont: TFont);
+constructor TSynFontStock.Create(InitialFont: TFont);
 begin
   inherited Create;
 
   SetBaseFont(InitialFont);
 end;
 
-destructor TheFontStock.Destroy;
+destructor TSynFontStock.Destroy;
 begin
   ReleaseFontsInfo;
-  ASSERT(FDCRefCount = 0);
+  Assert(FDCRefCount = 0);
 
   inherited;
 end;
 
-function TheFontStock.GetBaseFont: TFont;
+function TSynFontStock.GetBaseFont: TFont;
 begin
   Result := FpInfo^.BaseFont;
 end;
 
-function TheFontStock.GetCharAdvance: Integer;
+function TSynFontStock.GetCharAdvance: Integer;
 begin
   Result := FpCrntFontData^.CharAdv;
 end;
 
-function TheFontStock.GetCharHeight: Integer;
+function TSynFontStock.GetCharHeight: Integer;
 begin
   Result := FpCrntFontData^.CharHeight;
 end;
 
-function TheFontStock.GetFontData(idx: Integer): PheFontData;
+function TSynFontStock.GetFontData(idx: Integer): PSynFontData;
 begin
   Result := @FpInfo^.FontsData[idx];
 end;
 
-function TheFontStock.GetIsTrueType: Boolean;
+function TSynFontStock.GetIsTrueType: Boolean;
 begin
   Result := FpInfo^.IsTrueType
 end;
 
-function TheFontStock.InternalCreateFont(Style: TFontStyles): HFONT;
+function TSynFontStock.InternalCreateFont(Style: TFontStyles): HFONT;
 const
   Bolds: array[Boolean] of Integer = (400, 700);
 begin
@@ -589,30 +590,30 @@ begin
   Result := CreateFontIndirect(FBaseLF);
 end;
 
-function TheFontStock.InternalGetDC: HDC;
+function TSynFontStock.InternalGetDC: HDC;
 begin
   if FDCRefCount = 0 then
   begin
-    ASSERT(FDC = 0);
+    Assert(FDC = 0);
     FDC := GetDC(0);
   end;
   Inc(FDCRefCount);
   Result := FDC;
 end;
 
-procedure TheFontStock.InternalReleaseDC(Value: HDC);
+procedure TSynFontStock.InternalReleaseDC(Value: HDC);
 begin
   Dec(FDCRefCount);
   if FDCRefCount <= 0 then
   begin
-    ASSERT((FDC <> 0) and (FDC = Value));
+    Assert((FDC <> 0) and (FDC = Value));
     ReleaseDC(0, FDC);
     FDC := 0;
-    ASSERT(FDCRefCount = 0);
+    Assert(FDCRefCount = 0);
   end;
 end;
 
-procedure TheFontStock.ReleaseFontHandles;
+procedure TSynFontStock.ReleaseFontHandles;
 begin
   if FUsingFontHandles then
     with GetFontsInfoManager do
@@ -622,7 +623,7 @@ begin
     end;
 end;
 
-procedure TheFontStock.ReleaseFontsInfo;
+procedure TSynFontStock.ReleaseFontsInfo;
 begin
   if Assigned(FpInfo) then
     with GetFontsInfoManager do
@@ -637,9 +638,9 @@ begin
     end;
 end;
 
-procedure TheFontStock.SetBaseFont(Value: TFont);
+procedure TSynFontStock.SetBaseFont(Value: TFont);
 var
-  pInfo: PheSharedFontsInfo;
+  pInfo: PSynSharedFontsInfo;
 begin
   if Assigned(Value) then
   begin
@@ -655,26 +656,22 @@ begin
     end;
   end
   else
-    raise EheFontStockException.Create('SetBaseFont: ''Value'' must be specified.');
+    raise ESynFontStockException.Create('SetBaseFont: ''Value'' must be specified.');
 end;
 
-procedure TheFontStock.SetStyle(Value: TFontStyles);
+procedure TSynFontStock.SetStyle(Value: TFontStyles);
 var
   idx: Integer;
   DC: HDC;
   hOldFont: HFONT;
-  p: PheFontData;
+  p: PSynFontData;
 begin
-{$IFDEF HE_ASSERT}
-  ASSERT(SizeOf(TFontStyles) = 1,
+  Assert(SizeOf(TFontStyles) = 1,
     'TheTextDrawer.SetStyle: There''s more than four font styles but the current '+
     'code expects only four styles.');
-{$ELSE}
-  ASSERT(SizeOf(TFontStyles) = 1);
-{$ENDIF}
 
   idx := Byte(Value);
-  ASSERT(idx <= High(TheStockFontPatterns));
+  Assert(idx <= High(TSynStockFontPatterns));
 
   UseFontHandles;
   p := FontData[idx];
@@ -706,7 +703,7 @@ begin
   InternalReleaseDC(DC);
 end;
 
-procedure TheFontStock.UseFontHandles;
+procedure TSynFontStock.UseFontHandles;
 begin
   if not FUsingFontHandles then
     with GetFontsInfoManager do
@@ -716,13 +713,13 @@ begin
     end;
 end;
 
-{ TheTextDrawer }
+{ TSynTextDrawer }
 
-constructor TheTextDrawer.Create(CalcExtentBaseStyle: TFontStyles; BaseFont: TFont);
+constructor TSynTextDrawer.Create(CalcExtentBaseStyle: TFontStyles; BaseFont: TFont);
 begin
   inherited Create;
 
-  FFontStock := TheFontStock.Create(BaseFont);
+  FFontStock := TSynFontStock.Create(BaseFont);
   FStockBitmap := TBitmap.Create;
   FCalcExtentBaseStyle := CalcExtentBaseStyle;
   SetBaseFont(BaseFont);
@@ -730,7 +727,7 @@ begin
   FBkColor := clWindow;
 end;
 
-destructor TheTextDrawer.Destroy;
+destructor TSynTextDrawer.Destroy;
 begin
   FStockBitmap.Free;
   FFontStock.Free;
@@ -739,7 +736,7 @@ begin
   inherited;
 end;
 
-procedure TheTextDrawer.ReleaseETODist;
+procedure TSynTextDrawer.ReleaseETODist;
 begin
   if Assigned(FETODist) then
   begin
@@ -748,13 +745,13 @@ begin
   end;
 end;
 
-procedure TheTextDrawer.BeginDrawing(DC: HDC);
+procedure TSynTextDrawer.BeginDrawing(DC: HDC);
 begin
   if (FDC = DC) then
-    ASSERT(FDC <> 0)
+    Assert(FDC <> 0)
   else
   begin
-    ASSERT((FDC = 0) and (DC <> 0) and (FDrawingCount = 0));
+    Assert((FDC = 0) and (DC <> 0) and (FDrawingCount = 0));
     FDC := DC;
     FSaveDC := SaveDC(DC);
     SelectObject(DC, FCrntFont);
@@ -765,9 +762,9 @@ begin
   Inc(FDrawingCount);
 end;
 
-procedure TheTextDrawer.EndDrawing;
+procedure TSynTextDrawer.EndDrawing;
 begin
-  ASSERT(FDrawingCount >= 1);
+  Assert(FDrawingCount >= 1);
   Dec(FDrawingCount);
   if FDrawingCount <= 0 then
   begin
@@ -779,17 +776,17 @@ begin
   end;
 end;
 
-function TheTextDrawer.GetCharWidth: Integer;
+function TSynTextDrawer.GetCharWidth: Integer;
 begin
   Result := FBaseCharWidth + FCharExtra;
 end;
 
-function TheTextDrawer.GetCharHeight: Integer;
+function TSynTextDrawer.GetCharHeight: Integer;
 begin
   Result := FBaseCharHeight;
 end;
 
-procedure TheTextDrawer.SetBaseFont(Value: TFont);
+procedure TSynTextDrawer.SetBaseFont(Value: TFont);
 begin
   if Assigned(Value) then
   begin
@@ -807,10 +804,10 @@ begin
     SetStyle(Value.Style);
   end
   else
-    raise EheTextDrawerException.Create('SetBaseFont: ''Value'' must be specified.');
+    raise ESynTextDrawerException.Create('SetBaseFont: ''Value'' must be specified.');
 end;
 
-procedure TheTextDrawer.SetBaseStyle(const Value: TFontStyles);
+procedure TSynTextDrawer.SetBaseStyle(const Value: TFontStyles);
 begin
   if FCalcExtentBaseStyle <> Value then
   begin
@@ -826,7 +823,7 @@ begin
   end;
 end;
 
-procedure TheTextDrawer.SetStyle(Value: TFontStyles);
+procedure TSynTextDrawer.SetStyle(Value: TFontStyles);
 begin
   with FFontStock do
   begin
@@ -836,13 +833,13 @@ begin
   AfterStyleSet;
 end;
 
-procedure TheTextDrawer.AfterStyleSet;
+procedure TSynTextDrawer.AfterStyleSet;
 begin
   if FDC <> 0 then
     SelectObject(FDC, FCrntFont);
 end;
 
-procedure TheTextDrawer.SetForeColor(Value: TColor);
+procedure TSynTextDrawer.SetForeColor(Value: TColor);
 begin
   if FColor <> Value then
   begin
@@ -852,7 +849,7 @@ begin
   end;
 end;
 
-procedure TheTextDrawer.SetBackColor(Value: TColor);
+procedure TSynTextDrawer.SetBackColor(Value: TColor);
 begin
   if FBkColor <> Value then
   begin
@@ -862,7 +859,7 @@ begin
   end;
 end;
 
-procedure TheTextDrawer.SetCharExtra(Value: Integer);
+procedure TSynTextDrawer.SetCharExtra(Value: Integer);
 begin
   if FCharExtra <> Value then
   begin
@@ -871,33 +868,37 @@ begin
   end;
 end;
 
-procedure TheTextDrawer.DoSetCharExtra(Value: Integer);
+procedure TSynTextDrawer.DoSetCharExtra(Value: Integer);
 begin
   if FDC <> 0 then
     SetTextCharacterExtra(FDC, Value);
 end;
 
-procedure TheTextDrawer.FlushCharABCWidthCache;
+procedure TSynTextDrawer.FlushCharABCWidthCache;
 begin
-   FillChar(FCharABCWidthCache, SizeOf(TABC)*Length(FCharABCWidthCache), 0);
-   FillChar(FCharWidthCache, SizeOf(Integer)*Length(FCharWidthCache), 0);
+  FillChar(FCharABCWidthCache, SizeOf(TABC) * Length(FCharABCWidthCache), 0);
+  FillChar(FCharWidthCache, SizeOf(Integer) * Length(FCharWidthCache), 0);
 end;
 
-function TheTextDrawer.GetCachedABCWidth(c : Cardinal; var abc : TABC) : Boolean;
+function TSynTextDrawer.GetCachedABCWidth(c: Cardinal; var abc: TABC) : Boolean;
 begin
-   if c>High(FCharABCWidthCache) then begin
-      Result:=GetCharABCWidthsW(FDC, c, c, abc);
-      Exit;
-   end;
-   abc:=FCharABCWidthCache[c];
-   if (abc.abcA or Integer(abc.abcB) or abc.abcC)=0 then begin
-      Result:=GetCharABCWidthsW(FDC, c, c, abc);
-      if Result then
-         FCharABCWidthCache[c]:=abc;
-   end else Result:=True;
+  if c > High(FCharABCWidthCache) then
+  begin
+    Result := GetCharABCWidthsW(FDC, c, c, abc);
+    Exit;
+  end;
+  abc := FCharABCWidthCache[c];
+  if (abc.abcA or Integer(abc.abcB) or abc.abcC) = 0 then
+  begin
+    Result := GetCharABCWidthsW(FDC, c, c, abc);
+    if Result then
+      FCharABCWidthCache[c] := abc;
+  end
+  else
+    Result := True;
 end;
 
-procedure TheTextDrawer.TextOut(X, Y: Integer; Text: PWideChar;
+procedure TSynTextDrawer.TextOut(X, Y: Integer; Text: PWideChar;
   Length: Integer);
 var
   r: TRect;
@@ -906,7 +907,7 @@ begin
   UniversalExtTextOut(FDC, X, Y, [], r, Text, Length, nil);
 end;
 
-procedure TheTextDrawer.ExtTextOut(X, Y: Integer; Options: TTextOutOptions;
+procedure TSynTextDrawer.ExtTextOut(X, Y: Integer; Options: TTextOutOptions;
   ARect: TRect; Text: PWideChar; Length: Integer);
 
   procedure InitETODist(CharWidth: Integer);
@@ -975,40 +976,61 @@ begin
   UniversalExtTextOut(FDC, X, Y, Options, ARect, Text, Length, FETODist);
 end;
 
-procedure TheTextDrawer.ReleaseTemporaryResources;
+procedure TSynTextDrawer.ReleaseTemporaryResources;
 begin
   FFontStock.ReleaseFontHandles;
 end;
 
-function TheTextDrawer.TextExtent(const Text: UnicodeString): TSize;
+function TSynTextDrawer.TextExtent(const Text: UnicodeString): TSize;
 begin
   Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text);
 end;
 
-function TheTextDrawer.TextExtent(Text: PWideChar; Count: Integer): TSize;
+function TSynTextDrawer.TextExtent(Text: PWideChar; Count: Integer): TSize;
 begin
   Result := SynUnicode.GetTextSize(FStockBitmap.Canvas.Handle, Text, Count);
 end;
 
-function TheTextDrawer.TextWidth(const Text: UnicodeString): Integer;
+function TSynTextDrawer.TextWidth(const Char: WideChar): Integer;
 var
-   c : Cardinal;
+  c: Cardinal;
 begin
-   if Length(Text)=1 then begin
-      c:=Ord(Text[1]);
-      if c<=High(FCharWidthCache) then begin
-         Result:=FCharWidthCache[c];
-         if Result=0 then begin
-            Result:=SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
-            FCharWidthCache[c]:=Result;
-         end;
-         Exit;
-      end;
-   end;
-   Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
+  c := Ord(Char);
+  if c <= High(FCharWidthCache) then
+  begin
+    Result := FCharWidthCache[c];
+    if Result = 0 then
+    begin
+      Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Char).cX;
+      FCharWidthCache[c] := Result;
+    end;
+  end
+  else
+    Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Char).cX;
 end;
 
-function TheTextDrawer.TextWidth(Text: PWideChar; Count: Integer): Integer;
+function TSynTextDrawer.TextWidth(const Text: UnicodeString): Integer;
+var
+  c: Cardinal;
+begin
+  if Length(Text) = 1 then
+  begin
+    c := Ord(Text[1]);
+    if c <= High(FCharWidthCache) then
+    begin
+      Result := FCharWidthCache[c];
+      if Result = 0 then
+      begin
+        Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
+        FCharWidthCache[c] := Result;
+      end;
+      Exit;
+    end;
+  end;
+  Result := SynUnicode.TextExtent(FStockBitmap.Canvas, Text).cX;
+end;
+
+function TSynTextDrawer.TextWidth(Text: PWideChar; Count: Integer): Integer;
 begin
   Result := SynUnicode.GetTextSize(FStockBitmap.Canvas.Handle, Text, Count).cX;
 end;
@@ -1016,6 +1038,6 @@ end;
 initialization
 
 finalization
-  gFontsInfoManager.Free;
+  GFontsInfoManager.Free;
 
 end.

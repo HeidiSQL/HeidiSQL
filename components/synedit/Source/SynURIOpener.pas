@@ -268,12 +268,12 @@ var
   Attri: TSynHighlighterAttributes;
 begin
   if (Button <> mbLeft) or (FCtrlActivatesLinks and not FControlDown) or
-    (Abs(FMouseDownX - X) > 4) or (Abs(FMouseDownY - Y) > 4) then exit;
+    (Abs(FMouseDownX - X) > 4) or (Abs(FMouseDownY - Y) > 4) then Exit;
 
   with TAccessCustomSynEdit(FEditor) do
   begin
     if (eoDragDropEditing in Options) and IsPointInSelection(ptLineCol) then
-      exit;
+      Exit;
 
     if X >= fGutterWidth then
     begin

@@ -50,7 +50,7 @@ The SynHighlighterPerl unit provides SynEdit with a Perl syntax highlighter.
 unit SynHighlighterPerl;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -79,18 +79,18 @@ type
   TSynPerlSyn = class(TSynCustomHighlighter)
   private
     FTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..2422] of TIdentFuncTableFunc;
-    fCommentAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fInvalidAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fNumberAttri: TSynHighlighterAttributes;
-    fOperatorAttri: TSynHighlighterAttributes;
-    fPragmaAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
-    fVariableAttri: TSynHighlighterAttributes;
+    FIdentFuncTable: array[0..2422] of TIdentFuncTableFunc;
+    FCommentAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FInvalidAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FOperatorAttri: TSynHighlighterAttributes;
+    FPragmaAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
+    FVariableAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function Func36accumulator(Index: Integer): TtkTokenKind;
     function Func36arg(Index: Integer): TtkTokenKind;
@@ -408,36 +408,36 @@ type
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
-      write fIdentifierAttri;
-    property InvalidAttri: TSynHighlighterAttributes read fInvalidAttri
-      write fInvalidAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
-      write fNumberAttri;
-    property OperatorAttri: TSynHighlighterAttributes read fOperatorAttri
-      write fOperatorAttri;
-    property PragmaAttri: TSynHighlighterAttributes read fPragmaAttri
-      write fPragmaAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri
-      write fStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
-      write fSymbolAttri;
-    property VariableAttri: TSynHighlighterAttributes read fVariableAttri
-      write fVariableAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
+      write FCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
+      write FIdentifierAttri;
+    property InvalidAttri: TSynHighlighterAttributes read FInvalidAttri
+      write FInvalidAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
+      write FNumberAttri;
+    property OperatorAttri: TSynHighlighterAttributes read FOperatorAttri
+      write FOperatorAttri;
+    property PragmaAttri: TSynHighlighterAttributes read FPragmaAttri
+      write FPragmaAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
+      write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri
+      write FStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
+      write FSymbolAttri;
+    property VariableAttri: TSynHighlighterAttributes read FVariableAttri
+      write FVariableAttri;
   end;
 
 implementation
@@ -638,10 +638,10 @@ begin
   while IsIdentChar(Str^) or CharInSet(Str^, ['$', '%', '@']) do
   begin
     Result := Result * 975 + Ord(Str^) * 515;
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 2423;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -649,10 +649,10 @@ function TSynPerlSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -661,292 +661,292 @@ procedure TSynPerlSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  fIdentFuncTable[368] := Func36accumulator;
-  fIdentFuncTable[2] := Func36arg;
-  fIdentFuncTable[804] := Func36argv;
-  fIdentFuncTable[2272] := Func36basetime;
-  fIdentFuncTable[626] := Func36child95error;
-  fIdentFuncTable[2026] := Func36debugging;
-  fIdentFuncTable[981] := Func36effective95group95id;
-  fIdentFuncTable[317] := Func36effective95user95id;
-  fIdentFuncTable[876] := Func36egid;
-  fIdentFuncTable[141] := Func36env;
-  fIdentFuncTable[35] := Func36errno;
-  fIdentFuncTable[495] := Func36euid;
-  fIdentFuncTable[2067] := Func36eval95error;
-  fIdentFuncTable[1589] := Func36executable95name;
-  fIdentFuncTable[1835] := Func36format95formfeed;
-  fIdentFuncTable[1465] := Func36format95line95break95characters;
-  fIdentFuncTable[1415] := Func36format95lines95left;
-  fIdentFuncTable[201] := Func36format95lines95per95page;
-  fIdentFuncTable[172] := Func36format95name;
-  fIdentFuncTable[2319] := Func36format95page95number;
-  fIdentFuncTable[867] := Func36format95top95name;
-  fIdentFuncTable[1237] := Func36gid;
-  fIdentFuncTable[519] := Func36inplace95edit;
-  fIdentFuncTable[315] := Func36input95line95number;
-  fIdentFuncTable[1733] := Func36input95record95separator;
-  fIdentFuncTable[1923] := Func36last95paren95match;
-  fIdentFuncTable[1093] := Func36list95separator;
-  fIdentFuncTable[1841] := Func36match;
-  fIdentFuncTable[2201] := Func36multiline95matching;
-  fIdentFuncTable[2313] := Func36nr;
-  fIdentFuncTable[2149] := Func36ofmt;
-  fIdentFuncTable[955] := Func36ors;
-  fIdentFuncTable[648] := Func36os95error;
-  fIdentFuncTable[522] := Func36output95autoflush;
-  fIdentFuncTable[97] := Func36output95field95separator;
-  fIdentFuncTable[1718] := Func36perl95version;
-  fIdentFuncTable[1568] := Func36perldb;
-  fIdentFuncTable[1461] := Func36pid;
-  fIdentFuncTable[723] := Func36postmatch;
-  fIdentFuncTable[908] := Func36prematch;
-  fIdentFuncTable[594] := Func36process95id;
-  fIdentFuncTable[169] := Func36program95name;
-  fIdentFuncTable[2182] := Func36real95group95id;
-  fIdentFuncTable[1084] := Func36real95user95id;
-  fIdentFuncTable[238] := Func36rs;
-  fIdentFuncTable[220] := Func36sig;
-  fIdentFuncTable[261] := Func36subscript95separator;
-  fIdentFuncTable[427] := Func36subsep;
-  fIdentFuncTable[1016] := Func36system95fd95max;
-  fIdentFuncTable[856] := Func36uid;
-  fIdentFuncTable[1803] := Func36warning;
-  fIdentFuncTable[1992] := Func37inc;
-  fIdentFuncTable[1181] := Func64argv;
-  fIdentFuncTable[1004] := Func64inc;
-  fIdentFuncTable[899] := FuncAbs;
-  fIdentFuncTable[79] := FuncAccept;
-  fIdentFuncTable[2102] := FuncAlarm;
-  fIdentFuncTable[2365] := FuncAnd;
-  fIdentFuncTable[1501] := FuncAtan2;
-  fIdentFuncTable[630] := FuncBind;
-  fIdentFuncTable[125] := FuncBinmode;
-  fIdentFuncTable[1110] := FuncBless;
-  fIdentFuncTable[19] := FuncCaller;
-  fIdentFuncTable[992] := FuncChdir;
-  fIdentFuncTable[2236] := FuncChmod;
-  fIdentFuncTable[2200] := FuncChomp;
-  fIdentFuncTable[1341] := FuncChop;
-  fIdentFuncTable[1964] := FuncChown;
-  fIdentFuncTable[1103] := FuncChr;
-  fIdentFuncTable[1046] := FuncChroot;
-  fIdentFuncTable[846] := FuncClose;
-  fIdentFuncTable[1463] := FuncClosedir;
-  fIdentFuncTable[470] := FuncCmp;
-  fIdentFuncTable[1076] := FuncConnect;
-  fIdentFuncTable[2039] := FuncConstant;
-  fIdentFuncTable[720] := FuncCos;
-  fIdentFuncTable[447] := FuncCrypt;
-  fIdentFuncTable[111] := FuncDbmclose;
-  fIdentFuncTable[1988] := FuncDbmopen;
-  fIdentFuncTable[985] := FuncDefined;
-  fIdentFuncTable[2418] := FuncDelete;
-  fIdentFuncTable[1194] := FuncDiagnostics;
-  fIdentFuncTable[2120] := FuncDie;
-  fIdentFuncTable[2107] := FuncDo;
-  fIdentFuncTable[2381] := FuncDump;
-  fIdentFuncTable[1909] := FuncEach;
-  fIdentFuncTable[991] := FuncElse;
-  fIdentFuncTable[341] := FuncElsif;
-  fIdentFuncTable[1739] := FuncEndgrent;
-  fIdentFuncTable[967] := FuncEndhostent;
-  fIdentFuncTable[2412] := FuncEndnetent;
-  fIdentFuncTable[1018] := FuncEndprotoent;
-  fIdentFuncTable[448] := FuncEndpwent;
-  fIdentFuncTable[1681] := FuncEndservent;
-  fIdentFuncTable[1052] := FuncEof;
-  fIdentFuncTable[1278] := FuncEq;
-  fIdentFuncTable[1816] := FuncEval;
-  fIdentFuncTable[1618] := FuncExec;
-  fIdentFuncTable[2020] := FuncExists;
-  fIdentFuncTable[514] := FuncExit;
-  fIdentFuncTable[1586] := FuncExp;
-  fIdentFuncTable[686] := FuncFcntl;
-  fIdentFuncTable[115] := FuncFileno;
-  fIdentFuncTable[1810] := FuncFlock;
-  fIdentFuncTable[2265] := FuncFor;
-  fIdentFuncTable[2225] := FuncForeach;
-  fIdentFuncTable[1846] := FuncFork;
-  fIdentFuncTable[1854] := FuncFormat;
-  fIdentFuncTable[1319] := FuncFormline;
-  fIdentFuncTable[1072] := FuncGe;
-  fIdentFuncTable[2289] := FuncGetc;
-  fIdentFuncTable[51] := FuncGetgrent;
-  fIdentFuncTable[864] := FuncGetgrgid;
-  fIdentFuncTable[1453] := FuncGetgrnam;
-  fIdentFuncTable[1663] := FuncGethostbyaddr;
-  fIdentFuncTable[567] := FuncGethostbyname;
-  fIdentFuncTable[422] := FuncGethostent;
-  fIdentFuncTable[1243] := FuncGetlogin;
-  fIdentFuncTable[1735] := FuncGetnetbyaddr;
-  fIdentFuncTable[1749] := FuncGetnetbyname;
-  fIdentFuncTable[1647] := FuncGetnetent;
-  fIdentFuncTable[1970] := FuncGetpeername;
-  fIdentFuncTable[2348] := FuncGetpgrp;
-  fIdentFuncTable[2321] := FuncGetppid;
-  fIdentFuncTable[423] := FuncGetpriority;
-  fIdentFuncTable[1315] := FuncGetprotobyname;
-  fIdentFuncTable[1495] := FuncGetprotobynumber;
-  fIdentFuncTable[2168] := FuncGetprotoent;
-  fIdentFuncTable[2293] := FuncGetpwent;
-  fIdentFuncTable[1272] := FuncGetpwnam;
-  fIdentFuncTable[1615] := FuncGetpwuid;
-  fIdentFuncTable[1017] := FuncGetservbyname;
-  fIdentFuncTable[186] := FuncGetservbyport;
-  fIdentFuncTable[26] := FuncGetservent;
-  fIdentFuncTable[737] := FuncGetsockname;
-  fIdentFuncTable[531] := FuncGetsockopt;
-  fIdentFuncTable[1843] := FuncGlob;
-  fIdentFuncTable[1717] := FuncGmtime;
-  fIdentFuncTable[1303] := FuncGoto;
-  fIdentFuncTable[1577] := FuncGrep;
-  fIdentFuncTable[1528] := FuncGt;
-  fIdentFuncTable[1896] := FuncHex;
-  fIdentFuncTable[292] := FuncIf;
-  fIdentFuncTable[1381] := FuncImport;
-  fIdentFuncTable[708] := FuncIndex;
-  fIdentFuncTable[2368] := FuncInt;
-  fIdentFuncTable[898] := FuncInteger;
-  fIdentFuncTable[1801] := FuncIoctl;
-  fIdentFuncTable[1665] := FuncJoin;
-  fIdentFuncTable[2161] := FuncKeys;
-  fIdentFuncTable[432] := FuncKill;
-  fIdentFuncTable[2001] := FuncLast;
-  fIdentFuncTable[439] := FuncLc;
-  fIdentFuncTable[485] := FuncLcfirst;
-  fIdentFuncTable[1469] := FuncLe;
-  fIdentFuncTable[132] := FuncLength;
-  fIdentFuncTable[2315] := FuncLess;
-  fIdentFuncTable[2160] := FuncLink;
-  fIdentFuncTable[593] := FuncListen;
-  fIdentFuncTable[1719] := FuncLocal;
-  fIdentFuncTable[1491] := FuncLocale;
-  fIdentFuncTable[357] := FuncLocaltime;
-  fIdentFuncTable[2033] := FuncLog;
-  fIdentFuncTable[1176] := FuncLstat;
-  fIdentFuncTable[1925] := FuncLt;
-  fIdentFuncTable[406] := FuncM;
-  fIdentFuncTable[1074] := FuncMap;
-  fIdentFuncTable[578] := FuncMkdir;
-  fIdentFuncTable[1701] := FuncMsgctl;
-  fIdentFuncTable[613] := FuncMsgget;
-  fIdentFuncTable[497] := FuncMsgrcv;
-  fIdentFuncTable[2156] := FuncMsgsnd;
-  fIdentFuncTable[218] := FuncMy;
-  fIdentFuncTable[174] := FuncNe;
-  fIdentFuncTable[611] := FuncNext;
-  fIdentFuncTable[478] := FuncNo;
-  fIdentFuncTable[1217] := FuncNot;
-  fIdentFuncTable[1597] := FuncOct;
-  fIdentFuncTable[1330] := FuncOpen;
-  fIdentFuncTable[342] := FuncOpendir;
-  fIdentFuncTable[164] := FuncOr;
-  fIdentFuncTable[1817] := FuncOrd;
-  fIdentFuncTable[1384] := FuncPack;
-  fIdentFuncTable[968] := FuncPackage;
-  fIdentFuncTable[1125] := FuncPipe;
-  fIdentFuncTable[1338] := FuncPop;
-  fIdentFuncTable[460] := FuncPos;
-  fIdentFuncTable[1768] := FuncPrint;
-  fIdentFuncTable[1800] := FuncPush;
-  fIdentFuncTable[43] := FuncQ;
-  fIdentFuncTable[777] := FuncQq;
-  fIdentFuncTable[1309] := FuncQuotemeta;
-  fIdentFuncTable[1444] := FuncQw;
-  fIdentFuncTable[1959] := FuncQx;
-  fIdentFuncTable[1367] := FuncRand;
-  fIdentFuncTable[2133] := FuncRead;
-  fIdentFuncTable[1635] := FuncReaddir;
-  fIdentFuncTable[645] := FuncReadlink;
-  fIdentFuncTable[416] := FuncRecv;
-  fIdentFuncTable[2221] := FuncRedo;
-  fIdentFuncTable[1311] := FuncRef;
-  fIdentFuncTable[2307] := FuncRename;
-  fIdentFuncTable[843] := FuncRequire;
-  fIdentFuncTable[426] := FuncReset;
-  fIdentFuncTable[2323] := FuncReturn;
-  fIdentFuncTable[436] := FuncReverse;
-  fIdentFuncTable[1134] := FuncRewinddir;
-  fIdentFuncTable[464] := FuncRindex;
-  fIdentFuncTable[272] := FuncRmdir;
-  fIdentFuncTable[1475] := FuncScalar;
-  fIdentFuncTable[1840] := FuncSeek;
-  fIdentFuncTable[1748] := FuncSeekdir;
-  fIdentFuncTable[42] := FuncSelect;
-  fIdentFuncTable[2021] := FuncSemctl;
-  fIdentFuncTable[933] := FuncSemget;
-  fIdentFuncTable[570] := FuncSemop;
-  fIdentFuncTable[888] := FuncSend;
-  fIdentFuncTable[1789] := FuncSetgrent;
-  fIdentFuncTable[915] := FuncSethostent;
-  fIdentFuncTable[2028] := FuncSetnetent;
-  fIdentFuncTable[2288] := FuncSetpgrp;
-  fIdentFuncTable[2047] := FuncSetpriority;
-  fIdentFuncTable[1369] := FuncSetprotoent;
-  fIdentFuncTable[1608] := FuncSetpwent;
-  fIdentFuncTable[1629] := FuncSetservent;
-  fIdentFuncTable[2134] := FuncSetsockopt;
-  fIdentFuncTable[1383] := FuncShift;
-  fIdentFuncTable[540] := FuncShmctl;
-  fIdentFuncTable[562] := FuncShmget;
-  fIdentFuncTable[2213] := FuncShmread;
-  fIdentFuncTable[1301] := FuncShmwrite;
-  fIdentFuncTable[1289] := FuncShutdown;
-  fIdentFuncTable[887] := FuncSigtrap;
-  fIdentFuncTable[297] := FuncSin;
-  fIdentFuncTable[1280] := FuncSleep;
-  fIdentFuncTable[2298] := FuncSocket;
-  fIdentFuncTable[1891] := FuncSocketpair;
-  fIdentFuncTable[1795] := FuncSort;
-  fIdentFuncTable[873] := FuncSplice;
-  fIdentFuncTable[830] := FuncSplit;
-  fIdentFuncTable[1546] := FuncSprintf;
-  fIdentFuncTable[1553] := FuncSqrt;
-  fIdentFuncTable[81] := FuncSrand;
-  fIdentFuncTable[184] := FuncStat;
-  fIdentFuncTable[1266] := FuncStrict;
-  fIdentFuncTable[1736] := FuncStudy;
-  fIdentFuncTable[885] := FuncSub;
-  fIdentFuncTable[112] := FuncSubs;
-  fIdentFuncTable[2260] := FuncSubstr;
-  fIdentFuncTable[878] := FuncSymlink;
-  fIdentFuncTable[1258] := FuncSyscall;
-  fIdentFuncTable[1422] := FuncSysread;
-  fIdentFuncTable[2196] := FuncSystem;
-  fIdentFuncTable[158] := FuncSyswrite;
-  fIdentFuncTable[149] := FuncTell;
-  fIdentFuncTable[2069] := FuncTelldir;
-  fIdentFuncTable[387] := FuncTie;
-  fIdentFuncTable[1470] := FuncTime;
-  fIdentFuncTable[509] := FuncTimes;
-  fIdentFuncTable[561] := FuncTr;
-  fIdentFuncTable[1727] := FuncTruncate;
-  fIdentFuncTable[669] := FuncUc;
-  fIdentFuncTable[819] := FuncUcfirst;
-  fIdentFuncTable[2299] := FuncUmask;
-  fIdentFuncTable[1162] := FuncUndef;
-  fIdentFuncTable[1946] := FuncUnless;
-  fIdentFuncTable[681] := FuncUnlink;
-  fIdentFuncTable[1015] := FuncUnpack;
-  fIdentFuncTable[1318] := FuncUnshift;
-  fIdentFuncTable[2280] := FuncUntie;
-  fIdentFuncTable[1060] := FuncUse;
-  fIdentFuncTable[442] := FuncUtime;
-  fIdentFuncTable[2080] := FuncValues;
-  fIdentFuncTable[160] := FuncVars;
-  fIdentFuncTable[1705] := FuncVec;
-  fIdentFuncTable[1560] := FuncWait;
-  fIdentFuncTable[672] := FuncWaitpid;
-  fIdentFuncTable[938] := FuncWantarray;
-  fIdentFuncTable[1123] := FuncWarn;
-  fIdentFuncTable[1091] := FuncWhile;
-  fIdentFuncTable[1105] := FuncWrite;
-  fIdentFuncTable[290] := FuncXor;
+  FIdentFuncTable[368] := Func36accumulator;
+  FIdentFuncTable[2] := Func36arg;
+  FIdentFuncTable[804] := Func36argv;
+  FIdentFuncTable[2272] := Func36basetime;
+  FIdentFuncTable[626] := Func36child95error;
+  FIdentFuncTable[2026] := Func36debugging;
+  FIdentFuncTable[981] := Func36effective95group95id;
+  FIdentFuncTable[317] := Func36effective95user95id;
+  FIdentFuncTable[876] := Func36egid;
+  FIdentFuncTable[141] := Func36env;
+  FIdentFuncTable[35] := Func36errno;
+  FIdentFuncTable[495] := Func36euid;
+  FIdentFuncTable[2067] := Func36eval95error;
+  FIdentFuncTable[1589] := Func36executable95name;
+  FIdentFuncTable[1835] := Func36format95formfeed;
+  FIdentFuncTable[1465] := Func36format95line95break95characters;
+  FIdentFuncTable[1415] := Func36format95lines95left;
+  FIdentFuncTable[201] := Func36format95lines95per95page;
+  FIdentFuncTable[172] := Func36format95name;
+  FIdentFuncTable[2319] := Func36format95page95number;
+  FIdentFuncTable[867] := Func36format95top95name;
+  FIdentFuncTable[1237] := Func36gid;
+  FIdentFuncTable[519] := Func36inplace95edit;
+  FIdentFuncTable[315] := Func36input95line95number;
+  FIdentFuncTable[1733] := Func36input95record95separator;
+  FIdentFuncTable[1923] := Func36last95paren95match;
+  FIdentFuncTable[1093] := Func36list95separator;
+  FIdentFuncTable[1841] := Func36match;
+  FIdentFuncTable[2201] := Func36multiline95matching;
+  FIdentFuncTable[2313] := Func36nr;
+  FIdentFuncTable[2149] := Func36ofmt;
+  FIdentFuncTable[955] := Func36ors;
+  FIdentFuncTable[648] := Func36os95error;
+  FIdentFuncTable[522] := Func36output95autoflush;
+  FIdentFuncTable[97] := Func36output95field95separator;
+  FIdentFuncTable[1718] := Func36perl95version;
+  FIdentFuncTable[1568] := Func36perldb;
+  FIdentFuncTable[1461] := Func36pid;
+  FIdentFuncTable[723] := Func36postmatch;
+  FIdentFuncTable[908] := Func36prematch;
+  FIdentFuncTable[594] := Func36process95id;
+  FIdentFuncTable[169] := Func36program95name;
+  FIdentFuncTable[2182] := Func36real95group95id;
+  FIdentFuncTable[1084] := Func36real95user95id;
+  FIdentFuncTable[238] := Func36rs;
+  FIdentFuncTable[220] := Func36sig;
+  FIdentFuncTable[261] := Func36subscript95separator;
+  FIdentFuncTable[427] := Func36subsep;
+  FIdentFuncTable[1016] := Func36system95fd95max;
+  FIdentFuncTable[856] := Func36uid;
+  FIdentFuncTable[1803] := Func36warning;
+  FIdentFuncTable[1992] := Func37inc;
+  FIdentFuncTable[1181] := Func64argv;
+  FIdentFuncTable[1004] := Func64inc;
+  FIdentFuncTable[899] := FuncAbs;
+  FIdentFuncTable[79] := FuncAccept;
+  FIdentFuncTable[2102] := FuncAlarm;
+  FIdentFuncTable[2365] := FuncAnd;
+  FIdentFuncTable[1501] := FuncAtan2;
+  FIdentFuncTable[630] := FuncBind;
+  FIdentFuncTable[125] := FuncBinmode;
+  FIdentFuncTable[1110] := FuncBless;
+  FIdentFuncTable[19] := FuncCaller;
+  FIdentFuncTable[992] := FuncChdir;
+  FIdentFuncTable[2236] := FuncChmod;
+  FIdentFuncTable[2200] := FuncChomp;
+  FIdentFuncTable[1341] := FuncChop;
+  FIdentFuncTable[1964] := FuncChown;
+  FIdentFuncTable[1103] := FuncChr;
+  FIdentFuncTable[1046] := FuncChroot;
+  FIdentFuncTable[846] := FuncClose;
+  FIdentFuncTable[1463] := FuncClosedir;
+  FIdentFuncTable[470] := FuncCmp;
+  FIdentFuncTable[1076] := FuncConnect;
+  FIdentFuncTable[2039] := FuncConstant;
+  FIdentFuncTable[720] := FuncCos;
+  FIdentFuncTable[447] := FuncCrypt;
+  FIdentFuncTable[111] := FuncDbmclose;
+  FIdentFuncTable[1988] := FuncDbmopen;
+  FIdentFuncTable[985] := FuncDefined;
+  FIdentFuncTable[2418] := FuncDelete;
+  FIdentFuncTable[1194] := FuncDiagnostics;
+  FIdentFuncTable[2120] := FuncDie;
+  FIdentFuncTable[2107] := FuncDo;
+  FIdentFuncTable[2381] := FuncDump;
+  FIdentFuncTable[1909] := FuncEach;
+  FIdentFuncTable[991] := FuncElse;
+  FIdentFuncTable[341] := FuncElsif;
+  FIdentFuncTable[1739] := FuncEndgrent;
+  FIdentFuncTable[967] := FuncEndhostent;
+  FIdentFuncTable[2412] := FuncEndnetent;
+  FIdentFuncTable[1018] := FuncEndprotoent;
+  FIdentFuncTable[448] := FuncEndpwent;
+  FIdentFuncTable[1681] := FuncEndservent;
+  FIdentFuncTable[1052] := FuncEof;
+  FIdentFuncTable[1278] := FuncEq;
+  FIdentFuncTable[1816] := FuncEval;
+  FIdentFuncTable[1618] := FuncExec;
+  FIdentFuncTable[2020] := FuncExists;
+  FIdentFuncTable[514] := FuncExit;
+  FIdentFuncTable[1586] := FuncExp;
+  FIdentFuncTable[686] := FuncFcntl;
+  FIdentFuncTable[115] := FuncFileno;
+  FIdentFuncTable[1810] := FuncFlock;
+  FIdentFuncTable[2265] := FuncFor;
+  FIdentFuncTable[2225] := FuncForeach;
+  FIdentFuncTable[1846] := FuncFork;
+  FIdentFuncTable[1854] := FuncFormat;
+  FIdentFuncTable[1319] := FuncFormline;
+  FIdentFuncTable[1072] := FuncGe;
+  FIdentFuncTable[2289] := FuncGetc;
+  FIdentFuncTable[51] := FuncGetgrent;
+  FIdentFuncTable[864] := FuncGetgrgid;
+  FIdentFuncTable[1453] := FuncGetgrnam;
+  FIdentFuncTable[1663] := FuncGethostbyaddr;
+  FIdentFuncTable[567] := FuncGethostbyname;
+  FIdentFuncTable[422] := FuncGethostent;
+  FIdentFuncTable[1243] := FuncGetlogin;
+  FIdentFuncTable[1735] := FuncGetnetbyaddr;
+  FIdentFuncTable[1749] := FuncGetnetbyname;
+  FIdentFuncTable[1647] := FuncGetnetent;
+  FIdentFuncTable[1970] := FuncGetpeername;
+  FIdentFuncTable[2348] := FuncGetpgrp;
+  FIdentFuncTable[2321] := FuncGetppid;
+  FIdentFuncTable[423] := FuncGetpriority;
+  FIdentFuncTable[1315] := FuncGetprotobyname;
+  FIdentFuncTable[1495] := FuncGetprotobynumber;
+  FIdentFuncTable[2168] := FuncGetprotoent;
+  FIdentFuncTable[2293] := FuncGetpwent;
+  FIdentFuncTable[1272] := FuncGetpwnam;
+  FIdentFuncTable[1615] := FuncGetpwuid;
+  FIdentFuncTable[1017] := FuncGetservbyname;
+  FIdentFuncTable[186] := FuncGetservbyport;
+  FIdentFuncTable[26] := FuncGetservent;
+  FIdentFuncTable[737] := FuncGetsockname;
+  FIdentFuncTable[531] := FuncGetsockopt;
+  FIdentFuncTable[1843] := FuncGlob;
+  FIdentFuncTable[1717] := FuncGmtime;
+  FIdentFuncTable[1303] := FuncGoto;
+  FIdentFuncTable[1577] := FuncGrep;
+  FIdentFuncTable[1528] := FuncGt;
+  FIdentFuncTable[1896] := FuncHex;
+  FIdentFuncTable[292] := FuncIf;
+  FIdentFuncTable[1381] := FuncImport;
+  FIdentFuncTable[708] := FuncIndex;
+  FIdentFuncTable[2368] := FuncInt;
+  FIdentFuncTable[898] := FuncInteger;
+  FIdentFuncTable[1801] := FuncIoctl;
+  FIdentFuncTable[1665] := FuncJoin;
+  FIdentFuncTable[2161] := FuncKeys;
+  FIdentFuncTable[432] := FuncKill;
+  FIdentFuncTable[2001] := FuncLast;
+  FIdentFuncTable[439] := FuncLc;
+  FIdentFuncTable[485] := FuncLcfirst;
+  FIdentFuncTable[1469] := FuncLe;
+  FIdentFuncTable[132] := FuncLength;
+  FIdentFuncTable[2315] := FuncLess;
+  FIdentFuncTable[2160] := FuncLink;
+  FIdentFuncTable[593] := FuncListen;
+  FIdentFuncTable[1719] := FuncLocal;
+  FIdentFuncTable[1491] := FuncLocale;
+  FIdentFuncTable[357] := FuncLocaltime;
+  FIdentFuncTable[2033] := FuncLog;
+  FIdentFuncTable[1176] := FuncLstat;
+  FIdentFuncTable[1925] := FuncLt;
+  FIdentFuncTable[406] := FuncM;
+  FIdentFuncTable[1074] := FuncMap;
+  FIdentFuncTable[578] := FuncMkdir;
+  FIdentFuncTable[1701] := FuncMsgctl;
+  FIdentFuncTable[613] := FuncMsgget;
+  FIdentFuncTable[497] := FuncMsgrcv;
+  FIdentFuncTable[2156] := FuncMsgsnd;
+  FIdentFuncTable[218] := FuncMy;
+  FIdentFuncTable[174] := FuncNe;
+  FIdentFuncTable[611] := FuncNext;
+  FIdentFuncTable[478] := FuncNo;
+  FIdentFuncTable[1217] := FuncNot;
+  FIdentFuncTable[1597] := FuncOct;
+  FIdentFuncTable[1330] := FuncOpen;
+  FIdentFuncTable[342] := FuncOpendir;
+  FIdentFuncTable[164] := FuncOr;
+  FIdentFuncTable[1817] := FuncOrd;
+  FIdentFuncTable[1384] := FuncPack;
+  FIdentFuncTable[968] := FuncPackage;
+  FIdentFuncTable[1125] := FuncPipe;
+  FIdentFuncTable[1338] := FuncPop;
+  FIdentFuncTable[460] := FuncPos;
+  FIdentFuncTable[1768] := FuncPrint;
+  FIdentFuncTable[1800] := FuncPush;
+  FIdentFuncTable[43] := FuncQ;
+  FIdentFuncTable[777] := FuncQq;
+  FIdentFuncTable[1309] := FuncQuotemeta;
+  FIdentFuncTable[1444] := FuncQw;
+  FIdentFuncTable[1959] := FuncQx;
+  FIdentFuncTable[1367] := FuncRand;
+  FIdentFuncTable[2133] := FuncRead;
+  FIdentFuncTable[1635] := FuncReaddir;
+  FIdentFuncTable[645] := FuncReadlink;
+  FIdentFuncTable[416] := FuncRecv;
+  FIdentFuncTable[2221] := FuncRedo;
+  FIdentFuncTable[1311] := FuncRef;
+  FIdentFuncTable[2307] := FuncRename;
+  FIdentFuncTable[843] := FuncRequire;
+  FIdentFuncTable[426] := FuncReset;
+  FIdentFuncTable[2323] := FuncReturn;
+  FIdentFuncTable[436] := FuncReverse;
+  FIdentFuncTable[1134] := FuncRewinddir;
+  FIdentFuncTable[464] := FuncRindex;
+  FIdentFuncTable[272] := FuncRmdir;
+  FIdentFuncTable[1475] := FuncScalar;
+  FIdentFuncTable[1840] := FuncSeek;
+  FIdentFuncTable[1748] := FuncSeekdir;
+  FIdentFuncTable[42] := FuncSelect;
+  FIdentFuncTable[2021] := FuncSemctl;
+  FIdentFuncTable[933] := FuncSemget;
+  FIdentFuncTable[570] := FuncSemop;
+  FIdentFuncTable[888] := FuncSend;
+  FIdentFuncTable[1789] := FuncSetgrent;
+  FIdentFuncTable[915] := FuncSethostent;
+  FIdentFuncTable[2028] := FuncSetnetent;
+  FIdentFuncTable[2288] := FuncSetpgrp;
+  FIdentFuncTable[2047] := FuncSetpriority;
+  FIdentFuncTable[1369] := FuncSetprotoent;
+  FIdentFuncTable[1608] := FuncSetpwent;
+  FIdentFuncTable[1629] := FuncSetservent;
+  FIdentFuncTable[2134] := FuncSetsockopt;
+  FIdentFuncTable[1383] := FuncShift;
+  FIdentFuncTable[540] := FuncShmctl;
+  FIdentFuncTable[562] := FuncShmget;
+  FIdentFuncTable[2213] := FuncShmread;
+  FIdentFuncTable[1301] := FuncShmwrite;
+  FIdentFuncTable[1289] := FuncShutdown;
+  FIdentFuncTable[887] := FuncSigtrap;
+  FIdentFuncTable[297] := FuncSin;
+  FIdentFuncTable[1280] := FuncSleep;
+  FIdentFuncTable[2298] := FuncSocket;
+  FIdentFuncTable[1891] := FuncSocketpair;
+  FIdentFuncTable[1795] := FuncSort;
+  FIdentFuncTable[873] := FuncSplice;
+  FIdentFuncTable[830] := FuncSplit;
+  FIdentFuncTable[1546] := FuncSprintf;
+  FIdentFuncTable[1553] := FuncSqrt;
+  FIdentFuncTable[81] := FuncSrand;
+  FIdentFuncTable[184] := FuncStat;
+  FIdentFuncTable[1266] := FuncStrict;
+  FIdentFuncTable[1736] := FuncStudy;
+  FIdentFuncTable[885] := FuncSub;
+  FIdentFuncTable[112] := FuncSubs;
+  FIdentFuncTable[2260] := FuncSubstr;
+  FIdentFuncTable[878] := FuncSymlink;
+  FIdentFuncTable[1258] := FuncSyscall;
+  FIdentFuncTable[1422] := FuncSysread;
+  FIdentFuncTable[2196] := FuncSystem;
+  FIdentFuncTable[158] := FuncSyswrite;
+  FIdentFuncTable[149] := FuncTell;
+  FIdentFuncTable[2069] := FuncTelldir;
+  FIdentFuncTable[387] := FuncTie;
+  FIdentFuncTable[1470] := FuncTime;
+  FIdentFuncTable[509] := FuncTimes;
+  FIdentFuncTable[561] := FuncTr;
+  FIdentFuncTable[1727] := FuncTruncate;
+  FIdentFuncTable[669] := FuncUc;
+  FIdentFuncTable[819] := FuncUcfirst;
+  FIdentFuncTable[2299] := FuncUmask;
+  FIdentFuncTable[1162] := FuncUndef;
+  FIdentFuncTable[1946] := FuncUnless;
+  FIdentFuncTable[681] := FuncUnlink;
+  FIdentFuncTable[1015] := FuncUnpack;
+  FIdentFuncTable[1318] := FuncUnshift;
+  FIdentFuncTable[2280] := FuncUntie;
+  FIdentFuncTable[1060] := FuncUse;
+  FIdentFuncTable[442] := FuncUtime;
+  FIdentFuncTable[2080] := FuncValues;
+  FIdentFuncTable[160] := FuncVars;
+  FIdentFuncTable[1705] := FuncVec;
+  FIdentFuncTable[1560] := FuncWait;
+  FIdentFuncTable[672] := FuncWaitpid;
+  FIdentFuncTable[938] := FuncWantarray;
+  FIdentFuncTable[1123] := FuncWarn;
+  FIdentFuncTable[1091] := FuncWhile;
+  FIdentFuncTable[1105] := FuncWrite;
+  FIdentFuncTable[290] := FuncXor;
 end;
 
 function TSynPerlSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -3218,37 +3218,37 @@ constructor TSynPerlSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := True;
+  FCaseSensitive := True;
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style:= [fsItalic];
-  AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
-  fInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
-  AddAttribute(fInvalidAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style:= [fsBold];
-  AddAttribute(fKeyAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(fNumberAttri);
-  fOperatorAttri := TSynHighlighterAttributes.Create(SYNS_AttrOperator, SYNS_FriendlyAttrOperator);
-  AddAttribute(fOperatorAttri);
-  fPragmaAttri := TSynHighlighterAttributes.Create(SYNS_AttrPragma, SYNS_FriendlyAttrPragma);
-  fPragmaAttri.Style := [fsBold];
-  AddAttribute(fPragmaAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(fSymbolAttri);
-  fVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
-  fVariableAttri.Style := [fsBold];
-  AddAttribute(fVariableAttri);
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style:= [fsItalic];
+  AddAttribute(FCommentAttri);
+  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
+  FInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
+  AddAttribute(FInvalidAttri);
+  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style:= [fsBold];
+  AddAttribute(FKeyAttri);
+  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(FNumberAttri);
+  FOperatorAttri := TSynHighlighterAttributes.Create(SYNS_AttrOperator, SYNS_FriendlyAttrOperator);
+  AddAttribute(FOperatorAttri);
+  FPragmaAttri := TSynHighlighterAttributes.Create(SYNS_AttrPragma, SYNS_FriendlyAttrPragma);
+  FPragmaAttri.Style := [fsBold];
+  AddAttribute(FPragmaAttri);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
+  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(FStringAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(FSymbolAttri);
+  FVariableAttri := TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
+  FVariableAttri.Style := [fsBold];
+  AddAttribute(FVariableAttri);
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  fDefaultFilter := SYNS_FilterPerl;
+  FDefaultFilter := SYNS_FilterPerl;
 end; { Create }
 
 procedure TSynPerlSyn.AndSymbolProc;
@@ -3256,58 +3256,59 @@ begin
   case FLine[Run + 1] of
     '=':                               {bit and assign}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '&':
       begin
         if FLine[Run + 2] = '=' then   {logical and assign}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {logical and}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {bit and}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynPerlSyn.CRProc;
 begin
-  fTokenID := tkSpace;
-  Case FLine[Run + 1] of
-    #10: inc(Run, 2);
-  else inc(Run);
+  FTokenID := tkSpace;
+  case FLine[Run + 1] of
+    #10: Inc(Run, 2);
+  else Inc(Run);
   end;
 end;
 
 procedure TSynPerlSyn.ColonProc;
 begin
-  Case FLine[Run + 1] of
+  case FLine[Run + 1] of
     ':':                               {double colon}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {colon}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynPerlSyn.CommentProc;
 begin
-  fTokenID := tkComment;
+  FTokenID := tkComment;
   repeat
     case FLine[Run] of
-      #0, #10, #13: break;
+      #0, #10, #13:
+        Break;
     end;
-    inc(Run);
+    Inc(Run);
   until FLine[Run] = #0;
 end;
 
@@ -3316,47 +3317,47 @@ begin
   case FLine[Run + 1] of
     '=':                               {logical equal}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '>':                               {digraph}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '~':                               {bind scalar to pattern}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {assign}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynPerlSyn.GreaterProc;
 begin
-  Case FLine[Run + 1] of
+  case FLine[Run + 1] of
     '=':                               {greater than or equal to}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '>':
       begin
         if FLine[Run + 2] = '=' then   {shift right assign}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {shift right}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {greater than}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
@@ -3366,27 +3367,27 @@ begin
   case FLine[Run] of
     '$':
       begin
-        Case FLine[Run + 1] of
+        case FLine[Run + 1] of
           '!'..'+', '-'..'@', '['..']', '_', '`', '|', '~':
             begin                      {predefined variables}
-              inc(Run, 2);
-              fTokenID := tkVariable;
-              exit;
+              Inc(Run, 2);
+              FTokenID := tkVariable;
+              Exit;
             end;
           '^':
             begin
-              Case FLine[Run + 2] of
+              case FLine[Run + 2] of
                 'A', 'D', 'F', 'I', 'L', 'P', 'T', 'W', 'X':
                   begin                {predefined variables}
-                    inc(Run, 3);
-                    fTokenID := tkVariable;
-                    exit;
+                    Inc(Run, 3);
+                    FTokenID := tkVariable;
+                    Exit;
                   end;
                 #0, #10, #13:          {predefined variables}
                   begin
-                    inc(Run, 2);
-                    fTokenID := tkVariable;
-                    exit;
+                    Inc(Run, 2);
+                    FTokenID := tkVariable;
+                    Exit;
                   end;
               end;
             end;
@@ -3394,49 +3395,49 @@ begin
       end;
     '%':
       begin
-        Case FLine[Run + 1] of
+        case FLine[Run + 1] of
           '=':                         {mod assign}
             begin
-              inc(Run, 2);
-              fTokenID := tkSymbol;
-              exit;
+              Inc(Run, 2);
+              FTokenID := tkSymbol;
+              Exit;
             end;
           #0, #10, #13:                {mod}
             begin
-              inc(Run);
-              fTokenID := tkSymbol;
-              exit;
+              Inc(Run);
+              FTokenID := tkSymbol;
+              Exit;
             end;
         end;
       end;
     'x':
       begin
-        Case FLine[Run + 1] of
+        case FLine[Run + 1] of
           '=':                         {repetition assign}
             begin
-              inc(Run, 2);
-              fTokenID := tkSymbol;
-              exit;
+              Inc(Run, 2);
+              FTokenID := tkSymbol;
+              Exit;
             end;
           #0, #10, #13:                {repetition}
             begin
-              inc(Run);
-              fTokenID := tkSymbol;
-              exit;
+              Inc(Run);
+              FTokenID := tkSymbol;
+              Exit;
             end;
         end;
       end;
   end;
   {regular identifier}
-  fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do inc(Run);
+  FTokenID := IdentKind((FLine + Run));
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do Inc(Run);
 end;
 
 procedure TSynPerlSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynPerlSyn.LowerProc;
@@ -3445,23 +3446,23 @@ begin
     '=':
       begin
         if FLine[Run + 2] = '>' then   {compare - less than, equal, greater}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {less than or equal to}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '<':
       begin
         if FLine[Run + 2] = '=' then   {shift left assign}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {shift left}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {less than}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
@@ -3471,23 +3472,23 @@ begin
   case FLine[Run + 1] of
     '=':                               {subtract assign}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '-':                               {decrement}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '>':                               {arrow}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {subtract}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
@@ -3497,33 +3498,33 @@ begin
   case FLine[Run + 1] of
     '~':                               {logical negated bind like =~}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '=':                               {not equal}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {not}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynPerlSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynPerlSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       '0'..'9', '-', '_', '.', 'A'..'F', 'a'..'f', 'x', 'X':
         Result := True;
       else
@@ -3537,38 +3538,38 @@ begin
     case FLine[Run + 1] of
       '.':
         begin
-          inc(Run, 2);
+          Inc(Run, 2);
           if FLine[Run] = '.' then     {sed range}
-            inc(Run);
+            Inc(Run);
 
-          fTokenID := tkSymbol;        {range}
-          exit;
+          FTokenID := tkSymbol;        {range}
+          Exit;
         end;
       '=':
         begin
-          inc(Run, 2);
-          fTokenID := tkSymbol;        {concatenation assign}
-          exit;
+          Inc(Run, 2);
+          FTokenID := tkSymbol;        {concatenation assign}
+          Exit;
         end;
       'a'..'z', 'A'..'Z', '_':
         begin
-          fTokenID := tkSymbol;        {concatenation}
-          inc(Run);
-          exit;
+          FTokenID := tkSymbol;        {concatenation}
+          Inc(Run);
+          Exit;
         end;
     end;
   end;
-  inc(Run);
-  fTokenID := tkNumber;
+  Inc(Run);
+  FTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
       '.':
-        if FLine[Run + 1] = '.' then break;
+        if FLine[Run + 1] = '.' then Break;
       '-':                             {check for e notation}
-        if not ((FLine[Run + 1] = 'e') or (FLine[Run + 1] = 'E')) then break;
+        if not ((FLine[Run + 1] = 'e') or (FLine[Run + 1] = 'E')) then Break;
     end;
-    inc(Run);
+    Inc(Run);
   end;
 end;
 
@@ -3577,21 +3578,21 @@ begin
   case FLine[Run + 1] of
     '=':                               {bit or assign}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '|':
       begin
         if FLine[Run + 2] = '=' then   {logical or assign}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {logical or}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {bit or}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
@@ -3601,18 +3602,18 @@ begin
   case FLine[Run + 1] of
     '=':                               {add assign}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '+':                               {increment}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {add}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
@@ -3622,22 +3623,22 @@ begin
   case FLine[Run + 1] of
     '=':                               {division assign}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {division}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynPerlSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynPerlSyn.StarProc;
@@ -3645,34 +3646,35 @@ begin
   case FLine[Run + 1] of
     '=':                               {multiply assign}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
     '*':
       begin
         if FLine[Run + 2] = '=' then   {exponentiation assign}
-          inc(Run, 3)
+          Inc(Run, 3)
         else                           {exponentiation}
-          inc(Run, 2);
-        fTokenID := tkSymbol;
+          Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {multiply}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynPerlSyn.StringInterpProc;
 var
-  fBackslashCount : Integer;
+  BackslashCount : Integer;
 begin
-  fTokenID := tkString;
-  if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then inc(Run, 2);
+  FTokenID := tkString;
+  if (FLine[Run + 1] = #34) and (FLine[Run + 2] = #34) then Inc(Run, 2);
   repeat
     case FLine[Run] of
-      #0, #10, #13: break;
+      #0, #10, #13:
+        Break;
       #92:
         { If we're looking at a backslash, and the following character is an
           end quote, and it's preceeded by an odd number of backslashes, then
@@ -3680,63 +3682,64 @@ begin
           even number, then it should. }
         if (FLine[Run + 1] = #34) then
           begin
-            fBackslashCount := 1;
+            BackslashCount := 1;
 
-            while ((Run > fBackslashCount) and (FLine[Run - fBackslashCount] = #92)) do
-              fBackslashCount := fBackslashCount + 1;
+            while ((Run > BackslashCount) and (FLine[Run - BackslashCount] = #92)) do
+              BackslashCount := BackslashCount + 1;
 
-            if (fBackslashCount mod 2 = 1) then inc(Run)
+            if (BackslashCount mod 2 = 1) then Inc(Run)
           end;
     end;
-    inc(Run);
+    Inc(Run);
   until FLine[Run] = #34;
-  if FLine[Run] <> #0 then inc(Run);
+  if FLine[Run] <> #0 then Inc(Run);
 end;
 
 procedure TSynPerlSyn.StringLiteralProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   repeat
     case FLine[Run] of
-      #0, #10, #13: break;
+      #0, #10, #13:
+        Break;
     end;
-    inc(Run);
+    Inc(Run);
   until FLine[Run] = #39;
-  if FLine[Run] <> #0 then inc(Run);
+  if FLine[Run] <> #0 then Inc(Run);
 end;
 
 procedure TSynPerlSyn.SymbolProc;
 begin
-  inc(Run);
-  fTokenId := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynPerlSyn.XOrSymbolProc;
 begin
-  Case FLine[Run + 1] of
+  case FLine[Run + 1] of
     '=':                               {xor assign}
       begin
-        inc(Run, 2);
-        fTokenID := tkSymbol;
+        Inc(Run, 2);
+        FTokenID := tkSymbol;
       end;
   else                                 {xor}
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
+      Inc(Run);
+      FTokenID := tkSymbol;
     end;
   end;
 end;
 
 procedure TSynPerlSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynPerlSyn.Next;
 begin
-  fTokenPos := Run;
-  case fLine[Run] of
+  FTokenPos := Run;
+  case FLine[Run] of
     '&': AndSymbolProc;
     #13: CRProc;
     ':': ColonProc;
@@ -3764,15 +3767,15 @@ begin
   inherited;
 end;
 
-function TSynPerlSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynPerlSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -3780,35 +3783,35 @@ end;
 
 function TSynPerlSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynPerlSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynPerlSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case fTokenID of
-    tkComment: Result := fCommentAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkNumber: Result := fNumberAttri;
-    tkOperator: Result := fOperatorAttri;
-    tkPragma: Result := fPragmaAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fInvalidAttri;
-    tkVariable: Result := fVariableAttri;
+  case FTokenID of
+    tkComment: Result := FCommentAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkNumber: Result := FNumberAttri;
+    tkOperator: Result := FOperatorAttri;
+    tkPragma: Result := FPragmaAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkSymbol: Result := FSymbolAttri;
+    tkUnknown: Result := FInvalidAttri;
+    tkVariable: Result := FVariableAttri;
     else Result := nil;
   end;
 end;
 
-function TSynPerlSyn.GetTokenKind: integer;
+function TSynPerlSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynPerlSyn.GetSampleSource: UnicodeString;
@@ -3828,7 +3831,7 @@ end;
 
 function TSynPerlSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterPerl;
+  Result := FDefaultFilter <> SYNS_FilterPerl;
 end;
 
 function TSynPerlSyn.IsIdentChar(AChar: WideChar): Boolean;

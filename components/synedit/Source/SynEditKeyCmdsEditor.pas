@@ -143,7 +143,7 @@ end;
 
 destructor TSynEditKeystrokesEditorForm.Destroy;
 begin
-  if Assigned(FKeyStrokes) then FKeystrokes.Free;
+  if Assigned(FKeystrokes) then FKeystrokes.Free;
   inherited Destroy;
 end;
 
@@ -158,7 +158,7 @@ end;
 
 procedure TSynEditKeystrokesEditorForm.UpdateKeystrokesList;
 var
-  x: integer;
+  x: Integer;
 begin
   KeyCmdList.Items.BeginUpdate;
   try
@@ -396,7 +396,7 @@ begin
     {$ELSE}
     MessageBeep(1);
     {$ENDIF}
-    exit;
+    Exit;
   end;
   AForm := TSynEditKeystrokeEditorForm.Create(Self);
   with AForm do
@@ -455,7 +455,7 @@ begin
     {$ELSE}
     MessageBeep(1);
     {$ENDIF}
-    exit;
+    Exit;
   end;
   FKeystrokes[SelItem.Index].Free;
   KeyCmdList.Items.Delete(SelItem.Index);

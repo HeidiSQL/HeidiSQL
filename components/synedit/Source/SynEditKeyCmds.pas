@@ -80,8 +80,8 @@ const
   ecRight           = 2;    // Move cursor right one char
   ecUp              = 3;    // Move cursor up one line
   ecDown            = 4;    // Move cursor down one line
-  ecWordLeft        = 5;    // Move cursor left one word
-  ecWordRight       = 6;    // Move cursor right one word
+  ecWordLeft        = 5;    // Move cursor left one Word
+  ecWordRight       = 6;    // Move cursor right one Word
   ecLineStart       = 7;    // Move cursor to beginning of line
   ecLineEnd         = 8;    // Move cursor to end of line
   ecPageUp          = 9;    // Move cursor up one page
@@ -95,7 +95,7 @@ const
   ecGotoXY          = 17;   // Move cursor to specific coordinates, Data = PPoint
 
 //******************************************************************************
-// Maybe the command processor should just take a boolean that signifies if
+// Maybe the command processor should just take a Boolean that signifies if
 // selection is affected or not?
 //******************************************************************************
 
@@ -170,8 +170,8 @@ const
 
   ecDeleteLastChar  = 501;  // Delete last char (i.e. backspace key)
   ecDeleteChar      = 502;  // Delete char at cursor (i.e. delete key)
-  ecDeleteWord      = 503;  // Delete from cursor to end of word
-  ecDeleteLastWord  = 504;  // Delete from cursor to start of word
+  ecDeleteWord      = 503;  // Delete from cursor to end of Word
+  ecDeleteLastWord  = 504;  // Delete from cursor to start of Word
   ecDeleteBOL       = 505;  // Delete from cursor to beginning of line
   ecDeleteEOL       = 506;  // Delete from cursor to end of line
   ecDeleteLine      = 507;  // Delete current line
@@ -194,7 +194,7 @@ const
 
   ecAutoCompletion  = 650;
 
-  ecUpperCase       = 620; // apply to the current or previous word
+  ecUpperCase       = 620; // apply to the current or previous Word
   ecLowerCase       = 621;
   ecToggleCase      = 622;
   ecTitleCase       = 623;
@@ -205,25 +205,40 @@ const
 
   ecString          = 630;  //Insert a whole string
 
+  {$IFDEF SYN_CodeFolding}
+  ecFoldAll         = 701;
+  ecUnfoldAll       = 702;
+  ecFoldNearest     = 705;
+  ecUnfoldNearest   = 706;
+  ecFoldLevel1      = 711;
+  ecFoldLevel2      = 712;
+  ecFoldLevel3      = 713;
+  ecUnfoldLevel1    = 721;
+  ecUnfoldLevel2    = 722;
+  ecUnfoldLevel3    = 723;
+  ecFoldRegions      = 731;
+  ecUnfoldRegions    = 732;
+  {$ENDIF}
+
   ecUserFirst       = 1001; // Start of user-defined commands
 
 type
   ESynKeyError = class(Exception);
 
-  TSynEditorCommand = type word;
+  TSynEditorCommand = type Word;
 
   TSynEditKeyStroke = class(TCollectionItem)
   private
-    FKey: word;          // Virtual keycode, i.e. VK_xxx
+    FKey: Word;          // Virtual keycode, i.e. VK_xxx
     FShift: TShiftState;
-    FKey2: word;
+    FKey2: Word;
     FShift2: TShiftState;
     FCommand: TSynEditorCommand;
     function GetShortCut: TShortCut;
     function GetShortCut2: TShortCut;
     procedure SetCommand(const Value: TSynEditorCommand);
-    procedure SetKey(const Value: word);
-    procedure SetKey2(const Value: word);
+    procedure SetKey(const Value: Word);
+    procedure SetKey2(const Value: Word);
     procedure SetShift(const Value: TShiftState);
     procedure SetShift2(const Value: TShiftState);
     procedure SetShortCut(const Value: TShortCut);
@@ -237,8 +252,8 @@ type
     procedure LoadFromStream(AStream: TStream);
     procedure SaveToStream(AStream: TStream);
     // No duplicate checking is done if assignment made via these properties!
-    property Key: word read FKey write SetKey;
-    property Key2: word read FKey2 write SetKey2;
+    property Key: Word read FKey write SetKey;
+    property Key2: Word read FKey2 write SetKey2;
     property Shift: TShiftState read FShift write SetShift;
     property Shift2: TShiftState read FShift2 write SetShift2;
   published
@@ -262,14 +277,15 @@ type
     constructor Create(AOwner: TPersistent);
     function Add: TSynEditKeyStroke;
     procedure AddKey(const ACmd: TSynEditorCommand; const AKey: word;
-       const AShift: TShiftState);
+       const AShift: TShiftState; const AKey2: word = 0;
+       const AShift2: TShiftState = []);
     procedure Assign(Source: TPersistent); override;
-    function FindCommand(Cmd: TSynEditorCommand): integer;
-    function FindKeycode(Code: word; SS: TShiftState): integer;
-    function FindKeycode2(Code1: word; SS1: TShiftState;
-      Code2: word; SS2: TShiftState): integer;
-    function FindShortcut(SC: TShortcut): integer;
-    function FindShortcut2(SC, SC2: TShortcut): integer;
+    function FindCommand(Cmd: TSynEditorCommand): Integer;
+    function FindKeycode(Code: Word; SS: TShiftState): Integer;
+    function FindKeycode2(Code1: Word; SS1: TShiftState;
+      Code2: Word; SS2: TShiftState): Integer;
+    function FindShortcut(SC: TShortcut): Integer;
+    function FindShortcut2(SC, SC2: TShortcut): Integer;
     procedure LoadFromStream(AStream: TStream);
     procedure ResetDefaults;
     procedure SaveToStream(AStream: TStream);
@@ -319,7 +335,11 @@ type
 {$ENDIF}
 
 const
+{$IFDEF SYN_CodeFolding}
+  EditorCommandStrs: array[0..113] of TIdentMapEntry = (
+{$ELSE}
   EditorCommandStrs: array[0..101] of TIdentMapEntry = (
+{$ENDIF}
     (Value: ecNone; Name: 'ecNone'),
     (Value: ecLeft; Name: 'ecLeft'),
     (Value: ecRight; Name: 'ecRight'),
@@ -421,11 +441,27 @@ const
     (Value: ecLowerCaseBlock; Name: 'ecLowerCaseBlock'),
     (Value: ecToggleCaseBlock; Name: 'ecToggleCaseBlock'),
     (Value: ecTitleCaseBlock; Name: 'ecTitleCaseBlock'),
+{$IFDEF SYN_CodeFolding}
+    (Value: ecString; Name:'ecString'),
+    (Value: ecFoldAll; Name:'ecFoldAll'),
+    (Value: ecUnfoldAll; Name:'ecUnfoldAll'),
+    (Value: ecFoldNearest; Name:'ecFoldNearest'),
+    (Value: ecUnfoldNearest; Name:'ecUnfoldNearest'),
+    (Value: ecFoldLevel1; Name:'ecFoldLevel1'),
+    (Value: ecFoldLevel2; Name:'ecFoldLevel2'),
+    (Value: ecFoldLevel3; Name:'ecFoldLevel3'),
+    (Value: ecUnfoldLevel1; Name:'ecUnfoldLevel1'),
+    (Value: ecUnfoldLevel2; Name:'ecUnfoldLevel2'),
+    (Value: ecUnfoldLevel3; Name:'ecUnfoldLevel3'),
+    (Value: ecFoldRegions; Name:'ecFoldRanges'),
+    (Value: ecUnfoldRegions; Name:'ecUnfoldRanges'));
+{$ELSE}
     (Value: ecString; Name:'ecString'));
+{$ENDIF}
 
 procedure GetEditorCommandValues(Proc: TGetStrProc);
 var
-  i: integer;
+  i: Integer;
 begin
   for i := Low(EditorCommandStrs) to High(EditorCommandStrs) do
     Proc(EditorCommandStrs[I].Name);
@@ -433,13 +469,13 @@ end;
 
 procedure GetEditorCommandExtended(Proc: TGetStrProc);
 var
-  i: integer;
+  i: Integer;
 begin
   for i := Low(EditorCommandStrs) to High(EditorCommandStrs) do
     Proc(ConvertCodeStringToExtended(EditorCommandStrs[I].Name));
 end;
 
-function IdentToEditorCommand(const Ident: string; var Cmd: longint): boolean;
+function IdentToEditorCommand(const Ident: string; var Cmd: longint): Boolean;
 {$IFDEF SYN_COMPILER_2}
 var
   I: Integer;
@@ -452,14 +488,14 @@ begin
     begin
       Result := TRUE;
       Cmd := EditorCommandStrs[I].Value;
-      break;
+      Break;
     end;
 {$ELSE}
     Result := IdentToInt(Ident, Cmd, EditorCommandStrs);
 {$ENDIF}
 end;
 
-function EditorCommandToIdent(Cmd: longint; var Ident: string): boolean;
+function EditorCommandToIdent(Cmd: longint; var Ident: string): Boolean;
 {$IFDEF SYN_COMPILER_2}
 var
   I: Integer;
@@ -472,7 +508,7 @@ begin
     begin
       Result := TRUE;
       Ident := EditorCommandStrs[I].Name;
-      break;
+      Break;
     end;
 {$ELSE}
   Result := IntToIdent(Cmd, Ident, EditorCommandStrs);
@@ -532,7 +568,7 @@ begin
     FCommand := Value;
 end;
 
-procedure TSynEditKeyStroke.SetKey(const Value: word);
+procedure TSynEditKeyStroke.SetKey(const Value: Word);
 begin
   if Value <> FKey then
     FKey := Value;
@@ -548,7 +584,7 @@ procedure TSynEditKeyStroke.SetShortCut(const Value: TShortCut);
 var
   NewKey: Word;
   NewShift: TShiftState;
-  Dup: integer;
+  Dup: Integer;
 begin
   // Duplicate values of no shortcut are OK.
   if Value <> 0 then
@@ -574,7 +610,7 @@ begin
   end;
 end;
 
-procedure TSynEditKeyStroke.SetKey2(const Value: word);
+procedure TSynEditKeyStroke.SetKey2(const Value: Word);
 begin
   if Value <> FKey2 then
     FKey2 := Value;
@@ -590,7 +626,7 @@ procedure TSynEditKeyStroke.SetShortCut2(const Value: TShortCut);
 var
   NewKey: Word;
   NewShift: TShiftState;
-  Dup: integer;
+  Dup: Integer;
 begin
   // Duplicate values of no shortcut are OK.
   if Value <> 0 then
@@ -653,7 +689,7 @@ begin
 end;
 
 procedure TSynEditKeyStrokes.AddKey(const ACmd: TSynEditorCommand; const AKey: word;
-  const AShift: TShiftState);
+  const AShift: TShiftState; const AKey2: word; const AShift2: TShiftState);
 var
   NewKeystroke: TSynEditKeyStroke;
 begin
@@ -661,6 +697,8 @@ begin
   try
     NewKeystroke.Key := AKey;
     NewKeystroke.Shift := AShift;
+    NewKeystroke.Key2 := AKey2;
+    NewKeystroke.Shift2 := AShift2;
     NewKeystroke.Command := ACmd;
   except
     NewKeystroke.Free;
@@ -670,7 +708,7 @@ end;
 
 procedure TSynEditKeyStrokes.Assign(Source: TPersistent);
 var
-  x: integer;
+  x: Integer;
 begin
   if Source is TSynEditKeyStrokes then
   begin
@@ -691,36 +729,36 @@ begin
   FOwner := AOwner;
 end;
 
-function TSynEditKeyStrokes.FindCommand(Cmd: TSynEditorCommand): integer;
+function TSynEditKeyStrokes.FindCommand(Cmd: TSynEditorCommand): Integer;
 var
-  x: integer;
+  x: Integer;
 begin
   Result := -1;
   for x := 0 to Count-1 do
     if Items[x].Command = Cmd then
     begin
       Result := x;
-      break;
+      Break;
     end;
 end;
 
-function TSynEditKeyStrokes.FindKeycode(Code: word; SS: TShiftState): integer;
+function TSynEditKeyStrokes.FindKeycode(Code: Word; SS: TShiftState): Integer;
 var
-  x: integer;
+  x: Integer;
 begin
   Result := -1;
   for x := 0 to Count-1 do
     if (Items[x].Key = Code) and (Items[x].Shift = SS) and (Items[x].Key2 = 0)
     then begin
       Result := x;
-      break;
+      Break;
     end;
 end;
 
-function TSynEditKeyStrokes.FindKeycode2(Code1: word; SS1: TShiftState;
-  Code2: word; SS2: TShiftState): integer;
+function TSynEditKeyStrokes.FindKeycode2(Code1: Word; SS1: TShiftState;
+  Code2: Word; SS2: TShiftState): Integer;
 var
-  x: integer;
+  x: Integer;
 begin
   Result := -1;
   for x := 0 to Count-1 do
@@ -728,33 +766,33 @@ begin
        (Items[x].Key2 = Code2) and (Items[x].Shift2 = SS2) then
     begin
       Result := x;
-      break;
+      Break;
     end;
 end;
 
-function TSynEditKeyStrokes.FindShortcut(SC: TShortcut): integer;
+function TSynEditKeyStrokes.FindShortcut(SC: TShortcut): Integer;
 var
-  x: integer;
+  x: Integer;
 begin
   Result := -1;
   for x := 0 to Count-1 do
     if Items[x].Shortcut = SC then
     begin
       Result := x;
-      break;
+      Break;
     end;
 end;
 
-function TSynEditKeyStrokes.FindShortcut2(SC, SC2: TShortcut): integer;
+function TSynEditKeyStrokes.FindShortcut2(SC, SC2: TShortcut): Integer;
 var
-  x: integer;
+  x: Integer;
 begin
   Result := -1;
   for x := 0 to Count-1 do
     if (Items[x].Shortcut = SC) and (Items[x].Shortcut2 = SC2) then
     begin
       Result := x;
-      break;
+      Break;
     end;
 end;
 
@@ -772,7 +810,7 @@ end;
 
 procedure TSynEditKeyStrokes.LoadFromStream(AStream: TStream);
 var
-  Num: integer;
+  Num: Integer;
 begin
   Clear;
   AStream.Read(Num, SizeOf(Num));
@@ -870,6 +908,18 @@ begin
   AddKey(ecColumnSelect, ord('C'), [ssCtrl,ssShift]);
   AddKey(ecLineSelect, ord('L'), [ssCtrl,ssShift]);
   AddKey(ecMatchBracket, ord('B'), [ssCtrl,ssShift]);
+{$IFDEF SYN_CodeFolding}
+  AddKey(ecFoldAll, VK_OEM_MINUS, [ssCtrl, ssShift]);   {- _}
+  AddKey(ecUnfoldAll,  VK_OEM_PLUS, [ssCtrl, ssShift]); {= +}
+  AddKey(ecFoldNearest, VK_OEM_2, [ssCtrl]);  // Divide {'/'}
+  AddKey(ecUnfoldNearest, VK_OEM_2, [ssCtrl, ssShift]);
+  AddKey(ecFoldLevel1, ord('K'), [ssCtrl], Ord('1'), [ssCtrl]);
+  AddKey(ecFoldLevel2, ord('K'), [ssCtrl], Ord('2'), [ssCtrl]);
+  AddKey(ecFoldLevel3, ord('K'), [ssCtrl], Ord('3'), [ssCtrl]);
+  AddKey(ecUnfoldLevel1, ord('K'), [ssCtrl, ssShift], Ord('1'), [ssCtrl, ssShift]);
+  AddKey(ecUnfoldLevel2, ord('K'), [ssCtrl, ssShift], Ord('2'), [ssCtrl, ssShift]);
+  AddKey(ecUnfoldLevel3, ord('K'), [ssCtrl, ssShift], Ord('3'), [ssCtrl, ssShift]);
+{$ENDIF}
 end;
 
 procedure TSynEditKeyStrokes.SetItem(Index: Integer; Value: TSynEditKeyStroke);
@@ -879,7 +929,7 @@ end;
 
 procedure TSynEditKeyStrokes.SaveToStream(AStream: TStream);
 var
-  i, Num: integer;
+  i, Num: Integer;
 begin
   Num := Count;
   AStream.Write(Num, SizeOf(Num));
@@ -889,7 +939,7 @@ end;
 
 function ConvertCodeStringToExtended(AString: string): string;
 var
-  i: integer;
+  i: Integer;
   WorkStr: string;
 begin
   if pos('ec', AString) = 1 then
@@ -937,8 +987,8 @@ var
 begin
   if pos('ec', AString) = 1 then
   begin
-    result := AString;
-    exit;
+    Result := AString;
+    Exit;
   end;
 
   WorkStr := AString;
@@ -994,7 +1044,7 @@ begin
     if Uppercase(EditorCommandStrs[i].Name) = AString then
     begin
       Result := EditorCommandStrs[i].Value;
-      break;
+      Break;
     end;
 end;
 

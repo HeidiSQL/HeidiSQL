@@ -69,6 +69,7 @@ uses
   QSynEditOptionsDialog,
   QSynHighlighterADSP21xx,
   QSynHighlighterAsm,
+  QSynHighlighterAsmMASM,
   QSynHighlighterAWK,
   QSynHighlighterBaan,
   QSynHighlighterBat,
@@ -155,17 +156,20 @@ uses
   SynHighlighterADSP21xx,
   SynHighlighterAsm,
   SynHighlighterAWK,
-  SynHighlighterBaan, 
+  SynHighlighterBaan,
   SynHighlighterBat,
   SynHighlighterCAC,
   SynHighlighterCache,
-  SynHighlighterCobol,   
+  SynHighlighterCobol,
   SynHighlighterCpp,
   SynHighlighterCS,
   SynHighlighterCss,
   SynHighlighterDfm,
   SynHighlighterDml,
   SynHighlighterDOT,
+  {$ifdef SYN_DELPHI_2010_UP}
+  SynHighlighterAsmMASM,
+  {$endif}
   {$ifdef SYN_DELPHI_2009_UP}
   SynHighlighterDWS,
   {$endif}
@@ -173,7 +177,8 @@ uses
   SynHighlighterFortran,
   SynHighlighterFoxpro,
   SynHighlighterGalaxy,
-  SynHighlighterGeneral, 
+  SynHighlighterGeneral,
+  SynHighlighterGo,
   SynHighlighterHaskell,
   SynHighlighterHC11,
   SynHighlighterHP48, 
@@ -250,7 +255,7 @@ begin
     TSynExporterTeX, TSynEditPythonBehaviour, TSynMultiSyn,
     TSynCompletionProposal, TSynAutoComplete, TSynMacroRecorder,
     TSynEditPrint, TSynEditPrintPreview, TSynAutoCorrect,
-    TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener, TSynHotKey,
+    TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener,
     TSynEditDocumentManager]);
 {$IFDEF SYN_COMPILER_4_UP}
   RegisterComponents(SYNS_ComponentsPage, [TSynHighlighterManager]);
@@ -260,7 +265,7 @@ begin
   RegisterComponents(SYNS_HighlightersPage, [
     //classic
     TSynCppSyn, TSynEiffelSyn, TSynFortranSyn, TSynGeneralSyn, TSynJavaSyn,
-    TSynM3Syn, TSynPasSyn, TSynVBSyn, TSynCobolSyn, TSynCSSyn,
+    TSynM3Syn, TSynPasSyn, TSynVBSyn, TSynCobolSyn, TSynCSSyn, TSynGoSyn,
     // internet
     TSynCssSyn, TSynHTMLSyn, TSynJScriptSyn, TSynPHPSyn, TSynVBScriptSyn,
     TSynXMLSyn, TSynJSONSyn, TSynVrml97Syn,
@@ -275,6 +280,9 @@ begin
     TSynCACSyn, TSynCacheSyn, TSynFoxproSyn, TSynSQLSyn, TSynSDDSyn,
     //assembler
     TSynADSP21xxSyn, TSynAsmSyn, TSynHC11Syn, TSynHP48Syn, TSynSTSyn,
+    {$ifdef SYN_DELPHI_2010_UP}
+    TSynAsmMASMSyn,
+    {$endif}
     //data modeling
     TSynDmlSyn, TSynModelicaSyn, TSynSMLSyn,
     //data

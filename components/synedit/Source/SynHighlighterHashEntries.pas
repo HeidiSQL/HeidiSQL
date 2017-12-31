@@ -70,13 +70,13 @@ type
   TSynHashEntry = class(TObject)
   protected
     { Points to the next keyword entry with the same hashvalue. }
-    fNext: TSynHashEntry;
+    FNext: TSynHashEntry;
     { Length of the keyword. }
-    fKeyLen: integer;
+    FKeyLen: Integer;
     { The keyword itself. }
-    fKeyword: UnicodeString;
+    FKeyword: UnicodeString;
     { Keyword token kind, has to be typecasted to the real token kind type. }
-    fKind: integer;
+    fKind: Integer;
   public
     { Adds a keyword entry with the same hashvalue. Depending on the length of
       the two keywords it might return Self and store NewEntry in the Next
@@ -84,18 +84,18 @@ type
       to Self. This way the order of keyword length is preserved. }
     function AddEntry(NewEntry: TSynHashEntry): TSynHashEntry; virtual;
     { Creates a keyword entry for the given keyword and token kind. }
-    constructor Create(const AKey: UnicodeString; AKind: integer);
+    constructor Create(const AKey: UnicodeString; AKind: Integer);
     { Destroys the keyword entry and all other keyword entries Next points to. }
     destructor Destroy; override;
   public
     { The keyword itself. }
-    property Keyword: UnicodeString read fKeyword;
+    property Keyword: UnicodeString read FKeyword;
     { Length of the keyword. }
-    property KeywordLen: integer read fKeyLen;
+    property KeywordLen: Integer read FKeyLen;
     { Keyword token kind, has to be typecasted to the real token kind type. }
-    property Kind: integer read fKind;
+    property Kind: Integer read fKind;
     { Points to the next keyword entry with the same hashvalue. }
-    property Next: TSynHashEntry read fNext;
+    property Next: TSynHashEntry read FNext;
   end;
 
 
@@ -128,18 +128,18 @@ type
 {$ENDIF}
   public
     { Type-safe access to the first keyword entry for a hashvalue. }
-    property Items[Index: integer]: TSynHashEntry read Get write Put; default;
+    property Items[Index: Integer]: TSynHashEntry read Get write Put; default;
   end;
 
   { Procedural type for adding keyword entries to a TSynHashEntryList when
     iterating over all the keywords contained in a string. }
-  TEnumerateKeywordEvent = procedure(AKeyword: UnicodeString; AKind: integer)
+  TEnumerateKeywordEvent = procedure(AKeyword: UnicodeString; AKind: Integer)
     of object;
 
 { This procedure will call AKeywordProc for all keywords in KeywordList. A
   keyword is considered any number of successive chars that are contained in
   Identifiers, with chars not contained in Identifiers before and after them. }
-procedure EnumerateKeywords(AKind: integer; KeywordList: UnicodeString;
+procedure EnumerateKeywords(AKind: Integer; KeywordList: UnicodeString;
   IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
 
 implementation
@@ -147,7 +147,7 @@ implementation
 uses
   SysUtils;
 
-procedure EnumerateKeywords(AKind: integer; KeywordList: UnicodeString;
+procedure EnumerateKeywords(AKind: Integer; KeywordList: UnicodeString;
   IsIdentChar: TCategoryMethod; AKeywordProc: TEnumerateKeywordEvent);
 var
   pStart, pEnd: PWideChar;
@@ -161,7 +161,8 @@ begin
       // skip over chars that are not in Identifiers
       while (pStart^ <> #0) and not IsIdentChar(pStart^) do
         Inc(pStart);
-      if pStart^ = #0 then break;
+      if pStart^ = #0 then
+        Break;
       // find the last char that is in Identifiers
       pEnd := pStart + 1;
       while (pEnd^ <> #0) and IsIdentChar(pEnd^) do
@@ -178,17 +179,17 @@ end;
 
 { TSynHashEntry }
 
-constructor TSynHashEntry.Create(const AKey: UnicodeString; AKind: integer);
+constructor TSynHashEntry.Create(const AKey: UnicodeString; AKind: Integer);
 begin
   inherited Create;
-  fKeyLen := Length(AKey);
-  fKeyword := AKey;
+  FKeyLen := Length(AKey);
+  FKeyword := AKey;
   fKind := AKind;
 end;
 
 destructor TSynHashEntry.Destroy;
 begin
-  fNext.Free;
+  FNext.Free;
   inherited Destroy;
 end;
 
@@ -197,16 +198,16 @@ begin
   Result := Self;
   if Assigned(NewEntry) then
   begin
-    if WideCompareText(NewEntry.Keyword, fKeyword) = 0 then
-      raise Exception.CreateFmt('Keyword "%s" already in list', [fKeyword]);
-    if NewEntry.fKeyLen < fKeyLen then
+    if WideCompareText(NewEntry.Keyword, FKeyword) = 0 then
+      raise Exception.CreateFmt('Keyword "%s" already in list', [FKeyword]);
+    if NewEntry.FKeyLen < FKeyLen then
     begin
-      NewEntry.fNext := Self;
+      NewEntry.FNext := Self;
       Result := NewEntry;
-    end else if Assigned(fNext) then
-      fNext := fNext.AddEntry(NewEntry)
+    end else if Assigned(FNext) then
+      FNext := FNext.AddEntry(NewEntry)
     else
-      fNext := NewEntry;
+      FNext := NewEntry;
   end;
 end;
 
@@ -224,7 +225,7 @@ procedure TSynHashEntryList.DeleteEntries;
 procedure TSynHashEntryList.Clear;
 {$ENDIF}
 var
-  i: integer;
+  i: Integer;
 begin
   for i := 0 to Count - 1 do
     TSynHashEntry(Items[i]).Free;

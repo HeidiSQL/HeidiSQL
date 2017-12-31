@@ -5,17 +5,19 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
   Caption = 'Editor Options'
   ClientHeight = 394
   ClientWidth = 369
+  Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
+  OldCreateOrder = True
   Position = poScreenCenter
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
-  object PageControl1: TPageControl
+  object PageControl: TPageControl
     Left = 6
     Top = 8
     Width = 355
@@ -31,28 +33,28 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         Height = 88
         Caption = 'Right Edge'
         TabOrder = 1
-        object Label3: TLabel
+        object lblEdgeColor: TLabel
           Left = 9
           Top = 56
           Width = 54
           Height = 13
           Caption = 'Edge color:'
         end
-        object Label10: TLabel
+        object lblEdgeColumn: TLabel
           Left = 9
           Top = 26
           Width = 66
           Height = 13
           Caption = 'Edge Column:'
         end
-        object pRightEdgeBack: TPanel
+        object pnlRightEdgeBack: TPanel
           Left = 80
           Top = 54
           Width = 52
           Height = 21
           BorderWidth = 1
           TabOrder = 1
-          object pRightEdgeColor: TPanel
+          object pnlRightEdgeColor: TPanel
             Left = 2
             Top = 2
             Width = 38
@@ -61,7 +63,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
             BevelOuter = bvLowered
             Color = clGray
             TabOrder = 0
-            OnClick = pRightEdgeColorClick
+            OnClick = pnlRightEdgeColorClick
           end
           object btnRightEdge: TPanel
             Left = 40
@@ -104,7 +106,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         Height = 121
         Caption = 'Gutter'
         TabOrder = 0
-        object Label1: TLabel
+        object lblGutterColor: TLabel
           Left = 176
           Top = 89
           Width = 58
@@ -149,6 +151,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Width = 120
           Height = 17
           Caption = 'Visible'
+          Checked = True
           State = cbChecked
           TabOrder = 0
         end
@@ -170,14 +173,14 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           TabOrder = 6
           OnClick = btnGutterFontClick
         end
-        object pGutterBack: TPanel
+        object pnlGutterBack: TPanel
           Left = 252
           Top = 85
           Width = 52
           Height = 21
           BorderWidth = 1
           TabOrder = 8
-          object pGutterColor: TPanel
+          object pnlGutterColor: TPanel
             Left = 2
             Top = 2
             Width = 38
@@ -186,7 +189,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
             BevelOuter = bvLowered
             Color = clGray
             TabOrder = 0
-            OnClick = pGutterColorClick
+            OnClick = pnlGutterColorClick
           end
           object btnGutterColor: TPanel
             Left = 40
@@ -275,14 +278,14 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           TabOrder = 0
           OnClick = btnFontClick
         end
-        object Panel3: TPanel
+        object pnlEditorFont: TPanel
           Left = 8
           Top = 19
           Width = 143
           Height = 30
           BevelOuter = bvNone
           TabOrder = 1
-          object labFont: TLabel
+          object lblFont: TLabel
             Left = 2
             Top = 1
             Width = 128
@@ -304,14 +307,14 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         Height = 88
         Caption = 'Line spacing / Tab spacing'
         TabOrder = 2
-        object Label8: TLabel
+        object lblExtraLines: TLabel
           Left = 9
           Top = 27
           Width = 55
           Height = 13
           Caption = 'Extra Lines:'
         end
-        object Label9: TLabel
+        object lblTabWidth: TLabel
           Left = 9
           Top = 56
           Width = 53
@@ -449,7 +452,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         end
         object ckTabsToSpaces: TCheckBox
           Left = 176
-          Top = 129
+          Top = 148
           Width = 130
           Height = 17
           Hint = 'Converts a tab character to the number of spaces in Tab Width'
@@ -458,7 +461,7 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         end
         object ckTrimTrailingSpaces: TCheckBox
           Left = 176
-          Top = 148
+          Top = 167
           Width = 130
           Height = 17
           Hint = 'Spaces at the end of lines will be trimmed and not saved'
@@ -508,8 +511,8 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           TabOrder = 17
         end
         object ckGroupUndo: TCheckBox
-          Left = 177
-          Top = 167
+          Left = 176
+          Top = 186
           Width = 130
           Height = 17
           Hint = 
@@ -529,8 +532,8 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           TabOrder = 7
         end
         object ckRightMouseMoves: TCheckBox
-          Left = 177
-          Top = 186
+          Left = 176
+          Top = 205
           Width = 146
           Height = 17
           Hint = 
@@ -572,13 +575,22 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           TabOrder = 11
         end
         object ckShowSpecialChars: TCheckBox
-          Left = 177
-          Top = 205
+          Left = 176
+          Top = 224
           Width = 130
           Height = 17
           Hint = 'Shows linebreaks, spaces and tabs using special symbols'
           Caption = 'Show special chars'
           TabOrder = 22
+        end
+        object ckTabIndent: TCheckBox
+          Left = 176
+          Top = 129
+          Width = 130
+          Height = 17
+          Hint = 'Use tab for indention'
+          Caption = 'Tab indent'
+          TabOrder = 23
         end
       end
       object gbCaret: TGroupBox
@@ -588,14 +600,14 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         Height = 62
         Caption = 'Caret'
         TabOrder = 1
-        object Label2: TLabel
+        object lblInsertCaret: TLabel
           Left = 16
           Top = 17
           Width = 56
           Height = 13
           Caption = 'Insert caret:'
         end
-        object Label4: TLabel
+        object lblOverwriteCaret: TLabel
           Left = 16
           Top = 41
           Width = 75
@@ -608,13 +620,12 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Width = 186
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          TabOrder = 0
           Items.Strings = (
             'Vertical Line'
             'Horizontal Line'
             'Half Block'
             'Block')
-          TabOrder = 0
         end
         object cOverwriteCaret: TComboBox
           Left = 120
@@ -622,13 +633,12 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Width = 186
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
+          TabOrder = 1
           Items.Strings = (
             'Vertical Line'
             'Horizontal Line'
             'Half Block'
             'Block')
-          TabOrder = 1
         end
       end
     end
@@ -659,21 +669,21 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
         Height = 119
         Caption = 'Keystroke Options'
         TabOrder = 4
-        object Label5: TLabel
+        object lblCommand: TLabel
           Left = 16
           Top = 28
           Width = 50
           Height = 13
           Caption = 'Command:'
         end
-        object Label6: TLabel
+        object lblKeystroke2: TLabel
           Left = 16
           Top = 91
           Width = 50
           Height = 13
           Caption = 'Keystroke:'
         end
-        object Label7: TLabel
+        object lblKeystroke: TLabel
           Left = 16
           Top = 59
           Width = 50
@@ -685,7 +695,6 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Top = 23
           Width = 186
           Height = 21
-          ItemHeight = 0
           TabOrder = 0
           OnExit = cKeyCommandExit
           OnKeyPress = cKeyCommandKeyPress
@@ -717,7 +726,6 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
           Height = 128
           Align = alClient
           BorderStyle = bsNone
-          ColumnClick = False
           Columns = <
             item
               Caption = 'Command'
@@ -727,12 +735,13 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
               Caption = 'Keystroke'
               Width = 142
             end>
-          ReadOnly = True
+          ColumnClick = False
           HideSelection = False
+          ReadOnly = True
           RowSelect = True
-          OnChanging = KeyListChanging
           TabOrder = 0
           ViewStyle = vsReport
+          OnChanging = KeyListChanging
         end
       end
     end
@@ -757,144 +766,143 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     TabOrder = 2
   end
   object ColorDialog: TColorDialog
-    Ctl3D = True
     Left = 8
     Top = 368
   end
   object ColorPopup: TPopupMenu
     Left = 40
     Top = 368
-    object None1: TMenuItem
+    object mnuNone: TMenuItem
       Tag = -1
       Caption = 'None'
       OnClick = PopupMenuClick
     end
-    object Scrollbar1: TMenuItem
+    object mnuScrollBar: TMenuItem
       Caption = 'Scrollbar'
       OnClick = PopupMenuClick
     end
-    object Background1: TMenuItem
+    object mnuBackground: TMenuItem
       Tag = 1
       Caption = 'Background'
       OnClick = PopupMenuClick
     end
-    object ActiveCaption1: TMenuItem
+    object mnuActiveCaption: TMenuItem
       Tag = 2
       Caption = 'Active Caption'
       OnClick = PopupMenuClick
     end
-    object InactiveCaption1: TMenuItem
+    object mnuInactiveCaption: TMenuItem
       Tag = 3
       Caption = 'Inactive Caption'
       OnClick = PopupMenuClick
     end
-    object Menu1: TMenuItem
+    object mnuMenu: TMenuItem
       Tag = 4
       Caption = 'Menu'
       OnClick = PopupMenuClick
     end
-    object Window1: TMenuItem
+    object mnuWindow: TMenuItem
       Tag = 5
       Caption = 'Window'
       OnClick = PopupMenuClick
     end
-    object WindowFrame1: TMenuItem
+    object mnuWindowFrame: TMenuItem
       Tag = 6
       Caption = 'Window Frame'
       OnClick = PopupMenuClick
     end
-    object MEnu2: TMenuItem
+    object Menu2: TMenuItem
       Tag = 7
       Caption = 'Menu Text'
       OnClick = PopupMenuClick
     end
-    object WindowText1: TMenuItem
+    object mnuWindowText: TMenuItem
       Tag = 8
       Caption = 'Window Text'
       OnClick = PopupMenuClick
     end
-    object CaptionText1: TMenuItem
+    object mnuCaptionText: TMenuItem
       Tag = 9
       Caption = 'Caption Text'
       OnClick = PopupMenuClick
     end
-    object ActiveBorder1: TMenuItem
+    object mnuActiveBorder: TMenuItem
       Tag = 10
       Caption = 'Active Border'
       OnClick = PopupMenuClick
     end
-    object InactiveBorder1: TMenuItem
+    object mnuInactiveBorder: TMenuItem
       Tag = 11
       Caption = 'Inactive Border'
       OnClick = PopupMenuClick
     end
-    object ApplicationWorkspace1: TMenuItem
+    object mnuApplicationWorkspace: TMenuItem
       Tag = 12
       Caption = 'Application Workspace'
       OnClick = PopupMenuClick
     end
-    object Highlight1: TMenuItem
+    object mnuHighlight: TMenuItem
       Tag = 13
       Caption = 'Highlight'
       OnClick = PopupMenuClick
     end
-    object HighlightText1: TMenuItem
+    object mnuHighlightText: TMenuItem
       Tag = 14
       Caption = 'Highlight Text'
       OnClick = PopupMenuClick
     end
-    object ButtonFace1: TMenuItem
+    object mnuButtonFace: TMenuItem
       Tag = 15
       Caption = 'Button Face'
       OnClick = PopupMenuClick
     end
-    object ButtonShadow1: TMenuItem
+    object mnuButtonShadow: TMenuItem
       Tag = 16
       Caption = 'Button Shadow'
       OnClick = PopupMenuClick
     end
-    object GrayText1: TMenuItem
+    object mnuGrayText: TMenuItem
       Tag = 17
       Caption = 'Gray Text'
       OnClick = PopupMenuClick
     end
-    object ButtonText1: TMenuItem
+    object mnuButtonText: TMenuItem
       Tag = 18
       Caption = 'Button Text'
       OnClick = PopupMenuClick
     end
-    object InactiveCaptionText1: TMenuItem
+    object mnuInactiveCaptionText: TMenuItem
       Tag = 19
       Caption = 'Inactive Caption Text'
       OnClick = PopupMenuClick
     end
-    object Highlight2: TMenuItem
+    object mnuHighlight2: TMenuItem
       Tag = 20
       Caption = 'Highlight'
       OnClick = PopupMenuClick
     end
-    object N3dDarkShadow1: TMenuItem
+    object mnu3dDarkShadow: TMenuItem
       Tag = 21
       Caption = '3D Dark Shadow'
       OnClick = PopupMenuClick
     end
-    object N3DLight1: TMenuItem
+    object mnu3DLight: TMenuItem
       Tag = 22
       Caption = '3D Light'
       OnClick = PopupMenuClick
     end
-    object InfoTipText1: TMenuItem
+    object mnuInfoTipText: TMenuItem
       Tag = 23
       Caption = 'Info Tip Text'
       OnClick = PopupMenuClick
     end
-    object InfoTipBackground1: TMenuItem
+    object mnuInfoTipBackground: TMenuItem
       Tag = 24
       Caption = 'Info Tip Background'
       OnClick = PopupMenuClick
     end
   end
-  object ImageList1: TImageList
+  object ImageList: TImageList
     Left = 72
     Top = 368
   end
@@ -904,8 +912,6 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
     Font.Style = []
-    MinFontSize = 0
-    MaxFontSize = 0
     Options = [fdEffects, fdFixedPitchOnly]
     Left = 104
     Top = 368

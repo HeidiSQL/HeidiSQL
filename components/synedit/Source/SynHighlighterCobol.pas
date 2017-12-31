@@ -40,7 +40,7 @@ located at http://SynEdit.SourceForge.net
 unit SynHighlighterCobol;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -87,29 +87,29 @@ type
 type
   TSynCobolSyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
-    fTokenID: TtkTokenKind;
-    fIndicator: WideChar;
+    FRange: TRangeState;
+    FTokenID: TtkTokenKind;
+    FIndicator: WideChar;
 
-    fCodeStartPos: LongInt;
-    fCodeMediumPos: LongInt;
-    fCodeEndPos: LongInt;
+    FCodeStartPos: LongInt;
+    FCodeMediumPos: LongInt;
+    FCodeEndPos: LongInt;
 
-    fCommentAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fAIdentifierAttri: TSynHighlighterAttributes;
-    fPreprocessorAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fNumberAttri: TSynHighlighterAttributes;
-    fBooleanAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fSequenceAttri: TSynHighlighterAttributes;
-    fIndicatorAttri: TSynHighlighterAttributes;
-    fTagAreaAttri: TSynHighlighterAttributes;
-    fDebugLinesAttri: TSynHighlighterAttributes;
-    fKeywords: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
+    FCommentAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FAIdentifierAttri: TSynHighlighterAttributes;
+    FPreprocessorAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FBooleanAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FSequenceAttri: TSynHighlighterAttributes;
+    FIndicatorAttri: TSynHighlighterAttributes;
+    FTagAreaAttri: TSynHighlighterAttributes;
+    FDebugLinesAttri: TSynHighlighterAttributes;
+    FKeywords: TSynHashEntryList;
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure IdentProc;
@@ -143,31 +143,31 @@ type
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
-    property AreaAIdentifierAttri: TSynHighlighterAttributes read fAIdentifierAttri write fAIdentifierAttri;
-    property PreprocessorAttri: TSynHighlighterAttributes read fPreprocessorAttri write fPreprocessorAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
-    property BooleanAttri: TSynHighlighterAttributes read fBooleanAttri write fBooleanAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
-    property SequenceAttri: TSynHighlighterAttributes read fSequenceAttri write fSequenceAttri;
-    property IndicatorAttri: TSynHighlighterAttributes read fIndicatorAttri write fIndicatorAttri;
-    property TagAreaAttri: TSynHighlighterAttributes read fTagAreaAttri write fTagAreaAttri;
-    property DebugLinesAttri: TSynHighlighterAttributes read fDebugLinesAttri write fDebugLinesAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri write FIdentifierAttri;
+    property AreaAIdentifierAttri: TSynHighlighterAttributes read FAIdentifierAttri write FAIdentifierAttri;
+    property PreprocessorAttri: TSynHighlighterAttributes read FPreprocessorAttri write FPreprocessorAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri write FNumberAttri;
+    property BooleanAttri: TSynHighlighterAttributes read FBooleanAttri write FBooleanAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri write FStringAttri;
+    property SequenceAttri: TSynHighlighterAttributes read FSequenceAttri write FSequenceAttri;
+    property IndicatorAttri: TSynHighlighterAttributes read FIndicatorAttri write FIndicatorAttri;
+    property TagAreaAttri: TSynHighlighterAttributes read FTagAreaAttri write FTagAreaAttri;
+    property DebugLinesAttri: TSynHighlighterAttributes read FDebugLinesAttri write FDebugLinesAttri;
 
-    property AreaAStartPos: LongInt read fCodeStartPos write SetCodeStartPos;
-    property AreaBStartPos: LongInt read fCodeMediumPos write SetCodeMediumPos;
-    property CodeEndPos: LongInt read fCodeEndPos write SetCodeEndPos;
+    property AreaAStartPos: LongInt read FCodeStartPos write SetCodeStartPos;
+    property AreaBStartPos: LongInt read FCodeMediumPos write SetCodeMediumPos;
+    property CodeEndPos: LongInt read FCodeEndPos write SetCodeEndPos;
   end;
 
 implementation
@@ -279,17 +279,17 @@ const
 const
   StringChars: array[TRangeState] of WideChar = (#0, '"', '''', '=',  '"', '''');
 
-procedure TSynCobolSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
+procedure TSynCobolSyn.DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
 var
-  HashValue: integer;
+  HashValue: Integer;
 begin
   HashValue := HashKey(PWideChar(AKeyword));
-  fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
+  FKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
 end;
 
 function TSynCobolSyn.HashKey(Str: PWideChar): Integer;
 var
-  fRun: LongInt;
+  InternalRun: LongInt;
 
   function GetOrd: Integer;
   begin
@@ -303,10 +303,10 @@ var
   end;
 
 begin
-  fRun := Run;
+  InternalRun := Run;
   Result := 0;
 
-  while IsIdentChar(Str^) and (fRun <= fCodeEndPos) do
+  while IsIdentChar(Str^) and (InternalRun <= FCodeEndPos) do
   begin
 {$IFOPT Q-}
     Result := 7 * Result + GetOrd;
@@ -314,11 +314,11 @@ begin
     Result := (7 * Result + GetOrd) and $FFFFFF;
 {$ENDIF}
     Inc(Str);
-    inc(fRun);
+    Inc(InternalRun);
   end;
-  
+
   Result := Result and $FF; // 255
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 
 function TSynCobolSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
@@ -326,13 +326,13 @@ var
   Entry: TSynHashEntry;
   I: Integer;
 begin
-  fToIdent := MayBe;
-  Entry := fKeywords[HashKey(MayBe)];
+  FToIdent := MayBe;
+  Entry := FKeywords[HashKey(MayBe)];
   while Assigned(Entry) do
   begin
-    if Entry.KeywordLen > fStringLen then
-      break
-    else if Entry.KeywordLen = fStringLen then
+    if Entry.KeywordLen > FStringLen then
+      Break
+    else if Entry.KeywordLen = FStringLen then
       if IsCurrentToken(Entry.Keyword) then
       begin
         Result := TtkTokenKind(Entry.Kind);
@@ -342,10 +342,10 @@ begin
           if IsCurrentToken('label') then
           begin
             I := Run + Length('label');
-            while fLine[I] = ' ' do
+            while FLine[I] = ' ' do
               Inc(I);
-            if (WStrLComp(PWideChar(@fLine[I]), 'record', Length('record')) = 0)
-              and (I + Length('record') - 1 <= fCodeEndPos) then
+            if (WStrLComp(PWideChar(@FLine[I]), 'record', Length('record')) = 0)
+              and (I + Length('record') - 1 <= FCodeEndPos) then
                 Result := tkKey
               else
                 Result := tkPreprocessor;
@@ -354,7 +354,7 @@ begin
             Result := tkIdentifier;
         end;
         
-        exit;
+        Exit;
       end;
     Entry := Entry.Next;
   end;
@@ -363,10 +363,10 @@ end;
 
 procedure TSynCobolSyn.SpaceProc;
 begin
-  fTokenID := tkSpace;
+  FTokenID := tkSpace;
   repeat
-    inc(Run);
-  until not CharInSet(fLine[Run], [#1..#32]);
+    Inc(Run);
+  until not CharInSet(FLine[Run], [#1..#32]);
 end;
 
 procedure TSynCobolSyn.FirstCharsProc;
@@ -375,29 +375,29 @@ var
 begin
   if IsLineEnd(Run) then
     NextProcedure
-  else if Run < fCodeStartPos - 1 then
+  else if Run < FCodeStartPos - 1 then
   begin
-    fTokenID := tkSequence;
+    FTokenID := tkSequence;
     repeat
-      inc(Run);
-    until (Run = fCodeStartPos - 1) or IsLineEnd(Run);
+      Inc(Run);
+    until (Run = FCodeStartPos - 1) or IsLineEnd(Run);
   end
   else
   begin
-    fTokenID := tkIndicator;
-    case fLine[Run] of
-      '*', '/', 'D', 'd': fIndicator := fLine[Run];
-      '-': if fRange in [rsQuoteStringMayBe, rsApostStringMayBe] then
+    FTokenID := tkIndicator;
+    case FLine[Run] of
+      '*', '/', 'D', 'd': FIndicator := FLine[Run];
+      '-': if FRange in [rsQuoteStringMayBe, rsApostStringMayBe] then
            begin
              I := Run + 1;
-             while fLine[I] = ' ' do
+             while FLine[I] = ' ' do
                Inc(I);
-             if (WStrLComp(PWideChar(@fLine[I]), PWideChar(UnicodeStringOfChar(StringChars[fRange], 2)), 2) <> 0)
-               or (I + 1 > fCodeEndPos) then
-                 fRange := rsUnknown;
+             if (WStrLComp(PWideChar(@FLine[I]), PWideChar(UnicodeStringOfChar(StringChars[FRange], 2)), 2) <> 0)
+               or (I + 1 > FCodeEndPos) then
+                 FRange := rsUnknown;
            end;
     end;
-    inc(Run);
+    Inc(Run);
   end;
 end;
 
@@ -407,46 +407,46 @@ begin
     NextProcedure
   else
   begin
-    fTokenID := tkTagArea;
+    FTokenID := tkTagArea;
     repeat
-      inc(Run);
+      Inc(Run);
     until IsLineEnd(Run);
   end;
 end;
 
 procedure TSynCobolSyn.CommentProc;
 begin
-  fIndicator := #0;
+  FIndicator := #0;
 
   if IsLineEnd(Run) then
     NextProcedure
   else
   begin
-    fTokenID := tkComment;
+    FTokenID := tkComment;
     repeat
       Inc(Run);
-    until IsLineEnd(Run) or (Run > fCodeEndPos);
+    until IsLineEnd(Run) or (Run > FCodeEndPos);
   end;
 end;
 
 procedure TSynCobolSyn.DebugProc;
 begin
-  fIndicator := #0;
+  FIndicator := #0;
 
   if IsLineEnd(Run) then
     NextProcedure
   else
   begin
-    fTokenID := tkDebugLines;
+    FTokenID := tkDebugLines;
     repeat
       Inc(Run);
-    until IsLineEnd(Run) or (Run > fCodeEndPos);
+    until IsLineEnd(Run) or (Run > FCodeEndPos);
   end;
 end;
 
 procedure TSynCobolSyn.PointProc;
 begin
-  if (Run < fCodeEndPos) and CharInSet(FLine[Run + 1], ['0'..'9', 'e', 'E']) then
+  if (Run < FCodeEndPos) and CharInSet(FLine[Run + 1], ['0'..'9', 'e', 'E']) then
     NumberProc
   else
     UnknownProc;
@@ -456,7 +456,7 @@ procedure TSynCobolSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       '0'..'9', '.', 'e', 'E', '-', '+':
         Result := True;
       else
@@ -467,11 +467,11 @@ procedure TSynCobolSyn.NumberProc;
 var
   fFloat: Boolean;
 begin
-  fTokenID := tkNumber;
+  FTokenID := tkNumber;
   Inc(Run);
   fFloat := False;
 
-  while IsNumberChar and (Run <= fCodeEndPos) do
+  while IsNumberChar and (Run <= FCodeEndPos) do
   begin
     case FLine[Run] of
       '.':
@@ -495,33 +495,33 @@ end;
 
 procedure TSynCobolSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynCobolSyn.CRProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
-  if fLine[Run] = #10 then
-    inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
+  if FLine[Run] = #10 then
+    Inc(Run);
 end;
 
 procedure TSynCobolSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynCobolSyn.StringOpenProc;
 begin
-  case fLine[Run] of
-    '"': fRange := rsQuoteString;
-    '''': fRange := rsApostString;
+  case FLine[Run] of
+    '"': FRange := rsQuoteString;
+    '''': FRange := rsApostString;
     else
-      if fLine[Run + 1] = '=' then
+      if FLine[Run + 1] = '=' then
       begin
-        fRange := rsPseudoText;
+        FRange := rsPseudoText;
         Inc(Run);
       end
       else
@@ -533,28 +533,28 @@ begin
 
   Inc(Run);
   StringProc;
-  fTokenID := tkString;
+  FTokenID := tkString;
 end;
 
 procedure TSynCobolSyn.StringProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
 
-  if Run <= fCodeEndPos then
+  if Run <= FCodeEndPos then
   repeat
-    if (fLine[Run] = StringChars[fRange])
-      and ((fLine[Run] <> '=') or ((Run > 0) and (fLine[Run - 1] = '='))) then
+    if (FLine[Run] = StringChars[FRange])
+      and ((FLine[Run] <> '=') or ((Run > 0) and (FLine[Run - 1] = '='))) then
     begin
-      if (Run = fCodeEndPos) and (fRange in [rsQuoteString, rsApostString]) then
-        Inc(fRange, 3)
+      if (Run = FCodeEndPos) and (FRange in [rsQuoteString, rsApostString]) then
+        Inc(FRange, 3)
       else
-        fRange := rsUnknown;
+        FRange := rsUnknown;
       Inc(Run);
       Break;
     end;
     if not IsLineEnd(Run) then
       Inc(Run);
-  until IsLineEnd(Run) or (Run > fCodeEndPos);
+  until IsLineEnd(Run) or (Run > FCodeEndPos);
 end;
 
 procedure TSynCobolSyn.StringEndProc;
@@ -563,23 +563,23 @@ begin
     NextProcedure
   else
   begin
-    fTokenID := tkString;
+    FTokenID := tkString;
 
-    if (fRange <> rsPseudoText) and (Run <= fCodeEndPos) then
+    if (FRange <> rsPseudoText) and (Run <= FCodeEndPos) then
     repeat
-      if (fLine[Run] = StringChars[fRange]) then
+      if (FLine[Run] = StringChars[FRange]) then
       begin
-        if fRange in [rsQuoteString, rsApostString] then
+        if FRange in [rsQuoteString, rsApostString] then
           Inc(Run)
         else
         begin
           Inc(Run, 2);
-          Dec(fRange, 3);
+          Dec(FRange, 3);
         end;
         Break;
       end;
       Inc(Run);
-    until IsLineEnd(Run) or (Run > fCodeEndPos);
+    until IsLineEnd(Run) or (Run > FCodeEndPos);
 
     StringProc;
   end;
@@ -589,70 +589,70 @@ constructor TSynCobolSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := False;
+  FCaseSensitive := False;
 
-  fKeywords := TSynHashEntryList.Create;
+  FKeywords := TSynHashEntryList.Create;
 
-  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style := [fsItalic];
-  fCommentAttri.Foreground := clGray;
-  AddAttribute(fCommentAttri);
+  FCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style := [fsItalic];
+  FCommentAttri.Foreground := clGray;
+  AddAttribute(FCommentAttri);
 
-  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
+  FIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
 
-  fAIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrAreaAIdentifier, SYNS_FriendlyAttrAreaAIdentifier);
-  fAIdentifierAttri.Foreground := clTeal;
-  fAIdentifierAttri.Style := [fsBold];
-  AddAttribute(fAIdentifierAttri);
+  FAIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrAreaAIdentifier, SYNS_FriendlyAttrAreaAIdentifier);
+  FAIdentifierAttri.Foreground := clTeal;
+  FAIdentifierAttri.Style := [fsBold];
+  AddAttribute(FAIdentifierAttri);
 
-  fPreprocessorAttri := TSynHighLighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
-  fPreprocessorAttri.Foreground := clMaroon;
-  AddAttribute(fPreprocessorAttri);
+  FPreprocessorAttri := TSynHighLighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
+  FPreprocessorAttri.Foreground := clMaroon;
+  AddAttribute(FPreprocessorAttri);
 
-  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  AddAttribute(fKeyAttri);
+  FKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  AddAttribute(FKeyAttri);
 
-  fNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  fNumberAttri.Foreground := clGreen;
-  AddAttribute(fNumberAttri);
+  FNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  FNumberAttri.Foreground := clGreen;
+  AddAttribute(FNumberAttri);
 
-  fBooleanAttri := TSynHighLighterAttributes.Create(SYNS_AttrBoolean, SYNS_FriendlyAttrBoolean);
-  fBooleanAttri.Foreground := clGreen;
-  AddAttribute(fBooleanAttri);
+  FBooleanAttri := TSynHighLighterAttributes.Create(SYNS_AttrBoolean, SYNS_FriendlyAttrBoolean);
+  FBooleanAttri.Foreground := clGreen;
+  AddAttribute(FBooleanAttri);
 
-  fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
+  FSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
 
-  fStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  fStringAttri.Foreground := clBlue;
-  AddAttribute(fStringAttri);
+  FStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  FStringAttri.Foreground := clBlue;
+  AddAttribute(FStringAttri);
 
-  fSequenceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSequence, SYNS_FriendlyAttrSequence);
-  fSequenceAttri.Foreground := clDkGray;
-  AddAttribute(fSequenceAttri);
+  FSequenceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSequence, SYNS_FriendlyAttrSequence);
+  FSequenceAttri.Foreground := clDkGray;
+  AddAttribute(FSequenceAttri);
 
-  fIndicatorAttri := TSynHighLighterAttributes.Create(SYNS_AttrIndicator, SYNS_FriendlyAttrIndicator);
-  fIndicatorAttri.Foreground := clRed;
-  AddAttribute(fIndicatorAttri);
+  FIndicatorAttri := TSynHighLighterAttributes.Create(SYNS_AttrIndicator, SYNS_FriendlyAttrIndicator);
+  FIndicatorAttri.Foreground := clRed;
+  AddAttribute(FIndicatorAttri);
 
-  fTagAreaAttri := TSynHighLighterAttributes.Create(SYNS_AttrTagArea, SYNS_FriendlyAttrTagArea);
-  fTagAreaAttri.Foreground := clMaroon;
-  AddAttribute(fTagAreaAttri);
+  FTagAreaAttri := TSynHighLighterAttributes.Create(SYNS_AttrTagArea, SYNS_FriendlyAttrTagArea);
+  FTagAreaAttri.Foreground := clMaroon;
+  AddAttribute(FTagAreaAttri);
 
-  fDebugLinesAttri := TSynHighLighterAttributes.Create(SYNS_AttrDebugLines, SYNS_FriendlyAttrDebugLines);
-  fDebugLinesAttri.Foreground := clDkGray;
-  AddAttribute(fDebugLinesAttri);
+  FDebugLinesAttri := TSynHighLighterAttributes.Create(SYNS_AttrDebugLines, SYNS_FriendlyAttrDebugLines);
+  FDebugLinesAttri.Foreground := clDkGray;
+  AddAttribute(FDebugLinesAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  fDefaultFilter := SYNS_FilterCOBOL;
-  fRange := rsUnknown;
-  fIndicator := #0;
+  FDefaultFilter := SYNS_FilterCOBOL;
+  FRange := rsUnknown;
+  FIndicator := #0;
 
-  fCodeStartPos := 7;
-  fCodeMediumPos := 11;
-  fCodeEndPos := 71;
+  FCodeStartPos := 7;
+  FCodeMediumPos := 11;
+  FCodeEndPos := 71;
 
   EnumerateKeywords(Ord(tkBoolean), BooleanWords, IsIdentChar, DoAddKeyword);
   EnumerateKeywords(Ord(tkKey), KeyWords, IsIdentChar, DoAddKeyword);
@@ -663,55 +663,55 @@ end;
 
 destructor TSynCobolSyn.Destroy;
 begin
-  fKeywords.Free;
+  FKeywords.Free;
   inherited Destroy;
 end;
 
 procedure TSynCobolSyn.IdentProc;
 begin
-  if CharInSet(fLine[Run], ['x', 'g', 'X', 'G'])
-    and (Run < fCodeEndPos) and CharInSet(fLine[Run + 1], ['"', '''']) then
+  if CharInSet(FLine[Run], ['x', 'g', 'X', 'G'])
+    and (Run < FCodeEndPos) and CharInSet(FLine[Run + 1], ['"', '''']) then
   begin
     Inc(Run);
     StringOpenProc;
   end
   else
   begin
-    fTokenID := IdentKind((fLine + Run));
-    if (fTokenID = tkIdentifier) and (Run < fCodeMediumPos) then
-      fTokenID := tkAIdentifier;
-    inc(Run, fStringLen);
+    FTokenID := IdentKind((FLine + Run));
+    if (FTokenID = tkIdentifier) and (Run < FCodeMediumPos) then
+      FTokenID := tkAIdentifier;
+    Inc(Run, FStringLen);
 
-    while IsIdentChar(fLine[Run]) and (Run <= fCodeEndPos) do
+    while IsIdentChar(FLine[Run]) and (Run <= FCodeEndPos) do
       Inc(Run);
   end;
 end;
 
 procedure TSynCobolSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynCobolSyn.Next;
 begin
-  fTokenPos := Run;
+  FTokenPos := Run;
 
-  if fTokenPos < fCodeStartPos then
+  if FTokenPos < FCodeStartPos then
     FirstCharsProc
   else
-    case fIndicator of
+    case FIndicator of
       '*', '/': CommentProc;
       'D', 'd': DebugProc;
       else
-        if fTokenPos > fCodeEndPos then
+        if FTokenPos > FCodeEndPos then
           LastCharsProc
         else
-          case fRange of
+          case FRange of
             rsQuoteString..rsApostStringMayBe: StringEndProc;
           else
             begin
-              fRange := rsUnknown;
+              FRange := rsUnknown;
               NextProcedure;
             end;
           end;
@@ -721,7 +721,7 @@ end;
 
 procedure TSynCobolSyn.NextProcedure;
 begin
-  case fLine[Run] of
+  case FLine[Run] of
     #0: NullProc;
     #10: LFProc;
     #13: CRProc;
@@ -736,14 +736,14 @@ begin
   end;
 end;
 
-function TSynCobolSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;
+function TSynCobolSyn.GetDefaultAttribute(Index: Integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER:  Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER:  Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
   else
     Result := nil;
   end;
@@ -751,39 +751,39 @@ end;
 
 function TSynCobolSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynCobolSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynCobolSyn.GetTokenAttribute: TSynHighLighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := fCommentAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkAIdentifier: Result := fAIdentifierAttri;
-    tkPreprocessor: Result := fPreprocessorAttri;
-    tkKey: Result := fKeyAttri;
-    tkBoolean: Result := fBooleanAttri;
-    tkNumber: Result := fNumberAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkSequence: Result := fSequenceAttri;
-    tkIndicator: Result := fIndicatorAttri;
-    tkTagArea: Result := fTagAreaAttri;
-    tkDebugLines: Result := fDebugLinesAttri;
-    tkUnknown: Result := fIdentifierAttri;
+    tkComment: Result := FCommentAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkAIdentifier: Result := FAIdentifierAttri;
+    tkPreprocessor: Result := FPreprocessorAttri;
+    tkKey: Result := FKeyAttri;
+    tkBoolean: Result := FBooleanAttri;
+    tkNumber: Result := FNumberAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkSequence: Result := FSequenceAttri;
+    tkIndicator: Result := FIndicatorAttri;
+    tkTagArea: Result := FTagAreaAttri;
+    tkDebugLines: Result := FDebugLinesAttri;
+    tkUnknown: Result := FIdentifierAttri;
   else
     Result := nil;
   end;
 end;
 
-function TSynCobolSyn.GetTokenKind: integer;
+function TSynCobolSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynCobolSyn.GetSampleSource: UnicodeString;
@@ -873,7 +873,7 @@ end;
 
 function TSynCobolSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterCOBOL;
+  Result := FDefaultFilter <> SYNS_FilterCOBOL;
 end;
 
 function TSynCobolSyn.IsIdentChar(AChar: WideChar): Boolean;
@@ -888,28 +888,28 @@ end;
 
 procedure TSynCobolSyn.SetCodeStartPos(Value: LongInt);
 begin
-  if Value < fCodeMediumPos then
-    fCodeStartPos := Value
+  if Value < FCodeMediumPos then
+    FCodeStartPos := Value
   else
-    fCodeStartPos := fCodeMediumPos;
+    FCodeStartPos := FCodeMediumPos;
 end;
 
 procedure TSynCobolSyn.SetCodeMediumPos(Value: LongInt);
 begin
-  if (fCodeStartPos <= Value) and (Value <= fCodeEndPos) then
-    fCodeMediumPos := Value
+  if (FCodeStartPos <= Value) and (Value <= FCodeEndPos) then
+    FCodeMediumPos := Value
   else
-    if Value > fCodeEndPos
-    then fCodeMediumPos := fCodeEndPos
-    else fCodeMediumPos := fCodeStartPos;
+    if Value > FCodeEndPos
+    then FCodeMediumPos := FCodeEndPos
+    else FCodeMediumPos := FCodeStartPos;
 end;
 
 procedure TSynCobolSyn.SetCodeEndPos(Value: LongInt);
 begin
-  if Value > fCodeMediumPos then
-    fCodeEndPos := Value
+  if Value > FCodeMediumPos then
+    FCodeEndPos := Value
   else
-    fCodeEndPos := fCodeMediumPos;
+    FCodeEndPos := FCodeMediumPos;
 end;
 
 class function TSynCobolSyn.GetLanguageName: string;
@@ -919,17 +919,17 @@ end;
 
 procedure TSynCobolSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 end;
 
 procedure TSynCobolSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 function TSynCobolSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 class function TSynCobolSyn.GetFriendlyLanguageName: UnicodeString;

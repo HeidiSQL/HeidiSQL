@@ -3,8 +3,8 @@ unit SynEditDocumentManager;
 interface
 
 uses
-  classes,
-  messages,
+  Classes,
+  Messages,
   ExtCtrls,
   SynEditTypes,
   SynEdit,
@@ -15,133 +15,114 @@ uses
 type
   ISynDocument = interface
   ['{DC80C7CF-FC56-4FDE-9E3E-6A1C53D6EFCD}']
-    procedure SetCaretXY(const value : TBufferCoord);
-    function GetCaretXY : TBufferCoord;
-    procedure SetLines(const value : TStrings);
-    function GetLines : TStrings;
-    function GetUndoList : TSynEditUndoList;
-    function GetRedoList : TSynEditUndoList;
-    function GetTopLine : integer;
-    procedure SetTopLine(const value : integer);
-    procedure SetModified(const value : boolean);
-    function GetModified : boolean;
-    function GetName : string;
-    function GetHighLighter : TSynCustomHighlighter;
-    procedure SetHighlighter(const value : TSynCustomHighlighter);
-    function GetDataIntf : IInterface;
-    procedure SetDataIntf(const value : IInterface);
-    function GetMarks   : TSynEditMarkList; 
+    procedure SetCaretXY(const value: TBufferCoord);
+    function GetCaretXY: TBufferCoord;
+    procedure SetLines(const value: TStrings);
+    function GetLines: TStrings;
+    function GetUndoList: TSynEditUndoList;
+    function GetRedoList: TSynEditUndoList;
+    function GetTopLine: Integer;
+    procedure SetTopLine(const value: Integer);
+    procedure SetModified(const value: Boolean);
+    function GetModified: Boolean;
+    function GetName: string;
+    function GetHighLighter: TSynCustomHighlighter;
+    procedure SetHighlighter(const value: TSynCustomHighlighter);
+    function GetDataIntf: IInterface;
+    procedure SetDataIntf(const value: IInterface);
+    function GetMarks: TSynEditMarkList;
 
-    property CaretXY      : TBufferCoord read GetCaretXY write SetCaretXY;
-    property Lines        : TStrings read GetLines write SetLines;
-    property UndoList     : TSynEditUndoList read GetUndoList;
-    property RedoList     : TSynEditUndoList read GetRedoList;
-    property TopLine      : integer read GetTopLine write SetTopLine;
-    property Modified     : boolean read GetModified write SetModified;
-    property Name         : string read GetName;
-    property Highlighter  : TSynCustomHighlighter read GetHighlighter write SetHighLighter;
-    property DataIntf     : IInterface read GetDataIntf write SetDataIntf;
-    property Marks        : TSynEditMarkList read GetMarks;
+    property CaretXY: TBufferCoord read GetCaretXY write SetCaretXY;
+    property Lines: TStrings read GetLines write SetLines;
+    property UndoList: TSynEditUndoList read GetUndoList;
+    property RedoList: TSynEditUndoList read GetRedoList;
+    property TopLine: Integer read GetTopLine write SetTopLine;
+    property Modified: Boolean read GetModified write SetModified;
+    property Name: string read GetName;
+    property Highlighter: TSynCustomHighlighter read GetHighlighter write SetHighLighter;
+    property DataIntf: IInterface read GetDataIntf write SetDataIntf;
+    property Marks: TSynEditMarkList read GetMarks;
     //Line info allows us to store stuff like gutter icons, breakpoints etc.
   end;
 
-  TSynEditDocumentManager = class(TCOmponent)
+  TSynEditDocumentManager = class(TComponent)
   private
-    FDocuments : IInterfaceList;
-    FCurrentDocumentIndex : integer;
-    FMemo : TSynMemo;
-    FMemoWndProc : TWndMethod;
-    FUpdateTimer : TTimer;
-    function GetCount: integer;
+    FDocuments: IInterfaceList;
+    FCurrentDocumentIndex: Integer;
+    FMemo: TSynMemo;
+    FMemoWndProc: TWndMethod;
+    FUpdateTimer: TTimer;
+    function GetCount: Integer;
     function GetCurrentDocument: ISynDocument;
   protected
     procedure MemoWndProc(var Msg: TMessage);
     procedure SetMemo(const Value: TSynMemo);
-    function GetDocument(index: integer): ISynDocument;
+    function GetDocument(index: Integer): ISynDocument;
     function GetDocumentByName(index: string): ISynDocument;
-    procedure SetCurrentDocumentIndex(const Value: integer);
-    procedure UpdateTimerEvent(Sender : TObject);
+    procedure SetCurrentDocumentIndex(const Value: Integer);
+    procedure UpdateTimerEvent(Sender: TObject);
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
-    constructor Create(AOwner : TComponent);override;
-    destructor Destroy;override;
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     procedure UpdateCurrentDocument; //saves editor to document
     procedure ApplyCurrentDocument; //applies document to editor
-    function AddDocument(const AName : string; const ALines : TStrings; const AHighlighter : TSynCustomHighlighter) : ISynDocument;
-    procedure RemoveDocument(const index : integer);overload;
-    procedure RemoveDocument(const AName : string);overload;
-    procedure RemoveDocument(const ADocument : ISynDocument);overload;
+    function AddDocument(const AName: string; const ALines: TStrings; const AHighlighter: TSynCustomHighlighter): ISynDocument;
+    procedure RemoveDocument(const index: Integer); overload;
+    procedure RemoveDocument(const AName: string); overload;
+    procedure RemoveDocument(const ADocument: ISynDocument); overload;
     procedure RemoveAll;
-    property Documents[index : integer] : ISynDocument read GetDocument;
-    property CurrentDocument : ISynDocument read GetCurrentDocument;
-    property DocumentsByName[index : string] : ISynDocument read GetDocumentByName;
-    property CurrentDocumentIndex : integer read FCurrentDocumentIndex write SetCurrentDocumentIndex;
-    property Count : integer read GetCount;
+    property Documents[index: Integer]: ISynDocument read GetDocument;
+    property CurrentDocument: ISynDocument read GetCurrentDocument;
+    property DocumentsByName[index: string]: ISynDocument read GetDocumentByName;
+    property CurrentDocumentIndex: Integer read FCurrentDocumentIndex write SetCurrentDocumentIndex;
+    property Count: Integer read GetCount;
   published
-    property Memo : TSynMemo read FMemo write SetMemo;
+    property Memo: TSynMemo read FMemo write SetMemo;
   end;
 
 implementation
 
 uses
-  windows,SysUtils;
+  Windows, SysUtils;
 { TSynEditDocumentManager }
 
 type
-  TSynDocument = class(TInterfacedObject,ISynDocument)
+  TSynDocument = class(TInterfacedObject, ISynDocument)
   private
-    FName         : string;
-    FLines        : TStringList;
-    FCaretXY      : TBufferCoord;
-    FModified     : Boolean;
-    FRedoList     : TSynEditUndoList;
-    FUndoList     : TSynEditUndoList;
-    FTopLine      : Integer;
-    FHighLighter  : TSynCustomHighlighter;
-    FDataIntf     : IInterface;
-    FMarks        : TSynEditMarkList;
+    FName: string;
+    FLines: TStringList;
+    FCaretXY: TBufferCoord;
+    FModified: Boolean;
+    FRedoList: TSynEditUndoList;
+    FUndoList: TSynEditUndoList;
+    FTopLine: Integer;
+    FHighLighter: TSynCustomHighlighter;
+    FDataIntf: IInterface;
+    FMarks: TSynEditMarkList;
   protected
-    function GetCaretXY : TBufferCoord;
-    function GetLines : TStrings;
-    function GetModified  : Boolean;
-    function GetName  : String;
-    function GetRedoList  : TSynEditUndoList;
-    function GetTopLine : Integer;
-    function GetUndoList  : TSynEditUndoList;
+    function GetCaretXY: TBufferCoord;
+    function GetLines: TStrings;
+    function GetModified: Boolean;
+    function GetName: string;
+    function GetRedoList: TSynEditUndoList;
+    function GetTopLine: Integer;
+    function GetUndoList: TSynEditUndoList;
     procedure SetCaretXY(const value: TBufferCoord);
     procedure SetLines(const value: TStrings);
     procedure SetModified(const value: Boolean);
     procedure SetTopLine(const value: Integer);
-    function GetHighLighter : TSynCustomHighlighter;
-    procedure SetHighlighter(const value : TSynCustomHighlighter);
-    function GetDataIntf : IInterface;
-    procedure SetDataIntf(const value : IInterface);
-    function GetMarks   : TSynEditMarkList;
+    function GetHighLighter: TSynCustomHighlighter;
+    procedure SetHighlighter(const value: TSynCustomHighlighter);
+    function GetDataIntf: IInterface;
+    procedure SetDataIntf(const value: IInterface);
+    function GetMarks: TSynEditMarkList;
   public
-    constructor Create(const AName : string; ALines : TStrings);
-    destructor Destroy;override;
+    constructor Create(const AName: string; ALines: TStrings);
+    destructor Destroy; override;
   end;
 
-
-function TSynEditDocumentManager.AddDocument(const AName: string; const ALines: TStrings; const AHighlighter : TSynCustomHighlighter): ISynDocument;
-begin
-  result := GetDocumentByName(AName);
-  if result <> nil then
-  begin
-    result.Lines.Assign(ALines);
-    result.Highlighter := AHighlighter;
-  end
-  else
-  begin
-    result := TSynDocument.Create(AName,ALines);
-    result.Highlighter := AHighlighter;
-    FDocuments.Add(Result);
-{    if CurrentDocumentIndex = -1 then
-      CurrentDocumentIndex := 0;}
-  end;
-
-end;
 
 constructor TSynEditDocumentManager.Create(AOwner: TComponent);
 begin
@@ -154,30 +135,55 @@ begin
   FUpdateTimer.OnTimer  := UpdateTimerEvent;
 end;
 
-function TSynEditDocumentManager.GetDocument(index: integer): ISynDocument;
+destructor TSynEditDocumentManager.Destroy;
+begin
+  FUpdateTimer.Free;
+  inherited;
+end;
+
+function TSynEditDocumentManager.AddDocument(const AName: string;
+  const ALines: TStrings; const AHighlighter: TSynCustomHighlighter): ISynDocument;
+begin
+  Result := GetDocumentByName(AName);
+  if Result <> nil then
+  begin
+    Result.Lines.Assign(ALines);
+    Result.Highlighter := AHighlighter;
+  end
+  else
+  begin
+    Result := TSynDocument.Create(AName,ALines);
+    Result.Highlighter := AHighlighter;
+    FDocuments.Add(Result);
+{    if CurrentDocumentIndex = -1 then
+      CurrentDocumentIndex := 0;}
+  end;
+end;
+
+function TSynEditDocumentManager.GetDocument(index: Integer): ISynDocument;
 begin
   if (index >= 0) and (index < FDocuments.Count) then
-    result := FDocuments.Items[index] as ISynDocument
+    Result := FDocuments.Items[index] as ISynDocument
   else
-    result := nil;
+    Result := nil;
 end;
 
 function TSynEditDocumentManager.GetDocumentByName(index: string): ISynDocument;
 var
-  i : integer;
+  i: Integer;
 begin
-  result := nil;
+  Result := nil;
   for i := 0 to FDocuments.Count -1 do
   begin
-    result := GetDocument(i);
-    if CompareText(result.Name,index) = 0 then
-      break
+    Result := GetDocument(i);
+    if CompareText(Result.Name,index) = 0 then
+      Break
     else
-      result := nil;
+      Result := nil;
   end;
 end;
 
-procedure TSynEditDocumentManager.RemoveDocument(const index: integer);
+procedure TSynEditDocumentManager.RemoveDocument(const index: Integer);
 begin
   FDocuments.Delete(index);
   if FDocuments.Count = 0 then
@@ -186,7 +192,7 @@ end;
 
 procedure TSynEditDocumentManager.RemoveDocument(const AName: string);
 var
-  doc : ISynDocument;
+  doc: ISynDocument;
 begin
   doc := GetDocumentByName(AName);
   if doc <> nil then
@@ -214,7 +220,7 @@ begin
     FCurrentDocumentIndex := -1;
 end;
 
-procedure TSynEditDocumentManager.SetCurrentDocumentIndex(const Value: integer);
+procedure TSynEditDocumentManager.SetCurrentDocumentIndex(const Value: Integer);
 begin
   if FCurrentDocumentIndex <> Value then
   begin
@@ -259,33 +265,33 @@ begin
   FCurrentDocumentIndex := -1;
 end;
 
-function TSynEditDocumentManager.GetCount: integer;
+function TSynEditDocumentManager.GetCount: Integer;
 begin
-  result := FDocuments.Count;
+  Result := FDocuments.Count;
 end;
 
 function TSynEditDocumentManager.GetCurrentDocument: ISynDocument;
 begin
   if FCurrentDocumentIndex <> -1 then
-    result := GetDocument(FCurrentDocumentIndex)
+    Result := GetDocument(FCurrentDocumentIndex)
   else
-    result := nil;
+    Result := nil;
 end;
 
-function CloneMark(const AOwner : TCustomSynEdit; const source : TSynEditMark) : TSynEditMark;
+function CloneMark(const AOwner: TCustomSynEdit; const source: TSynEditMark): TSynEditMark;
 begin
-  result := TSynEditMark.Create(AOwner);
-  result.Line := source.Line;
+  Result := TSynEditMark.Create(AOwner);
+  Result.Line := source.Line;
   Result.Char := source.Char;
-  result.ImageIndex := source.ImageIndex;
-  result.BookmarkNumber := source.BookmarkNumber;
-  result.InternalImage := source.InternalImage;
-  result.Visible := source.Visible;
+  Result.ImageIndex := source.ImageIndex;
+  Result.BookmarkNumber := source.BookmarkNumber;
+  Result.InternalImage := source.InternalImage;
+  Result.Visible := source.Visible;
 end;
 
 procedure TSynEditDocumentManager.ApplyCurrentDocument;
 var
-  doc : ISynDocument;
+  doc: ISynDocument;
   I: Integer;
 begin
   if FCurrentDocumentIndex <> -1 then
@@ -341,53 +347,53 @@ end;
 
 function TSynDocument.GetCaretXY: TBufferCoord;
 begin
-  result := FCaretXY;
+  Result := FCaretXY;
 end;
 
 function TSynDocument.GetDataIntf: IInterface;
 begin
-  result := FDataIntf;
+  Result := FDataIntf;
 end;
 
 function TSynDocument.GetHighLighter: TSynCustomHighlighter;
 begin
-  result := FHighLighter;
+  Result := FHighLighter;
 end;
 
 
 function TSynDocument.GetLines: TStrings;
 begin
-  result := FLines;
+  Result := FLines;
 end;
 
 function TSynDocument.GetMarks: TSynEditMarkList;
 begin
-  result := FMarks;
+  Result := FMarks;
 end;
 
 function TSynDocument.GetModified: Boolean;
 begin
-  result := FModified;
+  Result := FModified;
 end;
 
-function TSynDocument.GetName: String;
+function TSynDocument.GetName: string;
 begin
-  result := FName;
+  Result := FName;
 end;
 
 function TSynDocument.GetRedoList: TSynEditUndoList;
 begin
-  result := FRedoList;
+  Result := FRedoList;
 end;
 
 function TSynDocument.GetTopLine: Integer;
 begin
-  result := FTopLine;
+  Result := FTopLine;
 end;
 
 function TSynDocument.GetUndoList: TSynEditUndoList;
 begin
-  result := FUndoList;
+  Result := FUndoList;
 end;
 
 procedure TSynDocument.SetCaretXY(const value: TBufferCoord);
@@ -431,15 +437,9 @@ begin
   end;
 end;
 
-destructor TSynEditDocumentManager.Destroy;
-begin
-  FUpdateTimer.Free;
-  inherited;
-end;
-
 procedure TSynEditDocumentManager.UpdateTimerEvent(Sender: TObject);
 var
-  doc : ISynDocument;
+  doc: ISynDocument;
 begin
   FUpdateTimer.Enabled := False;
   if FCurrentDocumentIndex <> -1 then
@@ -463,7 +463,7 @@ end;
 
 procedure TSynEditDocumentManager.UpdateCurrentDocument;
 var
-  doc : ISynDocument;
+  doc: ISynDocument;
   i: Integer;
 begin
   if FCurrentDocumentIndex <> -1 then
@@ -488,4 +488,5 @@ begin
     end;
   end;
 end;
+
 end.

@@ -171,7 +171,6 @@ type
     function GetItems: TUnicodeStrings;
     procedure SetItems(const Value: TUnicodeStrings);
   protected
-    { Protected declarations }
     procedure DefineProperties(Filer: TFiler); override;
     procedure KeyboardHandler(Sender: TObject; AfterProcessing: Boolean;
       var Handled: Boolean; var Command: TSynEditorCommand; var AChar: WideChar;
@@ -182,7 +181,6 @@ type
       Operation: TOperation); override;
     procedure SetEditor(Value: TCustomSynEdit);
   public
-    { Public declarations }
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
@@ -205,7 +203,6 @@ type
     { Utility functions }
     function HalfString(Str: UnicodeString; GetFirstHalf: Boolean): UnicodeString;
   public
-    { Published declarations }
     property Enabled: Boolean read FEnabled write FEnabled default True;
     property Editor: TCustomSynEdit read FEditor write SetEditor;
     property Items: TUnicodeStrings read GetItems write SetItems;
@@ -220,7 +217,6 @@ type
 
   TSynAutoCorrect = class(TCustomSynAutoCorrect)
   published
-    { Published declarations }
     property Enabled;
     property Editor;
     property Items;

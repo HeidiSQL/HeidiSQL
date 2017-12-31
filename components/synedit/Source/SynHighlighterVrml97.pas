@@ -70,7 +70,7 @@ The highlighter formats Vrml97/X3D source code highlighting keywords, strings, n
 unit SynHighlighterVrml97;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -134,40 +134,40 @@ type
 type
   TSynVrml97Syn = class(TSynCustomHighLighter)
   private
-    fRange :TRangeState;
-    isDoctype :boolean;
-    FTokenID :TtkTokenKind;
-    fCommentAttri :TSynHighlighterAttributes;
-    fIdentifierAttri :TSynHighlighterAttributes;
-    fKeyAttri :TSynHighlighterAttributes;
-    fNonReservedKeyAttri :TSynHighlighterAttributes;
-    fEventAttri :TSynHighlighterAttributes;
-    fNumberAttri :TSynHighlighterAttributes;
-    fSpaceAttri :TSynHighlighterAttributes;
-    fStringAttri :TSynHighlighterAttributes;
-    fSymbolAttri :TSynHighlighterAttributes;
+    FRange: TRangeState;
+    FIsDoctype: Boolean;
+    FTokenID: TtkTokenKind;
+    FCommentAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FNonReservedKeyAttri: TSynHighlighterAttributes;
+    FEventAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
 
-    fVrmlAppearanceAttri :TSynHighlighterAttributes;
-    fVrmlAttributeAttri :TSynHighlighterAttributes;
-    fVrmlDefinitionAttri :TSynHighlighterAttributes;
-    fVrmlEventAttri :TSynHighlighterAttributes;
-    fVrmlGroupingAttri :TSynHighlighterAttributes;
-    fVrmlInterpolatorAttri :TSynHighlighterAttributes;
-    fVrmlLightAttri :TSynHighlighterAttributes;
-    fVrmlNodeAttri :TSynHighlighterAttributes;
-    fVrmlParameterAttri :TSynHighlighterAttributes;
-    fVrmlprotoAttri :TSynHighlighterAttributes;
-    fVrmlSensorAttri :TSynHighlighterAttributes;
-    fVrmlShapeAttri :TSynHighlighterAttributes;
-    fVrmlShape_HintAttri :TSynHighlighterAttributes;
-    fVrmlTime_dependentAttri :TSynHighlighterAttributes;
-    fVrmlViewpointAttri :TSynHighlighterAttributes;
-    fVrmlWorldInfoAttri :TSynHighlighterAttributes;
-    fX3DDocTypeAttri :TSynHighlighterAttributes;
-    fX3DHeaderAttri :TSynHighlighterAttributes;
+    FVrmlAppearanceAttri: TSynHighlighterAttributes;
+    FVrmlAttributeAttri: TSynHighlighterAttributes;
+    FVrmlDefinitionAttri: TSynHighlighterAttributes;
+    FVrmlEventAttri: TSynHighlighterAttributes;
+    FVrmlGroupingAttri: TSynHighlighterAttributes;
+    FVrmlInterpolatorAttri: TSynHighlighterAttributes;
+    FVrmlLightAttri: TSynHighlighterAttributes;
+    FVrmlNodeAttri: TSynHighlighterAttributes;
+    FVrmlParameterAttri: TSynHighlighterAttributes;
+    FVrmlprotoAttri: TSynHighlighterAttributes;
+    FVrmlSensorAttri: TSynHighlighterAttributes;
+    FVrmlShapeAttri: TSynHighlighterAttributes;
+    FVrmlShape_HintAttri: TSynHighlighterAttributes;
+    FVrmlTime_dependentAttri: TSynHighlighterAttributes;
+    FVrmlViewpointAttri: TSynHighlighterAttributes;
+    FVrmlWorldInfoAttri: TSynHighlighterAttributes;
+    FX3DDocTypeAttri: TSynHighlighterAttributes;
+    FX3DHeaderAttri: TSynHighlighterAttributes;
 
-    fKeywords: TSynHashEntryList;
-    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
+    FKeywords: TSynHashEntryList;
+    procedure DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure AndSymbolProc;
@@ -194,7 +194,7 @@ type
     procedure StringProc;
     procedure SymbolProc;
     procedure UnknownProc;
-    function NextTokenIs(T: UnicodeString) :Boolean;
+    function NextTokenIs(T: UnicodeString): Boolean;
   protected
     function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
@@ -204,45 +204,45 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetDefaultAttribute(Index :integer) :TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
-    function GetEol :Boolean; override;
-    function GetRange :Pointer; override;
-    function GetTokenID :TtkTokenKind;
-    function GetTokenAttribute :TSynHighlighterAttributes; override;
-    function GetTokenKind :integer; override;
+    function GetEol: Boolean; override;
+    function GetRange: Pointer; override;
+    function GetTokenID: TtkTokenKind;
+    function GetTokenAttribute: TSynHighlighterAttributes; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
-    procedure SetRange(Value :Pointer); override;
+    procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
   published
-    property NonReservedKeyAttri :TSynHighlighterAttributes read fNonReservedKeyAttri write fNonReservedKeyAttri;
-    property NumberAttri :TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
-    property SpaceAttri :TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
-    property StringAttri :TSynHighlighterAttributes read fStringAttri write fStringAttri;
-    property SymbolAttri :TSynHighlighterAttributes read fSymbolAttri write fSymbolAttri;
-    property CommentAttri :TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
-    property IdentifierAttri :TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
-    property EcmaScriptKeyAttri :TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property EcmaScriptEventAttri :TSynHighlighterAttributes read fEventAttri write fEventAttri;
+    property NonReservedKeyAttri: TSynHighlighterAttributes read FNonReservedKeyAttri write FNonReservedKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri write FNumberAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri write FStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri write FSymbolAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri write FIdentifierAttri;
+    property EcmaScriptKeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property EcmaScriptEventAttri: TSynHighlighterAttributes read FEventAttri write FEventAttri;
 
-    property VrmlAppearanceAttri :TSynHighlighterAttributes read fVrmlAppearanceAttri write fVrmlAppearanceAttri;
-    property VrmlAttributeAttri :TSynHighlighterAttributes read fVrmlAttributeAttri write fVrmlAttributeAttri;
-    property VrmlDefinitionAttri :TSynHighlighterAttributes read fVrmlDefinitionAttri write fVrmlDefinitionAttri;
-    property VrmlEventAttri :TSynHighlighterAttributes read fVrmlEventAttri write fVrmlEventAttri;
-    property VrmlGroupingAttri :TSynHighlighterAttributes read fVrmlGroupingAttri write fVrmlGroupingAttri;
-    property VrmlInterpolatorAttri :TSynHighlighterAttributes read fVrmlInterpolatorAttri write fVrmlInterpolatorAttri;
-    property VrmlLightAttri :TSynHighlighterAttributes read fVrmlLightAttri write fVrmlLightAttri;
-    property VrmlNodeAttri :TSynHighlighterAttributes read fVrmlNodeAttri write fVrmlNodeAttri;
-    property VrmlParameterAttri :TSynHighlighterAttributes read fVrmlParameterAttri write fVrmlParameterAttri;
-    property VrmlprotoAttri :TSynHighlighterAttributes read fVrmlprotoAttri write fVrmlprotoAttri;
-    property VrmlSensorAttri :TSynHighlighterAttributes read fVrmlSensorAttri write fVrmlSensorAttri;
-    property VrmlShapeAttri :TSynHighlighterAttributes read fVrmlShapeAttri write fVrmlShapeAttri;
-    property VrmlShape_HintAttri :TSynHighlighterAttributes read fVrmlShape_HintAttri write fVrmlShape_HintAttri;
-    property VrmlTime_dependentAttri :TSynHighlighterAttributes read fVrmlTime_dependentAttri write fVrmlTime_dependentAttri;
-    property VrmlViewpointAttri :TSynHighlighterAttributes read fVrmlViewpointAttri write fVrmlViewpointAttri;
-    property VrmlWorldInfoAttri :TSynHighlighterAttributes read fVrmlWorldInfoAttri write fVrmlWorldInfoAttri;
-    property X3DDocTypeAttri :TSynHighlighterAttributes read fX3DDocTypeAttri write fX3DDocTypeAttri;
-    property X3DHeaderAttri :TSynHighlighterAttributes read fX3DHeaderAttri write fX3DHeaderAttri;
+    property VrmlAppearanceAttri: TSynHighlighterAttributes read FVrmlAppearanceAttri write FVrmlAppearanceAttri;
+    property VrmlAttributeAttri: TSynHighlighterAttributes read FVrmlAttributeAttri write FVrmlAttributeAttri;
+    property VrmlDefinitionAttri: TSynHighlighterAttributes read FVrmlDefinitionAttri write FVrmlDefinitionAttri;
+    property VrmlEventAttri: TSynHighlighterAttributes read FVrmlEventAttri write FVrmlEventAttri;
+    property VrmlGroupingAttri: TSynHighlighterAttributes read FVrmlGroupingAttri write FVrmlGroupingAttri;
+    property VrmlInterpolatorAttri: TSynHighlighterAttributes read FVrmlInterpolatorAttri write FVrmlInterpolatorAttri;
+    property VrmlLightAttri: TSynHighlighterAttributes read FVrmlLightAttri write FVrmlLightAttri;
+    property VrmlNodeAttri: TSynHighlighterAttributes read FVrmlNodeAttri write FVrmlNodeAttri;
+    property VrmlParameterAttri: TSynHighlighterAttributes read FVrmlParameterAttri write FVrmlParameterAttri;
+    property VrmlprotoAttri: TSynHighlighterAttributes read FVrmlprotoAttri write FVrmlprotoAttri;
+    property VrmlSensorAttri: TSynHighlighterAttributes read FVrmlSensorAttri write FVrmlSensorAttri;
+    property VrmlShapeAttri: TSynHighlighterAttributes read FVrmlShapeAttri write FVrmlShapeAttri;
+    property VrmlShape_HintAttri: TSynHighlighterAttributes read FVrmlShape_HintAttri write FVrmlShape_HintAttri;
+    property VrmlTime_dependentAttri: TSynHighlighterAttributes read FVrmlTime_dependentAttri write FVrmlTime_dependentAttri;
+    property VrmlViewpointAttri: TSynHighlighterAttributes read FVrmlViewpointAttri write FVrmlViewpointAttri;
+    property VrmlWorldInfoAttri: TSynHighlighterAttributes read FVrmlWorldInfoAttri write FVrmlWorldInfoAttri;
+    property X3DDocTypeAttri: TSynHighlighterAttributes read FX3DDocTypeAttri write FX3DDocTypeAttri;
+    property X3DHeaderAttri: TSynHighlighterAttributes read FX3DHeaderAttri write FX3DHeaderAttri;
   end;
 
 implementation
@@ -431,12 +431,12 @@ const
     'WorldInfo';
 
 
-procedure TSynVrml97Syn.DoAddKeyword(AKeyword: UnicodeString; AKind: integer);
+procedure TSynVrml97Syn.DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
 var
-  HashValue: integer;
+  HashValue: Integer;
 begin
   HashValue := HashKey(PWideChar(AKeyword));
-  fKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
+  FKeywords[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
 end;
 
 function TSynVrml97Syn.HashKey(Str: PWideChar): Integer;
@@ -464,198 +464,198 @@ begin
     Inc(Str);
   end;
   Result := Result and $FF; // 255
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 
 function TSynVrml97Syn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Entry: TSynHashEntry;
 begin
-  fToIdent := MayBe;
-  Entry := fKeywords[HashKey(MayBe)];
+  FToIdent := MayBe;
+  Entry := FKeywords[HashKey(MayBe)];
   while Assigned(Entry) do
   begin
-    if Entry.KeywordLen > fStringLen then
-      break
-    else if Entry.KeywordLen = fStringLen then
+    if Entry.KeywordLen > FStringLen then
+      Break
+    else if Entry.KeywordLen = FStringLen then
       if IsCurrentToken(Entry.Keyword) then
       begin
         Result := TtkTokenKind(Entry.Kind);
-        exit;
+        Exit;
       end;
     Entry := Entry.Next;
   end;
   Result := tkIdentifier;
 end;
 
-constructor TSynVrml97Syn.Create(AOwner :TComponent);
+constructor TSynVrml97Syn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := True;
+  FCaseSensitive := True;
 
-  fKeywords := TSynHashEntryList.Create;
-  isDoctype := False;
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style := [fsItalic];
-  fCommentAttri.Foreground := clNavy;
-  fCommentAttri.Background := clGray;
-  AddAttribute(fCommentAttri);
+  FKeywords := TSynHashEntryList.Create;
+  FIsDoctype := False;
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style := [fsItalic];
+  FCommentAttri.Foreground := clNavy;
+  FCommentAttri.Background := clGray;
+  AddAttribute(FCommentAttri);
 
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  fIdentifierAttri.Style := [];
-  fIdentifierAttri.Foreground := clNavy;
-  fIdentifierAttri.Background := clWhite;
-  AddAttribute(fIdentifierAttri);
+  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  FIdentifierAttri.Style := [];
+  FIdentifierAttri.Foreground := clNavy;
+  FIdentifierAttri.Background := clWhite;
+  AddAttribute(FIdentifierAttri);
 
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  fKeyAttri.Foreground := clRed;
-  fKeyAttri.Background := clWhite;
-  AddAttribute(fKeyAttri);
+  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  FKeyAttri.Foreground := clRed;
+  FKeyAttri.Background := clWhite;
+  AddAttribute(FKeyAttri);
 
-  fNonReservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword, SYNS_FriendlyAttrNonReservedKeyword);
-  fNonReservedKeyAttri.Style := [fsItalic];
-  fNonReservedKeyAttri.Foreground := clBlack;
-  fNonReservedKeyAttri.Background := clWhite;
-  AddAttribute(fNonReservedKeyAttri);
+  FNonReservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword, SYNS_FriendlyAttrNonReservedKeyword);
+  FNonReservedKeyAttri.Style := [fsItalic];
+  FNonReservedKeyAttri.Foreground := clBlack;
+  FNonReservedKeyAttri.Background := clWhite;
+  AddAttribute(FNonReservedKeyAttri);
 
-  fEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent, SYNS_FriendlyAttrEvent);
-  fEventAttri.Style := [fsItalic];
-  fEventAttri.Foreground := clNavy;
-  fEventAttri.Background := clWhite;
-  AddAttribute(fEventAttri);
+  FEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent, SYNS_FriendlyAttrEvent);
+  FEventAttri.Style := [fsItalic];
+  FEventAttri.Foreground := clNavy;
+  FEventAttri.Background := clWhite;
+  AddAttribute(FEventAttri);
 
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  fEventAttri.Style := [fsItalic];
-  fEventAttri.Foreground := clNavy;
-  fEventAttri.Background := clWhite;
-  AddAttribute(fNumberAttri);
+  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  FEventAttri.Style := [fsItalic];
+  FEventAttri.Foreground := clNavy;
+  FEventAttri.Background := clWhite;
+  AddAttribute(FNumberAttri);
 
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  fSpaceAttri.Style := [fsItalic];
-  fSpaceAttri.Foreground := clNavy;
-  AddAttribute(fSpaceAttri);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  FSpaceAttri.Style := [fsItalic];
+  FSpaceAttri.Foreground := clNavy;
+  AddAttribute(FSpaceAttri);
 
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  fStringAttri.Style := [fsItalic];
-  fStringAttri.Foreground := clNavy;
-  fStringAttri.Background := clWhite;
-  AddAttribute(fStringAttri);
+  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  FStringAttri.Style := [fsItalic];
+  FStringAttri.Foreground := clNavy;
+  FStringAttri.Background := clWhite;
+  AddAttribute(FStringAttri);
 
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  fSymbolAttri.Style := [fsItalic];
-  fSymbolAttri.Foreground := clNavy;
-  fSymbolAttri.Background := clWhite;
-  AddAttribute(fSymbolAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  FSymbolAttri.Style := [fsItalic];
+  FSymbolAttri.Foreground := clNavy;
+  FSymbolAttri.Background := clWhite;
+  AddAttribute(FSymbolAttri);
   //-- vrml
-  fVrmlAppearanceAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlAppearance, SYNS_FriendlyAttrVrmlAppearance);
-  fVrmlAppearanceAttri.Style := [fsItalic];
-  fVrmlAppearanceAttri.Foreground := clNavy;
-  fVrmlAppearanceAttri.Background := clWhite;
-  AddAttribute(fVrmlAppearanceAttri);
+  FVrmlAppearanceAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlAppearance, SYNS_FriendlyAttrVrmlAppearance);
+  FVrmlAppearanceAttri.Style := [fsItalic];
+  FVrmlAppearanceAttri.Foreground := clNavy;
+  FVrmlAppearanceAttri.Background := clWhite;
+  AddAttribute(FVrmlAppearanceAttri);
 
-  fVrmlAttributeAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlAttribute, SYNS_FriendlyAttrVrmlAttribute);
-  fVrmlAttributeAttri.Style := [fsItalic];
-  fVrmlAttributeAttri.Foreground := clNavy;
-  fVrmlAttributeAttri.Background := clGray;
-  AddAttribute(fVrmlAttributeAttri);
+  FVrmlAttributeAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlAttribute, SYNS_FriendlyAttrVrmlAttribute);
+  FVrmlAttributeAttri.Style := [fsItalic];
+  FVrmlAttributeAttri.Foreground := clNavy;
+  FVrmlAttributeAttri.Background := clGray;
+  AddAttribute(FVrmlAttributeAttri);
 
-  fVrmlDefinitionAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlDefinition, SYNS_FriendlyAttrVrmlDefinition);
-  fVrmlDefinitionAttri.Style := [fsItalic];
-  fVrmlDefinitionAttri.Foreground := clNavy;
-  fVrmlDefinitionAttri.Background := clRed;
-  AddAttribute(fVrmlDefinitionAttri);
+  FVrmlDefinitionAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlDefinition, SYNS_FriendlyAttrVrmlDefinition);
+  FVrmlDefinitionAttri.Style := [fsItalic];
+  FVrmlDefinitionAttri.Foreground := clNavy;
+  FVrmlDefinitionAttri.Background := clRed;
+  AddAttribute(FVrmlDefinitionAttri);
 
-  fVrmlEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlEvent, SYNS_FriendlyAttrVrmlEvent);
-  fVrmlEventAttri.Style := [fsBold];
-  fVrmlEventAttri.Foreground := clRed;
-  fVrmlEventAttri.Background := clWhite;
-  AddAttribute(fVrmlEventAttri);
+  FVrmlEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlEvent, SYNS_FriendlyAttrVrmlEvent);
+  FVrmlEventAttri.Style := [fsBold];
+  FVrmlEventAttri.Foreground := clRed;
+  FVrmlEventAttri.Background := clWhite;
+  AddAttribute(FVrmlEventAttri);
 
-  fVrmlGroupingAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlGrouping, SYNS_FriendlyAttrVrmlGrouping);
-  fVrmlGroupingAttri.Style := [fsBold];
-  fVrmlGroupingAttri.Foreground := clNavy;
-  fVrmlGroupingAttri.Background := clWhite;
-  AddAttribute(fVrmlGroupingAttri);
+  FVrmlGroupingAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlGrouping, SYNS_FriendlyAttrVrmlGrouping);
+  FVrmlGroupingAttri.Style := [fsBold];
+  FVrmlGroupingAttri.Foreground := clNavy;
+  FVrmlGroupingAttri.Background := clWhite;
+  AddAttribute(FVrmlGroupingAttri);
 
-  fVrmlInterpolatorAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlInterpolator, SYNS_FriendlyAttrVrmlInterpolator);
-  fVrmlInterpolatorAttri.Style := [fsItalic];
-  fVrmlInterpolatorAttri.Foreground := clLime;
-  fVrmlInterpolatorAttri.Background := clWhite;
-  AddAttribute(fVrmlInterpolatorAttri);
+  FVrmlInterpolatorAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlInterpolator, SYNS_FriendlyAttrVrmlInterpolator);
+  FVrmlInterpolatorAttri.Style := [fsItalic];
+  FVrmlInterpolatorAttri.Foreground := clLime;
+  FVrmlInterpolatorAttri.Background := clWhite;
+  AddAttribute(FVrmlInterpolatorAttri);
 
-  fVrmlLightAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlLight, SYNS_FriendlyAttrVrmlLight);
-  fVrmlLightAttri.Style := [fsItalic];
-  fVrmlLightAttri.Foreground := clTeal;
-  fVrmlLightAttri.Background := clWhite;
-  AddAttribute(fVrmlLightAttri);
+  FVrmlLightAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlLight, SYNS_FriendlyAttrVrmlLight);
+  FVrmlLightAttri.Style := [fsItalic];
+  FVrmlLightAttri.Foreground := clTeal;
+  FVrmlLightAttri.Background := clWhite;
+  AddAttribute(FVrmlLightAttri);
 
-  fVrmlNodeAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlNode, SYNS_FriendlyAttrVrmlNode);
-  fVrmlNodeAttri.Style := [fsItalic, fsBold];
-  fVrmlNodeAttri.Foreground := clGreen;
-  fVrmlNodeAttri.Background := clWhite;
-  AddAttribute(fVrmlNodeAttri);
+  FVrmlNodeAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlNode, SYNS_FriendlyAttrVrmlNode);
+  FVrmlNodeAttri.Style := [fsItalic, fsBold];
+  FVrmlNodeAttri.Foreground := clGreen;
+  FVrmlNodeAttri.Background := clWhite;
+  AddAttribute(FVrmlNodeAttri);
 
-  fVrmlParameterAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlParameter, SYNS_FriendlyAttrVrmlParameter);
-  fVrmlParameterAttri.Style := [fsBold];
-  fVrmlParameterAttri.Foreground := $F0CAA6; //clSkyBlue
-  fVrmlParameterAttri.Background := clWhite;
-  AddAttribute(fVrmlParameterAttri);
+  FVrmlParameterAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlParameter, SYNS_FriendlyAttrVrmlParameter);
+  FVrmlParameterAttri.Style := [fsBold];
+  FVrmlParameterAttri.Foreground := $F0CAA6; //clSkyBlue
+  FVrmlParameterAttri.Background := clWhite;
+  AddAttribute(FVrmlParameterAttri);
 
-  fVrmlprotoAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlProto, SYNS_FriendlyAttrVrmlProto);
-  fVrmlprotoAttri.Style := [fsBold];
-  fVrmlprotoAttri.Foreground := clRed;
-  fVrmlprotoAttri.Background := clWhite;
-  AddAttribute(fVrmlprotoAttri);
+  FVrmlprotoAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlProto, SYNS_FriendlyAttrVrmlProto);
+  FVrmlprotoAttri.Style := [fsBold];
+  FVrmlprotoAttri.Foreground := clRed;
+  FVrmlprotoAttri.Background := clWhite;
+  AddAttribute(FVrmlprotoAttri);
 
-  fVrmlSensorAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlSensor, SYNS_FriendlyAttrVrmlSensor);
-  fVrmlSensorAttri.Style := [fsBold];
-  fVrmlSensorAttri.Foreground := clOlive;
-  fVrmlSensorAttri.Background := clWhite;
-  AddAttribute(fVrmlSensorAttri);
+  FVrmlSensorAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlSensor, SYNS_FriendlyAttrVrmlSensor);
+  FVrmlSensorAttri.Style := [fsBold];
+  FVrmlSensorAttri.Foreground := clOlive;
+  FVrmlSensorAttri.Background := clWhite;
+  AddAttribute(FVrmlSensorAttri);
 
-  fVrmlShapeAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlShape, SYNS_FriendlyAttrVrmlShape);
-  fVrmlShapeAttri.Style := [fsBold];
-  fVrmlShapeAttri.Foreground := clPurple;
-  fVrmlShapeAttri.Background := clWhite;
-  AddAttribute(fVrmlShapeAttri);
+  FVrmlShapeAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlShape, SYNS_FriendlyAttrVrmlShape);
+  FVrmlShapeAttri.Style := [fsBold];
+  FVrmlShapeAttri.Foreground := clPurple;
+  FVrmlShapeAttri.Background := clWhite;
+  AddAttribute(FVrmlShapeAttri);
 
-  fVrmlShape_HintAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlShape_Hint, SYNS_FriendlyAttrVrmlShape_Hint);
-  fVrmlShape_HintAttri.Style := [fsItalic];
-  fVrmlShape_HintAttri.Foreground := clPurple;
-  fVrmlShape_HintAttri.Background := clWhite;
-  AddAttribute(fVrmlShape_HintAttri);
+  FVrmlShape_HintAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlShape_Hint, SYNS_FriendlyAttrVrmlShape_Hint);
+  FVrmlShape_HintAttri.Style := [fsItalic];
+  FVrmlShape_HintAttri.Foreground := clPurple;
+  FVrmlShape_HintAttri.Background := clWhite;
+  AddAttribute(FVrmlShape_HintAttri);
 
-  fVrmlTime_dependentAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlTime_dependent, SYNS_FriendlyAttrVrmlTime_dependent);
-  fVrmlTime_dependentAttri.Style := [fsItalic];
-  fVrmlTime_dependentAttri.Foreground := clOlive;
-  fVrmlTime_dependentAttri.Background := clWhite;
-  AddAttribute(fVrmlTime_dependentAttri);
+  FVrmlTime_dependentAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlTime_dependent, SYNS_FriendlyAttrVrmlTime_dependent);
+  FVrmlTime_dependentAttri.Style := [fsItalic];
+  FVrmlTime_dependentAttri.Foreground := clOlive;
+  FVrmlTime_dependentAttri.Background := clWhite;
+  AddAttribute(FVrmlTime_dependentAttri);
 
-  fVrmlViewpointAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlViewpoint, SYNS_FriendlyAttrVrmlViewpoint);
-  fVrmlViewpointAttri.Style := [fsItalic];
-  fVrmlViewpointAttri.Foreground := clGreen;
-  fVrmlViewpointAttri.Background := clWhite;
-  AddAttribute(fVrmlViewpointAttri);
+  FVrmlViewpointAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlViewpoint, SYNS_FriendlyAttrVrmlViewpoint);
+  FVrmlViewpointAttri.Style := [fsItalic];
+  FVrmlViewpointAttri.Foreground := clGreen;
+  FVrmlViewpointAttri.Background := clWhite;
+  AddAttribute(FVrmlViewpointAttri);
 
-  fVrmlWorldInfoAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlWorldInfo, SYNS_FriendlyAttrVrmlWorldInfo);
-  fVrmlWorldInfoAttri.Style := [fsItalic];
-  fVrmlWorldInfoAttri.Foreground := clMaroon;
-  fVrmlWorldInfoAttri.Background := clWhite;
-  AddAttribute(fVrmlWorldInfoAttri);
+  FVrmlWorldInfoAttri := TSynHighlighterAttributes.Create(SYNS_AttrVrmlWorldInfo, SYNS_FriendlyAttrVrmlWorldInfo);
+  FVrmlWorldInfoAttri.Style := [fsItalic];
+  FVrmlWorldInfoAttri.Foreground := clMaroon;
+  FVrmlWorldInfoAttri.Background := clWhite;
+  AddAttribute(FVrmlWorldInfoAttri);
 
-  fX3DDocTypeAttri := TSynHighLighterAttributes.Create(SYNS_AttrX3DDocType, SYNS_FriendlyAttrX3DDocType);
-  fX3DDocTypeAttri.Style := [fsItalic];
-  fX3DDocTypeAttri.Foreground := clMaroon;
-  fX3DDocTypeAttri.Background := clWhite;
-  AddAttribute(fX3DDocTypeAttri);
+  FX3DDocTypeAttri := TSynHighLighterAttributes.Create(SYNS_AttrX3DDocType, SYNS_FriendlyAttrX3DDocType);
+  FX3DDocTypeAttri.Style := [fsItalic];
+  FX3DDocTypeAttri.Foreground := clMaroon;
+  FX3DDocTypeAttri.Background := clWhite;
+  AddAttribute(FX3DDocTypeAttri);
 
-  fX3DHeaderAttri := TSynHighLighterAttributes.Create(SYNS_AttrX3DHeader, SYNS_FriendlyAttrX3DHeader);
-  fX3DHeaderAttri.Style := [fsItalic];
-  fX3DHeaderAttri.Foreground := clMaroon;
-  fX3DHeaderAttri.Background := clWhite;
-  AddAttribute(fX3DHeaderAttri);
+  FX3DHeaderAttri := TSynHighLighterAttributes.Create(SYNS_AttrX3DHeader, SYNS_FriendlyAttrX3DHeader);
+  FX3DHeaderAttri.Style := [fsItalic];
+  FX3DHeaderAttri.Foreground := clMaroon;
+  FX3DHeaderAttri.Background := clWhite;
+  AddAttribute(FX3DHeaderAttri);
   SetAttributesOnChange(DefHighlightChange);
 
   EnumerateKeywords(Ord(tkEvent), Events, IsIdentChar, DoAddKeyword);
@@ -678,21 +678,21 @@ begin
   EnumerateKeywords(Ord(tkVrmlViewpoint), VrmlViewpoints, IsIdentChar, DoAddKeyword);
   EnumerateKeywords(Ord(tkVrmlWorldInfo), VrmlWorldInfos, IsIdentChar, DoAddKeyword);
 
-  fDefaultFilter := SYNS_FilterVrml97;
-  fRange := rsNormalText;
+  FDefaultFilter := SYNS_FilterVrml97;
+  FRange := rsNormalText;
 end;
 
 destructor TSynVrml97Syn.Destroy;
 begin
-  fKeywords.Free;
+  FKeywords.Free;
   inherited Destroy;
 end;
 
 procedure TSynVrml97Syn.AndSymbolProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '&']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '&']) then Inc(Run);
 end;
 
 function TSynVrml97Syn.NextTokenIs(T: UnicodeString): Boolean;
@@ -702,7 +702,7 @@ begin
   Result := True;
   Len := Length(T);
   for I := 1 to Len do
-    if (fLine[Run + I] <> T[I]) then
+    if (FLine[Run + I] <> T[I]) then
     begin
       Result := False;
       Break;
@@ -711,19 +711,19 @@ end;
 
 procedure TSynVrml97Syn.InCommentProc;
 begin
-  if (fLine[Run + 1] = '-') and (fLine[Run + 2] = '-') then
+  if (FLine[Run + 1] = '-') and (FLine[Run + 2] = '-') then
     begin
       Inc(Run);
-      fTokenID := tkComment;
-      fRange := rsComment;
+      FTokenID := tkComment;
+      FRange := rsComment;
       Inc(Run, 2);
       repeat
         Inc(Run);
-        if (fLine[Run] = '-') and (fLine[Run + 1] = '-') then
+        if (FLine[Run] = '-') and (FLine[Run + 1] = '-') then
           begin
-            fRange := rsNormalText;
+            FRange := rsNormalText;
             Inc(Run, 2);
-            break;
+            Break;
           end;
       until IsLineEnd(Run);
       Exit;
@@ -732,13 +732,13 @@ end;
 
 procedure TSynVrml97Syn.DiesisCommentProc;
 begin
-  if fLine[Run] = #0 then
+  if FLine[Run] = #0 then
     NullProc
   else
     begin
-      fTokenID := tkComment;
+      FTokenID := tkComment;
       repeat
-        inc(Run);
+        Inc(Run);
       until IsLineEnd(Run);
     end;
 end;
@@ -746,25 +746,25 @@ end;
 procedure TSynVrml97Syn.X3DHeaderOpenProc;
 begin
   Inc(Run);
-  fRange := rsX3DHeader;
+  FRange := rsX3DHeader;
   X3DHeaderProc;
-  fTokenID := tkX3DHeader;
+  FTokenID := tkX3DHeader;
 end;
 
 procedure TSynVrml97Syn.X3DHeaderProc;
 begin
-  case fLine[Run] of
+  case FLine[Run] of
     #0 :NullProc;
     #10 :LFProc;
     #13 :CRProc;
     else
       begin
-        fTokenID := tkX3DHeader;
+        FTokenID := tkX3DHeader;
         repeat
-          if (fLine[Run] = '?') then
+          if (FLine[Run] = '?') then
             begin
               Inc(Run, 1);
-              fRange := rsNormalText;
+              FRange := rsNormalText;
               Break;
             end;
           if not IsLineEnd(Run) then
@@ -778,38 +778,38 @@ procedure TSynVrml97Syn.X3DDocTypeOpenProc;
 begin
   if NextTokenIs('DOCTYPE') then
     begin
-      fRange := rsX3DDocType;
+      FRange := rsX3DDocType;
       X3DDocTypeProc;
-      fTokenID := tkX3DDocType;
+      FTokenID := tkX3DDocType;
     end
   else
     if NextTokenIs('--') then
       begin
-        fRange := rsComment;
+        FRange := rsComment;
         InCommentProc;
-        fTokenID := tkComment;
+        FTokenID := tkComment;
       end
     else
     begin
-      fTokenID := tkSymbol;
-      inc(Run);
+      FTokenID := tkSymbol;
+      Inc(Run);
     end;
 end;
 
 procedure TSynVrml97Syn.X3DDocTypeProc;
 begin
-  case fLine[Run] of
+  case FLine[Run] of
     #0 :NullProc;
     #10 :LFProc;
     #13 :CRProc;
     else
       begin
-        fTokenID := tkX3DDocType;
+        FTokenID := tkX3DDocType;
         repeat
-          if (fLine[Run + 1] = '>') then
+          if (FLine[Run + 1] = '>') then
             begin
               Inc(Run, 1);
-              fRange := rsNormalText;
+              FRange := rsNormalText;
               Break;
             end;
           if not IsLineEnd(Run) then
@@ -821,71 +821,71 @@ end;
 
 procedure TSynVrml97Syn.CommentProc;
 begin
-  if fLine[Run] = #0 then
+  if FLine[Run] = #0 then
     NullProc
   else
     begin
-      fTokenID := tkComment;
+      FTokenID := tkComment;
       repeat
-        if ((fLine[Run] = '*') and (fLine[Run + 1] = '/'))
+        if ((FLine[Run] = '*') and (FLine[Run + 1] = '/'))
           or
-          ((fLine[Run] = '-') and (fLine[Run + 1] = '-')) then
+          ((FLine[Run] = '-') and (FLine[Run + 1] = '-')) then
           begin
-            fRange := rsNormalText;
-            inc(Run, 2);
-            break;
+            FRange := rsNormalText;
+            Inc(Run, 2);
+            Break;
           end;
-        inc(Run);
+        Inc(Run);
       until IsLineEnd(Run);
     end;
 end;
 
 procedure TSynVrml97Syn.CRProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
-  if fLine[Run] = #10 then inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
+  if FLine[Run] = #10 then Inc(Run);
 end;
 
 procedure TSynVrml97Syn.IdentProc;
 begin
-  fTokenID := IdentKind(fLine + Run);
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do
-    inc(Run);
+  FTokenID := IdentKind(FLine + Run);
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do
+    Inc(Run);
 end;
 
 procedure TSynVrml97Syn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynVrml97Syn.MinusProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '-', '>']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '-', '>']) then Inc(Run);
 end;
 
 procedure TSynVrml97Syn.ModSymbolProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if fLine[Run] = '=' then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if FLine[Run] = '=' then Inc(Run);
 end;
 
 procedure TSynVrml97Syn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynVrml97Syn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       '0'..'9', '.', 'a'..'f', 'A'..'F', 'x', 'X':
         Result := True;
       else
@@ -897,7 +897,7 @@ var
   idx1: Integer; // token[1]
   isHex: Boolean;
 begin
-  fTokenID := tkNumber;
+  FTokenID := tkNumber;
   isHex := False;
   idx1 := Run;
   Inc(Run);
@@ -927,84 +927,85 @@ end;
 
 procedure TSynVrml97Syn.OrSymbolProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '|']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '|']) then Inc(Run);
 end;
 
 procedure TSynVrml97Syn.PlusProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if CharInSet(fLine[Run], ['=', '+']) then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if CharInSet(FLine[Run], ['=', '+']) then Inc(Run);
 end;
 
 procedure TSynVrml97Syn.PointProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if (fLine[Run] = '.') and (fLine[Run + 1] = '.') then inc(Run, 2);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if (FLine[Run] = '.') and (FLine[Run + 1] = '.') then Inc(Run, 2);
 end;
 
 procedure TSynVrml97Syn.SlashProc;
 begin
   Inc(Run);
-  case fLine[Run] of
+  case FLine[Run] of
     '/' :
       begin
-        fTokenID := tkComment;
+        FTokenID := tkComment;
         repeat
           Inc(Run);
         until IsLineEnd(Run);
       end;
     '*' :
       begin
-        fTokenID := tkComment;
-        fRange := rsComment;
+        FTokenID := tkComment;
+        FRange := rsComment;
         repeat
           Inc(Run);
-          if (fLine[Run] = '*') and (fLine[Run + 1] = '/') then
+          if (FLine[Run] = '*') and (FLine[Run + 1] = '/') then
             begin
-              fRange := rsNormalText;
+              FRange := rsNormalText;
               Inc(Run, 2);
-              break;
+              Break;
             end;
         until IsLineEnd(Run);
       end;
     '=' :
       begin
         Inc(Run);
-        fTokenID := tkSymbol;
+        FTokenID := tkSymbol;
       end;
     else
-      fTokenID := tkSymbol;
+      FTokenID := tkSymbol;
   end;
 end;
 
 procedure TSynVrml97Syn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynVrml97Syn.StarProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if fLine[Run] = '=' then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if FLine[Run] = '=' then Inc(Run);
 end;
 
 procedure TSynVrml97Syn.StringProc;
 var
   l_strChar: UnicodeString;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   l_strChar := FLine[Run]; // We could have '"' or #39
-  if (FLine[Run + 1] = l_strChar) and (FLine[Run + 2] = l_strChar) then inc(Run, 2);
+  if (FLine[Run + 1] = l_strChar) and (FLine[Run + 2] = l_strChar) then Inc(Run, 2);
   repeat
-    if IsLineEnd(Run) then break;
-    inc(Run);
+    if IsLineEnd(Run) then
+      Break;
+    Inc(Run);
   until (FLine[Run] = l_strChar) and (FLine[Pred(Run)] <> '\');
   if not IsLineEnd(Run) then
     Inc(Run);
@@ -1012,25 +1013,25 @@ end;
 
 procedure TSynVrml97Syn.SymbolProc;
 begin
-  inc(Run);
-  fTokenId := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynVrml97Syn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynVrml97Syn.Next;
 begin
-  fTokenPos := Run;
-  case fRange of
+  FTokenPos := Run;
+  case FRange of
     rsX3DHeader: X3DHeaderProc;
     rsX3DDocType: X3DDocTypeProc;
     rsComment: CommentProc;
     else
-      case fLine[Run] of
+      case FLine[Run] of
         '&': AndSymbolProc;
         #13: CRProc;
         '#': DiesisCommentProc;
@@ -1056,91 +1057,91 @@ begin
   inherited;
 end;
 
-function TSynVrml97Syn.GetDefaultAttribute(Index :integer) :TSynHighlighterAttributes;
+function TSynVrml97Syn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
     else
       Result := nil;
   end;
 end;
 
-function TSynVrml97Syn.GetEol :Boolean;
+function TSynVrml97Syn.GetEol: Boolean;
 begin
-  Result := fTokenID = tkNull;
+  Result := FTokenID = tkNull;
 end;
 
-function TSynVrml97Syn.GetRange :Pointer;
+function TSynVrml97Syn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
-function TSynVrml97Syn.GetTokenID :TtkTokenKind;
+function TSynVrml97Syn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
-function TSynVrml97Syn.GetTokenAttribute :TSynHighlighterAttributes;
+function TSynVrml97Syn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := fCommentAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkNonReservedKey: Result := fNonReservedKeyAttri;
-    tkEvent: Result := fEventAttri;
-    tkNumber: Result := fNumberAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fIdentifierAttri;
+    tkComment: Result := FCommentAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkNonReservedKey: Result := FNonReservedKeyAttri;
+    tkEvent: Result := FEventAttri;
+    tkNumber: Result := FNumberAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkSymbol: Result := FSymbolAttri;
+    tkUnknown: Result := FIdentifierAttri;
     // vrml
-    tkVrmlAppearance: Result := fVrmlAppearanceAttri;
-    tkVrmlAttribute: Result := fVrmlAttributeAttri;
-    tkVrmlDefinition: Result := fVrmlDefinitionAttri;
-    tkVrmlEvent: Result := fVrmlEventAttri;
-    tkVrmlGrouping: Result := fVrmlGroupingAttri;
-    tkVrmlInterpolator: Result := fVrmlInterpolatorAttri;
-    tkVrmlLight: Result := fVrmlLightAttri;
-    tkVrmlNode: Result := fVrmlNodeAttri;
-    tkVrmlParameter: Result := fVrmlParameterAttri;
-    tkVrmlproto: Result := fVrmlprotoAttri;
-    tkVrmlSensor: Result := fVrmlSensorAttri;
-    tkVrmlShape: Result := fVrmlShapeAttri;
-    tkVrmlShape_Hint: Result := fVrmlShape_HintAttri;
-    tkVrmlTime_dependent: Result := fVrmlTime_dependentAttri;
-    tkVrmlViewpoint: Result := fVrmlViewpointAttri;
-    tkVrmlWorldInfo: Result := fVrmlWorldInfoAttri;
-    tkX3DDocType: Result := fX3DDocTypeAttri;
-    tkX3DHeader: Result := fX3DHeaderAttri;
+    tkVrmlAppearance: Result := FVrmlAppearanceAttri;
+    tkVrmlAttribute: Result := FVrmlAttributeAttri;
+    tkVrmlDefinition: Result := FVrmlDefinitionAttri;
+    tkVrmlEvent: Result := FVrmlEventAttri;
+    tkVrmlGrouping: Result := FVrmlGroupingAttri;
+    tkVrmlInterpolator: Result := FVrmlInterpolatorAttri;
+    tkVrmlLight: Result := FVrmlLightAttri;
+    tkVrmlNode: Result := FVrmlNodeAttri;
+    tkVrmlParameter: Result := FVrmlParameterAttri;
+    tkVrmlproto: Result := FVrmlprotoAttri;
+    tkVrmlSensor: Result := FVrmlSensorAttri;
+    tkVrmlShape: Result := FVrmlShapeAttri;
+    tkVrmlShape_Hint: Result := FVrmlShape_HintAttri;
+    tkVrmlTime_dependent: Result := FVrmlTime_dependentAttri;
+    tkVrmlViewpoint: Result := FVrmlViewpointAttri;
+    tkVrmlWorldInfo: Result := FVrmlWorldInfoAttri;
+    tkX3DDocType: Result := FX3DDocTypeAttri;
+    tkX3DHeader: Result := FX3DHeaderAttri;
     //--
     else
       Result := nil;
   end;
 end;
 
-function TSynVrml97Syn.GetTokenKind :integer;
+function TSynVrml97Syn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 procedure TSynVrml97Syn.ResetRange;
 begin
-  fRange := rsNormalText;
+  FRange := rsNormalText;
 end;
 
 procedure TSynVrml97Syn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 function TSynVrml97Syn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterVrml97;
+  Result := FDefaultFilter <> SYNS_FilterVrml97;
 end;
 
 class function TSynVrml97Syn.GetLanguageName: string;

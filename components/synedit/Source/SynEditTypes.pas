@@ -79,8 +79,8 @@ type
 
   //todo: better field names. CharIndex and LineIndex?
   TBufferCoord = record
-    Char: integer;
-    Line: integer;
+    Char: Integer;
+    Line: Integer;
     {$IFDEF SYN_COMPILER_10_UP}
     class operator Equal(a, b: TBufferCoord): Boolean;
     {$ENDIF}
@@ -88,18 +88,16 @@ type
 
   // Codehunter patch: added TBufferBlock
   TBufferBlock = record
-    BeginLine,
-    BeginChar,
-    EndLine,
-    EndChar: Integer;
+    BeginLine, BeginChar: Integer;
+    EndLine, EndChar: Integer;
     {$IFDEF SYN_COMPILER_10_UP}
     class operator Equal(a, b: TBufferBlock): Boolean;
     {$ENDIF}
   end;
 
   TDisplayCoord = record
-    Column: integer;
-    Row: integer;
+    Column: Integer;
+    Row: Integer;
     {$IFDEF SYN_COMPILER_10_UP}
     class operator Equal(a, b: TDisplayCoord): Boolean;
     {$ENDIF}

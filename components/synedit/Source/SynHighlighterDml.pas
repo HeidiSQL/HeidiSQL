@@ -48,7 +48,7 @@ The SynHighlighterDml unit provides SynEdit with a Dml highlighter.
 unit SynHighlighterDml;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -72,29 +72,29 @@ type
     tkNull, tkNumber, tkQualifier, tkSpace, tkSpecial, tkString, tkSymbol,
     tkUnknown, tkVariable);
 
-  TRangeState = (rsANil, rsAdd, rsFind, rsUnKnown);
+  TRangeState = (rsANil, rsAdd, rsFind, rsUnknown);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
 
   TSynDmlSyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
-    fIdentFuncTable: array[0..2438] of TIdentFuncTableFunc;
+    FRange: TRangeState;
+    FIdentFuncTable: array[0..2438] of TIdentFuncTableFunc;
     FTokenID: TtkTokenKind;
-    fFormAttri: TSynHighlighterAttributes;
-    fBlockAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fQualiAttri: TSynHighlighterAttributes;
-    fCommentAttri: TSynHighlighterAttributes;
-    fFunctionAttri: TSynHighlighterAttributes;
-    fVariableAttri: TSynHighlighterAttributes;
-    fSpecialAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fNumberAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
+    FFormAttri: TSynHighlighterAttributes;
+    FBlockAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FQualiAttri: TSynHighlighterAttributes;
+    FCommentAttri: TSynHighlighterAttributes;
+    FFunctionAttri: TSynHighlighterAttributes;
+    FVariableAttri: TSynHighlighterAttributes;
+    FSpecialAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function FuncAbs(Index: Integer): TtkTokenKind;
     function FuncAbsolute_position(Index: Integer): TtkTokenKind;
@@ -387,42 +387,42 @@ type
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
   published
-    property BlockAttri: TSynHighlighterAttributes read fBlockAttri
-      write fBlockAttri;
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property FormAttri: TSynHighlighterAttributes read fFormAttri
-      write fFormAttri;
-    property FunctionAttri: TSynHighlighterAttributes read fFunctionAttri
-      write fFunctionAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
-      write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
-      write fNumberAttri;
-    property QualiAttri: TSynHighlighterAttributes read fQualiAttri
-      write fQualiAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property SpecialAttri: TSynHighlighterAttributes read fSpecialAttri
-      write fSpecialAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri
-      write fStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
-      write fSymbolAttri;
-    property VariableAttri: TSynHighlighterAttributes read fVariableAttri
-      write fVariableAttri;
+    property BlockAttri: TSynHighlighterAttributes read FBlockAttri
+      write FBlockAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
+      write FCommentAttri;
+    property FormAttri: TSynHighlighterAttributes read FFormAttri
+      write FFormAttri;
+    property FunctionAttri: TSynHighlighterAttributes read FFunctionAttri
+      write FFunctionAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
+      write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
+      write FNumberAttri;
+    property QualiAttri: TSynHighlighterAttributes read FQualiAttri
+      write FQualiAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
+      write FSpaceAttri;
+    property SpecialAttri: TSynHighlighterAttributes read FSpecialAttri
+      write FSpecialAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri
+      write FStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
+      write FSymbolAttri;
+    property VariableAttri: TSynHighlighterAttributes read FVariableAttri
+      write FVariableAttri;
   end;
 
 implementation
@@ -623,10 +623,10 @@ begin
   while IsIdentChar(Str^) do
   begin
     Result := Result * 798 + Ord(Str^) * 3;
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 2439;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -634,10 +634,10 @@ function TSynDmlSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -646,288 +646,288 @@ procedure TSynDmlSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  fIdentFuncTable[435] := FuncAbs;
-  fIdentFuncTable[41] := FuncAbsolute_position;
-  fIdentFuncTable[13] := FuncAccount;
-  fIdentFuncTable[2405] := FuncAcos;
-  fIdentFuncTable[1707] := FuncActual_break;
-  fIdentFuncTable[300] := FuncAdd;
-  fIdentFuncTable[486] := FuncAdd_form;
-  fIdentFuncTable[839] := FuncAlternate_form;
-  fIdentFuncTable[735] := FuncAscii;
-  fIdentFuncTable[1265] := FuncAsin;
-  fIdentFuncTable[2300] := FuncAtan;
-  fIdentFuncTable[1065] := FuncAtan2;
-  fIdentFuncTable[1930] := FuncAttributes;
-  fIdentFuncTable[1202] := FuncBack;
-  fIdentFuncTable[464] := FuncBase;
-  fIdentFuncTable[1118] := FuncBatch;
-  fIdentFuncTable[1948] := FuncBegin_block;
-  fIdentFuncTable[2124] := FuncBegin_case;
-  fIdentFuncTable[2068] := FuncBegin_disable_trigger;
-  fIdentFuncTable[1385] := FuncBegin_row;
-  fIdentFuncTable[387] := FuncBegin_signal_to_status;
-  fIdentFuncTable[1061] := FuncBell;
-  fIdentFuncTable[166] := FuncBinary_to_poly;
-  fIdentFuncTable[776] := FuncBottom_line;
-  fIdentFuncTable[1391] := FuncBreak;
-  fIdentFuncTable[1524] := FuncBreak0;
-  fIdentFuncTable[2380] := FuncCall;
-  fIdentFuncTable[2044] := FuncCase;
-  fIdentFuncTable[337] := FuncCeil;
-  fIdentFuncTable[644] := FuncCheck;
-  fIdentFuncTable[1918] := FuncCheck_domain;
-  fIdentFuncTable[1512] := FuncChr;
-  fIdentFuncTable[1454] := FuncClear_buffer;
-  fIdentFuncTable[1305] := FuncCli;
-  fIdentFuncTable[1761] := FuncClose;
-  fIdentFuncTable[908] := FuncClose_text;
-  fIdentFuncTable[1179] := FuncCol;
-  fIdentFuncTable[1114] := FuncColumn_heading_row;
-  fIdentFuncTable[2183] := FuncColumn_headings;
-  fIdentFuncTable[1007] := FuncColumn_spacing;
-  fIdentFuncTable[697] := FuncCommit;
-  fIdentFuncTable[521] := FuncCommit_rate;
-  fIdentFuncTable[591] := FuncCompile;
-  fIdentFuncTable[1068] := FuncCompress;
-  fIdentFuncTable[1359] := FuncCompress_all;
-  fIdentFuncTable[1637] := FuncConfirm;
-  fIdentFuncTable[89] := FuncConnect;
-  fIdentFuncTable[898] := FuncContinue;
-  fIdentFuncTable[1200] := FuncCos;
-  fIdentFuncTable[1747] := FuncCosh;
-  fIdentFuncTable[954] := FuncCross_reference;
-  fIdentFuncTable[1630] := FuncDate;
-  fIdentFuncTable[320] := FuncDate_seconds;
-  fIdentFuncTable[368] := FuncDay_of_week;
-  fIdentFuncTable[1447] := FuncDays;
-  fIdentFuncTable[2394] := FuncDcl;
-  fIdentFuncTable[1583] := FuncDefault_tag;
-  fIdentFuncTable[820] := FuncDelete;
-  fIdentFuncTable[261] := FuncDelete_form;
-  fIdentFuncTable[608] := FuncDescription;
-  fIdentFuncTable[2142] := FuncDir;
-  fIdentFuncTable[1915] := FuncDisconnect;
-  fIdentFuncTable[1889] := FuncDisplay;
-  fIdentFuncTable[1520] := FuncDisplay_length;
-  fIdentFuncTable[2390] := FuncDocumentation;
-  fIdentFuncTable[76] := FuncDomain;
-  fIdentFuncTable[1387] := FuncEdit;
-  fIdentFuncTable[1414] := FuncElse;
-  fIdentFuncTable[801] := FuncElse_if;
-  fIdentFuncTable[1158] := FuncEnd_block;
-  fIdentFuncTable[1514] := FuncEnd_case;
-  fIdentFuncTable[1734] := FuncEnd_disable_trigger;
-  fIdentFuncTable[1043] := FuncEnd_execute;
-  fIdentFuncTable[2119] := FuncEnd_form;
-  fIdentFuncTable[224] := FuncEnd_if;
-  fIdentFuncTable[842] := FuncEnd_row;
-  fIdentFuncTable[1484] := FuncEnd_signal_to_status;
-  fIdentFuncTable[338] := FuncEnd_while;
-  fIdentFuncTable[893] := FuncErase;
-  fIdentFuncTable[392] := FuncError;
-  fIdentFuncTable[503] := FuncExecute;
-  fIdentFuncTable[253] := FuncExit;
-  fIdentFuncTable[1280] := FuncExit_forward;
-  fIdentFuncTable[1146] := FuncExpand;
-  fIdentFuncTable[206] := FuncExternal;
-  fIdentFuncTable[455] := FuncFacility;
-  fIdentFuncTable[176] := FuncFailure;
-  fIdentFuncTable[263] := FuncFetch;
-  fIdentFuncTable[2106] := FuncFiles;
-  fIdentFuncTable[1191] := FuncFind;
-  fIdentFuncTable[1492] := FuncFind_form;
-  fIdentFuncTable[1868] := FuncFinish;
-  fIdentFuncTable[651] := FuncFirst;
-  fIdentFuncTable[2081] := FuncFloor;
-  fIdentFuncTable[2267] := FuncFooting;
-  fIdentFuncTable[2269] := FuncFooting_form;
-  fIdentFuncTable[210] := FuncForm;
-  fIdentFuncTable[516] := FuncGenerate;
-  fIdentFuncTable[2196] := FuncGoto;
-  fIdentFuncTable[1401] := FuncGrouped_by;
-  fIdentFuncTable[711] := FuncHeading;
-  fIdentFuncTable[1173] := FuncHeading_form;
-  fIdentFuncTable[194] := FuncHeight;
-  fIdentFuncTable[461] := FuncIdentifier;
-  fIdentFuncTable[459] := FuncIf;
-  fIdentFuncTable[483] := FuncIn;
-  fIdentFuncTable[2151] := FuncInput_block;
-  fIdentFuncTable[947] := FuncInput_mask;
-  fIdentFuncTable[586] := FuncInput_row_height;
-  fIdentFuncTable[420] := FuncInt;
-  fIdentFuncTable[1579] := FuncInvoke;
-  fIdentFuncTable[134] := FuncItem;
-  fIdentFuncTable[824] := FuncItem_block;
-  fIdentFuncTable[1575] := FuncItem_if;
-  fIdentFuncTable[1988] := FuncJoined_to;
-  fIdentFuncTable[583] := FuncLeft;
-  fIdentFuncTable[393] := FuncLen;
-  fIdentFuncTable[1698] := FuncLfooting;
-  fIdentFuncTable[142] := FuncLheading;
-  fIdentFuncTable[439] := FuncLine;
-  fIdentFuncTable[218] := FuncLines_after;
-  fIdentFuncTable[1460] := FuncLines_before;
-  fIdentFuncTable[259] := FuncList;
-  fIdentFuncTable[193] := FuncLoad;
-  fIdentFuncTable[124] := FuncLock;
-  fIdentFuncTable[2361] := FuncLog;
-  fIdentFuncTable[807] := FuncLog10;
-  fIdentFuncTable[2406] := FuncLov;
-  fIdentFuncTable[2043] := FuncLov_auto_select;
-  fIdentFuncTable[1806] := FuncLov_col;
-  fIdentFuncTable[1921] := FuncLov_data;
-  fIdentFuncTable[467] := FuncLov_first;
-  fIdentFuncTable[1673] := FuncLov_height;
-  fIdentFuncTable[1499] := FuncLov_noheading;
-  fIdentFuncTable[70] := FuncLov_nosearch;
-  fIdentFuncTable[2134] := FuncLov_reduced_to;
-  fIdentFuncTable[2208] := FuncLov_row;
-  fIdentFuncTable[1788] := FuncLov_secondary;
-  fIdentFuncTable[2381] := FuncLov_selection;
-  fIdentFuncTable[1107] := FuncLov_sorted_by;
-  fIdentFuncTable[1268] := FuncLov_width;
-  fIdentFuncTable[1779] := FuncLov_with;
-  fIdentFuncTable[538] := FuncLowercase;
-  fIdentFuncTable[631] := FuncLtrim;
-  fIdentFuncTable[2233] := FuncMail;
-  fIdentFuncTable[2296] := FuncMenu;
-  fIdentFuncTable[743] := FuncMenu_block;
-  fIdentFuncTable[255] := FuncMenu_form;
-  fIdentFuncTable[1824] := FuncMessage;
-  fIdentFuncTable[858] := FuncMid;
-  fIdentFuncTable[588] := FuncMod;
-  fIdentFuncTable[729] := FuncModify_form;
-  fIdentFuncTable[1770] := FuncNew;
-  fIdentFuncTable[1176] := FuncNo_domain;
-  fIdentFuncTable[208] := FuncNobell;
-  fIdentFuncTable[1756] := FuncNoclear_buffer;
-  fIdentFuncTable[1858] := FuncNodeadlock_exit;
-  fIdentFuncTable[135] := FuncNoerase;
-  fIdentFuncTable[2073] := FuncNoerror;
-  fIdentFuncTable[1092] := FuncNoexit_forward;
-  fIdentFuncTable[1811] := FuncNoheading;
-  fIdentFuncTable[656] := FuncNolov_data;
-  fIdentFuncTable[1959] := FuncNorepeat;
-  fIdentFuncTable[1319] := FuncNostatus;
-  fIdentFuncTable[907] := FuncNototals;
-  fIdentFuncTable[2427] := FuncNounderlines;
-  fIdentFuncTable[632] := FuncNowait;
-  fIdentFuncTable[1560] := FuncOpen;
-  fIdentFuncTable[2226] := FuncOpen_text;
-  fIdentFuncTable[1941] := FuncOpt;
-  fIdentFuncTable[290] := FuncOptions;
-  fIdentFuncTable[491] := FuncOutput;
-  fIdentFuncTable[1952] := FuncOutput_block;
-  fIdentFuncTable[2108] := FuncOutput_mask;
-  fIdentFuncTable[1539] := FuncPause;
-  fIdentFuncTable[1182] := FuncPause_block;
-  fIdentFuncTable[214] := FuncPerform;
-  fIdentFuncTable[1294] := FuncPoly_to_binary;
-  fIdentFuncTable[219] := FuncPos;
-  fIdentFuncTable[1569] := FuncPrint;
-  fIdentFuncTable[1719] := FuncProcedure_form;
-  fIdentFuncTable[1105] := FuncPrompt;
-  fIdentFuncTable[488] := FuncProtect;
-  fIdentFuncTable[66] := FuncQuery;
-  fIdentFuncTable[2344] := FuncQuery_form;
-  fIdentFuncTable[575] := FuncRandom;
-  fIdentFuncTable[1396] := FuncRead_line;
-  fIdentFuncTable[885] := FuncRead_only;
-  fIdentFuncTable[1353] := FuncReceive;
-  fIdentFuncTable[1571] := FuncReceive_arguments;
-  fIdentFuncTable[2137] := FuncReceive_data;
-  fIdentFuncTable[264] := FuncReceive_table;
-  fIdentFuncTable[410] := FuncReduced_to;
-  fIdentFuncTable[1269] := FuncRelease;
-  fIdentFuncTable[303] := FuncRemain;
-  fIdentFuncTable[1784] := FuncRepeat;
-  fIdentFuncTable[452] := FuncReport;
-  fIdentFuncTable[2315] := FuncReport_form;
-  fIdentFuncTable[2025] := FuncReposition;
-  fIdentFuncTable[1259] := FuncRewind_text;
-  fIdentFuncTable[1938] := FuncRfooting;
-  fIdentFuncTable[2331] := FuncRheading;
-  fIdentFuncTable[1932] := FuncRight;
-  fIdentFuncTable[1849] := FuncRollback;
-  fIdentFuncTable[553] := FuncRound;
-  fIdentFuncTable[1581] := FuncRow;
-  fIdentFuncTable[2407] := FuncRow_height;
-  fIdentFuncTable[1525] := FuncSearch;
-  fIdentFuncTable[151] := FuncSecondary;
-  fIdentFuncTable[1475] := FuncSeconds;
-  fIdentFuncTable[744] := FuncSelection;
-  fIdentFuncTable[1490] := FuncSend;
-  fIdentFuncTable[845] := FuncSend_data;
-  fIdentFuncTable[85] := FuncSend_message;
-  fIdentFuncTable[720] := FuncSend_table;
-  fIdentFuncTable[2275] := FuncSequence;
-  fIdentFuncTable[2038] := FuncSeverity;
-  fIdentFuncTable[60] := FuncSin;
-  fIdentFuncTable[1763] := FuncSinh;
-  fIdentFuncTable[1909] := FuncSorted_by;
-  fIdentFuncTable[1775] := FuncSource;
-  fIdentFuncTable[1474] := FuncSource_if;
-  fIdentFuncTable[2141] := FuncSqrt;
-  fIdentFuncTable[79] := FuncStart_stream;
-  fIdentFuncTable[604] := FuncStart_transaction;
-  fIdentFuncTable[639] := FuncStatistic;
-  fIdentFuncTable[654] := FuncStatus;
-  fIdentFuncTable[1816] := FuncStream_name;
-  fIdentFuncTable[1368] := FuncString;
-  fIdentFuncTable[1064] := FuncSuccess;
-  fIdentFuncTable[39] := FuncSwitch;
-  fIdentFuncTable[803] := FuncSwitch_base;
-  fIdentFuncTable[1212] := FuncSystem;
-  fIdentFuncTable[2335] := FuncTable;
-  fIdentFuncTable[934] := FuncTable_form;
-  fIdentFuncTable[1759] := FuncTable_search;
-  fIdentFuncTable[1074] := FuncTag;
-  fIdentFuncTable[705] := FuncTag_length;
-  fIdentFuncTable[1095] := FuncTan;
-  fIdentFuncTable[382] := FuncTanh;
-  fIdentFuncTable[975] := FuncTarget;
-  fIdentFuncTable[229] := FuncText;
-  fIdentFuncTable[2007] := FuncText_only;
-  fIdentFuncTable[307] := FuncTitle;
-  fIdentFuncTable[2430] := FuncTo;
-  fIdentFuncTable[795] := FuncTop_line;
-  fIdentFuncTable[68] := FuncTotal;
-  fIdentFuncTable[2000] := FuncTransfer;
-  fIdentFuncTable[333] := FuncTrigger;
-  fIdentFuncTable[2341] := FuncTrim;
-  fIdentFuncTable[2301] := FuncTsuppress;
-  fIdentFuncTable[2029] := FuncUnload;
-  fIdentFuncTable[844] := FuncUppercase;
-  fIdentFuncTable[1437] := FuncUse_if;
-  fIdentFuncTable[1736] := FuncUser_key;
-  fIdentFuncTable[353] := FuncUsing;
-  fIdentFuncTable[2305] := FuncUtilities;
-  fIdentFuncTable[1485] := FuncWait;
-  fIdentFuncTable[1159] := FuncWhile;
-  fIdentFuncTable[1452] := FuncWidth;
-  fIdentFuncTable[1476] := FuncWith;
-  fIdentFuncTable[27] := FuncWrite;
-  fIdentFuncTable[92] := FuncWrite_line;
-  fIdentFuncTable[2350] := FuncYesno_block;
+  FIdentFuncTable[435] := FuncAbs;
+  FIdentFuncTable[41] := FuncAbsolute_position;
+  FIdentFuncTable[13] := FuncAccount;
+  FIdentFuncTable[2405] := FuncAcos;
+  FIdentFuncTable[1707] := FuncActual_break;
+  FIdentFuncTable[300] := FuncAdd;
+  FIdentFuncTable[486] := FuncAdd_form;
+  FIdentFuncTable[839] := FuncAlternate_form;
+  FIdentFuncTable[735] := FuncAscii;
+  FIdentFuncTable[1265] := FuncAsin;
+  FIdentFuncTable[2300] := FuncAtan;
+  FIdentFuncTable[1065] := FuncAtan2;
+  FIdentFuncTable[1930] := FuncAttributes;
+  FIdentFuncTable[1202] := FuncBack;
+  FIdentFuncTable[464] := FuncBase;
+  FIdentFuncTable[1118] := FuncBatch;
+  FIdentFuncTable[1948] := FuncBegin_block;
+  FIdentFuncTable[2124] := FuncBegin_case;
+  FIdentFuncTable[2068] := FuncBegin_disable_trigger;
+  FIdentFuncTable[1385] := FuncBegin_row;
+  FIdentFuncTable[387] := FuncBegin_signal_to_status;
+  FIdentFuncTable[1061] := FuncBell;
+  FIdentFuncTable[166] := FuncBinary_to_poly;
+  FIdentFuncTable[776] := FuncBottom_line;
+  FIdentFuncTable[1391] := FuncBreak;
+  FIdentFuncTable[1524] := FuncBreak0;
+  FIdentFuncTable[2380] := FuncCall;
+  FIdentFuncTable[2044] := FuncCase;
+  FIdentFuncTable[337] := FuncCeil;
+  FIdentFuncTable[644] := FuncCheck;
+  FIdentFuncTable[1918] := FuncCheck_domain;
+  FIdentFuncTable[1512] := FuncChr;
+  FIdentFuncTable[1454] := FuncClear_buffer;
+  FIdentFuncTable[1305] := FuncCli;
+  FIdentFuncTable[1761] := FuncClose;
+  FIdentFuncTable[908] := FuncClose_text;
+  FIdentFuncTable[1179] := FuncCol;
+  FIdentFuncTable[1114] := FuncColumn_heading_row;
+  FIdentFuncTable[2183] := FuncColumn_headings;
+  FIdentFuncTable[1007] := FuncColumn_spacing;
+  FIdentFuncTable[697] := FuncCommit;
+  FIdentFuncTable[521] := FuncCommit_rate;
+  FIdentFuncTable[591] := FuncCompile;
+  FIdentFuncTable[1068] := FuncCompress;
+  FIdentFuncTable[1359] := FuncCompress_all;
+  FIdentFuncTable[1637] := FuncConfirm;
+  FIdentFuncTable[89] := FuncConnect;
+  FIdentFuncTable[898] := FuncContinue;
+  FIdentFuncTable[1200] := FuncCos;
+  FIdentFuncTable[1747] := FuncCosh;
+  FIdentFuncTable[954] := FuncCross_reference;
+  FIdentFuncTable[1630] := FuncDate;
+  FIdentFuncTable[320] := FuncDate_seconds;
+  FIdentFuncTable[368] := FuncDay_of_week;
+  FIdentFuncTable[1447] := FuncDays;
+  FIdentFuncTable[2394] := FuncDcl;
+  FIdentFuncTable[1583] := FuncDefault_tag;
+  FIdentFuncTable[820] := FuncDelete;
+  FIdentFuncTable[261] := FuncDelete_form;
+  FIdentFuncTable[608] := FuncDescription;
+  FIdentFuncTable[2142] := FuncDir;
+  FIdentFuncTable[1915] := FuncDisconnect;
+  FIdentFuncTable[1889] := FuncDisplay;
+  FIdentFuncTable[1520] := FuncDisplay_length;
+  FIdentFuncTable[2390] := FuncDocumentation;
+  FIdentFuncTable[76] := FuncDomain;
+  FIdentFuncTable[1387] := FuncEdit;
+  FIdentFuncTable[1414] := FuncElse;
+  FIdentFuncTable[801] := FuncElse_if;
+  FIdentFuncTable[1158] := FuncEnd_block;
+  FIdentFuncTable[1514] := FuncEnd_case;
+  FIdentFuncTable[1734] := FuncEnd_disable_trigger;
+  FIdentFuncTable[1043] := FuncEnd_execute;
+  FIdentFuncTable[2119] := FuncEnd_form;
+  FIdentFuncTable[224] := FuncEnd_if;
+  FIdentFuncTable[842] := FuncEnd_row;
+  FIdentFuncTable[1484] := FuncEnd_signal_to_status;
+  FIdentFuncTable[338] := FuncEnd_while;
+  FIdentFuncTable[893] := FuncErase;
+  FIdentFuncTable[392] := FuncError;
+  FIdentFuncTable[503] := FuncExecute;
+  FIdentFuncTable[253] := FuncExit;
+  FIdentFuncTable[1280] := FuncExit_forward;
+  FIdentFuncTable[1146] := FuncExpand;
+  FIdentFuncTable[206] := FuncExternal;
+  FIdentFuncTable[455] := FuncFacility;
+  FIdentFuncTable[176] := FuncFailure;
+  FIdentFuncTable[263] := FuncFetch;
+  FIdentFuncTable[2106] := FuncFiles;
+  FIdentFuncTable[1191] := FuncFind;
+  FIdentFuncTable[1492] := FuncFind_form;
+  FIdentFuncTable[1868] := FuncFinish;
+  FIdentFuncTable[651] := FuncFirst;
+  FIdentFuncTable[2081] := FuncFloor;
+  FIdentFuncTable[2267] := FuncFooting;
+  FIdentFuncTable[2269] := FuncFooting_form;
+  FIdentFuncTable[210] := FuncForm;
+  FIdentFuncTable[516] := FuncGenerate;
+  FIdentFuncTable[2196] := FuncGoto;
+  FIdentFuncTable[1401] := FuncGrouped_by;
+  FIdentFuncTable[711] := FuncHeading;
+  FIdentFuncTable[1173] := FuncHeading_form;
+  FIdentFuncTable[194] := FuncHeight;
+  FIdentFuncTable[461] := FuncIdentifier;
+  FIdentFuncTable[459] := FuncIf;
+  FIdentFuncTable[483] := FuncIn;
+  FIdentFuncTable[2151] := FuncInput_block;
+  FIdentFuncTable[947] := FuncInput_mask;
+  FIdentFuncTable[586] := FuncInput_row_height;
+  FIdentFuncTable[420] := FuncInt;
+  FIdentFuncTable[1579] := FuncInvoke;
+  FIdentFuncTable[134] := FuncItem;
+  FIdentFuncTable[824] := FuncItem_block;
+  FIdentFuncTable[1575] := FuncItem_if;
+  FIdentFuncTable[1988] := FuncJoined_to;
+  FIdentFuncTable[583] := FuncLeft;
+  FIdentFuncTable[393] := FuncLen;
+  FIdentFuncTable[1698] := FuncLfooting;
+  FIdentFuncTable[142] := FuncLheading;
+  FIdentFuncTable[439] := FuncLine;
+  FIdentFuncTable[218] := FuncLines_after;
+  FIdentFuncTable[1460] := FuncLines_before;
+  FIdentFuncTable[259] := FuncList;
+  FIdentFuncTable[193] := FuncLoad;
+  FIdentFuncTable[124] := FuncLock;
+  FIdentFuncTable[2361] := FuncLog;
+  FIdentFuncTable[807] := FuncLog10;
+  FIdentFuncTable[2406] := FuncLov;
+  FIdentFuncTable[2043] := FuncLov_auto_select;
+  FIdentFuncTable[1806] := FuncLov_col;
+  FIdentFuncTable[1921] := FuncLov_data;
+  FIdentFuncTable[467] := FuncLov_first;
+  FIdentFuncTable[1673] := FuncLov_height;
+  FIdentFuncTable[1499] := FuncLov_noheading;
+  FIdentFuncTable[70] := FuncLov_nosearch;
+  FIdentFuncTable[2134] := FuncLov_reduced_to;
+  FIdentFuncTable[2208] := FuncLov_row;
+  FIdentFuncTable[1788] := FuncLov_secondary;
+  FIdentFuncTable[2381] := FuncLov_selection;
+  FIdentFuncTable[1107] := FuncLov_sorted_by;
+  FIdentFuncTable[1268] := FuncLov_width;
+  FIdentFuncTable[1779] := FuncLov_with;
+  FIdentFuncTable[538] := FuncLowercase;
+  FIdentFuncTable[631] := FuncLtrim;
+  FIdentFuncTable[2233] := FuncMail;
+  FIdentFuncTable[2296] := FuncMenu;
+  FIdentFuncTable[743] := FuncMenu_block;
+  FIdentFuncTable[255] := FuncMenu_form;
+  FIdentFuncTable[1824] := FuncMessage;
+  FIdentFuncTable[858] := FuncMid;
+  FIdentFuncTable[588] := FuncMod;
+  FIdentFuncTable[729] := FuncModify_form;
+  FIdentFuncTable[1770] := FuncNew;
+  FIdentFuncTable[1176] := FuncNo_domain;
+  FIdentFuncTable[208] := FuncNobell;
+  FIdentFuncTable[1756] := FuncNoclear_buffer;
+  FIdentFuncTable[1858] := FuncNodeadlock_exit;
+  FIdentFuncTable[135] := FuncNoerase;
+  FIdentFuncTable[2073] := FuncNoerror;
+  FIdentFuncTable[1092] := FuncNoexit_forward;
+  FIdentFuncTable[1811] := FuncNoheading;
+  FIdentFuncTable[656] := FuncNolov_data;
+  FIdentFuncTable[1959] := FuncNorepeat;
+  FIdentFuncTable[1319] := FuncNostatus;
+  FIdentFuncTable[907] := FuncNototals;
+  FIdentFuncTable[2427] := FuncNounderlines;
+  FIdentFuncTable[632] := FuncNowait;
+  FIdentFuncTable[1560] := FuncOpen;
+  FIdentFuncTable[2226] := FuncOpen_text;
+  FIdentFuncTable[1941] := FuncOpt;
+  FIdentFuncTable[290] := FuncOptions;
+  FIdentFuncTable[491] := FuncOutput;
+  FIdentFuncTable[1952] := FuncOutput_block;
+  FIdentFuncTable[2108] := FuncOutput_mask;
+  FIdentFuncTable[1539] := FuncPause;
+  FIdentFuncTable[1182] := FuncPause_block;
+  FIdentFuncTable[214] := FuncPerform;
+  FIdentFuncTable[1294] := FuncPoly_to_binary;
+  FIdentFuncTable[219] := FuncPos;
+  FIdentFuncTable[1569] := FuncPrint;
+  FIdentFuncTable[1719] := FuncProcedure_form;
+  FIdentFuncTable[1105] := FuncPrompt;
+  FIdentFuncTable[488] := FuncProtect;
+  FIdentFuncTable[66] := FuncQuery;
+  FIdentFuncTable[2344] := FuncQuery_form;
+  FIdentFuncTable[575] := FuncRandom;
+  FIdentFuncTable[1396] := FuncRead_line;
+  FIdentFuncTable[885] := FuncRead_only;
+  FIdentFuncTable[1353] := FuncReceive;
+  FIdentFuncTable[1571] := FuncReceive_arguments;
+  FIdentFuncTable[2137] := FuncReceive_data;
+  FIdentFuncTable[264] := FuncReceive_table;
+  FIdentFuncTable[410] := FuncReduced_to;
+  FIdentFuncTable[1269] := FuncRelease;
+  FIdentFuncTable[303] := FuncRemain;
+  FIdentFuncTable[1784] := FuncRepeat;
+  FIdentFuncTable[452] := FuncReport;
+  FIdentFuncTable[2315] := FuncReport_form;
+  FIdentFuncTable[2025] := FuncReposition;
+  FIdentFuncTable[1259] := FuncRewind_text;
+  FIdentFuncTable[1938] := FuncRfooting;
+  FIdentFuncTable[2331] := FuncRheading;
+  FIdentFuncTable[1932] := FuncRight;
+  FIdentFuncTable[1849] := FuncRollback;
+  FIdentFuncTable[553] := FuncRound;
+  FIdentFuncTable[1581] := FuncRow;
+  FIdentFuncTable[2407] := FuncRow_height;
+  FIdentFuncTable[1525] := FuncSearch;
+  FIdentFuncTable[151] := FuncSecondary;
+  FIdentFuncTable[1475] := FuncSeconds;
+  FIdentFuncTable[744] := FuncSelection;
+  FIdentFuncTable[1490] := FuncSend;
+  FIdentFuncTable[845] := FuncSend_data;
+  FIdentFuncTable[85] := FuncSend_message;
+  FIdentFuncTable[720] := FuncSend_table;
+  FIdentFuncTable[2275] := FuncSequence;
+  FIdentFuncTable[2038] := FuncSeverity;
+  FIdentFuncTable[60] := FuncSin;
+  FIdentFuncTable[1763] := FuncSinh;
+  FIdentFuncTable[1909] := FuncSorted_by;
+  FIdentFuncTable[1775] := FuncSource;
+  FIdentFuncTable[1474] := FuncSource_if;
+  FIdentFuncTable[2141] := FuncSqrt;
+  FIdentFuncTable[79] := FuncStart_stream;
+  FIdentFuncTable[604] := FuncStart_transaction;
+  FIdentFuncTable[639] := FuncStatistic;
+  FIdentFuncTable[654] := FuncStatus;
+  FIdentFuncTable[1816] := FuncStream_name;
+  FIdentFuncTable[1368] := FuncString;
+  FIdentFuncTable[1064] := FuncSuccess;
+  FIdentFuncTable[39] := FuncSwitch;
+  FIdentFuncTable[803] := FuncSwitch_base;
+  FIdentFuncTable[1212] := FuncSystem;
+  FIdentFuncTable[2335] := FuncTable;
+  FIdentFuncTable[934] := FuncTable_form;
+  FIdentFuncTable[1759] := FuncTable_search;
+  FIdentFuncTable[1074] := FuncTag;
+  FIdentFuncTable[705] := FuncTag_length;
+  FIdentFuncTable[1095] := FuncTan;
+  FIdentFuncTable[382] := FuncTanh;
+  FIdentFuncTable[975] := FuncTarget;
+  FIdentFuncTable[229] := FuncText;
+  FIdentFuncTable[2007] := FuncText_only;
+  FIdentFuncTable[307] := FuncTitle;
+  FIdentFuncTable[2430] := FuncTo;
+  FIdentFuncTable[795] := FuncTop_line;
+  FIdentFuncTable[68] := FuncTotal;
+  FIdentFuncTable[2000] := FuncTransfer;
+  FIdentFuncTable[333] := FuncTrigger;
+  FIdentFuncTable[2341] := FuncTrim;
+  FIdentFuncTable[2301] := FuncTsuppress;
+  FIdentFuncTable[2029] := FuncUnload;
+  FIdentFuncTable[844] := FuncUppercase;
+  FIdentFuncTable[1437] := FuncUse_if;
+  FIdentFuncTable[1736] := FuncUser_key;
+  FIdentFuncTable[353] := FuncUsing;
+  FIdentFuncTable[2305] := FuncUtilities;
+  FIdentFuncTable[1485] := FuncWait;
+  FIdentFuncTable[1159] := FuncWhile;
+  FIdentFuncTable[1452] := FuncWidth;
+  FIdentFuncTable[1476] := FuncWith;
+  FIdentFuncTable[27] := FuncWrite;
+  FIdentFuncTable[92] := FuncWrite_line;
+  FIdentFuncTable[2350] := FuncYesno_block;
 end;
 
-function TSynDmlSyn.IsQuali: boolean;
+function TSynDmlSyn.IsQuali: Boolean;
 begin
   Result:= False;
   if Run > 0 then
-    if fLine[Run - 1] = '/' then Result:= True;
+    if FLine[Run - 1] = '/' then Result:= True;
 end;
 
 function TSynDmlSyn.IsSpecial: Boolean;
 begin
   Result:= False;
   if Run > 0 then
-    if fLine[Run - 1] = '%' then Result:= True;
+    if FLine[Run - 1] = '%' then Result:= True;
 end;
 
 function TSynDmlSyn.FuncAbs(Index: Integer): TtkTokenKind;
@@ -979,7 +979,7 @@ begin
     else
     begin
       Result := tkKey;
-      fRange := rsAdd;
+      FRange := rsAdd;
     end;
   end
   else
@@ -1678,7 +1678,7 @@ begin
   if IsCurrentToken(KeyWords[Index]) then
   begin
     Result := tkKey;
-    fRange := rsFind;
+    FRange := rsFind;
   end
   else
     Result := tkIdentifier;
@@ -1811,10 +1811,10 @@ end;
 
 function TSynDmlSyn.FuncIn(Index: Integer): TtkTokenKind;
 begin
-  if IsCurrentToken(KeyWords[Index]) and (fRange = rsFind) then
+  if IsCurrentToken(KeyWords[Index]) and (FRange = rsFind) then
   begin
     Result := tkKey;
-    fRange := rsUnKnown;
+    FRange := rsUnknown;
   end
   else
     Result := tkIdentifier;
@@ -2976,10 +2976,10 @@ end;
 
 function TSynDmlSyn.FuncTo(Index: Integer): TtkTokenKind;
 begin
-  if IsCurrentToken(KeyWords[Index]) and (fRange = rsAdd) then
+  if IsCurrentToken(KeyWords[Index]) and (FRange = rsAdd) then
   begin
     Result := tkKey;
-    fRange := rsUnKnown;
+    FRange := rsUnknown;
   end
   else
     Result := tkIdentifier;
@@ -3146,62 +3146,62 @@ constructor TSynDmlSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := False;
+  FCaseSensitive := False;
 
-  fFormAttri:= TSynHighlighterAttributes.Create(SYNS_AttrForm, SYNS_FriendlyAttrForm);
-  fFormAttri.Style:= [fsBold];
-  fFormAttri.Foreground:= clBlue;
-  AddAttribute(fFormAttri);
-  fBlockAttri:= TSynHighlighterAttributes.Create(SYNS_AttrBlock, SYNS_FriendlyAttrBlock);
-  fBlockAttri.Style:= [fsBold];
-  fBlockAttri.Foreground:= clGreen;
-  AddAttribute(fBlockAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrKey, SYNS_FriendlyAttrKey);
-  fKeyAttri.Style:= [fsBold];
-  AddAttribute(fKeyAttri);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style:= [fsBold];
-  fCommentAttri.Foreground:= clRed;
-  AddAttribute(fCommentAttri);
-  fQualiAttri:= TSynHighlighterAttributes.Create(SYNS_AttrQualifier, SYNS_FriendlyAttrQualifier);
-  fQualiAttri.Style:= [fsItalic];
-  fQualiAttri.Foreground:= clGreen;
-  AddAttribute(fQualiAttri);
-  fFunctionAttri:= TSynHighlighterAttributes.Create(SYNS_AttrFunction, SYNS_FriendlyAttrFunction);
-  fFunctionAttri.Style:= [fsItalic];
-  fFunctionAttri.Foreground:= clBlack;
-  AddAttribute(fFunctionAttri);
-  fVariableAttri:= TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
-  fVariableAttri.Style:= [fsBold, fsItalic];
-  fVariableAttri.Foreground:= clBlack;
-  AddAttribute(fVariableAttri);
-  fSpecialAttri:= TSynHighlighterAttributes.Create(SYNS_AttrSpecialVariable, SYNS_FriendlyAttrSpecialVariable);
-  fSpecialAttri.Style:= [fsItalic];
-  fSpecialAttri.Foreground:= clBlack;
-  AddAttribute(fSpecialAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(fNumberAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(fStringAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(fSymbolAttri);
+  FFormAttri:= TSynHighlighterAttributes.Create(SYNS_AttrForm, SYNS_FriendlyAttrForm);
+  FFormAttri.Style:= [fsBold];
+  FFormAttri.Foreground:= clBlue;
+  AddAttribute(FFormAttri);
+  FBlockAttri:= TSynHighlighterAttributes.Create(SYNS_AttrBlock, SYNS_FriendlyAttrBlock);
+  FBlockAttri.Style:= [fsBold];
+  FBlockAttri.Foreground:= clGreen;
+  AddAttribute(FBlockAttri);
+  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrKey, SYNS_FriendlyAttrKey);
+  FKeyAttri.Style:= [fsBold];
+  AddAttribute(FKeyAttri);
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style:= [fsBold];
+  FCommentAttri.Foreground:= clRed;
+  AddAttribute(FCommentAttri);
+  FQualiAttri:= TSynHighlighterAttributes.Create(SYNS_AttrQualifier, SYNS_FriendlyAttrQualifier);
+  FQualiAttri.Style:= [fsItalic];
+  FQualiAttri.Foreground:= clGreen;
+  AddAttribute(FQualiAttri);
+  FFunctionAttri:= TSynHighlighterAttributes.Create(SYNS_AttrFunction, SYNS_FriendlyAttrFunction);
+  FFunctionAttri.Style:= [fsItalic];
+  FFunctionAttri.Foreground:= clBlack;
+  AddAttribute(FFunctionAttri);
+  FVariableAttri:= TSynHighlighterAttributes.Create(SYNS_AttrVariable, SYNS_FriendlyAttrVariable);
+  FVariableAttri.Style:= [fsBold, fsItalic];
+  FVariableAttri.Foreground:= clBlack;
+  AddAttribute(FVariableAttri);
+  FSpecialAttri:= TSynHighlighterAttributes.Create(SYNS_AttrSpecialVariable, SYNS_FriendlyAttrSpecialVariable);
+  FSpecialAttri.Style:= [fsItalic];
+  FSpecialAttri.Foreground:= clBlack;
+  AddAttribute(FSpecialAttri);
+  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
+  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  AddAttribute(FNumberAttri);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
+  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  AddAttribute(FStringAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(FSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
 
   InitIdent;
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 
-  fDefaultFilter := SYNS_FilterGembase;
+  FDefaultFilter := SYNS_FilterGembase;
 end;
 
 procedure TSynDmlSyn.AddressOpProc;
 begin
-  fTokenID := tkSymbol;
+  FTokenID := tkSymbol;
   Inc(Run);
-  if fLine[Run] = '@' then Inc(Run);
+  if FLine[Run] = '@' then Inc(Run);
 end;
 
 procedure TSynDmlSyn.AsciiCharProc;
@@ -3218,96 +3218,97 @@ procedure TSynDmlSyn.AsciiCharProc;
 
 begin
   // variables...
-  fTokenID := tkVariable;
+  FTokenID := tkVariable;
   repeat
-    inc(Run);
+    Inc(Run);
   until not IsAsciiChar;
 end;
 
 procedure TSynDmlSyn.SymbolProc;
 begin
-  inc(Run);
-  fTokenId := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynDmlSyn.CRProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
-  if FLine[Run] = #10 then inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
+  if FLine[Run] = #10 then Inc(Run);
 end;
 
 procedure TSynDmlSyn.GreaterProc;
 begin
-  fTokenID := tkSymbol;
+  FTokenID := tkSymbol;
   Inc(Run);
   if FLine[Run] = '=' then Inc(Run);
 end;
 
 procedure TSynDmlSyn.IdentProc;
 begin
-  fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do inc(Run);
+  FTokenID := IdentKind((FLine + Run));
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do Inc(Run);
 end;
 
 procedure TSynDmlSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynDmlSyn.LowerProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if (fLine[Run]= '=') or (fLine[Run]= '>') then Inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if (FLine[Run]= '=') or (FLine[Run]= '>') then Inc(Run);
 end;
 
 procedure TSynDmlSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynDmlSyn.NumberProc;
 begin
-  inc(Run);
-  fTokenID := tkNumber;
+  Inc(Run);
+  FTokenID := tkNumber;
   while CharInSet(FLine[Run], ['0'..'9', '.']) do
   begin
     case FLine[Run] of
       '.':
-        if FLine[Run + 1] = '.' then break;
+        if FLine[Run + 1] = '.' then
+          Break;
     end;
-    inc(Run);
+    Inc(Run);
   end;
 end;
 
 procedure TSynDmlSyn.PointProc;
 begin
-  fTokenID := tkSymbol;
-  inc(Run);
-  if (fLine[Run]='.') or (fLine[Run]=')') then inc(Run);
+  FTokenID := tkSymbol;
+  Inc(Run);
+  if (FLine[Run]='.') or (FLine[Run]=')') then Inc(Run);
 end;
 
 procedure TSynDmlSyn.RemProc;
 var
   p: PWideChar;
 begin
-  p := PWideChar(@fLine[Run - 1]);
-  while p >= fLine do
+  p := PWideChar(@FLine[Run - 1]);
+  while p >= FLine do
   begin
     if not CharInSet(p^, [#9, #32]) then
     begin
-      inc(Run);
-      fTokenID := tkSymbol;
-      exit;
+      Inc(Run);
+      FTokenID := tkSymbol;
+      Exit;
     end;
     Dec(p);
   end;
   // it is a comment...
-  fTokenID := tkComment;
+  FTokenID := tkComment;
   repeat
     Inc(Run);
   until IsLineEnd(Run);
@@ -3315,31 +3316,31 @@ end;
 
 procedure TSynDmlSyn.SpaceProc;
 begin
-  fTokenID := tkSpace;
-  while (fLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynDmlSyn.StringProc;
 begin
-  fTokenID := tkString;
-  if (FLine[Run + 1] = '"') and (FLine[Run + 2] = '"') then inc(Run, 2);
+  FTokenID := tkString;
+  if (FLine[Run + 1] = '"') and (FLine[Run + 2] = '"') then Inc(Run, 2);
   repeat
-    inc(Run);
+    Inc(Run);
   until (FLine[Run] = '"') or IsLineEnd(Run);
 
-  if FLine[Run] <> #0 then inc(Run);
+  if FLine[Run] <> #0 then Inc(Run);
 end;
 
 procedure TSynDmlSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynDmlSyn.Next;
 begin
-  fTokenPos := Run;
-   case fLine[Run] of
+  FTokenPos := Run;
+   case FLine[Run] of
     #0: NullProc;
     #10: LFProc;
     #13: CRProc;
@@ -3365,15 +3366,15 @@ begin
   inherited;
 end;
 
-function TSynDmlSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynDmlSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -3381,58 +3382,58 @@ end;
 
 function TSynDmlSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynDmlSyn.GetTokenID: TtkTokenKind;
 begin
-  Result:= fTokenId;
+  Result:= FTokenID;
 end;
 
 function TSynDmlSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case GetTokenID of
-    tkForm: Result := fFormAttri;
-    tkBlock: Result := fBlockAttri;
-    tkKey: Result := fKeyAttri;
-    tkComment: Result := fCommentAttri;
-    tkQualifier: Result := fQualiAttri;
-    tkFunction: Result := fFunctionAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkNumber: Result := fNumberAttri;
-    tkSpecial: Result := fSpecialAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkVariable: Result := fVariableAttri;
-    tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fSymbolAttri;
+    tkForm: Result := FFormAttri;
+    tkBlock: Result := FBlockAttri;
+    tkKey: Result := FKeyAttri;
+    tkComment: Result := FCommentAttri;
+    tkQualifier: Result := FQualiAttri;
+    tkFunction: Result := FFunctionAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkNumber: Result := FNumberAttri;
+    tkSpecial: Result := FSpecialAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkVariable: Result := FVariableAttri;
+    tkSymbol: Result := FSymbolAttri;
+    tkUnknown: Result := FSymbolAttri;
     else Result := nil;
   end;
 end;
 
-function TSynDmlSyn.GetTokenKind: integer;
+function TSynDmlSyn.GetTokenKind: Integer;
 begin
   Result := Ord(GetTokenID);
 end;
 
 function TSynDmlSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 procedure TSynDmlSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 procedure TSynDmlSyn.ResetRange;
 begin
-  fRange:= rsUnknown;
+  FRange:= rsUnknown;
 end;
 
 function TSynDmlSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterGembase;
+  Result := FDefaultFilter <> SYNS_FilterGembase;
 end;
 
 class function TSynDmlSyn.GetLanguageName: string;

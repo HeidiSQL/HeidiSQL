@@ -92,13 +92,13 @@ type
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
@@ -411,7 +411,7 @@ end;
 
 procedure TSynJSONSyn.Next;
 begin
-  fTokenPos := Run;
+  FTokenPos := Run;
   case FLine[Run] of
     #0: NullProc;
     #1..#9, #11, #12, #14..#32: SpaceProc;
@@ -434,7 +434,7 @@ begin
   inherited;
 end;
 
-function TSynJSONSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynJSONSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
     SYN_ATTR_KEYWORD: Result := FReservedAttri;
@@ -449,7 +449,7 @@ end;
 
 function TSynJSONSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynJSONSyn.GetRange: Pointer;
@@ -479,7 +479,7 @@ begin
   end;
 end;
 
-function TSynJSONSyn.GetTokenKind: integer;
+function TSynJSONSyn.GetTokenKind: Integer;
 begin
   Result := Ord(FTokenID);
 end;

@@ -29,6 +29,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     FKeyList: TList;
+    FCaseSensitive: Boolean;
   public
     procedure AssignKeyWords(KeyList: TList; CaseSensitive: Boolean);
     function GetHashKeyFunctionSource(ClassName: string): string;
@@ -142,6 +143,7 @@ var
   KeyWordsList: TStringList;
 begin
   FKeyList := nil;
+  FCaseSensitive := CaseSensitive;
   SetLength(KeyWords, 0);
   HashKeyList.Clear;
 
@@ -193,7 +195,10 @@ begin
     for i := 0 to FKeyList.Count - 1 do
       with TLexKeys(FKeyList[i]) do
       begin
-        Key := FinalHashKey(SynWideLowerCase(KeyName));
+        if FCaseSensitive then 
+          key := FinalHashKey(KeyName)
+        else 
+          Key := FinalHashKey(SynWideLowerCase(KeyName));
       end;
   end;
 end;

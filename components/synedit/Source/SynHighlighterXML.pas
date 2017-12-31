@@ -55,7 +55,7 @@ unit SynHighlighterXML;
 
 interface
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 uses
 {$IFDEF SYN_CLX}
@@ -101,21 +101,21 @@ type
 
   TSynXMLSyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
-    fTokenID: TtkTokenKind;
-    fElementAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fTextAttri: TSynHighlighterAttributes;
-    fEntityRefAttri: TSynHighlighterAttributes;
-    fProcessingInstructionAttri: TSynHighlighterAttributes;
-    fCDATAAttri: TSynHighlighterAttributes;
-    fCommentAttri: TSynHighlighterAttributes;
-    fDocTypeAttri: TSynHighlighterAttributes;
-    fAttributeAttri: TSynHighlighterAttributes;
-    fnsAttributeAttri: TSynHighlighterAttributes;
-    fAttributeValueAttri: TSynHighlighterAttributes;
-    fnsAttributeValueAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
+    FRange: TRangeState;
+    FTokenID: TtkTokenKind;
+    FElementAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FTextAttri: TSynHighlighterAttributes;
+    FEntityRefAttri: TSynHighlighterAttributes;
+    FProcessingInstructionAttri: TSynHighlighterAttributes;
+    FCDATAAttri: TSynHighlighterAttributes;
+    FCommentAttri: TSynHighlighterAttributes;
+    FDocTypeAttri: TSynHighlighterAttributes;
+    FAttributeAttri: TSynHighlighterAttributes;
+    FnsAttributeAttri: TSynHighlighterAttributes;
+    FAttributeValueAttri: TSynHighlighterAttributes;
+    FnsAttributeValueAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
     FWantBracesParsed: Boolean;
     procedure NullProc;
     procedure CarriageReturnProc;
@@ -148,43 +148,43 @@ type
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
     constructor Create(AOwner: TComponent); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
   published
-    property ElementAttri: TSynHighlighterAttributes read fElementAttri
-      write fElementAttri;
-    property AttributeAttri: TSynHighlighterAttributes read fAttributeAttri
-      write fAttributeAttri;
+    property ElementAttri: TSynHighlighterAttributes read FElementAttri
+      write FElementAttri;
+    property AttributeAttri: TSynHighlighterAttributes read FAttributeAttri
+      write FAttributeAttri;
     property NamespaceAttributeAttri: TSynHighlighterAttributes
-      read fnsAttributeAttri write fnsAttributeAttri;
+      read FnsAttributeAttri write FnsAttributeAttri;
     property AttributeValueAttri: TSynHighlighterAttributes
-      read fAttributeValueAttri write fAttributeValueAttri;
+      read FAttributeValueAttri write FAttributeValueAttri;
     property NamespaceAttributeValueAttri: TSynHighlighterAttributes
-      read fnsAttributeValueAttri write fnsAttributeValueAttri;
-    property TextAttri: TSynHighlighterAttributes read fTextAttri
-      write fTextAttri;
-    property CDATAAttri: TSynHighlighterAttributes read fCDATAAttri
-      write fCDATAAttri;
-    property EntityRefAttri: TSynHighlighterAttributes read fEntityRefAttri
-      write fEntityRefAttri;
+      read FnsAttributeValueAttri write FnsAttributeValueAttri;
+    property TextAttri: TSynHighlighterAttributes read FTextAttri
+      write FTextAttri;
+    property CDATAAttri: TSynHighlighterAttributes read FCDATAAttri
+      write FCDATAAttri;
+    property EntityRefAttri: TSynHighlighterAttributes read FEntityRefAttri
+      write FEntityRefAttri;
     property ProcessingInstructionAttri: TSynHighlighterAttributes
-      read fProcessingInstructionAttri write fProcessingInstructionAttri;
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property DocTypeAttri: TSynHighlighterAttributes read fDocTypeAttri
-      write fDocTypeAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
-      write fSymbolAttri;
+      read FProcessingInstructionAttri write FProcessingInstructionAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
+      write FCommentAttri;
+    property DocTypeAttri: TSynHighlighterAttributes read FDocTypeAttri
+      write FDocTypeAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
+      write FSpaceAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
+      write FSymbolAttri;
     property WantBracesParsed : Boolean read FWantBracesParsed
       write FWantBracesParsed default True;
   end;
@@ -202,109 +202,109 @@ constructor TSynXMLSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := True;
+  FCaseSensitive := True;
 
-  fElementAttri := TSynHighlighterAttributes.Create(SYNS_AttrElementName, SYNS_FriendlyAttrElementName);
-  fTextAttri := TSynHighlighterAttributes.Create(SYNS_AttrText, SYNS_FriendlyAttrText);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrWhitespace, SYNS_FriendlyAttrWhitespace);
-  fEntityRefAttri := TSynHighlighterAttributes.Create(SYNS_AttrEntityReference, SYNS_FriendlyAttrEntityReference);
-  fProcessingInstructionAttri := TSynHighlighterAttributes.Create(
+  FElementAttri := TSynHighlighterAttributes.Create(SYNS_AttrElementName, SYNS_FriendlyAttrElementName);
+  FTextAttri := TSynHighlighterAttributes.Create(SYNS_AttrText, SYNS_FriendlyAttrText);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrWhitespace, SYNS_FriendlyAttrWhitespace);
+  FEntityRefAttri := TSynHighlighterAttributes.Create(SYNS_AttrEntityReference, SYNS_FriendlyAttrEntityReference);
+  FProcessingInstructionAttri := TSynHighlighterAttributes.Create(
     SYNS_AttrProcessingInstr, SYNS_FriendlyAttrProcessingInstr);
-  fCDATAAttri := TSynHighlighterAttributes.Create(SYNS_AttrCDATASection, SYNS_FriendlyAttrCDATASection);
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fDocTypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDOCTYPESection, SYNS_FriendlyAttrDOCTYPESection);
-  fAttributeAttri := TSynHighlighterAttributes.Create(SYNS_AttrAttributeName, SYNS_FriendlyAttrAttributeName);
-  fnsAttributeAttri := TSynHighlighterAttributes.Create(
+  FCDATAAttri := TSynHighlighterAttributes.Create(SYNS_AttrCDATASection, SYNS_FriendlyAttrCDATASection);
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FDocTypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDOCTYPESection, SYNS_FriendlyAttrDOCTYPESection);
+  FAttributeAttri := TSynHighlighterAttributes.Create(SYNS_AttrAttributeName, SYNS_FriendlyAttrAttributeName);
+  FnsAttributeAttri := TSynHighlighterAttributes.Create(
     SYNS_AttrNamespaceAttrName, SYNS_FriendlyAttrNamespaceAttrName);
-  fAttributeValueAttri := TSynHighlighterAttributes.Create(
+  FAttributeValueAttri := TSynHighlighterAttributes.Create(
     SYNS_AttrAttributeValue, SYNS_FriendlyAttrAttributeValue);
-  fnsAttributeValueAttri := TSynHighlighterAttributes.Create(
+  FnsAttributeValueAttri := TSynHighlighterAttributes.Create(
     SYNS_AttrNamespaceAttrValue, SYNS_FriendlyAttrNamespaceAttrValue);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
 
-  fElementAttri.Foreground := clMaroon;
-  fElementAttri.Style := [fsBold];
+  FElementAttri.Foreground := clMaroon;
+  FElementAttri.Style := [fsBold];
 
-  fDocTypeAttri.Foreground := clblue;
-  fDocTypeAttri.Style := [fsItalic];
+  FDocTypeAttri.Foreground := clblue;
+  FDocTypeAttri.Style := [fsItalic];
 
-  fCDATAAttri.Foreground := clOlive;
-  fCDATAAttri.Style := [fsItalic];
+  FCDATAAttri.Foreground := clOlive;
+  FCDATAAttri.Style := [fsItalic];
 
-  fEntityRefAttri.Foreground := clblue;
-  fEntityRefAttri.Style := [fsbold];
+  FEntityRefAttri.Foreground := clblue;
+  FEntityRefAttri.Style := [fsbold];
 
-  fProcessingInstructionAttri.Foreground:= clblue;
-  fProcessingInstructionAttri.Style:= [];
+  FProcessingInstructionAttri.Foreground:= clblue;
+  FProcessingInstructionAttri.Style:= [];
 
-  fTextAttri.Foreground := clBlack;
-  fTextAttri.Style := [fsBold];
+  FTextAttri.Foreground := clBlack;
+  FTextAttri.Style := [fsBold];
 
-  fAttributeAttri.Foreground := clMaroon;
-  fAttributeAttri.Style := [];
+  FAttributeAttri.Foreground := clMaroon;
+  FAttributeAttri.Style := [];
 
-  fnsAttributeAttri.Foreground := clRed;
-  fnsAttributeAttri.Style := [];
+  FnsAttributeAttri.Foreground := clRed;
+  FnsAttributeAttri.Style := [];
 
-  fAttributeValueAttri.Foreground := clNavy;
-  fAttributeValueAttri.Style := [fsBold];
+  FAttributeValueAttri.Foreground := clNavy;
+  FAttributeValueAttri.Style := [fsBold];
 
-  fnsAttributeValueAttri.Foreground := clRed;
-  fnsAttributeValueAttri.Style := [fsBold];
+  FnsAttributeValueAttri.Foreground := clRed;
+  FnsAttributeValueAttri.Style := [fsBold];
 
-  fCommentAttri.Background := clSilver;
-  fCommentAttri.Foreground := clGray;
-  fCommentAttri.Style := [fsbold, fsItalic];
+  FCommentAttri.Background := clSilver;
+  FCommentAttri.Foreground := clGray;
+  FCommentAttri.Style := [fsbold, fsItalic];
 
-  fSymbolAttri.Foreground := clblue;
-  fSymbolAttri.Style := [];
+  FSymbolAttri.Foreground := clblue;
+  FSymbolAttri.Style := [];
 
-  AddAttribute(fSymbolAttri);
-  AddAttribute(fProcessingInstructionAttri);
-  AddAttribute(fDocTypeAttri);
-  AddAttribute(fCommentAttri);
-  AddAttribute(fElementAttri);
-  AddAttribute(fAttributeAttri);
-  AddAttribute(fnsAttributeAttri);
-  AddAttribute(fAttributeValueAttri);
-  AddAttribute(fnsAttributeValueAttri);
-  AddAttribute(fEntityRefAttri);
-  AddAttribute(fCDATAAttri);
-  AddAttribute(fSpaceAttri);
-  AddAttribute(fTextAttri);
+  AddAttribute(FSymbolAttri);
+  AddAttribute(FProcessingInstructionAttri);
+  AddAttribute(FDocTypeAttri);
+  AddAttribute(FCommentAttri);
+  AddAttribute(FElementAttri);
+  AddAttribute(FAttributeAttri);
+  AddAttribute(FnsAttributeAttri);
+  AddAttribute(FAttributeValueAttri);
+  AddAttribute(FnsAttributeValueAttri);
+  AddAttribute(FEntityRefAttri);
+  AddAttribute(FCDATAAttri);
+  AddAttribute(FSpaceAttri);
+  AddAttribute(FTextAttri);
 
   SetAttributesOnChange(DefHighlightChange);
 
-  fRange := rsText;
-  fDefaultFilter := SYNS_FilterXML;
+  FRange := rsText;
+  FDefaultFilter := SYNS_FilterXML;
 end;
 
 procedure TSynXMLSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynXMLSyn.CarriageReturnProc;
 begin
-  fTokenID := tkSpace;
+  FTokenID := tkSpace;
   Inc(Run);
-  if fLine[Run] = #10 then Inc(Run);
+  if FLine[Run] = #10 then Inc(Run);
 end;
 
 procedure TSynXMLSyn.LineFeedProc;
 begin
-  fTokenID := tkSpace;
+  FTokenID := tkSpace;
   Inc(Run);
 end;
 
 procedure TSynXMLSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while fLine[Run] <= #32 do
+  Inc(Run);
+  FTokenID := tkSpace;
+  while FLine[Run] <= #32 do
   begin
-    if CharInSet(fLine[Run], [#0, #9, #10, #13]) then break;
+    if CharInSet(FLine[Run], [#0, #9, #10, #13]) then Break;
     Inc(Run);
   end;
 end;
@@ -312,67 +312,67 @@ end;
 procedure TSynXMLSyn.LessThanProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '/') then
+  if (FLine[Run] = '/') then
     Inc(Run);
 
-  if (fLine[Run] = '!') then
+  if (FLine[Run] = '!') then
   begin
     if NextTokenIs('--') then
     begin
-      fTokenID := tkSymbol;
-      fRange := rsComment;
+      FTokenID := tkSymbol;
+      FRange := rsComment;
       Inc(Run, 3);
     end
     else if NextTokenIs('DOCTYPE') then
     begin
-      fTokenID := tkDocType;
-      fRange := rsDocType;
+      FTokenID := tkDocType;
+      FRange := rsDocType;
       Inc(Run, 7);
     end
     else if NextTokenIs('[CDATA[') then
     begin
-      fTokenID := tkCDATA;
-      fRange := rsCDATA;
+      FTokenID := tkCDATA;
+      FRange := rsCDATA;
       Inc(Run, 7);
     end
     else
     begin
-      fTokenID := tkSymbol;
-      fRange := rsElement;
+      FTokenID := tkSymbol;
+      FRange := rsElement;
       Inc(Run);
     end;
   end
-  else if fLine[Run]= '?' then
+  else if FLine[Run]= '?' then
   begin
-    fTokenID := tkProcessingInstruction;
-    fRange := rsProcessingInstruction;
+    FTokenID := tkProcessingInstruction;
+    FRange := rsProcessingInstruction;
     Inc(Run);
   end
   else
   begin
-    fTokenID := tkSymbol;
-    fRange := rsElement;
+    FTokenID := tkSymbol;
+    FRange := rsElement;
   end;
 end;
 
 procedure TSynXMLSyn.GreaterThanProc;
 begin
-  fTokenId := tkSymbol;
-  fRange:= rsText;
+  FTokenID := tkSymbol;
+  FRange:= rsText;
   Inc(Run);
 end;
 
 procedure TSynXMLSyn.CommentProc;
 begin
-  if (fLine[Run] = '-') and (fLine[Run + 1] = '-') and (fLine[Run + 2] = '>') then
+  if (FLine[Run] = '-') and (FLine[Run + 1] = '-') and (FLine[Run + 2] = '>') then
   begin
-    fTokenID := tkSymbol;
-    fRange := rsText;
+    FTokenID := tkSymbol;
+    FRange := rsText;
     Inc(Run, 3);
     Exit;
   end;
 
-  fTokenID := tkComment;
+  FTokenID := tkComment;
 
   if IsLineEnd(Run) then
   begin
@@ -382,10 +382,10 @@ begin
 
   while not IsLineEnd(Run) do
   begin
-    if (fLine[Run] = '-') and (fLine[Run + 1] = '-') and (fLine[Run + 2] = '>') then
+    if (FLine[Run] = '-') and (FLine[Run + 1] = '-') and (FLine[Run + 2] = '>') then
     begin
-      fRange := rsComment;
-      break;
+      FRange := rsComment;
+      Break;
     end;
     Inc(Run);
   end;
@@ -393,7 +393,7 @@ end;
 
 procedure TSynXMLSyn.ProcessingInstructionProc;
 begin
-  fTokenID := tkProcessingInstruction;
+  FTokenID := tkProcessingInstruction;
   if IsLineEnd(Run) then
   begin
     NextProcedure;
@@ -402,12 +402,12 @@ begin
 
   while not IsLineEnd(Run) do
   begin
-    if (fLine[Run] = '>') and (fLine[Run - 1] = '?')
+    if (FLine[Run] = '>') and (FLine[Run - 1] = '?')
     then
     begin
-      fRange := rsText;
+      FRange := rsText;
       Inc(Run);
-      break;
+      Break;
     end;
     Inc(Run);
   end;
@@ -415,7 +415,7 @@ end;
 
 procedure TSynXMLSyn.DocTypeProc;
 begin
-  fTokenID := tkDocType;
+  FTokenID := tkDocType;
 
   if IsLineEnd(Run) then
   begin
@@ -423,17 +423,17 @@ begin
     Exit;
   end;
 
-  case fRange of
+  case FRange of
     rsDocType:
       begin
         while not IsLineEnd(Run) do
         begin
-          case fLine[Run] of
+          case FLine[Run] of
             '[': begin
                    while True do
                    begin
-                     inc(Run);
-                     case fLine[Run] of
+                     Inc(Run);
+                     case FLine[Run] of
                        ']':
                          begin
                            Inc(Run);
@@ -441,32 +441,32 @@ begin
                          end;
                        #0, #10, #13:
                          begin
-                           fRange := rsDocTypeSquareBraces;
+                           FRange := rsDocTypeSquareBraces;
                            Exit;
                          end;
                      end;
                    end;
                  end;
             '>': begin
-                   fRange := rsAttribute;
+                   FRange := rsAttribute;
                    Inc(Run);
                    Break;
                  end;
           end;
-          inc(Run);
+          Inc(Run);
         end;
     end;
     rsDocTypeSquareBraces:
       begin
         while not IsLineEnd(Run) do
         begin
-          if (fLine[Run] = ']') then
+          if (FLine[Run] = ']') then
           begin
-            fRange := rsDocType;
+            FRange := rsDocType;
             Inc(Run);
             Exit;
           end;
-          inc(Run);
+          Inc(Run);
         end;
       end;
   end;
@@ -474,7 +474,7 @@ end;
 
 procedure TSynXMLSyn.CDATAProc;
 begin
-  fTokenID := tkCDATA;
+  FTokenID := tkCDATA;
   if IsLineEnd(Run) then
   begin
     NextProcedure;
@@ -483,12 +483,12 @@ begin
 
   while not IsLineEnd(Run) do
   begin
-    if (fLine[Run] = '>') and (fLine[Run - 1] = ']')
+    if (FLine[Run] = '>') and (FLine[Run - 1] = ']')
     then
     begin
-      fRange := rsText;
+      FRange := rsText;
       Inc(Run);
-      break;
+      Break;
     end;
     Inc(Run);
   end;
@@ -496,19 +496,19 @@ end;
 
 procedure TSynXMLSyn.ElementProc;
 begin
-  if fLine[Run] = '/' then Inc(Run);
+  if FLine[Run] = '/' then Inc(Run);
   while IsNameChar do Inc(Run);
-  fRange := rsAttribute;
-  fTokenID := tkElement;
+  FRange := rsAttribute;
+  FTokenID := tkElement;
 end;
 
 procedure TSynXMLSyn.AttributeProc;
 begin
   //Check if we are starting on a closing quote
-  if CharInSet(fLine[Run], [#34, #39]) then
+  if CharInSet(FLine[Run], [#34, #39]) then
   begin
-    fTokenID := tkSymbol;
-    fRange := rsAttribute;
+    FTokenID := tkSymbol;
+    FRange := rsAttribute;
     Inc(Run);
     Exit;
   end;
@@ -517,47 +517,47 @@ begin
   //Check if this is an xmlns: attribute
   if (Pos('xmlns', GetToken) > 0) then
   begin
-    fTokenID := tknsAttribute;
-    fRange := rsnsEqual;
+    FTokenID := tknsAttribute;
+    FRange := rsnsEqual;
   end
   else
   begin
-    fTokenID := tkAttribute;
-    fRange := rsEqual;
+    FTokenID := tkAttribute;
+    FRange := rsEqual;
   end;
 end;
 
 procedure TSynXMLSyn.EqualProc;
 begin
-  if fRange = rsnsEqual then
-    fTokenID := tknsEqual
+  if FRange = rsnsEqual then
+    FTokenID := tknsEqual
   else
-    fTokenID := tkEqual;
+    FTokenID := tkEqual;
 
   while not IsLineEnd(Run) do
   begin
-    if (fLine[Run] = '/') then
+    if (FLine[Run] = '/') then
     begin
-      fTokenID := tkSymbol;
-      fRange := rsElement;
+      FTokenID := tkSymbol;
+      FRange := rsElement;
       Inc(Run);
       Exit;
     end
-    else if (fLine[Run] = #34) then
+    else if (FLine[Run] = #34) then
     begin
-      if fRange = rsnsEqual then
-        fRange := rsnsQuoteAttrValue
+      if FRange = rsnsEqual then
+        FRange := rsnsQuoteAttrValue
       else
-        fRange := rsQuoteAttrValue;
+        FRange := rsQuoteAttrValue;
       Inc(Run);
       Exit;
     end
-    else if (fLine[Run] = #39) then
+    else if (FLine[Run] = #39) then
     begin
-      if fRange = rsnsEqual then
-        fRange := rsnsAPosAttrValue
+      if FRange = rsnsEqual then
+        FRange := rsnsAPosAttrValue
       else
-        fRange := rsAPosAttrValue;
+        FRange := rsAPosAttrValue;
       Inc(Run);
       Exit;
     end;
@@ -567,115 +567,115 @@ end;
 
 procedure TSynXMLSyn.QAttributeValueProc;
 begin
-  if fRange = rsnsQuoteAttrValue then
-    fTokenID := tknsQuoteAttrValue
+  if FRange = rsnsQuoteAttrValue then
+    FTokenID := tknsQuoteAttrValue
   else
-    fTokenID := tkQuoteAttrValue;
+    FTokenID := tkQuoteAttrValue;
 
-  while not (IsLineEnd(Run) or (fLine[Run] = '&') or (fLine[Run] = #34)) do
+  while not (IsLineEnd(Run) or (FLine[Run] = '&') or (FLine[Run] = #34)) do
     Inc(Run);
 
-  if fLine[Run] = '&' then
+  if FLine[Run] = '&' then
   begin
-    if fRange = rsnsQuoteAttrValue then
-      fRange := rsnsQuoteEntityRef
+    if FRange = rsnsQuoteAttrValue then
+      FRange := rsnsQuoteEntityRef
     else
-      fRange := rsQuoteEntityRef;
+      FRange := rsQuoteEntityRef;
     Exit;
   end
-  else if fLine[Run] <> #34 then
+  else if FLine[Run] <> #34 then
     Exit;
 
-  fRange := rsAttribute;
+  FRange := rsAttribute;
 end;
 
 procedure TSynXMLSyn.AAttributeValueProc;
 begin
-  if fRange = rsnsAPosAttrValue then
-    fTokenID := tknsAPosAttrValue
+  if FRange = rsnsAPosAttrValue then
+    FTokenID := tknsAPosAttrValue
   else
-    fTokenID := tkAPosAttrValue;
+    FTokenID := tkAPosAttrValue;
 
-  while not (IsLineEnd(Run) or (fLine[Run] = '&') or (fLine[Run] = #39)) do
+  while not (IsLineEnd(Run) or (FLine[Run] = '&') or (FLine[Run] = #39)) do
     Inc(Run);
 
-  if fLine[Run] = '&' then
+  if FLine[Run] = '&' then
   begin
-    if fRange = rsnsAPosAttrValue then
-      fRange := rsnsAPosEntityRef
+    if FRange = rsnsAPosAttrValue then
+      FRange := rsnsAPosEntityRef
     else
-      fRange := rsAPosEntityRef;
+      FRange := rsAPosEntityRef;
     Exit;
   end
-  else if fLine[Run] <> #39 then
+  else if FLine[Run] <> #39 then
     Exit;
 
-  fRange := rsAttribute;
+  FRange := rsAttribute;
 end;
 
 procedure TSynXMLSyn.TextProc;
 begin
-  if (fLine[Run] <= #31) or (fLine[Run] = '<') then
+  if (FLine[Run] <= #31) or (FLine[Run] = '<') then
   begin
     NextProcedure;
-    exit;
+    Exit;
   end;
 
-  fTokenID := tkText;
-  while not ((fLine[Run] <= #31) or (fLine[Run] = '<') or (fLine[Run] = '&')) do
+  FTokenID := tkText;
+  while not ((FLine[Run] <= #31) or (FLine[Run] = '<') or (FLine[Run] = '&')) do
     Inc(Run);
 
-  if (fLine[Run] = '&') then
+  if (FLine[Run] = '&') then
   begin
-    fRange := rsEntityRef;
+    FRange := rsEntityRef;
     Exit;
   end;
 end;
 
 procedure TSynXMLSyn.EntityRefProc;
 begin
-  fTokenID := tkEntityRef;
-  fRange := rsEntityRef;
-  while not ((fLine[Run] <= #32) or (fLine[Run] = ';')) do Inc(Run);
-  if (fLine[Run] = ';') then Inc(Run);
-  fRange := rsText;
+  FTokenID := tkEntityRef;
+  FRange := rsEntityRef;
+  while not ((FLine[Run] <= #32) or (FLine[Run] = ';')) do Inc(Run);
+  if (FLine[Run] = ';') then Inc(Run);
+  FRange := rsText;
 end;
 
 procedure TSynXMLSyn.QEntityRefProc;
 begin
-  if fRange = rsnsQuoteEntityRef then
-    fTokenID := tknsQuoteEntityRef
+  if FRange = rsnsQuoteEntityRef then
+    FTokenID := tknsQuoteEntityRef
   else
-    fTokenID := tkQuoteEntityRef;
+    FTokenID := tkQuoteEntityRef;
 
-  while not ((fLine[Run] <= #32) or (fLine[Run] = ';')) do Inc(Run);
-  if (fLine[Run] = ';') then Inc(Run);
+  while not ((FLine[Run] <= #32) or (FLine[Run] = ';')) do Inc(Run);
+  if (FLine[Run] = ';') then Inc(Run);
 
-  if fRange = rsnsQuoteEntityRef then
-    fRange := rsnsQuoteAttrValue
+  if FRange = rsnsQuoteEntityRef then
+    FRange := rsnsQuoteAttrValue
   else
-    fRange := rsQuoteAttrValue;
+    FRange := rsQuoteAttrValue;
 end;
 
 procedure TSynXMLSyn.AEntityRefProc;
 begin
-  if fRange = rsnsAPosEntityRef then
-    fTokenID := tknsAPosEntityRef
+  if FRange = rsnsAPosEntityRef then
+    FTokenID := tknsAPosEntityRef
   else
-    fTokenID := tkAPosEntityRef;
+    FTokenID := tkAPosEntityRef;
 
-  while not ((fLine[Run] <= #32) or (fLine[Run] = ';')) do Inc(Run);
-  if (fLine[Run] = ';') then Inc(Run);
+  while not ((FLine[Run] <= #32) or (FLine[Run] = ';')) do Inc(Run);
+  if (FLine[Run] = ';') then Inc(Run);
 
-  if fRange = rsnsAPosEntityRef then
-    fRange := rsnsAPosAttrValue
+  if FRange = rsnsAPosEntityRef then
+    FRange := rsnsAPosAttrValue
   else
-    fRange := rsAPosAttrValue;
+    FRange := rsAPosAttrValue;
 end;
 
 procedure TSynXMLSyn.IdentProc;
 begin
-  case fRange of
+  case FRange of
     rsElement:
       begin
         ElementProc;
@@ -714,8 +714,8 @@ end;
 
 procedure TSynXMLSyn.Next;
 begin
-  fTokenPos := Run;
-  case fRange of
+  FTokenPos := Run;
+  case FRange of
     rsText: TextProc;
     rsComment: CommentProc;
     rsProcessingInstruction: ProcessingInstructionProc;
@@ -730,7 +730,7 @@ end;
 
 procedure TSynXMLSyn.NextProcedure;
 begin
-  case fLine[Run] of
+  case FLine[Run] of
     #0: NullProc;
     #10: LineFeedProc;
     #13: CarriageReturnProc;
@@ -748,7 +748,7 @@ begin
   Result := True;
   Len := Length(Token);
   for I := 1 to Len do
-    if (fLine[Run + I] <> Token[I]) then
+    if (FLine[Run + I] <> Token[I]) then
     begin
       Result:= False;
       Break;
@@ -758,11 +758,11 @@ end;
 function TSynXMLSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fAttributeAttri;
-    SYN_ATTR_KEYWORD: Result := fElementAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FAttributeAttri;
+    SYN_ATTR_KEYWORD: Result := FElementAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -770,76 +770,76 @@ end;
 
 function TSynXMLSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynXMLSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynXMLSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case fTokenID of
-    tkElement: Result:= fElementAttri;
-    tkAttribute: Result:= fAttributeAttri;
-    tknsAttribute: Result:= fnsAttributeAttri;
-    tkEqual: Result:= fSymbolAttri;
-    tknsEqual: Result:= fSymbolAttri;
-    tkQuoteAttrValue: Result:= fAttributeValueAttri;
-    tkAPosAttrValue: Result:= fAttributeValueAttri;
-    tknsQuoteAttrValue: Result:= fnsAttributeValueAttri;
-    tknsAPosAttrValue: Result:= fnsAttributeValueAttri;
-    tkText: Result:= fTextAttri;
-    tkCDATA: Result:= fCDATAAttri;
-    tkEntityRef: Result:= fEntityRefAttri;
-    tkQuoteEntityRef: Result:= fEntityRefAttri;
-    tkAposEntityRef: Result:= fEntityRefAttri;
-    tknsQuoteEntityRef: Result:= fEntityRefAttri;
-    tknsAposEntityRef: Result:= fEntityRefAttri;
-    tkProcessingInstruction: Result:= fProcessingInstructionAttri;
-    tkComment: Result:= fCommentAttri;
-    tkDocType: Result:= fDocTypeAttri;
-    tkSymbol: Result:= fSymbolAttri;
-    tkSpace: Result:= fSpaceAttri;
+  case FTokenID of
+    tkElement: Result:= FElementAttri;
+    tkAttribute: Result:= FAttributeAttri;
+    tknsAttribute: Result:= FnsAttributeAttri;
+    tkEqual: Result:= FSymbolAttri;
+    tknsEqual: Result:= FSymbolAttri;
+    tkQuoteAttrValue: Result:= FAttributeValueAttri;
+    tkAPosAttrValue: Result:= FAttributeValueAttri;
+    tknsQuoteAttrValue: Result:= FnsAttributeValueAttri;
+    tknsAPosAttrValue: Result:= FnsAttributeValueAttri;
+    tkText: Result:= FTextAttri;
+    tkCDATA: Result:= FCDATAAttri;
+    tkEntityRef: Result:= FEntityRefAttri;
+    tkQuoteEntityRef: Result:= FEntityRefAttri;
+    tkAposEntityRef: Result:= FEntityRefAttri;
+    tknsQuoteEntityRef: Result:= FEntityRefAttri;
+    tknsAposEntityRef: Result:= FEntityRefAttri;
+    tkProcessingInstruction: Result:= FProcessingInstructionAttri;
+    tkComment: Result:= FCommentAttri;
+    tkDocType: Result:= FDocTypeAttri;
+    tkSymbol: Result:= FSymbolAttri;
+    tkSpace: Result:= FSpaceAttri;
   else
     Result := nil;
   end;
 end;
 
-function TSynXMLSyn.GetTokenKind: integer;
+function TSynXMLSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynXMLSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 procedure TSynXMLSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 procedure TSynXMLSyn.ResetRange;
 begin
-  fRange := rsText;
+  FRange := rsText;
 end;
 
 function TSynXMLSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterXML;
+  Result := FDefaultFilter <> SYNS_FilterXML;
 end;
 
 { TODO: In fact every Number also non-arabics and every letter also German umlauts
   can be used. Something like IsAlphaNumericCharW should be used instead. }
 function TSynXMLSyn.IsNameChar: Boolean;
 begin
-  case fLine[Run] of
+  case FLine[Run] of
     '0'..'9', 'a'..'z', 'A'..'Z', '_', '.', ':', '-':
       Result := True;
-    else if fLine[Run] > 'À' then // TODO: this here is very vague, see above
+    else if FLine[Run] > 'À' then // TODO: this here is very vague, see above
       Result := True
     else
       Result := False;
@@ -853,22 +853,23 @@ end;
 
 function TSynXMLSyn.GetSampleSource: UnicodeString;
 begin
-  Result:= '<?xml version="1.0"?>'#13#10+
-           '<!DOCTYPE root ['#13#10+
-           '  ]>'#13#10+
-           '<!-- Comment -->'#13#10+
-           '<root version="&test;">'#13#10+
-           '  <![CDATA[ **CDATA section** ]]>'#13#10+
-           '</root>';
+  Result :=
+    '<?xml version="1.0"?>'#13#10+
+    '<!DOCTYPE root ['#13#10+
+    '  ]>'#13#10+
+    '<!-- Comment -->'#13#10+
+    '<root version="&test;">'#13#10+
+    '  <![CDATA[ **CDATA section** ]]>'#13#10+
+    '</root>';
 end;
 
-{$IFNDEF SYN_CPPB_1}
 class function TSynXMLSyn.GetFriendlyLanguageName: UnicodeString;
 begin
   Result := SYNS_FriendlyLangXML;
 end;
 
 initialization
+{$IFNDEF SYN_CPPB_1}
   RegisterPlaceableHighlighter(TSynXMLSyn);
 {$ENDIF}
 end.

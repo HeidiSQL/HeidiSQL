@@ -49,7 +49,7 @@ The keywords in the string list KeyWords have to be in lowercase and sorted.
 unit SynHighlighterGalaxy;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -70,20 +70,20 @@ type
   TtkTokenKind = (tkComment, tkIdentifier, tkKey, tkNull, tkSpace, tkMessage,
     tkUnknown);
 
-  TRangeState = (rsUnKnown, rsMessageStyle);
+  TRangeState = (rsUnknown, rsMessageStyle);
 
 type
   TSynGalaxySyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
+    FRange: TRangeState;
     FTokenID: TtkTokenKind;
-    fMessageAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fCommentAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyWords: TUnicodeStrings;
+    FMessageAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FCommentAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyWords: TUnicodeStrings;
     procedure PointCommaProc;
     procedure CRProc;
     procedure IdentProc;
@@ -102,33 +102,33 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetEol: Boolean; override;
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
     function IsKeyword(const AKeyword: UnicodeString): Boolean; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
     {$IFNDEF SYN_CLX}
-    function SaveToRegistry(RootKey: HKEY; Key: string): boolean; override;
-    function LoadFromRegistry(RootKey: HKEY; Key: string): boolean; override;
+    function SaveToRegistry(RootKey: HKEY; Key: string): Boolean; override;
+    function LoadFromRegistry(RootKey: HKEY; Key: string): Boolean; override;
     {$ENDIF}
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
-      write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property KeyWords: TUnicodeStrings read fKeyWords write SetKeyWords;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property MessageAttri: TSynHighlighterAttributes read fMessageAttri
-      write fMessageAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
+      write FCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
+      write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property KeyWords: TUnicodeStrings read FKeyWords write SetKeyWords;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
+      write FSpaceAttri;
+    property MessageAttri: TSynHighlighterAttributes read FMessageAttri
+      write FMessageAttri;
   end;
 
 implementation
@@ -156,17 +156,17 @@ var
   Token: UnicodeString;
 begin
   First := 0;
-  Last := fKeywords.Count - 1;
+  Last := FKeyWords.Count - 1;
   Result := False;
   Token := SynWideUpperCase(AKeyword);
   while First <= Last do
   begin
     I := (First + Last) shr 1;
-    Compare := WideCompareStr(fKeywords[i], Token);
+    Compare := WideCompareStr(FKeyWords[i], Token);
     if Compare = 0 then
     begin
       Result := True;
-      break;
+      Break;
     end else
       if Compare < 0 then First := I + 1 else Last := I - 1;
   end;
@@ -176,142 +176,143 @@ constructor TSynGalaxySyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := False;
+  FCaseSensitive := False;
 
-  fKeyWords := TUnicodeStringList.Create;
-  TUnicodeStringList(fKeyWords).Sorted := True;
-  TUnicodeStringList(fKeyWords).Duplicates := dupIgnore;
-  TUnicodeStringList(fKeyWords).CommaText :=
+  FKeyWords := TUnicodeStringList.Create;
+  TUnicodeStringList(FKeyWords).Sorted := True;
+  TUnicodeStringList(FKeyWords).Duplicates := dupIgnore;
+  TUnicodeStringList(FKeyWords).CommaText :=
     '#end,#galaxy,a,anonymous,autounload,b,battleprotocol,c,cap,cargo,col,' +
     'compress,d,drive,e,emp,f,fleet,fleettables,g,galaxytv,gplus,groupforecast,' +
     'h,i,j,l,m,machinereport,mat,n,namecase,no,o,options,p,planetforecast,' +
     'prodtable,produce,q,r,routesforecast,s,send,shields,shiptypeforecast,' +
     'sortgroups,t,twocol,u,underscores,v,w,war,weapons,x,y,z';
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style := [fsItalic];
-  AddAttribute(fCommentAttri);
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  AddAttribute(fKeyAttri);
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
-  fMessageAttri := TSynHighlighterAttributes.Create(SYNS_AttrMessage, SYNS_FriendlyAttrMessage);
-  AddAttribute(fMessageAttri);
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(fSymbolAttri);
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style := [fsItalic];
+  AddAttribute(FCommentAttri);
+  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
+  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  AddAttribute(FKeyAttri);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
+  FMessageAttri := TSynHighlighterAttributes.Create(SYNS_AttrMessage, SYNS_FriendlyAttrMessage);
+  AddAttribute(FMessageAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(FSymbolAttri);
   SetAttributesOnChange(DefHighlightChange);
 
-  fRange := rsUnknown;
-  fDefaultFilter := SYNS_FilterGalaxy;
+  FRange := rsUnknown;
+  FDefaultFilter := SYNS_FilterGalaxy;
 end; { Create }
 
 destructor TSynGalaxySyn.Destroy;
 begin
-  fKeyWords.Free;
+  FKeyWords.Free;
   inherited Destroy;
 end; { Destroy }
 
 procedure TSynGalaxySyn.MessageStyleProc;
 begin
-  fTokenID := tkMessage;
+  FTokenID := tkMessage;
   case FLine[Run] of
     #0:
       begin
         NullProc;
-        exit;
+        Exit;
       end;
     #10:
       begin
         LFProc;
-        exit;
+        Exit;
       end;
 
     #13:
       begin
         CRProc;
-        exit;
+        Exit;
       end;
   end;
 
-  if (Run = 0) and (FLine[Run] = '@') then begin
-    fRange := rsUnKnown;
-    inc(Run);
+  if (Run = 0) and (FLine[Run] = '@') then
+  begin
+    FRange := rsUnknown;
+    Inc(Run);
   end else
     while FLine[Run] <> #0 do
-      inc(Run);
+      Inc(Run);
 end;
 
 procedure TSynGalaxySyn.PointCommaProc;                                         
 begin
-  fTokenID := tkComment;
-  fRange := rsUnknown;
+  FTokenID := tkComment;
+  FRange := rsUnknown;
   repeat
-    inc(Run);
-  until fLine[Run] = #0;
+    Inc(Run);
+  until FLine[Run] = #0;
 end;
 
 procedure TSynGalaxySyn.CRProc;
 begin
-  fTokenID := tkSpace;
+  FTokenID := tkSpace;
   Inc(Run);
-  if fLine[Run] = #10 then
+  if FLine[Run] = #10 then
     Inc(Run);
 end;
 
 procedure TSynGalaxySyn.IdentProc;
 begin
-  while IsIdentChar(fLine[Run]) do
+  while IsIdentChar(FLine[Run]) do
     Inc(Run);
   if IsKeyWord(GetToken) then
-    fTokenId := tkKey
+    FTokenID := tkKey
   else
-    fTokenId := tkIdentifier;
+    FTokenID := tkIdentifier;
 end;
 
 procedure TSynGalaxySyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynGalaxySyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynGalaxySyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynGalaxySyn.StringProc;
 begin
-  if (Run = 0) and (fTokenID <> tkMessage) then
+  if (Run = 0) and (FTokenID <> tkMessage) then
   begin
-    fTokenID := tkMessage;
-    fRange := rsMessageStyle;
+    FTokenID := tkMessage;
+    FRange := rsMessageStyle;
   end;
-  inc(Run);
+  Inc(Run);
 end;
 
 procedure TSynGalaxySyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnKnown;
+  Inc(Run);
+  FTokenID := tkUnKnown;
 end;
 
 procedure TSynGalaxySyn.Next;
 begin
-  fTokenPos := Run;
-  if fRange = rsMessageStyle then
+  FTokenPos := Run;
+  if FRange = rsMessageStyle then
     MessageStyleProc
   else
-    case fLine[Run] of
+    case FLine[Run] of
       ';': PointCommaProc;                                      
       #13: CRProc;
       '#','A'..'Z', 'a'..'z', '_': IdentProc;
@@ -324,14 +325,14 @@ begin
   inherited;
 end;
 
-function TSynGalaxySyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynGalaxySyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -339,46 +340,46 @@ end;
 
 function TSynGalaxySyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynGalaxySyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 function TSynGalaxySyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynGalaxySyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
-  case fTokenID of
-    tkComment: Result := fCommentAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkMessage: Result := fMessageAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkUnknown: Result := fSymbolAttri;
+  case FTokenID of
+    tkComment: Result := FCommentAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkMessage: Result := FMessageAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkUnknown: Result := FSymbolAttri;
   else
     Result := nil;
   end;
 end;
 
-function TSynGalaxySyn.GetTokenKind: integer;
+function TSynGalaxySyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 procedure TSynGalaxySyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 end;
 
 procedure TSynGalaxySyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 procedure TSynGalaxySyn.SetKeyWords(const Value: TUnicodeStrings);
@@ -392,13 +393,13 @@ begin
         Value[i] := SynWideUpperCase(Value[i]);
       Value.EndUpdate;
     end;
-  fKeyWords.Assign(Value);
+  FKeyWords.Assign(Value);
   DefHighLightChange(nil);
 end;
 
 function TSynGalaxySyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterGalaxy;
+  Result := FDefaultFilter <> SYNS_FilterGalaxy;
 end;
 
 class function TSynGalaxySyn.GetLanguageName: string;
@@ -407,11 +408,11 @@ begin
 end;
 
 {$IFNDEF SYN_CLX}
-function TSynGalaxySyn.LoadFromRegistry(RootKey: HKEY; Key: string): boolean;
+function TSynGalaxySyn.LoadFromRegistry(RootKey: HKEY; Key: string): Boolean;
 var
   r: TBetterRegistry;
 begin
-  r:= TBetterRegistry.Create;
+  r := TBetterRegistry.Create;
   try
     r.RootKey := RootKey;
     if r.OpenKeyReadOnly(Key) then
@@ -426,21 +427,23 @@ begin
   end;
 end;
 
-function TSynGalaxySyn.SaveToRegistry(RootKey: HKEY; Key: string): boolean;
+function TSynGalaxySyn.SaveToRegistry(RootKey: HKEY; Key: string): Boolean;
 var
   r: TBetterRegistry;
 begin
-  r:= TBetterRegistry.Create;
+  r := TBetterRegistry.Create;
   try
     r.RootKey := RootKey;
     if r.OpenKey(Key,true) then
     begin
+      {$IFNDEF SYN_COMPILER_25_UP}
       Result := true;
+      {$ENDIF}
       r.WriteString('KeyWords', KeyWords.Text);
       Result := inherited SaveToRegistry(RootKey, Key);
     end
     else
-      Result := false;
+      Result := False;
   finally
     r.Free;
   end;

@@ -403,7 +403,7 @@ begin
             begin
               Inc(Run); // also the '$'
               Start := Run;
-              break;
+              Break;
             end
             else
             begin
@@ -887,7 +887,7 @@ end;
 
 function THeaderFooter.GetAsString: UnicodeString;
 var
-  i: integer;
+  i: Integer;
 begin
   FixLines;
   Result := '';
@@ -975,7 +975,7 @@ end;
 
 procedure THeaderFooter.SaveToStream(AStream: TStream);
 var
-  i, Num: integer;
+  i, Num: Integer;
   aCharset: TFontCharset;
   aColor: TColor;
   aHeight: Integer;
@@ -983,7 +983,7 @@ var
   aPitch: TFontPitch;
   aSize: Integer;
   aStyle: TFontStyles;
-  aLen : integer;
+  aLen : Integer;
 begin
   with AStream do begin
     // write the header/footer properties first

@@ -42,7 +42,7 @@ Known Issues:
 unit SynMemo;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -71,134 +71,16 @@ type
     // EM_XXX see winuser.h (PSDK August 2001)
     procedure EMGetSel(var Message: TMessage); message EM_GETSEL;
     procedure EMSetSel(var Message: TMessage); message EM_SETSEL;
-    //procedure EMGetRect(var Message: TMessage); message EM_GETRECT;
-    //procedure EMSetRect(var Message: TMessage); message EM_SETRECT;
-    //procedure EMSetRectnp(var Message: TMessage); message EM_SETRECTNP;
-    //procedure EMScroll(var Message: TMessage); message EM_SCROLL;
-    //procedure EMLineScroll(var Message: TMessage); message EM_LINESCROLL;
-    //procedure EMScrollCaret(var Message: TMessage); message EM_SCROLLCARET;
     procedure EMGetModify(var Message: TMessage); message EM_GETMODIFY;
     procedure EMSetModify(var Message: TMessage); message EM_SETMODIFY;
     procedure EMGetLineCount(var Message: TMessage); message EM_GETLINECOUNT;
-    //procedure EMLineIndex(var Message: TMessage); message EM_LINEINDEX;
-    //procedure EMSetHandle(var Message: TMessage); message EM_SETHANDLE;
-    //procedure EMGetHandle(var Message: TMessage); message EM_GETHANDLE;
-    //procedure EMGetThumb(var Message: TMessage); message EM_GETTHUMB;
-    //procedure EMLineLength(var Message: TMessage); message EM_LINELENGTH;
     procedure EMGetSelText(var Message: TMessage); message EM_GETSELTEXT;       //richedit.h
     procedure EMReplaceSel(var Message: TMessage); message EM_REPLACESEL;
     procedure EMGetLine(var Message: TMessage); message EM_GETLINE;
-    //procedure EMLimitText(var Message: TMessage); message EM_LIMITTEXT;
     procedure EMCanUndo(var Message: TMessage); message EM_CANUNDO;
     procedure EMUndo(var Message: TMessage); message EM_UNDO;
-    //procedure EMFmtLines(var Message: TMessage); message EM_FMTLINES;
-    //procedure EMLineFromChar(var Message: TMessage); message EM_LINEFROMCHAR;
-    //procedure EMSetTabStops(var Message: TMessage); message EM_SETTABSTOPS;
-    //procedure EMSetPasswordChar(var Message: TMessage); message EM_SETPASSWORDCHAR;
-    //procedure EMEmptyUndoBuffer(var Message: TMessage); message EM_EMPTYUNDOBUFFER;
     procedure EMGetFirstVisibleLine(var Message: TMessage); message EM_GETFIRSTVISIBLELINE;
-    //procedure EMSetReadOnly(var Message: TMessage); message EM_SETREADONLY;
-    //procedure EMSetWordBreakProc(var Message: TMessage); message EM_SETWORDBREAKPROC;
-    //procedure EMGetWordBreakProc(var Message: TMessage); message EM_GETWORDBREAKPROC;
-    //procedure EMGetPasswordChar(var Message: TMessage); message EM_GETPASSWORDCHAR;
-    //procedure EMSetMargins(var Message: TMessage); message EM_SETMARGINS;
-    //procedure EMGetMargins(var Message: TMessage); message EM_GETMARGINS;
-    //procedure EMSetLimitText(var Message: TMessage); message EM_SETLIMITTEXT;
-    //procedure EMGetLimitText(var Message: TMessage); message EM_GETLIMITTEXT;
-    //procedure EMPosFromChar(var Message: TMessage); message EM_POSFROMCHAR;
     procedure EMCharFromPos(var Message: TMessage); message EM_CHARFROMPOS;
-    //procedure EMSetImestatus(var Message: TMessage); message EM_SETIMESTATUS;
-    //procedure EMGetImestatus(var Message: TMessage); message EM_GETIMESTATUS;
-
-    // EM_XXX see richedit.h (PSDK August 2001)
-{
-    procedure EMCANPASTE(var Message: TMessage); message EM_CANPASTE;
-    procedure EMDISPLAYBAND(var Message: TMessage); message EM_DISPLAYBAND;
-    procedure EMEXGETSEL(var Message: TMessage); message EM_EXGETSEL;
-    procedure EMEXLIMITTEXT(var Message: TMessage); message EM_EXLIMITTEXT;
-    procedure EMEXLINEFROMCHAR(var Message: TMessage); message EM_EXLINEFROMCHAR;
-    procedure EMEXSETSEL(var Message: TMessage); message EM_EXSETSEL;
-    procedure EMFINDTEXT(var Message: TMessage); message EM_FINDTEXT;
-    procedure EMFORMATRANGE(var Message: TMessage); message EM_FORMATRANGE;
-    procedure EMGETCHARFORMAT(var Message: TMessage); message EM_GETCHARFORMAT;
-    procedure EMGETEVENTMASK(var Message: TMessage); message EM_GETEVENTMASK;
-    procedure EMGETOLEINTERFACE(var Message: TMessage); message EM_GETOLEINTERFACE;
-    procedure EMGETPARAFORMAT(var Message: TMessage); message EM_GETPARAFORMAT;
-    procedure EMGETSELTEXT(var Message: TMessage); message EM_GETSELTEXT;
-    procedure EMHIDESELECTION(var Message: TMessage); message EM_HIDESELECTION;
-    procedure EMPASTESPECIAL(var Message: TMessage); message EM_PASTESPECIAL;
-    procedure EMREQUESTRESIZE(var Message: TMessage); message EM_REQUESTRESIZE;
-    procedure EMSELECTIONTYPE(var Message: TMessage); message EM_SELECTIONTYPE;
-    procedure EMSETBKGNDCOLOR(var Message: TMessage); message EM_SETBKGNDCOLOR;
-    procedure EMSETCHARFORMAT(var Message: TMessage); message EM_SETCHARFORMAT;
-    procedure EMSETEVENTMASK(var Message: TMessage); message EM_SETEVENTMASK;
-    procedure EMSETOLECALLBACK(var Message: TMessage); message EM_SETOLECALLBACK;
-    procedure EMSETPARAFORMAT(var Message: TMessage); message EM_SETPARAFORMAT;
-    procedure EMSETTARGETDEVICE(var Message: TMessage); message EM_SETTARGETDEVICE;
-    procedure EMSTREAMIN(var Message: TMessage); message EM_STREAMIN;
-    procedure EMSTREAMOUT(var Message: TMessage); message EM_STREAMOUT;
-    procedure EMGETTEXTRANGE(var Message: TMessage); message EM_GETTEXTRANGE;
-    procedure EMFINDWORDBREAK(var Message: TMessage); message EM_FINDWORDBREAK;
-    procedure EMSETOPTIONS(var Message: TMessage); message EM_SETOPTIONS;
-    procedure EMGETOPTIONS(var Message: TMessage); message EM_GETOPTIONS;
-    procedure EMFINDTEXTEX(var Message: TMessage); message EM_FINDTEXTEX;
-
-    procedure EMGETWORDBREAKPROCEX(var Message: TMessage); message EM_GETWORDBREAKPROCEX;
-    procedure EMSETWORDBREAKPROCEX(var Message: TMessage); message EM_SETWORDBREAKPROCEX;
-
-    // RichEdit 2.0 messages
-    procedure EMSETUNDOLIMIT(var Message: TMessage); message EM_SETUNDOLIMIT;
-    procedure EMREDO(var Message: TMessage); message EM_REDO;
-    procedure EMCANREDO(var Message: TMessage); message EM_CANREDO;
-    procedure EMGETUNDONAME(var Message: TMessage); message EM_GETUNDONAME;
-    procedure EMGETREDONAME(var Message: TMessage); message EM_GETREDONAME;
-    procedure EMSTOPGROUPTYPING(var Message: TMessage); message EM_STOPGROUPTYPING;
-
-    procedure EMSETTEXTMODE(var Message: TMessage); message EM_SETTEXTMODE;
-    procedure EMGETTEXTMODE(var Message: TMessage); message EM_GETTEXTMODE;
-
-    procedure EMAUTOURLDETECT(var Message: TMessage); message EM_AUTOURLDETECT;
-    procedure EMGETAUTOURLDETECT(var Message: TMessage); message EM_GETAUTOURLDETECT;
-    procedure EMSETPALETTE(var Message: TMessage); message EM_SETPALETTE;
-    procedure EMGETTEXTEX(var Message: TMessage); message EM_GETTEXTEX;
-    procedure EMGETTEXTLENGTHEX(var Message: TMessage); message EM_GETTEXTLENGTHEX;
-    procedure EMSHOWSCROLLBAR(var Message: TMessage); message EM_SHOWSCROLLBAR;
-    procedure EMSETTEXTEX(var Message: TMessage); message EM_SETTEXTEX;
-
-    // Far East specific messages
-    procedure EMSETPUNCTUATION(var Message: TMessage); message EM_SETPUNCTUATION;
-    procedure EMGETPUNCTUATION(var Message: TMessage); message EM_GETPUNCTUATION;
-    procedure EMSETWORDWRAPMODE(var Message: TMessage); message EM_SETWORDWRAPMODE;
-    procedure EMGETWORDWRAPMODE(var Message: TMessage); message EM_GETWORDWRAPMODE;
-    procedure EMSETIMECOLOR(var Message: TMessage); message EM_SETIMECOLOR;
-    procedure EMGETIMECOLOR(var Message: TMessage); message EM_GETIMECOLOR;
-    procedure EMSETIMEOPTIONS(var Message: TMessage); message EM_SETIMEOPTIONS;
-    procedure EMGETIMEOPTIONS(var Message: TMessage); message EM_GETIMEOPTIONS;
-    procedure EMCONVPOSITION(var Message: TMessage); message EM_CONVPOSITION;
-
-    procedure EMSETLANGOPTIONS(var Message: TMessage); message EM_SETLANGOPTIONS;
-    procedure EMGETLANGOPTIONS(var Message: TMessage); message EM_GETLANGOPTIONS;
-    procedure EMGETIMECOMPMODE(var Message: TMessage); message EM_GETIMECOMPMODE;
-
-    procedure EMFINDTEXTW(var Message: TMessage); message EM_FINDTEXTW;
-    procedure EMFINDTEXTEXW(var Message: TMessage); message EM_FINDTEXTEXW;
-
-    // RE3.0 FE messages
-    procedure EMRECONVERSION(var Message: TMessage); message EM_RECONVERSION;
-    procedure EMSETIMEMODEBIAS(var Message: TMessage); message EM_SETIMEMODEBIAS;
-    procedure EMGETIMEMODEBIAS(var Message: TMessage); message EM_GETIMEMODEBIAS;
-
-    // BiDi specific messages
-    procedure EMSETBIDIOPTIONS(var Message: TMessage); message EM_SETBIDIOPTIONS;
-    procedure EMGETBIDIOPTIONS(var Message: TMessage); message EM_GETBIDIOPTIONS;
-
-    procedure EMSETTYPOGRAPHYOPTIONS(var Message: TMessage); message EM_SETTYPOGRAPHYOPTIONS;
-    procedure EMGETTYPOGRAPHYOPTIONS(var Message: TMessage); message EM_GETTYPOGRAPHYOPTIONS;
-
-    // Extended edit style specific messages
-    procedure EMSETEDITSTYLE(var Message: TMessage); message EM_SETEDITSTYLE;
-    procedure EMGETEDITSTYLE(var Message: TMessage); message EM_GETEDITSTYLE;
-    }
 {$ENDIF NOT SYN_CLX}
   end;
 
@@ -228,7 +110,7 @@ uses
 // lParam = (LPARAM) (LPDWORD) lpdwEnd;        // receives ending position
 procedure TSynMemo.EMGetSel(var Message: TMessage);
 var
-  s, e: integer;
+  s, e: Integer;
 begin
   s := GetSelStart;
   e := GetSelEnd;
@@ -286,7 +168,7 @@ var
   StartOfBlock: TBufferCoord;
   EndOfBlock: TBufferCoord;
 begin
-  if ReadOnly then exit;
+  if ReadOnly then Exit;
   DoOnPaintTransient(ttBefore);
   BeginUndoBlock;
   try
@@ -305,9 +187,8 @@ begin
     finally
       UnlockUndo;
     end;
-    if (Message.WParam <> 0){???} then begin
+    if (Message.WParam <> 0){???} then
       UndoList.AddChange(crPaste, StartOfBlock, BlockEnd, SelText, smNormal);
-    end;
   finally
     EndUndoBlock;
   end;
@@ -387,8 +268,8 @@ begin
   i := vPos.Line;
   while i > 0 do
   begin
-    dec(i);
-    inc(vPos.Char, Length(Lines[i]) + 2);
+    Dec(i);
+    Inc(vPos.Char, Length(Lines[i]) + 2);
   end;
 
   //todo: this can't be right, CharIndex can easily overflow
@@ -398,4 +279,3 @@ end;
 {$ENDIF}
 
 end.
-

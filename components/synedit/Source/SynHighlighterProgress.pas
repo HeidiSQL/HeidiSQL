@@ -49,7 +49,7 @@ highlighter is based.
 unit SynHighlighterProgress;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -82,7 +82,7 @@ type
 
   {Used to hold extra rangeinfo in the Lines.Objects pointer.}
   TRangeInfo = packed record
-    case boolean of
+    case Boolean of
       False: (Ptr: Pointer);
       True: (Range: Word; Level: Word);
   end;
@@ -93,24 +93,24 @@ type
 type
   TSynProgressSyn = class(TSynCustomHighLighter)
   private
-    fRange: TRangeState;
-    fCommentLevel: Integer;
-    fIncludeLevel: Integer;
-    fPreProcessorLevel: Integer;
+    FRange: TRangeState;
+    FCommentLevel: Integer;
+    FIncludeLevel: Integer;
+    FPreProcessorLevel: Integer;
     FTokenID: TtkTokenKind;
-    fCommentAttri: TSynHighlighterAttributes;
-    fEventAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fIncludeAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fNonReservedKeyAttri: TSynHighlighterAttributes;
-    fNumberAttri: TSynHighlighterAttributes;
-    fPreprocessorAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fDataTypeAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
-    fHashList: TSynHashEntryList;
+    FCommentAttri: TSynHighlighterAttributes;
+    FEventAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FIncludeAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FNonReservedKeyAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FPreprocessorAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FDataTypeAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
+    FHashList: TSynHashEntryList;
     procedure DoAddKeyword(AKeyword: UnicodeString; AKind: Integer);
     function HashKey(Str: PWideChar): Integer;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
@@ -130,7 +130,7 @@ type
     procedure UnknownProc;
     procedure SymbolProc;
   protected
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
       override;
     function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
@@ -139,7 +139,7 @@ type
     class function GetFriendlyLanguageName: UnicodeString; override;
 {$IFDEF DEBUG}
   public
-    property Keywords: TSynHashEntryList read fHashList;
+    property Keywords: TSynHashEntryList read FHashList;
 {$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
@@ -148,35 +148,35 @@ type
     function GetRange: Pointer; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri
-      write fCommentAttri;
-    property EventAttri: TSynHighlighterAttributes read fEventAttri
-      write fEventAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri
-      write fIdentifierAttri;
-    property IncludeAttri: TSynHighlighterAttributes read fIncludeAttri
-      write fIncludeAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri
+      write FCommentAttri;
+    property EventAttri: TSynHighlighterAttributes read FEventAttri
+      write FEventAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
+      write FIdentifierAttri;
+    property IncludeAttri: TSynHighlighterAttributes read FIncludeAttri
+      write FIncludeAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
     property NonReservedKeyAttri: TSynHighlighterAttributes
-      read fNonReservedKeyAttri write fNonReservedKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri
-      write fNumberAttri;
+      read FNonReservedKeyAttri write FNonReservedKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri
+      write FNumberAttri;
     property PreprocessorAttri: TSynHighlighterAttributes
-      read fPreprocessorAttri write fPreprocessorAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri
-      write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri
-      write fStringAttri;
-    property DataTypeAttri: TSynHighlighterAttributes read fDataTypeAttri
-      write fDataTypeAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri
-      write fSymbolAttri;
+      read FPreprocessorAttri write FPreprocessorAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri
+      write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri
+      write FStringAttri;
+    property DataTypeAttri: TSynHighlighterAttributes read FDataTypeAttri
+      write FDataTypeAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri
+      write FSymbolAttri;
   end;
 
 const
@@ -513,27 +513,27 @@ begin
 {$ELSE}
     Result := (3 * Result + GetOrd) and $FFFFFF;
 {$ENDIF}
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result and $3FF;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 
 function TSynProgressSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Entry: TSynHashEntry;
 begin
-  fToIdent := MayBe;
-  Entry := fHashList[HashKey(MayBe)];
+  FToIdent := MayBe;
+  Entry := FHashList[HashKey(MayBe)];
   while Assigned(Entry) do
   begin
-    if Entry.KeywordLen > fStringLen then
-      break
-    else if Entry.KeywordLen = fStringLen then
+    if Entry.KeywordLen > FStringLen then
+      Break
+    else if Entry.KeywordLen = FStringLen then
       if IsCurrentToken(Entry.Keyword) then
       begin
         Result := TtkTokenKind(Entry.Kind);
-        exit;
+        Exit;
       end;
     Entry := Entry.Next;
   end;
@@ -545,64 +545,64 @@ var
   HashValue: Integer;
 begin
   HashValue := HashKey(PWideChar(AKeyword));
-  fHashList[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
+  FHashList[HashValue] := TSynHashEntry.Create(AKeyword, AKind);
 end;
 
 constructor TSynProgressSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := False;
+  FCaseSensitive := False;
 
-  fHashList := TSynHashEntryList.Create;
+  FHashList := TSynHashEntryList.Create;
 
-  fCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Foreground := clRed;
-  AddAttribute(fCommentAttri);
+  FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Foreground := clRed;
+  AddAttribute(FCommentAttri);
 
-  fEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent, SYNS_FriendlyAttrEvent);
-  fEventAttri.Foreground := clOlive;
-  AddAttribute(fEventAttri);
+  FEventAttri := TSynHighlighterAttributes.Create(SYNS_AttrEvent, SYNS_FriendlyAttrEvent);
+  FEventAttri.Foreground := clOlive;
+  AddAttribute(FEventAttri);
 
-  fIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  fIdentifierAttri.Foreground := clNavy;
-  AddAttribute(fIdentifierAttri);
+  FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  FIdentifierAttri.Foreground := clNavy;
+  AddAttribute(FIdentifierAttri);
 
-  fIncludeAttri := TSynHighlighterAttributes.Create(SYNS_AttrInclude, SYNS_FriendlyAttrInclude);
-  fIncludeAttri.Foreground := clPurple;
-  AddAttribute(fIncludeAttri);
+  FIncludeAttri := TSynHighlighterAttributes.Create(SYNS_AttrInclude, SYNS_FriendlyAttrInclude);
+  FIncludeAttri.Foreground := clPurple;
+  AddAttribute(FIncludeAttri);
 
-  fKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Foreground := clMaroon;
-  AddAttribute(fKeyAttri);
+  FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Foreground := clMaroon;
+  AddAttribute(FKeyAttri);
 
-  fNonreservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword, SYNS_FriendlyAttrNonReservedKeyword);
-  fNonReservedKeyAttri.Foreground := clTeal;
-  AddAttribute(fNonReservedKeyAttri);
+  FNonReservedKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrNonReservedKeyword, SYNS_FriendlyAttrNonReservedKeyword);
+  FNonReservedKeyAttri.Foreground := clTeal;
+  AddAttribute(FNonReservedKeyAttri);
 
-  fNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  fNumberAttri.Foreground := clMaroon;
-  AddAttribute(fNumberAttri);
+  FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  FNumberAttri.Foreground := clMaroon;
+  AddAttribute(FNumberAttri);
 
-  fPreprocessorAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
-  fPreprocessorAttri.Foreground := clPurple;
-  AddAttribute(fPreProcessorAttri);
+  FPreprocessorAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
+  FPreprocessorAttri.Foreground := clPurple;
+  AddAttribute(FPreprocessorAttri);
 
-  fSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
+  FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
 
-  fDataTypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDataType, SYNS_FriendlyAttrDataType);
-  fDataTypeAttri.Foreground := clSilver;
-  AddAttribute(fDataTypeAttri);
+  FDataTypeAttri := TSynHighlighterAttributes.Create(SYNS_AttrDataType, SYNS_FriendlyAttrDataType);
+  FDataTypeAttri.Foreground := clSilver;
+  AddAttribute(FDataTypeAttri);
 
-  fStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  fStringAttri.Foreground := clBlue;
-  AddAttribute(fStringAttri);
+  FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  FStringAttri.Foreground := clBlue;
+  AddAttribute(FStringAttri);
 
-  fSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(fSymbolAttri);
+  FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(FSymbolAttri);
 
-  fDefaultFilter := SYNS_FilterProgress;
+  FDefaultFilter := SYNS_FilterProgress;
 
   EnumerateKeywords(Ord(tkKey), DefaultKeywords, IsIdentChar, DoAddKeyword);
   EnumerateKeywords(Ord(tkNonReserved), DefaultNonReservedKeywords,
@@ -615,267 +615,267 @@ end;
 
 destructor TSynProgressSyn.Destroy;
 begin
-  fHashList.Free;
+  FHashList.Free;
   inherited Destroy;
 end;
 
 procedure TSynProgressSyn.IdentProc;
 begin
-  fTokenID := IdentKind(fLine + Run);
-  inc(Run, fStringLen);
+  FTokenID := IdentKind(FLine + Run);
+  Inc(Run, FStringLen);
 end;
 
 procedure TSynProgressSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynProgressSyn.NumberProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkNumber;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkNumber;
+  p := PWideChar(@FLine[Run]);
   repeat
     Inc(p);
   until not CharInSet(p^, ['0'..'9']);
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.PreprocessorDefinitionProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkPreprocessor;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkPreprocessor;
+  p := PWideChar(@FLine[Run]);
   while p^ <> #0 do
   begin
     case p^ of
       '~': if (p + 1)^ = #0 then
-             fRange := rsPreprocessorDef;
+             FRange := rsPreprocessorDef;
     end;
-    inc(p);
+    Inc(p);
   end;
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynProgressSyn.StringProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkString;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkString;
+  p := PWideChar(@FLine[Run]);
   repeat
     Inc(p);
   until (p^ = #0) or (p^ = '"');
   if (p^ = '"') then Inc(p);
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.SymbolProc;
 begin
-  inc(Run);
-  fTokenID := tkSymbol;
+  Inc(Run);
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynProgressSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynProgressSyn.AsciiCharProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkString;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkString;
+  p := PWideChar(@FLine[Run]);
   repeat
-    inc(p);
+    Inc(p);
   until (p^ = #0) or (p^ = '''');
   if (p^ = '''') then Inc(p);
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.SlashProc;
 var
   p: PWideChar;
 begin
-  p := PWideChar(@fLine[Run]);
-  inc(p);
+  p := PWideChar(@FLine[Run]);
+  Inc(p);
   case p^ of
     '*': begin  {c style comments}
-           fTokenID := tkComment;
-           fRange := rsComment;
-           fCommentLevel := 1;
-           inc(p);
-           while (p^ <> #0) and (fRange = rsComment) do
+           FTokenID := tkComment;
+           FRange := rsComment;
+           FCommentLevel := 1;
+           Inc(p);
+           while (p^ <> #0) and (FRange = rsComment) do
            begin
              case p^ of
                '*': begin
-                      inc(p);
+                      Inc(p);
                       if p^ = '/' then
                       begin
-                        inc(p);
-                        dec(fCommentLevel);
+                        Inc(p);
+                        Dec(FCommentLevel);
                         if FCommentLevel = 0 then
-                          fRange := rsNone;
+                          FRange := rsNone;
                       end;
                     end;
                '/': begin
-                      inc(p);
+                      Inc(p);
                       if p^ = '*' then
                       begin
-                        inc(p);
-                        inc(fCommentLevel); // Max 65535 commentlevels.
+                        Inc(p);
+                        Inc(FCommentLevel); // Max 65535 commentlevels.
                       end;
                     end;
              else
-               inc(p);
+               Inc(p);
              end;
            end;
          end;
   else  {division}
-    fTokenID := tkSymbol;
+    FTokenID := tkSymbol;
   end;
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.CommentRangeProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkComment;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkComment;
+  p := PWideChar(@FLine[Run]);
 
   if p^ = #0 then
   begin
     NullProc;
-    exit;
+    Exit;
   end;
 
-  while (p^ <> #0) and (fRange = rsComment) do
+  while (p^ <> #0) and (FRange = rsComment) do
   begin
     case p^ of
       '*': begin
-             inc(p);
+             Inc(p);
              if p^ = '/' then
              begin
-               inc(p);
-               dec(fCommentLevel);
-               if fCommentLevel = 0 then
-                 fRange := rsNone;
+               Inc(p);
+               Dec(FCommentLevel);
+               if FCommentLevel = 0 then
+                 FRange := rsNone;
              end;
            end;
       '/': begin
-             inc(p);
+             Inc(p);
              if p^ = '*' then
              begin
-               inc(p);
-               inc(fCommentLevel);
+               Inc(p);
+               Inc(FCommentLevel);
              end;
            end;
     else
-      inc(p);
+      Inc(p);
     end;
   end;
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.IncludeRangeProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkInclude;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkInclude;
+  p := PWideChar(@FLine[Run]);
 
   if p^ = #0 then
   begin
     NullProc;
-    exit;
+    Exit;
   end;
 
   while p^ <> #0 do
   begin
     case p^ of
       '}': begin
-             dec(fIncludeLevel);
-             if fIncludeLevel = 0 then
+             Dec(FIncludeLevel);
+             if FIncludeLevel = 0 then
              begin
-               fRange := rsNone;
-               break;
+               FRange := rsNone;
+               Break;
              end
              else
-               inc(p);
+               Inc(p);
            end;
     else
-      inc(p);
+      Inc(p);
     end;
   end;
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.PreprocessorRangeProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkPreprocessor;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkPreprocessor;
+  p := PWideChar(@FLine[Run]);
 
   if p^ = #0 then
   begin
     NullProc;
-    exit;
+    Exit;
   end;
 
-  while (p^ <> #0) and (fRange = rsPreprocessor) do
+  while (p^ <> #0) and (FRange = rsPreprocessor) do
   begin
     case p^ of
-      '{': inc(fPreprocessorLevel);
+      '{': Inc(FPreProcessorLevel);
       '}': begin
-             dec(fPreprocessorLevel);
-             if fPreprocessorLevel = 0 then
-               fRange := rsNone;
+             Dec(FPreProcessorLevel);
+             if FPreProcessorLevel = 0 then
+               FRange := rsNone;
            end;
     end;
-    inc(p);
+    Inc(p);
   end;
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.PreprocessorDefinitionRangeProc;
 var
   p: PWideChar;
 begin
-  fTokenID := tkPreprocessor;
-  p := PWideChar(@fLine[Run]);
+  FTokenID := tkPreprocessor;
+  p := PWideChar(@FLine[Run]);
 
   if Run = 0 then
-    fRange := rsNone;
+    FRange := rsNone;
 
   if p^ = #0 then
   begin
     NullProc;
-    exit;
+    Exit;
   end;
 
   while p^ <> #0 do
   begin
     case p^ of
       '~': if (p+1)^ = #0 then
-             fRange := rsPreprocessorDef;
+             FRange := rsPreprocessorDef;
     end;
-    inc(p);
+    Inc(p);
   end;
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.BraceOpenProc;
@@ -884,62 +884,62 @@ var
 
   function LevelCount: Integer;
   begin
-    if fTokenID = tkInclude then
-      Result := fIncludeLevel
+    if FTokenID = tkInclude then
+      Result := FIncludeLevel
     else
-      Result := fPreprocessorLevel;
+      Result := FPreProcessorLevel;
   end;
 
 begin
-  p := PWideChar(@fLine[Run]);
+  p := PWideChar(@FLine[Run]);
 
-  inc(p);
+  Inc(p);
   case p^ of
-    'A'..'Z', 'a'..'z', '_': fTokenID := tkInclude;
-    '&'                    : fTokenID := tkPreprocessor;
+    'A'..'Z', 'a'..'z', '_': FTokenID := tkInclude;
+    '&'                    : FTokenID := tkPreprocessor;
   else
-    fTokenID := tkUnknown;
+    FTokenID := tkUnknown;
   end;
 
-  case fTokenID of
-    tkInclude     : fIncludeLevel      := 1;
-    tkPreprocessor: fPreprocessorLevel := 1;
+  case FTokenID of
+    tkInclude     : FIncludeLevel      := 1;
+    tkPreprocessor: FPreProcessorLevel := 1;
   end;
 
   while LevelCount > 0 do
   begin
     case p^ of
       #0 : begin
-             if fTokenID = tkInclude then
-               fRange := rsInclude
+             if FTokenID = tkInclude then
+               FRange := rsInclude
              else
-               fRange := rsPreprocessor;
-             break;
+               FRange := rsPreprocessor;
+             Break;
            end;
-      '}': case fTokenID of
-             tkInclude     : dec(fIncludeLevel);
-             tkPreprocessor: dec(fPreprocessorLevel);
+      '}': case FTokenID of
+             tkInclude     : Dec(FIncludeLevel);
+             tkPreprocessor: Dec(FPreProcessorLevel);
            end;
-      '{': case fTokenID of
-             tkInclude     : inc(fIncludeLevel);
-             tkPreprocessor: inc(fPreprocessorLevel);
+      '{': case FTokenID of
+             tkInclude     : Inc(FIncludeLevel);
+             tkPreprocessor: Inc(FPreProcessorLevel);
            end;
     end;
-    inc(p);
+    Inc(p);
   end;
-  Run := p - fLine;
+  Run := p - FLine;
 end;
 
 procedure TSynProgressSyn.Next;
 begin
-  fTokenPos := Run;
-  case fRange of
+  FTokenPos := Run;
+  case FRange of
     rsInclude: IncludeRangeProc;
     rsPreprocessor: PreprocessorRangeProc;
     rsPreprocessorDef: PreprocessorDefinitionRangeProc;
     rsComment: CommentRangeProc;
   else
-    case fLine[Run] of
+    case FLine[Run] of
       #0: NullProc;
       #1..#9, #11, #12, #14..#32: SpaceProc;
       'A'..'Z','a'..'z','_': IdentProc;
@@ -956,66 +956,66 @@ begin
   inherited;
 end;
 
-function TSynProgressSyn.GetDefaultAttribute(Index: integer): TSynHighlighterAttributes;
+function TSynProgressSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   Result := nil;
 end;
 
 function TSynProgressSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynProgressSyn.GetRange: Pointer;
 var
   rng: TRangeInfo;
 begin
-  rng.Range := Ord(fRange);
+  rng.Range := Ord(FRange);
   rng.Level := 0;
-  case fRange of
-    rsComment: rng.Level := fCommentLevel;
-    rsInclude: rng.Level := fIncludeLevel;
-    rsPreProcessor: rng.Level := fPreProcessorLevel;
+  case FRange of
+    rsComment: rng.Level := FCommentLevel;
+    rsInclude: rng.Level := FIncludeLevel;
+    rsPreProcessor: rng.Level := FPreProcessorLevel;
   end;
   Result := rng.Ptr;
 end;
 
 function TSynProgressSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynProgressSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := fCommentAttri;
-    tkEvent: Result := fEventAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkInclude: Result := fIncludeAttri;
-    tkKey: Result := fKeyAttri;
-    tkNonReserved: Result := fNonReservedKeyAttri;
-    tkNumber: Result := fNumberAttri;
-    tkPreprocessor: Result := fPreprocessorAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkDataType: Result := fDataTypeAttri;
-    tkString: Result := fStringAttri;
-    tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fSymbolAttri;
+    tkComment: Result := FCommentAttri;
+    tkEvent: Result := FEventAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkInclude: Result := FIncludeAttri;
+    tkKey: Result := FKeyAttri;
+    tkNonReserved: Result := FNonReservedKeyAttri;
+    tkNumber: Result := FNumberAttri;
+    tkPreprocessor: Result := FPreprocessorAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkDataType: Result := FDataTypeAttri;
+    tkString: Result := FStringAttri;
+    tkSymbol: Result := FSymbolAttri;
+    tkUnknown: Result := FSymbolAttri;
     else Result := nil;
   end;
 end;
 
-function TSynProgressSyn.GetTokenKind: integer;
+function TSynProgressSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 procedure TSynProgressSyn.ResetRange;
 begin
-  fRange := rsNone;
-  fCommentLevel := 0;
-  fIncludeLevel := 0;
-  fPreprocessorLevel := 0;
+  FRange := rsNone;
+  FCommentLevel := 0;
+  FIncludeLevel := 0;
+  FPreProcessorLevel := 0;
 end;
 
 procedure TSynProgressSyn.SetRange(Value: Pointer);
@@ -1023,20 +1023,20 @@ var
   rng: TRangeInfo;
 begin
   rng := TRangeInfo(Value);
-  fRange := TRangeState(rng.Range);
-  fCommentLevel := 0;
-  fIncludeLevel := 0;
-  fPreprocessorLevel := 0;
-  case fRange of
-    rsComment: fCommentLevel := rng.Level;
-    rsInclude: fIncludeLevel := rng.Level;
-    rsPreProcessor: fPreprocessorLevel := rng.Level;
+  FRange := TRangeState(rng.Range);
+  FCommentLevel := 0;
+  FIncludeLevel := 0;
+  FPreProcessorLevel := 0;
+  case FRange of
+    rsComment: FCommentLevel := rng.Level;
+    rsInclude: FIncludeLevel := rng.Level;
+    rsPreProcessor: FPreProcessorLevel := rng.Level;
   end;
 end;
 
 function TSynProgressSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterProgress;
+  Result := FDefaultFilter <> SYNS_FilterProgress;
 end;
 
 function TSynProgressSyn.IsIdentChar(AChar: WideChar): Boolean;

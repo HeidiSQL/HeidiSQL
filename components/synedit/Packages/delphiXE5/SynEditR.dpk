@@ -1,6 +1,5 @@
 package SynEditR;
 
-{$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
@@ -43,6 +42,7 @@ contains
   SynDBEdit in '..\..\Source\SynDBEdit.pas',
   SynEdit in '..\..\Source\SynEdit.pas',
   SynEditAutoComplete in '..\..\Source\SynEditAutoComplete.pas',
+  SynEditCodeFolding in '..\..\Source\SynEditCodeFolding.pas',
   SynEditDocumentManager in '..\..\Source\SynEditDocumentManager.pas',
   SynEditExport in '..\..\Source\SynEditExport.pas',
   SynEditHighlighter in '..\..\Source\SynEditHighlighter.pas',
@@ -74,6 +74,7 @@ contains
   SynExportTeX in '..\..\Source\SynExportTeX.pas',
   SynHighlighterADSP21xx in '..\..\Source\SynHighlighterADSP21xx.pas',
   SynHighlighterAsm in '..\..\Source\SynHighlighterAsm.pas',
+  SynHighlighterAsmMASM in '..\..\Source\SynHighlighterAsmMASM.pas',
   SynHighlighterAWK in '..\..\Source\SynHighlighterAWK.pas',
   SynHighlighterBaan in '..\..\Source\SynHighlighterBaan.pas',
   SynHighlighterBat in '..\..\Source\SynHighlighterBat.pas',
@@ -89,6 +90,7 @@ contains
   SynHighlighterFoxpro in '..\..\Source\SynHighlighterFoxpro.pas',
   SynHighlighterGalaxy in '..\..\Source\SynHighlighterGalaxy.pas',
   SynHighlighterGeneral in '..\..\Source\SynHighlighterGeneral.pas',
+  SynHighlighterGo in '..\..\Source\SynHighlighterGo.pas',
   SynHighlighterGWS in '..\..\Source\SynHighlighterGWS.pas',
   SynHighlighterHashEntries in '..\..\Source\SynHighlighterHashEntries.pas',
   SynHighlighterHaskell in '..\..\Source\SynHighlighterHaskell.pas',

@@ -70,8 +70,8 @@ type
   TCustomDBSynEdit = class(TCustomSynEdit)
   private
     FDataLink: TFieldDataLink;
-    fEditing: boolean;
-    FBeginEdit: boolean;
+    FEditing: Boolean;
+    FBeginEdit: Boolean;
     FLoadData: TNotifyEvent;
     procedure DataChange(Sender: TObject);
     procedure EditingChange(Sender: TObject);
@@ -89,16 +89,16 @@ type
     procedure CMGetDataLink(var Msg: TMessage); message CM_GETDATALINK;
   {$ENDIF}
   protected
-    function GetReadOnly: boolean; override;
+    function GetReadOnly: Boolean; override;
     procedure Loaded; override;
     procedure DoChange; override;
-    procedure SetReadOnly(Value: boolean); override;
+    procedure SetReadOnly(Value: Boolean); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure DragDrop(Source: TObject; X, Y: Integer); override;
     procedure ExecuteCommand(Command: TSynEditorCommand; AChar: WideChar;
-      Data: pointer); override;
+      Data: Pointer); override;
     procedure LoadMemo;
     procedure Notification(AComponent: TComponent; Operation: TOperation);
       override;
@@ -109,7 +109,7 @@ type
     property DataField: string read GetDataField write SetDataField;
     property DataSource: TDataSource read GetDataSource write SetDataSource;
     property Field: TField read GetField;
-    property OnLoadData: TNotifyEvent read fLoadData write fLoadData;
+    property OnLoadData: TNotifyEvent read FLoadData write FLoadData;
   end;
 
   TDBSynEdit = class(TCustomDBSynEdit)
@@ -305,7 +305,7 @@ begin
 end;
 
 procedure TCustomDBSynEdit.ExecuteCommand(Command: TSynEditorCommand;
-  AChar: WideChar; Data: pointer);
+  AChar: WideChar; Data: Pointer);
 begin
   // cancel on [ESC]
   if (Command = ecChar) and (AChar = #27) then
@@ -405,9 +405,9 @@ end;
 
 procedure TCustomDBSynEdit.SetEditing(Value: Boolean);
 begin
-  if fEditing <> Value then
+  if FEditing <> Value then
   begin
-    fEditing := Value;
+    FEditing := Value;
 {$IFDEF SYN_COMPILER_3_UP}
     if not Assigned(FDataLink.Field) or not FDataLink.Field.IsBlob then
 {$ENDIF}
@@ -452,4 +452,3 @@ end;
 {$ENDIF}
 
 end.
-

@@ -46,7 +46,7 @@ The SynHighlighterEiffel unit provides SynEdit with an Eiffel highlighter.
 unit SynHighlighterEiffel;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -80,7 +80,7 @@ type
     tkString,
     tkUnknown);
 
-  TRangeState = (rsUnKnown, rsEiffelComment, rsString, rsOperatorAndSymbolProc);
+  TRangeState = (rsUnknown, rsEiffelComment, rsString, rsOperatorAndSymbolProc);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
@@ -88,19 +88,19 @@ type
 type
   TSynEiffelSyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
-    fTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..502] of TIdentFuncTableFunc;
-    fBasicTypesAttri: TSynHighlighterAttributes;
-    fCommentAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fLaceAttri: TSynHighlighterAttributes;
-    fOperatorAndSymbolsAttri: TSynHighlighterAttributes;
-    fPredefinedAttri: TSynHighlighterAttributes;
-    fResultValueAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
+    FRange: TRangeState;
+    FTokenID: TtkTokenKind;
+    FIdentFuncTable: array[0..502] of TIdentFuncTableFunc;
+    FBasicTypesAttri: TSynHighlighterAttributes;
+    FCommentAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FLaceAttri: TSynHighlighterAttributes;
+    FOperatorAndSymbolsAttri: TSynHighlighterAttributes;
+    FPredefinedAttri: TSynHighlighterAttributes;
+    FResultValueAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function OperatorFunc(Index: Integer): TtkTokenKind;
     function Func37u(Index: Integer): TtkTokenKind;
@@ -220,25 +220,25 @@ type
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
     function GetKeyWords(TokenKind: Integer): UnicodeString; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     procedure Next; override;
     function IsOperatorChar(AChar: WideChar): Boolean;
   published
-    property BasicTypesAttri: TSynHighlighterAttributes read fBasicTypesAttri write fBasicTypesAttri;
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property LaceAttri: TSynHighlighterAttributes read fLaceAttri write fLaceAttri;
-    property OperatorAndSymbolsAttri: TSynHighlighterAttributes read fOperatorAndSymbolsAttri write fOperatorAndSymbolsAttri;
-    property PredefinedAttri: TSynHighlighterAttributes read fPredefinedAttri write fPredefinedAttri;
-    property ResultValueAttri: TSynHighlighterAttributes read fResultValueAttri write fResultValueAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
+    property BasicTypesAttri: TSynHighlighterAttributes read FBasicTypesAttri write FBasicTypesAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property LaceAttri: TSynHighlighterAttributes read FLaceAttri write FLaceAttri;
+    property OperatorAndSymbolsAttri: TSynHighlighterAttributes read FOperatorAndSymbolsAttri write FOperatorAndSymbolsAttri;
+    property PredefinedAttri: TSynHighlighterAttributes read FPredefinedAttri write FPredefinedAttri;
+    property ResultValueAttri: TSynHighlighterAttributes read FResultValueAttri write FResultValueAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri write FStringAttri;
   end;
 
 implementation
@@ -306,10 +306,10 @@ begin
   while IsIdentChar(Str^) or IsOperatorChar(Str^) do
   begin
     Result := Result * 543 + Ord(Str^) * 79;
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 503;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -317,10 +317,10 @@ function TSynEiffelSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -329,129 +329,129 @@ procedure TSynEiffelSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  fIdentFuncTable[34] := OperatorFunc;
-  fIdentFuncTable[92] := OperatorFunc;
-  fIdentFuncTable[250] := OperatorFunc;
-  fIdentFuncTable[329] := OperatorFunc;
-  fIdentFuncTable[413] := Func37u;
-  fIdentFuncTable[487] := OperatorFunc;
-  fIdentFuncTable[142] := OperatorFunc;
-  fIdentFuncTable[221] := OperatorFunc;
-  fIdentFuncTable[300] := OperatorFunc;
-  fIdentFuncTable[113] := OperatorFunc;
-  fIdentFuncTable[192] := OperatorFunc;
-  fIdentFuncTable[327] := OperatorFunc;
-  fIdentFuncTable[427] := OperatorFunc;
-  fIdentFuncTable[55] := OperatorFunc;
-  fIdentFuncTable[480] := OperatorFunc;
-  fIdentFuncTable[134] := OperatorFunc;
-  fIdentFuncTable[26] := OperatorFunc;
-  fIdentFuncTable[147] := OperatorFunc;
-  fIdentFuncTable[212] := OperatorFunc;
-  fIdentFuncTable[305] := OperatorFunc;
-  fIdentFuncTable[384] := OperatorFunc;
-  fIdentFuncTable[239] := OperatorFunc;
-  fIdentFuncTable[379] := OperatorFunc;
-  fIdentFuncTable[213] := OperatorFunc;
-  fIdentFuncTable[340] := OperatorFunc;
-  fIdentFuncTable[292] := OperatorFunc;
-  fIdentFuncTable[371] := OperatorFunc;
-  fIdentFuncTable[261] := FuncAdapt;
-  fIdentFuncTable[462] := FuncAlias;
-  fIdentFuncTable[402] := FuncAll;
-  fIdentFuncTable[54] := FuncAnd;
-  fIdentFuncTable[105] := FuncArray;
-  fIdentFuncTable[224] := FuncAs;
-  fIdentFuncTable[266] := FuncAssertion;
-  fIdentFuncTable[252] := FuncBit;
-  fIdentFuncTable[217] := FuncBoolean;
-  fIdentFuncTable[380] := FuncCharacter;
-  fIdentFuncTable[14] := FuncCheck;
-  fIdentFuncTable[432] := FuncClass;
-  fIdentFuncTable[420] := FuncCluster;
-  fIdentFuncTable[417] := FuncColon;
-  fIdentFuncTable[259] := FuncComma;
-  fIdentFuncTable[387] := FuncCreation;
-  fIdentFuncTable[311] := FuncCurrent;
-  fIdentFuncTable[268] := FuncDebug;
-  fIdentFuncTable[425] := FuncDefault;
-  fIdentFuncTable[301] := FuncDeferred;
-  fIdentFuncTable[334] := FuncDo;
-  fIdentFuncTable[463] := FuncDouble;
-  fIdentFuncTable[1] := FuncElse;
-  fIdentFuncTable[270] := FuncElseif;
-  fIdentFuncTable[139] := FuncEnd;
-  fIdentFuncTable[399] := FuncEnsure;
-  fIdentFuncTable[320] := FuncExclude;
-  fIdentFuncTable[368] := FuncExecutable;
-  fIdentFuncTable[150] := FuncExpanded;
-  fIdentFuncTable[167] := FuncExport;
-  fIdentFuncTable[474] := FuncExternal;
-  fIdentFuncTable[85] := FuncFalse;
-  fIdentFuncTable[174] := FuncFeature;
-  fIdentFuncTable[411] := FuncFrom;
-  fIdentFuncTable[63] := FuncFrozen;
-  fIdentFuncTable[172] := FuncGenerate;
-  fIdentFuncTable[17] := FuncIdentifier;
-  fIdentFuncTable[333] := FuncIf;
-  fIdentFuncTable[211] := FuncIgnore;
-  fIdentFuncTable[37] := FuncImplies;
-  fIdentFuncTable[331] := FuncInclude;
-  fIdentFuncTable[120] := FuncInclude95path;
-  fIdentFuncTable[6] := FuncIndexing;
-  fIdentFuncTable[496] := FuncInfix;
-  fIdentFuncTable[324] := FuncInherit;
-  fIdentFuncTable[431] := FuncInspect;
-  fIdentFuncTable[397] := FuncInteger;
-  fIdentFuncTable[382] := FuncInvariant;
-  fIdentFuncTable[354] := FuncIs;
-  fIdentFuncTable[71] := FuncLike;
-  fIdentFuncTable[160] := FuncLocal;
-  fIdentFuncTable[378] := FuncLoop;
-  fIdentFuncTable[181] := FuncMake;
-  fIdentFuncTable[245] := FuncNo;
-  fIdentFuncTable[353] := FuncNot;
-  fIdentFuncTable[25] := FuncObject;
-  fIdentFuncTable[191] := FuncObsolete;
-  fIdentFuncTable[319] := FuncOld;
-  fIdentFuncTable[7] := FuncOnce;
-  fIdentFuncTable[32] := FuncOptimize;
-  fIdentFuncTable[306] := FuncOption;
-  fIdentFuncTable[121] := FuncOr;
-  fIdentFuncTable[498] := FuncPointer;
-  fIdentFuncTable[240] := FuncPrecompiled;
-  fIdentFuncTable[42] := FuncPrecursor;
-  fIdentFuncTable[19] := FuncPrefix;
-  fIdentFuncTable[296] := FuncReal;
-  fIdentFuncTable[414] := FuncRedefine;
-  fIdentFuncTable[193] := FuncRename;
-  fIdentFuncTable[144] := FuncRequire;
-  fIdentFuncTable[5] := FuncRescue;
-  fIdentFuncTable[43] := FuncResult;
-  fIdentFuncTable[389] := FuncRetry;
-  fIdentFuncTable[362] := FuncRoot;
-  fIdentFuncTable[469] := FuncSelect;
-  fIdentFuncTable[302] := FuncSeparate;
-  fIdentFuncTable[242] := FuncString;
-  fIdentFuncTable[282] := FuncStrip;
-  fIdentFuncTable[135] := FuncSystem;
-  fIdentFuncTable[11] := FuncThen;
-  fIdentFuncTable[330] := FuncTrace;
-  fIdentFuncTable[24] := FuncTrue;
-  fIdentFuncTable[452] := FuncUndefine;
-  fIdentFuncTable[90] := FuncUnique;
-  fIdentFuncTable[501] := FuncUntil;
-  fIdentFuncTable[262] := FuncUse;
-  fIdentFuncTable[195] := FuncVariant;
-  fIdentFuncTable[344] := FuncVisible;
-  fIdentFuncTable[372] := FuncVoid;
-  fIdentFuncTable[348] := FuncWhen;
-  fIdentFuncTable[156] := FuncXor;
-  fIdentFuncTable[471] := FuncYes;
+  FIdentFuncTable[34] := OperatorFunc;
+  FIdentFuncTable[92] := OperatorFunc;
+  FIdentFuncTable[250] := OperatorFunc;
+  FIdentFuncTable[329] := OperatorFunc;
+  FIdentFuncTable[413] := Func37u;
+  FIdentFuncTable[487] := OperatorFunc;
+  FIdentFuncTable[142] := OperatorFunc;
+  FIdentFuncTable[221] := OperatorFunc;
+  FIdentFuncTable[300] := OperatorFunc;
+  FIdentFuncTable[113] := OperatorFunc;
+  FIdentFuncTable[192] := OperatorFunc;
+  FIdentFuncTable[327] := OperatorFunc;
+  FIdentFuncTable[427] := OperatorFunc;
+  FIdentFuncTable[55] := OperatorFunc;
+  FIdentFuncTable[480] := OperatorFunc;
+  FIdentFuncTable[134] := OperatorFunc;
+  FIdentFuncTable[26] := OperatorFunc;
+  FIdentFuncTable[147] := OperatorFunc;
+  FIdentFuncTable[212] := OperatorFunc;
+  FIdentFuncTable[305] := OperatorFunc;
+  FIdentFuncTable[384] := OperatorFunc;
+  FIdentFuncTable[239] := OperatorFunc;
+  FIdentFuncTable[379] := OperatorFunc;
+  FIdentFuncTable[213] := OperatorFunc;
+  FIdentFuncTable[340] := OperatorFunc;
+  FIdentFuncTable[292] := OperatorFunc;
+  FIdentFuncTable[371] := OperatorFunc;
+  FIdentFuncTable[261] := FuncAdapt;
+  FIdentFuncTable[462] := FuncAlias;
+  FIdentFuncTable[402] := FuncAll;
+  FIdentFuncTable[54] := FuncAnd;
+  FIdentFuncTable[105] := FuncArray;
+  FIdentFuncTable[224] := FuncAs;
+  FIdentFuncTable[266] := FuncAssertion;
+  FIdentFuncTable[252] := FuncBit;
+  FIdentFuncTable[217] := FuncBoolean;
+  FIdentFuncTable[380] := FuncCharacter;
+  FIdentFuncTable[14] := FuncCheck;
+  FIdentFuncTable[432] := FuncClass;
+  FIdentFuncTable[420] := FuncCluster;
+  FIdentFuncTable[417] := FuncColon;
+  FIdentFuncTable[259] := FuncComma;
+  FIdentFuncTable[387] := FuncCreation;
+  FIdentFuncTable[311] := FuncCurrent;
+  FIdentFuncTable[268] := FuncDebug;
+  FIdentFuncTable[425] := FuncDefault;
+  FIdentFuncTable[301] := FuncDeferred;
+  FIdentFuncTable[334] := FuncDo;
+  FIdentFuncTable[463] := FuncDouble;
+  FIdentFuncTable[1] := FuncElse;
+  FIdentFuncTable[270] := FuncElseif;
+  FIdentFuncTable[139] := FuncEnd;
+  FIdentFuncTable[399] := FuncEnsure;
+  FIdentFuncTable[320] := FuncExclude;
+  FIdentFuncTable[368] := FuncExecutable;
+  FIdentFuncTable[150] := FuncExpanded;
+  FIdentFuncTable[167] := FuncExport;
+  FIdentFuncTable[474] := FuncExternal;
+  FIdentFuncTable[85] := FuncFalse;
+  FIdentFuncTable[174] := FuncFeature;
+  FIdentFuncTable[411] := FuncFrom;
+  FIdentFuncTable[63] := FuncFrozen;
+  FIdentFuncTable[172] := FuncGenerate;
+  FIdentFuncTable[17] := FuncIdentifier;
+  FIdentFuncTable[333] := FuncIf;
+  FIdentFuncTable[211] := FuncIgnore;
+  FIdentFuncTable[37] := FuncImplies;
+  FIdentFuncTable[331] := FuncInclude;
+  FIdentFuncTable[120] := FuncInclude95path;
+  FIdentFuncTable[6] := FuncIndexing;
+  FIdentFuncTable[496] := FuncInfix;
+  FIdentFuncTable[324] := FuncInherit;
+  FIdentFuncTable[431] := FuncInspect;
+  FIdentFuncTable[397] := FuncInteger;
+  FIdentFuncTable[382] := FuncInvariant;
+  FIdentFuncTable[354] := FuncIs;
+  FIdentFuncTable[71] := FuncLike;
+  FIdentFuncTable[160] := FuncLocal;
+  FIdentFuncTable[378] := FuncLoop;
+  FIdentFuncTable[181] := FuncMake;
+  FIdentFuncTable[245] := FuncNo;
+  FIdentFuncTable[353] := FuncNot;
+  FIdentFuncTable[25] := FuncObject;
+  FIdentFuncTable[191] := FuncObsolete;
+  FIdentFuncTable[319] := FuncOld;
+  FIdentFuncTable[7] := FuncOnce;
+  FIdentFuncTable[32] := FuncOptimize;
+  FIdentFuncTable[306] := FuncOption;
+  FIdentFuncTable[121] := FuncOr;
+  FIdentFuncTable[498] := FuncPointer;
+  FIdentFuncTable[240] := FuncPrecompiled;
+  FIdentFuncTable[42] := FuncPrecursor;
+  FIdentFuncTable[19] := FuncPrefix;
+  FIdentFuncTable[296] := FuncReal;
+  FIdentFuncTable[414] := FuncRedefine;
+  FIdentFuncTable[193] := FuncRename;
+  FIdentFuncTable[144] := FuncRequire;
+  FIdentFuncTable[5] := FuncRescue;
+  FIdentFuncTable[43] := FuncResult;
+  FIdentFuncTable[389] := FuncRetry;
+  FIdentFuncTable[362] := FuncRoot;
+  FIdentFuncTable[469] := FuncSelect;
+  FIdentFuncTable[302] := FuncSeparate;
+  FIdentFuncTable[242] := FuncString;
+  FIdentFuncTable[282] := FuncStrip;
+  FIdentFuncTable[135] := FuncSystem;
+  FIdentFuncTable[11] := FuncThen;
+  FIdentFuncTable[330] := FuncTrace;
+  FIdentFuncTable[24] := FuncTrue;
+  FIdentFuncTable[452] := FuncUndefine;
+  FIdentFuncTable[90] := FuncUnique;
+  FIdentFuncTable[501] := FuncUntil;
+  FIdentFuncTable[262] := FuncUse;
+  FIdentFuncTable[195] := FuncVariant;
+  FIdentFuncTable[344] := FuncVisible;
+  FIdentFuncTable[372] := FuncVoid;
+  FIdentFuncTable[348] := FuncWhen;
+  FIdentFuncTable[156] := FuncXor;
+  FIdentFuncTable[471] := FuncYes;
 end;
 
 function TSynEiffelSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -1213,73 +1213,73 @@ end;
 
 procedure TSynEiffelSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynEiffelSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynEiffelSyn.CRProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
-  if fLine[Run] = #10 then
-    inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
+  if FLine[Run] = #10 then
+    Inc(Run);
 end;
 
 procedure TSynEiffelSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynEiffelSyn.OperatorAndSymbolProc;
 begin
-  fTokenID := tkIdentifier;
-  if fLine[Run] = #33 then
+  FTokenID := tkIdentifier;
+  if FLine[Run] = #33 then
     begin
-      fRange := rsOperatorAndSymbolProc;
-      fTokenID := tkOperatorAndSymbols;
+      FRange := rsOperatorAndSymbolProc;
+      FTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if CharInSet(fLine[Run], [#35..#44]) then
+  if CharInSet(FLine[Run], [#35..#44]) then
     begin
-      fRange := rsOperatorAndSymbolProc;
-      fTokenID := tkOperatorAndSymbols;
+      FRange := rsOperatorAndSymbolProc;
+      FTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if CharInSet(fLine[Run], [#46..#47]) then
+  if CharInSet(FLine[Run], [#46..#47]) then
     begin
-      fRange := rsOperatorAndSymbolProc;
-      fTokenID := tkOperatorAndSymbols;
+      FRange := rsOperatorAndSymbolProc;
+      FTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if CharInSet(fLine[Run], [#58..#64]) then
+  if CharInSet(FLine[Run], [#58..#64]) then
     begin
-      fRange := rsOperatorAndSymbolProc;
-      fTokenID := tkOperatorAndSymbols;
+      FRange := rsOperatorAndSymbolProc;
+      FTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if CharInSet(fLine[Run], [#91..#96]) then
+  if CharInSet(FLine[Run], [#91..#96]) then
     begin
-      fRange := rsOperatorAndSymbolProc;
-      fTokenID := tkOperatorAndSymbols;
+      FRange := rsOperatorAndSymbolProc;
+      FTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
-  if CharInSet(fLine[Run], [#123..#127]) then
+  if CharInSet(FLine[Run], [#123..#127]) then
     begin
-      fRange := rsOperatorAndSymbolProc;
-      fTokenID := tkOperatorAndSymbols;
+      FRange := rsOperatorAndSymbolProc;
+      FTokenID := tkOperatorAndSymbols;
       Inc(Run);
       Exit;
     end;
@@ -1288,19 +1288,19 @@ end;
 procedure TSynEiffelSyn.EiffelCommentOpenProc;
 begin
   Inc(Run);
-  if (fLine[Run - 1] = '-') and (fLine[Run] = '-') then
+  if (FLine[Run - 1] = '-') and (FLine[Run] = '-') then
     begin
-      fRange := rsEiffelComment;
+      FRange := rsEiffelComment;
       EiffelCommentProc;
-      fTokenID := tkComment;
+      FTokenID := tkComment;
     end
   else
-    fTokenID := tkOperatorAndSymbols;
+    FTokenID := tkOperatorAndSymbols;
 end;
 
 procedure TSynEiffelSyn.EiffelCommentProc;
 begin
-  fTokenID := tkComment;
+  FTokenID := tkComment;
   repeat
     if not IsLineEnd(Run) then
       Inc(Run);
@@ -1310,19 +1310,19 @@ end;
 procedure TSynEiffelSyn.StringOpenProc;
 begin
   Inc(Run);
-  fRange := rsString;
+  FRange := rsString;
   StringProc;
-  fTokenID := tkString;
+  FTokenID := tkString;
 end;
 
 procedure TSynEiffelSyn.StringProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   repeat
-    if (fLine[Run] = '"') then
+    if (FLine[Run] = '"') then
       begin
         Inc(Run, 1);
-        fRange := rsUnKnown;
+        FRange := rsUnknown;
         Break;
       end;
     if not IsLineEnd(Run) then
@@ -1334,80 +1334,80 @@ constructor TSynEiffelSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := False;
+  FCaseSensitive := False;
 
-  fBasicTypesAttri := TSynHighLighterAttributes.Create(SYNS_AttrBasicTypes, SYNS_FriendlyAttrBasicTypes);
-  fBasicTypesAttri.Style := [fsBold];
-  fBasicTypesAttri.Foreground := clBlue;
-  AddAttribute(fBasicTypesAttri);
+  FBasicTypesAttri := TSynHighLighterAttributes.Create(SYNS_AttrBasicTypes, SYNS_FriendlyAttrBasicTypes);
+  FBasicTypesAttri.Style := [fsBold];
+  FBasicTypesAttri.Foreground := clBlue;
+  AddAttribute(FBasicTypesAttri);
 
-  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style := [fsItalic];
-  fCommentAttri.Foreground := clTeal;
-  AddAttribute(fCommentAttri);
+  FCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style := [fsItalic];
+  FCommentAttri.Foreground := clTeal;
+  AddAttribute(FCommentAttri);
 
-  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  fIdentifierAttri.Foreground := clMaroon;
-  AddAttribute(fIdentifierAttri);
+  FIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  FIdentifierAttri.Foreground := clMaroon;
+  AddAttribute(FIdentifierAttri);
 
-  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  fKeyAttri.Foreground := clNavy;
-  AddAttribute(fKeyAttri);
+  FKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  FKeyAttri.Foreground := clNavy;
+  AddAttribute(FKeyAttri);
 
-  fLaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrLace, SYNS_FriendlyAttrLace);
-  fLaceAttri.Style := [fsBold];
-  fLaceAttri.Foreground := clNavy;
-  AddAttribute(fLaceAttri);
+  FLaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrLace, SYNS_FriendlyAttrLace);
+  FLaceAttri.Style := [fsBold];
+  FLaceAttri.Foreground := clNavy;
+  AddAttribute(FLaceAttri);
 
-  fOperatorAndSymbolsAttri := TSynHighLighterAttributes.Create(SYNS_AttrOperatorAndSymbols, SYNS_FriendlyAttrOperatorAndSymbols);
-  fOperatorAndSymbolsAttri.Style := [fsBold];
-  fOperatorAndSymbolsAttri.Foreground := clOlive;
-  AddAttribute(fOperatorAndSymbolsAttri);
+  FOperatorAndSymbolsAttri := TSynHighLighterAttributes.Create(SYNS_AttrOperatorAndSymbols, SYNS_FriendlyAttrOperatorAndSymbols);
+  FOperatorAndSymbolsAttri.Style := [fsBold];
+  FOperatorAndSymbolsAttri.Foreground := clOlive;
+  AddAttribute(FOperatorAndSymbolsAttri);
 
-  fPredefinedAttri := TSynHighLighterAttributes.Create(SYNS_AttrPredefined, SYNS_FriendlyAttrPredefined);
-  fPredefinedAttri.Style := [fsBold];
-  fPredefinedAttri.Foreground := clRed;
-  AddAttribute(fPredefinedAttri);
+  FPredefinedAttri := TSynHighLighterAttributes.Create(SYNS_AttrPredefined, SYNS_FriendlyAttrPredefined);
+  FPredefinedAttri.Style := [fsBold];
+  FPredefinedAttri.Foreground := clRed;
+  AddAttribute(FPredefinedAttri);
 
-  fResultValueAttri := TSynHighLighterAttributes.Create(SYNS_AttrResultValue, SYNS_FriendlyAttrResultValue);
-  fResultValueAttri.Style := [fsBold];
-  fResultValueAttri.Foreground := clPurple;
-  AddAttribute(fResultValueAttri);
+  FResultValueAttri := TSynHighLighterAttributes.Create(SYNS_AttrResultValue, SYNS_FriendlyAttrResultValue);
+  FResultValueAttri.Style := [fsBold];
+  FResultValueAttri.Foreground := clPurple;
+  AddAttribute(FResultValueAttri);
 
-  fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
+  FSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
 
-  fStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  fStringAttri.Style := [fsItalic];
-  fStringAttri.Foreground := clGray;
-  AddAttribute(fStringAttri);
+  FStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  FStringAttri.Style := [fsItalic];
+  FStringAttri.Foreground := clGray;
+  AddAttribute(FStringAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  fDefaultFilter := SYNS_FilterEiffel;
-  fRange := rsUnknown;
+  FDefaultFilter := SYNS_FilterEiffel;
+  FRange := rsUnknown;
 end;
 
 procedure TSynEiffelSyn.IdentProc;
 begin
-  fTokenID := IdentKind(fLine + Run);
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do
+  FTokenID := IdentKind(FLine + Run);
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do
     Inc(Run);
 end;
 
 procedure TSynEiffelSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynEiffelSyn.Next;
 begin
-  fTokenPos := Run;
-  fRange := rsUnknown;
-  case fLine[Run] of
+  FTokenPos := Run;
+  FRange := rsUnknown;
+  case FLine[Run] of
     #33, #35..#44, #46..#47, #58..#64, #91..#96, #123..#127: OperatorAndSymbolProc;
     #0: NullProc;
     #10: LFProc;
@@ -1421,21 +1421,21 @@ begin
   inherited;
 end;
 
-function TSynEiffelSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;
+function TSynEiffelSyn.GetDefaultAttribute(Index: Integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
     else Result := nil;
   end;
 end;
 
 function TSynEiffelSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynEiffelSyn.GetKeyWords(TokenKind: Integer): UnicodeString;
@@ -1455,30 +1455,30 @@ end;
 
 function TSynEiffelSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynEiffelSyn.GetTokenAttribute: TSynHighLighterAttributes;
 begin
   case GetTokenID of
-    tkBasicTypes: Result := fBasicTypesAttri;
-    tkComment: Result := fCommentAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkLace: Result := fLaceAttri;
-    tkOperatorAndSymbols: Result := fOperatorAndSymbolsAttri;
-    tkPredefined: Result := fPredefinedAttri;
-    tkResultValue: Result := fResultValueAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkUnknown: Result := fIdentifierAttri;
+    tkBasicTypes: Result := FBasicTypesAttri;
+    tkComment: Result := FCommentAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkLace: Result := FLaceAttri;
+    tkOperatorAndSymbols: Result := FOperatorAndSymbolsAttri;
+    tkPredefined: Result := FPredefinedAttri;
+    tkResultValue: Result := FResultValueAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkUnknown: Result := FIdentifierAttri;
     else Result := nil;
   end;
 end;
 
-function TSynEiffelSyn.GetTokenKind: integer;
+function TSynEiffelSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynEiffelSyn.GetSampleSource: UnicodeString;
@@ -1522,7 +1522,7 @@ end;
 
 function TSynEiffelSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterEiffel;
+  Result := FDefaultFilter <> SYNS_FilterEiffel;
 end;
 
 class function TSynEiffelSyn.GetLanguageName: string;
@@ -1532,17 +1532,17 @@ end;
 
 procedure TSynEiffelSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 end;
 
 procedure TSynEiffelSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 function TSynEiffelSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 function TSynEiffelSyn.IsOperatorChar(AChar: WideChar): Boolean;

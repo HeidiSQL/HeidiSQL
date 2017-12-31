@@ -39,7 +39,7 @@ located at http://SynEdit.SourceForge.net
 unit SynHighlighterIDL;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -72,7 +72,7 @@ Type
     tkSymbol,
     tkUnknown);
 
-  TRangeState = (rsUnKnown, rsComment, rsString, rsChar);
+  TRangeState = (rsUnknown, rsComment, rsString, rsChar);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
@@ -80,18 +80,18 @@ Type
 type
   TSynIdlSyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
-    fTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..100] of TIdentFuncTableFunc;
-    fCommentAttri: TSynHighlighterAttributes;
-    fDatatypeAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fNumberAttri: TSynHighlighterAttributes;
-    fPreprocessorAttri: TSynHighlighterAttributes;
-    fSpaceAttri: TSynHighlighterAttributes;
-    fStringAttri: TSynHighlighterAttributes;
-    fSymbolAttri: TSynHighlighterAttributes;
+    FRange: TRangeState;
+    FTokenID: TtkTokenKind;
+    FIdentFuncTable: array[0..100] of TIdentFuncTableFunc;
+    FCommentAttri: TSynHighlighterAttributes;
+    FDatatypeAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FNumberAttri: TSynHighlighterAttributes;
+    FPreprocessorAttri: TSynHighlighterAttributes;
+    FSpaceAttri: TSynHighlighterAttributes;
+    FStringAttri: TSynHighlighterAttributes;
+    FSymbolAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     procedure IdentProc;
     procedure SymbolProc;
@@ -169,23 +169,23 @@ type
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
-    property DatatypeAttri: TSynHighlighterAttributes read fDatatypeAttri write fDatatypeAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property NumberAttri: TSynHighlighterAttributes read fNumberAttri write fNumberAttri;
-    property PreprocessorAttri: TSynHighlighterAttributes read fPreprocessorAttri write fPreprocessorAttri;
-    property SpaceAttri: TSynHighlighterAttributes read fSpaceAttri write fSpaceAttri;
-    property StringAttri: TSynHighlighterAttributes read fStringAttri write fStringAttri;
-    property SymbolAttri: TSynHighlighterAttributes read fSymbolAttri write fSymbolAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
+    property DatatypeAttri: TSynHighlighterAttributes read FDatatypeAttri write FDatatypeAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property NumberAttri: TSynHighlighterAttributes read FNumberAttri write FNumberAttri;
+    property PreprocessorAttri: TSynHighlighterAttributes read FPreprocessorAttri write FPreprocessorAttri;
+    property SpaceAttri: TSynHighlighterAttributes read FSpaceAttri write FSpaceAttri;
+    property StringAttri: TSynHighlighterAttributes read FStringAttri write FStringAttri;
+    property SymbolAttri: TSynHighlighterAttributes read FSymbolAttri write FSymbolAttri;
   end;
 
 implementation
@@ -224,10 +224,10 @@ begin
   while IsIdentChar(Str^) do
   begin
     Result := Result * 612 + Ord(Str^) * 199;
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 101;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -235,10 +235,10 @@ function TSynIdlSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -247,58 +247,58 @@ procedure TSynIdlSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  fIdentFuncTable[51] := FuncAbstract;
-  fIdentFuncTable[41] := FuncAny;
-  fIdentFuncTable[82] := FuncAttribute;
-  fIdentFuncTable[74] := FuncBoolean;
-  fIdentFuncTable[67] := FuncCase;
-  fIdentFuncTable[0] := FuncChar;
-  fIdentFuncTable[43] := FuncConst;
-  fIdentFuncTable[3] := FuncContext;
-  fIdentFuncTable[46] := FuncCustom;
-  fIdentFuncTable[76] := FuncDefault;
-  fIdentFuncTable[71] := FuncDouble;
-  fIdentFuncTable[20] := FuncEnum;
-  fIdentFuncTable[66] := FuncException;
-  fIdentFuncTable[80] := FuncFactory;
-  fIdentFuncTable[45] := FuncFalse;
-  fIdentFuncTable[9] := FuncFixed;
-  fIdentFuncTable[84] := FuncFloat;
-  fIdentFuncTable[2] := FuncIn;
-  fIdentFuncTable[10] := FuncInout;
-  fIdentFuncTable[1] := FuncInterface;
-  fIdentFuncTable[39] := FuncLocal;
-  fIdentFuncTable[83] := FuncLong;
-  fIdentFuncTable[62] := FuncModule;
-  fIdentFuncTable[95] := FuncNative;
-  fIdentFuncTable[14] := FuncObject;
-  fIdentFuncTable[23] := FuncOctet;
-  fIdentFuncTable[38] := FuncOneway;
-  fIdentFuncTable[34] := FuncOut;
-  fIdentFuncTable[37] := FuncPrivate;
-  fIdentFuncTable[86] := FuncPublic;
-  fIdentFuncTable[79] := FuncRaises;
-  fIdentFuncTable[21] := FuncReadonly;
-  fIdentFuncTable[42] := FuncSequence;
-  fIdentFuncTable[24] := FuncShort;
-  fIdentFuncTable[78] := FuncString;
-  fIdentFuncTable[52] := FuncStruct;
-  fIdentFuncTable[31] := FuncSupports;
-  fIdentFuncTable[12] := FuncSwitch;
-  fIdentFuncTable[97] := FuncTrue;
-  fIdentFuncTable[28] := FuncTruncatable;
-  fIdentFuncTable[87] := FuncTypedef;
-  fIdentFuncTable[100] := FuncUnion;
-  fIdentFuncTable[27] := FuncUnsigned;
-  fIdentFuncTable[36] := FuncValuebase;
-  fIdentFuncTable[18] := FuncValuetype;
-  fIdentFuncTable[61] := FuncVoid;
-  fIdentFuncTable[32] := FuncWchar;
-  fIdentFuncTable[63] := FuncWstring;
+  FIdentFuncTable[51] := FuncAbstract;
+  FIdentFuncTable[41] := FuncAny;
+  FIdentFuncTable[82] := FuncAttribute;
+  FIdentFuncTable[74] := FuncBoolean;
+  FIdentFuncTable[67] := FuncCase;
+  FIdentFuncTable[0] := FuncChar;
+  FIdentFuncTable[43] := FuncConst;
+  FIdentFuncTable[3] := FuncContext;
+  FIdentFuncTable[46] := FuncCustom;
+  FIdentFuncTable[76] := FuncDefault;
+  FIdentFuncTable[71] := FuncDouble;
+  FIdentFuncTable[20] := FuncEnum;
+  FIdentFuncTable[66] := FuncException;
+  FIdentFuncTable[80] := FuncFactory;
+  FIdentFuncTable[45] := FuncFalse;
+  FIdentFuncTable[9] := FuncFixed;
+  FIdentFuncTable[84] := FuncFloat;
+  FIdentFuncTable[2] := FuncIn;
+  FIdentFuncTable[10] := FuncInout;
+  FIdentFuncTable[1] := FuncInterface;
+  FIdentFuncTable[39] := FuncLocal;
+  FIdentFuncTable[83] := FuncLong;
+  FIdentFuncTable[62] := FuncModule;
+  FIdentFuncTable[95] := FuncNative;
+  FIdentFuncTable[14] := FuncObject;
+  FIdentFuncTable[23] := FuncOctet;
+  FIdentFuncTable[38] := FuncOneway;
+  FIdentFuncTable[34] := FuncOut;
+  FIdentFuncTable[37] := FuncPrivate;
+  FIdentFuncTable[86] := FuncPublic;
+  FIdentFuncTable[79] := FuncRaises;
+  FIdentFuncTable[21] := FuncReadonly;
+  FIdentFuncTable[42] := FuncSequence;
+  FIdentFuncTable[24] := FuncShort;
+  FIdentFuncTable[78] := FuncString;
+  FIdentFuncTable[52] := FuncStruct;
+  FIdentFuncTable[31] := FuncSupports;
+  FIdentFuncTable[12] := FuncSwitch;
+  FIdentFuncTable[97] := FuncTrue;
+  FIdentFuncTable[28] := FuncTruncatable;
+  FIdentFuncTable[87] := FuncTypedef;
+  FIdentFuncTable[100] := FuncUnion;
+  FIdentFuncTable[27] := FuncUnsigned;
+  FIdentFuncTable[36] := FuncValuebase;
+  FIdentFuncTable[18] := FuncValuetype;
+  FIdentFuncTable[61] := FuncVoid;
+  FIdentFuncTable[32] := FuncWchar;
+  FIdentFuncTable[63] := FuncWstring;
 end;
 
 function TSynIdlSyn.AltFunc(Index: Integer): TtkTokenKind;
@@ -692,22 +692,22 @@ end;
 
 procedure TSynIdlSyn.SpaceProc;
 begin
-  inc(Run);
-  fTokenID := tkSpace;
-  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);
+  Inc(Run);
+  FTokenID := tkSpace;
+  while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
 procedure TSynIdlSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynIdlSyn.NumberProc;
 
   function IsNumberChar: Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       '0'..'9', '.', 'e', 'E':
         Result := True;
       else
@@ -716,67 +716,67 @@ procedure TSynIdlSyn.NumberProc;
   end;
 
 begin
-  inc(Run);
-  fTokenID := tkNumber;
+  Inc(Run);
+  FTokenID := tkNumber;
   while IsNumberChar do
   begin
     case FLine[Run] of
       '.': if FLine[Run + 1] = '.' then
              Break;
     end;
-    inc(Run);
+    Inc(Run);
   end;
 end; { NumberProc }
 
 
 procedure TSynIdlSyn.CRProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
-  if fLine[Run] = #10 then
-    inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
+  if FLine[Run] = #10 then
+    Inc(Run);
 end;
 
 procedure TSynIdlSyn.LFProc;
 begin
-  fTokenID := tkSpace;
-  inc(Run);
+  FTokenID := tkSpace;
+  Inc(Run);
 end;
 
 procedure TSynIdlSyn.CommentOpenProc;
 begin
   Inc(Run);
-  if (fLine[Run] = '*') then
+  if (FLine[Run] = '*') then
   begin
-    fRange := rsComment;
+    FRange := rsComment;
     CommentProc;
-    fTokenID := tkComment;
+    FTokenID := tkComment;
   end
-  else if (fLine[Run] = '/') then
+  else if (FLine[Run] = '/') then
   begin
     while not IsLineEnd(Run) do
       Inc(Run);
-    fTokenID := tkComment;
+    FTokenID := tkComment;
   end
   else
-    fTokenID := tkSymbol;
+    FTokenID := tkSymbol;
 end;
 
 procedure TSynIdlSyn.CommentProc;
 begin
-  case fLine[Run] of
+  case FLine[Run] of
      #0: NullProc;
     #10: LFProc;
     #13: CRProc;
   else
     begin
-      fTokenID := tkComment;
+      FTokenID := tkComment;
       repeat
-        if (fLine[Run] = '*') and
-           (fLine[Run + 1] = '/') then
+        if (FLine[Run] = '*') and
+           (FLine[Run + 1] = '/') then
         begin
           Inc(Run, 2);
-          fRange := rsUnKnown;
+          FRange := rsUnknown;
           Break;
         end;
         if not IsLineEnd(Run) then
@@ -789,22 +789,22 @@ end;
 procedure TSynIdlSyn.StringOpenProc;
 begin
   Inc(Run);
-  fRange := rsString;
+  FRange := rsString;
   StringProc;
-  fTokenID := tkString;
+  FTokenID := tkString;
 end;
 
 procedure TSynIdlSyn.StringProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   repeat
-    if (fLine[Run] = '"') then
+    if (FLine[Run] = '"') then
     begin
       Inc(Run);
-      fRange := rsUnKnown;
+      FRange := rsUnknown;
       Break;
     end
-    else if (fLine[Run] = '\') then
+    else if (FLine[Run] = '\') then
       Inc(Run);
     if not IsLineEnd(Run) then
       Inc(Run);
@@ -814,19 +814,19 @@ end;
 procedure TSynIdlSyn.CharOpenProc;
 begin
   Inc(Run);
-  fRange := rsChar;
+  FRange := rsChar;
   CharProc;
-  fTokenID := tkString;
+  FTokenID := tkString;
 end;
 
 procedure TSynIdlSyn.CharProc;
 begin
-  fTokenID := tkString;
+  FTokenID := tkString;
   repeat
-    if (fLine[Run] = '''') then
+    if (FLine[Run] = '''') then
     begin
       Inc(Run);
-      fRange := rsUnKnown;
+      FRange := rsUnknown;
       Break;
     end;
     if not IsLineEnd(Run) then
@@ -838,7 +838,7 @@ procedure TSynIdlSyn.PreProcessorProc;
 
   function IsWhiteChar: Boolean;
   begin
-    case fLine[Run] of
+    case FLine[Run] of
       #0, #9, #10, #13, #32:
         Result := True;
       else
@@ -852,15 +852,15 @@ begin
   Directive := '';
   while not IsWhiteChar do
   begin
-    Directive := Directive + fLine[Run];
+    Directive := Directive + FLine[Run];
     Inc(Run);
   end;
   if (WideCompareStr(Directive, '#include') = 0) then
-    fTokenID := tkPreprocessor
+    FTokenID := tkPreprocessor
   else if (WideCompareStr(Directive, '#pragma') = 0) then
-    fTokenID := tkPreprocessor
+    FTokenID := tkPreprocessor
   else
-    fTokenID := tkIdentifier;
+    FTokenID := tkIdentifier;
 end; { PreProcessorProc }
 
 
@@ -868,78 +868,78 @@ constructor TSynIdlSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
-  fCaseSensitive := True;
+  FCaseSensitive := True;
 
-  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Style := [fsItalic];
-  fCommentAttri.Foreground := clNavy;
-  AddAttribute(fCommentAttri);
+  FCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Style := [fsItalic];
+  FCommentAttri.Foreground := clNavy;
+  AddAttribute(FCommentAttri);
 
-  fDatatypeAttri := TSynHighLighterAttributes.Create(SYNS_AttrDatatype, SYNS_FriendlyAttrDatatype);
-  fDatatypeAttri.Style := [fsBold];
-  fDatatypeAttri.Foreground := clTeal;
-  AddAttribute(fDatatypeAttri);
+  FDatatypeAttri := TSynHighLighterAttributes.Create(SYNS_AttrDatatype, SYNS_FriendlyAttrDatatype);
+  FDatatypeAttri.Style := [fsBold];
+  FDatatypeAttri.Foreground := clTeal;
+  AddAttribute(FDatatypeAttri);
 
-  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
+  FIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
 
-  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  AddAttribute(fKeyAttri);
+  FKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  AddAttribute(FKeyAttri);
 
-  fNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  fNumberAttri.Foreground := clBlue;
-  AddAttribute(fNumberAttri);
+  FNumberAttri := TSynHighLighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
+  FNumberAttri.Foreground := clBlue;
+  AddAttribute(FNumberAttri);
 
-  fPreprocessorAttri := TSynHighLighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
-  fPreprocessorAttri.Foreground := clRed;
-  AddAttribute(fPreprocessorAttri);
+  FPreprocessorAttri := TSynHighLighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
+  FPreprocessorAttri.Foreground := clRed;
+  AddAttribute(FPreprocessorAttri);
 
-  fSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(fSpaceAttri);
+  FSpaceAttri := TSynHighLighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
+  AddAttribute(FSpaceAttri);
 
-  fStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  fStringAttri.Foreground := clBlue;
-  AddAttribute(fStringAttri);
+  FStringAttri := TSynHighLighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
+  FStringAttri.Foreground := clBlue;
+  AddAttribute(FStringAttri);
 
-  fSymbolAttri := TSynHighLighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(fSymbolAttri);
+  FSymbolAttri := TSynHighLighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
+  AddAttribute(FSymbolAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  fDefaultFilter := SYNS_FilterCORBAIDL;
-  fRange := rsUnknown;
+  FDefaultFilter := SYNS_FilterCORBAIDL;
+  FRange := rsUnknown;
 end;
 
 procedure TSynIdlSyn.IdentProc;
 begin
-  fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do
+  FTokenID := IdentKind((FLine + Run));
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do
     Inc(Run);
 end;
 
 procedure TSynIdlSyn.SymbolProc;
 begin
   Inc(Run);
-  fTokenID := tkSymbol;
+  FTokenID := tkSymbol;
 end;
 
 procedure TSynIdlSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynIdlSyn.Next;
 begin
-  fTokenPos := Run;
-  case fRange of
+  FTokenPos := Run;
+  case FRange of
     rsComment: CommentProc;
   else
     begin
-      fRange := rsUnknown;
-      case fLine[Run] of
+      FRange := rsUnknown;
+      case FLine[Run] of
         #0: NullProc;
         #10: LFProc;
         #13: CRProc;
@@ -960,15 +960,15 @@ begin
   inherited;
 end;
 
-function TSynIdlSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;
+function TSynIdlSyn.GetDefaultAttribute(Index: Integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
-    SYN_ATTR_STRING: Result := fStringAttri;
-    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;
-    SYN_ATTR_SYMBOL: Result := fSymbolAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
+    SYN_ATTR_STRING: Result := FStringAttri;
+    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;
+    SYN_ATTR_SYMBOL: Result := FSymbolAttri;
   else
     Result := nil;
   end;
@@ -976,35 +976,35 @@ end;
 
 function TSynIdlSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynIdlSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynIdlSyn.GetTokenAttribute: TSynHighLighterAttributes;
 begin
   case GetTokenID of
-    tkComment: Result := fCommentAttri;
-    tkDatatype: Result := fDatatypeAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkNumber: Result := fNumberAttri;
-    tkPreprocessor: Result := fPreprocessorAttri;
-    tkSpace: Result := fSpaceAttri;
-    tkString: Result := fStringAttri;
-    tkSymbol: Result := fSymbolAttri;
-    tkUnknown: Result := fIdentifierAttri;
+    tkComment: Result := FCommentAttri;
+    tkDatatype: Result := FDatatypeAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkNumber: Result := FNumberAttri;
+    tkPreprocessor: Result := FPreprocessorAttri;
+    tkSpace: Result := FSpaceAttri;
+    tkString: Result := FStringAttri;
+    tkSymbol: Result := FSymbolAttri;
+    tkUnknown: Result := FIdentifierAttri;
   else
     Result := nil;
   end;
 end;
 
-function TSynIdlSyn.GetTokenKind: integer;
+function TSynIdlSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynIdlSyn.GetSampleSource: UnicodeString;
@@ -1024,7 +1024,7 @@ end;
 
 function TSynIdlSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterCORBAIDL;
+  Result := FDefaultFilter <> SYNS_FilterCORBAIDL;
 end;
 
 function TSynIdlSyn.IsIdentChar(AChar: WideChar): Boolean;
@@ -1044,17 +1044,17 @@ end;
 
 procedure TSynIdlSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 end;
 
 procedure TSynIdlSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 function TSynIdlSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 class function TSynIdlSyn.GetFriendlyLanguageName: UnicodeString;

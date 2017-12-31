@@ -68,8 +68,8 @@ uses
 type
   TSynExporterTeX = class(TSynCustomExporter)
   private
-    fMargin: integer;
-    fLastAttri: TSynHighlighterAttributes;
+    FMargin: Integer;
+    FLastAttri: TSynHighlighterAttributes;
     function AttriToCommand(Attri: TSynHighlighterAttributes;
       UniqueAttriName: string): string;
     function AttriToCommandCallback(Highlighter: TSynCustomHighlighter;
@@ -83,9 +83,9 @@ type
     function GetNewCommands: string;
     function MakeValidName(Name: string): string;
   protected
-    fCreateTeXFragment: boolean;
-    fTabWidth: integer;
-    fPageStyleEmpty: boolean;
+    FCreateTeXFragment: Boolean;
+    FTabWidth: Integer;
+    FPageStyleEmpty: Boolean;
     
     // overriding these abstract methods (though they are never called for this
     // specific highlighter) to prevent abstract instance warnings
@@ -109,12 +109,12 @@ type
     constructor Create(AOwner: TComponent); override;
     function SupportedEncodings: TSynEncodings; override;
   published
-    property Margin: integer read fMargin write fMargin default 2;
-    property TabWidth: integer read fTabWidth write fTabWidth default 2;
+    property Margin: Integer read FMargin write FMargin default 2;
+    property TabWidth: Integer read FTabWidth write FTabWidth default 2;
     property Color;
-    property CreateTeXFragment: boolean read fCreateTeXFragment
-      write fCreateTeXFragment default false;
-    property PageStyleEmpty: boolean read fPageStyleEmpty write fPageStyleEmpty
+    property CreateTeXFragment: Boolean read FCreateTeXFragment
+      write FCreateTeXFragment default false;
+    property PageStyleEmpty: Boolean read FPageStyleEmpty write FPageStyleEmpty
       default false;
     property DefaultFilter;
     property Encoding;
@@ -175,10 +175,10 @@ end;
 constructor TSynExporterTeX.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fMargin := 2;
-  fTabWidth := 2;
-  fPageStyleEmpty := false;
-  fDefaultFilter := SYNS_FilterTeX;
+  FMargin := 2;
+  FTabWidth := 2;
+  FPageStyleEmpty := False;
+  FDefaultFilter := SYNS_FilterTeX;
   FEncoding := seAnsi;
 end;
 
@@ -262,7 +262,7 @@ procedure TSynExporterTeX.FormatToken(Token: UnicodeString);
 var
   CommandName: string;
 begin
-  CommandName := GetCommandName(Highlighter, fLastAttri);
+  CommandName := GetCommandName(Highlighter, FLastAttri);
   AddData('\' + CommandName + '{' + Token + '}');
 end;
 
@@ -296,7 +296,7 @@ end;
 
 function TSynExporterTeX.GetFooter: UnicodeString;
 begin
-  if not fCreateTeXFragment then
+  if not FCreateTeXFragment then
     Result := SLineBreak + '\end{ttfamily}' + SLineBreak + '\end{document}'
   else
     Result := SLineBreak + '\end{ttfamily}';
@@ -332,14 +332,14 @@ const
 var
   PageStyle: string;
 begin
-  if not fCreateTeXFragment then
+  if not FCreateTeXFragment then
   begin
-    if fPageStyleEmpty then
+    if FPageStyleEmpty then
       PageStyle := SLineBreak + EmptyPage
     else
       PageStyle := '';
     Result := Format(TeXHeader + SLineBreak + SLineBreak,
-      [Font.Size, fMargin, GetNewCommands]);
+      [Font.Size, FMargin, GetNewCommands]);
     Result := Result + '\title{' + Title + '}' + SLineBreak + TeXHeader2 +
       SLineBreak + PageStyle;
   end;
@@ -363,7 +363,7 @@ var
   tw: string;
   Commands: string;
 begin
-  tw := DotDecSepFormat(f, [fTabWidth * 0.6]);
+  tw := DotDecSepFormat(f, [FTabWidth * 0.6]);
   Result := Format(FixedCommands, [tw]);
 
   EnumHighlighterAttris(Highlighter, True, AttriToCommandCallback, [@Commands]);
@@ -411,7 +411,7 @@ end;
 
 procedure TSynExporterTeX.SetTokenAttribute(Attri: TSynHighlighterAttributes);
 begin
-  fLastAttri := Attri;
+  FLastAttri := Attri;
 end;
 
 function TSynExporterTeX.SupportedEncodings: TSynEncodings;

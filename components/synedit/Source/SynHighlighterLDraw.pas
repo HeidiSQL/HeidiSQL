@@ -46,7 +46,7 @@ The SynHighlighterLDraw unit provides SynEdit with a LEGO LDraw (.ldr / .dat) hi
 unit SynHighlighterLDraw;
 {$ENDIF}
 
-{$I SynEdit.inc}
+{$I SynEdit.Inc}
 
 interface
 
@@ -81,7 +81,7 @@ type
     tkTriangle,
     tkUnknown);
 
-  TRangeState = (rsUnKnown);
+  TRangeState = (rsUnknown);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
@@ -89,21 +89,21 @@ type
 type
   TSynLDRSyn = class(TSynCustomHighlighter)
   private
-    fRange: TRangeState;
-    fTokenID: TtkTokenKind;
-    fIdentFuncTable: array[0..1] of TIdentFuncTableFunc;
-    fColorAttri: TSynHighlighterAttributes;
-    fCommentAttri: TSynHighlighterAttributes;
-    fFirstTriAttri: TSynHighlighterAttributes;
-    fFourthTriAttri: TSynHighlighterAttributes;
-    fIdentifierAttri: TSynHighlighterAttributes;
-    fKeyAttri: TSynHighlighterAttributes;
-    fLineAttri: TSynHighlighterAttributes;
-    fOpLineAttri: TSynHighlighterAttributes;
-    fQuadAttri: TSynHighlighterAttributes;
-    fSecondTriAttri: TSynHighlighterAttributes;
-    fThirdTriAttri: TSynHighlighterAttributes;
-    fTriangleAttri: TSynHighlighterAttributes;
+    FRange: TRangeState;
+    FTokenID: TtkTokenKind;
+    FIdentFuncTable: array[0..1] of TIdentFuncTableFunc;
+    FColorAttri: TSynHighlighterAttributes;
+    FCommentAttri: TSynHighlighterAttributes;
+    FFirstTriAttri: TSynHighlighterAttributes;
+    FFourthTriAttri: TSynHighlighterAttributes;
+    FIdentifierAttri: TSynHighlighterAttributes;
+    FKeyAttri: TSynHighlighterAttributes;
+    FLineAttri: TSynHighlighterAttributes;
+    FOpLineAttri: TSynHighlighterAttributes;
+    FQuadAttri: TSynHighlighterAttributes;
+    FSecondTriAttri: TSynHighlighterAttributes;
+    FThirdTriAttri: TSynHighlighterAttributes;
+    FTriangleAttri: TSynHighlighterAttributes;
     function AltFunc(Index: Integer): TtkTokenKind;
     function FuncAuthor(Index: Integer): TtkTokenKind;
     function HashKey(Str: PWideChar): Cardinal;
@@ -126,27 +126,27 @@ type
     function GetRange: Pointer; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
-    function GetDefaultAttribute(Index: integer): TSynHighlighterAttributes; override;
+    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes; override;
     function GetEol: Boolean; override;
     function GetKeyWords(TokenKind: Integer): UnicodeString; override;
     function GetTokenID: TtkTokenKind;
     function GetTokenAttribute: TSynHighlighterAttributes; override;
-    function GetTokenKind: integer; override;
+    function GetTokenKind: Integer; override;
     function IsIdentChar(AChar: WideChar): Boolean; override;
     procedure Next; override;
   published
-    property ColorAttri: TSynHighlighterAttributes read fColorAttri write fColorAttri;
-    property CommentAttri: TSynHighlighterAttributes read fCommentAttri write fCommentAttri;
-    property FirstTriAttri: TSynHighlighterAttributes read fFirstTriAttri write fFirstTriAttri;
-    property FourthTriAttri: TSynHighlighterAttributes read fFourthTriAttri write fFourthTriAttri;
-    property IdentifierAttri: TSynHighlighterAttributes read fIdentifierAttri write fIdentifierAttri;
-    property KeyAttri: TSynHighlighterAttributes read fKeyAttri write fKeyAttri;
-    property LineAttri: TSynHighlighterAttributes read fLineAttri write fLineAttri;
-    property OpLineAttri: TSynHighlighterAttributes read fOpLineAttri write fOpLineAttri;
-    property QuadAttri: TSynHighlighterAttributes read fQuadAttri write fQuadAttri;
-    property SecondTriAttri: TSynHighlighterAttributes read fSecondTriAttri write fSecondTriAttri;
-    property ThirdTriAttri: TSynHighlighterAttributes read fThirdTriAttri write fThirdTriAttri;
-    property TriangleAttri: TSynHighlighterAttributes read fTriangleAttri write fTriangleAttri;
+    property ColorAttri: TSynHighlighterAttributes read FColorAttri write FColorAttri;
+    property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
+    property FirstTriAttri: TSynHighlighterAttributes read FFirstTriAttri write FFirstTriAttri;
+    property FourthTriAttri: TSynHighlighterAttributes read FFourthTriAttri write FFourthTriAttri;
+    property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri write FIdentifierAttri;
+    property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
+    property LineAttri: TSynHighlighterAttributes read FLineAttri write FLineAttri;
+    property OpLineAttri: TSynHighlighterAttributes read FOpLineAttri write FOpLineAttri;
+    property QuadAttri: TSynHighlighterAttributes read FQuadAttri write FQuadAttri;
+    property SecondTriAttri: TSynHighlighterAttributes read FSecondTriAttri write FSecondTriAttri;
+    property ThirdTriAttri: TSynHighlighterAttributes read FThirdTriAttri write FThirdTriAttri;
+    property TriangleAttri: TSynHighlighterAttributes read FTriangleAttri write FTriangleAttri;
   end;
 
 implementation
@@ -174,10 +174,10 @@ begin
   while IsIdentChar(Str^) do
   begin
     Result := Result + Ord(Str^);
-    inc(Str);
+    Inc(Str);
   end;
   Result := Result mod 2;
-  fStringLen := Str - fToIdent;
+  FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
@@ -185,10 +185,10 @@ function TSynLDRSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
-  fToIdent := MayBe;
+  FToIdent := MayBe;
   Key := HashKey(MayBe);
-  if Key <= High(fIdentFuncTable) then
-    Result := fIdentFuncTable[Key](KeyIndices[Key])
+  if Key <= High(FIdentFuncTable) then
+    Result := FIdentFuncTable[Key](KeyIndices[Key])
   else
     Result := tkIdentifier;
 end;
@@ -197,11 +197,11 @@ procedure TSynLDRSyn.InitIdent;
 var
   i: Integer;
 begin
-  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do
+  for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if KeyIndices[i] = -1 then
-      fIdentFuncTable[i] := AltFunc;
+      FIdentFuncTable[i] := AltFunc;
 
-  fIdentFuncTable[1] := FuncAuthor;
+  FIdentFuncTable[1] := FuncAuthor;
 end;
 
 {$IFDEF SYN_CLX}
@@ -226,22 +226,22 @@ end;
 
 procedure TSynLDRSyn.NullProc;
 begin
-  fTokenID := tkNull;
-  inc(Run);
+  FTokenID := tkNull;
+  Inc(Run);
 end;
 
 procedure TSynLDRSyn.CRProc;
 begin
-  fTokenID := tkUnknown;
-  inc(Run);
-  if fLine[Run] = #10 then
-    inc(Run);
+  FTokenID := tkUnknown;
+  Inc(Run);
+  if FLine[Run] = #10 then
+    Inc(Run);
 end;
 
 procedure TSynLDRSyn.LFProc;
 begin
-  fTokenID := tkUnknown;
-  inc(Run);
+  FTokenID := tkUnknown;
+  Inc(Run);
 end;
 
 constructor TSynLDRSyn.Create(AOwner: TComponent);
@@ -255,57 +255,57 @@ constructor TSynLDRSyn.Create(AOwner: TComponent);
 
 begin
   inherited Create(AOwner);
-  fColorAttri := TSynHighLighterAttributes.Create(SYNS_AttrColor, SYNS_FriendlyAttrColor);
-  fColorAttri.Foreground := clNavy;
-  AddAttribute(fColorAttri);
+  FColorAttri := TSynHighLighterAttributes.Create(SYNS_AttrColor, SYNS_FriendlyAttrColor);
+  FColorAttri.Foreground := clNavy;
+  AddAttribute(FColorAttri);
 
-  fCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
-  fCommentAttri.Foreground := clBlue;
-  AddAttribute(fCommentAttri);
+  FCommentAttri := TSynHighLighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
+  FCommentAttri.Foreground := clBlue;
+  AddAttribute(FCommentAttri);
 
-  fFirstTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFirstTri, SYNS_FriendlyAttrFirstTri);
-  fFirstTriAttri.Foreground := RGB(206,111,73);
-  AddAttribute(fFirstTriAttri);
+  FFirstTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFirstTri, SYNS_FriendlyAttrFirstTri);
+  FFirstTriAttri.Foreground := RGB(206,111,73);
+  AddAttribute(FFirstTriAttri);
 
-  fFourthTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFourthTri, SYNS_FriendlyAttrFourthTri);
-  fFourthTriAttri.Foreground := RGB(54,99,12);
-  AddAttribute(fFourthTriAttri);
+  FFourthTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrFourthTri, SYNS_FriendlyAttrFourthTri);
+  FFourthTriAttri.Foreground := RGB(54,99,12);
+  AddAttribute(FFourthTriAttri);
 
-  fIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(fIdentifierAttri);
+  FIdentifierAttri := TSynHighLighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
+  AddAttribute(FIdentifierAttri);
 
-  fKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
-  fKeyAttri.Style := [fsBold];
-  AddAttribute(fKeyAttri);
+  FKeyAttri := TSynHighLighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Style := [fsBold];
+  AddAttribute(FKeyAttri);
 
-  fLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrLine, SYNS_FriendlyAttrLine);
-  fLineAttri.Foreground := clBlack;
-  AddAttribute(fLineAttri);
+  FLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrLine, SYNS_FriendlyAttrLine);
+  FLineAttri.Foreground := clBlack;
+  AddAttribute(FLineAttri);
 
-  fOpLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrOpLine, SYNS_FriendlyAttrOpLine);
-  fOpLineAttri.Foreground := clBlack;
-  AddAttribute(fOpLineAttri);
+  FOpLineAttri := TSynHighLighterAttributes.Create(SYNS_AttrOpLine, SYNS_FriendlyAttrOpLine);
+  FOpLineAttri.Foreground := clBlack;
+  AddAttribute(FOpLineAttri);
 
-  fQuadAttri := TSynHighLighterAttributes.Create(SYNS_AttrQuad, SYNS_FriendlyAttrQuad);
-  fQuadAttri.Foreground := clRed;
-  AddAttribute(fQuadAttri);
+  FQuadAttri := TSynHighLighterAttributes.Create(SYNS_AttrQuad, SYNS_FriendlyAttrQuad);
+  FQuadAttri.Foreground := clRed;
+  AddAttribute(FQuadAttri);
 
-  fSecondTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrSecondTri, SYNS_FriendlyAttrSecondTri);
-  fSecondTriAttri.Foreground := RGB(54,99,12);
-  AddAttribute(fSecondTriAttri);
+  FSecondTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrSecondTri, SYNS_FriendlyAttrSecondTri);
+  FSecondTriAttri.Foreground := RGB(54,99,12);
+  AddAttribute(FSecondTriAttri);
 
-  fThirdTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrThirdTri, SYNS_FriendlyAttrThirdTri);
-  fThirdTriAttri.Foreground := RGB(206,111,73);
-  AddAttribute(fThirdTriAttri);
+  FThirdTriAttri := TSynHighLighterAttributes.Create(SYNS_AttrThirdTri, SYNS_FriendlyAttrThirdTri);
+  FThirdTriAttri.Foreground := RGB(206,111,73);
+  AddAttribute(FThirdTriAttri);
 
-  fTriangleAttri := TSynHighLighterAttributes.Create(SYNS_AttrTriangle, SYNS_FriendlyAttrTriangle);
-  fTriangleAttri.Foreground := clBlack;
-  AddAttribute(fTriangleAttri);
+  FTriangleAttri := TSynHighLighterAttributes.Create(SYNS_AttrTriangle, SYNS_FriendlyAttrTriangle);
+  FTriangleAttri.Foreground := clBlack;
+  AddAttribute(FTriangleAttri);
 
   SetAttributesOnChange(DefHighlightChange);
   InitIdent;
-  fDefaultFilter := SYNS_FilterLDraw;
-  fRange := rsUnknown;
+  FDefaultFilter := SYNS_FilterLDraw;
+  FRange := rsUnknown;
 end;
 
 function TSynLDRSyn.FirstChar(DatLine: PWideChar): WideChar;
@@ -313,23 +313,23 @@ var
   i: Integer;
 begin
   i := 0;
-  while DatLine[i] = ' ' do inc(i);
+  while DatLine[i] = ' ' do Inc(i);
   Result := DatLine[i];
 end;
 
 procedure TSynLDRSyn.IdentProc;
 begin
-  if FirstChar(fLine) = '0' then
+  if FirstChar(FLine) = '0' then
   begin
-    fTokenID := tkComment;
-    while (fLine[Run] <> #10) and (fLine[Run] <> #13)
-          and (fLine[Run] <> #0) do inc(Run);
+    FTokenID := tkComment;
+    while (FLine[Run] <> #10) and (FLine[Run] <> #13)
+          and (FLine[Run] <> #0) do Inc(Run);
   end
   else
   begin
-    fTokenID := IdentKind((fLine + Run));
-  inc(Run, fStringLen);
-  while IsIdentChar(fLine[Run]) do
+    FTokenID := IdentKind((FLine + Run));
+  Inc(Run, FStringLen);
+  while IsIdentChar(FLine[Run]) do
     Inc(Run);
   end;
 end;
@@ -348,56 +348,56 @@ procedure TSynLDRSyn.Number1Proc;
     begin
       if DatLine[i] = ' ' then
       begin
-        inc(i);
+        Inc(i);
         b := False;
       end
       else
       begin
-        if not b then inc(Result);
+        if not b then Inc(Result);
         b := True;
-        inc(i)
+        Inc(i)
       end;
     end;
   end;
 
 begin
-  case ArgNumber(fLine) of
+  case ArgNumber(FLine) of
     1: begin
-         case fLine[Run] of
-           '0': fTokenID := tkComment;
-           '1': fTokenID := tkIdentifier;
-           '2': fTokenID := tkLine;
-           '3': fTokenID := tkTriangle;
-           '4': fTokenID := tkQuad;
-           '5': fTokenID := tkOpLine;
+         case FLine[Run] of
+           '0': FTokenID := tkComment;
+           '1': FTokenID := tkIdentifier;
+           '2': FTokenID := tkLine;
+           '3': FTokenID := tkTriangle;
+           '4': FTokenID := tkQuad;
+           '5': FTokenID := tkOpLine;
          end;
        end; 
-    2: if FirstChar(fLine) <> '0' then fTokenID := tkColor 
-         else fTokenID := tkComment; 
-    3..5: if FirstChar(fLine) <> '0' then fTokenID := tkFirstTri
-            else fTokenID := tkComment; 
-    6..8: if FirstChar(fLine) <> '0' then fTokenID := tkSecondTri
-            else fTokenID := tkComment; 
-    9..11: if FirstChar(fLine) <> '0' then fTokenID := tkThirdTri
-             else fTokenID := tkComment; 
-    12..14: if FirstChar(fLine) <> '0' then fTokenID := tkFourthTri
-             else fTokenID := tkComment; 
+    2: if FirstChar(FLine) <> '0' then FTokenID := tkColor
+         else FTokenID := tkComment;
+    3..5: if FirstChar(FLine) <> '0' then FTokenID := tkFirstTri
+            else FTokenID := tkComment;
+    6..8: if FirstChar(FLine) <> '0' then FTokenID := tkSecondTri
+            else FTokenID := tkComment;
+    9..11: if FirstChar(FLine) <> '0' then FTokenID := tkThirdTri
+             else FTokenID := tkComment;
+    12..14: if FirstChar(FLine) <> '0' then FTokenID := tkFourthTri
+             else FTokenID := tkComment;
     else
-      fTokenID := tkIdentifier;
+      FTokenID := tkIdentifier;
   end;
-  while CharInSet(FLine[Run], ['0'..'9', '.']) do inc(Run);
+  while CharInSet(FLine[Run], ['0'..'9', '.']) do Inc(Run);
 end;
 
 procedure TSynLDRSyn.UnknownProc;
 begin
-  inc(Run);
-  fTokenID := tkUnknown;
+  Inc(Run);
+  FTokenID := tkUnknown;
 end;
 
 procedure TSynLDRSyn.Next;
 begin
-  fTokenPos := Run;
-  case fLine[Run] of
+  FTokenPos := Run;
+  case FLine[Run] of
     #0: NullProc;
     #10: LFProc;
     #13: CRProc;
@@ -408,12 +408,12 @@ begin
   inherited;
 end;
 
-function TSynLDRSyn.GetDefaultAttribute(Index: integer): TSynHighLighterAttributes;
+function TSynLDRSyn.GetDefaultAttribute(Index: Integer): TSynHighLighterAttributes;
 begin
   case Index of
-    SYN_ATTR_COMMENT: Result := fCommentAttri;
-    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;
-    SYN_ATTR_KEYWORD: Result := fKeyAttri;
+    SYN_ATTR_COMMENT: Result := FCommentAttri;
+    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;
+    SYN_ATTR_KEYWORD: Result := FKeyAttri;
   else
     Result := nil;
   end;
@@ -421,7 +421,7 @@ end;
 
 function TSynLDRSyn.GetEol: Boolean;
 begin
-  Result := Run = fLineLen + 1;
+  Result := Run = FLineLen + 1;
 end;
 
 function TSynLDRSyn.GetKeyWords(TokenKind: Integer): UnicodeString;
@@ -431,33 +431,33 @@ end;
 
 function TSynLDRSyn.GetTokenID: TtkTokenKind;
 begin
-  Result := fTokenId;
+  Result := FTokenID;
 end;
 
 function TSynLDRSyn.GetTokenAttribute: TSynHighLighterAttributes;
 begin
   case GetTokenID of
-    tkColor: Result := fColorAttri;
-    tkComment: Result := fCommentAttri;
-    tkFirstTri: Result := fFirstTriAttri;
-    tkFourthTri: Result := fFourthTriAttri;
-    tkIdentifier: Result := fIdentifierAttri;
-    tkKey: Result := fKeyAttri;
-    tkLine: Result := fLineAttri;
-    tkOpLine: Result := fOpLineAttri;
-    tkQuad: Result := fQuadAttri;
-    tkSecondTri: Result := fSecondTriAttri;
-    tkThirdTri: Result := fThirdTriAttri;
-    tkTriangle: Result := fTriangleAttri;
-    tkUnknown: Result := fIdentifierAttri;
+    tkColor: Result := FColorAttri;
+    tkComment: Result := FCommentAttri;
+    tkFirstTri: Result := FFirstTriAttri;
+    tkFourthTri: Result := FFourthTriAttri;
+    tkIdentifier: Result := FIdentifierAttri;
+    tkKey: Result := FKeyAttri;
+    tkLine: Result := FLineAttri;
+    tkOpLine: Result := FOpLineAttri;
+    tkQuad: Result := FQuadAttri;
+    tkSecondTri: Result := FSecondTriAttri;
+    tkThirdTri: Result := FThirdTriAttri;
+    tkTriangle: Result := FTriangleAttri;
+    tkUnknown: Result := FIdentifierAttri;
   else
     Result := nil;
   end;
 end;
 
-function TSynLDRSyn.GetTokenKind: integer;
+function TSynLDRSyn.GetTokenKind: Integer;
 begin
-  Result := Ord(fTokenId);
+  Result := Ord(FTokenID);
 end;
 
 function TSynLDRSyn.GetSampleSource: UnicodeString;
@@ -475,7 +475,7 @@ end;
 
 function TSynLDRSyn.IsFilterStored: Boolean;
 begin
-  Result := fDefaultFilter <> SYNS_FilterLDraw;
+  Result := FDefaultFilter <> SYNS_FilterLDraw;
 end;
 
 function TSynLDRSyn.IsIdentChar(AChar: WideChar): Boolean;
@@ -495,17 +495,17 @@ end;
 
 procedure TSynLDRSyn.ResetRange;
 begin
-  fRange := rsUnknown;
+  FRange := rsUnknown;
 end;
 
 procedure TSynLDRSyn.SetRange(Value: Pointer);
 begin
-  fRange := TRangeState(Value);
+  FRange := TRangeState(Value);
 end;
 
 function TSynLDRSyn.GetRange: Pointer;
 begin
-  Result := Pointer(fRange);
+  Result := Pointer(FRange);
 end;
 
 class function TSynLDRSyn.GetFriendlyLanguageName: UnicodeString;

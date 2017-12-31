@@ -55,6 +55,9 @@ uses
 {$ELSE}
   Windows,
   Graphics,
+{$IFDEF SYN_DirectWrite}
+  Direct2d,
+{$ENDIF}
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
@@ -81,7 +84,7 @@ procedure SwapInt(var l, r: Integer);
 function MaxPoint(const P1, P2: TPoint): TPoint;
 function MinPoint(const P1, P2: TPoint): TPoint;
 
-function GetIntArray(Count: Cardinal; InitialValue: integer): PIntArray;
+function GetIntArray(Count: Cardinal; InitialValue: Integer): PIntArray;
 
 {$IFNDEF SYN_CLX}
 procedure InternalFillRect(dc: HDC; const rcPaint: TRect);
@@ -173,8 +176,9 @@ function EnumHighlighterAttris(Highlighter: TSynCustomHighlighter;
 function CalcFCS(const ABuf; ABufSize: Cardinal): Word;
 {$ENDIF}
 
-procedure SynDrawGradient(const ACanvas: TCanvas; const AStartColor, AEndColor: TColor;
-  ASteps: Integer; const ARect: TRect; const AHorizontal: Boolean);
+procedure SynDrawGradient(const ACanvas: TCanvas; const AStartColor,
+  AEndColor: TColor; ASteps: Integer; const ARect: TRect;
+  const AHorizontal: Boolean); overload;
 
 function DeleteTypePrefixAndSynSuffix(S: string): string;
 
@@ -263,7 +267,8 @@ begin
   begin
     while pLine^ <> #0 do 
     begin
-      if pLine^ = #9 then break;
+      if pLine^ = #9 then
+        Break;
       Inc(CharsBefore);
       Inc(pLine);
     end;
@@ -281,7 +286,7 @@ var
   nBeforeTab: Integer;
 begin
   Result := Line;  // increment reference count only
-  if GetHasTabs(pointer(Line), nBeforeTab) then
+  if GetHasTabs(Pointer(Line), nBeforeTab) then
   begin
     HasTabs := True;
     pDest := @Result[nBeforeTab + 1]; // this will make a copy of Line
@@ -310,7 +315,7 @@ var
   pSrc, pDest: PWideChar;
 begin
   Result := Line;  // increment reference count only
-  if GetHasTabs(pointer(Line), DestLen) then
+  if GetHasTabs(Pointer(Line), DestLen) then
   begin
     HasTabs := True;
     pSrc := @Line[1 + DestLen];
@@ -355,7 +360,7 @@ begin
             pDest^ := pSrc^;
             Inc(pDest);
           until (pSrc^ = #0);
-          exit;
+          Exit;
         end;
       end
       else
@@ -385,7 +390,7 @@ var
   pSrc, pDest: PWideChar;
 begin
   Result := Line;  // increment reference count only
-  if GetHasTabs(pointer(Line), DestLen) then
+  if GetHasTabs(Pointer(Line), DestLen) then
   begin
     HasTabs := True;
     pSrc := @Line[1 + DestLen];
@@ -426,7 +431,7 @@ begin
             pDest^ := pSrc^;
             Inc(pDest);
           until (pSrc^ = #0);
-          exit;
+          Exit;
         end;
       end
       else
@@ -455,7 +460,8 @@ var
 begin
   nW := 2;
   repeat
-    if (nW >= TabWidth) then break;
+    if (nW >= TabWidth) then
+      Break;
     Inc(nW, nW);
   until (nW >= $10000);  // we don't want 64 kByte spaces...
   Result := (nW = TabWidth);
@@ -504,7 +510,7 @@ begin
 // possible sanity check here: Index := Max(Index, Length(Line));
   if Index > 1 then
   begin
-    if (TabWidth <= 1) or not GetHasTabs(pointer(Line), iChar) then
+    if (TabWidth <= 1) or not GetHasTabs(Pointer(Line), iChar) then
       Result := Index
     else
     begin
@@ -524,7 +530,7 @@ begin
             #0:
               begin
                 Inc(Result, Index);
-                break;
+                Break;
               end;
             #9:
               begin
@@ -556,7 +562,7 @@ begin
   InsideTabChar := False;
   if Position > 1 then
   begin
-    if (TabWidth <= 1) or not GetHasTabs(pointer(Line), iPos) then
+    if (TabWidth <= 1) or not GetHasTabs(Pointer(Line), iPos) then
       Result := Position
     else
     begin
@@ -572,16 +578,18 @@ begin
         while iPos < Position do
         begin
           case pNext^ of
-            #0: break;
-            #9: begin
-                  Inc(iPos, TabWidth);
-                  Dec(iPos, iPos mod TabWidth);
-                  if iPos > Position then
-                  begin
-                    InsideTabChar := True;
-                    break;
-                  end;
+            #0:
+              Break;
+            #9:
+              begin
+                Inc(iPos, TabWidth);
+                Dec(iPos, iPos mod TabWidth);
+                if iPos > Position then
+                begin
+                  InsideTabChar := True;
+                  Break;
                 end;
+              end;
             else
               Inc(iPos);
           end;
@@ -607,7 +615,7 @@ begin
       if IsOfCategory(p^) then
       begin
         Result := Start;
-        exit;
+        Exit;
       end;
       Inc(p);
       Inc(Start);
@@ -723,7 +731,7 @@ begin
   while Result > 0 do
   begin
     if (S[Result] <> #0) and (StrScan(P, S[Result]) <> nil) then
-      exit;
+      Exit;
     Dec(Result);
   end;
 end;
@@ -821,7 +829,7 @@ begin
     if HighlighterList[i] = Highlighter then
       Exit
     else if Assigned(HighlighterList[i]) and (TObject(HighlighterList[i]).ClassType = Highlighter.ClassType) then
-      inc(Result);
+      Inc(Result);
 end;
 
 function InternalEnumHighlighterAttris(Highlighter: TSynCustomHighlighter;

@@ -86,13 +86,10 @@ const
 
 
 
-
-
-
-
   /////   USP Status Codes
   //
-  USP_E_SCRIPT_NOT_IN_FONT   = DWord((SEVERITY_ERROR shl 31) or (FACILITY_ITF shl 16)) or $200; // MAKE_HRESULT(SEVERITY_ERROR,FACILITY_ITF,0x200)    // Script doesn't exist in font
+  USP_E_SCRIPT_NOT_IN_FONT = DWord((SEVERITY_ERROR shl 31) or
+    (FACILITY_ITF shl 16)) or $200; // MAKE_HRESULT(SEVERITY_ERROR,FACILITY_ITF,0x200)    // Script doesn't exist in font
 
 
 
@@ -141,8 +138,6 @@ type
 
 
 
-
-
 /////   ScriptFreeCache
 //
 //      The client may free a SCRIPT_CACHE at any time. Uniscribe maintains
@@ -162,10 +157,6 @@ function ScriptFreeCache(
  ): HRESULT; stdcall;
 
 
-
-
-
-
 type
   /////   SCRIPT_CONTROL
   //
@@ -174,23 +165,23 @@ type
   //
   //
 
-  TScriptControl_enum = (
-    fContextDigits,       // Means use previous script instead of uDefaultLanguage
+  TScriptControlFlag = (
+    scContextDigits,       // Means use previous script instead of uDefaultLanguage
     // The following flags provide legacy support for GetCharacterPlacement features
-    fInvertPreBoundDir,   // Reading order of virtual item immediately prior to string
-    fInvertPostBoundDir,  // Reading order of virtual item immediately following string
-    fLinkStringBefore,    // Equivalent to presence of ZWJ before string
-    fLinkStringAfter,     // Equivalent to presence of ZWJ after string
-    fNeutralOverride,     // Causes all neutrals to be strong in the current embedding direction
-    fNumericOverride,     // Causes all numerals to be strong in the current embedding direction
-    fLegacyBidiClass      // Causes plus and minus to be reated as neutrals, slash as a common separator
+    scInvertPreBoundDir,   // Reading order of virtual item immediately prior to string
+    scInvertPostBoundDir,  // Reading order of virtual item immediately following string
+    scLinkStringBefore,    // Equivalent to presence of ZWJ before string
+    scLinkStringAfter,     // Equivalent to presence of ZWJ after string
+    scNeutralOverride,     // Causes all neutrals to be strong in the current embedding direction
+    scNumericOverride,     // Causes all numerals to be strong in the current embedding direction
+    scLegacyBidiClass      // Causes plus and minus to be reated as neutrals, slash as a common separator
   );
-  TScriptControl_set = set of TScriptControl_enum;
+  TScriptControlFlags = set of TScriptControlFlag;
 
   PScriptControl = ^TScriptControl;
   tag_SCRIPT_CONTROL = packed record
     uDefaultLanguage: Word;     // For NADS, also default for context
-    fFlags: TScriptControl_set;
+    fFlags: TScriptControlFlags;
     fReserved: Byte;
   end;
 (*  uDefaultLanguage: DWORD    {:16}; // For NADS, also default for context
@@ -215,44 +206,41 @@ type
 //
 //p     uDefaultLanguage: Language to use when Unicode values are ambiguous.
 //              Used by numeric processing to select digit shape when
-//              fDigitSubstitute (see SCRIPT_STATE) is in force.
+//              ssDigitSubstitute (see SCRIPT_STATE) is in force.
 //
-//p     fContextDigits: Specifies that national digits are chosen according to
+//p     scContextDigits: Specifies that national digits are chosen according to
 //              the nearest previous strong text, rather than using
 //              uDefaultLanguage.
 //
-//p     fInvertPreBoundDir: By default text at the start of the string is
+//p     scInvertPreBoundDir: By default text at the start of the string is
 //              laid out as if it follows strong text of the same direction
-//              as the base embedding level. Set fInvertPreBoundDir to change
+//              as the base embedding level. Set scInvertPreBoundDir to change
 //              the initial context to the opposite of the base embedding
 //              level. This flag is for GetCharacterPlacement legacy support.
 //
-//p     fInvertPostBoundDir: By default text at the end of the string is
+//p     scInvertPostBoundDir: By default text at the end of the string is
 //              laid out as if it preceeds strong text of the same direction
-//              as the base embedding level. Set fInvertPostBoundDir to change
+//              as the base embedding level. Set scInvertPostBoundDir to change
 //              the final context to the opposite of the base embedding
 //              level. This flag is for GetCharacterPlacement legacy support.
 //
-//p     fLinkStringBefore: Causes the first character of the string to be
+//p     scLinkStringBefore: Causes the first character of the string to be
 //              shaped as if were joined to a previous character.
 //
-//p     fLinkStringAfter: Causes the last character of the string to be
+//p     scLinkStringAfter: Causes the last character of the string to be
 //              shaped as if were joined to a following character.
 //
-//p     fNeutralOverride: Causes all neutral characters in the string to be
+//p     scNeutralOverride: Causes all neutral characters in the string to be
 //              treated as if they were strong characters of their enclosing
 //              embedding level. This effectively locks neutrals in place,
 //              reordering occuring only between neutrals.
 //
-//p     fNumericOverride: Causes all numeric characters in the string to be
+//p     scNumericOverride: Causes all numeric characters in the string to be
 //              treated as if they were strong characters of their enclosing
 //              embedding level. This effectively locks numerics in place,
 //              reordering occuring only between numerics.
 //
 //p     fReserved: Reserved. Always initialise to 0.
-
-
-
 
 
 
@@ -263,24 +251,24 @@ type
   //      a component of each item analysis returned by ScriptItemize.
   //
   //
-  TScriptState_enum = (
+  TScriptStateFlag = (
     uBidiLevel_reserved1, uBidiLevel_r2, uBidiLevel_r3, uBidiLevel_r4, uBidiLevel_r5,
-    fOverrideDirection, // Set when in LRO/RLO embedding
-    fInhibitSymSwap,    // Set by U+206A (ISS), cleared by U+206B (ASS)
-    fCharShape,         // Set by U+206D (AAFS), cleared by U+206C (IAFS)
-    fDigitSubstitute,   // Set by U+206E (NADS), cleared by U+206F (NODS)
-    fInhibitLigate,     // Equiv !GCP_Ligate, no Unicode control chars yet
-    fDisplayZWG,        // Equiv GCP_DisplayZWG, no Unicode control characters yet
-    fArabicNumContext,  // For EN->AN Unicode rule
-    fGcpClusters        // For Generating Backward Compatible GCP Clusters (legacy Apps)
+    ssOverrideDirection, // Set when in LRO/RLO embedding
+    ssInhibitSymSwap,    // Set by U+206A (ISS), cleared by U+206B (ASS)
+    ssCharShape,         // Set by U+206D (AAFS), cleared by U+206C (IAFS)
+    ssDigitSubstitute,   // Set by U+206E (NADS), cleared by U+206F (NODS)
+    ssInhibitLigate,     // Equiv !GCP_Ligate, no Unicode control chars yet
+    ssDisplayZWG,        // Equiv GCP_DisplayZWG, no Unicode control characters yet
+    ssArabicNumContext,  // For EN->AN Unicode rule
+    ssGcpClusters        // For Generating Backward Compatible GCP Clusters (legacy Apps)
   );
-  TScriptState_set = set of TScriptState_enum;
+  TScriptStateFlags = set of TScriptStateFlag;
 
   PScriptState = ^TScriptState;
   tag_SCRIPT_STATE = packed record
    case Byte of
     0: (uBidiLevel: Byte)    {:5};  // Unicode Bidi algorithm embedding level (0-16)
-    1: (fFlags: TScriptState_set)
+    1: (fFlags: TScriptStateFlags)
   end;
 (*  uBidiLevel: Word         {:5};  // Unicode Bidi algorithm embedding level (0-16)
     fOverrideDirection: Word {:1};  // Set when in LRO/RLO embedding
@@ -290,7 +278,7 @@ type
     fInhibitLigate: Word     {:1};  // Equiv !GCP_Ligate, no Unicode control chars yet
     fDisplayZWG: Word        {:1};  // Equiv GCP_DisplayZWG, no Unicode control characters yet
     fArabicNumContext: Word  {:1};  // For EN->AN Unicode rule
-    fGcpClusters: Word       {:1};  // For Generating Backward Compatible GCP Clusters (legacy Apps)
+    fcpClusters: Word       {:1};  // For Generating Backward Compatible GCP Clusters (legacy Apps)
     fReserved: Word          {:1};
     fEngineReserved: Word    {:2};  // For use by shaping engine
   end; *)
@@ -310,38 +298,38 @@ type
 //              ScriptItemize, should be initialised to 0 for an LTR base
 //              embedding level, or 1 for RTL.
 //
-//p     fOverrideDirection: TRUE if this level is an override level (LRO/RLO).
+//p     ssOverrideDirection: TRUE if this level is an override level (LRO/RLO).
 //              In an override level, characters are layed out purely
 //              left to right, or purely right to left. No reordering of digits
 //              or strong characters of opposing direction takes place.
 //              Note that this initial value is reset by LRE, RLE, LRO or
 //              RLO codes in the string.
 //
-//p     fInhibitSymSwap: TRUE if the shaping engine is to bypass mirroring of
+//p     ssInhibitSymSwap: TRUE if the shaping engine is to bypass mirroring of
 //              Unicode Mirrored glyphs such as brackets. Set by Unicode
 //              character ISS, cleared by ASS.
 //
-//p     fCharShape: TRUE if character codes in the Arabic Presentation Forms
+//p     ssCharShape: TRUE if character codes in the Arabic Presentation Forms
 //              areas of Unicode should be shaped. (Not implemented).
 //
-//p     fDigitSubstitute: TRUE if character codes U+0030 through U+0039
+//p     ssDigitSubstitute: TRUE if character codes U+0030 through U+0039
 //              (European digits) are to be substituted by national digits.
 //              Set by Unicode NADS, Cleared by NODS.
 //
-//p     fInhibitLigate: TRUE if ligatures are not to be used in the shaping
+//p     ssInhibitLigate: TRUE if ligatures are not to be used in the shaping
 //              of Arabic or Hebrew characters.
 //
-//p     fDisplayZWG: TRUE if control characters are to be shaped as
+//p     ssDisplayZWG: TRUE if control characters are to be shaped as
 //              representational glyphs. (Normally, control characters are
 //              shaped to the blank glyph and given a width of zero).
 //
-//p     fArabicNumContext: TRUE indicates prior strong characters were Arabic
+//p     ssArabicNumContext: TRUE indicates prior strong characters were Arabic
 //              for the purposes of rule P0 on page 3-19 of 'The Unicode
 //              Standard, version 2.0'. Should normally be set TRUE before
 //              itemizing an RTL paragraph in an Arabic language, FALSE
 //              otherwise.
 //
-//p     fGcpClusters: For GetCharaterPlacement legacy support only.
+//p     ssGcpClusters: For GetCharaterPlacement legacy support only.
 //              Initialise to TRUE to request ScriptShape to generate
 //              the LogClust array the same way as GetCharacterPlacement
 //              does in Arabic and Hebrew Windows95. Affects only Arabic
@@ -465,9 +453,6 @@ type
 
 
 
-
-
-
 /////   ScriptItemize - break text into items
 //
 //      Breaks a run of unicode into individually shapeable items.
@@ -494,9 +479,6 @@ function ScriptItemize(
     pcItems: PInteger                // Out  Count of items processed (optional)
  ): HRESULT; stdcall;
 {$EXTERNALSYM ScriptItemize}
-
-
-
 
 
 
@@ -533,14 +515,14 @@ function ScriptItemize(
 //      European digits U+0030 through U+0039 may be rendered as national
 //      digits as follows:
 //
-//t     fDigitSubstitute | FContextDigits | Digit shapes displayed for Unicode U+0030 through U+0039
+//t     ssDigitSubstitute | scContextDigits | Digit shapes displayed for Unicode U+0030 through U+0039
 //t     ---------------- | -------------- | ------------------------------------
 //t     False            | Any            | Western (European / American) digits
 //t     True             | False          | As specified in SCRIPT_CONTROL.uDefaultLanguage
 //t     True             | True           | As prior strong text, defaulting to SCRIPT_CONTROL.uDefaultLanguage
 //
 //
-//      For fContextDigits, any Western digits (U+0030 - U+0039) encountered
+//      For scContextDigits, any Western digits (U+0030 - U+0039) encountered
 //      before the first strongly directed character are substituted by the
 //      traditional digits of the SCRIPT_CONTROL.uDefaultLanguage when that
 //      language is written in the same direction as SCRIPT_STATE.uBidiLevel.
@@ -576,11 +558,11 @@ function ScriptItemize(
 //
 //t     SCRIPT_STATE flag | Set by | Cleared by
 //t     ----------------- | ------   ----------
-//t     fDigitSubstitute  |  NADS  |   NODS
-//t     fInhibitSymSwap   |  ISS   |   ASS
-//t     fCharShape        |  AAFS  |   IAFS
+//t     ssDigitSubstitute  |  NADS  |   NODS
+//t     ssInhibitSymSwap   |  ISS   |   ASS
+//t     ssCharShape        |  AAFS  |   IAFS
 //
-//      SCRIPT_STATE.fArabicNumContext controls the Unicode EN->AN rule.
+//      SCRIPT_STATE.ssArabicNumContext controls the Unicode EN->AN rule.
 //      It should normally be initialised to TRUE
 //      before itemizing an RTL paragraph in an Arabic language, FALSE
 //      otherwise.
@@ -2161,10 +2143,10 @@ function ScriptApplyDigitSubstitution(
 //          If NULL, ScriptApplyDigitSubstitution calls
 //          ScriptRecordDigitSubstitution with LOCALE_USER_DEFAULT.
 //
-//p     psc: SCRIPT_CONTROL structure. The fContextDigits and uDefaultLanguage
+//p     psc: SCRIPT_CONTROL structure. The scContextDigits and uDefaultLanguage
 //          fields will be updated.
 //
-//p     pss: SCRIPT_CONTROL structure. The fDigitSubstitute field will be
+//p     pss: SCRIPT_CONTROL structure. The ssDigitSubstitute field will be
 //          updated.
 //
 //p     returns: E_INVALIDARG if the DigitSubstitute field of the
