@@ -1,0 +1,14 @@
+*.exe
+*.dcu
+*.local
+*.stat
+*.skincfg
+*.map
+*.identcache
+*.dsk
+*.rsm
+*.~*
+*.drc
+*.tvsconfig
+__history
+__recovery
