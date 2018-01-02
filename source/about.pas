@@ -122,9 +122,9 @@ begin
   lblAppName.Caption := APPNAME;
   lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion + ' (' + IntToStr(GetExecutableBits) + ' Bit)';
   lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
-  lblAppWebpage.Caption := GetAppWebsite(True);
-  lblAppWebpage.Hint := GetAppWebsite(True)+'?place='+EncodeURLParam(lblAppWebpage.Name);
-  ImageHeidisql.Hint := GetAppWebsite(True)+'?place='+EncodeURLParam(ImageHeidisql.Name);
+  lblAppWebpage.Caption := APPDOMAIN;
+  lblAppWebpage.Hint := APPDOMAIN+'?place='+EncodeURLParam(lblAppWebpage.Name);
+  ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
 
   Screen.Cursor := crDefault;
 end;

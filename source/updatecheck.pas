@@ -119,7 +119,7 @@ begin
   // Prepare download
   CheckfileDownload := THttpDownload.Create(Self);
   CheckfileDownload.TimeOut := 5;
-  CheckfileDownload.URL := GetAppWebsite(True)+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&bits='+IntToStr(GetExecutableBits)+'&t='+DateTimeToStr(Now);
+  CheckfileDownload.URL := APPDOMAIN+'updatecheck.php?r='+IntToStr(Mainform.AppVerRevision)+'&bits='+IntToStr(GetExecutableBits)+'&t='+DateTimeToStr(Now);
   CheckFilename := GetTempDir + APPNAME + '_updatecheck.ini';
 
   // Download the check file
@@ -177,13 +177,13 @@ end;
 }
 procedure TfrmUpdateCheck.btnReleaseClick(Sender: TObject);
 begin
-  ShellExec(GetAppWebsite(True)+'download.php?download=installer');
+  ShellExec(APPDOMAIN+'download.php?download=installer');
 end;
 
 
 procedure TfrmUpdateCheck.btnChangelogClick(Sender: TObject);
 begin
-  ShellExec(GetAppWebsite(True)+'download.php?place='+EncodeURLParam(TButton(Sender).Name)+'#nightlybuilds');
+  ShellExec(APPDOMAIN+'download.php?place='+EncodeURLParam(TButton(Sender).Name)+'#nightlybuilds');
 end;
 
 

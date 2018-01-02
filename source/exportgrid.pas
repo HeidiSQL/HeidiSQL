@@ -926,7 +926,7 @@ begin
           '    </table>' + CRLF + CRLF +
           '    <p>' + CRLF +
           '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
-          '      by <a href="'+GetAppWebsite(True)+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + CRLF +
+          '      by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + CRLF +
           '    </p>' + CRLF + CRLF +
           '  </body>' + CRLF +
           '</html>' + CRLF;
