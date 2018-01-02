@@ -1041,6 +1041,8 @@ begin
         updownPort.Position := MakeInt(AppSettings.GetDefaultString(asPort));
       ngMSSQL:
         updownPort.Position := 1433;
+      ngPgSQL:
+        updownPort.Position := 5432;
     end;
   FreeAndNil(Params);
   Modification(Sender);
