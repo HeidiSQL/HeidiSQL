@@ -58,7 +58,6 @@ AllowNoIcons=yes
 LicenseFile=license.txt
 ChangesAssociations=yes
 WizardImageFile={#ResourceDir}installer-logo.bmp
-WizardImageBackColor=$ffffff
 WizardSmallImageFile={#ResourceDir}installer-small-logo.bmp
 OutputDir={#OutDir}
 OutputBaseFilename={#ProgName}_{#ProgShortVersion}_Setup
