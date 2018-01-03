@@ -6,7 +6,7 @@
 #define ProgExeName ProgNameLower + ".exe"
 #define ProgVersion GetFileVersion(AddBackslash(SourcePath) + ProgExeName)
 #define ProgShortVersion Copy(ProgVersion, 1, 3)
-#define WebSite "http://www." + ProgNameLower + ".com/"
+#define WebSite "https://www." + ProgNameLower + ".com/"
 #define OutDir "."
 #define ResourceDir OutDir + "\..\res\"
 
@@ -48,7 +48,7 @@ AppPublisherURL={#WebSite}
 AppSupportURL={#WebSite}forum.php
 AppUpdatesURL={#WebSite}download.php
 AppContact={#ProgNameLower}@anse.de
-AppReadmeFile=http://www.heidisql.com/help.php?place=installer
+AppReadmeFile={#WebSite}help.php?place=installer
 
 CloseApplications=yes
 ShowLanguageDialog=auto
