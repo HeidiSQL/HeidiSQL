@@ -446,6 +446,7 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
+            DropDownCount = 16
             TabOrder = 7
             OnChange = comboExportOutputTypeChange
           end
