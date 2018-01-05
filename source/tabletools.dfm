@@ -455,6 +455,7 @@ object frmTableTools: TfrmTableTools
             Width = 463
             Height = 21
             Anchors = [akLeft, akTop, akRight]
+            DropDownCount = 16
             ParentShowHint = False
             ShowHint = True
             TabOrder = 8
