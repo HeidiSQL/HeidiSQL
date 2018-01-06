@@ -704,7 +704,7 @@ exports
 {$I const.inc}
 
 var
-  LibMysqlPath: String = 'libmysql.dll';
+  LibMysqlPath: String;
   LibMysqlHandle: HMODULE; // Shared module handle
 
   mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
@@ -2085,9 +2085,17 @@ var
   msg: String;
 begin
   // Init libmysql before actually connecting.
+  // Try newer libmariadb version at first, and fall back to libmysql
   if LibMysqlHandle = 0 then begin
+    LibMysqlPath := 'libmariadb.dll';
     Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
     LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
+    if LibMysqlHandle = 0 then begin
+      Log(lcDebug, f_('Could not load %s', [LibMysqlPath]));
+      LibMysqlPath := 'libmysql.dll';
+      Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
+      LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
+    end;
     if LibMysqlHandle = 0 then begin
       msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.', [LibMysqlPath, ExtractFileName(ParamStr(0))]);
       if Windows.GetLastError <> 0 then

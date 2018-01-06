@@ -77,6 +77,7 @@ Name: "activate_statistics"; Description: "Automatically report client and serve
 [InstallDelete]
 Type: files; Name: "{app}\libmysql40.dll"
 Type: files; Name: "{app}\libmysql41.dll"
+Type: files; Name: "{app}\libmysql.dll"
 Type: files; Name: "{app}\{#ProgExeName}.manifest"
 Type: files; Name: "{app}\{#ProgNameLower}.url"
 Type: files; Name: "{app}\{#ProgNameLower}_forum.url"
@@ -88,8 +89,8 @@ Source: "{#ProgNameLower}64.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; 
 Source: "{#ProgNameLower}32.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
-Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
-Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libmariadb32.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq64.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq32.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl-864.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
