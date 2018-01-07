@@ -2842,7 +2842,7 @@ var
   SQL: String;
   i, BatchStartOffset, ResultCount: Integer;
   PacketSize, MaxAllowedPacket: Int64;
-  DoStoreResult, ErrorAborted: Boolean;
+  DoStoreResult, ErrorAborted, LogMaxResultsDone: Boolean;
 begin
   inherited;
 
@@ -2850,6 +2850,7 @@ begin
   i := 0;
   ResultCount := 0;
   ErrorAborted := False;
+  LogMaxResultsDone := False;
 
   while i < FBatch.Count do begin
     SQL := '';
@@ -2880,6 +2881,13 @@ begin
     try
       FConnection.LockedByThread := Self;
       DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
+      if (not DoStoreResult) and (not LogMaxResultsDone) then begin
+        // Inform user about preference setting for limiting result tabs
+        LogFromOutside(
+          f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)]),
+          lcInfo);
+        LogMaxResultsDone := True;
+      end;
       FConnection.Query(SQL, DoStoreResult, lcUserFiredSQL);
       Inc(ResultCount, FConnection.ResultCount);
       FBatchPosition := i;

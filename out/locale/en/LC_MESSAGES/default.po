@@ -6322,3 +6322,6 @@ msgstr "Tab 5"
 
 msgid "Go to tab 5"
 msgstr "Go to tab 5"
+
+msgid "Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL"
+msgstr "Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL"
