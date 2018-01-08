@@ -277,6 +277,7 @@ type
   function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
+  function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource: Boolean): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Cardinal; DisplaySeconds: Boolean): String;
@@ -1009,6 +1010,26 @@ begin
     end;
     inc(i);
   end;
+end;
+
+
+function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource: Boolean): String;
+var
+  rx: TRegExpr;
+begin
+  Result := '';
+  rx := TRegExpr.Create;
+  rx.Expression := Expression;
+  if rx.Exec(Input) then begin
+    if rx.SubExprMatchCount >= ReturnMatchNum then begin
+      Result := rx.Match[ReturnMatchNum];
+      if DeleteFromSource then begin
+        Delete(Input, rx.MatchPos[ReturnMatchNum], rx.MatchLen[ReturnMatchNum]);
+        Input := Trim(Input);
+      end;
+    end;
+  end;
+  rx.Free;
 end;
 
 

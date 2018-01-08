@@ -4999,7 +4999,7 @@ begin
     // Default value
     Col.DefaultType := cdtNothing;
     Col.DefaultText := '';
-    rxCol.Expression := '(NULL|CURRENT_TIMESTAMP(\(\d+\))?|\''[^\'']+\'')(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d+\))?)?';
+    rxCol.Expression := '(NULL|CURRENT_TIMESTAMP(\(\d*\))?|\''[^\'']+\'')(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d*\))?)?';
     if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
@@ -5024,6 +5024,8 @@ begin
         end else begin
           Col.DefaultType := cdtText;
           Col.DefaultText := ExtractLiteral(ColSpec, '');
+          if Col.DefaultText.IsEmpty then
+            Col.DefaultText := RegExprGetMatch('\s*(\S+)', ColSpec, 1, True);
           if rxCol.Match[3] <> '' then
             Col.DefaultType := cdtTextUpdateTS;
         end;
