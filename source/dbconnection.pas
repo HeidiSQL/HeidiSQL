@@ -2083,14 +2083,20 @@ end;
 procedure TMySQLConnection.DoBeforeConnect;
 var
   msg: String;
+  OldErrorMode: Cardinal;
 begin
   // Init libmysql before actually connecting.
   // Try newer libmariadb version at first, and fall back to libmysql
   if LibMysqlHandle = 0 then begin
     LibMysqlPath := 'libmariadb.dll';
     Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
+    // Temporarily suppress error popups while loading new library on Windows XP, see #79
+    OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
+    SetErrorMode(OldErrorMode or SEM_FAILCRITICALERRORS);
     LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
+    SetErrorMode(OldErrorMode);
     if LibMysqlHandle = 0 then begin
+      // Win XP goes here, or users without the above library. Load an XP-compatible one here.
       Log(lcDebug, f_('Could not load %s', [LibMysqlPath]));
       LibMysqlPath := 'libmysql.dll';
       Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
