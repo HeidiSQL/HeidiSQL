@@ -358,6 +358,7 @@ object frmTableEditor: TfrmTableEditor
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
+        DropDownCount = 16
         Sorted = True
         TabOrder = 5
         OnChange = chkCharsetConvertClick
