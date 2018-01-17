@@ -338,6 +338,7 @@ object connform: Tconnform
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
+        DropDownCount = 12
         ItemIndex = 0
         TabOrder = 0
         Text = 'TCP/IP'
