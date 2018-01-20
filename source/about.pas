@@ -8,7 +8,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext,
-  Dialogs, SynRegExpr;
+  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd;
 
 type
   TAboutBox = class(TForm)
@@ -24,6 +24,8 @@ type
     editDonated: TEdit;
     btnDonatedOK: TButton;
     lblCredits: TLabel;
+    popupLabels: TPopupMenu;
+    menuCopyLabel: TMenuItem;
     procedure OpenURL(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -31,6 +33,7 @@ type
     procedure editDonatedExit(Sender: TObject);
     procedure btnDonatedOKClick(Sender: TObject);
     procedure lblCreditsClick(Sender: TObject);
+    procedure menuCopyLabelClick(Sender: TObject);
   private
     { Private declarations }
   public
@@ -89,6 +92,19 @@ begin
   MainForm.btnDonate.Visible := imgDonate.Visible;
 end;
 
+
+procedure TAboutBox.menuCopyLabelClick(Sender: TObject);
+var
+  LabelComp: TComponent;
+begin
+  // Copy label caption
+  if Sender is TMenuItem then begin
+    LabelComp := TPopupMenu(TMenuItem(Sender).GetParentMenu).PopupComponent;
+    if LabelComp is TLabel then begin
+      Clipboard.AsText := TLabel(LabelComp).Caption;
+    end;
+  end;
+end;
 
 procedure TAboutBox.editDonatedEnter(Sender: TObject);
 begin

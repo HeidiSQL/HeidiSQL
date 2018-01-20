@@ -33,6 +33,7 @@ object AboutBox: TAboutBox
     Font.Name = 'Tahoma'
     Font.Style = [fsBold]
     ParentFont = False
+    PopupMenu = popupLabels
     Transparent = True
     IsControl = True
   end
@@ -42,6 +43,7 @@ object AboutBox: TAboutBox
     Width = 64
     Height = 13
     Caption = 'lblAppVersion'
+    PopupMenu = popupLabels
     Transparent = True
     IsControl = True
   end
@@ -51,6 +53,7 @@ object AboutBox: TAboutBox
     Width = 72
     Height = 13
     Caption = 'lblAppCompiled'
+    PopupMenu = popupLabels
     Transparent = True
   end
   object lblAppWebpage: TLabel
@@ -66,6 +69,7 @@ object AboutBox: TAboutBox
     Font.Name = 'Tahoma'
     Font.Style = []
     ParentFont = False
+    PopupMenu = popupLabels
     Transparent = True
     OnClick = OpenURL
     OnMouseMove = MouseOver
@@ -1390,6 +1394,7 @@ object AboutBox: TAboutBox
     Font.Style = []
     ParentColor = False
     ParentFont = False
+    PopupMenu = popupLabels
     OnClick = lblCreditsClick
     OnMouseMove = MouseOver
   end
@@ -1433,5 +1438,15 @@ object AboutBox: TAboutBox
     Caption = 'OK'
     TabOrder = 2
     OnClick = btnDonatedOKClick
+  end
+  object popupLabels: TPopupMenu
+    Images = MainForm.ImageListMain
+    Left = 32
+    Top = 144
+    object menuCopyLabel: TMenuItem
+      Caption = 'Copy'
+      ImageIndex = 3
+      OnClick = menuCopyLabelClick
+    end
   end
 end
