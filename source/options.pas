@@ -195,7 +195,7 @@ function EnumFixedProc(lpelf: PEnumLogFont; lpntm: PNewTextMetric; FontType: Int
 
 
 implementation
-uses main, helpers;
+uses main, apphelpers;
 {$R *.DFM}
 
 

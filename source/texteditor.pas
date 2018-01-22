@@ -5,7 +5,7 @@ interface
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
-  helpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
+  apphelpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
   Vcl.ExtCtrls;
 
 {$I const.inc}

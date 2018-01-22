@@ -16,7 +16,7 @@ uses
   printlist in '..\..\source\printlist.pas' {printlistForm},
   copytable in '..\..\source\copytable.pas' {CopyTableForm},
   insertfiles in '..\..\source\insertfiles.pas' {frmInsertFiles},
-  helpers in '..\..\source\helpers.pas',
+  apphelpers in '..\..\source\apphelpers.pas',
   sqlhelp in '..\..\source\sqlhelp.pas' {frmSQLhelp},
   mysql_structures in '..\..\source\mysql_structures.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},

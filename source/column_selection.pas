@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Classes, Controls, Forms, StdCtrls, CheckLst, ExtCtrls, SysUtils,
-  helpers, gnugettext, extra_controls;
+  apphelpers, gnugettext, extra_controls;
 
 type
   TColumnSelectionForm = class(TFormWithSizeGrip)

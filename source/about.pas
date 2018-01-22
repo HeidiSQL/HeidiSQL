@@ -43,7 +43,7 @@ type
 implementation
 
 uses
-  main, helpers;
+  main, apphelpers;
 
 {$R *.DFM}
 

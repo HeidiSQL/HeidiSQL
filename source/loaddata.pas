@@ -84,7 +84,7 @@ type
 
 implementation
 
-uses Main, helpers;
+uses Main, apphelpers;
 
 {$R *.DFM}
 

@@ -54,7 +54,7 @@ implementation
 
 {$R *.dfm}
 
-uses helpers, main;
+uses apphelpers, main;
 
 
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);

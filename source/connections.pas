@@ -186,7 +186,7 @@ type
 
 implementation
 
-uses Main, helpers, grideditlinks;
+uses Main, apphelpers, grideditlinks;
 
 {$I const.inc}
 

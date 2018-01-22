@@ -71,7 +71,7 @@ type
 
 implementation
 
-uses helpers, main;
+uses apphelpers, main;
 
 {$I const.inc}
 

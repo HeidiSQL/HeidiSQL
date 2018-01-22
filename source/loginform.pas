@@ -27,7 +27,7 @@ type
 
 implementation
 
-uses helpers, main;
+uses apphelpers, main;
 
 {$R *.dfm}
 {$I const.inc}

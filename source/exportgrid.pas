@@ -91,7 +91,7 @@ type
 
 implementation
 
-uses main, helpers, dbconnection, mysql_structures;
+uses main, apphelpers, dbconnection, mysql_structures;
 
 {$R *.dfm}
 

@@ -7456,7 +7456,7 @@ var
 
 implementation
 
-uses helpers;
+uses apphelpers;
 
 function GetFunctionCategories: TStringList;
 var

@@ -50,7 +50,7 @@ var
 
 implementation
 
-uses main, helpers;
+uses main, apphelpers;
 
 {$R *.dfm}
 

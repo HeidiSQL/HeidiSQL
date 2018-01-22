@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses helpers, main;
+uses apphelpers, main;
 
 const
   nColumns = 0;

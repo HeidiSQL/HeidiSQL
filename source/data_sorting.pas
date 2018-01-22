@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
 
-  helpers, gnugettext;
+  apphelpers, gnugettext;
 
 
 type
