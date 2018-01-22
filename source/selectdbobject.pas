@@ -44,7 +44,7 @@ function SelectDBObjects: TDBObjectList;
 
 implementation
 
-uses main, helpers;
+uses main, heidi_helpers;
 
 {$R *.dfm}
 

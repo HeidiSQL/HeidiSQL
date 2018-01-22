@@ -7456,7 +7456,7 @@ var
 
 implementation
 
-uses helpers;
+uses heidi_helpers;
 
 function GetFunctionCategories: TStringList;
 var

@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
   ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr, extra_controls,
-  dbconnection, helpers, VirtualTrees, Menus, gnugettext;
+  dbconnection, heidi_helpers, VirtualTrees, Menus, gnugettext;
 
 {$I const.inc}
 

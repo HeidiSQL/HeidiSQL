@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr,
-  dbconnection, helpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
+  dbconnection, heidi_helpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
 
 type
   TFrame = TDBObjectEditor;

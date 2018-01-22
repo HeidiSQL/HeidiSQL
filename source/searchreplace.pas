@@ -54,7 +54,7 @@ implementation
 
 {$R *.dfm}
 
-uses helpers, main;
+uses heidi_helpers, main;
 
 
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);

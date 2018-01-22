@@ -43,7 +43,7 @@ type
 implementation
 
 uses
-  main, helpers;
+  main, heidi_helpers;
 
 {$R *.DFM}
 

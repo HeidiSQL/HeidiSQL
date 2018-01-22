@@ -186,7 +186,7 @@ type
 
 implementation
 
-uses Main, helpers, grideditlinks;
+uses Main, heidi_helpers, grideditlinks;
 
 {$I const.inc}
 

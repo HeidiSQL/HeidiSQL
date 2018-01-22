@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses main, helpers, table_editor, dbconnection;
+uses main, heidi_helpers, table_editor, dbconnection;
 
 {$R *.DFM}
 

@@ -52,7 +52,7 @@ type
 
 implementation
 
-uses helpers, main;
+uses heidi_helpers, main;
 
 const
   nColumns = 0;

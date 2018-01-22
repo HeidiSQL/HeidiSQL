@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
-  helpers, gnugettext, ExtCtrls;
+  heidi_helpers, gnugettext, ExtCtrls;
 
 type
   TfrmUpdateCheck = class(TForm)
