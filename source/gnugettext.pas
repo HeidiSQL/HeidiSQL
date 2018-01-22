@@ -51,6 +51,10 @@ interface
 // Use DefaultInstance.DebugLogToFile() to write the log to a file.
 {.$define DXGETTEXTDEBUG}
 
+// If the conditional define dx_ChangeProxyClassname is defined, THookedObjects.Proxify adds '!dx'
+// to the class name. Default: off
+{.$define dx_ChangeProxyClassname}
+
 // ### LO - Workaround aka hack for programs compiled with German Delphi
 //
 // If the current OS Language is not German, immediately add a Delphi RTL domain
@@ -198,6 +202,72 @@ interface
   {$DEFINE dx_has_VclThemes}
   {$DEFINE dx_midstr_in_AnsiStrings}
 {$endif}
+{$ifdef VER270}
+  // Delphi XE6
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER280}
+  // Delphi XE7
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER290}
+  // Delphi XE8
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER300}
+  // Delphi 10 Seattle
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER310}
+  // Delphi 10.1 Berlin
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER320}
+  // Delphi 10.2 Tokyo
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
 
 {$ifdef dx_has_Unsafe_Warnings}
   {$WARN UNSAFE_TYPE OFF}
@@ -254,6 +324,10 @@ function dgettext_NoOp(const szDomain: DomainString; const szMsgId: MsgIdString)
 function dngettext(const szDomain: DomainString; const singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
 function ngettext(const singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
 function ngettext_NoExtract(const singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+function pgettext(const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+function pdgettext(const szDomain: DomainString; const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+function pngettext(const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+function pdngettext(const szDomain: DomainString; const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
 procedure textdomain(const szDomain: DomainString);
 function getcurrenttextdomain: DomainString;
 procedure bindtextdomain(const szDomain: DomainString; const szDirectory: FilenameString);
@@ -297,6 +371,8 @@ procedure RemoveDomainForComponent (const domain:DomainString);
 // Use like this: ws:=LoadResStringW(@NameOfResourceString);
 function LoadResString(ResStringRec: PResStringRec): widestring;
 function LoadResStringW(ResStringRec: PResStringRec): UnicodeString;
+function PLoadResString(const szMsgCtxt: MsgIdString; ResStringRec: PResStringRec): widestring;
+function PLoadResStringW(const szMsgCtxt: MsgIdString; ResStringRec: PResStringRec): UnicodeString;
 
 // This returns an empty string if not translated or translator name is not specified.
 function GetTranslatorNameAndEmail:TranslatedUnicodeString;
@@ -349,7 +425,7 @@ procedure HookIntoResourceStrings (enabled:boolean=true; SupportPackages:boolean
 type
   TOnDebugLine = Procedure (Sender: TObject; const Line: String; var Discard: Boolean) of Object;  // Set Discard to false if output should still go to ordinary debug log
   TGetPluralForm=function (Number:Longint):Integer;
-  TDebugLogger=procedure (line: ansistring) of object;
+  TDebugLogger=procedure (line: string) of object;
 
 {*------------------------------------------------------------------------------
   Handles .mo files, in separate files or inside the exe file.
@@ -484,8 +560,15 @@ type
       procedure bindtextdomain(const szDomain: DomainString; const szDirectory: FilenameString);
       procedure bindtextdomainToFile (const szDomain: DomainString; const filename: FilenameString); // Also works with files embedded in exe file
 
+      // particular translations (context parameter)
+      function pgettext(const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+      function pdgettext(const szDomain: DomainString; const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+      function pngettext(const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+      function pdngettext(const szDomain: DomainString; const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+
       // Windows API functions
       function LoadResString(ResStringRec: PResStringRec): UnicodeString;
+      function PLoadResString(const szMsgCtxt: MsgIdString; ResStringRec: PResStringRec): UnicodeString;
 
       // Output all log info to this file. This may only be called once.
       procedure DebugLogToFile (const filename:FilenameString; append:boolean=false);
@@ -533,16 +616,21 @@ type
       procedure FreeTP_ClassHandlingItems;
       function ClassIsIgnored(AClass:TClass): Boolean;
       {$ifdef DXGETTEXTDEBUG}
-      procedure DebugWriteln(line: ansistring);
+      procedure DebugWriteln(Line: string);
       {$endif}
       procedure TranslateProperty(AnObject: TObject; PropInfo: PPropInfo;
         TodoList: TStrings; const TextDomain:DomainString);
       function Getdomain(const domain:DomainString; const DefaultDomainDirectory:FilenameString; const CurLang: LanguageString): TDomain;  // Translates a single property of an object
+
+      function GetResString(ResStringRec: PResStringRec): UnicodeString;
+      function ResourceStringGettext(MsgId: MsgIdString): TranslatedUnicodeString;
+      procedure pgettext_fixup(const szLookup,szMsgId: MsgIdString; var szTranslation: MsgIdString); {$ifdef dx_has_Inline}inline;{$endif}
     end;
 
 const
   LOCALE_SISO639LANGNAME = $59;    // Used by Lazarus software development tool
   LOCALE_SISO3166CTRYNAME = $5A;   // Used by Lazarus software development tool
+  GETTEXT_CONTEXT_GLUE = #4;
 
 var
   DefaultInstance:TGnuGettextInstance;  /// Default instance of the main API for singlethreaded applications.
@@ -771,25 +859,8 @@ begin
 end;
 
 function ResourceStringGettext(MsgId: MsgIdString): TranslatedUnicodeString;
-var
-  i:integer;
 begin
-  if (MsgID='') or (ResourceStringDomainListCS=nil) then begin
-    // This only happens during very complicated program startups that fail,
-    // or when Msgid=''
-    Result:=MsgId;
-    exit;
-  end;
-  ResourceStringDomainListCS.BeginRead;
-  try
-    for i:=0 to ResourceStringDomainList.Count-1 do begin
-      Result:=dgettext(ResourceStringDomainList.Strings[i], MsgId);
-      if Result<>MsgId then
-        break;
-    end;
-  finally
-    ResourceStringDomainListCS.EndRead;
-  end;
+  Result := DefaultInstance.ResourceStringGettext(MsgId);
 end;
 
 function ComponentGettext(MsgId: MsgIdString; Instance: TGnuGettextInstance = nil): TranslatedUnicodeString;
@@ -910,6 +981,26 @@ begin
   // This can sometimes be necessary, and by using this function,
   // the source code scanner will not trigger warnings.
   Result := ngettext(singular, plural, Number);
+end;
+
+function pgettext(const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+begin
+  Result:=DefaultInstance.pgettext(szMsgCtxt,szMsgId);
+end;
+
+function pdgettext(const szDomain: DomainString; const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+begin
+  Result:=DefaultInstance.pdgettext(szDomain,szMsgCtxt,szMsgId);
+end;
+
+function pngettext(const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+begin
+  Result:=DefaultInstance.pngettext(szMsgCtxt,singular,plural,Number);
+end;
+
+function pdngettext(const szDomain: DomainString; const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+begin
+  Result:=DefaultInstance.pdngettext(szDomain,szMsgCtxt,singular,plural,Number);
 end;
 
 procedure textdomain(const szDomain: Domainstring);
@@ -1226,7 +1317,15 @@ begin
   Result:=DefaultInstance.LoadResString(ResStringRec);
 end;
 
+function PLoadResString(const szMsgCtxt: MsgIdString; ResStringRec: PResStringRec): widestring;
+begin
+  Result:=DefaultInstance.PLoadResString(szMsgCtxt,ResStringRec);
+end;
 
+function PLoadResStringW(const szMsgCtxt: MsgIdString; ResStringRec: PResStringRec): UnicodeString;
+begin
+  Result:=DefaultInstance.PLoadResString(szMsgCtxt,ResStringRec);
+end;
 
 function GetCurrentLanguage:LanguageString;
 begin
@@ -1613,16 +1712,16 @@ begin
     OpenMoFile;
   if mofile=nil then begin
     {$ifdef DXGETTEXTDEBUG}
-    DebugLogger('.mo file is not open. Not translating "'+msgid+'"');
+    DebugLogger('.mo file is not open. Not translating "'+string(msgid)+'"');
     {$endif}
     Result := msgid;
   end else begin
     Result:=mofile.gettext(msgid,found);
     {$ifdef DXGETTEXTDEBUG}
     if found then
-      DebugLogger ('Found in .mo ('+Domain+'): "'+utf8encode(msgid)+'"->"'+utf8encode(Result)+'"')
+      DebugLogger ('Found in .mo ('+Domain+'): "'+string(utf8encode(msgid))+'"->"'+string(utf8encode(Result))+'"')
     else
-      DebugLogger ('Translation not found in .mo file ('+Domain+') : "'+utf8encode(msgid)+'"');
+      DebugLogger ('Translation not found in .mo file ('+Domain+') : "'+string(utf8encode(msgid))+'"');
     {$endif}
   end;
 end;
@@ -1781,7 +1880,7 @@ begin
       domain := domainlist[domainIndex];
       Result := dgettext(domain, szMsgId);
       Inc(domainIndex);
-  	end;
+    end;
   end;
 end;
 {$endif}
@@ -1799,7 +1898,7 @@ begin
       domain := domainlist[domainIndex];
       Result := dgettext(domain, szMsgId);
       Inc(domainIndex);
-  	end;
+    end;
   end;
 end;
 
@@ -1821,6 +1920,48 @@ begin
   //      4.7 - Special Cases of Translatable Strings
   //      http://www.gnu.org/software/hello/manual/gettext/Special-cases.html#Special-cases
   Result := TranslatedUnicodeString(szMsgId);
+end;
+
+procedure TGnuGettextInstance.pgettext_fixup(const szLookup,szMsgId: MsgIdString; var szTranslation: MsgIdString);
+begin
+  if szTranslation = szLookup then
+    szTranslation := szMsgId;
+end;
+
+function TGnuGettextInstance.pgettext(const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+var
+  lookup: MsgIdString;
+begin
+  lookup := szMsgCtxt + GETTEXT_CONTEXT_GLUE + szMsgId;
+  Result := gettext(lookup);
+  pgettext_fixup(lookup, szMsgId, Result);
+end;
+
+function TGnuGettextInstance.pdgettext(const szDomain: DomainString; const szMsgCtxt,szMsgId: MsgIdString): TranslatedUnicodeString;
+var
+  lookup: MsgIdString;
+begin
+  lookup := szMsgCtxt + GETTEXT_CONTEXT_GLUE + szMsgId;
+  Result := dgettext(szDomain, lookup);
+  pgettext_fixup(lookup, szMsgId, Result);
+end;
+
+function TGnuGettextInstance.pngettext(const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+var
+  lookup: MsgIdString;
+begin
+  lookup := szMsgCtxt + GETTEXT_CONTEXT_GLUE + singular;
+  Result := ngettext(lookup, plural, Number);
+  pgettext_fixup(lookup, singular, Result);
+end;
+
+function TGnuGettextInstance.pdngettext(const szDomain: DomainString; const szMsgCtxt,singular,plural: MsgIdString; Number:longint): TranslatedUnicodeString;
+var
+  lookup: MsgIdString;
+begin
+  lookup := szMsgCtxt + GETTEXT_CONTEXT_GLUE + singular;
+  Result := dngettext(szDomain, lookup, plural, Number);
+  pgettext_fixup(lookup, singular, Result);
 end;
 
 procedure TGnuGettextInstance.textdomain(const szDomain: DomainString);
@@ -2390,8 +2531,8 @@ var
   line: string;
   i: integer;
   tempSL: TStringList;
-  slAsTStringList:TStringList;
   {$ifdef dx_StringList_has_OwnsObjects}
+  slAsTStringList: TStringList;
   originalOwnsObjects: Boolean;
   {$endif dx_StringList_has_OwnsObjects}
 begin
@@ -2403,11 +2544,11 @@ begin
     // To avoid this we must disable OwnsObjects while we replace the strings, but
     // only if sl is a TStringList instance and if using Delphi 2009 or later.
     originalOwnsObjects := False; // avoid warning
-    {$endif dx_StringList_has_OwnsObjects}
     if sl is TStringList then
       slAsTStringList := TStringList(sl)
     else
       slAsTStringList := nil;
+    {$endif dx_StringList_has_OwnsObjects}
 
     sl.BeginUpdate;
     try
@@ -2420,7 +2561,7 @@ begin
         for i:=0 to tempSL.Count-1 do begin
           line:=tempSL.Strings[i];
           if line<>'' then
-            if TextDomain = '' then
+            if (TextDomain = '') or (TextDomain = DefaultTextDomain) then
               tempSL.Strings[i]:=ComponentGettext(line, Self)
             else
               tempSL.Strings[i]:=dgettext(TextDomain,line);
@@ -2436,6 +2577,7 @@ begin
           end;
           {$endif dx_StringList_has_OwnsObjects}
           try
+            {$ifdef dx_StringList_has_OwnsObjects}
             if Assigned(slAsTStringList) and slAsTStringList.Sorted then
             begin
               // TStringList doesn't release the objects in PutObject, so we use this to get
@@ -2454,6 +2596,7 @@ begin
               sl.AddStrings(tempSL);
             end
             else
+            {$endif dx_StringList_has_OwnsObjects}
             begin
               for i := 0 to sl.Count - 1 do
                 sl[i] := tempSL[i];
@@ -2481,8 +2624,8 @@ var
   line: string;
   i: integer;
   tempSL:TWideStringList;
-  slAsTWideStringList:TWideStringList;
   {$ifdef dx_StringList_has_OwnsObjects}
+  slAsTWideStringList:TWideStringList;
   originalOwnsObjects: Boolean;
   {$endif dx_StringList_has_OwnsObjects}
 begin
@@ -2494,11 +2637,11 @@ begin
     // To avoid this we must disable OwnsObjects while we replace the strings, but
     // only if sl is a TWideStringList instance and if using Delphi 2009 or later.
     originalOwnsObjects := False; // avoid warning
-    {$endif dx_StringList_has_OwnsObjects}
     if sl is TWideStringList then
       slAsTWideStringList := TWideStringList(sl)
     else
       slAsTWideStringList := nil;
+    {$endif dx_StringList_has_OwnsObjects}
 
     sl.BeginUpdate;
     try
@@ -2527,6 +2670,7 @@ begin
           end;
           {$endif dx_StringList_has_OwnsObjects}
           try
+            {$ifdef dx_StringList_has_OwnsObjects}
             if Assigned(slAsTWideStringList) and slAsTWideStringList.Sorted then
             begin
               // TWideStringList doesn't release the objects in PutObject, so we use this to get
@@ -2545,6 +2689,7 @@ begin
               sl.AddStrings(tempSL);
             end
             else
+            {$endif dx_StringList_has_OwnsObjects}
             begin
               for i := 0 to sl.Count - 1 do
                 sl[i] := tempSL[i];
@@ -2604,14 +2749,14 @@ begin
     p:=pos(#0,trans);
     if p=0 then begin
       {$ifdef DXGETTEXTDEBUG}
-      DebugWriteln ('Last translation used: '+utf8encode(trans));
+      DebugWriteln ('Last translation used: '+string(utf8encode(trans)));
       {$endif}
       Result:=trans;
       exit;
     end;
     if idx=0 then begin
       {$ifdef DXGETTEXTDEBUG}
-      DebugWriteln ('Translation found: '+utf8encode(trans));
+      DebugWriteln ('Translation found: '+string(utf8encode(trans)));
       {$endif}
       Result:=LeftStr(trans,p-1);
       exit;
@@ -2645,7 +2790,7 @@ begin
       domain := domainlist[domainIndex];
       Result := dngettext(domain, singular, plural, Number);
       Inc(domainIndex);
-  	end;
+    end;
   end;
 end;
 {$endif}
@@ -2663,7 +2808,7 @@ begin
       domain := domainlist[domainIndex];
       Result := dngettext(domain, singular, plural, Number);
       Inc(domainIndex);
-  	end;
+    end;
   end;
 end;
 
@@ -2752,9 +2897,10 @@ begin
 end;
 
 {$ifdef DXGETTEXTDEBUG}
-procedure TGnuGettextInstance.DebugWriteln(line: ansistring);
+procedure TGnuGettextInstance.DebugWriteln(Line: string);
 Var
   Discard: Boolean;
+  ALine: AnsiString;
 begin
   Assert (DebugLogCS<>nil);
   Assert (DebugLog<>nil);
@@ -2770,17 +2916,18 @@ begin
       If Discard then Exit;
     end;
 
-    line:=line+sLineBreak;
+    ALine := AnsiString(Line);
+    ALine:=ALine+sLineBreak;
 
     // Ensure that memory usage doesn't get too big.
     if (DebugLog is TMemoryStream) and (DebugLog.Position>1000000) then begin
-      line:=sLineBreak+sLineBreak+sLineBreak+sLineBreak+sLineBreak+
+      ALine:=sLineBreak+sLineBreak+sLineBreak+sLineBreak+sLineBreak+
             'Debug log halted because memory usage grew too much.'+sLineBreak+
             'Specify a filename to store the debug log in or disable debug loggin in gnugettext.pas.'+
             sLineBreak+sLineBreak+sLineBreak+sLineBreak+sLineBreak;
       DebugLogOutputPaused:=True;
     end;
-    DebugLog.WriteBuffer(line[1],length(line));
+    DebugLog.WriteBuffer(ALine[1],length(ALine));
   finally
     DebugLogCS.EndWrite;
   end;
@@ -2808,8 +2955,7 @@ begin
   end;
 end;
 
-function TGnuGettextInstance.LoadResString(
-  ResStringRec: PResStringRec): UnicodeString;
+function TGnuGettextInstance.GetResString(ResStringRec: PResStringRec): UnicodeString;
 {$ifdef MSWINDOWS}
 var
   Len: Integer;
@@ -2838,43 +2984,74 @@ begin
     {$endif}
     Result:='ERROR';
     exit;
-  end else begin
-    {$ifdef LINUX}
-    // This works with Unicode if the Linux has utf-8 character set
-    // Result:=System.LoadResString(ResStringRec);
-    ResMod:=FindResourceHInstance(ResStringRec^.Module^);
-    Handle:=FindResource(ResMod,
-      PAnsiChar(ResStringRec^.Identifier div ResStringTableLen), PAnsiChar(6));   // RT_STRING
-    Tab:=Pointer(LoadResource(ResMod, Handle));
-    if Tab=nil then
-      Result:=''
-    else
-      Result:=PWideChar(PAnsiChar(Tab)+Tab[ResStringRec^.Identifier mod ResStringTableLen]);
-    {$endif}
-    {$ifdef MSWINDOWS}
-    if not Win32PlatformIsUnicode then begin
-      SetString(Result, Buffer,
-        LoadString(FindResourceHInstance(ResStringRec.Module^),
-          ResStringRec.Identifier, Buffer, SizeOf(Buffer)))
-    end else begin
-      Result := '';
-      Len := 0;
-      While Length(Result)<=Len+1 do begin     
-        if Length(Result) = 0 then
-          SetLength(Result, 1024)
-        else
-          SetLength(Result, Length(Result) * 2);
-        Len := LoadStringW(FindResourceHInstance(ResStringRec.Module^),
-          ResStringRec.Identifier, PWideChar(Result), Length(Result));
-      end;
-      SetLength(Result, Len);
-    end;
-    {$endif}
   end;
-  {$ifdef DXGETTEXTDEBUG}
-  DebugWriteln ('Loaded resourcestring: '+utf8encode(Result));
+  {$ifdef LINUX}
+  // This works with Unicode if the Linux has utf-8 character set
+  // Result:=System.LoadResString(ResStringRec);
+  ResMod:=FindResourceHInstance(ResStringRec^.Module^);
+  Handle:=FindResource(ResMod,
+    PAnsiChar(ResStringRec^.Identifier div ResStringTableLen), PAnsiChar(6));   // RT_STRING
+  Tab:=Pointer(LoadResource(ResMod, Handle));
+  if Tab=nil then
+    Result:=''
+  else
+    Result:=PWideChar(PAnsiChar(Tab)+Tab[ResStringRec^.Identifier mod ResStringTableLen]);
   {$endif}
-  Result:=ResourceStringGettext(Result);
+  {$ifdef MSWINDOWS}
+  if not Win32PlatformIsUnicode then begin
+    SetString(Result, Buffer,
+      LoadString(FindResourceHInstance(ResStringRec.Module^),
+        ResStringRec.Identifier, Buffer, SizeOf(Buffer)))
+  end else begin
+    Result := '';
+    Len := 0;
+    While Length(Result)<=Len+1 do begin
+      if Length(Result) = 0 then
+        SetLength(Result, 1024)
+      else
+        SetLength(Result, Length(Result) * 2);
+      Len := LoadStringW(FindResourceHInstance(ResStringRec.Module^),
+        ResStringRec.Identifier, PWideChar(Result), Length(Result));
+    end;
+    SetLength(Result, Len);
+  end;
+  {$endif}
+  {$ifdef DXGETTEXTDEBUG}
+  DebugWriteln ('Loaded resourcestring: '+string(utf8encode(Result)));
+  {$endif}
+end;
+
+function TGnuGettextInstance.ResourceStringGettext(MsgId: MsgIdString): TranslatedUnicodeString;
+var
+  i:integer;
+begin
+  if (MsgID='') or (ResourceStringDomainListCS=nil) then begin
+    // This only happens during very complicated program startups that fail,
+    // or when Msgid=''
+    Result:=MsgId;
+    exit;
+  end;
+  ResourceStringDomainListCS.BeginRead;
+  try
+    for i:=0 to ResourceStringDomainList.Count-1 do begin
+      Result:=dgettext(ResourceStringDomainList.Strings[i], MsgId);
+      if Result<>MsgId then
+        break;
+    end;
+  finally
+    ResourceStringDomainListCS.EndRead;
+  end;
+end;
+
+function TGnuGettextInstance.LoadResString(
+  ResStringRec: PResStringRec): UnicodeString;
+begin
+  Result:=ResourceStringGettext(GetResString(ResStringRec));
+end;
+
+function TGnuGettextInstance.PLoadResString(const szMsgCtxt: MsgIdString; ResStringRec: PResStringRec): UnicodeString;
+begin
+  Result:=PGettext(szMsgCtxt, GetResString(ResStringRec));
 end;
 
 procedure TGnuGettextInstance.RegisterWhenNewLanguageListener(
@@ -3986,9 +4163,11 @@ begin
       System.Move(objClassData^, proxyClassData^, size);
       PProxyClassData(proxyClassData)^.Parent:=@(objClassData^.SelfPtr);
       PProxyClassData(proxyClassData)^.SelfPtr:=proxyClass;
+{$IFDEF dx_ChangeProxyClassname}
       PProxyClassData(proxyClassData)^.ClassName:=PShortString(PAnsiChar(proxyClassData)+size-hookedClassNameLength-2);
       SetLength(PProxyClassData(proxyClassData)^.ClassName^,hookedClassNameLength);
       System.Move(AnsiString('!dx'#0),(PAnsiChar(PProxyClassData(proxyClassData)^.ClassName)+hookedClassNameLength+1-3)^,4);
+{$ENDIF}
 
       // Place our BeforeDestruction virtual method in the metaclass VMT
       beforeDestructionVmtAddr:=GetBeforeDestructionVmtAddress(proxyClass);
@@ -4140,6 +4319,4 @@ finalization
   FreeAndNil (KnownRetranslators);
 
 end.
-
-
 
