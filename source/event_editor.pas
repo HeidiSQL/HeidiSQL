@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, SynEdit, SynMemo, SynRegExpr, ComCtrls, ExtCtrls, WideStrUtils,
-  helpers, dbconnection, gnugettext;
+  heidi_helpers, dbconnection, gnugettext;
 
 type
   TFrame = TDBObjectEditor;

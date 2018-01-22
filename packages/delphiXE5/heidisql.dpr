@@ -16,7 +16,7 @@ uses
   printlist in '..\..\source\printlist.pas' {printlistForm},
   copytable in '..\..\source\copytable.pas' {CopyTableForm},
   insertfiles in '..\..\source\insertfiles.pas' {frmInsertFiles},
-  helpers in '..\..\source\helpers.pas',
+  heidi_helpers in '..\..\source\heidi_helpers.pas',
   sqlhelp in '..\..\source\sqlhelp.pas' {frmSQLhelp},
   mysql_structures in '..\..\source\mysql_structures.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
@@ -73,7 +73,7 @@ begin
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
-    MainForm.AfterFormCreate;
+  MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
     Application.OnShowHint := MainForm.ApplicationShowHint;
     Application.MainFormOnTaskBar := True;

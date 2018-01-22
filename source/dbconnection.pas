@@ -761,7 +761,7 @@ var
 
 implementation
 
-uses helpers, loginform, change_password;
+uses heidi_helpers, loginform, change_password;
 
 
 { TProcessPipe }

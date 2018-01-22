@@ -155,7 +155,7 @@
         <DCCReference Include="..\..\source\insertfiles.pas">
             <Form>frmInsertFiles</Form>
         </DCCReference>
-        <DCCReference Include="..\..\source\helpers.pas"/>
+        <DCCReference Include="..\..\source\heidi_helpers.pas"/>
         <DCCReference Include="..\..\source\sqlhelp.pas">
             <Form>frmSQLhelp</Form>
         </DCCReference>

@@ -14,10 +14,11 @@ uses
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
-  routine_editor, trigger_editor, event_editor, options, EditVar, helpers, createdatabase, table_editor,
+  routine_editor, trigger_editor, event_editor, options, EditVar, heidi_helpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix;
+  JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix,
+  System.ImageList;
 
 
 type

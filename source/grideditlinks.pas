@@ -7,7 +7,7 @@ interface
 uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
-  dbconnection, mysql_structures, helpers, texteditor, bineditor, gnugettext,
+  dbconnection, mysql_structures, heidi_helpers, texteditor, bineditor, gnugettext,
   StrUtils, System.UITypes, SynRegExpr;
 
 type
