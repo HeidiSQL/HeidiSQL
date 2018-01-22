@@ -198,6 +198,85 @@ interface
   {$DEFINE dx_has_VclThemes}
   {$DEFINE dx_midstr_in_AnsiStrings}
 {$endif}
+{$ifdef VER265}
+  // AppMethod 1
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER270}
+  // Delphi XE6
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER280}
+  // Delphi XE7
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER290}
+  // Delphi XE8
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER300}
+  // Delphi Seattle
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER310}
+  // Delphi Berlin
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+{$ifdef VER320}
+  // Delphi Tokyo
+  {$DEFINE dx_has_Unsafe_Warnings}
+  {$DEFINE dx_has_WideStrings}
+  {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_GetStrProp_reads_unicode}
+  {$DEFINE dx_has_Inline}
+  {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_midstr_in_AnsiStrings}
+{$endif}
+
+
 
 {$ifdef dx_has_Unsafe_Warnings}
   {$WARN UNSAFE_TYPE OFF}
