@@ -224,10 +224,14 @@ begin
   // Fix GUI stuff
   TranslateComponent(Self);
   InheritFont(Font);
+
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
   Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);
   Top := AppSettings.ReadInt(asSessionManagerWindowTop, '', Top);
+  // Move to visible area if window was on a now plugged off monitor previously
+  MakeFullyVisible;
+
   ListSessions.Width := AppSettings.ReadInt(asSessionManagerListWidth);
   splitterMain.OnMoved(Sender);
   FixVT(ListSessions);
