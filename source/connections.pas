@@ -214,7 +214,7 @@ end;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  LastActiveSession: String;
+  LastActiveSession, NetTypeStr: String;
   LastSessions: TStringList;
   PSess: PConnectionParameters;
   nt: TNetType;
@@ -244,8 +244,13 @@ begin
 
   comboNetType.Clear;
   Params := TConnectionParameters.Create;
-  for nt:=Low(nt) to High(nt) do
-    comboNetType.Items.Add(Params.NetTypeName(nt, True));
+  for nt:=Low(nt) to High(nt) do begin
+    NetTypeStr := Params.NetTypeName(nt, True);
+    if RunningOnWindows10S and (not Params.IsCompatibleToWin10S(nt)) then begin
+      NetTypeStr := NetTypeStr + ' ['+_('Does not work on Windows 10 S')+']';
+    end;
+    comboNetType.Items.Add(NetTypeStr);
+  end;
   Params.Free;
 
   // Init sessions tree

@@ -338,7 +338,8 @@ type
   procedure Help(Sender: TObject; Anchor: String);
   function PortOpen(Port: Word): Boolean;
   function IsValidFilePath(FilePath: String): Boolean;
-
+  function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
+  function RunningOnWindows10S: Boolean;
 
 var
   AppSettings: TAppSettings;
@@ -2833,6 +2834,22 @@ begin
   Pieces.Free;
 end;
 
+
+function RunningOnWindows10S: Boolean;
+const
+  PRODUCT_CLOUD = $000000B2;  //* Windows 10 S
+  PRODUCT_CLOUDN = $000000B3; //* Windows 10 S N
+  PRODUCT_CORE = $00000065;   //* Windows 10 Home
+var
+  pdwReturnedProductType: DWORD;
+begin
+  // Detect if we're running on Windows 10 S
+  // Taken from https://forums.embarcadero.com/message.jspa?messageID=900804
+  Result := False;
+  if GetProductInfo(10, 10, 0, 0, pdwReturnedProductType) then begin
+    Result := (pdwReturnedProductType = PRODUCT_CLOUD) OR (pdwReturnedProductType = PRODUCT_CLOUDN);
+  end;
+end;
 
 
 { Threading stuff }
