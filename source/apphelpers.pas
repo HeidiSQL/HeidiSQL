@@ -2849,8 +2849,11 @@ begin
   // Detect if we're running on Windows 10 S
   // Taken from https://forums.embarcadero.com/message.jspa?messageID=900804
   Result := False;
-  if GetProductInfo(10, 10, 0, 0, pdwReturnedProductType) then begin
-    Result := (pdwReturnedProductType = PRODUCT_CLOUD) OR (pdwReturnedProductType = PRODUCT_CLOUDN);
+  // Avoid crash on WinXP
+  if Win32MajorVersion >= 6 then begin
+    if GetProductInfo(10, 10, 0, 0, pdwReturnedProductType) then begin
+      Result := (pdwReturnedProductType = PRODUCT_CLOUD) OR (pdwReturnedProductType = PRODUCT_CLOUDN);
+    end;
   end;
 end;
 
