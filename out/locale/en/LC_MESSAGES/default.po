@@ -6331,3 +6331,9 @@ msgstr "Does not work on Windows 10 S"
 
 msgid "The network type defined for this session is not compatible to your Windows 10 S"
 msgstr "The network type defined for this session is not compatible to your Windows 10 S"
+
+msgid "Error when checking for updates: %s"
+msgstr "Error when checking for updates: %s"
+
+msgid "Please update %s through your Windows Store."
+msgstr "Please update %s through your Windows Store."

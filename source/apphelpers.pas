@@ -340,6 +340,9 @@ type
   function IsValidFilePath(FilePath: String): Boolean;
   function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
   function RunningOnWindows10S: Boolean;
+  function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
+  function GetUwpFullName: String;
+  function RunningAsUwp: Boolean;
 
 var
   AppSettings: TAppSettings;
@@ -2849,6 +2852,32 @@ begin
   if GetProductInfo(10, 10, 0, 0, pdwReturnedProductType) then begin
     Result := (pdwReturnedProductType = PRODUCT_CLOUD) OR (pdwReturnedProductType = PRODUCT_CLOUDN);
   end;
+end;
+
+
+function GetUwpFullName: String;
+var
+  Len: Cardinal;
+  Name: String;
+begin
+  // Detect current Windows Store package name
+  // See https://stackoverflow.com/questions/48549899/how-to-detect-universal-windows-platform-uwp-in-delphi
+  Result := '';
+  if (Win32MajorVersion > 6) or ((Win32MajorVersion = 6) and (Win32MinorVersion > 1)) then begin
+    // Windows 10, but not necessarily a Store App
+    Len := 0;
+    GetCurrentPackageFullName(Len, nil);
+    SetLength(Name, Len-1);
+    GetCurrentPackageFullName(Len, PWideChar(Name));
+    if not Name.IsEmpty then
+      Result := Trim(Name);
+  end;
+end;
+
+
+function RunningAsUwp: Boolean;
+begin
+  Result := GetUwpFullName <> '';
 end;
 
 

@@ -1933,6 +1933,11 @@ begin
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
   FFormatSettings := TFormatSettings.Create('en-US');
+
+  if RunningAsUwp then begin
+    actUpdateCheck.Enabled := False;
+    actUpdateCheck.Hint := f_('Please update %s through your Windows Store.', [APPNAME]);
+  end;
 end;
 
 
@@ -1977,7 +1982,7 @@ begin
         end;
       except
         on E:Exception do
-          LogSQL(E.Message);
+          LogSQL(f_('Error when checking for updates: %s', [E.Message]));
       end;
       frm.Free;
     end;
