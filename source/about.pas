@@ -26,6 +26,7 @@ type
     lblCredits: TLabel;
     popupLabels: TPopupMenu;
     menuCopyLabel: TMenuItem;
+    lblEnvironment: TLabel;
     procedure OpenURL(Sender: TObject);
     procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
@@ -141,6 +142,18 @@ begin
   lblAppWebpage.Caption := APPDOMAIN;
   lblAppWebpage.Hint := APPDOMAIN+'?place='+EncodeURLParam(lblAppWebpage.Name);
   ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
+  lblEnvironment.Caption := _('Environment:');
+  if RunningAsUwp then begin
+    lblEnvironment.Caption := lblEnvironment.Caption +
+      ' Windows v'+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion) +
+      ', Store Package ' + GetUwpFullName;
+  end else if MainForm.IsWine then begin
+    lblEnvironment.Caption := lblEnvironment.Caption +
+      ' Linux/Wine';
+  end else begin
+    lblEnvironment.Caption := lblEnvironment.Caption +
+      ' Windows v'+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
+  end;
 
   Screen.Cursor := crDefault;
 end;

@@ -3755,6 +3755,9 @@ msgstr "None"
 msgid "Compiled on:"
 msgstr "Compiled on:"
 
+msgid "Environment:"
+msgstr "Environment:"
+
 #: bineditor.pas:175 texteditor.pas:259
 msgid "Apply modifications?"
 msgstr "Apply modifications?"

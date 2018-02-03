@@ -49,7 +49,7 @@ object AboutBox: TAboutBox
   end
   object lblAppCompiled: TLabel
     Left = 117
-    Top = 60
+    Top = 62
     Width = 72
     Height = 13
     Caption = 'lblAppCompiled'
@@ -58,7 +58,7 @@ object AboutBox: TAboutBox
   end
   object lblAppWebpage: TLabel
     Left = 117
-    Top = 78
+    Top = 100
     Width = 75
     Height = 13
     Cursor = crHandPoint
@@ -1381,7 +1381,7 @@ object AboutBox: TAboutBox
   end
   object lblCredits: TLabel
     Left = 117
-    Top = 97
+    Top = 119
     Width = 34
     Height = 13
     Cursor = crHandPoint
@@ -1397,6 +1397,14 @@ object AboutBox: TAboutBox
     PopupMenu = popupLabels
     OnClick = lblCreditsClick
     OnMouseMove = MouseOver
+  end
+  object lblEnvironment: TLabel
+    Left = 117
+    Top = 81
+    Width = 70
+    Height = 13
+    Caption = 'lblEnvironment'
+    PopupMenu = popupLabels
   end
   object btnClose: TButton
     Left = 373
