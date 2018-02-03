@@ -10876,6 +10876,7 @@ begin
     Editor.Font.Size := AppSettings.ReadInt(asFontSize);
     Editor.Gutter.Font.Name := Editor.Font.Name;
     Editor.Gutter.Font.Size := Editor.Font.Size;
+    Editor.Gutter.Font.Color := BaseEditor.Gutter.Font.Color;
     Editor.Gutter.AutoSize := BaseEditor.Gutter.AutoSize;
     Editor.Gutter.DigitCount := BaseEditor.Gutter.DigitCount;
     Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;

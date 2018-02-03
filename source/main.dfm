@@ -44,9 +44,8 @@ object MainForm: TMainForm
     PopupMenu = popupSqlLog
     TabOrder = 1
     Gutter.AutoSize = True
-    Gutter.DigitCount = 2
     Gutter.Font.Charset = DEFAULT_CHARSET
-    Gutter.Font.Color = clWindowText
+    Gutter.Font.Color = clGrayText
     Gutter.Font.Height = -11
     Gutter.Font.Name = 'Terminal'
     Gutter.Font.Style = []
@@ -1312,9 +1311,8 @@ object MainForm: TMainForm
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
               Gutter.AutoSize = True
-              Gutter.DigitCount = 2
               Gutter.Font.Charset = DEFAULT_CHARSET
-              Gutter.Font.Color = clWindowText
+              Gutter.Font.Color = clGrayText
               Gutter.Font.Height = -11
               Gutter.Font.Name = 'Terminal'
               Gutter.Font.Style = []
