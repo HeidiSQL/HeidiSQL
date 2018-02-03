@@ -160,10 +160,7 @@ begin
   actSearchReplace.Caption := MainForm.actQueryReplace.Caption;
   actSearchReplace.Hint := MainForm.actQueryReplace.Hint;
   TranslateComponent(Self);
-  // Work around broken dropdown toolbutton after translation:
-  // https://sourceforge.net/tracker/index.php?func=detail&aid=902470&group_id=74086&atid=539908
-  btnLinebreaks.Style := tbsButton;
-  btnLinebreaks.Style := tbsDropDown;
+  FixDropDownButtons(Self);
   // Assign linebreak values to their menu item tags, to write less code later
   menuWindowsLB.Tag := Integer(lbsWindows);
   menuUnixLB.Tag := Integer(lbsUnix);

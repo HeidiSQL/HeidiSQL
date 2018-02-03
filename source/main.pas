@@ -1606,22 +1606,13 @@ begin
   // space left besides them.
   TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
+  FixDropDownButtons(Self);
   MainMenu1.Images := ImageListMain;
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
   menuQueryHelpersGenerateInsert.Caption := f_('Generate %s ...', ['INSERT']);
   menuQueryHelpersGenerateUpdate.Caption := f_('Generate %s ...', ['UPDATE']);
   menuQueryHelpersGenerateDelete.Caption := f_('Generate %s ...', ['DELETE']);
-
-  // Fix drop down buttons on main toolbar. Same as r4304.
-  // Caused by missing Application.MainFormOnTaskBar
-  for i:=0 to ToolBarMainButtons.ButtonCount-1 do begin
-    ToolButton := ToolBarMainButtons.Buttons[i];
-    if ToolButton.Style = tbsDropDown then begin
-      ToolButton.Style := tbsButton;
-      ToolButton.Style := tbsDropDown;
-    end;
-  end;
 
   // Detect version
   dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);

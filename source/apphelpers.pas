@@ -13,7 +13,7 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
-  Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils;
+  Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls;
 
 type
 
@@ -292,6 +292,7 @@ type
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
+  procedure FixDropDownButtons(Form: TForm);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   function ComposeOrderClause(Cols: TOrderColArray): String;
@@ -1446,10 +1447,31 @@ begin
   VT.ShowHint := True;
   VT.HintMode := hmToolTip;
   // Apply case insensitive incremental search event
-  if VT.IncrementalSearch <> isNone then
+  if VT.IncrementalSearch <> VirtualTrees.isNone then
     VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
+end;
+
+
+procedure FixDropDownButtons(Form: TForm);
+var
+  i: Integer;
+  Comp: TComponent;
+begin
+  // Work around broken dropdown (tool)button on Wine after translation:
+  // https://sourceforge.net/p/dxgettext/bugs/80/
+  for i:=0 to Form.ComponentCount-1 do begin
+    Comp := Form.Components[i];
+    if (Comp is TButton) and (TButton(Comp).Style = bsSplitButton) then begin
+      TButton(Comp).Style := bsPushButton;
+      TButton(Comp).Style := bsSplitButton;
+    end;
+    if (Comp is TToolButton) and (TToolButton(Comp).Style = tbsDropDown) then begin
+      TToolButton(Comp).Style := tbsButton;
+      TToolButton(Comp).Style := tbsDropDown;
+    end;
+  end;
 end;
 
 

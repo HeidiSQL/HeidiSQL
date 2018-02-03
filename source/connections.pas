@@ -224,6 +224,7 @@ begin
   // Fix GUI stuff
   TranslateComponent(Self);
   InheritFont(Font);
+  FixDropDownButtons(Self);
 
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
