@@ -49,9 +49,9 @@ type
     { Private declarations }
     FModified: Boolean;
     FStopping: Boolean;
-    DetectedLineBreaks,
-    SelectedLineBreaks: TLineBreaks;
-    memoText: TLineNormalizingMemo;
+    FDetectedLineBreaks,
+    FSelectedLineBreaks: TLineBreaks;
+    FmemoText: TLineNormalizingMemo;
     procedure SetModified(NewVal: Boolean);
   public
     function GetText: String;
@@ -73,10 +73,10 @@ function TfrmTextEditor.GetText: String;
 var
   LB: String;
 begin
-  Result := memoText.Text;
+  Result := FmemoText.Text;
   // Convert linebreaks back to selected
   LB := '';
-  case SelectedLineBreaks of
+  case FSelectedLineBreaks of
     lbsUnix: LB := LB_UNIX;
     lbsMac: LB := LB_MAC;
     lbsWide: LB := LB_WIDE;
@@ -90,18 +90,18 @@ procedure TfrmTextEditor.SetText(text: String);
 var
   Detected, Item: TMenuItem;
 begin
-  DetectedLineBreaks := ScanLineBreaks(text);
-  if DetectedLineBreaks = lbsNone then
-    DetectedLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
+  FDetectedLineBreaks := ScanLineBreaks(text);
+  if FDetectedLineBreaks = lbsNone then
+    FDetectedLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   for Item in popupLinebreaks.Items do begin
-    if Item.Tag = Integer(DetectedLineBreaks) then begin
+    if Item.Tag = Integer(FDetectedLineBreaks) then begin
       Detected := Item;
     end;
   end;
   if Assigned(Detected) then
     SelectLineBreaks(Detected);
-  memoText.Text := text;
-  memoText.SelectAll;
+  FmemoText.Text := text;
+  FmemoText.SelectAll;
   Modified := False;
 end;
 
@@ -117,7 +117,7 @@ begin
   menuWideLB.Caption := _('Unicode linebreaks');
   menuMixedLB.Caption := _('Mixed linebreaks');
   for Item in popupLinebreaks.Items do begin
-    if Item.Tag = Integer(DetectedLineBreaks) then begin
+    if Item.Tag = Integer(FDetectedLineBreaks) then begin
       Item.Caption := Item.Caption + ' (' + _('detected') + ')';
     end;
   end;
@@ -125,7 +125,7 @@ begin
   Selected.Default := True;
   btnLineBreaks.Hint := Selected.Caption;
   btnLineBreaks.ImageIndex := Selected.ImageIndex;
-  SelectedLineBreaks := TLineBreaks(Selected.Tag);
+  FSelectedLineBreaks := TLineBreaks(Selected.Tag);
   Modified := True;
 end;
 
@@ -133,24 +133,24 @@ end;
 procedure TfrmTextEditor.SetMaxLength(len: integer);
 begin
   // Input: Length in number of bytes.
-  memoText.MaxLength := len;
+  FmemoText.MaxLength := len;
 end;
 
 procedure TfrmTextEditor.SetFont(font: TFont);
 begin
-  memoText.Font.Name := font.Name;
-  memoText.Font.Size := font.Size;
+  FmemoText.Font.Name := font.Name;
+  FmemoText.Font.Size := font.Size;
 end;
 
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
-  memoText := TLineNormalizingMemo.Create(Self);
-  memoText.Parent := Self;
-  memoText.Align := alClient;
-  memoText.ScrollBars := ssBoth;
-  memoText.WantTabs := True;
-  memoText.OnChange := memoTextChange;
-  memoText.OnKeyDown := memoTextKeyDown;
+  FmemoText := TLineNormalizingMemo.Create(Self);
+  FmemoText.Parent := Self;
+  FmemoText.Align := alClient;
+  FmemoText.ScrollBars := ssBoth;
+  FmemoText.WantTabs := True;
+  FmemoText.OnChange := memoTextChange;
+  FmemoText.OnKeyDown := memoTextKeyDown;
   InheritFont(Font);
   // Use same text properties as in query/find/replace actions
   actSearchFind.Caption := MainForm.actQueryFind.Caption;
@@ -190,7 +190,7 @@ begin
     btnWrap.Click;
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
-  memoText.SetFocus;
+  FmemoText.SetFocus;
 end;
 
 
@@ -213,11 +213,11 @@ begin
   Screen.Cursor := crHourglass;
   // Changing the scrollbars invoke the OnChange event. We avoid thinking the text was really modified.
   WasModified := Modified;
-  if memoText.ScrollBars = ssBoth then
-    memoText.ScrollBars := ssVertical
+  if FmemoText.ScrollBars = ssBoth then
+    FmemoText.ScrollBars := ssVertical
   else
-    memoText.ScrollBars := ssBoth;
-  TToolbutton(Sender).Down := memoText.ScrollBars = ssVertical;
+    FmemoText.ScrollBars := ssBoth;
+  TToolbutton(Sender).Down := FmemoText.ScrollBars = ssVertical;
   Modified := WasModified;
   Screen.Cursor := crDefault;
 end;
@@ -235,9 +235,9 @@ begin
   d.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if d.Execute then try
     Screen.Cursor := crHourglass;
-    memoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
-    if (memoText.MaxLength > 0) and (Length(memoText.Text) > memoText.MaxLength) then
-      memoText.Text := copy(memoText.Text, 0, memoText.MaxLength);
+    FmemoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
+    if (FmemoText.MaxLength > 0) and (Length(FmemoText.Text) > FmemoText.MaxLength) then
+      FmemoText.Text := copy(FmemoText.Text, 0, FmemoText.MaxLength);
     AppSettings.WriteInt(asFileDialogEncoding, d.EncodingIndex, Self.Name);
   finally
     Screen.Cursor := crDefault;
@@ -282,9 +282,9 @@ end;
 
 procedure TfrmTextEditor.memoTextChange(Sender: TObject);
 begin
-  lblTextLength.Caption := FormatNumber(Length(memoText.Text)) + ' characters.';
-  if memoText.MaxLength > 0 then
-    lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(memoText.MaxLength)+')';
+  lblTextLength.Caption := FormatNumber(Length(FmemoText.Text)) + ' characters.';
+  if FmemoText.MaxLength > 0 then
+    lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(FmemoText.MaxLength)+')';
   Modified := True;
 end;
 
