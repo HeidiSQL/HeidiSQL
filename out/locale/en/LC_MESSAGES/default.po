@@ -6229,3 +6229,7 @@ msgstr "Error when checking for updates: %s"
 
 msgid "Please update %s through your Windows Store."
 msgstr "Please update %s through your Windows Store."
+
+# Text in parentheses for detected linebreak style in popup text editor
+msgid "detected"
+msgid "detected"

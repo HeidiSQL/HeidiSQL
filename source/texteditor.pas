@@ -88,18 +88,15 @@ end;
 
 procedure TfrmTextEditor.SetText(text: String);
 var
-  Detected: TMenuItem;
+  Detected, Item: TMenuItem;
 begin
   DetectedLineBreaks := ScanLineBreaks(text);
   if DetectedLineBreaks = lbsNone then
     DetectedLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
-  case DetectedLineBreaks of
-    lbsWindows: Detected := menuWindowsLB;
-    lbsUnix: Detected := menuUnixLB;
-    lbsMac: Detected := menuMacLB;
-    lbsWide: Detected := menuWideLB;
-    lbsMixed: Detected := menuMixedLB;
-    else Detected := nil;
+  for Item in popupLinebreaks.Items do begin
+    if Item.Tag = Integer(DetectedLineBreaks) then begin
+      Detected := Item;
+    end;
   end;
   if Assigned(Detected) then
     SelectLineBreaks(Detected);
@@ -111,31 +108,24 @@ end;
 
 procedure TfrmTextEditor.SelectLinebreaks(Sender: TObject);
 var
-  Selected, Detected: TMenuItem;
+  Selected, Item: TMenuItem;
 begin
   Selected := Sender as TMenuItem;
-  case DetectedLineBreaks of
-    lbsWindows: Detected := menuWindowsLB;
-    lbsUnix: Detected := menuUnixLB;
-    lbsMac: Detected := menuMacLB;
-    lbsWide: Detected := menuWideLB;
-    lbsMixed: Detected := menuMixedLB;
-    else Detected := nil;
-  end;
   menuWindowsLB.Caption := _('Windows linebreaks');
   menuUnixLB.Caption := _('UNIX linebreaks');
   menuMacLB.Caption := _('Mac OS linebreaks');
   menuWideLB.Caption := _('Unicode linebreaks');
   menuMixedLB.Caption := _('Mixed linebreaks');
-  Detected.Caption := Detected.Caption + ' (detected)';
+  for Item in popupLinebreaks.Items do begin
+    if Item.Tag = Integer(DetectedLineBreaks) then begin
+      Item.Caption := Item.Caption + ' (' + _('detected') + ')';
+    end;
+  end;
+
   Selected.Default := True;
   btnLineBreaks.Hint := Selected.Caption;
   btnLineBreaks.ImageIndex := Selected.ImageIndex;
-  if Selected = menuWindowsLB then SelectedLineBreaks := lbsWindows
-  else if Selected = menuUnixLB then SelectedLineBreaks := lbsUnix
-  else if Selected = menuMacLB then SelectedLineBreaks := lbsMac
-  else if Selected = menuWideLB then SelectedLineBreaks := lbsWide
-  else if Selected = menuMixedLB then SelectedLineBreaks := lbsMixed;
+  SelectedLineBreaks := TLineBreaks(Selected.Tag);
   Modified := True;
 end;
 
@@ -174,6 +164,12 @@ begin
   // https://sourceforge.net/tracker/index.php?func=detail&aid=902470&group_id=74086&atid=539908
   btnLinebreaks.Style := tbsButton;
   btnLinebreaks.Style := tbsDropDown;
+  // Assign linebreak values to their menu item tags, to write less code later
+  menuWindowsLB.Tag := Integer(lbsWindows);
+  menuUnixLB.Tag := Integer(lbsUnix);
+  menuMacLB.Tag := Integer(lbsMac);
+  menuWideLB.Tag := Integer(lbsWide);
+  menuMixedLB.Tag := Integer(lbsMixed);
 end;
 
 
