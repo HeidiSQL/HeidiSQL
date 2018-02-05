@@ -3549,7 +3549,7 @@ begin
   InitSetting(asFavoriteObjects,                  'FavoriteObjects',                       0, False, '', True);
   InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False);
   InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True, '', True);
-  InitSetting(asLineBreakStyle,                   'LineBreakStyle',                        Integer(lbsNone));
+  InitSetting(asLineBreakStyle,                   'LineBreakStyle',                        Integer(lbsWindows));
   InitSetting(asFileDialogEncoding,               'FileDialogEncoding_%s',                 0);
 end;
 
