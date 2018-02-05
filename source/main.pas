@@ -4935,6 +4935,7 @@ begin
           and (KeyCols.Count > 0) // We need a sufficient key to be able to load remaining row data
           and (c.DataType.LoadPart)
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
+          and ((not DBObj.Connection.Parameters.IsMySQL) or (not (Ord(c.DataType.Category) = Ord(dtcBinary))))
           and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
             case DBObj.Connection.Parameters.NetTypeGroup of

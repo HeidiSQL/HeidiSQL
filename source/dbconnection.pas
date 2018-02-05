@@ -584,11 +584,13 @@ type
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; virtual; abstract;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
       function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
       function HexValue(BinValue: String): String; overload;
+      function HexValue(var ByteData: TBytes): String; overload;
       function DataType(Column: Integer): TDBDataType;
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
@@ -644,6 +646,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -662,6 +665,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -681,6 +685,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -5936,6 +5941,37 @@ begin
   Result := ColumnNames.Count;
 end;
 
+function TMySQLQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+var
+  AnsiStr: AnsiString;
+  BitString: String;
+  NumBit: Integer;
+  ByteVal: Byte;
+  c: Char;
+  Field: PMYSQL_FIELD;
+begin
+  if (Column > -1) and (Column < ColumnCount) then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      // Row was edited and only valid in a TRowData
+      AnsiStr := AnsiString(FCurrentUpdateRow[Column].NewText);
+      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
+        SetLength(baData, Length(AnsiStr));
+        CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
+        Exit(True);
+      end else
+        Exit(False);
+    end else begin
+      // The normal case: Fetch cell from mysql result
+      SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
+      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
+        SetLength(baData, Length(AnsiStr));
+        CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
+        Exit(True);
+      end else
+        Exit(False);
+    end;
+  end;
+end;
 
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
@@ -6059,9 +6095,15 @@ end;
 
 
 function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
+var
+    baData: TBytes;
 begin
   // Return a binary column value as hex AnsiString
-  Result := HexValue(Col(Column, IgnoreErrors));
+  if FConnection.Parameters.IsMysql then begin
+    GetColBinData(Column, baData);
+    Result := HexValue(baData);
+  end else
+    Result := HexValue(Col(Column, IgnoreErrors));
 end;
 
 
@@ -6082,6 +6124,22 @@ begin
   end;
 end;
 
+function TDBQuery.HexValue(var ByteData: TBytes): String;
+var
+  BinLen: Integer;
+  Ansi: AnsiString;
+begin
+  BinLen := Length(ByteData);
+  SetString(Ansi, PAnsiChar(ByteData), BinLen);
+  if BinLen = 0 then begin
+    Result := Connection.EscapeString('');
+  end else begin
+    SetLength(Result, BinLen*2);
+    BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+    Result := '0x' + Result;
+  end;
+
+end;
 
 function TDBQuery.DataType(Column: Integer): TDBDataType;
 var
