@@ -1928,6 +1928,7 @@ begin
   if RunningAsUwp then begin
     actUpdateCheck.Enabled := False;
     actUpdateCheck.Hint := f_('Please update %s through the Microsoft Store.', [APPNAME]);
+    actWebDownloadpage.Hint := 'ms-windows-store://pdp/?PRODUCTID=9NXPRT2T0ZJF';
   end;
 end;
 
