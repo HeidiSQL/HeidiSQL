@@ -1927,7 +1927,7 @@ begin
 
   if RunningAsUwp then begin
     actUpdateCheck.Enabled := False;
-    actUpdateCheck.Hint := f_('Please update %s through your Windows Store.', [APPNAME]);
+    actUpdateCheck.Hint := f_('Please update %s through the Microsoft Store.', [APPNAME]);
   end;
 end;
 

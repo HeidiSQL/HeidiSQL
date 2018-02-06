@@ -118,7 +118,7 @@ begin
 
   if RunningAsUwp then begin
     raise Exception.Create(
-      f_('Please update %s through your Windows Store.', [APPNAME])
+      f_('Please update %s through the Microsoft Store.', [APPNAME])
       );
   end;
 

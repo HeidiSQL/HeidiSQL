@@ -6227,8 +6227,8 @@ msgstr "The network type defined for this session is not compatible to your Wind
 msgid "Error when checking for updates: %s"
 msgstr "Error when checking for updates: %s"
 
-msgid "Please update %s through your Windows Store."
-msgstr "Please update %s through your Windows Store."
+msgid "Please update %s through the Microsoft Store."
+msgstr "Please update %s through the Microsoft Store."
 
 # Text in parentheses for detected linebreak style in popup text editor
 msgid "detected"

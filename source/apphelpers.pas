@@ -2885,7 +2885,7 @@ var
   Len: Cardinal;
   Name: String;
 begin
-  // Detect current Windows Store package name
+  // Detect current Microsoft Store package name
   // See https://stackoverflow.com/questions/48549899/how-to-detect-universal-windows-platform-uwp-in-delphi
   Result := '';
   if (Win32MajorVersion > 6) or ((Win32MajorVersion = 6) and (Win32MinorVersion > 1)) then begin
