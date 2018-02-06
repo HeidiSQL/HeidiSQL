@@ -271,9 +271,11 @@ begin
   AppSettings.WriteString(asDataFontName, comboDataFontName.Text);
   AppSettings.WriteInt(asDataFontSize, updownDataFontSize.Position);
   AppSettings.WriteBool(asLogToFile, chkLogToFile.Checked);
-  AppSettings.WriteBool(asUpdatecheck, chkUpdatecheck.Checked);
-  AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
-  AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
+  if not RunningAsUwp then begin
+    AppSettings.WriteBool(asUpdatecheck, chkUpdatecheck.Checked);
+    AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
+    AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
+  end;
   AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
@@ -456,10 +458,16 @@ begin
   chkAutoReconnect.Checked := AppSettings.ReadBool(asAutoReconnect);;
   chkAllowMultiInstances.Checked := AppSettings.ReadBool(asAllowMultipleInstances);
   chkRestoreLastDB.Checked := AppSettings.ReadBool(asRestoreLastUsedDB);
-  chkUpdatecheck.Checked := AppSettings.ReadBool(asUpdatecheck);
-  chkUpdatecheckBuilds.Checked := AppSettings.ReadBool(asUpdatecheckBuilds);
-  updownUpdatecheckInterval.Position := AppSettings.ReadInt(asUpdatecheckInterval);
-  chkUpdatecheckClick(Sender);
+  if RunningAsUwp then begin
+    chkUpdatecheck.Enabled := False;
+    chkUpdatecheckBuilds.Enabled := False;
+    updownUpdatecheckInterval.Enabled := False;
+  end else begin
+    chkUpdatecheck.Checked := AppSettings.ReadBool(asUpdatecheck);
+    chkUpdatecheckBuilds.Checked := AppSettings.ReadBool(asUpdatecheckBuilds);
+    updownUpdatecheckInterval.Position := AppSettings.ReadInt(asUpdatecheckInterval);
+    chkUpdatecheckClick(Sender);
+  end;
   chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
