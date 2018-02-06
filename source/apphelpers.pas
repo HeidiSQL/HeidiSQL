@@ -2873,7 +2873,7 @@ begin
   Result := False;
   // Avoid crash on WinXP
   if Win32MajorVersion >= 6 then begin
-    if GetProductInfo(10, 10, 0, 0, pdwReturnedProductType) then begin
+    if GetProductInfo(Win32MajorVersion, Win32MinorVersion, TOSVersion.ServicePackMajor, TOSVersion.ServicePackMinor, pdwReturnedProductType) then begin
       Result := (pdwReturnedProductType = PRODUCT_CLOUD) OR (pdwReturnedProductType = PRODUCT_CLOUDN);
     end;
   end;
