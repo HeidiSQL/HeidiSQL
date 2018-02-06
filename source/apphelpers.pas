@@ -266,8 +266,8 @@ type
   function ExtractLiteral(var SQL: String; Prefix: String): String;
   function GetShellFolder(CSIDL: integer): string;
   // Common directories
-  function DirnameCommonAppData: String;
   function DirnameUserAppData: String;
+  function DirnameUserDocuments: String;
   function DirnameSnippets: String;
   function goodfilename( str: String ): String;
   function ExtractBaseFileName(FileName: String): String;
@@ -795,17 +795,16 @@ begin
 end;
 
 
-function DirnameCommonAppData: String;
-begin
-  // "All users" folder for HeidiSQL's data (All Users\Application Data)
-  Result := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\';
-end;
-
-
 function DirnameUserAppData: String;
 begin
   // User folder for HeidiSQL's data (<user name>\Application Data)
   Result := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
+end;
+
+function DirnameUserDocuments: String;
+begin
+  // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
+  Result := GetShellFolder(CSIDL_MYDOCUMENTS) + '\' + APPNAME + '\';
 end;
 
 
@@ -3485,7 +3484,7 @@ begin
   if FPortableMode then
     DefaultSnippetsDirectory := ExtractFilePath(ParamStr(0))
   else
-    DefaultSnippetsDirectory := DirnameCommonAppData;
+    DefaultSnippetsDirectory := DirnameUserDocuments;
   DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets\';
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
