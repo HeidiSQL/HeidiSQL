@@ -1,31 +1,41 @@
-## Expected behavior
+<!--
+  ATTENTION ⚠️
+  → ISSUES THAT DOESN'T RESPECTS THIS TEMPLATE WILL BE DISCARDED!
+  → YOU CAN REMOVE PARTS THAT DON'T IS RELATED TO YOUR ISSUE.
+  → THIS COMMENTS WILL NOT BE PRINTED ON PAGE. YOU CAN STAY CALM.
 
-Please describe the behavior you are expecting
+  FOR EXCEPTION BUG REPORT
+  → PLEASE, SAVE THE BUG REPORT RECEIVED ON EXCEPTION AND ATTACH HERE.
+-->
+
+## Steps to reproduce this issue
+
+<!-- Please provide detailed steps for reproducing the issue. -->
+
+1. Step 1;
+2. Step 2;
+3. Step N;
+4. Then I get...
 
 ## Current behavior
 
-What is the current behavior?
+<!-- Please describe the behavior you have viewed. -->
 
-## Failure information (for bugs)
+## Expected behavior
 
-Please help provide information about the failure if this is a bug. If it is not a bug, please remove the rest of this template.
+<!-- Please describe the behavior you are expecting. -->
 
-### Steps to reproduce
+## Possible solution
 
-Please provide detailed steps for reproducing the issue.
+<!-- If possible: please describe how you think that it should be solutioned internally. -->
 
-1. step 1
-2. step 2
-3. you get it...
+## Environment
 
-### Context
+<!-- Please provide any relevant information about your setup that could causes this issue. -->
 
-Please provide any relevant information about your setup. This is important in case the issue is not reproducible except for under certain conditions.
-
-* HeidiSQL version:
-* Database system + version:
-* Operating system:
-
-### Failure Logs
-
-Please include any relevant log snippets or files here.
+* **HeidiSQL version:** 
+  <!-- Check if you are running the last available Nightly version previously. -->
+* **Database system and version:** 
+  <!-- Remove this part if is not related directly with a database system. -->
+* **Operating system:** 
+  <!-- Remove this part if you belive that it does not affects your issue. -->
