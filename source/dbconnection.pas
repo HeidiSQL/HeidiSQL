@@ -3319,12 +3319,12 @@ end;
 function TDBConnection.ServerVersionInt: Integer;
 var
   rx: TRegExpr;
-  v1, v2: String;
+  v1, v2, v3: String;
 begin
   Result := 0;
   rx := TRegExpr.Create;
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL: begin
       rx.Expression := '(\d+)\.(\d+)\.(\d+)';
       if rx.Exec(FServerVersionUntouched) then begin
         Result := StrToIntDef(rx.Match[1], 0) *10000 +
@@ -3350,6 +3350,14 @@ begin
           Result := StrToIntDef(rx.Match[1], 0) *100 +
             StrToIntDef(rx.Match[2], 0);
         end;
+      end;
+    end;
+    ngPgSQL: begin
+      rx.Expression := '(\d+)\.(\d+)(\.(\d+))?';
+      if rx.Exec(FServerVersionUntouched) then begin
+        Result := StrToIntDef(rx.Match[1], 0) *10000 +
+          StrToIntDef(rx.Match[2], 0) *100 +
+          StrToIntDef(rx.Match[3], 0);
       end;
     end;
   end;
