@@ -167,26 +167,31 @@ begin
   menuMacLB.Tag := Integer(lbsMac);
   menuWideLB.Tag := Integer(lbsWide);
   menuMixedLB.Tag := Integer(lbsMixed);
+  // Restore form dimensions
+  Width := AppSettings.ReadInt(asMemoEditorWidth);
+  Height := AppSettings.ReadInt(asMemoEditorHeight);
+  if AppSettings.ReadBool(asMemoEditorMaximized) then
+    WindowState := wsMaximized;
+  if AppSettings.ReadBool(asMemoEditorWrap) then
+    btnWrap.Click;
+  // Fix label position:
+  lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
 end;
 
 
 procedure TfrmTextEditor.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asMemoEditorWidth, Width);
-  AppSettings.WriteInt(asMemoEditorHeight, Height);
+  if WindowState <> wsMaximized then begin
+    AppSettings.WriteInt(asMemoEditorWidth, Width);
+    AppSettings.WriteInt(asMemoEditorHeight, Height);
+  end;
+  AppSettings.WriteBool(asMemoEditorMaximized, WindowState=wsMaximized);
   AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
 end;
 
 
 procedure TfrmTextEditor.FormShow(Sender: TObject);
 begin
-  // Restore form dimensions
-  Width := AppSettings.ReadInt(asMemoEditorWidth);
-  Height := AppSettings.ReadInt(asMemoEditorHeight);
-  if AppSettings.ReadBool(asMemoEditorWrap) then
-    btnWrap.Click;
-  // Fix label position:
-  lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
   FmemoText.SetFocus;
 end;
 
