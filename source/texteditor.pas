@@ -102,6 +102,8 @@ begin
     SelectLineBreaks(Detected);
   FmemoText.Text := text;
   FmemoText.SelectAll;
+  // Trigger change event, which is not fired when text is empty. See #132.
+  FmemoText.OnChange(FmemoText);
   Modified := False;
 end;
 
