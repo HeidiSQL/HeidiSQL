@@ -837,6 +837,8 @@ begin
   FCombo.Parent := FParentForm;
   FCombo.OnKeyDown := DoKeyDown;
   FCombo.OnExit := DoEndEdit;
+  // Show some more than the default 8 items
+  FCombo.DropDownCount := 16;
   ValueList := TStringList.Create;
   DisplayList := TStringList.Create;
   FMainControl := FCombo;
