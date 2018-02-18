@@ -8726,6 +8726,7 @@ var
 begin
   // Advance to next or previous grid node on Shift+MouseWheel
   VT := Sender as TVirtualStringTree;
+  // TODO: why not use "ssShift in Shift" instead?
   if KeyPressed(VK_SHIFT) then begin
     if Assigned(VT.FocusedNode) then begin
       if WheelDelta > 0 then
@@ -8747,6 +8748,10 @@ begin
     AppSettings.ResetPath;
     AppSettings.WriteInt(asDataFontSize, NewFontSize);
     ApplyFontToGrids;
+  end else if ssAlt in Shift then begin
+    // Horizontal scrolling with Alt+Mousewheel
+    VT.OffsetX := VT.OffsetX + WheelDelta;
+    Handled := True;
   end;
 end;
 
