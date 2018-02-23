@@ -2,7 +2,7 @@ object UserManager2Form: TUserManager2Form
   Left = 0
   Top = 0
   BorderIcons = [biSystemMenu, biMaximize]
-  Caption = 'User Manager - New Version - Mockup'
+  Caption = 'User Manager - New Version'
   ClientHeight = 497
   ClientWidth = 1105
   Color = clBtnFace
