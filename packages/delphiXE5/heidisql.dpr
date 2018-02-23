@@ -43,7 +43,11 @@ uses
   JumpList in '..\..\source\JumpList.pas',
   extra_controls in '..\..\source\extra_controls.pas',
   change_password in '..\..\source\change_password.pas' {frmPasswordChange},
-  Vcl.FormsFix in '..\..\source\Vcl.FormsFix.pas';
+  Vcl.FormsFix in '..\..\source\Vcl.FormsFix.pas',
+  types_helpers in '..\..\source\types_helpers.pas',
+  usermanager2 in '..\..\source\usermanager2.pas' {UserManager2Form},
+  userprivileges in '..\..\source\userprivileges.pas',
+  VirtualCheckTree in '..\..\source\VirtualCheckTree.pas';
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\icon-question.RES}
@@ -81,7 +85,8 @@ begin
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
-    MainForm.AfterFormCreate;
+  Application.CreateForm(TUserManager2Form, UserManager2Form);
+  MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
     Application.OnShowHint := MainForm.ApplicationShowHint;
     Application.MainFormOnTaskBar := True;
