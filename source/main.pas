@@ -15,7 +15,7 @@ uses
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, apphelpers, createdatabase, table_editor,
-  TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
+  TableTools, View, Usermanager, Usermanager2, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix, types_helpers;
 
@@ -642,6 +642,8 @@ type
     actCopyRows: TAction;
     Copyselectedrows1: TMenuItem;
     actClearQueryLog: TAction;
+    ButtonUserManager2: TToolButton;
+    actUserManager2: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -652,6 +654,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
+    procedure actUserManager2Execute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
     procedure actApplyFilterExecute(Sender: TObject);
     procedure actClearEditorExecute(Sender: TObject);
@@ -2270,6 +2273,14 @@ var
 begin
   Dialog := TUserManagerForm.Create(Self);
   Dialog.ShowModal;
+end;
+
+procedure TMainForm.actUserManager2Execute(Sender: TObject);
+var
+  Dialog: TUserManager2Form;
+begin
+  Dialog := TUserManager2Form.Create(Self);
+  Dialog.ShowModal(GetActiveConnection);
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);

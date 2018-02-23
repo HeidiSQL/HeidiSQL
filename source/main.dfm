@@ -493,10 +493,6 @@ object MainForm: TMainForm
             object tabVariables: TTabSheet
               Caption = 'Variables'
               ImageIndex = 137
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListVariables: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -547,7 +543,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 2
-                    Width = 275
+                    Width = 271
                     WideText = 'Global'
                   end>
               end
@@ -555,10 +551,6 @@ object MainForm: TMainForm
             object tabStatus: TTabSheet
               Caption = 'Status'
               ImageIndex = 13
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListStatus: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -602,7 +594,7 @@ object MainForm: TMainForm
                   item
                     Alignment = taRightJustify
                     Position = 1
-                    Width = 275
+                    Width = 271
                     WideText = 'Value'
                   end
                   item
@@ -622,10 +614,6 @@ object MainForm: TMainForm
             object tabProcessList: TTabSheet
               Caption = 'Processes'
               ImageIndex = 57
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object spltProcessList: TSplitter
                 Left = 0
                 Top = 172
@@ -708,7 +696,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 7
-                    Width = 145
+                    Width = 141
                     WideText = 'Info'
                   end>
               end
@@ -799,10 +787,6 @@ object MainForm: TMainForm
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 145
-              ExplicitLeft = 0
-              ExplicitTop = 0
-              ExplicitWidth = 0
-              ExplicitHeight = 0
               object ListCommandStats: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -864,7 +848,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 4
-                    Width = 215
+                    Width = 211
                     WideText = 'Percentage'
                   end>
               end
@@ -874,10 +858,6 @@ object MainForm: TMainForm
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 5
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object ListTables: TVirtualStringTree
             Left = 0
             Top = 0
@@ -1033,10 +1013,6 @@ object MainForm: TMainForm
         object tabEditor: TTabSheet
           Caption = 'Table'
           ImageIndex = 14
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
         end
         object tabData: TTabSheet
           Caption = 'Data'
@@ -1289,10 +1265,6 @@ object MainForm: TMainForm
         object tabQuery: TTabSheet
           Caption = 'Query'
           ImageIndex = 57
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object spltQuery: TSplitter
             Left = 0
             Top = 96
@@ -1413,7 +1385,7 @@ object MainForm: TMainForm
               Columns = <
                 item
                   Position = 0
-                  Width = 91
+                  Width = 70
                   WideText = 'Main column'
                 end
                 item
@@ -1658,12 +1630,12 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object btnExit: TToolButton
-        Left = 44
+        Left = 38
         Top = 0
         Action = actDisconnect
       end
       object tlbSep1: TToolButton
-        Left = 67
+        Left = 61
         Top = 0
         Width = 8
         Caption = 'tlbSep1'
@@ -1671,30 +1643,30 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ToolButton5: TToolButton
-        Left = 75
+        Left = 69
         Top = 0
         Action = actCopy
         AutoSize = True
       end
       object ToolButton6: TToolButton
-        Left = 98
+        Left = 92
         Top = 0
         Action = actPaste
         AutoSize = True
       end
       object ToolButton14: TToolButton
-        Left = 121
+        Left = 115
         Top = 0
         Hint = 'Undo'
         Action = actUndo
       end
       object ToolButton12: TToolButton
-        Left = 144
+        Left = 138
         Top = 0
         Action = actPrintList
       end
       object tlbSep2: TToolButton
-        Left = 167
+        Left = 161
         Top = 0
         Width = 8
         Caption = 'tlbSep2'
@@ -1702,7 +1674,7 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
-        Left = 175
+        Left = 169
         Top = 0
         Action = actRefresh
         AutoSize = True
@@ -1710,25 +1682,30 @@ object MainForm: TMainForm
         Style = tbsDropDown
       end
       object ButtonUserManager: TToolButton
-        Left = 219
+        Left = 207
         Top = 0
         Action = actUserManager
         AutoSize = True
       end
+      object ButtonUserManager2: TToolButton
+        Left = 230
+        Top = 0
+        Action = actUserManager2
+      end
       object ButtonImportTextfile: TToolButton
-        Left = 242
+        Left = 253
         Top = 0
         Action = actImportCSV
         AutoSize = True
       end
       object ButtonExport: TToolButton
-        Left = 265
+        Left = 276
         Top = 0
         Action = actExportTables
         AutoSize = True
       end
       object tlbSep6: TToolButton
-        Left = 288
+        Left = 299
         Top = 0
         Width = 8
         Caption = 'tlbSep6'
@@ -1736,101 +1713,101 @@ object MainForm: TMainForm
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
-        Left = 296
+        Left = 307
         Top = 0
         Action = actSQLhelp
       end
       object ToolButton3: TToolButton
-        Left = 319
+        Left = 330
         Top = 0
         Action = actDataFirst
       end
       object ToolButton4: TToolButton
-        Left = 342
+        Left = 353
         Top = 0
         Action = actDataLast
       end
       object ToolButton7: TToolButton
-        Left = 365
+        Left = 376
         Top = 0
         Action = actDataInsert
       end
       object ToolButton8: TToolButton
-        Left = 388
+        Left = 399
         Top = 0
         Action = actDataDelete
       end
       object ToolButton10: TToolButton
-        Left = 411
+        Left = 422
         Top = 0
         Action = actDataPostChanges
       end
       object ToolButton1: TToolButton
-        Left = 434
+        Left = 445
         Top = 0
         Action = actDataCancelChanges
       end
       object btnExecuteQuery: TToolButton
-        Left = 457
+        Left = 468
         Top = 0
         Action = actExecuteQuery
         DropdownMenu = popupExecuteQuery
         Style = tbsDropDown
       end
       object btnLoadSQL: TToolButton
-        Left = 495
+        Left = 506
         Top = 0
         Action = actLoadSQL
         DropdownMenu = PopupQueryLoad
         Style = tbsDropDown
       end
       object btnSaveSQL: TToolButton
-        Left = 533
+        Left = 544
         Top = 0
         Action = actSaveSQL
       end
       object btnSaveSQLSnippet: TToolButton
-        Left = 556
+        Left = 567
         Top = 0
         Action = actSaveSQLSnippet
       end
       object btnQueryFind: TToolButton
-        Left = 579
+        Left = 590
         Top = 0
         Action = actQueryFind
       end
       object btnQueryReplace: TToolButton
-        Left = 602
+        Left = 613
         Top = 0
         Action = actQueryReplace
       end
       object btnReformatSQL: TToolButton
-        Left = 625
+        Left = 636
         Top = 0
         Action = actReformatSQL
       end
       object btnStopOnErrors: TToolButton
-        Left = 648
+        Left = 659
         Top = 0
         Action = actQueryStopOnErrors
       end
       object btnBlobAsText: TToolButton
-        Left = 671
+        Left = 682
         Top = 0
         Action = actBlobAsText
       end
       object btnQueryWordwrap: TToolButton
-        Left = 694
+        Left = 705
         Top = 0
         Action = actQueryWordWrap
       end
       object btnSetDelimiter: TToolButton
-        Left = 717
+        Left = 728
         Top = 0
         Action = actSetDelimiter
       end
       object btnCancelOperation: TToolButton
-        Left = 740
+        Left = 751
         Top = 0
         Action = actCancelOperation
       end
@@ -2114,6 +2091,12 @@ object MainForm: TMainForm
       Hint = 'Manage user authentication and privileges'
       ImageIndex = 11
       OnExecute = actUserManagerExecute
+    end
+    object actUserManager2: TAction
+      Caption = 'actUserManager2'
+      Hint = 'Manage user authentication and privileges (new version)'
+      ImageIndex = 11
+      OnExecute = actUserManager2Execute
     end
     object actCut: TAction
       Category = 'Various'
