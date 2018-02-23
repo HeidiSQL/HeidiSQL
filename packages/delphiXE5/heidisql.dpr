@@ -49,6 +49,9 @@ uses
 {$R ..\..\res\icon-question.RES}
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
+
+// CodehunterWorks: Added x86/x64 compiler switch for using the correct
+// updater32.res or updater64.res
 {$IFDEF WIN32}
   {$R ..\..\res\updater32.RES}
 {$ENDIF}
