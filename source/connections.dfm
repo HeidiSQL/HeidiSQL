@@ -145,7 +145,7 @@ object connform: Tconnform
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 6
-        Width = 37
+        Width = 33
         WideText = 'Comment'
       end>
   end
@@ -188,10 +188,6 @@ object connform: Tconnform
     object tabStart: TTabSheet
       Caption = 'Start'
       ImageIndex = 112
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       object lblHelp: TLabel
         AlignWithMargins = True
         Left = 10
@@ -382,7 +378,7 @@ object connform: Tconnform
         Left = 120
         Top = 238
         Width = 294
-        Height = 39
+        Height = 38
         Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 10
         OnChange = Modification

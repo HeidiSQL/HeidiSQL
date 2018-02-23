@@ -183,10 +183,6 @@ object frmTableEditor: TfrmTableEditor
     object tabBasic: TTabSheet
       Caption = 'Basic'
       ImageIndex = 14
-      ExplicitLeft = 0
-      ExplicitTop = 0
-      ExplicitWidth = 0
-      ExplicitHeight = 0
       DesignSize = (
         686
         121)
@@ -219,7 +215,7 @@ object frmTableEditor: TfrmTableEditor
         Left = 96
         Top = 30
         Width = 589
-        Height = 79
+        Height = 78
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoComment')

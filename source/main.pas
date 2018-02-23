@@ -3258,7 +3258,7 @@ begin
   if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtCriticalConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
-      DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014);
+      DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014) or (Conn.Parameters.NetTypeGroup = ngMariaDB);
       if DisableForeignKeys then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
@@ -3965,7 +3965,7 @@ begin
     actNewQueryTab.Execute;
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
     case Obj.Connection.Parameters.NetTypeGroup of
-      ngMySQL:
+      ngMySQL, ngMariaDB:
         case Obj.NodeType of
           lntProcedure: Query := 'CALL ';
           lntFunction: Query := 'SELECT ';
@@ -3995,7 +3995,7 @@ begin
       Parameters.Free;
       ParamValues := '';
       case Obj.Connection.Parameters.NetTypeGroup of
-        ngMySQL, ngPgSQL:
+        ngMySQL, ngPgSQL, ngMariaDB:
           ParamValues := '(' + ImplodeStr(', ', Params) + ')';
         ngMSSQL:
           ParamValues := ' ' + ImplodeStr(' ', Params);
@@ -4943,6 +4943,7 @@ begin
               ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
               ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
               ngPgSQL: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngMariaDB: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
             end;
           end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
@@ -4994,7 +4995,7 @@ begin
     if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then begin
       case DBObj.Connection.Parameters.NetTypeGroup of
         ngMSSQL: Offset := 0; // Does not support offset in all server versions
-        ngMySQL, ngPgSQL: Offset := DataGridResult.RecordCount;
+        ngMySQL, ngPgSQL, ngMariaDB: Offset := DataGridResult.RecordCount;
       end;
     end;
     Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset, Offset);
@@ -7598,7 +7599,7 @@ begin
     case Kind of
       ikNormal, ikSelected: begin
         case Results.Connection.Parameters.NetTypeGroup of
-          ngMySQL: IsIdle := Results.Col('Info') = '';
+          ngMySQL, ngMariaDB: IsIdle := Results.Col('Info') = '';
           ngMSSQL: IsIdle := (Results.Col(6) <> 'running') and (Results.Col(6) <> 'runnable');
           else IsIdle := False;
         end;
@@ -8077,7 +8078,7 @@ begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
       RefreshHelperNode(HELPERNODE_HISTORY);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
-        ngMySQL:
+        ngMySQL, ngMariaDB:
           SynSQLSyn1.SQLDialect := sqlMySQL;
         ngMSSQL:
           SynSQLSyn1.SQLDialect := sqlMSSQL2K;
@@ -9545,7 +9546,7 @@ begin
       FStatusServerUptime := Conn.ServerUptime;
     end else if vt = ListProcesses then begin
       case Conn.Parameters.NetTypeGroup of
-        ngMySQL: begin
+        ngMySQL, ngMariaDB: begin
           if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
             // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
             Columns := Conn.QuoteIdent('ID')+', '+

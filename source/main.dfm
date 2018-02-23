@@ -493,6 +493,10 @@ object MainForm: TMainForm
             object tabVariables: TTabSheet
               Caption = 'Variables'
               ImageIndex = 137
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListVariables: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -543,7 +547,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 2
-                    Width = 271
+                    Width = 275
                     WideText = 'Global'
                   end>
               end
@@ -551,6 +555,10 @@ object MainForm: TMainForm
             object tabStatus: TTabSheet
               Caption = 'Status'
               ImageIndex = 13
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListStatus: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -594,7 +602,7 @@ object MainForm: TMainForm
                   item
                     Alignment = taRightJustify
                     Position = 1
-                    Width = 271
+                    Width = 275
                     WideText = 'Value'
                   end
                   item
@@ -614,6 +622,10 @@ object MainForm: TMainForm
             object tabProcessList: TTabSheet
               Caption = 'Processes'
               ImageIndex = 57
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object spltProcessList: TSplitter
                 Left = 0
                 Top = 172
@@ -696,7 +708,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 7
-                    Width = 141
+                    Width = 145
                     WideText = 'Info'
                   end>
               end
@@ -787,6 +799,10 @@ object MainForm: TMainForm
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
               ImageIndex = 145
+              ExplicitLeft = 0
+              ExplicitTop = 0
+              ExplicitWidth = 0
+              ExplicitHeight = 0
               object ListCommandStats: TVirtualStringTree
                 Left = 0
                 Top = 0
@@ -848,7 +864,7 @@ object MainForm: TMainForm
                   end
                   item
                     Position = 4
-                    Width = 211
+                    Width = 215
                     WideText = 'Percentage'
                   end>
               end
@@ -858,6 +874,10 @@ object MainForm: TMainForm
         object tabDatabase: TTabSheet
           Caption = 'Database'
           ImageIndex = 5
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object ListTables: TVirtualStringTree
             Left = 0
             Top = 0
@@ -1013,10 +1033,18 @@ object MainForm: TMainForm
         object tabEditor: TTabSheet
           Caption = 'Table'
           ImageIndex = 14
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
         end
         object tabData: TTabSheet
           Caption = 'Data'
           ImageIndex = 41
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object lblSorryNoData: TLabel
             Left = 0
             Top = 91
@@ -1265,6 +1293,10 @@ object MainForm: TMainForm
         object tabQuery: TTabSheet
           Caption = 'Query'
           ImageIndex = 57
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           object spltQuery: TSplitter
             Left = 0
             Top = 96
@@ -1385,7 +1417,7 @@ object MainForm: TMainForm
               Columns = <
                 item
                   Position = 0
-                  Width = 70
+                  Width = 91
                   WideText = 'Main column'
                 end
                 item
@@ -2913,7 +2945,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101BF005001940410001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101BF005001980410001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000000003000001002000000000000000
       0300000000000000000000000000000000000000000000000000000000000000
       00000000000000000004000000080000000C0000000C00000008000000030000

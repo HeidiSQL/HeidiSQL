@@ -841,7 +841,7 @@ begin
               SQL := SQL + Column + '=' + UnformatNumber(FindText) + ' OR ';
             end else if chkCaseSensitive.Checked then begin
               case DBObj.Connection.Parameters.NetTypeGroup of
-                ngMySQL:
+                ngMySQL, ngMariaDB:
                   SQL := SQL + Column + ' LIKE BINARY ' + esc(FindTextJokers) + ' OR ';
                 ngMSSQL:
                   SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
@@ -851,7 +851,7 @@ begin
             end else begin
               Column := 'LOWER('+Column+')';
               case DBObj.Connection.Parameters.NetTypeGroup of
-                ngMySQL:
+                ngMySQL, ngMariaDB:
                   SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') LIKE ' + esc(FindTextJokers) + ' OR ';
                 ngMSSQL:
                   SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' OR ';
@@ -865,7 +865,7 @@ begin
           Delete(SQL, Length(SQL)-3, 3);
           FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE ' + SQL;
           case DBObj.Connection.Parameters.NetTypeGroup of
-            ngMySQL, ngPgSQL:
+            ngMySQL, ngPgSQL, ngMariaDB:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
                 + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;

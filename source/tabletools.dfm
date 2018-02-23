@@ -97,7 +97,7 @@ object frmTableTools: TfrmTableTools
       Columns = <
         item
           Position = 0
-          Width = 94
+          Width = 90
           WideText = 'Dummy, keeps compatibility to mainform.dbtree'
         end
         item
@@ -276,7 +276,7 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 82
+            Top = 81
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
@@ -294,7 +294,7 @@ object frmTableTools: TfrmTableTools
             Left = 208
             Top = 11
             Width = 381
-            Height = 58
+            Height = 57
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
@@ -303,7 +303,7 @@ object frmTableTools: TfrmTableTools
           end
           object comboDataTypes: TComboBox
             Left = 208
-            Top = 75
+            Top = 74
             Width = 381
             Height = 21
             Style = csDropDownList
@@ -312,7 +312,7 @@ object frmTableTools: TfrmTableTools
           end
           object chkCaseSensitive: TCheckBox
             Left = 208
-            Top = 102
+            Top = 101
             Width = 381
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
@@ -322,7 +322,7 @@ object frmTableTools: TfrmTableTools
           end
           object comboMatchType: TComboBox
             Left = 208
-            Top = 125
+            Top = 124
             Width = 381
             Height = 21
             Style = csDropDownList
@@ -335,16 +335,11 @@ object frmTableTools: TfrmTableTools
               'Exact match'
               'Left wildcard'
               'Right wildcard')
-            ExplicitTop = 126
           end
         end
         object tabSQLexport: TTabSheet
           Caption = 'SQL export'
           ImageIndex = 9
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           DesignSize = (
             592
             151)
@@ -506,7 +501,6 @@ object frmTableTools: TfrmTableTools
             Caption = 'Help'
             TabOrder = 10
             OnClick = btnHelpSQLExportClick
-            ExplicitLeft = 294
           end
           object btnExportOptions: TButton
             Left = 464
