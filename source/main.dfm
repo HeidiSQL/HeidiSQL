@@ -1041,10 +1041,6 @@ object MainForm: TMainForm
         object tabData: TTabSheet
           Caption = 'Data'
           ImageIndex = 41
-          ExplicitLeft = 0
-          ExplicitTop = 0
-          ExplicitWidth = 0
-          ExplicitHeight = 0
           object lblSorryNoData: TLabel
             Left = 0
             Top = 91
@@ -2945,7 +2941,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101BF005001980410001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101BF0050019C0410001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000000003000001002000000000000000
       0300000000000000000000000000000000000000000000000000000000000000
       00000000000000000004000000080000000C0000000C00000008000000030000

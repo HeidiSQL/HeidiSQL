@@ -7407,93 +7407,95 @@ var
   OldDataLocalNumberFormat: Boolean;
   OldImageIndex: Integer;
 begin
-  // Find the correct VirtualTree that shall be filtered
-  tab := PageControlMain.ActivePage;
-  if tab = tabHost then
-    tab := PageControlHost.ActivePage;
-  VT := nil;
-  if tab = tabDatabases then begin
-    VT := ListDatabases;
-    FFilterTextDatabases := editFilterVT.Text;
-  end else if tab = tabVariables then begin
-    VT := ListVariables;
-    FFilterTextVariables := editFilterVT.Text;
-  end else if tab = tabStatus then begin
-    VT := ListStatus;
-    FFilterTextStatus := editFilterVT.Text;
-  end else if tab = tabProcesslist then begin
-    VT := ListProcesses;
-    FFilterTextProcessList := editFilterVT.Text;
-  end else if tab = tabCommandStats then begin
-    VT := ListCommandStats;
-    FFilterTextCommandStats := editFilterVT.Text;
-  end else if tab = tabDatabase then begin
-    VT := ListTables;
-    FFilterTextDatabase := editFilterVT.Text;
-  end else if tab = tabEditor then begin
-    if ActiveObjectEditor is TfrmTableEditor then
-      VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
-    FFilterTextEditor := editFilterVT.Text;
-  end else if tab = tabData then begin
-    VT := DataGrid;
-    FFilterTextData := editFilterVT.Text;
-  end else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then begin
-    VT := ActiveGrid;
-    ActiveQueryTab.ActiveResultTab.FilterText := editFilterVT.Text;
-  end;
-  if not Assigned(VT) then
-    Exit;
-  // Loop through all nodes and hide non matching
-  Node := VT.GetFirst;
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.Expression := editFilterVT.Text;
-  try
-    rx.Exec('abc');
-  except
-    on E:ERegExpr do begin
-      if rx.Expression <> '' then begin
-        LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
-        rx.Expression := '';
+  if Trim(editFilterVT.Text) <> '' then begin
+    // Find the correct VirtualTree that shall be filtered
+    tab := PageControlMain.ActivePage;
+    if tab = tabHost then
+      tab := PageControlHost.ActivePage;
+    VT := nil;
+    if tab = tabDatabases then begin
+      VT := ListDatabases;
+      FFilterTextDatabases := editFilterVT.Text;
+    end else if tab = tabVariables then begin
+      VT := ListVariables;
+      FFilterTextVariables := editFilterVT.Text;
+    end else if tab = tabStatus then begin
+      VT := ListStatus;
+      FFilterTextStatus := editFilterVT.Text;
+    end else if tab = tabProcesslist then begin
+      VT := ListProcesses;
+      FFilterTextProcessList := editFilterVT.Text;
+    end else if tab = tabCommandStats then begin
+      VT := ListCommandStats;
+      FFilterTextCommandStats := editFilterVT.Text;
+    end else if tab = tabDatabase then begin
+      VT := ListTables;
+      FFilterTextDatabase := editFilterVT.Text;
+    end else if tab = tabEditor then begin
+      if ActiveObjectEditor is TfrmTableEditor then
+        VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
+      FFilterTextEditor := editFilterVT.Text;
+    end else if tab = tabData then begin
+      VT := DataGrid;
+      FFilterTextData := editFilterVT.Text;
+    end else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then begin
+      VT := ActiveGrid;
+      ActiveQueryTab.ActiveResultTab.FilterText := editFilterVT.Text;
+    end;
+    if not Assigned(VT) then
+      Exit;
+    // Loop through all nodes and hide non matching
+    Node := VT.GetFirst;
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    rx.Expression := editFilterVT.Text;
+    try
+      rx.Exec('abc');
+    except
+      on E:ERegExpr do begin
+        if rx.Expression <> '' then begin
+          LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
+          rx.Expression := '';
+        end;
       end;
     end;
-  end;
-  VisibleCount := 0;
-  OldDataLocalNumberFormat := DataLocalNumberFormat;
-  DataLocalNumberFormat := False;
-  // Display hour glass instead of X icon
-  OldImageIndex := editFilterVT.RightButton.ImageIndex;
-  editFilterVT.RightButton.ImageIndex := 150;
-  editFilterVT.Repaint;
+    VisibleCount := 0;
+    OldDataLocalNumberFormat := DataLocalNumberFormat;
+    DataLocalNumberFormat := False;
+    // Display hour glass instead of X icon
+    OldImageIndex := editFilterVT.RightButton.ImageIndex;
+    editFilterVT.RightButton.ImageIndex := 150;
+    editFilterVT.Repaint;
 
-  while Assigned(Node) do begin
-    // Don't filter anything if the filter text is empty
-    match := rx.Expression = '';
-    // Search for given text in node's captions
-    if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
-      CellText := VT.Text[Node, i];
-      match := rx.Exec(CellText);
+    while Assigned(Node) do begin
+      // Don't filter anything if the filter text is empty
+      match := rx.Expression = '';
+      // Search for given text in node's captions
+      if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
+        CellText := VT.Text[Node, i];
+        match := rx.Exec(CellText);
+        if match then
+          break;
+      end;
+      VT.IsVisible[Node] := match;
       if match then
-        break;
+        inc(VisibleCount);
+      Node := VT.GetNext(Node);
     end;
-    VT.IsVisible[Node] := match;
-    if match then
-      inc(VisibleCount);
-    Node := VT.GetNext(Node);
-  end;
-  if rx.Expression <> '' then begin
-    lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
-      + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
-  end else
-    lblFilterVTInfo.Caption := '';
+    if rx.Expression <> '' then begin
+      lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
+        + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
+    end else
+      lblFilterVTInfo.Caption := '';
 
-  if FromTimer then
-    VT.Invalidate
-  else
-    InvalidateVT(VT, VTREE_LOADED, true);
-  DataLocalNumberFormat := OldDataLocalNumberFormat;
-  editFilterVT.RightButton.ImageIndex := OldImageIndex;
-  rx.Free;
+    if FromTimer then
+      VT.Invalidate
+    else
+      InvalidateVT(VT, VTREE_LOADED, true);
+    DataLocalNumberFormat := OldDataLocalNumberFormat;
+    editFilterVT.RightButton.ImageIndex := OldImageIndex;
+    rx.Free;
+  end;
 end;
 
 
