@@ -75,6 +75,7 @@ type
     mniAddNewHost: TMenuItem;
     aclMain: TActionList;
     actDeleteUserObject: TAction;
+    actToggleUserProperties: TAction;
     procedure tvPrivilegeObjectsAdvancedHeaderDraw(Sender: TVTHeader;
       var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
     procedure tvPrivilegeObjectsHeaderDrawQueryElements(Sender: TVTHeader;
@@ -136,8 +137,6 @@ type
       Node: PVirtualNode);
     procedure tvPrivilegeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-    procedure btnShowPropertiesMouseUp(Sender: TObject; Button: TMouseButton;
-      Shift: TShiftState; X, Y: Integer);
     procedure tvUsersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean;
       var ImageIndex: Integer);
@@ -145,6 +144,7 @@ type
       Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
       var Ghosted: Boolean; var ImageIndex: Integer);
     procedure NotImplementedYetClick(Sender: TObject);
+    procedure actToggleUserPropertiesExecute(Sender: TObject);
   private
     { Private-Deklarationen }
     FConnection: TDBConnection;
@@ -409,6 +409,16 @@ begin
   ShowMessage('Delete');
 end;
 
+procedure TUserManager2Form.actToggleUserPropertiesExecute(Sender: TObject);
+begin
+  pnlRightTop.Visible:= not pnlRightTop.Visible;
+  if pnlRightTop.Visible then begin
+    actToggleUserProperties.Caption:= 'Hide user properties';
+  end else begin
+    actToggleUserProperties.Caption:= 'Show user properties';
+  end;
+end;
+
 function TUserManager2Form.AddChanging(AObjectData: TObjectData): Integer;
 begin
   if FChangedList.IndexOf(AObjectData) < 0 then begin
@@ -624,17 +634,6 @@ begin
   end;
 end;
 
-procedure TUserManager2Form.btnShowPropertiesMouseUp(Sender: TObject;
-  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  T: TToolButton;
-begin
-  if Button = mbLeft then begin
-    T:= TToolButton(Sender);
-    T.Down:= not T.Down;
-    pnlRightTop.Visible:= T.Down;
-  end;
-end;
 procedure TUserManager2Form.GrantRevokeAllClick(Sender: TObject);
 var
   D: PObjectData;

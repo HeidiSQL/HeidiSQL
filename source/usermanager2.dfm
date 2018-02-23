@@ -3898,22 +3898,22 @@ object UserManager2Form: TUserManager2Form
         Control = tlbFile
         ImageIndex = -1
         MinHeight = 22
-        Width = 224
+        Width = 225
       end
       item
         Break = False
         Control = tlbUser
         ImageIndex = -1
         MinHeight = 22
-        Width = 871
+        Width = 874
       end>
     object tlbUser: TToolBar
-      Left = 239
+      Left = 236
       Top = 0
-      Width = 862
+      Width = 865
       Height = 22
       AutoSize = True
-      ButtonWidth = 105
+      ButtonWidth = 137
       Caption = 'tlbUser'
       Images = ImageListMain
       List = True
@@ -3932,7 +3932,7 @@ object UserManager2Form: TUserManager2Form
         OnClick = NotImplementedYetClick
       end
       object btnCloneUser: TToolButton
-        Left = 50
+        Left = 53
         Top = 0
         Hint = 
           'Create an new User with the same Properties as the current selec' +
@@ -3943,34 +3943,31 @@ object UserManager2Form: TUserManager2Form
         OnClick = NotImplementedYetClick
       end
       object btnRemoveUser: TToolButton
-        Left = 108
+        Left = 115
         Top = 0
         Action = actDeleteUserObject
         Style = tbsTextButton
         OnClick = NotImplementedYetClick
       end
-      object btnShowProperties: TToolButton
-        Left = 170
-        Top = 0
-        Hint = 'Show Properties'
-        Caption = 'Show Properties'
-        ImageIndex = 12
-        Style = tbsTextButton
-        OnMouseUp = btnShowPropertiesMouseUp
-      end
       object btn1: TToolButton
-        Left = 279
+        Left = 179
         Top = 0
         Width = 8
         Caption = 'btn1'
         ImageIndex = 47
         Style = tbsSeparator
       end
+      object btnShowProperties: TToolButton
+        Left = 187
+        Top = 0
+        Action = actToggleUserProperties
+        Style = tbsTextButton
+      end
     end
     object tlbFile: TToolBar
-      Left = 11
+      Left = 9
       Top = 0
-      Width = 211
+      Width = 212
       Height = 22
       AutoSize = True
       ButtonWidth = 62
@@ -4462,7 +4459,7 @@ object UserManager2Form: TUserManager2Form
     Left = 352
     Top = 272
     Bitmap = {
-      494C0101C000C500200010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101C000C500240010001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000001003000001002000000000000010
       0300000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -10960,7 +10957,7 @@ object UserManager2Form: TUserManager2Form
     Left = 272
     Top = 272
     Bitmap = {
-      494C010101000500200060006000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C010101000500240060006000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000800100006000000001002000000000000040
       0200000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -15746,6 +15743,12 @@ object UserManager2Form: TUserManager2Form
       ImageIndex = 46
       ShortCut = 46
       OnExecute = actDeleteUserObjectExecute
+    end
+    object actToggleUserProperties: TAction
+      Category = 'UserObjects'
+      Caption = 'Show user properties'
+      ImageIndex = 12
+      OnExecute = actToggleUserPropertiesExecute
     end
   end
 end
