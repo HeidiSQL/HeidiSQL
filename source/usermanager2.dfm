@@ -3898,22 +3898,22 @@ object UserManager2Form: TUserManager2Form
         Control = tlbFile
         ImageIndex = -1
         MinHeight = 22
-        Width = 225
+        Width = 226
       end
       item
         Break = False
         Control = tlbUser
         ImageIndex = -1
         MinHeight = 22
-        Width = 874
+        Width = 869
       end>
     object tlbUser: TToolBar
-      Left = 236
+      Left = 237
       Top = 0
-      Width = 865
+      Width = 864
       Height = 22
       AutoSize = True
-      ButtonWidth = 137
+      ButtonWidth = 129
       Caption = 'tlbUser'
       Images = ImageListMain
       List = True
@@ -3932,7 +3932,7 @@ object UserManager2Form: TUserManager2Form
         OnClick = NotImplementedYetClick
       end
       object btnCloneUser: TToolButton
-        Left = 53
+        Left = 50
         Top = 0
         Hint = 
           'Create an new User with the same Properties as the current selec' +
@@ -3943,14 +3943,14 @@ object UserManager2Form: TUserManager2Form
         OnClick = NotImplementedYetClick
       end
       object btnRemoveUser: TToolButton
-        Left = 115
+        Left = 108
         Top = 0
         Action = actDeleteUserObject
         Style = tbsTextButton
         OnClick = NotImplementedYetClick
       end
       object btn1: TToolButton
-        Left = 179
+        Left = 170
         Top = 0
         Width = 8
         Caption = 'btn1'
@@ -3958,7 +3958,7 @@ object UserManager2Form: TUserManager2Form
         Style = tbsSeparator
       end
       object btnShowProperties: TToolButton
-        Left = 187
+        Left = 178
         Top = 0
         Action = actToggleUserProperties
         Style = tbsTextButton
@@ -3967,7 +3967,7 @@ object UserManager2Form: TUserManager2Form
     object tlbFile: TToolBar
       Left = 9
       Top = 0
-      Width = 212
+      Width = 213
       Height = 22
       AutoSize = True
       ButtonWidth = 62
@@ -4056,6 +4056,8 @@ object UserManager2Form: TUserManager2Form
       OnMouseWheel = tvPrivilegeObjectsMouseWheel
       OnNodeClick = tvPrivilegeObjectsNodeClick
       OnNodeDblClick = tvPrivilegeObjectsNodeDblClick
+      ExplicitLeft = 1
+      ExplicitTop = 140
       Columns = <
         item
           CaptionAlignment = taCenter

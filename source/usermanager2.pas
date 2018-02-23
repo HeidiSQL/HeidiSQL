@@ -192,7 +192,7 @@ uses
 procedure TUserManager2Form.FormCreate(Sender: TObject);
 begin
   FViewsGroupNode:= NIL;
-  FChangedList:= TObjectDataList.Create(TRUE);
+  FChangedList:= TObjectDataList.Create(FALSE);
   FPrivilegesList:= TObjectPrivilegeDataList.Create;
   FServerVersion:= 0;
 end;
@@ -1255,7 +1255,7 @@ begin
       if CI = 1 then begin
         // Hit cell is the inheritation checker
         case D1^.Kind of
-          okTable, okView, {okTrigger, okEvent,} okSchema, okColumn:
+          okTable, okView, okSchema, okColumn:
           begin
             N2:= N1^.Parent;
             D2:= Sender.GetNodeData(N2);

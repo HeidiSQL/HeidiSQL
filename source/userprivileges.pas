@@ -24,7 +24,7 @@ type
 
 type
   PObjectData = ^TObjectData;
-  TObjectData = class
+  TObjectData = class(TObject)
     Kind: TNodeObjectKind;
     Caption: string;
     Privileges: TPrivileges;
@@ -41,6 +41,7 @@ type
       const ANetTypeGroup: TNetTypeGroup;
       const AServerVersion: Integer); virtual;
   end;
+
   TObjectDataList = TObjectList<TObjectData>;
 
   PUserData = ^TUserData;

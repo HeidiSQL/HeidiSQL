@@ -2280,7 +2280,11 @@ var
   Dialog: TUserManager2Form;
 begin
   Dialog := TUserManager2Form.Create(Self);
-  Dialog.ShowModal(GetActiveConnection);
+  try
+    Dialog.ShowModal(GetActiveConnection);
+  finally
+    FreeAndNil(Dialog);
+  end;
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
