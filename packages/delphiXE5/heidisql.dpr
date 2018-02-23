@@ -49,7 +49,12 @@ uses
 {$R ..\..\res\icon-question.RES}
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
-{$R ..\..\res\updater.RES}
+{$IFDEF WIN32}
+  {$R ..\..\res\updater32.RES}
+{$ENDIF}
+{$IFDEF WIN64}
+  {$R ..\..\res\updater64.RES}
+{$ENDIF}
 
 var
   AppLanguage: String;
