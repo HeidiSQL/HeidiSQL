@@ -161,7 +161,8 @@ begin
 end;
 
 procedure TObjectData.SaveToDB(const ASchemeName, AGranteeName: string;
-  const ANetTypeGroup: TNetTypeGroup; const AServerVersion: Integer);
+      const ANetTypeGroup: TNetTypeGroup;
+      const AServerVersion: Integer);
 begin
   case ANetTypeGroup of
     ngMySQL:

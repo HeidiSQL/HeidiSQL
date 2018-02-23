@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses main, apphelpers;
+uses main, apphelpers, types_helpers;
 
 {$R *.dfm}
 

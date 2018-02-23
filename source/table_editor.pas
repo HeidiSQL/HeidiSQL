@@ -199,7 +199,7 @@ type
 
 implementation
 
-uses main;
+uses main, types_helpers;
 
 
 {$R *.dfm}

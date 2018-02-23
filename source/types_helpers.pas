@@ -13,6 +13,7 @@ type
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
     ntPgSQL_TCPIP,
     ntMariaDB_TCPIP, ntMariaDB_NamedPipe, ntMariaDB_SSHtunnel);
+
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngMariaDB);
 
   // === Users and Privileges ===
@@ -71,7 +72,7 @@ type
 implementation
 
 uses
-  helpers, SynRegExpr, System.Classes, System.SysUtils;
+  apphelpers, SynRegExpr, System.Classes, System.SysUtils;
 
 const
   S_REGEX_GRANTS = '^GRANT\s+(.+)\s+ON\s+((TABLE|FUNCTION|PROCEDURE)\s+)?(\*|[`"]([^`"]+)[`"])\.(\*|[`"]([^`"]+)[`"])\s+TO\s+\S+(\s+IDENTIFIED\s+BY\s+(PASSWORD)?\s+''?([^'']+)''?)?(\s+.+)?$';

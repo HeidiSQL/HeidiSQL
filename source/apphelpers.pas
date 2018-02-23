@@ -354,7 +354,7 @@ var
 
 implementation
 
-uses main;
+uses main, types_helpers;
 
 
 

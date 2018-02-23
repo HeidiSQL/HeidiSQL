@@ -166,7 +166,7 @@ type
 
 implementation
 
-uses main, mysql_structures;
+uses main, mysql_structures, types_helpers;
 
 const
   STRSKIPPED: String = 'Skipped - ';

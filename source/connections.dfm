@@ -145,7 +145,7 @@ object connform: Tconnform
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 6
-        Width = 33
+        Width = 37
         WideText = 'Comment'
       end>
   end
@@ -188,6 +188,10 @@ object connform: Tconnform
     object tabStart: TTabSheet
       Caption = 'Start'
       ImageIndex = 112
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblHelp: TLabel
         AlignWithMargins = True
         Left = 10
@@ -217,6 +221,10 @@ object connform: Tconnform
     object tabSettings: TTabSheet
       Caption = 'Settings'
       ImageIndex = 39
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         417
         287)
@@ -374,10 +382,11 @@ object connform: Tconnform
         Left = 120
         Top = 238
         Width = 294
-        Height = 40
+        Height = 39
         Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 10
         OnChange = Modification
+        ExplicitHeight = 40
       end
       object editDatabases: TButtonedEdit
         Left = 120
@@ -397,6 +406,10 @@ object connform: Tconnform
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
       ImageIndex = 147
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         417
         287)
@@ -579,6 +592,10 @@ object connform: Tconnform
     object tabAdvanced: TTabSheet
       Caption = 'Advanced'
       ImageIndex = 98
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         417
         287)
@@ -782,9 +799,10 @@ object connform: Tconnform
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 145
-      DesignSize = (
-        417
-        287)
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31

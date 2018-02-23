@@ -97,7 +97,7 @@ object frmTableTools: TfrmTableTools
       Columns = <
         item
           Position = 0
-          Width = 90
+          Width = 94
           WideText = 'Dummy, keeps compatibility to mainform.dbtree'
         end
         item
@@ -152,6 +152,10 @@ object frmTableTools: TfrmTableTools
         object tabMaintenance: TTabSheet
           Caption = 'Maintenance'
           ImageIndex = 39
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             592
             151)
@@ -256,6 +260,10 @@ object frmTableTools: TfrmTableTools
         object tabFind: TTabSheet
           Caption = 'Find text'
           ImageIndex = 30
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             592
             151)
@@ -268,11 +276,12 @@ object frmTableTools: TfrmTableTools
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 83
+            Top = 82
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
             Caption = 'Search in column types:'
+            ExplicitTop = 83
           end
           object lblMatchType: TLabel
             Left = 3
@@ -285,15 +294,16 @@ object frmTableTools: TfrmTableTools
             Left = 208
             Top = 11
             Width = 381
-            Height = 59
+            Height = 58
             Anchors = [akLeft, akTop, akRight, akBottom]
             ScrollBars = ssVertical
             TabOrder = 0
             OnChange = ValidateControls
+            ExplicitHeight = 59
           end
           object comboDataTypes: TComboBox
             Left = 208
-            Top = 76
+            Top = 75
             Width = 381
             Height = 21
             Style = csDropDownList
@@ -302,16 +312,17 @@ object frmTableTools: TfrmTableTools
           end
           object chkCaseSensitive: TCheckBox
             Left = 208
-            Top = 103
+            Top = 102
             Width = 381
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
             Caption = 'Case sensitive'
             TabOrder = 2
+            ExplicitTop = 103
           end
           object comboMatchType: TComboBox
             Left = 208
-            Top = 126
+            Top = 125
             Width = 381
             Height = 21
             Style = csDropDownList
@@ -324,11 +335,16 @@ object frmTableTools: TfrmTableTools
               'Exact match'
               'Left wildcard'
               'Right wildcard')
+            ExplicitTop = 126
           end
         end
         object tabSQLexport: TTabSheet
           Caption = 'SQL export'
           ImageIndex = 9
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             592
             151)
@@ -508,6 +524,10 @@ object frmTableTools: TfrmTableTools
         object tabBulkTableEdit: TTabSheet
           Caption = 'Bulk table editor'
           ImageIndex = 19
+          ExplicitLeft = 0
+          ExplicitTop = 0
+          ExplicitWidth = 0
+          ExplicitHeight = 0
           DesignSize = (
             592
             151)

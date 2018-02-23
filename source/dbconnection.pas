@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms;
+  gnugettext, AnsiStrings, Controls, Forms, types_helpers;
 
 
 type
@@ -197,10 +197,13 @@ type
 
   { TConnectionParameters and friends }
 
+  { CodehunterWorks: Moved TNetType and TNetTypeGroup to types_helpers.pas to
+    avoid circular references in interface-uses
+
   TNetType = (ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel,
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
     ntPgSQL_TCPIP);
-  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);
+  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);}
 
   TConnectionParameters = class(TObject)
     strict private

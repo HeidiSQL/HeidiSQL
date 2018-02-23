@@ -183,6 +183,10 @@ object frmTableEditor: TfrmTableEditor
     object tabBasic: TTabSheet
       Caption = 'Basic'
       ImageIndex = 14
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         686
         121)
@@ -215,7 +219,7 @@ object frmTableEditor: TfrmTableEditor
         Left = 96
         Top = 30
         Width = 589
-        Height = 80
+        Height = 79
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoComment')
@@ -228,6 +232,10 @@ object frmTableEditor: TfrmTableEditor
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         686
         121)
@@ -387,6 +395,10 @@ object frmTableEditor: TfrmTableEditor
     object tabIndexes: TTabSheet
       Caption = 'Indexes'
       ImageIndex = 13
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object treeIndexes: TVirtualStringTree
         AlignWithMargins = True
         Left = 69
@@ -424,7 +436,7 @@ object frmTableEditor: TfrmTableEditor
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
-            Width = 430
+            Width = 434
             WideText = 'Name'
           end
           item
@@ -501,6 +513,10 @@ object frmTableEditor: TfrmTableEditor
     object tabForeignKeys: TTabSheet
       Caption = 'Foreign keys'
       ImageIndex = 136
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object tlbForeignKeys: TToolBar
         Left = 0
         Top = 0
@@ -619,6 +635,10 @@ object frmTableEditor: TfrmTableEditor
     object tabPartitions: TTabSheet
       Caption = 'Partitions'
       ImageIndex = 186
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoPartitions: TSynMemo
         Left = 0
         Top = 0
@@ -652,6 +672,10 @@ object frmTableEditor: TfrmTableEditor
     object tabCREATEcode: TTabSheet
       Caption = 'CREATE code'
       ImageIndex = 119
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoCREATEcode: TSynMemo
         Left = 0
         Top = 0
@@ -685,6 +709,10 @@ object frmTableEditor: TfrmTableEditor
     object tabALTERCode: TTabSheet
       Caption = 'ALTER code'
       ImageIndex = 119
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object SynMemoALTERcode: TSynMemo
         Left = 0
         Top = 0

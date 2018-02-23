@@ -1493,18 +1493,18 @@ object MainForm: TMainForm
         ImageIndex = -1
         MinHeight = 23
         MinWidth = 430
-        Width = 818
+        Width = 820
       end
       item
         Control = ToolBarMainButtons
         HorizontalOnly = True
         ImageIndex = -1
-        Width = 818
+        Width = 820
       end>
     object pnlMainMenu: TPanel
-      Left = 11
+      Left = 9
       Top = 0
-      Width = 809
+      Width = 811
       Height = 23
       Align = alClient
       BevelOuter = bvNone
@@ -1514,7 +1514,7 @@ object MainForm: TMainForm
       object ToolBarMainMenu: TToolBar
         Left = 0
         Top = 0
-        Width = 222
+        Width = 205
         Height = 23
         Align = alLeft
         AutoSize = True
@@ -1558,7 +1558,7 @@ object MainForm: TMainForm
           MenuItem = MainMenuTools
         end
         object ToolButton11: TToolButton
-          Left = 146
+          Left = 136
           Top = 0
           AutoSize = True
           Caption = 'Go to'
@@ -1566,7 +1566,7 @@ object MainForm: TMainForm
           MenuItem = MainMenuGoto
         end
         object btnHelp: TToolButton
-          Left = 186
+          Left = 173
           Top = 0
           Hint = 'Help topics'
           AutoSize = True
@@ -1576,7 +1576,7 @@ object MainForm: TMainForm
         end
       end
       object ToolBarExtraButtons: TToolBar
-        Left = 632
+        Left = 634
         Top = 0
         Width = 177
         Height = 23
@@ -1589,6 +1589,7 @@ object MainForm: TMainForm
         ShowCaptions = True
         TabOrder = 1
         Wrapable = False
+        ExplicitLeft = 632
         object btnDonate: TToolButton
           Left = 0
           Top = 0
@@ -1612,9 +1613,9 @@ object MainForm: TMainForm
       end
     end
     object ToolBarMainButtons: TToolBar
-      Left = 11
+      Left = 9
       Top = 25
-      Width = 809
+      Width = 811
       Height = 25
       Caption = 'ToolBarMainButtons'
       Images = ImageListMain
@@ -2912,7 +2913,7 @@ object MainForm: TMainForm
     Left = 504
     Top = 104
     Bitmap = {
-      494C0101BF005001900410001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
+      494C0101BF005001940410001000FFFFFFFF2110FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000000003000001002000000000000000
       0300000000000000000000000000000000000000000000000000000000000000
       00000000000000000004000000080000000C0000000C00000008000000030000
