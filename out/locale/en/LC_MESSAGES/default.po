@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-02-03 15:54+0100\n"
+"PO-Revision-Date: 2018-02-25 15:32+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6233,3 +6233,12 @@ msgstr "Please update %s through the Microsoft Store."
 # Text in parentheses for detected linebreak style in popup text editor
 msgid "detected"
 msgstr "detected"
+
+msgid "Migrating snippet files to new folder: %s"
+msgstr "Migrating snippet files to new folder: %s"
+
+msgid "Successfully moved \"%s\" to \"%s\""
+msgstr "Successfully moved \"%s\" to \"%s\""
+
+msgid "Error: Could not move \"%s\" to \"%s\" (Error: %s)"
+msgstr "Error: Could not move \"%s\" to \"%s\" (Error: %s)"
