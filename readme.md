@@ -8,6 +8,6 @@ Delphi XE5 is required for building HeidiSQL. Older Delphi versions will most li
 of the other free compilers cannot currently compile HeidiSQL.
 
 Once Delphi XE5 is installed, you need to load the SynEdit project from the components folder. Build both run-time and design-time packages. Install the 
-design-time package. Do the same for the VirtualTree component project.
+design-time package. Do the same for the VirtualTree component project, and install madExcept4.
 
 Afterwards, load the HeidiSQL project from the packages folder.
