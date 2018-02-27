@@ -85,8 +85,7 @@ begin
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
     Application.CreateForm(TMainForm, MainForm);
-  Application.CreateForm(TUserManager2Form, UserManager2Form);
-  MainForm.AfterFormCreate;
+    MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
     Application.OnShowHint := MainForm.ApplicationShowHint;
     Application.MainFormOnTaskBar := True;

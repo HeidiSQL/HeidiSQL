@@ -205,7 +205,6 @@ end;
 constructor TPrivilegesTreeColumns.Create(const ANetTypeGroup: TNetTypeGroup;
   const AServerVersion: Integer);
 var
-  I: Integer;
   P: TPrivilege;
 begin
   FComparer:= TPrivilegeColumnComparer.Create;
@@ -235,7 +234,6 @@ end;
 function TPrivilegeColumnComparer.Compare(const Left,
   Right: TPrivilege): Integer;
 begin
-  Result:= 0;
   if Left.ColorFg = Right.ColorFg then begin
     Result:= CompareStr(Left.ToString, Right.ToString);
   end else begin
@@ -276,7 +274,6 @@ procedure TUserData.SetCaption(const ACaption: string;
   const ASetChanged: Boolean = TRUE);
 var
   D, PD: PUserData;
-  iPos: Integer;
 begin
   if Caption <> ACaption then begin
     Caption:= ACaption;
@@ -315,9 +312,6 @@ begin
 end;
 
 procedure TUserData.SetChanged(const APart: TUserChangedPart);
-var
-  N: PVirtualNode;
-  D: PUserData;
 begin
   if not (APart in Self.ChangedParts) then begin
     Self.Changed:= TRUE;
@@ -367,7 +361,6 @@ end;
 function TUsersList.GetHostNames(const AUserName: string): TStringList;
 var
   User: TUser;
-  UserName: string;
 begin
   if not Assigned(FHostNames) then
     FHostNames:= TStringList.Create

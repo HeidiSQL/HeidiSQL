@@ -686,7 +686,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override; // Fix Abstract errors
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -706,7 +706,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -5811,6 +5811,14 @@ begin
 end;
 
 
+function TAdoDBQuery.GetColBinData(Column: Integer;
+  var baData: TBytes): Boolean;
+begin
+  // Fix Abstract errors
+  Result:= FALSE;
+  SetLength(baData, 0);
+end;
+
 procedure TPGQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, NumFields: Integer;
@@ -5873,6 +5881,12 @@ begin
   end;
 end;
 
+
+function TPGQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+begin
+  Result:= FALSE;
+  SetLength(baData, 0);
+end;
 
 procedure TDBQuery.SetColumnOrgNames(Value: TStringList);
 begin
@@ -6077,12 +6091,8 @@ end;
 function TMySQLQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   AnsiStr: AnsiString;
-  BitString: String;
-  NumBit: Integer;
-  ByteVal: Byte;
-  c: Char;
-  Field: PMYSQL_FIELD;
 begin
+  Result:= FALSE;
   if (Column > -1) and (Column < ColumnCount) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       // Row was edited and only valid in a TRowData
@@ -6388,7 +6398,6 @@ function TPGQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := False;
 end;
-
 
 function TMySQLQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin

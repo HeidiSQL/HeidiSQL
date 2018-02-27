@@ -175,7 +175,7 @@ type
 
   public
     { Public-Deklarationen }
-    function ShowModal(AConnection: TDBConnection): TModalResult; virtual;
+    function ShowModal(AConnection: TDBConnection): TModalResult; reintroduce; virtual;
   end;
 
 var
@@ -187,6 +187,7 @@ implementation
 {$R *.dfm}
 
 uses
+  System.Types, System.UITypes,
   Winapi.CommCtrl, Winapi.UxTheme, Main, VirtualCheckTree;
 
 procedure TUserManager2Form.FormCreate(Sender: TObject);
@@ -218,13 +219,13 @@ end;
 
 procedure TUserManager2Form.FormShow(Sender: TObject);
 var
-  I, J, K: Integer;
-  RN, SN, TN, TGN, CN, UN, HN: PVirtualNode;
+  I, J: Integer;
+  RN, SN, TN, TGN, UN: PVirtualNode;
   Users: TUsersList;
   sUserName, sDBName, sTableName, sColumnName, sViewName, sProcedureName,
-  sFunctionName, sTriggerName, sEventName: string;
-  dbqDatabases, dbqTables, dbqColumns, dbqViews, dbqProcedures, dbqFunctions,
-  dbqTriggers, dbqEvents: TDBQuery;
+  sFunctionName: string;
+  dbqDatabases, dbqTables, dbqColumns, dbqViews, dbqProcedures,
+  dbqFunctions: TDBQuery;
   bInternalSchema: Boolean;
 
   function AddUserChild(AParent: PVirtualNode; AKind: TUserKind;
@@ -333,7 +334,7 @@ begin
         TN:= AddPrivilegeChild(TGN, okTable, Format(sTableName + ' (%d)', [dbqColumns.RecordCount]), bInternalSchema);
         while not dbqColumns.Eof do begin
           sColumnName:= dbqColumns.Col('Field');
-          CN:= AddPrivilegeChild(TN, okColumn, sColumnName, bInternalSchema);
+          {CN:= }AddPrivilegeChild(TN, okColumn, sColumnName, bInternalSchema);
           dbqColumns.Next;
         end;
         dbqTables.Next;
@@ -346,7 +347,7 @@ begin
       TGN:= AddPrivilegeChild(SN, okGroupViews, Format('Views (%d)', [dbqViews.RecordCount]), bInternalSchema);
       while not dbqViews.Eof do begin
         sViewName:= dbqViews.Col('Tables_in_' + sDBName);
-        TN:= AddPrivilegeChild(TGN, okView, sViewName, bInternalSchema);
+        {TN:= }AddPrivilegeChild(TGN, okView, sViewName, bInternalSchema);
         dbqViews.Next;
       end;
       FViewsGroupNode:= TGN;
@@ -357,7 +358,7 @@ begin
       TGN:= AddPrivilegeChild(SN, okGroupProcedures, Format('Procedures (%d)', [dbqProcedures.RecordCount]), bInternalSchema);
       while not dbqViews.Eof do begin
         sProcedureName:= dbqProcedures.Col('Name');
-        TN:= AddPrivilegeChild(TGN, okProcedure, sProcedureName, bInternalSchema);
+        {TN:= }AddPrivilegeChild(TGN, okProcedure, sProcedureName, bInternalSchema);
         dbqProcedures.Next;
       end;
 
@@ -367,7 +368,7 @@ begin
       TGN:= AddPrivilegeChild(SN, okGroupFunctions, Format('Functions (%d)', [dbqFunctions.RecordCount]), bInternalSchema);
       while not dbqFunctions.Eof do begin
         sFunctionName:= dbqFunctions.Col('Name');
-        TN:= AddPrivilegeChild(TGN, okFunction, sFunctionName, bInternalSchema);
+        {TN:= }AddPrivilegeChild(TGN, okFunction, sFunctionName, bInternalSchema);
         dbqFunctions.Next;
       end;
 
@@ -484,7 +485,6 @@ end;
 procedure TUserManager2Form.ApplyPrivilegesToTree;
 var
   SchemaName, ObjectName: string;
-  OPD: TObjectPrivilegeData;
   N: PVirtualNode;
   D: PObjectData;
   T: TBaseVirtualTree;
@@ -609,7 +609,6 @@ end;
 procedure TUserManager2Form.BequeathPrivileges(ANode: PVirtualNode;
   APrivileges: TPrivileges);
 var
-  Grant: Boolean;
   PD, CD: PObjectData;
   PN, CN: PVirtualNode;
   TV: TVirtualStringTree;
@@ -766,7 +765,6 @@ var
   Q: TDBQuery;
   OPD: TObjectPrivilegeData;
   OK: TNodeObjectKind;
-  S: string;
 begin
   C:= FConnection;
 
@@ -1283,7 +1281,7 @@ begin
       end;
     finally
       if (D1 <> NIL) and D1^.Changed then begin
-        FChangedList.Add(D1^);
+        AddChanging(D1^);
       end;
       LockWindowUpdate(0);
     end;

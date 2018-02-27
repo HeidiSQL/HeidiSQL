@@ -3898,19 +3898,19 @@ object UserManager2Form: TUserManager2Form
         Control = tlbFile
         ImageIndex = -1
         MinHeight = 22
-        Width = 226
+        Width = 244
       end
       item
         Break = False
         Control = tlbUser
         ImageIndex = -1
         MinHeight = 22
-        Width = 869
+        Width = 855
       end>
     object tlbUser: TToolBar
-      Left = 237
+      Left = 255
       Top = 0
-      Width = 864
+      Width = 846
       Height = 22
       AutoSize = True
       ButtonWidth = 129
@@ -3943,14 +3943,14 @@ object UserManager2Form: TUserManager2Form
         OnClick = NotImplementedYetClick
       end
       object btnRemoveUser: TToolButton
-        Left = 108
+        Left = 112
         Top = 0
         Action = actDeleteUserObject
         Style = tbsTextButton
         OnClick = NotImplementedYetClick
       end
       object btn1: TToolButton
-        Left = 170
+        Left = 174
         Top = 0
         Width = 8
         Caption = 'btn1'
@@ -3958,7 +3958,7 @@ object UserManager2Form: TUserManager2Form
         Style = tbsSeparator
       end
       object btnShowProperties: TToolButton
-        Left = 178
+        Left = 182
         Top = 0
         Action = actToggleUserProperties
         Style = tbsTextButton
@@ -3967,7 +3967,7 @@ object UserManager2Form: TUserManager2Form
     object tlbFile: TToolBar
       Left = 9
       Top = 0
-      Width = 213
+      Width = 231
       Height = 22
       AutoSize = True
       ButtonWidth = 62
@@ -4029,7 +4029,7 @@ object UserManager2Form: TUserManager2Form
       Header.Font.Height = -11
       Header.Font.Name = 'Tahoma'
       Header.Font.Style = []
-      Header.Height = 160
+      Header.Height = 161
       Header.Images = ilPrivilegesHeader
       Header.MinHeight = 80
       Header.Options = [hoColumnResize, hoOwnerDraw, hoShowImages, hoShowSortGlyphs, hoVisible]
@@ -4056,8 +4056,7 @@ object UserManager2Form: TUserManager2Form
       OnMouseWheel = tvPrivilegeObjectsMouseWheel
       OnNodeClick = tvPrivilegeObjectsNodeClick
       OnNodeDblClick = tvPrivilegeObjectsNodeDblClick
-      ExplicitLeft = 1
-      ExplicitTop = 140
+      ExplicitHeight = 256
       Columns = <
         item
           CaptionAlignment = taCenter

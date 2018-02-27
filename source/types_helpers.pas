@@ -468,7 +468,6 @@ var
   S: string;
   SL: TStringList;
 begin
-  Result:= FALSE;
   if CompareText(AString.Trim, 'ALL PRIVILEGES') = 0 then begin
     for P:= Low(TPrivilege) to High(TPrivilege) do begin
       Self:= Self + [P] - [prNone];

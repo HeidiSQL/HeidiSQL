@@ -90,6 +90,7 @@ procedure TfrmTextEditor.SetText(text: String);
 var
   Detected, Item: TMenuItem;
 begin
+  Detected:= NIL; // Fix possible unitialized and "if Assigned()" going fail
   FDetectedLineBreaks := ScanLineBreaks(text);
   if FDetectedLineBreaks = lbsNone then
     FDetectedLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
