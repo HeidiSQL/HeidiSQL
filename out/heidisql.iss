@@ -104,7 +104,7 @@ Source: "libiconv-264.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check:
 Source: "libiconv-232.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "Snippets\*.sql"; DestDir: "{commonappdata}\{#ProgName}\Snippets";
+Source: "Snippets\*.sql"; DestDir: "{userdocs}\{#ProgName}\Snippets";
 
 [Icons]
 Name: "{group}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"
