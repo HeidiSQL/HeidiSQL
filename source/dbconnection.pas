@@ -2267,7 +2267,7 @@ begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
 
   if ServerVersionInt >= 50124 then
-    FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE in_use!=0';
+    FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
 
