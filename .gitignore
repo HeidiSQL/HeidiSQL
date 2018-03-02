@@ -12,3 +12,13 @@
 *.tvsconfig
 __history
 __recovery
+*.dpro*
+*.grouppro*
+*.mes
+/packages/delphiXE5/heidisql.res
+/packages/delphiXE5/heidisql.dproj
+/packages/delphiXE5/heidisql.dproj.local
+/packages/delphiXE5/heidisql.groupproj
+/packages/delphiXE5/heidisql.groupproj.local
+/packages/delphiXE5/heidisql.identcache
+/packages/delphiXE5/heidisql.mes
