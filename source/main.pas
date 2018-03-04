@@ -55,6 +55,7 @@ type
       procedure SetMemo(Value: TSynMemo);
       procedure SetMemoFilename(Value: String);
       procedure TimerLastChangeOnTimer(Sender: TObject);
+      procedure TimerStatusUpdateOnTimer(Sender: TObject);
       procedure MemoOnChange(Sender: TObject);
     public
       Number: Integer;
@@ -81,6 +82,7 @@ type
       HistoryDays: TStringList;
       ListBindParams: TBindParam;
       TimerLastChange: TTimer;
+      TimerStatusUpdate: TTimer;
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
@@ -2691,6 +2693,7 @@ begin
     // Start the execution thread
     Screen.Cursor := crAppStart;
     Tab.QueryRunning := True;
+    Tab.TimerStatusUpdate.Enabled := True;
     Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch, Tab.Number);
   end;
 
@@ -2700,14 +2703,8 @@ end;
 
 
 procedure TMainForm.BeforeQueryExecution(Thread: TQueryThread);
-var
-  Text: String;
 begin
   // Update GUI stuff
-  Text := _('query')+' #' + FormatNumber(Thread.BatchPosition+1);
-  if Thread.QueriesInPacket > 1 then
-    Text := f_('queries #%s to #%s', [FormatNumber(Thread.BatchPosition+1), FormatNumber(Thread.BatchPosition+Thread.QueriesInPacket)]);
-  ShowStatusMsg(TimeToStr(Now) + ': ' + f_('Executing %s of %s ...', [Text, FormatNumber(Thread.Batch.Count)]));
   SetProgressPosition(Thread.BatchPosition);
 end;
 
@@ -2725,6 +2722,9 @@ begin
 
   ShowStatusMsg(_('Setting up result grid(s) ...'));
   Tab := GetQueryTabByNumber(Thread.TabNumber);
+
+  // Disable status updates
+  Tab.TimerStatusUpdate.Enabled := False;
 
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
@@ -12285,6 +12285,11 @@ begin
   TimerLastChange.OnTimer := TimerLastChangeOnTimer;
   // Contain 2 columns of String : Params & Values
   ListBindParams := TBindParam.Create;
+  // Update status bar every second while query runs
+  TimerStatusUpdate := TTimer.Create(Self);
+  TimerStatusUpdate.Enabled := False;
+  TimerStatusUpdate.Interval := 100;
+  TimerStatusUpdate.OnTimer := TimerStatusUpdateOnTimer;
 end;
 
 
@@ -12294,6 +12299,7 @@ begin
   DirectoryWatch.Free;
   ListBindParams.Free;
   TimerLastChange.Free;
+  TimerStatusUpdate.Free;
 end;
 
 
@@ -12542,6 +12548,24 @@ begin
 
   MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
 end;
+
+
+procedure TQueryTab.TimerStatusUpdateOnTimer(Sender: TObject);
+var
+  Msg, ElapsedMsg: String;
+  Elapsed: Int64;
+begin
+  // Update status bar every second with elapsed time
+  Msg := _('query')+' #' + FormatNumber(ExecutionThread.BatchPosition+1);
+  if ExecutionThread.QueriesInPacket > 1 then
+    Msg := f_('queries #%s to #%s', [FormatNumber(ExecutionThread.BatchPosition+1), FormatNumber(ExecutionThread.BatchPosition+ExecutionThread.QueriesInPacket)]);
+  Elapsed := SecondsBetween(ExecutionThread.QueryStartedAt, Now);
+  ElapsedMsg := FormatTimeNumber(Elapsed, True);
+  MainForm.ShowStatusMsg(ElapsedMsg + ': ' + f_('Executing %s of %s ...', [Msg, FormatNumber(ExecutionThread.Batch.Count)]));
+  // Fix short interval after first timer hit
+  TimerStatusUpdate.Interval := 1000;
+end;
+
 
 
 

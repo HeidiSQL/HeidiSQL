@@ -96,6 +96,7 @@ type
     FErrorMessage: String;
     FBatchPosition: Integer;
     FQueriesInPacket: Integer;
+    FQueryStartedAt: TDateTime;
     FQueryTime: Cardinal;
     FQueryNetTime: Cardinal;
     FRowsAffected: Int64;
@@ -113,6 +114,7 @@ type
     property TabNumber: Integer read FTabNumber;
     property BatchPosition: Integer read FBatchPosition;
     property QueriesInPacket: Integer read FQueriesInPacket;
+    property QueryStartedAt: TDateTime read FQueryStartedAt;
     property QueryTime: Cardinal read FQueryTime;
     property QueryNetTime: Cardinal read FQueryNetTime;
     property RowsAffected: Int64 read FRowsAffected;
@@ -2915,6 +2917,7 @@ begin
   FBatch := Batch;
   FTabNumber := TabNumber;
   FBatchPosition := 0;
+  FQueryStartedAt := Now;
   FQueryTime := 0;
   FQueryNetTime := 0;
   FRowsAffected := 0;
