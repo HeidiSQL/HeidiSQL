@@ -52,8 +52,10 @@ type
     private
       FMemo: TSynMemo;
       FMemoFilename: String;
+      FQueryRunning: Boolean;
       procedure SetMemo(Value: TSynMemo);
       procedure SetMemoFilename(Value: String);
+      procedure SetQueryRunning(Value: Boolean);
       procedure TimerLastChangeOnTimer(Sender: TObject);
       procedure TimerStatusUpdateOnTimer(Sender: TObject);
       procedure MemoOnChange(Sender: TObject);
@@ -75,7 +77,6 @@ type
       TabSheet: TTabSheet;
       ResultTabs: TResultTabs;
       DoProfile: Boolean;
-      QueryRunning: Boolean;
       QueryProfile: TDBQuery;
       ProfileTime, MaxProfileTime: Extended;
       LeftOffsetInMemo: Integer;
@@ -92,6 +93,7 @@ type
       property ActiveResultTab: TResultTab read GetActiveResultTab;
       property Memo: TSynMemo read FMemo write SetMemo;
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
+      property QueryRunning: Boolean read FQueryRunning write SetQueryRunning;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
   end;
@@ -2693,7 +2695,6 @@ begin
     // Start the execution thread
     Screen.Cursor := crAppStart;
     Tab.QueryRunning := True;
-    Tab.TimerStatusUpdate.Enabled := True;
     Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch, Tab.Number);
   end;
 
@@ -2722,9 +2723,6 @@ begin
 
   ShowStatusMsg(_('Setting up result grid(s) ...'));
   Tab := GetQueryTabByNumber(Thread.TabNumber);
-
-  // Disable status updates
-  Tab.TimerStatusUpdate.Enabled := False;
 
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
@@ -12471,6 +12469,14 @@ begin
 end;
 
 
+procedure TQueryTab.SetQueryRunning(Value: Boolean);
+begin
+  // Marker for query tab that it is currently executing and waiting for a query
+  FQueryRunning := Value;
+  TimerStatusUpdate.Enabled := Value;
+end;
+
+
 procedure TQueryTab.MemoOnChange(Sender: TObject);
 var
   Node: PVirtualNode;
@@ -12562,8 +12568,6 @@ begin
   Elapsed := SecondsBetween(ExecutionThread.QueryStartedAt, Now);
   ElapsedMsg := FormatTimeNumber(Elapsed, True);
   MainForm.ShowStatusMsg(ElapsedMsg + ': ' + f_('Executing %s of %s ...', [Msg, FormatNumber(ExecutionThread.Batch.Count)]));
-  // Fix short interval after first timer hit
-  TimerStatusUpdate.Interval := 1000;
 end;
 
 
