@@ -2841,7 +2841,7 @@ begin
   if Thread.QueryTime < 60*1000 then
     MetaInfo := MetaInfo + ': '+FormatNumber(Thread.QueryTime/1000, 3) +' sec.'
   else
-    MetaInfo := MetaInfo + ': '+FormatTimeNumber(Thread.QueryTime div 1000, True);
+    MetaInfo := MetaInfo + ': '+FormatTimeNumber(Thread.QueryTime/1000, True);
   if Thread.QueryNetTime > 0 then
     MetaInfo := MetaInfo + ' (+ '+FormatNumber(Thread.QueryNetTime/1000, 3) +' sec. network)';
   LogSQL(MetaInfo);
@@ -12565,8 +12565,8 @@ begin
   Msg := _('query')+' #' + FormatNumber(ExecutionThread.BatchPosition+1);
   if ExecutionThread.QueriesInPacket > 1 then
     Msg := f_('queries #%s to #%s', [FormatNumber(ExecutionThread.BatchPosition+1), FormatNumber(ExecutionThread.BatchPosition+ExecutionThread.QueriesInPacket)]);
-  Elapsed := SecondsBetween(ExecutionThread.QueryStartedAt, Now);
-  ElapsedMsg := FormatTimeNumber(Elapsed, True);
+  Elapsed := MilliSecondsBetween(ExecutionThread.QueryStartedAt, Now);
+  ElapsedMsg := FormatTimeNumber(Elapsed/1000, True);
   MainForm.ShowStatusMsg(ElapsedMsg + ': ' + f_('Executing %s of %s ...', [Msg, FormatNumber(ExecutionThread.Batch.Count)]));
 end;
 

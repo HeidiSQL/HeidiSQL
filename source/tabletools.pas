@@ -748,7 +748,7 @@ begin
       DeleteFile(FileName);
       LogRow := FResults.Last;
       LogRow[2] := _('Compressing done.');
-      LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000, True);
+      LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
       ResultGrid.Repaint;
     end;
 
@@ -1352,7 +1352,7 @@ const
     BytesDone := Max(DBObj.Size,0) div Max(DBObj.Rows,1) * RowsDone;
     FObjectSizesDoneExact := FObjectSizesDone + BytesDone;
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
-    LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) DIV 1000, True);
+    LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
     UpdateResultGrid;
   end;
 
