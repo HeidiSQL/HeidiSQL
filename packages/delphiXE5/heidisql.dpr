@@ -43,13 +43,25 @@ uses
   JumpList in '..\..\source\JumpList.pas',
   extra_controls in '..\..\source\extra_controls.pas',
   change_password in '..\..\source\change_password.pas' {frmPasswordChange},
-  Vcl.FormsFix in '..\..\source\Vcl.FormsFix.pas';
+  Vcl.FormsFix in '..\..\source\Vcl.FormsFix.pas',
+  types_helpers in '..\..\source\types_helpers.pas',
+  usermanager2 in '..\..\source\usermanager2.pas' {UserManager2Form},
+  userprivileges in '..\..\source\userprivileges.pas',
+  VirtualCheckTree in '..\..\source\VirtualCheckTree.pas';
 
 {$R ..\..\res\icon.RES}
 {$R ..\..\res\icon-question.RES}
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
-{$R ..\..\res\updater.RES}
+
+// CodehunterWorks: Added x86/x64 compiler switch for using the correct
+// updater32.res or updater64.res
+{$IFDEF WIN32}
+  {$R ..\..\res\updater32.RES}
+{$ENDIF}
+{$IFDEF WIN64}
+  {$R ..\..\res\updater64.RES}
+{$ENDIF}
 
 var
   AppLanguage: String;

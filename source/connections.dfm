@@ -217,6 +217,10 @@ object connform: Tconnform
     object tabSettings: TTabSheet
       Caption = 'Settings'
       ImageIndex = 39
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         417
         287)
@@ -374,10 +378,11 @@ object connform: Tconnform
         Left = 120
         Top = 238
         Width = 294
-        Height = 40
+        Height = 38
         Anchors = [akLeft, akTop, akRight, akBottom]
         TabOrder = 10
         OnChange = Modification
+        ExplicitHeight = 40
       end
       object editDatabases: TButtonedEdit
         Left = 120
@@ -397,6 +402,10 @@ object connform: Tconnform
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
       ImageIndex = 147
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         417
         287)
@@ -579,6 +588,10 @@ object connform: Tconnform
     object tabAdvanced: TTabSheet
       Caption = 'Advanced'
       ImageIndex = 98
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       DesignSize = (
         417
         287)
@@ -782,9 +795,10 @@ object connform: Tconnform
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 145
-      DesignSize = (
-        417
-        287)
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31

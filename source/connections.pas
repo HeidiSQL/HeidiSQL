@@ -186,7 +186,7 @@ type
 
 implementation
 
-uses Main, apphelpers, grideditlinks;
+uses Main, apphelpers, grideditlinks, types_helpers;
 
 {$I const.inc}
 
@@ -1047,7 +1047,7 @@ begin
   Params := CurrentParams;
   if (not editPort.Modified) and (FLoaded) then
     case Params.NetTypeGroup of
-      ngMySQL:
+      ngMySQL, ngMariaDB:
         updownPort.Position := MakeInt(AppSettings.GetDefaultString(asPort));
       ngMSSQL:
         updownPort.Position := 1433;

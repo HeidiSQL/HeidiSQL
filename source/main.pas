@@ -15,9 +15,9 @@ uses
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, apphelpers, createdatabase, table_editor,
-  TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
+  TableTools, View, Usermanager, Usermanager2, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix;
+  JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix, types_helpers;
 
 
 type
@@ -646,6 +646,8 @@ type
     actCopyRows: TAction;
     Copyselectedrows1: TMenuItem;
     actClearQueryLog: TAction;
+    ButtonUserManager2: TToolButton;
+    actUserManager2: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -656,6 +658,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
+    procedure actUserManager2Execute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
     procedure actApplyFilterExecute(Sender: TObject);
     procedure actClearEditorExecute(Sender: TObject);
@@ -2304,6 +2307,18 @@ begin
   Dialog.ShowModal;
 end;
 
+procedure TMainForm.actUserManager2Execute(Sender: TObject);
+var
+  Dialog: TUserManager2Form;
+begin
+  Dialog := TUserManager2Form.Create(Self);
+  try
+    Dialog.ShowModal(GetActiveConnection);
+  finally
+    FreeAndNil(Dialog);
+  end;
+end;
+
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
 var
   Box: TAboutBox;
@@ -3284,7 +3299,7 @@ begin
   if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtCriticalConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
-      DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014);
+      DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014) or (Conn.Parameters.NetTypeGroup = ngMariaDB);
       if DisableForeignKeys then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
@@ -3991,7 +4006,7 @@ begin
     actNewQueryTab.Execute;
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
     case Obj.Connection.Parameters.NetTypeGroup of
-      ngMySQL:
+      ngMySQL, ngMariaDB:
         case Obj.NodeType of
           lntProcedure: Query := 'CALL ';
           lntFunction: Query := 'SELECT ';
@@ -4021,7 +4036,7 @@ begin
       Parameters.Free;
       ParamValues := '';
       case Obj.Connection.Parameters.NetTypeGroup of
-        ngMySQL, ngPgSQL:
+        ngMySQL, ngPgSQL, ngMariaDB:
           ParamValues := '(' + ImplodeStr(', ', Params) + ')';
         ngMSSQL:
           ParamValues := ' ' + ImplodeStr(' ', Params);
@@ -4969,6 +4984,7 @@ begin
               ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
               ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
               ngPgSQL: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngMariaDB: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
             end;
           end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
@@ -5020,7 +5036,7 @@ begin
     if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then begin
       case DBObj.Connection.Parameters.NetTypeGroup of
         ngMSSQL: Offset := 0; // Does not support offset in all server versions
-        ngMySQL, ngPgSQL: Offset := DataGridResult.RecordCount;
+        ngMySQL, ngPgSQL, ngMariaDB: Offset := DataGridResult.RecordCount;
       end;
     end;
     Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset, Offset);
@@ -7432,93 +7448,95 @@ var
   OldDataLocalNumberFormat: Boolean;
   OldImageIndex: Integer;
 begin
-  // Find the correct VirtualTree that shall be filtered
-  tab := PageControlMain.ActivePage;
-  if tab = tabHost then
-    tab := PageControlHost.ActivePage;
-  VT := nil;
-  if tab = tabDatabases then begin
-    VT := ListDatabases;
-    FFilterTextDatabases := editFilterVT.Text;
-  end else if tab = tabVariables then begin
-    VT := ListVariables;
-    FFilterTextVariables := editFilterVT.Text;
-  end else if tab = tabStatus then begin
-    VT := ListStatus;
-    FFilterTextStatus := editFilterVT.Text;
-  end else if tab = tabProcesslist then begin
-    VT := ListProcesses;
-    FFilterTextProcessList := editFilterVT.Text;
-  end else if tab = tabCommandStats then begin
-    VT := ListCommandStats;
-    FFilterTextCommandStats := editFilterVT.Text;
-  end else if tab = tabDatabase then begin
-    VT := ListTables;
-    FFilterTextDatabase := editFilterVT.Text;
-  end else if tab = tabEditor then begin
-    if ActiveObjectEditor is TfrmTableEditor then
-      VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
-    FFilterTextEditor := editFilterVT.Text;
-  end else if tab = tabData then begin
-    VT := DataGrid;
-    FFilterTextData := editFilterVT.Text;
-  end else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then begin
-    VT := ActiveGrid;
-    ActiveQueryTab.ActiveResultTab.FilterText := editFilterVT.Text;
-  end;
-  if not Assigned(VT) then
-    Exit;
-  // Loop through all nodes and hide non matching
-  Node := VT.GetFirst;
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.Expression := editFilterVT.Text;
-  try
-    rx.Exec('abc');
-  except
-    on E:ERegExpr do begin
-      if rx.Expression <> '' then begin
-        LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
-        rx.Expression := '';
+  if Trim(editFilterVT.Text) <> '' then begin
+    // Find the correct VirtualTree that shall be filtered
+    tab := PageControlMain.ActivePage;
+    if tab = tabHost then
+      tab := PageControlHost.ActivePage;
+    VT := nil;
+    if tab = tabDatabases then begin
+      VT := ListDatabases;
+      FFilterTextDatabases := editFilterVT.Text;
+    end else if tab = tabVariables then begin
+      VT := ListVariables;
+      FFilterTextVariables := editFilterVT.Text;
+    end else if tab = tabStatus then begin
+      VT := ListStatus;
+      FFilterTextStatus := editFilterVT.Text;
+    end else if tab = tabProcesslist then begin
+      VT := ListProcesses;
+      FFilterTextProcessList := editFilterVT.Text;
+    end else if tab = tabCommandStats then begin
+      VT := ListCommandStats;
+      FFilterTextCommandStats := editFilterVT.Text;
+    end else if tab = tabDatabase then begin
+      VT := ListTables;
+      FFilterTextDatabase := editFilterVT.Text;
+    end else if tab = tabEditor then begin
+      if ActiveObjectEditor is TfrmTableEditor then
+        VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
+      FFilterTextEditor := editFilterVT.Text;
+    end else if tab = tabData then begin
+      VT := DataGrid;
+      FFilterTextData := editFilterVT.Text;
+    end else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then begin
+      VT := ActiveGrid;
+      ActiveQueryTab.ActiveResultTab.FilterText := editFilterVT.Text;
+    end;
+    if not Assigned(VT) then
+      Exit;
+    // Loop through all nodes and hide non matching
+    Node := VT.GetFirst;
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    rx.Expression := editFilterVT.Text;
+    try
+      rx.Exec('abc');
+    except
+      on E:ERegExpr do begin
+        if rx.Expression <> '' then begin
+          LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
+          rx.Expression := '';
+        end;
       end;
     end;
-  end;
-  VisibleCount := 0;
-  OldDataLocalNumberFormat := DataLocalNumberFormat;
-  DataLocalNumberFormat := False;
-  // Display hour glass instead of X icon
-  OldImageIndex := editFilterVT.RightButton.ImageIndex;
-  editFilterVT.RightButton.ImageIndex := 150;
-  editFilterVT.Repaint;
+    VisibleCount := 0;
+    OldDataLocalNumberFormat := DataLocalNumberFormat;
+    DataLocalNumberFormat := False;
+    // Display hour glass instead of X icon
+    OldImageIndex := editFilterVT.RightButton.ImageIndex;
+    editFilterVT.RightButton.ImageIndex := 150;
+    editFilterVT.Repaint;
 
-  while Assigned(Node) do begin
-    // Don't filter anything if the filter text is empty
-    match := rx.Expression = '';
-    // Search for given text in node's captions
-    if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
-      CellText := VT.Text[Node, i];
-      match := rx.Exec(CellText);
+    while Assigned(Node) do begin
+      // Don't filter anything if the filter text is empty
+      match := rx.Expression = '';
+      // Search for given text in node's captions
+      if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
+        CellText := VT.Text[Node, i];
+        match := rx.Exec(CellText);
+        if match then
+          break;
+      end;
+      VT.IsVisible[Node] := match;
       if match then
-        break;
+        inc(VisibleCount);
+      Node := VT.GetNext(Node);
     end;
-    VT.IsVisible[Node] := match;
-    if match then
-      inc(VisibleCount);
-    Node := VT.GetNext(Node);
-  end;
-  if rx.Expression <> '' then begin
-    lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
-      + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
-  end else
-    lblFilterVTInfo.Caption := '';
+    if rx.Expression <> '' then begin
+      lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
+        + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
+    end else
+      lblFilterVTInfo.Caption := '';
 
-  if FromTimer then
-    VT.Invalidate
-  else
-    InvalidateVT(VT, VTREE_LOADED, true);
-  DataLocalNumberFormat := OldDataLocalNumberFormat;
-  editFilterVT.RightButton.ImageIndex := OldImageIndex;
-  rx.Free;
+    if FromTimer then
+      VT.Invalidate
+    else
+      InvalidateVT(VT, VTREE_LOADED, true);
+    DataLocalNumberFormat := OldDataLocalNumberFormat;
+    editFilterVT.RightButton.ImageIndex := OldImageIndex;
+    rx.Free;
+  end;
 end;
 
 
@@ -7624,7 +7642,7 @@ begin
     case Kind of
       ikNormal, ikSelected: begin
         case Results.Connection.Parameters.NetTypeGroup of
-          ngMySQL: IsIdle := Results.Col('Info') = '';
+          ngMySQL, ngMariaDB: IsIdle := Results.Col('Info') = '';
           ngMSSQL: IsIdle := (Results.Col(6) <> 'running') and (Results.Col(6) <> 'runnable');
           else IsIdle := False;
         end;
@@ -8103,7 +8121,7 @@ begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
       RefreshHelperNode(HELPERNODE_HISTORY);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
-        ngMySQL:
+        ngMySQL, ngMariaDB:
           SynSQLSyn1.SQLDialect := sqlMySQL;
         ngMSSQL:
           SynSQLSyn1.SQLDialect := sqlMSSQL2K;
@@ -9571,7 +9589,7 @@ begin
       FStatusServerUptime := Conn.ServerUptime;
     end else if vt = ListProcesses then begin
       case Conn.Parameters.NetTypeGroup of
-        ngMySQL: begin
+        ngMySQL, ngMariaDB: begin
           if Conn.InformationSchemaObjects.IndexOf('PROCESSLIST') > -1 then begin
             // Minimize network traffic on newer servers by fetching only first KB of SQL query in "Info" column
             Columns := Conn.QuoteIdent('ID')+', '+

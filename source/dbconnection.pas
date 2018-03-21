@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, windows, mysql_structures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms;
+  gnugettext, AnsiStrings, Controls, Forms, types_helpers, userprivileges;
 
 
 type
@@ -197,10 +197,13 @@ type
 
   { TConnectionParameters and friends }
 
+  { CodehunterWorks: Moved TNetType and TNetTypeGroup to types_helpers.pas to
+    avoid circular references in interface-uses
+
   TNetType = (ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel,
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
     ntPgSQL_TCPIP);
-  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);
+  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);}
 
   TConnectionParameters = class(TObject)
     strict private
@@ -333,6 +336,7 @@ type
       FKeepAliveTimer: TTimer;
       FFavorites: TStringList;
       FPrefetchResults: TDBQueryList;
+      FUsersList: TUsersList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -438,6 +442,7 @@ type
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
       function GetLockedTableCount(db: String): Integer;
+      function GetUsersList: TUsersList; virtual;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -484,7 +489,19 @@ type
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function MaxAllowedPacket: Int64; override;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
+      function GetUsersList: TUsersList; override;
   end;
+
+
+  { TMySQLConnection }
+
+  TMariaDBConnection = class(TMySQLConnection)
+  public
+      function GetUsersList: TUsersList; override;
+  end;
+
+
+  { TAdoDBConnection }
 
   TAdoRawResults = Array of _RecordSet;
   TAdoDBConnection = class(TDBConnection)
@@ -657,6 +674,10 @@ type
       function TableName: String; override;
   end;
 
+  { TMariaDBQuery }
+
+  TMariaDBQuery = class(TMySQLQuery);
+
   TAdoDBQuery = class(TDBQuery)
     private
       FCurrentResults: TAdoQuery;
@@ -665,7 +686,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override; // Fix Abstract errors
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -685,7 +706,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -1215,6 +1236,8 @@ begin
       Result := TAdoDBConnection.Create(AOwner);
     ngPgSQL:
       Result := TPgConnection.Create(AOwner);
+    ngMariaDB:
+      Result := TMariaDBConnection.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1231,6 +1254,8 @@ begin
       Result := TAdoDBQuery.Create(AOwner);
     ngPgSQL:
       Result := TPGQuery.Create(AOwner);
+    ngMariaDB:
+      Result := TMariaDBQuery.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1272,6 +1297,12 @@ begin
       Result := 'Microsoft SQL Server (Windows RPC)';
     ntPgSQL_TCPIP:
       Result := 'PostgreSQL ('+_('experimental')+')';
+    ntMariaDB_TCPIP:
+      Result:= 'MariaDB (TCP/IP)';
+    ntMariaDB_NamedPipe:
+      Result:= 'MariaDB (named pipe)';
+    ntMariaDB_SSHtunnel:
+      Result:= 'MariaDB (SSH tunnel)';
   end else case NetType of
     ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
       Result := My;
@@ -1279,6 +1310,8 @@ begin
       Result := 'MS SQL';
     ntPgSQL_TCPIP:
       Result := 'PostgreSQL';
+    ntMariaDB_TCPIP, ntMariaDB_NamedPipe, ntMariaDB_SSHtunnel:
+      Result:= 'MariaDB';
   end;
 end;
 
@@ -1299,6 +1332,8 @@ begin
       Result := ngMSSQL;
     ntPgSQL_TCPIP:
       Result := ngPgSQL;
+    ntMariaDB_TCPIP, ntMariaDB_NamedPipe, ntMariaDB_SSHtunnel:
+      Result := ngMariaDB;
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1325,7 +1360,8 @@ end;
 
 function TConnectionParameters.IsMariaDB: Boolean;
 begin
-  Result := Pos('-mariadb', LowerCase(ServerVersion)) > 0;
+  Result := (NetTypeGroup = ngMariaDB) or
+            (Pos('-mariadb', LowerCase(ServerVersion)) > 0);
 end;
 
 
@@ -1366,12 +1402,13 @@ begin
   else case NetTypeGroup of
     ngMySQL: begin
       Result := 164;
-      if IsMariaDB then Result := 166
-      else if IsPercona then Result := 169
+      if IsPercona then Result := 169
       else if IsTokudb then Result := 171
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173;
     end;
+    ngMariaDB:
+      Result := 166;
     ngMSSQL: begin
       Result := 123;
       if IsAzure then Result := 188;
@@ -2042,7 +2079,7 @@ begin
     ));
 
   case Parameters.NetTypeGroup of
-    ngMySQL: begin
+    ngMySQL, ngMariaDB: begin
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
@@ -3077,7 +3114,7 @@ begin
   Queries := TStringList.Create;
   for Obj in Objects do begin
     case Parameters.NetTypeGroup of
-      ngMySQL: begin
+      ngMySQL, ngMariaDB: begin
         if Obj.NodeType <> lntView then
           Queries.Add('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name));
       end;
@@ -3186,6 +3223,95 @@ begin
       FThreadID := PQbackendPID(FHandle);
   end;
   Result := FThreadID;
+end;
+
+
+{**
+  Return all users in the connection
+}
+function TMySQLConnection.GetUsersList: TUsersList;
+var
+  PasswordCol: string;
+  Users: TDBQuery;
+  U: TUser;
+  SkipNameResolve: Boolean;
+  S: string;
+begin
+  Result:= inherited GetUsersList;
+  Result.Clear;
+
+  if ServerVersionInt >= 50706 then begin
+    PasswordCol := 'authentication_string';
+  end else begin
+    PasswordCol := 'password';
+  end;
+
+  S := GetVar('SHOW VARIABLES LIKE ' + EscapeString('skip_name_resolve'), 1);
+  SkipNameResolve := (LowerCase(S) = 'on');
+  Query('FLUSH PRIVILEGES');
+
+  Users := GetResults(
+    'SELECT ' + QuoteIdent('user') + ', ' + QuoteIdent('host') + ', ' +
+                QuoteIdent(PasswordCol) + ' ' +
+    'FROM '+QuoteIdent('mysql') + '.' + QuoteIdent('user')
+    );
+
+  while not Users.Eof do begin
+    U := TUser.Create;
+    U.Username := Users.Col('user');
+    U.Host := Users.Col('host');
+    U.Password := Users.Col(PasswordCol);
+    U.Problem := upNone;
+
+    if Length(U.Password) = 0 then
+      U.Problem := upEmptyPassword;
+    if not (Length(U.Password) in [0, 16, 41]) then
+      U.Problem := upInvalidPasswordLen
+    else if SkipNameResolve and U.HostRequiresNameResolve then
+      U.Problem := upSkipNameResolve;
+
+    Result.Add(U);
+    Users.Next;
+  end;
+end;
+
+function TMariaDBConnection.GetUsersList: TUsersList;
+var
+  Users: TDBQuery;
+  U: TUser;
+  SkipNameResolve: Boolean;
+  S: string;
+begin
+  Result:= inherited GetUsersList;
+  Result.Clear;
+
+  S := GetVar('SHOW VARIABLES LIKE ' + EscapeString('skip_name_resolve'), 1);
+  SkipNameResolve := (LowerCase(S) = 'on');
+  Query('FLUSH PRIVILEGES');
+
+  Users := GetResults(
+    'SELECT ' + QuoteIdent('user') + ', ' + QuoteIdent('host') + ', ' +
+                QuoteIdent('password') + ' ' +
+    'FROM '+QuoteIdent('mysql') + '.' + QuoteIdent('user')
+    );
+
+  while not Users.Eof do begin
+    U := TUser.Create;
+    U.Username := Users.Col('user');
+    U.Host := Users.Col('host');
+    U.Password := Users.Col('password');
+    U.Problem := upNone;
+
+    if Length(U.Password) = 0 then
+      U.Problem := upEmptyPassword;
+    if not (Length(U.Password) in [0, 16, 41]) then
+      U.Problem := upInvalidPasswordLen
+    else if SkipNameResolve and U.HostRequiresNameResolve then
+      U.Problem := upSkipNameResolve;
+
+    Result.Add(U);
+    Users.Next;
+  end;
 end;
 
 
@@ -3324,7 +3450,7 @@ begin
   Result := 0;
   rx := TRegExpr.Create;
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL, ngPgSQL, ngMariaDB: begin
       rx.Expression := '(\d+)\.(\d+)(\.(\d+))?';
       if rx.Exec(FServerVersionUntouched) then begin
         Result := StrToIntDef(rx.Match[1], 0) *10000 +
@@ -3363,7 +3489,7 @@ var
   major, minor, build: Integer;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL, ngPgSQL, ngMariaDB: begin
       v := IntToStr(ServerVersionInt);
       major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
       minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
@@ -3581,7 +3707,7 @@ var
   c1, c2, c3, c4, EscChar: Char;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL, ngPgSQL, ngMariaDB: begin
       c1 := '''';
       c2 := '\';
       c3 := '%';
@@ -3844,6 +3970,13 @@ begin
   Result := FTableEngines;
 end;
 
+
+function TDBConnection.GetUsersList: TUsersList;
+begin
+  if not Assigned(FUsersList) then
+    FUsersList := TUsersList.Create;
+  Result := FUsersList;
+end;
 
 function TMySQLConnection.GetTableEngines: TStringList;
 var
@@ -4860,7 +4993,7 @@ begin
     if Assigned(FSessionVariables) then
       Result.Values['max_allowed_packet'] := FormatByteNumber(MaxAllowedPacket);
     case Parameters.NetTypeGroup of
-      ngMySQL: begin
+      ngMySQL, ngMariaDB: begin
         Result.Values[f_('Client version (%s)', [LibMysqlPath])] := DecodeApiString(mysql_get_client_info);
         Infos := DecodeApiString(mysql_stat((Self as TMySQLConnection).FHandle));
         rx := TRegExpr.Create;
@@ -5377,7 +5510,7 @@ begin
         Result := Result + 'TOP '+IntToStr(Limit)+' ';
       Result := Result + QueryBody;
     end;
-    ngMySQL: begin
+    ngMySQL, ngMariaDB: begin
       Result := Result + QueryBody + ' LIMIT ';
       if Offset > 0 then
         Result := Result + IntToStr(Offset) + ', ';
@@ -5678,6 +5811,14 @@ begin
 end;
 
 
+function TAdoDBQuery.GetColBinData(Column: Integer;
+  var baData: TBytes): Boolean;
+begin
+  // Fix Abstract errors
+  Result:= FALSE;
+  SetLength(baData, 0);
+end;
+
 procedure TPGQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, NumFields: Integer;
@@ -5740,6 +5881,12 @@ begin
   end;
 end;
 
+
+function TPGQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+begin
+  Result:= FALSE;
+  SetLength(baData, 0);
+end;
 
 procedure TDBQuery.SetColumnOrgNames(Value: TStringList);
 begin
@@ -5944,12 +6091,8 @@ end;
 function TMySQLQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   AnsiStr: AnsiString;
-  BitString: String;
-  NumBit: Integer;
-  ByteVal: Byte;
-  c: Char;
-  Field: PMYSQL_FIELD;
 begin
+  Result:= FALSE;
   if (Column > -1) and (Column < ColumnCount) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       // Row was edited and only valid in a TRowData
@@ -6167,7 +6310,7 @@ begin
       dtTinyText, dtTinyBlob: Result := 255;
       dtText, dtBlob: begin
         case FConnection.Parameters.NetTypeGroup of
-          ngMySQL: Result := 65535;
+          ngMySQL, ngMariaDB: Result := 65535;
           ngMSSQL: Result := MaxInt;
           ngPgSQL: Result := High(Int64);
         end;
@@ -6255,7 +6398,6 @@ function TPGQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := False;
 end;
-
 
 function TMySQLQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
@@ -7331,7 +7473,7 @@ begin
   Result := FConnection.QuoteIdent(Name);
   if DataType.Index = dtUnknown then
     case FConnection.Parameters.NetTypeGroup of
-      ngMySQL: Result := 'CAST('+Result+' AS CHAR)';
+      ngMySQL, ngMariaDB: Result := 'CAST('+Result+' AS CHAR)';
       ngMSSQL: Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(SIZE_MB)+'))';
       ngPgSQL: Result := Result + '::text';
     end;

@@ -34,7 +34,7 @@ type
 
 implementation
 
-uses main, apphelpers;
+uses main, apphelpers, types_helpers;
 
 {$R *.dfm}
 
@@ -64,7 +64,7 @@ begin
   // Detect servers default collation
   // TODO: Find out how to retrieve the server's default collation on MSSQL
   case FConnection.Parameters.NetTypeGroup of
-    ngMySQL:
+    ngMySQL, ngMariaDB:
       ServerCollation := FConnection.GetVar('SHOW VARIABLES LIKE '+FConnection.EscapeString('collation_server'), 1);
     ngMSSQL:
       ServerCollation := '';

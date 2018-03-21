@@ -199,7 +199,7 @@ type
 
 implementation
 
-uses main;
+uses main, types_helpers;
 
 
 {$R *.dfm}
@@ -528,7 +528,7 @@ begin
 
   if memoComment.Tag = MODIFIEDFLAG then begin
     case DBObject.Connection.Parameters.NetTypeGroup of
-      ngMySQL, ngMSSQL: begin
+      ngMySQL, ngMSSQL, ngMariaDB: begin
         Specs.Add('COMMENT=' + esc(memoComment.Text));
       end;
       ngPgSQL: begin
@@ -582,14 +582,14 @@ begin
         OverrideCollation := comboCollation.Text;
       ColSpec := Col.SQLCode(OverrideCollation);
       // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-      if (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL) and (DBObject.Connection.ServerVersionInt >= 40001) then begin
+      if ((DBObject.Connection.Parameters.NetTypeGroup = ngMySQL) and (DBObject.Connection.ServerVersionInt >= 40001)) or (DBObject.Connection.Parameters.NetTypeGroup = ngMariaDB) then begin
         if PreviousCol = nil then
           ColSpec := ColSpec + ' FIRST'
         else
           ColSpec := ColSpec + ' AFTER '+DBObject.Connection.QuoteIdent(PreviousCol.Name);
       end;
       case DBObject.Connection.Parameters.NetTypeGroup of
-        ngMySQL: OldColName := DBObject.Connection.QuoteIdent(Col.OldName);
+        ngMySQL, ngMariaDB: OldColName := DBObject.Connection.QuoteIdent(Col.OldName);
         ngMSSQL: OldColName := '';
         // PostgreSQL?? What does this?
       end;
@@ -600,7 +600,7 @@ begin
 
       // MSSQL + Postgres want one ALTER TABLE query per ADD/CHANGE COLUMN
       case DBObject.Connection.Parameters.NetTypeGroup of
-        ngMySQL:;
+        ngMySQL, ngMariaDB:;
         ngMSSQL: begin
           AddQuery('EXECUTE sp_addextendedproperty '+DBObject.Connection.EscapeString('MS_Description')+', '+
             DBObject.Connection.EscapeString(Col.Comment)+', '+
@@ -1003,10 +1003,12 @@ begin
   btnRemoveColumn.Enabled := listColumns.SelectedCount > 0;
   btnMoveUpColumn.Enabled := Assigned(Node)
     and (Node <> listColumns.GetFirst)
-    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    and ((DBObject.Connection.Parameters.NetTypeGroup = ngMySQL) or
+         (DBObject.Connection.Parameters.NetTypeGroup = ngMariaDB));
   btnMoveDownColumn.Enabled := Assigned(Node)
     and (Node <> listColumns.GetLast)
-    and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
+    and ((DBObject.Connection.Parameters.NetTypeGroup = ngMySQL) or
+         (DBObject.Connection.Parameters.NetTypeGroup = ngMariaDB));
 
   menuRemoveColumn.Enabled := btnRemoveColumn.Enabled;
   menuMoveUpColumn.Enabled := btnMoveUpColumn.Enabled;
