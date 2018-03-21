@@ -96,6 +96,7 @@ type
     FErrorMessage: String;
     FBatchPosition: Integer;
     FQueriesInPacket: Integer;
+    FQueryStartedAt: TDateTime;
     FQueryTime: Cardinal;
     FQueryNetTime: Cardinal;
     FRowsAffected: Int64;
@@ -113,6 +114,7 @@ type
     property TabNumber: Integer read FTabNumber;
     property BatchPosition: Integer read FBatchPosition;
     property QueriesInPacket: Integer read FQueriesInPacket;
+    property QueryStartedAt: TDateTime read FQueryStartedAt;
     property QueryTime: Cardinal read FQueryTime;
     property QueryNetTime: Cardinal read FQueryNetTime;
     property RowsAffected: Int64 read FRowsAffected;
@@ -280,7 +282,7 @@ type
   function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource: Boolean): String;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
-  function FormatTimeNumber(Seconds: Cardinal; DisplaySeconds: Boolean): String;
+  function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
   function GetTempDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
@@ -1076,11 +1078,12 @@ end;
   @param Cardinal Number of seconds
   @result String 12:34:56
 }
-function FormatTimeNumber(Seconds: Cardinal; DisplaySeconds: Boolean): String;
+function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
 var
-  d, h, m, s : Integer;
+  d, h, m, s, ts: Integer;
 begin
-  s := Seconds;
+  s := Trunc(Seconds);
+  ts := Trunc((Seconds - s) * 10); // ts = tenth of a second
   d := s div (60*60*24);
   s := s mod (60*60*24);
   h := s div (60*60);
@@ -1088,15 +1091,21 @@ begin
   m := s div 60;
   s := s mod 60;
   if d > 0 then begin
-    if DisplaySeconds then
-      Result := Format('%d '+_('days')+', %.2d:%.2d:%.2d', [d, h, m, s])
-    else
+    if DisplaySeconds then begin
+      Result := Format('%d '+_('days')+', %.2d:%.2d:%.2d', [d, h, m, s]);
+      Result := Result + '.' + IntToStr(ts);
+    end
+    else begin
       Result := Format('%d '+_('days')+', %.2d:%.2d h', [d, h, m]);
+    end;
   end else begin
-    if DisplaySeconds then
-      Result := Format('%.2d:%.2d:%.2d', [h, m, s])
-    else
-      Result := Format('%.2d:%.2d h', [h, m])
+    if DisplaySeconds then begin
+      Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
+      Result := Result + '.' + IntToStr(ts);
+    end
+    else begin
+      Result := Format('%.2d:%.2d h', [h, m]);
+    end;
   end;
 end;
 
@@ -2915,6 +2924,7 @@ begin
   FBatch := Batch;
   FTabNumber := TabNumber;
   FBatchPosition := 0;
+  FQueryStartedAt := Now;
   FQueryTime := 0;
   FQueryNetTime := 0;
   FRowsAffected := 0;
