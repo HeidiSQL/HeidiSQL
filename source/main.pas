@@ -11503,7 +11503,8 @@ begin
     TargetCanvas.Font.Color := DatatypeCategories[SelectedTableColumns[Node.Index].DataType.Category].Color;
   end;
   if (Sender.GetNodeLevel(Node)=2)
-    and (Node.Parent.Parent.Index=HELPERNODE_HISTORY) then begin
+    and (Node.Parent.Parent.Index=HELPERNODE_HISTORY)
+    and (ActiveConnection <> nil) then begin
     Tab := GetQueryTabByHelpers(Sender);
     if Tab <> nil then begin
       History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
