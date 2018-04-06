@@ -374,8 +374,9 @@ object connform: Tconnform
         Left = 120
         Top = 238
         Width = 294
-        Height = 40
+        Height = 35
         Anchors = [akLeft, akTop, akRight, akBottom]
+        ScrollBars = ssVertical
         TabOrder = 10
         OnChange = Modification
       end
