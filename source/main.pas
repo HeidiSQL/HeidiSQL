@@ -8850,6 +8850,8 @@ begin
   // Vtree does not focus cell after tab pressing. See issue #3139.
   // Most probably a missing thing / bug in TBaseVirtualTree.SetFocusedNodeAndColumn
   Sender.ScrollIntoView(Sender.FocusedNode, False, True);
+  // Required for highlighting fields with same text
+  Sender.Repaint;
 end;
 
 
@@ -9143,45 +9145,61 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
+  VT: TVirtualStringTree;
   r: TDBQuery;
   cl, clNull, clEven, clOdd: TColor;
   RowNumber: PInt64;
   isEven: Boolean;
+  FieldText, FocusedFieldText: String;
 begin
   if Column = -1 then
     Exit;
+  VT := Sender as TVirtualStringTree;
   r := GridResult(Sender);
   if not r.Connection.Active then begin
     // This event (BeforeCellPaint) is the very first one to notice a broken connection
     Sender.Enabled := False;
-  end else begin
-    RowNumber := Sender.GetNodeData(Node);
-    r.RecNo := RowNumber^;
+    Exit;
+  end;
 
-    clEven := AppSettings.ReadInt(asRowBackgroundEven);
-    clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
-    isEven := Node.Index mod 2 = 0;
-    if IsEven and (clEven <> clNone) then
-      cl := AppSettings.ReadInt(asRowBackgroundEven)
-    else if (not IsEven) and (clOdd <> clNone) then
-      cl := AppSettings.ReadInt(asRowBackgroundOdd)
-    else
-      cl := clNone;
+  RowNumber := Sender.GetNodeData(Node);
+  r.RecNo := RowNumber^;
 
-    if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
-      cl := clHighlight
-    else if vsSelected in Node.States then
-      cl := $00DDDDDD
-    else if r.IsNull(Column) then begin
-      clNull := AppSettings.ReadInt(asFieldNullBackground);
-      if clNull <> clNone then
-        cl := clNull;
-    end;
-    if cl <> clNone then begin
-      TargetCanvas.Brush.Color := cl;
-      TargetCanvas.FillRect(CellRect);
+  clEven := AppSettings.ReadInt(asRowBackgroundEven);
+  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
+  isEven := Node.Index mod 2 = 0;
+  if IsEven and (clEven <> clNone) then
+    cl := AppSettings.ReadInt(asRowBackgroundEven)
+  else if (not IsEven) and (clOdd <> clNone) then
+    cl := AppSettings.ReadInt(asRowBackgroundOdd)
+  else
+    cl := clNone;
+
+  if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
+    cl := clHighlight
+  else if vsSelected in Node.States then
+    cl := $00DDDDDD
+  else if r.IsNull(Column) then begin
+    clNull := AppSettings.ReadInt(asFieldNullBackground);
+    if clNull <> clNone then
+      cl := clNull;
+  end;
+  if cl <> clNone then begin
+    TargetCanvas.Brush.Color := cl;
+    TargetCanvas.FillRect(CellRect);
+  end;
+
+  if (Sender.FocusedNode <> nil) and (Node <> Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
+    if AppSettings.ReadBool(asHightlightSameText) then begin
+      FieldText := r.Col(Column);
+      FocusedFieldText := VT.Text[Sender.FocusedNode, Sender.FocusedColumn];
+      if CompareText(FieldText, FocusedFieldText) = 0 then begin
+        TargetCanvas.Brush.Color := $00DDDDDD; //clInfoBk;
+        TargetCanvas.FillRect(CellRect);
+      end;
     end;
   end;
+
 end;
 
 

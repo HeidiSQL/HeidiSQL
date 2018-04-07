@@ -942,6 +942,16 @@ object optionsform: Toptionsform
         TabOrder = 15
         OnClick = Modified
       end
+      object chkHightlightSameText: TCheckBox
+        Left = 8
+        Top = 239
+        Width = 691
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Hightlight fields with same text as in focused field'
+        TabOrder = 16
+        OnClick = Modified
+      end
     end
     object tabDataEditors: TTabSheet
       Caption = 'Data editors'
