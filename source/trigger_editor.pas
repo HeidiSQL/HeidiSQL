@@ -130,7 +130,7 @@ begin
           rx.ModifierI := True;
           rx.Expression := 'FOR\s+EACH\s+ROW\s+(.+)$';
           try
-            Body := DBObject.Connection.GetCreateCode(DBObject.Database, DBObject.Schema, DBObject.Name, lntTrigger);
+            Body := DBObject.Connection.GetCreateCode(DBObject);
             if rx.Exec(Body) then
               Body := rx.Match[1]
             else

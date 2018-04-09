@@ -37,7 +37,7 @@ type
       Created, Updated, LastChecked: TDateTime;
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       // Routine options:
-      Body, Definer, Returns, DataAccess, Security: String;
+      Body, Definer, Returns, DataAccess, Security, ArgTypes: String;
       Deterministic: Boolean;
 
       NodeType, GroupType: TListNodeType;
@@ -387,7 +387,7 @@ type
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
       function ConnectionInfo: TStringList;
       function GetLastResults: TDBQueryList; virtual; abstract;
-      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; virtual;
+      function GetCreateCode(Obj: TDBObject): String; virtual;
       procedure PrefetchCreateCode(Objects: TDBObjectList);
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
       function MaxAllowedPacket: Int64; virtual; abstract;
@@ -480,7 +480,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetLastResults: TDBQueryList; override;
-      function GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String; override;
+      function GetCreateCode(Obj: TDBObject): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function MaxAllowedPacket: Int64; override;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
@@ -2674,7 +2674,7 @@ begin
 end;
 
 
-function TMySQLConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
+function TMySQLConnection.GetCreateCode(Obj: TDBObject): String;
 var
   Column: Integer;
   ObjType: String;
@@ -2682,18 +2682,18 @@ var
 begin
   Column := -1;
   TmpObj := TDBObject.Create(Self);
-  TmpObj.NodeType := NodeType;
+  TmpObj.NodeType := Obj.NodeType;
   ObjType := TmpObj.ObjType;
-  case NodeType of
+  case Obj.NodeType of
     lntTable, lntView: Column := 1;
     lntFunction, lntProcedure, lntTrigger: Column := 2;
     lntEvent: Column := 3;
     else Exception.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
   end;
-  if NodeType = lntView then
-    Result := GetCreateViewCode(Database, Name)
+  if Obj.NodeType = lntView then
+    Result := GetCreateViewCode(Obj.Database, Obj.Name)
   else
-    Result := GetVar('SHOW CREATE '+UpperCase(TmpObj.ObjType)+' '+QuoteIdent(Database)+'.'+QuoteIdent(Name), Column);
+    Result := GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), Column);
   TmpObj.Free;
 end;
 
@@ -2757,7 +2757,7 @@ begin
 end;
 
 
-function TDBConnection.GetCreateCode(Database, Schema, Name: String; NodeType: TListNodeType): String;
+function TDBConnection.GetCreateCode(Obj: TDBObject): String;
 var
   Cols, Keys, ProcDetails, Comments: TDBQuery;
   ConstraintName, MaxLen, DataType: String;
@@ -2769,16 +2769,16 @@ var
   // TODO: Does not work on MSSQL 2000
   function SchemaClauseIS(Prefix: String): String;
   begin
-    if Schema <> '' then
-      Result := Prefix+'_SCHEMA='+EscapeString(Schema)
+    if Obj.Schema <> '' then
+      Result := Prefix+'_SCHEMA='+EscapeString(Obj.Schema)
     else
-      Result := Prefix+'_CATALOG='+EscapeString(Database);
+      Result := Prefix+'_CATALOG='+EscapeString(Obj.Database);
   end;
 
 begin
-  case NodeType of
+  case Obj.NodeType of
     lntTable: begin
-      Result := 'CREATE TABLE '+QuoteIdent(Name)+' (';
+      Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
       Comments := nil;
 
       // Retrieve column details from IS
@@ -2802,14 +2802,14 @@ begin
             '  AND pgc.oid = a.attrelid '+
             '  AND pg_table_is_visible(pgc.oid) '+
             '  AND NOT a.attisdropped '+
-            '  AND pgc.relname = '+EscapeString(Name)+' '+
+            '  AND pgc.relname = '+EscapeString(Obj.Name)+' '+
             'ORDER BY a.attnum'
           );
         end;
         else begin
           Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
             SchemaClauseIS('TABLE') +
-            ' AND TABLE_NAME='+EscapeString(Name)
+            ' AND TABLE_NAME='+EscapeString(Obj.Name)
             );
           // Comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
           Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
@@ -2819,8 +2819,8 @@ begin
             'INNER JOIN sys.columns AS c ON prop.major_id = c.object_id AND prop.minor_id = c.column_id '+
             'WHERE '+
             '  prop.name='+EscapeString('MS_Description')+
-            '  AND s.name='+EscapeString(Schema)+
-            '  AND o.name='+EscapeString(Name)
+            '  AND s.name='+EscapeString(Obj.Schema)+
+            '  AND o.name='+EscapeString(Obj.Name)
             );
         end;
       end;
@@ -2883,7 +2883,7 @@ begin
             Keys := GetResults('WITH ndx_list AS ('+
               '    SELECT pg_index.indexrelid, pg_class.oid'+
               '    FROM pg_index, pg_class'+
-              '    WHERE pg_class.relname = '+EscapeString(Name)+
+              '    WHERE pg_class.relname = '+EscapeString(Obj.Name)+
               '    AND pg_class.oid = pg_index.indrelid'+
               '  ),'+
               '  ndx_cols AS ('+
@@ -2914,8 +2914,8 @@ begin
               'LEFT JOIN '+QuoteIdent('pg_namespace')+' '+QuoteIdent('n')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('relnamespace')+'='+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
               'WHERE c.contype IN ('+EscapeString('p')+', '+EscapeString('u')+') '+
               'AND '+QuoteIdent('a')+'.'+QuoteIdent('attnum')+'=ANY('+QuoteIdent('c')+'.'+QuoteIdent('conkey')+') '+
-              'AND '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Schema)+' '+
-              'AND '+QuoteIdent('t')+'.'+QuoteIdent('relname')+'='+EscapeString(Name)+' '+
+              'AND '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Schema)+' '+
+              'AND '+QuoteIdent('t')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)+' '+
               'ORDER BY '+QuoteIdent('a')+'.'+QuoteIdent('attnum')
               );
           end;
@@ -2925,7 +2925,7 @@ begin
             ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
             ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
             '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
-            '   AND K.TABLE_NAME='+EscapeString(Name)+
+            '   AND K.TABLE_NAME='+EscapeString(Obj.Name)+
             '   AND '+SchemaClauseIS('K.TABLE')+
             ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
             ' ORDER BY K.ORDINAL_POSITION');
@@ -2960,10 +2960,10 @@ begin
       case FParameters.NetTypeGroup of
         ngPgSQL: begin
           // Prefer pg_catalog tables. See http://www.heidisql.com/forum.php?t=16213#p16685
-          Result := 'CREATE VIEW ' + QuoteIdent(Name) + ' AS ' + GetVar('SELECT '+QuoteIdent('definition')+
+          Result := 'CREATE VIEW ' + QuoteIdent(Obj.Name) + ' AS ' + GetVar('SELECT '+QuoteIdent('definition')+
             ' FROM '+QuoteIdent('pg_views')+
-            ' WHERE '+QuoteIdent('viewname')+'='+EscapeString(Name)+
-            ' AND '+QuoteIdent('schemaname')+'='+EscapeString(Schema)
+            ' WHERE '+QuoteIdent('viewname')+'='+EscapeString(Obj.Name)+
+            ' AND '+QuoteIdent('schemaname')+'='+EscapeString(Obj.Schema)
             );
         end;
         ngMSSQL: begin
@@ -2974,14 +2974,14 @@ begin
             ' JOIN '+QuoteIdent('SYS')+'.'+QuoteIdent('SQL_MODULES')+' AS '+QuoteIdent('MODS')+' ON '+QuoteIdent('OBJ')+'.'+QuoteIdent('OBJECT_ID')+'='+QuoteIdent('MODS')+'.'+QuoteIdent('OBJECT_ID')+
             ' JOIN '+QuoteIdent('SYS')+'.'+QuoteIdent('SCHEMAS')+' AS '+QuoteIdent('SCHS')+' ON '+QuoteIdent('OBJ')+'.'+QuoteIdent('SCHEMA_ID')+'='+QuoteIdent('SCHS')+'.'+QuoteIdent('SCHEMA_ID')+
             ' WHERE '+QuoteIdent('OBJ')+'.'+QuoteIdent('TYPE')+'='+EscapeString('V')+
-            '   AND '+QuoteIdent('SCHS')+'.'+QuoteIdent('NAME')+'='+EscapeString(Schema)+
-            '   AND '+QuoteIdent('OBJ')+'.'+QuoteIdent('NAME')+'='+EscapeString(Name)
+            '   AND '+QuoteIdent('SCHS')+'.'+QuoteIdent('NAME')+'='+EscapeString(Obj.Schema)+
+            '   AND '+QuoteIdent('OBJ')+'.'+QuoteIdent('NAME')+'='+EscapeString(Obj.Name)
             );
         end;
         else begin
           Result := GetVar('SELECT VIEW_DEFINITION'+
             ' FROM INFORMATION_SCHEMA.VIEWS'+
-            ' WHERE TABLE_NAME='+EscapeString(Name)+
+            ' WHERE TABLE_NAME='+EscapeString(Obj.Name)+
             ' AND '+SchemaClauseIS('TABLE')
             );
         end;
@@ -2993,16 +2993,16 @@ begin
         ngMSSQL: begin
           // Tested on MS SQL 8.0 and 11.0
           // See http://www.heidisql.com/forum.php?t=12495
-          if not Schema.IsEmpty then
-            Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name))
+          if not Obj.Schema.IsEmpty then
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Schema+'.'+Obj.Name))
           else
-            Rows := GetCol('EXEC sp_helptext '+EscapeString(Database+'.'+Name));
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name));
           // Do not use Rows.Text, as the rows already include a trailing linefeed
           Result := implodestr('', Rows);
           Rows.Free;
         end;
         ngPgSQL: begin
-          Result := 'CREATE FUNCTION '+QuoteIdent(Name);
+          Result := 'CREATE FUNCTION '+QuoteIdent(Obj.Name);
           ProcDetails := GetResults('SELECT '+
             QuoteIdent('p')+'.'+QuoteIdent('prosrc')+', '+
             QuoteIdent('p')+'.'+QuoteIdent('proargnames')+', '+
@@ -3011,8 +3011,9 @@ begin
             'FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+' AS '+QuoteIdent('n')+' '+
             'JOIN '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_proc')+' AS '+QuoteIdent('p')+' ON '+QuoteIdent('p')+'.'+QuoteIdent('pronamespace')+' = '+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
             'WHERE '+
-            QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Database)+
-            'AND '+QuoteIdent('p')+'.'+QuoteIdent('proname')+'='+EscapeString(Name)
+            QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
+            'AND '+QuoteIdent('p')+'.'+QuoteIdent('proname')+'='+EscapeString(Obj.Name)+
+            'AND '+QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+'='+EscapeString(Obj.ArgTypes)
             );
           ArgNames := Explode(',', Copy(ProcDetails.Col('proargnames'), 2, Length(ProcDetails.Col('proargnames'))-2));
           ArgTypes := Explode(' ', Copy(ProcDetails.Col('proargtypes'), 1, Length(ProcDetails.Col('proargtypes'))));
@@ -3033,7 +3034,7 @@ begin
         else begin
           Result := GetVar('SELECT ROUTINE_DEFINITION'+
             ' FROM INFORMATION_SCHEMA.ROUTINES'+
-            ' WHERE ROUTINE_NAME='+EscapeString(Name)+
+            ' WHERE ROUTINE_NAME='+EscapeString(Obj.Name)+
             ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
             ' AND '+SchemaClauseIS('ROUTINE')
             );
@@ -3045,17 +3046,17 @@ begin
       case Parameters.NetTypeGroup of
         ngMSSQL: begin
           // See comments above
-          if not Schema.IsEmpty then
-            Rows := GetCol('EXEC sp_helptext '+EscapeString(Schema+'.'+Name))
+          if not Obj.Schema.IsEmpty then
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Schema+'.'+Obj.Name))
           else
-            Rows := GetCol('EXEC sp_helptext '+EscapeString(Database+'.'+Name));
+            Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name));
           Result := implodestr('', Rows);
           Rows.Free;
         end;
         else begin
           Result := GetVar('SELECT ROUTINE_DEFINITION'+
             ' FROM INFORMATION_SCHEMA.ROUTINES'+
-            ' WHERE ROUTINE_NAME='+EscapeString(Name)+
+            ' WHERE ROUTINE_NAME='+EscapeString(Obj.Name)+
             ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
             ' AND '+SchemaClauseIS('ROUTINE')
             );
@@ -4718,7 +4719,7 @@ begin
   // Stored functions. No procedures in PostgreSQL.
   // See http://dba.stackexchange.com/questions/2357/what-are-the-differences-between-stored-procedures-and-stored-functions
   try
-    Results := GetResults('SELECT '+QuoteIdent('p')+'.'+QuoteIdent('proname')+' '+
+    Results := GetResults('SELECT '+QuoteIdent('p')+'.'+QuoteIdent('proname')+', '+QuoteIdent('p')+'.'+QuoteIdent('proargtypes')+' '+
       'FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+' AS '+QuoteIdent('n')+' '+
       'JOIN '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_proc')+' AS '+QuoteIdent('p')+' ON '+QuoteIdent('p')+'.'+QuoteIdent('pronamespace')+' = '+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
       'WHERE '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(db)
@@ -4731,6 +4732,7 @@ begin
       obj := TDBObject.Create(Self);
       Cache.Add(obj);
       obj.Name := Results.Col('proname');
+      obj.ArgTypes := Results.Col('proargtypes');
       obj.Database := db;
       obj.NodeType := lntFunction;
       Results.Next;
@@ -6387,7 +6389,7 @@ begin
     if Obj = nil then
       raise EDatabaseError.Create(f_('Could not find table or view %s.%s. Please refresh database tree.', [DB, TableName]));
   end;
-  CreateCode := Connection.GetCreateCode(Obj.Database, Obj.Schema, Obj.Name, Obj.NodeType);
+  CreateCode := Connection.GetCreateCode(Obj);
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
@@ -7057,6 +7059,7 @@ begin
     Comment := s.Comment;
     Rows := s.Rows;
     Size := s.Size;
+    ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
     FCreateCodeFetched := s.FCreateCodeFetched;
   end else
@@ -7074,6 +7077,7 @@ begin
       and (Database = CompareTo.Database)
       and (Schema = CompareTo.Schema)
       and (Column = CompareTo.Column)
+      and (ArgTypes = CompareTo.ArgTypes)
       and (Connection = CompareTo.Connection);
 end;
 
@@ -7174,7 +7178,7 @@ end;
 function TDBObject.GetCreateCode: String;
 begin
   if not FCreateCodeFetched then try
-    CreateCode := Connection.GetCreateCode(Database, Schema, Name, NodeType);
+    CreateCode := Connection.GetCreateCode(Self);
   except on E:Exception do
     Connection.Log(lcError, E.Message);
   end;

@@ -2249,6 +2249,7 @@ var
   Err: String;
   RefColumns: TTableColumnList;
   TypesMatch: Boolean;
+  RefObj: TDBObject;
 begin
   // Cell text in foreign key list edited
   Key := FForeignKeys[Node.Index];
@@ -2294,7 +2295,11 @@ begin
           RefDatabase := Copy(RefTable, 1, i-1);
           RefTable := Copy(RefTable, i+1, MaxInt);
         end;
-        RefCreateCode := DBObject.Connection.GetCreateCode(RefDatabase, '', RefTable, lntTable);
+        RefObj := TDBObject.Create(DBObject.Connection);
+        RefObj.Name := RefTable;
+        RefObj.Database := RefDatabase;
+        RefObj.NodeType := lntTable;
+        RefCreateCode := DBObject.Connection.GetCreateCode(RefObj);
         RefColumns := TTableColumnList.Create(True);
         DBObject.Connection.ParseTableStructure(RefCreateCode, RefColumns, nil, nil);
         TypesMatch := True;
