@@ -8851,7 +8851,7 @@ begin
   // Most probably a missing thing / bug in TBaseVirtualTree.SetFocusedNodeAndColumn
   Sender.ScrollIntoView(Sender.FocusedNode, False, True);
   // Required for highlighting fields with same text
-  Sender.Repaint;
+  Sender.Invalidate;
 end;
 
 
