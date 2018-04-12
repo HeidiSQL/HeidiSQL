@@ -1008,6 +1008,8 @@ type
     procedure actGotoFilterExecute(Sender: TObject);
     procedure actGotoTabNumberExecute(Sender: TObject);
     procedure StatusBarClick(Sender: TObject);
+    procedure SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -6193,6 +6195,31 @@ begin
 end;
 
 
+procedure TMainForm.SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
+  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+var
+  Editor: TSynEdit;
+  NewFontSize: Integer;
+begin
+  // Change font size with MouseWheel
+  if KeyPressed(VK_CONTROL) then begin
+    Editor := TSynEdit(Sender);
+    NewFontSize := Editor.Font.Size;
+    if WheelDelta > 0 then
+      Inc(NewFontSize)
+    else
+      Dec(NewFontSize);
+    NewFontSize := Max(NewFontSize, 1);
+    AppSettings.ResetPath;
+    AppSettings.WriteInt(asFontSize, NewFontSize);
+    SetupSynEditors;
+    Handled := True;
+  end else begin
+    Handled := False;
+  end;
+end;
+
+
 procedure TMainForm.SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
 var
   Editor : TSynEdit;
@@ -8750,9 +8777,9 @@ var
   Node: PVirtualNode;
   NewFontSize: Integer;
 begin
-  // Advance to next or previous grid node on Shift+MouseWheel
   VT := Sender as TVirtualStringTree;
   if ssAlt in Shift then begin
+    // Advance to next or previous grid node on Shift+MouseWheel
     if Assigned(VT.FocusedNode) then begin
       if WheelDelta > 0 then
         Node := VT.FocusedNode.PrevSibling
@@ -8764,11 +8791,12 @@ begin
       end;
     end;
   end else if KeyPressed(VK_CONTROL) then begin
+    // Change font size with MouseWheel
     NewFontSize := VT.Font.Size;
     if WheelDelta > 0 then
-      NewFontSize := NewFontSize + 1
+      Inc(NewFontSize)
     else
-      NewFontSize := NewFontSize - 1;
+      Dec(NewFontSize);
     NewFontSize := Max(NewFontSize, 1);
     AppSettings.ResetPath;
     AppSettings.WriteInt(asDataFontSize, NewFontSize);
@@ -10137,6 +10165,7 @@ begin
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
+  QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
