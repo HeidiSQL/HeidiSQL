@@ -774,6 +774,13 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Alternating row background:'
       end
+      object Label3: TLabel
+        Left = 8
+        Top = 196
+        Width = 268
+        Height = 13
+        Caption = 'Background for fields with same text as in focused field:'
+      end
       object editMaxColWidth: TEdit
         Left = 430
         Top = 8
@@ -924,33 +931,32 @@ object optionsform: Toptionsform
       end
       object chkLocalNumberFormat: TCheckBox
         Left = 8
-        Top = 193
+        Top = 223
         Width = 693
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Local number format'
-        TabOrder = 14
+        TabOrder = 15
         OnClick = Modified
       end
       object chkHintsOnResultTabs: TCheckBox
         Left = 8
-        Top = 216
+        Top = 246
         Width = 693
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Pop up SQL text over result tabs'
-        TabOrder = 15
-        OnClick = Modified
-      end
-      object chkHightlightSameText: TCheckBox
-        Left = 8
-        Top = 239
-        Width = 691
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Hightlight fields with same text as in focused field'
         TabOrder = 16
         OnClick = Modified
+      end
+      object cboxRowHighlightSameText: TColorBox
+        Left = 430
+        Top = 193
+        Width = 133
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
+        Anchors = [akTop, akRight]
+        TabOrder = 14
       end
     end
     object tabDataEditors: TTabSheet

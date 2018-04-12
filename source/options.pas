@@ -139,7 +139,8 @@ type
     editQueryHistoryKeepDays: TEdit;
     updownQueryHistoryKeepDays: TUpDown;
     lblQueryHistoryKeepDays: TLabel;
-    chkHightlightSameText: TCheckBox;
+    Label3: TLabel;
+    cboxRowHighlightSameText: TColorBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -310,9 +311,9 @@ begin
   AppSettings.WriteInt(asFieldNullBackground, cboxNullBackground.Selected);
   AppSettings.WriteInt(asRowBackgroundEven, cboxRowBackgroundEven.Selected);
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
+  AppSettings.WriteInt(asHightlightSameTextBackground, cboxRowHighlightSameText.Selected);
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
   AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
-  AppSettings.WriteBool(asHightlightSameText, chkHightlightSameText.Checked);
 
   // Editor Configuration
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
@@ -533,9 +534,9 @@ begin
   cboxNullBackground.Selected := AppSettings.ReadInt(asFieldNullBackground);
   cboxRowBackgroundEven.Selected := AppSettings.ReadInt(asRowBackgroundEven);
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
+  cboxRowHighlightSameText.Selected := AppSettings.ReadInt(asHightlightSameTextBackground);
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
   chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);
-  chkHightlightSameText.Checked := AppSettings.ReadBool(asHightlightSameText);
 
   // Editor Configuration
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);

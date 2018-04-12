@@ -9147,7 +9147,7 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
 var
   VT: TVirtualStringTree;
   r: TDBQuery;
-  cl, clNull, clEven, clOdd: TColor;
+  cl, clNull, clEven, clOdd, clSameData: TColor;
   RowNumber: PInt64;
   isEven: Boolean;
   FieldText, FocusedFieldText: String;
@@ -9190,11 +9190,12 @@ begin
   end;
 
   if (Sender.FocusedNode <> nil) and (Node <> Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
-    if AppSettings.ReadBool(asHightlightSameText) then begin
+    clSameData := AppSettings.ReadInt(asHightlightSameTextBackground);
+    if clSameData <> clNone then begin
       FieldText := r.Col(Column);
       FocusedFieldText := VT.Text[Sender.FocusedNode, Sender.FocusedColumn];
       if CompareText(FieldText, FocusedFieldText) = 0 then begin
-        TargetCanvas.Brush.Color := $00DDDDDD; //clInfoBk;
+        TargetCanvas.Brush.Color := clSameData; //clInfoBk;
         TargetCanvas.FillRect(CellRect);
       end;
     end;
