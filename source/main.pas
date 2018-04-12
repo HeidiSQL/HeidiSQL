@@ -9149,7 +9149,7 @@ var
   r: TDBQuery;
   cl, clNull, clEven, clOdd, clSameData: TColor;
   RowNumber: PInt64;
-  isEven: Boolean;
+  isEven, FocusedIsNull, CurrentIsNull: Boolean;
   FieldText, FocusedFieldText: String;
 begin
   if Column = -1 then
@@ -9189,13 +9189,19 @@ begin
     TargetCanvas.FillRect(CellRect);
   end;
 
+  // Probably display background color on fields with same text
+  // Result pointer gets moved to the focused node.. careful!
   if (Sender.FocusedNode <> nil) and (Node <> Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     clSameData := AppSettings.ReadInt(asHightlightSameTextBackground);
     if clSameData <> clNone then begin
       FieldText := r.Col(Column);
-      FocusedFieldText := VT.Text[Sender.FocusedNode, Sender.FocusedColumn];
-      if CompareText(FieldText, FocusedFieldText) = 0 then begin
-        TargetCanvas.Brush.Color := clSameData; //clInfoBk;
+      CurrentIsNull := r.IsNull(Column);
+      RowNumber := Sender.GetNodeData(Sender.FocusedNode);
+      r.RecNo := RowNumber^; // moving result cursor
+      FocusedFieldText := r.Col(Column);
+      FocusedIsNull := r.IsNull(Column);
+      if (CompareText(FieldText, FocusedFieldText) = 0) and (CurrentIsNull = FocusedIsNull) then begin
+        TargetCanvas.Brush.Color := clSameData;
         TargetCanvas.FillRect(CellRect);
       end;
     end;
