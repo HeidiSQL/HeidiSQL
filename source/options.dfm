@@ -40,35 +40,35 @@ object optionsform: Toptionsform
         349)
       object lblMySQLBinaries: TLabel
         Left = 8
-        Top = 219
+        Top = 228
         Width = 152
         Height = 13
         Caption = 'MySQL command line programs:'
       end
       object lblLanguage: TLabel
         Left = 8
-        Top = 273
+        Top = 282
         Width = 189
         Height = 13
         Caption = 'Application language (requires restart):'
       end
       object lblCustomSnippetsDirectory: TLabel
         Left = 8
-        Top = 246
+        Top = 255
         Width = 129
         Height = 13
         Caption = 'Custom snippets directory:'
       end
       object lblGUIFont: TLabel
         Left = 8
-        Top = 300
+        Top = 309
         Width = 131
         Height = 13
         Caption = 'GUI font (requires restart):'
       end
       object lblGUIFontSize: TLabel
         Left = 694
-        Top = 300
+        Top = 309
         Width = 10
         Height = 13
         Anchors = [akTop, akRight]
@@ -77,7 +77,7 @@ object optionsform: Toptionsform
       object chkAutoReconnect: TCheckBox
         Left = 8
         Top = 31
-        Width = 677
+        Width = 699
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Automatically reconnect to previously opened sessions on startup'
@@ -86,8 +86,8 @@ object optionsform: Toptionsform
       end
       object chkRestoreLastDB: TCheckBox
         Left = 8
-        Top = 55
-        Width = 677
+        Top = 54
+        Width = 699
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Restore last used database on startup'
@@ -136,7 +136,7 @@ object optionsform: Toptionsform
       object chkUpdateCheckBuilds: TCheckBox
         Left = 26
         Top = 111
-        Width = 659
+        Width = 681
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Also check for updated nightly builds'
@@ -147,8 +147,8 @@ object optionsform: Toptionsform
       object chkDoStatistics: TCheckBox
         Left = 8
         Top = 134
-        Width = 685
-        Height = 48
+        Width = 699
+        Height = 34
         Anchors = [akLeft, akTop, akRight]
         Caption = 
           'Count in usage statistics. This option, if enabled, will cause H' +
@@ -161,7 +161,7 @@ object optionsform: Toptionsform
       object chkAllowMultiInstances: TCheckBox
         Left = 8
         Top = 8
-        Width = 677
+        Width = 699
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Allow multiple application instances'
@@ -171,33 +171,33 @@ object optionsform: Toptionsform
       end
       object chkColorBars: TCheckBox
         Left = 8
-        Top = 190
-        Width = 310
+        Top = 199
+        Width = 258
         Height = 17
         Caption = 'Display bars in various list columns'
-        TabOrder = 8
+        TabOrder = 9
         OnClick = chkColorBarsClick
       end
       object cboxColorBars: TColorBox
         Left = 272
-        Top = 188
+        Top = 197
         Width = 435
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 9
+        TabOrder = 10
         OnClick = Modified
       end
       object editMySQLBinaries: TButtonedEdit
         Left = 272
-        Top = 216
+        Top = 225
         Width = 435
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 10
+        TabOrder = 11
         Text = 'editMySQLBinaries'
         TextHint = 'Find mysql.exe directory'
         OnChange = Modified
@@ -206,24 +206,24 @@ object optionsform: Toptionsform
       end
       object comboAppLanguage: TComboBox
         Left = 272
-        Top = 270
+        Top = 279
         Width = 435
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 12
+        TabOrder = 13
         OnClick = Modified
       end
       object editCustomSnippetsDirectory: TButtonedEdit
         Left = 272
-        Top = 243
+        Top = 252
         Width = 435
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.ImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 11
+        TabOrder = 12
         Text = 'editCustomSnippetsDirectory'
         TextHint = 'Set custom directory for SQL snippet files'
         OnChange = Modified
@@ -232,35 +232,45 @@ object optionsform: Toptionsform
       end
       object comboGUIFont: TComboBox
         Left = 272
-        Top = 297
+        Top = 306
         Width = 334
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 13
+        TabOrder = 14
         OnChange = comboGUIFontChange
       end
       object editGUIFontSize: TEdit
         Left = 612
-        Top = 297
+        Top = 306
         Width = 57
         Height = 21
         Anchors = [akTop, akRight]
-        TabOrder = 14
+        TabOrder = 15
         Text = '8'
         OnChange = Modified
       end
       object updownGUIFontSize: TUpDown
         Left = 669
-        Top = 297
+        Top = 306
         Width = 16
         Height = 21
         Anchors = [akTop, akRight]
         Associate = editGUIFontSize
         Min = 4
         Position = 8
-        TabOrder = 15
+        TabOrder = 16
         OnChanging = anyUpDownLimitChanging
+      end
+      object chkWheelZoom: TCheckBox
+        Left = 8
+        Top = 174
+        Width = 699
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Use Ctrl+Mousewheel for zooming'
+        TabOrder = 8
+        OnClick = Modified
       end
     end
     object tabLogging: TTabSheet

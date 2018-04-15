@@ -166,7 +166,7 @@ type
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
-    asLastUsageStatisticCall, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory,
+    asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asWarnUnsafeUpdates,
     asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
@@ -3489,6 +3489,7 @@ begin
   InitSetting(asSessionCreated,                   'SessionCreated',                        0, False, '', True);
   InitSetting(asDoUsageStatistics,                'DoUsageStatistics',                     0, False);
   InitSetting(asLastUsageStatisticCall,           'LastUsageStatisticCall',                0, False, '2000-01-01');
+  InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asBarColor,                         'BarColor',                              $00BBFFDD);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');

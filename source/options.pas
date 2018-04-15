@@ -141,6 +141,7 @@ type
     lblQueryHistoryKeepDays: TLabel;
     Label3: TLabel;
     cboxRowHighlightSameText: TColorBox;
+    chkWheelZoom: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -279,6 +280,7 @@ begin
     AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
   end;
   AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
+  AppSettings.WriteBool(asWheelZoom, chkWheelZoom.Checked);
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
@@ -472,6 +474,7 @@ begin
     chkUpdatecheckClick(Sender);
   end;
   chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
+  chkWheelZoom.Checked := AppSettings.ReadBool(asWheelZoom);
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);

@@ -6202,7 +6202,7 @@ var
   NewFontSize: Integer;
 begin
   // Change font size with MouseWheel
-  if KeyPressed(VK_CONTROL) then begin
+  if KeyPressed(VK_CONTROL) and AppSettings.ReadBool(asWheelZoom) then begin
     Editor := TSynEdit(Sender);
     NewFontSize := Editor.Font.Size;
     if WheelDelta > 0 then
@@ -8792,15 +8792,17 @@ begin
     end;
   end else if KeyPressed(VK_CONTROL) then begin
     // Change font size with MouseWheel
-    NewFontSize := VT.Font.Size;
-    if WheelDelta > 0 then
-      Inc(NewFontSize)
-    else
-      Dec(NewFontSize);
-    NewFontSize := Max(NewFontSize, 1);
-    AppSettings.ResetPath;
-    AppSettings.WriteInt(asDataFontSize, NewFontSize);
-    ApplyFontToGrids;
+    if AppSettings.ReadBool(asWheelZoom) then begin
+      NewFontSize := VT.Font.Size;
+      if WheelDelta > 0 then
+        Inc(NewFontSize)
+      else
+        Dec(NewFontSize);
+      NewFontSize := Max(NewFontSize, 1);
+      AppSettings.ResetPath;
+      AppSettings.WriteInt(asDataFontSize, NewFontSize);
+      ApplyFontToGrids;
+    end;
   end else if ssShift in Shift then begin
     // Horizontal scrolling with Alt+Mousewheel
     VT.OffsetX := VT.OffsetX + WheelDelta;
