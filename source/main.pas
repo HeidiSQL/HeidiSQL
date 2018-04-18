@@ -10304,8 +10304,6 @@ procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
 begin
-  if PageIndex = tabQuery.PageIndex then
-    actClearQueryEditor.Execute;
   if not IsQueryTab(PageIndex, False) then
     Exit;
   // Ask user if query content shall be saved to disk
