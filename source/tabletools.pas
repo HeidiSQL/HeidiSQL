@@ -801,16 +801,18 @@ var
   Columns: TTableColumnList;
   Col: TTableColumn;
   SQL, Dummy, Column, RoutineDefinitionColumn, RoutineSchemaColumn, FindText, FindTextJokers: String;
+  IsRegExp: Boolean;
 begin
   FFindSeeResultSQL.Add('');
 
   FindText := memoFindText.Text;
   case comboMatchType.ItemIndex of
-    0: FindTextJokers := '%'+FindText+'%';
+    0,4: FindTextJokers := '%'+FindText+'%'; // Used as wildcard for regex on MSSQL
     1: FindTextJokers := FindText;
     2: FindTextJokers := '%'+FindText;
     3: FindTextJokers := FindText+'%';
   end;
+  IsRegExp := comboMatchType.ItemIndex = 4;
 
   RoutineDefinitionColumn := DBObj.Connection.QuoteIdent('routine_definition');
   if not chkCaseSensitive.Checked then begin
@@ -837,30 +839,53 @@ begin
         for Col in Columns do begin
           Column := DBObj.Connection.QuoteIdent(Col.Name);
           if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
+
             if (Col.DataType.Category in [dtcInteger, dtcReal]) and (comboMatchType.ItemIndex=1) then begin
+              // Search numbers
               SQL := SQL + Column + '=' + UnformatNumber(FindText) + ' OR ';
+
             end else if chkCaseSensitive.Checked then begin
+              // Search case sensitive
               case DBObj.Connection.Parameters.NetTypeGroup of
-                ngMySQL:
-                  SQL := SQL + Column + ' LIKE BINARY ' + esc(FindTextJokers) + ' OR ';
+                ngMySQL: begin
+                  if IsRegExp then
+                    SQL := SQL + Column + ' REGEXP BINARY ' + esc(FindText) + ' OR '
+                  else
+                    SQL := SQL + Column + ' LIKE BINARY ' + esc(FindTextJokers) + ' OR ';
+                end;
                 ngMSSQL:
                   SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' COLLATE SQL_Latin1_General_CP1_CS_AS OR ';
-                ngPgSQL:
-                  SQL := SQL + 'CAST(' + Column + ' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
+                ngPgSQL: begin
+                  if IsRegExp then
+                    SQL := SQL + 'CAST(' + Column + ' AS TEXT) SIMILAR TO ' + esc(FindTextJokers) + ' OR '
+                  else
+                    SQL := SQL + 'CAST(' + Column + ' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
               end;
+
             end else begin
+              // Search case insensitive
               Column := 'LOWER('+Column+')';
               case DBObj.Connection.Parameters.NetTypeGroup of
-                ngMySQL:
-                  SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') LIKE ' + esc(FindTextJokers) + ' OR ';
+                ngMySQL: begin
+                  if IsRegExp then
+                    SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') REGEXP ' + esc(FindText) + ' OR '
+                  else
+                    SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
                 ngMSSQL:
                   SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' OR ';
                 ngPgSQL:
-                  SQL := SQL + 'CAST('+Column+' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
+                  if IsRegExp then
+                    SQL := SQL + 'CAST('+Column+' AS TEXT) SIMILAR TO ' + esc(FindTextJokers) + ' OR ';
+                  else
+                    SQL := SQL + 'CAST('+Column+' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
               end;
             end;
+
           end;
-        end;
+        end; // end of loop over columns
+
         if SQL <> '' then begin
           Delete(SQL, Length(SQL)-3, 3);
           FFindSeeResultSQL[FFindSeeResultSQL.Count-1] := 'SELECT * FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE ' + SQL;

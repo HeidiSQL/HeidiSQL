@@ -323,7 +323,8 @@ object frmTableTools: TfrmTableTools
               'Left and right wildcard'
               'Exact match'
               'Left wildcard'
-              'Right wildcard')
+              'Right wildcard'
+              'Regular expression')
           end
         end
         object tabSQLexport: TTabSheet
