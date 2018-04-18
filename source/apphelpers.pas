@@ -3327,7 +3327,7 @@ begin
   InitSetting(asDataFontSize,                     'DataFontSize',                          8);
   InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
-  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          $00DDDDDD);
+  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          clInfoBk);
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
   InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs\');
