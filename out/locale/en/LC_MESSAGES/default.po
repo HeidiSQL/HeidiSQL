@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-04-15 14:45+0200\n"
+"PO-Revision-Date: 2018-04-19 07:33+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -5691,6 +5691,9 @@ msgstr "Missing \"No\" button in %() call"
 #. MessageDialog()
 msgid "Keep asking this question."
 msgstr "Keep asking this question."
+
+msgid "Keep showing this dialog."
+msgstr "Keep showing this dialog."
 
 #. Table editor
 msgid "Foreign column count does not match source column count."

@@ -142,6 +142,7 @@ type
     Label3: TLabel;
     cboxRowHighlightSameText: TColorBox;
     chkWheelZoom: TCheckBox;
+    chkQueryWarningsMessage: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -243,6 +244,7 @@ begin
   AppSettings.WriteBool(asAllowMultipleInstances, chkAllowMultiInstances.Checked);
   AppSettings.WriteBool(asRestoreLastUsedDB, chkRestoreLastDB.Checked);
   AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
+  AppSettings.WriteBool(asQueryWarningsMessage, chkQueryWarningsMessage.Checked);
   AppSettings.WriteString(asFontName, comboSQLFontName.Text);
   AppSettings.WriteInt(asFontSize, updownSQLFontSize.Position);
   AppSettings.WriteInt(asTabWidth, updownSQLTabWidth.Position);
@@ -489,6 +491,7 @@ begin
   updownGUIFontSize.Position := AppSettings.ReadInt(asGUIFontSize);
   comboGUIFont.OnChange(comboGUIFont);
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
+  chkQueryWarningsMessage.Checked := AppSettings.ReadBool(asQueryWarningsMessage);
 
   // Logging
   updownLogLines.Position := AppSettings.ReadInt(asLogsqlnum);

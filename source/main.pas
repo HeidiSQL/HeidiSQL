@@ -2880,13 +2880,13 @@ begin
     end;
     MsgText := Trim(MsgText);
     if (Warnings.RecordCount = Thread.WarningCount) or (Warnings.RecordCount < 5) then
-      MessageDialog(MsgTitle, MsgText, mtWarning, [mbOk])
+      MessageDialog(MsgTitle, MsgText, mtWarning, [mbOk], asQueryWarningsMessage)
     else begin
       MsgText := MsgText + CRLF+CRLF + _('Show all warnings in a new query tab?');
       MaxWarnings := MakeInt(Thread.Connection.GetVar('SELECT @@max_error_count'));
       if MaxWarnings < Thread.WarningCount then
         MsgText := MsgText + CRLF+CRLF+ f_('The server variable %s is currently set to %d, so you won''t see all warnings.', ['@@max_error_count', MaxWarnings]);
-      if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo]) = mrYes then begin
+      if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo], asQueryWarningsMessage) = mrYes then begin
         actNewQueryTab.Execute;
         WarningsTab := QueryTabs[QueryTabs.Count-1];
         WarningsTab.Memo.Text := 'SHOW WARNINGS';

@@ -167,7 +167,7 @@ type
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory,
-    asPromptSaveFileOnTabClose, asWarnUnsafeUpdates,
+    asPromptSaveFileOnTabClose, asWarnUnsafeUpdates, asQueryWarningsMessage,
     asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
@@ -2491,11 +2491,14 @@ begin
     // Checkbox, s'il vous plait?
     KeepAskingValue := True;
     if KeepAskingSetting <> asUnused then begin
-      if not (mbNo in Buttons) then
+      if (not (mbNo in Buttons)) and (Buttons <> [mbOK]) then
         raise Exception.CreateFmt(_('Missing "No" button in %() call'), ['MessageDialog']);
       KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting);
       Dialog.Flags := Dialog.Flags + [tfVerificationFlagChecked];
-      Dialog.VerificationText := _('Keep asking this question.');
+      if Buttons = [mbOK] then
+        Dialog.VerificationText := _('Keep showing this dialog.')
+      else
+        Dialog.VerificationText := _('Keep asking this question.');
     end;
 
     // Supress dialog and assume "No" if user disabled this dialog
@@ -3502,6 +3505,7 @@ begin
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
+  InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
   InitSetting(asCompletionProposalWidth,          'CompletionProposalWidth',               350);
   InitSetting(asCompletionProposalNbLinesInWindow,'CompletionProposalNbLinesInWindow',     12);

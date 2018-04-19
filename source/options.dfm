@@ -493,7 +493,7 @@ object optionsform: Toptionsform
       object lblSQLFontSize: TLabel
         Left = 689
         Top = 11
-        Width = 12
+        Width = 10
         Height = 13
         Anchors = [akTop, akRight]
         Caption = 'pt'
@@ -514,14 +514,14 @@ object optionsform: Toptionsform
       end
       object lblSQLColElement: TLabel
         Left = 8
-        Top = 158
+        Top = 165
         Width = 42
         Height = 13
         Caption = 'Element:'
       end
       object lblSQLColBackground: TLabel
         Left = 489
-        Top = 184
+        Top = 191
         Width = 60
         Height = 13
         Anchors = [akTop, akRight]
@@ -529,7 +529,7 @@ object optionsform: Toptionsform
       end
       object lblSQLColForeground: TLabel
         Left = 489
-        Top = 158
+        Top = 165
         Width = 60
         Height = 13
         Anchors = [akTop, akRight]
@@ -621,7 +621,7 @@ object optionsform: Toptionsform
         Top = 61
         Width = 41
         Height = 21
-        TabOrder = 8
+        TabOrder = 9
         Text = '1'
         OnChange = Modified
       end
@@ -633,51 +633,41 @@ object optionsform: Toptionsform
         Associate = editMaxQueryResults
         Min = 1
         Position = 1
-        TabOrder = 9
+        TabOrder = 10
         OnChanging = anyUpDownLimitChanging
       end
       object comboSQLColElement: TComboBox
         Left = 67
-        Top = 155
+        Top = 162
         Width = 407
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 10
+        TabOrder = 11
         OnChange = comboSQLColElementChange
       end
       object chkSQLBold: TCheckBox
         Left = 67
-        Top = 182
+        Top = 189
         Width = 130
         Height = 17
         Caption = 'Bold'
-        TabOrder = 11
+        TabOrder = 12
         OnClick = SQLFontChange
       end
       object chkSQLItalic: TCheckBox
         Left = 203
-        Top = 182
+        Top = 189
         Width = 271
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Italic'
-        TabOrder = 12
+        TabOrder = 13
         OnClick = SQLFontChange
       end
       object cboxSQLColForeground: TColorBox
         Left = 583
-        Top = 155
-        Width = 118
-        Height = 22
-        Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        Anchors = [akTop, akRight]
-        TabOrder = 13
-        OnChange = SQLFontChange
-      end
-      object cboxSQLColBackground: TColorBox
-        Left = 583
-        Top = 181
+        Top = 162
         Width = 118
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
@@ -685,12 +675,22 @@ object optionsform: Toptionsform
         TabOrder = 14
         OnChange = SQLFontChange
       end
+      object cboxSQLColBackground: TColorBox
+        Left = 583
+        Top = 188
+        Width = 118
+        Height = 22
+        Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+        Anchors = [akTop, akRight]
+        TabOrder = 15
+        OnChange = SQLFontChange
+      end
       object SynMemoSQLSample: TSynMemo
         AlignWithMargins = True
         Left = 8
-        Top = 208
+        Top = 215
         Width = 693
-        Height = 133
+        Height = 132
         Cursor = crHandPoint
         SingleLineMode = False
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -699,8 +699,16 @@ object optionsform: Toptionsform
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        TabOrder = 15
+        TabOrder = 16
         OnClick = SynMemoSQLSampleClick
+        CodeFolding.GutterShapeSize = 11
+        CodeFolding.CollapsedLineColor = clGrayText
+        CodeFolding.FolderBarLinesColor = clGrayText
+        CodeFolding.IndentGuidesColor = clGray
+        CodeFolding.IndentGuides = True
+        CodeFolding.ShowCollapsedLine = False
+        CodeFolding.ShowHintMark = True
+        UseCodeFolding = False
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
         Gutter.Font.Height = -11
@@ -718,6 +726,15 @@ object optionsform: Toptionsform
         WordWrap = True
         OnChange = SQLFontChange
         FontSmoothing = fsmNone
+      end
+      object chkQueryWarningsMessage: TCheckBox
+        Left = 8
+        Top = 136
+        Width = 691
+        Height = 17
+        Caption = 'Show query warnings dialog'
+        TabOrder = 8
+        OnClick = Modified
       end
     end
     object tabGridFormatting: TTabSheet
@@ -1069,7 +1086,7 @@ object optionsform: Toptionsform
         Left = 306
         Top = 64
         Width = 45
-        Height = 13
+        Height = 12
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Shortcut:'
       end
@@ -1077,7 +1094,7 @@ object optionsform: Toptionsform
         Left = 306
         Top = 3
         Width = 279
-        Height = 55
+        Height = 54
         Anchors = [akLeft, akTop, akBottom]
         AutoSize = False
         Caption = 'Please select a shortcut item in the tree.'
@@ -1087,7 +1104,7 @@ object optionsform: Toptionsform
         Left = 306
         Top = 107
         Width = 98
-        Height = 13
+        Height = 12
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Secondary shortcut:'
       end
