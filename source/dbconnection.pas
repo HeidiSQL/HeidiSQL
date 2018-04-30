@@ -1859,7 +1859,7 @@ begin
       QuotedPassword := ''''+Parameters.Password+''''
     else
       QuotedPassword := '"'+Parameters.Password+'"';
-    FAdoHandle.ConnectionString := 'Provider=SQLOLEDB;'+
+    FAdoHandle.ConnectionString := 'Provider=MSOLEDBSQL;'+
       'Password='+QuotedPassword+';'+
       'Persist Security Info=True;'+
       'User ID='+Parameters.Username+';'+
@@ -1871,7 +1871,7 @@ begin
     if (not Parameters.AllDatabasesStr.IsEmpty) and (Pos(';', Parameters.AllDatabasesStr)=0) then
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
     if Parameters.WindowsAuth then
-      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;';
+      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;';
     try
       FAdoHandle.Connected := True;
       FConnectionStarted := GetTickCount div 1000;
