@@ -243,8 +243,9 @@ var
   Version: Integer;
   Users: TDBQuery;
   U: TUser;
-  tmp, PasswordCol: String;
-  SkipNameResolve: Boolean;
+  tmp, PasswordExpr: String;
+  SkipNameResolve, HasPassword, HasAuthString: Boolean;
+  UserTableColumns: TStringList;
 
 function InitPrivList(Values: String): TStringList;
 begin
@@ -261,7 +262,6 @@ begin
   PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
   PrivsRoutine := InitPrivList('GRANT');
   PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
-  PasswordCol := 'password';
 
   if Version >= 40002 then begin
     PrivsGlobal.Add('REPLICATION CLIENT');
@@ -294,10 +294,6 @@ begin
     PrivsDb.Add('PROXY');
   end;
   }
-  if Version >= 50706 then begin
-    PasswordCol := 'authentication_string';
-  end;
-
 
   PrivsTable.AddStrings(PrivsColumn);
   PrivsDb.AddStrings(PrivsTable);
@@ -320,9 +316,25 @@ begin
   try
     tmp := FConnection.GetVar('SHOW VARIABLES LIKE '+FConnection.EscapeString('skip_name_resolve'), 1);
     SkipNameResolve := LowerCase(tmp) = 'on';
+
     FConnection.Query('FLUSH PRIVILEGES');
+
+    // Peek into user table structure, and find out where the password hash is stored
+    UserTableColumns := FConnection.GetCol('SHOW COLUMNS FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user'));
+    HasPassword := UserTableColumns.IndexOf('password') > -1;
+    HasAuthString := UserTableColumns.IndexOf('authentication_string') > -1;
+    if HasPassword and (not HasAuthString) then
+      PasswordExpr := 'password'
+    else if (not HasPassword) and HasAuthString then
+      PasswordExpr := 'authentication_string'
+    else if HasPassword and HasAuthString then
+      PasswordExpr := 'IF(LENGTH(password)>0, password, authentication_string)'
+    else
+      Raise Exception.Create(_('No password hash column available'));
+    PasswordExpr := PasswordExpr + ' AS ' + FConnection.QuoteIdent('password');
+
     Users := FConnection.GetResults(
-      'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+FConnection.QuoteIdent(PasswordCol)+' '+
+      'SELECT '+FConnection.QuoteIdent('user')+', '+FConnection.QuoteIdent('host')+', '+PasswordExpr+' '+
       'FROM '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent('user')
       );
     FUsers := TUserList.Create(True);
@@ -330,7 +342,7 @@ begin
       U := TUser.Create;
       U.Username := Users.Col('user');
       U.Host := Users.Col('host');
-      U.Password := Users.Col(PasswordCol);
+      U.Password := Users.Col('password');
       U.Problem := upNone;
       if Length(U.Password) = 0 then
         U.Problem := upEmptyPassword;
