@@ -6559,7 +6559,7 @@ begin
   if DbObj.Size < MaxSize then begin
     Query := Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
     if SynMemoFilter.Text <> '' then
-      Query := Query + ' WHERE ' + SynMemoFilter.Text;
+      Query := Query + ' WHERE ' + SynMemoFilter.Text + CRLF;
     Query := Query + ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col);
     Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT', Query, 30, 0));
     for i:=0 to Data.RecordCount-1 do begin
