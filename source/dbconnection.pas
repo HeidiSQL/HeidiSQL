@@ -438,6 +438,7 @@ type
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
       function GetLockedTableCount(db: String): Integer;
+      function IdentifierEquals(Ident1, Ident2: String): Boolean;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -4063,6 +4064,28 @@ begin
 end;
 
 
+function TDBConnection.IdentifierEquals(Ident1, Ident2: String): Boolean;
+var
+  Vars: TDBQuery;
+  CaseSensitivity: Integer;
+begin
+  // Compare only name of identifier, in the case fashion the server tells us
+  Vars := GetSessionVariables(False);
+  CaseSensitivity := 1; // probably a bad default value, as this expects the server to run on Windows
+  while not Vars.Eof do begin
+    if Vars.Col(0) = 'lower_case_table_names' then begin
+      CaseSensitivity := MakeInt(Vars.Col(1));
+      Break;
+    end;
+    Vars.Next;
+  end;
+  case CaseSensitivity of
+    0: Result := Ident1 = Ident2;
+    else Result := CompareText(Ident1, Ident2) = 0;
+  end;
+end;
+
+
 function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
 var
   Rows: String;
@@ -6381,7 +6404,7 @@ begin
       DB := Connection.Database;
     DBObjects := Connection.GetDBObjects(DB);
     for LObj in DBObjects do begin
-      if (LObj.NodeType in [lntTable, lntView]) and (LObj.Name = TableName) then begin
+      if (LObj.NodeType in [lntTable, lntView]) and Connection.IdentifierEquals(LObj.Name, TableName) then begin
         Obj := LObj;
         break;
       end;
