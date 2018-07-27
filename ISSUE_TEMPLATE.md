@@ -1,8 +1,8 @@
 <!--
   ATTENTION ⚠️
-  → ISSUES THAT DOESN'T RESPECTS THIS TEMPLATE WILL BE DISCARDED!
-  → YOU CAN REMOVE PARTS THAT DON'T IS RELATED TO YOUR ISSUE.
-  → THIS COMMENTS WILL NOT BE PRINTED ON PAGE. YOU CAN STAY CALM.
+  → ISSUES THAT DON'T RESPECT THIS TEMPLATE WILL BE DISCARDED!
+  → YOU CAN REMOVE PARTS THAT AREN'T RELATED TO YOUR ISSUE.
+  → THESE COMMENTS WILL NOT BE PRINTED ON PAGE. YOU CAN STAY CALM.
 
   FOR EXCEPTION BUG REPORT
   → PLEASE, SAVE THE BUG REPORT RECEIVED ON EXCEPTION AND ATTACH HERE.
@@ -27,15 +27,15 @@
 
 ## Possible solution
 
-<!-- If possible: please describe how you think that it should be solutioned internally. -->
+<!-- If possible: please describe how you think the issue should be resolved. -->
 
 ## Environment
 
 <!-- Please provide any relevant information about your setup that could causes this issue. -->
 
 * **HeidiSQL version:** 
-  <!-- Check if you are running the last available Nightly version previously. -->
+  <!-- Check if you are running the last available nightly version. -->
 * **Database system and version:** 
-  <!-- Remove this part if is not related directly with a database system. -->
+  <!-- Remove this part if it is not related directly with a database system. -->
 * **Operating system:** 
-  <!-- Remove this part if you belive that it does not affects your issue. -->
+  <!-- Remove this part if you believe that it does not affect your issue. -->
