@@ -4,7 +4,7 @@ HeidiSQL is a useful and reliable tool designed for web developers using the pop
 Look at [the online help page](http://www.heidisql.com/help.php) for learning how to use HeidiSQL.
 
 # Building
-Delphi XE5 is required for building HeidiSQL. Older Delphi versions will most likely fail; newer Delphi versions may work or fail. Unfortunately, Larazus or one 
+Delphi XE5 is required for building HeidiSQL. Older Delphi versions will most likely fail; newer Delphi versions may work or fail. Unfortunately, Lazarus or one 
 of the other free compilers cannot currently compile HeidiSQL.
 
 Once Delphi XE5 is installed, you need to load the SynEdit project from the components folder. Build both run-time and design-time packages. Install the 
