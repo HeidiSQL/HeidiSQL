@@ -1088,6 +1088,7 @@ type
     procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer): Boolean;
+    function ConfirmTabClear(PageIndex: Integer): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
     procedure ConnectionReady(Connection: TDBConnection; Database: String);
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
@@ -10304,6 +10305,11 @@ procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
 begin
+  // Special case: the very first tab gets cleared but not closed
+  if PageIndex = tabQuery.PageIndex then begin
+    if ConfirmTabClear(PageIndex) then
+      actClearQueryEditor.Execute;
+  end;
   if not IsQueryTab(PageIndex, False) then
     Exit;
   // Ask user if query content shall be saved to disk
@@ -10808,9 +10814,7 @@ end;
 
 function TMainForm.ConfirmTabClose(PageIndex: Integer): Boolean;
 var
-  msg: String;
   Tab: TQueryTab;
-  SaveDialog: TSaveDialog;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
   if Tab.QueryRunning then begin
@@ -10819,29 +10823,40 @@ begin
   end else if not Tab.Memo.Modified then begin
     Result := True;
   end else begin
-    // Unhide tabsheet so the user sees the memo content
-    Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
-    if Tab.MemoFilename <> '' then
-      msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
-    else
-      msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
-    case MessageDialog(_('Modified query'), msg, mtConfirmation, [mbYes, mbNo, mbCancel], asPromptSaveFileOnTabClose) of
-      mrNo: Result := True;
-      mrYes: begin
-        SaveDialog := TSaveDialog.Create(Self);
-        SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
-        SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-        SaveDialog.DefaultExt := 'sql';
-        if Tab.MemoFilename <> '' then
-          Tab.SaveContents(Tab.MemoFilename, False)
-        else if SaveDialog.Execute then
-          Tab.SaveContents(SaveDialog.FileName, False);
-        // The save dialog can be cancelled.
-        Result := not Tab.Memo.Modified;
-        SaveDialog.Free;
-      end;
-      else Result := False;
+    Result := ConfirmTabClear(PageIndex);
+  end;
+end;
+
+
+function TMainForm.ConfirmTabClear(PageIndex: Integer): Boolean;
+var
+  msg: String;
+  Tab: TQueryTab;
+  SaveDialog: TSaveDialog;
+begin
+  Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
+  // Unhide tabsheet so the user sees the memo content
+  Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
+  if Tab.MemoFilename <> '' then
+    msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
+  else
+    msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
+  case MessageDialog(_('Modified query'), msg, mtConfirmation, [mbYes, mbNo, mbCancel], asPromptSaveFileOnTabClose) of
+    mrNo: Result := True;
+    mrYes: begin
+      SaveDialog := TSaveDialog.Create(Self);
+      SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+      SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
+      SaveDialog.DefaultExt := 'sql';
+      if Tab.MemoFilename <> '' then
+        Tab.SaveContents(Tab.MemoFilename, False)
+      else if SaveDialog.Execute then
+        Tab.SaveContents(SaveDialog.FileName, False);
+      // The save dialog can be cancelled.
+      Result := not Tab.Memo.Modified;
+      SaveDialog.Free;
     end;
+    else Result := False;
   end;
 end;
 
