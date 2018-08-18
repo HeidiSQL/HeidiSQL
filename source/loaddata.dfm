@@ -17,6 +17,7 @@ object loaddataform: Tloaddataform
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
     509

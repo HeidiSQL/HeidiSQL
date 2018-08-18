@@ -69,6 +69,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure chklistColumnsClick(Sender: TObject);
     procedure btnCheckAllClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     Encoding: TEncoding;
@@ -131,6 +132,24 @@ begin
   AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
   AppSettings.WriteInt(asCSVImportDuplicateHandling, grpDuplicates.ItemIndex);
   AppSettings.WriteInt(asCSVImportParseMethod, grpParseMethod.ItemIndex);
+end;
+
+
+procedure Tloaddataform.FormResize(Sender: TObject);
+var
+  HalfWidth, RightBoxX: Integer;
+begin
+  // Rethink width of side-by-side group boxes
+  HalfWidth := (ClientWidth - 3 * grpFilename.Left) div 2;
+  RightBoxX := HalfWidth + 2 * grpFilename.Left;
+  grpOptions.Width := HalfWidth;
+  grpDuplicates.Width := HalfWidth;
+  grpParseMethod.Width := HalfWidth;
+  grpChars.Width := HalfWidth;
+  grpDestination.Width := HalfWidth;
+  // Move right boxes to the right position
+  grpChars.Left := RightBoxX;
+  grpDestination.Left := RightBoxX;
 end;
 
 
