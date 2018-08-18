@@ -342,45 +342,48 @@ object loaddataform: Tloaddataform
       OnChange = comboTableChange
     end
     object chklistColumns: TCheckListBox
-      Left = 10
-      Top = 91
-      Width = 229
-      Height = 116
+      Left = 112
+      Top = 72
+      Width = 153
+      Height = 107
       Anchors = [akLeft, akTop, akRight, akBottom]
       ItemHeight = 13
       TabOrder = 2
       OnClick = chklistColumnsClick
     end
     object ToolBarColMove: TToolBar
-      Left = 245
-      Top = 91
-      Width = 23
-      Height = 66
+      Left = 112
+      Top = 185
+      Width = 69
+      Height = 22
       Align = alNone
-      Anchors = [akTop, akRight]
+      Anchors = [akLeft, akBottom]
       AutoSize = True
       Caption = 'ToolBarColMove'
       Images = MainForm.ImageListMain
+      ParentShowHint = False
+      ShowHint = True
       TabOrder = 3
       object btnColUp: TToolButton
         Left = 0
         Top = 0
+        Hint = 'Move up'
         Caption = 'btnColUp'
         ImageIndex = 74
-        Wrap = True
         OnClick = btnColMoveClick
       end
       object btnColDown: TToolButton
-        Left = 0
-        Top = 22
+        Left = 23
+        Top = 0
+        Hint = 'Move down'
         Caption = 'btnColDown'
         ImageIndex = 75
-        Wrap = True
         OnClick = btnColMoveClick
       end
       object btnCheckAll: TToolButton
-        Left = 0
-        Top = 44
+        Left = 46
+        Top = 0
+        Hint = 'Select / Deselect all'
         Caption = 'Select / Deselect all'
         ImageIndex = 128
         OnClick = btnCheckAllClick
