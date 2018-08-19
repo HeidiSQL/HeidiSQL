@@ -601,13 +601,13 @@ begin
       InEncl := not InEncl;
 
     if IsEof or (not InEncl) then begin
-      if IsEof then begin
+      if IsLineTerm then begin
+        SetLength(Value, Length(Value)-LineTermLen);
+        AddValue;
+      end else if IsEof then begin
         AddValue;
       end else if IsTerm then begin
         SetLength(Value, Length(Value)-TermLen);
-        AddValue;
-      end else if IsLineTerm then begin
-        SetLength(Value, Length(Value)-LineTermLen);
         AddValue;
       end;
     end;
