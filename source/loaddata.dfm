@@ -346,46 +346,50 @@ object loaddataform: Tloaddataform
       Left = 112
       Top = 72
       Width = 153
-      Height = 107
+      Height = 129
       Anchors = [akLeft, akTop, akRight, akBottom]
       ItemHeight = 13
       TabOrder = 2
       OnClick = chklistColumnsClick
     end
     object ToolBarColMove: TToolBar
-      Left = 112
-      Top = 185
-      Width = 69
-      Height = 22
+      Left = 10
+      Top = 91
+      Width = 58
+      Height = 66
       Align = alNone
-      Anchors = [akLeft, akBottom]
       AutoSize = True
+      ButtonWidth = 58
       Caption = 'ToolBarColMove'
       Images = MainForm.ImageListMain
+      List = True
       ParentShowHint = False
+      ShowCaptions = True
       ShowHint = True
       TabOrder = 3
       object btnColUp: TToolButton
         Left = 0
         Top = 0
         Hint = 'Move up'
-        Caption = 'btnColUp'
+        Caption = 'Up'
         ImageIndex = 74
+        Wrap = True
         OnClick = btnColMoveClick
       end
       object btnColDown: TToolButton
-        Left = 23
-        Top = 0
+        Left = 0
+        Top = 22
         Hint = 'Move down'
-        Caption = 'btnColDown'
+        Caption = 'Down'
         ImageIndex = 75
+        Wrap = True
         OnClick = btnColMoveClick
       end
       object btnCheckAll: TToolButton
-        Left = 46
-        Top = 0
+        Left = 0
+        Top = 44
         Hint = 'Select / Deselect all'
-        Caption = 'Select / Deselect all'
+        Caption = 'All'
         ImageIndex = 128
         OnClick = btnCheckAllClick
       end
