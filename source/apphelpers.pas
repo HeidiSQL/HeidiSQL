@@ -3361,7 +3361,7 @@ begin
   InitSetting(asQueryhelperswidth,                'queryhelperswidth',                     200);
   InitSetting(asStopOnErrorsInBatchMode,          'StopOnErrorsInBatchMode',               0, True);
   InitSetting(asWrapLongLines,                    'WrapLongLines',                         0, False);
-  InitSetting(asDisplayBLOBsAsText,               'DisplayBLOBsAsText',                    0, False);
+  InitSetting(asDisplayBLOBsAsText,               'DisplayBLOBsAsText',                    0, True);
   InitSetting(asSingleQueries,                    'SingleQueries',                         0, True);
   InitSetting(asMemoEditorWidth,                  'MemoEditorWidth',                       100);
   InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      100);
