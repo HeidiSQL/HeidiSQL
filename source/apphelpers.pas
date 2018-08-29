@@ -302,8 +302,8 @@ type
   function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
   procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
-  function GetVTSelection(VT: TVirtualStringTree): TStringList;
-  procedure SetVTSelection(VT: TVirtualStringTree; Captions: TStringList);
+  procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
+  procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
@@ -1599,7 +1599,7 @@ begin
 end;
 
 
-function GetVTSelection(VT: TVirtualStringTree): TStringList;
+procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
 var
   Node: PVirtualNode;
   InvalidationTag: Integer;
@@ -1607,28 +1607,41 @@ begin
   // Return captions of selected nodes
   InvalidationTag := vt.Tag;
   vt.Tag := VTREE_LOADED;
-  Result := TStringList.Create;
+  SelectedCaptions.Clear;
   Node := GetNextNode(VT, nil, true);
   while Assigned(Node) do begin
-    Result.Add(VT.Text[Node, VT.Header.MainColumn]);
+    SelectedCaptions.Add(VT.Text[Node, VT.Header.MainColumn]);
+    if Node = VT.FocusedNode then begin
+      FocusedCaption := VT.Text[Node, VT.Header.MainColumn];
+    end;
     Node := GetNextNode(VT, Node, true);
   end;
   vt.Tag := InvalidationTag;
 end;
 
 
-procedure SetVTSelection(VT: TVirtualStringTree; Captions: TStringList);
+procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
 var
   Node: PVirtualNode;
   idx: Integer;
+  DoFocusChange: Boolean;
 begin
   // Restore selected nodes based on captions list
+  DoFocusChange := False;
   Node := GetNextNode(VT, nil, false);
   while Assigned(Node) do begin
-    idx := Captions.IndexOf(VT.Text[Node, VT.Header.MainColumn]);
+    idx := SelectedCaptions.IndexOf(VT.Text[Node, VT.Header.MainColumn]);
     if idx > -1 then
       VT.Selected[Node] := True;
+    if (not FocusedCaption.IsEmpty) and (VT.Text[Node, VT.Header.MainColumn] = FocusedCaption) then begin
+      VT.FocusedNode := Node;
+      DoFocusChange := True;
+    end;
     Node := GetNextNode(VT, Node, false);
+  end;
+  // Fire focus change event if there was a focused one before
+  if DoFocusChange and Assigned(VT.OnFocusChanged) then begin
+    VT.OnFocusChanged(VT, VT.FocusedNode, VT.FocusedColumn);
   end;
 end;
 

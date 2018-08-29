@@ -9565,7 +9565,7 @@ var
   IS_objects: TDBObjectList;
   Obj: TDBObject;
   ProcessColumns: TTableColumnList;
-  Columns: String;
+  Columns, FocusedCaption: String;
   Col: TVirtualTreeColumn;
 begin
   // Display server variables
@@ -9585,7 +9585,8 @@ begin
     Exit;
   end;
 
-  SelectedCaptions := GetVTSelection(vt);
+  SelectedCaptions := TStringList.Create;
+  GetVTSelection(vt, SelectedCaptions, FocusedCaption);
   SelectNode(vt, nil);
   vt.BeginUpdate;
   OldOffset := vt.OffsetXY;
@@ -9724,7 +9725,7 @@ begin
   // Display number of listed values on tab
   Tab.Caption := FHostTabCaptions[Tab.PageIndex] + ' (' + IntToStr(vt.RootNodeCount) + ')';
   // Restore selection
-  SetVTSelection(vt, SelectedCaptions);
+  SetVTSelection(vt, SelectedCaptions, FocusedCaption);
 end;
 
 
