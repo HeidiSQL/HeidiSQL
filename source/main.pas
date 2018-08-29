@@ -3533,7 +3533,7 @@ var
     Queries.Free;
     Stream.Free;
     Dialog.StopProgressDialog;
-    BringToFront;
+    // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
     SetFocus;
   end;
 
