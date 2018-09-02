@@ -1010,6 +1010,7 @@ type
     procedure StatusBarClick(Sender: TObject);
     procedure SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+    procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -5879,32 +5880,9 @@ end;
 
 procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
     TSynStatusChanges);
-var
-  Editor: TSynMemo;
-  Token: String;
-  Attri: TSynHighlighterAttributes;
-  OldCaretPos: TBufferCoord;
-  TokenTypeInt, Start: Integer;
 begin
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
-
-  // Uppercase reserved words, functions and data types
-  if AppSettings.ReadBool(asAutoUppercase) then begin
-    Editor := Sender as TSynMemo;
-    Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
-    if TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey] then begin
-      Editor.OnStatusChange := nil; // Don't call StatusChange recursively
-      OldCaretPos := Editor.CaretXY;
-      Editor.UndoList.BeginBlock;
-      Editor.SelStart := Editor.RowColToCharIndex(Editor.PrevWordPos);
-      Editor.SelEnd := Editor.SelStart + Length(Token);
-      Editor.SelText := UpperCase(Token);
-      Editor.CaretXY := OldCaretPos;
-      Editor.UndoList.EndBlock;
-      Editor.OnStatusChange := SynMemoQueryStatusChange;
-    end;
-  end;
 end;
 
 
@@ -6214,6 +6192,43 @@ begin
     for i:=0 to AFiles.Count-1 do begin
       Tab := ActiveOrEmptyQueryTab(False);
       Tab.LoadContents(AFiles[i], False, nil);
+    end;
+  end;
+end;
+
+
+procedure TMainForm.SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
+var
+  Editor: TSynMemo;
+  Token: String;
+  Attri: TSynHighlighterAttributes;
+  OldCaretXY, StartOfTokenRowCol, CurrentRowCol: TBufferCoord;
+  TokenTypeInt, Start, CurrentCharIndex: Integer;
+  OldSelStart, OldSelEnd: Integer;
+const
+  WordChars = ['A'..'Z', 'a'..'z', '_'];
+begin
+  // Uppercase reserved words, functions and data types
+  if AppSettings.ReadBool(asAutoUppercase) and (not CharInSet(Key, WordChars)) then begin
+    Editor := Sender as TSynMemo;
+    CurrentCharIndex := Editor.RowColToCharIndex(Editor.CaretXY);
+    // Go one left on trailing line feed, after which PrevWordPos doesn't work
+    Dec(CurrentCharIndex, 1);
+    CurrentRowCol := Editor.CharIndexToRowCol(CurrentCharIndex);
+    StartOfTokenRowCol := Editor.PrevWordPosEx(CurrentRowCol);
+    Editor.GetHighlighterAttriAtRowColEx(StartOfTokenRowCol, Token, TokenTypeInt, Start, Attri);
+    if TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey] then begin
+      OldCaretXY := Editor.CaretXY;
+      OldSelStart := Editor.SelStart;
+      OldSelEnd := Editor.SelEnd;
+      Editor.UndoList.BeginBlock;
+      Editor.SelStart := Editor.RowColToCharIndex(StartOfTokenRowCol);
+      Editor.SelEnd := Editor.SelStart + Length(Token);
+      Editor.SelText := UpperCase(Token);
+      Editor.CaretXY := OldCaretXY;
+      Editor.SelStart := OldSelStart;
+      Editor.SelEnd := OldSelEnd;
+      Editor.UndoList.EndBlock;
     end;
   end;
 end;
@@ -10192,6 +10207,7 @@ begin
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
+  QueryTab.Memo.OnKeyPress := SynMemoQuery.OnKeyPress;
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;

@@ -1310,6 +1310,7 @@ object MainForm: TMainForm
               TabOrder = 0
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
+              OnKeyPress = SynMemoQueryKeyPress
               OnMouseWheel = SynMemoQueryMouseWheel
               Gutter.AutoSize = True
               Gutter.Font.Charset = DEFAULT_CHARSET
