@@ -143,6 +143,7 @@ type
     cboxRowHighlightSameText: TColorBox;
     chkWheelZoom: TCheckBox;
     chkQueryWarningsMessage: TCheckBox;
+    chkAutoUppercase: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -334,6 +335,7 @@ begin
   end;
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
+  AppSettings.WriteBool(asAutoUppercase, chkAutoUppercase.Checked);
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
 
   // Shortcuts
@@ -519,6 +521,7 @@ begin
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
   chkCompletionProposal.Checked := AppSettings.ReadBool(asCompletionProposal);
+  chkAutoUppercase.Checked := AppSettings.ReadBool(asAutoUppercase);
   chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
   comboSQLColElementChange(Sender);
 

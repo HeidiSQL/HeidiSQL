@@ -568,12 +568,12 @@ object optionsform: Toptionsform
       end
       object chkCompletionProposal: TCheckBox
         Left = 8
-        Top = 90
-        Width = 693
+        Top = 89
+        Width = 363
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable autocompletion'
-        TabOrder = 5
+        TabOrder = 8
         OnClick = Modified
       end
       object chkTabsToSpaces: TCheckBox
@@ -583,7 +583,7 @@ object optionsform: Toptionsform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Tabs to spaces'
-        TabOrder = 6
+        TabOrder = 5
         OnClick = Modified
       end
       object editSQLTabWidth: TEdit
@@ -607,13 +607,13 @@ object optionsform: Toptionsform
       object chkAskFileSave: TCheckBox
         Left = 8
         Top = 113
-        Width = 693
+        Width = 363
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt to save modified files on tab close'
         Checked = True
         State = cbChecked
-        TabOrder = 7
+        TabOrder = 10
         OnClick = Modified
       end
       object editMaxQueryResults: TEdit
@@ -621,7 +621,7 @@ object optionsform: Toptionsform
         Top = 61
         Width = 41
         Height = 21
-        TabOrder = 9
+        TabOrder = 6
         Text = '1'
         OnChange = Modified
       end
@@ -633,7 +633,7 @@ object optionsform: Toptionsform
         Associate = editMaxQueryResults
         Min = 1
         Position = 1
-        TabOrder = 10
+        TabOrder = 7
         OnChanging = anyUpDownLimitChanging
       end
       object comboSQLColElement: TComboBox
@@ -643,7 +643,7 @@ object optionsform: Toptionsform
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 11
+        TabOrder = 12
         OnChange = comboSQLColElementChange
       end
       object chkSQLBold: TCheckBox
@@ -652,7 +652,7 @@ object optionsform: Toptionsform
         Width = 130
         Height = 17
         Caption = 'Bold'
-        TabOrder = 12
+        TabOrder = 13
         OnClick = SQLFontChange
       end
       object chkSQLItalic: TCheckBox
@@ -662,7 +662,7 @@ object optionsform: Toptionsform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Italic'
-        TabOrder = 13
+        TabOrder = 14
         OnClick = SQLFontChange
       end
       object cboxSQLColForeground: TColorBox
@@ -672,7 +672,7 @@ object optionsform: Toptionsform
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akTop, akRight]
-        TabOrder = 14
+        TabOrder = 15
         OnChange = SQLFontChange
       end
       object cboxSQLColBackground: TColorBox
@@ -682,7 +682,7 @@ object optionsform: Toptionsform
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akTop, akRight]
-        TabOrder = 15
+        TabOrder = 16
         OnChange = SQLFontChange
       end
       object SynMemoSQLSample: TSynMemo
@@ -690,7 +690,7 @@ object optionsform: Toptionsform
         Left = 8
         Top = 215
         Width = 693
-        Height = 132
+        Height = 131
         Cursor = crHandPoint
         SingleLineMode = False
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -699,7 +699,7 @@ object optionsform: Toptionsform
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        TabOrder = 16
+        TabOrder = 17
         OnClick = SynMemoSQLSampleClick
         CodeFolding.GutterShapeSize = 11
         CodeFolding.CollapsedLineColor = clGrayText
@@ -730,10 +730,19 @@ object optionsform: Toptionsform
       object chkQueryWarningsMessage: TCheckBox
         Left = 8
         Top = 136
-        Width = 691
+        Width = 363
         Height = 17
         Caption = 'Show query warnings dialog'
-        TabOrder = 8
+        TabOrder = 11
+        OnClick = Modified
+      end
+      object chkAutoUppercase: TCheckBox
+        Left = 377
+        Top = 89
+        Width = 320
+        Height = 17
+        Caption = 'Auto uppercase reserved words and functions'
+        TabOrder = 9
         OnClick = Modified
       end
     end

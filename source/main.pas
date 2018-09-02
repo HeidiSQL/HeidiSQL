@@ -5879,9 +5879,32 @@ end;
 
 procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
     TSynStatusChanges);
+var
+  Editor: TSynMemo;
+  Token: String;
+  Attri: TSynHighlighterAttributes;
+  OldCaretPos: TBufferCoord;
+  TokenTypeInt, Start: Integer;
 begin
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
+
+  // Uppercase reserved words, functions and data types
+  if AppSettings.ReadBool(asAutoUppercase) then begin
+    Editor := Sender as TSynMemo;
+    Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
+    if TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey] then begin
+      Editor.OnStatusChange := nil; // Don't call StatusChange recursively
+      OldCaretPos := Editor.CaretXY;
+      Editor.UndoList.BeginBlock;
+      Editor.SelStart := Editor.RowColToCharIndex(Editor.PrevWordPos);
+      Editor.SelEnd := Editor.SelStart + Length(Token);
+      Editor.SelText := UpperCase(Token);
+      Editor.CaretXY := OldCaretPos;
+      Editor.UndoList.EndBlock;
+      Editor.OnStatusChange := SynMemoQueryStatusChange;
+    end;
+  end;
 end;
 
 
