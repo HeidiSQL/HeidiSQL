@@ -1067,7 +1067,7 @@ destructor TInplaceEditorLink.Destroy;
 begin
   if Assigned(FTextEditor) then
     FTextEditor.Release;
-  if not (csDestroying in FPanel.ComponentState) then
+  if not ((csDestroying in FPanel.ComponentState) or (csCreating in FPanel.ControlState)) then
     FPanel.Free;
   inherited;
 end;
