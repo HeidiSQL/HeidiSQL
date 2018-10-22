@@ -1,5 +1,7 @@
 *.exe
+*.bpl
 *.dcu
+*.dcp
 *.local
 *.stat
 *.skincfg
@@ -12,3 +14,6 @@
 *.tvsconfig
 __history
 __recovery
+*.mo
+*.po
+*.res
