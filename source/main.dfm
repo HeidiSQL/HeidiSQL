@@ -1,6 +1,6 @@
 object MainForm: TMainForm
-  Left = 241
-  Top = 114
+  Left = 0
+  Top = 463
   ClientHeight = 486
   ClientWidth = 824
   Color = clBtnFace
@@ -43,6 +43,14 @@ object MainForm: TMainForm
     Font.Style = []
     PopupMenu = popupSqlLog
     TabOrder = 1
+    CodeFolding.GutterShapeSize = 11
+    CodeFolding.CollapsedLineColor = clGrayText
+    CodeFolding.FolderBarLinesColor = clGrayText
+    CodeFolding.IndentGuidesColor = clGray
+    CodeFolding.IndentGuides = True
+    CodeFolding.ShowCollapsedLine = False
+    CodeFolding.ShowHintMark = True
+    UseCodeFolding = False
     Gutter.AutoSize = True
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clGrayText
@@ -92,6 +100,8 @@ object MainForm: TMainForm
         Width = 250
       end>
     ParentDoubleBuffered = False
+    ParentFont = True
+    UseSystemFont = False
     OnClick = StatusBarClick
     OnMouseLeave = StatusBarMouseLeave
     OnMouseMove = StatusBarMouseMove
@@ -766,6 +776,14 @@ object MainForm: TMainForm
                   Font.Name = 'Courier New'
                   Font.Style = []
                   TabOrder = 1
+                  CodeFolding.GutterShapeSize = 11
+                  CodeFolding.CollapsedLineColor = clGrayText
+                  CodeFolding.FolderBarLinesColor = clGrayText
+                  CodeFolding.IndentGuidesColor = clGray
+                  CodeFolding.IndentGuides = True
+                  CodeFolding.ShowCollapsedLine = False
+                  CodeFolding.ShowHintMark = True
+                  UseCodeFolding = False
                   Gutter.AutoSize = True
                   Gutter.DigitCount = 2
                   Gutter.Font.Charset = DEFAULT_CHARSET
@@ -1173,6 +1191,14 @@ object MainForm: TMainForm
               Font.Style = []
               PopupMenu = popupFilter
               TabOrder = 0
+              CodeFolding.GutterShapeSize = 11
+              CodeFolding.CollapsedLineColor = clGrayText
+              CodeFolding.FolderBarLinesColor = clGrayText
+              CodeFolding.IndentGuidesColor = clGray
+              CodeFolding.IndentGuides = True
+              CodeFolding.ShowCollapsedLine = False
+              CodeFolding.ShowHintMark = True
+              UseCodeFolding = False
               Gutter.Font.Charset = DEFAULT_CHARSET
               Gutter.Font.Color = clWindowText
               Gutter.Font.Height = -11
@@ -1312,6 +1338,14 @@ object MainForm: TMainForm
               OnDragOver = SynMemoQueryDragOver
               OnKeyPress = SynMemoQueryKeyPress
               OnMouseWheel = SynMemoQueryMouseWheel
+              CodeFolding.GutterShapeSize = 11
+              CodeFolding.CollapsedLineColor = clGrayText
+              CodeFolding.FolderBarLinesColor = clGrayText
+              CodeFolding.IndentGuidesColor = clGray
+              CodeFolding.IndentGuides = True
+              CodeFolding.ShowCollapsedLine = False
+              CodeFolding.ShowHintMark = True
+              UseCodeFolding = False
               Gutter.AutoSize = True
               Gutter.Font.Charset = DEFAULT_CHARSET
               Gutter.Font.Color = clGrayText
@@ -1516,7 +1550,7 @@ object MainForm: TMainForm
       object ToolBarMainMenu: TToolBar
         Left = 0
         Top = 0
-        Width = 222
+        Width = 205
         Height = 23
         Align = alLeft
         AutoSize = True
@@ -1560,7 +1594,7 @@ object MainForm: TMainForm
           MenuItem = MainMenuTools
         end
         object ToolButton11: TToolButton
-          Left = 146
+          Left = 136
           Top = 0
           AutoSize = True
           Caption = 'Go to'
@@ -1568,7 +1602,7 @@ object MainForm: TMainForm
           MenuItem = MainMenuGoto
         end
         object btnHelp: TToolButton
-          Left = 186
+          Left = 173
           Top = 0
           Hint = 'Help topics'
           AutoSize = True

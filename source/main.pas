@@ -17,7 +17,8 @@ uses
   routine_editor, trigger_editor, event_editor, options, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VTHeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix;
+  JumpList, System.Actions, System.UITypes, pngimage, Vcl.FormsFix,
+  System.ImageList;
 
 
 type
@@ -1750,9 +1751,16 @@ begin
 
   StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
   // Upscale panels in non-96-DPI mode
-  DpiScaleFactor := Screen.PixelsPerInch / FORMS_DPI;
-  for i:=StatusBar.Panels.Count-1 downto 1 do
-    StatusBar.Panels[i].Width := Round(StatusBar.Panels[i].Width * DpiScaleFactor);
+  DpiScaleFactor := Monitor.PixelsPerInch / PixelsPerInch;
+  if DpiScaleFactor <> 1 then begin
+    for i:=StatusBar.Panels.Count-1 downto 1 do begin
+      StatusBar.Panels[i].Width := Round(StatusBar.Panels[i].Width * DpiScaleFactor);
+    end;
+    // Resizing icons does not work - hides all images:
+    //ImageListMain.Height := Round(ImageListMain.Height * DpiScaleFactor);
+    //ImageListMain.Width := Round(ImageListMain.Width * DpiScaleFactor);
+  end;
+
 
   QueryTab := TQueryTab.Create(Self);
   QueryTab.TabSheet := tabQuery;
