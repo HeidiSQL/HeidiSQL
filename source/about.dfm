@@ -14,6 +14,7 @@ object AboutBox: TAboutBox
   FormStyle = fsStayOnTop
   OldCreateOrder = True
   Position = poOwnerFormCenter
+  OnCreate = FormCreate
   OnMouseMove = MouseOver
   OnShow = FormShow
   DesignSize = (
@@ -24,15 +25,9 @@ object AboutBox: TAboutBox
   object lblAppName: TLabel
     Left = 117
     Top = 8
-    Width = 116
-    Height = 23
+    Width = 56
+    Height = 13
     Caption = 'lblAppName'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -19
-    Font.Name = 'Tahoma'
-    Font.Style = [fsBold]
-    ParentFont = False
     PopupMenu = popupLabels
     Transparent = True
     IsControl = True
@@ -63,12 +58,6 @@ object AboutBox: TAboutBox
     Height = 13
     Cursor = crHandPoint
     Caption = 'lblAppWebpage'
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
     PopupMenu = popupLabels
     Transparent = True
     OnClick = OpenURL
@@ -298,6 +287,7 @@ object AboutBox: TAboutBox
       084B856B8A3615B896B5B8660E8112B4265C9BB08E11D7067C5006AC6340AEC6
       1660FFFFFD5CB59BD7D4BCD003903AD6CD4B4B615B2C56B80EB4CBFD00FBFF01
       899BBF997FF95B380000000049454E44AE426082}
+    Transparent = True
     OnClick = OpenURL
   end
   object imgDonate: TImage
@@ -1386,14 +1376,6 @@ object AboutBox: TAboutBox
     Height = 13
     Cursor = crHandPoint
     Caption = 'Credits'
-    Color = clBtnFace
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clBlue
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentColor = False
-    ParentFont = False
     PopupMenu = popupLabels
     OnClick = lblCreditsClick
     OnMouseMove = MouseOver

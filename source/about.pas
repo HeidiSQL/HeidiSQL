@@ -35,6 +35,7 @@ type
     procedure btnDonatedOKClick(Sender: TObject);
     procedure lblCreditsClick(Sender: TObject);
     procedure menuCopyLabelClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -120,16 +121,20 @@ begin
   btnClose.Default := True;
 end;
 
+procedure TAboutBox.FormCreate(Sender: TObject);
+begin
+  TranslateComponent(Self);
+  InheritFont(Font);
+  lblAppName.Font.Size := Round(lblAppName.Font.Size * 1.5);
+  lblAppName.Font.Style := [fsBold];
+  lblAppWebpage.Font.Color := clBlue;
+  lblCredits.Font.Color := clBlue;
+end;
+
 procedure TAboutBox.FormShow(Sender: TObject);
 begin
   Screen.Cursor := crHourGlass;
 
-  TranslateComponent(Self);
-
-  InheritFont(Font);
-  InheritFont(lblAppName.Font);
-  lblAppName.Font.Size := 14;
-  InheritFont(lblAppWebpage.Font);
   imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
   imgDonate.OnClick := MainForm.btnDonate.OnClick;
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);

@@ -1747,6 +1747,7 @@ procedure InheritFont(AFont: TFont);
 var
   LogFont: TLogFont;
   GUIFontName: String;
+  ScaledFontSize: Integer;
 begin
   GUIFontName := AppSettings.ReadString(asGUIFontName);
   if not GUIFontName.IsEmpty then begin
@@ -1768,7 +1769,13 @@ begin
       end;
     end;
   end;
-end;
+  // Increase font size for high dpi settings
+  ScaledFontSize := Round(AFont.Size * (MainForm.Monitor.PixelsPerInch / MainForm.PixelsPerInch));
+  if ScaledFontSize <> AFont.Size then begin
+    Mainform.LogSQL(f_('Scaling font size from %d to %d.', [AFont.Size, ScaledFontSize]), lcDebug);
+    AFont.Size := ScaledFontSize;
+  end;
+end;
 
 
 function GetLightness(AColor: TColor): Byte;

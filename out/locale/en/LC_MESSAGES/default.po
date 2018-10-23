@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-09-02 13:03+0200\n"
+"PO-Revision-Date: 2018-10-23 21:30+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.1.1\n"
+"X-Generator: Poedit 2.2\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6254,3 +6254,6 @@ msgstr "Successfully moved \"%s\" to \"%s\""
 
 msgid "Error: Could not move \"%s\" to \"%s\" (Error: %s)"
 msgstr "Error: Could not move \"%s\" to \"%s\" (Error: %s)"
+
+msgid "Scaling font size from %d to %d."
+msgstr "Scaling font size from %d to %d."
