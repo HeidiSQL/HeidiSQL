@@ -1606,6 +1606,7 @@ var
   DonateCaptions: TStringList;
   OldSnippetsDir, CurrentSnippetsDir, TargetSnippet: String;
   Files: TStringDynArray;
+  DpiScaleFactor: Double;
 begin
   caption := APPNAME;
 
@@ -1616,6 +1617,8 @@ begin
   TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
   FixDropDownButtons(Self);
+  DpiScaleFactor := Monitor.PixelsPerInch / PixelsPerInch;
+  ScaleImageList(ImageListMain, DpiScaleFactor);
   MainMenu1.Images := ImageListMain;
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);

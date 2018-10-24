@@ -13,7 +13,8 @@ uses
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
-  Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls;
+  Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
+  CommCtrl;
 
 type
 
@@ -346,6 +347,7 @@ type
   function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetUwpFullName: String;
   function RunningAsUwp: Boolean;
+  procedure ScaleImageList(const ImgList: TImageList; ScaleFactor: Real);
 
 var
   AppSettings: TAppSettings;
@@ -2935,6 +2937,46 @@ function RunningAsUwp: Boolean;
 begin
   Result := GetUwpFullName <> '';
 end;
+
+
+procedure ScaleImageList(const ImgList: TImageList; ScaleFactor: Real);
+var
+  i: Integer;
+  Extracted, Scaled: Graphics.TBitmap;
+  ImgListCopy: TImageList;
+begin
+  if ScaleFactor = 1 then
+    Exit;
+
+  // Create copy of original image list
+  ImgListCopy := TImageList.Create(nil);
+  ImgListCopy.ColorDepth := cd32Bit;
+  ImgListCopy.DrawingStyle := dsTransparent;
+  ImgListCopy.Clear;
+
+  // Add from source image list
+  for i := 0 to ImgList.Count-1 do begin
+    ImgListCopy.AddImage(ImgList, i);
+  end;
+
+  // Set size to match scale factor
+  ImgList.SetSize(Round(ImgList.Width * ScaleFactor), Round(ImgList.Height * ScaleFactor));
+
+  for i:= 0 to ImgListCopy.Count-1 do begin
+    Extracted := Graphics.TBitmap.Create;
+    ImgListCopy.GetBitmap(i, Extracted);
+    Scaled := Graphics.TBitmap.Create;
+    Scaled.Width := ImgList.Width;
+    Scaled.Height := ImgList.Height;
+    Scaled.Canvas.FillRect(Scaled.Canvas.ClipRect);
+    GraphUtil.ScaleImage(Extracted, Scaled, ScaleFactor);
+    ImgList.Add(Scaled, Scaled);
+  end;
+
+  ImgListCopy.Free;
+
+end;
+
 
 
 { Threading stuff }
