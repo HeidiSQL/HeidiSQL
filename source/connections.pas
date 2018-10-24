@@ -225,6 +225,8 @@ begin
   TranslateComponent(Self);
   InheritFont(Font);
   FixDropDownButtons(Self);
+  lblDownloadPlink.Font.Style := [fsUnderline];
+  lblDownloadPlink.Font.Color := clBlue;
 
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);

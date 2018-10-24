@@ -44,12 +44,6 @@ object UserManagerForm: TUserManagerForm
     Height = 30
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clRed
-    Font.Height = -11
-    Font.Name = 'Tahoma'
-    Font.Style = []
-    ParentFont = False
     Layout = tlCenter
     WordWrap = True
   end

@@ -1746,8 +1746,8 @@ begin
   InheritFont(Font);
   InheritFont(SynCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
-  InheritFont(lblExplainProcess.Font);
-  InheritFont(lblExplainProcessAnalyzer.Font);
+  lblExplainProcess.Font.Color := clBlue;
+  lblExplainProcessAnalyzer.Font.Color := clBlue;
 
   StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
   // Upscale panels in non-96-DPI mode

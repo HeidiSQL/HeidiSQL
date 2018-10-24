@@ -456,12 +456,6 @@ object connform: Tconnform
         Cursor = crHandPoint
         Hint = 'http://www.chiark.greenend.org.uk/~sgtatham/putty/'
         Caption = 'Download plink.exe'
-        Font.Charset = DEFAULT_CHARSET
-        Font.Color = clBlue
-        Font.Height = -11
-        Font.Name = 'Tahoma'
-        Font.Style = [fsUnderline]
-        ParentFont = False
         OnClick = lblDownloadPlinkClick
       end
       object lblPlinkTimeout: TLabel
@@ -783,9 +777,6 @@ object connform: Tconnform
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 145
-      DesignSize = (
-        417
-        287)
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31

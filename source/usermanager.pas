@@ -208,6 +208,7 @@ procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
   // Restore GUI setup
   InheritFont(Font);
+  lblWarning.Font.Color := clRed;
   Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
   Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
   pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);

@@ -82,6 +82,7 @@ procedure TfrmSQLhelp.FormCreate(Sender: TObject);
 begin
   // Set window-layout
   InheritFont(Font);
+  lblKeyword.Font.Style := [fsBold];
   Top := AppSettings.ReadInt(asSQLHelpWindowTop);
   Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
   Width := AppSettings.ReadInt(asSQLHelpWindowWidth);

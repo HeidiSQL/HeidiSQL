@@ -737,12 +737,6 @@ object MainForm: TMainForm
                     Hint = 'Analyze this query'
                     Caption = 'EXPLAIN'
                     Enabled = False
-                    Font.Charset = DEFAULT_CHARSET
-                    Font.Color = clBlue
-                    Font.Height = -11
-                    Font.Name = 'Default'
-                    Font.Style = [fsUnderline]
-                    ParentFont = False
                     OnClick = lblExplainProcessClick
                   end
                   object lblExplainProcessAnalyzer: TLabel
@@ -754,12 +748,6 @@ object MainForm: TMainForm
                     Hint = 'Analyze this query on MariaDB.org'
                     Caption = 'EXPLAIN Analyzer on MariaDB.org'
                     Enabled = False
-                    Font.Charset = DEFAULT_CHARSET
-                    Font.Color = clBlue
-                    Font.Height = -11
-                    Font.Name = 'Default'
-                    Font.Style = [fsUnderline]
-                    ParentFont = False
                     OnClick = lblExplainProcessAnalyzerClick
                   end
                 end
@@ -1045,8 +1033,6 @@ object MainForm: TMainForm
             Caption = 'No data available for this item.'
             Layout = tlCenter
             WordWrap = True
-            ExplicitWidth = 147
-            ExplicitHeight = 13
           end
           object pnlDataTop: TPanel
             Left = 0
