@@ -1597,7 +1597,6 @@ var
   dwWnd: DWORD;         // Handle for the size call.
   FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
   ptrVerBuf: Pointer;
-  DpiScaleFactor: Double;
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
   NTHandle: THandle;
@@ -1749,19 +1748,7 @@ begin
   lblExplainProcess.Font.Color := clBlue;
   lblExplainProcessAnalyzer.Font.Color := clBlue;
 
-  StatusBar.Height := GetTextHeight(StatusBar.Font)+4;
-  // Upscale panels in non-96-DPI mode
-  DpiScaleFactor := Monitor.PixelsPerInch / PixelsPerInch;
-  if DpiScaleFactor <> 1 then begin
-    for i:=StatusBar.Panels.Count-1 downto 1 do begin
-      StatusBar.Panels[i].Width := Round(StatusBar.Panels[i].Width * DpiScaleFactor);
-    end;
-    // Resizing icons does not work - hides all images:
-    //ImageListMain.Height := Round(ImageListMain.Height * DpiScaleFactor);
-    //ImageListMain.Width := Round(ImageListMain.Width * DpiScaleFactor);
-  end;
-
-
+  // Define static query tab as first one in our QueryTabs list
   QueryTab := TQueryTab.Create(Self);
   QueryTab.TabSheet := tabQuery;
   QueryTab.Number := 1;
