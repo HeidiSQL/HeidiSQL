@@ -1749,12 +1749,16 @@ procedure InheritFont(AFont: TFont);
 var
   LogFont: TLogFont;
   GUIFontName: String;
-  ScaledFontSize: Integer;
 begin
+  // Set custom font if set, or default system font.
+  // In high-dpi mode, the font *size* is increased automatically somewhere in the VCL,
+  // caused by a form's .Scaled property. So we don't increase it here again.
+  // To test this, you really need to log off/on Windows!
   GUIFontName := AppSettings.ReadString(asGUIFontName);
   if not GUIFontName.IsEmpty then begin
     // Apply user specified font
     AFont.Name := GUIFontName;
+    // Set size on top of automatic dpi-increased size
     AFont.Size := AppSettings.ReadInt(asGUIFontSize);
   end else begin
     // Apply system font. See issue #3204.
@@ -1771,13 +1775,7 @@ begin
       end;
     end;
   end;
-  // Increase font size for high dpi settings
-  ScaledFontSize := Round(AFont.Size * (MainForm.Monitor.PixelsPerInch / MainForm.PixelsPerInch));
-  if ScaledFontSize <> AFont.Size then begin
-    Mainform.LogSQL(f_('Scaling font size from %d to %d.', [AFont.Size, ScaledFontSize]), lcDebug);
-    AFont.Size := ScaledFontSize;
-  end;
-end;
+end;
 
 
 function GetLightness(AColor: TColor): Byte;
