@@ -1909,8 +1909,6 @@ begin
   // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
   // repeatedly breaks the GUI layout when you reload the project
   Align := alClient;
-  InheritFont(Font);
-  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
 end;
 
 destructor TDBObjectEditor.Destroy;
