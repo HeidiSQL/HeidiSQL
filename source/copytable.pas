@@ -69,7 +69,6 @@ procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
   FixDropDownButtons(Self);
-  InheritFont(Font);
   Width := AppSettings.ReadInt(asCopyTableWindowWidth);
   Height := AppSettings.ReadInt(asCopyTableWindowHeight);
   MainForm.SetupSynEditors;

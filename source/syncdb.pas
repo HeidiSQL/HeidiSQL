@@ -108,7 +108,6 @@ var
 begin
   Caption := MainForm.actSynchronizeDatabase.Caption;
   TranslateComponent(Self);
-  InheritFont(Font);
   FixVT(treeSource);
   FixVT(treeDifferences);
 

@@ -5,11 +5,7 @@ object frmTableTools: TfrmTableTools
   ClientHeight = 383
   ClientWidth = 764
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
@@ -70,12 +66,8 @@ object frmTableTools: TfrmTableTools
       Height = 336
       Align = alLeft
       Header.AutoSizeIndex = 0
-      Header.Font.Charset = DEFAULT_CHARSET
-      Header.Font.Color = clWindowText
-      Header.Font.Height = -11
-      Header.Font.Name = 'Tahoma'
-      Header.Font.Style = []
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+      Header.ParentFont = True
       Images = MainForm.ImageListMain
       IncrementalSearch = isInitializedOnly
       PopupMenu = popupTree

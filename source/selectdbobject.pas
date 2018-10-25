@@ -65,7 +65,6 @@ begin
   TranslateComponent(Self);
   Width := AppSettings.ReadInt(asSelectDBOWindowWidth);
   Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
-  InheritFont(Font);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;
   TreeDBO.TreeOptions.SelectionOptions := TreeDBO.TreeOptions.SelectionOptions + [toMultiSelect];
   FixVT(TreeDBO);

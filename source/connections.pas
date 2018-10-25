@@ -223,7 +223,6 @@ var
 begin
   // Fix GUI stuff
   TranslateComponent(Self);
-  InheritFont(Font);
   FixDropDownButtons(Self);
   lblDownloadPlink.Font.Style := [fsUnderline];
   lblDownloadPlink.Font.Color := clBlue;

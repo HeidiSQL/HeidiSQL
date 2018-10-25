@@ -55,7 +55,6 @@ uses main, apphelpers;
 
 procedure TfrmEditVariable.FormCreate(Sender: TObject);
 begin
-  InheritFont(Font);
   TranslateComponent(Self);
   Width := AppSettings.ReadInt(asEditVarWindowWidth);
   Height := AppSettings.ReadInt(asEditVarWindowHeight);

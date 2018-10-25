@@ -45,7 +45,6 @@ uses main;
 
 procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
-  InheritFont(Font);
   TranslateComponent(Self);
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
   Height := AppSettings.ReadInt(asColumnSelectorHeight);

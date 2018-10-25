@@ -58,7 +58,6 @@ uses main, apphelpers;
 procedure TfrmPasswordChange.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  InheritFont(Font);
 end;
 
 

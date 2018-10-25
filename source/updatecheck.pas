@@ -51,7 +51,6 @@ uses main;
 procedure TfrmUpdateCheck.FormCreate(Sender: TObject);
 begin
   // Should be false by default. Callers can set this to True after Create()
-  InheritFont(Font);
   TranslateComponent(Self);
   imgDonate.OnClick := MainForm.DonateClick;
   imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;

@@ -102,7 +102,6 @@ var
   FormatDesc: String;
 begin
   TranslateComponent(Self);
-  InheritFont(Font);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
   radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);
   radioOutputFile.Checked := AppSettings.ReadBool(asGridExportOutputFile);

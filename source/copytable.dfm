@@ -7,11 +7,7 @@ object CopyTableForm: TCopyTableForm
   Color = clBtnFace
   Constraints.MinHeight = 340
   Constraints.MinWidth = 380
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
@@ -92,12 +88,8 @@ object CopyTableForm: TCopyTableForm
     Height = 88
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
-    Header.Font.Charset = DEFAULT_CHARSET
-    Header.Font.Color = clWindowText
-    Header.Font.Height = -11
-    Header.Font.Name = 'Tahoma'
-    Header.Font.Style = []
     Header.MainColumn = -1
+    Header.ParentFont = True
     Images = MainForm.ImageListMain
     TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]

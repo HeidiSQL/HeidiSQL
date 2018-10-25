@@ -6,11 +6,7 @@ object DataSortingForm: TDataSortingForm
   ClientHeight = 97
   ClientWidth = 204
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate

@@ -41,7 +41,6 @@ uses main, apphelpers, table_editor, dbconnection;
 
 procedure TprintlistForm.FormCreate(Sender: TObject);
 begin
-  InheritFont(Font);
   TranslateComponent(Self);
 end;
 

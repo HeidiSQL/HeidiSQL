@@ -79,7 +79,6 @@ end;
 
 procedure TfrmBinEditor.FormCreate(Sender: TObject);
 begin
-  InheritFont(Font);
   TranslateComponent(Self);
 end;
 

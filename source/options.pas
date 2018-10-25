@@ -410,7 +410,6 @@ var
   dtc: TDBDatatypeCategoryIndex;
 begin
   TranslateComponent(Self);
-  InheritFont(Font);
 
   // Misecllaneous
   // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path

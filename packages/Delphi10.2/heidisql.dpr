@@ -73,6 +73,7 @@ begin
     Application.Initialize;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
+    AppHelpers.InheritFont(Application.DefaultFont);
     Application.CreateForm(TMainForm, MainForm);
     MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;

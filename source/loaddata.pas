@@ -96,7 +96,6 @@ const
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  InheritFont(Font);
   // Restore settings
   Width := AppSettings.ReadInt(asCSVImportWindowWidth);
   Height := AppSettings.ReadInt(asCSVImportWindowHeight);

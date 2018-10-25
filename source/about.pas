@@ -124,7 +124,6 @@ end;
 procedure TAboutBox.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  InheritFont(Font);
   lblAppName.Font.Size := Round(lblAppName.Font.Size * 1.5);
   lblAppName.Font.Style := [fsBold];
   lblAppWebpage.Font.Color := clBlue;

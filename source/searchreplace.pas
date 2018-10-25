@@ -60,7 +60,6 @@ uses apphelpers, main;
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  InheritFont(Font);
   comboSearch.Items.Text := AppSettings.ReadString(asFindDialogSearchHistory);
   comboReplace.Items.Text := AppSettings.ReadString(asFindDialogReplaceHistory);
   comboSearch.Text := '';

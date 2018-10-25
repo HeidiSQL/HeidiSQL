@@ -1745,7 +1745,6 @@ begin
 
   Delimiter := AppSettings.ReadString(asDelimiter);
 
-  InheritFont(Font);
   InheritFont(SynCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
   lblExplainProcess.Font.Color := clBlue;

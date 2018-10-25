@@ -6,11 +6,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
   ClientHeight = 227
   ClientWidth = 317
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnClose = FormClose

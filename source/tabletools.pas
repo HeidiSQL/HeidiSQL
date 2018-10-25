@@ -214,7 +214,6 @@ begin
   DATA_UPDATE := _('Replace existing data');
 
   // Restore GUI setup
-  InheritFont(Font);
   Width := AppSettings.ReadInt(asTableToolsWindowWidth);
   Height := AppSettings.ReadInt(asTableToolsWindowHeight);
   TreeObjects.Width := AppSettings.ReadInt(asTableToolsTreeWidth);

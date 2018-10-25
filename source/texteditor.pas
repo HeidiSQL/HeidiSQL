@@ -153,7 +153,6 @@ begin
   FmemoText.WantTabs := True;
   FmemoText.OnChange := memoTextChange;
   FmemoText.OnKeyDown := memoTextKeyDown;
-  InheritFont(Font);
   // Use same text properties as in query/find/replace actions
   actSearchFind.Caption := MainForm.actQueryFind.Caption;
   actSearchFind.Hint := MainForm.actQueryFind.Hint;

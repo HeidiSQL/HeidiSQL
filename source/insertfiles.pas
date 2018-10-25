@@ -119,7 +119,6 @@ begin
   TranslateComponent(Self);
   ListFiles.Images := GetSystemImageList;
   DragAcceptFiles(Handle, True);
-  InheritFont(Font);
   MainForm.RestoreListSetup(ListColumns);
   MainForm.RestoreListSetup(ListFiles);
   FixVT(ListFiles);

@@ -53,7 +53,6 @@ uses main;
 
 procedure TDataSortingForm.FormCreate(Sender: TObject);
 begin
-  InheritFont(Font);
   TranslateComponent(Self);
   ColumnNames := TStringList.Create;
 end;

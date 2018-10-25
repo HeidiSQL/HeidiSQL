@@ -5,11 +5,7 @@ object frmSQLhelp: TfrmSQLhelp
   ClientHeight = 355
   ClientWidth = 582
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   FormStyle = fsStayOnTop
   OldCreateOrder = False
   OnClose = FormClose
@@ -103,12 +99,8 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Bottom = 0
         Align = alClient
         Header.AutoSizeIndex = 0
-        Header.Font.Charset = DEFAULT_CHARSET
-        Header.Font.Color = clWindowText
-        Header.Font.Height = -11
-        Header.Font.Name = 'Tahoma'
-        Header.Font.Style = []
         Header.MainColumn = -1
+        Header.ParentFont = True
         Images = MainForm.ImageListMain
         TabOrder = 1
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]

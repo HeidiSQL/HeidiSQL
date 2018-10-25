@@ -7,11 +7,7 @@ object frmSelectDBObject: TfrmSelectDBObject
   Color = clBtnFace
   Constraints.MinHeight = 343
   Constraints.MinWidth = 240
-  Font.Charset = DEFAULT_CHARSET
-  Font.Color = clWindowText
-  Font.Height = -11
-  Font.Name = 'Tahoma'
-  Font.Style = []
+  ParentFont = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate
@@ -44,12 +40,8 @@ object frmSelectDBObject: TfrmSelectDBObject
     Height = 206
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
-    Header.Font.Charset = DEFAULT_CHARSET
-    Header.Font.Color = clWindowText
-    Header.Font.Height = -11
-    Header.Font.Name = 'Tahoma'
-    Header.Font.Style = []
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+    Header.ParentFont = True
     Images = MainForm.ImageListMain
     Indent = 16
     Margin = 2
