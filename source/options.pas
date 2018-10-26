@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
-  mysql_structures, gnugettext;
+  mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles;
 
 type
   TShortcutItemData = record
@@ -144,6 +144,8 @@ type
     chkWheelZoom: TCheckBox;
     chkQueryWarningsMessage: TCheckBox;
     chkAutoUppercase: TCheckBox;
+    lblTheme: TLabel;
+    comboTheme: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -303,6 +305,7 @@ begin
   else
     AppSettings.WriteString(asGUIFontName, comboGUIFont.Text);
   AppSettings.WriteInt(asGUIFontSize, updownGUIFontSize.Position);
+  AppSettings.WriteString(asTheme, comboTheme.Text);
 
   AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
@@ -366,6 +369,7 @@ begin
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
 
+  TStyleManager.TrySetStyle(comboTheme.Text);
   Mainform.LogToFile := chkLogToFile.Checked;
   MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
   MainForm.actLogHorizontalScrollbar.OnExecute(MainForm.actLogHorizontalScrollbar);
@@ -408,6 +412,7 @@ procedure Toptionsform.FormCreate(Sender: TObject);
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
+  Styles: TArray<String>;
 begin
   TranslateComponent(Self);
 
@@ -425,6 +430,12 @@ begin
 
   comboGUIFont.Items.Assign(Screen.Fonts);
   comboGUIFont.Items.Insert(0, '<'+_('Default system font')+'>');
+
+  Styles := TStyleManager.StyleNames;
+  for i:=Low(Styles) to High(Styles) do begin
+    comboTheme.Items.Add(Styles[i]);
+  end;
+  comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.GetDefaultString(asTheme));
 
   // Data
   // Populate datatype categories pulldown
@@ -491,6 +502,7 @@ begin
     comboGUIFont.ItemIndex := comboGUIFont.Items.IndexOf(GUIFont);
   updownGUIFontSize.Position := AppSettings.ReadInt(asGUIFontSize);
   comboGUIFont.OnChange(comboGUIFont);
+  comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkQueryWarningsMessage.Checked := AppSettings.ReadBool(asQueryWarningsMessage);
 

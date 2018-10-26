@@ -3,7 +3,7 @@ object optionsform: Toptionsform
   Top = 163
   BorderStyle = bsDialog
   Caption = 'Preferences'
-  ClientHeight = 424
+  ClientHeight = 470
   ClientWidth = 732
   Color = clBtnFace
   ParentFont = True
@@ -13,14 +13,14 @@ object optionsform: Toptionsform
   OnShow = FormShow
   DesignSize = (
     732
-    424)
+    470)
   PixelsPerInch = 96
   TextHeight = 13
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
     Width = 718
-    Height = 381
+    Height = 427
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.ImageListMain
@@ -33,7 +33,7 @@ object optionsform: Toptionsform
       ImageIndex = 137
       DesignSize = (
         710
-        349)
+        395)
       object lblMySQLBinaries: TLabel
         Left = 8
         Top = 228
@@ -69,6 +69,13 @@ object optionsform: Toptionsform
         Height = 13
         Anchors = [akTop, akRight]
         Caption = 'pt'
+      end
+      object lblTheme: TLabel
+        Left = 8
+        Top = 336
+        Width = 63
+        Height = 13
+        Caption = 'Style Theme:'
       end
       object chkAutoReconnect: TCheckBox
         Left = 8
@@ -268,13 +275,24 @@ object optionsform: Toptionsform
         TabOrder = 8
         OnClick = Modified
       end
+      object comboTheme: TComboBox
+        Left = 272
+        Top = 333
+        Width = 435
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        Sorted = True
+        TabOrder = 17
+        OnChange = Modified
+      end
     end
     object tabLogging: TTabSheet
       Caption = 'Logging'
       ImageIndex = 56
       DesignSize = (
         710
-        349)
+        395)
       object Label4: TLabel
         Left = 8
         Top = 11
@@ -478,7 +496,7 @@ object optionsform: Toptionsform
       ImageIndex = 57
       DesignSize = (
         710
-        349)
+        395)
       object lblFont: TLabel
         Left = 8
         Top = 11
@@ -686,7 +704,7 @@ object optionsform: Toptionsform
         Left = 8
         Top = 215
         Width = 693
-        Height = 131
+        Height = 177
         Cursor = crHandPoint
         SingleLineMode = False
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -747,7 +765,7 @@ object optionsform: Toptionsform
       ImageIndex = 41
       DesignSize = (
         710
-        349)
+        395)
       object lblMaxColWidth: TLabel
         Left = 8
         Top = 11
@@ -996,7 +1014,7 @@ object optionsform: Toptionsform
       ImageIndex = 33
       DesignSize = (
         710
-        349)
+        395)
       object lblLineBreakStyle: TLabel
         Left = 8
         Top = 188
@@ -1086,12 +1104,12 @@ object optionsform: Toptionsform
       ImageIndex = 13
       DesignSize = (
         710
-        349)
+        395)
       object lblShortcut1: TLabel
         Left = 306
         Top = 64
         Width = 45
-        Height = 12
+        Height = 59
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Shortcut:'
       end
@@ -1099,7 +1117,7 @@ object optionsform: Toptionsform
         Left = 306
         Top = 3
         Width = 279
-        Height = 54
+        Height = 100
         Anchors = [akLeft, akTop, akBottom]
         AutoSize = False
         Caption = 'Please select a shortcut item in the tree.'
@@ -1109,7 +1127,7 @@ object optionsform: Toptionsform
         Left = 306
         Top = 107
         Width = 98
-        Height = 12
+        Height = 59
         Anchors = [akLeft, akTop, akBottom]
         Caption = 'Secondary shortcut:'
       end
@@ -1117,7 +1135,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 300
-        Height = 349
+        Height = 395
         Align = alLeft
         Header.AutoSizeIndex = 0
         Header.MainColumn = -1
@@ -1158,7 +1176,7 @@ object optionsform: Toptionsform
   end
   object btnCancel: TButton
     Left = 571
-    Top = 393
+    Top = 439
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1169,7 +1187,7 @@ object optionsform: Toptionsform
   end
   object btnOK: TButton
     Left = 491
-    Top = 393
+    Top = 439
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1181,7 +1199,7 @@ object optionsform: Toptionsform
   end
   object btnApply: TButton
     Left = 651
-    Top = 393
+    Top = 439
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1192,7 +1210,7 @@ object optionsform: Toptionsform
   end
   object btnRestoreDefaults: TButton
     Left = 8
-    Top = 393
+    Top = 439
     Width = 177
     Height = 25
     Anchors = [akLeft, akBottom]

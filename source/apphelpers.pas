@@ -14,7 +14,7 @@ uses
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, mysql_structures, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
-  CommCtrl;
+  CommCtrl, Vcl.Imaging.pngimage;
 
 type
 
@@ -171,6 +171,7 @@ type
     asPromptSaveFileOnTabClose, asWarnUnsafeUpdates, asQueryWarningsMessage,
     asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
+    asTheme,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
@@ -3575,6 +3576,7 @@ begin
   InitSetting(asFindDialogReplaceHistory,         'FindDialogReplaceHistory',              0, False, '');
   InitSetting(asGUIFontName,                      'GUIFontName',                           0, False, '');
   InitSetting(asGUIFontSize,                      'GUIFontSize',                           8);
+  InitSetting(asTheme,                            'Theme',                                 0, False, 'Windows');
   InitSetting(asMaxQueryResults,                  'MaxQueryResults',                       10);
   InitSetting(asLogErrors,                        'LogErrors',                             0, True);
   InitSetting(asLogUserSQL,                       'LogUserSQL',                            0, True);

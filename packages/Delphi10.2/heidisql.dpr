@@ -43,7 +43,9 @@ uses
   JumpList in '..\..\source\JumpList.pas',
   extra_controls in '..\..\source\extra_controls.pas',
   change_password in '..\..\source\change_password.pas' {frmPasswordChange},
-  Vcl.FormsFix in '..\..\source\Vcl.FormsFix.pas';
+  Vcl.FormsFix in '..\..\source\Vcl.FormsFix.pas',
+  Vcl.Themes,
+  Vcl.Styles;
 
 {.$R *.RES}
 {$R ..\..\res\icon.RES}
@@ -51,6 +53,7 @@ uses
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
 {$R ..\..\res\updater.RES}
+{$R ..\..\res\styles.RES}
 
 var
   AppLanguage: String;
@@ -74,6 +77,7 @@ begin
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
     AppHelpers.InheritFont(Application.DefaultFont);
+    TStyleManager.TrySetStyle(AppSettings.ReadString(asTheme));
     Application.CreateForm(TMainForm, MainForm);
     MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
