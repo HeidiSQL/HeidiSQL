@@ -92,9 +92,8 @@ object frmTableEditor: TfrmTableEditor
     Columns = <
       item
         Alignment = taRightJustify
-        Color = clBtnFace
         MinWidth = 20
-        Options = [coDraggable, coEnabled, coParentBidiMode, coShowDropMark, coVisible, coAllowFocus]
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
         Position = 0
         Width = 20
         WideText = '#'
