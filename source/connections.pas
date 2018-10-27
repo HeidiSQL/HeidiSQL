@@ -1044,16 +1044,25 @@ procedure Tconnform.comboNetTypeChange(Sender: TObject);
 var
   Params: TConnectionParameters;
 begin
-  // Autoset default port number as long as that was not modified by user
+  // Autoset default connection data as long as that was not modified by user
   Params := CurrentParams;
   if (not editPort.Modified) and (FLoaded) then
     case Params.NetTypeGroup of
       ngMySQL:
-        updownPort.Position := MakeInt(AppSettings.GetDefaultString(asPort));
+        begin
+          updownPort.Position := MakeInt(AppSettings.GetDefaultString(asPort));
+          editUsername.Text := AppSettings.GetDefaultString(asUser)
+        end;
       ngMSSQL:
+      begin
         updownPort.Position := 1433;
+        editUsername.Text := AppSettings.GetDefaultString(asUser)
+      end;
       ngPgSQL:
-        updownPort.Position := 5432;
+        begin
+          updownPort.Position := 5432;
+          editUsername.Text := 'postgres';
+        end;
     end;
   FreeAndNil(Params);
   Modification(Sender);
