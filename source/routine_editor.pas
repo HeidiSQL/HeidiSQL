@@ -333,7 +333,7 @@ procedure TfrmRoutineEditor.listParametersPaintText(Sender: TBaseVirtualTree;
   TextType: TVSTTextType);
 begin
   if (Column = 3) and (comboType.ItemIndex = 1) then
-    TargetCanvas.Font.Color := clBtnShadow;
+    TargetCanvas.Font.Color := GetThemeColor(clBtnShadow);
 end;
 
 

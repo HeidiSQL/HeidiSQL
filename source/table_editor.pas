@@ -909,7 +909,7 @@ begin
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
   if (not CellEditingAllowed(Node, Column)) and (not (Column in [4, 5, 6])) then begin
-    TargetCanvas.Brush.Color := clBtnFace;
+    TargetCanvas.Brush.Color := GetThemeColor(clBtnFace);
     TargetCanvas.FillRect(CellRect);
   end;
 end;

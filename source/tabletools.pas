@@ -1090,7 +1090,7 @@ begin
     else if LowerCase(Msg) = 'error' then
       TargetCanvas.Font.Color := clRed
     else if Pos(STRSKIPPED, Msg) > 0 then
-      TargetCanvas.Font.Color := clGrayText;
+      TargetCanvas.Font.Color := GetThemeColor(clGrayText);
   end;
 end;
 

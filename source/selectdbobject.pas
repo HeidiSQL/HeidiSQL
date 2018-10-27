@@ -82,12 +82,12 @@ procedure TfrmSelectDBObject.ValidateControls(Sender: TObject);
 begin
   // Signalize if tree or edit box is used
   if editDb.Modified then begin
-    TreeDBO.Color := clBtnFace;
-    editDb.Color := clWindow;
+    TreeDBO.Color := GetThemeColor(clBtnFace);
+    editDb.Color := GetThemeColor(clWindow);
     btnOK.Enabled := editDb.GetTextLen > 0;
   end else begin
-    TreeDBO.Color := clWindow;
-    editDb.Color := clBtnFace;
+    TreeDBO.Color := GetThemeColor(clWindow);
+    editDb.Color := GetThemeColor(clBtnFace);
     btnOK.Enabled := Assigned(TreeDBO.FocusedNode);
   end;
 end;

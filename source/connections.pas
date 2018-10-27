@@ -1248,7 +1248,7 @@ begin
   if not FileExists(editSSHPlinkExe.Text) then
     editSSHPlinkExe.Font.Color := clRed
   else
-    editSSHPlinkExe.Font.Color := clWindowText;
+    editSSHPlinkExe.Font.Color := GetThemeColor(clWindowText);
   Modification(Sender);
 end;
 

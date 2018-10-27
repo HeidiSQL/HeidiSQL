@@ -40,7 +40,7 @@ begin
   Caption := APPNAME + ' - Login';
   MainForm.ImageListMain.GetBitmap(144, imgIcon.Picture.Bitmap);
   lblPrompt.Font.Size := 10;
-  lblPrompt.Font.Color := clHotlight;
+  lblPrompt.Font.Color := GetThemeColor(clHotlight);
   lblPrompt.Font.Style := lblPrompt.Font.Style + [fsBold];
   editUsername.Text := '';
   editPassword.Text := '';

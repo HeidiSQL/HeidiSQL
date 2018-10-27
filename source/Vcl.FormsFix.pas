@@ -5,7 +5,7 @@ interface
 implementation
 
 uses
-  System.SysUtils, Winapi.Windows, Vcl.Forms, Vcl.Graphics, System.UITypes
+  System.SysUtils, Winapi.Windows, Vcl.Forms, Vcl.Graphics, System.UITypes, apphelpers
   //
   , DDetours
   //
@@ -105,9 +105,9 @@ begin
       Screen.MessageFont.Handle := GetStockObject(SYSTEM_FONT);
       Screen.CaptionFont.Handle := GetStockObject(SYSTEM_FONT);
     end;
-    Screen.HintFont.Color := clInfoText;
-    Screen.MenuFont.Color := clMenuText;
-    Screen.MessageFont.Color := clWindowText;
+    Screen.HintFont.Color := GetThemeColor(clInfoText);
+    Screen.MenuFont.Color := GetThemeColor(clMenuText);
+    Screen.MessageFont.Color := GetThemeColor(clWindowText);
   finally
     if Assigned(Application) then Application.ShowHint := SaveShowHint;
   end;

@@ -1140,7 +1140,7 @@ begin
     Exit;
 
   FEdit.Font.Assign(FCellFont);
-  FEdit.Font.Color := clWindowText;
+  FEdit.Font.Color := GetThemeColor(clWindowText);
   FPanel.Color := FCellBackground;
   FEdit.Text := FCellText;
   FEdit.Modified := False;
@@ -1176,7 +1176,7 @@ begin
   FPanel.OnExit := DoEndEdit;
   FPanel.Width := 200;
   FPanel.ParentBackground := False;
-  FPanel.Color := clWindow;
+  FPanel.Color := GetThemeColor(clWindow);
   FPanel.BevelKind := bkFlat;
   FPanel.BevelOuter := bvNone;
   FMainControl := FPanel;
@@ -1418,9 +1418,9 @@ end;
 procedure TColumnDefaultEditorLink.RadioClick(Sender: TObject);
 begin
   if not FRadioText.Checked then
-    FCustomEdit.Color := clBtnFace
+    FCustomEdit.Color := GetThemeColor(clBtnFace)
   else begin
-    FCustomEdit.Color := clWindow;
+    FCustomEdit.Color := GetThemeColor(clWindow);
     if FCustomEdit.CanFocus then
       FCustomEdit.SetFocus;
   end;
@@ -1492,8 +1492,8 @@ begin
   FMemoHelp := TMemo.Create(FParentForm);
   FMemoHelp.Hide;
   FMemoHelp.Parent := FParentForm;
-  FMemoHelp.Color := clInfoBk;
-  FMemoHelp.Font.Color := clInfoText;
+  FMemoHelp.Color := GetThemeColor(clInfoBk);
+  FMemoHelp.Font.Color := GetThemeColor(clInfoText);
   FMemoHelp.BorderStyle := bsNone;
   FMemoHelp.BevelKind := bkFlat;
   FMemoHelp.BevelInner := bvNone;

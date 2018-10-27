@@ -149,9 +149,9 @@ begin
     btnRelease.Enabled := groupRelease.Enabled;
     memoRelease.Enabled := groupRelease.Enabled;
     if not memoRelease.Enabled then
-      memoRelease.Font.Color := cl3DDkShadow
+      memoRelease.Font.Color := GetThemeColor(cl3DDkShadow)
     else
-      memoRelease.Font.Color := clWindowText;
+      memoRelease.Font.Color := GetThemeColor(clWindowText);
   end;
 
   // Read [Build] section of check file

@@ -349,6 +349,7 @@ type
   function GetUwpFullName: String;
   function RunningAsUwp: Boolean;
   procedure ScaleImageList(const ImgList: TImageList; ScaleFactor: Real);
+  function GetThemeColor(Color: TColor): TColor;
 
 var
   AppSettings: TAppSettings;
@@ -2975,6 +2976,13 @@ begin
 end;
 
 
+function GetThemeColor(Color: TColor): TColor;
+begin
+  Result := TStyleManager.ActiveStyle.GetSystemColor(Color);
+end;
+
+
+
 
 { Threading stuff }
 
@@ -3389,7 +3397,7 @@ begin
   InitSetting(asDataFontSize,                     'DataFontSize',                          8);
   InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
-  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          clInfoBk);
+  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(clInfoBk));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
   InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs\');

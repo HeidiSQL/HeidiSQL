@@ -210,10 +210,10 @@ begin
     btnRecentFilters.Enabled := MemoFilter.Enabled;
     if MemoFilter.Enabled then begin
       MemoFilter.Highlighter := MainForm.SynSQLSyn1;
-      MemoFilter.Color := clWindow;
+      MemoFilter.Color := GetThemeColor(clWindow);
     end else begin
       MemoFilter.Highlighter := nil;
-      MemoFilter.Color := clBtnFace;
+      MemoFilter.Color := GetThemeColor(clBtnFace);
     end;
   end;
 end;

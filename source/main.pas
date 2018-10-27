@@ -7113,7 +7113,7 @@ var
 begin
   h := (Sender as TVirtualStringTree).Header;
   for i:=0 to h.Columns.Count-1 do begin
-    NewColor := clWindow;
+    NewColor := GetThemeColor(clWindow);
     if h.SortColumn = i then
       NewColor := ColorAdjustBrightness(NewColor, COLORSHIFT_SORTCOLUMNS);
     h.Columns[i].Color := NewColor;
@@ -7434,11 +7434,11 @@ begin
   if enableSQLView then begin
     SynMemoProcessView.Highlighter := SynSQLSyn1;
     SynMemoProcessView.Text := ListProcesses.Text[Node, 7];
-    SynMemoProcessView.Color := clWindow;
+    SynMemoProcessView.Color := GetThemeColor(clWindow);
   end else begin
     SynMemoProcessView.Highlighter := nil;
     SynMemoProcessView.Text := _('Please select a process in the above list.');
-    SynMemoProcessView.Color := clBtnFace;
+    SynMemoProcessView.Color := GetThemeColor(clBtnFace);
   end;
   lblExplainProcess.Enabled := enableSQLView and ActiveConnection.Parameters.IsMySQL;
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
@@ -7656,7 +7656,7 @@ begin
   end;
   if (tmp=-1) or (not MySQLVariables[tmp].IsDynamic) then begin
     // Gray out whole row if the variable is either unknown or not editable
-    TargetCanvas.Font.Color := clGrayText
+    TargetCanvas.Font.Color := GetThemeColor(clGrayText)
   end else if Column in [1, 2] then begin
     SessionVal := vt.Text[Node, 1];
     GlobalVal := vt.Text[Node, 2];
@@ -8697,7 +8697,7 @@ begin
 
   // Do not apply any color on a selected, highlighted cell to keep readability
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
-    cl := clHighlightText
+    cl := GetThemeColor(clHighlightText)
   else if vsSelected in Node.States then
     cl := clBlack
   else if r.IsNull(Column) then
@@ -9242,7 +9242,7 @@ begin
     cl := clNone;
 
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
-    cl := clHighlight
+    cl := GetThemeColor(clHighlight)
   else if vsSelected in Node.States then
     cl := $00DDDDDD
   else if r.IsNull(Column) then begin
@@ -10924,9 +10924,9 @@ begin
   editFilterVT.Enabled := pnlFilterVT.Enabled;
   lblFilterVTInfo.Enabled := pnlFilterVT.Enabled;
   if pnlFilterVT.Enabled then
-    editFilterVT.Color := clWindow
+    editFilterVT.Color := GetThemeColor(clWindow)
   else
-    editFilterVT.Color := clBtnFace;
+    editFilterVT.Color := GetThemeColor(clBtnFace);
 
   tab := PageControlMain.ActivePage;
   if tab = tabHost then
@@ -11615,7 +11615,7 @@ begin
     if Tab <> nil then begin
       History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
       if ActiveConnection.Database <> History[Node.Index].Database then
-        TargetCanvas.Font.Color := clGrayText;
+        TargetCanvas.Font.Color := GetThemeColor(clGrayText);
     end;
   end;
 
@@ -11627,7 +11627,7 @@ begin
       if StrLen(PChar(Tab.ListBindParams.Items[Node.Index].Value)) = 0 then
         TargetCanvas.Font.Style := [fsItalic]+[fsUnderline];
 
-      TargetCanvas.Font.Color := clGrayText;
+      TargetCanvas.Font.Color := GetThemeColor(clGrayText);
 
     end;
   

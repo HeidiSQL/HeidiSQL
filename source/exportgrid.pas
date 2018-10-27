@@ -227,9 +227,9 @@ begin
   editNull.RightButton.Enabled := lblNull.Enabled;
   btnOK.Enabled := radioOutputCopyToClipboard.Checked or (radioOutputFile.Checked and (editFilename.Text <> ''));
   if radioOutputFile.Checked then
-    editFilename.Font.Color := clWindowText
+    editFilename.Font.Color := GetThemeColor(clWindowText)
   else
-    editFilename.Font.Color := clGrayText;
+    editFilename.Font.Color := GetThemeColor(clGrayText);
   comboEncoding.Enabled := radioOutputFile.Checked;
   lblEncoding.Enabled := radioOutputFile.Checked;
   if ExportFormat = efExcel then
