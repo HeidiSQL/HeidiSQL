@@ -11001,8 +11001,12 @@ begin
   for i:=0 to Editors.Count-1 do begin
     Editor := Editors[i] as TSynMemo;
     LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
+    Editor.Color := GetThemeColor(clWindow);
+    Editor.ScrollHintColor := GetThemeColor(clInfoBk);
     Editor.Font.Name := AppSettings.ReadString(asFontName);
     Editor.Font.Size := AppSettings.ReadInt(asFontSize);
+    Editor.Gutter.BorderColor := GetThemeColor(clWindow);
+    Editor.Gutter.Color := GetThemeColor(clBtnFace);
     Editor.Gutter.Font.Name := Editor.Font.Name;
     Editor.Gutter.Font.Size := Editor.Font.Size;
     Editor.Gutter.Font.Color := BaseEditor.Gutter.Font.Color;
