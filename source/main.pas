@@ -651,6 +651,7 @@ type
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
+    procedure CMStyleChanged(var Msg: TMessage); message CM_STYLECHANGED;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
@@ -11311,6 +11312,14 @@ begin
   end else
     // Not the right message id
     inherited;
+end;
+
+
+procedure TMainForm.CMStyleChanged(var Msg: TMessage);
+begin
+  // Style theme applied, e.g. via preferences dialog
+  // Ensure SynMemo's have fitting colors
+  SetupSynEditors;
 end;
 
 
