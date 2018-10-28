@@ -635,6 +635,7 @@ type
     actCopyRows: TAction;
     Copyselectedrows1: TMenuItem;
     actClearQueryLog: TAction;
+    ControlBarMain: TControlBar;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);

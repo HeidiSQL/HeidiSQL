@@ -106,9 +106,9 @@ object MainForm: TMainForm
   end
   object panelTop: TPanel
     Left = 0
-    Top = 25
+    Top = 26
     Width = 824
-    Height = 338
+    Height = 337
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
@@ -118,7 +118,7 @@ object MainForm: TMainForm
       Left = 169
       Top = 0
       Width = 4
-      Height = 338
+      Height = 337
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
@@ -126,14 +126,14 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 169
-      Height = 338
+      Height = 337
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
       OnResize = pnlLeftResize
       object spltPreview: TSplitter
         Left = 0
-        Top = 234
+        Top = 233
         Width = 169
         Height = 4
         Cursor = crSizeNS
@@ -146,7 +146,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 22
         Width = 169
-        Height = 212
+        Height = 211
         Align = alClient
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
@@ -200,7 +200,7 @@ object MainForm: TMainForm
       end
       object pnlPreview: TPanel
         Left = 0
-        Top = 238
+        Top = 237
         Width = 169
         Height = 100
         Align = alBottom
@@ -330,13 +330,13 @@ object MainForm: TMainForm
       Left = 173
       Top = 0
       Width = 651
-      Height = 338
+      Height = 337
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
       object pnlFilterVT: TPanel
         Left = 0
-        Top = 312
+        Top = 311
         Width = 651
         Height = 26
         Align = alBottom
@@ -385,7 +385,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 651
-        Height = 312
+        Height = 311
         ActivePage = tabHost
         Align = alClient
         HotTrack = True
@@ -404,7 +404,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 643
-            Height = 283
+            Height = 282
             ActivePage = tabDatabases
             Align = alClient
             HotTrack = True
@@ -418,7 +418,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 635
-                Height = 254
+                Height = 253
                 Align = alClient
                 Header.AutoSizeIndex = 0
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
@@ -500,7 +500,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 635
-                Height = 254
+                Height = 253
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 2
@@ -558,7 +558,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 635
-                Height = 254
+                Height = 253
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -619,7 +619,7 @@ object MainForm: TMainForm
               ImageIndex = 57
               object spltProcessList: TSplitter
                 Left = 0
-                Top = 181
+                Top = 180
                 Width = 635
                 Height = 4
                 Cursor = crSizeNS
@@ -630,7 +630,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 635
-                Height = 181
+                Height = 180
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.Height = 20
@@ -705,7 +705,7 @@ object MainForm: TMainForm
               end
               object pnlProcessViewBox: TPanel
                 Left = 0
-                Top = 185
+                Top = 184
                 Width = 635
                 Height = 69
                 Align = alBottom
@@ -790,7 +790,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 635
-                Height = 254
+                Height = 253
                 Align = alClient
                 Header.AutoSizeIndex = 4
                 Header.Height = 20
@@ -861,7 +861,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 0
             Width = 643
-            Height = 283
+            Height = 282
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
@@ -1020,7 +1020,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 91
             Width = 643
-            Height = 192
+            Height = 191
             Align = alClient
             Alignment = taCenter
             Caption = 'No data available for this item.'
@@ -1223,7 +1223,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 91
             Width = 643
-            Height = 192
+            Height = 191
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0
@@ -1410,7 +1410,7 @@ object MainForm: TMainForm
             Left = 0
             Top = 124
             Width = 643
-            Height = 159
+            Height = 158
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0
@@ -1491,199 +1491,215 @@ object MainForm: TMainForm
     Step = 1
     TabOrder = 3
   end
-  object ToolBarMainButtons: TToolBar
+  object ControlBarMain: TControlBar
     Left = 0
     Top = 0
     Width = 824
-    Height = 25
-    Caption = 'ToolBarMainButtons'
-    Images = ImageListMain
+    Height = 26
+    Align = alTop
+    AutoSize = True
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    BevelKind = bkNone
     TabOrder = 4
-    Wrapable = False
-    object ToolButton9: TToolButton
-      Left = 0
-      Top = 0
-      Action = actSessionManager
+    object ToolBarMainButtons: TToolBar
+      Left = 11
+      Top = 2
+      Width = 763
+      Height = 22
+      Align = alNone
       AutoSize = True
-      DropdownMenu = menuConnections
-      Style = tbsDropDown
-    end
-    object btnExit: TToolButton
-      Left = 44
-      Top = 0
-      Action = actDisconnect
-    end
-    object tlbSep1: TToolButton
-      Left = 67
-      Top = 0
-      Width = 8
-      Caption = 'tlbSep1'
-      ImageIndex = 2
-      Style = tbsSeparator
-    end
-    object ToolButton5: TToolButton
-      Left = 75
-      Top = 0
-      Action = actCopy
-      AutoSize = True
-    end
-    object ToolButton6: TToolButton
-      Left = 98
-      Top = 0
-      Action = actPaste
-      AutoSize = True
-    end
-    object ToolButton14: TToolButton
-      Left = 121
-      Top = 0
-      Hint = 'Undo'
-      Action = actUndo
-    end
-    object ToolButton12: TToolButton
-      Left = 144
-      Top = 0
-      Action = actPrintList
-    end
-    object tlbSep2: TToolButton
-      Left = 167
-      Top = 0
-      Width = 8
-      Caption = 'tlbSep2'
-      ImageIndex = 3
-      Style = tbsSeparator
-    end
-    object ButtonRefresh: TToolButton
-      Left = 175
-      Top = 0
-      Action = actRefresh
-      AutoSize = True
-      DropdownMenu = popupRefresh
-      Style = tbsDropDown
-    end
-    object ButtonUserManager: TToolButton
-      Left = 219
-      Top = 0
-      Action = actUserManager
-      AutoSize = True
-    end
-    object ButtonImportTextfile: TToolButton
-      Left = 242
-      Top = 0
-      Action = actImportCSV
-      AutoSize = True
-    end
-    object ButtonExport: TToolButton
-      Left = 265
-      Top = 0
-      Action = actExportTables
-      AutoSize = True
-    end
-    object tlbSep6: TToolButton
-      Left = 288
-      Top = 0
-      Width = 8
-      Caption = 'tlbSep6'
-      ImageIndex = 97
-      Style = tbsSeparator
-    end
-    object btnSQLHelp: TToolButton
-      Left = 296
-      Top = 0
-      Action = actSQLhelp
-    end
-    object ToolButton3: TToolButton
-      Left = 319
-      Top = 0
-      Action = actDataFirst
-    end
-    object ToolButton4: TToolButton
-      Left = 342
-      Top = 0
-      Action = actDataLast
-    end
-    object ToolButton7: TToolButton
-      Left = 365
-      Top = 0
-      Action = actDataInsert
-    end
-    object ToolButton8: TToolButton
-      Left = 388
-      Top = 0
-      Action = actDataDelete
-    end
-    object ToolButton10: TToolButton
-      Left = 411
-      Top = 0
-      Action = actDataPostChanges
-    end
-    object ToolButton1: TToolButton
-      Left = 434
-      Top = 0
-      Action = actDataCancelChanges
-    end
-    object btnExecuteQuery: TToolButton
-      Left = 457
-      Top = 0
-      Action = actExecuteQuery
-      DropdownMenu = popupExecuteQuery
-      Style = tbsDropDown
-    end
-    object btnLoadSQL: TToolButton
-      Left = 495
-      Top = 0
-      Action = actLoadSQL
-      DropdownMenu = PopupQueryLoad
-      Style = tbsDropDown
-    end
-    object btnSaveSQL: TToolButton
-      Left = 533
-      Top = 0
-      Action = actSaveSQL
-    end
-    object btnSaveSQLSnippet: TToolButton
-      Left = 556
-      Top = 0
-      Action = actSaveSQLSnippet
-    end
-    object btnQueryFind: TToolButton
-      Left = 579
-      Top = 0
-      Action = actQueryFind
-    end
-    object btnQueryReplace: TToolButton
-      Left = 602
-      Top = 0
-      Action = actQueryReplace
-    end
-    object btnReformatSQL: TToolButton
-      Left = 625
-      Top = 0
-      Action = actReformatSQL
-    end
-    object btnStopOnErrors: TToolButton
-      Left = 648
-      Top = 0
-      Action = actQueryStopOnErrors
-    end
-    object btnBlobAsText: TToolButton
-      Left = 671
-      Top = 0
-      Action = actBlobAsText
-    end
-    object btnQueryWordwrap: TToolButton
-      Left = 694
-      Top = 0
-      Action = actQueryWordWrap
-    end
-    object btnSetDelimiter: TToolButton
-      Left = 717
-      Top = 0
-      Action = actSetDelimiter
-    end
-    object btnCancelOperation: TToolButton
-      Left = 740
-      Top = 0
-      Action = actCancelOperation
+      Caption = 'ToolBarMainButtons'
+      EdgeInner = esNone
+      EdgeOuter = esNone
+      Images = ImageListMain
+      TabOrder = 0
+      Wrapable = False
+      object ToolButton9: TToolButton
+        Left = 0
+        Top = 0
+        Action = actSessionManager
+        AutoSize = True
+        DropdownMenu = menuConnections
+        Style = tbsDropDown
+      end
+      object btnExit: TToolButton
+        Left = 44
+        Top = 0
+        Action = actDisconnect
+      end
+      object tlbSep1: TToolButton
+        Left = 67
+        Top = 0
+        Width = 8
+        Caption = 'tlbSep1'
+        ImageIndex = 2
+        Style = tbsSeparator
+      end
+      object ToolButton5: TToolButton
+        Left = 75
+        Top = 0
+        Action = actCopy
+        AutoSize = True
+      end
+      object ToolButton6: TToolButton
+        Left = 98
+        Top = 0
+        Action = actPaste
+        AutoSize = True
+      end
+      object ToolButton14: TToolButton
+        Left = 121
+        Top = 0
+        Hint = 'Undo'
+        Action = actUndo
+      end
+      object ToolButton12: TToolButton
+        Left = 144
+        Top = 0
+        Action = actPrintList
+      end
+      object tlbSep2: TToolButton
+        Left = 167
+        Top = 0
+        Width = 8
+        Caption = 'tlbSep2'
+        ImageIndex = 3
+        Style = tbsSeparator
+      end
+      object ButtonRefresh: TToolButton
+        Left = 175
+        Top = 0
+        Action = actRefresh
+        AutoSize = True
+        DropdownMenu = popupRefresh
+        Style = tbsDropDown
+      end
+      object ButtonUserManager: TToolButton
+        Left = 219
+        Top = 0
+        Action = actUserManager
+        AutoSize = True
+      end
+      object ButtonImportTextfile: TToolButton
+        Left = 242
+        Top = 0
+        Action = actImportCSV
+        AutoSize = True
+      end
+      object ButtonExport: TToolButton
+        Left = 265
+        Top = 0
+        Action = actExportTables
+        AutoSize = True
+      end
+      object tlbSep6: TToolButton
+        Left = 288
+        Top = 0
+        Width = 8
+        Caption = 'tlbSep6'
+        ImageIndex = 97
+        Style = tbsSeparator
+      end
+      object btnSQLHelp: TToolButton
+        Left = 296
+        Top = 0
+        Action = actSQLhelp
+      end
+      object ToolButton3: TToolButton
+        Left = 319
+        Top = 0
+        Action = actDataFirst
+      end
+      object ToolButton4: TToolButton
+        Left = 342
+        Top = 0
+        Action = actDataLast
+      end
+      object ToolButton7: TToolButton
+        Left = 365
+        Top = 0
+        Action = actDataInsert
+      end
+      object ToolButton8: TToolButton
+        Left = 388
+        Top = 0
+        Action = actDataDelete
+      end
+      object ToolButton10: TToolButton
+        Left = 411
+        Top = 0
+        Action = actDataPostChanges
+      end
+      object ToolButton1: TToolButton
+        Left = 434
+        Top = 0
+        Action = actDataCancelChanges
+      end
+      object btnExecuteQuery: TToolButton
+        Left = 457
+        Top = 0
+        Action = actExecuteQuery
+        DropdownMenu = popupExecuteQuery
+        Style = tbsDropDown
+      end
+      object btnLoadSQL: TToolButton
+        Left = 495
+        Top = 0
+        Action = actLoadSQL
+        DropdownMenu = PopupQueryLoad
+        Style = tbsDropDown
+      end
+      object btnSaveSQL: TToolButton
+        Left = 533
+        Top = 0
+        Action = actSaveSQL
+      end
+      object btnSaveSQLSnippet: TToolButton
+        Left = 556
+        Top = 0
+        Action = actSaveSQLSnippet
+      end
+      object btnQueryFind: TToolButton
+        Left = 579
+        Top = 0
+        Action = actQueryFind
+      end
+      object btnQueryReplace: TToolButton
+        Left = 602
+        Top = 0
+        Action = actQueryReplace
+      end
+      object btnReformatSQL: TToolButton
+        Left = 625
+        Top = 0
+        Action = actReformatSQL
+      end
+      object btnStopOnErrors: TToolButton
+        Left = 648
+        Top = 0
+        Action = actQueryStopOnErrors
+      end
+      object btnBlobAsText: TToolButton
+        Left = 671
+        Top = 0
+        Action = actBlobAsText
+      end
+      object btnQueryWordwrap: TToolButton
+        Left = 694
+        Top = 0
+        Action = actQueryWordWrap
+      end
+      object btnSetDelimiter: TToolButton
+        Left = 717
+        Top = 0
+        Action = actSetDelimiter
+      end
+      object btnCancelOperation: TToolButton
+        Left = 740
+        Top = 0
+        Action = actCancelOperation
+      end
     end
   end
   object MainMenu1: TMainMenu
