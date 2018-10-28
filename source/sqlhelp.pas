@@ -63,6 +63,9 @@ type
     property Keyword: String read FKeyword write SetKeyword;
   end;
 
+  var
+    SqlHelpDialog: TfrmSQLhelp; // global var, so we can apply settings via SetupSynEditors
+
   const
     DEFAULT_WINDOW_CAPTION      : String = 'Integrated SQL-help' ;
     ICONINDEX_CATEGORY_CLOSED   : Integer = 66;
@@ -89,7 +92,6 @@ begin
   pnlLeft.Width := AppSettings.ReadInt(asSQLHelpPnlLeftWidth);
   memoDescription.Height := AppSettings.ReadInt(asSQLHelpPnlRightTopHeight);
   Caption := DEFAULT_WINDOW_CAPTION;
-  MainForm.SetupSynEditors;
   FixVT(treeTopics);
   TranslateComponent(Self);
 
@@ -266,11 +268,17 @@ begin
   AppSettings.WriteInt(asSQLHelpWindowHeight, Height );
   AppSettings.WriteInt(asSQLHelpPnlLeftWidth, pnlLeft.Width );
   AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, memoDescription.Height );
+  SqlHelpDialog := nil;
 end;
 
 
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
+  // Apply themed colors in OnShow, not OnCreate, as a check with <> nil returns false otherwise
+  MainForm.SetupSynEditors;
+  // These SynMemo's don't have any (SQL) highligher, so we have to assign correct colors for basic text
+  memoDescription.Font.Color := GetThemeColor(clWindowText);
+  MemoExample.Font.Color := GetThemeColor(clWindowText);
   editFilter.SetFocus;
 end;
 

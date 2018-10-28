@@ -4148,13 +4148,11 @@ end;
   @see FieldeditForm.btnDatatypeHelp
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
-var
-  Dialog: TfrmSQLhelp;
 begin
   if FActiveDbObj.Connection.ServerVersionInt >= 40100 then begin
-    Dialog := TfrmSQLhelp.Create(Self);
-    Dialog.Show;
-    Dialog.Keyword := keyword;
+    SqlHelpDialog := TfrmSQLhelp.Create(Self);
+    SqlHelpDialog.Show;
+    SqlHelpDialog.Keyword := keyword;
   end else
     ErrorDialog(_('SQL help not available.'), f_('HELP <keyword> requires %s or newer.', ['MySQL 4.1']));
 end;
@@ -10946,6 +10944,10 @@ begin
     Editors.Add(FPreferencesDialog.SynMemoSQLSample);
   if Assigned(FCreateDatabaseDialog) then
     Editors.Add(FCreateDatabaseDialog.SynMemoCreateCode);
+  if SqlHelpDialog <> nil then begin
+    Editors.Add(SqlHelpDialog.memoDescription);
+    Editors.Add(SqlHelpDialog.MemoExample);
+  end;
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
