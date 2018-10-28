@@ -594,22 +594,11 @@ type
     editTableFilter: TButtonedEdit;
     btnTreeFavorites: TToolButton;
     actFavoriteObjectsOnly: TAction;
-    CoolBarMainMenu: TCoolBar;
-    ToolBarMainMenu: TToolBar;
     ToolBarMainButtons: TToolBar;
-    pnlMainMenu: TPanel;
-    btnFile: TToolButton;
-    btnEdit: TToolButton;
-    btnSearch: TToolButton;
-    btnTools: TToolButton;
-    btnHelp: TToolButton;
     actFavoriteObjectsOnly1: TMenuItem;
     Fullstatusrefresh1: TMenuItem;
     N10: TMenuItem;
     actFullRefresh: TAction;
-    ToolBarExtraButtons: TToolBar;
-    btnDonate: TToolButton;
-    btnUpdateAvailable: TToolButton;
     actPreviousResult: TAction;
     actNextResult: TAction;
     Previousresulttab1: TMenuItem;
@@ -643,7 +632,6 @@ type
     actGotoTab31: TMenuItem;
     actGotoTab41: TMenuItem;
     actGotoTab51: TMenuItem;
-    ToolButton11: TToolButton;
     actCopyRows: TAction;
     Copyselectedrows1: TMenuItem;
     actClearQueryLog: TAction;
@@ -1518,9 +1506,6 @@ begin
 end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
-var
-  i: Integer;
-  BandId: String;
 begin
   // Destroy dialogs
   FreeAndNil(FSearchReplaceDialog);
@@ -1538,12 +1523,6 @@ begin
   Connections.Clear;
 
   // Save various settings
-  for i:=0 to CoolBarMainMenu.Bands.Count-1 do begin
-    BandId := IntToStr(CoolBarMainMenu.Bands[i].Id);
-    AppSettings.WriteInt(asCoolBandIndex, CoolBarMainMenu.Bands[i].Index, BandId);
-    AppSettings.WriteBool(asCoolBandBreak, CoolBarMainMenu.Bands[i].Break, BandId);
-    AppSettings.WriteInt(asCoolBandWidth, CoolBarMainMenu.Bands[i].Width, BandId);
-  end;
   AppSettings.WriteBool(asStopOnErrorsInBatchMode, actQueryStopOnErrors.Checked);
   AppSettings.WriteBool(asDisplayBLOBsAsText, actBlobAsText.Checked);
   AppSettings.WriteString(asDelimiter, FDelimiter);
@@ -1603,8 +1582,6 @@ var
   NTHandle: THandle;
   TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
-  CoolBand: TCoolBand;
-  DonateCaptions: TStringList;
   OldSnippetsDir, CurrentSnippetsDir, TargetSnippet: String;
   Files: TStringDynArray;
   DpiScaleFactor: Double;
@@ -1804,26 +1781,6 @@ begin
   MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
   MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
-  // Configure toolbars
-  for i:=0 to CoolBarMainMenu.Bands.Count-1 do begin
-    CoolBand := TCoolBand(CoolBarMainMenu.Bands.FindItemID(i));
-    CoolBand.Index := AppSettings.ReadInt(asCoolBandIndex, IntToStr(CoolBand.ID), CoolBand.Index);
-    CoolBand.Break := AppSettings.ReadBool(asCoolBandBreak, IntToStr(CoolBand.ID), CoolBand.Break);
-    CoolBand.Width := AppSettings.ReadInt(asCoolBandWidth, IntToStr(CoolBand.ID), CoolBand.Width);
-  end;
-  FHasDonatedDatabaseCheck := nbUnset;
-  btnDonate.Visible := HasDonated(True) <> nbTrue;
-  // Select random donate button caption
-  DonateCaptions := Explode(',',
-    f_('Become a donor of the %s project', [AppName])+','+
-    _('Donate')+','+
-    _('Send a donation')+','+
-    f_('Donate to the %s project', [AppName])
-    );
-  Randomize;
-  i := RandomRange(0, DonateCaptions.Count);
-  btnDonate.Caption := DonateCaptions[i];
-
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
@@ -2000,7 +1957,6 @@ begin
       frm.btnCancel.Caption := _('Skip');
       try
         frm.ReadCheckFile;
-        btnUpdateAvailable.Visible := frm.btnBuild.Enabled or frm.btnRelease.Enabled;
         // Show the dialog if release is available, or - when wanted - build checks are activated
         if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
           or frm.btnRelease.Enabled then begin

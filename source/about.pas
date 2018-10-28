@@ -91,7 +91,6 @@ begin
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
   imgDonate.Visible := Check <> nbTrue;
-  MainForm.btnDonate.Visible := imgDonate.Visible;
 end;
 
 
@@ -135,7 +134,7 @@ begin
   Screen.Cursor := crHourGlass;
 
   imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
-  imgDonate.OnClick := MainForm.btnDonate.OnClick;
+  imgDonate.OnClick := MainForm.DonateClick;
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text
