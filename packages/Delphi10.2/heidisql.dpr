@@ -43,7 +43,6 @@ uses
   JumpList in '..\..\source\JumpList.pas',
   extra_controls in '..\..\source\extra_controls.pas',
   change_password in '..\..\source\change_password.pas' {frmPasswordChange},
-  Vcl.FormsFix in '..\..\source\Vcl.FormsFix.pas',
   Vcl.Themes,
   Vcl.Styles;
 
