@@ -1,0 +1,38 @@
+2006-09-13: Version 1.2b
+- Added better support for UxTheme.pas.
+
+2006-01-01: Version 1.2a
+- Verified to work with Delphi 2006 - no changes.
+
+2005-11-19: Version 1.2
+- Modified the sample to also support SizeGripHWND (by conditional define).
+- Added new module SizeGripHWND.pas for nonVCL applications.
+- Internal: Changed capturing WM_PAINT to just reacting to the `pure´
+  version with WPARAM=0. Makes life much easier BUT does not paint grip
+  into bitmaps.
+
+2005-09-24: Version 1.1
+- Merged TSizeGrip and TSizeGripXP to one component
+- Replaced "ClassicStyle" by new property "Style" to be more flexible with
+  future extensions
+- Added new property "Enabled"
+- Added new property "Themed" for TSizeGripThemed
+- Changed initialization of "TargetControl" with owner
+- Internal: Changed from capturing WM_ERASEBKGND to WM_PAINT, because it
+  did not work for TPanel (although it worked for TCustomForm).
+- Internal: added "AttachControl" and "DetachControl", made "NewWndProc"
+  virtual and slightly modified "TSizeGripThemed.GetGripRect"
+
+2005-09-22: Version 1.0b
+- Added property "ClassicStyle" for TSizeGripXP
+- TSizeGripThemed is now a descendant of TSizeGripXP
+- Replaced constant "SP_GRIPPER" by 3 - should now work with Mike Lischke's
+  UxTheme.pas (http://www.lischke-online.de/ThemeManager.php)
+
+2005-09-22: Version 1.0a
+- Added checks for TargetControl.HandleAllocated
+- Changed order of "inherited" in TSizeGripThemed
+- Rearranged for the new function CheckTheme
+
+2005-09-22: Version 1.0
+- Initial version

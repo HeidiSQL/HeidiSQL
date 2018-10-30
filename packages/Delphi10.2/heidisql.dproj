@@ -62,7 +62,7 @@
         <DCC_UNIT_PLATFORM>false</DCC_UNIT_PLATFORM>
         <DCC_ExeOutput>..\..\out\</DCC_ExeOutput>
         <DCC_DcuOutput>..\..\build\$(Platform)</DCC_DcuOutput>
-        <DCC_UnitSearchPath>..\..\components\synedit\build\$(Platform);..\..\components\virtualtreeview\build\$(Platform);..\..\components\synedit\source;..\..\components\virtualtreeview\source;..\..\components\detours\Source;..\..\components\detours\build\$(Platform);..\..\source\vcl-styles-utils;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\..\components\synedit\build\$(Platform);..\..\components\virtualtreeview\build\$(Platform);..\..\components\synedit\source;..\..\components\virtualtreeview\source;..\..\components\detours\Source;..\..\components\detours\build\$(Platform);..\..\source\vcl-styles-utils;..\..\source\sizegrip;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
         <DCC_E>false</DCC_E>
         <DCC_K>false</DCC_K>

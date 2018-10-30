@@ -3,20 +3,16 @@ unit extra_controls;
 interface
 
 uses
-  Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd;
+  Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
+  SizeGrip, SizeGripThemed;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
   TFormWithSizeGrip = class(TForm)
     private
-      FSizeGripRect: TRect;
-      FSizeGripWidth: Integer;
-      FSizeGripHeight: Integer;
-      procedure WMNCHitTest(var Msg: TWMNCHitTest); message WM_NCHITTEST;
+      FGripper: TSizeGripThemed;
     public
       constructor Create(AOwner: TComponent); override;
-      procedure Paint; override;
-      procedure Resize; override;
   end;
   // Memo replacement which accepts any line break format
   TLineNormalizingMemo = class(TMemo)
@@ -34,34 +30,13 @@ implementation
 constructor TFormWithSizeGrip.Create(AOwner: TComponent);
 begin
   inherited;
-  FSizeGripWidth := GetSystemMetrics(SM_CXVSCROLL);
-  FSizeGripHeight := GetSystemMetrics(SM_CYHSCROLL);
+  FGripper := TSizeGripThemed.Create(Self);
+  FGripper.Themed := True;
+  FGripper.Enabled := True;
+  FGripper.Style := sgsWinXP;
 end;
 
 
-procedure TFormWithSizeGrip.WMNCHitTest(var Msg: TWMNCHitTest);
-begin
-  inherited;
-  if PtInRect(FSizeGripRect, ScreenToClient(SmallPointToPoint(Msg.Pos))) then
-    Msg.Result := HTBOTTOMRIGHT;
-end;
-
-
-procedure TFormWithSizeGrip.Paint;
-begin
-  inherited;
-  DrawFrameControl(Canvas.Handle, FSizeGripRect, DFC_SCROLL, DFCS_SCROLLSIZEGRIP);
-end;
-
-
-procedure TFormWithSizeGrip.Resize;
-begin
-  inherited;
-  FSizeGripRect := ClientRect;
-  FSizeGripRect.Left := FSizeGripRect.Right - FSizeGripWidth;
-  FSizeGripRect.Top := FSizeGripRect.Bottom - FSizeGripHeight;
-  Refresh;
-end;
 
 
 { TLineNormalizingMemo }
