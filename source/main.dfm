@@ -1704,7 +1704,6 @@ object MainForm: TMainForm
   end
   object MainMenu1: TMainMenu
     AutoHotkeys = maManual
-    Images = ImageListMain
     Left = 424
     Top = 152
     object MainMenuFile: TMenuItem
