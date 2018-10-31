@@ -1687,7 +1687,7 @@ begin
         // Create plink.exe process
         FPlink := TPlink.Create(Self);
         FPlink.Connect;
-        FinalHost := 'localhost';
+        FinalHost := '127.0.0.1';
         FinalPort := FParameters.SSHLocalPort;
       end;
     end;
