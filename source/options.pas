@@ -146,6 +146,12 @@ type
     chkAutoUppercase: TCheckBox;
     lblTheme: TLabel;
     comboTheme: TComboBox;
+    pnlDpiHelperGeneral: TPanel;
+    pnlDpiHelperLogging: TPanel;
+    pnlDpiHelperSql: TPanel;
+    pnlDpiHelperGrid: TPanel;
+    pnlDpiHelperData: TPanel;
+    pnlDpiHelperShortcuts: TPanel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);

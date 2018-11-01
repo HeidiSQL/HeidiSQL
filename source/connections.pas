@@ -114,6 +114,9 @@ type
     updownKeepAlive: TUpDown;
     lblCounterRight2: TLabel;
     lblCounterLeft2: TLabel;
+	pnlDpiHelperSettings: TPanel;
+	pnlDpiHelperSshTunnel: TPanel;
+	pnlDpiHelperAdvanced: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);

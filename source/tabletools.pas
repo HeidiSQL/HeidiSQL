@@ -83,6 +83,10 @@ type
     menuExportRemoveAutoIncrement: TMenuItem;
     comboMatchType: TComboBox;
     lblMatchType: TLabel;
+	pnlDpiHelperMaintenance: TPanel;
+	pnlDpiHelperFind: TPanel;
+	pnlDpiHelperExport: TPanel;
+	pnlDpiHelperTableEdit: TPanel;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);

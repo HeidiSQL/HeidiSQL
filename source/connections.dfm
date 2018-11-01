@@ -213,561 +213,594 @@ object connform: Tconnform
     object tabSettings: TTabSheet
       Caption = 'Settings'
       ImageIndex = 39
-      DesignSize = (
-        417
-        287)
-      object lblPort: TLabel
-        Left = 3
-        Top = 168
-        Width = 24
-        Height = 13
-        Caption = 'Port:'
-        FocusControl = editPort
-      end
-      object lblPassword: TLabel
-        Left = 3
-        Top = 143
-        Width = 50
-        Height = 13
-        Caption = 'Password:'
-        FocusControl = editPassword
-      end
-      object lblHost: TLabel
-        Left = 3
-        Top = 45
-        Width = 72
-        Height = 13
-        Caption = 'Hostname / IP:'
-        FocusControl = editHost
-      end
-      object lblUsername: TLabel
-        Left = 3
-        Top = 118
-        Width = 26
-        Height = 13
-        Caption = 'User:'
-        FocusControl = editUsername
-      end
-      object lblNetworkType: TLabel
-        Left = 3
-        Top = 12
-        Width = 69
-        Height = 13
-        Caption = 'Network type:'
-      end
-      object lblDatabase: TLabel
-        Left = 3
-        Top = 216
-        Width = 55
-        Height = 13
-        Caption = 'Databases:'
-      end
-      object lblComment: TLabel
-        Left = 3
-        Top = 241
-        Width = 49
-        Height = 13
-        Caption = 'Comment:'
-      end
-      object chkCompressed: TCheckBox
-        Left = 120
-        Top = 190
-        Width = 294
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Compressed client/server protocol'
-        TabOrder = 8
-        OnClick = Modification
-      end
-      object editPort: TEdit
-        Left = 120
-        Top = 165
-        Width = 57
-        Height = 21
-        TabOrder = 6
-        Text = '0'
-        OnChange = Modification
-      end
-      object updownPort: TUpDown
-        Left = 177
-        Top = 165
-        Width = 16
-        Height = 21
-        Associate = editPort
-        Max = 2147483647
-        TabOrder = 7
-        Thousands = False
-        Wrap = True
-      end
-      object editPassword: TEdit
-        Left = 120
-        Top = 140
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        PasswordChar = '*'
-        TabOrder = 5
-        OnChange = Modification
-      end
-      object editUsername: TEdit
-        Left = 120
-        Top = 115
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 4
-        OnChange = Modification
-      end
-      object editHost: TEdit
-        Left = 120
-        Top = 42
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
-        OnChange = editHostChange
-      end
-      object comboNetType: TComboBox
-        Left = 120
-        Top = 9
-        Width = 294
-        Height = 21
-        Style = csDropDownList
-        Anchors = [akLeft, akTop, akRight]
-        DropDownCount = 12
-        ItemIndex = 0
+      object pnlDpiHelperSettings: TPanel
+        Left = 0
+        Top = 0
+        Width = 417
+        Height = 287
+        Align = alClient
+        BevelOuter = bvNone
+        Caption = 'pnlDpiHelperSettings'
+        ShowCaption = False
         TabOrder = 0
-        Text = 'TCP/IP'
-        OnChange = comboNetTypeChange
-        Items.Strings = (
-          'TCP/IP'
-          'Named pipe'
-          'SSH tunnel'
-          'MSSQL')
-      end
-      object chkLoginPrompt: TCheckBox
-        Left = 120
-        Top = 69
-        Width = 294
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Prompt for credentials'
-        TabOrder = 2
-        OnClick = chkLoginPromptClick
-      end
-      object chkWindowsAuth: TCheckBox
-        Left = 120
-        Top = 92
-        Width = 294
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Use Windows authentication'
-        Enabled = False
-        TabOrder = 3
-        OnClick = chkLoginPromptClick
-      end
-      object memoComment: TMemo
-        Left = 120
-        Top = 238
-        Width = 294
-        Height = 35
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        ScrollBars = ssVertical
-        TabOrder = 10
-        OnChange = Modification
-      end
-      object editDatabases: TButtonedEdit
-        Left = 120
-        Top = 213
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 75
-        RightButton.Visible = True
-        TabOrder = 9
-        TextHint = 'Separated by semicolon'
-        OnChange = Modification
-        OnRightButtonClick = editDatabasesRightButtonClick
+        DesignSize = (
+          417
+          287)
+        object lblPort: TLabel
+          Left = 3
+          Top = 168
+          Width = 24
+          Height = 13
+          Caption = 'Port:'
+          FocusControl = editPort
+        end
+        object lblPassword: TLabel
+          Left = 3
+          Top = 143
+          Width = 50
+          Height = 13
+          Caption = 'Password:'
+          FocusControl = editPassword
+        end
+        object lblHost: TLabel
+          Left = 3
+          Top = 45
+          Width = 72
+          Height = 13
+          Caption = 'Hostname / IP:'
+          FocusControl = editHost
+        end
+        object lblUsername: TLabel
+          Left = 3
+          Top = 118
+          Width = 26
+          Height = 13
+          Caption = 'User:'
+          FocusControl = editUsername
+        end
+        object lblNetworkType: TLabel
+          Left = 3
+          Top = 12
+          Width = 69
+          Height = 13
+          Caption = 'Network type:'
+        end
+        object lblDatabase: TLabel
+          Left = 3
+          Top = 216
+          Width = 55
+          Height = 13
+          Caption = 'Databases:'
+        end
+        object lblComment: TLabel
+          Left = 3
+          Top = 241
+          Width = 49
+          Height = 13
+          Caption = 'Comment:'
+        end
+        object chkCompressed: TCheckBox
+          Left = 120
+          Top = 190
+          Width = 294
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Compressed client/server protocol'
+          TabOrder = 8
+          OnClick = Modification
+        end
+        object editPort: TEdit
+          Left = 120
+          Top = 165
+          Width = 57
+          Height = 21
+          TabOrder = 6
+          Text = '0'
+          OnChange = Modification
+        end
+        object updownPort: TUpDown
+          Left = 177
+          Top = 165
+          Width = 16
+          Height = 21
+          Associate = editPort
+          Max = 2147483647
+          TabOrder = 7
+          Thousands = False
+          Wrap = True
+        end
+        object editPassword: TEdit
+          Left = 120
+          Top = 140
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          PasswordChar = '*'
+          TabOrder = 5
+          OnChange = Modification
+        end
+        object editUsername: TEdit
+          Left = 120
+          Top = 115
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 4
+          OnChange = Modification
+        end
+        object editHost: TEdit
+          Left = 120
+          Top = 42
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 1
+          OnChange = editHostChange
+        end
+        object comboNetType: TComboBox
+          Left = 120
+          Top = 9
+          Width = 294
+          Height = 21
+          Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          DropDownCount = 12
+          ItemIndex = 0
+          TabOrder = 0
+          Text = 'TCP/IP'
+          OnChange = comboNetTypeChange
+          Items.Strings = (
+            'TCP/IP'
+            'Named pipe'
+            'SSH tunnel'
+            'MSSQL')
+        end
+        object chkLoginPrompt: TCheckBox
+          Left = 120
+          Top = 69
+          Width = 294
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Prompt for credentials'
+          TabOrder = 2
+          OnClick = chkLoginPromptClick
+        end
+        object chkWindowsAuth: TCheckBox
+          Left = 120
+          Top = 92
+          Width = 294
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Use Windows authentication'
+          Enabled = False
+          TabOrder = 3
+          OnClick = chkLoginPromptClick
+        end
+        object memoComment: TMemo
+          Left = 120
+          Top = 238
+          Width = 294
+          Height = 35
+          Anchors = [akLeft, akTop, akRight, akBottom]
+          ScrollBars = ssVertical
+          TabOrder = 10
+          OnChange = Modification
+        end
+        object editDatabases: TButtonedEdit
+          Left = 120
+          Top = 213
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 75
+          RightButton.Visible = True
+          TabOrder = 9
+          TextHint = 'Separated by semicolon'
+          OnChange = Modification
+          OnRightButtonClick = editDatabasesRightButtonClick
+        end
       end
     end
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
       ImageIndex = 147
-      DesignSize = (
-        417
-        287)
-      object lblSSHLocalPort: TLabel
-        Left = 3
-        Top = 190
-        Width = 51
-        Height = 13
-        Caption = 'Local port:'
-        FocusControl = editSSHlocalport
-      end
-      object lblSSHUser: TLabel
-        Left = 3
-        Top = 82
-        Width = 52
-        Height = 13
-        Caption = 'Username:'
-        FocusControl = editSSHUser
-      end
-      object lblSSHPassword: TLabel
-        Left = 3
-        Top = 109
-        Width = 50
-        Height = 13
-        Caption = 'Password:'
-        FocusControl = editSSHPassword
-      end
-      object lblSSHPlinkExe: TLabel
-        Left = 3
-        Top = 12
-        Width = 87
-        Height = 13
-        Caption = 'plink.exe location:'
-      end
-      object lblSSHhost: TLabel
-        Left = 3
-        Top = 55
-        Width = 81
-        Height = 13
-        Caption = 'SSH host + port:'
-        FocusControl = editSSHhost
-      end
-      object lblSSHkeyfile: TLabel
-        Left = 3
-        Top = 163
-        Width = 75
-        Height = 13
-        Caption = 'Private key file:'
-        FocusControl = editSSHPrivateKey
-      end
-      object lblDownloadPlink: TLabel
-        Left = 120
-        Top = 33
-        Width = 93
-        Height = 13
-        Cursor = crHandPoint
-        Hint = 'http://www.chiark.greenend.org.uk/~sgtatham/putty/'
-        Caption = 'Download plink.exe'
-        OnClick = lblDownloadPlinkClick
-      end
-      object lblPlinkTimeout: TLabel
-        Left = 3
-        Top = 136
-        Width = 86
-        Height = 13
-        Caption = 'plink.exe timeout:'
-      end
-      object editSSHlocalport: TEdit
-        Left = 120
-        Top = 187
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        NumbersOnly = True
-        TabOrder = 8
-        Text = 'editSSHlocalport'
-        OnChange = Modification
-      end
-      object editSSHUser: TEdit
-        Left = 120
-        Top = 79
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 3
-        Text = 'editSSHUser'
-        TextHint = 'Your secure shell username'
-        OnChange = Modification
-      end
-      object editSSHPassword: TEdit
-        Left = 120
-        Top = 106
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        PasswordChar = '*'
-        TabOrder = 4
-        Text = 'editSSHPassword'
-        TextHint = 'Your secure shell password'
-        OnChange = Modification
-      end
-      object editSSHPlinkExe: TButtonedEdit
-        Left = 120
-        Top = 9
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
+      object pnlDpiHelperSshTunnel: TPanel
+        Left = 0
+        Top = 0
+        Width = 417
+        Height = 287
+        Align = alClient
+        BevelOuter = bvNone
+        Caption = 'pnlDpiHelperSshTunnel'
+        ShowCaption = False
         TabOrder = 0
-        Text = 'editSSHPlinkExe'
-        TextHint = 'Doubleclick to select plink.exe ...'
-        OnChange = editSSHPlinkExeChange
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
-      end
-      object editSSHhost: TEdit
-        Left = 120
-        Top = 52
-        Width = 230
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
-        Text = 'editSSHhost'
-        OnChange = Modification
-      end
-      object editSSHport: TEdit
-        Left = 356
-        Top = 52
-        Width = 58
-        Height = 21
-        Anchors = [akTop, akRight]
-        NumbersOnly = True
-        TabOrder = 2
-        Text = 'editSSHport'
-        OnChange = Modification
-      end
-      object editSSHPrivateKey: TButtonedEdit
-        Left = 120
-        Top = 160
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 7
-        Text = 'editSSHPrivateKey'
-        TextHint = 'PuTTY private key (*.ppk)'
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
-      end
-      object editSSHTimeout: TEdit
-        Left = 120
-        Top = 133
-        Width = 60
-        Height = 21
-        TabOrder = 5
-        Text = '0'
-        OnChange = Modification
-      end
-      object updownSSHTimeout: TUpDown
-        Left = 180
-        Top = 133
-        Width = 17
-        Height = 21
-        Associate = editSSHTimeout
-        TabOrder = 6
-        Wrap = True
+        DesignSize = (
+          417
+          287)
+        object lblSSHLocalPort: TLabel
+          Left = 3
+          Top = 190
+          Width = 51
+          Height = 13
+          Caption = 'Local port:'
+          FocusControl = editSSHlocalport
+        end
+        object lblSSHUser: TLabel
+          Left = 3
+          Top = 82
+          Width = 52
+          Height = 13
+          Caption = 'Username:'
+          FocusControl = editSSHUser
+        end
+        object lblSSHPassword: TLabel
+          Left = 3
+          Top = 109
+          Width = 50
+          Height = 13
+          Caption = 'Password:'
+          FocusControl = editSSHPassword
+        end
+        object lblSSHPlinkExe: TLabel
+          Left = 3
+          Top = 12
+          Width = 87
+          Height = 13
+          Caption = 'plink.exe location:'
+        end
+        object lblSSHhost: TLabel
+          Left = 3
+          Top = 55
+          Width = 81
+          Height = 13
+          Caption = 'SSH host + port:'
+          FocusControl = editSSHhost
+        end
+        object lblSSHkeyfile: TLabel
+          Left = 3
+          Top = 163
+          Width = 75
+          Height = 13
+          Caption = 'Private key file:'
+          FocusControl = editSSHPrivateKey
+        end
+        object lblDownloadPlink: TLabel
+          Left = 120
+          Top = 33
+          Width = 93
+          Height = 13
+          Cursor = crHandPoint
+          Hint = 'http://www.chiark.greenend.org.uk/~sgtatham/putty/'
+          Caption = 'Download plink.exe'
+          OnClick = lblDownloadPlinkClick
+        end
+        object lblPlinkTimeout: TLabel
+          Left = 3
+          Top = 136
+          Width = 86
+          Height = 13
+          Caption = 'plink.exe timeout:'
+        end
+        object editSSHlocalport: TEdit
+          Left = 120
+          Top = 187
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          NumbersOnly = True
+          TabOrder = 8
+          Text = 'editSSHlocalport'
+          OnChange = Modification
+        end
+        object editSSHUser: TEdit
+          Left = 120
+          Top = 79
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 3
+          Text = 'editSSHUser'
+          TextHint = 'Your secure shell username'
+          OnChange = Modification
+        end
+        object editSSHPassword: TEdit
+          Left = 120
+          Top = 106
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          PasswordChar = '*'
+          TabOrder = 4
+          Text = 'editSSHPassword'
+          TextHint = 'Your secure shell password'
+          OnChange = Modification
+        end
+        object editSSHPlinkExe: TButtonedEdit
+          Left = 120
+          Top = 9
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 51
+          RightButton.Visible = True
+          TabOrder = 0
+          Text = 'editSSHPlinkExe'
+          TextHint = 'Doubleclick to select plink.exe ...'
+          OnChange = editSSHPlinkExeChange
+          OnDblClick = PickFile
+          OnRightButtonClick = PickFile
+        end
+        object editSSHhost: TEdit
+          Left = 120
+          Top = 52
+          Width = 230
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 1
+          Text = 'editSSHhost'
+          OnChange = Modification
+        end
+        object editSSHport: TEdit
+          Left = 356
+          Top = 52
+          Width = 58
+          Height = 21
+          Anchors = [akTop, akRight]
+          NumbersOnly = True
+          TabOrder = 2
+          Text = 'editSSHport'
+          OnChange = Modification
+        end
+        object editSSHPrivateKey: TButtonedEdit
+          Left = 120
+          Top = 160
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 51
+          RightButton.Visible = True
+          TabOrder = 7
+          Text = 'editSSHPrivateKey'
+          TextHint = 'PuTTY private key (*.ppk)'
+          OnChange = Modification
+          OnDblClick = PickFile
+          OnRightButtonClick = PickFile
+        end
+        object editSSHTimeout: TEdit
+          Left = 120
+          Top = 133
+          Width = 60
+          Height = 21
+          TabOrder = 5
+          Text = '0'
+          OnChange = Modification
+        end
+        object updownSSHTimeout: TUpDown
+          Left = 180
+          Top = 133
+          Width = 17
+          Height = 21
+          Associate = editSSHTimeout
+          TabOrder = 6
+          Wrap = True
+        end
       end
     end
     object tabAdvanced: TTabSheet
       Caption = 'Advanced'
       ImageIndex = 98
-      DesignSize = (
-        417
-        287)
-      object lblSSLPrivateKey: TLabel
-        Left = 3
-        Top = 39
-        Width = 78
-        Height = 13
-        Caption = 'SSL private key:'
-        FocusControl = editSSLPrivateKey
-      end
-      object lblSSLCACertificate: TLabel
-        Left = 3
-        Top = 68
-        Width = 89
-        Height = 13
-        Caption = 'SSL CA certificate:'
-        FocusControl = editSSLCACertificate
-      end
-      object lblSSLCertificate: TLabel
-        Left = 3
-        Top = 95
-        Width = 72
-        Height = 13
-        Caption = 'SSL certificate:'
-        FocusControl = editSSLCertificate
-      end
-      object lblStartupScript: TLabel
-        Left = 3
-        Top = 168
-        Width = 69
-        Height = 13
-        Caption = 'Startup script:'
-        FocusControl = editStartupScript
-      end
-      object lblQueryTimeout: TLabel
-        Left = 3
-        Top = 195
-        Width = 73
-        Height = 13
-        Caption = 'Query timeout:'
-      end
-      object lblSSLcipher: TLabel
-        Left = 3
-        Top = 120
-        Width = 53
-        Height = 13
-        Caption = 'SSL cipher:'
-      end
-      object lblKeepAlive: TLabel
-        Left = 3
-        Top = 224
-        Width = 106
-        Height = 13
-        Caption = 'Ping every X seconds:'
-      end
-      object editSSLPrivateKey: TButtonedEdit
-        Left = 120
-        Top = 36
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 1
-        TextHint = 'Path to key file'
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
-      end
-      object editSSLCACertificate: TButtonedEdit
-        Left = 120
-        Top = 65
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 2
-        TextHint = 'Path to certificate authority file'
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
-      end
-      object editSSLCertificate: TButtonedEdit
-        Left = 120
-        Top = 92
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 3
-        TextHint = 'Path to certificate file'
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
-      end
-      object chkWantSSL: TCheckBox
-        Left = 120
-        Top = 13
-        Width = 313
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Use SSL'
+      object pnlDpiHelperAdvanced: TPanel
+        Left = 0
+        Top = 0
+        Width = 417
+        Height = 287
+        Align = alClient
+        BevelOuter = bvNone
+        Caption = 'pnlDpiHelperAdvanced'
+        ShowCaption = False
         TabOrder = 0
-        OnClick = Modification
-      end
-      object chkLocalTimeZone: TCheckBox
-        Left = 120
-        Top = 246
-        Width = 294
-        Height = 17
-        Hint = 
-          'Use your client time zone in date/time SQL functions, e.g. NOW()' +
-          ', for MySQL 4.1.3+'
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Use own client time zone'
-        TabOrder = 8
-        OnClick = Modification
-      end
-      object editStartupScript: TButtonedEdit
-        Left = 120
-        Top = 165
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.ImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 5
-        OnChange = Modification
-        OnDblClick = PickFile
-        OnRightButtonClick = PickFile
-      end
-      object chkFullTableStatus: TCheckBox
-        Left = 120
-        Top = 269
-        Width = 294
-        Height = 17
-        Hint = 
-          'Disable to speed up internal queries on databases with many Inno' +
-          'DB tables'
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Get full table status'
-        TabOrder = 9
-        OnClick = Modification
-      end
-      object editQueryTimeout: TEdit
-        Left = 120
-        Top = 192
-        Width = 90
-        Height = 21
-        NumbersOnly = True
-        TabOrder = 6
-        Text = '0'
-        OnChange = Modification
-      end
-      object updownQueryTimeout: TUpDown
-        Left = 210
-        Top = 192
-        Width = 16
-        Height = 21
-        Associate = editQueryTimeout
-        Max = 2147483646
-        TabOrder = 7
-        Wrap = True
-      end
-      object editSSLcipher: TEdit
-        Left = 120
-        Top = 119
-        Width = 294
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 4
-        TextHint = 'List of permissible ciphers to use for SSL encryption'
-        OnChange = Modification
-      end
-      object editKeepAlive: TEdit
-        Left = 120
-        Top = 219
-        Width = 90
-        Height = 21
-        TabOrder = 10
-        Text = '0'
-        OnChange = Modification
-      end
-      object updownKeepAlive: TUpDown
-        Left = 210
-        Top = 219
-        Width = 16
-        Height = 21
-        Associate = editKeepAlive
-        Max = 86400
-        TabOrder = 11
+        DesignSize = (
+          417
+          287)
+        object lblSSLPrivateKey: TLabel
+          Left = 3
+          Top = 39
+          Width = 78
+          Height = 13
+          Caption = 'SSL private key:'
+          FocusControl = editSSLPrivateKey
+        end
+        object lblSSLCACertificate: TLabel
+          Left = 3
+          Top = 68
+          Width = 89
+          Height = 13
+          Caption = 'SSL CA certificate:'
+          FocusControl = editSSLCACertificate
+        end
+        object lblSSLCertificate: TLabel
+          Left = 3
+          Top = 95
+          Width = 72
+          Height = 13
+          Caption = 'SSL certificate:'
+          FocusControl = editSSLCertificate
+        end
+        object lblStartupScript: TLabel
+          Left = 3
+          Top = 168
+          Width = 69
+          Height = 13
+          Caption = 'Startup script:'
+          FocusControl = editStartupScript
+        end
+        object lblQueryTimeout: TLabel
+          Left = 3
+          Top = 195
+          Width = 73
+          Height = 13
+          Caption = 'Query timeout:'
+        end
+        object lblSSLcipher: TLabel
+          Left = 3
+          Top = 120
+          Width = 53
+          Height = 13
+          Caption = 'SSL cipher:'
+        end
+        object lblKeepAlive: TLabel
+          Left = 3
+          Top = 224
+          Width = 106
+          Height = 13
+          Caption = 'Ping every X seconds:'
+        end
+        object editSSLPrivateKey: TButtonedEdit
+          Left = 120
+          Top = 36
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 51
+          RightButton.Visible = True
+          TabOrder = 1
+          TextHint = 'Path to key file'
+          OnChange = Modification
+          OnDblClick = PickFile
+          OnRightButtonClick = PickFile
+        end
+        object editSSLCACertificate: TButtonedEdit
+          Left = 120
+          Top = 65
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 51
+          RightButton.Visible = True
+          TabOrder = 2
+          TextHint = 'Path to certificate authority file'
+          OnChange = Modification
+          OnDblClick = PickFile
+          OnRightButtonClick = PickFile
+        end
+        object editSSLCertificate: TButtonedEdit
+          Left = 120
+          Top = 92
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 51
+          RightButton.Visible = True
+          TabOrder = 3
+          TextHint = 'Path to certificate file'
+          OnChange = Modification
+          OnDblClick = PickFile
+          OnRightButtonClick = PickFile
+        end
+        object chkWantSSL: TCheckBox
+          Left = 120
+          Top = 13
+          Width = 313
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Use SSL'
+          TabOrder = 0
+          OnClick = Modification
+        end
+        object chkLocalTimeZone: TCheckBox
+          Left = 120
+          Top = 246
+          Width = 294
+          Height = 17
+          Hint = 
+            'Use your client time zone in date/time SQL functions, e.g. NOW()' +
+            ', for MySQL 4.1.3+'
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Use own client time zone'
+          TabOrder = 8
+          OnClick = Modification
+        end
+        object editStartupScript: TButtonedEdit
+          Left = 120
+          Top = 165
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          Images = MainForm.ImageListMain
+          RightButton.ImageIndex = 51
+          RightButton.Visible = True
+          TabOrder = 5
+          OnChange = Modification
+          OnDblClick = PickFile
+          OnRightButtonClick = PickFile
+        end
+        object chkFullTableStatus: TCheckBox
+          Left = 120
+          Top = 269
+          Width = 294
+          Height = 17
+          Hint = 
+            'Disable to speed up internal queries on databases with many Inno' +
+            'DB tables'
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Get full table status'
+          TabOrder = 9
+          OnClick = Modification
+        end
+        object editQueryTimeout: TEdit
+          Left = 120
+          Top = 192
+          Width = 90
+          Height = 21
+          NumbersOnly = True
+          TabOrder = 6
+          Text = '0'
+          OnChange = Modification
+        end
+        object updownQueryTimeout: TUpDown
+          Left = 210
+          Top = 192
+          Width = 16
+          Height = 21
+          Associate = editQueryTimeout
+          Max = 2147483646
+          TabOrder = 7
+          Wrap = True
+        end
+        object editSSLcipher: TEdit
+          Left = 120
+          Top = 119
+          Width = 294
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 4
+          TextHint = 'List of permissible ciphers to use for SSL encryption'
+          OnChange = Modification
+        end
+        object editKeepAlive: TEdit
+          Left = 120
+          Top = 219
+          Width = 90
+          Height = 21
+          TabOrder = 10
+          Text = '0'
+          OnChange = Modification
+        end
+        object updownKeepAlive: TUpDown
+          Left = 210
+          Top = 219
+          Width = 16
+          Height = 21
+          Associate = editKeepAlive
+          Max = 86400
+          TabOrder = 11
+        end
       end
     end
     object tabStatistics: TTabSheet

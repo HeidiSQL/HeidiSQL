@@ -45,6 +45,7 @@ type
     btnMoveDownParam: TToolButton;
     lblDisabledWhy: TLabel;
     spltTop: TSplitter;
+	pnlDpiHelperOptions: TPanel;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
