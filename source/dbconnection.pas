@@ -1824,9 +1824,11 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, Error, NetLib, DataSource, QuotedPassword, ServerVersion: String;
+  tmpdb, Error, Provider, NetLib, DataSource, QuotedPassword, ServerVersion: String;
   rx: TRegExpr;
   i: Integer;
+  Providers: TStringList;
+  HasNewProvider: Boolean;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -1842,6 +1844,20 @@ begin
             '> sh winetricks mdac28'+CRLF+
             '> sh winetricks native_mdac');
     end;
+
+    // Prefer MSOLEDBSQL provider on newer systems
+    Providers := TStringList.Create;
+    GetProviderNames(Providers);
+    HasNewProvider := Providers.IndexOf('MSOLEDBSQL') >= 0;
+    Providers.Free;
+    if HasNewProvider then begin
+      Provider := 'MSOLEDBSQL';
+    end else begin
+      Provider := 'SQLOLEDB';
+      Log(lcInfo, 'Security issue: Using '+Provider+' ADO provider with insecure TLS 1.0. '+
+        'You should install Microsoft OLE DB Driver from https://www.microsoft.com/en-us/download/confirmation.aspx?id=56730');
+    end;
+
     NetLib := '';
     case Parameters.NetType of
       ntMSSQL_NamedPipe: NetLib := 'DBNMPNTW';
@@ -1850,16 +1866,19 @@ begin
       ntMSSQL_VINES: NetLib := 'DBMSVINN';
       ntMSSQL_RPC: NetLib := 'DBMSRPCN';
     end;
+
     DataSource := Parameters.Hostname;
     if (Parameters.NetType = ntMSSQL_TCPIP) and (Parameters.Port <> 0) then
       DataSource := DataSource + ','+IntToStr(Parameters.Port);
+
     // Quote password, just in case there is a semicolon or a double quote in it.
     // See http://forums.asp.net/t/1957484.aspx?Passwords+ending+with+semi+colon+as+the+terminal+element+in+connection+strings+
     if Pos('"', Parameters.Password) > 0 then
       QuotedPassword := ''''+Parameters.Password+''''
     else
       QuotedPassword := '"'+Parameters.Password+'"';
-    FAdoHandle.ConnectionString := 'Provider=MSOLEDBSQL;'+
+
+    FAdoHandle.ConnectionString := 'Provider='+Provider+';'+
       'Password='+QuotedPassword+';'+
       'Persist Security Info=True;'+
       'User ID='+Parameters.Username+';'+
@@ -1867,11 +1886,18 @@ begin
       'Data Source='+DataSource+';'+
       'Application Name='+AppName+';'
       ;
+
     // Pass Database setting to connection string. Required on MS Azure?
     if (not Parameters.AllDatabasesStr.IsEmpty) and (Pos(';', Parameters.AllDatabasesStr)=0) then
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
-    if Parameters.WindowsAuth then
-      FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;';
+
+    if Parameters.WindowsAuth then begin
+      if HasNewProvider then
+        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;'
+      else
+        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;'
+    end;
+
     try
       FAdoHandle.Connected := True;
       FConnectionStarted := GetTickCount div 1000;
