@@ -87,8 +87,8 @@ type
     menuPasteColumns: TMenuItem;
     tabPartitions: TTabSheet;
     SynMemoPartitions: TSynMemo;
-	pnlDpiHelperBasic: TPanel;
-	pnlDpiHelperOptions: TPanel;
+    pnlDpiHelperBasic: TPanel;
+    pnlDpiHelperOptions: TPanel;
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);
@@ -251,6 +251,14 @@ var
   rx: TRegExpr;
 begin
   inherited;
+
+  // Auto-fix high-DPI glitch:
+  if Self.Height > MainForm.tabEditor.Height then begin
+    MainForm.LogSQL('Fixing height...', lcDebug);
+    PageControlMain.Height := Round(MainForm.tabEditor.Height / 2 - 50);
+    Self.Height := MainForm.tabEditor.Height;
+  end;
+
   FLoaded := False;
   comboEngine.Items := DBObject.Connection.TableEngines;
   comboEngine.Items.Insert(0, '<'+_('Server default')+'>');
