@@ -349,6 +349,8 @@ type
   function GetUwpFullName: String;
   function RunningAsUwp: Boolean;
   procedure ScaleImageList(const ImgList: TImageList; ScaleFactor: Real);
+  procedure LoadPNGFromImageList(AImageList: TCustomImageList; AIndex: Integer; var ADestPNG: TPngImage);
+  procedure ResizePngImage(aPng: TPNGImage; NewWidth, NewHeight: Integer);
   function GetThemeColor(Color: TColor): TColor;
 
 var
@@ -2939,40 +2941,176 @@ end;
 
 procedure ScaleImageList(const ImgList: TImageList; ScaleFactor: Real);
 var
-  i: Integer;
-  Extracted, Scaled: Graphics.TBitmap;
-  ImgListCopy: TImageList;
+  ResizedImages: TImageList;
+  i: integer;
+  BitmapCopy: Graphics.TBitmap;
+  PngOrig: TPngImage;
+  ResizedWidth: Integer;
 begin
+  // Upscale image list for high-dpi mode
   if ScaleFactor = 1 then
     Exit;
 
-  // Create copy of original image list
-  ImgListCopy := TImageList.Create(nil);
-  ImgListCopy.ColorDepth := cd32Bit;
-  ImgListCopy.DrawingStyle := dsTransparent;
-  ImgListCopy.Clear;
+  ResizedWidth := Round(imgList.Width * ScaleFactor);
 
-  // Add from source image list
-  for i := 0 to ImgList.Count-1 do begin
-    ImgListCopy.AddImage(ImgList, i);
+  // Create new list with resized icons
+  ResizedImages := TImageList.Create(ImgList.Owner);
+  ResizedImages.Width := ResizedWidth;
+  ResizedImages.Height := ResizedWidth;
+  ResizedImages.ColorDepth := ImgList.ColorDepth;
+  ResizedImages.DrawingStyle := ImgList.DrawingStyle;
+  ResizedImages.Clear;
+
+  for i:=0 to ImgList.Count-1 do begin
+    PngOrig := TPngImage.CreateBlank(COLOR_RGBALPHA, 8, ImgList.Width, ImgList.Height);
+    LoadPNGFromImageList(ImgList, i, PngOrig);
+    ResizePngImage(PngOrig, ResizedWidth, ResizedWidth);
+    BitmapCopy := Graphics.TBitmap.Create;
+    PngOrig.AssignTo(BitmapCopy);
+    BitmapCopy.AlphaFormat := afIgnored;
+    ImageList_Add(ResizedImages.Handle, BitmapCopy.Handle, 0);
   end;
 
-  // Set size to match scale factor
-  ImgList.SetSize(Round(ImgList.Width * ScaleFactor), Round(ImgList.Height * ScaleFactor));
+  // Assign images to original instance
+  ImgList.Assign(ResizedImages);
+end;
 
-  for i:= 0 to ImgListCopy.Count-1 do begin
-    Extracted := Graphics.TBitmap.Create;
-    ImgListCopy.GetBitmap(i, Extracted);
-    Scaled := Graphics.TBitmap.Create;
-    Scaled.Width := ImgList.Width;
-    Scaled.Height := ImgList.Height;
-    Scaled.Canvas.FillRect(Scaled.Canvas.ClipRect);
-    GraphUtil.ScaleImage(Extracted, Scaled, ScaleFactor);
-    ImgList.Add(Scaled, Scaled);
+
+procedure LoadPNGFromImageList(AImageList: TCustomImageList; AIndex: Integer; var ADestPNG: TPngImage);
+const
+  PixelsQuad = MaxInt div SizeOf(TRGBQuad) - 1;
+type
+  TRGBAArray = Array [0..PixelsQuad - 1] of TRGBQuad;
+  PRGBAArray = ^TRGBAArray;
+var
+  ContentBmp: Graphics.TBitmap;
+  RowInOut: PRGBAArray;
+  RowAlpha: PByteArray;
+  x: Integer;
+  y: Integer;
+begin
+  // Extract PNG image with alpha transparency from an imagelist
+  // Code taken from https://stackoverflow.com/a/52811869/4110077
+
+  if not Assigned(AImageList) or (AIndex < 0)
+    or (AIndex > AImageList.Count - 1) or not Assigned(ADestPNG)
+    then
+    Exit;
+
+  ContentBmp := Graphics.TBitmap.Create;
+  try
+    ContentBmp.SetSize(ADestPNG.Width, ADestPNG.Height);
+    ContentBmp.PixelFormat := pf32bit;
+
+    // Allocate zero alpha-channel
+    for y:=0 to ContentBmp.Height - 1 do begin
+      RowInOut := ContentBmp.ScanLine[y];
+      for x:=0 to ContentBmp.Width - 1 do
+        RowInOut[x].rgbReserved := 0;
+    end;
+    ContentBmp.AlphaFormat := afDefined;
+
+    // Copy image
+    AImageList.Draw(ContentBmp.Canvas, 0, 0, AIndex, true);
+
+    // Now ContentBmp has premultiplied alpha value, but it will
+    // make bitmap too dark after converting it to PNG. Setting
+    // AlphaFormat property to afIgnored helps to unpremultiply
+    // alpha value of each pixel in bitmap.
+    ContentBmp.AlphaFormat := afIgnored;
+
+    // Copy graphical data and alpha-channel values
+    ADestPNG.Assign(ContentBmp);
+    ADestPNG.CreateAlpha;
+    for y:=0 to ContentBmp.Height - 1 do begin
+      RowInOut := ContentBmp.ScanLine[y];
+      RowAlpha := ADestPNG.AlphaScanline[y];
+      for x:=0 to ContentBmp.Width - 1 do
+        RowAlpha[x] := RowInOut[x].rgbReserved;
+    end;
+  finally
+    ContentBmp.Free;
   end;
+end;
 
-  ImgListCopy.Free;
 
+procedure ResizePngImage(aPng: TPNGImage; NewWidth, NewHeight: Integer);
+var
+  xscale, yscale: Single;
+  sfrom_y, sfrom_x: Single;
+  ifrom_y, ifrom_x: Integer;
+  to_y, to_x: Integer;
+  weight_x, weight_y: array[0..1] of Single;
+  weight: Single;
+  new_red, new_green: Integer;
+  new_blue, new_alpha: Integer;
+  new_colortype: Integer;
+  total_red, total_green: Single;
+  total_blue, total_alpha: Single;
+  IsAlpha: Boolean;
+  ix, iy: Integer;
+  bTmp: TPNGImage;
+  sli, slo: pRGBLine;
+  ali, alo: PByteArray;
+begin
+  // Code taken from PNGDelphi component snippets, published by Gustavo Daud in 2006
+  // on SourceForge, now downloadable on https://cc.embarcadero.com/Item/25631 .
+  // Slightly but carefully modified for readability.
+  if not (aPng.Header.ColorType in [COLOR_RGBALPHA, COLOR_RGB]) then
+    Raise Exception.Create('Only COLOR_RGBALPHA and COLOR_RGB formats are supported');
+  IsAlpha := aPng.Header.ColorType in [COLOR_RGBALPHA];
+  if IsAlpha then
+    new_colortype := COLOR_RGBALPHA
+  else
+    new_colortype := COLOR_RGB;
+  bTmp := TPNGImage.CreateBlank(new_colortype, 8, NewWidth, NewHeight);
+  xscale := bTmp.Width / (aPng.Width-0.35); // Modified: (was -1) substract minimal value before AlphaScanline crashes
+  yscale := bTmp.Height / (aPng.Height-0.35);
+  for to_y:=0 to bTmp.Height-1 do begin
+    sfrom_y := to_y / yscale;
+    ifrom_y := Trunc(sfrom_y);
+    weight_y[1] := sfrom_y - ifrom_y;
+    weight_y[0] := 1 - weight_y[1];
+    for to_x := 0 to bTmp.Width-1 do begin
+      sfrom_x := to_x / xscale;
+      ifrom_x := Trunc(sfrom_x);
+      weight_x[1] := sfrom_x - ifrom_x;
+      weight_x[0] := 1 - weight_x[1];
+
+      total_red   := 0.0;
+      total_green := 0.0;
+      total_blue  := 0.0;
+      total_alpha  := 0.0;
+      for ix := 0 to 1 do begin
+        for iy := 0 to 1 do begin
+          sli := aPng.Scanline[ifrom_y + iy];
+          if IsAlpha then
+            ali := aPng.AlphaScanline[ifrom_y + iy];
+          new_red := sli[ifrom_x + ix].rgbtRed;
+          new_green := sli[ifrom_x + ix].rgbtGreen;
+          new_blue := sli[ifrom_x + ix].rgbtBlue;
+          if IsAlpha then
+            new_alpha := ali[ifrom_x + ix];
+          weight := weight_x[ix] * weight_y[iy];
+          total_red := total_red   + new_red   * weight;
+          total_green := total_green + new_green * weight;
+          total_blue := total_blue  + new_blue  * weight;
+          if IsAlpha then
+            total_alpha := total_alpha + new_alpha * weight;
+        end;
+      end;
+      slo := bTmp.ScanLine[to_y];
+      if IsAlpha then
+        alo := bTmp.AlphaScanLine[to_y];
+      slo[to_x].rgbtRed := Round(total_red);
+      slo[to_x].rgbtGreen := Round(total_green);
+      slo[to_x].rgbtBlue := Round(total_blue);
+      if isAlpha then
+        alo[to_x] := Round(total_alpha);
+    end;
+  end;
+  aPng.Assign(bTmp);
+  bTmp.Free;
 end;
 
 
