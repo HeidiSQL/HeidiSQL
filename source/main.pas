@@ -300,7 +300,7 @@ type
     Refresh1: TMenuItem;
     pnlDataTop: TPanel;
     pnlQueryMemo: TPanel;
-    SynSQLSyn1: TSynSQLSyn;
+    SynSQLSynUsed: TSynSQLSyn;
     SynMemoQuery: TSynMemo;
     spltQuery: TSplitter;
     TimerHostUptime: TTimer;
@@ -5908,8 +5908,8 @@ begin
     sql := Format(sql, [Obj.QuotedName(True, False), Obj.Connection.QuoteIdent(NewText)]);
     Obj.Connection.Query(sql);
 
-    if SynSQLSyn1.TableNames.IndexOf( NewText ) = -1 then begin
-      SynSQLSyn1.TableNames.Add(NewText);
+    if SynSQLSynUsed.TableNames.IndexOf( NewText ) = -1 then begin
+      SynSQLSynUsed.TableNames.Add(NewText);
     end;
     // Update nodedata
     Obj.Name := NewText;
@@ -7388,7 +7388,7 @@ begin
   SynMemoProcessView.Enabled := enableSQLView;
   pnlProcessView.Enabled := enableSQLView;
   if enableSQLView then begin
-    SynMemoProcessView.Highlighter := SynSQLSyn1;
+    SynMemoProcessView.Highlighter := SynSQLSynUsed;
     SynMemoProcessView.Text := ListProcesses.Text[Node, 7];
     SynMemoProcessView.Color := GetThemeColor(clWindow);
   end else begin
@@ -8123,11 +8123,11 @@ begin
       RefreshHelperNode(HELPERNODE_HISTORY);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
-          SynSQLSyn1.SQLDialect := sqlMySQL;
+          SynSQLSynUsed.SQLDialect := sqlMySQL;
         ngMSSQL:
-          SynSQLSyn1.SQLDialect := sqlMSSQL2K;
+          SynSQLSynUsed.SQLDialect := sqlMSSQL2K;
         ngPgSQL:
-          SynSQLSyn1.SQLDialect := sqlPostgres;
+          SynSQLSynUsed.SQLDialect := sqlPostgres;
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
@@ -8262,8 +8262,8 @@ var
   TableNames, ProcNames: TStringList;
 begin
   // Tell SQL highlighter about names of tables and procedures in selected database
-  SynSQLSyn1.TableNames.Clear;
-  SynSQLSyn1.ProcNames.Clear;
+  SynSQLSynUsed.TableNames.Clear;
+  SynSQLSynUsed.ProcNames.Clear;
   if Connection.DbObjectsCached(Database) then begin
     DBObjects := Connection.GetDBObjects(Database);
     TableNames := TStringList.Create;
@@ -8284,8 +8284,8 @@ begin
     end;
     TableNames.EndUpdate;
     ProcNames.EndUpdate;
-    SynSQLSyn1.TableNames.Text := TableNames.Text;
-    SynSQLSyn1.ProcNames.Text := ProcNames.Text;
+    SynSQLSynUsed.TableNames.Text := TableNames.Text;
+    SynSQLSynUsed.ProcNames.Text := ProcNames.Text;
     TableNames.Free;
     ProcNames.Free;
   end;
@@ -9818,7 +9818,7 @@ begin
         Clipboard.Open;
         Clipboard.AsText := SynMemo.SelText;
         Exporter := TSynExporterRTF.Create(Self);
-        Exporter.Highlighter := SynSQLSyn1;
+        Exporter.Highlighter := SynSQLSynUsed;
         Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
         if DoCut then SynMemo.CutToClipboard
         else SynMemo.CopyToClipboard;
@@ -11005,8 +11005,8 @@ begin
       Editor.Keystrokes := BaseEditor.KeyStrokes;
   end;
   // Highlighting
-  for i:=0 to SynSQLSyn1.AttrCount - 1 do begin
-    Attri := SynSQLSyn1.Attribute[i];
+  for i:=0 to SynSQLSynUsed.AttrCount - 1 do begin
+    Attri := SynSQLSynUsed.Attribute[i];
     Attri.Foreground := AppSettings.ReadInt(asHighlighterForeground, Attri.Name, Attri.Foreground);
     Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.Name, Attri.Background);
     Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.Name, Attri.IntegerStyle);

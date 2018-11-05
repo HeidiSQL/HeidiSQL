@@ -187,7 +187,7 @@ object frmTriggerEditor: TfrmTriggerEditor
         Gutter.Font.Style = []
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
-        Highlighter = MainForm.SynSQLSyn1
+        Highlighter = MainForm.SynSQLSynUsed
         Lines.Strings = (
           'SynMemoCreateCode')
         ReadOnly = True

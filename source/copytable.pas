@@ -209,7 +209,7 @@ begin
     MemoFilter.Enabled := Node.CheckState = csCheckedNormal;
     btnRecentFilters.Enabled := MemoFilter.Enabled;
     if MemoFilter.Enabled then begin
-      MemoFilter.Highlighter := MainForm.SynSQLSyn1;
+      MemoFilter.Highlighter := MainForm.SynSQLSynUsed;
       MemoFilter.Color := GetThemeColor(clWindow);
     end else begin
       MemoFilter.Highlighter := nil;

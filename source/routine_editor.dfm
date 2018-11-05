@@ -93,7 +93,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Gutter.Font.Style = []
     Gutter.LeftOffset = 2
     Gutter.ShowLineNumbers = True
-    Highlighter = MainForm.SynSQLSyn1
+    Highlighter = MainForm.SynSQLSynUsed
     Lines.Strings = (
       'SynMemoBody')
     RightEdge = 0
@@ -410,7 +410,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Gutter.Font.Height = -11
         Gutter.Font.Name = 'Courier New'
         Gutter.Font.Style = []
-        Highlighter = MainForm.SynSQLSyn1
+        Highlighter = MainForm.SynSQLSynUsed
         Lines.Strings = (
           'SynMemoCREATEcode')
         ReadOnly = True

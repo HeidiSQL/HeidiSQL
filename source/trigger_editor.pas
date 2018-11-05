@@ -64,7 +64,7 @@ var
 begin
   inherited;
   TranslateComponent(Self);
-  SynMemoBody.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoBody.Highlighter := Mainform.SynSQLSynUsed;
   editName.MaxLength := NAME_LEN;
   comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';
   comboEvent.Items.Text := 'INSERT'+CRLF+'UPDATE'+CRLF+'DELETE';

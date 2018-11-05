@@ -662,7 +662,7 @@ object frmTableEditor: TfrmTableEditor
         Gutter.Font.Style = []
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
-        Highlighter = MainForm.SynSQLSyn1
+        Highlighter = MainForm.SynSQLSynUsed
         Lines.Strings = (
           'SynMemoPartitions')
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
@@ -695,7 +695,7 @@ object frmTableEditor: TfrmTableEditor
         Gutter.Font.Style = []
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
-        Highlighter = MainForm.SynSQLSyn1
+        Highlighter = MainForm.SynSQLSynUsed
         Lines.Strings = (
           'SynMemoALTERcode')
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
@@ -728,7 +728,7 @@ object frmTableEditor: TfrmTableEditor
         Gutter.Font.Style = []
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
-        Highlighter = MainForm.SynSQLSyn1
+        Highlighter = MainForm.SynSQLSynUsed
         Lines.Strings = (
           'SynMemoALTERcode')
         Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]

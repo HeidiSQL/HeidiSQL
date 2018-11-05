@@ -35,7 +35,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 710
-        Height = 395
+        Height = 396
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperGeneral'
@@ -520,7 +520,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 710
-        Height = 395
+        Height = 396
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperSql'
@@ -536,7 +536,7 @@ object optionsform: Toptionsform
           Height = 13
           Caption = 'Editor font:'
         end
-        object lblSQLFontSize: TLabel
+        object lblSQLFontSizeUnit: TLabel
           Left = 689
           Top = 11
           Width = 10
@@ -560,14 +560,14 @@ object optionsform: Toptionsform
         end
         object lblSQLColElement: TLabel
           Left = 8
-          Top = 165
+          Top = 220
           Width = 42
           Height = 13
           Caption = 'Element:'
         end
         object lblSQLColBackground: TLabel
           Left = 489
-          Top = 191
+          Top = 246
           Width = 60
           Height = 13
           Anchors = [akTop, akRight]
@@ -575,16 +575,30 @@ object optionsform: Toptionsform
         end
         object lblSQLColForeground: TLabel
           Left = 489
-          Top = 165
+          Top = 220
           Width = 60
           Height = 13
           Anchors = [akTop, akRight]
           Caption = 'Foreground:'
         end
+        object lblEditorColorsPreset: TLabel
+          Left = 8
+          Top = 193
+          Width = 68
+          Height = 13
+          Caption = 'Colors preset:'
+        end
+        object lblSqlFontSize: TLabel
+          Left = 489
+          Top = 11
+          Width = 23
+          Height = 13
+          Caption = 'Size:'
+        end
         object comboSQLFontName: TComboBox
           Left = 191
           Top = 8
-          Width = 423
+          Width = 283
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -592,9 +606,9 @@ object optionsform: Toptionsform
           OnChange = SQLFontChange
         end
         object editSQLFontSize: TEdit
-          Left = 623
+          Left = 583
           Top = 8
-          Width = 41
+          Width = 81
           Height = 21
           Anchors = [akTop, akRight]
           TabOrder = 1
@@ -613,9 +627,9 @@ object optionsform: Toptionsform
           OnClick = updownSQLFontSizeClick
         end
         object chkCompletionProposal: TCheckBox
-          Left = 8
-          Top = 89
-          Width = 363
+          Left = 191
+          Top = 87
+          Width = 508
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Enable autocompletion'
@@ -651,15 +665,14 @@ object optionsform: Toptionsform
           OnClick = updownSQLFontSizeClick
         end
         object chkAskFileSave: TCheckBox
-          Left = 8
-          Top = 113
-          Width = 363
+          Left = 191
+          Top = 111
+          Width = 506
           Height = 17
-          Anchors = [akLeft, akTop, akRight]
           Caption = 'Prompt to save modified files on tab close'
           Checked = True
           State = cbChecked
-          TabOrder = 10
+          TabOrder = 9
           OnClick = Modified
         end
         object editMaxQueryResults: TEdit
@@ -683,47 +696,37 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object comboSQLColElement: TComboBox
-          Left = 67
-          Top = 162
-          Width = 407
+          Left = 190
+          Top = 217
+          Width = 284
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          TabOrder = 12
+          TabOrder = 13
           OnChange = comboSQLColElementChange
         end
         object chkSQLBold: TCheckBox
-          Left = 67
-          Top = 189
-          Width = 130
+          Left = 190
+          Top = 244
+          Width = 81
           Height = 17
           Caption = 'Bold'
-          TabOrder = 13
+          TabOrder = 14
           OnClick = SQLFontChange
         end
         object chkSQLItalic: TCheckBox
-          Left = 203
-          Top = 189
-          Width = 271
+          Left = 277
+          Top = 244
+          Width = 197
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Italic'
-          TabOrder = 14
+          TabOrder = 15
           OnClick = SQLFontChange
         end
         object cboxSQLColForeground: TColorBox
           Left = 583
-          Top = 162
-          Width = 118
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          Anchors = [akTop, akRight]
-          TabOrder = 15
-          OnChange = SQLFontChange
-        end
-        object cboxSQLColBackground: TColorBox
-          Left = 583
-          Top = 188
+          Top = 217
           Width = 118
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
@@ -731,12 +734,22 @@ object optionsform: Toptionsform
           TabOrder = 16
           OnChange = SQLFontChange
         end
+        object cboxSQLColBackground: TColorBox
+          Left = 583
+          Top = 243
+          Width = 118
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+          Anchors = [akTop, akRight]
+          TabOrder = 17
+          OnChange = SQLFontChange
+        end
         object SynMemoSQLSample: TSynMemo
           AlignWithMargins = True
-          Left = 8
-          Top = 215
-          Width = 693
-          Height = 176
+          Left = 191
+          Top = 269
+          Width = 510
+          Height = 118
           Cursor = crHandPoint
           SingleLineMode = False
           Anchors = [akLeft, akTop, akRight, akBottom]
@@ -745,7 +758,7 @@ object optionsform: Toptionsform
           Font.Height = -13
           Font.Name = 'Courier New'
           Font.Style = []
-          TabOrder = 17
+          TabOrder = 18
           OnClick = SynMemoSQLSampleClick
           CodeFolding.GutterShapeSize = 11
           CodeFolding.CollapsedLineColor = clGrayText
@@ -774,22 +787,31 @@ object optionsform: Toptionsform
           FontSmoothing = fsmNone
         end
         object chkQueryWarningsMessage: TCheckBox
-          Left = 8
-          Top = 136
-          Width = 363
+          Left = 191
+          Top = 134
+          Width = 508
           Height = 17
           Caption = 'Show query warnings dialog'
-          TabOrder = 11
+          TabOrder = 10
           OnClick = Modified
         end
         object chkAutoUppercase: TCheckBox
-          Left = 377
-          Top = 89
-          Width = 320
+          Left = 191
+          Top = 159
+          Width = 508
           Height = 17
           Caption = 'Auto uppercase reserved words and functions'
-          TabOrder = 9
+          TabOrder = 11
           OnClick = Modified
+        end
+        object comboEditorColorsPreset: TComboBox
+          Left = 190
+          Top = 190
+          Width = 284
+          Height = 21
+          Style = csDropDownList
+          TabOrder = 12
+          OnChange = comboEditorColorsPresetChange
         end
       end
     end
@@ -800,7 +822,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 710
-        Height = 395
+        Height = 396
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperGrid'
@@ -1290,6 +1312,46 @@ object optionsform: Toptionsform
     Options.Visible = False
     SQLDialect = sqlMySQL
     Left = 432
+    Top = 352
+  end
+  object SynSQLSyn_Dark: TSynSQLSyn
+    Options.AutoDetectEnabled = False
+    Options.AutoDetectLineLimit = 0
+    Options.Visible = False
+    CommentAttri.Foreground = 8710076
+    ConditionalCommentAttri.Foreground = 8710076
+    DataTypeAttri.Foreground = 11184895
+    DelimitedIdentifierAttri.Foreground = 6460927
+    FunctionAttri.Foreground = 15792639
+    IdentifierAttri.Foreground = 6460927
+    KeyAttri.Foreground = 15792639
+    NumberAttri.Foreground = 4610525
+    StringAttri.Foreground = 5293907
+    SymbolAttri.Foreground = 15792639
+    TableNameAttri.Foreground = 16755327
+    VariableAttri.Foreground = clPurple
+    SQLDialect = sqlMySQL
+    Left = 200
+    Top = 352
+  end
+  object SynSQLSyn_Light: TSynSQLSyn
+    Options.AutoDetectEnabled = False
+    Options.AutoDetectLineLimit = 0
+    Options.Visible = False
+    CommentAttri.Foreground = clGray
+    ConditionalCommentAttri.Foreground = clGray
+    DataTypeAttri.Foreground = clMaroon
+    DelimitedIdentifierAttri.Foreground = clOlive
+    FunctionAttri.Foreground = clNavy
+    IdentifierAttri.Foreground = clOlive
+    KeyAttri.Foreground = clBlue
+    NumberAttri.Foreground = clPurple
+    StringAttri.Foreground = clGreen
+    SymbolAttri.Foreground = clBlue
+    TableNameAttri.Foreground = clFuchsia
+    VariableAttri.Foreground = clPurple
+    SQLDialect = sqlMySQL
+    Left = 120
     Top = 352
   end
 end

@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
-  mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles;
+  mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr;
 
 type
   TShortcutItemData = record
@@ -84,7 +84,7 @@ type
     lblFont: TLabel;
     editSQLFontSize: TEdit;
     updownSQLFontSize: TUpDown;
-    lblSQLFontSize: TLabel;
+    lblSQLFontSizeUnit: TLabel;
     chkCompletionProposal: TCheckBox;
     chkTabsToSpaces: TCheckBox;
     editSQLTabWidth: TEdit;
@@ -152,6 +152,11 @@ type
     pnlDpiHelperGrid: TPanel;
     pnlDpiHelperData: TPanel;
     pnlDpiHelperShortcuts: TPanel;
+    lblEditorColorsPreset: TLabel;
+    comboEditorColorsPreset: TComboBox;
+    lblSqlFontSize: TLabel;
+    SynSQLSyn_Dark: TSynSQLSyn;
+    SynSQLSyn_Light: TSynSQLSyn;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -191,6 +196,7 @@ type
     procedure editCustomSnippetsDirectoryRightButtonClick(Sender: TObject);
     procedure comboGUIFontChange(Sender: TObject);
     procedure chkQueryHistoryClick(Sender: TObject);
+    procedure comboEditorColorsPresetChange(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -419,6 +425,8 @@ var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
   Styles: TArray<String>;
+  Highlighter: TSynSQLSyn;
+  Name: String;
 begin
   TranslateComponent(Self);
 
@@ -454,12 +462,25 @@ begin
   SynMemoSQLSample.Text := SynMemoSQLSample.Highlighter.SampleSource;
   SynSQLSynSQLSample.TableNames.CommaText := 't,sample';
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
-    SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSyn1.Attribute[i]);
+    SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSynUsed.Attribute[i]);
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
   end;
   comboSQLColElement.Items.Add(_('Active line background'));
   comboSQLColElement.Items.Add(_('Brace matching color'));
   comboSQLColElement.ItemIndex := 0;
+  // Enumerate highlighter presets
+  for i:=0 to ComponentCount-1 do begin
+    if (Components[i] is TSynSQLSyn)
+      and (Components[i] <> SynMemoSQLSample.Highlighter)
+      then begin
+      Highlighter := Components[i] as TSynSQLSyn;
+      Name := Highlighter.Name;
+      Name := RegExprGetMatch('_([^_]+)$', Name, 1, False);
+      if Name <> '' then begin
+        comboEditorColorsPreset.Items.Add(Name);
+      end;
+    end;
+  end;
 
   // Shortcuts
   FShortcutCategories := TStringList.Create;
@@ -718,6 +739,28 @@ begin
   Modified(Sender);
 end;
 
+
+procedure Toptionsform.comboEditorColorsPresetChange(Sender: TObject);
+var
+  i, j: Integer;
+  Highlighter: TSynSQLSyn;
+begin
+  // Color preset selected
+  for i:=0 to ComponentCount-1 do begin
+    if (Components[i] is TSynSQLSyn)
+      and (Components[i] <> SynMemoSQLSample.Highlighter)
+      then begin
+      Highlighter := Components[i] as TSynSQLSyn;
+      if SynRegExpr.ExecRegExpr('[a-zA-Z]+_'+comboEditorColorsPreset.Text, Highlighter.Name) then begin
+        for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
+          SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(Highlighter.Attribute[j]);
+        end;
+        Break;
+      end;
+    end;
+  end;
+  Modified(Sender);
+end;
 
 procedure Toptionsform.comboGridTextColorsSelect(Sender: TObject);
 begin

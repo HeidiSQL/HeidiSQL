@@ -53,7 +53,7 @@ constructor TfrmView.Create(AOwner: TComponent);
 begin
   inherited;
   TranslateComponent(Self);
-  SynMemoBody.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoBody.Highlighter := Mainform.SynSQLSynUsed;
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   editName.MaxLength := NAME_LEN;
   comboSecurity.Items.Add('Definer');

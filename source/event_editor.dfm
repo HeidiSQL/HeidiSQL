@@ -41,7 +41,7 @@ object frmEventEditor: TfrmEventEditor
     Gutter.Font.Style = []
     Gutter.LeftOffset = 2
     Gutter.ShowLineNumbers = True
-    Highlighter = MainForm.SynSQLSyn1
+    Highlighter = MainForm.SynSQLSynUsed
     Lines.Strings = (
       'SynMemoBody')
     Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
@@ -329,7 +329,7 @@ object frmEventEditor: TfrmEventEditor
         Gutter.Font.Style = []
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
-        Highlighter = MainForm.SynSQLSyn1
+        Highlighter = MainForm.SynSQLSynUsed
         Lines.Strings = (
           'SynMemoCREATEcode')
         Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
@@ -363,7 +363,7 @@ object frmEventEditor: TfrmEventEditor
         Gutter.Font.Style = []
         Gutter.LeftOffset = 2
         Gutter.ShowLineNumbers = True
-        Highlighter = MainForm.SynSQLSyn1
+        Highlighter = MainForm.SynSQLSynUsed
         Lines.Strings = (
           'SynMemoALTERcode')
         Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]

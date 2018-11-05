@@ -56,7 +56,7 @@ object MainForm: TMainForm
     Gutter.Font.Style = []
     Gutter.LeftOffset = 2
     Gutter.ShowLineNumbers = True
-    Highlighter = SynSQLSyn1
+    Highlighter = SynSQLSynUsed
     Options = [eoAutoIndent, eoDragDropEditing, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces]
     ReadOnly = True
     RightEdge = 0
@@ -774,7 +774,7 @@ object MainForm: TMainForm
                   Gutter.Font.Style = []
                   Gutter.LeftOffset = 2
                   Gutter.ShowLineNumbers = True
-                  Highlighter = SynSQLSyn1
+                  Highlighter = SynSQLSynUsed
                   Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
                   ReadOnly = True
                   RightEdge = 0
@@ -1188,7 +1188,7 @@ object MainForm: TMainForm
               Gutter.ShowLineNumbers = True
               Gutter.Visible = False
               Gutter.Width = 0
-              Highlighter = SynSQLSyn1
+              Highlighter = SynSQLSynUsed
               Options = [eoAutoIndent, eoDragDropEditing, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
               RightEdge = 0
               ScrollBars = ssVertical
@@ -1334,7 +1334,7 @@ object MainForm: TMainForm
               Gutter.LeftOffset = 2
               Gutter.RightOffset = 0
               Gutter.ShowLineNumbers = True
-              Highlighter = SynSQLSyn1
+              Highlighter = SynSQLSynUsed
               Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
               RightEdge = 0
               TabWidth = 3
@@ -9452,7 +9452,7 @@ object MainForm: TMainForm
       Action = actRefresh
     end
   end
-  object SynSQLSyn1: TSynSQLSyn
+  object SynSQLSynUsed: TSynSQLSyn
     Options.AutoDetectEnabled = False
     Options.AutoDetectLineLimit = 0
     Options.Visible = False

@@ -959,7 +959,7 @@ begin
         case ExportFormat of
           efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
             Exporter := TSynExporterHTML.Create(Self);
-            Exporter.Highlighter := MainForm.SynSQLSyn1;
+            Exporter.Highlighter := MainForm.SynSQLSynUsed;
             Exporter.ExportAll(Explode(CRLF, S.DataString));
             HTML := TMemoryStream.Create;
             Exporter.SaveToStream(HTML);

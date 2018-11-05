@@ -44,7 +44,7 @@ begin
   TranslateComponent(Self);
   lblCreateCode.Caption := lblCreateCode.Caption + ':';
   // Setup SynMemoPreview
-  SynMemoCreateCode.Highlighter := Mainform.SynSQLSyn1;
+  SynMemoCreateCode.Highlighter := Mainform.SynSQLSynUsed;
 end;
 
 

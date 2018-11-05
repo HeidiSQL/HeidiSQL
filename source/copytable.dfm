@@ -124,7 +124,7 @@ object CopyTableForm: TCopyTableForm
     Gutter.Font.Style = []
     Gutter.LeftOffset = 0
     Gutter.ShowLineNumbers = True
-    Highlighter = MainForm.SynSQLSyn1
+    Highlighter = MainForm.SynSQLSynUsed
     Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabIndent]
     WantTabs = True
     FontSmoothing = fsmNone
