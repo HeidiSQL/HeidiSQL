@@ -3064,8 +3064,8 @@ begin
   else
     new_colortype := COLOR_RGB;
   bTmp := TPNGImage.CreateBlank(new_colortype, 8, NewWidth, NewHeight);
-  xscale := bTmp.Width / (aPng.Width-0.35); // Modified: (was -1) substract minimal value before AlphaScanline crashes
-  yscale := bTmp.Height / (aPng.Height-0.35);
+  xscale := bTmp.Width / (aPng.Width-1);
+  yscale := bTmp.Height / (aPng.Height-1);
   for to_y:=0 to bTmp.Height-1 do begin
     sfrom_y := to_y / yscale;
     ifrom_y := Trunc(sfrom_y);
