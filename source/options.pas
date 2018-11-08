@@ -755,6 +755,11 @@ begin
         for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
           SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(Highlighter.Attribute[j]);
         end;
+        // Use 3 hardcoded default values for additional colors, which are not part
+        // of the highlighter's attributes
+        SynMemoSQLSample.ActiveLineColor := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
+        MainForm.MatchingBraceForegroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
+        MainForm.MatchingBraceBackgroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
         Break;
       end;
     end;
