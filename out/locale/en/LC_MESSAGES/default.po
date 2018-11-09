@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-11-09 18:40+0100\n"
+"PO-Revision-Date: 2018-11-09 18:42+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2717,6 +2717,9 @@ msgstr "Tabs to spaces"
 #: options.dfm:455
 msgid "Prompt to save modified files on tab close"
 msgstr "Prompt to save modified files on tab close"
+
+msgid "Show query warnings dialog"
+msgstr "Show query warnings dialog"
 
 #. optionsform..pagecontrolMain..tabHighlighter..Caption
 #: options.dfm:483
