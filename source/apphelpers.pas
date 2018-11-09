@@ -3116,7 +3116,7 @@ end;
 
 function GetThemeColor(Color: TColor): TColor;
 begin
-  Result := TStyleManager.ActiveStyle.GetSystemColor(Color);
+  Result := Color;
 end;
 
 
