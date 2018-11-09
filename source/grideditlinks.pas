@@ -8,7 +8,7 @@ uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
   dbconnection, mysql_structures, apphelpers, texteditor, bineditor, gnugettext,
-  StrUtils, System.UITypes, SynRegExpr;
+  StrUtils, System.UITypes, SynRegExpr, Vcl.Themes;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -1492,11 +1492,16 @@ begin
   FMemoHelp := TMemo.Create(FParentForm);
   FMemoHelp.Hide;
   FMemoHelp.Parent := FParentForm;
-  FMemoHelp.Color := GetThemeColor(clInfoBk);
-  FMemoHelp.Font.Color := GetThemeColor(clInfoText);
-  FMemoHelp.BorderStyle := bsNone;
+  FMemoHelp.Color := clInfoBk;
+  FMemoHelp.Font.Color := clInfoText;
   FMemoHelp.BevelKind := bkFlat;
-  FMemoHelp.BevelInner := bvNone;
+  if TStyleManager.IsCustomStyleActive then begin
+    FMemoHelp.BorderStyle := bsSingle;
+    FMemoHelp.BevelInner := bvNone;
+  end else begin
+    FMemoHelp.BorderStyle := bsNone;
+    FMemoHelp.BevelInner := bvSpace;
+  end;
 end;
 
 
