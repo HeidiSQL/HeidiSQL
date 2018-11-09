@@ -744,14 +744,17 @@ procedure Toptionsform.comboEditorColorsPresetChange(Sender: TObject);
 var
   i, j: Integer;
   Highlighter: TSynSQLSyn;
+  FoundHighlighter: Boolean;
 begin
   // Color preset selected
+  FoundHighlighter := False;
   for i:=0 to ComponentCount-1 do begin
     if (Components[i] is TSynSQLSyn)
       and (Components[i] <> SynMemoSQLSample.Highlighter)
       then begin
       Highlighter := Components[i] as TSynSQLSyn;
       if SynRegExpr.ExecRegExpr('[a-zA-Z]+_'+comboEditorColorsPreset.Text, Highlighter.Name) then begin
+        FoundHighlighter := True;
         for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
           SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(Highlighter.Attribute[j]);
         end;
@@ -762,6 +765,12 @@ begin
         MainForm.MatchingBraceBackgroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
         Break;
       end;
+    end;
+  end;
+  if not FoundHighlighter then begin
+    // Show current custom settings
+    for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
+      SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSynUsed.Attribute[i]);
     end;
   end;
   Modified(Sender);

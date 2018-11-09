@@ -810,8 +810,12 @@ object optionsform: Toptionsform
           Width = 284
           Height = 21
           Style = csDropDownList
+          ItemIndex = 0
           TabOrder = 12
+          Text = 'Current custom settings'
           OnChange = comboEditorColorsPresetChange
+          Items.Strings = (
+            'Current custom settings')
         end
       end
     end
