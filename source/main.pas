@@ -2206,14 +2206,20 @@ end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 var
-  i, room: Integer;
   PanelRect: TRect;
   Tab: TQueryTab;
+  w0, w1, w2, w3, w4, w5, w6: Integer;
+  DpiScaleFactor: Real;
 
   function GridNeedHeight: Integer;
   begin
     // Return missing number of height pixels the query grid needs
     Result := Max(0, Tab.spltQuery.MinSize - (Tab.TabSheet.Height - Tab.pnlMemo.Height - Tab.spltQuery.Height - Tab.tabsetQuery.Height));
+  end;
+
+  function CalcPanelWidth(PreferredWidth, Percentage: Integer): Integer;
+  begin
+    Result := Round(Min(PreferredWidth * DpiScaleFactor, Width / 100 * Percentage));
   end;
 begin
   // Exit early when user pressed "Cancel" on connection dialog
@@ -2222,10 +2228,25 @@ begin
   // No need to resize anything if main window is minimized (= not visible)
   if WindowState = wsMinimized then
     Exit;
-  room := 0;
-  for i := 1 to Statusbar.Panels.Count - 1 do
-    inc(room, Statusbar.Panels[i].Width);
-  StatusBar.Panels[0].Width := Statusbar.Width - room;
+
+  // Super intelligent calculation of status bar panel width
+  StatusBar.Height := GetTextHeight(StatusBar.Font) + 4;
+  DpiScaleFactor := Monitor.PixelsPerInch / PixelsPerInch;
+  w1 := CalcPanelWidth(110, 10);
+  w2 := CalcPanelWidth(140, 10);
+  w3 := CalcPanelWidth(170, 15);
+  w4 := CalcPanelWidth(170, 15);
+  w5 := CalcPanelWidth(170, 15);
+  w6 := CalcPanelWidth(170, 20);
+  w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
+  StatusBar.Panels[0].Width := w0;
+  StatusBar.Panels[1].Width := w1;
+  StatusBar.Panels[2].Width := w2;
+  StatusBar.Panels[3].Width := w3;
+  StatusBar.Panels[4].Width := w4;
+  StatusBar.Panels[5].Width := w5;
+  StatusBar.Panels[6].Width := w6;
+
   // Retreive the rectancle of the statuspanel (in our case the fifth panel)
   SendMessage(StatusBar.Handle, SB_GETRECT, 5, Integer(@PanelRect));
   // Position the progressbar over the panel on the statusbar
