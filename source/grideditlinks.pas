@@ -157,9 +157,12 @@ type
     FCustomEdit: TButtonedEdit;
     FCustomDropDown: TPopupMenu;
     FBtnOK, FBtnCancel: TButton;
+    FEndTimer: TTimer;
     procedure RadioClick(Sender: TObject);
     procedure CustomEditChange(Sender: TObject);
     procedure CustomDropDownClick(Sender: TObject);
+    procedure BtnOkClick(Sender: TObject);
+    procedure BtnCancelClick(Sender: TObject);
   public
     DefaultType: TColumnDefaultType;
     DefaultText: String;
@@ -1252,7 +1255,7 @@ begin
   FBtnOk.Width := 60;
   FBtnOk.Top := FRadioAutoInc.Top + FRadioAutoInc.Height + m;
   FBtnOk.Left := FPanel.Width - 2*m - 2*FBtnOk.Width;
-  FBtnOk.OnClick := DoEndEdit;
+  FBtnOk.OnClick := BtnOkClick;
   FBtnOk.Default := True;
   FBtnOk.Caption := _('OK');
 
@@ -1261,9 +1264,13 @@ begin
   FBtnCancel.Top := FBtnOk.Top;
   FBtnCancel.Width := FBtnOk.Width;
   FBtnCancel.Left := FBtnOk.Left + FBtnOk.Width + m;
-  FBtnCancel.OnClick := DoCancelEdit;
+  FBtnCancel.OnClick := BtnCancelClick;
   FBtnCancel.Cancel := True;
   FBtnCancel.Caption := _('Cancel');
+
+  FEndTimer := TTimer.Create(FPanel);
+  FEndTimer.Interval := 50;
+  FEndTimer.Enabled := False;
 
   FPanel.Height := FBtnOk.Top + FBtnOk.Height + m;
   FRadioNothing.Anchors := [akLeft, akTop, akRight];
@@ -1453,6 +1460,20 @@ begin
     Delete(NewValue, Length(NewValue), 1);
   FCustomEdit.Text := NewValue;
   FModified := True;
+end;
+
+procedure TColumnDefaultEditorLink.BtnOkClick(Sender: TObject);
+begin
+  // Timer based click on OK button, to prevent crash when theming is active
+  FEndTimer.OnTimer := DoEndEdit;
+  FEndTimer.Enabled := True;
+end;
+
+procedure TColumnDefaultEditorLink.BtnCancelClick(Sender: TObject);
+begin
+  // Timer based click on Cancel button, to prevent crash when theming is active
+  FEndTimer.OnTimer := DoCancelEdit;
+  FEndTimer.Enabled := True;
 end;
 
 
