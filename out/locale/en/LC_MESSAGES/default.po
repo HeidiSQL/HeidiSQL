@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-11-09 18:42+0100\n"
+"PO-Revision-Date: 2018-11-13 19:14+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -803,6 +803,9 @@ msgstr "Encloser:"
 #: exportgrid.dfm:180
 msgid "Line terminator:"
 msgstr "Line terminator:"
+
+msgid "NULL value:"
+msgstr "NULL value:"
 
 #. frmExportGrid..grpOptions..chkIncludeColumnNames..Caption
 #: exportgrid.dfm:188
@@ -6263,3 +6266,6 @@ msgstr "Scaling font size from %d to %d."
 
 msgid "Current custom settings"
 msgstr "Current custom settings"
+
+msgid "current value:"
+msgstr "current value:"

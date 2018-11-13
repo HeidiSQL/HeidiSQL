@@ -4448,7 +4448,7 @@ begin
   end else begin
     FDelimiter := Value;
     LogSQL(f_('Delimiter changed to %s', [FDelimiter]), lcInfo);
-    actSetDelimiter.Hint := actSetDelimiter.Caption + ' (current value: '+FDelimiter+')';
+    actSetDelimiter.Hint := actSetDelimiter.Caption + ' (' + _('current value:') + ' ' + FDelimiter + ')';
   end;
 end;
 

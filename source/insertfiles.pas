@@ -147,6 +147,7 @@ begin
   if comboDBs.ItemIndex = -1 then
     comboDBs.ItemIndex := 0;
   comboDBs.OnChange(Sender);
+  ListFilesChange(ListFiles, nil);
 end;
 
 
