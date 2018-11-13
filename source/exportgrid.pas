@@ -4,12 +4,13 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList;
+  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList,
+  extra_controls;
 
 type
   TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
 
-  TfrmExportGrid = class(TForm)
+  TfrmExportGrid = class(TFormWithSizeGrip)
     btnOK: TButton;
     btnCancel: TButton;
     grpFormat: TRadioGroup;
@@ -64,6 +65,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure grpFormatClick(Sender: TObject);
     procedure btnSetClipboardDefaultsClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
@@ -102,6 +104,8 @@ var
   FormatDesc: String;
 begin
   TranslateComponent(Self);
+  Width := AppSettings.ReadInt(asGridExportWindowWidth);
+  Height := AppSettings.ReadInt(asGridExportWindowHeight);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
   radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);
   radioOutputFile.Checked := AppSettings.ReadBool(asGridExportOutputFile);
@@ -142,24 +146,37 @@ end;
 procedure TfrmExportGrid.FormDestroy(Sender: TObject);
 begin
   // Store settings
-  if (ModalResult = mrOK) and (not FHiddenCopyMode) then begin
-    AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
-    AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);
-    AppSettings.WriteString(asGridExportFilename, editFilename.Text);
-    AppSettings.WriteString(asGridExportRecentFiles, ImplodeStr(DELIM, FRecentFiles));
-    AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
-    AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
-    AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
-    AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
-    AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
-    AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
-    AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
-    AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
-    AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
-    AppSettings.WriteString(asGridExportNull, FCSVNull);
+  if not FHiddenCopyMode then begin
+    AppSettings.WriteInt(asGridExportWindowWidth, Width);
+    AppSettings.WriteInt(asGridExportWindowHeight, Height);
+    if ModalResult = mrOK then begin
+      AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
+      AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);
+      AppSettings.WriteString(asGridExportFilename, editFilename.Text);
+      AppSettings.WriteString(asGridExportRecentFiles, ImplodeStr(DELIM, FRecentFiles));
+      AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
+      AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
+      AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
+      AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
+      AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
+      AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
+      AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
+      AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
+      AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
+      AppSettings.WriteString(asGridExportNull, FCSVNull);
+    end;
   end;
 end;
 
+
+procedure TfrmExportGrid.FormResize(Sender: TObject);
+begin
+  grpFormat.Width := Width div 3;
+  grpSelection.Left := grpFormat.Left + grpFormat.Width + 8;
+  grpSelection.Width := Width - grpSelection.Left - 24;
+  grpOptions.Left := grpSelection.Left;
+  grpOptions.Width := grpSelection.Width;
+end;
 
 procedure TfrmExportGrid.FormShow(Sender: TObject);
 begin

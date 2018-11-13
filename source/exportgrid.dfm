@@ -1,26 +1,28 @@
 object frmExportGrid: TfrmExportGrid
   Left = 0
   Top = 0
-  BorderStyle = bsDialog
   Caption = 'Export grid rows'
-  ClientHeight = 432
-  ClientWidth = 383
+  ClientHeight = 422
+  ClientWidth = 373
   Color = clBtnFace
+  Constraints.MinHeight = 450
+  Constraints.MinWidth = 350
   ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    383
-    432)
+    373
+    422)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOK: TButton
-    Left = 219
-    Top = 399
+    Left = 209
+    Top = 389
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -31,8 +33,8 @@ object frmExportGrid: TfrmExportGrid
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 300
-    Top = 399
+    Left = 290
+    Top = 389
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -45,7 +47,7 @@ object frmExportGrid: TfrmExportGrid
     Left = 8
     Top = 112
     Width = 137
-    Height = 281
+    Height = 271
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Output format'
     ItemIndex = 0
@@ -65,9 +67,9 @@ object frmExportGrid: TfrmExportGrid
   object grpSelection: TRadioGroup
     Left = 151
     Top = 112
-    Width = 224
+    Width = 214
     Height = 66
-    Anchors = [akLeft, akTop, akRight]
+    Anchors = [akTop, akRight]
     Caption = 'Row selection'
     ItemIndex = 1
     Items.Strings = (
@@ -78,13 +80,13 @@ object frmExportGrid: TfrmExportGrid
   object grpOutput: TGroupBox
     Left = 8
     Top = 8
-    Width = 367
+    Width = 357
     Height = 98
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Output target'
     TabOrder = 4
     DesignSize = (
-      367
+      357
       98)
     object lblEncoding: TLabel
       Left = 8
@@ -96,7 +98,7 @@ object frmExportGrid: TfrmExportGrid
     object radioOutputCopyToClipboard: TRadioButton
       Left = 8
       Top = 18
-      Width = 345
+      Width = 335
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Copy to clipboard'
@@ -108,7 +110,7 @@ object frmExportGrid: TfrmExportGrid
     object radioOutputFile: TRadioButton
       Left = 8
       Top = 43
-      Width = 65
+      Width = 55
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'File'
@@ -118,7 +120,7 @@ object frmExportGrid: TfrmExportGrid
     object editFilename: TButtonedEdit
       Left = 79
       Top = 42
-      Width = 274
+      Width = 264
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
@@ -136,7 +138,7 @@ object frmExportGrid: TfrmExportGrid
     object comboEncoding: TComboBox
       Left = 79
       Top = 69
-      Width = 274
+      Width = 264
       Height = 21
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
@@ -146,14 +148,14 @@ object frmExportGrid: TfrmExportGrid
   object grpOptions: TGroupBox
     Left = 151
     Top = 184
-    Width = 224
-    Height = 209
-    Anchors = [akLeft, akTop, akRight, akBottom]
+    Width = 214
+    Height = 199
+    Anchors = [akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
     DesignSize = (
-      224
-      209)
+      214
+      199)
     object lblSeparator: TLabel
       Left = 6
       Top = 97
@@ -185,7 +187,7 @@ object frmExportGrid: TfrmExportGrid
     object chkIncludeColumnNames: TCheckBox
       Left = 6
       Top = 18
-      Width = 201
+      Width = 191
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Include column names'
@@ -196,7 +198,7 @@ object frmExportGrid: TfrmExportGrid
     object editSeparator: TButtonedEdit
       Left = 106
       Top = 93
-      Width = 103
+      Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
@@ -211,7 +213,7 @@ object frmExportGrid: TfrmExportGrid
     object editEncloser: TButtonedEdit
       Left = 106
       Top = 119
-      Width = 103
+      Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
@@ -225,7 +227,7 @@ object frmExportGrid: TfrmExportGrid
     object editTerminator: TButtonedEdit
       Left = 106
       Top = 145
-      Width = 103
+      Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
@@ -240,7 +242,7 @@ object frmExportGrid: TfrmExportGrid
     object chkIncludeAutoIncrement: TCheckBox
       Left = 6
       Top = 41
-      Width = 201
+      Width = 191
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Include auto increment column'
@@ -257,7 +259,7 @@ object frmExportGrid: TfrmExportGrid
     object editNull: TButtonedEdit
       Left = 106
       Top = 172
-      Width = 103
+      Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.ImageListMain
@@ -271,7 +273,7 @@ object frmExportGrid: TfrmExportGrid
   end
   object btnSetClipboardDefaults: TButton
     Left = 8
-    Top = 399
+    Top = 389
     Width = 153
     Height = 25
     Anchors = [akLeft, akBottom]
