@@ -1678,7 +1678,7 @@ begin
     R := Rect(0, 0, FMemoHelp.Width-10, 0);
     DrawText(bmp.Canvas.Handle, PChar(FMemoHelp.Text), Length(FMemoHelp.Text), R, DT_WORDBREAK or DT_CALCRECT);
     FreeAndNil(bmp);
-    FMemoHelp.Height := R.Bottom + 2;
+    FMemoHelp.Height := R.Bottom + 8;
     FMemoHelp.Show;
   end;
   if FMemoHelp.GetTextLen = 0 then
