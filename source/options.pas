@@ -157,6 +157,8 @@ type
     lblSqlFontSize: TLabel;
     SynSQLSyn_Dark: TSynSQLSyn;
     SynSQLSyn_Light: TSynSQLSyn;
+    SynSQLSyn_Black: TSynSQLSyn;
+    SynSQLSyn_White: TSynSQLSyn;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);

@@ -1358,4 +1358,44 @@ object optionsform: Toptionsform
     Left = 120
     Top = 352
   end
+  object SynSQLSyn_Black: TSynSQLSyn
+    Options.AutoDetectEnabled = False
+    Options.AutoDetectLineLimit = 0
+    Options.Visible = False
+    CommentAttri.Foreground = clBlack
+    ConditionalCommentAttri.Foreground = clBlack
+    DataTypeAttri.Foreground = clBlack
+    DelimitedIdentifierAttri.Foreground = clBlack
+    FunctionAttri.Foreground = clBlack
+    IdentifierAttri.Foreground = clBlack
+    KeyAttri.Foreground = clBlack
+    NumberAttri.Foreground = clBlack
+    StringAttri.Foreground = clBlack
+    SymbolAttri.Foreground = clBlack
+    TableNameAttri.Foreground = clBlack
+    VariableAttri.Foreground = clBlack
+    SQLDialect = sqlMySQL
+    Left = 196
+    Top = 404
+  end
+  object SynSQLSyn_White: TSynSQLSyn
+    Options.AutoDetectEnabled = False
+    Options.AutoDetectLineLimit = 0
+    Options.Visible = False
+    CommentAttri.Foreground = clWhite
+    ConditionalCommentAttri.Foreground = clWhite
+    DataTypeAttri.Foreground = clWhite
+    DelimitedIdentifierAttri.Foreground = clWhite
+    FunctionAttri.Foreground = clWhite
+    IdentifierAttri.Foreground = clWhite
+    KeyAttri.Foreground = clWhite
+    NumberAttri.Foreground = clWhite
+    StringAttri.Foreground = clWhite
+    SymbolAttri.Foreground = clWhite
+    TableNameAttri.Foreground = clWhite
+    VariableAttri.Foreground = clWhite
+    SQLDialect = sqlMySQL
+    Left = 284
+    Top = 404
+  end
 end
