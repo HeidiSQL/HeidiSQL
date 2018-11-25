@@ -140,7 +140,7 @@ type
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
     asWrapLongLines, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
     asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
-    asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asTableEditorTabsHeight, asHost,
+    asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
     asUser, asPassword, asWindowsAuth, asLoginPrompt, asPort,
     asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
@@ -3579,7 +3579,6 @@ begin
   InitSetting(asSQLHelpWindowHeight,              'SQLHelp_WindowHeight',                  400);
   InitSetting(asSQLHelpPnlLeftWidth,              'SQLHelp_PnlLeftWidth',                  150);
   InitSetting(asSQLHelpPnlRightTopHeight,         'SQLHelp_PnlRightTopHeight',             150);
-  InitSetting(asTableEditorTabsHeight,            'TableEditorTabsHeight',                 150);
   InitSetting(asHost,                             'Host',                                  0, False, '127.0.0.1', True);
   InitSetting(asUser,                             'User',                                  0, False, 'root', True);
   InitSetting(asPassword,                         'Password',                              0, False, '', True);

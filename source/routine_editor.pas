@@ -45,7 +45,7 @@ type
     btnMoveDownParam: TToolButton;
     lblDisabledWhy: TLabel;
     spltTop: TSplitter;
-	pnlDpiHelperOptions: TPanel;
+  	pnlDpiHelperOptions: TPanel;
     procedure comboTypeSelect(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure btnHelpClick(Sender: TObject);
@@ -105,7 +105,6 @@ constructor TfrmRoutineEditor.Create(AOwner: TComponent);
 begin
   inherited;
   TranslateComponent(Self);
-  ScaleControls(Screen.PixelsPerInch, FORMS_DPI);
   // Combo items in a .dfm are sporadically lost after an IDE restart,
   // so we set them here to avoid developer annoyance
   comboType.Items.Add(_('Procedure (doesn''t return a result)'));

@@ -211,7 +211,6 @@ constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
   TranslateComponent(Self);
-  PageControlMain.Height := AppSettings.ReadInt(asTableEditorTabsHeight);
   FixVT(listColumns);
   FixVT(treeIndexes);
   FixVT(listForeignKeys);
@@ -237,7 +236,6 @@ end;
 destructor TfrmTableEditor.Destroy;
 begin
   // Store GUI setup
-  AppSettings.WriteInt(asTableEditorTabsHeight, PageControlMain.Height);
   Mainform.SaveListSetup(listColumns);
   Mainform.SaveListSetup(treeIndexes);
   Mainform.SaveListSetup(listForeignKeys);
@@ -251,13 +249,6 @@ var
   rx: TRegExpr;
 begin
   inherited;
-
-  // Auto-fix high-DPI glitch:
-  if Self.Height > MainForm.tabEditor.Height then begin
-    MainForm.LogSQL('Fixing height...', lcDebug);
-    PageControlMain.Height := Round(MainForm.tabEditor.Height / 2 - 50);
-    Self.Height := MainForm.tabEditor.Height;
-  end;
 
   FLoaded := False;
   comboEngine.Items := DBObject.Connection.TableEngines;
