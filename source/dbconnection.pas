@@ -670,7 +670,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -690,7 +690,7 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-//      function GetColBinData(Column: Integer; var baData: TBytes;): Boolean; override;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -6006,37 +6006,42 @@ begin
   Result := ColumnNames.Count;
 end;
 
+
 function TMySQLQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   AnsiStr: AnsiString;
-  BitString: String;
-  NumBit: Integer;
-  ByteVal: Byte;
-  c: Char;
-  Field: PMYSQL_FIELD;
 begin
+  Result := False;
+
   if (Column > -1) and (Column < ColumnCount) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       // Row was edited and only valid in a TRowData
       AnsiStr := AnsiString(FCurrentUpdateRow[Column].NewText);
-      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
-        SetLength(baData, Length(AnsiStr));
-        CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
-        Exit(True);
-      end else
-        Exit(False);
     end else begin
       // The normal case: Fetch cell from mysql result
       SetString(AnsiStr, FCurrentRow[Column], FColumnLengths[Column]);
-      if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
-        SetLength(baData, Length(AnsiStr));
-        CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
-        Exit(True);
-      end else
-        Exit(False);
+    end;
+
+    if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
+      SetLength(baData, Length(AnsiStr));
+      CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
+      Result := True;
     end;
   end;
 end;
+
+
+function TAdoDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+begin
+  Raise EDatabaseError.Create(SNotImplemented);
+end;
+
+
+function TPGQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+begin
+  Raise EDatabaseError.Create(SNotImplemented);
+end;
+
 
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
