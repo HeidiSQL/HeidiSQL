@@ -83,10 +83,10 @@ type
     menuExportRemoveAutoIncrement: TMenuItem;
     comboMatchType: TComboBox;
     lblMatchType: TLabel;
-	pnlDpiHelperMaintenance: TPanel;
-	pnlDpiHelperFind: TPanel;
-	pnlDpiHelperExport: TPanel;
-	pnlDpiHelperTableEdit: TPanel;
+    pnlDpiHelperMaintenance: TPanel;
+    pnlDpiHelperFind: TPanel;
+    pnlDpiHelperExport: TPanel;
+    pnlDpiHelperTableEdit: TPanel;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -608,7 +608,12 @@ var
       on E:EDatabaseError do begin
         // The above SQL can easily throw an exception, e.g. if a table is corrupted.
         // In such cases we create a dummy row, including the error message
-        AddNotes(DBObj, 'error', E.Message)
+        AddNotes(DBObj, 'error', E.Message);
+        // Cancel further processing on critical errors
+        if E.ErrorCode = 1049 then begin // "Unknown database"
+          ErrorDialog(E.Message);
+          FCancelled := True;
+        end;
       end;
       on E:EFCreateError do begin
         // Occurs when export output file can not be created

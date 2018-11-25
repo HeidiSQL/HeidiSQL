@@ -167,7 +167,11 @@ type
   TUpdateData = TObjectList<TRowData>;
 
   // Custom exception class for any connection or database related error
-  EDatabaseError = class(Exception);
+  EDatabaseError = class(Exception)
+    public
+      ErrorCode: Cardinal;
+      constructor Create(const Msg: string; const ErrorCode: Cardinal=0);
+  end;
 
   // PLink.exe related
   TProcessPipe = class(TObject)
@@ -769,6 +773,16 @@ var
 implementation
 
 uses apphelpers, loginform, change_password;
+
+
+{ EDatabaseError }
+
+constructor EDatabaseError.Create(const Msg: string; const ErrorCode: Cardinal=0);
+begin
+  Self.ErrorCode := ErrorCode;
+  inherited Create(Msg);
+end;
+
 
 
 { TProcessPipe }
@@ -2448,7 +2462,7 @@ begin
   if QueryStatus <> 0 then begin
     // Most errors will show up here, some others slightly later, after mysql_store_result()
     Log(lcError, GetLastError);
-    raise EDatabaseError.Create(GetLastError);
+    raise EDatabaseError.Create(GetLastError, GetLastErrorCode);
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
