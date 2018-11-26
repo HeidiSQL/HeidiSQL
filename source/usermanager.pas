@@ -688,10 +688,6 @@ begin
         rxTemp.Expression := '\sWITH\s+(.+)';
         if rxTemp.Exec(rxGrant.Match[11]) then begin
           WithClause := rxTemp.Match[1];
-          User.MaxQueries := 0;
-          User.MaxUpdates := 0;
-          User.MaxConnections := 0;
-          User.MaxUserConnections := 0;
           if ExecRegExpr('\bGRANT\s+OPTION\b', WithClause) then
             P.OrgPrivs.Add('GRANT');
           rxTemp.Expression := '\bMAX_QUERIES_PER_HOUR\s+(\d+)\b';
