@@ -1090,23 +1090,43 @@ end;
 constructor TConnectionParameters.Create;
 begin
   inherited Create;
-  FNetType := TNetType(AppSettings.GetDefaultInt(asNetType));
   FIsFolder := False;
+
+  FNetType := TNetType(AppSettings.GetDefaultInt(asNetType));
   FHostname := AppSettings.GetDefaultString(asHost);
+  FLoginPrompt := AppSettings.GetDefaultBool(asLoginPrompt);
+  FWindowsAuth := AppSettings.GetDefaultBool(asWindowsAuth);
   FUsername := AppSettings.GetDefaultString(asUser);
-  FPassword := '';
+  FPassword := AppSettings.GetDefaultString(asPassword);
   FPort := MakeInt(AppSettings.GetDefaultString(asPort));
-  FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
-  FSSHPort := AppSettings.GetDefaultInt(asSSHtunnelPort);
+  FCompressed := AppSettings.GetDefaultBool(asCompressed);
+  FAllDatabases := AppSettings.GetDefaultString(asDatabases);
+  FComment := AppSettings.GetDefaultString(asComment);
+
+  FSSHHost := AppSettings.GetDefaultString(asSSHtunnelHost);
+  FSSHPort := AppSettings.GetDefaultInt(asSSHtunnelHostPort);
+  FSSHUser := AppSettings.GetDefaultString(asSSHtunnelUser);
+  FSSHPassword := AppSettings.GetDefaultString(asSSHtunnelPassword);
   FSSHTimeout := AppSettings.GetDefaultInt(asSSHtunnelTimeout);
+  FSSHPrivateKey := AppSettings.GetDefaultString(asSSHtunnelPrivateKey);
   FSSHLocalPort := FPort + 1;
-  FSSLPrivateKey := '';
-  FSSLCertificate := '';
-  FSSLCACertificate := '';
-  FSSLCipher := '';
-  FStartupScriptFilename := '';
+
+  FWantSSL := AppSettings.GetDefaultBool(asSSLActive);
+  FSSLPrivateKey := AppSettings.GetDefaultString(asSSLKey);
+  FSSLCertificate := AppSettings.GetDefaultString(asSSLCert);
+  FSSLCACertificate := AppSettings.GetDefaultString(asSSLCA);
+  FSSLCipher := AppSettings.GetDefaultString(asSSLCipher);
+  FStartupScriptFilename := AppSettings.GetDefaultString(asStartupScriptFilename);
+  FQueryTimeout := AppSettings.GetDefaultInt(asQueryTimeout);
+  FKeepAlive := AppSettings.GetDefaultInt(asKeepAlive);
+  FLocalTimeZone := AppSettings.GetDefaultBool(asLocalTimeZone);
   FFullTableStatus := AppSettings.GetDefaultBool(asFullTableStatus);
+
   FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
+
+  // Must be read without session path
+  FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
+
   FLastConnect := 0;
   FCounter := 0;
   FServerVersion := '';
@@ -1144,8 +1164,10 @@ begin
     FLoginPrompt := AppSettings.ReadBool(asLoginPrompt);
     FWindowsAuth := AppSettings.ReadBool(asWindowsAuth);
     FPort := MakeInt(AppSettings.ReadString(asPort));
+    FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
     FComment := AppSettings.ReadString(asComment);
+
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
     FSSHPort := AppSettings.ReadInt(asSSHtunnelHostPort);
     FSSHUser := AppSettings.ReadString(asSSHtunnelUser);
@@ -1153,6 +1175,7 @@ begin
     FSSHTimeout := AppSettings.ReadInt(asSSHtunnelTimeout);
     FSSHPrivateKey := AppSettings.ReadString(asSSHtunnelPrivateKey);
     FSSHLocalPort := AppSettings.ReadInt(asSSHtunnelPort);
+
     FSSLPrivateKey := AppSettings.ReadString(asSSLKey);
     // Auto-activate SSL for sessions created before UseSSL was introduced:
     FWantSSL := AppSettings.ReadBool(asSSLActive, '', FSSLPrivateKey<>'');
@@ -1160,16 +1183,20 @@ begin
     FSSLCACertificate := AppSettings.ReadString(asSSLCA);
     FSSLCipher := AppSettings.ReadString(asSSLCipher);
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
-    FCompressed := AppSettings.ReadBool(asCompressed);
     FQueryTimeout := AppSettings.ReadInt(asQueryTimeout);
     FKeepAlive := AppSettings.ReadInt(asKeepAlive);
+    if FKeepAlive = 0 then // Old connections had always 0 as default value
+      FKeepAlive := AppSettings.GetDefaultInt(asKeepAlive);
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
+
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
     FLastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
     FCounter := AppSettings.ReadInt(asConnectCount);
     AppSettings.ResetPath;
+
+    // Must be read without session path
     FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
   end;
 end;
