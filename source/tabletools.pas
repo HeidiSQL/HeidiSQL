@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils;
+  dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -76,7 +76,6 @@ type
     editInsertSize: TEdit;
     updownInsertSize: TUpDown;
     lblInsertSizeUnit: TLabel;
-    btnHelpSQLExport: TButton;
     btnExportOptions: TButton;
     popupExportOptions: TPopupMenu;
     menuExportAddComments: TMenuItem;
@@ -131,7 +130,6 @@ type
       var ContentRect: TRect);
     procedure CheckAllClick(Sender: TObject);
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    procedure btnHelpSQLExportClick(Sender: TObject);
     procedure btnExportOptionsClick(Sender: TObject);
   private
     { Private declarations }
@@ -150,6 +148,8 @@ type
     FFindSeeResultSQL: TStringList;
     ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
     FObjectSizes, FObjectSizesDone, FObjectSizesDoneExact: Int64;
+    procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
+    procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure SetToolMode(Value: TToolMode);
     procedure Output(SQL: String; IsEndOfQuery, ForFile, ForDir, ForDb, ForServer: Boolean);
     procedure AddResults(SQL: String; Connection: TDBConnection);
@@ -192,6 +192,28 @@ var
   DATA_UPDATE : String;
 
 {$R *.DFM}
+
+
+procedure TfrmTableTools.WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ;
+begin
+  if Msg.HitTest = HTHELP then
+    Msg.Result := 0 // "eat" the message
+  else
+    inherited;
+end;
+
+
+procedure TfrmTableTools.WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ;
+begin
+  if Msg.HitTest = HTHELP then begin
+    Msg.Result := 0;
+    if tabsTools.ActivePage = tabSQLexport then
+      Help(Self, 'sqlexport')
+    else
+      ErrorDialog(_('No help available for this tab.'));
+  end else
+    inherited;
+end;
 
 
 procedure TfrmTableTools.FormCreate(Sender: TObject);
@@ -574,12 +596,6 @@ end;
 procedure TfrmTableTools.btnHelpMaintenanceClick(Sender: TObject);
 begin
   Mainform.CallSQLHelpWithKeyword(UpperCase(comboOperation.Text) + ' TABLE');
-end;
-
-
-procedure TfrmTableTools.btnHelpSQLExportClick(Sender: TObject);
-begin
-  Help(Sender, 'sqlexport');
 end;
 
 

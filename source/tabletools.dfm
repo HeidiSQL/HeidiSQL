@@ -1,6 +1,7 @@
 object frmTableTools: TfrmTableTools
   Left = 734
   Top = 126
+  BorderIcons = [biSystemMenu, biHelp]
   Caption = 'Table tools'
   ClientHeight = 383
   ClientWidth = 764
@@ -506,16 +507,6 @@ object frmTableTools: TfrmTableTools
               TabOrder = 6
               Wrap = True
             end
-            object btnHelpSQLExport: TButton
-              Left = 514
-              Top = 3
-              Width = 75
-              Height = 25
-              Anchors = [akTop, akRight]
-              Caption = 'Help'
-              TabOrder = 10
-              OnClick = btnHelpSQLExportClick
-            end
             object btnExportOptions: TButton
               Left = 464
               Top = 72
@@ -525,7 +516,7 @@ object frmTableTools: TfrmTableTools
               Caption = 'Options'
               DropDownMenu = popupExportOptions
               Style = bsSplitButton
-              TabOrder = 11
+              TabOrder = 10
               OnClick = btnExportOptionsClick
             end
           end
