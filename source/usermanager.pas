@@ -1298,7 +1298,10 @@ begin
 
     // Set password
     if editPassword.Modified and (not PasswordSet) then begin
-      FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
+      if (not FConnection.Parameters.IsMariaDB) and (FConnection.ServerVersionInt >= 50706) then
+        FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = '+esc(editPassword.Text))
+      else
+        FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
     end;
 
     // Rename user
