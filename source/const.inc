@@ -94,6 +94,7 @@ const
   SIdle = 'Idle.';
   SUnsupported = 'Unsupported by this server';
   SUnsupportedSettingsDatatype = 'Unsupported datatype for setting "%s"';
+  SNotImplemented = 'Method not implemented for this connection type';
   MsgSQLError: String = 'SQL Error (%d): %s';
   MsgSQLErrorMultiStatements: String = 'SQL Error (%d) in statement #%d: %s';
   MsgUnhandledNetType: String = 'Unhandled connection type (%d)';
