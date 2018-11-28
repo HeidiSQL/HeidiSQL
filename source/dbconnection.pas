@@ -7428,12 +7428,20 @@ function TTableColumn.CastAsText: String;
 begin
   // Cast data types which are incompatible to string functions to text columns
   Result := FConnection.QuoteIdent(Name);
-  if DataType.Index = dtUnknown then
-    case FConnection.Parameters.NetTypeGroup of
-      ngMySQL: Result := 'CAST('+Result+' AS CHAR)';
-      ngMSSQL: Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(SIZE_MB)+'))';
-      ngPgSQL: Result := Result + '::text';
+  case FConnection.Parameters.NetTypeGroup of
+    ngMySQL: begin
+      if DataType.Index in [dtUnknown, dtDate, dtDatetime, dtTime, dtTimestamp] then
+        Result := 'CAST('+Result+' AS CHAR)';
     end;
+    ngMSSQL: begin
+      if DataType.Index = dtUnknown then
+        Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(SIZE_MB)+'))';
+    end;
+    ngPgSQL: begin
+      if DataType.Index = dtUnknown then
+        Result := Result + '::text';
+    end;
+  end;
 end;
 
 
