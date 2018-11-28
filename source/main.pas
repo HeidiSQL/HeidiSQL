@@ -10878,15 +10878,13 @@ end;
 
 
 procedure TMainForm.actFilterPanelExecute(Sender: TObject);
-var
-  MakeVisible: Boolean;
 begin
   // (De-)activate or focus filter panel
   if Sender <> actFilterPanel then
     actFilterPanel.Checked := not actFilterPanel.Checked;
   pnlFilterVT.Visible := actFilterPanel.Checked;
   // On startup, we cannot SetFocus, throws exceptons. Call with nil in that special case - see FormCreate
-  if Assigned(Sender) and MakeVisible and editFilterVT.CanFocus then
+  if pnlFilterVT.Visible and editFilterVT.CanFocus and (Sender <> nil) then
     editFilterVT.SetFocus;
 end;
 
