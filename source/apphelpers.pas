@@ -3717,7 +3717,7 @@ begin
   InitSetting(asCompletionProposalNbLinesInWindow,'CompletionProposalNbLinesInWindow',     12);
   InitSetting(asAutoUppercase,                    'AutoUppercase',                         0, True);
   InitSetting(asTabsToSpaces,                     'TabsToSpaces',                          0, False);
-  InitSetting(asFilterPanel,                      'FilterPanel',                           0, False);
+  InitSetting(asFilterPanel,                      'FilterPanel',                           0, True);
   InitSetting(asAllowMultipleInstances,           'AllowMultipleInstances',                0, True);
   InitSetting(asFindDialogSearchHistory,          'FindDialogSearchHistory',               0, False, '');
   InitSetting(asFindDialogReplaceHistory,         'FindDialogReplaceHistory',              0, False, '');

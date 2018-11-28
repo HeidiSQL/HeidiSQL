@@ -1536,7 +1536,7 @@ begin
   AppSettings.WriteInt(asDataPreviewHeight, pnlPreview.Height);
   AppSettings.WriteBool(asDataPreviewEnabled, actDataPreview.Checked);
   AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
-  AppSettings.WriteBool(asFilterPanel, pnlFilterVT.Tag=Integer(True));
+  AppSettings.WriteBool(asFilterPanel, actFilterPanel.Checked);
   AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
   AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
   AppSettings.WriteBool(asLogHorizontalScrollbar, actLogHorizontalScrollbar.Checked);
@@ -10880,9 +10880,9 @@ var
   MakeVisible: Boolean;
 begin
   // (De-)activate or focus filter panel
-  MakeVisible := Sender <> btnCloseFilterPanel;
-  pnlFilterVT.Visible := MakeVisible;
-  pnlFilterVT.Tag := Integer(MakeVisible);
+  if Sender <> actFilterPanel then
+    actFilterPanel.Checked := not actFilterPanel.Checked;
+  pnlFilterVT.Visible := actFilterPanel.Checked;
   // On startup, we cannot SetFocus, throws exceptons. Call with nil in that special case - see FormCreate
   if Assigned(Sender) and MakeVisible and editFilterVT.CanFocus then
     editFilterVT.SetFocus;
