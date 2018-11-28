@@ -56,6 +56,7 @@ type
   public
     function GetText: String;
     procedure SetText(text: String);
+    procedure SetTitleText(Title: String);
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
@@ -105,6 +106,14 @@ begin
   // Trigger change event, which is not fired when text is empty. See #132.
   FmemoText.OnChange(FmemoText);
   Modified := False;
+end;
+
+
+procedure TfrmTextEditor.SetTitleText(Title: String);
+begin
+  // Add column name to window title bar
+  if Title <> '' then
+    Caption := Title + ' - ' + Caption;
 end;
 
 

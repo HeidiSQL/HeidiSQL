@@ -139,6 +139,7 @@ type
     procedure ButtonClick(Sender: TObject);
   public
     ButtonVisible: Boolean;
+    TitleText: String;
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
@@ -1130,6 +1131,7 @@ begin
   FTextEditor := TfrmTextEditor.Create(FTree);
   FTextEditor.SetFont(FEdit.Font);
   FTextEditor.SetText(FEdit.Text);
+  FTextEditor.SetTitleText(TitleText);
   FTextEditor.Modified := FEdit.Modified;
   FTextEditor.SetMaxLength(Self.FMaxLength);
   FTextEditor.ShowModal;
