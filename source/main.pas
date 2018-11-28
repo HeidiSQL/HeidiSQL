@@ -6191,19 +6191,21 @@ begin
     CurrentRowCol := Editor.CharIndexToRowCol(CurrentCharIndex);
     StartOfTokenRowCol := Editor.PrevWordPosEx(CurrentRowCol);
     Editor.GetHighlighterAttriAtRowColEx(StartOfTokenRowCol, Token, TokenTypeInt, Start, Attri);
-    if TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey] then begin
-      OldCaretXY := Editor.CaretXY;
-      OldSelStart := Editor.SelStart;
-      OldSelEnd := Editor.SelEnd;
-      Editor.UndoList.BeginBlock;
-      Editor.SelStart := Editor.RowColToCharIndex(StartOfTokenRowCol);
-      Editor.SelEnd := Editor.SelStart + Length(Token);
-      Editor.SelText := UpperCase(Token);
-      Editor.CaretXY := OldCaretXY;
-      Editor.SelStart := OldSelStart;
-      Editor.SelEnd := OldSelEnd;
-      Editor.UndoList.EndBlock;
-    end;
+    if SynSQLSynUsed.TableNames.IndexOf(Token) > 0 then
+      Exit;
+    if not (TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey]) then
+      Exit;
+    OldCaretXY := Editor.CaretXY;
+    OldSelStart := Editor.SelStart;
+    OldSelEnd := Editor.SelEnd;
+    Editor.UndoList.BeginBlock;
+    Editor.SelStart := Editor.RowColToCharIndex(StartOfTokenRowCol);
+    Editor.SelEnd := Editor.SelStart + Length(Token);
+    Editor.SelText := UpperCase(Token);
+    Editor.CaretXY := OldCaretXY;
+    Editor.SelStart := OldSelStart;
+    Editor.SelEnd := OldSelEnd;
+    Editor.UndoList.EndBlock;
   end;
 end;
 
