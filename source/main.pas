@@ -10887,6 +10887,7 @@ begin
   // On startup, we cannot SetFocus, throws exceptons. Call with nil in that special case - see FormCreate
   if pnlFilterVT.Visible and editFilterVT.CanFocus and (Sender <> nil) then
     editFilterVT.SetFocus;
+  UpdateFilterPanel(Sender);
 end;
 
 
@@ -10894,7 +10895,6 @@ procedure TMainForm.UpdateFilterPanel(Sender: TObject);
 var
   tab: TTabSheet;
   f: String;
-  FilterPanelVisible: Boolean;
 begin
   // Called when active tab changes
   pnlFilterVT.Enabled := (PageControlMain.ActivePage <> tabEditor) or (ActiveObjectEditor is TfrmTableEditor);
@@ -10909,14 +10909,14 @@ begin
   tab := PageControlMain.ActivePage;
   if tab = tabHost then
     tab := PageControlHost.ActivePage;
-  FilterPanelVisible := pnlFilterVT.Tag = Integer(True);
-  if not FilterPanelVisible then begin
+  if not pnlFilterVT.Visible then begin
     if editFilterVT.Text <> '' then
       editFilterVT.Text := ''
     else
       editFilterVTChange(Sender);
   end else begin
-    if tab = tabVariables then f := FFilterTextVariables
+    if tab = tabDatabases then f := FFilterTextDatabases
+    else if tab = tabVariables then f := FFilterTextVariables
     else if tab = tabStatus then f := FFilterTextStatus
     else if tab = tabProcesslist then f := FFilterTextProcessList
     else if tab = tabCommandStats then f := FFilterTextCommandStats
