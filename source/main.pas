@@ -7549,8 +7549,7 @@ begin
     Node := VT.GetNext(Node);
   end;
   if rx.Expression <> '' then begin
-    lblFilterVTInfo.Caption := IntToStr(VisibleCount)+' out of '+IntToStr(VT.RootNodeCount)+' matching. '
-      + IntToStr(VT.RootNodeCount - VisibleCount) + ' hidden.';
+    lblFilterVTInfo.Caption := f_('%0:d out of %1:d matching. %2:d hidden.', [VisibleCount, VT.RootNodeCount, VT.RootNodeCount - VisibleCount]);
   end else
     lblFilterVTInfo.Caption := '';
 

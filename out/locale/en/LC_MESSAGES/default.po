@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-11-26 16:37+0100\n"
+"PO-Revision-Date: 2018-11-29 13:09+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6272,3 +6272,9 @@ msgstr "current value:"
 
 msgid "No help available for this tab."
 msgstr "No help available for this tab."
+
+msgid "%0:d out of %1:d matching. %2:d hidden."
+msgstr "%0:d out of %1:d matching. %2:d hidden."
+
+msgid "Style Theme:"
+msgstr "Style Theme:"
