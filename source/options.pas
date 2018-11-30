@@ -79,7 +79,6 @@ type
     editGridRowsLineCount: TEdit;
     updownGridRowsLineCount: TUpDown;
     chkColorBars: TCheckBox;
-    cboxColorBars: TColorBox;
     comboSQLFontName: TComboBox;
     lblFont: TLabel;
     editSQLFontSize: TEdit;
@@ -190,7 +189,6 @@ type
     procedure Shortcut2Change(Sender: TObject);
     procedure ShortcutEnter(Sender: TObject);
     procedure ShortcutExit(Sender: TObject);
-    procedure chkColorBarsClick(Sender: TObject);
     procedure comboGridTextColorsSelect(Sender: TObject);
     procedure colorBoxGridTextColorsSelect(Sender: TObject);
     procedure editMySQLBinariesRightButtonClick(Sender: TObject);
@@ -301,7 +299,6 @@ begin
   AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
   AppSettings.WriteBool(asWheelZoom, chkWheelZoom.Checked);
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
-  AppSettings.WriteInt(asBarColor, cboxColorBars.Selected);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
   AppSettings.WriteString(asCustomSnippetsDirectory, editCustomSnippetsDirectory.Text);
   if comboAppLanguage.ItemIndex > 0 then begin
@@ -519,7 +516,6 @@ begin
   chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
   chkWheelZoom.Checked := AppSettings.ReadBool(asWheelZoom);
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
-  cboxColorBars.Selected := AppSettings.ReadInt(asBarColor);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
   editCustomSnippetsDirectory.Text := AppSettings.ReadString(asCustomSnippetsDirectory);
   LangCode := AppSettings.ReadString(asAppLanguage);
@@ -715,13 +711,6 @@ begin
   updownUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   editUpdatecheckInterval.Enabled := chkUpdatecheck.Checked;
   chkUpdatecheckBuilds.Enabled := chkUpdatecheck.Checked;
-  Modified(Sender);
-end;
-
-
-procedure Toptionsform.chkColorBarsClick(Sender: TObject);
-begin
-  cboxColorBars.Enabled := (Sender as TCheckbox).Checked;
   Modified(Sender);
 end;
 

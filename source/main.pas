@@ -7391,7 +7391,7 @@ begin
   // Avoid division by zero, when max is 0 - very rare case but reported in issue #2196.
   if (Value > 0) and (Max > 0) then begin
     BarWidth := Round(CellWidth / Max * Value);
-    TargetCanvas.Brush.Color := AppSettings.ReadInt(asBarColor);
+    TargetCanvas.Brush.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, 20);
     TargetCanvas.Pen.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, -40);
     TargetCanvas.RoundRect(CellRect.Left, CellRect.Top, CellRect.Left+BarWidth, CellRect.Bottom, 2, 2);
   end;

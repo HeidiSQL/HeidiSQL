@@ -167,7 +167,7 @@ type
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
-    asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asBarColor, asMySQLBinaries, asCustomSnippetsDirectory,
+    asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asWarnUnsafeUpdates, asQueryWarningsMessage,
     asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
@@ -3700,7 +3700,6 @@ begin
   InitSetting(asLastUsageStatisticCall,           'LastUsageStatisticCall',                0, False, '2000-01-01');
   InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
-  InitSetting(asBarColor,                         'BarColor',                              $00BBFFDD);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
   // Default folder for snippets
   if FPortableMode then

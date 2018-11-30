@@ -185,20 +185,10 @@ object optionsform: Toptionsform
         object chkColorBars: TCheckBox
           Left = 8
           Top = 199
-          Width = 258
+          Width = 699
           Height = 17
           Caption = 'Display bars in various list columns'
           TabOrder = 9
-          OnClick = chkColorBarsClick
-        end
-        object cboxColorBars: TColorBox
-          Left = 272
-          Top = 197
-          Width = 435
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbCustomColor, cbPrettyNames, cbCustomColors]
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 10
           OnClick = Modified
         end
         object editMySQLBinaries: TButtonedEdit
@@ -210,7 +200,7 @@ object optionsform: Toptionsform
           Images = MainForm.ImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
-          TabOrder = 11
+          TabOrder = 10
           Text = 'editMySQLBinaries'
           TextHint = 'Find mysql.exe directory'
           OnChange = Modified
@@ -224,7 +214,7 @@ object optionsform: Toptionsform
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          TabOrder = 13
+          TabOrder = 12
           OnClick = Modified
         end
         object editCustomSnippetsDirectory: TButtonedEdit
@@ -236,7 +226,7 @@ object optionsform: Toptionsform
           Images = MainForm.ImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
-          TabOrder = 12
+          TabOrder = 11
           Text = 'editCustomSnippetsDirectory'
           TextHint = 'Set custom directory for SQL snippet files'
           OnChange = Modified
@@ -250,7 +240,7 @@ object optionsform: Toptionsform
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
-          TabOrder = 14
+          TabOrder = 13
           OnChange = comboGUIFontChange
         end
         object editGUIFontSize: TEdit
@@ -259,7 +249,7 @@ object optionsform: Toptionsform
           Width = 57
           Height = 21
           Anchors = [akTop, akRight]
-          TabOrder = 15
+          TabOrder = 14
           Text = '8'
           OnChange = Modified
         end
@@ -272,7 +262,7 @@ object optionsform: Toptionsform
           Associate = editGUIFontSize
           Min = 4
           Position = 8
-          TabOrder = 16
+          TabOrder = 15
           OnChanging = anyUpDownLimitChanging
         end
         object chkWheelZoom: TCheckBox
@@ -293,7 +283,7 @@ object optionsform: Toptionsform
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
           Sorted = True
-          TabOrder = 17
+          TabOrder = 16
           OnChange = Modified
         end
       end
