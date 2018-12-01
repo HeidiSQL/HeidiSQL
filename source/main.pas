@@ -1585,7 +1585,6 @@ var
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
   OldSnippetsDir, CurrentSnippetsDir, TargetSnippet: String;
   Files: TStringDynArray;
-  DpiScaleFactor: Double;
 begin
   caption := APPNAME;
 
@@ -1596,8 +1595,7 @@ begin
   TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
   FixDropDownButtons(Self);
-  DpiScaleFactor := Monitor.PixelsPerInch / PixelsPerInch;
-  ScaleImageList(ImageListMain, DpiScaleFactor);
+  ScaleImageList(ImageListMain, DpiScaleFactor(Self));
   MainMenu1.Images := ImageListMain;
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
@@ -2209,7 +2207,6 @@ var
   PanelRect: TRect;
   Tab: TQueryTab;
   w0, w1, w2, w3, w4, w5, w6: Integer;
-  DpiScaleFactor: Real;
 
   function GridNeedHeight: Integer;
   begin
@@ -2219,7 +2216,7 @@ var
 
   function CalcPanelWidth(PreferredWidth, Percentage: Integer): Integer;
   begin
-    Result := Round(Min(PreferredWidth * DpiScaleFactor, Width / 100 * Percentage));
+    Result := Round(Min(PreferredWidth * DpiScaleFactor(Self), Width / 100 * Percentage));
   end;
 begin
   // Exit early when user pressed "Cancel" on connection dialog
@@ -2231,7 +2228,6 @@ begin
 
   // Super intelligent calculation of status bar panel width
   StatusBar.Height := GetTextHeight(StatusBar.Font) + 4;
-  DpiScaleFactor := Monitor.PixelsPerInch / PixelsPerInch;
   w1 := CalcPanelWidth(110, 10);
   w2 := CalcPanelWidth(140, 10);
   w3 := CalcPanelWidth(170, 15);

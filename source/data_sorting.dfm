@@ -11,7 +11,6 @@ object DataSortingForm: TDataSortingForm
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
-  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object pnlBevel: TPanel
@@ -71,12 +70,5 @@ object DataSortingForm: TDataSortingForm
       TabOrder = 3
       OnClick = btnResetClick
     end
-  end
-  object timerRefresh: TTimer
-    Enabled = False
-    Interval = 100
-    OnTimer = DisplaySortingControls
-    Left = 8
-    Top = 8
   end
 end

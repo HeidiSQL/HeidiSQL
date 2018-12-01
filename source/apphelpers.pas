@@ -348,6 +348,7 @@ type
   function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetUwpFullName: String;
   function RunningAsUwp: Boolean;
+  function DpiScaleFactor(Form: TForm): Double;
   procedure ScaleImageList(const ImgList: TImageList; ScaleFactor: Real);
   procedure LoadPNGFromImageList(AImageList: TCustomImageList; AIndex: Integer; var ADestPNG: TPngImage);
   procedure ResizePngImage(aPng: TPNGImage; NewWidth, NewHeight: Integer);
@@ -2936,6 +2937,12 @@ end;
 function RunningAsUwp: Boolean;
 begin
   Result := GetUwpFullName <> '';
+end;
+
+
+function DpiScaleFactor(Form: TForm): Double;
+begin
+  Result := Form.Monitor.PixelsPerInch / Form.PixelsPerInch;
 end;
 
 
