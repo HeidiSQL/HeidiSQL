@@ -28,9 +28,9 @@ type
     ColumnNames : TStringList;
     OrderColumns : TOrderColArray;
     OldOrderClause : String;
-    procedure dropdownColsChange( Sender: TObject );
-    procedure buttonOrderClick( Sender: TObject );
-    procedure buttonDeleteClick( Sender: TObject );
+    procedure comboColumnsChange( Sender: TObject );
+    procedure btnOrderClick( Sender: TObject );
+    procedure btnDeleteClick( Sender: TObject );
     procedure Modified;
   public
     { Public declarations }
@@ -70,13 +70,14 @@ end;
 }
 procedure TDataSortingForm.DisplaySortingControls(Sender: TObject);
 var
-  labelNumber: TLabel;
-  buttonDelete: TButton;
-  dropdownCols: TComboBox;
-  buttonOrder: TSpeedButton;
-  i, xPosition, topPosition, btnWidth : Integer;
-  Margin: Integer;       // Space between controls
-  MarginBig: Integer;    // Space above the very first and last controls, used to separate stuff
+  lblNumber: TLabel;
+  btnDelete: TButton;
+  comboColumns: TComboBox;
+  btnOrder: TSpeedButton;
+  i, TopPos,
+  Width1, Width2, Width3, Width4,   // Width of controls per row
+  Margin,                           // Space between controls
+  MarginBig: Integer;               // Space above the very first and last controls, used to separate stuff
 begin
   // Remove previously created components, which all have a tag > 0
   for i := ComponentCount - 1 downto 0 do begin
@@ -84,107 +85,115 @@ begin
       Components[i].Free;
   end;
 
-  Margin := Round(2 * DpiScaleFactor(Self));
-  MarginBig := Round(6 * DpiScaleFactor(Self));
+  Margin := Round(3 * DpiScaleFactor(Self));
+  MarginBig := Margin * 2;
+  Width1 := Round(15 * DpiScaleFactor(Self));
+  Width2 := Round(130 * DpiScaleFactor(Self));
+  Width3 := Round(40 * DpiScaleFactor(Self));
+  Width4 := Round(30 * DpiScaleFactor(Self));
 
   // Set initial width to avoid resizing form to 0
-  xPosition := pnlBevel.Width;
-  topPosition := MarginBig;
+  TopPos := pnlBevel.BorderWidth + MarginBig;
 
   // Create line with controls for each order column
   // TODO: disable repaint on every created control. Sending WM_SETREDRAW=0 message creates artefacts.
-  for i:=0 to Length(OrderColumns)-1 do
-  begin
-    xPosition := pnlBevel.BorderWidth;
-
+  for i:=0 to Length(OrderColumns)-1 do begin
     // 1. Label with number
-    labelNumber := TLabel.Create(self);
-    labelNumber.Parent := pnlBevel;
-    labelNumber.AutoSize := False; // Avoids automatic changes to width + height
-    labelNumber.Left := xPosition;
-    labelNumber.Top := topPosition;
-    labelNumber.Width := Round(15 * DpiScaleFactor(Self));
-    labelNumber.Alignment := taRightJustify;
-    labelNumber.Layout := tlCenter;
-    labelNumber.Caption := IntToStr(i+1) + '.';
-    labelNumber.Tag := i+1;
-    Inc( xPosition, labelNumber.Width + Margin );
+    lblNumber := TLabel.Create(self);
+    lblNumber.Parent := pnlBevel;
+    lblNumber.AutoSize := False; // Avoids automatic changes to width + height
+    lblNumber.Left := pnlBevel.BorderWidth + MarginBig;
+    lblNumber.Top := TopPos;
+    lblNumber.Width := Width1;
+    lblNumber.Alignment := taRightJustify;
+    lblNumber.Layout := tlCenter;
+    lblNumber.Caption := IntToStr(i+1) + '.';
+    lblNumber.Tag := i+1;
 
     // 2. Dropdown with columnnames
-    dropdownCols := TComboBox.Create(self);
-    dropdownCols.Parent := pnlBevel;
-    dropdownCols.Width := Round(130 * DpiScaleFactor(Self));
-    dropdownCols.Left := xPosition;
-    dropdownCols.Top := topPosition;
-    dropdownCols.Items.Text := ColumnNames.Text;
-    dropdownCols.Style := csDropDownList; // Not editable
-    dropdownCols.ItemIndex := ColumnNames.IndexOf(OrderColumns[i].ColumnName);
-    dropdownCols.Tag := i+1;
-    dropdownCols.OnChange := dropdownColsChange;
-    labelNumber.Height := dropdownCols.Height;
-    Inc( xPosition, dropdownCols.Width + Margin );
+    comboColumns := TComboBox.Create(self);
+    comboColumns.Parent := pnlBevel;
+    comboColumns.Width := Width2;
+    comboColumns.Left := lblNumber.Left + lblNumber.Width + Margin;
+    comboColumns.Top := TopPos;
+    comboColumns.Items.Text := ColumnNames.Text;
+    comboColumns.Style := csDropDownList; // Not editable
+    comboColumns.ItemIndex := ColumnNames.IndexOf(OrderColumns[i].ColumnName);
+    comboColumns.Tag := i+1;
+    comboColumns.OnChange := comboColumnsChange;
+    lblNumber.Height := comboColumns.Height;
 
     // 3. A button for selecting ASC/DESC
-    buttonOrder := TSpeedButton.Create(self);
-    buttonOrder.Parent := pnlBevel;
-    buttonOrder.Width := Round(40 * DpiScaleFactor(Self));
-    buttonOrder.Height := dropdownCols.Height;
-    buttonOrder.Left := xPosition;
-    buttonOrder.Top := topPosition;
-    buttonOrder.AllowAllUp := True; // Enables Down = False
-    buttonOrder.GroupIndex := i+1; // if > 0 enables Down = True
-    buttonOrder.Caption := TXT_ASC;
-    if OrderColumns[i].SortDirection = ORDER_DESC then
-    begin
-      buttonOrder.Caption := TXT_DESC;
-      buttonOrder.Down := True;
+    btnOrder := TSpeedButton.Create(self);
+    btnOrder.Parent := pnlBevel;
+    btnOrder.Width := Width3;
+    btnOrder.Height := comboColumns.Height;
+    btnOrder.Left := comboColumns.Left + comboColumns.Width + Margin;
+    btnOrder.Top := TopPos;
+    btnOrder.AllowAllUp := True; // Enables Down = False
+    btnOrder.GroupIndex := i+1; // if > 0 enables Down = True
+    btnOrder.Caption := TXT_ASC;
+    if OrderColumns[i].SortDirection = ORDER_DESC then begin
+      btnOrder.Caption := TXT_DESC;
+      btnOrder.Down := True;
     end;
-    buttonOrder.Hint := _('Toggle the sort direction for this column.');
-    buttonOrder.Tag := i+1;
-    buttonOrder.OnClick := buttonOrderClick;
-    Inc( xPosition, buttonOrder.Width + Margin );
+    btnOrder.Hint := _('Toggle the sort direction for this column.');
+    btnOrder.Tag := i+1;
+    btnOrder.OnClick := btnOrderClick;
 
     // 4. Button for deleting
-    buttonDelete := TButton.Create(self);
-    buttonDelete.Parent := pnlBevel;
-    buttonDelete.Width := Round(30 * DpiScaleFactor(Self));
-    buttonDelete.Height := dropdownCols.Height;
-    buttonDelete.Left := xPosition;
-    buttonDelete.Top := topPosition;
-    buttonDelete.Caption := 'X';
-    buttonDelete.Hint := _('Drops sorting by this column.');
-    buttonDelete.Tag := i+1;
-    buttonDelete.OnClick := buttonDeleteClick;
-    Inc( xPosition, buttonDelete.Width + Margin );
+    btnDelete := TButton.Create(self);
+    btnDelete.Parent := pnlBevel;
+    btnDelete.Width := Width4;
+    btnDelete.Height := comboColumns.Height;
+    btnDelete.Left := btnOrder.Left + btnOrder.Width + Margin;
+    btnDelete.Top := TopPos;
+    btnDelete.Caption := 'X';
+    btnDelete.Hint := _('Drops sorting by this column.');
+    btnDelete.Tag := i+1;
+    btnDelete.OnClick := btnDeleteClick;
 
-    topPosition := dropdownCols.Top + dropdownCols.Height + Margin;
+    TopPos := comboColumns.Top + comboColumns.Height + Margin;
   end;
 
+  Inc(TopPos, MarginBig);
+
   // Auto-adjust size of form
-  Height := topPosition + MarginBig +
-    btnreset.Height + Margin +
-    btnOK.Height + Margin +
+  Height := TopPos +
+    btnReset.Height + Margin +
+    btnOK.Height + MarginBig +
     pnlBevel.BorderWidth;
-  Width := xPosition + pnlBevel.BorderWidth;
+  Width := pnlBevel.BorderWidth +
+    MarginBig + Width1 +
+    Margin + Width2 +
+    Margin + Width3 +
+    Margin + Width4 +
+    MarginBig + pnlBevel.BorderWidth;
 
   // Auto-adjust width and position of main buttons at bottom
-  btnWidth := (pnlBevel.Width -pnlBevel.BorderWidth*2 - Margin) DIV 3 - Margin;
-  btnOK.Width := btnWidth;
-  btnOK.Left := pnlBevel.BorderWidth + Margin;
-  btnCancel.Width := btnWidth;
-  btnCancel.Left := btnOK.Left + btnWidth + Margin;
-  btnAddCol.Width := btnWidth;
-  btnAddCol.Left := btnCancel.Left + btnWidth + Margin;
-  btnReset.Left := btnOK.Left;
-  btnReset.Width := btnAddCol.Left + btnAddCol.Width - btnReset.Left;
+  btnReset.Left := pnlBevel.BorderWidth + MarginBig;
+  btnReset.Top := TopPos;
+  btnReset.Width := Width - 2 * pnlBevel.BorderWidth - 2 * MarginBig;
   btnReset.Enabled := Mainform.actDataResetSorting.Enabled;
+
+  btnOK.Left := pnlBevel.BorderWidth + MarginBig;
+  btnOK.Top := btnReset.Top + btnReset.Height + Margin;
+  btnOK.Width := Round(btnReset.Width / 3) - Margin;
+
+  btnCancel.Left := btnOK.Left + btnOK.Width + Margin;
+  btnCancel.Top := btnReset.Top + btnReset.Height + Margin;
+  btnCancel.Width := btnOK.Width;
+
+  btnAddCol.Left := btnCancel.Left + btnCancel.Width + Margin;
+  btnAddCol.Top := btnReset.Top + btnReset.Height + Margin;
+  btnAddCol.Width := btnOK.Width;
 end;
 
 
 {**
   Dropdown for column selection was changed
 }
-procedure TDataSortingForm.dropdownColsChange( Sender: TObject );
+procedure TDataSortingForm.comboColumnsChange( Sender: TObject );
 var
   combo : TComboBox;
 begin
@@ -199,7 +208,7 @@ end;
 {**
   Button for selecting sort-direction was clicked
 }
-procedure TDataSortingForm.buttonOrderClick( Sender: TObject );
+procedure TDataSortingForm.btnOrderClick( Sender: TObject );
 var
   btn : TSpeedButton;
 begin
@@ -223,7 +232,7 @@ end;
 {**
   Delete order column
 }
-procedure TDataSortingForm.buttonDeleteClick( Sender: TObject );
+procedure TDataSortingForm.btnDeleteClick( Sender: TObject );
 var
   btn : TButton;
   i : Integer;
