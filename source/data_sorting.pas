@@ -4,8 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
-
-  apphelpers, gnugettext;
+  Vcl.Graphics, apphelpers, gnugettext;
 
 
 type
@@ -21,7 +20,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDeactivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure btnResetClick(Sender: TObject);
     procedure DisplaySortingControls(Sender: TObject);
   private
     { Private declarations }
@@ -88,9 +86,9 @@ begin
   Margin := Round(3 * DpiScaleFactor(Self));
   MarginBig := Margin * 2;
   Width1 := Round(15 * DpiScaleFactor(Self));
-  Width2 := Round(130 * DpiScaleFactor(Self));
-  Width3 := Round(40 * DpiScaleFactor(Self));
-  Width4 := Round(30 * DpiScaleFactor(Self));
+  Width2 := Round(160 * DpiScaleFactor(Self));
+  Width3 := Round(23 * DpiScaleFactor(Self));
+  Width4 := Round(23 * DpiScaleFactor(Self));
 
   // Set initial width to avoid resizing form to 0
   TopPos := pnlBevel.BorderWidth + MarginBig;
@@ -133,10 +131,13 @@ begin
     btnOrder.Top := TopPos;
     btnOrder.AllowAllUp := True; // Enables Down = False
     btnOrder.GroupIndex := i+1; // if > 0 enables Down = True
-    btnOrder.Caption := TXT_ASC;
+    btnOrder.Glyph.Transparent := True;
+    btnOrder.Glyph.AlphaFormat := afDefined;
     if OrderColumns[i].SortDirection = ORDER_DESC then begin
-      btnOrder.Caption := TXT_DESC;
+      MainForm.ImageListMain.GetBitmap(110, btnOrder.Glyph);
       btnOrder.Down := True;
+    end else begin
+      MainForm.ImageListMain.GetBitmap(109, btnOrder.Glyph);
     end;
     btnOrder.Hint := _('Toggle the sort direction for this column.');
     btnOrder.Tag := i+1;
@@ -149,7 +150,8 @@ begin
     btnDelete.Height := comboColumns.Height;
     btnDelete.Left := btnOrder.Left + btnOrder.Width + Margin;
     btnDelete.Top := TopPos;
-    btnDelete.Caption := 'X';
+    btnDelete.Images := MainForm.ImageListMain;
+    btnDelete.ImageIndex := 26;
     btnDelete.Hint := _('Drops sorting by this column.');
     btnDelete.Tag := i+1;
     btnDelete.OnClick := btnDeleteClick;
@@ -212,17 +214,15 @@ end;
 }
 procedure TDataSortingForm.btnOrderClick( Sender: TObject );
 var
-  btn : TSpeedButton;
+  btn: TSpeedButton;
 begin
   btn := Sender as TSpeedButton;
-  if btn.Down then
-  begin
-    btn.Caption := TXT_DESC;
+  btn.Glyph := nil;
+  if OrderColumns[btn.Tag-1].SortDirection = ORDER_ASC then begin
+    MainForm.ImageListMain.GetBitmap(110, btn.Glyph);
     OrderColumns[btn.Tag-1].SortDirection := ORDER_DESC;
-  end
-  else
-  begin
-    btn.Caption := TXT_ASC;
+  end else begin
+    MainForm.ImageListMain.GetBitmap(109, btn.Glyph);
     OrderColumns[btn.Tag-1].SortDirection := ORDER_ASC;
   end;
 
@@ -341,13 +341,6 @@ end;
 }
 procedure TDataSortingForm.FormDeactivate(Sender: TObject);
 begin
-  btnCancel.OnClick(Sender);
-end;
-
-
-procedure TDataSortingForm.btnResetClick(Sender: TObject);
-begin
-  Mainform.actDataResetSortingExecute(Sender);
   btnCancel.OnClick(Sender);
 end;
 

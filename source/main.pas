@@ -7037,6 +7037,8 @@ end;
   Toggle the sort direction
 }
 procedure TMainForm.AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+var
+  i: Integer;
 begin
   // Don't call sorting procedure on right click
   // Some list-headers have a contextmenu which should popup then.
@@ -7050,13 +7052,20 @@ begin
   if Sender.Columns[HitInfo.Column].CheckBox then
     Exit;
 
-  if Sender.SortColumn <> HitInfo.Column then
-    Sender.SortColumn := HitInfo.Column
-  else if Sender.SortDirection = sdAscending then
-    Sender.SortDirection := sdDescending
-  else
+  // Clear sort icons
+  for i:=0 to Sender.Columns.Count-1 do begin
+    Sender.Columns[i].ImageIndex := -1;
+  end;
+
+  if (Sender.SortColumn <> HitInfo.Column) or (Sender.SortDirection = sdDescending) then begin
     Sender.SortDirection := sdAscending;
+    Sender.Columns[HitInfo.Column].ImageIndex := 109;
+  end else if Sender.SortDirection = sdAscending then begin
+    Sender.SortDirection := sdDescending;
+    Sender.Columns[HitInfo.Column].ImageIndex := 110;
+  end;
   Screen.Cursor := crHourglass;
+  Sender.SortColumn := HitInfo.Column;
   Sender.Treeview.SortTree( HitInfo.Column, Sender.SortDirection );
   Screen.Cursor := crDefault;
 end;
