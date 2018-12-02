@@ -97,6 +97,7 @@ begin
 
   // Create line with controls for each order column
   // TODO: disable repaint on every created control. Sending WM_SETREDRAW=0 message creates artefacts.
+  LockWindowUpdate(pnlBevel.Handle);
   for i:=0 to Length(OrderColumns)-1 do begin
     // 1. Label with number
     lblNumber := TLabel.Create(self);
@@ -155,6 +156,7 @@ begin
 
     TopPos := comboColumns.Top + comboColumns.Height + Margin;
   end;
+  LockWindowUpdate(0);
 
   Inc(TopPos, MarginBig);
 
