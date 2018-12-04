@@ -3213,12 +3213,13 @@ begin
 
   if DBTreeClicked(Sender) then begin
     // drop table selected in tree view.
-    case ActiveDBObj.NodeType of
+    DBObject := ActiveDBObj;
+    case DBObject.NodeType of
       lntDb: begin
-        if MessageDialog(f_('Drop Database "%s"?', [Conn.Database]), f_('WARNING: You will lose all objects in database %s!', [Conn.Database]), mtCriticalConfirmation, [mbok,mbcancel]) <> mrok then
+        if MessageDialog(f_('Drop Database "%s"?', [DBObject.Database]), f_('WARNING: You will lose all objects in database %s!', [DBObject.Database]), mtCriticalConfirmation, [mbok,mbcancel]) <> mrok then
           Abort;
         try
-          db := Conn.Database;
+          db := DBObject.Database;
           Node := FindDBNode(DBtree, Conn, db);
           SetActiveDatabase('', Conn);
           Conn.Query('DROP DATABASE ' + Conn.QuoteIdent(db));
@@ -3232,7 +3233,7 @@ begin
         end;
         Exit;
       end;
-      lntTable..lntEvent: ObjectList.Add(ActiveDbObj);
+      lntTable..lntEvent: ObjectList.Add(ActiveDBObj);
     end;
   end else begin
     // Invoked from database tab
