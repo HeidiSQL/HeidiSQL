@@ -9,6 +9,7 @@ object optionsform: Toptionsform
   ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
@@ -54,9 +55,9 @@ object optionsform: Toptionsform
         object lblLanguage: TLabel
           Left = 8
           Top = 282
-          Width = 189
+          Width = 112
           Height = 13
-          Caption = 'Application language (requires restart):'
+          Caption = 'Application language: *'
         end
         object lblCustomSnippetsDirectory: TLabel
           Left = 8
@@ -68,9 +69,9 @@ object optionsform: Toptionsform
         object lblGUIFont: TLabel
           Left = 8
           Top = 309
-          Width = 131
+          Width = 54
           Height = 13
-          Caption = 'GUI font (requires restart):'
+          Caption = 'GUI font: *'
         end
         object lblGUIFontSize: TLabel
           Left = 694
@@ -83,9 +84,9 @@ object optionsform: Toptionsform
         object lblTheme: TLabel
           Left = 8
           Top = 336
-          Width = 63
+          Width = 72
           Height = 13
-          Caption = 'Style Theme:'
+          Caption = 'Style Theme: *'
         end
         object chkAutoReconnect: TCheckBox
           Left = 8
@@ -208,6 +209,7 @@ object optionsform: Toptionsform
           OnRightButtonClick = editMySQLBinariesRightButtonClick
         end
         object comboAppLanguage: TComboBox
+          Tag = 1
           Left = 272
           Top = 279
           Width = 435
@@ -234,6 +236,7 @@ object optionsform: Toptionsform
           OnRightButtonClick = editCustomSnippetsDirectoryRightButtonClick
         end
         object comboGUIFont: TComboBox
+          Tag = 1
           Left = 272
           Top = 306
           Width = 334
@@ -244,6 +247,7 @@ object optionsform: Toptionsform
           OnChange = comboGUIFontChange
         end
         object editGUIFontSize: TEdit
+          Tag = 1
           Left = 612
           Top = 306
           Width = 57
@@ -254,6 +258,7 @@ object optionsform: Toptionsform
           OnChange = Modified
         end
         object updownGUIFontSize: TUpDown
+          Tag = 1
           Left = 669
           Top = 306
           Width = 16
@@ -276,6 +281,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object comboTheme: TComboBox
+          Tag = 1
           Left = 272
           Top = 333
           Width = 435

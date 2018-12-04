@@ -197,12 +197,15 @@ type
     procedure comboGUIFontChange(Sender: TObject);
     procedure chkQueryHistoryClick(Sender: TObject);
     procedure comboEditorColorsPresetChange(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     FWasModified: Boolean;
     FShortcutCategories: TStringList;
     FGridTextColors: Array[dtcInteger..dtcOther] of TColor;
     FLanguages: TStringList;
+    FRestartOptionTouched: Boolean;
+    FRestartOptionApplied: Boolean;
     procedure InitLanguages;
     procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
   public
@@ -222,6 +225,9 @@ procedure Toptionsform.Modified(Sender: TObject);
 begin
   // Modified
   btnApply.Enabled := True;
+  if (Sender is TComponent) and (TComponent(Sender).Tag <> 0) then begin
+    FRestartOptionTouched := True;
+  end;
 end;
 
 
@@ -399,6 +405,9 @@ begin
   Mainform.ListProcesses.Invalidate;
   Mainform.ListCommandStats.Invalidate;
 
+
+  FRestartOptionApplied := FRestartOptionTouched;
+
   // Settings have been applied, send a signal to the user
   btnApply.Enabled := False;
   Screen.Cursor := crDefault;
@@ -416,6 +425,16 @@ begin
   Result := 1;  // don't cancel
   if (lpelf^.elfLogFont.lfPitchAndFamily and FIXED_PITCH) <> 0 then
     (TStrings(Data)).Add(String(lpelf^.elfLogFont.lfFaceName));
+end;
+
+
+procedure Toptionsform.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  if FRestartOptionApplied then begin
+    MessageDialog(f_('You should restart %s to apply changed critical settings, and to prevent unexpected behaviour.', [APPNAME]),
+      mtInformation,
+      [mbOk]);
+  end;
 end;
 
 
@@ -601,6 +620,7 @@ begin
   TreeShortcutItems.ReinitChildren(nil, True);
   SelectNode(TreeShortcutItems, nil);
 
+  FRestartOptionTouched := False;
   btnApply.Enabled := False;
   screen.Cursor := crdefault;
 end;
