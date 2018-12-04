@@ -9195,7 +9195,6 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
-  VT: TVirtualStringTree;
   r: TDBQuery;
   cl, clNull, clEven, clOdd, clSameData: TColor;
   RowNumber: PInt64;
@@ -9204,7 +9203,7 @@ var
 begin
   if Column = -1 then
     Exit;
-  VT := Sender as TVirtualStringTree;
+
   r := GridResult(Sender);
   if not r.Connection.Active then begin
     // This event (BeforeCellPaint) is the very first one to notice a broken connection
@@ -9792,9 +9791,11 @@ begin
   Screen.Cursor := crHourglass;
   try
     if SendingControl = btnPreviewCopy then begin
-      imgPreview.Picture.SaveToClipBoardFormat(ClpFormat, ClpData, APalette);
-      ClipBoard.SetAsHandle(ClpFormat, ClpData);
-      Success := True;
+      if (imgPreview.Picture.Graphic <> nil) and (not imgPreview.Picture.Graphic.Empty) then begin
+        imgPreview.Picture.SaveToClipBoardFormat(ClpFormat, ClpData, APalette);
+        ClipBoard.SetAsHandle(ClpFormat, ClpData);
+        Success := True;
+      end;
     end else if Control is TCustomEdit then begin
       Edit := TCustomEdit(Control);
       if Edit.SelLength > 0 then begin
