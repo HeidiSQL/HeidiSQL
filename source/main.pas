@@ -1920,6 +1920,12 @@ begin
     actUpdateCheck.Hint := f_('Please update %s through the Microsoft Store.', [APPNAME]);
     actWebDownloadpage.Hint := 'ms-windows-store://pdp/?PRODUCTID=9NXPRT2T0ZJF';
   end;
+
+  // Log some application details - useful when analyzing session logs
+  LogSQL(f_('App path: "%s"', [Application.ExeName]), lcDebug);
+  LogSQL(f_('Version: "%s"', [AppVersion]), lcDebug);
+  LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
+  LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
 end;
 
 
