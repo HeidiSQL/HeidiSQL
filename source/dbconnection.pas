@@ -1173,6 +1173,8 @@ begin
     FSSHUser := AppSettings.ReadString(asSSHtunnelUser);
     FSSHPassword := decrypt(AppSettings.ReadString(asSSHtunnelPassword));
     FSSHTimeout := AppSettings.ReadInt(asSSHtunnelTimeout);
+    if FSSHTimeout < 1 then
+      FSSHTimeout := 1;
     FSSHPrivateKey := AppSettings.ReadString(asSSHtunnelPrivateKey);
     FSSHLocalPort := AppSettings.ReadInt(asSSHtunnelPort);
 

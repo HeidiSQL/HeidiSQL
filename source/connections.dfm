@@ -575,7 +575,7 @@ object connform: Tconnform
           Width = 60
           Height = 21
           TabOrder = 5
-          Text = '0'
+          Text = '1'
           OnChange = Modification
         end
         object updownSSHTimeout: TUpDown
@@ -584,6 +584,8 @@ object connform: Tconnform
           Width = 17
           Height = 21
           Associate = editSSHTimeout
+          Min = 1
+          Position = 1
           TabOrder = 6
           Wrap = True
         end
