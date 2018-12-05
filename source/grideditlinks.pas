@@ -62,6 +62,7 @@ type
     FForm: TfrmBinEditor;
   public
     MaxLength: Integer;
+    TitleText: String;
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
@@ -456,6 +457,7 @@ begin
   FForm := TfrmBinEditor.Create(Ftree);
   FForm.SetFont(FCellFont);
   FForm.SetText(FCellText);
+  FForm.SetTitleText(TitleText);
   FForm.SetMaxLength(MaxLength);
 end;
 

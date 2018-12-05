@@ -9070,6 +9070,7 @@ begin
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
     HexEditor := THexEditorLink.Create(VT);
     HexEditor.MaxLength := Results.MaxLength(Column);
+    HexEditor.TitleText := Results.ColumnOrgNames[Column];
     EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal) and AppSettings.ReadBool(asFieldEditorDatetime) then begin
     // Ensure date/time editor starts with a non-empty text value

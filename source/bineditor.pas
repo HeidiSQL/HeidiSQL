@@ -35,6 +35,7 @@ type
   public
     function GetText: String;
     procedure SetText(text: String);
+    procedure SetTitleText(Title: String);
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
@@ -64,6 +65,15 @@ begin
   // Skip '0x'.
   memoText.Text := Copy(text, 3);
 end;
+
+
+procedure TfrmBinEditor.SetTitleText(Title: String);
+begin
+  // Add column name to window title bar
+  if Title <> '' then
+    Caption := Title + ' - ' + Caption;
+end;
+
 
 procedure TfrmBinEditor.SetMaxLength(len: integer);
 begin
