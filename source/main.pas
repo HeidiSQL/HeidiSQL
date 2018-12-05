@@ -9058,7 +9058,7 @@ begin
   end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT);
     InplaceEditor.MaxLength := Results.MaxLength(Column);
-    InplaceEditor.TitleText := Results.ColumnNames[Column];
+    InplaceEditor.TitleText := Results.ColumnOrgNames[Column];
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
