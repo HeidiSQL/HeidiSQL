@@ -3075,7 +3075,7 @@ begin
     Results.RecNo := RowNum^;
 
     Content := AnsiString(Results.Col(Grid.FocusedColumn));
-    StrLen := Length(Content);
+    StrLen := Results.ColumnLengths(Grid.FocusedColumn);
     ContentStream := TMemoryStream.Create;
     ContentStream.Write(Content[1], StrLen);
     ContentStream.Position := 0;
@@ -3110,7 +3110,7 @@ begin
       end;
       FreeAndNil(ContentStream);
     end else
-      lblPreviewTitle.Caption := _('No image detected.');
+      lblPreviewTitle.Caption := f_('No image detected, %s', [FormatByteNumber(StrLen)]);
   finally
     lblPreviewTitle.Hint := lblPreviewTitle.Caption;
     ShowStatusMsg;
