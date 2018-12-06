@@ -70,14 +70,15 @@ type
   PMYSQL_FIELD = ^MYSQL_FIELD;
   MYSQL_FIELD = record
     name:             PAnsiChar;   // Name of column
-    org_name:         PAnsiChar;   // Original column name, if an alias
+    org_name:         PAnsiChar;   // Name of original column (added after 3.23.58)
     table:            PAnsiChar;   // Table of column if column was a field
-    org_table:        PAnsiChar;   // Org table name if table was an alias
-    db:               PAnsiChar;   // Database for table
-    catalog:	      PAnsiChar;   // Catalog for table
+    org_table:        PAnsiChar;   // Name of original table (added after 3.23.58
+    db:               PAnsiChar;   // table schema (added after 3.23.58)
+    catalog:	        PAnsiChar;   // table catalog (added after 3.23.58)
     def:              PAnsiChar;   // Default value (set by mysql_list_fields)
-    length:           LongInt; // Width of column
-    max_length:       LongInt; // Max width of selected set
+    length:           LongInt;     // Width of column
+    max_length:       LongInt;     // Max width of selected set
+    // added after 3.23.58
     name_length:      Cardinal;
     org_name_length:  Cardinal;
     table_length:     Cardinal;
@@ -85,10 +86,11 @@ type
     db_length:        Cardinal;
     catalog_length:   Cardinal;
     def_length:       Cardinal;
-    flags:            Cardinal; // Div flags
-    decimals:         Cardinal; // Number of decimals in field
-    charsetnr:        Cardinal; // Character set
-    _type:            Cardinal; // Type of field. Se mysql_com.h for types
+    //***********************
+    flags:            Cardinal;    // Div flags
+    decimals:         Cardinal;    // Number of decimals in field
+    charsetnr:        Cardinal;    // char set number (added in 4.1)
+    _type:            Cardinal;    // Type of field. Se mysql_com.h for types
   end;
 
   MYSQL_ROW = array[0..$ffff] of PAnsiChar;
@@ -154,19 +156,17 @@ type
 
   MYSQL_RES = record
     row_count:       Int64;
+    field_count, current_field:     Integer;
     fields:          PMYSQL_FIELD;
     data:            PMYSQL_DATA;
     data_cursor:     PMYSQL_ROWS;
-    lengths:         PLongInt;
-    handle:          PMYSQL;
     field_alloc:     MEM_ROOT;
-    field_count:     Integer;
-    current_field:   Integer;
-    row:             PMYSQL_ROW;
-    current_row:     PMYSQL_ROW;
-    eof:             Byte;
-    unbuffered_fetch_cancelled: Byte;
-    methods:         PAnsiChar;
+    row:             PMYSQL_ROW;     // If unbuffered read
+    current_row:     PMYSQL_ROW;     // buffer to current row
+    lengths:         PLongInt;       // column lengths of current row
+    handle:          PMYSQL;         // for unbuffered reads
+    eof:             Byte;           // Used my mysql_fetch_row
+    is_ps:           Byte;
   end;
   PMYSQL_RES = ^MYSQL_RES;
 
@@ -203,13 +203,46 @@ type
     MYSQL_OPT_SSL_CIPHER,
     MYSQL_OPT_SSL_CRL,
     MYSQL_OPT_SSL_CRLPATH,
+    // Connection attribute options
     MYSQL_OPT_CONNECT_ATTR_RESET,
     MYSQL_OPT_CONNECT_ATTR_ADD,
     MYSQL_OPT_CONNECT_ATTR_DELETE,
     MYSQL_SERVER_PUBLIC_KEY,
     MYSQL_ENABLE_CLEARTEXT_PLUGIN,
     MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS,
-    MYSQL_OPT_SSL_ENFORCE
+    MYSQL_OPT_SSL_ENFORCE,
+    MYSQL_OPT_MAX_ALLOWED_PACKET,
+    MYSQL_OPT_NET_BUFFER_LENGTH,
+    MYSQL_OPT_TLS_VERSION,
+
+    // MariaDB specific
+    MYSQL_PROGRESS_CALLBACK=5999,
+    MYSQL_OPT_NONBLOCK,
+    // MariaDB Connector/C specific
+    MYSQL_DATABASE_DRIVER=7000,
+    MARIADB_OPT_SSL_FP,                // deprecated, use MARIADB_OPT_TLS_PEER_FP instead
+    MARIADB_OPT_SSL_FP_LIST,           // deprecated, use MARIADB_OPT_TLS_PEER_FP_LIST instead
+    MARIADB_OPT_TLS_PASSPHRASE,        // passphrase for encrypted certificates
+    MARIADB_OPT_TLS_CIPHER_STRENGTH,
+    MARIADB_OPT_TLS_VERSION,
+    MARIADB_OPT_TLS_PEER_FP,           // single finger print for server certificate verification
+    MARIADB_OPT_TLS_PEER_FP_LIST,      // finger print white list for server certificate verification
+    MARIADB_OPT_CONNECTION_READ_ONLY,
+    MYSQL_OPT_CONNECT_ATTRS,           // for mysql_get_optionv
+    MARIADB_OPT_USERDATA,
+    MARIADB_OPT_CONNECTION_HANDLER,
+    MARIADB_OPT_PORT,
+    MARIADB_OPT_UNIXSOCKET,
+    MARIADB_OPT_PASSWORD,
+    MARIADB_OPT_HOST,
+    MARIADB_OPT_USER,
+    MARIADB_OPT_SCHEMA,
+    MARIADB_OPT_DEBUG,
+    MARIADB_OPT_FOUND_ROWS,
+    MARIADB_OPT_MULTI_RESULTS,
+    MARIADB_OPT_MULTI_STATEMENTS,
+    MARIADB_OPT_INTERACTIVE,
+    MARIADB_OPT_PROXY_HEADER
     );
 
   // MySQL data types
