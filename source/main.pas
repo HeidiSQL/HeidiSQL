@@ -8688,8 +8688,6 @@ begin
   // Do not apply any color on a selected, highlighted cell to keep readability
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
     cl := GetThemeColor(clHighlightText)
-  else if vsSelected in Node.States then
-    cl := clBlack
   else if r.IsNull(Column) then
     cl := DatatypeCategories[r.DataType(Column).Category].NullColor
   else
@@ -9208,6 +9206,7 @@ var
   RowNumber: PInt64;
   isEven, FocusedIsNull, CurrentIsNull: Boolean;
   FieldText, FocusedFieldText: String;
+  VT: TVirtualStringTree;
 begin
   if Column = -1 then
     Exit;
@@ -9219,6 +9218,7 @@ begin
     Exit;
   end;
 
+  VT := Sender as TVirtualStringTree;
   RowNumber := Sender.GetNodeData(Node);
   r.RecNo := RowNumber^;
 
@@ -9232,11 +9232,17 @@ begin
   else
     cl := clNone;
 
-  if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
+  if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
+    // Focused cell
     cl := GetThemeColor(clHighlight)
-  else if vsSelected in Node.States then
-    cl := $00DDDDDD
-  else if r.IsNull(Column) then begin
+  end else if vsSelected in Node.States then begin
+    // Selected but not focused cell
+    if VT.Color > ColorAdjustBrightness(clWhite, -19) then
+      cl := ColorAdjustBrightness(VT.Color, -19)
+    else
+      cl := ColorAdjustBrightness(VT.Color, 19);
+  end else if r.IsNull(Column) then begin
+    // Cell with NULL value
     clNull := AppSettings.ReadInt(asFieldNullBackground);
     if clNull <> clNone then
       cl := clNull;
