@@ -69,10 +69,12 @@ DirExistsWarning=auto
 PrivilegesRequired=none
 
 [Tasks]
-Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Additional icons:"; MinVersion: 4,4
+Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Options:"; MinVersion: 4,4
 Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"; GroupDescription: "Options:";
 Name: "activate_updatechecks"; Description: "Automatically check {#WebSite} for updates"; GroupDescription: "Options:";
 Name: "activate_statistics"; Description: "Automatically report client and server versions on {#WebSite}"; GroupDescription: "Options:";
+Name: "theme_windows"; Description: "Use default Windows theme"; GroupDescription: "Select theme:"; Flags: exclusive
+Name: "theme_carbon"; Description: "Use dark Carbon theme"; GroupDescription: "Select theme:"; Flags: exclusive unchecked
 
 [InstallDelete]
 Type: files; Name: "{app}\libmysql40.dll"
@@ -119,11 +121,19 @@ Root: HKCR; Subkey: "SQLScriptFile\shell\open\command"; ValueType: string; Value
 ; Enable auto-updatechecks if this option was checked. Only save the value when it's checked, as the default in preferences is False (see const.inc)
 Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "Updatecheck"; ValueData: 1; Tasks: activate_updatechecks
 Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "DoUsageStatistics"; ValueData: 1; Tasks: activate_statistics
+; Store theme selection
+Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: string; ValueName: "Theme"; ValueData: "Windows"; Tasks: theme_windows
+Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: string; ValueName: "Theme"; ValueData: "Carbon"; Tasks: theme_carbon
+; TODO: SQL colors? Data type colors?? Sigh...
 
 [Run]
 Filename: "{app}\{#ProgExeName}"; Description: "Launch {#ProgName}"; Flags: nowait postinstall skipifsilent
 
 [Code]
+var
+  txt: TNewStaticText;
+  btn: TButton;
+
 procedure DonateClick(Sender: TObject);
 var
   ErrorCode: Integer;
@@ -132,23 +142,26 @@ begin
 end;
 
 procedure InitializeWizard();
-var
-  txt: TNewStaticText;
-  btn: TButton;
 begin
   txt := TNewStaticText.Create(WizardForm);
   txt.Parent := WizardForm.FinishedPage;
-  txt.Caption := '{#ProgName} is free software. You may make a donation:';
+  txt.Caption := '{#ProgName} is free software for database workers.'+#13#10+'Keep it alive with a donation:';
   txt.Left := WizardForm.FinishedLabel.Left;
   txt.Top := WizardForm.FinishedLabel.Top + 130;
-  txt.AutoSize := True;
 
   btn := TButton.Create(WizardForm);
   btn.Parent := WizardForm.FinishedPage;
   btn.Left := txt.Left;
   btn.Top := txt.Top + txt.Height + 10;
-  btn.Width := 120;
-  btn.Height := WizardForm.CancelButton.Height;
-  btn.Caption := 'Donate';
+  btn.Width := 140;
+  btn.Height := WizardForm.CancelButton.Height + 10;
+  btn.Caption := 'Donate via Paypal';
   btn.OnClick := @DonateClick;
+end;
+
+
+procedure CurPageChanged(CurPageID: Integer);
+begin
+  if CurPageID = wpFinished then
+    WizardForm.ActiveControl := btn;
 end;
