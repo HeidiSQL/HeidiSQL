@@ -147,13 +147,13 @@ begin
   txt.Parent := WizardForm.FinishedPage;
   txt.Caption := '{#ProgName} is free software for database workers.'+#13#10+'Keep it alive with a donation:';
   txt.Left := WizardForm.FinishedLabel.Left;
-  txt.Top := WizardForm.FinishedLabel.Top + 130;
+  txt.Top := WizardForm.FinishedLabel.Top + WizardForm.FinishedLabel.Height + 80;
 
   btn := TButton.Create(WizardForm);
   btn.Parent := WizardForm.FinishedPage;
   btn.Left := txt.Left;
   btn.Top := txt.Top + txt.Height + 10;
-  btn.Width := 140;
+  btn.Width := WizardForm.Width div 2;
   btn.Height := WizardForm.CancelButton.Height + 10;
   btn.Caption := 'Donate via Paypal';
   btn.OnClick := @DonateClick;
