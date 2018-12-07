@@ -1237,12 +1237,14 @@ begin
       // We found the clicked panel
       case i of
         3: begin
-          Infos := ActiveConnection.ConnectionInfo;
-          InfoText := '';
-          for j:=0 to Infos.Count-1 do begin
-            InfoText := InfoText + Infos.Names[j] + ': ' + Infos.ValueFromIndex[j] + CRLF + CRLF;
+          if ActiveConnection <> nil then begin
+            Infos := ActiveConnection.ConnectionInfo;
+            InfoText := '';
+            for j:=0 to Infos.Count-1 do begin
+              InfoText := InfoText + Infos.Names[j] + ': ' + Infos.ValueFromIndex[j] + CRLF;
+            end;
+            MessageDialog(Trim(InfoText), mtInformation, [mbOK]);
           end;
-          MessageDialog(Trim(InfoText), mtInformation, [mbOK]);
         end;
       end;
       Break;
@@ -1293,6 +1295,7 @@ var
   PanelRect: TRect;
   i: Integer;
   Infos: TStringList;
+  HintText: String;
 begin
   // Display various server, client and connection related details in a hint
   if (FLastHintMousepos.X = X) and (FLastHintMousepos.Y = Y) then
@@ -1311,13 +1314,16 @@ begin
     Exit;
   FLastHintControlIndex := i;
   if FLastHintControlIndex = 3 then begin
-    Infos := ActiveConnection.ConnectionInfo;
-    BalloonHint1.Description := '';
-    for i:=0 to Infos.Count-1 do
-      BalloonHint1.Description := BalloonHint1.Description + Infos.Names[i] + ': ' + sstr(Infos.ValueFromIndex[i],100) + CRLF;
-    BalloonHint1.Description := Trim(BalloonHint1.Description);
-    OffsetRect(PanelRect, Bar.ClientOrigin.X, Bar.ClientOrigin.Y);
-    BalloonHint1.ShowHint(PanelRect);
+    if ActiveConnection <> nil then begin
+      Infos := ActiveConnection.ConnectionInfo;
+      HintText := '';
+      for i:=0 to Infos.Count-1 do begin
+        HintText := HintText + Infos.Names[i] + ': ' + sstr(Infos.ValueFromIndex[i], 200) + CRLF;
+      end;
+      BalloonHint1.Description := Trim(HintText);
+      OffsetRect(PanelRect, Bar.ClientOrigin.X, Bar.ClientOrigin.Y);
+      BalloonHint1.ShowHint(PanelRect);
+    end;
   end else
     Bar.OnMouseLeave(Sender);
 end;
@@ -5418,7 +5424,7 @@ end;
 procedure TMainForm.ValidateControls(Sender: TObject);
 var
   inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty, inGrid: Boolean;
-  GridHasChanges, EnableTimestamp: Boolean;
+  HasConnection, GridHasChanges, EnableTimestamp: Boolean;
   Grid: TVirtualStringTree;
   inSynMemo, inSynMemoEditable: Boolean;
   Results: TDBQuery;
@@ -5427,10 +5433,11 @@ begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
 
   Grid := ActiveGrid;
+  HasConnection := ActiveConnection <> nil;
   Results := nil;
   GridHasChanges := False;
   EnableTimestamp := False;
-  if Assigned(Grid) then begin
+  if HasConnection and Assigned(Grid) then begin
     Results := GridResult(Grid);
     if Assigned(Grid.FocusedNode) then begin
       RowNum := Grid.GetNodeData(Grid.FocusedNode);
@@ -5445,25 +5452,25 @@ begin
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
   inGrid := Assigned(Grid) and (ActiveControl = Grid);
 
-  actFullRefresh.Enabled := PageControlMain.ActivePage = tabDatabase;
-  actDataInsert.Enabled := inGrid and Assigned(Results);
-  actDataDuplicateRow.Enabled := inGrid and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
-  actDataDelete.Enabled := inGrid and (Grid.SelectedCount > 0);
-  actDataFirst.Enabled := inDataOrQueryTabNotEmpty and inGrid;
-  actDataLast.Enabled := inDataOrQueryTabNotEmpty and inGrid;
-  actDataPostChanges.Enabled := GridHasChanges;
-  actDataCancelChanges.Enabled := GridHasChanges;
-  actDataSaveBlobToFile.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
-  actGridEditFunction.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
-  actDataPreview.Enabled := inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
-  actUnixTimestampColumn.Enabled := inDataTab and EnableTimestamp;
+  actFullRefresh.Enabled := HasConnection and (PageControlMain.ActivePage = tabDatabase);
+  actDataInsert.Enabled := HasConnection and inGrid and Assigned(Results);
+  actDataDuplicateRow.Enabled := HasConnection and inGrid and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actDataDelete.Enabled := HasConnection and inGrid and (Grid.SelectedCount > 0);
+  actDataFirst.Enabled := HasConnection and inDataOrQueryTabNotEmpty and inGrid;
+  actDataLast.Enabled := HasConnection and inDataOrQueryTabNotEmpty and inGrid;
+  actDataPostChanges.Enabled := HasConnection and GridHasChanges;
+  actDataCancelChanges.Enabled := HasConnection and GridHasChanges;
+  actDataSaveBlobToFile.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actGridEditFunction.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actDataPreview.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
-  actPreviousResult.Enabled := inDataOrQueryTabNotEmpty;
-  actNextResult.Enabled := inDataOrQueryTabNotEmpty;
+  actPreviousResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
+  actNextResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
 
   // Activate export-options if we're on Data- or Query-tab
-  actExportData.Enabled := inDataOrQueryTabNotEmpty;
-  actDataSetNull.Enabled := inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
+  actExportData.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
+  actDataSetNull.Enabled := HasConnection and inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   inSynMemo := ActiveSynMemo(True) <> nil;
   inSynMemoEditable := inSynMemo and (not ActiveSynMemo(True).ReadOnly);
@@ -5474,7 +5481,6 @@ begin
     actPaste.Enabled := inSynMemoEditable;
   end;
 
-
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
 end;
@@ -5482,7 +5488,7 @@ end;
 
 procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
-  NotEmpty, HasSelection: Boolean;
+  NotEmpty, HasSelection, HasConnection: Boolean;
   Tab: TQueryTab;
   cap: String;
   InQueryTab: Boolean;
@@ -5500,8 +5506,9 @@ begin
   Tab := ActiveQueryTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
-  actExecuteQuery.Enabled := InQueryTab and NotEmpty and (not Tab.QueryRunning);
-  actExecuteSelection.Enabled := InQueryTab and HasSelection and (not Tab.QueryRunning);
+  HasConnection := ActiveConnection <> nil;
+  actExecuteQuery.Enabled := HasConnection and InQueryTab and NotEmpty and (not Tab.QueryRunning);
+  actExecuteSelection.Enabled := HasConnection and InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actExplainAnalyzeCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
@@ -10869,6 +10876,7 @@ var
   msg: String;
   Tab: TQueryTab;
   SaveDialog: TSaveDialog;
+  MsgButtons: TMsgDlgButtons;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
   // Unhide tabsheet so the user sees the memo content
@@ -10877,7 +10885,11 @@ begin
     msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
   else
     msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
-  case MessageDialog(_('Modified query'), msg, mtConfirmation, [mbYes, mbNo, mbCancel], asPromptSaveFileOnTabClose) of
+  if FConnections.Count > 0 then
+    MsgButtons := [mbYes, mbNo, mbCancel]
+  else
+    MsgButtons := [mbYes, mbNo];
+  case MessageDialog(_('Modified query'), msg, mtConfirmation, MsgButtons, asPromptSaveFileOnTabClose) of
     mrNo: Result := True;
     mrYes: begin
       SaveDialog := TSaveDialog.Create(Self);
@@ -10894,6 +10906,13 @@ begin
     end;
     else Result := False;
   end;
+
+  if (not Result) and (FConnections.Count = 0) then begin
+    // Upper right "X" button clicked, or save dialog cancelled
+    Result := True;
+  end;
+
+  ValidateControls(Self);
 end;
 
 
