@@ -100,6 +100,7 @@ const
   MsgUnhandledNetType: String = 'Unhandled connection type (%d)';
   MsgDisconnect: String = 'Connection to %s closed at %s';
   MsgInvalidColumn: String = 'Column #%d not available. Query returned %d columns and %d rows.';
+  SPortableLockFile: String = 'portable.lock';
 
   PKEY = 'PRIMARY';
   KEY = 'KEY';

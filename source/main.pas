@@ -6715,7 +6715,7 @@ end;
 function TMainForm.GetActiveConnection: TDBConnection;
 begin
   Result := nil;
-  if FActiveDbObj <> nil then
+  if Assigned(FActiveDBObj) and (FActiveDbObj <> nil) then
     Result := FActiveDbObj.Connection;
 end;
 

@@ -2453,7 +2453,8 @@ begin
     Dialog := TTaskDialog.Create(nil);
     Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
     Dialog.CommonButtons := [];
-    Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
+    if Assigned(MainForm) then
+      Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
 
     // Caption, title and text
     case DlgType of
@@ -2464,7 +2465,7 @@ begin
     end;
     if Title <> Dialog.Caption then
       Dialog.Title := Title;
-    if MainForm.ActiveConnection <> nil then
+    if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
     rx.Expression := 'https?\:\/\/\S+';
@@ -3123,6 +3124,8 @@ end;
 
 function GetThemeColor(Color: TColor): TColor;
 begin
+  // Not required with vcl-style-utils:
+  // Result := TStyleManager.ActiveStyle.GetSystemColor(Color);
   Result := Color;
 end;
 
@@ -3488,11 +3491,15 @@ var
   rx: TRegExpr;
   i: Integer;
   DefaultSnippetsDirectory: String;
+  PortableLockFile: String;
+  NewFileHandle: THandle;
 begin
   inherited;
   FRegistry := TRegistry.Create;
   FReads := 0;
   FWrites := 0;
+
+  PortableLockFile := ExtractFilePath(ParamStr(0)) + SPortableLockFile;
 
   // Use filename from command line. If not given, use file in directory of executable.
   rx := TRegExpr.Create;
@@ -3503,10 +3510,24 @@ begin
       break;
     end;
   end;
+  // Default settings file, if not given per command line
   if FSettingsFile = '' then
     FSettingsFile := ExtractFilePath(ParamStr(0)) + 'portable_settings.txt';
-  if FileExists(FSettingsFile) then begin
-    FPortableMode := True;
+  // Backwards compatibility: only settings file exists, create lock file in that case
+  if FileExists(FSettingsFile) and (not FileExists(PortableLockFile)) then begin
+    NewFileHandle := FileCreate(PortableLockFile);
+    FileClose(NewFileHandle);
+  end;
+
+  // Switch to portable mode if lock file exists. File content is ignored.
+  FPortableMode := FileExists(PortableLockFile);
+
+  if FPortableMode then begin
+    // Create file if only the lock file exists
+    if not FileExists(FSettingsFile) then begin
+      NewFileHandle := FileCreate(FSettingsFile);
+      FileClose(NewFileHandle);
+    end;
     FBasePath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentProcessId)+'\';
     try
       ImportSettings(FSettingsFile);
@@ -3515,7 +3536,6 @@ begin
         ErrorDialog(E.Message);
     end;
   end else begin
-    FPortableMode := False;
     FBasePath := '\Software\' + APPNAME + '\';
     FSettingsFile := '';
   end;
@@ -4190,6 +4210,11 @@ var
   DataType: TRegDataType;
 begin
   // Load registry settings from file
+
+  if not FileExists(Filename) then begin
+    raise Exception.CreateFmt('File does not exist: %s', [Filename]);
+  end;
+
   Content := ReadTextfile(FileName, nil);
   Lines := Explode(CRLF, Content);
   for i:=0 to Lines.Count-1 do begin
