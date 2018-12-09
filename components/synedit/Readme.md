@@ -1,7 +1,7 @@
 SynEdit
 =======
 
-This is a fork of the Unicode version of SynEdit hosted ad SourceForge. When it became more and more difficult to maintain, Eric Grange decided to fork this project on GitHub. This way it's possible to fork, merge and maintain easier than before.
+This is a fork of the Unicode version of SynEdit hosted at SourceForge. When it became more and more difficult to maintain, Eric Grange decided to fork this project on GitHub. This way it's possible to fork, merge and maintain easier than before.
 
 The original project (with the original readme.txt file) is located here:
 

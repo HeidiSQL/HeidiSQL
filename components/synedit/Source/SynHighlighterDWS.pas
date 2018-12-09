@@ -327,6 +327,11 @@ begin
   FKeywords.Free;
   FKeywordsPropertyScoped.Free;
   FKeywordsTypeScoped.Free;
+{$IFDEF SYN_CodeFolding}
+  RE_BlockBegin.Free;
+  RE_BlockEnd.Free;
+  RE_Code.Free;
+{$ENDIF}
 end;
 
 function TSynDWSSyn.HashKey(Str: PWideChar): Cardinal;

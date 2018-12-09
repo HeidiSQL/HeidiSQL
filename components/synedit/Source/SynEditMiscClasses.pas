@@ -463,9 +463,19 @@ var
 begin
   buffer := TBitmap.Create;
   try
+    {$IFDEF SYN_COMPILER_12_UP}
     buffer.SetSize(NewWidth, NewHeight);
+    {$ELSE}
+    buffer.Width := NewWidth;
+    buffer.Height := NewHeight;
+    {$ENDIF}
     buffer.Canvas.StretchDraw(Rect(0, 0, NewWidth, NewHeight), Bitmap);
-    Bitmap.SetSize(NewWidth, NewHeight);
+    {$IFDEF SYN_COMPILER_12_UP}
+    buffer.SetSize(NewWidth, NewHeight);
+    {$ELSE}
+    buffer.Width := NewWidth;
+    buffer.Height := NewHeight;
+    {$ENDIF}
     Bitmap.Canvas.Draw(0, 0, buffer);
   finally
     buffer.Free;

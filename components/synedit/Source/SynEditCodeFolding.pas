@@ -106,16 +106,28 @@ unit SynEditCodeFolding;
 }
 interface
 
+{$I SynEdit.Inc}
+
 uses
   Graphics,
   Types,
   Classes,
   SysUtils,
-  System.Generics.Defaults,
-  System.Generics.Collections,
+  Generics.Defaults,
+  Generics.Collections,
   SynEditHighlighter;
 
 type
+{$IFNDEF SYN_DELPHI_XE3_UP}
+  // use small hack in XE and XE2 to make internal array accessible as in XE3 and up
+  TList<T> = class(Generics.Collections.TList<T>)
+  private
+    function GetList: TArray<T>;
+  public
+    property List: TArray<T> read GetList;
+  end;
+{$ENDIF}
+
   // Custom COde Folding Exception
   TSynCodeFoldingException = class(Exception)
   end;
@@ -165,6 +177,7 @@ type
           AFoldOpenClose : TFoldOpenClose = focOpen;
           AFoldType : Integer = 1; AIndent : Integer = -1);
       end;
+
   private
     fCodeFoldingMode : TSynCodeFoldingMode;
     fRangesNeedFixing : Boolean;
@@ -295,9 +308,18 @@ type
 
 implementation
 
-Uses
+uses
   SynEditTextBuffer,
-  System.Math;
+  Math;
+
+{$IFNDEF SYN_DELPHI_XE3_UP}
+function TList<T>.GetList: TArray<T>;
+begin
+  // use bug that existed in XE and XE2 that made
+  // it possible to access private members from parent class
+  Result := TArray<T>(FItems);
+end;
+{$ENDIF}
 
 { TSynEditFoldRanges }
 
@@ -1063,6 +1085,5 @@ begin
     if Assigned(fOnChange) then fOnChange(Self);
   end;
 end;
-
 
 end.
