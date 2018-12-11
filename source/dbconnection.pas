@@ -3143,13 +3143,19 @@ procedure TDBConnection.PrefetchCreateCode(Objects: TDBObjectList);
 var
   Queries: TStringList;
   Obj: TDBObject;
+  UseIt: Boolean;
 begin
   // Cache some queries used in GetCreateCode for mass operations. See TMainForm.SynCompletionProposalExecute
   Queries := TStringList.Create;
   for Obj in Objects do begin
     case Parameters.NetTypeGroup of
       ngMySQL: begin
-        if Obj.NodeType <> lntView then
+        UseIt := Obj.NodeType <> lntView;
+        // SHOW CREATE TRIGGER was introduced in MySQL 5.1.21
+        // See #111
+        if Obj.NodeType = lntTrigger then
+          UseIt := UseIt and (ServerVersionInt >= 50121);
+        if UseIt then
           Queries.Add('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name));
       end;
       ngMSSQL: begin
