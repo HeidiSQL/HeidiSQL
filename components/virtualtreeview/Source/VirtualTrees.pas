@@ -3960,7 +3960,6 @@ procedure ShowError(const Msg: string; HelpContext: Integer);  // [IPK] Surface 
 
 implementation
 
-{$R VirtualTrees.res}
 
 uses
   Vcl.Consts,
