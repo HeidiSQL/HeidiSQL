@@ -40,7 +40,6 @@ object frmSyncDB: TfrmSyncDB
     Anchors = [akLeft, akTop, akBottom]
     Header.AutoSizeIndex = 0
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-    Header.ParentFont = True
     Images = MainForm.ImageListMain
     TabOrder = 0
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -57,8 +56,8 @@ object frmSyncDB: TfrmSyncDB
     Columns = <
       item
         Position = 0
-        Width = 189
-        WideText = 'Name'
+        Text = 'Name'
+        Width = 193
       end>
   end
   object grpTarget: TGroupBox
@@ -198,7 +197,6 @@ object frmSyncDB: TfrmSyncDB
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
     Header.MainColumn = -1
-    Header.ParentFont = True
     Images = MainForm.ImageListMain
     TabOrder = 6
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]

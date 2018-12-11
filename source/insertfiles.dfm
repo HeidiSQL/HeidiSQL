@@ -100,7 +100,6 @@ object frmInsertFiles: TfrmInsertFiles
       Header.AutoSizeIndex = 2
       Header.Images = MainForm.ImageListMain
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-      Header.ParentFont = True
       Header.PopupMenu = MainForm.popupListHeader
       TabOrder = 2
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -117,20 +116,20 @@ object frmInsertFiles: TfrmInsertFiles
         item
           Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 0
+          Text = 'Column'
           Width = 100
-          WideText = 'Column'
         end
         item
           Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 1
+          Text = 'Datatype'
           Width = 80
-          WideText = 'Datatype'
         end
         item
           Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 2
-          Width = 292
-          WideText = 'Value'
+          Text = 'Value'
+          Width = 296
         end>
     end
   end
@@ -173,7 +172,6 @@ object frmInsertFiles: TfrmInsertFiles
       Anchors = [akLeft, akTop, akRight, akBottom]
       Header.AutoSizeIndex = 0
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoHotTrack, hoShowImages, hoShowSortGlyphs, hoVisible]
-      Header.ParentFont = True
       Header.PopupMenu = MainForm.popupListHeader
       Header.SortColumn = 0
       TabOrder = 0
@@ -198,20 +196,20 @@ object frmInsertFiles: TfrmInsertFiles
       Columns = <
         item
           Position = 0
-          Width = 322
-          WideText = 'Filename'
+          Text = 'Filename'
+          Width = 326
         end
         item
           CheckBox = True
           Position = 1
+          Text = 'Binary'
           Width = 70
-          WideText = 'Binary'
         end
         item
           Alignment = taRightJustify
           Position = 2
+          Text = 'Size'
           Width = 80
-          WideText = 'Size'
         end>
     end
     object ToolBar1: TToolBar

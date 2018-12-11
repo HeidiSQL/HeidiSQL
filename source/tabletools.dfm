@@ -68,7 +68,6 @@ object frmTableTools: TfrmTableTools
       Align = alLeft
       Header.AutoSizeIndex = 0
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-      Header.ParentFont = True
       Images = MainForm.ImageListMain
       IncrementalSearch = isInitializedOnly
       PopupMenu = popupTree
@@ -90,13 +89,13 @@ object frmTableTools: TfrmTableTools
       Columns = <
         item
           Position = 0
-          Width = 90
-          WideText = 'Dummy, keeps compatibility to mainform.dbtree'
+          Text = 'Dummy, keeps compatibility to mainform.dbtree'
+          Width = 94
         end
         item
           Alignment = taRightJustify
           Position = 1
-          WideText = 'Size'
+          Text = 'Size'
         end>
     end
     object pnlRight: TPanel
@@ -117,7 +116,6 @@ object frmTableTools: TfrmTableTools
         Header.Images = MainForm.ImageListMain
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-        Header.ParentFont = True
         IncrementalSearch = isAll
         TabOrder = 0
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes]

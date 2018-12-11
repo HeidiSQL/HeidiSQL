@@ -291,7 +291,6 @@ object frmRoutineEditor: TfrmRoutineEditor
         Header.AutoSizeIndex = 1
         Header.MainColumn = 1
         Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
-        Header.ParentFont = True
         Images = MainForm.ImageListMain
         NodeDataSize = 0
         TabOrder = 0
@@ -310,26 +309,26 @@ object frmRoutineEditor: TfrmRoutineEditor
         Columns = <
           item
             Position = 0
+            Text = '#'
             Width = 25
-            WideText = '#'
           end
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
-            Width = 415
-            WideText = 'Name'
+            Text = 'Name'
+            Width = 419
           end
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 2
+            Text = 'Datatype'
             Width = 90
-            WideText = 'Datatype'
           end
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 3
+            Text = 'Context'
             Width = 70
-            WideText = 'Context'
           end>
       end
       object tlbParameters: TToolBar

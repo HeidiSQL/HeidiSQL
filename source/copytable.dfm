@@ -89,7 +89,6 @@ object CopyTableForm: TCopyTableForm
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
     Header.MainColumn = -1
-    Header.ParentFont = True
     Images = MainForm.ImageListMain
     TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes]

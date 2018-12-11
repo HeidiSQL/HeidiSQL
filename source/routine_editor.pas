@@ -55,7 +55,7 @@ type
       var CellText: String);
     procedure listParametersGetImageIndex(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var ImageIndex: Integer);
+      var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure btnClearParamsClick(Sender: TObject);
     procedure btnRemoveParamClick(Sender: TObject);
     procedure listParametersBeforePaint(Sender: TBaseVirtualTree;
@@ -288,7 +288,7 @@ end;
 
 procedure TfrmRoutineEditor.listParametersGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var ImageIndex: Integer);
+  var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
   List: TVirtualStringTree;
   Context: String;

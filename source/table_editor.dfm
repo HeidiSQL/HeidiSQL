@@ -63,7 +63,6 @@ object frmTableEditor: TfrmTableEditor
     EditDelay = 0
     Header.AutoSizeIndex = -1
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
-    Header.ParentFont = True
     Header.PopupMenu = MainForm.popupListHeader
     Images = MainForm.ImageListMain
     IncrementalSearch = isAll
@@ -95,76 +94,76 @@ object frmTableEditor: TfrmTableEditor
         MinWidth = 20
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
         Position = 0
+        Text = '#'
         Width = 20
-        WideText = '#'
       end
       item
         MinWidth = 50
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 1
+        Text = 'Name'
         Width = 100
-        WideText = 'Name'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 2
+        Text = 'Datatype'
         Width = 90
-        WideText = 'Datatype'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 3
+        Text = 'Length/Set'
         Width = 90
-        WideText = 'Length/Set'
       end
       item
         Alignment = taCenter
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 4
+        Text = 'Unsigned'
         Width = 60
-        WideText = 'Unsigned'
       end
       item
         Alignment = taCenter
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 5
+        Text = 'Allow NULL'
         Width = 65
-        WideText = 'Allow NULL'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 6
-        WideText = 'Zerofill'
+        Text = 'Zerofill'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 7
+        Text = 'Default'
         Width = 100
-        WideText = 'Default'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 8
+        Text = 'Comment'
         Width = 130
-        WideText = 'Comment'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 9
+        Text = 'Collation'
         Width = 100
-        WideText = 'Collation'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 10
+        Text = 'Expression'
         Width = 100
-        WideText = 'Expression'
       end
       item
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 11
+        Text = 'Virtuality'
         Width = 100
-        WideText = 'Virtuality'
       end>
   end
   object PageControlMain: TPageControl
@@ -421,7 +420,6 @@ object frmTableEditor: TfrmTableEditor
         EditDelay = 0
         Header.AutoSizeIndex = 0
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-        Header.ParentFont = True
         Images = MainForm.ImageListMain
         PopupMenu = popupIndexes
         TabOrder = 1
@@ -445,19 +443,19 @@ object frmTableEditor: TfrmTableEditor
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
-            Width = 430
-            WideText = 'Name'
+            Text = 'Name'
+            Width = 434
           end
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
+            Text = 'Type / Length'
             Width = 100
-            WideText = 'Type / Length'
           end
           item
             Position = 2
+            Text = 'Algorithm'
             Width = 80
-            WideText = 'Algorithm'
           end>
       end
       object tlbIndexes: TToolBar
@@ -583,7 +581,6 @@ object frmTableEditor: TfrmTableEditor
           EditDelay = 0
           Header.AutoSizeIndex = 0
           Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-          Header.ParentFont = True
           Images = MainForm.ImageListMain
           TabOrder = 0
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -601,38 +598,38 @@ object frmTableEditor: TfrmTableEditor
             item
               Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
               Position = 0
+              Text = 'Key name'
               Width = 101
-              WideText = 'Key name'
             end
             item
               Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
               Position = 1
+              Text = 'Columns'
               Width = 80
-              WideText = 'Columns'
             end
             item
               Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
               Position = 2
+              Text = 'Reference table'
               Width = 100
-              WideText = 'Reference table'
             end
             item
               Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
               Position = 3
+              Text = 'Foreign columns'
               Width = 80
-              WideText = 'Foreign columns'
             end
             item
               Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
               Position = 4
+              Text = 'On UPDATE'
               Width = 80
-              WideText = 'On UPDATE'
             end
             item
               Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
               Position = 5
+              Text = 'On DELETE'
               Width = 80
-              WideText = 'On DELETE'
             end>
         end
       end

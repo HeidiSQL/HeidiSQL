@@ -83,7 +83,6 @@ object connform: Tconnform
     DragMode = dmAutomatic
     Header.AutoSizeIndex = -1
     Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-    Header.ParentFont = True
     Header.PopupMenu = MainForm.popupListHeader
     Header.SortColumn = 0
     HintMode = hmTooltip
@@ -109,40 +108,40 @@ object connform: Tconnform
     Columns = <
       item
         Position = 0
+        Text = 'Session name'
         Width = 163
-        WideText = 'Session name'
       end
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 1
-        WideText = 'Host'
+        Text = 'Host'
       end
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 2
-        WideText = 'User'
+        Text = 'User'
       end
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 3
-        WideText = 'Version'
+        Text = 'Version'
       end
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 4
-        WideText = 'Last connect'
+        Text = 'Last connect'
       end
       item
         Alignment = taRightJustify
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 5
-        WideText = 'Counter'
+        Text = 'Counter'
       end
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 6
-        Width = 33
-        WideText = 'Comment'
+        Text = 'Comment'
+        Width = 37
       end>
   end
   object btnNew: TButton

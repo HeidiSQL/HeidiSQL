@@ -368,7 +368,7 @@ var
   Text: String;
   CellBounds, TextBounds: TRect;
   Ghosted: Boolean;
-  ImageIndex: Integer;
+  ImageIndex: TImageIndex;
   f: TFont;
 begin
   // Return the cell's rectangle, relative to the parent form.

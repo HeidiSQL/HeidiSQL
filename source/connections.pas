@@ -114,9 +114,9 @@ type
     updownKeepAlive: TUpDown;
     lblCounterRight2: TLabel;
     lblCounterLeft2: TLabel;
-	pnlDpiHelperSettings: TPanel;
-	pnlDpiHelperSshTunnel: TPanel;
-	pnlDpiHelperAdvanced: TPanel;
+    pnlDpiHelperSettings: TPanel;
+    pnlDpiHelperSshTunnel: TPanel;
+    pnlDpiHelperAdvanced: TPanel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -131,7 +131,7 @@ type
       Node: PVirtualNode; Column: TColumnIndex);
     procedure ListSessionsGetImageIndex(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var ImageIndex: Integer);
+      var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure ListSessionsNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; NewText: String);
     procedure ListSessionsFocusChanging(Sender: TBaseVirtualTree; OldNode,
@@ -592,7 +592,7 @@ end;
 
 procedure Tconnform.ListSessionsGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var ImageIndex: Integer);
+  var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
   Sess: PConnectionParameters;
 begin

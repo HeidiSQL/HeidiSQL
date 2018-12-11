@@ -41,7 +41,7 @@ type
     procedure treeTopicsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
     procedure treeTopicsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure treeTopicsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure treeTopicsFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -157,7 +157,7 @@ end;
 
 
 procedure TfrmSQLhelp.treeTopicsGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
 begin
   // Return open or closed book icon for folders, or document icon for topics
   if not (Kind in [ikNormal, ikSelected]) then

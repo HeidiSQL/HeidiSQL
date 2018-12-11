@@ -153,7 +153,6 @@ object MainForm: TMainForm
         DragType = dtVCL
         Header.AutoSizeIndex = 0
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag]
-        Header.ParentFont = True
         HintMode = hmTooltip
         HotCursor = crHandPoint
         Images = ImageListMain
@@ -185,18 +184,18 @@ object MainForm: TMainForm
         Columns = <
           item
             Position = 0
-            Width = 165
-            WideText = 'Name'
+            Text = 'Name'
+            Width = 169
           end
           item
             Alignment = taRightJustify
             MinWidth = 0
             Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
             Position = 1
+            Text = 'Size'
             Width = 55
-            WideText = 'Size'
           end>
-        WideDefaultText = ''
+        DefaultText = ''
       end
       object pnlPreview: TPanel
         Left = 0
@@ -422,7 +421,6 @@ object MainForm: TMainForm
                 Align = alClient
                 Header.AutoSizeIndex = 0
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-                Header.ParentFont = True
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 Images = ImageListMain
@@ -446,50 +444,50 @@ object MainForm: TMainForm
                 Columns = <
                   item
                     Position = 0
+                    Text = 'Database'
                     Width = 150
-                    WideText = 'Database'
                   end
                   item
                     Position = 1
+                    Text = 'Size'
                     Width = 80
-                    WideText = 'Size'
                   end
                   item
                     Position = 2
-                    WideText = 'Items'
+                    Text = 'Items'
                   end
                   item
                     Position = 3
-                    WideText = 'Last modification'
+                    Text = 'Last modification'
                   end
                   item
                     Position = 4
-                    WideText = 'Tables'
+                    Text = 'Tables'
                   end
                   item
                     Position = 5
-                    WideText = 'Views'
+                    Text = 'Views'
                   end
                   item
                     Position = 6
-                    WideText = 'Functions'
+                    Text = 'Functions'
                   end
                   item
                     Position = 7
-                    WideText = 'Procedures'
+                    Text = 'Procedures'
                   end
                   item
                     Position = 8
-                    WideText = 'Triggers'
+                    Text = 'Triggers'
                   end
                   item
                     Position = 9
-                    WideText = 'Events'
+                    Text = 'Events'
                   end
                   item
                     Position = 10
+                    Text = 'Default collation'
                     Width = 120
-                    WideText = 'Default collation'
                   end>
               end
             end
@@ -506,7 +504,6 @@ object MainForm: TMainForm
                 Header.AutoSizeIndex = 2
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-                Header.ParentFont = True
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 HintMode = hmTooltip
@@ -536,18 +533,18 @@ object MainForm: TMainForm
                 Columns = <
                   item
                     Position = 0
+                    Text = 'Variable'
                     Width = 160
-                    WideText = 'Variable'
                   end
                   item
                     Position = 1
+                    Text = 'Session'
                     Width = 200
-                    WideText = 'Session'
                   end
                   item
                     Position = 2
-                    Width = 271
-                    WideText = 'Global'
+                    Text = 'Global'
+                    Width = 275
                   end>
               end
             end
@@ -564,7 +561,6 @@ object MainForm: TMainForm
                 Header.AutoSizeIndex = 1
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-                Header.ParentFont = True
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 HintMode = hmTooltip
@@ -591,26 +587,26 @@ object MainForm: TMainForm
                 Columns = <
                   item
                     Position = 0
+                    Text = 'Variable'
                     Width = 160
-                    WideText = 'Variable'
                   end
                   item
                     Alignment = taRightJustify
                     Position = 1
-                    Width = 271
-                    WideText = 'Value'
+                    Text = 'Value'
+                    Width = 275
                   end
                   item
                     Alignment = taRightJustify
                     Position = 2
+                    Text = 'Avg per hour'
                     Width = 100
-                    WideText = 'Avg per hour'
                   end
                   item
                     Alignment = taRightJustify
                     Position = 3
+                    Text = 'Avg per second'
                     Width = 100
-                    WideText = 'Avg per second'
                   end>
               end
             end
@@ -635,7 +631,6 @@ object MainForm: TMainForm
                 Header.AutoSizeIndex = 7
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-                Header.ParentFont = True
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 Header.SortDirection = sdDescending
@@ -666,41 +661,41 @@ object MainForm: TMainForm
                   item
                     Alignment = taRightJustify
                     Position = 0
+                    Text = 'id'
                     Width = 70
-                    WideText = 'id'
                   end
                   item
                     Position = 1
+                    Text = 'User'
                     Width = 80
-                    WideText = 'User'
                   end
                   item
                     Position = 2
+                    Text = 'Host'
                     Width = 80
-                    WideText = 'Host'
                   end
                   item
                     Position = 3
+                    Text = 'DB'
                     Width = 80
-                    WideText = 'DB'
                   end
                   item
                     Position = 4
+                    Text = 'Command'
                     Width = 80
-                    WideText = 'Command'
                   end
                   item
                     Position = 5
-                    WideText = 'Time'
+                    Text = 'Time'
                   end
                   item
                     Position = 6
-                    WideText = 'State'
+                    Text = 'State'
                   end
                   item
                     Position = 7
-                    Width = 141
-                    WideText = 'Info'
+                    Text = 'Info'
+                    Width = 145
                   end>
               end
               object pnlProcessViewBox: TPanel
@@ -795,7 +790,6 @@ object MainForm: TMainForm
                 Header.AutoSizeIndex = 4
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-                Header.ParentFont = True
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
@@ -824,31 +818,31 @@ object MainForm: TMainForm
                 Columns = <
                   item
                     Position = 0
+                    Text = 'Command-type'
                     Width = 120
-                    WideText = 'Command-type'
                   end
                   item
                     Alignment = taRightJustify
                     Position = 1
+                    Text = 'Total count'
                     Width = 100
-                    WideText = 'Total count'
                   end
                   item
                     Alignment = taRightJustify
                     Position = 2
+                    Text = 'Average per hour'
                     Width = 100
-                    WideText = 'Average per hour'
                   end
                   item
                     Alignment = taRightJustify
                     Position = 3
+                    Text = 'Average per second'
                     Width = 100
-                    WideText = 'Average per second'
                   end
                   item
                     Position = 4
-                    Width = 211
-                    WideText = 'Percentage'
+                    Text = 'Percentage'
+                    Width = 215
                   end>
               end
             end
@@ -867,7 +861,6 @@ object MainForm: TMainForm
             Header.AutoSizeIndex = -1
             Header.Height = 20
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-            Header.ParentFont = True
             Header.PopupMenu = popupListHeader
             Header.SortColumn = 0
             HintMode = hmTooltip
@@ -900,112 +893,112 @@ object MainForm: TMainForm
             Columns = <
               item
                 Position = 0
+                Text = 'Name'
                 Width = 120
-                WideText = 'Name'
               end
               item
                 Position = 1
+                Text = 'Rows'
                 Width = 70
-                WideText = 'Rows'
               end
               item
                 Position = 2
+                Text = 'Size'
                 Width = 70
-                WideText = 'Size'
               end
               item
                 Position = 3
+                Text = 'Created'
                 Width = 120
-                WideText = 'Created'
               end
               item
                 Position = 4
+                Text = 'Updated'
                 Width = 120
-                WideText = 'Updated'
               end
               item
                 Position = 5
+                Text = 'Engine'
                 Width = 70
-                WideText = 'Engine'
               end
               item
                 Position = 6
+                Text = 'Comment'
                 Width = 100
-                WideText = 'Comment'
               end
               item
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 7
-                WideText = 'Version'
+                Text = 'Version'
               end
               item
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 8
+                Text = 'Row format'
                 Width = 70
-                WideText = 'Row format'
               end
               item
                 Alignment = taRightJustify
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 9
+                Text = 'Avg row length'
                 Width = 70
-                WideText = 'Avg row length'
               end
               item
                 Alignment = taRightJustify
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 10
+                Text = 'Max data length'
                 Width = 70
-                WideText = 'Max data length'
               end
               item
                 Alignment = taRightJustify
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 11
+                Text = 'Index length'
                 Width = 70
-                WideText = 'Index length'
               end
               item
                 Alignment = taRightJustify
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 12
+                Text = 'Data free'
                 Width = 70
-                WideText = 'Data free'
               end
               item
                 Alignment = taRightJustify
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 13
+                Text = 'Auto increment'
                 Width = 90
-                WideText = 'Auto increment'
               end
               item
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 14
+                Text = 'Check time'
                 Width = 120
-                WideText = 'Check time'
               end
               item
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 15
+                Text = 'Collation'
                 Width = 70
-                WideText = 'Collation'
               end
               item
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 16
+                Text = 'Checksum'
                 Width = 70
-                WideText = 'Checksum'
               end
               item
                 Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
                 Position = 17
+                Text = 'Create options'
                 Width = 70
-                WideText = 'Create options'
               end
               item
                 Position = 18
-                WideText = 'Type'
+                Text = 'Type'
               end>
           end
         end
@@ -1232,7 +1225,6 @@ object MainForm: TMainForm
             Header.Images = ImageListMain
             Header.MainColumn = -1
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages, hoVisible]
-            Header.ParentFont = True
             IncrementalSearch = isInitializedOnly
             LineStyle = lsSolid
             PopupMenu = popupDataGrid
@@ -1366,7 +1358,6 @@ object MainForm: TMainForm
               DragType = dtVCL
               Header.AutoSizeIndex = 0
               Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-              Header.ParentFont = True
               Images = ImageListMain
               IncrementalSearch = isAll
               PopupMenu = popupQueryHelpers
@@ -1395,13 +1386,13 @@ object MainForm: TMainForm
               Columns = <
                 item
                   Position = 0
-                  Width = 70
-                  WideText = 'Main column'
+                  Text = 'Main column'
+                  Width = 91
                 end
                 item
                   Position = 1
+                  Text = 'Attributes'
                   Width = 100
-                  WideText = 'Attributes'
                 end>
             end
           end
@@ -1418,7 +1409,6 @@ object MainForm: TMainForm
             Header.Images = ImageListMain
             Header.MainColumn = -1
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages]
-            Header.ParentFont = True
             IncrementalSearch = isAll
             LineStyle = lsSolid
             PopupMenu = popupDataGrid

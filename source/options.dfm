@@ -391,7 +391,7 @@ object optionsform: Toptionsform
           Width = 53
           Height = 21
           TabOrder = 2
-          Text = '2.000'
+          Text = '2000'
           OnChange = Modified
         end
         object chkLogToFile: TCheckBox
@@ -516,7 +516,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 710
-        Height = 396
+        Height = 395
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperSql'
@@ -745,7 +745,7 @@ object optionsform: Toptionsform
           Left = 191
           Top = 269
           Width = 510
-          Height = 118
+          Height = 117
           Cursor = crHandPoint
           SingleLineMode = False
           Anchors = [akLeft, akTop, akRight, akBottom]
@@ -822,7 +822,7 @@ object optionsform: Toptionsform
         Left = 0
         Top = 0
         Width = 710
-        Height = 396
+        Height = 395
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperGrid'
@@ -1226,7 +1226,6 @@ object optionsform: Toptionsform
           Align = alLeft
           Header.AutoSizeIndex = 0
           Header.MainColumn = -1
-          Header.ParentFont = True
           Images = MainForm.ImageListMain
           TabOrder = 0
           OnFocusChanged = TreeShortcutItemsFocusChanged

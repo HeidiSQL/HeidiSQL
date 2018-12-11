@@ -113,7 +113,7 @@ type
     procedure treeIndexesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure treeIndexesInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
     procedure treeIndexesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var ImageIndex: Integer);
+      var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure btnClearIndexesClick(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
     procedure editNumEditChange(Sender: TObject);
@@ -153,7 +153,7 @@ type
       Node: PVirtualNode; Column: TColumnIndex);
     procedure listForeignKeysGetImageIndex(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-      var Ghosted: Boolean; var ImageIndex: Integer);
+      var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure listForeignKeysGetText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
       var CellText: String);
@@ -1530,7 +1530,7 @@ end;
 
 procedure TfrmTableEditor.treeIndexesGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var ImageIndex: Integer);
+  var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
   VT: TVirtualStringTree;
 begin
@@ -2201,7 +2201,7 @@ end;
 
 procedure TfrmTableEditor.listForeignKeysGetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var ImageIndex: Integer);
+  var Ghosted: Boolean; var ImageIndex: TImageIndex);
 begin
   // Return image index for node cell in foreign key list
   if not (Kind in [ikNormal, ikSelected]) then Exit;

@@ -41,7 +41,6 @@ object frmSelectDBObject: TfrmSelectDBObject
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-    Header.ParentFont = True
     Images = MainForm.ImageListMain
     Indent = 16
     Margin = 2
@@ -57,13 +56,13 @@ object frmSelectDBObject: TfrmSelectDBObject
     Columns = <
       item
         Position = 0
-        Width = 212
-        WideText = 'Name'
+        Text = 'Name'
+        Width = 216
       end
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 1
-        WideText = 'Size'
+        Text = 'Size'
       end>
   end
   object btnOK: TButton

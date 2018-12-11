@@ -31,7 +31,7 @@ type
     procedure treeSourceChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure treeSourceChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure treeSourceChecking(Sender: TBaseVirtualTree; Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
-    procedure treeSourceGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure treeSourceGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure treeSourceGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure treeSourceGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure treeSourceInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
@@ -45,7 +45,7 @@ type
     procedure treeDifferencesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure treeDifferencesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure treeDifferencesInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode; var ChildCount: Cardinal);
-    procedure treeDifferencesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure treeDifferencesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
   private
     { Private declarations }
     function CreateTargetConnection: TDBConnection;
@@ -183,7 +183,7 @@ end;
 
 
 procedure TfrmSyncDB.treeDifferencesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
   Diff: PDiffObject;
 begin
@@ -303,7 +303,7 @@ end;
 
 
 procedure TfrmSyncDB.treeSourceGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
 begin
   // Clone logic of MainForm.DBtree
   MainForm.DBtree.OnGetImageIndex(Sender, Node, Kind, Column, Ghosted, ImageIndex);

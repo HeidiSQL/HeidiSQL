@@ -100,7 +100,6 @@ object frmSQLhelp: TfrmSQLhelp
         Align = alClient
         Header.AutoSizeIndex = 0
         Header.MainColumn = -1
-        Header.ParentFont = True
         Images = MainForm.ImageListMain
         TabOrder = 1
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]

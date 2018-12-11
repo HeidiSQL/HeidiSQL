@@ -96,7 +96,6 @@ object UserManagerForm: TUserManagerForm
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-      Header.ParentFont = True
       Header.SortColumn = 0
       Images = MainForm.ImageListMain
       IncrementalSearch = isAll
@@ -118,13 +117,13 @@ object UserManagerForm: TUserManagerForm
       Columns = <
         item
           Position = 0
-          Width = 93
-          WideText = 'Username'
+          Text = 'Username'
+          Width = 97
         end
         item
           Position = 1
+          Text = 'Host'
           Width = 80
-          WideText = 'Host'
         end>
     end
     object ToolBar1: TToolBar
@@ -214,7 +213,6 @@ object UserManagerForm: TUserManagerForm
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.MainColumn = -1
-      Header.ParentFont = True
       Images = MainForm.ImageListMain
       IncrementalSearch = isAll
       TabOrder = 2

@@ -21,7 +21,7 @@ type
         Column: TColumnIndex);
     procedure TreeDBOGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var
-        ImageIndex: Integer);
+        ImageIndex: TImageIndex);
     procedure TreeDBOGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize:
         Integer);
     procedure TreeDBOGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
@@ -158,7 +158,7 @@ end;
 
 procedure TfrmSelectDBObject.TreeDBOGetImageIndex(Sender: TBaseVirtualTree;
     Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex; var Ghosted:
-    Boolean; var ImageIndex: Integer);
+    Boolean; var ImageIndex: TImageIndex);
 begin
   Mainform.DBtreeGetImageIndex(Sender, Node, Kind, Column, Ghosted, ImageIndex);
 end;
