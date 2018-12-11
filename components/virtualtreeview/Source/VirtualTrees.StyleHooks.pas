@@ -447,10 +447,16 @@ begin
   PaintScrollBars;
 end;
 
-procedure TVclStyleScrollBarsHook.PaintScrollBars;
+procedure TVclStyleScrollBarsHook.PaintScrollBars();
 begin
-  FVertScrollBarWindow.Repaint;
-  FHorzScrollBarWindow.Repaint;
+  if FVertScrollBarWindow.HandleAllocated then begin
+    FVertScrollBarWindow.Repaint;
+    RedrawWindow(FVertScrollBarWindow.Handle, nil, 0, RDW_FRAME or RDW_INVALIDATE); // Fixes issue #698
+  end;
+  if FHorzScrollBarWindow.HandleAllocated then begin
+    FHorzScrollBarWindow.Repaint;
+    RedrawWindow(FHorzScrollBarWindow.Handle, nil, 0, RDW_FRAME or RDW_INVALIDATE); // Fixes issue #698
+  end;
 end;
 
 function TVclStyleScrollBarsHook.PointInTreeHeader(const P: TPoint): Boolean;
@@ -573,7 +579,8 @@ end;
 procedure TVclStyleScrollBarsHook.WMKeyDown(var Msg: TMessage);
 begin
   CallDefaultProc(TMessage(Msg));
-  PaintScrollBars;
+  CalcScrollBarsRect;
+  UpdateScrollBarWindow;
   Handled := True;
 end;
 
@@ -587,7 +594,8 @@ end;
 procedure TVclStyleScrollBarsHook.WMLButtonDown(var Msg: TWMMouse);
 begin
   CallDefaultProc(TMessage(Msg));
-  PaintScrollBars;
+  CalcScrollBarsRect;
+  UpdateScrollBarWindow;
   Handled := True;
 end;
 
@@ -1140,9 +1148,12 @@ begin
 end;
 
 initialization
-
   TCustomStyleEngine.RegisterStyleHook(TVirtualStringTree, TVclStyleScrollBarsHook);
   TCustomStyleEngine.RegisterStyleHook(TVirtualDrawTree, TVclStyleScrollBarsHook);
+
+finalization
+  TCustomStyleEngine.UnRegisterStyleHook(TVirtualStringTree, TVclStyleScrollBarsHook);
+  TCustomStyleEngine.UnRegisterStyleHook(TVirtualDrawTree, TVclStyleScrollBarsHook);
 
 end.
 

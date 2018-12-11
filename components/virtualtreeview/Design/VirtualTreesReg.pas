@@ -12,7 +12,7 @@ interface
 
 uses
   Windows, Classes, DesignIntf, DesignEditors, VCLEditors, PropertyCategories,
-  ColnEdit, VirtualTrees, VTHeaderPopup;
+  ColnEdit, VirtualTrees, VirtualTrees.HeaderPopup;
 
 type
   TVirtualTreeEditor = class (TDefaultEditor)
@@ -61,15 +61,6 @@ type
   public
     function GetAttributes: TPropertyAttributes; override;
     procedure GetProperties(Proc: TGetPropEditProc); override;
-    procedure PropDrawName(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
-    procedure PropDrawValue(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
-  end;
-
-  TCheckImageKindProperty = class(TEnumProperty, ICustomPropertyDrawing, ICustomPropertyListDrawing)
-  public
-    procedure ListMeasureHeight(const Value: string; Canvas: TCanvas; var AHeight: Integer);
-    procedure ListMeasureWidth(const Value: string; ACanvas: TCanvas; var AWidth: Integer);
-    procedure ListDrawValue(const Value: string; ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
     procedure PropDrawName(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
     procedure PropDrawValue(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
   end;
@@ -296,84 +287,6 @@ begin
   // Nothing to do here.
 end;
 
-//----------------- TCheckImageKindProperty ----------------------------------------------------------------------------
-
-const
-  cCheckImageKindComboItemBorder   = 0;
-  cCheckImageKindComboItemSpacing  = 2;
-  cCheckImageKindComboBitmapHeight = 16;
-  cCheckImageKindComboBitmapWidth  = 16;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-procedure TCheckImageKindProperty.PropDrawName(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
-
-begin
-  DefaultPropertyDrawName(Self, ACanvas, ARect);
-end;
-
-
-//----------------------------------------------------------------------------------------------------------------------
-
-procedure TCheckImageKindProperty.PropDrawValue(ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
-
-begin
-  if GetVisualValue <> '' then
-    ListDrawValue(GetVisualValue, ACanvas, ARect, ASelected)
-  else
-    DefaultPropertyDrawValue(Self, ACanvas, ARect);
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-procedure TCheckImageKindProperty.ListDrawValue(const Value: string; ACanvas: TCanvas; const ARect: TRect; ASelected: Boolean);
-
-var
-  RighPosition: Integer;
-  OldPenColor: TColor;
-  CheckKind: TCheckImageKind;
-  ImageList: TCustomImageList;
-  RemainingRect: TRect;
-
-begin
-  RighPosition := ARect.Left + cCheckImageKindComboBitmapWidth;
-  with ACanvas do
-  try
-    OldPenColor := Pen.Color;
-    Pen.Color := Brush.Color;
-    Rectangle(ARect.Left, ARect.Top, RighPosition, ARect.Bottom);
-
-    CheckKind := TCheckImageKind(GetEnumValue(GetPropInfo^.PropType^, Value));
-    ImageList := TVirtualTreeCast.GetCheckImageListFor(CheckKind);
-    if ImageList <> nil then
-    begin
-      ImageList_DrawEx(ImageList.Handle, ckCheckCheckedNormal, ACanvas.Handle, ARect.Left + cCheckImageKindComboItemBorder,
-        ARect.Top + cCheckImageKindComboItemBorder, 0, 0, CLR_NONE, CLR_NONE, ILD_TRANSPARENT);
-    end;
-
-    Pen.Color := OldPenColor;
-  finally
-    RemainingRect := Rect(RighPosition, ARect.Top, ARect.Right, ARect.Bottom);
-    DefaultPropertyListDrawValue(Value, ACanvas, RemainingRect, ASelected);
-  end;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-procedure TCheckImageKindProperty.ListMeasureHeight(const Value: string; Canvas: TCanvas; var AHeight: Integer);
-
-begin
-  AHeight := cCheckImageKindComboBitmapHeight;
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
-procedure TCheckImageKindProperty.ListMeasureWidth(const Value: string; ACanvas: TCanvas; var AWidth: Integer);
-
-begin
-  AWidth := AWidth + cCheckImageKindComboBitmapWidth;
-end;
-
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure Register;
@@ -383,7 +296,6 @@ begin
   RegisterComponentEditor(TVirtualStringTree, TVirtualTreeEditor);
   RegisterComponentEditor(TVirtualDrawTree, TVirtualTreeEditor);
   RegisterPropertyEditor(TypeInfo(TClipboardFormats), nil, '', TClipboardFormatsProperty);
-  RegisterPropertyEditor(TypeInfo(TCheckImageKind), nil, '', TCheckImageKindProperty);  
 
   // Categories:
   RegisterPropertiesInCategory(sActionCategoryName, TBaseVirtualTree, ['ChangeDelay', 'EditDelay']);

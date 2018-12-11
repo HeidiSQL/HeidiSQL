@@ -5,6 +5,7 @@ interface
 uses
   System.Classes,
   System.Actions,
+  Vcl.Controls,
   Vcl.ActnList,
   VirtualTrees;
 
@@ -20,7 +21,7 @@ type
     fFilter: TVirtualNodeStates; // Apply only of nodes which match these states
     procedure SetControl(Value: TBaseVirtualTree); // Setter for the property "Control"
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure DoAfterExecute; // Fires the event "OnAfterExecute"
+    procedure DoAfterExecute; virtual;// Fires the event "OnAfterExecute"
     property SelectedOnly: Boolean read GetSelectedOnly write SetSelectedOnly default False;
   public
     function HandlesTarget(Target: TObject): Boolean; override;
@@ -28,6 +29,7 @@ type
     procedure ExecuteTarget(Target: TObject); override;
   published
     constructor Create(AOwner: TComponent); override;
+    function Update: Boolean; override;
     property Control: TBaseVirtualTree read fTree write SetControl;
     property OnAfterExecute: TNotifyEvent read fOnAfterExecute write fOnAfterExecute; // Executed after the action was performed
     property Caption;
@@ -45,9 +47,11 @@ type
   TVirtualTreePerItemAction = class(TVirtualTreeAction)
   strict private
     fOnBeforeExecute: TNotifyEvent;
+    fOldCursor: TCursor;
   strict protected
     fToExecute: TVTGetNodeProc; // method which is executed per item to perform this action
-    procedure DoBeforeExecute;
+    procedure DoBeforeExecute();
+    procedure DoAfterExecute(); override;// Fires the event "OnAfterExecute"
   public
     constructor Create(AOwner: TComponent); override;
     procedure ExecuteTarget(Target: TObject); override;
@@ -63,6 +67,7 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property SelectedOnly;
+    property OnUpdate;
   end;
 
   // A standard action which unchecks nodes in a virtual treeview
@@ -109,7 +114,8 @@ procedure Register;
 implementation
 
 uses
-  Controls, Forms;
+  WinApi.Windows,
+  Vcl.Forms;
 
 procedure Register;
 begin
@@ -151,6 +157,15 @@ begin
   Result := (Target is TBaseVirtualTree);
 end;
 
+function TVirtualTreeAction.Update(): Boolean;
+begin
+  Result := inherited;
+  // If an OnUpdate event handler is assigned, TBasicAction.Update() will return True and so TBasicAction.UpdateTarget() will not be called.
+  // We would then end up with Control == nil. So trigger update of action manually.
+  if Result and Assigned(OnUpdate) then
+    SendAppMessage(CM_ACTIONUPDATE, 0, LPARAM(Self))
+end;
+
 procedure TVirtualTreeAction.UpdateTarget(Target: TObject);
 begin
   if fTreeAutoDetect and (Target is TBaseVirtualTree) then
@@ -190,31 +205,36 @@ begin
   inherited;
   fToExecute := nil;
   fOnBeforeExecute := nil;
+  fOldCursor := crNone;
+end;
+
+procedure TVirtualTreePerItemAction.DoAfterExecute;
+begin
+  inherited;
+  if fOldCursor <> crNone then
+    Screen.Cursor := fOldCursor;
 end;
 
 procedure TVirtualTreePerItemAction.DoBeforeExecute;
 begin
+  if Screen.Cursor <> crHourGlass then begin
+    fOldCursor := Screen.Cursor;
+    Screen.Cursor := crHourGlass;
+  end;//if
   if Assigned(fOnBeforeExecute) then
     fOnBeforeExecute(Self);
 end;
 
 procedure TVirtualTreePerItemAction.ExecuteTarget(Target: TObject);
-var
-  lOldCursor: TCursor;
 begin
-  if Assigned(Self.Control) then
-    Target := Self.Control;
   DoBeforeExecute();
-  lOldCursor := Screen.Cursor;
-  Screen.Cursor := crHourGlass;
   Control.BeginUpdate();
   try
-    Control.IterateSubtree(nil, Self.fToExecute, nil, fFilter);
+    Control.IterateSubtree(nil, Self.fToExecute, nil, fFilter, true);
   finally
-    Control.EndUpdate;
-    Screen.Cursor := lOldCursor;
+    Control.EndUpdate();
+    DoAfterExecute();
   end;
-  Inherited ExecuteTarget(Target);
 end;
 
 { TVirtualTreeCheckAll }
@@ -227,7 +247,8 @@ begin
   fDesiredCheckState := csCheckedNormal;
   fToExecute := procedure(Sender: TBaseVirtualTree; Node: PVirtualNode; Data: Pointer; var Abort: Boolean)
                 begin
-                  Control.CheckState[Node] := fDesiredCheckState;
+                  if not Control.CheckState[Node].IsDisabled then
+                    Control.CheckState[Node] := fDesiredCheckState;
                 end;
 end;
 

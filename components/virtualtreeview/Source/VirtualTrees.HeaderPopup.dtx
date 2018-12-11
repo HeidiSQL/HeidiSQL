@@ -1,0 +1,54 @@
+
+@@TVirtualTreeCast
+Necessary to make the header accessible.
+
+
+@@TVTHeaderPopupOption.poAllowHideAll
+Allows to hide all columns, including the last one.
+
+@@TVTHeaderPopupOption.poOriginalOrder
+Show menu items in original column order as they were added to the tree.
+
+@@VTHeaderPopup.pas
+The contents of this file are subject to the Mozilla Public License
+Version 1.1 (the "License"); you may not use this file except in
+compliance with the License. You may obtain a copy of the License at
+http://www.mozilla.org/MPL/
+
+Alternatively, you may redistribute this library, use and/or modify it under the terms of the
+GNU Lesser General Public License as published by the Free Software Foundation;
+either version 2.1 of the License, or (at your option) any later version.
+You may obtain a copy of the LGPL at http://www.gnu.org/copyleft/.
+
+Software distributed under the License is distributed on an "AS IS"
+basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+License for the specific language governing rights and limitations
+under the License.
+
+The Original Code is VTHeaderPopup.pas.
+
+The Initial Developer of the Original Code is Ralf Junker <delphi@zeitungsjunge.de>. All Rights Reserved.
+
+Modified 14 Sep 2003 by Mike Lischke <public@delphi-gems.com>.
+  - Renamed event type name to be consistent with other event types (e.g. used in VT).
+  - Added event for hiding/showing columns.
+  - DoXXX method are now virtual.
+  - Conditional code rearrangement to get back Ctrl+Shift+Up/Down navigation back.
+Modified 31 Mar 2003 by Mike Lischke <public@delphi-gems.com>.
+  Added a check for the PopupComponent property before casting it hardly to a Virtual Treeview. People might
+  (accidentally) misuse the header popup.
+
+Modified 20 Oct 2002 by Borut Maricic <borut.maricic@pobox.com>.
+  Added the possibility to use Troy Wolbrink's Unicode aware popup menu. Define the compiler symbol TNT to enable it.
+  You can get Troy's Unicode controls collection from http://home.ccci.org/wolbrink/tnt/delphi_unicode_controls.htm).
+
+Modified 24 Feb 2002 by Ralf Junker <delphi@zeitungsjunge.de>.
+  Fixed a bug where the OnAddHeaderPopupItem would interfere with poAllowHideAll options.
+  All column indexes now consistently use TColumnIndex (instead of Integer).
+
+Modified 23 Feb 2002 by Ralf Junker <delphi@zeitungsjunge.de>.
+  Added option to show menu items in the same order as the columns or in original order.
+  Added option to prevent the user to hide all columns.
+
+Modified 17 Feb 2002 by Jim Kueneman <jimdk@mindspring.com>.
+  Added the event to filter the items as they are added to the menu.

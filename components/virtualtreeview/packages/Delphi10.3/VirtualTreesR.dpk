@@ -1,28 +1,29 @@
 package VirtualTreesR;
 
+{$R *.res}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
 {$ASSERTIONS ON}
 {$BOOLEVAL OFF}
-{$DEBUGINFO ON}
+{$DEBUGINFO OFF}
 {$EXTENDEDSYNTAX ON}
 {$IMPORTEDDATA ON}
 {$IOCHECKS ON}
 {$LOCALSYMBOLS ON}
 {$LONGSTRINGS ON}
 {$OPENSTRINGS ON}
-{$OPTIMIZATION OFF}
+{$OPTIMIZATION ON}
 {$OVERFLOWCHECKS OFF}
 {$RANGECHECKS OFF}
-{$REFERENCEINFO ON}
+{$REFERENCEINFO OFF}
 {$SAFEDIVIDE OFF}
-{$STACKFRAMES ON}
+{$STACKFRAMES OFF}
 {$TYPEDADDRESS OFF}
 {$VARSTRINGCHECKS ON}
 {$WRITEABLECONST OFF}
 {$MINENUMSIZE 1}
 {$IMAGEBASE $400000}
-{$DEFINE DEBUG}
+{$DEFINE RELEASE}
 {$ENDIF IMPLICITBUILDING}
 {$RUNONLY}
 {$IMPLICITBUILD OFF}
@@ -33,16 +34,17 @@ requires
 
 contains
   VirtualTrees in '..\..\Source\VirtualTrees.pas',
-  VTHeaderPopup in '..\..\Source\VTHeaderPopup.pas',
-  VTAccessibilityFactory in '..\..\Source\VTAccessibilityFactory.pas',
-  VTAccessibility in '..\..\Source\VTAccessibility.pas',
+  VirtualTrees.HeaderPopup in '..\..\Source\VirtualTrees.HeaderPopup.pas',
+  VirtualTrees.AccessibilityFactory in '..\..\Source\VirtualTrees.AccessibilityFactory.pas',
+  VirtualTrees.Accessibility in '..\..\Source\VirtualTrees.Accessibility.pas',
   VirtualTrees.StyleHooks in '..\..\Source\VirtualTrees.StyleHooks.pas',
   VirtualTrees.Classes in '..\..\Source\VirtualTrees.Classes.pas',
   VirtualTrees.WorkerThread in '..\..\Source\VirtualTrees.WorkerThread.pas',
   VirtualTrees.ClipBoard in '..\..\Source\VirtualTrees.ClipBoard.pas',
-  VirtualTrees.Utils in '..\..\Source\VirtualTrees.Utils.pas',
+  VirtualTrees.Actions in '..\..\Source\VirtualTrees.Actions.pas',
   VirtualTrees.Export in '..\..\Source\VirtualTrees.Export.pas',
-  VirtualTrees.Actions in '..\..\Source\VirtualTrees.Actions.pas';
+  VirtualTrees.Utils in '..\..\Source\VirtualTrees.Utils.pas';
 
 end.
+
 
