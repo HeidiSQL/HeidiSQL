@@ -440,7 +440,9 @@ begin
     CreateCode := CreateCode + Format(ClausePattern, [Column.SQLCode]);
     if AutoIncRemoved then
       Column.DefaultType := cdtAutoInc;
-    DataCols := DataCols + FConnection.QuoteIdent(Column.Name) + ', ';
+    // Use this column for the INSERT..SELECT query only if it's not a virtual one
+    if Column.Virtuality.IsEmpty then
+      DataCols := DataCols + FConnection.QuoteIdent(Column.Name) + ', ';
   end;
 
   // Indexes code
