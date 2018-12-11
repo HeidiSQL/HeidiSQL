@@ -1366,9 +1366,10 @@ begin
     11: begin // Virtuality pulldown
       EnumEditor := TEnumEditorLink.Create(VT);
       EnumEditor.ValueList := TStringList.Create;
-      EnumEditor.ValueList.Add('');
-      EnumEditor.ValueList.Add('VIRTUAL');
-      EnumEditor.ValueList.Add('PERSISTENT');
+      if DBObject.Connection.Parameters.IsMariaDB then
+        EnumEditor.ValueList.CommaText := ',VIRTUAL,PERSISTENT'
+      else
+        EnumEditor.ValueList.CommaText := ',VIRTUAL,STORED';
       EditLink := EnumEditor;
     end
     else
