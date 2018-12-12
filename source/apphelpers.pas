@@ -266,6 +266,7 @@ type
   function IsNumeric(Str: String): Boolean;
   function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
   function ScanLineBreaks(Text: String): TLineBreaks;
+  function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
   function ExtractLiteral(var SQL: String; Prefix: String): String;
   function GetShellFolder(CSIDL: integer): string;
@@ -683,7 +684,7 @@ end;
 }
 function ScanLineBreaks(Text: String): TLineBreaks;
 var
-  i: integer;
+  i, SeekSize: Integer;
   c: Char;
   procedure SetResult(Style: TLineBreaks);
   begin
@@ -697,12 +698,14 @@ var
   end;
 begin
   Result := lbsNone;
-  if length(Text) = 0 then exit;
+  SeekSize := Min(Length(Text), SIZE_MB);
+  if SeekSize = 0 then
+    Exit;
   i := 1;
   repeat
     c := Text[i];
     if c = #13 then begin
-      if (i < length(Text)) and (Text[i+1] = #10) then begin
+      if (i < SeekSize) and (Text[i+1] = #10) then begin
         Inc(i);
         SetResult(lbsWindows);
       end else
@@ -715,7 +718,29 @@ begin
     // No need to do more checks after detecting mixed style
     if Result = lbsMixed then
       break;
-  until i > length(Text);
+  until i > SeekSize;
+end;
+
+
+function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
+var
+  Offset: Integer;
+  BreakStr: String;
+begin
+  // Count number of given line breaks in text
+  Result := 0;
+  case LineBreak of
+    lbsWindows: BreakStr := CRLF;
+    lbsUnix: BreakStr := LB_UNIX;
+    lbsMac: BreakStr := LB_MAC;
+    lbsWide: BreakStr := LB_WIDE;
+    else Exit;
+  end;
+  Offset := PosEx(BreakStr, Text, 1);
+  while Offset <> 0 do begin
+    Inc(Result);
+    Offset := PosEx(BreakStr, Text, Offset + Length(BreakStr));
+  end;
 end;
 
 

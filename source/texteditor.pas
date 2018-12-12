@@ -34,6 +34,7 @@ type
     btnSearchReplace: TToolButton;
     btnSearchFindNext: TToolButton;
     btnSeparator1: TToolButton;
+    TimerMemoChange: TTimer;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
@@ -45,6 +46,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure SelectLinebreaks(Sender: TObject);
+    procedure TimerMemoChangeTimer(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -103,8 +105,6 @@ begin
     SelectLineBreaks(Detected);
   FmemoText.Text := text;
   FmemoText.SelectAll;
-  // Trigger change event, which is not fired when text is empty. See #132.
-  FmemoText.OnChange(FmemoText);
   Modified := False;
 end;
 
@@ -114,6 +114,27 @@ begin
   // Add column name to window title bar
   if Title <> '' then
     Caption := Title + ' - ' + Caption;
+end;
+
+
+procedure TfrmTextEditor.TimerMemoChangeTimer(Sender: TObject);
+var
+  Lines: Cardinal;
+  TextLen: Integer;
+  MaxLen: String;
+begin
+  // Timer based onchange handler, so we don't scan the whole text on every typed character
+  TimerMemoChange.Enabled := False;
+  TextLen := Length(FmemoText.Text);
+  if FmemoText.MaxLength = 0 then
+    MaxLen := '?'
+  else
+    MaxLen := FormatNumber(FmemoText.MaxLength);
+  if TextLen = 0 then
+    Lines := 0
+  else
+    Lines := CountLineBreaks(FmemoText.Text) + 1;
+  lblTextLength.Caption := f_('%s characters (max: %s), %s lines', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines)]);
 end;
 
 
@@ -202,6 +223,8 @@ end;
 
 procedure TfrmTextEditor.FormShow(Sender: TObject);
 begin
+  // Trigger change event, which is not fired when text is empty. See #132.
+  TimerMemoChangeTimer(Self);
   FmemoText.SetFocus;
 end;
 
@@ -294,10 +317,9 @@ end;
 
 procedure TfrmTextEditor.memoTextChange(Sender: TObject);
 begin
-  lblTextLength.Caption := FormatNumber(Length(FmemoText.Text)) + ' characters.';
-  if FmemoText.MaxLength > 0 then
-    lblTextLength.Caption := lblTextLength.Caption + ' (Max: '+FormatNumber(FmemoText.MaxLength)+')';
   Modified := True;
+  TimerMemoChange.Enabled := False;
+  TimerMemoChange.Enabled := True;
 end;
 
 

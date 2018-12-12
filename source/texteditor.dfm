@@ -31,13 +31,12 @@ object frmTextEditor: TfrmTextEditor
     Caption = 'Panel1'
     ShowCaption = False
     TabOrder = 0
-    ExplicitWidth = 332
     object lblTextLength: TLabel
       AlignWithMargins = True
       Left = 210
       Top = 3
       Width = 65
-      Height = 13
+      Height = 16
       Align = alLeft
       BiDiMode = bdLeftToRight
       Caption = 'lblTextLength'
@@ -176,5 +175,11 @@ object frmTextEditor: TfrmTextEditor
       Hint = 'Replace|Replaces specific text with different text'
       ImageIndex = 59
     end
+  end
+  object TimerMemoChange: TTimer
+    Interval = 500
+    OnTimer = TimerMemoChangeTimer
+    Left = 120
+    Top = 16
   end
 end
