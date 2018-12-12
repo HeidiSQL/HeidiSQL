@@ -121,7 +121,7 @@ procedure TfrmTextEditor.TimerMemoChangeTimer(Sender: TObject);
 var
   Lines: Cardinal;
   TextLen: Integer;
-  MaxLen: String;
+  MaxLen, CursorPos: String;
 begin
   // Timer based onchange handler, so we don't scan the whole text on every typed character
   TimerMemoChange.Enabled := False;
@@ -134,7 +134,8 @@ begin
     Lines := 0
   else
     Lines := CountLineBreaks(FmemoText.Text) + 1;
-  lblTextLength.Caption := f_('%s characters (max: %s), %s lines', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines)]);
+  CursorPos := FormatNumber(FmemoText.CaretPos.X+1) + ' : ' + FormatNumber(FmemoText.CaretPos.Y+1);
+  lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines), CursorPos]);
 end;
 
 
@@ -232,6 +233,8 @@ end;
 procedure TfrmTextEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
+  TimerMemoChange.Enabled := False;
+  TimerMemoChange.Enabled := True;
   case Key of
     // Cancel by Escape
     VK_ESCAPE: btnCancelClick(Sender);
