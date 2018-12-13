@@ -177,7 +177,7 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object TimerMemoChange: TTimer
-    Interval = 500
+    Interval = 200
     OnTimer = TimerMemoChangeTimer
     Left = 120
     Top = 16

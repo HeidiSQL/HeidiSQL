@@ -134,7 +134,7 @@ begin
     Lines := 0
   else
     Lines := CountLineBreaks(FmemoText.Text) + 1;
-  CursorPos := FormatNumber(FmemoText.CaretPos.X+1) + ' : ' + FormatNumber(FmemoText.CaretPos.Y+1);
+  CursorPos := FormatNumber(FmemoText.CaretPos.Y+1) + ' : ' + FormatNumber(FmemoText.CaretPos.X+1);
   lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines), CursorPos]);
 end;
 
