@@ -297,8 +297,9 @@ type
   TDBConnection = class(TComponent)
     private
       FActive: Boolean;
-      FConnectionStarted: Integer;
+      FConnectionStarted: Cardinal;
       FServerUptime: Integer;
+      FServerDateTimeOnStartup: String;
       FParameters: TConnectionParameters;
       FLoginPromptDone: Boolean;
       FDatabase: String;
@@ -356,6 +357,7 @@ type
       function GetInformationSchemaObjects: TStringList; virtual;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
+      function GetServerNow: TDateTime;
       function GetCurrentUserHostCombination: String;
       function DecodeAPIString(a: AnsiString): String;
       function ExtractIdentifier(var SQL: String): String;
@@ -413,6 +415,7 @@ type
       property ThreadId: Int64 read GetThreadId;
       property ConnectionUptime: Integer read GetConnectionUptime;
       property ServerUptime: Integer read GetServerUptime;
+      property ServerNow: TDateTime read GetServerNow;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
       property LastErrorCode: Cardinal read GetLastErrorCode;
       property LastError: String read GetLastError;
@@ -1823,6 +1826,7 @@ begin
           FIsSSL := Status.Col(1) <> '';
         Status.Next;
       end;
+      FServerDateTimeOnStartup := GetVar('SELECT NOW()');
       FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
       Vars := GetSessionVariables(False);
       while not Vars.Eof do begin
@@ -1958,6 +1962,7 @@ begin
       except
         FServerUptime := -1;
       end;
+      FServerDateTimeOnStartup := GetVar('SELECT GETDATE()');
       // Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)
       // Apr  2 2010 15:53:02
       // Copyright (c) Microsoft Corporation
@@ -2053,6 +2058,7 @@ begin
       raise EDatabaseError.Create(Error);
     end;
     FActive := True;
+    FServerDateTimeOnStartup := GetVar('SELECT NOW()');
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
     Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
@@ -4303,7 +4309,7 @@ begin
   if not FActive then
     Result := 0
   else
-    Result := Integer(GetTickCount div 1000) - FConnectionStarted;
+    Result := (GetTickCount div 1000) - FConnectionStarted;
 end;
 
 
@@ -4311,8 +4317,21 @@ function TDBConnection.GetServerUptime: Integer;
 begin
   // Return server uptime in seconds. Return -1 if unknown.
   if FServerUptime > 0 then
-    Result := FServerUptime + (Integer(GetTickCount div 1000) - FConnectionStarted)
+    Result := Cardinal(FServerUptime) + ((GetTickCount div 1000) - FConnectionStarted)
   else
+    Result := -1;
+end;
+
+
+function TDBConnection.GetServerNow: TDateTime;
+var
+  d: TDateTime;
+begin
+  // Return server datetime. Return -1 if unknown.
+  if not FServerDateTimeOnStartup.IsEmpty then begin
+    d := StrToDateTimeDef(FServerDateTimeOnStartup, 0);
+    Result := IncSecond(d, (GetTickCount div 1000) - FConnectionStarted);
+  end else
     Result := -1;
 end;
 

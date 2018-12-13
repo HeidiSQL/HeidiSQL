@@ -2243,8 +2243,8 @@ begin
   w1 := CalcPanelWidth(110, 10);
   w2 := CalcPanelWidth(140, 10);
   w3 := CalcPanelWidth(170, 15);
-  w4 := CalcPanelWidth(170, 15);
-  w5 := CalcPanelWidth(170, 15);
+  w4 := CalcPanelWidth(150, 15);
+  w5 := CalcPanelWidth(210, 15);
   w6 := CalcPanelWidth(250, 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
   StatusBar.Panels[0].Width := w0;
@@ -5875,11 +5875,9 @@ procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 var
   Conn: TDBConnection;
   Uptime: Integer;
-  SystemTime: TSystemTime;
-  tmp: TDateTime;
-  utcs: String;
+  ServerNow: TDateTime;
 begin
-  // Display server uptime
+  // Display server uptime and current date time
   Conn := ActiveConnection;
   if Assigned(Conn) then begin
     Uptime := Conn.ServerUptime;
@@ -5887,15 +5885,16 @@ begin
       ShowStatusMsg(_('Uptime')+': '+FormatTimeNumber(Conn.ServerUptime, False), 4)
     else
       ShowStatusMsg(_('Uptime')+': '+_('unknown'), 4);
-  end else
-    ShowStatusMsg('', 4);
 
-  // Display UTC date/time
-  GetSystemTime(SystemTime);
-  tmp := EncodeDate(SystemTime.wYear, SystemTime.wMonth, SystemTime.wDay) +
-    EncodeTime(SystemTime.wHour, SystemTime.wMinute, SystemTime.wSecond, SystemTime.wMilliseconds);
-  DateTimeToString(utcs, 'ddddd t', tmp);
-  ShowStatusMsg('UTC: ' + utcs, 5);
+    ServerNow := Conn.ServerNow;
+    if ServerNow >= 0 then
+      ShowStatusMsg(f_('Server time: %s', [DateTimeToStr(ServerNow)]), 5)
+    else
+      ShowStatusMsg(f_('Server time: %s', [_('unknown')]), 5);
+  end else begin
+    ShowStatusMsg('', 4);
+  end;
+
 end;
 
 
