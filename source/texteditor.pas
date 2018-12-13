@@ -43,6 +43,7 @@ type
     procedure FormShow(Sender: TObject);
     procedure memoTextChange(Sender: TObject);
     procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure memoTextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure SelectLinebreaks(Sender: TObject);
@@ -184,6 +185,7 @@ begin
   FmemoText.WantTabs := True;
   FmemoText.OnChange := memoTextChange;
   FmemoText.OnKeyDown := memoTextKeyDown;
+  FmemoText.OnClick := memoTextClick;
   // Use same text properties as in query/find/replace actions
   actSearchFind.Caption := MainForm.actQueryFind.Caption;
   actSearchFind.Hint := MainForm.actQueryFind.Hint;
@@ -242,6 +244,12 @@ begin
     VK_RETURN: if ssCtrl in Shift then btnApplyClick(Sender);
     Ord('a'), Ord('A'): if (ssCtrl in Shift) and (not (ssAlt in Shift)) then Mainform.actSelectAllExecute(Sender);
   end;
+end;
+
+procedure TfrmTextEditor.memoTextClick(Sender: TObject);
+begin
+  TimerMemoChange.Enabled := False;
+  TimerMemoChange.Enabled := True;
 end;
 
 procedure TfrmTextEditor.btnWrapClick(Sender: TObject);
