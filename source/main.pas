@@ -2244,7 +2244,7 @@ begin
   w2 := CalcPanelWidth(140, 10);
   w3 := CalcPanelWidth(170, 15);
   w4 := CalcPanelWidth(150, 15);
-  w5 := CalcPanelWidth(210, 15);
+  w5 := CalcPanelWidth(140, 10);
   w6 := CalcPanelWidth(250, 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
   StatusBar.Panels[0].Width := w0;
@@ -5876,6 +5876,7 @@ var
   Conn: TDBConnection;
   Uptime: Integer;
   ServerNow: TDateTime;
+  ServerNowStr: String;
 begin
   // Display server uptime and current date time
   Conn := ActiveConnection;
@@ -5887,9 +5888,10 @@ begin
       ShowStatusMsg(_('Uptime')+': '+_('unknown'), 4);
 
     ServerNow := Conn.ServerNow;
-    if ServerNow >= 0 then
-      ShowStatusMsg(f_('Server time: %s', [DateTimeToStr(ServerNow)]), 5)
-    else
+    if ServerNow >= 0 then begin
+      DateTimeToString(ServerNowStr, 't', ServerNow);
+      ShowStatusMsg(f_('Server time: %s', [ServerNowStr]), 5)
+    end else
       ShowStatusMsg(f_('Server time: %s', [_('unknown')]), 5);
   end else begin
     ShowStatusMsg('', 4);
