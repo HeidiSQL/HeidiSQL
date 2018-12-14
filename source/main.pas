@@ -7551,6 +7551,7 @@ begin
   editFilterVT.RightButton.ImageIndex := 150;
   editFilterVT.Repaint;
 
+  VT.BeginUpdate;
   while Assigned(Node) do begin
     // Don't filter anything if the filter text is empty
     match := rx.Expression = '';
@@ -7566,6 +7567,7 @@ begin
       inc(VisibleCount);
     Node := VT.GetNext(Node);
   end;
+  VT.EndUpdate;
   if rx.Expression <> '' then begin
     lblFilterVTInfo.Caption := f_('%0:d out of %1:d matching. %2:d hidden.', [VisibleCount, VT.RootNodeCount, VT.RootNodeCount - VisibleCount]);
   end else
