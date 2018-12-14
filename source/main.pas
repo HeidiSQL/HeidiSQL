@@ -8388,9 +8388,9 @@ begin
   // Grey out non-current connection nodes, and rather unimportant "Size" column
   DBObj := Sender.GetNodeData(Node);
   if DBObj.Connection <> ActiveConnection then
-    TargetCanvas.Font.Color := $00999999
+    TargetCanvas.Font.Color := clGrayText
   else if (Column = 1) and (DBObj.NodeType in [lntTable..lntEvent]) then
-    TargetCanvas.Font.Color := $00444444;
+    TargetCanvas.Font.Color := clGrayText;
 end;
 
 
