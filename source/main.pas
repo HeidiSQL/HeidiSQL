@@ -11482,10 +11482,7 @@ begin
   if actCancelOperation.Enabled <> Runs then begin
     actCancelOperation.ImageIndex := 159;
     actCancelOperation.Enabled := Runs;
-    if Runs then
-      FOperationTicker := GetTickCount
-    else
-      FOperationTicker := 0;
+    FOperationTicker := IfThen(Runs, GetTickCount, 0);
     Application.ProcessMessages;
   end else if Runs then begin
     if (GetTickCount-FOperationTicker) > 250 then begin

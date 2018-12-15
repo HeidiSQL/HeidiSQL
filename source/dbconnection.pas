@@ -6613,10 +6613,7 @@ begin
   end;
   FCurrentUpdateRow[Column].NewIsNull := Null;
   FCurrentUpdateRow[Column].NewIsFunction := IsFunction;
-  if Null then
-    FCurrentUpdateRow[Column].NewText := ''
-  else
-    FCurrentUpdateRow[Column].NewText := NewText;
+  FCurrentUpdateRow[Column].NewText := IfThen(Null, '', NewText);
   FCurrentUpdateRow[Column].Modified := (FCurrentUpdateRow[Column].NewText <> FCurrentUpdateRow[Column].OldText) or
     (FCurrentUpdateRow[Column].NewIsNull <> FCurrentUpdateRow[Column].OldIsNull) or
     (FCurrentUpdateRow[Column].NewIsFunction <> FCurrentUpdateRow[Column].OldIsFunction)
