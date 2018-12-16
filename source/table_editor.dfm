@@ -744,7 +744,6 @@ object frmTableEditor: TfrmTableEditor
     Margins.Bottom = 0
     Align = alTop
     Alignment = taLeftJustify
-    AutoSize = True
     BevelOuter = bvNone
     Caption = 'Columns:'
     TabOrder = 1
@@ -759,6 +758,7 @@ object frmTableEditor: TfrmTableEditor
       Margins.Right = 0
       Margins.Bottom = 0
       Align = alClient
+      AutoSize = True
       ButtonWidth = 66
       Caption = 'Columns:'
       Images = MainForm.ImageListMain
