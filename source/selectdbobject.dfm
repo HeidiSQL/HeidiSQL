@@ -5,8 +5,8 @@ object frmSelectDBObject: TfrmSelectDBObject
   ClientHeight = 316
   ClientWidth = 232
   Color = clBtnFace
-  Constraints.MinHeight = 343
-  Constraints.MinWidth = 240
+  Constraints.MinHeight = 250
+  Constraints.MinWidth = 200
   ParentFont = True
   OldCreateOrder = False
   Position = poOwnerFormCenter
@@ -57,7 +57,7 @@ object frmSelectDBObject: TfrmSelectDBObject
       item
         Position = 0
         Text = 'Name'
-        Width = 216
+        Width = 212
       end
       item
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]

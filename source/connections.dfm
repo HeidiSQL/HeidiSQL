@@ -6,8 +6,8 @@ object connform: Tconnform
   ClientHeight = 364
   ClientWidth = 649
   Color = clBtnFace
-  Constraints.MinHeight = 400
-  Constraints.MinWidth = 665
+  Constraints.MinHeight = 360
+  Constraints.MinWidth = 640
   ParentFont = True
   OldCreateOrder = False
   ShowHint = True
@@ -141,7 +141,7 @@ object connform: Tconnform
         Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
         Position = 6
         Text = 'Comment'
-        Width = 37
+        Width = 33
       end>
   end
   object btnNew: TButton

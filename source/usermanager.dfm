@@ -6,13 +6,9 @@ object UserManagerForm: TUserManagerForm
   ClientHeight = 364
   ClientWidth = 484
   Color = clBtnFace
-  Constraints.MinHeight = 400
-  Constraints.MinWidth = 500
+  Constraints.MinHeight = 350
+  Constraints.MinWidth = 450
   ParentFont = True
-  Padding.Left = 8
-  Padding.Top = 8
-  Padding.Right = 8
-  Padding.Bottom = 40
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
@@ -27,16 +23,23 @@ object UserManagerForm: TUserManagerForm
   PixelsPerInch = 96
   TextHeight = 13
   object Splitter1: TSplitter
+    AlignWithMargins = True
     Left = 185
     Top = 8
-    Width = 5
+    Width = 8
     Height = 316
+    Cursor = crSizeWE
+    Margins.Left = 0
+    Margins.Top = 8
+    Margins.Right = 0
+    Margins.Bottom = 40
     ResizeStyle = rsUpdate
+    OnMoved = FormResize
   end
   object lblWarning: TLabel
     Left = 8
-    Top = 330
-    Width = 192
+    Top = 378
+    Width = 208
     Height = 30
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
@@ -45,7 +48,7 @@ object UserManagerForm: TUserManagerForm
   end
   object btnCancel: TButton
     Left = 381
-    Top = 332
+    Top = 331
     Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
@@ -58,7 +61,7 @@ object UserManagerForm: TUserManagerForm
   end
   object btnSave: TButton
     Left = 179
-    Top = 332
+    Top = 331
     Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
@@ -70,10 +73,15 @@ object UserManagerForm: TUserManagerForm
     OnClick = btnSaveClick
   end
   object pnlLeft: TPanel
+    AlignWithMargins = True
     Left = 8
     Top = 8
     Width = 177
     Height = 316
+    Margins.Left = 8
+    Margins.Top = 8
+    Margins.Right = 0
+    Margins.Bottom = 40
     Align = alLeft
     BevelOuter = bvNone
     Constraints.MinWidth = 20
@@ -118,7 +126,7 @@ object UserManagerForm: TUserManagerForm
         item
           Position = 0
           Text = 'Username'
-          Width = 97
+          Width = 93
         end
         item
           Position = 1
@@ -163,10 +171,15 @@ object UserManagerForm: TUserManagerForm
     end
   end
   object pnlRight: TPanel
-    Left = 190
+    AlignWithMargins = True
+    Left = 193
     Top = 8
-    Width = 286
+    Width = 283
     Height = 316
+    Margins.Left = 0
+    Margins.Top = 8
+    Margins.Right = 8
+    Margins.Bottom = 40
     Align = alClient
     BevelOuter = bvNone
     Constraints.MinWidth = 20
@@ -174,7 +187,7 @@ object UserManagerForm: TUserManagerForm
     object tlbObjects: TToolBar
       Left = 0
       Top = 145
-      Width = 286
+      Width = 283
       Height = 22
       AutoSize = True
       ButtonWidth = 79
@@ -208,7 +221,7 @@ object UserManagerForm: TUserManagerForm
     object treePrivs: TVirtualStringTree
       Left = 0
       Top = 167
-      Width = 286
+      Width = 283
       Height = 149
       Align = alClient
       Header.AutoSizeIndex = 0
@@ -231,7 +244,7 @@ object UserManagerForm: TUserManagerForm
     object PageControlSettings: TPageControl
       Left = 0
       Top = 0
-      Width = 286
+      Width = 283
       Height = 145
       ActivePage = tabCredentials
       Align = alTop
@@ -239,7 +252,7 @@ object UserManagerForm: TUserManagerForm
       object tabCredentials: TTabSheet
         Caption = 'Credentials'
         DesignSize = (
-          278
+          275
           117)
         object lblUsername: TLabel
           Left = 3
@@ -275,7 +288,7 @@ object UserManagerForm: TUserManagerForm
         object editRepeatPassword: TEdit
           Left = 176
           Top = 88
-          Width = 99
+          Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           PasswordChar = '*'
@@ -285,7 +298,7 @@ object UserManagerForm: TUserManagerForm
         object editPassword: TButtonedEdit
           Left = 176
           Top = 61
-          Width = 99
+          Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.ImageListMain
@@ -300,7 +313,7 @@ object UserManagerForm: TUserManagerForm
         object editFromHost: TButtonedEdit
           Left = 176
           Top = 34
-          Width = 99
+          Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.ImageListMain
@@ -313,7 +326,7 @@ object UserManagerForm: TUserManagerForm
         object editUsername: TEdit
           Left = 176
           Top = 7
-          Width = 99
+          Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 0
@@ -324,7 +337,7 @@ object UserManagerForm: TUserManagerForm
         Caption = 'Limitations'
         ImageIndex = 1
         DesignSize = (
-          278
+          275
           117)
         object lblMaxQueries: TLabel
           Left = 3
@@ -357,7 +370,7 @@ object UserManagerForm: TUserManagerForm
         object editMaxQueries: TEdit
           Left = 176
           Top = 7
-          Width = 83
+          Width = 80
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -368,7 +381,7 @@ object UserManagerForm: TUserManagerForm
         object editMaxUpdates: TEdit
           Left = 176
           Top = 34
-          Width = 83
+          Width = 80
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -379,7 +392,7 @@ object UserManagerForm: TUserManagerForm
         object editMaxConnections: TEdit
           Left = 176
           Top = 61
-          Width = 83
+          Width = 80
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -390,7 +403,7 @@ object UserManagerForm: TUserManagerForm
         object editMaxUserConnections: TEdit
           Left = 176
           Top = 88
-          Width = 83
+          Width = 80
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           NumbersOnly = True
@@ -399,7 +412,7 @@ object UserManagerForm: TUserManagerForm
           OnChange = Modification
         end
         object udMaxQueries: TUpDown
-          Left = 259
+          Left = 256
           Top = 7
           Width = 17
           Height = 21
@@ -411,7 +424,7 @@ object UserManagerForm: TUserManagerForm
           OnClick = udMaxQueriesClick
         end
         object udMaxUpdates: TUpDown
-          Left = 259
+          Left = 256
           Top = 34
           Width = 17
           Height = 21
@@ -422,7 +435,7 @@ object UserManagerForm: TUserManagerForm
           Thousands = False
         end
         object udMaxConnections: TUpDown
-          Left = 259
+          Left = 256
           Top = 61
           Width = 17
           Height = 21
@@ -433,7 +446,7 @@ object UserManagerForm: TUserManagerForm
           Thousands = False
         end
         object udMaxUserConnections: TUpDown
-          Left = 259
+          Left = 256
           Top = 88
           Width = 17
           Height = 21
@@ -448,7 +461,7 @@ object UserManagerForm: TUserManagerForm
         Caption = 'SSL options'
         ImageIndex = 2
         DesignSize = (
-          278
+          275
           117)
         object lblCipher: TLabel
           Left = 3
@@ -484,7 +497,7 @@ object UserManagerForm: TUserManagerForm
         object editCipher: TEdit
           Left = 176
           Top = 33
-          Width = 99
+          Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 1
@@ -494,7 +507,7 @@ object UserManagerForm: TUserManagerForm
         object editIssuer: TEdit
           Left = 176
           Top = 59
-          Width = 99
+          Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 2
@@ -504,7 +517,7 @@ object UserManagerForm: TUserManagerForm
         object editSubject: TEdit
           Left = 176
           Top = 86
-          Width = 99
+          Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 3
@@ -514,7 +527,7 @@ object UserManagerForm: TUserManagerForm
         object comboSSL: TComboBox
           Left = 176
           Top = 6
-          Width = 99
+          Width = 96
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -531,7 +544,7 @@ object UserManagerForm: TUserManagerForm
   end
   object btnDiscard: TButton
     Left = 280
-    Top = 332
+    Top = 331
     Width = 95
     Height = 25
     Anchors = [akRight, akBottom]
