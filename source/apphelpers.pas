@@ -1462,6 +1462,9 @@ var
   Node: PVirtualNode;
 begin
   VT.BeginUpdate;
+  // Multiline nodes?
+  if MultiLineCount > 1 then
+    VT.DefaultNodeHeight := VT.DefaultNodeHeight * MultiLineCount + 5;
   // Apply new height to multi line grid nodes
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
