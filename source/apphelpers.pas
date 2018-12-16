@@ -1459,15 +1459,9 @@ end;
 
 procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
 var
-  SingleLineHeight: Integer;
   Node: PVirtualNode;
 begin
-  // Resize hardcoded node height to work with different DPI settings
   VT.BeginUpdate;
-  SingleLineHeight := GetTextHeight(VT.Font);
-  VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount + 5;
-  // The header needs slightly more height than the normal nodes
-  VT.Header.Height := Trunc(SingleLineHeight * 1.5);
   // Apply new height to multi line grid nodes
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
