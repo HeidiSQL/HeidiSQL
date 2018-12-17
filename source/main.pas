@@ -10268,6 +10268,7 @@ begin
 
   QueryTab.spltQuery := TSplitter.Create(QueryTab.TabSheet);
   QueryTab.spltQuery.Parent := QueryTab.TabSheet;
+  QueryTab.spltQuery.Top := spltQuery.Top; // Important to get it below the editor, not above. See #439
   QueryTab.spltQuery.Align := spltQuery.Align;
   QueryTab.spltQuery.Height := spltQuery.Height;
   QueryTab.spltQuery.Cursor := spltQuery.Cursor;
