@@ -1159,7 +1159,7 @@ begin
       cdtCurTS, cdtCurTSUpdateTS:
         TextColor := DatatypeCategories[dtcTemporal].Color;
       cdtAutoInc:
-        TextColor := clNavy;
+        TextColor := DatatypeCategories[dtcInteger].Color;
     end;
   end;
   TargetCanvas.Font.Color := TextColor;
