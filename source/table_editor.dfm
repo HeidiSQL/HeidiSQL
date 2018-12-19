@@ -19,153 +19,6 @@ object frmTableEditor: TfrmTableEditor
     Align = alTop
     ResizeStyle = rsUpdate
   end
-  object btnSave: TButton
-    Left = 165
-    Top = 471
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Save'
-    Default = True
-    TabOrder = 5
-    OnClick = btnSaveClick
-  end
-  object btnDiscard: TButton
-    Left = 84
-    Top = 471
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Discard'
-    TabOrder = 4
-    OnClick = btnDiscardClick
-  end
-  object btnHelp: TButton
-    Left = 3
-    Top = 471
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Help'
-    TabOrder = 3
-    OnClick = btnHelpClick
-  end
-  object listColumns: TVirtualStringTree
-    AlignWithMargins = True
-    Left = 3
-    Top = 186
-    Width = 694
-    Height = 282
-    Margins.Bottom = 32
-    Align = alClient
-    Constraints.MinHeight = 70
-    DragMode = dmAutomatic
-    EditDelay = 0
-    Header.AutoSizeIndex = -1
-    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
-    Header.PopupMenu = MainForm.popupListHeader
-    Images = MainForm.ImageListMain
-    IncrementalSearch = isAll
-    PopupMenu = popupColumns
-    TabOrder = 2
-    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag, toEditOnClick]
-    TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
-    WantTabs = True
-    OnAfterCellPaint = listColumnsAfterCellPaint
-    OnBeforeCellPaint = listColumnsBeforeCellPaint
-    OnClick = listColumnsClick
-    OnCreateEditor = listColumnsCreateEditor
-    OnDragOver = listColumnsDragOver
-    OnDragDrop = listColumnsDragDrop
-    OnEditing = listColumnsEditing
-    OnFocusChanged = listColumnsFocusChanged
-    OnGetText = listColumnsGetText
-    OnPaintText = listColumnsPaintText
-    OnGetNodeDataSize = listColumnsGetNodeDataSize
-    OnInitNode = listColumnsInitNode
-    OnKeyPress = listColumnsKeyPress
-    OnNewText = listColumnsNewText
-    OnNodeMoved = listColumnsNodeMoved
-    Columns = <
-      item
-        Alignment = taRightJustify
-        MinWidth = 20
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
-        Position = 0
-        Text = '#'
-        Width = 20
-      end
-      item
-        MinWidth = 50
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 1
-        Text = 'Name'
-        Width = 100
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 2
-        Text = 'Datatype'
-        Width = 90
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 3
-        Text = 'Length/Set'
-        Width = 90
-      end
-      item
-        Alignment = taCenter
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 4
-        Text = 'Unsigned'
-        Width = 60
-      end
-      item
-        Alignment = taCenter
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 5
-        Text = 'Allow NULL'
-        Width = 65
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 6
-        Text = 'Zerofill'
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 7
-        Text = 'Default'
-        Width = 100
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 8
-        Text = 'Comment'
-        Width = 130
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 9
-        Text = 'Collation'
-        Width = 100
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 10
-        Text = 'Expression'
-        Width = 100
-      end
-      item
-        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-        Position = 11
-        Text = 'Virtuality'
-        Width = 100
-      end>
-  end
   object PageControlMain: TPageControl
     AlignWithMargins = True
     Left = 3
@@ -798,6 +651,153 @@ object frmTableEditor: TfrmTableEditor
         OnClick = btnMoveDownColumnClick
       end
     end
+  end
+  object listColumns: TVirtualStringTree
+    AlignWithMargins = True
+    Left = 3
+    Top = 186
+    Width = 694
+    Height = 282
+    Margins.Bottom = 32
+    Align = alClient
+    Constraints.MinHeight = 20
+    DragMode = dmAutomatic
+    EditDelay = 0
+    Header.AutoSizeIndex = -1
+    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
+    Header.PopupMenu = MainForm.popupListHeader
+    Images = MainForm.ImageListMain
+    IncrementalSearch = isAll
+    PopupMenu = popupColumns
+    TabOrder = 2
+    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag, toEditOnClick]
+    TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+    TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+    WantTabs = True
+    OnAfterCellPaint = listColumnsAfterCellPaint
+    OnBeforeCellPaint = listColumnsBeforeCellPaint
+    OnClick = listColumnsClick
+    OnCreateEditor = listColumnsCreateEditor
+    OnDragOver = listColumnsDragOver
+    OnDragDrop = listColumnsDragDrop
+    OnEditing = listColumnsEditing
+    OnFocusChanged = listColumnsFocusChanged
+    OnGetText = listColumnsGetText
+    OnPaintText = listColumnsPaintText
+    OnGetNodeDataSize = listColumnsGetNodeDataSize
+    OnInitNode = listColumnsInitNode
+    OnKeyPress = listColumnsKeyPress
+    OnNewText = listColumnsNewText
+    OnNodeMoved = listColumnsNodeMoved
+    Columns = <
+      item
+        Alignment = taRightJustify
+        MinWidth = 20
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coShowDropMark, coVisible, coAllowFocus]
+        Position = 0
+        Text = '#'
+        Width = 20
+      end
+      item
+        MinWidth = 50
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 1
+        Text = 'Name'
+        Width = 100
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 2
+        Text = 'Datatype'
+        Width = 90
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 3
+        Text = 'Length/Set'
+        Width = 90
+      end
+      item
+        Alignment = taCenter
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 4
+        Text = 'Unsigned'
+        Width = 60
+      end
+      item
+        Alignment = taCenter
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 5
+        Text = 'Allow NULL'
+        Width = 65
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 6
+        Text = 'Zerofill'
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 7
+        Text = 'Default'
+        Width = 100
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 8
+        Text = 'Comment'
+        Width = 130
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 9
+        Text = 'Collation'
+        Width = 100
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 10
+        Text = 'Expression'
+        Width = 100
+      end
+      item
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 11
+        Text = 'Virtuality'
+        Width = 100
+      end>
+  end
+  object btnSave: TButton
+    Left = 165
+    Top = 471
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save'
+    Default = True
+    TabOrder = 5
+    OnClick = btnSaveClick
+  end
+  object btnDiscard: TButton
+    Left = 84
+    Top = 471
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Discard'
+    TabOrder = 4
+    OnClick = btnDiscardClick
+  end
+  object btnHelp: TButton
+    Left = 3
+    Top = 471
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Help'
+    TabOrder = 3
+    OnClick = btnHelpClick
   end
   object popupIndexes: TPopupMenu
     Images = MainForm.ImageListMain
