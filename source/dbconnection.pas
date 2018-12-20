@@ -347,7 +347,7 @@ type
       function GetCharacterSet: String; virtual;
       procedure SetCharacterSet(CharsetName: String); virtual; abstract;
       function GetLastErrorCode: Cardinal; virtual; abstract;
-      function GetLastError: String; virtual; abstract;
+      function GetLastErrorMsg: String; virtual; abstract;
       function GetAllDatabases: TStringList; virtual;
       function GetTableEngines: TStringList; virtual;
       function GetCollationTable: TDBQuery; virtual;
@@ -418,7 +418,7 @@ type
       property ServerNow: TDateTime read GetServerNow;
       property CharacterSet: String read GetCharacterSet write SetCharacterSet;
       property LastErrorCode: Cardinal read GetLastErrorCode;
-      property LastError: String read GetLastError;
+      property LastErrorMsg: String read GetLastErrorMsg;
       property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
       function ServerVersionStr: String;
@@ -474,7 +474,7 @@ type
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
-      function GetLastError: String; override;
+      function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
       function GetTableEngines: TStringList; override;
       function GetCollationTable: TDBQuery; override;
@@ -505,7 +505,7 @@ type
       function GetThreadId: Int64; override;
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
-      function GetLastError: String; override;
+      function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
@@ -538,7 +538,7 @@ type
       procedure SetCharacterSet(CharsetName: String); override;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       function GetLastErrorCode: Cardinal; override;
-      function GetLastError: String; override;
+      function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
       function GetCharsetTable: TDBQuery; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
@@ -1760,7 +1760,7 @@ begin
       ClientFlags
       );
     if Connected = nil then begin
-      Error := LastError;
+      Error := LastErrorMsg;
       Log(lcError, Error);
       FConnectionStarted := 0;
       FHandle := nil;
@@ -1788,10 +1788,10 @@ begin
         on E:EDatabaseError do begin
           if GetLastErrorCode =  1820 then begin
             PasswordChangeDialog := TfrmPasswordChange.Create(Self);
-            PasswordChangeDialog.lblHeading.Caption := GetLastError;
+            PasswordChangeDialog.lblHeading.Caption := GetLastErrorMsg;
             PasswordChangeDialog.ShowModal;
             if PasswordChangeDialog.ModalResult = mrOk then begin
-              if ExecRegExpr('\sALTER USER\s', GetLastError) then
+              if ExecRegExpr('\sALTER USER\s', GetLastErrorMsg) then
                 Query('ALTER USER USER() IDENTIFIED BY '+EscapeString(PasswordChangeDialog.editPassword.Text))
               else
                 Query('SET PASSWORD=PASSWORD('+EscapeString(PasswordChangeDialog.editPassword.Text)+')');
@@ -2016,7 +2016,7 @@ begin
     except
       on E:EOleException do begin
         FLastError := E.Message;
-        Error := LastError;
+        Error := LastErrorMsg;
         Log(lcError, Error);
         FConnectionStarted := 0;
         raise EDatabaseError.Create(Error);
@@ -2051,7 +2051,7 @@ begin
       'application_name='''+APPNAME+'''';
     FHandle := PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
     if PQstatus(FHandle) = CONNECTION_BAD then begin
-      Error := LastError;
+      Error := LastErrorMsg;
       Log(lcError, Error);
       FConnectionStarted := 0;
       FHandle := nil;
@@ -2496,8 +2496,8 @@ begin
   FLastQueryNetworkDuration := 0;
   if QueryStatus <> 0 then begin
     // Most errors will show up here, some others slightly later, after mysql_store_result()
-    Log(lcError, GetLastError);
-    raise EDatabaseError.Create(GetLastError, GetLastErrorCode);
+    Log(lcError, GetLastErrorMsg);
+    raise EDatabaseError.Create(GetLastErrorMsg, GetLastErrorCode);
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
@@ -2517,8 +2517,8 @@ begin
       //   matched the WHERE clause in the query or that no query has yet been executed. -1
       //   indicates that the query returned an error or that, for a SELECT query,
       //   mysql_affected_rows() was called prior to calling mysql_store_result()."
-      Log(lcError, GetLastError);
-      raise EDatabaseError.Create(GetLastError);
+      Log(lcError, GetLastErrorMsg);
+      raise EDatabaseError.Create(GetLastErrorMsg);
     end;
 
     if QueryResult = nil then
@@ -2546,8 +2546,8 @@ begin
       else if QueryStatus > 0 then begin
         // MySQL stops executing a multi-query when an error occurs. So do we here by raising an exception.
         SetLength(FLastRawResults, 0);
-        Log(lcError, GetLastError);
-        raise EDatabaseError.Create(GetLastError);
+        Log(lcError, GetLastErrorMsg);
+        raise EDatabaseError.Create(GetLastErrorMsg);
       end;
     end;
     FResultCount := Length(FLastRawResults);
@@ -2608,8 +2608,8 @@ begin
   except
     on E:EOleException do begin
       FLastError := E.Message;
-      Log(lcError, GetLastError);
-      raise EDatabaseError.Create(GetLastError);
+      Log(lcError, GetLastErrorMsg);
+      raise EDatabaseError.Create(GetLastErrorMsg);
     end;
   end;
 end;
@@ -2650,8 +2650,8 @@ begin
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
   if QueryStatus <> 1 then begin
-    Log(lcError, GetLastError);
-    raise EDatabaseError.Create(GetLastError);
+    Log(lcError, GetLastErrorMsg);
+    raise EDatabaseError.Create(GetLastErrorMsg);
   end else begin
     FRowsAffected := 0;
     FRowsFound := 0;
@@ -2674,15 +2674,15 @@ begin
       end else begin
         Inc(FRowsAffected, StrToIntDef(String(PQcmdTuples(QueryResult)), 0));
       end;
-      if LastError <> '' then begin
+      if LastErrorMsg <> '' then begin
         SetLength(FLastRawResults, 0);
-        Log(lcError, GetLastError);
+        Log(lcError, GetLastErrorMsg);
         // Clear remaining results, to avoid "another command is already running"
         while QueryResult <> nil do begin
           PQclear(QueryResult);
           QueryResult := PQgetResult(FHandle);
         end;
-        raise EDatabaseError.Create(GetLastError);
+        raise EDatabaseError.Create(GetLastErrorMsg);
       end;
       // more results?
       Inc(FStatementNum);
@@ -3298,7 +3298,7 @@ begin
   FStatementNum := 0;
   Return := mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
   if Return <> 0 then
-    raise EDatabaseError.Create(LastError)
+    raise EDatabaseError.Create(LastErrorMsg)
   else
     FIsUnicode := Pos('utf8', LowerCase(CharsetName)) = 1;
 end;
@@ -3341,7 +3341,7 @@ end;
 {**
   Return the last error nicely formatted
 }
-function TMySQLConnection.GetLastError: String;
+function TMySQLConnection.GetLastErrorMsg: String;
 var
   Msg, Additional: String;
   rx: TRegExpr;
@@ -3365,7 +3365,7 @@ begin
 end;
 
 
-function TAdoDBConnection.GetLastError: String;
+function TAdoDBConnection.GetLastErrorMsg: String;
 var
   Msg: String;
   rx: TRegExpr;
@@ -3388,7 +3388,7 @@ begin
 end;
 
 
-function TPgConnection.GetLastError: String;
+function TPgConnection.GetLastErrorMsg: String;
 begin
   Result := DecodeAPIString(PQerrorMessage(FHandle));
   Result := Trim(Result);
