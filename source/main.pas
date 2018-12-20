@@ -12273,7 +12273,12 @@ end;
 procedure TMainForm.SetProgressPosition(Value: Integer);
 begin
   // Advance progress bar and task progress position
-  ProgressBarStatus.Position := Value;
+  try
+    ProgressBarStatus.Position := Value;
+  except
+    // Silence "Floating point division by zero." - see https://www.heidisql.com/forum.php?t=26218
+    on E:EZeroDivide do;
+  end;
   ProgressBarStatus.Repaint;
   if Assigned(TaskBarList3) then
     TaskBarList3.SetProgressValue(Application.MainForm.Handle, Value, ProgressBarStatus.Max);
