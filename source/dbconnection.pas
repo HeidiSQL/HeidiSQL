@@ -3174,8 +3174,12 @@ begin
       end;
     end;
   end;
-  if Queries.Count > 0 then
+  if Queries.Count > 0 then try
     PrefetchResults(implodestr(';', Queries));
+  except
+    on E:EDatabaseError do;
+  end;
+
 end;
 
 
