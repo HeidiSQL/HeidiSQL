@@ -6513,11 +6513,13 @@ begin
     QF3.Hint := QF3.Hint + Col + ' IS NULL';
     QF4.Hint := QF4.Hint + Col + ' IS NULL';
   end;
+  QF1.Visible := HasNotNullValue or HasNullValue;
+  QF2.Visible := HasNotNullValue or HasNullValue;
+  QF3.Visible := HasNotNullValue;
+  QF4.Visible := HasNotNullValue;
   QF5.Visible := HasNotNullValue;
   QF6.Visible := HasNotNullValue;
   QF7.Visible := HasNotNullValue;
-  QF3.Visible := HasNotNullValue;
-  QF4.Visible := HasNotNullValue;
 
   // Block 2: WHERE col = [ask user for value]
   QF8.Hint := Col + ' = "..."';
