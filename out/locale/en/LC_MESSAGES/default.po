@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-12-17 21:14+0100\n"
+"PO-Revision-Date: 2018-12-20 13:41+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -27,7 +27,8 @@ msgstr "About"
 #. frmSyncDB..btnClose..Caption
 #. frmTableTools..btnCloseOrCancel..Caption
 #. UserManagerForm..btnCancel..Caption
-#: about.dfm:316 sqlhelp.dfm:42 syncdb.dfm:141 tabletools.dfm:39 usermanager.dfm:62
+#: about.dfm:316 sqlhelp.dfm:42 syncdb.dfm:141 tabletools.dfm:39
+#: usermanager.dfm:62
 msgid "Close"
 msgstr "Close"
 
@@ -66,7 +67,8 @@ msgstr "Binary editor"
 #. MainForm..ActionList1..actQueryWordWrap..Hint
 #. frmTextEditor..tlbStandard..btnWrap..Hint
 #. frmTextEditor..tlbStandard..btnWrap..Caption
-#: bineditor.dfm:66 bineditor.dfm:67 main.dfm:2317 main.dfm:2318 texteditor.dfm:66 texteditor.dfm:67
+#: bineditor.dfm:66 bineditor.dfm:67 main.dfm:2317 main.dfm:2318
+#: texteditor.dfm:66 texteditor.dfm:67
 msgid "Wrap long lines"
 msgstr "Wrap long lines"
 
@@ -95,10 +97,11 @@ msgstr "Load binary file"
 #. frmTextEditor..tlbStandard..btnCancel..Hint
 #. frmTextEditor..tlbStandard..btnCancel..Caption
 #. frmUpdateCheck..btnCancel..Caption
-#: bineditor.dfm:82 bineditor.dfm:83 clickfilter.dfm:26 column_selection.dfm:35 connections.dfm:72 copytable.dfm:64
-#: createdatabase.dfm:95 data_sorting.dfm:52 editvar.dfm:44 exportgrid.dfm:44 insertfiles.dfm:47 loaddata.dfm:46
-#: options.dfm:932 printlist.dfm:58 searchreplace.dfm:48 selectdbobject.dfm:96 texteditor.dfm:90 texteditor.dfm:91
-#: updatecheck.dfm:41
+#: bineditor.dfm:82 bineditor.dfm:83 clickfilter.dfm:26 column_selection.dfm:35
+#: connections.dfm:72 copytable.dfm:64 createdatabase.dfm:95
+#: data_sorting.dfm:52 editvar.dfm:44 exportgrid.dfm:44 insertfiles.dfm:47
+#: loaddata.dfm:46 options.dfm:932 printlist.dfm:58 searchreplace.dfm:48
+#: selectdbobject.dfm:96 texteditor.dfm:90 texteditor.dfm:91 updatecheck.dfm:41
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -120,8 +123,9 @@ msgstr "Apply changes"
 #. optionsform..btnOK..Caption
 #. frmSearchReplace..btnOK..Caption
 #. frmSelectDBObject..btnOK..Caption
-#: clickfilter.dfm:35 column_selection.dfm:45 copytable.dfm:82 createdatabase.dfm:83 data_sorting.dfm:38
-#: editvar.dfm:31 exportgrid.dfm:31 options.dfm:942 searchreplace.dfm:183 selectdbobject.dfm:83
+#: clickfilter.dfm:35 column_selection.dfm:45 copytable.dfm:82
+#: createdatabase.dfm:83 data_sorting.dfm:38 editvar.dfm:31 exportgrid.dfm:31
+#: options.dfm:942 searchreplace.dfm:183 selectdbobject.dfm:83
 msgid "OK"
 msgstr "OK"
 
@@ -175,8 +179,9 @@ msgstr "Session manager"
 #. frmTriggerEditor..btnSave..Caption
 #. UserManagerForm..btnSave..Caption
 #. frmView..btnSave..Caption
-#: connections.dfm:49 connections.dfm:736 event_editor.dfm:77 main.dfm:2453 routine_editor.dfm:35
-#: table_editor.dfm:28 trigger_editor.dfm:104 usermanager.dfm:74 view.dfm:120
+#: connections.dfm:49 connections.dfm:736 event_editor.dfm:77 main.dfm:2453
+#: routine_editor.dfm:35 table_editor.dfm:28 trigger_editor.dfm:104
+#: usermanager.dfm:74 view.dfm:120
 msgid "Save"
 msgstr "Save"
 
@@ -194,7 +199,8 @@ msgstr "Session name"
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..Caption
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..ListProcesses......WideText
 #. UserManagerForm..pnlLeft..listUsers......WideText
-#: connections.dfm:128 main.dfm:601 main.dfm:874 usermanager.dfm:136 tabletools.pas:1197
+#: connections.dfm:128 main.dfm:601 main.dfm:874 usermanager.dfm:136
+#: tabletools.pas:1197
 msgid "Host"
 msgstr "Host"
 
@@ -279,6 +285,18 @@ msgstr "User:"
 #: connections.dfm:269
 msgid "Network type:"
 msgstr "Network type:"
+
+msgid "Network type"
+msgstr "Network type"
+
+msgid "Questions"
+msgstr "Questions"
+
+msgid "Opens"
+msgstr "Opens"
+
+msgid "Flush tables"
+msgstr "Flush tables"
 
 #. connform..PageControlDetails..tabSettings..lblDatabase..Caption
 #: connections.dfm:276
@@ -603,8 +621,8 @@ msgstr "Off"
 #. frmTableTools..pnlTop..pnlRight..tabsTools..tabMaintenance..btnHelp..Caption
 #. frmTriggerEditor..btnHelp..Caption
 #. frmView..btnHelp..Caption
-#: editvar.dfm:172 event_editor.dfm:57 routine_editor.dfm:57 table_editor.dfm:49 tabletools.dfm:245
-#: trigger_editor.dfm:84 view.dfm:146
+#: editvar.dfm:172 event_editor.dfm:57 routine_editor.dfm:57
+#: table_editor.dfm:49 tabletools.dfm:245 trigger_editor.dfm:84 view.dfm:146
 msgid "Help"
 msgstr "Help"
 
@@ -627,8 +645,8 @@ msgstr "Execution body:"
 #. frmTriggerEditor..btnDiscard..Caption
 #. UserManagerForm..btnDiscard..Caption
 #. frmView..btnDiscard..Caption
-#: event_editor.dfm:67 routine_editor.dfm:46 table_editor.dfm:39 trigger_editor.dfm:94 usermanager.dfm:562
-#: view.dfm:110
+#: event_editor.dfm:67 routine_editor.dfm:46 table_editor.dfm:39
+#: trigger_editor.dfm:94 usermanager.dfm:562 view.dfm:110
 msgid "Discard"
 msgstr "Discard"
 
@@ -773,8 +791,8 @@ msgstr "Copy to clipboard"
 #. MainForm..ActionList1..actNewQueryTab..Category
 #. MainForm..ActionList1..actCloseQueryTab..Category
 #. MainForm..ActionList1..actDisconnect..Category
-#: exportgrid.dfm:118 main.dfm:1870 main.dfm:1877 main.dfm:1885 main.dfm:2367 main.dfm:2407 main.dfm:2415
-#: main.dfm:2532
+#: exportgrid.dfm:118 main.dfm:1870 main.dfm:1877 main.dfm:1885 main.dfm:2367
+#: main.dfm:2407 main.dfm:2415 main.dfm:2532
 msgid "File"
 msgstr "File"
 
@@ -788,7 +806,8 @@ msgstr "Doubleclick to select file"
 #. frmRoutineEditor..PageControlMain..tabOptions..Caption
 #. frmSyncDB..grpOptions..Caption
 #. frmTableEditor..PageControlMain..tabOptions..Caption
-#: exportgrid.dfm:156 loaddata.dfm:195 routine_editor.dfm:116 syncdb.dfm:178 table_editor.dfm:227
+#: exportgrid.dfm:156 loaddata.dfm:195 routine_editor.dfm:116 syncdb.dfm:178
+#: table_editor.dfm:227
 msgid "Options"
 msgstr "Options"
 
@@ -938,7 +957,8 @@ msgstr "Binary"
 #. MainForm..panelTop..pnlRight..PageControlMain..tabDatabase..ListTables......WideText
 #. frmSelectDBObject..TreeDBO......WideText
 #. frmTableTools..pnlTop..TreeObjects......WideText
-#: insertfiles.dfm:226 main.dfm:453 main.dfm:655 main.dfm:1111 selectdbobject.dfm:74 tabletools.dfm:105
+#: insertfiles.dfm:226 main.dfm:453 main.dfm:655 main.dfm:1111
+#: selectdbobject.dfm:74 tabletools.dfm:105
 msgid "Size"
 msgstr "Size"
 
@@ -948,8 +968,8 @@ msgstr "Size"
 #. frmTableEditor..PageControlMain..tabForeignKeys..tlbForeignKeys..btnAddForeignKey..Caption
 #. frmTableEditor..pnlColumnsTop..tlbColumns..btnAddColumn..Caption
 #. UserManagerForm..pnlLeft..ToolBar1..btnAddUser..Caption
-#: insertfiles.dfm:244 routine_editor.dfm:329 table_editor.dfm:456 table_editor.dfm:517 table_editor.dfm:718
-#: usermanager.dfm:155
+#: insertfiles.dfm:244 routine_editor.dfm:329 table_editor.dfm:456
+#: table_editor.dfm:517 table_editor.dfm:718 usermanager.dfm:155
 msgid "Add"
 msgstr "Add"
 
@@ -959,8 +979,8 @@ msgstr "Add"
 #. frmTableEditor..PageControlMain..tabForeignKeys..tlbForeignKeys..btnRemoveForeignKey..Caption
 #. frmTableEditor..pnlColumnsTop..tlbColumns..btnRemoveColumn..Caption
 #. frmTableEditor..popupIndexes..menuRemoveIndex..Caption
-#: insertfiles.dfm:251 routine_editor.dfm:337 table_editor.dfm:465 table_editor.dfm:525 table_editor.dfm:726
-#: table_editor.dfm:765
+#: insertfiles.dfm:251 routine_editor.dfm:337 table_editor.dfm:465
+#: table_editor.dfm:525 table_editor.dfm:726 table_editor.dfm:765
 msgid "Remove"
 msgstr "Remove"
 
@@ -972,8 +992,9 @@ msgstr "Remove"
 #. frmTableEditor..PageControlMain..tabIndexes..tlbIndexes..btnClearIndexes..Caption
 #. frmTableEditor..PageControlMain..tabForeignKeys..tlbForeignKeys..btnClearForeignKeys..Caption
 #. frmTableEditor..popupIndexes..menuClearIndexes..Caption
-#: insertfiles.dfm:259 main.dfm:2290 main.dfm:2299 main.dfm:9005 routine_editor.dfm:346 table_editor.dfm:474
-#: table_editor.dfm:534 table_editor.dfm:771
+#: insertfiles.dfm:259 main.dfm:2290 main.dfm:2299 main.dfm:9005
+#: routine_editor.dfm:346 table_editor.dfm:474 table_editor.dfm:534
+#: table_editor.dfm:771
 msgid "Clear"
 msgstr "Clear"
 
@@ -1169,20 +1190,18 @@ msgstr "Default"
 #. MainForm..ActionList1..actDataSaveBlobToFile..Category
 #. MainForm..ActionList1..actGridEditFunction..Category
 #. frmSyncDB..grpOptions..radioOptionsData..Caption
-#: main.dfm:223 main.dfm:1214 main.dfm:1247 main.dfm:2015 main.dfm:2060 main.dfm:2068 main.dfm:2076 main.dfm:2085
-#: main.dfm:2093 main.dfm:2102 main.dfm:2111 main.dfm:2298 main.dfm:2354 main.dfm:2361 main.dfm:2461 main.dfm:2478
-#: main.dfm:2486 main.dfm:2494 main.dfm:2516 main.dfm:2525 main.dfm:2582 options.dfm:599 syncdb.dfm:195
+#: main.dfm:223 main.dfm:1214 main.dfm:1247 main.dfm:2015 main.dfm:2060
+#: main.dfm:2068 main.dfm:2076 main.dfm:2085 main.dfm:2093 main.dfm:2102
+#: main.dfm:2111 main.dfm:2298 main.dfm:2354 main.dfm:2361 main.dfm:2461
+#: main.dfm:2478 main.dfm:2486 main.dfm:2494 main.dfm:2516 main.dfm:2525
+#: main.dfm:2582 options.dfm:599 syncdb.dfm:195
 msgid "Data"
 msgstr "Data"
 
 #. MainForm..panelTop..pnlLeft..comboDBFilter....Hint
 #: main.dfm:384
-msgid ""
-"Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;"
-"project\\d+\"."
-msgstr ""
-"Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;"
-"project\\d+\"."
+msgid "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
+msgstr "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
 
 #. MainForm..panelTop..pnlLeft..comboDBFilter..TextHint
 #: main.dfm:393
@@ -1211,8 +1230,8 @@ msgstr "Show only favorites"
 #. frmSyncDB..treeSource......WideText
 #. frmTableEditor..listColumns......WideText
 #. frmTableEditor..PageControlMain..tabIndexes..treeIndexes......WideText
-#: main.dfm:446 main.dfm:1101 routine_editor.dfm:298 selectdbobject.dfm:69 syncdb.dfm:69 table_editor.dfm:106
-#: table_editor.dfm:425
+#: main.dfm:446 main.dfm:1101 routine_editor.dfm:298 selectdbobject.dfm:69
+#: syncdb.dfm:69 table_editor.dfm:106 table_editor.dfm:425
 msgid "Name"
 msgstr "Name"
 
@@ -1259,8 +1278,9 @@ msgstr "Databases"
 #. MainForm..ActionList1..actCreateTrigger..Category
 #. MainForm..ActionList1..actRunRoutines..Category
 #. MainForm..ActionList1..actCreateEvent..Category
-#: main.dfm:650 main.dfm:1055 main.dfm:1968 main.dfm:2044 main.dfm:2052 main.dfm:2120 main.dfm:2128 main.dfm:2137
-#: main.dfm:2138 main.dfm:2400 main.dfm:2445 main.dfm:2502 main.dfm:2508
+#: main.dfm:650 main.dfm:1055 main.dfm:1968 main.dfm:2044 main.dfm:2052
+#: main.dfm:2120 main.dfm:2128 main.dfm:2137 main.dfm:2138 main.dfm:2400
+#: main.dfm:2445 main.dfm:2502 main.dfm:2508
 msgid "Database"
 msgstr "Database"
 
@@ -1362,11 +1382,6 @@ msgstr "Analyze this query"
 #: main.dfm:941
 msgid "Analyze this query on MariaDB.org"
 msgstr "Analyze this query on MariaDB.org"
-
-#. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabProcessList..pnlProcessViewBox..pnlProcessView..lblExplainProcessAnalyzer..Caption
-#: main.dfm:942
-msgid "EXPLAIN Analyzer on MariaDB.org"
-msgstr "EXPLAIN Analyzer on MariaDB.org"
 
 #. MainForm..panelTop..pnlRight..PageControlMain..tabHost..PageControlHost..tabCommandStats..Caption
 #: main.dfm:984
@@ -1604,9 +1619,10 @@ msgstr "Exit|Exit application"
 #. MainForm..ActionList1..actCancelOperation..Category
 #. MainForm..ActionList1..actLogHorizontalScrollbar..Category
 #. MainForm..ActionList1..actGroupObjects..Category
-#: main.dfm:1892 main.dfm:1900 main.dfm:1915 main.dfm:1923 main.dfm:1930 main.dfm:1960 main.dfm:2152 main.dfm:2227
-#: main.dfm:2234 main.dfm:2241 main.dfm:2248 main.dfm:2392 main.dfm:2423 main.dfm:2430 main.dfm:2554 main.dfm:2590
-#: main.dfm:2596
+#: main.dfm:1892 main.dfm:1900 main.dfm:1915 main.dfm:1923 main.dfm:1930
+#: main.dfm:1960 main.dfm:2152 main.dfm:2227 main.dfm:2234 main.dfm:2241
+#: main.dfm:2248 main.dfm:2392 main.dfm:2423 main.dfm:2430 main.dfm:2554
+#: main.dfm:2590 main.dfm:2596
 msgid "Various"
 msgstr "Various"
 
@@ -1646,8 +1662,10 @@ msgstr "Paste|Paste from Clipboard"
 #. MainForm..ActionList1..actNextTab..Category
 #. MainForm..ActionList1..actBulkTableEdit..Category
 #. MainForm..ActionList1..actLaunchCommandline..Category
-#: main.dfm:1908 main.dfm:1937 main.dfm:1944 main.dfm:2144 main.dfm:2179 main.dfm:2185 main.dfm:2191 main.dfm:2197
-#: main.dfm:2203 main.dfm:2209 main.dfm:2215 main.dfm:2221 main.dfm:2374 main.dfm:2383 main.dfm:2439 main.dfm:2576
+#: main.dfm:1908 main.dfm:1937 main.dfm:1944 main.dfm:2144 main.dfm:2179
+#: main.dfm:2185 main.dfm:2191 main.dfm:2197 main.dfm:2203 main.dfm:2209
+#: main.dfm:2215 main.dfm:2221 main.dfm:2374 main.dfm:2383 main.dfm:2439
+#: main.dfm:2576
 msgid "Tools"
 msgstr "Tools"
 
@@ -1714,7 +1732,8 @@ msgstr "Searches selected tables for text occurences"
 #. MainForm..ActionList1..actExportSettings..Category
 #. MainForm..ActionList1..actImportSettings..Category
 #. MainForm..ActionList1..actSynchronizeDatabase..Category
-#: main.dfm:1952 main.dfm:2023 main.dfm:2029 main.dfm:2160 main.dfm:2167 main.dfm:2173 main.dfm:2570
+#: main.dfm:1952 main.dfm:2023 main.dfm:2029 main.dfm:2160 main.dfm:2167
+#: main.dfm:2173 main.dfm:2570
 msgid "Export/Import"
 msgstr "Export/Import"
 
@@ -1766,9 +1785,11 @@ msgstr "Create a base table copy of this table or view"
 #. MainForm..ActionList1..actSingleQueries..Category
 #. MainForm..ActionList1..actToggleComment..Category
 #. optionsform..pagecontrolMain..tabSQL..Caption
-#: main.dfm:1976 main.dfm:1985 main.dfm:1994 main.dfm:2003 main.dfm:2009 main.dfm:2036 main.dfm:2255 main.dfm:2264
-#: main.dfm:2273 main.dfm:2281 main.dfm:2289 main.dfm:2306 main.dfm:2315 main.dfm:2323 main.dfm:2331 main.dfm:2339
-#: main.dfm:2346 main.dfm:2452 main.dfm:2468 main.dfm:2538 main.dfm:2546 main.dfm:2563 options.dfm:343
+#: main.dfm:1976 main.dfm:1985 main.dfm:1994 main.dfm:2003 main.dfm:2009
+#: main.dfm:2036 main.dfm:2255 main.dfm:2264 main.dfm:2273 main.dfm:2281
+#: main.dfm:2289 main.dfm:2306 main.dfm:2315 main.dfm:2323 main.dfm:2331
+#: main.dfm:2339 main.dfm:2346 main.dfm:2452 main.dfm:2468 main.dfm:2538
+#: main.dfm:2546 main.dfm:2563 options.dfm:343
 msgid "SQL"
 msgstr "SQL"
 
@@ -2419,8 +2440,8 @@ msgstr "Pass EXPLAIN output to MariaDB's analyzer webpage"
 msgid "SQL files"
 msgstr "SQL files"
 
-#: tabletools.pas:1061 main.pas:2855 main.pas:2653 bineditor.pas:146 connections.pas:1047 connections.pas:1049
-#: exportgrid.pas:274
+#: tabletools.pas:1061 main.pas:2855 main.pas:2653 bineditor.pas:146
+#: connections.pas:1047 connections.pas:1049 exportgrid.pas:274
 msgid "All files"
 msgstr "All files"
 
@@ -2570,8 +2591,8 @@ msgstr "MySQL command line programs:"
 
 #. Language selector
 #: preferences dialog
-msgid "Application language (requires restart):"
-msgstr "Application language (requires restart):"
+msgid "Application language: *"
+msgstr "Application language: *"
 
 #. Default in language selector
 #: preferences dialog
@@ -2604,12 +2625,8 @@ msgstr "Also check for updated nightly builds"
 
 #. optionsform..pagecontrolMain..tabMisc..chkDoStatistics....Caption
 #: options.dfm:130
-msgid ""
-"Count in usage statistics. This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every "
-"month.  This is used to count the used HeidiSQL and MySQL versions."
-msgstr ""
-"Count in usage statistics. This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every "
-"month.  This is used to count the used HeidiSQL and MySQL versions."
+msgid "Count in usage statistics. This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and MySQL versions."
+msgstr "Count in usage statistics. This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and MySQL versions."
 
 msgid "Use Ctrl+Mousewheel for zooming"
 msgstr "Use Ctrl+Mousewheel for zooming"
@@ -2756,6 +2773,12 @@ msgstr "Bold"
 #: options.dfm:530
 msgid "Italic"
 msgstr "Italic"
+
+msgid "Size:"
+msgstr "Size:"
+
+msgid "Colors preset:"
+msgstr "Colors preset:"
 
 #. optionsform..pagecontrolMain..tabData..lblMaxColWidth..Caption
 #: options.dfm:613
@@ -2957,7 +2980,8 @@ msgstr "Context"
 #. frmTableEditor..PageControlMain..tabIndexes..tlbIndexes..btnMoveUpIndex..Hint
 #. frmTableEditor..pnlColumnsTop..tlbColumns..btnMoveUpColumn..Hint
 #. frmTableEditor..popupColumns..menuMoveUpColumn..Caption
-#: routine_editor.dfm:354 table_editor.dfm:482 table_editor.dfm:733 table_editor.dfm:823
+#: routine_editor.dfm:354 table_editor.dfm:482 table_editor.dfm:733
+#: table_editor.dfm:823
 msgid "Move up"
 msgstr "Move up"
 
@@ -2965,7 +2989,8 @@ msgstr "Move up"
 #. frmTableEditor..PageControlMain..tabIndexes..tlbIndexes..btnMoveDownIndex..Hint
 #. frmTableEditor..pnlColumnsTop..tlbColumns..btnMoveDownColumn..Hint
 #. frmTableEditor..popupColumns..menuMoveDownColumn..Caption
-#: routine_editor.dfm:363 table_editor.dfm:491 table_editor.dfm:741 table_editor.dfm:829
+#: routine_editor.dfm:363 table_editor.dfm:491 table_editor.dfm:741
+#: table_editor.dfm:829
 msgid "Move down"
 msgstr "Move down"
 
@@ -3806,14 +3831,8 @@ msgid "Error while moving registry key: %s"
 msgstr "Error while moving registry key: %s"
 
 #: connections.pas:707
-msgid ""
-"New here? In order to connect to a server, you have to create a so called \"session\" at first. Just click the "
-"\"New\" button on the bottom left to create your first session. Give it a friendly name (e.g. \"Local DB server"
-"\") so you'll recall it the next time you start %s."
-msgstr ""
-"New here? In order to connect to a server, you have to create a so called \"session\" at first. Just click the "
-"\"New\" button on the bottom left to create your first session. Give it a friendly name (e.g. \"Local DB server"
-"\") so you'll recall it the next time you start %s."
+msgid "New here? In order to connect to a server, you have to create a so called \"session\" at first. Just click the \"New\" button on the bottom left to create your first session. Give it a friendly name (e.g. \"Local DB server\") so you'll recall it the next time you start %s."
+msgstr "New here? In order to connect to a server, you have to create a so called \"session\" at first. Just click the \"New\" button on the bottom left to create your first session. Give it a friendly name (e.g. \"Local DB server\") so you'll recall it the next time you start %s."
 
 #: connections.pas:711
 msgid "Please click a session on the left list to edit parameters, doubleclick to open it."
@@ -3896,12 +3915,8 @@ msgid "Database \"%s\" exists and has objects with same names as in \"%s\""
 msgstr "Database \"%s\" exists and has objects with same names as in \"%s\""
 
 #: createdatabase.pas:236
-msgid ""
-"Database \"%s\" exists. But it does not contain objects with same names as in \"%s\", so it's uncritical to move "
-"everything. Move all objects to \"%s\"?"
-msgstr ""
-"Database \"%s\" exists. But it does not contain objects with same names as in \"%s\", so it's uncritical to move "
-"everything. Move all objects to \"%s\"?"
+msgid "Database \"%s\" exists. But it does not contain objects with same names as in \"%s\", so it's uncritical to move everything. Move all objects to \"%s\"?"
+msgstr "Database \"%s\" exists. But it does not contain objects with same names as in \"%s\", so it's uncritical to move everything. Move all objects to \"%s\"?"
 
 #: createdatabase.pas:265
 msgid "Altering database \"%s\" failed."
@@ -3933,10 +3948,8 @@ msgid "Assign procedure \"%s\""
 msgstr "Assign procedure \"%s\""
 
 #: dbconnection.pas:1047
-msgid ""
-"Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s."
-msgstr ""
-"Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s."
+msgid "Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s."
+msgstr "Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s."
 
 #: dbconnection.pas:1121
 msgid "SSL parameters successfully set."
@@ -3975,15 +3988,13 @@ msgid "Port #%d in use. Checking if #%d is available..."
 msgstr "Port #%d in use. Checking if #%d is available..."
 
 msgid ""
-"Connection closed immediately after it was established. This is mostly caused by an \"%s\" server variable which "
-"has errors in itself, or your user account does not have the required privileges for it to run.\n"
+"Connection closed immediately after it was established. This is mostly caused by an \"%s\" server variable which has errors in itself, or your user account does not have the required privileges for it to run.\n"
 "\n"
 "You may ask someone with SUPER privileges\n"
 "* either to fix the \"%s\" variable,\n"
 "* or to grant you missing privileges."
 msgstr ""
-"Connection closed immediately after it was established. This is mostly caused by an \"%s\" server variable which "
-"has errors in itself, or your user account does not have the required privileges for it to run.\n"
+"Connection closed immediately after it was established. This is mostly caused by an \"%s\" server variable which has errors in itself, or your user account does not have the required privileges for it to run.\n"
 "\n"
 "You may ask someone with SUPER privileges\n"
 "* either to fix the \"%s\" variable,\n"
@@ -4308,12 +4319,8 @@ msgid "Text files"
 msgstr "Text files"
 
 #: main.pas:1181
-msgid ""
-"Tables have been flushed and read lock acquired. Perform backup or snapshot of table data files now. Press OK to "
-"unlock when done..."
-msgstr ""
-"Tables have been flushed and read lock acquired. Perform backup or snapshot of table data files now. Press OK to "
-"unlock when done..."
+msgid "Tables have been flushed and read lock acquired. Perform backup or snapshot of table data files now. Press OK to unlock when done..."
+msgstr "Tables have been flushed and read lock acquired. Perform backup or snapshot of table data files now. Press OK to unlock when done..."
 
 #: main.pas:1496
 msgid "Show next %s rows ..."
@@ -4364,12 +4371,8 @@ msgid "Checking queries for unsafe UPDATEs/DELETEs ..."
 msgstr "Checking queries for unsafe UPDATEs/DELETEs ..."
 
 #. Query execution
-msgid ""
-"Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re "
-"doing."
-msgstr ""
-"Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re "
-"doing."
+msgid "Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re doing."
+msgstr "Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re doing."
 
 #: main.pas:2166
 msgid "Query profiling requires %s or later, and the server must not be configured with %s."
@@ -4412,6 +4415,18 @@ msgstr "Warnings"
 #: main.pas:2310
 msgid "Duration for"
 msgstr "Duration for"
+
+#. duration for x "of" y queries
+msgid "of"
+msgstr "of"
+
+#. seconds
+msgid "sec."
+msgstr "sec."
+
+#. Transport over the net. Used for logging query duration.
+msgid "network"
+msgstr "network"
 
 #: main.pas:2346
 msgid "Your query produced %s warnings."
@@ -4686,10 +4701,8 @@ msgid "Setting up columns ..."
 msgstr "Setting up columns ..."
 
 #: main.pas:4390 main.pas:4389
-msgid ""
-"Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in %s > %s > %s."
-msgstr ""
-"Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in %s > %s > %s."
+msgid "Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in %s > %s > %s."
+msgstr "Browsing is currently limited to a maximum of %s rows. To see more rows, increase this maximum in %s > %s > %s."
 
 #: main.pas:4439
 msgid "rows total"
@@ -4839,12 +4852,8 @@ msgid "Modified query"
 msgstr "Modified query"
 
 #: main.pas:9732
-msgid ""
-"Could not apply SynEdit keystroke shortcut \"%s\" (or secondary: \"%s\") to %s. %s. Please go to %s > %s > %s to "
-"change this settings."
-msgstr ""
-"Could not apply SynEdit keystroke shortcut \"%s\" (or secondary: \"%s\") to %s. %s. Please go to %s > %s > %s to "
-"change this settings."
+msgid "Could not apply SynEdit keystroke shortcut \"%s\" (or secondary: \"%s\") to %s. %s. Please go to %s > %s > %s to change this settings."
+msgstr "Could not apply SynEdit keystroke shortcut \"%s\" (or secondary: \"%s\") to %s. %s. Please go to %s > %s > %s to change this settings."
 
 #: main.pas:9759
 msgid "Cannot reformat"
@@ -5190,12 +5199,8 @@ msgid "Add duplicated column to index?"
 msgstr "Add duplicated column to index?"
 
 #: table_editor.pas:1758
-msgid ""
-"Index \"%s\" already contains the column \"%s\". It is possible to add a column twice into a index, but total "
-"nonsense in practice."
-msgstr ""
-"Index \"%s\" already contains the column \"%s\". It is possible to add a column twice into a index, but total "
-"nonsense in practice."
+msgid "Index \"%s\" already contains the column \"%s\". It is possible to add a column twice into a index, but total nonsense in practice."
+msgstr "Index \"%s\" already contains the column \"%s\". It is possible to add a column twice into a index, but total nonsense in practice."
 
 #: table_editor.pas:1815
 msgid "The selected table engine (%s) does not support foreign keys."
@@ -5538,16 +5543,15 @@ msgid "Unhandled tree node index"
 msgstr "Unhandled tree node index"
 
 #. const.inc
-msgid ""
-"Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or "
-"unique key columns, or just all columns."
-msgstr ""
-"Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or "
-"unique key columns, or just all columns."
+msgid "Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns."
+msgstr "Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns."
 
 #. const.inc
 msgid "Idle."
 msgstr "Idle."
+
+msgid "Server time: %s"
+msgstr "Server time: %s"
 
 #. const.inc
 msgid "Unsupported by this server"
@@ -5715,12 +5719,8 @@ msgid "Foreign column count does not match source column count."
 msgstr "Foreign column count does not match source column count."
 
 #. Table editor
-msgid ""
-"The selected foreign column do not match the source columns data type and unsigned flag. This will give you an "
-"error message when trying to save this change. Please compare yourself:"
-msgstr ""
-"The selected foreign column do not match the source columns data type and unsigned flag. This will give you an "
-"error message when trying to save this change. Please compare yourself:"
+msgid "The selected foreign column do not match the source columns data type and unsigned flag. This will give you an error message when trying to save this change. Please compare yourself:"
+msgstr "The selected foreign column do not match the source columns data type and unsigned flag. This will give you an error message when trying to save this change. Please compare yourself:"
 
 #. Table editor
 msgid "Foreign key mismatch"
@@ -5765,24 +5765,16 @@ msgid "Error while reading file \"%s\""
 msgstr "Error while reading file \"%s\""
 
 #. RunQueryFile
-msgid ""
-"%s%% of your file has been processed, but there were %s errors when executing %s queries. Please check the SQL "
-"log panel for messages."
-msgstr ""
-"%s%% of your file has been processed, but there were %s errors when executing %s queries. Please check the SQL "
-"log panel for messages."
+msgid "%s%% of your file has been processed, but there were %s errors when executing %s queries. Please check the SQL log panel for messages."
+msgstr "%s%% of your file has been processed, but there were %s errors when executing %s queries. Please check the SQL log panel for messages."
 
 #. RunQueryFile
 msgid "Notice: You can disable the \"%s\" option to ignore such errors"
 msgstr "Notice: You can disable the \"%s\" option to ignore such errors"
 
 #. ReadTextFileChunk
-msgid ""
-"End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry "
-"reading..."
-msgstr ""
-"End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry "
-"reading..."
+msgid "End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry reading..."
+msgstr "End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry reading..."
 
 #. InitConnection, JumpList
 msgid "Recent sessions"
@@ -5909,8 +5901,8 @@ msgstr "Send a donation"
 msgid "Donate to the %s project"
 msgstr "Donate to the %s project"
 
-msgid "GUI font (requires restart):"
-msgstr "GUI font (requires restart):"
+msgid "GUI font: *"
+msgstr "GUI font: *"
 
 msgid "Default system font"
 msgstr "Default system font"
@@ -6146,6 +6138,36 @@ msgstr "Upper Case Block"
 msgid "Lower Case Block"
 msgstr "Lower Case Block"
 
+msgid "Fold All"
+msgstr "Fold All"
+
+msgid "Unfold All"
+msgstr "Unfold All"
+
+msgid "Fold Nearest"
+msgstr "Fold Nearest"
+
+msgid "Unfold Nearest"
+msgstr "Unfold Nearest"
+
+msgid "Fold Level 1"
+msgstr "Fold Level 1"
+
+msgid "Fold Level 2"
+msgstr "Fold Level 2"
+
+msgid "Fold Level 3"
+msgstr "Fold Level 3"
+
+msgid "Unfold Level 1"
+msgstr "Unfold Level 1"
+
+msgid "Unfold Level 2"
+msgstr "Unfold Level 2"
+
+msgid "Unfold Level 3"
+msgstr "Unfold Level 3"
+
 msgid "Column data type %s requires a length/set"
 msgstr "Column data type %s requires a length/set"
 
@@ -6282,8 +6304,8 @@ msgstr "No help available for this tab."
 msgid "%0:d out of %1:d matching. %2:d hidden."
 msgstr "%0:d out of %1:d matching. %2:d hidden."
 
-msgid "Style Theme:"
-msgstr "Style Theme:"
+msgid "Style Theme: *"
+msgstr "Style Theme: *"
 
 msgid "You should restart %s to apply changed critical settings, and to prevent unexpected behaviour."
 msgstr "You should restart %s to apply changed critical settings, and to prevent unexpected behaviour."
@@ -6302,3 +6324,6 @@ msgstr "Pixels per inch on current monitor: %d"
 
 msgid "%s characters (max: %s), %s lines, cursor at %s"
 msgstr "%s characters (max: %s), %s lines, cursor at %s"
+
+msgid "Credits"
+msgstr "Credits"

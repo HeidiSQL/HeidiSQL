@@ -2821,17 +2821,17 @@ begin
     '  '+_('Warnings')+': '+FormatNumber(Thread.WarningCount)+
     '  '+_('Duration for')+' ' + FormatNumber(Thread.BatchPosition);
   if Thread.BatchPosition < Thread.Batch.Count then
-    MetaInfo := MetaInfo + ' of ' + FormatNumber(Thread.Batch.Count);
+    MetaInfo := MetaInfo + ' ' + _('of') + ' ' + FormatNumber(Thread.Batch.Count);
   if Thread.Batch.Count = 1 then
     MetaInfo := MetaInfo + ' ' + _('query')
   else
     MetaInfo := MetaInfo + ' ' + _('queries');
   if Thread.QueryTime < 60*1000 then
-    MetaInfo := MetaInfo + ': '+FormatNumber(Thread.QueryTime/1000, 3) +' sec.'
+    MetaInfo := MetaInfo + ': '+FormatNumber(Thread.QueryTime/1000, 3) +' ' + _('sec.')
   else
     MetaInfo := MetaInfo + ': '+FormatTimeNumber(Thread.QueryTime/1000, True);
   if Thread.QueryNetTime > 0 then
-    MetaInfo := MetaInfo + ' (+ '+FormatNumber(Thread.QueryNetTime/1000, 3) +' sec. network)';
+    MetaInfo := MetaInfo + ' (+ '+FormatNumber(Thread.QueryNetTime/1000, 3) +' ' + _('sec.') + ' ' + _('network') + ')';
   LogSQL(MetaInfo);
 
   // Display query profile

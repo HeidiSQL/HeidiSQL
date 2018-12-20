@@ -730,7 +730,7 @@ object MainForm: TMainForm
                     Height = 13
                     Cursor = crHandPoint
                     Hint = 'Analyze this query on MariaDB.org'
-                    Caption = 'EXPLAIN Analyzer on MariaDB.org'
+                    Caption = 'EXPLAIN analyzer on MariaDB.org'
                     Enabled = False
                     OnClick = lblExplainProcessAnalyzerClick
                   end
