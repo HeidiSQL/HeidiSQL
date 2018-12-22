@@ -7127,19 +7127,27 @@ end;
 }
 procedure TMainForm.SaveListSetup( List: TVirtualStringTree );
 var
-  i : Byte;
+  i, ColWidth: Integer;
   ColWidths, ColsVisible, ColPos, Regname: String;
   OwnerForm: TWinControl;
+  IsFrame: Boolean;
+  ScaleDownFactor: Double;
 begin
   ColWidths := '';
   ColsVisible := '';
   ColPos := '';
+  OwnerForm := GetParentFormOrFrame(List);
+  IsFrame := OwnerForm is TFrame;
+  ScaleDownFactor := DpiScaleFactor(GetParentForm(List) as TForm);
   for i := 0 to List.Header.Columns.Count - 1 do
   begin
     // Column widths
     if ColWidths <> '' then
       ColWidths := ColWidths + ',';
-    ColWidths := ColWidths + IntToStr(List.Header.Columns[i].Width);
+    ColWidth := List.Header.Columns[i].Width;
+    if IsFrame then
+      ColWidth := Round(ColWidth / ScaleDownFactor);
+    ColWidths := ColWidths + IntToStr(ColWidth);
 
     // Column visibility
     if coVisible in List.Header.Columns[i].Options then
@@ -7156,15 +7164,14 @@ begin
 
   end;
 
-  // Lists can have the same name over different forms or frames. Find parent form or frame,
-  // so we can prepend its name into the registry value name.
-  OwnerForm := GetParentFormOrFrame(List);
   // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
   // In that case we would cause an exception when accessing it. Emergency break in that case.
   // See issue #1462
   // TODO: Test this, probably fixed by implementing GetParentFormOrFrame, and then again, probably not.
   if not Assigned(OwnerForm) then
     Exit;
+  // Lists can have the same name over different forms or frames. Find parent form or frame,
+  // so we can prepend its name into the registry value name.
   Regname := OwnerForm.Name + '.' + List.Name;
   AppSettings.ResetPath;
   AppSettings.WriteString(asListColWidths, ColWidths, Regname);
@@ -7198,7 +7205,7 @@ begin
     begin
       colwidth := MakeInt(ValueList[i]);
       // Check if column number exists and width is at least 1 pixel
-      if (List.Header.Columns.Count > i) and (colwidth > 0) then
+      if (List.Header.Columns.Count > i) and (colwidth > 0) and (colwidth < 1000) then
         List.Header.Columns[i].Width := colwidth;
     end;
   end;
