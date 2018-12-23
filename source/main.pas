@@ -4754,7 +4754,11 @@ begin
 
     // Scroll to last line and repaint
     SynMemoSQLLog.GotoLineAndCenter(SynMemoSQLLog.Lines.Count);
-    SynMemoSQLLog.Repaint;
+    // Causes access violations on a reconnected session firing a user-query:
+    // SynMemoSQLLog.Repaint;
+    // SynMemoSQLLog.Update;
+    // See TDBConnection.Log and TQueryThread.LogFromOutside
+    // See https://github.com/HeidiSQL/HeidiSQL/issues/57
 
     // Log to file?
     if FLogToFile then
