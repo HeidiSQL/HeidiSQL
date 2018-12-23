@@ -8940,11 +8940,21 @@ var
 begin
   g := TVirtualStringTree(Sender);
   case Key of
-    VK_HOME: g.FocusedColumn := g.Header.Columns.GetFirstVisibleColumn(False);
+    VK_HOME: begin
+      g.FocusedColumn := g.Header.Columns.GetFirstVisibleColumn(False);
+      if (ssCtrl in Shift) and (g = DataGrid) then begin
+        // VT itself focuses the first node since v7.0
+      end else
+        Key := 0;
+    end;
     VK_END: begin
-      if (ssCtrl in Shift) and (g = DataGrid) then
+      g.FocusedColumn := g.Header.Columns.GetLastVisibleColumn(False);
+      if (ssCtrl in Shift) and (g = DataGrid) then begin
         actDataShowAll.Execute;
-      g.FocusedColumn := g.Header.Columns.Count-1;
+        // VT itself focuses the last node since v7.0
+      end else begin
+        Key := 0;
+      end;
     end;
     VK_RETURN: if Assigned(g.FocusedNode) then g.EditNode(g.FocusedNode, g.FocusedColumn);
     VK_DOWN: if g.FocusedNode = g.GetLast then actDataInsertExecute(Sender);
