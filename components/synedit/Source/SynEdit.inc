@@ -1170,7 +1170,8 @@
 
 // DirectWrite
 {$IFDEF SYN_DELPHI_XE2_UP}
-  {$DEFINE SYN_DirectWrite}
+  // Disabled for HeidiSQL. See #445
+  {.$DEFINE SYN_DirectWrite}
 {$ENDIF}
 
 // Code Folding
