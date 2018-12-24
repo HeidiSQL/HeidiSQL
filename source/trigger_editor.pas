@@ -163,6 +163,10 @@ begin
       end;
     end;
   end;
+  // Buttons are randomly moved, since VirtualTree update, see #440
+  btnSave.Top := Height - btnSave.Height - Round(3 * DpiScaleFactor(MainForm));
+  btnHelp.Top := btnSave.Top;
+  btnDiscard.Top := btnSave.Top;
   Modification(Self);
   Modified := False;
   btnSave.Enabled := Modified;

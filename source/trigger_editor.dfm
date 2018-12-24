@@ -8,65 +8,13 @@ object frmTriggerEditor: TfrmTriggerEditor
     700
     500)
   object lblBody: TLabel
+    AlignWithMargins = True
     Left = 3
     Top = 141
-    Width = 327
-    Height = 13
-    Caption = 'Trigger statement: (e.g. "SET NEW.columnA = TRIM(OLD.columnA)"'
-  end
-  object SynMemoBody: TSynMemo
-    Left = 3
-    Top = 160
     Width = 694
-    Height = 306
-    SingleLineMode = False
-    Anchors = [akLeft, akTop, akRight, akBottom]
-    Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -13
-    Font.Name = 'Courier New'
-    Font.Style = []
-    TabOrder = 0
-    Gutter.Font.Charset = DEFAULT_CHARSET
-    Gutter.Font.Color = clWindowText
-    Gutter.Font.Height = -11
-    Gutter.Font.Name = 'Courier New'
-    Gutter.Font.Style = []
-    Lines.Strings = (
-      'SynMemoBody')
-    OnChange = Modification
-    FontSmoothing = fsmNone
-  end
-  object btnHelp: TButton
-    Left = 3
-    Top = 472
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Help'
-    TabOrder = 1
-    OnClick = btnHelpClick
-  end
-  object btnDiscard: TButton
-    Left = 84
-    Top = 472
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Discard'
-    TabOrder = 2
-    OnClick = btnDiscardClick
-  end
-  object btnSave: TButton
-    Left = 165
-    Top = 472
-    Width = 75
-    Height = 25
-    Anchors = [akLeft, akBottom]
-    Caption = 'Save'
-    Default = True
-    TabOrder = 3
-    OnClick = btnSaveClick
+    Height = 13
+    Align = alTop
+    Caption = 'Trigger statement: (e.g. "SET NEW.columnA = TRIM(OLD.columnA)"'
   end
   object PageControlMain: TPageControl
     AlignWithMargins = True
@@ -169,7 +117,7 @@ object frmTriggerEditor: TfrmTriggerEditor
       object SynMemoCreateCode: TSynMemo
         Left = 0
         Top = 0
-        Width = 463
+        Width = 686
         Height = 103
         SingleLineMode = False
         Align = alClient
@@ -179,6 +127,14 @@ object frmTriggerEditor: TfrmTriggerEditor
         Font.Name = 'Courier New'
         Font.Style = []
         TabOrder = 0
+        CodeFolding.GutterShapeSize = 11
+        CodeFolding.CollapsedLineColor = clGrayText
+        CodeFolding.FolderBarLinesColor = clGrayText
+        CodeFolding.IndentGuidesColor = clGray
+        CodeFolding.IndentGuides = True
+        CodeFolding.ShowCollapsedLine = False
+        CodeFolding.ShowHintMark = True
+        UseCodeFolding = False
         Gutter.AutoSize = True
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
@@ -195,6 +151,70 @@ object frmTriggerEditor: TfrmTriggerEditor
         FontSmoothing = fsmNone
       end
     end
+  end
+  object SynMemoBody: TSynMemo
+    AlignWithMargins = True
+    Left = 3
+    Top = 160
+    Width = 694
+    Height = 308
+    Margins.Bottom = 32
+    SingleLineMode = False
+    Align = alClient
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Style = []
+    TabOrder = 0
+    CodeFolding.GutterShapeSize = 11
+    CodeFolding.CollapsedLineColor = clGrayText
+    CodeFolding.FolderBarLinesColor = clGrayText
+    CodeFolding.IndentGuidesColor = clGray
+    CodeFolding.IndentGuides = True
+    CodeFolding.ShowCollapsedLine = False
+    CodeFolding.ShowHintMark = True
+    UseCodeFolding = False
+    Gutter.Font.Charset = DEFAULT_CHARSET
+    Gutter.Font.Color = clWindowText
+    Gutter.Font.Height = -11
+    Gutter.Font.Name = 'Courier New'
+    Gutter.Font.Style = []
+    Lines.Strings = (
+      'SynMemoBody')
+    OnChange = Modification
+    FontSmoothing = fsmNone
+  end
+  object btnHelp: TButton
+    Left = 3
+    Top = 472
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Help'
+    TabOrder = 1
+    OnClick = btnHelpClick
+  end
+  object btnDiscard: TButton
+    Left = 84
+    Top = 472
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Discard'
+    TabOrder = 2
+    OnClick = btnDiscardClick
+  end
+  object btnSave: TButton
+    Left = 165
+    Top = 472
+    Width = 75
+    Height = 25
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save'
+    Default = True
+    TabOrder = 3
+    OnClick = btnSaveClick
   end
   object SynCompletionProposalStatement: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
