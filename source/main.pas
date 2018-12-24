@@ -3013,7 +3013,12 @@ begin
   // Send EXPLAIN output to analyzer
   Conn := ActiveConnection;
   SQL := GetCurrentQuery(ActiveQueryTab);
-  Conn.ExplainAnalyzer(SQL, Conn.Database);
+  try
+    Conn.ExplainAnalyzer(SQL, Conn.Database);
+  except
+    on E:EDatabaseError do
+      ErrorDialog(E.Message);
+  end;
 end;
 
 
@@ -11399,7 +11404,12 @@ end;
 
 procedure TMainForm.lblExplainProcessAnalyzerClick(Sender: TObject);
 begin
-  ActiveConnection.ExplainAnalyzer(SynMemoProcessView.Text, listProcesses.Text[listProcesses.FocusedNode, 3]);
+  try
+    ActiveConnection.ExplainAnalyzer(SynMemoProcessView.Text, listProcesses.Text[listProcesses.FocusedNode, 3]);
+  except
+    on E:EDatabaseError do
+      ErrorDialog(E.Message);
+  end;
 end;
 
 
