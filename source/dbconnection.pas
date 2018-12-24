@@ -1299,7 +1299,7 @@ begin
   else if IsInfobright then
     My := 'Infobright'
   else
-    My := 'MySQL';
+    My := 'MariaDB or MySQL';
   if LongFormat then case NetType of
     ntMySQL_TCPIP:
       Result := My+' (TCP/IP)';
