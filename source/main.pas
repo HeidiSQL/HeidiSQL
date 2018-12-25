@@ -5588,7 +5588,16 @@ begin
         FunctionDeclaration := Copy(Value, f, Length(Value));
         Delete(Value, f, Length(Value));
       end;
-      Value := ActiveConnection.QuoteIdent(Value, False) + FunctionDeclaration;
+
+      rx.Expression := '^(['+QuoteRegExprMetaChars(ActiveConnection.QuoteChars)+'])(.*)$';
+      if rx.Exec(Value) then begin
+        // Left character of identifier is already a quote: user wants to force quoting.
+        // Seperate that left quote character away from what gets now quoted automatically, and force quoting
+        Value := ActiveConnection.QuoteIdent(rx.Match[2], True) + FunctionDeclaration;
+      end else begin
+        // Identifier without left quote - quote when required
+        Value := ActiveConnection.QuoteIdent(Value, False) + FunctionDeclaration;
+      end;
     end;
   end;
   rx.Free;

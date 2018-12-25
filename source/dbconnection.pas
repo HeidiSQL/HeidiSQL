@@ -421,6 +421,7 @@ type
       property LastErrorMsg: String read GetLastErrorMsg;
       property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
+      property QuoteChars: String read FQuoteChars;
       function ServerVersionStr: String;
       function ServerVersionInt: Integer;
       function NdbClusterVersionInt: Integer;
