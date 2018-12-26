@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-12-20 13:41+0100\n"
+"PO-Revision-Date: 2018-12-26 19:28+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -4862,6 +4862,9 @@ msgstr "Cannot reformat"
 #: main.pas:9759
 msgid "Please select a non-readonly SQL editor first."
 msgstr "Please select a non-readonly SQL editor first."
+
+msgid "No SQL editor focused. ActiveControl is %s"
+msgstr "No SQL editor focused. ActiveControl is %s"
 
 #: main.pas:9768
 msgid "The current editor is empty."

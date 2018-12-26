@@ -4196,21 +4196,33 @@ end;
 
 procedure TMainForm.actSaveSynMemoToTextfileExecute(Sender: TObject);
 var
+  Comp: TComponent;
   Memo: TSynMemo;
   Dialog: TSaveDialog;
   Item: TMenuItem;
 begin
   // Save to textfile, from any TSynMemo (SQL log, "CREATE code" tab in editor, ...)
-  Dialog := TSaveDialog.Create(Self);
-  Dialog.Options := Dialog.Options + [ofOverwritePrompt];
-  Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-  Dialog.DefaultExt := 'sql';
-  if Dialog.Execute then begin
-    Item := (Sender as TAction).ActionComponent as TMenuItem;
-    Memo := (Item.GetParentMenu as TPopupMenu).PopupComponent as TSynMemo;
-    Screen.Cursor := crHourGlass;
-    SaveUnicodeFile(Dialog.FileName, Memo.Text);
-    Screen.Cursor := crDefault;
+  Item := (Sender as TAction).ActionComponent as TMenuItem;
+  Comp := (Item.GetParentMenu as TPopupMenu).PopupComponent;
+  // Try to find memo from menu item's popup component, and if that fails, check ActiveControl.
+  // See #353
+  if Assigned(Comp) and (Comp is TSynMemo) then begin
+    Memo := Comp as TSynMemo;
+  end else if ActiveControl is TSynMemo then begin
+    Memo := ActiveControl as TSynMemo;
+  end;
+  if Assigned(Memo) then begin
+    Dialog := TSaveDialog.Create(Self);
+    Dialog.Options := Dialog.Options + [ofOverwritePrompt];
+    Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
+    Dialog.DefaultExt := 'sql';
+    if Dialog.Execute then begin
+      Screen.Cursor := crHourGlass;
+      SaveUnicodeFile(Dialog.FileName, Memo.Text);
+      Screen.Cursor := crDefault;
+    end;
+  end else begin
+    ErrorDialog(f_('No SQL editor focused. ActiveControl is %s', [ActiveControl.Name]));
   end;
 end;
 
