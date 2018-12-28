@@ -737,7 +737,7 @@ var
   mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
   mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
   mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
-  mysql_options: function(Handle: PMYSQL; Option: TMySQLOption; arg: PAnsiChar): Integer; stdcall;
+  mysql_options: function(Handle: PMYSQL; Option: Integer; arg: PAnsiChar): Integer; stdcall;
   mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
   mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
   mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
@@ -1681,6 +1681,7 @@ var
   PluginDir: AnsiString;
   Vars, Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
+  SetOptionResult: Integer;
 begin
   if Value and (FHandle = nil) then begin
 
@@ -1747,8 +1748,11 @@ begin
       ClientFlags := ClientFlags or CLIENT_SSL;
 
     // Point libmysql to the folder with client plugins
-    PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins\');
-    mysql_options(FHandle, MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
+    PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
+    SetOptionResult := mysql_options(FHandle, Integer(MYSQL_PLUGIN_DIR), PAnsiChar(PluginDir));
+    if SetOptionResult <> 0 then begin
+      raise EDatabaseError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
+    end;
 
     Connected := mysql_real_connect(
       FHandle,
