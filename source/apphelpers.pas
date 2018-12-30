@@ -354,6 +354,7 @@ type
   procedure LoadPNGFromImageList(AImageList: TCustomImageList; AIndex: Integer; var ADestPNG: TPngImage);
   procedure ResizePngImage(aPng: TPNGImage; NewWidth, NewHeight: Integer);
   function GetThemeColor(Color: TColor): TColor;
+  function ThemeIsDark(ThemeName: String): Boolean;
 
 var
   AppSettings: TAppSettings;
@@ -3152,6 +3153,19 @@ begin
   // Not required with vcl-style-utils:
   // Result := TStyleManager.ActiveStyle.GetSystemColor(Color);
   Result := Color;
+end;
+
+
+function ThemeIsDark(ThemeName: String): Boolean;
+const
+  DarkThemes: String = 'Amakrits,Aqua Graphite,Auric,Carbon,Charcoal Dark Slate,Cobalt XEMedia,Glossy,Glow,Golden Graphite,Onyx Blue,Ruby Graphite,TabletDark,Windows10 Dark,Windows10 SlateGray';
+var
+  DarkThemesList: TStringList;
+begin
+  DarkThemesList := Explode(',', DarkThemes);
+  ShowMessage(DarkThemesList.Text);
+  Result := DarkThemesList.IndexOf(ThemeName) > -1;
+  DarkThemesList.Free;
 end;
 
 

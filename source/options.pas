@@ -208,6 +208,7 @@ type
     procedure comboEditorColorsPresetChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure comboGridTextColorsPresetSelect(Sender: TObject);
+    procedure comboThemeSelect(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -918,6 +919,25 @@ begin
   end;
   cboxSQLColForeground.Selected := Foreground;
   cboxSQLColBackground.Selected := Background;
+end;
+
+
+procedure Toptionsform.comboThemeSelect(Sender: TObject);
+begin
+  // Select text colors so they fit to the selected theme
+  if ThemeIsDark(comboTheme.Text) then begin
+    comboGridTextColorsPreset.ItemIndex := comboGridTextColorsPreset.Items.IndexOf(_('Dark'));
+    comboGridTextColorsPresetSelect(comboGridTextColorsPreset);
+    comboEditorColorsPreset.ItemIndex := comboEditorColorsPreset.Items.IndexOf(_('Dark'));
+    comboEditorColorsPresetChange(comboEditorColorsPreset);
+  end else begin
+    comboGridTextColorsPreset.ItemIndex := comboGridTextColorsPreset.Items.IndexOf(_('Light'));
+    comboGridTextColorsPresetSelect(comboGridTextColorsPreset);
+    comboEditorColorsPreset.ItemIndex := comboEditorColorsPreset.Items.IndexOf(_('Light'));
+    comboEditorColorsPresetChange(comboEditorColorsPreset);
+  end;
+
+  Modified(Sender);
 end;
 
 

@@ -289,7 +289,7 @@ object optionsform: Toptionsform
           Anchors = [akLeft, akTop, akRight]
           Sorted = True
           TabOrder = 16
-          OnChange = Modified
+          OnSelect = comboThemeSelect
         end
       end
     end
@@ -1346,17 +1346,17 @@ object optionsform: Toptionsform
     Options.AutoDetectEnabled = False
     Options.AutoDetectLineLimit = 0
     Options.Visible = False
-    CommentAttri.Foreground = clGray
-    ConditionalCommentAttri.Foreground = clGray
+    CommentAttri.Foreground = 4144959
+    ConditionalCommentAttri.Foreground = 4144959
     DataTypeAttri.Foreground = 3148901
-    DelimitedIdentifierAttri.Foreground = 6383516
+    DelimitedIdentifierAttri.Foreground = 4804214
     FunctionAttri.Foreground = 7811334
-    IdentifierAttri.Foreground = 6383516
+    IdentifierAttri.Foreground = 3751259
     KeyAttri.Foreground = 11684361
     NumberAttri.Foreground = 6754886
-    StringAttri.Foreground = clGreen
-    SymbolAttri.Foreground = 11684361
-    TableNameAttri.Foreground = 13378700
+    StringAttri.Foreground = 21760
+    SymbolAttri.Foreground = 9255175
+    TableNameAttri.Foreground = 10689905
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
     Left = 120
