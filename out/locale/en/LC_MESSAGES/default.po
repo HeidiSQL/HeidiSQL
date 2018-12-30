@@ -2611,12 +2611,11 @@ msgstr "Restore last used database on startup"
 
 #. optionsform..pagecontrolMain..tabMisc..chkUpdatecheck....Caption
 #: options.dfm:81
-msgid ""
-"Automatically check for updates / Interval [days]:\n"
-"(0 = each time the application is started)"
-msgstr ""
-"Automatically check for updates / Interval [days]:\n"
-"(0 = each time the application is started)"
+msgid "Check for updates each [day]:"
+msgstr "Check for updates each [day]:"
+
+msgid "0 = on each application start"
+msgstr "0 = on each application start"
 
 #. optionsform..pagecontrolMain..tabMisc..chkUpdateCheckBuilds..Caption
 #: options.dfm:116
@@ -2625,8 +2624,11 @@ msgstr "Also check for updated nightly builds"
 
 #. optionsform..pagecontrolMain..tabMisc..chkDoStatistics....Caption
 #: options.dfm:130
-msgid "Count in usage statistics. This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and MySQL versions."
-msgstr "Count in usage statistics. This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and MySQL versions."
+msgid "Send usage statistics"
+msgstr "Send usage statistics"
+
+msgid "This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and server versions."
+msgstr "This option, if enabled, will cause HeidiSQL to ping heidisql.com at most once every month.  This is used to count the used HeidiSQL and server versions."
 
 msgid "Use Ctrl+Mousewheel for zooming"
 msgstr "Use Ctrl+Mousewheel for zooming"
@@ -2782,18 +2784,18 @@ msgstr "Colors preset:"
 
 #. optionsform..pagecontrolMain..tabData..lblMaxColWidth..Caption
 #: options.dfm:613
-msgid "Maximum column width in data-grids:"
-msgstr "Maximum column width in data-grids:"
+msgid "Maximum column width:"
+msgstr "Maximum column width:"
 
 #. optionsform..pagecontrolMain..tabData..lblDataFont..Caption
 #: options.dfm:628
-msgid "&Font:"
-msgstr "&Font:"
+msgid "Font:"
+msgstr "Font:"
 
 #. optionsform..pagecontrolMain..tabData..lblMaxTotalRows..Caption
 #: options.dfm:636
-msgid "Number of rows displayed in data tab (Step, Maximum):"
-msgstr "Number of rows displayed in data tab (Step, Maximum):"
+msgid "Rows per page and maximum:"
+msgstr "Rows per page and maximum:"
 
 #. optionsform..pagecontrolMain..tabData..lblGridRowsLinecount..Caption
 #: options.dfm:643
@@ -2807,8 +2809,11 @@ msgstr "Grid text colors:"
 
 #. optionsform..pagecontrolMain..tabData..lblNullBackground..Caption
 #: options.dfm:657
-msgid "NULL background color (use \"None\" to disable):"
-msgstr "NULL background color (use \"None\" to disable):"
+msgid "NULL background:"
+msgstr "NULL background:"
+
+msgid "Use \"None\" to disable"
+msgstr "Use \"None\" to disable"
 
 #. Preferences
 msgid "Grid formatting"
@@ -5829,8 +5834,8 @@ msgstr "Connection attempts:"
 msgid "Pop up SQL text over result tabs"
 msgstr "Pop up SQL text over result tabs"
 
-msgid "Background for fields with same text as in focused field:"
-msgstr "Background for fields with same text as in focused field:"
+msgid "Same text background:"
+msgstr "Same text background:"
 
 msgid "Default linebreak style:"
 msgstr "Default linebreak style:"
