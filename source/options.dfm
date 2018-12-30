@@ -876,7 +876,7 @@ object optionsform: Toptionsform
         end
         object lblNullBackground: TLabel
           Left = 8
-          Top = 146
+          Top = 173
           Width = 87
           Height = 13
           Hint = 'Use "None" to disable'
@@ -884,14 +884,14 @@ object optionsform: Toptionsform
         end
         object Label2: TLabel
           Left = 8
-          Top = 174
+          Top = 201
           Width = 137
           Height = 13
           Caption = 'Alternating row background:'
         end
         object Label3: TLabel
           Left = 8
-          Top = 202
+          Top = 229
           Width = 112
           Height = 13
           Caption = 'Same text background:'
@@ -995,83 +995,92 @@ object optionsform: Toptionsform
         end
         object comboGridTextColors: TComboBox
           Left = 191
-          Top = 116
+          Top = 143
           Width = 133
           Height = 21
           Style = csDropDownList
           Anchors = [akTop, akRight]
-          TabOrder = 9
+          TabOrder = 10
           OnSelect = comboGridTextColorsSelect
         end
         object colorBoxGridTextColors: TColorBox
           Left = 330
-          Top = 116
+          Top = 143
           Width = 132
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
           Anchors = [akTop, akRight]
-          TabOrder = 10
+          TabOrder = 11
           OnSelect = colorBoxGridTextColorsSelect
         end
         object cboxNullBackground: TColorBox
           Left = 191
-          Top = 143
-          Width = 133
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-          Anchors = [akTop, akRight]
-          TabOrder = 11
-          OnChange = Modified
-          OnSelect = Modified
-        end
-        object cboxRowBackgroundOdd: TColorBox
-          Left = 330
-          Top = 171
-          Width = 132
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-          Anchors = [akTop, akRight]
-          TabOrder = 13
-          OnChange = Modified
-        end
-        object cboxRowBackgroundEven: TColorBox
-          Left = 191
-          Top = 171
+          Top = 170
           Width = 133
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
           Anchors = [akTop, akRight]
           TabOrder = 12
           OnChange = Modified
+          OnSelect = Modified
         end
-        object chkLocalNumberFormat: TCheckBox
-          Left = 191
-          Top = 227
-          Width = 510
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Local number format'
-          TabOrder = 15
-          OnClick = Modified
-        end
-        object chkHintsOnResultTabs: TCheckBox
-          Left = 191
-          Top = 250
-          Width = 510
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Pop up SQL text over result tabs'
-          TabOrder = 16
-          OnClick = Modified
-        end
-        object cboxRowHighlightSameText: TColorBox
-          Left = 191
-          Top = 199
-          Width = 133
+        object cboxRowBackgroundOdd: TColorBox
+          Left = 330
+          Top = 198
+          Width = 132
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
           Anchors = [akTop, akRight]
           TabOrder = 14
+          OnChange = Modified
+        end
+        object cboxRowBackgroundEven: TColorBox
+          Left = 191
+          Top = 198
+          Width = 133
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
+          Anchors = [akTop, akRight]
+          TabOrder = 13
+          OnChange = Modified
+        end
+        object chkLocalNumberFormat: TCheckBox
+          Left = 191
+          Top = 254
+          Width = 510
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Local number format'
+          TabOrder = 16
+          OnClick = Modified
+        end
+        object chkHintsOnResultTabs: TCheckBox
+          Left = 191
+          Top = 277
+          Width = 510
+          Height = 17
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Pop up SQL text over result tabs'
+          TabOrder = 17
+          OnClick = Modified
+        end
+        object cboxRowHighlightSameText: TColorBox
+          Left = 191
+          Top = 226
+          Width = 133
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
+          Anchors = [akTop, akRight]
+          TabOrder = 15
+        end
+        object comboGridTextColorsPreset: TComboBox
+          Left = 191
+          Top = 116
+          Width = 133
+          Height = 21
+          Style = csDropDownList
+          TabOrder = 9
+          OnSelect = comboGridTextColorsPresetSelect
         end
       end
     end

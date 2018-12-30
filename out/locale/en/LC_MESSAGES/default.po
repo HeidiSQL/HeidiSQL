@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2018-12-28 20:11+0100\n"
+"PO-Revision-Date: 2018-12-30 14:43+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6302,6 +6302,18 @@ msgstr "Scaling font size from %d to %d."
 
 msgid "Current custom settings"
 msgstr "Current custom settings"
+
+msgid "Light"
+msgstr "Light"
+
+msgid "Dark"
+msgstr "Dark"
+
+msgid "Black"
+msgstr "Black"
+
+msgid "White"
+msgstr "White"
 
 msgid "current value:"
 msgstr "current value:"

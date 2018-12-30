@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
-  mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr;
+  mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections;
 
 type
   TShortcutItemData = record
@@ -21,6 +21,14 @@ type
     Shortcut1, Shortcut2: TShortcut;
   end;
   PShortcutItemData = ^TShortcutItemData;
+
+  // Color set for grid text, and preset class with a name
+  TGridTextColors = Array[TDBDatatypeCategoryIndex] of TColor;
+  TGridColorsPreset = class
+    TextColors: TGridTextColors;
+    Name: String;
+  end;
+  TGridColorsPresetList = TObjectList<TGridColorsPreset>;
 
   Toptionsform = class(TForm)
     pagecontrolMain: TPageControl;
@@ -158,6 +166,7 @@ type
     SynSQLSyn_Light: TSynSQLSyn;
     SynSQLSyn_Black: TSynSQLSyn;
     SynSQLSyn_White: TSynSQLSyn;
+    comboGridTextColorsPreset: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -198,11 +207,13 @@ type
     procedure chkQueryHistoryClick(Sender: TObject);
     procedure comboEditorColorsPresetChange(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure comboGridTextColorsPresetSelect(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
     FShortcutCategories: TStringList;
-    FGridTextColors: Array[dtcInteger..dtcOther] of TColor;
+    FGridTextColors: TGridTextColors;
+    FGridColorsPresets: TGridColorsPresetList;
     FLanguages: TStringList;
     FRestartOptionTouched: Boolean;
     FRestartOptionApplied: Boolean;
@@ -439,12 +450,19 @@ end;
 
 
 procedure Toptionsform.FormCreate(Sender: TObject);
+const
+  // Define grid colors as constants, for easy assignment
+  GridColorsLight: TGridTextColors = ($00FF0000, $00FF0048, $00008000, $00800080, $00000080, $00808000, $00008080);
+  GridColorsDark: TGridTextColors = ($00FF9785, $00D07D7D, $0073D573, $00C9767F, $007373C9, $00CECE73, $0073C1C1);
+  GridColorsBlack: TGridTextColors = ($00000000, $00000000, $00000000, $00000000, $00000000, $00000000, $00000000);
+  GridColorsWhite: TGridTextColors = ($00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF, $00FFFFFF);
 var
   i: Integer;
   dtc: TDBDatatypeCategoryIndex;
   Styles: TArray<String>;
   Highlighter: TSynSQLSyn;
   Name: String;
+  GridColorsPreset: TGridColorsPreset;
 begin
   TranslateComponent(Self);
 
@@ -495,9 +513,44 @@ begin
       Name := Highlighter.Name;
       Name := RegExprGetMatch('_([^_]+)$', Name, 1, False);
       if Name <> '' then begin
-        comboEditorColorsPreset.Items.Add(Name);
+        comboEditorColorsPreset.Items.Add(_(Name));
       end;
     end;
+  end;
+
+  // Grid formatting
+  FGridColorsPresets := TGridColorsPresetList.Create;
+  // Current colors - assign from global DatatypeCategories array
+  GridColorsPreset := TGridColorsPreset.Create;
+  GridColorsPreset.Name := _('Current custom settings');
+  for dtc:=Low(TDBDatatypeCategoryIndex) to High(TDBDatatypeCategoryIndex) do begin
+    GridColorsPreset.TextColors[dtc] := DatatypeCategories[dtc].Color;
+  end;
+  FGridColorsPresets.Add(GridColorsPreset);
+  // Light - default values
+  GridColorsPreset := TGridColorsPreset.Create;
+  GridColorsPreset.Name := _('Light');
+  GridColorsPreset.TextColors := GridColorsLight;
+  FGridColorsPresets.Add(GridColorsPreset);
+  // Dark
+  GridColorsPreset := TGridColorsPreset.Create;
+  GridColorsPreset.Name := _('Dark');
+  GridColorsPreset.TextColors := GridColorsDark;
+  FGridColorsPresets.Add(GridColorsPreset);
+  // Black
+  GridColorsPreset := TGridColorsPreset.Create;
+  GridColorsPreset.Name := _('Black');
+  GridColorsPreset.TextColors := GridColorsBlack;
+  FGridColorsPresets.Add(GridColorsPreset);
+  // White
+  GridColorsPreset := TGridColorsPreset.Create;
+  GridColorsPreset.Name := _('White');
+  GridColorsPreset.TextColors := GridColorsWhite;
+  FGridColorsPresets.Add(GridColorsPreset);
+  // Add all to combo box
+  comboGridTextColorsPreset.Clear;
+  for GridColorsPreset in FGridColorsPresets do begin
+    comboGridTextColorsPreset.Items.Add(GridColorsPreset.Name);
   end;
 
   // Shortcuts
@@ -580,7 +633,7 @@ begin
   chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
   comboSQLColElementChange(Sender);
 
-  // Data-Appearance:
+  // Grid formatting:
   comboDataFontName.Items := Screen.Fonts;
   comboDataFontName.ItemIndex := comboDataFontName.Items.IndexOf(AppSettings.ReadString(asDataFontName));
   updownDataFontSize.Position := AppSettings.ReadInt(asDataFontSize);
@@ -593,6 +646,7 @@ begin
   FGridTextColors[dtcTemporal] := AppSettings.ReadInt(asFieldColorDatetime);
   FGridTextColors[dtcSpatial] := AppSettings.ReadInt(asFieldColorSpatial);
   FGridTextColors[dtcOther] := AppSettings.ReadInt(asFieldColorOther);
+  comboGridTextColorsPreset.ItemIndex := 0;
   comboGridTextColors.ItemIndex := 0;
   comboGridTextColors.OnSelect(comboGridTextColors);
   cboxNullBackground.Selected := AppSettings.ReadInt(asFieldNullBackground);
@@ -786,6 +840,23 @@ begin
   end;
   Modified(Sender);
 end;
+
+
+procedure Toptionsform.comboGridTextColorsPresetSelect(Sender: TObject);
+var
+  Preset: TGridColorsPreset;
+  dtc: TDBDatatypeCategoryIndex;
+begin
+  // Grid colors preset selected
+  Preset := FGridColorsPresets[comboGridTextColorsPreset.ItemIndex];
+  for dtc:=Low(Preset.TextColors) to High(Preset.TextColors) do begin
+    FGridTextColors[dtc] := Preset.TextColors[dtc];
+  end;
+  comboGridTextColors.OnSelect(comboGridTextColors);
+  if comboGridTextColorsPreset.ItemIndex > 0 then
+    Modified(Sender);
+end;
+
 
 procedure Toptionsform.comboGridTextColorsSelect(Sender: TObject);
 begin
