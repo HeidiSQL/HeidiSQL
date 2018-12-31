@@ -112,17 +112,16 @@ object optionsform: Toptionsform
         object chkUpdatecheck: TCheckBox
           Left = 191
           Top = 77
-          Width = 177
+          Width = 196
           Height = 17
           Hint = '0 = on each application start'
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Check for updates each [day]:'
           TabOrder = 3
-          WordWrap = True
           OnClick = chkUpdatecheckClick
         end
         object editUpdatecheckInterval: TEdit
-          Left = 374
+          Left = 393
           Top = 75
           Width = 43
           Height = 21
@@ -133,7 +132,7 @@ object optionsform: Toptionsform
           OnChange = Modified
         end
         object updownUpdatecheckInterval: TUpDown
-          Left = 417
+          Left = 436
           Top = 75
           Width = 16
           Height = 21
@@ -146,9 +145,9 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object chkUpdateCheckBuilds: TCheckBox
-          Left = 488
+          Left = 464
           Top = 77
-          Width = 209
+          Width = 233
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Also check for updated nightly builds'
@@ -168,7 +167,6 @@ object optionsform: Toptionsform
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Send usage statistics'
           TabOrder = 7
-          WordWrap = True
           OnClick = Modified
         end
         object chkAllowMultiInstances: TCheckBox
