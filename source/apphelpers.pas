@@ -3163,7 +3163,6 @@ var
   DarkThemesList: TStringList;
 begin
   DarkThemesList := Explode(',', DarkThemes);
-  ShowMessage(DarkThemesList.Text);
   Result := DarkThemesList.IndexOf(ThemeName) > -1;
   DarkThemesList.Free;
 end;
