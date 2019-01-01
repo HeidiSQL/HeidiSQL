@@ -388,7 +388,7 @@ object optionsform: Toptionsform
           Width = 53
           Height = 21
           TabOrder = 2
-          Text = '2.000'
+          Text = '2000'
           OnChange = Modified
         end
         object chkLogToFile: TCheckBox
@@ -1398,6 +1398,26 @@ object optionsform: Toptionsform
     VariableAttri.Foreground = clWhite
     SQLDialect = sqlMySQL
     Left = 284
+    Top = 404
+  end
+  object SynSQLSyn_Material: TSynSQLSyn
+    Options.AutoDetectEnabled = False
+    Options.AutoDetectLineLimit = 0
+    Options.Visible = False
+    CommentAttri.Foreground = 5533306
+    ConditionalCommentAttri.Foreground = 7193272
+    DataTypeAttri.Foreground = 13079274
+    DelimitedIdentifierAttri.Foreground = 8565247
+    FunctionAttri.Foreground = 12832483
+    IdentifierAttri.Foreground = 8565247
+    KeyAttri.Foreground = 12832483
+    NumberAttri.Foreground = 16733040
+    StringAttri.Foreground = 12839047
+    SymbolAttri.Foreground = 8440772
+    TableNameAttri.Foreground = 16217705
+    VariableAttri.Foreground = 16763755
+    SQLDialect = sqlMySQL
+    Left = 320
     Top = 404
   end
 end

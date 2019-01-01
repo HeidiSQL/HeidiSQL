@@ -928,7 +928,7 @@ begin
   if ThemeIsDark(comboTheme.Text) then begin
     comboGridTextColorsPreset.ItemIndex := comboGridTextColorsPreset.Items.IndexOf(_('Dark'));
     comboGridTextColorsPresetSelect(comboGridTextColorsPreset);
-    comboEditorColorsPreset.ItemIndex := comboEditorColorsPreset.Items.IndexOf(_('Dark'));
+    comboEditorColorsPreset.ItemIndex := comboEditorColorsPreset.Items.IndexOf(_('Material'));
     comboEditorColorsPresetChange(comboEditorColorsPreset);
   end else begin
     comboGridTextColorsPreset.ItemIndex := comboGridTextColorsPreset.Items.IndexOf(_('Light'));
