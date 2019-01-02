@@ -107,8 +107,6 @@ begin
   Width := AppSettings.ReadInt(asGridExportWindowWidth);
   Height := AppSettings.ReadInt(asGridExportWindowHeight);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
-  radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);
-  radioOutputFile.Checked := AppSettings.ReadBool(asGridExportOutputFile);
   FRecentFiles := Explode(DELIM, AppSettings.ReadString(asGridExportRecentFiles));
   comboEncoding.Items.Assign(MainForm.FileEncodings);
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
@@ -119,6 +117,7 @@ begin
   FHiddenCopyMode := Owner = MainForm.actCopyRows;
 
   if FHiddenCopyMode then begin
+    radioOutputCopyToClipboard.Checked := True;
     grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportClpFormat);
     grpSelection.ItemIndex := 0; // Always use selected cells in copy mode
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportClpColumnNames);
@@ -129,6 +128,8 @@ begin
     FCSVTerminator := AppSettings.ReadString(asGridExportClpTerminator);
     FCSVNull := AppSettings.ReadString(asGridExportClpNull);
   end else begin
+    radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);
+    radioOutputFile.Checked := AppSettings.ReadBool(asGridExportOutputFile);
     grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
     grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
