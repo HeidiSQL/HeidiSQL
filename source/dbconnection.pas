@@ -851,7 +851,7 @@ end;
 procedure TPlink.Connect;
 var
   PlinkCmd, PlinkCmdDisplay: String;
-  OutText, ErrorText: String;
+  OutText, ErrorText, UserInput: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
@@ -925,17 +925,31 @@ begin
     if ExitCode <> STILL_ACTIVE then
       raise EDatabaseError.CreateFmt(_('PLink exited unexpected. Command line was: %s'), [CRLF+PlinkCmdDisplay]);
 
-    OutText := ReadPipe(FOutPipe);
+    OutText := Trim(ReadPipe(FOutPipe));
     ErrorText := ReadPipe(FErrorPipe);
     if (OutText <> '') or (ErrorText <> '') then
       ReturnedSomethingAt := Waited;
 
+    FConnection.Log(lcDebug, 'plink OutText:'+OutText+' ErrorText:'+ErrorText);
+
     if OutText <> '' then begin
-      rx.Expression := '^[^\.]+\.';
-      if rx.Exec(OutText) then
-        MessageDialog('PLink: '+rx.Match[0], OutText, mtInformation, [mbOK])
-      else
-        MessageDialog('PLink:', OutText, mtInformation, [mbOK]);
+      if ExecRegExpr('login as\s*\:', OutText) then begin
+        // Prompt for username
+        UserInput := InputBox('PLink:', OutText, '');
+        SendText(UserInput + CRLF);
+      end else if ExecRegExpr('password\s*\:', OutText) then begin
+        // Prompt for password. Send * as first char of prompt param so InputBox hides input characters
+        UserInput := InputBox('PLink:', #31+OutText, '');
+        SendText(UserInput + CRLF);
+      end else begin
+        // Informational message box
+        rx.Expression := '^[^\.]+\.';
+        if rx.Exec(OutText) then begin // First words end with a dot - use it as caption
+          MessageDialog('PLink: '+rx.Match[0], OutText, mtInformation, [mbOK])
+        end else begin
+          MessageDialog('PLink:', OutText, mtInformation, [mbOK]);
+        end;
+      end;
     end;
 
     if ErrorText <> '' then begin
