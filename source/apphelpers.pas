@@ -1486,7 +1486,11 @@ begin
   VT.OnScroll := MainForm.AnyGridScroll;
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
-  VT.HintMode := hmToolTip;
+
+  if toVariableNodeHeight in VT.TreeOptions.MiscOptions then
+    VT.HintMode := hmHint // Show cell contents with linebreakds in datagrid and querygrid's
+  else
+    VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
   // Apply case insensitive incremental search event
   if VT.IncrementalSearch <> VirtualTrees.isNone then
     VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
