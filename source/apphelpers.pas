@@ -3162,7 +3162,7 @@ end;
 
 function ThemeIsDark(ThemeName: String): Boolean;
 const
-  DarkThemes: String = 'Amakrits,Aqua Graphite,Auric,Carbon,Charcoal Dark Slate,Cobalt XEMedia,Glossy,Glow,Golden Graphite,Onyx Blue,Ruby Graphite,TabletDark,Windows10 Dark,Windows10 SlateGray';
+  DarkThemes: String = 'Amakrits,Aqua Graphite,Auric,Carbon,Charcoal Dark Slate,Cobalt XEMedia,Glossy,Glow,Golden Graphite,Material,Onyx Blue,Ruby Graphite,TabletDark,Windows10 Dark,Windows10 SlateGray';
 var
   DarkThemesList: TStringList;
 begin
