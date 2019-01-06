@@ -2186,7 +2186,12 @@ function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
 begin
   Result := Comp;
   while True do begin
-    Result := Result.Parent;
+    try
+      Result := Result.Parent;
+    except
+      on E:EAccessViolation do
+        Break;
+    end;
     // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
     // In that case we would cause an exception when accessing it. Emergency break in that case.
     // See issue #1462
