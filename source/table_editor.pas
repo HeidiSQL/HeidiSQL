@@ -1345,6 +1345,7 @@ var
   DefaultEditor: TColumnDefaultEditorLink;
   DatatypeEditor: TDatatypeEditorLink;
   Col: PTableColumn;
+  Edit: TInplaceEditorLink;
 begin
   // Start cell editor
   VT := Sender as TVirtualStringTree;
@@ -1376,8 +1377,12 @@ begin
         EnumEditor.ValueList.CommaText := ',VIRTUAL,STORED';
       EditLink := EnumEditor;
     end
-    else
-      EditLink := TInplaceEditorLink.Create(VT);
+    else begin
+      Edit := TInplaceEditorLink.Create(VT);
+      Edit.TitleText := VT.Header.Columns[Column].Text;
+      Edit.ButtonVisible := True;
+      EditLink := Edit;
+    end;
   end;
   TBaseGridEditorLink(EditLink).TableColumn := Col^;
 end;
