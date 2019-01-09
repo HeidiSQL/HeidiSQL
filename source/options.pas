@@ -398,7 +398,6 @@ begin
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
 
-  TStyleManager.TrySetStyle(comboTheme.Text);
   Mainform.LogToFile := chkLogToFile.Checked;
   MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
   MainForm.actLogHorizontalScrollbar.OnExecute(MainForm.actLogHorizontalScrollbar);
