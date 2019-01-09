@@ -977,4 +977,11 @@ object connform: Tconnform
       Action = MainForm.actAboutBox
     end
   end
+  object TimerButtonAnimation: TTimer
+    Enabled = False
+    Interval = 200
+    OnTimer = TimerButtonAnimationTimer
+    Left = 112
+    Top = 144
+  end
 end

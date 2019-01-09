@@ -117,6 +117,7 @@ type
     pnlDpiHelperSettings: TPanel;
     pnlDpiHelperSshTunnel: TPanel;
     pnlDpiHelperAdvanced: TPanel;
+    TimerButtonAnimation: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -165,6 +166,7 @@ type
       Pt: TPoint; var Effect: Integer; Mode: TDropMode);
     procedure btnMoreClick(Sender: TObject);
     procedure menuRenameClick(Sender: TObject);
+    procedure TimerButtonAnimationTimer(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -173,6 +175,7 @@ type
     FSessionColor: TColor;
     FSettingsImportWaitTime: Cardinal;
     FPopupDatabases: TPopupMenu;
+    FButtonAnimationStep: Integer;
     procedure RefreshSessions(ParentNode: PVirtualNode);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
@@ -344,6 +347,9 @@ begin
   // Connect to selected session
   if not btnOpen.Enabled then
     Exit;
+  btnOpen.Enabled := False;
+  FButtonAnimationStep := 0;
+  TimerButtonAnimation.Enabled := True;
   Screen.Cursor := crHourglass;
   if Mainform.InitConnection(CurrentParams, True, Connection) then
     ModalResult := mrOK
@@ -351,6 +357,9 @@ begin
     TimerStatistics.OnTimer(Sender);
     ModalResult := mrNone;
   end;
+  TimerButtonAnimation.Enabled := False;
+  btnOpen.Enabled := True;
+  btnOpen.Caption := _('Open');
   Screen.Cursor := crDefault;
 end;
 
@@ -1214,6 +1223,20 @@ begin
   btnDelete.Left := btnSave.Left + btnSave.Width + ListSessions.Margins.Left;
 end;
 
+
+procedure Tconnform.TimerButtonAnimationTimer(Sender: TObject);
+const
+  MaxAnimationSteps = 3;
+begin
+  // Animate "Open" button
+  btnOpen.Caption := _('Open') + StringOfChar(' ', FButtonAnimationStep) +
+    '.' +
+    StringOfChar(' ', MaxAnimationSteps-FButtonAnimationStep);
+  btnOpen.Repaint;
+  Inc(FButtonAnimationStep);
+  if FButtonAnimationStep >= MaxAnimationSteps then
+    FButtonAnimationStep := 0;
+end;
 
 procedure Tconnform.PickFile(Sender: TObject);
 var
