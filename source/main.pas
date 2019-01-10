@@ -6465,6 +6465,9 @@ const
 begin
   // Manipulate quick filter menuitems
   Grid := ActiveGrid;
+  // Make sure ValidateControls detects the grid as focused, which is not the case when
+  // it has 0 nodes, even with TreeOptions.SelectionOptions.RightclickSelect enabled
+  Grid.SetFocus;
   CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > NoColumn);
   InDataGrid := Grid = DataGrid;
   DataInsertValue.Enabled := CellFocused;
