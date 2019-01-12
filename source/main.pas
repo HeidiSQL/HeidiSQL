@@ -8975,15 +8975,16 @@ begin
   case Key of
     VK_HOME: begin
       g.FocusedColumn := g.Header.Columns.GetFirstVisibleColumn(False);
-      if (ssCtrl in Shift) and (g = DataGrid) then begin
+      if ssCtrl in Shift then begin
         // VT itself focuses the first node since v7.0
       end else
         Key := 0;
     end;
     VK_END: begin
       g.FocusedColumn := g.Header.Columns.GetLastVisibleColumn(False);
-      if (ssCtrl in Shift) and (g = DataGrid) then begin
-        actDataShowAll.Execute;
+      if ssCtrl in Shift then begin
+        if g = DataGrid then
+          actDataShowAll.Execute;
         // VT itself focuses the last node since v7.0
       end else begin
         Key := 0;
