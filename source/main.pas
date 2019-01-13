@@ -6440,7 +6440,7 @@ begin
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
   end;
-  if ActiveConnection.Parameters.IsMySQL then begin
+  if (ActiveConnection <> nil) and (ActiveConnection.Parameters.IsMySQL) then begin
     Version := ActiveConnection.ServerVersionInt;
     actCreateView.Enabled := actCreateView.Enabled and (Version >= 50001);
     actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Version >= 50003);
