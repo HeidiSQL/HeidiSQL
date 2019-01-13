@@ -118,6 +118,9 @@ type
     FPanel: TPanel;
     FCheckList: TCheckListBox;
     FBtnOK, FBtnCancel: TButton;
+    FEndTimer: TTimer;
+    procedure BtnOkClick(Sender: TObject);
+    procedure BtnCancelClick(Sender: TObject);
   public
     ValueList: TStringList;
     constructor Create(Tree: TVirtualStringTree); override;
@@ -947,12 +950,16 @@ begin
   FBtnOk := TButton.Create(FPanel);
   FBtnOk.Parent := FPanel;
   FBtnOk.Caption := _('OK');
-  FBtnOk.OnClick := DoEndEdit;
+  FBtnOk.OnClick := BtnOkClick;
 
   FBtnCancel := TButton.Create(FPanel);
   FBtnCancel.Parent := FPanel;
   FBtnCancel.Caption := _('Cancel');
-  FBtnCancel.OnClick := DoCancelEdit;
+  FBtnCancel.OnClick := BtnCancelClick;
+
+  FEndTimer := TTimer.Create(FPanel);
+  FEndTimer.Interval := 50;
+  FEndTimer.Enabled := False;
 end;
 
 
@@ -1034,6 +1041,22 @@ begin
   FCheckList.Left := margin;
   FCheckList.Width := FPanel.Width - 2*margin;
   FCheckList.Height := FBtnOk.Top - margin - FCheckList.Top;
+end;
+
+
+procedure TSetEditorLink.BtnOkClick(Sender: TObject);
+begin
+  // Timer based click on OK button, to prevent crash when theming is active
+  FEndTimer.OnTimer := DoEndEdit;
+  FEndTimer.Enabled := True;
+end;
+
+
+procedure TSetEditorLink.BtnCancelClick(Sender: TObject);
+begin
+  // Timer based click on Cancel button, to prevent crash when theming is active
+  FEndTimer.OnTimer := DoCancelEdit;
+  FEndTimer.Enabled := True;
 end;
 
 
