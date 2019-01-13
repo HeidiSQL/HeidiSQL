@@ -88,9 +88,9 @@ object optionsform: Toptionsform
           Caption = 'Style Theme: *'
         end
         object chkAutoReconnect: TCheckBox
-          Left = 191
+          Left = 190
           Top = 31
-          Width = 510
+          Width = 515
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Automatically reconnect to previously opened sessions on startup'
@@ -98,9 +98,9 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkRestoreLastDB: TCheckBox
-          Left = 191
+          Left = 190
           Top = 54
-          Width = 510
+          Width = 515
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Restore last used database on startup'
@@ -110,7 +110,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkUpdatecheck: TCheckBox
-          Left = 191
+          Left = 190
           Top = 77
           Width = 196
           Height = 17
@@ -147,7 +147,7 @@ object optionsform: Toptionsform
         object chkUpdateCheckBuilds: TCheckBox
           Left = 464
           Top = 77
-          Width = 233
+          Width = 241
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Also check for updated nightly builds'
@@ -156,9 +156,9 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkDoStatistics: TCheckBox
-          Left = 191
+          Left = 190
           Top = 100
-          Width = 510
+          Width = 515
           Height = 17
           Hint = 
             'This option, if enabled, will cause HeidiSQL to ping heidisql.co' +
@@ -170,9 +170,9 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkAllowMultiInstances: TCheckBox
-          Left = 191
+          Left = 190
           Top = 8
-          Width = 510
+          Width = 515
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Allow multiple application instances'
@@ -181,18 +181,18 @@ object optionsform: Toptionsform
           TabOrder = 0
         end
         object chkColorBars: TCheckBox
-          Left = 191
+          Left = 190
           Top = 148
-          Width = 510
+          Width = 515
           Height = 17
           Caption = 'Display bars in various list columns'
           TabOrder = 9
           OnClick = Modified
         end
         object editMySQLBinaries: TButtonedEdit
-          Left = 191
+          Left = 190
           Top = 174
-          Width = 510
+          Width = 515
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.ImageListMain
@@ -207,9 +207,9 @@ object optionsform: Toptionsform
         end
         object comboAppLanguage: TComboBox
           Tag = 1
-          Left = 191
+          Left = 190
           Top = 228
-          Width = 510
+          Width = 515
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -217,9 +217,9 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object editCustomSnippetsDirectory: TButtonedEdit
-          Left = 191
+          Left = 190
           Top = 201
-          Width = 510
+          Width = 515
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.ImageListMain
@@ -234,7 +234,7 @@ object optionsform: Toptionsform
         end
         object comboGUIFont: TComboBox
           Tag = 1
-          Left = 191
+          Left = 190
           Top = 255
           Width = 402
           Height = 21
@@ -268,9 +268,9 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object chkWheelZoom: TCheckBox
-          Left = 191
+          Left = 190
           Top = 123
-          Width = 510
+          Width = 515
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Use Ctrl+Mousewheel for zooming'
@@ -279,9 +279,9 @@ object optionsform: Toptionsform
         end
         object comboTheme: TComboBox
           Tag = 1
-          Left = 191
+          Left = 190
           Top = 282
-          Width = 510
+          Width = 515
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -350,7 +350,7 @@ object optionsform: Toptionsform
           Caption = 'days to keep queries before removing them'
         end
         object editLogLines: TEdit
-          Left = 191
+          Left = 190
           Top = 8
           Width = 53
           Height = 21
@@ -359,7 +359,7 @@ object optionsform: Toptionsform
           OnChange = Modified
         end
         object updownLogLines: TUpDown
-          Left = 244
+          Left = 243
           Top = 8
           Width = 16
           Height = 21
@@ -372,7 +372,7 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object updownLogSnip: TUpDown
-          Left = 244
+          Left = 243
           Top = 35
           Width = 16
           Height = 21
@@ -383,7 +383,7 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object editLogSnip: TEdit
-          Left = 191
+          Left = 190
           Top = 35
           Width = 53
           Height = 21
@@ -392,7 +392,7 @@ object optionsform: Toptionsform
           OnChange = Modified
         end
         object chkLogToFile: TCheckBox
-          Left = 191
+          Left = 190
           Top = 64
           Width = 147
           Height = 17
@@ -402,45 +402,45 @@ object optionsform: Toptionsform
           OnClick = chkLogToFileClick
         end
         object chkLogEventErrors: TCheckBox
-          Left = 191
+          Left = 190
           Top = 94
-          Width = 510
+          Width = 515
           Height = 17
           Caption = 'Errors'
           TabOrder = 6
           OnClick = Modified
         end
         object chkLogEventUserGeneratedSQL: TCheckBox
-          Left = 191
+          Left = 190
           Top = 114
-          Width = 510
+          Width = 515
           Height = 17
           Caption = 'User-generated SQL queries'
           TabOrder = 7
           OnClick = Modified
         end
         object chkLogEventSQL: TCheckBox
-          Left = 191
+          Left = 190
           Top = 134
-          Width = 510
+          Width = 515
           Height = 17
           Caption = 'Internal SQL queries'
           TabOrder = 8
           OnClick = Modified
         end
         object chkLogEventInfo: TCheckBox
-          Left = 191
+          Left = 190
           Top = 154
-          Width = 510
+          Width = 515
           Height = 17
           Caption = 'Information messages'
           TabOrder = 9
           OnClick = Modified
         end
         object chkLogEventDebug: TCheckBox
-          Left = 191
+          Left = 190
           Top = 174
-          Width = 510
+          Width = 515
           Height = 17
           Caption = 'Debug messages'
           TabOrder = 10
@@ -449,7 +449,7 @@ object optionsform: Toptionsform
         object editLogDir: TButtonedEdit
           Left = 344
           Top = 62
-          Width = 353
+          Width = 361
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Enabled = False
@@ -464,7 +464,7 @@ object optionsform: Toptionsform
           OnRightButtonClick = editLogDirRightButtonClick
         end
         object chkQueryHistory: TCheckBox
-          Left = 191
+          Left = 190
           Top = 211
           Width = 145
           Height = 17
@@ -473,9 +473,9 @@ object optionsform: Toptionsform
           OnClick = chkQueryHistoryClick
         end
         object chkHorizontalScrollbar: TCheckBox
-          Left = 191
+          Left = 190
           Top = 234
-          Width = 510
+          Width = 515
           Height = 17
           Caption = 'Horizontal scrollbar'
           TabOrder = 12
@@ -530,7 +530,7 @@ object optionsform: Toptionsform
           Caption = 'Editor font:'
         end
         object lblSQLFontSizeUnit: TLabel
-          Left = 689
+          Left = 406
           Top = 11
           Width = 10
           Height = 13
@@ -559,16 +559,16 @@ object optionsform: Toptionsform
           Caption = 'Element:'
         end
         object lblSQLColBackground: TLabel
-          Left = 489
-          Top = 246
+          Left = 190
+          Top = 314
           Width = 60
           Height = 13
           Anchors = [akTop, akRight]
           Caption = 'Background:'
         end
         object lblSQLColForeground: TLabel
-          Left = 489
-          Top = 220
+          Left = 190
+          Top = 267
           Width = 60
           Height = 13
           Anchors = [akTop, akRight]
@@ -581,27 +581,20 @@ object optionsform: Toptionsform
           Height = 13
           Caption = 'Colors preset:'
         end
-        object lblSqlFontSize: TLabel
-          Left = 489
-          Top = 11
-          Width = 23
-          Height = 13
-          Caption = 'Size:'
-        end
         object comboSQLFontName: TComboBox
-          Left = 191
+          Left = 190
           Top = 8
-          Width = 283
+          Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
+          Anchors = [akTop, akRight]
           TabOrder = 0
           OnChange = SQLFontChange
         end
         object editSQLFontSize: TEdit
-          Left = 583
+          Left = 341
           Top = 8
-          Width = 81
+          Width = 43
           Height = 21
           Anchors = [akTop, akRight]
           TabOrder = 1
@@ -609,7 +602,7 @@ object optionsform: Toptionsform
           OnExit = SQLFontChange
         end
         object updownSQLFontSize: TUpDown
-          Left = 664
+          Left = 384
           Top = 8
           Width = 16
           Height = 21
@@ -620,11 +613,11 @@ object optionsform: Toptionsform
           OnClick = updownSQLFontSizeClick
         end
         object chkCompletionProposal: TCheckBox
-          Left = 191
+          Left = 190
           Top = 87
           Width = 508
           Height = 17
-          Anchors = [akLeft, akTop, akRight]
+          Anchors = [akTop, akRight]
           Caption = 'Enable autocompletion'
           TabOrder = 8
           OnClick = Modified
@@ -634,34 +627,37 @@ object optionsform: Toptionsform
           Top = 36
           Width = 437
           Height = 17
-          Anchors = [akLeft, akTop, akRight]
+          Anchors = [akTop, akRight]
           Caption = 'Tabs to spaces'
           TabOrder = 5
           OnClick = Modified
         end
         object editSQLTabWidth: TEdit
-          Left = 191
+          Left = 190
           Top = 34
           Width = 41
           Height = 21
+          Anchors = [akTop, akRight]
           TabOrder = 3
           Text = '0'
           OnExit = SQLFontChange
         end
         object updownSQLTabWidth: TUpDown
-          Left = 232
+          Left = 231
           Top = 34
           Width = 16
           Height = 21
+          Anchors = [akTop, akRight]
           Associate = editSQLTabWidth
           TabOrder = 4
           OnClick = updownSQLFontSizeClick
         end
         object chkAskFileSave: TCheckBox
-          Left = 191
+          Left = 190
           Top = 111
           Width = 506
           Height = 17
+          Anchors = [akTop, akRight]
           Caption = 'Prompt to save modified files on tab close'
           Checked = True
           State = cbChecked
@@ -669,19 +665,21 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object editMaxQueryResults: TEdit
-          Left = 191
+          Left = 190
           Top = 61
           Width = 41
           Height = 21
+          Anchors = [akTop, akRight]
           TabOrder = 6
           Text = '1'
           OnChange = Modified
         end
         object updownMaxQueryResults: TUpDown
-          Left = 232
+          Left = 231
           Top = 61
           Width = 16
           Height = 21
+          Anchors = [akTop, akRight]
           Associate = editMaxQueryResults
           Min = 1
           Position = 1
@@ -691,26 +689,26 @@ object optionsform: Toptionsform
         object comboSQLColElement: TComboBox
           Left = 190
           Top = 217
-          Width = 284
+          Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
+          Anchors = [akTop, akRight]
           TabOrder = 13
           OnChange = comboSQLColElementChange
         end
         object chkSQLBold: TCheckBox
           Left = 190
           Top = 244
-          Width = 81
+          Width = 61
           Height = 17
           Caption = 'Bold'
           TabOrder = 14
           OnClick = SQLFontChange
         end
         object chkSQLItalic: TCheckBox
-          Left = 277
+          Left = 264
           Top = 244
-          Width = 197
+          Width = 60
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Italic'
@@ -718,9 +716,9 @@ object optionsform: Toptionsform
           OnClick = SQLFontChange
         end
         object cboxSQLColForeground: TColorBox
-          Left = 583
-          Top = 217
-          Width = 118
+          Left = 190
+          Top = 286
+          Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
           Anchors = [akTop, akRight]
@@ -728,9 +726,9 @@ object optionsform: Toptionsform
           OnChange = SQLFontChange
         end
         object cboxSQLColBackground: TColorBox
-          Left = 583
-          Top = 243
-          Width = 118
+          Left = 190
+          Top = 333
+          Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
           Anchors = [akTop, akRight]
@@ -739,13 +737,13 @@ object optionsform: Toptionsform
         end
         object SynMemoSQLSample: TSynMemo
           AlignWithMargins = True
-          Left = 191
-          Top = 269
-          Width = 510
-          Height = 119
+          Left = 341
+          Top = 190
+          Width = 364
+          Height = 203
           Cursor = crHandPoint
           SingleLineMode = False
-          Anchors = [akLeft, akTop, akRight, akBottom]
+          Anchors = [akTop, akRight, akBottom]
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -780,19 +778,21 @@ object optionsform: Toptionsform
           FontSmoothing = fsmNone
         end
         object chkQueryWarningsMessage: TCheckBox
-          Left = 191
+          Left = 190
           Top = 134
           Width = 508
           Height = 17
+          Anchors = [akTop, akRight]
           Caption = 'Show query warnings dialog'
           TabOrder = 10
           OnClick = Modified
         end
         object chkAutoUppercase: TCheckBox
-          Left = 191
+          Left = 190
           Top = 159
           Width = 508
           Height = 17
+          Anchors = [akTop, akRight]
           Caption = 'Auto uppercase reserved words and functions'
           TabOrder = 11
           OnClick = Modified
@@ -800,9 +800,10 @@ object optionsform: Toptionsform
         object comboEditorColorsPreset: TComboBox
           Left = 190
           Top = 190
-          Width = 284
+          Width = 145
           Height = 21
           Style = csDropDownList
+          Anchors = [akTop, akRight]
           ItemIndex = 0
           TabOrder = 12
           Text = 'Current custom settings'
@@ -836,7 +837,7 @@ object optionsform: Toptionsform
           Caption = 'Maximum column width:'
         end
         object lblDataFontHint: TLabel
-          Left = 393
+          Left = 404
           Top = 93
           Width = 10
           Height = 13
@@ -895,7 +896,7 @@ object optionsform: Toptionsform
           Caption = 'Same text background:'
         end
         object editMaxColWidth: TEdit
-          Left = 191
+          Left = 190
           Top = 8
           Width = 42
           Height = 21
@@ -918,9 +919,9 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object comboDataFontName: TComboBox
-          Left = 191
+          Left = 190
           Top = 89
-          Width = 133
+          Width = 145
           Height = 21
           Style = csDropDownList
           Anchors = [akTop, akRight]
@@ -928,7 +929,7 @@ object optionsform: Toptionsform
           OnChange = DataFontsChange
         end
         object editDataFontSize: TEdit
-          Left = 330
+          Left = 341
           Top = 89
           Width = 42
           Height = 21
@@ -938,7 +939,7 @@ object optionsform: Toptionsform
           OnChange = DataFontsChange
         end
         object updownDataFontSize: TUpDown
-          Left = 372
+          Left = 383
           Top = 89
           Width = 16
           Height = 21
@@ -948,7 +949,7 @@ object optionsform: Toptionsform
           TabOrder = 8
         end
         object editGridRowCountMax: TEdit
-          Left = 330
+          Left = 341
           Top = 35
           Width = 132
           Height = 21
@@ -959,9 +960,9 @@ object optionsform: Toptionsform
           OnExit = editGridRowCountExit
         end
         object editGridRowCountStep: TEdit
-          Left = 191
+          Left = 190
           Top = 35
-          Width = 133
+          Width = 145
           Height = 21
           Anchors = [akTop, akRight]
           NumbersOnly = True
@@ -970,7 +971,7 @@ object optionsform: Toptionsform
           OnExit = editGridRowCountExit
         end
         object editGridRowsLineCount: TEdit
-          Left = 191
+          Left = 190
           Top = 62
           Width = 42
           Height = 21
@@ -992,9 +993,9 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object comboGridTextColors: TComboBox
-          Left = 191
+          Left = 190
           Top = 143
-          Width = 133
+          Width = 145
           Height = 21
           Style = csDropDownList
           Anchors = [akTop, akRight]
@@ -1002,7 +1003,7 @@ object optionsform: Toptionsform
           OnSelect = comboGridTextColorsSelect
         end
         object colorBoxGridTextColors: TColorBox
-          Left = 330
+          Left = 341
           Top = 143
           Width = 132
           Height = 22
@@ -1012,9 +1013,9 @@ object optionsform: Toptionsform
           OnSelect = colorBoxGridTextColorsSelect
         end
         object cboxNullBackground: TColorBox
-          Left = 191
+          Left = 190
           Top = 170
-          Width = 133
+          Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
           Anchors = [akTop, akRight]
@@ -1023,7 +1024,7 @@ object optionsform: Toptionsform
           OnSelect = Modified
         end
         object cboxRowBackgroundOdd: TColorBox
-          Left = 330
+          Left = 341
           Top = 198
           Width = 132
           Height = 22
@@ -1033,9 +1034,9 @@ object optionsform: Toptionsform
           OnChange = Modified
         end
         object cboxRowBackgroundEven: TColorBox
-          Left = 191
+          Left = 190
           Top = 198
-          Width = 133
+          Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
           Anchors = [akTop, akRight]
@@ -1043,7 +1044,7 @@ object optionsform: Toptionsform
           OnChange = Modified
         end
         object chkLocalNumberFormat: TCheckBox
-          Left = 191
+          Left = 190
           Top = 254
           Width = 510
           Height = 17
@@ -1053,7 +1054,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkHintsOnResultTabs: TCheckBox
-          Left = 191
+          Left = 190
           Top = 277
           Width = 510
           Height = 17
@@ -1063,20 +1064,21 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object cboxRowHighlightSameText: TColorBox
-          Left = 191
+          Left = 190
           Top = 226
-          Width = 133
+          Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
           Anchors = [akTop, akRight]
           TabOrder = 15
         end
         object comboGridTextColorsPreset: TComboBox
-          Left = 191
+          Left = 190
           Top = 116
-          Width = 133
+          Width = 145
           Height = 21
           Style = csDropDownList
+          Anchors = [akTop, akRight]
           TabOrder = 9
           OnSelect = comboGridTextColorsPresetSelect
         end
@@ -1106,7 +1108,7 @@ object optionsform: Toptionsform
           Caption = 'Default linebreak style:'
         end
         object chkEditorBinary: TCheckBox
-          Left = 191
+          Left = 190
           Top = 8
           Width = 510
           Height = 17
@@ -1116,7 +1118,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkEditorDatetime: TCheckBox
-          Left = 191
+          Left = 190
           Top = 31
           Width = 510
           Height = 17
@@ -1126,7 +1128,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkPrefillDateTime: TCheckBox
-          Left = 191
+          Left = 190
           Top = 54
           Width = 510
           Height = 17
@@ -1136,7 +1138,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkEditorEnum: TCheckBox
-          Left = 191
+          Left = 190
           Top = 77
           Width = 510
           Height = 17
@@ -1146,7 +1148,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkEditorSet: TCheckBox
-          Left = 191
+          Left = 190
           Top = 100
           Width = 510
           Height = 17
@@ -1156,7 +1158,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkReuseEditorConfiguration: TCheckBox
-          Left = 191
+          Left = 190
           Top = 139
           Width = 510
           Height = 17
@@ -1165,7 +1167,7 @@ object optionsform: Toptionsform
           TabOrder = 5
         end
         object chkForeignDropDown: TCheckBox
-          Left = 191
+          Left = 190
           Top = 162
           Width = 510
           Height = 17
@@ -1174,9 +1176,9 @@ object optionsform: Toptionsform
           TabOrder = 6
         end
         object comboLineBreakStyle: TComboBox
-          Left = 191
+          Left = 190
           Top = 185
-          Width = 132
+          Width = 145
           Height = 21
           Style = csDropDownList
           TabOrder = 7

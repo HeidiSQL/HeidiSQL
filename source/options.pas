@@ -161,7 +161,6 @@ type
     pnlDpiHelperShortcuts: TPanel;
     lblEditorColorsPreset: TLabel;
     comboEditorColorsPreset: TComboBox;
-    lblSqlFontSize: TLabel;
     SynSQLSyn_Dark: TSynSQLSyn;
     SynSQLSyn_Light: TSynSQLSyn;
     SynSQLSyn_Black: TSynSQLSyn;
@@ -495,8 +494,20 @@ begin
   // SQL
   EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Sorted := True;
-  SynMemoSQLSample.Text := SynMemoSQLSample.Highlighter.SampleSource;
-  SynSQLSynSQLSample.TableNames.CommaText := 't,sample';
+  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
+    #9'''String literal'' AS lit' + CRLF +
+    'FROM tableA AS ta' + CRLF +
+    'WHERE `columnA` IS NULL;' + CRLF +
+    CRLF +
+    '-- A comment' + CRLF +
+    '# Old style comment' + CRLF +
+    '/* Multi line comment */' + CRLF +
+    CRLF +
+    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB (' + CRLF +
+    #9'id INT,' + CRLF +
+    #9'name VARCHAR(30) DEFAULT "standard"' + CRLF +
+    ')';
+  SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     SynSQLSynSQLSample.Attribute[i].AssignColorAndStyle(MainForm.SynSQLSynUsed.Attribute[i]);
     comboSQLColElement.Items.Add(SynSQLSynSQLSample.Attribute[i].FriendlyName);
