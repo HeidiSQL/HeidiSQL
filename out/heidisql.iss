@@ -13,7 +13,7 @@
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
-Name: "pt_BR"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+Name: "hy"; MessagesFile: "compiler:Languages\Armenian.islu"
 Name: "ca"; MessagesFile: "compiler:Languages\Catalan.isl"
 Name: "co"; MessagesFile: "compiler:Languages\Corsican.isl"
 Name: "cs"; MessagesFile: "compiler:Languages\Czech.isl"
@@ -27,13 +27,18 @@ Name: "he"; MessagesFile: "compiler:Languages\Hebrew.isl"
 Name: "hu"; MessagesFile: "compiler:Languages\Hungarian.isl"
 Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "ja"; MessagesFile: "compiler:Languages\Japanese.isl"
+Name: "ne"; MessagesFile: "compiler:Languages\Nepali.islu"
 Name: "no"; MessagesFile: "compiler:Languages\Norwegian.isl"
 Name: "pl"; MessagesFile: "compiler:Languages\Polish.isl"
 Name: "pt"; MessagesFile: "compiler:Languages\Portuguese.isl"
+Name: "pt_BR"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
-Name: "sr"; MessagesFile: "compiler:Languages\SerbianLatin.isl"
+Name: "gd"; MessagesFile: "compiler:Languages\ScottishGaelic.isl"
+Name: "sr_Cyrl"; MessagesFile: "compiler:Languages\SerbianCyrillic.isl"
+Name: "sr_latin"; MessagesFile: "compiler:Languages\SerbianLatin.isl"
 Name: "sl"; MessagesFile: "compiler:Languages\Slovenian.isl"
 Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
+Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"
 Name: "uk"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Setup]
