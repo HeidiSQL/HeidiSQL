@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.FormStyleHooks.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2016 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2019 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -33,15 +33,12 @@ uses
   Vcl.Controls,
   Vcl.ComCtrls,
   Vcl.Graphics,
-{$IF (CompilerVersion >= 31)}
-  Vcl.Styles.Utils.Shadow,
-{$IFEND}
   Vcl.Forms;
 
 type
   /// <summary> Form Style hook to add image and/or color supoort for the background and non client area
   /// </summary>
-  TFormStyleHookBackground = class({$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook)
+  TFormStyleHookBackground = class(TFormStyleHook)
   strict private
   type
     TSettings = class
@@ -100,7 +97,7 @@ type
 
   /// <summary> Form Style hook to add support for the regions in the non client area
   /// </summary>
-  TFormStyleHookRgn = class({$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook)
+  TFormStyleHookRgn = class(TFormStyleHook)
   private
     procedure WMWindowPosChanging(var Message: TWMWindowPosChanging);
       message WM_WINDOWPOSCHANGING;
@@ -108,7 +105,7 @@ type
     procedure PaintNC(Canvas: TCanvas); override;
   end;
 
-  TFormStyleHookHelper = class helper for {$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook
+  TFormStyleHookHelper = class helper for TFormStyleHook
   private
     function GetFCloseButtonRect: TRect;
     procedure SetFCloseButtonRect(const Value: TRect);
@@ -179,9 +176,6 @@ Uses
   System.SysUtils,
   System.Classes,
   System.Types,
-{$IF (CompilerVersion >= 31)}
-  System.RTTI,
-{$IFEND}
   Winapi.UxTheme,
   Vcl.Imaging.Jpeg,
   Vcl.Imaging.pngimage,
@@ -1260,176 +1254,197 @@ end;
 
 function TFormStyleHookHelper.GetFCaptionRect: TRect;
 begin
-  Result := Self.FCaptionRect;
+  with Self do
+    Result := FCaptionRect;
 end;
 
 function TFormStyleHookHelper.GetFChangeSizeCalled: Boolean;
 begin
-  Result := Self.FChangeSizeCalled;
+  with Self do
+    Result := FChangeSizeCalled;
 end;
 
 function TFormStyleHookHelper.GetFCloseButtonRect: TRect;
 begin
-  Result := Self.FCloseButtonRect;
+  with Self do
+    Result := FCloseButtonRect;
 end;
 
 function TFormStyleHookHelper.GetFFormActive: Boolean;
 begin
-  Result := Self.FFormActive;
+  with Self do
+    Result := FFormActive;
 end;
 
 function TFormStyleHookHelper.GetFHeight: Integer;
 begin
-  Result := Self.FHeight;
+  with Self do
+    Result := FHeight;
 end;
 
 function TFormStyleHookHelper.GetFHelpButtonRect: TRect;
 begin
-  Result := Self.FHelpButtonRect;
+  with Self do
+    Result := FHelpButtonRect;
 end;
 
 function TFormStyleHookHelper.GetFHotButton: Integer;
 begin
-  Result := Self.FHotButton;
+  with Self do
+    Result := FHotButton;
 end;
 
 function TFormStyleHookHelper.GetFLeft: Integer;
 begin
-  Result := Self.FLeft;
+  with Self do
+    Result := FLeft;
 end;
 
 function TFormStyleHookHelper.GetFMaxButtonRect: TRect;
 begin
-  Result := Self.FMaxButtonRect;
+  with Self do
+    Result := FMaxButtonRect;
 end;
 
 function TFormStyleHookHelper.GetFMinButtonRect: TRect;
 begin
-  Result := Self.FMinButtonRect;
+  with Self do
+    Result := FMinButtonRect;
 end;
 
 function TFormStyleHookHelper.GetForm: TCustomForm;
 begin
-  Result := Self.Form;
+  with Self do
+    Result := Form;
 end;
 
 function TFormStyleHookHelper.GetFPressedButton: Integer;
 begin
-  Result := Self.FPressedButton;
+  with Self do
+    Result := FPressedButton;
 end;
 
 function TFormStyleHookHelper.GetFRegion: HRGN;
 begin
-  Result := Self.FRegion;
+  with Self do
+    Result := FRegion;
 end;
 
 function TFormStyleHookHelper.GetFSysMenuButtonRect: TRect;
 begin
-  Result := Self.FSysMenuButtonRect;
+  with Self do
+    Result := FSysMenuButtonRect;
 end;
 
 function TFormStyleHookHelper.GetFTop: Integer;
 begin
-  Result := Self.FTop;
+  with Self do
+    Result := FTop;
 end;
 
 function TFormStyleHookHelper.GetFWidth: Integer;
 begin
-  Result := Self.FWidth;
+  with Self do
+    Result := FWidth;
 end;
 
 procedure TFormStyleHookHelper.MainMenuBarHookPaint(Canvas: TCanvas);
 begin
-  if Self.FMainMenuBarHook <> nil then
-    Self.FMainMenuBarHook.Paint(Canvas);
+  with Self do
+    if (FMainMenuBarHook <> nil) then
+      FMainMenuBarHook.Paint(Canvas);
 end;
 
 procedure TFormStyleHookHelper.SetFCaptionRect(const Value: TRect);
 begin
-  Self.FCaptionRect := Value;
+  with Self do
+    FCaptionRect := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFChangeSizeCalled(const Value: Boolean);
 begin
-  Self.FChangeSizeCalled := Value;
+  with Self do
+    FChangeSizeCalled := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFCloseButtonRect(const Value: TRect);
 begin
-  Self.FCloseButtonRect := Value;
+  with Self do
+    FCloseButtonRect := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFHeight(const Value: Integer);
 begin
-  Self.FHeight := Value;
+  with Self do
+    FHeight := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFHelpButtonRect(const Value: TRect);
 begin
-  Self.FHelpButtonRect := Value;
+  with Self do
+    FHelpButtonRect := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFLeft(const Value: Integer);
 begin
-  Self.FLeft := Value;
+  with Self do
+    FLeft := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFMaxButtonRect(const Value: TRect);
 begin
-  Self.FMaxButtonRect := Value;
+  with Self do
+    FMaxButtonRect := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFMinButtonRect(const Value: TRect);
 begin
-  Self.FMinButtonRect := Value;
+  with Self do
+    FMinButtonRect := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFRegion(const Value: HRGN);
 begin
-  Self.FRegion := Value;
+  with Self do
+   FRegion := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFSysMenuButtonRect(const Value: TRect);
 begin
-  Self.FSysMenuButtonRect := Value;
+  with Self do
+    FSysMenuButtonRect := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFTop(const Value: Integer);
 begin
-  Self.FTop := Value;
+  with Self do
+    FTop := Value;
 end;
 
 procedure TFormStyleHookHelper.SetFWidth(const Value: Integer);
 begin
-  Self.FWidth := Value;
+  with Self do
+    FWidth := Value;
 end;
 
 procedure TFormStyleHookHelper._ChangeSize;
 begin
-  Self.ChangeSize;
+  with Self do
+    ChangeSize;
 end;
 
 function TFormStyleHookHelper._GetBorderSize: TRect;
 begin
- Result := Self.GetBorderSize;
+  with Self do
+   Result := GetBorderSize;
 end;
 
 function TFormStyleHookHelper._GetBorderSizeAddr: Pointer;
 var
   MethodAddr: function: TRect of object;
-//  LItem : TRttiType;
-//  LMethod : TRttiMethod;
-//  InvalidateAddr :  procedure of object;
-//  p : Pointer;
 begin
-//  {$IF (CompilerVersion >= 31)}
-//  LItem:= TRttiContext.Create.GetType(TFormStyleHook);
-//  LMethod := LItem.GetMethod('Invalidate');
-//  p := (pbyte(LMethod.CodeAddress) + 3945);
-//  Exit(p);
-//  {$ELSE}
-  MethodAddr := Self.GetBorderSize;
-//  {$IFEND}
+  with Self do
+    MethodAddr := GetBorderSize;
   Result := TMethod(MethodAddr).Code;
 end;
 
@@ -1438,23 +1453,27 @@ function TFormStyleHookHelper._GetRegionAddr: Pointer;
 var
   MethodAddr: function: HRGN of object;
 begin
-  MethodAddr := Self.GetRegion;
+  with Self do
+    MethodAddr := GetRegion;
   Result := TMethod(MethodAddr).Code;
 end;
 
 function TFormStyleHookHelper._GetHitTest(P: TPoint): Integer;
 begin
-  Result := Self.GetHitTest(P);
+  with Self do
+    Result := GetHitTest(P);
 end;
 
 function TFormStyleHookHelper._GetIconFast: TIcon;
 begin
-  Result := Self.GetIconFast;
+  with Self do
+    Result := GetIconFast;
 end;
 
 function TFormStyleHookHelper._NormalizePoint(P: TPoint): TPoint;
 begin
-  Result := Self.NormalizePoint(P);
+  with Self do
+    Result := NormalizePoint(P);
 end;
 
 

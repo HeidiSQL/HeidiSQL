@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.NC.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2014-2017 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2014-2019 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -41,9 +41,6 @@ uses
   Vcl.Menus,
   Vcl.StdCtrls,
   Vcl.GraphUtil,
-{$IF (CompilerVersion >= 31)}
-  Vcl.Styles.Utils.Shadow,
-{$IFEND}
   Vcl.Forms;
 
 type
@@ -251,7 +248,7 @@ type
     property OnClose: TNotifyEvent read FOnClose write FOnClose;
   end;
 
-  TFormStyleNCControls = class({$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook)
+  TFormStyleNCControls = class(TFormStyleHook)
   strict private
     FNCControls : TNCControls;
   private
@@ -306,7 +303,7 @@ uses
 type
   THintWindowClass = class(THintWindow);
   TCustomFormClass = class(TCustomForm);
-  TFormStyleHookClass = class({$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook);
+  TFormStyleHookClass = class(TFormStyleHook);
   TStyleHookList = TList<TStyleHookClass>;
 
   TStyleHookDictionary = TDictionary<TClass, TStyleHookList>;
@@ -317,38 +314,14 @@ type
 
 
 var
-  Trampoline_TFormStyleHook_GetBorderSize : function (Self : {$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook) : TRect;
-  Trampoline_TFormStyleHook_GetRegion     : function (Self : {$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook) : HRgn;
+  Trampoline_TFormStyleHook_GetBorderSize : function (Self : TFormStyleHook) : TRect;
+  Trampoline_TFormStyleHook_GetRegion     : function (Self : TFormStyleHook) : HRgn;
 
 class function TCustomStyleEngineHelper.GetRegisteredStyleHooks: TStyleHookDictionary;
-{$IF (CompilerVersion >= 31)}
-const
- Offset = SizeOf(Pointer) * 3;
-var
-  p : Pointer;
-{$IFEND}
 begin
-  {$IF (CompilerVersion <31)}
-  Result:= Self.FRegisteredStyleHooks;
-  {$ELSE}
-   {
-   TCustomStyleEngine.FRegisteredStyleHooks:
-   00651030 3052AA           xor [edx-$56],dl
-   00651033 02F7             add dh,bh
-   00651035 097623           or [esi+$23],esi
-   TCustomStyleEngine.$ClassInitFlag:
-   00651038 FFFF             db $ff $ff
-   0065103A FFFF             db $ff $ff
-   TCustomStyleEngine.FRegSysStylesList:
-   0065103C D037             shl [edi],1
-    }
-  //Use the address of the Self.FRegSysStylesList property to calculate the offset of the FRegisteredStyleHooks
-   p      := Pointer(PByte(@Self.FRegSysStylesList) - Offset);
-  Result := TStyleHookDictionary(p^);
-  {$IFEND}
+  with Self do
+    Result := FRegisteredStyleHooks;
 end;
-
-
 
 function  IsStyleHookRegistered(ControlClass: TClass; StyleHookClass: TStyleHookClass) : Boolean;
 var
@@ -2027,8 +2000,7 @@ begin
 end;
 
 // This custom GetBorderSize method is necessary to allow to the NC controls use a custom Style in the title and border area.
-function Detour_TFormStyleHook_GetBorderSize(Self:
-  {$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook): TRect;
+function Detour_TFormStyleHook_GetBorderSize(Self: TFormStyleHook): TRect;
 var
   Size: TSize;
   Details: TThemedElementDetails;
@@ -2096,8 +2068,7 @@ begin
 end;
 
 // This custom GetRegion method is necessary to allow to the NC controls use a custom Style in the title and border area.
-function Detour_TFormStyleHook_GetRegion(Self:
-  {$IF (CompilerVersion >= 31)}Vcl.Styles.Utils.Shadow.{$IFEND}TFormStyleHook): HRgn;
+function Detour_TFormStyleHook_GetRegion(Self:TFormStyleHook): HRgn;
 var
   R: TRect;
   Details: TThemedElementDetails;

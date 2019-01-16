@@ -3164,7 +3164,7 @@ begin
 		 if not SameText(LThemeClass, VSCLASS_TASKDIALOGSTYLE) then
          begin
              Result:=Trampoline_UxTheme_GetThemeColor(hTheme, iPartId, iStateId, iPropId, pColor);
-             if (Result = S_OK) and (@Trampoline_user32_GetSysColor <> nil) and (pColor = Trampoline_user32_GetSysColor(COLOR_WINDOWTEXT)) then
+             if (Result = S_OK) and (@Trampoline_user32_GetSysColor <> nil) then
              begin
                //OutputDebugString(PChar(Format('Intercepted Detour_GetThemeColor Class %s hTheme %d iPartId %d iStateId %d  iPropId %d Color %8.x', [LThemeClass, hTheme, iPartId, iStateId, iPropId, pColor])));
                //pColor := ColorToRGB(clRed);
