@@ -12773,13 +12773,14 @@ begin
   Msg := _('query')+' #' + FormatNumber(ExecutionThread.BatchPosition+1);
   if ExecutionThread.QueriesInPacket > 1 then
     Msg := f_('queries #%s to #%s', [FormatNumber(ExecutionThread.BatchPosition+1), FormatNumber(ExecutionThread.BatchPosition+ExecutionThread.QueriesInPacket)]);
-  Elapsed := MilliSecondsBetween(ExecutionThread.QueryStartedAt, Now);
-  ElapsedMsg := FormatTimeNumber(Elapsed/1000, True);
   try
+    Elapsed := MilliSecondsBetween(ExecutionThread.QueryStartedAt, Now);
+    ElapsedMsg := FormatTimeNumber(Elapsed/1000, True);
     MainForm.ShowStatusMsg(ElapsedMsg + ': ' + f_('Executing %s of %s ...', [Msg, FormatNumber(ExecutionThread.Batch.Count)]));
   except;
     // Some crashes here, probably when accessing the no longer running thread.
     // See https://www.heidisql.com/forum.php?t=25418#p25484
+    // See issue https://github.com/HeidiSQL/HeidiSQL/issues/490
   end;
 end;
 
