@@ -2682,6 +2682,7 @@ begin
 
     // Start the execution thread
     Screen.Cursor := crAppStart;
+    ActiveConnection.Ping(True); // Prevents SynEdit paint exceptions if connection was killed outside
     Tab.QueryRunning := True;
     Tab.ExecutionThread := TQueryThread.Create(ActiveConnection, Batch, Tab.Number);
   end;
