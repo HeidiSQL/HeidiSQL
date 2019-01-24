@@ -6604,6 +6604,7 @@ var
   i: Integer;
   MaxSize: Int64;
   ValueList: TStringList;
+  ColumnHasIndex: Boolean;
 begin
   // Create a list of distinct column values in selected table
   for i:=QFvalues.Count-1 downto 1 do
@@ -6618,6 +6619,12 @@ begin
   DbObj := ActiveDbObj;
   Conn := DbObj.Connection;
   MaxSize := SIZE_GB;
+  ColumnHasIndex := DataGridResult.ColIsKeyPart(DataGrid.FocusedColumn)
+    or DataGridResult.ColIsUniqueKeyPart(DataGrid.FocusedColumn)
+    or DataGridResult.ColIsPrimaryKeyPart(DataGrid.FocusedColumn);
+  if ColumnHasIndex then begin
+    MaxSize := MaxSize * 5;
+  end;
   if DbObj.Size < MaxSize then begin
     Query := Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
     if SynMemoFilter.Text <> '' then
