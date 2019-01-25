@@ -3,8 +3,8 @@
 ; Set commonly used constants for preprocessor
 #define ProgName "HeidiSQL"
 #define ProgNameLower LowerCase(ProgName)
-#define ProgExeName ProgNameLower + "32.exe"
-#define ProgVersion GetFileVersion(AddBackslash(SourcePath) + ProgExeName)
+#define ProgExeName ProgNameLower + ".exe"
+#define ProgVersion GetFileVersion(AddBackslash(SourcePath) + ProgNameLower + "32.exe")
 ; Take care: this takes the first 4(!) chars of the exe's version string, eg "10.0"
 #define ProgShortVersion Copy(ProgVersion, 1, 4)
 #define WebSite "https://www." + ProgNameLower + ".com/"
