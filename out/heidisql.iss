@@ -83,6 +83,7 @@ Name: "theme_windows"; Description: "Use default Windows theme"; GroupDescriptio
 Name: "theme_material"; Description: "Use dark Material theme"; GroupDescription: "Select theme:"; Flags: exclusive unchecked
 
 [InstallDelete]
+Type: files; Name: "{app}\heidisql32.exe"
 Type: files; Name: "{app}\libmysql40.dll"
 Type: files; Name: "{app}\libmysql41.dll"
 Type: files; Name: "{app}\{#ProgExeName}.manifest"
