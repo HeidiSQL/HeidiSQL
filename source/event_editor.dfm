@@ -87,7 +87,7 @@ object frmEventEditor: TfrmEventEditor
     Height = 166
     ActivePage = tabSettings
     Align = alTop
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabSettings: TTabSheet

@@ -121,7 +121,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     ActivePage = tabOptions
     Align = alTop
     Constraints.MinHeight = 166
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 0
     object tabOptions: TTabSheet
       Caption = 'Options'
@@ -291,7 +291,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         Header.AutoSizeIndex = 1
         Header.MainColumn = 1
         Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         NodeDataSize = 0
         TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -340,7 +340,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         AutoSize = True
         ButtonWidth = 82
         Caption = 'tlbParameters'
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 1
@@ -424,7 +424,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Height = 25
     Action = MainForm.actRunRoutines
     Anchors = [akRight, akBottom]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 5
   end
 end

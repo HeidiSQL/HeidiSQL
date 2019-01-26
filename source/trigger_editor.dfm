@@ -24,7 +24,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Height = 132
     ActivePage = tabOptions
     Align = alTop
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 4
     object tabOptions: TTabSheet
       Caption = 'Options'
@@ -234,7 +234,7 @@ object frmTriggerEditor: TfrmTriggerEditor
       item
         ColumnWidth = 100
       end>
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     OnExecute = SynCompletionProposalStatementExecute
     ShortCut = 16416
     Editor = SynMemoBody

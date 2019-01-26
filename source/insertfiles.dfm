@@ -98,7 +98,7 @@ object frmInsertFiles: TfrmInsertFiles
       Anchors = [akLeft, akTop, akRight]
       EditDelay = 0
       Header.AutoSizeIndex = 2
-      Header.Images = MainForm.ImageListMain
+      Header.Images = MainForm.VirtualImageListMain
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
       Header.PopupMenu = MainForm.popupListHeader
       TabOrder = 2
@@ -220,7 +220,7 @@ object frmInsertFiles: TfrmInsertFiles
       Align = alNone
       ButtonWidth = 66
       Caption = 'ToolBarFiles'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 1

@@ -33,7 +33,7 @@ object DataSortingForm: TDataSortingForm
       Caption = 'OK'
       Default = True
       Enabled = False
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       ModalResult = 1
       TabOrder = 0
       OnClick = btnOKClick
@@ -46,7 +46,7 @@ object DataSortingForm: TDataSortingForm
       Anchors = [akLeft, akBottom]
       Cancel = True
       Caption = 'Cancel'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       ModalResult = 2
       TabOrder = 1
       OnClick = btnCancelClick
@@ -58,7 +58,7 @@ object DataSortingForm: TDataSortingForm
       Height = 25
       Anchors = [akLeft, akBottom]
       Caption = 'Add Col'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       TabOrder = 2
       OnClick = btnAddColClick
     end
@@ -69,7 +69,7 @@ object DataSortingForm: TDataSortingForm
       Height = 25
       Action = MainForm.actDataResetSorting
       Anchors = [akRight, akBottom]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       ModalResult = 2
       TabOrder = 3
     end

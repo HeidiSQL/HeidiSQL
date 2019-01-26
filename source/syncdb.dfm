@@ -40,7 +40,7 @@ object frmSyncDB: TfrmSyncDB
     Anchors = [akLeft, akTop, akBottom]
     Header.AutoSizeIndex = 0
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 0
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
     TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -131,7 +131,7 @@ object frmSyncDB: TfrmSyncDB
     Cancel = True
     Caption = 'Close'
     ImageIndex = 26
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     ModalResult = 2
     TabOrder = 2
   end
@@ -144,7 +144,7 @@ object frmSyncDB: TfrmSyncDB
     Caption = 'Apply'
     Enabled = False
     ImageIndex = 120
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 3
     OnClick = btnApplyClick
   end
@@ -156,7 +156,7 @@ object frmSyncDB: TfrmSyncDB
     Anchors = [akRight, akBottom]
     Caption = 'Analyze'
     ImageIndex = 146
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 4
     OnClick = btnAnalyzeClick
   end
@@ -197,7 +197,7 @@ object frmSyncDB: TfrmSyncDB
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
     Header.MainColumn = -1
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 6
     TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
     TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]

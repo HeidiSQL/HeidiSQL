@@ -1403,7 +1403,7 @@ object AboutBox: TAboutBox
     Height = 25
     Action = MainForm.actUpdateCheck
     Anchors = [akLeft, akRight, akBottom]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 0
   end
   object editDonated: TEdit
@@ -1426,7 +1426,7 @@ object AboutBox: TAboutBox
     OnClick = btnDonatedOKClick
   end
   object popupLabels: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 32
     Top = 144
     object menuCopyLabel: TMenuItem

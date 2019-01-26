@@ -52,7 +52,7 @@ object frmBinEditor: TfrmBinEditor
     Align = alNone
     Anchors = [akLeft, akBottom]
     Caption = 'tlbStandard'
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     ParentShowHint = False
     ShowHint = True
     TabOrder = 1

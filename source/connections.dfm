@@ -86,7 +86,7 @@ object connform: Tconnform
     Header.PopupMenu = MainForm.popupListHeader
     Header.SortColumn = 0
     HintMode = hmTooltip
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     IncrementalSearch = isAll
     PopupMenu = popupSessions
     TabOrder = 0
@@ -178,7 +178,7 @@ object connform: Tconnform
     Margins.Bottom = 40
     ActivePage = tabStart
     Align = alClient
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 7
     object tabStart: TTabSheet
       Caption = 'Start'
@@ -391,7 +391,7 @@ object connform: Tconnform
           Width = 294
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 75
           RightButton.Visible = True
           TabOrder = 9
@@ -521,7 +521,7 @@ object connform: Tconnform
           Width = 294
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 0
@@ -558,7 +558,7 @@ object connform: Tconnform
           Width = 294
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 7
@@ -665,7 +665,7 @@ object connform: Tconnform
           Width = 294
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 1
@@ -680,7 +680,7 @@ object connform: Tconnform
           Width = 294
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 2
@@ -695,7 +695,7 @@ object connform: Tconnform
           Width = 294
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 3
@@ -733,7 +733,7 @@ object connform: Tconnform
           Width = 294
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 5
@@ -878,7 +878,7 @@ object connform: Tconnform
     OnClick = btnMoreClick
   end
   object popupSessions: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 23
     Top = 83
     object menuRename: TMenuItem
@@ -930,7 +930,7 @@ object connform: Tconnform
     Top = 35
   end
   object popupNew: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 109
     Top = 82
     object menuNewSessionInRoot: TMenuItem
@@ -955,7 +955,7 @@ object connform: Tconnform
     end
   end
   object popupMore: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 24
     Top = 144
     object Preferences1: TMenuItem

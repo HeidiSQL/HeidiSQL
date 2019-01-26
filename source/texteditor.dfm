@@ -51,7 +51,7 @@ object frmTextEditor: TfrmTextEditor
       Align = alLeft
       AutoSize = True
       Caption = 'tlbStandard'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
@@ -122,7 +122,7 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupLinebreaks: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 8
     Top = 16
     object menuWindowsLB: TMenuItem
@@ -152,7 +152,7 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object ActionList1: TActionList
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 64
     Top = 16
     object actSearchFind: TSearchFind

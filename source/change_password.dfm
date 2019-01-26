@@ -60,7 +60,7 @@ object frmPasswordChange: TfrmPasswordChange
     Width = 302
     Height = 21
     Anchors = [akLeft, akRight, akBottom]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     RightButton.DropDownMenu = popupPassword
     RightButton.ImageIndex = 75
     RightButton.Visible = True
@@ -76,7 +76,7 @@ object frmPasswordChange: TfrmPasswordChange
     Width = 302
     Height = 21
     Anchors = [akLeft, akRight, akBottom]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     PasswordChar = '*'
     TabOrder = 1
     TextHint = 'Retype password'
@@ -114,7 +114,7 @@ object frmPasswordChange: TfrmPasswordChange
     Anchors = [akRight, akBottom]
     Caption = 'Copy'
     ImageIndex = 3
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 4
     OnClick = btnCopyToClipboardClick
   end

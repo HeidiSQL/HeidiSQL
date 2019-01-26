@@ -79,7 +79,7 @@ object ColumnSelectionForm: TColumnSelectionForm
     Width = 113
     Height = 21
     Anchors = [akLeft, akTop, akRight]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     LeftButton.ImageIndex = 146
     LeftButton.Visible = True
     RightButton.ImageIndex = 26

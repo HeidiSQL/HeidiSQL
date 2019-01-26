@@ -22,7 +22,7 @@ object frmSQLhelp: TfrmSQLhelp
     Anchors = [akRight, akBottom]
     Caption = 'Search online'
     ImageIndex = 69
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 0
     OnClick = ButtonOnlinehelpClick
   end
@@ -78,7 +78,7 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Right = 0
         Margins.Bottom = 0
         Align = alTop
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         LeftButton.Hint = 'Search'
         LeftButton.ImageIndex = 53
         LeftButton.Visible = True
@@ -100,7 +100,7 @@ object frmSQLhelp: TfrmSQLhelp
         Align = alClient
         Header.AutoSizeIndex = 0
         Header.MainColumn = -1
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         TabOrder = 1
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         OnFocusChanged = treeTopicsFocusChanged

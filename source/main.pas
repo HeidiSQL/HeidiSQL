@@ -18,7 +18,8 @@ uses
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, VirtualTrees.HeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage,
-  System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms;
+  System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
+  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection;
 
 
 type
@@ -216,7 +217,6 @@ type
     N8a: TMenuItem;
     tlbSep6: TToolButton;
     menuUpdateCheck: TMenuItem;
-    ImageListMain: TImageList;
     actCreateView: TAction;
     ToolButton3: TToolButton;
     actDataFirst: TAction;
@@ -636,6 +636,8 @@ type
     Copyselectedrows1: TMenuItem;
     actClearQueryLog: TAction;
     ControlBarMain: TControlBar;
+    ImageCollectionMain: TImageCollection;
+    VirtualImageListMain: TVirtualImageList;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1281,8 +1283,8 @@ begin
   PanelRect := Rect;
   StatusBar.Canvas.FillRect(PanelRect);
   if ImageIndex > -1 then begin
-    ImageListMain.Draw(StatusBar.Canvas, PanelRect.Left, PanelRect.Top, ImageIndex, true);
-    OffsetRect(PanelRect, ImageListMain.Width+2, 0);
+    VirtualImageListMain.Draw(StatusBar.Canvas, PanelRect.Left, PanelRect.Top, ImageIndex, true);
+    OffsetRect(PanelRect, VirtualImageListMain.Width+2, 0);
   end;
   DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, PanelRect, DT_SINGLELINE or DT_VCENTER);
 end;
@@ -1601,8 +1603,7 @@ begin
   TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
   FixDropDownButtons(Self);
-  ScaleImageList(ImageListMain, DpiScaleFactor(Self));
-  MainMenu1.Images := ImageListMain;
+  MainMenu1.Images := VirtualImageListMain;
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
   menuQueryHelpersGenerateInsert.Caption := f_('Generate %s ...', ['INSERT']);
@@ -1870,7 +1871,7 @@ begin
   SetMainTab(tabHost);
   FBtnAddTab := TSpeedButton.Create(PageControlMain);
   FBtnAddTab.Parent := PageControlMain;
-  ImageListMain.GetBitmap(actNewQueryTab.ImageIndex, FBtnAddTab.Glyph);
+  VirtualImageListMain.GetBitmap(actNewQueryTab.ImageIndex, FBtnAddTab.Glyph);
   FBtnAddTab.Height := PageControlMain.TabRect(0).Bottom - PageControlMain.TabRect(0).Top - 2;
   FBtnAddTab.Width := FBtnAddTab.Height;
   FBtnAddTab.Flat := True;
@@ -1878,7 +1879,7 @@ begin
   FBtnAddTab.OnClick := actNewQueryTab.OnExecute;
 
   // Filter panel
-  ImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
+  VirtualImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
   if AppSettings.ReadBool(asFilterPanel) then
     actFilterPanelExecute(nil);
   lblFilterVTInfo.Caption := '';
@@ -8769,7 +8770,7 @@ begin
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   if Results.Modified(Column) then
-    ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
+    VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
 end;
 
 
@@ -10246,7 +10247,7 @@ begin
   QueryTab.CloseButton.Width := 16;
   QueryTab.CloseButton.Height := 16;
   QueryTab.CloseButton.Flat := True;
-  ImageListMain.GetBitmap(134, QueryTab.CloseButton.Glyph);
+  VirtualImageListMain.GetBitmap(134, QueryTab.CloseButton.Glyph);
   QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
   QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
   SetTabCaption(QueryTab.TabSheet.PageIndex, '');
@@ -10532,7 +10533,7 @@ begin
   Edit := Sender as TButtonedEdit;
   Menu := TPopupMenu.Create(Edit);
   Menu.AutoHotkeys := maManual;
-  Menu.Images := ImageListMain;
+  Menu.Images := VirtualImageListMain;
   AppSettings.SessionPath := '';
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
@@ -11279,9 +11280,9 @@ begin
   Obj := Sender.GetNodeData(Node);
   if Obj.NodeType in [lntTable..lntEvent] then begin
     if Obj.Connection.Favorites.IndexOf(Obj.Path) > -1 then
-      ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 168)
+      VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 168)
     else if Node = Sender.HotNode then
-      ImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 183);
+      VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 183);
   end;
 end;
 
@@ -11296,7 +11297,7 @@ begin
   // Watch out for clicks on favorite icon
   // Add or remove object path from favorite list on click
   Node := DBtree.GetNodeAt(X, Y);
-  if (Button = mbLeft) and (X < ImageListMain.Width) and Assigned(Node) then begin
+  if (Button = mbLeft) and (X < VirtualImageListMain.Width) and Assigned(Node) then begin
     Obj := DBtree.GetNodeData(Node);
     if Obj.NodeType in [lntTable..lntEvent] then begin
       idx := Obj.Connection.Favorites.IndexOf(Obj.Path);

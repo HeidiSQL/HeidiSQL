@@ -68,7 +68,7 @@ object frmTableTools: TfrmTableTools
       Align = alLeft
       Header.AutoSizeIndex = 0
       Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       IncrementalSearch = isInitializedOnly
       PopupMenu = popupTree
       TabOrder = 0
@@ -113,7 +113,7 @@ object frmTableTools: TfrmTableTools
         Height = 156
         Align = alClient
         Header.AutoSizeIndex = -1
-        Header.Images = MainForm.ImageListMain
+        Header.Images = MainForm.VirtualImageListMain
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
         IncrementalSearch = isAll
@@ -136,7 +136,7 @@ object frmTableTools: TfrmTableTools
         Height = 180
         ActivePage = tabSQLexport
         Align = alTop
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         TabOrder = 1
         OnChange = ValidateControls
         object tabMaintenance: TTabSheet
@@ -412,7 +412,7 @@ object frmTableTools: TfrmTableTools
               Hint = 'Browse filesystem'
               Anchors = [akTop, akRight]
               ImageIndex = 51
-              Images = MainForm.ImageListMain
+              Images = MainForm.VirtualImageListMain
               TabOrder = 9
               OnClick = btnExportOutputTargetSelectClick
             end
@@ -647,7 +647,7 @@ object frmTableTools: TfrmTableTools
     OnClick = btnSeeResultsClick
   end
   object popupTree: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 144
     Top = 352
     object menuCheckNone: TMenuItem

@@ -24,7 +24,7 @@ object optionsform: Toptionsform
     Height = 427
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 4
     OnChange = pagecontrolMainChange
     OnChanging = pagecontrolMainChanging
@@ -195,7 +195,7 @@ object optionsform: Toptionsform
           Width = 515
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 10
@@ -222,7 +222,7 @@ object optionsform: Toptionsform
           Width = 515
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 11
@@ -453,7 +453,7 @@ object optionsform: Toptionsform
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Enabled = False
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.ImageIndex = 51
           RightButton.Visible = True
           TabOrder = 5
@@ -1235,7 +1235,7 @@ object optionsform: Toptionsform
           Align = alLeft
           Header.AutoSizeIndex = 0
           Header.MainColumn = -1
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           TabOrder = 0
           OnFocusChanged = TreeShortcutItemsFocusChanged
           OnGetText = TreeShortcutItemsGetText

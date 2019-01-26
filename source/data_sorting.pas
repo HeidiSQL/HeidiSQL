@@ -134,10 +134,10 @@ begin
     btnOrder.Glyph.Transparent := True;
     btnOrder.Glyph.AlphaFormat := afDefined;
     if OrderColumns[i].SortDirection = ORDER_DESC then begin
-      MainForm.ImageListMain.GetBitmap(110, btnOrder.Glyph);
+      MainForm.VirtualImageListMain.GetBitmap(110, btnOrder.Glyph);
       btnOrder.Down := True;
     end else begin
-      MainForm.ImageListMain.GetBitmap(109, btnOrder.Glyph);
+      MainForm.VirtualImageListMain.GetBitmap(109, btnOrder.Glyph);
     end;
     btnOrder.Hint := _('Toggle the sort direction for this column.');
     btnOrder.Tag := i+1;
@@ -150,7 +150,7 @@ begin
     btnDelete.Height := comboColumns.Height;
     btnDelete.Left := btnOrder.Left + btnOrder.Width + Margin;
     btnDelete.Top := TopPos;
-    btnDelete.Images := MainForm.ImageListMain;
+    btnDelete.Images := MainForm.VirtualImageListMain;
     btnDelete.ImageIndex := 26;
     btnDelete.Hint := _('Drops sorting by this column.');
     btnDelete.Tag := i+1;
@@ -219,10 +219,10 @@ begin
   btn := Sender as TSpeedButton;
   btn.Glyph := nil;
   if OrderColumns[btn.Tag-1].SortDirection = ORDER_ASC then begin
-    MainForm.ImageListMain.GetBitmap(110, btn.Glyph);
+    MainForm.VirtualImageListMain.GetBitmap(110, btn.Glyph);
     OrderColumns[btn.Tag-1].SortDirection := ORDER_DESC;
   end else begin
-    MainForm.ImageListMain.GetBitmap(109, btn.Glyph);
+    MainForm.VirtualImageListMain.GetBitmap(109, btn.Glyph);
     OrderColumns[btn.Tag-1].SortDirection := ORDER_ASC;
   end;
 

@@ -38,7 +38,7 @@ procedure TfrmLogin.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
   Caption := APPNAME + ' - Login';
-  MainForm.ImageListMain.GetBitmap(144, imgIcon.Picture.Bitmap);
+  MainForm.VirtualImageListMain.GetBitmap(144, imgIcon.Picture.Bitmap);
   lblPrompt.Font.Size := 10;
   lblPrompt.Font.Color := GetThemeColor(clHotlight);
   lblPrompt.Font.Style := lblPrompt.Font.Style + [fsBold];

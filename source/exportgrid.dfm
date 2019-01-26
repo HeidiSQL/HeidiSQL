@@ -123,7 +123,7 @@ object frmExportGrid: TfrmExportGrid
       Width = 264
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       LeftButton.DropDownMenu = popupRecentFiles
       LeftButton.ImageIndex = 75
       LeftButton.Visible = True
@@ -201,7 +201,7 @@ object frmExportGrid: TfrmExportGrid
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
@@ -216,7 +216,7 @@ object frmExportGrid: TfrmExportGrid
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
@@ -230,7 +230,7 @@ object frmExportGrid: TfrmExportGrid
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
@@ -262,7 +262,7 @@ object frmExportGrid: TfrmExportGrid
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
@@ -279,7 +279,7 @@ object frmExportGrid: TfrmExportGrid
     Anchors = [akLeft, akBottom]
     Caption = 'Save clipboard settings'
     ImageIndex = 4
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 6
     OnClick = btnSetClipboardDefaultsClick
   end

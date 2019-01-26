@@ -41,7 +41,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     Anchors = [akLeft, akTop, akRight, akBottom]
     Header.AutoSizeIndex = 0
     Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Indent = 16
     Margin = 2
     TabOrder = 0

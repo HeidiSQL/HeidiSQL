@@ -55,7 +55,7 @@ object UserManagerForm: TUserManagerForm
     Cancel = True
     Caption = 'Close'
     ImageIndex = 26
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     ModalResult = 2
     TabOrder = 4
   end
@@ -68,7 +68,7 @@ object UserManagerForm: TUserManagerForm
     Caption = 'Save'
     Default = True
     ImageIndex = 10
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 2
     OnClick = btnSaveClick
   end
@@ -105,7 +105,7 @@ object UserManagerForm: TUserManagerForm
       Header.AutoSizeIndex = 0
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
       Header.SortColumn = 0
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       IncrementalSearch = isAll
       TabOrder = 0
       TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -141,7 +141,7 @@ object UserManagerForm: TUserManagerForm
       AutoSize = True
       ButtonWidth = 58
       Caption = 'ToolBar1'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 1
@@ -191,7 +191,7 @@ object UserManagerForm: TUserManagerForm
       AutoSize = True
       ButtonWidth = 79
       Caption = 'tlbObjects'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       List = True
       ParentShowHint = False
       ShowCaptions = True
@@ -225,7 +225,7 @@ object UserManagerForm: TUserManagerForm
       Align = alClient
       Header.AutoSizeIndex = 0
       Header.MainColumn = -1
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       IncrementalSearch = isAll
       TabOrder = 2
       TreeOptions.AutoOptions = [toAutoDropExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
@@ -300,7 +300,7 @@ object UserManagerForm: TUserManagerForm
           Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           PasswordChar = '*'
           RightButton.DropDownMenu = menuPassword
           RightButton.Hint = 'Select random password'
@@ -315,7 +315,7 @@ object UserManagerForm: TUserManagerForm
           Width = 96
           Height = 21
           Anchors = [akLeft, akTop, akRight]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           RightButton.DropDownMenu = menuHost
           RightButton.ImageIndex = 75
           RightButton.Visible = True
@@ -549,7 +549,7 @@ object UserManagerForm: TUserManagerForm
     Anchors = [akRight, akBottom]
     Caption = 'Discard'
     ImageIndex = 40
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 3
     OnClick = btnDiscardClick
   end

@@ -76,7 +76,7 @@ object loaddataform: Tloaddataform
       Width = 395
       Height = 21
       Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       RightButton.ImageIndex = 51
       RightButton.Visible = True
       TabOrder = 0
@@ -357,7 +357,7 @@ object loaddataform: Tloaddataform
       AutoSize = True
       ButtonWidth = 58
       Caption = 'ToolBarColMove'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       List = True
       ParentShowHint = False
       ShowCaptions = True

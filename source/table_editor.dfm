@@ -28,7 +28,7 @@ object frmTableEditor: TfrmTableEditor
     Margins.Bottom = 0
     ActivePage = tabBasic
     Align = alTop
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     TabOrder = 0
     OnChange = PageControlMainChange
     object tabBasic: TTabSheet
@@ -273,7 +273,7 @@ object frmTableEditor: TfrmTableEditor
         EditDelay = 0
         Header.AutoSizeIndex = 0
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         PopupMenu = popupIndexes
         TabOrder = 1
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
@@ -320,7 +320,7 @@ object frmTableEditor: TfrmTableEditor
         AutoSize = True
         ButtonWidth = 66
         Caption = 'tlbIndexes'
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 0
@@ -382,7 +382,7 @@ object frmTableEditor: TfrmTableEditor
         AutoSize = True
         ButtonWidth = 66
         Caption = 'tlbForeignKeys'
-        Images = MainForm.ImageListMain
+        Images = MainForm.VirtualImageListMain
         List = True
         ShowCaptions = True
         TabOrder = 0
@@ -434,7 +434,7 @@ object frmTableEditor: TfrmTableEditor
           EditDelay = 0
           Header.AutoSizeIndex = 0
           Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-          Images = MainForm.ImageListMain
+          Images = MainForm.VirtualImageListMain
           TabOrder = 0
           TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
           TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -614,7 +614,7 @@ object frmTableEditor: TfrmTableEditor
       AutoSize = True
       ButtonWidth = 66
       Caption = 'Columns:'
-      Images = MainForm.ImageListMain
+      Images = MainForm.VirtualImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 0
@@ -666,7 +666,7 @@ object frmTableEditor: TfrmTableEditor
     Header.AutoSizeIndex = -1
     Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
     Header.PopupMenu = MainForm.popupListHeader
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     IncrementalSearch = isAll
     PopupMenu = popupColumns
     TabOrder = 2
@@ -800,7 +800,7 @@ object frmTableEditor: TfrmTableEditor
     OnClick = btnHelpClick
   end
   object popupIndexes: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     Left = 344
     Top = 360
     object menuAddIndex: TMenuItem
@@ -841,7 +841,7 @@ object frmTableEditor: TfrmTableEditor
     end
   end
   object popupColumns: TPopupMenu
-    Images = MainForm.ImageListMain
+    Images = MainForm.VirtualImageListMain
     OnPopup = popupColumnsPopup
     Left = 312
     Top = 360
