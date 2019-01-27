@@ -10577,7 +10577,7 @@ begin
 
   Item := TMenuItem.Create(Menu);
   Item.Caption := _('Clear');
-  Item.ImageIndex := 26;
+  Item.ImageIndex := 193;
   Item.OnClick := editDatabaseTableFilterMenuClick;
   Item.Tag := 1;
   Item.Enabled := Edit.Text <> '';

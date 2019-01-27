@@ -82,7 +82,7 @@ object ColumnSelectionForm: TColumnSelectionForm
     Images = MainForm.VirtualImageListMain
     LeftButton.ImageIndex = 146
     LeftButton.Visible = True
-    RightButton.ImageIndex = 26
+    RightButton.ImageIndex = 193
     TabOrder = 5
     TextHint = 'Filter'
     OnChange = PopulateList

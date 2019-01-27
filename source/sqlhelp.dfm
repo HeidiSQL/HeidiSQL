@@ -82,7 +82,7 @@ object frmSQLhelp: TfrmSQLhelp
         LeftButton.Hint = 'Search'
         LeftButton.ImageIndex = 53
         LeftButton.Visible = True
-        RightButton.ImageIndex = 26
+        RightButton.ImageIndex = 193
         TabOrder = 0
         TextHint = 'Filter'
         OnChange = editFilterChange
