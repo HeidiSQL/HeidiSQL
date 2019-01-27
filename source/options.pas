@@ -12,7 +12,8 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
-  mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections;
+  mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections,
+  Vcl.ImageCollection;
 
 type
   TShortcutItemData = record
@@ -166,6 +167,8 @@ type
     SynSQLSyn_Black: TSynSQLSyn;
     SynSQLSyn_White: TSynSQLSyn;
     comboGridTextColorsPreset: TComboBox;
+    lblIconPack: TLabel;
+    comboIconPack: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -334,6 +337,7 @@ begin
     AppSettings.WriteString(asGUIFontName, comboGUIFont.Text);
   AppSettings.WriteInt(asGUIFontSize, updownGUIFontSize.Position);
   AppSettings.WriteString(asTheme, comboTheme.Text);
+  AppSettings.WriteString(asIconPack, comboIconPack.Text);
 
   AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
@@ -396,6 +400,7 @@ begin
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
+  MainForm.PrepareImageList;
 
   Mainform.LogToFile := chkLogToFile.Checked;
   MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
@@ -462,6 +467,8 @@ var
   Highlighter: TSynSQLSyn;
   Name: String;
   GridColorsPreset: TGridColorsPreset;
+  Comp: TComponent;
+  IconPack: String;
 begin
   TranslateComponent(Self);
 
@@ -485,6 +492,16 @@ begin
     comboTheme.Items.Add(Styles[i]);
   end;
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.GetDefaultString(asTheme));
+
+  // Populate icon pack dropdown from image collections on main form
+  comboIconPack.Items.Clear;
+  for i:=0 to MainForm.ComponentCount-1 do begin
+    if MainForm.Components[i] is TImageCollection then begin
+      IconPack := MainForm.Components[i].Name;
+      IconPack := StringReplace(IconPack, 'ImageCollection', '', [rfIgnoreCase]);
+      comboIconPack.Items.Add(IconPack);
+    end;
+  end;
 
   // Data
   // Populate datatype categories pulldown
@@ -611,6 +628,7 @@ begin
   updownGUIFontSize.Position := AppSettings.ReadInt(asGUIFontSize);
   comboGUIFont.OnChange(comboGUIFont);
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
+  comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkQueryWarningsMessage.Checked := AppSettings.ReadBool(asQueryWarningsMessage);
 

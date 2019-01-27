@@ -87,6 +87,13 @@ object optionsform: Toptionsform
           Height = 13
           Caption = 'Style Theme: *'
         end
+        object lblIconPack: TLabel
+          Left = 8
+          Top = 312
+          Width = 50
+          Height = 13
+          Caption = 'Icon pack:'
+        end
         object chkAutoReconnect: TCheckBox
           Left = 190
           Top = 31
@@ -288,6 +295,16 @@ object optionsform: Toptionsform
           Sorted = True
           TabOrder = 16
           OnSelect = comboThemeSelect
+        end
+        object comboIconPack: TComboBox
+          Left = 190
+          Top = 309
+          Width = 515
+          Height = 21
+          Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 17
+          OnChange = Modified
         end
       end
     end

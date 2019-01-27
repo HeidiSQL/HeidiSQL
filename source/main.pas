@@ -636,8 +636,9 @@ type
     Copyselectedrows1: TMenuItem;
     actClearQueryLog: TAction;
     ControlBarMain: TControlBar;
-    ImageCollectionMain: TImageCollection;
+    ImageCollectionIcons8: TImageCollection;
     VirtualImageListMain: TVirtualImageList;
+    ImageCollectionSilk: TImageCollection;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1180,6 +1181,7 @@ type
     function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
     procedure ApplyVTFilter(FromTimer: Boolean);
     procedure ApplyFontToGrids;
+    procedure PrepareImageList;
 end;
 
 
@@ -1603,7 +1605,12 @@ begin
   TP_GlobalIgnoreClass(TFont);
   TranslateComponent(Self);
   FixDropDownButtons(Self);
+
+  // Load preferred ImageCollection into VirtualImageList
+  PrepareImageList;
+
   MainMenu1.Images := VirtualImageListMain;
+
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
   menuQueryHelpersGenerateInsert.Caption := f_('Generate %s ...', ['INSERT']);
@@ -7655,6 +7662,24 @@ begin
       FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
     end;
   end;
+end;
+
+
+procedure TMainForm.PrepareImageList;
+var
+  IconPack: String;
+  WantedImageCollection: TComponent;
+begin
+  // Load preferred ImageCollection into VirtualImageList
+  VirtualImageListMain.Clear;
+  IconPack := AppSettings.ReadString(asIconPack);
+  WantedImageCollection := FindComponent('ImageCollection' + IconPack);
+  if (WantedImageCollection <> nil) and (WantedImageCollection is TImageCollection) then begin
+    VirtualImageListMain.ImageCollection := WantedImageCollection as TImageCollection;
+  end else begin
+    VirtualImageListMain.ImageCollection := ImageCollectionIcons8;
+  end;
+  VirtualImageListMain.Add('', 0, VirtualImageListMain.ImageCollection.Count-1);
 end;
 
 

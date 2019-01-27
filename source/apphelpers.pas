@@ -171,7 +171,7 @@ type
     asPromptSaveFileOnTabClose, asWarnUnsafeUpdates, asQueryWarningsMessage,
     asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
-    asTheme,
+    asTheme, asIconPack,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
@@ -3619,6 +3619,7 @@ begin
   InitSetting(asGUIFontName,                      'GUIFontName',                           0, False, '');
   InitSetting(asGUIFontSize,                      'GUIFontSize',                           8);
   InitSetting(asTheme,                            'Theme',                                 0, False, 'Windows');
+  InitSetting(asIconPack,                         'IconPack',                              0, False, 'Icons8');
   InitSetting(asMaxQueryResults,                  'MaxQueryResults',                       10);
   InitSetting(asLogErrors,                        'LogErrors',                             0, True);
   InitSetting(asLogUserSQL,                       'LogUserSQL',                            0, True);
