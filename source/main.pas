@@ -4147,13 +4147,19 @@ procedure TMainForm.actSQLhelpExecute(Sender: TObject);
 var
   keyword: String;
   Tree: TVirtualStringTree;
+  SynMemo: TSynMemo;
 begin
   // Call SQL Help from various places
   keyword := '';
 
   // Query-Tab
-  if ActiveControl is TSynMemo then
-    keyword := TSynMemo(ActiveControl).WordAtCursor
+  if ActiveControl is TSynMemo then begin
+    SynMemo := TSynMemo(ActiveControl);
+    keyword := SynMemo.WordAtCursor;
+    if keyword.IsEmpty then begin
+      keyword := SynMemo.SelText;
+    end;
+  end
 
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
