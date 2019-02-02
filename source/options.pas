@@ -839,15 +839,24 @@ var
   i, j: Integer;
   Highlighter: TSynSQLSyn;
   FoundHighlighter: Boolean;
+  rx: TRegExpr;
+  TranslatedHighlighterName: String;
 begin
   // Color preset selected
   FoundHighlighter := False;
+  rx := TRegExpr.Create;
+  rx.Expression := '.+_([a-zA-Z0-9]+)$';
   for i:=0 to ComponentCount-1 do begin
-    if (Components[i] is TSynSQLSyn)
-      and (Components[i] <> SynMemoSQLSample.Highlighter)
-      then begin
+    if (Components[i] is TSynSQLSyn) and (Components[i] <> SynMemoSQLSample.Highlighter) then begin
       Highlighter := Components[i] as TSynSQLSyn;
-      if SynRegExpr.ExecRegExpr('[a-zA-Z]+_'+comboEditorColorsPreset.Text, Highlighter.Name) then begin
+
+      // Translate highlighter postfix after last underscore ...
+      TranslatedHighlighterName := '';
+      if rx.Exec(Highlighter.Name) then begin
+        TranslatedHighlighterName := _(rx.Match[1]);
+      end;
+      // ... so we can compare that with the selected dropdown text
+      if TranslatedHighlighterName = comboEditorColorsPreset.Text then begin
         FoundHighlighter := True;
         for j:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
           SynSQLSynSQLSample.Attribute[j].AssignColorAndStyle(Highlighter.Attribute[j]);
