@@ -1,3 +1,8 @@
+![](https://img.shields.io/github/license/HeidiSQL/HeidiSQL.svg?style=flat)
+![](https://img.shields.io/github/release/HeidiSQL/HeidiSQL.svg?style=flat)
+![](https://img.shields.io/github/languages/top/HeidiSQL/HeidiSQL.svg?style=flat)
+![](https://img.shields.io/github/languages/code-size/HeidiSQL/HeidiSQL.svg?style=flat)
+
 # HeidiSQL
 HeidiSQL is a useful and reliable tool designed for web developers using the popular [MariaDB](http://www.mariadb.org/) or [MySQL](http://www.mysql.com/) server, [Microsoft SQL databases](http://www.microsoft.com/sql/) or [PostgreSQL](http://www.postgresql.org/). It enables you to browse and edit data, create and edit tables, views, procedures, triggers and scheduled events. Also, you can export structure and data, either to SQL file, clipboard or to other servers. Read about [features](https://www.heidisql.com/#featurelist) or see some [screenshots](https://www.heidisql.com/screenshots.php). 
 
