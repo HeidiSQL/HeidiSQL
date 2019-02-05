@@ -605,7 +605,7 @@ var
       NativeType:      mytTinyblob;
       Name:            'TINYTEXT';
       Description:     'TINYTEXT' + CRLF +
-        'A TEXT column with a maximum length of 255 (28 - 1) characters. The ' +
+        'A TEXT column with a maximum length of 255 (2^8 - 1) characters. The ' +
         'effective maximum length is less if the value contains multi-byte ' +
         'characters. Each TINYTEXT value is stored using a one-byte length ' +
         'prefix that indicates the number of bytes in the value.';
@@ -621,7 +621,7 @@ var
       NativeType:      mytBlob;
       Name:            'TEXT';
       Description:     'TEXT[(M)]' + CRLF +
-        'A TEXT column with a maximum length of 65,535 (216 - 1) characters. The ' +
+        'A TEXT column with a maximum length of 65,535 (2^16 - 1) characters. The ' +
         'effective maximum length is less if the value contains multi-byte ' +
         'characters. Each TEXT value is stored using a two-byte length prefix ' +
         'that indicates the number of bytes in the value. ' + CRLF +
@@ -640,7 +640,7 @@ var
       NativeType:      mytMediumblob;
       Name:            'MEDIUMTEXT';
       Description:     'MEDIUMTEXT' + CRLF +
-        'A TEXT column with a maximum length of 16,777,215 (224 - 1) characters. ' +
+        'A TEXT column with a maximum length of 16,777,215 (2^24 - 1) characters. ' +
         'The effective maximum length is less if the value contains multi-byte ' +
         'characters. Each MEDIUMTEXT value is stored using a three-byte length ' +
         'prefix that indicates the number of bytes in the value.';
@@ -656,7 +656,7 @@ var
       NativeType:      mytLongblob;
       Name:            'LONGTEXT';
       Description:     'LONGTEXT' + CRLF +
-        'A TEXT column with a maximum length of 4,294,967,295 or 4GB (232 - 1) ' +
+        'A TEXT column with a maximum length of 4,294,967,295 or 4GB (2^32 - 1) ' +
         'characters. The effective maximum length is less if the value contains ' +
         'multi-byte characters. The effective maximum length of LONGTEXT columns ' +
         'also depends on the configured maximum packet size in the client/server ' +
@@ -725,7 +725,7 @@ var
       NativeType:      mytTinyblob;
       Name:           'TINYBLOB';
       Description:     'TINYBLOB' + CRLF +
-        'A BLOB column with a maximum length of 255 (28 - 1) bytes. Each ' +
+        'A BLOB column with a maximum length of 255 (2^8 - 1) bytes. Each ' +
         'TINYBLOB value is stored using a one-byte length prefix that indicates ' +
         'the number of bytes in the value.';
       HasLength:       False;
@@ -740,7 +740,7 @@ var
       NativeType:      mytBlob;
       Name:            'BLOB';
       Description:     'BLOB[(M)]' + CRLF +
-        'A BLOB column with a maximum length of 65,535 (216 - 1) bytes. Each ' +
+        'A BLOB column with a maximum length of 65,535 (2^16 - 1) bytes. Each ' +
         'BLOB value is stored using a two-byte length prefix that indicates the ' +
         'number of bytes in the value. ' + CRLF +
         'An optional length M can be given for this type. If this is done, MySQL ' +
@@ -758,7 +758,7 @@ var
       NativeType:      mytMediumblob;
       Name:            'MEDIUMBLOB';
       Description:     'MEDIUMBLOB' + CRLF +
-        'A BLOB column with a maximum length of 16,777,215 (224 - 1) bytes. Each ' +
+        'A BLOB column with a maximum length of 16,777,215 (2^24 - 1) bytes. Each ' +
         'MEDIUMBLOB value is stored using a three-byte length prefix that ' +
         'indicates the number of bytes in the value.';
       HasLength:       False;
@@ -773,7 +773,7 @@ var
       NativeType:      mytLongblob;
       Name:            'LONGBLOB';
       Description:     'LONGBLOB' + CRLF +
-        'A BLOB column with a maximum length of 4,294,967,295 or 4GB (232 - 1) ' +
+        'A BLOB column with a maximum length of 4,294,967,295 or 4GB (2^32 - 1) ' +
         'bytes. The effective maximum length of LONGBLOB columns depends on the ' +
         'configured maximum packet size in the client/server protocol and ' +
         'available memory. Each LONGBLOB value is stored using a four-byte ' +
@@ -1008,7 +1008,7 @@ var
     (
       Index:           dtDecimal;
       Name:            'DECIMAL';
-      Description:     'Fixed precision and scale numeric data from -10^38 +1 through 10^38 –1.';
+      Description:     'Fixed precision and scale numeric data from -10^38 +1 through 10^38 Â–1.';
       HasLength:       True;
       RequiresLength:  True;
       HasBinary:       False;
