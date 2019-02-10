@@ -1595,6 +1595,7 @@ var
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
   OldSnippetsDir, CurrentSnippetsDir, TargetSnippet: String;
   Files: TStringDynArray;
+  dti: TDBDatatypeCategoryIndex;
 begin
   caption := APPNAME;
 
@@ -1616,6 +1617,11 @@ begin
   menuQueryHelpersGenerateInsert.Caption := f_('Generate %s ...', ['INSERT']);
   menuQueryHelpersGenerateUpdate.Caption := f_('Generate %s ...', ['UPDATE']);
   menuQueryHelpersGenerateDelete.Caption := f_('Generate %s ...', ['DELETE']);
+
+  // Translate data type categories
+  for dti:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
+    DatatypeCategories[dti].Name := _(DatatypeCategories[dti].Name);
+  end;
 
   // Detect version
   dwInfoSize := GetFileVersionInfoSize(PChar(Application.ExeName), dwWnd);
