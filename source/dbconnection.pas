@@ -6463,18 +6463,19 @@ end;
 
 function TAdoDBQuery.IsNull(Column: Integer): Boolean;
 begin
+  Result := False;
   // Catch broken connection
-  if not FConnection.Active then
-    Result := False
-  else if FEditingPrepared and Assigned(FCurrentUpdateRow) then
-    Result := FCurrentUpdateRow[Column].NewIsNull
-  else begin
-    try
-      Result := FCurrentResults.Fields[Column].IsNull;
-    except
-      // Silence error: "Multiple-step operation generated errors. Check each status value."
-      // @see #496
-      on E:EOleException do;
+  if FConnection.Active then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+      Result := FCurrentUpdateRow[Column].NewIsNull
+    else begin
+      try
+        Result := FCurrentResults.Fields[Column].IsNull;
+      except
+        // Silence error: "Multiple-step operation generated errors. Check each status value."
+        // @see #496
+        on E:EOleException do;
+      end;
     end;
   end;
 end;
