@@ -372,8 +372,13 @@ end;
 
 procedure TfrmTableEditor.btnSaveClick(Sender: TObject);
 begin
+  // Save changes, and make it impossible to (accidentally) click the save button twice
+  btnSave.Enabled := False;
+  btnSave.Repaint;
   if ApplyModifications = mrOK then
-    Init(DBObject);
+    Init(DBObject)
+  else // Re-enable save button when something went wrong
+    btnSave.Enabled := True;
 end;
 
 
