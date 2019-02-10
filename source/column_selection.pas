@@ -152,13 +152,19 @@ procedure TColumnSelectionForm.chklistColumnsClickCheck(Sender: TObject);
 var
   i : Integer;
   AllSelected, NoneSelected : Boolean;
+  FocusedItem: String;
+  FocusedItemIndex: Integer;
 begin
   // Add or remove clicked item from list
   if chklistColumns.ItemIndex > -1 then begin
-    if chklistColumns.Checked[chklistColumns.ItemIndex] then
-      FCheckedColumns.Add(chklistColumns.Items[chklistColumns.ItemIndex])
-    else
-      FCheckedColumns.Delete(FCheckedColumns.IndexOf(chklistColumns.Items[chklistColumns.ItemIndex]));
+    FocusedItem := chklistColumns.Items[chklistColumns.ItemIndex];
+    if chklistColumns.Checked[chklistColumns.ItemIndex] then begin
+      FCheckedColumns.Add(FocusedItem)
+    end else begin
+      FocusedItemIndex := FCheckedColumns.IndexOf(FocusedItem);
+      if FocusedItemIndex > -1 then
+        FCheckedColumns.Delete(FocusedItemIndex);
+    end;
   end;
 
   Allselected := True;
