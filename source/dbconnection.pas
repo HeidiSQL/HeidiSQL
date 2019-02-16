@@ -4645,7 +4645,7 @@ begin
       Obj.Comment := rx.Replace(Obj.Comment, '', False);
       Obj.Version := StrToInt64Def(Results.Col('Version', True), Obj.Version);
       Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment'), Obj.AutoInc);
-      Obj.RowFormat := Results.Col('Row_format');
+      Obj.RowFormat := Results.Col('Row_format', True);
       Obj.AvgRowLen := StrToInt64Def(Results.Col('Avg_row_length'), Obj.AvgRowLen);
       Obj.MaxDataLen := StrToInt64Def(Results.Col('Max_data_length'), Obj.MaxDataLen);
       Obj.IndexLen := StrToInt64Def(Results.Col('Index_length'), Obj.IndexLen);
