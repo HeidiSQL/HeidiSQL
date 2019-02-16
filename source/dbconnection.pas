@@ -236,6 +236,7 @@ type
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
       function IsAzure: Boolean;
+      function IsMemSQL: Boolean;
       property ImageIndex: Integer read GetImageIndex;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
@@ -1313,6 +1314,8 @@ begin
     My := 'InfiniDB'
   else if IsInfobright then
     My := 'Infobright'
+  else if IsMemSQL then
+    My := 'MemSQL'
   else
     My := 'MariaDB or MySQL';
   if LongFormat then case NetType of
@@ -1421,6 +1424,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsMemSQL: Boolean;
+begin
+  Result := Pos('memsql', LowerCase(ServerVersion)) > 0;
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   if IsFolder then
@@ -1432,7 +1441,8 @@ begin
       else if IsPercona then Result := 169
       else if IsTokudb then Result := 171
       else if IsInfiniDB then Result := 172
-      else if IsInfobright then Result := 173;
+      else if IsInfobright then Result := 173
+      else if IsMemSQL then Result := 194;
     end;
     ngMSSQL: begin
       Result := 123;
