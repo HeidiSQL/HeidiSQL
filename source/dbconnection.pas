@@ -2083,6 +2083,7 @@ begin
       Error := LastErrorMsg;
       Log(lcError, Error);
       FConnectionStarted := 0;
+      PQfinish(FHandle); // free the memory
       FHandle := nil;
       raise EDatabaseError.Create(Error);
     end;
