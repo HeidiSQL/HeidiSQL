@@ -897,13 +897,15 @@ begin
                   else
                     SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
-                ngMSSQL:
+                ngMSSQL: begin
                   SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' OR ';
-                ngPgSQL:
+                end;
+                ngPgSQL: begin
                   if IsRegExp then
-                    SQL := SQL + 'CAST('+Column+' AS TEXT) SIMILAR TO ' + esc(FindTextJokers) + ' OR ';
+                    SQL := SQL + 'CAST('+Column+' AS TEXT) SIMILAR TO ' + esc(FindTextJokers) + ' OR '
                   else
                     SQL := SQL + 'CAST('+Column+' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
               end;
             end;
 
