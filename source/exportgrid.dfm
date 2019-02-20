@@ -112,7 +112,6 @@ object frmExportGrid: TfrmExportGrid
       Top = 43
       Width = 55
       Height = 17
-      Anchors = [akLeft, akTop, akRight]
       Caption = 'File'
       TabOrder = 1
       OnClick = ValidateControls
