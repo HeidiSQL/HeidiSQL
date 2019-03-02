@@ -1612,6 +1612,20 @@ begin
 
   MainMenu1.Images := VirtualImageListMain;
 
+  if AppSettings.ReadBool(asToolbarShowCaptions) then begin
+    for i:=0 to ToolBarMainButtons.ButtonCount-1 do begin
+      if ToolBarMainButtons.Buttons[i].Style = tbsSeparator then
+        Continue;
+      ToolBarMainButtons.Buttons[i].AutoSize := True;
+      //ToolBarMainButtons.Buttons[i].AutoSize := False;
+      //ToolBarMainButtons.Buttons[i].Width := 25;
+      ToolBarMainButtons.Buttons[i].Style := tbsTextButton;
+    end;
+    //ToolBarMainButtons.AllowTextButtons := True;
+    //ToolBarMainButtons.List := True;
+    ToolBarMainButtons.ShowCaptions := true;
+  end;
+
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
   menuQueryHelpersGenerateInsert.Caption := f_('Generate %s ...', ['INSERT']);

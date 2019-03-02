@@ -136,7 +136,7 @@ type
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
-    asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asQuerymemoheight, asDbtreewidth,
+    asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
     asWrapLongLines, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
     asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
@@ -3454,6 +3454,7 @@ begin
   InitSetting(asCoolBandIndex,                    'CoolBand%sIndex',                       0);
   InitSetting(asCoolBandBreak,                    'CoolBand%sBreak',                       0, True);
   InitSetting(asCoolBandWidth,                    'CoolBand%sWidth',                       0);
+  InitSetting(asToolbarShowCaptions,              'ToolbarShowCaptions',                   0, False);
   InitSetting(asQuerymemoheight,                  'querymemoheight',                       100);
   InitSetting(asDbtreewidth,                      'dbtreewidth',                           270);
   InitSetting(asDataPreviewHeight,                'DataPreviewHeight',                     100);
