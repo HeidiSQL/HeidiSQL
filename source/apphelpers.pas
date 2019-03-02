@@ -1462,7 +1462,7 @@ var
 begin
   // This is called either in some early stage, or from preferences dialog
   VT.BeginUpdate;
-  SingleLineHeight := GetTextHeight(VT.Font) + 5;
+  SingleLineHeight := GetTextHeight(VT.Font) + 7;
   // Multiline nodes?
   VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
   VT.Header.Height := SingleLineHeight;
