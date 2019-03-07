@@ -3346,7 +3346,8 @@ end;
 
 procedure TPGConnection.SetCharacterSet(CharsetName: String);
 begin
-  // Not in use. No charset stuff going on here?
+  // See issue #22
+  Query('SET CLIENT_ENCODING TO ' + EscapeString('UTF8'));
 end;
 
 
