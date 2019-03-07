@@ -2043,7 +2043,7 @@ begin
         end;
       end;
     except
-      on E:EOleException do begin
+      on E:Exception do begin
         FLastError := E.Message;
         Error := LastErrorMsg;
         Log(lcError, Error);
