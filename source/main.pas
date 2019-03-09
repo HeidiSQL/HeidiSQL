@@ -6254,11 +6254,15 @@ var
   OldCaretXY, StartOfTokenRowCol, CurrentRowCol: TBufferCoord;
   TokenTypeInt, Start, CurrentCharIndex: Integer;
   OldSelStart, OldSelEnd: Integer;
+  LineWithToken: String;
 const
   WordChars = ['A'..'Z', 'a'..'z', '_'];
+  IgnoreChars = [#8]; // Backspace, and probably more which should not trigger uppercase
 begin
   // Uppercase reserved words, functions and data types
-  if AppSettings.ReadBool(asAutoUppercase) and (not CharInSet(Key, WordChars)) then begin
+  if (not CharInSet(Key, WordChars)) and (not CharInSet(Key, IgnoreChars)) then begin
+    if not AppSettings.ReadBool(asAutoUppercase) then
+      Exit;
     Editor := Sender as TSynMemo;
     CurrentCharIndex := Editor.RowColToCharIndex(Editor.CaretXY);
     // Go one left on trailing line feed, after which PrevWordPos doesn't work
@@ -6266,6 +6270,11 @@ begin
     CurrentRowCol := Editor.CharIndexToRowCol(CurrentCharIndex);
     StartOfTokenRowCol := Editor.PrevWordPosEx(CurrentRowCol);
     Editor.GetHighlighterAttriAtRowColEx(StartOfTokenRowCol, Token, TokenTypeInt, Start, Attri);
+    LineWithToken := Editor.Lines[StartOfTokenRowCol.Line-1];
+    if (StartOfTokenRowCol.Char > 1) and (LineWithToken[StartOfTokenRowCol.Char-1] = '.') then begin
+      // Previous word is preceded by a dot, so it is most probably a table, column or some alias
+      Exit;
+    end;
     if SynSQLSynUsed.TableNames.IndexOf(Token) > 0 then
       Exit;
     if not (TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey]) then
