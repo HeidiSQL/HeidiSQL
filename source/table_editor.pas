@@ -324,11 +324,11 @@ begin
       memoUnionTables.Lines.Text := rx.Match[1]
     else
       memoUnionTables.Lines.Clear;
-    rx.Expression := '\bCOMMENT=''((.+)[^''])''';
-    if rx.Exec(DBObject.CreateCode) then
-      memoComment.Lines.Text := DBObject.Connection.UnescapeString(rx.Match[1])
-    else
-      memoComment.Lines.Clear;
+
+    // Prefer to take comment from SHOW TABLE STATUS result, to support single quotes without including some create option
+    // See issue #196
+    memoComment.Text := DBObject.Comment;
+
     rx.Expression := '\b(PARTITION\s+.+)(\*/)';
     if rx.Exec(DBObject.CreateCode) then
       SynMemoPartitions.Text := rx.Match[1]
