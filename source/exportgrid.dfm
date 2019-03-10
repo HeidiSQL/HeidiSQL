@@ -1,6 +1,7 @@
 object frmExportGrid: TfrmExportGrid
   Left = 0
   Top = 0
+  BorderIcons = [biSystemMenu]
   Caption = 'Export grid rows'
   ClientHeight = 422
   ClientWidth = 373

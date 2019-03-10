@@ -1,27 +1,30 @@
 object optionsform: Toptionsform
   Left = 547
   Top = 163
-  BorderStyle = bsDialog
+  BorderIcons = [biSystemMenu]
   Caption = 'Preferences'
-  ClientHeight = 470
-  ClientWidth = 732
+  ClientHeight = 460
+  ClientWidth = 722
   Color = clBtnFace
+  Constraints.MinHeight = 480
+  Constraints.MinWidth = 600
   ParentFont = True
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
-    732
-    470)
+    722
+    460)
   PixelsPerInch = 96
   TextHeight = 13
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
-    Width = 718
-    Height = 427
+    Width = 708
+    Height = 417
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.VirtualImageListMain
@@ -34,16 +37,16 @@ object optionsform: Toptionsform
       object pnlDpiHelperGeneral: TPanel
         Left = 0
         Top = 0
-        Width = 710
-        Height = 398
+        Width = 700
+        Height = 388
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperGeneral'
         ShowCaption = False
         TabOrder = 0
         DesignSize = (
-          710
-          398)
+          700
+          388)
         object lblMySQLBinaries: TLabel
           Left = 8
           Top = 177
@@ -73,7 +76,7 @@ object optionsform: Toptionsform
           Caption = 'GUI font: *'
         end
         object lblGUIFontSize: TLabel
-          Left = 674
+          Left = 664
           Top = 258
           Width = 10
           Height = 13
@@ -97,7 +100,7 @@ object optionsform: Toptionsform
         object chkAutoReconnect: TCheckBox
           Left = 190
           Top = 31
-          Width = 515
+          Width = 505
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Automatically reconnect to previously opened sessions on startup'
@@ -107,7 +110,7 @@ object optionsform: Toptionsform
         object chkRestoreLastDB: TCheckBox
           Left = 190
           Top = 54
-          Width = 515
+          Width = 505
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Restore last used database on startup'
@@ -122,7 +125,6 @@ object optionsform: Toptionsform
           Width = 196
           Height = 17
           Hint = '0 = on each application start'
-          Anchors = [akLeft, akTop, akRight]
           Caption = 'Check for updates each [day]:'
           TabOrder = 3
           OnClick = chkUpdatecheckClick
@@ -132,7 +134,6 @@ object optionsform: Toptionsform
           Top = 75
           Width = 43
           Height = 21
-          Anchors = [akTop, akRight]
           Enabled = False
           TabOrder = 4
           Text = '1'
@@ -143,7 +144,6 @@ object optionsform: Toptionsform
           Top = 75
           Width = 16
           Height = 21
-          Anchors = [akTop, akRight]
           Associate = editUpdatecheckInterval
           Enabled = False
           Max = 999
@@ -154,7 +154,7 @@ object optionsform: Toptionsform
         object chkUpdateCheckBuilds: TCheckBox
           Left = 464
           Top = 77
-          Width = 241
+          Width = 231
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Also check for updated nightly builds'
@@ -165,7 +165,7 @@ object optionsform: Toptionsform
         object chkDoStatistics: TCheckBox
           Left = 190
           Top = 100
-          Width = 515
+          Width = 505
           Height = 17
           Hint = 
             'This option, if enabled, will cause HeidiSQL to ping heidisql.co' +
@@ -179,7 +179,7 @@ object optionsform: Toptionsform
         object chkAllowMultiInstances: TCheckBox
           Left = 190
           Top = 8
-          Width = 515
+          Width = 505
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Allow multiple application instances'
@@ -199,7 +199,7 @@ object optionsform: Toptionsform
         object editMySQLBinaries: TButtonedEdit
           Left = 190
           Top = 174
-          Width = 515
+          Width = 505
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.VirtualImageListMain
@@ -216,7 +216,7 @@ object optionsform: Toptionsform
           Tag = 1
           Left = 190
           Top = 228
-          Width = 515
+          Width = 505
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -226,7 +226,7 @@ object optionsform: Toptionsform
         object editCustomSnippetsDirectory: TButtonedEdit
           Left = 190
           Top = 201
-          Width = 515
+          Width = 505
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Images = MainForm.VirtualImageListMain
@@ -243,7 +243,7 @@ object optionsform: Toptionsform
           Tag = 1
           Left = 190
           Top = 255
-          Width = 402
+          Width = 392
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -252,7 +252,7 @@ object optionsform: Toptionsform
         end
         object editGUIFontSize: TEdit
           Tag = 1
-          Left = 599
+          Left = 589
           Top = 255
           Width = 50
           Height = 21
@@ -263,7 +263,7 @@ object optionsform: Toptionsform
         end
         object updownGUIFontSize: TUpDown
           Tag = 1
-          Left = 649
+          Left = 639
           Top = 255
           Width = 16
           Height = 21
@@ -277,7 +277,7 @@ object optionsform: Toptionsform
         object chkWheelZoom: TCheckBox
           Left = 190
           Top = 123
-          Width = 515
+          Width = 505
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Use Ctrl+Mousewheel for zooming'
@@ -288,7 +288,7 @@ object optionsform: Toptionsform
           Tag = 1
           Left = 190
           Top = 282
-          Width = 515
+          Width = 505
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -299,7 +299,7 @@ object optionsform: Toptionsform
         object comboIconPack: TComboBox
           Left = 190
           Top = 309
-          Width = 515
+          Width = 505
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -314,16 +314,16 @@ object optionsform: Toptionsform
       object pnlDpiHelperLogging: TPanel
         Left = 0
         Top = 0
-        Width = 710
-        Height = 398
+        Width = 700
+        Height = 388
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperLogging'
         ShowCaption = False
         TabOrder = 0
         DesignSize = (
-          710
-          398)
+          700
+          388)
         object Label4: TLabel
           Left = 8
           Top = 11
@@ -411,9 +411,8 @@ object optionsform: Toptionsform
         object chkLogToFile: TCheckBox
           Left = 190
           Top = 64
-          Width = 147
+          Width = 137
           Height = 17
-          Anchors = [akLeft, akTop, akRight]
           Caption = 'Write SQL log to file'
           TabOrder = 4
           OnClick = chkLogToFileClick
@@ -466,7 +465,7 @@ object optionsform: Toptionsform
         object editLogDir: TButtonedEdit
           Left = 344
           Top = 62
-          Width = 361
+          Width = 351
           Height = 21
           Anchors = [akLeft, akTop, akRight]
           Enabled = False
@@ -529,16 +528,16 @@ object optionsform: Toptionsform
       object pnlDpiHelperSql: TPanel
         Left = 0
         Top = 0
-        Width = 710
-        Height = 398
+        Width = 700
+        Height = 388
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperSql'
         ShowCaption = False
         TabOrder = 0
         DesignSize = (
-          710
-          398)
+          700
+          388)
         object lblFont: TLabel
           Left = 8
           Top = 11
@@ -551,7 +550,6 @@ object optionsform: Toptionsform
           Top = 11
           Width = 10
           Height = 13
-          Anchors = [akTop, akRight]
           Caption = 'pt'
         end
         object Label1: TLabel
@@ -576,19 +574,17 @@ object optionsform: Toptionsform
           Caption = 'Element:'
         end
         object lblSQLColBackground: TLabel
-          Left = 190
+          Left = 180
           Top = 314
           Width = 60
           Height = 13
-          Anchors = [akTop, akRight]
           Caption = 'Background:'
         end
         object lblSQLColForeground: TLabel
-          Left = 190
+          Left = 180
           Top = 267
           Width = 60
           Height = 13
-          Anchors = [akTop, akRight]
           Caption = 'Foreground:'
         end
         object lblEditorColorsPreset: TLabel
@@ -599,82 +595,76 @@ object optionsform: Toptionsform
           Caption = 'Colors preset:'
         end
         object comboSQLFontName: TComboBox
-          Left = 190
+          Left = 180
           Top = 8
           Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akTop, akRight]
           TabOrder = 0
           OnChange = SQLFontChange
         end
         object editSQLFontSize: TEdit
-          Left = 341
+          Left = 331
           Top = 8
           Width = 43
           Height = 21
-          Anchors = [akTop, akRight]
           TabOrder = 1
           Text = '9'
           OnExit = SQLFontChange
         end
         object updownSQLFontSize: TUpDown
-          Left = 384
+          Left = 374
           Top = 8
           Width = 16
           Height = 21
-          Anchors = [akTop, akRight]
           Associate = editSQLFontSize
           Position = 9
           TabOrder = 2
           OnClick = updownSQLFontSizeClick
         end
         object chkCompletionProposal: TCheckBox
-          Left = 190
+          Left = 180
           Top = 87
           Width = 508
           Height = 17
-          Anchors = [akTop, akRight]
+          Anchors = [akLeft, akTop, akRight]
           Caption = 'Enable autocompletion'
           TabOrder = 8
           OnClick = Modified
         end
         object chkTabsToSpaces: TCheckBox
-          Left = 264
+          Left = 254
           Top = 36
-          Width = 437
+          Width = 136
           Height = 17
-          Anchors = [akTop, akRight]
           Caption = 'Tabs to spaces'
           TabOrder = 5
           OnClick = Modified
         end
         object editSQLTabWidth: TEdit
-          Left = 190
+          Left = 180
           Top = 34
           Width = 41
           Height = 21
-          Anchors = [akTop, akRight]
           TabOrder = 3
           Text = '0'
           OnExit = SQLFontChange
         end
         object updownSQLTabWidth: TUpDown
-          Left = 231
+          Left = 221
           Top = 34
           Width = 16
           Height = 21
-          Anchors = [akTop, akRight]
           Associate = editSQLTabWidth
           TabOrder = 4
           OnClick = updownSQLFontSizeClick
         end
         object chkAskFileSave: TCheckBox
-          Left = 190
+          Left = 180
           Top = 111
           Width = 506
           Height = 17
-          Anchors = [akTop, akRight]
+          Anchors = [akLeft, akTop, akRight]
           Caption = 'Prompt to save modified files on tab close'
           Checked = True
           State = cbChecked
@@ -682,21 +672,19 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object editMaxQueryResults: TEdit
-          Left = 190
+          Left = 180
           Top = 61
           Width = 41
           Height = 21
-          Anchors = [akTop, akRight]
           TabOrder = 6
           Text = '1'
           OnChange = Modified
         end
         object updownMaxQueryResults: TUpDown
-          Left = 231
+          Left = 221
           Top = 61
           Width = 16
           Height = 21
-          Anchors = [akTop, akRight]
           Associate = editMaxQueryResults
           Min = 1
           Position = 1
@@ -704,17 +692,16 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object comboSQLColElement: TComboBox
-          Left = 190
+          Left = 180
           Top = 217
           Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akTop, akRight]
           TabOrder = 13
           OnChange = comboSQLColElementChange
         end
         object chkSQLBold: TCheckBox
-          Left = 190
+          Left = 180
           Top = 244
           Width = 61
           Height = 17
@@ -723,44 +710,41 @@ object optionsform: Toptionsform
           OnClick = SQLFontChange
         end
         object chkSQLItalic: TCheckBox
-          Left = 264
+          Left = 254
           Top = 244
-          Width = 60
+          Width = 50
           Height = 17
-          Anchors = [akLeft, akTop, akRight]
           Caption = 'Italic'
           TabOrder = 15
           OnClick = SQLFontChange
         end
         object cboxSQLColForeground: TColorBox
-          Left = 190
+          Left = 180
           Top = 286
           Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          Anchors = [akTop, akRight]
           TabOrder = 16
           OnChange = SQLFontChange
         end
         object cboxSQLColBackground: TColorBox
-          Left = 190
+          Left = 180
           Top = 333
           Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          Anchors = [akTop, akRight]
           TabOrder = 17
           OnChange = SQLFontChange
         end
         object SynMemoSQLSample: TSynMemo
           AlignWithMargins = True
-          Left = 341
+          Left = 331
           Top = 190
           Width = 364
-          Height = 203
+          Height = 191
           Cursor = crHandPoint
           SingleLineMode = False
-          Anchors = [akTop, akRight, akBottom]
+          Anchors = [akLeft, akTop, akRight, akBottom]
           Font.Charset = DEFAULT_CHARSET
           Font.Color = clWindowText
           Font.Height = -13
@@ -795,32 +779,31 @@ object optionsform: Toptionsform
           FontSmoothing = fsmNone
         end
         object chkQueryWarningsMessage: TCheckBox
-          Left = 190
+          Left = 180
           Top = 134
           Width = 508
           Height = 17
-          Anchors = [akTop, akRight]
+          Anchors = [akLeft, akTop, akRight]
           Caption = 'Show query warnings dialog'
           TabOrder = 10
           OnClick = Modified
         end
         object chkAutoUppercase: TCheckBox
-          Left = 190
+          Left = 180
           Top = 159
           Width = 508
           Height = 17
-          Anchors = [akTop, akRight]
+          Anchors = [akLeft, akTop, akRight]
           Caption = 'Auto uppercase reserved words and functions'
           TabOrder = 11
           OnClick = Modified
         end
         object comboEditorColorsPreset: TComboBox
-          Left = 190
+          Left = 180
           Top = 190
           Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akTop, akRight]
           ItemIndex = 0
           TabOrder = 12
           Text = 'Current custom settings'
@@ -836,16 +819,16 @@ object optionsform: Toptionsform
       object pnlDpiHelperGrid: TPanel
         Left = 0
         Top = 0
-        Width = 710
-        Height = 398
+        Width = 700
+        Height = 388
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperGrid'
         ShowCaption = False
         TabOrder = 0
         DesignSize = (
-          710
-          398)
+          700
+          388)
         object lblMaxColWidth: TLabel
           Left = 8
           Top = 11
@@ -858,7 +841,6 @@ object optionsform: Toptionsform
           Top = 93
           Width = 10
           Height = 13
-          Anchors = [akTop, akRight]
           Caption = 'pt'
         end
         object lblDataFont: TLabel
@@ -913,21 +895,19 @@ object optionsform: Toptionsform
           Caption = 'Same text background:'
         end
         object editMaxColWidth: TEdit
-          Left = 190
+          Left = 180
           Top = 8
           Width = 42
           Height = 21
-          Anchors = [akTop, akRight]
           TabOrder = 0
           Text = '1'
           OnChange = Modified
         end
         object updownMaxColWidth: TUpDown
-          Left = 233
+          Left = 222
           Top = 8
           Width = 16
           Height = 21
-          Anchors = [akTop, akRight]
           Associate = editMaxColWidth
           Min = 1
           Max = 1000
@@ -936,73 +916,66 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object comboDataFontName: TComboBox
-          Left = 190
+          Left = 180
           Top = 89
           Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akTop, akRight]
           TabOrder = 6
           OnChange = DataFontsChange
         end
         object editDataFontSize: TEdit
-          Left = 341
+          Left = 331
           Top = 89
           Width = 42
           Height = 21
-          Anchors = [akTop, akRight]
           TabOrder = 7
           Text = '8'
           OnChange = DataFontsChange
         end
         object updownDataFontSize: TUpDown
-          Left = 383
+          Left = 373
           Top = 89
           Width = 16
           Height = 21
-          Anchors = [akTop, akRight]
           Associate = editDataFontSize
           Position = 8
           TabOrder = 8
         end
         object editGridRowCountMax: TEdit
-          Left = 341
+          Left = 331
           Top = 35
           Width = 132
           Height = 21
-          Anchors = [akTop, akRight]
           NumbersOnly = True
           TabOrder = 3
           OnChange = Modified
           OnExit = editGridRowCountExit
         end
         object editGridRowCountStep: TEdit
-          Left = 190
+          Left = 180
           Top = 35
           Width = 145
           Height = 21
-          Anchors = [akTop, akRight]
           NumbersOnly = True
           TabOrder = 2
           OnChange = Modified
           OnExit = editGridRowCountExit
         end
         object editGridRowsLineCount: TEdit
-          Left = 190
+          Left = 180
           Top = 62
           Width = 42
           Height = 21
-          Anchors = [akTop, akRight]
           TabOrder = 4
           Text = '1'
           OnChange = Modified
         end
         object updownGridRowsLineCount: TUpDown
-          Left = 233
+          Left = 222
           Top = 62
           Width = 16
           Height = 21
-          Anchors = [akTop, akRight]
           Associate = editGridRowsLineCount
           Min = 1
           Position = 1
@@ -1010,58 +983,53 @@ object optionsform: Toptionsform
           OnChanging = anyUpDownLimitChanging
         end
         object comboGridTextColors: TComboBox
-          Left = 190
+          Left = 180
           Top = 143
           Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akTop, akRight]
           TabOrder = 10
           OnSelect = comboGridTextColorsSelect
         end
         object colorBoxGridTextColors: TColorBox
-          Left = 341
+          Left = 331
           Top = 143
           Width = 132
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbCustomColor, cbPrettyNames]
-          Anchors = [akTop, akRight]
           TabOrder = 11
           OnSelect = colorBoxGridTextColorsSelect
         end
         object cboxNullBackground: TColorBox
-          Left = 190
+          Left = 180
           Top = 170
           Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-          Anchors = [akTop, akRight]
           TabOrder = 12
           OnChange = Modified
           OnSelect = Modified
         end
         object cboxRowBackgroundOdd: TColorBox
-          Left = 341
+          Left = 331
           Top = 198
           Width = 132
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-          Anchors = [akTop, akRight]
           TabOrder = 14
           OnChange = Modified
         end
         object cboxRowBackgroundEven: TColorBox
-          Left = 190
+          Left = 180
           Top = 198
           Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-          Anchors = [akTop, akRight]
           TabOrder = 13
           OnChange = Modified
         end
         object chkLocalNumberFormat: TCheckBox
-          Left = 190
+          Left = 180
           Top = 254
           Width = 510
           Height = 17
@@ -1071,7 +1039,7 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object chkHintsOnResultTabs: TCheckBox
-          Left = 190
+          Left = 180
           Top = 277
           Width = 510
           Height = 17
@@ -1081,21 +1049,19 @@ object optionsform: Toptionsform
           OnClick = Modified
         end
         object cboxRowHighlightSameText: TColorBox
-          Left = 190
+          Left = 180
           Top = 226
           Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
-          Anchors = [akTop, akRight]
           TabOrder = 15
         end
         object comboGridTextColorsPreset: TComboBox
-          Left = 190
+          Left = 180
           Top = 116
           Width = 145
           Height = 21
           Style = csDropDownList
-          Anchors = [akTop, akRight]
           TabOrder = 9
           OnSelect = comboGridTextColorsPresetSelect
         end
@@ -1107,16 +1073,16 @@ object optionsform: Toptionsform
       object pnlDpiHelperData: TPanel
         Left = 0
         Top = 0
-        Width = 710
-        Height = 398
+        Width = 700
+        Height = 388
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperData'
         ShowCaption = False
         TabOrder = 0
         DesignSize = (
-          710
-          398)
+          700
+          388)
         object lblLineBreakStyle: TLabel
           Left = 8
           Top = 188
@@ -1127,7 +1093,7 @@ object optionsform: Toptionsform
         object chkEditorBinary: TCheckBox
           Left = 190
           Top = 8
-          Width = 510
+          Width = 500
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Enable popup BLOB/HEX editor'
@@ -1137,7 +1103,7 @@ object optionsform: Toptionsform
         object chkEditorDatetime: TCheckBox
           Left = 190
           Top = 31
-          Width = 510
+          Width = 500
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Enable inplace date/time editor'
@@ -1147,7 +1113,7 @@ object optionsform: Toptionsform
         object chkPrefillDateTime: TCheckBox
           Left = 190
           Top = 54
-          Width = 510
+          Width = 500
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Prefill empty date/time fields with current date/time'
@@ -1157,7 +1123,7 @@ object optionsform: Toptionsform
         object chkEditorEnum: TCheckBox
           Left = 190
           Top = 77
-          Width = 510
+          Width = 500
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Enable ENUM pulldown editor'
@@ -1167,7 +1133,7 @@ object optionsform: Toptionsform
         object chkEditorSet: TCheckBox
           Left = 190
           Top = 100
-          Width = 510
+          Width = 500
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Enable SET checkbox editor'
@@ -1177,7 +1143,7 @@ object optionsform: Toptionsform
         object chkReuseEditorConfiguration: TCheckBox
           Left = 190
           Top = 139
-          Width = 510
+          Width = 500
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Remember filters, sorting and column selection across sessions'
@@ -1186,7 +1152,7 @@ object optionsform: Toptionsform
         object chkForeignDropDown: TCheckBox
           Left = 190
           Top = 162
-          Width = 510
+          Width = 500
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Show values in foreign key columns'
@@ -1208,30 +1174,29 @@ object optionsform: Toptionsform
       object pnlDpiHelperShortcuts: TPanel
         Left = 0
         Top = 0
-        Width = 710
-        Height = 398
+        Width = 700
+        Height = 388
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperShortcuts'
         ShowCaption = False
         TabOrder = 0
         DesignSize = (
-          710
-          398)
+          700
+          388)
         object lblShortcut1: TLabel
           Left = 306
           Top = 64
           Width = 45
-          Height = 16
-          Anchors = [akLeft, akTop, akBottom]
+          Height = 13
           Caption = 'Shortcut:'
         end
         object lblShortcutHint: TLabel
           Left = 306
           Top = 3
-          Width = 279
-          Height = 103
-          Anchors = [akLeft, akTop, akBottom]
+          Width = 391
+          Height = 55
+          Anchors = [akLeft, akTop, akRight]
           AutoSize = False
           Caption = 'Please select a shortcut item in the tree.'
           WordWrap = True
@@ -1240,15 +1205,14 @@ object optionsform: Toptionsform
           Left = 306
           Top = 107
           Width = 98
-          Height = 16
-          Anchors = [akLeft, akTop, akBottom]
+          Height = 13
           Caption = 'Secondary shortcut:'
         end
         object TreeShortcutItems: TVirtualStringTree
           Left = 0
           Top = 0
           Width = 300
-          Height = 398
+          Height = 388
           Align = alLeft
           Header.AutoSizeIndex = 0
           Header.MainColumn = -1
@@ -1288,8 +1252,8 @@ object optionsform: Toptionsform
     end
   end
   object btnCancel: TButton
-    Left = 571
-    Top = 439
+    Left = 561
+    Top = 429
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1299,8 +1263,8 @@ object optionsform: Toptionsform
     TabOrder = 2
   end
   object btnOK: TButton
-    Left = 491
-    Top = 439
+    Left = 481
+    Top = 429
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1311,8 +1275,8 @@ object optionsform: Toptionsform
     OnClick = Apply
   end
   object btnApply: TButton
-    Left = 651
-    Top = 439
+    Left = 641
+    Top = 429
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1323,7 +1287,7 @@ object optionsform: Toptionsform
   end
   object btnRestoreDefaults: TButton
     Left = 8
-    Top = 439
+    Top = 429
     Width = 177
     Height = 25
     Anchors = [akLeft, akBottom]

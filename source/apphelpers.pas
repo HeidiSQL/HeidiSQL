@@ -182,6 +182,7 @@ type
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asDoubleClickInsertsNodeText, asForeignDropDown,
     asQueryHistoryEnabled, asQueryHistoryKeepDays,
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
+    asPreferencesWindowWidth, asPreferencesWindowHeight,
     asFileDialogEncoding,
     asUnused);
   TAppSetting = record
@@ -3671,6 +3672,8 @@ begin
   InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False);
   InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True, '', True);
   InitSetting(asLineBreakStyle,                   'LineBreakStyle',                        Integer(lbsWindows));
+  InitSetting(asPreferencesWindowWidth,           'PreferencesWindowWidth',                740);
+  InitSetting(asPreferencesWindowHeight,          'PreferencesWindowHeight',               500);
   InitSetting(asFileDialogEncoding,               'FileDialogEncoding_%s',                 0);
 end;
 

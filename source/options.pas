@@ -13,7 +13,7 @@ uses
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
   mysql_structures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections,
-  Vcl.ImageCollection;
+  Vcl.ImageCollection, extra_controls;
 
 type
   TShortcutItemData = record
@@ -31,7 +31,7 @@ type
   end;
   TGridColorsPresetList = TObjectList<TGridColorsPreset>;
 
-  Toptionsform = class(TForm)
+  Toptionsform = class(TFormWithSizeGrip)
     pagecontrolMain: TPageControl;
     tabMisc: TTabSheet;
     btnCancel: TButton;
@@ -211,6 +211,7 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure comboGridTextColorsPresetSelect(Sender: TObject);
     procedure comboThemeSelect(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -472,6 +473,9 @@ var
 begin
   TranslateComponent(Self);
 
+  Width := AppSettings.ReadInt(asPreferencesWindowWidth);
+  Height := AppSettings.ReadInt(asPreferencesWindowHeight);
+
   // Misecllaneous
   // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
   if MainForm.IsWine then begin
@@ -592,6 +596,12 @@ begin
   comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
 end;
 
+
+procedure Toptionsform.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asPreferencesWindowWidth, Width);
+  AppSettings.WriteInt(asPreferencesWindowHeight, Height);
+end;
 
 procedure Toptionsform.FormShow(Sender: TObject);
 var
