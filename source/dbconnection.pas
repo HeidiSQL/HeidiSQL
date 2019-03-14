@@ -5307,7 +5307,7 @@ var
   rx: TRegExpr;
   Col: TTableColumn;
   Results: TDBQuery;
-  SchemaClause, DataType: String;
+  SchemaClause, DataType, EscQuote: String;
 begin
   if CreateCode <> '' then begin
     // CREATE
@@ -5321,9 +5321,10 @@ begin
     rx := TRegExpr.Create;
     rx.ModifierG := False;
     rx.ModifierI := True;
+    EscQuote := QuoteRegExprMetaChars(FQuoteChar);
     rx.Expression := 'CREATE\s+(OR\s+REPLACE\s+)?'+
       '(ALGORITHM\s*=\s*(\w*)\s*)?'+
-      '(DEFINER\s*=\s*(\S+)\s+)?'+
+      '(DEFINER\s*=\s*(\S+|'+EscQuote+'[^@'+EscQuote+']+'+EscQuote+'@'+EscQuote+'[^'+EscQuote+']+'+EscQuote+')\s+)?'+
       '(SQL\s+SECURITY\s+(\S+)\s+)?'+
       'VIEW\s+[^\(]+\s+'+
       '(\([^\)]+\)\s+)?'+
