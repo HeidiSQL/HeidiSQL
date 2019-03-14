@@ -1418,7 +1418,7 @@ var
   IsMerge: Boolean;
 begin
   // Enable/disable engine specific option controls
-  IsMerge := (Sender as TComboBox).Text = 'MRG_MYISAM';
+  IsMerge := UpperCase((Sender as TComboBox).Text) = 'MRG_MYISAM';
   memoUnionTables.Enabled := IsMerge;
   comboInsertMethod.Enabled := IsMerge;
   Modification(Sender);
