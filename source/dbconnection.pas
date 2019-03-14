@@ -5323,7 +5323,9 @@ begin
     rx.ModifierI := True;
     rx.Expression := 'CREATE\s+(OR\s+REPLACE\s+)?'+
       '(ALGORITHM\s*=\s*(\w*)\s*)?'+
-      '(DEFINER\s*=\s*(\S+)\s+)?'+
+      '(DEFINER\s*=\s*('+
+        '\S+|`[^`]*`(?:@(?:\S+|`[^`]*`)?)?'+
+      ')\s+)?'+
       '(SQL\s+SECURITY\s+(\S+)\s+)?'+
       'VIEW\s+[^\(]+\s+'+
       '(\([^\)]+\)\s+)?'+
