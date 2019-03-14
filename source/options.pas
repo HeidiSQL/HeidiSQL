@@ -1225,7 +1225,7 @@ begin
   // Create list with present language code => language name
   // List taken from dxgettext/languagecodes.pas
   FLanguages := TStringList.Create;
-  FLanguages.Add('' + FLanguages.NameValueSeparator + _('Auto detect'));
+  FLanguages.Add('' + FLanguages.NameValueSeparator + f_('Auto detect (%s)', [DefaultInstance.GetCurrentLanguage]));
   AvailLangCodes := TStringList.Create;
   DefaultInstance.GetListOfLanguages('default', AvailLangCodes);
   AddLang('aa', 'Afar');
