@@ -1642,7 +1642,7 @@ begin
     if comboExportData.Text = DATA_NO then begin
       if menuExportAddComments.Checked then
         Output('-- '+_('Data exporting was unselected.')+CRLF, False, True, True, False, False);
-    end else if DBObj.Engine = 'MRG_MYISAM' then begin
+    end else if MatchText(DBObj.Engine, ['MRG_MYISAM', 'FEDERATED']) then begin
       if menuExportAddComments.Checked then
         Output('-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF, False, True, True, False, False);
     end else begin
