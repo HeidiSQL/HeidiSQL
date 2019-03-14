@@ -5248,6 +5248,11 @@ procedure TMainForm.PageControlMainChange(Sender: TObject);
 var
   tab: TTabSheet;
 begin
+  // Protect from crash when pressing ctrl+tab before main form is displayed
+  // See #574
+  if not Self.Visible then
+    Exit;
+
   tab := PageControlMain.ActivePage;
 
   // Move focus to relevant controls in order for them to receive keyboard events.
