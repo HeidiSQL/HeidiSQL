@@ -7221,6 +7221,9 @@ var
   IsFrame: Boolean;
   ScaleDownFactor: Double;
 begin
+  // Prevent sporadic crash on startup
+  if List = nil then
+    Exit;
   ColWidths := '';
   ColsVisible := '';
   ColPos := '';
