@@ -1421,6 +1421,7 @@ begin
   AddLang('yo', 'Yoruba');
   AddLang('za', 'Zhuang');
   AddLang('zh', 'Chinese (Simplified)');
+  AddLang('zh_CN', 'Chinese (China)');
   AddLang('zh_TW', 'Chinese (Traditional)');
   AddLang('zu', 'Zulu');
   AvailLangCodes.Free;
