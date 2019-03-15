@@ -4,7 +4,7 @@
 
   @author Lars B. Dybdahl and others
   @version $LastChangedRevision: 220 $
-  @see http://dybdahl.dk/dxgettext/
+  @see http://dxgettext.po.dk/
 -------------------------------------------------------------------------------}
 unit gnugettext;
 (**************************************************************)
@@ -15,18 +15,16 @@ unit gnugettext;
 (*  Contributors: Peter Thornqvist, Troy Wolbrink,            *)
 (*                Frank Andreas de Groot, Igor Siticov,       *)
 (*                Jacques Garcia Vazquez, Igor Gitman,        *)
-(*                Arvid Winkelsdorf,                          *)
+(*                Arvid Winkelsdorf, Andreas Hausladen,       *)
 (*                Thomas Mueller (dummzeuch)                  *)
 (*                Olivier Sannier (obones)                    *)
+(*                Luebbe Onken (LO)                           *)
 (*                                                            *)
-(*  See http://dybdahl.dk/dxgettext/ for more information     *)
+(*  See http://dxgettext.po.dk/ for more information          *)
 (*                                                            *)
 (**************************************************************)
 
-// Information about this file:
-// $LastChangedDate: 2010-08-25 15:40:17 +0200 (on, 25 aug 2010) $
-// $LastChangedRevision: 220 $
-// $HeadURL: http://svn.berlios.de/svnroot/repos/dxgettext/trunk/dxgettext/sample/gnugettext.pas $
+// $HeadURL: https://svn.code.sf.net/p/dxgettext/code/trunk/dxgettext/sample/gnugettext.pas $
 
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -54,6 +52,14 @@ interface
 // If the conditional define dx_ChangeProxyClassname is defined, THookedObjects.Proxify adds '!dx'
 // to the class name. Default: off
 {.$define dx_ChangeProxyClassname}
+
+// If the conditional dx_EMPTY_TO_EMPTY is defined translating an empty string results in an
+// empty string.
+// This can also be set at runtime by setting the EmptyToEmpty field of a TGnuGettextInstance
+// (e.g. the defaultInstance).
+// The default behaviour is to return the header entry as per
+// https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html
+{.$define dx_EMPTY_TO_EMPTY}
 
 // ### LO - Workaround aka hack for programs compiled with German Delphi
 //
@@ -180,8 +186,8 @@ interface
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_has_VclThemes}
 {$endif}
-{$ifdef VER250}
-  // Delphi XE4
+{$if CompilerVersion >= 25}
+  // Delphi XE4 and up
   {$DEFINE dx_has_Unsafe_Warnings}
   {$DEFINE dx_has_WideStrings}
   {$DEFINE dx_StringList_has_OwnsObjects}
@@ -190,84 +196,7 @@ interface
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_has_VclThemes}
   {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
-{$ifdef VER260}
-  // Delphi XE5
-  {$DEFINE dx_has_Unsafe_Warnings}
-  {$DEFINE dx_has_WideStrings}
-  {$DEFINE dx_StringList_has_OwnsObjects}
-  {$DEFINE dx_GetStrProp_reads_unicode}
-  {$DEFINE dx_has_Inline}
-  {$DEFINE dx_has_LpVoid}
-  {$DEFINE dx_has_VclThemes}
-  {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
-{$ifdef VER270}
-  // Delphi XE6
-  {$DEFINE dx_has_Unsafe_Warnings}
-  {$DEFINE dx_has_WideStrings}
-  {$DEFINE dx_StringList_has_OwnsObjects}
-  {$DEFINE dx_GetStrProp_reads_unicode}
-  {$DEFINE dx_has_Inline}
-  {$DEFINE dx_has_LpVoid}
-  {$DEFINE dx_has_VclThemes}
-  {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
-{$ifdef VER280}
-  // Delphi XE7
-  {$DEFINE dx_has_Unsafe_Warnings}
-  {$DEFINE dx_has_WideStrings}
-  {$DEFINE dx_StringList_has_OwnsObjects}
-  {$DEFINE dx_GetStrProp_reads_unicode}
-  {$DEFINE dx_has_Inline}
-  {$DEFINE dx_has_LpVoid}
-  {$DEFINE dx_has_VclThemes}
-  {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
-{$ifdef VER290}
-  // Delphi XE8
-  {$DEFINE dx_has_Unsafe_Warnings}
-  {$DEFINE dx_has_WideStrings}
-  {$DEFINE dx_StringList_has_OwnsObjects}
-  {$DEFINE dx_GetStrProp_reads_unicode}
-  {$DEFINE dx_has_Inline}
-  {$DEFINE dx_has_LpVoid}
-  {$DEFINE dx_has_VclThemes}
-  {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
-{$ifdef VER300}
-  // Delphi 10 Seattle
-  {$DEFINE dx_has_Unsafe_Warnings}
-  {$DEFINE dx_has_WideStrings}
-  {$DEFINE dx_StringList_has_OwnsObjects}
-  {$DEFINE dx_GetStrProp_reads_unicode}
-  {$DEFINE dx_has_Inline}
-  {$DEFINE dx_has_LpVoid}
-  {$DEFINE dx_has_VclThemes}
-  {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
-{$ifdef VER310}
-  // Delphi 10.1 Berlin
-  {$DEFINE dx_has_Unsafe_Warnings}
-  {$DEFINE dx_has_WideStrings}
-  {$DEFINE dx_StringList_has_OwnsObjects}
-  {$DEFINE dx_GetStrProp_reads_unicode}
-  {$DEFINE dx_has_Inline}
-  {$DEFINE dx_has_LpVoid}
-  {$DEFINE dx_has_VclThemes}
-  {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
-{$ifdef VER320}
-  // Delphi 10.2 Tokyo
-  {$DEFINE dx_has_Unsafe_Warnings}
-  {$DEFINE dx_has_WideStrings}
-  {$DEFINE dx_StringList_has_OwnsObjects}
-  {$DEFINE dx_GetStrProp_reads_unicode}
-  {$DEFINE dx_has_Inline}
-  {$DEFINE dx_has_LpVoid}
-  {$DEFINE dx_has_VclThemes}
-  {$DEFINE dx_midstr_in_AnsiStrings}
-{$endif}
+{$ifend}
 
 {$ifdef dx_has_Unsafe_Warnings}
   {$WARN UNSAFE_TYPE OFF}
@@ -333,8 +262,21 @@ function getcurrenttextdomain: DomainString;
 procedure bindtextdomain(const szDomain: DomainString; const szDirectory: FilenameString);
 
 // Set language to use
-procedure UseLanguage(LanguageCode: LanguageString);
-function GetCurrentLanguage:LanguageString;
+///<summary>
+/// A LocaleName usually has the form ll_CC. Where ll is an ISO 639 two-letter language code,
+/// and CC is an ISO 3166 two-letter country code.
+/// For example, for German in Germany, ll is de, and CC is DE which results in de_DE </summary>
+procedure UseLanguage(LocaleName: LanguageString);
+function GetCurrentLanguage:LanguageString; deprecated; // use GetCurrentLocaleName instead
+///<summary>
+/// @Returns the full locale name in the form ll_CC </summary>
+function GetCurrentLocaleName: LanguageString;
+///<summary>
+/// @Returns the two letter language code of the current LocaleName </summary>
+function GetCurrentLanguageCode: LanguageString;
+///<summary>
+/// @Returns the two letter language code of the given LocaleName </summary>
+function LocaleNameToLanguageCode(const ALocaleName: LanguageString): LanguageString;
 
 // Translates a component (form, frame etc.) to the currently selected language.
 // Put TranslateComponent(self) in the OnCreate event of all your forms.
@@ -391,7 +333,7 @@ var
   ExecutableFilename: FilenameString; // This is set to paramstr(0) or the name of the DLL you are creating.
 
 const
-  PreferExternal             = True;       // Set to true, to prefer external *.mo over embedded translation
+  PreferExternal             = False;       // Set to true, to prefer external *.mo over embedded translation
   UseMemoryMappedFiles       = True;        // Set to False, to use the mo-file as independent copy in memory (you can update the file while it is in use)
   ReReadMoFileOnSameLanguage = False;       // Set to True, to reread mo-file if the current language is selected again
 
@@ -502,7 +444,7 @@ type
   IGnuGettextInstanceWhenNewLanguageListener = interface
     procedure WhenNewLanguage (const LanguageID:LanguageString);
   end;
-    
+
 {*------------------------------------------------------------------------------
   The main translation engine.
 -------------------------------------------------------------------------------}
@@ -512,12 +454,23 @@ type
       fOnDebugLine:TOnDebugLine;
     public
       Enabled:Boolean;      /// Set this to false to disable translations
+      ///<summary>
+      /// Set this to true, if you want the empty string to be "translated" to an empty string.
+      /// The default behaviour is to return the po file header.
+      /// https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html
+      /// "An empty untranslated-string is reserved to contain the header entry with the meta
+      ///  information (see Header Entry). This header entry should be the first entry of the file.
+      ///  The empty untranslated-string is reserved for this purpose and must not be
+      ///  used anywhere else. </summary> 
+      EmptyToEmpty: Boolean;
       DesignTimeCodePage:Integer;  /// See MultiByteToWideChar() in Win32 API for documentation
       SearchAllDomains: Boolean;  /// Should gettext and ngettext look in all other known domains after the current one
 
-      constructor Create;
+      ///<summary>
+      /// If LocaleName is not '', the instance will be initialized for the given language / locale </summary>
+      constructor Create(LocaleName: LanguageString = '');
       destructor Destroy; override;
-      procedure UseLanguage(LanguageCode: LanguageString);
+      procedure UseLanguage(LocaleName: LanguageString);
       procedure GetListOfLanguages (const domain:DomainString; list:TStrings); // Puts list of language codes, for which there are translations in the specified domain, into list
       {$ifndef UNICODE}
       function gettext(const szMsgId: ansistring): TranslatedUnicodeString; overload; virtual;
@@ -528,7 +481,9 @@ type
       function gettext_NoOp(const szMsgId: MsgIdString): TranslatedUnicodeString;
       function ngettext(const singular,plural:MsgIdString;Number:longint):TranslatedUnicodeString; overload; virtual;
       function ngettext_NoExtract(const singular,plural:MsgIdString;Number:longint):TranslatedUnicodeString;
-      function GetCurrentLanguage:LanguageString;
+      function GetCurrentLanguage:LanguageString; deprecated; // use GetCurentLocaleName instead
+      function GetCurrentLanguageCode:LanguageString;
+      function GetCurrentLocaleName:LanguageString;
       function GetTranslationProperty (const Propertyname:ComponentNameString):TranslatedUnicodeString;
       function GetTranslatorNameAndEmail:TranslatedUnicodeString;
 
@@ -619,8 +574,9 @@ type
       procedure DebugWriteln(Line: string);
       {$endif}
       procedure TranslateProperty(AnObject: TObject; PropInfo: PPropInfo;
-        TodoList: TStrings; const TextDomain:DomainString);
-      function Getdomain(const domain:DomainString; const DefaultDomainDirectory:FilenameString; const CurLang: LanguageString): TDomain;  // Translates a single property of an object
+        TodoList: TStrings; const TextDomain:DomainString);  // Translates a single property of an object
+      function Getdomain(const domain:DomainString; const DefaultDomainDirectory:FilenameString;
+        const LocaleName: LanguageString): TDomain;
 
       function GetResString(ResStringRec: PResStringRec): UnicodeString;
       function ResourceStringGettext(MsgId: MsgIdString): TranslatedUnicodeString;
@@ -786,7 +742,7 @@ type
 var
   // System information
   Win32PlatformIsUnicode:boolean=False;
-  
+
   // Information about files embedded inside .exe file
   FileLocator:TFileLocator;
 
@@ -800,6 +756,27 @@ var
   HookFmtLoadStr:THook;
   HookedObjects:THookedObjects;
   KnownRetranslators:TList;
+
+// LO: Helper functions to make the ugly ifdefs more readable
+function doGetWideStrProp(AnObject:TObject; Propname:ComponentNameString):TranslatedUnicodeString;
+begin
+{$IFDEF dx_GetStrProp_reads_unicode}
+  Result := GetStrProp(AnObject, PropName);
+{$ELSE}
+  Result := GetWideStrProp(AnObject, PropName)
+{$ENDIF}
+end;
+
+{$IFDEF UNICODE}
+function doGetUnicodeStrProp(AnObject:TObject; Propname:ComponentNameString):TranslatedUnicodeString;
+begin
+{$IFDEF dx_GetStrProp_reads_unicode}
+  Result := GetStrProp(AnObject, PropName);
+{$ELSE}
+  Result := GetUnicodeStrProp(AnObject, PropName)
+{$ENDIF}
+end;
+{$ENDIF UNICODE}
 
 function GGGetEnvironmentVariable(const Name:widestring):widestring;
 var
@@ -956,7 +933,7 @@ end;
 
 function dgettext_NoOp(const szDomain: DomainString; const szMsgId: MsgIdString): TranslatedUnicodeString;
 begin
-  //*** With this function Strings can be added to the po-file without beeing
+  //*** With this function Strings can be added to the po-file without being
   //    ResourceStrings (dxgettext will add the string and this function will
   //    return it without a change)
   //    see gettext manual
@@ -1229,9 +1206,9 @@ begin
   Result:=DefaultInstance.GetTranslatorNameAndEmail;
 end;
 
-procedure UseLanguage(LanguageCode: LanguageString);
+procedure UseLanguage(LocaleName: LanguageString);
 begin
-  DefaultInstance.UseLanguage(LanguageCode);
+  DefaultInstance.UseLanguage(LocaleName);
 end;
 
 type
@@ -1261,7 +1238,7 @@ var
 begin
   with PStrData(Data)^ do begin
     SetString(Str, Buffer,
-      LoadString(Instance, Ident, @Buffer[0], sizeof(Buffer)));
+      LoadString(Instance, Ident, @Buffer[0], Length(Buffer)));
     Result := Str = '';
   end;
 end;
@@ -1329,7 +1306,22 @@ end;
 
 function GetCurrentLanguage:LanguageString;
 begin
-  Result:=DefaultInstance.GetCurrentLanguage;
+  Result:=GetCurrentLocaleName;
+end;
+
+function GetCurrentLocaleName: LanguageString;
+begin
+  Result:=DefaultInstance.GetCurrentLocaleName;
+end;
+
+function GetCurrentLanguageCode: LanguageString;
+begin
+  Result := LocaleNameToLanguageCode(GetCurrentLocaleName);
+end;
+
+function LocaleNameToLanguageCode(const ALocaleName: LanguageString): LanguageString;
+begin
+  Result := LowerCase(LeftStr(ALocaleName, 2));
 end;
 
 { TDomain }
@@ -1432,7 +1424,7 @@ end;
 {$IFDEF UNICODE}
 function utf8decode (s:RawByteString):UnicodeString; {$ifdef dx_has_Inline}inline;{$endif}
 begin
-  Result:=UTF8ToWideString(s);
+  Result:=UTF8ToUnicodeString(s);
 end;
 {$endif}
 
@@ -1444,7 +1436,7 @@ var
   s:string;
 begin
   Propertyname:=uppercase(Propertyname)+': ';
-  sl:=TStringList.Create;    
+  sl:=TStringList.Create;
   try
     sl.Text:=utf8decode(gettext(''));
     for i:=0 to sl.Count-1 do begin
@@ -1599,7 +1591,7 @@ begin
   n1:=Number mod 10;
   n2:=Number mod 100;
 
-  if Number=1 then Result:=0 
+  if Number=1 then Result:=0
   else if (n1>=2) and (n1<=4) and ((n2<10) or (n2>=20)) then Result:=1
   else Result:=2;
 end;
@@ -1747,8 +1739,12 @@ begin
   WhenNewDomainDirectory (szDomain, szDirectory);
 end;
 
-constructor TGnuGettextInstance.Create;
+constructor TGnuGettextInstance.Create(LocaleName: LanguageString = '');
 begin
+  {$ifdef dx_EMPTY_TO_EMPTY}
+  EmptyToEmpty := True;
+  {$endif}
+
   {$ifdef MSWindows}
   DesignTimeCodePage:=CP_ACP;
   {$endif}
@@ -1774,7 +1770,7 @@ begin
   // Set some settings
   DefaultDomainDirectory := IncludeTrailingPathDelimiter(extractfilepath(ExecutableFilename))+'locale';
 
-  UseLanguage('');
+  UseLanguage(LocaleName);
 
   bindtextdomain(DefaultTextDomain, DefaultDomainDirectory);
   textdomain(DefaultTextDomain);
@@ -1833,12 +1829,16 @@ begin
     {$endif}
     Result:=szMsgId;
   end else begin
-    Result:=UTF8Decode(EnsureLineBreakInTranslatedString(getdomain(szDomain,DefaultDomainDirectory,CurLang).gettext(StripCRRawMsgId(utf8encode(szMsgId)))));
+    if EmptyToEmpty and (szMsgId = '') then begin
+      Result := '';
+    end else begin
+      Result:=UTF8Decode(EnsureLineBreakInTranslatedString(getdomain(szDomain,DefaultDomainDirectory,CurLang).gettext(StripCRRawMsgId(utf8encode(szMsgId)))));
 
-    {$ifdef DXGETTEXTDEBUG}
-    if (szMsgId<>'') and (Result='') then
-      DebugWriteln (Format('Error: Translation of %s was an empty string. This may never occur.',[szMsgId]));
-    {$endif}
+      {$ifdef DXGETTEXTDEBUG}
+      if (szMsgId<>'') and (Result='') then
+        DebugWriteln (Format('Error: Translation of %s was an empty string. This may never occur.',[szMsgId]));
+      {$endif}
+    end;
   end;
 end;
 
@@ -1858,6 +1858,16 @@ end;
 
 function TGnuGettextInstance.GetCurrentLanguage: LanguageString;
 begin
+  Result:=GetCurrentLocaleName;
+end;
+
+function TGnuGettextInstance.GetCurrentLanguageCode: LanguageString;
+begin
+  Result := LocaleNameToLanguageCode(GetCurrentLocaleName);
+end;
+
+function TGnuGettextInstance.GetCurrentLocaleName: LanguageString;
+begin
   Result:=curlang;
 end;
 
@@ -1874,7 +1884,7 @@ var
   domainIndex: Integer;
 begin
   Result := dgettext(curmsgdomain, szMsgId);
-  if SearchAllDomains then begin
+  if SearchAllDomains and (szMsgId <> '') then begin
     domainIndex := 0;
     while (Result = szMsgId) and (domainIndex < domainlist.count) do begin
       domain := domainlist[domainIndex];
@@ -1892,7 +1902,7 @@ var
   domainIndex: Integer;
 begin
   Result := dgettext(curmsgdomain, szMsgId);
-  if SearchAllDomains then begin
+  if SearchAllDomains and (szMsgId <> '') then begin
     domainIndex := 0;
     while (Result = szMsgId) and (domainIndex < domainlist.count) do begin
       domain := domainlist[domainIndex];
@@ -1913,7 +1923,7 @@ end;
 
 function TGnuGettextInstance.gettext_NoOp(const szMsgId: MsgIdString): TranslatedUnicodeString;
 begin
-  //*** With this function Strings can be added to the po-file without beeing
+  //*** With this function Strings can be added to the po-file without being
   //    ResourceStrings (dxgettext will add the string and this function will
   //    return it without a change)
   //    see gettext manual
@@ -2174,14 +2184,10 @@ begin
             tkString, tkLString :
               old := GetStrProp(AnObject, PropName);
             tkWString :
-              old :=
-                {$IFDEF dx_GetStrProp_reads_unicode}GetStrProp{$ELSE}GetWideStrProp{$ENDIF}
-                  (AnObject, PropName);
+              old := doGetWideStrProp(AnObject, Propname);
             {$IFDEF UNICODE}
             tkUString :
-              old :=
-                {$IFDEF dx_GetStrProp_reads_unicode}GetStrProp{$ELSE}GetUnicodeStrProp{$ENDIF}
-                  (AnObject, PropName);
+              old := doGetUnicodeStrProp(AnObject, Propname);
             {$ENDIF}
           else
             raise Exception.Create ('Internal error: Illegal property type. This problem needs to be solved by a programmer, try to find a workaround.');
@@ -2465,38 +2471,38 @@ begin
   fWhenNewLanguageListeners.Remove(Listener);
 end;
 
-procedure TGnuGettextInstance.UseLanguage(LanguageCode: LanguageString);
+procedure TGnuGettextInstance.UseLanguage(LocaleName: LanguageString);
 var
   i,p:integer;
   dom:TDomain;
   l2:string;
 begin
   {$ifdef DXGETTEXTDEBUG}
-  DebugWriteln('UseLanguage('''+LanguageCode+'''); called');
+  DebugWriteln('UseLanguage('''+LocaleName+'''); called');
   {$endif}
 
-  if LanguageCode='' then begin
-    LanguageCode:=GGGetEnvironmentVariable('LANG');
+  if LocaleName='' then begin
+    LocaleName:=GGGetEnvironmentVariable('LANG');
     {$ifdef DXGETTEXTDEBUG}
-    DebugWriteln ('LANG env variable is '''+LanguageCode+'''.');
+    DebugWriteln ('LANG env variable is '''+LocaleName+'''.');
     {$endif}
     {$ifdef MSWINDOWS}
-    if LanguageCode='' then begin
-      LanguageCode:=GetWindowsLanguage;
+    if LocaleName='' then begin
+      LocaleName:=GetWindowsLanguage;
       {$ifdef DXGETTEXTDEBUG}
-      DebugWriteln ('Found Windows language code to be '''+LanguageCode+'''.');
+      DebugWriteln ('Found Windows language code to be '''+LocaleName+'''.');
       {$endif}
     end;
     {$endif}
-    p:=pos('.',LanguageCode);
+    p:=pos('.',LocaleName);
     if p<>0 then
-      LanguageCode:=LeftStr(LanguageCode,p-1);
+      LocaleName:=LeftStr(LocaleName,p-1);
     {$ifdef DXGETTEXTDEBUG}
-    DebugWriteln ('Language code that will be set is '''+LanguageCode+'''.');
+    DebugWriteln ('Language code that will be set is '''+LocaleName+'''.');
     {$endif}
   end;
 
-  curlang := LanguageCode;
+  curlang := LocaleName;
   for i:=0 to domainlist.Count-1 do begin
     dom:=domainlist.Objects[i] as TDomain;
     dom.SetLanguageCode (curlang);
@@ -2934,7 +2940,8 @@ begin
 end;
 {$endif}
 
-function TGnuGettextInstance.Getdomain(const domain:DomainString; const DefaultDomainDirectory:FilenameString; const CurLang: LanguageString): TDomain;
+function TGnuGettextInstance.Getdomain(const domain:DomainString; const DefaultDomainDirectory:FilenameString;
+  const LocaleName: LanguageString): TDomain;
 // Retrieves the TDomain object for the specified domain.
 // Creates one, if none there, yet.
 var
@@ -2948,7 +2955,7 @@ begin
     {$endif}
     Result.Domain := Domain;
     Result.Directory := DefaultDomainDirectory;
-    Result.SetLanguageCode(curlang);
+    Result.SetLanguageCode(LocaleName);
     domainlist.AddObject(Domain, Result);
   end else begin
     Result := domainlist.Objects[idx] as TDomain;
@@ -2959,11 +2966,7 @@ function TGnuGettextInstance.GetResString(ResStringRec: PResStringRec): UnicodeS
 {$ifdef MSWINDOWS}
 var
   Len: Integer;
-  {$IFDEF UNICODE}
-  Buffer: array [0..1023] of widechar;
-  {$else}
-  Buffer: array [0..1023] of ansichar;
-  {$endif}
+  Buffer: array [0..1023] of char;
 {$endif}
 {$ifdef LINUX }
 const
@@ -3001,7 +3004,7 @@ begin
   if not Win32PlatformIsUnicode then begin
     SetString(Result, Buffer,
       LoadString(FindResourceHInstance(ResStringRec.Module^),
-        ResStringRec.Identifier, Buffer, SizeOf(Buffer)))
+        ResStringRec.Identifier, Buffer, Length(Buffer)))
   end else begin
     Result := '';
     Len := 0;
@@ -3266,7 +3269,7 @@ begin
   SetLength (a, bufsize);
   SetLength (b, bufsize);
   str.Read(a[1],bufsize);
-  
+
   while true do begin
     rd:=str.Read(b[1],bufsize);
     p:=pos(signature,a+b);
@@ -3354,7 +3357,7 @@ begin
 
         // go to beginning of embedded block
         fs.Seek(headerbeginpos, soFromBeginning);
-        
+
         offset := tableoffset;
         Assert(sizeof(offset)=8);
         while (true) and (fs.Position<headerendpos) do begin
@@ -3395,21 +3398,24 @@ end;
 constructor TFileLocator.Create;
 begin
   MoFilesCS:=TMultiReadExclusiveWriteSynchronizer.Create;
+
   MoFiles:=TStringList.Create;
-  filelist:=TStringList.Create;
-  {$ifdef LINUX}
-  filelist.Duplicates:=dupError;
-  filelist.CaseSensitive:=True;
-  {$endif}
   MoFiles.Sorted:=True;
   MoFiles.Duplicates:=dupError;
   MoFiles.CaseSensitive:=False;
-  {$ifdef MSWINDOWS}
+
+  filelist:=TStringList.Create;
   filelist.Duplicates:=dupError;
+  { TODO : what if it's neither LINUX nor MSWINDOWS? }
+  {$ifdef LINUX}
+  filelist.CaseSensitive:=True;
+  {$endif}
+  {$ifdef MSWINDOWS}
   filelist.CaseSensitive:=False;
   {$endif}
   filelist.Sorted:=True;
-{$IFDEF dx_SupportsResources}
+
+  {$IFDEF dx_SupportsResources}
   FResourceList := TStringList.Create;
   FResourceList.Duplicates := dupError;
   FResourceList.CaseSensitive := False;
@@ -3432,11 +3438,8 @@ begin
   end;
 {$ENDIF dx_SupportsResources}
 
-  while filelist.count > 0 do begin
-    Idx := filelist.Count - 1;
-    filelist.Objects[Idx].Free;
-    filelist.Delete (Idx);
-  end;
+  for Idx := 0 to filelist.Count-1  do
+    FileList.Objects[Idx].Free;
   FreeAndNil (filelist);
 
   FreeAndNil (MoFiles);
@@ -3553,7 +3556,7 @@ var
   i:integer;
 begin
   Assert (mofile<>nil);
-  
+
   MoFilesCS.BeginWrite;
   try
     dec (mofile.Users);
@@ -3637,7 +3640,7 @@ begin
     if item.obj is TComponent then begin
       comp:=TComponent(item.obj).FindComponent('GNUgettextMarker') as TGnuGettextComponentMarker;
       if Assigned(comp) and (self<>comp.Retranslator) then begin
-        comp.Retranslator.Execute; 
+        comp.Retranslator.Execute;
         Continue;
       end;
     end;
@@ -3766,9 +3769,13 @@ begin
     // This finds the correct procedure if a virtual jump has been inserted
     // at the procedure address
     Inc(patchPosition, 2); // skip the jump
+    {$IFDEF CPUX64}
+    patchPosition := pansiChar(Pointer(patchPosition + 4 + PInteger(patchPosition)^)^);
+    {$ELSE}
     patchPosition := pansiChar(Pointer(pointer(patchPosition)^)^);
+    {$ENDIF CPUX64}
   end;
-  offset:=integer(NewProc)-integer(pointer(patchPosition))-5;
+  offset:=pansiChar(NewProc)-pansiChar(pointer(patchPosition))-5;
 
   Patch[0] := ansichar($E9);
   Patch[1] := ansichar(offset and 255);
@@ -3789,7 +3796,7 @@ begin
   {$ifdef LINUX}
   pageSize:=sysconf (_SC_PAGE_SIZE);
   p:=pointer(PatchPosition);
-  p:=pointer((integer(p) + PAGESIZE-1) and not (PAGESIZE-1) - pageSize);
+  p:=pointer((pansichar(p) + PAGESIZE-1) and not (PAGESIZE-1) - pageSize);
   if mprotect (p, pageSize, PROT_READ + PROT_WRITE + PROT_EXEC) <> 0 then
     RaiseLastOSError;
   {$endif}
@@ -3986,7 +3993,7 @@ begin
       inc (a);
       inc (b);
     end;
-    if CompareResult=0 then 
+    if CompareResult=0 then
       CompareResult:=msgidsize-size;
     if CompareResult=0 then begin  // msgid=s
       // Found the msgid
