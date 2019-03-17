@@ -1217,231 +1217,234 @@ end;
 
 procedure Toptionsform.InitLanguages;
 var
+  LangNames: String;
   AvailLangCodes: TStringList;
   i: Integer;
 
-  procedure AddLang(LangCode, LangName: String);
-  var j: Integer;
+  procedure AddLang(LangCode: String);
+  var
+    LangName: String;
+    rx: TRegExpr;
   begin
-    if AvailLangCodes.IndexOf(LangCode) = -1 then
-      Exit;
-    // Delete potentially existing lang code without long name
-    for j:=FLanguages.Count-1 downto 0 do begin
-      if CompareText(RegExprGetMatch('^(\w+)\b', FLanguages[j], 1), LangCode) = 0 then begin
-        FLanguages.Delete(j);
-      end;
-    end;
-
+    rx := TRegExpr.Create;
+    rx.Expression := '\b'+QuoteRegExprMetaChars(LangCode)+'\:([^#]+)';
+    rx.ModifierI := True;
+    if rx.Exec(LangNames) then
+      LangName := rx.Match[1]
+    else
+      LangName := '';
+    rx.Free;
     FLanguages.Add(LangCode + ': ' + LangName);
   end;
 
 begin
   // Create list with present language code => language name
   // List taken from dxgettext/languagecodes.pas
+
+  LangNames := 'aa:Afar#'+
+    'aa:Afar#'+
+    'ab:Abkhazian#'+
+    'ae:Avestan#'+
+    'af:Afrikaans#'+
+    'ak:Akan#'+
+    'am:Amharic#'+
+    'an:Aragonese#'+
+    'ar:Arabic#'+
+    'as:Assamese#'+
+    'av:Avaric#'+
+    'ay:Aymara#'+
+    'az:Azerbaijani#'+
+    'ba:Bashkir#'+
+    'be:Belarusian#'+
+    'bg:Bulgarian#'+
+    'bh:Bihari#'+
+    'bi:Bislama#'+
+    'bm:Bambara#'+
+    'bn:Bengali#'+
+    'bo:Tibetan#'+
+    'br:Breton#'+
+    'bs:Bosnian#'+
+    'ca:Catalan#'+
+    'ce:Chechen#'+
+    'ch:Chamorro#'+
+    'co:Corsican#'+
+    'cr:Cree#'+
+    'cs:Czech#'+
+    'cv:Chuvash#'+
+    'cy:Welsh#'+
+    'da:Danish#'+
+    'de:German#'+
+    'de_AT:Austrian German#'+
+    'de_CH:Swiss German#'+
+    'dv:Divehi#'+
+    'dz:Dzongkha#'+
+    'ee:Ewe#'+
+    'el:Greek#'+
+    'en:English#'+
+    'en_AU:Australian English#'+
+    'en_CA:Canadian English#'+
+    'en_GB:British English#'+
+    'en_US:American English#'+
+    'eo:Esperanto#'+
+    'es:Spanish#'+
+    'et:Estonian#'+
+    'eu:Basque#'+
+    'fa:Persian#'+
+    'ff:Fulah#'+
+    'fi:Finnish#'+
+    'fj:Fijian#'+
+    'fo:Faroese#'+
+    'fr:French#'+
+    'fr_BE:Walloon#'+
+    'fy:Frisian#'+
+    'ga:Irish#'+
+    'gd:Gaelic#'+
+    'gl:Gallegan#'+
+    'gn:Guarani#'+
+    'gu:Gujarati#'+
+    'gv:Manx#'+
+    'ha:Hausa#'+
+    'he:Hebrew#'+
+    'hi:Hindi#'+
+    'ho:Hiri Motu#'+
+    'hr:Croatian#'+
+    'hr_HR:Croatian#'+ // Added, exists on Transifex
+    'ht:Haitian#'+
+    'hu:Hungarian#'+
+    'hy:Armenian#'+
+    'hz:Herero#'+
+    'ia:Interlingua#'+
+    'id:Indonesian#'+
+    'ie:Interlingue#'+
+    'ig:Igbo#'+
+    'ii:Sichuan Yi#'+
+    'ik:Inupiaq#'+
+    'io:Ido#'+
+    'is:Icelandic#'+
+    'it:Italian#'+
+    'iu:Inuktitut#'+
+    'ja:Japanese#'+
+    'jv:Javanese#'+
+    'ka:Georgian#'+
+    'kg:Kongo#'+
+    'ki:Kikuyu#'+
+    'kj:Kuanyama#'+
+    'kk:Kazakh#'+
+    'kl:Greenlandic#'+
+    'km:Khmer#'+
+    'kn:Kannada#'+
+    'ko:Korean#'+
+    'kr:Kanuri#'+
+    'ks:Kashmiri#'+
+    'ku:Kurdish#'+
+    'kw:Cornish#'+
+    'kv:Komi#'+
+    'ky:Kirghiz#'+
+    'la:Latin#'+
+    'lb:Luxembourgish#'+
+    'lg:Ganda#'+
+    'li:Limburgan#'+
+    'ln:Lingala#'+
+    'lo:Lao#'+
+    'lt:Lithuanian#'+
+    'lu:Luba-Katanga#'+
+    'lv:Latvian#'+
+    'mg:Malagasy#'+
+    'mh:Marshallese#'+
+    'mi:Maori#'+
+    'mk:Macedonian#'+
+    'ml:Malayalam#'+
+    'mn:Mongolian#'+
+    'mo:Moldavian#'+
+    'mr:Marathi#'+
+    'ms:Malay#'+
+    'mt:Maltese#'+
+    'my:Burmese#'+
+    'na:Nauru#'+
+    'nb:Norwegian Bokmaal#'+
+    'nd:Ndebele, North#'+
+    'ne:Nepali#'+
+    'ng:Ndonga#'+
+    'nl:Dutch#'+
+    'nl_BE:Flemish#'+
+    'nn:Norwegian Nynorsk#'+
+    'no:Norwegian#'+
+    'nr:Ndebele, South#'+
+    'nv:Navajo#'+
+    'ny:Chichewa#'+
+    'oc:Occitan#'+
+    'oj:Ojibwa#'+
+    'om:Oromo#'+
+    'or:Oriya#'+
+    'os:Ossetian#'+
+    'pa:Panjabi#'+
+    'pi:Pali#'+
+    'pl:Polish#'+
+    'ps:Pushto#'+
+    'pt:Portuguese#'+
+    'pt_BR:Brazilian Portuguese#'+
+    'qu:Quechua#'+
+    'rm:Raeto-Romance#'+
+    'rn:Rundi#'+
+    'ro:Romanian#'+
+    'ru:Russian#'+
+    'rw:Kinyarwanda#'+
+    'sa:Sanskrit#'+
+    'sc:Sardinian#'+
+    'sd:Sindhi#'+
+    'se:Northern Sami#'+
+    'sg:Sango#'+
+    'si:Sinhalese#'+
+    'sk:Slovak#'+
+    'sl:Slovenian#'+
+    'sm:Samoan#'+
+    'sn:Shona#'+
+    'so:Somali#'+
+    'sq:Albanian#'+
+    'sr:Serbian#'+
+    'ss:Swati#'+
+    'st:Sotho, Southern#'+
+    'su:Sundanese#'+
+    'sv:Swedish#'+
+    'sw:Swahili#'+
+    'ta:Tamil#'+
+    'te:Telugu#'+
+    'tg:Tajik#'+
+    'th:Thai#'+
+    'ti:Tigrinya#'+
+    'tk:Turkmen#'+
+    'tl:Tagalog#'+
+    'tn:Tswana#'+
+    'to:Tonga#'+
+    'tr:Turkish#'+
+    'ts:Tsonga#'+
+    'tt:Tatar#'+
+    'tw:Twi#'+
+    'ty:Tahitian#'+
+    'ug:Uighur#'+
+    'uk:Ukrainian#'+
+    'ur:Urdu#'+
+    'uz:Uzbek#'+
+    've:Venda#'+
+    'vi:Vietnamese#'+
+    'vo:Volapuk#'+
+    'wa:Walloon#'+
+    'wo:Wolof#'+
+    'xh:Xhosa#'+
+    'yi:Yiddish#'+
+    'yo:Yoruba#'+
+    'za:Zhuang#'+
+    'zh:Chinese (Simplified)#'+ // Added, see #498
+    'zh_CN:Chinese (China)#'+
+    'zh_TW:Chinese (Traditional)#'+
+    'zu:Zulu#';
+
   FLanguages := TStringList.Create;
   AvailLangCodes := TStringList.Create;
-  AvailLangCodes.CaseSensitive := False;
   DefaultInstance.GetListOfLanguages('default', AvailLangCodes);
   for i:=0 to AvailLangCodes.Count-1 do begin
-    AddLang(AvailLangCodes[i], '');
+    AddLang(AvailLangCodes[i]);
   end;
-  AddLang('aa', 'Afar');
-  AddLang('aa', 'Afar');
-  AddLang('ab', 'Abkhazian');
-  AddLang('ae', 'Avestan');
-  AddLang('af', 'Afrikaans');
-  AddLang('ak', 'Akan');
-  AddLang('am', 'Amharic');
-  AddLang('an', 'Aragonese');
-  AddLang('ar', 'Arabic');
-  AddLang('as', 'Assamese');
-  AddLang('av', 'Avaric');
-  AddLang('ay', 'Aymara');
-  AddLang('az', 'Azerbaijani');
-  AddLang('ba', 'Bashkir');
-  AddLang('be', 'Belarusian');
-  AddLang('bg', 'Bulgarian');
-  AddLang('bh', 'Bihari');
-  AddLang('bi', 'Bislama');
-  AddLang('bm', 'Bambara');
-  AddLang('bn', 'Bengali');
-  AddLang('bo', 'Tibetan');
-  AddLang('br', 'Breton');
-  AddLang('bs', 'Bosnian');
-  AddLang('ca', 'Catalan');
-  AddLang('ce', 'Chechen');
-  AddLang('ch', 'Chamorro');
-  AddLang('co', 'Corsican');
-  AddLang('cr', 'Cree');
-  AddLang('cs', 'Czech');
-  AddLang('cv', 'Chuvash');
-  AddLang('cy', 'Welsh');
-  AddLang('da', 'Danish');
-  AddLang('de', 'German');
-  AddLang('de_AT', 'Austrian German');
-  AddLang('de_CH', 'Swiss German');
-  AddLang('dv', 'Divehi');
-  AddLang('dz', 'Dzongkha');
-  AddLang('ee', 'Ewe');
-  AddLang('el', 'Greek');
-  AddLang('en', 'English');
-  AddLang('en_AU', 'Australian English');
-  AddLang('en_CA', 'Canadian English');
-  AddLang('en_GB', 'British English');
-  AddLang('en_US', 'American English');
-  AddLang('eo', 'Esperanto');
-  AddLang('es', 'Spanish');
-  AddLang('et', 'Estonian');
-  AddLang('eu', 'Basque');
-  AddLang('fa', 'Persian');
-  AddLang('ff', 'Fulah');
-  AddLang('fi', 'Finnish');
-  AddLang('fj', 'Fijian');
-  AddLang('fo', 'Faroese');
-  AddLang('fr', 'French');
-  AddLang('fr_BE', 'Walloon');
-  AddLang('fy', 'Frisian');
-  AddLang('ga', 'Irish');
-  AddLang('gd', 'Gaelic');
-  AddLang('gl', 'Gallegan');
-  AddLang('gn', 'Guarani');
-  AddLang('gu', 'Gujarati');
-  AddLang('gv', 'Manx');
-  AddLang('ha', 'Hausa');
-  AddLang('he', 'Hebrew');
-  AddLang('hi', 'Hindi');
-  AddLang('ho', 'Hiri Motu');
-  AddLang('hr', 'Croatian');
-  AddLang('hr_HR', 'Croatian'); // Added, exists on Transifex
-  AddLang('ht', 'Haitian');
-  AddLang('hu', 'Hungarian');
-  AddLang('hy', 'Armenian');
-  AddLang('hz', 'Herero');
-  AddLang('ia', 'Interlingua');
-  AddLang('id', 'Indonesian');
-  AddLang('ie', 'Interlingue');
-  AddLang('ig', 'Igbo');
-  AddLang('ii', 'Sichuan Yi');
-  AddLang('ik', 'Inupiaq');
-  AddLang('io', 'Ido');
-  AddLang('is', 'Icelandic');
-  AddLang('it', 'Italian');
-  AddLang('iu', 'Inuktitut');
-  AddLang('ja', 'Japanese');
-  AddLang('jv', 'Javanese');
-  AddLang('ka', 'Georgian');
-  AddLang('kg', 'Kongo');
-  AddLang('ki', 'Kikuyu');
-  AddLang('kj', 'Kuanyama');
-  AddLang('kk', 'Kazakh');
-  AddLang('kl', 'Greenlandic');
-  AddLang('km', 'Khmer');
-  AddLang('kn', 'Kannada');
-  AddLang('ko', 'Korean');
-  AddLang('kr', 'Kanuri');
-  AddLang('ks', 'Kashmiri');
-  AddLang('ku', 'Kurdish');
-  AddLang('kw', 'Cornish');
-  AddLang('kv', 'Komi');
-  AddLang('ky', 'Kirghiz');
-  AddLang('la', 'Latin');
-  AddLang('lb', 'Luxembourgish');
-  AddLang('lg', 'Ganda');
-  AddLang('li', 'Limburgan');
-  AddLang('ln', 'Lingala');
-  AddLang('lo', 'Lao');
-  AddLang('lt', 'Lithuanian');
-  AddLang('lu', 'Luba-Katanga');
-  AddLang('lv', 'Latvian');
-  AddLang('mg', 'Malagasy');
-  AddLang('mh', 'Marshallese');
-  AddLang('mi', 'Maori');
-  AddLang('mk', 'Macedonian');
-  AddLang('ml', 'Malayalam');
-  AddLang('mn', 'Mongolian');
-  AddLang('mo', 'Moldavian');
-  AddLang('mr', 'Marathi');
-  AddLang('ms', 'Malay');
-  AddLang('mt', 'Maltese');
-  AddLang('my', 'Burmese');
-  AddLang('na', 'Nauru');
-  AddLang('nb', 'Norwegian Bokmaal');
-  AddLang('nd', 'Ndebele, North');
-  AddLang('ne', 'Nepali');
-  AddLang('ng', 'Ndonga');
-  AddLang('nl', 'Dutch');
-  AddLang('nl_BE', 'Flemish');
-  AddLang('nn', 'Norwegian Nynorsk');
-  AddLang('no', 'Norwegian');
-  AddLang('nr', 'Ndebele, South');
-  AddLang('nv', 'Navajo');
-  AddLang('ny', 'Chichewa');
-  AddLang('oc', 'Occitan');
-  AddLang('oj', 'Ojibwa');
-  AddLang('om', 'Oromo');
-  AddLang('or', 'Oriya');
-  AddLang('os', 'Ossetian');
-  AddLang('pa', 'Panjabi');
-  AddLang('pi', 'Pali');
-  AddLang('pl', 'Polish');
-  AddLang('ps', 'Pushto');
-  AddLang('pt', 'Portuguese');
-  AddLang('pt_BR', 'Brazilian Portuguese');
-  AddLang('qu', 'Quechua');
-  AddLang('rm', 'Raeto-Romance');
-  AddLang('rn', 'Rundi');
-  AddLang('ro', 'Romanian');
-  AddLang('ru', 'Russian');
-  AddLang('rw', 'Kinyarwanda');
-  AddLang('sa', 'Sanskrit');
-  AddLang('sc', 'Sardinian');
-  AddLang('sd', 'Sindhi');
-  AddLang('se', 'Northern Sami');
-  AddLang('sg', 'Sango');
-  AddLang('si', 'Sinhalese');
-  AddLang('sk', 'Slovak');
-  AddLang('sl', 'Slovenian');
-  AddLang('sm', 'Samoan');
-  AddLang('sn', 'Shona');
-  AddLang('so', 'Somali');
-  AddLang('sq', 'Albanian');
-  AddLang('sr', 'Serbian');
-  AddLang('ss', 'Swati');
-  AddLang('st', 'Sotho, Southern');
-  AddLang('su', 'Sundanese');
-  AddLang('sv', 'Swedish');
-  AddLang('sw', 'Swahili');
-  AddLang('ta', 'Tamil');
-  AddLang('te', 'Telugu');
-  AddLang('tg', 'Tajik');
-  AddLang('th', 'Thai');
-  AddLang('ti', 'Tigrinya');
-  AddLang('tk', 'Turkmen');
-  AddLang('tl', 'Tagalog');
-  AddLang('tn', 'Tswana');
-  AddLang('to', 'Tonga');
-  AddLang('tr', 'Turkish');
-  AddLang('ts', 'Tsonga');
-  AddLang('tt', 'Tatar');
-  AddLang('tw', 'Twi');
-  AddLang('ty', 'Tahitian');
-  AddLang('ug', 'Uighur');
-  AddLang('uk', 'Ukrainian');
-  AddLang('ur', 'Urdu');
-  AddLang('uz', 'Uzbek');
-  AddLang('ve', 'Venda');
-  AddLang('vi', 'Vietnamese');
-  AddLang('vo', 'Volapuk');
-  AddLang('wa', 'Walloon');
-  AddLang('wo', 'Wolof');
-  AddLang('xh', 'Xhosa');
-  AddLang('yi', 'Yiddish');
-  AddLang('yo', 'Yoruba');
-  AddLang('za', 'Zhuang');
-  AddLang('zh', 'Chinese (Simplified)'); // Added, see #498
-  AddLang('zh_CN', 'Chinese (China)');
-  AddLang('zh_TW', 'Chinese (Traditional)');
-  AddLang('zu', 'Zulu');
 
   FLanguages.Sort;
   FLanguages.Insert(0, '*** '+f_('Auto detect (%s)', [SysLanguage]));
