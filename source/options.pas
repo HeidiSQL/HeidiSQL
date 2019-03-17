@@ -98,7 +98,6 @@ type
     editSQLTabWidth: TEdit;
     updownSQLTabWidth: TUpDown;
     Label1: TLabel;
-    chkAskFileSave: TCheckBox;
     lblMaxQueryResults: TLabel;
     editMaxQueryResults: TEdit;
     updownMaxQueryResults: TUpDown;
@@ -169,6 +168,10 @@ type
     comboGridTextColorsPreset: TComboBox;
     lblIconPack: TLabel;
     comboIconPack: TComboBox;
+    tabFiles: TTabSheet;
+    chkReopenFiles: TCheckBox;
+    chkAskFileSave: TCheckBox;
+    chkBackupRestoreFiles: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -279,7 +282,6 @@ begin
   AppSettings.WriteBool(asAutoReconnect, chkAutoReconnect.Checked);
   AppSettings.WriteBool(asAllowMultipleInstances, chkAllowMultiInstances.Checked);
   AppSettings.WriteBool(asRestoreLastUsedDB, chkRestoreLastDB.Checked);
-  AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
   AppSettings.WriteBool(asQueryWarningsMessage, chkQueryWarningsMessage.Checked);
   AppSettings.WriteString(asFontName, comboSQLFontName.Text);
   AppSettings.WriteInt(asFontSize, updownSQLFontSize.Position);
@@ -397,6 +399,11 @@ begin
   end;
   // Populate SynMemo settings to all instances
   Mainform.SetupSynEditors;
+
+  // Files
+  AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
+  AppSettings.WriteBool(asReopenFiles, chkReopenFiles.Checked);
+  AppSettings.WriteBool(asBackupRestoreFiles, chkBackupRestoreFiles.Checked);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -591,6 +598,9 @@ begin
   FShortcutCategories.Add(_('SQL editing'));
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
   comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
+
+  // Files
+  chkBackupRestoreFiles.Caption := f_('Automatically backup and restore unsaved content (up to %s per file)', [FormatByteNumber(BACKUP_MAXFILESIZE,0)]);
 end;
 
 
@@ -644,7 +654,6 @@ begin
   comboGUIFont.OnChange(comboGUIFont);
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
-  chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkQueryWarningsMessage.Checked := AppSettings.ReadBool(asQueryWarningsMessage);
 
   // Logging
@@ -717,6 +726,11 @@ begin
   // Shortcuts
   TreeShortcutItems.ReinitChildren(nil, True);
   SelectNode(TreeShortcutItems, nil);
+
+  // Files
+  chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
+  chkReopenFiles.Checked := AppSettings.ReadBool(asReopenFiles);
+  chkBackupRestoreFiles.Checked := AppSettings.ReadBool(asBackupRestoreFiles);
 
   FRestartOptionTouched := False;
   btnApply.Enabled := False;

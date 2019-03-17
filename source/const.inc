@@ -82,6 +82,8 @@ const
   // Data grid: How many bytes to fetch from data fields that are potentially large.
   GRIDMAXDATA: Integer = 256;
 
+  BACKUP_MAXFILESIZE: Integer = 10 * SIZE_MB;
+
   VTREE_NOTLOADED = 0;
   VTREE_NOTLOADED_PURGECACHE = 1;
   VTREE_LOADED = 2;

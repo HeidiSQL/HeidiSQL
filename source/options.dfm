@@ -568,28 +568,28 @@ object optionsform: Toptionsform
         end
         object lblSQLColElement: TLabel
           Left = 8
-          Top = 220
+          Top = 186
           Width = 42
           Height = 13
           Caption = 'Element:'
         end
         object lblSQLColBackground: TLabel
           Left = 180
-          Top = 314
+          Top = 280
           Width = 60
           Height = 13
           Caption = 'Background:'
         end
         object lblSQLColForeground: TLabel
           Left = 180
-          Top = 267
+          Top = 233
           Width = 60
           Height = 13
           Caption = 'Foreground:'
         end
         object lblEditorColorsPreset: TLabel
           Left = 8
-          Top = 193
+          Top = 159
           Width = 68
           Height = 13
           Caption = 'Colors preset:'
@@ -659,18 +659,6 @@ object optionsform: Toptionsform
           TabOrder = 4
           OnClick = updownSQLFontSizeClick
         end
-        object chkAskFileSave: TCheckBox
-          Left = 180
-          Top = 111
-          Width = 506
-          Height = 17
-          Anchors = [akLeft, akTop, akRight]
-          Caption = 'Prompt to save modified files on tab close'
-          Checked = True
-          State = cbChecked
-          TabOrder = 9
-          OnClick = Modified
-        end
         object editMaxQueryResults: TEdit
           Left = 180
           Top = 61
@@ -693,55 +681,55 @@ object optionsform: Toptionsform
         end
         object comboSQLColElement: TComboBox
           Left = 180
-          Top = 217
+          Top = 183
           Width = 145
           Height = 21
           Style = csDropDownList
-          TabOrder = 13
+          TabOrder = 12
           OnChange = comboSQLColElementChange
         end
         object chkSQLBold: TCheckBox
           Left = 180
-          Top = 244
+          Top = 210
           Width = 61
           Height = 17
           Caption = 'Bold'
-          TabOrder = 14
+          TabOrder = 13
           OnClick = SQLFontChange
         end
         object chkSQLItalic: TCheckBox
           Left = 254
-          Top = 244
+          Top = 210
           Width = 50
           Height = 17
           Caption = 'Italic'
-          TabOrder = 15
+          TabOrder = 14
           OnClick = SQLFontChange
         end
         object cboxSQLColForeground: TColorBox
           Left = 180
-          Top = 286
+          Top = 252
+          Width = 145
+          Height = 22
+          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+          TabOrder = 15
+          OnChange = SQLFontChange
+        end
+        object cboxSQLColBackground: TColorBox
+          Left = 180
+          Top = 299
           Width = 145
           Height = 22
           Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
           TabOrder = 16
           OnChange = SQLFontChange
         end
-        object cboxSQLColBackground: TColorBox
-          Left = 180
-          Top = 333
-          Width = 145
-          Height = 22
-          Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-          TabOrder = 17
-          OnChange = SQLFontChange
-        end
         object SynMemoSQLSample: TSynMemo
           AlignWithMargins = True
           Left = 331
-          Top = 190
+          Top = 156
           Width = 364
-          Height = 191
+          Height = 229
           Cursor = crHandPoint
           SingleLineMode = False
           Anchors = [akLeft, akTop, akRight, akBottom]
@@ -750,7 +738,7 @@ object optionsform: Toptionsform
           Font.Height = -13
           Font.Name = 'Courier New'
           Font.Style = []
-          TabOrder = 18
+          TabOrder = 17
           OnClick = SynMemoSQLSampleClick
           CodeFolding.GutterShapeSize = 11
           CodeFolding.CollapsedLineColor = clGrayText
@@ -780,32 +768,32 @@ object optionsform: Toptionsform
         end
         object chkQueryWarningsMessage: TCheckBox
           Left = 180
-          Top = 134
+          Top = 110
           Width = 508
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Show query warnings dialog'
-          TabOrder = 10
+          TabOrder = 9
           OnClick = Modified
         end
         object chkAutoUppercase: TCheckBox
           Left = 180
-          Top = 159
+          Top = 133
           Width = 508
           Height = 17
           Anchors = [akLeft, akTop, akRight]
           Caption = 'Auto uppercase reserved words and functions'
-          TabOrder = 11
+          TabOrder = 10
           OnClick = Modified
         end
         object comboEditorColorsPreset: TComboBox
           Left = 180
-          Top = 190
+          Top = 156
           Width = 145
           Height = 21
           Style = csDropDownList
           ItemIndex = 0
-          TabOrder = 12
+          TabOrder = 11
           Text = 'Current custom settings'
           OnChange = comboEditorColorsPresetChange
           Items.Strings = (
@@ -1248,6 +1236,45 @@ object optionsform: Toptionsform
           OnEnter = ShortcutEnter
           OnExit = ShortcutExit
         end
+      end
+    end
+    object tabFiles: TTabSheet
+      Caption = 'Files'
+      ImageIndex = 10
+      DesignSize = (
+        700
+        388)
+      object chkReopenFiles: TCheckBox
+        Left = 190
+        Top = 31
+        Width = 496
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Reopen previously used SQL files in tabs'
+        TabOrder = 0
+      end
+      object chkAskFileSave: TCheckBox
+        Left = 190
+        Top = 8
+        Width = 496
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Prompt to save modified files on tab close'
+        Checked = True
+        State = cbChecked
+        TabOrder = 1
+        OnClick = Modified
+      end
+      object chkBackupRestoreFiles: TCheckBox
+        Left = 190
+        Top = 54
+        Width = 496
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 
+          'Automatically backup and restore unsaved content (up to %s per f' +
+          'ile)'
+        TabOrder = 2
       end
     end
   end
