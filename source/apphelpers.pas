@@ -283,7 +283,8 @@ type
   function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
   procedure ShellExec(cmd: String; path: String=''; params: String='');
   function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
-  function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource: Boolean): String;
+  function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource: Boolean): String; Overload;
+  function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
@@ -1067,6 +1068,13 @@ begin
     end;
   end;
   rx.Free;
+end;
+
+
+function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String;
+begin
+  // Version without possibility to delete captured match from input
+  Result := RegExprGetMatch(Expression, Input, ReturnMatchNum, False);
 end;
 
 

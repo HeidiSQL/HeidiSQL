@@ -71,6 +71,7 @@ begin
     Application.Terminate;
   end else begin
     AppLanguage := AppSettings.ReadString(asAppLanguage);
+    SysLanguage := DefaultInstance.GetCurrentLocaleName;
     UseLanguage(AppLanguage);
     Application.Initialize;
     Application.Title := APPNAME;

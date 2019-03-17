@@ -322,16 +322,15 @@ begin
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
   AppSettings.WriteString(asCustomSnippetsDirectory, editCustomSnippetsDirectory.Text);
+
   if comboAppLanguage.ItemIndex > 0 then begin
-    // There is no TStringList.Names[Value] getter, so we find the language code via loop
+    // Get language code from the left text in the dropdown item text, up to the colon
+    LangCode := RegExprGetMatch('^(\w+)\b', comboAppLanguage.Text, 1);
+  end else begin
     LangCode := '';
-    for i:=0 to FLanguages.Count-1 do begin
-      if FLanguages.ValueFromIndex[i] = comboAppLanguage.Text then
-        LangCode := FLanguages.Names[i];
-    end;
-    AppSettings.WriteString(asAppLanguage, LangCode);
-  end else
-    AppSettings.WriteString(asAppLanguage, '');
+  end;
+  AppSettings.WriteString(asAppLanguage, LangCode);
+
   if comboGUIFont.ItemIndex = 0 then
     AppSettings.WriteString(asGUIFontName, '')
   else
@@ -484,9 +483,7 @@ begin
   end;
 
   InitLanguages;
-  for i:=0 to FLanguages.Count-1 do begin
-    comboAppLanguage.Items.Add(FLanguages.ValueFromIndex[i]);
-  end;
+  comboAppLanguage.Items.AddStrings(FLanguages);
 
   comboGUIFont.Items.Assign(Screen.Fonts);
   comboGUIFont.Items.Insert(0, '<'+_('Default system font')+'>');
@@ -606,6 +603,7 @@ end;
 procedure Toptionsform.FormShow(Sender: TObject);
 var
   LangCode, GUIFont: String;
+  i: Integer;
 begin
   screen.Cursor := crHourGlass;
 
@@ -629,7 +627,14 @@ begin
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
   editCustomSnippetsDirectory.Text := AppSettings.ReadString(asCustomSnippetsDirectory);
   LangCode := AppSettings.ReadString(asAppLanguage);
-  comboAppLanguage.ItemIndex := comboAppLanguage.Items.IndexOf(FLanguages.Values[LangCode]);
+  for i:=0 to comboAppLanguage.Items.Count-1 do begin
+    if RegExprGetMatch('^(\w+)\b', comboAppLanguage.Items[i], 1) = LangCode then begin
+      comboAppLanguage.ItemIndex := i;
+      Break;
+    end;
+  end;
+  if comboAppLanguage.ItemIndex = -1 then
+    comboAppLanguage.ItemIndex := 0;
   GUIFont := AppSettings.ReadString(asGUIFontName);
   if GUIFont.IsEmpty then
     comboGUIFont.ItemIndex := 0
@@ -1213,21 +1218,33 @@ end;
 procedure Toptionsform.InitLanguages;
 var
   AvailLangCodes: TStringList;
+  i: Integer;
 
   procedure AddLang(LangCode, LangName: String);
+  var j: Integer;
   begin
-    LangCode := LowerCase(LangCode);
-    if AvailLangCodes.IndexOf(LangCode) > -1 then
-      FLanguages.Add(LangCode + FLanguages.NameValueSeparator + LangName);
+    if AvailLangCodes.IndexOf(LangCode) = -1 then
+      Exit;
+    // Delete potentially existing lang code without long name
+    for j:=FLanguages.Count-1 downto 0 do begin
+      if CompareText(RegExprGetMatch('^(\w+)\b', FLanguages[j], 1), LangCode) = 0 then begin
+        FLanguages.Delete(j);
+      end;
+    end;
+
+    FLanguages.Add(LangCode + ': ' + LangName);
   end;
 
 begin
   // Create list with present language code => language name
   // List taken from dxgettext/languagecodes.pas
   FLanguages := TStringList.Create;
-  FLanguages.Add('' + FLanguages.NameValueSeparator + f_('Auto detect (%s)', [DefaultInstance.GetCurrentLanguage]));
   AvailLangCodes := TStringList.Create;
+  AvailLangCodes.CaseSensitive := False;
   DefaultInstance.GetListOfLanguages('default', AvailLangCodes);
+  for i:=0 to AvailLangCodes.Count-1 do begin
+    AddLang(AvailLangCodes[i], '');
+  end;
   AddLang('aa', 'Afar');
   AddLang('aa', 'Afar');
   AddLang('ab', 'Abkhazian');
@@ -1295,6 +1312,7 @@ begin
   AddLang('hi', 'Hindi');
   AddLang('ho', 'Hiri Motu');
   AddLang('hr', 'Croatian');
+  AddLang('hr_HR', 'Croatian'); // Added, exists on Transifex
   AddLang('ht', 'Haitian');
   AddLang('hu', 'Hungarian');
   AddLang('hy', 'Armenian');
@@ -1420,10 +1438,14 @@ begin
   AddLang('yi', 'Yiddish');
   AddLang('yo', 'Yoruba');
   AddLang('za', 'Zhuang');
-  AddLang('zh', 'Chinese (Simplified)');
+  AddLang('zh', 'Chinese (Simplified)'); // Added, see #498
   AddLang('zh_CN', 'Chinese (China)');
   AddLang('zh_TW', 'Chinese (Traditional)');
   AddLang('zu', 'Zulu');
+
+  FLanguages.Sort;
+  FLanguages.Insert(0, '*** '+f_('Auto detect (%s)', [SysLanguage]));
+
   AvailLangCodes.Free;
 end;
 

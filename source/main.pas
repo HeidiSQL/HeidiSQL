@@ -1188,6 +1188,7 @@ end;
 var
   MainForm: TMainForm;
   SecondInstMsgId: UINT = 0;
+  SysLanguage: String;
 
 const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
