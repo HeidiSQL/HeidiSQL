@@ -65,17 +65,15 @@ type
     procedure btnOpenFileClick(Sender: TObject);
     procedure btnColMoveClick(Sender: TObject);
     procedure grpParseMethodClick(Sender: TObject);
-    procedure comboEncodingSelect(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure chklistColumnsClick(Sender: TObject);
     procedure btnCheckAllClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
   private
     { Private declarations }
-    Encoding: TEncoding;
+    FFileEncoding: TEncoding;
     Term, Encl, Escp, LineTerm: String;
     RowCount, ColumnCount: Integer;
-    SelectedCharsetIndex: Integer;
     Columns: TTableColumnList;
     FConnection: TDBConnection;
   public
@@ -187,10 +185,9 @@ end;
 procedure Tloaddataform.grpParseMethodClick(Sender: TObject);
 var
   ServerWillParse: Boolean;
-  Charset, DefCharset, dbcreate, Item: String;
-  v: Integer;
+  FileCharset, Item: String;
+  v, i: Integer;
   CharsetTable: TDBQuery;
-  rx: TRegExpr;
 begin
   ServerWillParse := grpParseMethod.ItemIndex = 0;
   comboEncoding.Enabled := ServerWillParse;
@@ -201,43 +198,34 @@ begin
     // Populate charset combo
     v := FConnection.ServerVersionInt;
     if ((v >= 50038) and (v < 50100)) or (v >= 50117) then begin
-      Charset := MainForm.GetCharsetByEncoding(Encoding);
-      try
-        // Detect db charset
-        DefCharset := _('Let server/database decide');
-        dbcreate := FConnection.GetVar('SHOW CREATE DATABASE '+FConnection.QuoteIdent(comboDatabase.Text), 1);
-        rx := TRegExpr.Create;
-        rx.ModifierG := True;
-        rx.Expression := 'CHARACTER SET (\w+)';
-        if rx.Exec(dbcreate) then
-          DefCharset := DefCharset + ' ('+rx.Match[1]+')';
-        comboEncoding.Items.Add(DefCharset);
-        rx.Free;
-      except
-        // Supress error dialog when user does not have privs for above SHOW query
-        // see http://www.heidisql.com/forum.php?t=8862
-      end;
+      FileCharset := MainForm.GetCharsetByEncoding(FFileEncoding);
+      if FileCharset.IsEmpty then
+        FileCharset := 'utf8';
       CharsetTable := FConnection.CharsetTable;
       CharsetTable.First;
       while not CharsetTable.Eof do begin
         if IsNotEmpty(CharsetTable.Col(0)) then
           Item := CharsetTable.Col(0);
         if IsNotEmpty(CharsetTable.Col(1)) then
-          Item := CharsetTable.Col(1) + ' ('+Item+')';
+          Item := Item + ': ' + CharsetTable.Col(1);
         comboEncoding.Items.Add(Item);
-        if (SelectedCharsetIndex = -1) and (Charset = CharsetTable.Col(0)) then
-          SelectedCharsetIndex := comboEncoding.Items.Count-1;
         CharsetTable.Next;
       end;
-      if SelectedCharsetIndex = -1 then
-        SelectedCharsetIndex := 0;
-      comboEncoding.ItemIndex := SelectedCharsetIndex;
+
+      // Preselect file encoding, or utf8 as a fallback
+      for i:=0 to comboEncoding.Items.Count-1 do begin
+        if ExecRegExpr('^'+QuoteRegExprMetaChars(FileCharset)+'\b', comboEncoding.Items[i]) then begin
+          comboEncoding.ItemIndex :=  i;
+          Break;
+        end;
+      end;
+
     end else begin
       comboEncoding.Items.Add(_(SUnsupported));
       comboEncoding.ItemIndex := 0;
     end;
   end else begin
-    comboEncoding.Items.Add(Mainform.GetEncodingName(Encoding));
+    comboEncoding.Items.Add(Mainform.GetEncodingName(FFileEncoding));
     comboEncoding.ItemIndex := 0;
   end;
 end;
@@ -268,11 +256,6 @@ begin
   comboTableChange(Sender);
 end;
 
-
-procedure Tloaddataform.comboEncodingSelect(Sender: TObject);
-begin
-  SelectedCharsetIndex := comboEncoding.ItemIndex;
-end;
 
 procedure Tloaddataform.comboTableChange(Sender: TObject);
 var
@@ -387,7 +370,7 @@ end;
 
 procedure Tloaddataform.ServerParse(Sender: TObject);
 var
-  SQL, SetColVars: String;
+  SQL, SetColVars, SelectedCharset: String;
   i: Integer;
 begin
   SQL := 'LOAD DATA ';
@@ -400,9 +383,9 @@ begin
   end;
   SQL := SQL + 'INTO TABLE ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text) + ' ';
 
-  if comboEncoding.ItemIndex > 0 then begin
-    FConnection.CharsetTable.RecNo := comboEncoding.ItemIndex-1;
-    SQL := SQL + 'CHARACTER SET '+FConnection.CharsetTable.Col(0)+' ';
+  SelectedCharset := RegExprGetMatch('^(\w+)\b', comboEncoding.Text, 1);
+  if not SelectedCharset.IsEmpty then begin
+    SQL := SQL + 'CHARACTER SET '+SelectedCharset+' ';
   end;
 
   // Fields:
@@ -573,7 +556,7 @@ begin
   OutStream := TMemoryStream.Create;
 
   MainForm.ShowStatusMsg(f_('Reading textfile (%s) ...', [FormatByteNumber(_GetFileSize(editFilename.Text))]));
-  Contents := ReadTextfile(editFilename.Text, Encoding);
+  Contents := ReadTextfile(editFilename.Text, FFileEncoding);
   ContentLen := Length(Contents);
   MainForm.ShowStatusMsg;
 
@@ -638,13 +621,12 @@ begin
   Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if Dialog.Execute then begin
     editfilename.Text := Dialog.FileName;
-    Encoding := Mainform.GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
-    if Encoding = nil then begin
+    FFileEncoding := Mainform.GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
+    if FFileEncoding = nil then begin
       TestStream := TFileStream.Create(Dialog.Filename, fmOpenRead or fmShareDenyNone);
-      Encoding := DetectEncoding(TestStream);
+      FFileEncoding := DetectEncoding(TestStream);
       TestStream.Free;
     end;
-    SelectedCharsetIndex := -1;
     grpParseMethod.OnClick(Sender);
     AppSettings.WriteInt(asFileDialogEncoding, Dialog.EncodingIndex, Self.Name);
   end;

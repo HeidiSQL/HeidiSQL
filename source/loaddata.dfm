@@ -93,8 +93,8 @@ object loaddataform: Tloaddataform
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
       DropDownCount = 16
+      Sorted = True
       TabOrder = 1
-      OnSelect = comboEncodingSelect
     end
   end
   object grpChars: TGroupBox
