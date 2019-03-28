@@ -10163,7 +10163,7 @@ begin
       item.Tag := i;
       item.OnClick := LoadRecentFilter;
       menuRecentFilters.Add(item);
-      comboRecentFilters.Items.Add(sstr(capt, 100));
+      comboRecentFilters.Items.Add(capt);
     end;
     FreeAndNil(rx);
     AppSettings.ResetPath;

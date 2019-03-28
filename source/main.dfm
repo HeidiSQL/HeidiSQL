@@ -1201,8 +1201,11 @@ object MainForm: TMainForm
               Top = 0
               Width = 400
               Height = 21
+              AutoDropDown = True
+              AutoCloseUp = True
               Style = csDropDownList
               Anchors = [akLeft, akTop, akRight]
+              DropDownCount = 20
               TabOrder = 4
               OnSelect = LoadRecentFilter
             end
