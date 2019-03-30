@@ -2117,7 +2117,11 @@ begin
       end;
     end;
   end else begin
-    PQfinish(FHandle);
+    try
+      PQfinish(FHandle);
+    except
+      on E:EAccessViolation do;
+    end;
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
