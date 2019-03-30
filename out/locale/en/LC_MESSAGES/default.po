@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-03-17 11:54+0100\n"
+"PO-Revision-Date: 2019-03-30 09:56+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2130,16 +2130,6 @@ msgstr "Apply filter"
 #: main.dfm:2362
 msgid "Remove filter"
 msgstr "Remove filter"
-
-#. MainForm..ActionList1..actSelectTreeBackground..Caption
-#: main.dfm:2368
-msgid "Select session background color ..."
-msgstr "Select session background color ..."
-
-#. MainForm..ActionList1..actSelectTreeBackground..Hint
-#: main.dfm:2369
-msgid "Lets you chose a per session color value for the database tree"
-msgstr "Lets you chose a per session color value for the database tree"
 
 #. MainForm..ActionList1..actPreviousTab..Caption
 #: main.dfm:2376
@@ -6359,3 +6349,6 @@ msgstr "Credits"
 
 msgid "Plugin directory %s could not be set."
 msgstr "Plugin directory %s could not be set."
+
+msgid "Background color:"
+msgstr "Background color:"
