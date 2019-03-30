@@ -118,6 +118,8 @@ type
     pnlDpiHelperSshTunnel: TPanel;
     pnlDpiHelperAdvanced: TPanel;
     TimerButtonAnimation: TTimer;
+    lblBackgroundColor: TLabel;
+    ColorBoxBackgroundColor: TColorBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -382,6 +384,7 @@ begin
   Sess.KeepAlive := updownKeepAlive.Position;
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.FullTableStatus := chkFullTableStatus.Checked;
+  Sess.SessionColor := ColorBoxBackgroundColor.Selected;
   Sess.AllDatabasesStr := editDatabases.Text;
   Sess.Comment := memoComment.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
@@ -595,6 +598,7 @@ begin
     Result.KeepAlive := updownKeepAlive.Position;
     Result.LocalTimeZone := chkLocalTimeZone.Checked;
     Result.FullTableStatus := chkFullTableStatus.Checked;
+    Result.SessionColor := ColorBoxBackgroundColor.Selected;
   end;
 end;
 
@@ -837,6 +841,7 @@ begin
     updownKeepAlive.Position := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
+    ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
@@ -1099,6 +1104,7 @@ begin
       or (Sess.KeepAlive <> updownKeepAlive.Position)
       or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
       or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
+      or (Sess.SessionColor <> ColorBoxBackgroundColor.Selected)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
       or (Sess.AllDatabasesStr <> editDatabases.Text)

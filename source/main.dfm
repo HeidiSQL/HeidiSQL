@@ -1730,9 +1730,6 @@ object MainForm: TMainForm
       object N1: TMenuItem
         Caption = '-'
       end
-      object actSelectTreeBackground1: TMenuItem
-        Action = actSelectTreeBackground
-      end
       object ExportSettings1: TMenuItem
         Action = actExportSettings
       end
@@ -2455,13 +2452,6 @@ object MainForm: TMainForm
       ImageIndex = 26
       OnExecute = actRemoveFilterExecute
     end
-    object actSelectTreeBackground: TAction
-      Category = 'File'
-      Caption = 'Select session background color ...'
-      Hint = 'Lets you chose a per session color value for the database tree'
-      ImageIndex = 115
-      OnExecute = actSelectTreeBackgroundExecute
-    end
     object actPreviousTab: TPreviousTab
       Category = 'Tools'
       TabControl = PageControlMain
@@ -2888,9 +2878,6 @@ object MainForm: TMainForm
       object menuDoubleClickInsertsNodeText: TMenuItem
         Caption = 'Doubleclick inserts node text'
         OnClick = menuDoubleClickInsertsNodeTextClick
-      end
-      object menuSelectBGColor: TMenuItem
-        Action = actSelectTreeBackground
       end
       object actFavoriteObjectsOnly1: TMenuItem
         Action = actFavoriteObjectsOnly

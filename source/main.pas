@@ -238,7 +238,6 @@ type
     Cut1: TMenuItem;
     actExportSettings: TAction;
     actImportSettings: TAction;
-    actSelectTreeBackground: TAction;
     actPreferences: TAction;
     actFlushHosts: TAction;
     actFlushLogs: TAction;
@@ -429,7 +428,6 @@ type
     Cancelediting1: TMenuItem;
     DataPost1: TMenuItem;
     menuShowSizeColumn: TMenuItem;
-    menuSelectBGColor: TMenuItem;
     actPreviousTab: TPreviousTab;
     actNextTab: TNextTab;
     Nexttab1: TMenuItem;
@@ -691,7 +689,6 @@ type
     procedure actSQLhelpExecute(Sender: TObject);
     procedure actUpdateCheckExecute(Sender: TObject);
     procedure actWebbrowse(Sender: TObject);
-    procedure actSelectTreeBackgroundExecute(Sender: TObject);
     procedure popupQueryPopup(Sender: TObject);
     procedure btnDataClick(Sender: TObject);
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -4697,58 +4694,6 @@ begin
     end else
       Grid.InvalidateNode(Node);
     ValidateControls(Sender);
-  end;
-end;
-
-
-procedure TMainForm.actSelectTreeBackgroundExecute(Sender: TObject);
-var
-  cs: TColorSelect;
-  SessionPaths: TStringList;
-  i: Integer;
-  Col: TColor;
-  ColString: String;
-  CharPostfix: Char;
-
-  function ValueExists(Value: String): Boolean;
-  var
-    j: Integer;
-  begin
-    // Value exists in string list?
-    Result := False;
-    for j:=0 to cs.Dialog.CustomColors.Count-1 do begin
-      if cs.Dialog.CustomColors.ValueFromIndex[j] = Value then begin
-        Result := True;
-        break;
-      end;
-    end;
-  end;
-
-begin
-  // Select database tree background color
-  cs := TColorSelect.Create(Self);
-  cs.Dialog.Color := ActiveConnection.Parameters.SessionColor;
-  // Add custom colors from all sessions
-  SessionPaths := TStringList.Create;
-  AppSettings.GetSessionPaths('', SessionPaths);
-  CharPostfix := 'A';
-  for i:=0 to SessionPaths.Count-1 do begin
-    AppSettings.SessionPath := SessionPaths[i];
-    Col := AppSettings.ReadInt(asTreeBackground);
-    if Col <> clNone then begin
-      ColString := IntToHex(ColorToRgb(Col), 6);
-      if not ValueExists(ColString) then begin
-        cs.Dialog.CustomColors.Add('Color'+CharPostfix+'='+ColString);
-        if cs.Dialog.CustomColors.Count >= MaxCustomColors then
-          break;
-        CharPostfix := Chr(Ord(CharPostfix)+1);
-      end;
-    end;
-  end;
-  if cs.Execute then begin
-    ActiveConnection.Parameters.SessionColor := cs.Dialog.Color;
-    AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
-    AppSettings.WriteInt(asTreeBackground, cs.Dialog.Color);
   end;
 end;
 

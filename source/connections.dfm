@@ -3,7 +3,7 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu, biHelp]
   Caption = 'Session manager'
-  ClientHeight = 364
+  ClientHeight = 448
   ClientWidth = 649
   Color = clBtnFace
   Constraints.MinHeight = 360
@@ -18,7 +18,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     649
-    364)
+    448)
   PixelsPerInch = 96
   TextHeight = 13
   object splitterMain: TSplitter
@@ -26,7 +26,7 @@ object connform: Tconnform
     Left = 208
     Top = 8
     Width = 8
-    Height = 316
+    Height = 400
     Cursor = crSizeWE
     Margins.Left = 0
     Margins.Top = 8
@@ -37,7 +37,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 331
+    Top = 415
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -47,7 +47,7 @@ object connform: Tconnform
   end
   object btnOpen: TButton
     Left = 389
-    Top = 331
+    Top = 415
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -59,7 +59,7 @@ object connform: Tconnform
   end
   object btnCancel: TButton
     Left = 475
-    Top = 331
+    Top = 415
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -73,7 +73,7 @@ object connform: Tconnform
     Left = 8
     Top = 8
     Width = 200
-    Height = 316
+    Height = 400
     Margins.Left = 8
     Margins.Top = 8
     Margins.Right = 0
@@ -146,7 +146,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 331
+    Top = 415
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -158,7 +158,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 331
+    Top = 415
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -171,7 +171,7 @@ object connform: Tconnform
     Left = 216
     Top = 8
     Width = 425
-    Height = 316
+    Height = 400
     Margins.Left = 0
     Margins.Top = 8
     Margins.Right = 8
@@ -216,7 +216,7 @@ object connform: Tconnform
         Left = 0
         Top = 0
         Width = 417
-        Height = 287
+        Height = 371
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperSettings'
@@ -224,7 +224,7 @@ object connform: Tconnform
         TabOrder = 0
         DesignSize = (
           417
-          287)
+          371)
         object lblPort: TLabel
           Left = 3
           Top = 168
@@ -379,7 +379,7 @@ object connform: Tconnform
           Left = 120
           Top = 238
           Width = 294
-          Height = 35
+          Height = 119
           Anchors = [akLeft, akTop, akRight, akBottom]
           ScrollBars = ssVertical
           TabOrder = 10
@@ -408,7 +408,7 @@ object connform: Tconnform
         Left = 0
         Top = 0
         Width = 417
-        Height = 287
+        Height = 371
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperSshTunnel'
@@ -416,7 +416,7 @@ object connform: Tconnform
         TabOrder = 0
         DesignSize = (
           417
-          287)
+          371)
         object lblSSHLocalPort: TLabel
           Left = 3
           Top = 190
@@ -597,7 +597,7 @@ object connform: Tconnform
         Left = 0
         Top = 0
         Width = 417
-        Height = 287
+        Height = 371
         Align = alClient
         BevelOuter = bvNone
         Caption = 'pnlDpiHelperAdvanced'
@@ -605,7 +605,7 @@ object connform: Tconnform
         TabOrder = 0
         DesignSize = (
           417
-          287)
+          371)
         object lblSSLPrivateKey: TLabel
           Left = 3
           Top = 39
@@ -658,6 +658,13 @@ object connform: Tconnform
           Width = 106
           Height = 13
           Caption = 'Ping every X seconds:'
+        end
+        object lblBackgroundColor: TLabel
+          Left = 3
+          Top = 304
+          Width = 86
+          Height = 13
+          Caption = 'Background color:'
         end
         object editSSLPrivateKey: TButtonedEdit
           Left = 120
@@ -802,6 +809,19 @@ object connform: Tconnform
           Max = 86400
           TabOrder = 11
         end
+        object ColorBoxBackgroundColor: TColorBox
+          Left = 120
+          Top = 301
+          Width = 294
+          Height = 22
+          NoneColorColor = clNone
+          Selected = clNone
+          Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbIncludeDefault, cbCustomColor, cbPrettyNames, cbCustomColors]
+          Anchors = [akLeft, akTop, akRight]
+          DropDownCount = 16
+          TabOrder = 12
+          OnChange = Modification
+        end
       end
     end
     object tabStatistics: TTabSheet
@@ -867,7 +887,7 @@ object connform: Tconnform
   end
   object btnMore: TButton
     Left = 561
-    Top = 331
+    Top = 415
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
