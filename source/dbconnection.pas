@@ -5576,9 +5576,9 @@ begin
   FRecNo := -1;
   FRecordCount := 0;
   FColumnNames := TStringList.Create;
-  FColumnNames.CaseSensitive := True;
+  FColumnNames.CaseSensitive := False;
   FColumnOrgNames := TStringList.Create;
-  FColumnOrgNames.CaseSensitive := True;
+  FColumnOrgNames.CaseSensitive := False;
   FStoreResult := True;
   FDBObject := nil;
   FFormatSettings := TFormatSettings.Create('en-US');
@@ -6246,9 +6246,9 @@ function TDBQuery.Col(ColumnName: String; IgnoreErrors: Boolean=False): String;
 var
   idx: Integer;
 begin
+  // ColumnNames is case insensitive, so we can select wrong cased columns in MariaDB 10.4
+  // See #599
   idx := ColumnNames.IndexOf(ColumnName);
-  if idx = -1 then
-    idx := ColumnNames.IndexOf(LowerCase(ColumnName));
   if idx > -1 then
     Result := Col(idx)
   else if not IgnoreErrors then
