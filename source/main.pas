@@ -12883,9 +12883,13 @@ begin
       end;
     end;
   end else begin
-    MainForm.LogSQL('Saving backup file to "'+FMemoBackupFilename+'"...', lcDebug);
-    MainForm.ShowStatusMsg(_('Saving backup file...'));
-    SaveUnicodeFile(FMemoBackupFilename, Memo.Text);
+    if Memo.GetTextLen < SIZE_MB*10 then begin
+      MainForm.LogSQL('Saving backup file to "'+FMemoBackupFilename+'"...', lcDebug);
+      MainForm.ShowStatusMsg(_('Saving backup file...'));
+      SaveUnicodeFile(FMemoBackupFilename, Memo.Text);
+    end else begin
+      MainForm.LogSQL('Unsaved tab contents too large (> 10M) for creating a backup.', lcDebug);
+    end;
   end;
   MainForm.ShowStatusMsg('');
 end;
