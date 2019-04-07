@@ -298,7 +298,7 @@ object MainForm: TMainForm
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
-          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
+          OnRightButtonClick = buttonedEditClear
         end
         object editTableFilter: TButtonedEdit
           Left = 50
@@ -316,7 +316,7 @@ object MainForm: TMainForm
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress
           OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
-          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
+          OnRightButtonClick = buttonedEditClear
         end
         object btnTreeFavorites: TToolButton
           Left = 100
@@ -1280,7 +1280,7 @@ object MainForm: TMainForm
             TabOrder = 0
             OnCanResize = pnlQueryMemoCanResize
             object spltQueryHelpers: TSplitter
-              Left = 448
+              Left = 454
               Top = 0
               Width = 4
               Height = 96
@@ -1291,7 +1291,7 @@ object MainForm: TMainForm
             object SynMemoQuery: TSynMemo
               Left = 0
               Top = 0
-              Width = 448
+              Width = 454
               Height = 96
               SingleLineMode = False
               Align = alClient
@@ -1345,53 +1345,78 @@ object MainForm: TMainForm
                   ShortCut = 16460
                 end>
             end
-            object treeQueryHelpers: TVirtualStringTree
-              Left = 452
+            object pnlQueryHelpers: TPanel
+              Left = 458
               Top = 0
-              Width = 191
+              Width = 185
               Height = 96
               Align = alRight
-              Constraints.MinWidth = 10
-              DragMode = dmAutomatic
-              DragType = dtVCL
-              Header.AutoSizeIndex = 0
-              Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-              Images = VirtualImageListMain
-              IncrementalSearch = isAll
-              PopupMenu = popupQueryHelpers
-              RootNodeCount = 6
+              BevelOuter = bvNone
+              Caption = 'pnlQueryHelpers'
               TabOrder = 1
-              TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoSpanColumns, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
-              TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-              TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-              TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
-              OnBeforeCellPaint = treeQueryHelpersBeforeCellPaint
-              OnChecking = treeQueryHelpersChecking
-              OnContextPopup = treeQueryHelpersContextPopup
-              OnCreateEditor = treeQueryHelpersCreateEditor
-              OnDblClick = treeQueryHelpersDblClick
-              OnEditing = treeQueryHelpersEditing
-              OnFocusChanging = treeQueryHelpersFocusChanging
-              OnFreeNode = treeQueryHelpersFreeNode
-              OnGetText = treeQueryHelpersGetText
-              OnPaintText = treeQueryHelpersPaintText
-              OnGetImageIndex = treeQueryHelpersGetImageIndex
-              OnInitChildren = treeQueryHelpersInitChildren
-              OnInitNode = treeQueryHelpersInitNode
-              OnNewText = treeQueryHelpersNewText
-              OnNodeClick = treeQueryHelpersNodeClick
-              OnResize = treeQueryHelpersResize
-              Columns = <
-                item
-                  Position = 0
-                  Text = 'Main column'
-                  Width = 91
-                end
-                item
-                  Position = 1
-                  Text = 'Attributes'
-                  Width = 100
-                end>
+              object treeQueryHelpers: TVirtualStringTree
+                Left = 0
+                Top = 21
+                Width = 185
+                Height = 75
+                Align = alClient
+                Constraints.MinWidth = 10
+                DragMode = dmAutomatic
+                DragType = dtVCL
+                Header.AutoSizeIndex = 0
+                Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+                Images = VirtualImageListMain
+                IncrementalSearch = isAll
+                PopupMenu = popupQueryHelpers
+                RootNodeCount = 6
+                TabOrder = 0
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoSpanColumns, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+                TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+                OnBeforeCellPaint = treeQueryHelpersBeforeCellPaint
+                OnChecking = treeQueryHelpersChecking
+                OnContextPopup = treeQueryHelpersContextPopup
+                OnCreateEditor = treeQueryHelpersCreateEditor
+                OnDblClick = treeQueryHelpersDblClick
+                OnEditing = treeQueryHelpersEditing
+                OnFocusChanging = treeQueryHelpersFocusChanging
+                OnFreeNode = treeQueryHelpersFreeNode
+                OnGetText = treeQueryHelpersGetText
+                OnPaintText = treeQueryHelpersPaintText
+                OnGetImageIndex = treeQueryHelpersGetImageIndex
+                OnInitChildren = treeQueryHelpersInitChildren
+                OnInitNode = treeQueryHelpersInitNode
+                OnNewText = treeQueryHelpersNewText
+                OnNodeClick = treeQueryHelpersNodeClick
+                OnResize = treeQueryHelpersResize
+                Columns = <
+                  item
+                    Position = 0
+                    Text = 'Main column'
+                    Width = 64
+                  end
+                  item
+                    Position = 1
+                    Text = 'Attributes'
+                    Width = 100
+                  end>
+              end
+              object filterQueryHelpers: TButtonedEdit
+                Left = 0
+                Top = 0
+                Width = 185
+                Height = 21
+                Align = alTop
+                Images = VirtualImageListMain
+                LeftButton.ImageIndex = 30
+                LeftButton.Visible = True
+                RightButton.ImageIndex = 193
+                TabOrder = 1
+                TextHint = 'Filter ...'
+                OnChange = filterQueryHelpersChange
+                OnRightButtonClick = buttonedEditClear
+              end
             end
           end
           object QueryGrid: TVirtualStringTree

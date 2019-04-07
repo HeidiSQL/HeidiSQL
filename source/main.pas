@@ -67,6 +67,7 @@ type
       CloseButton: TSpeedButton;
       pnlMemo: TPanel;
       pnlHelpers: TPanel;
+      filterHelpers: TButtonedEdit;
       treeHelpers: TVirtualStringTree;
       MemoFileRenamed: Boolean;
       MemoLineBreaks: TLineBreaks;
@@ -536,7 +537,6 @@ type
     actDataSaveBlobToFile: TAction;
     SaveBLOBtofile1: TMenuItem;
     DataUNIXtimestamp: TMenuItem;
-    treeQueryHelpers: TVirtualStringTree;
     popupExecuteQuery: TPopupMenu;
     Run1: TMenuItem;
     RunSelection1: TMenuItem;
@@ -637,6 +637,9 @@ type
     ImageCollectionIcons8: TImageCollection;
     VirtualImageListMain: TVirtualImageList;
     ImageCollectionSilk: TImageCollection;
+    pnlQueryHelpers: TPanel;
+    treeQueryHelpers: TVirtualStringTree;
+    filterQueryHelpers: TButtonedEdit;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -991,7 +994,7 @@ type
     procedure actNextResultExecute(Sender: TObject);
     procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
     procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
-    procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
+    procedure buttonedEditClear(Sender: TObject);
     procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
     procedure DBtreeDblClick(Sender: TObject);
     procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
@@ -1002,6 +1005,7 @@ type
     procedure SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
+    procedure filterQueryHelpersChange(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1536,7 +1540,7 @@ begin
   AppSettings.WriteBool(asDisplayBLOBsAsText, actBlobAsText.Checked);
   AppSettings.WriteString(asDelimiter, FDelimiter);
   AppSettings.WriteInt(asQuerymemoheight, pnlQueryMemo.Height);
-  AppSettings.WriteInt(asQueryhelperswidth, treeQueryHelpers.Width);
+  AppSettings.WriteInt(asQueryhelperswidth, pnlQueryHelpers.Width);
   AppSettings.WriteInt(asCompletionProposalWidth, SynCompletionProposal.Width);
   AppSettings.WriteInt(asCompletionProposalNbLinesInWindow, SynCompletionProposal.NbLinesInWindow);
   AppSettings.WriteInt(asDbtreewidth, pnlLeft.width);
@@ -1823,7 +1827,7 @@ begin
   actPreferencesData.OnExecute := actPreferences.OnExecute;
 
   pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
-  treeQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
+  pnlQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
   pnlLeft.Width := AppSettings.ReadInt(asDbtreewidth);
   pnlPreview.Height := AppSettings.ReadInt(asDataPreviewHeight);
   if AppSettings.ReadBool(asDataPreviewEnabled) then
@@ -6887,6 +6891,59 @@ begin
 end;
 
 
+procedure TMainForm.filterQueryHelpersChange(Sender: TObject);
+var
+  rx: TRegExpr;
+  Node: PVirtualNode;
+  VT: TVirtualStringTree;
+  i: Integer;
+  match: Boolean;
+  CellText: String;
+  Edit: TButtonedEdit;
+begin
+  // Filter nodes in query helpers
+  // Loop through all nodes and hide non matching
+  VT := ActiveQueryHelpers;
+  Edit := Sender as TButtonedEdit;
+  Node := VT.GetFirst;
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.Expression := Edit.Text;
+  try
+    rx.Exec('abc');
+  except
+    on E:ERegExpr do begin
+      if rx.Expression <> '' then begin
+        LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
+        rx.Expression := '';
+      end;
+    end;
+  end;
+
+  VT.BeginUpdate;
+  while Assigned(Node) do begin
+    if (not VT.HasChildren[Node]) and (VT.GetNodeLevel(Node) > 0) then begin
+      // Don't filter anything if the filter text is empty
+      match := rx.Expression = '';
+      // Search for given text in node's captions
+      if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
+        CellText := VT.Text[Node, i];
+        match := rx.Exec(CellText);
+        if match then
+          break;
+      end;
+      VT.IsVisible[Node] := match;
+    end;
+    Node := VT.GetNext(Node);
+  end;
+  VT.EndUpdate;
+  VT.Invalidate;
+  rx.Free;
+
+  Edit.RightButton.Visible := IsNotEmpty(Edit.Text);
+end;
+
+
 procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
   idx, i: Integer;
@@ -9483,7 +9540,7 @@ procedure TMainForm.pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
   NewHeight: Integer; var Resize: Boolean);
 begin
   // Ensure visibility of query memo while resizing
-  Resize := NewWidth >= treeQueryHelpers.Width + spltQueryHelpers.Width + 40;
+  Resize := NewWidth >= pnlQueryHelpers.Width + spltQueryHelpers.Width + 40;
 end;
 
 
@@ -10303,11 +10360,29 @@ begin
   QueryTab.spltHelpers.ResizeStyle := spltQueryHelpers.ResizeStyle;
   QueryTab.spltHelpers.Width := spltQueryHelpers.Width;
 
-  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlMemo);
-  QueryTab.treeHelpers.Parent := QueryTab.pnlMemo;
+  QueryTab.pnlHelpers := TPanel.Create(QueryTab.pnlMemo);
+  QueryTab.pnlHelpers.Parent := QueryTab.pnlMemo;
+  QueryTab.pnlHelpers.Align := pnlQueryHelpers.Align;
+  QueryTab.pnlHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
+  QueryTab.pnlHelpers.Left := pnlQueryHelpers.Left;
+  QueryTab.pnlHelpers.Width := pnlQueryHelpers.Width;
+
+  QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.pnlHelpers);
+  QueryTab.filterHelpers.Parent := QueryTab.pnlHelpers;
+  QueryTab.filterHelpers.Align := filterQueryHelpers.Align;
+  QueryTab.filterHelpers.TextHint := filterQueryHelpers.TextHint;
+  QueryTab.filterHelpers.Images := filterQueryHelpers.Images;
+  QueryTab.filterHelpers.LeftButton.Visible := filterQueryHelpers.LeftButton.Visible;
+  QueryTab.filterHelpers.LeftButton.ImageIndex := filterQueryHelpers.LeftButton.ImageIndex;
+  QueryTab.filterHelpers.RightButton.Visible := filterQueryHelpers.RightButton.Visible;
+  QueryTab.filterHelpers.RightButton.ImageIndex := filterQueryHelpers.RightButton.ImageIndex;
+  QueryTab.filterHelpers.OnChange := filterQueryHelpers.OnChange;
+  QueryTab.filterHelpers.OnRightButtonClick := filterQueryHelpers.OnRightButtonClick;
+
+  QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlHelpers);
+  QueryTab.treeHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
   QueryTab.treeHelpers.Left := treeQueryHelpers.Left;
-  QueryTab.treeHelpers.Width := treeQueryHelpers.Width;
   QueryTab.treeHelpers.Constraints.MinWidth := treeQueryHelpers.Constraints.MinWidth;
   QueryTab.treeHelpers.PopupMenu := treeQueryHelpers.PopupMenu;
   QueryTab.treeHelpers.Images := treeQueryHelpers.Images;
@@ -10461,9 +10536,9 @@ begin
 end;
 
 
-procedure TMainForm.editDatabaseTableFilterRightButtonClick(Sender: TObject);
+procedure TMainForm.buttonedEditClear(Sender: TObject);
 begin
-  // Click on right button of database/table filter
+  // Click on "clear" button of any TButtonedEdit control
   TButtonedEdit(Sender).Clear;
 end;
 
