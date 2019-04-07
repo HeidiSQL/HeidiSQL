@@ -83,6 +83,7 @@ const
   GRIDMAXDATA: Integer = 256;
 
   BACKUP_MAXFILESIZE: Integer = 10 * SIZE_MB;
+  BACKUP_FILEPATTERN: String = 'query-tab-%d.sql';
 
   VTREE_NOTLOADED = 0;
   VTREE_NOTLOADED_PURGECACHE = 1;

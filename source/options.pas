@@ -169,9 +169,8 @@ type
     lblIconPack: TLabel;
     comboIconPack: TComboBox;
     tabFiles: TTabSheet;
-    chkReopenFiles: TCheckBox;
     chkAskFileSave: TCheckBox;
-    chkBackupRestoreFiles: TCheckBox;
+    chkRestoreTabs: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -243,6 +242,7 @@ procedure Toptionsform.Modified(Sender: TObject);
 begin
   // Modified
   btnApply.Enabled := True;
+  // Sending controls with a Tag property > 0 (normally 1) need an application restart
   if (Sender is TComponent) and (TComponent(Sender).Tag <> 0) then begin
     FRestartOptionTouched := True;
   end;
@@ -402,8 +402,7 @@ begin
 
   // Files
   AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
-  AppSettings.WriteBool(asReopenFiles, chkReopenFiles.Checked);
-  AppSettings.WriteBool(asBackupRestoreFiles, chkBackupRestoreFiles.Checked);
+  AppSettings.WriteBool(asRestoreTabs, chkRestoreTabs.Checked);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -598,9 +597,6 @@ begin
   FShortcutCategories.Add(_('SQL editing'));
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
   comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
-
-  // Files
-  chkBackupRestoreFiles.Caption := f_('Automatically backup and restore unsaved content (up to %s per file)', [FormatByteNumber(BACKUP_MAXFILESIZE,0)]);
 end;
 
 
@@ -729,8 +725,7 @@ begin
 
   // Files
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
-  chkReopenFiles.Checked := AppSettings.ReadBool(asReopenFiles);
-  chkBackupRestoreFiles.Checked := AppSettings.ReadBool(asBackupRestoreFiles);
+  chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
 
   FRestartOptionTouched := False;
   btnApply.Enabled := False;

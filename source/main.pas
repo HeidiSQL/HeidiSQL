@@ -19,7 +19,7 @@ uses
   insertfiles, searchreplace, loaddata, copytable, VirtualTrees.HeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
-  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection;
+  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles;
 
 
 type
@@ -54,7 +54,9 @@ type
     private
       FMemo: TSynMemo;
       FMemoFilename: String;
+      FMemoBackupFilename: String;
       FQueryRunning: Boolean;
+      FLastChange: TDateTime;
       procedure SetMemo(Value: TSynMemo);
       procedure SetMemoFilename(Value: String);
       procedure SetQueryRunning(Value: Boolean);
@@ -93,9 +95,11 @@ type
       function LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
       function BindParamsActivated: Boolean;
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
+      procedure BackupUnsavedContent;
       property ActiveResultTab: TResultTab read GetActiveResultTab;
       property Memo: TSynMemo read FMemo write SetMemo;
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
+      property MemoBackupFilename: String read FMemoBackupFilename;
       property QueryRunning: Boolean read FQueryRunning write SetQueryRunning;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -640,6 +644,7 @@ type
     pnlQueryHelpers: TPanel;
     treeQueryHelpers: TVirtualStringTree;
     filterQueryHelpers: TButtonedEdit;
+    TimerStoreTabs: TTimer;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1006,6 +1011,7 @@ type
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     procedure filterQueryHelpersChange(Sender: TObject);
+    procedure TimerStoreTabsTimer(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1061,6 +1067,7 @@ type
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
+    FTabsIni: TIniFile;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1083,8 +1090,8 @@ type
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
     procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
-    function ConfirmTabClose(PageIndex: Integer): Boolean;
-    function ConfirmTabClear(PageIndex: Integer): Boolean;
+    function ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
+    function ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
     procedure ConnectionReady(Connection: TDBConnection; Database: String);
     procedure DatabaseChanged(Connection: TDBConnection; Database: String);
@@ -1098,6 +1105,8 @@ type
     procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
+    procedure StoreTabs;
+    procedure RestoreTabs;
   public
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
@@ -1507,9 +1516,11 @@ var
 begin
   // Prompt on modified changes
   CanClose := True;
+
   // Unsaved changes in some query tab?
+  // Also backups automatically if option is activated
   for i:=0 to QueryTabs.Count-1 do begin
-    CanClose := ConfirmTabClose(i+tabQuery.PageIndex);
+    CanClose := ConfirmTabClose(i+tabQuery.PageIndex, True);
     if not CanClose then
       Exit;
   end;
@@ -1680,8 +1691,9 @@ begin
   end;
 
 
-  // Ensure directory exists
+  // Ensure directories exist
   ForceDirectories(DirnameUserAppData);
+  ForceDirectories(AppSettings.ReadString(asBackupDirectory));
 
   // Move files from old default snippets directory, see issue #159
   if not AppSettings.PortableMode then begin
@@ -2094,6 +2106,13 @@ begin
     end;
   end;
 
+  // Restore backup'ed query tabs
+  if AppSettings.ReadBool(asRestoreTabs) then begin
+    FTabsIni := TIniFile.Create(DirnameUserAppData + 'tabs.ini');
+    RestoreTabs;
+    TimerStoreTabs.Enabled := True;
+  end;
+
   // Load SQL file(s) by command line
   if not RunQueryFiles(FileNames, nil, false) then begin
     for i:=0 to FileNames.Count-1 do begin
@@ -2103,6 +2122,70 @@ begin
         SetMainTab(Tab.TabSheet);
     end;
   end;
+end;
+
+
+procedure TMainForm.StoreTabs;
+var
+  Tab: TQueryTab;
+  Sections: TStringList;
+  Section: String;
+begin
+  // Store query tab unsaved contents and setup, in tabs.ini
+
+  for Tab in QueryTabs do begin
+    Tab.BackupUnsavedContent;
+  end;
+
+  Sections := TStringList.Create;
+  FTabsIni.ReadSections(Sections);
+  for Section in Sections do begin
+    FTabsIni.EraseSection(Section);
+  end;
+  Sections.Free;
+  for Tab in QueryTabs do begin
+    Section := 'Tab'+Tab.Number.ToString;
+    if Tab.Memo.GetTextLen > 0 then begin
+      FTabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
+      FTabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
+    end;
+  end;
+end;
+
+
+procedure TMainForm.RestoreTabs;
+var
+  Tab: TQueryTab;
+  Sections: TStringList;
+  Section, Filename, BackupFilename: String;
+begin
+  // Restore query tab setup from tabs.ini
+
+  Sections := TStringList.Create;
+  FTabsIni.ReadSections(Sections);
+  for Section in Sections do begin
+    Filename := FTabsIni.ReadString(Section, 'Filename', '');
+    BackupFilename := FTabsIni.ReadString(Section, 'BackupFilename', '');
+    if not BackupFilename.IsEmpty then begin
+      Tab := ActiveOrEmptyQueryTab(False);
+      Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
+      Tab.MemoFilename := Filename;
+      Tab.Memo.Modified := True;
+    end else if not Filename.IsEmpty then begin
+      Tab := ActiveOrEmptyQueryTab(False);
+      Tab.LoadContents(Filename, True, nil);
+      Tab.MemoFilename := Filename;
+    end;
+  end;
+  Sections.Free;
+
+end;
+
+
+procedure TMainForm.TimerStoreTabsTimer(Sender: TObject);
+begin
+  // Backup unsaved content every 10 seconds
+  StoreTabs;
 end;
 
 
@@ -10504,13 +10587,13 @@ var
 begin
   // Special case: the very first tab gets cleared but not closed
   if PageIndex = tabQuery.PageIndex then begin
-    if ConfirmTabClear(PageIndex) then
+    if ConfirmTabClear(PageIndex, False) then
       actClearQueryEditor.Execute;
   end;
   if not IsQueryTab(PageIndex, False) then
     Exit;
   // Ask user if query content shall be saved to disk
-  if not ConfirmTabClose(PageIndex) then
+  if not ConfirmTabClose(PageIndex, False) then
     Exit;
   // Work around bugs in ComCtrls.TPageControl.RemovePage
   NewPageIndex := PageControlMain.ActivePageIndex;
@@ -11009,7 +11092,7 @@ begin
 end;
 
 
-function TMainForm.ConfirmTabClose(PageIndex: Integer): Boolean;
+function TMainForm.ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
 var
   Tab: TQueryTab;
 begin
@@ -11020,12 +11103,12 @@ begin
   end else if not Tab.Memo.Modified then begin
     Result := True;
   end else begin
-    Result := ConfirmTabClear(PageIndex);
+    Result := ConfirmTabClear(PageIndex, AppIsClosing);
   end;
 end;
 
 
-function TMainForm.ConfirmTabClear(PageIndex: Integer): Boolean;
+function TMainForm.ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
 var
   msg: String;
   Tab: TQueryTab;
@@ -11035,6 +11118,8 @@ begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
   // Unhide tabsheet so the user sees the memo content
   Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
+
+  // Prompt for saving unsaved contents
   if Tab.MemoFilename <> '' then
     msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
   else
@@ -11059,6 +11144,23 @@ begin
       SaveDialog.Free;
     end;
     else Result := False;
+  end;
+
+  // Auto-backup logic
+  if AppSettings.ReadBool(asRestoreTabs) then begin
+    if AppIsClosing then begin
+      // Do last backup before app closes
+      if not Result then begin
+        Tab.BackupUnsavedContent;
+      end;
+    end else begin
+      // Delete backup file if tab is closed by user, intentionally
+      if (not Tab.MemoBackupFilename.IsEmpty) and FileExists(Tab.MemoBackupFilename) then begin
+        if not DeleteFile(Tab.MemoBackupFilename) then begin
+          ErrorDialog(f_('Backup file could not be deleted: %s', [Tab.MemoBackupFilename]));
+        end;
+      end;
+    end;
   end;
 
   if (not Result) and (FConnections.Count = 0) then begin
@@ -12583,8 +12685,9 @@ begin
   MemofileModifiedTimer.Enabled := False;
   MemofileModifiedTimer.OnTimer := MemofileModifiedTimerNotify;
   LastSaveTime := 0;
+  FLastChange := 0;
   TimerLastChange := TTimer.Create(Self);
-  TimerLastChange.Enabled := False;
+  TimerLastChange.Enabled := True;
   TimerLastChange.OnTimer := TimerLastChangeOnTimer;
   // Contain 2 columns of String : Params & Values
   ListBindParams := TBindParam.Create;
@@ -12751,6 +12854,43 @@ begin
 end;
 
 
+procedure TQueryTab.BackupUnsavedContent;
+var
+  LastFileBackup: TDateTime;
+begin
+  // Fired before closing application, and also timer controlled
+  // Check if content is a user stored file and if it has modified content:
+  if (MemoFilename <> '') and (not Memo.Modified) then begin
+    FMemoBackupFilename := '';
+    Exit;
+  end;
+
+  FMemoBackupFilename := IncludeTrailingBackslash(AppSettings.ReadString(asBackupDirectory)) +
+    Format(BACKUP_FILEPATTERN, [Number]);
+
+  // Check if existing backup file is up-to-date:
+  if FileExists(FMemoBackupFilename) then begin
+    FileAge(FMemoBackupFilename, LastFileBackup);
+    if LastFileBackup > FLastChange then
+      Exit;
+  end;
+
+  if Memo.GetTextLen = 0 then begin
+    // If memo is empty, remove backup file
+    if FileExists(FMemoBackupFilename) then begin
+      if not DeleteFile(FMemoBackupFilename) then begin
+        MainForm.LogSQL('Could not remove empty backup file "'+FMemoBackupFilename+'"', lcError);
+      end;
+    end;
+  end else begin
+    MainForm.LogSQL('Saving backup file to "'+FMemoBackupFilename+'"...', lcDebug);
+    MainForm.ShowStatusMsg(_('Saving backup file...'));
+    SaveUnicodeFile(FMemoBackupFilename, Memo.Text);
+  end;
+  MainForm.ShowStatusMsg('');
+end;
+
+
 function TQueryTab.BindParamsActivated: Boolean;
 var
   Node: PVirtualNode;
@@ -12783,23 +12923,12 @@ end;
 
 
 procedure TQueryTab.MemoOnChange(Sender: TObject);
-var
-  Node: PVirtualNode;
 begin
   // Check if bind param detection is enabled for text size <1M
   // Uncheck checkbox if it's bigger
   TimerLastChange.Enabled := False;
-
-  if BindParamsActivated then begin
-    if Memo.GetTextLen < SIZE_MB then begin
-      TimerLastChange.Enabled := True;
-    end
-    else begin
-      MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
-      Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
-      treeHelpers.CheckState[Node] := csUncheckedNormal;
-    end;
-  end;
+  FLastChange := Now;
+  TimerLastChange.Enabled := True;
 end;
 
 
@@ -12811,53 +12940,62 @@ var
   Node : PVirtualNode;
   FoundParam : String;
 begin
-  MainForm.LogSQL('Bind parameter detection...', lcDebug);
   TimerLastChange.Enabled := False;
-  ParamCountBefore := ListBindParams.Count;
 
-  // Check current Query memo to find all parameters with regular expression ( :params )
-  rx := TRegExpr.Create;
-  // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
-  // Don't use ^:\w+|\W:[^\W:]\w+ because it detect IP v6
-  rx.Expression := '([^:\w]|^):\w+';
-  if rx.Exec(Memo.Text) then while true do begin
+  if BindParamsActivated then begin
+    if Memo.GetTextLen > SIZE_MB then begin
+      MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
+      Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+      treeHelpers.CheckState[Node] := csUncheckedNormal;
+    end else begin
+      MainForm.LogSQL('Bind parameter detection...', lcInfo);
+      ParamCountBefore := ListBindParams.Count;
 
-    // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
-    FoundParam := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
+      // Check current Query memo to find all parameters with regular expression ( :params )
+      rx := TRegExpr.Create;
+      // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
+      // Don't use ^:\w+|\W:[^\W:]\w+ because it detect IP v6
+      rx.Expression := '([^:\w]|^):\w+';
+      if rx.Exec(Memo.Text) then while true do begin
 
-    // Prepare TBindParamItem
-    BindParamItem := TBindParamItem.Create;
-    BindParamItem.Parameter := FoundParam;
-    BindParamItem.Value := '';
-    BindParamItem.Keep := True;
+        // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
+        FoundParam := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
 
-    // Check if parameter already exists
-    Item := ListBindParams.FindParameter(FoundParam);
+        // Prepare TBindParamItem
+        BindParamItem := TBindParamItem.Create;
+        BindParamItem.Parameter := FoundParam;
+        BindParamItem.Value := '';
+        BindParamItem.Keep := True;
 
-    // If exists, seet Keep to true else add TBindParamItem
-    if Item <> -1 then
-      ListBindParams.Items[Item].Keep := True
-    else
-      ListBindParams.add(BindParamItem);
+        // Check if parameter already exists
+        Item := ListBindParams.FindParameter(FoundParam);
 
-    // Try to find next parameter
-    if not rx.ExecNext then
-      break;
+        // If exists, seet Keep to true else add TBindParamItem
+        if Item <> -1 then
+          ListBindParams.Items[Item].Keep := True
+        else
+          ListBindParams.add(BindParamItem);
+
+        // Try to find next parameter
+        if not rx.ExecNext then
+          break;
+      end;
+
+      // Sort list ascending
+      ListBindParams.Sort;
+      // Delete all parameters where variable is to False
+      ListBindParams.CleanToKeep;
+
+      // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
+      MainForm.RefreshHelperNode(HELPERNODE_BINDING);
+      if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
+        Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+        treeHelpers.Expanded[Node] := True;
+      end;
+
+      MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
+    end;
   end;
-
-  // Sort list ascending
-  ListBindParams.Sort;
-  // Delete all parameters where variable is to False
-  ListBindParams.CleanToKeep;
-
-  // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
-  MainForm.RefreshHelperNode(HELPERNODE_BINDING);
-  if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
-    Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
-    treeHelpers.Expanded[Node] := True;
-  end;
-
-  MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
 end;
 
 

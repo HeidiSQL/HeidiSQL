@@ -21704,4 +21704,11 @@ object MainForm: TMainForm
     Left = 689
     Top = 339
   end
+  object TimerStoreTabs: TTimer
+    Enabled = False
+    Interval = 10000
+    OnTimer = TimerStoreTabsTimer
+    Left = 689
+    Top = 299
+  end
 end

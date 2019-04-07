@@ -1244,15 +1244,6 @@ object optionsform: Toptionsform
       DesignSize = (
         700
         388)
-      object chkReopenFiles: TCheckBox
-        Left = 190
-        Top = 31
-        Width = 496
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Reopen previously used SQL files in tabs'
-        TabOrder = 0
-      end
       object chkAskFileSave: TCheckBox
         Left = 190
         Top = 8
@@ -1262,19 +1253,18 @@ object optionsform: Toptionsform
         Caption = 'Prompt to save modified files on tab close'
         Checked = True
         State = cbChecked
-        TabOrder = 1
+        TabOrder = 0
         OnClick = Modified
       end
-      object chkBackupRestoreFiles: TCheckBox
+      object chkRestoreTabs: TCheckBox
         Left = 190
-        Top = 54
+        Top = 31
         Width = 496
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 
-          'Automatically backup and restore unsaved content (up to %s per f' +
-          'ile)'
-        TabOrder = 2
+        Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
+        TabOrder = 1
+        OnClick = Modified
       end
     end
   end
