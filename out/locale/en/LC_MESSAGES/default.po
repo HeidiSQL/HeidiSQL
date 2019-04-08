@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-04-07 13:11+0200\n"
+"PO-Revision-Date: 2019-04-08 20:47+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2732,12 +2732,6 @@ msgstr "Tabs to spaces"
 #: options.dfm:455
 msgid "Prompt to save modified files on tab close"
 msgstr "Prompt to save modified files on tab close"
-
-msgid "Reopen previously used SQL files in tabs"
-msgstr "Reopen previously used SQL files in tabs"
-
-msgid "Automatically backup and restore unsaved content (up to %s per file)"
-msgstr "Automatically backup and restore unsaved content (up to %s per file)"
 
 msgid "Show query warnings dialog"
 msgstr "Show query warnings dialog"
@@ -6355,3 +6349,12 @@ msgstr "Background color:"
 
 msgid "Backup file could not be deleted: %s"
 msgstr "Backup file could not be deleted: %s"
+
+msgid "Your code is saved anyway, as auto-restoring is activated."
+msgstr "Your code is saved anyway, as auto-restoring is activated."
+
+msgid "Files"
+msgstr "Files"
+
+msgid "Reopen previously used SQL files and unsaved content in tabs *"
+msgstr "Reopen previously used SQL files and unsaved content in tabs *"

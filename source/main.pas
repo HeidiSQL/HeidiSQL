@@ -11124,10 +11124,15 @@ begin
     msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
   else
     msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
+  if AppSettings.ReadBool(asRestoreTabs) and AppIsClosing then begin
+    msg := msg + CRLF + CRLF + _('Your code is saved anyway, as auto-restoring is activated.');
+  end;
+
   if FConnections.Count > 0 then
     MsgButtons := [mbYes, mbNo, mbCancel]
   else
     MsgButtons := [mbYes, mbNo];
+
   case MessageDialog(_('Modified query'), msg, mtConfirmation, MsgButtons, asPromptSaveFileOnTabClose) of
     mrNo: Result := True;
     mrYes: begin
@@ -11150,9 +11155,7 @@ begin
   if AppSettings.ReadBool(asRestoreTabs) then begin
     if AppIsClosing then begin
       // Do last backup before app closes
-      if not Result then begin
-        Tab.BackupUnsavedContent;
-      end;
+      Tab.BackupUnsavedContent;
     end else begin
       // Delete backup file if tab is closed by user, intentionally
       if (not Tab.MemoBackupFilename.IsEmpty) and FileExists(Tab.MemoBackupFilename) then begin
