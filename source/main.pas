@@ -54,7 +54,6 @@ type
     private
       FMemo: TSynMemo;
       FMemoFilename: String;
-      FMemoBackupFilename: String;
       FQueryRunning: Boolean;
       FLastChange: TDateTime;
       procedure SetMemo(Value: TSynMemo);
@@ -65,6 +64,7 @@ type
       procedure MemoOnChange(Sender: TObject);
     public
       Number: Integer;
+      Uid: String;
       ExecutionThread: TQueryThread;
       CloseButton: TSpeedButton;
       pnlMemo: TPanel;
@@ -99,10 +99,11 @@ type
       property ActiveResultTab: TResultTab read GetActiveResultTab;
       property Memo: TSynMemo read FMemo write SetMemo;
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
-      property MemoBackupFilename: String read FMemoBackupFilename;
+      function MemoBackupFilename: String;
       property QueryRunning: Boolean read FQueryRunning write SetQueryRunning;
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+      class function GenerateUid: String;
   end;
 
   TQueryHistoryItem = class(TObject)
@@ -1067,7 +1068,7 @@ type
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
-    FTabsIni: TIniFile;
+    FTabsIniFilename: String;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1105,6 +1106,7 @@ type
     procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
+    function InitTabsIniFile: TIniFile;
     procedure StoreTabs;
     procedure RestoreTabs;
   public
@@ -1779,7 +1781,10 @@ begin
   QueryTab := TQueryTab.Create(Self);
   QueryTab.TabSheet := tabQuery;
   QueryTab.Number := 1;
+  QueryTab.Uid := TQueryTab.GenerateUid;
   QueryTab.pnlMemo := pnlQueryMemo;
+  QueryTab.pnlHelpers := pnlQueryHelpers;
+  QueryTab.filterHelpers := filterQueryHelpers;
   QueryTab.treeHelpers := treeQueryHelpers;
   QueryTab.Memo := SynMemoQuery;
   QueryTab.MemoLineBreaks := lbsNone;
@@ -2107,8 +2112,8 @@ begin
   end;
 
   // Restore backup'ed query tabs
+  FTabsIniFilename := DirnameUserAppData + 'tabs.ini';
   if AppSettings.ReadBool(asRestoreTabs) then begin
-    FTabsIni := TIniFile.Create(DirnameUserAppData + 'tabs.ini');
     RestoreTabs;
     TimerStoreTabs.Enabled := True;
   end;
@@ -2125,29 +2130,55 @@ begin
 end;
 
 
+function TMainForm.InitTabsIniFile: TIniFile;
+var
+  WaitingSince: UInt64;
+  Attempts: Integer;
+begin
+  // Try to open tabs.ini for writing or reading
+  // Taking multiple application instances into account
+  WaitingSince := GetTickCount64;
+  Attempts := 0;
+  while not FileIsWritable(FTabsIniFilename) do begin
+    if GetTickCount64 - WaitingSince > 3000 then
+      Raise Exception.Create(f_('Could not open file %s', [FTabsIniFilename]));
+    Sleep(200);
+    Inc(Attempts);
+  end;
+  if Attempts > 0 then begin
+    LogSQL(Format('Had to wait %d ms before opening %s', [GetTickCount64 - WaitingSince, FTabsIniFilename]), lcDebug);
+  end;
+  Result := TIniFile.Create(FTabsIniFilename);
+end;
+
+
 procedure TMainForm.StoreTabs;
 var
   Tab: TQueryTab;
-  Sections: TStringList;
   Section: String;
+  TabsIni: TIniFile;
 begin
   // Store query tab unsaved contents and setup, in tabs.ini
 
-  for Tab in QueryTabs do begin
-    Tab.BackupUnsavedContent;
-  end;
+  try
+    TabsIni := InitTabsIniFile;
 
-  Sections := TStringList.Create;
-  FTabsIni.ReadSections(Sections);
-  for Section in Sections do begin
-    FTabsIni.EraseSection(Section);
-  end;
-  Sections.Free;
-  for Tab in QueryTabs do begin
-    Section := 'Tab'+Tab.Number.ToString;
-    if Tab.Memo.GetTextLen > 0 then begin
-      FTabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
-      FTabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
+    // Todo: erase sections from closed tabs
+
+    for Tab in QueryTabs do begin
+      Tab.BackupUnsavedContent;
+      Section := Tab.Uid;
+      if Tab.Memo.GetTextLen > 0 then begin
+        TabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
+        TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
+      end;
+    end;
+
+    // Close file
+    TabsIni.Free;
+  except
+    on E:Exception do begin
+      ErrorDialog(_('Auto-storing tab setup failed'), E.Message);
     end;
   end;
 end;
@@ -2158,27 +2189,40 @@ var
   Tab: TQueryTab;
   Sections: TStringList;
   Section, Filename, BackupFilename: String;
+  TabsIni: TIniFile;
 begin
   // Restore query tab setup from tabs.ini
 
-  Sections := TStringList.Create;
-  FTabsIni.ReadSections(Sections);
-  for Section in Sections do begin
-    Filename := FTabsIni.ReadString(Section, 'Filename', '');
-    BackupFilename := FTabsIni.ReadString(Section, 'BackupFilename', '');
-    if not BackupFilename.IsEmpty then begin
-      Tab := ActiveOrEmptyQueryTab(False);
-      Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
-      Tab.MemoFilename := Filename;
-      Tab.Memo.Modified := True;
-    end else if not Filename.IsEmpty then begin
-      Tab := ActiveOrEmptyQueryTab(False);
-      Tab.LoadContents(Filename, True, nil);
-      Tab.MemoFilename := Filename;
+  LogSQL('Restoring tab setup from '+FTabsIniFilename, lcDebug);
+  try
+    TabsIni := InitTabsIniFile;
+
+    Sections := TStringList.Create;
+    TabsIni.ReadSections(Sections);
+    for Section in Sections do begin
+      Filename := TabsIni.ReadString(Section, 'Filename', '');
+      BackupFilename := TabsIni.ReadString(Section, 'BackupFilename', '');
+      if not BackupFilename.IsEmpty then begin
+        Tab := ActiveOrEmptyQueryTab(False);
+        Tab.Uid := Section;
+        Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
+        Tab.MemoFilename := Filename;
+        Tab.Memo.Modified := True;
+      end else if not Filename.IsEmpty then begin
+        Tab := ActiveOrEmptyQueryTab(False);
+        Tab.Uid := Section;
+        Tab.LoadContents(Filename, True, nil);
+        Tab.MemoFilename := Filename;
+      end;
+    end;
+    Sections.Free;
+    // Close file
+    TabsIni.Free;
+  except
+    on E:Exception do begin
+      ErrorDialog(_('Auto-restoring tab setup failed'), E.Message);
     end;
   end;
-  Sections.Free;
-
 end;
 
 
@@ -10390,6 +10434,7 @@ begin
   QueryTabs.Add(TQueryTab.Create(Self));
   QueryTab := QueryTabs[QueryTabs.Count-1];
   QueryTab.Number := i;
+  QueryTab.Uid := TQueryTab.GenerateUid;
 
   QueryTab.TabSheet := TTabSheet.Create(PageControlMain);
   QueryTab.TabSheet.PageControl := PageControlMain;
@@ -12857,39 +12902,56 @@ begin
 end;
 
 
+class function TQueryTab.GenerateUid: String;
+begin
+  // Generate fresh unique id for a new tab
+  // Keep it readable by using the date with milliseconds
+  DateTimeToString(Result, 'yyyy-mm-dd_hh-nn-ss-zzz', Now);
+end;
+
+
+function TQueryTab.MemoBackupFilename: String;
+begin
+  // Return filename for auto-backup feature
+  if (MemoFilename <> '') and (not Memo.Modified) then begin
+    Result := '';
+  end else begin
+    Result := IncludeTrailingBackslash(AppSettings.ReadString(asBackupDirectory))
+      + goodfilename(Format(BACKUP_FILEPATTERN, [Uid]))
+      ;
+  end;
+end;
+
+
 procedure TQueryTab.BackupUnsavedContent;
 var
   LastFileBackup: TDateTime;
 begin
   // Fired before closing application, and also timer controlled
-  // Check if content is a user stored file and if it has modified content:
-  if (MemoFilename <> '') and (not Memo.Modified) then begin
-    FMemoBackupFilename := '';
-    Exit;
-  end;
 
-  FMemoBackupFilename := IncludeTrailingBackslash(AppSettings.ReadString(asBackupDirectory)) +
-    Format(BACKUP_FILEPATTERN, [Number]);
+  // Check if content is a user stored file and if it has modified content:
+  if MemoBackupFilename.IsEmpty then
+    Exit;
 
   // Check if existing backup file is up-to-date:
-  if FileExists(FMemoBackupFilename) then begin
-    FileAge(FMemoBackupFilename, LastFileBackup);
+  if FileExists(MemoBackupFilename) then begin
+    FileAge(MemoBackupFilename, LastFileBackup);
     if LastFileBackup > FLastChange then
       Exit;
   end;
 
   if Memo.GetTextLen = 0 then begin
     // If memo is empty, remove backup file
-    if FileExists(FMemoBackupFilename) then begin
-      if not DeleteFile(FMemoBackupFilename) then begin
-        MainForm.LogSQL('Could not remove empty backup file "'+FMemoBackupFilename+'"', lcError);
+    if FileExists(MemoBackupFilename) then begin
+      if not DeleteFile(MemoBackupFilename) then begin
+        MainForm.LogSQL('Could not remove empty backup file "'+MemoBackupFilename+'"', lcError);
       end;
     end;
   end else begin
     if Memo.GetTextLen < SIZE_MB*10 then begin
-      MainForm.LogSQL('Saving backup file to "'+FMemoBackupFilename+'"...', lcDebug);
+      MainForm.LogSQL('Saving backup file to "'+MemoBackupFilename+'"...', lcDebug);
       MainForm.ShowStatusMsg(_('Saving backup file...'));
-      SaveUnicodeFile(FMemoBackupFilename, Memo.Text);
+      SaveUnicodeFile(MemoBackupFilename, Memo.Text);
     end else begin
       MainForm.LogSQL('Unsaved tab contents too large (> 10M) for creating a backup.', lcDebug);
     end;

@@ -4547,6 +4547,9 @@ msgstr "Execute query file(s)?"
 msgid "Could not load file(s):"
 msgstr "Could not load file(s):"
 
+msgid "Could not open file %s"
+msgstr "Could not open file %s"
+
 #: main.pas:3088
 msgid "Startup script file not found: %s"
 msgstr "Startup script file not found: %s"

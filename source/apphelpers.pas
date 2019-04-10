@@ -346,6 +346,7 @@ type
   procedure Help(Sender: TObject; Anchor: String);
   function PortOpen(Port: Word): Boolean;
   function IsValidFilePath(FilePath: String): Boolean;
+  function FileIsWritable(FilePath: String): Boolean;
   function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
   function RunningOnWindows10S: Boolean;
   function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
@@ -2933,6 +2934,22 @@ begin
     Result := Result and TPath.HasValidFileNameChars(Pieces[i], False);
   end;
   Pieces.Free;
+end;
+
+
+function FileIsWritable(FilePath: String): Boolean;
+var
+  hFile: DWORD;
+begin
+  // Check if file is writable
+  if not FileExists(FilePath) then begin
+    // Return true if file does not exist
+    Result := True;
+  end else begin
+    hFile := CreateFile(PChar(FilePath), GENERIC_WRITE, 0, nil, OPEN_EXISTING, 0, 0);
+    Result := hFile <> INVALID_HANDLE_VALUE;
+    CloseHandle(hFile);
+  end;
 end;
 
 
