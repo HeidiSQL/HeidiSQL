@@ -2203,16 +2203,26 @@ begin
       Filename := TabsIni.ReadString(Section, 'Filename', '');
       BackupFilename := TabsIni.ReadString(Section, 'BackupFilename', '');
       if not BackupFilename.IsEmpty then begin
-        Tab := ActiveOrEmptyQueryTab(False);
-        Tab.Uid := Section;
-        Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
-        Tab.MemoFilename := Filename;
-        Tab.Memo.Modified := True;
+        if FileExists(BackupFilename) then begin
+          Tab := ActiveOrEmptyQueryTab(False);
+          Tab.Uid := Section;
+          Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
+          Tab.MemoFilename := Filename;
+          Tab.Memo.Modified := True;
+        end else begin
+          // Remove ini item if file is gone
+          TabsIni.EraseSection(Section);
+        end;
       end else if not Filename.IsEmpty then begin
-        Tab := ActiveOrEmptyQueryTab(False);
-        Tab.Uid := Section;
-        Tab.LoadContents(Filename, True, nil);
-        Tab.MemoFilename := Filename;
+        if FileExists(Filename) then begin
+          Tab := ActiveOrEmptyQueryTab(False);
+          Tab.Uid := Section;
+          Tab.LoadContents(Filename, True, nil);
+          Tab.MemoFilename := Filename;
+        end else begin
+          // Remove ini item if file is gone
+          TabsIni.EraseSection(Section);
+        end;
       end;
     end;
     Sections.Free;
