@@ -2164,13 +2164,18 @@ begin
     TabsIni := InitTabsIniFile;
 
     // Todo: erase sections from closed tabs
+    // ab: is that really required? Tabs with deleted files don't get restored anyway.
 
     for Tab in QueryTabs do begin
       Tab.BackupUnsavedContent;
       Section := Tab.Uid;
+
       if Tab.Memo.GetTextLen > 0 then begin
-        TabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
-        TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
+        // Avoid writing the tabs.ini file through WriteString if nothing was effectively changed
+        if TabsIni.ReadString(Section, 'BackupFilename', '') <> Tab.MemoBackupFilename then
+          TabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
+        if TabsIni.ReadString(Section, 'Filename', '') <> Tab.MemoFilename then
+          TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
       end;
     end;
 
