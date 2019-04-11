@@ -1068,7 +1068,6 @@ type
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
-    FTabsIniFilename: String;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1695,7 +1694,6 @@ begin
 
   // Ensure directories exist
   ForceDirectories(DirnameUserAppData);
-  ForceDirectories(AppSettings.ReadString(asBackupDirectory));
 
   // Move files from old default snippets directory, see issue #159
   if not AppSettings.PortableMode then begin
@@ -2112,7 +2110,6 @@ begin
   end;
 
   // Restore backup'ed query tabs
-  FTabsIniFilename := DirnameUserAppData + 'tabs.ini';
   if AppSettings.ReadBool(asRestoreTabs) then begin
     RestoreTabs;
     TimerStoreTabs.Enabled := True;
@@ -2134,21 +2131,26 @@ function TMainForm.InitTabsIniFile: TIniFile;
 var
   WaitingSince: UInt64;
   Attempts: Integer;
+  TabsIniFilename: String;
 begin
   // Try to open tabs.ini for writing or reading
   // Taking multiple application instances into account
+  if AppSettings.PortableMode then
+    TabsIniFilename := ExtractFilePath(Application.ExeName) + 'tabs.ini'
+  else
+    TabsIniFilename := DirnameUserAppData + 'tabs.ini';
   WaitingSince := GetTickCount64;
   Attempts := 0;
-  while not FileIsWritable(FTabsIniFilename) do begin
+  while not FileIsWritable(TabsIniFilename) do begin
     if GetTickCount64 - WaitingSince > 3000 then
-      Raise Exception.Create(f_('Could not open file %s', [FTabsIniFilename]));
+      Raise Exception.Create(f_('Could not open file %s', [TabsIniFilename]));
     Sleep(200);
     Inc(Attempts);
   end;
   if Attempts > 0 then begin
-    LogSQL(Format('Had to wait %d ms before opening %s', [GetTickCount64 - WaitingSince, FTabsIniFilename]), lcDebug);
+    LogSQL(Format('Had to wait %d ms before opening %s', [GetTickCount64 - WaitingSince, TabsIniFilename]), lcDebug);
   end;
-  Result := TIniFile.Create(FTabsIniFilename);
+  Result := TIniFile.Create(TabsIniFilename);
 end;
 
 
@@ -2198,9 +2200,9 @@ var
 begin
   // Restore query tab setup from tabs.ini
 
-  LogSQL('Restoring tab setup from '+FTabsIniFilename, lcDebug);
   try
     TabsIni := InitTabsIniFile;
+    LogSQL('Restoring tab setup from '+TabsIni.FileName, lcDebug);
 
     Sections := TStringList.Create;
     TabsIni.ReadSections(Sections);
@@ -12931,7 +12933,7 @@ begin
   if (MemoFilename <> '') and (not Memo.Modified) then begin
     Result := '';
   end else begin
-    Result := IncludeTrailingBackslash(AppSettings.ReadString(asBackupDirectory))
+    Result := IncludeTrailingBackslash(AppSettings.DirnameBackups)
       + goodfilename(Format(BACKUP_FILEPATTERN, [Uid]))
       ;
   end;

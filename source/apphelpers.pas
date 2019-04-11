@@ -168,7 +168,7 @@ type
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
-    asPromptSaveFileOnTabClose, asRestoreTabs, asBackupDirectory, asWarnUnsafeUpdates, asQueryWarningsMessage,
+    asPromptSaveFileOnTabClose, asRestoreTabs, asWarnUnsafeUpdates, asQueryWarningsMessage,
     asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack,
@@ -245,6 +245,7 @@ type
       procedure ImportSettings(Filename: String);
       procedure ExportSettings(Filename: String); overload;
       procedure ExportSettings; overload;
+      function DirnameBackups: String;
   end;
 
 
@@ -3633,7 +3634,6 @@ begin
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, True);
-  InitSetting(asBackupDirectory,                  'BackupDirectory',                       0, False, DirnameUserAppData + 'Backups\');
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
@@ -4201,6 +4201,20 @@ end;
 procedure TAppSettings.ExportSettings;
 begin
   ExportSettings(FSettingsFile);
+end;
+
+
+function TAppSettings.DirnameBackups: String;
+begin
+  // Create backup folder if it does not exist and return it
+  if PortableMode then begin
+    Result := ExtractFilePath(Application.ExeName) + 'Backups\'
+  end else begin
+    Result := DirnameUserAppData + 'Backups\';
+  end;
+  if not DirectoryExists(Result) then begin
+    ForceDirectories(Result);
+  end;
 end;
 
 
