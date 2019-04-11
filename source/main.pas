@@ -1692,16 +1692,11 @@ begin
   end;
 
 
-  // Ensure directories exist
-  ForceDirectories(DirnameUserAppData);
-
   // Move files from old default snippets directory, see issue #159
   if not AppSettings.PortableMode then begin
     // This was the default folder up to r5244 / 8b2966c52efb685b00189037a0507157ed03a368
     OldSnippetsDir := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\Snippets\';
-    CurrentSnippetsDir := DirnameSnippets;
-    if not DirectoryExists(CurrentSnippetsDir) then
-      ForceDirectories(CurrentSnippetsDir);
+    CurrentSnippetsDir := AppSettings.DirnameSnippets;
     //showmessage('1:'+crlf+OldSnippetsDir+crlf+CurrentSnippetsDir);
     if (not OldSnippetsDir.IsEmpty) and (not CurrentSnippetsDir.IsEmpty)
         and DirectoryExists(OldSnippetsDir) and DirectoryExists(CurrentSnippetsDir)
@@ -2138,7 +2133,7 @@ begin
   if AppSettings.PortableMode then
     TabsIniFilename := ExtractFilePath(Application.ExeName) + 'tabs.ini'
   else
-    TabsIniFilename := DirnameUserAppData + 'tabs.ini';
+    TabsIniFilename := AppSettings.DirnameUserAppData + 'tabs.ini';
   WaitingSince := GetTickCount64;
   Attempts := 0;
   while not FileIsWritable(TabsIniFilename) do begin
@@ -3667,7 +3662,7 @@ begin
         for i:=0 to Filenames.Count-1 do begin
           RunQueryFile(Filenames[i], Encoding);
           // Add filename to history menu
-          if Pos(DirnameSnippets, Filenames[i]) = 0 then
+          if Pos(AppSettings.DirnameSnippets, Filenames[i]) = 0 then
             MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
         end;
       end;
@@ -4420,9 +4415,7 @@ begin
   SaveDialog := TSaveDialog.Create(Self);
   SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
   if (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet) then begin
-    if not DirectoryExists(DirnameSnippets) then
-      ForceDirectories(DirnameSnippets);
-    SaveDialog.InitialDir := DirnameSnippets;
+    SaveDialog.InitialDir := AppSettings.DirnameSnippets;
     SaveDialog.Options := SaveDialog.Options + [ofNoChangeDir];
     SaveDialog.Title := _('Save snippet');
   end;
@@ -4575,7 +4568,7 @@ begin
   Filename := (Sender as TMenuItem).Caption;
   Filename := StripHotkey(Filename);
   if Pos('\', Filename) = 0 then // assuming we load a snippet
-    Filename := DirnameSnippets + Filename + '.sql'
+    Filename := AppSettings.DirnameSnippets + Filename + '.sql'
   else begin // assuming we load a file from the recent-list
     p := Pos(' ', Filename) + 1;
     filename := Copy(Filename, p, Length(Filename));
@@ -6287,7 +6280,7 @@ begin
       1:
         case Tree.FocusedNode.Parent.Index of
           HELPERNODE_SNIPPETS:
-            Text := ReadTextFile(DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
+            Text := ReadTextFile(AppSettings.DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
           HELPERNODE_HISTORY:
             Text := '';
           else begin
@@ -7174,7 +7167,7 @@ begin
   if not Assigned(ActiveQueryHelpers.FocusedNode) then
     Exit;
 
-  snippetfile := DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
+  snippetfile := AppSettings.DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
   if MessageDialog(_('Delete snippet file?'), snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
@@ -7206,7 +7199,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
+  ActiveQueryTab.LoadContents(AppSettings.DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
 end;
 
 
@@ -7215,7 +7208,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
+  ActiveQueryTab.LoadContents(AppSettings.DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
 end;
 
 
@@ -7224,21 +7217,7 @@ end;
 }
 procedure TMainForm.menuExploreClick(Sender: TObject);
 begin
-  // Normally the snippets folder is created at installation. But it sure
-  // can be the case that it has been deleted or that the application was
-  // not installed properly. Ask if we should create the folder now.
-  if DirectoryExists(DirnameSnippets) then
-    ShellExec('', DirnameSnippets)
-  else
-    if MessageDialog(_('Snippets folder does not exist'),
-      f_('The folder "%s" is normally created when you install %s.', [DirnameSnippets, APPNAME]) + CRLF + CRLF + _('Shall it be created now?'),
-      mtWarning, [mbYes, mbNo]) = mrYes then
-    try
-      Screen.Cursor := crHourglass;
-      ForceDirectories(DirnameSnippets);
-    finally
-      Screen.Cursor := crDefault;
-    end;
+  ShellExec('', AppSettings.DirnameSnippets);
 end;
 
 
@@ -12321,7 +12300,7 @@ begin
     FSnippetFilenames := TStringList.Create;
   FSnippetFilenames.Clear;
   try
-    Files := TDirectory.GetFiles(DirnameSnippets, '*.sql');
+    Files := TDirectory.GetFiles(AppSettings.DirnameSnippets, '*.sql');
     for i:=0 to Length(Files)-1 do begin
       Snip := ExtractFilename(Files[i]);
       Snip := Copy(Snip, 1, Length(Snip)-4);
@@ -12861,7 +12840,7 @@ begin
   MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filename, FormatByteNumber(Filesize), Number]), lcInfo);
   try
     Content := ReadTextfile(Filename, Encoding);
-    if Pos(DirnameSnippets, Filename) = 0 then
+    if Pos(AppSettings.DirnameSnippets, Filename) = 0 then
       MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
     Memo.UndoList.AddGroupBreak;
     Memo.BeginUpdate;

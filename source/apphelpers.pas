@@ -245,6 +245,10 @@ type
       procedure ImportSettings(Filename: String);
       procedure ExportSettings(Filename: String); overload;
       procedure ExportSettings; overload;
+      // Common directories
+      function DirnameUserAppData: String;
+      function DirnameUserDocuments: String;
+      function DirnameSnippets: String;
       function DirnameBackups: String;
   end;
 
@@ -272,10 +276,6 @@ type
   function fixNewlines(txt: String): String;
   function ExtractLiteral(var SQL: String; Prefix: String): String;
   function GetShellFolder(CSIDL: integer): string;
-  // Common directories
-  function DirnameUserAppData: String;
-  function DirnameUserDocuments: String;
-  function DirnameSnippets: String;
   function goodfilename( str: String ): String;
   function ExtractBaseFileName(FileName: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
@@ -830,25 +830,6 @@ begin
   end;
 end;
 
-
-function DirnameUserAppData: String;
-begin
-  // User folder for HeidiSQL's data (<user name>\Application Data)
-  Result := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
-end;
-
-function DirnameUserDocuments: String;
-begin
-  // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
-  Result := GetShellFolder(CSIDL_MYDOCUMENTS) + '\' + APPNAME + '\';
-end;
-
-
-function DirnameSnippets: String;
-begin
-  // Folder for snippets
-  Result := IncludeTrailingBackslash(AppSettings.ReadString(asCustomSnippetsDirectory));
-end;
 
 
 {***
@@ -4201,6 +4182,36 @@ end;
 procedure TAppSettings.ExportSettings;
 begin
   ExportSettings(FSettingsFile);
+end;
+
+
+function TAppSettings.DirnameUserAppData: String;
+begin
+  // User folder for HeidiSQL's data (<user name>\Application Data)
+  Result := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
+  if not DirectoryExists(Result) then begin
+    ForceDirectories(Result);
+  end;
+end;
+
+
+function TAppSettings.DirnameUserDocuments: String;
+begin
+  // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
+  Result := GetShellFolder(CSIDL_MYDOCUMENTS) + '\' + APPNAME + '\';
+  if not DirectoryExists(Result) then begin
+    ForceDirectories(Result);
+  end;
+end;
+
+
+function TAppSettings.DirnameSnippets: String;
+begin
+  // Folder for snippets
+  Result := IncludeTrailingBackslash(ReadString(asCustomSnippetsDirectory));
+  if not DirectoryExists(Result) then begin
+    ForceDirectories(Result);
+  end;
 end;
 
 

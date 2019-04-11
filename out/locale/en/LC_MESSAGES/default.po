@@ -4777,18 +4777,6 @@ msgstr "Delete snippet file?"
 msgid "Failed deleting %s"
 msgstr "Failed deleting %s"
 
-#: main.pas:6135
-msgid "Snippets folder does not exist"
-msgstr "Snippets folder does not exist"
-
-#: main.pas:6135
-msgid "The folder \"%s\" is normally created when you install %s."
-msgstr "The folder \"%s\" is normally created when you install %s."
-
-#: main.pas:6135
-msgid "Shall it be created now?"
-msgstr "Shall it be created now?"
-
 #: main.pas:6153
 msgid "Clear query history?"
 msgstr "Clear query history?"
