@@ -2226,7 +2226,7 @@ begin
         if FileExists(BackupFilename) then begin
           Tab := ActiveOrEmptyQueryTab(False);
           Tab.Uid := Section;
-          Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
+          Tab.LoadContents(BackupFilename, True, UTF8NoBOM);
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
         end else begin
@@ -11828,7 +11828,7 @@ begin
     2: Result := TEncoding.GetEncoding(437);
     3: Result := TEncoding.Unicode;
     4: Result := TEncoding.BigEndianUnicode;
-    5: Result := TEncoding.UTF8;
+    5: Result := UTF8NoBOM;
     6: Result := TEncoding.UTF7;
   end;
 end;
@@ -11842,7 +11842,7 @@ begin
   else if (Encoding <> nil) and (Encoding.CodePage = 437) then idx := 2
   else if Encoding = TEncoding.Unicode then idx := 3
   else if Encoding = TEncoding.BigEndianUnicode then idx := 4
-  else if Encoding = TEncoding.UTF8 then idx := 5
+  else if Encoding = UTF8NoBOM then idx := 5
   else if Encoding = TEncoding.UTF7 then idx := 6
   else idx := 0;
   Result := FileEncodings[idx];
@@ -11910,7 +11910,7 @@ begin
     Result := 'utf16le'
   else if Encoding = TEncoding.BigEndianUnicode then
     Result := 'utf16'
-  else if Encoding = TEncoding.UTF8 then
+  else if Encoding = UTF8NoBOM then
     Result := 'utf8'
   else if Encoding = TEncoding.UTF7 then
     Result := 'utf7';
@@ -12881,11 +12881,11 @@ begin
     Memo.SelStart := Memo.SelEnd;
     Memo.EndUpdate;
     Memo.Modified := False;
-    MemoFilename := filename;
+    MemoFilename := Filename;
     Result := True;
   except on E:Exception do
     // File does not exist, is locked or broken
-    ErrorDialog(E.message);
+    ErrorDialog(E.message + CRLF + CRLF + Filename);
   end;
   Screen.Cursor := crDefault;
 end;

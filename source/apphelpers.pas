@@ -254,7 +254,10 @@ type
       // "Static" options, initialized in OnCreate only. For settings which need a restart to take effect.
       property RestoreTabsInitValue: Boolean read FRestoreTabsInitValue;
   end;
-
+  TUTF8NoBOMEncoding = class(TUTF8Encoding)
+  public
+    function GetPreamble: TBytes; override;
+  end;
 
 {$I const.inc}
 
@@ -367,6 +370,7 @@ var
   SystemImageList: TImageList;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
   ConfirmIcon: TIcon;
+  UTF8NoBOM: TUTF8NoBOMEncoding;
 
 implementation
 
@@ -1266,7 +1270,7 @@ begin
       i := 0;
       while i < BufferSize do begin
         if FoundUTF8Strings = MinimumCountOfUTF8Strings then begin
-          Result := TEncoding.UTF8;
+          Result := UTF8NoBOM;
           Break;
         end;
         case Buffer[i] of
@@ -2605,7 +2609,7 @@ begin
     Result := 'utf-16le'
   else if Encoding = TEncoding.BigEndianUnicode then
     Result := 'utf-16'
-  else if Encoding = TEncoding.UTF8 then
+  else if Encoding = UTF8NoBOM then
     Result := 'utf-8'
   else if Encoding = TEncoding.UTF7 then
     Result := 'utf-7';
@@ -4257,6 +4261,20 @@ begin
 end;
 
 
+
+{ TUTF8NoBOMEncoding }
+
+function TUTF8NoBOMEncoding.GetPreamble: TBytes;
+begin
+  // Overwriting default UTF8 encoding, which has a preamble which we don't want
+  // See https://forums.embarcadero.com/thread.jspa?threadID=112112
+  SetLength(Result, 0);
+end;
+
+
+initialization
+
+UTF8NoBOM := TUTF8NoBOMEncoding.Create;
 
 end.
 
