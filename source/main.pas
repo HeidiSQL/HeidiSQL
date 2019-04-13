@@ -1537,6 +1537,11 @@ begin
 
   StoreLastSessions;
 
+  // Store tab setup for the last time, before tabs are destroyed
+  if TimerStoreTabs.Enabled then begin
+    TimerStoreTabs.OnTimer(Sender);
+  end;
+
   // Some grid editors access the registry - be sure these are gone before freeing AppSettings
   QueryTabs.Clear;
   DataGrid.EndEditNode;
@@ -2105,7 +2110,7 @@ begin
   end;
 
   // Restore backup'ed query tabs
-  if AppSettings.ReadBool(asRestoreTabs) then begin
+  if AppSettings.RestoreTabsInitValue then begin
     RestoreTabs;
     TimerStoreTabs.Enabled := True;
   end;
@@ -11165,7 +11170,7 @@ begin
     msg := f_('Save changes to file %s ?', [Tab.MemoFilename])
   else
     msg := f_('Save content of tab "%s"?', [Trim(Tab.TabSheet.Caption)]);
-  if AppSettings.ReadBool(asRestoreTabs) and AppIsClosing then begin
+  if AppSettings.RestoreTabsInitValue and AppIsClosing then begin
     msg := msg + CRLF + CRLF + _('Your code is saved anyway, as auto-restoring is activated.');
   end;
 
@@ -11193,7 +11198,7 @@ begin
   end;
 
   // Auto-backup logic
-  if AppSettings.ReadBool(asRestoreTabs) then begin
+  if AppSettings.RestoreTabsInitValue then begin
     if AppIsClosing then begin
       // Do last backup before app closes
       Tab.BackupUnsavedContent;

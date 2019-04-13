@@ -200,6 +200,7 @@ type
       FSessionPath: String;
       FRegistry: TRegistry;
       FPortableMode: Boolean;
+      FRestoreTabsInitValue: Boolean;
       FSettingsFile: String;
       FSettings: Array[TAppSettingIndex] of TAppSetting;
       procedure InitSetting(Index: TAppSettingIndex; Name: String;
@@ -250,6 +251,8 @@ type
       function DirnameUserDocuments: String;
       function DirnameSnippets: String;
       function DirnameBackups: String;
+      // "Static" options, initialized in OnCreate only. For settings which need a restart to take effect.
+      property RestoreTabsInitValue: Boolean read FRestoreTabsInitValue;
   end;
 
 
@@ -3683,6 +3686,10 @@ begin
   InitSetting(asPreferencesWindowWidth,           'PreferencesWindowWidth',                740);
   InitSetting(asPreferencesWindowHeight,          'PreferencesWindowHeight',               500);
   InitSetting(asFileDialogEncoding,               'FileDialogEncoding_%s',                 0);
+
+  // Initialization values
+  FRestoreTabsInitValue := ReadBool(asRestoreTabs);
+
 end;
 
 
