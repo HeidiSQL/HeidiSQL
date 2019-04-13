@@ -359,6 +359,7 @@ type
   function DpiScaleFactor(Form: TForm): Double;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String): Boolean;
+  function ProcessExists(pid: Cardinal): Boolean;
 
 var
   AppSettings: TAppSettings;
@@ -3009,6 +3010,26 @@ begin
   DarkThemesList.Free;
 end;
 
+
+function ProcessExists(pid: Cardinal): Boolean;
+var
+  Proc: TProcessEntry32;
+  SnapShot: THandle;
+  ContinueLoop: Boolean;
+begin
+  // Check if a given process id exists
+  SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
+  Proc.dwSize := Sizeof(Proc);
+  Result := False;
+  ContinueLoop := Process32First(SnapShot, Proc);
+  while ContinueLoop do begin
+    Result := Proc.th32ProcessID = pid;
+    if Result then
+      Break;
+    ContinueLoop := Process32Next(SnapShot, Proc);
+  end;
+  CloseHandle(Snapshot);
+end;
 
 
 

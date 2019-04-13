@@ -2173,11 +2173,13 @@ begin
       Section := Tab.Uid;
 
       if Tab.Memo.GetTextLen > 0 then begin
-        // Avoid writing the tabs.ini file through WriteString if nothing was effectively changed
+        // Avoid writing the tabs.ini file if nothing was effectively changed
         if TabsIni.ReadString(Section, 'BackupFilename', '') <> Tab.MemoBackupFilename then
           TabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
         if TabsIni.ReadString(Section, 'Filename', '') <> Tab.MemoFilename then
           TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
+        if TabsIni.ReadInteger(Section, 'pid', 0) <> Integer(GetCurrentProcessId) then
+          TabsIni.WriteInteger(Section, 'pid', Integer(GetCurrentProcessId));
       end;
     end;
 
@@ -2197,6 +2199,7 @@ var
   Sections: TStringList;
   Section, Filename, BackupFilename: String;
   TabsIni: TIniFile;
+  pid: Cardinal;
 begin
   // Restore query tab setup from tabs.ini
 
@@ -2206,9 +2209,19 @@ begin
 
     Sections := TStringList.Create;
     TabsIni.ReadSections(Sections);
+
     for Section in Sections do begin
+
       Filename := TabsIni.ReadString(Section, 'Filename', '');
       BackupFilename := TabsIni.ReadString(Section, 'BackupFilename', '');
+      pid := Cardinal(TabsIni.ReadInteger(Section, 'pid', 0));
+
+      // Don't restore this tab if it belongs to a different running process
+      if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid) then
+        Continue;
+
+      // Either we have a backup file, or a user stored file.
+      // Both of them may not exist.
       if not BackupFilename.IsEmpty then begin
         if FileExists(BackupFilename) then begin
           Tab := ActiveOrEmptyQueryTab(False);
@@ -2217,7 +2230,7 @@ begin
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
         end else begin
-          // Remove ini item if file is gone
+          // Remove tab section if backup file is gone or inaccessible for some reason
           TabsIni.EraseSection(Section);
         end;
       end else if not Filename.IsEmpty then begin
@@ -2227,11 +2240,13 @@ begin
           Tab.LoadContents(Filename, True, nil);
           Tab.MemoFilename := Filename;
         end else begin
-          // Remove ini item if file is gone
+          // Remove tab section if user stored file was deleted by user
           TabsIni.EraseSection(Section);
         end;
       end;
+
     end;
+
     Sections.Free;
     // Close file
     TabsIni.Free;
