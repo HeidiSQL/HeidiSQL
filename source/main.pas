@@ -3816,6 +3816,10 @@ begin
         f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
         );
     end;
+    on E:EEncodingError do begin
+      StopProgress;
+      ErrorDialog(E.Message);
+    end;
   end;
 end;
 

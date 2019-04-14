@@ -1338,7 +1338,7 @@ end;
 
 function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
 const
-  BufferPadding = 4;
+  BufferPadding = SIZE_MB;
 var
   DataLeft, StartPosition: Int64;
   LBuffer: TBytes;
@@ -1356,24 +1356,22 @@ begin
     ChunkSize := DataLeft;
 
   i := 0;
-  while Length(LBuffer) = 0 do begin
-    SetLength(LBuffer, ChunkSize);
-    Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
-    LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
-    if Length(LBuffer) = 0 then begin
-      // Now, TEncoding.Convert returns an empty TByte array in files with russion characters
-      // See http://www.heidisql.com/forum.php?t=13044
-      // Re-read the whole chunk + some more bytes
-      // See: Classes.TStreamReader.FillBuffer
-      // See: https://forums.embarcadero.com/message.jspa?messageID=368526
-      MainForm.LogSQL(f_('End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry reading...', [FormatNumber(Stream.Position)]), lcError);
-      Stream.Position := StartPosition;
-      Inc(ChunkSize, BufferPadding);
-    end else // Success, exit loop
-      Break;
+  while True do begin
     Inc(i);
-    if i=10 then // Give up
+    try
+      SetLength(LBuffer, ChunkSize);
+      Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
+      LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
+      // Success, exit loop
       Break;
+    except
+      on E:EEncodingError do begin
+        if i=10 then // Give up
+          Raise;
+        Stream.Position := StartPosition;
+        Inc(ChunkSize, BufferPadding);
+      end;
+    end;
   end;
 
   Result := TEncoding.Unicode.GetString(LBuffer);
