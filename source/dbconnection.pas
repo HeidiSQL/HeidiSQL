@@ -870,7 +870,7 @@ begin
 
   // Build plink.exe command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-  PlinkCmd := FConnection.Parameters.SSHPlinkExe + ' -ssh -batch -v ';
+  PlinkCmd := FConnection.Parameters.SSHPlinkExe + ' -ssh -batch ';
   if FConnection.Parameters.SSHUser <> '' then
     PlinkCmd := PlinkCmd + FConnection.Parameters.SSHUser + '@';
   if FConnection.Parameters.SSHHost <> '' then
