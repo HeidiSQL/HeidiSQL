@@ -533,7 +533,7 @@ var
         SetLength(SA, ChunkSize div SizeOf(AnsiChar));
         OutStream.Read(PAnsiChar(SA)^, ChunkSize);
         OutStream.Size := 0;
-        FConnection.Query(UTF8ToString(SA));
+        FConnection.Query(UTF8ToString(SA), False, lcScript);
         SQL := '';
       end;
     end else

@@ -171,6 +171,7 @@ type
     tabFiles: TTabSheet;
     chkAskFileSave: TCheckBox;
     chkRestoreTabs: TCheckBox;
+    chkLogEventScript: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -292,6 +293,7 @@ begin
   AppSettings.WriteBool(asLogErrors, chkLogEventErrors.Checked);
   AppSettings.WriteBool(asLogUserSQL, chkLogEventUserGeneratedSQL.Checked);
   AppSettings.WriteBool(asLogSQL, chkLogEventSQL.Checked);
+  AppSettings.WriteBool(asLogScript, chkLogEventScript.Checked);
   AppSettings.WriteBool(asLogInfos, chkLogEventInfo.Checked);
   AppSettings.WriteBool(asLogDebug, chkLogEventDebug.Checked);
   AppSettings.WriteBool(asQueryHistoryEnabled, chkQueryHistory.Checked);
@@ -660,6 +662,7 @@ begin
   chkLogEventErrors.Checked := AppSettings.ReadBool(asLogErrors);
   chkLogEventUserGeneratedSQL.Checked := AppSettings.ReadBool(asLogUserSQL);
   chkLogEventSQL.Checked := AppSettings.ReadBool(asLogSQL);
+  chkLogEventScript.Checked := AppSettings.ReadBool(asLogScript);
   chkLogEventInfo.Checked := AppSettings.ReadBool(asLogInfos);
   chkLogEventDebug.Checked := AppSettings.ReadBool(asLogDebug);
   chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);

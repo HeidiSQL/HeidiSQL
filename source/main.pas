@@ -3783,7 +3783,7 @@ begin
         // Execute single query
         // Break or don't break loop, depending on the state of "Stop on errors" button
         try
-          ActiveConnection.Query(Queries[i].SQL);
+          ActiveConnection.Query(Queries[i].SQL, False, lcScript);
           RowsAffected := RowsAffected + ActiveConnection.RowsAffected;
         except
           on E:Exception do begin
@@ -4883,6 +4883,7 @@ begin
     lcError: LogIt := AppSettings.ReadBool(asLogErrors);
     lcUserFiredSQL: LogIt := AppSettings.ReadBool(asLogUserSQL);
     lcSQL: LogIt := AppSettings.ReadBool(asLogSQL);
+    lcScript: LogIt := AppSettings.ReadBool(asLogScript);
     lcInfo: LogIt := AppSettings.ReadBool(asLogInfos);
     lcDebug: LogIt := AppSettings.ReadBool(asLogDebug);
     else LogIt := False;

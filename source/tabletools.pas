@@ -1368,8 +1368,8 @@ begin
       ExportStream.Size := 0;
       ExportStreamStartOfQueryPos := 0;
       SQL := UTF8ToString(SA);
-      if ToDB then MainForm.ActiveConnection.Query(SQL)
-      else if ToServer then FTargetConnection.Query(SQL);
+      if ToDB then MainForm.ActiveConnection.Query(SQL, False, lcScript)
+      else if ToServer then FTargetConnection.Query(SQL, False, lcScript);
       SQL := '';
     end;
   end;

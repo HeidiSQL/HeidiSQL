@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-04-10 15:05+0200\n"
+"PO-Revision-Date: 2019-04-16 07:16+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2682,6 +2682,9 @@ msgstr "User-generated SQL queries"
 #: options.dfm:303
 msgid "Internal SQL queries"
 msgstr "Internal SQL queries"
+
+msgid "Import/script queries"
+msgstr "Import/script queries"
 
 #. optionsform..pagecontrolMain..tabLogging..chkLogEventInfo..Caption
 #: options.dfm:312

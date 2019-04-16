@@ -361,7 +361,7 @@ object optionsform: Toptionsform
         end
         object lblQueryHistoryKeepDays: TLabel
           Left = 421
-          Top = 212
+          Top = 231
           Width = 209
           Height = 13
           Caption = 'days to keep queries before removing them'
@@ -446,7 +446,7 @@ object optionsform: Toptionsform
         end
         object chkLogEventInfo: TCheckBox
           Left = 190
-          Top = 154
+          Top = 180
           Width = 515
           Height = 17
           Caption = 'Information messages'
@@ -455,7 +455,7 @@ object optionsform: Toptionsform
         end
         object chkLogEventDebug: TCheckBox
           Left = 190
-          Top = 174
+          Top = 200
           Width = 515
           Height = 17
           Caption = 'Debug messages'
@@ -481,7 +481,7 @@ object optionsform: Toptionsform
         end
         object chkQueryHistory: TCheckBox
           Left = 190
-          Top = 211
+          Top = 230
           Width = 145
           Height = 17
           Caption = 'Enable query history'
@@ -490,7 +490,7 @@ object optionsform: Toptionsform
         end
         object chkHorizontalScrollbar: TCheckBox
           Left = 190
-          Top = 234
+          Top = 253
           Width = 515
           Height = 17
           Caption = 'Horizontal scrollbar'
@@ -499,7 +499,7 @@ object optionsform: Toptionsform
         end
         object editQueryHistoryKeepDays: TEdit
           Left = 344
-          Top = 209
+          Top = 228
           Width = 53
           Height = 21
           Enabled = False
@@ -509,7 +509,7 @@ object optionsform: Toptionsform
         end
         object updownQueryHistoryKeepDays: TUpDown
           Left = 397
-          Top = 209
+          Top = 228
           Width = 16
           Height = 21
           Associate = editQueryHistoryKeepDays
@@ -519,6 +519,15 @@ object optionsform: Toptionsform
           Position = 1
           TabOrder = 14
           OnChanging = anyUpDownLimitChanging
+        end
+        object chkLogEventScript: TCheckBox
+          Left = 190
+          Top = 157
+          Width = 515
+          Height = 17
+          Caption = 'Import/script queries'
+          TabOrder = 15
+          OnClick = Modified
         end
       end
     end

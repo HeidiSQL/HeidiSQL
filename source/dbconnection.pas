@@ -281,7 +281,7 @@ type
 
   { TDBConnection }
 
-  TDBLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug);
+  TDBLogCategory = (lcInfo, lcSQL, lcUserFiredSQL, lcError, lcDebug, lcScript);
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
