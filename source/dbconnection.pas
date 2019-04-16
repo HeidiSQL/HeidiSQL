@@ -930,7 +930,7 @@ begin
     ErrorText := ReadPipe(FErrorPipe);
     if (OutText <> '') or (ErrorText <> '') then begin
       ReturnedSomethingAt := Waited;
-      FConnection.Log(lcDebug, 'PLink OutText: "'+OutText+'"  ErrorText: "'+ErrorText+'"');
+      FConnection.Log(lcDebug, Format('PLink output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [Waited, OutText, ErrorText]));
     end;
 
     if OutText <> '' then begin
