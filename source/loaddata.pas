@@ -649,9 +649,9 @@ begin
       Inc(CheckedNum);
   end;
   if CheckedNum < chklistColumns.Items.Count then
-    btnCheckAll.ImageIndex := 128
+    btnCheckAll.ImageIndex := 127
   else
-    btnCheckAll.ImageIndex := 127;
+    btnCheckAll.ImageIndex := 128;
 end;
 
 
