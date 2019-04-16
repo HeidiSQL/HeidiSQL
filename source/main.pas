@@ -6045,7 +6045,16 @@ end;
 
 procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
     TSynStatusChanges);
+var
+  Edit: TSynMemo;
 begin
+  // Don't ask for saving empty contents. See issue #614
+  Edit := Sender as TSynMemo;
+  if Edit.GetTextLen = 0 then begin
+    ActiveQueryTab.MemoFilename := '';
+    ActiveQueryTab.Memo.Modified := False;
+  end;
+  // Update various controls
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
 end;
