@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-04-16 07:16+0200\n"
+"PO-Revision-Date: 2019-04-16 19:42+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2668,31 +2668,27 @@ msgstr "Log events:"
 msgid "Write SQL log to file"
 msgstr "Write SQL log to file"
 
-#. optionsform..pagecontrolMain..tabLogging..chkLogEventErrors..Caption
-#: options.dfm:285
+#. A category for messages or queries, used for the log panel
 msgid "Errors"
 msgstr "Errors"
 
-#. optionsform..pagecontrolMain..tabLogging..chkLogEventUserFiredSQL..Caption
-#: options.dfm:294
+#. A category for messages or queries, used for the log panel
 msgid "User-generated SQL queries"
 msgstr "User-generated SQL queries"
 
-#. optionsform..pagecontrolMain..tabLogging..chkLogEventSQL..Caption
-#: options.dfm:303
+#. A category for messages or queries, used for the log panel
 msgid "Internal SQL queries"
 msgstr "Internal SQL queries"
 
+#. A category for messages or queries, used for the log panel
 msgid "Import/script queries"
 msgstr "Import/script queries"
 
-#. optionsform..pagecontrolMain..tabLogging..chkLogEventInfo..Caption
-#: options.dfm:312
+#. A category for messages or queries, used for the log panel
 msgid "Information messages"
 msgstr "Information messages"
 
-#. optionsform..pagecontrolMain..tabLogging..chkLogEventDebug..Caption
-#: options.dfm:321
+#. A category for messages or queries, used for the log panel
 msgid "Debug messages"
 msgstr "Debug messages"
 
@@ -6347,6 +6343,7 @@ msgstr "Backup file could not be deleted: %s"
 msgid "Your code is saved anyway, as auto-restoring is activated."
 msgstr "Your code is saved anyway, as auto-restoring is activated."
 
+#. Tab caption in preferences
 msgid "Files"
 msgstr "Files"
 
