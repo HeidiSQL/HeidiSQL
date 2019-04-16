@@ -928,10 +928,10 @@ begin
 
     OutText := Trim(ReadPipe(FOutPipe));
     ErrorText := ReadPipe(FErrorPipe);
-    if (OutText <> '') or (ErrorText <> '') then
+    if (OutText <> '') or (ErrorText <> '') then begin
       ReturnedSomethingAt := Waited;
-
-    FConnection.Log(lcDebug, 'plink OutText:'+OutText+' ErrorText:'+ErrorText);
+      FConnection.Log(lcDebug, 'PLink OutText: "'+OutText+'"  ErrorText: "'+ErrorText+'"');
+    end;
 
     if OutText <> '' then begin
       if ExecRegExpr('login as\s*\:', OutText) then begin
@@ -975,8 +975,8 @@ begin
       end;
     end;
 
-    // Exit loop after 1s idletime when there was output earlier
-    if (ReturnedSomethingAt > 0) and (Waited >= ReturnedSomethingAt+1000) then
+    // Exit loop after 2s idletime when there was output earlier
+    if (ReturnedSomethingAt > 0) and (Waited >= ReturnedSomethingAt+2000) then
       Break;
     
     Application.ProcessMessages;
