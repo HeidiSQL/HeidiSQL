@@ -171,7 +171,7 @@ type
     asPromptSaveFileOnTabClose, asRestoreTabs, asWarnUnsafeUpdates, asQueryWarningsMessage,
     asCompletionProposal, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
-    asTheme, asIconPack,
+    asTheme, asIconPack, asWebSearchBaseUrl,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
     asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
@@ -2456,6 +2456,7 @@ var
   rx: TRegExpr;
   KeepAskingValue: Boolean;
   Hotkeys: String;
+  WebSearchUrl: String;
 
   procedure AddButton(BtnCaption: String; BtnResult: TModalResult);
   var
@@ -2508,7 +2509,9 @@ begin
         Dialog.MainIcon := tdiWarning;
       mtError: begin
         Dialog.MainIcon := tdiError;
-        Dialog.FooterText := '<a href="http://www.google.com/search?q='+EncodeURLParam(Copy(Msg, 1, 1000))+'">'+_('Find some help on this error')+'</a>';
+        WebSearchUrl := AppSettings.ReadString(asWebSearchBaseUrl);
+        WebSearchUrl := StringReplace(WebSearchUrl, '%q', EncodeURLParam(Copy(Msg, 1, 1000)), []);
+        Dialog.FooterText := '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+'</a>';
         Dialog.FooterIcon := tdiInformation;
       end;
       mtInformation:
@@ -3656,6 +3659,7 @@ begin
   InitSetting(asGUIFontSize,                      'GUIFontSize',                           8);
   InitSetting(asTheme,                            'Theme',                                 0, False, 'Windows');
   InitSetting(asIconPack,                         'IconPack',                              0, False, 'Icons8');
+  InitSetting(asWebSearchBaseUrl,                 'WebSearchBaseUrl',                      0, False, 'https://www.ecosia.org/search?q=%query');
   InitSetting(asMaxQueryResults,                  'MaxQueryResults',                       10);
   InitSetting(asLogErrors,                        'LogErrors',                             0, True);
   InitSetting(asLogUserSQL,                       'LogUserSQL',                            0, True);

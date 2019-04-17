@@ -97,6 +97,14 @@ object optionsform: Toptionsform
           Height = 13
           Caption = 'Icon pack:'
         end
+        object lblWebSearchBaseUrl: TLabel
+          Left = 8
+          Top = 339
+          Width = 102
+          Height = 13
+          Hint = 'Used in footer of various message dialogs'
+          Caption = 'Web search base url:'
+        end
         object chkAutoReconnect: TCheckBox
           Left = 190
           Top = 31
@@ -305,6 +313,25 @@ object optionsform: Toptionsform
           Anchors = [akLeft, akTop, akRight]
           TabOrder = 17
           OnChange = Modified
+        end
+        object comboWebSearchBaseUrl: TComboBox
+          Left = 190
+          Top = 336
+          Width = 505
+          Height = 21
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 18
+          Text = 'comboWebSearchBaseUrl'
+          OnChange = Modified
+          Items.Strings = (
+            'https://www.ecosia.org/search?q=%query'
+            'https://www.startpage.com/do/search?query=%query'
+            'https://duckduckgo.com/?q=%query'
+            'https://www.baidu.com/s?wd=%query'
+            'https://www.searchencrypt.com/search?q=%query'
+            'https://yandex.com/search/?text=%query'
+            'https://www.bing.com/search?q=%query'
+            'https://www.google.com/search?q=%query')
         end
       end
     end

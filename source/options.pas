@@ -172,6 +172,8 @@ type
     chkAskFileSave: TCheckBox;
     chkRestoreTabs: TCheckBox;
     chkLogEventScript: TCheckBox;
+    lblWebSearchBaseUrl: TLabel;
+    comboWebSearchBaseUrl: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -342,6 +344,7 @@ begin
   AppSettings.WriteInt(asGUIFontSize, updownGUIFontSize.Position);
   AppSettings.WriteString(asTheme, comboTheme.Text);
   AppSettings.WriteString(asIconPack, comboIconPack.Text);
+  AppSettings.WriteString(asWebSearchBaseUrl, comboWebSearchBaseUrl.Text);
 
   AppSettings.WriteInt(asMaxQueryResults, updownMaxQueryResults.Position);
   // Save color settings
@@ -652,6 +655,7 @@ begin
   comboGUIFont.OnChange(comboGUIFont);
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
+  comboWebSearchBaseUrl.Text := AppSettings.ReadString(asWebSearchBaseUrl);
   chkQueryWarningsMessage.Checked := AppSettings.ReadBool(asQueryWarningsMessage);
 
   // Logging
