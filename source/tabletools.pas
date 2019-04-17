@@ -1073,6 +1073,7 @@ begin
   ResultGrid.FocusedNode := ResultGrid.GetLast;
   ResultGrid.Selected[ResultGrid.FocusedNode] := True;
   Percent := 100 / Max(FObjectSizes,1) * FObjectSizesDoneExact;
+  Percent := Min(Percent, 100);
   lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]) + '. ' +
     f_('%s%% done', [FormatNumber(Percent, 1)]) + '.';
   MainForm.SetProgressPosition(Round(Percent));
@@ -1400,6 +1401,7 @@ const
   begin
     LogRow := FResults.Last;
     Percent := 100 / Max(DBObj.Rows,1) * Max(RowsDone,1);
+    Percent := Min(Percent, 100);
     BytesDone := Max(DBObj.Size,0) div Max(DBObj.Rows,1) * RowsDone;
     FObjectSizesDoneExact := FObjectSizesDone + BytesDone;
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
