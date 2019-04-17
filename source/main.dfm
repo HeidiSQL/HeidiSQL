@@ -2167,12 +2167,19 @@ object MainForm: TMainForm
       ShortCut = 45
       OnExecute = actDataInsertExecute
     end
-    object actDataDuplicateRow: TAction
+    object actDataDuplicateRowWithoutKeys: TAction
       Category = 'Data'
-      Caption = 'Duplicate row'
+      Caption = 'Duplicate row without keys'
       Enabled = False
       ImageIndex = 45
       ShortCut = 16429
+      OnExecute = actDataInsertExecute
+    end
+    object actDataDuplicateRowWithKeys: TAction
+      Category = 'Data'
+      Caption = 'Duplicate row with keys'
+      Enabled = False
+      ImageIndex = 45
       OnExecute = actDataInsertExecute
     end
     object actDataDelete: TAction
@@ -3104,7 +3111,10 @@ object MainForm: TMainForm
       Action = actDataInsert
     end
     object Duplicaterow1: TMenuItem
-      Action = actDataDuplicateRow
+      Action = actDataDuplicateRowWithoutKeys
+    end
+    object Duplicaterowwithkeys1: TMenuItem
+      Action = actDataDuplicateRowWithKeys
     end
     object DataPost1: TMenuItem
       Action = actDataPostChanges

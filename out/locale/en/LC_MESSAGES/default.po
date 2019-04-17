@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-04-16 19:42+0200\n"
+"PO-Revision-Date: 2019-04-17 08:21+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -1925,10 +1925,13 @@ msgstr "&Insert row"
 msgid "Insert row into table"
 msgstr "Insert row into table"
 
-#. MainForm..ActionList1..actDataDuplicateRow..Caption
-#: main.dfm:2086
-msgid "Duplicate row"
-msgstr "Duplicate row"
+#. Result grid context menu
+msgid "Duplicate row without keys"
+msgstr "Duplicate row without keys"
+
+#. "keys" are actually "primary and unique keys", which is too long for a context menu
+msgid "Duplicate row with keys"
+msgstr "Duplicate row with keys"
 
 #. MainForm..ActionList1..actDataDelete..Caption
 #: main.dfm:2094

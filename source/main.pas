@@ -493,7 +493,8 @@ type
     menuCreateTrigger: TMenuItem;
     menuQueryCut: TMenuItem;
     menuQuerySelectall: TMenuItem;
-    actDataDuplicateRow: TAction;
+    actDataDuplicateRowWithoutKeys: TAction;
+    actDataDuplicateRowWithKeys: TAction;
     Duplicaterow1: TMenuItem;
     Bulktableeditor1: TMenuItem;
     actSelectInverse: TAction;
@@ -646,6 +647,7 @@ type
     treeQueryHelpers: TVirtualStringTree;
     filterQueryHelpers: TButtonedEdit;
     TimerStoreTabs: TTimer;
+    Duplicaterowwithkeys1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -4769,7 +4771,7 @@ begin
   try
     Results.CheckEditable;
     DupeNode := nil;
-    if Sender = actDataDuplicateRow then
+    if (Sender = actDataDuplicateRowWithoutKeys) or (Sender = actDataDuplicateRowWithKeys) then
       DupeNode := Grid.FocusedNode;
     RowNum := Results.InsertRow;
     NewNode := Grid.InsertNode(Grid.FocusedNode, amInsertAfter, PInt64(RowNum));
@@ -4781,7 +4783,7 @@ begin
       for i:=0 to Grid.Header.Columns.Count-1 do begin
         if not (coVisible in Grid.Header.Columns[i].Options) then
           continue; // Ignore invisible key column
-        if Results.ColIsPrimaryKeyPart(i) then
+        if Results.ColIsPrimaryKeyPart(i) and (Sender = actDataDuplicateRowWithoutKeys) then
           continue; // Empty value for primary key column
         if Results.ColIsVirtual(i) then
           continue; // Don't copy virtual column value
@@ -5626,7 +5628,8 @@ begin
 
   actFullRefresh.Enabled := HasConnection and (PageControlMain.ActivePage = tabDatabase);
   actDataInsert.Enabled := HasConnection and inGrid and Assigned(Results);
-  actDataDuplicateRow.Enabled := HasConnection and inGrid and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actDataDuplicateRowWithoutKeys.Enabled := HasConnection and inGrid and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actDataDuplicateRowWithKeys.Enabled := actDataDuplicateRowWithoutKeys.Enabled;
   actDataDelete.Enabled := HasConnection and inGrid and (Grid.SelectedCount > 0);
   actDataFirst.Enabled := HasConnection and inDataOrQueryTabNotEmpty and inGrid;
   actDataLast.Enabled := HasConnection and inDataOrQueryTabNotEmpty and inGrid;
