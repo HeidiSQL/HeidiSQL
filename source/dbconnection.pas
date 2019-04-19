@@ -5362,7 +5362,8 @@ begin
       'FROM INFORMATION_SCHEMA.COLUMNS '+
       'WHERE '+
       '  TABLE_NAME='+EscapeString(DBObj.Name)+' '+
-      SchemaClause
+      SchemaClause+
+      ' ORDER BY ORDINAL_POSITION'
       );
     while not Results.Eof do begin
       Col := TTableColumn.Create(Self);
