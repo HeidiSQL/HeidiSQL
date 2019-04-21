@@ -10221,6 +10221,7 @@ begin
       try
         SynMemo.PasteFromClipboard;
         Success := True;
+        SynMemo.Modified := True;
       except on E:Exception do
         ErrorDialog(E.Message);
       end;
