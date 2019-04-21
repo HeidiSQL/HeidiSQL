@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
   SynMemo, Menus, Clipbrd, Math, System.UITypes,
-  grideditlinks, mysql_structures, dbconnection, apphelpers, gnugettext;
+  grideditlinks, mysql_structures, dbconnection, apphelpers, gnugettext, StrUtils;
 
 type
   TFrame = TDBObjectEditor;
@@ -1089,6 +1089,7 @@ var
 begin
   // Display column text
   Col := Sender.GetNodeData(Node);
+  CellText := '';
   case Column of
     0: CellText := IntToStr(Node.Index+1);
     1: CellText := Col.Name;
@@ -1097,14 +1098,19 @@ begin
     4, 5, 6: CellText := ''; // Checkbox
     7: begin
       case Col.DefaultType of
-        cdtNothing:                 CellText := _('No default');
-        cdtText, cdtTextUpdateTS:   CellText := Col.DefaultText;
-        cdtNull, cdtNullUpdateTS:   CellText := 'NULL';
-        cdtCurTS, cdtCurTSUpdateTS: CellText := 'CURRENT_TIMESTAMP';
-        cdtAutoInc:                 CellText := 'AUTO_INCREMENT';
+        cdtNothing:      CellText := _('No default');
+        cdtText:         CellText := Col.Connection.EscapeString(Col.DefaultText);
+        cdtNull:         CellText := 'NULL';
+        cdtExpression:   CellText := Col.DefaultText;
+        cdtAutoInc:      CellText := 'AUTO_INCREMENT';
       end;
-      if Col.DefaultType in [cdtTextUpdateTS, cdtNullUpdateTS, cdtCurTSUpdateTS] then
-        CellText := CellText + ' ON UPDATE CURRENT_TIMESTAMP';
+      case Col.OnUpdateType of
+        // cdtNothing: leave clause away
+        // cdtText: not supported
+        // cdtNull: not supported
+        cdtExpression:   CellText := CellText + ' ON UPDATE ' + Col.OnUpdateText;
+        // cdtAutoInc: invalid here
+      end;
     end;
     8: CellText := Col.Comment;
     9: begin
@@ -1163,12 +1169,10 @@ begin
     2: TextColor := DatatypeCategories[Col.DataType.Category].Color;
 
     7: case Col.DefaultType of
-      cdtNothing, cdtNull, cdtNullUpdateTS:
-        TextColor := clGray;
-      cdtCurTS, cdtCurTSUpdateTS:
-        TextColor := DatatypeCategories[dtcTemporal].Color;
-      cdtAutoInc:
-        TextColor := DatatypeCategories[dtcInteger].Color;
+      cdtNothing, cdtNull:
+        TextColor := DatatypeCategories[Col.DataType.Category].NullColor;
+      else
+        TextColor := DatatypeCategories[Col.DataType.Category].Color;
     end;
   end;
   TargetCanvas.Font.Color := TextColor;
@@ -1213,18 +1217,23 @@ begin
         Col.LengthSet := Col.DataType.DefLengthSet;
       // Auto-fix user selected default type which can be invalid now
       case Col.DataType.Category of
-        dtcInteger, dtcReal: begin
-          if Col.DefaultType in [cdtCurTS, cdtCurTSUpdateTS] then
-            Col.DefaultType := cdtNothing;
-          if Col.DefaultType = cdtTextUpdateTS then
-            Col.DefaultType := cdtText;
-          if Col.DefaultType = cdtNullUpdateTS then
-            Col.DefaultType := cdtNull;
+        dtcInteger: begin
+          Col.DefaultType := cdtExpression;
+          if Col.AllowNull then
+            Col.DefaultType := cdtNull
+          else
+            Col.DefaultText := IntToStr(MakeInt(Col.DefaultText));
+        end;
+        dtcReal: begin
+          Col.DefaultType := cdtExpression;
+          if Col.AllowNull then
+            Col.DefaultType := cdtNull
+          else
+            Col.DefaultText := FloatToStr(MakeFloat(Col.DefaultText));
         end;
         dtcText, dtcBinary, dtcSpatial, dtcOther: begin
-          if Col.DefaultType in [cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc] then
-            Col.DefaultType := cdtNothing;
-          if Col.DefaultType = cdtNullUpdateTS then
+          Col.DefaultType := cdtText;
+          if Col.AllowNull then
             Col.DefaultType := cdtNull;
         end;
         dtcTemporal: begin
@@ -1245,9 +1254,8 @@ begin
     end;
     // 4 + 5 are checkboxes - handled in OnClick
     7: begin // Default value
-      Col.DefaultText := NewText;
-      Col.DefaultType := GetColumnDefaultType(Col.DefaultText);
-      if Col.DefaultType in [cdtNull, cdtNullUpdateTS] then
+      // DefaultText/Type and OnUpdateText/Type are set in TColumnDefaultEditorLink.EndEdit
+      if Col.DefaultType = cdtNull then
         Col.AllowNull := True;
     end;
     8: Col.Comment := NewText;
@@ -1318,7 +1326,7 @@ begin
       5: begin
         Col.AllowNull := not Col.AllowNull;
         // Switch default value from NULL to Text if Allow Null is off
-        if (not Col.AllowNull) and (Col.DefaultType in [cdtNull, cdtNullUpdateTS]) then begin
+        if (not Col.AllowNull) and (Col.DefaultType = cdtNull) then begin
           Col.DefaultType := cdtNothing;
           Col.DefaultText := '';
         end;
@@ -1369,8 +1377,10 @@ begin
       end;
     7: begin
       DefaultEditor := TColumnDefaultEditorLink.Create(VT);
-      DefaultEditor.DefaultText := Col.DefaultText;
       DefaultEditor.DefaultType := Col.DefaultType;
+      DefaultEditor.DefaultText := Col.DefaultText;
+      DefaultEditor.OnUpdateType := Col.OnUpdateType;
+      DefaultEditor.OnUpdateText := Col.OnUpdateText;
       EditLink := DefaultEditor;
     end;
     11: begin // Virtuality pulldown

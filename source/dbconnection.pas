@@ -86,7 +86,7 @@ type
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
 
-  TColumnDefaultType = (cdtNothing, cdtText, cdtTextUpdateTS, cdtNull, cdtNullUpdateTS, cdtCurTS, cdtCurTSUpdateTS, cdtAutoInc);
+  TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
 
   // Column object, many of them in a TObjectList
   TTableColumn = class(TObject)
@@ -100,6 +100,8 @@ type
       Unsigned, AllowNull, ZeroFill, LengthCustomized: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
+      OnUpdateType: TColumnDefaultType;
+      OnUpdateText: String;
       Comment, Charset, Collation, Expression, Virtuality: String;
       FStatus: TEditingStatus;
       constructor Create(AOwner: TDBConnection);
@@ -5068,8 +5070,8 @@ procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTable
 var
   ColSpec, Quotes: String;
   rx, rxCol: TRegExpr;
-  i, LiteralStart: Integer;
-  InLiteral, IsLiteral: Boolean;
+  i: Integer;
+  InLiteral: Boolean;
   Col: TTableColumn;
   Key: TTableKey;
   ForeignKey: TForeignKey;
@@ -5091,9 +5093,13 @@ begin
   rx.Expression := '^\s+['+Quotes+']';
   rxCol := TRegExpr.Create;
   rxCol.ModifierI := True;
+  // Make it ungreedy, so words on the right don't become a part of left matches
+  rxCol.ModifierG := False;
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Columns) then
-      break;
+      Break;
+    // Will also break if .ExecNext at the end fails
+
     ColSpec := Copy(CreateTable, rx.MatchPos[0], SIZE_MB);
     ColSpec := Copy(ColSpec, 1, Pos(#10, ColSpec));
     ColSpec := Trim(ColSpec);
@@ -5127,29 +5133,33 @@ begin
     // Unsigned
     if UpperCase(Copy(ColSpec, 1, 8)) = 'UNSIGNED' then begin
       Col.Unsigned := True;
-      Delete(ColSpec, 1, 9);
+      Delete(ColSpec, 1, 8);
+      ColSpec := Trim(ColSpec);
     end else
       Col.Unsigned := False;
 
     // Zero fill
     if UpperCase(Copy(ColSpec, 1, 8)) = 'ZEROFILL' then begin
       Col.ZeroFill := True;
-      Delete(ColSpec, 1, 9);
+      Delete(ColSpec, 1, 8);
+      ColSpec := Trim(ColSpec);
     end else
       Col.ZeroFill := False;
 
     // Charset
-    rxCol.Expression := '^CHARACTER SET (\w+)\b\s*';
+    rxCol.Expression := '^CHARACTER SET (\w+)\b';
     if rxCol.Exec(ColSpec) then begin
       Col.Charset := rxCol.Match[1];
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
+      ColSpec := Trim(ColSpec);
     end;
 
     // Collation - probably not present when charset present
-    rxCol.Expression := '^COLLATE (\w+)\b\s*';
+    rxCol.Expression := '^COLLATE\s+(\w+)\b';
     if rxCol.Exec(ColSpec) then begin
       Col.Collation := rxCol.Match[1];
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
+      ColSpec := Trim(ColSpec);
     end;
     if Col.Collation = '' then begin
       if Assigned(Collations) then begin
@@ -5165,76 +5175,68 @@ begin
     end;
 
     // Virtual columns
-    rxCol.Expression := '^(GENERATED ALWAYS)?\s*AS\s+\((.+)\)\s+(VIRTUAL|PERSISTENT|STORED)\s*';
+    rxCol.Expression := '^(GENERATED ALWAYS\s+)?AS\s+\((.+)\)\s+(VIRTUAL|PERSISTENT|STORED)';
     if rxCol.Exec(ColSpec) then begin
       Col.Expression := rxCol.Match[2];
       Col.Virtuality := rxCol.Match[3];
       Delete(ColSpec, 1, rxCol.MatchLen[0]);
+      ColSpec := Trim(ColSpec);
     end;
 
     // Allow NULL
     if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
       Col.AllowNull := False;
-      Delete(ColSpec, 1, 9);
+      Delete(ColSpec, 1, 8);
     end else begin
       Col.AllowNull := True;
       // Sporadically there is a "NULL" found at this position.
       if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then
-        Delete(ColSpec, 1, 5);
+        Delete(ColSpec, 1, 4);
     end;
+    ColSpec := Trim(ColSpec);
 
-    // Default value
+    // Default value detection
+    // Should detect auto increment (without "default" keyword), null, quoted text, and expressions like CURRENT_TIMESTAMP
     Col.DefaultType := cdtNothing;
     Col.DefaultText := '';
-    rxCol.Expression := '(NULL|CURRENT_TIMESTAMP(\(\d*\))?|\''[^\'']+\'')(\s+ON\s+UPDATE\s+CURRENT_TIMESTAMP(\(\d*\))?)?';
+    Col.OnUpdateType := cdtNothing;
+    Col.OnUpdateText := '';
     if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
       Delete(ColSpec, 1, 15);
     end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
       Delete(ColSpec, 1, 8);
-      // Literal values may match the regex as well. See http://www.heidisql.com/forum.php?t=17862
-      IsLiteral := (ColSpec[1] = '''') or (Copy(ColSpec, 1, 2) = 'b''') or (Copy(ColSpec, 1, 2) = '(''');
-      if rxCol.Exec(ColSpec) and (not IsLiteral) then begin
-        if rxCol.Match[1] = 'NULL' then begin
-          Col.DefaultType := cdtNull;
-          Col.DefaultText := 'NULL';
-          if rxCol.Match[3] <> '' then
-            Col.DefaultType := cdtNullUpdateTS;
-          Delete(ColSpec, 1, rxCol.MatchLen[0]);
-        end else if StartsText('CURRENT_TIMESTAMP', rxCol.Match[1]) then begin
-          Col.DefaultType := cdtCurTS;
-          Col.DefaultText := rxCol.Match[1];
-          if rxCol.Match[3] <> '' then
-            Col.DefaultType := cdtCurTSUpdateTS;
-          Delete(ColSpec, 1, rxCol.MatchLen[0]);
-        end else begin
+      ColSpec := Trim(ColSpec);
+
+      // To retrieve the default value, get everything up to the end or up to a potential keywords mentioned on
+      // https://mariadb.com/kb/en/library/create-table/#column-definitions
+      rxCol.Expression := '^(.*)($|\s+(ON UPDATE|COLUMN_FORMAT|COMMENT|INVISIBLE)\b)';
+      if rxCol.Exec(ColSpec) then begin
+        Col.DefaultText := Trim(rxCol.Match[1]);
+        Col.DefaultText := Col.DefaultText.TrimRight([',']);
+
+        if Col.DefaultText.StartsWith('''') then begin
           Col.DefaultType := cdtText;
-          Col.DefaultText := ExtractLiteral(ColSpec, '');
-          if Col.DefaultText.IsEmpty then
-            Col.DefaultText := RegExprGetMatch('\s*(\S+)', ColSpec, 1, True);
-          if rxCol.Match[3] <> '' then
-            Col.DefaultType := cdtTextUpdateTS;
+          Col.DefaultText := ExtractLiteral(Col.DefaultText, '');
+        end else if UpperCase(Col.DefaultText) = 'NULL' then begin
+          Col.DefaultType := cdtNull
+        end else begin
+          Col.DefaultType := cdtExpression;
         end;
-      end else if IsLiteral then begin
-        InLiteral := True;
-        LiteralStart := Pos('''', ColSpec)+1;
-        for i:=LiteralStart to Length(ColSpec) do begin
-          if ColSpec[i] = '''' then
-            InLiteral := not InLiteral
-          else if not InLiteral then
-            break;
+        Delete(ColSpec, 1, rxCol.MatchLen[1]);
+
+        // Do the same for a potentially existing ON UPDATE clause
+        rxCol.Expression := '^\s*ON UPDATE\s+(.*)($|\s+(COLUMN_FORMAT|COMMENT|INVISIBLE)\b)';
+        if rxCol.Exec(ColSpec) then begin
+          Col.OnUpdateText := Trim(rxCol.Match[1]);
+          Col.OnUpdateText := Col.OnUpdateText.TrimRight([',']);
+          Col.OnUpdateType := cdtExpression;
+          Delete(ColSpec, 1, rxCol.MatchLen[1]);
         end;
-        Col.DefaultType := cdtText;
-        Col.DefaultText := Copy(ColSpec, LiteralStart, i-LiteralStart-1);
-        // A linefeed needs to display as "\n" but a single quote must not contain a backslash here
-        Col.DefaultText := EscapeString(UnescapeString(Col.DefaultText), False, False);
-        Col.DefaultText := StringReplace(Col.DefaultText, '\''', '''', [rfReplaceAll]);
-        Delete(ColSpec, 1, i);
-      end else begin
-        Col.DefaultType := cdtText;
-        Col.DefaultText := getFirstWord(ColSpec, False);
+
       end;
+
     end;
 
     // Comment
@@ -5400,10 +5402,10 @@ begin
           Col.DefaultType := cdtNull
         else
           Col.DefaultType := cdtNothing;
-      end else if Col.DataType.Index = dtTimestamp then
-        Col.DefaultType := cdtCurTSUpdateTS
+      end else if Col.DataType.Category = dtcText then
+        Col.DefaultType := cdtText
       else
-        Col.DefaultType := cdtText;
+        Col.DefaultType := cdtExpression;
       Results.Next;
     end;
     rx.Free;
@@ -6630,8 +6632,8 @@ begin
     c.OldIsNull := False;
     ColAttr := ColAttributes(i);
     if Assigned(ColAttr) then begin
-      c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtNullUpdateTS, cdtAutoInc];
-      if ColAttr.DefaultType in [cdtText, cdtTextUpdateTS] then
+      c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtAutoInc];
+      if ColAttr.DefaultType in [cdtText] then
         c.OldText := FConnection.UnescapeString(ColAttr.DefaultText);
     end;
     c.NewText := c.OldText;
@@ -7457,22 +7459,23 @@ begin
   end;
   if DefaultType <> cdtNothing then begin
     Text := esc(DefaultText);
-    // Support BIT syntax in MySQL
-    if (DataType.Index = dtBit) and FConnection.Parameters.IsMySQL then
-      Text := 'b'+Text;
     TSLen := '';
     if LengthSet <> '' then
       TSLen := '('+LengthSet+')';
     Result := Result + ' ';
     case DefaultType of
-      // cdtNothing:
-      cdtText:           Result := Result + 'DEFAULT '+Text;
-      cdtTextUpdateTS:   Result := Result + 'DEFAULT '+Text+' ON UPDATE CURRENT_TIMESTAMP'+TSLen;
+      // cdtNothing: leave out whole clause
+      cdtText:           Result := Result + 'DEFAULT '+esc(DefaultText);
       cdtNull:           Result := Result + 'DEFAULT NULL';
-      cdtNullUpdateTS:   Result := Result + 'DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP'+TSLen;
-      cdtCurTS:          Result := Result + 'DEFAULT CURRENT_TIMESTAMP'+TSLen;
-      cdtCurTSUpdateTS:  Result := Result + 'DEFAULT CURRENT_TIMESTAMP'+TSLen+' ON UPDATE CURRENT_TIMESTAMP'+TSLen;
       cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
+      cdtExpression:     Result := Result + 'DEFAULT '+DefaultText;
+    end;
+    case OnUpdateType of
+      // cdtNothing: leave out whole clause
+      // cdtText:    not supported, but may be valid in MariaDB?
+      // cdtNull:    not supported, but may be valid in MariaDB?
+      // cdtAutoInc: not valid in ON UPDATE
+      cdtExpression:     Result := Result + ' ON UPDATE '+OnUpdateText;
     end;
     Result := TrimRight(Result); // Remove whitespace for columns without default value
   end;

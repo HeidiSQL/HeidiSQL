@@ -157,20 +157,22 @@ type
   TColumnDefaultEditorLink = class(TBaseGridEditorLink)
   private
     FPanel: TPanel;
-    FRadioNothing, FRadioText, FRadioNULL, FRadioCurTS, FRadioAutoInc: TAllKeysRadioButton;
-    FCheckCurTS: TAllKeysCheckbox;
-    FCustomEdit: TButtonedEdit;
-    FCustomDropDown: TPopupMenu;
+    FRadioNothing, FRadioText, FRadioNULL, FRadioExpression, FRadioAutoInc: TAllKeysRadioButton;
+    FlblOnUpdate: TLabel;
+    FTextEdit: TButtonedEdit;
+    FTextDropDown: TPopupMenu;
+    FExpressionEdit: TButtonedEdit;
+    FOnUpdateEdit: TButtonedEdit;
     FBtnOK, FBtnCancel: TButton;
     FEndTimer: TTimer;
     procedure RadioClick(Sender: TObject);
-    procedure CustomEditChange(Sender: TObject);
-    procedure CustomDropDownClick(Sender: TObject);
+    procedure EditChange(Sender: TObject);
+    procedure EditDropDownClick(Sender: TObject);
     procedure BtnOkClick(Sender: TObject);
     procedure BtnCancelClick(Sender: TObject);
   public
-    DefaultType: TColumnDefaultType;
-    DefaultText: String;
+    DefaultType, OnUpdateType: TColumnDefaultType;
+    DefaultText, OnUpdateText: String;
     constructor Create(Tree: TVirtualStringTree); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
@@ -1196,7 +1198,7 @@ end;
 
 constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree);
 const
-  m = 3;
+  m = 5;
 begin
   inherited Create(Tree);
 
@@ -1204,7 +1206,7 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.OnExit := DoEndEdit;
-  FPanel.Width := 200;
+  FPanel.Width := GetParentForm(FPanel).Canvas.TextWidth('CURRENT_TIMESTAMP()') + 4*m;
   FPanel.ParentBackground := False;
   FPanel.Color := GetThemeColor(clWindow);
   FPanel.BevelKind := bkFlat;
@@ -1227,50 +1229,64 @@ begin
   FRadioText.Width := FRadioText.Parent.Width - 2 * FRadioText.Left;
   FRadioText.OnClick := RadioClick;
   FRadioText.OnKeyDown := DoKeyDown;
-  FRadioText.Caption := _('Custom')+':';
+  FRadioText.Caption := _('Custom text')+':';
 
-  FCustomDropDown := TPopupMenu.Create(FPanel);
+  FTextDropDown := TPopupMenu.Create(FPanel);
 
-  FCustomEdit := TButtonedEdit.Create(FPanel);
-  FCustomEdit.Parent := FPanel;
-  FCustomEdit.Top := FRadioText.Top + FRadioText.Height + m;
-  FCustomEdit.Left := 2*m;
-  FCustomEdit.Width := FCustomEdit.Parent.Width - FCustomEdit.Left - m;
-  FCustomEdit.OnChange := CustomEditChange;
-  FCustomEdit.Images := Tree.Images;
-  FCustomEdit.RightButton.ImageIndex := 75; // Drop down arrow
-  FCustomEdit.RightButton.DropDownMenu := FCustomDropDown;
+  FTextEdit := TButtonedEdit.Create(FPanel);
+  FTextEdit.Parent := FPanel;
+  FTextEdit.Top := FRadioText.Top + FRadioText.Height + m;
+  FTextEdit.Left := 2*m;
+  FTextEdit.Width := FTextEdit.Parent.Width - 2*FTextEdit.Left;
+  FTextEdit.OnChange := EditChange;
+  FTextEdit.Images := Tree.Images;
+  FTextEdit.RightButton.ImageIndex := 75; // Drop down arrow
+  FTextEdit.RightButton.DropDownMenu := FTextDropDown;
 
   FRadioNull := TAllKeysRadioButton.Create(FPanel);
   FRadioNull.Parent := FPanel;
-  FRadioNull.Top := FCustomEdit.Top + FCustomEdit.Height + 2*m;
+  FRadioNull.Top := FTextEdit.Top + FTextEdit.Height + 2*m;
   FRadioNull.Left := m;
   FRadioNull.Width := FRadioNull.Parent.Width - 2 * FRadioNull.Left;
   FRadioNull.OnClick := RadioClick;
   FRadioNull.OnKeyDown := DoKeyDown;
   FRadioNull.Caption := 'NULL';
 
-  FRadioCurTS := TAllKeysRadioButton.Create(FPanel);
-  FRadioCurTS.Parent := FPanel;
-  FRadioCurTS.Top := FRadioNull.Top + FRadioNull.Height + m;
-  FRadioCurTS.Left := m;
-  FRadioCurTS.Width := FRadioCurTS.Parent.Width - 2 * FRadioCurTS.Left;
-  FRadioCurTS.OnClick := RadioClick;
-  FRadioCurTS.OnKeyDown := DoKeyDown;
-  FRadioCurTS.Caption := 'CURRENT_TIMESTAMP';
+  FRadioExpression := TAllKeysRadioButton.Create(FPanel);
+  FRadioExpression.Parent := FPanel;
+  FRadioExpression.Top := FRadioNull.Top + FRadioNull.Height + m;
+  FRadioExpression.Left := m;
+  FRadioExpression.Width := FRadioExpression.Parent.Width - 2 * FRadioExpression.Left;
+  FRadioExpression.OnClick := RadioClick;
+  FRadioExpression.OnKeyDown := DoKeyDown;
+  FRadioExpression.Caption := _('Expression')+':';
 
-  FCheckCurTS := TAllKeysCheckbox.Create(FPanel);
-  FCheckCurTS.Parent := FPanel;
-  FCheckCurTS.Top := FRadioCurTS.Top + FRadioCurTS.Height + m;
-  FCheckCurTS.Left := m;
-  FCheckCurTS.Width := FCheckCurTS.Parent.Width - 2 * FCheckCurTS.Left;
-  FCheckCurTS.OnClick := RadioClick;
-  FCheckCurTS.OnKeyDown := DoKeyDown;
-  FCheckCurTS.Caption := 'ON UPDATE CURRENT_TIMESTAMP';
+  FExpressionEdit := TButtonedEdit.Create(FPanel);
+  FExpressionEdit.Parent := FPanel;
+  FExpressionEdit.Top := FRadioExpression.Top + FRadioExpression.Height + m;
+  FExpressionEdit.Left := 2*m;
+  FExpressionEdit.Width := FExpressionEdit.Parent.Width - 2*FExpressionEdit.Left;
+  FExpressionEdit.OnChange := EditChange;
+  FExpressionEdit.Images := Tree.Images;
+
+  FlblOnUpdate := TLabel.Create(FPanel);
+  FlblOnUpdate.Parent := FPanel;
+  FlblOnUpdate.Top := FExpressionEdit.Top + FExpressionEdit.Height + m;
+  FlblOnUpdate.Left := 2*m;
+  FlblOnUpdate.Width := FlblOnUpdate.Parent.Width - 2*FlblOnUpdate.Left;
+  FlblOnUpdate.Caption := _('On update') + ':';
+
+  FOnUpdateEdit := TButtonedEdit.Create(FPanel);
+  FOnUpdateEdit.Parent := FPanel;
+  FOnUpdateEdit.Top := FlblOnUpdate.Top + FlblOnUpdate.Height + m;
+  FOnUpdateEdit.Left := 2*m;
+  FOnUpdateEdit.Width := FOnUpdateEdit.Parent.Width - 2*FOnUpdateEdit.Left;
+  FOnUpdateEdit.OnChange := EditChange;
+  FOnUpdateEdit.Images := Tree.Images;
 
   FRadioAutoInc := TAllKeysRadioButton.Create(FPanel);
   FRadioAutoInc.Parent := FPanel;
-  FRadioAutoInc.Top := FCheckCurTS.Top + FCheckCurTS.Height + m;
+  FRadioAutoInc.Top := FOnUpdateEdit.Top + FOnUpdateEdit.Height + m;
   FRadioAutoInc.Left := m;
   FRadioAutoInc.Width := FRadioAutoInc.Parent.Width - 2 * FRadioAutoInc.Left;
   FRadioAutoInc.OnClick := RadioClick;
@@ -1281,7 +1297,7 @@ begin
   FBtnOk.Parent := FPanel;
   FBtnOk.Width := 60;
   FBtnOk.Top := FRadioAutoInc.Top + FRadioAutoInc.Height + m;
-  FBtnOk.Left := FPanel.Width - 2*m - 2*FBtnOk.Width;
+  FBtnOk.Left := FPanel.Width - 3*m - 2*FBtnOk.Width - 2*FPanel.BorderWidth;
   FBtnOk.OnClick := BtnOkClick;
   FBtnOk.Default := True;
   FBtnOk.Caption := _('OK');
@@ -1299,17 +1315,16 @@ begin
   FEndTimer.Interval := 50;
   FEndTimer.Enabled := False;
 
-  FPanel.Height := FBtnOk.Top + FBtnOk.Height + m;
+  FPanel.Height := 2*FPanel.BorderWidth + FBtnOk.Top + FBtnOk.Height + 2*m;
   FRadioNothing.Anchors := [akLeft, akTop, akRight];
   FRadioText.Anchors := [akLeft, akTop, akRight];
-  FCustomEdit.Anchors := [akLeft, akTop, akRight, akBottom];
+  FTextEdit.Anchors := [akLeft, akTop, akRight, akBottom];
   FRadioNull.Anchors := [akLeft, akBottom, akRight];
-  FRadioCurTS.Anchors := [akLeft, akBottom, akRight];
-  FCheckCurTS.Anchors := [akLeft, akBottom, akRight];
+  FRadioExpression.Anchors := [akLeft, akBottom, akRight];
+  FExpressionEdit.Anchors := [akLeft, akBottom, akRight];
   FRadioAutoInc.Anchors := [akLeft, akBottom, akRight];
   FBtnOk.Anchors := [akBottom, akRight];
   FBtnCancel.Anchors := FBtnOk.Anchors;
-  FPanel.Width := GetParentForm(FPanel).Canvas.TextWidth(FCheckCurTS.Caption) + 2*FCheckCurTS.Left + 24;
 end;
 
 
@@ -1330,36 +1345,37 @@ begin
 
   // Check relevant radio button
   FRadioNothing.Checked := DefaultType = cdtNothing;
-  FRadioText.Checked := DefaultType in [cdtText, cdtTextUpdateTS];
-  FRadioNull.Checked := DefaultType in [cdtNull, cdtNullUpdateTS];
-  FRadioCurTS.Checked := DefaultType in [cdtCurTS, cdtCurTSUpdateTS];
-  FCheckCurTS.Checked := DefaultType in [cdtTextUpdateTS, cdtNullUpdateTS, cdtCurTSUpdateTS];
+  FRadioText.Checked := DefaultType = cdtText;
+  FRadioNull.Checked := DefaultType = cdtNull;
+  FRadioExpression.Checked := DefaultType = cdtExpression;
   FRadioAutoInc.Checked := DefaultType = cdtAutoInc;
 
-  if FRadioText.Checked then
-    FCustomEdit.Text := DefaultText;
+  if FRadioText.Checked then begin
+    FTextEdit.Text := DefaultText;
+  end;
+
+  if FRadioExpression.Checked then begin
+    FExpressionEdit.Text := DefaultText;
+  end;
+
+  FOnUpdateEdit.Text := OnUpdateText;
 
   // Disable non working default options per data type
-  // But leave checked option enabled, regardless of if that is a valid default option or not
-  FRadioCurTS.Enabled := FRadioCurTS.Checked
-    or (FTableColumn.DataType.Index = dtTimestamp)
-    or ((FTableColumn.Connection.ServerVersionInt >= 50605) and (FTableColumn.DataType.Index = dtDateTime));
-  FCheckCurTS.Enabled := FCheckCurTS.Checked or FRadioCurTS.Enabled;
   FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FTableColumn.DataType.Category = dtcInteger);
 
   // Provide items with a check mark for ENUM and SET columns
   if FTableColumn.DataType.Index in [dtEnum, dtSet] then begin
-    FCustomEdit.RightButton.Visible := True;
+    FTextEdit.RightButton.Visible := True;
     ValueList := FTableColumn.ValueList;
-    SelectedValues := Explode(',', FCustomEdit.Text);
+    SelectedValues := Explode(',', FTextEdit.Text);
 
     for i:=0 to ValueList.Count-1 do begin
-      Item := TMenuItem.Create(FCustomDropDown);
+      Item := TMenuItem.Create(FTextDropDown);
       Item.Caption := ValueList[i];
       Item.RadioItem := FTableColumn.DataType.Index = dtEnum;
       Item.Checked := SelectedValues.IndexOf(Item.Caption) > -1;
-      Item.OnClick := CustomDropDownClick;
-      FCustomDropDown.Items.Add(Item);
+      Item.OnClick := EditDropDownClick;
+      FTextDropDown.Items.Add(Item);
     end;
 
     ValueList.Free;
@@ -1398,9 +1414,9 @@ begin
   if Result then begin
     FPanel.Show;
     if FRadioNothing.Checked then FRadioNothing.SetFocus
-    else if FRadioText.Checked then FRadioText.SetFocus
+    else if FRadioText.Checked then FTextEdit.SetFocus
     else if FRadioNull.Checked then FRadioNull.SetFocus
-    else if FRadioCurTS.Checked then FRadioCurTS.SetFocus
+    else if FRadioExpression.Checked then FExpressionEdit.SetFocus
     else if FRadioAutoInc.Checked then FRadioAutoInc.SetFocus;
   end;
 end;
@@ -1408,41 +1424,41 @@ end;
 
 function TColumnDefaultEditorLink.EndEdit: Boolean; stdcall;
 var
-  newText: String;
-  newDefaultType: TColumnDefaultType;
+  Col: PTableColumn;
 begin
   Result := not FStopping;
   if Result then begin
     FStopping := True;
-    if FRadioNothing.Checked then
-      newDefaultType := cdtNothing
-    else if FRadioText.Checked and FCheckCurTS.Checked then
-      newDefaultType := cdtTextUpdateTS
-    else if FRadioText.Checked then
-      newDefaultType := cdtText
-    else if FRadioNull.Checked and FCheckCurTS.Checked then
-      newDefaultType := cdtNullUpdateTS
-    else if FRadioNull.Checked then
-      newDefaultType := cdtNull
-    else if FRadioCurTS.Checked and FCheckCurTS.Checked then
-      newDefaultType := cdtCurTSUpdateTS
-    else if FRadioCurTS.Checked then
-      newDefaultType := cdtCurTS
-    else if FRadioAutoInc.Checked then
-      newDefaultType := cdtAutoInc
-    else
-      newDefaultType := cdtText;
+    Col := FTree.GetNodeData(FNode);
 
-    case newDefaultType of
-      cdtNothing: newText := '';
-      cdtText, cdtTextUpdateTS: newText := FCustomEdit.Text;
-      cdtNull, cdtNullUpdateTS: newText := 'NULL';
-      cdtCurTS, cdtCurTSUpdateTS: newText := 'CURRENT_TIMESTAMP';
-      cdtAutoInc: newText := 'AUTO_INCREMENT';
+    if FRadioNothing.Checked then
+      Col.DefaultType := cdtNothing
+    else if FRadioText.Checked then
+      Col.DefaultType := cdtText
+    else if FRadioNull.Checked then
+      Col.DefaultType := cdtNull
+    else if FRadioExpression.Checked then
+      Col.DefaultType := cdtExpression
+    else if FRadioAutoInc.Checked then
+      Col.DefaultType := cdtAutoInc
+    else
+      Col.DefaultType := cdtText;
+
+    case Col.DefaultType of
+      cdtNothing: Col.DefaultText := '';
+      cdtText: Col.DefaultText := FTextEdit.Text;
+      cdtNull: Col.DefaultText := 'NULL';
+      cdtExpression: Col.DefaultText := FExpressionEdit.Text;
+      cdtAutoInc: Col.DefaultText := 'AUTO_INCREMENT';
     end;
-    newText := IntToStr(Integer(newDefaultType)) + newText;
-    if newtext <> IntToStr(Integer(DefaultType)) + DefaultText then
-      FTree.Text[FNode, FColumn] := newtext;
+
+    if FOnUpdateEdit.Text <> '' then
+      Col.OnUpdateType := cdtExpression
+    else
+      Col.OnUpdateType := cdtNothing;
+    Col.OnUpdateText := FOnUpdateEdit.Text;
+
+    FTree.Text[FNode, FColumn] := Col.DefaultText;
     if FTree.CanFocus then
       FTree.SetFocus;
   end;
@@ -1452,25 +1468,34 @@ end;
 procedure TColumnDefaultEditorLink.RadioClick(Sender: TObject);
 begin
   if not FRadioText.Checked then
-    FCustomEdit.Color := GetThemeColor(clBtnFace)
+    FTextEdit.Color := clBtnFace
   else begin
-    FCustomEdit.Color := GetThemeColor(clWindow);
-    if FCustomEdit.CanFocus then
-      FCustomEdit.SetFocus;
+    FTextEdit.Color := clWindow;
+    if FTextEdit.CanFocus then
+      FTextEdit.SetFocus;
   end;
-  FCheckCurTS.Enabled := not FRadioNothing.Checked;
+  if not FRadioExpression.Checked then
+    FExpressionEdit.Color := clBtnFace
+  else begin
+    FExpressionEdit.Color := clWindow;
+    if FExpressionEdit.CanFocus then
+      FExpressionEdit.SetFocus;
+  end;
   FModified := True;
 end;
 
 
-procedure TColumnDefaultEditorLink.CustomEditChange(Sender: TObject);
+procedure TColumnDefaultEditorLink.EditChange(Sender: TObject);
 begin
-  FRadioText.Checked := True;
+  if Sender = FTextEdit then
+    FRadioText.SetChecked(True)
+  else if Sender = FExpressionEdit then
+    FRadioExpression.SetChecked(True);
   FModified := True;
 end;
 
 
-procedure TColumnDefaultEditorLink.CustomDropDownClick(Sender: TObject);
+procedure TColumnDefaultEditorLink.EditDropDownClick(Sender: TObject);
 var
   Item: TMenuItem;
   NewValue: String;
@@ -1485,7 +1510,7 @@ begin
   end;
   if not IsEmpty(NewValue) then
     Delete(NewValue, Length(NewValue), 1);
-  FCustomEdit.Text := NewValue;
+  FTextEdit.Text := NewValue;
   FModified := True;
 end;
 

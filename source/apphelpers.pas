@@ -275,7 +275,8 @@ type
   function MakeInt(Str: String) : Int64;
   function MakeFloat(Str: String): Extended;
   function CleanupNumber(Str: String): String;
-  function IsNumeric(Str: String): Boolean;
+  function IsInt(Str: String): Boolean;
+  function IsFloat(Str: String): Boolean;
   function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
@@ -637,9 +638,15 @@ begin
 end;
 
 
-function IsNumeric(Str: String): Boolean;
+function IsInt(Str: String): Boolean;
 begin
   Result := IntToStr(MakeInt(Str)) = Str;
+end;
+
+
+function IsFloat(Str: String): Boolean;
+begin
+  Result := FloatToStr(MakeFloat(Str)) = Str;
 end;
 
 

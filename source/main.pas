@@ -7941,7 +7941,7 @@ begin
   end else if Column in [1, 2] then begin
     SessionVal := vt.Text[Node, 1];
     GlobalVal := vt.Text[Node, 2];
-    if IsNumeric(SessionVal) or IsNumeric(GlobalVal) then
+    if IsInt(SessionVal) or IsInt(GlobalVal) then
       dcat := dtcInteger
     else if (tmp > -1) and ((MySQLVariables[tmp].EnumValues <> '') or (Pos(UpperCase(SessionVal), 'ON,OFF,0,1,YES,NO')>0)) then
       dcat := dtcOther
@@ -11484,7 +11484,7 @@ begin
         dtcInteger, dtcReal: Val := '0';
         dtcText, dtcOther: begin
           Val := esc(Column.DefaultText);
-          if Column.DefaultType in [cdtNull, cdtNullUpdateTS] then
+          if Column.DefaultType in [cdtNull] then
             Val := esc('')
           else
             Val := esc(Column.DefaultText);

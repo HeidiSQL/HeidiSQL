@@ -95,7 +95,7 @@ var
 begin
   // Verify variable type by value
   FVarType := vtString;
-  if IsNumeric(FVarValue) then
+  if IsInt(FVarValue) then
     FVarType := vtNumeric;
   if (FVar.EnumValues <> '') and (Pos(UpperCase(FVarValue), UpperCase(FVar.EnumValues))>0) then
     FVarType := vtEnum;
