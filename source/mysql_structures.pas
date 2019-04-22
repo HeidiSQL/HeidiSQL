@@ -347,8 +347,20 @@ var
   );
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array [0..36] of TDBDatatype =
+  MySQLDatatypes: array [0..37] of TDBDatatype =
   (
+    (
+      Index:           dtUnknown;
+      NativeTypes:     '99999';
+      Name:            'UNKNOWN';
+      Description:     'Unknown data type';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
     (
       Index:           dtTinyint;
       NativeType:      mytTiny;
@@ -948,8 +960,20 @@ var
 
   );
 
-  MSSQLDatatypes: array [0..31] of TDBDatatype =
+  MSSQLDatatypes: array [0..32] of TDBDatatype =
   (
+    (
+      Index:           dtUnknown;
+      NativeTypes:     '99999';
+      Name:            'UNKNOWN';
+      Description:     'Unknown data type';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
     (
       Index: dtTinyint;
       Name:            'TINYINT';

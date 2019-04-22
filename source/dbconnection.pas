@@ -1598,7 +1598,7 @@ begin
     Delete(DataType, 1, MatchLen);
   end;
 
-  if (MatchLen = 0) and (FParameters.NetTypeGroup = ngPgSQL) then begin
+  if MatchLen = 0 then begin
     // Fall back to unknown type
     Result := Datatypes[0];
     rx.Expression := '^(\S+)';
@@ -5824,6 +5824,8 @@ begin
             TypeIndex := dtTime;
           ftDateTime:
             TypeIndex := dtDateTime;
+          //ftTimeStampOffset: // this is NOT data type DATETIMEOFFSET
+          //  TypeIndex := dtDatetime;
           else
             raise EDatabaseError.CreateFmt(_('Unknown data type for column #%d - %s: %d'), [i, FColumnNames[i], Integer(LastResult.Fields[i].DataType)]);
         end;
