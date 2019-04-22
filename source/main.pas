@@ -9230,7 +9230,7 @@ begin
       end;
     end;
     VK_RETURN: if Assigned(g.FocusedNode) then g.EditNode(g.FocusedNode, g.FocusedColumn);
-    VK_DOWN: if g.FocusedNode = g.GetLast then actDataInsertExecute(Sender);
+    VK_DOWN: if g.FocusedNode = g.GetLast then actDataInsertExecute(actDataInsert);
     VK_NEXT: if (g = DataGrid) and (g.FocusedNode = g.GetLast) then actDataShowNext.Execute;
   end;
 end;
