@@ -158,6 +158,9 @@ object frmTextEditor: TfrmTextEditor
     object actSearchFind: TSearchFind
       Category = 'Search'
       Caption = '&Find...'
+      Dialog.OnClose = actSearchFindFindDialogClose
+      Dialog.OnShow = actSearchFindFindDialogShow
+      Dialog.Options = [frDown, frFindNext]
       Hint = 'Find|Finds the specified text'
       ImageIndex = 30
       ShortCut = 16454
@@ -172,6 +175,9 @@ object frmTextEditor: TfrmTextEditor
     object actSearchReplace: TSearchReplace
       Category = 'Search'
       Caption = '&Replace'
+      Dialog.OnClose = actSearchReplaceReplaceDialogClose
+      Dialog.OnShow = actSearchReplaceReplaceDialogShow
+      Dialog.Options = [frDown, frFindNext, frReplace, frReplaceAll]
       Hint = 'Replace|Replaces specific text with different text'
       ImageIndex = 59
     end

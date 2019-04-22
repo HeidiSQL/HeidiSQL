@@ -48,6 +48,10 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure SelectLinebreaks(Sender: TObject);
     procedure TimerMemoChangeTimer(Sender: TObject);
+    procedure actSearchFindFindDialogShow(Sender: TObject);
+    procedure actSearchFindFindDialogClose(Sender: TObject);
+    procedure actSearchReplaceReplaceDialogShow(Sender: TObject);
+    procedure actSearchReplaceReplaceDialogClose(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -55,6 +59,7 @@ type
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
     FmemoText: TLineNormalizingMemo;
+    FFindDialogActive, FReplaceDialogActive: Boolean;
     procedure SetModified(NewVal: Boolean);
   public
     function GetText: String;
@@ -186,6 +191,7 @@ begin
   FmemoText.OnChange := memoTextChange;
   FmemoText.OnKeyDown := memoTextKeyDown;
   FmemoText.OnClick := memoTextClick;
+  FmemoText.HideSelection := False; // Make found text visible when find dialog has focus
   // Use same text properties as in query/find/replace actions
   actSearchFind.Caption := MainForm.actQueryFind.Caption;
   actSearchFind.Hint := MainForm.actQueryFind.Hint;
@@ -238,8 +244,15 @@ begin
   TimerMemoChange.Enabled := False;
   TimerMemoChange.Enabled := True;
   case Key of
-    // Cancel by Escape
-    VK_ESCAPE: btnCancelClick(Sender);
+    // Cancel active dialog by Escape
+    VK_ESCAPE: begin
+      if FFindDialogActive then
+        actSearchFind.Dialog.CloseDialog
+      else if FReplaceDialogActive then
+        actSearchReplace.Dialog.CloseDialog
+      else
+        btnCancelClick(Sender);
+    end;
     // Apply changes and end editing by Ctrl + Enter
     VK_RETURN: if ssCtrl in Shift then btnApplyClick(Sender);
     Ord('a'), Ord('A'): if (ssCtrl in Shift) and (not (ssAlt in Shift)) then Mainform.actSelectAllExecute(Sender);
@@ -340,6 +353,30 @@ begin
     FModified := NewVal;
     btnApply.Enabled := FModified;
   end;
+end;
+
+
+procedure TfrmTextEditor.actSearchFindFindDialogShow(Sender: TObject);
+begin
+  FFindDialogActive := True;
+end;
+
+
+procedure TfrmTextEditor.actSearchFindFindDialogClose(Sender: TObject);
+begin
+  FFindDialogActive := False;
+end;
+
+
+procedure TfrmTextEditor.actSearchReplaceReplaceDialogShow(Sender: TObject);
+begin
+  FReplaceDialogActive := True;
+end;
+
+
+procedure TfrmTextEditor.actSearchReplaceReplaceDialogClose(Sender: TObject);
+begin
+  FReplaceDialogActive := False;
 end;
 
 
