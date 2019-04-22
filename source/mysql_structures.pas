@@ -248,7 +248,7 @@ type
   // MySQL data types
   TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint, dtSerial, dtBigSerial,
     dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
-    dtDate, dtTime, dtYear, dtDatetime, dtDatetime2, dtSmalldatetime, dtTimestamp, dtInterval,
+    dtDate, dtTime, dtYear, dtDatetime, dtDatetime2, dtDatetimeOffset, dtSmalldatetime, dtTimestamp, dtInterval,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtJson, dtCidr, dtInet, dtMacaddr,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
@@ -960,7 +960,7 @@ var
 
   );
 
-  MSSQLDatatypes: array [0..32] of TDBDatatype =
+  MSSQLDatatypes: array [0..33] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1144,6 +1144,18 @@ var
       Name:            'DATETIME2';
       Description:     'Date and time data from January 1,1 AD through December 31, 9999 AD, with an accuracy of three-hundredths of a second, or 3.33 milliseconds.';
       HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Format:          'yyyy-mm-dd hh:nn:ss.zzzzzzz';
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtDatetimeOffset;
+      Name:            'DATETIMEOFFSET';
+      Description:     'Defines a date that is combined with a time of a day that has time zone awareness and is based on a 24-hour clock.';
+      HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
