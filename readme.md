@@ -18,4 +18,4 @@ design-time package. Do the same for the VirtualTree component project, and inst
 Afterwards, load the HeidiSQL project from the packages folder.
 
 # Icons8 copyright
-Icons added in January into a TImageCollection component are copyright by [Icons8](https://icons8.com). Used with a special permission from Icons8 given to Ansgar for this project only. Do not copy these for anything else then building HeidiSQL.
+Icons added in January 2019 into a TImageCollection component are copyright by [Icons8](https://icons8.com). Used with a special permission from Icons8 given to Ansgar for this project only. Do not copy them for anything else other than building HeidiSQL.
