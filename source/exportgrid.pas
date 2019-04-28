@@ -549,7 +549,7 @@ begin
       ExcludeCol := GridData.AutoIncrementColumn;
 
     if radioOutputCopyToClipboard.Checked then
-      Encoding := UTF8NoBOM
+      Encoding := TEncoding.UTF8
     else begin
       Encoding := MainForm.GetEncodingByName(comboEncoding.Text);
       // Add selected file to file list, and sort it onto the top of the list
