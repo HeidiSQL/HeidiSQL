@@ -161,8 +161,8 @@ type
     FlblOnUpdate: TLabel;
     FTextEdit: TButtonedEdit;
     FTextDropDown: TPopupMenu;
-    FExpressionEdit: TButtonedEdit;
-    FOnUpdateEdit: TButtonedEdit;
+    FExpressionEdit: TComboBox;
+    FOnUpdateEdit: TComboBox;
     FBtnOK, FBtnCancel: TButton;
     FEndTimer: TTimer;
     procedure RadioClick(Sender: TObject);
@@ -1199,6 +1199,8 @@ end;
 constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree);
 const
   m = 5;
+var
+  i: Integer;
 begin
   inherited Create(Tree);
 
@@ -1206,11 +1208,11 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.OnExit := DoEndEdit;
-  FPanel.Width := GetParentForm(FPanel).Canvas.TextWidth('CURRENT_TIMESTAMP()') + 4*m;
   FPanel.ParentBackground := False;
   FPanel.Color := GetThemeColor(clWindow);
   FPanel.BevelKind := bkFlat;
   FPanel.BevelOuter := bvNone;
+  FPanel.DoubleBuffered := True; // Avoid flicker?
   FMainControl := FPanel;
 
   FRadioNothing := TAllKeysRadioButton.Create(FPanel);
@@ -1261,13 +1263,16 @@ begin
   FRadioExpression.OnKeyDown := DoKeyDown;
   FRadioExpression.Caption := _('Expression')+':';
 
-  FExpressionEdit := TButtonedEdit.Create(FPanel);
+  FExpressionEdit := TComboBox.Create(FPanel);
   FExpressionEdit.Parent := FPanel;
   FExpressionEdit.Top := FRadioExpression.Top + FRadioExpression.Height + m;
   FExpressionEdit.Left := 2*m;
   FExpressionEdit.Width := FExpressionEdit.Parent.Width - 2*FExpressionEdit.Left;
   FExpressionEdit.OnChange := EditChange;
-  FExpressionEdit.Images := Tree.Images;
+  FExpressionEdit.DropDownCount := 20;
+  for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
+    FExpressionEdit.Items.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+  end;
 
   FlblOnUpdate := TLabel.Create(FPanel);
   FlblOnUpdate.Parent := FPanel;
@@ -1276,13 +1281,16 @@ begin
   FlblOnUpdate.Width := FlblOnUpdate.Parent.Width - 2*FlblOnUpdate.Left;
   FlblOnUpdate.Caption := _('On update') + ':';
 
-  FOnUpdateEdit := TButtonedEdit.Create(FPanel);
+  FOnUpdateEdit := TComboBox.Create(FPanel);
   FOnUpdateEdit.Parent := FPanel;
   FOnUpdateEdit.Top := FlblOnUpdate.Top + FlblOnUpdate.Height + m;
   FOnUpdateEdit.Left := 2*m;
   FOnUpdateEdit.Width := FOnUpdateEdit.Parent.Width - 2*FOnUpdateEdit.Left;
   FOnUpdateEdit.OnChange := EditChange;
-  FOnUpdateEdit.Images := Tree.Images;
+  FOnUpdateEdit.DropDownCount := 20;
+  for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
+    FOnUpdateEdit.Items.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+  end;
 
   FRadioAutoInc := TAllKeysRadioButton.Create(FPanel);
   FRadioAutoInc.Parent := FPanel;
@@ -1315,13 +1323,18 @@ begin
   FEndTimer.Interval := 50;
   FEndTimer.Enabled := False;
 
+  // Set outer panel (minimum) dimensions. Width is set in .SetBounds()
   FPanel.Height := 2*FPanel.BorderWidth + FBtnOk.Top + FBtnOk.Height + 2*m;
+  FPanel.Constraints.MinWidth := 2*m + FBtnOK.Width + m + FBtnCancel.Width + 2*m;
+
+  // Set anchors for all controls, so they are sticky when resizing the underlying column width
   FRadioNothing.Anchors := [akLeft, akTop, akRight];
   FRadioText.Anchors := [akLeft, akTop, akRight];
   FTextEdit.Anchors := [akLeft, akTop, akRight, akBottom];
   FRadioNull.Anchors := [akLeft, akBottom, akRight];
   FRadioExpression.Anchors := [akLeft, akBottom, akRight];
   FExpressionEdit.Anchors := [akLeft, akBottom, akRight];
+  FOnUpdateEdit.Anchors := [akLeft, akBottom, akRight];
   FRadioAutoInc.Anchors := [akLeft, akBottom, akRight];
   FBtnOk.Anchors := [akBottom, akRight];
   FBtnCancel.Anchors := FBtnOk.Anchors;
@@ -1395,6 +1408,7 @@ begin
   CellRect := GetCellRect(False);
   FPanel.Left := CellRect.Left;
   FPanel.Top := CellRect.Top;
+  FPanel.Width := CellRect.Width;
 
   // Reposition editor so it's not outside the main form
   P := FParentForm.ClientToScreen(FPanel.BoundsRect.TopLeft);
