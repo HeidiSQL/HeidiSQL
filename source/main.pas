@@ -9202,6 +9202,8 @@ end;
 
 procedure TMainForm.AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
 begin
+  // Ensure "delete row" button state is valid, see issue #624
+  ValidateControls(Sender);
   UpdateLineCharPanel;
 end;
 
