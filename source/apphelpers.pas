@@ -2458,7 +2458,7 @@ var
   rx: TRegExpr;
   KeepAskingValue: Boolean;
   Hotkeys: String;
-  WebSearchUrl: String;
+  WebSearchUrl, WebSearchHost: String;
 
   procedure AddButton(BtnCaption: String; BtnResult: TModalResult);
   var
@@ -2501,7 +2501,7 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
-    rx.Expression := 'https?\:\/\/\S+';
+    rx.Expression := 'https?://\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
@@ -2513,7 +2513,14 @@ begin
         Dialog.MainIcon := tdiError;
         WebSearchUrl := AppSettings.ReadString(asWebSearchBaseUrl);
         WebSearchUrl := StringReplace(WebSearchUrl, '%q', EncodeURLParam(Copy(Msg, 1, 1000)), []);
-        Dialog.FooterText := '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+'</a>';
+        rx := TRegExpr.Create;
+        rx.Expression := 'https?://(www\.)?([^/]+)/';
+        if rx.Exec(WebSearchUrl) then
+          WebSearchHost := rx.Match[2]
+        else
+          WebSearchHost := '[unknown host]';
+        rx.Free;
+        Dialog.FooterText := '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
         Dialog.FooterIcon := tdiInformation;
       end;
       mtInformation:
