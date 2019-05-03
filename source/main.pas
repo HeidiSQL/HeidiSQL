@@ -7261,13 +7261,17 @@ end;
 procedure TMainForm.menuClearQueryHistoryClick(Sender: TObject);
 var
   Values: TStringList;
+  PathToDelete: String;
 begin
   // Clear query history items in registry
-  AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
+  // Take care of MessageDialog, probably changing the current SessionPath
+  PathToDelete := ActiveConnection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
+  AppSettings.SessionPath := PathToDelete;
   Values := AppSettings.GetValueNames;
   if MessageDialog(_('Clear query history?'), f_('%s history items will be deleted.', [FormatNumber(Values.Count)]), mtConfirmation, [mbYes, mbNo]) = mrYes then begin
     Screen.Cursor := crHourglass;
-    AppSettings.DeleteCurrentKey;;
+    AppSettings.SessionPath := PathToDelete;
+    AppSettings.DeleteCurrentKey;
     RefreshHelperNode(HELPERNODE_HISTORY);
     Screen.Cursor := crDefault;
   end;
