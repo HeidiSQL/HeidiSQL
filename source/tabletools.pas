@@ -889,22 +889,21 @@ begin
 
             end else begin
               // Search case insensitive
-              Column := 'LOWER('+Column+')';
               case DBObj.Connection.Parameters.NetTypeGroup of
                 ngMySQL: begin
                   if IsRegExp then
-                    SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') REGEXP ' + esc(FindText) + ' OR '
+                    SQL := SQL + 'LOWER(CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+')) REGEXP ' + esc(FindText) + ' OR '
                   else
-                    SQL := SQL + 'CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+') LIKE ' + esc(FindTextJokers) + ' OR ';
+                    SQL := SQL + 'LOWER(CONVERT('+Column+' USING '+DBObj.Connection.CharacterSet+')) LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
                 ngMSSQL: begin
-                  SQL := SQL + Column+' LIKE ' + esc(FindTextJokers) + ' OR ';
+                  SQL := SQL + 'LOWER('+Column+') LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
                 ngPgSQL: begin
                   if IsRegExp then
-                    SQL := SQL + 'CAST('+Column+' AS TEXT) SIMILAR TO ' + esc(FindTextJokers) + ' OR '
+                    SQL := SQL + 'LOWER(CAST('+Column+' AS TEXT)) SIMILAR TO ' + esc(FindTextJokers) + ' OR '
                   else
-                    SQL := SQL + 'CAST('+Column+' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
+                    SQL := SQL + 'LOWER(CAST('+Column+' AS TEXT)) LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
               end;
             end;
