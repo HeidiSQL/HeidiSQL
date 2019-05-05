@@ -5225,14 +5225,19 @@ begin
           Col.DefaultType := cdtExpression;
         end;
         Delete(ColSpec, 1, rxCol.MatchLen[1]);
+        ColSpec := Trim(ColSpec);
 
         // Do the same for a potentially existing ON UPDATE clause
-        rxCol.Expression := '^\s*ON UPDATE\s+(.*)($|\s+(COLUMN_FORMAT|COMMENT|INVISIBLE)\b)';
-        if rxCol.Exec(ColSpec) then begin
-          Col.OnUpdateText := Trim(rxCol.Match[1]);
-          Col.OnUpdateText := Col.OnUpdateText.TrimRight([',']);
-          Col.OnUpdateType := cdtExpression;
-          Delete(ColSpec, 1, rxCol.MatchLen[1]);
+        if ColSpec.ToUpper.StartsWith('ON UPDATE ', True) then begin
+          Delete(ColSpec, 1, 10);
+          ColSpec := Trim(ColSpec);
+          rxCol.Expression := '($|\s+(COLUMN_FORMAT|COMMENT|INVISIBLE)\b)';
+          if rxCol.Exec(ColSpec) then begin
+            Col.OnUpdateText := ColSpec.Substring(0, rxCol.MatchPos[1]).Trim;
+            Col.OnUpdateText := Col.OnUpdateText.TrimRight([',']);
+            Col.OnUpdateType := cdtExpression;
+            Delete(ColSpec, 1, rxCol.MatchPos[1]);
+          end;
         end;
 
       end;
