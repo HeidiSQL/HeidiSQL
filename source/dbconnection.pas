@@ -5278,6 +5278,9 @@ begin
       if rxCol.Exec(Key.Columns[i]) then begin
         Key.Columns[i] := rxCol.Match[1];
         Key.SubParts.Add(rxCol.Match[3]);
+      end else begin
+        // Regex did not match - most likely some unsupported clause, as in #640
+        Key.SubParts.Add('');
       end;
       Key.Columns[i] := StringReplace(Key.Columns[i], QuoteReplacement, FQuoteChar, [rfReplaceAll]);
     end;
