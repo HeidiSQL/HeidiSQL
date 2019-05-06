@@ -331,7 +331,6 @@ type
   function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
-  function GetColumnDefaultType(var Text: String): TColumnDefaultType;
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
@@ -2306,13 +2305,6 @@ function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): I
 begin
   // Sort TStringList items which are stored as name=value pairs
   Result := CompareAnyNode(List.ValueFromIndex[Index2], List.ValueFromIndex[Index1]);
-end;
-
-
-function GetColumnDefaultType(var Text: String): TColumnDefaultType;
-begin
-  Result := TColumnDefaultType(MakeInt(Copy(Text, 1, 1)));
-  Text := Copy(Text, 2, Length(Text)-1);
 end;
 
 
