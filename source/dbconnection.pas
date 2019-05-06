@@ -5131,7 +5131,7 @@ begin
     ColSpec := Trim(ColSpec);
 
     // Unsigned
-    if UpperCase(Copy(ColSpec, 1, 8)) = 'UNSIGNED' then begin
+    if ColSpec.StartsWith('UNSIGNED', True) then begin
       Col.Unsigned := True;
       Delete(ColSpec, 1, 8);
       ColSpec := Trim(ColSpec);
@@ -5139,7 +5139,7 @@ begin
       Col.Unsigned := False;
 
     // Zero fill
-    if UpperCase(Copy(ColSpec, 1, 8)) = 'ZEROFILL' then begin
+    if ColSpec.StartsWith('ZEROFILL', True) then begin
       Col.ZeroFill := True;
       Delete(ColSpec, 1, 8);
       ColSpec := Trim(ColSpec);
@@ -5184,13 +5184,13 @@ begin
     end;
 
     // Allow NULL
-    if UpperCase(Copy(ColSpec, 1, 8)) = 'NOT NULL' then begin
+    if ColSpec.StartsWith('NOT NULL', True) then begin
       Col.AllowNull := False;
       Delete(ColSpec, 1, 8);
     end else begin
       Col.AllowNull := True;
       // Sporadically there is a "NULL" found at this position.
-      if UpperCase(Copy(ColSpec, 1, 4)) = 'NULL' then
+      if ColSpec.StartsWith('NULL', True) then
         Delete(ColSpec, 1, 4);
     end;
     ColSpec := Trim(ColSpec);
@@ -5201,11 +5201,11 @@ begin
     Col.DefaultText := '';
     Col.OnUpdateType := cdtNothing;
     Col.OnUpdateText := '';
-    if UpperCase(Copy(ColSpec, 1, 14)) = 'AUTO_INCREMENT' then begin
+    if ColSpec.StartsWith('AUTO_INCREMENT', True) then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
       Delete(ColSpec, 1, 15);
-    end else if UpperCase(Copy(ColSpec, 1, 8)) = 'DEFAULT ' then begin
+    end else if ColSpec.StartsWith('DEFAULT ', True) then begin
       Delete(ColSpec, 1, 8);
       ColSpec := Trim(ColSpec);
 
@@ -5228,7 +5228,7 @@ begin
         ColSpec := Trim(ColSpec);
 
         // Do the same for a potentially existing ON UPDATE clause
-        if ColSpec.ToUpper.StartsWith('ON UPDATE ', True) then begin
+        if ColSpec.StartsWith('ON UPDATE ', True) then begin
           Delete(ColSpec, 1, 10);
           ColSpec := Trim(ColSpec);
           rxCol.Expression := '($|\s+(COLUMN_FORMAT|COMMENT|INVISIBLE)\b)';
