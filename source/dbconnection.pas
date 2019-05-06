@@ -5270,10 +5270,11 @@ begin
       Key.Algorithm := rx.Match[7]
     else
       Key.Algorithm := rx.Match[10];
-    if Key.IndexType = '' then Key.IndexType := 'KEY'; // KEY
+    if Key.IndexType = '' then
+      Key.IndexType := 'KEY'; // KEY
     Key.Columns := Explode(',', rx.Match[8]);
     for i:=0 to Key.Columns.Count-1 do begin
-      rxCol.Expression := '^['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?(\((\d+)\))?$';
+      rxCol.Expression := '^['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?(\((\d+)\))?(\s+(DESC|ASC))?$';
       if rxCol.Exec(Key.Columns[i]) then begin
         Key.Columns[i] := rxCol.Match[1];
         Key.SubParts.Add(rxCol.Match[3]);
