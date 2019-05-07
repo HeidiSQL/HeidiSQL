@@ -13145,10 +13145,10 @@ begin
   OrgGrid := Mainform.QueryGrid;
   Grid := TVirtualStringTree.Create(QueryTab.TabSheet);
   Grid.Parent := QueryTab.TabSheet;
-  Grid.Visible := False;
   Grid.Tag := OrgGrid.Tag;
   Grid.BorderStyle := OrgGrid.BorderStyle;
   Grid.Align := OrgGrid.Align;
+  Grid.Visible := False;
   Grid.TreeOptions := OrgGrid.TreeOptions;
   Grid.PopupMenu := OrgGrid.PopupMenu;
   Grid.LineStyle := OrgGrid.LineStyle;
