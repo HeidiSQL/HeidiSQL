@@ -1044,6 +1044,8 @@ type
     FFilterTextData: String;
     FTreeRefreshInProgress: Boolean;
     FDataGridColumnWidthsCustomized: Boolean;
+    FDataGridLastClickedColumnHeader: Integer;
+    FDataGridLastClickedColumnLeftPos: Integer;
     FSnippetFilenames: TStringList;
     FConnections: TDBConnectionList;
     FTreeClickHistory: TNodeArray;
@@ -5256,8 +5258,22 @@ begin
         break;
       end;
     end;
-    if RefreshingData then
+    if RefreshingData then begin
+
+      if (FDataGridLastClickedColumnHeader >= 0) and (FDataGridLastClickedColumnHeader < vt.Header.Columns.Count) then begin // See issue #3309
+        // Horizontal offset based on the left side of a just sorted column
+        OldScrollOffset.X := -(vt.Header.Columns[FDataGridLastClickedColumnHeader].Left - FDataGridLastClickedColumnLeftPos);
+        // logsql('Fixing x-offset to '+OldScrollOffset.X.ToString +
+        //   ', FDataGridLastClickedColumnHeader:'+FDataGridLastClickedColumnHeader.ToString +
+        //   ', FDataGridLastClickedColumnLeftPos: '+FDataGridLastClickedColumnLeftPos.ToString);
+      end;
+
       vt.OffsetXY := OldScrollOffset;
+    end;
+
+    // Reset remembered data for last clicked column header
+    FDataGridLastClickedColumnHeader := NoColumn;
+    FDataGridLastClickedColumnLeftPos := -1;
 
     vt.Header.Invalidate(nil);
     vt.UpdateScrollBars(True);
@@ -9016,7 +9032,7 @@ end;
 procedure TMainForm.DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
   frm: TForm;
-  i, j, LeftColPos: Integer;
+  i, j: Integer;
   columnexists : Boolean;
   ColName: String;
 begin
@@ -9052,11 +9068,11 @@ begin
       DataGridSortColumns[i].ColumnName := ColName;
       DataGridSortColumns[i].SortDirection := ORDER_ASC;
     end;
-    // Refresh grid, and restore X scroll offset, so the just clicked column is still at the same place.
-    LeftColPos := Sender.Columns[HitInfo.Column].Left;
+    // Refresh grid, and remember X scroll offset, so the just clicked column is still at the same place.
+    FDataGridLastClickedColumnHeader := HitInfo.Column;
+    FDataGridLastClickedColumnLeftPos := Sender.Columns[HitInfo.Column].Left;
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-    if Sender.Columns.Count > HitInfo.Column then // See issue #3309
-      Sender.Treeview.OffsetX := -(Sender.Columns[HitInfo.Column].Left - Sender.Treeview.OffsetX - LeftColPos);
+
   end else begin
     frm := TColumnSelectionForm.Create(self);
     // Position new form relative to btn's position
