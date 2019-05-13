@@ -257,7 +257,7 @@ begin
   MainForm.ShowStatusMsg;
 
   if ssoReplaceAll in Options then
-    MessageDialog(f_('Text "%s" %s times replaced.', [comboSearch.Text, FormatNumber(Occurences)]), mtInformation, [mbOk])
+    MessageDialog(f_('Text "%s" replaced %s times.', [comboSearch.Text, FormatNumber(Occurences)]), mtInformation, [mbOk])
   else begin
     if (OldCaretXY.Char = Editor.CaretXY.Char) and
       (OldCaretXY.Line = Editor.CaretXY.Line) then
