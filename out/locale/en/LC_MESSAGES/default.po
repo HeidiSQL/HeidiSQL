@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-04-17 21:27+0200\n"
+"PO-Revision-Date: 2019-05-13 07:41+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -4613,8 +4613,8 @@ msgid "Searching ..."
 msgstr "Searching ..."
 
 #: main.pas:3399
-msgid "Text \"%s\" %s times replaced."
-msgstr "Text \"%s\" %s times replaced."
+msgid "Text \"%s\" replaced %s times."
+msgstr "Text \"%s\" replaced %s times."
 
 #: main.pas:3403
 msgid "Text \"%s\" not found."
