@@ -205,7 +205,7 @@ type
 
   TNetType = (ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel,
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
-    ntPgSQL_TCPIP);
+    ntPgSQL_TCPIP, ntPgSQL_SSHtunnel);
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);
 
   TConnectionParameters = class(TObject)
@@ -304,6 +304,7 @@ type
       FServerUptime: Integer;
       FServerDateTimeOnStartup: String;
       FParameters: TConnectionParameters;
+      FPlink: TPlink;
       FLoginPromptDone: Boolean;
       FDatabase: String;
       FAllDatabases: TStringList;
@@ -469,7 +470,6 @@ type
     private
       FHandle: PMYSQL;
       FLastRawResults: TMySQLRawResults;
-      FPlink: TPlink;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
@@ -1342,13 +1342,15 @@ begin
     ntMSSQL_RPC:
       Result := 'Microsoft SQL Server (Windows RPC)';
     ntPgSQL_TCPIP:
-      Result := 'PostgreSQL ('+_('experimental')+')';
+      Result := 'PostgreSQL (TCP/IP)';
+    ntPgSQL_SSHtunnel:
+      Result := 'PostgreSQL (SSH tunnel)';
   end else case NetType of
     ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
       Result := My;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP:
       Result := 'MS SQL';
-    ntPgSQL_TCPIP:
+    ntPgSQL_TCPIP, ntPgSQL_SSHtunnel:
       Result := 'PostgreSQL';
   end;
 end;
@@ -1357,7 +1359,7 @@ end;
 class function TConnectionParameters.IsCompatibleToWin10S(NetType: TNetType): Boolean;
 begin
   // Using plink on 10S is not possible
-  Result := NetType <> ntMySQL_SSHtunnel;
+  Result := (NetType <> ntMySQL_SSHtunnel) and (NetType <> ntPgSQL_SSHtunnel);
 end;
 
 
@@ -1368,7 +1370,7 @@ begin
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
-    ntPgSQL_TCPIP:
+    ntPgSQL_TCPIP, ntPgSQL_SSHtunnel:
       Result := ngPgSQL;
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
@@ -2072,6 +2074,8 @@ end;
 procedure TPgConnection.SetActive(Value: Boolean);
 var
   dbname, ConnInfo, Error, tmpdb: String;
+  FinalHost: String;
+  FinalPort: Integer;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -2080,8 +2084,23 @@ begin
     dbname := FParameters.AllDatabasesStr;
     if dbname = '' then
       dbname := 'postgres';
-    ConnInfo := 'host='''+FParameters.Hostname+''' '+
-      'port='''+IntToStr(FParameters.Port)+''' '+
+
+    // Prepare special stuff for SSH tunnel
+    FinalHost := FParameters.Hostname;
+    FinalPort := FParameters.Port;
+
+    case FParameters.NetType of
+      ntPgSQL_SSHtunnel: begin
+        // Create plink.exe process
+        FPlink := TPlink.Create(Self);
+        FPlink.Connect;
+        FinalHost := '127.0.0.1';
+        FinalPort := FParameters.SSHLocalPort;
+      end;
+    end;
+
+    ConnInfo := 'host='''+FinalHost+''' '+
+      'port='''+IntToStr(FinalPort)+''' '+
       'user='''+FParameters.Username+''' ' +
       'password='''+FParameters.Password+''' '+
       'dbname='''+dbname+''' '+
@@ -2093,6 +2112,8 @@ begin
       FConnectionStarted := 0;
       PQfinish(FHandle); // free the memory
       FHandle := nil;
+      if FPlink <> nil then
+        FPlink.Free;
       raise EDatabaseError.Create(Error);
     end;
     FActive := True;
@@ -2129,6 +2150,8 @@ begin
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
+    if FPlink <> nil then
+      FPlink.Free;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;
