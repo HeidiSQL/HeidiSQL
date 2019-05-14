@@ -1188,7 +1188,7 @@ begin
         lblDatabase.Caption := _('Database')+':'
       else
         lblDatabase.Caption := _('Databases')+':';
-      chkWantSSL.Enabled := Params.NetType = ntMySQL_TCPIP;
+      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
       lblSSLCACertificate.Enabled := Params.WantSSL;
