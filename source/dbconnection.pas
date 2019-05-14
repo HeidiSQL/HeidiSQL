@@ -1729,31 +1729,33 @@ begin
     FinalHost := FParameters.Hostname;
     FinalSocket := '';
     FinalPort := FParameters.Port;
+
+    if FParameters.WantSSL then begin
+      // mysql_ssl_set() wants nil, while PAnsiChar(AnsiString()) is never nil
+      sslkey := nil;
+      sslcert := nil;
+      sslca := nil;
+      sslcipher := nil;
+      if FParameters.SSLPrivateKey <> '' then
+        sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
+      if FParameters.SSLCertificate <> '' then
+        sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
+      if FParameters.SSLCACertificate <> '' then
+        sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
+      if FParameters.SSLCipher <> '' then
+        sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
+      { TODO : Use Cipher and CAPath parameters }
+      mysql_ssl_set(FHandle,
+        sslkey,
+        sslcert,
+        sslca,
+        nil,
+        sslcipher);
+      Log(lcInfo, _('SSL parameters successfully set.'));
+    end;
+
     case FParameters.NetType of
       ntMySQL_TCPIP: begin
-        if FParameters.WantSSL then begin
-          // mysql_ssl_set() wants nil, while PAnsiChar(AnsiString()) is never nil
-          sslkey := nil;
-          sslcert := nil;
-          sslca := nil;
-          sslcipher := nil;
-          if FParameters.SSLPrivateKey <> '' then
- 	          sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
-          if FParameters.SSLCertificate <> '' then
- 	          sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
-          if FParameters.SSLCACertificate <> '' then
- 	          sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
-          if FParameters.SSLCipher <> '' then
- 	          sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
-          { TODO : Use Cipher and CAPath parameters }
-          mysql_ssl_set(FHandle,
-            sslkey,
-            sslcert,
-            sslca,
-            nil,
-            sslcipher);
-          Log(lcInfo, _('SSL parameters successfully set.'));
-        end;
       end;
 
       ntMySQL_NamedPipe: begin

@@ -3530,17 +3530,18 @@ begin
         cmd := '$TERM';
       end;
 
+      if Conn.Parameters.WantSSL then
+        p := p + ' --ssl';
+      if not Conn.Parameters.SSLPrivateKey.IsEmpty then
+        p := p + ' --ssl-key="'+Conn.Parameters.SSLPrivateKey+'"';
+      if not Conn.Parameters.SSLCertificate.IsEmpty then
+        p := p + ' --ssl-cert="'+Conn.Parameters.SSLCertificate+'"';
+      if not Conn.Parameters.SSLCACertificate.IsEmpty then
+        p := p + ' --ssl-ca="'+Conn.Parameters.SSLCACertificate+'"';
+
       case Conn.Parameters.NetType of
         ntMySQL_TCPIP: begin
           p := p + ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
-          if Conn.Parameters.WantSSL then
-            p := p + ' --ssl';
-          if not Conn.Parameters.SSLPrivateKey.IsEmpty then
-            p := p + ' --ssl-key="'+Conn.Parameters.SSLPrivateKey+'"';
-          if not Conn.Parameters.SSLCertificate.IsEmpty then
-            p := p + ' --ssl-cert="'+Conn.Parameters.SSLCertificate+'"';
-          if not Conn.Parameters.SSLCACertificate.IsEmpty then
-            p := p + ' --ssl-ca="'+Conn.Parameters.SSLCACertificate+'"';
         end;
         ntMySQL_NamedPipe:
           p := p + ' --pipe --socket="'+Conn.Parameters.Hostname+'"';
