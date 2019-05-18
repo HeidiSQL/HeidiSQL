@@ -366,6 +366,7 @@ var
   SystemImageList: TImageList;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
   ConfirmIcon: TIcon;
+  NumberChars: TSysCharSet;
 
 implementation
 
@@ -614,7 +615,7 @@ begin
 
   HasDecimalSep := False;
   for i:=1 to Length(Str) do begin
-    if CharInSet(Str[i], ['0'..'9', FormatSettings.DecimalSeparator]) or ((Str[i] = '-') and (Result='')) then
+    if CharInSet(Str[i], NumberChars) or ((Str[i] = '-') and (Result='')) then
     begin
       // Avoid confusion and AV in StrToFloat()
       if (FormatSettings.ThousandSeparator = FormatSettings.DecimalSeparator) and (Str[i] = FormatSettings.DecimalSeparator) then
@@ -624,8 +625,11 @@ begin
         continue;
       if Str[i] = FormatSettings.DecimalSeparator then
         HasDecimalSep := True;
+      if Str[i] = FormatSettings.ThousandSeparator then
+        Continue;
       Result := Result + Str[i];
-    end;
+    end else
+      Break;
   end;
   if (Result = '') or (Result = '-') then
     Result := '0';
@@ -4265,6 +4269,10 @@ begin
 end;
 
 
+
+initialization
+
+NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.ThousandSeparator];
 
 
 end.
