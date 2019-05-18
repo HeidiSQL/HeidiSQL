@@ -86,6 +86,8 @@ type
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
 
+  TIntStringPairs = TDictionary<Integer, String>;
+
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
 
   // Column object, many of them in a TObjectList
@@ -342,6 +344,7 @@ type
       FKeepAliveTimer: TTimer;
       FFavorites: TStringList;
       FPrefetchResults: TDBQueryList;
+      FRegClasses: TIntStringPairs;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -449,6 +452,7 @@ type
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
+      property RegClasses: TIntStringPairs read FRegClasses;
       function GetLockedTableCount(db: String): Integer;
       function IdentifierEquals(Ident1, Ident2: String): Boolean;
     published
@@ -1498,6 +1502,8 @@ begin
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
+  // PG only, cache for 123::regclass queries:
+  FRegClasses := TIntStringPairs.Create;
 end;
 
 
@@ -1548,6 +1554,7 @@ begin
   ClearCache(True);
   FKeepAliveTimer.Free;
   FFavorites.Free;
+  FRegClasses.Free;
   inherited;
 end;
 
@@ -7063,7 +7070,12 @@ begin
   Result := '';
   for i:=0 to ColumnCount-1 do begin
     FieldTypeOID := PQftable(FCurrentResults, i);
-    Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
+    if not FConnection.RegClasses.ContainsKey(FieldTypeOID) then begin
+      Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
+      FConnection.RegClasses.Add(FieldTypeOID, Result);
+    end else begin
+      FConnection.RegClasses.TryGetValue(FieldTypeOID, Result);
+    end;
     if Result <> '' then
       Break;
   end;
