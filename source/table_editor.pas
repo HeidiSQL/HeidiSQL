@@ -1826,7 +1826,8 @@ begin
   end;
   if VT.GetNodeLevel(Node) = 1 then begin
     ColPos := Node.Index;
-    if Mode = dmBelow then Inc(ColPos);
+    if (Mode = dmAbove) and (ColPos > 0) then
+      Dec(ColPos);
     Node := Node.Parent;
   end else
     ColPos := Node.ChildCount;
@@ -1879,6 +1880,10 @@ begin
   if treeIndexes.IsEditing then
     treeIndexes.EndEditNode;
   TblKey := FKeys[treeIndexes.FocusedNode.Parent.Index];
+  if (NewIdx >= TblKey.Columns.Count) or (NewIdx < 0) then begin
+    MessageBeep(MB_ICONEXCLAMATION);
+    Exit;
+  end;
   TblKey.Columns.Move(treeIndexes.FocusedNode.Index, NewIdx);
   TblKey.SubParts.Move(treeIndexes.FocusedNode.Index, NewIdx);
   Modification(treeIndexes);
