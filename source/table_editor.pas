@@ -1809,9 +1809,9 @@ procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
   Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
-  Node: PVirtualNode;
+  FocusedNode, TargetNode, IndexNode: PVirtualNode;
   ColName, PartLength: String;
-  ColPos: Integer;
+  ColPos: Cardinal;
   VT, SourceVT: TVirtualStringtree;
   Col: PTableColumn;
   TblKey: TTableKey;
@@ -1819,28 +1819,38 @@ begin
   // Column node dropped here
   VT := Sender as TVirtualStringtree;
   SourceVT := Source as TVirtualStringtree;
-  Node := VT.GetNodeAt(Pt.X, Pt.Y);
-  if not Assigned(Node) then begin
+  TargetNode := VT.GetNodeAt(Pt.X, Pt.Y);
+  FocusedNode := VT.FocusedNode;
+  if not Assigned(TargetNode) then begin
     MessageBeep(MB_ICONEXCLAMATION);
     Exit;
   end;
-  if VT.GetNodeLevel(Node) = 1 then begin
-    ColPos := Node.Index;
-    if (Mode = dmAbove) and (ColPos > 0) then
-      Dec(ColPos);
-    Node := Node.Parent;
-  end else
-    ColPos := Node.ChildCount;
+  if VT.GetNodeLevel(TargetNode) = 1 then begin
+    IndexNode := TargetNode.Parent;
+    // Find the right new position for the dropped column
+    ColPos := TargetNode.Index;
+    Mainform.LogSQL('TargetNode.Index: '+TargetNode.Index.ToString, lcDebug);
+    if (Source = Sender) and (FocusedNode <> nil) then begin
+      // Take care if user dragged from above or from below the target node
+      if (FocusedNode.Index < TargetNode.Index) and (Mode = dmAbove) and (ColPos > 0) then
+        Dec(ColPos);
+      if (FocusedNode.Index > TargetNode.Index) and (Mode = dmBelow) and (ColPos < IndexNode.ChildCount-1) then
+        Inc(ColPos);
+    end;
+  end else begin
+    IndexNode := TargetNode;
+    ColPos := IndexNode.ChildCount;
+  end;
 
   if Source = Sender then
     MoveFocusedIndexPart(ColPos)
   else begin
-    TblKey := FKeys[Node.Index];
+    TblKey := FKeys[IndexNode.Index];
     Col := SourceVT.GetNodeData(SourceVT.FocusedNode);
     ColName := Col.Name;
     if TblKey.Columns.IndexOf(ColName) > -1 then begin
       if MessageDialog(_('Add duplicated column to index?'),
-        f_('Index "%s" already contains the column "%s". It is possible to add a column twice into a index, but total nonsense in practice.', [VT.Text[Node, 0], ColName]),
+        f_('Index "%s" already contains the column "%s". It is possible to add a column twice into a index, but total nonsense in practice.', [VT.Text[IndexNode, 0], ColName]),
         mtConfirmation, [mbYes, mbNo]) = mrNo then
         Exit;
     end;
@@ -1850,11 +1860,12 @@ begin
     if (TblKey.IndexType <> FKEY) and (Col.DataType.Index in [dtTinyText, dtText, dtMediumText, dtLongText, dtTinyBlob, dtBlob, dtMediumBlob, dtLongBlob]) then
       PartLength := '100';
     TblKey.Subparts.Insert(ColPos, PartLength);
-    Node.States := Node.States + [vsHasChildren, vsExpanded];
+    IndexNode.States := IndexNode.States + [vsHasChildren, vsExpanded];
   end;
   Modification(Sender);
   // Finally tell parent node to update its children
-  VT.ReinitChildren(Node, False);
+  VT.ReinitChildren(IndexNode, False);
+  VT.Repaint;
 end;
 
 
@@ -1880,7 +1891,7 @@ begin
   if treeIndexes.IsEditing then
     treeIndexes.EndEditNode;
   TblKey := FKeys[treeIndexes.FocusedNode.Parent.Index];
-  if (NewIdx >= TblKey.Columns.Count) or (NewIdx < 0) then begin
+  if NewIdx >= Cardinal(TblKey.Columns.Count) then begin
     MessageBeep(MB_ICONEXCLAMATION);
     Exit;
   end;
