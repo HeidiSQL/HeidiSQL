@@ -1795,6 +1795,11 @@ begin
       raise EDatabaseError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
     end;
 
+    // Define which TLS protocol versions are allowed.
+    // See https://www.heidisql.com/forum.php?t=27158
+    // See https://mariadb.com/kb/en/library/mysql_optionsv/
+    mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1.0,TLSv1.1,TLSv1.2,TLSv1.3'));
+
     Connected := mysql_real_connect(
       FHandle,
       PAnsiChar(Utf8Encode(FinalHost)),
