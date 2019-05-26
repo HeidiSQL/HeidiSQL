@@ -38,8 +38,8 @@ object UserManagerForm: TUserManagerForm
   end
   object lblWarning: TLabel
     Left = 8
-    Top = 378
-    Width = 208
+    Top = 330
+    Width = 165
     Height = 30
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = False
