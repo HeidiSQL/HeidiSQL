@@ -244,7 +244,10 @@ var
   Users: TDBQuery;
   U: TUser;
   tmp, PasswordExpr: String;
-  SkipNameResolve, HasPassword, HasAuthString: Boolean;
+  SkipNameResolve,
+  HasPassword,
+  HasAuthString,
+  PasswordLengthMatters: Boolean;
   UserTableColumns: TStringList;
 
 function InitPrivList(Values: String): TStringList;
@@ -262,6 +265,7 @@ begin
   PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
   PrivsRoutine := InitPrivList('GRANT');
   PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
+  PasswordLengthMatters := True;
 
   if Version >= 40002 then begin
     PrivsGlobal.Add('REPLICATION CLIENT');
@@ -294,6 +298,11 @@ begin
     PrivsDb.Add('PROXY');
   end;
   }
+  if Version >= 80000 then begin
+    // MySQL 8 has predefined length of hashed passwords only with
+    // mysql_native_password plugin enabled users
+    PasswordLengthMatters := False;
+  end;
 
   PrivsTable.AddStrings(PrivsColumn);
   PrivsDb.AddStrings(PrivsTable);
@@ -346,7 +355,7 @@ begin
       U.Problem := upNone;
       if Length(U.Password) = 0 then
         U.Problem := upEmptyPassword;
-      if not (Length(U.Password) in [0, 16, 41]) then
+      if PasswordLengthMatters and (not (Length(U.Password) in [0, 16, 41])) then
         U.Problem := upInvalidPasswordLen
       else if SkipNameResolve and U.HostRequiresNameResolve then
         U.Problem := upSkipNameResolve;
