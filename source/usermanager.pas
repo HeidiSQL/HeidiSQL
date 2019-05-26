@@ -412,7 +412,9 @@ procedure TUserManagerForm.Modification(Sender: TObject);
 var
   User: PUser;
 begin
-  if Assigned(listUsers.FocusedNode) and (TWinControl(Sender).Parent = tabLimitations) then begin
+  if not Assigned(listUsers.FocusedNode) then
+    Exit;
+  if TWinControl(Sender).Parent = tabLimitations then begin
     // Any TUpDown triggers a OnChange event on its TEdit when the UpDown gets painted
     User := listUsers.GetNodeData(listUsers.FocusedNode);
     Modified := Modified
@@ -420,8 +422,9 @@ begin
       or (editMaxUpdates.Text <> IntToStr(User.MaxUpdates))
       or (editMaxConnections.Text <> IntToStr(User.MaxConnections))
       or (editMaxUserConnections.Text <> IntToStr(User.MaxUserConnections));
-  end else
+  end else begin
     Modified := True;
+  end;
 end;
 
 
