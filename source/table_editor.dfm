@@ -412,79 +412,67 @@ object frmTableEditor: TfrmTableEditor
           OnClick = btnClearForeignKeysClick
         end
       end
-      object pnlNoForeignKeys: TPanel
+      object listForeignKeys: TVirtualStringTree
         Left = 66
         Top = 0
-        Width = 527
+        Width = 620
         Height = 121
+        Margins.Top = 0
+        Margins.Bottom = 0
         Align = alClient
-        BevelOuter = bvNone
-        Caption = 'pnlNoForeignKeys'
+        EditDelay = 0
+        Header.AutoSizeIndex = 0
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+        Images = MainForm.VirtualImageListMain
         TabOrder = 1
-        VerticalAlignment = taAlignBottom
-        object listForeignKeys: TVirtualStringTree
-          AlignWithMargins = True
-          Left = 3
-          Top = 0
-          Width = 521
-          Height = 121
-          Margins.Top = 0
-          Margins.Bottom = 0
-          Align = alClient
-          EditDelay = 0
-          Header.AutoSizeIndex = 0
-          Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
-          Images = MainForm.VirtualImageListMain
-          TabOrder = 0
-          TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-          TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-          TreeOptions.SelectionOptions = [toExtendedFocus]
-          OnBeforePaint = listForeignKeysBeforePaint
-          OnClick = treeIndexesClick
-          OnCreateEditor = listForeignKeysCreateEditor
-          OnEditing = listForeignKeysEditing
-          OnFocusChanged = listForeignKeysFocusChanged
-          OnGetText = listForeignKeysGetText
-          OnGetImageIndex = listForeignKeysGetImageIndex
-          OnNewText = listForeignKeysNewText
-          Columns = <
-            item
-              Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-              Position = 0
-              Text = 'Key name'
-              Width = 101
-            end
-            item
-              Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-              Position = 1
-              Text = 'Columns'
-              Width = 80
-            end
-            item
-              Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-              Position = 2
-              Text = 'Reference table'
-              Width = 100
-            end
-            item
-              Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-              Position = 3
-              Text = 'Foreign columns'
-              Width = 80
-            end
-            item
-              Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-              Position = 4
-              Text = 'On UPDATE'
-              Width = 80
-            end
-            item
-              Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
-              Position = 5
-              Text = 'On DELETE'
-              Width = 80
-            end>
-        end
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toExtendedFocus]
+        OnBeforePaint = listForeignKeysBeforePaint
+        OnClick = treeIndexesClick
+        OnCreateEditor = listForeignKeysCreateEditor
+        OnEditing = listForeignKeysEditing
+        OnFocusChanged = listForeignKeysFocusChanged
+        OnGetText = listForeignKeysGetText
+        OnGetImageIndex = listForeignKeysGetImageIndex
+        OnNewText = listForeignKeysNewText
+        Columns = <
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 0
+            Text = 'Key name'
+            Width = 196
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 1
+            Text = 'Columns'
+            Width = 80
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 2
+            Text = 'Reference table'
+            Width = 100
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 3
+            Text = 'Foreign columns'
+            Width = 80
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 4
+            Text = 'On UPDATE'
+            Width = 80
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+            Position = 5
+            Text = 'On DELETE'
+            Width = 80
+          end>
       end
     end
     object tabPartitions: TTabSheet

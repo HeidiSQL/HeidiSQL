@@ -81,7 +81,6 @@ type
     btnClearForeignKeys: TToolButton;
     menuCopyColumnCell: TMenuItem;
     N2: TMenuItem;
-    pnlNoForeignKeys: TPanel;
     listForeignKeys: TVirtualStringTree;
     menuCopyColumns: TMenuItem;
     menuPasteColumns: TMenuItem;
@@ -1903,26 +1902,11 @@ end;
 
 
 procedure TfrmTableEditor.PageControlMainChange(Sender: TObject);
-var
-  SupportsForeignKeys: Boolean;
 begin
   treeIndexes.EndEditNode;
   listForeignKeys.EndEditNode;
-  if PageControlMain.ActivePage = tabForeignKeys then begin
-    // Foreign keys supported by InnoDB engine and NDB cluster. See http://www.heidisql.com/forum.php?t=16059
-    SupportsForeignKeys := (LowerCase(comboEngine.Text) = 'innodb')
-      or (DBObject.Connection.NdbClusterVersionInt >= 70300);
-    ListForeignKeys.Enabled := SupportsForeignKeys;
-    tlbForeignKeys.Enabled := SupportsForeignKeys;
-    pnlNoForeignKeys.Caption := f_('The selected table engine (%s) does not support foreign keys.', [comboEngine.Text]);
-    if SupportsForeignKeys then
-      ListForeignKeys.Margins.Bottom := 0
-    else
-      ListForeignKeys.Margins.Bottom := GetTextHeight(pnlNoForeignKeys.Font)+4;
-    ListForeignKeys.Repaint;
-  end
   // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
-  else if PageControlMain.ActivePage = tabCREATEcode then begin
+  if PageControlMain.ActivePage = tabCREATEcode then begin
     if SynMemoCreateCode.CanFocus then
       SynMemoCreateCode.SetFocus;
   end
