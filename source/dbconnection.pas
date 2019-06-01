@@ -1799,6 +1799,7 @@ begin
     // See https://www.heidisql.com/forum.php?t=27158
     // See https://mariadb.com/kb/en/library/mysql_optionsv/
     mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
+    mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
 
     Connected := mysql_real_connect(
       FHandle,
@@ -2256,26 +2257,37 @@ procedure TMySQLConnection.DoBeforeConnect;
 var
   msg: String;
   OldErrorMode: Cardinal;
+  TryLibraryPaths: TStringList;
 begin
   // Init libmysql before actually connecting.
-  // Try newer libmariadb version at first, and fall back to libmysql
   if LibMysqlHandle = 0 then begin
-    LibMysqlPath := 'libmariadb.dll';
-    Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
-    // Temporarily suppress error popups while loading new library on Windows XP, see #79
-    OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
-    SetErrorMode(OldErrorMode or SEM_FAILCRITICALERRORS);
-    LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
-    SetErrorMode(OldErrorMode);
-    if LibMysqlHandle = 0 then begin
-      // Win XP goes here, or users without the above library. Load an XP-compatible one here.
-      Log(lcDebug, f_('Could not load %s', [LibMysqlPath]));
-      LibMysqlPath := 'libmysql.dll';
+
+    // Try newer libmariadb version at first, and fall back to libmysql,
+    // then fall back to dlls somewhere else on the users harddisk
+    TryLibraryPaths := TStringList.Create;
+    TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmariadb.dll');
+    TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmysql.dll');
+    TryLibraryPaths.Add('libmariadb.dll');
+    TryLibraryPaths.Add('libmysql.dll');
+
+    for LibMysqlPath in TryLibraryPaths do begin
       Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
+      // Temporarily suppress error popups while loading new library on Windows XP, see #79
+      OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
+      SetErrorMode(OldErrorMode or SEM_FAILCRITICALERRORS);
       LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
+      SetErrorMode(OldErrorMode);
+      if LibMysqlHandle = 0 then begin
+        // Win XP needs libmysql.dll
+        Log(lcDebug, f_('Could not load %s', [LibMysqlPath]));
+      end else begin
+        Break;
+      end;
     end;
     if LibMysqlHandle = 0 then begin
-      msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.', [LibMysqlPath, ExtractFileName(ParamStr(0))]);
+      msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.',
+        [ExtractFileName(TryLibraryPaths[0]), ExtractFileName(ParamStr(0))]
+        );
       if Windows.GetLastError <> 0 then
         msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
       raise EDatabaseError.Create(msg);
