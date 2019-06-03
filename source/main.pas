@@ -1204,6 +1204,7 @@ var
   MainForm: TMainForm;
   SecondInstMsgId: UINT = 0;
   SysLanguage: String;
+  MainFormCreated: Boolean = False;
 
 const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
@@ -1981,6 +1982,8 @@ begin
   LogSQL(f_('Version: "%s"', [AppVersion]), lcDebug);
   LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
+
+  MainFormCreated := True;
 end;
 
 
@@ -11787,6 +11790,11 @@ end;
 procedure TMainForm.AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
 begin
   // Display status message on long running sort operations
+  if not MainFormCreated then begin
+    // Do nothing before form is not ready to process messages, what OperationRunning silently does.
+    // See issue #665
+    Exit;
+  end;
   if OperationKind = okSortTree then begin
     ShowStatusMsg(_('Sorting grid nodes ...'));
     FOperatingGrid := Sender;
