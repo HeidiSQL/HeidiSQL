@@ -648,6 +648,7 @@ type
     filterQueryHelpers: TButtonedEdit;
     TimerStoreTabs: TTimer;
     Duplicaterowwithkeys1: TMenuItem;
+    MainMenuDonate: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1620,6 +1621,9 @@ var
   OldSnippetsDir, CurrentSnippetsDir, TargetSnippet: String;
   Files: TStringDynArray;
   dti: TDBDatatypeCategoryIndex;
+  mii: TMenuItemInfo;
+  MainMenu: hMenu;
+  Buffer: array[0..79] of Char;
 begin
   caption := APPNAME;
 
@@ -1649,6 +1653,20 @@ begin
     //ToolBarMainButtons.List := True;
     ToolBarMainButtons.ShowCaptions := true;
   end;
+
+
+  // Right aligned donate button
+  // GET Help Menu Item Info
+  MainMenu := GetMenu(Handle);
+  mii.cbSize := SizeOf(mii) ;
+  mii.fMask := MIIM_TYPE;
+  mii.dwTypeData := Buffer;
+  mii.cch := SizeOf(Buffer) ;
+  GetMenuItemInfo(MainMenu, MainMenuDonate.Command, false, mii) ;
+  // SET Help Menu Item Info
+  mii.fType := mii.fType or MFT_RIGHTJUSTIFY;
+  SetMenuItemInfo(MainMenu, MainMenuDonate.Command, false, mii) ;
+  DrawMenuBar(Handle);
 
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
@@ -2734,7 +2752,11 @@ var
   place: String;
 begin
   // Click on one of the various donate buttons
-  Dialog := GetParentFormOrFrame(TWinControl(Sender));
+  if Sender is TWinControl then begin
+    Dialog := GetParentFormOrFrame(TWinControl(Sender));
+  end else begin
+    Dialog := Self;
+  end;
   if Dialog = nil then
     ErrorDialog(f_('Could not determine parent form of this %s', [Sender.ClassName]))
   else begin
