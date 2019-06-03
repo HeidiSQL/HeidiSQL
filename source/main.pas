@@ -2165,15 +2165,14 @@ procedure TMainForm.StoreTabs;
 var
   Tab: TQueryTab;
   Section: String;
+  Sections: TStringList;
   TabsIni: TIniFile;
+  SectionTabExists: Boolean;
 begin
   // Store query tab unsaved contents and setup, in tabs.ini
 
   try
     TabsIni := InitTabsIniFile;
-
-    // Todo: erase sections from closed tabs
-    // ab: is that really required? Tabs with deleted files don't get restored anyway.
 
     for Tab in QueryTabs do begin
       Tab.BackupUnsavedContent;
@@ -2187,6 +2186,24 @@ begin
           TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
         if TabsIni.ReadInteger(Section, 'pid', 0) <> Integer(GetCurrentProcessId) then
           TabsIni.WriteInteger(Section, 'pid', Integer(GetCurrentProcessId));
+      end;
+    end;
+
+    // Tabs with deleted files don't get restored anyway. But closed tabs with physically existing
+    // files still need to be erased
+    Sections := TStringList.Create;
+    TabsIni.ReadSections(Sections);
+    for Section in Sections do begin
+      SectionTabExists := False;
+      for Tab in QueryTabs do begin
+        if Tab.Uid = Section then begin
+          SectionTabExists := True;
+          Break;
+        end;
+      end;
+      // Delete tab section if no tab was closed
+      if not SectionTabExists then begin
+        TabsIni.EraseSection(Section);
       end;
     end;
 
