@@ -2255,7 +2255,8 @@ end;
 
 procedure TMySQLConnection.DoBeforeConnect;
 var
-  msg: String;
+  msg,
+  TryLibraryPath: String;
   OldErrorMode: Cardinal;
   TryLibraryPaths: TStringList;
 begin
@@ -2270,17 +2271,18 @@ begin
     TryLibraryPaths.Add('libmariadb.dll');
     TryLibraryPaths.Add('libmysql.dll');
 
-    for LibMysqlPath in TryLibraryPaths do begin
-      Log(lcDebug, f_('Loading library file %s ...', [LibMysqlPath]));
+    for TryLibraryPath in TryLibraryPaths do begin
+      Log(lcDebug, f_('Loading library file %s ...', [TryLibraryPath]));
       // Temporarily suppress error popups while loading new library on Windows XP, see #79
       OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
       SetErrorMode(OldErrorMode or SEM_FAILCRITICALERRORS);
-      LibMysqlHandle := LoadLibrary(PWideChar(LibMysqlPath));
+      LibMysqlHandle := LoadLibrary(PWideChar(TryLibraryPath));
       SetErrorMode(OldErrorMode);
       if LibMysqlHandle = 0 then begin
         // Win XP needs libmysql.dll
-        Log(lcDebug, f_('Could not load %s', [LibMysqlPath]));
+        Log(lcDebug, f_('Could not load %s', [TryLibraryPath]));
       end else begin
+        LibMysqlPath := TryLibraryPath;
         Break;
       end;
     end;
