@@ -34,7 +34,7 @@
 <!-- Please provide any relevant information about your setup that could causes this issue. -->
 
 * **HeidiSQL version:** 
-  <!-- Check if you are running the last available nightly version. -->
+  <!-- ⚠️ Before post, update HeidiSQL to the latest nightly version (menu Help > Check for Updates...) and check if this issue happen in this version. Put your current version on field above (that should matches with the latest nightly available). It will help us a lot! -->
 * **Database system and version:** 
   <!-- Remove this part if it is not related directly with a database system. -->
 * **Operating system:** 
