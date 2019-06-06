@@ -648,7 +648,7 @@ type
     filterQueryHelpers: TButtonedEdit;
     TimerStoreTabs: TTimer;
     Duplicaterowwithkeys1: TMenuItem;
-    MainMenuDonate: TMenuItem;
+    imgDonate: TImage;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1654,20 +1654,6 @@ begin
     ToolBarMainButtons.ShowCaptions := true;
   end;
 
-
-  // Right aligned donate button
-  // GET Help Menu Item Info
-  MainMenu := GetMenu(Handle);
-  mii.cbSize := SizeOf(mii) ;
-  mii.fMask := MIIM_TYPE;
-  mii.dwTypeData := Buffer;
-  mii.cch := SizeOf(Buffer) ;
-  GetMenuItemInfo(MainMenu, MainMenuDonate.Command, false, mii) ;
-  // SET Help Menu Item Info
-  mii.fType := mii.fType or MFT_RIGHTJUSTIFY;
-  SetMenuItemInfo(MainMenu, MainMenuDonate.Command, false, mii) ;
-  DrawMenuBar(Handle);
-
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
   menuQueryHelpersGenerateInsert.Caption := f_('Generate %s ...', ['INSERT']);
@@ -1963,6 +1949,9 @@ begin
   FTreeRefreshInProgress := False;
   FGridCopying := False;
   FGridPasting := False;
+
+  FHasDonatedDatabaseCheck := nbUnset;
+  imgDonate.Visible := HasDonated(True) <> nbTrue;
 
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 
@@ -2501,6 +2490,14 @@ begin
     // Try again and resize SQLLog if required
     SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, spltTopBottom.MinSize);
   end;
+
+  // Right aligned button
+  if imgDonate.Visible then begin
+    imgDonate.Width := 122;
+    imgDonate.Height := 22;
+    imgDonate.Left := ControlBarMain.Width - imgDonate.Width;
+  end;
+
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);

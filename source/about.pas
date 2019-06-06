@@ -91,6 +91,8 @@ begin
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
   imgDonate.Visible := Check <> nbTrue;
+  MainForm.imgDonate.Visible := imgDonate.Visible;
+  MainForm.FormResize(Self);
 end;
 
 
