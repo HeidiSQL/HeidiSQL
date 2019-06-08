@@ -1790,16 +1790,20 @@ procedure TfrmTableEditor.treeIndexesDragOver(Sender: TBaseVirtualTree;
   Source: TObject; Shift: TShiftState; State: TDragState; Pt: TPoint;
   Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
 var
-  Node: PVirtualNode;
+  TargetNode: PVirtualNode;
+  VT: TVirtualStringtree;
 begin
   // Accept nodes from the column list and allow column moving
+  VT := Sender as TVirtualStringtree;
+  TargetNode := VT.GetNodeAt(Pt.X, Pt.Y);
+
   if Source = listColumns then begin
-    Accept := True;
-    Exit;
+    // Do not accept above or below a root level (index) node
+    Accept := (VT.GetNodeLevel(TargetNode) = 1) or (Mode = dmOnNode);
+
   end else if Source = Sender then begin
-    Node := Sender.GetNodeAt(Pt.X, Pt.Y);
-    Accept := Assigned(Node) and (Sender.GetNodeLevel(Node) = 1) and
-      (Node <> Sender.FocusedNode) and (Node.Parent = Sender.FocusedNode.Parent);
+    Accept := Assigned(TargetNode) and (Sender.GetNodeLevel(TargetNode) = 1) and
+      (TargetNode <> Sender.FocusedNode) and (TargetNode.Parent = Sender.FocusedNode.Parent);
   end;
 end;
 
@@ -1820,25 +1824,40 @@ begin
   SourceVT := Source as TVirtualStringtree;
   TargetNode := VT.GetNodeAt(Pt.X, Pt.Y);
   FocusedNode := VT.FocusedNode;
+  IndexNode := nil;
+  ColPos := 0;
   if not Assigned(TargetNode) then begin
     MessageBeep(MB_ICONEXCLAMATION);
     Exit;
   end;
-  if VT.GetNodeLevel(TargetNode) = 1 then begin
-    IndexNode := TargetNode.Parent;
-    // Find the right new position for the dropped column
-    ColPos := TargetNode.Index;
-    Mainform.LogSQL('TargetNode.Index: '+TargetNode.Index.ToString, lcDebug);
-    if (Source = Sender) and (FocusedNode <> nil) then begin
-      // Take care if user dragged from above or from below the target node
-      if (FocusedNode.Index < TargetNode.Index) and (Mode = dmAbove) and (ColPos > 0) then
-        Dec(ColPos);
-      if (FocusedNode.Index > TargetNode.Index) and (Mode = dmBelow) and (ColPos < IndexNode.ChildCount-1) then
-        Inc(ColPos);
+  Mainform.LogSQL('TargetNode.Index: '+TargetNode.Index.ToString, lcDebug);
+
+  case VT.GetNodeLevel(TargetNode) of
+    0: begin
+      // DragOver only accepts dmOnNode in root tree level
+      IndexNode := TargetNode;
+      ColPos := IndexNode.ChildCount;
     end;
-  end else begin
-    IndexNode := TargetNode;
-    ColPos := IndexNode.ChildCount;
+
+    1: begin
+      IndexNode := TargetNode.Parent;
+      // Find the right new position for the dropped column
+      ColPos := TargetNode.Index;
+      if Source = Sender then begin
+        // Drop within index tree: Take care if user dragged from above or from below the target node
+        if FocusedNode <> nil then begin
+          if (FocusedNode.Index < TargetNode.Index) and (Mode = dmAbove) and (ColPos > 0) then
+            Dec(ColPos);
+          if (FocusedNode.Index > TargetNode.Index) and (Mode = dmBelow) and (ColPos < IndexNode.ChildCount-1) then
+            Inc(ColPos);
+        end;
+      end else begin
+        // Drop from columns list
+        if Mode = dmBelow then
+          Inc(ColPos);
+      end;
+    end;
+
   end;
 
   if Source = Sender then
