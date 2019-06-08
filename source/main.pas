@@ -2052,9 +2052,11 @@ begin
       LastStatsCall := StrToDateTime(DefaultLastrunDate);
     end;
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
-      // Report used SVN revision
+      // Report used app version, bits, and theme name (so we find mostly unused ones for removal)
       StatsCall := THttpDownload.Create(Self);
-      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) + '&bits=' + IntToStr(GetExecutableBits);
+      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
+        '&bits=' + IntToStr(GetExecutableBits) +
+        '&thm=' + EncodeURLParam(TStyleManager.ActiveStyle.Name);
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
