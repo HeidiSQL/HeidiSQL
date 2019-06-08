@@ -478,7 +478,6 @@ var
   Highlighter: TSynSQLSyn;
   Name: String;
   GridColorsPreset: TGridColorsPreset;
-  Comp: TComponent;
   IconPack: String;
 begin
   TranslateComponent(Self);
