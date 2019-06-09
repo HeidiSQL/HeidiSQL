@@ -242,6 +242,8 @@ type
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       property ImageIndex: Integer read GetImageIndex;
+      function DefaultPort: Integer;
+      function DefaultUsername: String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
       property NetType: TNetType read FNetType write FNetType;
@@ -1125,9 +1127,9 @@ begin
   FHostname := AppSettings.GetDefaultString(asHost);
   FLoginPrompt := AppSettings.GetDefaultBool(asLoginPrompt);
   FWindowsAuth := AppSettings.GetDefaultBool(asWindowsAuth);
-  FUsername := AppSettings.GetDefaultString(asUser);
+  FUsername := DefaultUsername;
   FPassword := AppSettings.GetDefaultString(asPassword);
-  FPort := MakeInt(AppSettings.GetDefaultString(asPort));
+  FPort := DefaultPort;
   FCompressed := AppSettings.GetDefaultBool(asCompressed);
   FAllDatabases := AppSettings.GetDefaultString(asDatabases);
   FComment := AppSettings.GetDefaultString(asComment);
@@ -1462,6 +1464,28 @@ begin
     end;
     ngPgSQL: Result := 187;
     else Result := ICONINDEX_SERVER;
+  end;
+end;
+
+
+function TConnectionParameters.DefaultPort: Integer;
+begin
+  case NetTypeGroup of
+    ngMySQL: Result := 3306;
+    ngMSSQL: Result := 1433;
+    ngPgSQL: Result := 5432;
+    else Result := 0;
+  end;
+end;
+
+
+function TConnectionParameters.DefaultUsername: String;
+begin
+  case NetTypeGroup of
+    ngMySQL: Result := 'root';
+    ngMSSQL: Result := 'sa';
+    ngPgSQL: Result := 'postgres';
+    else Result := '';
   end;
 end;
 

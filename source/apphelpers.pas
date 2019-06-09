@@ -3519,11 +3519,11 @@ begin
   InitSetting(asSQLHelpPnlLeftWidth,              'SQLHelp_PnlLeftWidth',                  150);
   InitSetting(asSQLHelpPnlRightTopHeight,         'SQLHelp_PnlRightTopHeight',             150);
   InitSetting(asHost,                             'Host',                                  0, False, '127.0.0.1', True);
-  InitSetting(asUser,                             'User',                                  0, False, 'root', True);
+  InitSetting(asUser,                             'User',                                  0, False, '', True);
   InitSetting(asPassword,                         'Password',                              0, False, '', True);
   InitSetting(asWindowsAuth,                      'WindowsAuth',                           0, False, '', True);
   InitSetting(asLoginPrompt,                      'LoginPrompt',                           0, False, '', True);
-  InitSetting(asPort,                             'Port',                                  0, False, '3306', True);
+  InitSetting(asPort,                             'Port',                                  0, False, '', True);
   InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, '');
   InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);
   InitSetting(asSSHtunnelHostPort,                'SSHtunnelHostPort',                     22, False, '', True);

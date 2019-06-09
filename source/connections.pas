@@ -178,6 +178,7 @@ type
     FSettingsImportWaitTime: Cardinal;
     FPopupDatabases: TPopupMenu;
     FButtonAnimationStep: Integer;
+    FLastSelectedNetTypeGroup: TNetTypeGroup;
     procedure RefreshSessions(ParentNode: PVirtualNode);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
@@ -1062,25 +1063,20 @@ var
   Params: TConnectionParameters;
 begin
   // Autoset default connection data as long as that was not modified by user
+  // and only if net type group has now changed
+  if not FLoaded then
+    Exit;
+
   Params := CurrentParams;
-  if (not editPort.Modified) and (FLoaded) then
-    case Params.NetTypeGroup of
-      ngMySQL:
-        begin
-          updownPort.Position := MakeInt(AppSettings.GetDefaultString(asPort));
-          editUsername.Text := AppSettings.GetDefaultString(asUser)
-        end;
-      ngMSSQL:
-      begin
-        updownPort.Position := 1433;
-        editUsername.Text := AppSettings.GetDefaultString(asUser)
-      end;
-      ngPgSQL:
-        begin
-          updownPort.Position := 5432;
-          editUsername.Text := 'postgres';
-        end;
-    end;
+
+  if Params.NetTypeGroup <> FLastSelectedNetTypeGroup then begin
+    if not editPort.Modified then
+      updownPort.Position := Params.DefaultPort;
+    if not editUsername.Modified then
+      editUsername.Text := Params.DefaultUsername;
+  end;
+
+  FLastSelectedNetTypeGroup := Params.NetTypeGroup;
   FreeAndNil(Params);
   Modification(Sender);
 end;
