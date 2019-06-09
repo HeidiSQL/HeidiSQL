@@ -2195,6 +2195,10 @@ begin
           TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
         if TabsIni.ReadInteger(Section, 'pid', 0) <> Integer(GetCurrentProcessId) then
           TabsIni.WriteInteger(Section, 'pid', Integer(GetCurrentProcessId));
+        if TabsIni.ReadInteger(Section, 'EditorHeight', 0) <> Tab.pnlMemo.Height then
+          TabsIni.WriteInteger(Section, 'EditorHeight', Tab.pnlMemo.Height);
+        if TabsIni.ReadInteger(Section, 'HelpersWidth', 0) <> Tab.pnlHelpers.Width then
+          TabsIni.WriteInteger(Section, 'HelpersWidth', Tab.pnlHelpers.Width);
       end;
     end;
 
@@ -2233,6 +2237,7 @@ var
   Section, Filename, BackupFilename: String;
   TabsIni: TIniFile;
   pid: Cardinal;
+  EditorHeight, HelpersWidth: Integer;
 begin
   // Restore query tab setup from tabs.ini
 
@@ -2248,6 +2253,8 @@ begin
       Filename := TabsIni.ReadString(Section, 'Filename', '');
       BackupFilename := TabsIni.ReadString(Section, 'BackupFilename', '');
       pid := Cardinal(TabsIni.ReadInteger(Section, 'pid', 0));
+      EditorHeight := TabsIni.ReadInteger(Section, 'EditorHeight', 0);
+      HelpersWidth := TabsIni.ReadInteger(Section, 'HelpersWidth', 0);
 
       // Don't restore this tab if it belongs to a different running process
       if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid) then
@@ -2262,6 +2269,10 @@ begin
           Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
+          if EditorHeight > 50 then
+            Tab.pnlMemo.Height := EditorHeight;
+          if HelpersWidth > 50 then
+            Tab.pnlHelpers.Width := HelpersWidth;
         end else begin
           // Remove tab section if backup file is gone or inaccessible for some reason
           TabsIni.EraseSection(Section);
@@ -2272,6 +2283,10 @@ begin
           Tab.Uid := Section;
           Tab.LoadContents(Filename, True, nil);
           Tab.MemoFilename := Filename;
+          if EditorHeight > 50 then
+            Tab.Memo.Height := EditorHeight;
+          if HelpersWidth > 50 then
+            Tab.pnlHelpers.Width := HelpersWidth;
         end else begin
           // Remove tab section if user stored file was deleted by user
           TabsIni.EraseSection(Section);
