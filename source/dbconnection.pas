@@ -1830,6 +1830,10 @@ begin
     mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
     mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
 
+    // Enable cleartext plugin
+    if Parameters.CleartextPluginEnabled then
+      mysql_options(FHandle, MYSQL_ENABLE_CLEARTEXT_PLUGIN, 1);
+
     Connected := mysql_real_connect(
       FHandle,
       PAnsiChar(Utf8Encode(FinalHost)),
