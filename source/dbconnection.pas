@@ -1832,7 +1832,7 @@ begin
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
-      mysql_options(FHandle, MYSQL_ENABLE_CLEARTEXT_PLUGIN, 1);
+      mysql_options(FHandle, Integer(MYSQL_ENABLE_CLEARTEXT_PLUGIN), PAnsiChar('1'));
 
     Connected := mysql_real_connect(
       FHandle,

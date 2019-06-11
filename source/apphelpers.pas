@@ -3524,7 +3524,7 @@ begin
   InitSetting(asHost,                             'Host',                                  0, False, '127.0.0.1', True);
   InitSetting(asUser,                             'User',                                  0, False, '', True);
   InitSetting(asPassword,                         'Password',                              0, False, '', True);
-  InitSetting(asCleartextPluginEnabled,           'CleartextPluginEnabled'                 0, False, '', True);
+  InitSetting(asCleartextPluginEnabled,           'CleartextPluginEnabled',                0, False, '', True);
   InitSetting(asWindowsAuth,                      'WindowsAuth',                           0, False, '', True);
   InitSetting(asLoginPrompt,                      'LoginPrompt',                           0, False, '', True);
   InitSetting(asPort,                             'Port',                                  0, False, '', True);
