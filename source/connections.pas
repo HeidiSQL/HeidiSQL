@@ -76,6 +76,7 @@ type
     editSSHTimeout: TEdit;
     updownSSHTimeout: TUpDown;
     chkWindowsAuth: TCheckBox;
+    chkCleartextPluginEnabled: TCheckBox;
     splitterMain: TSplitter;
     tabStart: TTabSheet;
     lblHelp: TLabel;
@@ -378,6 +379,7 @@ begin
   Sess.Password := editPassword.Text;
   Sess.LoginPrompt := chkLoginPrompt.Checked;
   Sess.WindowsAuth := chkWindowsAuth.Checked;
+  Sess.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
   Sess.Port := updownPort.Position;
   Sess.NetType := TNetType(comboNetType.ItemIndex);
   Sess.Compressed := chkCompressed.Checked;
@@ -574,6 +576,7 @@ begin
     Result.Password := editPassword.Text;
     Result.LoginPrompt := chkLoginPrompt.Checked;
     Result.WindowsAuth := chkWindowsAuth.Checked;
+    Result.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
     if updownPort.Enabled then
       Result.Port := updownPort.Position
     else
@@ -836,6 +839,7 @@ begin
     editPassword.Text := Sess.Password;
     chkLoginPrompt.Checked := Sess.LoginPrompt;
     chkWindowsAuth.Checked := Sess.WindowsAuth;
+    chkCleartextPluginEnabled.Checked := Sess.CleartextPluginEnabled;
     updownPort.Position := Sess.Port;
     chkCompressed.Checked := Sess.Compressed;
     updownQueryTimeout.Position := Sess.QueryTimeout;
@@ -1094,6 +1098,7 @@ begin
       or (Sess.Username <> editUsername.Text)
       or (Sess.LoginPrompt <> chkLoginPrompt.Checked)
       or (Sess.WindowsAuth <> chkWindowsAuth.Checked)
+      or (Sess.CleartextPluginEnabled <> chkCleartextPluginEnabled.Checked)
       or (Sess.Port <> updownPort.Position)
       or (Sess.Compressed <> chkCompressed.Checked)
       or (Sess.QueryTimeout <> updownQueryTimeout.Position)
@@ -1122,7 +1127,8 @@ begin
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
     if (Sender=editHost) or (Sender=editUsername) or (Sender=editPassword) or
-      (Sender=comboNetType) or (Sender=chkWindowsAuth) or (Sender=editPort) then begin
+      (Sender=comboNetType) or (Sender=chkWindowsAuth) or (Sender=editPort) or
+      (Sender=chkCleartextPluginEnabled) then begin
       // Be sure to use the modified connection params next time the user clicks the "Databases" pulldown
       FreeAndNil(FPopupDatabases);
     end;
@@ -1170,6 +1176,7 @@ begin
       else
         lblHost.Caption := _('Hostname / IP:');
       chkWindowsAuth.Enabled := Params.IsMSSQL;
+      chkCleartextPluginEnabled.Enabled := Params.IsMySQL;
       lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
       editUsername.Enabled := lblUsername.Enabled;

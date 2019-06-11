@@ -340,6 +340,11 @@ msgstr "Prompt for credentials"
 msgid "Use Windows authentication"
 msgstr "Use Windows authentication"
 
+#. connform..PageControlDetails..tabSettings..chkCleartextPluginEnabled..Caption
+#: connections.dfm:737
+msgid "Use cleartext plugin"
+msgstr "Use cleartext plugin"
+
 #. connform..PageControlDetails..tabSettings..chkLocalTimeZone....Hint
 #: connections.dfm:406
 msgid "Use your client time zone in date/time SQL functions, e.g. NOW(), for MySQL 4.1.3+"

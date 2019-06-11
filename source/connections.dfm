@@ -734,6 +734,19 @@ object connform: Tconnform
           TabOrder = 8
           OnClick = Modification
         end
+        object chkCleartextPluginEnabled: TCheckBox
+          Left = 120
+          Top = 329
+          Width = 294
+          Height = 17
+          Hint = 
+            'Send your password to the server in cleartext' +
+            ', for MySQL 5.5.47+'
+          Anchors = [akLeft, akTop, akRight]
+          Caption = 'Use cleartext plugin'
+          TabOrder = 13
+          OnClick = Modification
+        end
         object editStartupScript: TButtonedEdit
           Left = 120
           Top = 165

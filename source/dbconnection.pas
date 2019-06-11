@@ -217,7 +217,8 @@ type
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
-      FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus, FWindowsAuth, FWantSSL, FIsFolder: Boolean;
+      FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
+      FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
       function GetImageIndex: Integer;
@@ -260,6 +261,7 @@ type
       property Password: String read FPassword write FPassword;
       property LoginPrompt: Boolean read FLoginPrompt write FLoginPrompt;
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
+      property CleartextPluginEnabled: Boolean read FCleartextPluginEnabled write FCleartextPluginEnabled;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
       property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
@@ -1127,6 +1129,7 @@ begin
   FHostname := AppSettings.GetDefaultString(asHost);
   FLoginPrompt := AppSettings.GetDefaultBool(asLoginPrompt);
   FWindowsAuth := AppSettings.GetDefaultBool(asWindowsAuth);
+  FCleartextPluginEnabled := AppSettings.GetDefaultBool(asCleartextPluginEnabled);
   FUsername := DefaultUsername;
   FPassword := AppSettings.GetDefaultString(asPassword);
   FPort := DefaultPort;
@@ -1194,6 +1197,7 @@ begin
     FPassword := decrypt(AppSettings.ReadString(asPassword));
     FLoginPrompt := AppSettings.ReadBool(asLoginPrompt);
     FWindowsAuth := AppSettings.ReadBool(asWindowsAuth);
+    FCleartextPluginEnabled := AppSettings.ReadBool(asCleartextPluginEnabled);
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
@@ -1249,6 +1253,7 @@ begin
   else begin
     AppSettings.WriteString(asHost, FHostname);
     AppSettings.WriteBool(asWindowsAuth, FWindowsAuth);
+    AppSettings.WriteBool(asCleartextPluginEnabled, FCleartextPluginEnabled);
     AppSettings.WriteString(asUser, FUsername);
     AppSettings.WriteString(asPassword, encrypt(FPassword));
     AppSettings.WriteBool(asLoginPrompt, FLoginPrompt);
@@ -1824,6 +1829,10 @@ begin
     // See https://mariadb.com/kb/en/library/mysql_optionsv/
     mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
     mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
+
+    // Enable cleartext plugin
+    if Parameters.CleartextPluginEnabled then
+      mysql_options(FHandle, MYSQL_ENABLE_CLEARTEXT_PLUGIN, 1);
 
     Connected := mysql_real_connect(
       FHandle,
