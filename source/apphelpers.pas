@@ -141,7 +141,7 @@ type
     asWrapLongLines, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
     asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
-    asUser, asPassword, asWindowsAuth, asLoginPrompt, asPort,
+    asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort,
     asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
     asSSLCert, asSSLCA, asSSLCipher, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
@@ -451,7 +451,7 @@ begin
   if length(str) > len then
   begin
     str := copy(str, 0, len-1);
-    str := str + '…';
+    str := str + 'â€¦';
   end;
   result := str;
 end;
@@ -1437,12 +1437,12 @@ begin
     if CreateHTMLHeader then begin
       HTMLContent := 'Version:0.9' + CRLF +
         'StartHTML:000089' + CRLF +
-        'EndHTML:°°°°°°' + CRLF +
+        'EndHTML:Â°Â°Â°Â°Â°Â°' + CRLF +
         'StartFragment:000089' + CRLF +
-        'EndFragment:°°°°°°' + CRLF +
+        'EndFragment:Â°Â°Â°Â°Â°Â°' + CRLF +
         HTMLContent + CRLF;
       HTMLContent := AnsiStrings.StringReplace(
-        HTMLContent, '°°°°°°',
+        HTMLContent, 'Â°Â°Â°Â°Â°Â°',
         AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
         [rfReplaceAll]);
     end;
@@ -2627,7 +2627,7 @@ var
   rx: TRegExpr;
   ExeName, SessName, Host, User, Pass, Socket,
   SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher: String;
-  Port, NetType, WindowsAuth, WantSSL: Integer;
+  Port, NetType, WindowsAuth, WantSSL, CleartextPluginEnabled: Integer;
   AbsentFiles: TStringList;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -2692,6 +2692,7 @@ begin
   Host := GetParamValue('h', 'host');
   User := GetParamValue('u', 'user');
   Pass := GetParamValue('p', 'password');
+  CleartextPluginEnabled := StrToIntDef(GetParamValue('cleartextenabled', 'cleartextenabled'), -1);
   Socket := GetParamValue('S', 'socket');
   Port := StrToIntDef(GetParamValue('P', 'port'), 0);
   WindowsAuth := StrToIntDef(GetParamValue('W', 'winauth'), -1);
@@ -2716,6 +2717,8 @@ begin
     if Host <> '' then ConnectionParams.Hostname := Host;
     if User <> '' then ConnectionParams.Username := User;
     if Pass <> '' then ConnectionParams.Password := Pass;
+    if CleartextPluginEnabled in [0,1] then
+      ConnectionParams.CleartextPluginEnabled := Boolean(CleartextPluginEnabled);
     if Port <> 0 then ConnectionParams.Port := Port;
     if Socket <> '' then begin
       ConnectionParams.Hostname := Socket;
@@ -3521,6 +3524,7 @@ begin
   InitSetting(asHost,                             'Host',                                  0, False, '127.0.0.1', True);
   InitSetting(asUser,                             'User',                                  0, False, '', True);
   InitSetting(asPassword,                         'Password',                              0, False, '', True);
+  InitSetting(asCleartextPluginEnabled,           'CleartextPluginEnabled'                 0, False, '', True);
   InitSetting(asWindowsAuth,                      'WindowsAuth',                           0, False, '', True);
   InitSetting(asLoginPrompt,                      'LoginPrompt',                           0, False, '', True);
   InitSetting(asPort,                             'Port',                                  0, False, '', True);
