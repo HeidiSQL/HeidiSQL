@@ -341,8 +341,8 @@ begin
   listColumns.EndUpdate;
 
   // Set root nodes per BeforePaint event:
-  treeIndexes.Repaint;
-  listForeignKeys.Repaint;
+  treeIndexes.Invalidate;
+  listForeignKeys.Invalidate;
 
   // Validate controls
   comboEngineSelect(comboEngine);
