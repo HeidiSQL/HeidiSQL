@@ -339,6 +339,11 @@ begin
   listColumns.RootNodeCount := FColumns.Count;
   DeInitializeVTNodes(listColumns);
   listColumns.EndUpdate;
+
+  // Set root nodes per BeforePaint event:
+  treeIndexes.Repaint;
+  listForeignKeys.Repaint;
+
   // Validate controls
   comboEngineSelect(comboEngine);
   ValidateColumnControls;
@@ -1782,7 +1787,7 @@ procedure TfrmTableEditor.treeIndexesBeforePaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas);
 begin
   // (Re)paint index list
-  (Sender as TVirtualStringTree).RootNodeCount := FKeys.Count;
+  treeIndexes.RootNodeCount := FKeys.Count;
 end;
 
 
@@ -2146,13 +2151,10 @@ end;
 
 
 procedure TfrmTableEditor.listForeignKeysBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-var
-  VT: TVirtualStringTree;
 begin
   // Set RootNodeCount
-  VT := Sender as TVirtualStringTree;
-  VT.RootNodeCount := FForeignKeys.Count;
-  btnClearForeignKeys.Enabled := VT.RootNodeCount > 0;
+  listForeignKeys.RootNodeCount := FForeignKeys.Count;
+  btnClearForeignKeys.Enabled := listForeignKeys.RootNodeCount > 0;
 end;
 
 
