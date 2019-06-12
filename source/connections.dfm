@@ -661,7 +661,7 @@ object connform: Tconnform
         end
         object lblBackgroundColor: TLabel
           Left = 3
-          Top = 304
+          Top = 318
           Width = 86
           Height = 13
           Caption = 'Background color:'
@@ -736,14 +736,12 @@ object connform: Tconnform
         end
         object chkCleartextPluginEnabled: TCheckBox
           Left = 120
-          Top = 329
+          Top = 292
           Width = 294
           Height = 17
-          Hint = 
-            'Send your password to the server in cleartext' +
-            ', for MySQL 5.5.47+'
+          Hint = 'Send your password to the server in cleartext, for MySQL 5.5.47+'
           Anchors = [akLeft, akTop, akRight]
-          Caption = 'Use cleartext plugin'
+          Caption = 'Enable cleartext authentication'
           TabOrder = 13
           OnClick = Modification
         end
@@ -824,7 +822,7 @@ object connform: Tconnform
         end
         object ColorBoxBackgroundColor: TColorBox
           Left = 120
-          Top = 301
+          Top = 315
           Width = 294
           Height = 22
           NoneColorColor = clNone
