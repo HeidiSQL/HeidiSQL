@@ -99,7 +99,9 @@ procedure TfrmTextEditor.SetText(text: String);
 var
   Detected, Item: TMenuItem;
 begin
+  // Apply text string, and detect type of line breaks in it
   FDetectedLineBreaks := ScanLineBreaks(text);
+  Detected := nil;
   if FDetectedLineBreaks = lbsNone then
     FDetectedLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   for Item in popupLinebreaks.Items do begin

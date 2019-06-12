@@ -1621,9 +1621,6 @@ var
   OldSnippetsDir, CurrentSnippetsDir, TargetSnippet: String;
   Files: TStringDynArray;
   dti: TDBDatatypeCategoryIndex;
-  mii: TMenuItemInfo;
-  MainMenu: hMenu;
-  Buffer: array[0..79] of Char;
 begin
   caption := APPNAME;
 
