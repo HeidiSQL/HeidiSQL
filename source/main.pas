@@ -6702,6 +6702,7 @@ var
   RowNumber: PInt64;
   Node: PVirtualNode;
   OldDataLocalNumberFormat: Boolean;
+  IncludedValues: TStringList;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
@@ -6739,6 +6740,7 @@ begin
   HasNotNullValue := False;
   OldDataLocalNumberFormat := DataLocalNumberFormat;
   DataLocalNumberFormat := False;
+  IncludedValues := TStringList.Create;
   while Assigned(Node) do begin
     AnyGridEnsureFullRow(Grid, Node);
     RowNumber := Grid.GetNodeData(Node);
@@ -6748,13 +6750,16 @@ begin
     else begin
       HasNotNullValue := True;
       Value := Grid.Text[Node, Grid.FocusedColumn];
-      QF1.Hint := QF1.Hint + esc(Value) + ', ';
-      QF2.Hint := QF2.Hint + esc(Value) + ', ';
-      QF5.Hint := QF5.Hint + Col + ' LIKE ''' + esc(Value, True, False) + '%'' OR ';
-      QF6.Hint := QF6.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + ''' OR ';
-      QF7.Hint := QF7.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + '%'' OR ';
-      QF3.Hint := QF3.Hint + Col + ' > ' + esc(Value) + ' OR ';
-      QF4.Hint := QF4.Hint + Col + ' < ' + esc(Value) + ' OR ';
+      if IncludedValues.IndexOf(Value) = -1 then begin
+        QF1.Hint := QF1.Hint + esc(Value) + ', ';
+        QF2.Hint := QF2.Hint + esc(Value) + ', ';
+        QF5.Hint := QF5.Hint + Col + ' LIKE ''' + esc(Value, True, False) + '%'' OR ';
+        QF6.Hint := QF6.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + ''' OR ';
+        QF7.Hint := QF7.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + '%'' OR ';
+        QF3.Hint := QF3.Hint + Col + ' > ' + esc(Value) + ' OR ';
+        QF4.Hint := QF4.Hint + Col + ' < ' + esc(Value) + ' OR ';
+        IncludedValues.Add(Value);
+      end;
     end;
     Node := Grid.GetNextSelected(Node);
     if Length(QF1.Hint) > SIZE_MB then
@@ -6795,6 +6800,7 @@ begin
   QF5.Visible := HasNotNullValue;
   QF6.Visible := HasNotNullValue;
   QF7.Visible := HasNotNullValue;
+  IncludedValues.Free;
 
   // Block 2: WHERE col = [ask user for value]
   QF8.Hint := Col + ' = "..."';
