@@ -5246,9 +5246,8 @@ begin
       // Result object must be of the right vendor type
       if not RefreshingData then begin
         FreeAndNil(DataGridResult);
-        DataGridResult := DBObj.Connection.Parameters.CreateQuery(Self);
+        DataGridResult := DBObj.Connection.Parameters.CreateQuery(DBObj.Connection);
       end;
-      DataGridResult.Connection := DBObj.Connection;
       DataGridResult.DBObject := DBObj;
       DataGridResult.SQL := Trim(Select);
       DataGridResult.Execute(Offset > 0);

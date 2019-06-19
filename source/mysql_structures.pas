@@ -2,12 +2,13 @@
 
 // -------------------------------------
 // MySQL Constants, Variables and Types
+// TODO: rename to dbstructures
 // -------------------------------------
 
 interface
 
 uses
-  Classes, Graphics, Windows, SysUtils, gnugettext;
+  Classes, Graphics, Windows, SysUtils, gnugettext, Vcl.Forms;
 
 {$I const.inc}
 
@@ -308,6 +309,52 @@ type
     IsDynamic: Boolean;
     VarScope: TVarScope;
     EnumValues: String;
+  end;
+
+  // DLL loading
+  TDbLib = class(TObject)
+    private
+      FDllFile: String;
+      FHandle: HMODULE;
+      procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar; Mandantory: Boolean=True);
+      procedure AssignProcedures; virtual; abstract;
+    public
+      property Handle: HMODULE read FHandle;
+      property DllFile: String read FDllFile;
+      constructor Create(DllFile: String);
+      destructor Destroy; override;
+  end;
+  TMySQLLib = class(TDbLib)
+    mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
+    mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
+    mysql_close: procedure(Handle: PMYSQL); stdcall;
+    mysql_data_seek: procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
+    mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
+    mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
+    mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
+    mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
+    mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
+    mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
+    mysql_get_client_info: function: PAnsiChar; stdcall;
+    mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
+    mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
+    mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
+    mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
+    mysql_options: function(Handle: PMYSQL; Option: Integer; arg: PAnsiChar): Integer; stdcall;
+    mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
+    mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
+    mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
+    mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
+    mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
+    mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
+    mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
+    mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
+    mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
+    mysql_thread_init: function: Byte; stdcall;
+    mysql_thread_end: procedure; stdcall;
+    mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
+    private
+      procedure AssignProcedures; override;
   end;
 
 var
@@ -7561,6 +7608,84 @@ begin
     end;
   end;
   Result.Sort;
+end;
+
+
+constructor TDbLib.Create(DllFile: String);
+var
+  OldErrorMode: Cardinal;
+begin
+  // Load DLL as is (with or without path)
+  inherited Create;
+  FDllFile := DllFile;
+  // Temporarily suppress error popups while loading new library on Windows XP, see #79
+  OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
+  SetErrorMode(OldErrorMode or SEM_FAILCRITICALERRORS);
+  FHandle := LoadLibrary(PWideChar(FDllFile));
+  SetErrorMode(OldErrorMode);
+  if FHandle = 0 then begin
+    Raise Exception.Create('Library file could not be loaded: '+DllFile);
+  end;
+
+  // Dll was loaded, now initialize required procedures
+  AssignProcedures;
+end;
+
+
+destructor TDbLib.Destroy;
+begin
+  if FHandle <> 0 then begin
+    FreeLibrary(FHandle);
+    FHandle := 0;
+  end;
+  inherited;
+end;
+
+
+procedure TDbLib.AssignProc(var Proc: FARPROC; Name: PAnsiChar; Mandantory: Boolean=True);
+begin
+  // Map library procedure to internal procedure
+  Proc := GetProcAddress(FHandle, Name);
+  if Proc = nil then begin
+    if Mandantory then begin
+      Raise Exception.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.',
+        [FDllFile, APPNAME, APPNAME])
+        );
+    end;
+  end;
+end;
+
+
+procedure TMySQLLib.AssignProcedures;
+begin
+  AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
+  AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
+  AssignProc(@mysql_close, 'mysql_close');
+  AssignProc(@mysql_data_seek, 'mysql_data_seek');
+  AssignProc(@mysql_errno, 'mysql_errno');
+  AssignProc(@mysql_error, 'mysql_error');
+  AssignProc(@mysql_fetch_field_direct, 'mysql_fetch_field_direct');
+  AssignProc(@mysql_fetch_lengths, 'mysql_fetch_lengths');
+  AssignProc(@mysql_fetch_row, 'mysql_fetch_row');
+  AssignProc(@mysql_free_result, 'mysql_free_result');
+  AssignProc(@mysql_get_client_info, 'mysql_get_client_info');
+  AssignProc(@mysql_get_server_info, 'mysql_get_server_info');
+  AssignProc(@mysql_init, 'mysql_init');
+  AssignProc(@mysql_num_fields, 'mysql_num_fields');
+  AssignProc(@mysql_num_rows, 'mysql_num_rows');
+  AssignProc(@mysql_ping, 'mysql_ping');
+  AssignProc(@mysql_options, 'mysql_options');
+  AssignProc(@mysql_real_connect, 'mysql_real_connect');
+  AssignProc(@mysql_real_query, 'mysql_real_query');
+  AssignProc(@mysql_ssl_set, 'mysql_ssl_set');
+  AssignProc(@mysql_stat, 'mysql_stat');
+  AssignProc(@mysql_store_result, 'mysql_store_result');
+  AssignProc(@mysql_thread_id, 'mysql_thread_id');
+  AssignProc(@mysql_next_result, 'mysql_next_result');
+  AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
+  AssignProc(@mysql_thread_init, 'mysql_thread_init');
+  AssignProc(@mysql_thread_end, 'mysql_thread_end');
+  AssignProc(@mysql_warning_count, 'mysql_warning_count');
 end;
 
 

@@ -228,7 +228,7 @@ type
       constructor Create(SessionRegPath: String); overload;
       procedure SaveToRegistry;
       function CreateConnection(AOwner: TComponent): TDBConnection;
-      function CreateQuery(AOwner: TComponent): TDBQuery;
+      function CreateQuery(Connection: TDbConnection): TDBQuery;
       function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
       class function IsCompatibleToWin10S(NetType: TNetType): Boolean;
       function GetNetTypeGroup: TNetTypeGroup;
@@ -402,7 +402,7 @@ type
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
-      function ConnectionInfo: TStringList;
+      function ConnectionInfo: TStringList; virtual;
       function GetLastResults: TDBQueryList; virtual; abstract;
       function GetCreateCode(Obj: TDBObject): String; virtual;
       procedure PrefetchCreateCode(Objects: TDBObjectList);
@@ -477,11 +477,11 @@ type
   TMySQLConnection = class(TDBConnection)
     private
       FHandle: PMYSQL;
+      FLib: TMySQLLib;
       FLastRawResults: TMySQLRawResults;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
-      procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       function GetThreadId: Int64; override;
       function GetCharacterSet: String; override;
       procedure SetCharacterSet(CharsetName: String); override;
@@ -497,8 +497,10 @@ type
       procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
+      property Lib: TMySQLLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
+      function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Obj: TDBObject): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
@@ -649,9 +651,8 @@ type
       property ColumnOrgNames: TStringList read FColumnOrgNames write SetColumnOrgNames;
       property AutoIncrementColumn: Integer read FAutoIncrementColumn;
       property DBObject: TDBObject read FDBObject write SetDBObject;
-    published
       property SQL: String read FSQL write FSQL;
-      property Connection: TDBConnection read FConnection write FConnection;
+      property Connection: TDBConnection read FConnection;
   end;
   PDBQuery = ^TDBQuery;
 
@@ -659,11 +660,13 @@ type
 
   TMySQLQuery = class(TDBQuery)
     private
+      FConnection: TMySQLConnection;
       FResultList: TMySQLRawResults;
       FCurrentResults: PMYSQL_RES;
       FCurrentRow: PMYSQL_ROW;
       procedure SetRecNo(Value: Int64); override;
     public
+      constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
@@ -730,37 +733,6 @@ exports
 {$I const.inc}
 
 var
-  LibMysqlPath: String;
-  LibMysqlHandle: HMODULE; // Shared module handle
-
-  mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
-  mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_close: procedure(Handle: PMYSQL); stdcall;
-  mysql_data_seek: procedure(Result: PMYSQL_RES; Offset: Int64); stdcall;
-  mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
-  mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
-  mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
-  mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
-  mysql_get_client_info: function: PAnsiChar; stdcall;
-  mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
-  mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
-  mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
-  mysql_options: function(Handle: PMYSQL; Option: Integer; arg: PAnsiChar): Integer; stdcall;
-  mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
-  mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
-  mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
-  mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
-  mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
-  mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
-  mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
-  mysql_next_result: function(Handle: PMYSQL): Integer; stdcall;
-  mysql_set_character_set: function(Handle: PMYSQL; csname: PAnsiChar): Integer; stdcall;
-  mysql_thread_init: function: Byte; stdcall;
-  mysql_thread_end: procedure; stdcall;
-  mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
 
   LibPqPath: String = 'libpq.dll';
   LibPqHandle: HMODULE;
@@ -1302,15 +1274,15 @@ begin
 end;
 
 
-function TConnectionParameters.CreateQuery(AOwner: TComponent): TDBQuery;
+function TConnectionParameters.CreateQuery(Connection: TDbConnection): TDBQuery;
 begin
   case NetTypeGroup of
     ngMySQL:
-      Result := TMySQLQuery.Create(AOwner);
+      Result := TMySQLQuery.Create(Connection);
     ngMSSQL:
-      Result := TAdoDBQuery.Create(AOwner);
+      Result := TAdoDBQuery.Create(Connection);
     ngPgSQL:
-      Result := TPGQuery.Create(AOwner);
+      Result := TPGQuery.Create(Connection);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1682,25 +1654,6 @@ begin
 end;
 
 
-procedure TMySQLConnection.AssignProc(var Proc: FARPROC; Name: PAnsiChar);
-var
-  ClientVersion: String;
-begin
-  // Map library procedure to internal procedure
-  Log(lcDebug, f_('Assign procedure "%s"', [Name]));
-  Proc := GetProcAddress(LibMysqlHandle, Name);
-  if Proc = nil then begin
-    if @mysql_get_client_info = nil then
-      mysql_get_client_info := GetProcAddress(LibMysqlHandle, 'mysql_get_client_info');
-    ClientVersion := '';
-    if @mysql_get_client_info <> nil then
-      ClientVersion := ' ('+DecodeApiString(mysql_get_client_info)+')';
-    LibMysqlHandle := 0;
-    raise EDatabaseError.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.', [LibMysqlPath+ClientVersion, APPNAME, APPNAME]));
-  end;
-end;
-
-
 procedure TPgConnection.AssignProc(var Proc: FARPROC; Name: PAnsiChar);
 begin
   // Map library procedure to internal procedure
@@ -1727,9 +1680,9 @@ begin
       // We're running in a thread already. Ensure that Log() is able to detect that.
       FLockedByThread := Value;
       Log(lcDebug, 'mysql_thread_init, thread id #'+IntToStr(Value.ThreadID));
-      mysql_thread_init;
+      FLib.mysql_thread_init;
     end else begin
-      mysql_thread_end;
+      FLib.mysql_thread_end;
       Log(lcDebug, 'mysql_thread_end, thread id #'+IntToStr(FLockedByThread.ThreadID));
       FLockedByThread := Value;
     end;
@@ -1761,7 +1714,7 @@ begin
     DoBeforeConnect;
 
     // Get handle
-    FHandle := mysql_init(nil);
+    FHandle := FLib.mysql_init(nil);
 
     // Prepare special stuff for SSL and SSH tunnel
     FinalHost := FParameters.Hostname;
@@ -1783,7 +1736,7 @@ begin
       if FParameters.SSLCipher <> '' then
         sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
       { TODO : Use Cipher and CAPath parameters }
-      mysql_ssl_set(FHandle,
+      FLib.mysql_ssl_set(FHandle,
         sslkey,
         sslcert,
         sslca,
@@ -1819,7 +1772,7 @@ begin
 
     // Point libmysql to the folder with client plugins
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
-    SetOptionResult := mysql_options(FHandle, Integer(MYSQL_PLUGIN_DIR), PAnsiChar(PluginDir));
+    SetOptionResult := FLib.mysql_options(FHandle, Integer(MYSQL_PLUGIN_DIR), PAnsiChar(PluginDir));
     if SetOptionResult <> 0 then begin
       raise EDatabaseError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
     end;
@@ -1827,14 +1780,14 @@ begin
     // Define which TLS protocol versions are allowed.
     // See https://www.heidisql.com/forum.php?t=27158
     // See https://mariadb.com/kb/en/library/mysql_optionsv/
-    mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-    mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
+    FLib.mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
+    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
-      mysql_options(FHandle, Integer(MYSQL_ENABLE_CLEARTEXT_PLUGIN), PAnsiChar('1'));
+      FLib.mysql_options(FHandle, Integer(MYSQL_ENABLE_CLEARTEXT_PLUGIN), PAnsiChar('1'));
 
-    Connected := mysql_real_connect(
+    Connected := FLib.mysql_real_connect(
       FHandle,
       PAnsiChar(Utf8Encode(FinalHost)),
       PAnsiChar(Utf8Encode(FParameters.Username)),
@@ -1912,7 +1865,7 @@ begin
         Status.Next;
       end;
       FServerDateTimeOnStartup := GetVar('SELECT NOW()');
-      FServerVersionUntouched := DecodeAPIString(mysql_get_server_info(FHandle));
+      FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
       Vars := GetSessionVariables(False);
       while not Vars.Eof do begin
         if Vars.Col(0) = 'version_compile_os' then
@@ -1941,7 +1894,7 @@ begin
   end
 
   else if (not Value) and (FHandle <> nil) then begin
-    mysql_close(FHandle);
+    FLib.mysql_close(FHandle);
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
@@ -2290,75 +2243,39 @@ procedure TMySQLConnection.DoBeforeConnect;
 var
   msg,
   TryLibraryPath: String;
-  OldErrorMode: Cardinal;
   TryLibraryPaths: TStringList;
 begin
   // Init libmysql before actually connecting.
-  if LibMysqlHandle = 0 then begin
 
-    // Try newer libmariadb version at first, and fall back to libmysql,
-    // then fall back to dlls somewhere else on the users harddisk
-    TryLibraryPaths := TStringList.Create;
-    TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmariadb.dll');
-    TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmysql.dll');
-    TryLibraryPaths.Add('libmariadb.dll');
-    TryLibraryPaths.Add('libmysql.dll');
 
-    for TryLibraryPath in TryLibraryPaths do begin
-      Log(lcDebug, f_('Loading library file %s ...', [TryLibraryPath]));
-      // Temporarily suppress error popups while loading new library on Windows XP, see #79
-      OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
-      SetErrorMode(OldErrorMode or SEM_FAILCRITICALERRORS);
-      LibMysqlHandle := LoadLibrary(PWideChar(TryLibraryPath));
-      SetErrorMode(OldErrorMode);
-      if LibMysqlHandle = 0 then begin
-        // Win XP needs libmysql.dll
-        Log(lcDebug, f_('Could not load %s', [TryLibraryPath]));
-      end else begin
-        LibMysqlPath := TryLibraryPath;
-        Break;
-      end;
-    end;
-    if LibMysqlHandle = 0 then begin
-      msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.',
-        [ExtractFileName(TryLibraryPaths[0]), ExtractFileName(ParamStr(0))]
-        );
-      if Windows.GetLastError <> 0 then
-        msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
-      raise EDatabaseError.Create(msg);
+  // Try newer libmariadb version at first, and fall back to libmysql,
+  // then fall back to dlls somewhere else on the users harddisk
+  TryLibraryPaths := TStringList.Create;
+  TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmariadb.dll');
+  TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmysql.dll');
+  TryLibraryPaths.Add('libmariadb.dll');
+  TryLibraryPaths.Add('libmysql.dll');
+
+  for TryLibraryPath in TryLibraryPaths do begin
+    Log(lcDebug, f_('Loading library file %s ...', [TryLibraryPath]));
+    try
+      FLib := TMySQLLib.Create(ExtractFilePath(Application.ExeName) + TryLibraryPath);
+      Log(lcDebug, FLib.DllFile + ' v' + DecodeApiString(FLib.mysql_get_client_info) + ' loaded.');
+      Break;
+    except
+      // Win XP needs libmysql.dll
+      Log(lcDebug, f_('Could not load %s', [TryLibraryPath]));
     end
-    else begin
-      AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
-      AssignProc(@mysql_character_set_name, 'mysql_character_set_name');
-      AssignProc(@mysql_close, 'mysql_close');
-      AssignProc(@mysql_data_seek, 'mysql_data_seek');
-      AssignProc(@mysql_errno, 'mysql_errno');
-      AssignProc(@mysql_error, 'mysql_error');
-      AssignProc(@mysql_fetch_field_direct, 'mysql_fetch_field_direct');
-      AssignProc(@mysql_fetch_lengths, 'mysql_fetch_lengths');
-      AssignProc(@mysql_fetch_row, 'mysql_fetch_row');
-      AssignProc(@mysql_free_result, 'mysql_free_result');
-      AssignProc(@mysql_get_client_info, 'mysql_get_client_info');
-      AssignProc(@mysql_get_server_info, 'mysql_get_server_info');
-      AssignProc(@mysql_init, 'mysql_init');
-      AssignProc(@mysql_num_fields, 'mysql_num_fields');
-      AssignProc(@mysql_num_rows, 'mysql_num_rows');
-      AssignProc(@mysql_ping, 'mysql_ping');
-      AssignProc(@mysql_options, 'mysql_options');
-      AssignProc(@mysql_real_connect, 'mysql_real_connect');
-      AssignProc(@mysql_real_query, 'mysql_real_query');
-      AssignProc(@mysql_ssl_set, 'mysql_ssl_set');
-      AssignProc(@mysql_stat, 'mysql_stat');
-      AssignProc(@mysql_store_result, 'mysql_store_result');
-      AssignProc(@mysql_thread_id, 'mysql_thread_id');
-      AssignProc(@mysql_next_result, 'mysql_next_result');
-      AssignProc(@mysql_set_character_set, 'mysql_set_character_set');
-      AssignProc(@mysql_thread_init, 'mysql_thread_init');
-      AssignProc(@mysql_thread_end, 'mysql_thread_end');
-      AssignProc(@mysql_warning_count, 'mysql_warning_count');
-      Log(lcDebug, LibMysqlPath + ' v' + DecodeApiString(mysql_get_client_info) + ' loaded.');
-    end;
   end;
+  if not Assigned(FLib) then begin
+    msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.',
+      [ExtractFileName(TryLibraryPaths[0]), ExtractFileName(ParamStr(0))]
+      );
+    if Windows.GetLastError <> 0 then
+      msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
+    raise EDatabaseError.Create(msg);
+  end;
+
   inherited;
 end;
 
@@ -2503,7 +2420,7 @@ begin
   Log(lcDebug, 'Ping server ...');
   IsDead := True;
   try
-    IsDead := (FHandle=nil) or (mysql_ping(FHandle) <> 0);
+    IsDead := (FHandle=nil) or (FLib.mysql_ping(FHandle) <> 0);
   except
     // silence dumb exceptions from mysql_ping
     on E:Exception do
@@ -2615,7 +2532,7 @@ begin
   SetLength(FLastRawResults, 0);
   FResultCount := 0;
   FStatementNum := 1;
-  QueryStatus := mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
+  QueryStatus := FLib.mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
   if QueryStatus <> 0 then begin
@@ -2626,13 +2543,13 @@ begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
     FRowsAffected := 0;
-    FWarningCount := mysql_warning_count(FHandle);
+    FWarningCount := FLib.mysql_warning_count(FHandle);
     FRowsFound := 0;
     TimerStart := GetTickCount;
-    QueryResult := mysql_store_result(FHandle);
+    QueryResult := FLib.mysql_store_result(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
 
-    if (QueryResult = nil) and (mysql_affected_rows(FHandle) = -1) then begin
+    if (QueryResult = nil) and (FLib.mysql_affected_rows(FHandle) = -1) then begin
       // Indicates a late error, e.g. triggered by mysql_store_result(), after selecting a stored
       // function with invalid SQL body. Also SHOW TABLE STATUS on older servers.
       // See http://dev.mysql.com/doc/refman/5.0/en/mysql-affected-rows.html
@@ -2651,22 +2568,22 @@ begin
     while QueryStatus=0 do begin
       if QueryResult <> nil then begin
         // Statement returned a result set
-        Inc(FRowsFound, mysql_num_rows(QueryResult));
+        Inc(FRowsFound, FLib.mysql_num_rows(QueryResult));
         if DoStoreResult then begin
           SetLength(FLastRawResults, Length(FLastRawResults)+1);
           FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
         end else begin
-          mysql_free_result(QueryResult);
+          FLib.mysql_free_result(QueryResult);
         end;
       end else begin
         // No result, but probably affected rows
-        Inc(FRowsAffected, mysql_affected_rows(FHandle));
+        Inc(FRowsAffected, FLib.mysql_affected_rows(FHandle));
       end;
       // more results? -1 = no, >0 = error, 0 = yes (keep looping)
       Inc(FStatementNum);
-      QueryStatus := mysql_next_result(FHandle);
+      QueryStatus := FLib.mysql_next_result(FHandle);
       if QueryStatus = 0 then
-        QueryResult := mysql_store_result(FHandle)
+        QueryResult := FLib.mysql_store_result(FHandle)
       else if QueryStatus > 0 then begin
         // MySQL stops executing a multi-query when an error occurs. So do we here by raising an exception.
         SetLength(FLastRawResults, 0);
@@ -2826,8 +2743,7 @@ var
 begin
   Result := TDBQueryList.Create(False);
   for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
-    r := Parameters.CreateQuery(nil);
-    r.Connection := Self;
+    r := Parameters.CreateQuery(Self);
     r.SQL := FLastQuerySQL;
     r.Execute(False, i);
     Result.Add(r);
@@ -2845,8 +2761,7 @@ begin
   Batch := TSQLBatch.Create;
   Batch.SQL := FLastQuerySQL;
   for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
-    r := Parameters.CreateQuery(nil);
-    r.Connection := Self;
+    r := Parameters.CreateQuery(Self);
     if Batch.Count > i then
       r.SQL := Batch[i].SQL
     else // See http://www.heidisql.com/forum.php?t=21036
@@ -2865,8 +2780,7 @@ var
 begin
   Result := TDBQueryList.Create(False);
   for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
-    r := Parameters.CreateQuery(nil);
-    r.Connection := Self;
+    r := Parameters.CreateQuery(Self);
     r.SQL := FLastQuerySQL;
     r.Execute(False, i);
     Result.Add(r);
@@ -3412,7 +3326,7 @@ end;
 function TMySQLConnection.GetCharacterSet: String;
 begin
   Result := inherited;
-  Result := DecodeAPIString(mysql_character_set_name(FHandle));
+  Result := DecodeAPIString(FLib.mysql_character_set_name(FHandle));
 end;
 
 
@@ -3424,7 +3338,7 @@ var
   Return: Integer;
 begin
   FStatementNum := 0;
-  Return := mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
+  Return := FLib.mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
   if Return <> 0 then
     raise EDatabaseError.Create(LastErrorMsg)
   else
@@ -3447,7 +3361,7 @@ end;
 
 function TMySQLConnection.GetLastErrorCode: Cardinal;
 begin
-  Result := mysql_errno(FHandle);
+  Result := FLib.mysql_errno(FHandle);
 end;
 
 
@@ -3476,7 +3390,7 @@ var
   rx: TRegExpr;
 begin
   Result := '';
-  Msg := DecodeAPIString(mysql_error(FHandle));
+  Msg := DecodeAPIString(FLib.mysql_error(FHandle));
   // Find "(errno: 123)" in message and add more meaningful message from perror.exe
   rx := TRegExpr.Create;
   rx.Expression := '.+\(errno\:\s+(\d+)\)';
@@ -3716,7 +3630,6 @@ begin
   // Fire query
   if Result = nil then begin
     Result := Parameters.CreateQuery(Self);
-    Result.Connection := Self;
     Result.SQL := SQL;
     try
       Result.Execute;
@@ -5080,7 +4993,7 @@ end;
 
 function TDBConnection.ConnectionInfo: TStringList;
 var
-  Infos, Val, v, ConnectionString: String;
+  v, ConnectionString: String;
   major, minor, build: Integer;
   rx: TRegExpr;
 
@@ -5108,25 +5021,6 @@ begin
     if Assigned(FSessionVariables) then
       Result.Values['max_allowed_packet'] := FormatByteNumber(MaxAllowedPacket);
     case Parameters.NetTypeGroup of
-      ngMySQL: begin
-        Result.Values[f_('Client version (%s)', [LibMysqlPath])] := DecodeApiString(mysql_get_client_info);
-        Infos := DecodeApiString(mysql_stat((Self as TMySQLConnection).FHandle));
-        rx := TRegExpr.Create;
-        rx.ModifierG := False;
-        rx.Expression := '(\S.*)\:\s+(\S*)(\s+|$)';
-        if rx.Exec(Infos) then while True do begin
-          Val := rx.Match[2];
-          if LowerCase(rx.Match[1]) = 'uptime' then
-            Val := FormatTimeNumber(StrToFloatDef(Val, 0), True)
-          else
-            Val := FormatNumber(Val);
-          Result.Values[_(rx.Match[1])] := Val;
-          if not rx.ExecNext then
-            break;
-        end;
-        rx.Free;
-      end;
-
       ngMSSQL: begin
         // clear out password
         ConnectionString := TAdoDBConnection(Self).FAdoHandle.ConnectionString;
@@ -5148,6 +5042,31 @@ begin
     end;
   end;
 end;
+
+function TMySQLConnection.ConnectionInfo: TStringList;
+var
+  Infos, Val: String;
+  rx: TRegExpr;
+begin
+  Result := Inherited;
+  Result.Values[f_('Client version (%s)', [FLib.DllFile])] := DecodeApiString(FLib.mysql_get_client_info);
+  Infos := DecodeApiString(FLib.mysql_stat(FHandle));
+  rx := TRegExpr.Create;
+  rx.ModifierG := False;
+  rx.Expression := '(\S.*)\:\s+(\S*)(\s+|$)';
+  if rx.Exec(Infos) then while True do begin
+    Val := rx.Match[2];
+    if LowerCase(rx.Match[1]) = 'uptime' then
+      Val := FormatTimeNumber(StrToFloatDef(Val, 0), True)
+    else
+      Val := FormatNumber(Val);
+    Result.Values[_(rx.Match[1])] := Val;
+    if not rx.ExecNext then
+      break;
+  end;
+  rx.Free;
+end;
+
 
 
 procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
@@ -5669,6 +5588,7 @@ end;
 constructor TDBQuery.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  FConnection := AOwner as TDbConnection;
   FRecNo := -1;
   FRecordCount := 0;
   FColumnNames := TStringList.Create;
@@ -5678,6 +5598,13 @@ begin
   FStoreResult := True;
   FDBObject := nil;
   FFormatSettings := TFormatSettings.Create('en-US');
+end;
+
+
+constructor TMySQLQuery.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnection := AOwner as TMySQLConnection;
 end;
 
 
@@ -5704,7 +5631,7 @@ var
   i: Integer;
 begin
   if HasResult then for i:=Low(FResultList) to High(FResultList) do
-    mysql_free_result(FResultList[i]);
+    FConnection.Lib.mysql_free_result(FResultList[i]);
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -5757,7 +5684,7 @@ begin
     NumResults := Length(FResultList)+1
   else begin
     for i:=Low(FResultList) to High(FResultList) do
-      mysql_free_result(FResultList[i]);
+      FConnection.Lib.mysql_free_result(FResultList[i]);
     NumResults := 1;
     FRecordCount := 0;
     FAutoIncrementColumn := -1;
@@ -5773,14 +5700,14 @@ begin
     if HasResult then begin
       // FCurrentResults is normally done in SetRecNo, but never if result has no rows
       FCurrentResults := LastResult;
-      NumFields := mysql_num_fields(LastResult);
+      NumFields := FConnection.Lib.mysql_num_fields(LastResult);
       SetLength(FColumnTypes, NumFields);
       SetLength(FColumnLengths, NumFields);
       SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
       for i:=0 to NumFields-1 do begin
-        Field := mysql_fetch_field_direct(LastResult, i);
+        Field := FConnection.Lib.mysql_fetch_field_direct(LastResult, i);
         FColumnNames.Add(Connection.DecodeAPIString(Field.name));
         if Connection.ServerVersionInt >= 40100 then
           FColumnOrgNames.Add(Connection.DecodeAPIString(Field.org_name))
@@ -6069,11 +5996,11 @@ begin
           // Do not seek if FCurrentRow points to the previous row of the wanted row
           WantedLocalRecNo := FCurrentResults.row_count-(NumRows-Value);
           if (WantedLocalRecNo = 0) or (FRecNo+1 <> Value) or (FCurrentRow = nil) then
-            mysql_data_seek(FCurrentResults, WantedLocalRecNo);
-          FCurrentRow := mysql_fetch_row(FCurrentResults);
+            FConnection.Lib.mysql_data_seek(FCurrentResults, WantedLocalRecNo);
+          FCurrentRow := FConnection.Lib.mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
           // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
-          LengthPointer := mysql_fetch_lengths(FCurrentResults);
+          LengthPointer := FConnection.Lib.mysql_fetch_lengths(FCurrentResults);
           for j:=Low(FColumnLengths) to High(FColumnLengths) do
             FColumnLengths[j] := PInteger(Integer(LengthPointer) + j * SizeOf(Integer))^;
           break;
@@ -6261,7 +6188,7 @@ begin
         Result := Connection.DecodeAPIString(AnsiStr);
       // Create string bitmask for BIT fields
       if Datatype(Column).Index = dtBit then begin
-        Field := mysql_fetch_field_direct(FCurrentResults, column);
+        Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, column);
         // FConnection.Log(lcInfo, Field.name+':  def: '+field.def+'  length: '+inttostr(field.length)+'  max_length: '+inttostr(field.max_length)+'  decimals: '+inttostr(field.decimals));
         for c in Result do begin
           ByteVal := Byte(c);
@@ -7028,7 +6955,7 @@ begin
     // Return first available Field.db property, or just the current database as fallback.
     // For a view in db1 selecting from db2, this returns db2, which triggers errors in GetCreateViewCode!
     for i:=0 to ColumnCount-1 do begin
-      Field := mysql_fetch_field_direct(FCurrentResults, i);
+      Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, i);
       if Field.db <> '' then begin
         Result := Connection.DecodeAPIString(Field.db);
         break;
@@ -7064,7 +6991,7 @@ var
 begin
   IsView := False;
   for i:=0 to ColumnCount-1 do begin
-    Field := mysql_fetch_field_direct(FCurrentResults, i);
+    Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, i);
 
     if Connection.DecodeAPIString(Field.table) <> Connection.DecodeAPIString(Field.org_table) then begin
       // Probably a VIEW, in which case we rely on the first column's table name.
@@ -7789,17 +7716,6 @@ begin
   Dialog.Free;
 end;
 
-
-initialization
-
-
-finalization
-
-// Release libmysql.dll handle
-if LibMysqlHandle <> 0 then begin
-  FreeLibrary(LibMysqlHandle);
-  LibMysqlHandle := 0;
-end;
 
 
 end.
