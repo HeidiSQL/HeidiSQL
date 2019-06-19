@@ -1787,6 +1787,10 @@ begin
     if Parameters.CleartextPluginEnabled then
       FLib.mysql_options(FHandle, Integer(MYSQL_ENABLE_CLEARTEXT_PLUGIN), PAnsiChar('1'));
 
+    // Tell server who we are
+    if Assigned(FLib.mysql_optionsv) then
+      FLib.mysql_optionsv(FHandle, Integer(MYSQL_OPT_CONNECT_ATTR_ADD), 'program_name', APPNAME);
+
     Connected := FLib.mysql_real_connect(
       FHandle,
       PAnsiChar(Utf8Encode(FinalHost)),
