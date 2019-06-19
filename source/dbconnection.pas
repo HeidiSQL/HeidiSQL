@@ -2250,6 +2250,7 @@ begin
 
   // Try newer libmariadb version at first, and fall back to libmysql,
   // then fall back to dlls somewhere else on the users harddisk
+  // Win XP needs libmysql.dll
   TryLibraryPaths := TStringList.Create;
   TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmariadb.dll');
   TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmysql.dll');
@@ -2259,12 +2260,12 @@ begin
   for TryLibraryPath in TryLibraryPaths do begin
     Log(lcDebug, f_('Loading library file %s ...', [TryLibraryPath]));
     try
-      FLib := TMySQLLib.Create(ExtractFilePath(Application.ExeName) + TryLibraryPath);
+      FLib := TMySQLLib.Create(TryLibraryPath);
       Log(lcDebug, FLib.DllFile + ' v' + DecodeApiString(FLib.mysql_get_client_info) + ' loaded.');
       Break;
     except
-      // Win XP needs libmysql.dll
-      Log(lcDebug, f_('Could not load %s', [TryLibraryPath]));
+      on E:Exception do
+        Log(lcDebug, E.Message);
     end
   end;
   if not Assigned(FLib) then begin
