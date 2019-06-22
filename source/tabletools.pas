@@ -170,7 +170,7 @@ type
 
 implementation
 
-uses main, mysql_structures;
+uses main, dbstructures;
 
 const
   STRSKIPPED: String = 'Skipped - ';

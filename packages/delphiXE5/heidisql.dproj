@@ -159,7 +159,7 @@
         <DCCReference Include="..\..\source\sqlhelp.pas">
             <Form>frmSQLhelp</Form>
         </DCCReference>
-        <DCCReference Include="..\..\source\mysql_structures.pas"/>
+        <DCCReference Include="..\..\source\dbstructures.pas"/>
         <DCCReference Include="..\..\source\column_selection.pas">
             <Form>ColumnSelectionForm</Form>
         </DCCReference>

@@ -7,7 +7,7 @@ interface
 uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
-  dbconnection, mysql_structures, apphelpers, texteditor, bineditor, gnugettext,
+  dbconnection, dbstructures, apphelpers, texteditor, bineditor, gnugettext,
   StrUtils, System.UITypes, SynRegExpr, Vcl.Themes;
 
 type
@@ -821,7 +821,7 @@ begin
     Result := MakeInt(FTableColumn.LengthSet)
   else begin
     // Find default length of supported microseconds in datatype definition
-    // See mysql_structures
+    // See dbstructures
     rx := TRegExpr.Create;
     rx.Expression := '\.([^\.]+)$';
     if rx.Exec(FTableColumn.DataType.Format) then

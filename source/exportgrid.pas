@@ -93,7 +93,7 @@ type
 
 implementation
 
-uses main, apphelpers, dbconnection, mysql_structures;
+uses main, apphelpers, dbconnection, dbstructures;
 
 {$R *.dfm}
 

@@ -1,4 +1,4 @@
-﻿unit mysql_structures;
+﻿unit dbstructures;
 
 // -------------------------------------
 // MySQL Constants, Variables and Types

@@ -1215,7 +1215,7 @@ const
 implementation
 
 uses
-  About, printlist, mysql_structures, UpdateCheck,
+  About, printlist, dbstructures, UpdateCheck,
   column_selection, data_sorting, grideditlinks, ExportGrid, jpeg, GIFImg;
 
 

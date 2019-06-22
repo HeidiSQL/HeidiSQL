@@ -7,7 +7,7 @@
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
-        <ProjectVersion>18.5</ProjectVersion>
+        <ProjectVersion>18.6</ProjectVersion>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -169,7 +169,7 @@
         <DCCReference Include="..\..\source\sqlhelp.pas">
             <Form>frmSQLhelp</Form>
         </DCCReference>
-        <DCCReference Include="..\..\source\mysql_structures.pas"/>
+        <DCCReference Include="..\..\source\dbstructures.pas"/>
         <DCCReference Include="..\..\source\column_selection.pas">
             <Form>ColumnSelectionForm</Form>
         </DCCReference>

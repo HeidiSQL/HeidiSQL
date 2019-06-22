@@ -18,7 +18,7 @@ uses
   insertfiles in '..\..\source\insertfiles.pas' {frmInsertFiles},
   apphelpers in '..\..\source\apphelpers.pas',
   sqlhelp in '..\..\source\sqlhelp.pas' {frmSQLhelp},
-  mysql_structures in '..\..\source\mysql_structures.pas',
+  dbstructures in '..\..\source\dbstructures.pas',
   column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
   data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm},

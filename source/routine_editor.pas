@@ -96,7 +96,7 @@ type
 
 implementation
 
-uses main, mysql_structures, grideditlinks;
+uses main, dbstructures, grideditlinks;
 
 {$R *.dfm}
 
