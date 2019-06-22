@@ -1123,8 +1123,7 @@ type
     DataGridHiddenColumns: TStringList;
     DataGridSortColumns: TOrderColArray;
     DataGridWantedRowCount: Int64;
-    DataGridDB: String;
-    DataGridTable: String;
+    DataGridTable: TDBObject;
     DataGridFocusedCell: TStringList;
     DataGridFocusedNodeIndex: Int64;
     DataGridFocusedColumnName: String;
@@ -5139,7 +5138,8 @@ begin
     lblSorryNoData.Parent := tabData;
 
     // Indicates whether the current table data is just refreshed or if we're in another table
-    RefreshingData := (ActiveDatabase = DataGridDB) and (DBObj.Name = DataGridTable);
+    // ... or maybe in a table/database with the same name on a different server
+    RefreshingData := DBObj.IsSameAs(DataGridTable);
 
     // Load last view settings
     HandleDataGridAttributes(RefreshingData);
@@ -5154,8 +5154,7 @@ begin
         ColWidths.Values[vt.Header.Columns[i].Text] := IntToStr(vt.Header.Columns[i].Width);
     end;
 
-    DataGridDB := DBObj.Database;
-    DataGridTable := DBObj.Name;
+    DataGridTable := DBObj;
 
     Select := '';
     // Ensure key columns are included to enable editing
@@ -9673,7 +9672,7 @@ begin
     DataGridFocusedCell := TStringList.Create;
   // Remember focused node and column for selected table
   if Assigned(DataGrid.FocusedNode) then begin
-    KeyName := ActiveConnection.QuoteIdent(DataGridDB)+'.'+ActiveConnection.QuoteIdent(DataGridTable);
+    KeyName := ActiveConnection.QuoteIdent(DataGridTable.Database)+'.'+ActiveConnection.QuoteIdent(DataGridTable.Name);
     FocusedCol := '';
     if DataGrid.FocusedColumn > NoColumn then
       FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
