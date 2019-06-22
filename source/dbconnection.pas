@@ -531,26 +531,23 @@ type
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
+      function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
       function MaxAllowedPacket: Int64; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
   end;
 
-  TPQConnectStatus = (CONNECTION_OK, CONNECTION_BAD, CONNECTION_STARTED, CONNECTION_MADE, CONNECTION_AWAITING_RESPONSE, CONNECTION_AUTH_OK, CONNECTION_SETENV, CONNECTION_SSL_STARTUP, CONNECTION_NEEDED);
-  PPGconn = Pointer;
-  PPGresult = Pointer;
-  POid = Integer;
   TPGRawResults = Array of PPGresult;
   TPQerrorfields = (PG_DIAG_SEVERITY, PG_DIAG_SQLSTATE, PG_DIAG_MESSAGE_PRIMARY, PG_DIAG_MESSAGE_DETAIL, PG_DIAG_MESSAGE_HINT, PG_DIAG_STATEMENT_POSITION, PG_DIAG_INTERNAL_POSITION, PG_DIAG_INTERNAL_QUERY, PG_DIAG_CONTEXT, PG_DIAG_SOURCE_FILE, PG_DIAG_SOURCE_LINE, PG_DIAG_SOURCE_FUNCTION);
   TPgConnection = class(TDBConnection)
     private
       FHandle: PPGconn;
+      FLib: TPostgreSQLLib;
       FLastRawResults: TPGRawResults;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       function GetThreadId: Int64; override;
       procedure SetCharacterSet(CharsetName: String); override;
-      procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar);
       function GetLastErrorCode: Cardinal; override;
       function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
@@ -560,8 +557,10 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+      property Lib: TPostgreSQLLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
+      function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
       function MaxAllowedPacket: Int64; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
@@ -701,11 +700,13 @@ type
 
   TPGQuery = class(TDBQuery)
     private
+      FConnection: TPgConnection;
       FCurrentResults: PPGresult;
       FRecNoLocal: Integer;
       FResultList: TPGRawResults;
       procedure SetRecNo(Value: Int64); override;
     public
+      constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
@@ -732,30 +733,7 @@ exports
 
 {$I const.inc}
 
-var
 
-  LibPqPath: String = 'libpq.dll';
-  LibPqHandle: HMODULE;
-  PQconnectdb: function(const ConnInfo: PAnsiChar): PPGconn cdecl;
-  PQerrorMessage: function(const Handle: PPGconn): PAnsiChar cdecl;
-  PQresultErrorMessage: function(const Result: PPGresult): PAnsiChar cdecl;
-  PQresultErrorField: function(const Result: PPGresult; fieldcode: Integer): PAnsiChar;
-  PQfinish: procedure(const Handle: PPGconn);
-  PQstatus: function(const Handle: PPGconn): TPQConnectStatus cdecl;
-  PQsendQuery: function(const Handle: PPGconn; command: PAnsiChar): Integer cdecl;
-  PQgetResult: function(const Handle: PPGconn): PPGresult cdecl;
-  PQbackendPID: function(const Handle: PPGconn): Integer cdecl;
-  PQcmdTuples: function(Result: PPGresult): PAnsiChar; cdecl;
-  PQntuples: function(Result: PPGresult): Integer; cdecl;
-  PQclear: procedure(Result: PPGresult); cdecl;
-  PQnfields: function(Result: PPGresult): Integer; cdecl;
-  PQfname: function(const Result: PPGresult; column_number: Integer): PAnsiChar; cdecl;
-  PQftype: function(const Result: PPGresult; column_number: Integer): POid; cdecl;
-  PQftable: function(const Result: PPGresult; column_number: Integer): POid; cdecl;
-  PQgetvalue: function(const Result: PPGresult; row_number: Integer; column_number: Integer): PAnsiChar; cdecl;
-  PQgetlength: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
-  PQgetisnull: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
-  PQlibVersion: function(): Integer; cdecl;
 
 implementation
 
@@ -1654,19 +1632,6 @@ begin
 end;
 
 
-procedure TPgConnection.AssignProc(var Proc: FARPROC; Name: PAnsiChar);
-begin
-  // Map library procedure to internal procedure
-  Log(lcDebug, f_('Assign procedure "%s"', [Name]));
-  Proc := GetProcAddress(LibPqHandle, Name);
-  if Proc = nil then begin
-    LibPqHandle := 0;
-    Log(lcDebug, f_('Library error in %s: Could not find procedure address for "%s"', [LibPqPath, Name]));
-    raise EDatabaseError.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.', [LibPqPath, APPNAME, APPNAME]));
-  end;
-end;
-
-
 procedure TDBConnection.SetLockedByThread(Value: TThread);
 begin
   FLockedByThread := Value;
@@ -2108,12 +2073,12 @@ begin
       'password='''+FParameters.Password+''' '+
       'dbname='''+dbname+''' '+
       'application_name='''+APPNAME+'''';
-    FHandle := PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
-    if PQstatus(FHandle) = CONNECTION_BAD then begin
+    FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
+    if FLib.PQstatus(FHandle) = CONNECTION_BAD then begin
       Error := LastErrorMsg;
       Log(lcError, Error);
       FConnectionStarted := 0;
-      PQfinish(FHandle); // free the memory
+      FLib.PQfinish(FHandle); // free the memory
       FHandle := nil;
       if FPlink <> nil then
         FPlink.Free;
@@ -2146,7 +2111,7 @@ begin
     end;
   end else begin
     try
-      PQfinish(FHandle);
+      FLib.PQfinish(FHandle);
     except
       on E:EAccessViolation do;
     end;
@@ -2287,50 +2252,37 @@ end;
 
 procedure TPgConnection.DoBeforeConnect;
 var
-  LibWithPath, msg: String;
+  msg,
+  TryLibraryPath: String;
+  TryLibraryPaths: TStringList;
 begin
   // Init lib before actually connecting.
   // Each connection has its own library handle
-  if LibPqHandle = 0 then begin
-    Log(lcDebug, f_('Loading library file %s ...', [LibPqPath]));
-    LibPqHandle := LoadLibrary(PWideChar(LibPqPath));
-    if LibPqHandle = 0 then begin
-      // Try with explicit file path if the path-less did not succeed. See http://www.heidisql.com/forum.php?t=22514
-      LibWithPath := ExtractFileDir(Application.ExeName) + '\' + LibPqPath;
-      Log(lcInfo, f_('Trying to load library with full path: %s', [LibWithPath]));
-      LibPqHandle := LoadLibrary(PWideChar(LibWithPath));
-    end;
-    if LibPqHandle = 0 then begin
-      msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.', [LibPqPath, ExtractFileName(ParamStr(0))]);
-      if Windows.GetLastError <> 0 then
-        msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
-      raise EDatabaseError.Create(msg);
-    end
-    else begin
-      AssignProc(@PQconnectdb, 'PQconnectdb');
-      AssignProc(@PQerrorMessage, 'PQerrorMessage');
-      AssignProc(@PQresultErrorMessage, 'PQresultErrorMessage');
-      AssignProc(@PQresultErrorField, 'PQresultErrorField');
-      AssignProc(@PQfinish, 'PQfinish');
-      AssignProc(@PQstatus, 'PQstatus');
-      AssignProc(@PQsendQuery, 'PQsendQuery');
-      AssignProc(@PQgetResult, 'PQgetResult');
-      AssignProc(@PQbackendPID, 'PQbackendPID');
-      AssignProc(@PQcmdTuples, 'PQcmdTuples');
-      AssignProc(@PQntuples, 'PQntuples');
-      AssignProc(@PQclear, 'PQclear');
-      AssignProc(@PQnfields, 'PQnfields');
-      AssignProc(@PQfname, 'PQfname');
-      AssignProc(@PQftype, 'PQftype');
-      AssignProc(@PQftable, 'PQftable');
-      AssignProc(@PQgetvalue, 'PQgetvalue');
-      AssignProc(@PQgetlength, 'PQgetlength');
-      AssignProc(@PQgetisnull, 'PQgetisnull');
-      AssignProc(@PQlibVersion, 'PQlibVersion');
+  TryLibraryPaths := TStringList.Create;
+  TryLibraryPaths.Add('libpq.dll');
+  // Try with explicit file path if the path-less did not succeed. See http://www.heidisql.com/forum.php?t=22514
+  TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libpq.dll');
 
-      Log(lcDebug, LibPqPath + ' v' + IntToStr(PQlibVersion) + ' loaded.');
-    end;
+  for TryLibraryPath in TryLibraryPaths do begin
+    Log(lcDebug, f_('Loading library file %s ...', [TryLibraryPath]));
+    try
+      FLib := TPostgreSQLLib.Create(TryLibraryPath);
+      Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
+      Break;
+    except
+      on E:Exception do
+        Log(lcDebug, E.Message);
+    end
   end;
+  if not Assigned(FLib) then begin
+    msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.',
+      [ExtractFileName(TryLibraryPaths[0]), ExtractFileName(ParamStr(0))]
+      );
+    if Windows.GetLastError <> 0 then
+      msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
+    raise EDatabaseError.Create(msg);
+  end;
+
   inherited;
 end;
 
@@ -2476,12 +2428,12 @@ begin
   if FActive then begin
     IsBroken := FHandle = nil;
     if not IsBroken then begin
-      PingStatus := PQsendQuery(FHandle, PAnsiChar(''));
+      PingStatus := FLib.PQsendQuery(FHandle, PAnsiChar(''));
       IsBroken := PingStatus <> 1;
-      PingResult := PQgetResult(FHandle);
+      PingResult := FLib.PQgetResult(FHandle);
       while PingResult <> nil do begin
-        PQclear(PingResult);
-        PingResult := PQgetResult(FHandle);
+        FLib.PQclear(PingResult);
+        PingResult := FLib.PQgetResult(FHandle);
       end;
     end;
 
@@ -2691,7 +2643,7 @@ begin
   FRowsAffected := 0;
   FWarningCount := 0;
 
-  QueryStatus := PQsendQuery(FHandle, PAnsiChar(NativeSQL));
+  QueryStatus := FLib.PQsendQuery(FHandle, PAnsiChar(NativeSQL));
 
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
@@ -2702,37 +2654,37 @@ begin
     FRowsAffected := 0;
     FRowsFound := 0;
     TimerStart := GetTickCount;
-    QueryResult := PQgetResult(FHandle);
+    QueryResult := FLib.PQgetResult(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
 
     DetectUSEQuery(SQL);
 
     while QueryResult <> nil do begin
-      if PQnfields(QueryResult) > 0 then begin
+      if FLib.PQnfields(QueryResult) > 0 then begin
         // Statement returned a result set
-        Inc(FRowsFound, PQntuples(QueryResult));
+        Inc(FRowsFound, FLib.PQntuples(QueryResult));
         if DoStoreResult then begin
           SetLength(FLastRawResults, Length(FLastRawResults)+1);
           FLastRawResults[Length(FLastRawResults)-1] := QueryResult;
         end else begin
-          PQclear(QueryResult);
+          FLib.PQclear(QueryResult);
         end;
       end else begin
-        Inc(FRowsAffected, StrToIntDef(String(PQcmdTuples(QueryResult)), 0));
+        Inc(FRowsAffected, StrToIntDef(String(FLib.PQcmdTuples(QueryResult)), 0));
       end;
       if LastErrorMsg <> '' then begin
         SetLength(FLastRawResults, 0);
         Log(lcError, GetLastErrorMsg);
         // Clear remaining results, to avoid "another command is already running"
         while QueryResult <> nil do begin
-          PQclear(QueryResult);
-          QueryResult := PQgetResult(FHandle);
+          FLib.PQclear(QueryResult);
+          QueryResult := FLib.PQgetResult(FHandle);
         end;
         raise EDatabaseError.Create(GetLastErrorMsg);
       end;
       // more results?
       Inc(FStatementNum);
-      QueryResult := PQgetResult(FHandle);
+      QueryResult := FLib.PQgetResult(FHandle);
     end;
     FResultCount := Length(FLastRawResults);
 
@@ -3313,7 +3265,7 @@ begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then
-      FThreadID := PQbackendPID(FHandle);
+      FThreadID := FLib.PQbackendPID(FHandle);
   end;
   Result := FThreadID;
 end;
@@ -3382,7 +3334,7 @@ end;
 
 function TPgConnection.GetLastErrorCode: Cardinal;
 begin
-  Result := Cardinal(PQstatus(FHandle));
+  Result := Cardinal(FLib.PQstatus(FHandle));
 end;
 
 
@@ -3438,7 +3390,7 @@ end;
 
 function TPgConnection.GetLastErrorMsg: String;
 begin
-  Result := DecodeAPIString(PQerrorMessage(FHandle));
+  Result := DecodeAPIString(FLib.PQerrorMessage(FHandle));
   Result := Trim(Result);
 end;
 
@@ -4997,15 +4949,12 @@ end;
 
 
 function TDBConnection.ConnectionInfo: TStringList;
-var
-  v, ConnectionString: String;
-  major, minor, build: Integer;
-  rx: TRegExpr;
 
   function EvalBool(B: Boolean): String;
   begin
     if B then Result := _('Yes') else Result := _('No');
   end;
+
 begin
   Log(lcDebug, 'Get connection details ...');
   Result := TStringList.Create;
@@ -5025,28 +4974,9 @@ begin
     Result.Values[_('SSL enabled')] := EvalBool(IsSSL);
     if Assigned(FSessionVariables) then
       Result.Values['max_allowed_packet'] := FormatByteNumber(MaxAllowedPacket);
-    case Parameters.NetTypeGroup of
-      ngMSSQL: begin
-        // clear out password
-        ConnectionString := TAdoDBConnection(Self).FAdoHandle.ConnectionString;
-        rx := TRegExpr.Create;
-        rx.ModifierI := True;
-        rx.Expression := '(\Wpassword=)([^;]*)';
-        ConnectionString := rx.Replace(ConnectionString, '${1}******', True);
-        rx.Free;
-        Result.Values[_('Connection string')] := ConnectionString;
-      end;
-
-      ngPgSQL: begin
-        v := IntToStr(PQlibVersion);
-        major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
-        minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
-        build := StrToIntDef(Copy(v, Length(v)-1, 2), 0);
-        Result.Values[f_('Client version (%s)', [LibPqPath])] := IntToStr(major) + '.' + IntToStr(minor) + '.' + IntToStr(build);
-      end;
-    end;
   end;
 end;
+
 
 function TMySQLConnection.ConnectionInfo: TStringList;
 var
@@ -5072,6 +5002,36 @@ begin
   rx.Free;
 end;
 
+
+function TAdoDBConnection.ConnectionInfo: TStringList;
+var
+  ConnectionString: String;
+  rx: TRegExpr;
+begin
+  Result := Inherited;
+  // clear out password
+  ConnectionString := FAdoHandle.ConnectionString;
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.Expression := '(\Wpassword=)([^;]*)';
+  ConnectionString := rx.Replace(ConnectionString, '${1}******', True);
+  rx.Free;
+  Result.Values[_('Connection string')] := ConnectionString;
+end;
+
+
+function TPgConnection.ConnectionInfo: TStringList;
+var
+  v: String;
+  major, minor, build: Integer;
+begin
+  Result := Inherited;
+  v := IntToStr(FLib.PQlibVersion);
+  major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
+  minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
+  build := StrToIntDef(Copy(v, Length(v)-1, 2), 0);
+  Result.Values[f_('Client version (%s)', [FLib.DllFile])] := IntToStr(major) + '.' + IntToStr(minor) + '.' + IntToStr(build);
+end;
 
 
 procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
@@ -5609,7 +5569,15 @@ end;
 constructor TMySQLQuery.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
+  // suspicous state here - what type has FConnection now?
   FConnection := AOwner as TMySQLConnection;
+end;
+
+
+constructor TPgQuery.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnection := AOwner as TPgConnection;
 end;
 
 
@@ -5660,7 +5628,7 @@ var
   i: Integer;
 begin
   if HasResult then for i:=Low(FResultList) to High(FResultList) do
-    PQclear(FResultList[i]);
+    FConnection.Lib.PQclear(FResultList[i]);
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -5893,7 +5861,7 @@ begin
     NumResults := Length(FResultList)+1
   else begin
     for i:=Low(FResultList) to High(FResultList) do
-      PQclear(FResultList[i]);
+      FConnection.Lib.PQclear(FResultList[i]);
     NumResults := 1;
     FRecordCount := 0;
     FAutoIncrementColumn := -1;
@@ -5903,13 +5871,13 @@ begin
     Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
-    FRecordCount := FRecordCount + PQntuples(LastResult);
+    FRecordCount := FRecordCount + FConnection.Lib.PQntuples(LastResult);
   end;
   if not AddResult then begin
     if HasResult then begin
       // FCurrentResults is normally done in SetRecNo, but never if result has no rows
       FCurrentResults := LastResult;
-      NumFields := PQnfields(LastResult);
+      NumFields := FConnection.Lib.PQnfields(LastResult);
       SetLength(FColumnTypes, NumFields);
       SetLength(FColumnLengths, NumFields);
       SetLength(FColumnFlags, NumFields);
@@ -5917,9 +5885,9 @@ begin
       FColumnOrgNames.Clear;
       rx := TRegExpr.Create;
       for i:=0 to NumFields-1 do begin
-        FColumnNames.Add(Connection.DecodeAPIString(PQfname(LastResult, i)));
+        FColumnNames.Add(Connection.DecodeAPIString(FConnection.Lib.PQfname(LastResult, i)));
         FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
-        FieldTypeOID :=  PQftype(LastResult, i);
+        FieldTypeOID := FConnection.Lib.PQftype(LastResult, i);
         FColumnTypes[i] := FConnection.GetDatatypeByNativeType(FieldTypeOID, FColumnNames[FColumnNames.Count-1]);
       end;
       rx.Free;
@@ -6111,13 +6079,13 @@ begin
     if not RowFound then begin
       NumRows := 0;
       for i:=Low(FResultList) to High(FResultList) do begin
-        Inc(NumRows, PQntuples(FResultList[i]));
+        Inc(NumRows, FConnection.Lib.PQntuples(FResultList[i]));
         if NumRows > Value then begin
           FCurrentResults := FResultList[i];
-          FRecNoLocal := PQntuples(FCurrentResults)-(NumRows-Value);
+          FRecNoLocal := FConnection.Lib.PQntuples(FCurrentResults)-(NumRows-Value);
           FCurrentUpdateRow := nil;
           for j:=Low(FColumnLengths) to High(FColumnLengths) do
-            FColumnLengths[j] := PQgetlength(FCurrentResults, FRecNoLocal, j);
+            FColumnLengths[j] := FConnection.Lib.PQgetlength(FCurrentResults, FRecNoLocal, j);
           break;
         end;
       end;
@@ -6259,7 +6227,7 @@ begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
-      SetString(AnsiStr, PQgetvalue(FCurrentResults, FRecNoLocal, Column), FColumnLengths[Column]);
+      SetString(AnsiStr, FConnection.Lib.PQgetvalue(FCurrentResults, FRecNoLocal, Column), FColumnLengths[Column]);
       if Datatype(Column).Category in [dtcBinary, dtcSpatial] then
         Result := String(AnsiStr)
       else if Datatype(Column).Index = dtbool then
@@ -6537,7 +6505,7 @@ begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then
     Result := FCurrentUpdateRow[Column].NewIsNull
   else
-    Result := PQgetisnull(FCurrentResults, FRecNoLocal, Column) = 1;
+    Result := FConnection.Lib.PQgetisnull(FCurrentResults, FRecNoLocal, Column) = 1;
 end;
 
 
@@ -7053,7 +7021,7 @@ begin
   // Get table name from a result set
   Result := '';
   for i:=0 to ColumnCount-1 do begin
-    FieldTypeOID := PQftable(FCurrentResults, i);
+    FieldTypeOID := FConnection.Lib.PQftable(FCurrentResults, i);
     if not FConnection.RegClasses.ContainsKey(FieldTypeOID) then begin
       Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
       FConnection.RegClasses.Add(FieldTypeOID, Result);

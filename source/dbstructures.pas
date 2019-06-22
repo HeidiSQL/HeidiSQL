@@ -302,6 +302,12 @@ type
     Description:  String;
   end;
 
+  // PostgreSQL structures
+  TPQConnectStatus = (CONNECTION_OK, CONNECTION_BAD, CONNECTION_STARTED, CONNECTION_MADE, CONNECTION_AWAITING_RESPONSE, CONNECTION_AUTH_OK, CONNECTION_SETENV, CONNECTION_SSL_STARTUP, CONNECTION_NEEDED);
+  PPGconn = Pointer;
+  PPGresult = Pointer;
+  POid = Integer;
+
   // Server variables
   TVarScope = (vsGlobal, vsSession, vsBoth);
   TServerVariable = record
@@ -354,6 +360,30 @@ type
     mysql_thread_init: function: Byte; stdcall;
     mysql_thread_end: procedure; stdcall;
     mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
+    private
+      procedure AssignProcedures; override;
+  end;
+  TPostgreSQLLib = class(TDbLib)
+    PQconnectdb: function(const ConnInfo: PAnsiChar): PPGconn cdecl;
+    PQerrorMessage: function(const Handle: PPGconn): PAnsiChar cdecl;
+    PQresultErrorMessage: function(const Result: PPGresult): PAnsiChar cdecl;
+    PQresultErrorField: function(const Result: PPGresult; fieldcode: Integer): PAnsiChar;
+    PQfinish: procedure(const Handle: PPGconn);
+    PQstatus: function(const Handle: PPGconn): TPQConnectStatus cdecl;
+    PQsendQuery: function(const Handle: PPGconn; command: PAnsiChar): Integer cdecl;
+    PQgetResult: function(const Handle: PPGconn): PPGresult cdecl;
+    PQbackendPID: function(const Handle: PPGconn): Integer cdecl;
+    PQcmdTuples: function(Result: PPGresult): PAnsiChar; cdecl;
+    PQntuples: function(Result: PPGresult): Integer; cdecl;
+    PQclear: procedure(Result: PPGresult); cdecl;
+    PQnfields: function(Result: PPGresult): Integer; cdecl;
+    PQfname: function(const Result: PPGresult; column_number: Integer): PAnsiChar; cdecl;
+    PQftype: function(const Result: PPGresult; column_number: Integer): POid; cdecl;
+    PQftable: function(const Result: PPGresult; column_number: Integer): POid; cdecl;
+    PQgetvalue: function(const Result: PPGresult; row_number: Integer; column_number: Integer): PAnsiChar; cdecl;
+    PQgetlength: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
+    PQgetisnull: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
+    PQlibVersion: function(): Integer; cdecl;
     private
       procedure AssignProcedures; override;
   end;
@@ -7689,6 +7719,33 @@ begin
   AssignProc(@mysql_thread_end, 'mysql_thread_end');
   AssignProc(@mysql_warning_count, 'mysql_warning_count');
 end;
+
+
+procedure TPostgreSQLLib.AssignProcedures;
+begin
+  AssignProc(@PQconnectdb, 'PQconnectdb');
+  AssignProc(@PQerrorMessage, 'PQerrorMessage');
+  AssignProc(@PQresultErrorMessage, 'PQresultErrorMessage');
+  AssignProc(@PQresultErrorField, 'PQresultErrorField');
+  AssignProc(@PQfinish, 'PQfinish');
+  AssignProc(@PQstatus, 'PQstatus');
+  AssignProc(@PQsendQuery, 'PQsendQuery');
+  AssignProc(@PQgetResult, 'PQgetResult');
+  AssignProc(@PQbackendPID, 'PQbackendPID');
+  AssignProc(@PQcmdTuples, 'PQcmdTuples');
+  AssignProc(@PQntuples, 'PQntuples');
+  AssignProc(@PQclear, 'PQclear');
+  AssignProc(@PQnfields, 'PQnfields');
+  AssignProc(@PQfname, 'PQfname');
+  AssignProc(@PQftype, 'PQftype');
+  AssignProc(@PQftable, 'PQftable');
+  AssignProc(@PQgetvalue, 'PQgetvalue');
+  AssignProc(@PQgetlength, 'PQgetlength');
+  AssignProc(@PQgetisnull, 'PQgetisnull');
+  AssignProc(@PQlibVersion, 'PQlibVersion');
+end;
+
+
 
 
 initialization
