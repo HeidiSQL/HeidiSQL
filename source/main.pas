@@ -2354,10 +2354,16 @@ begin
   // Connection removed or added
   case Action of
     cnRemoved, cnExtracted: begin
-      // Post pending UPDATE
+      // Post pending UPDATE and release current table with result
       Results := GridResult(DataGrid);
-      if Assigned(Results) and Results.Modified then
-        actDataPostChangesExecute(DataGrid);
+      if Assigned(Results) then begin
+        if Results.Modified then
+          actDataPostChangesExecute(DataGrid);
+        if DataGridResult = Results then begin
+          FreeAndNil(DataGridResult);
+          DataGridTable := nil;
+        end;
+      end;
 
       // Remove result sets which may cause AVs when disconnected
       for Tab in QueryTabs do begin
@@ -2653,6 +2659,7 @@ begin
   // Shorthand for various places where we would normally have to add all these conditions
   Result := (Sender = DataGrid)
     and (Column > NoColumn)
+    and (DataGridResult <> nil)
     and (DataGridResult.DataType(Column).Category in [dtcInteger, dtcReal])
     and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1);
 end;
@@ -5681,7 +5688,7 @@ begin
   EnableTimestamp := False;
   if HasConnection and Assigned(Grid) then begin
     Results := GridResult(Grid);
-    if Assigned(Grid.FocusedNode) then begin
+    if (Results<>nil) and Assigned(Grid.FocusedNode) then begin
       RowNum := Grid.GetNodeData(Grid.FocusedNode);
       Results.RecNo := RowNum^;
       GridHasChanges := Results.Modified or Results.Inserted;
@@ -8445,7 +8452,7 @@ begin
     LogSQL('DBtreeFocusChanged, Node level: '+IntToStr(Sender.GetNodeLevel(Node))+', FTreeRefreshInProgress: '+IntToStr(Integer(FTreeRefreshInProgress)), lcDebug);
 
     // Post pending UPDATE
-    if Assigned(DataGridResult) and DataGridResult.Modified then
+    if (DataGridResult<>nil) and DataGridResult.Modified then
       actDataPostChangesExecute(DataGrid);
 
     DBObj := Sender.GetNodeData(Node);
@@ -9671,8 +9678,8 @@ begin
   if not Assigned(DataGridFocusedCell) then
     DataGridFocusedCell := TStringList.Create;
   // Remember focused node and column for selected table
-  if Assigned(DataGrid.FocusedNode) then begin
-    KeyName := ActiveConnection.QuoteIdent(DataGridTable.Database)+'.'+ActiveConnection.QuoteIdent(DataGridTable.Name);
+  if Assigned(DataGrid.FocusedNode) and (ActiveConnection<>nil) and Assigned(DataGridTable) then begin
+    KeyName := DataGridTable.QuotedDatabase+'.'+DataGridTable.QuotedName;
     FocusedCol := '';
     if DataGrid.FocusedColumn > NoColumn then
       FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
@@ -11161,9 +11168,10 @@ var
 begin
   // All grids (data- and query-grids, also host subtabs) are placed directly on a TTabSheet
   Result := nil;
-  if Grid = DataGrid then
-    Result := DataGridResult
-  else if Assigned(Grid) then begin
+  if Grid = DataGrid then begin
+    if DataGridResult<>nil then
+      Result := DataGridResult;
+  end else if Assigned(Grid) then begin
     CurrentTab := Grid.Parent as TTabSheet;
     if CurrentTab.Parent = PageControlHost then
       Result := FHostListResults[CurrentTab.PageIndex]
