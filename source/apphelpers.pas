@@ -277,7 +277,6 @@ type
   function ScanLineBreaks(Text: String): TLineBreaks;
   function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
-  function ExtractLiteral(var SQL: String; Prefix: String): String;
   function GetShellFolder(CSIDL: integer): string;
   function goodfilename( str: String ): String;
   function ExtractBaseFileName(FileName: String): String;
@@ -771,38 +770,6 @@ begin
   txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
   txt := StringReplace(txt, #10, CRLF, [rfReplaceAll]);
   result := txt;
-end;
-
-
-function ExtractLiteral(var SQL: String; Prefix: String): String;
-var
-  i, LitStart: Integer;
-  InLiteral: Boolean;
-  rx: TRegExpr;
-begin
-  // Return comment from SQL and remove it from the original string
-  // Single quotes are escaped by a second single quote
-  Result := '';
-  rx := TRegExpr.Create;
-  if Prefix.IsEmpty then
-    rx.Expression := '^\s*'''
-  else
-    rx.Expression := '^\s*'+QuoteRegExprMetaChars(Prefix)+'\s+''';
-  rx.ModifierI := True;
-  if rx.Exec(SQL) then begin
-    LitStart := rx.MatchLen[0]+1;
-    InLiteral := True;
-    for i:=LitStart to Length(SQL) do begin
-      if SQL[i] = '''' then
-        InLiteral := not InLiteral
-      else if not InLiteral then
-        break;
-    end;
-    Result := Copy(SQL, LitStart, i-LitStart-1);
-    Result := StringReplace(Result, '''''', '''', [rfReplaceAll]);
-    Delete(SQL, 1, i);
-  end;
-  rx.Free;
 end;
 
 

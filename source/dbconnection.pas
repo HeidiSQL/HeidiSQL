@@ -392,6 +392,7 @@ type
       function FindObject(DB, Obj: String): TDBObject;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
       function UnescapeString(Text: String): String;
+      function ExtractLiteral(var SQL: String; Prefix: String): String;
       function GetResults(SQL: String): TDBQuery;
       function GetCol(SQL: String; Column: Integer=0): TStringList;
       function GetVar(SQL: String; Column: Integer=0): String; overload;
@@ -3781,6 +3782,38 @@ begin
   Result := StringReplace(Result, '\Z', #26, [rfReplaceAll]);
   Result := StringReplace(Result, '''''', '''', [rfReplaceAll]);
   Result := StringReplace(Result, '\''', '''', [rfReplaceAll]);
+end;
+
+
+function TDBConnection.ExtractLiteral(var SQL: String; Prefix: String): String;
+var
+  i, LitStart: Integer;
+  InLiteral: Boolean;
+  rx: TRegExpr;
+begin
+  // Return comment from SQL and remove it from the original string
+  // Single quotes are escaped by a second single quote
+  Result := '';
+  rx := TRegExpr.Create;
+  if Prefix.IsEmpty then
+    rx.Expression := '^\s*'''
+  else
+    rx.Expression := '^\s*'+QuoteRegExprMetaChars(Prefix)+'\s+''';
+  rx.ModifierI := True;
+  if rx.Exec(SQL) then begin
+    LitStart := rx.MatchLen[0]+1;
+    InLiteral := True;
+    for i:=LitStart to Length(SQL) do begin
+      if SQL[i] = '''' then
+        InLiteral := not InLiteral
+      else if not InLiteral then
+        break;
+    end;
+    Result := Copy(SQL, LitStart, i-LitStart-1);
+    Result := UnescapeString(Result);
+    Delete(SQL, 1, i);
+  end;
+  rx.Free;
 end;
 
 
