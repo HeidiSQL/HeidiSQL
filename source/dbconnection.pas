@@ -838,8 +838,10 @@ begin
     PlinkCmd := PlinkCmd + FConnection.Parameters.SSHHost
   else
     PlinkCmd := PlinkCmd + FConnection.Parameters.Hostname;
-  if FConnection.Parameters.SSHPassword <> '' then
-    PlinkCmd := PlinkCmd + ' -pw "' + FConnection.Parameters.SSHPassword + '"';
+  if FConnection.Parameters.SSHPassword <> '' then begin
+    // Escape double quote with backslash, see issue #261
+    PlinkCmd := PlinkCmd + ' -pw "' + StringReplace(FConnection.Parameters.SSHPassword, '"', '\"', [rfReplaceAll]) + '"';
+  end;
   if FConnection.Parameters.SSHPort > 0 then
     PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FConnection.Parameters.SSHPort);
   if FConnection.Parameters.SSHPrivateKey <> '' then
