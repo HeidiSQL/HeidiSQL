@@ -5020,21 +5020,23 @@ var
 begin
   Result := Inherited;
   Result.Values[f_('Client version (%s)', [FLib.DllFile])] := DecodeApiString(FLib.mysql_get_client_info);
-  Infos := DecodeApiString(FLib.mysql_stat(FHandle));
-  rx := TRegExpr.Create;
-  rx.ModifierG := False;
-  rx.Expression := '(\S.*)\:\s+(\S*)(\s+|$)';
-  if rx.Exec(Infos) then while True do begin
-    Val := rx.Match[2];
-    if LowerCase(rx.Match[1]) = 'uptime' then
-      Val := FormatTimeNumber(StrToFloatDef(Val, 0), True)
-    else
-      Val := FormatNumber(Val);
-    Result.Values[_(rx.Match[1])] := Val;
-    if not rx.ExecNext then
-      break;
+  if FActive then begin
+    Infos := DecodeApiString(FLib.mysql_stat(FHandle));
+    rx := TRegExpr.Create;
+    rx.ModifierG := False;
+    rx.Expression := '(\S.*)\:\s+(\S*)(\s+|$)';
+    if rx.Exec(Infos) then while True do begin
+      Val := rx.Match[2];
+      if LowerCase(rx.Match[1]) = 'uptime' then
+        Val := FormatTimeNumber(StrToFloatDef(Val, 0), True)
+      else
+        Val := FormatNumber(Val);
+      Result.Values[_(rx.Match[1])] := Val;
+      if not rx.ExecNext then
+        break;
+    end;
+    rx.Free;
   end;
-  rx.Free;
 end;
 
 
@@ -5044,14 +5046,16 @@ var
   rx: TRegExpr;
 begin
   Result := Inherited;
-  // clear out password
-  ConnectionString := FAdoHandle.ConnectionString;
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.Expression := '(\Wpassword=)([^;]*)';
-  ConnectionString := rx.Replace(ConnectionString, '${1}******', True);
-  rx.Free;
-  Result.Values[_('Connection string')] := ConnectionString;
+  if FActive then begin
+    // clear out password
+    ConnectionString := FAdoHandle.ConnectionString;
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    rx.Expression := '(\Wpassword=)([^;]*)';
+    ConnectionString := rx.Replace(ConnectionString, '${1}******', True);
+    rx.Free;
+    Result.Values[_('Connection string')] := ConnectionString;
+  end;
 end;
 
 
