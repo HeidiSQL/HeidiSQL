@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-06-12 20:31+0200\n"
+"PO-Revision-Date: 2019-07-05 06:42+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -4024,6 +4024,10 @@ msgstr "Trying to load library with full path: %s"
 #. DLL loading fails on one procedure
 msgid "Library error in %s: Could not find procedure address for \"%s\""
 msgstr "Library error in %s: Could not find procedure address for \"%s\""
+
+#. DLL loading failed entirely
+msgid "Library %s seems unusable. Please select a different one."
+msgstr "Library %s seems unusable. Please select a different one."
 
 #: dbconnection.pas:1392
 msgid "Cannot find a usable %s. Please launch %s from the directory where you have installed it."

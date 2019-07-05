@@ -273,10 +273,17 @@ object connform: Tconnform
         end
         object lblComment: TLabel
           Left = 3
-          Top = 241
+          Top = 270
           Width = 49
           Height = 13
           Caption = 'Comment:'
+        end
+        object lblLibrary: TLabel
+          Left = 3
+          Top = 243
+          Width = 37
+          Height = 13
+          Caption = 'Library:'
         end
         object chkCompressed: TCheckBox
           Left = 120
@@ -377,12 +384,12 @@ object connform: Tconnform
         end
         object memoComment: TMemo
           Left = 120
-          Top = 238
+          Top = 267
           Width = 294
-          Height = 119
+          Height = 90
           Anchors = [akLeft, akTop, akRight, akBottom]
           ScrollBars = ssVertical
-          TabOrder = 10
+          TabOrder = 11
           OnChange = Modification
         end
         object editDatabases: TButtonedEdit
@@ -398,6 +405,16 @@ object connform: Tconnform
           TextHint = 'Separated by semicolon'
           OnChange = Modification
           OnRightButtonClick = editDatabasesRightButtonClick
+        end
+        object comboLibrary: TComboBox
+          Left = 120
+          Top = 240
+          Width = 294
+          Height = 21
+          Style = csDropDownList
+          Anchors = [akLeft, akTop, akRight]
+          TabOrder = 10
+          OnChange = Modification
         end
       end
     end

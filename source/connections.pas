@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
-  dbconnection, gnugettext;
+  dbconnection, gnugettext, SynRegExpr, System.Types, System.IOUtils;
 
 type
   Tconnform = class(TFormWithSizeGrip)
@@ -121,6 +121,8 @@ type
     TimerButtonAnimation: TTimer;
     lblBackgroundColor: TLabel;
     ColorBoxBackgroundColor: TColorBox;
+    comboLibrary: TComboBox;
+    lblLibrary: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -230,6 +232,9 @@ var
   nt: TNetType;
   Node: PVirtualNode;
   Params: TConnectionParameters;
+  rx: TRegExpr;
+  Libs: TStringDynArray;
+  LibPath, LibFile: String;
 begin
   // Fix GUI stuff
   TranslateComponent(Self);
@@ -264,6 +269,17 @@ begin
     comboNetType.Items.Add(NetTypeStr);
   end;
   Params.Free;
+
+  // Detect existing MySQL libraries
+  rx := TRegExpr.Create;
+  rx.Expression := '^lib(mysql|mariadb).*\.dll$';
+  Libs := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
+  for LibPath in Libs do begin
+    LibFile := ExtractFileName(LibPath);
+    if rx.Exec(LibFile) then begin
+      comboLibrary.Items.Add(LibFile);
+    end;
+  end;
 
   // Init sessions tree
   RefreshSessions(nil);
@@ -388,6 +404,7 @@ begin
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.FullTableStatus := chkFullTableStatus.Checked;
   Sess.SessionColor := ColorBoxBackgroundColor.Selected;
+  Sess.LibraryFile := comboLibrary.Text;
   Sess.AllDatabasesStr := editDatabases.Text;
   Sess.Comment := memoComment.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
@@ -582,6 +599,7 @@ begin
     else
       Result.Port := 0;
     Result.AllDatabasesStr := editDatabases.Text;
+    Result.LibraryFile := comboLibrary.Text;
     Result.Comment := memoComment.Text;
     Result.SSHHost := editSSHHost.Text;
     Result.SSHPort := MakeInt(editSSHPort.Text);
@@ -848,6 +866,7 @@ begin
     chkFullTableStatus.Checked := Sess.FullTableStatus;
     ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
+    comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryFile);
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
     editSSHPlinkExe.Text := Sess.SSHPlinkExe;
@@ -1108,6 +1127,7 @@ begin
       or (Sess.SessionColor <> ColorBoxBackgroundColor.Selected)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
+      or (Sess.LibraryFile <> comboLibrary.Text)
       or (Sess.AllDatabasesStr <> editDatabases.Text)
       or (Sess.Comment <> memoComment.Text)
       or (Sess.SSHHost <> editSSHHost.Text)
@@ -1187,6 +1207,7 @@ begin
         lblPort.Enabled := False; // Named instance without port
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
+      comboLibrary.Enabled := Params.NetTypeGroup in [ngMySQL];
       if Params.NetTypeGroup = ngPgSQL then
         lblDatabase.Caption := _('Database')+':'
       else

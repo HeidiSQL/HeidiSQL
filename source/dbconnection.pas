@@ -213,7 +213,7 @@ type
   TConnectionParameters = class(TObject)
     strict private
       FNetType: TNetType;
-      FHostname, FUsername, FPassword, FAllDatabases, FComment, FStartupScriptFilename,
+      FHostname, FUsername, FPassword, FAllDatabases, FLibraryFile, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
@@ -263,6 +263,7 @@ type
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
       property CleartextPluginEnabled: Boolean read FCleartextPluginEnabled write FCleartextPluginEnabled;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
+      property LibraryFile: String read FLibraryFile write FLibraryFile;
       property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property QueryTimeout: Integer read FQueryTimeout write FQueryTimeout;
@@ -1088,6 +1089,7 @@ begin
   FPort := DefaultPort;
   FCompressed := AppSettings.GetDefaultBool(asCompressed);
   FAllDatabases := AppSettings.GetDefaultString(asDatabases);
+  FLibraryFile := AppSettings.GetDefaultString(asLibrary);
   FComment := AppSettings.GetDefaultString(asComment);
 
   FSSHHost := AppSettings.GetDefaultString(asSSHtunnelHost);
@@ -1154,6 +1156,7 @@ begin
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
+    FLibraryFile := AppSettings.ReadString(asLibrary);
     FComment := AppSettings.ReadString(asComment);
 
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
@@ -1218,6 +1221,7 @@ begin
     AppSettings.WriteInt(asKeepAlive, FKeepAlive);
     AppSettings.WriteBool(asFullTableStatus, FFullTableStatus);
     AppSettings.WriteString(asDatabases, FAllDatabases);
+    AppSettings.WriteString(asLibrary, FLibraryFile);
     AppSettings.WriteString(asComment, FComment);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
     AppSettings.WriteInt(asTreeBackground, FSessionColor);
@@ -2214,35 +2218,22 @@ end;
 procedure TMySQLConnection.DoBeforeConnect;
 var
   msg,
-  TryLibraryPath: String;
-  TryLibraryPaths: TStringList;
+  LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
-
-
-  // Try newer libmariadb version at first, and fall back to libmysql,
-  // then fall back to dlls somewhere else on the users harddisk
-  // Win XP needs libmysql.dll
-  TryLibraryPaths := TStringList.Create;
-  TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmariadb.dll');
-  TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libmysql.dll');
-  TryLibraryPaths.Add('libmariadb.dll');
-  TryLibraryPaths.Add('libmysql.dll');
-
-  for TryLibraryPath in TryLibraryPaths do begin
-    Log(lcDebug, f_('Loading library file %s ...', [TryLibraryPath]));
-    try
-      FLib := TMySQLLib.Create(TryLibraryPath);
-      Log(lcDebug, FLib.DllFile + ' v' + DecodeApiString(FLib.mysql_get_client_info) + ' loaded.');
-      Break;
-    except
-      on E:Exception do
-        Log(lcDebug, E.Message);
-    end
+  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryFile;
+  Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
+  try
+    FLib := TMySQLLib.Create(LibraryPath);
+    Log(lcDebug, FLib.DllFile + ' v' + DecodeApiString(FLib.mysql_get_client_info) + ' loaded.');
+  except
+    on E:Exception do
+      Log(lcDebug, E.Message);
   end;
+
   if not Assigned(FLib) then begin
-    msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.',
-      [ExtractFileName(TryLibraryPaths[0]), ExtractFileName(ParamStr(0))]
+    msg := f_('Library %s seems unusable. Please select a different one.',
+      [ExtractFileName(LibraryPath)]
       );
     if Windows.GetLastError <> 0 then
       msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
