@@ -2478,7 +2478,6 @@ begin
     Exit;
 
   // Super intelligent calculation of status bar panel width
-  StatusBar.Height := GetTextHeight(StatusBar.Font) + 4;
   w1 := CalcPanelWidth(110, 10);
   w2 := CalcPanelWidth(140, 10);
   w3 := CalcPanelWidth(170, 15);
