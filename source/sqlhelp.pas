@@ -264,10 +264,10 @@ procedure TfrmSQLhelp.FormDestroy(Sender: TObject);
 begin
   AppSettings.WriteInt(asSQLHelpWindowLeft, Left );
   AppSettings.WriteInt(asSQLHelpWindowTop, Top );
-  AppSettings.WriteInt(asSQLHelpWindowWidth, Width );
-  AppSettings.WriteInt(asSQLHelpWindowHeight, Height );
-  AppSettings.WriteInt(asSQLHelpPnlLeftWidth, pnlLeft.Width );
-  AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, memoDescription.Height );
+  AppSettings.WriteInt(asSQLHelpWindowWidth, Round(Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asSQLHelpWindowHeight, Round(Height / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asSQLHelpPnlLeftWidth, Round(pnlLeft.Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, Round(memoDescription.Height / DpiScaleFactor(Self)));
   SqlHelpDialog := nil;
 end;
 

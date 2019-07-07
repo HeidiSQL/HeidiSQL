@@ -54,8 +54,8 @@ end;
 
 procedure TColumnSelectionForm.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asColumnSelectorWidth, Width );
-  AppSettings.WriteInt(asColumnSelectorHeight, Height );
+  AppSettings.WriteInt(asColumnSelectorWidth, Round(Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asColumnSelectorHeight, Round(Height / DpiScaleFactor(Self)));
   FCheckedColumns.Free;
 end;
 

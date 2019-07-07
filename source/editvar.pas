@@ -63,8 +63,8 @@ end;
 
 procedure TfrmEditVariable.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asEditVarWindowWidth, Width);
-  AppSettings.WriteInt(asEditVarWindowHeight, Height);
+  AppSettings.WriteInt(asEditVarWindowWidth, Round(Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asEditVarWindowHeight, Round(Height / DpiScaleFactor(Self)));
 end;
 
 

@@ -128,8 +128,8 @@ end;
 
 procedure TfrmInsertFiles.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asFileImportWindowWidth, Width);
-  AppSettings.WriteInt(asFileImportWindowHeight, Height);
+  AppSettings.WriteInt(asFileImportWindowWidth, Round(Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asFileImportWindowHeight, Round(Height / DpiScaleFactor(Self)));
   MainForm.SaveListSetup(ListColumns);
   MainForm.SaveListSetup(listFiles);
 end;

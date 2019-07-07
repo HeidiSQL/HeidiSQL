@@ -606,8 +606,8 @@ end;
 
 procedure Toptionsform.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asPreferencesWindowWidth, Width);
-  AppSettings.WriteInt(asPreferencesWindowHeight, Height);
+  AppSettings.WriteInt(asPreferencesWindowWidth, Round(Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asPreferencesWindowHeight, Round(Height / DpiScaleFactor(Self)));
 end;
 
 procedure Toptionsform.FormShow(Sender: TObject);

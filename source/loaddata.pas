@@ -116,8 +116,8 @@ end;
 procedure Tloaddataform.FormDestroy(Sender: TObject);
 begin
   // Save settings
-  AppSettings.WriteInt(asCSVImportWindowWidth, Width);
-  AppSettings.WriteInt(asCSVImportWindowHeight, Height);
+  AppSettings.WriteInt(asCSVImportWindowWidth, Round(Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asCSVImportWindowHeight, Round(Height / DpiScaleFactor(Self)));
   AppSettings.WriteString(asCSVImportFilename, editFilename.Text);
   AppSettings.WriteString(asCSVImportSeparator, editFieldTerminator.Text);
   AppSettings.WriteString(asCSVImportEncloser, editFieldEncloser.Text);
