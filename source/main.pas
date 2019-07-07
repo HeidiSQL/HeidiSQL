@@ -654,6 +654,7 @@ type
     procedure actExitApplicationExecute(Sender: TObject);
     procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     procedure CMStyleChanged(var Msg: TMessage); message CM_STYLECHANGED;
+    procedure DPIChanged(var Msg: TMessage); message WM_DPICHANGED;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
@@ -11764,6 +11765,20 @@ begin
   // Style theme applied, e.g. via preferences dialog
   // Ensure SynMemo's have fitting colors
   SetupSynEditors;
+end;
+
+
+procedure TMainForm.DPIChanged(var Msg: TMessage);
+const
+  DesignedToolbarHeight = 22;
+  DesignedToolbarWidth = 23;
+begin
+  inherited;
+  LogSQL('New PPI:'+ Monitor.PixelsPerInch.ToString, lcDebug);
+
+  // Fix wrong calculated height and width of tool buttons after DPI change / move between monitors
+  ToolBarMainButtons.ButtonHeight := Round(DesignedToolbarHeight * DpiScaleFactor(Self));
+  ToolBarMainButtons.ButtonWidth := Round(DesignedToolbarWidth * DpiScaleFactor(Self));
 end;
 
 
