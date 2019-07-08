@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, SynEdit, SynMemo, SynRegExpr, ComCtrls, ExtCtrls, WideStrUtils,
-  apphelpers, dbconnection, gnugettext;
+  apphelpers, dbconnection, dbstructures, gnugettext;
 
 type
   TFrame = TDBObjectEditor;
@@ -248,7 +248,7 @@ begin
     CreateCodeValid := False;
     UpdateSQLcode;
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ErrorDialog(E.Message);
       Result := mrAbort;
     end;

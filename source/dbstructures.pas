@@ -317,6 +317,13 @@ type
     EnumValues: String;
   end;
 
+  // Custom exception class for any connection or database related error
+  EDbError = class(Exception)
+    public
+      ErrorCode: Cardinal;
+      constructor Create(const Msg: string; const ErrorCode: Cardinal=0);
+  end;
+
   // DLL loading
   TDbLib = class(TObject)
     private
@@ -7642,20 +7649,34 @@ begin
 end;
 
 
+
+{ EDbError }
+
+constructor EDbError.Create(const Msg: string; const ErrorCode: Cardinal=0);
+begin
+  Self.ErrorCode := ErrorCode;
+  inherited Create(Msg);
+end;
+
+
+
+{ TDbLib }
+
 constructor TDbLib.Create(DllFile: String);
 var
-  OldErrorMode: Cardinal;
+  msg: String;
 begin
   // Load DLL as is (with or without path)
   inherited Create;
   FDllFile := DllFile;
-  // Temporarily suppress error popups while loading new library on Windows XP, see #79
-  OldErrorMode := SetErrorMode(SEM_FAILCRITICALERRORS);
-  SetErrorMode(OldErrorMode or SEM_FAILCRITICALERRORS);
   FHandle := LoadLibrary(PWideChar(FDllFile));
-  SetErrorMode(OldErrorMode);
   if FHandle = 0 then begin
-    Raise Exception.Create('Library file could not be loaded: '+DllFile);
+    msg := f_('Library %s could not be loaded. Please select a different one.',
+      [ExtractFileName(FDllFile)]
+      );
+    if Windows.GetLastError <> 0 then
+      msg := msg + CRLF + CRLF + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
+    Raise EDbError.Create(msg);
   end;
 
   // Dll was loaded, now initialize required procedures
@@ -7674,14 +7695,19 @@ end;
 
 
 procedure TDbLib.AssignProc(var Proc: FARPROC; Name: PAnsiChar; Mandantory: Boolean=True);
+var
+  msg: String;
 begin
   // Map library procedure to internal procedure
   Proc := GetProcAddress(FHandle, Name);
   if Proc = nil then begin
     if Mandantory then begin
-      Raise Exception.Create(f_('Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s.',
-        [FDllFile, APPNAME, APPNAME])
+      msg := f_('Library error in %s: Could not find procedure address for "%s"',
+        [ExtractFileName(FDllFile), Name]
         );
+      if Windows.GetLastError <> 0 then
+        msg := msg + CRLF + CRLF + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
+      Raise EDbError.Create(msg);
     end;
   end;
 end;

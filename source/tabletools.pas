@@ -621,7 +621,7 @@ var
         tmBulkTableEdit: DoBulkTableEdit(DBObj);
       end;
     except
-      on E:EDatabaseError do begin
+      on E:EDbError do begin
         // The above SQL can easily throw an exception, e.g. if a table is corrupted.
         // In such cases we create a dummy row, including the error message
         AddNotes(DBObj, 'error', E.Message);
@@ -1233,7 +1233,7 @@ begin
         comboExportOutputTarget.ItemIndex := 0;
       Screen.Cursor := crDefault;
     except
-      on E:EDatabaseError do begin
+      on E:EDbError do begin
         Screen.Cursor := crDefault;
         ErrorDialog(E.Message);
         comboExportOutputType.ItemIndex := FLastOutputSelectedIndex;
@@ -1629,7 +1629,7 @@ begin
         Output(Struc, True, True, True, True, True);
         Output(CRLF, False, True, True, True, True);
       except
-        on E:EDatabaseError do begin
+        on E:EDbError do begin
           // Catch the exception message and dump it into the export file for debugging reasons
           Output('/* '+E.Message+' */', False, True, True, False, False);
           Raise;

@@ -187,7 +187,7 @@ begin
   try
     MainForm.ActiveConnection.Query(sql);
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ModalResult := mrNone;
       ErrorDialog(E.Message);
     end;

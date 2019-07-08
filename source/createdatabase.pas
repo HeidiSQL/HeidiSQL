@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  dbconnection, gnugettext, SynRegExpr;
+  dbconnection, dbstructures, gnugettext, SynRegExpr;
 
 type
   TCreateDatabaseForm = class(TForm)
@@ -142,7 +142,7 @@ begin
     // Close form
     ModalResult := mrOK;
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(f_('Creating database "%s" failed.', [editDBName.Text]), E.Message);
     // Keep form open
   end else try

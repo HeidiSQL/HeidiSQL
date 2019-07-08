@@ -188,7 +188,7 @@ begin
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ErrorDialog(E.Message);
       Result := mrAbort;
     end;

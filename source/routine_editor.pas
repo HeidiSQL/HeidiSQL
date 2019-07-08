@@ -526,7 +526,7 @@ begin
     btnDiscard.Enabled := Modified;
     Mainform.actRunRoutines.Enabled := True;
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ErrorDialog(E.Message);
       Result := mrAbort;
     end;

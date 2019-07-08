@@ -1004,7 +1004,7 @@ begin
 
   except
     // Whole export code wrapped here
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       Screen.Cursor := crDefault;
       ErrorDialog(E.Message);
     end

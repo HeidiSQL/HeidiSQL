@@ -1391,7 +1391,7 @@ begin
       ActiveConnection.Query('UNLOCK TABLES');
     end;
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(E.Message);
   end;
 end;
@@ -2926,7 +2926,7 @@ begin
     if Tab.DoProfile then try
       ActiveConnection.Query('SET profiling=1');
     except
-      on E:EDatabaseError do begin
+      on E:EDbError do begin
         ErrorDialog(f_('Query profiling requires %s or later, and the server must not be configured with %s.', ['MySQL 5.0.37', '--disable-profiling']), E.Message);
         Tab.DoProfile := False;
       end;
@@ -2978,7 +2978,7 @@ begin
         Inc(i);
         TabCaption := NewTab.Results.TableName + ' #' + IntToStr(i);
       end;
-    except on E:EDatabaseError do
+    except on E:EDbError do
       TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
     TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + '×' + FormatNumber(Results.RecordCount) + ')';
@@ -3269,7 +3269,7 @@ begin
   try
     Conn.ExplainAnalyzer(SQL, Conn.Database);
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(E.Message);
   end;
 end;
@@ -3498,7 +3498,7 @@ begin
           Conn.RefreshAllDatabases;
           InvalidateVT(ListDatabases, VTREE_NOTLOADED_PURGECACHE, False);
         except
-          on E:EDatabaseError do
+          on E:EDbError do
             ErrorDialog(E.Message);
         end;
         Exit;
@@ -3548,7 +3548,7 @@ begin
       RefreshTree;
       SetActiveDatabase(Conn.Database, Conn);
     except
-      on E:EDatabaseError do
+      on E:EDbError do
         ErrorDialog(E.Message);
     end;
     ObjectList.Free;
@@ -3874,7 +3874,7 @@ begin
       ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
       AddOrRemoveFromQueryLoadHistory(FileName, False, True);
     end;
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       StopProgress;
       ErrorDialog(E.Message + CRLF + CRLF +
         f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
@@ -4017,7 +4017,7 @@ begin
     editDatabaseTableFilterChange(Self);
 
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ErrorDialog(E.Message);
       // attempt failed
       if AppSettings.SessionPathExists(Params.SessionPath) then begin
@@ -4082,7 +4082,7 @@ begin
       DisplayRowCountStats(Grid);
       ValidateControls(Sender);
     end;
-  except on E:EDatabaseError do begin
+  except on E:EDbError do begin
       SetProgressState(pbsError);
       ErrorDialog(_('Grid editing error'), E.Message);
     end;
@@ -4155,7 +4155,7 @@ begin
         end;
         actRefresh.Execute;
       except
-        on E:EDatabaseError do begin
+        on E:EDbError do begin
           SetProgressState(pbsError);
           ErrorDialog(E.Message);
         end;
@@ -4856,7 +4856,7 @@ begin
         Results.SetCol(i, Value, IsNull, False);
       end;
     end;
-  except on E:EDatabaseError do
+  except on E:EDbError do
     ErrorDialog(_('Grid editing error'), E.Message);
   end;
 end;
@@ -5260,7 +5260,7 @@ begin
       DataGridResult.ColumnOrgNames := WantedColumnOrgnames;
       try
         DataGridResult.PrepareEditing;
-      except on E:EDatabaseError do // Do not annoy user with popup when accessing tables in information_schema
+      except on E:EDbError do // Do not annoy user with popup when accessing tables in information_schema
         LogSQL(_('Data in this table will be read-only.'));
       end;
 
@@ -5299,7 +5299,7 @@ begin
 
     except
       // Wrong WHERE clause in most cases
-      on E:EDatabaseError do
+      on E:EDbError do
         ErrorDialog(E.Message);
     end;
 
@@ -5793,7 +5793,7 @@ begin
       else try
         Conn.Query(Format(Conn.GetSQLSpecifity(spKillProcess), [pid]));
       except
-        on E:EDatabaseError do begin
+        on E:EDbError do begin
           if Conn.LastErrorCode <> 1094 then
             if MessageDialog(E.Message, mtError, [mbOK, mbAbort]) = mrAbort then
               break;
@@ -6202,7 +6202,7 @@ begin
       lntView:
         sql := Obj.Connection.GetSQLSpecifity(spRenameView);
       else
-        raise EDatabaseError.Create('Cannot rename '+Obj.ObjType);
+        raise EDbError.Create('Cannot rename '+Obj.ObjType);
     end;
 
     sql := Format(sql, [Obj.QuotedName(True, False), Obj.Connection.QuoteIdent(NewText)]);
@@ -6218,7 +6218,7 @@ begin
     // so we do it manually here
     DBTree.InvalidateChildren(FindDBNode(DBtree, Obj.Connection, Obj.Database), True);
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(E.Message);
   end;
 end;
@@ -6984,7 +6984,7 @@ begin
   Grid := ActiveGrid;
   try
     Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := d;
-  except on E:EDatabaseError do
+  except on E:EDbError do
     ErrorDialog(E.Message);
   end;
 end;
@@ -8472,7 +8472,7 @@ begin
         // Selecting a database can cause an SQL error if the db was deleted from outside. Select previous node in that case.
         try
           FActiveDbObj.Connection.Database := FActiveDbObj.Database;
-        except on E:EDatabaseError do begin
+        except on E:EDbError do begin
             ErrorDialog(E.Message);
             SelectNode(DBtree, TreeClickHistoryPrevious);
             Exit;
@@ -8485,7 +8485,7 @@ begin
       lntTable..lntEvent: begin
         try
           FActiveDbObj.Connection.Database := FActiveDbObj.Database;
-        except on E:EDatabaseError do begin
+        except on E:EDbError do begin
             ErrorDialog(E.Message);
             SelectNode(DBtree, TreeClickHistoryPrevious);
             Exit;
@@ -8506,7 +8506,7 @@ begin
             lntView:
               FActiveDbObj.Connection.ParseViewStructure(FActiveDbObj.CreateCode, FActiveDbObj, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
           end;
-        except on E:EDatabaseError do
+        except on E:EDbError do
           ErrorDialog(E.Message);
         end;
 
@@ -9163,7 +9163,7 @@ begin
   try
     Results.SetCol(Grid.FocusedColumn, '', True, False);
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(E.Message);
   end;
   Grid.RepaintNode(Grid.FocusedNode);
@@ -9236,7 +9236,7 @@ begin
     IsNull := FGridPasting and FClipboardHasNull;
     Results.SetCol(Column, NewText, IsNull, FGridEditFunctionMode);
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(E.Message);
   end;
   FGridEditFunctionMode := False;
@@ -9337,7 +9337,7 @@ begin
       actDataCancelChanges.ShortCut := 0;
       actDataPostChanges.ShortCut := 0;
     end;
-  except on E:EDatabaseError do
+  except on E:EDbError do
     ErrorDialog(_('Grid editing error'), E.Message);
   end;
 end;
@@ -9426,7 +9426,7 @@ begin
         end;
         ForeignResults.Free;
         break;
-      except on E:EDatabaseError do
+      except on E:EDbError do
         // Error gets logged, do nothing more here. All other exception types raise please.
       end;
     end;
@@ -11815,7 +11815,7 @@ begin
   try
     ActiveConnection.ExplainAnalyzer(SynMemoProcessView.Text, listProcesses.Text[listProcesses.FocusedNode, 3]);
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(E.Message);
   end;
 end;
@@ -11913,7 +11913,7 @@ begin
       try
         Killer.Query(KillCommand);
       except
-        on E:EDatabaseError do begin
+        on E:EDbError do begin
           MessageDialog(E.Message, mtError, [mbOK]);
         end;
       end;

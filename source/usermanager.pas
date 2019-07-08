@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
   ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr, extra_controls,
-  dbconnection, apphelpers, VirtualTrees, Menus, gnugettext;
+  dbconnection, dbstructures, apphelpers, VirtualTrees, Menus, gnugettext;
 
 {$I const.inc}
 
@@ -369,7 +369,7 @@ begin
     FAdded := False;
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ErrorDialog(E.Message);
       // Closing form in OnShow does not work. Instead, do that in listUsers.OnBeforePaint.
     end;
@@ -541,7 +541,7 @@ begin
     end else try
       Grants := FConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
     except
-      on E:EDatabaseError do begin
+      on E:EDbError do begin
         Msg := E.Message;
         if FConnection.LastErrorCode = 1141 then begin
           // Disable this user node lately, for old server which do not show skip-name-resolve variable
@@ -1341,7 +1341,7 @@ begin
     FocusedUser.Subject := editSubject.Text;
     listUsers.OnFocusChanged(listUsers, listUsers.FocusedNode, listUsers.FocusedColumn);
   except
-    on E:EDatabaseError do
+    on E:EDbError do
       ErrorDialog(E.Message);
     on E:EInputError do
       ErrorDialog(E.Message);
@@ -1390,7 +1390,7 @@ begin
       FConnection.Query('FLUSH PRIVILEGES');
       FUsers.Remove(User^);
       listUsers.DeleteNode(listUsers.FocusedNode);
-    except on E:EDatabaseError do
+    except on E:EDbError do
       ErrorDialog(E.Message);
     end;
   end;

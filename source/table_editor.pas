@@ -439,7 +439,7 @@ begin
     AlterCodeValid := False;
     CreateCodeValid := False;
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ErrorDialog(E.Message);
       Result := mrAbort;
     end;

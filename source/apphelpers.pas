@@ -2017,7 +2017,7 @@ begin
     try
       FDefiners := DBObject.Connection.GetCol('SELECT CONCAT('+q('User')+', '+esc('@')+', '+q('Host')+') FROM '+
         q('mysql')+'.'+q('user')+' WHERE '+q('User')+'!='+esc('')+' ORDER BY '+q('User')+', '+q('Host'));
-    except on E:EDatabaseError do
+    except on E:EDbError do
       FDefiners := TStringList.Create;
     end;
   end;
@@ -3097,7 +3097,7 @@ begin
       Inc(FRowsFound, FConnection.RowsFound);
       Inc(FWarningCount, FConnection.WarningCount);
     except
-      on E:EDatabaseError do begin
+      on E:EDbError do begin
         if FStopOnErrors or (i = FBatch.Count - 1) then begin
           FErrorMessage := E.Message;
           ErrorAborted := True;

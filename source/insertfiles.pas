@@ -661,7 +661,7 @@ begin
       FConnection.Query(sql);
       Mainform.ProgressStep;
     except
-      on E:EDatabaseError do begin
+      on E:EDbError do begin
         Screen.Cursor := crDefault;
         MainForm.SetProgressState(pbsError);
         ErrorDialog(E.Message);

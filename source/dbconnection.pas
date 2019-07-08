@@ -170,13 +170,6 @@ type
   end;
   TUpdateData = TObjectList<TRowData>;
 
-  // Custom exception class for any connection or database related error
-  EDatabaseError = class(Exception)
-    public
-      ErrorCode: Cardinal;
-      constructor Create(const Msg: string; const ErrorCode: Cardinal=0);
-  end;
-
   // PLink.exe related
   TProcessPipe = class(TObject)
     public
@@ -742,15 +735,6 @@ implementation
 uses apphelpers, loginform, change_password;
 
 
-{ EDatabaseError }
-
-constructor EDatabaseError.Create(const Msg: string; const ErrorCode: Cardinal=0);
-begin
-  Self.ErrorCode := ErrorCode;
-  inherited Create(Msg);
-end;
-
-
 
 { TProcessPipe }
 
@@ -773,7 +757,7 @@ begin
       DUPLICATE_CLOSE_SOURCE OR DUPLICATE_SAME_ACCESS
     );
   if not Success then
-    raise EDatabaseError.Create(_('Error creating I/O pipes'));
+    raise EDbError.Create(_('Error creating I/O pipes'));
 end;
 
 
@@ -825,7 +809,7 @@ begin
   while not PortOpen(FConnection.Parameters.SSHLocalPort) do begin
     Inc(PortChecks);
     if PortChecks >= 20 then
-      raise EDatabaseError.CreateFmt(_('Could not execute PLink: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
+      raise EDbError.CreateFmt(_('Could not execute PLink: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
     FConnection.Log(lcInfo, f_('Port #%d in use. Checking if #%d is available...', [FConnection.Parameters.SSHLocalPort, FConnection.Parameters.SSHLocalPort+1]));
     FConnection.Parameters.SSHLocalPort := FConnection.Parameters.SSHLocalPort + 1;
   end;
@@ -876,7 +860,7 @@ begin
        PChar(GetCurrentDir),
        StartupInfo,
        FProcessInfo) then begin
-    raise EDatabaseError.CreateFmt(_('Could not execute PLink: %s'), [CRLF+PlinkCmdDisplay]);
+    raise EDbError.CreateFmt(_('Could not execute PLink: %s'), [CRLF+PlinkCmdDisplay]);
   end;
 
   // Wait until timeout has finished, or some text returned.
@@ -888,7 +872,7 @@ begin
     WaitForSingleObject(FProcessInfo.hProcess, 200);
     GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
     if ExitCode <> STILL_ACTIVE then
-      raise EDatabaseError.CreateFmt(_('PLink exited unexpected. Command line was: %s'), [CRLF+PlinkCmdDisplay]);
+      raise EDbError.CreateFmt(_('PLink exited unexpected. Command line was: %s'), [CRLF+PlinkCmdDisplay]);
 
     OutText := Trim(ReadPipe(FOutPipe));
     ErrorText := ReadPipe(FErrorPipe);
@@ -927,7 +911,7 @@ begin
             SendText('n');
           mrCancel: begin
             Destroy;
-            raise EDatabaseError.Create(_('PLink cancelled'));
+            raise EDbError.Create(_('PLink cancelled'));
           end;
         end;
       end else if ErrorText.StartsWith('Using username ', True) then begin
@@ -958,7 +942,7 @@ var
 begin
   Result := '';
   if Pipe.ReadHandle = INVALID_HANDLE_VALUE then
-    raise EDatabaseError.Create(_('Error reading I/O pipes'));
+    raise EDbError.Create(_('Error reading I/O pipes'));
 
   // Check if there is data to read from stdout
   PeekNamedPipe(Pipe.ReadHandle, nil, 0, nil, @BufferReadCount, nil);
@@ -1680,7 +1664,7 @@ begin
 
     // Die if trying to run plink on Win10S
     if RunningOnWindows10S and (not FParameters.IsCompatibleToWin10S(FParameters.NetType)) then begin
-      raise EDatabaseError.Create(_('The network type defined for this session is not compatible to your Windows 10 S'));
+      raise EDbError.Create(_('The network type defined for this session is not compatible to your Windows 10 S'));
     end;
 
     DoBeforeConnect;
@@ -1746,7 +1730,7 @@ begin
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
     SetOptionResult := FLib.mysql_options(FHandle, Integer(MYSQL_PLUGIN_DIR), PAnsiChar(PluginDir));
     if SetOptionResult <> 0 then begin
-      raise EDatabaseError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
+      raise EDbError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
     end;
 
     // Define which TLS protocol versions are allowed.
@@ -1780,14 +1764,14 @@ begin
       FHandle := nil;
       if FPlink <> nil then
         FPlink.Free;
-      raise EDatabaseError.Create(Error);
+      raise EDbError.Create(Error);
     end else begin
       FActive := True;
       // Catch late init_connect error by firing mysql_ping(), which detects a broken
       // connection without running into some access violation. See issue #3464.
       Ping(False);
       if not FActive then
-        raise EDatabaseError.CreateFmt(_('Connection closed immediately after it was established. '+
+        raise EDbError.CreateFmt(_('Connection closed immediately after it was established. '+
           'This is mostly caused by an "%s" server variable which has errors in itself, '+
           'or your user account does not have the required privileges for it to run.'+CRLF+CRLF+
           'You may ask someone with SUPER privileges'+CRLF+
@@ -1799,7 +1783,7 @@ begin
       try
         ThreadId;
       except
-        on E:EDatabaseError do begin
+        on E:EDbError do begin
           if GetLastErrorCode =  1820 then begin
             PasswordChangeDialog := TfrmPasswordChange.Create(Self);
             PasswordChangeDialog.lblHeading.Caption := GetLastErrorMsg;
@@ -1820,11 +1804,11 @@ begin
       try
         CharacterSet := 'utf8mb4';
       except
-        on E:EDatabaseError do try
+        on E:EDbError do try
           Log(lcError, E.Message);
           CharacterSet := 'utf8';
         except
-          on E:EDatabaseError do
+          on E:EDbError do
             Log(lcError, E.Message);
         end;
       end;
@@ -1898,7 +1882,7 @@ begin
       FAdoHandle := TAdoConnection.Create(Owner);
     except
       on E:Exception do
-        raise EDatabaseError.Create(E.Message+CRLF+CRLF+
+        raise EDbError.Create(E.Message+CRLF+CRLF+
             _('On Wine, you can try to install MDAC:')+CRLF+
             '> wget http://winetricks.org/winetricks'+CRLF+
             '> chmod +x winetricks'+CRLF+
@@ -2033,7 +2017,7 @@ begin
         Error := LastErrorMsg;
         Log(lcError, Error);
         FConnectionStarted := 0;
-        raise EDatabaseError.Create(Error);
+        raise EDbError.Create(Error);
       end;
     end;
   end else begin
@@ -2089,7 +2073,7 @@ begin
       FHandle := nil;
       if FPlink <> nil then
         FPlink.Free;
-      raise EDatabaseError.Create(Error);
+      raise EDbError.Create(Error);
     end;
     FActive := True;
     FServerDateTimeOnStartup := GetVar('SELECT NOW()');
@@ -2217,66 +2201,27 @@ end;
 
 procedure TMySQLConnection.DoBeforeConnect;
 var
-  msg,
   LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
   LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryFile;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
-  try
-    FLib := TMySQLLib.Create(LibraryPath);
-    Log(lcDebug, FLib.DllFile + ' v' + DecodeApiString(FLib.mysql_get_client_info) + ' loaded.');
-  except
-    on E:Exception do
-      Log(lcDebug, E.Message);
-  end;
-
-  if not Assigned(FLib) then begin
-    msg := f_('Library %s seems unusable. Please select a different one.',
-      [ExtractFileName(LibraryPath)]
-      );
-    if Windows.GetLastError <> 0 then
-      msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
-    raise EDatabaseError.Create(msg);
-  end;
-
+  // Throws EDbError on any failure:
+  FLib := TMySQLLib.Create(LibraryPath);
+  Log(lcDebug, FLib.DllFile + ' v' + DecodeApiString(FLib.mysql_get_client_info) + ' loaded.');
   inherited;
 end;
 
 
 procedure TPgConnection.DoBeforeConnect;
 var
-  msg,
-  TryLibraryPath: String;
-  TryLibraryPaths: TStringList;
+  LibraryPath: String;
 begin
   // Init lib before actually connecting.
-  // Each connection has its own library handle
-  TryLibraryPaths := TStringList.Create;
-  TryLibraryPaths.Add('libpq.dll');
-  // Try with explicit file path if the path-less did not succeed. See http://www.heidisql.com/forum.php?t=22514
-  TryLibraryPaths.Add(ExtractFilePath(Application.ExeName) + 'libpq.dll');
-
-  for TryLibraryPath in TryLibraryPaths do begin
-    Log(lcDebug, f_('Loading library file %s ...', [TryLibraryPath]));
-    try
-      FLib := TPostgreSQLLib.Create(TryLibraryPath);
-      Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
-      Break;
-    except
-      on E:Exception do
-        Log(lcDebug, E.Message);
-    end
-  end;
-  if not Assigned(FLib) then begin
-    msg := f_('Cannot find a usable %s. Please launch %s from the directory where you have installed it.',
-      [ExtractFileName(TryLibraryPaths[0]), ExtractFileName(ParamStr(0))]
-      );
-    if Windows.GetLastError <> 0 then
-      msg := msg + CRLF + CRLF + f_('Internal error %d:', [Windows.GetLastError]) + ' ' + SysErrorMessage(Windows.GetLastError);
-    raise EDatabaseError.Create(msg);
-  end;
-
+  LibraryPath := ExtractFilePath(ParamStr(0)) + 'libpq.dll';
+  Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
+  FLib := TPostgreSQLLib.Create(LibraryPath);
+  Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
   inherited;
 end;
 
@@ -2489,7 +2434,7 @@ begin
   if QueryStatus <> 0 then begin
     // Most errors will show up here, some others slightly later, after mysql_store_result()
     Log(lcError, GetLastErrorMsg);
-    raise EDatabaseError.Create(GetLastErrorMsg, GetLastErrorCode);
+    raise EDbError.Create(GetLastErrorMsg, GetLastErrorCode);
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
@@ -2510,7 +2455,7 @@ begin
       //   indicates that the query returned an error or that, for a SELECT query,
       //   mysql_affected_rows() was called prior to calling mysql_store_result()."
       Log(lcError, GetLastErrorMsg);
-      raise EDatabaseError.Create(GetLastErrorMsg);
+      raise EDbError.Create(GetLastErrorMsg);
     end;
 
     if QueryResult = nil then
@@ -2539,7 +2484,7 @@ begin
         // MySQL stops executing a multi-query when an error occurs. So do we here by raising an exception.
         SetLength(FLastRawResults, 0);
         Log(lcError, GetLastErrorMsg);
-        raise EDatabaseError.Create(GetLastErrorMsg);
+        raise EDbError.Create(GetLastErrorMsg);
       end;
     end;
     FResultCount := Length(FLastRawResults);
@@ -2601,7 +2546,7 @@ begin
     on E:EOleException do begin
       FLastError := E.Message;
       Log(lcError, GetLastErrorMsg);
-      raise EDatabaseError.Create(GetLastErrorMsg);
+      raise EDbError.Create(GetLastErrorMsg);
     end;
   end;
 end;
@@ -2643,7 +2588,7 @@ begin
   FLastQueryNetworkDuration := 0;
   if QueryStatus <> 1 then begin
     Log(lcError, GetLastErrorMsg);
-    raise EDatabaseError.Create(GetLastErrorMsg);
+    raise EDbError.Create(GetLastErrorMsg);
   end else begin
     FRowsAffected := 0;
     FRowsFound := 0;
@@ -2674,7 +2619,7 @@ begin
           FLib.PQclear(QueryResult);
           QueryResult := FLib.PQgetResult(FHandle);
         end;
-        raise EDatabaseError.Create(GetLastErrorMsg);
+        raise EDbError.Create(GetLastErrorMsg);
       end;
       // more results?
       Inc(FStatementNum);
@@ -2776,7 +2721,7 @@ begin
   try
     Result := GetVar('SHOW CREATE VIEW '+QuoteIdent(Database)+'.'+QuoteIdent(Name), 1);
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ViewIS := GetResults('SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE '+
         'TABLE_SCHEMA='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
       Result := 'CREATE ';
@@ -2817,7 +2762,7 @@ begin
     rx.Free;
   except
     // Do not raise if that didn't work
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
 end;
 
@@ -3166,7 +3111,7 @@ begin
   if Queries.Count > 0 then try
     PrefetchResults(implodestr(';', Queries));
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
 
 end;
@@ -3291,7 +3236,7 @@ begin
   FStatementNum := 0;
   Return := FLib.mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
   if Return <> 0 then
-    raise EDatabaseError.Create(LastErrorMsg)
+    raise EDbError.Create(LastErrorMsg)
   else
     FIsUnicode := Pos('utf8', LowerCase(CharsetName)) = 1;
 end;
@@ -3506,11 +3451,11 @@ begin
   if not Assigned(Result) then begin
     try
       FAllDatabases := GetCol('SHOW DATABASES');
-    except on E:EDatabaseError do
+    except on E:EDbError do
       try
         FAllDatabases := GetCol('SELECT '+QuoteIdent('SCHEMA_NAME')+' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('SCHEMATA')+' ORDER BY '+QuoteIdent('SCHEMA_NAME'));
       except
-        on E:EDatabaseError do begin
+        on E:EDbError do begin
           FAllDatabases := TStringList.Create;
           Log(lcError, f_('Database names not available due to missing privileges for user %s.', [CurrentUserHostCombination]));
         end;
@@ -3527,7 +3472,7 @@ begin
   if not Assigned(Result) then begin
     try
       FAllDatabases := GetCol('SELECT '+QuoteIdent('name')+' FROM '+GetSQLSpecifity(spDatabaseTable)+' ORDER BY '+QuoteIdent('name'));
-    except on E:EDatabaseError do
+    except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
     Result := FAllDatabases;
@@ -3546,7 +3491,7 @@ begin
       FAllDatabases := GetCol('SELECT '+QuoteIdent('nspname')+
         ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+
         ' ORDER BY '+QuoteIdent('nspname'));
-    except on E:EDatabaseError do
+    except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
   end;
@@ -4618,7 +4563,7 @@ begin
         );
     end;
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -4666,7 +4611,7 @@ begin
   if ServerVersionInt >= 50000 then try
     Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -4687,7 +4632,7 @@ begin
   if ServerVersionInt >= 50000 then try
     Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -4708,7 +4653,7 @@ begin
   if ServerVersionInt >= 50010 then try
     Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -4732,7 +4677,7 @@ begin
     else
       Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -4772,7 +4717,7 @@ begin
       ' FROM '+QuoteIdent(db)+GetSQLSpecifity(spDbObjectsTable)+
       ' WHERE '+QuoteIdent('type')+' IN ('+EscapeString('P')+', '+EscapeString('U')+', '+EscapeString('V')+', '+EscapeString('TR')+', '+EscapeString('FN')+', '+EscapeString('TF')+', '+EscapeString('IF')+')');
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -4830,7 +4775,7 @@ begin
       ' WHERE t.'+QuoteIdent('table_schema')+'='+EscapeString(db)  // Use table_schema when using schemata
       );
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -4867,7 +4812,7 @@ begin
       'WHERE '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(db)
       );
   except
-    on E:EDatabaseError do;
+    on E:EDbError do;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
@@ -5850,7 +5795,7 @@ begin
           //ftTimeStampOffset: // this is NOT data type DATETIMEOFFSET
           //  TypeIndex := dtDatetime;
           else
-            raise EDatabaseError.CreateFmt(_('Unknown data type for column #%d - %s: %d'), [i, FColumnNames[i], Integer(LastResult.Fields[i].DataType)]);
+            raise EDbError.CreateFmt(_('Unknown data type for column #%d - %s: %d'), [i, FColumnNames[i], Integer(LastResult.Fields[i].DataType)]);
         end;
         for j:=0 to High(FConnection.DataTypes) do begin
           if TypeIndex = FConnection.DataTypes[j].Index then
@@ -6159,13 +6104,13 @@ end;
 
 function TAdoDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 begin
-  Raise EDatabaseError.Create(SNotImplemented);
+  Raise EDbError.Create(SNotImplemented);
 end;
 
 
 function TPGQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 begin
-  Raise EDatabaseError.Create(SNotImplemented);
+  Raise EDbError.Create(SNotImplemented);
 end;
 
 
@@ -6212,7 +6157,7 @@ begin
 
     end;
   end else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
 
 
@@ -6245,7 +6190,7 @@ begin
       end
     end;
   end else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
 
 
@@ -6266,7 +6211,7 @@ begin
         Result := Connection.DecodeAPIString(AnsiStr);
     end;
   end else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
 end;
 
 
@@ -6280,7 +6225,7 @@ begin
   if idx > -1 then
     Result := Col(idx)
   else if not IgnoreErrors then
-    Raise EDatabaseError.CreateFmt(_('Column "%s" not available.'), [ColumnName]);
+    Raise EDbError.CreateFmt(_('Column "%s" not available.'), [ColumnName]);
 end;
 
 
@@ -6398,7 +6343,7 @@ var
 begin
   Result := nil;
   if (Column < 0) or (Column >= FColumnOrgNames.Count) then
-    raise EDatabaseError.CreateFmt(_('Column #%s not available.'), [IntToStr(Column)]);
+    raise EDbError.CreateFmt(_('Column #%s not available.'), [IntToStr(Column)]);
   if FColumns <> nil then begin
     for i:=0 to FColumns.Count-1 do begin
       if FColumns[i].Name = FColumnOrgNames[Column] then begin
@@ -6589,7 +6534,7 @@ begin
       end;
     end;
     if Obj = nil then
-      raise EDatabaseError.Create(f_('Could not find table or view %s.%s. Please refresh database tree.', [DB, TableName]));
+      raise EDbError.Create(f_('Could not find table or view %s.%s. Please refresh database tree.', [DB, TableName]));
   end;
   CreateCode := Connection.GetCreateCode(Obj);
   FColumns := TTableColumnList.Create;
@@ -6628,7 +6573,7 @@ begin
     sql := GridQuery('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause);
     Connection.Query(sql);
     if Connection.RowsAffected = 0 then
-      raise EDatabaseError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
+      raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
   end;
   if Assigned(FCurrentUpdateRow) then begin
     FUpdateData.Remove(FCurrentUpdateRow);
@@ -6759,7 +6704,7 @@ begin
       end;
       Data.Free;
     end;
-  except on E:EDatabaseError do
+  except on E:EDbError do
     Result := False;
   end;
 end;
@@ -6797,7 +6742,7 @@ var
 begin
   Result := True;
   if not FEditingPrepared then
-    raise EDatabaseError.Create(_('Internal error: Cannot post modifications before editing was prepared.'));
+    raise EDbError.Create(_('Internal error: Cannot post modifications before editing was prepared.'));
 
   for Row in FUpdateData do begin
     // Prepare update and insert queries
@@ -6861,7 +6806,7 @@ begin
         sqlUpdate := GridQuery('UPDATE', sqlUpdate);
         Connection.Query(sqlUpdate);
         if Connection.RowsAffected = 0 then begin
-          raise EDatabaseError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');
+          raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');
           Result := False;
         end;
       end;
@@ -6878,7 +6823,7 @@ begin
       // Reload real row data from server if keys allow that
       EnsureFullRow(True);
     except
-      on E:EDatabaseError do begin
+      on E:EDbError do begin
         Result := False;
         ErrorDialog(E.Message);
       end;
@@ -7014,14 +6959,14 @@ begin
     end;
 
     if (Field.org_table <> '') and (tbl <> '') and ((tbl <> Field.org_table) or (db <> Field.db)) then
-      raise EDatabaseError.Create(_('More than one table involved.'));
+      raise EDbError.Create(_('More than one table involved.'));
     if Field.org_table <> '' then begin
       tbl := Field.org_table;
       db := Field.db;
     end;
   end;
   if tbl = '' then
-    raise EDatabaseError.Create(_('Could not determine name of table.'))
+    raise EDbError.Create(_('Could not determine name of table.'))
   else
     Result := Connection.DecodeAPIString(tbl)
 end;
@@ -7039,7 +6984,7 @@ begin
     Result := rx.Match[1];
   rx.Free;
   if Result = '' then
-    raise EDatabaseError.Create('Could not determine name of table.');
+    raise EDbError.Create('Could not determine name of table.');
 end;
 
 
@@ -7096,15 +7041,15 @@ var
 begin
   KeyCols := GetKeyColumns;
   if KeyCols.Count = 0 then
-    raise EDatabaseError.Create(_(MSG_NOGRIDEDITING));
+    raise EDbError.Create(_(MSG_NOGRIDEDITING));
   // All column names must be present in order to send valid INSERT/UPDATE/DELETE queries
   for i:=0 to KeyCols.Count-1 do begin
     if FColumnOrgNames.IndexOf(KeyCols[i]) = -1 then
-      raise EDatabaseError.Create(_(MSG_NOGRIDEDITING));
+      raise EDbError.Create(_(MSG_NOGRIDEDITING));
   end;
   for i:=0 to FColumnOrgNames.Count-1 do begin
     if FColumnOrgNames[i] = '' then
-      raise EDatabaseError.CreateFmt(_('Column #%d has an undefined origin: %s'), [i, ColumnNames[i]]);
+      raise EDbError.CreateFmt(_('Column #%d has an undefined origin: %s'), [i, ColumnNames[i]]);
   end;
 end;
 
@@ -7123,7 +7068,7 @@ begin
   for i:=0 to NeededCols.Count-1 do begin
     j := FColumnOrgNames.IndexOf(NeededCols[i]);
     if j = -1 then
-      raise EDatabaseError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i]]);
+      raise EDbError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i]]);
     if Result <> '' then
       Result := Result + ' AND';
     Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
@@ -7714,7 +7659,7 @@ begin
   case _type of
     1: Result := PAnsiChar(AnsiString(Dialog.editUsername.Text));
     2: Result := PAnsiChar(AnsiString(Dialog.editPassword.Text));
-    else raise EDatabaseError.CreateFmt(_('Unsupported type (%d) in %s.'), [_type, 'mysql_authentication_dialog_ask']);
+    else raise EDbError.CreateFmt(_('Unsupported type (%d) in %s.'), [_type, 'mysql_authentication_dialog_ask']);
   end;
   Dialog.Free;
 end;

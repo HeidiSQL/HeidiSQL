@@ -134,9 +134,9 @@ begin
             if rx.Exec(Body) then
               Body := rx.Match[1]
             else
-              raise EDatabaseError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
+              raise EDbError.CreateFmt(_('Result from previous query does not contain expected pattern: %s'), [rx.Expression]);
           except
-            on E:EDatabaseError do begin
+            on E:EDbError do begin
               DBObject.Connection.Log(lcError, E.Message);
               Body := Definitions.Col('Statement');
             end;
@@ -242,7 +242,7 @@ begin
     btnSave.Enabled := Modified;
     btnDiscard.Enabled := Modified;
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       ErrorDialog(E.Message);
       Result := mrAbort;
     end;

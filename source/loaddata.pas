@@ -308,7 +308,7 @@ begin
     try
       FConnection.Query('DELETE FROM ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
     except
-      on E:EDatabaseError do
+      on E:EDbError do
         ErrorDialog(_('Cannot truncate table'), E.Message);
     end;
   end;
@@ -354,7 +354,7 @@ begin
     end;
 
   except
-    on E:EDatabaseError do begin
+    on E:EDbError do begin
       Screen.Cursor := crDefault;
       ModalResult := mrNone;
       MainForm.SetProgressState(pbsError);
