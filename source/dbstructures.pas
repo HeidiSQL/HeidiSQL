@@ -345,6 +345,7 @@ type
     mysql_errno: function(Handle: PMYSQL): Cardinal; stdcall;
     mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
+    mysql_fetch_field: function(Result: PMYSQL_RES): PMYSQL_FIELD; stdcall;
     mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
     mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
     mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
@@ -7722,6 +7723,7 @@ begin
   AssignProc(@mysql_errno, 'mysql_errno');
   AssignProc(@mysql_error, 'mysql_error');
   AssignProc(@mysql_fetch_field_direct, 'mysql_fetch_field_direct');
+  AssignProc(@mysql_fetch_field, 'mysql_fetch_field');
   AssignProc(@mysql_fetch_lengths, 'mysql_fetch_lengths');
   AssignProc(@mysql_fetch_row, 'mysql_fetch_row');
   AssignProc(@mysql_free_result, 'mysql_free_result');
