@@ -6,4 +6,4 @@ file_filter = out/locale/<lang>/LC_MESSAGES/default.po
 source_file = out/locale/en/LC_MESSAGES/default.po
 source_lang = en
 type = PO
-minimum_perc = 10
+minimum_perc = 20
