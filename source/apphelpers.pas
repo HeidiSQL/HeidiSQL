@@ -3623,7 +3623,8 @@ begin
   DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets\';
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
-  InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, True);
+  // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
+  InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
