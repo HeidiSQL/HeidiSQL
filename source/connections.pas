@@ -867,6 +867,9 @@ begin
     ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryFile);
+    if (comboLibrary.ItemIndex = -1) and (comboLibrary.Items.Count > 0) then begin
+      comboLibrary.ItemIndex := 0;
+    end;
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
     editSSHPlinkExe.Text := Sess.SSHPlinkExe;
