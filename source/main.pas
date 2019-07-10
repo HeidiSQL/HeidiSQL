@@ -1113,7 +1113,7 @@ type
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
     function InitTabsIniFile: TIniFile;
     procedure StoreTabs;
-    procedure RestoreTabs;
+    function RestoreTabs: Boolean;
   public
     QueryTabs: TObjectList<TQueryTab>;
     ActiveObjectEditor: TDBObjectEditor;
@@ -2124,8 +2124,7 @@ begin
 
   // Restore backup'ed query tabs
   if AppSettings.RestoreTabsInitValue then begin
-    RestoreTabs;
-    TimerStoreTabs.Enabled := True;
+    TimerStoreTabs.Enabled := RestoreTabs;
   end;
 
   // Load SQL file(s) by command line
@@ -2162,6 +2161,10 @@ begin
   end;
   if Attempts > 0 then begin
     LogSQL(Format('Had to wait %d ms before opening %s', [GetTickCount64 - WaitingSince, TabsIniFilename]), lcDebug);
+  end;
+  // Catch errors when file cannot be created
+  if not FileExists(TabsIniFilename) then begin
+    SaveUnicodeFile(TabsIniFilename, '');
   end;
   Result := TIniFile.Create(TabsIniFilename);
 end;
@@ -2221,13 +2224,14 @@ begin
     TabsIni.Free;
   except
     on E:Exception do begin
-      ErrorDialog(_('Auto-storing tab setup failed'), E.Message);
+      TimerStoreTabs.Enabled := False;
+      ErrorDialog(_('Storing tab setup failed'), 'Tabs won''t be stored in this session.' + CRLF + CRLF + E.Message);
     end;
   end;
 end;
 
 
-procedure TMainForm.RestoreTabs;
+function TMainForm.RestoreTabs: Boolean;
 var
   Tab: TQueryTab;
   Sections: TStringList;
@@ -2237,6 +2241,7 @@ var
   EditorHeight, HelpersWidth: Integer;
 begin
   // Restore query tab setup from tabs.ini
+  Result := True;
 
   try
     TabsIni := InitTabsIniFile;
@@ -2297,7 +2302,8 @@ begin
     TabsIni.Free;
   except
     on E:Exception do begin
-      ErrorDialog(_('Auto-restoring tab setup failed'), E.Message);
+      Result := False;
+      ErrorDialog(_('Restoring tab setup failed'), 'Tabs won''t be stored in this session.' + CRLF + CRLF + E.Message);
     end;
   end;
 end;
