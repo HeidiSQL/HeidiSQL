@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-07-08 20:21+0200\n"
+"PO-Revision-Date: 2019-07-10 11:01+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -4369,6 +4369,9 @@ msgstr "Settings successfully restored from %s"
 #. Automatic export of portable settings
 msgid "Portable settings file written, with %d changes."
 msgstr "Portable settings file written, with %d changes."
+
+msgid "Switching to read-only mode. Settings won't be saved. Use the command line parameter %s to use a custom file path."
+msgstr "Switching to read-only mode. Settings won't be saved. Use the command line parameter %s to use a custom file path."
 
 #: main.pas:2142
 msgid "Splitting SQL queries ..."

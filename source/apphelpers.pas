@@ -200,6 +200,7 @@ type
       FSessionPath: String;
       FRegistry: TRegistry;
       FPortableMode: Boolean;
+      FPortableModeReadOnly: Boolean;
       FRestoreTabsInitValue: Boolean;
       FSettingsFile: String;
       FSettings: Array[TAppSettingIndex] of TAppSetting;
@@ -242,10 +243,11 @@ type
       procedure ResetPath;
       property SessionPath: String read FSessionPath write SetSessionPath;
       property PortableMode: Boolean read FPortableMode;
+      property PortableModeReadOnly: Boolean read FPortableModeReadOnly write FPortableModeReadOnly;
       property Writes: Integer read FWrites;
       procedure ImportSettings(Filename: String);
-      procedure ExportSettings(Filename: String); overload;
-      procedure ExportSettings; overload;
+      function ExportSettings(Filename: String): Boolean; overload;
+      function ExportSettings: Boolean; overload;
       // Common directories
       function DirnameUserAppData: String;
       function DirnameUserDocuments: String;
@@ -3402,6 +3404,7 @@ begin
 
   // Switch to portable mode if lock file exists. File content is ignored.
   FPortableMode := FileExists(PortableLockFile);
+  FPortableModeReadOnly := False;
 
   if FPortableMode then begin
     // Create file if only the lock file exists
@@ -3709,7 +3712,11 @@ var
 begin
   // Export settings into textfile in portable mode.
   if FPortableMode then try
-    ExportSettings(FSettingsFile);
+    try
+      ExportSettings;
+    except
+      // do nothing, even ShowMessage or ErrorDialog would trigger timer events followed by crashes;
+    end;
     FRegistry.CloseKey;
     FRegistry.DeleteKey(FBasePath);
 
@@ -4142,7 +4149,7 @@ begin
 end;
 
 
-procedure TAppSettings.ExportSettings(Filename: String);
+function TAppSettings.ExportSettings(Filename: String): Boolean;
 var
   Content, Value: String;
   DataType: TRegDataType;
@@ -4188,12 +4195,26 @@ begin
   Content := '';
   ReadKeyToContent(FBasePath);
   SaveUnicodeFile(FileName, Content);
+  Result := True;
 end;
 
 
-procedure TAppSettings.ExportSettings;
+function TAppSettings.ExportSettings: Boolean;
 begin
-  ExportSettings(FSettingsFile);
+  Result := False;
+  if not FPortableModeReadOnly then begin
+    try
+      ExportSettings(FSettingsFile);
+      Result := True;
+    except
+      on E:Exception do begin
+        FPortableModeReadOnly := True;
+        Raise Exception.Create(E.Message + CRLF + CRLF
+          + f_('Switching to read-only mode. Settings won''t be saved. Use the command line parameter %s to use a custom file path.', ['--psettings'])
+          );
+      end;
+    end;
+  end;
 end;
 
 

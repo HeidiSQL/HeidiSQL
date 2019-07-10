@@ -12616,13 +12616,20 @@ end;
 
 procedure TMainForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
 begin
-  if AppSettings.PortableMode and (FLastPortableSettingsSave < GetTickCount-60000) then begin
-    if AppSettings.Writes > FLastAppSettingsWrites then begin
-      AppSettings.ExportSettings;
-      LogSQL(f_('Portable settings file written, with %d changes.', [AppSettings.Writes-FLastAppSettingsWrites]), lcDebug);
+  if AppSettings.PortableMode
+    and (not AppSettings.PortableModeReadOnly)
+    and (FLastPortableSettingsSave < GetTickCount-60000) then begin
+    try
+      if AppSettings.Writes > FLastAppSettingsWrites then begin
+        if AppSettings.ExportSettings then
+          LogSQL(f_('Portable settings file written, with %d changes.', [AppSettings.Writes-FLastAppSettingsWrites]), lcDebug);
+      end;
+      FLastAppSettingsWrites := AppSettings.Writes;
+      FLastPortableSettingsSave := GetTickCount;
+    except
+      on E:Exception do
+        ErrorDialog(E.Message);
     end;
-    FLastAppSettingsWrites := AppSettings.Writes;
-    FLastPortableSettingsSave := GetTickCount;
   end;
 
   // Sort list tables in idle time, so ListTables.TreeOptions.AutoSort does not crash the list
