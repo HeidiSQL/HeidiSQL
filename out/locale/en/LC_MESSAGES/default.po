@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-07-10 11:44+0200\n"
+"PO-Revision-Date: 2019-07-11 21:34+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -169,6 +169,9 @@ msgstr "Select columns"
 #: connections.dfm:5 main.dfm:1871
 msgid "Session manager"
 msgstr "Session manager"
+
+msgid "Session"
+msgstr "Session"
 
 #. connform..btnSave..Caption
 #. connform..popupSessions..menuSave..Caption

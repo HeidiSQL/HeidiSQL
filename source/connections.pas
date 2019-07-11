@@ -182,6 +182,7 @@ type
     FPopupDatabases: TPopupMenu;
     FButtonAnimationStep: Integer;
     FLastSelectedNetTypeGroup: TNetTypeGroup;
+    FCustomBackgroundColors: TStringList;
     procedure RefreshSessions(ParentNode: PVirtualNode);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
@@ -303,22 +304,41 @@ end;
 procedure Tconnform.RefreshSessions(ParentNode: PVirtualNode);
 var
   SessionNames: TStringList;
-  RegKey: String;
+  RegKey,
+  ColorName,
+  ColorNamePrefix: String;
   i: Integer;
   Params: TConnectionParameters;
   SessNode: PVirtualNode;
 begin
   // Initialize session tree
-  if ParentNode=nil then
-    ListSessions.Clear
-  else
+  // And while we're at it, collect custom colors for background color selector
+  if ParentNode=nil then begin
+    ListSessions.Clear;
+    FreeAndNil(FCustomBackgroundColors);
+    FCustomBackgroundColors := TStringList.Create;
+  end else begin
     ListSessions.DeleteChildren(ParentNode, True);
+  end;
   SessionNames := NodeSessionNames(ParentNode, RegKey);
+  ColorNamePrefix := _('Session') + ' "';
   for i:=0 to SessionNames.Count-1 do begin
     Params := TConnectionParameters.Create(RegKey+SessionNames[i]);
     SessNode := ListSessions.AddChild(ParentNode, PConnectionParameters(Params));
-    if Params.IsFolder then
+    if Params.IsFolder then begin
       RefreshSessions(SessNode);
+    end else begin
+      ColorName := ColorNamePrefix + Params.SessionPath + '"';
+      if Params.SessionColor <> clNone then begin
+        FCustomBackgroundColors.AddObject(ColorName, TObject(Params.SessionColor));
+      end;
+    end;
+  end;
+
+  // Add custom colors if not already done before
+  if (FCustomBackgroundColors.Count > 0)
+    and (not ColorBoxBackgroundColor.Items.Text.Contains(ColorNamePrefix)) then begin
+    ColorBoxBackgroundColor.Items.AddStrings(FCustomBackgroundColors);
   end;
 end;
 
