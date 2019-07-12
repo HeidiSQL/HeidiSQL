@@ -2225,7 +2225,11 @@ begin
   except
     on E:Exception do begin
       TimerStoreTabs.Enabled := False;
-      ErrorDialog(_('Storing tab setup failed'), 'Tabs won''t be stored in this session.' + CRLF + CRLF + E.Message);
+      ErrorDialog(_('Storing tab setup failed'),
+        'Tabs won''t be stored in this session.' + CRLF + CRLF +
+        E.Message + CRLF + CRLF +
+        SysErrorMessage(Windows.GetLastError)
+        );
     end;
   end;
 end;
@@ -2303,7 +2307,11 @@ begin
   except
     on E:Exception do begin
       Result := False;
-      ErrorDialog(_('Restoring tab setup failed'), 'Tabs won''t be stored in this session.' + CRLF + CRLF + E.Message);
+      ErrorDialog(_('Restoring tab setup failed'),
+        'Tabs won''t be stored in this session.' + CRLF + CRLF +
+        E.Message + CRLF + CRLF +
+        SysErrorMessage(Windows.GetLastError)
+        );
     end;
   end;
 end;
