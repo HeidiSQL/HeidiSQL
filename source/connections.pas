@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
-  dbconnection, gnugettext, SynRegExpr, System.Types, System.IOUtils;
+  dbconnection, gnugettext, SynRegExpr, System.Types, System.IOUtils, Vcl.GraphUtil;
 
 type
   Tconnform = class(TFormWithSizeGrip)
@@ -321,15 +321,15 @@ begin
     ListSessions.DeleteChildren(ParentNode, True);
   end;
   SessionNames := NodeSessionNames(ParentNode, RegKey);
-  ColorNamePrefix := _('Session') + ' "';
+  ColorNamePrefix := _('Custom color:') + ' ';
   for i:=0 to SessionNames.Count-1 do begin
     Params := TConnectionParameters.Create(RegKey+SessionNames[i]);
     SessNode := ListSessions.AddChild(ParentNode, PConnectionParameters(Params));
     if Params.IsFolder then begin
       RefreshSessions(SessNode);
     end else begin
-      ColorName := ColorNamePrefix + Params.SessionPath + '"';
-      if Params.SessionColor <> clNone then begin
+      ColorName := ColorNamePrefix + ColorToWebColorStr(Params.SessionColor);
+      if (Params.SessionColor <> clNone) and (FCustomBackgroundColors.IndexOf(ColorName) = -1) then begin
         FCustomBackgroundColors.AddObject(ColorName, TObject(Params.SessionColor));
       end;
     end;
