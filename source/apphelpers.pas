@@ -184,6 +184,7 @@ type
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
     asPreferencesWindowWidth, asPreferencesWindowHeight,
     asFileDialogEncoding,
+    asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -360,6 +361,7 @@ type
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String): Boolean;
   function ProcessExists(pid: Cardinal): Boolean;
+  procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
 
 var
   AppSettings: TAppSettings;
@@ -3014,6 +3016,18 @@ begin
 end;
 
 
+procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
+var
+  ClickEvent: TNotifyEvent;
+begin
+  ClickEvent := chk.OnClick;
+  chk.OnClick := nil;
+  chk.Checked := State;
+  chk.OnClick := ClickEvent;
+end;
+
+
+
 
 { Threading stuff }
 
@@ -3695,6 +3709,10 @@ begin
   InitSetting(asPreferencesWindowWidth,           'PreferencesWindowWidth',                740);
   InitSetting(asPreferencesWindowHeight,          'PreferencesWindowHeight',               500);
   InitSetting(asFileDialogEncoding,               'FileDialogEncoding_%s',                 0);
+  InitSetting(asThemePreviewWidth,                'ThemePreviewWidth',                     300);
+  InitSetting(asThemePreviewHeight,               'ThemePreviewHeight',                    200);
+  InitSetting(asThemePreviewTop,                  'ThemePreviewTop',                       300);
+  InitSetting(asThemePreviewLeft,                 'ThemePreviewLeft',                      300);
 
   // Initialization values
   FRestoreTabsInitValue := ReadBool(asRestoreTabs);

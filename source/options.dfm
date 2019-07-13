@@ -296,7 +296,7 @@ object optionsform: Toptionsform
           Tag = 1
           Left = 190
           Top = 282
-          Width = 505
+          Width = 392
           Height = 21
           Style = csDropDownList
           Anchors = [akLeft, akTop, akRight]
@@ -332,6 +332,16 @@ object optionsform: Toptionsform
             'https://yandex.com/search/?text=%query'
             'https://www.bing.com/search?q=%query'
             'https://www.google.com/search?q=%query')
+        end
+        object chkThemePreview: TCheckBox
+          Left = 588
+          Top = 284
+          Width = 97
+          Height = 17
+          Anchors = [akTop, akRight]
+          Caption = 'Preview'
+          TabOrder = 19
+          OnClick = chkThemePreviewClick
         end
       end
     end

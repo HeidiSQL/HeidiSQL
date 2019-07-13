@@ -44,7 +44,8 @@ uses
   extra_controls in '..\..\source\extra_controls.pas',
   change_password in '..\..\source\change_password.pas' {frmPasswordChange},
   Vcl.Themes,
-  Vcl.Styles;
+  Vcl.Styles,
+  theme_preview in '..\..\source\theme_preview.pas' {frmThemePreview};
 
 {.$R *.RES}
 {$R ..\..\res\icon.RES}
@@ -71,6 +72,7 @@ begin
     Application.Terminate;
   end else begin
     AppLanguage := AppSettings.ReadString(asAppLanguage);
+    // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
     SysLanguage := DefaultInstance.GetCurrentLocaleName;
     UseLanguage(AppLanguage);
     Application.Initialize;

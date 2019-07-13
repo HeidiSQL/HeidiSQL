@@ -13,7 +13,7 @@ uses
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
   dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections,
-  Vcl.ImageCollection, extra_controls;
+  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons;
 
 type
   TShortcutItemData = record
@@ -174,6 +174,7 @@ type
     chkLogEventScript: TCheckBox;
     lblWebSearchBaseUrl: TLabel;
     comboWebSearchBaseUrl: TComboBox;
+    chkThemePreview: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -217,6 +218,7 @@ type
     procedure comboGridTextColorsPresetSelect(Sender: TObject);
     procedure comboThemeSelect(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure chkThemePreviewClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -226,6 +228,7 @@ type
     FLanguages: TStringList;
     FRestartOptionTouched: Boolean;
     FRestartOptionApplied: Boolean;
+    FThemePreview: TfrmThemePreview;
     procedure InitLanguages;
     procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
   public
@@ -1004,6 +1007,11 @@ begin
     comboEditorColorsPresetChange(comboEditorColorsPreset);
   end;
 
+  // Update preview window
+  if chkThemePreview.Checked then begin
+    FThemePreview.LoadTheme(comboTheme.Text);
+  end;
+
   Modified(Sender);
 end;
 
@@ -1054,6 +1062,20 @@ begin
   FormShow(Sender);
 end;
 
+
+procedure Toptionsform.chkThemePreviewClick(Sender: TObject);
+begin
+  // Show or hide theme preview window
+  if chkThemePreview.Checked then begin
+    FThemePreview := TfrmThemePreview.Create(chkThemePreview);
+    FThemePreview.PopupMode := pmExplicit;
+    FThemePreview.PopupParent := Self;
+    FThemePreview.Show;
+    FThemePreview.LoadTheme(comboTheme.Text);
+  end else begin
+    FThemePreview.Close;
+  end;
+end;
 
 procedure Toptionsform.TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex);
