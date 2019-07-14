@@ -649,6 +649,8 @@ type
     TimerStoreTabs: TTimer;
     Duplicaterowwithkeys1: TMenuItem;
     imgDonate: TImage;
+    actGoToQueryResults: TAction;
+    Switchtoqueryresults1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1017,6 +1019,7 @@ type
     procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     procedure filterQueryHelpersChange(Sender: TObject);
     procedure TimerStoreTabsTimer(Sender: TObject);
+    procedure actGoToQueryResultsExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1422,6 +1425,31 @@ begin
   editTableFilter.SetFocus;
 end;
 
+
+procedure TMainForm.actGoToQueryResultsExecute(Sender: TObject);
+var
+  Tab: TQueryTab;
+  Grid: TVirtualStringTree;
+begin
+  // Switch between query editor and result grid
+  if QueryTabActive then begin
+    Tab := ActiveQueryTab;
+    if Tab.Memo.Focused then begin
+      if Tab.ActiveResultTab <> nil then begin
+        Grid := Tab.ActiveResultTab.Grid;
+        Grid.SetFocus;
+        if Grid.FocusedNode = nil then
+          SelectNode(Grid, 0);
+      end else begin
+        MessageBeep(MB_ICONASTERISK);
+      end;
+    end else begin
+      Tab.Memo.SetFocus;
+    end;
+  end else begin
+    MessageBeep(MB_ICONASTERISK);
+  end;
+end;
 
 procedure TMainForm.actGotoTabNumberExecute(Sender: TObject);
 var

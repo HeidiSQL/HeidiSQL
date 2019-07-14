@@ -2161,6 +2161,9 @@ object MainForm: TMainForm
       object actGotoDbTree1: TMenuItem
         Action = actGotoDbTree
       end
+      object Switchtoqueryresults1: TMenuItem
+        Action = actGoToQueryResults
+      end
       object actGotoTab11: TMenuItem
         Action = actGotoTab1
       end
@@ -3058,6 +3061,12 @@ object MainForm: TMainForm
       Caption = 'Tab 5'
       ShortCut = 16437
       OnExecute = actGotoTabNumberExecute
+    end
+    object actGoToQueryResults: TAction
+      Category = 'Various'
+      Caption = 'Switch to query/results'
+      ShortCut = 117
+      OnExecute = actGoToQueryResultsExecute
     end
     object actCopyRows: TAction
       Category = 'Various'
