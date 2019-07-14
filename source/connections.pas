@@ -1226,8 +1226,6 @@ begin
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
-      if (Params.NetType = ntMSSQL_TCPIP) and (Pos('\', editHost.Text) > 0) then
-        lblPort.Enabled := False; // Named instance without port
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
       comboLibrary.Enabled := Params.NetTypeGroup in [ngMySQL];
