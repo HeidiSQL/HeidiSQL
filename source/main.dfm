@@ -2164,6 +2164,9 @@ object MainForm: TMainForm
       object Switchtoqueryresults1: TMenuItem
         Action = actGoToQueryResults
       end
+      object Datatabfilter1: TMenuItem
+        Action = actGoToDataMultiFilter
+      end
       object actGotoTab11: TMenuItem
         Action = actGotoTab1
       end
@@ -3067,6 +3070,12 @@ object MainForm: TMainForm
       Caption = 'Switch to query/results'
       ShortCut = 117
       OnExecute = actGoToQueryResultsExecute
+    end
+    object actGoToDataMultiFilter: TAction
+      Category = 'Various'
+      Caption = 'Multi column filter'
+      ShortCut = 118
+      OnExecute = actGoToDataMultiFilterExecute
     end
     object actCopyRows: TAction
       Category = 'Various'

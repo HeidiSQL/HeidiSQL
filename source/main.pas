@@ -651,6 +651,8 @@ type
     imgDonate: TImage;
     actGoToQueryResults: TAction;
     Switchtoqueryresults1: TMenuItem;
+    actGoToDataMultiFilter: TAction;
+    Datatabfilter1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1020,6 +1022,7 @@ type
     procedure filterQueryHelpersChange(Sender: TObject);
     procedure TimerStoreTabsTimer(Sender: TObject);
     procedure actGoToQueryResultsExecute(Sender: TObject);
+    procedure actGoToDataMultiFilterExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1431,8 +1434,8 @@ var
   Tab: TQueryTab;
   Grid: TVirtualStringTree;
 begin
-  // Switch between query editor and result grid
   if QueryTabActive then begin
+    // Switch between query editor and result grid
     Tab := ActiveQueryTab;
     if Tab.Memo.Focused then begin
       if Tab.ActiveResultTab <> nil then begin
@@ -1446,10 +1449,33 @@ begin
     end else begin
       Tab.Memo.SetFocus;
     end;
+  end else if PageControlMain.ActivePage = tabData then begin
+    // Switch between data tab filter and result grid
+    if SynMemoFilter.Focused then begin
+      DataGrid.SetFocus;
+      if DataGrid.FocusedNode = nil then
+        SelectNode(DataGrid, 0);
+    end else begin
+      ToggleFilterPanel(True);
+      SynMemoFilter.SetFocus;
+    end;
   end else begin
     MessageBeep(MB_ICONASTERISK);
   end;
 end;
+
+
+procedure TMainForm.actGoToDataMultiFilterExecute(Sender: TObject);
+begin
+  // Go to multi column filter generator
+  if PageControlMain.ActivePage = tabData then begin
+    ToggleFilterPanel(True);
+    editFilterSearch.SetFocus;
+  end else begin
+    MessageBeep(MB_ICONASTERISK);
+  end;
+end;
+
 
 procedure TMainForm.actGotoTabNumberExecute(Sender: TObject);
 var
