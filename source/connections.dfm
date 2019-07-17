@@ -8,7 +8,11 @@ object connform: Tconnform
   Color = clBtnFace
   Constraints.MinHeight = 360
   Constraints.MinWidth = 640
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   ShowHint = True
   OnClose = FormClose

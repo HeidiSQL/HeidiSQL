@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
-  dbconnection, dbstructures, gnugettext, SynRegExpr;
+  dbconnection, dbstructures, gnugettext, SynRegExpr, extra_controls;
 
 type
-  TCreateDatabaseForm = class(TForm)
+  TCreateDatabaseForm = class(TExtForm)
     editDBName: TEdit;
     lblDBName: TLabel;
     btnOK: TButton;

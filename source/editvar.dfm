@@ -7,7 +7,11 @@ object frmEditVariable: TfrmEditVariable
   Color = clBtnFace
   Constraints.MinHeight = 260
   Constraints.MinWidth = 200
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate

@@ -25,7 +25,7 @@ type
   end;
   PFileInfo = ^TFileInfo;
 
-  TfrmInsertFiles = class(TFormWithSizeGrip)
+  TfrmInsertFiles = class(TExtForm)
     btnInsert: TButton;
     btnCancel: TButton;
     OpenDialog: TOpenDialog;
@@ -117,6 +117,7 @@ const
 procedure TfrmInsertFiles.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   ListFiles.Images := GetSystemImageList;
   DragAcceptFiles(Handle, True);
   MainForm.RestoreListSetup(ListColumns);

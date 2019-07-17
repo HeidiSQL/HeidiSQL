@@ -4,15 +4,15 @@ interface
 
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
-  SizeGrip, SizeGripThemed;
+  SizeGrip, SizeGripThemed, apphelpers, Vcl.Graphics;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
-  TFormWithSizeGrip = class(TForm)
-    private
-      FGripper: TSizeGripThemed;
+  TExtForm = class(TForm)
     public
       constructor Create(AOwner: TComponent); override;
+      procedure AddSizeGrip;
+      class procedure InheritFont(AFont: TFont; Form: TForm);
   end;
   // Memo replacement which accepts any line break format
   TLineNormalizingMemo = class(TMemo)
@@ -25,15 +25,57 @@ type
 implementation
 
 
-{ TFormWithSizeGrip }
+{ TExtForm }
 
-constructor TFormWithSizeGrip.Create(AOwner: TComponent);
+constructor TExtForm.Create(AOwner: TComponent);
 begin
   inherited;
+  InheritFont(Font, Self);
+end;
+
+procedure TExtForm.AddSizeGrip;
+var
+  FGripper: TSizeGripThemed;
+begin
   FGripper := TSizeGripThemed.Create(Self);
   FGripper.Themed := True;
   FGripper.Enabled := True;
   FGripper.Style := sgsWinXP;
+end;
+
+
+class procedure TExtForm.InheritFont(AFont: TFont; Form: TForm);
+var
+  LogFont: TLogFont;
+  GUIFontName: String;
+begin
+  // Set custom font if set, or default system font.
+  // In high-dpi mode, the font *size* is increased automatically somewhere in the VCL,
+  // caused by a form's .Scaled property. So we don't increase it here again.
+  // To test this, you really need to log off/on Windows!
+  GUIFontName := AppSettings.ReadString(asGUIFontName);
+  if not GUIFontName.IsEmpty then begin
+    // Apply user specified font
+    AFont.Name := GUIFontName;
+    // Set size on top of automatic dpi-increased size
+    AFont.Size := Round(AppSettings.ReadInt(asGUIFontSize) * DpiScaleFactor(Form));
+  end else begin
+    // Apply system font. See issue #3204.
+    // Code taken from http://www.gerixsoft.com/blog/delphi/system-font
+    if SystemParametersInfo(SPI_GETICONTITLELOGFONT, SizeOf(TLogFont), @LogFont, 0) then begin
+      AFont.Height := Round(LogFont.lfHeight * DpiScaleFactor(Form));
+      AFont.Orientation := LogFont.lfOrientation;
+      AFont.Charset := TFontCharset(LogFont.lfCharSet);
+      AFont.Name := PChar(@LogFont.lfFaceName);
+      case LogFont.lfPitchAndFamily and $F of
+        VARIABLE_PITCH: AFont.Pitch := fpVariable;
+        FIXED_PITCH: AFont.Pitch := fpFixed;
+        else AFont.Pitch := fpDefault;
+      end;
+    end else begin
+      ErrorDialog('Could not detect system font, using SystemParametersInfo.');
+    end;
+  end;
 end;
 
 

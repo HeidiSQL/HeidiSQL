@@ -8,7 +8,11 @@ object frmInsertFiles: TfrmInsertFiles
   Color = clBtnFace
   Constraints.MinHeight = 353
   Constraints.MinWidth = 475
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnClose = FormClose

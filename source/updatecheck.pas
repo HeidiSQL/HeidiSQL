@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
-  apphelpers, gnugettext, ExtCtrls;
+  apphelpers, gnugettext, ExtCtrls, extra_controls;
 
 type
-  TfrmUpdateCheck = class(TForm)
+  TfrmUpdateCheck = class(TExtForm)
     btnCancel: TButton;
     groupBuild: TGroupBox;
     btnBuild: TButton;

@@ -8,7 +8,7 @@ uses
   dbconnection, dbstructures, VirtualTrees, SynEdit, SynMemo, Menus, gnugettext;
 
 type
-  TCopyTableForm = class(TFormWithSizeGrip)
+  TCopyTableForm = class(TExtForm)
     editNewTablename: TEdit;
     lblNewTablename: TLabel;
     btnCancel: TButton;
@@ -68,6 +68,7 @@ const
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   FixDropDownButtons(Self);
   Width := AppSettings.ReadInt(asCopyTableWindowWidth);
   Height := AppSettings.ReadInt(asCopyTableWindowHeight);

@@ -318,7 +318,6 @@ type
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
-  procedure InheritFont(AFont: TFont);
   function GetLightness(AColor: TColor): Byte;
   function ReformatSQL(SQL: String): String;
   function ParamBlobToStr(lpData: Pointer): String;
@@ -1747,39 +1746,6 @@ begin
     end;
     if Opened and (not Closed) then
       Item := Item + Text[i];
-  end;
-end;
-
-
-procedure InheritFont(AFont: TFont);
-var
-  LogFont: TLogFont;
-  GUIFontName: String;
-begin
-  // Set custom font if set, or default system font.
-  // In high-dpi mode, the font *size* is increased automatically somewhere in the VCL,
-  // caused by a form's .Scaled property. So we don't increase it here again.
-  // To test this, you really need to log off/on Windows!
-  GUIFontName := AppSettings.ReadString(asGUIFontName);
-  if not GUIFontName.IsEmpty then begin
-    // Apply user specified font
-    AFont.Name := GUIFontName;
-    // Set size on top of automatic dpi-increased size
-    AFont.Size := AppSettings.ReadInt(asGUIFontSize);
-  end else begin
-    // Apply system font. See issue #3204.
-    // Code taken from http://www.gerixsoft.com/blog/delphi/system-font
-    if SystemParametersInfo(SPI_GETICONTITLELOGFONT, SizeOf(TLogFont), @LogFont, 0) then begin
-      AFont.Height := LogFont.lfHeight;
-      AFont.Orientation := LogFont.lfOrientation;
-      AFont.Charset := TFontCharset(LogFont.lfCharSet);
-      AFont.Name := PChar(@LogFont.lfFaceName);
-      case LogFont.lfPitchAndFamily and $F of
-        VARIABLE_PITCH: AFont.Pitch := fpVariable;
-        FIXED_PITCH: AFont.Pitch := fpFixed;
-        else AFont.Pitch := fpDefault;
-      end;
-    end;
   end;
 end;
 

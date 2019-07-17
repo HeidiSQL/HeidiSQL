@@ -8,7 +8,7 @@ uses
   SynEditRegexSearch, SynEditMiscClasses, SynEditSearch, extra_controls;
 
 type
-  TfrmSearchReplace = class(TFormWithSizeGrip)
+  TfrmSearchReplace = class(TExtForm)
     btnCancel: TButton;
     btnReplaceAll: TButton;
     lblSearch: TLabel;
@@ -60,6 +60,7 @@ uses apphelpers, main;
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   comboSearch.Items.Text := AppSettings.ReadString(asFindDialogSearchHistory);
   comboReplace.Items.Text := AppSettings.ReadString(asFindDialogReplaceHistory);
   comboSearch.Text := '';

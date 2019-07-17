@@ -9,7 +9,7 @@ uses
   dbconnection, gnugettext;
 
 type
-  TfrmSQLhelp = class(TFormWithSizeGrip)
+  TfrmSQLhelp = class(TExtForm)
     URIOpenerDescription: TSynURIOpener;
     URIHighlighter: TSynURISyn;
     URIOpenerExample: TSynURIOpener;
@@ -94,6 +94,7 @@ begin
   Caption := DEFAULT_WINDOW_CAPTION;
   FixVT(treeTopics);
   TranslateComponent(Self);
+  AddSizeGrip;
 
   treeTopics.Clear;
   FreeAndNil(FRootTopics);

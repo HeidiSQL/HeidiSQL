@@ -40,7 +40,7 @@ type
 
   EInputError = class(Exception);
 
-  TUserManagerForm = class(TFormWithSizeGrip)
+  TUserManagerForm = class(TExtForm)
     btnCancel: TButton;
     btnSave: TButton;
     pnlLeft: TPanel;
@@ -215,6 +215,7 @@ begin
   FixVT(treePrivs);
   Mainform.RestoreListSetup(listUsers);
   TranslateComponent(Self);
+  AddSizeGrip;
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
   PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER');

@@ -8,7 +8,11 @@ object optionsform: Toptionsform
   Color = clBtnFace
   Constraints.MinHeight = 480
   Constraints.MinWidth = 600
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose

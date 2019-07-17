@@ -14,7 +14,7 @@ uses
   dbconnection, dbstructures, gnugettext;
 
 type
-  Tloaddataform = class(TFormWithSizeGrip)
+  Tloaddataform = class(TExtForm)
     btnImport: TButton;
     btnCancel: TButton;
     lblDatabase: TLabel;
@@ -94,6 +94,7 @@ const
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   // Restore settings
   Width := AppSettings.ReadInt(asCSVImportWindowWidth);
   Height := AppSettings.ReadInt(asCSVImportWindowHeight);

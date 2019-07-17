@@ -10,7 +10,7 @@ type
   TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);
   EVariableError = class(Exception);
 
-  TfrmEditVariable = class(TFormWithSizeGrip)
+  TfrmEditVariable = class(TExtForm)
     btnOK: TButton;
     btnCancel: TButton;
     grpScope: TGroupBox;
@@ -56,6 +56,7 @@ uses main, apphelpers;
 procedure TfrmEditVariable.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   Width := AppSettings.ReadInt(asEditVarWindowWidth);
   Height := AppSettings.ReadInt(asEditVarWindowHeight);
 end;

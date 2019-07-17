@@ -11,7 +11,7 @@ uses
 {$I const.inc}
 
 type
-  TfrmTextEditor = class(TFormWithSizeGrip)
+  TfrmTextEditor = class(TExtForm)
     Panel1: TPanel;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
@@ -185,6 +185,7 @@ end;
 
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
+  AddSizeGrip;
   FmemoText := TLineNormalizingMemo.Create(Self);
   FmemoText.Parent := Self;
   FmemoText.Align := alClient;

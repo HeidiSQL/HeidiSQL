@@ -14,7 +14,7 @@ uses
   dbconnection, gnugettext, SynRegExpr, System.Types, System.IOUtils, Vcl.GraphUtil;
 
 type
-  Tconnform = class(TFormWithSizeGrip)
+  Tconnform = class(TExtForm)
     btnCancel: TButton;
     btnOpen: TButton;
     btnSave: TButton;
@@ -239,6 +239,7 @@ var
 begin
   // Fix GUI stuff
   TranslateComponent(Self);
+  AddSizeGrip;
   FixDropDownButtons(Self);
   lblDownloadPlink.Font.Style := [fsUnderline];
   lblDownloadPlink.Font.Color := clBlue;

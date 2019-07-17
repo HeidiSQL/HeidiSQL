@@ -10,7 +10,7 @@ uses
 type
   TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
 
-  TfrmExportGrid = class(TFormWithSizeGrip)
+  TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
     btnCancel: TButton;
     grpFormat: TRadioGroup;
@@ -104,6 +104,7 @@ var
   FormatDesc: String;
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   Width := AppSettings.ReadInt(asGridExportWindowWidth);
   Height := AppSettings.ReadInt(asGridExportWindowHeight);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);

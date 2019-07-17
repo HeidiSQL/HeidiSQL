@@ -4,11 +4,11 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
-  Vcl.Graphics, apphelpers, gnugettext;
+  Vcl.Graphics, apphelpers, gnugettext, extra_controls;
 
 
 type
-  TDataSortingForm = class(TForm)
+  TDataSortingForm = class(TExtForm)
     pnlBevel: TPanel;
     btnOK: TButton;
     btnCancel: TButton;

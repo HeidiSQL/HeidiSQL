@@ -6,7 +6,11 @@ object frmUpdateCheck: TfrmUpdateCheck
   ClientHeight = 425
   ClientWidth = 384
   Color = clBtnFace
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate

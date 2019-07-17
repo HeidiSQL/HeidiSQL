@@ -15,7 +15,7 @@ uses
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
-  TfrmTableTools = class(TFormWithSizeGrip)
+  TfrmTableTools = class(TExtForm)
     btnCloseOrCancel: TButton;
     pnlTop: TPanel;
     TreeObjects: TVirtualStringTree;
@@ -226,6 +226,7 @@ var
   Obj: TDBObject;
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   FixDropDownButtons(Self);
   OUTPUT_FILE := _('Single .sql file');
   OUTPUT_FILE_COMPRESSED := _('ZIP compressed .sql file');

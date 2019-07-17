@@ -19,7 +19,7 @@ uses
   insertfiles, searchreplace, loaddata, copytable, VirtualTrees.HeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
-  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles;
+  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls;
 
 
 type
@@ -154,7 +154,7 @@ type
     function SetThumbnailClip(hwnd: HWND; var prcClip: TRect): HRESULT; stdcall;
   end;
 
-  TMainForm = class(TForm)
+  TMainForm = class(TExtForm)
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
@@ -1830,7 +1830,7 @@ begin
 
   Delimiter := AppSettings.ReadString(asDelimiter);
 
-  InheritFont(SynCompletionProposal.Font);
+  InheritFont(SynCompletionProposal.Font, Self);
   // Simulated link label, has non inherited blue font color
   lblExplainProcess.Font.Color := clBlue;
   lblExplainProcessAnalyzer.Font.Color := clBlue;
@@ -1849,7 +1849,7 @@ begin
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
-  InheritFont(QueryTab.tabsetQuery.Font);
+  InheritFont(QueryTab.tabsetQuery.Font, Self);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
   QueryTabs := TObjectList<TQueryTab>.Create(True);
@@ -2041,6 +2041,7 @@ begin
   LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
 
+  // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
 end;
 
@@ -5005,6 +5006,8 @@ var
   Sess, OldSettingsPath: String;
   LogIt: Boolean;
 begin
+  if not MainFormCreated then
+    Exit;
   if csDestroying in ComponentState then
     Exit;
 
@@ -10749,7 +10752,7 @@ begin
   // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
   QueryTab.tabsetQuery.Top := QueryTab.spltQuery.Top + QueryTab.spltQuery.Height;
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
-  InheritFont(QueryTab.tabsetQuery.Font);
+  InheritFont(QueryTab.tabsetQuery.Font, Self);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
   QueryTab.tabsetQuery.Style := tabsetQuery.Style;
   QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;

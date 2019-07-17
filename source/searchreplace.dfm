@@ -8,7 +8,11 @@ object frmSearchReplace: TfrmSearchReplace
   Color = clBtnFace
   Constraints.MinHeight = 320
   Constraints.MinWidth = 400
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate

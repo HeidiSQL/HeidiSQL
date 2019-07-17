@@ -31,7 +31,7 @@ type
   end;
   TGridColorsPresetList = TObjectList<TGridColorsPreset>;
 
-  Toptionsform = class(TFormWithSizeGrip)
+  Toptionsform = class(TExtForm)
     pagecontrolMain: TPageControl;
     tabMisc: TTabSheet;
     btnCancel: TButton;
@@ -484,6 +484,7 @@ var
   IconPack: String;
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
 
   Width := AppSettings.ReadInt(asPreferencesWindowWidth);
   Height := AppSettings.ReadInt(asPreferencesWindowHeight);

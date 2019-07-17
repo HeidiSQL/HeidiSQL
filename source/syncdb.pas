@@ -8,7 +8,7 @@ uses
   dbconnection, gnugettext;
 
 type
-  TfrmSyncDB = class(TFormWithSizeGrip)
+  TfrmSyncDB = class(TExtForm)
     treeSource: TVirtualStringTree;
     lblSource: TLabel;
     grpTarget: TGroupBox;
@@ -108,6 +108,7 @@ var
 begin
   Caption := MainForm.actSynchronizeDatabase.Caption;
   TranslateComponent(Self);
+  AddSizeGrip;
   FixVT(treeSource);
   FixVT(treeDifferences);
 

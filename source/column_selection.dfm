@@ -8,7 +8,11 @@ object ColumnSelectionForm: TColumnSelectionForm
   Color = clBtnFace
   Constraints.MinHeight = 150
   Constraints.MinWidth = 200
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate

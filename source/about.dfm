@@ -6,7 +6,11 @@ object AboutBox: TAboutBox
   ClientHeight = 315
   ClientWidth = 481
   Color = clBtnFace
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   FormStyle = fsStayOnTop
   OldCreateOrder = True
   Position = poOwnerFormCenter

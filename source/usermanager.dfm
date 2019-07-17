@@ -8,7 +8,11 @@ object UserManagerForm: TUserManagerForm
   Color = clBtnFace
   Constraints.MinHeight = 350
   Constraints.MinWidth = 450
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose

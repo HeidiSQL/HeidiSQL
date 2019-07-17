@@ -9,7 +9,7 @@ uses
 {$I const.inc}
 
 type
-  TfrmBinEditor = class(TFormWithSizeGrip)
+  TfrmBinEditor = class(TExtForm)
     memoText: TMemo;
     tlbStandard: TToolBar;
     btnWrap: TToolButton;
@@ -90,6 +90,7 @@ end;
 procedure TfrmBinEditor.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
 end;
 
 

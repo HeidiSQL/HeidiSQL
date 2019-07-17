@@ -7,7 +7,7 @@ uses
   apphelpers, gnugettext, extra_controls;
 
 type
-  TColumnSelectionForm = class(TFormWithSizeGrip)
+  TColumnSelectionForm = class(TExtForm)
     btnCancel: TButton;
     btnOK: TButton;
     chkSelectAll: TCheckBox;
@@ -46,6 +46,7 @@ uses main;
 procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
+  AddSizeGrip;
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
   Height := AppSettings.ReadInt(asColumnSelectorHeight);
   FCheckedColumns := TStringList.Create;

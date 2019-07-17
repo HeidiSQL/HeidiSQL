@@ -8,7 +8,11 @@ object frmExportGrid: TfrmExportGrid
   Color = clBtnFace
   Constraints.MinHeight = 450
   Constraints.MinWidth = 350
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose

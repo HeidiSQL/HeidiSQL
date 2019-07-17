@@ -6,7 +6,11 @@ object frmLogin: TfrmLogin
   ClientHeight = 176
   ClientWidth = 270
   Color = clBtnFace
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
@@ -26,8 +30,6 @@ object frmLogin: TfrmLogin
     Default = True
     ModalResult = 1
     TabOrder = 1
-    ExplicitLeft = 160
-    ExplicitTop = 104
   end
   object pnlBackground: TPanel
     Left = 0
@@ -42,8 +44,6 @@ object frmLogin: TfrmLogin
     ParentBackground = False
     ShowCaption = False
     TabOrder = 0
-    ExplicitWidth = 266
-    ExplicitHeight = 98
     DesignSize = (
       270
       137)
@@ -96,7 +96,6 @@ object frmLogin: TfrmLogin
       Anchors = [akLeft, akRight, akBottom]
       TabOrder = 0
       Text = 'editUsername'
-      ExplicitWidth = 268
     end
   end
 end

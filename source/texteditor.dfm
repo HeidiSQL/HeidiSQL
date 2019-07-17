@@ -7,7 +7,11 @@ object frmTextEditor: TfrmTextEditor
   Color = clBtnFace
   Constraints.MinHeight = 100
   Constraints.MinWidth = 130
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose

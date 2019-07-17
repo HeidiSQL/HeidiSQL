@@ -5,10 +5,10 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.StdCtrls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, apphelpers,
-  Vcl.ComCtrls, Vcl.GraphUtil, Vcl.Imaging.pngimage;
+  Vcl.ComCtrls, Vcl.GraphUtil, Vcl.Imaging.pngimage, extra_controls;
 
 type
-  TfrmThemePreview = class(TForm)
+  TfrmThemePreview = class(TExtForm)
     StatusBarMain: TStatusBar;
     ScrollBoxImage: TScrollBox;
     imagePreview: TImage;

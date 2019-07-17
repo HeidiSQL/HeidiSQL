@@ -8,10 +8,10 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext,
-  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd;
+  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd, extra_controls;
 
 type
-  TAboutBox = class(TForm)
+  TAboutBox = class(TExtForm)
     btnClose: TButton;
     lblAppName: TLabel;
     lblAppVersion: TLabel;

@@ -78,7 +78,6 @@ begin
     Application.Initialize;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
-    AppHelpers.InheritFont(Application.DefaultFont);
     TStyleManager.TrySetStyle(AppSettings.ReadString(asTheme));
     Application.CreateForm(TMainForm, MainForm);
     MainForm.AfterFormCreate;
