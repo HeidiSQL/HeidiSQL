@@ -1922,8 +1922,8 @@ begin
   // Data-Font:
   DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
   QueryGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-  QueryGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+  DataGrid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
+  QueryGrid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
   FixVT(DataGrid, AppSettings.ReadInt(asGridRowLineCount));
   FixVT(QueryGrid, AppSettings.ReadInt(asGridRowLineCount));
   // Load color settings
@@ -8012,14 +8012,14 @@ var
 begin
   // Apply somehow changed font settings to all existing grids
   DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+  DataGrid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
   FixVT(Mainform.DataGrid, AppSettings.ReadInt(asGridRowLineCount));
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
     QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
     for j:=0 to QueryTab.ResultTabs.Count-1 do begin
       Grid := QueryTab.ResultTabs[j].Grid;
       Grid.Font.Name := AppSettings.ReadString(asDataFontName);
-      Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+      Grid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
       FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
     end;
   end;
@@ -11521,7 +11521,7 @@ begin
     Editor.Color := GetThemeColor(clWindow);
     Editor.ScrollHintColor := GetThemeColor(clInfoBk);
     Editor.Font.Name := AppSettings.ReadString(asFontName);
-    Editor.Font.Size := AppSettings.ReadInt(asFontSize);
+    Editor.Font.Size := Round(AppSettings.ReadInt(asFontSize) * DpiScaleFactor(Self));
     Editor.Gutter.BorderColor := GetThemeColor(clWindow);
     Editor.Gutter.Color := GetThemeColor(clBtnFace);
     Editor.Gutter.Font.Name := Editor.Font.Name;
