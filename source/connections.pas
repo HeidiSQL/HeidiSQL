@@ -273,6 +273,7 @@ begin
 
   // Detect existing MySQL libraries
   rx := TRegExpr.Create;
+  rx.ModifierI := True;
   rx.Expression := '^lib(mysql|mariadb).*\.dll$';
   Libs := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
   for LibPath in Libs do begin
