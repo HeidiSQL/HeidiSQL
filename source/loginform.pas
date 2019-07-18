@@ -4,10 +4,10 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, gnugettext, System.UITypes;
+  Dialogs, StdCtrls, ExtCtrls, gnugettext, System.UITypes, extra_controls;
 
 type
-  TfrmLogin = class(TForm)
+  TfrmLogin = class(TExtForm)
     btnOK: TButton;
     pnlBackground: TPanel;
     lblPrompt: TLabel;

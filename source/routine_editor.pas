@@ -184,11 +184,11 @@ begin
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
   // Buttons are randomly moved, since VirtualTree update, see #440
-  btnSave.Top := Height - btnSave.Height - Round(3 * DpiScaleFactor(MainForm));
+  btnSave.Top := Height - btnSave.Height - Round(3 * MainForm.DpiScaleFactor);
   btnHelp.Top := btnSave.Top;
   btnDiscard.Top := btnSave.Top;
   btnRunProc.Top := btnSave.Top;
-  btnRunProc.Left := Width - btnRunProc.Width - Round(3 * DpiScaleFactor(MainForm));
+  btnRunProc.Left := Width - btnRunProc.Width - Round(3 * MainForm.DpiScaleFactor);
   Mainform.actRunRoutines.Enabled := DBObject.Name <> '';
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;

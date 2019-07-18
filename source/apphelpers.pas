@@ -356,7 +356,6 @@ type
   function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetUwpFullName: String;
   function RunningAsUwp: Boolean;
-  function DpiScaleFactor(Form: TForm): Double;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String): Boolean;
   function ProcessExists(pid: Cardinal): Boolean;
@@ -2932,12 +2931,6 @@ end;
 function RunningAsUwp: Boolean;
 begin
   Result := GetUwpFullName <> '';
-end;
-
-
-function DpiScaleFactor(Form: TForm): Double;
-begin
-  Result := Form.Monitor.PixelsPerInch / Form.PixelsPerInch;
 end;
 
 

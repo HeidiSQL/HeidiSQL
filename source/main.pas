@@ -1830,7 +1830,7 @@ begin
 
   Delimiter := AppSettings.ReadString(asDelimiter);
 
-  InheritFont(SynCompletionProposal.Font, Self);
+  InheritFont(SynCompletionProposal.Font);
   // Simulated link label, has non inherited blue font color
   lblExplainProcess.Font.Color := clBlue;
   lblExplainProcessAnalyzer.Font.Color := clBlue;
@@ -1849,7 +1849,7 @@ begin
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
-  InheritFont(QueryTab.tabsetQuery.Font, Self);
+  InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
   QueryTabs := TObjectList<TQueryTab>.Create(True);
@@ -10752,7 +10752,7 @@ begin
   // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
   QueryTab.tabsetQuery.Top := QueryTab.spltQuery.Top + QueryTab.spltQuery.Height;
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
-  InheritFont(QueryTab.tabsetQuery.Font, Self);
+  InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
   QueryTab.tabsetQuery.Style := tabsetQuery.Style;
   QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;
