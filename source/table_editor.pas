@@ -353,7 +353,7 @@ begin
   AlterCodeValid := False;
   PageControlMainChange(Self); // Foreign key editor needs a hit
   // Buttons are randomly moved, since VirtualTree update, see #440
-  btnSave.Top := Height - btnSave.Height - Round(3 * MainForm.DpiScaleFactor);
+  btnSave.Top := Height - btnSave.Height - 3;
   btnHelp.Top := btnSave.Top;
   btnDiscard.Top := btnSave.Top;
   UpdateSQLCode;

@@ -225,9 +225,9 @@ end;
 procedure TUserManagerForm.FormDestroy(Sender: TObject);
 begin
   // FormDestroy: Save GUI setup
-  AppSettings.WriteInt(asUsermanagerWindowWidth, Round(Width / DpiScaleFactor(Self)));
-  AppSettings.WriteInt(asUsermanagerWindowHeight, Round(Height / DpiScaleFactor(Self)));
-  AppSettings.WriteInt(asUsermanagerListWidth, Round(pnlLeft.Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asUsermanagerWindowWidth, Width);
+  AppSettings.WriteInt(asUsermanagerWindowHeight, Height);
+  AppSettings.WriteInt(asUsermanagerListWidth, pnlLeft.Width);
   Mainform.SaveListSetup(listUsers);
 end;
 

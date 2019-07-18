@@ -149,8 +149,8 @@ procedure TfrmExportGrid.FormDestroy(Sender: TObject);
 begin
   // Store settings
   if not FHiddenCopyMode then begin
-    AppSettings.WriteInt(asGridExportWindowWidth, Round(Width / DpiScaleFactor(Self)));
-    AppSettings.WriteInt(asGridExportWindowHeight, Round(Height / DpiScaleFactor(Self)));
+    AppSettings.WriteInt(asGridExportWindowWidth, Width);
+    AppSettings.WriteInt(asGridExportWindowHeight, Height);
     if ModalResult = mrOK then begin
       AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
       AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);

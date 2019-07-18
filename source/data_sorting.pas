@@ -83,12 +83,12 @@ begin
       Components[i].Free;
   end;
 
-  Margin := Round(3 * DpiScaleFactor(Self));
+  Margin := 3;
   MarginBig := Margin * 2;
-  Width1 := Round(15 * DpiScaleFactor(Self));
-  Width2 := Round(160 * DpiScaleFactor(Self));
-  Width3 := Round(23 * DpiScaleFactor(Self));
-  Width4 := Round(23 * DpiScaleFactor(Self));
+  Width1 := 15;
+  Width2 := 160;
+  Width3 := 23;
+  Width4 := 23;
 
   // Set initial width to avoid resizing form to 0
   TopPos := pnlBevel.BorderWidth + MarginBig;

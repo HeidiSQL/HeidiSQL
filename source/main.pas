@@ -658,7 +658,6 @@ type
     procedure actExitApplicationExecute(Sender: TObject);
     procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     procedure CMStyleChanged(var Msg: TMessage); message CM_STYLECHANGED;
-    procedure DPIChanged(var Msg: TMessage); message WM_DPICHANGED;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
@@ -1922,8 +1921,8 @@ begin
   // Data-Font:
   DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
   QueryGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  DataGrid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
-  QueryGrid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
+  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+  QueryGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
   FixVT(DataGrid, AppSettings.ReadInt(asGridRowLineCount));
   FixVT(QueryGrid, AppSettings.ReadInt(asGridRowLineCount));
   // Load color settings
@@ -2537,7 +2536,7 @@ var
 
   function CalcPanelWidth(PreferredWidth, Percentage: Integer): Integer;
   begin
-    Result := Round(Min(PreferredWidth * DpiScaleFactor(Self), Width / 100 * Percentage));
+    Result := Round(Min(PreferredWidth, Width / 100 * Percentage));
   end;
 begin
   // Exit early when user pressed "Cancel" on connection dialog
@@ -7537,8 +7536,6 @@ var
   i, ColWidth: Integer;
   ColWidths, ColsVisible, ColPos, Regname: String;
   OwnerForm: TWinControl;
-  IsFrame: Boolean;
-  ScaleDownFactor: Double;
 begin
   // Prevent sporadic crash on startup
   if List = nil then
@@ -7547,16 +7544,12 @@ begin
   ColsVisible := '';
   ColPos := '';
   OwnerForm := GetParentFormOrFrame(List);
-  IsFrame := OwnerForm is TFrame;
-  ScaleDownFactor := DpiScaleFactor(GetParentForm(List) as TForm);
   for i := 0 to List.Header.Columns.Count - 1 do
   begin
     // Column widths
     if ColWidths <> '' then
       ColWidths := ColWidths + ',';
     ColWidth := List.Header.Columns[i].Width;
-    if IsFrame then
-      ColWidth := Round(ColWidth / ScaleDownFactor);
     ColWidths := ColWidths + IntToStr(ColWidth);
 
     // Column visibility
@@ -8012,14 +8005,14 @@ var
 begin
   // Apply somehow changed font settings to all existing grids
   DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  DataGrid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
+  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
   FixVT(Mainform.DataGrid, AppSettings.ReadInt(asGridRowLineCount));
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
     QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
     for j:=0 to QueryTab.ResultTabs.Count-1 do begin
       Grid := QueryTab.ResultTabs[j].Grid;
       Grid.Font.Name := AppSettings.ReadString(asDataFontName);
-      Grid.Font.Size := Round(AppSettings.ReadInt(asDataFontSize) * DpiScaleFactor(Self));
+      Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
       FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
     end;
   end;
@@ -11521,7 +11514,7 @@ begin
     Editor.Color := GetThemeColor(clWindow);
     Editor.ScrollHintColor := GetThemeColor(clInfoBk);
     Editor.Font.Name := AppSettings.ReadString(asFontName);
-    Editor.Font.Size := Round(AppSettings.ReadInt(asFontSize) * DpiScaleFactor(Self));
+    Editor.Font.Size := AppSettings.ReadInt(asFontSize);
     Editor.Gutter.BorderColor := GetThemeColor(clWindow);
     Editor.Gutter.Color := GetThemeColor(clBtnFace);
     Editor.Gutter.Font.Name := Editor.Font.Name;
@@ -11836,20 +11829,6 @@ begin
   // Style theme applied, e.g. via preferences dialog
   // Ensure SynMemo's have fitting colors
   SetupSynEditors;
-end;
-
-
-procedure TMainForm.DPIChanged(var Msg: TMessage);
-const
-  DesignedToolbarHeight = 22;
-  DesignedToolbarWidth = 23;
-begin
-  inherited;
-  LogSQL('New PPI:'+ Monitor.PixelsPerInch.ToString, lcDebug);
-
-  // Fix wrong calculated height and width of tool buttons after DPI change / move between monitors
-  ToolBarMainButtons.ButtonHeight := Round(DesignedToolbarHeight * DpiScaleFactor(Self));
-  ToolBarMainButtons.ButtonWidth := Round(DesignedToolbarWidth * DpiScaleFactor(Self));
 end;
 
 

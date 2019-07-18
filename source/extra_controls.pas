@@ -15,7 +15,6 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       procedure AddSizeGrip;
-      function DpiScaleFactor(Form: TForm=nil): Double;
       procedure InheritFont(AFont: TFont);
     protected
       procedure DoShow; override;
@@ -64,12 +63,6 @@ begin
 end;
 
 
-function TExtForm.DpiScaleFactor(Form: TForm=nil): Double;
-begin
-  Result := Monitor.PixelsPerInch / FPixelsPerInchOnDefaultMonitor;
-end;
-
-
 procedure TExtForm.InheritFont(AFont: TFont);
 var
   LogFont: TLogFont;
@@ -84,12 +77,12 @@ begin
     // Apply user specified font
     AFont.Name := GUIFontName;
     // Set size on top of automatic dpi-increased size
-    AFont.Size := Round(AppSettings.ReadInt(asGUIFontSize) * DpiScaleFactor);
+    AFont.Size := AppSettings.ReadInt(asGUIFontSize);
   end else begin
     // Apply system font. See issue #3204.
     // Code taken from http://www.gerixsoft.com/blog/delphi/system-font
     if SystemParametersInfo(SPI_GETICONTITLELOGFONT, SizeOf(TLogFont), @LogFont, 0) then begin
-      AFont.Height := Round(LogFont.lfHeight * DpiScaleFactor);
+      AFont.Height := LogFont.lfHeight;
       AFont.Orientation := LogFont.lfOrientation;
       AFont.Charset := TFontCharset(LogFont.lfCharSet);
       AFont.Name := PChar(@LogFont.lfFaceName);

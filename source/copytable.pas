@@ -83,8 +83,8 @@ end;
 procedure TCopyTableForm.FormDestroy(Sender: TObject);
 begin
   // Save GUI stuff
-  AppSettings.WriteInt(asCopyTableWindowWidth, Round(Width / DpiScaleFactor(Self)));
-  AppSettings.WriteInt(asCopyTableWindowHeight, Round(Height / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asCopyTableWindowWidth, Width);
+  AppSettings.WriteInt(asCopyTableWindowHeight, Height);
 end;
 
 

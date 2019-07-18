@@ -304,9 +304,9 @@ end;
 procedure TfrmTableTools.FormDestroy(Sender: TObject);
 begin
   // Save GUI setup
-  AppSettings.WriteInt(asTableToolsWindowWidth, Round(Width / DpiScaleFactor(Self)));
-  AppSettings.WriteInt(asTableToolsWindowHeight, Round(Height / DpiScaleFactor(Self)));
-  AppSettings.WriteInt(asTableToolsTreeWidth, Round(TreeObjects.Width / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asTableToolsWindowWidth, Width);
+  AppSettings.WriteInt(asTableToolsWindowHeight, Height);
+  AppSettings.WriteInt(asTableToolsTreeWidth, TreeObjects.Width);
 end;
 
 

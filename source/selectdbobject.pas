@@ -74,8 +74,8 @@ end;
 
 procedure TfrmSelectDBObject.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asSelectDBOWindowWidth, Round(Width / DpiScaleFactor(Self)));
-  AppSettings.WriteInt(asSelectDBOWindowHeight, Round(Height / DpiScaleFactor(Self)));
+  AppSettings.WriteInt(asSelectDBOWindowWidth, Width);
+  AppSettings.WriteInt(asSelectDBOWindowHeight, Height);
 end;
 
 

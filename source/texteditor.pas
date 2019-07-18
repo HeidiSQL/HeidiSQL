@@ -225,8 +225,8 @@ end;
 procedure TfrmTextEditor.FormDestroy(Sender: TObject);
 begin
   if WindowState <> wsMaximized then begin
-    AppSettings.WriteInt(asMemoEditorWidth, Round(Width / DpiScaleFactor(Self)));
-    AppSettings.WriteInt(asMemoEditorHeight, Round(Height / DpiScaleFactor(Self)));
+    AppSettings.WriteInt(asMemoEditorWidth, Width);
+    AppSettings.WriteInt(asMemoEditorHeight, Height);
   end;
   AppSettings.WriteBool(asMemoEditorMaximized, WindowState=wsMaximized);
   AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
