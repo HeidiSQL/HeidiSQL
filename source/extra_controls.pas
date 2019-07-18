@@ -9,10 +9,14 @@ uses
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
   TExtForm = class(TForm)
+    private
+      FFontSet: Boolean;
     public
       constructor Create(AOwner: TComponent); override;
       procedure AddSizeGrip;
       class procedure InheritFont(AFont: TFont; Form: TForm);
+    protected
+      procedure DoShow; override;
   end;
   // Memo replacement which accepts any line break format
   TLineNormalizingMemo = class(TMemo)
@@ -30,8 +34,21 @@ implementation
 constructor TExtForm.Create(AOwner: TComponent);
 begin
   inherited;
-  InheritFont(Font, Self);
+  FFontSet := False;
 end;
+
+
+procedure TExtForm.DoShow;
+begin
+  // Expect the window to be on the wanted monitor now, so we can scale fonts according
+  // to the screen's DPI setting
+  if not FFontSet then begin
+    InheritFont(Font, Self);
+    FFontSet := True;
+  end;
+  inherited;
+end;
+
 
 procedure TExtForm.AddSizeGrip;
 var
