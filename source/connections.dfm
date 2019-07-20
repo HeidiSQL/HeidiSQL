@@ -853,6 +853,7 @@ object connform: Tconnform
           DropDownCount = 16
           TabOrder = 12
           OnChange = Modification
+          OnGetColors = ColorBoxBackgroundColorGetColors
         end
       end
     end

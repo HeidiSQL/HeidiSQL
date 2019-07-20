@@ -172,17 +172,17 @@ type
     procedure btnMoreClick(Sender: TObject);
     procedure menuRenameClick(Sender: TObject);
     procedure TimerButtonAnimationTimer(Sender: TObject);
+    procedure ColorBoxBackgroundColorGetColors(Sender: TCustomColorBox;
+      Items: TStrings);
   private
     { Private declarations }
     FLoaded: Boolean;
     FSessionModified, FOnlyPasswordModified: Boolean;
     FServerVersion: String;
-    FSessionColor: TColor;
     FSettingsImportWaitTime: Cardinal;
     FPopupDatabases: TPopupMenu;
     FButtonAnimationStep: Integer;
     FLastSelectedNetTypeGroup: TNetTypeGroup;
-    FCustomBackgroundColors: TStringList;
     procedure RefreshSessions(ParentNode: PVirtualNode);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
@@ -192,6 +192,7 @@ type
     procedure MenuDatabasesClick(Sender: TObject);
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
+    procedure RefreshBackgroundColors;
   public
     { Public declarations }
   end;
@@ -306,9 +307,7 @@ end;
 procedure Tconnform.RefreshSessions(ParentNode: PVirtualNode);
 var
   SessionNames: TStringList;
-  RegKey,
-  ColorName,
-  ColorNamePrefix: String;
+  RegKey: String;
   i: Integer;
   Params: TConnectionParameters;
   SessNode: PVirtualNode;
@@ -317,30 +316,16 @@ begin
   // And while we're at it, collect custom colors for background color selector
   if ParentNode=nil then begin
     ListSessions.Clear;
-    FreeAndNil(FCustomBackgroundColors);
-    FCustomBackgroundColors := TStringList.Create;
   end else begin
     ListSessions.DeleteChildren(ParentNode, True);
   end;
   SessionNames := NodeSessionNames(ParentNode, RegKey);
-  ColorNamePrefix := _('Custom color:') + ' ';
   for i:=0 to SessionNames.Count-1 do begin
     Params := TConnectionParameters.Create(RegKey+SessionNames[i]);
     SessNode := ListSessions.AddChild(ParentNode, PConnectionParameters(Params));
     if Params.IsFolder then begin
       RefreshSessions(SessNode);
-    end else begin
-      ColorName := ColorNamePrefix + ColorToWebColorStr(Params.SessionColor);
-      if (Params.SessionColor <> clNone) and (FCustomBackgroundColors.IndexOf(ColorName) = -1) then begin
-        FCustomBackgroundColors.AddObject(ColorName, TObject(Params.SessionColor));
-      end;
     end;
-  end;
-
-  // Add custom colors if not already done before
-  if (FCustomBackgroundColors.Count > 0)
-    and (not ColorBoxBackgroundColor.Items.Text.Contains(ColorNamePrefix)) then begin
-    ColorBoxBackgroundColor.Items.AddStrings(FCustomBackgroundColors);
   end;
 end;
 
@@ -607,7 +592,7 @@ begin
   end else begin
     Result := TConnectionParameters.Create;
     Result.SessionPath := SelectedSessionPath;
-    Result.SessionColor := FSessionColor;
+    Result.SessionColor := ColorBoxBackgroundColor.Selected;
     Result.NetType := TNetType(comboNetType.ItemIndex);
     Result.ServerVersion := FServerVersion;
     Result.Hostname := editHost.Text;
@@ -886,6 +871,7 @@ begin
     updownKeepAlive.Position := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
+    RefreshBackgroundColors;
     ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryFile);
@@ -908,7 +894,6 @@ begin
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     editSSLCipher.Text := Sess.SSLCipher;
     FServerVersion := Sess.ServerVersion;
-    FSessionColor := Sess.SessionColor;
   end;
 
   FLoaded := True;
@@ -919,6 +904,14 @@ begin
   TimerStatistics.OnTimer(Sender);
 
   Screen.Cursor := crDefault;
+end;
+
+
+procedure Tconnform.RefreshBackgroundColors;
+begin
+  // Trigger OnGetColors event
+  ColorBoxBackgroundColor.Style := ColorBoxBackgroundColor.Style - [cbCustomColors];
+  ColorBoxBackgroundColor.Style := ColorBoxBackgroundColor.Style + [cbCustomColors];
 end;
 
 
@@ -1026,6 +1019,28 @@ begin
   if Checked and (Sender = chkLoginPrompt) then
     chkWindowsAuth.Checked := False;
   Modification(Sender);
+end;
+
+
+procedure Tconnform.ColorBoxBackgroundColorGetColors(Sender: TCustomColorBox;
+  Items: TStrings);
+var
+  Node: PVirtualNode;
+  PParams: PConnectionParameters;
+  ColorName,
+  ColorNamePrefix: String;
+begin
+  // Collect custom session colors into color selector
+  ColorNamePrefix := _('Custom color:') + ' ';
+  Node := ListSessions.GetFirst;
+  while Assigned(Node) do begin
+    PParams := ListSessions.GetNodeData(Node);
+    ColorName := ColorNamePrefix + ColorToWebColorStr(PParams.SessionColor);
+    if (PParams.SessionColor <> clNone) and (Items.IndexOf(ColorName) = -1) then begin
+      Items.AddObject(ColorName, TObject(PParams.SessionColor));
+    end;
+    Node := ListSessions.GetNext(Node);
+  end;
 end;
 
 
