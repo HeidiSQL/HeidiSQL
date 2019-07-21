@@ -41,7 +41,8 @@ uses
   Vcl.Menus,
   Vcl.StdCtrls,
   Vcl.GraphUtil,
-  Vcl.Forms;
+  Vcl.Forms,
+  Vcl.Styles.Utils.Misc;
 
 type
   TNCControl      = class;
@@ -2008,6 +2009,9 @@ var
   LStylesServices: TCustomStyleServices;
   LForm: TCustomForm;
 begin
+  if not(ExecutingInMainThread) then
+    Exit(Trampoline_TFormStyleHook_GetBorderSize(Self));
+
   if (Self is TFormStyleNCControls) and (TFormStyleNCControls(Self).NCControls <> nil) then
   begin
     LStylesServices := TFormStyleNCControls(Self).NCControls.StyleServices;
@@ -2076,6 +2080,9 @@ var
   LStylesServices: TCustomStyleServices;
   LForm: TCustomForm;
 begin
+  if not(ExecutingInMainThread) then
+    Exit(Trampoline_TFormStyleHook_GetRegion(Self));
+
   if (Self is TFormStyleNCControls) and (TFormStyleNCControls(Self).NCControls <> nil) then
   begin
     LStylesServices := TFormStyleNCControls(Self).NCControls.StyleServices;

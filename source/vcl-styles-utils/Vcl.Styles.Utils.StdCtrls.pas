@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2015 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2019 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -244,17 +244,10 @@ type
 implementation
 
 uses
-//  IOUtils,
   Vcl.ExtCtrls,
   System.UITypes,
+  Vcl.Styles.Utils.Misc,
   Vcl.Styles.Utils.SysControls;
-//
-//procedure Addlog(const Msg: string);
-//begin
-//  TFile.AppendAllText('C:\Test\log.txt',
-//    Format('%s %s %s', [FormatDateTime('hh:nn:ss.zzz', Now), Msg, sLineBreak]));
-//end;
-//
 
 { TSysEditStyleHook }
 

@@ -113,7 +113,7 @@
         <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
-        <DCC_LegacyIFEND>true</DCC_LegacyIFEND>
+        <DCC_LegacyIFEND>false</DCC_LegacyIFEND>
         <Manifest_File>None</Manifest_File>
         <DCC_DebugInformation>2</DCC_DebugInformation>
         <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>

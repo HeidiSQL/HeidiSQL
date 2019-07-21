@@ -15,17 +15,14 @@
 // The Original Code is Vcl.Styles.FontAwesome.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2017 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2019 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //**************************************************************************************************
-
-
 unit Vcl.Styles.FontAwesome;
 
 interface
 
-{$LEGACYIFEND OFF}
 {$IF CompilerVersion >= 30.0}
 
  {$DEFINE WinXCtrls}
@@ -661,10 +658,16 @@ procedure TFontAwesome.LoadFontFromResource;
 var
  LStream : TResourceStream;
  LStatus : TStatus;
+ cFonts: DWord;
 begin
   LStream := TResourceStream.Create(HInstance, 'fontawesome', RT_RCDATA);
   try
     FPrivateFontCollection := TGPPrivateFontCollection.Create;
+
+    // We HAVE to do this to register the font to the system (Weird .NET bug !)
+    cFonts:= 0;
+    AddFontMemResourceEx(LStream.Memory, Cardinal(LStream.Size), nil, @cFonts);
+
     LStatus := FPrivateFontCollection.AddMemoryFont(LStream.Memory, LStream.Size);
     if (LStatus <> Status.Ok) then
        RaiseLastOSError();
@@ -678,9 +681,9 @@ function TFontAwesome.GetIcon(const ACode: Word; Width, Height, CharX,
   CharY: Integer; AColor, ABackColor: TColor; Orientation: Integer;
   ImageAlignment: TImageAlignment): HICON;
 var
-  LIconInfo : TIconInfo;
-  LBitmap, LMask : TBitmap;
-  NewIcon : HICON;
+  LIconInfo: TIconInfo;
+  LBitmap, LMask: TBitmap;
+  NewIcon: HICON;
 begin
   LBitmap := TBitmap.Create;
   try
@@ -704,7 +707,7 @@ begin
       LIconInfo.fIcon := True;
       LIconInfo.xHotspot := Width;
       LIconInfo.yHotspot := Height;
-      LIconInfo.hbmMask  := LMask.Handle;
+      LIconInfo.hbmMask := LMask.Handle;
       LIconInfo.hbmColor := LBitmap.Handle;
 
       NewIcon := CreateIconIndirect(LIconInfo);
@@ -1022,14 +1025,8 @@ begin
 end;
 {$ENDIF}
 
-
-
-
-
-
 initialization
   FontAwesome := TFontAwesome.Create;
 finalization
   FontAwesome.Free;
-
 end.

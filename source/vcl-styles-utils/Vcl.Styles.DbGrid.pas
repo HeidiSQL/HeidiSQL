@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.DbGrid.pas.                                                      
 //                                                                                                  
 // The Initial Developer of the Original Code is Rodrigo Ruz V.                                     
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2015 Rodrigo Ruz V.                         
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2019 Rodrigo Ruz V.                         
 // All Rights Reserved.                                                                             
 //                                                                                                  
 //**************************************************************************************************
@@ -48,8 +48,8 @@ uses
   Vcl.Controls;
 
 type
-   TCustomGridClass=class(TCustomGrid);
-   TDbGridHelper= class helper for TCustomDBGrid
+   TCustomGridClass = class(TCustomGrid);
+   TDbGridHelper = class helper for TCustomDBGrid
   private
     function GetTitleOffset: Byte;
     function GetIndicators: TImageList;
@@ -65,37 +65,41 @@ type
 
 function TDbGridHelper.GetIndicators: TImageList;
 begin
- Result:=Self.FIndicators;
+  with Self do
+    Result := FIndicators;
 end;
 
 function TDbGridHelper.GetSelRow: Integer;
 begin
-  Result:=Self.FSelRow;
+  with Self do
+    Result := FSelRow;
 end;
 
 function TDbGridHelper.GetTitleOffset: Byte;
 begin
-  Result:=Self.FTitleOffset;
+  with Self do
+    Result := FTitleOffset;
 end;
 
 procedure TDbGridHelper.SetSelRow(const Value: Integer);
 begin
- Self.FSelRow:=Value;
+  with Self do
+    FSelRow := Value;
 end;
 
 procedure _WriteText(ACanvas: TCanvas; ARect: TRect; DX, DY: Integer; const AText: string; Alignment: TAlignment; ARightToLeft: Boolean);
 var
   X: Integer;
 begin
-    if (ACanvas.CanvasOrientation = coRightToLeft) and (not ARightToLeft) then
-      ChangeBiDiModeAlignment(Alignment);
-    case Alignment of
-      taLeftJustify : X := ARect.Left + DX;
-      taRightJustify: X := ARect.Right - ACanvas.TextWidth(AText) - 3;
-    else
-      X := ARect.Left + (ARect.Right - ARect.Left) shr 1 - (ACanvas.TextWidth(AText) shr 1);
-    end;
-    ACanvas.TextRect(ARect, X, ARect.Top + DY, AText);
+  if (ACanvas.CanvasOrientation = coRightToLeft) and (not ARightToLeft) then
+    ChangeBiDiModeAlignment(Alignment);
+  case Alignment of
+    taLeftJustify : X := ARect.Left + DX;
+    taRightJustify: X := ARect.Right - ACanvas.TextWidth(AText) - 3;
+  else
+    X := ARect.Left + (ARect.Right - ARect.Left) shr 1 - (ACanvas.TextWidth(AText) shr 1);
+  end;
+  ACanvas.TextRect(ARect, X, ARect.Top + DY, AText);
 end;
 
 

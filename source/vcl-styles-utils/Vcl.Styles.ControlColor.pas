@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.ControlColor
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2015 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2019 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //**************************************************************************************************

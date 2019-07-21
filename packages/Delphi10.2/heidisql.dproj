@@ -75,7 +75,7 @@
         <DCC_F>false</DCC_F>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <SanitizedProjectName>heidisql</SanitizedProjectName>
-        <DCC_LegacyIFEND>true</DCC_LegacyIFEND>
+        <DCC_LegacyIFEND>false</DCC_LegacyIFEND>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
@@ -120,7 +120,7 @@
         <BT_BuildType>Debug</BT_BuildType>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
-        <DCC_LegacyIFEND>true</DCC_LegacyIFEND>
+        <DCC_LegacyIFEND>false</DCC_LegacyIFEND>
         <DCC_DebugInformation>2</DCC_DebugInformation>
         <DCC_Define>madExcept;$(DCC_Define)</DCC_Define>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
