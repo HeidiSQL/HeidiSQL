@@ -225,7 +225,6 @@ var
   dt: TListNodeType;
   Obj: TDBObject;
 begin
-  TranslateComponent(Self);
   HasSizeGrip := True;
   FixDropDownButtons(Self);
   OUTPUT_FILE := _('Single .sql file');

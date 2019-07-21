@@ -239,7 +239,6 @@ var
   LibPath, LibFile: String;
 begin
   // Fix GUI stuff
-  TranslateComponent(Self);
   HasSizeGrip := True;
   FixDropDownButtons(Self);
   lblDownloadPlink.Font.Style := [fsUnderline];

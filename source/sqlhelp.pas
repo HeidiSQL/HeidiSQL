@@ -93,7 +93,6 @@ begin
   memoDescription.Height := AppSettings.ReadInt(asSQLHelpPnlRightTopHeight);
   Caption := DEFAULT_WINDOW_CAPTION;
   FixVT(treeTopics);
-  TranslateComponent(Self);
   HasSizeGrip := True;
 
   treeTopics.Clear;

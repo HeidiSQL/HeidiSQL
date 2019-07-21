@@ -45,7 +45,6 @@ uses main;
 
 procedure TColumnSelectionForm.FormCreate(Sender: TObject);
 begin
-  TranslateComponent(Self);
   HasSizeGrip := True;
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
   Height := AppSettings.ReadInt(asColumnSelectorHeight);

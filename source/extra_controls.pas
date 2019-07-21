@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
-  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs;
+  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -36,6 +36,7 @@ begin
   inherited;
   InheritFont(Font);
   HasSizeGrip := False;
+  TranslateComponent(Self);
 end;
 
 

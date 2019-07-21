@@ -202,7 +202,6 @@ begin
   actSearchFindNext.Hint := MainForm.actQueryFindAgain.Hint;
   actSearchReplace.Caption := MainForm.actQueryReplace.Caption;
   actSearchReplace.Hint := MainForm.actQueryReplace.Hint;
-  TranslateComponent(Self);
   FixDropDownButtons(Self);
   // Assign linebreak values to their menu item tags, to write less code later
   menuWindowsLB.Tag := Integer(lbsWindows);

@@ -47,8 +47,6 @@ procedure TDataSortingForm.FormCreate(Sender: TObject);
 var
   i: Integer;
 begin
-  TranslateComponent(Self);
-
   ColumnNames := TStringList.Create;
   // Take column names from listColumns and add here
   for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin

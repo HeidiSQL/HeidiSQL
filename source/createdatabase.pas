@@ -41,7 +41,6 @@ uses main, apphelpers;
 
 procedure TCreateDatabaseForm.FormCreate(Sender: TObject);
 begin
-  TranslateComponent(Self);
   lblCreateCode.Caption := lblCreateCode.Caption + ':';
   // Setup SynMemoPreview
   SynMemoCreateCode.Highlighter := Mainform.SynSQLSynUsed;

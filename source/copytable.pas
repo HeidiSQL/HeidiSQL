@@ -67,7 +67,6 @@ const
 
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
-  TranslateComponent(Self);
   HasSizeGrip := True;
   FixDropDownButtons(Self);
   Width := AppSettings.ReadInt(asCopyTableWindowWidth);

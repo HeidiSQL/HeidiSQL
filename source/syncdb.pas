@@ -107,7 +107,6 @@ var
   SessionPaths: TStringList;
 begin
   Caption := MainForm.actSynchronizeDatabase.Caption;
-  TranslateComponent(Self);
   HasSizeGrip := True;
   FixVT(treeSource);
   FixVT(treeDifferences);

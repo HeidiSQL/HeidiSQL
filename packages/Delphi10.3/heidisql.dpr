@@ -45,6 +45,7 @@ uses
   change_password in '..\..\source\change_password.pas' {frmPasswordChange},
   Vcl.Themes,
   Vcl.Styles,
+  Vcl.Graphics,
   theme_preview in '..\..\source\theme_preview.pas' {frmThemePreview};
 
 {.$R *.RES}
@@ -71,10 +72,15 @@ begin
     AppSettings.Free;
     Application.Terminate;
   end else begin
+
     AppLanguage := AppSettings.ReadString(asAppLanguage);
     // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
     SysLanguage := DefaultInstance.GetCurrentLocaleName;
     UseLanguage(AppLanguage);
+    // First time translation via dxgettext.
+    // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
+    TP_GlobalIgnoreClass(TFont);
+
     Application.Initialize;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;

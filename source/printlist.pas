@@ -23,7 +23,6 @@ type
     procedure btnConfigureClick(Sender: TObject);
     procedure btnPrintClick(Sender: TObject);
     procedure comboPrintersChange(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
   private
     { Private declarations }
@@ -38,11 +37,6 @@ uses main, apphelpers, table_editor, dbconnection;
 
 {$R *.DFM}
 
-
-procedure TprintlistForm.FormCreate(Sender: TObject);
-begin
-  TranslateComponent(Self);
-end;
 
 procedure TprintlistForm.FormShow(Sender: TObject);
 begin

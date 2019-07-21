@@ -103,7 +103,6 @@ procedure TfrmExportGrid.FormCreate(Sender: TObject);
 var
   FormatDesc: String;
 begin
-  TranslateComponent(Self);
   HasSizeGrip := True;
   Width := AppSettings.ReadInt(asGridExportWindowWidth);
   Height := AppSettings.ReadInt(asGridExportWindowHeight);

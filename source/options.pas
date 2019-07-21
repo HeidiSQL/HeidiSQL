@@ -483,7 +483,6 @@ var
   GridColorsPreset: TGridColorsPreset;
   IconPack: String;
 begin
-  TranslateComponent(Self);
   HasSizeGrip := True;
 
   Width := AppSettings.ReadInt(asPreferencesWindowWidth);

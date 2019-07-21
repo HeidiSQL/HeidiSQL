@@ -36,7 +36,6 @@ uses apphelpers, main;
 
 procedure TfrmLogin.FormCreate(Sender: TObject);
 begin
-  TranslateComponent(Self);
   Caption := APPNAME + ' - Login';
   MainForm.VirtualImageListMain.GetBitmap(144, imgIcon.Picture.Bitmap);
   lblPrompt.Font.Size := 10;
