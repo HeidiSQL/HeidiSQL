@@ -94,7 +94,7 @@ begin
   Caption := DEFAULT_WINDOW_CAPTION;
   FixVT(treeTopics);
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
 
   treeTopics.Clear;
   FreeAndNil(FRootTopics);

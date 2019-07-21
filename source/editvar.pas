@@ -56,7 +56,7 @@ uses main, apphelpers;
 procedure TfrmEditVariable.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asEditVarWindowWidth);
   Height := AppSettings.ReadInt(asEditVarWindowHeight);
 end;

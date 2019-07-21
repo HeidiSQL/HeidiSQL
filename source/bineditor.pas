@@ -90,7 +90,7 @@ end;
 procedure TfrmBinEditor.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
 end;
 
 

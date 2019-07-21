@@ -207,6 +207,7 @@ end;
 procedure TUserManagerForm.FormCreate(Sender: TObject);
 begin
   // Restore GUI setup
+  HasSizeGrip := True;
   lblWarning.Font.Color := clRed;
   Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
   Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
@@ -215,7 +216,6 @@ begin
   FixVT(treePrivs);
   Mainform.RestoreListSetup(listUsers);
   TranslateComponent(Self);
-  AddSizeGrip;
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
   PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER');

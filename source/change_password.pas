@@ -58,7 +58,7 @@ uses main, apphelpers;
 procedure TfrmPasswordChange.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
 end;
 
 

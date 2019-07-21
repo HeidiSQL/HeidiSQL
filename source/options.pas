@@ -484,7 +484,7 @@ var
   IconPack: String;
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
 
   Width := AppSettings.ReadInt(asPreferencesWindowWidth);
   Height := AppSettings.ReadInt(asPreferencesWindowHeight);

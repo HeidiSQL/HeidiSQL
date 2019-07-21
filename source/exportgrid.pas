@@ -104,7 +104,7 @@ var
   FormatDesc: String;
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asGridExportWindowWidth);
   Height := AppSettings.ReadInt(asGridExportWindowHeight);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);

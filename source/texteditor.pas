@@ -185,7 +185,7 @@ end;
 
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
 begin
-  AddSizeGrip;
+  HasSizeGrip := True;
   FmemoText := TLineNormalizingMemo.Create(Self);
   FmemoText.Parent := Self;
   FmemoText.Align := alClient;

@@ -226,7 +226,7 @@ var
   Obj: TDBObject;
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
   FixDropDownButtons(Self);
   OUTPUT_FILE := _('Single .sql file');
   OUTPUT_FILE_COMPRESSED := _('ZIP compressed .sql file');

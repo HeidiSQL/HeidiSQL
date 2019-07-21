@@ -108,7 +108,7 @@ var
 begin
   Caption := MainForm.actSynchronizeDatabase.Caption;
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
   FixVT(treeSource);
   FixVT(treeDifferences);
 

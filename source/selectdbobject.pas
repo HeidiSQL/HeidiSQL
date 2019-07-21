@@ -63,7 +63,7 @@ end;
 procedure TfrmSelectDBObject.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
   Width := AppSettings.ReadInt(asSelectDBOWindowWidth);
   Height := AppSettings.ReadInt(asSelectDBOWindowHeight);
   TreeDBO.TreeOptions := MainForm.DBtree.TreeOptions;

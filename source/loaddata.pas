@@ -94,7 +94,7 @@ const
 procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
   // Restore settings
   Width := AppSettings.ReadInt(asCSVImportWindowWidth);
   Height := AppSettings.ReadInt(asCSVImportWindowHeight);

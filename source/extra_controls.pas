@@ -4,20 +4,19 @@ interface
 
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
-  SizeGrip, SizeGripThemed, apphelpers, Vcl.Graphics, Vcl.Dialogs;
+  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
   TExtForm = class(TForm)
     private
-      FFontSet: Boolean;
-      FPixelsPerInchOnDefaultMonitor: Integer;
+      FSizeGrip: TSizeGripXP;
+      function GetHasSizeGrip: Boolean;
+      procedure SetHasSizeGrip(Value: Boolean);
     public
       constructor Create(AOwner: TComponent); override;
-      procedure AddSizeGrip;
       procedure InheritFont(AFont: TFont);
-    protected
-      procedure DoShow; override;
+      property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
   end;
   // Memo replacement which accepts any line break format
   TLineNormalizingMemo = class(TMemo)
@@ -34,32 +33,27 @@ implementation
 
 constructor TExtForm.Create(AOwner: TComponent);
 begin
-  FPixelsPerInchOnDefaultMonitor := Screen.Monitors[0].PixelsPerInch;
   inherited;
-  FFontSet := False;
+  InheritFont(Font);
+  HasSizeGrip := False;
 end;
 
 
-procedure TExtForm.DoShow;
+function TExtForm.GetHasSizeGrip: Boolean;
 begin
-  // Expect the window to be on the wanted monitor now, so we can scale fonts according
-  // to the screen's DPI setting
-  if not FFontSet then begin
-    InheritFont(Font);
-    FFontSet := True;
+  Result := FSizeGrip <> nil;
+end;
+
+
+procedure TExtForm.SetHasSizeGrip(Value: Boolean);
+begin
+  if Value then begin
+    FSizeGrip := TSizeGripXP.Create(Self);
+    FSizeGrip.Enabled := True;
+  end else begin
+    if FSizeGrip <> nil then
+      FreeAndNil(FSizeGrip);
   end;
-  inherited;
-end;
-
-
-procedure TExtForm.AddSizeGrip;
-var
-  FGripper: TSizeGripThemed;
-begin
-  FGripper := TSizeGripThemed.Create(Self);
-  FGripper.Themed := True;
-  FGripper.Enabled := True;
-  FGripper.Style := sgsWinXP;
 end;
 
 

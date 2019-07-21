@@ -117,7 +117,7 @@ const
 procedure TfrmInsertFiles.FormCreate(Sender: TObject);
 begin
   TranslateComponent(Self);
-  AddSizeGrip;
+  HasSizeGrip := True;
   ListFiles.Images := GetSystemImageList;
   DragAcceptFiles(Handle, True);
   MainForm.RestoreListSetup(ListColumns);
