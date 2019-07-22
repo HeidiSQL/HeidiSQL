@@ -104,7 +104,6 @@ uses main, dbstructures, grideditlinks;
 constructor TfrmRoutineEditor.Create(AOwner: TComponent);
 begin
   inherited;
-  TranslateComponent(Self);
   // Combo items in a .dfm are sporadically lost after an IDE restart,
   // so we set them here to avoid developer annoyance
   comboType.Items.Add(_('Procedure (doesn''t return a result)'));

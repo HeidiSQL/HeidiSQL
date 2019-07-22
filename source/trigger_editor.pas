@@ -63,7 +63,6 @@ var
   i: Integer;
 begin
   inherited;
-  TranslateComponent(Self);
   SynMemoBody.Highlighter := Mainform.SynSQLSynUsed;
   editName.MaxLength := NAME_LEN;
   comboTiming.Items.Text := 'BEFORE'+CRLF+'AFTER';

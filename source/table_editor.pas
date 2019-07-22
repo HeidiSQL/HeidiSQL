@@ -209,7 +209,6 @@ uses main;
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
-  TranslateComponent(Self);
   FixVT(listColumns);
   FixVT(treeIndexes);
   FixVT(listForeignKeys);

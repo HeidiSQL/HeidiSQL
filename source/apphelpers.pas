@@ -1880,6 +1880,7 @@ begin
   // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
   // repeatedly breaks the GUI layout when you reload the project
   Align := alClient;
+  TranslateComponent(Self);
 end;
 
 destructor TDBObjectEditor.Destroy;

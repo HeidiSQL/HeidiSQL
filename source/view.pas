@@ -52,7 +52,6 @@ uses main;
 constructor TfrmView.Create(AOwner: TComponent);
 begin
   inherited;
-  TranslateComponent(Self);
   SynMemoBody.Highlighter := Mainform.SynSQLSynUsed;
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   editName.MaxLength := NAME_LEN;
