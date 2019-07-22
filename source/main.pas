@@ -1682,6 +1682,8 @@ begin
   // Load preferred ImageCollection into VirtualImageList
   PrepareImageList;
 
+  // Issue #557: Apply images *after* translating main menu, so top items don't get unused
+  // space left besides them.
   MainMenu1.Images := VirtualImageListMain;
 
   if AppSettings.ReadBool(asToolbarShowCaptions) then begin
