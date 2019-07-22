@@ -333,6 +333,7 @@ type
       FResultCount: Integer;
       FStatementNum: Cardinal;
       FCurrentUserHostCombination: String;
+      FAllUserHostCombinations: TStringList;
       FLockedByThread: TThread;
       FQuoteChar: Char;
       FQuoteChars: String;
@@ -364,6 +365,7 @@ type
       function GetServerUptime: Integer;
       function GetServerNow: TDateTime;
       function GetCurrentUserHostCombination: String;
+      function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
       function ExtractIdentifier(var SQL: String): String;
       function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
@@ -448,6 +450,7 @@ type
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
       property ResultCount: Integer read FResultCount;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
+      property AllUserHostCombinations: TStringList read GetAllUserHostCombinations;
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
@@ -4314,6 +4317,23 @@ begin
   if FCurrentUserHostCombination = '' then
     FCurrentUserHostCombination := GetVar(GetSQLSpecifity(spCurrentUserHost));
   Result := FCurrentUserHostCombination;
+end;
+
+
+function TDBConnection.GetAllUserHostCombinations: TStringList;
+begin
+  // For populating combobox items
+  if not Assigned(FAllUserHostCombinations) then begin
+    try
+      FAllUserHostCombinations := GetCol('SELECT CONCAT('+QuoteIdent('User')+', '+EscapeString('@')+', '+QuoteIdent('Host')+') '+
+        'FROM '+QuoteIdent('mysql')+'.'+QuoteIdent('user')+' '+
+        'WHERE '+QuoteIdent('User')+'!='+EscapeString('')+' '+
+        'ORDER BY '+QuoteIdent('User')+', '+QuoteIdent('Host'));
+    except on E:EDbError do
+      FAllUserHostCombinations := TStringList.Create;
+    end;
+  end;
+  Result := FAllUserHostCombinations;
 end;
 
 

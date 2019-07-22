@@ -29,7 +29,6 @@ type
   TDBObjectEditor = class(TFrame)
     private
       FModified: Boolean;
-      FDefiners: TStringList;
       procedure SetModified(Value: Boolean);
     protected
     public
@@ -38,7 +37,6 @@ type
       destructor Destroy; override;
       procedure Init(Obj: TDBObject); virtual;
       function DeInit: TModalResult;
-      function GetDefiners: TStringList;
       property Modified: Boolean read FModified write SetModified;
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
@@ -1973,25 +1971,6 @@ begin
       mrNo: Modified := False;
     end;
   end;
-end;
-
-
-function TDBObjectEditor.GetDefiners: TStringList;
-  function q(s: String): String;
-  begin
-    Result := DBObject.Connection.QuoteIdent(s);
-  end;
-begin
-  // For populating combobox items
-  if not Assigned(FDefiners) then begin
-    try
-      FDefiners := DBObject.Connection.GetCol('SELECT CONCAT('+q('User')+', '+esc('@')+', '+q('Host')+') FROM '+
-        q('mysql')+'.'+q('user')+' WHERE '+q('User')+'!='+esc('')+' ORDER BY '+q('User')+', '+q('Host'));
-    except on E:EDbError do
-      FDefiners := TStringList.Create;
-    end;
-  end;
-  Result := FDefiners;
 end;
 
 
