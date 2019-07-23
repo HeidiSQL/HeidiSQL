@@ -42,6 +42,12 @@ begin
   InheritFont(Font);
   HasSizeGrip := False;
 
+  // Reduce flicker on Windows 10
+  // See https://www.heidisql.com/forum.php?t=19141
+  if CheckWin32Version(6, 2) then begin
+    DoubleBuffered := True;
+  end;
+
   // Translation and related fixes
   // Issue #557: Apply images *after* translating main menu, so top items don't get unused
   // space left besides them.

@@ -1740,12 +1740,6 @@ begin
     on E:EOleSysError do;
   end;
 
-  // Reduce flicker on Windows 10
-  if CheckWin32Version(6, 2) then begin
-    DoubleBuffered := True;
-  end;
-
-
   // Move files from old default snippets directory, see issue #159
   if not AppSettings.PortableMode then begin
     // This was the default folder up to r5244 / 8b2966c52efb685b00189037a0507157ed03a368

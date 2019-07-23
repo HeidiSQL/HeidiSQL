@@ -73,7 +73,6 @@ object MainForm: TMainForm
     Width = 977
     Height = 19
     AutoHint = True
-    DoubleBuffered = True
     Panels = <
       item
         Width = 150
@@ -100,7 +99,6 @@ object MainForm: TMainForm
         Style = psOwnerDraw
         Width = 250
       end>
-    ParentDoubleBuffered = False
     ParentFont = True
     UseSystemFont = False
     OnClick = StatusBarClick
