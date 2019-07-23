@@ -3289,16 +3289,27 @@ var
   rx: TRegExpr;
 begin
   Result := '';
+  Additional := '';
+
   Msg := DecodeAPIString(FLib.mysql_error(FHandle));
-  // Find "(errno: 123)" in message and add more meaningful message from perror.exe
-  rx := TRegExpr.Create;
-  rx.Expression := '.+\(errno\:\s+(\d+)\)';
-  if rx.Exec(Msg) then begin
-    Additional := MySQLErrorCodes.Values[rx.Match[1]];
-    if Additional <> '' then
-      Msg := Msg + CRLF + CRLF + Additional;
+
+  if SynRegExpr.ExecRegExpr('(Unknown SSL error|SSL connection error)', Msg) then begin
+    // Find specific strings in error message and provide helpful message
+    Additional := f_('Please select a different library in your session settings. (Current: "%s")', [FParameters.LibraryFile]);
+  end else begin
+    // Find "(errno: 123)" in message and add more meaningful message from perror.exe
+    rx := TRegExpr.Create;
+    rx.Expression := '.+\(errno\:\s+(\d+)\)';
+    if rx.Exec(Msg) then begin
+      Additional := MySQLErrorCodes.Values[rx.Match[1]];
+    end;
+    rx.Free;
   end;
-  rx.Free;
+
+  if Additional <> '' then begin
+    Msg := Msg + sLineBreak + sLineBreak + Additional;
+  end;
+
   case FStatementNum of
     0: Result := Msg;
     1: Result := f_(MsgSQLError, [LastErrorCode, Msg]);
