@@ -14,7 +14,7 @@ uses
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, dbstructures, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
-  CommCtrl, Vcl.Imaging.pngimage;
+  CommCtrl;
 
 type
 
@@ -265,7 +265,6 @@ type
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function HTMLSpecialChars(str: String): String;
-  function BestTableName(Data: TDBQuery): String;
   function EncodeURLParam(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
@@ -515,17 +514,6 @@ begin
   result := StringReplace(str, '&', '&amp;', [rfReplaceAll]);
   result := StringReplace(result, '<', '&lt;', [rfReplaceAll]);
   result := StringReplace(result, '>', '&gt;', [rfReplaceAll]);
-end;
-
-
-function BestTableName(Data: TDBQuery): String;
-begin
-  // Get table name from result if possible. Used by GridToXYZ() functions.
-  try
-    Result := Data.TableName;
-  except
-    Result := _('UnknownTable');
-  end;
 end;
 
 

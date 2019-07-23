@@ -543,7 +543,11 @@ begin
     else
       NodeCount := Grid.RootNodeCount;
     MainForm.EnableProgress(NodeCount);
-    TableName := BestTableName(GridData);
+    try
+      TableName := GridData.TableName;
+    except
+      TableName := _('UnknownTable');
+    end;
     ExcludeCol := NoColumn;
     if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
       ExcludeCol := GridData.AutoIncrementColumn;
