@@ -61,22 +61,15 @@ interface
 // https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html
 {.$define dx_EMPTY_TO_EMPTY}
 
-// ### LO - Workaround aka hack for programs compiled with German Delphi
+// Programs that are compiled with German Delphi will always show the German shortcut
+// keys in menus and hints because the German RTL resourcestrings are not translated.
+// This results in German menu shortcuts 'Strg+<X>', 'Umsch+<X>' to be shown instead of
+// 'Ctrl+<X>', 'Shift+<X>', even if the applications language is not German.
 //
-// If the current OS Language is not German, immediately add a Delphi RTL domain
-// to the resource domains and bind the text domain to a fixed German->English
-// translation.
-// Using a fixed German->English translation because the OS
-// Language may not be one of the installed translations.
-// Otherwise the German RTL resourcestrings will not be translated.
-// This results in German menu shortcuts 'Strg+', 'Umsch+' instead of
-// 'Ctrl+', 'Shift+' and so on.
-//
-// Since there is no way to automatically determine whether the compiling version
-// is German, you must enable the following conditional define to enable it.
-// Be warned: This has not been thoroughly tested.
-// Default is turned off.
-{.$define dx_German_Delphi_fix}  
+// This function hooks into Vcl.Menus.ShortCutToText and replaces the German consts with
+// their English counterparts if the current application language is *not* German.
+// Tested with Rad Studio 10.2 Tokyo and 10.3.1 Rio
+{.$define dx_German_Delphi_fix}
 
 // if the conditional define dx_SupportsResources is defined the .mo files
 // can also be added to the executable as Windows resources
@@ -144,6 +137,7 @@ interface
   {$DEFINE dx_has_Inline}
   {$DEFINE dx_StringList_has_OwnsObjects}
   {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_StringBuilder}
 {$endif}
 {$ifdef VER210}
   // Delphi 2010
@@ -155,6 +149,7 @@ interface
   {$DEFINE dx_has_Inline}
   {$DEFINE dx_StringList_has_OwnsObjects}
   {$DEFINE dx_has_LpVoid}
+  {$DEFINE dx_has_StringBuilder}
 {$endif}
 {$ifdef VER220}
   // Delphi 2011/XE
@@ -166,6 +161,7 @@ interface
   {$DEFINE dx_has_Inline}
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_StringList_has_OwnsObjects}
+  {$DEFINE dx_has_StringBuilder}
 {$endif}
 {$ifdef VER230}
   // Delphi 2012/XE2
@@ -175,6 +171,8 @@ interface
   {$DEFINE dx_has_Inline}
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_has_StringBuilder}
+  {$DEFINE dx_has_dotted_unitnames}
 {$endif}
 {$ifdef VER240}
   // Delphi 2013/XE3
@@ -185,6 +183,8 @@ interface
   {$DEFINE dx_has_Inline}
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_has_VclThemes}
+  {$DEFINE dx_has_StringBuilder}
+  {$DEFINE dx_has_dotted_unitnames}
 {$endif}
 {$if CompilerVersion >= 25}
   // Delphi XE4 and up
@@ -196,6 +196,8 @@ interface
   {$DEFINE dx_has_LpVoid}
   {$DEFINE dx_has_VclThemes}
   {$DEFINE dx_midstr_in_AnsiStrings}
+  {$DEFINE dx_has_StringBuilder}
+  {$DEFINE dx_has_dotted_unitnames}
 {$ifend}
 
 {$ifdef dx_has_Unsafe_Warnings}
@@ -593,10 +595,25 @@ var
 
 implementation
 
-{$ifdef dx_has_VclThemes}
+{$IFDEF dx_has_dotted_unitnames}
+{$ifdef dx_has_VclThemes or dx_German_Delphi_fix}
 uses
-  Vcl.Themes;
-{$endif dx_has_VclThemes}
+{$ifdef dx_has_VclThemes}
+  Vcl.Themes{$ifdef dx_German_Delphi_fix},{$endif}
+{$endif}
+{$ifdef dx_German_Delphi_fix}
+  Vcl.Consts,
+  Vcl.Menus
+{$endif dx_German_Delphi_fix}
+  ;
+{$endif dx_has_VclThemes or dx_German_Delphi_fix}
+{$ELSE ~dx_has_dotted_unitnames}
+{$ifdef dx_German_Delphi_fix}
+uses
+  Consts,
+  Menus;
+{$endif dx_has_VclThemes or dx_German_Delphi_fix}
+{$ENDIF dx_has_dotted_unitnames}
 
 {$ifndef MSWINDOWS}
 {$ifndef LINUX}
@@ -754,10 +771,13 @@ var
   HookLoadResString:THook;
   HookLoadStr:THook;
   HookFmtLoadStr:THook;
+{$ifdef dx_German_Delphi_fix}
+  HookShortCutToText:THook;
+{$endif dx_German_Delphi_fix}
   HookedObjects:THookedObjects;
   KnownRetranslators:TList;
 
-// LO: Helper functions to make the ugly ifdefs more readable
+// Helper functions to make the ugly ifdefs more readable
 function doGetWideStrProp(AnObject:TObject; Propname:ComponentNameString):TranslatedUnicodeString;
 begin
 {$IFDEF dx_GetStrProp_reads_unicode}
@@ -4202,39 +4222,106 @@ procedure THookedObjects.Unproxify(obj:TObject);
 begin
   PPointer(obj)^:=getClassData(obj)^.Parent^;
 end;
-
-{$ifdef dx_German_Delphi_fix}  
-  // ### LO - Workaround for programs compiled with German Delphi
-  //
-  // If the current OS Language is not German, immediately add a Delphi RTL domain
-  // to the resource domains and bind the text domain to a fixed German->English
-  // translation.
-  // Using a fixed German->English translation because the OS
-  // Language may not be one of the installed translations.
-  // Otherwise the German RTL resourcestrings will not be translated.
-  // This results in German menu shortcuts 'Strg+', 'Umsch+' instead of
-  // 'Ctrl+', 'Shift+' and so on.
- 
-procedure CheckForGermanDelphi;
-const
-  DefaultRTLDomain = 'delphi'; // German to English translation of Delphi RTL strings
-  DefaultShortcuts = 'shortcuts'; // German to English translation of ressource strings
-
-  procedure AddAndBindDomain(szDomain: DomainString);
-  begin
-    AddDomainForResourceString(szDomain);
-    with DefaultInstance do
-      bindtextdomainToFile(szDomain, DefaultDomainDirectory + '\' + szDomain + '.mo');
-  end;
-
+{$ifdef dx_German_Delphi_fix}
+function VclMenusShortCutToText(ShortCut: TShortCut): string;
+{$IfDEF dx_has_StringBuilder}
+var
+  sbShortCut: TStringBuilder;
 begin
-  if not AnsiStartsText('de', GetCurrentLanguage) then begin
-    AddAndBindDomain(DefaultShortcuts);
-    AddAndBindDomain(DefaultRTLDomain);
+  HookShortCutToText.Disable;
+  try
+    // Call original function to get shortcut
+{$IFDEF dx_has_dotted_unitnames}
+    Result := Vcl.Menus.ShortCutToText(ShortCut);
+{$ELSE ~dx_has_dotted_unitnames}
+    Result := Menus.ShortCutToText(ShortCut);
+{$ENDIF dx_has_dotted_unitnames}
+
+    // Shortcuts are in German by default, so
+    // if currently used language is not German: replace the German names by English names
+    if not SameText(GetCurrentLanguageCode, 'de') then
+      begin
+        // Use a Stringbuilder as it is way more performant in replace operations than StringReplace
+        sbShortCut := TStringBuilder.Create(Result);
+        try
+          // Replace German shortcut names
+{$IFDEF dx_has_dotted_unitnames}
+          sbShortCut.
+            Replace(Vcl.Consts.SmkcBkSp {'Rück'}, 'BkSp').
+            Replace(Vcl.Consts.SmkcEnter {'Eingabe'}, 'Enter').
+            Replace(Vcl.Consts.SmkcSpace {'Leer'}, 'Space').
+            Replace(Vcl.Consts.SmkcPgUp {'BildAuf'}, 'PgUp').
+            Replace(Vcl.Consts.SmkcPgDn {'BildAb'}, 'PgDn').
+            Replace(Vcl.Consts.SmkcEnd {'Ende'}, 'End').
+            Replace(Vcl.Consts.SmkcHome {'Pos1'}, 'Home').
+            Replace(Vcl.Consts.SmkcLeft {'Links'}, 'Left').
+            Replace(Vcl.Consts.SmkcUp {'Auf'}, 'Up').
+            Replace(Vcl.Consts.SmkcRight {'Rechts'}, 'Right').
+            Replace(Vcl.Consts.SmkcDown {'Ab'}, 'Down').
+            Replace(Vcl.Consts.SmkcIns {'Einfg'}, 'Ins').
+            Replace(Vcl.Consts.SmkcDel {'Entf'}, 'Del').
+            Replace(Vcl.Consts.SmkcShift {'Umsch+'}, 'Shift+').
+            Replace(Vcl.Consts.SmkcCtrl {'Strg+'}, 'Ctrl+');
+{$ELSE ~dx_has_dotted_unitnames}
+          sbShortCut.
+            Replace(Consts.SmkcBkSp {'Rück'}, 'BkSp').
+            Replace(Consts.SmkcEnter {'Eingabe'}, 'Enter').
+            Replace(Consts.SmkcSpace {'Leer'}, 'Space').
+            Replace(Consts.SmkcPgUp {'BildAuf'}, 'PgUp').
+            Replace(Consts.SmkcPgDn {'BildAb'}, 'PgDn').
+            Replace(Consts.SmkcEnd {'Ende'}, 'End').
+            Replace(Consts.SmkcHome {'Pos1'}, 'Home').
+            Replace(Consts.SmkcLeft {'Links'}, 'Left').
+            Replace(Consts.SmkcUp {'Auf'}, 'Up').
+            Replace(Consts.SmkcRight {'Rechts'}, 'Right').
+            Replace(Consts.SmkcDown {'Ab'}, 'Down').
+            Replace(Consts.SmkcIns {'Einfg'}, 'Ins').
+            Replace(Consts.SmkcDel {'Entf'}, 'Del').
+            Replace(Consts.SmkcShift {'Umsch+'}, 'Shift+').
+            Replace(Consts.SmkcCtrl {'Strg+'}, 'Ctrl+');
+{$ENDIF dx_has_dotted_unitnames}
+          Result := sbShortCut.ToString;
+        finally
+          sbShortCut.Free;
+        end;
+      end;
+  finally
+    HookShortCutToText.Enable;
   end;
 end;
-{$endif dx_German_Delphi_fix}
+{$ELSE ~ dx_has_StringBuilder}
+begin
+  HookShortCutToText.Disable;
+  try
+    // Call original function to get shortcut
+    Result := Menus.ShortCutToText(ShortCut);
 
+    // Shortcuts are in German by default, so
+    // if currently used language is not German: replace the German names by English names
+    if not SameText(GetCurrentLanguageCode, 'de') then
+      begin
+        Result := StringReplace(Result, Consts.SmkcBkSp  {'Rück'}, 'BkSp', []);
+        Result := StringReplace(Result, Consts.SmkcEnter {'Eingabe'}, 'Enter', []);
+        Result := StringReplace(Result, Consts.SmkcSpace {'Leer'}, 'Space', []);
+        Result := StringReplace(Result, Consts.SmkcPgUp {'BildAuf'}, 'PgUp', []);
+        Result := StringReplace(Result, Consts.SmkcPgDn {'BildAb'}, 'PgDn', []);
+        Result := StringReplace(Result, Consts.SmkcEnd {'Ende'}, 'End', []);
+        Result := StringReplace(Result, Consts.SmkcHome {'Pos1'}, 'Home', []);
+        Result := StringReplace(Result, Consts.SmkcLeft {'Links'}, 'Left', []);
+        Result := StringReplace(Result, Consts.SmkcUp {'Auf'}, 'Up', []);
+        Result := StringReplace(Result, Consts.SmkcRight {'Rechts'}, 'Right', []);
+        Result := StringReplace(Result, Consts.SmkcDown {'Ab'}, 'Down', []);
+        Result := StringReplace(Result, Consts.SmkcIns {'Einfg'}, 'Ins', []);
+        Result := StringReplace(Result, Consts.SmkcDel {'Entf'}, 'Del', []);
+        Result := StringReplace(Result, Consts.SmkcShift {'Umsch+'}, 'Shift+', []);
+        Result := StringReplace(Result, Consts.SmkcCtrl {'Strg+'}, 'Ctrl+', []);
+      end;
+  finally
+    HookShortCutToText.Enable;
+  end;
+end;
+{$ENDIF dx_has_StringBuilder}
+{$endif dx_German_Delphi_fix}
 
 {$IFDEF dx_SupportsResources}
 { TResourceFileInfo }
@@ -4300,17 +4387,26 @@ initialization
   {$endif}
   HookLoadStr:=THook.Create (@sysutils.LoadStr, @SysUtilsLoadStr);
   HookFmtLoadStr:=THook.Create (@sysutils.FmtLoadStr, @SysUtilsFmtLoadStr);
+{$ifdef dx_German_Delphi_fix}
+  // Create hook for Vcl.Menus.ShortCutToText to translate shortcut strings.
+{$IFDEF dx_has_dotted_unitnames}
+  HookShortCutToText := THook.Create(@Vcl.Menus.ShortCutToText, @VclMenusShortCutToText);
+{$ELSE ~dx_has_dotted_unitnames}
+  HookShortCutToText := THook.Create(@Menus.ShortCutToText, @VclMenusShortCutToText);
+{$ENDIF dx_has_dotted_unitnames}
+{$endif dx_German_Delphi_fix}
   param0:=lowercase(extractfilename(paramstr(0)));
   if (param0<>'delphi32.exe') and (param0<>'kylix') and (param0<>'bds.exe') then
-    HookIntoResourceStrings (AutoCreateHooks,false);
+    begin
+      HookIntoResourceStrings (AutoCreateHooks,false);
+{$ifdef dx_German_Delphi_fix}
+      HookShortCutToText.Enable;
+{$endif dx_German_Delphi_fix}
+    end;
   param0:='';
 
   HookedObjects:=THookedObjects.Create;
   KnownRetranslators:=TList.Create;
-
-{$ifdef dx_German_Delphi_fix}  
-  CheckForGermanDelphi;
-{$endif dx_German_Delphi_fix} 
 
 finalization
   FreeAndNil (DefaultInstance);
@@ -4324,6 +4420,9 @@ finalization
   FreeAndNil (FileLocator);
   FreeAndNil (HookedObjects);
   FreeAndNil (KnownRetranslators);
+{$ifdef dx_German_Delphi_fix}
+  FreeAndNil (HookShortCutToText);
+{$endif dx_German_Delphi_fix}
 
 end.
 
