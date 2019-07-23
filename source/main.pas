@@ -1677,8 +1677,6 @@ var
 begin
   caption := APPNAME;
 
-  FixDropDownButtons(Self);
-
   // Load preferred ImageCollection into VirtualImageList
   PrepareImageList;
 

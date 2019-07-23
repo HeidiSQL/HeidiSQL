@@ -240,7 +240,6 @@ var
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
-  FixDropDownButtons(Self);
   lblDownloadPlink.Font.Style := [fsUnderline];
   lblDownloadPlink.Font.Color := clBlue;
 

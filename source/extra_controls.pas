@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
-  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList;
+  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -34,6 +34,8 @@ implementation
 constructor TExtForm.Create(AOwner: TComponent);
 var
   OldImageList: TCustomImageList;
+  i: Integer;
+  Cmp: TComponent;
 begin
   inherited;
 
@@ -50,6 +52,19 @@ begin
     Menu.Images := OldImageList;
   end else begin
     TranslateComponent(Self);
+  end;
+  // Work around broken dropdown (tool)button on Wine after translation:
+  // https://sourceforge.net/p/dxgettext/bugs/80/
+  for i:=0 to ComponentCount-1 do begin
+    Cmp := Components[i];
+    if (Cmp is TButton) and (TButton(Cmp).Style = bsSplitButton) then begin
+      TButton(Cmp).Style := bsPushButton;
+      TButton(Cmp).Style := bsSplitButton;
+    end;
+    if (Cmp is TToolButton) and (TToolButton(Cmp).Style = tbsDropDown) then begin
+      TToolButton(Cmp).Style := tbsButton;
+      TToolButton(Cmp).Style := tbsDropDown;
+    end;
   end;
 end;
 

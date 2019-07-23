@@ -226,7 +226,6 @@ var
   Obj: TDBObject;
 begin
   HasSizeGrip := True;
-  FixDropDownButtons(Self);
   OUTPUT_FILE := _('Single .sql file');
   OUTPUT_FILE_COMPRESSED := _('ZIP compressed .sql file');
   OUTPUT_CLIPBOARD := _('Clipboard');
