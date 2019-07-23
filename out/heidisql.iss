@@ -84,13 +84,6 @@ Name: "theme_material"; Description: "Use dark Material theme"; GroupDescription
 
 [InstallDelete]
 Type: files; Name: "{app}\heidisql32.exe"
-Type: files; Name: "{app}\libmysql40.dll"
-Type: files; Name: "{app}\libmysql41.dll"
-Type: files; Name: "{app}\{#ProgExeName}.manifest"
-Type: files; Name: "{app}\{#ProgNameLower}.url"
-Type: files; Name: "{app}\{#ProgNameLower}_forum.url"
-Type: files; Name: "{app}\donate.url"
-Type: files; Name: "{app}\function.txt"
 
 [Files]
 Source: "{#ProgNameLower}64.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Check: Is64BitInstallMode; Flags: ignoreversion
@@ -101,6 +94,8 @@ Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check:
 Source: "libmariadb32.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libmysql-6.1-64.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libmysql-6.1-32.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq64.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq32.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl-864.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
