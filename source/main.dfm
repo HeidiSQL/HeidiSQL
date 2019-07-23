@@ -1985,6 +1985,7 @@ object MainForm: TMainForm
   end
   object MainMenu1: TMainMenu
     AutoHotkeys = maManual
+    Images = VirtualImageListMain
     Left = 424
     Top = 152
     object MainMenuFile: TMenuItem

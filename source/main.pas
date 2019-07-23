@@ -1682,10 +1682,6 @@ begin
   // Load preferred ImageCollection into VirtualImageList
   PrepareImageList;
 
-  // Issue #557: Apply images *after* translating main menu, so top items don't get unused
-  // space left besides them.
-  MainMenu1.Images := VirtualImageListMain;
-
   if AppSettings.ReadBool(asToolbarShowCaptions) then begin
     for i:=0 to ToolBarMainButtons.ButtonCount-1 do begin
       if ToolBarMainButtons.Buttons[i].Style = tbsSeparator then

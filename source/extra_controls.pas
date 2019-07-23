@@ -4,7 +4,7 @@ interface
 
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
-  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext;
+  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -32,11 +32,25 @@ implementation
 { TExtForm }
 
 constructor TExtForm.Create(AOwner: TComponent);
+var
+  OldImageList: TCustomImageList;
 begin
   inherited;
+
   InheritFont(Font);
   HasSizeGrip := False;
-  TranslateComponent(Self);
+
+  // Translation and related fixes
+  // Issue #557: Apply images *after* translating main menu, so top items don't get unused
+  // space left besides them.
+  if (Menu <> nil) and (Menu.Images <> nil) then begin
+    OldImageList := Menu.Images;
+    Menu.Images := nil;
+    TranslateComponent(Self);
+    Menu.Images := OldImageList;
+  end else begin
+    TranslateComponent(Self);
+  end;
 end;
 
 
