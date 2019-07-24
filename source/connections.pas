@@ -115,9 +115,6 @@ type
     updownKeepAlive: TUpDown;
     lblCounterRight2: TLabel;
     lblCounterLeft2: TLabel;
-    pnlDpiHelperSettings: TPanel;
-    pnlDpiHelperSshTunnel: TPanel;
-    pnlDpiHelperAdvanced: TPanel;
     TimerButtonAnimation: TTimer;
     lblBackgroundColor: TLabel;
     ColorBoxBackgroundColor: TColorBox;
