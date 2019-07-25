@@ -153,12 +153,6 @@ type
     chkAutoUppercase: TCheckBox;
     lblTheme: TLabel;
     comboTheme: TComboBox;
-    pnlDpiHelperGeneral: TPanel;
-    pnlDpiHelperLogging: TPanel;
-    pnlDpiHelperSql: TPanel;
-    pnlDpiHelperGrid: TPanel;
-    pnlDpiHelperData: TPanel;
-    pnlDpiHelperShortcuts: TPanel;
     lblEditorColorsPreset: TLabel;
     comboEditorColorsPreset: TComboBox;
     SynSQLSyn_Dark: TSynSQLSyn;
