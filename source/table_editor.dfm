@@ -34,227 +34,205 @@ object frmTableEditor: TfrmTableEditor
     object tabBasic: TTabSheet
       Caption = 'Basic'
       ImageIndex = 14
-      object pnlDpiHelperBasic: TPanel
-        Left = 0
-        Top = 0
-        Width = 686
-        Height = 121
-        Align = alClient
-        BevelOuter = bvNone
-        Caption = 'pnlDpiHelperBasic'
-        ShowCaption = False
+      DesignSize = (
+        686
+        121)
+      object lblName: TLabel
+        Left = 4
+        Top = 6
+        Width = 31
+        Height = 13
+        Caption = 'Name:'
+      end
+      object lblComment: TLabel
+        Left = 4
+        Top = 33
+        Width = 49
+        Height = 13
+        Caption = 'Comment:'
+      end
+      object editName: TEdit
+        Left = 96
+        Top = 3
+        Width = 589
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
         TabOrder = 0
-        DesignSize = (
-          686
-          121)
-        object lblName: TLabel
-          Left = 4
-          Top = 6
-          Width = 31
-          Height = 13
-          Caption = 'Name:'
-        end
-        object lblComment: TLabel
-          Left = 4
-          Top = 33
-          Width = 49
-          Height = 13
-          Caption = 'Comment:'
-        end
-        object editName: TEdit
-          Left = 96
-          Top = 3
-          Width = 589
-          Height = 21
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 0
-          Text = 'editName'
-          TextHint = 'Enter table name'
-          OnChange = Modification
-        end
-        object memoComment: TMemo
-          Left = 96
-          Top = 30
-          Width = 589
-          Height = 79
-          Anchors = [akLeft, akTop, akRight, akBottom]
-          Lines.Strings = (
-            'memoComment')
-          MaxLength = 60
-          ScrollBars = ssVertical
-          TabOrder = 1
-          OnChange = Modification
-        end
+        Text = 'editName'
+        TextHint = 'Enter table name'
+        OnChange = Modification
+      end
+      object memoComment: TMemo
+        Left = 96
+        Top = 30
+        Width = 589
+        Height = 78
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        Lines.Strings = (
+          'memoComment')
+        MaxLength = 60
+        ScrollBars = ssVertical
+        TabOrder = 1
+        OnChange = Modification
       end
     end
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39
-      object pnlDpiHelperOptions: TPanel
-        Left = 0
-        Top = 0
-        Width = 686
-        Height = 121
-        Align = alClient
-        BevelOuter = bvNone
-        Caption = 'pnlDpiHelperOptions'
-        ShowCaption = False
+      DesignSize = (
+        686
+        121)
+      object lblAutoinc: TLabel
+        Left = 4
+        Top = 6
+        Width = 77
+        Height = 13
+        Caption = 'Auto increment:'
+      end
+      object lblAvgRowLen: TLabel
+        Left = 4
+        Top = 29
+        Width = 99
+        Height = 13
+        Caption = 'Average row length:'
+      end
+      object lblInsertMethod: TLabel
+        Left = 294
+        Top = 98
+        Width = 79
+        Height = 13
+        Caption = 'INSERT method:'
+      end
+      object lblUnion: TLabel
+        Left = 294
+        Top = 52
+        Width = 63
+        Height = 13
+        Caption = 'Union tables:'
+      end
+      object lblMaxRows: TLabel
+        Left = 4
+        Top = 52
+        Width = 99
+        Height = 13
+        Caption = 'Maximum row count:'
+      end
+      object lblRowFormat: TLabel
+        Left = 4
+        Top = 98
+        Width = 60
+        Height = 13
+        Caption = 'Row format:'
+      end
+      object lblCollation: TLabel
+        Left = 294
+        Top = 6
+        Width = 81
+        Height = 13
+        Caption = 'Default collation:'
+      end
+      object lblEngine: TLabel
+        Left = 294
+        Top = 29
+        Width = 36
+        Height = 13
+        Caption = 'Engine:'
+      end
+      object editAvgRowLen: TEdit
+        Left = 178
+        Top = 26
+        Width = 110
+        Height = 21
+        TabOrder = 1
+        OnChange = editNumEditChange
+      end
+      object editMaxRows: TEdit
+        Left = 178
+        Top = 49
+        Width = 110
+        Height = 21
+        TabOrder = 2
+        OnChange = editNumEditChange
+      end
+      object chkChecksum: TCheckBox
+        Left = 4
+        Top = 75
+        Width = 189
+        Height = 17
+        Alignment = taLeftJustify
+        Caption = 'Checksum for rows:'
+        TabOrder = 3
+        OnClick = Modification
+      end
+      object comboRowFormat: TComboBox
+        Left = 178
+        Top = 95
+        Width = 110
+        Height = 21
+        Style = csDropDownList
+        TabOrder = 4
+        OnChange = Modification
+      end
+      object memoUnionTables: TMemo
+        Left = 408
+        Top = 49
+        Width = 277
+        Height = 44
+        Anchors = [akLeft, akTop, akRight]
+        Lines.Strings = (
+          'memoUnion')
+        TabOrder = 7
+        OnChange = Modification
+      end
+      object comboInsertMethod: TComboBox
+        Left = 408
+        Top = 95
+        Width = 277
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 8
+        OnClick = Modification
+      end
+      object editAutoInc: TEdit
+        Left = 178
+        Top = 3
+        Width = 110
+        Height = 21
         TabOrder = 0
-        DesignSize = (
-          686
-          121)
-        object lblAutoinc: TLabel
-          Left = 4
-          Top = 6
-          Width = 77
-          Height = 13
-          Caption = 'Auto increment:'
-        end
-        object lblAvgRowLen: TLabel
-          Left = 4
-          Top = 29
-          Width = 99
-          Height = 13
-          Caption = 'Average row length:'
-        end
-        object lblInsertMethod: TLabel
-          Left = 294
-          Top = 98
-          Width = 79
-          Height = 13
-          Caption = 'INSERT method:'
-        end
-        object lblUnion: TLabel
-          Left = 294
-          Top = 52
-          Width = 63
-          Height = 13
-          Caption = 'Union tables:'
-        end
-        object lblMaxRows: TLabel
-          Left = 4
-          Top = 52
-          Width = 99
-          Height = 13
-          Caption = 'Maximum row count:'
-        end
-        object lblRowFormat: TLabel
-          Left = 4
-          Top = 98
-          Width = 60
-          Height = 13
-          Caption = 'Row format:'
-        end
-        object lblCollation: TLabel
-          Left = 294
-          Top = 6
-          Width = 81
-          Height = 13
-          Caption = 'Default collation:'
-        end
-        object lblEngine: TLabel
-          Left = 294
-          Top = 29
-          Width = 36
-          Height = 13
-          Caption = 'Engine:'
-        end
-        object editAvgRowLen: TEdit
-          Left = 178
-          Top = 26
-          Width = 110
-          Height = 21
-          TabOrder = 1
-          OnChange = editNumEditChange
-        end
-        object editMaxRows: TEdit
-          Left = 178
-          Top = 49
-          Width = 110
-          Height = 21
-          TabOrder = 2
-          OnChange = editNumEditChange
-        end
-        object chkChecksum: TCheckBox
-          Left = 4
-          Top = 75
-          Width = 189
-          Height = 17
-          Alignment = taLeftJustify
-          Caption = 'Checksum for rows:'
-          TabOrder = 3
-          OnClick = Modification
-        end
-        object comboRowFormat: TComboBox
-          Left = 178
-          Top = 95
-          Width = 110
-          Height = 21
-          Style = csDropDownList
-          TabOrder = 4
-          OnChange = Modification
-        end
-        object memoUnionTables: TMemo
-          Left = 408
-          Top = 49
-          Width = 277
-          Height = 44
-          Anchors = [akLeft, akTop, akRight]
-          Lines.Strings = (
-            'memoUnion')
-          TabOrder = 7
-          OnChange = Modification
-        end
-        object comboInsertMethod: TComboBox
-          Left = 408
-          Top = 95
-          Width = 277
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 8
-          OnClick = Modification
-        end
-        object editAutoInc: TEdit
-          Left = 178
-          Top = 3
-          Width = 110
-          Height = 21
-          TabOrder = 0
-          OnChange = editNumEditChange
-        end
-        object comboCollation: TComboBox
-          Left = 408
-          Top = 3
-          Width = 158
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          DropDownCount = 16
-          Sorted = True
-          TabOrder = 5
-          OnChange = chkCharsetConvertClick
-        end
-        object comboEngine: TComboBox
-          Left = 408
-          Top = 26
-          Width = 277
-          Height = 21
-          Style = csDropDownList
-          Anchors = [akLeft, akTop, akRight]
-          TabOrder = 6
-          OnSelect = comboEngineSelect
-        end
-        object chkCharsetConvert: TCheckBox
-          Left = 574
-          Top = 5
-          Width = 107
-          Height = 17
-          Anchors = [akTop, akRight]
-          Caption = 'Convert data'
-          TabOrder = 9
-          OnClick = chkCharsetConvertClick
-        end
+        OnChange = editNumEditChange
+      end
+      object comboCollation: TComboBox
+        Left = 408
+        Top = 3
+        Width = 158
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        DropDownCount = 16
+        Sorted = True
+        TabOrder = 5
+        OnChange = chkCharsetConvertClick
+      end
+      object comboEngine: TComboBox
+        Left = 408
+        Top = 26
+        Width = 277
+        Height = 21
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 6
+        OnSelect = comboEngineSelect
+      end
+      object chkCharsetConvert: TCheckBox
+        Left = 574
+        Top = 5
+        Width = 107
+        Height = 17
+        Anchors = [akTop, akRight]
+        Caption = 'Convert data'
+        TabOrder = 9
+        OnClick = chkCharsetConvertClick
       end
     end
     object tabIndexes: TTabSheet
