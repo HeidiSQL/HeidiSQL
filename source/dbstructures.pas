@@ -7670,6 +7670,14 @@ begin
   // Load DLL as is (with or without path)
   inherited Create;
   FDllFile := DllFile;
+  if not FileExists(FDllFile) then begin
+    msg := f_('File does not exist: %s', [FDllFile]) +
+      sLineBreak + sLineBreak +
+      f_('Please launch %s from the directory where you have installed it. Or just reinstall %s.', [APPNAME, APPNAME]
+      );
+    Raise EdbError.Create(msg);
+  end;
+
   FHandle := LoadLibrary(PWideChar(FDllFile));
   if FHandle = 0 then begin
     msg := f_('Library %s could not be loaded. Please select a different one.',
