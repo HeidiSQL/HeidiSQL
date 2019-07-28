@@ -2245,8 +2245,8 @@ begin
       msg := E.Message;
       if E.ErrorCode = TDbLib.LIB_PROC_ERROR then begin
         msg := msg + sLineBreak + sLineBreak +
-          f_('Installing VC redistributable might help: %s',
-            ['https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package']
+          f_('Installing %s might help. Please download from %s',
+            ['VC Redistributable', 'https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package']
             );
       end;
       raise EDbError.Create(msg, E.ErrorCode);
