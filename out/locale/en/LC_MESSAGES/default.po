@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2019-07-28 10:55+0200\n"
+"PO-Revision-Date: 2019-07-28 12:11+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6404,3 +6404,9 @@ msgstr "Tabs won't be stored in this session."
 
 msgid "Installing %s might help. Please download from %s"
 msgstr "Installing %s might help. Please download from %s"
+
+msgid "Security issue: Using %s %s with insecure %s."
+msgstr "Security issue: Using %s %s with insecure %s."
+
+msgid "You should install %s from %s"
+msgstr "You should install %s from %s"

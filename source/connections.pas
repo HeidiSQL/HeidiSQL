@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
-  dbconnection, gnugettext, SynRegExpr, System.Types, System.IOUtils, Vcl.GraphUtil;
+  dbconnection, gnugettext, SynRegExpr, System.Types, System.IOUtils, Vcl.GraphUtil, ADODB;
 
 type
   Tconnform = class(TExtForm)
@@ -392,7 +392,7 @@ begin
   Sess.LocalTimeZone := chkLocalTimeZone.Checked;
   Sess.FullTableStatus := chkFullTableStatus.Checked;
   Sess.SessionColor := ColorBoxBackgroundColor.Selected;
-  Sess.LibraryFile := comboLibrary.Text;
+  Sess.LibraryOrProvider := comboLibrary.Text;
   Sess.AllDatabasesStr := editDatabases.Text;
   Sess.Comment := memoComment.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
@@ -587,7 +587,7 @@ begin
     else
       Result.Port := 0;
     Result.AllDatabasesStr := editDatabases.Text;
-    Result.LibraryFile := comboLibrary.Text;
+    Result.LibraryOrProvider := comboLibrary.Text;
     Result.Comment := memoComment.Text;
     Result.SSHHost := editSSHHost.Text;
     Result.SSHPort := MakeInt(editSSHPort.Text);
@@ -856,7 +856,7 @@ begin
     ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
     RefreshLibraries(Sess^);
-    comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryFile);
+    comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryOrProvider);
     if (comboLibrary.ItemIndex = -1) and (comboLibrary.Items.Count > 0) then begin
       comboLibrary.ItemIndex := 0;
     end;
@@ -902,6 +902,8 @@ var
   rx: TRegExpr;
   Libs: TStringDynArray;
   LibPath, LibFile: String;
+  Providers: TStringList;
+  Provider: String;
 begin
   // Detect existing dll files in app folder
   comboLibrary.Clear;
@@ -910,15 +912,25 @@ begin
   rx.ModifierI := True;
   case Sess.NetTypeGroup of
     ngMySQL: rx.Expression := '^lib(mysql|mariadb).*\.dll$';
-    ngMSSQL: rx.Expression := '^$';
+    ngMSSQL: rx.Expression := '^(MSOLEDBSQL|SQLOLEDB)$';
     ngPgSQL: rx.Expression := '^libpq.*\.dll$';
   end;
 
-  Libs := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
-  for LibPath in Libs do begin
-    LibFile := ExtractFileName(LibPath);
-    if rx.Exec(LibFile) then begin
-      comboLibrary.Items.Add(LibFile);
+  if Sess.NetTypeGroup in [ngMySQL, ngPgSQL] then begin
+    Libs := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
+    for LibPath in Libs do begin
+      LibFile := ExtractFileName(LibPath);
+      if rx.Exec(LibFile) then begin
+        comboLibrary.Items.Add(LibFile);
+      end;
+    end;
+  end else begin
+    Providers := TStringList.Create;
+    GetProviderNames(Providers);
+    for Provider in Providers do begin
+      if rx.Exec(Provider) then begin
+        comboLibrary.Items.Add(Provider);
+      end;
     end;
   end;
 end;
@@ -1177,7 +1189,7 @@ begin
       or (Sess.SessionColor <> ColorBoxBackgroundColor.Selected)
       or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
-      or (Sess.LibraryFile <> comboLibrary.Text)
+      or (Sess.LibraryOrProvider <> comboLibrary.Text)
       or (Sess.AllDatabasesStr <> editDatabases.Text)
       or (Sess.Comment <> memoComment.Text)
       or (Sess.SSHHost <> editSSHHost.Text)
@@ -1255,7 +1267,6 @@ begin
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
-      comboLibrary.Enabled := Params.NetTypeGroup in [ngMySQL, ngPgSQL];
       if Params.NetTypeGroup = ngPgSQL then
         lblDatabase.Caption := _('Database')+':'
       else

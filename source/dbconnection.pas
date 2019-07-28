@@ -206,7 +206,7 @@ type
   TConnectionParameters = class(TObject)
     strict private
       FNetType: TNetType;
-      FHostname, FUsername, FPassword, FAllDatabases, FLibraryFile, FComment, FStartupScriptFilename,
+      FHostname, FUsername, FPassword, FAllDatabases, FLibraryOrProvider, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
@@ -257,7 +257,7 @@ type
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
       property CleartextPluginEnabled: Boolean read FCleartextPluginEnabled write FCleartextPluginEnabled;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
-      property LibraryFile: String read FLibraryFile write FLibraryFile;
+      property LibraryOrProvider: String read FLibraryOrProvider write FLibraryOrProvider;
       property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
       property QueryTimeout: Integer read FQueryTimeout write FQueryTimeout;
@@ -1077,7 +1077,7 @@ begin
   FPort := DefaultPort;
   FCompressed := AppSettings.GetDefaultBool(asCompressed);
   FAllDatabases := AppSettings.GetDefaultString(asDatabases);
-  FLibraryFile := DefaultLibrary;
+  FLibraryOrProvider := DefaultLibrary;
   FComment := AppSettings.GetDefaultString(asComment);
 
   FSSHHost := AppSettings.GetDefaultString(asSSHtunnelHost);
@@ -1144,7 +1144,7 @@ begin
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
-    FLibraryFile := AppSettings.ReadString(asLibrary);
+    FLibraryOrProvider := AppSettings.ReadString(asLibrary);
     FComment := AppSettings.ReadString(asComment);
 
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
@@ -1209,7 +1209,7 @@ begin
     AppSettings.WriteInt(asKeepAlive, FKeepAlive);
     AppSettings.WriteBool(asFullTableStatus, FFullTableStatus);
     AppSettings.WriteString(asDatabases, FAllDatabases);
-    AppSettings.WriteString(asLibrary, FLibraryFile);
+    AppSettings.WriteString(asLibrary, FLibraryOrProvider);
     AppSettings.WriteString(asComment, FComment);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
     AppSettings.WriteInt(asTreeBackground, FSessionColor);
@@ -1444,7 +1444,7 @@ function TConnectionParameters.DefaultLibrary: String;
 begin
   case NetTypeGroup of
     ngMySQL: Result := 'libmariadb.dll';
-    ngMSSQL: Result := '';
+    ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
     else Result := '';
   end;
@@ -1884,11 +1884,10 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, Error, Provider, NetLib, DataSource, QuotedPassword, ServerVersion: String;
+  tmpdb, Error, NetLib, DataSource, QuotedPassword, ServerVersion: String;
   rx: TRegExpr;
   i: Integer;
-  Providers: TStringList;
-  HasNewProvider: Boolean;
+  IsOldProvider: Boolean;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -1905,17 +1904,14 @@ begin
             '> sh winetricks native_mdac');
     end;
 
-    // Prefer MSOLEDBSQL provider on newer systems
-    Providers := TStringList.Create;
-    GetProviderNames(Providers);
-    HasNewProvider := Providers.IndexOf('MSOLEDBSQL') >= 0;
-    Providers.Free;
-    if HasNewProvider then begin
-      Provider := 'MSOLEDBSQL';
-    end else begin
-      Provider := 'SQLOLEDB';
-      Log(lcInfo, 'Security issue: Using '+Provider+' ADO provider with insecure TLS 1.0. '+
-        'You should install Microsoft OLE DB Driver from https://www.microsoft.com/en-us/download/confirmation.aspx?id=56730');
+    IsOldProvider := Parameters.LibraryOrProvider = 'SQLOLEDB';
+    if IsOldProvider then begin
+      MessageDialog(
+        f_('Security issue: Using %s %s with insecure %s.',
+          [Parameters.LibraryOrProvider, 'ADO provider', 'TLS 1.0']) +
+        f_('You should install %s from %s',
+          ['Microsoft OLE DB Driver', 'https://www.microsoft.com/en-us/download/confirmation.aspx?id=56730']),
+        mtWarning, [mbOK]);
     end;
 
     NetLib := '';
@@ -1939,7 +1935,7 @@ begin
     else
       QuotedPassword := '"'+Parameters.Password+'"';
 
-    FAdoHandle.ConnectionString := 'Provider='+Provider+';'+
+    FAdoHandle.ConnectionString := 'Provider='+Parameters.LibraryOrProvider+';'+
       'Password='+QuotedPassword+';'+
       'Persist Security Info=True;'+
       'User ID='+Parameters.Username+';'+
@@ -1953,10 +1949,10 @@ begin
       FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Database='+Parameters.AllDatabasesStr+';';
 
     if Parameters.WindowsAuth then begin
-      if HasNewProvider then
-        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;'
-      else
+      if IsOldProvider then
         FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Integrated Security=SSPI;'
+      else
+        FAdoHandle.ConnectionString := FAdoHandle.ConnectionString + 'Trusted_Connection=yes;'
     end;
 
     try
@@ -2220,7 +2216,7 @@ var
   LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
-  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryFile;
+  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   FLib := TMySQLLib.Create(LibraryPath);
@@ -2235,7 +2231,7 @@ var
   msg: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryFile;
+  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   try
     FLib := TPostgreSQLLib.Create(LibraryPath);
@@ -3327,7 +3323,7 @@ begin
 
   if SynRegExpr.ExecRegExpr('(Unknown SSL error|SSL connection error)', Msg) then begin
     // Find specific strings in error message and provide helpful message
-    Additional := f_('Please select a different library in your session settings. (Current: "%s")', [FParameters.LibraryFile]);
+    Additional := f_('Please select a different library in your session settings. (Current: "%s")', [FParameters.LibraryOrProvider]);
   end else begin
     // Find "(errno: 123)" in message and add more meaningful message from perror.exe
     rx := TRegExpr.Create;
