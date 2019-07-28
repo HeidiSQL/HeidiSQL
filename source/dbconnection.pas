@@ -236,6 +236,7 @@ type
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       property ImageIndex: Integer read GetImageIndex;
+      function DefaultLibrary: String;
       function DefaultPort: Integer;
       function DefaultUsername: String;
     published
@@ -1076,7 +1077,7 @@ begin
   FPort := DefaultPort;
   FCompressed := AppSettings.GetDefaultBool(asCompressed);
   FAllDatabases := AppSettings.GetDefaultString(asDatabases);
-  FLibraryFile := AppSettings.GetDefaultString(asLibrary);
+  FLibraryFile := DefaultLibrary;
   FComment := AppSettings.GetDefaultString(asComment);
 
   FSSHHost := AppSettings.GetDefaultString(asSSHtunnelHost);
@@ -1434,6 +1435,17 @@ begin
     ngMySQL: Result := 'root';
     ngMSSQL: Result := 'sa';
     ngPgSQL: Result := 'postgres';
+    else Result := '';
+  end;
+end;
+
+
+function TConnectionParameters.DefaultLibrary: String;
+begin
+  case NetTypeGroup of
+    ngMySQL: Result := 'libmariadb.dll';
+    ngMSSQL: Result := '';
+    ngPgSQL: Result := 'libpq.dll';
     else Result := '';
   end;
 end;
@@ -1914,6 +1926,7 @@ begin
       ntMSSQL_VINES: NetLib := 'DBMSVINN';
       ntMSSQL_RPC: NetLib := 'DBMSRPCN';
     end;
+    //fadohandle.Properties.Item['Initial Catalog'] := '';
 
     DataSource := Parameters.Hostname;
     if (Parameters.NetType = ntMSSQL_TCPIP) and (Parameters.Port <> 0) then
@@ -2221,7 +2234,7 @@ var
   LibraryPath: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := ExtractFilePath(ParamStr(0)) + 'libpq.dll';
+  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryFile;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   FLib := TPostgreSQLLib.Create(LibraryPath);
   Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
@@ -2707,6 +2720,10 @@ begin
     Result := GetCreateViewCode(Obj.Database, Obj.Name)
   else
     Result := GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), Column);
+  //if UpperCase(Obj.ObjType)='TABLE' then begin
+  //  Result := Result + ' `compression`=''tokudb_zlib''';
+    //Log(lcinfo, Result);
+  //end;
   TmpObj.Free;
 end;
 
@@ -3143,6 +3160,7 @@ begin
       end else
         s := QuoteIdent(Value);
       Query(Format(GetSQLSpecifity(spUSEQuery), [s]), False);
+      //TAdoDBConnection(self).fadohandle.ConnectionObject.Properties.Item['Initial Catalog'] := Value;
     end;
     if Assigned(FOnObjectnamesChanged) then
       FOnObjectnamesChanged(Self, FDatabase);
@@ -3343,6 +3361,7 @@ end;
 
 function TPgConnection.GetLastErrorMsg: String;
 begin
+  // https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package
   Result := DecodeAPIString(FLib.PQerrorMessage(FHandle));
   Result := Trim(Result);
 end;
@@ -4362,6 +4381,14 @@ var
   i: Integer;
 begin
   // Send EXPLAIN output to MariaDB.org
+
+  // Mimimum structure of what seems compatible:
+  //+
+  //|id|select_type|table|type|possible_keys|key|key_len|ref|rows|Extra|
+  //+
+  //|1|SIMPLE|t1|ALL|NULL|NULL|NULL|NULL|3||
+  //|1|SIMPLE|t1|ALL|NULL|NULL|NULL|NULL|3||
+
   Result := True;
   Database := DatabaseName;
   Results := GetResults('EXPLAIN '+SQL);
@@ -5077,6 +5104,7 @@ begin
     ColSpec := Copy(CreateTable, rx.MatchPos[0], SIZE_MB);
     ColSpec := Copy(ColSpec, 1, Pos(#10, ColSpec));
     ColSpec := Trim(ColSpec);
+    //Log(lcInfo, '>> '+ColSpec);
 
     Col := TTableColumn.Create(Self);
     Columns.Add(Col);
@@ -5200,6 +5228,7 @@ begin
         end;
         Delete(ColSpec, 1, rxCol.MatchLen[1]);
         ColSpec := Trim(ColSpec);
+        //Log(lcInfo, '  Detected DefaultText: "'+Col.DefaultText+'"  Detected DefaultType: '+Integer(Col.DefaultType).ToString);
 
         // Do the same for a potentially existing ON UPDATE clause
         if ColSpec.StartsWith('ON UPDATE ', True) then begin
@@ -5211,6 +5240,7 @@ begin
             Col.OnUpdateText := Col.OnUpdateText.TrimRight([',']);
             Col.OnUpdateType := cdtExpression;
             Delete(ColSpec, 1, rxCol.MatchPos[1]);
+            //Log(lcInfo, '  Detected OnUpdateText: "'+Col.OnUpdateText+'"  Detected OnUpdateType: '+Integer(Col.OnUpdateType).ToString);
           end;
         end;
 
@@ -5686,6 +5716,7 @@ begin
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
       for i:=0 to NumFields-1 do begin
+        //Field := FConnection.Lib.mysql_fetch_field_direct(LastResult, i);
         Field := FConnection.Lib.mysql_fetch_field_direct(LastResult, i);
         FColumnNames.Add(Connection.DecodeAPIString(Field.name));
         if Connection.ServerVersionInt >= 40100 then
@@ -5696,6 +5727,7 @@ begin
         FColumnTypes[i] := FConnection.Datatypes[0];
         if (Field.flags and AUTO_INCREMENT_FLAG) = AUTO_INCREMENT_FLAG then
           FAutoIncrementColumn := i;
+        //FConnection.Log(lcDebug, 'Field._type: '+Field._type.ToString);
         for j:=0 to High(FConnection.Datatypes) do begin
           if (Field.flags and ENUM_FLAG) = ENUM_FLAG then begin
             if FConnection.Datatypes[j].Index = dtEnum then
@@ -7059,8 +7091,10 @@ begin
   Result := Connection.GetKeyColumns(FColumns, FKeys);
   if Result.Count = 0 then begin
     // No good key found. Just expect all columns to be present.
-    for i:=0 to FColumns.Count-1 do
-      Result.Add(FColumns[i].Name);
+      // .. at least of it's not MemSQL, who does not support a later added LIMIT
+      // SQL Error (1749): Feature 'UPDATE...LIMIT must be constrained to a single partition' is not supported by MemSQL Distributed
+      for i:=0 to FColumns.Count-1 do
+        Result.Add(FColumns[i].Name);
   end;
 end;
 

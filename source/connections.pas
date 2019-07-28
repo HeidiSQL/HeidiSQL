@@ -190,6 +190,7 @@ type
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure RefreshBackgroundColors;
+    procedure RefreshLibraries(Sess: TConnectionParameters);
   public
     { Public declarations }
   end;
@@ -231,9 +232,6 @@ var
   nt: TNetType;
   Node: PVirtualNode;
   Params: TConnectionParameters;
-  rx: TRegExpr;
-  Libs: TStringDynArray;
-  LibPath, LibFile: String;
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
@@ -267,18 +265,6 @@ begin
     comboNetType.Items.Add(NetTypeStr);
   end;
   Params.Free;
-
-  // Detect existing MySQL libraries
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.Expression := '^lib(mysql|mariadb).*\.dll$';
-  Libs := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
-  for LibPath in Libs do begin
-    LibFile := ExtractFileName(LibPath);
-    if rx.Exec(LibFile) then begin
-      comboLibrary.Items.Add(LibFile);
-    end;
-  end;
 
   // Init sessions tree
   RefreshSessions(nil);
@@ -869,6 +855,7 @@ begin
     RefreshBackgroundColors;
     ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
+    RefreshLibraries(Sess^);
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryFile);
     if (comboLibrary.ItemIndex = -1) and (comboLibrary.Items.Count > 0) then begin
       comboLibrary.ItemIndex := 0;
@@ -907,6 +894,33 @@ begin
   // Trigger OnGetColors event
   ColorBoxBackgroundColor.Style := ColorBoxBackgroundColor.Style - [cbCustomColors];
   ColorBoxBackgroundColor.Style := ColorBoxBackgroundColor.Style + [cbCustomColors];
+end;
+
+
+procedure Tconnform.RefreshLibraries(Sess: TConnectionParameters);
+var
+  rx: TRegExpr;
+  Libs: TStringDynArray;
+  LibPath, LibFile: String;
+begin
+  // Detect existing dll files in app folder
+  comboLibrary.Clear;
+
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  case Sess.NetTypeGroup of
+    ngMySQL: rx.Expression := '^lib(mysql|mariadb).*\.dll$';
+    ngMSSQL: rx.Expression := '^$';
+    ngPgSQL: rx.Expression := '^libpq.*\.dll$';
+  end;
+
+  Libs := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
+  for LibPath in Libs do begin
+    LibFile := ExtractFileName(LibPath);
+    if rx.Exec(LibFile) then begin
+      comboLibrary.Items.Add(LibFile);
+    end;
+  end;
 end;
 
 
@@ -1132,6 +1146,7 @@ begin
       updownPort.Position := Params.DefaultPort;
     if not editUsername.Modified then
       editUsername.Text := Params.DefaultUsername;
+    comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
   end;
 
   FLastSelectedNetTypeGroup := Params.NetTypeGroup;
@@ -1240,7 +1255,7 @@ begin
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
-      comboLibrary.Enabled := Params.NetTypeGroup in [ngMySQL];
+      comboLibrary.Enabled := Params.NetTypeGroup in [ngMySQL, ngPgSQL];
       if Params.NetTypeGroup = ngPgSQL then
         lblDatabase.Caption := _('Database')+':'
       else
