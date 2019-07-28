@@ -2231,13 +2231,27 @@ end;
 
 procedure TPgConnection.DoBeforeConnect;
 var
-  LibraryPath: String;
+  LibraryPath,
+  msg: String;
 begin
   // Init lib before actually connecting.
   LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryFile;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
-  FLib := TPostgreSQLLib.Create(LibraryPath);
-  Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
+  try
+    FLib := TPostgreSQLLib.Create(LibraryPath);
+    Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
+  except
+    on E:EDbError do begin
+      msg := E.Message;
+      if E.ErrorCode = TDbLib.LIB_PROC_ERROR then begin
+        msg := msg + sLineBreak + sLineBreak +
+          f_('Installing VC redistributable might help: %s',
+            ['https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package']
+            );
+      end;
+      raise EDbError.Create(msg, E.ErrorCode);
+    end;
+  end;
   inherited;
 end;
 

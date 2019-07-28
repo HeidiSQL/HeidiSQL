@@ -326,6 +326,8 @@ type
 
   // DLL loading
   TDbLib = class(TObject)
+    const
+      LIB_PROC_ERROR: Cardinal = 1000;
     private
       FDllFile: String;
       FHandle: HMODULE;
@@ -7716,7 +7718,7 @@ begin
         );
       if Windows.GetLastError <> 0 then
         msg := msg + CRLF + CRLF + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
-      Raise EDbError.Create(msg);
+      Raise EDbError.Create(msg, LIB_PROC_ERROR);
     end;
   end;
 end;
