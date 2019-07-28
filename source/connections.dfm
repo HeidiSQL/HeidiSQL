@@ -221,7 +221,7 @@ object connform: Tconnform
         371)
       object lblPort: TLabel
         Left = 3
-        Top = 168
+        Top = 199
         Width = 24
         Height = 13
         Caption = 'Port:'
@@ -229,7 +229,7 @@ object connform: Tconnform
       end
       object lblPassword: TLabel
         Left = 3
-        Top = 143
+        Top = 174
         Width = 50
         Height = 13
         Caption = 'Password:'
@@ -237,7 +237,7 @@ object connform: Tconnform
       end
       object lblHost: TLabel
         Left = 3
-        Top = 45
+        Top = 76
         Width = 72
         Height = 13
         Caption = 'Hostname / IP:'
@@ -245,7 +245,7 @@ object connform: Tconnform
       end
       object lblUsername: TLabel
         Left = 3
-        Top = 118
+        Top = 149
         Width = 26
         Height = 13
         Caption = 'User:'
@@ -260,81 +260,81 @@ object connform: Tconnform
       end
       object lblDatabase: TLabel
         Left = 3
-        Top = 216
+        Top = 247
         Width = 55
         Height = 13
         Caption = 'Databases:'
       end
       object lblComment: TLabel
         Left = 3
-        Top = 270
+        Top = 274
         Width = 49
         Height = 13
         Caption = 'Comment:'
       end
       object lblLibrary: TLabel
         Left = 3
-        Top = 243
+        Top = 39
         Width = 37
         Height = 13
         Caption = 'Library:'
       end
       object chkCompressed: TCheckBox
         Left = 120
-        Top = 190
+        Top = 221
         Width = 294
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
-        TabOrder = 8
+        TabOrder = 9
         OnClick = Modification
       end
       object editPort: TEdit
         Left = 120
-        Top = 165
+        Top = 196
         Width = 57
         Height = 21
-        TabOrder = 6
+        TabOrder = 7
         Text = '0'
         OnChange = Modification
       end
       object updownPort: TUpDown
         Left = 177
-        Top = 165
+        Top = 196
         Width = 16
         Height = 21
         Associate = editPort
         Max = 2147483647
-        TabOrder = 7
+        TabOrder = 8
         Thousands = False
         Wrap = True
       end
       object editPassword: TEdit
         Left = 120
-        Top = 140
+        Top = 171
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
-        TabOrder = 5
+        TabOrder = 6
         OnChange = Modification
       end
       object editUsername: TEdit
         Left = 120
-        Top = 115
+        Top = 146
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 4
+        TabOrder = 5
         OnChange = Modification
       end
       object editHost: TEdit
         Left = 120
-        Top = 42
+        Top = 73
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
+        TabOrder = 2
         OnChange = editHostChange
       end
       object comboNetType: TComboBox
@@ -357,30 +357,30 @@ object connform: Tconnform
       end
       object chkLoginPrompt: TCheckBox
         Left = 120
-        Top = 69
+        Top = 100
         Width = 294
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt for credentials'
-        TabOrder = 2
+        TabOrder = 3
         OnClick = chkLoginPromptClick
       end
       object chkWindowsAuth: TCheckBox
         Left = 120
-        Top = 92
+        Top = 123
         Width = 294
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use Windows authentication'
         Enabled = False
-        TabOrder = 3
+        TabOrder = 4
         OnClick = chkLoginPromptClick
       end
       object memoComment: TMemo
         Left = 120
-        Top = 267
+        Top = 271
         Width = 294
-        Height = 89
+        Height = 97
         Anchors = [akLeft, akTop, akRight, akBottom]
         ScrollBars = ssVertical
         TabOrder = 11
@@ -388,26 +388,26 @@ object connform: Tconnform
       end
       object editDatabases: TButtonedEdit
         Left = 120
-        Top = 213
+        Top = 244
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
         RightButton.ImageIndex = 75
         RightButton.Visible = True
-        TabOrder = 9
+        TabOrder = 10
         TextHint = 'Separated by semicolon'
         OnChange = Modification
         OnRightButtonClick = editDatabasesRightButtonClick
       end
       object comboLibrary: TComboBox
         Left = 120
-        Top = 240
+        Top = 36
         Width = 294
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 10
+        TabOrder = 1
         OnChange = Modification
       end
     end
