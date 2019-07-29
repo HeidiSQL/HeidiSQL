@@ -323,7 +323,8 @@ begin
 
   // Load user@host list
   try
-    tmp := FConnection.GetVar('SHOW VARIABLES LIKE '+FConnection.EscapeString('skip_name_resolve'), 1);
+
+    tmp := FConnection.GetSessionVariable('skip_name_resolve');
     SkipNameResolve := LowerCase(tmp) = 'on';
 
     FConnection.Query('FLUSH PRIVILEGES');
