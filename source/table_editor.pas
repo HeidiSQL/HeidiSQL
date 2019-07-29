@@ -282,7 +282,7 @@ begin
     // Creating new table
     editName.Text := '';
     if DBObject.Connection.Parameters.IsMySQL then
-      comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Connection.GetVar('SHOW VARIABLES LIKE ''collation_database''', 1));
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Connection.GetSessionVariable('collation_database'));
     PageControlMain.ActivePage := tabBasic;
   end else begin
     // Editing existing table

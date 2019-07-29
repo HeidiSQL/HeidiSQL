@@ -60,11 +60,10 @@ begin
   CollationTable := FConnection.CollationTable;
 
   // Detect servers default collation
-  // TODO: Find out how to retrieve the server's default collation on MSSQL
   case FConnection.Parameters.NetTypeGroup of
     ngMySQL:
-      ServerCollation := FConnection.GetVar('SHOW VARIABLES LIKE '+FConnection.EscapeString('collation_server'), 1);
-    ngMSSQL:
+      ServerCollation := FConnection.GetSessionVariable('collation_server');
+    else // TODO: Find out how to retrieve the server's default collation here
       ServerCollation := '';
   end;
   lblServerDefaultCollation.Caption := f_('Servers default: %s', [ServerCollation]);
