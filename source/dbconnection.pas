@@ -2071,12 +2071,28 @@ begin
       'password='''+FParameters.Password+''' '+
       'dbname='''+dbname+''' '+
       'application_name='''+APPNAME+'''';
+    if FParameters.WantSSL then begin
+      ConnInfo := ConnInfo + ' sslmode=''require''';
+      if FParameters.SSLPrivateKey <> '' then
+        ConnInfo := ConnInfo + ' sslkey='''+FParameters.SSLPrivateKey+'''';
+      if FParameters.SSLCertificate <> '' then
+        ConnInfo := ConnInfo + ' sslcert='''+FParameters.SSLCertificate+'''';
+      if FParameters.SSLCACertificate <> '' then
+        ConnInfo := ConnInfo + ' sslrootcert='''+FParameters.SSLCACertificate+'''';
+      //if FParameters.SSLCipher <> '' then ??
+    end;
+
+
     FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
     if FLib.PQstatus(FHandle) = CONNECTION_BAD then begin
       Error := LastErrorMsg;
       Log(lcError, Error);
       FConnectionStarted := 0;
-      FLib.PQfinish(FHandle); // free the memory
+      try
+        FLib.PQfinish(FHandle); // free the memory
+      except
+        on E:EAccessViolation do;
+      end;
       FHandle := nil;
       if FPlink <> nil then
         FPlink.Free;
