@@ -405,6 +405,7 @@ type
       function GetCreateCode(Obj: TDBObject): String; virtual;
       procedure PrefetchCreateCode(Objects: TDBObjectList);
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
+      function GetSessionVariable(VarName: String; DefaultValue: String=''; Refresh: Boolean=False): String;
       function MaxAllowedPacket: Int64; virtual; abstract;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
@@ -1671,7 +1672,7 @@ var
   Error, tmpdb, FinalHost, FinalSocket, StatusName: String;
   sslca, sslkey, sslcert, sslcipher: PAnsiChar;
   PluginDir: AnsiString;
-  Vars, Status: TDBQuery;
+  Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
   SetOptionResult: Integer;
 begin
@@ -1840,19 +1841,14 @@ begin
         Status.Next;
       end;
       FServerDateTimeOnStartup := GetVar('SELECT NOW()');
-      FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
-      Vars := GetSessionVariables(False);
-      while not Vars.Eof do begin
-        if Vars.Col(0) = 'version_compile_os' then
-          FServerOS := Vars.Col(1);
-        if Vars.Col(0) = 'hostname' then
-          FRealHostname := Vars.Col(1);
-        if (Vars.Col(0) = 'version') and (Vars.Col(1) <> '') then
-          FServerVersionUntouched := Vars.Col(1);
-        if (Vars.Col(0) = 'version_comment') and (Vars.Col(1) <> '') then
-          FServerVersionUntouched := FServerVersionUntouched + ' - ' + Vars.Col(1);
-        Vars.Next;
+      FServerOS := GetSessionVariable('version_compile_os');
+      FRealHostname := GetSessionVariable('hostname');
+      FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
+      FServerVersionUntouched := FServerVersionUntouched.Trim([' ', '-']);
+      if FServerVersionUntouched.IsEmpty then begin
+        FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
       end;
+
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
         FDatabase := '';
@@ -4098,22 +4094,35 @@ begin
 end;
 
 
-function TMySQLConnection.MaxAllowedPacket: Int64;
+function TDBConnection.GetSessionVariable(VarName: String; DefaultValue: String=''; Refresh: Boolean=False): String;
 var
   Vars: TDBQuery;
+  VarExists: Boolean;
 begin
-  Vars := GetSessionVariables(False);
-  Result := 0;
+  // Return the value of a specific server variable
+  Vars := GetSessionVariables(Refresh);
+  Result := DefaultValue;
+  VarExists := False;
   while not Vars.Eof do begin
-    if Vars.Col(0) = 'max_allowed_packet' then begin
-      Result := MakeInt(Vars.Col(1));
+    if Vars.Col(0) = VarName then begin
+      Result := Vars.Col(1);
+      VarExists := True;
       Break;
     end;
     Vars.Next;
   end;
-  if Result = 0 then begin
-    Log(lcError, f_('The server did not return a non-zero value for the %s variable. Assuming %s now.', ['max_allowed_packet', FormatByteNumber(Result)]));
+  if not VarExists then begin
+    Log(lcDebug, 'Variable "'+VarName+'" does not exist');
+  end;
+end;
+
+
+function TMySQLConnection.MaxAllowedPacket: Int64;
+begin
+  Result := MakeInt(GetSessionVariable('max_allowed_packet'));
+  if Result < SIZE_MB then begin
     Result := SIZE_MB;
+    Log(lcError, f_('The server did not return a non-zero value for the %s variable. Assuming %s now.', ['max_allowed_packet', FormatByteNumber(Result)]));
   end;
 
 end;
@@ -4153,19 +4162,11 @@ end;
 
 function TDBConnection.IdentifierEquals(Ident1, Ident2: String): Boolean;
 var
-  Vars: TDBQuery;
   CaseSensitivity: Integer;
 begin
   // Compare only name of identifier, in the case fashion the server tells us
-  Vars := GetSessionVariables(False);
-  CaseSensitivity := 1; // probably a bad default value, as this expects the server to run on Windows
-  while not Vars.Eof do begin
-    if Vars.Col(0) = 'lower_case_table_names' then begin
-      CaseSensitivity := MakeInt(Vars.Col(1));
-      Break;
-    end;
-    Vars.Next;
-  end;
+  // 1 is probably a bad default value, as this expects the server to run on Windows
+  CaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', '1'));
   case CaseSensitivity of
     0: Result := Ident1 = Ident2;
     else Result := CompareText(Ident1, Ident2) = 0;
