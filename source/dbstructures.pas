@@ -1,8 +1,7 @@
 ﻿unit dbstructures;
 
 // -------------------------------------
-// MySQL Constants, Variables and Types
-// TODO: rename to dbstructures
+// Server constants, variables and data types
 // -------------------------------------
 
 interface
@@ -10,7 +9,68 @@ interface
 uses
   Classes, Graphics, Windows, SysUtils, gnugettext, Vcl.Forms;
 
-{$I const.inc}
+
+
+const
+  // Used in TMysqlFunction
+  SQL_VERSION_ANSI = -1;
+
+  // General declarations
+  MYSQL_ERRMSG_SIZE = 512;
+  SQLSTATE_LENGTH = 5;
+  SCRAMBLE_LENGTH = 20;
+  MYSQL_PORT = 3306;
+  LOCAL_HOST = 'localhost';
+  NAME_LEN = 64;
+  PROTOCOL_VERSION = 10;
+  FRM_VER = 6;
+
+  // Field's flags
+  NOT_NULL_FLAG = 1;
+  PRI_KEY_FLAG = 2;
+  UNIQUE_KEY_FLAG = 4;
+  MULTIPLE_KEY_FLAG = 8;
+  BLOB_FLAG = 16;
+  UNSIGNED_FLAG = 32;
+  ZEROFILL_FLAG = 64;
+  BINARY_FLAG = 128;
+  ENUM_FLAG = 256;
+  AUTO_INCREMENT_FLAG = 512;
+  TIMESTAMP_FLAG = 1024;
+  SET_FLAG = 2048;
+  NUM_FLAG = 32768;
+  PART_KEY_FLAG = 16384;
+  GROUP_FLAG = 32768;
+  UNIQUE_FLAG = 65536;
+  BINCMP_FLAG = 131072;
+
+  // Client connection options
+  CLIENT_LONG_PASSWORD = 1;
+  CLIENT_FOUND_ROWS = 2; // Found instead of affected rows
+  CLIENT_LONG_FLAG = 4;
+  CLIENT_CONNECT_WITH_DB = 8;
+  CLIENT_NO_SCHEMA = 16; // Don't allow database.table.column
+  CLIENT_COMPRESS = 32;
+  CLIENT_ODBC = 64;
+  CLIENT_LOCAL_FILES = 128;
+  CLIENT_IGNORE_SPACE = 256; // Ignore spaces before '('
+  CLIENT_PROTOCOL_41 = 512;
+  CLIENT_INTERACTIVE = 1024;
+  CLIENT_SSL = 2048; // Switch to SSL after handshake
+  CLIENT_IGNORE_SIGPIPE = 4096;
+  CLIENT_TRANSACTIONS = 8192;
+  CLIENT_RESERVED = 16384;
+  CLIENT_SECURE_CONNECTION = 32768;
+  CLIENT_MULTI_STATEMENTS = 65536;
+  CLIENT_MULTI_RESULTS = 131072;
+  CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS = 4194304;
+  CLIENT_SSL_VERIFY_SERVER_CERT = 67108864;
+  CLIENT_REMEMBER_OPTIONS = 134217728;
+
+  COLLATION_BINARY = 63;
+  // Equivalent to COLLATION_BINARY, this is what a new driver returns when connected to a pre-4.1 server.
+  COLLATION_NONE =  0;
+
 
 type
   PUSED_MEM=^USED_MEM;
@@ -453,7 +513,7 @@ var
       Index:           dtTinyint;
       NativeType:      mytTiny;
       Name:            'TINYINT';
-      Description:     'TINYINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'TINYINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A very small integer. The signed range is -128 to 127. ' +
         'The unsigned range is 0 to 255.';
       HasLength:       True;
@@ -467,7 +527,7 @@ var
       Index:           dtSmallint;
       NativeType:      mytShort;
       Name:            'SMALLINT';
-      Description:     'SMALLINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'SMALLINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A small integer. The signed range is -32768 to 32767. ' +
         'The unsigned range is 0 to 65535.';
       HasLength:       True;
@@ -481,7 +541,7 @@ var
       Index:           dtMediumint;
       NativeType:      mytInt24;
       Name:            'MEDIUMINT';
-      Description:     'MEDIUMINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'MEDIUMINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A medium-sized integer. The signed range is -8388608 to 8388607. ' +
         'The unsigned range is 0 to 16777215.';
       HasLength:       True;
@@ -495,7 +555,7 @@ var
       Index:           dtInt;
       NativeType:      mytLong;
       Name:            'INT';
-      Description:     'INT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'INT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A normal-size integer. The signed range is -2147483648 to 2147483647. ' +
         'The unsigned range is 0 to 4294967295.';
       HasLength:       True;
@@ -509,7 +569,7 @@ var
       Index:           dtBigint;
       NativeType:      mytLonglong;
       Name:            'BIGINT';
-      Description:     'BIGINT[(M)] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'BIGINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A large integer. The signed range is -9223372036854775808 to ' +
         '9223372036854775807. The unsigned range is 0 to 18446744073709551615.';
       HasLength:       True;
@@ -523,7 +583,7 @@ var
       Index:           dtFloat;
       NativeType:      mytFloat;
       Name:            'FLOAT';
-      Description:     'FLOAT[(M,D)] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'FLOAT[(M,D)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A small (single-precision) floating-point number. Allowable values are '+
         '-3.402823466E+38 to -1.175494351E-38, 0, and 1.175494351E-38 to '+
         '3.402823466E+38. These are the theoretical limits, based on the IEEE '+
@@ -540,7 +600,7 @@ var
       Index:           dtDouble;
       NativeType:      mytDouble;
       Name:            'DOUBLE';
-      Description:     'DOUBLE[(M,D)] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'DOUBLE[(M,D)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A normal-size (double-precision) floating-point number. Allowable ' +
         'values are -1.7976931348623157E+308 to -2.2250738585072014E-308, 0, and ' +
         '2.2250738585072014E-308 to 1.7976931348623157E+308. These are the ' +
@@ -557,7 +617,7 @@ var
       Index:           dtDecimal;
       NativeType:      mytNewdecimal;
       Name:            'DECIMAL';
-      Description:     'DECIMAL[(M[,D])] [UNSIGNED] [ZEROFILL]' + CRLF +
+      Description:     'DECIMAL[(M[,D])] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A packed "exact" fixed-point number. M is the total number of digits ' +
         '(the precision) and D is the number of digits after the decimal point ' +
         '(the scale). The decimal point and (for negative numbers) the "-" sign ' +
@@ -577,7 +637,7 @@ var
       Index:           dtDate;
       NativeType:      mytDate;
       Name:            'DATE';
-      Description:     'DATE' + CRLF +
+      Description:     'DATE' + sLineBreak +
         'A date. The supported range is ''1000-01-01'' to ''9999-12-31''. MySQL ' +
         'displays DATE values in ''YYYY-MM-DD'' format, but allows assignment of ' +
         'values to DATE columns using either strings or numbers.';
@@ -593,7 +653,7 @@ var
       Index:           dtTime;
       NativeType:      mytTime;
       Name:            'TIME';
-      Description:     'TIME' + CRLF +
+      Description:     'TIME' + sLineBreak +
         'A time. The range is ''-838:59:59'' to ''838:59:59''. MySQL displays TIME ' +
         'values in ''HH:MM:SS'' format, but allows assignment of values to TIME ' +
         'columns using either strings or numbers.';
@@ -609,7 +669,7 @@ var
       Index:           dtYear;
       NativeType:      mytYear;
       Name:            'YEAR';
-      Description:     'YEAR[(2|4)]' + CRLF +
+      Description:     'YEAR[(2|4)]' + sLineBreak +
         'A year in two-digit or four-digit format. The default is four-digit ' +
         'format. In four-digit format, the allowable values are 1901 to 2155, ' +
         'and 0000. In two-digit format, the allowable values are 70 to 69, ' +
@@ -628,7 +688,7 @@ var
       Index:           dtDatetime;
       NativeType:      mytDatetime;
       Name:            'DATETIME';
-      Description:     'DATETIME' + CRLF +
+      Description:     'DATETIME' + sLineBreak +
         'A date and time combination. The supported range is ''1000-01-01 ' +
         '00:00:00'' to ''9999-12-31 23:59:59''. MySQL displays DATETIME values in ' +
         '''YYYY-MM-DD HH:MM:SS'' format, but allows assignment of values to ' +
@@ -645,7 +705,7 @@ var
       Index:           dtTimestamp;
       NativeType:      mytTimestamp;
       Name:            'TIMESTAMP';
-      Description:     'TIMESTAMP' + CRLF +
+      Description:     'TIMESTAMP' + sLineBreak +
         'A timestamp. The range is ''1970-01-01 00:00:01'' UTC to ''2038-01-09 ' +
         '03:14:07'' UTC. TIMESTAMP values are stored as the number of seconds ' +
         'since the epoch (''1970-01-01 00:00:00'' UTC). A TIMESTAMP cannot ' +
@@ -664,10 +724,10 @@ var
       Index:           dtChar;
       NativeType:      mytString;
       Name:            'CHAR';
-      Description:     'CHAR[(M)]' + CRLF +
+      Description:     'CHAR[(M)]' + sLineBreak +
         'A fixed-length string that is always right-padded with spaces to the ' +
         'specified length when stored. M represents the column length in ' +
-        'characters. The range of M is 0 to 255. If M is omitted, the length is 1.' + CRLF + CRLF +
+        'characters. The range of M is 0 to 255. If M is omitted, the length is 1.' + sLineBreak + sLineBreak +
         '*Note*: Trailing spaces are removed when CHAR values are retrieved ' +
         'unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled.';
       HasLength:       True;
@@ -682,14 +742,14 @@ var
       Index:           dtVarchar;
       NativeType:      mytVarstring;
       Name:            'VARCHAR';
-      Description:     'VARCHAR(M)' + CRLF +
+      Description:     'VARCHAR(M)' + sLineBreak +
         'A variable-length string. M represents the maximum column length in ' +
         'characters. The range of M is 0 to 65,535. The effective maximum length ' +
         'of a VARCHAR is subject to the maximum row size (65,535 bytes, which is ' +
         'shared among all columns) and the character set used. For example, utf8 ' +
         'characters can require up to three bytes per character, so a VARCHAR ' +
         'column that uses the utf8 character set can be declared to be a maximum ' +
-        'of 21,844 characters. ' + CRLF + CRLF +
+        'of 21,844 characters. ' + sLineBreak + sLineBreak +
         '*Note*: MySQL 5.1 follows the standard SQL specification, and does not ' +
         'remove trailing spaces from VARCHAR values.';
       HasLength:       True;
@@ -704,7 +764,7 @@ var
       Index:           dtTinytext;
       NativeType:      mytTinyblob;
       Name:            'TINYTEXT';
-      Description:     'TINYTEXT' + CRLF +
+      Description:     'TINYTEXT' + sLineBreak +
         'A TEXT column with a maximum length of 255 (2^8 - 1) characters. The ' +
         'effective maximum length is less if the value contains multi-byte ' +
         'characters. Each TINYTEXT value is stored using a one-byte length ' +
@@ -720,11 +780,11 @@ var
       Index:           dtText;
       NativeType:      mytBlob;
       Name:            'TEXT';
-      Description:     'TEXT[(M)]' + CRLF +
+      Description:     'TEXT[(M)]' + sLineBreak +
         'A TEXT column with a maximum length of 65,535 (2^16 - 1) characters. The ' +
         'effective maximum length is less if the value contains multi-byte ' +
         'characters. Each TEXT value is stored using a two-byte length prefix ' +
-        'that indicates the number of bytes in the value. ' + CRLF +
+        'that indicates the number of bytes in the value. ' + sLineBreak +
         'An optional length M can be given for this type. If this is done, MySQL ' +
         'creates the column as the smallest TEXT type large enough to hold ' +
         'values M characters long.';
@@ -739,7 +799,7 @@ var
       Index:           dtMediumtext;
       NativeType:      mytMediumblob;
       Name:            'MEDIUMTEXT';
-      Description:     'MEDIUMTEXT' + CRLF +
+      Description:     'MEDIUMTEXT' + sLineBreak +
         'A TEXT column with a maximum length of 16,777,215 (2^24 - 1) characters. ' +
         'The effective maximum length is less if the value contains multi-byte ' +
         'characters. Each MEDIUMTEXT value is stored using a three-byte length ' +
@@ -755,7 +815,7 @@ var
       Index:           dtLongtext;
       NativeType:      mytLongblob;
       Name:            'LONGTEXT';
-      Description:     'LONGTEXT' + CRLF +
+      Description:     'LONGTEXT' + sLineBreak +
         'A TEXT column with a maximum length of 4,294,967,295 or 4GB (2^32 - 1) ' +
         'characters. The effective maximum length is less if the value contains ' +
         'multi-byte characters. The effective maximum length of LONGTEXT columns ' +
@@ -774,7 +834,7 @@ var
       Index:           dtJson;
       NativeType:      mytJson;
       Name:            'JSON';
-      Description:     'JSON' + CRLF +
+      Description:     'JSON' + sLineBreak +
         'Documents stored in JSON columns are converted to an internal format that '+
         'permits quick read access to document elements. When the server later must '+
         'read a JSON value stored in this binary format, the value need not be parsed '+
@@ -792,7 +852,7 @@ var
       Index:           dtBinary;
       NativeType:      mytString;
       Name:            'BINARY';
-      Description:     'BINARY(M)' + CRLF +
+      Description:     'BINARY(M)' + sLineBreak +
         'The BINARY type is similar to the CHAR type, but stores binary byte ' +
         'strings rather than non-binary character strings. M represents the ' +
         'column length in bytes.';
@@ -808,7 +868,7 @@ var
       Index:           dtVarbinary;
       NativeType:      mytVarstring;
       Name:            'VARBINARY';
-      Description:     'VARBINARY(M)' + CRLF +
+      Description:     'VARBINARY(M)' + sLineBreak +
         'The VARBINARY type is similar to the VARCHAR type, but stores binary ' +
         'byte strings rather than non-binary character strings. M represents the ' +
         'maximum column length in bytes.';
@@ -824,7 +884,7 @@ var
       Index:           dtTinyblob;
       NativeType:      mytTinyblob;
       Name:           'TINYBLOB';
-      Description:     'TINYBLOB' + CRLF +
+      Description:     'TINYBLOB' + sLineBreak +
         'A BLOB column with a maximum length of 255 (2^8 - 1) bytes. Each ' +
         'TINYBLOB value is stored using a one-byte length prefix that indicates ' +
         'the number of bytes in the value.';
@@ -839,10 +899,10 @@ var
       Index:           dtBlob;
       NativeType:      mytBlob;
       Name:            'BLOB';
-      Description:     'BLOB[(M)]' + CRLF +
+      Description:     'BLOB[(M)]' + sLineBreak +
         'A BLOB column with a maximum length of 65,535 (2^16 - 1) bytes. Each ' +
         'BLOB value is stored using a two-byte length prefix that indicates the ' +
-        'number of bytes in the value. ' + CRLF +
+        'number of bytes in the value. ' + sLineBreak +
         'An optional length M can be given for this type. If this is done, MySQL ' +
         'creates the column as the smallest BLOB type large enough to hold ' +
         'values M bytes long.';
@@ -857,7 +917,7 @@ var
       Index:           dtMediumblob;
       NativeType:      mytMediumblob;
       Name:            'MEDIUMBLOB';
-      Description:     'MEDIUMBLOB' + CRLF +
+      Description:     'MEDIUMBLOB' + sLineBreak +
         'A BLOB column with a maximum length of 16,777,215 (2^24 - 1) bytes. Each ' +
         'MEDIUMBLOB value is stored using a three-byte length prefix that ' +
         'indicates the number of bytes in the value.';
@@ -872,7 +932,7 @@ var
       Index:           dtLongblob;
       NativeType:      mytLongblob;
       Name:            'LONGBLOB';
-      Description:     'LONGBLOB' + CRLF +
+      Description:     'LONGBLOB' + sLineBreak +
         'A BLOB column with a maximum length of 4,294,967,295 or 4GB (2^32 - 1) ' +
         'bytes. The effective maximum length of LONGBLOB columns depends on the ' +
         'configured maximum packet size in the client/server protocol and ' +
@@ -889,7 +949,7 @@ var
       Index:           dtEnum;
       NativeType:      mytEnum;
       Name:            'ENUM';
-      Description:     'ENUM(''value1'',''value2'',...)' + CRLF +
+      Description:     'ENUM(''value1'',''value2'',...)' + sLineBreak +
         'An enumeration. A string object that can have only one value, chosen ' +
         'from the list of values ''value1'', ''value2'', ..., NULL or the special '''' ' +
         'error value. An ENUM column can have a maximum of 65,535 distinct ' +
@@ -906,7 +966,7 @@ var
       Index:           dtSet;
       NativeType:      mytSet;
       Name:            'SET';
-      Description:     'SET(''value1'',''value2'',...)' + CRLF +
+      Description:     'SET(''value1'',''value2'',...)' + sLineBreak +
         'A set. A string object that can have zero or more values, each of which ' +
         'must be chosen from the list of values ''value1'', ''value2'', ... A SET ' +
         'column can have a maximum of 64 members. SET values are represented ' +
@@ -923,7 +983,7 @@ var
       Index:           dtBit;
       NativeType:      mytBit;
       Name:            'BIT';
-      Description:     'BIT[(M)]' + CRLF +
+      Description:     'BIT[(M)]' + sLineBreak +
         'A bit-field type. M indicates the number of bits per value, from 1 to ' +
         '64. The default is 1 if M is omitted.';
       HasLength:       True;
@@ -937,7 +997,7 @@ var
       Index:           dtPoint;
       NativeType:      mytGeometry;
       Name:            'POINT';
-      Description:     'POINT(x,y)' + CRLF +
+      Description:     'POINT(x,y)' + sLineBreak +
         'Constructs a WKB Point using its coordinates.';
       HasLength:       False;
       RequiresLength:  False;
@@ -950,7 +1010,7 @@ var
       Index:           dtLinestring;
       NativeType:      mytGeometry;
       Name:            'LINESTRING';
-      Description:     'LINESTRING(pt1,pt2,...)' + CRLF +
+      Description:     'LINESTRING(pt1,pt2,...)' + sLineBreak +
         'Constructs a WKB LineString value from a number of WKB Point arguments. ' +
         'If any argument is not a WKB Point, the return value is NULL. If the ' +
         'number of Point arguments is less than two, the return value is NULL.';
@@ -965,7 +1025,7 @@ var
       Index:           dtPolygon;
       NativeType:      mytGeometry;
       Name:            'POLYGON';
-      Description:     'POLYGON(ls1,ls2,...)' + CRLF +
+      Description:     'POLYGON(ls1,ls2,...)' + sLineBreak +
         'Constructs a WKB Polygon value from a number of WKB LineString ' +
         'arguments. If any argument does not represent the WKB of a LinearRing ' +
         '(that is, not a closed and simple LineString) the return value is NULL.';
@@ -992,7 +1052,7 @@ var
       Index:           dtMultipoint;
       NativeType:      mytGeometry;
       Name:            'MULTIPOINT';
-      Description:     'MULTIPOINT(pt1,pt2,...)' + CRLF +
+      Description:     'MULTIPOINT(pt1,pt2,...)' + sLineBreak +
         'Constructs a WKB MultiPoint value using WKB Point arguments. If any ' +
         'argument is not a WKB Point, the return value is NULL.';
       HasLength:       False;
@@ -1006,7 +1066,7 @@ var
       Index:           dtMultilinestring;
       NativeType:      mytGeometry;
       Name:            'MULTILINESTRING';
-      Description:     'MULTILINESTRING(ls1,ls2,...)' + CRLF +
+      Description:     'MULTILINESTRING(ls1,ls2,...)' + sLineBreak +
         'Constructs a WKB MultiLineString value using WKB LineString arguments. ' +
         'If any argument is not a WKB LineString, the return value is NULL.';
       HasLength:       False;
@@ -1020,7 +1080,7 @@ var
       Index:           dtMultipolygon;
       NativeType:      mytGeometry;
       Name:            'MULTIPOLYGON';
-      Description:     'MULTIPOLYGON(poly1,poly2,...)' + CRLF +
+      Description:     'MULTIPOLYGON(poly1,poly2,...)' + sLineBreak +
         'Constructs a WKB MultiPolygon value from a set of WKB Polygon ' +
         'arguments. If any argument is not a WKB Polygon, the return value is ' +
         'NULL.';
@@ -1035,7 +1095,7 @@ var
       Index:           dtGeometrycollection;
       NativeType:      mytGeometry;
       Name:            'GEOMETRYCOLLECTION';
-      Description:     'GEOMETRYCOLLECTION(g1,g2,...)' + CRLF +
+      Description:     'GEOMETRYCOLLECTION(g1,g2,...)' + sLineBreak +
         'Constructs a WKB GeometryCollection. If any argument is not a ' +
         'well-formed WKB representation of a geometry, the return value is NULL.';
       HasLength:       False;
@@ -7686,7 +7746,7 @@ begin
       [ExtractFileName(FDllFile)]
       );
     if Windows.GetLastError <> 0 then
-      msg := msg + CRLF + CRLF + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
+      msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
     Raise EDbError.Create(msg);
   end;
 
@@ -7717,7 +7777,7 @@ begin
         [ExtractFileName(FDllFile), Name]
         );
       if Windows.GetLastError <> 0 then
-        msg := msg + CRLF + CRLF + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
+        msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
       Raise EDbError.Create(msg, LIB_PROC_ERROR);
     end;
   end;

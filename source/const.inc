@@ -22,9 +22,6 @@ const
   CHR13REPLACEMENT = '<{{{>';
   DELIMITER = '<|||>';
 
-  // Used by maskSQL and fixSQL:
-  SQL_VERSION_ANSI = -1;
-
   COLORSHIFT_NULLFIELDS = 70; // Brightness adjustment to add to normal field colors for NULL values
   COLORSHIFT_SORTCOLUMNS = 12; // Brightness adjustment to add to sorted column backgrounds
 
@@ -124,59 +121,4 @@ const
   // A set of characters which need not to be quoted
   IDENTCHARS = ['A'..'Z', 'a'..'z', '0'..'9', '_'];
 
-  // General declarations
-  MYSQL_ERRMSG_SIZE = 512;
-  SQLSTATE_LENGTH = 5;
-  SCRAMBLE_LENGTH = 20;
-  MYSQL_PORT = 3306;
-  LOCAL_HOST = 'localhost';
-  NAME_LEN = 64;
-  PROTOCOL_VERSION = 10;
-  FRM_VER = 6;
-
-  // Field's flags
-  NOT_NULL_FLAG = 1;
-  PRI_KEY_FLAG = 2;
-  UNIQUE_KEY_FLAG = 4;
-  MULTIPLE_KEY_FLAG = 8;
-  BLOB_FLAG = 16;
-  UNSIGNED_FLAG = 32;
-  ZEROFILL_FLAG = 64;
-  BINARY_FLAG = 128;
-  ENUM_FLAG = 256;
-  AUTO_INCREMENT_FLAG = 512;
-  TIMESTAMP_FLAG = 1024;
-  SET_FLAG = 2048;
-  NUM_FLAG = 32768;
-  PART_KEY_FLAG = 16384;
-  GROUP_FLAG = 32768;
-  UNIQUE_FLAG = 65536;
-  BINCMP_FLAG = 131072;
-
-  // Client connection options
-  CLIENT_LONG_PASSWORD = 1;
-  CLIENT_FOUND_ROWS = 2; // Found instead of affected rows
-  CLIENT_LONG_FLAG = 4;
-  CLIENT_CONNECT_WITH_DB = 8;
-  CLIENT_NO_SCHEMA = 16; // Don't allow database.table.column
-  CLIENT_COMPRESS = 32;
-  CLIENT_ODBC = 64;
-  CLIENT_LOCAL_FILES = 128;
-  CLIENT_IGNORE_SPACE = 256; // Ignore spaces before '('
-  CLIENT_PROTOCOL_41 = 512;
-  CLIENT_INTERACTIVE = 1024;
-  CLIENT_SSL = 2048; // Switch to SSL after handshake
-  CLIENT_IGNORE_SIGPIPE = 4096;
-  CLIENT_TRANSACTIONS = 8192;
-  CLIENT_RESERVED = 16384;
-  CLIENT_SECURE_CONNECTION = 32768;
-  CLIENT_MULTI_STATEMENTS = 65536;
-  CLIENT_MULTI_RESULTS = 131072;
-  CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS = 4194304;
-  CLIENT_SSL_VERIFY_SERVER_CERT = 67108864;
-  CLIENT_REMEMBER_OPTIONS = 134217728;
-
-  COLLATION_BINARY = 63;
-  // Equivalent to COLLATION_BINARY, this is what a new driver returns when connected to a pre-4.1 server.
-  COLLATION_NONE =  0;
 
