@@ -2859,16 +2859,20 @@ begin
             ' AND TABLE_NAME='+EscapeString(Obj.Name)
             );
           // Comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
-          Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
-            'FROM sys.extended_properties AS prop '+
-            'INNER JOIN sys.all_objects o ON prop.major_id = o.object_id '+
-            'INNER JOIN sys.schemas s ON o.schema_id = s.schema_id '+
-            'INNER JOIN sys.columns AS c ON prop.major_id = c.object_id AND prop.minor_id = c.column_id '+
-            'WHERE '+
-            '  prop.name='+EscapeString('MS_Description')+
-            '  AND s.name='+EscapeString(Obj.Schema)+
-            '  AND o.name='+EscapeString(Obj.Name)
-            );
+          try
+            Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
+              'FROM sys.extended_properties AS prop '+
+              'INNER JOIN sys.all_objects o ON prop.major_id = o.object_id '+
+              'INNER JOIN sys.schemas s ON o.schema_id = s.schema_id '+
+              'INNER JOIN sys.columns AS c ON prop.major_id = c.object_id AND prop.minor_id = c.column_id '+
+              'WHERE '+
+              '  prop.name='+EscapeString('MS_Description')+
+              '  AND s.name='+EscapeString(Obj.Schema)+
+              '  AND o.name='+EscapeString(Obj.Name)
+              );
+          except // Fails on old servers
+            on E:EDbError do;
+          end;
         end;
       end;
       while not Cols.Eof do begin
