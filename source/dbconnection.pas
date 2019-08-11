@@ -1329,8 +1329,12 @@ begin
       Result := ngMSSQL;
     ntPgSQL_TCPIP, ntPgSQL_SSHtunnel:
       Result := ngPgSQL;
-    else
-      raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
+    else begin
+      // Return default net group here. Raising an exception lets the app die for some reason.
+      // Reproduction: click drop-down button on "Database(s)" session setting
+      //raise EDbError.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
+      Result := ngMySQL;
+    end;
   end;
 end;
 
