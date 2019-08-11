@@ -123,7 +123,7 @@ type
       function GetImageIndex: Integer;
     public
       Name, OldName: String;
-      IndexType, OldIndexType, Algorithm: String;
+      IndexType, OldIndexType, Algorithm, Comment: String;
       Columns, SubParts: TStringList;
       Modified, Added: Boolean;
       constructor Create(AOwner: TDBConnection);
@@ -5085,7 +5085,7 @@ end;
 
 procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
 var
-  ColSpec, Quotes: String;
+  ColSpec, Quotes, Tail: String;
   rx, rxCol: TRegExpr;
   i: Integer;
   InLiteral: Boolean;
@@ -5271,7 +5271,15 @@ begin
   // Detect keys
   // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`) USING BTREE,
   // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
-  rx.Expression := '^\s+((\w+)\s+)?KEY\s+(['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?\s+)?((USING|TYPE)\s+(\w+)\s+)?\((.+)\)(\s+USING\s+(\w+))?(\s+KEY_BLOCK_SIZE(\s|\=)+\d+)?,?$';
+  // KEY `idx_str` TYPE HASH (`str`) -- pre 5.0 syntax
+  // KEY `idx_str` (`str`) USING HASH COMMENT 'xxxxxxx'
+  rx.Expression := '^\s+((\w+)\s+)?KEY\s+(['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?\s+)?'+
+    '((USING|TYPE)\s+(\w+)\s+)?'+
+    '\((.+)\)'+
+    '(\s+USING\s+(\w+))?'+
+    '(\s+KEY_BLOCK_SIZE(\s|\=)+\d+)?'+
+    '([^,\)]*)'+
+    ',?$';
   if rx.Exec(CreateTable) then while true do begin
     if not Assigned(Keys) then
       break;
@@ -5301,6 +5309,10 @@ begin
       end;
       Key.Columns[i] := StringReplace(Key.Columns[i], QuoteReplacement, FQuoteChar, [rfReplaceAll]);
     end;
+
+    Tail := rx.Match[13];
+    Key.Comment := ExtractLiteral(Tail, 'COMMENT');
+
     if not rx.ExecNext then
       break;
   end;
