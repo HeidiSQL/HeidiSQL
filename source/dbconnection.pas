@@ -4219,10 +4219,7 @@ begin
       ' AND '+QuoteIdent('object_id')+' = object_id('+EscapeString(Obj.Database+'.'+Obj.Schema+'.'+Obj.Name)+')'
       );
   end else begin
-    if not Obj.Schema.IsEmpty then
-      Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Schema)+'.'+QuoteIdent(Obj.Name))
-    else
-      Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name))
+    Rows := GetVar('SELECT COUNT(*) FROM '+Obj.QuotedDbAndTableName);
   end;
   Result := MakeInt(Rows);
 end;
