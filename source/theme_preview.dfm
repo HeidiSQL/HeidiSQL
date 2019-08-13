@@ -1,9 +1,10 @@
 object frmThemePreview: TfrmThemePreview
   Left = 0
   Top = 0
+  BorderIcons = [biSystemMenu]
   Caption = 'Theme preview'
-  ClientHeight = 157
-  ClientWidth = 245
+  ClientHeight = 118
+  ClientWidth = 229
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,8 +19,8 @@ object frmThemePreview: TfrmThemePreview
   TextHeight = 13
   object StatusBarMain: TStatusBar
     Left = 0
-    Top = 138
-    Width = 245
+    Top = 99
+    Width = 229
     Height = 19
     Panels = <>
     SimplePanel = True
@@ -27,8 +28,8 @@ object frmThemePreview: TfrmThemePreview
   object ScrollBoxImage: TScrollBox
     Left = 0
     Top = 0
-    Width = 245
-    Height = 138
+    Width = 229
+    Height = 99
     HorzScrollBar.Tracking = True
     VertScrollBar.Tracking = True
     Align = alClient
