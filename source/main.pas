@@ -9045,8 +9045,8 @@ begin
           try
             Timestamp := Trunc(StrToFloat(Results.Col(Column), FFormatSettings));
           except
-            on E:EConvertError do
-              Timestamp := 0;
+            // EConvertError in StrToFloat or EInvalidOp in Trunc or...
+            Timestamp := 0;
           end;
           Dec(Timestamp, FTimeZoneOffset);
           CellText := DateTimeToStr(UnixToDateTime(Timestamp));
