@@ -1082,7 +1082,6 @@ type
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
-    FHostTabCaptions: TStringList;
     FStatusServerUptime: Integer;
     FProcessListMaxTime: Int64;
     FCommandStatsQueryCount: Int64;
@@ -1840,10 +1839,8 @@ begin
 
   // Populate generic results for "Host" subtabs
   FHostListResults := TDBQueryList.Create(False);
-  FHostTabCaptions := TStringList.Create;
   for i:=0 to PageControlHost.PageCount-1 do begin
     FHostListResults.Add(nil);
-    FHostTabCaptions.Add(PageControlHost.Pages[i].Caption);
   end;
 
   // Enable auto completion in data tab, filter editor
@@ -9912,7 +9909,7 @@ begin
     end;
     vt.RootNodeCount := Conn.AllDatabases.Count;
   end;
-  tabDatabases.Caption := FHostTabCaptions[tabDatabases.PageIndex] + ' ('+FormatNumber(vt.RootNodeCount)+')';
+  tabDatabases.Caption := _('Databases') + ' ('+FormatNumber(vt.RootNodeCount)+')';
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
 end;
@@ -10034,7 +10031,7 @@ var
   IS_objects: TDBObjectList;
   Obj: TDBObject;
   ProcessColumns: TTableColumnList;
-  Columns, FocusedCaption: String;
+  Columns, FocusedCaption, CleanTabCaption: String;
   Col: TVirtualTreeColumn;
 begin
   // Display server variables
@@ -10192,7 +10189,8 @@ begin
   vt.EndUpdate;
   vt.Tag := VTREE_LOADED;
   // Display number of listed values on tab
-  Tab.Caption := FHostTabCaptions[Tab.PageIndex] + ' (' + IntToStr(vt.RootNodeCount) + ')';
+  CleanTabCaption := RegExprGetMatch('^(.+)(\s+\([^\)]*\))?$', Tab.Caption, 1);
+  Tab.Caption := CleanTabCaption + ' (' + IntToStr(vt.RootNodeCount) + ')';
   // Restore selection
   SetVTSelection(vt, SelectedCaptions, FocusedCaption);
 end;
