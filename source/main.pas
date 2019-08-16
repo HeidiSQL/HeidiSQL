@@ -7818,21 +7818,28 @@ end;
 procedure TMainForm.ListProcessesFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
-  enableSQLView : Boolean;
+  NodeFocused, EnableControls: Boolean;
+  SQL: String;
 begin
-  enableSQLView := Assigned(Node);
-  SynMemoProcessView.Enabled := enableSQLView;
-  pnlProcessView.Enabled := enableSQLView;
-  if enableSQLView then begin
+  NodeFocused := Assigned(Node);
+  SQL := '';
+  if NodeFocused then begin
+    SQL := ListProcesses.Text[Node, 7];
+  end;
+  EnableControls := not SQL.IsEmpty;
+  if EnableControls then begin
     SynMemoProcessView.Highlighter := SynSQLSynUsed;
     SynMemoProcessView.Text := ListProcesses.Text[Node, 7];
-    SynMemoProcessView.Color := GetThemeColor(clWindow);
+    SynMemoProcessView.Color := clWindow;
   end else begin
     SynMemoProcessView.Highlighter := nil;
-    SynMemoProcessView.Text := _('Please select a process in the above list.');
-    SynMemoProcessView.Color := GetThemeColor(clBtnFace);
+    SynMemoProcessView.Text := _('Please select a process with a running query');
+    SynMemoProcessView.Color := clBtnFace;
   end;
-  lblExplainProcess.Enabled := enableSQLView and ActiveConnection.Parameters.IsMySQL;
+
+  SynMemoProcessView.Enabled := EnableControls;
+  pnlProcessView.Enabled := EnableControls;
+  lblExplainProcess.Enabled := EnableControls and ActiveConnection.Parameters.IsMySQL;
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
   lblExplainProcessAnalyzer.Enabled := lblExplainProcess.Enabled;
   menuExplainAnalyzer.Enabled := lblExplainProcess.Enabled;
@@ -11856,12 +11863,16 @@ end;
 procedure TMainForm.lblExplainProcessClick(Sender: TObject);
 var
   Tab: TQueryTab;
+  UsedDatabase: String;
 begin
   // Click on "Explain" link label, in process viewer
   actNewQueryTabExecute(Sender);
   Tab := QueryTabs[QueryTabs.Count-1];
-  Tab.Memo.Text := 'USE '+ActiveConnection.QuoteIdent(listProcesses.Text[listProcesses.FocusedNode, 3])+';'+CRLF+
-    'EXPLAIN'+CRLF+SynMemoProcessView.Text;
+  UsedDatabase := listProcesses.Text[listProcesses.FocusedNode, 3];
+  if not UsedDatabase.IsEmpty then begin
+    Tab.Memo.Lines.Add('USE ' + ActiveConnection.QuoteIdent(UsedDatabase) + ';');
+  end;
+  Tab.Memo.Lines.Add('EXPLAIN' + sLineBreak + SynMemoProcessView.Text + ';');
   Tab.TabSheet.Show;
   actExecuteQueryExecute(Sender);
 end;
