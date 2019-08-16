@@ -10189,8 +10189,8 @@ begin
   vt.EndUpdate;
   vt.Tag := VTREE_LOADED;
   // Display number of listed values on tab
-  CleanTabCaption := RegExprGetMatch('^(.+)(\s+\([^\)]*\))?$', Tab.Caption, 1);
-  Tab.Caption := CleanTabCaption + ' (' + IntToStr(vt.RootNodeCount) + ')';
+  CleanTabCaption := RegExprGetMatch('^([^\(]+)', Tab.Caption, 1);
+  Tab.Caption := CleanTabCaption.Trim + ' (' + IntToStr(vt.RootNodeCount) + ')';
   // Restore selection
   SetVTSelection(vt, SelectedCaptions, FocusedCaption);
 end;
