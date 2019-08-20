@@ -1813,9 +1813,6 @@ begin
   Delimiter := AppSettings.ReadString(asDelimiter);
 
   InheritFont(SynCompletionProposal.Font);
-  // Simulated link label, has non inherited blue font color
-  lblExplainProcess.Font.Color := clBlue;
-  lblExplainProcessAnalyzer.Font.Color := clBlue;
 
   // Define static query tab as first one in our QueryTabs list
   QueryTab := TQueryTab.Create(Self);
@@ -2578,6 +2575,10 @@ begin
   // Apply resize event and call it once here in OnShow, when the form has its final dimensions
   OnResize := FormResize;
   OnResize(Sender);
+
+  // Simulated link label, has non inherited blue font color
+  lblExplainProcess.Font.Color := clBlue;
+  lblExplainProcessAnalyzer.Font.Color := clBlue;
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);

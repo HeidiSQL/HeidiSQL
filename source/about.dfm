@@ -14,7 +14,6 @@ object AboutBox: TAboutBox
   FormStyle = fsStayOnTop
   OldCreateOrder = True
   Position = poOwnerFormCenter
-  OnCreate = FormCreate
   OnMouseMove = MouseOver
   OnShow = FormShow
   DesignSize = (

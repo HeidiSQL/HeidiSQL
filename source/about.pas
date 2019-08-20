@@ -35,7 +35,6 @@ type
     procedure btnDonatedOKClick(Sender: TObject);
     procedure lblCreditsClick(Sender: TObject);
     procedure menuCopyLabelClick(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -122,17 +121,15 @@ begin
   btnClose.Default := True;
 end;
 
-procedure TAboutBox.FormCreate(Sender: TObject);
+procedure TAboutBox.FormShow(Sender: TObject);
 begin
+  Screen.Cursor := crHourGlass;
+
+  // Apply special font properties after form creation, as that disables ParentFont, which prevents InheritFont() to apply
   lblAppName.Font.Size := Round(lblAppName.Font.Size * 1.5);
   lblAppName.Font.Style := [fsBold];
   lblAppWebpage.Font.Color := clBlue;
   lblCredits.Font.Color := clBlue;
-end;
-
-procedure TAboutBox.FormShow(Sender: TObject);
-begin
-  Screen.Cursor := crHourGlass;
 
   imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
   imgDonate.OnClick := MainForm.DonateClick;

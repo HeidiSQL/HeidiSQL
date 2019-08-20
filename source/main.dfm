@@ -715,7 +715,7 @@ object MainForm: TMainForm
                   Caption = 'Process SQL:'
                   TabOrder = 0
                   object lblExplainProcess: TLabel
-                    Left = 87
+                    Left = 95
                     Top = 2
                     Width = 41
                     Height = 13
@@ -726,7 +726,7 @@ object MainForm: TMainForm
                     OnClick = lblExplainProcessClick
                   end
                   object lblExplainProcessAnalyzer: TLabel
-                    Left = 142
+                    Left = 170
                     Top = 2
                     Width = 162
                     Height = 13
