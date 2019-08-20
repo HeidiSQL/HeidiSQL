@@ -53,7 +53,7 @@ AppReadmeFile={#WebSite}help.php?place=installer
 
 CloseApplications=yes
 ShowLanguageDialog=auto
-DefaultDirName={pf}\{#ProgName}
+DefaultDirName={commonpf}\{#ProgName}
 DefaultGroupName={#ProgName}
 AllowNoIcons=yes
 LicenseFile=license.txt
