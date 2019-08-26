@@ -69,6 +69,7 @@ type
     private
       FOwner: TComponent;
       FURL: String;
+      FLastContent: String;
       FBytesRead: Integer;
       FContentLength: Integer;
       FTimeOut: Cardinal;
@@ -81,6 +82,7 @@ type
       property TimeOut: Cardinal read FTimeOut write FTimeOut;
       property BytesRead: Integer read FBytesRead;
       property ContentLength: Integer read FContentLength;
+      property LastContent: String read FLastContent;
   end;
 
   // Threading stuff
@@ -3219,6 +3221,7 @@ var
   DoStore: Boolean;
   UserAgent, OS: String;
   HttpStatus: Integer;
+  ContentChunk: String;
 begin
   DoStore := False;
   if MainForm.IsWine then
@@ -3233,6 +3236,7 @@ begin
   InternetSetOption(NetHandle, INTERNET_OPTION_CONNECT_TIMEOUT, @TimeOutSeconds, SizeOf(TimeOutSeconds));
 
   UrlHandle := nil;
+  FLastContent := '';
   try
     UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     if not Assigned(UrlHandle) then
@@ -3265,8 +3269,13 @@ begin
     // Stream contents
     while true do begin
       InternetReadFile(UrlHandle, @Buffer, SizeOf(Buffer), BytesInChunk);
-      if DoStore then
-        BlockWrite(LocalFile, Buffer, BytesInChunk);
+      // Either store as file or in memory variable
+      if DoStore then begin
+        BlockWrite(LocalFile, Buffer, BytesInChunk)
+      end else begin
+        SetString(ContentChunk, PChar(@Buffer[1]), BytesInChunk);
+        FLastContent := FLastContent + ContentChunk;
+      end;
       Inc(FBytesRead, BytesInChunk);
       if Assigned(FOnProgress) then
         FOnProgress(Self);

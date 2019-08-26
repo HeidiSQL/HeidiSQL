@@ -12820,7 +12820,7 @@ end;
 
 function TMainForm.HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
 var
-  Email, TempFileName, CheckResult: String;
+  Email, CheckResult: String;
   rx: TRegExpr;
   CheckWebpage: THttpDownload;
 begin
@@ -12840,20 +12840,18 @@ begin
       CheckWebpage := THttpDownload.Create(MainForm);
       CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email);
       CheckWebpage.TimeOut := 3;
-      TempFileName := GetTempDir + '\' + APPNAME + '_hasdonated_check.tmp';
       try
         try
-          CheckWebpage.SendRequest(TempFileName);
+          CheckWebpage.SendRequest('');
         except
           on E:Exception do begin
             // Try again without SSL. See issue #65
             MainForm.LogSQL(E.Message, lcError);
             CheckWebpage.URL := ReplaceRegExpr('^https:', CheckWebpage.URL, 'http:');
-            CheckWebpage.SendRequest(TempFileName);
+            CheckWebpage.SendRequest('');
           end;
         end;
-        CheckResult := ReadTextFile(TempFileName, TEncoding.Default);
-        SysUtils.DeleteFile(TempFileName);
+        CheckResult := CheckWebpage.LastContent;
         rx.Expression := '^\d+$';
         if rx.Exec(CheckResult) then begin
           if CheckResult = '0' then
@@ -12863,7 +12861,7 @@ begin
         end;
       except
         on E:Exception do begin
-          MainForm.LogSQL(E.Message, lcError);
+          MainForm.LogSQL(E.Message + sLineBreak + 'Check response: "'+CheckResult+'"', lcError);
           FHasDonatedDatabaseCheck := nbUnset; // Could have been set before, when ForceCheck=true
         end;
       end;
