@@ -5504,7 +5504,7 @@ begin
     if Param.Context = '' then
       Param.Context := 'IN';
     Param.Name := DeQuoteIdent(rx.Match[4]);
-    Param.Datatype := rx.Match[5];
+    Param.Datatype := Trim(rx.Match[5]);
     Parameters.Add(Param);
     if not rx.ExecNext then
       break;
