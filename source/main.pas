@@ -3821,6 +3821,7 @@ var
   Filesize, QueryCount, ErrorCount, RowsAffected, Position: Int64;
   Queries: TSQLBatch;
   i: Integer;
+  LastProcessMessages: Cardinal;
 
   procedure StopProgress;
   begin
@@ -3845,6 +3846,7 @@ begin
   ErrorCount := 0;
   Position := 0;
   RowsAffected := 0;
+  LastProcessMessages := GetTickCount;
   LinesRemain := '';
   Queries := TSQLBatch.Create;
 
@@ -3892,7 +3894,10 @@ begin
           Dummy
           );
         Dialog.SetProgress64(Position, FileSize);
-        Application.ProcessMessages;
+        if GetTickCount - LastProcessMessages > 1000 then begin
+          Application.ProcessMessages;
+          LastProcessMessages := GetTickCount;
+        end;
 
         // Execute single query
         // Break or don't break loop, depending on the state of "Stop on errors" button
