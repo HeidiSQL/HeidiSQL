@@ -12844,7 +12844,6 @@ begin
       rx := TRegExpr.Create;
       CheckWebpage := THttpDownload.Create(MainForm);
       CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email);
-      CheckWebpage.TimeOut := 3;
       try
         try
           CheckWebpage.SendRequest('');
