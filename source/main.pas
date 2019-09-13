@@ -2009,14 +2009,15 @@ begin
     actWebDownloadpage.Hint := 'ms-windows-store://pdp/?PRODUCTID=9NXPRT2T0ZJF';
   end;
 
+  // Now we are free to use certain methods, which are otherwise fired too early
+  MainFormCreated := True;
+
   // Log some application details - useful when analyzing session logs
   LogSQL(f_('App path: "%s"', [Application.ExeName]), lcDebug);
   LogSQL(f_('Version: "%s"', [AppVersion]), lcDebug);
   LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
-
-  // Now we are free to use certain methods, which are otherwise fired too early
-  MainFormCreated := True;
+  LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
 end;
 
 
@@ -6564,6 +6565,7 @@ var
   NewFontSize: Integer;
 begin
   // Change font size with MouseWheel
+  // TODO: broken in high-dpi mode, just zooms in
   if KeyPressed(VK_CONTROL) and AppSettings.ReadBool(asWheelZoom) then begin
     Editor := TSynEdit(Sender);
     NewFontSize := Editor.Font.Size;
