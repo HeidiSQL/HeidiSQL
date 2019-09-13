@@ -1978,9 +1978,6 @@ begin
   FGridCopying := False;
   FGridPasting := False;
 
-  FHasDonatedDatabaseCheck := nbUnset;
-  imgDonate.Visible := HasDonated(True) <> nbTrue;
-
   FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
 
   // Detect timezone offset in seconds, once
@@ -2072,6 +2069,11 @@ begin
   // Get all session names
   SessionPaths := TStringList.Create;
   AppSettings.GetSessionPaths('', SessionPaths);
+
+  // Probably hide image
+  FHasDonatedDatabaseCheck := nbUnset;
+  imgDonate.Visible := HasDonated(True) <> nbTrue;
+  imgDonate.Repaint;
 
   // Call user statistics if checked in settings
   if AppSettings.ReadBool(asDoUsageStatistics) then begin
@@ -12850,12 +12852,13 @@ begin
         except
           on E:Exception do begin
             // Try again without SSL. See issue #65
-            MainForm.LogSQL(E.Message, lcError);
+            LogSQL(E.Message, lcError);
             CheckWebpage.URL := ReplaceRegExpr('^https:', CheckWebpage.URL, 'http:');
             CheckWebpage.SendRequest('');
           end;
         end;
         CheckResult := CheckWebpage.LastContent;
+        LogSQL('Check success response: "'+CheckResult+'"');
         rx.Expression := '^\d+$';
         if rx.Exec(CheckResult) then begin
           if CheckResult = '0' then
@@ -12865,7 +12868,7 @@ begin
         end;
       except
         on E:Exception do begin
-          MainForm.LogSQL(E.Message + sLineBreak + 'Check response: "'+CheckResult+'"', lcError);
+          LogSQL(E.Message + sLineBreak + 'Check response: "'+CheckResult+'"', lcError);
           FHasDonatedDatabaseCheck := nbUnset; // Could have been set before, when ForceCheck=true
         end;
       end;
