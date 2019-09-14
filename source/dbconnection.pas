@@ -3178,6 +3178,9 @@ begin
     end else begin
       if FParameters.NetTypeGroup = ngPgSQL then begin
         s := EscapeString(Value);
+        // Get schema with the same name as user name in search path
+        // See https://www.heidisql.com/forum.php?t=34558
+        s := s + ', ' + EscapeString('$user');
         // Always keep public schema in search path, so one can use procedures from it without prefixing
         // See http://www.heidisql.com/forum.php?t=18581#p18905
         if Value <> 'public' then
