@@ -3214,7 +3214,7 @@ procedure THttpDownload.SendRequest(Filename: String);
 var
   NetHandle: HINTERNET;
   UrlHandle: HINTERNET;
-  Buffer: array[1..4096] of Byte;
+  Buffer: array[0..4095] of AnsiChar;
   Head: array[1..1024] of Char;
   BytesInChunk, HeadSize, Reserved, TimeOutSeconds: Cardinal;
   LocalFile: File;
@@ -3273,7 +3273,8 @@ begin
       if DoStore then begin
         BlockWrite(LocalFile, Buffer, BytesInChunk)
       end else begin
-        SetString(ContentChunk, PChar(@Buffer[1]), BytesInChunk);
+        SetString(ContentChunk, PChar(@Buffer[0]), BytesInChunk);
+        //ContentChunk := String(@Buffer[0]);
         FLastContent := FLastContent + ContentChunk;
       end;
       Inc(FBytesRead, BytesInChunk);
