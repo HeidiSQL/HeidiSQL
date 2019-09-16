@@ -653,6 +653,8 @@ type
     Switchtoqueryresults1: TMenuItem;
     actGoToDataMultiFilter: TAction;
     Datatabfilter1: TMenuItem;
+    actDataOpenUrl: TAction;
+    OpenURL1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1022,6 +1024,7 @@ type
     procedure TimerStoreTabsTimer(Sender: TObject);
     procedure actGoToQueryResultsExecute(Sender: TObject);
     procedure actGoToDataMultiFilterExecute(Sender: TObject);
+    procedure actDataOpenUrlExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -4935,6 +4938,17 @@ begin
   ValidateControls(Sender);
 end;
 
+
+procedure TMainForm.actDataOpenUrlExecute(Sender: TObject);
+var
+  Grid: TVirtualStringTree;
+begin
+  // Open grid cell url in web browser
+  Grid := ActiveGrid;
+  ShellExec(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
+end;
+
+
 procedure TMainForm.actDataPostChangesExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
@@ -5773,6 +5787,8 @@ begin
   actDataSaveBlobToFile.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actGridEditFunction.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataPreview.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
+  actDataOpenUrl.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode)
+    and ExecRegExpr('^https?://[^\s]+$', Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
   actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
   actPreviousResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;

@@ -3088,6 +3088,13 @@ object MainForm: TMainForm
       ShortCut = 24643
       OnExecute = actCopyOrCutExecute
     end
+    object actDataOpenUrl: TAction
+      Category = 'Data'
+      Caption = 'Open URL'
+      Hint = 'Open URL in your webbrowser'
+      ImageIndex = 69
+      OnExecute = actDataOpenUrlExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -3389,6 +3396,9 @@ object MainForm: TMainForm
       object Datapreferences1: TMenuItem
         Action = actPreferencesData
       end
+    end
+    object OpenURL1: TMenuItem
+      Action = actDataOpenUrl
     end
     object N4a: TMenuItem
       Caption = '-'
