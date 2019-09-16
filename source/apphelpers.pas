@@ -3214,14 +3214,14 @@ procedure THttpDownload.SendRequest(Filename: String);
 var
   NetHandle: HINTERNET;
   UrlHandle: HINTERNET;
-  Buffer: array[0..4095] of AnsiChar;
+  Buffer: array[1..4096] of AnsiChar;
   Head: array[1..1024] of Char;
   BytesInChunk, HeadSize, Reserved, TimeOutSeconds: Cardinal;
   LocalFile: File;
   DoStore: Boolean;
   UserAgent, OS: String;
   HttpStatus: Integer;
-  ContentChunk: String;
+  ContentChunk: UTF8String;
 begin
   DoStore := False;
   if MainForm.IsWine then
@@ -3273,9 +3273,8 @@ begin
       if DoStore then begin
         BlockWrite(LocalFile, Buffer, BytesInChunk)
       end else begin
-        SetString(ContentChunk, PChar(@Buffer[0]), BytesInChunk);
-        //ContentChunk := String(@Buffer[0]);
-        FLastContent := FLastContent + ContentChunk;
+        SetString(ContentChunk, PAnsiChar(@Buffer[1]), BytesInChunk);
+        FLastContent := FLastContent + String(ContentChunk);
       end;
       Inc(FBytesRead, BytesInChunk);
       if Assigned(FOnProgress) then

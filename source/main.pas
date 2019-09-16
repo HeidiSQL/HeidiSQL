@@ -12860,8 +12860,8 @@ begin
           end;
         end;
         CheckResult := CheckWebpage.LastContent;
-        LogSQL('Check success response: "'+CheckResult+'"');
-        rx.Expression := '^\d+$';
+        LogSQL('HTTP response: "'+CheckResult+'"', lcDebug);
+        rx.Expression := '^\d';
         if rx.Exec(CheckResult) then begin
           if CheckResult = '0' then
             FHasDonatedDatabaseCheck := nbFalse
@@ -12870,7 +12870,7 @@ begin
         end;
       except
         on E:Exception do begin
-          LogSQL(E.Message + sLineBreak + 'Check response: "'+CheckResult+'"', lcError);
+          LogSQL(E.Message + sLineBreak + 'HTTP response: "'+CheckResult+'"', lcError);
           FHasDonatedDatabaseCheck := nbUnset; // Could have been set before, when ForceCheck=true
         end;
       end;
