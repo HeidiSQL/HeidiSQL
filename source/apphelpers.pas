@@ -1299,7 +1299,7 @@ end;
 
 function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
 const
-  BufferPadding = SIZE_MB;
+  BufferPadding = 1;
 var
   DataLeft, StartPosition: Int64;
   LBuffer: TBytes;
