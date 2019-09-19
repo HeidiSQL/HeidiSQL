@@ -6529,48 +6529,93 @@ end;
 procedure TMainForm.SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
 var
   Editor: TSynMemo;
-  Token: String;
+  Token, Replacement: String;
   Attri: TSynHighlighterAttributes;
-  OldCaretXY, StartOfTokenRowCol, CurrentRowCol: TBufferCoord;
+  OldCaretXY, StartOfTokenRowCol, EndOfTokenRowCol, CurrentRowCol: TBufferCoord;
   TokenTypeInt, Start, CurrentCharIndex: Integer;
-  OldSelStart, OldSelEnd: Integer;
+  //OldSelStart, OldSelEnd: Integer;
   LineWithToken: String;
+  TableIndex, ProcIndex: Integer;
 const
   WordChars = ['A'..'Z', 'a'..'z', '_'];
   IgnoreChars = [#8]; // Backspace, and probably more which should not trigger uppercase
 begin
   // Uppercase reserved words, functions and data types
-  if (not CharInSet(Key, WordChars)) and (not CharInSet(Key, IgnoreChars)) then begin
-    if not AppSettings.ReadBool(asAutoUppercase) then
-      Exit;
-    Editor := Sender as TSynMemo;
-    CurrentCharIndex := Editor.RowColToCharIndex(Editor.CaretXY);
-    // Go one left on trailing line feed, after which PrevWordPos doesn't work
-    Dec(CurrentCharIndex, 1);
-    CurrentRowCol := Editor.CharIndexToRowCol(CurrentCharIndex);
-    StartOfTokenRowCol := Editor.PrevWordPosEx(CurrentRowCol);
-    Editor.GetHighlighterAttriAtRowColEx(StartOfTokenRowCol, Token, TokenTypeInt, Start, Attri);
-    LineWithToken := Editor.Lines[StartOfTokenRowCol.Line-1];
-    if (StartOfTokenRowCol.Char > 1) and (LineWithToken[StartOfTokenRowCol.Char-1] = '.') then begin
-      // Previous word is preceded by a dot, so it is most probably a table, column or some alias
-      Exit;
-    end;
-    if SynSQLSynUsed.TableNames.IndexOf(Token) > 0 then
-      Exit;
-    if not (TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey]) then
-      Exit;
-    OldCaretXY := Editor.CaretXY;
-    OldSelStart := Editor.SelStart;
-    OldSelEnd := Editor.SelEnd;
-    Editor.UndoList.BeginBlock;
-    Editor.SelStart := Editor.RowColToCharIndex(StartOfTokenRowCol);
-    Editor.SelEnd := Editor.SelStart + Length(Token);
-    Editor.SelText := UpperCase(Token);
-    Editor.CaretXY := OldCaretXY;
-    Editor.SelStart := OldSelStart;
-    Editor.SelEnd := OldSelEnd;
-    Editor.UndoList.EndBlock;
+  if CharInSet(Key, WordChars) or CharInSet(Key, IgnoreChars) then
+    Exit;
+  if not AppSettings.ReadBool(asAutoUppercase) then
+    Exit;
+  Editor := Sender as TSynMemo;
+  CurrentCharIndex := Editor.RowColToCharIndex(Editor.CaretXY);
+  // Go one left on trailing line feed, after which PrevWordPos doesn't work
+  Dec(CurrentCharIndex, 1);
+  CurrentRowCol := Editor.CharIndexToRowCol(CurrentCharIndex);
+  StartOfTokenRowCol := Editor.PrevWordPosEx(CurrentRowCol);
+  Editor.GetHighlighterAttriAtRowColEx(StartOfTokenRowCol, Token, TokenTypeInt, Start, Attri);
+  Replacement := UpperCase(Token);
+
+  // Check if token is preceded by a dot, so it is most probably a table, column or some alias
+  LineWithToken := Editor.Lines[StartOfTokenRowCol.Line-1];
+  if (StartOfTokenRowCol.Char > 1) and (LineWithToken[StartOfTokenRowCol.Char-1] = '.') then begin
+    Exit;
   end;
+
+  // Auto-fix case of known database objects
+  TableIndex := SynSQLSynUsed.TableNames.IndexOf(Token);
+  ProcIndex := SynSQLSynUsed.ProcNames.IndexOf(Token);
+  if TableIndex > -1 then begin
+    Replacement := SynSQLSynUsed.TableNames[TableIndex];
+  end else if ProcIndex > -1 then begin
+    Replacement := SynSQLSynUsed.ProcNames[ProcIndex];
+  end else if not (TtkTokenKind(TokenTypeInt) in [tkDatatype, tkFunction, tkKey]) then begin
+    // Only uppercase certain types of keywords
+    Exit;
+  end;
+
+  if Token <> Replacement then begin
+    OldCaretXY := Editor.CaretXY;
+    //OldSelStart := Editor.SelStart;
+    //OldSelEnd := Editor.SelEnd;
+
+    EndOfTokenRowCol := Editor.WordEndEx(StartOfTokenRowCol);
+    Editor.InsertBlock(StartOfTokenRowCol, EndOfTokenRowCol, PWideChar(Replacement), True);
+
+    Editor.CaretXY := OldCaretXY;
+    //Editor.SelStart := OldSelStart; // breaks at least some undo steps
+    //Editor.SelEnd := OldSelEnd;
+  end;
+
+  //Editor.ExecuteCommand(ecUpperCase, #0, nil);
+
+  {Editor.UndoList.BeginBlock; // this does not work!
+  Editor.UndoList.AddGroupBreak; // neither!
+  Editor.SelStart := Editor.RowColToCharIndex(StartOfTokenRowCol);
+  Editor.SelEnd := Editor.SelStart + Length(Token);
+  Editor.SelText := UpperCase(Token);}
+
+  {Editor.BlockBegin := StartOfTokenRowCol;
+  EndOfTokenRowCol := StartOfTokenRowCol;
+  EndOfTokenRowCol.Char := EndOfTokenRowCol.Char + Length(Token);
+  Editor.BlockEnd := EndOfTokenRowCol;}
+
+  {Editor.BeginUndoBlock;
+  Editor.UndoList.AddChange(crDelete, StartOfTokenRowCol, EndOfTokenRowCol, Token, smNormal);
+  Editor.CommandProcessor(ecUpperCase, #0, nil);
+  Editor.EndUndoBlock;}
+
+  {Editor.BeginUndoBlock;
+  Editor.ExecuteCommand(ecUpperCase, #0, nil);
+  Editor.EndUndoBlock;}
+
+  {Editor.BeginUndoBlock;
+  Editor.UndoList.AddChange(crDelete, StartOfTokenRowCol, EndOfTokenRowCol, Token, smNormal);
+  Editor.LockUndo;
+  Editor.SelText := UpperCase(Token);
+  Editor.UnlockUndo;
+  Editor.UndoList.AddChange(crPaste, StartOfTokenRowCol, EndOfTokenRowCol, UpperCase(Token), smNormal);
+  Editor.EndUndoBlock;}
+
+  //Editor.UndoList.EndBlock;
 end;
 
 
