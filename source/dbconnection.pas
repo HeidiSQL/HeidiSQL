@@ -1940,7 +1940,10 @@ begin
       'User ID='+Parameters.Username+';'+
       'Network Library='+NetLib+';'+
       'Data Source='+DataSource+';'+
-      'Application Name='+AppName+';'
+      'Application Name='+AppName+';'+
+      // Issue #423: MSOLEDBSQL compatibility with new column types
+      // See https://docs.microsoft.com/en-us/sql/connect/oledb/applications/using-ado-with-oledb-driver-for-sql-server?view=sql-server-2017
+      'DataTypeCompatibility=80;'
       ;
 
     // Pass Database setting to connection string. Required on MS Azure?
