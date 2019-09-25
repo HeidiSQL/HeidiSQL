@@ -8,7 +8,7 @@ uses
   Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, gnugettext,
-  StrUtils, System.UITypes, SynRegExpr, Vcl.Themes;
+  StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -304,6 +304,7 @@ begin
   if Assigned(FMainControl) then begin
     FOldWindowProc := FMainControl.WindowProc;
     FMainControl.WindowProc := TempWindowProc;
+    TExtForm.FixControls(FMainControl);
   end;
   // Adjust editor position and allow repainting mainform  
   SetBounds(FCellTextBounds);

@@ -20,7 +20,7 @@ type
       constructor Create(AOwner: TComponent); override;
       procedure InheritFont(AFont: TFont);
       property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
-      class procedure FixControls(FormOrFrame: TScrollingWincontrol);
+      class procedure FixControls(ParentComp: TComponent);
   end;
   // Memo replacement which accepts any line break format
   TLineNormalizingMemo = class(TMemo)
@@ -72,13 +72,12 @@ begin
 end;
 
 
-class procedure TExtForm.FixControls(FormOrFrame: TScrollingWincontrol);
+class procedure TExtForm.FixControls(ParentComp: TComponent);
 var
   i: Integer;
-  Cmp: TComponent;
-begin
-  for i:=0 to FormOrFrame.ComponentCount-1 do begin
-    Cmp := FormOrFrame.Components[i];
+
+  procedure ProcessSingleComponent(Cmp: TComponent);
+  begin
     if (Cmp is TButton) and (TButton(Cmp).Style = bsSplitButton) then begin
       // Work around broken dropdown (tool)button on Wine after translation:
       // https://sourceforge.net/p/dxgettext/bugs/80/
@@ -98,6 +97,13 @@ begin
       // Todo: find a way to fix TComboBox, for which this hack does nothing
       SHAutoComplete(TCustomEdit(Cmp).Handle, SHACF_AUTOAPPEND_FORCE_ON or SHACF_AUTOSUGGEST_FORCE_ON);
     end;
+  end;
+begin
+  // Passed component itself may also be some control to be fixed
+  // e.g. TInplaceEditorLink.MainControl
+  ProcessSingleComponent(ParentComp);
+  for i:=0 to ParentComp.ComponentCount-1 do begin
+    ProcessSingleComponent(ParentComp.Components[i]);
   end;
 end;
 
