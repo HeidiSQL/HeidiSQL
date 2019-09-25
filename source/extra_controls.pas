@@ -14,10 +14,13 @@ type
       FSizeGrip: TSizeGripXP;
       function GetHasSizeGrip: Boolean;
       procedure SetHasSizeGrip(Value: Boolean);
+    protected
+      procedure DoShow; override;
     public
       constructor Create(AOwner: TComponent); override;
       procedure InheritFont(AFont: TFont);
       property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
+      class procedure FixControls(FormOrFrame: TScrollingWincontrol);
   end;
   // Memo replacement which accepts any line break format
   TLineNormalizingMemo = class(TMemo)
@@ -35,8 +38,6 @@ implementation
 constructor TExtForm.Create(AOwner: TComponent);
 var
   OldImageList: TCustomImageList;
-  i: Integer;
-  Cmp: TComponent;
 begin
   inherited;
 
@@ -61,8 +62,23 @@ begin
     TranslateComponent(Self);
   end;
 
-  for i:=0 to ComponentCount-1 do begin
-    Cmp := Components[i];
+end;
+
+
+procedure TExtForm.DoShow;
+begin
+  FixControls(Self);
+  inherited;
+end;
+
+
+class procedure TExtForm.FixControls(FormOrFrame: TScrollingWincontrol);
+var
+  i: Integer;
+  Cmp: TComponent;
+begin
+  for i:=0 to FormOrFrame.ComponentCount-1 do begin
+    Cmp := FormOrFrame.Components[i];
     if (Cmp is TButton) and (TButton(Cmp).Style = bsSplitButton) then begin
       // Work around broken dropdown (tool)button on Wine after translation:
       // https://sourceforge.net/p/dxgettext/bugs/80/
@@ -76,6 +92,7 @@ begin
     end;
     if Cmp is TCustomEdit then begin
       // Support Ctr+Backspace for deleting last word in TEdit and TButtonedEdit
+      // This did not work in OnCreate, so here's it in OnShow
       // See https://stackoverflow.com/questions/10305634/ctrlbackspace-in-delphi-controls
       // See issue #144
       // Todo: find a way to fix TComboBox, for which this hack does nothing

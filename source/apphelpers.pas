@@ -369,7 +369,7 @@ var
 
 implementation
 
-uses main;
+uses main, extra_controls;
 
 
 
@@ -1869,6 +1869,7 @@ var
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
+  TExtForm.FixControls(Self);
   DBObject := TDBObject.Create(Obj.Connection);
   DBObject.Assign(Obj);
   Mainform.UpdateEditorTab;
