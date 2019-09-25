@@ -4,7 +4,8 @@ interface
 
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
-  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls;
+  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
+  ShLwApi, Vcl.ExtCtrls;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -59,17 +60,26 @@ begin
   end else begin
     TranslateComponent(Self);
   end;
-  // Work around broken dropdown (tool)button on Wine after translation:
-  // https://sourceforge.net/p/dxgettext/bugs/80/
+
   for i:=0 to ComponentCount-1 do begin
     Cmp := Components[i];
     if (Cmp is TButton) and (TButton(Cmp).Style = bsSplitButton) then begin
+      // Work around broken dropdown (tool)button on Wine after translation:
+      // https://sourceforge.net/p/dxgettext/bugs/80/
       TButton(Cmp).Style := bsPushButton;
       TButton(Cmp).Style := bsSplitButton;
     end;
     if (Cmp is TToolButton) and (TToolButton(Cmp).Style = tbsDropDown) then begin
+      // similar fix as above
       TToolButton(Cmp).Style := tbsButton;
       TToolButton(Cmp).Style := tbsDropDown;
+    end;
+    if Cmp is TCustomEdit then begin
+      // Support Ctr+Backspace for deleting last word in TEdit and TButtonedEdit
+      // See https://stackoverflow.com/questions/10305634/ctrlbackspace-in-delphi-controls
+      // See issue #144
+      // Todo: find a way to fix TComboBox, for which this hack does nothing
+      SHAutoComplete(TCustomEdit(Cmp).Handle, SHACF_AUTOAPPEND_FORCE_ON or SHACF_AUTOSUGGEST_FORCE_ON);
     end;
   end;
 end;
