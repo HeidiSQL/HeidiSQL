@@ -337,6 +337,7 @@ type
   function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
+  function GetLocaleString(const ResourceId: Integer): WideString;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
   function f_(const Pattern: string; const Args: array of const): string;
@@ -366,6 +367,7 @@ var
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
   ConfirmIcon: TIcon;
   NumberChars: TSysCharSet;
+  LibHandleUser32: THandle;
 
 implementation
 
@@ -2341,19 +2343,24 @@ var
   Hotkeys: String;
   WebSearchUrl, WebSearchHost: String;
 
-  procedure AddButton(BtnCaption: String; BtnResult: TModalResult);
+  procedure AddButton(BtnCaption: String; BtnResult: TModalResult; ResourceId: Integer=0);
   var
     i: Integer;
     cap: String;
   begin
     Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
-    cap := _(BtnCaption);
-    for i:=1 to Length(cap) do begin
-      // Auto apply hotkey
-      if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and Character.TCharacter.IsLetter(cap[i]) then begin
-        Hotkeys := Hotkeys + LowerCase(cap[i]);
-        Insert('&', cap, i);
-        break;
+    if ResourceId > 0 then begin
+      // Prefer string from user32.dll
+      cap := GetLocaleString(ResourceId)
+    end else begin
+      cap := _(BtnCaption);
+      for i:=1 to Length(cap) do begin
+        // Auto apply hotkey
+        if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and Character.TCharacter.IsLetter(cap[i]) then begin
+          Hotkeys := Hotkeys + LowerCase(cap[i]);
+          Insert('&', cap, i);
+          break;
+        end;
       end;
     end;
     Btn.Caption := cap;
@@ -2421,17 +2428,17 @@ begin
     // Add buttons
     for MsgButton in Buttons do begin
       case MsgButton of
-        mbYes:       AddButton('Yes', mrYes);
-        mbNo:        AddButton('No', mrNo);
-        mbOK:        AddButton('OK', mrOk);
-        mbCancel:    AddButton('Cancel', mrCancel);
-        mbAbort:     AddButton('Abort', mrAbort);
-        mbRetry:     AddButton('Retry', mrRetry);
-        mbIgnore:    AddButton('Ignore', mrIgnore);
+        mbYes:       AddButton('Yes', mrYes, 805);
+        mbNo:        AddButton('No', mrNo, 806);
+        mbOK:        AddButton('OK', mrOk, 800);
+        mbCancel:    AddButton('Cancel', mrCancel, 801);
+        mbAbort:     AddButton('Abort', mrAbort, 802);
+        mbRetry:     AddButton('Retry', mrRetry, 803);
+        mbIgnore:    AddButton('Ignore', mrIgnore, 804);
         mbAll:       AddButton('All', mrAll);
         mbNoToAll:   AddButton('No to all', mrNoToAll);
         mbYesToAll:  AddButton('Yes to all', mrYesToAll);
-        mbClose:     AddButton('Close', mrClose);
+        mbClose:     AddButton('Close', mrClose, 807);
       end;
     end;
 
@@ -2486,6 +2493,21 @@ end;
 function ErrorDialog(const Title, Msg: string): Integer;
 begin
   Result := MessageDialog(Title, Msg, mtError, [mbOK]);
+end;
+
+
+function GetLocaleString(const ResourceId: Integer): WideString;
+var
+  Buffer: WideString;
+  BufferLen: Integer;
+begin
+  Result := '';
+  if LibHandleUser32 <> 0 then begin
+    SetLength(Buffer, 255);
+    BufferLen := LoadStringW(LibHandleUser32, ResourceId, PWideChar(Buffer), Length(Buffer));
+    if BufferLen <> 0 then
+      Result := Copy(Buffer, 1, BufferLen);
+  end;
 end;
 
 
@@ -4201,6 +4223,7 @@ initialization
 
 NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.ThousandSeparator];
 
+LibHandleUser32 := LoadLibrary('User32.dll');
 
 end.
 
