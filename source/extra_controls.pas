@@ -89,12 +89,13 @@ var
       TToolButton(Cmp).Style := tbsButton;
       TToolButton(Cmp).Style := tbsDropDown;
     end;
-    if Cmp is TCustomEdit then begin
+    if (Cmp is TCustomEdit) and (not (Cmp is TCustomMemo)) then begin
       // Support Ctr+Backspace for deleting last word in TEdit and TButtonedEdit
       // This did not work in OnCreate, so here's it in OnShow
       // See https://stackoverflow.com/questions/10305634/ctrlbackspace-in-delphi-controls
       // See issue #144
       // Todo: find a way to fix TComboBox, for which this hack does nothing
+      //       ... and for TMemo, which just selects all text when pressing Enter key
       SHAutoComplete(TCustomEdit(Cmp).Handle, SHACF_AUTOAPPEND_FORCE_ON or SHACF_AUTOSUGGEST_FORCE_ON);
     end;
   end;
