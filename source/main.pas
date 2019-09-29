@@ -3037,7 +3037,8 @@ begin
     except on E:EDbError do
       TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
-    TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + '↔ × ' + FormatNumber(Results.RecordCount) + '↕)';
+
+    TabCaption := TabCaption + ' (' + FormatNumber(Results.RecordCount) + 'r × ' + FormatNumber(Results.ColumnCount) + 'c)';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
 
     NewTab.Grid.BeginUpdate;
@@ -11972,7 +11973,7 @@ begin
     AppendMsg := ' ('+FormatByteNumber(ActiveQueryMemo.GetTextLen)+')';
   end;
   if (x > -1) and (y > -1) then begin
-    ShowStatusMsg(FormatNumber(x)+'↔ : '+FormatNumber(y) + '↕' + AppendMsg, 1)
+    ShowStatusMsg('r'+FormatNumber(y)+' : c'+FormatNumber(x) + AppendMsg, 1)
   end else
     ShowStatusMsg('', 1);
 end;
