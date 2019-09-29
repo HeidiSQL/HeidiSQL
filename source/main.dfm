@@ -1336,8 +1336,16 @@ object MainForm: TMainForm
               OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
               FontSmoothing = fsmNone
-              RemovedKeystrokes = <>
+              RemovedKeystrokes = <
+                item
+                  Command = ecDeleteWord
+                  ShortCut = 16468
+                end>
               AddedKeystrokes = <
+                item
+                  Command = ecDeleteWord
+                  ShortCut = 16430
+                end
                 item
                   Command = ecUpperCaseBlock
                   ShortCut = 16469
