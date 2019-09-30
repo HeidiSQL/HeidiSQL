@@ -11595,6 +11595,7 @@ begin
     Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     Editor.WantTabs := BaseEditor.WantTabs;
+    Editor.OnKeyPress := BaseEditor.OnKeyPress;
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
