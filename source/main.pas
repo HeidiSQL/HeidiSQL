@@ -5789,6 +5789,7 @@ begin
   actGridEditFunction.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataPreview.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataOpenUrl.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode)
+    and (Results <> nil) // see issue #759
     and ExecRegExpr('^https?://[^\s]+$', Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
   actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
