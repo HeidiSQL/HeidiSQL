@@ -3201,7 +3201,7 @@ end;
 procedure TDBConnection.DetectUSEQuery(SQL: String);
 var
   rx: TRegExpr;
-  Quotes, EscapeFunction: String;
+  Quotes: String;
 begin
   // Detect query for switching current working database or schema
   rx := TRegExpr.Create;
@@ -3209,11 +3209,7 @@ begin
   rx.Expression := '^'+GetSQLSpecifity(spUSEQuery);
   Quotes := QuoteRegExprMetaChars(FQuoteChars+''';');
   rx.Expression := StringReplace(rx.Expression, ' ', '\s+', [rfReplaceAll]);
-  if Parameters.NetTypeGroup = ngPgSQL then
-    EscapeFunction := 'E'
-  else
-    EscapeFunction := '';
-  rx.Expression := StringReplace(rx.Expression, '%s', EscapeFunction+'['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
+  rx.Expression := StringReplace(rx.Expression, '%s', '['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
   if rx.Exec(SQL) then begin
     FDatabase := Trim(rx.Match[1]);
     FDatabase := DeQuoteIdent(FDatabase);
@@ -3664,7 +3660,7 @@ var
   c1, c2, c3, c4, EscChar: Char;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL: begin
       c1 := '''';
       c2 := '\';
       c3 := '%';
@@ -3708,13 +3704,26 @@ begin
       end;
     end;
 
+    ngPgSQL: begin
+      c1 := '\';
+      c2 := '\';
+      c3 := '\';
+      c4 := '\';
+      EscChar := '\';
+      if ProcessJokerChars then begin
+        c3 := '%';
+        c4 := '_';
+      end;
+      Result := escChars(Text, EscChar, c1, c2, c3, c4);
+      // Escape single quote with a second single quote
+      Result := escChars(Text, '''', '''', '''', '''', '''');
+    end;
+
   end;
 
   if DoQuote then begin
     // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
-    if FParameters.NetTypeGroup = ngPgSQL then
-      Result := 'E' + Result;
   end;
 end;
 
@@ -3856,8 +3865,6 @@ var
   Quote: Char;
 begin
   Result := Identifier;
-  if (FParameters.NetTypeGroup = ngPgSQL) and (Pos('E''', Result) = 1) then
-    Result := Copy(Result, 2, Length(Result));
   if (Length(Identifier)>0) and (Result[1] = FQuoteChar) and (Result[Length(Identifier)] = FQuoteChar) then
     Result := Copy(Result, 2, Length(Result)-2);
   if Glue <> #0 then
