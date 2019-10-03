@@ -3705,18 +3705,18 @@ begin
     end;
 
     ngPgSQL: begin
-      c1 := '\';
-      c2 := '\';
-      c3 := '\';
-      c4 := '\';
-      EscChar := '\';
       if ProcessJokerChars then begin
+        c1 := '%';
+        c2 := '_';
         c3 := '%';
-        c4 := '_';
+        c4 := '%';
+        EscChar := '\';
+        Result := escChars(Text, EscChar, c1, c2, c3, c4);
+      end else begin
+        Result := Text;
       end;
-      Result := escChars(Text, EscChar, c1, c2, c3, c4);
       // Escape single quote with a second single quote
-      Result := escChars(Text, '''', '''', '''', '''', '''');
+      Result := escChars(Result, '''', '''', '''', '''', '''');
     end;
 
   end;
