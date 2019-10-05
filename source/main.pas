@@ -9487,6 +9487,8 @@ end;
 
 procedure TMainForm.AnyGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+const
+  ForeignItemsLimit: Integer = 10000;
 var
   VT: TVirtualStringTree;
   HexEditor: THexEditorLink;
@@ -9536,10 +9538,10 @@ begin
         if TextCol <> '' then SQL := SQL + ', LEFT(' + Conn.QuoteIdent(TextCol) + ', 256)';
         SQL := SQL + ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
         if TextCol <> '' then SQL := SQL + Conn.QuoteIdent(TextCol) else SQL := SQL + KeyCol;
-        SQL := SQL + ' LIMIT 1000';
+        SQL := SQL + ' LIMIT ' + ForeignItemsLimit.ToString;
 
         ForeignResults := Conn.GetResults(SQL);
-        if ForeignResults.RecordCount < 1000 then begin
+        if ForeignResults.RecordCount < ForeignItemsLimit then begin
           EnumEditor := TEnumEditorLink.Create(VT);
           EditLink := EnumEditor;
           while not ForeignResults.Eof do begin
@@ -9548,6 +9550,8 @@ begin
               EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
             ForeignResults.Next;
           end;
+        end else begin
+          LogSQL(f_('Connected table has too many rows. Foreign key drop-down is limited to %d items.', [ForeignItemsLimit]), lcInfo);
         end;
         ForeignResults.Free;
         break;
