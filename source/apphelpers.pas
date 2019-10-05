@@ -330,6 +330,7 @@ type
   function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
@@ -2196,6 +2197,13 @@ function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): I
 begin
   // Sort TStringList items which are stored as name=value pairs
   Result := CompareAnyNode(List.ValueFromIndex[Index2], List.ValueFromIndex[Index1]);
+end;
+
+
+function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  // Sort TStringList items by their length
+  Result := CompareValue(List[Index2].Length, List[Index1].Length);
 end;
 
 
@@ -4224,6 +4232,7 @@ initialization
 NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.ThousandSeparator];
 
 LibHandleUser32 := LoadLibrary('User32.dll');
+
 
 end.
 

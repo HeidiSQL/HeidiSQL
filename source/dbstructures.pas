@@ -1505,7 +1505,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..34] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..35] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1769,9 +1769,23 @@ var
     ),
     (
       Index:           dtDatetime;
-      NativeTypes:     '1082|1114|1184|702';
+      NativeTypes:     '1082|1114|702';
       Name:            'TIMESTAMP';
-      Names:           'timestamp|datetime|timestamptz|abstime';
+      Names:           'timestamp|datetime|abstime|timestamp without time zone';
+      Description:     'Date and time.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Format:          'yyyy-mm-dd hh:nn:ss';
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtDatetime2;
+      NativeTypes:     '1184';
+      Name:            'TIMESTAMPTZ';
+      Names:           'timestamptz|timestamp with timezone';
       Description:     'Date and time.';
       HasLength:       False;
       RequiresLength:  False;

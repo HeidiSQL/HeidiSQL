@@ -1571,19 +1571,28 @@ var
   Match: Boolean;
   rx: TRegExpr;
   Types, tmp: String;
+  TypesSorted: TStringList;
 begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   MatchLen := 0;
   for i:=0 to High(FDatatypes) do begin
     Types := FDatatypes[i].Name;
-    if FDatatypes[i].Names <> '' then
+    if FDatatypes[i].Names <> '' then begin
       Types := Types + '|' + FDatatypes[i].Names;
+      // Move more exact (longer) types to the beginning
+      TypesSorted := Explode('|', Types);
+      TypesSorted.CustomSort(StringListCompareByLength);
+      Types := ImplodeStr('|', TypesSorted);
+      TypesSorted.Free;
+    end;
+
     rx.Expression := '^('+Types+')\b(\[\])?';
     Match := rx.Exec(DataType);
     // Prefer a later match which is longer than the one found before.
     // See http://www.heidisql.com/forum.php?t=17061
     if Match and (rx.MatchLen[1] > MatchLen) then begin
+      Log(lcDebug, 'GetDatatypeByName: "'+DataType+'" : '+rx.Match[1]);
       if (FParameters.NetTypeGroup = ngPgSQL) and (rx.MatchLen[2] > 0) then begin
         // TODO: detect array style datatypes, e.g. TEXT[]
       end else begin
