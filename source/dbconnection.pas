@@ -2854,7 +2854,7 @@ begin
             '  FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, '+
             '  CASE a.attnotnull WHEN false THEN '+EscapeString('YES')+' ELSE '+EscapeString('NO')+' END AS IS_NULLABLE, '+
             '  com.description AS column_comment, '+
-            '  def.adsrc AS column_default, '+
+            '  pg_get_expr(def.adbin, def.adrelid) AS column_default, '+
             '  NULL AS character_maximum_length '+
             'FROM pg_attribute AS a '+
             'JOIN pg_class AS pgc ON pgc.oid = a.attrelid '+
