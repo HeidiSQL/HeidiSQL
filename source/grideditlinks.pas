@@ -304,9 +304,8 @@ begin
   if Assigned(FMainControl) then begin
     FOldWindowProc := FMainControl.WindowProc;
     FMainControl.WindowProc := TempWindowProc;
-    TExtForm.FixControls(FMainControl);
   end;
-  // Adjust editor position and allow repainting mainform  
+  // Adjust editor position and allow repainting mainform
   SetBounds(FCellTextBounds);
   SendMessage(FParentForm.Handle, WM_SETREDRAW, 1, 0);
 end;
