@@ -2058,6 +2058,11 @@ var
   dbname, ConnInfo, Error, tmpdb: String;
   FinalHost: String;
   FinalPort: Integer;
+
+  function EscapeConnectOption(Option: String): String;
+  begin // See issue #704
+    Result := StringReplace(Option, '\', '\\', [rfReplaceAll]);
+  end;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -2090,11 +2095,11 @@ begin
     if FParameters.WantSSL then begin
       ConnInfo := ConnInfo + ' sslmode=''require''';
       if FParameters.SSLPrivateKey <> '' then
-        ConnInfo := ConnInfo + ' sslkey='''+FParameters.SSLPrivateKey+'''';
+        ConnInfo := ConnInfo + ' sslkey='''+EscapeConnectOption(FParameters.SSLPrivateKey)+'''';
       if FParameters.SSLCertificate <> '' then
-        ConnInfo := ConnInfo + ' sslcert='''+FParameters.SSLCertificate+'''';
+        ConnInfo := ConnInfo + ' sslcert='''+EscapeConnectOption(FParameters.SSLCertificate)+'''';
       if FParameters.SSLCACertificate <> '' then
-        ConnInfo := ConnInfo + ' sslrootcert='''+FParameters.SSLCACertificate+'''';
+        ConnInfo := ConnInfo + ' sslrootcert='''+EscapeConnectOption(FParameters.SSLCACertificate)+'''';
       //if FParameters.SSLCipher <> '' then ??
     end;
 
