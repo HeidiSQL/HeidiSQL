@@ -2131,6 +2131,11 @@ begin
     except
       FServerUptime := -1;
     end;
+    try
+      FIsSSL := LowerCase(GetVar('SHOW ssl')) = 'on';
+    except
+      FIsSSL := False;
+    end;
 
     DoAfterConnect;
 
