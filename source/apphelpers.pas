@@ -1118,11 +1118,11 @@ end;
 }
 procedure SaveUnicodeFile(Filename: String; Text: String);
 var
-  f: TFileStream;
+  Writer: TStreamWriter;
 begin
-  f := TFileStream.Create(Filename, fmCreate or fmOpenWrite);
-  StreamWrite(f, Text);
-  f.Free;
+  Writer := TStreamWriter.Create(Filename, False, TEncoding.UTF8);
+  Writer.Write(Text);
+  Writer.Free;
 end;
 
 
