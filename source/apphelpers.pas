@@ -26,6 +26,11 @@ type
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
 
+  TUTF8NoBOMEncoding = class(TUTF8Encoding)
+    public
+      function GetPreamble: TBytes; override;
+  end;
+
   TDBObjectEditor = class(TFrame)
     private
       FModified: Boolean;
@@ -1119,10 +1124,13 @@ end;
 procedure SaveUnicodeFile(Filename: String; Text: String);
 var
   Writer: TStreamWriter;
+  Enc: TEncoding;
 begin
-  Writer := TStreamWriter.Create(Filename, False, TEncoding.UTF8);
+  Enc := TUTF8NoBOMEncoding.Create;
+  Writer := TStreamWriter.Create(Filename, False, Enc);
   Writer.Write(Text);
   Writer.Free;
+  Enc.Free;
 end;
 
 
@@ -4225,6 +4233,14 @@ begin
   end;
 end;
 
+
+
+{ TUTF8NoBOMEncoding }
+
+function TUTF8NoBOMEncoding.GetPreamble: TBytes;
+begin
+  SetLength(Result, 0);
+end;
 
 
 initialization
