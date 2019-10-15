@@ -26,6 +26,11 @@ type
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
 
+  TUTF8NoBOMEncoding = class(TUTF8Encoding)
+    public
+      function GetPreamble: TBytes; override;
+  end;
+
   TDBObjectEditor = class(TFrame)
     private
       FModified: Boolean;
@@ -330,6 +335,7 @@ type
   function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
   function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
@@ -1117,11 +1123,14 @@ end;
 }
 procedure SaveUnicodeFile(Filename: String; Text: String);
 var
-  f: TFileStream;
+  Writer: TStreamWriter;
+  Enc: TEncoding;
 begin
-  f := TFileStream.Create(Filename, fmCreate or fmOpenWrite);
-  StreamWrite(f, Text);
-  f.Free;
+  Enc := TUTF8NoBOMEncoding.Create;
+  Writer := TStreamWriter.Create(Filename, False, Enc);
+  Writer.Write(Text);
+  Writer.Free;
+  Enc.Free;
 end;
 
 
@@ -2196,6 +2205,13 @@ function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): I
 begin
   // Sort TStringList items which are stored as name=value pairs
   Result := CompareAnyNode(List.ValueFromIndex[Index2], List.ValueFromIndex[Index1]);
+end;
+
+
+function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
+begin
+  // Sort TStringList items by their length
+  Result := CompareValue(List[Index2].Length, List[Index1].Length);
 end;
 
 
@@ -4219,11 +4235,20 @@ end;
 
 
 
+{ TUTF8NoBOMEncoding }
+
+function TUTF8NoBOMEncoding.GetPreamble: TBytes;
+begin
+  SetLength(Result, 0);
+end;
+
+
 initialization
 
 NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.ThousandSeparator];
 
 LibHandleUser32 := LoadLibrary('User32.dll');
+
 
 end.
 

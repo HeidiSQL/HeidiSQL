@@ -919,7 +919,9 @@ begin
             raise EDbError.Create(_('PLink cancelled'));
           end;
         end;
-      end else if ErrorText.StartsWith('Using username ', True) then begin
+      end else if ErrorText.StartsWith('Using username ', True)
+        or ErrorText.StartsWith('Pre-authentication banner ', True)
+        then begin
         // See #577 - new plink version sends this informational text to error pipe
         FConnection.Log(lcError, 'PLink: '+ErrorText);
         SendText(CRLF);
@@ -1571,19 +1573,28 @@ var
   Match: Boolean;
   rx: TRegExpr;
   Types, tmp: String;
+  TypesSorted: TStringList;
 begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   MatchLen := 0;
   for i:=0 to High(FDatatypes) do begin
     Types := FDatatypes[i].Name;
-    if FDatatypes[i].Names <> '' then
+    if FDatatypes[i].Names <> '' then begin
       Types := Types + '|' + FDatatypes[i].Names;
+      // Move more exact (longer) types to the beginning
+      TypesSorted := Explode('|', Types);
+      TypesSorted.CustomSort(StringListCompareByLength);
+      Types := ImplodeStr('|', TypesSorted);
+      TypesSorted.Free;
+    end;
+
     rx.Expression := '^('+Types+')\b(\[\])?';
     Match := rx.Exec(DataType);
     // Prefer a later match which is longer than the one found before.
     // See http://www.heidisql.com/forum.php?t=17061
     if Match and (rx.MatchLen[1] > MatchLen) then begin
+      Log(lcDebug, 'GetDatatypeByName: "'+DataType+'" : '+rx.Match[1]);
       if (FParameters.NetTypeGroup = ngPgSQL) and (rx.MatchLen[2] > 0) then begin
         // TODO: detect array style datatypes, e.g. TEXT[]
       end else begin
@@ -2049,6 +2060,11 @@ var
   dbname, ConnInfo, Error, tmpdb: String;
   FinalHost: String;
   FinalPort: Integer;
+
+  function EscapeConnectOption(Option: String): String;
+  begin // See issue #704
+    Result := StringReplace(Option, '\', '\\', [rfReplaceAll]);
+  end;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -2081,11 +2097,11 @@ begin
     if FParameters.WantSSL then begin
       ConnInfo := ConnInfo + ' sslmode=''require''';
       if FParameters.SSLPrivateKey <> '' then
-        ConnInfo := ConnInfo + ' sslkey='''+FParameters.SSLPrivateKey+'''';
+        ConnInfo := ConnInfo + ' sslkey='''+EscapeConnectOption(FParameters.SSLPrivateKey)+'''';
       if FParameters.SSLCertificate <> '' then
-        ConnInfo := ConnInfo + ' sslcert='''+FParameters.SSLCertificate+'''';
+        ConnInfo := ConnInfo + ' sslcert='''+EscapeConnectOption(FParameters.SSLCertificate)+'''';
       if FParameters.SSLCACertificate <> '' then
-        ConnInfo := ConnInfo + ' sslrootcert='''+FParameters.SSLCACertificate+'''';
+        ConnInfo := ConnInfo + ' sslrootcert='''+EscapeConnectOption(FParameters.SSLCACertificate)+'''';
       //if FParameters.SSLCipher <> '' then ??
     end;
 
@@ -2116,6 +2132,11 @@ begin
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
     except
       FServerUptime := -1;
+    end;
+    try
+      FIsSSL := LowerCase(GetVar('SHOW ssl')) = 'on';
+    except
+      FIsSSL := False;
     end;
 
     DoAfterConnect;
@@ -2845,7 +2866,7 @@ begin
             '  FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, '+
             '  CASE a.attnotnull WHEN false THEN '+EscapeString('YES')+' ELSE '+EscapeString('NO')+' END AS IS_NULLABLE, '+
             '  com.description AS column_comment, '+
-            '  def.adsrc AS column_default, '+
+            '  pg_get_expr(def.adbin, def.adrelid) AS column_default, '+
             '  NULL AS character_maximum_length '+
             'FROM pg_attribute AS a '+
             'JOIN pg_class AS pgc ON pgc.oid = a.attrelid '+
@@ -3201,7 +3222,7 @@ end;
 procedure TDBConnection.DetectUSEQuery(SQL: String);
 var
   rx: TRegExpr;
-  Quotes, EscapeFunction: String;
+  Quotes: String;
 begin
   // Detect query for switching current working database or schema
   rx := TRegExpr.Create;
@@ -3209,11 +3230,7 @@ begin
   rx.Expression := '^'+GetSQLSpecifity(spUSEQuery);
   Quotes := QuoteRegExprMetaChars(FQuoteChars+''';');
   rx.Expression := StringReplace(rx.Expression, ' ', '\s+', [rfReplaceAll]);
-  if Parameters.NetTypeGroup = ngPgSQL then
-    EscapeFunction := 'E'
-  else
-    EscapeFunction := '';
-  rx.Expression := StringReplace(rx.Expression, '%s', EscapeFunction+'['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
+  rx.Expression := StringReplace(rx.Expression, '%s', '['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
   if rx.Exec(SQL) then begin
     FDatabase := Trim(rx.Match[1]);
     FDatabase := DeQuoteIdent(FDatabase);
@@ -3664,7 +3681,7 @@ var
   c1, c2, c3, c4, EscChar: Char;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL: begin
       c1 := '''';
       c2 := '\';
       c3 := '%';
@@ -3708,13 +3725,26 @@ begin
       end;
     end;
 
+    ngPgSQL: begin
+      if ProcessJokerChars then begin
+        c1 := '%';
+        c2 := '_';
+        c3 := '%';
+        c4 := '%';
+        EscChar := '\';
+        Result := escChars(Text, EscChar, c1, c2, c3, c4);
+      end else begin
+        Result := Text;
+      end;
+      // Escape single quote with a second single quote
+      Result := escChars(Result, '''', '''', '''', '''', '''');
+    end;
+
   end;
 
   if DoQuote then begin
     // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
-    if FParameters.NetTypeGroup = ngPgSQL then
-      Result := 'E' + Result;
   end;
 end;
 
@@ -3856,8 +3886,6 @@ var
   Quote: Char;
 begin
   Result := Identifier;
-  if (FParameters.NetTypeGroup = ngPgSQL) and (Pos('E''', Result) = 1) then
-    Result := Copy(Result, 2, Length(Result));
   if (Length(Identifier)>0) and (Result[1] = FQuoteChar) and (Result[Length(Identifier)] = FQuoteChar) then
     Result := Copy(Result, 2, Length(Result)-2);
   if Glue <> #0 then

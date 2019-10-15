@@ -3037,7 +3037,8 @@ begin
     except on E:EDbError do
       TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
-    TabCaption := TabCaption + ' (' + FormatNumber(Results.ColumnCount) + '↔ × ' + FormatNumber(Results.RecordCount) + '↕)';
+
+    TabCaption := TabCaption + ' (' + FormatNumber(Results.RecordCount) + 'r × ' + FormatNumber(Results.ColumnCount) + 'c)';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
 
     NewTab.Grid.BeginUpdate;
@@ -5788,6 +5789,7 @@ begin
   actGridEditFunction.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataPreview.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataOpenUrl.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode)
+    and (Results <> nil) // see issue #759
     and ExecRegExpr('^https?://[^\s]+$', Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
   actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
@@ -9485,6 +9487,8 @@ end;
 
 procedure TMainForm.AnyGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+const
+  ForeignItemsLimit: Integer = 10000;
 var
   VT: TVirtualStringTree;
   HexEditor: THexEditorLink;
@@ -9534,10 +9538,10 @@ begin
         if TextCol <> '' then SQL := SQL + ', LEFT(' + Conn.QuoteIdent(TextCol) + ', 256)';
         SQL := SQL + ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
         if TextCol <> '' then SQL := SQL + Conn.QuoteIdent(TextCol) else SQL := SQL + KeyCol;
-        SQL := SQL + ' LIMIT 1000';
+        SQL := SQL + ' LIMIT ' + ForeignItemsLimit.ToString;
 
         ForeignResults := Conn.GetResults(SQL);
-        if ForeignResults.RecordCount < 1000 then begin
+        if ForeignResults.RecordCount < ForeignItemsLimit then begin
           EnumEditor := TEnumEditorLink.Create(VT);
           EditLink := EnumEditor;
           while not ForeignResults.Eof do begin
@@ -9546,6 +9550,8 @@ begin
               EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
             ForeignResults.Next;
           end;
+        end else begin
+          LogSQL(f_('Connected table has too many rows. Foreign key drop-down is limited to %d items.', [ForeignItemsLimit]), lcInfo);
         end;
         ForeignResults.Free;
         break;
@@ -11594,6 +11600,7 @@ begin
     Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     Editor.WantTabs := BaseEditor.WantTabs;
+    Editor.OnKeyPress := BaseEditor.OnKeyPress;
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
@@ -11972,7 +11979,7 @@ begin
     AppendMsg := ' ('+FormatByteNumber(ActiveQueryMemo.GetTextLen)+')';
   end;
   if (x > -1) and (y > -1) then begin
-    ShowStatusMsg(FormatNumber(x)+'↔ : '+FormatNumber(y) + '↕' + AppendMsg, 1)
+    ShowStatusMsg('r'+FormatNumber(y)+' : c'+FormatNumber(x) + AppendMsg, 1)
   end else
     ShowStatusMsg('', 1);
 end;
