@@ -3930,6 +3930,7 @@ object MainForm: TMainForm
   object ApplicationEvents1: TApplicationEvents
     OnDeactivate = ApplicationEvents1Deactivate
     OnIdle = ApplicationEvents1Idle
+    OnShortCut = ApplicationEvents1ShortCut
     Left = 504
     Top = 152
   end

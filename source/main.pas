@@ -1025,6 +1025,7 @@ type
     procedure actGoToQueryResultsExecute(Sender: TObject);
     procedure actGoToDataMultiFilterExecute(Sender: TObject);
     procedure actDataOpenUrlExecute(Sender: TObject);
+    procedure ApplicationEvents1ShortCut(var Msg: TWMKey; var Handled: Boolean);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -12761,6 +12762,50 @@ begin
   end;
 end;
 
+
+procedure TMainForm.ApplicationEvents1ShortCut(var Msg: TWMKey;
+  var Handled: Boolean);
+var
+  SendingControl: TComponent;
+  LastStart: Integer;
+  Edit: TCustomEdit;
+  Combo: TComboBox;
+  rx: TRegExpr;
+  TextMatches: Boolean;
+begin
+  // Support for Ctrl+Backspace shortcut in edit + combobox controls
+  if (Msg.CharCode = 8) and (GetKeyState(VK_CONTROL) < 0) then begin
+    SendingControl := Screen.ActiveControl;
+    rx := TRegExpr.Create;
+    rx.Expression := '\b\W*\w+\W*$';
+    if SendingControl is TCustomEdit then begin
+      Edit := TCustomEdit(SendingControl);
+      LastStart := Edit.SelStart;
+      TextMatches := rx.Exec(Copy(Edit.Text, 1, LastStart));
+      if TextMatches then begin
+        Edit.SelStart := rx.MatchPos[0]-1;
+        Edit.SelLength := LastStart - Edit.SelStart;
+        Edit.SelText := '';
+      end;
+      Handled := True;
+    end
+    else if SendingControl is TComboBox then begin
+      Combo := TComboBox(SendingControl);
+      LastStart := Combo.SelStart;
+      TextMatches := rx.Exec(Copy(Combo.Text, 1, LastStart));
+      if TextMatches then begin
+        Combo.SelStart := rx.MatchPos[0]-1;
+        Combo.SelLength := LastStart - Combo.SelStart;
+        Combo.SelText := '';
+      end;
+      Handled := True;
+    end;
+    LogSQL('Caught Ctrl+Backspace shortcut in '+SendingControl.ClassName+
+      ', expression "'+rx.Expression+'" matched: '+TextMatches.ToInteger.ToString,
+      lcDebug);
+    rx.Free;
+  end;
+end;
 
 procedure TMainForm.ApplicationDeActivate(Sender: TObject);
 begin
