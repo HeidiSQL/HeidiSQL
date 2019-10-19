@@ -12774,7 +12774,7 @@ var
   TextMatches: Boolean;
 begin
   // Support for Ctrl+Backspace shortcut in edit + combobox controls
-  if (Msg.CharCode = 8) and (GetKeyState(VK_CONTROL) < 0) then begin
+  if (Msg.CharCode = VK_BACK) and (GetKeyState(VK_CONTROL) < 0) then begin
     SendingControl := Screen.ActiveControl;
     rx := TRegExpr.Create;
     rx.Expression := '\b\W*\w+\W*$';
@@ -12785,7 +12785,8 @@ begin
       if TextMatches then begin
         Edit.SelStart := rx.MatchPos[0]-1;
         Edit.SelLength := LastStart - Edit.SelStart;
-        Edit.SelText := '';
+        // wParam=1 supports undo, in contrast to setting Edit.SelText
+        SendMessage(Edit.Handle, EM_REPLACESEL, 1, LongInt(PChar('')));
       end;
       Handled := True;
     end
