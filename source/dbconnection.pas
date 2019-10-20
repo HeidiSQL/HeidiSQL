@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, windows, dbstructures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms;
+  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils;
 
 
 type
@@ -202,6 +202,7 @@ type
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
     ntPgSQL_TCPIP, ntPgSQL_SSHtunnel);
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);
+  TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
 
   TConnectionParameters = class(TObject)
     strict private
@@ -214,6 +215,7 @@ type
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
+      class var FLibraries: TNetGroupLibs;
       function GetImageIndex: Integer;
       function GetSessionName: String;
     public
@@ -236,6 +238,7 @@ type
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       property ImageIndex: Integer read GetImageIndex;
+      function GetLibraries: TStringList;
       function DefaultLibrary: String;
       function DefaultPort: Integer;
       function DefaultUsername: String;
@@ -1455,6 +1458,53 @@ begin
     ngPgSQL: Result := 'libpq.dll';
     else Result := '';
   end;
+end;
+
+
+function TConnectionParameters.GetLibraries: TStringList;
+var
+  rx: TRegExpr;
+  Dlls: TStringDynArray;
+  DllPath, DllFile: String;
+  FoundLibs, Providers: TStringList;
+  Provider: String;
+begin
+  if not Assigned(FLibraries) then begin
+    FLibraries := TNetGroupLibs.Create;
+  end;
+
+  if not FLibraries.ContainsKey(NetTypeGroup) then begin
+    FoundLibs := TStringList.Create;
+    rx := TRegExpr.Create;
+    rx.ModifierI := True;
+    case NetTypeGroup of
+      ngMySQL: rx.Expression := '^lib(mysql|mariadb).*\.dll$';
+      ngMSSQL: rx.Expression := '^(MSOLEDBSQL|SQLOLEDB)$';
+      ngPgSQL: rx.Expression := '^libpq.*\.dll$';
+    end;
+    if NetTypeGroup in [ngMySQL, ngPgSQL] then begin
+      Dlls := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
+      for DllPath in Dlls do begin
+        DllFile := ExtractFileName(DllPath);
+        if rx.Exec(DllFile) then begin
+          FoundLibs.Add(DllFile);
+        end;
+      end;
+      SetLength(Dlls, 0);
+    end else begin
+      Providers := TStringList.Create;
+      GetProviderNames(Providers);
+      for Provider in Providers do begin
+        if rx.Exec(Provider) then begin
+          FoundLibs.Add(Provider);
+        end;
+      end;
+      Providers.Free;
+    end;
+    rx.Free;
+    FLibraries.Add(NetTypeGroup, FoundLibs);
+  end;
+  FLibraries.TryGetValue(NetTypeGroup, Result);
 end;
 
 
