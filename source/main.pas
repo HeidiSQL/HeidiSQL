@@ -6338,23 +6338,28 @@ var
 begin
   // Set filter for "where..."-clause
   Item := Sender as TMenuItem;
-  Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
   Filter := '';
 
   if Item.Tag = 1 then begin
     // Item needs prompt
+    Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
+    Col := ActiveConnection.QuoteIdent(Col, False);
+    if (SelectedTableColumns[DataGrid.FocusedColumn].DataType.Index = dtJson)
+      and (ActiveConnection.Parameters.NetTypeGroup = ngPgSQL) then begin
+      Col := Col + '::text';
+    end;
     Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
     if InputQuery(_('Specify filter-value...'), Item.Caption, Val) then begin
       if Item = QF8 then
-        Filter := ActiveConnection.QuoteIdent(Col) + ' = ''' + Val + ''''
+        Filter := Col + ' = ''' + Val + ''''
       else if Item = QF9 then
-        Filter := ActiveConnection.QuoteIdent(Col) + ' != ''' + Val + ''''
+        Filter := Col + ' != ''' + Val + ''''
       else if Item = QF10 then
-        Filter := ActiveConnection.QuoteIdent(Col) + ' > ''' + Val + ''''
+        Filter := Col + ' > ''' + Val + ''''
       else if Item = QF11 then
-        Filter := ActiveConnection.QuoteIdent(Col) + ' < ''' + Val + ''''
+        Filter := Col + ' < ''' + Val + ''''
       else if Item = QF12 then
-        Filter := ActiveConnection.QuoteIdent(Col) + ' LIKE ''%' + Val + '%''';
+        Filter := Col + ' LIKE ''%' + Val + '%''';
     end;
   end else
     Filter := Item.Hint;
@@ -6855,7 +6860,11 @@ begin
     Exit;
   Results := GridResult(Grid);
 
-  Col := ActiveConnection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn]);
+  Col := ActiveConnection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
+  if (SelectedTableColumns[Grid.FocusedColumn].DataType.Index = dtJson)
+    and (ActiveConnection.Parameters.NetTypeGroup = ngPgSQL) then begin
+    Col := Col + '::text';
+  end;
 
   // Block 1: WHERE col IN ([focused cell values])
   QF1.Hint := '';

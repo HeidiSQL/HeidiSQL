@@ -7242,7 +7242,12 @@ begin
       raise EDbError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i]]);
     if Result <> '' then
       Result := Result + ' AND';
+
     Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
+    if (DataType(j).Index = dtJson) and (Self is TPGQuery) then begin
+      Result := Result + '::text';
+    end;
+
     if Modified(j) then begin
       ColVal := FCurrentUpdateRow[j].OldText;
       ColIsNull := FCurrentUpdateRow[j].OldIsNull;
