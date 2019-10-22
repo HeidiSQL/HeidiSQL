@@ -6861,7 +6861,8 @@ begin
   Results := GridResult(Grid);
 
   Col := ActiveConnection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
-  if (SelectedTableColumns[Grid.FocusedColumn].DataType.Index = dtJson)
+  if InDataGrid
+    and (SelectedTableColumns[Grid.FocusedColumn].DataType.Index = dtJson)
     and (ActiveConnection.Parameters.NetTypeGroup = ngPgSQL) then begin
     Col := Col + '::text';
   end;
