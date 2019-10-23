@@ -12879,7 +12879,8 @@ begin
     end;
     Editor.SelText := ImplodeStr(CRLF, Sel);
   end;
-  Editor.OnChange(Sender);
+  if Assigned(Editor.OnChange) then
+    Editor.OnChange(Sender);
 end;
 
 
