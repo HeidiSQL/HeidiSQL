@@ -100,6 +100,7 @@ type
     procedure ResultGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: String);
     procedure TreeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure FillTargetDatabases;
     procedure ResultGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure ResultGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2: PVirtualNode;
       Column: TColumnIndex; var Result: Integer);
@@ -445,6 +446,7 @@ var
   op: String;
   i: Integer;
 begin
+  // Fired after various user clicks, and also on implicit child node checking
   SomeChecked := TreeObjects.CheckedCount > 0;
   btnSeeResults.Visible := tabsTools.ActivePage = tabFind;
   lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]);
@@ -519,7 +521,32 @@ begin
     Inc(FObjectSizes, ObjSize)
   else
     Dec(FObjectSizes, ObjSize);
+  if Obj.NodeType = lntDb then
+    FillTargetDatabases;
   ValidateControls(Sender);
+end;
+
+
+procedure TfrmTableTools.FillTargetDatabases;
+var
+  SessionNode, DBNode: PVirtualNode;
+  OldSelected: String;
+begin
+  // Add unchecked databases
+  if comboExportOutputType.Text <> OUTPUT_DB then
+    Exit;
+  OldSelected := comboExportOutputTarget.Text;
+  comboExportOutputTarget.Items.Clear;
+  SessionNode := MainForm.GetRootNode(TreeObjects, MainForm.ActiveConnection);
+  DBNode := TreeObjects.GetFirstChild(SessionNode);
+  while Assigned(DBNode) do begin
+    if not (DBNode.CheckState in CheckedStates) then
+      comboExportOutputTarget.Items.Add(TreeObjects.Text[DBNode, 0]);
+    DBNode := TreeObjects.GetNextSibling(DBNode);
+  end;
+  comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(OldSelected);
+  if comboExportOutputTarget.ItemIndex = -1 then
+    comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(AppSettings.ReadString(asExportSQLDatabase));
 end;
 
 
@@ -1140,7 +1167,6 @@ end;
 
 procedure TfrmTableTools.comboExportOutputTypeChange(Sender: TObject);
 var
-  SessionNode, DBNode: PVirtualNode;
   SessionName, FilenameHint: String;
   Params: TConnectionParameters;
   Placeholders: TStringList;
@@ -1194,18 +1220,7 @@ begin
     lblExportOutputTarget.Caption := _('Database')+':';
     btnExportOutputTargetSelect.Enabled := False;
     btnExportOutputTargetSelect.ImageIndex := 27;
-    // Add unchecked databases
-    comboExportOutputTarget.Items.Clear;
-    SessionNode := MainForm.GetRootNode(TreeObjects, MainForm.ActiveConnection);
-    DBNode := TreeObjects.GetFirstChild(SessionNode);
-    while Assigned(DBNode) do begin
-      if DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed] then
-        comboExportOutputTarget.Items.Add(TreeObjects.Text[DBNode, 0]);
-      DBNode := TreeObjects.GetNextSibling(DBNode);
-    end;
-    comboExportOutputTarget.ItemIndex := comboExportOutputTarget.Items.IndexOf(AppSettings.ReadString(asExportSQLDatabase));
-    if comboExportOutputTarget.ItemIndex = -1 then
-      comboExportOutputTarget.ItemIndex := 0;
+    FillTargetDatabases;
   end else begin
     // Server selected. Display databases in below dropdown
     comboExportOutputTarget.Style := csDropDownList;
