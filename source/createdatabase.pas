@@ -72,7 +72,9 @@ begin
     Caption := _('Create database ...');
     editDBName.Text := '';
     Charset := '';
-    Collation := ServerCollation;
+    Collation := AppSettings.ReadString(asCreateDbCollation);
+    if Collation.IsEmpty then
+      Collation := ServerCollation;
   end
   else begin
     Caption := _('Alter database ...');
@@ -136,6 +138,7 @@ begin
   if modifyDB = '' then try
     sql := GetCreateStatement;
     FConnection.Query(sql);
+    AppSettings.WriteString(asCreateDbCollation, comboCollation.Text);
     MainForm.RefreshTree;
     // Close form
     ModalResult := mrOK;
