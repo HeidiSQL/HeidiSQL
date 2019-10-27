@@ -376,10 +376,13 @@ begin
   // Save changes, and make it impossible to (accidentally) click the save button twice
   btnSave.Enabled := False;
   btnSave.Repaint;
-  if ApplyModifications = mrOK then
-    Init(DBObject)
-  else // Re-enable save button when something went wrong
+  if ApplyModifications = mrOK then begin
+    // Initialize all edit fields with fresh result from SHOW TABLE STATUS row
+    Init(MainForm.ActiveDbObj)
+  end else begin
+    // Re-enable save button when something went wrong
     btnSave.Enabled := True;
+  end;
 end;
 
 
