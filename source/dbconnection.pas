@@ -86,7 +86,7 @@ type
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
 
-  TIntStringPairs = TDictionary<Integer, String>;
+  TOidStringPairs = TDictionary<POid, String>;
 
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
 
@@ -347,7 +347,7 @@ type
       FKeepAliveTimer: TTimer;
       FFavorites: TStringList;
       FPrefetchResults: TDBQueryList;
-      FRegClasses: TIntStringPairs;
+      FRegClasses: TOidStringPairs;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -459,7 +459,7 @@ type
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
-      property RegClasses: TIntStringPairs read FRegClasses;
+      property RegClasses: TOidStringPairs read FRegClasses;
       function GetLockedTableCount(db: String): Integer;
       function IdentifierEquals(Ident1, Ident2: String): Boolean;
     published
@@ -1545,7 +1545,7 @@ begin
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
   // PG only, cache for 123::regclass queries:
-  FRegClasses := TIntStringPairs.Create;
+  FRegClasses := TOidStringPairs.Create;
 end;
 
 

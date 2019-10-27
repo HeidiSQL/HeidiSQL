@@ -366,7 +366,7 @@ type
   TPQConnectStatus = (CONNECTION_OK, CONNECTION_BAD, CONNECTION_STARTED, CONNECTION_MADE, CONNECTION_AWAITING_RESPONSE, CONNECTION_AUTH_OK, CONNECTION_SETENV, CONNECTION_SSL_STARTUP, CONNECTION_NEEDED);
   PPGconn = Pointer;
   PPGresult = Pointer;
-  POid = Integer;
+  POid = Cardinal;
 
   // Server variables
   TVarScope = (vsGlobal, vsSession, vsBoth);
