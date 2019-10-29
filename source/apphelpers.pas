@@ -53,10 +53,12 @@ type
       FOwner: TSQLBatch;
       function GetSize: Integer;
       function GetSQL: String;
+      function GetSQLWithoutComments: String;
     public
       LeftOffset, RightOffset: Integer;
       constructor Create(Owner: TSQLBatch);
       property SQL: String read GetSQL;
+      property SQLWithoutComments: String read GetSQLWithoutComments;
       property Size: Integer read GetSize;
   end;
   TSQLBatch = class(TObjectList<TSQLSentence>)
@@ -3129,6 +3131,58 @@ end;
 function TSQLSentence.GetSQL: String;
 begin
   Result := Copy(FOwner.SQL, LeftOffset, RightOffset-LeftOffset);
+end;
+
+
+function TSQLSentence.GetSQLWithoutComments: String;
+var
+  InLineComment, InMultiLineComment: Boolean;
+  AddCur: Boolean;
+  i: Integer;
+  FullSQL: String;
+  Cur, Prev1, Prev2: Char;
+begin
+  // Strip comments out of SQL sentence
+  // TODO: leave quoted string literals and identifiers untouched
+  FullSQL := GetSQL;
+  Result := '';
+  InLineComment := False;
+  InMultiLineComment := False;
+  Prev1 := #0;
+  Prev2 := #0;
+  for i:=1 to Length(FullSQL) do begin
+    Cur := SQL[i];
+    AddCur := True;
+    if i > 1 then Prev1 := SQL[i-1];
+    if i > 2 then Prev2 := SQL[i-2];
+
+    if (Cur = '*') and (Prev1 = '/') then begin
+      InMultiLineComment := True;
+      Delete(Result, Length(Result), 1); // Delete comment chars
+    end
+    else if InMultiLineComment and (Cur = '/') and (Prev1 = '*') then begin
+      InMultiLineComment := False;
+      Delete(Result, Length(Result), 1);
+      AddCur := False;
+    end;
+
+    if not InMultiLineComment then begin
+      if InLineComment and ((Cur = #13) or (Cur = #10)) then begin
+        InLineComment := False; // Reset
+      end
+      else if Cur = '#' then begin
+        InLineComment := True;
+      end
+      else if (Cur = ' ') and (Prev1 = '-') and (Prev2 = '-') then begin
+        InLineComment := True;
+        Delete(Result, Length(Result)-1, 2); // Delete comment chars
+      end;
+    end;
+
+    if AddCur and (not InLineComment) and (not InMultiLineComment) then begin
+      Result := Result + Cur;
+    end;
+  end;
 end;
 
 

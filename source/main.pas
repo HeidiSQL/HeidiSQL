@@ -2912,7 +2912,7 @@ var
   Batch: TSQLBatch;
   Tab: TQueryTab;
   BindParamItem: Integer;
-  NewSQL, msg, Command: String;
+  NewSQL, msg, Command, SQLNoComments: String;
   Query: TSQLSentence;
   rx: TRegExpr;
   ContainsUnsafeQueries, DoExecute: Boolean;
@@ -2957,8 +2957,9 @@ begin
     rx.Expression := '\sWHERE\s';
     ContainsUnsafeQueries := False;
     for Query in Batch do begin
-      Command := UpperCase(getFirstWord(Query.SQL));
-      if ((Command = 'UPDATE') or (Command = 'DELETE')) and (not rx.Exec(Query.SQL)) then begin
+      SQLNoComments := Query.SQLWithoutComments;
+      Command := UpperCase(getFirstWord(SQLNoComments));
+      if ((Command = 'UPDATE') or (Command = 'DELETE')) and (not rx.Exec(SQLNoComments)) then begin
         ContainsUnsafeQueries := True;
         Break;
       end;
