@@ -9784,18 +9784,21 @@ begin
 
   // Probably display background color on fields with same text
   // Result pointer gets moved to the focused node.. careful!
-  if (Sender.FocusedNode <> nil) and (Node <> Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
-    clSameData := AppSettings.ReadInt(asHightlightSameTextBackground);
-    if clSameData <> clNone then begin
-      FieldText := r.Col(Column);
-      CurrentIsNull := r.IsNull(Column);
-      RowNumber := Sender.GetNodeData(Sender.FocusedNode);
-      r.RecNo := RowNumber^; // moving result cursor
-      FocusedFieldText := r.Col(Column);
-      FocusedIsNull := r.IsNull(Column);
-      if (CompareText(FieldText, FocusedFieldText) = 0) and (CurrentIsNull = FocusedIsNull) then begin
-        TargetCanvas.Brush.Color := clSameData;
-        TargetCanvas.FillRect(CellRect);
+  if (Sender.FocusedNode <> nil) then begin
+    if ((Node <> Sender.FocusedNode) and (Column = Sender.FocusedColumn))
+      or ((Node = Sender.FocusedNode) and (Column <> Sender.FocusedColumn)) then begin
+      clSameData := AppSettings.ReadInt(asHightlightSameTextBackground);
+      if clSameData <> clNone then begin
+        FieldText := r.Col(Column);
+        CurrentIsNull := r.IsNull(Column);
+        RowNumber := Sender.GetNodeData(Sender.FocusedNode);
+        r.RecNo := RowNumber^; // moving result cursor
+        FocusedFieldText := r.Col(Sender.FocusedColumn);
+        FocusedIsNull := r.IsNull(Sender.FocusedColumn);
+        if (CompareText(FieldText, FocusedFieldText) = 0) and (CurrentIsNull = FocusedIsNull) then begin
+          TargetCanvas.Brush.Color := clSameData;
+          TargetCanvas.FillRect(CellRect);
+        end;
       end;
     end;
   end;
