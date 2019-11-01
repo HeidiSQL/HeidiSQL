@@ -1,3 +1,32 @@
+{
+ Modified 20-Mar-2019 by Rickard Johansson (www.rj-texted.se).
+ Purpose: Add per-monitor DPI awareness
+ Usage: Add the unit to the interface uses statement of the main form and add code below:
+
+ TMyForm = class(TForm)
+ private
+   FStyleDPIAwareness : TStyleDPIAwareness;
+
+ procedure TFrmMain.FormCreate(Sender: TObject);
+ begin
+   FStyleDPIAwareness := TStyleDPIAwareness.Create(Self);
+   FStyleDPIAwareness.Parent := Self;
+
+ procedure TFrmMain.FormDestroy(Sender: TObject);
+ begin
+   FStyleDPIAwareness.Free;
+
+ procedure TFrmMain.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI, NewDPI: Integer);
+ begin
+   FStyleDPIAwareness.AfterDPIChange(OldDPI, NewDPI);
+ end;
+
+ procedure TFrmMain.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI, NewDPI: Integer);
+ begin
+   FStyleDPIAwareness.BeforeDPIChange(OldDPI, NewDPI);
+ end;
+}
+
 {-----------------------------------------------------------------------------
  Unit Name: VCL.Styles.DPIAware
  Author:    PyScripter  (https://github.com/pyscripter)
@@ -6,9 +35,9 @@
  History:
 -----------------------------------------------------------------------------}
 {
-  To use the unit just add it to the implementation uses statement of the main form and add 
+  To use the unit just add it to the implementation uses statement of the main form and add
   the following code to the FormCreate handler.
-  
+
   procedure TFrmMain.FormCreate(Sender: TObject);
   Var
     StyleDPIAwareness : TStyleDPIAwareness;
@@ -16,12 +45,12 @@
     StyleDPIAwareness := TStyleDPIAwareness.Create(Self);
     StyleDPIAwareness.Parent := Self;
 
-  By default the component scales the styles at multiples of 100%. You can change that, 
+  By default the component scales the styles at multiples of 100%. You can change that,
   by adding the line:
-  
+
   StyleDPIAwareness.RoundScalingFactor := False;
-  
-  With this statement styles are scaled to whatever scaling factor results for Screen.PixelsPerInch. 
+
+  With this statement styles are scaled to whatever scaling factor results for Screen.PixelsPerInch.
   Most of the styles would work fine, but a few may show some visual defects.
 
   Limitations:
@@ -37,21 +66,31 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Themes, Vcl.Styles;
 
 Type
+  TStyleDPI = class(TObject)
+  private
+    FCurrentDPI: Integer;
+  public
+    property CurrentDPI: Integer read FCurrentDPI write FCurrentDPI;
+  end;
+
   TStyleDPIAwareness = class(TControl)
   private
     FScaledStyles : TStringList;
     FRoundScalingFactor : Boolean;
     FUseCustomScalingFactor : Boolean;
     FCustomPPI : integer;
+    FOldDPI: Integer;
    protected
     procedure CMStyleChanged(var Message: TMessage); message CM_STYLECHANGED;
     procedure RecreateForms;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    procedure AfterDPIChange(OldDPI, NewDPI: Integer);
+    procedure BeforeDPIChange(OldDPI, NewDPI: Integer);
     procedure ScaleStyle(Style : TCustomStyleServices);
+    property OldDPI: Integer read FOldDPI write FOldDPI;
   published
-    {Rounds the scaling factorto the nearest 100%}
     property  RoundScalingFactor : Boolean read FRoundScalingFactor
       write FRoundScalingFactor default True;
     property  UseCustomScalingFactor : Boolean read FUseCustomScalingFactor
@@ -62,10 +101,7 @@ Type
 implementation
 
 Uses
-  System.Rtti,
-  {$IFDEF VER330} // RAD Studio 10.3
-  DDetours;
-  {$ENDIF VER330}
+  System.Rtti, DDetours, System.Math;
 
 { TStyleDPIAwareness }
 
@@ -94,7 +130,8 @@ begin
   inherited;
   FRoundScalingFactor := True;
   FUseCustomScalingFactor := False;
-  FCustomPPI :=96;
+  FCustomPPI := 96;
+  FOldDPI := 96;
 
   FScaledStyles := TStringList.Create;
   FScaledStyles.Sorted := False;
@@ -108,54 +145,68 @@ begin
   inherited;
 end;
 
+procedure TStyleDPIAwareness.AfterDPIChange(OldDPI, NewDPI: Integer);
+begin
+  ScaleStyle(TStyleManager.ActiveStyle);
+end;
+
+procedure TStyleDPIAwareness.BeforeDPIChange(OldDPI, NewDPI: Integer);
+begin
+  FOldDPI := OldDPI;
+end;
+
 procedure TStyleDPIAwareness.RecreateForms;
 Var
   i : Integer;
 begin
   for i := 0 to Screen.FormCount - 1 do
-    Screen.Forms[i].Perform(CM_RECREATEWND, 0, 0);
+  begin
+    if Screen.Forms[i] <> TForm(Owner) then
+      Screen.Forms[i].Perform(CM_RECREATEWND, 0, 0);
+  end;
 end;
 
 procedure TStyleDPIAwareness.ScaleStyle(Style: TCustomStyleServices);
 Var
-  DPI : integer;
+  NewDPI : integer;
   SeStyle : TObject;
   SeStyleSource : TObject;
   BitmapList : TList;
   BitMap : TBitmap;
   StyleObjectList : Tlist;
-  i : integer;
+  i,n: integer;
   StyleObject : TComponent;
+  obj: TStyleDPI;
 
   procedure ProcessBitmapLink(BL : TObject);
   Var
     BLType : TRTTIType;
   begin
     BLType := TRttiContext.Create.GetType(BL.ClassType);
-    BLType.GetProperty('Bottom').SetValue(BL,  mulDiv(BLType.GetProperty('Bottom').GetValue(BL).AsInteger, DPI, 96));
-    BLType.GetProperty('Right').SetValue(BL,  mulDiv(BLType.GetProperty('Right').GetValue(BL).AsInteger, DPI, 96));
-    BLType.GetProperty('Left').SetValue(BL,  mulDiv(BLType.GetProperty('Left').GetValue(BL).AsInteger, DPI, 96));
-    BLType.GetProperty('Top').SetValue(BL,  mulDiv(BLType.GetProperty('Top').GetValue(BL).AsInteger, DPI, 96));
+    BLType.GetProperty('Bottom').SetValue(BL,  Round((BLType.GetProperty('Bottom').GetValue(BL).AsInteger * NewDPI - 1) / OldDPI));
+    BLType.GetProperty('Right').SetValue(BL,  Round(BLType.GetProperty('Right').GetValue(BL).AsInteger * NewDPI / OldDPI));
+    BLType.GetProperty('Left').SetValue(BL,  Round(BLType.GetProperty('Left').GetValue(BL).AsInteger * NewDPI / OldDPI));
+    BLType.GetProperty('Top').SetValue(BL,  Round(BLType.GetProperty('Top').GetValue(BL).AsInteger * NewDPI / OldDPI));
   end;
 
   procedure ProcessSO(aSO : TComponent;  aSOType : TRTTIType);
   begin
-    aSOType.GetProperty('Top').SetValue(aSO,  mulDiv(aSOType.GetProperty('Top').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('Left').SetValue(aSO,  mulDiv(aSOType.GetProperty('Left').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('Width').SetValue(aSO,  mulDiv(aSOType.GetProperty('Width').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('Height').SetValue(aSO,  mulDiv(aSOType.GetProperty('Height').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('MarginTop').SetValue(aSO,  mulDiv(aSOType.GetProperty('MarginTop').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('MarginLeft').SetValue(aSO,  mulDiv(aSOType.GetProperty('MarginLeft').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('MarginBottom').SetValue(aSO,  mulDiv(aSOType.GetProperty('MarginBottom').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('MarginRight').SetValue(aSO,  mulDiv(aSOType.GetProperty('MarginRight').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('TextMarginTop').SetValue(aSO,  mulDiv(aSOType.GetProperty('TextMarginTop').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('TextMarginLeft').SetValue(aSO,  mulDiv(aSOType.GetProperty('TextMarginLeft').GetValue(aSO).AsInteger, DPI, 96));
-    aSOType.GetProperty('TextMarginRight').SetValue(aSO,  mulDiv(aSOType.GetProperty('TextMarginRight').GetValue(aSO).AsInteger, DPI, 96));
+    aSOType.GetProperty('Top').SetValue(aSO,  Round(aSOType.GetProperty('Top').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('Left').SetValue(aSO,  Round(aSOType.GetProperty('Left').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('Width').SetValue(aSO,  Round(aSOType.GetProperty('Width').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('Height').SetValue(aSO,  Round(aSOType.GetProperty('Height').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('MarginTop').SetValue(aSO,  Round(aSOType.GetProperty('MarginTop').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('MarginLeft').SetValue(aSO,  Round(aSOType.GetProperty('MarginLeft').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('MarginBottom').SetValue(aSO,  Round(aSOType.GetProperty('MarginBottom').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('MarginRight').SetValue(aSO,  Round(aSOType.GetProperty('MarginRight').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('TextMarginTop').SetValue(aSO,  Round(aSOType.GetProperty('TextMarginTop').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('TextMarginLeft').SetValue(aSO,  Round(aSOType.GetProperty('TextMarginLeft').GetValue(aSO).AsInteger * NewDPI / OldDPI));
+    aSOType.GetProperty('TextMarginRight').SetValue(aSO,  Round(aSOType.GetProperty('TextMarginRight').GetValue(aSO).AsInteger * NewDPI / OldDPI));
   end;
 
   procedure ProcessStyleObject(SO : TComponent);
   var
-    i : integer;
+    i: integer;
     ChildSo : TComponent;
     SOType : TRTTIType;
     BitmapLink : TObject;
@@ -178,7 +229,7 @@ Var
     if So.ClassName = 'TSeSystemButton' then begin
       // Shift the form title to the right
       if SO.Name = 'btnSysMenu' then
-        SOType.GetProperty('Width').SetValue(SO,  MulDiv(28, DPI, 96));
+        SOType.GetProperty('Width').SetValue(SO,  MulDiv(28, NewDPI, OldDPI));
       BitmapLink := TRttiContext.Create.GetType(SO.ClassType).GetField('FBitmap').GetValue(SO).AsObject;;
       ProcessBitmapLink(BitmapLink);
       BitmapLink := TRttiContext.Create.GetType(SO.ClassType).GetField('FActiveBitmap').GetValue(SO).AsObject;;
@@ -209,28 +260,29 @@ Var
   end;
 
 begin
-  // Check if Style already scaled then
-  if FScaledStyles.IndexOf(Style.Name) >= 0 then
-    Exit;
-
-  if UseCustomScalingFactor then
-    DPI := CustomPPI
-  else begin
-    DPI := Screen.PixelsPerInch;
-    if FRoundScalingFactor then
-      DPI := Round(DPI / 96) * 96;
+  n := FScaledStyles.IndexOf(TStyleManager.ActiveStyle.Name);
+  if n >= 0 then
+  begin
+    obj := TStyleDPI(FScaledStyles.Objects[n]);
+    OldDPI := obj.FCurrentDPI;
   end;
 
-  if (Style = TStyleManager.SystemStyle) or  (DPI <= 120) then
+  if UseCustomScalingFactor then
+    NewDPI := CustomPPI
+  else
+    NewDPI := TForm(Owner).Monitor.PixelsPerInch;
+
+  if (Style = TStyleManager.SystemStyle) then
     Exit;
 
   SeStyle := TRttiContext.Create.GetType(Style.ClassType).GetField('FSource').GetValue(Style).AsObject;
   SeStyleSource := TRttiContext.Create.GetType(SeStyle.ClassType).GetField('FCleanCopy').GetValue(SeStyle).AsObject;
   BitMapList := TRttiContext.Create.GetType(SeStyleSource.ClassType).GetField('FBitmaps').GetValue(SeStyleSource).AsObject as TList;
 
-  if BitMapList.Count = 1 then begin
+  if BitMapList.Count = 1 then
+  begin
     Bitmap := TObject(BitmapList[0]) as TBitmap;
-    ResizeBitmap(Bitmap, MulDiv(Bitmap.Width, DPI, 96), Muldiv(Bitmap.Height, DPI, 96));
+    ResizeBitmap(Bitmap, Round(Bitmap.Width * NewDPI / OldDPI), Round(Bitmap.Height * NewDPI / OldDPI));
 
     StyleObjectList := TRttiContext.Create.GetType(SeStyleSource.ClassType).GetField('FObjects').GetValue(SeStyleSource).AsObject as TList;
     for i := 0 to StyleObjectList.Count -1 do begin
@@ -240,7 +292,20 @@ begin
    TRttiContext.Create.GetType(SeStyle.ClassType).GetMethod('ResetStyle').Invoke(SeStyle, []);
 
   end;
-  FScaledStyles.Add(Style.Name);
+
+  n := FScaledStyles.IndexOf(Style.Name);
+  if n >= 0 then
+  begin
+    obj := TStyleDPI(FScaledStyles.Objects[n]);
+    obj.FCurrentDPI := NewDPI;
+  end
+  else
+  begin
+    obj := TStyleDPI.Create;
+    obj.FCurrentDPI := NewDPI;
+    FScaledStyles.AddObject(Style.Name, obj);
+  end;
+
   if Style = TStyleManager.ActiveStyle then
     RecreateForms;
 end;
@@ -281,9 +346,9 @@ begin
   TMethod(MethodPtr).Code := TMethod(Trampoline_TFormStyleHook_GetBorderSize).Code;
   TMethod(MethodPtr).Data := Pointer(Self);
   Result := MethodPtr;
-  Self.SetStretchedCaptionInc(0);
-  if (Screen.PixelsPerInch > 96) then
-    Result.Top := MulDiv(Result.Top, 96, Screen.PixelsPerInch);
+  Self.SetStretchedCaptionInc(1);
+  if (Form.Monitor.PixelsPerInch > 96) then
+    Result.Top := MulDiv(Result.Top, 96, Form.Monitor.PixelsPerInch);
 end;
 
 initialization

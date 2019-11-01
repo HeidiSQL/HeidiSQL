@@ -577,7 +577,14 @@ end;
 
 function TSysStyleHook.CallDefaultProc(var Msg: TMessage): LRESULT;
 begin
-  Result := CallWindowProc(Pointer(FOrgWndProc), Handle, Msg.Msg, Msg.wParam, Msg.lParam);
+  Result := 0;
+  try
+    if (FOrgWndProc <> 0) then
+      Result := CallWindowProc(Pointer(FOrgWndProc), Handle, Msg.Msg, Msg.wParam, Msg.lParam);
+  except
+    on e : exception do
+      OutputDebugString(PWideChar('CallDefaultProc error : ' + e.message + chr(0)));
+  end;
 end;
 
 procedure TSysStyleHook.DrawBorder(Canvas: TCanvas);

@@ -20,6 +20,8 @@
 // **************************************************************************************************
 unit Vcl.Styles.Utils.Misc;
 
+{$I VCL.Styles.Utils.inc}
+
 interface
 
 uses
@@ -49,6 +51,11 @@ uses
 
 function ExecutingInMainThread: boolean;
 begin
+  {$IFDEF LimitStylesToCurrentProcess}
+  if (GlobalMainThreadID = 0) then
+    Exit(GetCurrentThreadId = MainThreadId);
+  {$ENDIF}
+
   Result := (GlobalMainThreadID = 0) or (GlobalMainThreadID = GetCurrentThreadID);
 end;
 

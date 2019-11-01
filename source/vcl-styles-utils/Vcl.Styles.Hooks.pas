@@ -30,11 +30,6 @@ interface
 uses
   WinApi.Windows;
 
-var
-  Trampoline_user32_GetSysColorBrush: function(nIndex: Integer): HBRUSH; stdcall;
-  Trampoline_user32_GetSysColor: function(nIndex: Integer): DWORD; stdcall;
-
-
 implementation
 
 {$I VCL.Styles.Utils.inc}
@@ -52,9 +47,9 @@ uses
   WinApi.UXTheme,
   Vcl.Graphics,
   Vcl.Styles.Utils.Graphics,
-{$IFDEF HOOK_UXTHEME}
+  {$IFDEF HOOK_UXTHEME}
   Vcl.Styles.UxTheme,
-{$ENDIF HOOK_UXTHEME}
+  {$ENDIF HOOK_UXTHEME}
   Vcl.Styles.Utils.SysControls,
   Vcl.Styles.FontAwesome,
   Vcl.Forms,
@@ -84,8 +79,11 @@ var
   Trampoline_user32_DrawEdge  : function(hDC: hDC; var qrc: TRect; edge: UINT; grfFlags: UINT): BOOL;  stdcall = nil;
   Trampoline_user32_DrawFrameControl : function (DC: HDC; Rect: PRect; uType, uState: UINT): BOOL; stdcall = nil;
   Trampoline_user32_LoadIconW  : function (hInstance: HINST; lpIconName: PWideChar): HICON; stdcall = nil;
+  Trampoline_user32_GetSysColorBrush: function(nIndex: Integer): HBRUSH; stdcall;
   {$IFDEF HOOK_UXTHEME}
   Trampoline_user32_LoadImageW: function (hInst: HINST; ImageName: LPCWSTR; ImageType: UINT; X, Y: Integer; Flags: UINT): THandle; stdcall = nil;
+  {$ELSE}
+  Trampoline_user32_GetSysColor: function(nIndex: Integer): DWORD; stdcall;
   {$ENDIF HOOK_UXTHEME}
 
 {$IFDEF HOOK_TDateTimePicker}

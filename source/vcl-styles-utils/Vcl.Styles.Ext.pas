@@ -370,9 +370,9 @@ const
  Offset = SizeOf(Pointer) * 3;
 {$IFEND}
 var
-  t: TPair<string, TStyleManager.TSourceInfo>;
+  t: TPair<string, TSourceInfo>;
   SourceInfo: TSourceInfo;
-  LRegisteredStyles: TDictionary<string, TStyleManager.TSourceInfo>;
+  LRegisteredStyles: TDictionary<string, TSourceInfo>;
   {$IF (CompilerVersion >= 31)}
   p: Pointer;
   {$IFEND}
@@ -408,7 +408,7 @@ begin
   {$ELSE}
   p := Pointer(PByte(@Self.Flags) + 4);
   {$ENDIF CPUX64}
-  LRegisteredStyles := TDictionary<string, TStyleManager.TSourceInfo>(p^);
+  LRegisteredStyles := TDictionary<string, TSourceInfo>(p^);
   {$IFEND}
   for t in LRegisteredStyles do
   begin

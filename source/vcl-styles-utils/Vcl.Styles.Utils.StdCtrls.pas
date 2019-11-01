@@ -183,6 +183,7 @@ type
     procedure MouseLeave; override;
     procedure PaintBorder(Canvas: TCanvas); virtual;
     procedure WndProc(var Message: TMessage); override;
+    function  CallDefaultListBoxProc(var Msg: TMessage): LRESULT;
     property ButtonRect: TRect read GetButtonRect;
     property MouseOnButton: Boolean read FMouseOnButton write FMouseOnButton;
     property DroppedDown: Boolean read IsDroppedDown;
@@ -1416,14 +1417,12 @@ var
       LNewStyle := LStyle and not WS_VSCROLL and not WS_HSCROLL;
       FIgnoreStyleChanged := True;
       SetWindowLong(FListHandle, GWL_STYLE, LNewStyle);
-      Msg.Result := CallWindowProc(FDefListBoxProc, FListHandle,
-        TMessage(Msg).Msg, TMessage(Msg).wParam, TMessage(Msg).LPARAM);
+      Msg.Result := CallDefaultListBoxProc(TMessage(Msg));
       SetWindowLong(FListHandle, GWL_STYLE, LStyle);
       FIgnoreStyleChanged := False;
     end
     else
-      Msg.Result := CallWindowProc(FDefListBoxProc, FListHandle,
-        TMessage(Msg).Msg, TMessage(Msg).wParam, TMessage(Msg).LPARAM);
+      Msg.Result := CallDefaultListBoxProc(TMessage(Msg));
 
     if (Msg.CalcValidRects) then
     begin
@@ -1820,8 +1819,7 @@ var
     Canvas: TCanvas;
     R: TRect;
   begin
-    Msg.Result := CallWindowProc(FDefListBoxProc, FListHandle, Msg.Msg,
-      Msg.wParam, Msg.LPARAM);
+    Msg.Result := CallDefaultListBoxProc(Msg);
 
     if (Msg.LPARAM and PRF_NONCLIENT = PRF_NONCLIENT) and (Msg.wParam > 0) then
     begin
@@ -1984,8 +1982,7 @@ begin
         WMPrint(Msg);
       WM_KEYDOWN, WM_KEYUP:
         begin
-          Msg.Result := CallWindowProc(FDefListBoxProc, FListHandle, Msg.Msg,
-            Msg.wParam, Msg.LPARAM);
+          Msg.Result := CallDefaultListBoxProc(Msg);
           DrawListBoxVertScroll(0);
           MsgHandled := True;
         end;
@@ -1997,8 +1994,7 @@ begin
         end;
       LB_SETTOPINDEX:
         begin
-          Msg.Result := CallWindowProc(FDefListBoxProc, FListHandle, Msg.Msg,
-            Msg.wParam, Msg.LPARAM);
+          Msg.Result := CallDefaultListBoxProc(Msg);
           DrawListBoxVertScroll(0);
           MsgHandled := True;
         end;
@@ -2011,8 +2007,19 @@ begin
 
     end;
   if not MsgHandled then
-    Msg.Result := CallWindowProc(FDefListBoxProc, FListHandle, Msg.Msg,
-      Msg.wParam, Msg.LPARAM);
+    Msg.Result := CallDefaultListBoxProc(Msg);
+end;
+
+function TSysComboBoxStyleHook.CallDefaultListBoxProc(var Msg: TMessage): LRESULT;
+begin
+  Result := 0;
+  try
+    if (FDefListBoxProc <> nil) then
+      Result := CallWindowProc(FDefListBoxProc, FListHandle, Msg.Msg, Msg.wParam, Msg.lParam);
+  except
+    on e : exception do
+      OutputDebugString(PWideChar('CallDefaultListBoxProc error : ' + e.message + chr(0)));
+  end;
 end;
 
 procedure TSysComboBoxStyleHook.MouseEnter;
