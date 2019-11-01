@@ -596,6 +596,7 @@ type
       FDBObject: TDBObject;
       FFormatSettings: TFormatSettings;
       procedure SetRecNo(Value: Int64); virtual; abstract;
+      function ColumnExists(Column: Integer): Boolean;
       procedure SetColumnOrgNames(Value: TStringList);
       procedure SetDBObject(Value: TDBObject);
       procedure CreateUpdateRow;
@@ -6249,13 +6250,24 @@ begin
 end;
 
 
+function TDBQuery.ColumnExists(Column: Integer): Boolean;
+begin
+  // Check if given column exists in current row
+  // Prevents crash when cancelling new row insertion
+  Result := FConnection.Active and (Column > -1) and (Column < ColumnCount);
+  if Result and FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+    Result := FCurrentUpdateRow.Count > Column;
+  end;
+end;
+
+
 function TMySQLQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   AnsiStr: AnsiString;
 begin
   Result := False;
 
-  if (Column > -1) and (Column < ColumnCount) then begin
+  if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       // Row was edited and only valid in a TRowData
       AnsiStr := AnsiString(FCurrentUpdateRow[Column].NewText);
@@ -6294,7 +6306,7 @@ var
   c: Char;
   Field: PMYSQL_FIELD;
 begin
-  if (Column > -1) and (Column < ColumnCount) then begin
+  if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       // Row was edited and only valid in a TRowData
       Result := FCurrentUpdateRow[Column].NewText;
@@ -6334,10 +6346,7 @@ end;
 
 function TAdoDBQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 begin
-  // Catch broken connection
-  if not FConnection.Active then begin
-    Result := '';
-  end else if (Column > -1) and (Column < ColumnCount) then begin
+  if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
@@ -6369,7 +6378,7 @@ function TPGQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
   AnsiStr: AnsiString;
 begin
-  if (Column > -1) and (Column < ColumnCount) then begin
+  if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin

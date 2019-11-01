@@ -5755,6 +5755,7 @@ var
   inSynMemo, inSynMemoEditable: Boolean;
   Results: TDBQuery;
   RowNum: PInt64;
+  CellText: String;
 begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
 
@@ -5763,14 +5764,17 @@ begin
   Results := nil;
   GridHasChanges := False;
   EnableTimestamp := False;
+  CellText := '';
   if HasConnection and Assigned(Grid) then begin
     Results := GridResult(Grid);
     if (Results<>nil) and Assigned(Grid.FocusedNode) then begin
       RowNum := Grid.GetNodeData(Grid.FocusedNode);
       Results.RecNo := RowNum^;
       GridHasChanges := Results.Modified or Results.Inserted;
-      if Grid.FocusedColumn > NoColumn then
+      if Grid.FocusedColumn > NoColumn then begin
         EnableTimestamp := Results.DataType(Grid.FocusedColumn).Category in [dtcInteger, dtcReal];
+        CellText := Results.Col(Grid.FocusedColumn, True);
+      end;
     end;
   end;
   inDataTab := PageControlMain.ActivePage = tabData;
@@ -5790,9 +5794,7 @@ begin
   actDataSaveBlobToFile.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actGridEditFunction.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
   actDataPreview.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode);
-  actDataOpenUrl.Enabled := HasConnection and inDataOrQueryTabNotEmpty and Assigned(Grid.FocusedNode)
-    and (Results <> nil) // see issue #759
-    and ExecRegExpr('^https?://[^\s]+$', Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
+  actDataOpenUrl.Enabled := ExecRegExpr('^https?://[^\s]+$', CellText);
   actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
   actPreviousResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
