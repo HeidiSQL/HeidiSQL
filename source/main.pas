@@ -9401,8 +9401,12 @@ begin
       Allowed := Results.SaveModifications;
       DisplayRowCountStats(Sender);
     end else if Results.Inserted then begin
-      Results.DiscardModifications;
-      Sender.DeleteNode(OldNode);
+      if NewNode <> nil then begin
+        Results.DiscardModifications;
+        Sender.DeleteNode(OldNode);
+      end else begin
+        Allowed := False;
+      end;
     end;
   end;
 end;
