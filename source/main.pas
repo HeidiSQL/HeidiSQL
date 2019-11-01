@@ -8891,6 +8891,7 @@ procedure TMainForm.DBtreePaintText(Sender: TBaseVirtualTree; const
     TVSTTextType);
 var
   DBObj: PDBObject;
+  WalkNode: PVirtualNode;
 begin
   // Grey out non-current connection nodes, and rather unimportant "Size" column
   DBObj := Sender.GetNodeData(Node);
@@ -8898,6 +8899,18 @@ begin
     TargetCanvas.Font.Color := clGrayText
   else if (Column = 1) and (DBObj.NodeType in [lntTable..lntEvent]) then
     TargetCanvas.Font.Color := clGrayText;
+
+  // Set bold text if painted node is in focused path
+  if (Column = Sender.Header.MainColumn) then begin
+    WalkNode := Sender.FocusedNode;
+    while WalkNode <> nil do begin
+      if WalkNode = Node then begin
+        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
+        Break;
+      end;
+      WalkNode := Sender.NodeParent[WalkNode];
+    end;
+  end;
 end;
 
 
