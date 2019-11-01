@@ -53,6 +53,7 @@ object frmSelectDBObject: TfrmSelectDBObject
     OnEnter = ValidateControls
     OnFocusChanged = TreeDBOFocusChanged
     OnGetText = TreeDBOGetText
+    OnPaintText = TreeDBOPaintText
     OnGetImageIndex = TreeDBOGetImageIndex
     OnGetNodeDataSize = TreeDBOGetNodeDataSize
     OnInitChildren = TreeDBOInitChildren

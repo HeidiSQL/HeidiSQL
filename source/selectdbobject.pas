@@ -31,6 +31,9 @@ type
     procedure TreeDBOInitNode(Sender: TBaseVirtualTree; ParentNode, Node:
         PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure ValidateControls(Sender: TObject);
+    procedure TreeDBOPaintText(Sender: TBaseVirtualTree;
+      const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType);
   private
     { Private declarations }
     FConnection: TDBConnection;
@@ -199,6 +202,13 @@ begin
     Exclude(InitialStates, ivsHasChildren);
   end else if DBObj.NodeType = lntNone then
     Include(InitialStates, ivsExpanded);
+end;
+
+procedure TfrmSelectDBObject.TreeDBOPaintText(Sender: TBaseVirtualTree;
+  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType);
+begin
+  MainForm.DBtreePaintText(Sender, TargetCanvas, Node, Column, TextType);
 end;
 
 end.
