@@ -7785,18 +7785,37 @@ procedure TMainForm.AnyGridGetHint(Sender: TBaseVirtualTree; Node:
     TVTTooltipLineBreakStyle; var HintText: String);
 var
   Tree: TVirtualStringTree;
+  NewHint: String;
 begin
   // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
-  if not FIsWine then begin
-    Tree := TVirtualStringTree(Sender);
+  if FIsWine then
+    Exit;
+
+  Tree := TVirtualStringTree(Sender);
+
+  if Tree = ActiveQueryHelpers then begin
+    case Sender.GetNodeLevel(Node) of
+      1: case Node.Parent.Index of
+        HELPERNODE_FUNCTIONS: begin
+          NewHint := MySQLFunctions[Node.Index].Name + MySQLFunctions[Node.Index].Declaration +
+            ':' + sLineBreak + MySQLFunctions[Node.Index].Description;
+          if not NewHint.IsEmpty then begin
+            HintText := NewHint;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  if HintText.IsEmpty then begin
     HintText := Tree.Text[Node, Column];
     HintText := sstr(HintText, SIZE_KB);
-    // See http://www.heidisql.com/forum.php?t=20458#p20548
-    if Sender = DBtree then
-      LineBreakStyle := hlbForceSingleLine
-    else
-      LineBreakStyle := hlbForceMultiLine;
   end;
+  // See http://www.heidisql.com/forum.php?t=20458#p20548
+  if Sender = DBtree then
+    LineBreakStyle := hlbForceSingleLine
+  else
+    LineBreakStyle := hlbForceMultiLine;
 end;
 
 
