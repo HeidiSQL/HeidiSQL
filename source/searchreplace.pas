@@ -366,7 +366,7 @@ begin
           if ssoPrompt in Options then begin
             // Ask user
             Prompt := MessageDialog(f_('Replace this occurrence of "%s"?', [Search]),
-              sstr(CellText, 500),
+              StrEllipsis(CellText, 500),
               mtConfirmation,
               [mbYes, mbYesToAll, mbNo, mbCancel]);
             case Prompt of

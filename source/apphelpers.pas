@@ -271,7 +271,7 @@ type
   function implodestr(seperator: String; a: TStrings) :String;
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
-  function sstr(str: String; len: Integer) : String;
+  function StrEllipsis(const S: String; MaxLen: Integer): String;
   function encrypt(str: String): String;
   function decrypt(str: String): String;
   function HTMLSpecialChars(str: String): String;
@@ -456,14 +456,13 @@ end;
   @param integer Wished Length of string
   @return string
 }
-function sstr(str: String; len: Integer) : String;
+function StrEllipsis(const S: String; MaxLen: Integer): String;
 begin
-  if length(str) > len then
-  begin
-    str := copy(str, 0, len-1);
-    str := str + '…';
-  end;
-  result := str;
+  Result := S;
+  if Length(Result) <= MaxLen then
+    Exit;
+  SetLength(Result, MaxLen);
+  Result[MaxLen] := '…';
 end;
 
 

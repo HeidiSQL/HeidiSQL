@@ -149,7 +149,7 @@ begin
     if IsEmpty(Filter) then
       Continue;
     Item := TMenuItem.Create(popupRecentFilters);
-    Item.Caption := IntToStr(i) + '  ' + sstr(Filter, 100);
+    Item.Caption := IntToStr(i) + '  ' + StrEllipsis(Filter, 100);
     Item.Hint := Filter;
     Item.OnClick := RecentFilterClick;
     popupRecentFilters.Items.Add(Item);

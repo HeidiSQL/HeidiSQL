@@ -3647,7 +3647,7 @@ begin
     for Query in FPrefetchResults do begin
       if Query.SQL = SQL then begin
         Result := Query;
-        Log(lcDebug, 'Using cached result for query: '+sstr(SQL, 100));
+        Log(lcDebug, 'Using cached result for query: '+StrEllipsis(SQL, 100));
         Break;
       end;
     end;

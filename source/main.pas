@@ -1348,7 +1348,7 @@ begin
       Infos := ActiveConnection.ConnectionInfo;
       HintText := '';
       for i:=0 to Infos.Count-1 do begin
-        HintText := HintText + Infos.Names[i] + ': ' + sstr(Infos.ValueFromIndex[i], 200) + CRLF;
+        HintText := HintText + Infos.Names[i] + ': ' + StrEllipsis(Infos.ValueFromIndex[i], 200) + CRLF;
       end;
       BalloonHint1.Description := Trim(HintText);
       OffsetRect(PanelRect, Bar.ClientOrigin.X, Bar.ClientOrigin.Y);
@@ -1794,7 +1794,7 @@ begin
       // Prevent generating a seperator line
       if miFunction.Caption = '-' then
         miFunction.Caption := '&-';
-      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration + ' - ' + sstr(MySqlFunctions[j].Description, 200);
+      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration + ' - ' + StrEllipsis(MySqlFunctions[j].Description, 200);
       // Prevent generating a seperator for ShortHint and LongHint
       miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
       miFunction.Tag := j;
@@ -4414,7 +4414,7 @@ procedure TMainForm.SynMemoQueryReplaceText(Sender: TObject; const ASearch,
   AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
 begin
   // Fires when "Replace all" in search dialog was pressed with activated "Prompt on replace"
-  case MessageDialog(f_('Replace this occurrence of "%s"?', [sstr(ASearch, 100)]), mtConfirmation, [mbYes, mbYesToAll, mbNo, mbCancel]) of
+  case MessageDialog(f_('Replace this occurrence of "%s"?', [StrEllipsis(ASearch, 100)]), mtConfirmation, [mbYes, mbYesToAll, mbNo, mbCancel]) of
     mrYes: Action := raReplace;
     mrYesToAll: Action := raReplaceAll;
     mrNo: Action := raSkip;
@@ -6977,7 +6977,7 @@ begin
       and (menuQuickFilter[i].Count = 0) // Not a menu with subitems
       and (menuQuickFilter[i].Action = nil) // Not some special item
       then
-      menuQuickFilter[i].Caption := sstr(menuQuickFilter[i].Hint, 100);
+      menuQuickFilter[i].Caption := StrEllipsis(menuQuickFilter[i].Hint, 100);
   end;
 
 end;
@@ -7032,7 +7032,7 @@ begin
         Item.Hint := Conn.QuoteIdent(Col)+' IS NULL'
       else
         Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
-      Item.Caption := sstr(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
+      Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
       if SynMemoFilter.Text <> '' then begin
         if Pos(Item.Hint, SynMemoFilter.Text) > 0 then
           Item.Hint := SynMemoFilter.Text
@@ -7057,7 +7057,7 @@ begin
             QFvalues.Add(Item);
           end;
           Item.Hint := Conn.QuoteIdent(Col)+'='+esc(ValueList[i]);
-          Item.Caption := sstr(Item.Hint, 100);
+          Item.Caption := StrEllipsis(Item.Hint, 100);
           Item.OnClick := QuickFilterClick;
         end;
         Break;
@@ -7367,12 +7367,12 @@ begin
   HintSQL := TStringList.Create;
   HintSQL.Text := Trim(ResultTab.Results.SQL);
   for i:=0 to HintSQL.Count-1 do begin
-    HintSQL[i] := sstr(HintSQL[i], 100);
+    HintSQL[i] := StrEllipsis(HintSQL[i], 100);
     HintSQL[i] := StringReplace(HintSQL[i], #9, '    ', [rfReplaceAll]);
   end;
   BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
     FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF + CRLF +
-    Trim(sstr(HintSQL.Text, SIZE_KB));
+    Trim(StrEllipsis(HintSQL.Text, SIZE_KB));
   Rect := Tabs.ItemRect(idx);
   Org := Tabs.ClientOrigin;
   OffsetRect(Rect, Org.X, Org.Y);
@@ -7809,7 +7809,7 @@ begin
 
   if HintText.IsEmpty then begin
     HintText := Tree.Text[Node, Column];
-    HintText := sstr(HintText, SIZE_KB);
+    HintText := StrEllipsis(HintText, SIZE_KB);
   end;
   // See http://www.heidisql.com/forum.php?t=20458#p20548
   if Sender = DBtree then
@@ -8329,7 +8329,7 @@ begin
 
   end else begin
     // Values directly from a query result
-    CellText := sstr(Results.Col(Column), SIZE_KB*50);
+    CellText := StrEllipsis(Results.Col(Column), SIZE_KB*50);
   end;
 end;
 
@@ -8710,8 +8710,8 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
-    tabHost.Caption := _('Host')+': '+sstr(FActiveDbObj.Connection.Parameters.HostName, 20);
-    tabDatabase.Caption := _('Database')+': '+sstr(FActiveDbObj.Connection.Database, 20);
+    tabHost.Caption := _('Host')+': '+StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 20);
+    tabDatabase.Caption := _('Database')+': '+StrEllipsis(FActiveDbObj.Connection.Database, 20);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(FActiveDbObj.Connection.Parameters.NetType, False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
@@ -10592,7 +10592,7 @@ begin
         Break;
       capt := rx.Replace(capt, ' ', True);
       item.Hint := capt;
-      item.Caption := sstr(capt, 50);
+      item.Caption := StrEllipsis(capt, 50);
       item.Tag := i;
       item.OnClick := LoadRecentFilter;
       menuRecentFilters.Add(item);
@@ -10671,7 +10671,7 @@ begin
   if ActiveObjectEditor.DBObject.Name = '' then
     Cap := Cap + '['+_('Untitled')+']'
   else
-    Cap := sstr(Cap + ActiveObjectEditor.DBObject.Name, 30);
+    Cap := StrEllipsis(Cap + ActiveObjectEditor.DBObject.Name, 30);
   SetTabCaption(tabEditor.PageIndex, Cap);
 end;
 
@@ -13339,7 +13339,7 @@ end;
 procedure TQueryTab.SetMemoFilename(Value: String);
 begin
   FMemoFilename := Value;
-  MainForm.SetTabCaption(TabSheet.PageIndex, sstr(ExtractFilename(FMemoFilename), 70));
+  MainForm.SetTabCaption(TabSheet.PageIndex, StrEllipsis(ExtractFilename(FMemoFilename), 70));
   MainForm.ValidateQueryControls(Self);
   if FMemoFilename <> '' then begin
     DirectoryWatch.Directory := ExtractFilePath(FMemoFilename);
