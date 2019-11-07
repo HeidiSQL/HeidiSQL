@@ -6373,10 +6373,14 @@ begin
   if Filter <> '' then begin
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
-    if KeyPressed(VK_SHIFT) and (Pos(Filter, SynmemoFilter.Text) = 0) and (Pos(SynmemoFilter.Text, Filter) = 0) then
-      SynmemoFilter.SelText := SynmemoFilter.Text + ' AND ' + Filter
-    else
-      SynmemoFilter.SelText := Filter;
+    if KeyPressed(VK_SHIFT)
+      and (Pos(Filter, SynMemoFilter.Text) = 0) and (Pos(SynMemoFilter.Text, Filter) = 0)
+      and (not SynMemoFilter.Text.Trim.IsEmpty)
+      then begin
+      SynMemoFilter.SelText := SynMemoFilter.Text + ' AND ' + Filter
+    end else begin
+      SynMemoFilter.SelText := Filter;
+    end;
     ToggleFilterPanel(True);
     actApplyFilterExecute(Sender);
   end;
