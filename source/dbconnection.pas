@@ -4910,7 +4910,8 @@ procedure TPGConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
 var
   obj: TDBObject;
   Results: TDBQuery;
-  tp, SchemaTable, SizeClause: String;
+  tp, SchemaTable: String;
+  DataLenClause, IndexLenClause: String;
 begin
   // Tables, views and procedures
   Results := nil;
@@ -4922,12 +4923,17 @@ begin
       SchemaTable := EscapeString(FQuoteChar)+' || t.TABLE_SCHEMA || '+EscapeString(FQuoteChar+'.'+FQuoteChar)+' || t.TABLE_NAME || '+EscapeString(FQuoteChar);
     // See http://www.heidisql.com/forum.php?t=16996
     if ServerVersionInt >= 90000 then
-      SizeClause := 'pg_table_size('+SchemaTable+')::bigint'
+      DataLenClause := 'pg_table_size('+SchemaTable+')::bigint'
     else
-      SizeClause := 'NULL';
+      DataLenClause := 'NULL';
+    // See https://www.heidisql.com/forum.php?t=34635
+    if ServerVersionInt >= 80100 then
+      IndexLenClause := 'pg_relation_size('+SchemaTable+')::bigint'
+    else
+      IndexLenClause := 'relpages * '+SIZE_KB.ToString;
     Results := GetResults('SELECT *,'+
-      ' '+SizeClause+' AS data_length,'+
-      ' pg_relation_size('+SchemaTable+')::bigint AS index_length,'+
+      ' '+DataLenClause+' AS data_length,'+
+      ' '+IndexLenClause+' AS index_length,'+
       ' c.reltuples, obj_description(c.oid) AS comment'+
       ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
       ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON t.table_schema = n.nspname'+
