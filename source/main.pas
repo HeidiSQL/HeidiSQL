@@ -858,7 +858,7 @@ type
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
     function ActiveQueryTab: TQueryTab;
-    function ActiveOrEmptyQueryTab(ConsiderActiveTab: Boolean): TQueryTab;
+    function GetOrCreateEmptyQueryTab: TQueryTab;
     function GetQueryTabByNumber(Number: Integer): TQueryTab;
     function GetQueryTabByHelpers(FindTree: TBaseVirtualTree): TQueryTab;
     function ActiveQueryMemo: TSynMemo;
@@ -2169,7 +2169,7 @@ begin
   // Load SQL file(s) by command line
   if not RunQueryFiles(FileNames, nil, false) then begin
     for i:=0 to FileNames.Count-1 do begin
-      Tab := ActiveOrEmptyQueryTab(False);
+      Tab := GetOrCreateEmptyQueryTab;
       Tab.LoadContents(FileNames[i], True, nil);
       if i = FileNames.Count-1 then
         SetMainTab(Tab.TabSheet);
@@ -2309,7 +2309,7 @@ begin
       // Both of them may not exist.
       if not BackupFilename.IsEmpty then begin
         if FileExists(BackupFilename) then begin
-          Tab := ActiveOrEmptyQueryTab(False);
+          Tab := GetOrCreateEmptyQueryTab;
           Tab.Uid := Section;
           Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
           Tab.MemoFilename := Filename;
@@ -2324,7 +2324,7 @@ begin
         end;
       end else if not Filename.IsEmpty then begin
         if FileExists(Filename) then begin
-          Tab := ActiveOrEmptyQueryTab(False);
+          Tab := GetOrCreateEmptyQueryTab;
           Tab.Uid := Section;
           Tab.LoadContents(Filename, True, nil);
           Tab.MemoFilename := Filename;
@@ -3699,7 +3699,6 @@ var
   Dialog: TOpenTextFileDialog;
   Encoding: TEncoding;
   Tab: TQueryTab;
-  ConsiderActiveTab: Boolean;
 begin
   AppSettings.ResetPath;
   Dialog := TOpenTextFileDialog.Create(Self);
@@ -3711,10 +3710,8 @@ begin
   if Dialog.Execute then begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
     if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
-      ConsiderActiveTab := True;
       for i:=0 to Dialog.Files.Count-1 do begin
-        Tab := ActiveOrEmptyQueryTab(ConsiderActiveTab);
-        ConsiderActiveTab := False;
+        Tab := GetOrCreateEmptyQueryTab;
         Tab.LoadContents(Dialog.Files[i], True, Encoding);
         if i = Dialog.Files.Count-1 then
           SetMainTab(Tab.TabSheet);
@@ -4728,7 +4725,7 @@ begin
   FileList := TStringList.Create;
   FileList.Add(Filename);
   if not RunQueryFiles(FileList, nil, false) then begin
-    Tab := ActiveOrEmptyQueryTab(True);
+    Tab := GetOrCreateEmptyQueryTab;
     Tab.LoadContents(Filename, True, nil);
     SetMainTab(Tab.TabSheet);
   end;
@@ -6534,7 +6531,7 @@ begin
   // query-memo - load their contents into seperate tabs
   if not RunQueryFiles(AFiles, nil, False) then begin
     for i:=0 to AFiles.Count-1 do begin
-      Tab := ActiveOrEmptyQueryTab(False);
+      Tab := GetOrCreateEmptyQueryTab;
       Tab.LoadContents(AFiles[i], False, nil);
     end;
   end;
@@ -11239,7 +11236,7 @@ begin
 end;
 
 
-function TMainForm.ActiveOrEmptyQueryTab(ConsiderActiveTab: Boolean): TQueryTab;
+function TMainForm.GetOrCreateEmptyQueryTab: TQueryTab;
 var
   i: Integer;
 begin
@@ -11248,8 +11245,6 @@ begin
   // or c) create a new one
   // Result should never be nil, unlike in ActiveQueryTab
   Result := nil;
-  if ConsiderActiveTab then
-    Result := ActiveQueryTab;
   if Result = nil then begin
     // Search empty tab
     for i:=0 to QueryTabs.Count-1 do begin
@@ -11936,7 +11931,7 @@ begin
     ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
     if not RunQueryFiles(FileNames, nil, False) then begin
       for i:=0 to FileNames.Count-1 do begin
-        Tab := ActiveOrEmptyQueryTab(False);
+        Tab := GetOrCreateEmptyQueryTab;
         Tab.LoadContents(FileNames[i], True, nil);
       end;
     end;
