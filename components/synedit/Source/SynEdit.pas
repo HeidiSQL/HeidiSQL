@@ -709,6 +709,7 @@ type
   protected
     FGutterWidth: Integer;
     FInternalImage: TSynInternalImage;
+    fSingleLineMode: boolean;
     procedure HideCaret;
     procedure ShowCaret;
     procedure DoOnClearBookmark(var Mark: TSynEditMark); virtual;
@@ -1041,6 +1042,7 @@ type
     property OnSearchNotFound: TCustomSynEditSearchNotFoundEvent
       read FSearchNotFound write FSearchNotFound;
 {$ENDIF}
+    property SingleLineMode: boolean read fSingleLineMode write fSingleLineMode;
   end;
 
   TSynEdit = class(TCustomSynEdit)
@@ -1386,6 +1388,7 @@ begin
   FRedoList := TSynEditUndoList.Create;
   FRedoList.OnAddedUndo := UndoRedoAdded;
   FOrigRedoList := FRedoList;
+  fSingleLineMode := false;
 
 {$IFDEF SYN_COMPILER_4_UP}
   DoubleBuffered := False;
@@ -3732,6 +3735,8 @@ var
           // line - the internal highlighter range might be wrong.
           if nLine = 1 then
             FHighlighter.ResetRange
+          else if fSingleLineMode then
+            fHighlighter.ResetRange
           else
             FHighlighter.SetRange(TSynEditStringList(Lines).Ranges[nLine - 2]);
           FHighlighter.SetLineExpandedAtWideGlyphs(sLine, sLineExpandedAtWideGlyphs,
