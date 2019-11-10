@@ -43,17 +43,10 @@ unit SynEditRegexSearch;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-  QSynRegExpr,
-  QSynEditMiscClasses,
-  QSynUnicode,
-{$ELSE}
   SynEditTypes,
   SynRegExpr,
   SynEditMiscClasses,
   SynUnicode,
-{$ENDIF}
   Classes;
 
 type
@@ -79,11 +72,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QConsts;
-{$ELSE}
   Consts;
-{$ENDIF}
 
 { TSynEditRegexSearch }
 

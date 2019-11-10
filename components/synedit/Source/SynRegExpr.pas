@@ -92,13 +92,9 @@ interface
 {$IFDEF FPC} {$DEFINE OverMeth} {$ENDIF}
 
 uses
-{$IFDEF SYN_CLX}
-  QSynUnicode,
-{$ELSE}
   SynUnicode,
-{$ENDIF}
- Classes,  // TStrings in Split method
- SysUtils; // Exception
+  Classes,  // TStrings in Split method
+  SysUtils; // Exception
 
 type
   {$IFDEF SynRegUniCode}

@@ -34,26 +34,17 @@ located at http://SynEdit.SourceForge.net
 
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QWEBIDL}
 unit SynHighlighterWebIDL;
-{$ENDIF}
 
 {$I SynEdit.inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -203,11 +194,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 resourcestring
   SYNS_FilterWebIDL = 'Web IDL (*.idl)|*.idl';

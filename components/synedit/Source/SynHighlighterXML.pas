@@ -49,26 +49,17 @@ Known Issues:
 The SynHighlighterXML unit provides SynEdit with an XML highlighter.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERXML}
 unit SynHighlighterXML;
-{$ENDIF}
 
 interface
 
 {$I SynEdit.Inc}
 
 uses
-{$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -192,11 +183,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 constructor TSynXMLSyn.Create(AOwner: TComponent);
 begin

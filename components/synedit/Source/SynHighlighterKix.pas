@@ -43,26 +43,17 @@ Known Issues:
 The SynHighlighterKix unit provides SynEdit with a Kix script file syntax highlighter.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERKIX}
 unit SynHighlighterKix;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -143,11 +134,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..168] of UnicodeString = (

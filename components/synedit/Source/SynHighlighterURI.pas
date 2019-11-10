@@ -66,26 +66,17 @@ someone@somewhere.org
 www.host.org
 }
 
-{$IFNDEF QSYNHIGHLIGHTERURI}
 unit SynHighlighterURI;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -180,11 +171,7 @@ const
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst, SynUnicode;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..15] of UnicodeString = (

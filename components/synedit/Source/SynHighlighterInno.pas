@@ -43,28 +43,18 @@ Check out http://www.jrsoftware.org for the free Inno Setup program,
 and http://www.wintax.nl/isx/ for My Inno Setup Extensions.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERINNO}
 unit SynHighlighterInno;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -147,11 +137,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   {Note: new 'Section names' and the new 'Constants' need not be added

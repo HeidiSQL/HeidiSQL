@@ -1027,7 +1027,7 @@ var
     if RE_BlockBegin.Exec(CurLine) then
     begin
       // Char must have proper highlighting (ignore stuff inside comments...)
-      Index :=  RE_BlockBegin.MatchPos[0];
+      Index := RE_BlockBegin.MatchPos[0];
       if GetHighlighterAttriAtRowCol(LinesToScan, Line, Index) <> fCommentAttri then
       begin
         // And ignore lines with both opening and closing chars in them
@@ -1039,7 +1039,7 @@ var
       end;
     end else if RE_BlockEnd.Exec(CurLine) then
     begin
-      Index :=  RE_BlockBegin.MatchPos[0];
+      Index := RE_BlockEnd.MatchPos[0];
       if GetHighlighterAttriAtRowCol(LinesToScan, Line, Index) <> fCommentAttri then
       begin
         FoldRanges.StopFoldRange(Line + 1, FT_Standard);

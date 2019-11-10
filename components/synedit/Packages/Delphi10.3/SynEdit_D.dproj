@@ -1,13 +1,13 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{6E21797B-4D50-4028-9D52-05CDFE6CEAEA}</ProjectGuid>
-        <MainSource>SynEditD.dpk</MainSource>
+        <MainSource>SynEdit_D.dpk</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>1</TargetedPlatforms>
         <AppType>Package</AppType>
         <FrameworkType>None</FrameworkType>
-        <ProjectVersion>18.5</ProjectVersion>
+        <ProjectVersion>18.6</ProjectVersion>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -55,10 +55,10 @@
         <VerInfo_Locale>1031</VerInfo_Locale>
         <DCC_E>false</DCC_E>
         <DCC_F>false</DCC_F>
-        <SanitizedProjectName>SynEditD</SanitizedProjectName>
+        <SanitizedProjectName>SynEdit_D</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
-        <DCC_UsePackage>SynEditR;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_UsePackage>SynEdit_R;$(DCC_UsePackage)</DCC_UsePackage>
         <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
@@ -91,7 +91,7 @@
         </DelphiCompile>
         <DCCReference Include="..\..\Source\SynEditReg.dcr"/>
         <DCCReference Include="designide.dcp"/>
-        <DCCReference Include="SynEditR.dcp"/>
+        <DCCReference Include="SynEdit_R.dcp"/>
         <DCCReference Include="..\..\Source\SynEditReg.pas"/>
         <DCCReference Include="..\..\Source\SynEditPropertyReg.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterManager.pas"/>
@@ -113,7 +113,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">SynEditD.dpk</Source>
+                    <Source Name="MainSource">SynEdit_D.dpk</Source>
                 </Source>
                 <VersionInfo>
                     <VersionInfo Name="IncludeVerInfo">True</VersionInfo>

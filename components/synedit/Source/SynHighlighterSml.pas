@@ -45,27 +45,18 @@ be specified, and there is an option to include extra keywords and operators onl
 be disabled for backwards compatibility with older ML compilers that do not have support for the Basis Library.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERSML}
 unit SynHighlighterSml;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   Registry,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -163,11 +154,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..40] of UnicodeString = (

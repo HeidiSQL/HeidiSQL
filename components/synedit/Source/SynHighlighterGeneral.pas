@@ -44,27 +44,18 @@ Known Issues:
 The SynHighlighterGeneral unit provides a customizable highlighter for SynEdit.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERGENERAL}
 unit SynHighlighterGeneral;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -155,10 +146,10 @@ type
     procedure Next; override;
     procedure ResetRange; override;
     procedure SetRange(Value: Pointer); override;
-    {$IFNDEF SYN_CLX}
+
     function SaveToRegistry(RootKey: HKEY; Key: string): Boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): Boolean; override;
-    {$ENDIF}
+
     property OnGetTokenAttribute : TGetTokenAttributeEvent read FOnGetTokenAttribute write FOnGetTokenAttribute;
   published
     property CommentAttri: TSynHighlighterAttributes read FCommentAttri write FCommentAttri;
@@ -180,11 +171,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 constructor TSynGeneralSyn.Create(AOwner: TComponent);
 begin
@@ -762,7 +749,6 @@ begin
   Result := SYNS_LangGeneral;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynGeneralSyn.LoadFromRegistry(RootKey: HKEY; Key: string): Boolean;
 var
   r: TBetterRegistry;
@@ -801,7 +787,6 @@ begin
     r.Free;
   end;
 end;
-{$ENDIF}
 
 function TSynGeneralSyn.GetStringDelim: TStringDelim;
 begin

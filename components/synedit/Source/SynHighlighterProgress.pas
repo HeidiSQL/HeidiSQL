@@ -45,28 +45,18 @@ Thanks to Michael Hieke for providing a sample highlighter on which this
 highlighter is based.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERPROGRESS}
 unit SynHighlighterProgress;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -484,11 +474,7 @@ const
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 function TSynProgressSyn.HashKey(Str: PWideChar): Integer;
 

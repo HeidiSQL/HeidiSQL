@@ -105,18 +105,6 @@ uses
 {$ELSE}
   Libc,
 {$ENDIF}
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QControls,
-  QForms,
-  QDialogs,
-  Types,
-  QSynEditMiscProcs,
-  QSynEditTypes,
-  QSynEditKeyCmds,
-  QSynEdit,
-  QSynUnicode,
-{$ELSE}
   Registry,
   Messages,
   Graphics,
@@ -127,9 +115,8 @@ uses
   SynEditTypes,
   SynEditKeyCmds,
   SynEdit,
-  SynEditMiscClasses,   
+  SynEditMiscClasses,
   SynUnicode,
-{$ENDIF}
   Classes,
   SysUtils,
   IniFiles;
@@ -192,10 +179,8 @@ type
     procedure LoadFromINI(AFileName, ASection: string);
     procedure SaveToINI(AFileName, ASection: string);
 
-{$IFNDEF SYN_CLX}
     procedure LoadFromRegistry(ARoot: DWORD; AKey: string);
     procedure SaveToRegistry(ARoot: DWORD; AKey: string);
-{$ENDIF}
 
     function LoadFromList(AFileName: string): Boolean;
     procedure SaveToList(AFileName: string);
@@ -328,7 +313,6 @@ begin
   FItems.SaveToFile(AFileName);
 end;
 
-{$IFNDEF SYN_CLX}
 procedure TCustomSynAutoCorrect.LoadFromRegistry(ARoot: DWORD; AKey: string);
 var
   i: Integer;
@@ -378,7 +362,6 @@ begin
     Reg.Free;
   end;
 end;
-{$ENDIF}
 
 procedure TCustomSynAutoCorrect.Add(AOriginal, ACorrection: UnicodeString);
 begin

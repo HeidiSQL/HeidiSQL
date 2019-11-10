@@ -45,28 +45,18 @@ The highlighter supports all x86 op codes, Intel MMX and AMD 3D NOW! op codes.
 Thanks to Martin Waldenburg, Hideo Koiso.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERASM}
 unit SynHighlighterAsm;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -138,11 +128,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   Mnemonics: UnicodeString =

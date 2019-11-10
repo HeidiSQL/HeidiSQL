@@ -66,24 +66,13 @@ The highlighter formats Vrml97/X3D source code highlighting keywords, strings, n
   the if construct was used).
 }
 
-{$IFNDEF QSYNHIGHLIGHTERVRML97}
 unit SynHighlighterVrml97;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QControls,
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-  QSynUnicode,
-{$ELSE}
   Windows,
   Messages,
   Registry,
@@ -92,8 +81,7 @@ uses
   SynEditTypes,
   SynEditHighlighter,
   SynHighlighterHashEntries,
-  SynUnicode,  
-{$ENDIF}
+  SynUnicode,
   SysUtils,
   Classes;
 
@@ -248,11 +236,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   Events: UnicodeString =

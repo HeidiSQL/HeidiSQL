@@ -36,28 +36,18 @@ located at http://SynEdit.SourceForge.net
 
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNHIGHLIGHTERCOBOL}
 unit SynHighlighterCobol;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynHighlighterHashEntries,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
-  SynHighlighterHashEntries,  
+  SynHighlighterHashEntries,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -173,11 +163,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   BooleanWords: UnicodeString =

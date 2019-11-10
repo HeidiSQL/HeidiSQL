@@ -1,4 +1,4 @@
-package SynEditD;
+package SynEdit_D;
 
 {$R '..\..\Source\SynEditReg.dcr'}
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
@@ -27,11 +27,11 @@ package SynEditD;
 {$ENDIF IMPLICITBUILDING}
 {$DESCRIPTION 'SynEdit component suite'}
 {$DESIGNONLY}
-{$IMPLICITBUILD OFF}
+{$IMPLICITBUILD ON}
 
 requires
   designide,
-  SynEditR;
+  SynEdit_R;
 
 contains
   SynEditReg in '..\..\Source\SynEditReg.pas',

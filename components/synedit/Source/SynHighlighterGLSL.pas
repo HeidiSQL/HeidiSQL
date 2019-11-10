@@ -44,7 +44,7 @@ The SynHighlighterCpp unit provides SynEdit with a C++ syntax highlighter.
 Thanks to Martin Waldenburg.
 }
 
-unit SynHighlighterCpp;
+unit SynHighlighterGLSL;
 
 {$I SynEdit.Inc}
 
@@ -59,9 +59,9 @@ uses
   Classes;
 
 type
-  TtkTokenKind = (tkAsm, tkComment, tkDirective, tkIdentifier, tkKey, tkNull,
-    tkNumber, tkSpace, tkString, tkSymbol, tkUnknown,
-    tkChar, tkFloat, tkHex, tkOctal);
+  TtkTokenKind = (tkComment, tkDirective, tkIdentifier, tkInterfaceQualifier,
+    tkInternalFunction, tkKey, tkNull, tkNumber, tkSpace, tkString, tkSymbol,
+    tkUnknown, tkChar, tkFloat, tkHex, tkOctal);
 
   TxtkTokenKind = (
     xtkAdd, xtkAddAssign, xtkAnd, xtkAndAssign, xtkArrow, xtkAssign,
@@ -75,21 +75,22 @@ type
     xtkSquareOpen, xtkStar, xtkSubtract, xtkSubtractAssign, xtkXor,
     xtkXorAssign);
 
-  TRangeState = (rsUnknown, rsAnsiC, rsAnsiCAsm, rsAnsiCAsmBlock, rsAsm,
-    rsAsmBlock, rsDirective, rsDirectiveComment, rsMultiLineString,
-    rsMultiLineDirective);
+  TRangeState = (rsUnknown, rsDirective, rsDirectiveComment,
+    rsMultiLineString, rsMultiLineDirective);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
-  TIdentFuncTableFunc = function (Index: Integer): TtkTokenKind of object;
+  TIdentFuncTableFunc = function (Index: Integer; MayBe: PWideChar): TtkTokenKind of object;
 
-  TSynCppSyn = class(TSynCustomHighlighter)
+  TSynGLSLSyn = class(TSynCustomHighlighter)
   private
     FAsmStart: Boolean;
     FRange: TRangeState;
     FTokenID: TtkTokenKind;
     FExtTokenID: TxtkTokenKind;
-    FIdentFuncTable: array[0..342] of TIdentFuncTableFunc;
-    FAsmAttri: TSynHighlighterAttributes;
+    FIdentFuncTable: array[0..2010] of TIdentFuncTableFunc;
+    FInternalFuncTable: array[0..1050] of TIdentFuncTableFunc;
+    FInterfaceQualifierAttri: TSynHighlighterAttributes;
+    FInternalFunctionsAttri: TSynHighlighterAttributes;
     FCommentAttri: TSynHighlighterAttributes;
     FDirecAttri: TSynHighlighterAttributes;
     FIdentifierAttri: TSynHighlighterAttributes;
@@ -103,10 +104,13 @@ type
     FStringAttri: TSynHighlighterAttributes;
     FCharAttri: TSynHighlighterAttributes;
     FSymbolAttri: TSynHighlighterAttributes;
-    function AltFunc(Index: Integer): TtkTokenKind;
-    function KeyWordFunc(Index: Integer): TtkTokenKind;
-    function FuncAsm(Index: Integer): TtkTokenKind;
+    function AltFunc(Index: Integer; Maybe: PWideChar): TtkTokenKind;
+    function AltFinalFunc(Index: Integer; Maybe: PWideChar): TtkTokenKind;
+    function InternalFunc(Index: Integer; MayBe: PWideChar): TtkTokenKind;
+    function KeyWordFunc(Index: Integer; MayBe: PWideChar): TtkTokenKind;
+    function InterfaceQualifierFunc(Index: Integer; MayBe: PWideChar): TtkTokenKind;
     function HashKey(Str: PWideChar): Cardinal;
+    function HashInternal(Str: PWideChar): Cardinal;
     function IdentKind(MayBe: PWideChar): TtkTokenKind;
     procedure InitIdent;
     procedure AnsiCProc;
@@ -152,7 +156,6 @@ type
     function GetSampleSource: UnicodeString; override;
     function IsFilterStored: Boolean; override;
   public
-    class function GetCapabilities: TSynHighlighterCapabilities; override;
     class function GetLanguageName: string; override;
     class function GetFriendlyLanguageName: UnicodeString; override;
   public
@@ -167,18 +170,19 @@ type
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
-    function UseUserSettings(settingIndex: Integer): Boolean; override;
-    procedure EnumUserSettings(settings: TStrings); override;
 
     property ExtTokenID: TxtkTokenKind read GetExtTokenID;
   published
-    property AsmAttri: TSynHighlighterAttributes read FAsmAttri write FAsmAttri;
     property CommentAttri: TSynHighlighterAttributes read FCommentAttri
       write FCommentAttri;
     property DirecAttri: TSynHighlighterAttributes read FDirecAttri
       write FDirecAttri;
     property IdentifierAttri: TSynHighlighterAttributes read FIdentifierAttri
       write FIdentifierAttri;
+    property InterfaceQualifierAttri: TSynHighlighterAttributes
+      read FInterfaceQualifierAttri write FInterfaceQualifierAttri;
+    property InternalFunctions: TSynHighlighterAttributes
+      read FInternalFunctionsAttri write FInternalFunctionsAttri;
     property InvalidAttri: TSynHighlighterAttributes read FInvalidAttri
       write FInvalidAttri;
     property KeyAttri: TSynHighlighterAttributes read FKeyAttri write FKeyAttri;
@@ -207,157 +211,431 @@ uses
   SynEditStrConst;
 
 const
-  KeyWords: array[0..94] of UnicodeString = (
-    '__asm', '__automated', '__cdecl', '__classid', '__closure', '__declspec', 
-    '__dispid', '__except', '__export', '__fastcall', '__finally', '__import', 
-    '__int16', '__int32', '__int64', '__int8', '__pascal', '__property', 
-    '__published', '__rtti', '__stdcall', '__thread', '__try', '_asm', '_cdecl', 
-    '_export', '_fastcall', '_import', '_pascal', '_stdcall', 'asm', 'auto', 
-    'bool', 'break', 'case', 'catch', 'cdecl', 'char', 'class', 'const', 
-    'const_cast', 'continue', 'default', 'delete', 'do', 'double', 
-    'dynamic_cast', 'else', 'enum', 'explicit', 'extern', 'false', 'float', 
-    'for', 'friend', 'goto', 'if', 'inline', 'int', 'interface', 'long', 
-    'mutable', 'namespace', 'new', 'operator', 'pascal', 'private', 'protected', 
-    'public', 'register', 'reinterpret_cast', 'return', 'short', 'signed', 
-    'sizeof', 'static', 'static_cast', 'struct', 'switch', 'template', 'this', 
-    'throw', 'true', 'try', 'typedef', 'typeid', 'typename', 'union', 
-    'unsigned', 'using', 'virtual', 'void', 'volatile', 'wchar_t', 'while' 
+  // as this language is case-insensitive keywords *must* be in lowercase
+  GKeyWords: array[0..239] of UnicodeString = (
+    'active', 'asm', 'atomic_uint', 'attribute', 'bool', 'break', 'buffer',
+    'bvec2', 'bvec3', 'bvec4', 'case', 'cast', 'centroid', 'class', 'coherent',
+    'common', 'const', 'continue', 'def', 'default', 'discard', 'dmat2',
+    'dmat2x2', 'dmat2x3', 'dmat2x4', 'dmat3', 'dmat3x2', 'dmat3x3', 'dmat3x4',
+    'dmat4', 'dmat4x2', 'dmat4x3', 'dmat4x4', 'do', 'double', 'dvec2', 'dvec3',
+    'dvec4', 'else', 'enum', 'extern', 'external', 'false', 'filter', 'fixed',
+    'flat', 'float', 'for', 'fvec2', 'fvec3', 'fvec4', 'goto', 'half', 'highp',
+    'hvec2', 'hvec3', 'hvec4', 'if', 'iimage1d', 'iimage1darray', 'iimage2d',
+    'iimage2darray', 'iimage2dms', 'iimage2dmsarray', 'iimage2drect',
+    'iimage3d', 'iimagebuffer', 'iimagecube', 'iimagecubearray', 'image1d',
+    'image1darray', 'image2d', 'image2darray', 'image2dms', 'image2dmsarray',
+    'image2drect', 'image3d', 'imagebuffer', 'imagecubearray', 'in', 'inline',
+    'inout', 'input', 'int', 'interface', 'invariant', 'isampler1d',
+    'isampler1darray', 'isampler2d', 'isampler2darray', 'isampler2dms',
+    'isampler2dmsarray', 'isampler2drect', 'isampler3d', 'isamplerbuffer',
+    'isamplercube', 'isamplercubearray', 'isubpassinput', 'isubpassinputms',
+    'itexture1d', 'itexture1darray', 'itexture2d', 'itexture2darray',
+    'itexture2dms', 'itexture2dmsarray', 'itexture2drect', 'itexture3d',
+    'itexturebuffer', 'itexturecube', 'itexturecubearray', 'ivec2', 'ivec3',
+    'ivec4', 'layout', 'long', 'lowp', 'mat2', 'mat2x2', 'mat2x3', 'mat2x4',
+    'mat3', 'mat3x2', 'mat3x3', 'mat3x4', 'mat4', 'mat4x2', 'mat4x3', 'mat4x4',
+    'mediump', 'namespace', 'noinline', 'noperspective', 'out', 'output',
+    'partition', 'patch', 'precise', 'precision', 'public', 'readonly',
+    'resource', 'restrict', 'return', 'sample', 'sampler', 'sampler1d',
+    'sampler1darray', 'sampler1darrayshadow', 'sampler1dshadow', 'sampler2d',
+    'sampler2darray', 'sampler2darrayshadow', 'sampler2dms', 'sampler2dmsarray',
+    'sampler2drectshadow', 'sampler2dshadow', 'sampler3d', 'sampler3drect',
+    'samplerbuffer', 'samplercubearray', 'samplercubearrayshadow',
+    'samplercubeshadow', 'samplershadow', 'shared', 'short', 'sizeof', 'smooth',
+    'static', 'struct', 'subpassinput', 'subpassinputms', 'subroutine',
+    'superp', 'switch', 'template', 'texture1d', 'texture1darray', 'texture2d',
+    'texture2darray', 'texture2dms', 'texture2dmsarray', 'texture2drect',
+    'texture3d', 'texturebuffer', 'texturecube', 'texturecubearray', 'this',
+    'true', 'type', 'uimage1d', 'uimage1darray', 'uimage2d', 'uimage2darray',
+    'uimage2dms', 'uimage2dmsarray', 'uimage2drect', 'uimage3dimagecube',
+    'uimagebuffer', 'uimagecube', 'uimagecubearray', 'uint', 'uniform', 'union',
+    'unsigned', 'usampler1d', 'usampler1darray', 'usampler2d',
+    'usampler2darraysampler2drect', 'usampler2dms', 'usampler2dmsarray',
+    'usampler2drect', 'usampler3dsamplercube', 'usamplerbuffer', 'usamplercube',
+    'usamplercubearray', 'using', 'usubpassinput', 'usubpassinputms',
+    'utexture1d', 'utexture1darray', 'utexture2d', 'utexture2darray',
+    'utexture2dms', 'utexture2dmsarray', 'utexture2drect', 'utexture3d',
+    'utexturebuffer', 'utexturecube', 'utexturecubearray', 'uvec2', 'uvec3',
+    'uvec4', 'varying', 'vec2', 'vec3', 'vec4', 'void', 'volatile', 'while',
+    'writeonly'
   );
 
-  KeyIndices: array[0..342] of Integer = (
-    -1, 34, -1, -1, 57, 72, -1, 39, -1, 9, -1, 86, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, 88, -1, 12, 66, -1, -1, -1, -1, -1, 42, -1, -1, -1, -1, -1, 56, 51, 
-    40, 87, 77, -1, -1, -1, -1, 64, -1, -1, -1, -1, -1, -1, -1, -1, -1, 28, 41, 
-    -1, 63, 6, -1, -1, -1, -1, -1, -1, -1, -1, 55, 65, 0, -1, -1, -1, -1, -1, 
-    -1, 26, 83, -1, 38, 92, -1, -1, 93, 33, -1, -1, -1, -1, -1, -1, -1, 35, -1, 
-    -1, -1, -1, -1, -1, -1, 79, 27, -1, -1, -1, 43, -1, -1, 20, -1, -1, 31, -1, 
-    -1, -1, -1, -1, 89, -1, -1, -1, -1, 59, -1, 58, -1, -1, 46, -1, -1, 3, -1, 
-    -1, 17, -1, 54, -1, 45, -1, -1, -1, -1, -1, -1, 53, -1, -1, -1, 1, -1, -1, 
-    -1, -1, 44, 90, 32, -1, -1, -1, -1, -1, -1, 91, 13, -1, -1, -1, 60, -1, -1, 
-    -1, -1, -1, 49, -1, -1, -1, -1, -1, -1, 75, -1, -1, 76, -1, -1, -1, -1, 30, 
-    68, 23, 82, -1, 15, -1, -1, 2, -1, 70, -1, -1, -1, 73, 18, -1, -1, -1, -1, 
-    -1, 47, 24, 52, 14, 84, -1, -1, -1, -1, -1, 25, -1, -1, -1, 80, 69, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 21, -1, 19, -1, -1, -1, 
-    -1, -1, -1, 74, -1, -1, -1, 29, -1, -1, -1, 67, -1, 7, -1, -1, -1, 50, 61, 
-    -1, -1, -1, 4, -1, 94, 85, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    81, -1, -1, -1, -1, -1, 10, 16, -1, -1, 36, 37, -1, -1, -1, 8, -1, 22, -1, 
-    -1, -1, -1, 78, 62, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, 71, -1, -1, -1, 5, -1, -1, -1, -1, -1, -1, -1, 11, -1, 48, 
-    -1 
+  GInternalFunctions: array[0..160] of UnicodeString = (
+    'abs', 'acos', 'all', 'allinvocations', 'allinvocationsequal', 'any',
+    'anyinvocation', 'asin', 'atan', 'atomicadd', 'atomicand', 'atomiccompswap',
+    'atomiccounter', 'atomiccounteradd', 'atomiccounterand',
+    'atomiccountercompswap', 'atomiccounterdecrement', 'atomiccounterexchange',
+    'atomiccounterincrement', 'atomiccountermax', 'atomiccountermin',
+    'atomiccounteror', 'atomiccountersubtract', 'atomiccounterxor',
+    'atomicexchange', 'atomicmax', 'atomicmin', 'atomicor', 'atomicxor',
+    'barrier', 'bitcount', 'bitfieldextract', 'bitfieldinsert',
+    'bitfieldreverse', 'ceil', 'clamp', 'cos', 'cross', 'degrees',
+    'determinant', 'dfdx', 'dfdxcoarse', 'dfdxfine', 'dfdy', 'dfdycoarse',
+    'dfdyfine', 'distance', 'dot', 'emitstreamvertex', 'emitvertex',
+    'endprimitive', 'endstreamprimitive', 'equal', 'exp', 'exp2', 'faceforward',
+    'findlsb', 'findmsb', 'floor', 'fract', 'ftransform', 'fwidth',
+    'fwidthcoarse', 'fwidthfine', 'greaterthan', 'greaterthanequal',
+    'groupmemorybarrier', 'imageatomicadd', 'imageatomicand',
+    'imageatomiccompswap', 'imageatomicexchange', 'imageatomicmax',
+    'imageatomicmin', 'imageatomicor', 'imageatomicxor', 'imageload',
+    'imagesamples', 'imagesize', 'imagestore', 'imulextended',
+    'interpolateatcentroid', 'interpolateatoffset', 'interpolateatsample',
+    'inverse', 'inversesqrt', 'length', 'lessthan', 'lessthanequal', 'log',
+    'log2', 'matrixcompmult', 'max', 'memorybarrier',
+    'memorybarrieratomiccounter', 'memorybarrierbuffer', 'memorybarrierimage',
+    'memorybarriershared', 'min', 'mix', 'mod', 'noise1', 'noise2', 'noise3',
+    'noise4', 'normalize', 'not', 'notequal', 'outerproduct', 'pow', 'radians',
+    'reflect', 'refract', 'shadow2d', 'shadow2dproj', 'shadowld',
+    'shadowldproj', 'sign', 'sin', 'smoothstep', 'sqrt', 'step', 'subpassload',
+    'tan', 'texelfetch', 'texelfetchoffset', 'texture', 'texture1d',
+    'texture1dlod', 'texture1dproj', 'texture1dprojlod', 'texture2d',
+    'texture2dlod', 'texture2dproj', 'texture2dprojlod', 'texture3d',
+    'texture3dlod', 'texture3dproj', 'texture3dprojlod', 'texturecube',
+    'texturecubelod', 'texturegather', 'texturegatheroffset',
+    'texturegatheroffsets', 'texturegrad', 'texturegradoffset', 'texturelod',
+    'texturelodoffset', 'textureoffset', 'textureproj', 'textureprojgrad',
+    'textureprojgradoffset', 'textureprojlod', 'textureprojlodoffset',
+    'textureprojoffset', 'texturequerylevels', 'texturequerylod', 'texturesize',
+    'transpose', 'uaddcarry', 'umulextended', 'usubborrow'
+  );
+
+  GKeyIndices: array[0..2010] of Integer = (
+    -1, -1, 22, -1, -1, 65, -1, -1, -1, -1, -1, 129, 8, -1, 177, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 226, 23, -1, -1, -1, 182, -1, 33, 98, -1, -1, 9, -1, -1,
+    -1, 200, -1, -1, -1, -1, -1, -1, -1, -1, 24, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 108, 72, -1, -1, -1, -1, -1, -1, -1, -1, 163, 69, -1, 195, -1,
+    -1, 85, -1, -1, -1, -1, -1, -1, 79, 186, -1, 71, -1, -1, -1, -1, 68, -1, -1,
+    2, -1, 146, 96, -1, -1, -1, 76, -1, -1, -1, -1, 215, 219, -1, 30, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 204, 51,
+    -1, 31, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 6, 206, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 32, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 239,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 95, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 180, -1, -1,
+    -1, 172, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 211, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 61, 145, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 149, -1, -1, -1, -1, 114, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 156, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 140, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 81, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 197, -1, -1, -1, -1, -1, 192, -1, -1, -1, -1, -1, -1, -1, 1, 228, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, 67, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 221, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 75, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1,
+    -1, -1, 99, -1, -1, -1, -1, -1, 125, 135, -1, -1, -1, -1, -1, -1, -1, 101,
+    -1, -1, -1, -1, -1, -1, -1, -1, 187, -1, 0, -1, -1, 126, 106, -1, -1, -1,
+    -1, -1, -1, -1, -1, 63, -1, -1, -1, -1, -1, 91, -1, -1, -1, -1, -1, -1, 127,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 167, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 117, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 113, -1, -1, -1,
+    -1, 118, -1, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 150, -1, -1, -1, 119, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 115,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 232, -1, 130, -1, 165,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 12, 46, -1, -1, -1, -1, -1, -1, -1, 155, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 222, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 86, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 88, -1, -1, 171, -1, 15, -1,
+    -1, -1, -1, -1, -1, 77, -1, -1, 93, -1, -1, -1, 217, -1, -1, -1, -1, -1, 41,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 223, -1, -1, -1, -1, -1, -1, -1, -1, -1, 199, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 176, -1, -1, -1, -1, -1, 208, -1, -1,
+    -1, 105, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 159, -1,
+    -1, -1, -1, -1, 80, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 64, -1, -1, -1, -1, 168, -1, -1, -1, -1, -1, 40, -1, -1, -1, -1, -1, -1,
+    -1, -1, 16, -1, 83, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 92, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 87, -1, 236, 166, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 38, -1, -1, -1,
+    -1, -1, -1, -1, 131, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 160, -1, -1, -1, -1, -1, -1, -1, -1, -1, 142, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 196, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 110, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 111, -1, -1,
+    -1, 179, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    138, 112, -1, -1, -1, -1, -1, -1, -1, -1, 26, -1, -1, -1, -1, -1, -1, -1,
+    109, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 27, -1, -1,
+    134, -1, -1, -1, -1, 107, -1, -1, 178, -1, -1, -1, -1, 147, -1, -1, -1, -1,
+    -1, 136, 28, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    229, -1, 173, -1, -1, -1, -1, 139, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 230, 54, 66, -1, 233, -1, 14, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 152, -1, -1, -1, 18, -1, -1, 231, 55, -1, -1, 234, -1, -1, -1,
+    -1, -1, -1, -1, -1, 94, -1, 194, -1, -1, -1, -1, -1, -1, -1, -1, 56, -1, -1,
+    235, -1, 116, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 89, -1, -1, -1,
+    -1, 44, -1, -1, -1, -1, -1, 120, -1, -1, 193, 20, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 153, -1, 124, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 39, -1, -1, -1, -1, -1, -1, -1, 148, -1, -1, -1, -1, -1, -1,
+    207, -1, -1, -1, -1, -1, -1, -1, -1, -1, 227, 104, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 132, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 161,
+    -1, -1, -1, -1, -1, -1, -1, -1, 73, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 53, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 19, -1, -1, 82, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 4, -1, -1, 213, 121, 214, -1, 157, 170, -1, -1, -1,
+    -1, 181, -1, -1, -1, -1, 100, -1, -1, -1, -1, -1, -1, 48, -1, 122, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 49,
+    -1, 123, -1, -1, -1, -1, -1, -1, 103, -1, -1, -1, -1, -1, 164, -1, -1, -1,
+    78, -1, -1, -1, 50, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 17, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    144, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 10, -1, -1, -1, -1, -1, 162, 169, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 70, -1,
+    -1, -1, -1, -1, -1, -1, -1, 90, -1, 43, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    205, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 184, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 141, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 47,
+    -1, -1, -1, -1, 183, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 35, -1, -1, -1,
+    -1, -1, -1, 102, -1, -1, -1, -1, -1, 189, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, 36, -1, -1, -1, -1, 191, -1, -1, -1, -1, -1, 224, -1, -1, -1, -1, -1,
+    -1, 203, -1, -1, -1, -1, 37, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 188, -1, -1, 34, -1, 62, -1, -1, -1, -1, -1, -1,
+    -1, -1, 158, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 128, -1, 84, -1,
+    42, 209, 185, -1, -1, -1, 45, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    137, -1, 198, -1, -1, -1, -1, -1, -1, -1, -1, 210, -1, -1, 151, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 216, -1,
+    5, 174, -1, -1, -1, 143, -1, 52, 74, -1, -1, 201, -1, -1, -1, -1, -1, -1,
+    -1, 237, -1, 190, -1, -1, -1, 202, -1, -1, -1, -1, -1, -1, -1, 11, 154, 218,
+    -1, -1, -1, -1, -1, -1, -1, 57, -1, -1, -1, -1, -1, -1, 220, -1, 133, -1,
+    -1, -1, -1, -1, -1, 97, -1, -1, -1, -1, -1, 225, -1, -1, -1, -1, 212, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 59, -1, -1, -1, 21, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 238, -1, -1, -1, -1, -1, -1, -1, 25,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 58, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 29, 7, 60, -1, -1, -1, -1, -1, -1, -1, -1, 175
+  );
+
+  GInternalFunctionIndices: array[0..1050] of Integer = (
+    -1, -1, -1, -1, -1, -1, -1, 50, 63, -1, 34, -1, 5, -1, 118, -1, 17, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 11, -1, -1, -1, -1, -1, 134, -1, -1, -1, -1, 65,
+    -1, -1, 19, -1, 141, -1, 137, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 48,
+    -1, 40, 99, -1, -1, 73, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 43, -1,
+    -1, -1, 24, -1, -1, -1, -1, -1, 71, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    145, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 106, 25, -1, -1,
+    -1, 52, 109, -1, -1, -1, -1, -1, 35, -1, -1, -1, -1, -1, 159, -1, -1, -1,
+    -1, -1, -1, -1, -1, 98, 90, 120, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 64,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 104, -1, 87, -1, -1, -1, -1, 42, -1, -1,
+    -1, 13, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 14, -1, -1, -1, -1, -1, -1, -1, -1, -1, 155, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 67, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, 45, -1, -1, 68, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 108, 39, 160, 9, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 138, -1, -1, -1, -1, -1, -1, -1, 10, -1,
+    -1, -1, -1, -1, -1, 56, -1, -1, -1, -1, -1, -1, -1, 51, -1, -1, -1, -1, 31,
+    -1, -1, -1, -1, -1, -1, -1, 100, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 101, -1, 130, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 102, -1, -1, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 103,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 128, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 147, -1, -1, -1, -1, 127,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 143, -1, -1, -1, 2, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 119, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 133, -1, -1, -1, 29, -1, 96,
+    -1, -1, -1, 53, -1, -1, -1, -1, -1, 131, -1, -1, -1, -1, -1, 12, 88, -1, -1,
+    -1, -1, 41, -1, -1, -1, -1, -1, -1, -1, -1, -1, 111, 125, -1, -1, -1, 150,
+    -1, -1, -1, -1, -1, -1, 60, -1, -1, -1, -1, -1, 0, -1, -1, -1, -1, -1, 116,
+    -1, -1, 139, 20, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 92, 66, -1,
+    -1, 135, -1, -1, -1, -1, 82, 115, 16, -1, -1, 91, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, 89, -1, 124, -1, 72, -1, -1, -1, -1, -1, -1, 77, 123,
+    47, -1, -1, 151, -1, -1, -1, 37, -1, -1, -1, -1, -1, -1, -1, -1, -1, 33, -1,
+    -1, -1, -1, -1, -1, 136, 27, -1, 44, -1, -1, -1, -1, -1, -1, 85, -1, 26, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 7, -1, 76, -1, -1, -1, -1, -1, -1, -1,
+    55, -1, 81, -1, -1, -1, -1, -1, 46, -1, -1, -1, 8, 61, -1, -1, -1, -1, -1,
+    -1, 126, -1, -1, 80, -1, -1, -1, -1, 22, -1, -1, -1, 78, -1, -1, -1, 54, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 114, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, 154, -1, 149, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 59, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 58,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 110, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 94, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, -1,
+    -1, 157, -1, -1, -1, -1, -1, -1, -1, -1, 148, -1, -1, -1, -1, -1, -1, 121,
+    -1, -1, -1, -1, 140, -1, -1, -1, -1, -1, 156, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, 95, -1, -1, -1, -1, -1, 142, -1, -1, -1, -1, -1, -1, 23, -1, -1, -1,
+    -1, -1, -1, -1, 62, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, 117, -1, -1, -1, -1, -1, -1, -1, -1, 93, -1, -1, 38, 153, -1,
+    -1, -1, 74, -1, -1, -1, -1, 122, 75, -1, -1, -1, -1, -1, -1, -1, -1, 49, -1,
+    -1, -1, -1, 18, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, 28, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, 84, -1, 36, 158, -1, -1, -1, -1, -1, -1, -1, 86, -1, 4, -1,
+    113, -1, -1, -1, -1, -1, -1, 152, -1, -1, -1, -1, -1, -1, -1, -1, -1, 129,
+    -1, 57, 112, -1, -1, -1, 83, -1, -1, 105, -1, -1, 32, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 21, -1, 70, -1, -1, 144, -1,
+    -1, -1, -1, 15, -1, -1, -1, -1, -1, -1, 132, -1, 107, -1, -1, -1, -1, -1,
+    -1, -1, 30, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 97, -1, -1, 146, 79,
+    69
   );
 
 {$Q-}
-function TSynCppSyn.HashKey(Str: PWideChar): Cardinal;
+function TSynGLSLSyn.HashKey(Str: PWideChar): Cardinal;
 begin
   Result := 0;
   while IsIdentChar(Str^) do
   begin
-    Result := Result * 179 + Ord(Str^) * 44;
-    Inc(Str);
+    Result := Result * 875 + Ord(Str^) * 23;
+    inc(Str);
   end;
-  Result := Result mod 343;
+  Result := Result mod 2011;
+  FStringLen := Str - FToIdent;
+end;
+
+function TSynGLSLSyn.HashInternal(Str: PWideChar): Cardinal;
+begin
+  Result := 0;
+  while IsIdentChar(Str^) do
+  begin
+    Result := Result * 703 + Ord(Str^) * 16;
+    inc(Str);
+  end;
+  Result := Result mod 1051;
   FStringLen := Str - FToIdent;
 end;
 {$Q+}
 
-function TSynCppSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
+function TSynGLSLSyn.IdentKind(MayBe: PWideChar): TtkTokenKind;
 var
   Key: Cardinal;
 begin
   FToIdent := MayBe;
   Key := HashKey(MayBe);
   if Key <= High(FIdentFuncTable) then
-    Result := FIdentFuncTable[Key](KeyIndices[Key])
+    Result := FIdentFuncTable[Key](GKeyIndices[Key], Maybe)
   else
-    Result := tkIdentifier;
+  begin
+    Key := HashInternal(MayBe);
+    if Key <= High(FInternalFuncTable) then
+      Result := FInternalFuncTable[Key](GInternalFunctionIndices[Key], Maybe)
+    else
+      Result := tkIdentifier;
+  end;
 end;
 
-procedure TSynCppSyn.InitIdent;
+procedure TSynGLSLSyn.InitIdent;
 var
   i: Integer;
 begin
   for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
-    if KeyIndices[i] = -1 then
+    if GKeyIndices[i] = -1 then
       FIdentFuncTable[i] := AltFunc;
 
-  FIdentFuncTable[70] := FuncAsm;
-  FIdentFuncTable[191] := FuncAsm;
-  FIdentFuncTable[189] := FuncAsm;
+  for i := Low(FInternalFuncTable) to High(FInternalFuncTable) do
+    if GInternalFunctionIndices[i] = -1 then
+      FInternalFuncTable[i] := AltFinalFunc;
+
+  FIdentFuncTable[83] := InterfaceQualifierFunc;
+  FIdentFuncTable[143] := InterfaceQualifierFunc;
+  FIdentFuncTable[460] := InterfaceQualifierFunc;
+  FIdentFuncTable[1312] := InterfaceQualifierFunc;
+  FIdentFuncTable[1878] := InterfaceQualifierFunc;
 
   for i := Low(FIdentFuncTable) to High(FIdentFuncTable) do
     if @FIdentFuncTable[i] = nil then
       FIdentFuncTable[i] := KeyWordFunc;
+
+  for i := Low(FInternalFuncTable) to High(FInternalFuncTable) do
+    if @FInternalFuncTable[i] = nil then
+      FInternalFuncTable[i] := InternalFunc;
 end;
 
-function TSynCppSyn.AltFunc(Index: Integer): TtkTokenKind;
+function TSynGLSLSyn.InterfaceQualifierFunc(Index: Integer; Maybe: PWideChar): TtkTokenKind;
+begin
+  if IsCurrentToken(GKeyWords[Index]) then
+    Result := tkInterfaceQualifier
+  else
+    Result := tkIdentifier
+end;
+
+function TSynGLSLSyn.AltFinalFunc(Index: Integer;
+  Maybe: PWideChar): TtkTokenKind;
 begin
   Result := tkIdentifier;
 end;
 
-function TSynCppSyn.KeyWordFunc(Index: Integer): TtkTokenKind;
+function TSynGLSLSyn.AltFunc(Index: Integer; Maybe: PWideChar): TtkTokenKind;
+var
+  Key: Cardinal;
 begin
-  if IsCurrentToken(KeyWords[Index]) then
+  Key := HashInternal(MayBe);
+  if Key <= High(FInternalFuncTable) then
+    Result := FInternalFuncTable[Key](GInternalFunctionIndices[Key], Maybe)
+  else
+    Result := tkIdentifier;
+end;
+
+function TSynGLSLSyn.KeyWordFunc(Index: Integer; Maybe: PWideChar): TtkTokenKind;
+begin
+  if IsCurrentToken(GKeyWords[Index]) then
     Result := tkKey
   else
     Result := tkIdentifier
 end;
 
-function TSynCppSyn.FuncAsm(Index: Integer): TtkTokenKind;
+function TSynGLSLSyn.InternalFunc(Index: Integer; Maybe: PWideChar): TtkTokenKind;
 begin
-  if IsCurrentToken(KeyWords[Index]) then
-  begin
-    Result := tkKey;
-    FRange := rsAsm;
-    FAsmStart := True;
-  end
+  if IsCurrentToken(GInternalFunctions[Index]) then
+    Result := tkInternalFunction
   else
     Result := tkIdentifier
 end;
 
-constructor TSynCppSyn.Create(AOwner: TComponent);
+constructor TSynGLSLSyn.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
 
   FCaseSensitive := True;
 
-  FAsmAttri := TSynHighlighterAttributes.Create(SYNS_AttrAssembler, SYNS_FriendlyAttrAssembler);
-  AddAttribute(FAsmAttri);
   FCommentAttri := TSynHighlighterAttributes.Create(SYNS_AttrComment, SYNS_FriendlyAttrComment);
   FCommentAttri.Style:= [fsItalic];
-  AddAttribute(FCommentAttri);
   FIdentifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrIdentifier, SYNS_FriendlyAttrIdentifier);
-  AddAttribute(FIdentifierAttri);
+  FInterfaceQualifierAttri := TSynHighlighterAttributes.Create(SYNS_AttrInterfaceQualifier, SYNS_FriendlyAttrInterfaceQualifier);
+  FInterfaceQualifierAttri.Style:= [fsBold];
+  FInternalFunctionsAttri := TSynHighlighterAttributes.Create(SYNS_AttrInternalFunction, SYNS_FriendlyAttrInternalFunction);
+  FInternalFunctionsAttri.Foreground := clGreen;
   FInvalidAttri := TSynHighlighterAttributes.Create(SYNS_AttrIllegalChar, SYNS_FriendlyAttrIllegalChar);
-  AddAttribute(FInvalidAttri);
   FKeyAttri := TSynHighlighterAttributes.Create(SYNS_AttrReservedWord, SYNS_FriendlyAttrReservedWord);
+  FKeyAttri.Foreground := clNavy;
   FKeyAttri.Style:= [fsBold];
-  AddAttribute(FKeyAttri);
   FNumberAttri := TSynHighlighterAttributes.Create(SYNS_AttrNumber, SYNS_FriendlyAttrNumber);
-  AddAttribute(FNumberAttri);
+  FNumberAttri.Foreground := clMaroon;
   FCharAttri := TSynHighlighterAttributes.Create(SYNS_AttrCharacter, SYNS_FriendlyAttrCharacter);
-  AddAttribute(FCharAttri);
   FFloatAttri := TSynHighlighterAttributes.Create(SYNS_AttrFloat, SYNS_FriendlyAttrFloat);
-  AddAttribute(FFloatAttri);
+  FFloatAttri.Foreground := clOlive;
   FHexAttri := TSynHighlighterAttributes.Create(SYNS_AttrHexadecimal, SYNS_FriendlyAttrHexadecimal);
-  AddAttribute(FHexAttri);
   FOctalAttri := TSynHighlighterAttributes.Create(SYNS_AttrOctal, SYNS_FriendlyAttrOctal);
-  AddAttribute(FOctalAttri);
   FSpaceAttri := TSynHighlighterAttributes.Create(SYNS_AttrSpace, SYNS_FriendlyAttrSpace);
-  AddAttribute(FSpaceAttri);
   FStringAttri := TSynHighlighterAttributes.Create(SYNS_AttrString, SYNS_FriendlyAttrString);
-  AddAttribute(FStringAttri);
   FSymbolAttri := TSynHighlighterAttributes.Create(SYNS_AttrSymbol, SYNS_FriendlyAttrSymbol);
-  AddAttribute(FSymbolAttri);
   FDirecAttri := TSynHighlighterAttributes.Create(SYNS_AttrPreprocessor, SYNS_FriendlyAttrPreprocessor);
+
+  AddAttribute(FCommentAttri);
+  AddAttribute(FIdentifierAttri);
+  AddAttribute(FInterfaceQualifierAttri);
+  AddAttribute(FInternalFunctionsAttri);
+  AddAttribute(FInvalidAttri);
+  AddAttribute(FKeyAttri);
+  AddAttribute(FNumberAttri);
+  AddAttribute(FCharAttri);
+  AddAttribute(FFloatAttri);
+  AddAttribute(FHexAttri);
+  AddAttribute(FOctalAttri);
+  AddAttribute(FSpaceAttri);
+  AddAttribute(FStringAttri);
   AddAttribute(FDirecAttri);
+  AddAttribute(FSymbolAttri);
+
   SetAttributesOnChange(DefHighlightChange);
+
   InitIdent;
   FRange := rsUnknown;
   FAsmStart := False;
-  FDefaultFilter := SYNS_FilterCPP;
+  FDefaultFilter := SYNS_FilterGLSL;
 end;
 
-procedure TSynCppSyn.AnsiCProc;
+procedure TSynGLSLSyn.AnsiCProc;
 begin
   FTokenID := tkComment;
   case FLine[Run] of
@@ -384,11 +662,7 @@ begin
         if FLine[Run + 1] = '/' then
         begin
           Inc(Run, 2);
-          if FRange = rsAnsiCAsm then
-            FRange := rsAsm
-          else if FRange = rsAnsiCAsmBlock then
-            FRange := rsAsmBlock
-          else if (FRange = rsDirectiveComment) and
+          if (FRange = rsDirectiveComment) and
             not IsLineEnd(Run) then
               FRange := rsMultiLineDirective
           else
@@ -403,7 +677,7 @@ begin
     end;
 end;
 
-procedure TSynCppSyn.AndSymbolProc;
+procedure TSynGLSLSyn.AndSymbolProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -425,7 +699,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.AsciiCharProc;
+procedure TSynGLSLSyn.AsciiCharProc;
 begin
   FTokenID := tkChar;
   repeat
@@ -439,40 +713,34 @@ begin
     Inc(Run);
 end;
 
-procedure TSynCppSyn.AtSymbolProc;
+procedure TSynGLSLSyn.AtSymbolProc;
 begin
   FTokenID := tkUnknown;
   Inc(Run);
 end;
 
-procedure TSynCppSyn.BraceCloseProc;
+procedure TSynGLSLSyn.BraceCloseProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkBraceClose;
-  if FRange = rsAsmBlock then FRange := rsUnknown;
 end;
 
-procedure TSynCppSyn.BraceOpenProc;
+procedure TSynGLSLSyn.BraceOpenProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkBraceOpen;
-  if FRange = rsAsm then
-  begin
-    FRange := rsAsmBlock;
-    FAsmStart := True;
-  end;
 end;
 
-procedure TSynCppSyn.CRProc;
+procedure TSynGLSLSyn.CRProc;
 begin
   FTokenID := tkSpace;
   Inc(Run);
   if FLine[Run + 1] = #10 then Inc(Run);
 end;
 
-procedure TSynCppSyn.ColonProc;
+procedure TSynGLSLSyn.ColonProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -489,14 +757,14 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.CommaProc;
+procedure TSynGLSLSyn.CommaProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkComma;
 end;
 
-procedure TSynCppSyn.DirectiveProc;
+procedure TSynGLSLSyn.DirectiveProc;
 begin
   if WideTrim(FLine)[1] <> '#' then // '#' is not first char on the line, treat it as an invalid char
   begin
@@ -530,7 +798,7 @@ begin
   until IsLineEnd(Run)
 end;
 
-procedure TSynCppSyn.DirectiveEndProc;
+procedure TSynGLSLSyn.DirectiveEndProc;
 begin
   FTokenID := tkDirective;
   case FLine[Run] of
@@ -583,7 +851,7 @@ begin
   until IsLineEnd(Run);
 end;
 
-procedure TSynCppSyn.EqualProc;
+procedure TSynGLSLSyn.EqualProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -600,7 +868,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.GreaterProc;
+procedure TSynGLSLSyn.GreaterProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -630,27 +898,27 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.QuestionProc;
+procedure TSynGLSLSyn.QuestionProc;
 begin
   FTokenID := tkSymbol;                {conditional}
   FExtTokenID := xtkQuestion;
   Inc(Run);
 end;
 
-procedure TSynCppSyn.IdentProc;
+procedure TSynGLSLSyn.IdentProc;
 begin
   FTokenID := IdentKind((FLine + Run));
   Inc(Run, FStringLen);
   while IsIdentChar(FLine[Run]) do Inc(Run);
 end;
 
-procedure TSynCppSyn.LFProc;
+procedure TSynGLSLSyn.LFProc;
 begin
   FTokenID := tkSpace;
   Inc(Run);
 end;
 
-procedure TSynCppSyn.LowerProc;
+procedure TSynGLSLSyn.LowerProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -680,7 +948,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.MinusProc;
+procedure TSynGLSLSyn.MinusProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -707,7 +975,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.ModSymbolProc;
+procedure TSynGLSLSyn.ModSymbolProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -724,7 +992,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.NotSymbolProc;
+procedure TSynGLSLSyn.NotSymbolProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -741,13 +1009,13 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.NullProc;
+procedure TSynGLSLSyn.NullProc;
 begin
   FTokenID := tkNull;
   Inc(Run);
 end;
 
-procedure TSynCppSyn.NumberProc;
+procedure TSynGLSLSyn.NumberProc;
 
   function IsNumberChar(Run: Integer): Boolean;
   begin
@@ -911,7 +1179,7 @@ begin
     FTokenID := tkUnknown;
 end;
 
-procedure TSynCppSyn.OrSymbolProc;
+procedure TSynGLSLSyn.OrSymbolProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -933,7 +1201,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.PlusProc;
+procedure TSynGLSLSyn.PlusProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -955,7 +1223,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.PointProc;
+procedure TSynGLSLSyn.PointProc;
 begin
   FTokenID := tkSymbol;
   if (FLine[Run + 1] = '.') and (FLine[Run + 2] = '.') then
@@ -976,29 +1244,28 @@ begin
     end;
 end;
 
-procedure TSynCppSyn.RoundCloseProc;
+procedure TSynGLSLSyn.RoundCloseProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkRoundClose;
 end;
 
-procedure TSynCppSyn.RoundOpenProc;
+procedure TSynGLSLSyn.RoundOpenProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkRoundOpen;
 end;
 
-procedure TSynCppSyn.SemiColonProc;
+procedure TSynGLSLSyn.SemiColonProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkSemiColon;
-  if FRange = rsAsm then FRange := rsUnknown;
 end;
 
-procedure TSynCppSyn.SlashProc;
+procedure TSynGLSLSyn.SlashProc;
 begin
   case FLine[Run + 1] of
     '/':                               {c++ style comments}
@@ -1010,12 +1277,6 @@ begin
     '*':                               {c style comments}
       begin
         FTokenID := tkComment;
-        if FRange = rsAsm then
-          FRange := rsAnsiCAsm
-        else if FRange = rsAsmBlock then
-          FRange := rsAnsiCAsmBlock
-        else if FRange <> rsDirectiveComment then
-          FRange := rsAnsiC;
         Inc(Run, 2);
         while FLine[Run] <> #0 do
           case FLine[Run] of
@@ -1025,23 +1286,12 @@ begin
                 Inc(Run, 2);
                 if FRange = rsDirectiveComment then
                   FRange := rsMultiLineDirective
-                else if FRange = rsAnsiCAsm then
-                  FRange := rsAsm
                 else
-                  begin
-                  if FRange = rsAnsiCAsmBlock then
-                    FRange := rsAsmBlock
-                  else
-                    FRange := rsUnknown;
-                  end;
+                  FRange := rsUnknown;
                 Break;
               end else Inc(Run);
             #10, #13:
-              begin
-                if FRange = rsDirectiveComment then
-                  FRange := rsAnsiC;
-                Break;
-              end;
+              Break;
           else Inc(Run);
           end;
       end;
@@ -1060,28 +1310,28 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.SpaceProc;
+procedure TSynGLSLSyn.SpaceProc;
 begin
   Inc(Run);
   FTokenID := tkSpace;
   while (FLine[Run] <= #32) and not IsLineEnd(Run) do Inc(Run);
 end;
 
-procedure TSynCppSyn.SquareCloseProc;
+procedure TSynGLSLSyn.SquareCloseProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkSquareClose;
 end;
 
-procedure TSynCppSyn.SquareOpenProc;
+procedure TSynGLSLSyn.SquareOpenProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
   FExtTokenID := xtkSquareOpen;
 end;
 
-procedure TSynCppSyn.StarProc;
+procedure TSynGLSLSyn.StarProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -1098,7 +1348,7 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.StringProc;
+procedure TSynGLSLSyn.StringProc;
 begin
   FTokenID := tkString;
   repeat
@@ -1120,7 +1370,7 @@ begin
     Inc(Run);
 end;
 
-procedure TSynCppSyn.StringEndProc;
+procedure TSynGLSLSyn.StringEndProc;
 begin
   FTokenID := tkString;
 
@@ -1168,14 +1418,14 @@ begin
     Inc(Run);
 end;
 
-procedure TSynCppSyn.TildeProc;
+procedure TSynGLSLSyn.TildeProc;
 begin
   Inc(Run);                            {bitwise complement}
   FTokenID := tkSymbol;
   FExtTokenID := xtkBitComplement;
 end;
 
-procedure TSynCppSyn.XOrSymbolProc;
+procedure TSynGLSLSyn.XOrSymbolProc;
 begin
   FTokenID := tkSymbol;
   case FLine[Run + 1] of
@@ -1192,19 +1442,18 @@ begin
   end;
 end;
 
-procedure TSynCppSyn.UnknownProc;
+procedure TSynGLSLSyn.UnknownProc;
 begin
   Inc(Run);
   FTokenID := tkUnknown;
 end;
 
-procedure TSynCppSyn.Next;
+procedure TSynGLSLSyn.Next;
 begin
   FAsmStart := False;
   FTokenPos := Run;
   case FRange of
-    rsAnsiC, rsAnsiCAsm,
-    rsAnsiCAsmBlock, rsDirectiveComment: AnsiCProc;
+    rsDirectiveComment: AnsiCProc;
     rsMultiLineDirective: DirectiveEndProc;
     rsMultilineString: StringEndProc;
   else
@@ -1251,7 +1500,7 @@ begin
   inherited;
 end;
 
-function TSynCppSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
+function TSynGLSLSyn.GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes;
 begin
   case Index of
     SYN_ATTR_COMMENT: Result := FCommentAttri;
@@ -1265,38 +1514,35 @@ begin
   end;
 end;
 
-function TSynCppSyn.GetEol: Boolean;
+function TSynGLSLSyn.GetEol: Boolean;
 begin
   Result := Run = FLineLen + 1;
 end;
 
-function TSynCppSyn.GetRange: Pointer;
+function TSynGLSLSyn.GetRange: Pointer;
 begin
   Result := Pointer(FRange);
 end;
 
-function TSynCppSyn.GetTokenID: TtkTokenKind;
+function TSynGLSLSyn.GetTokenID: TtkTokenKind;
 begin
   Result := FTokenID;
-  if ((FRange = rsAsm) or (FRange = rsAsmBlock)) and not FAsmStart
-    and not (FTokenID in [tkComment, tkSpace, tkNull])
-  then
-    Result := tkAsm;
 end;
 
-function TSynCppSyn.GetExtTokenID: TxtkTokenKind;
+function TSynGLSLSyn.GetExtTokenID: TxtkTokenKind;
 begin
   Result := FExtTokenID;
 end;
 
-function TSynCppSyn.GetTokenAttribute: TSynHighlighterAttributes;
+function TSynGLSLSyn.GetTokenAttribute: TSynHighlighterAttributes;
 begin
   FTokenID := GetTokenID;
   case FTokenID of
-    tkAsm: Result := FAsmAttri;
     tkComment: Result := FCommentAttri;
     tkDirective: Result := FDirecAttri;
     tkIdentifier: Result := FIdentifierAttri;
+    tkInterfaceQualifier: Result := FInterfaceQualifierAttri;
+    tkInternalFunction: Result := FInternalFunctionsAttri;
     tkKey: Result := FKeyAttri;
     tkNumber: Result := FNumberAttri;
     tkFloat: Result := FFloatAttri;
@@ -1311,242 +1557,60 @@ begin
   end;
 end;
 
-function TSynCppSyn.GetTokenKind: Integer;
+function TSynGLSLSyn.GetTokenKind: Integer;
 begin
   Result := Ord(GetTokenID);
 end;
 
-procedure TSynCppSyn.ResetRange;
+procedure TSynGLSLSyn.ResetRange;
 begin
   FRange:= rsUnknown;
 end;
 
-procedure TSynCppSyn.SetRange(Value: Pointer);
+procedure TSynGLSLSyn.SetRange(Value: Pointer);
 begin
   FRange := TRangeState(Value);
 end;
 
-procedure TSynCppSyn.EnumUserSettings(settings: TStrings);
+function TSynGLSLSyn.IsFilterStored: Boolean;
 begin
-  { returns the user settings that exist in the registry }
-  with TBetterRegistry.Create do
-  begin
-    try
-      RootKey := HKEY_LOCAL_MACHINE;
-      if OpenKeyReadOnly('\SOFTWARE\Borland\C++Builder') then
-      begin
-        try
-          GetKeyNames(settings);
-        finally
-          CloseKey;
-        end;
-      end;
-    finally
-      Free;
-    end;
-  end;
+  Result := FDefaultFilter <> SYNS_FilterGLSL;
 end;
 
-function TSynCppSyn.UseUserSettings(settingIndex: Integer): Boolean;
-// Possible parameter values:
-//   index into TStrings returned by EnumUserSettings
-// Possible return values:
-//   True : settings were read and used
-//   False: problem reading settings or invalid version specified - old settings
-//          were preserved
-
-  function ReadCPPBSettings(settingIndex: Integer): Boolean;
-
-    function ReadCPPBSetting(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
-
-      function ReadCPPB1(settingTag: string; attri: TSynHighlighterAttributes; name: string): Boolean;
-      var
-        i: Integer;
-      begin
-        for i := 1 to Length(name) do
-          if name[i] = ' ' then name[i] := '_';
-        Result := attri.LoadFromBorlandRegistry(HKEY_CURRENT_USER,
-             '\SOFTWARE\Borland\C++Builder\' + settingTag + '\Highlight', name, True);
-      end; { ReadCPPB1 }
-
-      function ReadCPPB3OrMore(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
-      begin
-        Result := attri.LoadFromBorlandRegistry(HKEY_CURRENT_USER,
-          '\Software\Borland\C++Builder\' + settingTag + '\Editor\Highlight',
-          key, False);
-      end; { ReadCPPB3OrMore }
-
-    begin { ReadCPPBSetting }
-      try
-        if (settingTag[1] = '1') then
-          Result := ReadCPPB1(settingTag,attri,key)
-        else
-          Result := ReadCPPB3OrMore(settingTag,attri,key);
-      except
-        Result := False;
-      end;
-    end; { ReadCPPBSetting }
-
-  var
-    tmpStringAttri    : TSynHighlighterAttributes;
-    tmpCharAttri      : TSynHighlighterAttributes;
-    tmpNumberAttri    : TSynHighlighterAttributes;
-    tmpFloatAttri     : TSynHighlighterAttributes;
-    tmpHexAttri       : TSynHighlighterAttributes;
-    tmpOctalAttri     : TSynHighlighterAttributes;
-    tmpKeyAttri       : TSynHighlighterAttributes;
-    tmpSymbolAttri    : TSynHighlighterAttributes;
-    tmpAsmAttri       : TSynHighlighterAttributes;
-    tmpCommentAttri   : TSynHighlighterAttributes;
-    tmpIdentifierAttri: TSynHighlighterAttributes;
-    tmpInvalidAttri   : TSynHighlighterAttributes;
-    tmpSpaceAttri     : TSynHighlighterAttributes;
-    tmpDirecAttri     : TSynHighlighterAttributes;
-    s                 : TStringList;
-
-  begin { ReadCPPBSettings }
-    s := TStringList.Create;
-    try
-      EnumUserSettings(s);
-      if settingIndex >= s.Count then
-        Result := False
-      else
-      begin
-        tmpStringAttri    := TSynHighlighterAttributes.Create('', '');
-        tmpCharAttri      := TSynHighlighterAttributes.Create('', '');
-        tmpNumberAttri    := TSynHighlighterAttributes.Create('', '');
-        tmpFloatAttri     := TSynHighlighterAttributes.Create('', '');
-        tmpHexAttri       := TSynHighlighterAttributes.Create('', '');
-        tmpOctalAttri     := TSynHighlighterAttributes.Create('', '');
-        tmpKeyAttri       := TSynHighlighterAttributes.Create('', '');
-        tmpSymbolAttri    := TSynHighlighterAttributes.Create('', '');
-        tmpAsmAttri       := TSynHighlighterAttributes.Create('', '');
-        tmpCommentAttri   := TSynHighlighterAttributes.Create('', '');
-        tmpIdentifierAttri:= TSynHighlighterAttributes.Create('', '');
-        tmpInvalidAttri   := TSynHighlighterAttributes.Create('', '');
-        tmpSpaceAttri     := TSynHighlighterAttributes.Create('', '');
-        tmpDirecAttri     := TSynHighlighterAttributes.Create('', '');
-        tmpStringAttri    .Assign(FStringAttri);
-        tmpCharAttri      .Assign(FCharAttri);
-        tmpNumberAttri    .Assign(FNumberAttri);
-        tmpFloatAttri     .Assign(FFloatAttri);
-        tmpHexAttri       .Assign(FHexAttri);
-        tmpOctalAttri     .Assign(FOctalAttri);
-        tmpKeyAttri       .Assign(FKeyAttri);
-        tmpSymbolAttri    .Assign(FSymbolAttri);
-        tmpAsmAttri       .Assign(FAsmAttri);
-        tmpCommentAttri   .Assign(FCommentAttri);
-        tmpIdentifierAttri.Assign(FIdentifierAttri);
-        tmpInvalidAttri   .Assign(FInvalidAttri);
-        tmpSpaceAttri     .Assign(FSpaceAttri);
-        tmpDirecAttri     .Assign(FDirecAttri);
-        if s[settingIndex][1] = '1' then
-          Result := ReadCPPBSetting(s[settingIndex],FAsmAttri,'Plain text')
-        else
-          Result := ReadCPPBSetting(s[settingIndex],FAsmAttri,'Assembler');
-        Result := Result                                                         and
-                  ReadCPPBSetting(s[settingIndex],FCommentAttri,'Comment')       and
-                  ReadCPPBSetting(s[settingIndex],FIdentifierAttri,'Identifier') and
-                  ReadCPPBSetting(s[settingIndex],FInvalidAttri,'Illegal Char')  and
-                  ReadCPPBSetting(s[settingIndex],FKeyAttri,'Reserved word')     and
-                  ReadCPPBSetting(s[settingIndex],FNumberAttri,'Integer')        and
-                  ReadCPPBSetting(s[settingIndex],FFloatAttri,'Float')           and
-                  ReadCPPBSetting(s[settingIndex],FHexAttri,'Hex')               and
-                  ReadCPPBSetting(s[settingIndex],FOctalAttri,'Octal')           and
-                  ReadCPPBSetting(s[settingIndex],FSpaceAttri,'Whitespace')      and
-                  ReadCPPBSetting(s[settingIndex],FStringAttri,'String')         and
-                  ReadCPPBSetting(s[settingIndex],FCharAttri,'Character')             and
-                  ReadCPPBSetting(s[settingIndex],FSymbolAttri,'Symbol')         and
-                  ReadCPPBSetting(s[settingIndex],FDirecAttri,'Preprocessor');
-        if not Result then
-        begin
-          FStringAttri    .Assign(tmpStringAttri);
-          FCharAttri      .Assign(tmpCharAttri);
-          FNumberAttri    .Assign(tmpNumberAttri);
-          FFloatAttri     .Assign(tmpFloatAttri);
-          FHexAttri       .Assign(tmpHexAttri);
-          FOctalAttri     .Assign(tmpOctalAttri);
-          FKeyAttri       .Assign(tmpKeyAttri);
-          FSymbolAttri    .Assign(tmpSymbolAttri);
-          FAsmAttri       .Assign(tmpAsmAttri);
-          FCommentAttri   .Assign(tmpCommentAttri);
-          FIdentifierAttri.Assign(tmpIdentifierAttri);
-          FInvalidAttri   .Assign(tmpInvalidAttri);
-          FSpaceAttri     .Assign(tmpSpaceAttri);
-          FDirecAttri     .Assign(tmpDirecAttri);
-        end;
-        tmpStringAttri    .Free;
-        tmpCharAttri      .Free;
-        tmpNumberAttri    .Free;
-        tmpFloatAttri     .Free;
-        tmpHexAttri       .Free;
-        tmpOctalAttri     .Free;
-        tmpKeyAttri       .Free;
-        tmpSymbolAttri    .Free;
-        tmpAsmAttri       .Free;
-        tmpCommentAttri   .Free;
-        tmpIdentifierAttri.Free;
-        tmpInvalidAttri   .Free;
-        tmpSpaceAttri     .Free;
-        tmpDirecAttri     .Free;
-      end;
-    finally
-      s.Free;
-    end;
-  end; { ReadCPPBSettings }
-
+class function TSynGLSLSyn.GetLanguageName: string;
 begin
-  Result := ReadCPPBSettings(settingIndex);
-end; { TSynCppSyn.UseUserSettings }
-
-function TSynCppSyn.IsFilterStored: Boolean;
-begin
-  Result := FDefaultFilter <> SYNS_FilterCPP;
+  Result := SYNS_LangGLSL;
 end;
 
-class function TSynCppSyn.GetLanguageName: string;
-begin
-  Result := SYNS_LangCPP;
-end;
-
-class function TSynCppSyn.GetCapabilities: TSynHighlighterCapabilities;
-begin
-  Result := inherited GetCapabilities + [hcUserSettings];
-end;
-
-function TSynCppSyn.GetSampleSource: UnicodeString;
+function TSynGLSLSyn.GetSampleSource: UnicodeString;
 begin
   Result :=
-    '// Syntax Highlighting'#13#10+
-    'void __fastcall TForm1::Button1Click(TObject *Sender)'#13#10+
-    '{'#13#10+
-    '  int number = 123456;'#13#10+
-    '  char c = ''a'';'#13#10+
-    '  Caption = "The number is " + IntToStr(i);'#13#10+
-    '  for (int i = 0; i <= number; i++)'#13#10+
-    '  {'#13#10+
-    '    x -= 0xff;'#13#10+
-    '    x -= 023;'#13#10+
-    '    x += 1.0;'#13#10+
-    '    x += @; /* illegal character */'#13#10+
-    '  }'#13#10+
-    '  #ifdef USE_ASM'#13#10+
-    '    asm'#13#10+
-    '    {'#13#10+
-    '      ASM MOV AX, 0x1234'#13#10+
-    '      ASM MOV i, AX'#13#10+
-    '    }'#13#10+
-    '  #endif'#13#10+
+    'const int foo = 5;'#13#10 +
+    'uniform vec2 bar;'#13#10 +
+    'uniform sampler2d tex;'#13#10#13#10 +
+    'float rand(vec2 co){'#13#10 +
+    'return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);'#13#10 +
+    '}'#13#10#13#10 +
+    'void main()'#13#10 +
+    '{'#13#10 +
+    '  uint value = 21; // comment'#13#10 +
+    '  float number = abs(bar.x);'#13#10 +
+    '  if (foo < sin(3.14 * value))'#13#10 +
+    '    value = cos(12 * value);'#13#10 +
+    '  vec4 colors = texture(tex, bar.xy);'#13#10 +
+    '  for(int i = bar.x; i < bar.y; ++i)'#13#10 +
+    '  {'#13#10 +
+    '  }'#13#10 +
     '}';
 end;
 
-class function TSynCppSyn.GetFriendlyLanguageName: UnicodeString;
+class function TSynGLSLSyn.GetFriendlyLanguageName: UnicodeString;
 begin
-  Result := SYNS_FriendlyLangCPP;
+  Result := SYNS_FriendlyLangGLSL;
 end;
 
 initialization
-{$IFNDEF SYN_CPPB_1}
-  RegisterPlaceableHighlighter(TSynCppSyn);
+{$IFNDEF SYN_GLSLB_1}
+  RegisterPlaceableHighlighter(TSynGLSLSyn);
 {$ENDIF}
 end.

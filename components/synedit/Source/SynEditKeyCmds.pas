@@ -45,13 +45,8 @@ unit SynEditKeyCmds;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QMenus,
-  QSynUnicode,
-{$ELSE}
   Menus,
   SynUnicode,
-{$ENDIF}
   Classes,
   SysUtils;
 
@@ -311,17 +306,9 @@ function IndexToEditorCommand(const AIndex: Integer): Integer;
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  kTextDrawer,
-  Types,
-  Qt,
-  QSynEditKeyConst,
-  QSynEditStrConst;
-{$ELSE}
   Windows,
   SynEditKeyConst,
   SynEditStrConst;
-{$ENDIF}
 
 { Command mapping routines }
 
@@ -555,11 +542,7 @@ end;
 
 function TSynEditKeyStroke.GetShortCut: TShortCut;
 begin
-{$IFDEF SYN_CLX}
-  Result := QMenus.ShortCut(Key, Shift);
-{$ELSE}
   Result := Menus.ShortCut(Key, Shift);
-{$ENDIF}
 end;
 
 procedure TSynEditKeyStroke.SetCommand(const Value: TSynEditorCommand);
@@ -597,11 +580,7 @@ begin
       end;
   end;
 
-{$IFDEF SYN_CLX}
-  QMenus.ShortCutToKey(Value, NewKey, NewShift);
-{$ELSE}
   Menus.ShortCutToKey(Value, NewKey, NewShift);
-{$ENDIF}
 
   if (NewKey <> Key) or (NewShift <> Shift) then
   begin
@@ -637,11 +616,7 @@ begin
       raise ESynKeyError.Create(SYNS_EDuplicateShortCut);
   end;
 
-{$IFDEF SYN_CLX}
-  QMenus.ShortCutToKey(Value, NewKey, NewShift);
-{$ELSE}
   Menus.ShortCutToKey(Value, NewKey, NewShift);
-{$ENDIF}
   if (NewKey <> Key2) or (NewShift <> Shift2) then
   begin
     Key2 := NewKey;
@@ -651,11 +626,7 @@ end;
 
 function TSynEditKeyStroke.GetShortCut2: TShortCut;
 begin
-{$IFDEF SYN_CLX}
-  Result := QMenus.ShortCut(Key2, Shift2);
-{$ELSE}
   Result := Menus.ShortCut(Key2, Shift2);
-{$ENDIF}
 end;
 
 procedure TSynEditKeyStroke.LoadFromStream(AStream: TStream);

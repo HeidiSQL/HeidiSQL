@@ -38,35 +38,24 @@ Known Issues:
   - EM_XXX messages aren't implemented on CLX, although this could be useful;
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNMEMO}
 unit SynMemo;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  Types,
-  QSynEdit,
-  QSynEditTextBuffer,
-  QSynEditTypes,
-{$ELSE}
   RichEdit,
   Windows,
   Messages,
   SynEdit,
   SynEditTextBuffer,
   SynEditTypes,
-{$ENDIF}
   SysUtils,
   Classes;
 
 type
   TSynMemo = class(TSynEdit)
-{$IFNDEF SYN_CLX}
   private
     // EM_XXX see winuser.h (PSDK August 2001)
     procedure EMGetSel(var Message: TMessage); message EM_GETSEL;
@@ -81,7 +70,6 @@ type
     procedure EMUndo(var Message: TMessage); message EM_UNDO;
     procedure EMGetFirstVisibleLine(var Message: TMessage); message EM_GETFIRSTVISIBLELINE;
     procedure EMCharFromPos(var Message: TMessage); message EM_CHARFROMPOS;
-{$ENDIF NOT SYN_CLX}
   end;
 
 implementation
@@ -93,15 +81,8 @@ uses
 {$IFDEF UNICODE}
   WideStrUtils,
 {$ENDIF}
-{$IFDEF SYN_CLX}
-  QSynUnicode,
-  QSynEditMiscProcs;
-{$ELSE}
   SynUnicode,
   SynEditMiscProcs;
-{$ENDIF}
-
-{$IFNDEF SYN_CLX}
 
 { TSynMemo }
 
@@ -275,7 +256,5 @@ begin
   //todo: this can't be right, CharIndex can easily overflow
   Message.Result := MakeLong(vPos.Char{CharIndex}, vPos.Line{Line zero based});
 end;
-
-{$ENDIF}
 
 end.

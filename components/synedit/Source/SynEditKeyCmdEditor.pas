@@ -44,19 +44,6 @@ unit SynEditKeyCmdEditor;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QMenus,
-  QControls,
-  QForms,
-  QDialogs,
-  QStdCtrls,
-  QExtCtrls,
-  QComCtrls,
-  QSynEditKeyCmds,
-  QSynEditMiscClasses,
-{$ELSE}
   {$IFDEF SYN_COMPILER_17_UP}
   UITypes,
   {$ENDIF}
@@ -72,7 +59,6 @@ uses
   ExtCtrls,
   SynEditKeyCmds,
   SynEditMiscClasses,
-{$ENDIF}
   SysUtils,
   Classes;
 

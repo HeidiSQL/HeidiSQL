@@ -9,10 +9,10 @@
         <Projects Include="..\..\components\virtualtreeview\packages\Delphi10.3\VirtualTreesD.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\synedit\Packages\Delphi10.3\SynEditR.dproj">
+        <Projects Include="..\..\components\synedit\Packages\Delphi10.3\SynEdit_R.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\synedit\Packages\Delphi10.3\SynEditD.dproj">
+        <Projects Include="..\..\components\synedit\Packages\Delphi10.3\SynEdit_D.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="heidisql.dproj">
@@ -44,23 +44,23 @@
     <Target Name="VirtualTreesD:Make">
         <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi10.3\VirtualTreesD.dproj" Targets="Make"/>
     </Target>
-    <Target Name="SynEditR">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEditR.dproj"/>
+    <Target Name="SynEdit_R">
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEdit_R.dproj"/>
     </Target>
-    <Target Name="SynEditR:Clean">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEditR.dproj" Targets="Clean"/>
+    <Target Name="SynEdit_R:Clean">
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEdit_R.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="SynEditR:Make">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEditR.dproj" Targets="Make"/>
+    <Target Name="SynEdit_R:Make">
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEdit_R.dproj" Targets="Make"/>
     </Target>
-    <Target Name="SynEditD">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEditD.dproj"/>
+    <Target Name="SynEdit_D">
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEdit_D.dproj"/>
     </Target>
-    <Target Name="SynEditD:Clean">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEditD.dproj" Targets="Clean"/>
+    <Target Name="SynEdit_D:Clean">
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEdit_D.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="SynEditD:Make">
-        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEditD.dproj" Targets="Make"/>
+    <Target Name="SynEdit_D:Make">
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi10.3\SynEdit_D.dproj" Targets="Make"/>
     </Target>
     <Target Name="heidisql">
         <MSBuild Projects="heidisql.dproj"/>
@@ -72,13 +72,13 @@
         <MSBuild Projects="heidisql.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="VirtualTreesR;VirtualTreesD;SynEditR;SynEditD;heidisql"/>
+        <CallTarget Targets="VirtualTreesR;VirtualTreesD;SynEdit_R;SynEdit_D;heidisql"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="VirtualTreesR:Clean;VirtualTreesD:Clean;SynEditR:Clean;SynEditD:Clean;heidisql:Clean"/>
+        <CallTarget Targets="VirtualTreesR:Clean;VirtualTreesD:Clean;SynEdit_R:Clean;SynEdit_D:Clean;heidisql:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="VirtualTreesR:Make;VirtualTreesD:Make;SynEditR:Make;SynEditD:Make;heidisql:Make"/>
+        <CallTarget Targets="VirtualTreesR:Make;VirtualTreesD:Make;SynEdit_R:Make;SynEdit_D:Make;heidisql:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

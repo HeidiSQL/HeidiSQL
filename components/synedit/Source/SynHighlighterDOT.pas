@@ -43,29 +43,19 @@ The SynHighlighterDOT unit provides SynEdit with a DOT Graph Drawing (.dot) high
 The highlighter formats DOT source code ref.: http://www.research.att.com/sw/tools/graphviz/.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERDOT}
 unit SynHighlighterDOT;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QControls,
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Windows,
   Controls,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -304,11 +294,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..145] of UnicodeString = (

@@ -44,19 +44,6 @@ unit SynEditKeyCmdsEditor;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QControls,
-  QForms,
-  QDialogs,
-  QComCtrls,
-  QMenus,
-  QStdCtrls,
-  QExtCtrls,
-  QButtons,
-  QSynEditKeyCmds,
-{$ELSE}
   {$IFDEF SYN_COMPILER_15_UP}
   Types,
   {$ENDIF}
@@ -75,7 +62,6 @@ uses
   Buttons,
   ExtCtrls,
   SynEditKeyCmds,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -108,10 +94,8 @@ type
     FExtended: Boolean;
     procedure SetKeystrokes(const Value: TSynEditKeyStrokes);
     procedure UpdateKeystrokesList;
-    {$IFNDEF SYN_CLX}
     procedure WMGetMinMaxInfo(var Msg: TWMGetMinMaxInfo);
       message WM_GETMINMAXINFO;
-    {$ENDIF}
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -125,13 +109,8 @@ implementation
 {$R *.dfm}
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditKeyCmdEditor,
-  QSynEditStrConst;
-{$ELSE}
   SynEditKeyCmdEditor,
   SynEditStrConst;
-{$ENDIF}
 
 { TSynEditKeystrokesEditorForm }
 
@@ -174,19 +153,10 @@ begin
           SubItems.Add(SYNS_ShortCutNone)
         else
           if FKeystrokes[x].ShortCut2 = 0 then
-          {$IFDEF SYN_CLX}
-            SubItems.Add(QMenus.ShortCutToText(FKeystrokes[x].ShortCut))
-          {$ELSE}
             SubItems.Add(Menus.ShortCutToText(FKeystrokes[x].ShortCut))
-          {$ENDIF}
           else
-          {$IFDEF SYN_CLX}
-            SubItems.Add(QMenus.ShortCutToText(FKeystrokes[x].ShortCut)+ ' '+
-              QMenus.ShortCutToText(FKeystrokes[x].ShortCut2));
-          {$ELSE}
             SubItems.Add(Menus.ShortCutToText(FKeystrokes[x].ShortCut)+ ' '+
               Menus.ShortCutToText(FKeystrokes[x].ShortCut2));
-          {$ENDIF}
       end;
     end;
   finally
@@ -216,13 +186,11 @@ begin
   lnlInfo2.Top := pnlCommands.Top + pnlCommands.Height + 27;
 end;
 
-{$IFNDEF SYN_CLX}
 procedure TSynEditKeystrokesEditorForm.WMGetMinMaxInfo(var Msg: TWMGetMinMaxInfo);
 begin
   inherited;
   Msg.MinMaxInfo.ptMinTrackSize := Point(300, 225);
 end;
-{$ENDIF}
 
 procedure TSynEditKeystrokesEditorForm.btnAddClick(Sender: TObject);            //DDH 10/16/01 Begin (reworked proc)
 var
@@ -253,15 +221,9 @@ var
               TmpCommand := ConvertCodeStringToExtended(EditorCommandToCodeString(TSynEditKeyStrokes(NewStroke.Collection).Items[KeyLoc].Command))
             else TmpCommand := EditorCommandToCodeString(TSynEditKeyStrokes(NewStroke.Collection).Items[KeyLoc].Command);
 
-          {$IFDEF SYN_CLX}
-            Result := MessageDlg(Format(SYNS_DuplicateShortcutMsg,
-              [QMenus.ShortCutToText(AForm.Keystroke), TmpCommand]),
-              mtError, [mbOK, mbCancel], 0) = mrOK;
-          {$ELSE}
             Result := MessageDlg(Format(SYNS_DuplicateShortcutMsg,
               [Menus.ShortCutToText(AForm.Keystroke), TmpCommand]),
               mtError, [mbOK, mbCancel], 0) = mrOK;
-          {$ENDIF}
             NewStroke.Free;
 
             if Result then
@@ -294,19 +256,10 @@ begin
             SubItems.Add(SYNS_ShortcutNone)
           else
           if NewStroke.ShortCut2 = 0 then
-          {$IFDEF SYN_CLX}
-            SubItems.Add(QMenus.ShortCutToText(NewStroke.ShortCut))
-          {$ELSE}
             SubItems.Add(Menus.ShortCutToText(NewStroke.ShortCut))
-          {$ENDIF}
           else
-          {$IFDEF SYN_CLX}
-            SubItems.Add(QMenus.ShortCutToText(NewStroke.ShortCut)+ ' '+
-              QMenus.ShortCutToText(NewStroke.ShortCut2));
-          {$ELSE}
             SubItems.Add(Menus.ShortCutToText(NewStroke.ShortCut)+ ' '+
               Menus.ShortCutToText(NewStroke.ShortCut2));
-          {$ENDIF}
         end;
       end;
     finally
@@ -347,15 +300,9 @@ var
               TmpCommand := ConvertCodeStringToExtended(EditorCommandToCodeString(TSynEditKeyStrokes(FKeystrokes[SelItem.Index].Collection).Items[KeyLoc].Command))
             else TmpCommand := EditorCommandToCodeString(TSynEditKeyStrokes(FKeystrokes[SelItem.Index].Collection).Items[KeyLoc].Command);
 
-          {$IFDEF SYN_CLX}
-            Result := MessageDlg(Format(SYNS_DuplicateShortcutMsg,
-              [QMenus.ShortCutToText(AForm.Keystroke), TmpCommand]),
-              mtError, [mbOK, mbCancel], 0) = mrOK;
-          {$ELSE}
             Result := MessageDlg(Format(SYNS_DuplicateShortcutMsg,
               [Menus.ShortCutToText(AForm.Keystroke), TmpCommand]),
               mtError, [mbOK, mbCancel], 0) = mrOK;
-          {$ENDIF}
 
             FKeystrokes[SelItem.Index].ShortCut := OldShortCut;
             FKeystrokes[SelItem.Index].ShortCut2 := OldShortCut2;
@@ -366,36 +313,12 @@ var
         // Some other kind of exception, we don't deal with it...
       end;
     end;
-(*
-      if ShowModal = mrOK then
-      begin
-
-        try
-        except
-          on ESynKeyError do
-            begin
-              // Shortcut already exists in the collection!
-              {$IFDEF SYN_KYLIX}
-              MessageDlg(Format(SYNS_DuplicateShortcutMsg2,
-                [QMenus.ShortCutToText(Keystroke)]), mtError, [mbOK], 0);
-              {$ELSE}
-              MessageDlg(Format(SYNS_DuplicateShortcutMsg2,
-                [Menus.ShortCutToText(Keystroke)]), mtError, [mbOK], 0);
-              {$ENDIF}
-            end;
-          // Some other kind of exception, we don't deal with it...
-        end;
-*)
   end;
 begin
   SelItem := KeyCmdList.Selected;
   if SelItem = NIL then
   begin
-    {$IFDEF SYN_CLX}
-    QControls.Beep;
-    {$ELSE}
     MessageBeep(1);
-    {$ENDIF}
     Exit;
   end;
   AForm := TSynEditKeystrokeEditorForm.Create(Self);
@@ -420,19 +343,10 @@ begin
               SubItems[0] := SYNS_ShortcutNone
             else
               if FKeystrokes[Index].ShortCut2 = 0 then
-              {$IFDEF SYN_CLX}
-                SubItems[0] := QMenus.ShortCutToText(FKeystrokes[Index].ShortCut)
-              {$ELSE}
                 SubItems[0] := Menus.ShortCutToText(FKeystrokes[Index].ShortCut)
-              {$ENDIF}
               else
-              {$IFDEF SYN_CLX}
-                SubItems[0] := QMenus.ShortCutToText(FKeystrokes[Index].ShortCut)
-                  + ' ' + QMenus.ShortCutToText(FKeystrokes[Index].ShortCut2);
-              {$ELSE}
                 SubItems[0] := Menus.ShortCutToText(FKeystrokes[Index].ShortCut)
                   + ' ' + Menus.ShortCutToText(FKeystrokes[Index].ShortCut2);
-              {$ENDIF}
           end;
         finally
           KeyCmdList.Items.EndUpdate;
@@ -450,11 +364,7 @@ begin
   SelItem := KeyCmdList.Selected;
   if SelItem = nil then
   begin
-    {$IFDEF SYN_CLX}
-    QControls.Beep;
-    {$ELSE}
     MessageBeep(1);
-    {$ENDIF}
     Exit;
   end;
   FKeystrokes[SelItem.Index].Free;

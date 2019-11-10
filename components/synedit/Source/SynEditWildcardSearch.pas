@@ -43,18 +43,10 @@ unit SynEditWildcardSearch;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEdit,
-  QSynEditTypes,
-  QSynRegExpr,
-  QSynEditMiscClasses,
-  QSynEditRegexSearch
-{$ELSE}
   SynEdit,
   SynEditTypes,
   SynRegExpr,
   SynEditRegexSearch,
-{$ENDIF}
   Classes;
 
 type
@@ -80,18 +72,14 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QConsts;
-{$ELSE}
   Consts;
-{$ENDIF}
 
 { TSynEditWildcardSearch }
 
 constructor TSynEditWildcardSearch.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  fPattern := '';
+  FPattern := '';
 end;
 
 destructor TSynEditWildcardSearch.Destroy;
@@ -136,7 +124,7 @@ end;
 
 procedure TSynEditWildcardSearch.SetPattern(const Value: UnicodeString);
 begin
-  fPattern := Value;
+  FPattern := Value;
   // Convert into a real regular expression and assign it
   inherited SetPattern(WildCardToRegExpr(Value));
 end;

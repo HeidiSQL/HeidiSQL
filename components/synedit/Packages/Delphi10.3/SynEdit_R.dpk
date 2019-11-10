@@ -1,4 +1,4 @@
-package SynEditR;
+package SynEdit_R;
 
 {$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
 {$ALIGN 8}
@@ -89,6 +89,7 @@ contains
   SynHighlighterFoxpro in '..\..\Source\SynHighlighterFoxpro.pas',
   SynHighlighterGalaxy in '..\..\Source\SynHighlighterGalaxy.pas',
   SynHighlighterGeneral in '..\..\Source\SynHighlighterGeneral.pas',
+  SynHighlighterGLSL in '..\..\Source\SynHighlighterGLSL.pas',
   SynHighlighterGWS in '..\..\Source\SynHighlighterGWS.pas',
   SynHighlighterHashEntries in '..\..\Source\SynHighlighterHashEntries.pas',
   SynHighlighterHaskell in '..\..\Source\SynHighlighterHaskell.pas',

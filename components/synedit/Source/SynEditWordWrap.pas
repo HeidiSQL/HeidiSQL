@@ -46,15 +46,9 @@ unit SynEditWordWrap;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditTypes,
-  QSynEditTextBuffer,
-  QSynEdit,
-{$ELSE}
   SynEditTypes,
   SynEditTextBuffer,
   SynEdit,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -129,19 +123,11 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynUnicode,
-{$ELSE}
   SynUnicode,
-{$ENDIF}
 {$IFDEF SYN_COMPILER_6_UP}
   RTLConsts,
 {$ELSE}
-  {$IFDEF SYN_CLX}
-    QConsts,
-  {$ELSE}
-    Consts,
-  {$ENDIF}
+  Consts,
 {$ENDIF}
 {$IFNDEF SYN_COMPILER_4_UP}
   SynEditMiscProcs,
@@ -397,7 +383,7 @@ procedure TSynWordWrapPlugin.Reset;
 begin
   Assert(Editor.CharsInWindow >= 0);
 
-  FMaxRowLength := Editor.CharsInWindow;
+  FMaxRowLength := Min(Editor.MaxScrollWidth, Editor.CharsInWindow); // see github issue #129
   FMinRowLength := Editor.CharsInWindow - (Editor.CharsInWindow div 3);
 
   if FMinRowLength <= 0 then

@@ -50,19 +50,6 @@ unit SynEditPrintMarginsDialog;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QForms,
-  QControls,
-  QStdCtrls,
-  QButtons,
-  QExtCtrls,
-  QDialogs,
-  QSynEditPrint,
-  QSynEditPrintTypes,
-  QSynEditPrintMargins,
-{$ELSE}
   {$IFDEF SYN_COMPILER_17_UP}
   UITypes,
   {$ENDIF}
@@ -77,7 +64,6 @@ uses
   SynEditPrint,
   SynEditPrintTypes,
   SynEditPrintMargins,
-{$ENDIF}
   SysUtils,
   Classes;
 

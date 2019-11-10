@@ -45,28 +45,18 @@ The highlighter supports all 68HC11 op codes.
 Thanks to Martin Waldenburg, David Muir, Hideo Koiso and Nick Hoddinott.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERHC11}
 unit SynHighlighterHC11;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-  QSynEditTypes,
-  QSynHighlighterHashEntries,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditHighlighter,
   SynEditTypes,
   SynHighlighterHashEntries,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -153,11 +143,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   { TODO: seems as if the Ansi version ignores the underscores and therfore

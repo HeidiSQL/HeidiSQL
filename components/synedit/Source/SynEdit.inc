@@ -121,7 +121,6 @@
 (* SYN_DELPHI_10_3      : Delphi RX 10.3 (Rio) is being used.                 *)
 (* SYN_DELPHI_10_3_UP   : Delphi RX 10.3 or higher is being used.             *)
 (* SYN_KYLIX            : Kylix 1.0 is being using.                           *)
-(* SYN_CLX              : A CLX application is being created.                 *)
 (******************************************************************************)
 
 {$DEFINE SYNEDIT_INCLUDE}
@@ -1130,18 +1129,7 @@
 {$ENDIF}
 
 {$IFDEF SYN_KYLIX}
-  // A Kylix application is always a CLX application
-  {$DEFINE SYN_CLX}
-
-  {$IF not Declared(CompilerVersion)}
-    {$DEFINE SYN_KYLIX_1}
-  {$ELSEIF Declared(CompilerVersion) and (CompilerVersion > +14)}
-    {$DEFINE SYN_KYLIX_2}
-  {$ELSEIF Declared(CompilerVersion) and (CompilerVersion < +15)}
-    {$DEFINE SYN_KYLIX_3}
-  {$ELSEIF True}
-    Add new Kylix version
-  {$IFEND}
+  Kylix is no longer supported. Please refer to the branch 'Kylix'
 {$ELSE}
   {$DEFINE SYN_WIN32}
 {$ENDIF}
@@ -1167,12 +1155,6 @@
 
 // Turn this off if you don't need complex script support, since it is slower
 {-$DEFINE SYN_UNISCRIBE}
-
-// DirectWrite
-{$IFDEF SYN_DELPHI_XE2_UP}
-  // Disabled for HeidiSQL. See #445
-  {.$DEFINE SYN_DirectWrite}
-{$ENDIF}
 
 // Code Folding
 {$IFDEF SYN_DELPHI_XE_UP}

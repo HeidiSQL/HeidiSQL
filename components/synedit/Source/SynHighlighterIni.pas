@@ -44,26 +44,17 @@ The SynHighlighterIni unit provides SynEdit with an Ini-files highlighter.
 Thanks to Primoz Gabrijelcic, Martin Waldenburg and Michael Hieke.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERINI}
 unit SynHighlighterIni;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   Classes;
 
 type
@@ -131,11 +122,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 constructor TSynIniSyn.Create(AOwner: TComponent);
 begin

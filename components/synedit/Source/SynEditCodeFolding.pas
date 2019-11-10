@@ -62,8 +62,8 @@ unit SynEditCodeFolding;
    Python highlighters as well as the use of the OnScanForFoldRangesEvent event
    to support code folding in C++ files.
 
-   Synedit Commants and Shortcuts
-   =========
+   Synedit Commands and Shortcuts
+   ==============================
    The following commands have been added:
      ecFoldAll, ecUnfoldAll, ecFoldNearest, ecUnfoldNearest, ecFoldLevel1,
      ecFoldLevel2, ecFoldLevel3,, ecUnfoldLevel1, ecUnfoldLevel2,

@@ -1,13 +1,13 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProjectGuid>{AC917C2B-5870-48AD-981D-668AD3E4A533}</ProjectGuid>
-        <MainSource>SynEditR.dpk</MainSource>
+        <MainSource>SynEdit_R.dpk</MainSource>
         <Base>True</Base>
         <Config Condition="'$(Config)'==''">Debug</Config>
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Package</AppType>
         <FrameworkType>VCL</FrameworkType>
-        <ProjectVersion>18.5</ProjectVersion>
+        <ProjectVersion>18.6</ProjectVersion>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -56,7 +56,7 @@
         <VerInfo_Locale>1031</VerInfo_Locale>
         <DCC_F>false</DCC_F>
         <DCC_E>false</DCC_E>
-        <SanitizedProjectName>SynEditR</SanitizedProjectName>
+        <SanitizedProjectName>SynEdit_R</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
@@ -156,6 +156,7 @@
         <DCCReference Include="..\..\Source\SynHighlighterFoxpro.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterGalaxy.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterGeneral.pas"/>
+        <DCCReference Include="..\..\Source\SynHighlighterGLSL.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterGWS.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterHashEntries.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterHaskell.pas"/>
@@ -229,7 +230,7 @@
         <BorlandProject>
             <Delphi.Personality>
                 <Source>
-                    <Source Name="MainSource">SynEditR.dpk</Source>
+                    <Source Name="MainSource">SynEdit_R.dpk</Source>
                 </Source>
                 <VersionInfo>
                     <VersionInfo Name="IncludeVerInfo">True</VersionInfo>

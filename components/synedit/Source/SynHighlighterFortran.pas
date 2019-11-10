@@ -44,26 +44,17 @@ The SynHighlighterFortran unit provides SynEdit with a Fortran syntax highlighte
 Thanks to Martin Waldenburg.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERFORTRAN}
 unit SynHighlighterFortran;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -148,11 +139,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..69] of UnicodeString = (

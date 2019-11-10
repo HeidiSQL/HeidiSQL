@@ -43,26 +43,17 @@ Known Issues:
 The SynHighlighterADSP21xx unit provides a ADSP21xx DSP assembler highlighter for SynEdit.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERADSP21XX}
 unit SynHighlighterADSP21xx;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -336,12 +327,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   Windows,
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..178] of UnicodeString = (
@@ -2522,7 +2509,6 @@ end;
 procedure TSynADSP21xxSyn.EnumUserSettings(settings: TStrings);
 begin
   { returns the user settings that exist in the registry }
-  {$IFNDEF SYN_CLX}
   with TBetterRegistry.Create do
   begin
     try
@@ -2540,7 +2526,6 @@ begin
       Free;
     end;
   end;
-  {$ENDIF}
 end;
 
 function TSynADSP21xxSyn.UseUserSettings(settingIndex: Integer): Boolean;
@@ -2551,7 +2536,6 @@ function TSynADSP21xxSyn.UseUserSettings(settingIndex: Integer): Boolean;
 //   False: problem reading settings or invalid version specified - old settings
 //          were preserved
 
-    {$IFNDEF SYN_CLX}
     function ReadDspIDESetting(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
     begin
       try
@@ -2561,7 +2545,6 @@ function TSynADSP21xxSyn.UseUserSettings(settingIndex: Integer): Boolean;
         Result := False;
       end;
     end;
-    {$ENDIF}
 var
   tmpNumberAttri    : TSynHighlighterAttributes;
   tmpKeyAttri       : TSynHighlighterAttributes;
@@ -2598,7 +2581,6 @@ begin  // UseUserSettings
       tmpIdentifierAttri.Assign(FIdentifierAttri);
       tmpSpaceAttri     .Assign(FSpaceAttri);
       tmpRegisterAttri  .Assign(FRegisterAttri);
-      {$IFNDEF SYN_CLX}
       Result :=
         ReadDspIDESetting(StrLst[settingIndex], FCommentAttri,'Comment')       and
         ReadDspIDESetting(StrLst[settingIndex], FIdentifierAttri,'Identifier') and
@@ -2608,9 +2590,6 @@ begin  // UseUserSettings
         ReadDspIDESetting(StrLst[settingIndex], FSymbolAttri,'Symbol')         and
         ReadDspIDESetting(StrLst[settingIndex], FConditionAttri,'Condition')   and
         ReadDspIDESetting(StrLst[settingIndex], FRegisterAttri,'Symbol');
-      {$ELSE}
-      Result := False;
-      {$ENDIF}
       if not Result then
       begin
         FNumberAttri     .Assign(tmpNumberAttri);

@@ -45,24 +45,6 @@ unit SynEditOptionsDialog;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  Types,
-  QGraphics,
-  QControls,
-  QForms,
-  QDialogs,
-  QStdCtrls,
-  QComCtrls,
-  QExtCtrls,
-  QButtons,
-  QImgList,
-  QMenus,
-  QSynEdit,
-  QSynEditHighlighter,
-  QSynEditMiscClasses,
-  QSynEditKeyCmds,
-{$ELSE}
   {$IFDEF SYN_COMPILER_17_UP}
   Types,
   {$ENDIF}
@@ -86,7 +68,6 @@ uses
   SynEditHighlighter,
   SynEditMiscClasses,
   SynEditKeyCmds,
-{$ENDIF}
   Classes,
   SysUtils;
 
@@ -368,11 +349,7 @@ implementation
 {$R *.dfm}
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditKeyConst;
-{$ELSE}
   SynEditKeyConst;
-{$ENDIF}
 
 { TSynEditOptionsDialog }
 

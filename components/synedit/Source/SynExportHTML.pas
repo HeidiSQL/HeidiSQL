@@ -48,19 +48,11 @@ unit SynExportHTML;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QSynEditExport,
-  QSynEditHighlighter,
-  QSynUnicode,  
-{$ELSE}
   Windows,
   Graphics,
   SynEditExport,
   SynEditHighlighter,
-  SynUnicode,    
-{$ENDIF}
+  SynUnicode,
   Classes;
 
 type
@@ -111,15 +103,9 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst,
-  QSynHighlighterMulti,
-{$ELSE}
   SynEditMiscProcs,
-  SynEditStrConst,  
+  SynEditStrConst,
   SynHighlighterMulti,
-{$ENDIF}
   SysUtils;
 
 
@@ -130,9 +116,7 @@ const
   CF_HTML = 'HTML Format';
 begin
   inherited Create(AOwner);
-  {$IFNDEF SYN_CLX}
   FClipboardFormat := RegisterClipboardFormat(CF_HTML);
-  {$ENDIF} // TODO: register for Kylix, too, see what Netscape Composer uses/accepts
   FDefaultFilter := SYNS_FilterHTML;
   FEncoding := seUTF8;
 end;

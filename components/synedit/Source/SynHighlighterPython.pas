@@ -1,4 +1,4 @@
-﻿{-------------------------------------------------------------------------------
+{-------------------------------------------------------------------------------
 The contents of this file are subject to the Mozilla Public License
 Version 1.1 (the "License"); you may not use this file except in compliance
 with the License. You may obtain a copy of the License at
@@ -44,26 +44,17 @@ Known Issues:
 The SynHighlighterPython implements a highlighter for Python for the SynEdit projects.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERPYTHON}
 unit SynHighlighterPython;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-  QSynEditTypes,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditHighlighter,
   SynEditTypes,
   SynUnicode,
-{$ENDIF}
 {$IFDEF SYN_CodeFolding}
   SynEditCodeFolding,
   SynRegExpr,
@@ -188,11 +179,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 var
   GlobalKeywords: TUnicodeStringList;

@@ -43,26 +43,17 @@ Known Issues:
 The SynHighlighterVB unit provides SynEdit with a Visual Basic (.bas) highlighter.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERVB}
 unit SynHighlighterVB;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt, QControls, QGraphics,
-  QSynEditHighlighter,
-  QSynEditTypes,
-  QSynUnicode,
-{$ELSE}
   Windows, Messages, Controls, Graphics, Registry,
   SynEditHighlighter,
   SynEditTypes,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -138,11 +129,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..213] of UnicodeString = (

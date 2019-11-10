@@ -43,26 +43,17 @@ Known Issues:
 The SynHighlighterVisualLisp unit provides SynEdit with a Ruby highlighter.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERRUBY}
 unit SynHighlighterRuby;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,  
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -162,13 +153,8 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditMiscProcs,
-  QSynEditStrConst;
-{$ELSE}
   SynEditMiscProcs,
   SynEditStrConst;
-{$ENDIF}
 
 const
   RubyKeysCount = 43;

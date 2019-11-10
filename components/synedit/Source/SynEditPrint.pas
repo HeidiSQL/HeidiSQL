@@ -92,21 +92,6 @@ unit SynEditPrint;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QPrinters,
-  Types,
-  QSynEdit,
-  QSynEditTypes,
-  QSynEditPrintTypes,
-  QSynEditPrintHeaderFooter,
-  QSynEditPrinterInfo,
-  QSynEditPrintMargins,
-  QSynEditMiscProcs,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   {$IFDEF SYN_COMPILER_17_UP}
   UITypes,
   {$ENDIF}
@@ -122,7 +107,6 @@ uses
   SynEditMiscProcs,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -401,9 +385,7 @@ procedure TSynEditPrint.InitPrint;
   headers and footers}
 var
   TmpSize: Integer;
-{$IFNDEF SYN_CLX}
   TmpTextMetrics: TTextMetric;
-{$ENDIF}
 begin
 //  FDefaultBG := FCanvas.Brush.Color;                                          
   FFontColor := FFont.Color;
@@ -418,14 +400,9 @@ begin
   // Calculate TextMetrics with the (probably) most wider text styles so text is
   // never clipped (although potentially wasting space)
   FCanvas.Font.Style := [fsBold, fsItalic, fsUnderline, fsStrikeOut];
-{$IFDEF SYN_CLX}
-  CharWidth := TextWidth(FCanvas, 'W');
-  FLineHeight := TextHeight(FCanvas, 'Wp¹');
-{$ELSE}
   GetTextMetrics(FCanvas.Handle, TmpTextMetrics);
   CharWidth := TmpTextMetrics.tmAveCharWidth;
   FLineHeight := TmpTextMetrics.tmHeight + TmpTextMetrics.tmExternalLeading;
-{$ENDIF}
   FCanvas.Font.Style := FFont.Style;
   FMargins.InitPage(FCanvas, 1, FPrinterInfo, FLineNumbers, FLineNumbersInMargin,
     FLines.Count - 1 + FLineOffset);
@@ -596,12 +573,7 @@ begin
   FCanvas.Brush.Color := FDefaultBG; 
   FCanvas.Font.Style := [];
   FCanvas.Font.Color := clBlack;
-  {$IFDEF SYN_CLX}
-  QSynUnicode.
-  {$ELSE}
-  SynUnicode.
-  {$ENDIF}
-  TextOut(FCanvas, FMargins.PLeft - TextWidth(FCanvas, AStr), FYPos, AStr);
+  SynUnicode.TextOut(FCanvas, FMargins.PLeft - TextWidth(FCanvas, AStr), FYPos, AStr);
   RestoreCurrentFont;
 end;
 
@@ -690,7 +662,6 @@ var
   sLine, sLineExpandedAtWideGlyphs: UnicodeString;
   ExpandedPos: Integer;
 
-  {$IFNDEF SYN_CLX}
   procedure InitETODist(CharWidth: Integer; const Text: UnicodeString);
   var
     Size: TSize;
@@ -703,18 +674,13 @@ var
       FETODist[i] := Ceil(Size.cx / CharWidth) * CharWidth;
     end;
   end;
-  {$ENDIF}
-  
+
   procedure ClippedTextOut(X, Y: Integer; Text: UnicodeString);
   begin
     Text := ClipLineToRect(Text, ClipRect);
-    {$IFDEF SYN_CLX}
-    QSynUnicode.TextOut(FCanvas, X, Y, Text);
-    {$ELSE}
     InitETODist(FCharWidth, Text);
     Windows.ExtTextOutW(FCanvas.Handle, X, Y, 0, nil, PWideChar(Text),
       Length(Text), PInteger(FETODist));
-    {$ENDIF}
   end;
 
   procedure SplitToken;
@@ -810,13 +776,11 @@ begin
           end;
         end;
       end;
-      {$IFNDEF SYN_CLX}
       if not Handled then
       begin
         ExpandedPos := FHighlighter.PosToExpandedPos(TokenPos - TokenStart);
         ClippedTextOut(FMargins.PLeft + ExpandedPos * FCharWidth, FYPos, Token);
       end;
-      {$ENDIF}
       FHighlighter.Next;
     end;
     RestoreCurrentFont;
@@ -1001,9 +965,7 @@ function TSynEditPrint.GetPageCount: Integer;
  then a UpdatePages is called with a temporary canvas}
 var
   TmpCanvas: TCanvas;
-  {$IFNDEF SYN_CLX}
   DC: HDC;
-  {$ENDIF}
 begin
   Result := 0;
   if FPagesCounted then
@@ -1011,7 +973,6 @@ begin
   else begin
     TmpCanvas := TCanvas.Create;
     try
-      {$IFNDEF SYN_CLX}
       DC := GetDC(0);
       try
         if DC <> 0 then
@@ -1025,7 +986,6 @@ begin
       finally
         ReleaseDC(0, DC);
       end;
-      {$ENDIF}
     finally
       TmpCanvas.Free;
     end;

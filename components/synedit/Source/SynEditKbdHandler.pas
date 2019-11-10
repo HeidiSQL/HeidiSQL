@@ -45,20 +45,12 @@ unit SynEditKbdHandler;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  Types,
-  QGraphics,
-  QControls,
-  QForms,
-  QSynEditTypes,
-{$ELSE}
   Windows,
   Messages,
   Graphics,
   Controls,
   Forms,
   SynEditTypes,
-{$ENDIF}
   SysUtils,
   Classes;
 

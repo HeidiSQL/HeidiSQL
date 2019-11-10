@@ -44,26 +44,17 @@ The SynHighlighterCAC unit provides SynEdit with a CA-Clipper syntax highlighter
 Thanks to Primoz Gabrijelcic, Andy Jeffries.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERCAC}
 unit SynHighlighterCAC;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -145,11 +136,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..142] of UnicodeString = (

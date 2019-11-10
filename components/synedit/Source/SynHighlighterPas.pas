@@ -48,27 +48,18 @@ Two extra properties included (DelphiVersion, PackageSource):
   PackageSource - Allows you to enable/disable the highlighting of package keywords
 }
 
-{$IFNDEF QSYNHIGHLIGHTERPAS}
 unit SynHighlighterPas;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
 {$IFDEF SYN_CodeFolding}
   SynEditCodeFolding,
@@ -244,11 +235,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   // if the language is case-insensitive keywords *must* be in lowercase
@@ -1161,7 +1148,7 @@ var
       end;
     end else if RE_BlockEnd.Exec(CurLine) then
     begin
-      Index :=  RE_BlockBegin.MatchPos[0];
+      Index := RE_BlockEnd.MatchPos[0];
       if GetHighlighterAttriAtRowCol(LinesToScan, Line, Index) <> fCommentAttri then
       begin
         FoldRanges.StopFoldRange(Line + 1, FT_Standard);
@@ -1384,16 +1371,22 @@ procedure TSynPasSyn.EnumUserSettings(DelphiVersions: TStrings);
     end;
   end;
 
+var
+  LWowNode : string;
 begin
   { returns the user settings that exist in the registry }
-{$IFNDEF SYN_CLX}
   // See UseUserSettings below where these strings are used
-  LoadKeyVersions('\SOFTWARE\Borland\Delphi', '');
-  LoadKeyVersions('\SOFTWARE\Borland\BDS', BDSVersionPrefix);
-  LoadKeyVersions('\SOFTWARE\CodeGear\BDS', BDSVersionPrefix);
-  LoadKeyVersions('\SOFTWARE\Embarcadero\BDS', BDSVersionPrefix);
+  {$ifdef WIN64}
+  LWowNode := 'WOW6432Node\';
+  {$else}
+  LWowNode := '';
+  {$ENDIF}
 
-{$ENDIF}
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Borland\Delphi', '');
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Borland\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'CodeGear\BDS', BDSVersionPrefix);
+  LoadKeyVersions('\SOFTWARE\'+ LWOWNode + 'Embarcadero\BDS', BDSVersionPrefix);
+
 end;
 
 function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
@@ -1404,7 +1397,6 @@ function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
 //   False: problem reading settings or invalid version specified - old settings
 //          were preserved
 
-{$IFNDEF SYN_CLX}
   function ReadDelphiSettings(settingIndex: Integer): Boolean;
 
     function ReadDelphiSetting(settingTag: string; attri: TSynHighlighterAttributes; key: string): Boolean;
@@ -1539,14 +1531,9 @@ function TSynPasSyn.UseUserSettings(VersionIndex: Integer): Boolean;
     tmpStringAttri.Free;
     tmpSymbolAttri.Free;
   end;
-{$ENDIF}
 
 begin
-{$IFNDEF SYN_CLX}
   Result := ReadDelphiSettings(VersionIndex);
-{$ELSE}
-  Result := False;
-{$ENDIF}
 end;
 
 function TSynPasSyn.GetSampleSource: UnicodeString;                                   

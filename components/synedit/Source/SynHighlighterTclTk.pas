@@ -43,27 +43,18 @@ Known Issues:
 The SynHighlighterTclTk unit provides SynEdit with a TCL/Tk highlighter.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERTCLTK}
 unit SynHighlighterTclTk;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Windows,
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -140,10 +131,8 @@ type
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
-    {$IFNDEF SYN_CLX}
     function SaveToRegistry(RootKey: HKEY; Key: string): Boolean; override;
     function LoadFromRegistry(RootKey: HKEY; Key: string): Boolean; override;
-    {$ENDIF}
   published
     property CommentAttri: TSynHighlighterAttributes read FCommentAttri
       write FCommentAttri;
@@ -182,11 +171,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   TclTkKeys: array[0..128] of UnicodeString = (
@@ -736,7 +721,6 @@ begin
   Result := SYNS_LangTclTk;
 end;
 
-{$IFNDEF SYN_CLX}
 function TSynTclTkSyn.LoadFromRegistry(RootKey: HKEY; Key: string): Boolean;
 var
   r: TBetterRegistry;
@@ -775,7 +759,6 @@ begin
     r.Free;
   end;
 end;
-{$ENDIF}
 
 function TSynTclTkSyn.IsKeywordListStored: Boolean;
 var

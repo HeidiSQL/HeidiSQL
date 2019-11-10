@@ -47,18 +47,11 @@ unit SynExportRTF;
 interface
 
 uses
-  {$IFDEF SYN_CLX}
-  Qt,
-  QGraphics,
-  QSynEditExport,
-  QSynUnicode,  
-  {$ELSE}
   Windows,
   Graphics,
   RichEdit,
   SynEditExport,
-  SynUnicode,    
-  {$ENDIF}
+  SynUnicode,
   Classes;
 
 type
@@ -100,12 +93,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst,
-  QSynEditMiscProcs,
-{$ELSE}
   SynEditStrConst,
-{$ENDIF}
   SysUtils;
 
 { TSynExporterRTF }
@@ -115,9 +103,7 @@ begin
   inherited Create(AOwner);
   FListColors := TList.Create;
   FDefaultFilter := SYNS_FilterRTF;
-{$IFNDEF SYN_CLX}
   FClipboardFormat := RegisterClipboardFormat(CF_RTF);
-{$ENDIF} // TODO: register for Kylix, too, see what Netscape Composer uses/accepts
   FEncoding := seUTF8;
 end;
 

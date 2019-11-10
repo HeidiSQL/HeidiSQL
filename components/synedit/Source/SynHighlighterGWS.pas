@@ -35,9 +35,7 @@ located at http://SynEdit.SourceForge.net
 
 -------------------------------------------------------------------------------}
 
-{$IFNDEF QSYNHIGHLIGHTERGWS}
 unit SynHighlighterGWS;
-{$ENDIF}
 
 { This unit provides a syntax highlighter for GW-TEL Scripts }
 
@@ -46,17 +44,10 @@ unit SynHighlighterGWS;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -187,11 +178,7 @@ Type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..12] of UnicodeString = (

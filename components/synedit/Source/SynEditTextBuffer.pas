@@ -46,18 +46,10 @@ unit SynEditTextBuffer;
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  kTextDrawer,
-  Types,
-  QSynEditTypes,
-  QSynEditMiscProcs,
-  QSynUnicode,
-{$ELSE}
   Windows,
   SynEditTypes,
   SynEditMiscProcs,
   SynUnicode,
-{$ENDIF}
   Classes,
   SysUtils,
   Graphics;
@@ -928,6 +920,7 @@ begin
       Exclude(FFlags, sfHasTabs);
       Exclude(FFlags, sfHasNoTabs);
       Include(FFlags, sfModified);
+      Exclude(FFlags, sfSaved);
       {$IFDEF OWN_UnicodeString_MEMMGR}
         SetListString(Index, S);
       {$ELSE}

@@ -44,27 +44,18 @@ The SynHighlighterVBScript unit provides SynEdit with a VisualBasic Script (.vbs
 Thanks to Primoz Gabrijelcic and Martin Waldenburg.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERVBSCRIPT}
 unit SynHighlighterVBScript;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditHighlighter,
-  QSynEditTypes,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   Registry,
   SynEditHighlighter,
   SynEditTypes,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -140,11 +131,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..83] of UnicodeString = (

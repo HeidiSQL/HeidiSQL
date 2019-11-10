@@ -26,6 +26,10 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     TabOrder = 0
     object Display: TTabSheet
       Caption = 'Display'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbRightEdge: TGroupBox
         Left = 8
         Top = 136
@@ -341,6 +345,10 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     end
     object Options: TTabSheet
       Caption = 'Options'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object gbOptions: TGroupBox
         Left = 8
         Top = 0
@@ -644,6 +652,10 @@ object fmEditorOptionsDialog: TfmEditorOptionsDialog
     end
     object Keystrokes: TTabSheet
       Caption = 'Keystrokes'
+      ExplicitLeft = 0
+      ExplicitTop = 0
+      ExplicitWidth = 0
+      ExplicitHeight = 0
       object btnAddKey: TButton
         Left = 96
         Top = 152

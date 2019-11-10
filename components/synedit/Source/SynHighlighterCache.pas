@@ -44,26 +44,17 @@ The SynHighlighterCache unit provides SynEdit with a Cache object script files h
 Thanks to Martin Waldenburg.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERCACHE}
 unit SynHighlighterCache;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -178,11 +169,7 @@ type
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 const
   KeyWords: array[0..274] of UnicodeString = (

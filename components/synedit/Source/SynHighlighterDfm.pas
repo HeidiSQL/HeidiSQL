@@ -44,26 +44,17 @@ The SynHighlighterDfm unit provides SynEdit with a Delphi Form Source (.dfm) hig
 The highlighter formats form source code similar to when forms are viewed as text in the Delphi editor.
 }
 
-{$IFNDEF QSYNHIGHLIGHTERDFM}
 unit SynHighlighterDfm;
-{$ENDIF}
 
 {$I SynEdit.Inc}
 
 interface
 
 uses
-{$IFDEF SYN_CLX}
-  QGraphics,
-  QSynEditTypes,
-  QSynEditHighlighter,
-  QSynUnicode,  
-{$ELSE}
   Graphics,
   SynEditTypes,
   SynEditHighlighter,
   SynUnicode,
-{$ENDIF}
   SysUtils,
   Classes;
 
@@ -152,11 +143,7 @@ function SaveStrings2DFMFile(AStrings: TStrings;
 implementation
 
 uses
-{$IFDEF SYN_CLX}
-  QSynEditStrConst;
-{$ELSE}
   SynEditStrConst;
-{$ENDIF}
 
 { A couple of useful Delphi Form functions }
 
