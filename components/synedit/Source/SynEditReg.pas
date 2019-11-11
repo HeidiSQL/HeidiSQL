@@ -170,7 +170,7 @@ begin
     TSynCompletionProposal, TSynAutoComplete, TSynMacroRecorder,
     TSynEditPrint, TSynEditPrintPreview, TSynAutoCorrect,
     TSynEditSearch, TSynEditRegexSearch, TSynEditOptionsDialog, TSynURIOpener,
-    TSynEditDocumentManager]);
+    TSynEditDocumentManager, TSynHotKey]);
 {$IFDEF SYN_COMPILER_4_UP}
   RegisterComponents(SYNS_ComponentsPage, [TSynHighlighterManager]);
 {$ENDIF}
