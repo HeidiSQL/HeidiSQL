@@ -237,6 +237,7 @@ type
       function IsInfobright: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
+      function IsRedshift: Boolean;
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
@@ -1365,43 +1366,49 @@ end;
 
 function TConnectionParameters.IsMariaDB: Boolean;
 begin
-  Result := Pos('-mariadb', LowerCase(ServerVersion)) > 0;
+  Result := IsMySQL and (Pos('-mariadb', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsPercona: Boolean;
 begin
-  Result := Pos('percona server', LowerCase(ServerVersion)) > 0;
+  Result := IsMySQL and (Pos('percona server', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsTokudb: Boolean;
 begin
-  Result := Pos('tokudb', LowerCase(ServerVersion)) > 0;
+  Result := IsMySQL and (Pos('tokudb', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsInfiniDB: Boolean;
 begin
-  Result := Pos('infinidb', LowerCase(ServerVersion)) > 0;
+  Result := IsMySQL and (Pos('infinidb', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsInfobright: Boolean;
 begin
-  Result := Pos('infobright', LowerCase(ServerVersion)) > 0;
+  Result := IsMySQL and (Pos('infobright', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsAzure: Boolean;
 begin
-  Result := Pos('azure', LowerCase(ServerVersion)) > 0;
+  Result := IsMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsMemSQL: Boolean;
 begin
-  Result := Pos('memsql', LowerCase(ServerVersion)) > 0;
+  Result := IsMySQL and (Pos('memsql', LowerCase(ServerVersion)) > 0);
+end;
+
+
+function TConnectionParameters.IsRedshift: Boolean;
+begin
+  Result := IsPostgreSQL and (Pos('redshift', LowerCase(ServerVersion)) > 0);
 end;
 
 
@@ -1423,7 +1430,10 @@ begin
       Result := 123;
       if IsAzure then Result := 188;
     end;
-    ngPgSQL: Result := 187;
+    ngPgSQL: begin
+      Result := 187;
+      if IsRedshift then Result := 195;
+    end;
     else Result := ICONINDEX_SERVER;
   end;
 end;
