@@ -3620,6 +3620,7 @@ begin
       //FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
       FAllDatabases := GetCol('SELECT '+QuoteIdent('nspname')+
         ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+
+        ' WHERE '+QuoteIdent('nspowner')+' != 1 OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString('information_schema')+')'+
         ' ORDER BY '+QuoteIdent('nspname'));
     except on E:EDbError do
       FAllDatabases := TStringList.Create;
