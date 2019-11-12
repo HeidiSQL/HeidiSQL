@@ -3621,6 +3621,8 @@ end;
 
 
 function TPGConnection.GetAllDatabases: TStringList;
+var
+  DbQuery: String;
 begin
   // In PostgreSQL, we display schemata, not databases.
   // The AllDatabasesStr is used to set the single database name
@@ -3628,10 +3630,14 @@ begin
     try
       // Query is.schemata when using schemata, for databases use pg_database
       //FAllDatabases := GetCol('SELECT datname FROM pg_database WHERE datistemplate=FALSE');
-      FAllDatabases := GetCol('SELECT '+QuoteIdent('nspname')+
-        ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace')+
-        ' WHERE '+QuoteIdent('nspowner')+' != 1 OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString('information_schema')+')'+
-        ' ORDER BY '+QuoteIdent('nspname'));
+      DbQuery := 'SELECT '+QuoteIdent('nspname')+
+        ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace');
+      if Parameters.IsRedshift then begin
+        DbQuery := DbQuery + ' WHERE '+QuoteIdent('nspowner')+' != 1'+
+          ' OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString('information_schema')+')';
+      end;
+      DbQuery := DbQuery + ' ORDER BY '+QuoteIdent('nspname');
+      FAllDatabases := GetCol(DbQuery);
     except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
