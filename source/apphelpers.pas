@@ -3150,10 +3150,10 @@ begin
   Prev1 := #0;
   Prev2 := #0;
   for i:=1 to Length(FullSQL) do begin
-    Cur := SQL[i];
+    Cur := FullSQL[i];
     AddCur := True;
-    if i > 1 then Prev1 := SQL[i-1];
-    if i > 2 then Prev2 := SQL[i-2];
+    if i > 1 then Prev1 := FullSQL[i-1];
+    if i > 2 then Prev2 := FullSQL[i-2];
 
     if (Cur = '*') and (Prev1 = '/') then begin
       InMultiLineComment := True;
