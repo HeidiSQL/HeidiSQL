@@ -1601,8 +1601,7 @@ begin
 
           lntTrigger: begin
             StrucResult := DBObj.Connection.GetResults('SHOW TRIGGERS FROM '+DBObj.QuotedDatabase+' WHERE `Trigger`='+esc(DBObj.Name));
-            Struc := 'CREATE '+UpperCase(DBObj.ObjType)+' '+Quoter.QuoteIdent(DBObj.Name)+' '+StrucResult.Col('Timing')+' '+StrucResult.Col('Event')+
-                ' ON '+Quoter.QuoteIdent(StrucResult.Col('Table'))+' FOR EACH ROW '+StrucResult.Col('Statement');
+            Struc := DBObj.CreateCode;
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
             if ToFile or ToClipboard or ToDir then begin
