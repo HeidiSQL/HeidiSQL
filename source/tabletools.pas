@@ -1588,7 +1588,7 @@ begin
                 Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';
               Struc := Struc + Quoter.QuoteIdent(DBObj.Name);
               Output(Struc, True, True, True, True, True);
-              Struc := DBObj.CreateCode;
+              Struc := DBObj.GetCreateCode(False, menuExportRemoveDefiner.Checked);
               if ToDb then
                 Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
             end;
@@ -1622,7 +1622,7 @@ begin
           end;
 
           lntEvent: begin
-            Struc := DBObj.CreateCode;
+            Struc := DBObj.GetCreateCode(False, menuExportRemoveDefiner.Checked);
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EVENT', Struc) + 6 );
             if ToFile or ToDir or ToClipboard then
