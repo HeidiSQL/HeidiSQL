@@ -29,7 +29,6 @@ type
       function GetImageIndex: Integer;
       function GetOverlayImageIndex: Integer;
       function GetPath: String;
-      function GetCreateCode: String;
       procedure SetCreateCode(Value: String);
     public
       // Table options:
@@ -50,6 +49,8 @@ type
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function RowCount: Int64;
+      function GetCreateCode: String; overload;
+      function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
       property ImageIndex: Integer read GetImageIndex;
       property OverlayImageIndex: Integer read GetOverlayImageIndex;
@@ -7540,6 +7541,36 @@ begin
     Connection.Log(lcError, E.Message);
   end;
   Result := FCreateCode;
+end;
+
+function TDBObject.GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String;
+
+  procedure RemovePattern(RegExp: String);
+  var
+    rx: TRegExpr;
+  begin
+    // Remove first occurrence of pattern from result
+    rx := TRegExpr.Create;
+    rx.Expression := RegExp;
+    rx.ModifierI := True;
+    if rx.Exec(Result) then begin
+      Delete(Result, rx.MatchPos[0], rx.MatchLen[0]-1);
+    end;
+    rx.Free;
+  end;
+begin
+  Result := GetCreateCode;
+
+  if RemoveAutoInc then begin
+    // Remove AUTO_INCREMENT clause
+    RemovePattern('\sAUTO_INCREMENT\s*\=\s*\d+\s');
+  end;
+
+  if RemoveDefiner then begin
+    // Remove DEFINER clause
+    RemovePattern('\sDEFINER\s*\=\s*\S+\s');
+  end;
+
 end;
 
 procedure TDBObject.SetCreateCode(Value: String);

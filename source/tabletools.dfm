@@ -633,5 +633,9 @@ object frmTableTools: TfrmTableTools
       AutoCheck = True
       Caption = 'Remove AUTO_INCREMENT clauses'
     end
+    object menuExportRemoveDefiner: TMenuItem
+      AutoCheck = True
+      Caption = 'Remove DEFINER clauses'
+    end
   end
 end

@@ -82,6 +82,7 @@ type
     menuExportRemoveAutoIncrement: TMenuItem;
     comboMatchType: TComboBox;
     lblMatchType: TLabel;
+    menuExportRemoveDefiner: TMenuItem;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -257,6 +258,7 @@ begin
   updownInsertSize.Position := AppSettings.ReadInt(asExportSQLDataInsertSize);
   menuExportAddComments.Checked := AppSettings.ReadBool(asExportSQLAddComments);
   menuExportRemoveAutoIncrement.Checked := AppSettings.ReadBool(asExportSQLRemoveAutoIncrement);
+  menuExportRemoveDefiner.Checked := AppSettings.ReadBool(asExportSQLRemoveDefiner);
   // Add hardcoded output options and session names from registry
   comboExportOutputType.Items.Text :=
     OUTPUT_FILE + CRLF +
@@ -402,6 +404,7 @@ begin
         AppSettings.WriteInt(asExportSQLDataInsertSize, updownInsertSize.Position);
       AppSettings.WriteBool(asExportSQLAddComments, menuExportAddComments.Checked);
       AppSettings.WriteBool(asExportSQLRemoveAutoIncrement, menuExportRemoveAutoIncrement.Checked);
+      AppSettings.WriteBool(asExportSQLRemoveDefiner, menuExportRemoveDefiner.Checked);
 
       if not StartsStr(OUTPUT_SERVER, comboExportOutputType.Text) then
         AppSettings.WriteInt(asExportSQLOutput, comboExportOutputType.ItemIndex);
@@ -1539,15 +1542,7 @@ begin
       try
         case DBObj.NodeType of
           lntTable: begin
-            Struc := DBObj.CreateCode;
-            // Remove AUTO_INCREMENT clause
-            if menuExportRemoveAutoIncrement.Checked then begin
-              rx := TRegExpr.Create;
-              rx.ModifierI := True;
-              rx.Expression := '\sAUTO_INCREMENT\s*\=\s*\d+\s';
-              Struc := rx.Replace(Struc, ' ', false);
-              rx.Free;
-            end;
+            Struc := DBObj.GetCreateCode(menuExportRemoveAutoIncrement.Checked, False);
             Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 );
@@ -1601,7 +1596,7 @@ begin
 
           lntTrigger: begin
             StrucResult := DBObj.Connection.GetResults('SHOW TRIGGERS FROM '+DBObj.QuotedDatabase+' WHERE `Trigger`='+esc(DBObj.Name));
-            Struc := DBObj.CreateCode;
+            Struc := DBObj.GetCreateCode(False, menuExportRemoveDefiner.Checked);
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
             if ToFile or ToClipboard or ToDir then begin
@@ -1614,7 +1609,7 @@ begin
           end;
 
           lntFunction, lntProcedure: begin
-            Struc := DBObj.CreateCode;
+            Struc := DBObj.GetCreateCode(False, menuExportRemoveDefiner.Checked);
             if ToDb then begin
               if DBObj.NodeType = lntProcedure then
                 Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('PROCEDURE', Struc) + 10 )
