@@ -2367,10 +2367,13 @@ var
     cap: String;
   begin
     Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
+    cap := '';
     if ResourceId > 0 then begin
       // Prefer string from user32.dll
+      // May be empty on Wine!
       cap := GetLocaleString(ResourceId)
-    end else begin
+    end;
+    if cap.IsEmpty then begin
       cap := _(BtnCaption);
       for i:=1 to Length(cap) do begin
         // Auto apply hotkey
