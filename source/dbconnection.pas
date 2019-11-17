@@ -1273,50 +1273,66 @@ end;
 
 function TConnectionParameters.NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
 var
-  My: String;
+  Prefix: String;
 begin
-  if IsMariaDB then
-    My := 'MariaDB'
-  else if IsPercona then
-    My := 'Percona'
-  else if IsTokudb then
-    My := 'TokuDB'
-  else if IsInfiniDB then
-    My := 'InfiniDB'
-  else if IsInfobright then
-    My := 'Infobright'
-  else if IsMemSQL then
-    My := 'MemSQL'
-  else
-    My := 'MariaDB or MySQL';
-  if LongFormat then case NetType of
-    ntMySQL_TCPIP:
-      Result := My+' (TCP/IP)';
-    ntMySQL_NamedPipe:
-      Result := My+' (named pipe)';
-    ntMySQL_SSHtunnel:
-      Result := My+' (SSH tunnel)';
-    ntMSSQL_NamedPipe:
-      Result := 'Microsoft SQL Server (named pipe)';
-    ntMSSQL_TCPIP:
-      Result := 'Microsoft SQL Server (TCP/IP)';
-    ntMSSQL_SPX:
-      Result := 'Microsoft SQL Server (SPX/IPX)';
-    ntMSSQL_VINES:
-      Result := 'Microsoft SQL Server (Banyan VINES)';
-    ntMSSQL_RPC:
-      Result := 'Microsoft SQL Server (Windows RPC)';
-    ntPgSQL_TCPIP:
-      Result := 'PostgreSQL (TCP/IP)';
-    ntPgSQL_SSHtunnel:
-      Result := 'PostgreSQL (SSH tunnel)';
-  end else case NetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
-      Result := My;
-    ntMSSQL_NamedPipe, ntMSSQL_TCPIP:
-      Result := 'MS SQL';
-    ntPgSQL_TCPIP, ntPgSQL_SSHtunnel:
-      Result := 'PostgreSQL';
+  case NetTypeGroup of
+    ngMySQL: begin
+      if IsMariaDB then
+        Prefix := 'MariaDB'
+      else if IsPercona then
+        Prefix := 'Percona'
+      else if IsTokudb then
+        Prefix := 'TokuDB'
+      else if IsInfiniDB then
+        Prefix := 'InfiniDB'
+      else if IsInfobright then
+        Prefix := 'Infobright'
+      else if IsMemSQL then
+        Prefix := 'MemSQL'
+      else
+        Prefix := 'MariaDB or MySQL';
+    end;
+    ngMSSQL: begin
+      Prefix := 'Microsoft SQL Server';
+    end;
+    ngPgSQL: begin
+      if IsRedshift then
+        Prefix := 'Redshift PG'
+      else
+        Prefix := 'PostgreSQL';
+    end;
+  end;
+
+  case LongFormat of
+    True: case NetType of
+      ntMySQL_TCPIP:
+        Result := Prefix+' (TCP/IP)';
+      ntMySQL_NamedPipe:
+        Result := Prefix+' (named pipe)';
+      ntMySQL_SSHtunnel:
+        Result := Prefix+' (SSH tunnel)';
+      ntMSSQL_NamedPipe:
+        Result := Prefix+' (named pipe)';
+      ntMSSQL_TCPIP:
+        Result := Prefix+' (TCP/IP)';
+      ntMSSQL_SPX:
+        Result := Prefix+' (SPX/IPX)';
+      ntMSSQL_VINES:
+        Result := Prefix+' (Banyan VINES)';
+      ntMSSQL_RPC:
+        Result := Prefix+' (Windows RPC)';
+      ntPgSQL_TCPIP:
+        Result := Prefix+' (TCP/IP)';
+      ntPgSQL_SSHtunnel:
+        Result := Prefix+' (SSH tunnel)';
+    end;
+
+    False: case NetTypeGroup of
+      ngMySQL, ngPgSQL:
+        Result := Prefix;
+      ngMSSQL:
+        Result := 'MS SQL';
+    end;
   end;
 end;
 
