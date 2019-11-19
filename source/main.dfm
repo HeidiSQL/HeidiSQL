@@ -3568,6 +3568,9 @@ object MainForm: TMainForm
         Action = actRemoveFilter
       end
     end
+    object Findtext2: TMenuItem
+      Action = actQueryFind
+    end
     object N9a: TMenuItem
       Caption = '-'
     end

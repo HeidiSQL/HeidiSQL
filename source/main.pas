@@ -655,6 +655,7 @@ type
     Datatabfilter1: TMenuItem;
     actDataOpenUrl: TAction;
     OpenURL1: TMenuItem;
+    Findtext2: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
