@@ -34,9 +34,10 @@ object frmSearchReplace: TfrmSearchReplace
   object lblReplaceHint: TLabel
     Left = 90
     Top = 87
-    Width = 288
-    Height = 26
+    Width = 336
+    Height = 13
     Anchors = [akLeft, akTop, akRight]
+    AutoSize = False
     Caption = 'Replacement can have \n for new lines and \t for tabs'
     Enabled = False
     WordWrap = True
