@@ -4293,12 +4293,13 @@ begin
   // Find tables which are currently locked.
   // Used to prevent waiting time in GetDBObjects.
   sql := GetSQLSpecifity(spLockedTables);
-  if sql.IsEmpty then begin
-    Result := 0;
-  end else begin
+  Result := 0;
+  if not sql.IsEmpty then try
     LockedTables := GetCol(Format(sql, [QuoteIdent(db,False)]));
     Result := LockedTables.Count;
     LockedTables.Free;
+  except // Suppress errors, due to not working on all servers: https://www.heidisql.com/forum.php?t=34984
+    on E:EDbError do;
   end;
 end;
 
