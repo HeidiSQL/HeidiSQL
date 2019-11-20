@@ -871,7 +871,9 @@ begin
        PChar(GetCurrentDir),
        StartupInfo,
        FProcessInfo) then begin
-    raise EDbError.CreateFmt(_('Could not execute PLink: %s'), [CRLF+PlinkCmdDisplay]);
+    ErrorText := CRLF + CRLF + PlinkCmdDisplay + CRLF + CRLF + 'System message: ' + SysErrorMessage(GetLastError);
+    ErrorText := f_('Could not execute PLink: %s', [ErrorText]);
+    raise EDbError.Create(ErrorText);
   end;
 
   // Wait until timeout has finished, or some text returned.
