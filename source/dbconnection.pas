@@ -225,8 +225,8 @@ type
       procedure SaveToRegistry;
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(Connection: TDbConnection): TDBQuery;
-      function NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
-      class function IsCompatibleToWin10S(NetType: TNetType): Boolean;
+      function NetTypeName(LongFormat: Boolean): String;
+      function IsCompatibleToWin10S: Boolean;
       function GetNetTypeGroup: TNetTypeGroup;
       function IsMySQL: Boolean;
       function IsMSSQL: Boolean;
@@ -1273,10 +1273,11 @@ begin
 end;
 
 
-function TConnectionParameters.NetTypeName(NetType: TNetType; LongFormat: Boolean): String;
+function TConnectionParameters.NetTypeName(LongFormat: Boolean): String;
 var
   Prefix: String;
 begin
+  // Return the name of a net type, either in short or long format
   case NetTypeGroup of
     ngMySQL: begin
       if IsMariaDB then
@@ -1306,7 +1307,7 @@ begin
   end;
 
   case LongFormat of
-    True: case NetType of
+    True: case FNetType of
       ntMySQL_TCPIP:
         Result := Prefix+' (TCP/IP)';
       ntMySQL_NamedPipe:
@@ -1339,10 +1340,10 @@ begin
 end;
 
 
-class function TConnectionParameters.IsCompatibleToWin10S(NetType: TNetType): Boolean;
+function TConnectionParameters.IsCompatibleToWin10S: Boolean;
 begin
   // Using plink on 10S is not possible
-  Result := (NetType <> ntMySQL_SSHtunnel) and (NetType <> ntPgSQL_SSHtunnel);
+  Result := (FNetType <> ntMySQL_SSHtunnel) and (FNetType <> ntPgSQL_SSHtunnel);
 end;
 
 
@@ -1774,7 +1775,7 @@ begin
   if Value and (FHandle = nil) then begin
 
     // Die if trying to run plink on Win10S
-    if RunningOnWindows10S and (not FParameters.IsCompatibleToWin10S(FParameters.NetType)) then begin
+    if RunningOnWindows10S and (not FParameters.IsCompatibleToWin10S) then begin
       raise EDbError.Create(_('The network type defined for this session is not compatible to your Windows 10 S'));
     end;
 
@@ -2269,7 +2270,7 @@ begin
   // Prepare connection
   if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
   Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
-    [FParameters.Hostname, FParameters.NetTypeName(FParameters.NetType, True), FParameters.Username, UsingPass]
+    [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
     ));
 
   case Parameters.NetTypeGroup of
@@ -5134,7 +5135,7 @@ begin
   Result := TStringList.Create;
   if Assigned(Parameters) then begin
     Result.Values[_('Host')] := Parameters.Hostname;
-    Result.Values[_('Network type')] := Parameters.NetTypeName(Parameters.NetType, True);
+    Result.Values[_('Network type')] := Parameters.NetTypeName(True);
   end;
   Ping(False);
   Result.Values[_('Connected')] := EvalBool(FActive);

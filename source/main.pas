@@ -8714,7 +8714,7 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     tabHost.Caption := _('Host')+': '+StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 20);
     tabDatabase.Caption := _('Database')+': '+StrEllipsis(FActiveDbObj.Connection.Database, 20);
-    ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(FActiveDbObj.Connection.Parameters.NetType, False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
+    ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
     FreeAndNil(FActiveDbObj);
@@ -10185,7 +10185,7 @@ begin
     and (Conn <> nil)
     and (not Conn.Parameters.IsMySQL) then begin
     vt.Clear;
-    vt.EmptyListMessage := f_('Not available on %s', [Conn.Parameters.NetTypeName(Conn.Parameters.NetType, False)]);
+    vt.EmptyListMessage := f_('Not available on %s', [Conn.Parameters.NetTypeName(False)]);
     vt.Tag := VTREE_LOADED;
     Exit;
   end;

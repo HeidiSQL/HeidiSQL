@@ -257,8 +257,9 @@ begin
   comboNetType.Clear;
   Params := TConnectionParameters.Create;
   for nt:=Low(nt) to High(nt) do begin
-    NetTypeStr := Params.NetTypeName(nt, True);
-    if RunningOnWindows10S and (not Params.IsCompatibleToWin10S(nt)) then begin
+    Params.NetType := nt;
+    NetTypeStr := Params.NetTypeName(True);
+    if RunningOnWindows10S and (not Params.IsCompatibleToWin10S) then begin
       NetTypeStr := NetTypeStr + ' ['+_('Does not work on Windows 10 S')+']';
     end;
     comboNetType.Items.Add(NetTypeStr);
