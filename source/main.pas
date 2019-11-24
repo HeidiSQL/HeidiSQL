@@ -23,23 +23,25 @@ uses
 
 
 type
-  TBindParamItem = class(TObject)
-    Parameter: String;
+
+  // Bind parameters for query tabs
+  TBindParam = class(TObject)
+    Name: String;
     Value: String;
     Keep: Boolean;
   end;
-
-  TBindParam = class(TObjectList<TBindParamItem>)
+  TListBindParam = class(TObjectList<TBindParam>)
     private
     public
       constructor Create();
-      function FindParameter(Param: String) : Integer;
+      function FindParameter(ParamName: String) : Integer;
       procedure CleanToKeep;
   end;
-  TBindParamItemComparer = class(TComparer<TBindParamItem>)
-    function Compare(const Left, Right: TBindParamItem): Integer; override;
+  TBindParamComparer = class(TComparer<TBindParam>)
+    function Compare(const Left, Right: TBindParam): Integer; override;
   end;
 
+  // Query tabs and contained components
   TQueryTab = class;
   TResultTab = class(TObject)
     Results: TDBQuery;
@@ -86,7 +88,7 @@ type
       ProfileTime, MaxProfileTime: Extended;
       LeftOffsetInMemo: Integer;
       HistoryDays: TStringList;
-      ListBindParams: TBindParam;
+      ListBindParams: TListBindParam;
       TimerLastChange: TTimer;
       TimerStatusUpdate: TTimer;
       function GetActiveResultTab: TResultTab;
@@ -2912,7 +2914,7 @@ var
   ProfileNode: PVirtualNode;
   Batch: TSQLBatch;
   Tab: TQueryTab;
-  BindParamItem: Integer;
+  BindParam: Integer;
   NewSQL, msg, Command, SQLNoComments: String;
   Query: TSQLSentence;
   rx: TRegExpr;
@@ -2941,10 +2943,14 @@ begin
     NewSQL := Batch.SQL;
 	  // Replace all parameters by their values
 	  // by descending to avoid having problems with similar variables name (eg test & test1)
-    for BindParamItem := tab.ListBindParams.Count-1 downto 0 do begin
+    for BindParam := tab.ListBindParams.Count-1 downto 0 do begin
       // Do the Replace only if there is a value
-      if StrLen(PChar(tab.ListBindParams.Items[BindParamItem].Value))>0 then
-        NewSQL := StringReplace(NewSQL, tab.ListBindParams.Items[BindParamItem].Parameter, tab.ListBindParams.Items[BindParamItem].Value,[rfReplaceAll]);
+      if Length(tab.ListBindParams.Items[BindParam].Value)>0 then begin
+        NewSQL := StringReplace(NewSQL,
+          tab.ListBindParams.Items[BindParam].Name,
+          tab.ListBindParams.Items[BindParam].Value,
+          [rfReplaceAll]);
+      end;
     end;
 
     Batch.SQL := NewSQL;
@@ -12450,7 +12456,7 @@ begin
                     CellText := Tab.QueryProfile.Col(Column);
                   end;
                 end;
-             HELPERNODE_BINDING: CellText := Tab.ListBindParams[Node.Index].Parameter;
+             HELPERNODE_BINDING: CellText := Tab.ListBindParams[Node.Index].Name;
            end;
         2: case Node.Parent.Parent.Index of
              HELPERNODE_HISTORY: begin
@@ -13104,7 +13110,7 @@ begin
   TimerLastChange.Enabled := True;
   TimerLastChange.OnTimer := TimerLastChangeOnTimer;
   // Contain 2 columns of String : Params & Values
-  ListBindParams := TBindParam.Create;
+  ListBindParams := TListBindParam.Create;
   // Update status bar every second while query runs
   TimerStatusUpdate := TTimer.Create(Self);
   TimerStatusUpdate.Enabled := False;
@@ -13370,7 +13376,7 @@ end;
 procedure TQueryTab.TimerLastChangeOnTimer(Sender: TObject);
 var
   rx: TRegExpr;
-  BindParamItem : TBindParamItem;
+  BindParam: TBindParam;
   Item, ParamCountBefore: Integer;
   Node : PVirtualNode;
   FoundParam : String;
@@ -13396,20 +13402,20 @@ begin
         // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
         FoundParam := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
 
-        // Prepare TBindParamItem
-        BindParamItem := TBindParamItem.Create;
-        BindParamItem.Parameter := FoundParam;
-        BindParamItem.Value := '';
-        BindParamItem.Keep := True;
+        // Prepare TBindParam
+        BindParam := TBindParam.Create;
+        BindParam.Name := FoundParam;
+        BindParam.Value := '';
+        BindParam.Keep := True;
 
         // Check if parameter already exists
         Item := ListBindParams.FindParameter(FoundParam);
 
-        // If exists, seet Keep to true else add TBindParamItem
+        // If exists, seet Keep to true else add TBindParam
         if Item <> -1 then
           ListBindParams.Items[Item].Keep := True
         else
-          ListBindParams.add(BindParamItem);
+          ListBindParams.Add(BindParam);
 
         // Try to find next parameter
         if not rx.ExecNext then
@@ -13583,62 +13589,52 @@ begin
 end;
 
 
-{ TBindParam }
+{ TListBindParam }
+
+constructor TListBindParam.Create;
+begin
+  inherited Create(TBindParamComparer.Create);
+end;
 
 
-procedure TBindParam.CleanToKeep;
+procedure TListBindParam.CleanToKeep;
 var
-  BindParamItem: Integer;
+  Index: Integer;
 begin
   // Check for each parameter if there is to be deleted
-  for BindParamItem := self.Count - 1 downto 0 do begin
-    if self.Items[BindParamItem].Keep = False then
-      Self.Delete(BindParamItem)
+  for Index:=Count-1 downto 0 do begin
+    if Items[Index].Keep = False then
+      Self.Delete(Index);
   end;
 
   // Set False all items for the next call
-  for BindParamItem := 0 to self.Count - 1 do
-      self.Items[BindParamItem].Keep := False;
+  for Index:=0 to Count-1 do begin
+    Items[Index].Keep := False;
+  end;
 end;
 
 
-constructor TBindParam.Create;
-begin
-  inherited Create(TBindParamItemComparer.Create);
-end;
-
-
-function TBindParam.FindParameter(Param: String): Integer;
+function TListBindParam.FindParameter(ParamName: String): Integer;
 var
-  ParamItem: Integer;
+  Param: TBindParam;
 begin
   // Return Item index (if found) or -1
   Result := -1;
-  for ParamItem := 0 to self.Count-1 do begin
-    if StrComp( PChar(Param) , PChar(Self.Items[ParamItem].Parameter))= 0 then begin
-      Result := ParamItem;
+  for Param in Self do begin
+    if ParamName = Param.Name then begin
+      Result := IndexOf(Param);
       Break;
     end;
   end;
 end;
 
 
-{ TBindParamItemComparer }
+{ TBindParamComparer }
 
-
-function TBindParamItemComparer.Compare(const Left,
-  Right: TBindParamItem): Integer;
-var
-  CompResult: Integer;
+function TBindParamComparer.Compare(const Left, Right: TBindParam): Integer;
 begin
   // Simple sort method for a TDBObjectList
-  CompResult :=   CompareText(Left.Parameter,Right.Parameter);
-  if CompResult < 0 then
-    Result := -1
-  else if CompResult = 0 then
-    Result := 0
-  else
-    Result := 1;
+  Result := CompareText(Left.Name, Right.Name);
 end;
 
 end.
