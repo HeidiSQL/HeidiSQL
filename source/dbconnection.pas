@@ -89,6 +89,8 @@ type
 
   TOidStringPairs = TDictionary<POid, String>;
 
+  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpDefault, cpVirtuality, cpComment, cpCollation);
+  TColumnParts = Set of TColumnPart;
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
 
   // Column object, many of them in a TObjectList
@@ -109,7 +111,7 @@ type
       FStatus: TEditingStatus;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
-      function SQLCode(OverrideCollation: String=''): String;
+      function SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
       function ValueList: TStringList;
       function CastAsText: String;
       property Status: TEditingStatus read FStatus write SetStatus;
@@ -7673,57 +7675,84 @@ begin
   FStatus := Value;
 end;
 
-function TTableColumn.SQLCode(OverrideCollation: String=''): String;
+function TTableColumn.SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
 var
   IsVirtual: Boolean;
-  Text, TSLen: String;
+  Text: String;
+
+  function InParts(Part: TColumnPart): Boolean;
+  begin
+    Result := (Part in Parts) or (cpAll in Parts);
+  end;
 begin
-  Result := FConnection.QuoteIdent(Name) + ' ' +DataType.Name;
+  Result := '';
   IsVirtual := (Expression <> '') and (Virtuality <> '');
-  if (LengthSet <> '') and DataType.HasLength then
-    Result := Result + '(' + LengthSet + ')';
-  if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
-    Result := Result + ' UNSIGNED';
-  if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
-    Result := Result + ' ZEROFILL';
-  if not IsVirtual then begin
-    if not AllowNull then
-      Result := Result + ' NOT';
-    Result := Result + ' NULL';
+
+  if InParts(cpName) then begin
+    Result := Result + FConnection.QuoteIdent(Name) + ' ';
   end;
-  if DefaultType <> cdtNothing then begin
-    Text := esc(DefaultText);
-    TSLen := '';
-    if LengthSet <> '' then
-      TSLen := '('+LengthSet+')';
-    Result := Result + ' ';
-    case DefaultType of
-      // cdtNothing: leave out whole clause
-      cdtText:           Result := Result + 'DEFAULT '+esc(DefaultText);
-      cdtNull:           Result := Result + 'DEFAULT NULL';
-      cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
-      cdtExpression:     Result := Result + 'DEFAULT '+DefaultText;
+
+  if InParts(cpType) then begin
+    Result := Result + DataType.Name;
+    if (LengthSet <> '') and DataType.HasLength then
+      Result := Result + '(' + LengthSet + ')';
+    if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
+      Result := Result + ' UNSIGNED';
+    if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
+      Result := Result + ' ZEROFILL';
+    Result := Result + ' '; // Add space after each part
+  end;
+
+  if InParts(cpAllowNull) then begin
+    if not IsVirtual then begin
+      if not AllowNull then
+        Result := Result + 'NOT ';
+      Result := Result + 'NULL ';
     end;
-    case OnUpdateType of
-      // cdtNothing: leave out whole clause
-      // cdtText:    not supported, but may be valid in MariaDB?
-      // cdtNull:    not supported, but may be valid in MariaDB?
-      // cdtAutoInc: not valid in ON UPDATE
-      cdtExpression:     Result := Result + ' ON UPDATE '+OnUpdateText;
+  end;
+
+  if InParts(cpDefault) then begin
+    if DefaultType <> cdtNothing then begin
+      Text := esc(DefaultText);
+      case DefaultType of
+        // cdtNothing: leave out whole clause
+        cdtText:           Result := Result + 'DEFAULT '+esc(DefaultText);
+        cdtNull:           Result := Result + 'DEFAULT NULL';
+        cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
+        cdtExpression:     Result := Result + 'DEFAULT '+DefaultText;
+      end;
+      case OnUpdateType of
+        // cdtNothing: leave out whole clause
+        // cdtText:    not supported, but may be valid in MariaDB?
+        // cdtNull:    not supported, but may be valid in MariaDB?
+        // cdtAutoInc: not valid in ON UPDATE
+        cdtExpression:     Result := Result + ' ON UPDATE '+OnUpdateText;
+      end;
+      Result := Result + ' ';
     end;
-    Result := TrimRight(Result); // Remove whitespace for columns without default value
   end;
-  if IsVirtual then
-    Result := Result + ' AS ('+Expression+') '+Virtuality;
-  if (Comment <> '') and FConnection.Parameters.IsMySQL then
-    Result := Result + ' COMMENT '+esc(Comment);
-  if Collation <> '' then begin
-    Result := Result + ' COLLATE ';
-    if OverrideCollation <> '' then
-      Result := Result + esc(OverrideCollation)
-    else
-      Result := Result + esc(Collation);
+
+  if InParts(cpVirtuality) then begin
+    if IsVirtual then
+      Result := Result + 'AS ('+Expression+') ' + Virtuality + ' ';
   end;
+
+  if InParts(cpComment) then begin
+    if (Comment <> '') and FConnection.Parameters.IsMySQL then
+      Result := Result + 'COMMENT ' + esc(Comment) + ' ';
+  end;
+
+  if InParts(cpCollation) then begin
+    if Collation <> '' then begin
+      Result := Result + 'COLLATE ';
+      if OverrideCollation <> '' then
+        Result := Result + esc(OverrideCollation) + ' '
+      else
+        Result := Result + esc(Collation) + ' ';
+    end;
+  end;
+
+  Result := Trim(Result);
 end;
 
 

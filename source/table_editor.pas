@@ -489,11 +489,13 @@ end;
 function TfrmTableEditor.ComposeAlterStatement: TSQLBatch;
 var
   Specs: TStringList;
-  ColSpec, IndexSQL, SQL, OldColName, OverrideCollation: String;
+  ColSpec, IndexSQL, SQL, OverrideCollation,
+  AlterColBase, AddColBase: String;
   i: Integer;
   Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
   Node: PVirtualNode;
+  Conn: TDBConnection;
 
   procedure FinishSpecs;
   begin
@@ -514,6 +516,7 @@ begin
   Screen.Cursor := crHourglass;
   Specs := TStringList.Create;
   SQL := '';
+  Conn := DBObject.Connection;
 
   // Special case for altered foreign keys: These have to be dropped in a seperate query
   // otherwise the server would return error 121 "Duplicate key on write or update"
@@ -522,7 +525,7 @@ begin
   //   ALTER TABLE  statement. Separate statements are required."
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-      Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(FForeignKeys[i].OldKeyName));
+      Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(FForeignKeys[i].OldKeyName));
   end;
   FinishSpecs;
 
@@ -531,29 +534,29 @@ begin
   // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error.
   // Also, do this after the data type was altered, if from TEXT > VARCHAR e.g.
   for i:=0 to FColumns.Count-1 do begin
-    if DBObject.Connection.Parameters.IsMySQL
+    if (Conn.Parameters.IsMySQL or Conn.Parameters.IsPostgreSQL)
       and (FColumns[i].FStatus = esModified)
       and (FColumns[i].DefaultType = cdtNothing)
       and (FColumns[i].OldDataType.HasDefault)
       then
-      Specs.Add('ALTER '+DBObject.Connection.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
+      Specs.Add('ALTER '+Conn.QuoteIdent(FColumns[i].OldName)+' DROP DEFAULT');
   end;
   FinishSpecs;
 
   if memoComment.Tag = MODIFIEDFLAG then begin
-    case DBObject.Connection.Parameters.NetTypeGroup of
+    case Conn.Parameters.NetTypeGroup of
       ngMySQL, ngMSSQL: begin
         Specs.Add('COMMENT=' + esc(memoComment.Text));
       end;
       ngPgSQL: begin
-        AddQuery('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+DBObject.Connection.EscapeString(memoComment.Text));
+        AddQuery('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+Conn.EscapeString(memoComment.Text));
       end;
     end;
   end;
   if (comboCollation.Tag = MODIFIEDFLAG) or (chkCharsetConvert.Checked) then
     Specs.Add('COLLATE=' + esc(comboCollation.Text));
   if (comboEngine.Tag = MODIFIEDFLAG) and (comboEngine.ItemIndex > 0) then begin
-    if DBObject.Connection.ServerVersionInt < 40018 then
+    if Conn.ServerVersionInt < 40018 then
       Specs.Add('TYPE=' + comboEngine.Text)
     else
       Specs.Add('ENGINE=' + comboEngine.Text);
@@ -573,7 +576,7 @@ begin
   if comboInsertMethod.Enabled and (comboInsertMethod.Tag = MODIFIEDFLAG) and (comboInsertMethod.Text <> '') then
     Specs.Add('INSERT_METHOD='+comboInsertMethod.Text);
   if chkCharsetConvert.Checked then begin
-    Results := DBObject.Connection.CollationTable;
+    Results := Conn.CollationTable;
     if Assigned(Results) then while not Results.Eof do begin
       if Results.Col('Collation') = comboCollation.Text then begin
         Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset'));
@@ -591,42 +594,88 @@ begin
     Mainform.ProgressStep;
     Col := listColumns.GetNodeData(Node);
     if Col.Status <> esUntouched then begin
-      OverrideCollation := '';
-      if chkCharsetConvert.Checked then
-        OverrideCollation := comboCollation.Text;
-      ColSpec := Col.SQLCode(OverrideCollation);
-      // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
-      if (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL) and (DBObject.Connection.ServerVersionInt >= 40001) then begin
-        if PreviousCol = nil then
-          ColSpec := ColSpec + ' FIRST'
-        else
-          ColSpec := ColSpec + ' AFTER '+DBObject.Connection.QuoteIdent(PreviousCol.Name);
-      end;
-      case DBObject.Connection.Parameters.NetTypeGroup of
-        ngMySQL: OldColName := DBObject.Connection.QuoteIdent(Col.OldName);
-        ngMSSQL: OldColName := '';
-        // PostgreSQL?? What does this?
-      end;
-      if Col.Status = esModified then
-        Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spChangeColumn), [OldColName, ColSpec]))
-      else if Col.Status in [esAddedUntouched, esAddedModified] then
-        Specs.Add(Format(DBObject.Connection.GetSQLSpecifity(spAddColumn), [ColSpec]));
+      OverrideCollation := IfThen(chkCharsetConvert.Checked, comboCollation.Text);
+      AlterColBase := Conn.GetSQLSpecifity(spChangeColumn);
+      AddColBase := Conn.GetSQLSpecifity(spAddColumn);
 
-      // MSSQL + Postgres want one ALTER TABLE query per ADD/CHANGE COLUMN
-      case DBObject.Connection.Parameters.NetTypeGroup of
-        ngMySQL:;
+      case Conn.Parameters.NetTypeGroup of
+
+        ngMySQL: begin
+          ColSpec := Col.SQLCode(OverrideCollation);
+          // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
+          if Conn.ServerVersionInt >= 40001 then begin
+            if PreviousCol = nil then
+              ColSpec := ColSpec + ' FIRST'
+            else
+              ColSpec := ColSpec + ' AFTER '+Conn.QuoteIdent(PreviousCol.Name);
+          end;
+          case Col.Status of
+            esModified: begin
+              Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.OldName), ColSpec]));
+            end;
+            esAddedUntouched, esAddedModified: begin
+              Specs.Add(Format(AddColBase, [ColSpec]));
+            end;
+          end;
+        end;
+
         ngMSSQL: begin
-          AddQuery('EXECUTE sp_addextendedproperty '+DBObject.Connection.EscapeString('MS_Description')+', '+
-            DBObject.Connection.EscapeString(Col.Comment)+', '+
-            DBObject.Connection.EscapeString('Schema')+', '+DBObject.Connection.EscapeString(DBObject.Schema)+', '+
-            DBObject.Connection.EscapeString('table')+', '+DBObject.Connection.EscapeString(DBObject.Name)+', '+
-            DBObject.Connection.EscapeString('column')+', '+DBObject.Connection.EscapeString(Col.Name)
+          ColSpec := Col.SQLCode(OverrideCollation);
+          case Col.Status of
+            esModified: begin
+              Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.OldName), ColSpec]));
+            end;
+            esAddedUntouched, esAddedModified: begin
+              Specs.Add(Format(AddColBase, [ColSpec]));
+            end;
+          end;
+          AddQuery('EXECUTE sp_addextendedproperty '+Conn.EscapeString('MS_Description')+', '+
+            Conn.EscapeString(Col.Comment)+', '+
+            Conn.EscapeString('Schema')+', '+Conn.EscapeString(DBObject.Schema)+', '+
+            Conn.EscapeString('table')+', '+Conn.EscapeString(DBObject.Name)+', '+
+            Conn.EscapeString('column')+', '+Conn.EscapeString(Col.Name)
             );
         end;
+
         ngPgSQL: begin
-          AddQuery('COMMENT ON COLUMN %s.'+DBObject.Connection.QuoteIdent(Col.Name)+' IS '+DBObject.Connection.EscapeString(Col.Comment));
+          // https://www.postgresql.org/docs/current/sql-altertable.html
+          // All the forms of ALTER TABLE that act on a single table, except RENAME, SET SCHEMA, ATTACH PARTITION,
+          // and DETACH PARTITION can be combined into a list of multiple alterations to be applied together.
+          case Col.Status of
+            esModified: begin
+              // Rename
+              if Col.Name <> Col.OldName then begin
+                FinishSpecs;
+                Specs.Add(Format('RENAME COLUMN %s TO %s', [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)]));
+                FinishSpecs;
+              end;
+              // Type
+              ColSpec := 'TYPE ' + Col.SQLCode(OverrideCollation, [cpType]);
+              Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.Name), ColSpec]));
+              // NULL allowed?
+              ColSpec := IfThen(Col.AllowNull, 'DROP NOT NULL', 'SET NOT NULL');
+              Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.Name), ColSpec]));
+              // Default
+              if Col.DefaultType=cdtNothing then
+                ColSpec := 'DROP DEFAULT'
+              else
+                ColSpec := 'SET ' + Col.SQLCode(OverrideCollation, [cpDefault]);
+              Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.Name), ColSpec]));
+              // Collation
+              ColSpec := Col.SQLCode(OverrideCollation, [cpCollation]);
+              if not ColSpec.IsEmpty then
+                Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.Name), ColSpec]));
+            end;
+            esAddedUntouched, esAddedModified: begin
+              ColSpec := Col.SQLCode(OverrideCollation);
+              Specs.Add(Format(AddColBase, [ColSpec]));
+            end;
+          end;
+          AddQuery('COMMENT ON COLUMN %s.'+Conn.QuoteIdent(Col.Name)+' IS '+Conn.EscapeString(Col.Comment));
         end;
+
       end;
+
     end;
     PreviousCol := Col;
     Node := listColumns.GetNextSibling(Node);
@@ -635,9 +684,9 @@ begin
   // Deleted columns, not available as Node in above loop
   for i:=0 to FColumns.Count-1 do begin
     if FColumns[i].Status = esDeleted then begin
-      Specs.Add('DROP COLUMN '+DBObject.Connection.QuoteIdent(FColumns[i].OldName));
+      Specs.Add('DROP COLUMN '+Conn.QuoteIdent(FColumns[i].OldName));
       // MSSQL wants one ALTER TABLE query per DROP COLUMN
-      if DBObject.Connection.Parameters.IsMSSQL then
+      if Conn.Parameters.IsMSSQL then
         FinishSpecs;
     end;
   end;
@@ -648,7 +697,7 @@ begin
     if DeletedKeys[i] = PKEY then
       IndexSQL := 'PRIMARY KEY'
     else
-      IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(DeletedKeys[i]);
+      IndexSQL := 'INDEX ' + Conn.QuoteIdent(DeletedKeys[i]);
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
@@ -658,7 +707,7 @@ begin
       if FKeys[i].OldIndexType = PKEY then
         IndexSQL := 'PRIMARY KEY'
       else
-        IndexSQL := 'INDEX ' + DBObject.Connection.QuoteIdent(FKeys[i].OldName);
+        IndexSQL := 'INDEX ' + Conn.QuoteIdent(FKeys[i].OldName);
       Specs.Add('DROP '+IndexSQL);
     end;
     if FKeys[i].Added or FKeys[i].Modified then
@@ -666,7 +715,7 @@ begin
   end;
 
   for i:=0 to DeletedForeignKeys.Count-1 do
-    Specs.Add('DROP FOREIGN KEY '+DBObject.Connection.QuoteIdent(DeletedForeignKeys[i]));
+    Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(DeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
