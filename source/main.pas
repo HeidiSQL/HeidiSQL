@@ -8718,8 +8718,8 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
-    tabHost.Caption := _('Host')+': '+StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 20);
-    tabDatabase.Caption := _('Database')+': '+StrEllipsis(FActiveDbObj.Connection.Database, 20);
+    SetTabCaption(tabHost.PageIndex, _('Host')+': '+FActiveDbObj.Connection.Parameters.HostName);
+    SetTabCaption(tabDatabase.PageIndex, _('Database')+': '+FActiveDbObj.Connection.Database);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
     LogSQL('DBtreeFocusChanged without node.', lcDebug);
@@ -10679,7 +10679,7 @@ begin
   if ActiveObjectEditor.DBObject.Name = '' then
     Cap := Cap + '['+_('Untitled')+']'
   else
-    Cap := StrEllipsis(Cap + ActiveObjectEditor.DBObject.Name, 30);
+    Cap := Cap + ActiveObjectEditor.DBObject.Name;
   SetTabCaption(tabEditor.PageIndex, Cap);
 end;
 
@@ -11428,6 +11428,7 @@ begin
   // Some cases pass -1 which triggers a "List index out of bounds" in below cast
   if PageIndex = -1 then
     Exit;
+  Text := StrEllipsis(Text, 70);
   // Special case if passed text is empty: Reset query tab caption to "Query #123"
   if (PageIndex = tabQuery.PageIndex) and (Text = '') then
     Text := _('Query');
@@ -13345,7 +13346,7 @@ end;
 procedure TQueryTab.SetMemoFilename(Value: String);
 begin
   FMemoFilename := Value;
-  MainForm.SetTabCaption(TabSheet.PageIndex, StrEllipsis(ExtractFilename(FMemoFilename), 70));
+  MainForm.SetTabCaption(TabSheet.PageIndex, ExtractFilename(FMemoFilename));
   MainForm.ValidateQueryControls(Self);
   if FMemoFilename <> '' then begin
     DirectoryWatch.Directory := ExtractFilePath(FMemoFilename);
