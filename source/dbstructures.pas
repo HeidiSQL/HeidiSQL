@@ -1973,7 +1973,7 @@ var
     )
   );
 
-  MySqlFunctions: Array [0..253] of TMysqlFunction =
+  MySqlFunctions: Array [0..254] of TMysqlFunction =
   (
     // Function nr. 1
     (
@@ -2544,6 +2544,15 @@ var
       Description:  'Returns the current time as a value in ''HH:MM:SS'' or HHMMSS.uuuuuu'+sLineBreak
         +'format, depending on whether the function is used in a string or'+sLineBreak
         +'numeric context. The value is expressed in the current time zone.'
+    ),
+
+    // Added by hand, for https://github.com/HeidiSQL/HeidiSQL/issues/74#issuecomment-559321533
+    (
+      Name:         'CURRENT_TIMESTAMP';
+      Declaration:  '()';
+      Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'CURRENT_TIMESTAMP and CURRENT_TIMESTAMP() are synonyms for NOW()'
     ),
 
     // Function nr. 47
