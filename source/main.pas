@@ -13100,6 +13100,8 @@ begin
   DirectoryWatch.OnNotify := DirectoryWatchNotify;
   // Do not trigger useless file deletion messages, see issue #2948
   DirectoryWatch.WatchActions := DirectoryWatch.WatchActions - [waRemoved];
+  // Do not trigger file access. See https://www.heidisql.com/forum.php?t=15500
+  DirectoryWatch.WatchOptions := DirectoryWatch.WatchOptions - [woLastAccess];
   // Timer which postpones calling waModified event code until buffers have been saved
   MemofileModifiedTimer := TTimer.Create(Memo);
   MemofileModifiedTimer.Interval := 1000;
