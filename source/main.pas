@@ -31,11 +31,14 @@ type
     Keep: Boolean;
   end;
   TListBindParam = class(TObjectList<TBindParam>)
-    private
+    strict private
+      FPairDelimiter, FItemDelimiter: Char;
+      function GetAsText: String;
+      procedure SetAsText(Input: String);
     public
-      constructor Create();
-      function FindParameter(ParamName: String) : Integer;
+      constructor Create;
       procedure CleanToKeep;
+      property AsText: String read GetAsText write SetAsText;
   end;
   TBindParamComparer = class(TComparer<TBindParam>)
     function Compare(const Left, Right: TBindParam): Integer; override;
@@ -64,6 +67,8 @@ type
       procedure TimerLastChangeOnTimer(Sender: TObject);
       procedure TimerStatusUpdateOnTimer(Sender: TObject);
       procedure MemoOnChange(Sender: TObject);
+      function GetBindParamsActivated: Boolean;
+      procedure SetBindParamsActivated(Value: Boolean);
     public
       Number: Integer;
       Uid: String;
@@ -95,7 +100,7 @@ type
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
       function LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
-      function BindParamsActivated: Boolean;
+      property BindParamsActivated: Boolean read GetBindParamsActivated write SetBindParamsActivated;
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
       procedure BackupUnsavedContent;
       property ActiveResultTab: TResultTab read GetActiveResultTab;
@@ -2241,6 +2246,8 @@ begin
           TabsIni.WriteInteger(Section, 'EditorHeight', Tab.pnlMemo.Height);
         if TabsIni.ReadInteger(Section, 'HelpersWidth', 0) <> Tab.pnlHelpers.Width then
           TabsIni.WriteInteger(Section, 'HelpersWidth', Tab.pnlHelpers.Width);
+        if TabsIni.ReadString(Section, 'BindParams', '') <> Tab.ListBindParams.AsText then
+          TabsIni.WriteString(Section, 'BindParams', Tab.ListBindParams.AsText);
       end;
     end;
 
@@ -2285,6 +2292,7 @@ var
   TabsIni: TIniFile;
   pid: Cardinal;
   EditorHeight, HelpersWidth: Integer;
+  BindParams: String;
 begin
   // Restore query tab setup from tabs.ini
   Result := True;
@@ -2303,6 +2311,7 @@ begin
       pid := Cardinal(TabsIni.ReadInteger(Section, 'pid', 0));
       EditorHeight := TabsIni.ReadInteger(Section, 'EditorHeight', 0);
       HelpersWidth := TabsIni.ReadInteger(Section, 'HelpersWidth', 0);
+      BindParams := TabsIni.ReadString(Section, 'BindParams', '');
 
       // Don't restore this tab if it belongs to a different running process
       if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid) then
@@ -2321,6 +2330,8 @@ begin
             Tab.pnlMemo.Height := EditorHeight;
           if HelpersWidth > 50 then
             Tab.pnlHelpers.Width := HelpersWidth;
+          Tab.ListBindParams.AsText := BindParams;
+          Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
         end else begin
           // Remove tab section if backup file is gone or inaccessible for some reason
           TabsIni.EraseSection(Section);
@@ -2335,6 +2346,8 @@ begin
             Tab.Memo.Height := EditorHeight;
           if HelpersWidth > 50 then
             Tab.pnlHelpers.Width := HelpersWidth;
+          Tab.ListBindParams.AsText := BindParams;
+          Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
         end else begin
           // Remove tab section if user stored file was deleted by user
           TabsIni.EraseSection(Section);
@@ -13335,13 +13348,26 @@ begin
 end;
 
 
-function TQueryTab.BindParamsActivated: Boolean;
+function TQueryTab.GetBindParamsActivated: Boolean;
 var
   Node: PVirtualNode;
 begin
-  // Check if bind params checkbox is checked
+  // Return state of bind params checkbox
   Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
   Result := treeHelpers.CheckState[Node] in CheckedStates;
+end;
+
+
+procedure TQueryTab.SetBindParamsActivated(Value: Boolean);
+var
+  Node: PVirtualNode;
+begin
+  // Check bind params checkbox
+  Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+  if Value then
+    treeHelpers.CheckState[Node] := csCheckedNormal
+  else
+    treeHelpers.CheckState[Node] := csUncheckedNormal;
 end;
 
 
@@ -13380,66 +13406,73 @@ procedure TQueryTab.TimerLastChangeOnTimer(Sender: TObject);
 var
   rx: TRegExpr;
   BindParam: TBindParam;
-  Item, ParamCountBefore: Integer;
+  ParamCountBefore: Integer;
   Node : PVirtualNode;
-  FoundParam : String;
+  ParamName: String;
+  ParamFound: Boolean;
 begin
   TimerLastChange.Enabled := False;
 
-  if BindParamsActivated then begin
-    if Memo.GetTextLen > SIZE_MB then begin
-      MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
-      Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
-      treeHelpers.CheckState[Node] := csUncheckedNormal;
-    end else begin
-      MainForm.LogSQL('Bind parameter detection...', lcInfo);
-      ParamCountBefore := ListBindParams.Count;
-
-      // Check current Query memo to find all parameters with regular expression ( :params )
-      rx := TRegExpr.Create;
-      // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
-      // Don't use ^:\w+|\W:[^\W:]\w+ because it detect IP v6
-      rx.Expression := '([^:\w]|^):\w+';
-      if rx.Exec(Memo.Text) then while true do begin
-
-        // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
-        FoundParam := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
-
-        // Prepare TBindParam
-        BindParam := TBindParam.Create;
-        BindParam.Name := FoundParam;
-        BindParam.Value := '';
-        BindParam.Keep := True;
-
-        // Check if parameter already exists
-        Item := ListBindParams.FindParameter(FoundParam);
-
-        // If exists, seet Keep to true else add TBindParam
-        if Item <> -1 then
-          ListBindParams.Items[Item].Keep := True
-        else
-          ListBindParams.Add(BindParam);
-
-        // Try to find next parameter
-        if not rx.ExecNext then
-          break;
-      end;
-
-      // Sort list ascending
-      ListBindParams.Sort;
-      // Delete all parameters where variable is to False
-      ListBindParams.CleanToKeep;
-
-      // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
-      MainForm.RefreshHelperNode(HELPERNODE_BINDING);
-      if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
-        Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
-        treeHelpers.Expanded[Node] := True;
-      end;
-
-      MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
-    end;
+  if not BindParamsActivated then
+    Exit;
+  if Memo.GetTextLen > SIZE_MB then begin
+    MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
+    Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+    treeHelpers.CheckState[Node] := csUncheckedNormal;
+    Exit;
   end;
+
+  MainForm.LogSQL('Bind parameter detection...', lcInfo);
+  ParamCountBefore := ListBindParams.Count;
+
+  // Check current Query memo to find all parameters with regular expression ( :params )
+  rx := TRegExpr.Create;
+  // Can't use (?<!\w):\w+ with actuall unit so this is an other solution
+  // Don't use ^:\w+|\W:[^\W:]\w+ because it detect IP v6
+  rx.Expression := '([^:\w]|^):\w+';
+  if rx.Exec(Memo.Text) then while true do begin
+
+    // Don't get first char if it's not ':' because RegEx contain \W (A non-word character) before ':'
+    ParamName := Copy(rx.Match[0], Pos(':',rx.Match[0]), Length(rx.Match[0])-Pos(':',rx.Match[0])+1);
+
+    // Check if parameter already exists
+    ParamFound := False;
+    for BindParam in ListBindParams do begin
+      if BindParam.Name = ParamName then begin
+        BindParam.Keep := True;
+        ParamFound := True;
+      end;
+    end;
+
+    // If not exists, prepare and add new TBindParam
+    if not ParamFound then begin
+      BindParam := TBindParam.Create;
+      BindParam.Name := ParamName;
+      BindParam.Value := '';
+      BindParam.Keep := True;
+      ListBindParams.Add(BindParam);
+    end;
+
+    // Try to find next parameter
+    if not rx.ExecNext then
+      break;
+  end;
+
+  rx.Free;
+
+  // Sort list ascending
+  ListBindParams.Sort;
+  // Delete all parameters where variable is to False
+  ListBindParams.CleanToKeep;
+
+  // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
+  MainForm.RefreshHelperNode(HELPERNODE_BINDING);
+  if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
+    Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+    treeHelpers.Expanded[Node] := True;
+  end;
+
+  MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
 end;
 
 
@@ -13597,6 +13630,8 @@ end;
 constructor TListBindParam.Create;
 begin
   inherited Create(TBindParamComparer.Create);
+  FPairDelimiter := '|';
+  FItemDelimiter := '~';
 end;
 
 
@@ -13617,18 +13652,40 @@ begin
 end;
 
 
-function TListBindParam.FindParameter(ParamName: String): Integer;
+function TListBindParam.GetAsText: String;
 var
   Param: TBindParam;
+  Lines: TStringList;
 begin
-  // Return Item index (if found) or -1
-  Result := -1;
+  // Return params as storable text
+  Lines := TStringList.Create;
   for Param in Self do begin
-    if ParamName = Param.Name then begin
-      Result := IndexOf(Param);
-      Break;
-    end;
+    Lines.Add(Param.Name + FPairDelimiter + Param.Value);
   end;
+  Result := implodestr(FItemDelimiter, Lines);
+  Lines.Free;
+end;
+
+procedure TListBindParam.SetAsText(Input: String);
+var
+  Param: TBindParam;
+  Lines, Pair: TStringList;
+  Line: String;
+begin
+  // Restore params from text
+  // See #689
+  Lines := Explode(FItemDelimiter, Input);
+  for Line in Lines do begin
+    Pair := Explode(FPairDelimiter, Line);
+    if Pair.Count >= 2 then begin
+      Param := TBindParam.Create;
+      Param.Name := Pair[0];
+      Param.Value := Pair[1];
+      Add(Param);
+    end;
+    Pair.Free;
+  end;
+  Lines.Free;
 end;
 
 
