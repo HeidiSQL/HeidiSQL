@@ -897,7 +897,7 @@ begin
     end;
 
     if OutText <> '' then begin
-      if ExecRegExpr('login as\s*\:', OutText) then begin
+      if ExecRegExpr('(login as|Passphrase for key "[^"]+")\s*\:', OutText) then begin
         // Prompt for username
         UserInput := InputBox('PLink:', OutText, '');
         SendText(UserInput + CRLF);
