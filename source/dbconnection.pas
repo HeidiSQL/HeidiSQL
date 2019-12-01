@@ -4268,7 +4268,7 @@ end;
 function TMySQLConnection.MaxAllowedPacket: Int64;
 begin
   Result := MakeInt(GetSessionVariable('max_allowed_packet'));
-  if Result < SIZE_MB then begin
+  if Result < SIZE_KB*10 then begin
     Result := SIZE_MB;
     Log(lcError, f_('The server did not return a non-zero value for the %s variable. Assuming %s now.', ['max_allowed_packet', FormatByteNumber(Result)]));
   end;
