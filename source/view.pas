@@ -107,6 +107,15 @@ begin
     SynMemoBody.Text := 'SELECT ';
     lblDisabledWhy.Hide;
   end;
+
+  // Most clauses only supported by MySQL
+  comboDefiner.Enabled := comboDefiner.Enabled and Obj.Connection.Parameters.IsMySQL;
+  lblDefiner.Enabled := comboDefiner.Enabled;
+  comboSecurity.Enabled := comboSecurity.Enabled and Obj.Connection.Parameters.IsMySQL;
+  lblSecurity.Enabled := comboSecurity.Enabled;
+  rgAlgorithm.Enabled := rgAlgorithm.Enabled and Obj.Connection.Parameters.IsMySQL;
+  rgCheck.Enabled := rgCheck.Enabled and Obj.Connection.Parameters.IsMySQL;
+
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
@@ -164,9 +173,9 @@ begin
   viewname := DBObject.Connection.QuoteIdent(viewname);
   if rgAlgorithm.Enabled and (rgAlgorithm.ItemIndex > -1) then
     sql := sql + 'ALGORITHM = '+Uppercase(rgAlgorithm.Items[rgAlgorithm.ItemIndex])+' ';
-  if comboDefiner.Text <> '' then
+  if comboDefiner.Enabled and (comboDefiner.Text <> '') then
     sql := sql + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
-  if comboSecurity.Text <> '' then
+  if comboSecurity.Enabled and (comboSecurity.Text <> '') then
     sql := sql + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+' ';
   sql := sql + 'VIEW ' + viewname+' AS '+SynMemoBody.Text+' ';
   if rgCheck.Enabled and (rgCheck.ItemIndex > 0) then
