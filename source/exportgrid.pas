@@ -50,6 +50,7 @@ type
     lblNull: TLabel;
     editNull: TButtonedEdit;
     btnSetClipboardDefaults: TButton;
+    chkRemoveLinebreaks: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure CalcSize(Sender: TObject);
@@ -123,6 +124,7 @@ begin
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportClpColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportClpIncludeAutoInc);
     chkIncludeQuery.Checked := False; // Always off in copy mode
+    chkRemoveLinebreaks.Checked := AppSettings.ReadBool(asGridExportClpRemoveLinebreaks);
     FCSVSeparator := AppSettings.ReadString(asGridExportClpSeparator);
     FCSVEncloser := AppSettings.ReadString(asGridExportClpEncloser);
     FCSVTerminator := AppSettings.ReadString(asGridExportClpTerminator);
@@ -135,6 +137,7 @@ begin
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
     chkIncludeQuery.Checked := AppSettings.ReadBool(asGridExportIncludeQuery);
+    chkRemoveLinebreaks.Checked := AppSettings.ReadBool(asGridExportRemoveLinebreaks);
     FCSVSeparator := AppSettings.ReadString(asGridExportSeparator);
     FCSVEncloser := AppSettings.ReadString(asGridExportEncloser);
     FCSVTerminator := AppSettings.ReadString(asGridExportTerminator);
@@ -161,6 +164,7 @@ begin
       AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
       AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
       AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
+      AppSettings.WriteBool(asGridExportRemoveLinebreaks, chkRemoveLinebreaks.Checked);
       AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
       AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
       AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
@@ -394,6 +398,7 @@ begin
   AppSettings.WriteInt(asGridExportClpFormat, grpFormat.ItemIndex);
   AppSettings.WriteBool(asGridExportClpColumnNames, chkIncludeColumnNames.Checked);
   AppSettings.WriteBool(asGridExportClpIncludeAutoInc, chkIncludeAutoIncrement.Checked);
+  AppSettings.WriteBool(asGridExportRemoveLinebreaks, chkRemoveLinebreaks.Checked);
   AppSettings.WriteString(asGridExportClpSeparator, FCSVSeparator);
   AppSettings.WriteString(asGridExportClpEncloser, FCSVEncloser);
   AppSettings.WriteString(asGridExportClpTerminator, FCSVTerminator);
@@ -806,17 +811,29 @@ begin
         else tmp := '';
       end;
 
+      // Row contents
       Col := Grid.Header.Columns.GetFirstVisibleColumn;
       while Col > NoColumn do begin
         if Col <> ExcludeCol then begin
-          if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
-            Data := GridData.HexValue(Col)
-          else
+          if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial])
+            and (not Mainform.actBlobAsText.Checked) then begin
+            Data := GridData.HexValue(Col);
+          end else begin
             Data := GridData.Col(Col);
+          end;
+
           // Keep formatted numeric values
           if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
-            and (ExportFormat in [efExcel, efHTML, efMarkDown]) then
-              Data := FormatNumber(Data, False);
+            and (ExportFormat in [efExcel, efHTML, efMarkDown]) then begin
+            Data := FormatNumber(Data, False);
+          end;
+
+          // Remove linebreaks, see #474
+          if chkRemoveLinebreaks.Checked then begin
+            Data := StringReplace(Data, #13#10, ' ', [rfReplaceAll]);
+            Data := StringReplace(Data, #13, ' ', [rfReplaceAll]);
+            Data := StringReplace(Data, #10, ' ', [rfReplaceAll]);
+          end;
 
           case ExportFormat of
             efHTML: begin

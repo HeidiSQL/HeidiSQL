@@ -3,10 +3,10 @@ object frmExportGrid: TfrmExportGrid
   Top = 0
   BorderIcons = [biSystemMenu]
   Caption = 'Export grid rows'
-  ClientHeight = 422
+  ClientHeight = 445
   ClientWidth = 373
   Color = clBtnFace
-  Constraints.MinHeight = 450
+  Constraints.MinHeight = 480
   Constraints.MinWidth = 350
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,12 +22,12 @@ object frmExportGrid: TfrmExportGrid
   OnShow = FormShow
   DesignSize = (
     373
-    422)
+    445)
   PixelsPerInch = 96
   TextHeight = 13
   object btnOK: TButton
     Left = 209
-    Top = 389
+    Top = 412
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -39,7 +39,7 @@ object frmExportGrid: TfrmExportGrid
   end
   object btnCancel: TButton
     Left = 290
-    Top = 389
+    Top = 412
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -52,7 +52,7 @@ object frmExportGrid: TfrmExportGrid
     Left = 8
     Top = 112
     Width = 137
-    Height = 271
+    Height = 294
     Anchors = [akLeft, akTop, akBottom]
     Caption = 'Output format'
     ItemIndex = 0
@@ -153,37 +153,37 @@ object frmExportGrid: TfrmExportGrid
     Left = 151
     Top = 184
     Width = 214
-    Height = 199
+    Height = 222
     Anchors = [akTop, akRight, akBottom]
     Caption = 'Options'
     TabOrder = 5
     DesignSize = (
       214
-      199)
+      222)
     object lblSeparator: TLabel
       Left = 6
-      Top = 97
+      Top = 116
       Width = 76
       Height = 13
       Caption = 'Field separator:'
     end
     object lblEncloser: TLabel
       Left = 6
-      Top = 122
+      Top = 141
       Width = 44
       Height = 13
       Caption = 'Encloser:'
     end
     object lblTerminator: TLabel
       Left = 6
-      Top = 148
+      Top = 167
       Width = 76
       Height = 13
       Caption = 'Line terminator:'
     end
     object lblNull: TLabel
       Left = 6
-      Top = 175
+      Top = 194
       Width = 57
       Height = 13
       Caption = 'NULL value:'
@@ -201,7 +201,7 @@ object frmExportGrid: TfrmExportGrid
     end
     object editSeparator: TButtonedEdit
       Left = 106
-      Top = 93
+      Top = 112
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
@@ -216,7 +216,7 @@ object frmExportGrid: TfrmExportGrid
     end
     object editEncloser: TButtonedEdit
       Left = 106
-      Top = 119
+      Top = 138
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
@@ -230,7 +230,7 @@ object frmExportGrid: TfrmExportGrid
     end
     object editTerminator: TButtonedEdit
       Left = 106
-      Top = 145
+      Top = 164
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
@@ -255,14 +255,15 @@ object frmExportGrid: TfrmExportGrid
     object chkIncludeQuery: TCheckBox
       Left = 6
       Top = 64
-      Width = 177
+      Width = 191
       Height = 17
+      Anchors = [akLeft, akTop, akRight]
       Caption = 'Include SQL query'
       TabOrder = 2
     end
     object editNull: TButtonedEdit
       Left = 106
-      Top = 172
+      Top = 191
       Width = 93
       Height = 21
       Anchors = [akLeft, akTop, akRight]
@@ -274,10 +275,19 @@ object frmExportGrid: TfrmExportGrid
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
+    object chkRemoveLinebreaks: TCheckBox
+      Left = 6
+      Top = 87
+      Width = 191
+      Height = 17
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 'Remove linebreaks from contents'
+      TabOrder = 7
+    end
   end
   object btnSetClipboardDefaults: TButton
     Left = 8
-    Top = 389
+    Top = 412
     Width = 153
     Height = 25
     Anchors = [akLeft, akBottom]

@@ -157,10 +157,10 @@ type
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLRemoveAutoIncrement, asExportSQLRemoveDefiner,
     asGridExportWindowWidth, asGridExportWindowHeight, asGridExportOutputCopy, asGridExportOutputFile,
     asGridExportFilename, asGridExportRecentFiles, asGridExportEncoding, asGridExportFormat, asGridExportSelection,
-    asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportIncludeQuery,
+    asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportIncludeQuery, asGridExportRemoveLinebreaks,
     asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asGridExportNull,
 
-    asGridExportClpFormat, asGridExportClpColumnNames, asGridExportClpIncludeAutoInc,
+    asGridExportClpFormat, asGridExportClpColumnNames, asGridExportClpIncludeAutoInc, asGridExportClpRemoveLinebreaks,
     asGridExportClpSeparator, asGridExportClpEncloser, asGridExportClpTerminator, asGridExportClpNull,
 
     asCSVImportSeparator, asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
@@ -3560,7 +3560,7 @@ begin
   InitSetting(asExportSQLRemoveAutoIncrement,     'ExportSQLRemoveAutoIncrement',          0, False);
   InitSetting(asExportSQLRemoveDefiner,           'ExportSQLRemoveDefiner',                0, True);
   InitSetting(asGridExportWindowWidth,            'GridExportWindowWidth',                 400);
-  InitSetting(asGridExportWindowHeight,           'GridExportWindowHeight',                460);
+  InitSetting(asGridExportWindowHeight,           'GridExportWindowHeight',                480);
   InitSetting(asGridExportOutputCopy,             'GridExportOutputCopy',                  0, True);
   InitSetting(asGridExportOutputFile,             'GridExportOutputFile',                  0, False);
   InitSetting(asGridExportFilename,               'GridExportFilename',                    0, False, '');
@@ -3571,6 +3571,7 @@ begin
   InitSetting(asGridExportColumnNames,            'GridExportColumnNames',                 0, True);
   InitSetting(asGridExportIncludeAutoInc,         'GridExportAutoInc',                     0, True);
   InitSetting(asGridExportIncludeQuery,           'GridExportIncludeQuery',                0, False);
+  InitSetting(asGridExportRemoveLinebreaks,       'GridExportRemoveLinebreaks',            0, False);
   InitSetting(asGridExportSeparator,              'GridExportSeparator',                   0, False, ';');
   InitSetting(asGridExportEncloser,               'GridExportEncloser',                    0, False, '');
   InitSetting(asGridExportTerminator,             'GridExportTerminator',                  0, False, '\r\n');
@@ -3579,6 +3580,7 @@ begin
   InitSetting(asGridExportClpFormat,              'GridExportClpFormat',                   0);
   InitSetting(asGridExportClpColumnNames,         'GridExportClpColumnNames',              0, False);
   InitSetting(asGridExportClpIncludeAutoInc,      'GridExportClpAutoInc',                  0, True);
+  InitSetting(asGridExportClpRemoveLinebreaks,    'GridExportClpRemoveLinebreaks',         0, False);
   InitSetting(asGridExportClpSeparator,           'GridExportClpSeparator',                0, False, ';');
   InitSetting(asGridExportClpEncloser,            'GridExportClpEncloser',                 0, False, '');
   InitSetting(asGridExportClpTerminator,          'GridExportClpTerminator',               0, False, '\r\n');
