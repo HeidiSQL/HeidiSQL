@@ -919,6 +919,7 @@ begin
     if ErrorText <> '' then begin
       rx.Expression := '([^\.]+\?)(\s*\(y\/n\s*(,[^\)]+)?\)\s*)$';
       if rx.Exec(ErrorText) then begin
+        // Prompt user with question
         case MessageDialog(Trim(rx.Match[1]), Copy(ErrorText, 1, Length(ErrorText)-rx.MatchLen[2]), mtConfirmation, [mbYes, mbNo, mbCancel]) of
           mrYes:
             SendText('y');
@@ -936,7 +937,15 @@ begin
         FConnection.Log(lcError, 'PLink: '+ErrorText);
         SendText(CRLF);
       end else begin
-        MessageDialog('PLink:', ErrorText, mtError, [mbOK]);
+        // Any other error message goes here.
+        if ErrorText.Contains('Access denied') then begin
+          // This is a final connection error - end loop in this case
+          Destroy;
+          raise EDbError.Create(ErrorText);
+        end else begin
+          // Just show error text and proceed looping
+          MessageDialog('PLink:', ErrorText, mtError, [mbOK]);
+        end;
       end;
     end;
 
