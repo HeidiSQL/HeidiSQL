@@ -637,12 +637,13 @@ object frmTableEditor: TfrmTableEditor
     PopupMenu = popupColumns
     TabOrder = 2
     TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag, toEditOnClick]
+    TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toFullRowDrag, toEditOnClick]
     TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
     TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
     WantTabs = True
     OnAfterCellPaint = listColumnsAfterCellPaint
     OnBeforeCellPaint = listColumnsBeforeCellPaint
+    OnChange = listColumnsChange
     OnClick = listColumnsClick
     OnCreateEditor = listColumnsCreateEditor
     OnDragOver = listColumnsDragOver

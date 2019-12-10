@@ -170,6 +170,7 @@ type
       Node: PVirtualNode; Column: TColumnIndex; HitPositions: THitPositions);
     procedure menuCopyColumnsClick(Sender: TObject);
     procedure menuPasteColumnsClick(Sender: TObject);
+    procedure listColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -919,19 +920,37 @@ end;
 
 
 procedure TfrmTableEditor.btnMoveUpColumnClick(Sender: TObject);
+var
+  Node: PVirtualNode;
 begin
-  // Move column up
+  // Move up selected columns
   listColumns.EndEditNode;
-  listColumns.MoveTo(listColumns.FocusedNode, listColumns.GetPreviousSibling(listColumns.FocusedNode), amInsertBefore, False);
+
+  Node := GetNextNode(listColumns, nil, true);
+  while Assigned(Node) do begin
+    listColumns.MoveTo(Node, listColumns.GetPreviousSibling(Node), amInsertBefore, False);
+    Node := GetNextNode(listColumns, Node, true);
+  end;
+
   ValidateColumnControls;
 end;
 
 
 procedure TfrmTableEditor.btnMoveDownColumnClick(Sender: TObject);
+var
+  Node: PVirtualNode;
 begin
-  // Move column down
+  // Move down selected columns
   listColumns.EndEditNode;
-  listColumns.MoveTo(listColumns.FocusedNode, listColumns.GetNextSibling(listColumns.FocusedNode), amInsertAfter, False);
+
+  Node := listColumns.GetLast;
+  while Assigned(Node) do begin
+    if listColumns.Selected[Node] then begin
+      listColumns.MoveTo(Node, listColumns.GetNextSibling(Node), amInsertAfter, False);
+    end;
+    Node := listColumns.GetPrevious(Node);
+  end;
+
   ValidateColumnControls;
 end;
 
@@ -1060,15 +1079,22 @@ end;
 
 
 procedure TfrmTableEditor.ValidateColumnControls;
-var Node: PVirtualNode;
+var
+  NextSelected, LastSelected: PVirtualNode;
 begin
-  Node := listColumns.FocusedNode;
   btnRemoveColumn.Enabled := listColumns.SelectedCount > 0;
-  btnMoveUpColumn.Enabled := Assigned(Node)
-    and (Node <> listColumns.GetFirst)
+
+  NextSelected := GetNextNode(listColumns, nil, True);
+  while Assigned(NextSelected) do begin
+    LastSelected := NextSelected;
+    NextSelected := GetNextNode(listColumns, NextSelected, True);
+  end;
+
+  btnMoveUpColumn.Enabled := (listColumns.SelectedCount > 0)
+    and (listColumns.GetFirstSelected <> listColumns.GetFirst)
     and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
-  btnMoveDownColumn.Enabled := Assigned(Node)
-    and (Node <> listColumns.GetLast)
+  btnMoveDownColumn.Enabled := (listColumns.SelectedCount > 0)
+    and (LastSelected <> listColumns.GetLast)
     and (DBObject.Connection.Parameters.NetTypeGroup = ngMySQL);
 
   menuRemoveColumn.Enabled := btnRemoveColumn.Enabled;
@@ -1330,6 +1356,14 @@ begin
   Col := Sender.GetNodeData(Node);
   Col.Status := esModified;
   Modification(Sender);
+end;
+
+
+procedure TfrmTableEditor.listColumnsChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode);
+begin
+  // Enable/disable move buttons
+  ValidateColumnControls;
 end;
 
 
