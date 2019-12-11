@@ -327,6 +327,7 @@ object connform: Tconnform
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 5
         OnChange = Modification
+        OnExit = editTrim
       end
       object editHost: TEdit
         Left = 120
@@ -336,6 +337,7 @@ object connform: Tconnform
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 2
         OnChange = editHostChange
+        OnExit = editTrim
       end
       object comboNetType: TComboBox
         Left = 120
@@ -502,6 +504,7 @@ object connform: Tconnform
         Text = 'editSSHUser'
         TextHint = 'Your secure shell username'
         OnChange = Modification
+        OnExit = editTrim
       end
       object editSSHPassword: TEdit
         Left = 120
@@ -529,6 +532,7 @@ object connform: Tconnform
         TextHint = 'Doubleclick to select plink.exe ...'
         OnChange = editSSHPlinkExeChange
         OnDblClick = PickFile
+        OnExit = editTrim
         OnRightButtonClick = PickFile
       end
       object editSSHhost: TEdit
@@ -540,6 +544,7 @@ object connform: Tconnform
         TabOrder = 1
         Text = 'editSSHhost'
         OnChange = Modification
+        OnExit = editTrim
       end
       object editSSHport: TEdit
         Left = 356
@@ -566,6 +571,7 @@ object connform: Tconnform
         TextHint = 'PuTTY private key (*.ppk)'
         OnChange = Modification
         OnDblClick = PickFile
+        OnExit = editTrim
         OnRightButtonClick = PickFile
       end
       object editSSHTimeout: TEdit
@@ -668,6 +674,7 @@ object connform: Tconnform
         TextHint = 'Path to key file'
         OnChange = Modification
         OnDblClick = PickFile
+        OnExit = editTrim
         OnRightButtonClick = PickFile
       end
       object editSSLCACertificate: TButtonedEdit
@@ -683,6 +690,7 @@ object connform: Tconnform
         TextHint = 'Path to certificate authority file'
         OnChange = Modification
         OnDblClick = PickFile
+        OnExit = editTrim
         OnRightButtonClick = PickFile
       end
       object editSSLCertificate: TButtonedEdit
@@ -698,6 +706,7 @@ object connform: Tconnform
         TextHint = 'Path to certificate file'
         OnChange = Modification
         OnDblClick = PickFile
+        OnExit = editTrim
         OnRightButtonClick = PickFile
       end
       object chkWantSSL: TCheckBox
@@ -746,6 +755,7 @@ object connform: Tconnform
         TabOrder = 5
         OnChange = Modification
         OnDblClick = PickFile
+        OnExit = editTrim
         OnRightButtonClick = PickFile
       end
       object chkFullTableStatus: TCheckBox
@@ -790,6 +800,7 @@ object connform: Tconnform
         TabOrder = 4
         TextHint = 'List of permissible ciphers to use for SSL encryption'
         OnChange = Modification
+        OnExit = editTrim
       end
       object editKeepAlive: TEdit
         Left = 120

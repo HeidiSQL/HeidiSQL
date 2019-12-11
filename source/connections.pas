@@ -171,6 +171,7 @@ type
     procedure TimerButtonAnimationTimer(Sender: TObject);
     procedure ColorBoxBackgroundColorGetColors(Sender: TCustomColorBox;
       Items: TStrings);
+    procedure editTrim(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -987,6 +988,21 @@ procedure Tconnform.editHostChange(Sender: TObject);
 begin
   editSSHhost.TextHint := TEdit(Sender).Text;
   Modification(Sender);
+end;
+
+
+procedure Tconnform.editTrim(Sender: TObject);
+var
+  Edit: TCustomEdit;
+  Trimmed: String;
+begin
+  // Trim input
+  Edit := Sender as TCustomEdit;
+  Trimmed := Edit.Text;
+  Trimmed := Trimmed.Trim([' ', #9]);
+  if Edit.Text <> Trimmed then begin
+    Edit.Text := Trimmed;
+  end;
 end;
 
 
