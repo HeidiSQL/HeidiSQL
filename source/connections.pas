@@ -376,6 +376,7 @@ end;
 procedure Tconnform.btnSaveClick(Sender: TObject);
 var
   Sess: PConnectionParameters;
+  Conn: TDBConnection;
 begin
   // Overtake edited values for current parameter object and save to registry
   Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
@@ -415,6 +416,14 @@ begin
   FSessionModified := False;
   ListSessions.Invalidate;
   ValidateControls;
+
+  // Apply session color (and othher settings) to opened connection(s)
+  for Conn in MainForm.Connections do begin
+    if Conn.Parameters.SessionPath = Sess.SessionPath then begin
+      Conn.Parameters.SessionColor := Sess.SessionColor;
+      MainForm.DBtree.Repaint;
+    end;
+  end;
 end;
 
 
