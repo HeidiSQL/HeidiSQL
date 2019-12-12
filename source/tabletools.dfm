@@ -540,6 +540,7 @@ object frmTableTools: TfrmTableTools
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
+            Sorted = True
             TabOrder = 4
           end
           object chkBulkTableEditEngine: TCheckBox
