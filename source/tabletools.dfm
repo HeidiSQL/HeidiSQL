@@ -539,6 +539,7 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
+            DropDownCount = 16
             Enabled = False
             Sorted = True
             TabOrder = 4
@@ -578,6 +579,7 @@ object frmTableTools: TfrmTableTools
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
+            DropDownCount = 16
             Enabled = False
             TabOrder = 8
           end

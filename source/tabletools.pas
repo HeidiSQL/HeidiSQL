@@ -1782,6 +1782,7 @@ var
   CreateView: String;
   rx: TRegExpr;
   HasCharsetClause: Boolean;
+  SelectedCharset: String;
 begin
   AddResults('SELECT '+esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
     esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
@@ -1824,8 +1825,8 @@ begin
   if DBObj.NodeType = lntTable then begin
     HasCharsetClause := False;
     if chkBulkTableEditCharset.Checked and (comboBulkTableEditCharset.ItemIndex > -1) then begin
-      MainForm.ActiveConnection.CharsetTable.RecNo := comboBulkTableEditCharset.ItemIndex;
-      Specs.Add('CONVERT TO CHARSET '+DBObj.Connection.CharsetTable.Col('Charset'));
+      SelectedCharset := RegExprGetMatch('^(\w+)\b', comboBulkTableEditCharset.Text, 1);
+      Specs.Add('CONVERT TO CHARSET '+SelectedCharset);
       HasCharsetClause := True;
     end;
     if chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then begin

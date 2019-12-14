@@ -185,9 +185,8 @@ end;
 procedure Tloaddataform.grpParseMethodClick(Sender: TObject);
 var
   ServerWillParse: Boolean;
-  FileCharset, Item: String;
+  FileCharset: String;
   v, i: Integer;
-  CharsetTable: TDBQuery;
 begin
   ServerWillParse := grpParseMethod.ItemIndex = 0;
   comboEncoding.Enabled := ServerWillParse;
@@ -201,16 +200,7 @@ begin
       FileCharset := MainForm.GetCharsetByEncoding(FFileEncoding);
       if FileCharset.IsEmpty then
         FileCharset := 'utf8';
-      CharsetTable := FConnection.CharsetTable;
-      CharsetTable.First;
-      while not CharsetTable.Eof do begin
-        if IsNotEmpty(CharsetTable.Col(0)) then
-          Item := CharsetTable.Col(0);
-        if IsNotEmpty(CharsetTable.Col(1)) then
-          Item := Item + ': ' + CharsetTable.Col(1);
-        comboEncoding.Items.Add(Item);
-        CharsetTable.Next;
-      end;
+      comboEncoding.Items := FConnection.CharsetList;
 
       // Preselect file encoding, or utf8 as a fallback
       for i:=0 to comboEncoding.Items.Count-1 do begin

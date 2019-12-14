@@ -4231,9 +4231,10 @@ begin
   if Assigned(c) then begin
     c.First;
     while not c.Eof do begin
-      Result.Add(c.Col('Description') + ' (' + c.Col('Charset') + ')');
+      Result.Add(c.Col('Charset') + ': ' + c.Col('Description'));
       c.Next;
     end;
+    Result.Sort;
   end;
 end;
 
