@@ -46,6 +46,8 @@ object connform: Tconnform
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Save'
+    ImageIndex = 10
+    Images = MainForm.VirtualImageListMain
     TabOrder = 2
     OnClick = btnSaveClick
   end
@@ -156,6 +158,8 @@ object connform: Tconnform
     Anchors = [akLeft, akBottom]
     Caption = 'New'
     DropDownMenu = popupNew
+    ImageIndex = 45
+    Images = MainForm.VirtualImageListMain
     Style = bsSplitButton
     TabOrder = 1
     OnClick = btnNewClick
@@ -167,6 +171,8 @@ object connform: Tconnform
     Height = 25
     Anchors = [akLeft, akBottom]
     Caption = 'Delete'
+    ImageIndex = 46
+    Images = MainForm.VirtualImageListMain
     TabOrder = 3
     OnClick = btnDeleteClick
   end
