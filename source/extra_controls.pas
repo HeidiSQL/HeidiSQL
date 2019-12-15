@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
   SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
-  ShLwApi, Vcl.ExtCtrls;
+  ShLwApi, Vcl.ExtCtrls, VirtualTrees, SynRegExpr;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -16,6 +16,7 @@ type
       procedure SetHasSizeGrip(Value: Boolean);
     protected
       procedure DoShow; override;
+      procedure FilterNodesByEdit(Edit: TButtonedEdit; Tree: TVirtualStringTree);
     public
       constructor Create(AOwner: TComponent); override;
       procedure InheritFont(AFont: TFont);
@@ -151,6 +152,55 @@ begin
     end;
   end;
 end;
+
+
+procedure TExtForm.FilterNodesByEdit(Edit: TButtonedEdit; Tree: TVirtualStringTree);
+var
+  rx: TRegExpr;
+  Node: PVirtualNode;
+  i: Integer;
+  match: Boolean;
+  CellText: String;
+begin
+  // Loop through all tree nodes and hide non matching
+  Node := Tree.GetFirst;
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.Expression := Edit.Text;
+  try
+    rx.Exec('abc');
+  except
+    on E:ERegExpr do begin
+      if rx.Expression <> '' then begin
+        //LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
+        rx.Expression := '';
+      end;
+    end;
+  end;
+
+  Tree.BeginUpdate;
+  while Assigned(Node) do begin
+    if not Tree.HasChildren[Node] then begin
+      // Don't filter anything if the filter text is empty
+      match := rx.Expression = '';
+      // Search for given text in node's captions
+      if not match then for i := 0 to Tree.Header.Columns.Count - 1 do begin
+        CellText := Tree.Text[Node, i];
+        match := rx.Exec(CellText);
+        if match then
+          break;
+      end;
+      Tree.IsVisible[Node] := match;
+    end;
+    Node := Tree.GetNext(Node);
+  end;
+  Tree.EndUpdate;
+  Tree.Invalidate;
+  rx.Free;
+
+  Edit.RightButton.Visible := IsNotEmpty(Edit.Text);
+end;
+
 
 
 

@@ -48,7 +48,7 @@ object connform: Tconnform
     Caption = 'Save'
     ImageIndex = 10
     Images = MainForm.VirtualImageListMain
-    TabOrder = 2
+    TabOrder = 1
     OnClick = btnSaveClick
   end
   object btnOpen: TButton
@@ -60,7 +60,7 @@ object connform: Tconnform
     Caption = 'Open'
     Default = True
     Enabled = False
-    TabOrder = 4
+    TabOrder = 3
     OnClick = btnOpenClick
   end
   object btnCancel: TButton
@@ -72,83 +72,7 @@ object connform: Tconnform
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 5
-  end
-  object ListSessions: TVirtualStringTree
-    AlignWithMargins = True
-    Left = 8
-    Top = 8
-    Width = 200
-    Height = 400
-    Margins.Left = 8
-    Margins.Top = 8
-    Margins.Right = 0
-    Margins.Bottom = 40
-    Align = alLeft
-    Constraints.MinWidth = 200
-    DragMode = dmAutomatic
-    Header.AutoSizeIndex = -1
-    Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
-    Header.PopupMenu = MainForm.popupListHeader
-    Header.SortColumn = 0
-    HintMode = hmTooltip
-    Images = MainForm.VirtualImageListMain
-    IncrementalSearch = isAll
-    PopupMenu = popupSessions
-    TabOrder = 0
-    TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoChangeScale]
-    TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag]
-    TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
-    TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
-    OnCreateEditor = ListSessionsCreateEditor
-    OnDblClick = btnOpenClick
-    OnDragOver = ListSessionsDragOver
-    OnDragDrop = ListSessionsDragDrop
-    OnFocusChanged = ListSessionsFocusChanged
-    OnFocusChanging = ListSessionsFocusChanging
-    OnGetText = ListSessionsGetText
-    OnGetImageIndex = ListSessionsGetImageIndex
-    OnGetNodeDataSize = ListSessionsGetNodeDataSize
-    OnNewText = ListSessionsNewText
-    OnStructureChange = ListSessionsStructureChange
-    Columns = <
-      item
-        Position = 0
-        Text = 'Session name'
-        Width = 163
-      end
-      item
-        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
-        Position = 1
-        Text = 'Host'
-      end
-      item
-        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
-        Position = 2
-        Text = 'User'
-      end
-      item
-        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
-        Position = 3
-        Text = 'Version'
-      end
-      item
-        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
-        Position = 4
-        Text = 'Last connect'
-      end
-      item
-        Alignment = taRightJustify
-        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
-        Position = 5
-        Text = 'Counter'
-      end
-      item
-        Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
-        Position = 6
-        Text = 'Comment'
-        Width = 33
-      end>
+    TabOrder = 4
   end
   object btnNew: TButton
     Left = 8
@@ -161,7 +85,7 @@ object connform: Tconnform
     ImageIndex = 45
     Images = MainForm.VirtualImageListMain
     Style = bsSplitButton
-    TabOrder = 1
+    TabOrder = 0
     OnClick = btnNewClick
   end
   object btnDelete: TButton
@@ -173,7 +97,7 @@ object connform: Tconnform
     Caption = 'Delete'
     ImageIndex = 46
     Images = MainForm.VirtualImageListMain
-    TabOrder = 3
+    TabOrder = 2
     OnClick = btnDeleteClick
   end
   object PageControlDetails: TPageControl
@@ -189,7 +113,7 @@ object connform: Tconnform
     ActivePage = tabStart
     Align = alClient
     Images = MainForm.VirtualImageListMain
-    TabOrder = 7
+    TabOrder = 6
     object tabStart: TTabSheet
       Caption = 'Start'
       ImageIndex = 112
@@ -388,7 +312,7 @@ object connform: Tconnform
         Left = 120
         Top = 271
         Width = 294
-        Height = 97
+        Height = 96
         Anchors = [akLeft, akTop, akRight, akBottom]
         ScrollBars = ssVertical
         TabOrder = 11
@@ -911,8 +835,113 @@ object connform: Tconnform
     Caption = 'More'
     DropDownMenu = popupMore
     Style = bsSplitButton
-    TabOrder = 6
+    TabOrder = 5
     OnClick = btnMoreClick
+  end
+  object pnlLeft: TPanel
+    AlignWithMargins = True
+    Left = 8
+    Top = 8
+    Width = 200
+    Height = 400
+    Margins.Left = 8
+    Margins.Top = 8
+    Margins.Right = 0
+    Margins.Bottom = 40
+    Align = alLeft
+    BevelOuter = bvNone
+    Constraints.MinWidth = 200
+    TabOrder = 7
+    object ListSessions: TVirtualStringTree
+      Left = 0
+      Top = 26
+      Width = 200
+      Height = 374
+      Align = alClient
+      DragMode = dmAutomatic
+      Header.AutoSizeIndex = -1
+      Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+      Header.PopupMenu = MainForm.popupListHeader
+      Header.SortColumn = 0
+      HintMode = hmTooltip
+      Images = MainForm.VirtualImageListMain
+      IncrementalSearch = isAll
+      PopupMenu = popupSessions
+      TabOrder = 0
+      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoChangeScale]
+      TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag]
+      TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+      TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+      OnCreateEditor = ListSessionsCreateEditor
+      OnDblClick = btnOpenClick
+      OnDragOver = ListSessionsDragOver
+      OnDragDrop = ListSessionsDragDrop
+      OnFocusChanged = ListSessionsFocusChanged
+      OnFocusChanging = ListSessionsFocusChanging
+      OnGetText = ListSessionsGetText
+      OnGetImageIndex = ListSessionsGetImageIndex
+      OnGetNodeDataSize = ListSessionsGetNodeDataSize
+      OnNewText = ListSessionsNewText
+      OnStructureChange = ListSessionsStructureChange
+      Columns = <
+        item
+          Position = 0
+          Text = 'Session name'
+          Width = 163
+        end
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 1
+          Text = 'Host'
+        end
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 2
+          Text = 'User'
+        end
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 3
+          Text = 'Version'
+        end
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 4
+          Text = 'Last connect'
+        end
+        item
+          Alignment = taRightJustify
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 5
+          Text = 'Counter'
+        end
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 6
+          Text = 'Comment'
+          Width = 33
+        end>
+    end
+    object editSearch: TButtonedEdit
+      AlignWithMargins = True
+      Left = 0
+      Top = 0
+      Width = 200
+      Height = 21
+      Margins.Left = 0
+      Margins.Top = 0
+      Margins.Right = 0
+      Margins.Bottom = 5
+      Align = alTop
+      Images = MainForm.VirtualImageListMain
+      LeftButton.ImageIndex = 30
+      LeftButton.Visible = True
+      RightButton.ImageIndex = 193
+      TabOrder = 1
+      TextHint = 'Filter ...'
+      OnChange = editSearchChange
+      OnRightButtonClick = editSearchRightButtonClick
+    end
   end
   object popupSessions: TPopupMenu
     Images = MainForm.VirtualImageListMain

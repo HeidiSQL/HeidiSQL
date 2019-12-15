@@ -18,7 +18,6 @@ type
     btnCancel: TButton;
     btnOpen: TButton;
     btnSave: TButton;
-    ListSessions: TVirtualStringTree;
     btnNew: TButton;
     btnDelete: TButton;
     popupSessions: TPopupMenu;
@@ -120,6 +119,9 @@ type
     ColorBoxBackgroundColor: TColorBox;
     comboLibrary: TComboBox;
     lblLibrary: TLabel;
+    pnlLeft: TPanel;
+    ListSessions: TVirtualStringTree;
+    editSearch: TButtonedEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -172,6 +174,8 @@ type
     procedure ColorBoxBackgroundColorGetColors(Sender: TCustomColorBox;
       Items: TStrings);
     procedure editTrim(Sender: TObject);
+    procedure editSearchChange(Sender: TObject);
+    procedure editSearchRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -245,7 +249,7 @@ begin
   // Move to visible area if window was on a now plugged off monitor previously
   MakeFullyVisible;
 
-  ListSessions.Width := AppSettings.ReadInt(asSessionManagerListWidth);
+  pnlLeft.Width := AppSettings.ReadInt(asSessionManagerListWidth);
   splitterMain.OnMoved(Sender);
   FixVT(ListSessions);
   MainForm.RestoreListSetup(ListSessions);
@@ -315,7 +319,7 @@ end;
 procedure Tconnform.FormDestroy(Sender: TObject);
 begin
   // Save GUI stuff
-  AppSettings.WriteInt(asSessionManagerListWidth, ListSessions.Width);
+  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
   AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
   AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
   AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
@@ -1289,13 +1293,13 @@ var
   ButtonWidth: Integer;
 begin
   // Splitter resized - adjust width of buttons
-  ButtonWidth := Round((ListSessions.Width - 2 * ListSessions.Margins.Left) / 3);
+  ButtonWidth := Round((pnlLeft.Width - 2 * pnlLeft.Margins.Left) / 3);
   btnNew.Width := ButtonWidth;
   btnSave.Width := ButtonWidth;
   btnDelete.Width := ButtonWidth;
-  btnNew.Left := ListSessions.Left;
-  btnSave.Left := btnNew.Left + btnNew.Width + ListSessions.Margins.Left;
-  btnDelete.Left := btnSave.Left + btnSave.Width + ListSessions.Margins.Left;
+  btnNew.Left := pnlLeft.Left;
+  btnSave.Left := btnNew.Left + btnNew.Width + pnlLeft.Margins.Left;
+  btnDelete.Left := btnSave.Left + btnSave.Width + pnlLeft.Margins.Left;
 end;
 
 
@@ -1352,6 +1356,17 @@ begin
   Selector.Free;
 end;
 
+
+procedure Tconnform.editSearchChange(Sender: TObject);
+begin
+  // Filter session nodes
+  FilterNodesByEdit(Sender as TButtonedEdit, ListSessions);
+end;
+
+procedure Tconnform.editSearchRightButtonClick(Sender: TObject);
+begin
+  editSearch.Clear;
+end;
 
 procedure Tconnform.editSSHPlinkExeChange(Sender: TObject);
 begin

@@ -7281,55 +7281,9 @@ end;
 
 
 procedure TMainForm.filterQueryHelpersChange(Sender: TObject);
-var
-  rx: TRegExpr;
-  Node: PVirtualNode;
-  VT: TVirtualStringTree;
-  i: Integer;
-  match: Boolean;
-  CellText: String;
-  Edit: TButtonedEdit;
 begin
   // Filter nodes in query helpers
-  // Loop through all nodes and hide non matching
-  VT := ActiveQueryHelpers;
-  Edit := Sender as TButtonedEdit;
-  Node := VT.GetFirst;
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.Expression := Edit.Text;
-  try
-    rx.Exec('abc');
-  except
-    on E:ERegExpr do begin
-      if rx.Expression <> '' then begin
-        LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
-        rx.Expression := '';
-      end;
-    end;
-  end;
-
-  VT.BeginUpdate;
-  while Assigned(Node) do begin
-    if (not VT.HasChildren[Node]) and (VT.GetNodeLevel(Node) > 0) then begin
-      // Don't filter anything if the filter text is empty
-      match := rx.Expression = '';
-      // Search for given text in node's captions
-      if not match then for i := 0 to VT.Header.Columns.Count - 1 do begin
-        CellText := VT.Text[Node, i];
-        match := rx.Exec(CellText);
-        if match then
-          break;
-      end;
-      VT.IsVisible[Node] := match;
-    end;
-    Node := VT.GetNext(Node);
-  end;
-  VT.EndUpdate;
-  VT.Invalidate;
-  rx.Free;
-
-  Edit.RightButton.Visible := IsNotEmpty(Edit.Text);
+  FilterNodesByEdit(Sender as TButtonedEdit, ActiveQueryHelpers);
 end;
 
 
