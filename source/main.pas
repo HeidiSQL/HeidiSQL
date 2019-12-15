@@ -6025,7 +6025,7 @@ begin
   Editor := Proposal.Form.CurrentEditor;
   Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
   CanExecute := AppSettings.ReadBool(asCompletionProposal) and
-    (not (TtkTokenKind(TokenTypeInt) in [tkString, tkComment]));
+    (not (TtkTokenKind(TokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment]));
   if not CanExecute then
     Exit;
 
