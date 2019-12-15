@@ -1751,31 +1751,6 @@ begin
     on E:EOleSysError do;
   end;
 
-  // Move files from old default snippets directory, see issue #159
-  if not AppSettings.PortableMode then begin
-    // This was the default folder up to r5244 / 8b2966c52efb685b00189037a0507157ed03a368
-    OldSnippetsDir := GetShellFolder(CSIDL_COMMON_APPDATA) + '\' + APPNAME + '\Snippets\';
-    CurrentSnippetsDir := AppSettings.DirnameSnippets;
-    //showmessage('1:'+crlf+OldSnippetsDir+crlf+CurrentSnippetsDir);
-    if (not OldSnippetsDir.IsEmpty) and (not CurrentSnippetsDir.IsEmpty)
-        and DirectoryExists(OldSnippetsDir) and DirectoryExists(CurrentSnippetsDir)
-        and (CompareText(OldSnippetsDir, CurrentSnippetsDir) <> 0)
-        then begin
-      Files := TDirectory.GetFiles(OldSnippetsDir, '*.sql');
-      if Length(Files) > 0 then begin
-        LogSQL(f_('Migrating snippet files to new folder: %s', [CurrentSnippetsDir]));
-        for i:=Low(Files) to High(Files) do begin
-          TargetSnippet := CurrentSnippetsDir + ExtractFileName(Files[i]);
-          if MoveFile(PChar(Files[i]), PChar(TargetSnippet)) then begin
-            LogSQL(f_('Successfully moved "%s" to "%s"', [Files[i], TargetSnippet]));
-          end else begin
-            LogSQL(f_('Error: Could not move "%s" to "%s" (Error: %s)', [Files[i], TargetSnippet, SysErrorMessage(GetLastError())]), lcError);
-          end;
-        end;
-      end;
-    end;
-  end;
-
   // Load snippet filenames
   SetSnippetFilenames;
 
