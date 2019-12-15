@@ -11183,18 +11183,28 @@ var
   CurTickcount: Cardinal;
   TabNumber: Integer;
 begin
-  // Simulate doubleclick on tab to close it
-  if Button <> mbLeft then
-    Exit;
-  CurTickcount := GetTickCount;
-  TabNumber := GetMainTabAt(X, Y);
-  if (TabNumber = FLastTabNumberOnMouseUp)
-    and (CurTickcount - FLastMouseUpOnPageControl <= GetDoubleClickTime) then
-    CloseQueryTab(TabNumber)
-  else begin
-    FLastMouseUpOnPageControl := CurTickcount;
-    FLastTabNumberOnMouseUp := TabNumber;
+  // Handle click event on poor PageControl tabs in lack of an OnClick
+  case Button of
+    mbLeft: begin
+      // Simulate doubleclick on tab to close it
+      CurTickcount := GetTickCount;
+      TabNumber := GetMainTabAt(X, Y);
+      if (TabNumber = FLastTabNumberOnMouseUp)
+        and (CurTickcount - FLastMouseUpOnPageControl <= GetDoubleClickTime) then begin
+        CloseQueryTab(TabNumber);
+      end else begin
+        FLastMouseUpOnPageControl := CurTickcount;
+        FLastTabNumberOnMouseUp := TabNumber;
+      end;
+    end;
+
+    mbMiddle: begin
+      // Middle click on tab
+      TabNumber := GetMainTabAt(X, Y);
+      CloseQueryTab(TabNumber);
+    end;
   end;
+
 end;
 
 
