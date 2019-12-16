@@ -7459,9 +7459,9 @@ end;
 
 function TDBObject.IsSameAs(CompareTo: TDBObject): Boolean;
 begin
-  if not Assigned(CompareTo) then
-    Result := False
-  else
+  if (not Assigned(CompareTo)) or (CompareTo = nil) then begin
+    Result := False;
+  end else begin
     Result := (Name = CompareTo.Name)
       and (NodeType = CompareTo.NodeType)
       and (Database = CompareTo.Database)
@@ -7469,6 +7469,7 @@ begin
       and (Column = CompareTo.Column)
       and (ArgTypes = CompareTo.ArgTypes)
       and (Connection = CompareTo.Connection);
+  end;
 end;
 
 
