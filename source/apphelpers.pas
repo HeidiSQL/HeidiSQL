@@ -14,7 +14,7 @@ uses
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, dbstructures, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
-  CommCtrl;
+  CommCtrl, Winapi.KnownFolders;
 
 type
 
@@ -287,7 +287,7 @@ type
   function ScanLineBreaks(Text: String): TLineBreaks;
   function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
-  function GetShellFolder(CSIDL: integer): string;
+  function GetShellFolder(FolderId: TGUID): String;
   function goodfilename( str: String ): String;
   function ExtractBaseFileName(FileName: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
@@ -773,39 +773,19 @@ end;
 
 
 {***
-  Get the path of a Windows(r)-shellfolder, specified by an integer or a constant
-
-  @param integer Number or constant
+  Get the path of a Windows(r)-shellfolder, specified by a KNOWNFOLDERID constant
+  @see https://docs.microsoft.com/en-us/windows/win32/shell/knownfolderid
+  @param TGUID constant
   @return string Path
 }
-function GetShellFolder(CSIDL: integer): string;
+function GetShellFolder(FolderId: TGUID): String;
 var
-  pidl                   : PItemIdList;
-  FolderPath             : string;
-  SystemFolder           : Integer;
-  Malloc                 : IMalloc;
+  Path: PWideChar;
 begin
-  Malloc := nil;
-  FolderPath := '';
-  SHGetMalloc(Malloc);
-  if Malloc = nil then
-  begin
-    Result := FolderPath;
-    Exit;
-  end;
-  try
-    SystemFolder := CSIDL;
-    if SUCCEEDED(SHGetSpecialFolderLocation(0, SystemFolder, pidl)) then
-    begin
-      SetLength(FolderPath, max_path);
-      if SHGetPathFromIDList(pidl, PChar(FolderPath)) then
-      begin
-        SetLength(FolderPath, length(PChar(FolderPath)));
-      end;
-    end;
-    Result := FolderPath;
-  finally
-    Malloc.Free(pidl);
+  if Succeeded(SHGetKnownFolderPath(FolderId, 0, 0, Path)) then begin
+    Result := Path;
+  end else begin
+    Result := EmptyStr;
   end;
 end;
 
@@ -4254,7 +4234,7 @@ end;
 function TAppSettings.DirnameUserAppData: String;
 begin
   // User folder for HeidiSQL's data (<user name>\Application Data)
-  Result := GetShellFolder(CSIDL_APPDATA) + '\' + APPNAME + '\';
+  Result := GetShellFolder(FOLDERID_RoamingAppData) + '\' + APPNAME + '\';
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4264,7 +4244,7 @@ end;
 function TAppSettings.DirnameUserDocuments: String;
 begin
   // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
-  Result := GetShellFolder(CSIDL_MYDOCUMENTS) + '\' + APPNAME + '\';
+  Result := GetShellFolder(FOLDERID_Documents) + '\' + APPNAME + '\';
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
