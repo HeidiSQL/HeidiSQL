@@ -1279,8 +1279,8 @@ object MainForm: TMainForm
             Height = 96
             Align = alTop
             BevelOuter = bvNone
+            Constraints.MinHeight = 40
             TabOrder = 0
-            OnCanResize = pnlQueryMemoCanResize
             object spltQueryHelpers: TSplitter
               Left = 607
               Top = 0
@@ -1297,6 +1297,7 @@ object MainForm: TMainForm
               Height = 96
               SingleLineMode = False
               Align = alClient
+              Constraints.MinWidth = 20
               ActiveLineColor = clWindow
               Font.Charset = DEFAULT_CHARSET
               Font.Color = clWindowText
@@ -1363,6 +1364,7 @@ object MainForm: TMainForm
               Align = alRight
               BevelOuter = bvNone
               Caption = 'pnlQueryHelpers'
+              Constraints.MinWidth = 20
               TabOrder = 1
               object treeQueryHelpers: TVirtualStringTree
                 Left = 0

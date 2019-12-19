@@ -824,8 +824,6 @@ type
     procedure AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-    procedure pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
-      NewHeight: Integer; var Resize: Boolean);
     procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure MainMenuFileClick(Sender: TObject);
@@ -9915,14 +9913,6 @@ begin
 end;
 
 
-procedure TMainForm.pnlQueryMemoCanResize(Sender: TObject; var NewWidth,
-  NewHeight: Integer; var Resize: Boolean);
-begin
-  // Ensure visibility of query memo while resizing
-  Resize := NewWidth >= pnlQueryHelpers.Width + spltQueryHelpers.Width + 40;
-end;
-
-
 procedure TMainForm.AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
@@ -10710,10 +10700,12 @@ begin
   QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
   QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
   QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
+  QueryTab.pnlMemo.Constraints := pnlQueryMemo.Constraints;
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
+  QueryTab.Memo.Constraints := SynMemoQuery.Constraints;
   QueryTab.Memo.Left := SynMemoQuery.Left;
   QueryTab.Memo.Options := SynMemoQuery.Options;
   QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
@@ -10745,6 +10737,7 @@ begin
   QueryTab.pnlHelpers := TPanel.Create(QueryTab.pnlMemo);
   QueryTab.pnlHelpers.Parent := QueryTab.pnlMemo;
   QueryTab.pnlHelpers.Align := pnlQueryHelpers.Align;
+  QueryTab.pnlHelpers.Constraints := pnlQueryHelpers.Constraints;
   QueryTab.pnlHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
   QueryTab.pnlHelpers.Left := pnlQueryHelpers.Left;
   QueryTab.pnlHelpers.Width := pnlQueryHelpers.Width;
