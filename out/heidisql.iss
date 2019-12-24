@@ -101,6 +101,8 @@ Source: "libeay32-64.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: Is
 Source: "libeay32-32.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libiconv-264.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libiconv-232.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{userdocs}\{#ProgName}\Snippets";

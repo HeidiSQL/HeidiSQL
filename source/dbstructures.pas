@@ -71,6 +71,49 @@ const
   // Equivalent to COLLATION_BINARY, this is what a new driver returns when connected to a pre-4.1 server.
   COLLATION_NONE =  0;
 
+  { SQLite Result Codes
+    result code definitions
+
+    Many SQLite functions return an integer result code from the set shown
+    here in order to indicate success or failure.
+
+    New error codes may be added in future versions of SQLite.
+
+    See also: [extended result code definitions]
+  }
+  SQLITE_OK           = 0;   // Successful result
+  // beginning-of-error-codes
+  SQLITE_ERROR        = 1;   // Generic error
+  SQLITE_INTERNAL     = 2;   // Internal logic error in SQLite
+  SQLITE_PERM         = 3;   // Access permission denied
+  SQLITE_ABORT        = 4;   // Callback routine requested an abort
+  SQLITE_BUSY         = 5;   // The database file is locked
+  SQLITE_LOCKED       = 6;   // A table in the database is locked
+  SQLITE_NOMEM        = 7;   // A malloc() failed
+  SQLITE_READONLY     = 8;   // Attempt to write a readonly database
+  SQLITE_INTERRUPT    = 9;   // Operation terminated by sqlite3_interrupt()*/
+  SQLITE_IOERR        = 10;  // Some kind of disk I/O error occurred
+  SQLITE_CORRUPT      = 11;  // The database disk image is malformed
+  SQLITE_NOTFOUND     = 12;  // Unknown opcode in sqlite3_file_control()
+  SQLITE_FULL         = 13;  // Insertion failed because database is full
+  SQLITE_CANTOPEN     = 14;  // Unable to open the database file
+  SQLITE_PROTOCOL     = 15;  // Database lock protocol error
+  SQLITE_EMPTY        = 16;  // Internal use only
+  SQLITE_SCHEMA       = 17;  // The database schema changed
+  SQLITE_TOOBIG       = 18;  // String or BLOB exceeds size limit
+  SQLITE_CONSTRAINT   = 19;  // Abort due to constraint violation
+  SQLITE_MISMATCH     = 20;  // Data type mismatch
+  SQLITE_MISUSE       = 21;  // Library used incorrectly
+  SQLITE_NOLFS        = 22;  // Uses OS features not supported on host
+  SQLITE_AUTH         = 23;  // Authorization denied
+  SQLITE_FORMAT       = 24;  // Not used
+  SQLITE_RANGE        = 25;  // 2nd parameter to sqlite3_bind out of range
+  SQLITE_NOTADB       = 26;  // File opened that is not a database file
+  SQLITE_NOTICE       = 27;  // Notifications from sqlite3_log()
+  SQLITE_WARNING      = 28;  // Warnings from sqlite3_log()
+  SQLITE_ROW          = 100; // sqlite3_step() has another row ready
+  SQLITE_DONE         = 101; // sqlite3_step() has finished executing
+
 
 type
   PUSED_MEM=^USED_MEM;
@@ -368,6 +411,10 @@ type
   PPGresult = Pointer;
   POid = Cardinal;
 
+  // SQLite structures
+  Psqlite3 = Pointer;
+  Psqlite3_stmt = Pointer;
+
   // Server variables
   TVarScope = (vsGlobal, vsSession, vsBoth);
   TServerVariable = record
@@ -454,6 +501,23 @@ type
     PQgetlength: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
     PQgetisnull: function(const Result: PPGresult; row_number: Integer; column_number: Integer): Integer; cdecl;
     PQlibVersion: function(): Integer; cdecl;
+    private
+      procedure AssignProcedures; override;
+  end;
+  TSQLiteLib = class(TDbLib)
+    sqlite3_open: function(const filename: PAnsiChar; var ppDb: Psqlite3): Integer; cdecl;
+    sqlite3_libversion: function(): PAnsiChar; cdecl;
+    sqlite3_close: function(ppDb: Psqlite3): Integer; cdecl;
+    sqlite3_errmsg: function(ppDb: Psqlite3): PAnsiChar; cdecl;
+    sqlite3_errcode: function(ppDb: Psqlite3): Integer; cdecl;
+    sqlite3_prepare_v2: function(ppDb: Psqlite3; zSql: PAnsiChar; nByte: Integer; var ppStmt: Psqlite3_stmt; pzTail: PAnsiChar): Integer; cdecl;
+    sqlite3_exec: function(ppDb: Psqlite3; sql: PAnsiChar; callback: Integer; callvack_arg: Pointer; errmsg: PAnsiChar): Integer; cdecl;
+    sqlite3_finalize: function(pStmt: Psqlite3_stmt): Integer; cdecl;
+    sqlite3_step: function(pStmt: Psqlite3_stmt): Integer; cdecl;
+    sqlite3_changes: function(ppDb: Psqlite3): Integer; cdecl;
+    sqlite3_column_text: function(pStmt: Psqlite3_stmt; iCol: Integer): PAnsiChar; cdecl;
+    sqlite3_column_count: function(pStmt: Psqlite3_stmt): Integer; cdecl;
+    sqlite3_column_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     private
       procedure AssignProcedures; override;
   end;
@@ -7624,6 +7688,23 @@ begin
   AssignProc(@PQlibVersion, 'PQlibVersion');
 end;
 
+
+procedure TSQLiteLib.AssignProcedures;
+begin
+  AssignProc(@sqlite3_open, 'sqlite3_open');
+  AssignProc(@sqlite3_libversion, 'sqlite3_libversion');
+  AssignProc(@sqlite3_close, 'sqlite3_close');
+  AssignProc(@sqlite3_errmsg, 'sqlite3_errmsg');
+  AssignProc(@sqlite3_errcode, 'sqlite3_errcode');
+  AssignProc(@sqlite3_prepare_v2, 'sqlite3_prepare_v2');
+  AssignProc(@sqlite3_exec, 'sqlite3_exec');
+  AssignProc(@sqlite3_finalize, 'sqlite3_finalize');
+  AssignProc(@sqlite3_step, 'sqlite3_step');
+  AssignProc(@sqlite3_changes, 'sqlite3_changes');
+  AssignProc(@sqlite3_column_text, 'sqlite3_column_text');
+  AssignProc(@sqlite3_column_count, 'sqlite3_column_count');
+  AssignProc(@sqlite3_column_name, 'sqlite3_column_name');
+end;
 
 
 

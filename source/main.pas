@@ -5253,7 +5253,8 @@ begin
             case DBObj.Connection.Parameters.NetTypeGroup of
               ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
               ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
-              ngPgSQL: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
+              ngPgSQL, ngSQLite: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
+              else raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(DBObj.Connection.Parameters.NetType)]);
             end;
           end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
@@ -5305,7 +5306,8 @@ begin
     if RefreshingData and (vt.Tag <> VTREE_NOTLOADED_PURGECACHE) then begin
       case DBObj.Connection.Parameters.NetTypeGroup of
         ngMSSQL: Offset := 0; // Does not support offset in all server versions
-        ngMySQL, ngPgSQL: Offset := DataGridResult.RecordCount;
+        ngMySQL, ngPgSQL, ngSQLite: Offset := DataGridResult.RecordCount;
+        else raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(DBObj.Connection.Parameters.NetType)]);
       end;
     end;
     Select := DBObj.Connection.ApplyLimitClause('SELECT', Select, DatagridWantedRowCount-Offset, Offset);
@@ -5707,8 +5709,10 @@ begin
   if (Conn <> nil) and (not Conn.Database.IsEmpty) then begin
     Objects := Conn.GetDBObjects(Conn.Database, False, FActiveObjectGroup);
     Obj^ := Objects[Node.Index];
-  end else
+  end else begin
     Obj^ := nil;
+    LogSQL('InitNode on '+Sender.Name+' failed, due to no connection or no database set. Database: "'+Conn.Database+'"', lcDebug);
+  end;
 end;
 
 
@@ -8644,6 +8648,8 @@ begin
           SynSQLSynUsed.SQLDialect := sqlMSSQL2K;
         ngPgSQL:
           SynSQLSynUsed.SQLDialect := sqlPostgres;
+        ngSQLite:
+          SynSQLSynUsed.SQLDialect := sqlStandard;
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
@@ -10238,6 +10244,9 @@ begin
             ', '+Conn.QuoteIdent('query')+
             ' FROM '+Conn.QuoteIdent('pg_stat_activity')
             );
+        end;
+        else begin
+          raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Conn.Parameters.NetType)]);
         end;
       end;
       FProcessListMaxTime := 1;

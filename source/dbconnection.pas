@@ -157,8 +157,8 @@ type
   end;
   TRoutineParamList = TObjectList<TRoutineParam>;
 
-  // Structures for in-memory changes of a TMySQLQuery
-  TCellData = class(TObject)
+  // Structures for in-memory changes of a TDBQuery
+  TGridValue = class(TObject)
     public
       NewText, OldText: String;
       NewIsNull, OldIsNull: Boolean;
@@ -166,12 +166,17 @@ type
       Modified: Boolean;
       destructor Destroy; override;
   end;
-  TRowData = class(TObjectList<TCellData>)
+  TGridRow = class(TObjectList<TGridValue>)
     public
       RecNo: Int64;
       Inserted: Boolean;
   end;
-  TUpdateData = TObjectList<TRowData>;
+  TGridRows = class(TObjectList<TGridRow>)
+    public
+      Columns: TTableColumnList;
+      constructor Create;
+      destructor Destroy; override;
+  end;
 
   // PLink.exe related
   TProcessPipe = class(TObject)
@@ -203,8 +208,9 @@ type
 
   TNetType = (ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel,
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
-    ntPgSQL_TCPIP, ntPgSQL_SSHtunnel);
-  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL);
+    ntPgSQL_TCPIP, ntPgSQL_SSHtunnel,
+    ntSQLite);
+  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
 
   TConnectionParameters = class(TObject)
@@ -359,7 +365,7 @@ type
       procedure SetDatabase(Value: String);
       function GetThreadId: Int64; virtual; abstract;
       function GetCharacterSet: String; virtual;
-      procedure SetCharacterSet(CharsetName: String); virtual; abstract;
+      procedure SetCharacterSet(CharsetName: String); virtual;
       function GetLastErrorCode: Cardinal; virtual; abstract;
       function GetLastErrorMsg: String; virtual; abstract;
       function GetAllDatabases: TStringList; virtual;
@@ -413,7 +419,7 @@ type
       procedure PrefetchCreateCode(Objects: TDBObjectList);
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
       function GetSessionVariable(VarName: String; DefaultValue: String=''; Refresh: Boolean=False): String;
-      function MaxAllowedPacket: Int64; virtual; abstract;
+      function MaxAllowedPacket: Int64; virtual;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
       function GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
@@ -524,7 +530,6 @@ type
       procedure SetActive(Value: Boolean); override;
       procedure DoAfterConnect; override;
       function GetThreadId: Int64; override;
-      procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
       function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
@@ -540,7 +545,6 @@ type
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
-      function MaxAllowedPacket: Int64; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
   end;
 
@@ -569,9 +573,34 @@ type
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
-      function MaxAllowedPacket: Int64; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
+  end;
+
+  TSQLiteRawResults = Array of TGridRows;
+  TSQLiteConnection = class(TDBConnection)
+    private
+      FHandle: Psqlite3;
+      FLib: TSQLiteLib;
+      FLastRawResults: TSQLiteRawResults;
+      procedure SetActive(Value: Boolean); override;
+      procedure DoBeforeConnect; override;
+      function GetThreadId: Int64; override;
+      function GetLastErrorCode: Cardinal; override;
+      function GetLastErrorMsg: String; override;
+      function GetAllDatabases: TStringList; override;
+      function GetCharsetTable: TDBQuery; override;
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+      //procedure Drop(Obj: TDBObject); override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      property Lib: TSQLiteLib read FLib;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      function Ping(Reconnect: Boolean): Boolean; override;
+      function GetLastResults: TDBQueryList; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
+      property LastRawResults: TSQLiteRawResults read FLastRawResults;
   end;
 
 
@@ -589,14 +618,14 @@ type
       FColumnTypes: Array of TDBDatatype;
       FColumnLengths: TIntegerDynArray;
       FColumnFlags: TCardinalDynArray;
-      FCurrentUpdateRow: TRowData;
+      FCurrentUpdateRow: TGridRow;
       FEof: Boolean;
       FStoreResult: Boolean;
       FColumns: TTableColumnList;
       FKeys: TTableKeyList;
       FForeignKeys: TForeignKeyList;
       FEditingPrepared: Boolean;
-      FUpdateData: TUpdateData;
+      FUpdateData: TGridRows;
       FDBObject: TDBObject;
       FFormatSettings: TFormatSettings;
       procedure SetRecNo(Value: Int64); virtual; abstract;
@@ -613,7 +642,7 @@ type
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
-      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; virtual; abstract;
+      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; virtual;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
@@ -695,7 +724,6 @@ type
     public
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -717,7 +745,27 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
-      function GetColBinData(Column: Integer; var baData: TBytes): Boolean; override;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
+      function ColIsKeyPart(Column: Integer): Boolean; override;
+      function IsNull(Column: Integer): Boolean; overload; override;
+      function HasResult: Boolean; override;
+      function DatabaseName: String; override;
+      function TableName: String; override;
+  end;
+
+  TSQLiteQuery = class(TDBQuery)
+    private
+      FConnection: TSQLiteConnection;
+      FCurrentResults: TGridRows;
+      FRecNoLocal: Integer;
+      FResultList: TSQLiteRawResults;
+      procedure SetRecNo(Value: Int64); override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
@@ -1262,6 +1310,8 @@ begin
       Result := TAdoDBConnection.Create(AOwner);
     ngPgSQL:
       Result := TPgConnection.Create(AOwner);
+    ngSQLite:
+      Result := TSQLiteConnection.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1278,6 +1328,8 @@ begin
       Result := TAdoDBQuery.Create(Connection);
     ngPgSQL:
       Result := TPGQuery.Create(Connection);
+    ngSQLite:
+      Result := TSQLiteQuery.Create(Connection);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1315,6 +1367,9 @@ begin
       else
         Prefix := 'PostgreSQL';
     end;
+    ngSQLite: begin
+      Prefix := 'SQLite';
+    end;
   end;
 
   case LongFormat of
@@ -1339,13 +1394,17 @@ begin
         Result := Prefix+' (TCP/IP)';
       ntPgSQL_SSHtunnel:
         Result := Prefix+' (SSH tunnel)';
+      ntSQLite:
+        Result := Prefix+' (Experimental)';
+      else
+        Result := Prefix;
     end;
 
     False: case NetTypeGroup of
-      ngMySQL, ngPgSQL:
-        Result := Prefix;
       ngMSSQL:
         Result := 'MS SQL';
+      else
+        Result := Prefix;
     end;
   end;
 end;
@@ -1367,6 +1426,8 @@ begin
       Result := ngMSSQL;
     ntPgSQL_TCPIP, ntPgSQL_SSHtunnel:
       Result := ngPgSQL;
+    ntSQLite:
+      Result := ngSQLite;
     else begin
       // Return default net group here. Raising an exception lets the app die for some reason.
       // Reproduction: click drop-down button on "Database(s)" session setting
@@ -1465,6 +1526,9 @@ begin
       Result := 187;
       if IsRedshift then Result := 195;
     end;
+    ngSQLite: begin
+      Result := 196;
+    end
     else Result := ICONINDEX_SERVER;
   end;
 end;
@@ -1498,6 +1562,7 @@ begin
     ngMySQL: Result := 'libmariadb.dll';
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
+    ngSQLite: Result := 'sqlite3.dll';
     else Result := '';
   end;
 end;
@@ -1523,25 +1588,29 @@ begin
       ngMySQL: rx.Expression := '^lib(mysql|mariadb).*\.dll$';
       ngMSSQL: rx.Expression := '^(MSOLEDBSQL|SQLOLEDB)$';
       ngPgSQL: rx.Expression := '^libpq.*\.dll$';
+      ngSQLite: rx.Expression := '^sqlite.*\.dll$';
     end;
-    if NetTypeGroup in [ngMySQL, ngPgSQL] then begin
-      Dlls := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
-      for DllPath in Dlls do begin
-        DllFile := ExtractFileName(DllPath);
-        if rx.Exec(DllFile) then begin
-          FoundLibs.Add(DllFile);
+    case NetTypeGroup of
+      ngMySQL, ngPgSQL, ngSQLite: begin
+        Dlls := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
+        for DllPath in Dlls do begin
+          DllFile := ExtractFileName(DllPath);
+          if rx.Exec(DllFile) then begin
+            FoundLibs.Add(DllFile);
+          end;
         end;
+        SetLength(Dlls, 0);
       end;
-      SetLength(Dlls, 0);
-    end else begin
-      Providers := TStringList.Create;
-      GetProviderNames(Providers);
-      for Provider in Providers do begin
-        if rx.Exec(Provider) then begin
-          FoundLibs.Add(Provider);
+      ngMSSQL: begin
+        Providers := TStringList.Create;
+        GetProviderNames(Providers);
+        for Provider in Providers do begin
+          if rx.Exec(Provider) then begin
+            FoundLibs.Add(Provider);
+          end;
         end;
+        Providers.Free;
       end;
-      Providers.Free;
     end;
     rx.Free;
     FLibraries.Add(NetTypeGroup, FoundLibs);
@@ -1632,6 +1701,19 @@ begin
 end;
 
 
+constructor TSQLiteConnection.Create(AOwner: TComponent);
+var
+  i: Integer;
+begin
+  inherited;
+  FQuoteChar := '"';
+  FQuoteChars := '"';
+  SetLength(FDatatypes, Length(PostGreSQLDatatypes));
+  for i:=0 to High(PostGreSQLDatatypes) do
+    FDatatypes[i] := PostGreSQLDatatypes[i];
+end;
+
+
 destructor TDBConnection.Destroy;
 begin
   if Active then Active := False;
@@ -1655,6 +1737,13 @@ destructor TPgConnection.Destroy;
 begin
   if Active then Active := False;
   //FreeAndNil(FHandle);
+  inherited;
+end;
+
+
+destructor TSQLiteConnection.Destroy;
+begin
+  if Active then Active := False;
   inherited;
 end;
 
@@ -2259,6 +2348,54 @@ begin
 end;
 
 
+procedure TSQLiteConnection.SetActive(Value: Boolean);
+var
+  ConnectResult: Integer;
+  tmpdb: String;
+begin
+  if Value then begin
+    DoBeforeConnect;
+    ConnectResult := FLib.sqlite3_open(
+      PAnsiChar(Utf8Encode(Parameters.Hostname)),
+      FHandle);
+
+    if ConnectResult = SQLITE_OK then begin
+      FActive := True;
+      FServerDateTimeOnStartup := GetVar('SELECT DATETIME()');
+      FServerVersionUntouched := GetVar('SELECT sqlite_version()');
+      FConnectionStarted := GetTickCount div 1000;
+      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
+      FIsUnicode := True;
+      FServerUptime := -1;
+
+      DoAfterConnect;
+
+      if FDatabase <> '' then begin
+        tmpdb := FDatabase;
+        FDatabase := '';
+        try
+          Database := tmpdb;
+        except
+          FDatabase := tmpdb;
+          Database := '';
+        end;
+      end;
+    end else begin
+      Log(lcError, LastErrorMsg);
+      FConnectionStarted := 0;
+      FHandle := nil;
+      raise EDbError.Create(LastErrorMsg);
+    end;
+  end else begin
+    if FHandle <> nil then begin
+      FLib.sqlite3_close(FHandle);
+      FHandle := nil;
+      FActive := False;
+    end;
+  end;
+end;
+
+
 procedure TDBConnection.DoBeforeConnect;
 var
   UsingPass: String;
@@ -2336,6 +2473,23 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spLockedTables] := '';
     end;
+    ngSQLite: begin
+      FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+      FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
+      FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
+      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
+      FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
+      FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
+      FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
+      FSQLSpecifities[spUSEQuery] := '-- USE %s neither supported nor required'; // Cannot be empty without causing problems
+      FSQLSpecifities[spKillQuery] := 'KILL %d';
+      FSQLSpecifities[spKillProcess] := 'KILL %d';
+      FSQLSpecifities[spFuncLength] := 'LENGTH';
+      FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spLockedTables] := '';
+    end;
 
   end;
 
@@ -2379,6 +2533,20 @@ begin
       raise EDbError.Create(msg, E.ErrorCode);
     end;
   end;
+  inherited;
+end;
+
+
+procedure TSQLiteConnection.DoBeforeConnect;
+var
+  LibraryPath: String;
+begin
+  // Init lib before actually connecting.
+  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
+  Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
+  // Throws EDbError on any failure:
+  FLib := TSQLiteLib.Create(LibraryPath);
+  Log(lcDebug, FLib.DllFile + ' v' + ServerVersionUntouched + ' loaded.');
   inherited;
 end;
 
@@ -2535,6 +2703,26 @@ begin
 
     if IsBroken then begin
       // Be sure to release some stuff before reconnecting
+      Active := False;
+      if Reconnect then
+        Active := True;
+    end;
+  end;
+  Result := FActive;
+  // Restart keep-alive timer
+  FKeepAliveTimer.Enabled := False;
+  FKeepAliveTimer.Enabled := True;
+end;
+
+
+function TSQLiteConnection.Ping(Reconnect: Boolean): Boolean;
+begin
+  Log(lcDebug, 'Ping server ...');
+  if FActive then try
+    FLib.sqlite3_exec(FHandle, nil, 0, nil, nil);
+  except
+    on E:Exception do begin
+      Log(lcError, E.Message);
       Active := False;
       if Reconnect then
         Active := True;
@@ -2789,6 +2977,83 @@ begin
 end;
 
 
+procedure TSQLiteConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+var
+  TimerStart: Cardinal;
+  Rows: TGridRows;
+  Row: TGridRow;
+  Value: TGridValue;
+  Statement: Psqlite3_stmt;
+  QueryStatus, StepStatus: Integer;
+  NativeSQL: AnsiString;
+  i: Integer;
+  Col: TTableColumn;
+begin
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+    Log(lcDebug, _('Waiting for running query to finish ...'));
+    try
+      FLockedByThread.WaitFor;
+    except
+      on E:EThread do;
+    end;
+  end;
+
+  Ping(True);
+  Log(LogCategory, SQL);
+  FLastQuerySQL := SQL;
+  if IsUnicode then
+    NativeSQL := UTF8Encode(SQL)
+  else
+    NativeSQL := AnsiString(SQL);
+  TimerStart := GetTickCount;
+  SetLength(FLastRawResults, 0);
+  FResultCount := 0;
+  FRowsFound := 0;
+  FRowsAffected := 0;
+  FWarningCount := 0;
+
+  Statement := nil;
+  QueryStatus := FLib.sqlite3_prepare_v2(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL), Statement, nil);
+  FLastQueryDuration := GetTickCount - TimerStart;
+  FLastQueryNetworkDuration := 0;
+
+  if QueryStatus <> SQLITE_OK then begin
+    Log(lcError, GetLastErrorMsg);
+    raise EDbError.Create(GetLastErrorMsg);
+  end else begin
+    FRowsAffected := FLib.sqlite3_changes(FHandle);
+    FRowsFound := 0;
+    if DoStoreResult then begin
+      Rows := TGridRows.Create;
+      for i:=0 to FLib.sqlite3_column_count(Statement)-1 do begin
+        Col := TTableColumn.Create(Self);
+        Col.Name := DecodeAPIString(FLib.sqlite3_column_name(Statement, i));
+        Rows.Columns.Add(Col);
+      end;
+      StepStatus := FLib.sqlite3_step(Statement);
+      while StepStatus = SQLITE_ROW do begin
+        Row := TGridRow.Create;
+        for i:=0 to FLib.sqlite3_column_count(Statement)-1 do begin
+          Value := TGridValue.Create;
+          Value.OldText := DecodeAPIString(FLib.sqlite3_column_text(Statement, i));
+          Value.OldIsNull := FLib.sqlite3_column_text(Statement, i) = nil;
+          Row.Add(Value);
+        end;
+        Rows.Add(Row);
+        StepStatus := FLib.sqlite3_step(Statement);
+      end;
+      FRowsFound := Rows.Count;
+      SetLength(FLastRawResults, 1);
+      FLastRawResults[0] := Rows;
+    end;
+    FLib.sqlite3_finalize(Statement);
+    FResultCount := Length(FLastRawResults);
+    DetectUSEQuery(SQL);
+  end;
+
+end;
+
+
 function TMySQLConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
@@ -2827,6 +3092,21 @@ end;
 
 
 function TPGConnection.GetLastResults: TDBQueryList;
+var
+  r: TDBQuery;
+  i: Integer;
+begin
+  Result := TDBQueryList.Create(False);
+  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
+    r := Parameters.CreateQuery(Self);
+    r.SQL := FLastQuerySQL;
+    r.Execute(False, i);
+    Result.Add(r);
+  end;
+end;
+
+
+function TSQLiteConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
   i: Integer;
@@ -3267,6 +3547,9 @@ begin
             Queries.Add('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name))
         end;
       end;
+      else begin
+        Log(lcDebug, 'No query logic for PrefetchCreateCode');
+      end;
     end;
   end;
   if Queries.Count > 0 then try
@@ -3370,6 +3653,17 @@ begin
 end;
 
 
+function TSQLiteConnection.GetThreadId: Int64;
+begin
+  if FThreadId = 0 then begin
+    Ping(False);
+    if FActive then
+      FThreadID := 123; // Todo!
+  end;
+  Result := FThreadID;
+end;
+
+
 {**
   Return currently used character set
 }
@@ -3389,6 +3683,12 @@ end;
 {**
   Switch character set
 }
+procedure TDBConnection.SetCharacterSet(CharsetName: String);
+begin
+  // Nothing to do by default
+end;
+
+
 procedure TMySQLConnection.SetCharacterSet(CharsetName: String);
 var
   Return: Integer;
@@ -3399,12 +3699,6 @@ begin
     raise EDbError.Create(LastErrorMsg)
   else
     FIsUnicode := Pos('utf8', LowerCase(CharsetName)) = 1;
-end;
-
-
-procedure TAdoDBConnection.SetCharacterSet(CharsetName: String);
-begin
-  // Not in use. No charset stuff going on here?
 end;
 
 
@@ -3434,6 +3728,12 @@ end;
 function TPgConnection.GetLastErrorCode: Cardinal;
 begin
   Result := Cardinal(FLib.PQstatus(FHandle));
+end;
+
+
+function TSQLiteConnection.GetLastErrorCode: Cardinal;
+begin
+  Result := FLib.sqlite3_errcode(FHandle);
 end;
 
 
@@ -3505,6 +3805,12 @@ begin
 end;
 
 
+function TSQLiteConnection.GetLastErrorMsg: String;
+begin
+  Result := DecodeAPIString(FLib.sqlite3_errmsg(FHandle));
+end;
+
+
 {**
   Get version string as normalized integer
   "5.1.12-beta-community-123" => 50112
@@ -3517,7 +3823,7 @@ begin
   Result := 0;
   rx := TRegExpr.Create;
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL, ngPgSQL, ngSQLite: begin
       rx.Expression := '(\d+)\.(\d+)(\.(\d+))?';
       if rx.Exec(FServerVersionUntouched) then begin
         Result := StrToIntDef(rx.Match[1], 0) *10000 +
@@ -3545,6 +3851,9 @@ begin
         end;
       end;
     end;
+    else begin
+      raise EDbError.CreateFmt(_(MsgUnhandledNetType), [Integer(FParameters.NetType)]);
+    end;
   end;
   rx.Free;
 end;
@@ -3556,7 +3865,7 @@ var
   major, minor, build: Integer;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL: begin
+    ngMySQL, ngPgSQL, ngSQLite: begin
       v := IntToStr(ServerVersionInt);
       major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
       minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
@@ -3567,6 +3876,9 @@ begin
       major := ServerVersionInt div 100;
       minor := ServerVersionInt mod (ServerVersionInt div 100);
       Result := IntToStr(major) + '.' + IntToStr(minor);
+    end;
+    else begin
+      raise EDbError.CreateFmt(_(MsgUnhandledNetType), [Integer(FParameters.NetType)]);
     end;
   end;
 end;
@@ -3674,6 +3986,17 @@ begin
     end;
   end;
   Result := FAllDatabases;
+end;
+
+
+function TSQLiteConnection.GetAllDatabases: TStringList;
+begin
+  Result := inherited;
+  if not Assigned(Result) then begin
+    FAllDatabases := TStringList.Create;
+    FAllDatabases.Add('main');
+    Result := FAllDatabases;
+  end;
 end;
 
 
@@ -3803,7 +4126,7 @@ begin
       Result := escChars(Result, EscChar, c1, c2, c3, c4);
     end;
 
-    ngMSSQL: begin
+    ngMSSQL, ngSQLite: begin
 
       c1 := '''';
       c2 := '''';
@@ -4222,6 +4545,16 @@ begin
 end;
 
 
+function TSQLiteConnection.GetCharsetTable;
+begin
+  inherited;
+  if not Assigned(FCharsetTable) then begin
+    //FCharsetTable := // Todo!
+  end;
+  Result := FCharsetTable;
+end;
+
+
 function TDBConnection.GetCharsetList: TStringList;
 var
   c: TDBQuery;
@@ -4275,6 +4608,13 @@ begin
 end;
 
 
+function TDBConnection.MaxAllowedPacket: Int64;
+begin
+  // Default
+  Result := SIZE_MB;
+end;
+
+
 function TMySQLConnection.MaxAllowedPacket: Int64;
 begin
   Result := MakeInt(GetSessionVariable('max_allowed_packet'));
@@ -4283,20 +4623,6 @@ begin
     Log(lcError, f_('The server did not return a non-zero value for the %s variable. Assuming %s now.', ['max_allowed_packet', FormatByteNumber(Result)]));
   end;
 
-end;
-
-
-function TAdoDBConnection.MaxAllowedPacket: Int64;
-begin
-  // No clue what MS SQL allows
-  Result := SIZE_MB;
-end;
-
-
-function TPGConnection.MaxAllowedPacket: Int64;
-begin
-  // No clue what PostgreSQL allows
-  Result := SIZE_MB;
 end;
 
 
@@ -4374,6 +4700,17 @@ begin
     );
   Result := MakeInt(Rows);
 end;
+
+
+function TSQLiteConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a table
+  Rows := GetVar('SELECT COUNT(*) FROM '+EscapeString(Obj.Name), 0);
+  Result := MakeInt(Rows);
+end;
+
 
 
 procedure TDBConnection.Drop(Obj: TDBObject);
@@ -5043,6 +5380,34 @@ begin
     FreeAndNil(Results);
   end;
 
+end;
+
+
+procedure TSQLiteConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+var
+  obj: TDBObject;
+  Results: TDBQuery;
+begin
+  // Tables
+  Results := nil;
+  try
+    Results := GetResults('SELECT * FROM sqlite_master WHERE type='+EscapeString('table')+' AND name NOT LIKE '+EscapeString('sqlite_%'));
+  except
+    on E:EDbError do;
+  end;
+  if Assigned(Results) then begin
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('name');
+      obj.Created := Now;
+      obj.Updated := Now;
+      obj.Database := db;
+      obj.NodeType := lntTable;
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  end;
 end;
 
 
@@ -5723,7 +6088,7 @@ begin
         Result := Result + 'TOP '+IntToStr(Limit)+' ';
       Result := Result + QueryBody;
     end;
-    ngMySQL: begin
+    ngMySQL, ngSQLite: begin
       Result := Result + QueryBody + ' LIMIT ';
       if Offset > 0 then
         Result := Result + IntToStr(Offset) + ', ';
@@ -5784,6 +6149,13 @@ begin
 end;
 
 
+constructor TSQLiteQuery.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnection := AOwner as TSQLiteConnection;
+end;
+
+
 destructor TDBQuery.Destroy;
 begin
   FreeAndNil(FColumnNames);
@@ -5832,6 +6204,17 @@ var
 begin
   if HasResult then for i:=Low(FResultList) to High(FResultList) do
     FConnection.Lib.PQclear(FResultList[i]);
+  SetLength(FResultList, 0);
+  inherited;
+end;
+
+
+destructor TSQLiteQuery.Destroy;
+var
+  i: Integer;
+begin
+  if HasResult then for i:=Low(FResultList) to High(FResultList) do
+    FResultList[i].Free;
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -6105,6 +6488,71 @@ begin
 end;
 
 
+procedure TSQLiteQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
+var
+  i: Integer;
+  NumResults: Integer;
+  LastResult: TGridRows;
+  rx: TRegExpr;
+  Col: TTableColumn;
+begin
+  if UseRawResult = -1 then begin
+    Connection.Query(FSQL, FStoreResult);
+    UseRawResult := 0;
+  end;
+  if Connection.ResultCount > UseRawResult then begin
+    LastResult := TSQLiteConnection(Connection).LastRawResults[UseRawResult];
+  end else begin
+    LastResult := nil;
+  end;
+  if AddResult and (Length(FResultList) = 0) then
+    AddResult := False;
+  if AddResult then
+    NumResults := Length(FResultList)+1
+  else begin
+    for i:=Low(FResultList) to High(FResultList) do begin
+      FResultList[i].Free;
+    end;
+    NumResults := 1;
+    FRecordCount := 0;
+    FAutoIncrementColumn := -1;
+    FEditingPrepared := False;
+  end;
+  if LastResult <> nil then begin
+    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    SetLength(FResultList, NumResults);
+    FResultList[NumResults-1] := LastResult;
+    FRecordCount := FRecordCount + LastResult.Count;
+  end;
+  if not AddResult then begin
+    if HasResult then begin
+      // FCurrentResults is normally done in SetRecNo, but never if result has no rows
+      FCurrentResults := LastResult;
+      SetLength(FColumnTypes, LastResult.Columns.Count);
+      SetLength(FColumnLengths, LastResult.Columns.Count);
+      SetLength(FColumnFlags, LastResult.Columns.Count);
+      FColumnNames.Clear;
+      FColumnOrgNames.Clear;
+      rx := TRegExpr.Create;
+      i := 0;
+      for Col in LastResult.Columns do begin
+        FColumnNames.Add(Col.Name);
+        FColumnOrgNames.Add(Col.Name);
+        FColumnTypes[i] := Col.DataType;
+        Inc(i);
+      end;
+      rx.Free;
+      FRecNo := -1;
+      First;
+    end else begin
+      SetLength(FColumnTypes, 0);
+      SetLength(FColumnLengths, 0);
+      SetLength(FColumnFlags, 0);
+    end;
+  end;
+end;
+
+
 procedure TDBQuery.SetColumnOrgNames(Value: TStringList);
 begin
   // Retrieve original column names from caller
@@ -6137,7 +6585,7 @@ var
   LengthPointer: PLongInt;
   i, j: Integer;
   NumRows, WantedLocalRecNo: Int64;
-  Row: TRowData;
+  Row: TGridRow;
   RowFound: Boolean;
 begin
   if Value = FRecNo then
@@ -6194,7 +6642,7 @@ procedure TAdoDBQuery.SetRecNo(Value: Int64);
 var
   i, j: Integer;
   RowFound: Boolean;
-  Row: TRowData;
+  Row: TGridRow;
   NumRows, WantedLocalRecNo: Int64;
 begin
   if Value = FRecNo then
@@ -6254,7 +6702,7 @@ procedure TPGQuery.SetRecNo(Value: Int64);
 var
   i, j: Integer;
   RowFound: Boolean;
-  Row: TRowData;
+  Row: TGridRow;
   NumRows: Int64;
 begin
   if Value = FRecNo then
@@ -6300,6 +6748,57 @@ begin
 end;
 
 
+procedure TSQLiteQuery.SetRecNo(Value: Int64);
+var
+  i: Integer;
+  RowFound: Boolean;
+  Row: TGridRow;
+  NumRows: Int64;
+begin
+  if Value = FRecNo then
+    Exit;
+  if (not FEditingPrepared) and (Value >= RecordCount) then begin
+    FRecNo := RecordCount;
+    FEof := True;
+  end else begin
+
+    // Find row in edited data
+    RowFound := False;
+    if FEditingPrepared then begin
+      for Row in FUpdateData do begin
+        if Row.RecNo = Value then begin
+          FCurrentUpdateRow := Row;
+          for i:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
+          RowFound := True;
+          break;
+        end;
+      end;
+    end;
+
+    // Row not edited data - find it in normal result
+    if not RowFound then begin
+      NumRows := 0;
+      for i:=Low(FResultList) to High(FResultList) do begin
+        Inc(NumRows, FResultList[i].Count);
+        if NumRows > Value then begin
+          FCurrentResults := FResultList[i];
+          FRecNoLocal := FResultList[i].Count-(NumRows-Value);
+          FCurrentUpdateRow := nil;
+          //for j:=Low(FColumnLengths) to High(FColumnLengths) do
+          //  FColumnLengths[j] := FConnection.Lib.PQgetlength(FCurrentResults, FRecNoLocal, j);
+          break;
+        end;
+      end;
+    end;
+
+    FRecNo := Value;
+    FEof := False;
+  end;
+end;
+
+
+
 function TDBQuery.ColumnCount: Integer;
 begin
   Result := ColumnNames.Count;
@@ -6317,6 +6816,12 @@ begin
 end;
 
 
+function TDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
+begin
+  Raise EDbError.Create(SNotImplemented);
+end;
+
+
 function TMySQLQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 var
   AnsiStr: AnsiString;
@@ -6325,7 +6830,7 @@ begin
 
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
-      // Row was edited and only valid in a TRowData
+      // Row was edited and only valid in a TGridRow
       AnsiStr := AnsiString(FCurrentUpdateRow[Column].NewText);
     end else begin
       // The normal case: Fetch cell from mysql result
@@ -6341,18 +6846,6 @@ begin
 end;
 
 
-function TAdoDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
-begin
-  Raise EDbError.Create(SNotImplemented);
-end;
-
-
-function TPGQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
-begin
-  Raise EDbError.Create(SNotImplemented);
-end;
-
-
 function TMySQLQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
   AnsiStr: AnsiString;
@@ -6364,7 +6857,7 @@ var
 begin
   if ColumnExists(Column) then begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
-      // Row was edited and only valid in a TRowData
+      // Row was edited and only valid in a TGridRow
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
       // The normal case: Fetch cell from mysql result
@@ -6445,6 +6938,19 @@ begin
         if AnsiStr='t' then Result := 'true' else Result := 'false'
       else
         Result := Connection.DecodeAPIString(AnsiStr);
+    end;
+  end else if not IgnoreErrors then
+    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+end;
+
+
+function TSQLiteQuery.Col(Column: Integer; IgnoreErrors: Boolean=False): String;
+begin
+  if ColumnExists(Column) then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      Result := FCurrentUpdateRow[Column].NewText;
+    end else begin
+      Result := FCurrentResults[RecNo][Column].OldText;
     end;
   end else if not IgnoreErrors then
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
@@ -6616,6 +7122,12 @@ begin
 end;
 
 
+function TSQLiteQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+begin
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and UNIQUE_KEY_FLAG) = UNIQUE_KEY_FLAG;
@@ -6634,6 +7146,12 @@ begin
 end;
 
 
+function TSQLiteQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
+begin
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and MULTIPLE_KEY_FLAG) = MULTIPLE_KEY_FLAG;
@@ -6647,6 +7165,12 @@ end;
 
 
 function TPGQuery.ColIsKeyPart(Column: Integer): Boolean;
+begin
+  Result := False;
+end;
+
+
+function TSQLiteQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := False;
 end;
@@ -6720,6 +7244,15 @@ begin
 end;
 
 
+function TSQLiteQuery.IsNull(Column: Integer): Boolean;
+begin
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow[Column].NewIsNull
+  else
+    Result := FCurrentResults[RecNo][Column].OldIsNull;
+end;
+
+
 function TDBQuery.IsFunction(Column: Integer): Boolean;
 begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then
@@ -6742,6 +7275,12 @@ end;
 
 
 function TPGQuery.HasResult: Boolean;
+begin
+  Result := Length(FResultList) > 0;
+end;
+
+
+function TSQLiteQuery.HasResult: Boolean;
 begin
   Result := Length(FResultList) > 0;
 end;
@@ -6792,7 +7331,7 @@ begin
     Exit;
   PrepareColumnAttributes;
   FreeAndNil(FUpdateData);
-  FUpdateData := TUpdateData.Create(True);
+  FUpdateData := TGridRows.Create;
   FEditingPrepared := True;
 end;
 
@@ -6821,17 +7360,17 @@ end;
 
 function TDBQuery.InsertRow: Int64;
 var
-  Row, OtherRow: TRowData;
-  c: TCellData;
+  Row, OtherRow: TGridRow;
+  c: TGridValue;
   i: Integer;
   ColAttr: TTableColumn;
   InUse: Boolean;
 begin
   // Add new row and return row number
   PrepareEditing;
-  Row := TRowData.Create(True);
+  Row := TGridRow.Create(True);
   for i:=0 to ColumnCount-1 do begin
-    c := TCellData.Create;
+    c := TGridValue.Create;
     Row.Add(c);
     c.OldText := '';
     c.OldIsFunction := False;
@@ -6886,12 +7425,12 @@ end;
 procedure TDBQuery.CreateUpdateRow;
 var
   i: Integer;
-  c: TCellData;
-  Row: TRowData;
+  c: TGridValue;
+  Row: TGridRow;
 begin
-  Row := TRowData.Create(True);
+  Row := TGridRow.Create(True);
   for i:=0 to ColumnCount-1 do begin
-    c := TCellData.Create;
+    c := TGridValue.Create;
     Row.Add(c);
     c.OldText := Col(i);
     c.NewText := c.OldText;
@@ -6970,8 +7509,8 @@ end;
 function TDBQuery.SaveModifications: Boolean;
 var
   i: Integer;
-  Row: TRowData;
-  Cell: TCellData;
+  Row: TGridRow;
+  Cell: TGridValue;
   sqlUpdate, sqlInsertColumns, sqlInsertValues, Val: String;
   RowModified: Boolean;
   ColAttr: TTableColumn;
@@ -7072,7 +7611,7 @@ end;
 procedure TDBQuery.DiscardModifications;
 var
   x: Integer;
-  c: TCellData;
+  c: TGridValue;
 begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
     if FCurrentUpdateRow.Inserted then begin
@@ -7164,6 +7703,13 @@ begin
 end;
 
 
+function TSQLiteQuery.DatabaseName: String;
+begin
+  // TODO
+  Result := Connection.Database;
+end;
+
+
 function TMySQLQuery.TableName: String;
 var
   Field: PMYSQL_FIELD;
@@ -7242,6 +7788,12 @@ begin
     if Result <> '' then
       Break;
   end;
+end;
+
+
+function TSQLiteQuery.TableName: String;
+begin
+  Result := '';
 end;
 
 
@@ -7362,12 +7914,28 @@ end;
 
 
 
-{ TCellData }
+{ TGridValue }
 
-destructor TCellData.Destroy;
+destructor TGridValue.Destroy;
 begin
   NewText := '';
   OldText := '';
+  inherited;
+end;
+
+
+{ TGridRows }
+
+constructor TGridRows.Create;
+begin
+  inherited;
+  Columns := TTableColumnList.Create;
+end;
+
+destructor TGridRows.Destroy;
+begin
+  Columns.Free;
+  inherited;
 end;
 
 
@@ -7783,7 +8351,7 @@ begin
   // Cast data types which are incompatible to string functions to text columns
   Result := FConnection.QuoteIdent(Name);
   case FConnection.Parameters.NetTypeGroup of
-    ngMySQL: begin
+    ngMySQL, ngSQLite: begin
       if DataType.Index in [dtUnknown, dtDate, dtDatetime, dtTime, dtTimestamp] then
         Result := 'CAST('+Result+' AS CHAR)';
     end;
