@@ -1708,9 +1708,9 @@ begin
   inherited;
   FQuoteChar := '"';
   FQuoteChars := '"';
-  SetLength(FDatatypes, Length(PostGreSQLDatatypes));
-  for i:=0 to High(PostGreSQLDatatypes) do
-    FDatatypes[i] := PostGreSQLDatatypes[i];
+  SetLength(FDatatypes, Length(SQLiteDatatypes));
+  for i:=0 to High(SQLiteDatatypes) do
+    FDatatypes[i] := SQLiteDatatypes[i];
 end;
 
 
@@ -2988,6 +2988,7 @@ var
   NativeSQL: AnsiString;
   i: Integer;
   Col: TTableColumn;
+  DataTypeStr: String;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
@@ -3028,6 +3029,8 @@ begin
       for i:=0 to FLib.sqlite3_column_count(Statement)-1 do begin
         Col := TTableColumn.Create(Self);
         Col.Name := DecodeAPIString(FLib.sqlite3_column_name(Statement, i));
+        DataTypeStr := DecodeAPIString(FLib.sqlite3_column_decltype(Statement, i));
+        Col.DataType := GetDatatypeByName(DataTypeStr, False);
         Rows.Columns.Add(Col);
       end;
       StepStatus := FLib.sqlite3_step(Statement);
@@ -3657,8 +3660,8 @@ function TSQLiteConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
-    if FActive then
-      FThreadID := 123; // Todo!
+    if FActive then // We return the application process id, as there is no connection pid in SQLite
+      FThreadID := Windows.GetCurrentProcessId;
   end;
   Result := FThreadID;
 end;
@@ -5388,7 +5391,7 @@ var
   obj: TDBObject;
   Results: TDBQuery;
 begin
-  // Tables
+  // Tables, views and procedures
   Results := nil;
   try
     Results := GetResults('SELECT * FROM sqlite_master WHERE type='+EscapeString('table')+' AND name NOT LIKE '+EscapeString('sqlite_%'));

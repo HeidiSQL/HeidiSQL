@@ -518,6 +518,7 @@ type
     sqlite3_column_text: function(pStmt: Psqlite3_stmt; iCol: Integer): PAnsiChar; cdecl;
     sqlite3_column_count: function(pStmt: Psqlite3_stmt): Integer; cdecl;
     sqlite3_column_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
+    sqlite3_column_decltype: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     private
       procedure AssignProcedures; override;
   end;
@@ -2036,6 +2037,94 @@ var
       Category:        dtcText;
     )
   );
+
+  SQLiteDatatypes: Array[0..6] of TDBDatatype =
+  (
+    (
+      Index:           dtUnknown;
+      NativeTypes:     '99999';
+      Name:            'UNKNOWN';
+      Description:     'Unknown data type';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtInt;
+      Name:            'INTEGER';
+      Names:           'INTEGER|INT|TINYINT|SMALLINT|MEDIUMINT|BIGINT|UNSIGNED BIG INT|INT2|INT8|BOOLEAN';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      ValueMustMatch:  '^\d{1,10}$';
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtText;
+      Name:            'TEXT';
+      Names:           'CHARACTER|VARCHAR|VARYING CHARACTER|NCHAR|NATIVE CHARACTER|NVARCHAR|TEXT|CLOB';
+      Description:     '';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtBlob;
+      Name:            'BLOB';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        True;
+      Category:        dtcBinary;
+    ),
+    (
+      Index:           dtReal;
+      Name:            'REAL';
+      Names:           'REAL|DOUBLE|DOUBLE PRECISION|FLOAT|NUMERIC|DECIMAL';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtDate;
+      Name:            'DATE';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtDatetime;
+      Name:            'DATETIME';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcTemporal;
+    )
+  );
+
 
   MySqlFunctions: Array [0..254] of TMysqlFunction =
   (
@@ -7704,6 +7793,7 @@ begin
   AssignProc(@sqlite3_column_text, 'sqlite3_column_text');
   AssignProc(@sqlite3_column_count, 'sqlite3_column_count');
   AssignProc(@sqlite3_column_name, 'sqlite3_column_name');
+  AssignProc(@sqlite3_column_decltype, 'sqlite3_column_decltype');
 end;
 
 
