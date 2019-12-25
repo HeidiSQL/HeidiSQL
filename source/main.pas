@@ -8551,7 +8551,7 @@ procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualN
 var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
-  DummyStr: String;
+  DummyStr, TabHostName: String;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
@@ -8664,7 +8664,11 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
-    SetTabCaption(tabHost.PageIndex, _('Host')+': '+FActiveDbObj.Connection.Parameters.HostName);
+    if FActiveDbObj.Connection.Parameters.IsSQLite then // Prefer visible filename over visible left part of path
+      TabHostName := StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 60, False)
+    else
+      TabHostName := FActiveDbObj.Connection.Parameters.HostName;
+    SetTabCaption(tabHost.PageIndex, _('Host')+': '+TabHostName);
     SetTabCaption(tabDatabase.PageIndex, _('Database')+': '+FActiveDbObj.Connection.Database);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin

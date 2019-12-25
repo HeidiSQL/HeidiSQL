@@ -239,6 +239,7 @@ type
       function IsMySQL: Boolean;
       function IsMSSQL: Boolean;
       function IsPostgreSQL: Boolean;
+      function IsSQLite: Boolean;
       function IsMariaDB: Boolean;
       function IsPercona: Boolean;
       function IsTokudb: Boolean;
@@ -1453,6 +1454,12 @@ end;
 function TConnectionParameters.IsPostgreSQL: Boolean;
 begin
   Result := NetTypeGroup = ngPgSQL;
+end;
+
+
+function TConnectionParameters.IsSQLite;
+begin
+  Result := NetTypeGroup = ngSQLite;
 end;
 
 
