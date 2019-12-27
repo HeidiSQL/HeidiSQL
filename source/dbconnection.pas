@@ -171,12 +171,7 @@ type
       RecNo: Int64;
       Inserted: Boolean;
   end;
-  TGridRows = class(TObjectList<TGridRow>)
-    public
-      Columns: TTableColumnList;
-      constructor Create;
-      destructor Destroy; override;
-  end;
+  TGridRows = class(TObjectList<TGridRow>);
 
   // PLink.exe related
   TProcessPipe = class(TObject)
@@ -3002,8 +2997,6 @@ var
   QueryStatus, StepStatus: Integer;
   NativeSQL: AnsiString;
   i: Integer;
-  Col: TTableColumn;
-  DataTypeStr: String;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
@@ -3041,13 +3034,6 @@ begin
     FRowsFound := 0;
     if DoStoreResult then begin
       Rows := TSQLiteGridRows.Create(Self);
-      for i:=0 to FLib.sqlite3_column_count(Statement)-1 do begin
-        Col := TTableColumn.Create(Self);
-        Col.Name := DecodeAPIString(FLib.sqlite3_column_name(Statement, i));
-        DataTypeStr := DecodeAPIString(FLib.sqlite3_column_decltype(Statement, i));
-        Col.DataType := GetDatatypeByName(DataTypeStr, False);
-        Rows.Columns.Add(Col);
-      end;
       StepStatus := FLib.sqlite3_step(Statement);
       while StepStatus = SQLITE_ROW do begin
         Row := TGridRow.Create;
@@ -6509,10 +6495,9 @@ end;
 procedure TSQLiteQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i: Integer;
-  NumResults: Integer;
+  NumResults, NumFields: Integer;
   LastResult: TSQLiteGridRows;
-  rx: TRegExpr;
-  Col: TTableColumn;
+  ColName, ColOrgName, DataTypeStr: String;
 begin
   if UseRawResult = -1 then begin
     Connection.Query(FSQL, FStoreResult);
@@ -6546,20 +6531,22 @@ begin
     if HasResult then begin
       // FCurrentResults is normally done in SetRecNo, but never if result has no rows
       FCurrentResults := LastResult;
-      SetLength(FColumnTypes, LastResult.Columns.Count);
-      SetLength(FColumnLengths, LastResult.Columns.Count);
-      SetLength(FColumnFlags, LastResult.Columns.Count);
+      NumFields := FConnection.Lib.sqlite3_column_count(LastResult.Statement);
+      SetLength(FColumnTypes, NumFields);
+      SetLength(FColumnLengths, NumFields);
+      SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
-      rx := TRegExpr.Create;
-      i := 0;
-      for Col in LastResult.Columns do begin
-        FColumnNames.Add(Col.Name);
-        FColumnOrgNames.Add(Col.Name);
-        FColumnTypes[i] := Col.DataType;
-        Inc(i);
+
+      for i:=0 to FConnection.Lib.sqlite3_column_count(LastResult.Statement)-1 do begin
+        ColName := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_name(LastResult.Statement, i));
+        FColumnNames.Add(ColName);
+        ColOrgName := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_origin_name(LastResult.Statement, i));
+        FColumnOrgNames.Add(ColOrgName);
+        DataTypeStr := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_decltype(LastResult.Statement, i));
+        FColumnTypes[i] := FConnection.GetDatatypeByName(DataTypeStr, False);
       end;
-      rx.Free;
+
       FRecNo := -1;
       First;
     end else begin
@@ -7957,21 +7944,6 @@ begin
 end;
 
 
-{ TGridRows }
-
-constructor TGridRows.Create;
-begin
-  inherited;
-  Columns := TTableColumnList.Create;
-end;
-
-destructor TGridRows.Destroy;
-begin
-  Columns.Free;
-  inherited;
-end;
-
-
 { TSQLiteGridRows }
 
 constructor TSQLiteGridRows.Create(AOwner: TSQLiteConnection);
@@ -7982,7 +7954,6 @@ end;
 
 destructor TSQLiteGridRows.Destroy;
 begin
-  FConnection.Log(lcInfo, 'TSQLiteGridRows.Destroy');
   FConnection.Lib.sqlite3_finalize(Statement);
   inherited;
 end;
