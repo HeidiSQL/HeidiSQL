@@ -519,6 +519,9 @@ type
     sqlite3_column_count: function(pStmt: Psqlite3_stmt): Integer; cdecl;
     sqlite3_column_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     sqlite3_column_decltype: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
+    sqlite3_column_database_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
+    sqlite3_column_table_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
+    sqlite3_column_origin_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     private
       procedure AssignProcedures; override;
   end;
@@ -7794,6 +7797,9 @@ begin
   AssignProc(@sqlite3_column_count, 'sqlite3_column_count');
   AssignProc(@sqlite3_column_name, 'sqlite3_column_name');
   AssignProc(@sqlite3_column_decltype, 'sqlite3_column_decltype');
+  AssignProc(@sqlite3_column_database_name, 'sqlite3_column_database_name');
+  AssignProc(@sqlite3_column_table_name, 'sqlite3_column_table_name');
+  AssignProc(@sqlite3_column_origin_name, 'sqlite3_column_origin_name');
 end;
 
 

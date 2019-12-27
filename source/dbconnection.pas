@@ -578,7 +578,16 @@ type
       property LastRawResults: TPGRawResults read FLastRawResults;
   end;
 
-  TSQLiteRawResults = Array of TGridRows;
+  TSQLiteConnection = class;
+  TSQLiteGridRows = class(TGridRows)
+    private
+      FConnection: TSQLiteConnection;
+    public
+      Statement: Psqlite3_stmt; // Used for querying result structures
+      constructor Create(AOwner: TSQLiteConnection);
+      destructor Destroy; override;
+  end;
+  TSQLiteRawResults = Array of TSQLiteGridRows;
   TSQLiteConnection = class(TDBConnection)
     private
       FHandle: Psqlite3;
@@ -675,7 +684,7 @@ type
       function Inserted: Boolean;
       function SaveModifications: Boolean;
       function DatabaseName: String; virtual; abstract;
-      function TableName: String; virtual; abstract;
+      function TableName: String; virtual;
       function QuotedDbAndTableName: String;
       procedure DiscardModifications;
       procedure PrepareColumnAttributes;
@@ -732,7 +741,6 @@ type
       function IsNull(Column: Integer): Boolean; overload; override;
       function HasResult: Boolean; override;
       function DatabaseName: String; override;
-      function TableName: String; override;
   end;
 
   TPGQuery = class(TDBQuery)
@@ -759,7 +767,7 @@ type
   TSQLiteQuery = class(TDBQuery)
     private
       FConnection: TSQLiteConnection;
-      FCurrentResults: TGridRows;
+      FCurrentResults: TSQLiteGridRows;
       FRecNoLocal: Integer;
       FResultList: TSQLiteRawResults;
       procedure SetRecNo(Value: Int64); override;
@@ -2987,7 +2995,7 @@ end;
 procedure TSQLiteConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
   TimerStart: Cardinal;
-  Rows: TGridRows;
+  Rows: TSQLiteGridRows;
   Row: TGridRow;
   Value: TGridValue;
   Statement: Psqlite3_stmt;
@@ -3032,7 +3040,7 @@ begin
     FRowsAffected := FLib.sqlite3_changes(FHandle);
     FRowsFound := 0;
     if DoStoreResult then begin
-      Rows := TGridRows.Create;
+      Rows := TSQLiteGridRows.Create(Self);
       for i:=0 to FLib.sqlite3_column_count(Statement)-1 do begin
         Col := TTableColumn.Create(Self);
         Col.Name := DecodeAPIString(FLib.sqlite3_column_name(Statement, i));
@@ -3053,10 +3061,10 @@ begin
         StepStatus := FLib.sqlite3_step(Statement);
       end;
       FRowsFound := Rows.Count;
+      Rows.Statement := Statement;
       SetLength(FLastRawResults, 1);
       FLastRawResults[0] := Rows;
     end;
-    FLib.sqlite3_finalize(Statement);
     FResultCount := Length(FLastRawResults);
     DetectUSEQuery(SQL);
   end;
@@ -6502,7 +6510,7 @@ procedure TSQLiteQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-
 var
   i: Integer;
   NumResults: Integer;
-  LastResult: TGridRows;
+  LastResult: TSQLiteGridRows;
   rx: TRegExpr;
   Col: TTableColumn;
 begin
@@ -7720,6 +7728,22 @@ begin
 end;
 
 
+function TDBQuery.TableName: String;
+var
+  rx: TRegExpr;
+begin
+  // Untested with joins, compute columns and views
+  Result := GetTableNameFromSQLEx(SQL, idMixCase);
+  rx := TRegExpr.Create;
+  rx.Expression := '\.([^\.]+)$';
+  if rx.Exec(Result) then
+    Result := rx.Match[1];
+  rx.Free;
+  if Result = '' then
+    raise EDbError.Create('Could not determine name of table.');
+end;
+
+
 function TMySQLQuery.TableName: String;
 var
   Field: PMYSQL_FIELD;
@@ -7764,22 +7788,6 @@ begin
 end;
 
 
-function TAdoDBQuery.TableName: String;
-var
-  rx: TRegExpr;
-begin
-  // Untested with joins, compute columns and views
-  Result := GetTableNameFromSQLEx(SQL, idMixCase);
-  rx := TRegExpr.Create;
-  rx.Expression := '\.([^\.]+)$';
-  if rx.Exec(Result) then
-    Result := rx.Match[1];
-  rx.Free;
-  if Result = '' then
-    raise EDbError.Create('Could not determine name of table.');
-end;
-
-
 function TPGQuery.TableName: String;
 var
   FieldTypeOID: POid;
@@ -7797,13 +7805,28 @@ begin
     end;
     if Result <> '' then
       Break;
+    // Todo: what about multiple table names per result?
   end;
 end;
 
 
 function TSQLiteQuery.TableName: String;
+var
+  i: Integer;
+  tblA: AnsiString;
+  tbl: String;
 begin
-  Result := '';
+  Result := EmptyStr;
+  for i:=0 to ColumnCount-1 do begin
+    tblA := FConnection.Lib.sqlite3_column_table_name(FCurrentResults.Statement, i);
+    tbl := FConnection.DecodeAPIString(tblA);
+    if (not Result.IsEmpty) and (not tbl.IsEmpty) and (Result <> tbl) then
+      raise EDbError.Create(_('More than one table involved.'))
+    else
+      Result := tbl;
+  end;
+  if Result.IsEmpty then
+    raise EDbError.Create(_('Could not determine name of table.'));
 end;
 
 
@@ -7947,6 +7970,23 @@ begin
   Columns.Free;
   inherited;
 end;
+
+
+{ TSQLiteGridRows }
+
+constructor TSQLiteGridRows.Create(AOwner: TSQLiteConnection);
+begin
+  inherited Create;
+  FConnection := AOwner;
+end;
+
+destructor TSQLiteGridRows.Destroy;
+begin
+  FConnection.Log(lcInfo, 'TSQLiteGridRows.Destroy');
+  FConnection.Lib.sqlite3_finalize(Statement);
+  inherited;
+end;
+
 
 
 
