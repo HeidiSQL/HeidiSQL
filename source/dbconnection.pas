@@ -340,7 +340,6 @@ type
       FSessionVariables: TDBQuery;
       FInformationSchemaObjects: TStringList;
       FDatabaseCache: TDatabaseCache;
-      FResultCount: Integer;
       FStatementNum: Cardinal;
       FCurrentUserHostCombination: String;
       FAllUserHostCombinations: TStringList;
@@ -459,7 +458,7 @@ type
       property CharsetTable: TDBQuery read GetCharsetTable;
       property CharsetList: TStringList read GetCharsetList;
       property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
-      property ResultCount: Integer read FResultCount;
+      function ResultCount: Integer;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property AllUserHostCombinations: TStringList read GetAllUserHostCombinations;
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
@@ -2781,7 +2780,6 @@ begin
     NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FResultCount := 0;
   FStatementNum := 1;
   QueryStatus := FLib.mysql_real_query(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL));
   FLastQueryDuration := GetTickCount - TimerStart;
@@ -2842,7 +2840,6 @@ begin
         raise EDbError.Create(GetLastErrorMsg);
       end;
     end;
-    FResultCount := Length(FLastRawResults);
 
   end;
 end;
@@ -2869,7 +2866,6 @@ begin
   FLastQuerySQL := SQL;
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FResultCount := 0;
   FRowsFound := 0;
   FRowsAffected := 0;
   try
@@ -2894,7 +2890,6 @@ begin
         QueryResult := nil;
       QueryResult := NextResult;
     end;
-    FResultCount := Length(FLastRawResults);
 
     DetectUSEQuery(SQL);
   except
@@ -2932,7 +2927,6 @@ begin
     NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FResultCount := 0;
   FRowsFound := 0;
   FRowsAffected := 0;
   FWarningCount := 0;
@@ -2980,7 +2974,6 @@ begin
       Inc(FStatementNum);
       QueryResult := FLib.PQgetResult(FHandle);
     end;
-    FResultCount := Length(FLastRawResults);
 
   end;
 
@@ -3016,7 +3009,6 @@ begin
     NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FResultCount := 0;
   FRowsFound := 0;
   FRowsAffected := 0;
   FWarningCount := 0;
@@ -3051,7 +3043,6 @@ begin
       SetLength(FLastRawResults, 1);
       FLastRawResults[0] := Rows;
     end;
-    FResultCount := Length(FLastRawResults);
     DetectUSEQuery(SQL);
   end;
 
@@ -4804,6 +4795,23 @@ begin
       'VIEWS';
   end;
   Result := FInformationSchemaObjects;
+end;
+
+
+function TDBConnection.ResultCount;
+begin
+  case Parameters.NetTypeGroup of
+    ngMySQL:
+      Result := Length(TMySQLConnection(Self).LastRawResults);
+    ngMSSQL:
+      Result := Length(TAdoDBConnection(Self).LastRawResults);
+    ngPgSQL:
+      Result := Length(TPGConnection(Self).LastRawResults);
+    ngSQLite:
+      Result := Length(TSQLiteConnection(Self).LastRawResults);
+    else
+      raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Parameters.NetType)]);
+  end;
 end;
 
 
