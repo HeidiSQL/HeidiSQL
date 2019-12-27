@@ -37,7 +37,7 @@ type
     updownPort: TUpDown;
     editPassword: TEdit;
     editUsername: TEdit;
-    editHost: TEdit;
+    editHost: TButtonedEdit;
     tabAdvanced: TTabSheet;
     lblSSLPrivateKey: TLabel;
     lblSSLCACertificate: TLabel;
@@ -176,6 +176,7 @@ type
     procedure editTrim(Sender: TObject);
     procedure editSearchChange(Sender: TObject);
     procedure editSearchRightButtonClick(Sender: TObject);
+    procedure editHostDblClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -356,15 +357,29 @@ end;
 procedure Tconnform.btnOpenClick(Sender: TObject);
 var
   Connection: TDBConnection;
+  Params: TConnectionParameters;
+  Msg: String;
+  DoCreateDb: Integer;
 begin
   // Connect to selected session
+  Params := CurrentParams;
+
+  if (CurrentParams.NetType = ntSQLite)
+    and (not FileExists(CurrentParams.Hostname))
+    then begin
+    Msg := f_('Database file "%s" does not exist. Shall it be created now?', [Params.Hostname]);
+    DoCreateDb := MessageDialog(Msg, mtConfirmation, [mbNo, mbYes]);
+    if DoCreateDb = mrNo then
+      Exit;
+  end;
+
   if not btnOpen.Enabled then
     Exit;
   btnOpen.Enabled := False;
   FButtonAnimationStep := 0;
   TimerButtonAnimation.Enabled := True;
   Screen.Cursor := crHourglass;
-  if Mainform.InitConnection(CurrentParams, True, Connection) then
+  if Mainform.InitConnection(Params, True, Connection) then
     ModalResult := mrOK
   else begin
     TimerStatistics.OnTimer(Sender);
@@ -1004,6 +1019,12 @@ begin
 end;
 
 
+procedure Tconnform.editHostDblClick(Sender: TObject);
+begin
+  if CurrentParams.NetType = ntSQLite then
+    PickFile(Sender);
+end;
+
 procedure Tconnform.editTrim(Sender: TObject);
 var
   Edit: TCustomEdit;
@@ -1244,10 +1265,19 @@ begin
 
     if SessionFocused then begin
       // Validate session GUI stuff
-      if Params.NetType = ntMySQL_NamedPipe then
-        lblHost.Caption := _('Socket name:')
-      else
-        lblHost.Caption := _('Hostname / IP:');
+      editHost.RightButton.Visible := False;
+      case Params.NetType of
+        ntMySQL_NamedPipe: begin
+          lblHost.Caption := _('Socket name:');
+        end;
+        ntSQLite: begin
+          lblHost.Caption := _('Database filename')+':';
+          editHost.RightButton.Visible := True;
+        end
+        else begin
+          lblHost.Caption := _('Hostname / IP:');
+        end;
+      end;
       chkWindowsAuth.Enabled := Params.IsMSSQL;
       chkCleartextPluginEnabled.Enabled := Params.IsMySQL;
       lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
@@ -1329,7 +1359,9 @@ begin
   Edit := Sender as TButtonedEdit;
   Selector := TOpenDialog.Create(Self);
   Selector.FileName := editStartupScript.Text;
-  if Edit = editStartupScript then
+  if Edit = editHost then
+    Selector.Filter := 'SQLite databases (*.sqlite3;*.db;*.s3db)|*.sqlite3;*.db;*.s3db|'+_('All files')+' (*.*)|*.*'
+  else if Edit = editStartupScript then
     Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPlinkExe then
     Selector.Filter := _('Executables')+' (*.exe)|*.exe|'+_('All files')+' (*.*)|*.*'
@@ -1345,6 +1377,8 @@ begin
       break;
     end;
   end;
+  if Edit = editHost then
+    Selector.Options := Selector.Options - [ofFileMustExist];
 
   if Selector.Execute then begin
     // Remove path if it's the application directory

@@ -259,15 +259,19 @@ object connform: Tconnform
         OnChange = Modification
         OnExit = editTrim
       end
-      object editHost: TEdit
+      object editHost: TButtonedEdit
         Left = 120
         Top = 73
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
+        Images = MainForm.VirtualImageListMain
+        RightButton.ImageIndex = 51
         TabOrder = 2
         OnChange = editHostChange
+        OnDblClick = editHostDblClick
         OnExit = editTrim
+        OnRightButtonClick = PickFile
       end
       object comboNetType: TComboBox
         Left = 120
