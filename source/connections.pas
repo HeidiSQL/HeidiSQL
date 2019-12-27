@@ -1148,6 +1148,7 @@ begin
       updownPort.Position := Params.DefaultPort;
     if not editUsername.Modified then
       editUsername.Text := Params.DefaultUsername;
+    comboLibrary.Items := Params.GetLibraries;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
   end;
 
