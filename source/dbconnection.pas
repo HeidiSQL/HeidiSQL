@@ -408,7 +408,7 @@ type
       function ParseDateTime(Str: String): TDateTime;
       function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
       function ConnectionInfo: TStringList; virtual;
-      function GetLastResults: TDBQueryList; virtual; abstract;
+      function GetLastResults: TDBQueryList; virtual;
       function GetCreateCode(Obj: TDBObject): String; virtual;
       procedure PrefetchCreateCode(Objects: TDBObjectList);
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
@@ -509,7 +509,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
-      function GetLastResults: TDBQueryList; override;
       function GetCreateCode(Obj: TDBObject): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function MaxAllowedPacket: Int64; override;
@@ -567,7 +566,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
-      function GetLastResults: TDBQueryList; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
   end;
@@ -595,14 +593,12 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCharsetTable: TDBQuery; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
-      //procedure Drop(Obj: TDBObject); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       property Lib: TSQLiteLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
-      function GetLastResults: TDBQueryList; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
   end;
@@ -3055,13 +3051,13 @@ begin
 end;
 
 
-function TMySQLConnection.GetLastResults: TDBQueryList;
+function TDBConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
   i: Integer;
 begin
   Result := TDBQueryList.Create(False);
-  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
+  for i:=0 to ResultCount-1 do begin
     r := Parameters.CreateQuery(Self);
     r.SQL := FLastQuerySQL;
     r.Execute(False, i);
@@ -3089,36 +3085,6 @@ begin
     Result.Add(r);
   end;
   Batch.Free;
-end;
-
-
-function TPGConnection.GetLastResults: TDBQueryList;
-var
-  r: TDBQuery;
-  i: Integer;
-begin
-  Result := TDBQueryList.Create(False);
-  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
-    r := Parameters.CreateQuery(Self);
-    r.SQL := FLastQuerySQL;
-    r.Execute(False, i);
-    Result.Add(r);
-  end;
-end;
-
-
-function TSQLiteConnection.GetLastResults: TDBQueryList;
-var
-  r: TDBQuery;
-  i: Integer;
-begin
-  Result := TDBQueryList.Create(False);
-  for i:=Low(FLastRawResults) to High(FLastRawResults) do begin
-    r := Parameters.CreateQuery(Self);
-    r.SQL := FLastQuerySQL;
-    r.Execute(False, i);
-    Result.Add(r);
-  end;
 end;
 
 
