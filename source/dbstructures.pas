@@ -514,7 +514,7 @@ type
     sqlite3_exec: function(ppDb: Psqlite3; sql: PAnsiChar; callback: Integer; callvack_arg: Pointer; errmsg: PAnsiChar): Integer; cdecl;
     sqlite3_finalize: function(pStmt: Psqlite3_stmt): Integer; cdecl;
     sqlite3_step: function(pStmt: Psqlite3_stmt): Integer; cdecl;
-    sqlite3_changes: function(ppDb: Psqlite3): Integer; cdecl;
+    sqlite3_total_changes: function(ppDb: Psqlite3): Integer; cdecl;
     sqlite3_column_text: function(pStmt: Psqlite3_stmt; iCol: Integer): PAnsiChar; cdecl;
     sqlite3_column_count: function(pStmt: Psqlite3_stmt): Integer; cdecl;
     sqlite3_column_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
@@ -522,6 +522,7 @@ type
     sqlite3_column_database_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     sqlite3_column_table_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     sqlite3_column_origin_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
+    sqlite3_next_stmt: function(ppDb: Psqlite3; pStmt: Psqlite3_stmt): Psqlite3_stmt; cdecl;
     private
       procedure AssignProcedures; override;
   end;
@@ -7792,7 +7793,7 @@ begin
   AssignProc(@sqlite3_exec, 'sqlite3_exec');
   AssignProc(@sqlite3_finalize, 'sqlite3_finalize');
   AssignProc(@sqlite3_step, 'sqlite3_step');
-  AssignProc(@sqlite3_changes, 'sqlite3_changes');
+  AssignProc(@sqlite3_total_changes, 'sqlite3_total_changes');
   AssignProc(@sqlite3_column_text, 'sqlite3_column_text');
   AssignProc(@sqlite3_column_count, 'sqlite3_column_count');
   AssignProc(@sqlite3_column_name, 'sqlite3_column_name');
@@ -7800,6 +7801,7 @@ begin
   AssignProc(@sqlite3_column_database_name, 'sqlite3_column_database_name');
   AssignProc(@sqlite3_column_table_name, 'sqlite3_column_table_name');
   AssignProc(@sqlite3_column_origin_name, 'sqlite3_column_origin_name');
+  AssignProc(@sqlite3_next_stmt, 'sqlite3_next_stmt');
 end;
 
 

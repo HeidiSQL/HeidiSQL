@@ -340,7 +340,6 @@ type
       FSessionVariables: TDBQuery;
       FInformationSchemaObjects: TStringList;
       FDatabaseCache: TDatabaseCache;
-      FStatementNum: Cardinal;
       FCurrentUserHostCombination: String;
       FAllUserHostCombinations: TStringList;
       FLockedByThread: TThread;
@@ -487,6 +486,7 @@ type
       FHandle: PMYSQL;
       FLib: TMySQLLib;
       FLastRawResults: TMySQLRawResults;
+      FStatementNum: Cardinal;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
@@ -1648,7 +1648,6 @@ constructor TDBConnection.Create(AOwner: TComponent);
 begin
   inherited;
   FParameters := TConnectionParameters.Create;
-  FStatementNum := 0;
   FRowsFound := 0;
   FRowsAffected := 0;
   FWarningCount := 0;
@@ -1676,6 +1675,7 @@ begin
   inherited;
   FQuoteChar := '`';
   FQuoteChars := '`"';
+  FStatementNum := 0;
   // The compiler complains that dynamic and static arrays are incompatible, so this does not work:
   // FDatatypes := MySQLDatatypes
   SetLength(FDatatypes, Length(MySQLDatatypes));
@@ -2971,7 +2971,6 @@ begin
         raise EDbError.Create(GetLastErrorMsg);
       end;
       // more results?
-      Inc(FStatementNum);
       QueryResult := FLib.PQgetResult(FHandle);
     end;
 
@@ -2986,7 +2985,7 @@ var
   Rows: TSQLiteGridRows;
   Row: TGridRow;
   Value: TGridValue;
-  Statement: Psqlite3_stmt;
+  QueryResult: Psqlite3_stmt;
   QueryStatus, StepStatus: Integer;
   NativeSQL: AnsiString;
   i: Integer;
@@ -3010,42 +3009,49 @@ begin
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
   FRowsFound := 0;
-  FRowsAffected := 0;
+  FRowsAffected := FLib.sqlite3_total_changes(FHandle); // Temporary: substract these later from total num
   FWarningCount := 0;
 
-  Statement := nil;
-  QueryStatus := FLib.sqlite3_prepare_v2(FHandle, PAnsiChar(NativeSQL), Length(NativeSQL), Statement, nil);
+  QueryResult := nil;
+  QueryStatus := FLib.sqlite3_prepare_v2(FHandle, PAnsiChar(NativeSQL), -1, QueryResult, nil);
   FLastQueryDuration := GetTickCount - TimerStart;
   FLastQueryNetworkDuration := 0;
 
   if QueryStatus <> SQLITE_OK then begin
+    FRowsAffected := 0;
     Log(lcError, GetLastErrorMsg);
     raise EDbError.Create(GetLastErrorMsg);
   end else begin
-    FRowsAffected := FLib.sqlite3_changes(FHandle);
+    FRowsAffected := FLib.sqlite3_total_changes(FHandle) - FRowsAffected;
     FRowsFound := 0;
-    if DoStoreResult then begin
-      Rows := TSQLiteGridRows.Create(Self);
-      StepStatus := FLib.sqlite3_step(Statement);
-      while StepStatus = SQLITE_ROW do begin
-        Row := TGridRow.Create;
-        for i:=0 to FLib.sqlite3_column_count(Statement)-1 do begin
-          Value := TGridValue.Create;
-          Value.OldText := DecodeAPIString(FLib.sqlite3_column_text(Statement, i));
-          Value.OldIsNull := FLib.sqlite3_column_text(Statement, i) = nil;
-          Row.Add(Value);
+    QueryResult := FLib.sqlite3_next_stmt(FHandle, nil);
+    while QueryResult <> nil do begin
+      if DoStoreResult then begin
+        Rows := TSQLiteGridRows.Create(Self);
+        StepStatus := FLib.sqlite3_step(QueryResult);
+        while StepStatus = SQLITE_ROW do begin
+          Row := TGridRow.Create;
+          for i:=0 to FLib.sqlite3_column_count(QueryResult)-1 do begin
+            Value := TGridValue.Create;
+            Value.OldText := DecodeAPIString(FLib.sqlite3_column_text(QueryResult, i));
+            Value.OldIsNull := FLib.sqlite3_column_text(QueryResult, i) = nil;
+            Row.Add(Value);
+          end;
+          Rows.Add(Row);
+          StepStatus := FLib.sqlite3_step(QueryResult);
         end;
-        Rows.Add(Row);
-        StepStatus := FLib.sqlite3_step(Statement);
+        Inc(FRowsFound, Rows.Count);
+        Rows.Statement := QueryResult;
+        SetLength(FLastRawResults, Length(FLastRawResults)+1);
+        FLastRawResults[Length(FLastRawResults)-1] := Rows;
+      end else begin
+        FLib.sqlite3_finalize(QueryResult);
       end;
-      FRowsFound := Rows.Count;
-      Rows.Statement := Statement;
-      SetLength(FLastRawResults, 1);
-      FLastRawResults[0] := Rows;
+      DetectUSEQuery(SQL);
+      QueryResult := FLib.sqlite3_next_stmt(FHandle, QueryResult);
     end;
-    DetectUSEQuery(SQL);
   end;
-
+  FLastQueryNetworkDuration := GetTickCount - TimerStart;
 end;
 
 
@@ -6234,8 +6240,7 @@ end;
 
 procedure TMySQLQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
-  i, j, NumFields: Integer;
-  NumResults: Int64;
+  i, j, NumFields, NumResults: Integer;
   Field: PMYSQL_FIELD;
   IsBinary: Boolean;
   LastResult: PMYSQL_RES;
@@ -6245,17 +6250,19 @@ begin
     Connection.Query(FSQL, FStoreResult);
     UseRawResult := 0;
   end;
-  if Connection.ResultCount > UseRawResult then
+  if Connection.ResultCount > UseRawResult then begin
     LastResult := TMySQLConnection(Connection).LastRawResults[UseRawResult]
-  else
+  end else begin
     LastResult := nil;
+  end;
   if AddResult and (Length(FResultList) = 0) then
     AddResult := False;
   if AddResult then
     NumResults := Length(FResultList)+1
   else begin
-    for i:=Low(FResultList) to High(FResultList) do
+    for i:=Low(FResultList) to High(FResultList) do begin
       FConnection.Lib.mysql_free_result(FResultList[i]);
+    end;
     NumResults := 1;
     FRecordCount := 0;
     FAutoIncrementColumn := -1;
@@ -6323,10 +6330,9 @@ end;
 
 procedure TAdoDBQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
-  NumFields, i, j: Integer;
+  i, j, NumFields, NumResults: Integer;
   TypeIndex: TDBDatatypeIndex;
   LastResult: TAdoQuery;
-  NumResults: Int64;
 begin
   // TODO: Handle multiple results
   if UseRawResult = -1 then begin
@@ -6337,8 +6343,9 @@ begin
     LastResult := TAdoQuery.Create(Self);
     LastResult.Recordset := TAdoDBConnection(Connection).LastRawResults[UseRawResult];
     LastResult.Open;
-  end else
+  end else begin
     LastResult := nil;
+  end;
   if AddResult and (Length(FResultList) = 0) then
     AddResult := False;
   if AddResult then
@@ -6439,27 +6446,27 @@ end;
 
 procedure TPGQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
-  i, NumFields: Integer;
-  NumResults: Integer;
+  i, NumFields, NumResults: Integer;
   FieldTypeOID: POid;
   LastResult: PPGresult;
-  rx: TRegExpr;
 begin
   if UseRawResult = -1 then begin
     Connection.Query(FSQL, FStoreResult);
     UseRawResult := 0;
   end;
-  if Connection.ResultCount > UseRawResult then
+  if Connection.ResultCount > UseRawResult then begin
     LastResult := TPGConnection(Connection).LastRawResults[UseRawResult]
-  else
+  end else begin
     LastResult := nil;
+  end;
   if AddResult and (Length(FResultList) = 0) then
     AddResult := False;
   if AddResult then
     NumResults := Length(FResultList)+1
   else begin
-    for i:=Low(FResultList) to High(FResultList) do
+    for i:=Low(FResultList) to High(FResultList) do begin
       FConnection.Lib.PQclear(FResultList[i]);
+    end;
     NumResults := 1;
     FRecordCount := 0;
     FAutoIncrementColumn := -1;
@@ -6481,14 +6488,12 @@ begin
       SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
-      rx := TRegExpr.Create;
       for i:=0 to NumFields-1 do begin
         FColumnNames.Add(Connection.DecodeAPIString(FConnection.Lib.PQfname(LastResult, i)));
         FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
         FieldTypeOID := FConnection.Lib.PQftype(LastResult, i);
         FColumnTypes[i] := FConnection.GetDatatypeByNativeType(FieldTypeOID, FColumnNames[FColumnNames.Count-1]);
       end;
-      rx.Free;
       FRecNo := -1;
       First;
     end else begin
@@ -6502,8 +6507,7 @@ end;
 
 procedure TSQLiteQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
-  i: Integer;
-  NumResults, NumFields: Integer;
+  i, NumFields, NumResults: Integer;
   LastResult: TSQLiteGridRows;
   ColName, ColOrgName, DataTypeStr: String;
 begin
@@ -6521,7 +6525,7 @@ begin
   if AddResult then
     NumResults := Length(FResultList)+1
   else begin
-    for i:=Low(FResultList) to High(FResultList) do begin
+    for i:=Length(FResultList)-1 downto 0 do begin
       FResultList[i].Free;
     end;
     NumResults := 1;
@@ -6545,8 +6549,7 @@ begin
       SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
-
-      for i:=0 to FConnection.Lib.sqlite3_column_count(LastResult.Statement)-1 do begin
+      for i:=0 to NumFields-1 do begin
         ColName := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_name(LastResult.Statement, i));
         FColumnNames.Add(ColName);
         ColOrgName := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_origin_name(LastResult.Statement, i));
@@ -6554,7 +6557,6 @@ begin
         DataTypeStr := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_decltype(LastResult.Statement, i));
         FColumnTypes[i] := FConnection.GetDatatypeByName(DataTypeStr, False);
       end;
-
       FRecNo := -1;
       First;
     end else begin
@@ -7962,7 +7964,12 @@ end;
 
 destructor TSQLiteGridRows.Destroy;
 begin
-  FConnection.Lib.sqlite3_finalize(Statement);
+  try
+    if Statement <> nil then
+      FConnection.Lib.sqlite3_finalize(Statement);
+  except
+    on E:Exception do;
+  end;
   inherited;
 end;
 
