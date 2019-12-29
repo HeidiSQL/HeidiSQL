@@ -2977,14 +2977,14 @@ end;
 
 procedure TSQLiteConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 var
-  TimerStart: Cardinal;
+  TimerStart, PrepareFlags: Cardinal;
   Rows: TSQLiteGridRows;
   Row: TGridRow;
   Value: TGridValue;
   QueryResult: Psqlite3_stmt;
-  QueryStatus, StepStatus: Integer;
-  NativeSQL: AnsiString;
+  QueryStatus: Integer;
   i: Integer;
+  CurrentSQL, NextSQL: PAnsiChar;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
@@ -2998,10 +2998,7 @@ begin
   Ping(True);
   Log(LogCategory, SQL);
   FLastQuerySQL := SQL;
-  if IsUnicode then
-    NativeSQL := UTF8Encode(SQL)
-  else
-    NativeSQL := AnsiString(SQL);
+  CurrentSQL := PAnsiChar(UTF8Encode(SQL));
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
   FRowsFound := 0;
@@ -3009,43 +3006,44 @@ begin
   FWarningCount := 0;
 
   QueryResult := nil;
-  QueryStatus := FLib.sqlite3_prepare_v2(FHandle, PAnsiChar(NativeSQL), -1, QueryResult, nil);
-  FLastQueryDuration := GetTickCount - TimerStart;
-  FLastQueryNetworkDuration := 0;
+  NextSQL := nil;
+  PrepareFlags := SQLITE_PREPARE_PERSISTENT;
 
-  if QueryStatus <> SQLITE_OK then begin
-    FRowsAffected := 0;
-    Log(lcError, GetLastErrorMsg);
-    raise EDbError.Create(GetLastErrorMsg);
-  end else begin
+  while True do begin
+    QueryStatus := FLib.sqlite3_prepare_v3(FHandle, CurrentSQL, -1, PrepareFlags, QueryResult, NextSQL);
+    FLastQueryDuration := GetTickCount - TimerStart;
+    FLastQueryNetworkDuration := 0;
+
+    if QueryStatus <> SQLITE_OK then begin
+      FRowsAffected := 0;
+      Log(lcError, GetLastErrorMsg);
+      raise EDbError.Create(GetLastErrorMsg);
+    end;
     FRowsAffected := FLib.sqlite3_total_changes(FHandle) - FRowsAffected;
     FRowsFound := 0;
-    QueryResult := FLib.sqlite3_next_stmt(FHandle, nil);
-    while QueryResult <> nil do begin
-      if DoStoreResult then begin
-        Rows := TSQLiteGridRows.Create(Self);
-        StepStatus := FLib.sqlite3_step(QueryResult);
-        while StepStatus = SQLITE_ROW do begin
-          Row := TGridRow.Create;
-          for i:=0 to FLib.sqlite3_column_count(QueryResult)-1 do begin
-            Value := TGridValue.Create;
-            Value.OldText := DecodeAPIString(FLib.sqlite3_column_text(QueryResult, i));
-            Value.OldIsNull := FLib.sqlite3_column_text(QueryResult, i) = nil;
-            Row.Add(Value);
-          end;
-          Rows.Add(Row);
-          StepStatus := FLib.sqlite3_step(QueryResult);
+    if DoStoreResult then begin
+      Rows := TSQLiteGridRows.Create(Self);
+      while FLib.sqlite3_step(QueryResult) = SQLITE_ROW do begin
+        Row := TGridRow.Create;
+        for i:=0 to FLib.sqlite3_column_count(QueryResult)-1 do begin
+          Value := TGridValue.Create;
+          Value.OldText := DecodeAPIString(FLib.sqlite3_column_text(QueryResult, i));
+          Value.OldIsNull := FLib.sqlite3_column_text(QueryResult, i) = nil;
+          Row.Add(Value);
         end;
-        Inc(FRowsFound, Rows.Count);
-        Rows.Statement := QueryResult;
-        SetLength(FLastRawResults, Length(FLastRawResults)+1);
-        FLastRawResults[Length(FLastRawResults)-1] := Rows;
-      end else begin
-        FLib.sqlite3_finalize(QueryResult);
+        Rows.Add(Row);
       end;
-      DetectUSEQuery(SQL);
-      QueryResult := FLib.sqlite3_next_stmt(FHandle, QueryResult);
+      Inc(FRowsFound, Rows.Count);
+      Rows.Statement := QueryResult;
+      SetLength(FLastRawResults, Length(FLastRawResults)+1);
+      FLastRawResults[Length(FLastRawResults)-1] := Rows;
+    end else begin
+      FLib.sqlite3_finalize(QueryResult);
     end;
+    DetectUSEQuery(SQL);
+    CurrentSQL := NextSQL;
+    if Trim(CurrentSQL) = '' then
+      Break;
   end;
   FLastQueryNetworkDuration := GetTickCount - TimerStart;
 end;

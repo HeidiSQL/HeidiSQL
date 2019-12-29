@@ -114,6 +114,17 @@ const
   SQLITE_ROW          = 100; // sqlite3_step() has another row ready
   SQLITE_DONE         = 101; // sqlite3_step() has finished executing
 
+  { SQLite Flags
+    These constants define various flags that can be passed into
+    "prepFlags" parameter of the [sqlite3_prepare_v3()] and
+    [sqlite3_prepare16_v3()] interfaces.
+
+    New flags may be added in future releases of SQLite.
+  }
+  SQLITE_PREPARE_PERSISTENT = $01; // prepared statement will be retained for a long time and probably reused many times
+  SQLITE_PREPARE_NORMALIZE  = $02; // no-op
+  SQLITE_PREPARE_NO_VTAB    = $04; // return an error (error code SQLITE_ERROR) if the statement uses any virtual tables
+
 
 type
   PUSED_MEM=^USED_MEM;
@@ -510,7 +521,8 @@ type
     sqlite3_close: function(ppDb: Psqlite3): Integer; cdecl;
     sqlite3_errmsg: function(ppDb: Psqlite3): PAnsiChar; cdecl;
     sqlite3_errcode: function(ppDb: Psqlite3): Integer; cdecl;
-    sqlite3_prepare_v2: function(ppDb: Psqlite3; zSql: PAnsiChar; nByte: Integer; var ppStmt: Psqlite3_stmt; pzTail: PAnsiChar): Integer; cdecl;
+    sqlite3_prepare_v2: function(ppDb: Psqlite3; zSql: PAnsiChar; nByte: Integer; var ppStmt: Psqlite3_stmt; var pzTail: PAnsiChar): Integer; cdecl;
+    sqlite3_prepare_v3: function(ppDb: Psqlite3; zSql: PAnsiChar; nByte: Integer; prepFlags: Cardinal; var ppStmt: Psqlite3_stmt; var pzTail: PAnsiChar): Integer; cdecl;
     sqlite3_exec: function(ppDb: Psqlite3; sql: PAnsiChar; callback: Integer; callvack_arg: Pointer; errmsg: PAnsiChar): Integer; cdecl;
     sqlite3_finalize: function(pStmt: Psqlite3_stmt): Integer; cdecl;
     sqlite3_step: function(pStmt: Psqlite3_stmt): Integer; cdecl;
@@ -7790,6 +7802,7 @@ begin
   AssignProc(@sqlite3_errmsg, 'sqlite3_errmsg');
   AssignProc(@sqlite3_errcode, 'sqlite3_errcode');
   AssignProc(@sqlite3_prepare_v2, 'sqlite3_prepare_v2');
+  AssignProc(@sqlite3_prepare_v3, 'sqlite3_prepare_v3');
   AssignProc(@sqlite3_exec, 'sqlite3_exec');
   AssignProc(@sqlite3_finalize, 'sqlite3_finalize');
   AssignProc(@sqlite3_step, 'sqlite3_step');
