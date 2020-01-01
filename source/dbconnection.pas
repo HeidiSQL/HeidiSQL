@@ -599,6 +599,7 @@ type
       property Lib: TSQLiteLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
+      function GetCreateCode(Obj: TDBObject): String; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
   end;
@@ -1712,7 +1713,7 @@ var
 begin
   inherited;
   FQuoteChar := '"';
-  FQuoteChars := '"';
+  FQuoteChars := '"[]';
   SetLength(FDatatypes, Length(SQLiteDatatypes));
   for i:=0 to High(SQLiteDatatypes) do
     FDatatypes[i] := SQLiteDatatypes[i];
@@ -3100,13 +3101,32 @@ begin
     lntTable, lntView: Column := 1;
     lntFunction, lntProcedure, lntTrigger: Column := 2;
     lntEvent: Column := 3;
-    else Exception.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
+    else raise EDbError.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
   end;
   if Obj.NodeType = lntView then
     Result := GetCreateViewCode(Obj.Database, Obj.Name)
   else
     Result := GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), Column);
   TmpObj.Free;
+end;
+
+
+function TSQLiteConnection.GetCreateCode(Obj: TDBObject): String;
+begin
+  // PRAGMA table_info(customers):
+  // cid name       type         notnull dflt_value pk
+  // 0   CustomerId INTEGER      1       null       1
+  // 1   FirstName  NVARCHAR(40) 1       null       0
+  case Obj.NodeType of
+    lntTable: begin
+      Result := GetVar('SELECT '+QuoteIdent('sql')+' FROM sqlite_master'+
+        ' WHERE '+QuoteIdent('type')+'='+EscapeString('table')+
+        ' AND name='+EscapeString(Obj.Name));
+    end;
+    else begin
+      raise EDbError.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
+    end;
+  end;
 end;
 
 
@@ -5464,7 +5484,7 @@ begin
     i := LeftPos;
     RightPos := LeftPos;
     while i < Length(SQL) do begin
-      if SQL[i] = LeftQuote then begin
+      if (SQL[i] = LeftQuote) or ((LeftQuote = '[') and (SQL[i] = ']')) then begin
         if SQL[i+1] = SQL[i] then // take doubled/escaped quote char into account
           Inc(i)
         else begin
