@@ -125,8 +125,7 @@ const
   SQLITE_PREPARE_NORMALIZE  = $02; // no-op
   SQLITE_PREPARE_NO_VTAB    = $04; // return an error (error code SQLITE_ERROR) if the statement uses any virtual tables
 
-
-type
+type
   PUSED_MEM=^USED_MEM;
   USED_MEM = packed record
     next:       PUSED_MEM;
@@ -2054,7 +2053,7 @@ var
     )
   );
 
-  SQLiteDatatypes: Array[0..6] of TDBDatatype =
+  SQLiteDatatypes: Array[0..16] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -2069,22 +2068,75 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtInt;
-      Name:            'INTEGER';
-      Names:           'INTEGER|INT|TINYINT|SMALLINT|MEDIUMINT|BIGINT|UNSIGNED BIG INT|INT2|INT8|BOOLEAN';
+      Index:           dtTinyint;
+      NativeTypes:     '1';
+      Name:            'TINYINT';
+      Names:           'INT2|BOOLEAN';
       Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
-      ValueMustMatch:  '^\d{1,10}$';
       Category:        dtcInteger;
     ),
     (
-      Index:           dtText;
-      Name:            'TEXT';
-      Names:           'CHARACTER|VARCHAR|VARYING CHARACTER|NCHAR|NATIVE CHARACTER|NVARCHAR|TEXT|CLOB';
+      Index:           dtSmallint;
+      NativeTypes:     '1';
+      Name:            'SMALLINT';
+      Names:           '';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtMediumint;
+      NativeTypes:     '1';
+      Name:            'INTEGER';
+      Names:           'MEDIUMINT|INT8';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtInt;
+      NativeTypes:     '1';
+      Name:            'INTEGER';
+      Names:           'INT';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtBigint;
+      NativeTypes:     '1';
+      Name:            'BIGINT';
+      Names:           'UNSIGNED BIG INT';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dtChar;
+      NativeTypes:     '3';
+      Name:            'CHARACTER';
+      Names:           'NCHAR|NATIVE CHARACTER';
       Description:     '';
       HasLength:       True;
       RequiresLength:  True;
@@ -2095,7 +2147,49 @@ var
       Category:        dtcText;
     ),
     (
+      Index:           dtText;
+      NativeTypes:     '3';
+      Name:            'VARCHAR';
+      Names:           'VARCHAR|VARYING CHARACTER';
+      Description:     '';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtText;
+      NativeTypes:     '3';
+      Name:            'NVARCHAR';
+      Names:           'NVARCHAR';
+      Description:     '';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtText;
+      NativeTypes:     '3';
+      Name:            'TEXT';
+      Names:           'CLOB';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        True;
+      Category:        dtcText;
+    ),
+    (
       Index:           dtBlob;
+      NativeTypes:     '4';
       Name:            'BLOB';
       Description:     '';
       HasLength:       False;
@@ -2107,13 +2201,51 @@ var
     ),
     (
       Index:           dtReal;
+      NativeTypes:     '2';
       Name:            'REAL';
-      Names:           'REAL|DOUBLE|DOUBLE PRECISION|FLOAT|NUMERIC|DECIMAL';
+      Names:           'REAL|NUMERIC';
       Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
-      HasDefault:      False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtDouble;
+      NativeTypes:     '2';
+      Name:            'DOUBLE';
+      Names:           'DOUBLE PRECISION';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtFloat;
+      NativeTypes:     '2';
+      Name:            'FLOAT';
+      Description:     '';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dtDecimal;
+      NativeTypes:     '2';
+      Name:            'DECIMAL';
+      Description:     '';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
       LoadPart:        False;
       Category:        dtcReal;
     ),
@@ -2135,7 +2267,7 @@ var
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
-      HasDefault:      False;
+      HasDefault:      True;
       LoadPart:        False;
       Category:        dtcTemporal;
     )
