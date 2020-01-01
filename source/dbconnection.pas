@@ -351,7 +351,6 @@ type
       FKeepAliveTimer: TTimer;
       FFavorites: TStringList;
       FPrefetchResults: TDBQueryList;
-      FRegClasses: TOidStringPairs;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -463,7 +462,6 @@ type
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
-      property RegClasses: TOidStringPairs read FRegClasses;
       function GetLockedTableCount(db: String): Integer;
       function IdentifierEquals(Ident1, Ident2: String): Boolean;
     published
@@ -549,6 +547,7 @@ type
       FHandle: PPGconn;
       FLib: TPostgreSQLLib;
       FLastRawResults: TPGRawResults;
+      FRegClasses: TOidStringPairs;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       function GetThreadId: Int64; override;
@@ -568,6 +567,7 @@ type
       function ConnectionInfo: TStringList; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
+      property RegClasses: TOidStringPairs read FRegClasses;
   end;
 
   TSQLiteConnection = class;
@@ -1659,8 +1659,6 @@ begin
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
-  // PG only, cache for 123::regclass queries:
-  FRegClasses := TOidStringPairs.Create;
 end;
 
 
@@ -1703,6 +1701,8 @@ begin
   SetLength(FDatatypes, Length(PostGreSQLDatatypes));
   for i:=0 to High(PostGreSQLDatatypes) do
     FDatatypes[i] := PostGreSQLDatatypes[i];
+  // cache for 123::regclass queries:
+  FRegClasses := TOidStringPairs.Create;
 end;
 
 
@@ -1725,7 +1725,6 @@ begin
   ClearCache(True);
   FKeepAliveTimer.Free;
   FFavorites.Free;
-  FRegClasses.Free;
   inherited;
 end;
 
@@ -1742,6 +1741,7 @@ destructor TPgConnection.Destroy;
 begin
   if Active then Active := False;
   //FreeAndNil(FHandle);
+  FRegClasses.Free;
   inherited;
 end;
 
