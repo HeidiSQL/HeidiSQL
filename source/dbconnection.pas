@@ -2984,7 +2984,7 @@ var
   Value: TGridValue;
   QueryResult: Psqlite3_stmt;
   QueryStatus: Integer;
-  i: Integer;
+  i, OldRowsAffected: Integer;
   CurrentSQL, NextSQL: PAnsiChar;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
@@ -3003,8 +3003,9 @@ begin
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
   FRowsFound := 0;
-  FRowsAffected := FLib.sqlite3_total_changes(FHandle); // Temporary: substract these later from total num
+  FRowsAffected := 0;
   FWarningCount := 0;
+  OldRowsAffected := FLib.sqlite3_total_changes(FHandle); // Temporary: substract these later from total num
 
   QueryResult := nil;
   NextSQL := nil;
@@ -3016,13 +3017,11 @@ begin
     FLastQueryNetworkDuration := 0;
 
     if QueryStatus <> SQLITE_OK then begin
-      FRowsAffected := 0;
       Log(lcError, GetLastErrorMsg);
       raise EDbError.Create(GetLastErrorMsg);
     end;
-    FRowsAffected := FLib.sqlite3_total_changes(FHandle) - FRowsAffected;
     FRowsFound := 0;
-    if DoStoreResult then begin
+    if DoStoreResult and (FLib.sqlite3_column_count(QueryResult) > 0) then begin
       Rows := TSQLiteGridRows.Create(Self);
       while FLib.sqlite3_step(QueryResult) = SQLITE_ROW do begin
         Row := TGridRow.Create;
@@ -3039,8 +3038,11 @@ begin
       SetLength(FLastRawResults, Length(FLastRawResults)+1);
       FLastRawResults[Length(FLastRawResults)-1] := Rows;
     end else begin
+      // Make one step through this non-result, otherwise SQLite does not seem to execute this query
+      FLib.sqlite3_step(QueryResult);
       FLib.sqlite3_finalize(QueryResult);
     end;
+    FRowsAffected := FLib.sqlite3_total_changes(FHandle) - OldRowsAffected;
     DetectUSEQuery(SQL);
     CurrentSQL := NextSQL;
     if Trim(CurrentSQL) = '' then
