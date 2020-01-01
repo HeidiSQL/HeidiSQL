@@ -6090,7 +6090,7 @@ begin
         Result := Result + 'TOP '+IntToStr(Limit)+' ';
       Result := Result + QueryBody;
     end;
-    ngMySQL, ngSQLite: begin
+    ngMySQL: begin
       Result := Result + QueryBody + ' LIMIT ';
       if Offset > 0 then
         Result := Result + IntToStr(Offset) + ', ';
@@ -6103,6 +6103,17 @@ begin
           Result := Result + ' OFFSET ' + IntToStr(Offset);
       end else
         Result := Result + QueryBody;
+    end;
+    ngSQLite: begin
+      // LIMIT supported only in SELECT queries
+      // For UPDATEs and DELETEs only if we would compile sqlite library with SQLITE_ENABLE_UPDATE_DELETE_LIMIT compile flag
+      Result := Result + QueryBody;
+      if Result.StartsWith('SELECT') then begin
+        Result := Result + ' LIMIT ';
+        if Offset > 0 then
+          Result := Result + IntToStr(Offset) + ', ';
+        Result := Result + IntToStr(Limit);
+      end;
     end;
   end;
 end;
