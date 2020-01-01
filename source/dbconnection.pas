@@ -675,7 +675,8 @@ type
       function Inserted: Boolean;
       function SaveModifications: Boolean;
       function DatabaseName: String; virtual; abstract;
-      function TableName: String; virtual;
+      function TableName: String; overload;
+      function TableName(Column: Integer): String; overload; virtual; abstract;
       function QuotedDbAndTableName: String;
       procedure DiscardModifications;
       procedure PrepareColumnAttributes;
@@ -714,7 +715,7 @@ type
       function IsNull(Column: Integer): Boolean; overload; override;
       function HasResult: Boolean; override;
       function DatabaseName: String; override;
-      function TableName: String; override;
+      function TableName(Column: Integer): String; overload; override;
   end;
 
   TAdoDBQuery = class(TDBQuery)
@@ -732,6 +733,7 @@ type
       function IsNull(Column: Integer): Boolean; overload; override;
       function HasResult: Boolean; override;
       function DatabaseName: String; override;
+      function TableName(Column: Integer): String; overload; override;
   end;
 
   TPGQuery = class(TDBQuery)
@@ -752,7 +754,7 @@ type
       function IsNull(Column: Integer): Boolean; overload; override;
       function HasResult: Boolean; override;
       function DatabaseName: String; override;
-      function TableName: String; override;
+      function TableName(Column: Integer): String; overload; override;
   end;
 
   TSQLiteQuery = class(TDBQuery)
@@ -773,7 +775,7 @@ type
       function IsNull(Column: Integer): Boolean; overload; override;
       function HasResult: Boolean; override;
       function DatabaseName: String; override;
-      function TableName: String; override;
+      function TableName(Column: Integer): String; overload; override;
   end;
 
 function mysql_authentication_dialog_ask(
@@ -7724,103 +7726,90 @@ end;
 
 function TDBQuery.TableName: String;
 var
+  i: Integer;
+  NextTable: String;
   rx: TRegExpr;
-begin
-  // Untested with joins, compute columns and views
-  Result := GetTableNameFromSQLEx(SQL, idMixCase);
-  rx := TRegExpr.Create;
-  rx.Expression := '\.([^\.]+)$';
-  if rx.Exec(Result) then
-    Result := rx.Match[1];
-  rx.Free;
-  if Result = '' then
-    raise EDbError.Create('Could not determine name of table.');
-end;
-
-
-function TMySQLQuery.TableName: String;
-var
-  Field: PMYSQL_FIELD;
-  i: Integer;
-  tbl, db: AnsiString;
-  Objects: TDBObjectList;
-  Obj: TDBObject;
-  IsView: Boolean;
-begin
-  IsView := False;
-  for i:=0 to ColumnCount-1 do begin
-    Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, i);
-
-    if Connection.DecodeAPIString(Field.table) <> Connection.DecodeAPIString(Field.org_table) then begin
-      // Probably a VIEW, in which case we rely on the first column's table name.
-      // TODO: This is unsafe when joining a view with a table/view.
-      if Field.db <> '' then begin
-        Objects := Connection.GetDBObjects(Connection.DecodeAPIString(Field.db));
-        for Obj in Objects do begin
-          if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
-            tbl := Field.table;
-            IsView := True;
-            break;
-          end;
-        end;
-      end;
-      if IsView and (tbl <> '') then
-        break;
-    end;
-
-    if (Field.org_table <> '') and (tbl <> '') and ((tbl <> Field.org_table) or (db <> Field.db)) then
-      raise EDbError.Create(_('More than one table involved.'));
-    if Field.org_table <> '' then begin
-      tbl := Field.org_table;
-      db := Field.db;
-    end;
-  end;
-  if tbl = '' then
-    raise EDbError.Create(_('Could not determine name of table.'))
-  else
-    Result := Connection.DecodeAPIString(tbl)
-end;
-
-
-function TPGQuery.TableName: String;
-var
-  FieldTypeOID: POid;
-  i: Integer;
 begin
   // Get table name from a result set
   Result := '';
   for i:=0 to ColumnCount-1 do begin
-    FieldTypeOID := FConnection.Lib.PQftable(FCurrentResults, i);
-    if not FConnection.RegClasses.ContainsKey(FieldTypeOID) then begin
-      Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
-      FConnection.RegClasses.Add(FieldTypeOID, Result);
-    end else begin
-      FConnection.RegClasses.TryGetValue(FieldTypeOID, Result);
-    end;
-    if Result <> '' then
-      Break;
-    // Todo: what about multiple table names per result?
+    NextTable := TableName(i);
+    if (not Result.IsEmpty) and (Result <> NextTable) then
+      raise EDbError.Create(_('More than one table involved.'));
+    Result := NextTable;
+  end;
+  if Result.IsEmpty then begin
+    // Untested with joins, compute columns and views
+    Result := GetTableNameFromSQLEx(SQL, idMixCase);
+    rx := TRegExpr.Create;
+    rx.Expression := '\.([^\.]+)$';
+    if rx.Exec(Result) then
+      Result := rx.Match[1];
+    rx.Free;
+    if Result.IsEmpty then
+      raise EDbError.Create('Could not determine name of table.');
   end;
 end;
 
 
-function TSQLiteQuery.TableName: String;
+function TMySQLQuery.TableName(Column: Integer): String;
 var
-  i: Integer;
+  Field: PMYSQL_FIELD;
+  tbl: AnsiString;
+  Objects: TDBObjectList;
+  Obj: TDBObject;
+begin
+  Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
+
+  if Field.table^ <> Field.org_table^ then begin
+    // Probably a VIEW, in which case we rely on the first column's table name.
+    // TODO: This is unsafe when joining a view with a table/view.
+    if Field.db <> '' then begin
+      Objects := Connection.GetDBObjects(Connection.DecodeAPIString(Field.db));
+      for Obj in Objects do begin
+        if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
+          tbl := Field.table;
+          break;
+        end;
+      end;
+    end;
+  end else if Field.org_table <> '' then begin
+    // Normal table column
+    tbl := Field.org_table;
+  end;
+
+  Result := Connection.DecodeAPIString(tbl);
+end;
+
+
+function TAdoDBQuery.TableName(Column: Integer): String;
+begin
+  Result := '';
+end;
+
+function TPGQuery.TableName(Column: Integer): String;
+var
+  FieldTypeOID: POid;
+begin
+  // Get table name from a result set
+  Result := EmptyStr;
+  FieldTypeOID := FConnection.Lib.PQftable(FCurrentResults, Column);
+  if not FConnection.RegClasses.ContainsKey(FieldTypeOID) then begin
+    Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
+    FConnection.RegClasses.Add(FieldTypeOID, Result);
+  end else begin
+    FConnection.RegClasses.TryGetValue(FieldTypeOID, Result);
+  end;
+end;
+
+
+function TSQLiteQuery.TableName(Column: Integer): String;
+var
   tblA: AnsiString;
-  tbl: String;
 begin
   Result := EmptyStr;
-  for i:=0 to ColumnCount-1 do begin
-    tblA := FConnection.Lib.sqlite3_column_table_name(FCurrentResults.Statement, i);
-    tbl := FConnection.DecodeAPIString(tblA);
-    if (not Result.IsEmpty) and (not tbl.IsEmpty) and (Result <> tbl) then
-      raise EDbError.Create(_('More than one table involved.'))
-    else
-      Result := tbl;
-  end;
-  if Result.IsEmpty then
-    raise EDbError.Create(_('Could not determine name of table.'));
+  tblA := FConnection.Lib.sqlite3_column_table_name(FCurrentResults.Statement, Column);
+  Result := FConnection.DecodeAPIString(tblA);
 end;
 
 
