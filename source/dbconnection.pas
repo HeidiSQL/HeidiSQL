@@ -7137,8 +7137,26 @@ end;
 
 
 function TSQLiteQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+var
+  MetaResult: Integer;
+  TableNm, ColumnNm: String;
+  DataType, CollSeq: PAnsiChar;
+  NotNull, PrimaryKey, Autoinc: Integer;
 begin
   Result := False;
+  TableNm := TableName(Column);
+  ColumnNm := FColumnOrgNames[Column];
+  if not TableNm.IsEmpty then begin
+    MetaResult := FConnection.Lib.sqlite3_table_column_metadata(FConnection.FHandle,
+      PAnsiChar(Utf8Encode(FConnection.Database)),
+      PAnsiChar(Utf8Encode(TableNm)),
+      PAnsiChar(Utf8Encode(ColumnNm)),
+      DataType, CollSeq, NotNull, PrimaryKey, Autoinc
+      );
+    if MetaResult <> SQLITE_ERROR then begin
+      Result := PrimaryKey.ToBoolean;
+    end;
+  end;
 end;
 
 

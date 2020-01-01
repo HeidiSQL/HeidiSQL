@@ -536,6 +536,10 @@ const
     sqlite3_column_table_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     sqlite3_column_origin_name: function(pStmt: Psqlite3_stmt; N: Integer): PAnsiChar; cdecl;
     sqlite3_next_stmt: function(ppDb: Psqlite3; pStmt: Psqlite3_stmt): Psqlite3_stmt; cdecl;
+    sqlite3_table_column_metadata: function(ppDb: Psqlite3;
+      zDbName, zTableName, zColumnName: PAnsiChar;
+      var pzDataType, pzCollSeq: PAnsiChar; var pNotNull, pPrimaryKey, pAutoinc: Integer
+      ): Integer; cdecl;
     private
       procedure AssignProcedures; override;
   end;
@@ -7949,6 +7953,7 @@ begin
   AssignProc(@sqlite3_column_table_name, 'sqlite3_column_table_name');
   AssignProc(@sqlite3_column_origin_name, 'sqlite3_column_origin_name');
   AssignProc(@sqlite3_next_stmt, 'sqlite3_next_stmt');
+  AssignProc(@sqlite3_table_column_metadata, 'sqlite3_table_column_metadata');
 end;
 
 
