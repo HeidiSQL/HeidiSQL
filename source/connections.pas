@@ -1265,19 +1265,18 @@ begin
 
     if SessionFocused then begin
       // Validate session GUI stuff
-      editHost.RightButton.Visible := False;
       case Params.NetType of
         ntMySQL_NamedPipe: begin
           lblHost.Caption := _('Socket name:');
         end;
         ntSQLite: begin
           lblHost.Caption := _('Database filename')+':';
-          editHost.RightButton.Visible := True;
         end
         else begin
           lblHost.Caption := _('Hostname / IP:');
         end;
       end;
+      editHost.RightButton.Visible := Params.IsSQLite;
       chkWindowsAuth.Enabled := Params.IsMSSQL;
       chkCleartextPluginEnabled.Enabled := Params.IsMySQL;
       lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
