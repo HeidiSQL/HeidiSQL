@@ -2486,7 +2486,7 @@ begin
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
-      FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
+      FSQLSpecifities[spSessionVariables] := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
       FSQLSpecifities[spUSEQuery] := '-- USE %s neither supported nor required'; // Cannot be empty without causing problems
