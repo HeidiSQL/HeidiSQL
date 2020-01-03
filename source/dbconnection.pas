@@ -7756,9 +7756,10 @@ begin
   Result := '';
   for i:=0 to ColumnCount-1 do begin
     NextTable := TableName(i);
-    if (not Result.IsEmpty) and (Result <> NextTable) then
+    if (not Result.IsEmpty) and (not NextTable.IsEmpty) and (Result <> NextTable) then
       raise EDbError.Create(_('More than one table involved.'));
-    Result := NextTable;
+    if not NextTable.IsEmpty then
+      Result := NextTable;
   end;
   if Result.IsEmpty then begin
     // Untested with joins, compute columns and views
@@ -7795,8 +7796,9 @@ begin
         end;
       end;
     end;
-  end else if Field.org_table <> '' then begin
+  end else begin
     // Normal table column
+    // Note: this is empty on data tab TEXT columns with LEFT(..) clause
     tbl := Field.org_table;
   end;
 
