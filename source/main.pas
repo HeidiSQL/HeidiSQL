@@ -6003,12 +6003,13 @@ var
     DBObjects := Conn.GetDBObjects(dbname);
     for Obj in DBObjects do begin
       if Obj.Name = tblname then begin
-        Columns := TTableColumnList.Create(True);
         case Obj.NodeType of
           lntTable:
-            Conn.ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
-          lntView:
+            Columns := Obj.TableColumns;
+          lntView: begin
+            Columns := TTableColumnList.Create(True);
             Conn.ParseViewStructure(Obj.CreateCode, Obj, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
+          end;
         end;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
@@ -8470,8 +8471,7 @@ begin
       end;
     lntTable:
       if GetParentFormOrFrame(Sender) is TfrmSelectDBObject then begin
-        Columns := TTableColumnList.Create(True);
-        DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
+        Columns := DBObj.TableColumns;
         ChildCount := Columns.Count;
       end;
   end;
@@ -8533,8 +8533,7 @@ begin
       lntTable: begin
         Item^ := TDBObject.Create(ParentObj.Connection);
         Item.NodeType := lntColumn;
-        Columns := TTableColumnList.Create(True);
-        ParentObj.Connection.ParseTableStructure(ParentObj.CreateCode, Columns, nil, nil);
+        Columns := ParentObj.TableColumns;
         Item.Database := ParentObj.Database;
         Item.Name := ParentObj.Name;
         Item.Column := Columns[Node.Index].Name;
@@ -8611,8 +8610,11 @@ begin
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
           case FActiveDbObj.NodeType of
-            lntTable:
-              FActiveDbObj.Connection.ParseTableStructure(FActiveDbObj.CreateCode, SelectedTableColumns, SelectedTableKeys, SelectedTableForeignKeys);
+            lntTable: begin
+              SelectedTableColumns := FActiveDbObj.TableColumns;
+              SelectedTableKeys := FActiveDbObj.TableKeys;
+              SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
+            end;
             lntView:
               FActiveDbObj.Connection.ParseViewStructure(FActiveDbObj.CreateCode, FActiveDbObj, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
           end;
@@ -9515,6 +9517,8 @@ var
   ForeignResults, Results: TDBQuery;
   Conn: TDBConnection;
   RowNum: PInt64;
+  RefDb, RefTable: String;
+  RefObj: TDBObject;
 begin
   VT := Sender as TVirtualStringTree;
   Results := GridResult(VT);
@@ -9528,16 +9532,22 @@ begin
       idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
       if idx > -1 then try
         // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-        CreateTable := Conn.GetVar('SHOW CREATE TABLE '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.'), 1);
-        Columns := TTableColumnList.Create;
-        Keys := nil;
-        ForeignKeys := nil;
-        Conn.ParseTableStructure(CreateTable, Columns, Keys, ForeignKeys);
+        RefDb := ForeignKey.ReferenceTable.Substring(1, Pos('.', ForeignKey.ReferenceTable));
+        if not RefDb.IsEmpty then begin
+          RefTable := ForeignKey.ReferenceTable.Substring(Length(RefDb)+1);
+        end else begin
+          RefDb := Conn.Database;
+          RefTable := ForeignKey.ReferenceTable;
+        end;
+        RefObj := Conn.FindObject(RefDb, RefTable);
         TextCol := '';
-        for TblColumn in Columns do begin
-          if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
-            TextCol := TblColumn.Name;
-            break;
+        if Assigned(RefObj) then begin
+          Columns := RefObj.TableColumns;
+          for TblColumn in Columns do begin
+            if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
+              TextCol := TblColumn.Name;
+              break;
+            end;
           end;
         end;
 
@@ -10196,8 +10206,7 @@ begin
             IS_objects := Conn.GetDBObjects('information_schema');
             for Obj in IS_objects do begin
               if Obj.Name = 'PROCESSLIST' then begin
-                ProcessColumns := TTableColumnList.Create;
-                Conn.ParseTableStructure(Obj.CreateCode, ProcessColumns, nil, nil);
+                ProcessColumns := Obj.TableColumns;
                 for i:=8 to ProcessColumns.Count-1 do begin
                   Columns := Columns + ', '+Conn.QuoteIdent(ProcessColumns[i].Name);
                   if ListProcesses.Header.Columns.Count <= i then

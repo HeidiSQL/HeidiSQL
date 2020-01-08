@@ -19,79 +19,12 @@ type
   TConnectionParameters = class;
   TDBQuery = class;
   TDBQueryList = TObjectList<TDBQuery>;
-  TDBObject = class(TPersistent)
-    private
-      FCreateCode: String;
-      FCreateCodeFetched: Boolean;
-      FWasSelected: Boolean;
-      FConnection: TDBConnection;
-      function GetObjType: String;
-      function GetImageIndex: Integer;
-      function GetOverlayImageIndex: Integer;
-      function GetPath: String;
-      procedure SetCreateCode(Value: String);
-    public
-      // Table options:
-      Name, Schema, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
-      Created, Updated, LastChecked: TDateTime;
-      Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
-      // Routine options:
-      Body, Definer, Returns, DataAccess, Security, ArgTypes: String;
-      Deterministic: Boolean;
-
-      NodeType, GroupType: TListNodeType;
-      constructor Create(OwnerConnection: TDBConnection);
-      procedure Assign(Source: TPersistent); override;
-      procedure Drop;
-      function IsSameAs(CompareTo: TDBObject): Boolean;
-      function QuotedDatabase(AlwaysQuote: Boolean=True): String;
-      function QuotedName(AlwaysQuote: Boolean=True; SeparateSegments: Boolean=True): String;
-      function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
-      function QuotedColumn(AlwaysQuote: Boolean=True): String;
-      function RowCount: Int64;
-      function GetCreateCode: String; overload;
-      function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
-      property ObjType: String read GetObjType;
-      property ImageIndex: Integer read GetImageIndex;
-      property OverlayImageIndex: Integer read GetOverlayImageIndex;
-      property Path: String read GetPath;
-      property CreateCode: String read GetCreateCode write SetCreateCode;
-      property WasSelected: Boolean read FWasSelected write FWasSelected;
-      property Connection: TDBConnection read FConnection;
-  end;
-  PDBObject = ^TDBObject;
-  TDBObjectList = class(TObjectList<TDBObject>)
-    private
-      FDatabase: String;
-      FDataSize: Int64;
-      FLargestObjectSize: Int64;
-      FLastUpdate: TDateTime;
-      FCollation: String;
-      FOnlyNodeType: TListNodeType;
-    public
-      property Database: String read FDatabase;
-      property DataSize: Int64 read FDataSize;
-      property LargestObjectSize: Int64 read FLargestObjectSize;
-      property LastUpdate: TDateTime read FLastUpdate;
-      property Collation: String read FCollation;
-      property OnlyNodeType: TListNodeType read FOnlyNodeType;
-  end;
-  TDatabaseCache = class(TObjectList<TDBObjectList>); // A list of db object lists, used for caching
-  TDBObjectComparer = class(TComparer<TDBObject>)
-    function Compare(const Left, Right: TDBObject): Integer; override;
-  end;
-  TDBObjectDropComparer = class(TComparer<TDBObject>)
-    function Compare(const Left, Right: TDBObject): Integer; override;
-  end;
-
-  // General purpose editing status flag
-  TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
-
-  TOidStringPairs = TDictionary<POid, String>;
 
   TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpDefault, cpVirtuality, cpComment, cpCollation);
   TColumnParts = Set of TColumnPart;
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
+  // General purpose editing status flag
+  TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
 
   // Column object, many of them in a TObjectList
   TTableColumn = class(TObject)
@@ -113,6 +46,7 @@ type
       destructor Destroy; override;
       function SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
       function ValueList: TStringList;
+      procedure ParseDatatype(Source: String);
       function CastAsText: String;
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
@@ -156,6 +90,82 @@ type
       Name, Context, Datatype: String;
   end;
   TRoutineParamList = TObjectList<TRoutineParam>;
+
+  TDBObject = class(TPersistent)
+    private
+      FCreateCode: String;
+      FCreateCodeFetched: Boolean;
+      FWasSelected: Boolean;
+      FConnection: TDBConnection;
+      FTableColumns: TTableColumnList;
+      FTableKeys: TTableKeyList;
+      FTableForeignKeys: TForeignKeyList;
+      function GetObjType: String;
+      function GetImageIndex: Integer;
+      function GetOverlayImageIndex: Integer;
+      function GetPath: String;
+      procedure SetCreateCode(Value: String);
+      function GetTableColumns: TTableColumnList;
+      function GetTableKeys: TTableKeyList;
+      function GetTableForeignKeys: TForeignKeyList;
+    public
+      // Table options:
+      Name, Schema, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
+      Created, Updated, LastChecked: TDateTime;
+      Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
+      // Routine options:
+      Body, Definer, Returns, DataAccess, Security, ArgTypes: String;
+      Deterministic: Boolean;
+
+      NodeType, GroupType: TListNodeType;
+      constructor Create(OwnerConnection: TDBConnection);
+      procedure Assign(Source: TPersistent); override;
+      procedure Drop;
+      function IsSameAs(CompareTo: TDBObject): Boolean;
+      function QuotedDatabase(AlwaysQuote: Boolean=True): String;
+      function QuotedName(AlwaysQuote: Boolean=True; SeparateSegments: Boolean=True): String;
+      function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
+      function QuotedColumn(AlwaysQuote: Boolean=True): String;
+      function RowCount: Int64;
+      function GetCreateCode: String; overload;
+      function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
+      property ObjType: String read GetObjType;
+      property ImageIndex: Integer read GetImageIndex;
+      property OverlayImageIndex: Integer read GetOverlayImageIndex;
+      property Path: String read GetPath;
+      property CreateCode: String read GetCreateCode write SetCreateCode;
+      property WasSelected: Boolean read FWasSelected write FWasSelected;
+      property Connection: TDBConnection read FConnection;
+      property TableColumns: TTableColumnList read GetTableColumns;
+      property TableKeys: TTableKeyList read GetTableKeys;
+      property TableForeignKeys: TForeignKeyList read GetTableForeignKeys;
+  end;
+  PDBObject = ^TDBObject;
+  TDBObjectList = class(TObjectList<TDBObject>)
+    private
+      FDatabase: String;
+      FDataSize: Int64;
+      FLargestObjectSize: Int64;
+      FLastUpdate: TDateTime;
+      FCollation: String;
+      FOnlyNodeType: TListNodeType;
+    public
+      property Database: String read FDatabase;
+      property DataSize: Int64 read FDataSize;
+      property LargestObjectSize: Int64 read FLargestObjectSize;
+      property LastUpdate: TDateTime read FLastUpdate;
+      property Collation: String read FCollation;
+      property OnlyNodeType: TListNodeType read FOnlyNodeType;
+  end;
+  TDatabaseCache = class(TObjectList<TDBObjectList>); // A list of db object lists, used for caching
+  TDBObjectComparer = class(TComparer<TDBObject>)
+    function Compare(const Left, Right: TDBObject): Integer; override;
+  end;
+  TDBObjectDropComparer = class(TComparer<TDBObject>)
+    function Compare(const Left, Right: TDBObject): Integer; override;
+  end;
+
+  TOidStringPairs = TDictionary<POid, String>;
 
   // Structures for in-memory changes of a TDBQuery
   TGridValue = class(TObject)
@@ -464,6 +474,9 @@ type
       property Favorites: TStringList read FFavorites;
       function GetLockedTableCount(db: String): Integer;
       function IdentifierEquals(Ident1, Ident2: String): Boolean;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; virtual;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; virtual;
+      function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; virtual;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -511,6 +524,7 @@ type
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function MaxAllowedPacket: Int64; override;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -602,6 +616,8 @@ type
       function GetCreateCode(Obj: TDBObject): String; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; override;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; override;
   end;
 
 
@@ -653,6 +669,7 @@ type
       function DataType(Column: Integer): TDBDataType;
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
+      // Todo: overload ColumnExists:
       function ColExists(Column: String): Boolean;
       function ColIsPrimaryKeyPart(Column: Integer): Boolean; virtual; abstract;
       function ColIsUniqueKeyPart(Column: Integer): Boolean; virtual; abstract;
@@ -3101,7 +3118,6 @@ var
   ObjType: String;
   TmpObj: TDBObject;
 begin
-  Column := -1;
   TmpObj := TDBObject.Create(Self);
   TmpObj.NodeType := Obj.NodeType;
   ObjType := TmpObj.ObjType;
@@ -4652,6 +4668,220 @@ begin
 end;
 
 
+function TDBConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+var
+  TableIdx: Integer;
+  ColQuery: TDBQuery;
+  Col: TTableColumn;
+  dt, SchemaClause, DefText, ExtraText: String;
+begin
+  // Generic: query table columns from IS.COLUMNS
+  Result := TTableColumnList.Create(True);
+  TableIdx := InformationSchemaObjects.IndexOf('columns');
+  if Table.Schema <> '' then
+    SchemaClause := 'TABLE_SCHEMA='+EscapeString(Table.Schema)
+  else
+    SchemaClause := GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(Table.Database);
+  ColQuery := GetResults('SELECT * FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent(InformationSchemaObjects[TableIdx])+
+    ' WHERE '+SchemaClause+' AND TABLE_NAME='+EscapeString(Table.Name));
+  while not ColQuery.Eof do begin
+    Col := TTableColumn.Create(Self);
+    Result.Add(Col);
+    Col.Name := ColQuery.Col('COLUMN_NAME');
+    Col.OldName := Col.Name;
+    // PG/MySQL use different ones:
+    dt := IfThen(ColQuery.ColExists('COLUMN_TYPE'), 'COLUMN_TYPE', 'DATA_TYPE');
+    Col.ParseDatatype(ColQuery.Col(dt));
+    Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
+    Col.Collation := ColQuery.Col('COLLATION_NAME');
+    // MSSQL has no expression
+    Col.Expression := ColQuery.Col('GENERATION_EXPRESSION', True);
+    // PG has no extra:
+    ExtraText := ColQuery.Col('EXTRA', True);
+    Col.Virtuality := RegExprGetMatch('^(\w+)\s+generated$', ExtraText.ToLower, 1);
+    Col.AllowNull := ColQuery.Col('IS_NULLABLE').ToLower = 'yes';
+
+    DefText := ColQuery.Col('COLUMN_DEFAULT');
+    Col.OnUpdateType := cdtNothing;
+    if DefText.ToLower = 'null' then begin
+      Col.DefaultType := cdtNull;
+    end else if ExecRegExpr('^auto_increment$', ExtraText.ToLower) then begin
+      Col.DefaultType := cdtAutoInc;
+      Col.DefaultText := 'AUTO_INCREMENT';
+    end else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
+      Col.DefaultType := cdtNothing;
+    end else if DefText.StartsWith('''') then begin
+      Col.DefaultType := cdtText;
+      Col.DefaultText := ExtractLiteral(DefText, '');
+    end else begin
+      Col.DefaultType := cdtExpression;
+      Col.DefaultText := DefText;
+    end;
+    Col.OnUpdateText := RegExprGetMatch('^on update (.*)$', ExtraText, 1);
+    if not Col.OnUpdateText.IsEmpty then begin
+      Col.OnUpdateType := cdtExpression;
+    end;
+
+    // PG has no column_comment:
+    Col.Comment := ColQuery.Col('COLUMN_COMMENT', True);
+    ColQuery.Next;
+  end;
+  ColQuery.Free;
+end;
+
+
+function TSQLiteConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+var
+  ColQuery: TDBQuery;
+  Col: TTableColumn;
+begin
+  // SQLite has no IS.COLUMNS
+  // Todo: include database name
+  // Todo: default values
+  Result := TTableColumnList.Create(True);
+  ColQuery := GetResults('SELECT * FROM pragma_table_info('+EscapeString(Table.Name)+')');
+  while not ColQuery.Eof do begin
+    Col := TTableColumn.Create(Self);
+    Result.Add(Col);
+    Col.Name := ColQuery.Col('name');
+    Col.OldName := Col.Name;
+    Col.ParseDatatype(ColQuery.Col('type'));
+    Col.AllowNull := ColQuery.Col('notnull') <> '1';
+    Col.DefaultType := cdtNothing;
+    Col.DefaultText := '';
+    Col.OnUpdateType := cdtNothing;
+    Col.OnUpdateText := '';
+    ColQuery.Next;
+  end;
+  ColQuery.Free;
+end;
+
+
+function TDBConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+var
+  ColTableIdx, ConTableIdx: Integer;
+  KeyQuery: TDBQuery;
+  NewKey: TTableKey;
+begin
+  // Generic: query table keys from IS.KEY_COLUMN_USAGE
+  Result := TTableKeyList.Create(True);
+  ColTableIdx := InformationSchemaObjects.IndexOf('KEY_COLUMN_USAGE');
+  ConTableIdx := InformationSchemaObjects.IndexOf('TABLE_CONSTRAINTS');
+  KeyQuery := GetResults('SELECT * FROM '+
+    QuoteIdent('information_schema')+'.'+QuoteIdent(InformationSchemaObjects[ColTableIdx])+' AS col'+
+    ', '+QuoteIdent('information_schema')+'.'+QuoteIdent(InformationSchemaObjects[ConTableIdx])+' AS con'+
+    ' WHERE col.TABLE_SCHEMA='+EscapeString(Database)+
+    ' AND col.TABLE_NAME='+EscapeString(Table.Name)+
+    ' AND col.TABLE_SCHEMA=con.TABLE_SCHEMA'+
+    ' AND col.TABLE_NAME=con.TABLE_NAME'+
+    ' AND col.CONSTRAINT_NAME=con.CONSTRAINT_NAME'
+    );
+  NewKey := nil;
+  while not KeyQuery.Eof do begin
+    if (not KeyQuery.ColExists('REFERENCED_TABLE_NAME'))
+      or KeyQuery.Col('REFERENCED_TABLE_NAME').IsEmpty then begin
+      if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('CONSTRAINT_NAME')) then begin
+        NewKey := TTableKey.Create(Self);
+        Result.Add(NewKey);
+        NewKey.Name := KeyQuery.Col('CONSTRAINT_NAME');
+        NewKey.OldName := NewKey.Name;
+        if KeyQuery.Col('CONSTRAINT_TYPE').ToLower.StartsWith('primary') then
+          NewKey.IndexType := 'PRIMARY'
+        else
+          NewKey.IndexType := KeyQuery.Col('CONSTRAINT_TYPE');
+        NewKey.OldIndexType := NewKey.IndexType;
+      end;
+      NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
+      NewKey.SubParts.Add('');
+    end;
+    KeyQuery.Next;
+  end;
+end;
+
+
+function TMySQLConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+var
+  KeyQuery: TDBQuery;
+  NewKey: TTableKey;
+begin
+  Result := TTableKeyList.Create(True);
+  KeyQuery := GetResults('SHOW INDEXES FROM '+QuoteIdent(Table.Name)+' FROM '+QuoteIdent(Table.Database));
+  NewKey := nil;
+  while not KeyQuery.Eof do begin
+    if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('Key_name')) then begin
+      NewKey := TTableKey.Create(Self);
+      Result.Add(NewKey);
+      NewKey.Name := KeyQuery.Col('Key_name');
+      NewKey.OldName := NewKey.Name;
+      if NewKey.Name.ToLower = 'primary' then
+        NewKey.IndexType := 'PRIMARY'
+      else if KeyQuery.Col('Non_unique') = '0' then
+        NewKey.IndexType := 'UNIQUE'
+      else
+        NewKey.IndexType := 'KEY';
+      // Todo: fulltext and spatial keys
+      NewKey.OldIndexType := NewKey.IndexType;
+      NewKey.Algorithm := KeyQuery.Col('Index_type');
+      NewKey.Comment := KeyQuery.Col('Index_comment');
+    end;
+    NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+    NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
+    KeyQuery.Next;
+  end;
+end;
+
+
+function TSQLiteConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+var
+  ColQuery, KeyQuery: TDBQuery;
+  NewKey: TTableKey;
+begin
+  Result := TTableKeyList.Create(True);
+  ColQuery := GetResults('SELECT * FROM pragma_table_info('+EscapeString(Table.Name)+') WHERE pk!=0 ORDER BY pk');
+  NewKey := nil;
+  while not ColQuery.Eof do begin
+    if not Assigned(NewKey) then begin
+      NewKey := TTableKey.Create(Self);
+      Result.Add(NewKey);
+      NewKey.Name := 'PRIMARY';
+      NewKey.OldName := NewKey.Name;
+      NewKey.IndexType := 'PRIMARY';
+      NewKey.OldIndexType := NewKey.IndexType;
+    end;
+    NewKey.Columns.Add(ColQuery.Col('name'));
+    NewKey.SubParts.Add('');
+    ColQuery.Next;
+  end;
+  ColQuery.Free;
+
+  KeyQuery := GetResults('SELECT * FROM pragma_index_list('+EscapeString(Table.Name)+') WHERE origin!='+EscapeString('pk'));
+  while not KeyQuery.Eof do begin
+    NewKey := TTableKey.Create(Self);
+    Result.Add(NewKey);
+    NewKey.Name := KeyQuery.Col('name');
+    NewKey.OldName := NewKey.Name;
+    NewKey.IndexType := IfThen(KeyQuery.Col('unique')='0', 'KEY', 'UNIQUE');
+    NewKey.OldIndexType := NewKey.IndexType;
+    ColQuery := GetResults('SELECT * FROM pragma_index_info('+EscapeString(NewKey.Name)+')');
+    while not ColQuery.Eof do begin
+      NewKey.Columns.Add(ColQuery.Col('name'));
+      NewKey.SubParts.Add('');
+      ColQuery.Next;
+    end;
+    ColQuery.Free;
+    KeyQuery.Next;
+  end;
+  KeyQuery.Free;
+end;
+
+
+function TDBConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+begin
+  // Generic: query table foreign keys from IS.?
+  Result := TForeignKeyList.Create(True);
+end;
+
+
 function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
 var
   Rows: String;
@@ -4755,6 +4985,8 @@ begin
   Ping(True);
   if not Assigned(FInformationSchemaObjects) then begin
     FInformationSchemaObjects := TStringList.Create;
+    // Need to find strings case insensitively:
+    FInformationSchemaObjects.CaseSensitive := False;
     // Gracefully return an empty list on old servers
     if AllDatabases.IndexOf('information_schema') > -1 then begin
       Objects := GetDBObjects('information_schema');
@@ -7347,15 +7579,17 @@ begin
     if Obj = nil then
       raise EDbError.Create(f_('Could not find table or view %s.%s. Please refresh database tree.', [DB, TableName]));
   end;
-  CreateCode := Connection.GetCreateCode(Obj);
-  FColumns := TTableColumnList.Create;
-  FKeys := TTableKeyList.Create;
-  FForeignKeys := TForeignKeyList.Create;
   case Obj.NodeType of
-    lntTable:
-      Connection.ParseTableStructure(CreateCode, FColumns, FKeys, FForeignKeys);
-    lntView:
+    lntTable: begin
+      FColumns := Obj.TableColumns;
+      FKeys := Obj.TableKeys;
+      FForeignKeys := Obj.TableForeignKeys;
+    end;
+    lntView: begin
+      CreateCode := Connection.GetCreateCode(Obj);
+      FColumns := TTableColumnList.Create;
       Connection.ParseViewStructure(CreateCode, Obj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
+    end;
   end;
 end;
 
@@ -8066,6 +8300,9 @@ begin
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
     FCreateCodeFetched := s.FCreateCodeFetched;
+    FTableColumns := s.FTableColumns;
+    FTableKeys := s.FTableKeys;
+    FTableForeignKeys := s.FTableForeignKeys;
   end else
     inherited;
 end;
@@ -8277,12 +8514,55 @@ begin
 end;
 
 
+function TDBObject.GetTableColumns: TTableColumnList;
+begin
+  // Return columns from table object
+  if not Assigned(FTableColumns) then begin
+    FTableColumns := Connection.GetTableColumns(Self);
+  end;
+  Result := FTableColumns;
+end;
+
+function TDBObject.GetTableKeys: TTableKeyList;
+begin
+  // Return keys from table object
+  if not Assigned(FTableKeys) then begin
+    FTableKeys := Connection.GetTableKeys(Self);
+  end;
+  Result := FTableKeys;
+end;
+
+function TDBObject.GetTableForeignKeys: TForeignKeyList;
+begin
+  // Return foreign keys from table object
+  if not Assigned(FTableForeignKeys) then begin
+    FTableForeignKeys := Connection.GetTableForeignKeys(Self);
+  end;
+  Result := FTableForeignKeys;
+end;
+
+
+
 { *** TTableColumn }
 
 constructor TTableColumn.Create(AOwner: TDBConnection);
 begin
   inherited Create;
   FConnection := AOwner;
+  Status := esUntouched;
+  LengthCustomized := False;
+  Unsigned := False;
+  ZeroFill := False;
+  Charset := '';
+  Collation := '';
+  Expression := '';
+  Virtuality := '';
+  AllowNull := True;
+  DefaultType := cdtNothing;
+  DefaultText := '';
+  OnUpdateType := cdtNothing;
+  OnUpdateText := '';
+  Comment := '';
 end;
 
 destructor TTableColumn.Destroy;
@@ -8389,6 +8669,33 @@ begin
   Result.Delimiter := ',';
   if DataType.Index in [dtEnum, dtSet] then
     Result.DelimitedText := LengthSet;
+end;
+
+
+procedure TTableColumn.ParseDatatype(Source: String);
+var
+  InLiteral: Boolean;
+  ParenthLeft, i: Integer;
+begin
+  DataType := Connection.GetDatatypeByName(Source, True);
+  // Length / Set
+  // Various datatypes, e.g. BLOBs, don't have any length property
+  InLiteral := False;
+  ParenthLeft := Pos('(', Source);
+  if ParenthLeft > 0 then begin
+    for i:=ParenthLeft+1 to Length(Source) do begin
+      if (Source[i] = ')') and (not InLiteral) then
+        break;
+      if Source[i] = '''' then
+        InLiteral := not InLiteral;
+    end;
+    LengthSet := Copy(Source, ParenthLeft+1, i-2);
+    Unsigned :=  ExecRegExpr('\sunsigned[\s\w]*$', Source.ToLower);
+    ZeroFill := ExecRegExpr('\szerofill[\s\w]*$', Source.ToLower);
+  end else begin
+    LengthSet := '';
+    Unsigned := False;
+  end;
 end;
 
 

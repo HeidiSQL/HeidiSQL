@@ -353,9 +353,8 @@ begin
   // Populate combobox with columns from selected table
   ListColumns.Clear;
   if comboTables.ItemIndex > -1 then begin
-    Columns := TTableColumnList.Create(True);
     Selected := FConnection.FindObject(comboDBs.Text, comboTables.Text);
-    FConnection.ParseTableStructure(Selected.CreateCode, Columns, nil, nil);
+    Columns := Selected.TableColumns;
     Node := nil;
     for Col in Columns do begin
       ColInfo := TColInfo.Create;

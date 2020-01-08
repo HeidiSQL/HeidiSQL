@@ -72,9 +72,6 @@ begin
   Height := AppSettings.ReadInt(asCopyTableWindowHeight);
   MainForm.SetupSynEditors;
   FixVT(TreeElements);
-  FColumns := TTableColumnList.Create;
-  FKeys := TTableKeyList.Create;
-  FForeignKeys := TForeignKeyList.Create;
 end;
 
 
@@ -129,12 +126,16 @@ begin
     comboDatabase.ItemIndex := 0;
 
   // Fetch columns and key structures from table or view
-  FColumns.Clear;
-  FKeys.Clear;
-  FForeignKeys.Clear;
   case FDBObj.NodeType of
-    lntTable: FConnection.ParseTableStructure(FDBObj.CreateCode, FColumns, FKeys, FForeignKeys);
-    lntView: FConnection.ParseViewStructure(FDBObj.CreateCode, FDBObj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
+    lntTable: begin
+      FColumns := FDBObj.TableColumns;
+      FKeys := FDBObj.TableKeys;
+      FForeignKeys := FDBObj.TableForeignKeys;
+    end;
+    lntView: begin
+      FColumns := TTableColumnList.Create;
+      FConnection.ParseViewStructure(FDBObj.CreateCode, FDBObj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
+    end
     else raise Exception.CreateFmt(_('Neither table nor view: %s'), [FDBObj.Name]);
   end;
 

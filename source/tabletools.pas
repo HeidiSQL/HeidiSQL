@@ -875,7 +875,7 @@ begin
 
   Columns := TTableColumnList.Create(True);
   case DBObj.NodeType of
-    lntTable: DBObj.Connection.ParseTableStructure(DBObj.CreateCode, Columns, nil, nil);
+    lntTable: Columns := DBObj.TableColumns;
     lntView: DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
     lntProcedure, lntFunction: ;
     // TODO: Triggers + Events

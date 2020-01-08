@@ -263,7 +263,7 @@ begin
     for Obj in DBObjects do begin
       if (Obj.Database=comboDatabase.Text) and (Obj.Name=comboTable.Text) then begin
         case Obj.NodeType of
-          lntTable: Obj.Connection.ParseTableStructure(Obj.CreateCode, Columns, nil, nil);
+          lntTable: Columns := Obj.TableColumns;
           lntView: Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj, Columns, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
         end;
       end;

@@ -332,7 +332,9 @@ begin
     else
       SynMemoPartitions.Clear;
 
-    DBObject.Connection.ParseTableStructure(DBObject.CreateCode, FColumns, FKeys, FForeignKeys);
+    FColumns := DBObject.TableColumns;
+    FKeys := DBObject.TableKeys;
+    FForeignKeys := DBObject.TableForeignKeys;
   end;
   listColumns.RootNodeCount := FColumns.Count;
   DeInitializeVTNodes(listColumns);
@@ -2374,7 +2376,7 @@ var
   Key, OtherKey: TForeignKey;
   i, j, k: Integer;
   NameInUse: Boolean;
-  RefCreateCode, RefDatabase, RefTable: String;
+  RefDatabase, RefTable: String;
   KeyColumnsSQLCode, RefColumnsSQLCode: String;
   Err: String;
   RefColumns: TTableColumnList;
@@ -2429,9 +2431,7 @@ begin
         RefObj.Name := RefTable;
         RefObj.Database := RefDatabase;
         RefObj.NodeType := lntTable;
-        RefCreateCode := DBObject.Connection.GetCreateCode(RefObj);
-        RefColumns := TTableColumnList.Create(True);
-        DBObject.Connection.ParseTableStructure(RefCreateCode, RefColumns, nil, nil);
+        RefColumns := RefObj.TableColumns;
         TypesMatch := True;
         KeyColumnsSQLCode := '';
         RefColumnsSQLCode := '';
