@@ -524,6 +524,7 @@ type
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function MaxAllowedPacket: Int64; override;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
   end;
 
@@ -4728,6 +4729,60 @@ begin
   end;
   ColQuery.Free;
 end;
+
+
+function TMySQLConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+var
+  TableIdx: Integer;
+  ColQuery: TDBQuery;
+  Col: TTableColumn;
+  DefText, ExtraText: String;
+begin
+  TableIdx := InformationSchemaObjects.IndexOf('columns');
+  if TableIdx > -1 then begin
+    Result := inherited;
+    Exit;
+  end;
+  // Fallback for old MySQL pre-5.0 servers
+  Result := TTableColumnList.Create(True);
+  ColQuery := GetResults('SHOW FULL COLUMNS FROM '+QuoteIdent(Table.Database)+'.'+QuoteIdent(Table.Name));
+  while not ColQuery.Eof do begin
+    Col := TTableColumn.Create(Self);
+    Result.Add(Col);
+    Col.Name := ColQuery.Col(0);
+    Col.OldName := Col.Name;
+    Col.ParseDatatype(ColQuery.Col('Type'));
+    Col.Collation := ColQuery.Col('Collation');
+    if Col.Collation.ToLower = 'null' then
+      Col.Collation := '';
+    Col.AllowNull := ColQuery.Col('Null').ToLower = 'yes';
+
+    DefText := ColQuery.Col('Default');
+    ExtraText := ColQuery.Col('Extra');
+    Col.OnUpdateType := cdtNothing;
+    if ExecRegExpr('^auto_increment$', ExtraText.ToLower) then begin
+      Col.DefaultType := cdtAutoInc;
+      Col.DefaultText := 'AUTO_INCREMENT';
+    end else if ColQuery.IsNull('Default') then begin
+      Col.DefaultType := cdtNull;
+    end else if Col.DataType.Category in [dtcText, dtcBinary, dtcTemporal, dtcOther] then begin
+      Col.DefaultType := cdtText;
+      Col.DefaultText := DefText;
+    end else begin
+      Col.DefaultType := cdtExpression;
+      Col.DefaultText := DefText;
+    end;
+    Col.OnUpdateText := RegExprGetMatch('^on update (.*)$', ExtraText, 1);
+    if not Col.OnUpdateText.IsEmpty then begin
+      Col.OnUpdateType := cdtExpression;
+    end;
+
+    Col.Comment := ColQuery.Col('Comment');
+    ColQuery.Next;
+  end;
+  ColQuery.Free;
+end;
+
 
 
 function TSQLiteConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
