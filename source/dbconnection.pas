@@ -4822,7 +4822,7 @@ begin
       // Todo: fulltext and spatial keys
       NewKey.OldIndexType := NewKey.IndexType;
       NewKey.Algorithm := KeyQuery.Col('Index_type');
-      NewKey.Comment := KeyQuery.Col('Index_comment');
+      NewKey.Comment := KeyQuery.Col('Index_comment', True);
     end;
     NewKey.Columns.Add(KeyQuery.Col('Column_name'));
     NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
