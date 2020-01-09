@@ -553,6 +553,7 @@ type
       function ConnectionInfo: TStringList; override;
       function GetLastResults: TDBQueryList; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; override;
   end;
 
   TPGRawResults = Array of PPGresult;
@@ -4784,6 +4785,38 @@ begin
 end;
 
 
+function TAdoDBConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+var
+  Comments: TDBQuery;
+  TableCol: TTableColumn;
+begin
+  Result := inherited;
+  // Comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
+  try
+    Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
+      'FROM sys.extended_properties AS prop '+
+      'INNER JOIN sys.all_objects o ON prop.major_id = o.object_id '+
+      'INNER JOIN sys.schemas s ON o.schema_id = s.schema_id '+
+      'INNER JOIN sys.columns AS c ON prop.major_id = c.object_id AND prop.minor_id = c.column_id '+
+      'WHERE '+
+      '  prop.name='+EscapeString('MS_Description')+
+      '  AND s.name='+EscapeString(Table.Schema)+
+      '  AND o.name='+EscapeString(Table.Name)
+      );
+    while not Comments.Eof do begin
+      for TableCol in Result do begin
+        if TableCol.Name = Comments.Col('column') then begin
+          TableCol.Comment := Comments.Col('comment');
+		  Break;
+        end;
+      end;
+      Comments.Next;
+    end;
+  except // Fails on old servers
+    on E:EDbError do;
+  end;
+
+end;
 
 function TSQLiteConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
 var
