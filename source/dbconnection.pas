@@ -584,6 +584,7 @@ type
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; override;
   end;
 
   TSQLiteConnection = class;
@@ -3217,11 +3218,15 @@ end;
 
 function TDBConnection.GetCreateCode(Obj: TDBObject): String;
 var
-  Cols, Keys, ProcDetails, Comments: TDBQuery;
-  ConstraintName, MaxLen, DataType: String;
-  ColNames, ArgNames, ArgTypes, Arguments: TStringList;
+  ProcDetails: TDBQuery;
+  DataType: String;
+  ArgNames, ArgTypes, Arguments: TStringList;
   Rows: TStringList;
   i: Integer;
+  TableCols: TTableColumnList;
+  TableCol: TTableColumn;
+  TableKeys: TTableKeyList;
+  TableKey: TTableKey;
 
   // Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
   // TODO: Does not work on MSSQL 2000
@@ -3237,181 +3242,15 @@ begin
   case Obj.NodeType of
     lntTable: begin
       Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
-      Comments := nil;
+      TableCols := GetTableColumns(Obj);
+      for TableCol in TableCols do begin
+        Result := Result + CRLF + #9 + TableCol.SQLCode + ',';
+      end;
 
-      // Retrieve column details from IS
-      case Parameters.NetTypeGroup of
-        ngPgSQL: begin
-          Cols := GetResults('SELECT '+
-            '  DISTINCT a.attname AS column_name, '+
-            '  a.attnum, '+
-            '  a.atttypid, '+ // Data type oid. See GetDatatypeByNativeType()
-            '  FORMAT_TYPE(a.atttypid, a.atttypmod) AS data_type, '+
-            '  CASE a.attnotnull WHEN false THEN '+EscapeString('YES')+' ELSE '+EscapeString('NO')+' END AS IS_NULLABLE, '+
-            '  com.description AS column_comment, '+
-            '  pg_get_expr(def.adbin, def.adrelid) AS column_default, '+
-            '  NULL AS character_maximum_length '+
-            'FROM pg_attribute AS a '+
-            'JOIN pg_class AS pgc ON pgc.oid = a.attrelid '+
-            'LEFT JOIN pg_description AS com ON (pgc.oid = com.objoid AND a.attnum = com.objsubid) '+
-            'LEFT JOIN pg_attrdef AS def ON (a.attrelid = def.adrelid AND a.attnum = def.adnum) '+
-            'WHERE '+
-            '  a.attnum > 0 '+
-            '  AND pgc.oid = a.attrelid '+
-            '  AND pg_table_is_visible(pgc.oid) '+
-            '  AND NOT a.attisdropped '+
-            '  AND pgc.relname = '+EscapeString(Obj.Name)+' '+
-            'ORDER BY a.attnum'
-          );
-        end;
-        else begin
-          Cols := GetResults('SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE '+
-            SchemaClauseIS('TABLE') +
-            ' AND TABLE_NAME='+EscapeString(Obj.Name)
-            );
-          // Comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
-          try
-            Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
-              'FROM sys.extended_properties AS prop '+
-              'INNER JOIN sys.all_objects o ON prop.major_id = o.object_id '+
-              'INNER JOIN sys.schemas s ON o.schema_id = s.schema_id '+
-              'INNER JOIN sys.columns AS c ON prop.major_id = c.object_id AND prop.minor_id = c.column_id '+
-              'WHERE '+
-              '  prop.name='+EscapeString('MS_Description')+
-              '  AND s.name='+EscapeString(Obj.Schema)+
-              '  AND o.name='+EscapeString(Obj.Name)
-              );
-          except // Fails on old servers
-            on E:EDbError do;
-          end;
-        end;
+      TableKeys := GetTableKeys(Obj);
+      for TableKey in TableKeys do begin
+        Result := Result + CRLF + #9 + TableKey.SQLCode + ',';
       end;
-      while not Cols.Eof do begin
-        if Cols.ColExists('atttypid') then
-          Log(lcDebug, 'Column "'+Cols.Col('COLUMN_NAME')+'" => oid #'+Cols.Col('atttypid'));
-        DataType := Cols.Col('DATA_TYPE');
-        DataType := DataType.ToUpperInvariant.DeQuotedString('"');
-        Result := Result + CRLF + #9 + QuoteIdent(Cols.Col('COLUMN_NAME')) + ' ' + DataType;
-        MaxLen := '';
-        if not Cols.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
-          MaxLen := Cols.Col('CHARACTER_MAXIMUM_LENGTH');
-          if MaxLen = '-1' then
-            MaxLen := 'max';
-        end else if not Cols.IsNull('NUMERIC_PRECISION') then begin
-          MaxLen := Cols.Col('NUMERIC_PRECISION');
-          if not Cols.IsNull('NUMERIC_SCALE') then
-            MaxLen := MaxLen + ',' + Cols.Col('NUMERIC_SCALE');
-        end else if not Cols.IsNull('DATETIME_PRECISION') then begin
-          MaxLen := Cols.Col('DATETIME_PRECISION');
-        end;
-        if not MaxLen.IsEmpty then
-          Result := Result + '(' + MaxLen + ')';
-        if Cols.Col('IS_NULLABLE') = 'NO' then
-          Result := Result + ' NOT';
-        Result := Result + ' NULL';
-        if Cols.IsNull('COLUMN_DEFAULT') then begin
-          // Check whether column can be null. Otherwise, leave away DEFAULT clause.
-          if Cols.Col('IS_NULLABLE') <> 'NO' then
-            Result := Result + ' DEFAULT NULL'
-        end else begin
-          Result := Result + ' DEFAULT ' + Cols.Col('COLUMN_DEFAULT');
-        end;
-        // The following is wrong syntax in PostgreSQL, but helps ParseTableStructure to find the comment
-        if Cols.ColExists('column_comment') then
-          Result := Result + ' COMMENT ' + EscapeString(Cols.Col('column_comment'))
-        else if Comments <> nil then begin
-          // Find column comment from separate result
-          Comments.First;
-          while not Comments.Eof do begin
-            if Comments.Col('column')=Cols.Col('COLUMN_NAME') then begin
-              Result := Result + ' COMMENT ' + EscapeString(Comments.Col('comment'));
-              Break;
-            end;
-            Comments.Next;
-          end;
-        end;
-
-        Result := Result + ',';
-        Cols.Next;
-      end;
-      Cols.Free;
-
-      // Retrieve primary and unique key details from IS
-      // For PostgreSQL there seem to be privilege problems in IS.
-      // See http://www.heidisql.com/forum.php?t=16213
-      case Parameters.NetTypeGroup of
-        ngPgSQL: begin
-          if ServerVersionInt >= 90000 then begin
-            Keys := GetResults('WITH ndx_list AS ('+
-              '    SELECT pg_index.indexrelid, pg_class.oid'+
-              '    FROM pg_index, pg_class'+
-              '    WHERE pg_class.relname = '+EscapeString(Obj.Name)+
-              '    AND pg_class.oid = pg_index.indrelid'+
-              '  ),'+
-              '  ndx_cols AS ('+
-              '    SELECT pg_class.relname, UNNEST(i.indkey) AS col_ndx,'+
-              '    CASE i.indisprimary WHEN true THEN '+EscapeString('PRIMARY')+' ELSE CASE i.indisunique WHEN true THEN '+EscapeString('UNIQUE')+' ELSE '+EscapeString('KEY')+' END END AS CONSTRAINT_TYPE,'+
-              '    pg_class.oid'+
-              '    FROM pg_class'+
-              '    JOIN pg_index i ON (pg_class.oid = i.indexrelid)'+
-              '    JOIN ndx_list ON (pg_class.oid = ndx_list.indexrelid)'+
-              '  )'+
-              'SELECT ndx_cols.relname AS CONSTRAINT_NAME, ndx_cols.CONSTRAINT_TYPE, a.attname AS COLUMN_NAME '+
-              'FROM pg_attribute a '+
-              'JOIN ndx_cols ON (a.attnum = ndx_cols.col_ndx) '+
-              'JOIN ndx_list ON (ndx_list.oid = a.attrelid AND ndx_list.indexrelid = ndx_cols.oid)'
-              );
-          end else begin
-            Keys := GetResults('SELECT '+QuoteIdent('c')+'.'+QuoteIdent('conname')+' AS '+QuoteIdent('CONSTRAINT_NAME')+', '+
-              'CASE '+QuoteIdent('c')+'.'+QuoteIdent('contype')+' '+
-              'WHEN '+EscapeString('c')+' THEN '+EscapeString('CHECK')+' '+
-              'WHEN '+EscapeString('f')+' THEN '+EscapeString('FOREIGN KEY')+' '+
-              'WHEN '+EscapeString('p')+' THEN '+EscapeString('PRIMARY KEY')+' '+
-              'WHEN '+EscapeString('u')+' THEN '+EscapeString('UNIQUE')+' '+
-              'END AS '+QuoteIdent('CONSTRAINT_TYPE')+', '+
-              QuoteIdent('a')+'.'+QuoteIdent('attname')+' AS '+QuoteIdent('COLUMN_NAME')+' '+
-              'FROM '+QuoteIdent('pg_constraint')+' AS '+QuoteIdent('c')+' '+
-              'LEFT JOIN '+QuoteIdent('pg_class')+' '+QuoteIdent('t')+' ON '+QuoteIdent('c')+'.'+QuoteIdent('conrelid')+'='+QuoteIdent('t')+'.'+QuoteIdent('oid')+' '+
-              'LEFT JOIN '+QuoteIdent('pg_attribute')+' '+QuoteIdent('a')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('oid')+'='+QuoteIdent('a')+'.'+QuoteIdent('attrelid')+' '+
-              'LEFT JOIN '+QuoteIdent('pg_namespace')+' '+QuoteIdent('n')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('relnamespace')+'='+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
-              'WHERE c.contype IN ('+EscapeString('p')+', '+EscapeString('u')+') '+
-              'AND '+QuoteIdent('a')+'.'+QuoteIdent('attnum')+'=ANY('+QuoteIdent('c')+'.'+QuoteIdent('conkey')+') '+
-              'AND '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Schema)+' '+
-              'AND '+QuoteIdent('t')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)+' '+
-              'ORDER BY '+QuoteIdent('a')+'.'+QuoteIdent('attnum')
-              );
-          end;
-        end;
-        else begin
-          Keys := GetResults('SELECT C.CONSTRAINT_NAME, C.CONSTRAINT_TYPE, K.COLUMN_NAME'+
-            ' FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C'+
-            ' INNER JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON'+
-            '   C.CONSTRAINT_NAME = K.CONSTRAINT_NAME'+
-            '   AND K.TABLE_NAME='+EscapeString(Obj.Name)+
-            '   AND '+SchemaClauseIS('K.TABLE')+
-            ' WHERE C.CONSTRAINT_TYPE IN ('+EscapeString('PRIMARY KEY')+', '+EscapeString('UNIQUE')+')'+
-            ' ORDER BY K.ORDINAL_POSITION');
-        end;
-      end;
-      ConstraintName := '';
-      ColNames := TStringList.Create;
-      while not Keys.Eof do begin
-        if Keys.Col('CONSTRAINT_NAME') <> ConstraintName then begin
-          if ConstraintName <> '' then
-            Result := Result + ' (' + ImplodeStr(',', ColNames) + '),';
-          ConstraintName := Keys.Col('CONSTRAINT_NAME');
-          Result := Result + CRLF + #9 + Keys.Col('CONSTRAINT_TYPE');
-          if Pos('KEY', Keys.Col('CONSTRAINT_TYPE')) = 0 then
-            Result := Result + ' KEY';
-          ColNames.Clear;
-        end;
-        ColNames.Add(QuoteIdent(Keys.Col('COLUMN_NAME')));
-        Keys.Next;
-      end;
-      if ConstraintName <> '' then
-        Result := Result + ' (' + ImplodeStr(',', ColNames) + '),';
-      Keys.Free;
-      ColNames.Free;
 
       Delete(Result, Length(Result), 1);
       Result := Result + CRLF + ')';
@@ -4916,6 +4755,74 @@ begin
     NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
     KeyQuery.Next;
   end;
+end;
+
+
+function TPGConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+var
+  KeyQuery: TDBQuery;
+  NewKey: TTableKey;
+begin
+  Result := TTableKeyList.Create(True);
+  // For PostgreSQL there seem to be privilege problems in IS.
+  // See http://www.heidisql.com/forum.php?t=16213
+  if ServerVersionInt >= 90000 then begin
+    KeyQuery := GetResults('WITH ndx_list AS ('+
+      '    SELECT pg_index.indexrelid, pg_class.oid'+
+      '    FROM pg_index, pg_class'+
+      '    WHERE pg_class.relname = '+EscapeString(Table.Name)+
+      '    AND pg_class.oid = pg_index.indrelid'+
+      '  ),'+
+      '  ndx_cols AS ('+
+      '    SELECT pg_class.relname, UNNEST(i.indkey) AS col_ndx,'+
+      '    CASE i.indisprimary WHEN true THEN '+EscapeString('PRIMARY')+' ELSE CASE i.indisunique WHEN true THEN '+EscapeString('UNIQUE')+' ELSE '+EscapeString('KEY')+' END END AS CONSTRAINT_TYPE,'+
+      '    pg_class.oid'+
+      '    FROM pg_class'+
+      '    JOIN pg_index i ON (pg_class.oid = i.indexrelid)'+
+      '    JOIN ndx_list ON (pg_class.oid = ndx_list.indexrelid)'+
+      '  )'+
+      'SELECT ndx_cols.relname AS CONSTRAINT_NAME, ndx_cols.CONSTRAINT_TYPE, a.attname AS COLUMN_NAME '+
+      'FROM pg_attribute a '+
+      'JOIN ndx_cols ON (a.attnum = ndx_cols.col_ndx) '+
+      'JOIN ndx_list ON (ndx_list.oid = a.attrelid AND ndx_list.indexrelid = ndx_cols.oid)'
+      );
+  end else begin
+    KeyQuery := GetResults('SELECT '+QuoteIdent('c')+'.'+QuoteIdent('conname')+' AS '+QuoteIdent('CONSTRAINT_NAME')+', '+
+      'CASE '+QuoteIdent('c')+'.'+QuoteIdent('contype')+' '+
+      'WHEN '+EscapeString('c')+' THEN '+EscapeString('CHECK')+' '+
+      'WHEN '+EscapeString('f')+' THEN '+EscapeString('FOREIGN KEY')+' '+
+      'WHEN '+EscapeString('p')+' THEN '+EscapeString('PRIMARY KEY')+' '+
+      'WHEN '+EscapeString('u')+' THEN '+EscapeString('UNIQUE')+' '+
+      'END AS '+QuoteIdent('CONSTRAINT_TYPE')+', '+
+      QuoteIdent('a')+'.'+QuoteIdent('attname')+' AS '+QuoteIdent('COLUMN_NAME')+' '+
+      'FROM '+QuoteIdent('pg_constraint')+' AS '+QuoteIdent('c')+' '+
+      'LEFT JOIN '+QuoteIdent('pg_class')+' '+QuoteIdent('t')+' ON '+QuoteIdent('c')+'.'+QuoteIdent('conrelid')+'='+QuoteIdent('t')+'.'+QuoteIdent('oid')+' '+
+      'LEFT JOIN '+QuoteIdent('pg_attribute')+' '+QuoteIdent('a')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('oid')+'='+QuoteIdent('a')+'.'+QuoteIdent('attrelid')+' '+
+      'LEFT JOIN '+QuoteIdent('pg_namespace')+' '+QuoteIdent('n')+' ON '+QuoteIdent('t')+'.'+QuoteIdent('relnamespace')+'='+QuoteIdent('n')+'.'+QuoteIdent('oid')+' '+
+      'WHERE c.contype IN ('+EscapeString('p')+', '+EscapeString('u')+') '+
+      'AND '+QuoteIdent('a')+'.'+QuoteIdent('attnum')+'=ANY('+QuoteIdent('c')+'.'+QuoteIdent('conkey')+') '+
+      'AND '+QuoteIdent('n')+'.'+QuoteIdent('nspname')+'='+EscapeString(Table.Schema)+' '+
+      'AND '+QuoteIdent('t')+'.'+QuoteIdent('relname')+'='+EscapeString(Table.Name)+' '+
+      'ORDER BY '+QuoteIdent('a')+'.'+QuoteIdent('attnum')
+      );
+  end;
+  NewKey := nil;
+  while not KeyQuery.Eof do begin
+    if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('CONSTRAINT_NAME')) then begin
+      NewKey := TTableKey.Create(Self);
+      Result.Add(NewKey);
+      NewKey.Name := KeyQuery.Col('CONSTRAINT_NAME');
+      NewKey.OldName := NewKey.Name;
+      NewKey.IndexType := KeyQuery.Col('CONSTRAINT_TYPE');
+      if NewKey.IndexType.ToLower.EndsWith(' key') then
+        Delete(NewKey.IndexType, Length(NewKey.IndexType)-4, 4);
+      NewKey.OldIndexType := NewKey.IndexType;
+    end;
+    NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
+    NewKey.SubParts.Add('');
+    KeyQuery.Next;
+  end;
+  KeyQuery.Free;
 end;
 
 
