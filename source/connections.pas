@@ -1359,7 +1359,7 @@ begin
   Selector := TOpenDialog.Create(Self);
   Selector.FileName := editStartupScript.Text;
   if Edit = editHost then
-    Selector.Filter := 'SQLite databases (*.sqlite3;*.db;*.s3db)|*.sqlite3;*.db;*.s3db|'+_('All files')+' (*.*)|*.*'
+    Selector.Filter := 'SQLite databases (*.sqlite3;*.sqlite;*.db;*.s3db)|*.sqlite3;*.sqlite;*.db;*.s3db|'+_('All files')+' (*.*)|*.*'
   else if Edit = editStartupScript then
     Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPlinkExe then
