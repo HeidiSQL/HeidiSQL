@@ -3117,24 +3117,24 @@ end;
 
 function TMySQLConnection.GetCreateCode(Obj: TDBObject): String;
 var
-  Column: Integer;
-  ObjType: String;
-  TmpObj: TDBObject;
+  ColIdx: Integer;
 begin
-  TmpObj := TDBObject.Create(Self);
-  TmpObj.NodeType := Obj.NodeType;
-  ObjType := TmpObj.ObjType;
+  if Obj.NodeType = lntTable then begin
+    // Use our own baked CREATE TABLE code
+    Result := inherited;
+    Exit;
+  end;
+  if Obj.NodeType = lntView then begin
+    // Use our own baked CREATE VIEW code
+    Result := GetCreateViewCode(Obj.Database, Obj.Name);
+    Exit;
+  end;
   case Obj.NodeType of
-    lntTable, lntView: Column := 1;
-    lntFunction, lntProcedure, lntTrigger: Column := 2;
-    lntEvent: Column := 3;
+    lntFunction, lntProcedure, lntTrigger: ColIdx := 2;
+    lntEvent: ColIdx := 3;
     else raise EDbError.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
   end;
-  if Obj.NodeType = lntView then
-    Result := GetCreateViewCode(Obj.Database, Obj.Name)
-  else
-    Result := GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), Column);
-  TmpObj.Free;
+  Result := GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), ColIdx);
 end;
 
 
@@ -3227,6 +3227,8 @@ var
   TableCol: TTableColumn;
   TableKeys: TTableKeyList;
   TableKey: TTableKey;
+  TableForeignKeys: TForeignKeyList;
+  TableForeignKey: TForeignKey;
 
   // Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
   // TODO: Does not work on MSSQL 2000
@@ -3246,11 +3248,19 @@ begin
       for TableCol in TableCols do begin
         Result := Result + CRLF + #9 + TableCol.SQLCode + ',';
       end;
+      TableCols.Free;
 
       TableKeys := GetTableKeys(Obj);
       for TableKey in TableKeys do begin
         Result := Result + CRLF + #9 + TableKey.SQLCode + ',';
       end;
+      TableKeys.Free;
+
+      TableForeignKeys := GetTableForeignKeys(Obj);
+      for TableForeignKey in TableForeignKeys do begin
+        Result := Result + CRLF + #9 + TableForeignKey.SQLCode(True) + ',';
+      end;
+      TableForeignKeys.Free;
 
       Delete(Result, Length(Result), 1);
       Result := Result + CRLF + ')';
@@ -4871,9 +4881,44 @@ end;
 
 
 function TDBConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+var
+  ForeignQuery: TDBQuery;
+  ForeignKey: TForeignKey;
 begin
   // Generic: query table foreign keys from IS.?
   Result := TForeignKeyList.Create(True);
+  try
+    ForeignQuery := GetResults('SELECT k.*, r.UPDATE_RULE, r.DELETE_RULE'+
+      ' FROM information_schema.KEY_COLUMN_USAGE AS k, information_schema.REFERENTIAL_CONSTRAINTS AS r'+
+      ' WHERE'+
+      '   k.CONSTRAINT_SCHEMA='+EscapeString(Table.Database)+
+      '   AND k.TABLE_NAME='+EscapeString(Table.Name)+
+      '   AND k.REFERENCED_TABLE_NAME IS NOT NULL'+
+      '   AND k.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA'+
+      '   AND k.TABLE_NAME=r.TABLE_NAME'+
+      '   AND k.CONSTRAINT_NAME=r.CONSTRAINT_NAME'
+      );
+    ForeignKey := nil;
+    while not ForeignQuery.Eof do begin
+      if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('CONSTRAINT_NAME')) then begin
+        ForeignKey := TForeignKey.Create(Self);
+        Result.Add(ForeignKey);
+        ForeignKey.KeyName := ForeignQuery.Col('CONSTRAINT_NAME');
+        ForeignKey.OldKeyName := ForeignKey.KeyName;
+        ForeignKey.ReferenceTable := ForeignQuery.Col('REFERENCED_TABLE_SCHEMA') +
+          '.' + ForeignQuery.Col('REFERENCED_TABLE_NAME');
+        ForeignKey.OnUpdate := ForeignQuery.Col('UPDATE_RULE');
+        ForeignKey.OnDelete := ForeignQuery.Col('DELETE_RULE');
+      end;
+      ForeignKey.Columns.Add(ForeignQuery.Col('COLUMN_NAME'));
+      ForeignKey.ForeignColumns.Add(ForeignQuery.Col('REFERENCED_COLUMN_NAME'));
+      ForeignQuery.Next;
+    end;
+    ForeignQuery.Free;
+  except
+    // Silently ignore non existent IS tables and/or columns
+    on E:EDbError do;
+  end;
 end;
 
 
