@@ -9532,7 +9532,7 @@ begin
       idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
       if idx > -1 then try
         // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-        RefDb := ForeignKey.ReferenceTable.Substring(1, Pos('.', ForeignKey.ReferenceTable));
+        RefDb := ForeignKey.ReferenceTable.Substring(0, Pos('.', ForeignKey.ReferenceTable)-1);
         if not RefDb.IsEmpty then begin
           RefTable := ForeignKey.ReferenceTable.Substring(Length(RefDb)+1);
         end else begin
@@ -9553,7 +9553,7 @@ begin
 
         KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
         SQL := 'SELECT '+KeyCol;
-        if TextCol <> '' then SQL := SQL + ', LEFT(' + Conn.QuoteIdent(TextCol) + ', 256)';
+        if TextCol <> '' then SQL := SQL + ', ' + Format(Conn.GetSQLSpecifity(spFuncLeft), [Conn.QuoteIdent(TextCol), 256]);
         SQL := SQL + ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
         if TextCol <> '' then SQL := SQL + Conn.QuoteIdent(TextCol) else SQL := SQL + KeyCol;
         SQL := SQL + ' LIMIT ' + ForeignItemsLimit.ToString;

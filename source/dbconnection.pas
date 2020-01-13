@@ -314,7 +314,7 @@ type
     spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
-    spFuncLength, spFuncCeil,
+    spFuncLength, spFuncCeil, spFuncLeft,
     spLockedTables);
 
   TDBConnection = class(TComponent)
@@ -2470,6 +2470,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngMSSQL: begin
@@ -2487,6 +2488,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LEN';
       FSQLSpecifities[spFuncCeil] := 'CEILING';
+      FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngPgSQL: begin
@@ -2504,6 +2506,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'SELECT pg_cancel_backend(%d)';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngSQLite: begin
@@ -2521,6 +2524,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
       FSQLSpecifities[spLockedTables] := '';
     end;
 
