@@ -6003,11 +6003,11 @@ var
     DBObjects := Conn.GetDBObjects(dbname);
     for Obj in DBObjects do begin
       if Obj.Name = tblname then begin
+        Columns := TTableColumnList.Create(True);
         case Obj.NodeType of
           lntTable:
             Columns := Obj.TableColumns;
           lntView: begin
-            Columns := TTableColumnList.Create(True);
             Conn.ParseViewStructure(Obj.CreateCode, Obj, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
           end;
         end;
