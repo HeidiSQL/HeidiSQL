@@ -4561,7 +4561,7 @@ begin
       Col.DefaultText := 'AUTO_INCREMENT';
     end else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
       Col.DefaultType := cdtNothing;
-    end else if DefText.StartsWith('''') then begin
+    end else if DefText.StartsWith('''') or DefText.IsEmpty then begin
       Col.DefaultType := cdtText;
       Col.DefaultText := ExtractLiteral(DefText, '');
     end else begin
@@ -4593,7 +4593,7 @@ begin
     Result := inherited;
     Exit;
   end;
-  // Fallback for old MySQL pre-5.0 servers
+  // !!Fallback!! for old MySQL pre-5.0 servers
   Result := TTableColumnList.Create(True);
   ColQuery := GetResults('SHOW FULL COLUMNS FROM '+QuoteIdent(Table.Database)+'.'+QuoteIdent(Table.Name));
   while not ColQuery.Eof do begin
@@ -8623,7 +8623,6 @@ end;
 function TTableColumn.SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
 var
   IsVirtual: Boolean;
-  Text: String;
 
   function InParts(Part: TColumnPart): Boolean;
   begin
@@ -8658,10 +8657,9 @@ begin
 
   if InParts(cpDefault) then begin
     if DefaultType <> cdtNothing then begin
-      Text := esc(DefaultText);
       case DefaultType of
         // cdtNothing: leave out whole clause
-        cdtText:           Result := Result + 'DEFAULT '+esc(DefaultText);
+        cdtText:           Result := Result + 'DEFAULT '+FConnection.EscapeString(DefaultText);
         cdtNull:           Result := Result + 'DEFAULT NULL';
         cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
         cdtExpression:     Result := Result + 'DEFAULT '+DefaultText;
@@ -8684,16 +8682,16 @@ begin
 
   if InParts(cpComment) then begin
     if (Comment <> '') and FConnection.Parameters.IsMySQL then
-      Result := Result + 'COMMENT ' + esc(Comment) + ' ';
+      Result := Result + 'COMMENT ' + FConnection.EscapeString(Comment) + ' ';
   end;
 
   if InParts(cpCollation) then begin
     if Collation <> '' then begin
       Result := Result + 'COLLATE ';
       if OverrideCollation <> '' then
-        Result := Result + esc(OverrideCollation) + ' '
+        Result := Result + FConnection.EscapeString(OverrideCollation) + ' '
       else
-        Result := Result + esc(Collation) + ' ';
+        Result := Result + FConnection.EscapeString(Collation) + ' ';
     end;
   end;
 
