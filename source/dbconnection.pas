@@ -621,6 +621,7 @@ type
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
 
 
@@ -4919,6 +4920,33 @@ begin
     // Silently ignore non existent IS tables and/or columns
     on E:EDbError do;
   end;
+end;
+
+
+function TSQLiteConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+var
+  ForeignQuery: TDBQuery;
+  ForeignKey: TForeignKey;
+begin
+  // SQLite: query PRAGMA foreign_key_list
+  Result := TForeignKeyList.Create(True);
+  ForeignQuery := GetResults('SELECT * from PRAGMA_foreign_key_list('+EscapeString(Table.Name)+')');
+  ForeignKey := nil;
+  while not ForeignQuery.Eof do begin
+    if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('id')) then begin
+      ForeignKey := TForeignKey.Create(Self);
+      Result.Add(ForeignKey);
+      ForeignKey.KeyName := ForeignQuery.Col('id');
+      ForeignKey.OldKeyName := ForeignKey.KeyName;
+      ForeignKey.ReferenceTable := Table.Database + '.' + ForeignQuery.Col('table');
+      ForeignKey.OnUpdate := ForeignQuery.Col('on_update');
+      ForeignKey.OnDelete := ForeignQuery.Col('on_delete');
+    end;
+    ForeignKey.Columns.Add(ForeignQuery.Col('from'));
+    ForeignKey.ForeignColumns.Add(ForeignQuery.Col('to'));
+    ForeignQuery.Next;
+  end;
+  ForeignQuery.Free;
 end;
 
 
