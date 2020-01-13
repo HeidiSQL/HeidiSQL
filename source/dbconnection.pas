@@ -4661,7 +4661,7 @@ begin
       for TableCol in Result do begin
         if TableCol.Name = Comments.Col('column') then begin
           TableCol.Comment := Comments.Col('comment');
-		  Break;
+          Break;
         end;
       end;
       Comments.Next;
@@ -8589,28 +8589,31 @@ end;
 function TDBObject.GetTableColumns: TTableColumnList;
 begin
   // Return columns from table object
-  if not Assigned(FTableColumns) then begin
+  Result := Connection.GetTableColumns(Self);
+  {if not Assigned(FTableColumns) then begin
     FTableColumns := Connection.GetTableColumns(Self);
   end;
-  Result := FTableColumns;
+  Result := FTableColumns;}
 end;
 
 function TDBObject.GetTableKeys: TTableKeyList;
 begin
   // Return keys from table object
-  if not Assigned(FTableKeys) then begin
+  Result := Connection.GetTableKeys(Self);
+  {if not Assigned(FTableKeys) then begin
     FTableKeys := Connection.GetTableKeys(Self);
   end;
-  Result := FTableKeys;
+  Result := FTableKeys;}
 end;
 
 function TDBObject.GetTableForeignKeys: TForeignKeyList;
 begin
   // Return foreign keys from table object
-  if not Assigned(FTableForeignKeys) then begin
+  Result := Connection.GetTableForeignKeys(Self);
+  {if not Assigned(FTableForeignKeys) then begin
     FTableForeignKeys := Connection.GetTableForeignKeys(Self);
   end;
-  Result := FTableForeignKeys;
+  Result := FTableForeignKeys;}
 end;
 
 
