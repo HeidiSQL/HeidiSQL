@@ -361,6 +361,7 @@ type
       FKeepAliveTimer: TTimer;
       FFavorites: TStringList;
       FPrefetchResults: TDBQueryList;
+      FForeignKeyQueriesFailed: Boolean;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -1683,6 +1684,7 @@ begin
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
+  FForeignKeyQueriesFailed := False;
 end;
 
 
@@ -4891,42 +4893,64 @@ end;
 
 function TDBConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
 var
-  ForeignQuery: TDBQuery;
+  ForeignQuery, ColQuery: TDBQuery;
   ForeignKey: TForeignKey;
 begin
   // Generic: query table foreign keys from IS.?
   Result := TForeignKeyList.Create(True);
+  if FForeignKeyQueriesFailed then begin
+    Log(lcDebug, 'Avoid foreign key retrieval with queries which failed before');
+    Exit;
+  end;
   try
-    ForeignQuery := GetResults('SELECT k.*, r.UPDATE_RULE, r.DELETE_RULE'+
-      ' FROM information_schema.KEY_COLUMN_USAGE AS k, information_schema.REFERENTIAL_CONSTRAINTS AS r'+
+    // Combine two IS tables by hand, not by JOIN, as this is too slow. See #852
+    ForeignQuery := GetResults('SELECT *'+
+      ' FROM information_schema.REFERENTIAL_CONSTRAINTS'+
       ' WHERE'+
-      '   k.CONSTRAINT_SCHEMA='+EscapeString(Table.Database)+
-      '   AND k.TABLE_NAME='+EscapeString(Table.Name)+
-      '   AND k.REFERENCED_TABLE_NAME IS NOT NULL'+
-      '   AND k.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA'+
-      '   AND k.TABLE_NAME=r.TABLE_NAME'+
-      '   AND k.CONSTRAINT_NAME=r.CONSTRAINT_NAME'
+      '   CONSTRAINT_SCHEMA='+EscapeString(Table.Database)+
+      '   AND TABLE_NAME='+EscapeString(Table.Name)+
+      '   AND REFERENCED_TABLE_NAME IS NOT NULL'
       );
-    ForeignKey := nil;
-    while not ForeignQuery.Eof do begin
-      if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('CONSTRAINT_NAME')) then begin
+    ColQuery := GetResults('SELECT *'+
+      ' FROM information_schema.KEY_COLUMN_USAGE'+
+      ' WHERE'+
+      '   CONSTRAINT_SCHEMA='+EscapeString(Table.Database)+
+      '   AND TABLE_NAME='+EscapeString(Table.Name)+
+      '   AND REFERENCED_TABLE_NAME IS NOT NULL'
+      );
+    try
+      while not ForeignQuery.Eof do begin
         ForeignKey := TForeignKey.Create(Self);
         Result.Add(ForeignKey);
         ForeignKey.KeyName := ForeignQuery.Col('CONSTRAINT_NAME');
         ForeignKey.OldKeyName := ForeignKey.KeyName;
-        ForeignKey.ReferenceTable := ForeignQuery.Col('REFERENCED_TABLE_SCHEMA') +
+        ForeignKey.ReferenceTable := ForeignQuery.Col('UNIQUE_CONSTRAINT_SCHEMA') +
           '.' + ForeignQuery.Col('REFERENCED_TABLE_NAME');
         ForeignKey.OnUpdate := ForeignQuery.Col('UPDATE_RULE');
         ForeignKey.OnDelete := ForeignQuery.Col('DELETE_RULE');
+        while not ColQuery.Eof do begin
+          if ColQuery.Col('CONSTRAINT_NAME') = ForeignQuery.Col('CONSTRAINT_NAME') then begin
+            ForeignKey.Columns.Add(ColQuery.Col('COLUMN_NAME'));
+            ForeignKey.ForeignColumns.Add(ColQuery.Col('REFERENCED_COLUMN_NAME'));
+          end;
+          ColQuery.Next;
+        end;
+        ColQuery.First;
+        ForeignQuery.Next;
       end;
-      ForeignKey.Columns.Add(ForeignQuery.Col('COLUMN_NAME'));
-      ForeignKey.ForeignColumns.Add(ForeignQuery.Col('REFERENCED_COLUMN_NAME'));
-      ForeignQuery.Next;
+      ForeignQuery.Free;
+      ColQuery.Free;
+    except
+      // Don't silence errors here:
+      on E:EDbError do
+        Log(lcError, E.Message);
     end;
-    ForeignQuery.Free;
   except
     // Silently ignore non existent IS tables and/or columns
-    on E:EDbError do;
+    // And remember to not fire such queries again here
+    on E:EDbError do begin
+      FForeignKeyQueriesFailed := True;
+    end;
   end;
 end;
 
