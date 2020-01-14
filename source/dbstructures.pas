@@ -2077,7 +2077,7 @@ var
       Index:           dtTinyint;
       NativeTypes:     '1';
       Name:            'TINYINT';
-      Names:           'INT2|BOOLEAN';
+      Names:           'INT2|BOOLEAN|BOOL';
       Description:     '';
       HasLength:       False;
       RequiresLength:  False;
