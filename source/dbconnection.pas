@@ -4541,7 +4541,8 @@ begin
   else
     SchemaClause := GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(Table.Database);
   ColQuery := GetResults('SELECT * FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent(InformationSchemaObjects[TableIdx])+
-    ' WHERE '+SchemaClause+' AND TABLE_NAME='+EscapeString(Table.Name));
+    ' WHERE '+SchemaClause+' AND TABLE_NAME='+EscapeString(Table.Name)+
+    ' ORDER BY ORDINAL_POSITION');
   while not ColQuery.Eof do begin
     Col := TTableColumn.Create(Self);
     Result.Add(Col);
