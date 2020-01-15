@@ -259,9 +259,9 @@ begin
     end;
   end;
   listColumns.BeginUpdate;
-  FColumns.Clear;
-  btnClearIndexesClick(Self);
-  btnClearForeignKeysClick(Self);
+  listColumns.Clear;
+  treeIndexes.Clear;
+  listForeignKeys.Clear;
   tabALTERcode.TabVisible := DBObject.Name <> '';
   // Clear value editors
   memoComment.Text := '';
@@ -285,6 +285,9 @@ begin
     if DBObject.Connection.Parameters.IsMySQL then
       comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Connection.GetSessionVariable('collation_database'));
     PageControlMain.ActivePage := tabBasic;
+    FColumns := TTableColumnList.Create;
+    FKeys := TTableKeyList.Create;
+    FForeignKeys := TForeignKeyList.Create;
   end else begin
     // Editing existing table
     editName.Text := DBObject.Name;

@@ -27,7 +27,7 @@ type
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
 
   // Column object, many of them in a TObjectList
-  TTableColumn = class(TObject)
+  TTableColumn = class(TPersistent)
     private
       FConnection: TDBConnection;
       procedure SetStatus(Value: TEditingStatus);
@@ -44,6 +44,7 @@ type
       FStatus: TEditingStatus;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
+      procedure Assign(Source: TPersistent); override;
       function SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
       function ValueList: TStringList;
       procedure ParseDatatype(Source: String);
@@ -54,7 +55,7 @@ type
   PTableColumn = ^TTableColumn;
   TTableColumnList = TObjectList<TTableColumn>;
 
-  TTableKey = class(TObject)
+  TTableKey = class(TPersistent)
     private
       FConnection: TDBConnection;
       function GetImageIndex: Integer;
@@ -65,6 +66,7 @@ type
       Modified, Added: Boolean;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
+      procedure Assign(Source: TPersistent); override;
       procedure Modification(Sender: TObject);
       function SQLCode: String;
       property ImageIndex: Integer read GetImageIndex;
@@ -72,7 +74,7 @@ type
   TTableKeyList = TObjectList<TTableKey>;
 
   // Helper object to manage foreign keys in a TObjectList
-  TForeignKey = class(TObject)
+  TForeignKey = class(TPersistent)
     private
       FConnection: TDBConnection;
     public
@@ -81,6 +83,7 @@ type
       Modified, Added, KeyNameWasCustomized: Boolean;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
+      procedure Assign(Source: TPersistent); override;
       function SQLCode(IncludeSymbolName: Boolean): String;
   end;
   TForeignKeyList = TObjectList<TForeignKey>;
@@ -8401,6 +8404,7 @@ begin
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
     FCreateCodeFetched := s.FCreateCodeFetched;
+    // This is wrong - need to be copy-assigned
     FTableColumns := s.FTableColumns;
     FTableKeys := s.FTableKeys;
     FTableForeignKeys := s.FTableForeignKeys;
@@ -8616,33 +8620,51 @@ end;
 
 
 function TDBObject.GetTableColumns: TTableColumnList;
+var
+  Col, ColCopy: TTableColumn;
 begin
   // Return columns from table object
-  Result := Connection.GetTableColumns(Self);
-  {if not Assigned(FTableColumns) then begin
+  if not Assigned(FTableColumns) then begin
     FTableColumns := Connection.GetTableColumns(Self);
   end;
-  Result := FTableColumns;}
+  Result := TTableColumnList.Create;
+  for Col in FTableColumns do begin
+    ColCopy := TTableColumn.Create(Col.FConnection);
+    ColCopy.Assign(Col);
+    Result.Add(ColCopy);
+  end;
 end;
 
 function TDBObject.GetTableKeys: TTableKeyList;
+var
+  Key, KeyCopy: TTableKey;
 begin
   // Return keys from table object
-  Result := Connection.GetTableKeys(Self);
-  {if not Assigned(FTableKeys) then begin
+  if not Assigned(FTableKeys) then begin
     FTableKeys := Connection.GetTableKeys(Self);
   end;
-  Result := FTableKeys;}
+  Result := TTableKeyList.Create;
+  for Key in FTableKeys do begin
+    KeyCopy := TTableKey.Create(Key.FConnection);
+    KeyCopy.Assign(Key);
+    Result.Add(KeyCopy);
+  end;
 end;
 
 function TDBObject.GetTableForeignKeys: TForeignKeyList;
+var
+  Key, KeyCopy: TForeignKey;
 begin
   // Return foreign keys from table object
-  Result := Connection.GetTableForeignKeys(Self);
-  {if not Assigned(FTableForeignKeys) then begin
+  if not Assigned(FTableForeignKeys) then begin
     FTableForeignKeys := Connection.GetTableForeignKeys(Self);
   end;
-  Result := FTableForeignKeys;}
+  Result := TForeignKeyList.Create;
+  for Key in FTableForeignKeys do begin
+    KeyCopy := TForeignKey.Create(Key.FConnection);
+    KeyCopy.Assign(Key);
+    Result.Add(KeyCopy);
+  end;
 end;
 
 
@@ -8672,6 +8694,35 @@ end;
 destructor TTableColumn.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TTableColumn.Assign(Source: TPersistent);
+var
+  s: TTableColumn;
+begin
+  if Source is TTableColumn then begin
+    s := Source as TTableColumn;
+    Name := s.Name;
+    OldName := s.OldName;
+    DataType := s.DataType;
+    OldDataType := s.OldDataType;
+    LengthSet := s.LengthSet;
+    Unsigned := s.Unsigned;
+    AllowNull := s.AllowNull;
+    ZeroFill := s.ZeroFill;
+    LengthCustomized := s.LengthCustomized;
+    DefaultType := s.DefaultType;
+    DefaultText := s.DefaultText;
+    OnUpdateType := s.OnUpdateType;
+    OnUpdateText := s.OnUpdateText;
+    Comment := s.Comment;
+    Charset := s.Charset;
+    Collation := s.Collation;
+    Expression := s.Expression;
+    Virtuality := s.Virtuality;
+    FStatus := s.FStatus;
+  end else
+    inherited;
 end;
 
 procedure TTableColumn.SetStatus(Value: TEditingStatus);
@@ -8842,6 +8893,26 @@ begin
   inherited Destroy;
 end;
 
+procedure TTableKey.Assign(Source: TPersistent);
+var
+  s: TTableKey;
+begin
+  if Source is TTableKey then begin
+    s := Source as TTableKey;
+    Name := s.Name;
+    OldName := s.OldName;
+    IndexType := s.IndexType;
+    OldIndexType := s.OldIndexType;
+    Algorithm := s.Algorithm;
+    Comment := s.Comment;
+    Columns.Assign(s.Columns);
+    SubParts.Assign(s.SubParts);
+    Modified := s.Modified;
+    Added := s.Added;
+  end else
+    inherited;
+end;
+
 procedure TTableKey.Modification(Sender: TObject);
 begin
   if not Added then
@@ -8908,6 +8979,26 @@ begin
   FreeAndNil(Columns);
   FreeAndNil(ForeignColumns);
   inherited Destroy;
+end;
+
+procedure TForeignKey.Assign(Source: TPersistent);
+var
+  s: TForeignKey;
+begin
+  if Source is TForeignKey then begin
+    s := Source as TForeignKey;
+    KeyName := s.KeyName;
+    OldKeyName := s.OldKeyName;
+    ReferenceTable := s.ReferenceTable;
+    OnUpdate := s.OnUpdate;
+    OnDelete := s.OnDelete;
+    Columns.Assign(s.Columns);
+    ForeignColumns.Assign(s.ForeignColumns);
+    Modified := s.Modified;
+    Added := s.Added;
+    KeyNameWasCustomized := s.KeyNameWasCustomized;
+  end else
+    inherited;
 end;
 
 function TForeignKey.SQLCode(IncludeSymbolName: Boolean): String;
