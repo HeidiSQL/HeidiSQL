@@ -6849,6 +6849,7 @@ var
   i, NumFields, NumResults: Integer;
   LastResult: TSQLiteGridRows;
   ColName, ColOrgName, DataTypeStr: String;
+  DataTypeInt: Integer;
 begin
   if UseRawResult = -1 then begin
     Connection.Query(FSQL, FStoreResult);
@@ -6894,6 +6895,18 @@ begin
         ColOrgName := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_origin_name(LastResult.Statement, i));
         FColumnOrgNames.Add(ColOrgName);
         DataTypeStr := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_decltype(LastResult.Statement, i));
+        if DataTypeStr.IsEmpty then begin
+          FConnection.Lib.sqlite3_step(LastResult.Statement);
+          DataTypeInt := FConnection.Lib.sqlite3_column_type(LastResult.Statement, i);
+          case DataTypeInt of
+            SQLITE_INTEGER: DataTypeStr := 'INTEGER';
+            SQLITE_FLOAT: DataTypeStr := 'FLOAT';
+            SQLITE_BLOB: DataTypeStr := 'BLOB';
+            SQLITE3_TEXT: DataTypeStr := 'TEXT';
+            // SQLITE_NULL gets "unknown"
+          end;
+          FConnection.Lib.sqlite3_reset(LastResult.Statement);
+        end;
         FColumnTypes[i] := FConnection.GetDatatypeByName(DataTypeStr, False);
       end;
       FRecNo := -1;
