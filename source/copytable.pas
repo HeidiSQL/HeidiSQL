@@ -377,7 +377,7 @@ begin
 
   // Watch out if target table exists
   TableExistence := FConnection.GetVar('SELECT '+FConnection.QuoteIdent('table_name')+
-    ' FROM '+FConnection.QuoteIdent('information_schema')+'.'+FConnection.QuoteIdent('tables')+
+    ' FROM '+FConnection.QuoteIdent(FConnection.InfSch)+'.'+FConnection.QuoteIdent('tables')+
     ' WHERE '+FConnection.QuoteIdent(FConnection.GetSQLSpecifity(spISTableSchemaCol))+'='+FConnection.EscapeString(comboDatabase.Text)+
     ' AND '+FConnection.QuoteIdent('table_name')+'='+FConnection.EscapeString(editNewTablename.Text)
     );

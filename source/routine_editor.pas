@@ -482,7 +482,7 @@ begin
     if DBObject.Name <> '' then begin
       // Create temp name
       i := 0;
-      allRoutineNames := DBObject.Connection.GetCol('SELECT ROUTINE_NAME FROM '+DBObject.Connection.QuoteIdent('information_schema')+'.'+DBObject.Connection.QuoteIdent('ROUTINES')+
+      allRoutineNames := DBObject.Connection.GetCol('SELECT ROUTINE_NAME FROM '+DBObject.Connection.QuoteIdent(DBObject.Connection.InfSch)+'.'+DBObject.Connection.QuoteIdent('ROUTINES')+
         ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
         ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
         );

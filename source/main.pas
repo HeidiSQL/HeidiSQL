@@ -10204,7 +10204,7 @@ begin
               Conn.QuoteIdent('STATE')+', '+
               'LEFT('+Conn.QuoteIdent('INFO')+', '+IntToStr(SIZE_KB*50)+') AS '+Conn.QuoteIdent('Info');
             // Get additional column names into SELECT query and ListProcesses tree
-            IS_objects := Conn.GetDBObjects('information_schema');
+            IS_objects := Conn.GetDBObjects(Conn.InfSch);
             for Obj in IS_objects do begin
               if Obj.Name = 'PROCESSLIST' then begin
                 ProcessColumns := Obj.TableColumns;
@@ -10225,7 +10225,7 @@ begin
               end;
             end;
             Results := Conn.GetResults('SELECT '+Columns+' FROM '+
-              Conn.QuoteIdent('information_schema')+'.'+Conn.QuoteIdent('PROCESSLIST'));
+              Conn.QuoteIdent(Conn.InfSch)+'.'+Conn.QuoteIdent('PROCESSLIST'));
           end else begin
             // Older servers fetch the whole query length, but at least we cut them off below, so a high memory usage is just a peak
             Results := Conn.GetResults('SHOW FULL PROCESSLIST');

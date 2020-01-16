@@ -961,7 +961,7 @@ begin
         esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', '+
         DBObj.Connection.GetSQLSpecifity(spFuncCeil)+'(('+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+RoutineDefinitionColumn+') - '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'(REPLACE('+RoutineDefinitionColumn+', '+esc(FindText)+', '+esc('')+'))) / '+DBObj.Connection.GetSQLSpecifity(spFuncLength)+'('+esc(FindText)+')) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '+
         '0 AS '+DBObj.Connection.QuoteIdent('Relevance')+
-        'FROM '+DBObj.Connection.QuoteIdent('information_schema')+'.'+DBObj.Connection.QuoteIdent('routines')+' '+
+        'FROM '+DBObj.Connection.QuoteIdent(DBObj.Connection.InfSch)+'.'+DBObj.Connection.QuoteIdent('routines')+' '+
         'WHERE '+DBObj.Connection.QuoteIdent(RoutineSchemaColumn)+'='+esc(DBObj.Database)+' AND '+DBObj.Connection.QuoteIdent('routine_name')+'='+esc(DBObj.Name);
       AddResults(SQL, DBObj.Connection);
     end;

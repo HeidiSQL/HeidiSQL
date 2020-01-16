@@ -378,6 +378,7 @@ type
       FFavorites: TStringList;
       FPrefetchResults: TDBQueryList;
       FForeignKeyQueriesFailed: Boolean;
+      FInfSch: String;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -489,6 +490,7 @@ type
       property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
+      property InfSch: String read FInfSch;
       function GetLockedTableCount(db: String): Integer;
       function IdentifierEquals(Ident1, Ident2: String): Boolean;
       function GetTableColumns(Table: TDBObject): TTableColumnList; virtual;
@@ -1701,6 +1703,8 @@ begin
   FKeepAliveTimer := TTimer.Create(Self);
   FFavorites := TStringList.Create;
   FForeignKeyQueriesFailed := False;
+  // System database/schema, should be uppercase on MSSQL only, see #855
+  FInfSch := 'information_schema';
 end;
 
 
@@ -1730,6 +1734,7 @@ begin
   SetLength(FDatatypes, Length(MSSQLDatatypes));
   for i:=0 to High(MSSQLDatatypes) do
     FDatatypes[i] := MSSQLDatatypes[i];
+  FInfSch := 'INFORMATION_SCHEMA';
 end;
 
 
@@ -1758,6 +1763,8 @@ begin
   SetLength(FDatatypes, Length(SQLiteDatatypes));
   for i:=0 to High(SQLiteDatatypes) do
     FDatatypes[i] := SQLiteDatatypes[i];
+  // SQLite does not have IS:
+  FInfSch := '';
 end;
 
 
@@ -3194,7 +3201,7 @@ begin
     Result := GetVar('SHOW CREATE VIEW '+QuoteIdent(Database)+'.'+QuoteIdent(Name), 1);
   except
     on E:EDbError do begin
-      ViewIS := GetResults('SELECT * FROM INFORMATION_SCHEMA.VIEWS WHERE '+
+      ViewIS := GetResults('SELECT * FROM '+InfSch+'.VIEWS WHERE '+
         'TABLE_SCHEMA='+EscapeString(Database)+' AND TABLE_NAME='+EscapeString(Name));
       Result := 'CREATE ';
       if ViewIS.Col('DEFINER') <> '' then
@@ -3314,7 +3321,7 @@ begin
         end;
         else begin
           Result := GetVar('SELECT VIEW_DEFINITION'+
-            ' FROM INFORMATION_SCHEMA.VIEWS'+
+            ' FROM '+InfSch+'.VIEWS'+
             ' WHERE TABLE_NAME='+EscapeString(Obj.Name)+
             ' AND '+SchemaClauseIS('TABLE')
             );
@@ -3367,7 +3374,7 @@ begin
         end;
         else begin
           Result := GetVar('SELECT ROUTINE_DEFINITION'+
-            ' FROM INFORMATION_SCHEMA.ROUTINES'+
+            ' FROM '+InfSch+'.ROUTINES'+
             ' WHERE ROUTINE_NAME='+EscapeString(Obj.Name)+
             ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
             ' AND '+SchemaClauseIS('ROUTINE')
@@ -3389,7 +3396,7 @@ begin
         end;
         else begin
           Result := GetVar('SELECT ROUTINE_DEFINITION'+
-            ' FROM INFORMATION_SCHEMA.ROUTINES'+
+            ' FROM '+InfSch+'.ROUTINES'+
             ' WHERE ROUTINE_NAME='+EscapeString(Obj.Name)+
             ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
             ' AND '+SchemaClauseIS('ROUTINE')
@@ -3819,7 +3826,7 @@ begin
       FAllDatabases := GetCol('SHOW DATABASES');
     except on E:EDbError do
       try
-        FAllDatabases := GetCol('SELECT '+QuoteIdent('SCHEMA_NAME')+' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('SCHEMATA')+' ORDER BY '+QuoteIdent('SCHEMA_NAME'));
+        FAllDatabases := GetCol('SELECT '+QuoteIdent('SCHEMA_NAME')+' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent('SCHEMATA')+' ORDER BY '+QuoteIdent('SCHEMA_NAME'));
       except
         on E:EDbError do begin
           FAllDatabases := TStringList.Create;
@@ -3860,7 +3867,7 @@ begin
         ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace');
       if Parameters.IsRedshift then begin
         DbQuery := DbQuery + ' WHERE '+QuoteIdent('nspowner')+' != 1'+
-          ' OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString('information_schema')+')';
+          ' OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString(InfSch)+')';
       end;
       DbQuery := DbQuery + ' ORDER BY '+QuoteIdent('nspname');
       FAllDatabases := GetCol(DbQuery);
@@ -4556,7 +4563,7 @@ begin
     SchemaClause := 'TABLE_SCHEMA='+EscapeString(Table.Schema)
   else
     SchemaClause := GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(Table.Database);
-  ColQuery := GetResults('SELECT * FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent(InformationSchemaObjects[TableIdx])+
+  ColQuery := GetResults('SELECT * FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[TableIdx])+
     ' WHERE '+SchemaClause+' AND TABLE_NAME='+EscapeString(Table.Name)+
     ' ORDER BY ORDINAL_POSITION');
   while not ColQuery.Eof do begin
@@ -4733,8 +4740,8 @@ begin
   ColTableIdx := InformationSchemaObjects.IndexOf('KEY_COLUMN_USAGE');
   ConTableIdx := InformationSchemaObjects.IndexOf('TABLE_CONSTRAINTS');
   KeyQuery := GetResults('SELECT * FROM '+
-    QuoteIdent('information_schema')+'.'+QuoteIdent(InformationSchemaObjects[ColTableIdx])+' AS col'+
-    ', '+QuoteIdent('information_schema')+'.'+QuoteIdent(InformationSchemaObjects[ConTableIdx])+' AS con'+
+    QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[ColTableIdx])+' AS col'+
+    ', '+QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[ConTableIdx])+' AS con'+
     ' WHERE col.TABLE_SCHEMA='+EscapeString(Database)+
     ' AND col.TABLE_NAME='+EscapeString(Table.Name)+
     ' AND col.TABLE_SCHEMA=con.TABLE_SCHEMA'+
@@ -4924,14 +4931,14 @@ begin
   try
     // Combine two IS tables by hand, not by JOIN, as this is too slow. See #852
     ForeignQuery := GetResults('SELECT *'+
-      ' FROM information_schema.REFERENTIAL_CONSTRAINTS'+
+      ' FROM '+InfSch+'.REFERENTIAL_CONSTRAINTS'+
       ' WHERE'+
       '   CONSTRAINT_SCHEMA='+EscapeString(Table.Database)+
       '   AND TABLE_NAME='+EscapeString(Table.Name)+
       '   AND REFERENCED_TABLE_NAME IS NOT NULL'
       );
     ColQuery := GetResults('SELECT *'+
-      ' FROM information_schema.KEY_COLUMN_USAGE'+
+      ' FROM '+InfSch+'.KEY_COLUMN_USAGE'+
       ' WHERE'+
       '   CONSTRAINT_SCHEMA='+EscapeString(Table.Database)+
       '   AND TABLE_NAME='+EscapeString(Table.Name)+
@@ -5100,15 +5107,15 @@ var
   Objects: TDBObjectList;
   Obj: TDBObject;
 begin
-  Log(lcDebug, 'Fetching objects in information_schema db ...');
+  Log(lcDebug, 'Fetching objects in '+InfSch+' db ...');
   Ping(True);
   if not Assigned(FInformationSchemaObjects) then begin
     FInformationSchemaObjects := TStringList.Create;
     // Need to find strings case insensitively:
     FInformationSchemaObjects.CaseSensitive := False;
     // Gracefully return an empty list on old servers
-    if AllDatabases.IndexOf('information_schema') > -1 then begin
-      Objects := GetDBObjects('information_schema');
+    if AllDatabases.IndexOf(InfSch) > -1 then begin
+      Objects := GetDBObjects(InfSch);
       for Obj in Objects do
         FInformationSchemaObjects.Add(Obj.Name);
     end;
@@ -5433,7 +5440,7 @@ begin
   // Return a db's table list
   try
     Cache.FCollation := GetVar('SELECT '+QuoteIdent('DEFAULT_COLLATION_NAME')+
-      ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('SCHEMATA')+
+      ' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent('SCHEMATA')+
       ' WHERE '+QuoteIdent('SCHEMA_NAME')+'='+EscapeString(db));
   except
     Cache.FCollation := '';
@@ -5444,7 +5451,7 @@ begin
   // Tables and views
   Results := nil;
   try
-    if Parameters.FullTableStatus or (UpperCase(db) = 'INFORMATION_SCHEMA') then begin
+    if Parameters.FullTableStatus or (UpperCase(db) = UpperCase(InfSch)) then begin
       Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
     end else begin
       Results := GetResults('SELECT '+
@@ -5466,7 +5473,7 @@ begin
           'NULL AS '+QuoteIdent('Check_time')+', '+
           'NULL AS '+QuoteIdent('Checksum')+', '+
           'NULL AS '+QuoteIdent('Create_options')+
-        ' FROM INFORMATION_SCHEMA.TABLES'+
+        ' FROM '+InfSch+'.TABLES'+
         ' WHERE TABLE_SCHEMA='+EscapeString(db)+' AND TABLE_TYPE IN('+EscapeString('BASE TABLE')+', '+EscapeString('VIEW')+')'
         );
     end;
@@ -5581,7 +5588,7 @@ begin
   if ServerVersionInt >= 50100 then try
     if InformationSchemaObjects.IndexOf('EVENTS') > -1 then
       Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
-        ' FROM information_schema.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
+        ' FROM '+InfSch+'.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
     else
       Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
   except
@@ -5683,7 +5690,7 @@ begin
       ' '+DataLenClause+' AS data_length,'+
       ' '+IndexLenClause+' AS index_length,'+
       ' c.reltuples, obj_description(c.oid) AS comment'+
-      ' FROM '+QuoteIdent('information_schema')+'.'+QuoteIdent('tables')+' AS t'+
+      ' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent('tables')+' AS t'+
       ' LEFT JOIN '+QuoteIdent('pg_namespace')+' n ON t.table_schema = n.nspname'+
       ' LEFT JOIN '+QuoteIdent('pg_class')+' c ON n.oid = c.relnamespace AND c.relname=t.table_name'+
       ' WHERE t.'+QuoteIdent('table_schema')+'='+EscapeString(db)  // Use table_schema when using schemata
@@ -6267,7 +6274,7 @@ begin
     else
       SchemaClause := 'AND '+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database);
     Results := GetResults('SELECT * '+
-      'FROM INFORMATION_SCHEMA.COLUMNS '+
+      'FROM '+InfSch+'.COLUMNS '+
       'WHERE '+
       '  TABLE_NAME='+EscapeString(DBObj.Name)+' '+
       SchemaClause+
