@@ -236,7 +236,7 @@ begin
   try
     MainForm.ActiveConnection.Query(sql);
     DBObject.Name := editName.Text;
-    DBObject.CreateCode := '';
+    DBObject.UnloadDetails;
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);

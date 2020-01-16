@@ -234,7 +234,7 @@ begin
     end;
     MainForm.ActiveConnection.Query(ComposeCreateStatement);
     DBObject.Name := editName.Text;
-    DBObject.CreateCode := '';
+    DBObject.UnloadDetails;
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);
     Modified := False;

@@ -6290,7 +6290,7 @@ begin
     end;
     // Update nodedata
     Obj.Name := NewText;
-    Obj.CreateCode := '';
+    Obj.UnloadDetails;
     // Now the active tree db has to be updated. But calling RefreshTreeDB here causes an AV
     // so we do it manually here
     DBTree.InvalidateChildren(FindDBNode(DBtree, Obj.Connection, Obj.Database), True);
@@ -8566,6 +8566,7 @@ begin
 
     DBObj := Sender.GetNodeData(Node);
     DBObj.WasSelected := True;
+    DBObj.LoadDetails;
     FActiveDbObj := TDBObject.Create(DBObj.Connection);
     FActiveDbObj.Assign(DBObj^);
     if Assigned(Node.Parent) then

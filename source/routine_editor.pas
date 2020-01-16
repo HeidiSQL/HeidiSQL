@@ -513,7 +513,7 @@ begin
     DBObject.Connection.Query(ComposeCreateStatement(editName.Text));
     // Set editing name if create/alter query was successful
     DBObject.Name := editName.Text;
-    DBObject.CreateCode := '';
+    DBObject.UnloadDetails;
     FAlterRoutineType := ProcOrFunc;
     if FAlterRoutineType = 'PROCEDURE' then DBObject.NodeType := lntProcedure
     else DBObject.NodeType := lntFunction;

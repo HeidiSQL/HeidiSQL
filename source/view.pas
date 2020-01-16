@@ -189,7 +189,7 @@ begin
       DBObject.Connection.Query('RENAME TABLE '+viewname + ' TO '+renamed);
     end;
     DBObject.Name := editName.Text;
-    DBObject.CreateCode := '';
+    DBObject.UnloadDetails;
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);
     Modified := False;

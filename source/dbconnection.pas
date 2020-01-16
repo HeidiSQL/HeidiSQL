@@ -53,7 +53,11 @@ type
       property Connection: TDBConnection read FConnection;
   end;
   PTableColumn = ^TTableColumn;
-  TTableColumnList = TObjectList<TTableColumn>;
+  TTableColumnList = class(TObjectList<TTableColumn>)
+    public
+      Loaded: Boolean;
+      procedure Assign(Source: TTableColumnList);
+  end;
 
   TTableKey = class(TPersistent)
     private
@@ -71,7 +75,11 @@ type
       function SQLCode: String;
       property ImageIndex: Integer read GetImageIndex;
   end;
-  TTableKeyList = TObjectList<TTableKey>;
+  TTableKeyList = class(TObjectList<TTableKey>)
+    public
+      Loaded: Boolean;
+      procedure Assign(Source: TTableKeyList);
+  end;
 
   // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TPersistent)
@@ -86,7 +94,11 @@ type
       procedure Assign(Source: TPersistent); override;
       function SQLCode(IncludeSymbolName: Boolean): String;
   end;
-  TForeignKeyList = TObjectList<TForeignKey>;
+  TForeignKeyList = class(TObjectList<TForeignKey>)
+    public
+      Loaded: Boolean;
+      procedure Assign(Source: TForeignKeyList);
+  end;
 
   TRoutineParam = class(TObject)
     public
@@ -97,7 +109,7 @@ type
   TDBObject = class(TPersistent)
     private
       FCreateCode: String;
-      FCreateCodeFetched: Boolean;
+      FCreateCodeLoaded: Boolean;
       FWasSelected: Boolean;
       FConnection: TDBConnection;
       FTableColumns: TTableColumnList;
@@ -107,7 +119,6 @@ type
       function GetImageIndex: Integer;
       function GetOverlayImageIndex: Integer;
       function GetPath: String;
-      procedure SetCreateCode(Value: String);
       function GetTableColumns: TTableColumnList;
       function GetTableKeys: TTableKeyList;
       function GetTableForeignKeys: TForeignKeyList;
@@ -123,6 +134,8 @@ type
       NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
       procedure Assign(Source: TPersistent); override;
+      procedure LoadDetails;
+      procedure UnloadDetails;
       procedure Drop;
       function IsSameAs(CompareTo: TDBObject): Boolean;
       function QuotedDatabase(AlwaysQuote: Boolean=True): String;
@@ -136,7 +149,7 @@ type
       property ImageIndex: Integer read GetImageIndex;
       property OverlayImageIndex: Integer read GetOverlayImageIndex;
       property Path: String read GetPath;
-      property CreateCode: String read GetCreateCode write SetCreateCode;
+      property CreateCode: String read GetCreateCode;
       property WasSelected: Boolean read FWasSelected write FWasSelected;
       property Connection: TDBConnection read FConnection;
       property TableColumns: TTableColumnList read GetTableColumns;
@@ -4748,6 +4761,7 @@ begin
     end;
     KeyQuery.Next;
   end;
+  KeyQuery.Free;
 end;
 
 
@@ -4780,6 +4794,7 @@ begin
     NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
     KeyQuery.Next;
   end;
+  KeyQuery.Free;
 end;
 
 
@@ -8398,8 +8413,14 @@ begin
   CheckSum := -1;
   CreateOptions := '';
   FCreateCode := '';
-  FCreateCodeFetched := False;
+  FCreateCodeLoaded := False;
   FConnection := OwnerConnection;
+  FTableColumns := TTableColumnList.Create;
+  FTableColumns.Loaded := False;
+  FTableKeys := TTableKeyList.Create;
+  FTableKeys.Loaded := False;
+  FTableForeignKeys := TForeignKeyList.Create;
+  FTableForeignKeys.Loaded := False;
 end;
 
 
@@ -8424,14 +8445,50 @@ begin
     Size := s.Size;
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
-    FCreateCodeFetched := s.FCreateCodeFetched;
-    // This is wrong - need to be copy-assigned
-    FTableColumns := s.FTableColumns;
-    FTableKeys := s.FTableKeys;
-    FTableForeignKeys := s.FTableForeignKeys;
+    FCreateCodeLoaded := s.FCreateCodeLoaded;
+    FTableColumns.Assign(s.FTableColumns);
+    FTableKeys.Assign(s.FTableKeys);
+    FTableForeignKeys.Assign(s.FTableForeignKeys);
   end else
     inherited;
 end;
+
+
+procedure TDBObject.LoadDetails;
+var
+  t: TTableColumnList;
+  k: TTableKeyList;
+  f: TForeignKeyList;
+begin
+  case NodeType of
+    lntTable: begin
+      // Load columns and keys, so later assigned copies of this object have them too
+      t := GetTableColumns;
+      t.Free;
+      k := GetTableKeys;
+      k.Free;
+      f := GetTableForeignKeys;
+      f.Free;
+      GetCreateCode;
+    end;
+    else begin
+      GetCreateCode;
+    end;
+  end;
+end;
+
+procedure TDBObject.UnloadDetails;
+begin
+  FTableColumns.Clear;
+  FTableColumns.Loaded := False;
+  FTableKeys.Clear;
+  FTableKeys.Loaded := False;
+  FTableForeignKeys.Clear;
+  FTableForeignKeys.Loaded := False;
+  FCreateCode := '';
+  FCreateCodeLoaded := False;
+end;
+
 
 
 function TDBObject.IsSameAs(CompareTo: TDBObject): Boolean;
@@ -8545,8 +8602,9 @@ end;
 
 function TDBObject.GetCreateCode: String;
 begin
-  if not FCreateCodeFetched then try
-    CreateCode := Connection.GetCreateCode(Self);
+  if not FCreateCodeLoaded then try
+    FCreateCode := Connection.GetCreateCode(Self);
+    FCreateCodeLoaded := True;
   except on E:Exception do
     Connection.Log(lcError, E.Message);
   end;
@@ -8581,13 +8639,6 @@ begin
     RemovePattern('\sDEFINER\s*\=\s*\S+\s');
   end;
 
-end;
-
-procedure TDBObject.SetCreateCode(Value: String);
-begin
-  // When manually clearing CreateCode from outside, also reset indicator for fetch attempt
-  FCreateCode := Value;
-  FCreateCodeFetched := Value <> '';
 end;
 
 function TDBObject.QuotedDatabase(AlwaysQuote: Boolean=True): String;
@@ -8641,51 +8692,36 @@ end;
 
 
 function TDBObject.GetTableColumns: TTableColumnList;
-var
-  Col, ColCopy: TTableColumn;
 begin
   // Return columns from table object
-  if not Assigned(FTableColumns) then begin
+  if not FTableColumns.Loaded then begin
     FTableColumns := Connection.GetTableColumns(Self);
+    FTableColumns.Loaded := True;
   end;
   Result := TTableColumnList.Create;
-  for Col in FTableColumns do begin
-    ColCopy := TTableColumn.Create(Col.FConnection);
-    ColCopy.Assign(Col);
-    Result.Add(ColCopy);
-  end;
+  Result.Assign(FTableColumns);
 end;
 
 function TDBObject.GetTableKeys: TTableKeyList;
-var
-  Key, KeyCopy: TTableKey;
 begin
   // Return keys from table object
-  if not Assigned(FTableKeys) then begin
+  if not FTableKeys.Loaded then begin
     FTableKeys := Connection.GetTableKeys(Self);
+    FTableKeys.Loaded := True;
   end;
   Result := TTableKeyList.Create;
-  for Key in FTableKeys do begin
-    KeyCopy := TTableKey.Create(Key.FConnection);
-    KeyCopy.Assign(Key);
-    Result.Add(KeyCopy);
-  end;
+  Result.Assign(FTableKeys);
 end;
 
 function TDBObject.GetTableForeignKeys: TForeignKeyList;
-var
-  Key, KeyCopy: TForeignKey;
 begin
   // Return foreign keys from table object
-  if not Assigned(FTableForeignKeys) then begin
+  if not FTableForeignKeys.Loaded then begin
     FTableForeignKeys := Connection.GetTableForeignKeys(Self);
+    FTableForeignKeys.Loaded := True;
   end;
   Result := TForeignKeyList.Create;
-  for Key in FTableForeignKeys do begin
-    KeyCopy := TForeignKey.Create(Key.FConnection);
-    KeyCopy.Assign(Key);
-    Result.Add(KeyCopy);
-  end;
+  Result.Assign(FTableForeignKeys);
 end;
 
 
@@ -8893,6 +8929,17 @@ begin
   end;
 end;
 
+procedure TTableColumnList.Assign(Source: TTableColumnList);
+var
+  Item, ItemCopy: TTableColumn;
+begin
+  for Item in Source do begin
+    ItemCopy := TTableColumn.Create(Item.FConnection);
+    ItemCopy.Assign(Item);
+    Add(ItemCopy);
+  end;
+end;
+
 
 
 { *** TTableKey }
@@ -8982,6 +9029,17 @@ begin
     Result := Result + ' USING ' + Algorithm;
 end;
 
+procedure TTableKeyList.Assign(Source: TTableKeyList);
+var
+  Item, ItemCopy: TTableKey;
+begin
+  for Item in Source do begin
+    ItemCopy := TTableKey.Create(Item.FConnection);
+    ItemCopy.Assign(Item);
+    Add(ItemCopy);
+  end;
+end;
+
 
 
 
@@ -9043,6 +9101,17 @@ begin
     Result := Result + ' ON UPDATE ' + OnUpdate;
   if OnDelete <> '' then
     Result := Result + ' ON DELETE ' + OnDelete;
+end;
+
+procedure TForeignKeyList.Assign(Source: TForeignKeyList);
+var
+  Item, ItemCopy: TForeignKey;
+begin
+  for Item in Source do begin
+    ItemCopy := TForeignKey.Create(Item.FConnection);
+    ItemCopy.Assign(Item);
+    Add(ItemCopy);
+  end;
 end;
 
 

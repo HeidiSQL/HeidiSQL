@@ -435,7 +435,7 @@ begin
     end;
     // Set table name for altering if Apply was clicked
     DBObject.Name := editName.Text;
-    DBObject.CreateCode := '';
+    DBObject.UnloadDetails;
     tabALTERcode.TabVisible := DBObject.Name <> '';
     Mainform.UpdateEditorTab;
     MainForm.tabData.TabVisible := True;
