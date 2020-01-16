@@ -6849,7 +6849,7 @@ var
   i, NumFields, NumResults: Integer;
   LastResult: TSQLiteGridRows;
   ColName, ColOrgName, DataTypeStr: String;
-  DataTypeInt: Integer;
+  StepResult: Integer;
 begin
   if UseRawResult = -1 then begin
     Connection.Query(FSQL, FStoreResult);
@@ -6889,6 +6889,7 @@ begin
       SetLength(FColumnFlags, NumFields);
       FColumnNames.Clear;
       FColumnOrgNames.Clear;
+      StepResult := -1;
       for i:=0 to NumFields-1 do begin
         ColName := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_name(LastResult.Statement, i));
         FColumnNames.Add(ColName);
@@ -6896,18 +6897,25 @@ begin
         FColumnOrgNames.Add(ColOrgName);
         DataTypeStr := FConnection.DecodeAPIString(FConnection.Lib.sqlite3_column_decltype(LastResult.Statement, i));
         if DataTypeStr.IsEmpty then begin
-          FConnection.Lib.sqlite3_step(LastResult.Statement);
-          DataTypeInt := FConnection.Lib.sqlite3_column_type(LastResult.Statement, i);
-          case DataTypeInt of
-            SQLITE_INTEGER: DataTypeStr := 'INTEGER';
-            SQLITE_FLOAT: DataTypeStr := 'FLOAT';
-            SQLITE_BLOB: DataTypeStr := 'BLOB';
-            SQLITE3_TEXT: DataTypeStr := 'TEXT';
-            // SQLITE_NULL gets "unknown"
+          if StepResult = -1 then
+            StepResult := FConnection.Lib.sqlite3_step(LastResult.Statement);
+          if StepResult = SQLITE_ROW then begin
+            case FConnection.Lib.sqlite3_column_type(LastResult.Statement, i) of
+              SQLITE_INTEGER: DataTypeStr := 'INTEGER';
+              SQLITE_FLOAT: DataTypeStr := 'FLOAT';
+              SQLITE_BLOB: DataTypeStr := 'BLOB';
+              SQLITE3_TEXT: DataTypeStr := 'TEXT';
+              // SQLITE_NULL gets "unknown"
+            end;
+          end else begin
+            // No row available, fall back to TEXT
+            DataTypeStr := 'TEXT';
           end;
-          FConnection.Lib.sqlite3_reset(LastResult.Statement);
         end;
         FColumnTypes[i] := FConnection.GetDatatypeByName(DataTypeStr, False);
+      end;
+      if StepResult <> -1 then begin
+        FConnection.Lib.sqlite3_reset(LastResult.Statement);
       end;
       FRecNo := -1;
       First;
