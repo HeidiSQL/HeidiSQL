@@ -134,7 +134,6 @@ type
       NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
       procedure Assign(Source: TPersistent); override;
-      procedure LoadDetails;
       procedure UnloadDetails;
       procedure Drop;
       function IsSameAs(CompareTo: TDBObject): Boolean;
@@ -3274,19 +3273,19 @@ begin
   case Obj.NodeType of
     lntTable: begin
       Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
-      TableCols := GetTableColumns(Obj);
+      TableCols := Obj.GetTableColumns;
       for TableCol in TableCols do begin
         Result := Result + CRLF + #9 + TableCol.SQLCode + ',';
       end;
       TableCols.Free;
 
-      TableKeys := GetTableKeys(Obj);
+      TableKeys := Obj.GetTableKeys;
       for TableKey in TableKeys do begin
         Result := Result + CRLF + #9 + TableKey.SQLCode + ',';
       end;
       TableKeys.Free;
 
-      TableForeignKeys := GetTableForeignKeys(Obj);
+      TableForeignKeys := Obj.GetTableForeignKeys;
       for TableForeignKey in TableForeignKeys do begin
         Result := Result + CRLF + #9 + TableForeignKey.SQLCode(True) + ',';
       end;
@@ -8461,29 +8460,6 @@ begin
 end;
 
 
-procedure TDBObject.LoadDetails;
-var
-  t: TTableColumnList;
-  k: TTableKeyList;
-  f: TForeignKeyList;
-begin
-  case NodeType of
-    lntTable: begin
-      // Load columns and keys, so later assigned copies of this object have them too
-      t := GetTableColumns;
-      t.Free;
-      k := GetTableKeys;
-      k.Free;
-      f := GetTableForeignKeys;
-      f.Free;
-      GetCreateCode;
-    end;
-    else begin
-      GetCreateCode;
-    end;
-  end;
-end;
-
 procedure TDBObject.UnloadDetails;
 begin
   FTableColumns.Clear;
@@ -8699,33 +8675,84 @@ end;
 
 
 function TDBObject.GetTableColumns: TTableColumnList;
+var
+  Db: TDBObjectList;
+  DbObj: TDBObject;
 begin
   // Return columns from table object
   if not FTableColumns.Loaded then begin
-    FTableColumns := Connection.GetTableColumns(Self);
-    FTableColumns.Loaded := True;
+    for Db in Connection.FDatabaseCache do begin
+      for DbObj in Db do begin
+        if (DbObj <> Self) and DbObj.IsSameAs(Self) then begin
+          FConnection.Log(lcDebug, 'Getting columns from database cache for '+QuotedDbAndTableName);
+          FTableColumns := Dbobj.GetTableColumns;
+          Break;
+        end;
+      end;
+      if FTableColumns.Loaded then
+        Break;
+    end;
+    if not FTableColumns.Loaded then begin
+      FConnection.Log(lcDebug, 'Getting fresh columns for '+QuotedDbAndTableName);
+      FTableColumns := Connection.GetTableColumns(Self);
+      FTableColumns.Loaded := True;
+    end;
   end;
   Result := TTableColumnList.Create;
   Result.Assign(FTableColumns);
 end;
 
 function TDBObject.GetTableKeys: TTableKeyList;
+var
+  Db: TDBObjectList;
+  DbObj: TDBObject;
 begin
   // Return keys from table object
   if not FTableKeys.Loaded then begin
-    FTableKeys := Connection.GetTableKeys(Self);
-    FTableKeys.Loaded := True;
+    for Db in Connection.FDatabaseCache do begin
+      for DbObj in Db do begin
+        if (DbObj <> Self) and DbObj.IsSameAs(Self) then begin
+          FConnection.Log(lcDebug, 'Getting keys from database cache for '+QuotedDbAndTableName);
+          FTableKeys := Dbobj.GetTableKeys;
+          Break;
+        end;
+      end;
+      if FTableKeys.Loaded then
+        Break;
+    end;
+    if not FTableKeys.Loaded then begin
+      FConnection.Log(lcDebug, 'Getting fresh keys for '+QuotedDbAndTableName);
+      FTableKeys := Connection.GetTableKeys(Self);
+      FTableKeys.Loaded := True;
+    end;
   end;
   Result := TTableKeyList.Create;
   Result.Assign(FTableKeys);
 end;
 
 function TDBObject.GetTableForeignKeys: TForeignKeyList;
+var
+  Db: TDBObjectList;
+  DbObj: TDBObject;
 begin
   // Return foreign keys from table object
   if not FTableForeignKeys.Loaded then begin
-    FTableForeignKeys := Connection.GetTableForeignKeys(Self);
-    FTableForeignKeys.Loaded := True;
+    for Db in Connection.FDatabaseCache do begin
+      for DbObj in Db do begin
+        if (DbObj <> Self) and DbObj.IsSameAs(Self) then begin
+          FConnection.Log(lcDebug, 'Getting foreign keys from database cache for '+QuotedDbAndTableName);
+          FTableForeignKeys := Dbobj.GetTableForeignKeys;
+          Break;
+        end;
+      end;
+      if FTableForeignKeys.Loaded then
+        Break;
+    end;
+    if not FTableForeignKeys.Loaded then begin
+      FConnection.Log(lcDebug, 'Getting fresh foreign keys for '+QuotedDbAndTableName);
+      FTableForeignKeys := Connection.GetTableForeignKeys(Self);
+      FTableForeignKeys.Loaded := True;
+    end;
   end;
   Result := TForeignKeyList.Create;
   Result.Assign(FTableForeignKeys);
@@ -8945,6 +8972,7 @@ begin
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
+  Loaded := Source.Loaded;
 end;
 
 
@@ -9045,6 +9073,7 @@ begin
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
+  Loaded := Source.Loaded;
 end;
 
 
@@ -9119,6 +9148,7 @@ begin
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
+  Loaded := Source.Loaded;
 end;
 
 

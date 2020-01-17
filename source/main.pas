@@ -8566,7 +8566,6 @@ begin
 
     DBObj := Sender.GetNodeData(Node);
     DBObj.WasSelected := True;
-    DBObj.LoadDetails;
     FActiveDbObj := TDBObject.Create(DBObj.Connection);
     FActiveDbObj.Assign(DBObj^);
     if Assigned(Node.Parent) then
