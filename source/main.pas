@@ -6002,11 +6002,12 @@ var
     tblname := Conn.DeQuoteIdent(tblname);
     DBObjects := Conn.GetDBObjects(dbname);
     for Obj in DBObjects do begin
-      if Obj.Name = tblname then begin
+      if (Obj.Name = tblname) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := TTableColumnList.Create(True);
         case Obj.NodeType of
-          lntTable:
+          lntTable: begin
             Columns := Obj.TableColumns;
+          end;
           lntView: begin
             Conn.ParseViewStructure(Obj.CreateCode, Obj, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
           end;
@@ -6142,8 +6143,9 @@ begin
     if Token2 = '' then begin
 
       // Column names from selected table
+      // Avoid usage of .QuotedName so we don't get the schema in it, see https://www.heidisql.com/forum.php?t=35411
       if Editor = SynMemoFilter then begin
-        AddColumns(ActiveDbObj.QuotedName);
+        AddColumns(Conn.QuoteIdent(ActiveDbObj.Name));
       end;
 
       // All databases
