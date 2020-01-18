@@ -2161,7 +2161,7 @@ var
       Index:           dtChar;
       NativeTypes:     '3';
       Name:            'CHARACTER';
-      Names:           'NCHAR|NATIVE CHARACTER';
+      Names:           'CHAR|NCHAR|NATIVE CHARACTER';
       Description:     '';
       HasLength:       True;
       RequiresLength:  True;
