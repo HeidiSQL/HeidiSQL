@@ -2078,7 +2078,7 @@ var
     )
   );
 
-  SQLiteDatatypes: Array[0..16] of TDBDatatype =
+  SQLiteDatatypes: Array[0..17] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -2204,6 +2204,18 @@ var
       NativeTypes:     '3';
       Name:            'TEXT';
       Names:           'CLOB';
+      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        True;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtUniqueidentifier;
+      NativeTypes:     '3';
+      Name:            'UNIQUEIDENTIFIER';
       Description:     '';
       HasLength:       False;
       RequiresLength:  False;
