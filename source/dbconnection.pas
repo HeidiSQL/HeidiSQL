@@ -2444,6 +2444,7 @@ begin
     end;
   end else begin
     if FHandle <> nil then begin
+      ClearCache(False);
       FLib.sqlite3_close(FHandle);
       FHandle := nil;
       FActive := False;
