@@ -3148,22 +3148,18 @@ function TMySQLConnection.GetCreateCode(Obj: TDBObject): String;
 var
   ColIdx: Integer;
 begin
-  if Obj.NodeType = lntTable then begin
-    // Use our own baked CREATE TABLE code
-    Result := inherited;
-    Exit;
-  end;
   if Obj.NodeType = lntView then begin
     // Use our own baked CREATE VIEW code
     Result := GetCreateViewCode(Obj.Database, Obj.Name);
     Exit;
   end;
   case Obj.NodeType of
+    lntTable: ColIdx := 1;
     lntFunction, lntProcedure, lntTrigger: ColIdx := 2;
     lntEvent: ColIdx := 3;
     else raise EDbError.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
   end;
-  Result := GetVar('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), ColIdx);
+  Result := GetVar('SHOW CREATE '+Obj.ObjType.ToUpper+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), ColIdx);
 end;
 
 
@@ -3180,7 +3176,8 @@ begin
         ' AND name='+EscapeString(Obj.Name));
     end;
     else begin
-      raise EDbError.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
+      // Let the generic method try to return code, which will most likely fail on SQLite
+      Result := inherited;
     end;
   end;
 end;
