@@ -2479,47 +2479,55 @@ procedure TfrmTableEditor.menuCopyColumnsClick(Sender: TObject);
 var
   Node: PVirtualNode;
   Col: PTableColumn;
-  SQL: String;
+  Cols: TStringList;
 begin
-  // Copy selected columns as a CREATE TABLE query to clipboard
+  // Copy selected columns in a text format to clipboard
   Node := GetNextNode(listColumns, nil, True);
-  SQL := 'CREATE TABLE dummy ('+CRLF;
+  Cols := TStringList.Create;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    SQL := SQL + #9 + Col.SQLCode + ','+CRLF;
+    Cols.Add(Col.Serialize);
     Node := GetNextNode(listColumns, Node, True);
   end;
-  Delete(SQL, Length(SQL)-2, 3);
-  SQL := SQL + CRLF + ')';
-  Clipboard.AsText := SQL;
+  Clipboard.AsText := Cols.Text;
+  Cols.Free;
 end;
 
 
 procedure TfrmTableEditor.menuPasteColumnsClick(Sender: TObject);
 var
-  Columns: TTableColumnList;
   Node: PVirtualNode;
   Col: TTableColumn;
+  ColsFromClp: TStringList;
+  ColSerialized: String;
 begin
-  Columns := TTableColumnList.Create(False);
-  DBObject.Connection.ParseTableStructure(Clipboard.AsText, Columns, nil, nil);
+  // Complement to "copy columns"
+  ColsFromClp := TStringList.Create;
+  ColsFromClp.Text := Clipboard.AsText;
   Node := listColumns.FocusedNode;
   if not Assigned(Node) then
     Node := listColumns.GetLast;
   listcolumns.BeginUpdate;
   try
-    for Col in Columns do begin
-      Col.Status := esAddedUntouched;
-      // Create new node, insert column structure into list, and let OnInitNode bind its pointer
-      Node := listColumns.InsertNode(Node, amInsertAfter, nil);
-      FColumns.Insert(Node.Index, Col);
+    for ColSerialized in ColsFromClp do begin
+      try
+        Col := TTableColumn.Create(DBObject.Connection, ColSerialized);
+        Col.Status := esAddedUntouched;
+        // Create new node, insert column structure into list, and let OnInitNode bind its pointer
+        Node := listColumns.InsertNode(Node, amInsertAfter, nil);
+        FColumns.Insert(Node.Index, Col);
+      except
+        on E:Exception do begin
+          MainForm.LogSQL(E.ClassName+' exception when creating column from text: "'+ColSerialized+'"', lcError);
+        end;
+      end;
     end;
   finally
     listcolumns.EndUpdate;
   end;
   listColumns.Invalidate;
   Modification(Sender);
-  Columns.Free;
+  ColsFromClp.Free;
 end;
 
 

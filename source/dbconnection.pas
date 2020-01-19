@@ -42,9 +42,10 @@ type
       OnUpdateText: String;
       Comment, Charset, Collation, Expression, Virtuality: String;
       FStatus: TEditingStatus;
-      constructor Create(AOwner: TDBConnection);
+      constructor Create(AOwner: TDBConnection; Serialized: String='');
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
+      function Serialize: String;
       function SQLCode(OverrideCollation: String=''; Parts: TColumnParts=[cpAll]): String;
       function ValueList: TStringList;
       procedure ParseDatatype(Source: String);
@@ -401,7 +402,6 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function ExtractIdentifier(var SQL: String): String;
       function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
@@ -445,7 +445,6 @@ type
       function GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
-      procedure ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
       procedure ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
@@ -5826,47 +5825,6 @@ begin
 end;
 
 
-function TDBConnection.ExtractIdentifier(var SQL: String): String;
-var
-  i, LeftPos, RightPos: Integer;
-  rx: TRegExpr;
-  LeftQuote: String;
-begin
-  // Return first identifier from SQL and remove it from the original string
-  // Backticks are escaped by a second backtick
-  // Other chars from FQuoteChars are not escaped
-  // Worst case: `"mycolumn``"`
-  Result := '';
-  rx := TRegExpr.Create;
-
-  // Find first quote char on the left and expect the same char on the right
-  rx.Expression := '['+QuoteRegExprMetaChars(FQuoteChars)+']';
-  if rx.Exec(SQL) then begin
-    LeftQuote := rx.Match[0];
-    LeftPos := rx.MatchPos[0] + 1;
-
-    // Step forward for each character of the identifier
-    i := LeftPos;
-    RightPos := LeftPos;
-    while i < Length(SQL) do begin
-      if (SQL[i] = LeftQuote) or ((LeftQuote = '[') and (SQL[i] = ']')) then begin
-        if SQL[i+1] = SQL[i] then // take doubled/escaped quote char into account
-          Inc(i)
-        else begin
-          RightPos := i;
-          Break;
-        end;
-      end;
-      Result := Result + SQL[i];
-      Inc(i);
-    end;
-
-    if RightPos > LeftPos then
-      Delete(SQL, 1, RightPos+1);
-  end;
-end;
-
-
 function TDBConnection.ConnectionInfo: TStringList;
 
   function EvalBool(B: Boolean): String;
@@ -5954,272 +5912,6 @@ begin
   minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
   build := StrToIntDef(Copy(v, Length(v)-1, 2), 0);
   Result.Values[f_('Client version (%s)', [FLib.DllFile])] := IntToStr(major) + '.' + IntToStr(minor) + '.' + IntToStr(build);
-end;
-
-
-procedure TDBConnection.ParseTableStructure(CreateTable: String; Columns: TTableColumnList; Keys: TTableKeyList; ForeignKeys: TForeignKeyList);
-var
-  ColSpec, Quotes, Tail: String;
-  rx, rxCol: TRegExpr;
-  i: Integer;
-  InLiteral: Boolean;
-  Col: TTableColumn;
-  Key: TTableKey;
-  ForeignKey: TForeignKey;
-  Collations: TDBQuery;
-const
-  QuoteReplacement = '{{}}';
-begin
-  Ping(True);
-  if Assigned(Columns) then Columns.Clear;
-  if Assigned(Keys) then Keys.Clear;
-  if Assigned(ForeignKeys) then ForeignKeys.Clear;
-  if CreateTable = '' then
-    Exit;
-  Collations := CollationTable;
-  Quotes := QuoteRegExprMetaChars(FQuoteChars);
-  rx := TRegExpr.Create;
-  rx.ModifierS := False;
-  rx.ModifierM := True;
-  rx.Expression := '^\s+['+Quotes+']';
-  rxCol := TRegExpr.Create;
-  rxCol.ModifierI := True;
-  // Make it ungreedy, so words on the right don't become a part of left matches
-  rxCol.ModifierG := False;
-  if rx.Exec(CreateTable) then while true do begin
-    if not Assigned(Columns) then
-      Break;
-    // Will also break if .ExecNext at the end fails
-
-    ColSpec := Copy(CreateTable, rx.MatchPos[0], SIZE_MB);
-    ColSpec := Copy(ColSpec, 1, Pos(#10, ColSpec));
-    ColSpec := Trim(ColSpec);
-
-    Col := TTableColumn.Create(Self);
-    Columns.Add(Col);
-    Col.Name := ExtractIdentifier(ColSpec);
-    Col.OldName := Col.Name;
-    Col.Status := esUntouched;
-    Col.LengthCustomized := False;
-
-    // Datatype
-    Col.DataType := GetDatatypeByName(ColSpec, True, Col.Name);
-    Col.OldDataType := Col.DataType;
-
-    // Length / Set
-    // Various datatypes, e.g. BLOBs, don't have any length property
-    InLiteral := False;
-    if (ColSpec <> '') and (ColSpec[1] = '(') then begin
-      for i:=2 to Length(ColSpec) do begin
-        if (ColSpec[i] = ')') and (not InLiteral) then
-          break;
-        if ColSpec[i] = '''' then
-          InLiteral := not InLiteral;
-      end;
-      Col.LengthSet := Copy(ColSpec, 2, i-2);
-      Delete(ColSpec, 1, i);
-    end;
-    ColSpec := Trim(ColSpec);
-
-    // Unsigned
-    if ColSpec.StartsWith('UNSIGNED', True) then begin
-      Col.Unsigned := True;
-      Delete(ColSpec, 1, 8);
-      ColSpec := Trim(ColSpec);
-    end else
-      Col.Unsigned := False;
-
-    // Zero fill
-    if ColSpec.StartsWith('ZEROFILL', True) then begin
-      Col.ZeroFill := True;
-      Delete(ColSpec, 1, 8);
-      ColSpec := Trim(ColSpec);
-    end else
-      Col.ZeroFill := False;
-
-    // Charset
-    rxCol.Expression := '^CHARACTER SET (\w+)\b';
-    if rxCol.Exec(ColSpec) then begin
-      Col.Charset := rxCol.Match[1];
-      Delete(ColSpec, 1, rxCol.MatchLen[0]);
-      ColSpec := Trim(ColSpec);
-    end;
-
-    // Collation - probably not present when charset present
-    rxCol.Expression := '^COLLATE\s+(\w+)\b';
-    if rxCol.Exec(ColSpec) then begin
-      Col.Collation := rxCol.Match[1];
-      Delete(ColSpec, 1, rxCol.MatchLen[0]);
-      ColSpec := Trim(ColSpec);
-    end;
-    if Col.Collation = '' then begin
-      if Assigned(Collations) then begin
-        Collations.First;
-        while not Collations.Eof do begin
-          if (Collations.Col('Charset') = Col.Charset) and (Collations.Col('Default') = 'Yes') then begin
-            Col.Collation := Collations.Col('Collation');
-            break;
-          end;
-          Collations.Next;
-        end;
-      end;
-    end;
-
-    // Virtual columns
-    rxCol.Expression := '^(GENERATED ALWAYS\s+)?AS\s+\((.+)\)\s+(VIRTUAL|PERSISTENT|STORED)';
-    if rxCol.Exec(ColSpec) then begin
-      Col.Expression := rxCol.Match[2];
-      Col.Virtuality := rxCol.Match[3];
-      Delete(ColSpec, 1, rxCol.MatchLen[0]);
-      ColSpec := Trim(ColSpec);
-    end;
-
-    // Allow NULL
-    if ColSpec.StartsWith('NOT NULL', True) then begin
-      Col.AllowNull := False;
-      Delete(ColSpec, 1, 8);
-    end else begin
-      Col.AllowNull := True;
-      // Sporadically there is a "NULL" found at this position.
-      if ColSpec.StartsWith('NULL', True) then
-        Delete(ColSpec, 1, 4);
-    end;
-    ColSpec := Trim(ColSpec);
-
-    // Default value detection
-    // Should detect auto increment (without "default" keyword), null, quoted text, and expressions like CURRENT_TIMESTAMP
-    Col.DefaultType := cdtNothing;
-    Col.DefaultText := '';
-    Col.OnUpdateType := cdtNothing;
-    Col.OnUpdateText := '';
-    if ColSpec.StartsWith('AUTO_INCREMENT', True) then begin
-      Col.DefaultType := cdtAutoInc;
-      Col.DefaultText := 'AUTO_INCREMENT';
-      Delete(ColSpec, 1, 15);
-    end else if ColSpec.StartsWith('DEFAULT ', True) then begin
-      Delete(ColSpec, 1, 8);
-      ColSpec := Trim(ColSpec);
-
-      // To retrieve the default value, get everything up to the end or up to a potential keywords mentioned on
-      // https://mariadb.com/kb/en/library/create-table/#column-definitions
-      rxCol.Expression := '^(.*)($|\s+(ON UPDATE|COLUMN_FORMAT|COMMENT|INVISIBLE)\b)';
-      if rxCol.Exec(ColSpec) then begin
-        Col.DefaultText := Trim(rxCol.Match[1]);
-        Col.DefaultText := Col.DefaultText.TrimRight([',']);
-
-        if Col.DefaultText.StartsWith('''') then begin
-          Col.DefaultType := cdtText;
-          Col.DefaultText := ExtractLiteral(Col.DefaultText, '');
-        end else if UpperCase(Col.DefaultText) = 'NULL' then begin
-          Col.DefaultType := cdtNull
-        end else begin
-          Col.DefaultType := cdtExpression;
-        end;
-        Delete(ColSpec, 1, rxCol.MatchLen[1]);
-        ColSpec := Trim(ColSpec);
-
-        // Do the same for a potentially existing ON UPDATE clause
-        if ColSpec.StartsWith('ON UPDATE ', True) then begin
-          Delete(ColSpec, 1, 10);
-          ColSpec := Trim(ColSpec);
-          rxCol.Expression := '($|\s+(COLUMN_FORMAT|COMMENT|INVISIBLE)\b)';
-          if rxCol.Exec(ColSpec) then begin
-            Col.OnUpdateText := ColSpec.Substring(0, rxCol.MatchPos[1]).Trim;
-            Col.OnUpdateText := Col.OnUpdateText.TrimRight([',']);
-            Col.OnUpdateType := cdtExpression;
-            Delete(ColSpec, 1, rxCol.MatchPos[1]);
-          end;
-        end;
-
-      end;
-
-    end;
-
-    // Comment
-    Col.Comment := ExtractLiteral(ColSpec, 'COMMENT');
-
-    if not rx.ExecNext then
-      break;
-  end;
-
-  // Detect keys
-  // PRIMARY KEY (`id`), UNIQUE KEY `id` (`id`), KEY `id_2` (`id`) USING BTREE,
-  // KEY `Text` (`Text`(100)), FULLTEXT KEY `Email` (`Email`,`Text`)
-  // KEY `idx_str` TYPE HASH (`str`) -- pre 5.0 syntax
-  // KEY `idx_str` (`str`) USING HASH COMMENT 'xxxxxxx'
-  rx.Expression := '^\s+((\w+)\s+)?KEY\s+(['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?\s+)?'+
-    '((USING|TYPE)\s+(\w+)\s+)?'+
-    '\((.+)\)'+
-    '(\s+USING\s+(\w+))?'+
-    '(\s+KEY_BLOCK_SIZE(\s|\=)+\d+)?'+
-    '([^,\)]*)'+
-    ',?$';
-  if rx.Exec(CreateTable) then while true do begin
-    if not Assigned(Keys) then
-      break;
-    Key := TTableKey.Create(Self);
-    Keys.Add(Key);
-    Key.Name := rx.Match[4];
-    if Key.Name = '' then Key.Name := rx.Match[2]; // PRIMARY
-    Key.Name := StringReplace(Key.Name, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
-    Key.OldName := Key.Name;
-    Key.IndexType := rx.Match[2];
-    Key.OldIndexType := Key.IndexType;
-    if rx.Match[6] <> '' then // 5.0 and below show USING ... before column list
-      Key.Algorithm := rx.Match[7]
-    else
-      Key.Algorithm := rx.Match[10];
-    if Key.IndexType = '' then
-      Key.IndexType := 'KEY'; // KEY
-    Key.Columns := Explode(',', rx.Match[8]);
-    for i:=0 to Key.Columns.Count-1 do begin
-      rxCol.Expression := '^['+Quotes+']?([^'+Quotes+']+)['+Quotes+']?(\((\d+)\))?(\s+(DESC|ASC))?$';
-      if rxCol.Exec(Key.Columns[i]) then begin
-        Key.Columns[i] := rxCol.Match[1];
-        Key.SubParts.Add(rxCol.Match[3]);
-      end else begin
-        // Regex did not match - most likely some unsupported clause, as in #640
-        Key.SubParts.Add('');
-      end;
-      Key.Columns[i] := StringReplace(Key.Columns[i], QuoteReplacement, FQuoteChar, [rfReplaceAll]);
-    end;
-
-    Tail := rx.Match[13];
-    Key.Comment := ExtractLiteral(Tail, 'COMMENT');
-
-    if not rx.ExecNext then
-      break;
-  end;
-
-  // Detect foreign keys
-  // CONSTRAINT `FK1` FOREIGN KEY (`which`) REFERENCES `fk1` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-  rx.Expression := '\s+CONSTRAINT\s+['+Quotes+']([^'+Quotes+']+)['+Quotes+']\sFOREIGN KEY\s+\(([^\)]+)\)\s+REFERENCES\s+['+Quotes+']([^\(]+)['+Quotes+']\s\(([^\)]+)\)(\s+ON DELETE (RESTRICT|CASCADE|SET NULL|NO ACTION))?(\s+ON UPDATE (RESTRICT|CASCADE|SET NULL|NO ACTION))?';
-  if rx.Exec(CreateTable) then while true do begin
-    if not Assigned(ForeignKeys) then
-      break;
-    ForeignKey := TForeignKey.Create(Self);
-    ForeignKeys.Add(ForeignKey);
-    ForeignKey.KeyName := rx.Match[1];
-    ForeignKey.KeyName := StringReplace(ForeignKey.KeyName, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
-    ForeignKey.OldKeyName := ForeignKey.KeyName;
-    ForeignKey.KeyNameWasCustomized := True;
-    ForeignKey.ReferenceTable := StringReplace(rx.Match[3], '`', '', [rfReplaceAll]);
-    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '"', '', [rfReplaceAll]);
-    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, '[', '', [rfReplaceAll]);
-    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, ']', '', [rfReplaceAll]);
-    ForeignKey.ReferenceTable := StringReplace(ForeignKey.ReferenceTable, QuoteReplacement, FQuoteChar, [rfReplaceAll]);
-    ExplodeQuotedList(rx.Match[2], ForeignKey.Columns);
-    ExplodeQuotedList(rx.Match[4], ForeignKey.ForeignColumns);
-    if rx.Match[6] <> '' then
-      ForeignKey.OnDelete := rx.Match[6];
-    if rx.Match[8] <> '' then
-      ForeignKey.OnUpdate := rx.Match[8];
-    if not rx.ExecNext then
-      break;
-  end;
-
-  FreeAndNil(rxCol);
-  FreeAndNil(rx);
 end;
 
 
@@ -8762,24 +8454,62 @@ end;
 
 { *** TTableColumn }
 
-constructor TTableColumn.Create(AOwner: TDBConnection);
+constructor TTableColumn.Create(AOwner: TDBConnection; Serialized: String='');
+var
+  Attributes: TStringList;
+  DataTypeIdx, OldDataTypeIdx: TDBDatatypeIndex;
+  i: Integer;
+  NumVal: String;
+
+  function FromSerialized(Name, Default: String): String;
+  begin
+    Result := Attributes.Values[Name];
+    if Result.IsEmpty then
+      Result := Default;
+  end;
 begin
+  // Initialize column from serialized values or use defaults
   inherited Create;
   FConnection := AOwner;
-  Status := esUntouched;
-  LengthCustomized := False;
-  Unsigned := False;
-  ZeroFill := False;
-  Charset := '';
-  Collation := '';
-  Expression := '';
-  Virtuality := '';
-  AllowNull := True;
-  DefaultType := cdtNothing;
-  DefaultText := '';
-  OnUpdateType := cdtNothing;
-  OnUpdateText := '';
-  Comment := '';
+
+  // Prepare serialized string
+  Serialized := StringReplace(Serialized, CHR13REPLACEMENT, #13, [rfReplaceAll]);
+  Serialized := StringReplace(Serialized, CHR10REPLACEMENT, #10, [rfReplaceAll]);
+  Attributes := Explode(DELIMITER, Serialized);
+
+  // Apply given or default attributes
+  Name := FromSerialized('Name', '');
+  OldName := FromSerialized('OldName', '');
+  NumVal := FromSerialized('DataType', Integer(dtUnknown).ToString);
+  DataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
+  NumVal := FromSerialized('OldDataType', Integer(dtUnknown).ToString);
+  OldDataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
+  for i:=Low(Connection.Datatypes) to High(Connection.Datatypes) do begin
+    if Connection.Datatypes[i].Index = DataTypeIdx then
+      DataType := Connection.Datatypes[i];
+    if Connection.Datatypes[i].Index = OldDataTypeIdx then
+      OldDataType := Connection.Datatypes[i];
+  end;
+  LengthSet := FromSerialized('LengthSet', '');
+  Unsigned := FromSerialized('Unsigned', '0').ToInteger.ToBoolean;
+  AllowNull := FromSerialized('AllowNull', '1').ToInteger.ToBoolean;
+  ZeroFill := FromSerialized('ZeroFill', '0').ToInteger.ToBoolean;
+  LengthCustomized := FromSerialized('LengthCustomized', '0').ToInteger.ToBoolean;
+  NumVal := FromSerialized('DefaultType', Integer(cdtNothing).ToString);
+  DefaultType := TColumnDefaultType(NumVal.ToInteger);
+  DefaultText := FromSerialized('DefaultText', '');
+  NumVal := FromSerialized('OnUpdateType', Integer(cdtNothing).ToString);
+  OnUpdateType := TColumnDefaultType(NumVal.ToInteger);
+  OnUpdateText := FromSerialized('OnUpdateText', '');
+  Comment := FromSerialized('Comment', '');
+  Charset := FromSerialized('Charset', '');
+  Collation := FromSerialized('Collation', '');
+  Expression := FromSerialized('Expression', '');
+  Virtuality := FromSerialized('Virtuality', '');
+  NumVal := FromSerialized('Status', Integer(esUntouched).ToString);
+  FStatus := TEditingStatus(NumVal.ToInteger);
+
+  Attributes.Free;
 end;
 
 destructor TTableColumn.Destroy;
@@ -8814,6 +8544,41 @@ begin
     FStatus := s.FStatus;
   end else
     inherited;
+end;
+
+function TTableColumn.Serialize: String;
+var
+  s: TStringList;
+begin
+  // Return object attributes/fields in a one-line text format, which can later be
+  // restored through passing that text to the constructor
+  // We could also use the .SQLCode method to get a text representation, but that
+  // would require a more complex deserializing method
+  s := TStringList.Create;
+  s.AddPair('Name', Name);
+  s.AddPair('OldName', OldName);
+  s.AddPair('DataType', Integer(DataType.Index).ToString);
+  s.AddPair('OldDataType', Integer(OldDataType.Index).ToString);
+  s.AddPair('LengthSet', LengthSet);
+  s.AddPair('Unsigned', Unsigned.ToInteger.ToString);
+  s.AddPair('AllowNull', AllowNull.ToInteger.ToString);
+  s.AddPair('ZeroFill', ZeroFill.ToInteger.ToString);
+  s.AddPair('LengthCustomized', LengthCustomized.ToInteger.ToString);
+  s.AddPair('DefaultType', Integer(DefaultType).ToString);
+  s.AddPair('DefaultText', DefaultText);
+  s.AddPair('OnUpdateType', Integer(OnUpdateType).ToString);
+  s.AddPair('OnUpdateText', OnUpdateText);
+  s.AddPair('Comment', Comment);
+  s.AddPair('Charset', Charset);
+  s.AddPair('Collation', Collation);
+  s.AddPair('Expression', Expression);
+  s.AddPair('Virtuality', Virtuality);
+  s.AddPair('Status', Integer(FStatus).ToString);
+
+  Result := implodestr(DELIMITER, s);
+  s.Free;
+  Result := StringReplace(Result, #13, CHR13REPLACEMENT, [rfReplaceAll]);
+  Result := StringReplace(Result, #10, CHR10REPLACEMENT, [rfReplaceAll]);
 end;
 
 procedure TTableColumn.SetStatus(Value: TEditingStatus);
