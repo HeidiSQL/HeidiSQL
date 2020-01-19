@@ -868,6 +868,13 @@ begin
     FindText := LowerCase(FindText);
     FindTextJokers := LowerCase(FindTextJokers);
     RoutineDefinitionColumn := 'LOWER('+RoutineDefinitionColumn+')';
+    if DBObj.Connection.Parameters.IsSQLite then begin
+      DBObj.Connection.Query('PRAGMA case_sensitive_like=FALSE');
+    end;
+  end else begin
+    if DBObj.Connection.Parameters.IsSQLite then begin
+      DBObj.Connection.Query('PRAGMA case_sensitive_like=TRUE');
+    end;
   end;
   RoutineSchemaColumn := 'routine_schema';
   if DBObj.Connection.Parameters.IsMSSQL then
@@ -910,6 +917,12 @@ begin
                   else
                     SQL := SQL + 'CAST(' + Column + ' AS TEXT) LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
+                ngSQLite: begin
+                  if IsRegExp then
+                    SQL := SQL + Column + ' REGEXP ' + esc(FindText) + ' OR '
+                  else
+                    SQL := SQL + Column + ' LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
               end;
 
             end else begin
@@ -930,6 +943,12 @@ begin
                   else
                     SQL := SQL + 'LOWER(CAST('+Column+' AS TEXT)) LIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
+                ngSQLite: begin
+                  if IsRegExp then
+                    SQL := SQL + Column + ' REGEXP ' + esc(FindText) + ' OR '
+                  else
+                    SQL := SQL + Column + ' LIKE ' + esc(FindTextJokers) + ' OR ';
+                end;
               end;
             end;
 
@@ -947,6 +966,10 @@ begin
             ngMSSQL:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
                 + 'CONVERT(VARCHAR(10), ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1)) + ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + SQL;
+            ngSQLite:
+              SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
+                + '(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1) || ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
           end;
           AddResults(SQL, DBObj.Connection);
