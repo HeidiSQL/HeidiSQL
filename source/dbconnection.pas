@@ -4992,7 +4992,7 @@ begin
       Result.Add(ForeignKey);
       ForeignKey.KeyName := ForeignQuery.Col('id');
       ForeignKey.OldKeyName := ForeignKey.KeyName;
-      ForeignKey.ReferenceTable := Table.Database + '.' + ForeignQuery.Col('table');
+      ForeignKey.ReferenceTable := ForeignQuery.Col('table');
       ForeignKey.OnUpdate := ForeignQuery.Col('on_update');
       ForeignKey.OnDelete := ForeignQuery.Col('on_delete');
     end;
