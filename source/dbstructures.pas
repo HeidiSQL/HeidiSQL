@@ -2078,11 +2078,10 @@ var
     )
   );
 
-  SQLiteDatatypes: Array[0..17] of TDBDatatype =
+  SQLiteDatatypes: Array[0..13] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
-      NativeTypes:     '99999';
       Name:            'UNKNOWN';
       Description:     'Unknown data type';
       HasLength:       False;
@@ -2094,10 +2093,8 @@ var
     ),
     (
       Index:           dtTinyint;
-      NativeTypes:     '1';
       Name:            'TINYINT';
       Names:           'INT2|BOOLEAN|BOOL';
-      Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -2106,37 +2103,9 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtSmallint;
-      NativeTypes:     '1';
-      Name:            'SMALLINT';
-      Names:           '';
-      Description:     '';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      True;
-      LoadPart:        False;
-      Category:        dtcInteger;
-    ),
-    (
-      Index:           dtMediumint;
-      NativeTypes:     '1';
-      Name:            'INTEGER';
-      Names:           'MEDIUMINT|INT8';
-      Description:     '';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      True;
-      LoadPart:        False;
-      Category:        dtcInteger;
-    ),
-    (
       Index:           dtInt;
-      NativeTypes:     '1';
       Name:            'INTEGER';
-      Names:           'INT';
-      Description:     '';
+      Names:           'INT|MEDIUMINT|INT8';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -2146,10 +2115,8 @@ var
     ),
     (
       Index:           dtBigint;
-      NativeTypes:     '1';
       Name:            'BIGINT';
       Names:           'UNSIGNED BIG INT';
-      Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -2158,25 +2125,9 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtChar;
-      NativeTypes:     '3';
-      Name:            'CHARACTER';
-      Names:           'CHAR|NCHAR|NATIVE CHARACTER';
-      Description:     '';
-      HasLength:       True;
-      RequiresLength:  True;
-      HasBinary:       False;
-      HasDefault:      True;
-      LoadPart:        True;
-      DefLengthSet:    '50';
-      Category:        dtcText;
-    ),
-    (
-      Index:           dtText;
-      NativeTypes:     '3';
+      Index:           dtVarchar;
       Name:            'VARCHAR';
-      Names:           'VARCHAR|VARYING CHARACTER';
-      Description:     '';
+      Names:           'VARCHAR|VARYING CHARACTER|NVARCHAR|CHARACTER|CHAR|NCHAR|NATIVE CHARACTER';
       HasLength:       True;
       RequiresLength:  True;
       HasBinary:       False;
@@ -2187,24 +2138,8 @@ var
     ),
     (
       Index:           dtText;
-      NativeTypes:     '3';
-      Name:            'NVARCHAR';
-      Names:           'NVARCHAR';
-      Description:     '';
-      HasLength:       True;
-      RequiresLength:  True;
-      HasBinary:       False;
-      HasDefault:      True;
-      LoadPart:        True;
-      DefLengthSet:    '50';
-      Category:        dtcText;
-    ),
-    (
-      Index:           dtText;
-      NativeTypes:     '3';
       Name:            'TEXT';
       Names:           'CLOB';
-      Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -2214,21 +2149,17 @@ var
     ),
     (
       Index:           dtUniqueidentifier;
-      NativeTypes:     '3';
       Name:            'UNIQUEIDENTIFIER';
-      Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
-      LoadPart:        True;
-      Category:        dtcText;
+      LoadPart:        False;
+      Category:        dtcBinary;
     ),
     (
       Index:           dtBlob;
-      NativeTypes:     '4';
       Name:            'BLOB';
-      Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -2238,48 +2169,9 @@ var
     ),
     (
       Index:           dtReal;
-      NativeTypes:     '2';
       Name:            'REAL';
-      Names:           'REAL|NUMERIC';
-      Description:     '';
+      Names:           'REAL|NUMERIC|DOUBLE|DOUBLE PRECISION|FLOAT|DECIMAL';
       HasLength:       False;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      True;
-      LoadPart:        False;
-      Category:        dtcReal;
-    ),
-    (
-      Index:           dtDouble;
-      NativeTypes:     '2';
-      Name:            'DOUBLE';
-      Names:           'DOUBLE PRECISION';
-      Description:     '';
-      HasLength:       False;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      True;
-      LoadPart:        False;
-      Category:        dtcReal;
-    ),
-    (
-      Index:           dtFloat;
-      NativeTypes:     '2';
-      Name:            'FLOAT';
-      Description:     '';
-      HasLength:       True;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      True;
-      LoadPart:        False;
-      Category:        dtcReal;
-    ),
-    (
-      Index:           dtDecimal;
-      NativeTypes:     '2';
-      Name:            'DECIMAL';
-      Description:     '';
-      HasLength:       True;
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
@@ -2289,7 +2181,16 @@ var
     (
       Index:           dtDate;
       Name:            'DATE';
-      Description:     '';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtTime;
+      Name:            'TIME';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -2300,13 +2201,36 @@ var
     (
       Index:           dtDatetime;
       Name:            'DATETIME';
-      Description:     '';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      True;
       LoadPart:        False;
       Category:        dtcTemporal;
+    ),
+    (
+      Index:           dtEnum;
+      NativeType:      mytEnum;
+      Name:            'ENUM';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      DefLengthSet:    '''Y'',''N''';
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtSet;
+      NativeType:      mytSet;
+      Name:            'SET';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      DefLengthSet:    '''Value A'',''Value B''';
+      Category:        dtcOther;
     )
   );
 
