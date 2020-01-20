@@ -601,6 +601,7 @@ type
       function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
   end;
 
@@ -4671,7 +4672,7 @@ var
   TableCol: TTableColumn;
 begin
   Result := inherited;
-  // Comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
+  // Column comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
   try
     Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
       'FROM sys.extended_properties AS prop '+
@@ -4696,6 +4697,34 @@ begin
     on E:EDbError do;
   end;
 
+end;
+
+function TPgConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+var
+  Comments: TDBQuery;
+  TableCol: TTableColumn;
+begin
+  Result := inherited;
+  // Column comments in Postgre. See issue #859
+  // Todo: add current schema to WHERE clause?
+  Comments := GetResults('SELECT a.attname AS column, des.description AS comment'+
+    ' FROM pg_attribute AS a, pg_description AS des, pg_class AS pgc'+
+    ' WHERE'+
+    '     pgc.oid = a.attrelid'+
+    '     AND des.objoid = pgc.oid'+
+    '     AND pg_table_is_visible(pgc.oid)'+
+    '     AND pgc.relname = '+EscapeString(Table.Name)+
+    '     AND a.attnum = des.objsubid'
+    );
+  while not Comments.Eof do begin
+    for TableCol in Result do begin
+      if TableCol.Name = Comments.Col('column') then begin
+        TableCol.Comment := Comments.Col('comment');
+        Break;
+      end;
+    end;
+    Comments.Next;
+  end;
 end;
 
 function TSQLiteConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
