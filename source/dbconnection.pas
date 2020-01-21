@@ -4853,6 +4853,7 @@ begin
       '    FROM pg_class'+
       '    JOIN pg_index i ON (pg_class.oid = i.indexrelid)'+
       '    JOIN ndx_list ON (pg_class.oid = ndx_list.indexrelid)'+
+      '    WHERE pg_table_is_visible(pg_class.oid)'+
       '  )'+
       'SELECT ndx_cols.relname AS CONSTRAINT_NAME, ndx_cols.CONSTRAINT_TYPE, a.attname AS COLUMN_NAME '+
       'FROM pg_attribute a '+
