@@ -413,7 +413,7 @@ var
   Node: PVirtualNode;
   Col, ExcludeCol: TColumnIndex;
   RowNum: PInt64;
-  SelectionSize, AllSize: Int64;
+  SelectionSize, AllSize, RowsCalculated: Int64;
 begin
   GridData := Mainform.GridResult(Grid);
   AllSize := 0;
@@ -424,6 +424,7 @@ begin
     ExcludeCol := GridData.AutoIncrementColumn;
 
   Node := GetNextNode(Grid, nil, False);
+  RowsCalculated := 0;
   while Assigned(Node) do begin
     RowNum := Grid.GetNodeData(Node);
     GridData.RecNo := RowNum^;
@@ -436,7 +437,14 @@ begin
       end;
       Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
     end;
+    // Performance: use first rows only, and interpolate the rest, see issue #804
+    Inc(RowsCalculated);
+    if RowsCalculated >= 1000 then
+      Break;
     Node := GetNextNode(Grid, Node, False);
+  end;
+  if GridData.RecordCount > RowsCalculated then begin
+    AllSize := Round(AllSize / RowsCalculated * GridData.RecordCount);
   end;
   grpSelection.Items[0] := f_('Selection (%s rows, %s)', [FormatNumber(Grid.SelectedCount), FormatByteNumber(SelectionSize)]);
   grpSelection.Items[1] := f_('Complete (%s rows, %s)', [FormatNumber(Grid.RootNodeCount), FormatByteNumber(AllSize)]);
