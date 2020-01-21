@@ -729,7 +729,8 @@ object optionsform: Toptionsform
         Top = 252
         Width = 145
         Height = 22
-        Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+        NoneColorColor = clNone
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         TabOrder = 15
         OnChange = SQLFontChange
       end
@@ -738,7 +739,8 @@ object optionsform: Toptionsform
         Top = 299
         Width = 145
         Height = 22
-        Style = [cbStandardColors, cbExtendedColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
+        NoneColorColor = clNone
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
         TabOrder = 16
         OnChange = SQLFontChange
       end
