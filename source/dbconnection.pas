@@ -4810,6 +4810,7 @@ begin
       NewKey := TTableKey.Create(Self);
       Result.Add(NewKey);
       NewKey.Name := KeyQuery.Col('Key_name');
+      Log(lcDebug, 'NewKey.Name="'+NewKey.Name+'"');
       NewKey.OldName := NewKey.Name;
       if NewKey.Name.ToLower = 'primary' then
         NewKey.IndexType := 'PRIMARY'
