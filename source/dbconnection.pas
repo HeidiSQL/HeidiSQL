@@ -986,12 +986,12 @@ begin
     end;
 
     if OutText <> '' then begin
-      if ExecRegExpr('(login as|Passphrase for key "[^"]+")\s*\:', OutText) then begin
+      if ExecRegExpr('login as\s*\:', OutText) then begin
         // Prompt for username
         UserInput := InputBox('PLink:', OutText, '');
         SendText(UserInput + CRLF);
-      end else if ExecRegExpr('password\s*\:', OutText) then begin
-        // Prompt for password. Send * as first char of prompt param so InputBox hides input characters
+      end else if ExecRegExpr('(password|Passphrase for key "[^"]+")\s*\:', OutText) then begin
+        // Prompt for sensitive input. Send * as first char of prompt param so InputBox hides input characters
         UserInput := InputBox('PLink:', #31+OutText, '');
         SendText(UserInput + CRLF);
       end else begin
