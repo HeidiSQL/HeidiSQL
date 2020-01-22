@@ -606,7 +606,7 @@ begin
 
       case Conn.Parameters.NetTypeGroup of
 
-        ngMySQL: begin
+        ngMySQL, ngSQLite: begin
           ColSpec := Col.SQLCode(OverrideCollation);
           // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
           if Conn.ServerVersionInt >= 40001 then begin
