@@ -4551,7 +4551,7 @@ var
   TableIdx: Integer;
   ColQuery: TDBQuery;
   Col: TTableColumn;
-  dt, SchemaClause, DefText, ExtraText: String;
+  dt, SchemaClause, DefText, ExtraText, MaxLen: String;
 begin
   // Generic: query table columns from IS.COLUMNS
   Result := TTableColumnList.Create(True);
@@ -4568,9 +4568,25 @@ begin
     Result.Add(Col);
     Col.Name := ColQuery.Col('COLUMN_NAME');
     Col.OldName := Col.Name;
-    // PG/MySQL use different ones:
+    // PG/MySQL use different fields:
     dt := IfThen(ColQuery.ColExists('COLUMN_TYPE'), 'COLUMN_TYPE', 'DATA_TYPE');
     Col.ParseDatatype(ColQuery.Col(dt));
+    // PG/MSSQL don't include length in data type
+    if Col.LengthSet.IsEmpty then begin
+      if not ColQuery.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
+        MaxLen := ColQuery.Col('CHARACTER_MAXIMUM_LENGTH');
+        if MaxLen = '-1' then
+          MaxLen := 'max';
+      end else if not ColQuery.IsNull('NUMERIC_PRECISION') then begin
+        MaxLen := ColQuery.Col('NUMERIC_PRECISION');
+        if not ColQuery.IsNull('NUMERIC_SCALE') then
+          MaxLen := MaxLen + ',' + ColQuery.Col('NUMERIC_SCALE');
+      end else if not ColQuery.IsNull('DATETIME_PRECISION') then begin
+        MaxLen := ColQuery.Col('DATETIME_PRECISION');
+      end;
+      if not MaxLen.IsEmpty then
+        Col.LengthSet := MaxLen;
+    end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
     Col.Collation := ColQuery.Col('COLLATION_NAME');
     // MSSQL has no expression
