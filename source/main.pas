@@ -5455,7 +5455,7 @@ begin
     if (not IsLimited) and (not IsFiltered) then
       RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
     else
-      RowsTotal := DBObject.RowCount;
+      RowsTotal := DBObject.RowCount(True);
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
       if DBObject.Engine = 'InnoDB' then

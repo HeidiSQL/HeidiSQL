@@ -142,7 +142,7 @@ type
       function QuotedName(AlwaysQuote: Boolean=True; SeparateSegments: Boolean=True): String;
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
-      function RowCount: Int64;
+      function RowCount(Reload: Boolean): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
@@ -8384,9 +8384,12 @@ begin
   Result := Connection.QuoteIdent(Column, AlwaysQuote);
 end;
 
-function TDBObject.RowCount: Int64;
+function TDBObject.RowCount(Reload: Boolean): Int64;
 begin
-  Result := Connection.GetRowCount(Self);
+  if (Rows = -1) or Reload then begin
+    Rows := Connection.GetRowCount(Self);
+  end;
+  Result := Rows;
 end;
 
 procedure TDBObject.Drop;
