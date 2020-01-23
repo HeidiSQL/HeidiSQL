@@ -965,7 +965,7 @@ object connform: Tconnform
       OnClick = btnSaveClick
     end
     object menuSaveAs: TMenuItem
-      Caption = 'Save as ...'
+      Caption = 'Duplicate / save as ...'
       ImageIndex = 10
       ShortCut = 123
       OnClick = btnSaveAsClick
