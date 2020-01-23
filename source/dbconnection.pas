@@ -4783,7 +4783,7 @@ begin
   KeyQuery := GetResults('SELECT * FROM '+
     QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[ColTableIdx])+' AS col'+
     ', '+QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[ConTableIdx])+' AS con'+
-    ' WHERE col.TABLE_SCHEMA='+EscapeString(Database)+
+    ' WHERE col.TABLE_SCHEMA='+EscapeString(IfThen(Parameters.IsMSSQL, Table.Schema, Table.Database))+
     ' AND col.TABLE_NAME='+EscapeString(Table.Name)+
     ' AND col.TABLE_SCHEMA=con.TABLE_SCHEMA'+
     ' AND col.TABLE_NAME=con.TABLE_NAME'+
