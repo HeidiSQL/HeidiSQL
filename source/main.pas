@@ -5805,6 +5805,9 @@ begin
   if inSynMemo then begin
     actCut.Enabled := inSynMemoEditable;
     actPaste.Enabled := inSynMemoEditable;
+  end else begin
+    actCut.Enabled := True;
+    actPaste.Enabled := True;
   end;
 
   ValidateQueryControls(Sender);
