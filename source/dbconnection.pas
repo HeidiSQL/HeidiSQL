@@ -571,6 +571,7 @@ type
       function GetLastResults: TDBQueryList; override;
       property LastRawResults: TAdoRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
+      function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
 
   TPGRawResults = Array of PPGresult;
@@ -5021,6 +5022,44 @@ begin
       FForeignKeyQueriesFailed := True;
     end;
   end;
+end;
+
+
+function TAdoDbConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+var
+  ForeignQuery: TDBQuery;
+  ForeignKey: TForeignKey;
+begin
+  // MS SQL: see #150
+  Result := TForeignKeyList.Create(True);
+  ForeignQuery := GetResults('SELECT'+
+    '   f.name AS foreign_key_name,'+
+    '   COL_NAME(fc.parent_object_id, fc.parent_column_id) AS constraint_column_name,'+
+    '   OBJECT_NAME (f.referenced_object_id) AS referenced_object,'+
+    '   COL_NAME(fc.referenced_object_id, fc.referenced_column_id) AS referenced_column_name,'+
+    '   update_referential_action_desc,'+
+    '   delete_referential_action_desc'+
+    ' FROM sys.foreign_keys AS f'+
+    ' INNER JOIN sys.foreign_key_columns AS fc'+
+    '   ON f.object_id = fc.constraint_object_id'+
+    ' WHERE f.parent_object_id = OBJECT_ID('+EscapeString(Table.Name)+')'
+    );
+  ForeignKey := nil;
+  while not ForeignQuery.Eof do begin
+    if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('foreign_key_name')) then begin
+      ForeignKey := TForeignKey.Create(Self);
+      Result.Add(ForeignKey);
+      ForeignKey.KeyName := ForeignQuery.Col('foreign_key_name');
+      ForeignKey.OldKeyName := ForeignKey.KeyName;
+      ForeignKey.ReferenceTable := ForeignQuery.Col('referenced_object');
+      ForeignKey.OnUpdate := ForeignQuery.Col('update_referential_action_desc');
+      ForeignKey.OnDelete := ForeignQuery.Col('delete_referential_action_desc');
+    end;
+    ForeignKey.Columns.Add(ForeignQuery.Col('constraint_column_name'));
+    ForeignKey.ForeignColumns.Add(ForeignQuery.Col('referenced_column_name'));
+    ForeignQuery.Next;
+  end;
+  ForeignQuery.Free;
 end;
 
 

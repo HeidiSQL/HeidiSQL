@@ -9531,7 +9531,7 @@ begin
   Results.RecNo := RowNum^;
   Conn := Results.Connection;
 
-  // Find foreign key values on InnoDB table cells
+  // Find foreign key values
   if AppSettings.ReadBool(asForeignDropDown) and (Sender = DataGrid) then begin
     for ForeignKey in SelectedTableForeignKeys do begin
       idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
@@ -9557,11 +9557,18 @@ begin
         end;
 
         KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
-        SQL := 'SELECT '+KeyCol;
-        if TextCol <> '' then SQL := SQL + ', ' + Format(Conn.GetSQLSpecifity(spFuncLeft), [Conn.QuoteIdent(TextCol), 256]);
-        SQL := SQL + ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+' GROUP BY '+KeyCol+' ORDER BY ';
-        if TextCol <> '' then SQL := SQL + Conn.QuoteIdent(TextCol) else SQL := SQL + KeyCol;
-        SQL := SQL + ' LIMIT ' + ForeignItemsLimit.ToString;
+        if TextCol <> '' then begin
+          SQL := KeyCol+', ' + Format(Conn.GetSQLSpecifity(spFuncLeft), [Conn.QuoteIdent(TextCol), 256])+
+            ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+
+            ' GROUP BY '+KeyCol+', '+Conn.QuoteIdent(TextCol)+ // MSSQL complains if the text columns is not grouped
+            ' ORDER BY '+Conn.QuoteIdent(TextCol);
+        end else begin
+          SQL := KeyCol+
+            ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+
+            ' GROUP BY '+KeyCol+
+            ' ORDER BY '+KeyCol;
+        end;
+        SQL := Conn.ApplyLimitClause('SELECT', SQL, ForeignItemsLimit, 0);
 
         ForeignResults := Conn.GetResults(SQL);
         if ForeignResults.RecordCount < ForeignItemsLimit then begin

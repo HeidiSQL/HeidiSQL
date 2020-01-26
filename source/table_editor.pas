@@ -2250,6 +2250,7 @@ procedure TfrmTableEditor.listForeignKeysEditing(Sender: TBaseVirtualTree; Node:
   Column: TColumnIndex; var Allowed: Boolean);
 var
   Key: TForeignKey;
+  ExistsQuery: String;
 begin
   // Disallow editing foreign columns when no reference table was selected.
   // Also, check for existance of reference table and warn if it's missing.
@@ -2260,7 +2261,11 @@ begin
       ErrorDialog(_('Please select a reference table before selecting foreign columns.'))
     else begin
       try
-        DBObject.Connection.GetVar('SELECT 1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.')+' LIMIT 1');
+        ExistsQuery := DBObject.Connection.ApplyLimitClause(
+          'SELECT',
+          '1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'),
+          1, 0);
+        DBObject.Connection.GetVar(ExistsQuery);
         Allowed := True;
       except
         // Leave Allowed = False
@@ -2282,8 +2287,10 @@ var
   DBObjects: TDBObjectList;
   Key: TForeignKey;
   ColNode: PVirtualNode;
-  Col: PTableColumn;
+  PCol: PTableColumn;
+  Col: TTableColumn;
   Obj: TDBObject;
+  Columns: TTableColumnList;
 begin
   // Init grid editor in foreign key list
   VT := Sender as TVirtualStringTree;
@@ -2293,8 +2300,8 @@ begin
         SetEditor := TSetEditorLink.Create(VT);
         ColNode := listColumns.GetFirst;
         while Assigned(ColNode) do begin
-          Col := listColumns.GetNodeData(ColNode);
-          SetEditor.ValueList.Add(Col.Name);
+          PCol := listColumns.GetNodeData(ColNode);
+          SetEditor.ValueList.Add(PCol.Name);
           ColNode := listColumns.GetNextSibling(ColNode);
         end;
         EditLink := SetEditor;
@@ -2304,7 +2311,7 @@ begin
         EnumEditor.AllowCustomText := True;
         DBObjects := DBObject.Connection.GetDBObjects(DBObject.Connection.Database);
         for Obj in DBObjects do begin
-          if (Obj.NodeType = lntTable) and (LowerCase(Obj.Engine) = 'innodb') then
+          if (Obj.NodeType = lntTable) then
             EnumEditor.ValueList.Add(Obj.Name);
         end;
         EditLink := EnumEditor;
@@ -2312,7 +2319,13 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT);
-        SetEditor.ValueList := DBObject.Connection.GetCol('SHOW COLUMNS FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'));
+        Obj := DBObject.Connection.FindObject(DBObject.Database, Key.ReferenceTable);
+        if Obj <> nil then begin
+          Columns := Obj.TableColumns;
+          for Col in Columns do begin
+            SetEditor.ValueList.Add(Col.Name);
+          end;
+        end;
         EditLink := SetEditor;
       end;
     4, 5: begin
