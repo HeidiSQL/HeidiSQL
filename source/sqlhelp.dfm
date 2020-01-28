@@ -230,6 +230,8 @@ object frmSQLhelp: TfrmSQLhelp
     Top = 8
   end
   object URIHighlighter: TSynURISyn
+    URIAttri.Foreground = clHighlight
+    VisitedURIAttri.Foreground = clHighlight
     Left = 416
     Top = 8
   end
