@@ -2078,7 +2078,7 @@ var
     )
   );
 
-  SQLiteDatatypes: Array[0..13] of TDBDatatype =
+  SQLiteDatatypes: Array[0..14] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -2123,6 +2123,18 @@ var
       HasDefault:      True;
       LoadPart:        False;
       Category:        dtcInteger;
+    ),
+    (
+      Index:           dtChar;
+      Name:            'CHAR';
+      Names:           'CHARACTER|CHAR|NCHAR|NATIVE CHARACTER';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
     ),
     (
       Index:           dtVarchar;
