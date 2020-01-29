@@ -4827,7 +4827,6 @@ begin
       NewKey := TTableKey.Create(Self);
       Result.Add(NewKey);
       NewKey.Name := KeyQuery.Col('Key_name');
-      Log(lcDebug, 'NewKey.Name="'+NewKey.Name+'"');
       NewKey.OldName := NewKey.Name;
       if NewKey.Name.ToLower = 'primary' then
         NewKey.IndexType := 'PRIMARY'
@@ -4839,6 +4838,7 @@ begin
       NewKey.OldIndexType := NewKey.IndexType;
       NewKey.Algorithm := KeyQuery.Col('Index_type');
       NewKey.Comment := KeyQuery.Col('Index_comment', True);
+      Log(lcDebug, 'NewKey.Name="'+NewKey.Name+'", NewKey.Name.ToLower="'+NewKey.Name.ToLower+'", NewKey.IndexType="'+NewKey.IndexType+'"');
     end;
     NewKey.Columns.Add(KeyQuery.Col('Column_name'));
     NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
