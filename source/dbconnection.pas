@@ -3161,7 +3161,7 @@ begin
     lntEvent: ColIdx := 3;
     else raise EDbError.CreateFmt(_('Unhandled list node type in %s.%s'), [ClassName, 'GetCreateCode']);
   end;
-  Result := GetVar('SHOW CREATE '+Obj.ObjType.ToUpper+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), ColIdx);
+  Result := GetVar('SHOW CREATE '+Obj.ObjType.ToUpperInvariant+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), ColIdx);
 end;
 
 
@@ -4594,14 +4594,14 @@ begin
     Col.Expression := ColQuery.Col('GENERATION_EXPRESSION', True);
     // PG has no extra:
     ExtraText := ColQuery.Col('EXTRA', True);
-    Col.Virtuality := RegExprGetMatch('^(\w+)\s+generated$', ExtraText.ToLower, 1);
-    Col.AllowNull := ColQuery.Col('IS_NULLABLE').ToLower = 'yes';
+    Col.Virtuality := RegExprGetMatch('^(\w+)\s+generated$', ExtraText.ToLowerInvariant, 1);
+    Col.AllowNull := ColQuery.Col('IS_NULLABLE').ToLowerInvariant = 'yes';
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
     Col.OnUpdateType := cdtNothing;
-    if DefText.ToLower = 'null' then begin
+    if DefText.ToLowerInvariant = 'null' then begin
       Col.DefaultType := cdtNull;
-    end else if ExecRegExpr('^auto_increment$', ExtraText.ToLower) then begin
+    end else if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
     end else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
@@ -4652,14 +4652,14 @@ begin
     Col.OldName := Col.Name;
     Col.ParseDatatype(ColQuery.Col('Type'));
     Col.Collation := ColQuery.Col('Collation');
-    if Col.Collation.ToLower = 'null' then
+    if Col.Collation.ToLowerInvariant = 'null' then
       Col.Collation := '';
-    Col.AllowNull := ColQuery.Col('Null').ToLower = 'yes';
+    Col.AllowNull := ColQuery.Col('Null').ToLowerInvariant = 'yes';
 
     DefText := ColQuery.Col('Default');
     ExtraText := ColQuery.Col('Extra');
     Col.OnUpdateType := cdtNothing;
-    if ExecRegExpr('^auto_increment$', ExtraText.ToLower) then begin
+    if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
     end else if ColQuery.IsNull('Default') then begin
@@ -4799,7 +4799,7 @@ begin
         Result.Add(NewKey);
         NewKey.Name := KeyQuery.Col('CONSTRAINT_NAME');
         NewKey.OldName := NewKey.Name;
-        if KeyQuery.Col('CONSTRAINT_TYPE').ToLower.StartsWith('primary') then
+        if KeyQuery.Col('CONSTRAINT_TYPE').ToLowerInvariant.StartsWith('primary') then
           NewKey.IndexType := 'PRIMARY'
         else
           NewKey.IndexType := KeyQuery.Col('CONSTRAINT_TYPE');
@@ -4828,7 +4828,7 @@ begin
       Result.Add(NewKey);
       NewKey.Name := KeyQuery.Col('Key_name');
       NewKey.OldName := NewKey.Name;
-      if NewKey.Name.ToLower = 'primary' then
+      if NewKey.Name.ToLowerInvariant = 'primary' then
         NewKey.IndexType := 'PRIMARY'
       else if KeyQuery.Col('Non_unique') = '0' then
         NewKey.IndexType := 'UNIQUE'
@@ -4838,7 +4838,6 @@ begin
       NewKey.OldIndexType := NewKey.IndexType;
       NewKey.Algorithm := KeyQuery.Col('Index_type');
       NewKey.Comment := KeyQuery.Col('Index_comment', True);
-      Log(lcDebug, 'NewKey.Name="'+NewKey.Name+'", NewKey.Name.ToLower="'+NewKey.Name.ToLower+'", NewKey.IndexType="'+NewKey.IndexType+'"');
     end;
     NewKey.Columns.Add(KeyQuery.Col('Column_name'));
     NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
@@ -4905,7 +4904,7 @@ begin
       NewKey.Name := KeyQuery.Col('CONSTRAINT_NAME');
       NewKey.OldName := NewKey.Name;
       NewKey.IndexType := KeyQuery.Col('CONSTRAINT_TYPE');
-      if NewKey.IndexType.ToLower.EndsWith(' key') then
+      if NewKey.IndexType.ToLowerInvariant.EndsWith(' key') then
         Delete(NewKey.IndexType, Length(NewKey.IndexType)-4, 4);
       NewKey.OldIndexType := NewKey.IndexType;
     end;
@@ -8786,8 +8785,8 @@ begin
         InLiteral := not InLiteral;
     end;
     LengthSet := Copy(Source, ParenthLeft+1, i-2);
-    Unsigned :=  ExecRegExpr('\sunsigned[\s\w]*$', Source.ToLower);
-    ZeroFill := ExecRegExpr('\szerofill[\s\w]*$', Source.ToLower);
+    Unsigned :=  ExecRegExpr('\sunsigned[\s\w]*$', Source.ToLowerInvariant);
+    ZeroFill := ExecRegExpr('\szerofill[\s\w]*$', Source.ToLowerInvariant);
   end else begin
     LengthSet := '';
     Unsigned := False;

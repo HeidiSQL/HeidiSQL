@@ -69,7 +69,7 @@ var
 begin
   Download := THttpDownload.Create(Self);
   ThemeImage := ThemeName;
-  ThemeImage := ThemeName.Replace(' ', '-').ToLower;
+  ThemeImage := ThemeName.Replace(' ', '-').ToLowerInvariant;
   Download.URL := Format('%simages/themes/%s.png', [APPDOMAIN, ThemeImage]);
   StatusBarMain.SimpleText := 'Loading preview: ' + Download.URL;
   FTempFile := Format('%s%s-themepreview-%s.png', [GetTempDir, APPNAME, ThemeImage]);
