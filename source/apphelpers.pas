@@ -165,8 +165,9 @@ type
 
     asCSVImportSeparator, asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
     asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
-    asCSVImportDuplicateHandling, asCSVImportParseMethod, asUpdatecheck, asUpdatecheckBuilds,
-    asUpdatecheckInterval, asUpdatecheckLastrun, asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
+    asCSVImportDuplicateHandling, asCSVImportParseMethod,
+    asUpdatecheck, asUpdatecheckBuilds, asUpdatecheckInterval, asUpdatecheckLastrun, asUpdateCheckWindowWidth, asUpdateCheckWindowHeight,
+    asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
     asTableToolsFindText, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
     asEditVarWindowWidth, asEditVarWindowHeight, asUsermanagerWindowWidth, asUsermanagerWindowHeight, asUsermanagerListWidth,
     asSelectDBOWindowWidth, asSelectDBOWindowHeight,
@@ -3588,6 +3589,8 @@ begin
   InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
   InitSetting(asUpdatecheckInterval,              'UpdatecheckInterval',                   3);
   InitSetting(asUpdatecheckLastrun,               'UpdatecheckLastrun',                    0, False, '2000-01-01');
+  InitSetting(asUpdateCheckWindowWidth,           'UpdateCheckWindowWidth',                400);
+  InitSetting(asUpdateCheckWindowHeight,          'UpdateCheckWindowHeight',               460);
   InitSetting(asTableToolsWindowWidth,            'TableTools_WindowWidth',                800);
   InitSetting(asTableToolsWindowHeight,           'TableTools_WindowHeight',               420);
   InitSetting(asTableToolsTreeWidth,              'TableTools_TreeWidth',                  300);

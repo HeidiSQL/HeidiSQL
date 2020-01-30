@@ -23,6 +23,7 @@ type
     procedure btnReleaseClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnChangelogClick(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     { Private declarations }
     ReleaseURL, BuildURL : String;
@@ -53,6 +54,15 @@ begin
   // Should be false by default. Callers can set this to True after Create()
   imgDonate.OnClick := MainForm.DonateClick;
   imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
+  HasSizeGrip := True;
+  Width := AppSettings.ReadInt(asUpdateCheckWindowWidth);
+  Height := AppSettings.ReadInt(asUpdateCheckWindowHeight);
+end;
+
+procedure TfrmUpdateCheck.FormDestroy(Sender: TObject);
+begin
+  AppSettings.WriteInt(asUpdateCheckWindowWidth, Width);
+  AppSettings.WriteInt(asUpdateCheckWindowHeight, Height);
 end;
 
 {**
