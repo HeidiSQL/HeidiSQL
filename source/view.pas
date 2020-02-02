@@ -76,7 +76,7 @@ begin
   if Obj.Name <> '' then begin
     // Edit mode
     editName.Text := Obj.Name;
-    Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj, nil, Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
+    Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj, Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
     comboDefiner.Text := Definer;
     rgAlgorithm.ItemIndex := rgAlgorithm.Items.IndexOf(Algorithm);
     rgCheck.ItemIndex := rgCheck.Items.IndexOf(CheckOption);

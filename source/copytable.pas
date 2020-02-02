@@ -100,7 +100,6 @@ end;
 procedure TCopyTableForm.FormShow(Sender: TObject);
 var
   Filter: String;
-  Dummy: String;
   Obj: PDBObject;
   i: Integer;
   Item: TMenuItem;
@@ -127,15 +126,11 @@ begin
 
   // Fetch columns and key structures from table or view
   case FDBObj.NodeType of
-    lntTable: begin
+    lntTable, lntView: begin
       FColumns := FDBObj.TableColumns;
       FKeys := FDBObj.TableKeys;
       FForeignKeys := FDBObj.TableForeignKeys;
     end;
-    lntView: begin
-      FColumns := TTableColumnList.Create;
-      FConnection.ParseViewStructure(FDBObj.CreateCode, FDBObj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
-    end
     else raise Exception.CreateFmt(_('Neither table nor view: %s'), [FDBObj.Name]);
   end;
 

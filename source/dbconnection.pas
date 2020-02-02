@@ -445,7 +445,7 @@ type
       function GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
-      procedure ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
+      procedure ParseViewStructure(CreateCode: String; DBObj: TDBObject;
         var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
       procedure ParseRoutineStructure(Obj: TDBObject; Parameters: TRoutineParamList);
       procedure PurgePrefetchResults;
@@ -3223,8 +3223,7 @@ begin
     if rx.Exec(AlternativeSelectCode) then begin
       // Put pieces of CREATE VIEW together
       Obj := FindObject(Database, Name);
-      ParseViewStructure(Result, Obj, nil,
-        Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
+      ParseViewStructure(Result, Obj, Algorithm, Definer, SQLSecurity, CheckOption, SelectCode);
       AlternativeSelectCode := UnescapeString(rx.Match[1]);
       Result := 'CREATE ';
       if Algorithm <> '' then
@@ -6002,13 +6001,11 @@ begin
 end;
 
 
-procedure TDBConnection.ParseViewStructure(CreateCode: String; DBObj: TDBObject; Columns: TTableColumnList;
+procedure TDBConnection.ParseViewStructure(CreateCode: String; DBObj: TDBObject;
   var Algorithm, Definer, SQLSecurity, CheckOption, SelectCode: String);
 var
   rx: TRegExpr;
-  Col: TTableColumn;
-  Results: TDBQuery;
-  SchemaClause, DataType, EscQuote: String;
+  EscQuote: String;
 begin
   if CreateCode <> '' then begin
     // CREATE
@@ -6043,64 +6040,6 @@ begin
     rx.Free;
   end;
 
-  if Assigned(Columns) then begin
-    Columns.Clear;
-    rx := TRegExpr.Create;
-    rx.Expression := '(\((.+)\))(\s+unsigned)?(\s+zerofill)?';
-    if DBObj.Schema <> '' then
-      SchemaClause := 'AND TABLE_SCHEMA='+EscapeString(DBObj.Schema)
-    else
-      SchemaClause := 'AND '+GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(DBObj.Database);
-    Results := GetResults('SELECT * '+
-      'FROM '+InfSch+'.COLUMNS '+
-      'WHERE '+
-      '  TABLE_NAME='+EscapeString(DBObj.Name)+' '+
-      SchemaClause+
-      ' ORDER BY ORDINAL_POSITION'
-      );
-    while not Results.Eof do begin
-      Col := TTableColumn.Create(Self);
-      Columns.Add(Col);
-      Col.Name := Results.Col('COLUMN_NAME');
-      Col.AllowNull := UpperCase(Results.Col('IS_NULLABLE')) = 'YES';
-      DataType := Results.Col('DATA_TYPE');
-      Col.DataType := GetDatatypeByName(DataType, False, Col.Name);
-      if Results.ColExists('COLUMN_TYPE') then begin
-        // Use MySQL's proprietary column_type - the only way to get SET and ENUM values
-        if rx.Exec(Results.Col('COLUMN_TYPE')) then begin
-          Col.LengthSet := rx.Match[2];
-          if Col.DataType.Category in [dtcInteger, dtcReal] then begin
-            Col.Unsigned := rx.Match[3] <> '';
-            Col.ZeroFill := rx.Match[4] <> '';
-          end;
-        end;
-      end else begin
-        if not Results.IsNull('CHARACTER_MAXIMUM_LENGTH') then begin
-          Col.LengthSet := Results.Col('CHARACTER_MAXIMUM_LENGTH');
-        end else if not Results.IsNull('NUMERIC_PRECISION') then begin
-          Col.LengthSet := Results.Col('NUMERIC_PRECISION');
-          if not Results.IsNull('NUMERIC_SCALE') then
-            Col.LengthSet := Col.LengthSet + ',' + Results.Col('NUMERIC_SCALE');
-        end;
-        if Col.LengthSet = '-1' then
-          Col.LengthSet := 'max';
-      end;
-      Col.Collation := Results.Col('COLLATION_NAME');
-      Col.Comment := Results.Col('COLUMN_COMMENT', True);
-      Col.DefaultText := Results.Col('COLUMN_DEFAULT');
-      if Results.IsNull('COLUMN_DEFAULT') then begin
-        if Col.AllowNull then
-          Col.DefaultType := cdtNull
-        else
-          Col.DefaultType := cdtNothing;
-      end else if Col.DataType.Category = dtcText then
-        Col.DefaultType := cdtText
-      else
-        Col.DefaultType := cdtExpression;
-      Results.Next;
-    end;
-    rx.Free;
-  end;
 end;
 
 
@@ -7481,7 +7420,7 @@ end;
 
 procedure TDBQuery.PrepareColumnAttributes;
 var
-  CreateCode, Dummy, DB: String;
+  DB: String;
   DBObjects: TDBObjectList;
   LObj, Obj: TDBObject;
 begin
@@ -7504,18 +7443,10 @@ begin
     if Obj = nil then
       raise EDbError.Create(f_('Could not find table or view %s.%s. Please refresh database tree.', [DB, TableName]));
   end;
-  case Obj.NodeType of
-    lntTable: begin
-      FColumns := Obj.TableColumns;
-      FKeys := Obj.TableKeys;
-      FForeignKeys := Obj.TableForeignKeys;
-    end;
-    lntView: begin
-      CreateCode := Connection.GetCreateCode(Obj);
-      FColumns := TTableColumnList.Create;
-      Connection.ParseViewStructure(CreateCode, Obj, FColumns, Dummy, Dummy, Dummy, Dummy, Dummy);
-    end;
-  end;
+  // Obj.NodeType must be lntTable or lntView here, otherwise we get no columns or keys
+  FColumns := Obj.TableColumns;
+  FKeys := Obj.TableKeys;
+  FForeignKeys := Obj.TableForeignKeys;
 end;
 
 

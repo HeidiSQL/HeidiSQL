@@ -249,7 +249,6 @@ end;
 
 procedure Tloaddataform.comboTableChange(Sender: TObject);
 var
-  DummyStr: String;
   Col: TTableColumn;
   DBObjects: TDBObjectList;
   Obj: TDBObject;
@@ -263,8 +262,7 @@ begin
     for Obj in DBObjects do begin
       if (Obj.Database=comboDatabase.Text) and (Obj.Name=comboTable.Text) then begin
         case Obj.NodeType of
-          lntTable: Columns := Obj.TableColumns;
-          lntView: Obj.Connection.ParseViewStructure(Obj.CreateCode, Obj, Columns, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+          lntTable, lntView: Columns := Obj.TableColumns;
         end;
       end;
     end;

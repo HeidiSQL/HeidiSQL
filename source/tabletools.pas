@@ -849,7 +849,7 @@ procedure TfrmTableTools.DoFind(DBObj: TDBObject);
 var
   Columns: TTableColumnList;
   Col: TTableColumn;
-  SQL, Dummy, Column, RoutineDefinitionColumn, RoutineSchemaColumn, FindText, FindTextJokers: String;
+  SQL, Column, RoutineDefinitionColumn, RoutineSchemaColumn, FindText, FindTextJokers: String;
   IsRegExp: Boolean;
 begin
   FFindSeeResultSQL.Add('');
@@ -882,8 +882,7 @@ begin
 
   Columns := TTableColumnList.Create(True);
   case DBObj.NodeType of
-    lntTable: Columns := DBObj.TableColumns;
-    lntView: DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
+    lntTable, lntView: Columns := DBObj.TableColumns;
     lntProcedure, lntFunction: ;
     // TODO: Triggers + Events
     else AddNotes(DBObj, STRSKIPPED+'a '+LowerCase(DBObj.ObjType)+' does not contain rows.', '');
@@ -1584,8 +1583,7 @@ begin
           lntView: begin
             if not FSecondExportPass then begin
               // Create temporary VIEW replacement
-              ColumnList := TTableColumnList.Create(True);
-              DBObj.Connection.ParseViewStructure(DBObj.CreateCode, DBObj, ColumnList, Dummy, Dummy, Dummy, Dummy, Dummy);
+              ColumnList := DBObj.TableColumns;
               Struc := '';
               if menuExportAddComments.Checked then
                 Struc := Struc + '-- '+_('Creating temporary table to overcome VIEW dependency errors')+CRLF;

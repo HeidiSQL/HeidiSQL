@@ -5987,7 +5987,7 @@ var
 
   procedure AddColumns(const LeftToken: String);
   var
-    dbname, tblname, Dummy: String;
+    dbname, tblname: String;
     Columns: TTableColumnList;
     Col: TTableColumn;
     Obj: TDBObject;
@@ -6006,15 +6006,7 @@ var
     DBObjects := Conn.GetDBObjects(dbname);
     for Obj in DBObjects do begin
       if (Obj.Name = tblname) and (Obj.NodeType in [lntTable, lntView]) then begin
-        Columns := TTableColumnList.Create(True);
-        case Obj.NodeType of
-          lntTable: begin
-            Columns := Obj.TableColumns;
-          end;
-          lntView: begin
-            Conn.ParseViewStructure(Obj.CreateCode, Obj, Columns, Dummy, Dummy, Dummy, Dummy, Dummy);
-          end;
-        end;
+        Columns := Obj.TableColumns;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
           Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '']) );
@@ -8555,7 +8547,7 @@ procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualN
 var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
-  DummyStr, TabHostName: String;
+  TabHostName: String;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
@@ -8614,14 +8606,10 @@ begin
         SelectedTableTimestampColumns.Text := AppSettings.ReadString(asTimestampColumns);
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
-          case FActiveDbObj.NodeType of
-            lntTable: begin
-              SelectedTableColumns := FActiveDbObj.TableColumns;
-              SelectedTableKeys := FActiveDbObj.TableKeys;
-              SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
-            end;
-            lntView:
-              FActiveDbObj.Connection.ParseViewStructure(FActiveDbObj.CreateCode, FActiveDbObj, SelectedTableColumns, DummyStr, DummyStr, DummyStr, DummyStr, DummyStr);
+          if FActiveDbObj.NodeType in [lntTable, lntView] then begin
+            SelectedTableColumns := FActiveDbObj.TableColumns;
+            SelectedTableKeys := FActiveDbObj.TableKeys;
+            SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
           end;
         except on E:EDbError do
           ErrorDialog(E.Message);
