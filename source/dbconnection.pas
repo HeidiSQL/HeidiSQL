@@ -4663,8 +4663,12 @@ begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
     end else if ColQuery.IsNull('Default') then begin
-      Col.DefaultType := cdtNull;
-    end else if Col.DataType.Category in [dtcText, dtcBinary, dtcTemporal, dtcOther] then begin
+      Col.DefaultType := cdtNothing;
+    end else if DefText.StartsWith('''') then begin
+      Col.DefaultType := cdtText;
+      Col.DefaultText := ExtractLiteral(DefText, '');
+    end else if DefText.IsEmpty or IsInt(DefText[1]) then begin
+      // Inexact detection, wrong if MySQL allows 0+1 as default value at some point
       Col.DefaultType := cdtText;
       Col.DefaultText := DefText;
     end else begin
