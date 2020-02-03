@@ -79,33 +79,41 @@ Name: "theme_material"; Description: "Use dark Material theme"; GroupDescription
 
 [InstallDelete]
 Type: files; Name: "{app}\heidisql32.exe"
+Type: files; Name: "{app}\ssleay32.dll"
+Type: files; Name: "{app}\libeay32.dll"
+Type: files; Name: "{app}\libpq.dll"
 
 [Files]
 Source: "{#ProgNameLower}64.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "{#ProgNameLower}32.exe"; DestDir: "{app}"; DestName: "{#ProgExeName}"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
+Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "Snippets\*.sql"; DestDir: "{userdocs}\{#ProgName}\Snippets";
+; MySQL + MariaDB:
 Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmariadb32.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql-6.1-64.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql-6.1-32.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "libpq64.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
-Source: "libpq32.dll"; DestDir: "{app}"; DestName: "libpq.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "libintl-864.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
-Source: "libintl-832.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "ssleay32-64.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
-Source: "ssleay32-32.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "libeay32-64.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
-Source: "libeay32-32.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "libiconv-264.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
-Source: "libiconv-232.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; PostgreSQL:
+Source: "libpq-10-64.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libpq-10-32.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libpq-12-64.dll"; DestDir: "{app}"; DestName: "libpq-12.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libintl-8-64.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libintl-8-32.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libssl-1_1-x64.dll"; DestDir: "{app}"; DestName: "libssl-1_1-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libssl-1_1-32.dll"; DestDir: "{app}"; DestName: "libssl-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libcrypto-1_1-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libcrypto-1_1-32.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libiconv-2-64.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libiconv-2-32.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; SQLite:
 Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
-Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "Snippets\*.sql"; DestDir: "{userdocs}\{#ProgName}\Snippets";
+
 
 [Icons]
 Name: "{group}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"
