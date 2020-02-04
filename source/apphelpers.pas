@@ -1528,10 +1528,15 @@ var
 begin
   // Helper to find a node by its index
   Result := nil;
-  if Assigned(ParentNode) then
-    Node := VT.GetFirstChild(ParentNode)
-  else
-    Node := VT.GetFirst;
+  try
+    if Assigned(ParentNode) then
+      Node := VT.GetFirstChild(ParentNode)
+    else
+      Node := VT.GetFirst;
+  except
+    // Sporadically, TBaseVirtualTree.GetFirst throws an exception when reading FRoot.FirstChild
+    // Tab restoring is sometimes crashing for that reason.
+  end;
   while Assigned(Node) do begin
     // Note: Grid.RootNodeCount is unfortunately Cardinal, not UInt64.
     if Node.Index = idx then begin
