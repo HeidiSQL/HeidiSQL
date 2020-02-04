@@ -533,6 +533,7 @@ type
       procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
       property Lib: TMySQLLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
@@ -1770,10 +1771,16 @@ end;
 
 destructor TDBConnection.Destroy;
 begin
-  if Active then Active := False;
   ClearCache(True);
   FKeepAliveTimer.Free;
   FFavorites.Free;
+  inherited;
+end;
+
+destructor TMySQLConnection.Destroy;
+begin
+  if Active then Active := False;
+  FLib.Free;
   inherited;
 end;
 
@@ -1789,8 +1796,8 @@ end;
 destructor TPgConnection.Destroy;
 begin
   if Active then Active := False;
-  //FreeAndNil(FHandle);
   FRegClasses.Free;
+  FLib.Free;
   inherited;
 end;
 
@@ -1798,6 +1805,7 @@ end;
 destructor TSQLiteConnection.Destroy;
 begin
   if Active then Active := False;
+  FLib.Free;
   inherited;
 end;
 
@@ -6274,8 +6282,10 @@ destructor TMySQLQuery.Destroy;
 var
   i: Integer;
 begin
-  if HasResult then for i:=Low(FResultList) to High(FResultList) do
-    FConnection.Lib.mysql_free_result(FResultList[i]);
+  if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
+    for i:=Low(FResultList) to High(FResultList) do
+      FConnection.Lib.mysql_free_result(FResultList[i]);
+  end;
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -6285,9 +6295,11 @@ destructor TAdoDBQuery.Destroy;
 var
   i: Integer;
 begin
-  if HasResult then for i:=Low(FResultList) to High(FResultList) do begin
-    FResultList[i].Close;
-    FResultList[i].Free;
+  if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
+    for i:=Low(FResultList) to High(FResultList) do begin
+      FResultList[i].Close;
+      FResultList[i].Free;
+    end;
   end;
   SetLength(FResultList, 0);
   inherited;
@@ -6298,8 +6310,10 @@ destructor TPGQuery.Destroy;
 var
   i: Integer;
 begin
-  if HasResult then for i:=Low(FResultList) to High(FResultList) do
-    FConnection.Lib.PQclear(FResultList[i]);
+  if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
+    for i:=Low(FResultList) to High(FResultList) do
+      FConnection.Lib.PQclear(FResultList[i]);
+  end;
   SetLength(FResultList, 0);
   inherited;
 end;
@@ -6309,8 +6323,10 @@ destructor TSQLiteQuery.Destroy;
 var
   i: Integer;
 begin
-  if HasResult then for i:=Low(FResultList) to High(FResultList) do
-    FResultList[i].Free;
+  if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
+    for i:=Low(FResultList) to High(FResultList) do
+      FResultList[i].Free;
+  end;
   SetLength(FResultList, 0);
   inherited;
 end;
