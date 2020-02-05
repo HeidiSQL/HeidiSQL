@@ -366,8 +366,8 @@ begin
   // Connect to selected session
   Params := CurrentParams;
 
-  if (CurrentParams.NetType = ntSQLite)
-    and (not FileExists(CurrentParams.Hostname))
+  if (Params.NetType = ntSQLite)
+    and (not FileExists(Params.Hostname))
     then begin
     Msg := f_('Database file "%s" does not exist. Shall it be created now?', [Params.Hostname]);
     DoCreateDb := MessageDialog(Msg, mtConfirmation, [mbNo, mbYes]);
