@@ -877,7 +877,6 @@ object connform: Tconnform
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
       OnCreateEditor = ListSessionsCreateEditor
-      OnDblClick = btnOpenClick
       OnDragOver = ListSessionsDragOver
       OnDragDrop = ListSessionsDragDrop
       OnFocusChanged = ListSessionsFocusChanged
@@ -886,6 +885,7 @@ object connform: Tconnform
       OnGetImageIndex = ListSessionsGetImageIndex
       OnGetNodeDataSize = ListSessionsGetNodeDataSize
       OnNewText = ListSessionsNewText
+      OnNodeDblClick = ListSessionsNodeDblClick
       OnStructureChange = ListSessionsStructureChange
       Columns = <
         item

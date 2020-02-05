@@ -177,6 +177,8 @@ type
     procedure editSearchChange(Sender: TObject);
     procedure editSearchRightButtonClick(Sender: TObject);
     procedure editHostDblClick(Sender: TObject);
+    procedure ListSessionsNodeDblClick(Sender: TBaseVirtualTree;
+      const HitInfo: THitInfo);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1000,6 +1002,24 @@ begin
     Sess.SessionPath := ParentKey+NewText;
   end;
   SiblingSessions.Free;
+end;
+
+
+procedure Tconnform.ListSessionsNodeDblClick(Sender: TBaseVirtualTree;
+  const HitInfo: THitInfo);
+const
+  AllowedPos: THitPositions=[hiOnItemLabel, hiOnItemLeft, hiOnItemRight, hiOnNormalIcon];
+var
+  HitPos: THitPosition;
+begin
+  // Doubleclick to open a connection, only if mouse is really on a node,
+  // not e.g. on the expand/collapse icon (see issue #820)
+  for HitPos in HitInfo.HitPositions do begin
+    if HitPos in AllowedPos then begin
+      btnOpen.OnClick(Sender);
+      Break;
+    end;
+  end;
 end;
 
 
