@@ -4587,8 +4587,10 @@ begin
           MaxLen := 'max';
       end else if not ColQuery.IsNull('NUMERIC_PRECISION') then begin
         MaxLen := ColQuery.Col('NUMERIC_PRECISION');
-        if not ColQuery.IsNull('NUMERIC_SCALE') then
-          MaxLen := MaxLen + ',' + ColQuery.Col('NUMERIC_SCALE');
+        if (not ColQuery.IsNull('NUMERIC_SCALE'))
+          or (Col.DataType.Index in [dtDouble]) then begin
+          MaxLen := MaxLen + ',' + StrToIntDef(ColQuery.Col('NUMERIC_SCALE'), 0).ToString;
+        end;
       end else if not ColQuery.IsNull('DATETIME_PRECISION') then begin
         MaxLen := ColQuery.Col('DATETIME_PRECISION');
       end;
