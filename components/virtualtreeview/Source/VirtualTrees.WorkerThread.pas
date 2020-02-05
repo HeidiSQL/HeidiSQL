@@ -14,7 +14,7 @@ type
     FWaiterList: TThreadList;
     FRefCount: Integer;
     class procedure EnsureCreated();
-    class procedure Dispose();
+    class procedure Dispose(CanBlock: Boolean);
     procedure WaitForValidationTermination(Tree: TBaseVirtualTree);
   protected
     procedure Execute; override;
@@ -24,7 +24,7 @@ type
 
     /// For lifeteime management of the TWorkerThread
     class procedure AddThreadReference;
-    class procedure ReleaseThreadReference();
+    class procedure ReleaseThreadReference(ACanBlock: Boolean = False);
 
     class procedure AddTree(Tree: TBaseVirtualTree);
     class procedure RemoveTree(Tree: TBaseVirtualTree);
@@ -66,12 +66,18 @@ begin
   end;
 end;
 
-class procedure TWorkerThread.Dispose();
+class procedure TWorkerThread.Dispose;
+var
+  LRef: TThread;
 begin
+  WorkerThread.FreeOnTerminate := not CanBlock;
   WorkerThread.Terminate();
   SetEvent(WorkEvent);
+  LRef := WorkerThread;
   WorkerThread := nil; //Will be freed usinf TThreaf.FreeOnTerminate
   CloseHandle(WorkEvent);
+  if CanBlock then
+    LRef.Free;
 end;
 
 
@@ -83,14 +89,14 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-class procedure TWorkerThread.ReleaseThreadReference();
+class procedure TWorkerThread.ReleaseThreadReference(ACanBlock: Boolean);
 begin
   if Assigned(WorkerThread) then
   begin
-    InterlockedDecrement(WorkerThread.FRefCount);
-
-    if WorkerThread.FRefCount = 0 then
-      WorkerThread.Dispose();
+    if InterlockedDecrement(WorkerThread.FRefCount) = 0 then
+    begin
+      WorkerThread.Dispose(ACanBlock);
+    end;
   end;
 end;
 
