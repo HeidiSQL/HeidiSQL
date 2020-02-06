@@ -9344,9 +9344,11 @@ var
   Results: TDBQuery;
   RowNum: PInt64;
   Timestamp: Int64;
-  IsNull: Boolean;
+  IsNull, AllowEdit: Boolean;
 begin
   Results := GridResult(Sender);
+  if not Results.IsEditable then
+    Exit;
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   try
@@ -9457,7 +9459,6 @@ procedure TMainForm.AnyGridEditing(Sender: TBaseVirtualTree; Node:
 begin
   Allowed := False;
   try
-    GridResult(Sender).CheckEditable;
     if not AnyGridEnsureFullRow(Sender as TVirtualStringTree, Node) then
       ErrorDialog(_('Could not load full row data.'))
     else begin
@@ -9513,12 +9514,15 @@ var
   RowNum: PInt64;
   RefDb, RefTable: String;
   RefObj: TDBObject;
+  AllowEdit: Boolean;
 begin
   VT := Sender as TVirtualStringTree;
   Results := GridResult(VT);
   RowNum := VT.GetNodeData(Node);
   Results.RecNo := RowNum^;
   Conn := Results.Connection;
+  // Allow editing, or leave readonly mode
+  AllowEdit := Results.IsEditable;
 
   // Find foreign key values
   if AppSettings.ReadBool(asForeignDropDown) and (Sender = DataGrid) then begin
@@ -9561,7 +9565,7 @@ begin
 
         ForeignResults := Conn.GetResults(SQL);
         if ForeignResults.RecordCount < ForeignItemsLimit then begin
-          EnumEditor := TEnumEditorLink.Create(VT);
+          EnumEditor := TEnumEditorLink.Create(VT, AllowEdit);
           EditLink := EnumEditor;
           while not ForeignResults.Eof do begin
             EnumEditor.ValueList.Add(ForeignResults.Col(0));
@@ -9582,7 +9586,7 @@ begin
 
   FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(Column);
   if FGridEditFunctionMode then begin
-    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit);
     for idx:=Low(MySQLFunctions) to High(MySQLFunctions) do
       EnumEditor.ValueList.Add(MySQLFunctions[idx].Name + MySQLFunctions[idx].Declaration);
     EnumEditor.AllowCustomText := True;
@@ -9593,17 +9597,17 @@ begin
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
   else if (Results.DataType(Column).Index in [dtEnum, dtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
-    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit);
     EnumEditor.ValueList := Results.ValueList(Column);
     EditLink := EnumEditor;
   end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
-    InplaceEditor := TInplaceEditorLink.Create(VT);
+    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit);
     InplaceEditor.MaxLength := Results.MaxLength(Column);
     InplaceEditor.TitleText := Results.ColumnOrgNames[Column];
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
-    HexEditor := THexEditorLink.Create(VT);
+    HexEditor := THexEditorLink.Create(VT, AllowEdit);
     HexEditor.MaxLength := Results.MaxLength(Column);
     HexEditor.TitleText := Results.ColumnOrgNames[Column];
     EditLink := HexEditor;
@@ -9625,17 +9629,17 @@ begin
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
-    DateTimeEditor := TDateTimeEditorLink.Create(VT);
+    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit);
     EditLink := DateTimeEditor;
   end else if AppSettings.ReadBool(asFieldEditorDatetime) and HandleUnixTimestampColumn(Sender, Column) then begin
-    DateTimeEditor := TDateTimeEditorLink.Create(VT);
+    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit);
     EditLink := DateTimeEditor;
   end else if (Results.DataType(Column).Index = dtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
-    SetEditor := TSetEditorLink.Create(VT);
+    SetEditor := TSetEditorLink.Create(VT, AllowEdit);
     SetEditor.ValueList := Results.ValueList(Column);
     EditLink := SetEditor;
   end else begin
-    InplaceEditor := TInplaceEditorLink.Create(VT);
+    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit);
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
@@ -12706,7 +12710,7 @@ var
  VT: TVirtualStringTree;
 begin
   VT := Sender as TVirtualStringTree;
-  InplaceEditor := TInplaceEditorLink.Create(VT);
+  InplaceEditor := TInplaceEditorLink.Create(VT, True);
   InplaceEditor.ButtonVisible := true;
   EditLink := InplaceEditor;
 end;

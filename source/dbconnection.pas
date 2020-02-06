@@ -706,6 +706,7 @@ type
       function HasResult: Boolean; virtual; abstract;
       function GetWhereClause: String;
       procedure CheckEditable;
+      function IsEditable: Boolean;
       procedure DeleteRow;
       function InsertRow: Int64;
       procedure SetCol(Column: Integer; NewText: String; Null: Boolean; IsFunction: Boolean);
@@ -7986,6 +7987,19 @@ begin
   for i:=0 to FColumnOrgNames.Count-1 do begin
     if FColumnOrgNames[i] = '' then
       raise EDbError.CreateFmt(_('Column #%d has an undefined origin: %s'), [i, ColumnNames[i]]);
+  end;
+end;
+
+function TDBQuery.IsEditable: Boolean;
+begin
+  try
+    CheckEditable;
+    Result := True;
+  except
+    on E:EDbError do begin
+      FConnection.Log(lcDebug, E.Message);
+      Result := False;
+    end;
   end;
 end;
 

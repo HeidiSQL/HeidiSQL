@@ -68,6 +68,7 @@ type
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
+    property memoText: TLineNormalizingMemo read FmemoText;
   end;
 
 

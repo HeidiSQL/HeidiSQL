@@ -272,7 +272,7 @@ begin
   // Start cell editor
   Grid := Sender as TVirtualStringTree;
   if Column = ColValue then begin
-    EnumEditor := TEnumEditorLink.Create(Grid);
+    EnumEditor := TEnumEditorLink.Create(Grid, True);
     EnumEditor.AllowCustomText := True;
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.Text := 'NULL'+CRLF+

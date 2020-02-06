@@ -1457,18 +1457,18 @@ begin
   Col := Sender.GetNodeData(Node);
   case Column of
     2: begin // Datatype pulldown
-      DatatypeEditor := TDatatypeEditorLink.Create(VT);
+      DatatypeEditor := TDatatypeEditorLink.Create(VT, True);
       EditLink := DataTypeEditor;
       end;
     9: begin // Collation pulldown
-      EnumEditor := TEnumEditorLink.Create(VT);
+      EnumEditor := TEnumEditorLink.Create(VT, True);
       EnumEditor.ValueList := TStringList.Create;
       EnumEditor.ValueList.Text := DBObject.Connection.CollationList.Text;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
     7: begin
-      DefaultEditor := TColumnDefaultEditorLink.Create(VT);
+      DefaultEditor := TColumnDefaultEditorLink.Create(VT, True);
       DefaultEditor.DefaultType := Col.DefaultType;
       DefaultEditor.DefaultText := Col.DefaultText;
       DefaultEditor.OnUpdateType := Col.OnUpdateType;
@@ -1476,7 +1476,7 @@ begin
       EditLink := DefaultEditor;
     end;
     11: begin // Virtuality pulldown
-      EnumEditor := TEnumEditorLink.Create(VT);
+      EnumEditor := TEnumEditorLink.Create(VT, True);
       EnumEditor.ValueList := TStringList.Create;
       if DBObject.Connection.Parameters.IsMariaDB then
         EnumEditor.ValueList.CommaText := ',VIRTUAL,PERSISTENT'
@@ -1485,7 +1485,7 @@ begin
       EditLink := EnumEditor;
     end
     else begin
-      Edit := TInplaceEditorLink.Create(VT);
+      Edit := TInplaceEditorLink.Create(VT, True);
       Edit.TitleText := VT.Header.Columns[Column].Text;
       Edit.ButtonVisible := True;
       EditLink := Edit;
@@ -1798,18 +1798,18 @@ begin
   Level := (Sender as TVirtualStringtree).GetNodeLevel(Node);
   if (Level = 0) and (Column = 1) then begin
     // Index type pulldown
-    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor := TEnumEditorLink.Create(VT, True);
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.CommaText := PKEY +','+ KEY +','+ UKEY +','+ FKEY +','+ SKEY;
     EditLink := EnumEditor;
   end else if (Level = 0) and (Column = 2) then begin
     // Algorithm pulldown
-    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor := TEnumEditorLink.Create(VT, True);
     EnumEditor.ValueList := Explode(',', ',BTREE,HASH,RTREE');
     EditLink := EnumEditor;
   end else if (Level = 1) and (Column = 0) then begin
     // Column names pulldown
-    EnumEditor := TEnumEditorLink.Create(VT);
+    EnumEditor := TEnumEditorLink.Create(VT, True);
     ColNode := listColumns.GetFirst;
     while Assigned(ColNode) do begin
       Col := listColumns.GetNodeData(ColNode);
@@ -1819,7 +1819,7 @@ begin
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
     EditLink := EnumEditor;
   end else
-    EditLink := TInplaceEditorLink.Create(VT);
+    EditLink := TInplaceEditorLink.Create(VT, True);
 end;
 
 
@@ -2295,9 +2295,9 @@ begin
   // Init grid editor in foreign key list
   VT := Sender as TVirtualStringTree;
   case Column of
-    0: EditLink := TInplaceEditorLink.Create(VT);
+    0: EditLink := TInplaceEditorLink.Create(VT, True);
     1: begin
-        SetEditor := TSetEditorLink.Create(VT);
+        SetEditor := TSetEditorLink.Create(VT, True);
         ColNode := listColumns.GetFirst;
         while Assigned(ColNode) do begin
           PCol := listColumns.GetNodeData(ColNode);
@@ -2307,7 +2307,7 @@ begin
         EditLink := SetEditor;
       end;
     2: begin
-        EnumEditor := TEnumEditorLink.Create(VT);
+        EnumEditor := TEnumEditorLink.Create(VT, True);
         EnumEditor.AllowCustomText := True;
         DBObjects := DBObject.Connection.GetDBObjects(DBObject.Connection.Database);
         for Obj in DBObjects do begin
@@ -2318,7 +2318,7 @@ begin
       end;
     3: begin
         Key := FForeignKeys[Node.Index];
-        SetEditor := TSetEditorLink.Create(VT);
+        SetEditor := TSetEditorLink.Create(VT, True);
         Obj := DBObject.Connection.FindObject(DBObject.Database, Key.ReferenceTable);
         if Obj <> nil then begin
           Columns := Obj.TableColumns;
@@ -2329,7 +2329,7 @@ begin
         EditLink := SetEditor;
       end;
     4, 5: begin
-        EnumEditor := TEnumEditorLink.Create(VT);
+        EnumEditor := TEnumEditorLink.Create(VT, True);
         EnumEditor.ValueList.Text := 'RESTRICT'+CRLF+'CASCADE'+CRLF+'SET NULL'+CRLF+'NO ACTION';
         EditLink := EnumEditor;
       end;
