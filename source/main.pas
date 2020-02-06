@@ -9344,7 +9344,7 @@ var
   Results: TDBQuery;
   RowNum: PInt64;
   Timestamp: Int64;
-  IsNull, AllowEdit: Boolean;
+  IsNull: Boolean;
 begin
   Results := GridResult(Sender);
   if not Results.IsEditable then
@@ -12723,9 +12723,11 @@ var
   OldStates: TVirtualNodeStates;
   OldCheckState: TCheckState;
   ExpandedChildren: TStringList;
+  Conn: TDBConnection;
 begin
   if not Assigned(QueryTabs) then
     Exit;
+  Conn := ActiveConnection;
   for Tab in QueryTabs do begin
     Node := FindNode(Tab.treeHelpers, NodeIndex, nil);
     // Store node + children states
@@ -12746,7 +12748,7 @@ begin
     Tab.treeHelpers.CheckState[Node] := OldCheckState;
     Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
     // Disable profiling when not on MySQL
-    if (NodeIndex = HELPERNODE_PROFILE) and (not FActiveDbObj.Connection.Parameters.IsMySQL) then begin
+    if (NodeIndex = HELPERNODE_PROFILE) and (Conn <> nil) and (not Conn.Parameters.IsMySQL) then begin
       Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
     end;
     // Do not check expansion state of children unless the parent node is expanded, to avoid
