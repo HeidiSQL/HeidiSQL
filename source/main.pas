@@ -8636,6 +8636,7 @@ begin
     if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
       RefreshHelperNode(HELPERNODE_HISTORY);
+      RefreshHelperNode(HELPERNODE_PROFILE);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
           SynSQLSynUsed.SQLDialect := sqlMySQL;
@@ -12740,6 +12741,10 @@ begin
     // Restore old node + children states
     Tab.treeHelpers.CheckState[Node] := OldCheckState;
     Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
+    // Disable profiling when not on MySQL
+    if (NodeIndex = HELPERNODE_PROFILE) and (not FActiveDbObj.Connection.Parameters.IsMySQL) then begin
+      Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
+    end;
     // Do not check expansion state of children unless the parent node is expanded, to avoid
     // initializing children when not required. Accesses registry items when doing so.
     if Tab.treeHelpers.Expanded[Node] then begin
