@@ -4846,11 +4846,14 @@ begin
         NewKey.IndexType := 'PRIMARY'
       else if KeyQuery.Col('Non_unique') = '0' then
         NewKey.IndexType := 'UNIQUE'
+      else if KeyQuery.Col('Index_type').ToLowerInvariant = 'fulltext' then
+        NewKey.IndexType := 'FULLTEXT'
       else
         NewKey.IndexType := 'KEY';
-      // Todo: fulltext and spatial keys
+      // Todo: spatial keys
       NewKey.OldIndexType := NewKey.IndexType;
-      NewKey.Algorithm := KeyQuery.Col('Index_type');
+      if ExecRegExpr('(BTREE|HASH)', KeyQuery.Col('Index_type')) then
+        NewKey.Algorithm := KeyQuery.Col('Index_type');
       NewKey.Comment := KeyQuery.Col('Index_comment', True);
     end;
     NewKey.Columns.Add(KeyQuery.Col('Column_name'));
