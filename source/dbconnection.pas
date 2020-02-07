@@ -2459,6 +2459,7 @@ begin
       FLib.sqlite3_close(FHandle);
       FHandle := nil;
       FActive := False;
+      Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
     end;
   end;
 end;
