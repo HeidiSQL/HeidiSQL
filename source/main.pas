@@ -1107,6 +1107,7 @@ type
     procedure SetActiveDatabase(db: String; Connection: TDBConnection);
     procedure SetActiveDBObj(Obj: TDBObject);
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
+    procedure EnableDataTab(Enable: Boolean);
     procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
     procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
@@ -5199,17 +5200,10 @@ begin
   Screen.Cursor := crHourglass;
   DBObj.Connection.Ping(True);
 
-  // No data for routines
   if SelectedTableColumns.Count = 0 then begin
-    vt.Enabled := False;
-    pnlDataTop.Enabled := False;
-    pnlFilter.Enabled := False;
-    lblSorryNoData.Parent := DataGrid;
+    EnableDataTab(False);
   end else begin
-    vt.Enabled := True;
-    pnlDataTop.Enabled := True;
-    pnlFilter.Enabled := True;
-    lblSorryNoData.Parent := tabData;
+    EnableDataTab(True);
 
     // Indicates whether the current table data is just refreshed or if we're in another table
     // ... or maybe in a table/database with the same name on a different server
@@ -9089,6 +9083,20 @@ begin
 end;
 
 
+procedure TMainForm.EnableDataTab(Enable: Boolean);
+begin
+  // Disable data grid to prevent accessing results of disconnected sessions
+  // Also, no data for routines
+  DataGrid.Enabled := Enable;
+  pnlDataTop.Enabled := Enable;
+  pnlFilter.Enabled := Enable;
+  if Enable then
+    lblSorryNoData.Parent := tabData
+  else
+    lblSorryNoData.Parent := DataGrid;
+end;
+
+
 procedure TMainForm.editFilterSearchEnter(Sender: TObject);
 begin
   // Enables triggering apply button with Enter
@@ -9118,6 +9126,10 @@ begin
     Exit;
   EditingAndFocused := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   Results := GridResult(Sender);
+  if not Results.Connection.Active then begin
+    EnableDataTab(False);
+    Exit;
+  end;
   // Happens in some crashes, see issue #2462
   if Column >= Results.ColumnCount then
     Exit;
