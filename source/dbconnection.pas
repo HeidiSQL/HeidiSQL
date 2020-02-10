@@ -605,6 +605,7 @@ type
       property RegClasses: TOidStringPairs read FRegClasses;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
 
   TSQLiteConnection = class;
@@ -5080,6 +5081,59 @@ begin
 end;
 
 
+function TPgConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+var
+  ForeignQuery: TDBQuery;
+  ForeignKey: TForeignKey;
+begin
+  // see #158
+  Result := TForeignKeyList.Create(True);
+  ForeignQuery := GetResults('SELECT'+
+    '   refc.constraint_name,'+
+    '   refc.update_rule,'+
+    '   refc.delete_rule,'+
+    '   kcu.table_name,'+
+    '   STRING_AGG(distinct kcu.column_name, '','') AS columns,'+
+    '   ccu.table_schema AS ref_schema,'+
+    '   ccu.table_name AS ref_table,'+
+    '   STRING_AGG(distinct ccu.column_name, '','') AS ref_columns,'+
+    '   STRING_AGG(distinct kcu.ordinal_position::text, '','') AS ord_position'+
+    ' FROM'+
+    '   '+InfSch+'.referential_constraints AS refc,'+
+    '   '+InfSch+'.key_column_usage AS kcu,'+
+    '   '+InfSch+'.constraint_column_usage AS ccu'+
+    ' WHERE'+
+    '   refc.constraint_schema = '+EscapeString(Table.Schema)+
+    '   AND refc.constraint_name = kcu.constraint_name'+
+    '   AND refc.constraint_schema = kcu.table_schema'+
+    '   AND ccu.constraint_name = refc.constraint_name'+
+    '   AND kcu.table_name = '+EscapeString(Table.Name)+
+    ' GROUP BY'+
+    '   refc.constraint_name,'+
+    '   refc.update_rule,'+
+    '   refc.delete_rule,'+
+    '   kcu.table_name,'+
+    '   ccu.table_schema,'+
+    '   ccu.table_name'+
+    ' ORDER BY'+
+    '   ord_position'
+    );
+  while not ForeignQuery.Eof do begin
+    ForeignKey := TForeignKey.Create(Self);
+    Result.Add(ForeignKey);
+    ForeignKey.KeyName := ForeignQuery.Col('constraint_name');
+    ForeignKey.OldKeyName := ForeignKey.KeyName;
+    ForeignKey.ReferenceTable := ForeignQuery.Col('ref_schema')+'.'+ForeignQuery.Col('ref_table');
+    ForeignKey.OnUpdate := ForeignQuery.Col('update_rule');
+    ForeignKey.OnDelete := ForeignQuery.Col('delete_rule');
+    ForeignKey.Columns.CommaText := ForeignQuery.Col('columns');
+    ForeignKey.ForeignColumns.CommaText := ForeignQuery.Col('ref_columns');
+    ForeignQuery.Next;
+  end;
+  ForeignQuery.Free;
+end;
+
+
 function TSQLiteConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
 var
   ForeignQuery: TDBQuery;
@@ -8908,7 +8962,9 @@ begin
   inherited Create;
   FConnection := AOwner;
   Columns := TStringList.Create;
+  Columns.StrictDelimiter := True;
   ForeignColumns := TStringList.Create;
+  ForeignColumns.StrictDelimiter := True;
 end;
 
 destructor TForeignKey.Destroy;
