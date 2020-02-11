@@ -19,6 +19,7 @@ type
   TConnectionParameters = class;
   TDBQuery = class;
   TDBQueryList = TObjectList<TDBQuery>;
+  TDBObject = class;
 
   TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpDefault, cpVirtuality, cpComment, cpCollation);
   TColumnParts = Set of TColumnPart;
@@ -94,6 +95,7 @@ type
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
       function SQLCode(IncludeSymbolName: Boolean): String;
+      function ReferenceTableObj: TDBObject;
   end;
   TForeignKeyList = class(TObjectList<TForeignKey>)
     public
@@ -4250,6 +4252,9 @@ begin
       Result := o;
       Break;
     end;
+  end;
+  if not Assigned(Result) then begin
+    Log(lcDebug, Format('Could not find object "%s" in database "%s"', [Obj, DB]));
   end;
 end;
 
@@ -9016,6 +9021,23 @@ begin
   if OnDelete <> '' then
     Result := Result + ' ON DELETE ' + OnDelete;
 end;
+
+
+function TForeignKey.ReferenceTableObj: TDBObject;
+var
+  RefDb, RefTable: String;
+begin
+  // Find database object of reference table
+  RefDb := ReferenceTable.Substring(0, Pos('.', ReferenceTable)-1);
+  if not RefDb.IsEmpty then begin
+    RefTable := ReferenceTable.Substring(Length(RefDb)+1);
+  end else begin
+    RefDb := FConnection.Database;
+    RefTable := ReferenceTable;
+  end;
+  Result := FConnection.FindObject(RefDb, RefTable);
+end;
+
 
 procedure TForeignKeyList.Assign(Source: TForeignKeyList);
 var

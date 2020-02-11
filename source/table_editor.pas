@@ -2319,7 +2319,7 @@ begin
     3: begin
         Key := FForeignKeys[Node.Index];
         SetEditor := TSetEditorLink.Create(VT, True);
-        Obj := DBObject.Connection.FindObject(DBObject.Database, Key.ReferenceTable);
+        Obj := Key.ReferenceTableObj;
         if Obj <> nil then begin
           Columns := Obj.TableColumns;
           for Col in Columns do begin

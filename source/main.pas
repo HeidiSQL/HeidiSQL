@@ -9539,7 +9539,6 @@ var
   ForeignResults, Results: TDBQuery;
   Conn: TDBConnection;
   RowNum: PInt64;
-  RefDb, RefTable: String;
   RefObj: TDBObject;
   AllowEdit: Boolean;
 begin
@@ -9557,14 +9556,7 @@ begin
       idx := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Column].Text);
       if idx > -1 then try
         // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
-        RefDb := ForeignKey.ReferenceTable.Substring(0, Pos('.', ForeignKey.ReferenceTable)-1);
-        if not RefDb.IsEmpty then begin
-          RefTable := ForeignKey.ReferenceTable.Substring(Length(RefDb)+1);
-        end else begin
-          RefDb := Conn.Database;
-          RefTable := ForeignKey.ReferenceTable;
-        end;
-        RefObj := Conn.FindObject(RefDb, RefTable);
+        RefObj := ForeignKey.ReferenceTableObj;
         TextCol := '';
         if Assigned(RefObj) then begin
           Columns := RefObj.TableColumns;
