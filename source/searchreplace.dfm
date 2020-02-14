@@ -50,9 +50,9 @@ object frmSearchReplace: TfrmSearchReplace
     Caption = 'Search in:'
   end
   object btnCancel: TButton
-    Left = 351
+    Left = 327
     Top = 278
-    Width = 75
+    Width = 100
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
@@ -61,9 +61,9 @@ object frmSearchReplace: TfrmSearchReplace
     TabOrder = 10
   end
   object btnReplaceAll: TButton
-    Left = 270
+    Left = 221
     Top = 278
-    Width = 75
+    Width = 100
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Replace &all'
@@ -187,9 +187,9 @@ object frmSearchReplace: TfrmSearchReplace
     TabOrder = 7
   end
   object btnOK: TButton
-    Left = 189
+    Left = 115
     Top = 278
-    Width = 75
+    Width = 100
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'OK'
