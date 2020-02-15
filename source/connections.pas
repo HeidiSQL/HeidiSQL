@@ -233,11 +233,8 @@ end;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  LastActiveSession, NetTypeStr: String;
-  LastSessions: TStringList;
-  PSess: PConnectionParameters;
+  NetTypeStr: String;
   nt: TNetType;
-  Node: PVirtualNode;
   Params: TConnectionParameters;
 begin
   // Fix GUI stuff
@@ -274,22 +271,6 @@ begin
   end;
   Params.Free;
 
-  // Init sessions tree
-  RefreshSessions(nil);
-
-  // Focus last session
-  SelectNode(ListSessions, nil);
-  LastSessions := Explode(DELIM, AppSettings.ReadString(asLastSessions));
-  LastActiveSession := AppSettings.ReadString(asLastActiveSession);
-  if (LastActiveSession = '') and (LastSessions.Count > 0) then
-    LastActiveSession := LastSessions[0];
-  Node := ListSessions.GetFirst;
-  while Assigned(Node) do begin
-    PSess := ListSessions.GetNodeData(Node);
-    if PSess.SessionPath = LastActiveSession then
-      SelectNode(ListSessions, Node);
-    Node := ListSessions.GetNext(Node);
-  end;
 end;
 
 
@@ -347,7 +328,29 @@ end;
 
 
 procedure Tconnform.FormShow(Sender: TObject);
+var
+  LastActiveSession: String;
+  LastSessions: TStringList;
+  PSess: PConnectionParameters;
+  Node: PVirtualNode;
 begin
+  // Init sessions tree
+  RefreshSessions(nil);
+
+  // Focus last session
+  SelectNode(ListSessions, nil);
+  LastSessions := Explode(DELIM, AppSettings.ReadString(asLastSessions));
+  LastActiveSession := AppSettings.ReadString(asLastActiveSession);
+  if (LastActiveSession = '') and (LastSessions.Count > 0) then
+    LastActiveSession := LastSessions[0];
+  Node := ListSessions.GetFirst;
+  while Assigned(Node) do begin
+    PSess := ListSessions.GetNodeData(Node);
+    if PSess.SessionPath = LastActiveSession then
+      SelectNode(ListSessions, Node);
+    Node := ListSessions.GetNext(Node);
+  end;
+
   ListSessions.SetFocus;
   // Reactivate statistics
   TimerStatistics.Enabled := True;
