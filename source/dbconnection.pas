@@ -62,6 +62,12 @@ type
   end;
 
   TTableKey = class(TPersistent)
+    const
+      PRIMARY = 'PRIMARY';
+      KEY = 'KEY';
+      UNIQUE = 'UNIQUE';
+      FULLTEXT = 'FULLTEXT';
+      SPATIAL = 'SPATIAL';
     private
       FConnection: TDBConnection;
       function GetImageIndex: Integer;
@@ -4821,7 +4827,7 @@ begin
         NewKey.Name := KeyQuery.Col('CONSTRAINT_NAME');
         NewKey.OldName := NewKey.Name;
         if KeyQuery.Col('CONSTRAINT_TYPE').ToLowerInvariant.StartsWith('primary') then
-          NewKey.IndexType := 'PRIMARY'
+          NewKey.IndexType := TTableKey.PRIMARY
         else
           NewKey.IndexType := KeyQuery.Col('CONSTRAINT_TYPE');
         NewKey.OldIndexType := NewKey.IndexType;
@@ -4850,13 +4856,13 @@ begin
       NewKey.Name := KeyQuery.Col('Key_name');
       NewKey.OldName := NewKey.Name;
       if NewKey.Name.ToLowerInvariant = 'primary' then
-        NewKey.IndexType := 'PRIMARY'
+        NewKey.IndexType := TTableKey.PRIMARY
       else if KeyQuery.Col('Non_unique') = '0' then
-        NewKey.IndexType := 'UNIQUE'
+        NewKey.IndexType := TTableKey.UNIQUE
       else if KeyQuery.Col('Index_type').ToLowerInvariant = 'fulltext' then
-        NewKey.IndexType := 'FULLTEXT'
+        NewKey.IndexType := TTableKey.FULLTEXT
       else
-        NewKey.IndexType := 'KEY';
+        NewKey.IndexType := TTableKey.KEY;
       // Todo: spatial keys
       NewKey.OldIndexType := NewKey.IndexType;
       if ExecRegExpr('(BTREE|HASH)', KeyQuery.Col('Index_type')) then
@@ -4888,7 +4894,7 @@ begin
       '  ),'+
       '  ndx_cols AS ('+
       '    SELECT pg_class.relname, UNNEST(i.indkey) AS col_ndx,'+
-      '    CASE i.indisprimary WHEN true THEN '+EscapeString('PRIMARY')+' ELSE CASE i.indisunique WHEN true THEN '+EscapeString('UNIQUE')+' ELSE '+EscapeString('KEY')+' END END AS CONSTRAINT_TYPE,'+
+      '    CASE i.indisprimary WHEN true THEN '+EscapeString(TTableKey.PRIMARY)+' ELSE CASE i.indisunique WHEN true THEN '+EscapeString(TTableKey.UNIQUE)+' ELSE '+EscapeString(TTableKey.KEY)+' END END AS CONSTRAINT_TYPE,'+
       '    pg_class.oid'+
       '    FROM pg_class'+
       '    JOIN pg_index i ON (pg_class.oid = i.indexrelid)'+
@@ -4954,7 +4960,7 @@ begin
       Result.Add(NewKey);
       NewKey.Name := 'PRIMARY';
       NewKey.OldName := NewKey.Name;
-      NewKey.IndexType := 'PRIMARY';
+      NewKey.IndexType := TTableKey.PRIMARY;
       NewKey.OldIndexType := NewKey.IndexType;
     end;
     NewKey.Columns.Add(ColQuery.Col('name'));
@@ -4969,7 +4975,7 @@ begin
     Result.Add(NewKey);
     NewKey.Name := KeyQuery.Col('name');
     NewKey.OldName := NewKey.Name;
-    NewKey.IndexType := IfThen(KeyQuery.Col('unique')='0', 'KEY', 'UNIQUE');
+    NewKey.IndexType := IfThen(KeyQuery.Col('unique')='0', TTableKey.KEY, TTableKey.UNIQUE);
     NewKey.OldIndexType := NewKey.IndexType;
     ColQuery := GetResults('SELECT * FROM pragma_index_info('+EscapeString(NewKey.Name)+')');
     while not ColQuery.Eof do begin
@@ -5948,13 +5954,13 @@ begin
   // Find best key for updates
   // 1. round: find a primary key
   for Key in Keys do begin
-    if Key.IndexType = PKEY then
+    if Key.IndexType = TTableKey.PRIMARY then
       Result.Assign(Key.Columns);
   end;
   if Result.Count = 0 then begin
     // no primary key available -> 2. round: find a unique key
     for Key in Keys do begin
-      if Key.IndexType = UKEY then begin
+      if Key.IndexType = TTableKey.UNIQUE then begin
         // We found a UNIQUE key - better than nothing. Check if one of the key
         // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
         AllowsNull := False;
@@ -8906,11 +8912,11 @@ end;
 function TTableKey.GetImageIndex: Integer;
 begin
   // Detect key icon index for specified index
-  if IndexType = PKEY then Result := ICONINDEX_PRIMARYKEY
-  else if IndexType = KEY then Result := ICONINDEX_INDEXKEY
-  else if IndexType = UKEY then Result := ICONINDEX_UNIQUEKEY
-  else if IndexType = FKEY then Result := ICONINDEX_FULLTEXTKEY
-  else if IndexType = SKEY then Result := ICONINDEX_SPATIALKEY
+  if IndexType = TTableKey.PRIMARY then Result := ICONINDEX_PRIMARYKEY
+  else if IndexType = TTableKey.KEY then Result := ICONINDEX_INDEXKEY
+  else if IndexType = TTableKey.UNIQUE then Result := ICONINDEX_UNIQUEKEY
+  else if IndexType = TTableKey.FULLTEXT then Result := ICONINDEX_FULLTEXTKEY
+  else if IndexType = TTableKey.SPATIAL then Result := ICONINDEX_SPATIALKEY
   else Result := -1;
 end;
 
@@ -8922,10 +8928,10 @@ begin
   // Supress SQL error  trying index creation with 0 column
   if Columns.Count = 0 then
     Exit;
-  if IndexType = PKEY then
+  if IndexType = TTableKey.PRIMARY then
     Result := Result + 'PRIMARY KEY '
   else begin
-    if IndexType <> KEY then
+    if IndexType <> TTableKey.KEY then
       Result := Result + IndexType + ' ';
     Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
   end;

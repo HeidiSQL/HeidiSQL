@@ -2,6 +2,7 @@
 const
 
   // Line breaks
+  // TODO: use sLineBreak instead
   CRLF = #13#10;
   LB_UNIX = #10;
   LB_MAC = #13;
@@ -101,12 +102,6 @@ const
   MsgDisconnect: String = 'Connection to %s closed at %s';
   MsgInvalidColumn: String = 'Column #%d not available. Query returned %d columns and %d rows.';
   SPortableLockFile: String = 'portable.lock';
-
-  PKEY = 'PRIMARY';
-  KEY = 'KEY';
-  UKEY = 'UNIQUE';
-  FKEY = 'FULLTEXT';
-  SKEY = 'SPATIAL';
 
   SYNCOMPLETION_PATTERN = '\image{%d}\hspace{5}\color{clGrayText}%s\column{}\color{clWindowText}%s\color{clGrayText}%s';
 

@@ -700,7 +700,7 @@ begin
   // Drop indexes, also changed indexes, which will be readded below
   for i:=0 to DeletedKeys.Count-1 do begin
     Mainform.ProgressStep;
-    if DeletedKeys[i] = PKEY then
+    if DeletedKeys[i] = TTableKey.PRIMARY then
       IndexSQL := 'PRIMARY KEY'
     else
       IndexSQL := 'INDEX ' + Conn.QuoteIdent(DeletedKeys[i]);
@@ -710,7 +710,7 @@ begin
   for i:=0 to FKeys.Count-1 do begin
     Mainform.ProgressStep;
     if FKeys[i].Modified and (not FKeys[i].Added) then begin
-      if FKeys[i].OldIndexType = PKEY then
+      if FKeys[i].OldIndexType = TTableKey.PRIMARY then
         IndexSQL := 'PRIMARY KEY'
       else
         IndexSQL := 'INDEX ' + Conn.QuoteIdent(FKeys[i].OldName);
@@ -1139,7 +1139,7 @@ begin
       // Do not allow NULL, and force NOT NULL, on primary key columns
       Result := True;
       for i:=0 to FKeys.Count-1 do begin
-        if (FKeys[i].IndexType = PKEY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
+        if (FKeys[i].IndexType = TTableKey.PRIMARY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
           if Col.AllowNull then begin
             Col.AllowNull := False;
             Col.Status := esModified;
@@ -1236,7 +1236,7 @@ begin
   Col := Sender.GetNodeData(Node);
   // Bold font for primary key columns
   for i:=0 to FKeys.Count-1 do begin
-    if (FKeys[i].IndexType = PKEY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
+    if (FKeys[i].IndexType = TTableKey.PRIMARY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
       TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
       break;
     end;
@@ -1535,7 +1535,7 @@ begin
   TblKey := TTableKey.Create(DBObject.Connection);
   TblKey.Name := _('Index')+' '+IntToStr(FKeys.Count+1);
   TblKey.OldName := TblKey.Name;
-  TblKey.IndexType := KEY;
+  TblKey.IndexType := TTableKey.KEY;
   TblKey.OldIndexType := TblKey.IndexType;
   TblKey.Added := True;
   FKeys.Add(TblKey);
@@ -1576,7 +1576,7 @@ begin
     end;
     if not ColExists then begin
       NewCol := Column.Name;
-      if (TblKey.IndexType <> FKEY) and (Column.DataType.Index in [dtTinyText, dtText, dtMediumText, dtLongText, dtTinyBlob, dtBlob, dtMediumBlob, dtLongBlob]) then
+      if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Column.DataType.Index in [dtTinyText, dtText, dtMediumText, dtLongText, dtTinyBlob, dtBlob, dtMediumBlob, dtLongBlob]) then
         PartLength := '100';
       break;
     end;
@@ -1672,7 +1672,7 @@ begin
     0: begin
       TblKey := FKeys[Node.Index];
       case Column of
-        0: if TblKey.IndexType = PKEY then
+        0: if TblKey.IndexType = TTableKey.PRIMARY then
              CellText := TblKey.IndexType + ' KEY' // Fixed name "PRIMARY KEY", cannot be changed
            else
              CellText := TblKey.Name;
@@ -1766,7 +1766,7 @@ begin
   Allowed := False;
   if VT.GetNodeLevel(Node) = 0 then begin
     // Disallow renaming primary key
-    if (Column <> 0) or (VT.Text[Node, 1] <> PKEY) then
+    if (Column <> 0) or (VT.Text[Node, 1] <> TTableKey.PRIMARY) then
       Allowed := True
   end else case Column of
     0: Allowed := True;
@@ -1800,7 +1800,7 @@ begin
     // Index type pulldown
     EnumEditor := TEnumEditorLink.Create(VT, True);
     EnumEditor.ValueList := TStringList.Create;
-    EnumEditor.ValueList.CommaText := PKEY +','+ KEY +','+ UKEY +','+ FKEY +','+ SKEY;
+    EnumEditor.ValueList.CommaText := TTableKey.PRIMARY +','+ TTableKey.KEY +','+ TTableKey.UNIQUE +','+ TTableKey.FULLTEXT +','+ TTableKey.SPATIAL;
     EditLink := EnumEditor;
   end else if (Level = 0) and (Column = 2) then begin
     // Algorithm pulldown
@@ -1839,8 +1839,8 @@ begin
          0: TblKey.Name := NewText;
          1: begin
              TblKey.IndexType := NewText;
-             if NewText = PKEY then
-               TblKey.Name := PKEY;
+             if NewText = TTableKey.PRIMARY then
+               TblKey.Name := TTableKey.PRIMARY;
            end;
          2: TblKey.Algorithm := NewText;
        end;
@@ -1968,7 +1968,7 @@ begin
 
     TblKey.Columns.Insert(ColPos, ColName);
     PartLength := '';
-    if (TblKey.IndexType <> FKEY) and (Col.DataType.Index in [dtTinyText, dtText, dtMediumText, dtLongText, dtTinyBlob, dtBlob, dtMediumBlob, dtLongBlob]) then
+    if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Col.DataType.Index in [dtTinyText, dtText, dtMediumText, dtLongText, dtTinyBlob, dtBlob, dtMediumBlob, dtLongBlob]) then
       PartLength := '100';
     TblKey.Subparts.Insert(ColPos, PartLength);
     IndexNode.States := IndexNode.States + [vsHasChildren, vsExpanded];
@@ -2096,9 +2096,9 @@ begin
   // Auto create submenu items for "Add to index" ...
   PrimaryKeyExists := False;
   for i:=0 to FKeys.Count-1 do begin
-    if FKeys[i].IndexType = PKEY then begin
+    if FKeys[i].IndexType = TTableKey.PRIMARY then begin
       PrimaryKeyExists := True;
-      IndexName := PKEY;
+      IndexName := TTableKey.PRIMARY;
     end else
       IndexName := FKeys[i].Name + ' ('+FKeys[i].IndexType+')';
     Item := AddItem(menuAddToIndex, IndexName, FKeys[i].ImageIndex);
@@ -2118,12 +2118,12 @@ begin
   menuAddToIndex.Enabled := menuAddToIndex.Count > 0;
 
   // ... and for item "Create index"
-  Item := AddItem(menuCreateIndex, PKEY, ICONINDEX_PRIMARYKEY);
+  Item := AddItem(menuCreateIndex, TTableKey.PRIMARY, ICONINDEX_PRIMARYKEY);
   Item.Enabled := not PrimaryKeyExists;
-  AddItem(menuCreateIndex, KEY, ICONINDEX_INDEXKEY);
-  AddItem(menuCreateIndex, UKEY, ICONINDEX_UNIQUEKEY);
-  AddItem(menuCreateIndex, FKEY, ICONINDEX_FULLTEXTKEY);
-  AddItem(menuCreateIndex, SKEY, ICONINDEX_SPATIALKEY);
+  AddItem(menuCreateIndex, TTableKey.KEY, ICONINDEX_INDEXKEY);
+  AddItem(menuCreateIndex, TTableKey.UNIQUE, ICONINDEX_UNIQUEKEY);
+  AddItem(menuCreateIndex, TTableKey.FULLTEXT, ICONINDEX_FULLTEXTKEY);
+  AddItem(menuCreateIndex, TTableKey.SPATIAL, ICONINDEX_SPATIALKEY);
 end;
 
 
