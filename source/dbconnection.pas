@@ -5948,7 +5948,7 @@ begin
   // Find best key for updates
   // 1. round: find a primary key
   for Key in Keys do begin
-    if Key.Name = 'PRIMARY' then
+    if Key.IndexType = PKEY then
       Result.Assign(Key.Columns);
   end;
   if Result.Count = 0 then begin
