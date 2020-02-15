@@ -5141,8 +5141,8 @@ var
   vt: TVirtualStringTree;
   Select: String;
   RefreshingData, IsKeyColumn: Boolean;
-  i, ColLen, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
-  Offset: Int64;
+  i, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
+  ColMaxLen, Offset: Int64;
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
   WantedColumns: TTableColumnList;
   c: TTableColumn;
@@ -5233,7 +5233,7 @@ begin
     for i:=0 to SelectedTableColumns.Count-1 do begin
       c := SelectedTableColumns[i];
       IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
-      ColLen := StrToInt64Def(c.LengthSet, 0);
+      ColMaxLen := StrToInt64Def(c.LengthSet, 0);
       if (DatagridHiddenColumns.IndexOf(c.Name) = -1)
         or (IsKeyColumn)
         or (KeyCols.Count = 0)
@@ -5242,7 +5242,7 @@ begin
           and (KeyCols.Count > 0) // We need a sufficient key to be able to load remaining row data
           and (c.DataType.LoadPart)
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
-          and ((ColLen > GRIDMAXDATA) or (ColLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
+          and ((ColMaxLen > GRIDMAXDATA) or (ColMaxLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
             case DBObj.Connection.Parameters.NetTypeGroup of
               ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
