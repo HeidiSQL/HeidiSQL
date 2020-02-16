@@ -9,7 +9,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
-  Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo,
+  Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo, StrUtils,
   SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
@@ -10343,7 +10343,7 @@ var
   Combo: TCustomComboBox;
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
-  Success, DoCut, DoCopyRows: Boolean;
+  DoCut, DoCopyRows: Boolean;
   IsResultGrid: Boolean;
   ClpFormat: Word;
   ClpData: THandle;
@@ -10354,7 +10354,6 @@ var
   ExportDialog: TfrmExportGrid;
 begin
   // Copy text from a focused control to clipboard
-  Success := False;
   Control := Screen.ActiveControl;
   DoCut := Sender = actCut;
   DoCopyRows := Sender = actCopyRows;
@@ -10366,21 +10365,18 @@ begin
       if (imgPreview.Picture.Graphic <> nil) and (not imgPreview.Picture.Graphic.Empty) then begin
         imgPreview.Picture.SaveToClipBoardFormat(ClpFormat, ClpData, APalette);
         ClipBoard.SetAsHandle(ClpFormat, ClpData);
-        Success := True;
       end;
     end else if Control is TCustomEdit then begin
       Edit := TCustomEdit(Control);
       if Edit.SelLength > 0 then begin
         if DoCut then Edit.CutToClipboard
         else Edit.CopyToClipboard;
-        Success := True;
       end;
     end else if Control is TCustomComboBox then begin
       Combo := TCustomComboBox(Control);
       if Combo.SelLength > 0 then begin
         Clipboard.AsText := Combo.SelText;
         if DoCut then Combo.SelText := '';
-        Success := True;
       end;
     end else if Control is TVirtualStringTree then begin
       Grid := Control as TVirtualStringTree;
@@ -10410,7 +10406,6 @@ begin
         end else
           Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
         FGridCopying := False;
-        Success := True;
       end;
     end else if Control is TSynMemo then begin
       SynMemo := Control as TSynMemo;
@@ -10426,14 +10421,17 @@ begin
         Exporter.CopyToClipboard;
         Clipboard.Close;
         Exporter.Free;
-        Success := True;
       end;
+    end else begin
+      raise Exception.Create('Unhandled control in clipboard action: '+IfThen(Assigned(Control), Control.Name, 'nil'));
     end;
-  finally
-    if not Success then
+  except
+    on E:Exception do begin
+      LogSQL(E.Message);
       MessageBeep(MB_ICONASTERISK);
-    Screen.Cursor := crDefault;
+    end;
   end;
+  Screen.Cursor := crDefault;
 end;
 
 
