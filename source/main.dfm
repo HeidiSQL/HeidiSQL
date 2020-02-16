@@ -3647,7 +3647,7 @@ object MainForm: TMainForm
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
     NbLinesInWindow = 12
     Width = 350
-    EndOfTokenChr = ',()[].='#9
+    EndOfTokenChr = ',()[]. ='#9
     TriggerChars = '.'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
