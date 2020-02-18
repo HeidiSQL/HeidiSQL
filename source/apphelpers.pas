@@ -2633,6 +2633,8 @@ begin
     except
       ConnectionParams.NetType := ntMySQL_TCPIP;
     end;
+    // Otherwise default libmariadb.dll would be used for PG and other types
+    ConnectionParams.LibraryOrProvider := ConnectionParams.DefaultLibrary;
     if Host <> '' then ConnectionParams.Hostname := Host;
     if User <> '' then ConnectionParams.Username := User;
     if Pass <> '' then ConnectionParams.Password := Pass;
