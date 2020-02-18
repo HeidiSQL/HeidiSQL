@@ -4715,7 +4715,15 @@ var
   Comments: TDBQuery;
   TableCol: TTableColumn;
 begin
+  // Parent method is sufficient for most things
   Result := inherited;
+
+  // Remove surrounding parentheses from default value. See #721
+  for TableCol in Result do begin
+    if not TableCol.DefaultText.IsEmpty then
+      TableCol.DefaultText := RegExprGetMatch('^\((.*)\)$', TableCol.DefaultText, 1);
+  end;
+
   // Column comments in MSSQL. See http://www.heidisql.com/forum.php?t=19576
   try
     Comments := GetResults('SELECT c.name AS '+QuoteIdent('column')+', prop.value AS '+QuoteIdent('comment')+' '+
