@@ -5940,7 +5940,7 @@ var
   Results: TDBQuery;
   DBObjects: TDBObjectList;
   sql, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
-  Tables, SortHelper: TStringList;
+  Tables: TStringList;
   rx: TRegExpr;
   Start, TokenTypeInt: Integer;
   Attri: TSynHighlighterAttributes;
@@ -6186,20 +6186,6 @@ begin
 
   end;
   rx.Free;
-
-  // Sort alphabetically, so have tables, columns, functions etc. mixed. See issue #7
-  // May fail if NameValueSeparator "=" is contained in the InsertList
-  SortHelper := TStringList.Create;
-  for i:=0 to Proposal.ItemList.Count-1 do begin
-    SortHelper.AddPair(Proposal.InsertList[i], Proposal.ItemList[i]);
-  end;
-  SortHelper.Sort;
-  Proposal.ClearList;
-  for i:=0 to SortHelper.Count-1 do begin
-    Proposal.InsertList.Add(SortHelper.Names[i]);
-    Proposal.ItemList.Add(SortHelper.ValueFromIndex[i]);
-  end;
-  SortHelper.Free;
 
 end;
 
