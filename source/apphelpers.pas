@@ -378,6 +378,7 @@ var
   ConfirmIcon: TIcon;
   NumberChars: TSysCharSet;
   LibHandleUser32: THandle;
+  UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
 
 implementation
 
@@ -1112,13 +1113,10 @@ end;
 procedure SaveUnicodeFile(Filename: String; Text: String);
 var
   Writer: TStreamWriter;
-  Enc: TEncoding;
 begin
-  Enc := TUTF8NoBOMEncoding.Create;
-  Writer := TStreamWriter.Create(Filename, False, Enc);
+  Writer := TStreamWriter.Create(Filename, False, UTF8NoBOMEncoding);
   Writer.Write(Text);
   Writer.Free;
-  Enc.Free;
 end;
 
 
@@ -4305,6 +4303,7 @@ NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.Thousa
 
 LibHandleUser32 := LoadLibrary('User32.dll');
 
+UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
 
 end.
 

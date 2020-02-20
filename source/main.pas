@@ -2297,7 +2297,7 @@ begin
         if FileExists(BackupFilename) then begin
           Tab := GetOrCreateEmptyQueryTab;
           Tab.Uid := Section;
-          Tab.LoadContents(BackupFilename, True, TEncoding.UTF8);
+          Tab.LoadContents(BackupFilename, True, UTF8NoBOMEncoding);
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
           if EditorHeight > 50 then
