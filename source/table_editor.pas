@@ -282,7 +282,7 @@ begin
   if DBObject.Name = '' then begin
     // Creating new table
     editName.Text := '';
-    if DBObject.Connection.Parameters.IsMySQL then
+    if DBObject.Connection.Parameters.IsAnyMySQL then
       comboCollation.ItemIndex := comboCollation.Items.IndexOf(DBObject.Connection.GetSessionVariable('collation_database'));
     PageControlMain.ActivePage := tabBasic;
     FColumns := TTableColumnList.Create;
@@ -540,7 +540,7 @@ begin
   // appending an ALTER COLUMN ... DROP DEFAULT, without getting an "unknown column" error.
   // Also, do this after the data type was altered, if from TEXT > VARCHAR e.g.
   for i:=0 to FColumns.Count-1 do begin
-    if (Conn.Parameters.IsMySQL or Conn.Parameters.IsPostgreSQL)
+    if (Conn.Parameters.IsAnyMySQL or Conn.Parameters.IsAnyPostgreSQL)
       and (FColumns[i].FStatus = esModified)
       and (FColumns[i].DefaultType = cdtNothing)
       and (FColumns[i].OldDataType.HasDefault)
@@ -692,7 +692,7 @@ begin
     if FColumns[i].Status = esDeleted then begin
       Specs.Add('DROP COLUMN '+Conn.QuoteIdent(FColumns[i].OldName));
       // MSSQL wants one ALTER TABLE query per DROP COLUMN
-      if Conn.Parameters.IsMSSQL then
+      if Conn.Parameters.IsAnyMSSQL then
         FinishSpecs;
     end;
   end;
@@ -799,7 +799,7 @@ begin
     SQL := SQL +  '/*!50100 ' + SynMemoPartitions.Text + ' */';
   SQL := SQL + ';' + CRLF;
 
-  if DBObject.Connection.Parameters.IsPostgreSQL then begin
+  if DBObject.Connection.Parameters.IsAnyPostgreSQL then begin
     Node := listColumns.GetFirst;
     while Assigned(Node) do begin
       Col := listColumns.GetNodeData(Node);
@@ -1129,7 +1129,7 @@ begin
     4: begin
       Result := (Col.DataType.Category in [dtcInteger, dtcReal])
         and (Col.DataType.Index <> dtBit)
-        and (DBObject.Connection.Parameters.IsMySQL);
+        and (DBObject.Connection.Parameters.IsAnyMySQL);
       if (not Result) and Col.Unsigned then begin
         Col.Unsigned := False;
         Col.Status := esModified;
@@ -1152,7 +1152,7 @@ begin
     6: begin
       Result := (Col.DataType.Category in [dtcInteger, dtcReal])
         and (Col.DataType.Index <> dtBit)
-        and (DBObject.Connection.Parameters.IsMySQL);
+        and (DBObject.Connection.Parameters.IsAnyMySQL);
       if (not Result) and Col.ZeroFill then begin
         Col.ZeroFill := False;
         Col.Status := esModified;

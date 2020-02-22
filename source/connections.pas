@@ -1299,9 +1299,9 @@ begin
           lblHost.Caption := _('Hostname / IP:');
         end;
       end;
-      editHost.RightButton.Visible := Params.IsSQLite;
+      editHost.RightButton.Visible := Params.IsAnySQLite;
       chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
-      chkWindowsAuth.Enabled := Params.IsMSSQL;
+      chkWindowsAuth.Enabled := Params.IsAnyMSSQL;
       lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL])
         and ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
@@ -1311,8 +1311,8 @@ begin
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
-      chkCompressed.Enabled := Params.IsMySQL;
-      lblDatabase.Caption := IfThen(Params.IsPostgreSQL, _('Database')+':', _('Databases')+':');
+      chkCompressed.Enabled := Params.IsAnyMySQL;
+      lblDatabase.Caption := IfThen(Params.IsAnyPostgreSQL, _('Database')+':', _('Databases')+':');
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
       editDatabases.Enabled := lblDatabase.Enabled;
       // SSH tunnel tab:

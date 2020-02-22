@@ -265,11 +265,12 @@ type
       function NetTypeName(LongFormat: Boolean): String;
       function IsCompatibleToWin10S: Boolean;
       function GetNetTypeGroup: TNetTypeGroup;
-      function IsMySQL: Boolean;
-      function IsMSSQL: Boolean;
-      function IsPostgreSQL: Boolean;
-      function IsSQLite: Boolean;
+      function IsAnyMySQL: Boolean;
+      function IsAnyMSSQL: Boolean;
+      function IsAnyPostgreSQL: Boolean;
+      function IsAnySQLite: Boolean;
       function IsMariaDB: Boolean;
+      function IsMySQL: Boolean;
       function IsPercona: Boolean;
       function IsTokudb: Boolean;
       function IsInfiniDB: Boolean;
@@ -1408,6 +1409,8 @@ begin
         Prefix := 'Infobright'
       else if IsMemSQL then
         Prefix := 'MemSQL'
+      else if IsMySQL then
+        Prefix := 'MySQL'
       else
         Prefix := 'MariaDB or MySQL';
     end;
@@ -1491,25 +1494,25 @@ begin
 end;
 
 
-function TConnectionParameters.IsMySQL: Boolean;
+function TConnectionParameters.IsAnyMySQL: Boolean;
 begin
   Result := NetTypeGroup = ngMySQL;
 end;
 
 
-function TConnectionParameters.IsMSSQL: Boolean;
+function TConnectionParameters.IsAnyMSSQL: Boolean;
 begin
   Result := NetTypeGroup = ngMSSQL;
 end;
 
 
-function TConnectionParameters.IsPostgreSQL: Boolean;
+function TConnectionParameters.IsAnyPostgreSQL: Boolean;
 begin
   Result := NetTypeGroup = ngPgSQL;
 end;
 
 
-function TConnectionParameters.IsSQLite;
+function TConnectionParameters.IsAnySQLite;
 begin
   Result := NetTypeGroup = ngSQLite;
 end;
@@ -1517,49 +1520,61 @@ end;
 
 function TConnectionParameters.IsMariaDB: Boolean;
 begin
-  Result := IsMySQL and (Pos('-mariadb', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL and (Pos('-mariadb', LowerCase(ServerVersion)) > 0);
+end;
+
+
+function TConnectionParameters.IsMySQL: Boolean;
+begin
+  Result := IsAnyMySQL
+    and (not IsMariaDB)
+    and (not IsPercona)
+    and (not IsTokudb)
+    and (not IsInfiniDB)
+    and (not IsInfobright)
+    and (not IsMemSQL);
 end;
 
 
 function TConnectionParameters.IsPercona: Boolean;
 begin
-  Result := IsMySQL and (Pos('percona server', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL and (Pos('percona server', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsTokudb: Boolean;
 begin
-  Result := IsMySQL and (Pos('tokudb', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL and (Pos('tokudb', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsInfiniDB: Boolean;
 begin
-  Result := IsMySQL and (Pos('infinidb', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL and (Pos('infinidb', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsInfobright: Boolean;
 begin
-  Result := IsMySQL and (Pos('infobright', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL and (Pos('infobright', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsAzure: Boolean;
 begin
-  Result := IsMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsMemSQL: Boolean;
 begin
-  Result := IsMySQL and (Pos('memsql', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL and (Pos('memsql', LowerCase(ServerVersion)) > 0);
 end;
 
 
 function TConnectionParameters.IsRedshift: Boolean;
 begin
-  Result := IsPostgreSQL and (Pos('redshift', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyPostgreSQL and (Pos('redshift', LowerCase(ServerVersion)) > 0);
 end;
 
 
@@ -4238,7 +4253,7 @@ begin
   else begin
     // Fallback for target tables which do not yet exist. For example in copytable dialog.
     Result := QuoteIdent(DB) + '.';
-    if Parameters.IsMSSQL then
+    if Parameters.IsAnyMSSQL then
       Result := Result + '.';
     Result := Result + QuoteIdent(Obj);
   end;
@@ -4819,7 +4834,7 @@ begin
   KeyQuery := GetResults('SELECT * FROM '+
     QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[ColTableIdx])+' AS col'+
     ', '+QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[ConTableIdx])+' AS con'+
-    ' WHERE col.TABLE_SCHEMA='+EscapeString(IfThen(Parameters.IsMSSQL, Table.Schema, Table.Database))+
+    ' WHERE col.TABLE_SCHEMA='+EscapeString(IfThen(Parameters.IsAnyMSSQL, Table.Schema, Table.Database))+
     ' AND col.TABLE_NAME='+EscapeString(Table.Name)+
     ' AND col.TABLE_SCHEMA=con.TABLE_SCHEMA'+
     ' AND col.TABLE_NAME=con.TABLE_NAME'+
@@ -7192,7 +7207,7 @@ var
     baData: TBytes;
 begin
   // Return a binary column value as hex AnsiString
-  if FConnection.Parameters.IsMysql then begin
+  if FConnection.Parameters.IsAnyMysql then begin
     GetColBinData(Column, baData);
     Result := HexValue(baData);
   end else
@@ -7765,7 +7780,7 @@ begin
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
           Val := Connection.EscapeString(Cell.NewText);
-          if (Datatype(i).Index = dtBit) and FConnection.Parameters.IsMySQL then
+          if (Datatype(i).Index = dtBit) and FConnection.Parameters.IsAnyMySQL then
             Val := 'b' + Val;
         end;
         dtcBinary, dtcSpatial:
@@ -8454,7 +8469,7 @@ end;
 function TDBObject.QuotedName(AlwaysQuote: Boolean=True; SeparateSegments: Boolean=True): String;
 begin
   Result := '';
-  if FConnection.Parameters.IsMSSQL then begin
+  if FConnection.Parameters.IsAnyMSSQL then begin
     // MSSQL expects schema separated from table, and in some situations the whole string quoted as a whole
     if Schema <> '' then begin
       if SeparateSegments then
@@ -8782,7 +8797,7 @@ begin
   end;
 
   if InParts(cpComment) then begin
-    if (Comment <> '') and FConnection.Parameters.IsMySQL then
+    if (Comment <> '') and FConnection.Parameters.IsAnyMySQL then
       Result := Result + 'COMMENT ' + FConnection.EscapeString(Comment) + ' ';
   end;
 

@@ -109,12 +109,12 @@ begin
   end;
 
   // Most clauses only supported by MySQL
-  comboDefiner.Enabled := comboDefiner.Enabled and Obj.Connection.Parameters.IsMySQL;
+  comboDefiner.Enabled := comboDefiner.Enabled and Obj.Connection.Parameters.IsAnyMySQL;
   lblDefiner.Enabled := comboDefiner.Enabled;
-  comboSecurity.Enabled := comboSecurity.Enabled and Obj.Connection.Parameters.IsMySQL;
+  comboSecurity.Enabled := comboSecurity.Enabled and Obj.Connection.Parameters.IsAnyMySQL;
   lblSecurity.Enabled := comboSecurity.Enabled;
-  rgAlgorithm.Enabled := rgAlgorithm.Enabled and Obj.Connection.Parameters.IsMySQL;
-  rgCheck.Enabled := rgCheck.Enabled and Obj.Connection.Parameters.IsMySQL;
+  rgAlgorithm.Enabled := rgAlgorithm.Enabled and Obj.Connection.Parameters.IsAnyMySQL;
+  rgCheck.Enabled := rgCheck.Enabled and Obj.Connection.Parameters.IsAnyMySQL;
 
   Modified := False;
   btnSave.Enabled := Modified;

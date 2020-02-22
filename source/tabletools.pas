@@ -868,16 +868,16 @@ begin
     FindText := LowerCase(FindText);
     FindTextJokers := LowerCase(FindTextJokers);
     RoutineDefinitionColumn := 'LOWER('+RoutineDefinitionColumn+')';
-    if DBObj.Connection.Parameters.IsSQLite then begin
+    if DBObj.Connection.Parameters.IsAnySQLite then begin
       DBObj.Connection.Query('PRAGMA case_sensitive_like=FALSE');
     end;
   end else begin
-    if DBObj.Connection.Parameters.IsSQLite then begin
+    if DBObj.Connection.Parameters.IsAnySQLite then begin
       DBObj.Connection.Query('PRAGMA case_sensitive_like=TRUE');
     end;
   end;
   RoutineSchemaColumn := 'routine_schema';
-  if DBObj.Connection.Parameters.IsMSSQL then
+  if DBObj.Connection.Parameters.IsAnyMSSQL then
     RoutineSchemaColumn := 'routine_catalog';
 
   Columns := TTableColumnList.Create(True);

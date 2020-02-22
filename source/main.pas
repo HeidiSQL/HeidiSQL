@@ -3306,7 +3306,7 @@ var
 begin
   // Sub menu with EXPLAIN items pops up
   SQL := GetCurrentQuery(ActiveQueryTab);
-  actExplainCurrentQuery.Enabled := ActiveConnection.Parameters.IsMySQL;
+  actExplainCurrentQuery.Enabled := ActiveConnection.Parameters.IsAnyMySQL;
   actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled;
 end;
 
@@ -3618,7 +3618,7 @@ var
 begin
   // Launch mysql.exe
   Conn := ActiveConnection;
-  if not Conn.Parameters.IsMySQL then
+  if not Conn.Parameters.IsAnyMySQL then
     ErrorDialog(_('Command line only works on MySQL connections.'))
   else begin
     if FIsWine then begin
@@ -5250,9 +5250,9 @@ begin
               ngPgSQL, ngSQLite: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
               else raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(DBObj.Connection.Parameters.NetType)]);
             end;
-          end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtTimestamp) then begin
+          end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
-          end else if DBObj.Connection.Parameters.IsMSSQL and (c.DataType.Index=dtHierarchyid) then begin
+          end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dtHierarchyid) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ';
           end else begin
             Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
@@ -6811,7 +6811,7 @@ begin
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
   end;
-  if (ActiveConnection <> nil) and (ActiveConnection.Parameters.IsMySQL) then begin
+  if (ActiveConnection <> nil) and (ActiveConnection.Parameters.IsAnyMySQL) then begin
     Version := ActiveConnection.ServerVersionInt;
     actCreateView.Enabled := actCreateView.Enabled and (Version >= 50001);
     actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Version >= 50003);
@@ -7890,7 +7890,7 @@ begin
 
   SynMemoProcessView.Enabled := EnableControls;
   pnlProcessView.Enabled := EnableControls;
-  lblExplainProcess.Enabled := EnableControls and ActiveConnection.Parameters.IsMySQL;
+  lblExplainProcess.Enabled := EnableControls and ActiveConnection.Parameters.IsAnyMySQL;
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
   lblExplainProcessAnalyzer.Enabled := lblExplainProcess.Enabled;
   menuExplainAnalyzer.Enabled := lblExplainProcess.Enabled;
@@ -8655,7 +8655,7 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
-    if FActiveDbObj.Connection.Parameters.IsSQLite then // Prefer visible filename over visible left part of path
+    if FActiveDbObj.Connection.Parameters.IsAnySQLite then // Prefer visible filename over visible left part of path
       TabHostName := StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 60, False)
     else
       TabHostName := FActiveDbObj.Connection.Parameters.HostName;
@@ -10151,7 +10151,7 @@ begin
   // Status + command statistics only available in MySQL
   if ((vt=ListStatus) or (vt=ListCommandStats))
     and (Conn <> nil)
-    and (not Conn.Parameters.IsMySQL) then begin
+    and (not Conn.Parameters.IsAnyMySQL) then begin
     vt.Clear;
     vt.EmptyListMessage := f_('Not available on %s', [Conn.Parameters.NetTypeName(False)]);
     vt.Tag := VTREE_LOADED;
@@ -12751,7 +12751,7 @@ begin
     Tab.treeHelpers.CheckState[Node] := OldCheckState;
     Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
     // Disable profiling when not on MySQL
-    if (NodeIndex = HELPERNODE_PROFILE) and (Conn <> nil) and (not Conn.Parameters.IsMySQL) then begin
+    if (NodeIndex = HELPERNODE_PROFILE) and (Conn <> nil) and (not Conn.Parameters.IsAnyMySQL) then begin
       Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
     end;
     // Do not check expansion state of children unless the parent node is expanded, to avoid

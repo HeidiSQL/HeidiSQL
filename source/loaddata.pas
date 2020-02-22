@@ -155,14 +155,14 @@ begin
   FConnection := MainForm.ActiveConnection;
 
   // Disable features supported in MySQL only, if active connection is not MySQL
-  if not FConnection.Parameters.IsMySQL then begin
+  if not FConnection.Parameters.IsAnyMySQL then begin
     grpParseMethod.ItemIndex := 1;
     grpDuplicates.ItemIndex := 0;
   end;
-  grpParseMethod.Controls[0].Enabled := FConnection.Parameters.IsMySQL;
-  grpDuplicates.Controls[1].Enabled := FConnection.Parameters.IsMySQL;
-  grpDuplicates.Controls[2].Enabled := FConnection.Parameters.IsMySQL;
-  chkLowPriority.Enabled := FConnection.Parameters.IsMySQL;
+  grpParseMethod.Controls[0].Enabled := FConnection.Parameters.IsAnyMySQL;
+  grpDuplicates.Controls[1].Enabled := FConnection.Parameters.IsAnyMySQL;
+  grpDuplicates.Controls[2].Enabled := FConnection.Parameters.IsAnyMySQL;
+  chkLowPriority.Enabled := FConnection.Parameters.IsAnyMySQL;
 
   // Read databases and tables from active connection
   comboDatabase.Items.Clear;
@@ -319,7 +319,7 @@ begin
     end;
     MainForm.LogSQL(FormatNumber(RowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
     // SHOW WARNINGS is implemented as of MySQL 4.1.0
-    if FConnection.Parameters.IsMySQL and (FConnection.ServerVersionInt >= 40100) then begin
+    if FConnection.Parameters.IsAnyMySQL and (FConnection.ServerVersionInt >= 40100) then begin
       Warnings := FConnection.GetResults('SHOW WARNINGS');
       while not Warnings.Eof do begin
         MainForm.LogSQL(Warnings.Col(0)+' ('+Warnings.Col(1)+'): '+Warnings.Col(2), lcError);
