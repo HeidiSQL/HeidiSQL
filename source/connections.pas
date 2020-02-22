@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
-  dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB;
+  dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils;
 
 type
   Tconnform = class(TExtForm)
@@ -1300,9 +1300,10 @@ begin
         end;
       end;
       editHost.RightButton.Visible := Params.IsSQLite;
+      chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
       chkWindowsAuth.Enabled := Params.IsMSSQL;
-      chkCleartextPluginEnabled.Enabled := Params.IsMySQL;
-      lblUsername.Enabled := ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
+      lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL])
+        and ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
       editUsername.Enabled := lblUsername.Enabled;
       lblPassword.Enabled := lblUsername.Enabled;
@@ -1310,10 +1311,12 @@ begin
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
-      if Params.NetTypeGroup = ngPgSQL then
-        lblDatabase.Caption := _('Database')+':'
-      else
-        lblDatabase.Caption := _('Databases')+':';
+      chkCompressed.Enabled := Params.IsMySQL;
+      lblDatabase.Caption := IfThen(Params.IsPostgreSQL, _('Database')+':', _('Databases')+':');
+      lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
+      editDatabases.Enabled := lblDatabase.Enabled;
+      // SSH tunnel tab:
+      tabSSHtunnel.TabVisible := Params.NetType in [ntMySQL_SSHtunnel, ntPgSQL_SSHtunnel];
       // Advanced tab:
       chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
@@ -1324,7 +1327,6 @@ begin
       editSSLCertificate.Enabled := Params.WantSSL;
       lblSSLcipher.Enabled := Params.WantSSL;
       editSSLcipher.Enabled := Params.WantSSL;
-      tabSSHtunnel.TabVisible := Params.NetType in [ntMySQL_SSHtunnel, ntPgSQL_SSHtunnel];
       lblQueryTimeout.Enabled := Params.NetTypeGroup in [ngMSSQL, ngPgSQL];
       editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
