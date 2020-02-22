@@ -5849,12 +5849,12 @@ begin
     else
       SchemaTable := EscapeString(FQuoteChar)+' || t.TABLE_SCHEMA || '+EscapeString(FQuoteChar+'.'+FQuoteChar)+' || t.TABLE_NAME || '+EscapeString(FQuoteChar);
     // See http://www.heidisql.com/forum.php?t=16996
-    if ServerVersionInt >= 90000 then
+    if Parameters.FullTableStatus and (ServerVersionInt >= 90000) then
       DataLenClause := 'pg_table_size('+SchemaTable+')::bigint'
     else
       DataLenClause := 'NULL';
     // See https://www.heidisql.com/forum.php?t=34635
-    if ServerVersionInt >= 80100 then
+    if Parameters.FullTableStatus and (ServerVersionInt >= 80100) then
       IndexLenClause := 'pg_relation_size('+SchemaTable+')::bigint'
     else
       IndexLenClause := 'relpages * '+SIZE_KB.ToString;
