@@ -299,13 +299,12 @@ object frmRoutineEditor: TfrmRoutineEditor
           item
             Position = 0
             Text = '#'
-            Width = 25
           end
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 1
             Text = 'Name'
-            Width = 419
+            Width = 390
           end
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]

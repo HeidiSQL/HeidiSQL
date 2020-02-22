@@ -77,8 +77,6 @@ type
     procedure btnDiscardClick(Sender: TObject);
     procedure comboDefinerDropDown(Sender: TObject);
     procedure btnMoveParamClick(Sender: TObject);
-    procedure listParametersAfterPaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas);
   private
     { Private declarations }
     FAlterRoutineType: String;
@@ -198,7 +196,6 @@ begin
   Modified := True;
   btnSave.Enabled := Modified and (editName.Text <> '');
   btnDiscard.Enabled := Modified;
-  listParameters.Header.AutoFitColumns(False, smaUseColumnOption, 0, 0);
   SynMemoCreateCode.Text := ComposeCreateStatement(editName.Text);
 end;
 
@@ -273,13 +270,6 @@ begin
   SelectNode(listParameters, Target);
   listParameters.Repaint;
   Modification(Sender);
-end;
-
-
-procedure TfrmRoutineEditor.listParametersAfterPaint(Sender: TBaseVirtualTree;
-  TargetCanvas: TCanvas);
-begin
-  listParameters.Header.AutoFitColumns(False, smaUseColumnOption, 0, 0);
 end;
 
 
