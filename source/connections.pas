@@ -1287,7 +1287,7 @@ begin
     FolderFocused := Params.IsFolder;
 
     if SessionFocused then begin
-      // Validate session GUI stuff
+      // Validate session GUI stuff on "Settings" tab:
       case Params.NetType of
         ntMySQL_NamedPipe: begin
           lblHost.Caption := _('Socket name:');
@@ -1314,6 +1314,7 @@ begin
         lblDatabase.Caption := _('Database')+':'
       else
         lblDatabase.Caption := _('Databases')+':';
+      // Advanced tab:
       chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
@@ -1327,6 +1328,10 @@ begin
       lblQueryTimeout.Enabled := Params.NetTypeGroup in [ngMSSQL, ngPgSQL];
       editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
+      chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
+      chkFullTableStatus.Enabled := Params.NetTypeGroup in [ngMySQL, ngPgSQL];
+      chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
+
       Params.Free;
     end;
   end;

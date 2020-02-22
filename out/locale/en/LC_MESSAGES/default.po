@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-01-23 20:54+0100\n"
+"PO-Revision-Date: 2020-02-22 08:21+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.4\n"
+"X-Generator: Poedit 2.3\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -366,8 +366,8 @@ msgid "Get full table status"
 msgstr "Get full table status"
 
 # Session > Advanced
-msgid "Disable to speed up internal queries on databases with many InnoDB tables"
-msgstr "Disable to speed up internal queries on databases with many InnoDB tables"
+msgid "Disable to speed up internal queries on databases with many tables"
+msgstr "Disable to speed up internal queries on databases with many tables"
 
 #. connform..PageControlDetails..tabSSHtunnel..lblSSHLocalPort..Caption
 #: connections.dfm:424

@@ -698,8 +698,8 @@ object connform: Tconnform
         Width = 294
         Height = 17
         Hint = 
-          'Disable to speed up internal queries on databases with many Inno' +
-          'DB tables'
+          'Disable to speed up internal queries on databases with many tabl' +
+          'es'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Get full table status'
         TabOrder = 9
