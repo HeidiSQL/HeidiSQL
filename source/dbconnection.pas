@@ -4639,11 +4639,14 @@ begin
     Col.OnUpdateType := cdtNothing;
     if DefText.ToLowerInvariant = 'null' then begin
       Col.DefaultType := cdtNull;
+    end else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
+      if Col.AllowNull then
+        Col.DefaultType := cdtNull
+      else
+        Col.DefaultType := cdtNothing;
     end else if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
       Col.DefaultType := cdtAutoInc;
       Col.DefaultText := 'AUTO_INCREMENT';
-    end else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
-      Col.DefaultType := cdtNothing;
     end else if DefText.StartsWith('''') then begin
       Col.DefaultType := cdtText;
       Col.DefaultText := ExtractLiteral(DefText, '');
