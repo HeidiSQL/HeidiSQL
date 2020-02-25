@@ -5939,7 +5939,7 @@ var
   i, j, ImageIndex: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
-  sql, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
+  sql, TableClauses, Token, JoinExp: String;
   Tables: TStringList;
   rx: TRegExpr;
   Start, TokenTypeInt: Integer;
@@ -5951,6 +5951,7 @@ var
   Conn: TDBConnection;
   RoutineEditor: TfrmRoutineEditor;
   Param: TRoutineParam;
+  FieldIdent, TableIdent, FilterIdent: TIdent;
 
   procedure AddTable(Obj: TDBObject);
   var
@@ -5979,27 +5980,18 @@ var
     Proposal.AddItem(DisplayText, Obj.Name+FunctionDeclaration);
   end;
 
-  procedure AddColumns(const LeftToken: String);
+  procedure AddColumns(Ident: TIdent);
   var
-    dbname, tblname: String;
     Columns: TTableColumnList;
     Col: TTableColumn;
     Obj: TDBObject;
   begin
-    dbname := '';
-    tblname := LeftToken;
-    if Pos('.', tblname) > -1 then begin
-      dbname := Copy(tblname, 0, Pos('.', tblname)-1);
-      tblname := Copy(tblname, Pos('.', tblname)+1, Length(tblname));
-    end;
-    // db and table name may already be quoted
-    if dbname = '' then
-      dbname := Conn.Database;
-    dbname := Conn.DeQuoteIdent(dbname);
-    tblname := Conn.DeQuoteIdent(tblname);
-    DBObjects := Conn.GetDBObjects(dbname);
+    if Ident.Token1.Value = '' then
+      Ident.Token1.Parse(Conn.QuoteIdent(Conn.Database, False));
+
+    DBObjects := Conn.GetDBObjects(Ident.Token1.Value);
     for Obj in DBObjects do begin
-      if (Obj.Name = tblname) and (Obj.NodeType in [lntTable, lntView]) then begin
+      if (Obj.Name = Ident.Token2.Value) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := Obj.TableColumns;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
@@ -6025,22 +6017,16 @@ begin
   // Work around for issue #2640. See ApplicationDeActivate
   Proposal.Form.Enabled := True;
 
-  rx := TRegExpr.Create;
-
   // Find token1.token2.token3, while cursor is somewhere in token3
-  Ident := '[^\s,\(\)=\.]';
-  rx.Expression := '(('+Ident+'+)\.)?('+Ident+'+)\.('+Ident+'*)$';
-  LeftPart := Copy(Editor.LineText, 1, Editor.CaretX-1);
-  if rx.Exec(LeftPart) then begin
-    Token1 := Conn.DeQuoteIdent(rx.Match[2]);
-    Token2 := Conn.DeQuoteIdent(rx.Match[3]);
-    Token3 := Conn.DeQuoteIdent(rx.Match[4]);
-  end;
+  FieldIdent := TFieldIdent.Create(Conn);
+  FieldIdent.Parse(Copy(Editor.LineText, 1, Editor.CaretX-1));
+
+  rx := TRegExpr.Create;
 
   // Server variables, s'il vous plait?
   rx.Expression := '^@@(SESSION|GLOBAL)$';
   rx.ModifierI := True;
-  if rx.Exec(Token2) then begin
+  if rx.Exec(FieldIdent.Token2.Value) then begin
     try
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
@@ -6054,8 +6040,6 @@ begin
   end else begin
     // Get column names into the proposal pulldown
     // when we write sql like "SELECT t.|col FROM table [AS] t"
-    // Current limitation: Identifiers (masked or not) containing
-    // spaces are not detected correctly.
 
     // 1. find currently edited sql query around the cursor position in synmemo
     if Editor = SynMemoFilter then begin
@@ -6077,11 +6061,34 @@ begin
     // 2. Parse FROM clause, detect relevant table/view, probably aliased
     rx.ModifierG := True;
     rx.ModifierI := True;
-    rx.Expression := '\b(FROM|INTO|UPDATE)\s+(IGNORE\s+)?(.+)(WHERE|HAVING|ORDER|GROUP)?';
+    rx.ModifierS := True; // for multistring SQL
+    // TODO: parse subqueries, exclude nested tables from them, make them available for autocompletion,
+    // exclude false-positives when keywords located in comments, string literals etc
+    rx.Expression := '\b(FROM|INTO|UPDATE)\s+(IGNORE\s+)?\s*((.+?)\s*(WHERE|GROUP|HAVING|ORDER)|(.+))';
+
     if rx.Exec(sql) then begin
-      TableClauses := rx.Match[3];
+      // Since the current version of TRegExpr does not support LookAhead and LookBehind
+      // (as well as hiding groups (?:) btw), the search is performed using several groups
+      //  TODO: update TRegExpr to newer version or something else?
+      if rx.Match[4] <> '' then
+        TableClauses := rx.Match[4]
+      else
+        TableClauses := rx.Match[6];
+
+      JoinExp := '(\b(NATURAL\s*)?\b(INNER|CROSS|(LEFT|RIGHT|FULL)(\s*OUTER)?)?\s*\bJOIN\b)';
+
+      // Remove ON|USING clauses
+      rx.Expression := '(\s*(ON|USING)\s*(.+?)' + JoinExp + '|\s*(ON|USING)\s*(.+))';
+      TableClauses := rx.Replace(TableClauses, ',');
+
       // Ensure tables in JOIN clause(s) are splitted by comma
-      TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
+      rx.Expression := JoinExp;
+      TableClauses := rx.Replace(TableClauses, ',');
+
+      // Trim trailing comma
+      if (TableClauses <> '') and (TableClauses[Length(TableClauses)] = ',') then
+        TableClauses := Copy(TableClauses, 1, Length(TableClauses) - 1);
+
       // Remove surrounding parentheses
       TableClauses := StringReplace(TableClauses, '(', ' ', [rfReplaceAll]);
       TableClauses := StringReplace(TableClauses, ')', ' ', [rfReplaceAll]);
@@ -6089,34 +6096,33 @@ begin
       Tables := TStringList.Create;
       Tables.Delimiter := ',';
       Tables.StrictDelimiter := true;
+      // Fix for quoted identifiers.
+      // TStringList parser will not break '"TableName" t' in two parts
+      Tables.QuoteChar := #0;
       Tables.DelimitedText := TableClauses;
-      rx.Expression := '(\S+)\s+(AS\s+)?(\S+)';
+
+      TableIdent := TTableIdent.Create(Conn);
 
       for i := 0 to Tables.Count - 1 do begin
+        TableIdent.Parse(Tables[i]);
         // If the just typed word equals the alias of this table or the
-        // tablename itself, set tablename var and break loop
-        if rx.Exec(Tables[i]) then while true do begin
-          if Token2 = Conn.DeQuoteIdent(rx.Match[3]) then begin
-            TableName := rx.Match[1];
-            break;
-          end;
-          if not rx.ExecNext then
-            break;
-        end;
-        if TableName <> '' then
+        // tablename itself, set FieldIdent and break loop
+        if (FieldIdent.Token2.Value <> '') and (FieldIdent.Token2.Value = TableIdent.Token3.Value) then begin
+          // Replace field identifier tokens 1 and 2 (db/schema and table/view/proc/etc)
+          // with corresponding table alias tokens
+          FieldIdent.Token1.Parse(TableIdent.Token1.Original);
+          FieldIdent.Token2.Parse(TableIdent.Token2.Original);
           break;
+        end;
       end;
+      FreeAndNil(TableIdent);
     end;
 
-    if TableName <> '' then
-      AddColumns(TableName)
-    else if Token1 <> '' then
-      AddColumns(Conn.QuoteIdent(Token1, False)+'.'+Conn.QuoteIdent(Token2, False))
-    else if Token2 <> '' then
-      AddColumns(Conn.QuoteIdent(Token2, False));
+    if (FieldIdent.Token1.Value <> '') or (FieldIdent.Token2.Value <> '') then
+      AddColumns(FieldIdent);
 
-    if Token1 = '' then begin
-      i := Conn.AllDatabases.IndexOf(Token2);
+    if FieldIdent.Token1.Value = '' then begin
+      i := Conn.AllDatabases.IndexOf(FieldIdent.Token2.Value);
       if i > -1 then begin
         // Tables from specific database
         Screen.Cursor := crHourGlass;
@@ -6129,12 +6135,15 @@ begin
       end;
     end;
 
-    if Token2 = '' then begin
+    if FieldIdent.Token2.Value = '' then begin
 
       // Column names from selected table
       // Avoid usage of .QuotedName so we don't get the schema in it, see https://www.heidisql.com/forum.php?t=35411
       if Editor = SynMemoFilter then begin
-        AddColumns(Conn.QuoteIdent(ActiveDbObj.Name));
+        FilterIdent := TFieldIdent.Create(Conn);
+        FilterIdent.Token2.Parse(Conn.QuoteIdent(ActiveDbObj.Name, False));
+        AddColumns(FilterIdent);
+        FreeAndNil(FilterIdent);
       end;
 
       // All databases
@@ -6150,7 +6159,7 @@ begin
         for j:=0 to DBObjects.Count-1 do
           AddTable(DBObjects[j]);
         Conn.PurgePrefetchResults;
-        if Token1 <> '' then // assume that we have already a dbname in memo
+        if FieldIdent.Token1.Value <> '' then // assume that we have already a dbname in memo
           Proposal.Position := Conn.AllDatabases.Count;
       end;
 
@@ -6186,6 +6195,7 @@ begin
 
   end;
   rx.Free;
+  FieldIdent.Free;
 
 end;
 
@@ -7986,8 +7996,9 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   rx.Expression := editFilterVT.Text;
+  if rx.Expression <> '' then
   try
-    rx.Exec('abc');
+    rx.Exec('abc'); // here should be editFilterVT.Text?
   except
     on E:ERegExpr do begin
       if rx.Expression <> '' then begin
