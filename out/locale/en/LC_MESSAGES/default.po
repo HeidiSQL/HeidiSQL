@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-02-22 08:21+0100\n"
+"PO-Revision-Date: 2020-02-25 21:25+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -3963,8 +3963,8 @@ msgid "Assign procedure \"%s\""
 msgstr "Assign procedure \"%s\""
 
 #: dbconnection.pas:1047
-msgid "Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s."
-msgstr "Your %s is out-dated or somehow incompatible to %s. Please use the one from the installer, or just reinstall %s."
+msgid "Your %s is incompatible to %s, or your system is missing a dependent library."
+msgstr "Your %s is incompatible to %s, or your system is missing a dependent library."
 
 #: dbconnection.pas:1121
 msgid "SSL parameters successfully set."

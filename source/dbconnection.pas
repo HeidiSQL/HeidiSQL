@@ -2620,13 +2620,18 @@ begin
     Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
   except
     on E:EDbError do begin
+      // Try to explain what may cause this error
       msg := E.Message;
       if E.ErrorCode = TDbLib.LIB_PROC_ERROR then begin
         msg := msg + sLineBreak + sLineBreak +
-          f_('Installing %s might help. Please download from %s',
-            ['VC Redistributable', 'https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package']
-            );
+          f_('Your %s is incompatible to %s, or your system is missing a dependent library.',
+            [Parameters.LibraryOrProvider, APPNAME]);
       end;
+      // In any case:
+      msg := msg + sLineBreak + sLineBreak +
+        f_('Installing %s might help. Please download from %s',
+          ['VC Redistributable', 'https://support.microsoft.com/en-us/help/3179560/update-for-visual-c-2013-and-visual-c-redistributable-package']
+          );
       raise EDbError.Create(msg, E.ErrorCode);
     end;
   end;
