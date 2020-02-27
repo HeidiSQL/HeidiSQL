@@ -7996,15 +7996,12 @@ begin
   rx := TRegExpr.Create;
   rx.ModifierI := True;
   rx.Expression := editFilterVT.Text;
-  if rx.Expression <> '' then
-  try
-    rx.Exec('abc'); // here should be editFilterVT.Text?
+  if rx.Expression <> '' then try
+    rx.Exec('abc');
   except
     on E:ERegExpr do begin
-      if rx.Expression <> '' then begin
-        LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
-        rx.Expression := '';
-      end;
+      LogSQL('Filter text is not a valid regular expression: "'+rx.Expression+'"', lcError);
+      rx.Expression := '';
     end;
   end;
   VisibleCount := 0;
