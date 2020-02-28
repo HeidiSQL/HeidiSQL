@@ -9321,7 +9321,7 @@ begin
     FValue := StringReplace(FValue, QuoteChar + QuoteChar, QuoteChar, [rfReplaceAll]);
   end;
 
-  if not FIsQuoted then
+  if (not FIsQuoted) and (FConn is TPgConnection) then
     FValue := LowerCase(FValue);
 end;
 
