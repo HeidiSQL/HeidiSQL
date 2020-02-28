@@ -837,10 +837,11 @@ type
       FValue: string;
       FIsQuoted: Boolean;
       FConn: TDBConnection;
+      procedure SetValue(const Value: string);
     public
       constructor Create(AConn: TDBConnection);
       property Original: string read FOriginal;
-      property Value: string read FValue;
+      property Value: string read FValue write SetValue;
       property IsQuoted: Boolean read FIsQuoted;
       procedure Parse(Text: string);
   end;
@@ -9292,6 +9293,11 @@ end;
 constructor TIdentToken.Create(AConn: TDBConnection);
 begin
   FConn := AConn;
+end;
+
+procedure TIdentToken.SetValue(const Value: string);
+begin
+  FValue := Value;
 end;
 
 procedure TIdentToken.Parse(Text: string);

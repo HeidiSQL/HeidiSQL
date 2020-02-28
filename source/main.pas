@@ -5987,18 +5987,20 @@ var
     Obj: TDBObject;
   begin
     if Ident.Token1.Value = '' then
-      Ident.Token1.Parse(Conn.QuoteIdent(Conn.Database, False));
+      Ident.Token1.Value := Conn.Database;
 
-    DBObjects := Conn.GetDBObjects(Ident.Token1.Value);
-    for Obj in DBObjects do begin
-      if (Obj.Name = Ident.Token2.Value) and (Obj.NodeType in [lntTable, lntView]) then begin
-        Columns := Obj.TableColumns;
-        for Col in Columns do begin
-          Proposal.InsertList.Add(Col.Name);
-          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '']) );
+    if Ident.Token1.Value <> '' then begin
+      DBObjects := Conn.GetDBObjects(Ident.Token1.Value);
+      for Obj in DBObjects do begin
+        if (Obj.Name = Ident.Token2.Value) and (Obj.NodeType in [lntTable, lntView]) then begin
+          Columns := Obj.TableColumns;
+          for Col in Columns do begin
+            Proposal.InsertList.Add(Col.Name);
+            Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '']) );
+          end;
+          Columns.Free;
+          break;
         end;
-        Columns.Free;
-        break;
       end;
     end;
   end;
@@ -6118,21 +6120,25 @@ begin
       FreeAndNil(TableIdent);
     end;
 
-    if (FieldIdent.Token1.Value <> '') or (FieldIdent.Token2.Value <> '') then
-      AddColumns(FieldIdent);
-
-    if FieldIdent.Token1.Value = '' then begin
-      i := Conn.AllDatabases.IndexOf(FieldIdent.Token2.Value);
-      if i > -1 then begin
-        // Tables from specific database
-        Screen.Cursor := crHourGlass;
-        DBObjects := Conn.GetDBObjects(Conn.AllDatabases[i]);
-        Conn.PrefetchCreateCode(DBObjects);
-        for j:=0 to DBObjects.Count-1 do
-          AddTable(DBObjects[j]);
-        Conn.PurgePrefetchResults;
-        Screen.Cursor := crDefault;
+    // Token2 - schema or table
+    if FieldIdent.Token2.Value <> '' then begin
+      // Token2 - schema
+      if FieldIdent.Token1.Value = '' then begin
+        i := Conn.AllDatabases.IndexOf(FieldIdent.Token2.Value);
+        if i > -1 then begin
+          // Tables from specific database
+          Screen.Cursor := crHourGlass;
+          DBObjects := Conn.GetDBObjects(Conn.AllDatabases[i]);
+          Conn.PrefetchCreateCode(DBObjects);
+          for j:=0 to DBObjects.Count-1 do
+            AddTable(DBObjects[j]);
+          Conn.PurgePrefetchResults;
+          Screen.Cursor := crDefault;
+        end;
       end;
+
+      // Token2 - table
+      AddColumns(FieldIdent);
     end;
 
     if FieldIdent.Token2.Value = '' then begin
