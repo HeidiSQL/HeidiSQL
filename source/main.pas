@@ -5999,7 +5999,7 @@ var
     tblname := Conn.DeQuoteIdent(tblname);
     DBObjects := Conn.GetDBObjects(dbname);
     for Obj in DBObjects do begin
-      if (Obj.Name = tblname) and (Obj.NodeType in [lntTable, lntView]) then begin
+      if (Obj.Name.ToLowerInvariant = tblname.ToLowerInvariant) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := Obj.TableColumns;
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
