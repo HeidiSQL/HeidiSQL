@@ -421,8 +421,7 @@ begin
       DBObject.Connection.Query(Query.SQL);
     // Rename table
     if (DBObject.Name <> '') and (editName.Text <> DBObject.Name) then begin
-      Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable);
-      Rename := Format(Rename, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
+      Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
       DBObject.Connection.Query(Rename);
     end;
     tabALTERcode.TabVisible := DBObject.Name <> '';

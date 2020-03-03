@@ -3545,7 +3545,7 @@ begin
           db := DBObject.Database;
           Node := FindDBNode(DBtree, Conn, db);
           SetActiveDatabase('', Conn);
-          Conn.Query('DROP DATABASE ' + Conn.QuoteIdent(db));
+          Conn.Query(Conn.GetSQLSpecifity(spDatabaseDrop, [Conn.QuoteIdent(db)]));
           DBtree.DeleteNode(Node);
           Conn.ClearDbObjects(db);
           Conn.RefreshAllDatabases;
@@ -5864,7 +5864,7 @@ begin
       if pid = Conn.ThreadId then
         LogSQL(f_('Ignoring own process id #%d when trying to kill it.', [pid]))
       else try
-        Conn.Query(Format(Conn.GetSQLSpecifity(spKillProcess), [pid]));
+        Conn.Query(Conn.GetSQLSpecifity(spKillProcess, [pid]));
       except
         on E:EDbError do begin
           if Conn.LastErrorCode <> 1094 then
@@ -9554,7 +9554,7 @@ begin
 
         KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
         if TextCol <> '' then begin
-          SQL := KeyCol+', ' + Format(Conn.GetSQLSpecifity(spFuncLeft), [Conn.QuoteIdent(TextCol), 256])+
+          SQL := KeyCol+', ' + Conn.GetSQLSpecifity(spFuncLeft, [Conn.QuoteIdent(TextCol), 256])+
             ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+
             ' GROUP BY '+KeyCol+', '+Conn.QuoteIdent(TextCol)+ // MSSQL complains if the text columns is not grouped
             ' ORDER BY '+Conn.QuoteIdent(TextCol);
@@ -12063,7 +12063,7 @@ begin
       Killer.LogPrefix := _('Helper connection');
       Killer.OnLog := LogSQL;
       Killer.Active := True;
-      KillCommand := Format(Killer.GetSQLSpecifity(spKillQuery), [ActiveConnection.ThreadId]);
+      KillCommand := Killer.GetSQLSpecifity(spKillQuery, [ActiveConnection.ThreadId]);
       try
         Killer.Query(KillCommand);
       except

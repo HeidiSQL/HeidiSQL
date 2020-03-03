@@ -332,7 +332,7 @@ type
   TDBLogEvent = procedure(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil) of object;
   TDBEvent = procedure(Connection: TDBConnection; Database: String) of object;
   TDBDataTypeArray = Array of TDBDataType;
-  TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId,
+  TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId, spDatabaseDrop,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost,
     spAddColumn, spChangeColumn,
@@ -449,7 +449,8 @@ type
       function GetSessionVariables(Refresh: Boolean): TDBQuery;
       function GetSessionVariable(VarName: String; DefaultValue: String=''; Refresh: Boolean=False): String;
       function MaxAllowedPacket: Int64; virtual;
-      function GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
+      function GetSQLSpecifity(Specifity: TSQLSpecifityId): String; overload;
+      function GetSQLSpecifity(Specifity: TSQLSpecifityId; const Args: array of const): String; overload;
       function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
       function GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
       procedure ClearDbObjects(db: String);
@@ -2516,6 +2517,7 @@ begin
 
   case Parameters.NetTypeGroup of
     ngMySQL: begin
+      FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
@@ -2534,6 +2536,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngMSSQL: begin
+      FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
       FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
@@ -2552,6 +2555,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngPgSQL: begin
+      FSQLSpecifities[spDatabaseDrop] := 'DROP SCHEMA %s';
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
       FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
       FSQLSpecifities[spRenameView] := 'ALTER VIEW %s RENAME TO %s';
@@ -2570,6 +2574,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngSQLite: begin
+      FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
@@ -3512,7 +3517,7 @@ begin
           s := s + ', ' + EscapeString('public');
       end else
         s := QuoteIdent(Value);
-      Query(Format(GetSQLSpecifity(spUSEQuery), [s]), False);
+      Query(GetSQLSpecifity(spUSEQuery, [s]), False);
     end;
     if Assigned(FOnObjectnamesChanged) then
       FOnObjectnamesChanged(Self, FDatabase);
@@ -5308,6 +5313,13 @@ function TDBConnection.GetSQLSpecifity(Specifity: TSQLSpecifityId): String;
 begin
   // Return some version specific SQL clause or snippet
   Result := FSQLSpecifities[Specifity];
+end;
+
+
+function TDBConnection.GetSQLSpecifity(Specifity: TSQLSpecifityId; const Args: array of const): String;
+begin
+  Result := GetSQLSpecifity(Specifity);
+  Result := Format(Result, Args);
 end;
 
 
