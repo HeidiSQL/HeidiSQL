@@ -4599,6 +4599,26 @@ var
   ColQuery: TDBQuery;
   Col: TTableColumn;
   dt, SchemaClause, DefText, ExtraText, MaxLen: String;
+
+  function IsTextDefault(Value: String; Tp: TDBDatatype): Boolean;
+  begin
+    if FParameters.IsMariaDB then begin
+      // Only MariaDB 10.2.27+ wraps default text in single quotes
+      // see https://mariadb.com/kb/en/information-schema-columns-table/
+      Result := (ServerVersionInt >= 100207) and Value.StartsWith('''');
+      Result := Result or Value.IsEmpty or IsInt(DefText[1]); // Inexact detection, wrong if MySQL allows 0+1 as default value at some point
+    end else if FParameters.IsMySQL then begin
+      // Only MySQL case with expression in default value is as follows:
+      if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP') then begin
+        Result := False;
+      end else begin
+        Result := True;
+      end;
+    end else begin
+      // MS SQL, PG and SQLite:
+      Result := True;
+    end;
+  end;
 begin
   // Generic: query table columns from IS.COLUMNS
   Result := TTableColumnList.Create(True);
@@ -4671,13 +4691,12 @@ begin
         Col.DefaultType := cdtNull
       else
         Col.DefaultType := cdtNothing;
-    end else if DefText.StartsWith('''') then begin
+    end else if IsTextDefault(DefText, Col.DataType) then begin
       Col.DefaultType := cdtText;
-      Col.DefaultText := ExtractLiteral(DefText, '');
-    end else if DefText.IsEmpty or IsInt(DefText[1]) then begin
-      // Inexact detection, wrong if MySQL allows 0+1 as default value at some point
-      Col.DefaultType := cdtText;
-      Col.DefaultText := DefText;
+      if DefText.StartsWith('''') then
+        Col.DefaultText := ExtractLiteral(DefText, '')
+      else
+        Col.DefaultText := DefText;
     end else begin
       Col.DefaultType := cdtExpression;
       Col.DefaultText := DefText;
