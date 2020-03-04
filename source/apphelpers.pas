@@ -444,7 +444,7 @@ begin
         Result.Add(Text);
       break;
     end;
-    Item := Trim(Copy(Text, 1, i-1));
+    Item := Copy(Text, 1, i-1);
     Result.Add(Item);
     Delete(Text, 1, i-1+Length(Separator));
   end;
