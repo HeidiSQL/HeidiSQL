@@ -14,7 +14,6 @@ object AboutBox: TAboutBox
   FormStyle = fsStayOnTop
   OldCreateOrder = True
   Position = poOwnerFormCenter
-  OnMouseMove = MouseOver
   OnShow = FormShow
   DesignSize = (
     481
@@ -49,18 +48,6 @@ object AboutBox: TAboutBox
     Caption = 'lblAppCompiled'
     PopupMenu = popupLabels
     Transparent = True
-  end
-  object lblAppWebpage: TLabel
-    Left = 117
-    Top = 100
-    Width = 75
-    Height = 13
-    Cursor = crHandPoint
-    Caption = 'lblAppWebpage'
-    PopupMenu = popupLabels
-    Transparent = True
-    OnClick = OpenURL
-    OnMouseMove = MouseOver
   end
   object ImageHeidisql: TImage
     Left = 8
@@ -1356,17 +1343,6 @@ object AboutBox: TAboutBox
     Height = 13
     Caption = 'I have donated per following email address:'
   end
-  object lblCredits: TLabel
-    Left = 117
-    Top = 119
-    Width = 34
-    Height = 13
-    Cursor = crHandPoint
-    Caption = 'Credits'
-    PopupMenu = popupLabels
-    OnClick = lblCreditsClick
-    OnMouseMove = MouseOver
-  end
   object lblEnvironment: TLabel
     Left = 117
     Top = 81
@@ -1374,6 +1350,26 @@ object AboutBox: TAboutBox
     Height = 13
     Caption = 'lblEnvironment'
     PopupMenu = popupLabels
+  end
+  object lnklblWebpage: TLinkLabel
+    Left = 117
+    Top = 100
+    Width = 83
+    Height = 19
+    Caption = 'lnklblWebpage'
+    TabOrder = 0
+    UseVisualStyle = True
+    OnLinkClick = lnklblWebpageLinkClick
+  end
+  object lnklblCredits: TLinkLabel
+    Left = 117
+    Top = 119
+    Width = 41
+    Height = 19
+    Caption = 'Credits'
+    TabOrder = 1
+    UseVisualStyle = True
+    OnLinkClick = lnklblCreditsLinkClick
   end
   object btnClose: TButton
     Left = 373
@@ -1385,7 +1381,7 @@ object AboutBox: TAboutBox
     Caption = 'Close'
     Default = True
     ModalResult = 1
-    TabOrder = 3
+    TabOrder = 5
   end
   object btnUpdateCheck: TButton
     Left = 117
@@ -1395,14 +1391,14 @@ object AboutBox: TAboutBox
     Action = MainForm.actUpdateCheck
     Anchors = [akLeft, akRight, akBottom]
     Images = MainForm.VirtualImageListMain
-    TabOrder = 0
+    TabOrder = 4
   end
   object editDonated: TEdit
     Left = 117
     Top = 222
     Width = 180
     Height = 21
-    TabOrder = 1
+    TabOrder = 2
     TextHint = 'Email address'
     OnEnter = editDonatedEnter
     OnExit = editDonatedExit
@@ -1413,7 +1409,7 @@ object AboutBox: TAboutBox
     Width = 64
     Height = 25
     Caption = 'OK'
-    TabOrder = 2
+    TabOrder = 3
     OnClick = btnDonatedOKClick
   end
   object popupLabels: TPopupMenu

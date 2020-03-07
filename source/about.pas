@@ -16,24 +16,26 @@ type
     lblAppName: TLabel;
     lblAppVersion: TLabel;
     lblAppCompiled: TLabel;
-    lblAppWebpage: TLabel;
+    lnklblWebpage: TLinkLabel;
     btnUpdateCheck: TButton;
     ImageHeidisql: TImage;
     imgDonate: TImage;
     lblDonated: TLabel;
     editDonated: TEdit;
     btnDonatedOK: TButton;
-    lblCredits: TLabel;
+    lnklblCredits: TLinkLabel;
     popupLabels: TPopupMenu;
     menuCopyLabel: TMenuItem;
     lblEnvironment: TLabel;
     procedure OpenURL(Sender: TObject);
-    procedure MouseOver(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     procedure FormShow(Sender: TObject);
     procedure editDonatedEnter(Sender: TObject);
     procedure editDonatedExit(Sender: TObject);
     procedure btnDonatedOKClick(Sender: TObject);
-    procedure lblCreditsClick(Sender: TObject);
+    procedure lnklblWebpageLinkClick(Sender: TObject; const Link: string;
+      LinkType: TSysLinkType);
+    procedure lnklblCreditsLinkClick(Sender: TObject; const Link: string;
+      LinkType: TSysLinkType);
     procedure menuCopyLabelClick(Sender: TObject);
   private
     { Private declarations }
@@ -52,26 +54,6 @@ uses
 procedure TAboutBox.OpenURL(Sender: TObject);
 begin
   ShellExec( TControl(Sender).Hint );
-end;
-
-
-procedure TAboutBox.MouseOver(Sender: TObject; Shift: TShiftState;
-  X, Y: Integer);
-var
-  i: Integer;
-  lbl: TLabel;
-begin
-  for i:=0 to ComponentCount-1 do begin
-    if Components[i] is TLabel then begin
-      lbl := TLabel(Components[i]);
-      if lbl.Font.Color = clRed then
-        lbl.Font.Color := clBlue;
-    end;
-  end;
-  if (Sender is TLabel) then begin
-    lbl := Sender as TLabel;
-    lbl.Font.Color := clRed;
-  end;
 end;
 
 
@@ -128,8 +110,6 @@ begin
   // Apply special font properties after form creation, as that disables ParentFont, which prevents InheritFont() to apply
   lblAppName.Font.Size := Round(lblAppName.Font.Size * 1.5);
   lblAppName.Font.Style := [fsBold];
-  lblAppWebpage.Font.Color := clBlue;
-  lblCredits.Font.Color := clBlue;
 
   imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
   imgDonate.OnClick := MainForm.DonateClick;
@@ -140,8 +120,8 @@ begin
   lblAppName.Caption := APPNAME;
   lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion + ' (' + IntToStr(GetExecutableBits) + ' Bit)';
   lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
-  lblAppWebpage.Caption := APPDOMAIN;
-  lblAppWebpage.Hint := APPDOMAIN+'?place='+EncodeURLParam(lblAppWebpage.Name);
+  lnklblWebpage.Caption := '<a href="'+APPDOMAIN+'?place='+EncodeURLParam(lnklblWebpage.Name)+'">'+APPDOMAIN+'</a>';
+  lnklblCredits.Caption := '<a href="">'+lnklblCredits.Caption+'</a>';
   ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
   lblEnvironment.Caption := _('Environment:');
   if RunningAsUwp then begin
@@ -160,9 +140,16 @@ begin
 end;
 
 
-procedure TAboutBox.lblCreditsClick(Sender: TObject);
+procedure TAboutBox.lnklblCreditsLinkClick(Sender: TObject; const Link: string;
+  LinkType: TSysLinkType);
 begin
   Help(Sender, 'credits');
+end;
+
+procedure TAboutBox.lnklblWebpageLinkClick(Sender: TObject; const Link: string;
+  LinkType: TSysLinkType);
+begin
+  ShellExec(Link);
 end;
 
 end.
