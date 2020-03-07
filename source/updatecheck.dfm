@@ -33,15 +33,16 @@ object frmUpdateCheck: TfrmUpdateCheck
     WordWrap = True
   end
   object imgDonate: TImage
-    Left = 64
-    Top = 15
-    Width = 250
-    Height = 45
+    Left = 0
+    Top = 0
+    Width = 374
+    Height = 70
     Cursor = crHandPoint
     Hint = 
       'Send an arbitrary amount as donation to the author - per PayPal ' +
       '(also supports credit cards)'
-    AutoSize = True
+    Align = alTop
+    Center = True
     Picture.Data = {
       07544269746D617066840000424D66840000000000003600000028000000FA00
       00002D000000010018000000000030840000C40E0000C40E0000000000000000
