@@ -879,7 +879,10 @@ begin
   SelectNode(listColumns, NewNode);
   Modification(Sender);
   ValidateColumnControls;
-  listColumns.EditNode(NewNode, 1);
+  // not sufficient, if list has minimum height, see https://www.heidisql.com/forum.php?t=35766
+  // if listColumns.ScrollIntoView(NewNode, False) then
+  if listColumns.Height > listColumns.Header.Height+20 then
+    listColumns.EditNode(NewNode, 1);
 end;
 
 
