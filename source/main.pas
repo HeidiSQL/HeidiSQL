@@ -5513,7 +5513,7 @@ begin
     if tab = tabHost then PageControlHostChange(Sender)
     else if tab = tabDatabase then ListTables.SetFocus
     else if tab = tabData then begin
-      if DataGrid.CanFocus then
+      if DataGrid.CanFocus and DataGrid.Enabled then
         DataGrid.SetFocus;
     end else if IsQueryTab(tab.PageIndex, True) then begin
       ActiveQueryMemo.SetFocus;
