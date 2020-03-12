@@ -10138,6 +10138,8 @@ var
   ProcessColumns: TTableColumnList;
   Columns, FocusedCaption, CleanTabCaption: String;
   Col: TVirtualTreeColumn;
+  LeaveEnabled: Boolean;
+  ActiveNetType: String;
 begin
   // Display server variables
   vt := Sender as TVirtualStringTree;
@@ -10146,12 +10148,25 @@ begin
   Tab := vt.Parent as TTabSheet;
   Conn := ActiveConnection;
 
-  // Status + command statistics only available in MySQL
-  if ((vt=ListStatus) or (vt=ListCommandStats))
-    and (Conn <> nil)
-    and (not Conn.Parameters.IsAnyMySQL) then begin
+  // Status + command statistics only available in MySQL, most others also not available in SQLite
+  LeaveEnabled := False;
+  ActiveNetType := _('unknown');
+  if Conn <> nil then begin
+    if vt = ListDatabases then
+      LeaveEnabled := True
+    else if vt = ListVariables then
+      LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]
+    else if vt = ListStatus then
+      LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL]
+    else if vt = ListProcesses then
+      LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]
+    else if vt = ListCommandStats then
+      LeaveEnabled := Conn.Parameters.NetTypeGroup in [ngMySQL];
+    ActiveNetType := Conn.Parameters.NetTypeName(False);
+  end;
+  if not LeaveEnabled then begin
     vt.Clear;
-    vt.EmptyListMessage := f_('Not available on %s', [Conn.Parameters.NetTypeName(False)]);
+    vt.EmptyListMessage := f_('Not available on %s', [ActiveNetType]);
     vt.Tag := VTREE_LOADED;
     Exit;
   end;
