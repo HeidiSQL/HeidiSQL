@@ -1276,6 +1276,7 @@ begin
   PickFile(editHost);
   if (Sender = menuAddDatabaseFiles)
     and (not PrevText.IsEmpty)
+    and (editHost.Text <> PrevText)
     and (editHost.Text <> '') then begin
     editHost.Text := PrevText + DELIM + editHost.Text;
   end;
