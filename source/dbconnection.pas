@@ -2444,20 +2444,33 @@ procedure TSQLiteConnection.SetActive(Value: Boolean);
 var
   ConnectResult: Integer;
   tmpdb: String;
+  FileNames: TStringList;
+  MainFile, DbAlias: String;
+  i: Integer;
 begin
+  // Support multiple filenames, and use first one as main database
+  FileNames := Explode(DELIM, Parameters.Hostname);
+  MainFile := IfThen(FileNames.Count>=1, FileNames[0], '');
+
   if Value then begin
     DoBeforeConnect;
+
     ConnectResult := FLib.sqlite3_open(
-      PAnsiChar(Utf8Encode(Parameters.Hostname)),
+      PAnsiChar(Utf8Encode(MainFile)),
       FHandle);
 
     if ConnectResult = SQLITE_OK then begin
       FActive := True;
+      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
+      FIsUnicode := True;
+      // Attach additional databases
+      for i:=1 to FileNames.Count-1 do begin
+        DbAlias := TPath.GetFileNameWithoutExtension(FileNames[i]);
+        Query('ATTACH DATABASE '+EscapeString(FileNames[i])+' AS '+QuoteIdent(DbAlias));
+      end;
       FServerDateTimeOnStartup := GetVar('SELECT DATETIME()');
       FServerVersionUntouched := GetVar('SELECT sqlite_version()');
       FConnectionStarted := GetTickCount div 1000;
-      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
-      FIsUnicode := True;
       FServerUptime := -1;
 
       DoAfterConnect;
@@ -2484,7 +2497,7 @@ begin
       FLib.sqlite3_close(FHandle);
       FHandle := nil;
       FActive := False;
-      Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
+      Log(lcInfo, f_(MsgDisconnect, [MainFile, DateTimeToStr(Now)]));
     end;
   end;
 end;

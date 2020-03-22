@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-02-25 21:25+0100\n"
+"PO-Revision-Date: 2020-03-22 13:56+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -281,6 +281,9 @@ msgstr "Password:"
 #: connections.dfm:253 connections.pas:986
 msgid "Hostname / IP:"
 msgstr "Hostname / IP:"
+
+msgid "Database filename(s)"
+msgstr "Database filename(s)"
 
 #. connform..PageControlDetails..tabSettings..lblUsername..Caption
 #: connections.dfm:261
@@ -6423,3 +6426,9 @@ msgstr "Open URL"
 
 msgid "Open URL in your webbrowser"
 msgstr "Open URL in your webbrowser"
+
+msgid "Find database files..."
+msgstr "Find database files..."
+
+msgid "Add database files..."
+msgstr "Add database files..."

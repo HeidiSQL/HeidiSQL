@@ -122,6 +122,9 @@ type
     pnlLeft: TPanel;
     ListSessions: TVirtualStringTree;
     editSearch: TButtonedEdit;
+    popupHost: TPopupMenu;
+    menuFindDatabaseFiles: TMenuItem;
+    menuAddDatabaseFiles: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -179,6 +182,7 @@ type
     procedure editHostDblClick(Sender: TObject);
     procedure ListSessionsNodeDblClick(Sender: TBaseVirtualTree;
       const HitInfo: THitInfo);
+    procedure FindAddDatabaseFilesClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -363,20 +367,9 @@ procedure Tconnform.btnOpenClick(Sender: TObject);
 var
   Connection: TDBConnection;
   Params: TConnectionParameters;
-  Msg: String;
-  DoCreateDb: Integer;
 begin
   // Connect to selected session
   Params := CurrentParams;
-
-  if (Params.NetType = ntSQLite)
-    and (not FileExists(Params.Hostname))
-    then begin
-    Msg := f_('Database file "%s" does not exist. Shall it be created now?', [Params.Hostname]);
-    DoCreateDb := MessageDialog(Msg, mtConfirmation, [mbNo, mbYes]);
-    if DoCreateDb = mrNo then
-      Exit;
-  end;
 
   if not btnOpen.Enabled then
     Exit;
@@ -1274,6 +1267,20 @@ begin
 end;
 
 
+procedure Tconnform.FindAddDatabaseFilesClick(Sender: TObject);
+var
+  PrevText: String;
+begin
+  // Append or replace filenames
+  PrevText := editHost.Text;
+  PickFile(editHost);
+  if (Sender = menuAddDatabaseFiles)
+    and (not PrevText.IsEmpty)
+    and (editHost.Text <> '') then begin
+    editHost.Text := PrevText + DELIM + editHost.Text;
+  end;
+end;
+
 procedure Tconnform.ValidateControls;
 var
   SessionFocused, FolderFocused: Boolean;
@@ -1293,7 +1300,7 @@ begin
           lblHost.Caption := _('Socket name:');
         end;
         ntSQLite: begin
-          lblHost.Caption := _('Database filename')+':';
+          lblHost.Caption := _('Database filename(s)')+':';
         end
         else begin
           lblHost.Caption := _('Hostname / IP:');
@@ -1383,14 +1390,17 @@ var
   Edit: TButtonedEdit;
   i: Integer;
   Control: TControl;
+  FileNames: TStringList;
 begin
   // Select startup SQL file, SSL file or whatever button clicked
   Edit := Sender as TButtonedEdit;
   Selector := TOpenDialog.Create(Self);
   Selector.FileName := editStartupScript.Text;
-  if Edit = editHost then
-    Selector.Filter := 'SQLite databases (*.sqlite3;*.sqlite;*.db;*.s3db)|*.sqlite3;*.sqlite;*.db;*.s3db|'+_('All files')+' (*.*)|*.*'
-  else if Edit = editStartupScript then
+  if Edit = editHost then begin
+    Selector.Filter := 'SQLite databases (*.sqlite3;*.sqlite;*.db;*.s3db)|*.sqlite3;*.sqlite;*.db;*.s3db|'+_('All files')+' (*.*)|*.*';
+    Selector.Options := Selector.Options - [ofFileMustExist];
+    Selector.Options := Selector.Options + [ofAllowMultiSelect];
+  end else if Edit = editStartupScript then
     Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPlinkExe then
     Selector.Filter := _('Executables')+' (*.exe)|*.exe|'+_('All files')+' (*.*)|*.*'
@@ -1406,15 +1416,16 @@ begin
       break;
     end;
   end;
-  if Edit = editHost then
-    Selector.Options := Selector.Options - [ofFileMustExist];
 
   if Selector.Execute then begin
-    // Remove path if it's the application directory
-    if ExtractFilePath(Selector.FileName) = ExtractFilePath(Application.ExeName) then
-      Edit.Text := ExtractFileName(Selector.FileName)
-    else
-      Edit.Text := Selector.FileName;
+    FileNames := TStringList.Create;
+    FileNames.Assign(Selector.Files);
+    for i:=0 to FileNames.Count-1 do begin
+      // Remove path if it's the application directory
+      if ExtractFilePath(FileNames[i]) = ExtractFilePath(Application.ExeName) then
+        FileNames[i] := ExtractFileName(FileNames[i]);
+    end;
+    Edit.Text := implodestr(DELIM, FileNames);
     Modification(Selector);
   end;
   Selector.Free;

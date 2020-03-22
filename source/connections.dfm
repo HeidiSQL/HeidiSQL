@@ -266,12 +266,13 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
-        RightButton.ImageIndex = 51
+        RightButton.DropDownMenu = popupHost
+        RightButton.ImageIndex = 75
+        RightButton.Visible = True
         TabOrder = 2
         OnChange = editHostChange
         OnDblClick = editHostDblClick
         OnExit = editTrim
-        OnRightButtonClick = PickFile
       end
       object comboNetType: TComboBox
         Left = 120
@@ -1053,5 +1054,20 @@ object connform: Tconnform
     OnTimer = TimerButtonAnimationTimer
     Left = 112
     Top = 144
+  end
+  object popupHost: TPopupMenu
+    Images = MainForm.VirtualImageListMain
+    Left = 24
+    Top = 208
+    object menuFindDatabaseFiles: TMenuItem
+      Caption = 'Find database files...'
+      ImageIndex = 30
+      OnClick = FindAddDatabaseFilesClick
+    end
+    object menuAddDatabaseFiles: TMenuItem
+      Caption = 'Add database files...'
+      ImageIndex = 72
+      OnClick = FindAddDatabaseFilesClick
+    end
   end
 end
