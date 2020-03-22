@@ -3217,7 +3217,7 @@ begin
   // 1   FirstName  NVARCHAR(40) 1       null       0
   case Obj.NodeType of
     lntTable: begin
-      Result := GetVar('SELECT '+QuoteIdent('sql')+' FROM sqlite_master'+
+      Result := GetVar('SELECT '+QuoteIdent('sql')+' FROM '+QuoteIdent(Obj.Database)+'.sqlite_master'+
         ' WHERE '+QuoteIdent('type')+'='+EscapeString('table')+
         ' AND name='+EscapeString(Obj.Name));
     end;
@@ -3518,6 +3518,7 @@ begin
       end else
         s := QuoteIdent(Value);
       Query(GetSQLSpecifity(spUSEQuery, [s]), False);
+      // FDatabase is set via DetectUSEQuery
     end;
     if Assigned(FOnObjectnamesChanged) then
       FOnObjectnamesChanged(Self, FDatabase);
@@ -3921,11 +3922,17 @@ end;
 
 
 function TSQLiteConnection.GetAllDatabases: TStringList;
+var
+  DbQuery: String;
 begin
   Result := inherited;
   if not Assigned(Result) then begin
-    FAllDatabases := TStringList.Create;
-    FAllDatabases.Add('main');
+    try
+      DbQuery := 'SELECT * FROM pragma_database_list';
+      FAllDatabases := GetCol(DbQuery, 1);
+    except on E:EDbError do
+      FAllDatabases := TStringList.Create;
+    end;
     Result := FAllDatabases;
   end;
 end;
@@ -4851,7 +4858,7 @@ begin
   // Todo: include database name
   // Todo: default values
   Result := TTableColumnList.Create(True);
-  ColQuery := GetResults('SELECT * FROM pragma_table_info('+EscapeString(Table.Name)+')');
+  ColQuery := GetResults('SELECT * FROM '+QuoteIdent(Table.Database)+'.pragma_table_info('+EscapeString(Table.Name)+')');
   while not ColQuery.Eof do begin
     Col := TTableColumn.Create(Self);
     Result.Add(Col);
@@ -5023,7 +5030,9 @@ var
   NewKey: TTableKey;
 begin
   Result := TTableKeyList.Create(True);
-  ColQuery := GetResults('SELECT * FROM pragma_table_info('+EscapeString(Table.Name)+') WHERE pk!=0 ORDER BY pk');
+  ColQuery := GetResults('SELECT * '+
+    'FROM '+QuoteIdent(Table.Database)+'.pragma_table_info('+EscapeString(Table.Name)+') '+
+    'WHERE pk!=0 ORDER BY pk');
   NewKey := nil;
   while not ColQuery.Eof do begin
     if not Assigned(NewKey) then begin
@@ -5040,7 +5049,9 @@ begin
   end;
   ColQuery.Free;
 
-  KeyQuery := GetResults('SELECT * FROM pragma_index_list('+EscapeString(Table.Name)+') WHERE origin!='+EscapeString('pk'));
+  KeyQuery := GetResults('SELECT * '+
+    'FROM '+QuoteIdent(Table.Database)+'.pragma_index_list('+EscapeString(Table.Name)+') '+
+    'WHERE origin!='+EscapeString('pk'));
   while not KeyQuery.Eof do begin
     NewKey := TTableKey.Create(Self);
     Result.Add(NewKey);
@@ -5048,7 +5059,8 @@ begin
     NewKey.OldName := NewKey.Name;
     NewKey.IndexType := IfThen(KeyQuery.Col('unique')='0', TTableKey.KEY, TTableKey.UNIQUE);
     NewKey.OldIndexType := NewKey.IndexType;
-    ColQuery := GetResults('SELECT * FROM pragma_index_info('+EscapeString(NewKey.Name)+')');
+    ColQuery := GetResults('SELECT * '+
+      'FROM '+QuoteIdent(Table.Database)+'.pragma_index_info('+EscapeString(NewKey.Name)+')');
     while not ColQuery.Eof do begin
       NewKey.Columns.Add(ColQuery.Col('name'));
       NewKey.SubParts.Add('');
@@ -5223,7 +5235,8 @@ var
 begin
   // SQLite: query PRAGMA foreign_key_list
   Result := TForeignKeyList.Create(True);
-  ForeignQuery := GetResults('SELECT * from PRAGMA_foreign_key_list('+EscapeString(Table.Name)+')');
+  ForeignQuery := GetResults('SELECT * '+
+    'FROM '+QuoteIdent(Table.Database)+'.pragma_foreign_key_list('+EscapeString(Table.Name)+')');
   ForeignKey := nil;
   while not ForeignQuery.Eof do begin
     if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('id')) then begin
@@ -5291,7 +5304,7 @@ var
   Rows: String;
 begin
   // Get row number from a table
-  Rows := GetVar('SELECT COUNT(*) FROM '+EscapeString(Obj.Name), 0);
+  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
   Result := MakeInt(Rows);
 end;
 
@@ -6001,7 +6014,8 @@ begin
   // Tables, views and procedures
   Results := nil;
   try
-    Results := GetResults('SELECT * FROM sqlite_master WHERE type='+EscapeString('table')+' AND name NOT LIKE '+EscapeString('sqlite_%'));
+    Results := GetResults('SELECT * FROM '+QuoteIdent(db)+'.sqlite_master '+
+      'WHERE type='+EscapeString('table')+' AND name NOT LIKE '+EscapeString('sqlite_%'));
   except
     on E:EDbError do;
   end;
