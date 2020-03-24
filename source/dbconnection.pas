@@ -3100,6 +3100,7 @@ var
   QueryStatus: Integer;
   i, OldRowsAffected: Integer;
   CurrentSQL, NextSQL: PAnsiChar;
+  StepResult: Integer;
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
@@ -3137,7 +3138,8 @@ begin
     FRowsFound := 0;
     if DoStoreResult and (FLib.sqlite3_column_count(QueryResult) > 0) then begin
       Rows := TSQLiteGridRows.Create(Self);
-      while FLib.sqlite3_step(QueryResult) = SQLITE_ROW do begin
+      StepResult := FLib.sqlite3_step(QueryResult);
+      while StepResult = SQLITE_ROW do begin
         Row := TGridRow.Create;
         for i:=0 to FLib.sqlite3_column_count(QueryResult)-1 do begin
           Value := TGridValue.Create;
@@ -3146,6 +3148,7 @@ begin
           Row.Add(Value);
         end;
         Rows.Add(Row);
+        StepResult := FLib.sqlite3_step(QueryResult);
       end;
       Inc(FRowsFound, Rows.Count);
       Rows.Statement := QueryResult;
@@ -3153,10 +3156,16 @@ begin
       FLastRawResults[Length(FLastRawResults)-1] := Rows;
     end else begin
       // Make one step through this non-result, otherwise SQLite does not seem to execute this query
-      FLib.sqlite3_step(QueryResult);
+      StepResult := FLib.sqlite3_step(QueryResult);
       FLib.sqlite3_finalize(QueryResult);
     end;
     FRowsAffected := FLib.sqlite3_total_changes(FHandle) - OldRowsAffected;
+    if not (StepResult in [SQLITE_OK, SQLITE_ROW, SQLITE_DONE, SQLITE_MISUSE]) then begin
+      SetLength(FLastRawResults, 0);
+      Log(lcError, GetLastErrorMsg);
+      // Todo: Step through and clear remaining results?
+      raise EDbError.Create(GetLastErrorMsg);
+    end;
     DetectUSEQuery(SQL);
     CurrentSQL := NextSQL;
     if Trim(CurrentSQL) = '' then
@@ -3745,6 +3754,7 @@ end;
 
 function TPgConnection.GetLastErrorMsg: String;
 begin
+  // Todo: use MsgSQLError formatting constant
   Result := DecodeAPIString(FLib.PQerrorMessage(FHandle));
   Result := Trim(Result);
 end;
@@ -3753,6 +3763,7 @@ end;
 function TSQLiteConnection.GetLastErrorMsg: String;
 begin
   Result := DecodeAPIString(FLib.sqlite3_errmsg(FHandle));
+  Result := f_(MsgSQLError, [LastErrorCode, Result]);
 end;
 
 
