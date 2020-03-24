@@ -2463,6 +2463,7 @@ begin
       FActive := True;
       Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       FIsUnicode := True;
+      Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
       // Attach additional databases
       for i:=1 to FileNames.Count-1 do begin
         DbAlias := TPath.GetFileNameWithoutExtension(FileNames[i]);
