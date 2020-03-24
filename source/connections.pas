@@ -1396,11 +1396,12 @@ begin
   // Select startup SQL file, SSL file or whatever button clicked
   Edit := Sender as TButtonedEdit;
   Selector := TOpenDialog.Create(Self);
-  Selector.FileName := editStartupScript.Text;
+  //Selector.InitialDir := ?;
   if Edit = editHost then begin
-    Selector.Filter := 'SQLite databases (*.sqlite3;*.sqlite;*.db;*.s3db)|*.sqlite3;*.sqlite;*.db;*.s3db|'+_('All files')+' (*.*)|*.*';
+    Selector.Filter := 'SQLite databases ('+FILEFILTER_SQLITEDB+')|'+FILEFILTER_SQLITEDB+'|'+_('All files')+' (*.*)|*.*';
     Selector.Options := Selector.Options - [ofFileMustExist];
     Selector.Options := Selector.Options + [ofAllowMultiSelect];
+    Selector.DefaultExt := FILEEXT_SQLITEDB;
   end else if Edit = editStartupScript then
     Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPlinkExe then

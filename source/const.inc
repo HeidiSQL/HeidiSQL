@@ -102,6 +102,8 @@ const
   MsgDisconnect: String = 'Connection to %s closed at %s';
   MsgInvalidColumn: String = 'Column #%d not available. Query returned %d columns and %d rows.';
   SPortableLockFile: String = 'portable.lock';
+  FILEFILTER_SQLITEDB = '*.sqlite3;*.sqlite;*.db;*.s3db';
+  FILEEXT_SQLITEDB = 'sqlite3';
 
   SYNCOMPLETION_PATTERN = '\image{%d}\hspace{5}\color{clGrayText}%s\column{}\color{clWindowText}%s\color{clGrayText}%s';
 

@@ -663,6 +663,10 @@ type
     actDataOpenUrl: TAction;
     OpenURL1: TMenuItem;
     Findtext2: TMenuItem;
+    actDetachDatabase: TAction;
+    actAttachDatabase: TAction;
+    Detach1: TMenuItem;
+    Attach1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1032,6 +1036,8 @@ type
     procedure actGoToDataMultiFilterExecute(Sender: TObject);
     procedure actDataOpenUrlExecute(Sender: TObject);
     procedure ApplicationEvents1ShortCut(var Msg: TWMKey; var Handled: Boolean);
+    procedure actDetachDatabaseExecute(Sender: TObject);
+    procedure actAttachDatabaseExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -5090,6 +5096,86 @@ begin
 end;
 
 
+procedure TMainForm.actAttachDatabaseExecute(Sender: TObject);
+var
+  Selector: TOpenDialog;
+  OldFiles, NewFiles: TStringList;
+  i: Integer;
+  Conn: TDBConnection;
+  DbAlias: String;
+begin
+  // Attach new or existing SQLite database file
+  Selector := TOpenDialog.Create(Self);
+  //Selector.InitialDir := ?;
+  Selector.Filter := 'SQLite databases ('+FILEFILTER_SQLITEDB+')|'+FILEFILTER_SQLITEDB+'|'+_('All files')+' (*.*)|*.*';
+  Selector.Options := Selector.Options - [ofFileMustExist];
+  Selector.Options := Selector.Options + [ofAllowMultiSelect];
+  Selector.DefaultExt := FILEEXT_SQLITEDB;
+  if Selector.Execute then begin
+    Conn := ActiveConnection;
+    OldFiles := Explode(DELIM, Conn.Parameters.Hostname);
+    NewFiles := TStringList.Create;
+    NewFiles.Assign(Selector.Files);
+    try
+      for i:=0 to NewFiles.Count-1 do begin
+        // Remove path if it's the application directory
+        if ExtractFilePath(NewFiles[i]) = ExtractFilePath(Application.ExeName) then
+          NewFiles[i] := ExtractFileName(NewFiles[i]);
+        if OldFiles.IndexOf(NewFiles[i]) = -1 then begin
+          OldFiles.Add(NewFiles[i]);
+          DbAlias := TPath.GetFileNameWithoutExtension(NewFiles[i]);
+          Conn.Query('ATTACH DATABASE '+Conn.EscapeString(NewFiles[i])+' AS '+Conn.QuoteIdent(DbAlias));
+        end;
+      end;
+      AppSettings.SessionPath := Conn.Parameters.SessionPath;
+      AppSettings.WriteString(asHost, implodestr(DELIM, OldFiles));
+      RefreshTree;
+    except
+      on E:EDbError do begin
+        ErrorDialog(E.Message);
+      end;
+    end;
+  end;
+end;
+
+procedure TMainForm.actDetachDatabaseExecute(Sender: TObject);
+var
+  Obj: TDBObject;
+  OldFiles: TStringList;
+  i: Integer;
+  DbAlias: String;
+begin
+  // Detach previously attached SQLite database file
+  Obj := ActiveDBObj;
+  if Obj.NodeType <> lntDb then
+    Exit;
+  if MessageDialog(
+      f_('Detach database "%s" from "%s" session?', [Obj.Database, Obj.Connection.Parameters.SessionPath])
+        + CRLF + CRLF + _('Note: The database file will not get deleted.'),
+      mtConfirmation,
+      [mbYes, mbNo]) <> mrYes then
+    Exit;
+  try
+    Obj.Connection.Query('DETACH DATABASE '+Obj.Connection.QuoteIdent(Obj.Database));
+    OldFiles := Explode(DELIM, Obj.Connection.Parameters.Hostname);
+    for i:=0 to OldFiles.Count-1 do begin
+      DbAlias := TPath.GetFileNameWithoutExtension(OldFiles[i]);
+      if DbAlias = Obj.Database then begin
+        OldFiles.Delete(i);
+        Break;
+      end;
+    end;
+    AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
+    AppSettings.WriteString(asHost, implodestr(DELIM, OldFiles));
+    RefreshTree;
+  except
+    on E:EDbError do begin
+      ErrorDialog(E.Message);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.actDataShowAllExecute(Sender: TObject);
 begin
   // Remove LIMIT clause
@@ -6768,18 +6854,25 @@ var
   Obj: PDBObject;
   HasFocus, IsDbOrObject: Boolean;
   Version: Integer;
+  Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
   if DBtreeClicked(Sender) then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDbOrObject := Obj.NodeType in [lntDb, lntTable..lntEvent];
-    actCreateDatabase.Enabled := Obj.NodeType = lntNone;
+    actCreateDatabase.Enabled := (Obj.NodeType = lntNone)
+      and (Obj.Connection.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]);
+    actAttachDatabase.Visible := Obj.Connection.Parameters.IsAnySQLite;
+    actAttachDatabase.Enabled := actAttachDatabase.Visible and (Obj.NodeType = lntNone);
     actCreateTable.Enabled := IsDbOrObject or (Obj.GroupType = lntTable);
     actCreateView.Enabled := IsDbOrObject or (Obj.GroupType = lntView);
     actCreateRoutine.Enabled := IsDbOrObject or (Obj.GroupType in [lntFunction, lntProcedure]);
     actCreateTrigger.Enabled := IsDbOrObject or (Obj.GroupType = lntTrigger);
     actCreateEvent.Enabled := IsDbOrObject or (Obj.GroupType = lntEvent);
-    actDropObjects.Enabled := IsDbOrObject;
+    actDropObjects.Enabled := IsDbOrObject // Used for databases in this context!
+      and (Obj.Connection.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]);
+    actDetachDatabase.Visible := Obj.Connection.Parameters.IsAnySQLite;
+    actDetachDatabase.Enabled := actDetachDatabase.Visible and (Obj.NodeType = lntDb);
     actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
     actEmptyTables.Enabled := Obj.NodeType in [lntTable, lntView];
     actRunRoutines.Enabled := Obj.NodeType in [lntProcedure, lntFunction];
@@ -6792,12 +6885,14 @@ begin
   end else begin
     HasFocus := Assigned(ListTables.FocusedNode);
     actCreateDatabase.Enabled := False;
+    actAttachDatabase.Visible := False;
     actCreateTable.Enabled := True;
     actCreateView.Enabled := True;
     actCreateRoutine.Enabled := True;
     actCreateTrigger.Enabled := True;
     actCreateEvent.Enabled := True;
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
+    actDetachDatabase.Visible := False;
     actEmptyTables.Enabled := True;
     actRunRoutines.Enabled := True;
     menuClearDataTabFilter.Enabled := False;

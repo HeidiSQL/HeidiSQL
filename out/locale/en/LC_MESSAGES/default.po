@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-03-22 13:56+0100\n"
+"PO-Revision-Date: 2020-03-24 17:46+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6432,3 +6432,21 @@ msgstr "Find database files..."
 
 msgid "Add database files..."
 msgstr "Add database files..."
+
+msgid "Detach database ..."
+msgstr "Detach database ..."
+
+msgid "Detach attached database"
+msgstr "Detach attached database"
+
+msgid "Attach database ..."
+msgstr "Attach database ..."
+
+msgid "Attach new or existing database file"
+msgstr "Attach new or existing database file"
+
+msgid "Detach database \"%s\" from \"%s\" session?"
+msgstr "Detach database \"%s\" from \"%s\" session?"
+
+msgid "Note: The database file will not get deleted."
+msgstr "Note: The database file will not get deleted."

@@ -3105,6 +3105,24 @@ object MainForm: TMainForm
       ImageIndex = 69
       OnExecute = actDataOpenUrlExecute
     end
+    object actDetachDatabase: TAction
+      Category = 'Database'
+      Caption = 'Detach database ...'
+      Enabled = False
+      Hint = 'Detach attached database'
+      ImageIndex = 100
+      Visible = False
+      OnExecute = actDetachDatabaseExecute
+    end
+    object actAttachDatabase: TAction
+      Category = 'Database'
+      Caption = 'Attach database ...'
+      Enabled = False
+      Hint = 'Attach new or existing database file'
+      ImageIndex = 101
+      Visible = False
+      OnExecute = actAttachDatabaseExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -3132,6 +3150,12 @@ object MainForm: TMainForm
     end
     object menuDeleteObject: TMenuItem
       Action = actDropObjects
+    end
+    object Attach1: TMenuItem
+      Action = actAttachDatabase
+    end
+    object Detach1: TMenuItem
+      Action = actDetachDatabase
     end
     object menuEmptyTables: TMenuItem
       Action = actEmptyTables
