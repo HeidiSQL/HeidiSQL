@@ -5618,13 +5618,14 @@ end;
 
 
 procedure TMainForm.PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
-var
-  Grid: TVirtualStringTree;
 begin
   // Leave editing mode on tab changes so the editor does not stay somewhere
-  Grid := ActiveGrid;
-  if Assigned(Grid) and Grid.IsEditing then
-    Grid.CancelEditNode;
+  if Assigned(ActiveGridEditor)
+    and Assigned(ActiveGridEditor.Tree)
+    and ActiveGridEditor.Tree.IsEditing then begin
+    LogSQL('Cancelling tree edit mode on '+ActiveGridEditor.Tree.Name, lcDebug);
+    ActiveGridEditor.Tree.CancelEditNode;
+  end;
 end;
 
 

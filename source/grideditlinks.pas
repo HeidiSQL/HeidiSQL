@@ -51,6 +51,7 @@ type
     // The right constructor, we need the Tree reference
     constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); overload; virtual;
     destructor Destroy; override;
+    property Tree: TVirtualStringTree read FTree;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
     function BeginEdit: Boolean; virtual; stdcall;
     function CancelEdit: Boolean; virtual; stdcall;
@@ -213,6 +214,8 @@ type
   end;
 
 
+var
+  ActiveGridEditor: TBaseGridEditorLink;
 
 implementation
 
@@ -249,6 +252,7 @@ begin
   SendMessage(FParentForm.Handle, WM_SETREDRAW, 0, 0);
   FModified := False;
   FAllowEdit := AllowEdit;
+  ActiveGridEditor := Self;
 end;
 
 destructor TBaseGridEditorLink.Destroy;
@@ -258,6 +262,7 @@ var
   DoPrev: Boolean;
 begin
   inherited;
+  ActiveGridEditor := nil;
   if FLastKeyDown = VK_TAB then begin
     DoPrev := ssShift in FLastShiftState;
     // Advance to next/previous visible column/node.
