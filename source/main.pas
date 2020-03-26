@@ -12516,13 +12516,15 @@ begin
                 end;
            end;
         1: case Node.Parent.Index of
-             HELPERNODE_COLUMNS: case ActiveDbObj.NodeType of
-               lntTable, lntView:
-                 if SelectedTableColumns.Count > Integer(Node.Index) then
-                   CellText := SelectedTableColumns[Node.Index].Name;
-               lntFunction, lntProcedure:
-                 if Assigned(ActiveObjectEditor) then
-                   CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
+             HELPERNODE_COLUMNS: begin
+               if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
+                 lntTable, lntView:
+                   if SelectedTableColumns.Count > Integer(Node.Index) then
+                     CellText := SelectedTableColumns[Node.Index].Name;
+                 lntFunction, lntProcedure:
+                   if Assigned(ActiveObjectEditor) then
+                     CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
+               end;
              end;
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Name;
              HELPERNODE_KEYWORDS: CellText := MySQLKeywords[Node.Index];
@@ -12553,9 +12555,13 @@ begin
     1: case Sender.GetNodeLevel(Node) of
         0: CellText := '';
         1: case Node.Parent.Index of
-             HELPERNODE_COLUMNS:
-               if (ActiveDbObj.NodeType in [lntTable, lntView]) and (SelectedTableColumns.Count > Integer(Node.Index)) then
-                 CellText := SelectedTableColumns[Node.Index].DataType.Name;
+             HELPERNODE_COLUMNS: begin
+               if (ActiveDbObj <> nil)
+                and (ActiveDbObj.NodeType in [lntTable, lntView])
+                and (SelectedTableColumns.Count > Integer(Node.Index)) then begin
+                   CellText := SelectedTableColumns[Node.Index].DataType.Name;
+               end;
+             end;
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Declaration;
              HELPERNODE_PROFILE: begin
                   if Assigned(Tab.QueryProfile) then begin
