@@ -2622,6 +2622,7 @@ begin
   if Sender = actClearQueryEditor then begin
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
+    ActiveQueryTab.Uid := '';
   end;
   if m = SynMemoFilter then begin
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
