@@ -633,6 +633,7 @@ type
       FHandle: Psqlite3;
       FLib: TSQLiteLib;
       FLastRawResults: TSQLiteRawResults;
+      FMainDbName: UTF8String;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       function GetThreadId: Int64; override;
@@ -2464,6 +2465,11 @@ begin
       Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       FIsUnicode := True;
       Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
+      // Override "main" database name with custom one
+      FMainDbName := UTF8Encode(TPath.GetFileNameWithoutExtension(MainFile));
+      if FLib.sqlite3_db_config(FHandle, SQLITE_DBCONFIG_MAINDBNAME, PAnsiChar(FMainDbName)) <> SQLITE_OK then begin
+        Log(lcError, 'Could not set custom name of "main" database to "' + UTF8ToString(FMainDbName) + '"');
+      end;
       // Attach additional databases
       for i:=1 to FileNames.Count-1 do begin
         DbAlias := TPath.GetFileNameWithoutExtension(FileNames[i]);

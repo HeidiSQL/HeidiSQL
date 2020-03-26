@@ -141,6 +141,29 @@ const
   SQLITE_TEXT     = 3;
   SQLITE3_TEXT    = 3;
 
+  { CAPI3REF: Database Connection Configuration Options
+    These constants are the available integer configuration options that
+    can be passed as the second argument to the [sqlite3_db_config()] interface.
+  }
+  SQLITE_DBCONFIG_MAINDBNAME            = 1000; // const char*
+  SQLITE_DBCONFIG_LOOKASIDE             = 1001; // void* int int
+  SQLITE_DBCONFIG_ENABLE_FKEY           = 1002; // int int*
+  SQLITE_DBCONFIG_ENABLE_TRIGGER        = 1003; // int int*
+  SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER = 1004; // int int*
+  SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION = 1005; // int int*
+  SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE      = 1006; // int int*
+  SQLITE_DBCONFIG_ENABLE_QPSG           = 1007; // int int*
+  SQLITE_DBCONFIG_TRIGGER_EQP           = 1008; // int int*
+  SQLITE_DBCONFIG_RESET_DATABASE        = 1009; // int int*
+  SQLITE_DBCONFIG_DEFENSIVE             = 1010; // int int*
+  SQLITE_DBCONFIG_WRITABLE_SCHEMA       = 1011; // int int*
+  SQLITE_DBCONFIG_LEGACY_ALTER_TABLE    = 1012; // int int*
+  SQLITE_DBCONFIG_DQS_DML               = 1013; // int int*
+  SQLITE_DBCONFIG_DQS_DDL               = 1014; // int int*
+  SQLITE_DBCONFIG_ENABLE_VIEW           = 1015; // int int*
+  SQLITE_DBCONFIG_MAX                   = 1015; // Largest DBCONFIG
+
+
 
 type
   PUSED_MEM=^USED_MEM;
@@ -537,6 +560,7 @@ const
     sqlite3_open: function(const filename: PAnsiChar; var ppDb: Psqlite3): Integer; cdecl;
     sqlite3_libversion: function(): PAnsiChar; cdecl;
     sqlite3_close: function(ppDb: Psqlite3): Integer; cdecl;
+    sqlite3_db_config: function (ppDb: Psqlite3; op: Integer): Integer; cdecl varargs;
     sqlite3_errmsg: function(ppDb: Psqlite3): PAnsiChar; cdecl;
     sqlite3_errcode: function(ppDb: Psqlite3): Integer; cdecl;
     sqlite3_prepare_v2: function(ppDb: Psqlite3; zSql: PAnsiChar; nByte: Integer; var ppStmt: Psqlite3_stmt; var pzTail: PAnsiChar): Integer; cdecl;
@@ -7904,6 +7928,7 @@ begin
   AssignProc(@sqlite3_open, 'sqlite3_open');
   AssignProc(@sqlite3_libversion, 'sqlite3_libversion');
   AssignProc(@sqlite3_close, 'sqlite3_close');
+  AssignProc(@sqlite3_db_config, 'sqlite3_db_config');
   AssignProc(@sqlite3_errmsg, 'sqlite3_errmsg');
   AssignProc(@sqlite3_errcode, 'sqlite3_errcode');
   AssignProc(@sqlite3_prepare_v2, 'sqlite3_prepare_v2');
