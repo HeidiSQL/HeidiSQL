@@ -1378,7 +1378,7 @@ object MainForm: TMainForm
                 Header.AutoSizeIndex = 0
                 Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
                 Images = VirtualImageListMain
-                IncrementalSearch = isAll
+                IncrementalSearch = isVisibleOnly
                 PopupMenu = popupQueryHelpers
                 RootNodeCount = 6
                 TabOrder = 0
