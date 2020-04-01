@@ -8701,20 +8701,20 @@ begin
             SelectedTableKeys := FActiveDbObj.TableKeys;
             SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
           end;
+          if not FTreeRefreshInProgress then
+            PlaceObjectEditor(FActiveDbObj);
+          // When a table is clicked in the tree, and the current
+          // tab is a Host or Database tab, switch to showing table columns.
+          if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
+            MainTabToActivate := tabEditor;
+          if DataGrid.Tag = VTREE_LOADED then
+            InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+          // Update the list of columns
+          RefreshHelperNode(HELPERNODE_COLUMNS);
         except on E:EDbError do
           ErrorDialog(E.Message);
         end;
 
-        if not FTreeRefreshInProgress then
-          PlaceObjectEditor(FActiveDbObj);
-        // When a table is clicked in the tree, and the current
-        // tab is a Host or Database tab, switch to showing table columns.
-        if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
-          MainTabToActivate := tabEditor;
-        if DataGrid.Tag = VTREE_LOADED then
-          InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-        // Update the list of columns
-        RefreshHelperNode(HELPERNODE_COLUMNS);
         FActiveObjectGroup := ParentDBObj.GroupType;
       end;
     end;
