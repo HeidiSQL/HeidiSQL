@@ -667,6 +667,8 @@ type
     actAttachDatabase: TAction;
     Detach1: TMenuItem;
     Attach1: TMenuItem;
+    actSynEditCompletionPropose: TAction;
+    ShowSQLcompletionproposal1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1038,6 +1040,7 @@ type
     procedure ApplicationEvents1ShortCut(var Msg: TWMKey; var Handled: Boolean);
     procedure actDetachDatabaseExecute(Sender: TObject);
     procedure actAttachDatabaseExecute(Sender: TObject);
+    procedure actSynEditCompletionProposeExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -4503,6 +4506,14 @@ begin
   SyncForm.ShowModal;
 end;
 
+
+procedure TMainForm.actSynEditCompletionProposeExecute(Sender: TObject);
+begin
+  // Show completion proposal explicitely, without the use of its own ShortCut property,
+  // to support a customized shortcut, see
+  SynCompletionProposal.Editor := ActiveSynMemo(False);
+  SynCompletionProposal.ActivateCompletion;
+end;
 
 {***
   Show SQL Help window directly using a keyword

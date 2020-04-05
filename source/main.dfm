@@ -3123,6 +3123,12 @@ object MainForm: TMainForm
       Visible = False
       OnExecute = actAttachDatabaseExecute
     end
+    object actSynEditCompletionPropose: TAction
+      Category = 'SQL'
+      Caption = 'Show SQL completion proposal'
+      ShortCut = 16416
+      OnExecute = actSynEditCompletionProposeExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -3694,7 +3700,7 @@ object MainForm: TMainForm
     Images = VirtualImageListMain
     Margin = 1
     OnExecute = SynCompletionProposalExecute
-    ShortCut = 16416
+    ShortCut = 0
     Editor = SynMemoQuery
     TimerInterval = 500
     OnAfterCodeCompletion = SynCompletionProposalAfterCodeCompletion
@@ -3743,6 +3749,9 @@ object MainForm: TMainForm
     end
     object menuclear: TMenuItem
       Action = actClearQueryEditor
+    end
+    object ShowSQLcompletionproposal1: TMenuItem
+      Action = actSynEditCompletionPropose
     end
     object ReformatSQL1: TMenuItem
       Action = actReformatSQL
