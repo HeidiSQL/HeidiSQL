@@ -11,7 +11,8 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
-  dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils;
+  dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
+  System.Math;
 
 type
   Tconnform = class(TExtForm)
@@ -1360,7 +1361,7 @@ procedure Tconnform.splitterMainMoved(Sender: TObject);
 var
   ButtonWidth: Integer;
 begin
-  // Splitter resized - adjust width of buttons
+  // Splitter resized - adjust width of bottom left buttons
   ButtonWidth := Round((pnlLeft.Width - 2 * pnlLeft.Margins.Left) / 3);
   btnNew.Width := ButtonWidth;
   btnSave.Width := ButtonWidth;
@@ -1368,6 +1369,17 @@ begin
   btnNew.Left := pnlLeft.Left;
   btnSave.Left := btnNew.Left + btnNew.Width + pnlLeft.Margins.Left;
   btnDelete.Left := btnSave.Left + btnSave.Width + pnlLeft.Margins.Left;
+
+  // Resize bottom right buttons
+  ButtonWidth := Round((PageControlDetails.Width - 2 * PageControlDetails.Margins.Right) / 3);
+  ButtonWidth := Max(ButtonWidth, 50);
+  ButtonWidth := Min(ButtonWidth, 100);
+  btnMore.Width := ButtonWidth;
+  btnCancel.Width := ButtonWidth;
+  btnOpen.Width := ButtonWidth;
+  btnmore.Left := PageControlDetails.Left + PageControlDetails.Width - btnMore.Width;
+  btnCancel.Left := btnMore.Left - btnMore.Width - PageControlDetails.Margins.Right;
+  btnOpen.Left := btnCancel.Left - btnCancel.Width - PageControlDetails.Margins.Right;
 end;
 
 
