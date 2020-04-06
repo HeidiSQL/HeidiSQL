@@ -185,6 +185,9 @@ type
       const HitInfo: THitInfo);
     procedure FindAddDatabaseFilesClick(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure ListSessionsBeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -735,6 +738,22 @@ begin
   Folders.Free;
 end;
 
+
+procedure Tconnform.ListSessionsBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+var
+  Session: PConnectionParameters;
+begin
+  // Paint custom background color
+  if CellPaintMode=cpmPaint then begin
+    Session := Sender.GetNodeData(Node);
+    if Session.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then begin
+      TargetCanvas.Brush.Color := Session.SessionColor;
+      TargetCanvas.FillRect(CellRect);
+    end;
+  end;
+end;
 
 procedure Tconnform.ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; out EditLink: IVTEditLink);

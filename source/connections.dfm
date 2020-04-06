@@ -878,6 +878,7 @@ object connform: Tconnform
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag]
       TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
       TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+      OnBeforeCellPaint = ListSessionsBeforeCellPaint
       OnCreateEditor = ListSessionsCreateEditor
       OnDragOver = ListSessionsDragOver
       OnDragDrop = ListSessionsDragDrop
