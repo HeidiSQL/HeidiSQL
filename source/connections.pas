@@ -184,6 +184,7 @@ type
     procedure ListSessionsNodeDblClick(Sender: TBaseVirtualTree;
       const HitInfo: THitInfo);
     procedure FindAddDatabaseFilesClick(Sender: TObject);
+    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -316,6 +317,11 @@ begin
   MainForm.SaveListSetup(ListSessions);
 end;
 
+
+procedure Tconnform.FormResize(Sender: TObject);
+begin
+  splitterMainMoved(splitterMain);
+end;
 
 procedure Tconnform.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
