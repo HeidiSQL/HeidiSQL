@@ -2542,9 +2542,9 @@ end;
 procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
 var
   rx: TRegExpr;
-  ExeName, SessName, Host, Lib, User, Pass, Socket,
+  ExeName, SessName, Host, Lib, Port, User, Pass, Socket,
   SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher: String;
-  Port, NetType, WindowsAuth, WantSSL, CleartextPluginEnabled: Integer;
+  NetType, WindowsAuth, WantSSL, CleartextPluginEnabled: Integer;
   AbsentFiles: TStringList;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -2612,7 +2612,7 @@ begin
   Pass := GetParamValue('p', 'password');
   CleartextPluginEnabled := StrToIntDef(GetParamValue('cte', 'cleartextenabled'), -1);
   Socket := GetParamValue('S', 'socket');
-  Port := StrToIntDef(GetParamValue('P', 'port'), 0);
+  Port := GetParamValue('P', 'port');
   WindowsAuth := StrToIntDef(GetParamValue('W', 'winauth'), -1);
   WantSSL := StrToIntDef(GetParamValue('ssl', 'ssl'), -1);
   SSLPrivateKey := GetParamValue('sslpk', 'sslprivatekey');
@@ -2621,7 +2621,7 @@ begin
   SSLCipher := GetParamValue('sslcip', 'sslcipher');
   // Leave out support for startup script, seems reasonable for command line connecting
 
-  if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
+  if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> '') or (Socket <> '') then begin
     if not Assigned(ConnectionParams) then begin
       ConnectionParams := TConnectionParameters.Create;
       ConnectionParams.SessionPath := SessName;
@@ -2639,7 +2639,7 @@ begin
     if Pass <> '' then ConnectionParams.Password := Pass;
     if CleartextPluginEnabled in [0,1] then
       ConnectionParams.CleartextPluginEnabled := Boolean(CleartextPluginEnabled);
-    if Port <> 0 then ConnectionParams.Port := Port;
+    if Port <> '' then ConnectionParams.Port := StrToIntDef(Port, 0);
     if Socket <> '' then begin
       ConnectionParams.Hostname := Socket;
       ConnectionParams.NetType := ntMySQL_NamedPipe;
