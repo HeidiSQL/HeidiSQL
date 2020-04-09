@@ -2542,7 +2542,7 @@ end;
 procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
 var
   rx: TRegExpr;
-  ExeName, SessName, Host, Lib, Port, User, Pass, Socket,
+  ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
   SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher: String;
   NetType, WindowsAuth, WantSSL, CleartextPluginEnabled: Integer;
   AbsentFiles: TStringList;
@@ -2613,6 +2613,7 @@ begin
   CleartextPluginEnabled := StrToIntDef(GetParamValue('cte', 'cleartextenabled'), -1);
   Socket := GetParamValue('S', 'socket');
   Port := GetParamValue('P', 'port');
+  AllDatabases := GetParamValue('db', 'databases');
   WindowsAuth := StrToIntDef(GetParamValue('W', 'winauth'), -1);
   WantSSL := StrToIntDef(GetParamValue('ssl', 'ssl'), -1);
   SSLPrivateKey := GetParamValue('sslpk', 'sslprivatekey');
@@ -2621,7 +2622,7 @@ begin
   SSLCipher := GetParamValue('sslcip', 'sslcipher');
   // Leave out support for startup script, seems reasonable for command line connecting
 
-  if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> '') or (Socket <> '') then begin
+  if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> '') or (Socket <> '') or (AllDatabases <> '') then begin
     if not Assigned(ConnectionParams) then begin
       ConnectionParams := TConnectionParameters.Create;
       ConnectionParams.SessionPath := SessName;
@@ -2644,6 +2645,7 @@ begin
       ConnectionParams.Hostname := Socket;
       ConnectionParams.NetType := ntMySQL_NamedPipe;
     end;
+    if AllDatabases <> '' then ConnectionParams.AllDatabasesStr := AllDatabases;
     if WantSSL in [0,1] then
       ConnectionParams.WantSSL := Boolean(WantSSL);
     if SSLPrivateKey <> '' then
