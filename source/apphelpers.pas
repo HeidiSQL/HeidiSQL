@@ -2542,7 +2542,7 @@ end;
 procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
 var
   rx: TRegExpr;
-  ExeName, SessName, Host, User, Pass, Socket,
+  ExeName, SessName, Host, Lib, User, Pass, Socket,
   SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher: String;
   Port, NetType, WindowsAuth, WantSSL, CleartextPluginEnabled: Integer;
   AbsentFiles: TStringList;
@@ -2607,17 +2607,18 @@ begin
   // Enables the user to log into a session with a different, non-stored user: -dSession -uSomeOther
   NetType := StrToIntDef(GetParamValue('n', 'nettype'), 0);
   Host := GetParamValue('h', 'host');
+  Lib := GetParamValue('l', 'library');
   User := GetParamValue('u', 'user');
   Pass := GetParamValue('p', 'password');
-  CleartextPluginEnabled := StrToIntDef(GetParamValue('cleartextenabled', 'cleartextenabled'), -1);
+  CleartextPluginEnabled := StrToIntDef(GetParamValue('cte', 'cleartextenabled'), -1);
   Socket := GetParamValue('S', 'socket');
   Port := StrToIntDef(GetParamValue('P', 'port'), 0);
   WindowsAuth := StrToIntDef(GetParamValue('W', 'winauth'), -1);
   WantSSL := StrToIntDef(GetParamValue('ssl', 'ssl'), -1);
-  SSLPrivateKey := GetParamValue('sslprivatekey', 'sslprivatekey');
-  SSLCACertificate := GetParamValue('sslcacertificate', 'sslcacertificate');
-  SSLCertificate := GetParamValue('sslcertificate', 'sslcertificate');
-  SSLCipher := GetParamValue('sslcipher', 'sslcipher');
+  SSLPrivateKey := GetParamValue('sslpk', 'sslprivatekey');
+  SSLCACertificate := GetParamValue('sslca', 'sslcacertificate');
+  SSLCertificate := GetParamValue('sslcert', 'sslcertificate');
+  SSLCipher := GetParamValue('sslcip', 'sslcipher');
   // Leave out support for startup script, seems reasonable for command line connecting
 
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> 0) or (Socket <> '') then begin
@@ -2631,9 +2632,9 @@ begin
     except
       ConnectionParams.NetType := ntMySQL_TCPIP;
     end;
-    // Otherwise default libmariadb.dll would be used for PG and other types
-    ConnectionParams.LibraryOrProvider := ConnectionParams.DefaultLibrary;
     if Host <> '' then ConnectionParams.Hostname := Host;
+    if Lib <> '' then ConnectionParams.LibraryOrProvider := Lib;
+    if ConnectionParams.LibraryOrProvider.IsEmpty then ConnectionParams.LibraryOrProvider := ConnectionParams.DefaultLibrary;
     if User <> '' then ConnectionParams.Username := User;
     if Pass <> '' then ConnectionParams.Password := Pass;
     if CleartextPluginEnabled in [0,1] then
