@@ -401,6 +401,7 @@ object frmTableEditor: TfrmTableEditor
         EditDelay = 0
         Header.AutoSizeIndex = 0
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible]
+        Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
