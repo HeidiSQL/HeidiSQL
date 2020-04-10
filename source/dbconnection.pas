@@ -2151,7 +2151,12 @@ begin
   end
 
   else if (not Value) and (FHandle <> nil) then begin
-    FLib.mysql_close(FHandle);
+    try
+      FLib.mysql_close(FHandle);
+    except
+      on E:Exception do // sometimes fails with libmysql-6.1.dll, see #980
+        Log(lcError, 'Error while closing handle: '+E.Message);
+    end;
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
