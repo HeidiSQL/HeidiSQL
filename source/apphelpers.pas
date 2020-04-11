@@ -1918,6 +1918,10 @@ begin
     Item.Action := MainForm.actToggleComment;
     popup.Items.Add(Item);
 
+    Item := TMenuItem.Create(popup);
+    Item.Action := MainForm.actReformatSQL;
+    popup.Items.Add(Item);
+
     SynMemo.PopupMenu := popup;
 
   end;
