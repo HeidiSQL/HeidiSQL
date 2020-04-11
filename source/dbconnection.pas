@@ -3555,6 +3555,13 @@ begin
       Query(GetSQLSpecifity(spUSEQuery, [s]), False);
       // FDatabase is set via DetectUSEQuery
     end;
+
+    // Save last used database in session, see #983
+    if not FParameters.SessionName.IsEmpty then begin
+      AppSettings.SessionPath := FParameters.SessionPath;
+      AppSettings.WriteString(asLastUsedDB, Value);
+    end;
+
     if Assigned(FOnObjectnamesChanged) then
       FOnObjectnamesChanged(Self, FDatabase);
   end;

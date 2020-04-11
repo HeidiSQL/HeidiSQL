@@ -2457,8 +2457,6 @@ begin
       RefreshHelperNode(HELPERNODE_COLUMNS);
 
       // Last chance to access connection related properties before disconnecting
-      AppSettings.SessionPath := Item.Parameters.SessionPath;
-      AppSettings.WriteString(asLastUsedDB, Item.Database);
 
       // Disconnect
       Item.Active := False;
