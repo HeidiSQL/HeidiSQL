@@ -1315,7 +1315,9 @@ begin
   Result := True;
   IsOn := True;
   {$IFNDEF SYN_COMPILER_24_UP}
+  {$IFDEF SYN_WIN32}
   Mask := 0; // prevent compiler warning
+  {$ENDIF}
   {$ENDIF}
   for i := 1 to length (AModifiers) do
    if AModifiers [i] = '-'

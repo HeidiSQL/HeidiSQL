@@ -12,7 +12,7 @@ The Original Code is: SynDBEdit.pas, released 2000-05-05.
 The Original Code is based on DBmwEdit.pas by Vladimir Kuznetsov, part of
 the mwEdit component suite.
 Portions created by Vladimir Kuznetsov are Copyright (C) 1999 Vladimir Kuznetsov.
-Unicode translation by Maël Hörz.
+Unicode translation by MaÃ«l HÃ¶rz.
 All Rights Reserved.
 
 Contributors to the SynEdit and mwEdit projects are listed in the
@@ -320,6 +320,10 @@ begin
 end;
 
 procedure TCustomDBSynEdit.LoadMemo;
+{$IFDEF UNICODE}
+const
+ BlobFieldWideText = [ftWideMemo,ftWideString];
+{$ENDIF}
 {$IFDEF SYN_COMPILER_3_UP}
 var
   BlobStream: TStream;
@@ -337,18 +341,29 @@ begin
     BlobStream := TBlobStream.Create(BlobField, bmRead);
 {$ENDIF}
     Lines.BeginUpdate;
-    Lines.LoadFromStream(BlobStream{$IFDEF UNICODE}, TEncoding.Default{$ENDIF});
+{$IFDEF UNICODE}
+//03.12.2019 fix for unicode
+//Tested on UTF8 TEXT Sqlite3 & Zeos Unicode (UTF16) v7.2.6
+//For UTF8 use: System.SysUtils.TEncoding.UTF8
+    if ((FDataLink.Field is  TBlobField) and
+	(TBlobField(FDataLink.Field).BlobType in BlobFieldWideText)) then
+      Lines.LoadFromStream(BlobStream, TEncoding.Unicode)
+    else Lines.LoadFromStream(BlobStream, TEncoding.Default);
+{$ELSE} //Non Unicode
+    Lines.LoadFromStream(BlobStream);
+{$ENDIF}
     Lines.EndUpdate;
     BlobStream.Free;
     Modified := False;
     ClearUndo;
   except
-    // Memo too large 
+    // Memo too large
     on E: EInvalidOperation do
       Lines.Text := Format('(%s)', [E.Message]);
   end;
   EditingChange(Self);
 end;
+
 
 procedure TCustomDBSynEdit.DoChange;
 begin

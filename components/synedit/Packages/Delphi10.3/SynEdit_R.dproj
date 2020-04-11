@@ -7,7 +7,7 @@
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Package</AppType>
         <FrameworkType>VCL</FrameworkType>
-        <ProjectVersion>18.6</ProjectVersion>
+        <ProjectVersion>18.8</ProjectVersion>
         <Platform Condition="'$(Platform)'==''">Win32</Platform>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -40,6 +40,7 @@
         <Base>true</Base>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base)'!=''">
+        <SanitizedProjectName>SynEdit_R</SanitizedProjectName>
         <DCC_DcuOutput>..\..\build\$(Platform)</DCC_DcuOutput>
         <DCC_OutputNeverBuildDcps>true</DCC_OutputNeverBuildDcps>
         <RuntimeOnlyPackage>true</RuntimeOnlyPackage>
@@ -56,13 +57,11 @@
         <VerInfo_Locale>1031</VerInfo_Locale>
         <DCC_F>false</DCC_F>
         <DCC_E>false</DCC_E>
-        <SanitizedProjectName>SynEdit_R</SanitizedProjectName>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
         <VerInfo_Locale>1033</VerInfo_Locale>
-        <VerInfo_Keys>CompanyName=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductVersion=1.0.0.0;Comments=;ProgramID=com.embarcadero.$(MSBuildProjectName);FileDescription=$(MSBuildProjectName);ProductName=$(MSBuildProjectName)</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win64)'!=''">
         <DCC_Namespace>Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;$(DCC_Namespace)</DCC_Namespace>
@@ -71,7 +70,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
-        <DCC_DebugInformation>false</DCC_DebugInformation>
+        <DCC_DebugInformation>0</DCC_DebugInformation>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
     </PropertyGroup>

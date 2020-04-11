@@ -61,6 +61,9 @@ uses
   SynEditHighlighter,
   SynUnicode,
   SysUtils,
+{$IFDEF SYN_CodeFolding}
+  SynEditCodeFolding,
+{$ENDIF}
   Classes;
 
 type
@@ -90,7 +93,11 @@ type
      rsDocTypeQuoteEntityRef}
   );
 
+{$IFDEF SYN_CodeFolding}
+  TSynXMLSyn = class(TSynCustomCodeFoldingHighlighter)
+{$ELSE}
   TSynXMLSyn = class(TSynCustomHighlighter)
+{$ENDIF}
   private
     FRange: TRangeState;
     FTokenID: TtkTokenKind;
@@ -149,6 +156,10 @@ type
     procedure Next; override;
     procedure SetRange(Value: Pointer); override;
     procedure ResetRange; override;
+{$IFDEF SYN_CodeFolding}
+    procedure ScanForFoldRanges(FoldRanges: TSynFoldRanges;
+      LinesToScan: TStrings; FromLine: Integer; ToLine: Integer); override;
+{$ENDIF}
   published
     property ElementAttri: TSynHighlighterAttributes read FElementAttri
       write FElementAttri;
@@ -813,6 +824,122 @@ procedure TSynXMLSyn.ResetRange;
 begin
   FRange := rsText;
 end;
+
+{$IFDEF SYN_CodeFolding}
+procedure TSynXMLSyn.ScanForFoldRanges(FoldRanges: TSynFoldRanges;
+  LinesToScan: TStrings; FromLine, ToLine: Integer);
+var
+  Line: Integer;
+  TagStartPos: Integer;
+  CurLine: string;
+  RunPos: Integer;
+  IsClosing: Boolean;
+  IndentLevel, CurLevel: Integer;
+begin
+  IndentLevel := 0;
+  for Line := FromLine to ToLine do
+  begin
+    CurLine := LinesToScan[Line];
+    RunPos := 1;
+
+    // skip empty lines
+    if CurLine = '' then
+    begin
+      FoldRanges.NoFoldInfo(Line + 1);
+      Continue;
+    end;
+
+    CurLevel := 0;
+    while RunPos <= Length(CurLine) do
+    begin
+      // scan for open tag
+      if CurLine[RunPos] = '<' then
+      begin
+        Inc(RunPos);
+        if RunPos = Length(CurLine) then
+          break;
+
+        // get tag type (prolog, closing or malformed
+        case CurLine[RunPos] of
+          '?' :
+            begin
+              // skip to end and continue
+              Inc(RunPos);
+              while RunPos <= Length(CurLine) do
+              begin
+                if CurLine[RunPos] = '?' then
+                begin
+                  break;
+                end;
+                Inc(RunPos);
+              end;
+              Continue;
+            end;
+
+          '/' :
+            begin
+              Inc(RunPos);
+              if RunPos = Length(CurLine) then
+                break;
+              IsClosing := True;
+            end;
+          '>' :
+            begin
+              // malformed tag (without any tag name) -> skip
+              Inc(RunPos);
+              continue;
+            end;
+          else
+            IsClosing := False;
+        end;
+
+        // scan for tag end-marker
+        while RunPos <= Length(CurLine) do
+        begin
+
+          if CurLine[RunPos] = '>' then
+          begin
+            // decrease the current level if it's a closing tag
+            if IsClosing then
+              Dec(CurLevel)
+            else
+            // eventually increase the current level if it's not an empty tag
+            if not (CurLine[RunPos - 1] = '/') then
+              Inc(CurLevel);
+
+            Inc(RunPos);
+            break;
+          end;
+
+          Inc(RunPos);
+        end;
+      end;
+      Inc(RunPos);
+    end;
+
+    // check whether the current level has changed, otherwise continue
+    if (CurLevel = 0) then
+    begin
+      FoldRanges.NoFoldInfo(Line + 1);
+      Continue;
+    end;
+
+    // the level has changed, but in what direction?
+    if CurLevel > 0 then
+    begin
+      // start a new fold range for the next indent level
+      IndentLevel := IndentLevel + CurLevel;
+      FoldRanges.StartFoldRange(Line + 1, 1, IndentLevel);
+    end
+    else
+    begin
+      // stop the fold range for the current indent level and decrease
+      FoldRanges.StopFoldRange(Line + 1, 1, IndentLevel);
+      IndentLevel := IndentLevel + CurLevel;
+    end;
+  end; //for Line
+end;
+{$ENDIF}
 
 function TSynXMLSyn.IsFilterStored: Boolean;
 begin

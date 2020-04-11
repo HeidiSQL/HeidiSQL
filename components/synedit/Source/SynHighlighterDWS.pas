@@ -64,7 +64,7 @@ type
 
   TRangeState = (rsANil, rsAnsi, rsAnsiAsm, rsAsm, rsBor, rsBorAsm, rsProperty,
     rsExports, rsDirective, rsDirectiveAsm, rsHereDocSingle, rsHereDocDouble,
-    rsType, rsUnknown);
+    rsType, rsUnit, rsUnknown);
 
   PIdentFuncTableFunc = ^TIdentFuncTableFunc;
   TIdentFuncTableFunc = function : TtkTokenKind of object;
@@ -86,6 +86,7 @@ type
     FCommentClose : Char;
     FIdentFuncTable: array[0..388] of TIdentFuncTableFunc;
     FKeywords: TAnsiStringList;
+    FKeywordsUnitScoped: TAnsiStringList;
     FKeywordsPropertyScoped: TAnsiStringList;
     FKeywordsTypeScoped: TAnsiStringList;
     FTokenID: TtkTokenKind;
@@ -110,6 +111,8 @@ type
     function KeywordFunc: TtkTokenKind;
     function FuncAsm: TtkTokenKind;
     function FuncEnd: TtkTokenKind;
+    function FuncUnitScoped: TtkTokenKind;
+    function FuncUnit: TtkTokenKind;
     function FuncPropertyScoped: TtkTokenKind;
     function FuncProperty: TtkTokenKind;
     function FuncTypeScoped: TtkTokenKind;
@@ -209,7 +212,7 @@ uses
 
 const
    // if the language is case-insensitive keywords *must* be in lowercase
-   cKeywords: array[1..95] of UnicodeString = (
+   cKeywords: array[1..94] of UnicodeString = (
       'abstract', 'and', 'array', 'as', 'asm',
       'begin', 'break', 'case', 'cdecl', 'class', 'const', 'constructor',
       'continue', 'deprecated', 'destructor',
@@ -223,8 +226,11 @@ const
       'procedure', 'program', 'property', 'protected', 'public', 'published', 
       'raise', 'record', 'register', 'reintroduce', 'repeat', 'require', 
       'resourcestring', 'sar', 'sealed', 'set', 'shl', 'shr', 'static', 
-      'step', 'strict', 'then', 'to', 'try', 'type', 'unit', 'until', 'uses', 
-      'var', 'virtual', 'while', 'xor'
+      'strict', 'then', 'to', 'try', 'type', 'unit', 'until', 'uses', 'var', 
+      'virtual', 'while', 'xor'
+  );
+  cKeywordsUnitScoped: array [0..0] of UnicodeString = (
+      'namespace'
   );
   cKeywordsPropertyScoped: array [0..4] of UnicodeString = (
       'default', 'index', 'read', 'stored', 'write'
@@ -296,6 +302,7 @@ begin
   SetAttributesOnChange(DefHighlightChange);
 
   FKeywords := TAnsiStringList.Create;
+  FKeywordsUnitScoped := TAnsiStringList.Create;
   FKeywordsPropertyScoped := TAnsiStringList.Create;
   FKeywordsTypeScoped := TAnsiStringList.Create;
 
@@ -325,6 +332,7 @@ destructor TSynDWSSyn.Destroy;
 begin
   inherited;
   FKeywords.Free;
+  FKeywordsUnitScoped.Free;
   FKeywordsPropertyScoped.Free;
   FKeywordsTypeScoped.Free;
 {$IFDEF SYN_CodeFolding}
@@ -378,6 +386,12 @@ begin
     SetIdentFunc(HashKey(@cKeywords[i][1]), KeywordFunc);
     FKeywords.Add(cKeywords[i]);
   end;
+  
+  for i := 0 to High(cKeywordsUnitScoped) do
+  begin
+    SetIdentFunc(HashKey(@cKeywordsUnitScoped[i][1]), FuncUnitScoped);
+    FKeywordsUnitScoped.Add(cKeywordsUnitScoped[i]);
+  end;
 
   for i := 0 to High(cKeywordsPropertyScoped) do
   begin
@@ -398,6 +412,7 @@ begin
   SetIdentFunc(HashKey('asm'), FuncAsm);
   SetIdentFunc(HashKey('end'), FuncEnd);
   SetIdentFunc(HashKey('property'), FuncProperty);
+  SetIdentFunc(HashKey('unit'), FuncUnit);
   SetIdentFunc(HashKey('type'), FuncType);
 
   FKeywords.Sorted := True;
@@ -476,12 +491,34 @@ begin
     Result := KeywordFunc;
 end;
 
+function TSynDWSSyn.FuncUnitScoped: TtkTokenKind;
+var
+   buf: String;
+begin
+  SetString(buf, FToIdent, FStringLen);
+  if (FRange = rsUnit) and (FKeywordsUnitScoped.IndexOf(buf) >= 0) then
+    Result := tkKey
+  else
+    Result := KeywordFunc;
+end;
+
 function TSynDWSSyn.FuncProperty: TtkTokenKind;
 begin
   if IsCurrentToken('property') then
   begin
     Result := tkKey;
     FRange := rsProperty;
+  end
+  else
+    Result := KeywordFunc;
+end;
+
+function TSynDWSSyn.FuncUnit: TtkTokenKind;
+begin
+  if IsCurrentToken('unit') then
+  begin
+    Result := tkKey;
+    FRange := rsUnit;
   end
   else
     Result := KeywordFunc;
@@ -771,7 +808,7 @@ procedure TSynDWSSyn.SemicolonProc;
 begin
   Inc(Run);
   FTokenID := tkSymbol;
-  if FRange in [rsProperty, rsExports] then
+  if FRange in [rsUnit, rsProperty, rsExports] then
     FRange := rsUnknown;
 end;
 

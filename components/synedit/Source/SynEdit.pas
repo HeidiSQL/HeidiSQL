@@ -3953,7 +3953,9 @@ begin
     else
       vStartOfBlock := CaretXY;
 
+    Inc(FPaintTransientLock);
     SetSelTextPrimitiveEx(PasteMode, PWideChar(GetClipboardText), True);
+    Dec(FPaintTransientLock);
     vEndOfBlock := BlockEnd;
     if PasteMode = smNormal then
       FUndoList.AddChange(crPaste, vStartOfBlock, vEndOfBlock, SelText,
@@ -8828,6 +8830,7 @@ begin
   end
   else
     bEndUndoBlock := False;
+  Inc(FPaintTransientLock);
   try
     while (ptCurrent.Line >= ptStart.Line) and (ptCurrent.Line <= ptEnd.Line) do
     begin
@@ -8917,6 +8920,7 @@ begin
   finally
     if bReplaceAll and not bPrompt then DecPaintLock;
     if bEndUndoBlock then EndUndoBlock;
+    Dec(FPaintTransientLock);
     DoOnPaintTransient( ttAfter );
   end;
 end;
