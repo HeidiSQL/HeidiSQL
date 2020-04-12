@@ -11782,6 +11782,11 @@ begin
     Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.Name, Attri.Background);
     Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.Name, Attri.IntegerStyle);
   end;
+  // Completion proposal
+  if AppSettings.ReadBool(asCompletionProposalSearchOnMid) then
+    SynCompletionProposal.Options := SynCompletionProposal.Options + [scoLimitToMatchedTextAnywhere]
+  else
+    SynCompletionProposal.Options := SynCompletionProposal.Options - [scoLimitToMatchedTextAnywhere];
 end;
 
 

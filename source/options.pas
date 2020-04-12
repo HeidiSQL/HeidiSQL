@@ -169,6 +169,7 @@ type
     lblWebSearchBaseUrl: TLabel;
     comboWebSearchBaseUrl: TComboBox;
     chkThemePreview: TCheckBox;
+    chkCompletionProposalSearchOnMid: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -213,6 +214,7 @@ type
     procedure comboThemeSelect(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure chkThemePreviewClick(Sender: TObject);
+    procedure chkCompletionProposalClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -374,6 +376,7 @@ begin
   end;
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
+  AppSettings.WriteBool(asCompletionProposalSearchOnMid, chkCompletionProposalSearchOnMid.Checked);
   AppSettings.WriteBool(asAutoUppercase, chkAutoUppercase.Checked);
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
 
@@ -681,6 +684,7 @@ begin
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
   chkCompletionProposal.Checked := AppSettings.ReadBool(asCompletionProposal);
+  chkCompletionProposalSearchOnMid.Checked := AppSettings.ReadBool(asCompletionProposalSearchOnMid);
   chkAutoUppercase.Checked := AppSettings.ReadBool(asAutoUppercase);
   chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
   comboSQLColElementChange(Sender);
@@ -844,6 +848,12 @@ begin
   Modified(Sender);
 end;
 
+
+procedure Toptionsform.chkCompletionProposalClick(Sender: TObject);
+begin
+  chkCompletionProposalSearchOnMid.Enabled := TCheckBox(Sender).Checked;
+  Modified(Sender);
+end;
 
 procedure Toptionsform.chkLogToFileClick(Sender: TObject);
 begin

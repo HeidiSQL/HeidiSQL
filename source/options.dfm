@@ -643,12 +643,11 @@ object optionsform: Toptionsform
       object chkCompletionProposal: TCheckBox
         Left = 180
         Top = 87
-        Width = 508
+        Width = 158
         Height = 17
-        Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable autocompletion'
         TabOrder = 8
-        OnClick = Modified
+        OnClick = chkCompletionProposalClick
       end
       object chkTabsToSpaces: TCheckBox
         Left = 254
@@ -818,6 +817,17 @@ object optionsform: Toptionsform
         OnChange = comboEditorColorsPresetChange
         Items.Strings = (
           'Current custom settings')
+      end
+      object chkCompletionProposalSearchOnMid: TCheckBox
+        Left = 331
+        Top = 87
+        Width = 357
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Find matches in middle of entered text'
+        Enabled = False
+        TabOrder = 18
+        OnClick = Modified
       end
     end
     object tabGridFormatting: TTabSheet
