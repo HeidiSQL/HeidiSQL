@@ -45,6 +45,8 @@ uses
   GenLex in 'GenLex.pas',
   HashTableGen in 'HashTableGen.pas' {FrmHashTableGen};
 
+{$R *.RES}
+
 begin
   Application.Initialize;
   Application.Title := 'SynGen';
