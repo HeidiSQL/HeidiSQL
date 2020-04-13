@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-04-12 15:03+0200\n"
+"PO-Revision-Date: 2020-04-13 13:19+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -5071,6 +5071,9 @@ msgstr "Replacement patterns:"
 #: searchreplace.pas:60
 msgid "Callback parentheses"
 msgstr "Callback parentheses"
+
+msgid "uppercase of back reference"
+msgstr "uppercase of back reference"
 
 #: sqlhelp.pas:140
 msgid "No help available for this keyword or no keyword was selected."

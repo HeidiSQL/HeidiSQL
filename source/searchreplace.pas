@@ -72,9 +72,10 @@ begin
     ' $ '+_('End of line')+CRLF+
     ' \w '+_('Any word character')+CRLF+
     ' \d '+_('Digit')+' (0-9)'+CRLF+
-    ' \s '+_('Whitespace')+CRLF+
+    ' \s '+_('Whitespace')+CRLF+CRLF+
     _('Replacement patterns:')+CRLF+
-    ' $0 .. $n '+_('Callback parentheses')
+    ' $0 .. $n '+_('Callback parentheses')+CRLF+
+    ' \U '+_('uppercase of back reference')
     ;
 end;
 
