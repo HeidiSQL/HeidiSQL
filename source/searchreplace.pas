@@ -74,8 +74,11 @@ begin
     ' \d '+_('Digit')+' (0-9)'+CRLF+
     ' \s '+_('Whitespace')+CRLF+CRLF+
     _('Replacement patterns:')+CRLF+
-    ' $0 .. $n '+_('Callback parentheses')+CRLF+
-    ' \U '+_('uppercase of back reference')
+    ' $0 .. $n '+_('Back reference to parentheses x')+CRLF+
+    ' \l '+_('lowercase back reference (first char only)')+CRLF+
+    ' \L '+_('lowercase back reference (all chars)')+CRLF+
+    ' \u '+_('uppercase back reference (first char only)')+CRLF+
+    ' \U '+_('uppercase back reference (all chars)')
     ;
 end;
 
