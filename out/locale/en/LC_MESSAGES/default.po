@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-04-13 20:09+0200\n"
+"PO-Revision-Date: 2020-04-14 17:46+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -5040,49 +5040,59 @@ msgstr "A stored function can only have IN parameters so context editing is bloc
 msgid "Routine \"%s\" already exists."
 msgstr "Routine \"%s\" already exists."
 
-#: searchreplace.pas:60
-msgid "Search patterns:"
-msgstr "Search patterns:"
-
-#: searchreplace.pas:60
 msgid "Start of line"
 msgstr "Start of line"
 
-#: searchreplace.pas:60
 msgid "End of line"
 msgstr "End of line"
 
-#: searchreplace.pas:60
-msgid "Any word character"
-msgstr "Any word character"
+msgid "Any word char"
+msgstr "Any word char"
 
-#: searchreplace.pas:60
+msgid "Any non-word char"
+msgstr "Any non-word char"
+
 msgid "Digit"
 msgstr "Digit"
 
-#: searchreplace.pas:60
+msgid "Any char except digits"
+msgstr "Any char except digits"
+
 msgid "Whitespace"
 msgstr "Whitespace"
 
-#: searchreplace.pas:60
-msgid "Replacement patterns:"
-msgstr "Replacement patterns:"
+msgid "Any char except whitespaces"
+msgstr "Any char except whitespaces"
 
-#: searchreplace.pas:60
-msgid "Back reference to parentheses x"
-msgstr "Back reference to parentheses x"
+msgid "New line"
+msgstr "New line"
 
-msgid "lowercase back reference (first char only)"
-msgstr "lowercase back reference (first char only)"
+msgid "Tabulator"
+msgstr "Tabulator"
 
-msgid "lowercase back reference (all chars)"
-msgstr "lowercase back reference (all chars)"
+msgid "Entire matched text"
+msgstr "Entire matched text"
 
-msgid "uppercase back reference (first char only)"
-msgstr "uppercase back reference (first char only)"
+msgid "Text from first captured group"
+msgstr "Text from first captured group"
 
-msgid "uppercase back reference (all chars)"
-msgstr "uppercase back reference (all chars)"
+msgid "Text from second captured group"
+msgstr "Text from second captured group"
+
+msgid "Text from third captured group"
+msgstr "Text from third captured group"
+
+msgid "Lowercase following char"
+msgstr "Lowercase following char"
+
+msgid "Lowercase following block"
+msgstr "Lowercase following block"
+
+msgid "Uppercase following char"
+msgstr "Uppercase following char"
+
+msgid "Uppercase following block"
+msgstr "Uppercase following block"
 
 #: sqlhelp.pas:140
 msgid "No help available for this keyword or no keyword was selected."
