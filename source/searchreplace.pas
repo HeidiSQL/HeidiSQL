@@ -65,10 +65,11 @@ uses apphelpers, main;
 
 
 procedure TfrmSearchReplace.FormCreate(Sender: TObject);
-  function AddItem(Menu: TPopupMenu; Code, Description: String; IsRegEx: Boolean): TMenuItem;
+  function AddItem(Menu: TPopupMenu; Code, Description, Example: String; IsRegEx: Boolean): TMenuItem;
   begin
     Result := TMenuItem.Create(Menu);
     Result.Caption := Code + ' ' + _(Description);
+    Result.Hint := Example;
     Result.OnClick := menuHintClick;
     Result.Tag := Integer(IsRegEx);
     Menu.Items.Add(Result);
@@ -82,26 +83,27 @@ begin
   if comboSearch.Items.Count > 0 then comboSearch.Text := comboSearch.Items[0];
   if comboReplace.Items.Count > 0 then comboReplace.Text := comboReplace.Items[0];
 
-  AddItem(popupSearchHints, '^', 'Start of line', True);
-  AddItem(popupSearchHints, '$', 'End of line', True);
-  AddItem(popupSearchHints, '.', 'Any character', True);
-  AddItem(popupSearchHints, '\w', 'Any word char', True);
-  AddItem(popupSearchHints, '\W', 'Any non-word char', True);
-  AddItem(popupSearchHints, '\d', 'Digit', True);
-  AddItem(popupSearchHints, '\D', 'Any char except digits', True);
-  AddItem(popupSearchHints, '\s', 'Whitespace', True);
-  AddItem(popupSearchHints, '\S', 'Any char except whitespaces', True);
+  AddItem(popupSearchHints, '^', 'Start of line', '', True);
+  AddItem(popupSearchHints, '$', 'End of line', '', True);
+  AddItem(popupSearchHints, '.', 'Any character', '', True);
+  AddItem(popupSearchHints, '\w', 'Any word char', 'a-z A-Z 0-9 and _', True);
+  AddItem(popupSearchHints, '\W', 'Any non-word char', '', True);
+  AddItem(popupSearchHints, '\d', 'Digit', '0..9', True);
+  AddItem(popupSearchHints, '\D', 'Any char except digits', '', True);
+  AddItem(popupSearchHints, '\s', 'Whitespace', 'space, tab, carriage return, line feed, or form feed', True);
+  AddItem(popupSearchHints, '\S', 'Any char except whitespaces', '', True);
 
-  AddItem(popupReplaceHints, '\n', 'New line', False);
-  AddItem(popupReplaceHints, '\t', 'Tabulator', False);
-  AddItem(popupReplaceHints, '$0', 'Entire matched text', True);
-  AddItem(popupReplaceHints, '$1', 'Text from first captured group', True);
-  AddItem(popupReplaceHints, '$2', 'Text from second captured group', True);
-  AddItem(popupReplaceHints, '$3', 'Text from third captured group', True);
-  AddItem(popupReplaceHints, '\l', 'Lowercase following char', True);
-  AddItem(popupReplaceHints, '\L', 'Lowercase following block', True);
-  AddItem(popupReplaceHints, '\u', 'Uppercase following char', True);
-  AddItem(popupReplaceHints, '\U', 'Uppercase following block', True);
+  AddItem(popupReplaceHints, '\n', 'New line', '', False);
+  AddItem(popupReplaceHints, '\t', 'Tabulator', '', False);
+  AddItem(popupReplaceHints, '$0', 'Entire matched text', '', True);
+  AddItem(popupReplaceHints, '$1', 'Text from first captured group', '', True);
+  AddItem(popupReplaceHints, '$2', 'Text from second captured group', '', True);
+  AddItem(popupReplaceHints, '$3', 'Text from third captured group', '', True);
+  AddItem(popupReplaceHints, '\l', 'Lowercase following char', 'aBCD', True);
+  AddItem(popupReplaceHints, '\L', 'Lowercase following block', 'abcd', True);
+  AddItem(popupReplaceHints, '\u', 'Uppercase following char', 'Abcd', True);
+  AddItem(popupReplaceHints, '\U', 'Uppercase following block', 'ABCD', True);
+  AddItem(popupReplaceHints, '\x', 'Hex code follows', '\x85', True);
 
 end;
 
