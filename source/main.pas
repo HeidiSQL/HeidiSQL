@@ -7112,7 +7112,9 @@ begin
   if ColumnHasIndex then begin
     MaxSize := MaxSize * 5;
   end;
-  if DbObj.Size < MaxSize then begin
+  try
+    if DbObj.Size > MaxSize then
+      raise Exception.Create(f_('Table too large (>%s), avoiding long running SELECT query', [FormatByteNumber(MaxSize)]));
     Query := Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
     if SynMemoFilter.Text <> '' then
       Query := Query + ' WHERE ' + SynMemoFilter.Text + CRLF;
@@ -7139,25 +7141,28 @@ begin
       Item.OnClick := QuickFilterClick;
       Data.Next;
     end;
-  end else begin
-    // Table is too large for the above SELECT query.
-    // Get ENUM/SET values instead if possible
-    QFvalues[0].Caption := f_('Table too large (>%s), avoiding long running SELECT query', [FormatByteNumber(MaxSize)]);
-    for TableCol in SelectedTableColumns do begin
-      if (TableCol.Name = Col) and (TableCol.DataType.Index in [dtEnum, dtSet]) then begin
-        ValueList := TableCol.ValueList;
-        for i:=0 to ValueList.Count-1 do begin
-          if QFvalues.Count > i then
-            Item := QFvalues[i]
-          else begin
-            Item := TMenuItem.Create(QFvalues);
-            QFvalues.Add(Item);
+  except
+    on E:Exception do begin
+      // Table is too large for the above SELECT query, or the query failed, due to an error in its filter or so
+      // Get ENUM/SET values instead if possible
+      QFvalues[0].Caption := StrEllipsis(E.Message, 100);
+      QFvalues[0].Hint := E.Message;
+      for TableCol in SelectedTableColumns do begin
+        if (TableCol.Name = Col) and (TableCol.DataType.Index in [dtEnum, dtSet]) then begin
+          ValueList := TableCol.ValueList;
+          for i:=0 to ValueList.Count-1 do begin
+            if QFvalues.Count > i+1 then
+              Item := QFvalues[i+1]
+            else begin
+              Item := TMenuItem.Create(QFvalues);
+              QFvalues.Add(Item);
+            end;
+            Item.Hint := Conn.QuoteIdent(Col)+'='+esc(ValueList[i]);
+            Item.Caption := StrEllipsis(Item.Hint, 100);
+            Item.OnClick := QuickFilterClick;
           end;
-          Item.Hint := Conn.QuoteIdent(Col)+'='+esc(ValueList[i]);
-          Item.Caption := StrEllipsis(Item.Hint, 100);
-          Item.OnClick := QuickFilterClick;
+          Break;
         end;
-        Break;
       end;
     end;
   end;
