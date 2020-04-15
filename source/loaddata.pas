@@ -460,6 +460,8 @@ var
   var
     i: Integer;
     LowPrio: String;
+    ColumnIndex: Integer;
+    ValuesCounted: Integer;
   begin
     Inc(ValueCount);
     if ValueCount <= ColumnCount then begin
@@ -484,8 +486,20 @@ var
         SetLength(SQL, Length(SQL)-2);
         SQL := SQL + ') VALUES (';
       end;
+      // Bugfix for #327: Determine column to retrieve the type from by counting the number of columns before the current one INCLUDING the omitted ones
+      ColumnIndex := 0;
+      ValuesCounted := 0;
+      for i:=0 to chkListColumns.Items.Count-1 do
+      begin
+        if chkListColumns.Checked[i] then  // column was already counted
+        Inc(ValuesCounted);                // increase number of counted columns
+        if ValuesCounted = ValueCount then // did we count all included columns up to the current column?
+        Break;
+        Inc(ColumnIndex);                  // if all columns (until the current column) are checked, ColumnIndex is ValueCount-1, like before this patch
+      end;
+
       if Value <> 'NULL' then begin
-        if chkLocalNumbers.Checked and (Columns[ValueCount-1].DataType.Category in [dtcInteger, dtcReal]) then
+        if chkLocalNumbers.Checked and (Columns[ColumnIndex].DataType.Category in [dtcInteger, dtcReal]) then
           Value := UnformatNumber(Value)
         else
           Value := esc(Value);
