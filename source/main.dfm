@@ -3129,6 +3129,55 @@ object MainForm: TMainForm
       ShortCut = 16416
       OnExecute = actSynEditCompletionProposeExecute
     end
+    object actQuickFilterFocusedValue1: TAction
+      Category = 'Data'
+      Caption = 'actQuickFilterFocusedValue1'
+      ImageIndex = 61
+      ShortCut = 24625
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocusedValue2: TAction
+      Category = 'Data'
+      Caption = 'actQuickFilterFocusedValue2'
+      ImageIndex = 61
+      ShortCut = 24626
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocusedValue3: TAction
+      Category = 'Data'
+      Caption = 'actQuickFilterFocusedValue3'
+      ImageIndex = 61
+      ShortCut = 24627
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocusedValue4: TAction
+      Category = 'Data'
+      Caption = 'actQuickFilterFocusedValue4'
+      ImageIndex = 61
+      ShortCut = 24628
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocusedValue5: TAction
+      Category = 'Data'
+      Caption = 'actQuickFilterFocusedValue5'
+      ImageIndex = 61
+      ShortCut = 24629
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocusedValue6: TAction
+      Category = 'Data'
+      Caption = 'actQuickFilterFocusedValue6'
+      ImageIndex = 61
+      ShortCut = 24630
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocusedValue7: TAction
+      Category = 'Data'
+      Caption = 'actQuickFilterFocusedValue7'
+      ImageIndex = 61
+      ShortCut = 24631
+      OnExecute = QuickFilterClick
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -3470,44 +3519,26 @@ object MainForm: TMainForm
     object menuQuickFilter: TMenuItem
       Caption = 'Quick Filter'
       ImageIndex = 53
-      object QF1: TMenuItem
-        AutoHotkeys = maManual
-        Caption = 'Column = Value'
-        ImageIndex = 61
-        OnClick = QuickFilterClick
+      object menuQuickFilterFocusedValue1: TMenuItem
+        Action = actQuickFilterFocusedValue1
       end
-      object QF2: TMenuItem
-        AutoHotkeys = maManual
-        Caption = 'Column != Value'
-        ImageIndex = 61
-        OnClick = QuickFilterClick
+      object menuQuickFilterFocusedValue2: TMenuItem
+        Action = actQuickFilterFocusedValue2
       end
-      object QF3: TMenuItem
-        AutoHotkeys = maManual
-        Caption = 'Column > Value'
-        ImageIndex = 61
-        OnClick = QuickFilterClick
+      object menuQuickFilterFocusedValue3: TMenuItem
+        Action = actQuickFilterFocusedValue3
       end
-      object QF4: TMenuItem
-        AutoHotkeys = maManual
-        Caption = 'Column < Value'
-        ImageIndex = 61
-        OnClick = QuickFilterClick
+      object menuQuickFilterFocusedValue4: TMenuItem
+        Action = actQuickFilterFocusedValue4
       end
-      object QF5: TMenuItem
-        Caption = 'Column LIKE Value%'
-        ImageIndex = 61
-        OnClick = QuickFilterClick
+      object menuQuickFilterFocusedValue5: TMenuItem
+        Action = actQuickFilterFocusedValue5
       end
-      object QF6: TMenuItem
-        Caption = 'Column LIKE %Value'
-        ImageIndex = 61
-        OnClick = QuickFilterClick
+      object menuQuickFilterFocusedValue6: TMenuItem
+        Action = actQuickFilterFocusedValue6
       end
-      object QF7: TMenuItem
-        Caption = 'Column LIKE %Value%'
-        ImageIndex = 61
-        OnClick = QuickFilterClick
+      object menuQuickFilterFocusedValue7: TMenuItem
+        Action = actQuickFilterFocusedValue7
       end
       object QFvalues: TMenuItem
         Caption = 'More values ...'
