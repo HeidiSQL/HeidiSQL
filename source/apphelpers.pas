@@ -3439,7 +3439,7 @@ begin
       ImportSettings(FSettingsFile);
     except
       on E:Exception do
-        ErrorDialog(E.Message);
+        MessageDlg(E.Message, mtError, [mbOK], 0, mbOK);
     end;
   end else begin
     FBasePath := '\Software\' + APPNAME + '\';
