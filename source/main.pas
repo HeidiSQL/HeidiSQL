@@ -1118,6 +1118,8 @@ type
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
+    FActionList1DefaultCaptions: TStringList;
+    FActionList1DefaultHints: TStringList;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1242,6 +1244,8 @@ type
     procedure ApplyVTFilter(FromTimer: Boolean);
     procedure ApplyFontToGrids;
     procedure PrepareImageList;
+    property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
+    property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
 end;
 
 
@@ -1948,9 +1952,13 @@ begin
   RestoreListSetup(ListTables);
 
   // Shortcuts
+  FActionList1DefaultCaptions := TStringList.Create;
+  FActionList1DefaultHints := TStringList.Create;
   for i:=0 to ActionList1.ActionCount-1 do begin
     Action := TAction(ActionList1.Actions[i]);
     Action.ShortCut := AppSettings.ReadInt(asActionShortcut1, Action.Name, Action.ShortCut);
+    FActionList1DefaultCaptions.Insert(i, Action.Caption);
+    FActionList1DefaultHints.Insert(i, Action.Hint);
   end;
 
   // Size of completion proposal window

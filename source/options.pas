@@ -1098,8 +1098,8 @@ begin
     lblShortcutHint.Caption := TreeShortcutItems.Text[Node, 0];
     if Assigned(Data.Action) then begin
       lblShortcut2.Enabled := False;
-      if Data.Action.Hint <> '' then
-        lblShortcutHint.Caption := Data.Action.Hint;
+      if MainForm.ActionList1DefaultHints[Data.Action.Index] <> '' then
+        lblShortcutHint.Caption := MainForm.ActionList1DefaultHints[Data.Action.Index];
     end;
     Shortcut1.HotKey := Data.ShortCut1;
     Shortcut2.HotKey := Data.ShortCut2;
@@ -1155,8 +1155,7 @@ begin
         end;
         CellText := _(CellText);
       end else if Assigned(Data.Action) then begin
-        CellText := Data.Action.Caption;
-        CellText := StripHotkey(CellText);
+        CellText := MainForm.ActionList1DefaultCaptions[Data.Action.Index];
       end;
     end;
   end;
