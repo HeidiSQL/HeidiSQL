@@ -3129,53 +3129,130 @@ object MainForm: TMainForm
       ShortCut = 16416
       OnExecute = actSynEditCompletionProposeExecute
     end
-    object actQuickFilterFocusedValue1: TAction
+    object actQuickFilterFocused1: TAction
       Category = 'Data'
-      Caption = 'actQuickFilterFocusedValue1'
+      Caption = 'Quick filter: Column = Focused'
       ImageIndex = 61
       ShortCut = 24625
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterFocusedValue2: TAction
+    object actQuickFilterFocused2: TAction
       Category = 'Data'
-      Caption = 'actQuickFilterFocusedValue2'
+      Caption = 'Quick filter: Column != Focused'
       ImageIndex = 61
       ShortCut = 24626
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterFocusedValue3: TAction
+    object actQuickFilterFocused3: TAction
       Category = 'Data'
-      Caption = 'actQuickFilterFocusedValue3'
+      Caption = 'Quick filter: Column > Focused'
       ImageIndex = 61
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocused4: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column < Focused'
+      ImageIndex = 61
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocused5: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column LIKE Focused%'
+      ImageIndex = 61
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocused6: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column LIKE %Focused'
+      ImageIndex = 61
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterFocused7: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column LIKE %Focused%'
+      ImageIndex = 61
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterPrompt1: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column = Prompt'
+      ImageIndex = 58
       ShortCut = 24627
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterFocusedValue4: TAction
+    object actQuickFilterPrompt2: TAction
       Category = 'Data'
-      Caption = 'actQuickFilterFocusedValue4'
-      ImageIndex = 61
+      Caption = 'Quick filter: Column != Prompt'
+      ImageIndex = 58
       ShortCut = 24628
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterFocusedValue5: TAction
+    object actQuickFilterPrompt3: TAction
       Category = 'Data'
-      Caption = 'actQuickFilterFocusedValue5'
-      ImageIndex = 61
+      Caption = 'Quick filter: Column > Prompt'
+      ImageIndex = 58
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterPrompt4: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column < Prompt'
+      ImageIndex = 58
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterPrompt5: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column LIKE %Prompt%'
+      ImageIndex = 58
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterPrompt6: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column IS NULL'
+      ImageIndex = 58
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterPrompt7: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column IS NOT NULL'
+      ImageIndex = 58
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterClipboard1: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column = Clipboard'
+      ImageIndex = 4
       ShortCut = 24629
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterFocusedValue6: TAction
+    object actQuickFilterClipboard2: TAction
       Category = 'Data'
-      Caption = 'actQuickFilterFocusedValue6'
-      ImageIndex = 61
+      Caption = 'Quick filter: Column != Clipboard'
+      ImageIndex = 4
       ShortCut = 24630
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterFocusedValue7: TAction
+    object actQuickFilterClipboard3: TAction
       Category = 'Data'
-      Caption = 'actQuickFilterFocusedValue7'
-      ImageIndex = 61
-      ShortCut = 24631
+      Caption = 'Quick filter: Column > Clipboard'
+      ImageIndex = 4
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterClipboard4: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column < Clipboard'
+      ImageIndex = 4
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterClipboard5: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column LIKE %Clipboard%'
+      ImageIndex = 4
+      OnExecute = QuickFilterClick
+    end
+    object actQuickFilterClipboard6: TAction
+      Category = 'Data'
+      Caption = 'Quick filter: Column IN (Clipboard)'
+      ImageIndex = 4
       OnExecute = QuickFilterClick
     end
   end
@@ -3519,26 +3596,26 @@ object MainForm: TMainForm
     object menuQuickFilter: TMenuItem
       Caption = 'Quick Filter'
       ImageIndex = 53
-      object menuQuickFilterFocusedValue1: TMenuItem
-        Action = actQuickFilterFocusedValue1
+      object menuQuickFilterFocused1: TMenuItem
+        Action = actQuickFilterFocused1
       end
-      object menuQuickFilterFocusedValue2: TMenuItem
-        Action = actQuickFilterFocusedValue2
+      object menuQuickFilterFocused2: TMenuItem
+        Action = actQuickFilterFocused2
       end
-      object menuQuickFilterFocusedValue3: TMenuItem
-        Action = actQuickFilterFocusedValue3
+      object menuQuickFilterFocused3: TMenuItem
+        Action = actQuickFilterFocused3
       end
-      object menuQuickFilterFocusedValue4: TMenuItem
-        Action = actQuickFilterFocusedValue4
+      object menuQuickFilterFocused4: TMenuItem
+        Action = actQuickFilterFocused4
       end
-      object menuQuickFilterFocusedValue5: TMenuItem
-        Action = actQuickFilterFocusedValue5
+      object menuQuickFilterFocused5: TMenuItem
+        Action = actQuickFilterFocused5
       end
-      object menuQuickFilterFocusedValue6: TMenuItem
-        Action = actQuickFilterFocusedValue6
+      object menuQuickFilterFocused6: TMenuItem
+        Action = actQuickFilterFocused6
       end
-      object menuQuickFilterFocusedValue7: TMenuItem
-        Action = actQuickFilterFocusedValue7
+      object menuQuickFilterFocused7: TMenuItem
+        Action = actQuickFilterFocused7
       end
       object QFvalues: TMenuItem
         Caption = 'More values ...'
@@ -3550,79 +3627,48 @@ object MainForm: TMainForm
       object N11a: TMenuItem
         Caption = '-'
       end
-      object QF8: TMenuItem
-        Tag = 1
-        Caption = 'Column = ...'
-        ImageIndex = 58
-        OnClick = QuickFilterClick
+      object menuQuickFilterPrompt1: TMenuItem
+        Action = actQuickFilterPrompt1
       end
-      object QF9: TMenuItem
-        Tag = 1
-        Caption = 'Column != ...'
-        ImageIndex = 58
-        OnClick = QuickFilterClick
+      object menuQuickFilterPrompt2: TMenuItem
+        Action = actQuickFilterPrompt2
       end
-      object QF10: TMenuItem
-        Tag = 1
-        Caption = 'Column > ...'
-        ImageIndex = 58
-        OnClick = QuickFilterClick
+      object menuQuickFilterPrompt3: TMenuItem
+        Action = actQuickFilterPrompt3
       end
-      object QF11: TMenuItem
-        Tag = 1
-        Caption = 'Column < ...'
-        ImageIndex = 58
-        OnClick = QuickFilterClick
+      object menuQuickFilterPrompt4: TMenuItem
+        Action = actQuickFilterPrompt4
       end
-      object QF12: TMenuItem
-        Tag = 1
-        Caption = 'Column like ...'
-        ImageIndex = 58
-        OnClick = QuickFilterClick
+      object menuQuickFilterPrompt5: TMenuItem
+        Action = actQuickFilterPrompt5
       end
-      object QF13: TMenuItem
-        Caption = 'Column IS NULL'
-        ImageIndex = 58
-        OnClick = QuickFilterClick
+      object menuQuickFilterPrompt6: TMenuItem
+        Action = actQuickFilterPrompt6
       end
-      object QF14: TMenuItem
-        Caption = 'Column IS NOT NULL'
-        ImageIndex = 58
-        OnClick = QuickFilterClick
+      object menuQuickFilterPrompt7: TMenuItem
+        Action = actQuickFilterPrompt7
       end
       object N7a: TMenuItem
         AutoHotkeys = maManual
         Caption = '-'
       end
-      object QF15: TMenuItem
-        Caption = 'Column = CLIPBOARD'
-        ImageIndex = 4
-        OnClick = QuickFilterClick
+      object menuQuickFilterClipboard1: TMenuItem
+        Action = actQuickFilterClipboard1
       end
-      object QF16: TMenuItem
-        Caption = 'Column != CLIPBOARD'
-        ImageIndex = 4
-        OnClick = QuickFilterClick
+      object menuQuickFilterClipboard2: TMenuItem
+        Action = actQuickFilterClipboard2
       end
-      object QF17: TMenuItem
-        Caption = 'Column > CLIPBOARD'
-        ImageIndex = 4
-        OnClick = QuickFilterClick
+      object menuQuickFilterClipboard3: TMenuItem
+        Action = actQuickFilterClipboard3
       end
-      object QF18: TMenuItem
-        Caption = 'Column < CLIPBOARD'
-        ImageIndex = 4
-        OnClick = QuickFilterClick
+      object menuQuickFilterClipboard4: TMenuItem
+        Action = actQuickFilterClipboard4
       end
-      object QF19: TMenuItem
-        Caption = 'Column LIKE %CLIPBOARD%'
-        ImageIndex = 4
-        OnClick = QuickFilterClick
+      object menuQuickFilterClipboard5: TMenuItem
+        Action = actQuickFilterClipboard5
       end
-      object QF20: TMenuItem
-        Caption = 'Column IN ()'
-        ImageIndex = 4
-        OnClick = QuickFilterClick
+      object menuQuickFilterClipboard6: TMenuItem
+        Action = actQuickFilterClipboard6
       end
       object N21: TMenuItem
         Caption = '-'

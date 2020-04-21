@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-04-14 17:46+0200\n"
+"PO-Revision-Date: 2020-04-21 18:03+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2511,6 +2511,66 @@ msgstr "More values ..."
 #. Quick filters - more values
 msgid "Table too large (>%s), avoiding long running SELECT query"
 msgstr "Table too large (>%s), avoiding long running SELECT query"
+
+msgid "Quick filter: Column = Focused"
+msgstr "Quick filter: Column = Focused"
+
+msgid "Quick filter: Column != Focused"
+msgstr "Quick filter: Column != Focused"
+
+msgid "Quick filter: Column > Focused"
+msgstr "Quick filter: Column > Focused"
+
+msgid "Quick filter: Column < Focused"
+msgstr "Quick filter: Column < Focused"
+
+msgid "Quick filter: Column LIKE Focused%"
+msgstr "Quick filter: Column LIKE Focused%"
+
+msgid "Quick filter: Column LIKE %Focused"
+msgstr "Quick filter: Column LIKE %Focused"
+
+msgid "Quick filter: Column LIKE %Focused%"
+msgstr "Quick filter: Column LIKE %Focused%"
+
+msgid "Quick filter: Column = Prompt"
+msgstr "Quick filter: Column = Prompt"
+
+msgid "Quick filter: Column != Prompt"
+msgstr "Quick filter: Column != Prompt"
+
+msgid "Quick filter: Column > Prompt"
+msgstr "Quick filter: Column > Prompt"
+
+msgid "Quick filter: Column < Prompt"
+msgstr "Quick filter: Column < Prompt"
+
+msgid "Quick filter: Column LIKE %Prompt%"
+msgstr "Quick filter: Column LIKE %Prompt%"
+
+msgid "Quick filter: Column IS NULL"
+msgstr "Quick filter: Column IS NULL"
+
+msgid "Quick filter: Column IS NOT NULL"
+msgstr "Quick filter: Column IS NOT NULL"
+
+msgid "Quick filter: Column = Clipboard"
+msgstr "Quick filter: Column = Clipboard"
+
+msgid "Quick filter: Column != Clipboard"
+msgstr "Quick filter: Column != Clipboard"
+
+msgid "Quick filter: Column > Clipboard"
+msgstr "Quick filter: Column > Clipboard"
+
+msgid "Quick filter: Column < Clipboard"
+msgstr "Quick filter: Column < Clipboard"
+
+msgid "Quick filter: Column LIKE %Clipboard%"
+msgstr "Quick filter: Column LIKE %Clipboard%"
+
+msgid "Quick filter: Column IN (Clipboard)"
+msgstr "Quick filter: Column IN (Clipboard)"
 
 #. MainForm..popupSqlLog..Copylinetonewquerytab1..Caption
 #: main.dfm:9000

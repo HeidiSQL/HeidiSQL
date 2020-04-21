@@ -341,11 +341,6 @@ type
     SynMemoFilter: TSynMemo;
     TimerRefresh: TTimer;
     Saveastextfile1: TMenuItem;
-    QF8: TMenuItem;
-    QF10: TMenuItem;
-    QF11: TMenuItem;
-    QF9: TMenuItem;
-    QF12: TMenuItem;
     Exportdata2: TMenuItem;
     N11a: TMenuItem;
     DataInsertValue: TMenuItem;
@@ -362,13 +357,6 @@ type
     SynCompletionProposal: TSynCompletionProposal;
     tabCommandStats: TTabSheet;
     ListCommandStats: TVirtualStringTree;
-    QF13: TMenuItem;
-    QF14: TMenuItem;
-    QF15: TMenuItem;
-    QF16: TMenuItem;
-    QF17: TMenuItem;
-    QF18: TMenuItem;
-    QF19: TMenuItem;
     N21: TMenuItem;
     popupQuery: TPopupMenu;
     MenuRun: TMenuItem;
@@ -568,7 +556,6 @@ type
     N9: TMenuItem;
     ExportdatabaseasSQL1: TMenuItem;
     Exportgridrows1: TMenuItem;
-    QF20: TMenuItem;
     DataDefaultValue: TMenuItem;
     actLaunchCommandline: TAction;
     Launchcommandline1: TMenuItem;
@@ -662,20 +649,46 @@ type
     Attach1: TMenuItem;
     actSynEditCompletionPropose: TAction;
     ShowSQLcompletionproposal1: TMenuItem;
-    actQuickFilterFocusedValue1: TAction;
-    actQuickFilterFocusedValue2: TAction;
-    actQuickFilterFocusedValue3: TAction;
-    actQuickFilterFocusedValue4: TAction;
-    actQuickFilterFocusedValue5: TAction;
-    actQuickFilterFocusedValue6: TAction;
-    actQuickFilterFocusedValue7: TAction;
-    menuQuickFilterFocusedValue1: TMenuItem;
-    menuQuickFilterFocusedValue2: TMenuItem;
-    menuQuickFilterFocusedValue3: TMenuItem;
-    menuQuickFilterFocusedValue4: TMenuItem;
-    menuQuickFilterFocusedValue5: TMenuItem;
-    menuQuickFilterFocusedValue6: TMenuItem;
-    menuQuickFilterFocusedValue7: TMenuItem;
+    actQuickFilterFocused1: TAction;
+    actQuickFilterFocused2: TAction;
+    actQuickFilterFocused3: TAction;
+    actQuickFilterFocused4: TAction;
+    actQuickFilterFocused5: TAction;
+    actQuickFilterFocused6: TAction;
+    actQuickFilterFocused7: TAction;
+    actQuickFilterPrompt1: TAction;
+    actQuickFilterPrompt2: TAction;
+    actQuickFilterPrompt3: TAction;
+    actQuickFilterPrompt4: TAction;
+    actQuickFilterPrompt5: TAction;
+    actQuickFilterPrompt6: TAction;
+    actQuickFilterPrompt7: TAction;
+    actQuickFilterClipboard1: TAction;
+    actQuickFilterClipboard2: TAction;
+    actQuickFilterClipboard3: TAction;
+    actQuickFilterClipboard4: TAction;
+    actQuickFilterClipboard5: TAction;
+    actQuickFilterClipboard6: TAction;
+    menuQuickFilterFocused1: TMenuItem;
+    menuQuickFilterFocused2: TMenuItem;
+    menuQuickFilterFocused3: TMenuItem;
+    menuQuickFilterFocused4: TMenuItem;
+    menuQuickFilterFocused5: TMenuItem;
+    menuQuickFilterFocused6: TMenuItem;
+    menuQuickFilterFocused7: TMenuItem;
+    menuQuickFilterPrompt1: TMenuItem;
+    menuQuickFilterPrompt2: TMenuItem;
+    menuQuickFilterPrompt3: TMenuItem;
+    menuQuickFilterPrompt4: TMenuItem;
+    menuQuickFilterPrompt5: TMenuItem;
+    menuQuickFilterPrompt6: TMenuItem;
+    menuQuickFilterPrompt7: TMenuItem;
+    menuQuickFilterClipboard1: TMenuItem;
+    menuQuickFilterClipboard2: TMenuItem;
+    menuQuickFilterClipboard3: TMenuItem;
+    menuQuickFilterClipboard4: TMenuItem;
+    menuQuickFilterClipboard5: TMenuItem;
+    menuQuickFilterClipboard6: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -6428,16 +6441,15 @@ end;
 procedure TMainForm.QuickFilterClick(Sender: TObject);
 var
   Filter, Val, Col: String;
-  Item : TMenuItem;
+  Act: TAction;
 begin
   // Set filter for "where..."-clause
-  if Sender is TAction then
-    Item := (Sender as TAction).ActionComponent as TMenuItem
-  else
-    Item := Sender as TMenuItem;
+  if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
+    Exit;
+  Act := Sender as TAction;
   Filter := '';
 
-  if Item.Tag = 1 then begin
+  if ExecRegExpr('Prompt\d+$', Act.Name) then begin
     // Item needs prompt
     Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
     Col := ActiveConnection.QuoteIdent(Col, False);
@@ -6446,20 +6458,20 @@ begin
       Col := Col + '::text';
     end;
     Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
-    if InputQuery(_('Specify filter-value...'), Item.Caption, Val) then begin
-      if Item = QF8 then
+    if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
+      if Act = actQuickFilterPrompt1 then
         Filter := Col + ' = ''' + Val + ''''
-      else if Item = QF9 then
+      else if Act = actQuickFilterPrompt2 then
         Filter := Col + ' != ''' + Val + ''''
-      else if Item = QF10 then
+      else if Act = actQuickFilterPrompt3 then
         Filter := Col + ' > ''' + Val + ''''
-      else if Item = QF11 then
+      else if Act = actQuickFilterPrompt4 then
         Filter := Col + ' < ''' + Val + ''''
-      else if Item = QF12 then
+      else if Act = actQuickFilterPrompt5 then
         Filter := Col + ' LIKE ''%' + Val + '%''';
     end;
   end else
-    Filter := Item.Hint;
+    Filter := Act.Hint;
 
   if ExecRegExpr('\s+LIKE\s+''', Filter) then
     Filter := Filter + ActiveConnection.LikeClauseTail;
@@ -6948,6 +6960,7 @@ var
   Node: PVirtualNode;
   OldDataLocalNumberFormat: Boolean;
   IncludedValues: TStringList;
+  Act: TAction;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
@@ -6978,13 +6991,13 @@ begin
   end;
 
   // Block 1: WHERE col IN ([focused cell values])
-  actQuickFilterFocusedValue1.Hint := '';
-  actQuickFilterFocusedValue2.Hint := '';
-  actQuickFilterFocusedValue3.Hint := '';
-  actQuickFilterFocusedValue4.Hint := '';
-  actQuickFilterFocusedValue5.Hint := '';
-  actQuickFilterFocusedValue6.Hint := '';
-  actQuickFilterFocusedValue7.Hint := '';
+  actQuickFilterFocused1.Hint := '';
+  actQuickFilterFocused2.Hint := '';
+  actQuickFilterFocused3.Hint := '';
+  actQuickFilterFocused4.Hint := '';
+  actQuickFilterFocused5.Hint := '';
+  actQuickFilterFocused6.Hint := '';
+  actQuickFilterFocused7.Hint := '';
   Node := Grid.GetFirstSelected;
   HasNullValue := False;
   HasNotNullValue := False;
@@ -7001,94 +7014,90 @@ begin
       HasNotNullValue := True;
       Value := Grid.Text[Node, Grid.FocusedColumn];
       if IncludedValues.IndexOf(Value) = -1 then begin
-        actQuickFilterFocusedValue1.Hint := actQuickFilterFocusedValue1.Hint + esc(Value) + ', ';
-        actQuickFilterFocusedValue2.Hint := actQuickFilterFocusedValue2.Hint + esc(Value) + ', ';
-        actQuickFilterFocusedValue3.Hint := actQuickFilterFocusedValue3.Hint + Col + ' LIKE ''' + esc(Value, True, False) + '%'' OR ';
-        actQuickFilterFocusedValue4.Hint := actQuickFilterFocusedValue4.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + ''' OR ';
-        actQuickFilterFocusedValue5.Hint := actQuickFilterFocusedValue5.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + '%'' OR ';
-        actQuickFilterFocusedValue6.Hint := actQuickFilterFocusedValue6.Hint + Col + ' > ' + esc(Value) + ' OR ';
-        actQuickFilterFocusedValue7.Hint := actQuickFilterFocusedValue7.Hint + Col + ' < ' + esc(Value) + ' OR ';
+        actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + esc(Value) + ', ';
+        actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + esc(Value) + ', ';
+        actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint + Col + ' LIKE ''' + esc(Value, True, False) + '%'' OR ';
+        actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + ''' OR ';
+        actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + '%'' OR ';
+        actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + esc(Value) + ' OR ';
+        actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + esc(Value) + ' OR ';
         IncludedValues.Add(Value);
       end;
     end;
     Node := Grid.GetNextSelected(Node);
-    if Length(actQuickFilterFocusedValue1.Hint) > SIZE_MB then
+    if Length(actQuickFilterFocused1.Hint) > SIZE_MB then
       Break;
   end;
   DataLocalNumberFormat := OldDataLocalNumberFormat;
   if HasNotNullValue then begin
-    actQuickFilterFocusedValue1.Hint := Col + ' IN (' + Copy(actQuickFilterFocusedValue1.Hint, 1, Length(actQuickFilterFocusedValue1.Hint)-2) + ')';
-    actQuickFilterFocusedValue2.Hint := Col + ' NOT IN (' + Copy(actQuickFilterFocusedValue2.Hint, 1, Length(actQuickFilterFocusedValue2.Hint)-2) + ')';
-    actQuickFilterFocusedValue3.Hint := Copy(actQuickFilterFocusedValue3.Hint, 1, Length(actQuickFilterFocusedValue3.Hint)-4);
-    actQuickFilterFocusedValue4.Hint := Copy(actQuickFilterFocusedValue4.Hint, 1, Length(actQuickFilterFocusedValue4.Hint)-4);
-    actQuickFilterFocusedValue5.Hint := Copy(actQuickFilterFocusedValue5.Hint, 1, Length(actQuickFilterFocusedValue5.Hint)-4);
-    actQuickFilterFocusedValue6.Hint := Copy(actQuickFilterFocusedValue6.Hint, 1, Length(actQuickFilterFocusedValue6.Hint)-4);
-    actQuickFilterFocusedValue7.Hint := Copy(actQuickFilterFocusedValue7.Hint, 1, Length(actQuickFilterFocusedValue7.Hint)-4);
+    actQuickFilterFocused1.Hint := Col + ' IN (' + Copy(actQuickFilterFocused1.Hint, 1, Length(actQuickFilterFocused1.Hint)-2) + ')';
+    actQuickFilterFocused2.Hint := Col + ' NOT IN (' + Copy(actQuickFilterFocused2.Hint, 1, Length(actQuickFilterFocused2.Hint)-2) + ')';
+    actQuickFilterFocused3.Hint := Copy(actQuickFilterFocused3.Hint, 1, Length(actQuickFilterFocused3.Hint)-4);
+    actQuickFilterFocused4.Hint := Copy(actQuickFilterFocused4.Hint, 1, Length(actQuickFilterFocused4.Hint)-4);
+    actQuickFilterFocused5.Hint := Copy(actQuickFilterFocused5.Hint, 1, Length(actQuickFilterFocused5.Hint)-4);
+    actQuickFilterFocused6.Hint := Copy(actQuickFilterFocused6.Hint, 1, Length(actQuickFilterFocused6.Hint)-4);
+    actQuickFilterFocused7.Hint := Copy(actQuickFilterFocused7.Hint, 1, Length(actQuickFilterFocused7.Hint)-4);
   end;
   if HasNullValue then begin
     if HasNotNullValue then begin
-      actQuickFilterFocusedValue1.Hint := actQuickFilterFocusedValue1.Hint + ' OR ';
-      actQuickFilterFocusedValue2.Hint := actQuickFilterFocusedValue2.Hint + ' AND ';
-      actQuickFilterFocusedValue3.Hint := actQuickFilterFocusedValue3.Hint + ' OR ';
-      actQuickFilterFocusedValue4.Hint := actQuickFilterFocusedValue4.Hint + ' OR ';
-      actQuickFilterFocusedValue5.Hint := actQuickFilterFocusedValue5.Hint + ' OR ';
-      actQuickFilterFocusedValue6.Hint := actQuickFilterFocusedValue6.Hint + ' OR ';
-      actQuickFilterFocusedValue7.Hint := actQuickFilterFocusedValue7.Hint + ' OR ';
+      actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + ' OR ';
+      actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + ' AND ';
+      actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint + ' OR ';
+      actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint + ' OR ';
+      actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint + ' OR ';
+      actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + ' OR ';
+      actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + ' OR ';
     end;
-    actQuickFilterFocusedValue1.Hint := actQuickFilterFocusedValue1.Hint + Col + ' IS NULL';
-    actQuickFilterFocusedValue2.Hint := actQuickFilterFocusedValue2.Hint + Col + ' IS NOT NULL';
-    actQuickFilterFocusedValue3.Hint := actQuickFilterFocusedValue3.Hint + Col + ' IS NULL';
-    actQuickFilterFocusedValue4.Hint := actQuickFilterFocusedValue4.Hint + Col + ' IS NULL';
-    actQuickFilterFocusedValue5.Hint := actQuickFilterFocusedValue5.Hint + Col + ' IS NULL';
-    actQuickFilterFocusedValue6.Hint := actQuickFilterFocusedValue6.Hint + Col + ' IS NULL';
-    actQuickFilterFocusedValue7.Hint := actQuickFilterFocusedValue7.Hint + Col + ' IS NULL';
+    actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Col + ' IS NULL';
+    actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Col + ' IS NOT NULL';
+    actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint + Col + ' IS NULL';
+    actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint + Col + ' IS NULL';
+    actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint + Col + ' IS NULL';
+    actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' IS NULL';
+    actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' IS NULL';
   end;
-  actQuickFilterFocusedValue1.Visible := HasNotNullValue or HasNullValue;
-  actQuickFilterFocusedValue2.Visible := HasNotNullValue or HasNullValue;
-  actQuickFilterFocusedValue3.Visible := HasNotNullValue;
-  actQuickFilterFocusedValue4.Visible := HasNotNullValue;
-  actQuickFilterFocusedValue5.Visible := HasNotNullValue;
-  actQuickFilterFocusedValue6.Visible := HasNotNullValue;
-  actQuickFilterFocusedValue7.Visible := HasNotNullValue;
+  actQuickFilterFocused1.Visible := HasNotNullValue or HasNullValue;
+  actQuickFilterFocused2.Visible := HasNotNullValue or HasNullValue;
+  actQuickFilterFocused3.Visible := HasNotNullValue;
+  actQuickFilterFocused4.Visible := HasNotNullValue;
+  actQuickFilterFocused5.Visible := HasNotNullValue;
+  actQuickFilterFocused6.Visible := HasNotNullValue;
+  actQuickFilterFocused7.Visible := HasNotNullValue;
   IncludedValues.Free;
 
   // Block 2: WHERE col = [ask user for value]
-  QF8.Hint := Col + ' = "..."';
-  QF9.Hint := Col + ' != "..."';
-  QF10.Hint := Col + ' > "..."';
-  QF11.Hint := Col + ' < "..."';
-  QF12.Hint := Col + ' LIKE "%...%"';
-  QF13.Hint := Col + ' IS NULL';
-  QF14.Hint := Col + ' IS NOT NULL';
+  actQuickFilterPrompt1.Hint := Col + ' = "..."';
+  actQuickFilterPrompt2.Hint := Col + ' != "..."';
+  actQuickFilterPrompt3.Hint := Col + ' > "..."';
+  actQuickFilterPrompt4.Hint := Col + ' < "..."';
+  actQuickFilterPrompt5.Hint := Col + ' LIKE "%...%"';
+  actQuickFilterPrompt6.Hint := Col + ' IS NULL';
+  actQuickFilterPrompt7.Hint := Col + ' IS NOT NULL';
 
   // Block 3: WHERE col = [clipboard content]
   Value := Trim(Clipboard.AsText);
   if Length(Value) < SIZE_KB then begin
-    QF15.Enabled := true; QF15.Hint := Col + ' = ' + esc(Value);
-    QF16.Enabled := true; QF16.Hint := Col + ' != ' + esc(Value);
-    QF17.Enabled := true; QF17.Hint := Col + ' > ' + esc(Value);
-    QF18.Enabled := true; QF18.Hint := Col + ' < ' + esc(Value);
-    QF19.Enabled := true; QF19.Hint := Col + ' LIKE ''%' + esc(Value, True, False) + '%''';
-    QF20.Enabled := true; QF20.Hint := Col + ' IN (' + Value + ')';
+    actQuickFilterClipboard1.Enabled := true; actQuickFilterClipboard1.Hint := Col + ' = ' + esc(Value);
+    actQuickFilterClipboard2.Enabled := true; actQuickFilterClipboard2.Hint := Col + ' != ' + esc(Value);
+    actQuickFilterClipboard3.Enabled := true; actQuickFilterClipboard3.Hint := Col + ' > ' + esc(Value);
+    actQuickFilterClipboard4.Enabled := true; actQuickFilterClipboard4.Hint := Col + ' < ' + esc(Value);
+    actQuickFilterClipboard5.Enabled := true; actQuickFilterClipboard5.Hint := Col + ' LIKE ''%' + esc(Value, True, False) + '%''';
+    actQuickFilterClipboard6.Enabled := true; actQuickFilterClipboard6.Hint := Col + ' IN (' + Value + ')';
   end else begin
-    QF15.Enabled := false; QF15.Hint := Col + ' = ' + CLPBRD;
-    QF16.Enabled := false; QF16.Hint := Col + ' != ' + CLPBRD;
-    QF17.Enabled := false; QF17.Hint := Col + ' > ' + CLPBRD;
-    QF18.Enabled := false; QF18.Hint := Col + ' < ' + CLPBRD;
-    QF19.Enabled := false; QF19.Hint := Col + ' LIKE %' + CLPBRD + '%';
-    QF20.Enabled := false; QF20.Hint := Col + ' IN (' + CLPBRD + ')';
+    actQuickFilterClipboard1.Enabled := false; actQuickFilterClipboard1.Hint := Col + ' = ' + CLPBRD;
+    actQuickFilterClipboard2.Enabled := false; actQuickFilterClipboard2.Hint := Col + ' != ' + CLPBRD;
+    actQuickFilterClipboard3.Enabled := false; actQuickFilterClipboard3.Hint := Col + ' > ' + CLPBRD;
+    actQuickFilterClipboard4.Enabled := false; actQuickFilterClipboard4.Hint := Col + ' < ' + CLPBRD;
+    actQuickFilterClipboard5.Enabled := false; actQuickFilterClipboard5.Hint := Col + ' LIKE %' + CLPBRD + '%';
+    actQuickFilterClipboard6.Enabled := false; actQuickFilterClipboard6.Hint := Col + ' IN (' + CLPBRD + ')';
   end;
 
+  // Set captions from hints
   for i:=0 to menuQuickFilter.Count-1 do begin
-    if (menuQuickFilter[i].Caption <> '-') // Not a separator
-      and (menuQuickFilter[i].Count = 0) // Not a menu with subitems
-      then begin
-      if menuQuickFilter[i].Action = nil then // Not some special item
-        menuQuickFilter[i].Caption := StrEllipsis(menuQuickFilter[i].Hint, 100)
-      else begin
-        TAction(menuQuickFilter[i].Action).Caption := StrEllipsis(menuQuickFilter[i].Hint, 100)
-      end;
-    end;
+    if menuQuickFilter[i].Action = nil then
+      Continue;
+    Act := menuQuickFilter[i].Action as TAction;
+    Act.Caption := StrEllipsis(Act.Hint, 100);
   end;
 
 end;
