@@ -126,6 +126,8 @@ type
     popupHost: TPopupMenu;
     menuFindDatabaseFiles: TMenuItem;
     menuAddDatabaseFiles: TMenuItem;
+    lblIgnoreDatabasePattern: TLabel;
+    editIgnoreDatabasePattern: TEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -438,6 +440,7 @@ begin
   Sess.SSLCertificate := editSSLCertificate.Text;
   Sess.SSLCACertificate := editSSLCACertificate.Text;
   Sess.SSLCipher := editSSLCipher.Text;
+  Sess.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
   Sess.SaveToRegistry;
 
   FSessionModified := False;
@@ -646,6 +649,7 @@ begin
     Result.LocalTimeZone := chkLocalTimeZone.Checked;
     Result.FullTableStatus := chkFullTableStatus.Checked;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
+    Result.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
   end;
 end;
 
@@ -928,6 +932,7 @@ begin
     editSSLCertificate.Text := Sess.SSLCertificate;
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     editSSLCipher.Text := Sess.SSLCipher;
+    editIgnoreDatabasePattern.Text := Sess.IgnoreDatabasePattern;
     FServerVersion := Sess.ServerVersion;
   end;
 
@@ -1211,6 +1216,8 @@ begin
       updownPort.Position := Params.DefaultPort;
     if not editUsername.Modified then
       editUsername.Text := Params.DefaultUsername;
+    if not editIgnoreDatabasePattern.Modified then
+      editIgnoreDatabasePattern.Text := Params.DefaultIgnoreDatabasePattern;
     comboLibrary.Items := Params.GetLibraries;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
   end;
@@ -1258,7 +1265,8 @@ begin
       or (Sess.SSLPrivateKey <> editSSLPrivateKey.Text)
       or (Sess.SSLCertificate <> editSSLCertificate.Text)
       or (Sess.SSLCACertificate <> editSSLCACertificate.Text)
-      or (Sess.SSLCipher <> editSSLCipher.Text);
+      or (Sess.SSLCipher <> editSSLCipher.Text)
+      or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text);
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;

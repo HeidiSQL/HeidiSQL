@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-04-21 18:03+0200\n"
+"PO-Revision-Date: 2020-04-22 18:27+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6471,6 +6471,9 @@ msgstr "Plugin directory %s could not be set."
 
 msgid "Background color:"
 msgstr "Background color:"
+
+msgid "Hide database pattern:"
+msgstr "Hide database pattern:"
 
 msgid "Backup file could not be deleted: %s"
 msgstr "Backup file could not be deleted: %s"

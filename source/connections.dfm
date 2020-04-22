@@ -597,6 +597,13 @@ object connform: Tconnform
         Height = 13
         Caption = 'Background color:'
       end
+      object lblIgnoreDatabasePattern: TLabel
+        Left = 3
+        Top = 346
+        Width = 112
+        Height = 13
+        Caption = 'Hide database pattern:'
+      end
       object editSSLPrivateKey: TButtonedEdit
         Left = 120
         Top = 36
@@ -665,7 +672,7 @@ object connform: Tconnform
           ', for MySQL 4.1.3+'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use own client time zone'
-        TabOrder = 8
+        TabOrder = 10
         OnClick = Modification
       end
       object chkCleartextPluginEnabled: TCheckBox
@@ -676,7 +683,7 @@ object connform: Tconnform
         Hint = 'Send your password to the server in cleartext, for MySQL 5.5.47+'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable cleartext authentication'
-        TabOrder = 13
+        TabOrder = 12
         OnClick = Modification
       end
       object editStartupScript: TButtonedEdit
@@ -704,7 +711,7 @@ object connform: Tconnform
           'es'
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Get full table status'
-        TabOrder = 9
+        TabOrder = 11
         OnClick = Modification
       end
       object editQueryTimeout: TEdit
@@ -743,7 +750,7 @@ object connform: Tconnform
         Top = 219
         Width = 90
         Height = 21
-        TabOrder = 10
+        TabOrder = 8
         Text = '0'
         OnChange = Modification
       end
@@ -754,7 +761,7 @@ object connform: Tconnform
         Height = 21
         Associate = editKeepAlive
         Max = 86400
-        TabOrder = 11
+        TabOrder = 9
       end
       object ColorBoxBackgroundColor: TColorBox
         Left = 120
@@ -766,9 +773,19 @@ object connform: Tconnform
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbIncludeDefault, cbCustomColor, cbPrettyNames, cbCustomColors]
         Anchors = [akLeft, akTop, akRight]
         DropDownCount = 16
-        TabOrder = 12
+        TabOrder = 13
         OnChange = Modification
         OnGetColors = ColorBoxBackgroundColorGetColors
+      end
+      object editIgnoreDatabasePattern: TEdit
+        Left = 120
+        Top = 343
+        Width = 294
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 14
+        TextHint = 'Regular expression'
+        OnChange = Modification
       end
     end
     object tabStatistics: TTabSheet

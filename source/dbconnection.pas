@@ -247,7 +247,8 @@ type
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FAllDatabases, FLibraryOrProvider, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
-      FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey: String;
+      FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey,
+      FIgnoreDatabasePattern: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
       FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
@@ -283,6 +284,7 @@ type
       function DefaultLibrary: String;
       function DefaultPort: Integer;
       function DefaultUsername: String;
+      function DefaultIgnoreDatabasePattern: String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
       property NetType: TNetType read FNetType write FNetType;
@@ -322,6 +324,7 @@ type
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
       property SSLCipher: String read FSSLCipher write FSSLCipher;
+      property IgnoreDatabasePattern: String read FIgnoreDatabasePattern write FIgnoreDatabasePattern;
   end;
   PConnectionParameters = ^TConnectionParameters;
 
@@ -399,6 +402,7 @@ type
       function GetLastErrorCode: Cardinal; virtual; abstract;
       function GetLastErrorMsg: String; virtual; abstract;
       function GetAllDatabases: TStringList; virtual;
+      procedure ApplyIgnoreDatabasePattern(Dbs: TStringList);
       function GetTableEngines: TStringList; virtual;
       function GetCollationTable: TDBQuery; virtual;
       function GetCollationList: TStringList;
@@ -1227,6 +1231,7 @@ begin
   FFullTableStatus := AppSettings.GetDefaultBool(asFullTableStatus);
 
   FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
+  FIgnoreDatabasePattern := DefaultIgnoreDatabasePattern;
 
   // Must be read without session path
   FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
@@ -1297,6 +1302,7 @@ begin
       FKeepAlive := AppSettings.GetDefaultInt(asKeepAlive);
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
+    FIgnoreDatabasePattern := AppSettings.ReadString(asIgnoreDatabasePattern);
 
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
@@ -1352,6 +1358,7 @@ begin
     AppSettings.WriteString(asSSLCert, FSSLCertificate);
     AppSettings.WriteString(asSSLCA, FSSLCACertificate);
     AppSettings.WriteString(asSSLCipher, FSSLCipher);
+    AppSettings.WriteString(asIgnoreDatabasePattern, FIgnoreDatabasePattern);
     AppSettings.ResetPath;
     AppSettings.WriteString(asPlinkExecutable, FSSHPlinkExe);
   end;
@@ -1640,6 +1647,15 @@ begin
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
     ngSQLite: Result := 'sqlite3.dll';
+    else Result := '';
+  end;
+end;
+
+
+function TConnectionParameters.DefaultIgnoreDatabasePattern: String;
+begin
+  case NetTypeGroup of
+    ngPgSQL: Result := '^pg_temp_\d';
     else Result := '';
   end;
 end;
@@ -3898,6 +3914,7 @@ begin
           break;
       end;
       rx.Free;
+      ApplyIgnoreDatabasePattern(FAllDatabases);
     end;
   end;
   Result := FAllDatabases;
@@ -3921,6 +3938,7 @@ begin
       end;
     end;
     Result := FAllDatabases;
+    ApplyIgnoreDatabasePattern(FAllDatabases);
   end;
 end;
 
@@ -3934,6 +3952,7 @@ begin
     except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
+    ApplyIgnoreDatabasePattern(FAllDatabases);
     Result := FAllDatabases;
   end;
 end;
@@ -3960,6 +3979,7 @@ begin
     except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
+    ApplyIgnoreDatabasePattern(FAllDatabases);
   end;
   Result := FAllDatabases;
 end;
@@ -3977,6 +3997,7 @@ begin
     except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
+    ApplyIgnoreDatabasePattern(FAllDatabases);
     Result := FAllDatabases;
   end;
 end;
@@ -3986,6 +4007,25 @@ function TDBConnection.RefreshAllDatabases: TStringList;
 begin
   FreeAndNil(FAllDatabases);
   Result := AllDatabases;
+end;
+
+
+procedure TDBConnection.ApplyIgnoreDatabasePattern(Dbs: TStringList);
+var
+  i: Integer;
+begin
+  if Parameters.IgnoreDatabasePattern.IsEmpty then
+    Exit;
+
+  try
+    for i:=Dbs.Count-1 downto 0 do begin
+      if ExecRegExpr(Parameters.IgnoreDatabasePattern, Dbs[i]) then
+        Dbs.Delete(i);
+    end;
+  except
+    on E:ERegExpr do
+      Log(lcError, 'Error in ignore database pattern: ' + E.Message);
+  end;
 end;
 
 

@@ -137,7 +137,7 @@ type
 
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
-    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground,
+    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asHintsOnResultTabs, asHightlightSameTextBackground,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
@@ -3458,6 +3458,7 @@ begin
   InitSetting(asRestoreLastUsedDB,                'RestoreLastUsedDB',                     0, True);
   InitSetting(asLastUsedDB,                       'lastUsedDB',                            0, False, '', True);
   InitSetting(asTreeBackground,                   'TreeBackground',                        clNone, False, '', True);
+  InitSetting(asIgnoreDatabasePattern,            'IgnoreDatabasePattern',                 0, False, '', True);
   if Screen.Fonts.IndexOf('Consolas') > -1 then
     InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
   else
