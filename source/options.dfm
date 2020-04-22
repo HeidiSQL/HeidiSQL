@@ -643,7 +643,7 @@ object optionsform: Toptionsform
       object chkCompletionProposal: TCheckBox
         Left = 180
         Top = 87
-        Width = 158
+        Width = 145
         Height = 17
         Caption = 'Enable autocompletion'
         TabOrder = 8
@@ -702,7 +702,7 @@ object optionsform: Toptionsform
         Width = 145
         Height = 21
         Style = csDropDownList
-        TabOrder = 12
+        TabOrder = 13
         OnChange = comboSQLColElementChange
       end
       object chkSQLBold: TCheckBox
@@ -711,7 +711,7 @@ object optionsform: Toptionsform
         Width = 61
         Height = 17
         Caption = 'Bold'
-        TabOrder = 13
+        TabOrder = 14
         OnClick = SQLFontChange
       end
       object chkSQLItalic: TCheckBox
@@ -720,7 +720,7 @@ object optionsform: Toptionsform
         Width = 50
         Height = 17
         Caption = 'Italic'
-        TabOrder = 14
+        TabOrder = 15
         OnClick = SQLFontChange
       end
       object cboxSQLColForeground: TColorBox
@@ -730,7 +730,7 @@ object optionsform: Toptionsform
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 15
+        TabOrder = 16
         OnChange = SQLFontChange
       end
       object cboxSQLColBackground: TColorBox
@@ -740,7 +740,7 @@ object optionsform: Toptionsform
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 16
+        TabOrder = 17
         OnChange = SQLFontChange
       end
       object SynMemoSQLSample: TSynMemo
@@ -748,7 +748,7 @@ object optionsform: Toptionsform
         Left = 331
         Top = 156
         Width = 364
-        Height = 227
+        Height = 219
         Cursor = crHandPoint
         SingleLineMode = False
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -757,7 +757,7 @@ object optionsform: Toptionsform
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        TabOrder = 17
+        TabOrder = 18
         OnClick = SynMemoSQLSampleClick
         CodeFolding.GutterShapeSize = 11
         CodeFolding.CollapsedLineColor = clGrayText
@@ -792,7 +792,7 @@ object optionsform: Toptionsform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show query warnings dialog'
-        TabOrder = 9
+        TabOrder = 10
         OnClick = Modified
       end
       object chkAutoUppercase: TCheckBox
@@ -802,7 +802,7 @@ object optionsform: Toptionsform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Auto uppercase reserved words and functions'
-        TabOrder = 10
+        TabOrder = 11
         OnClick = Modified
       end
       object comboEditorColorsPreset: TComboBox
@@ -812,7 +812,7 @@ object optionsform: Toptionsform
         Height = 21
         Style = csDropDownList
         ItemIndex = 0
-        TabOrder = 11
+        TabOrder = 12
         Text = 'Current custom settings'
         OnChange = comboEditorColorsPresetChange
         Items.Strings = (
@@ -826,7 +826,7 @@ object optionsform: Toptionsform
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Find matches in middle of entered text'
         Enabled = False
-        TabOrder = 18
+        TabOrder = 9
         OnClick = Modified
       end
     end
