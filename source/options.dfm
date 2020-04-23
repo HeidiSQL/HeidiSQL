@@ -188,6 +188,7 @@ object optionsform: Toptionsform
         Checked = True
         State = cbChecked
         TabOrder = 0
+        OnClick = Modified
       end
       object chkColorBars: TCheckBox
         Left = 190
@@ -1062,6 +1063,7 @@ object optionsform: Toptionsform
         Height = 22
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames]
         TabOrder = 15
+        OnSelect = Modified
       end
       object comboGridTextColorsPreset: TComboBox
         Left = 180
@@ -1144,6 +1146,7 @@ object optionsform: Toptionsform
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Remember filters, sorting and column selection across sessions'
         TabOrder = 5
+        OnClick = Modified
       end
       object chkForeignDropDown: TCheckBox
         Left = 190
@@ -1153,6 +1156,7 @@ object optionsform: Toptionsform
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show values in foreign key columns'
         TabOrder = 6
+        OnClick = Modified
       end
       object comboLineBreakStyle: TComboBox
         Left = 190
@@ -1161,6 +1165,7 @@ object optionsform: Toptionsform
         Height = 21
         Style = csDropDownList
         TabOrder = 7
+        OnClick = Modified
       end
     end
     object tabShortcuts: TTabSheet
