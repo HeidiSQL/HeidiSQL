@@ -550,7 +550,7 @@ begin
       then begin
       Highlighter := Components[i] as TSynSQLSyn;
       Name := Highlighter.Name;
-      Name := RegExprGetMatch('_([^_]+)$', Name, 1, False);
+      Name := RegExprGetMatch('_([^_]+)$', Name, 1);
       if Name <> '' then begin
         comboEditorColorsPreset.Items.Add(_(Name));
       end;
