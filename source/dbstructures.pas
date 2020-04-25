@@ -556,6 +556,9 @@ const
     private
       procedure AssignProcedures; override;
   end;
+  TSQLiteCollationNeededCallback = procedure(userData: Pointer; ppDb:Psqlite3; eTextRep: Integer; zName: PAnsiChar); cdecl;
+  TSQLiteCollation = function(userData: Pointer; lenA: Integer; strA: PAnsiChar; lenB: Integer; strB: PAnsiChar): Integer; cdecl;
+
   TSQLiteLib = class(TDbLib)
     sqlite3_open: function(const filename: PAnsiChar; var ppDb: Psqlite3): Integer; cdecl;
     sqlite3_libversion: function(): PAnsiChar; cdecl;
@@ -583,6 +586,8 @@ const
       zDbName, zTableName, zColumnName: PAnsiChar;
       var pzDataType, pzCollSeq: PAnsiChar; var pNotNull, pPrimaryKey, pAutoinc: Integer
       ): Integer; cdecl;
+    sqlite3_collation_needed: function(ppDb: Psqlite3; userData: Pointer; Func: TSQLiteCollationNeededCallback): Integer; cdecl;
+    sqlite3_create_collation: function(ppDb: Psqlite3; const zName: PAnsiChar; eTextRep: Integer; pArg: Pointer; xCompare: TSQLiteCollation): Integer; cdecl;
     private
       procedure AssignProcedures; override;
   end;
@@ -7948,6 +7953,8 @@ begin
   AssignProc(@sqlite3_column_type, 'sqlite3_column_type');
   AssignProc(@sqlite3_next_stmt, 'sqlite3_next_stmt');
   AssignProc(@sqlite3_table_column_metadata, 'sqlite3_table_column_metadata');
+  AssignProc(@sqlite3_collation_needed, 'sqlite3_collation_needed');
+  AssignProc(@sqlite3_create_collation, 'sqlite3_create_collation');
 end;
 
 

@@ -837,6 +837,9 @@ type
       function TableName(Column: Integer): String; overload; override;
   end;
 
+procedure SQLite_CollationNeededCallback(userData:Pointer; ppDb:Psqlite3; eTextRep:integer; zName:PAnsiChar); cdecl;
+function SQLite_Collation(userData: Pointer; lenA: Integer; strA: PAnsiChar; lenB: Integer; strB: PAnsiChar): Integer; cdecl;
+
 function mysql_authentication_dialog_ask(
     Handle: PMYSQL;
     _type: Integer;
@@ -847,6 +850,7 @@ function mysql_authentication_dialog_ask(
 
 exports
   mysql_authentication_dialog_ask;
+
 
 {$I const.inc}
 
@@ -2486,6 +2490,7 @@ begin
       FActive := True;
       Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       FIsUnicode := True;
+      FLib.sqlite3_collation_needed(FHandle, Self, SQLite_CollationNeededCallback);
       Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
       // Override "main" database name with custom one
       FMainDbName := UTF8Encode(TPath.GetFileNameWithoutExtension(MainFile));
@@ -9233,6 +9238,26 @@ begin
 end;
 
 
+
+
+procedure SQLite_CollationNeededCallback(userData: Pointer; ppDb:Psqlite3; eTextRep:integer; zName:PAnsiChar); cdecl;
+var
+  Conn: TSQLiteConnection;
+  Lib: TSQLiteLib;
+begin
+  // SQLite connection requests a yet non existing collation. Create it and show that in the log.
+  // userData is a pointer to the connection object, see caller in SetActive()
+  Conn := TSQLiteConnection(userData);
+  Conn.Log(lcInfo, Format('Auto-creating collation "%s"', [zName]));
+  Conn.Lib.sqlite3_create_collation(ppDb, zName, eTextRep, nil, SQLite_Collation);
+end;
+
+function SQLite_Collation(userData: Pointer; lenA: Integer; strA: PAnsiChar; lenB: Integer; strB: PAnsiChar): Integer; cdecl;
+begin
+  // Implementation of a collation comparison, called by SQLite when an underlying table query needs it.
+  // This is probably not always some case insensitive collation
+  Result := AnsiCompareText(strA, strB);
+end;
 
 
 function mysql_authentication_dialog_ask;
