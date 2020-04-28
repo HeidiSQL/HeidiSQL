@@ -9898,7 +9898,7 @@ begin
     Exit;
 
   r := GridResult(Sender);
-  if not r.Connection.Active then begin
+  if (r=nil) or (not r.Connection.Active) then begin
     // This event (BeforeCellPaint) is the very first one to notice a broken connection
     Sender.Enabled := False;
     Exit;
