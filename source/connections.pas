@@ -1343,7 +1343,7 @@ begin
       end;
       editHost.RightButton.Visible := Params.IsAnySQLite;
       chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
-      chkWindowsAuth.Enabled := Params.IsAnyMSSQL;
+      chkWindowsAuth.Enabled := Params.IsAnyMSSQL or Params.IsAnyMySQL;
       lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL])
         and ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));

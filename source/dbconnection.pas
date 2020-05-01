@@ -1975,12 +1975,14 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
-  Error, tmpdb, FinalHost, FinalSocket, StatusName: String;
+  Error, tmpdb, StatusName: String;
+  FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   sslca, sslkey, sslcert, sslcipher: PAnsiChar;
   PluginDir: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
   SetOptionResult: Integer;
+  UserNameSize: DWORD;
 begin
   if Value and (FHandle = nil) then begin
 
@@ -2041,6 +2043,22 @@ begin
       end;
     end;
 
+    // User/Password
+    if FParameters.WindowsAuth then begin
+      // Send Windows system user name and blank password, see #991
+      UserNameSize := 1024;
+      SetLength(FinalUsername, UserNameSize);
+      if GetUserName(PChar(FinalUsername), UserNameSize) then
+        SetLength(FinalUsername, UserNameSize-1)
+      else
+        RaiseLastOSError;
+      FinalPassword := '';
+    end else begin
+      // Normal mode, send user specified user/password
+      FinalUsername := FParameters.Username;
+      FinalPassword := FParameters.Password;
+    end;
+
     // Gather client options
     ClientFlags := CLIENT_LOCAL_FILES or CLIENT_INTERACTIVE or CLIENT_PROTOCOL_41 or CLIENT_MULTI_STATEMENTS or CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS;
     if Parameters.Compressed then
@@ -2072,8 +2090,8 @@ begin
     Connected := FLib.mysql_real_connect(
       FHandle,
       PAnsiChar(Utf8Encode(FinalHost)),
-      PAnsiChar(Utf8Encode(FParameters.Username)),
-      PAnsiChar(Utf8Encode(FParameters.Password)),
+      PAnsiChar(Utf8Encode(FinalUsername)),
+      PAnsiChar(Utf8Encode(FinalPassword)),
       nil,
       FinalPort,
       PAnsiChar(Utf8Encode(FinalSocket)),
