@@ -1302,8 +1302,6 @@ begin
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
     FQueryTimeout := AppSettings.ReadInt(asQueryTimeout);
     FKeepAlive := AppSettings.ReadInt(asKeepAlive);
-    if FKeepAlive = 0 then // Old connections had always 0 as default value
-      FKeepAlive := AppSettings.GetDefaultInt(asKeepAlive);
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
     FIgnoreDatabasePattern := AppSettings.ReadString(asIgnoreDatabasePattern);
