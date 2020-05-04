@@ -9025,12 +9025,11 @@ begin
         InLiteral := not InLiteral;
     end;
     LengthSet := Copy(Source, ParenthLeft+1, i-2);
-    Unsigned :=  ExecRegExpr('\sunsigned[\s\w]*$', Source.ToLowerInvariant);
-    ZeroFill := ExecRegExpr('\szerofill[\s\w]*$', Source.ToLowerInvariant);
   end else begin
     LengthSet := '';
-    Unsigned := False;
   end;
+  Unsigned :=  ExecRegExpr('\bunsigned\b', Source.ToLowerInvariant);
+  ZeroFill := ExecRegExpr('\bzerofill\b', Source.ToLowerInvariant);
 end;
 
 
