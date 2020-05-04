@@ -8186,6 +8186,10 @@ begin
   DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
   DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
   FixVT(Mainform.DataGrid, AppSettings.ReadInt(asGridRowLineCount));
+  // .. include invisible mother query grid
+  QueryGrid.Font.Name := AppSettings.ReadString(asDataFontName);
+  QueryGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+  // .. and all chid query grids
   for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
     QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
     for j:=0 to QueryTab.ResultTabs.Count-1 do begin
