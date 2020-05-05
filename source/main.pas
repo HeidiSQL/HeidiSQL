@@ -12984,6 +12984,7 @@ var
   TextMatches: Boolean;
 begin
   // Support for Ctrl+Backspace shortcut in edit + combobox controls
+  Handled := False;
   if (Msg.CharCode = VK_BACK) and KeyPressed(VK_CONTROL) then begin
     SendingControl := Screen.ActiveControl;
     rx := TRegExpr.Create;
