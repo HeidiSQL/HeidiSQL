@@ -431,6 +431,7 @@ const
     Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
+    MaxTextLen:      String;  // TEXT and BLOB allow custom length, but we want to leave the default max length away from ALTER TABLE's
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     LoadPart:        Boolean; // Select per SUBSTR() or LEFT()
@@ -924,6 +925,7 @@ var
         'values M characters long.';
       HasLength:       True;
       RequiresLength:  False;
+      MaxTextLen:      '65535';
       HasBinary:       True;
       HasDefault:      False;
       LoadPart:        True;
@@ -1040,8 +1042,9 @@ var
         'An optional length M can be given for this type. If this is done, MySQL ' +
         'creates the column as the smallest BLOB type large enough to hold ' +
         'values M bytes long.';
-      HasLength:       False;
+      HasLength:       True;
       RequiresLength:  False;
+      MaxTextLen:      '65535';
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        True;

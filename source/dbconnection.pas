@@ -4757,7 +4757,7 @@ begin
     dt := IfThen(ColQuery.ColExists('COLUMN_TYPE'), 'COLUMN_TYPE', 'DATA_TYPE');
     Col.ParseDatatype(ColQuery.Col(dt));
     // PG/MSSQL don't include length in data type
-    if Col.LengthSet.IsEmpty then begin
+    if Col.LengthSet.IsEmpty and Col.DataType.HasLength then begin
       MaxLen := '';
       case Col.DataType.Category of
         dtcText, dtcBinary: begin
@@ -4787,7 +4787,7 @@ begin
           end;
         end;
       end;
-      if not MaxLen.IsEmpty then
+      if (not MaxLen.IsEmpty) and (MaxLen <> Col.DataType.MaxTextLen) then
         Col.LengthSet := MaxLen;
     end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
@@ -9017,7 +9017,7 @@ begin
   // Various datatypes, e.g. BLOBs, don't have any length property
   InLiteral := False;
   ParenthLeft := Pos('(', Source);
-  if ParenthLeft > 0 then begin
+  if (ParenthLeft > 0) and DataType.HasLength then begin
     for i:=ParenthLeft+1 to Length(Source) do begin
       if (Source[i] = ')') and (not InLiteral) then
         break;
@@ -9025,6 +9025,8 @@ begin
         InLiteral := not InLiteral;
     end;
     LengthSet := Copy(Source, ParenthLeft+1, i-2);
+    if LengthSet = DataType.MaxTextLen then
+      LengthSet := '';
   end else begin
     LengthSet := '';
   end;
