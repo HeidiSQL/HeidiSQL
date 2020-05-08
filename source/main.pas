@@ -9743,6 +9743,8 @@ begin
   end;
 
   TypeCat := Results.DataType(Column).Category;
+  TblColumn := Results.ColAttributes(Column);
+
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
   else if (Results.DataType(Column).Index in [dtEnum, dtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
@@ -9760,7 +9762,10 @@ begin
     HexEditor.MaxLength := Results.MaxLength(Column);
     HexEditor.TitleText := Results.ColumnOrgNames[Column];
     EditLink := HexEditor;
-  end else if (TypeCat = dtcTemporal) and AppSettings.ReadBool(asFieldEditorDatetime) then begin
+  end else if (TypeCat = dtcTemporal)
+    and AppSettings.ReadBool(asFieldEditorDatetime)
+    and Assigned(TblColumn) // Editor crashes without a column object (on joins), see #1024
+    then begin
     // Ensure date/time editor starts with a non-empty text value
     if (Results.Col(Column) = '') and AppSettings.ReadBool(asFieldEditorDatetimePrefill) then begin
       case Results.DataType(Column).Index of
@@ -9780,7 +9785,10 @@ begin
     end;
     DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit);
     EditLink := DateTimeEditor;
-  end else if AppSettings.ReadBool(asFieldEditorDatetime) and HandleUnixTimestampColumn(Sender, Column) then begin
+  end else if AppSettings.ReadBool(asFieldEditorDatetime)
+    and HandleUnixTimestampColumn(Sender, Column)
+    and Assigned(TblColumn) // see above
+    then begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit);
     EditLink := DateTimeEditor;
   end else if (Results.DataType(Column).Index = dtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
@@ -9792,7 +9800,7 @@ begin
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
-  TBaseGridEditorLink(EditLink).TableColumn := Results.ColAttributes(Column);
+  TBaseGridEditorLink(EditLink).TableColumn := TblColumn;
 end;
 
 
