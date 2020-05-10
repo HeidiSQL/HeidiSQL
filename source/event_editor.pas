@@ -280,22 +280,22 @@ begin
   if radioOnce.Checked then begin
     d := dateOnce.DateTime;
     ReplaceTime(d, timeOnce.DateTime);
-    Result := Result + 'AT ' + esc(DateTimeToStr(d)) + CRLF;
+    Result := Result + 'AT ' + DBObject.Connection.EscapeString(DateTimeToStr(d)) + CRLF;
   end else begin
     if udEveryQuantity.Enabled then
       Quantity := IntToStr(udEveryQuantity.Position)
     else
-      Quantity := esc(editEveryQuantity.Text);
+      Quantity := DBObject.Connection.EscapeString(editEveryQuantity.Text);
     Result := Result + 'EVERY ' + Quantity + ' ' + comboEveryInterval.Text;
     if chkStarts.Checked then begin
       d := dateStarts.DateTime;
       ReplaceTime(d, timeStarts.DateTime);
-      Result := Result + ' STARTS ' + esc(DateTimeToStr(d));
+      Result := Result + ' STARTS ' + DBObject.Connection.EscapeString(DateTimeToStr(d));
     end;
     if chkEnds.Checked then begin
       d := dateEnds.DateTime;
       ReplaceTime(d, timeEnds.DateTime);
-      Result := Result + ' ENDS ' + esc(DateTimeToStr(d));
+      Result := Result + ' ENDS ' + DBObject.Connection.EscapeString(DateTimeToStr(d));
     end;
     Result := Result + CRLF;
   end;
@@ -307,7 +307,7 @@ begin
   if (DBObject.Name <> '') and (DBObject.Name <> editName.Text) then
     Result := Result + CRLF + #9 + 'RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text);
   Result := Result + CRLF + #9 + UpperCase(grpState.Items[grpState.ItemIndex]);
-  Result := Result + CRLF + #9 + 'COMMENT ' + esc(editComment.Text);
+  Result := Result + CRLF + #9 + 'COMMENT ' + DBObject.Connection.EscapeString(editComment.Text);
   Result := Result + CRLF + #9 + 'DO ' + SynMemoBody.Text;
 end;
 

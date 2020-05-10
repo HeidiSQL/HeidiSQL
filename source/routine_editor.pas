@@ -473,8 +473,8 @@ begin
       // Create temp name
       i := 0;
       allRoutineNames := DBObject.Connection.GetCol('SELECT ROUTINE_NAME FROM '+DBObject.Connection.QuoteIdent(DBObject.Connection.InfSch)+'.'+DBObject.Connection.QuoteIdent('ROUTINES')+
-        ' WHERE ROUTINE_SCHEMA = '+esc(Mainform.ActiveDatabase)+
-        ' AND ROUTINE_TYPE = '+esc(ProcOrFunc)
+        ' WHERE ROUTINE_SCHEMA = '+DBObject.Connection.EscapeString(DBObject.Connection.Database)+
+        ' AND ROUTINE_TYPE = '+DBObject.Connection.EscapeString(ProcOrFunc)
         );
       TargetExists := ((editName.Text <> DBObject.Name) or (ProcOrFunc <> FAlterRoutineType)) and
         (allRoutineNames.IndexOf(editName.Text) > -1);
@@ -555,7 +555,7 @@ begin
   Result := Result + 'DETERMINISTIC'+CRLF
     + UpperCase(comboDataAccess.Text)+CRLF
     + 'SQL SECURITY ' + UpperCase(comboSecurity.Text)+CRLF
-    + 'COMMENT ' + esc(editComment.Text)+CRLF
+    + 'COMMENT ' + DBObject.Connection.EscapeString(editComment.Text)+CRLF
     + SynMemoBody.Text;
 end;
 

@@ -6991,10 +6991,10 @@ begin
     Exit;
   Results := GridResult(Grid);
 
-  Col := ActiveConnection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
+  Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
   if InDataGrid
     and (SelectedTableColumns[Grid.FocusedColumn].DataType.Index = dtJson)
-    and (ActiveConnection.Parameters.NetTypeGroup = ngPgSQL) then begin
+    and (Results.Connection.Parameters.NetTypeGroup = ngPgSQL) then begin
     Col := Col + '::text';
   end;
 
@@ -7022,13 +7022,13 @@ begin
       HasNotNullValue := True;
       Value := Grid.Text[Node, Grid.FocusedColumn];
       if IncludedValues.IndexOf(Value) = -1 then begin
-        actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + esc(Value) + ', ';
-        actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + esc(Value) + ', ';
-        actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint + Col + ' LIKE ''' + esc(Value, True, False) + '%'' OR ';
-        actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + ''' OR ';
-        actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint + Col + ' LIKE ''%' + esc(Value, True, False) + '%'' OR ';
-        actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + esc(Value) + ' OR ';
-        actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + esc(Value) + ' OR ';
+        actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Results.Connection.EscapeString(Value) + ', ';
+        actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Results.Connection.EscapeString(Value) + ', ';
+        actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint + Col + ' LIKE ''' + Results.Connection.EscapeString(Value, True, False) + '%'' OR ';
+        actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint + Col + ' LIKE ''%' + Results.Connection.EscapeString(Value, True, False) + ''' OR ';
+        actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint + Col + ' LIKE ''%' + Results.Connection.EscapeString(Value, True, False) + '%'' OR ';
+        actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + Results.Connection.EscapeString(Value) + ' OR ';
+        actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + Results.Connection.EscapeString(Value) + ' OR ';
         IncludedValues.Add(Value);
       end;
     end;
@@ -7085,11 +7085,11 @@ begin
   // Block 3: WHERE col = [clipboard content]
   Value := Trim(Clipboard.AsText);
   if Length(Value) < SIZE_KB then begin
-    actQuickFilterClipboard1.Enabled := true; actQuickFilterClipboard1.Hint := Col + ' = ' + esc(Value);
-    actQuickFilterClipboard2.Enabled := true; actQuickFilterClipboard2.Hint := Col + ' != ' + esc(Value);
-    actQuickFilterClipboard3.Enabled := true; actQuickFilterClipboard3.Hint := Col + ' > ' + esc(Value);
-    actQuickFilterClipboard4.Enabled := true; actQuickFilterClipboard4.Hint := Col + ' < ' + esc(Value);
-    actQuickFilterClipboard5.Enabled := true; actQuickFilterClipboard5.Hint := Col + ' LIKE ''%' + esc(Value, True, False) + '%''';
+    actQuickFilterClipboard1.Enabled := true; actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard2.Enabled := true; actQuickFilterClipboard2.Hint := Col + ' != ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard3.Enabled := true; actQuickFilterClipboard3.Hint := Col + ' > ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard4.Enabled := true; actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard5.Enabled := true; actQuickFilterClipboard5.Hint := Col + ' LIKE ''%' + Results.Connection.EscapeString(Value, True, False) + '%''';
     actQuickFilterClipboard6.Enabled := true; actQuickFilterClipboard6.Hint := Col + ' IN (' + Value + ')';
   end else begin
     actQuickFilterClipboard1.Enabled := false; actQuickFilterClipboard1.Hint := Col + ' = ' + CLPBRD;
@@ -7161,7 +7161,7 @@ begin
       if Data.IsNull(Col) then
         Item.Hint := Conn.QuoteIdent(Col)+' IS NULL'
       else
-        Item.Hint := Conn.QuoteIdent(Col)+'='+esc(Data.Col(Col));
+        Item.Hint := Conn.QuoteIdent(Col)+'='+Conn.EscapeString(Data.Col(Col));
       Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
       if SynMemoFilter.Text <> '' then begin
         if Pos(Item.Hint, SynMemoFilter.Text) > 0 then
@@ -7188,7 +7188,7 @@ begin
               Item := TMenuItem.Create(QFvalues);
               QFvalues.Add(Item);
             end;
-            Item.Hint := Conn.QuoteIdent(Col)+'='+esc(ValueList[i]);
+            Item.Hint := Conn.QuoteIdent(Col)+'='+Conn.EscapeString(ValueList[i]);
             Item.Caption := StrEllipsis(Item.Hint, 100);
             Item.OnClick := QuickFilterClick;
           end;
@@ -11905,16 +11905,16 @@ begin
   Node := Tree.GetFirstChild(FindNode(Tree, HELPERNODE_COLUMNS, nil));
   while Assigned(Node) do begin
     if Tree.Selected[Node] then begin
-      ColumnNames.Add(ActiveConnection.QuoteIdent(Tree.Text[Node, 0], False));
       Column := SelectedTableColumns[Node.Index];
+      ColumnNames.Add(Column.Connection.QuoteIdent(Tree.Text[Node, 0], False));
       case Column.DataType.Category of
         dtcInteger, dtcReal: Val := '0';
         dtcText, dtcOther: begin
-          Val := esc(Column.DefaultText);
+          Val := Column.Connection.EscapeString(Column.DefaultText);
           if Column.DefaultType in [cdtNull] then
-            Val := esc('')
+            Val := Column.Connection.EscapeString('')
           else
-            Val := esc(Column.DefaultText);
+            Val := Column.Connection.EscapeString(Column.DefaultText);
         end;
         dtcTemporal: Val := 'NOW()';
         else Val := 'NULL';

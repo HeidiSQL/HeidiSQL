@@ -633,20 +633,20 @@ begin
                   FileContent := '_binary ';
                 FileContent := FileContent + '0x' + BinToWideHex(ReadBinaryFile(FileInfo.Filename, 0))
               end else
-                FileContent := esc(ReadTextfile(FileInfo.Filename, nil));
+                FileContent := FConnection.EscapeString(ReadTextfile(FileInfo.Filename, nil));
               FileReadDone := True;
             end;
             Value := FileContent;
           end else begin
             Value := StringReplace(Value, '%filesize%', IntToStr(FileSize), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filename%', esc(ExtractFileName(FileInfo.Filename), False, False), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filepath%', esc(ExtractFilePath(FileInfo.Filename), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filename%', FConnection.EscapeString(ExtractFileName(FileInfo.Filename), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filepath%', FConnection.EscapeString(ExtractFilePath(FileInfo.Filename), False, False), [rfReplaceAll]);
             FileAge(FileInfo.Filename, FileDate);
             DecodeDate(FileDate, y, m, d);
             DecodeTime(FileDate, h, mi, s, ms);
-            Value := StringReplace(Value, '%filedate%', esc(Format('%.4d-%.2d-%.2d', [y,m,d]), False, False), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filedatetime%', esc(Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), False, False), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filetime%', esc(Format('%.2d:%.2d:%.2d', [h,mi,s]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filedate%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d', [y,m,d]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filedatetime%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filetime%', FConnection.EscapeString(Format('%.2d:%.2d:%.2d', [h,mi,s]), False, False), [rfReplaceAll]);
           end;
         end;
         sql := sql + Value + ', ';

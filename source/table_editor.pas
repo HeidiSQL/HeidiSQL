@@ -551,7 +551,7 @@ begin
   if memoComment.Tag = MODIFIEDFLAG then begin
     case Conn.Parameters.NetTypeGroup of
       ngMySQL, ngMSSQL: begin
-        Specs.Add('COMMENT=' + esc(memoComment.Text));
+        Specs.Add('COMMENT=' + Conn.EscapeString(memoComment.Text));
       end;
       ngPgSQL: begin
         AddQuery('COMMENT ON TABLE '+DBObject.QuotedName+' IS '+Conn.EscapeString(memoComment.Text));
@@ -559,7 +559,7 @@ begin
     end;
   end;
   if (comboCollation.Tag = MODIFIEDFLAG) or (chkCharsetConvert.Checked) then
-    Specs.Add('COLLATE=' + esc(comboCollation.Text));
+    Specs.Add('COLLATE=' + Conn.EscapeString(comboCollation.Text));
   if (comboEngine.Tag = MODIFIEDFLAG) and (comboEngine.ItemIndex > 0) then begin
     if Conn.ServerVersionInt < 40018 then
       Specs.Add('TYPE=' + comboEngine.Text)
@@ -771,9 +771,9 @@ begin
 
   SQL := SQL + CRLF + ')' + CRLF;
   if memoComment.Text <> '' then
-    SQL := SQL + 'COMMENT='+esc(memoComment.Text) + CRLF;
+    SQL := SQL + 'COMMENT='+DBObject.Connection.EscapeString(memoComment.Text) + CRLF;
   if comboCollation.Text <> '' then
-    SQL := SQL + 'COLLATE='+esc(comboCollation.Text) + CRLF;
+    SQL := SQL + 'COLLATE='+DBObject.Connection.EscapeString(comboCollation.Text) + CRLF;
   if (comboEngine.Text <> '') and (comboEngine.ItemIndex > 0) then begin
     if DBObject.Connection.ServerVersionInt < 40018 then
       SQL := SQL + 'TYPE='+comboEngine.Text + CRLF

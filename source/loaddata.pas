@@ -364,7 +364,7 @@ begin
   SQL := 'LOAD DATA ';
   if chkLowPriority.Checked and chkLowPriority.Enabled then
     SQL := SQL + 'LOW_PRIORITY ';
-  SQL := SQL + 'LOCAL INFILE ' + esc(editFilename.Text) + ' ';
+  SQL := SQL + 'LOCAL INFILE ' + FConnection.EscapeString(editFilename.Text) + ' ';
   case grpDuplicates.ItemIndex of
     1: SQL := SQL + 'IGNORE ';
     2: SQL := SQL + 'REPLACE ';
@@ -380,18 +380,18 @@ begin
   if (Term <> '') or (Encl <> '') or (Escp <> '') then
     SQL := SQL + 'FIELDS ';
   if editFieldTerminator.Text <> '' then
-    SQL := SQL + 'TERMINATED BY ' + esc(Term) + ' ';
+    SQL := SQL + 'TERMINATED BY ' + FConnection.EscapeString(Term) + ' ';
   if Encl <> '' then begin
     if chkFieldsEnclosedOptionally.Checked then
       SQL := SQL + 'OPTIONALLY ';
-    SQL := SQL + 'ENCLOSED BY ' + esc(Encl) + ' ';
+    SQL := SQL + 'ENCLOSED BY ' + FConnection.EscapeString(Encl) + ' ';
   end;
   if Escp <> '' then
-    SQL := SQL + 'ESCAPED BY ' + esc(Escp) + ' ';
+    SQL := SQL + 'ESCAPED BY ' + FConnection.EscapeString(Escp) + ' ';
 
   // Lines:
   if LineTerm <> '' then
-    SQL := SQL + 'LINES TERMINATED BY ' + esc(LineTerm) + ' ';
+    SQL := SQL + 'LINES TERMINATED BY ' + FConnection.EscapeString(LineTerm) + ' ';
   if updownIgnoreLines.Position > 0 then
     SQL := SQL + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
@@ -403,7 +403,7 @@ begin
       if chkLocalNumbers.Checked and (Columns[i].DataType.Category in [dtcInteger, dtcReal]) then begin
         SQL := SQL + '@ColVar' + IntToStr(i) + ', ';
         SetColVars := SetColVars + FConnection.QuoteIdent(chklistColumns.Items[i]) +
-          ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+esc(FormatSettings.ThousandSeparator)+', ''''), '+esc(FormatSettings.DecimalSeparator)+', ''.''), ';
+          ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+FConnection.EscapeString(FormatSettings.ThousandSeparator)+', ''''), '+FConnection.EscapeString(FormatSettings.DecimalSeparator)+', ''.''), ';
       end else
         SQL := SQL + FConnection.QuoteIdent(chklistColumns.Items[i]) + ', ';
     end;
@@ -502,7 +502,7 @@ var
         if chkLocalNumbers.Checked and (Columns[ColumnIndex].DataType.Category in [dtcInteger, dtcReal]) then
           Value := UnformatNumber(Value)
         else
-          Value := esc(Value);
+          Value := FConnection.EscapeString(Value);
       end;
       SQL := SQL + Value + ', ';
     end;

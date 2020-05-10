@@ -284,7 +284,6 @@ type
   function CleanupNumber(Str: String): String;
   function IsInt(Str: String): Boolean;
   function IsFloat(Str: String): Boolean;
-  function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
@@ -685,12 +684,6 @@ begin
     Result := Result * SIZE_TB
   else if (p_pb > 0) and (p_pb = Length(Str)-Length(NAME_PB)+1) then
     Result := Result * SIZE_PB;
-end;
-
-
-function esc(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
-begin
-  Result := MainForm.ActiveConnection.EscapeString(Text, ProcessJokerChars, DoQuote);
 end;
 
 

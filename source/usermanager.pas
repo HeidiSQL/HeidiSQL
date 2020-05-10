@@ -518,7 +518,7 @@ begin
 
   if UserSelected then begin
     User := Sender.GetNodeData(Node);
-    UserHost := esc(User.Username)+'@'+esc(User.Host);
+    UserHost := FConnection.EscapeString(User.Username)+'@'+FConnection.EscapeString(User.Host);
     editUsername.Text := User.Username;
     editFromHost.Text := User.Host;
     Caption := Caption + ' - ' + User.Username;
@@ -540,7 +540,7 @@ begin
         Grants.Add('GRANT USAGE ON *.* TO '+UserHost);
       end;
     end else try
-      Grants := FConnection.GetCol('SHOW GRANTS FOR '+esc(User.Username)+'@'+esc(User.Host));
+      Grants := FConnection.GetCol('SHOW GRANTS FOR '+FConnection.EscapeString(User.Username)+'@'+FConnection.EscapeString(User.Host));
     except
       on E:EDbError do begin
         Msg := E.Message;
@@ -1184,8 +1184,8 @@ begin
       FocusedUser.Problem := upEmptyPassword
   end;
 
-  OrgUserHost := esc(FocusedUser.Username)+'@'+esc(FocusedUser.Host);
-  UserHost := esc(editUsername.Text)+'@'+esc(editFromHost.Text);
+  OrgUserHost := FConnection.EscapeString(FocusedUser.Username)+'@'+FConnection.EscapeString(FocusedUser.Host);
+  UserHost := FConnection.EscapeString(editUsername.Text)+'@'+FConnection.EscapeString(editFromHost.Text);
 
   try
     // Ensure we have a unique user@host combination
@@ -1207,9 +1207,9 @@ begin
       if editPassword.Modified then begin
         // Add "PASSWORD" clause when it's a hash already
         if (Copy(editPassword.Text, 1, 1) = '*') and (Length(editPassword.Text) = 41) then
-          Create := Create + ' IDENTIFIED BY PASSWORD '+esc(editPassword.Text)
+          Create := Create + ' IDENTIFIED BY PASSWORD '+FConnection.EscapeString(editPassword.Text)
         else
-          Create := Create + ' IDENTIFIED BY '+esc(editPassword.Text);
+          Create := Create + ' IDENTIFIED BY '+FConnection.EscapeString(editPassword.Text);
       end;
       FConnection.Query(Create);
       PasswordSet := True;
@@ -1271,7 +1271,7 @@ begin
           0: RequireClause := RequireClause + 'NONE';
           1: RequireClause := RequireClause + 'SSL';
           2: RequireClause := RequireClause + 'X509';
-          3: RequireClause := RequireClause + 'CIPHER '+esc(editCipher.Text)+' ISSUER '+esc(editIssuer.Text)+' SUBJECT '+esc(editSubject.Text);
+          3: RequireClause := RequireClause + 'CIPHER '+FConnection.EscapeString(editCipher.Text)+' ISSUER '+FConnection.EscapeString(editIssuer.Text)+' SUBJECT '+FConnection.EscapeString(editSubject.Text);
         end;
         if (FocusedUser.SSL = comboSSL.ItemIndex)
           and (FocusedUser.Cipher = editCipher.Text)
@@ -1308,9 +1308,9 @@ begin
     // Set password
     if editPassword.Modified and (not PasswordSet) then begin
       if (not FConnection.Parameters.IsMariaDB) and (FConnection.ServerVersionInt >= 50706) then
-        FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = '+esc(editPassword.Text))
+        FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = '+FConnection.EscapeString(editPassword.Text))
       else
-        FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+esc(editPassword.Text)+')');
+        FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+FConnection.EscapeString(editPassword.Text)+')');
     end;
 
     // Rename user
@@ -1321,8 +1321,8 @@ begin
         Tables := Explode(',', 'user,db,tables_priv,columns_priv');
         for Table in Tables do begin
           FConnection.Query('UPDATE '+FConnection.QuoteIdent('mysql')+'.'+FConnection.QuoteIdent(Table)+
-            ' SET User='+esc(editUsername.Text)+', Host='+esc(editFromHost.Text)+
-            ' WHERE User='+esc(FocusedUser.Username)+' AND Host='+esc(FocusedUser.Host)
+            ' SET User='+FConnection.EscapeString(editUsername.Text)+', Host='+FConnection.EscapeString(editFromHost.Text)+
+            ' WHERE User='+FConnection.EscapeString(FocusedUser.Username)+' AND Host='+FConnection.EscapeString(FocusedUser.Host)
             );
         end;
         FreeAndNil(Tables);
@@ -1376,7 +1376,7 @@ begin
     listUsers.DeleteNode(listUsers.FocusedNode);
     FAdded := False;
   end else if MessageDialog(f_('Delete user %s@%s?', [User.Username, User.Host]), mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
-    UserHost := esc(User.Username)+'@'+esc(User.Host);
+    UserHost := FConnection.EscapeString(User.Username)+'@'+FConnection.EscapeString(User.Host);
     try
       // Revoke privs explicitly, required on old servers.
       // Newer servers only require one DROP USER query
@@ -1385,7 +1385,7 @@ begin
         FConnection.Query('REVOKE GRANT OPTION ON *.* FROM '+UserHost);
       end;
       if FConnection.ServerVersionInt < 40101 then
-        FConnection.Query('DELETE FROM mysql.user WHERE User='+esc(User.Username)+' AND Host='+esc(User.Host))
+        FConnection.Query('DELETE FROM mysql.user WHERE User='+FConnection.EscapeString(User.Username)+' AND Host='+FConnection.EscapeString(User.Host))
       else
         FConnection.Query('DROP USER '+UserHost);
       FConnection.Query('FLUSH PRIVILEGES');

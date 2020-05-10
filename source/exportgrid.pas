@@ -880,13 +880,13 @@ begin
               else if GridData.IsNull(Col) then
                 Data := 'NULL'
               else if (GridData.DataType(Col).Index = dtBit) and GridData.Connection.Parameters.IsAnyMySQL then
-                Data := 'b' + esc(Data)
+                Data := 'b' + GridData.Connection.EscapeString(Data)
               else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
                 or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
                 then
-                Data := esc(Data)
+                Data := GridData.Connection.EscapeString(Data)
               else if Data = '' then
-                Data := esc(Data);
+                Data := GridData.Connection.EscapeString(Data);
               if not Data.IsEmpty then
                 tmp := tmp + Data + ', ';
             end;

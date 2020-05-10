@@ -851,6 +851,11 @@ var
   Col: TTableColumn;
   SQL, Column, RoutineDefinitionColumn, RoutineSchemaColumn, FindText, FindTextJokers: String;
   IsRegExp: Boolean;
+
+  function esc(Value: String): String;
+  begin
+    Result := DBObj.Connection.EscapeString(Value);
+  end;
 begin
   FFindSeeResultSQL.Add('');
 
@@ -1445,8 +1450,8 @@ const
 
 begin
   // Handle one table, view or whatever in SQL export mode
-  AddResults('SELECT '+esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
-    esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
+  AddResults('SELECT '+DBObj.Connection.EscapeString(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
+    DBObj.Connection.EscapeString(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
     IntToStr(DBObj.Rows)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
     '0 AS '+DBObj.Connection.QuoteIdent('Duration')
     , DBObj.Connection
@@ -1616,12 +1621,12 @@ begin
           end;
 
           lntTrigger: begin
-            StrucResult := DBObj.Connection.GetResults('SHOW TRIGGERS FROM '+DBObj.QuotedDatabase+' WHERE `Trigger`='+esc(DBObj.Name));
+            StrucResult := DBObj.Connection.GetResults('SHOW TRIGGERS FROM '+DBObj.QuotedDatabase+' WHERE `Trigger`='+DBObj.Connection.EscapeString(DBObj.Name));
             Struc := DBObj.GetCreateCode(False, menuExportRemoveDefiner.Checked);
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('TRIGGER', Struc) + 8 );
             if ToFile or ToClipboard or ToDir then begin
-              Struc := 'SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE=' + esc(StrucResult.Col('sql_mode')) + ';' + CRLF +
+              Struc := 'SET @OLDTMP_SQL_MODE=@@SQL_MODE, SQL_MODE=' + DBObj.Connection.EscapeString(StrucResult.Col('sql_mode')) + ';' + CRLF +
                 'DELIMITER ' + TempDelim + CRLF +
                 Struc + TempDelim + CRLF +
                 'DELIMITER ;' + CRLF +
@@ -1736,9 +1741,9 @@ begin
                   if Length(BinContent) > 0 then
                     Row := Row + '_binary ' + BinContent
                   else
-                    Row := Row + esc('');
+                    Row := Row + Quoter.EscapeString('');
                 end;
-                else Row := Row + esc(Data.Col(i));
+                else Row := Row + Quoter.EscapeString(Data.Col(i));
               end;
               Row := Row + ', ';
             end;
@@ -1805,9 +1810,9 @@ var
   HasCharsetClause: Boolean;
   SelectedCharset: String;
 begin
-  AddResults('SELECT '+esc(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
-    esc(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
-    esc('Updating...')+' AS '+DBObj.Connection.QuoteIdent('Operation')+', '+
+  AddResults('SELECT '+DBObj.Connection.EscapeString(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
+    DBObj.Connection.EscapeString(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
+    DBObj.Connection.EscapeString('Updating...')+' AS '+DBObj.Connection.QuoteIdent('Operation')+', '+
     ''''' AS '+DBObj.Connection.QuoteIdent('Result')
     , DBObj.Connection
     );
@@ -1852,9 +1857,9 @@ begin
     end;
     if chkBulkTableEditCollation.Checked and (comboBulkTableEditCollation.ItemIndex > -1) then begin
       if HasCharsetClause then // No comma between charset + collation clause
-        Specs[Specs.Count-1] := Specs[Specs.Count-1] + ' COLLATE '+esc(comboBulkTableEditCollation.Text)
+        Specs[Specs.Count-1] := Specs[Specs.Count-1] + ' COLLATE '+DBObj.Connection.EscapeString(comboBulkTableEditCollation.Text)
       else
-        Specs.Add('COLLATE '+esc(comboBulkTableEditCollation.Text));
+        Specs.Add('COLLATE '+DBObj.Connection.EscapeString(comboBulkTableEditCollation.Text));
     end;
     if chkBulkTableEditResetAutoinc.Checked then
       Specs.Add('AUTO_INCREMENT=0');
