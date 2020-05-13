@@ -3599,6 +3599,9 @@ begin
       AppSettings.WriteString(asLastUsedDB, Value);
     end;
 
+    // Some session variables are specific to a database, like collation_database, see #1030
+    FreeAndNil(FSessionVariables);
+
     if Assigned(FOnObjectnamesChanged) then
       FOnObjectnamesChanged(Self, FDatabase);
   end;
