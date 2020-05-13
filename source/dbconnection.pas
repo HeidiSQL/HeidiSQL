@@ -4852,7 +4852,7 @@ begin
     Col.Name := ColQuery.Col(0);
     Col.OldName := Col.Name;
     Col.ParseDatatype(ColQuery.Col('Type'));
-    Col.Collation := ColQuery.Col('Collation');
+    Col.Collation := ColQuery.Col('Collation', True);
     if Col.Collation.ToLowerInvariant = 'null' then
       Col.Collation := '';
     Col.AllowNull := ColQuery.Col('Null').ToLowerInvariant = 'yes';
@@ -4877,7 +4877,7 @@ begin
       Col.OnUpdateType := cdtExpression;
     end;
 
-    Col.Comment := ColQuery.Col('Comment');
+    Col.Comment := ColQuery.Col('Comment', True);
     ColQuery.Next;
   end;
   ColQuery.Free;
