@@ -3819,8 +3819,15 @@ begin
   Folder := FBasePath;
   if FSessionPath <> '' then
     Folder := Folder + REGKEY_SESSIONS + '\' + FSessionPath;
-  if '\'+FRegistry.CurrentPath <> Folder then
+  if '\'+FRegistry.CurrentPath <> Folder then try
     FRegistry.OpenKey(Folder, True);
+  except
+    on E:Exception do begin
+      // Recreate exception with a more useful message
+      E.Message := E.Message + CRLF + CRLF + 'While trying to open registry key "'+Folder+'"';
+      raise;
+    end;
+  end;
 end;
 
 
