@@ -5956,13 +5956,16 @@ begin
 
   // Events
   if ServerVersionInt >= 50100 then try
-    if InformationSchemaObjects.IndexOf('EVENTS') > -1 then
-      Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
-        ' FROM '+InfSch+'.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
-    else
-      Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
+    Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
+      ' FROM '+InfSch+'.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
   except
-    on E:EDbError do;
+    on E:EDbError do begin
+      try
+        Results := GetResults('SHOW EVENTS FROM '+QuoteIdent(db));
+      except
+        on EDbError do;
+      end;
+    end;
   end;
   if Assigned(Results) then begin
     while not Results.Eof do begin
