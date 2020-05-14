@@ -172,14 +172,12 @@ type
       FLargestObjectSize: Int64;
       FLastUpdate: TDateTime;
       FCollation: String;
-      FOnlyNodeType: TListNodeType;
     public
       property Database: String read FDatabase;
       property DataSize: Int64 read FDataSize;
       property LargestObjectSize: Int64 read FLargestObjectSize;
       property LastUpdate: TDateTime read FLastUpdate;
       property Collation: String read FCollation;
-      property OnlyNodeType: TListNodeType read FOnlyNodeType;
   end;
   TDatabaseCache = class(TObjectList<TDBObjectList>); // A list of db object lists, used for caching
   TDBObjectComparer = class(TComparer<TDBObject>)
@@ -5752,7 +5750,7 @@ begin
   // Find list in cache
   Cache := nil;
   for i:=0 to FDatabaseCache.Count-1 do begin
-    if (FDatabaseCache[i].Database = db) and (FDatabaseCache[i].OnlyNodeType=lntNone) then begin
+    if FDatabaseCache[i].Database = db then begin
       Cache := FDatabaseCache[i];
       break;
     end;
@@ -5762,7 +5760,6 @@ begin
   if not Assigned(Cache) then begin
     Cache := TDBObjectList.Create(TDBObjectComparer.Create);
     Cache.OwnsObjects := True;
-    Cache.FOnlyNodeType := lntNone;
     Cache.FLastUpdate := 0;
     Cache.FDataSize := 0;
     Cache.FDatabase := db;
@@ -5778,17 +5775,11 @@ begin
       FOnObjectnamesChanged(Self, FDatabase);
   end;
 
-  Result := nil;
-  for i:=0 to FDatabaseCache.Count-1 do begin
-    if (FDatabaseCache[i].Database = db) and (FDatabaseCache[i].OnlyNodeType=OnlyNodeType) then begin
-      Result := FDatabaseCache[i];
-      break;
-    end;
-  end;
-  if not Assigned(Result) then begin
+  if OnlyNodeType = lntNone then begin
+    Result := Cache;
+  end else begin
     Result := TDBObjectList.Create(TDBObjectComparer.Create);
     Result.OwnsObjects := False;
-    Result.FOnlyNodeType := OnlyNodeType;
     Result.FLastUpdate := Cache.FLastUpdate;
     Result.FDataSize := Cache.FDataSize;
     Result.FDatabase := Cache.FDatabase;
