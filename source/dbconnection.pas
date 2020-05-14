@@ -5203,7 +5203,7 @@ begin
     ColQuery := GetResults('SELECT *'+
       ' FROM '+InfSch+'.KEY_COLUMN_USAGE'+
       ' WHERE'+
-      '   CONSTRAINT_SCHEMA='+EscapeString(Table.Database)+
+      '   TABLE_SCHEMA='+EscapeString(Table.Database)+
       '   AND TABLE_NAME='+EscapeString(Table.Name)+
       '   AND REFERENCED_TABLE_NAME IS NOT NULL'
       );
