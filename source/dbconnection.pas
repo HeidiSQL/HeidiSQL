@@ -8692,15 +8692,15 @@ end;
 function TDBObject.GetTableColumns: TTableColumnList;
 var
   Db: TDBObjectList;
-  DbObj: TDBObject;
+  Table: TDBObject;
 begin
   // Return columns from table object
   if not FTableColumns.Loaded then begin
     for Db in Connection.FDatabaseCache do begin
-      for DbObj in Db do begin
-        if (DbObj <> Self) and DbObj.IsSameAs(Self) then begin
-          FConnection.Log(lcDebug, 'Getting columns from database cache for '+QuotedDbAndTableName);
-          FTableColumns := Dbobj.GetTableColumns;
+      for Table in Db do begin
+        if (Table <> Self) and Table.IsSameAs(Self) then begin
+          FConnection.Log(lcDebug, 'Getting columns from cached '+Table.QuotedDbAndTableName);
+          FTableColumns := Table.GetTableColumns;
           Break;
         end;
       end;
