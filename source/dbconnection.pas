@@ -6049,7 +6049,7 @@ begin
     if Parameters.FullTableStatus and (ServerVersionInt >= 80100) then
       IndexLenClause := 'pg_relation_size('+SchemaTable+')::bigint'
     else
-      IndexLenClause := 'relpages * '+SIZE_KB.ToString;
+      IndexLenClause := 'relpages::bigint * '+SIZE_KB.ToString;
     Results := GetResults('SELECT *,'+
       ' '+DataLenClause+' AS data_length,'+
       ' '+IndexLenClause+' AS index_length,'+
