@@ -2054,7 +2054,7 @@ var
   LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
-  DefaultLastrunDate, LastActiveSession: String;
+  DefaultLastrunDate, LastActiveSession, Environment: String;
   frm : TfrmUpdateCheck;
   StatsCall: THttpDownload;
   SessionPaths: TStringlist;
@@ -2108,10 +2108,17 @@ begin
     end;
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used app version, bits, and theme name (so we find mostly unused ones for removal)
+      // Also report environment: WinDesktop, WinUWP or Wine
+
+      if RunningAsUwp then Environment := 'WinUWP'
+      else if IsWine then Environment := 'Wine'
+      else Environment := 'WinDesktop';
+
       StatsCall := THttpDownload.Create(Self);
       StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
         '&bits=' + IntToStr(GetExecutableBits) +
-        '&thm=' + EncodeURLParam(TStyleManager.ActiveStyle.Name);
+        '&thm=' + EncodeURLParam(TStyleManager.ActiveStyle.Name) +
+        '&env=' + EncodeURLParam(Environment);
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
