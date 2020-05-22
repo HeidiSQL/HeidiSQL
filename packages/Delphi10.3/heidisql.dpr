@@ -58,6 +58,7 @@ uses
 
 var
   AppLanguage: String;
+  WantedStyle: String;
 begin
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
   // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator
@@ -75,16 +76,23 @@ begin
 
     AppLanguage := AppSettings.ReadString(asAppLanguage);
     // SysLanguage may be zh_CN, while we don't offer such a language, but anyway, this is just the current system language:
-    SysLanguage := DefaultInstance.GetCurrentLocaleName;
-    UseLanguage(AppLanguage);
+    SysLanguage := gnugettext.DefaultInstance.GetCurrentLocaleName;
+    gnugettext.UseLanguage(AppLanguage);
     // First time translation via dxgettext.
     // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
-    TP_GlobalIgnoreClass(TFont);
+    gnugettext.TP_GlobalIgnoreClass(TFont);
 
     Application.Initialize;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
-    TStyleManager.TrySetStyle(AppSettings.ReadString(asTheme));
+
+    // Try to set style name. If that fails, the user gets an error message box - reset it to default when that happened
+    WantedStyle := AppSettings.ReadString(asTheme);
+    TStyleManager.TrySetStyle(WantedStyle);
+    if TStyleManager.ActiveStyle.Name <> WantedStyle then begin
+      AppSettings.WriteString(asTheme, TStyleManager.ActiveStyle.Name);
+    end;
+
     Application.CreateForm(TMainForm, MainForm);
     MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
