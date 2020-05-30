@@ -170,6 +170,9 @@ type
     comboWebSearchBaseUrl: TComboBox;
     chkThemePreview: TCheckBox;
     chkCompletionProposalSearchOnMid: TCheckBox;
+    lblLongSortRowNum: TLabel;
+    editLongSortRowNum: TEdit;
+    updownLongSortRowNum: TUpDown;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -360,6 +363,7 @@ begin
   AppSettings.WriteInt(asHightlightSameTextBackground, cboxRowHighlightSameText.Selected);
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
   AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
+  AppSettings.WriteInt(asQueryGridLongSortRowNum, updownLongSortRowNum.Position);
 
   // Editor Configuration
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
@@ -711,6 +715,7 @@ begin
   cboxRowHighlightSameText.Selected := AppSettings.ReadInt(asHightlightSameTextBackground);
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
   chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);
+  updownLongSortRowNum.Position := AppSettings.ReadInt(asQueryGridLongSortRowNum);
 
   // Editor Configuration
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);

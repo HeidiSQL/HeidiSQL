@@ -176,7 +176,7 @@ type
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
-    asPromptSaveFileOnTabClose, asRestoreTabs, asWarnUnsafeUpdates, asQueryWarningsMessage,
+    asPromptSaveFileOnTabClose, asRestoreTabs, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
@@ -3649,6 +3649,7 @@ begin
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
+  InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
   InitSetting(asCompletionProposalSearchOnMid,    'CompletionProposalSearchOnMid',         0, False);
   InitSetting(asCompletionProposalWidth,          'CompletionProposalWidth',               350);

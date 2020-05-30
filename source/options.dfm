@@ -902,6 +902,13 @@ object optionsform: Toptionsform
         Height = 13
         Caption = 'Same text background:'
       end
+      object lblLongSortRowNum: TLabel
+        Left = 8
+        Top = 303
+        Width = 127
+        Height = 13
+        Caption = 'Sort warning on grid rows:'
+      end
       object editMaxColWidth: TEdit
         Left = 180
         Top = 8
@@ -1073,6 +1080,24 @@ object optionsform: Toptionsform
         Style = csDropDownList
         TabOrder = 9
         OnSelect = comboGridTextColorsPresetSelect
+      end
+      object editLongSortRowNum: TEdit
+        Left = 180
+        Top = 300
+        Width = 145
+        Height = 21
+        TabOrder = 18
+        Text = '0'
+      end
+      object updownLongSortRowNum: TUpDown
+        Left = 325
+        Top = 300
+        Width = 16
+        Height = 21
+        Associate = editLongSortRowNum
+        Max = 2147483647
+        TabOrder = 19
+        OnChanging = anyUpDownLimitChanging
       end
     end
     object tabDataEditors: TTabSheet

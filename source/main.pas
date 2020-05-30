@@ -7623,9 +7623,9 @@ end;
 }
 procedure TMainForm.AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
-  i: Integer;
-const
-  MaxSortRows = 10000;
+  i, ConfirmResult: Integer;
+  MsgStr: String;
+  LongSortRowNum: Integer;
 begin
   // Don't call sorting procedure on right click
   // Some list-headers have a contextmenu which should popup then.
@@ -7639,9 +7639,12 @@ begin
   if Sender.Columns[HitInfo.Column].CheckBox then
     Exit;
   // Large query result sorting takes too long, see #293
-  if TVirtualStringTree(Sender.Treeview).RootNodeCount > MaxSortRows then begin
-    LogSQL(f_('Preventing long sort operation on column click, grid contains more than %d rows. Consider adding ORDER BY clause instead.', [MaxSortRows]));
-    Exit;
+  LongSortRowNum := AppSettings.ReadInt(asQueryGridLongSortRowNum);
+  if TVirtualStringTree(Sender.Treeview).RootNodeCount > LongSortRowNum then begin
+    MsgStr := f_('Sort operation on grid containing more than %d rows can take longer. Do you want to wait for it?', [LongSortRowNum]);
+    ConfirmResult := MessageDialog('Wait longer for sorting?', MsgStr, mtConfirmation, [mbYes, mbNo]);
+    if ConfirmResult <> mrYes then
+      Exit;
   end;
 
   // Clear sort icons
