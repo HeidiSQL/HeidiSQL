@@ -93,7 +93,7 @@ type
     procedure MouseLeave; override;
     procedure PaintScroll; override;
     function PointInTreeHeader(const P: TPoint): Boolean;
-    procedure UpdateScroll;
+    procedure UpdateScroll;{$if CompilerVersion >= 34}override;{$ifend}
   public
     constructor Create(AControl: TWinControl); override;
     destructor Destroy; override;

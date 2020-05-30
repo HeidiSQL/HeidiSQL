@@ -17,6 +17,8 @@ type
     FVirtualTree: TVirtualStringTree;
   public
     constructor Create(AVirtualTree: TVirtualStringTree);
+    /// Register the default accessible provider of Virtual TreeView
+    class procedure RegisterDefaultAccessibleProviders();
 
     { IAccessibility }
     function Get_accParent(out ppdispParent: IDispatch): HResult; stdcall;
@@ -766,7 +768,8 @@ var
   DefaultAccessibleItemProvider: TVTDefaultAccessibleItemProvider;
   MultiColumnAccessibleProvider: TVTMultiColumnAccessibleItemProvider;
 
-initialization
+class procedure TVirtualTreeAccessibility.RegisterDefaultAccessibleProviders();
+begin
   if DefaultAccessibleProvider = nil then
   begin
     DefaultAccessibleProvider := TVTDefaultAccessibleProvider.Create;
@@ -782,13 +785,11 @@ initialization
     MultiColumnAccessibleProvider := TVTMultiColumnAccessibleItemProvider.Create;
     TVTAccessibilityFactory.GetAccessibilityFactory.RegisterAccessibleProvider(MultiColumnAccessibleProvider);
   end;
-finalization
-  TVTAccessibilityFactory.GetAccessibilityFactory.UnRegisterAccessibleProvider(MultiColumnAccessibleProvider);
-  MultiColumnAccessibleProvider := nil;
-  TVTAccessibilityFactory.GetAccessibilityFactory.UnRegisterAccessibleProvider(DefaultAccessibleItemProvider);
-  DefaultAccessibleItemProvider := nil;
-  TVTAccessibilityFactory.GetAccessibilityFactory.UnRegisterAccessibleProvider(DefaultAccessibleProvider);
-  DefaultAccessibleProvider := nil;
+end;
+
+
+initialization
+  TVirtualTreeAccessibility.RegisterDefaultAccessibleProviders();
 
 end.
 
