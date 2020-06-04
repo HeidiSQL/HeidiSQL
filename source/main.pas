@@ -2142,8 +2142,9 @@ begin
     end;
   end;
 
+  ConnectionParams := nil;
   ParseCommandLine(Windows.GetCommandLine, ConnectionParams, FileNames);
-  if Assigned(ConnectionParams) then begin
+  if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
     InitConnection(ConnectionParams, True, Connection);
   end else if AppSettings.ReadBool(asAutoReconnect) then begin
