@@ -146,12 +146,8 @@
 {$I SynEditJedi.inc}
 
 {------------------------------------------------------------------------------}
-{ SYN_WIN32, SYN_LINUX and SYN_KYLIX defines                                   }
+{ SYN_LINUX and SYN_KYLIX defines                                              }
 {------------------------------------------------------------------------------}
-
-{$IFDEF WIN32}
-  {$DEFINE SYN_WIN32}
-{$ENDIF}
 
 {$IFDEF LINUX}
   {$DEFINE SYN_LINUX}
@@ -164,6 +160,12 @@
 {------------------------------------------------------------------------------}
 { VERXXX to SYN_COMPILERX, SYN_DELPHIX and SYN_CPPBX mappings                  }
 {------------------------------------------------------------------------------}
+
+{$IFDEF VER340}
+  {$DEFINE SYN_COMPILER_27}
+  {$DEFINE SYN_DELPHI}
+  {$DEFINE SYN_DELPHI_10_4}
+{$ENDIF}
 
 {$IFDEF VER330}
   {$DEFINE SYN_COMPILER_26}
@@ -738,6 +740,35 @@
   {$DEFINE SYN_COMPILER_26_UP}
 {$ENDIF}
 
+{$IFDEF SYN_COMPILER_27}
+  {$DEFINE SYN_COMPILER_1_UP}
+  {$DEFINE SYN_COMPILER_2_UP}
+  {$DEFINE SYN_COMPILER_3_UP}
+  {$DEFINE SYN_COMPILER_4_UP}
+  {$DEFINE SYN_COMPILER_5_UP}
+  {$DEFINE SYN_COMPILER_6_UP}
+  {$DEFINE SYN_COMPILER_7_UP}
+  {$DEFINE SYN_COMPILER_8_UP}
+  {$DEFINE SYN_COMPILER_9_UP}
+  {$DEFINE SYN_COMPILER_10_UP}
+  {$DEFINE SYN_COMPILER_11_UP}
+  {$DEFINE SYN_COMPILER_12_UP}
+  {$DEFINE SYN_COMPILER_14_UP}
+  {$DEFINE SYN_COMPILER_15_UP}
+  {$DEFINE SYN_COMPILER_16_UP}
+  {$DEFINE SYN_COMPILER_17_UP}
+  {$DEFINE SYN_COMPILER_18_UP}
+  {$DEFINE SYN_COMPILER_19_UP}
+  {$DEFINE SYN_COMPILER_20_UP}
+  {$DEFINE SYN_COMPILER_21_UP}
+  {$DEFINE SYN_COMPILER_22_UP}
+  {$DEFINE SYN_COMPILER_23_UP}
+  {$DEFINE SYN_COMPILER_24_UP}
+  {$DEFINE SYN_COMPILER_25_UP}
+  {$DEFINE SYN_COMPILER_26_UP}
+  {$DEFINE SYN_COMPILER_27_UP}
+{$ENDIF}
+
 
 {$IFDEF SYN_DELPHI_2}
   {$DEFINE SYN_DELPHI_2_UP}
@@ -1108,6 +1139,33 @@
   {$DEFINE SYN_DELPHI_10_3_UP}
 {$ENDIF}
 
+{$IFDEF SYN_DELPHI_10_4}
+  {$DEFINE SYN_DELPHI_2_UP}
+  {$DEFINE SYN_DELPHI_3_UP}
+  {$DEFINE SYN_DELPHI_4_UP}
+  {$DEFINE SYN_DELPHI_5_UP}
+  {$DEFINE SYN_DELPHI_6_UP}
+  {$DEFINE SYN_DELPHI_7_UP}
+  {$DEFINE SYN_DELPHI_8_UP}
+  {$DEFINE SYN_DELPHI_2005_UP}
+  {$DEFINE SYN_DELPHI_2006_UP}
+  {$DEFINE SYN_DELPHI_2007_UP}
+  {$DEFINE SYN_DELPHI_2009_UP}
+  {$DEFINE SYN_DELPHI_2010_UP}
+  {$DEFINE SYN_DELPHI_XE_UP}
+  {$DEFINE SYN_DELPHI_XE2_UP}
+  {$DEFINE SYN_DELPHI_XE3_UP}
+  {$DEFINE SYN_DELPHI_XE4_UP}
+  {$DEFINE SYN_DELPHI_XE5_UP}
+  {$DEFINE SYN_DELPHI_XE6_UP}
+  {$DEFINE SYN_DELPHI_XE7_UP}
+  {$DEFINE SYN_DELPHI_XE8_UP}
+  {$DEFINE SYN_DELPHI_10_1_UP}
+  {$DEFINE SYN_DELPHI_10_2_UP}
+  {$DEFINE SYN_DELPHI_10_3_UP}
+  {$DEFINE SYN_DELPHI_10_4_UP}
+{$ENDIF}
+
 {$IFDEF SYN_CPPB_6}
   {$DEFINE SYN_CPPB_3_UP}
   {$DEFINE SYN_CPPB_4_UP}
@@ -1128,10 +1186,17 @@
   {$ObjExportAll On}
 {$ENDIF}
 
+{------------------------------------------------------------------------------}
+{ MSWINDOWS and SYN_WIN32                                                      }
+{------------------------------------------------------------------------------}
+
 {$IFDEF SYN_KYLIX}
   Kylix is no longer supported. Please refer to the branch 'Kylix'
 {$ELSE}
-  {$DEFINE SYN_WIN32}
+  {$IFNDEF SYN_COMPILER_16_UP}
+    {$DEFINE MSWINOWS}
+  {$ENDIF}
+  {$DEFINE SYN_WIN32} // deprecated, do not use
 {$ENDIF}
 
 {------------------------------------------------------------------------------}
@@ -1147,7 +1212,7 @@
 {.$DEFINE SYN_HEREDOC}
 
 // Define OWN_UnicodeString_MEMMGR to speed up WideStrings-handling
-{$IFDEF SYN_WIN32}
+{$IFDEF MSWINOWS}
   {$IFNDEF UNICODE}
     {$DEFINE OWN_UnicodeString_MEMMGR}
   {$ENDIF}
@@ -1160,6 +1225,3 @@
 {$IFDEF SYN_DELPHI_XE_UP}
   {$DEFINE SYN_CodeFolding}
 {$ENDIF}
-
-
-

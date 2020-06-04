@@ -100,7 +100,7 @@ unit SynAutoCorrect;
 interface
 
 uses
-{$IFDEF SYN_WIN32} //Borland translation of Qt doesn't include Char handling
+{$IFDEF MSWINDOWS} //Borland translation of Qt doesn't include Char handling
   Windows,
 {$ELSE}
   Libc,

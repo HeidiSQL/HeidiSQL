@@ -50,7 +50,7 @@ Two extra properties included (DelphiVersion, PackageSource):
 
 unit SynHighlighterPas;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 
@@ -1340,6 +1340,12 @@ begin
 end;
 
 procedure TSynPasSyn.EnumUserSettings(DelphiVersions: TStrings);
+
+{$IFNDEF SYN_DELPHI_2006_UP}
+const
+  KEY_WOW64_64KEY = $0100;
+  KEY_WOW64_32KEY = $0200; 
+{$ENDIF}
 
   procedure LoadKeyVersions(const Key, Prefix: string);
   var

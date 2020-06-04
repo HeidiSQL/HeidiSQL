@@ -229,7 +229,7 @@ uses
   SynEditStrConst;
 
 resourcestring
-  SYNS_FilterREXX = 'Rexx sources|*.REX|All files (*.*)|*.*';
+  SYNS_FilterREXX = 'Rexx sources|*.REX';
   SYNS_LangREXX = 'REXX';
   SYNS_FriendlyLangREXX = 'REXX';
   SYNS_AttrSpecial = 'Special';
