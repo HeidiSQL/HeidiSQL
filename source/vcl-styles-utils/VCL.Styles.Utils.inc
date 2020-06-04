@@ -23,7 +23,7 @@
 {$DEFINE HOOK_UXTHEME}
 {$DEFINE HOOK_TDateTimePicker}
 {$DEFINE HOOK_TProgressBar}
-{.$DEFINE LimitStylesToCurrentProcess}
+{$DEFINE LimitStylesToCurrentProcess}
 
 { Feature toggles for supported UxThemes - see Vcl.Styles.UxTheme }
 
