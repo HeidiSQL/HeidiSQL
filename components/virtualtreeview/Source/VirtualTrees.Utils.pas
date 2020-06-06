@@ -1282,7 +1282,10 @@ procedure DrawImage(ImageList: TCustomImageList; Index: Integer; Canvas: TCanvas
 
 begin
   if Enabled then
-    TCustomImageListCast(ImageList).DoDraw(Index, Canvas, X, Y, Style, Enabled)
+    // HeidiSQL fix for #1045, required until Embarcadero fixes TVirtualImageList.DoDraw:
+    //TCustomImageListCast(ImageList).DoDraw(Index, Canvas, X, Y, Style, Enabled)
+    ImageList_DrawEx(ImageList.Handle, Index, Canvas.Handle, X, Y, 0, 0,
+      GetRGBColor(ImageList.BkColor), GetRGBColor(ImageList.BlendColor), Style)
   else
     DrawDisabledImage(ImageList, Canvas, X, Y, Index);
 end;
