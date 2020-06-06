@@ -164,7 +164,7 @@ object MainForm: TMainForm
         PopupMenu = popupDB
         ShowHint = True
         TabOrder = 0
-        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme]
         TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
         OnAfterCellPaint = DBtreeAfterCellPaint
         OnBeforeCellPaint = DBtreeBeforeCellPaint
