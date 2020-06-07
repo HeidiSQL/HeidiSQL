@@ -373,6 +373,7 @@ object loaddataform: Tloaddataform
         Hint = 'Move up'
         Caption = 'Up'
         ImageIndex = 74
+        ImageName = 'icons8-sort-up'
         Wrap = True
         OnClick = btnColMoveClick
       end
@@ -382,6 +383,7 @@ object loaddataform: Tloaddataform
         Hint = 'Move down'
         Caption = 'Down'
         ImageIndex = 75
+        ImageName = 'icons8-caret-arrowhead-facing-down'
         Wrap = True
         OnClick = btnColMoveClick
       end
@@ -391,6 +393,7 @@ object loaddataform: Tloaddataform
         Hint = 'Select / Deselect all'
         Caption = 'All'
         ImageIndex = 128
+        ImageName = 'icons8-checked-checkbox-other'
         OnClick = btnCheckAllClick
       end
     end

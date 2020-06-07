@@ -26,6 +26,7 @@ object frmSQLhelp: TfrmSQLhelp
     Anchors = [akRight, akBottom]
     Caption = 'Search online'
     ImageIndex = 69
+    ImageName = 'icons8-internet'
     Images = MainForm.VirtualImageListMain
     TabOrder = 0
     OnClick = ButtonOnlinehelpClick

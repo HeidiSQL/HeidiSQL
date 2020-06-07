@@ -62,6 +62,7 @@ object frmBinEditor: TfrmBinEditor
       Hint = 'Wrap long lines'
       Caption = 'Wrap long lines'
       ImageIndex = 62
+      ImageName = 'icons8-word-wrap'
       OnClick = btnWrapClick
     end
     object btnLoadBinary: TToolButton
@@ -70,6 +71,7 @@ object frmBinEditor: TfrmBinEditor
       Hint = 'Load binary file'
       Caption = 'Load binary file'
       ImageIndex = 52
+      ImageName = 'icons8-opened-folder'
       OnClick = btnLoadBinaryClick
     end
     object btnCancel: TToolButton
@@ -78,6 +80,7 @@ object frmBinEditor: TfrmBinEditor
       Hint = 'Cancel'
       Caption = 'Cancel'
       ImageIndex = 26
+      ImageName = 'icons8-close-button'
       OnClick = btnCancelClick
     end
     object btnApply: TToolButton
@@ -86,6 +89,7 @@ object frmBinEditor: TfrmBinEditor
       Hint = 'Apply changes'
       Caption = 'Apply changes'
       ImageIndex = 55
+      ImageName = 'icons8-checked'
       OnClick = btnApplyClick
     end
   end

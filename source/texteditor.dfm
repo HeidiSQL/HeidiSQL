@@ -66,6 +66,7 @@ object frmTextEditor: TfrmTextEditor
         Hint = 'Wrap long lines'
         Caption = 'Wrap long lines'
         ImageIndex = 62
+        ImageName = 'icons8-word-wrap'
         OnClick = btnWrapClick
       end
       object btnLinebreaks: TToolButton
@@ -74,6 +75,7 @@ object frmTextEditor: TfrmTextEditor
         Caption = 'Linebreaks'
         DropdownMenu = popupLinebreaks
         ImageIndex = 123
+        ImageName = 'icons8-windows-xp'
         Style = tbsDropDown
       end
       object btnLoadText: TToolButton
@@ -82,6 +84,7 @@ object frmTextEditor: TfrmTextEditor
         Hint = 'Load textfile'
         Caption = 'Load textfile'
         ImageIndex = 52
+        ImageName = 'icons8-opened-folder'
         OnClick = btnLoadTextClick
       end
       object btnCancel: TToolButton
@@ -90,6 +93,7 @@ object frmTextEditor: TfrmTextEditor
         Hint = 'Cancel'
         Caption = 'Cancel'
         ImageIndex = 26
+        ImageName = 'icons8-close-button'
         OnClick = btnCancelClick
       end
       object btnApply: TToolButton
@@ -98,6 +102,7 @@ object frmTextEditor: TfrmTextEditor
         Hint = 'Apply changes'
         Caption = 'Apply changes'
         ImageIndex = 55
+        ImageName = 'icons8-checked'
         OnClick = btnApplyClick
       end
       object btnSeparator1: TToolButton
@@ -106,6 +111,7 @@ object frmTextEditor: TfrmTextEditor
         Width = 8
         Caption = 'btnSeparator1'
         ImageIndex = 60
+        ImageName = 'icons8-sort-left'
         Style = tbsSeparator
       end
       object btnSearchFind: TToolButton
@@ -132,26 +138,31 @@ object frmTextEditor: TfrmTextEditor
     object menuWindowsLB: TMenuItem
       Caption = 'Windows linebreaks'
       ImageIndex = 123
+      ImageName = 'icons8-windows-xp'
       OnClick = SelectLinebreaks
     end
     object menuUnixLB: TMenuItem
       Caption = 'UNIX linebreaks'
       ImageIndex = 125
+      ImageName = 'icons8-linux'
       OnClick = SelectLinebreaks
     end
     object menuMacLB: TMenuItem
       Caption = 'Mac OS linebreaks'
       ImageIndex = 124
+      ImageName = 'icons8-apple-logo'
       OnClick = SelectLinebreaks
     end
     object menuWideLB: TMenuItem
       Caption = 'Unicode linebreaks'
       ImageIndex = 68
+      ImageName = 'icons8-brief'
       OnClick = SelectLinebreaks
     end
     object menuMixedLB: TMenuItem
       Caption = 'Mixed linebreaks'
       ImageIndex = 122
+      ImageName = 'icons8-refresh'
       OnClick = SelectLinebreaks
     end
   end

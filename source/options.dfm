@@ -38,6 +38,7 @@ object optionsform: Toptionsform
     object tabMisc: TTabSheet
       Caption = 'General'
       ImageIndex = 137
+      ImageName = 'icons8-settings'
       DesignSize = (
         700
         388)
@@ -342,6 +343,7 @@ object optionsform: Toptionsform
     object tabLogging: TTabSheet
       Caption = 'Logging'
       ImageIndex = 56
+      ImageName = 'icons8-index'
       DesignSize = (
         700
         388)
@@ -554,6 +556,7 @@ object optionsform: Toptionsform
     object tabSQL: TTabSheet
       Caption = 'SQL'
       ImageIndex = 57
+      ImageName = 'icons8-play'
       DesignSize = (
         700
         388)
@@ -834,6 +837,7 @@ object optionsform: Toptionsform
     object tabGridFormatting: TTabSheet
       Caption = 'Grid formatting'
       ImageIndex = 41
+      ImageName = 'icons8-data-grid'
       DesignSize = (
         700
         388)
@@ -1103,6 +1107,7 @@ object optionsform: Toptionsform
     object tabDataEditors: TTabSheet
       Caption = 'Data editors'
       ImageIndex = 33
+      ImageName = 'icons8-compose'
       DesignSize = (
         700
         388)
@@ -1196,6 +1201,7 @@ object optionsform: Toptionsform
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'
       ImageIndex = 13
+      ImageName = 'icons8-lightning-bolt-100'
       DesignSize = (
         700
         388)
@@ -1267,6 +1273,7 @@ object optionsform: Toptionsform
     object tabFiles: TTabSheet
       Caption = 'Files'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       DesignSize = (
         700
         388)

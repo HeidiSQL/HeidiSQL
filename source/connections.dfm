@@ -48,6 +48,7 @@ object connform: Tconnform
     Anchors = [akLeft, akBottom]
     Caption = 'Save'
     ImageIndex = 10
+    ImageName = 'icons8-save-button-100'
     Images = MainForm.VirtualImageListMain
     TabOrder = 1
     OnClick = btnSaveClick
@@ -84,6 +85,7 @@ object connform: Tconnform
     Caption = 'New'
     DropDownMenu = popupNew
     ImageIndex = 45
+    ImageName = 'icons8-add'
     Images = MainForm.VirtualImageListMain
     Style = bsSplitButton
     TabOrder = 0
@@ -97,6 +99,7 @@ object connform: Tconnform
     Anchors = [akLeft, akBottom]
     Caption = 'Delete'
     ImageIndex = 46
+    ImageName = 'icons8-delete-button'
     Images = MainForm.VirtualImageListMain
     TabOrder = 2
     OnClick = btnDeleteClick
@@ -118,6 +121,7 @@ object connform: Tconnform
     object tabStart: TTabSheet
       Caption = 'Start'
       ImageIndex = 112
+      ImageName = 'icons8-star-filled'
       object lblHelp: TLabel
         AlignWithMargins = True
         Left = 10
@@ -147,6 +151,7 @@ object connform: Tconnform
     object tabSettings: TTabSheet
       Caption = 'Settings'
       ImageIndex = 39
+      ImageName = 'icons8-support'
       DesignSize = (
         417
         371)
@@ -352,6 +357,7 @@ object connform: Tconnform
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
       ImageIndex = 147
+      ImageName = 'icons8-lock'
       DesignSize = (
         417
         371)
@@ -534,6 +540,7 @@ object connform: Tconnform
     object tabAdvanced: TTabSheet
       Caption = 'Advanced'
       ImageIndex = 98
+      ImageName = 'icons8-support-orange'
       DesignSize = (
         417
         371)
@@ -791,6 +798,7 @@ object connform: Tconnform
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
       ImageIndex = 145
+      ImageName = 'icons8-bar-chart'
       object lblLastConnectLeft: TLabel
         Left = 3
         Top = 31
@@ -975,35 +983,41 @@ object connform: Tconnform
       Caption = 'Rename'
       Enabled = False
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       ShortCut = 113
       OnClick = menuRenameClick
     end
     object menuSave: TMenuItem
       Caption = 'Save'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       ShortCut = 16467
       OnClick = btnSaveClick
     end
     object menuSaveAs: TMenuItem
       Caption = 'Duplicate / save as ...'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       ShortCut = 123
       OnClick = btnSaveAsClick
     end
     object menuDelete: TMenuItem
       Caption = 'Delete'
       ImageIndex = 26
+      ImageName = 'icons8-close-button'
       ShortCut = 46
       OnClick = btnDeleteClick
     end
     object menuContextNewSessionInFolder: TMenuItem
       Caption = 'New session'
       ImageIndex = 72
+      ImageName = 'icons8-database-symbol'
       OnClick = btnNewClick
     end
     object menuContextNewFolderInFolder: TMenuItem
       Caption = 'New folder'
       ImageIndex = 174
+      ImageName = 'icons8-folder-other'
       OnClick = btnNewClick
     end
   end
@@ -1026,21 +1040,25 @@ object connform: Tconnform
     object menuNewSessionInRoot: TMenuItem
       Caption = 'Session in root folder'
       ImageIndex = 72
+      ImageName = 'icons8-database-symbol'
       OnClick = btnNewClick
     end
     object menuNewSessionInFolder: TMenuItem
       Caption = 'Session in selected folder'
       ImageIndex = 72
+      ImageName = 'icons8-database-symbol'
       OnClick = btnNewClick
     end
     object menuNewFolderInRoot: TMenuItem
       Caption = 'Folder in root folder'
       ImageIndex = 174
+      ImageName = 'icons8-folder-other'
       OnClick = btnNewClick
     end
     object menuNewFolderInFolder: TMenuItem
       Caption = 'Folder in selected folder'
       ImageIndex = 174
+      ImageName = 'icons8-folder-other'
       OnClick = btnNewClick
     end
   end
@@ -1081,11 +1099,13 @@ object connform: Tconnform
     object menuFindDatabaseFiles: TMenuItem
       Caption = 'Find database files...'
       ImageIndex = 30
+      ImageName = 'icons8-find'
       OnClick = FindAddDatabaseFilesClick
     end
     object menuAddDatabaseFiles: TMenuItem
       Caption = 'Add database files...'
       ImageIndex = 72
+      ImageName = 'icons8-database-symbol'
       OnClick = FindAddDatabaseFilesClick
     end
   end

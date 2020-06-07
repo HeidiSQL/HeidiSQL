@@ -293,6 +293,7 @@ object frmExportGrid: TfrmExportGrid
     Anchors = [akLeft, akBottom]
     Caption = 'Save clipboard settings'
     ImageIndex = 4
+    ImageName = 'icons8-paste-100'
     Images = MainForm.VirtualImageListMain
     TabOrder = 6
     OnClick = btnSetClipboardDefaultsClick

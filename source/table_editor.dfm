@@ -34,6 +34,7 @@ object frmTableEditor: TfrmTableEditor
     object tabBasic: TTabSheet
       Caption = 'Basic'
       ImageIndex = 14
+      ImageName = 'icons8-data-sheet-100'
       DesignSize = (
         686
         121)
@@ -79,6 +80,7 @@ object frmTableEditor: TfrmTableEditor
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39
+      ImageName = 'icons8-support'
       DesignSize = (
         686
         121)
@@ -238,6 +240,7 @@ object frmTableEditor: TfrmTableEditor
     object tabIndexes: TTabSheet
       Caption = 'Indexes'
       ImageIndex = 13
+      ImageName = 'icons8-lightning-bolt-100'
       object treeIndexes: TVirtualStringTree
         AlignWithMargins = True
         Left = 69
@@ -308,6 +311,7 @@ object frmTableEditor: TfrmTableEditor
           Hint = 'Add index'
           Caption = 'Add'
           ImageIndex = 45
+          ImageName = 'icons8-add'
           Wrap = True
           OnClick = btnAddIndexClick
         end
@@ -317,6 +321,7 @@ object frmTableEditor: TfrmTableEditor
           Hint = 'Remove index'
           Caption = 'Remove'
           ImageIndex = 46
+          ImageName = 'icons8-delete-button'
           Wrap = True
           OnClick = btnRemoveIndexClick
         end
@@ -326,6 +331,7 @@ object frmTableEditor: TfrmTableEditor
           Hint = 'Clear indexes'
           Caption = 'Clear'
           ImageIndex = 26
+          ImageName = 'icons8-close-button'
           Wrap = True
           OnClick = btnClearIndexesClick
         end
@@ -335,6 +341,7 @@ object frmTableEditor: TfrmTableEditor
           Hint = 'Move up'
           Caption = 'Up'
           ImageIndex = 74
+          ImageName = 'icons8-sort-up'
           Wrap = True
           OnClick = btnMoveUpIndexClick
         end
@@ -344,6 +351,7 @@ object frmTableEditor: TfrmTableEditor
           Hint = 'Move down'
           Caption = 'Down'
           ImageIndex = 75
+          ImageName = 'icons8-caret-arrowhead-facing-down'
           OnClick = btnMoveDownIndexClick
         end
       end
@@ -351,6 +359,7 @@ object frmTableEditor: TfrmTableEditor
     object tabForeignKeys: TTabSheet
       Caption = 'Foreign keys'
       ImageIndex = 136
+      ImageName = 'icons8-data-grid-relation'
       object tlbForeignKeys: TToolBar
         Left = 0
         Top = 0
@@ -369,6 +378,7 @@ object frmTableEditor: TfrmTableEditor
           Top = 0
           Caption = 'Add'
           ImageIndex = 45
+          ImageName = 'icons8-add'
           Wrap = True
           OnClick = btnAddForeignKeyClick
         end
@@ -378,6 +388,7 @@ object frmTableEditor: TfrmTableEditor
           Caption = 'Remove'
           Enabled = False
           ImageIndex = 46
+          ImageName = 'icons8-delete-button'
           Wrap = True
           OnClick = btnRemoveForeignKeyClick
         end
@@ -387,6 +398,7 @@ object frmTableEditor: TfrmTableEditor
           Caption = 'Clear'
           Enabled = False
           ImageIndex = 26
+          ImageName = 'icons8-close-button'
           OnClick = btnClearForeignKeysClick
         end
       end
@@ -457,6 +469,7 @@ object frmTableEditor: TfrmTableEditor
     object tabPartitions: TTabSheet
       Caption = 'Partitions'
       ImageIndex = 186
+      ImageName = 'icons8-pie-chart'
       object SynMemoPartitions: TSynMemo
         Left = 0
         Top = 0
@@ -490,6 +503,7 @@ object frmTableEditor: TfrmTableEditor
     object tabCREATEcode: TTabSheet
       Caption = 'CREATE code'
       ImageIndex = 119
+      ImageName = 'icons8-source-code-other'
       object SynMemoCREATEcode: TSynMemo
         Left = 0
         Top = 0
@@ -523,6 +537,7 @@ object frmTableEditor: TfrmTableEditor
     object tabALTERCode: TTabSheet
       Caption = 'ALTER code'
       ImageIndex = 119
+      ImageName = 'icons8-source-code-other'
       object SynMemoALTERcode: TSynMemo
         Left = 0
         Top = 0
@@ -591,6 +606,7 @@ object frmTableEditor: TfrmTableEditor
         Hint = 'Add column'
         Caption = 'Add'
         ImageIndex = 45
+        ImageName = 'icons8-add'
         OnClick = btnAddColumnClick
       end
       object btnRemoveColumn: TToolButton
@@ -599,6 +615,7 @@ object frmTableEditor: TfrmTableEditor
         Hint = 'Remove column'
         Caption = 'Remove'
         ImageIndex = 46
+        ImageName = 'icons8-delete-button'
         OnClick = btnRemoveColumnClick
       end
       object btnMoveUpColumn: TToolButton
@@ -607,6 +624,7 @@ object frmTableEditor: TfrmTableEditor
         Hint = 'Move up'
         Caption = 'Up'
         ImageIndex = 74
+        ImageName = 'icons8-sort-up'
         OnClick = btnMoveUpColumnClick
       end
       object btnMoveDownColumn: TToolButton
@@ -615,6 +633,7 @@ object frmTableEditor: TfrmTableEditor
         Hint = 'Move down'
         Caption = 'Down'
         ImageIndex = 75
+        ImageName = 'icons8-caret-arrowhead-facing-down'
         OnClick = btnMoveDownColumnClick
       end
     end
@@ -774,36 +793,42 @@ object frmTableEditor: TfrmTableEditor
     object menuAddIndex: TMenuItem
       Caption = 'Add index'
       ImageIndex = 45
+      ImageName = 'icons8-add'
       ShortCut = 16429
       OnClick = btnAddIndexClick
     end
     object menuAddIndexColumn: TMenuItem
       Caption = 'Add column'
       ImageIndex = 91
+      ImageName = 'icons8-rhombus-add'
       ShortCut = 24621
       OnClick = menuAddIndexColumnClick
     end
     object menuRemoveIndex: TMenuItem
       Caption = 'Remove'
       ImageIndex = 46
+      ImageName = 'icons8-delete-button'
       ShortCut = 16430
       OnClick = btnRemoveIndexClick
     end
     object menuClearIndexes: TMenuItem
       Caption = 'Clear'
       ImageIndex = 26
+      ImageName = 'icons8-close-button'
       ShortCut = 24622
       OnClick = btnClearIndexesClick
     end
     object menuMoveUpIndex: TMenuItem
       Caption = 'Up'
       ImageIndex = 74
+      ImageName = 'icons8-sort-up'
       ShortCut = 16469
       OnClick = btnMoveUpIndexClick
     end
     object menuMoveDownIndex: TMenuItem
       Caption = 'Down'
       ImageIndex = 75
+      ImageName = 'icons8-caret-arrowhead-facing-down'
       ShortCut = 16452
       OnClick = btnMoveDownIndexClick
     end
@@ -819,11 +844,13 @@ object frmTableEditor: TfrmTableEditor
     object menuCopyColumns: TMenuItem
       Caption = 'Copy selected columns'
       ImageIndex = 155
+      ImageName = 'icons8-copy-rows'
       OnClick = menuCopyColumnsClick
     end
     object menuPasteColumns: TMenuItem
       Caption = 'Paste columns'
       ImageIndex = 156
+      ImageName = 'icons8-paste-rows'
       OnClick = menuPasteColumnsClick
     end
     object N2: TMenuItem
@@ -832,24 +859,28 @@ object frmTableEditor: TfrmTableEditor
     object menuAddColumn: TMenuItem
       Caption = 'Add column'
       ImageIndex = 45
+      ImageName = 'icons8-add'
       ShortCut = 16429
       OnClick = btnAddColumnClick
     end
     object menuRemoveColumn: TMenuItem
       Caption = 'Remove column'
       ImageIndex = 46
+      ImageName = 'icons8-delete-button'
       ShortCut = 16430
       OnClick = btnRemoveColumnClick
     end
     object menuMoveUpColumn: TMenuItem
       Caption = 'Move up'
       ImageIndex = 74
+      ImageName = 'icons8-sort-up'
       ShortCut = 16469
       OnClick = btnMoveUpColumnClick
     end
     object menuMoveDownColumn: TMenuItem
       Caption = 'Move down'
       ImageIndex = 75
+      ImageName = 'icons8-caret-arrowhead-facing-down'
       ShortCut = 16452
       OnClick = btnMoveDownColumnClick
     end
@@ -859,10 +890,12 @@ object frmTableEditor: TfrmTableEditor
     object menuCreateIndex: TMenuItem
       Caption = 'Create new index'
       ImageIndex = 13
+      ImageName = 'icons8-lightning-bolt-100'
     end
     object menuAddToIndex: TMenuItem
       Caption = 'Add to index'
       ImageIndex = 13
+      ImageName = 'icons8-lightning-bolt-100'
     end
   end
 end

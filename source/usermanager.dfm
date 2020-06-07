@@ -59,6 +59,7 @@ object UserManagerForm: TUserManagerForm
     Cancel = True
     Caption = 'Close'
     ImageIndex = 26
+    ImageName = 'icons8-close-button'
     Images = MainForm.VirtualImageListMain
     ModalResult = 2
     TabOrder = 4
@@ -72,6 +73,7 @@ object UserManagerForm: TUserManagerForm
     Caption = 'Save'
     Default = True
     ImageIndex = 10
+    ImageName = 'icons8-save-button-100'
     Images = MainForm.VirtualImageListMain
     TabOrder = 2
     OnClick = btnSaveClick
@@ -155,6 +157,7 @@ object UserManagerForm: TUserManagerForm
         Top = 0
         Caption = 'Add'
         ImageIndex = 45
+        ImageName = 'icons8-add'
         OnClick = btnAddUserClick
       end
       object btnCloneUser: TToolButton
@@ -162,6 +165,7 @@ object UserManagerForm: TUserManagerForm
         Top = 0
         Caption = 'Clone'
         ImageIndex = 3
+        ImageName = 'icons8-copy-100'
         OnClick = btnAddUserClick
       end
       object btnDeleteUser: TToolButton
@@ -169,6 +173,7 @@ object UserManagerForm: TUserManagerForm
         Top = 0
         Caption = 'Delete'
         ImageIndex = 46
+        ImageName = 'icons8-delete-button'
         OnClick = btnDeleteUserClick
       end
     end
@@ -218,6 +223,7 @@ object UserManagerForm: TUserManagerForm
         Hint = 'Add object ...'
         Caption = 'Add object'
         ImageIndex = 45
+        ImageName = 'icons8-add'
         OnClick = btnAddObjectClick
       end
     end
@@ -553,6 +559,7 @@ object UserManagerForm: TUserManagerForm
     Anchors = [akRight, akBottom]
     Caption = 'Discard'
     ImageIndex = 40
+    ImageName = 'icons8-undo'
     Images = MainForm.VirtualImageListMain
     TabOrder = 3
     OnClick = btnDiscardClick

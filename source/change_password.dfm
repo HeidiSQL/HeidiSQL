@@ -118,6 +118,7 @@ object frmPasswordChange: TfrmPasswordChange
     Anchors = [akRight, akBottom]
     Caption = 'Copy'
     ImageIndex = 3
+    ImageName = 'icons8-copy-100'
     Images = MainForm.VirtualImageListMain
     TabOrder = 4
     OnClick = btnCopyToClipboardClick

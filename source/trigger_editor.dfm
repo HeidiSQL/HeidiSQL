@@ -29,6 +29,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39
+      ImageName = 'icons8-support'
       DesignSize = (
         686
         103)
@@ -114,6 +115,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
       ImageIndex = 119
+      ImageName = 'icons8-source-code-other'
       object SynMemoCreateCode: TSynMemo
         Left = 0
         Top = 0

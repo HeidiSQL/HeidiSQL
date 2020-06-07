@@ -1419,6 +1419,7 @@ object AboutBox: TAboutBox
     object menuCopyLabel: TMenuItem
       Caption = 'Copy'
       ImageIndex = 3
+      ImageName = 'icons8-copy-100'
       OnClick = menuCopyLabelClick
     end
   end

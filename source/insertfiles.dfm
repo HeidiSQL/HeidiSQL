@@ -233,6 +233,7 @@ object frmInsertFiles: TfrmInsertFiles
         Top = 0
         Caption = 'Add'
         ImageIndex = 45
+        ImageName = 'icons8-add'
         OnClick = btnAddFilesClick
       end
       object btnRemoveFiles: TToolButton
@@ -241,6 +242,7 @@ object frmInsertFiles: TfrmInsertFiles
         Caption = 'Remove'
         Enabled = False
         ImageIndex = 46
+        ImageName = 'icons8-delete-button'
         OnClick = btnRemoveFilesClick
       end
       object btnClearFiles: TToolButton
@@ -249,6 +251,7 @@ object frmInsertFiles: TfrmInsertFiles
         Caption = 'Clear'
         Enabled = False
         ImageIndex = 26
+        ImageName = 'icons8-close-button'
         OnClick = btnRemoveFilesClick
       end
     end

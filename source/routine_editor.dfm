@@ -126,6 +126,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39
+      ImageName = 'icons8-support'
       DesignSize = (
         686
         137)
@@ -267,6 +268,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     object tabParameters: TTabSheet
       Caption = 'Parameters'
       ImageIndex = 122
+      ImageName = 'icons8-refresh'
       object listParameters: TVirtualStringTree
         Left = 82
         Top = 0
@@ -336,6 +338,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           Top = 0
           Caption = 'Add'
           ImageIndex = 45
+          ImageName = 'icons8-add'
           Wrap = True
           OnClick = btnAddParamClick
         end
@@ -345,6 +348,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           Caption = 'Remove'
           Enabled = False
           ImageIndex = 46
+          ImageName = 'icons8-delete-button'
           Wrap = True
           OnClick = btnRemoveParamClick
         end
@@ -353,6 +357,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           Top = 44
           Caption = 'Clear'
           ImageIndex = 26
+          ImageName = 'icons8-close-button'
           Wrap = True
           OnClick = btnClearParamsClick
         end
@@ -362,6 +367,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           Caption = 'Move up'
           Enabled = False
           ImageIndex = 74
+          ImageName = 'icons8-sort-up'
           Wrap = True
           OnClick = btnMoveParamClick
         end
@@ -371,6 +377,7 @@ object frmRoutineEditor: TfrmRoutineEditor
           Caption = 'Move down'
           Enabled = False
           ImageIndex = 75
+          ImageName = 'icons8-caret-arrowhead-facing-down'
           OnClick = btnMoveParamClick
         end
       end
@@ -378,6 +385,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     object tabCreateCode: TTabSheet
       Caption = 'CREATE code'
       ImageIndex = 119
+      ImageName = 'icons8-source-code-other'
       object SynMemoCREATEcode: TSynMemo
         Left = 0
         Top = 0

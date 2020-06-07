@@ -146,6 +146,7 @@ object frmTableTools: TfrmTableTools
         object tabMaintenance: TTabSheet
           Caption = 'Maintenance'
           ImageIndex = 39
+          ImageName = 'icons8-support'
           DesignSize = (
             592
             151)
@@ -250,6 +251,7 @@ object frmTableTools: TfrmTableTools
         object tabFind: TTabSheet
           Caption = 'Find text'
           ImageIndex = 30
+          ImageName = 'icons8-find'
           DesignSize = (
             592
             151)
@@ -324,6 +326,7 @@ object frmTableTools: TfrmTableTools
         object tabSQLexport: TTabSheet
           Caption = 'SQL export'
           ImageIndex = 9
+          ImageName = 'icons8-outgoing-data-100'
           DesignSize = (
             592
             151)
@@ -384,6 +387,7 @@ object frmTableTools: TfrmTableTools
             Hint = 'Browse filesystem'
             Anchors = [akTop, akRight]
             ImageIndex = 51
+            ImageName = 'icons8-folder'
             Images = MainForm.VirtualImageListMain
             TabOrder = 9
             OnClick = btnExportOutputTargetSelectClick
@@ -492,6 +496,7 @@ object frmTableTools: TfrmTableTools
         object tabBulkTableEdit: TTabSheet
           Caption = 'Bulk table editor'
           ImageIndex = 19
+          ImageName = 'icons8-sheets-100'
           DesignSize = (
             592
             151)

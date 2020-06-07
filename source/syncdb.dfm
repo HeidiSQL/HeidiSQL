@@ -135,6 +135,7 @@ object frmSyncDB: TfrmSyncDB
     Cancel = True
     Caption = 'Close'
     ImageIndex = 26
+    ImageName = 'icons8-close-button'
     Images = MainForm.VirtualImageListMain
     ModalResult = 2
     TabOrder = 2
@@ -148,6 +149,7 @@ object frmSyncDB: TfrmSyncDB
     Caption = 'Apply'
     Enabled = False
     ImageIndex = 120
+    ImageName = 'icons8-refresh-right'
     Images = MainForm.VirtualImageListMain
     TabOrder = 3
     OnClick = btnApplyClick
@@ -160,6 +162,7 @@ object frmSyncDB: TfrmSyncDB
     Anchors = [akRight, akBottom]
     Caption = 'Analyze'
     ImageIndex = 146
+    ImageName = 'icons8-find-other'
     Images = MainForm.VirtualImageListMain
     TabOrder = 4
     OnClick = btnAnalyzeClick
