@@ -16755,6 +16755,7 @@ object MainForm: TMainForm
         Name = 'icons8-clear-symbol'
       end>
     ImageCollection = ImageCollectionIcons8
+    ImageNameAvailable = False
     Left = 593
     Top = 275
   end
