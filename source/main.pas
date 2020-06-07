@@ -2112,6 +2112,7 @@ begin
 
       if RunningAsUwp then Environment := 'WinUWP'
       else if IsWine then Environment := 'Wine'
+      else if AppSettings.PortableMode then Environment := 'WinDesktopPortable'
       else Environment := 'WinDesktop';
 
       StatsCall := THttpDownload.Create(Self);
