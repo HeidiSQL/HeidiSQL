@@ -267,6 +267,7 @@ object MainForm: TMainForm
             Hint = 'Close preview'
             Caption = 'btnPreviewClose'
             ImageIndex = 26
+            ImageName = 'icons8-close-button'
             OnClick = actDataPreviewExecute
           end
         end
@@ -1071,6 +1072,7 @@ object MainForm: TMainForm
                 Width = 8
                 Caption = 'ToolButton2'
                 ImageIndex = 108
+                ImageName = 'icons8-caret-arrowhead-facing-down-other'
                 Style = tbsSeparator
               end
               object tbtnDataSorting: TToolButton
@@ -1079,6 +1081,7 @@ object MainForm: TMainForm
                 AllowAllUp = True
                 Caption = 'Sorting'
                 ImageIndex = 107
+                ImageName = 'icons8-caret-arrowhead-facing-down-other-gray'
                 Style = tbsTextButton
                 OnClick = btnDataClick
               end
@@ -1088,6 +1091,7 @@ object MainForm: TMainForm
                 AllowAllUp = True
                 Caption = 'Columns'
                 ImageIndex = 107
+                ImageName = 'icons8-caret-arrowhead-facing-down-other-gray'
                 Style = tbsTextButton
                 OnClick = btnDataClick
               end
@@ -1097,6 +1101,7 @@ object MainForm: TMainForm
                 AllowAllUp = True
                 Caption = 'Filter'
                 ImageIndex = 107
+                ImageName = 'icons8-caret-arrowhead-facing-down-other-gray'
                 OnClick = btnDataClick
               end
             end
@@ -1823,6 +1828,7 @@ object MainForm: TMainForm
         Width = 8
         Caption = 'tlbSep1'
         ImageIndex = 2
+        ImageName = 'icons8-cut-100'
         Style = tbsSeparator
       end
       object ToolButton5: TToolButton
@@ -1854,6 +1860,7 @@ object MainForm: TMainForm
         Width = 8
         Caption = 'tlbSep2'
         ImageIndex = 3
+        ImageName = 'icons8-copy-100'
         Style = tbsSeparator
       end
       object ButtonRefresh: TToolButton
@@ -1888,6 +1895,7 @@ object MainForm: TMainForm
         Width = 8
         Caption = 'tlbSep6'
         ImageIndex = 97
+        ImageName = 'icons8-collaboration-other'
         Style = tbsSeparator
       end
       object btnSQLHelp: TToolButton
@@ -2234,6 +2242,7 @@ object MainForm: TMainForm
       Caption = 'Session manager'
       Hint = 'Display session manager'
       ImageIndex = 37
+      ImageName = 'icons8-connected'
       OnExecute = actSessionManagerExecute
     end
     object actNewWindow: TAction
@@ -2241,6 +2250,7 @@ object MainForm: TMainForm
       Caption = 'New &window'
       Hint = 'New window...'
       ImageIndex = 37
+      ImageName = 'icons8-connected'
       ShortCut = 16462
       OnExecute = actNewWindowExecute
     end
@@ -2249,6 +2259,7 @@ object MainForm: TMainForm
       Caption = 'E&xit'
       Hint = 'Exit|Exit application'
       ImageIndex = 26
+      ImageName = 'icons8-close-button'
       OnExecute = actExitApplicationExecute
     end
     object actCopy: TAction
@@ -2256,6 +2267,7 @@ object MainForm: TMainForm
       Caption = '&Copy'
       Hint = 'Copy|Copy to Clipboard'
       ImageIndex = 3
+      ImageName = 'icons8-copy-100'
       ShortCut = 16451
       OnExecute = actCopyOrCutExecute
     end
@@ -2264,6 +2276,7 @@ object MainForm: TMainForm
       Caption = '&Paste'
       Hint = 'Paste|Paste from Clipboard'
       ImageIndex = 4
+      ImageName = 'icons8-paste-100'
       ShortCut = 16470
       OnExecute = actPasteExecute
     end
@@ -2272,6 +2285,7 @@ object MainForm: TMainForm
       Caption = 'User manager'
       Hint = 'Manage user authentication and privileges'
       ImageIndex = 11
+      ImageName = 'icons8-user-account-100'
       OnExecute = actUserManagerExecute
     end
     object actCut: TAction
@@ -2279,6 +2293,7 @@ object MainForm: TMainForm
       Caption = 'Cu&t'
       Hint = 'Cut|Cuts the selection and puts it on the Clipboard'
       ImageIndex = 2
+      ImageName = 'icons8-cut-100'
       ShortCut = 16472
       OnExecute = actCopyOrCutExecute
     end
@@ -2287,6 +2302,7 @@ object MainForm: TMainForm
       Caption = '&Undo'
       Enabled = False
       ImageIndex = 40
+      ImageName = 'icons8-undo'
       ShortCut = 32776
     end
     object actAboutBox: TAction
@@ -2294,6 +2310,7 @@ object MainForm: TMainForm
       Caption = 'About...'
       Hint = 'About this application'
       ImageIndex = 99
+      ImageName = 'icons8-more-info'
       OnExecute = actAboutBoxExecute
     end
     object actMaintenance: TAction
@@ -2301,6 +2318,7 @@ object MainForm: TMainForm
       Caption = 'Maintenance'
       Hint = 'Optimize, repair and analyse tables'
       ImageIndex = 39
+      ImageName = 'icons8-support'
       OnExecute = actTableToolsExecute
     end
     object actFindTextOnServer: TAction
@@ -2308,6 +2326,7 @@ object MainForm: TMainForm
       Caption = 'Find text on server'
       Hint = 'Searches selected tables for text occurences'
       ImageIndex = 146
+      ImageName = 'icons8-find-other'
       ShortCut = 24646
       OnExecute = actTableToolsExecute
     end
@@ -2317,6 +2336,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Export rows to file or copy to clipboard, in various formats'
       ImageIndex = 20
+      ImageName = 'icons8-export-100'
       OnExecute = actExportDataExecute
     end
     object actPrintList: TAction
@@ -2324,6 +2344,7 @@ object MainForm: TMainForm
       Caption = 'Print...'
       Hint = 'Print List or Data'
       ImageIndex = 34
+      ImageName = 'icons8-print'
       ShortCut = 16464
       OnExecute = actPrintListExecute
     end
@@ -2333,6 +2354,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Create a base table copy of this table or view'
       ImageIndex = 19
+      ImageName = 'icons8-sheets-100'
       OnExecute = actCopyTableExecute
     end
     object actExecuteQuery: TAction
@@ -2341,6 +2363,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Execute SQL...|Execute SQL-query/queries...'
       ImageIndex = 57
+      ImageName = 'icons8-play'
       ShortCut = 120
       OnExecute = actExecuteQueryExecute
     end
@@ -2350,6 +2373,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Execute selected SQL...|Execute selected SQL-query/queries...'
       ImageIndex = 104
+      ImageName = 'icons8-play-selected'
       ShortCut = 16504
       OnExecute = actExecuteQueryExecute
     end
@@ -2359,6 +2383,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Run current query|Run currently focused SQL query'
       ImageIndex = 105
+      ImageName = 'icons8-play-cropped'
       ShortCut = 24696
       OnExecute = actExecuteQueryExecute
     end
@@ -2379,6 +2404,7 @@ object MainForm: TMainForm
       Caption = 'Image preview'
       Hint = 'Preview image contents from BLOB cells'
       ImageIndex = 152
+      ImageName = 'icons8-image-other'
       OnExecute = actDataPreviewExecute
       OnUpdate = actDataPreviewUpdate
     end
@@ -2386,6 +2412,7 @@ object MainForm: TMainForm
       Category = 'Export/Import'
       Caption = 'Insert files into TEXT/BLOB fields...'
       ImageIndex = 47
+      ImageName = 'icons8-image'
       OnExecute = actInsertFilesExecute
     end
     object actExportTables: TAction
@@ -2393,6 +2420,7 @@ object MainForm: TMainForm
       Caption = 'Export database as SQL'
       Hint = 'Dump database objects to an SQL file'
       ImageIndex = 9
+      ImageName = 'icons8-outgoing-data-100'
       OnExecute = actTableToolsExecute
     end
     object actLoadSQL: TAction
@@ -2400,6 +2428,7 @@ object MainForm: TMainForm
       Caption = 'Load SQL file...'
       Hint = 'Load SQL file...'
       ImageIndex = 51
+      ImageName = 'icons8-folder'
       ShortCut = 16463
       OnExecute = actLoadSQLExecute
     end
@@ -2408,6 +2437,7 @@ object MainForm: TMainForm
       Caption = 'Run SQL file...'
       Hint = 'Run SQL file(s) directly, without loading into the editor'
       ImageIndex = 189
+      ImageName = 'icons8-run-file'
       OnExecute = actLoadSQLExecute
     end
     object actDropObjects: TAction
@@ -2416,6 +2446,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Deletes tables, views, procedures and functions'
       ImageIndex = 131
+      ImageName = 'icons8-delete-document'
       OnExecute = actDropObjectsExecute
     end
     object actCreateView: TAction
@@ -2424,6 +2455,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Create view ...'
       ImageIndex = 81
+      ImageName = 'icons8-eye'
       OnExecute = actCreateDBObjectExecute
     end
     object actDataFirst: TAction
@@ -2432,6 +2464,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'First'
       ImageIndex = 89
+      ImageName = 'icons8-skip-to-start'
       OnExecute = actDataFirstExecute
     end
     object actDataLast: TAction
@@ -2440,6 +2473,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Last'
       ImageIndex = 90
+      ImageName = 'icons8-end'
       OnExecute = actDataLastExecute
     end
     object actDataInsert: TAction
@@ -2448,6 +2482,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Insert row into table'
       ImageIndex = 45
+      ImageName = 'icons8-add'
       ShortCut = 45
       OnExecute = actDataInsertExecute
     end
@@ -2456,6 +2491,7 @@ object MainForm: TMainForm
       Caption = 'Duplicate row without keys'
       Enabled = False
       ImageIndex = 45
+      ImageName = 'icons8-add'
       ShortCut = 16429
       OnExecute = actDataInsertExecute
     end
@@ -2464,6 +2500,7 @@ object MainForm: TMainForm
       Caption = 'Duplicate row with keys'
       Enabled = False
       ImageIndex = 45
+      ImageName = 'icons8-add'
       OnExecute = actDataInsertExecute
     end
     object actDataDelete: TAction
@@ -2472,6 +2509,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Delete selected row(s)'
       ImageIndex = 46
+      ImageName = 'icons8-delete-button'
       ShortCut = 16430
       OnExecute = actDataDeleteExecute
     end
@@ -2481,6 +2519,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Post'
       ImageIndex = 55
+      ImageName = 'icons8-checked'
       ShortCut = 16397
       OnExecute = actDataPostChangesExecute
     end
@@ -2490,6 +2529,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Cancel editing'
       ImageIndex = 26
+      ImageName = 'icons8-close-button'
       ShortCut = 27
       OnExecute = actDataCancelChangesExecute
     end
@@ -2499,6 +2539,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Create new table in selected database'
       ImageIndex = 14
+      ImageName = 'icons8-data-sheet-100'
       OnExecute = actCreateDBObjectExecute
     end
     object actEmptyTables: TAction
@@ -2507,6 +2548,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Delete all rows in selected table(s)'
       ImageIndex = 46
+      ImageName = 'icons8-delete-button'
       ShortCut = 8238
       OnExecute = actEmptyTablesExecute
     end
@@ -2515,6 +2557,7 @@ object MainForm: TMainForm
       Caption = 'Database'
       Hint = 'Create a new, blank database'
       ImageIndex = 5
+      ImageName = 'icons8-database-100'
       OnExecute = actCreateDatabaseExecute
     end
     object actSQLhelp: TAction
@@ -2523,6 +2566,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'SQL help browser'
       ImageIndex = 31
+      ImageName = 'icons8-help'
       ShortCut = 112
       OnExecute = actSQLhelpExecute
     end
@@ -2531,6 +2575,7 @@ object MainForm: TMainForm
       Caption = 'Refresh'
       Hint = 'Refresh'
       ImageIndex = 0
+      ImageName = 'icons8-circular-arrow-100'
       ShortCut = 116
       OnExecute = actRefreshExecute
     end
@@ -2542,6 +2587,7 @@ object MainForm: TMainForm
         'Get full statistics refresh on table data. Slow on InnoDB tables' +
         '!'
       ImageIndex = 184
+      ImageName = 'icons8-circular-arrow-violet'
       ShortCut = 8308
       OnExecute = actFullRefreshExecute
     end
@@ -2550,24 +2596,28 @@ object MainForm: TMainForm
       Caption = 'Import CSV file...'
       Hint = 'Import a CSV or tab delimited file'
       ImageIndex = 50
+      ImageName = 'icons8-csv'
       OnExecute = actImportCSVExecute
     end
     object actExportSettings: TAction
       Category = 'Export/Import'
       Caption = 'Export settings file ...'
       ImageIndex = 100
+      ImageName = 'icons8-export'
       OnExecute = actExportSettingsExecute
     end
     object actImportSettings: TAction
       Category = 'Export/Import'
       Caption = 'Import settings file ...'
       ImageIndex = 101
+      ImageName = 'icons8-import'
       OnExecute = actImportSettingsExecute
     end
     object actPreferences: TAction
       Category = 'Tools'
       Caption = 'Preferences'
       ImageIndex = 98
+      ImageName = 'icons8-support-orange'
       OnExecute = actPreferencesExecute
     end
     object actPreferencesLogging: TAction
@@ -2582,42 +2632,49 @@ object MainForm: TMainForm
       Category = 'Tools'
       Caption = 'Hosts'
       ImageIndex = 28
+      ImageName = 'icons8-reset'
       OnExecute = actFlushExecute
     end
     object actFlushLogs: TAction
       Category = 'Tools'
       Caption = 'Logs'
       ImageIndex = 28
+      ImageName = 'icons8-reset'
       OnExecute = actFlushExecute
     end
     object actFlushPrivileges: TAction
       Category = 'Tools'
       Caption = 'Privileges'
       ImageIndex = 28
+      ImageName = 'icons8-reset'
       OnExecute = actFlushExecute
     end
     object actFlushTables: TAction
       Category = 'Tools'
       Caption = 'Tables'
       ImageIndex = 28
+      ImageName = 'icons8-reset'
       OnExecute = actFlushExecute
     end
     object actFlushTableswithreadlock: TAction
       Category = 'Tools'
       Caption = 'Tables with read lock'
       ImageIndex = 28
+      ImageName = 'icons8-reset'
       OnExecute = actFlushExecute
     end
     object actFlushStatus: TAction
       Category = 'Tools'
       Caption = 'Status'
       ImageIndex = 28
+      ImageName = 'icons8-reset'
       OnExecute = actFlushExecute
     end
     object actUpdateCheck: TAction
       Category = 'Tools'
       Caption = 'Check for updates ...'
       ImageIndex = 94
+      ImageName = 'icons8-update'
       OnExecute = actUpdateCheckExecute
     end
     object actWebDownloadpage: TAction
@@ -2625,6 +2682,7 @@ object MainForm: TMainForm
       Caption = 'Download page'
       Hint = 'http://www.heidisql.com/download.php'
       ImageIndex = 69
+      ImageName = 'icons8-internet'
       OnExecute = actWebbrowse
     end
     object actWebForum: TAction
@@ -2632,6 +2690,7 @@ object MainForm: TMainForm
       Caption = 'Support forum'
       Hint = 'http://www.heidisql.com/forum.php'
       ImageIndex = 95
+      ImageName = 'icons8-collaboration'
       OnExecute = actWebbrowse
     end
     object actWebChangelog: TAction
@@ -2639,6 +2698,7 @@ object MainForm: TMainForm
       Caption = 'Changelog'
       Hint = 'https://github.com/HeidiSQL/HeidiSQL/commits/master'
       ImageIndex = 68
+      ImageName = 'icons8-brief'
       OnExecute = actWebbrowse
     end
     object actHelp: TAction
@@ -2646,6 +2706,7 @@ object MainForm: TMainForm
       Caption = 'General help'
       Hint = 'General online help document'
       ImageIndex = 99
+      ImageName = 'icons8-more-info'
       OnExecute = actHelpExecute
     end
     object actSaveSQLAs: TAction
@@ -2654,6 +2715,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save SQL to a textfile'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       ShortCut = 123
       OnExecute = actSaveSQLAsExecute
     end
@@ -2663,6 +2725,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save selected text to a file'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       ShortCut = 24659
       OnExecute = actSaveSQLAsExecute
     end
@@ -2672,6 +2735,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save as snippet ...'
       ImageIndex = 54
+      ImageName = 'icons8-paper-100-save'
       OnExecute = actSaveSQLAsExecute
     end
     object actSaveSQLSelectionSnippet: TAction
@@ -2680,6 +2744,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save selected text as snippet ...'
       ImageIndex = 54
+      ImageName = 'icons8-paper-100-save'
       OnExecute = actSaveSQLAsExecute
     end
     object actClearQueryEditor: TAction
@@ -2688,6 +2753,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Clear query editor'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       ShortCut = 16471
       OnExecute = actClearEditorExecute
     end
@@ -2696,6 +2762,7 @@ object MainForm: TMainForm
       Caption = 'Clear'
       Hint = 'Clear filter editor'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       ShortCut = 16471
       OnExecute = actClearEditorExecute
     end
@@ -2704,6 +2771,7 @@ object MainForm: TMainForm
       Caption = 'Clear'
       Hint = 'Clear query log'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       ShortCut = 16465
       OnExecute = actClearEditorExecute
     end
@@ -2714,6 +2782,7 @@ object MainForm: TMainForm
       Checked = True
       Hint = 'Stop on errors in batch mode'
       ImageIndex = 63
+      ImageName = 'icons8-error-100-stop'
       OnExecute = actQueryStopOnErrorsExecute
     end
     object actQueryWordWrap: TAction
@@ -2722,6 +2791,7 @@ object MainForm: TMainForm
       Caption = 'Wrap long lines'
       Hint = 'Wrap long lines'
       ImageIndex = 62
+      ImageName = 'icons8-word-wrap'
       OnExecute = actQueryWordWrapExecute
     end
     object actQueryFind: TAction
@@ -2729,6 +2799,7 @@ object MainForm: TMainForm
       Caption = 'Find text ...'
       Hint = 'Find text ...'
       ImageIndex = 30
+      ImageName = 'icons8-find'
       ShortCut = 16454
       OnExecute = actQueryFindReplaceExecute
     end
@@ -2737,6 +2808,7 @@ object MainForm: TMainForm
       Caption = 'Replace text ...'
       Hint = 'Replace text ...'
       ImageIndex = 59
+      ImageName = 'icons8-find-and-replace'
       ShortCut = 16466
       OnExecute = actQueryFindReplaceExecute
     end
@@ -2744,6 +2816,7 @@ object MainForm: TMainForm
       Category = 'SQL'
       Caption = 'Find or replace again'
       ImageIndex = 142
+      ImageName = 'icons8-search-more'
       ShortCut = 114
       OnExecute = actQueryFindAgainExecute
     end
@@ -2753,12 +2826,14 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Set delimiter used in SQL execution'
       ImageIndex = 106
+      ImageName = 'icons8-semicolon'
       OnExecute = actSetDelimiterExecute
     end
     object actApplyFilter: TAction
       Category = 'Data'
       Caption = 'Apply filter'
       ImageIndex = 55
+      ImageName = 'icons8-checked'
       ShortCut = 120
       OnExecute = actApplyFilterExecute
     end
@@ -2766,6 +2841,7 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Remove filter'
       ImageIndex = 26
+      ImageName = 'icons8-close-button'
       OnExecute = actRemoveFilterExecute
     end
     object actPreviousTab: TPreviousTab
@@ -2791,6 +2867,7 @@ object MainForm: TMainForm
       Caption = 'Select all'
       Hint = 'Select all|Select all items or text'
       ImageIndex = 118
+      ImageName = 'icons8-select-all'
       ShortCut = 16449
       OnExecute = actSelectAllExecute
       OnUpdate = ValidateControls
@@ -2800,6 +2877,7 @@ object MainForm: TMainForm
       Caption = 'Stored routine'
       Hint = 'Create stored routine|Create stored procedure or function'
       ImageIndex = 119
+      ImageName = 'icons8-source-code-other'
       OnExecute = actCreateDBObjectExecute
     end
     object actNewQueryTab: TAction
@@ -2807,6 +2885,7 @@ object MainForm: TMainForm
       Caption = 'New query tab'
       Hint = 'Open a blank query tab'
       ImageIndex = 132
+      ImageName = 'icons8-querytab-add'
       ShortCut = 16468
       OnExecute = actNewQueryTabExecute
     end
@@ -2815,6 +2894,7 @@ object MainForm: TMainForm
       Caption = 'Close query tab'
       Enabled = False
       ImageIndex = 133
+      ImageName = 'icons8-querytab-close'
       ShortCut = 16499
       OnExecute = actCloseQueryTabExecute
     end
@@ -2822,6 +2902,7 @@ object MainForm: TMainForm
       Category = 'Various'
       Caption = 'Invert selection'
       ImageIndex = 138
+      ImageName = 'icons8-invert-selection'
       ShortCut = 16457
       OnExecute = actSelectInverseExecute
     end
@@ -2831,6 +2912,7 @@ object MainForm: TMainForm
       Caption = 'Filter panel'
       Hint = 'Activates the filter panel'
       ImageIndex = 30
+      ImageName = 'icons8-find'
       ShortCut = 49222
       OnExecute = actFilterPanelExecute
     end
@@ -2838,6 +2920,7 @@ object MainForm: TMainForm
       Category = 'Tools'
       Caption = 'Bulk table editor'
       ImageIndex = 19
+      ImageName = 'icons8-sheets-100'
       OnExecute = actTableToolsExecute
     end
     object actCreateTrigger: TAction
@@ -2845,6 +2928,7 @@ object MainForm: TMainForm
       Caption = 'Trigger'
       Hint = 'Create a trigger'
       ImageIndex = 137
+      ImageName = 'icons8-settings'
       OnExecute = actCreateDBObjectExecute
     end
     object actSaveSQL: TAction
@@ -2853,6 +2937,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Save SQL to file'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       ShortCut = 16467
       OnExecute = actSaveSQLExecute
     end
@@ -2860,6 +2945,7 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Reset sorting'
       ImageIndex = 139
+      ImageName = 'icons8-alphabetical-sorting-delete'
       ShortCut = 32851
       OnExecute = actDataResetSortingExecute
     end
@@ -2870,6 +2956,7 @@ object MainForm: TMainForm
         'Automatically reformat disordered SQL in active editor to make i' +
         't more readable'
       ImageIndex = 140
+      ImageName = 'icons8-broom'
       ShortCut = 16503
       OnExecute = actReformatSQLExecute
     end
@@ -2879,6 +2966,7 @@ object MainForm: TMainForm
       Caption = 'View binary data as text (instead of HEX)'
       Hint = 'View binary data as text (instead of HEX)'
       ImageIndex = 141
+      ImageName = 'icons8-data'
       OnExecute = actBlobAsTextExecute
     end
     object actDataShowNext: TAction
@@ -2886,6 +2974,7 @@ object MainForm: TMainForm
       Caption = 'Next'
       Hint = 'Next X rows'
       ImageIndex = 79
+      ImageName = 'icons8-double-right'
       ShortCut = 49186
       OnExecute = actDataShowNextExecute
     end
@@ -2894,6 +2983,7 @@ object MainForm: TMainForm
       Caption = 'Show all'
       Hint = 'Show all rows'
       ImageIndex = 143
+      ImageName = 'icons8-sort'
       ShortCut = 49187
       OnExecute = actDataShowAllExecute
     end
@@ -2901,6 +2991,7 @@ object MainForm: TMainForm
       Category = 'Database'
       Caption = 'Run routine(s) ...'
       ImageIndex = 35
+      ImageName = 'icons8-go'
       OnExecute = actRunRoutinesExecute
     end
     object actCreateEvent: TAction
@@ -2909,6 +3000,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Create new event in selected database'
       ImageIndex = 80
+      ImageName = 'icons8-event'
       OnExecute = actCreateDBObjectExecute
     end
     object actDataSetNull: TAction
@@ -2917,6 +3009,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Set focused cell to NULL'
       ImageIndex = 92
+      ImageName = 'icons8-rhombus-delete'
       ShortCut = 24654
       OnExecute = actDataSetNullExecute
     end
@@ -2925,6 +3018,7 @@ object MainForm: TMainForm
       Caption = 'Save BLOB to file ...'
       Hint = 'Save contents to local file ...'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       OnExecute = actDataSaveBlobToFileExecute
     end
     object actDisconnect: TAction
@@ -2932,6 +3026,7 @@ object MainForm: TMainForm
       Caption = 'Disconnect'
       Hint = 'Close selected database connection'
       ImageIndex = 29
+      ImageName = 'icons8-disconnected'
       OnExecute = actDisconnectExecute
     end
     object actBatchInOneGo: TAction
@@ -2956,6 +3051,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Cancel running operation'
       ImageIndex = 159
+      ImageName = 'icons8-close-window'
       ShortCut = 27
       OnExecute = actCancelOperationExecute
     end
@@ -2964,18 +3060,21 @@ object MainForm: TMainForm
       Caption = 'Un/comment'
       Hint = 'Makes selected SQL a comment or removes comment chars'
       ImageIndex = 165
+      ImageName = 'icons8-comments'
       OnExecute = actToggleCommentExecute
     end
     object actSynchronizeDatabase: TAction
       Category = 'Export/Import'
       Caption = 'Synchronize database'
       ImageIndex = 27
+      ImageName = 'icons8-data-backup'
       OnExecute = actSynchronizeDatabaseExecute
     end
     object actLaunchCommandline: TAction
       Category = 'Tools'
       Caption = 'Launch command line'
       ImageIndex = 170
+      ImageName = 'icons8-terminal'
       OnExecute = actLaunchCommandlineExecute
     end
     object actGridEditFunction: TAction
@@ -2983,6 +3082,7 @@ object MainForm: TMainForm
       Caption = 'SQL function'
       Hint = 'Insert SQL function call in this grid cell, e.g. NOW()'
       ImageIndex = 13
+      ImageName = 'icons8-lightning-bolt-100'
       ShortCut = 16497
       OnExecute = actGridEditFunctionExecute
     end
@@ -3011,12 +3111,14 @@ object MainForm: TMainForm
       Caption = 'Show only favorites'
       Hint = 'Show only favorite tree items'
       ImageIndex = 112
+      ImageName = 'icons8-star-filled'
       OnExecute = actFavoriteObjectsOnlyExecute
     end
     object actPreviousResult: TAction
       Category = 'Data'
       Caption = 'Previous result tab'
       ImageIndex = 117
+      ImageName = 'icons8-querytab-left'
       ShortCut = 32805
       OnExecute = actPreviousResultExecute
     end
@@ -3024,6 +3126,7 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Next result tab'
       ImageIndex = 116
+      ImageName = 'icons8-querytab-right'
       ShortCut = 32807
       OnExecute = actNextResultExecute
     end
@@ -3032,6 +3135,7 @@ object MainForm: TMainForm
       Caption = 'Save as textfile...'
       Hint = 'Save contents to a textfile'
       ImageIndex = 10
+      ImageName = 'icons8-save-button-100'
       ShortCut = 16467
       OnExecute = actSaveSynMemoToTextfileExecute
       OnUpdate = ValidateControls
@@ -3095,6 +3199,7 @@ object MainForm: TMainForm
       Caption = 'Copy selected rows'
       Hint = 'Copy selected rows in custom format'
       ImageIndex = 155
+      ImageName = 'icons8-copy-rows'
       ShortCut = 24643
       OnExecute = actCopyOrCutExecute
     end
@@ -3103,6 +3208,7 @@ object MainForm: TMainForm
       Caption = 'Open URL'
       Hint = 'Open URL in your webbrowser'
       ImageIndex = 69
+      ImageName = 'icons8-internet'
       OnExecute = actDataOpenUrlExecute
     end
     object actDetachDatabase: TAction
@@ -3111,6 +3217,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Detach attached database'
       ImageIndex = 100
+      ImageName = 'icons8-export'
       Visible = False
       OnExecute = actDetachDatabaseExecute
     end
@@ -3120,6 +3227,7 @@ object MainForm: TMainForm
       Enabled = False
       Hint = 'Attach new or existing database file'
       ImageIndex = 101
+      ImageName = 'icons8-import'
       Visible = False
       OnExecute = actAttachDatabaseExecute
     end
@@ -3133,6 +3241,7 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column = Focused'
       ImageIndex = 61
+      ImageName = 'icons8-sort-right'
       ShortCut = 24625
       OnExecute = QuickFilterClick
     end
@@ -3140,6 +3249,7 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column != Focused'
       ImageIndex = 61
+      ImageName = 'icons8-sort-right'
       ShortCut = 24626
       OnExecute = QuickFilterClick
     end
@@ -3147,36 +3257,42 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column > Focused'
       ImageIndex = 61
+      ImageName = 'icons8-sort-right'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterFocused4: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column < Focused'
       ImageIndex = 61
+      ImageName = 'icons8-sort-right'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterFocused5: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column LIKE Focused%'
       ImageIndex = 61
+      ImageName = 'icons8-sort-right'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterFocused6: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column LIKE %Focused'
       ImageIndex = 61
+      ImageName = 'icons8-sort-right'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterFocused7: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column LIKE %Focused%'
       ImageIndex = 61
+      ImageName = 'icons8-sort-right'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterPrompt1: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column = Prompt'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       ShortCut = 24627
       OnExecute = QuickFilterClick
     end
@@ -3184,6 +3300,7 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column != Prompt'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       ShortCut = 24628
       OnExecute = QuickFilterClick
     end
@@ -3191,36 +3308,42 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column > Prompt'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterPrompt4: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column < Prompt'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterPrompt5: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column LIKE %Prompt%'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterPrompt6: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column IS NULL'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterPrompt7: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column IS NOT NULL'
       ImageIndex = 58
+      ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterClipboard1: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column = Clipboard'
       ImageIndex = 4
+      ImageName = 'icons8-paste-100'
       ShortCut = 24629
       OnExecute = QuickFilterClick
     end
@@ -3228,6 +3351,7 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column != Clipboard'
       ImageIndex = 4
+      ImageName = 'icons8-paste-100'
       ShortCut = 24630
       OnExecute = QuickFilterClick
     end
@@ -3235,24 +3359,28 @@ object MainForm: TMainForm
       Category = 'Data'
       Caption = 'Quick filter: Column > Clipboard'
       ImageIndex = 4
+      ImageName = 'icons8-paste-100'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterClipboard4: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column < Clipboard'
       ImageIndex = 4
+      ImageName = 'icons8-paste-100'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterClipboard5: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column LIKE %Clipboard%'
       ImageIndex = 4
+      ImageName = 'icons8-paste-100'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterClipboard6: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column IN (Clipboard)'
       ImageIndex = 4
+      ImageName = 'icons8-paste-100'
       OnExecute = QuickFilterClick
     end
   end
