@@ -1153,7 +1153,8 @@ type
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
-    procedure RunQueryFile(Filename: String; Encoding: TEncoding);
+    procedure RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
+      ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64);
     procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
@@ -1269,7 +1270,7 @@ uses
 
 
 
-{$R *.DFM}
+{$R *.dfm}
 
 
 procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
@@ -3765,13 +3766,16 @@ end;
 function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
 var
   i: Integer;
-  Filesize, FilesizeSum: Int64;
+  Filesize, FilesizeSum, CurrentPosition: Int64;
   msgtext: String;
   AbsentFiles, PopupFileList: TStringList;
   DoRunFiles: Boolean;
   Dialog: TTaskDialog;
   Btn: TTaskDialogButtonItem;
   DialogResult: TModalResult;
+  Conn: TDBConnection;
+  ProgressDialog: IProgressDialog;
+  Dummy: Pointer;
 const
   RunFileSize = 5*SIZE_MB;
 begin
@@ -3838,12 +3842,21 @@ begin
     case DialogResult of
       mrYes: begin
         Result := True;
+        // progress start
+        ProgressDialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
+        Dummy := nil;
+        CurrentPosition := 0;
+        Conn := ActiveConnection;
+        // PROGDLG_MODAL was used previously, but somehow that focuses some other application
+        ProgressDialog.StartProgressDialog(Handle, nil, PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
         for i:=0 to Filenames.Count-1 do begin
-          RunQueryFile(Filenames[i], Encoding);
+          RunQueryFile(Filenames[i], Encoding, Conn, ProgressDialog, FilesizeSum, CurrentPosition);
           // Add filename to history menu
           if Pos(AppSettings.DirnameSnippets, Filenames[i]) = 0 then
             MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
         end;
+        // progress end
+        ProgressDialog.StopProgressDialog;
       end;
       mrNo: Result := False;
       mrCancel: Result := True;
@@ -3857,41 +3870,34 @@ begin
 end;
 
 
-procedure TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding);
+procedure TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding; Conn: TDBConnection;
+  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64);
 var
-  Dialog: IProgressDialog;
   Dummy: Pointer;
   Stream: TFileStream;
   Lines, LinesRemain, ErrorNotice: String;
-  Filesize, QueryCount, ErrorCount, RowsAffected, Position: Int64;
+  Filesize, QueryCount, ErrorCount, RowsAffected: Int64;
   Queries: TSQLBatch;
   i: Integer;
-  LastProcessMessages: Cardinal;
 
   procedure StopProgress;
   begin
-    Dialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
+    ProgressDialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
     Queries.Free;
     Stream.Free;
-    Dialog.StopProgressDialog;
     // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
-    SetFocus;
   end;
 
 begin
   // Import single SQL file and display progress dialog
-  Dialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
-  Dialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
+  ProgressDialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
   Dummy := nil;
-  Dialog.StartProgressDialog(Handle, nil, PROGDLG_MODAL or PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
 
   Lines := '';
   ErrorNotice := '';
   QueryCount := 0;
   ErrorCount := 0;
-  Position := 0;
   RowsAffected := 0;
-  LastProcessMessages := GetTickCount;
   LinesRemain := '';
   Queries := TSQLBatch.Create;
 
@@ -3901,23 +3907,23 @@ begin
 
     OpenTextfile(FileName, Stream, Encoding);
     while Stream.Position < Stream.Size do begin
-      if Dialog.HasUserCancelled then
+      if ProgressDialog.HasUserCancelled then
         Break;
 
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
-      Dialog.SetLine(1, PChar(_('Reading next chunk from file...')), False, Dummy);
+      ProgressDialog.SetLine(1, PChar(_('Reading next chunk from file...')), False, Dummy);
       Lines := ReadTextfileChunk(Stream, Encoding, 20*SIZE_MB);
 
       // Split buffer into single queries
-      Dialog.SetLine(1, PChar(_('Splitting queries...')), False, Dummy);
+      ProgressDialog.SetLine(1, PChar(_('Splitting queries...')), False, Dummy);
       Queries.SQL := LinesRemain + Lines;
       Lines := '';
       LinesRemain := '';
 
       // Execute detected queries
       for i:=0 to Queries.Count-1 do begin
-        if Dialog.HasUserCancelled then
+        if ProgressDialog.HasUserCancelled then
           Break;
         // Last line has to be processed in next loop if end of file is not reached
         if (i = Queries.Count-1) and (Stream.Position < Stream.Size) then begin
@@ -3925,30 +3931,26 @@ begin
           Break;
         end;
         Inc(QueryCount);
-        Position := Position + Encoding.GetByteCount(Queries[i].SQL);
+        Inc(CurrentPosition, Encoding.GetByteCount(Queries[i].SQL));
         if ErrorCount > 0 then
           ErrorNotice := '(' + FormatNumber(ErrorCount) + ' ' + _('Errors') + ')';
-        Dialog.SetLine(1,
+        ProgressDialog.SetLine(1,
           PChar(f_('Processing query #%s. %s', [FormatNumber(QueryCount), ErrorNotice])),
           False,
           Dummy
           );
-        Dialog.SetLine(2,
-          PChar(f_('Position in file: %s / %s. Affected rows: %s.', [FormatByteNumber(Position), FormatByteNumber(Filesize), FormatNumber(RowsAffected)])),
+        ProgressDialog.SetLine(2,
+          PChar(f_('Position in file: %s / %s. Affected rows: %s.', [FormatByteNumber(CurrentPosition), FormatByteNumber(Filesize), FormatNumber(RowsAffected)])),
           False,
           Dummy
           );
-        Dialog.SetProgress64(Position, FileSize);
-        if GetTickCount - LastProcessMessages > 1000 then begin
-          Application.ProcessMessages;
-          LastProcessMessages := GetTickCount;
-        end;
+        ProgressDialog.SetProgress64(CurrentPosition, FilesizeSum);
 
         // Execute single query
         // Break or don't break loop, depending on the state of "Stop on errors" button
         try
-          ActiveConnection.Query(Queries[i].SQL, False, lcScript);
-          RowsAffected := RowsAffected + ActiveConnection.RowsAffected;
+          Conn.Query(Queries[i].SQL, False, lcScript);
+          RowsAffected := RowsAffected + Conn.RowsAffected;
         except
           on E:Exception do begin
             if actQueryStopOnErrors.Checked then
@@ -3964,7 +3966,7 @@ begin
     if ErrorCount > 0 then begin
       ErrorDialog(_('Errors'),
         f_('%s%% of your file has been processed, but there were %s errors when executing %s queries. Please check the SQL log panel for messages.',
-          [FormatNumber(100/FileSize*Position, 0), FormatNumber(ErrorCount), FormatNumber(QueryCount)])
+          [FormatNumber(100/FileSize*CurrentPosition, 0), FormatNumber(ErrorCount), FormatNumber(QueryCount)])
         );
     end;
 
