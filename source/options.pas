@@ -170,6 +170,8 @@ type
     comboWebSearchBaseUrl: TComboBox;
     chkThemePreview: TCheckBox;
     chkCompletionProposalSearchOnMid: TCheckBox;
+    lblCustomSchemaChangesDirectory: TLabel;
+    editCustomSchemaChangesDirectory: TButtonedEdit;
     lblLongSortRowNum: TLabel;
     editLongSortRowNum: TEdit;
     updownLongSortRowNum: TUpDown;
@@ -218,6 +220,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure chkThemePreviewClick(Sender: TObject);
     procedure chkCompletionProposalClick(Sender: TObject);
+    procedure editCustomSchemaChangesDirectoryRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -330,6 +333,7 @@ begin
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
   AppSettings.WriteString(asMySQLBinaries, editMySQLBinaries.Text);
   AppSettings.WriteString(asCustomSnippetsDirectory, editCustomSnippetsDirectory.Text);
+  AppSettings.WriteString(asCustomSchemaChangesDirectory, editCustomSchemaChangesDirectory.Text);
 
   if comboAppLanguage.ItemIndex > 0 then begin
     // Get language code from the left text in the dropdown item text, up to the colon
@@ -640,6 +644,7 @@ begin
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
   editMySQLBinaries.Text := AppSettings.ReadString(asMySQLBinaries);
   editCustomSnippetsDirectory.Text := AppSettings.ReadString(asCustomSnippetsDirectory);
+  editCustomSchemaChangesDirectory.Text := AppSettings.ReadString(asCustomSchemaChangesDirectory);
   LangCode := AppSettings.ReadString(asAppLanguage);
   for i:=0 to comboAppLanguage.Items.Count-1 do begin
     if RegExprGetMatch('^(\w+)\b', comboAppLanguage.Items[i], 1) = LangCode then begin
@@ -838,6 +843,14 @@ end;
 procedure Toptionsform.editCustomSnippetsDirectoryRightButtonClick(Sender: TObject);
 begin
   // Set custom snippets directory
+  SelectDirectory(Sender, True);
+end;
+
+
+procedure Toptionsform.editCustomSchemaChangesDirectoryRightButtonClick(
+  Sender: TObject);
+begin
+  // Set custom schema changes directory
   SelectDirectory(Sender, True);
 end;
 
