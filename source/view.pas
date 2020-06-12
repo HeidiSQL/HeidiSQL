@@ -201,6 +201,9 @@ begin
       Result := mrAbort;
     end;
   end;
+
+  if Result = mrOk then
+    SaveChange(DBObject);
 end;
 
 

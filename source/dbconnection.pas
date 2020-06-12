@@ -246,10 +246,10 @@ type
       FHostname, FUsername, FPassword, FAllDatabases, FLibraryOrProvider, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey,
-      FIgnoreDatabasePattern: String;
+      FIgnoreDatabasePattern, FPathSchemaChanges: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
       FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
-      FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
+      FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled, FSchemaChanges: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
       class var FLibraries: TNetGroupLibs;
@@ -293,6 +293,8 @@ type
       property SessionPath: String read FSessionPath write FSessionPath;
       property SessionName: String read GetSessionName;
       property SessionColor: TColor read FSessionColor write FSessionColor;
+      property SchemaChanges: Boolean read FSchemaChanges write FSchemaChanges;
+      property PathSchemaChanges: String read FPathSchemaChanges write FPathSchemaChanges;
       property Hostname: String read FHostname write FHostname;
       property Port: Integer read FPort write FPort;
       property Username: String read FUsername write FUsername;
@@ -1235,6 +1237,9 @@ begin
   FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
   FIgnoreDatabasePattern := DefaultIgnoreDatabasePattern;
 
+  FSchemaChanges := AppSettings.GetDefaultBool(asSchemaChanges);
+  FPathSchemaChanges := AppSettings.GetDefaultString(asPathSchemaChanges);
+
   // Must be read without session path
   FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
 
@@ -1303,6 +1308,8 @@ begin
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
     FIgnoreDatabasePattern := AppSettings.ReadString(asIgnoreDatabasePattern);
+    FSchemaChanges := AppSettings.ReadBool(asSchemaChanges);
+    FPathSchemaChanges := AppSettings.ReadString(asPathSchemaChanges);
 
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
@@ -1359,6 +1366,8 @@ begin
     AppSettings.WriteString(asSSLCA, FSSLCACertificate);
     AppSettings.WriteString(asSSLCipher, FSSLCipher);
     AppSettings.WriteString(asIgnoreDatabasePattern, FIgnoreDatabasePattern);
+    AppSettings.WriteBool(asSchemaChanges, FSchemaChanges);
+    AppSettings.WriteString(asPathSchemaChanges, FPathSchemaChanges);
     AppSettings.ResetPath;
     AppSettings.WriteString(asPlinkExecutable, FSSHPlinkExe);
   end;
