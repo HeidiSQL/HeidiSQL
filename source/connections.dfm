@@ -611,13 +611,6 @@ object connform: Tconnform
         Height = 13
         Caption = 'Hide database pattern:'
       end
-      object lblSavePath: TLabel
-        Left = 3
-        Top = 397
-        Width = 53
-        Height = 13
-        Caption = 'Save path:'
-      end
       object editSSLPrivateKey: TButtonedEdit
         Left = 120
         Top = 36
@@ -800,35 +793,6 @@ object connform: Tconnform
         TabOrder = 14
         TextHint = 'Regular expression'
         OnChange = Modification
-      end
-      object chkSchemaChanges: TCheckBox
-        Left = 120
-        Top = 371
-        Width = 304
-        Height = 17
-        Hint = 
-          'Alone, save the changes made from the interface of: tables, view' +
-          's, procedures, functions, triggers and events.'
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Save changes made from HeidiSQL in the schemas, in files.'
-        TabOrder = 15
-        OnClick = Modification
-        ExplicitWidth = 306
-      end
-      object editPathSchemaChanges: TButtonedEdit
-        Left = 120
-        Top = 394
-        Width = 292
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.VirtualImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 16
-        TextHint = 'Set directory to save schema changes'
-        OnChange = Modification
-        OnDblClick = editPathSchemaChangesRightButtonClick
-        OnRightButtonClick = editPathSchemaChangesRightButtonClick
       end
     end
     object tabStatistics: TTabSheet

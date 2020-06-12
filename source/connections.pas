@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
   dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
-  System.Math, StdActns;
+  System.Math;
 
 type
   Tconnform = class(TExtForm)
@@ -128,9 +128,6 @@ type
     menuAddDatabaseFiles: TMenuItem;
     lblIgnoreDatabasePattern: TLabel;
     editIgnoreDatabasePattern: TEdit;
-    chkSchemaChanges: TCheckBox;
-    lblSavePath: TLabel;
-    editPathSchemaChanges: TButtonedEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -193,7 +190,6 @@ type
     procedure ListSessionsBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-    procedure editPathSchemaChangesRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -213,7 +209,6 @@ type
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure RefreshBackgroundColors;
-    procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
   public
     { Public declarations }
   end;
@@ -446,8 +441,6 @@ begin
   Sess.SSLCACertificate := editSSLCACertificate.Text;
   Sess.SSLCipher := editSSLCipher.Text;
   Sess.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
-  Sess.SchemaChanges := chkSchemaChanges.Checked;
-  Sess.PathSchemaChanges := editPathSchemaChanges.Text;
   Sess.SaveToRegistry;
 
   FSessionModified := False;
@@ -657,8 +650,6 @@ begin
     Result.FullTableStatus := chkFullTableStatus.Checked;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
     Result.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
-    Result.SchemaChanges := chkSchemaChanges.Checked;
-    Result.PathSchemaChanges := editPathSchemaChanges.Text;
   end;
 end;
 
@@ -942,8 +933,6 @@ begin
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     editSSLCipher.Text := Sess.SSLCipher;
     editIgnoreDatabasePattern.Text := Sess.IgnoreDatabasePattern;
-    chkSchemaChanges.Checked := Sess.SchemaChanges;
-    editPathSchemaChanges.Text := Sess.PathSchemaChanges;
     FServerVersion := Sess.ServerVersion;
   end;
 
@@ -1277,9 +1266,7 @@ begin
       or (Sess.SSLCertificate <> editSSLCertificate.Text)
       or (Sess.SSLCACertificate <> editSSLCACertificate.Text)
       or (Sess.SSLCipher <> editSSLCipher.Text)
-      or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text)
-      or (Sess.SchemaChanges <> chkSchemaChanges.Checked)
-      or (Sess.PathSchemaChanges <> editPathSchemaChanges.Text);
+      or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text);
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
@@ -1388,10 +1375,6 @@ begin
       chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
       chkFullTableStatus.Enabled := Params.NetTypeGroup in [ngMySQL, ngPgSQL];
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
-
-      chkSchemaChanges.Checked := Params.SchemaChanges;
-      lblSavePath.Enabled := Params.SchemaChanges;
-      editPathSchemaChanges.Enabled := Params.SchemaChanges;
 
       Params.Free;
     end;
@@ -1520,34 +1503,6 @@ end;
 procedure Tconnform.lblDownloadPlinkClick(Sender: TObject);
 begin
   ShellExec(TLabel(Sender).Hint);
-end;
-
-
-procedure Tconnform.editPathSchemaChangesRightButtonClick(Sender: TObject);
-begin
-  // Set custom schema changes directory
-  SelectDirectory(Sender, True);
-end;
-
-
-procedure Tconnform.SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
-var
-  Browse: TBrowseForFolder;
-  Edit: TButtonedEdit;
-begin
-  // Select folder for any option
-  Edit := Sender as TButtonedEdit;
-  Browse := TBrowseForFolder.Create(Self);
-  Browse.Folder := Edit.Text;
-  Browse.DialogCaption := _(Edit.TextHint);
-  Browse.BrowseOptions := Browse.BrowseOptions + [bifNewDialogStyle];
-  if not NewFolderButton then
-    Browse.BrowseOptions := Browse.BrowseOptions + [bifNoNewFolderButton];
-  if Browse.Execute then begin
-    Edit.Text := Browse.Folder;
-    Modification(Sender);
-  end;
-  Browse.Free;
 end;
 
 

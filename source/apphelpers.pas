@@ -137,7 +137,7 @@ type
 
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
-    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asSchemaChanges, asPathSchemaChanges,
+    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asHintsOnResultTabs, asHightlightSameTextBackground,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
@@ -175,7 +175,7 @@ type
     asCopyTableWindowHeight, asCopyTableWindowWidth, asCopyTableColumns, asCopyTableKeys, asCopyTableForeignKeys,
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
-    asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory, asCustomSchemaChangesDirectory,
+    asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asRestoreTabs, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
@@ -262,7 +262,6 @@ type
       function DirnameUserAppData: String;
       function DirnameUserDocuments: String;
       function DirnameSnippets: String;
-      function DirnameSchemaChanges: String;
       function DirnameBackups: String;
       // "Static" options, initialized in OnCreate only. For settings which need a restart to take effect.
       property RestoreTabsInitValue: Boolean read FRestoreTabsInitValue;
@@ -369,7 +368,6 @@ type
   function ThemeIsDark(ThemeName: String): Boolean;
   function ProcessExists(pid: Cardinal): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
-  procedure SaveChange(const ADBObject: TDBObject);
 
 var
   AppSettings: TAppSettings;
@@ -2972,105 +2970,6 @@ begin
 end;
 
 
-procedure SaveChange(const ADBObject: TDBObject);
-const
-  DIR_HISTORY = '__history';
-
-  function NextHistoricalNumber(const ASourcePath: String;
-                                const AFileName: String): Integer;
-  var
-    ErrorCode: Integer;
-    Cursor: TSearchRec;
-    Path: String;
-    Extension: String;
-    StrNumber: string;
-    MaxNumber, Number: Integer;
-  begin
-    MaxNumber := 0;
-    Path := Format('%s\%s\%s.~*~', [ASourcePath, DIR_HISTORY, AFileName]);
-    ErrorCode := FindFirst(Path, faAnyFile - faDirectory, Cursor );
-    try
-
-      while ErrorCode = 0 do begin
-        Extension := ExtractFileExt(Cursor.Name);
-        StrNumber := Copy(Extension, 3, Length(Extension)-3 );
-        Number := StrToIntDef(StrNumber, 0);
-        if Number > MaxNumber then
-          MaxNumber := Number;
-
-        ErrorCode := FindNext(Cursor);
-      end;
-
-    finally
-      SysUtils.FindClose(Cursor);
-    end;
-
-    Result := MaxNumber + 1;
-  end;
-
-  procedure CopyToHistory(const ASourcePath: String;
-                          const AFileName: String);
-  var
-    SourceFileName: String;
-    DestPath: String;
-    DestFileName: String;
-    NewNumber: Integer;
-  begin
-    SourceFileName := Format('%s\%s', [ASourcePath, AFileName]);
-
-    if not FileExists(SourceFileName) then
-      Exit;
-
-    DestPath := Format('%s\%s', [ASourcePath, DIR_HISTORY]);
-    NewNumber := NextHistoricalNumber(ASourcePath, AFileName);
-    DestFileName := Format('%s\%s.~%d~', [DestPath, AFileName, NewNumber]);
-
-    if not TDirectory.Exists(DestPath) then
-      TDirectory.CreateDirectory(DestPath);
-
-    TFile.Copy(SourceFileName, DestFileName, True);
-  end;
-
-var
-  Path: String;
-  FileName: String;
-  Sentence: String;
-  FileHandle: TextFile;
-  SourcePath: String;
-begin
-  if not ADBObject.Connection.Parameters.SchemaChanges then
-    Exit;
-
-  try
-    Path := Format('%s%s\%s', [IncludeTrailingPathDelimiter( ADBObject.Connection.Parameters.PathSchemaChanges ),
-                               ADBObject.Database,
-                               ADBObject.ObjType] );
-    FileName := Format('%s.sql', [ADBObject.Name]);
-    Sentence := ADBObject.CreateCode;
-
-    if not TDirectory.Exists(Path) then
-      TDirectory.CreateDirectory(Path);
-
-    CopyToHistory(Path, FileName);
-
-    SourcePath := Format('%s\%s', [Path, FileName]);
-    AssignFile(FileHandle, SourcePath);
-    try
-      Rewrite(FileHandle);
-      Write(FileHandle, Sentence);
-    finally
-      CloseFile(FileHandle);
-    end;
-
-  except
-    on E:Exception do begin
-      ErrorDialog('Fail to save change in file. Error: ' + E.Message);
-    end;
-  end;
-
-end;
-
-
 
 
 { Threading stuff }
@@ -3490,9 +3389,7 @@ constructor TAppSettings.Create;
 var
   rx: TRegExpr;
   i: Integer;
-  DefaultDirectory: String;
   DefaultSnippetsDirectory: String;
-  DefaultSchemaChangesDirectory: String;
   PortableLockFile: String;
   NewFileHandle: THandle;
 begin
@@ -3740,17 +3637,13 @@ begin
   InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
-  // Default folder for snippets and SchemaChanges
+  // Default folder for snippets
   if FPortableMode then
-    DefaultDirectory := ExtractFilePath(ParamStr(0))
+    DefaultSnippetsDirectory := ExtractFilePath(ParamStr(0))
   else
-    DefaultDirectory := DirnameUserDocuments;
-  DefaultSnippetsDirectory := DefaultDirectory + 'Snippets\';
-  DefaultSchemaChangesDirectory := DefaultDirectory + 'SchemaChanges\';
+    DefaultSnippetsDirectory := DirnameUserDocuments;
+  DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets\';
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
-  InitSetting(asCustomSchemaChangesDirectory,     'CustomSchemaChangesDirectory',          0, False, DefaultSchemaChangesDirectory);
-  InitSetting(asSchemaChanges,                    'SchemaChanges',                         0, False, '', True);
-  InitSetting(asPathSchemaChanges,                'PathSchemaChanges',                     0, False, DirnameSchemaChanges, True);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
@@ -4386,16 +4279,6 @@ function TAppSettings.DirnameSnippets: String;
 begin
   // Folder for snippets
   Result := IncludeTrailingBackslash(ReadString(asCustomSnippetsDirectory));
-  if not DirectoryExists(Result) then begin
-    ForceDirectories(Result);
-  end;
-end;
-
-
-function TAppSettings.DirnameSchemaChanges: String;
-begin
-  // Folder for snippets
-  Result := IncludeTrailingBackslash(ReadString(asCustomSchemaChangesDirectory));
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;

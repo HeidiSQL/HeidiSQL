@@ -100,13 +100,6 @@ object optionsform: Toptionsform
         Hint = 'Used in footer of various message dialogs'
         Caption = 'Web search base url:'
       end
-      object lblCustomSchemaChangesDirectory: TLabel
-        Left = 8
-        Top = 366
-        Width = 168
-        Height = 13
-        Caption = 'Custom schema changes directory:'
-      end
       object chkAutoReconnect: TCheckBox
         Left = 190
         Top = 31
@@ -345,23 +338,6 @@ object optionsform: Toptionsform
         Caption = 'Preview'
         TabOrder = 19
         OnClick = chkThemePreviewClick
-      end
-      object editCustomSchemaChangesDirectory: TButtonedEdit
-        Left = 190
-        Top = 363
-        Width = 368
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.VirtualImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 20
-        Text = 'editCustomSchemaChangesDirectory'
-        TextHint = 'Set custom directory for schema changes files'
-        OnChange = Modified
-        OnDblClick = editCustomSchemaChangesDirectoryRightButtonClick
-        OnRightButtonClick = editCustomSchemaChangesDirectoryRightButtonClick
-        ExplicitWidth = 505
       end
     end
     object tabLogging: TTabSheet
