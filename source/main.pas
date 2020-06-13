@@ -1153,8 +1153,8 @@ type
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
     function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
-    procedure RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
-      ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64);
+    function RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
+      ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
     procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
@@ -3765,7 +3765,7 @@ end;
 
 function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
 var
-  i: Integer;
+  i, FilesProcessed: Integer;
   Filesize, FilesizeSum, CurrentPosition, StartTime: Int64;
   msgtext: String;
   AbsentFiles, PopupFileList: TStringList;
@@ -3777,6 +3777,7 @@ var
   ProgressDialog: IProgressDialog;
   Dummy: Pointer;
   TimeElapsed: Double;
+  RunSuccess: Boolean;
 const
   RunFileSize = 5*SIZE_MB;
 begin
@@ -3847,21 +3848,28 @@ begin
         ProgressDialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
         Dummy := nil;
         CurrentPosition := 0;
+        FilesProcessed := 0;
         StartTime := GetTickCount64;
         Conn := ActiveConnection;
         // PROGDLG_MODAL was used previously, but somehow that focuses some other application
         ProgressDialog.StartProgressDialog(Handle, nil, PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
         for i:=0 to Filenames.Count-1 do begin
-          RunQueryFile(Filenames[i], Encoding, Conn, ProgressDialog, FilesizeSum, CurrentPosition);
+          RunSuccess := RunQueryFile(Filenames[i], Encoding, Conn, ProgressDialog, FilesizeSum, CurrentPosition);
           // Add filename to history menu
           if Pos(AppSettings.DirnameSnippets, Filenames[i]) = 0 then
             MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
+          Inc(FilesProcessed);
+          if not RunSuccess then
+            Break;
         end;
         // progress end
         ProgressDialog.StopProgressDialog;
         TimeElapsed := GetTickCount64 - StartTime;
-        LogSQL(f_('%s file(s) processed, in %s', [FormatNumber(Filenames.Count), FormatTimeNumber(TimeElapsed/1000, True)]));
-        MessageBeep(MB_OK);
+        LogSQL(f_('%s file(s) processed, in %s', [FormatNumber(FilesProcessed), FormatTimeNumber(TimeElapsed/1000, True)]));
+        if RunSuccess then
+          MessageBeep(MB_OK)
+        else
+          MessageBeep(MB_ICONERROR);
       end;
       mrNo: Result := False;
       mrCancel: Result := True;
@@ -3875,8 +3883,8 @@ begin
 end;
 
 
-procedure TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding; Conn: TDBConnection;
-  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64);
+function TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding; Conn: TDBConnection;
+  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
 var
   Dummy: Pointer;
   Stream: TFileStream;
@@ -3886,16 +3894,18 @@ var
   i: Integer;
 
   procedure StopProgress;
+  var
+    MessageText: String;
   begin
     ProgressDialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
     Queries.Free;
     Stream.Free;
     // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
-    LogSQL(f_('File "%s" processed, with %s queries and %s affected rows', [
-      ExtractFileName(FileName),
-      FormatNumber(QueryCount),
-      FormatNumber(RowsAffected)
-      ]));
+    if ProgressDialog.HasUserCancelled then
+      MessageText := 'File "%s" partially executed, with %s queries and %s affected rows'
+    else
+      MessageText := 'File "%s" executed, with %s queries and %s affected rows';
+    LogSQL(f_(MessageText, [ExtractFileName(FileName), FormatNumber(QueryCount), FormatNumber(RowsAffected)]));
   end;
 
 begin
@@ -3903,6 +3913,7 @@ begin
   ProgressDialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
   Dummy := nil;
 
+  Result := True;
   Lines := '';
   ErrorNotice := '';
   QueryCount := 0;
@@ -3972,6 +3983,10 @@ begin
 
       end;
     end;
+    if ProgressDialog.HasUserCancelled then begin
+      LogSQL(_('Cancelled by user'));
+      Result := False;
+    end;
     StopProgress;
     if ErrorCount > 0 then begin
       ErrorDialog(_('Errors'),
@@ -3983,17 +3998,20 @@ begin
   except
     on E:EFileStreamError do begin
       StopProgress;
+      Result := False;
       ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
       AddOrRemoveFromQueryLoadHistory(FileName, False, True);
     end;
     on E:EDbError do begin
       StopProgress;
+      Result := False;
       ErrorDialog(E.Message + CRLF + CRLF +
         f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
         );
     end;
     on E:EEncodingError do begin
       StopProgress;
+      Result := False;
       ErrorDialog(E.Message);
     end;
   end;
