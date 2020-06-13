@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-05-30 09:08+0200\n"
+"PO-Revision-Date: 2020-06-13 10:40+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -4639,9 +4639,15 @@ msgstr "  [Cancel] to cancel file opening."
 msgid "Execute query file(s)?"
 msgstr "Execute query file(s)?"
 
+msgid "%s file(s) processed, in %s"
+msgstr "%s file(s) processed, in %s"
+
 #: main.pas:2968
 msgid "Could not load file(s):"
 msgstr "Could not load file(s):"
+
+msgid "File \"%s\" processed, with %s queries and %s affected rows"
+msgstr "File \"%s\" processed, with %s queries and %s affected rows"
 
 msgid "Could not open file %s"
 msgstr "Could not open file %s"

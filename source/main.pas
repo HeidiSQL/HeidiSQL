@@ -3766,7 +3766,7 @@ end;
 function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
 var
   i: Integer;
-  Filesize, FilesizeSum, CurrentPosition: Int64;
+  Filesize, FilesizeSum, CurrentPosition, StartTime: Int64;
   msgtext: String;
   AbsentFiles, PopupFileList: TStringList;
   DoRunFiles: Boolean;
@@ -3776,6 +3776,7 @@ var
   Conn: TDBConnection;
   ProgressDialog: IProgressDialog;
   Dummy: Pointer;
+  TimeElapsed: Double;
 const
   RunFileSize = 5*SIZE_MB;
 begin
@@ -3846,6 +3847,7 @@ begin
         ProgressDialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
         Dummy := nil;
         CurrentPosition := 0;
+        StartTime := GetTickCount64;
         Conn := ActiveConnection;
         // PROGDLG_MODAL was used previously, but somehow that focuses some other application
         ProgressDialog.StartProgressDialog(Handle, nil, PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
@@ -3857,6 +3859,9 @@ begin
         end;
         // progress end
         ProgressDialog.StopProgressDialog;
+        TimeElapsed := GetTickCount64 - StartTime;
+        LogSQL(f_('%s file(s) processed, in %s', [FormatNumber(Filenames.Count), FormatTimeNumber(TimeElapsed/1000, True)]));
+        MessageBeep(MB_OK);
       end;
       mrNo: Result := False;
       mrCancel: Result := True;
@@ -3886,6 +3891,11 @@ var
     Queries.Free;
     Stream.Free;
     // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
+    LogSQL(f_('File "%s" processed, with %s queries and %s affected rows', [
+      ExtractFileName(FileName),
+      FormatNumber(QueryCount),
+      FormatNumber(RowsAffected)
+      ]));
   end;
 
 begin
