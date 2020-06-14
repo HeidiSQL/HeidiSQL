@@ -6489,41 +6489,53 @@ procedure TMainForm.QuickFilterClick(Sender: TObject);
 var
   Filter, Val, Col: String;
   Act: TAction;
+  Item: TMenuItem;
 begin
   // Set filter for "where..."-clause
   if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
     Exit;
-  Act := Sender as TAction;
+
   Filter := '';
 
-  if ExecRegExpr('Prompt\d+$', Act.Name) then begin
-    // Item needs prompt
-    Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
-    Col := ActiveConnection.QuoteIdent(Col, False);
-    if (SelectedTableColumns[DataGrid.FocusedColumn].DataType.Index = dtJson)
-      and (ActiveConnection.Parameters.NetTypeGroup = ngPgSQL) then begin
-      Col := Col + '::text';
+  if Sender is TAction then begin
+    // Normal case for most quick filters
+    Act := Sender as TAction;
+    if ExecRegExpr('Prompt\d+$', Act.Name) then begin
+      // Item needs prompt
+      Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
+      Col := ActiveConnection.QuoteIdent(Col, False);
+      if (SelectedTableColumns[DataGrid.FocusedColumn].DataType.Index = dtJson)
+        and (ActiveConnection.Parameters.NetTypeGroup = ngPgSQL) then begin
+        Col := Col + '::text';
+      end;
+      Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
+      if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
+        if Act = actQuickFilterPrompt1 then
+          Filter := Col + ' = ''' + Val + ''''
+        else if Act = actQuickFilterPrompt2 then
+          Filter := Col + ' != ''' + Val + ''''
+        else if Act = actQuickFilterPrompt3 then
+          Filter := Col + ' > ''' + Val + ''''
+        else if Act = actQuickFilterPrompt4 then
+          Filter := Col + ' < ''' + Val + ''''
+        else if Act = actQuickFilterPrompt5 then
+          Filter := Col + ' LIKE ''%' + Val + '%''';
+      end;
+    end
+    else begin
+      Filter := Act.Hint;
     end;
-    Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
-    if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
-      if Act = actQuickFilterPrompt1 then
-        Filter := Col + ' = ''' + Val + ''''
-      else if Act = actQuickFilterPrompt2 then
-        Filter := Col + ' != ''' + Val + ''''
-      else if Act = actQuickFilterPrompt3 then
-        Filter := Col + ' > ''' + Val + ''''
-      else if Act = actQuickFilterPrompt4 then
-        Filter := Col + ' < ''' + Val + ''''
-      else if Act = actQuickFilterPrompt5 then
-        Filter := Col + ' LIKE ''%' + Val + '%''';
-    end;
-  end else
-    Filter := Act.Hint;
-
-  if ExecRegExpr('\s+LIKE\s+''', Filter) then
-    Filter := Filter + ActiveConnection.LikeClauseTail;
+  end
+  else if Sender is TMenuItem then begin
+    // Sender is one of the subitems in "More values" menu
+    Item := Sender as TMenuItem;
+    Filter := Item.Hint;
+  end;
 
   if Filter <> '' then begin
+    if ExecRegExpr('\s+LIKE\s+''', Filter) then
+      Filter := Filter + ActiveConnection.LikeClauseTail;
+
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
     if KeyPressed(VK_SHIFT)
