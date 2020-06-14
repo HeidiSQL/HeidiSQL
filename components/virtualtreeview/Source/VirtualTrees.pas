@@ -5472,6 +5472,7 @@ begin
     if (Node = nil) or (Tree.FHintMode <> hmToolTip) then
     begin
       Canvas.Font := Screen.HintFont;
+      Canvas.Font.Height := Tree.ScaledPixels(Canvas.Font.Height);
       Y := 2;
     end
     else
@@ -5602,7 +5603,10 @@ begin
             ChangeBidiModeAlignment(Alignment);
 
           if (Node = nil) or (Tree.FHintMode <> hmToolTip) then
-            Canvas.Font := Screen.HintFont
+          begin
+            Canvas.Font := Screen.HintFont;
+            Canvas.Font.Height := Tree.ScaledPixels(Canvas.Font.Height);
+          end
           else
           begin
             Canvas.Font := Tree.Font;
@@ -11838,7 +11842,7 @@ function TVTColors.GetColor(const Index: TVTColorEnum): TColor;
 begin
   // Only try to fetch the color via StyleServices if theses are enabled
   // Return default/user defined color otherwise
-  if FOwner.VclStyleEnabled and not StyleServices.IsSystemStyle then
+  if FOwner.VclStyleEnabled then
     begin
       // If the ElementDetails are not defined, fall back to the SystemColor
       case Index of
@@ -25593,7 +25597,7 @@ procedure TBaseVirtualTree.VclStyleChanged;
   // Updates the member FVclStyleEnabled, should be called initially and when the VCL style changes
 
 begin
-  FVclStyleEnabled := StyleServices.Enabled and not StyleServices.IsSystemStyle;
+  FVclStyleEnabled := StyleServices.Enabled and not StyleServices.IsSystemStyle and not (csDesigning in ComponentState);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
