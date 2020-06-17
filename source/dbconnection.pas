@@ -1591,7 +1591,7 @@ end;
 
 function TConnectionParameters.IsProxySQL: Boolean;
 begin
-  Result := IsAnyMySQL and (Pos('proxysql', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL and (Pos('proxysql admin module', LowerCase(ServerVersion)) > 0);
 end;
 
 
