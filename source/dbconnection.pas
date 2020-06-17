@@ -277,6 +277,7 @@ type
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
+      function IsProxySQL: Boolean;
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
@@ -1588,6 +1589,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsProxySQL: Boolean;
+begin
+  Result := IsAnyMySQL and (Pos('proxysql', LowerCase(ServerVersion)) > 0);
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   if IsFolder then
@@ -2117,7 +2124,7 @@ begin
       // Try to fire the very first query against the server, which probably run into the following error:
       // "Error 1820: You must SET PASSWORD before executing this statement"
       try
-        ThreadId;
+        Query('SELECT 1');
       except
         on E:EDbError do begin
           if GetLastErrorCode =  1820 then begin
@@ -2136,7 +2143,6 @@ begin
             Raise;
         end;
       end;
-      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       try
         CharacterSet := 'utf8mb4';
       except
@@ -2286,7 +2292,6 @@ begin
       FAdoHandle.Connected := True;
       FConnectionStarted := GetTickCount div 1000;
       FActive := True;
-      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       // No need to set a charset for MS SQL
       // CharacterSet := 'utf8';
       // CurCharset := CharacterSet;
@@ -2439,7 +2444,6 @@ begin
     FServerDateTimeOnStartup := GetVar('SELECT NOW()');
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
-    Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
     FIsUnicode := True;
     Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout*1000));
     try
@@ -2502,7 +2506,6 @@ begin
 
     if ConnectResult = SQLITE_OK then begin
       FActive := True;
-      Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
       FIsUnicode := True;
       FLib.sqlite3_collation_needed(FHandle, Self, SQLite_CollationNeededCallback);
       Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
@@ -2724,6 +2727,7 @@ begin
   AppSettings.SessionPath := FParameters.SessionPath;
   AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
   FParameters.ServerVersion := FServerVersionUntouched;
+  Log(lcInfo, f_('Connected. Thread-ID: %d', [ThreadId]));
   if Assigned(FOnConnected) then
     FOnConnected(Self, FDatabase);
   if FParameters.KeepAlive > 0 then begin
@@ -3636,8 +3640,12 @@ function TMySQLConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
-    if FActive then
-      FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
+    if FActive then begin
+      if Parameters.IsProxySQL then
+        FThreadID := -1
+      else
+        FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
+    end;
   end;
   Result := FThreadID;
 end;
