@@ -2157,16 +2157,22 @@ begin
       Log(lcInfo, _('Characterset')+': '+GetCharacterSet);
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
-      Status := GetResults('SHOW STATUS');
-      while not Status.Eof do begin
-        StatusName := LowerCase(Status.Col(0));
-        if StatusName = 'uptime' then
-          FServerUptime := StrToIntDef(Status.Col(1), FServerUptime)
-        else if StatusName = 'ssl_cipher' then
-          FIsSSL := Status.Col(1) <> '';
-        Status.Next;
+      try
+        // This gives an SQL error on ProxySQL Admin Module
+        Status := GetResults('SHOW STATUS');
+        while not Status.Eof do begin
+          StatusName := LowerCase(Status.Col(0));
+          if StatusName = 'uptime' then
+            FServerUptime := StrToIntDef(Status.Col(1), FServerUptime)
+          else if StatusName = 'ssl_cipher' then
+            FIsSSL := Status.Col(1) <> '';
+          Status.Next;
+        end;
+      except
+        on E:EDbError do
+          Log(lcError, E.Message);
       end;
-      FServerDateTimeOnStartup := GetVar('SELECT NOW()');
+      FServerDateTimeOnStartup := GetVar('SELECT CURRENT_TIMESTAMP');
       FServerOS := GetSessionVariable('version_compile_os');
       FRealHostname := GetSessionVariable('hostname');
       FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
