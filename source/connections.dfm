@@ -363,7 +363,7 @@ object connform: Tconnform
         371)
       object lblSSHLocalPort: TLabel
         Left = 3
-        Top = 190
+        Top = 174
         Width = 51
         Height = 13
         Caption = 'Local port:'
@@ -371,7 +371,7 @@ object connform: Tconnform
       end
       object lblSSHUser: TLabel
         Left = 3
-        Top = 82
+        Top = 66
         Width = 52
         Height = 13
         Caption = 'Username:'
@@ -379,7 +379,7 @@ object connform: Tconnform
       end
       object lblSSHPassword: TLabel
         Left = 3
-        Top = 109
+        Top = 93
         Width = 50
         Height = 13
         Caption = 'Password:'
@@ -394,7 +394,7 @@ object connform: Tconnform
       end
       object lblSSHhost: TLabel
         Left = 3
-        Top = 55
+        Top = 39
         Width = 81
         Height = 13
         Caption = 'SSH host + port:'
@@ -402,32 +402,22 @@ object connform: Tconnform
       end
       object lblSSHkeyfile: TLabel
         Left = 3
-        Top = 163
+        Top = 147
         Width = 75
         Height = 13
         Caption = 'Private key file:'
         FocusControl = editSSHPrivateKey
       end
-      object lblDownloadPlink: TLabel
-        Left = 120
-        Top = 33
-        Width = 93
-        Height = 13
-        Cursor = crHandPoint
-        Hint = 'http://www.chiark.greenend.org.uk/~sgtatham/putty/'
-        Caption = 'Download plink.exe'
-        OnClick = lblDownloadPlinkClick
-      end
       object lblPlinkTimeout: TLabel
         Left = 3
-        Top = 136
+        Top = 120
         Width = 86
         Height = 13
         Caption = 'plink.exe timeout:'
       end
       object editSSHlocalport: TEdit
         Left = 120
-        Top = 187
+        Top = 171
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -438,7 +428,7 @@ object connform: Tconnform
       end
       object editSSHUser: TEdit
         Left = 120
-        Top = 79
+        Top = 63
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -450,7 +440,7 @@ object connform: Tconnform
       end
       object editSSHPassword: TEdit
         Left = 120
-        Top = 106
+        Top = 90
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -479,7 +469,7 @@ object connform: Tconnform
       end
       object editSSHhost: TEdit
         Left = 120
-        Top = 52
+        Top = 36
         Width = 230
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -490,7 +480,7 @@ object connform: Tconnform
       end
       object editSSHport: TEdit
         Left = 356
-        Top = 52
+        Top = 36
         Width = 58
         Height = 21
         Anchors = [akTop, akRight]
@@ -501,7 +491,7 @@ object connform: Tconnform
       end
       object editSSHPrivateKey: TButtonedEdit
         Left = 120
-        Top = 160
+        Top = 144
         Width = 294
         Height = 21
         Anchors = [akLeft, akTop, akRight]
@@ -518,7 +508,7 @@ object connform: Tconnform
       end
       object editSSHTimeout: TEdit
         Left = 120
-        Top = 133
+        Top = 117
         Width = 60
         Height = 21
         TabOrder = 5
@@ -527,7 +517,7 @@ object connform: Tconnform
       end
       object updownSSHTimeout: TUpDown
         Left = 180
-        Top = 133
+        Top = 117
         Width = 17
         Height = 21
         Associate = editSSHTimeout

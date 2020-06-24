@@ -68,7 +68,6 @@ type
     editSSHport: TEdit;
     editSSHPrivateKey: TButtonedEdit;
     lblSSHkeyfile: TLabel;
-    lblDownloadPlink: TLabel;
     editDatabases: TButtonedEdit;
     lblDatabase: TLabel;
     chkLoginPrompt: TCheckBox;
@@ -157,7 +156,6 @@ type
     procedure PickFile(Sender: TObject);
     procedure editSSHPlinkExeChange(Sender: TObject);
     procedure editHostChange(Sender: TObject);
-    procedure lblDownloadPlinkClick(Sender: TObject);
     procedure editDatabasesRightButtonClick(Sender: TObject);
     procedure chkLoginPromptClick(Sender: TObject);
     procedure ListSessionsGetNodeDataSize(Sender: TBaseVirtualTree;
@@ -250,8 +248,6 @@ var
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
-  lblDownloadPlink.Font.Style := [fsUnderline];
-  lblDownloadPlink.Font.Color := clBlue;
 
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
@@ -1497,12 +1493,6 @@ begin
   else
     editSSHPlinkExe.Font.Color := GetThemeColor(clWindowText);
   Modification(Sender);
-end;
-
-
-procedure Tconnform.lblDownloadPlinkClick(Sender: TObject);
-begin
-  ShellExec(TLabel(Sender).Hint);
 end;
 
 

@@ -3517,7 +3517,7 @@ begin
   InitSetting(asPort,                             'Port',                                  0, False, '', True);
   InitSetting(asLibrary,                          'Library',                               0, False, 'libmariadb.dll', True);
   InitSetting(asAllProviders,                     'AllProviders',                          0, False);
-  InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, '');
+  InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, 'plink.exe');
   InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);
   InitSetting(asSSHtunnelHostPort,                'SSHtunnelHostPort',                     22, False, '', True);
   InitSetting(asSSHtunnelPort,                    'SSHtunnelPort',                         0, False, '', True);

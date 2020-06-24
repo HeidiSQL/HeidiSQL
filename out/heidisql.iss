@@ -91,6 +91,8 @@ Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "Snippets\*.sql"; DestDir: "{userdocs}\{#ProgName}\Snippets";
+Source: "plink-64.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "plink-32.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: not Is64BitInstallMode; Flags: ignoreversion
 ; MySQL + MariaDB:
 Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmariadb32.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
