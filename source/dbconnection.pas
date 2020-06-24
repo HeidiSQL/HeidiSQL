@@ -1685,10 +1685,14 @@ begin
     rx := TRegExpr.Create;
     rx.ModifierI := True;
     case NetTypeGroup of
-      ngMySQL: rx.Expression := '^lib(mysql|mariadb).*\.dll$';
-      ngMSSQL: rx.Expression := '^(MSOLEDBSQL|SQLOLEDB)$';
-      ngPgSQL: rx.Expression := '^libpq.*\.dll$';
-      ngSQLite: rx.Expression := '^sqlite.*\.dll$';
+      ngMySQL:
+        rx.Expression := '^lib(mysql|mariadb).*\.dll$';
+      ngMSSQL: // Allow unsupported ADODB providers per registry hack
+        rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)$');
+      ngPgSQL:
+        rx.Expression := '^libpq.*\.dll$';
+      ngSQLite:
+        rx.Expression := '^sqlite.*\.dll$';
     end;
     case NetTypeGroup of
       ngMySQL, ngPgSQL, ngSQLite: begin
