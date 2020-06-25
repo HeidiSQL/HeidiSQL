@@ -342,6 +342,8 @@ begin
   listColumns.RootNodeCount := FColumns.Count;
   DeInitializeVTNodes(listColumns);
   listColumns.EndUpdate;
+  // Init all nodes, so they keep their FColumn data after click on Remove button, see #245
+  listColumns.ValidateNode(nil, True);
 
   // Set root nodes per BeforePaint event:
   treeIndexes.Invalidate;
@@ -888,7 +890,7 @@ end;
 
 procedure TfrmTableEditor.btnRemoveColumnClick(Sender: TObject);
 var
-  Node, NodeDelete, NodeFocus: PVirtualNode;
+  Node, NodeFocus: PVirtualNode;
   Col: PTableColumn;
 begin
   // Remove selected column(s)
@@ -909,13 +911,8 @@ begin
     end;
     Node := listColumns.GetNextSibling(Node);
   end;
-  // Delete selected + visible
-  Node := GetNextNode(listColumns, nil, True);
-  while Assigned(Node) do begin
-    NodeDelete := Node;
-    Node := GetNextNode(listColumns, Node, True);
-    listColumns.DeleteNode(NodeDelete);
-  end;
+  // Delete selected, including those which are invisible through filter
+  listColumns.DeleteSelectedNodes;
 
   if not Assigned(NodeFocus) then
     NodeFocus := listColumns.GetLast;
@@ -1091,6 +1088,7 @@ var
 begin
   btnRemoveColumn.Enabled := listColumns.SelectedCount > 0;
 
+  LastSelected := nil;
   NextSelected := GetNextNode(listColumns, nil, True);
   while Assigned(NextSelected) do begin
     LastSelected := NextSelected;
