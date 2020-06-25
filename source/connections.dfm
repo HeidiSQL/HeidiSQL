@@ -3,10 +3,10 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu, biHelp]
   Caption = 'Session manager'
-  ClientHeight = 448
+  ClientHeight = 451
   ClientWidth = 649
   Color = clBtnFace
-  Constraints.MinHeight = 360
+  Constraints.MinHeight = 490
   Constraints.MinWidth = 640
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -23,7 +23,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     649
-    448)
+    451)
   PixelsPerInch = 96
   TextHeight = 13
   object splitterMain: TSplitter
@@ -31,7 +31,7 @@ object connform: Tconnform
     Left = 208
     Top = 8
     Width = 8
-    Height = 400
+    Height = 403
     Cursor = crSizeWE
     Margins.Left = 0
     Margins.Top = 8
@@ -42,7 +42,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 415
+    Top = 418
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -55,7 +55,7 @@ object connform: Tconnform
   end
   object btnOpen: TButton
     Left = 389
-    Top = 415
+    Top = 418
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -67,7 +67,7 @@ object connform: Tconnform
   end
   object btnCancel: TButton
     Left = 475
-    Top = 415
+    Top = 418
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -78,7 +78,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 415
+    Top = 418
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -93,7 +93,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 415
+    Top = 418
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -109,7 +109,7 @@ object connform: Tconnform
     Left = 216
     Top = 8
     Width = 425
-    Height = 400
+    Height = 403
     Margins.Left = 0
     Margins.Top = 8
     Margins.Right = 8
@@ -154,7 +154,7 @@ object connform: Tconnform
       ImageName = 'icons8-support'
       DesignSize = (
         417
-        371)
+        374)
       object lblPort: TLabel
         Left = 3
         Top = 199
@@ -323,7 +323,7 @@ object connform: Tconnform
         Left = 120
         Top = 271
         Width = 294
-        Height = 96
+        Height = 98
         Anchors = [akLeft, akTop, akRight, akBottom]
         ScrollBars = ssVertical
         TabOrder = 11
@@ -360,7 +360,7 @@ object connform: Tconnform
       ImageName = 'icons8-lock'
       DesignSize = (
         417
-        371)
+        374)
       object lblSSHLocalPort: TLabel
         Left = 3
         Top = 174
@@ -533,7 +533,7 @@ object connform: Tconnform
       ImageName = 'icons8-support-orange'
       DesignSize = (
         417
-        371)
+        374)
       object lblSSLPrivateKey: TLabel
         Left = 3
         Top = 39
@@ -849,7 +849,7 @@ object connform: Tconnform
   end
   object btnMore: TButton
     Left = 561
-    Top = 415
+    Top = 418
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -864,7 +864,7 @@ object connform: Tconnform
     Left = 8
     Top = 8
     Width = 200
-    Height = 400
+    Height = 403
     Margins.Left = 8
     Margins.Top = 8
     Margins.Right = 0
@@ -877,7 +877,7 @@ object connform: Tconnform
       Left = 0
       Top = 26
       Width = 200
-      Height = 374
+      Height = 377
       Align = alClient
       DragMode = dmAutomatic
       Header.AutoSizeIndex = -1

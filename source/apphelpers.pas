@@ -3617,7 +3617,7 @@ begin
   InitSetting(asSelectDBOWindowHeight,            'SelectDBO_WindowHeight',                350);
   InitSetting(asSessionManagerListWidth,          'SessionManager_ListWidth',              220);
   InitSetting(asSessionManagerWindowWidth,        'SessionManager_WindowWidth',            700);
-  InitSetting(asSessionManagerWindowHeight,       'SessionManager_WindowHeight',           420);
+  InitSetting(asSessionManagerWindowHeight,       'SessionManager_WindowHeight',           490);
   InitSetting(asSessionManagerWindowLeft,         'SessionManager_WindowLeft',             50);
   InitSetting(asSessionManagerWindowTop,          'SessionManager_WindowTop',              50);
   InitSetting(asCopyTableWindowHeight,            'CopyTable_WindowHeight',                340);
