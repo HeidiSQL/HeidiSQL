@@ -390,6 +390,7 @@ type
       FPrefetchResults: TDBQueryList;
       FForeignKeyQueriesFailed: Boolean;
       FInfSch: String;
+      FIdentCharsNoQuote: TSysCharSet;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -1761,6 +1762,8 @@ begin
   FForeignKeyQueriesFailed := False;
   // System database/schema, should be uppercase on MSSQL only, see #855
   FInfSch := 'information_schema';
+  // Characters in identifiers which don't need to be quoted
+  FIdentCharsNoQuote := ['A'..'Z', 'a'..'z', '0'..'9', '_'];
 end;
 
 
@@ -1806,6 +1809,8 @@ begin
     FDatatypes[i] := PostGreSQLDatatypes[i];
   // cache for 123::regclass queries:
   FRegClasses := TOidStringPairs.Create;
+  // Identifiers with uppercase characters must be quoted, see #1072
+  FIdentCharsNoQuote := ['a'..'z', '0'..'9', '_'];
 end;
 
 
@@ -4351,7 +4356,7 @@ begin
       if MySQLKeywords.IndexOf(Result) > -1 then
         AlwaysQuote := True
       else for i:=1 to Length(Result) do begin
-        if not CharInSet(Result[i], IDENTCHARS) then begin
+        if not CharInSet(Result[i], FIdentCharsNoQuote) then begin
           AlwaysQuote := True;
           break;
         end;
