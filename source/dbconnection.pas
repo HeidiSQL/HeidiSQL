@@ -4797,7 +4797,8 @@ begin
           end;
         end;
         dtcReal: begin
-          if not ColQuery.IsNull('NUMERIC_PRECISION') then begin
+          // See #953
+          if (not ColQuery.IsNull('NUMERIC_PRECISION')) and (not ColQuery.IsNull('NUMERIC_SCALE')) then begin
             MaxLen := ColQuery.Col('NUMERIC_PRECISION')
               + ',' + StrToIntDef(ColQuery.Col('NUMERIC_SCALE'), 0).ToString;
           end;
