@@ -7377,7 +7377,7 @@ begin
     if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
-      Result := FCurrentResults[RecNo][Column].OldText;
+      Result := FCurrentResults[FRecNoLocal][Column].OldText;
     end;
   end else if not IgnoreErrors then
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
@@ -7694,7 +7694,7 @@ begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then
     Result := FCurrentUpdateRow[Column].NewIsNull
   else
-    Result := FCurrentResults[RecNo][Column].OldIsNull;
+    Result := FCurrentResults[FRecNoLocal][Column].OldIsNull;
 end;
 
 
