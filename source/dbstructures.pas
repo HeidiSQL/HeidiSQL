@@ -1909,7 +1909,7 @@ var
       NativeTypes:     '1082|1114|702';
       Name:            'TIMESTAMP';
       Names:           'timestamp|datetime|abstime|timestamp without time zone';
-      Description:     'Date and time.';
+      Description:     'Date and time without timezone, e.g. "2020-06-27 16:24:41".';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
@@ -1922,8 +1922,8 @@ var
       Index:           dtDatetime2;
       NativeTypes:     '1184';
       Name:            'TIMESTAMPTZ';
-      Names:           'timestamptz|timestamp with timezone';
-      Description:     'Date and time.';
+      Names:           'timestamptz|timestamp with time zone';
+      Description:     'Date and time with time zone, e.g. "2020-06-27 16:24:41+02".';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
