@@ -338,9 +338,6 @@ type
     FInvalidKeys: THKInvalidKeys;
     FModifiers: THKModifiers;
     FPressedOnlyModifiers: Boolean;
-    FOnChange: TNotifyEvent;
-    FOnEnter: TNotifyEvent;
-    FOnExit: TNotifyEvent;
     procedure SetBorderStyle(const Value: TSynBorderStyle);
     procedure SetHotKey(const Value: TShortCut);
     procedure SetInvalidKeys(const Value: THKInvalidKeys);
@@ -363,9 +360,6 @@ type
     property HotKey: TShortCut read FHotKey write SetHotKey default $0041; { Alt+A }
     property InvalidKeys: THKInvalidKeys read FInvalidKeys write SetInvalidKeys default [hcNone, hcShift];
     property Modifiers: THKModifiers read FModifiers write SetModifiers default [hkAlt];
-    property OnChange: TNotifyEvent read FOnChange write FOnChange;
-    property OnEnter: TNotifyEvent read FOnEnter write FOnEnter;
-    property OnExit: TNotifyEvent read FOnExit write FOnExit;
   end;
 
   TSynEditSearchCustom = class(TComponent)
@@ -1473,8 +1467,6 @@ begin
   end;
 
   Key := SavedKey;
-  if Assigned(FOnChange) then
-    FOnChange(Self);
 end;
 
 procedure TSynHotKey.KeyUp(var Key: Word; Shift: TShiftState);
@@ -1518,10 +1510,6 @@ begin
   Canvas.Brush.Color := Color;
   InflateRect(r, -BorderWidth, -BorderWidth);
   Canvas.FillRect(r);
-  if Enabled then
-    Canvas.Font.Color := clWindowText
-  else
-    Canvas.Font.Color := clGrayText;
   TextRect(Canvas, r, BorderWidth + 1, BorderWidth + 1, Text);
 end;
 
@@ -1573,8 +1561,6 @@ end;
 procedure TSynHotKey.WMKillFocus(var Msg: TWMKillFocus);
 begin
   DestroyCaret;
-  if Assigned(FOnExit) then
-    FOnExit(Self);
 end;
 
 procedure TSynHotKey.WMSetFocus(var Msg: TWMSetFocus);
@@ -1583,8 +1569,6 @@ begin
   CreateCaret(Handle, 0, 1, -Canvas.Font.Height + 2);
   SetCaretPos(BorderWidth + 1 + TextWidth(Canvas, Text), BorderWidth + 1);
   ShowCaret(Handle);
-  if Assigned(FOnEnter) then
-    FOnEnter(Self);
 end;
 
 

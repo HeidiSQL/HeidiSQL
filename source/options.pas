@@ -11,7 +11,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, SynEditMiscClasses, StdActns, Menus,
+  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, StdActns, Menus,
   dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections,
   Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons;
 
@@ -19,7 +19,7 @@ type
   TShortcutItemData = record
     Action: TAction;
     KeyStroke: TSynEditKeyStroke;
-    Shortcut1, Shortcut2: TShortcut;
+    ShortCut1, ShortCut2: TShortCut;
   end;
   PShortcutItemData = ^TShortcutItemData;
 
@@ -60,10 +60,8 @@ type
     chkDoStatistics: TCheckBox;
     tabShortcuts: TTabSheet;
     TreeShortcutItems: TVirtualStringTree;
-    Shortcut1: TSynHotKey;
     lblShortcut1: TLabel;
     lblShortcutHint: TLabel;
-    Shortcut2: TSynHotKey;
     lblShortcut2: TLabel;
     chkAllowMultiInstances: TCheckBox;
     tabLogging: TTabSheet;
@@ -173,6 +171,8 @@ type
     lblLongSortRowNum: TLabel;
     editLongSortRowNum: TEdit;
     updownLongSortRowNum: TUpDown;
+    HotKey1: THotKey;
+    HotKey2: THotKey;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -200,10 +200,8 @@ type
       Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure TreeShortcutItemsFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure TreeShortcutItemsGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
-    procedure Shortcut1Change(Sender: TObject);
-    procedure Shortcut2Change(Sender: TObject);
-    procedure ShortcutEnter(Sender: TObject);
-    procedure ShortcutExit(Sender: TObject);
+    procedure HotKeyEnter(Sender: TObject);
+    procedure HotKeyExit(Sender: TObject);
     procedure comboGridTextColorsSelect(Sender: TObject);
     procedure colorBoxGridTextColorsSelect(Sender: TObject);
     procedure editMySQLBinariesRightButtonClick(Sender: TObject);
@@ -218,6 +216,8 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure chkThemePreviewClick(Sender: TObject);
     procedure chkCompletionProposalClick(Sender: TObject);
+    procedure HotKey1Change(Sender: TObject);
+    procedure HotKey2Change(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -1097,7 +1097,7 @@ begin
   lblShortcutHint.Enabled := ShortcutFocused;
   lblShortcut1.Enabled := ShortcutFocused;
   lblShortcut2.Enabled := ShortcutFocused;
-  Shortcut1.Enabled := lblShortcut1.Enabled;
+  HotKey1.Enabled := lblShortcut1.Enabled;
   if ShortcutFocused then begin
     Data := Sender.GetNodeData(Node);
     lblShortcutHint.Caption := TreeShortcutItems.Text[Node, 0];
@@ -1106,10 +1106,10 @@ begin
       if MainForm.ActionList1DefaultHints[Data.Action.Index] <> '' then
         lblShortcutHint.Caption := MainForm.ActionList1DefaultHints[Data.Action.Index];
     end;
-    Shortcut1.HotKey := Data.ShortCut1;
-    Shortcut2.HotKey := Data.ShortCut2;
+    HotKey1.HotKey := Data.ShortCut1;
+    HotKey2.HotKey := Data.ShortCut2;
   end;
-  Shortcut2.Enabled := lblShortcut2.Enabled;
+  HotKey2.Enabled := lblShortcut2.Enabled;
 end;
 
 
@@ -1222,29 +1222,29 @@ begin
 end;
 
 
-procedure Toptionsform.Shortcut1Change(Sender: TObject);
+procedure Toptionsform.HotKey1Change(Sender: TObject);
 var
   Data: PShortcutItemData;
 begin
   // Shortcut 1 changed
   Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
-  Data.Shortcut1 := (Sender as TSynHotKey).HotKey;
+  Data.Shortcut1 := (Sender as THotKey).HotKey;
   Modified(Sender);
 end;
 
 
-procedure Toptionsform.Shortcut2Change(Sender: TObject);
+procedure Toptionsform.HotKey2Change(Sender: TObject);
 var
   Data: PShortcutItemData;
 begin
   // Shortcut 2 changed
   Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
-  Data.Shortcut2 := (Sender as TSynHotKey).HotKey;
+  Data.Shortcut2 := (Sender as THotKey).HotKey;
   Modified(Sender);
 end;
 
 
-procedure Toptionsform.ShortcutEnter(Sender: TObject);
+procedure Toptionsform.HotKeyEnter(Sender: TObject);
 begin
   // Remove Esc and Enter shortcuts from buttons
   btnOk.Default := False;
@@ -1252,7 +1252,7 @@ begin
 end;
 
 
-procedure Toptionsform.ShortcutExit(Sender: TObject);
+procedure Toptionsform.HotKeyExit(Sender: TObject);
 begin
   // Readd Esc and Enter shortcuts to buttons
   btnOk.Default := True;

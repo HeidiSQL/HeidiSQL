@@ -752,7 +752,7 @@ object optionsform: Toptionsform
         Left = 331
         Top = 156
         Width = 364
-        Height = 219
+        Height = 215
         Cursor = crHandPoint
         SingleLineMode = False
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -1224,7 +1224,7 @@ object optionsform: Toptionsform
       end
       object lblShortcut2: TLabel
         Left = 306
-        Top = 107
+        Top = 108
         Width = 98
         Height = 13
         Caption = 'Secondary shortcut:'
@@ -1247,27 +1247,32 @@ object optionsform: Toptionsform
         OnInitNode = TreeShortcutItemsInitNode
         Columns = <>
       end
-      object Shortcut1: TSynHotKey
+      object HotKey1: THotKey
         Left = 306
-        Top = 81
+        Top = 83
         Width = 279
         Height = 19
-        HotKey = 32768
+        Anchors = [akLeft, akTop, akRight]
+        HotKey = 0
         Modifiers = []
-        OnChange = Shortcut1Change
-        OnEnter = ShortcutEnter
-        OnExit = ShortcutExit
+        TabOrder = 1
+        OnChange = HotKey1Change
+        OnEnter = HotKeyEnter
+        OnExit = HotKeyExit
       end
-      object Shortcut2: TSynHotKey
+      object HotKey2: THotKey
         Left = 306
-        Top = 125
+        Top = 127
         Width = 279
         Height = 19
-        HotKey = 32768
+        Anchors = [akLeft, akTop, akRight]
+        HotKey = 0
+        InvalidKeys = []
         Modifiers = []
-        OnChange = Shortcut2Change
-        OnEnter = ShortcutEnter
-        OnExit = ShortcutExit
+        TabOrder = 2
+        OnChange = HotKey2Change
+        OnEnter = HotKeyEnter
+        OnExit = HotKeyExit
       end
     end
     object tabFiles: TTabSheet
