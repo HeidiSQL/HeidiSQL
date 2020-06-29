@@ -16,7 +16,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, VirtualTrees.HeaderPopup, Cromis.DirectoryWatch, SyncDB, gnugettext,
+  insertfiles, searchreplace, loaddata, copytable, VirtualTrees.HeaderPopup, VirtualTrees.Utils, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls;
@@ -1061,6 +1061,10 @@ type
     procedure actDetachDatabaseExecute(Sender: TObject);
     procedure actAttachDatabaseExecute(Sender: TObject);
     procedure actSynEditCompletionProposeExecute(Sender: TObject);
+    procedure DataGridHeaderDrawQueryElements(Sender: TVTHeader;
+      var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
+    procedure DataGridAdvancedHeaderDraw(Sender: TVTHeader;
+      var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -5299,6 +5303,98 @@ begin
 end;
 
 
+procedure TMainForm.DataGridHeaderDrawQueryElements(Sender: TVTHeader;
+  var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
+begin
+  // Tell the tree we want to paint most of the column header things ourselves
+  // Only called when Header.OwnerDraw is True
+  Elements := [hpeHeaderGlyph, hpeText, hpeOverlay];
+end;
+
+
+procedure TMainForm.DataGridAdvancedHeaderDraw(Sender: TVTHeader;
+  var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
+var
+  PaintArea, TextArea, IconArea, SortArea: TRect;
+  SortText, ColCaption: String;
+  TextSpace, SortIndex: Integer;
+  Size: TSize;
+  DC: HDC;
+  DrawFormat: Cardinal;
+  leftpos, toppos: integer;
+const
+  NumSort: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
+
+  function GetSortIndex(Column: TVirtualTreeColumn): Integer;
+  var i: Integer;
+  begin
+    Result := -1;
+    for i:=0 to Length(DataGridSortColumns)-1 do begin
+      if DataGridSortColumns[i].ColumnName = PaintInfo.Column.Text then begin
+        Result := i;
+        Break;
+      end;
+    end;
+  end;
+
+begin
+  // Paint specified elements on column header
+
+  PaintArea := PaintInfo.PaintRectangle;
+  PaintArea.Inflate(-PaintInfo.Column.Margin, -((PaintArea.Height - Sender.Images.Height) div 2));
+  DC := PaintInfo.TargetCanvas.Handle;
+
+  // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
+  if hpeText in Elements then begin
+    ColCaption := PaintInfo.Column.Text;
+    // Leave space for icons
+    TextArea := PaintArea;
+    if PaintInfo.Column.ImageIndex > -1 then
+      Dec(TextArea.Right, Sender.Images.Width);
+    if GetSortIndex(PaintInfo.Column) > -1 then
+      Dec(TextArea.Right, Sender.Images.Width);
+
+    if not (coWrapCaption in PaintInfo.Column.Options) then begin
+      // Do we need to shorten the caption due to limited space?
+      GetTextExtentPoint32W(DC, PWideChar(ColCaption), Length(ColCaption), Size);
+      TextSpace := TextArea.Right - TextArea.Left;
+      if TextSpace < Size.cx then
+        ColCaption := VirtualTrees.Utils.ShortenString(DC, ColCaption, TextSpace);
+    end;
+
+    SetBkMode(DC, TRANSPARENT);
+    SetTextColor(DC, ColorToRGB(clWindowText));
+    DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
+    DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
+  end;
+
+  // Draw image, if any
+  if (hpeHeaderGlyph in Elements) and (PaintInfo.Column.ImageIndex > -1) then begin
+    IconArea := PaintArea;
+    Inc(IconArea.Left, IconArea.Width - Sender.Images.Width);
+    if GetSortIndex(PaintInfo.Column) > -1 then
+      Dec(IconArea.Left, Sender.Images.Width);
+    Sender.Images.Draw(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex);
+  end;
+
+  // Paint sort icon and number
+  if hpeOverlay in Elements then begin
+    SortArea := PaintArea;
+    SortIndex := GetSortIndex(PaintInfo.Column);
+    if SortIndex > -1 then begin
+      Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
+      if DataGridSortColumns[SortIndex].SortDirection = ORDER_ASC then
+        SortText := '▼'
+      else
+        SortText := '▲';
+      SortText := IfThen(SortIndex<9, NumSort[SortIndex], NumSort[9]) + SortText;
+      SetTextColor(DC, ColorToRGB(clGrayText));
+      PaintInfo.TargetCanvas.TextOut(SortArea.Left, SortArea.Top, SortText);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
@@ -5324,29 +5420,19 @@ var
     col.Options := col.Options + [coSmartResize];
     if DatagridHiddenColumns.IndexOf(TblCol.Name) > -1 then
       col.Options := col.Options - [coVisible];
-    // Column header icons
-    for k:=0 to Length(DataGridSortColumns)-1 do begin
-      if DataGridSortColumns[k].ColumnName = TblCol.Name then begin
-        case DataGridSortColumns[k].SortDirection of
-          ORDER_ASC:  col.ImageIndex := 109;
-          ORDER_DESC: col.ImageIndex := 110;
-        end;
+    // Column header icon
+    for k:=0 to SelectedTableKeys.Count-1 do begin
+      if SelectedTableKeys[k].Columns.IndexOf(TblCol.Name) > -1 then begin
+        col.ImageIndex := SelectedTableKeys[k].ImageIndex;
+        break;
       end;
     end;
     if col.ImageIndex = -1 then begin
-      for k:=0 to SelectedTableKeys.Count-1 do begin
-        if SelectedTableKeys[k].Columns.IndexOf(TblCol.Name) > -1 then begin
-          col.ImageIndex := SelectedTableKeys[k].ImageIndex;
-          break;
-        end;
-      end;
-      if col.ImageIndex = -1 then begin
-        if SelectedTableTimestampColumns.IndexOf(TblCol.Name) > -1 then
-          col.ImageIndex := 149;
-      end;
+      if SelectedTableTimestampColumns.IndexOf(TblCol.Name) > -1 then
+        col.ImageIndex := 149;
     end;
 
-    // Data type
+    // Text alignment in grid cells
     col.Alignment := taLeftJustify;
     if DataGridResult.DataType(idx).Category in [dtcInteger, dtcReal] then
       col.Alignment := taRightJustify;

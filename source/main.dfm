@@ -1229,7 +1229,7 @@ object MainForm: TMainForm
             Header.Height = 20
             Header.Images = VirtualImageListMain
             Header.MainColumn = -1
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages, hoVisible]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoVisible]
             IncrementalSearch = isInitializedOnly
             LineStyle = lsSolid
             PopupMenu = popupDataGrid
@@ -1239,6 +1239,7 @@ object MainForm: TMainForm
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
             WantTabs = True
+            OnAdvancedHeaderDraw = DataGridAdvancedHeaderDraw
             OnAfterCellPaint = AnyGridAfterCellPaint
             OnBeforeCellPaint = AnyGridBeforeCellPaint
             OnBeforePaint = DataGridBeforePaint
@@ -1256,6 +1257,7 @@ object MainForm: TMainForm
             OnPaintText = AnyGridPaintText
             OnGetNodeDataSize = AnyGridGetNodeDataSize
             OnHeaderClick = DataGridHeaderClick
+            OnHeaderDrawQueryElements = DataGridHeaderDrawQueryElements
             OnInitNode = AnyGridInitNode
             OnKeyDown = AnyGridKeyDown
             OnMouseUp = AnyGridMouseUp
