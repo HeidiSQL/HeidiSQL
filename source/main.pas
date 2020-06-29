@@ -5317,13 +5317,12 @@ procedure TMainForm.DataGridAdvancedHeaderDraw(Sender: TVTHeader;
 var
   PaintArea, TextArea, IconArea, SortArea: TRect;
   SortText, ColCaption: String;
-  TextSpace, SortIndex: Integer;
+  TextSpace, SortIndex, NumCharOffset: Integer;
   Size: TSize;
   DC: HDC;
   DrawFormat: Cardinal;
-  leftpos, toppos: integer;
 const
-  NumSort: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
+  NumSortChars: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺','₁','₂','₃','₄','₅','₆','₇','₈','₉','₊'];
 
   function GetSortIndex(Column: TVirtualTreeColumn): Integer;
   var i: Integer;
@@ -5383,13 +5382,19 @@ begin
     SortIndex := GetSortIndex(PaintInfo.Column);
     if SortIndex > -1 then begin
       Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
-      if DataGridSortColumns[SortIndex].SortDirection = ORDER_ASC then
-        SortText := '▲'
-      else
+      if DataGridSortColumns[SortIndex].SortDirection = ORDER_ASC then begin
+        SortText := '▲';
+        NumCharOffset := 0;
+      end else begin
         SortText := '▼';
-      SortText := IfThen(SortIndex<9, NumSort[SortIndex], NumSort[9]) + SortText;
-      SetTextColor(DC, ColorToRGB(clGrayText));
+        NumCharOffset := 10;
+      end;
+      SetTextColor(DC, ColorToRGB(ColorAdjustBrightness(clGrayText, 30)));
+      // Paint arrow:
       PaintInfo.TargetCanvas.TextOut(SortArea.Left, SortArea.Top, SortText);
+      // ... and superscript/subscript number right besides:
+      SortText := IfThen(SortIndex<9, NumSortChars[SortIndex+NumCharOffset], NumSortChars[9+NumCharOffset]);
+      PaintInfo.TargetCanvas.TextOut(SortArea.Left+9, SortArea.Top, SortText);
     end;
   end;
 end;
