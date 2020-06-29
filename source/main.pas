@@ -5384,9 +5384,9 @@ begin
     if SortIndex > -1 then begin
       Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
       if DataGridSortColumns[SortIndex].SortDirection = ORDER_ASC then
-        SortText := '▼'
+        SortText := '▲'
       else
-        SortText := '▲';
+        SortText := '▼';
       SortText := IfThen(SortIndex<9, NumSort[SortIndex], NumSort[9]) + SortText;
       SetTextColor(DC, ColorToRGB(clGrayText));
       PaintInfo.TargetCanvas.TextOut(SortArea.Left, SortArea.Top, SortText);
