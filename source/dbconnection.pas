@@ -277,7 +277,6 @@ type
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
-      function IsProxySQL: Boolean;
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
@@ -1590,12 +1589,6 @@ begin
 end;
 
 
-function TConnectionParameters.IsProxySQL: Boolean;
-begin
-  Result := IsAnyMySQL and (Pos('proxysql admin module', LowerCase(ServerVersion)) > 0);
-end;
-
-
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   if IsFolder then
@@ -2133,7 +2126,7 @@ begin
       // Try to fire the very first query against the server, which probably run into the following error:
       // "Error 1820: You must SET PASSWORD before executing this statement"
       try
-        Query('SELECT 1');
+        ThreadId;
       except
         on E:EDbError do begin
           if GetLastErrorCode =  1820 then begin
@@ -2166,22 +2159,16 @@ begin
       Log(lcInfo, _('Characterset')+': '+GetCharacterSet);
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
-      try
-        // This gives an SQL error on ProxySQL Admin Module
-        Status := GetResults('SHOW STATUS');
-        while not Status.Eof do begin
-          StatusName := LowerCase(Status.Col(0));
-          if StatusName = 'uptime' then
-            FServerUptime := StrToIntDef(Status.Col(1), FServerUptime)
-          else if StatusName = 'ssl_cipher' then
-            FIsSSL := Status.Col(1) <> '';
-          Status.Next;
-        end;
-      except
-        on E:EDbError do
-          Log(lcError, E.Message);
+      Status := GetResults('SHOW STATUS');
+      while not Status.Eof do begin
+        StatusName := LowerCase(Status.Col(0));
+        if StatusName = 'uptime' then
+          FServerUptime := StrToIntDef(Status.Col(1), FServerUptime)
+        else if StatusName = 'ssl_cipher' then
+          FIsSSL := Status.Col(1) <> '';
+        Status.Next;
       end;
-      FServerDateTimeOnStartup := GetVar('SELECT CURRENT_TIMESTAMP');
+      FServerDateTimeOnStartup := GetVar('SELECT NOW()');
       FServerOS := GetSessionVariable('version_compile_os');
       FRealHostname := GetSessionVariable('hostname');
       FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
@@ -3659,12 +3646,8 @@ function TMySQLConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
-    if FActive then begin
-      if Parameters.IsProxySQL then
-        FThreadID := -1
-      else
-        FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
-    end;
+    if FActive then
+      FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
   end;
   Result := FThreadID;
 end;
