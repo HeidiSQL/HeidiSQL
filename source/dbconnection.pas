@@ -336,7 +336,7 @@ type
   TDBDataTypeArray = Array of TDBDataType;
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId, spDatabaseDrop,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
-    spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost,
+    spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost, spLikeCompare,
     spAddColumn, spChangeColumn,
     spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
@@ -2601,6 +2601,7 @@ begin
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
@@ -2620,6 +2621,7 @@ begin
       FSQLSpecifities[spRenameTable] := 'EXEC sp_rename %s, %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT SYSTEM_USER';
+      FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment');
@@ -2639,6 +2641,7 @@ begin
       FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
       FSQLSpecifities[spRenameView] := 'ALTER VIEW %s RENAME TO %s';
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER';
+      FSQLSpecifities[spLikeCompare] := '%s ILIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
@@ -2658,6 +2661,7 @@ begin
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?

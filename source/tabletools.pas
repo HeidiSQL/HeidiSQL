@@ -945,7 +945,7 @@ begin
                   if IsRegExp then
                     SQL := SQL + 'LOWER(CAST('+Column+' AS TEXT)) SIMILAR TO ' + esc(FindTextJokers) + ' OR '
                   else
-                    SQL := SQL + 'LOWER(CAST('+Column+' AS TEXT)) LIKE ' + esc(FindTextJokers) + ' OR ';
+                    SQL := SQL + 'CAST('+Column+' AS TEXT) ILIKE ' + esc(FindTextJokers) + ' OR ';
                 end;
                 ngSQLite: begin
                   if IsRegExp then

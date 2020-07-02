@@ -6580,12 +6580,14 @@ var
   Filter, Val, Col: String;
   Act: TAction;
   Item: TMenuItem;
+  Conn: TDBConnection;
 begin
   // Set filter for "where..."-clause
   if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
     Exit;
 
   Filter := '';
+  Conn := ActiveConnection;
 
   if Sender is TAction then begin
     // Normal case for most quick filters
@@ -6593,9 +6595,9 @@ begin
     if ExecRegExpr('Prompt\d+$', Act.Name) then begin
       // Item needs prompt
       Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
-      Col := ActiveConnection.QuoteIdent(Col, False);
+      Col := Conn.QuoteIdent(Col, False);
       if (SelectedTableColumns[DataGrid.FocusedColumn].DataType.Index = dtJson)
-        and (ActiveConnection.Parameters.NetTypeGroup = ngPgSQL) then begin
+        and (Conn.Parameters.NetTypeGroup = ngPgSQL) then begin
         Col := Col + '::text';
       end;
       Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
@@ -6609,7 +6611,7 @@ begin
         else if Act = actQuickFilterPrompt4 then
           Filter := Col + ' < ''' + Val + ''''
         else if Act = actQuickFilterPrompt5 then
-          Filter := Col + ' LIKE ''%' + Val + '%''';
+          Filter := Conn.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Val + '%''']);
       end;
     end
     else begin
@@ -6624,7 +6626,7 @@ begin
 
   if Filter <> '' then begin
     if ExecRegExpr('\s+LIKE\s+''', Filter) then
-      Filter := Filter + ActiveConnection.LikeClauseTail;
+      Filter := Filter + Conn.LikeClauseTail;
 
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
@@ -7165,9 +7167,15 @@ begin
       if IncludedValues.IndexOf(Value) = -1 then begin
         actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Results.Connection.EscapeString(Value) + ', ';
         actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Results.Connection.EscapeString(Value) + ', ';
-        actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint + Col + ' LIKE ''' + Results.Connection.EscapeString(Value, True, False) + '%'' OR ';
-        actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint + Col + ' LIKE ''%' + Results.Connection.EscapeString(Value, True, False) + ''' OR ';
-        actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint + Col + ' LIKE ''%' + Results.Connection.EscapeString(Value, True, False) + '%'' OR ';
+        actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
+          ' OR ';
+        actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '''']) +
+          ' OR ';
+        actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
+          ' OR ';
         actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + Results.Connection.EscapeString(Value) + ' OR ';
         actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + Results.Connection.EscapeString(Value) + ' OR ';
         IncludedValues.Add(Value);
@@ -7219,26 +7227,38 @@ begin
   actQuickFilterPrompt2.Hint := Col + ' != "..."';
   actQuickFilterPrompt3.Hint := Col + ' > "..."';
   actQuickFilterPrompt4.Hint := Col + ' < "..."';
-  actQuickFilterPrompt5.Hint := Col + ' LIKE "%...%"';
+  actQuickFilterPrompt5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '"%...%"']);
   actQuickFilterPrompt6.Hint := Col + ' IS NULL';
   actQuickFilterPrompt7.Hint := Col + ' IS NOT NULL';
 
   // Block 3: WHERE col = [clipboard content]
   Value := Trim(Clipboard.AsText);
   if Length(Value) < SIZE_KB then begin
-    actQuickFilterClipboard1.Enabled := true; actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value);
-    actQuickFilterClipboard2.Enabled := true; actQuickFilterClipboard2.Hint := Col + ' != ' + Results.Connection.EscapeString(Value);
-    actQuickFilterClipboard3.Enabled := true; actQuickFilterClipboard3.Hint := Col + ' > ' + Results.Connection.EscapeString(Value);
-    actQuickFilterClipboard4.Enabled := true; actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value);
-    actQuickFilterClipboard5.Enabled := true; actQuickFilterClipboard5.Hint := Col + ' LIKE ''%' + Results.Connection.EscapeString(Value, True, False) + '%''';
-    actQuickFilterClipboard6.Enabled := true; actQuickFilterClipboard6.Hint := Col + ' IN (' + Value + ')';
+    actQuickFilterClipboard1.Enabled := true;
+    actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard2.Enabled := true;
+    actQuickFilterClipboard2.Hint := Col + ' != ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard3.Enabled := true;
+    actQuickFilterClipboard3.Hint := Col + ' > ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard4.Enabled := true;
+    actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard5.Enabled := true;
+    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']);
+    actQuickFilterClipboard6.Enabled := true;
+    actQuickFilterClipboard6.Hint := Col + ' IN (' + Value + ')';
   end else begin
-    actQuickFilterClipboard1.Enabled := false; actQuickFilterClipboard1.Hint := Col + ' = ' + CLPBRD;
-    actQuickFilterClipboard2.Enabled := false; actQuickFilterClipboard2.Hint := Col + ' != ' + CLPBRD;
-    actQuickFilterClipboard3.Enabled := false; actQuickFilterClipboard3.Hint := Col + ' > ' + CLPBRD;
-    actQuickFilterClipboard4.Enabled := false; actQuickFilterClipboard4.Hint := Col + ' < ' + CLPBRD;
-    actQuickFilterClipboard5.Enabled := false; actQuickFilterClipboard5.Hint := Col + ' LIKE %' + CLPBRD + '%';
-    actQuickFilterClipboard6.Enabled := false; actQuickFilterClipboard6.Hint := Col + ' IN (' + CLPBRD + ')';
+    actQuickFilterClipboard1.Enabled := false;
+    actQuickFilterClipboard1.Hint := Col + ' = ' + CLPBRD;
+    actQuickFilterClipboard2.Enabled := false;
+    actQuickFilterClipboard2.Hint := Col + ' != ' + CLPBRD;
+    actQuickFilterClipboard3.Enabled := false;
+    actQuickFilterClipboard3.Hint := Col + ' > ' + CLPBRD;
+    actQuickFilterClipboard4.Enabled := false;
+    actQuickFilterClipboard4.Hint := Col + ' < ' + CLPBRD;
+    actQuickFilterClipboard5.Enabled := false;
+    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '%' + CLPBRD + '%']);
+    actQuickFilterClipboard6.Enabled := false;
+    actQuickFilterClipboard6.Hint := Col + ' IN (' + CLPBRD + ')';
   end;
 
   // Set captions from hints
@@ -9311,7 +9331,8 @@ begin
     Conditions := TStringList.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       // The normal case: do a LIKE comparison
-      Condition := SelectedTableColumns[i].CastAsText + ' LIKE ''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
+      Condition := '''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
+      Condition := Conn.GetSQLSpecifity(spLikeCompare, [SelectedTableColumns[i].CastAsText, Condition]);
       if not SelectedTableColumns[i].DataType.ValueMustMatch.IsEmpty then begin
         // Use an exact comparison for some PostgreSQL data types to overcome SQL errors, e.g. UUID, INT etc.
         // Also, prevent other errors by matching the value against a certain regular expression.
