@@ -1501,7 +1501,8 @@ var
   rx: TRegExpr;
 begin
   rx := TRegExpr.Create;
-  rx.Expression := '^(localhost|[\d\.\/\:]+|.*%.*|[\w\d]{4}\:.*)$';
+  // Valid ips or wildcards which do not need name resolving:
+  rx.Expression := '^(localhost|[\d\.\/\:_]+|.*%.*|[\w\d_]{4}\:.*)$';
   Result := not rx.Exec(Host);
   rx.Free;
 end;
