@@ -850,13 +850,30 @@ begin
               tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
             end;
 
-            efExcel, efCSV, efLaTeX, efWiki, efMarkDown: begin
+            efExcel, efCSV: begin
               // Escape encloser characters inside data per de-facto CSV.
               Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-              if GridData.IsNull(Col) and (ExportFormat in [efExcel, efCSV, efMarkDown]) then
+              if GridData.IsNull(Col) then
                 Data := editNull.Text
               else
                 Data := Encloser + Data + Encloser;
+              tmp := tmp + Data + Separator;
+            end;
+
+            efLaTeX: begin
+              if (not GridData.IsNull(Col)) and (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
+                // Special encloser for numeric values, see https://www.heidisql.com/forum.php?t=36530
+                Data := '$' + Data + '$';
+              tmp := tmp + Data + Separator;
+            end;
+
+            efWiki: begin
+              tmp := tmp + Data + Separator;
+            end;
+
+            efMarkDown: begin
+              if GridData.IsNull(Col) then
+                Data := editNull.Text;
               tmp := tmp + Data + Separator;
             end;
 
