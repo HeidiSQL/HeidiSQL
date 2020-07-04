@@ -2187,7 +2187,7 @@ begin
       Status := GetResults(GetSQLSpecifity(spGlobalStatus));
       while not Status.Eof do begin
         StatusName := LowerCase(Status.Col(0));
-        if StatusName = 'uptime' then
+        if (StatusName = 'uptime') or (StatusName = 'proxysql_uptime') then
           FServerUptime := StrToIntDef(Status.Col(1), FServerUptime)
         else if StatusName = 'ssl_cipher' then
           FIsSSL := Status.Col(1) <> '';
