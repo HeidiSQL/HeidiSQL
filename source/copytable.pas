@@ -142,7 +142,7 @@ begin
   popupRecentFilters.Items.Clear;
   for i:=1 to 20 do begin
     Filter := AppSettings.ReadString(asCopyTableRecentFilter, IntToStr(i));
-    if IsEmpty(Filter) then
+    if Filter.IsEmpty then
       Continue;
     Item := TMenuItem.Create(popupRecentFilters);
     Item.Caption := IntToStr(i) + '  ' + StrEllipsis(Filter, 100);
@@ -183,7 +183,7 @@ begin
     NewValues.Add(MemoFilter.Text);
     for i:=1 to 20 do begin
       Filter := AppSettings.ReadString(asCopyTableRecentFilter, IntToStr(i));
-      if IsEmpty(Filter) then
+      if Filter.IsEmpty then
         Continue;
       if NewValues.IndexOf(Filter) = -1 then
         NewValues.Add(Filter);

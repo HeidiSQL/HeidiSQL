@@ -3165,7 +3165,7 @@ begin
   Tab := GetQueryTabByNumber(Thread.TabNumber);
 
   // Error handling
-  if IsNotEmpty(Thread.ErrorMessage) then begin
+  if not Thread.ErrorMessage.IsEmpty then begin
     SetProgressState(pbsError);
     GoToErrorPos(Thread.ErrorMessage);
     ErrorDialog(Thread.ErrorMessage);
@@ -3242,7 +3242,7 @@ begin
   // Assume that a bunch of up to 5 queries is not a batch.
   AppSettings.ResetPath;
   if AppSettings.ReadBool(asQueryHistoryEnabled)
-    and IsEmpty(Thread.ErrorMessage)
+    and Thread.ErrorMessage.IsEmpty
     and (Thread.Batch.Count <= 5)
     and (Thread.Batch.Size <= SIZE_MB)
     then begin
@@ -4832,7 +4832,7 @@ begin
   // Add all other filenames
   for i:=0 to 20 do begin
     savedfilename := AppSettings.ReadString(asSQLfile, IntToStr(i));
-    if IsEmpty(savedfilename) then
+    if savedfilename.IsEmpty then
       Break;
     AppSettings.DeleteValue(asSQLfile, IntToStr(i));
     if CheckIfFileExists and (not FileExists( savedfilename )) then
@@ -4923,7 +4923,7 @@ begin
     // Add old filters
     for i:=1 to 20 do begin
       val := AppSettings.ReadString(asRecentFilter, IntToStr(i));
-      if IsEmpty(val) then
+      if val.IsEmpty then
         Continue;
       if Filters.IndexOf(val) = -1 then
         Filters.Add(val);
@@ -10897,7 +10897,7 @@ begin
       // Previously introduced bugs stored some other settings here, see issue #2127
       item := TMenuItem.Create(popupFilter);
       capt := AppSettings.ReadString(asRecentFilter, IntToStr(i));
-      if IsEmpty(capt) then
+      if capt.IsEmpty then
         Break;
       capt := rx.Replace(capt, ' ', True);
       item.Hint := capt;

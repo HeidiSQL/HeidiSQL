@@ -137,7 +137,7 @@ begin
   if IsNotEmpty(editFilter.Text) then begin
     FLastFilter := editFilter.Text;
     editFilter.Text := '';
-  end else if IsNotEmpty(FLastFilter) then begin
+  end else if not FLastFilter.IsEmpty then begin
     editFilter.Text := FLastFilter;
     FLastFilter := '';
   end;

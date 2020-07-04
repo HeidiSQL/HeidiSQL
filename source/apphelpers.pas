@@ -2811,7 +2811,7 @@ begin
     Place := (Sender as TControl).Name
   else
     Place := 'unhandled-'+Sender.ClassName;
-  if IsNotEmpty(Anchor) then
+  if not Anchor.IsEmpty then
     Anchor := '#'+Anchor;
   ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
 end;
@@ -3878,7 +3878,7 @@ var
   KeyPath: String;
 begin
   PrepareRegistry;
-  if IsEmpty(FSessionPath) then
+  if FSessionPath.IsEmpty then
     raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])
   else begin
     KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
@@ -3893,7 +3893,7 @@ var
   KeyPath: String;
 begin
   PrepareRegistry;
-  if IsEmpty(FSessionPath) then
+  if FSessionPath.IsEmpty then
     raise Exception.CreateFmt(_('No path set, won''t move root key %s'), [FRegistry.CurrentPath])
   else begin
     KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
@@ -3966,9 +3966,9 @@ begin
   ValueName := FSettings[Index].Name;
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
-  if FSettings[Index].Session and IsEmpty(FSessionPath) then
+  if FSettings[Index].Session and FSessionPath.IsEmpty then
     raise Exception.Create(_('Attempt to read session setting without session path'));
-  if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
+  if (not FSettings[Index].Session) and (not FSessionPath.IsEmpty) then
     SessionPath := ''
   else
     PrepareRegistry;
@@ -4041,9 +4041,9 @@ begin
   ValueName := FSettings[Index].Name;
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
-  if FSettings[Index].Session and IsEmpty(FSessionPath) then
+  if FSettings[Index].Session and FSessionPath.IsEmpty then
     raise Exception.Create(_('Attempt to write session setting without session path'));
-  if (not FSettings[Index].Session) and IsNotEmpty(FSessionPath) then
+  if (not FSettings[Index].Session) and (not FSessionPath.IsEmpty) then
     SessionPath := ''
   else
     PrepareRegistry;

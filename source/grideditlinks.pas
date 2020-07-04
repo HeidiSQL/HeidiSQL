@@ -1551,7 +1551,7 @@ begin
     if Item.Checked then
       NewValue := NewValue + StripHotkey(Item.Caption) + ',';
   end;
-  if not IsEmpty(NewValue) then
+  if not NewValue.IsEmpty then
     Delete(NewValue, Length(NewValue), 1);
   FTextEdit.Text := NewValue;
   FModified := True;
