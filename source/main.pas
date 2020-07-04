@@ -3702,13 +3702,12 @@ begin
         p := p + ' --ssl-ca="'+Conn.Parameters.SSLCACertificate+'"';
 
       case Conn.Parameters.NetType of
-        ntMySQL_TCPIP: begin
-          p := p + ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
-        end;
         ntMySQL_NamedPipe:
           p := p + ' --pipe --socket="'+Conn.Parameters.Hostname+'"';
         ntMySQL_SSHtunnel:
           p := p + ' --host="localhost" --port='+IntToStr(Conn.Parameters.SSHLocalPort);
+        else
+          p := p + ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
       end;
 
       p := p + ' --user="'+Conn.Parameters.Username+'"';
@@ -6014,11 +6013,13 @@ var
   Results: TDBQuery;
   RowNum: PInt64;
   CellText: String;
+  Conn: TDBConnection;
 begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
 
   Grid := ActiveGrid;
-  HasConnection := ActiveConnection <> nil;
+  Conn := ActiveConnection;
+  HasConnection := Conn <> nil;
   Results := nil;
   GridHasChanges := False;
   EnableTimestamp := False;
@@ -6061,6 +6062,9 @@ begin
   // Activate export-options if we're on Data- or Query-tab
   actExportData.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
   actDataSetNull.Enabled := HasConnection and inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
+
+  // Help only supported on regular MySQL and MariaDB servers
+  actSQLHelp.Enabled := HasConnection and Conn.Parameters.IsAnyMySQL and (not Conn.Parameters.IsProxySQLAdmin);
 
   inSynMemo := ActiveSynMemo(True) <> nil;
   inSynMemoEditable := inSynMemo and (not ActiveSynMemo(True).ReadOnly);
@@ -8565,7 +8569,8 @@ begin
     case Column of
       0: begin // Strip "Com_"
         CellText := Results.Col(Column);
-        CellText := Copy(CellText, 5, Length(CellText));
+        if CellText.StartsWith('Com_', True) then
+          CellText := Copy(CellText, 5, Length(CellText));
         CellText := StringReplace(CellText, '_', ' ', [rfReplaceAll] );
       end;
       1: begin // Total Frequency
@@ -9014,7 +9019,6 @@ begin
     tabDatabase.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType <> lntNone);
     tabEditor.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable..lntEvent]);
     tabData.TabVisible := (FActiveDbObj <> nil) and (FActiveDbObj.NodeType in [lntTable, lntView]);
-    actSQLhelp.Enabled := Assigned(Node);
   end;
 
   // Store click history item
@@ -10545,7 +10549,7 @@ begin
       Variables.Free;
       vt.RootNodeCount := FVariableNames.Count;
     end else if vt = ListStatus then begin
-      Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS');
+      Results := Conn.GetResults(Conn.GetSQLSpecifity(spGlobalStatus));
       FStatusServerUptime := Conn.ServerUptime;
     end else if vt = ListProcesses then begin
       case Conn.Parameters.NetTypeGroup of
@@ -10626,7 +10630,7 @@ begin
         Results.Next;
       end;
     end else if vt = ListCommandStats then begin
-      Results := Conn.GetResults('SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''' );
+      Results := Conn.GetResults(Conn.GetSQLSpecifity(spCommandsCounters));
       FCommandStatsServerUptime := Conn.ServerUptime;
       FCommandStatsQueryCount := 0;
       while not Results.Eof do begin

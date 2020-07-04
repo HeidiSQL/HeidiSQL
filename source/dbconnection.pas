@@ -233,10 +233,20 @@ type
 
   { TConnectionParameters and friends }
 
-  TNetType = (ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel,
-    ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC,
-    ntPgSQL_TCPIP, ntPgSQL_SSHtunnel,
-    ntSQLite);
+  TNetType = (
+    ntMySQL_TCPIP,
+    ntMySQL_NamedPipe,
+    ntMySQL_SSHtunnel,
+    ntMSSQL_NamedPipe,
+    ntMSSQL_TCPIP,
+    ntMSSQL_SPX,
+    ntMSSQL_VINES,
+    ntMSSQL_RPC,
+    ntPgSQL_TCPIP,
+    ntPgSQL_SSHtunnel,
+    ntSQLite,
+    ntMySQL_ProxySQLAdmin
+    );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
 
@@ -274,6 +284,7 @@ type
       function IsTokudb: Boolean;
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
+      function IsProxySQLAdmin: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
@@ -337,10 +348,10 @@ type
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost, spLikeCompare,
     spAddColumn, spChangeColumn,
-    spSessionVariables, spGlobalVariables,
+    spGlobalStatus, spCommandsCounters, spSessionVariables, spGlobalVariables,
     spISTableSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
-    spFuncLength, spFuncCeil, spFuncLeft,
+    spFuncLength, spFuncCeil, spFuncLeft, spFuncNow,
     spLockedTables);
 
   TDBConnection = class(TComponent)
@@ -1420,6 +1431,8 @@ begin
         Prefix := 'Infobright'
       else if IsMemSQL then
         Prefix := 'MemSQL'
+      else if IsProxySQLAdmin then
+        Prefix := 'ProxySQL Admin'
       else if IsMySQL then
         Prefix := 'MySQL'
       else
@@ -1441,7 +1454,7 @@ begin
 
   case LongFormat of
     True: case FNetType of
-      ntMySQL_TCPIP:
+      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin:
         Result := Prefix+' (TCP/IP)';
       ntMySQL_NamedPipe:
         Result := Prefix+' (named pipe)';
@@ -1487,7 +1500,7 @@ end;
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel:
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin:
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
@@ -1571,6 +1584,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsProxySQLAdmin: Boolean;
+begin
+  Result := NetType = ntMySQL_ProxySQLAdmin;
+end;
+
+
 function TConnectionParameters.IsAzure: Boolean;
 begin
   Result := IsAnyMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
@@ -1601,7 +1620,8 @@ begin
       else if IsTokudb then Result := 171
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173
-      else if IsMemSQL then Result := 194;
+      else if IsMemSQL then Result := 194
+      else if IsProxySQLAdmin then Result := 197;
     end;
     ngMSSQL: begin
       Result := 123;
@@ -1622,7 +1642,12 @@ end;
 function TConnectionParameters.DefaultPort: Integer;
 begin
   case NetTypeGroup of
-    ngMySQL: Result := 3306;
+    ngMySQL: begin
+      if IsProxySQLAdmin then
+        Result := 6032
+      else
+        Result := 3306;
+    end;
     ngMSSQL: Result := 1433;
     ngPgSQL: Result := 5432;
     else Result := 0;
@@ -2031,7 +2056,7 @@ begin
     end;
 
     case FParameters.NetType of
-      ntMySQL_TCPIP: begin
+      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin: begin
       end;
 
       ntMySQL_NamedPipe: begin
@@ -2159,7 +2184,7 @@ begin
       Log(lcInfo, _('Characterset')+': '+GetCharacterSet);
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
-      Status := GetResults('SHOW STATUS');
+      Status := GetResults(GetSQLSpecifity(spGlobalStatus));
       while not Status.Eof do begin
         StatusName := LowerCase(Status.Col(0));
         if StatusName = 'uptime' then
@@ -2168,7 +2193,7 @@ begin
           FIsSSL := Status.Col(1) <> '';
         Status.Next;
       end;
-      FServerDateTimeOnStartup := GetVar('SELECT NOW()');
+      FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
       FServerOS := GetSessionVariable('version_compile_os');
       FRealHostname := GetSessionVariable('hostname');
       FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
@@ -2306,7 +2331,7 @@ begin
       except
         FServerUptime := -1;
       end;
-      FServerDateTimeOnStartup := GetVar('SELECT GETDATE()');
+      FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
       // Microsoft SQL Server 2008 R2 (RTM) - 10.50.1600.1 (Intel X86)
       // Apr  2 2010 15:53:02
       // Copyright (c) Microsoft Corporation
@@ -2443,7 +2468,7 @@ begin
       raise EDbError.Create(Error);
     end;
     FActive := True;
-    FServerDateTimeOnStartup := GetVar('SELECT NOW()');
+    FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
     FIsUnicode := True;
@@ -2521,7 +2546,7 @@ begin
         DbAlias := TPath.GetFileNameWithoutExtension(FileNames[i]);
         Query('ATTACH DATABASE '+EscapeString(FileNames[i])+' AS '+QuoteIdent(DbAlias));
       end;
-      FServerDateTimeOnStartup := GetVar('SELECT DATETIME()');
+      FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
       FServerVersionUntouched := GetVar('SELECT sqlite_version()');
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
@@ -2591,6 +2616,16 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spGlobalStatus] := IfThen(
+        Parameters.IsProxySQLAdmin,
+        'SELECT * FROM stats_mysql_global',
+        'SHOW /*!50002 GLOBAL */ STATUS'
+        );
+      FSQLSpecifities[spCommandsCounters] := IfThen(
+        Parameters.IsProxySQLAdmin,
+        'SELECT * FROM stats_mysql_commands_counters',
+        'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%'''
+        );
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
@@ -2600,6 +2635,7 @@ begin
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
+      FSQLSpecifities[spFuncNow] := IfThen(Parameters.IsProxySQLAdmin, 'CURRENT_TIMESTAMP', 'NOW()');
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngMSSQL: begin
@@ -2620,6 +2656,7 @@ begin
       FSQLSpecifities[spFuncLength] := 'LEN';
       FSQLSpecifities[spFuncCeil] := 'CEILING';
       FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
+      FSQLSpecifities[spFuncNow] := 'GETDATE()';
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngPgSQL: begin
@@ -2640,6 +2677,7 @@ begin
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
+      FSQLSpecifities[spFuncNow] := 'NOW()';
       FSQLSpecifities[spLockedTables] := '';
     end;
     ngSQLite: begin
@@ -2660,6 +2698,7 @@ begin
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
+      FSQLSpecifities[spFuncNow] := 'DATETIME()';
       FSQLSpecifities[spLockedTables] := '';
     end;
 
@@ -2782,7 +2821,7 @@ begin
   if ServerVersionInt >= 50000 then
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
 
-  if ServerVersionInt >= 50124 then
+  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
@@ -3641,13 +3680,19 @@ end;
 
 {**
   Return current thread id
+  Supports 64bit process numbers on long running servers: https://dev.mysql.com/doc/refman/8.0/en/mysql-thread-id.html
+  ... while ProxySQL does not support CONNECTION_ID()
 }
 function TMySQLConnection.GetThreadId: Int64;
 begin
   if FThreadId = 0 then begin
     Ping(False);
-    if FActive then
-      FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
+    if FActive then begin
+      if Parameters.IsProxySQLAdmin then
+        FThreadID := FLib.mysql_thread_id(FHandle)
+      else
+        FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
+    end;
   end;
   Result := FThreadID;
 end;
@@ -3958,7 +4003,7 @@ begin
   Result := inherited;
   if not Assigned(Result) then begin
     try
-      FAllDatabases := GetCol('SHOW DATABASES');
+      FAllDatabases := GetCol('SHOW DATABASES', IfThen(Parameters.IsProxySQLAdmin, 1, 0));
     except on E:EDbError do
       try
         FAllDatabases := GetCol('SELECT '+QuoteIdent('SCHEMA_NAME')+' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent('SCHEMATA')+' ORDER BY '+QuoteIdent('SCHEMA_NAME'));
@@ -5823,7 +5868,9 @@ begin
   // Tables and views
   Results := nil;
   try
-    if Parameters.FullTableStatus or (UpperCase(db) = UpperCase(InfSch)) then begin
+    if Parameters.IsProxySQLAdmin then begin
+      Results := GetResults('SHOW TABLES FROM '+QuoteIdent(db));
+    end else if Parameters.FullTableStatus or (UpperCase(db) = UpperCase(InfSch)) then begin
       Results := GetResults('SHOW TABLE STATUS FROM '+QuoteIdent(db));
     end else begin
       Results := GetResults('SELECT '+
@@ -5856,46 +5903,46 @@ begin
     while not Results.Eof do begin
       obj := TDBObject.Create(Self);
       Cache.Add(obj);
-      obj.Name := Results.Col('Name');
+      obj.Name := Results.Col(0);
       obj.Database := db;
-      obj.Rows := StrToInt64Def(Results.Col('Rows'), -1);
+      obj.Rows := StrToInt64Def(Results.Col('Rows', True), -1);
       if (not Results.IsNull('Data_length')) and (not Results.IsNull('Index_length')) then begin
-        Obj.Size := StrToInt64Def(Results.Col('Data_length'), 0) + StrToInt64Def(Results.Col('Index_length'), 0);
+        Obj.Size := StrToInt64Def(Results.Col('Data_length', True), 0) + StrToInt64Def(Results.Col('Index_length', True), 0);
         Inc(Cache.FDataSize, Obj.Size);
         Cache.FLargestObjectSize := Max(Cache.FLargestObjectSize, Obj.Size);
       end;
       Obj.NodeType := lntTable;
       if Results.IsNull(1) and Results.IsNull(2) then // Engine column is NULL for views
         Obj.NodeType := lntView;
-      Obj.Created := ParseDateTime(Results.Col('Create_time'));
-      Obj.Updated := ParseDateTime(Results.Col('Update_time'));
+      Obj.Created := ParseDateTime(Results.Col('Create_time', True));
+      Obj.Updated := ParseDateTime(Results.Col('Update_time', True));
       if Results.ColExists('Type') then
-        Obj.Engine := Results.Col('Type')
+        Obj.Engine := Results.Col('Type', True)
       else
-        Obj.Engine := Results.Col('Engine');
-      Obj.Comment := Results.Col('Comment');
+        Obj.Engine := Results.Col('Engine', True);
+      Obj.Comment := Results.Col('Comment', True);
       // Sanitize comment from automatically appendage
       rx.Expression := '(;\s*)?InnoDB\s*free\:.*$';
       Obj.Comment := rx.Replace(Obj.Comment, '', False);
       Obj.Version := StrToInt64Def(Results.Col('Version', True), Obj.Version);
-      Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment'), Obj.AutoInc);
+      Obj.AutoInc := StrToInt64Def(Results.Col('Auto_increment', True), Obj.AutoInc);
       Obj.RowFormat := Results.Col('Row_format', True);
-      Obj.AvgRowLen := StrToInt64Def(Results.Col('Avg_row_length'), Obj.AvgRowLen);
-      Obj.MaxDataLen := StrToInt64Def(Results.Col('Max_data_length'), Obj.MaxDataLen);
-      Obj.IndexLen := StrToInt64Def(Results.Col('Index_length'), Obj.IndexLen);
-      Obj.DataLen := StrToInt64Def(Results.Col('Data_length'), Obj.DataLen);
-      Obj.DataFree := StrToInt64Def(Results.Col('Data_free'), Obj.DataFree);
-      Obj.LastChecked := ParseDateTime(Results.Col('Check_time'));
+      Obj.AvgRowLen := StrToInt64Def(Results.Col('Avg_row_length', True), Obj.AvgRowLen);
+      Obj.MaxDataLen := StrToInt64Def(Results.Col('Max_data_length', True), Obj.MaxDataLen);
+      Obj.IndexLen := StrToInt64Def(Results.Col('Index_length', True), Obj.IndexLen);
+      Obj.DataLen := StrToInt64Def(Results.Col('Data_length', True), Obj.DataLen);
+      Obj.DataFree := StrToInt64Def(Results.Col('Data_free', True), Obj.DataFree);
+      Obj.LastChecked := ParseDateTime(Results.Col('Check_time', True));
       Obj.Collation := Results.Col('Collation', True);
       Obj.CheckSum := StrToInt64Def(Results.Col('Checksum', True), Obj.CheckSum);
-      Obj.CreateOptions := Results.Col('Create_options');
+      Obj.CreateOptions := Results.Col('Create_options', True);
       Results.Next;
     end;
     FreeAndNil(Results);
   end;
 
   // Stored functions
-  if ServerVersionInt >= 50000 then try
+  if (ServerVersionInt >= 50000) and (not Parameters.IsProxySQLAdmin) then try
     Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
     on E:EDbError do;
@@ -5916,7 +5963,7 @@ begin
   end;
 
   // Stored procedures
-  if ServerVersionInt >= 50000 then try
+  if (ServerVersionInt >= 50000) and (not Parameters.IsProxySQLAdmin) then try
     Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
     on E:EDbError do;
@@ -5937,7 +5984,7 @@ begin
   end;
 
   // Triggers
-  if ServerVersionInt >= 50010 then try
+  if (ServerVersionInt >= 50010) and (not Parameters.IsProxySQLAdmin) then try
     Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
   except
     on E:EDbError do;
@@ -5957,7 +6004,7 @@ begin
   end;
 
   // Events
-  if ServerVersionInt >= 50100 then try
+  if (ServerVersionInt >= 50100) and (not Parameters.IsProxySQLAdmin) then try
     Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
       ' FROM '+InfSch+'.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
   except
