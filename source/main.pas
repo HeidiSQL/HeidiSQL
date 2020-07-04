@@ -1061,9 +1061,9 @@ type
     procedure actDetachDatabaseExecute(Sender: TObject);
     procedure actAttachDatabaseExecute(Sender: TObject);
     procedure actSynEditCompletionProposeExecute(Sender: TObject);
-    procedure DataGridHeaderDrawQueryElements(Sender: TVTHeader;
+    procedure AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
       var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
-    procedure DataGridAdvancedHeaderDraw(Sender: TVTHeader;
+    procedure AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
       var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
   private
     // Executable file details
@@ -5303,7 +5303,7 @@ begin
 end;
 
 
-procedure TMainForm.DataGridHeaderDrawQueryElements(Sender: TVTHeader;
+procedure TMainForm.AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
 begin
   // Tell the tree we want to paint most of the column header things ourselves
@@ -5312,26 +5312,40 @@ begin
 end;
 
 
-procedure TMainForm.DataGridAdvancedHeaderDraw(Sender: TVTHeader;
+procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
 var
   PaintArea, TextArea, IconArea, SortArea: TRect;
   SortText, ColCaption: String;
-  TextSpace, SortIndex, NumCharTop: Integer;
+  TextSpace, ColSortIndex, NumCharTop: Integer;
+  ColSortDirection: VirtualTrees.TSortDirection;
   Size: TSize;
   DC: HDC;
   DrawFormat: Cardinal;
 const
   NumSortChars: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
 
-  function GetSortIndex(Column: TVirtualTreeColumn): Integer;
+  procedure GetSortIndex(Column: TVirtualTreeColumn; var SortIndex: Integer; var SortDirection: VirtualTrees.TSortDirection);
   var i: Integer;
   begin
-    Result := -1;
-    for i:=0 to Length(DataGridSortColumns)-1 do begin
-      if DataGridSortColumns[i].ColumnName = PaintInfo.Column.Text then begin
-        Result := i;
-        Break;
+    SortIndex := -1;
+    if Column.Owner.Header.Treeview = DataGrid then begin
+      // Data grid supports multiple sorted columns
+      for i:=0 to Length(DataGridSortColumns)-1 do begin
+        if DataGridSortColumns[i].ColumnName = PaintInfo.Column.Text then begin
+          SortIndex := i;
+          if DataGridSortColumns[i].SortDirection = ORDER_ASC then
+            SortDirection := sdAscending
+          else
+            SortDirection := sdDescending;
+          Break;
+        end;
+      end;
+    end else begin
+      // We're in a query grid, supporting a single sorted column
+      if Column.Owner.Header.SortColumn = Column.Index then begin
+        SortIndex := 0;
+        SortDirection := Column.Owner.Header.SortDirection;
       end;
     end;
   end;
@@ -5350,7 +5364,8 @@ begin
     TextArea := PaintArea;
     if PaintInfo.Column.ImageIndex > -1 then
       Dec(TextArea.Right, Sender.Images.Width);
-    if GetSortIndex(PaintInfo.Column) > -1 then
+    GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
+    if ColSortIndex > -1 then
       Dec(TextArea.Right, Sender.Images.Width);
 
     if not (coWrapCaption in PaintInfo.Column.Options) then begin
@@ -5371,7 +5386,8 @@ begin
   if (hpeHeaderGlyph in Elements) and (PaintInfo.Column.ImageIndex > -1) then begin
     IconArea := PaintArea;
     Inc(IconArea.Left, IconArea.Width - Sender.Images.Width);
-    if GetSortIndex(PaintInfo.Column) > -1 then
+    GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
+    if ColSortIndex > -1 then
       Dec(IconArea.Left, Sender.Images.Width);
     Sender.Images.Draw(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex);
   end;
@@ -5379,10 +5395,10 @@ begin
   // Paint sort icon and number
   if hpeOverlay in Elements then begin
     SortArea := PaintArea;
-    SortIndex := GetSortIndex(PaintInfo.Column);
-    if SortIndex > -1 then begin
+    GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
+    if ColSortIndex > -1 then begin
       Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
-      if DataGridSortColumns[SortIndex].SortDirection = ORDER_ASC then begin
+      if ColSortDirection = sdAscending then begin
         SortText := '▲';
         NumCharTop := 0;
       end else begin
@@ -5392,7 +5408,7 @@ begin
       // Paint arrow:
       PaintInfo.TargetCanvas.TextOut(SortArea.Left, SortArea.Top, SortText);
       // ... and superscript number right besides:
-      SortText := IfThen(SortIndex<9, NumSortChars[SortIndex], NumSortChars[9]);
+      SortText := IfThen(ColSortIndex<9, NumSortChars[ColSortIndex], NumSortChars[9]);
       PaintInfo.TargetCanvas.TextOut(SortArea.Left+9, SortArea.Top+NumCharTop, SortText);
     end;
   end;
@@ -7801,17 +7817,10 @@ begin
       Exit;
   end;
 
-  // Clear sort icons
-  for i:=0 to Sender.Columns.Count-1 do begin
-    Sender.Columns[i].ImageIndex := -1;
-  end;
-
   if (Sender.SortColumn <> HitInfo.Column) or (Sender.SortDirection = sdDescending) then begin
     Sender.SortDirection := sdAscending;
-    Sender.Columns[HitInfo.Column].ImageIndex := 109;
   end else if Sender.SortDirection = sdAscending then begin
     Sender.SortDirection := sdDescending;
-    Sender.Columns[HitInfo.Column].ImageIndex := 110;
   end;
   Screen.Cursor := crHourglass;
   Sender.SortColumn := HitInfo.Column;
@@ -13847,6 +13856,7 @@ begin
   Grid.WantTabs := OrgGrid.WantTabs;
   Grid.AutoScrollDelay := OrgGrid.AutoScrollDelay;
   // Apply events - keep in alphabetical order for overview reasons
+  Grid.OnAdvancedHeaderDraw := OrgGrid.OnAdvancedHeaderDraw;
   Grid.OnAfterCellPaint := OrgGrid.OnAfterCellPaint;
   Grid.OnAfterPaint := OrgGrid.OnAfterPaint;
   Grid.OnBeforeCellPaint := OrgGrid.OnBeforeCellPaint;
@@ -13864,6 +13874,7 @@ begin
   Grid.OnGetNodeDataSize := OrgGrid.OnGetNodeDataSize;
   Grid.OnGetText := OrgGrid.OnGetText;
   Grid.OnHeaderClick := OrgGrid.OnHeaderClick;
+  Grid.OnHeaderDrawQueryElements := OrgGrid.OnHeaderDrawQueryElements;
   Grid.OnInitNode := OrgGrid.OnInitNode;
   Grid.OnKeyDown := OrgGrid.OnKeyDown;
   Grid.OnMouseUp := OrgGrid.OnMouseUp;

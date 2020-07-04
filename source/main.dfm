@@ -1239,7 +1239,7 @@ object MainForm: TMainForm
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
             WantTabs = True
-            OnAdvancedHeaderDraw = DataGridAdvancedHeaderDraw
+            OnAdvancedHeaderDraw = AnyGridAdvancedHeaderDraw
             OnAfterCellPaint = AnyGridAfterCellPaint
             OnBeforeCellPaint = AnyGridBeforeCellPaint
             OnBeforePaint = DataGridBeforePaint
@@ -1257,7 +1257,7 @@ object MainForm: TMainForm
             OnPaintText = AnyGridPaintText
             OnGetNodeDataSize = AnyGridGetNodeDataSize
             OnHeaderClick = DataGridHeaderClick
-            OnHeaderDrawQueryElements = DataGridHeaderDrawQueryElements
+            OnHeaderDrawQueryElements = AnyGridHeaderDrawQueryElements
             OnInitNode = AnyGridInitNode
             OnKeyDown = AnyGridKeyDown
             OnMouseUp = AnyGridMouseUp
@@ -1450,7 +1450,7 @@ object MainForm: TMainForm
             Header.Height = 20
             Header.Images = VirtualImageListMain
             Header.MainColumn = -1
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages]
             IncrementalSearch = isAll
             LineStyle = lsSolid
             PopupMenu = popupDataGrid
@@ -1461,6 +1461,7 @@ object MainForm: TMainForm
             TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
             Visible = False
             WantTabs = True
+            OnAdvancedHeaderDraw = AnyGridAdvancedHeaderDraw
             OnAfterCellPaint = AnyGridAfterCellPaint
             OnAfterPaint = AnyGridAfterPaint
             OnBeforeCellPaint = AnyGridBeforeCellPaint
@@ -1479,6 +1480,7 @@ object MainForm: TMainForm
             OnPaintText = AnyGridPaintText
             OnGetNodeDataSize = AnyGridGetNodeDataSize
             OnHeaderClick = AnyGridHeaderClick
+            OnHeaderDrawQueryElements = AnyGridHeaderDrawQueryElements
             OnInitNode = AnyGridInitNode
             OnKeyDown = AnyGridKeyDown
             OnMouseUp = AnyGridMouseUp
