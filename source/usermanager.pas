@@ -158,9 +158,9 @@ type
     { Private declarations }
     FUsers: TUserList;
     FModified, FAdded: Boolean;
-    CloneGrants: TStringList;
+    FCloneGrants: TStringList;
     FPrivObjects: TPrivObjList;
-    PrivsGlobal, PrivsDb, PrivsTable, PrivsRoutine, PrivsColumn: TStringList;
+    FPrivsGlobal, FPrivsDb, FPrivsTable, FPrivsRoutine, FPrivsColumn: TStringList;
     FConnection: TDBConnection;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
@@ -260,37 +260,37 @@ end;
 begin
   FConnection := Mainform.ActiveConnection;
   Version := FConnection.ServerVersionInt;
-  PrivsGlobal := InitPrivList('FILE,PROCESS,RELOAD,SHUTDOWN');
-  PrivsDb := InitPrivList('');
-  PrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
-  PrivsRoutine := InitPrivList('GRANT');
-  PrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
+  FPrivsGlobal := InitPrivList('FILE,PROCESS,RELOAD,SHUTDOWN');
+  FPrivsDb := InitPrivList('');
+  FPrivsTable := InitPrivList('ALTER,CREATE,DELETE,DROP,GRANT,INDEX');
+  FPrivsRoutine := InitPrivList('GRANT');
+  FPrivsColumn := InitPrivList('INSERT,SELECT,UPDATE,REFERENCES');
   PasswordLengthMatters := True;
 
   if Version >= 40002 then begin
-    PrivsGlobal.Add('REPLICATION CLIENT');
-    PrivsGlobal.Add('REPLICATION SLAVE');
-    PrivsGlobal.Add('SHOW DATABASES');
-    PrivsGlobal.Add('SUPER');
-    PrivsDb.Add('CREATE TEMPORARY TABLES');
-    PrivsDb.Add('LOCK TABLES');
-    PrivsRoutine.Add('EXECUTE');
+    FPrivsGlobal.Add('REPLICATION CLIENT');
+    FPrivsGlobal.Add('REPLICATION SLAVE');
+    FPrivsGlobal.Add('SHOW DATABASES');
+    FPrivsGlobal.Add('SUPER');
+    FPrivsDb.Add('CREATE TEMPORARY TABLES');
+    FPrivsDb.Add('LOCK TABLES');
+    FPrivsRoutine.Add('EXECUTE');
   end;
   if Version >= 50001 then begin
-    PrivsTable.Add('CREATE VIEW');
-    PrivsTable.Add('SHOW VIEW');
+    FPrivsTable.Add('CREATE VIEW');
+    FPrivsTable.Add('SHOW VIEW');
   end;
   if Version >= 50003 then begin
-    PrivsGlobal.Add('CREATE USER');
-    PrivsDb.Add('CREATE ROUTINE');
-    PrivsRoutine.Add('ALTER ROUTINE');
+    FPrivsGlobal.Add('CREATE USER');
+    FPrivsDb.Add('CREATE ROUTINE');
+    FPrivsRoutine.Add('ALTER ROUTINE');
   end;
   if Version >= 50106 then begin
-    PrivsDb.Add('TRIGGER');
-    PrivsDb.Add('EVENT');
+    FPrivsDb.Add('TRIGGER');
+    FPrivsDb.Add('EVENT');
   end;
   if Version >= 50404 then begin
-    PrivsGlobal.Add('CREATE TABLESPACE');
+    FPrivsGlobal.Add('CREATE TABLESPACE');
   end;
   { TODO: PROXY priv must be applied with another GRANT syntax:
   GRANT PROXY ON 'employee'@'localhost' TO 'external_auth'@'localhost';
@@ -304,21 +304,21 @@ begin
     PasswordLengthMatters := False;
   end;
 
-  PrivsTable.AddStrings(PrivsColumn);
-  PrivsDb.AddStrings(PrivsTable);
-  PrivsDb.AddStrings(PrivsRoutine);
-  PrivsGlobal.AddStrings(PrivsDb);
+  FPrivsTable.AddStrings(FPrivsColumn);
+  FPrivsDb.AddStrings(FPrivsTable);
+  FPrivsDb.AddStrings(FPrivsRoutine);
+  FPrivsGlobal.AddStrings(FPrivsDb);
 
-  PrivsGlobal.Sorted := False;
-  PrivsGlobal.CustomSort(ComparePrivs);
-  PrivsDb.Sorted := False;
-  PrivsDb.CustomSort(ComparePrivs);
-  PrivsTable.Sorted := False;
-  PrivsTable.CustomSort(ComparePrivs);
-  PrivsRoutine.Sorted := False;
-  PrivsRoutine.CustomSort(ComparePrivs);
-  PrivsColumn.Sorted := False;
-  PrivsColumn.CustomSort(ComparePrivs);
+  FPrivsGlobal.Sorted := False;
+  FPrivsGlobal.CustomSort(ComparePrivs);
+  FPrivsDb.Sorted := False;
+  FPrivsDb.CustomSort(ComparePrivs);
+  FPrivsTable.Sorted := False;
+  FPrivsTable.CustomSort(ComparePrivs);
+  FPrivsRoutine.Sorted := False;
+  FPrivsRoutine.CustomSort(ComparePrivs);
+  FPrivsColumn.Sorted := False;
+  FPrivsColumn.CustomSort(ComparePrivs);
 
 
   // Load user@host list
@@ -391,11 +391,11 @@ begin
   // Free user list and list of available priv names
   FreeAndNil(FUsers);
   FreeAndNil(FPrivObjects);
-  FreeAndNil(PrivsGlobal);
-  FreeAndNil(PrivsDb);
-  FreeAndNil(PrivsTable);
-  FreeAndNil(PrivsRoutine);
-  FreeAndNil(PrivsColumn);
+  FreeAndNil(FPrivsGlobal);
+  FreeAndNil(FPrivsDb);
+  FreeAndNil(FPrivsTable);
+  FreeAndNil(FPrivsRoutine);
+  FreeAndNil(FPrivsColumn);
   Action := caFree;
 end;
 
@@ -524,17 +524,17 @@ begin
     Caption := Caption + ' - ' + User.Username;
 
     AllPNames := TStringList.Create;
-    AllPNames.AddStrings(PrivsGlobal);
-    AllPNames.AddStrings(PrivsDb);
-    AllPNames.AddStrings(PrivsTable);
-    AllPNames.AddStrings(PrivsRoutine);
-    AllPNames.AddStrings(PrivsColumn);
+    AllPNames.AddStrings(FPrivsGlobal);
+    AllPNames.AddStrings(FPrivsDb);
+    AllPNames.AddStrings(FPrivsTable);
+    AllPNames.AddStrings(FPrivsRoutine);
+    AllPNames.AddStrings(FPrivsColumn);
 
     // New or existing user mode
     if FAdded then begin
-      if Assigned(CloneGrants) then begin
+      if Assigned(FCloneGrants) then begin
         Grants := TStringList.Create;
-        Grants.AddStrings(CloneGrants);
+        Grants.AddStrings(FCloneGrants);
       end else begin
         Grants := TStringList.Create;
         Grants.Add('GRANT USAGE ON *.* TO '+UserHost);
@@ -577,7 +577,7 @@ begin
 
         if (rxGrant.Match[4] = '*') and (rxGrant.Match[6] = '*') then begin
           P.DBObj.NodeType := lntNone;
-          P.AllPrivileges := PrivsGlobal;
+          P.AllPrivileges := FPrivsGlobal;
           // http://dev.mysql.com/doc/refman/5.7/en/show-grants.html
           // As of MySQL 5.7.6, SHOW GRANTS output does not include IDENTIFIED BY PASSWORD clauses.
           // Use the SHOW CREATE USER statement instead. See Section 14.7.5.12, "SHOW CREATE USER Syntax".
@@ -597,23 +597,23 @@ begin
         end else if (rxGrant.Match[6] = '*') then begin
           P.DBObj.NodeType := lntDb;
           P.DBObj.Database := rxGrant.Match[5];
-          P.AllPrivileges := PrivsDb;
+          P.AllPrivileges := FPrivsDb;
         end else begin
           P.DBObj.Database := rxGrant.Match[5];
           P.DBObj.Name := rxGrant.Match[7];
           if UpperCase(rxGrant.Match[3]) = 'FUNCTION' then begin
             P.DBObj.NodeType := lntFunction;
-            P.AllPrivileges := PrivsRoutine;
+            P.AllPrivileges := FPrivsRoutine;
           end else if (UpperCase(rxGrant.Match[3]) = 'PROCEDURE') then begin
             P.DBObj.NodeType := lntProcedure;
-            P.AllPrivileges := PrivsRoutine;
+            P.AllPrivileges := FPrivsRoutine;
           end else begin
             Obj := P.DBObj.Connection.FindObject(P.DBObj.Database, P.DBObj.Name);
             if (Obj <> nil) and (Obj.NodeType = lntView) then
               P.DBObj.NodeType := lntView
             else
               P.DBObj.NodeType := lntTable;
-            P.AllPrivileges := PrivsTable;
+            P.AllPrivileges := FPrivsTable;
           end;
         end;
 
@@ -649,7 +649,7 @@ begin
                   PCol.DBObj.Database := P.DBObj.Database;
                   PCol.DBObj.Name := P.DBObj.Name;
                   PCol.DBObj.Column := Trim(Cols[j]);
-                  PCol.AllPrivileges := PrivsColumn;
+                  PCol.AllPrivileges := FPrivsColumn;
                   FPrivObjects.Add(PCol);
                 end;
                 PCol.OrgPrivs.Add(rxTemp.Match[1]);
@@ -735,7 +735,7 @@ begin
           ' TO ' + UserHost;
       end;
       // Flag all privs as added, so "Save" action applies them
-      if Assigned(CloneGrants) then
+      if Assigned(FCloneGrants) then
         Ptmp.AddedPrivs.AddStrings(Ptmp.OrgPrivs);
     end;
 
@@ -743,7 +743,7 @@ begin
     rxGrant.Free;
     rxTemp.Free;
     FreeAndNil(Grants);
-    FreeAndNil(CloneGrants);
+    FreeAndNil(FCloneGrants);
     FreeAndNil(AllPnames);
   end;
 
@@ -1052,9 +1052,9 @@ var
 begin
   // Create new or clone existing user
   if Sender = btnCloneUser then begin
-    CloneGrants := TStringList.Create;
+    FCloneGrants := TStringList.Create;
     for P in FPrivObjects do
-      CloneGrants.Add(P.GrantCode);
+      FCloneGrants.Add(P.GrantCode);
     OldUser := listUsers.GetNodeData(listUsers.FocusedNode);
     NewHost := OldUser.Host;
     NewUsername := OldUser.Username;
@@ -1125,11 +1125,11 @@ begin
     Priv := TPrivObj.Create;
     Priv.DBObj := DBObject;
     case Priv.DBObj.NodeType of
-      lntNone: Priv.AllPrivileges := PrivsGlobal;
-      lntDb: Priv.AllPrivileges := PrivsDb;
-      lntTable, lntView: Priv.AllPrivileges := PrivsTable;
-      lntFunction, lntProcedure: Priv.AllPrivileges := PrivsRoutine;
-      lntColumn: Priv.AllPrivileges := PrivsColumn;
+      lntNone: Priv.AllPrivileges := FPrivsGlobal;
+      lntDb: Priv.AllPrivileges := FPrivsDb;
+      lntTable, lntView: Priv.AllPrivileges := FPrivsTable;
+      lntFunction, lntProcedure: Priv.AllPrivileges := FPrivsRoutine;
+      lntColumn: Priv.AllPrivileges := FPrivsColumn;
     end;
     // Assign minimum privileges
     case Priv.DBObj.NodeType of
