@@ -216,9 +216,9 @@ object connform: Tconnform
         Caption = 'Library:'
       end
       object chkCompressed: TCheckBox
-        Left = 120
+        Left = 190
         Top = 221
-        Width = 294
+        Width = 220
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Compressed client/server protocol'
@@ -226,7 +226,7 @@ object connform: Tconnform
         OnClick = Modification
       end
       object editPort: TEdit
-        Left = 120
+        Left = 190
         Top = 196
         Width = 57
         Height = 21
@@ -235,7 +235,7 @@ object connform: Tconnform
         OnChange = Modification
       end
       object updownPort: TUpDown
-        Left = 177
+        Left = 247
         Top = 196
         Width = 16
         Height = 21
@@ -246,9 +246,9 @@ object connform: Tconnform
         Wrap = True
       end
       object editPassword: TEdit
-        Left = 120
+        Left = 190
         Top = 171
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -256,9 +256,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editUsername: TEdit
-        Left = 120
+        Left = 190
         Top = 146
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 5
@@ -266,9 +266,9 @@ object connform: Tconnform
         OnExit = editTrim
       end
       object editHost: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 73
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -281,9 +281,9 @@ object connform: Tconnform
         OnExit = editTrim
       end
       object comboNetType: TComboBox
-        Left = 120
+        Left = 190
         Top = 9
-        Width = 294
+        Width = 220
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -299,9 +299,9 @@ object connform: Tconnform
           'MSSQL')
       end
       object chkLoginPrompt: TCheckBox
-        Left = 120
+        Left = 190
         Top = 100
-        Width = 294
+        Width = 220
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt for credentials'
@@ -309,9 +309,9 @@ object connform: Tconnform
         OnClick = chkLoginPromptClick
       end
       object chkWindowsAuth: TCheckBox
-        Left = 120
+        Left = 190
         Top = 123
-        Width = 294
+        Width = 220
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use Windows authentication'
@@ -320,9 +320,9 @@ object connform: Tconnform
         OnClick = chkLoginPromptClick
       end
       object memoComment: TMemo
-        Left = 120
+        Left = 190
         Top = 271
-        Width = 294
+        Width = 220
         Height = 98
         Anchors = [akLeft, akTop, akRight, akBottom]
         ScrollBars = ssVertical
@@ -330,9 +330,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editDatabases: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 244
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -344,9 +344,9 @@ object connform: Tconnform
         OnRightButtonClick = editDatabasesRightButtonClick
       end
       object comboLibrary: TComboBox
-        Left = 120
+        Left = 190
         Top = 36
-        Width = 294
+        Width = 220
         Height = 21
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -416,9 +416,9 @@ object connform: Tconnform
         Caption = 'plink.exe timeout:'
       end
       object editSSHlocalport: TEdit
-        Left = 120
+        Left = 190
         Top = 171
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
@@ -427,9 +427,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHUser: TEdit
-        Left = 120
+        Left = 190
         Top = 63
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 3
@@ -439,9 +439,9 @@ object connform: Tconnform
         OnExit = editTrim
       end
       object editSSHPassword: TEdit
-        Left = 120
+        Left = 190
         Top = 90
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
@@ -451,9 +451,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHPlinkExe: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 9
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -468,9 +468,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSHhost: TEdit
-        Left = 120
+        Left = 190
         Top = 36
-        Width = 230
+        Width = 160
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 1
@@ -481,7 +481,7 @@ object connform: Tconnform
       object editSSHport: TEdit
         Left = 356
         Top = 36
-        Width = 58
+        Width = 54
         Height = 21
         Anchors = [akTop, akRight]
         NumbersOnly = True
@@ -490,9 +490,9 @@ object connform: Tconnform
         OnChange = Modification
       end
       object editSSHPrivateKey: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 144
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -507,7 +507,7 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSHTimeout: TEdit
-        Left = 120
+        Left = 190
         Top = 117
         Width = 60
         Height = 21
@@ -516,7 +516,7 @@ object connform: Tconnform
         OnChange = Modification
       end
       object updownSSHTimeout: TUpDown
-        Left = 180
+        Left = 250
         Top = 117
         Width = 17
         Height = 21
@@ -602,9 +602,9 @@ object connform: Tconnform
         Caption = 'Hide database pattern:'
       end
       object editSSLPrivateKey: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 36
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -618,9 +618,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSLCACertificate: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 65
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -634,9 +634,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object editSSLCertificate: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 92
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -650,9 +650,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object chkWantSSL: TCheckBox
-        Left = 120
+        Left = 190
         Top = 13
-        Width = 313
+        Width = 220
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use SSL'
@@ -660,9 +660,9 @@ object connform: Tconnform
         OnClick = Modification
       end
       object chkLocalTimeZone: TCheckBox
-        Left = 120
+        Left = 190
         Top = 246
-        Width = 294
+        Width = 220
         Height = 17
         Hint = 
           'Use your client time zone in date/time SQL functions, e.g. NOW()' +
@@ -673,9 +673,9 @@ object connform: Tconnform
         OnClick = Modification
       end
       object chkCleartextPluginEnabled: TCheckBox
-        Left = 120
+        Left = 190
         Top = 292
-        Width = 294
+        Width = 220
         Height = 17
         Hint = 'Send your password to the server in cleartext, for MySQL 5.5.47+'
         Anchors = [akLeft, akTop, akRight]
@@ -684,9 +684,9 @@ object connform: Tconnform
         OnClick = Modification
       end
       object editStartupScript: TButtonedEdit
-        Left = 120
+        Left = 190
         Top = 165
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -699,9 +699,9 @@ object connform: Tconnform
         OnRightButtonClick = PickFile
       end
       object chkFullTableStatus: TCheckBox
-        Left = 120
+        Left = 190
         Top = 269
-        Width = 294
+        Width = 220
         Height = 17
         Hint = 
           'Disable to speed up internal queries on databases with many tabl' +
@@ -712,7 +712,7 @@ object connform: Tconnform
         OnClick = Modification
       end
       object editQueryTimeout: TEdit
-        Left = 120
+        Left = 190
         Top = 192
         Width = 90
         Height = 21
@@ -722,7 +722,7 @@ object connform: Tconnform
         OnChange = Modification
       end
       object updownQueryTimeout: TUpDown
-        Left = 210
+        Left = 280
         Top = 192
         Width = 16
         Height = 21
@@ -732,9 +732,9 @@ object connform: Tconnform
         Wrap = True
       end
       object editSSLcipher: TEdit
-        Left = 120
+        Left = 190
         Top = 119
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 4
@@ -743,7 +743,7 @@ object connform: Tconnform
         OnExit = editTrim
       end
       object editKeepAlive: TEdit
-        Left = 120
+        Left = 190
         Top = 219
         Width = 90
         Height = 21
@@ -752,7 +752,7 @@ object connform: Tconnform
         OnChange = Modification
       end
       object updownKeepAlive: TUpDown
-        Left = 210
+        Left = 280
         Top = 219
         Width = 16
         Height = 21
@@ -761,9 +761,9 @@ object connform: Tconnform
         TabOrder = 9
       end
       object ColorBoxBackgroundColor: TColorBox
-        Left = 120
+        Left = 190
         Top = 315
-        Width = 294
+        Width = 220
         Height = 22
         NoneColorColor = clNone
         Selected = clNone
@@ -775,9 +775,9 @@ object connform: Tconnform
         OnGetColors = ColorBoxBackgroundColorGetColors
       end
       object editIgnoreDatabasePattern: TEdit
-        Left = 120
+        Left = 190
         Top = 343
-        Width = 294
+        Width = 220
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 14
@@ -811,28 +811,28 @@ object connform: Tconnform
         Caption = 'Created:'
       end
       object lblCreatedRight: TLabel
-        Left = 204
+        Left = 190
         Top = 12
         Width = 5
         Height = 13
         Caption = '?'
       end
       object lblCounterRight1: TLabel
-        Left = 204
+        Left = 190
         Top = 50
         Width = 5
         Height = 13
         Caption = '?'
       end
       object lblLastConnectRight: TLabel
-        Left = 204
+        Left = 190
         Top = 31
         Width = 5
         Height = 13
         Caption = '?'
       end
       object lblCounterRight2: TLabel
-        Left = 204
+        Left = 190
         Top = 69
         Width = 5
         Height = 13
@@ -941,7 +941,7 @@ object connform: Tconnform
           Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
           Position = 6
           Text = 'Comment'
-          Width = 33
+          Width = 10
         end>
     end
     object editSearch: TButtonedEdit
