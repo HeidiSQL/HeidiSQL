@@ -94,7 +94,7 @@ object frmTableTools: TfrmTableTools
         item
           Position = 0
           Text = 'Dummy, keeps compatibility to mainform.dbtree'
-          Width = 94
+          Width = 90
         end
         item
           Alignment = taRightJustify
@@ -119,7 +119,7 @@ object frmTableTools: TfrmTableTools
         Header.AutoSizeIndex = -1
         Header.Images = MainForm.VirtualImageListMain
         Header.MainColumn = -1
-        Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+        Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
         IncrementalSearch = isAll
         TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]

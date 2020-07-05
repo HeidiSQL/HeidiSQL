@@ -281,7 +281,7 @@ object frmRoutineEditor: TfrmRoutineEditor
         EditDelay = 0
         Header.AutoSizeIndex = 1
         Header.MainColumn = 1
-        Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible]
+        Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoAutoResizeInclCaption]
         Images = MainForm.VirtualImageListMain
         NodeDataSize = 0
         TabOrder = 0

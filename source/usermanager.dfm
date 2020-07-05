@@ -109,7 +109,7 @@ object UserManagerForm: TUserManagerForm
       Height = 275
       Align = alClient
       Header.AutoSizeIndex = 0
-      Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible]
+      Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
       Header.SortColumn = 0
       Images = MainForm.VirtualImageListMain
       IncrementalSearch = isAll
