@@ -661,8 +661,8 @@ type
     actQuickFilterPrompt3: TAction;
     actQuickFilterPrompt4: TAction;
     actQuickFilterPrompt5: TAction;
-    actQuickFilterPrompt6: TAction;
-    actQuickFilterPrompt7: TAction;
+    actQuickFilterNull: TAction;
+    actQuickFilterNotNull: TAction;
     actQuickFilterClipboard1: TAction;
     actQuickFilterClipboard2: TAction;
     actQuickFilterClipboard3: TAction;
@@ -7248,8 +7248,8 @@ begin
   actQuickFilterPrompt3.Hint := Col + ' > "..."';
   actQuickFilterPrompt4.Hint := Col + ' < "..."';
   actQuickFilterPrompt5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '"%...%"']);
-  actQuickFilterPrompt6.Hint := Col + ' IS NULL';
-  actQuickFilterPrompt7.Hint := Col + ' IS NOT NULL';
+  actQuickFilterNull.Hint := Col + ' IS NULL';
+  actQuickFilterNotNull.Hint := Col + ' IS NOT NULL';
 
   // Block 3: WHERE col = [clipboard content]
   Value := Trim(Clipboard.AsText);

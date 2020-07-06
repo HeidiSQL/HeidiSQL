@@ -3329,17 +3329,17 @@ object MainForm: TMainForm
       ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterPrompt6: TAction
+    object actQuickFilterNull: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column IS NULL'
-      ImageIndex = 58
+      ImageIndex = 151
       ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
-    object actQuickFilterPrompt7: TAction
+    object actQuickFilterNotNull: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column IS NOT NULL'
-      ImageIndex = 58
+      ImageIndex = 167
       ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
@@ -3775,10 +3775,10 @@ object MainForm: TMainForm
         Action = actQuickFilterPrompt5
       end
       object menuQuickFilterPrompt6: TMenuItem
-        Action = actQuickFilterPrompt6
+        Action = actQuickFilterNull
       end
       object menuQuickFilterPrompt7: TMenuItem
-        Action = actQuickFilterPrompt7
+        Action = actQuickFilterNotNull
       end
       object N7a: TMenuItem
         AutoHotkeys = maManual
