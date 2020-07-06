@@ -6210,7 +6210,7 @@ procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
   Sender: TObject; var CurrentInput: String; var x, y: Integer;
   var CanExecute: Boolean);
 var
-  i, j, ImageIndex: Integer;
+  i, j, ImageIndex, ColumnsInList: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
   sql, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
@@ -6278,6 +6278,7 @@ var
         for Col in Columns do begin
           Proposal.InsertList.Add(Col.Name);
           Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '']) );
+          Inc(ColumnsInList);
         end;
         Columns.Free;
         break;
@@ -6382,6 +6383,7 @@ begin
       end;
     end;
 
+    ColumnsInList := 0;
     if TableName <> '' then
       AddColumns(TableName)
     else if Token1 <> '' then
@@ -6405,9 +6407,10 @@ begin
 
     if Token2 = '' then begin
 
-      // Column names from selected table
-      // Avoid usage of .QuotedName so we don't get the schema in it, see https://www.heidisql.com/forum.php?t=35411
-      if Editor = SynMemoFilter then begin
+      // Column names from selected table, in data filter memo.
+      // For query memo only if no columns were added from left side table.
+      if ColumnsInList = 0 then begin
+        // Avoid usage of .QuotedName so we don't get the schema in it, see https://www.heidisql.com/forum.php?t=35411
         AddColumns(Conn.QuoteIdent(ActiveDbObj.Name));
       end;
 
