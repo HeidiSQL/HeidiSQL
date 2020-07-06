@@ -1454,12 +1454,14 @@ begin
 
   case LongFormat of
     True: case FNetType of
-      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin:
+      ntMySQL_TCPIP:
         Result := Prefix+' (TCP/IP)';
       ntMySQL_NamedPipe:
         Result := Prefix+' (named pipe)';
       ntMySQL_SSHtunnel:
         Result := Prefix+' (SSH tunnel)';
+      ntMySQL_ProxySQLAdmin:
+        Result := Prefix+' (Experimental)';
       ntMSSQL_NamedPipe:
         Result := Prefix+' (named pipe)';
       ntMSSQL_TCPIP:
@@ -1550,13 +1552,7 @@ end;
 
 function TConnectionParameters.IsMySQL: Boolean;
 begin
-  Result := IsAnyMySQL
-    and (not IsMariaDB)
-    and (not IsPercona)
-    and (not IsTokudb)
-    and (not IsInfiniDB)
-    and (not IsInfobright)
-    and (not IsMemSQL);
+  Result := IsAnyMySQL and (Pos('mysql', LowerCase(ServerVersion)) > 0);
 end;
 
 

@@ -280,23 +280,18 @@ object connform: Tconnform
         OnDblClick = editHostDblClick
         OnExit = editTrim
       end
-      object comboNetType: TComboBox
+      object comboNetType: TComboBoxEx
         Left = 190
-        Top = 9
+        Top = 8
         Width = 220
-        Height = 21
-        Style = csDropDownList
+        Height = 22
+        ItemsEx = <>
+        Style = csExDropDownList
         Anchors = [akLeft, akTop, akRight]
-        DropDownCount = 12
-        ItemIndex = 0
         TabOrder = 0
-        Text = 'TCP/IP'
         OnChange = comboNetTypeChange
-        Items.Strings = (
-          'TCP/IP'
-          'Named pipe'
-          'SSH tunnel'
-          'MSSQL')
+        Images = MainForm.VirtualImageListMain
+        DropDownCount = 12
       end
       object chkLoginPrompt: TCheckBox
         Left = 190

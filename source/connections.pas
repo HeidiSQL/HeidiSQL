@@ -62,7 +62,7 @@ type
     lblSSHPassword: TLabel;
     editSSHPlinkExe: TButtonedEdit;
     lblSSHPlinkExe: TLabel;
-    comboNetType: TComboBox;
+    comboNetType: TComboBoxEx;
     lblSSHhost: TLabel;
     editSSHhost: TEdit;
     editSSHport: TEdit;
@@ -197,6 +197,8 @@ type
     FPopupDatabases: TPopupMenu;
     FButtonAnimationStep: Integer;
     FLastSelectedNetTypeGroup: TNetTypeGroup;
+    function GetSelectedNetType: TNetType;
+    procedure SetSelectedNetType(Value: TNetType);
     procedure RefreshSessions(ParentNode: PVirtualNode);
     function SelectedSessionPath: String;
     function CurrentParams: TConnectionParameters;
@@ -207,6 +209,7 @@ type
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure RefreshBackgroundColors;
+    property SelectedNetType: TNetType read GetSelectedNetType write SetSelectedNetType;
   public
     { Public declarations }
   end;
@@ -244,7 +247,9 @@ procedure Tconnform.FormCreate(Sender: TObject);
 var
   NetTypeStr: String;
   nt: TNetType;
+  ntg: TNetTypeGroup;
   Params: TConnectionParameters;
+  ComboItem: TComboExItem;
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
@@ -268,13 +273,20 @@ begin
 
   comboNetType.Clear;
   Params := TConnectionParameters.Create;
-  for nt:=Low(nt) to High(nt) do begin
-    Params.NetType := nt;
-    NetTypeStr := Params.NetTypeName(True);
-    if RunningOnWindows10S and (not Params.IsCompatibleToWin10S) then begin
-      NetTypeStr := NetTypeStr + ' ['+_('Does not work on Windows 10 S')+']';
+  for ntg := Low(ntg) to High(ntg) do begin
+    for nt:=Low(nt) to High(nt) do begin
+      Params.NetType := nt;
+      if Params.GetNetTypeGroup <> ntg then
+        Continue;
+      NetTypeStr := Params.NetTypeName(True);
+      if RunningOnWindows10S and (not Params.IsCompatibleToWin10S) then begin
+        NetTypeStr := NetTypeStr + ' ['+_('Does not work on Windows 10 S')+']';
+      end;
+      ComboItem := TComboExItem.Create(comboNetType.ItemsEx);
+      ComboItem.Caption := NetTypeStr;
+      ComboItem.ImageIndex := Params.ImageIndex;
+      ComboItem.Data := Pointer(nt);
     end;
-    comboNetType.Items.Add(NetTypeStr);
   end;
   Params.Free;
 
@@ -371,6 +383,25 @@ begin
 end;
 
 
+function Tconnform.GetSelectedNetType: TNetType;
+begin
+  Result := TNetType(comboNetType.ItemsEx[comboNetType.ItemIndex].Data);
+end;
+
+
+procedure Tconnform.SetSelectedNetType(Value: TNetType);
+var
+  i: Integer;
+begin
+  for i:=0 to comboNetType.ItemsEx.Count-1 do begin
+    if TNetType(comboNetType.ItemsEx[i].Data) = Value then begin
+      comboNetType.ItemIndex := i;
+      Break;
+    end;
+  end;
+end;
+
+
 procedure Tconnform.btnOpenClick(Sender: TObject);
 var
   Connection: TDBConnection;
@@ -412,7 +443,7 @@ begin
   Sess.WindowsAuth := chkWindowsAuth.Checked;
   Sess.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
   Sess.Port := updownPort.Position;
-  Sess.NetType := TNetType(comboNetType.ItemIndex);
+  Sess.NetType := SelectedNetType;
   Sess.Compressed := chkCompressed.Checked;
   Sess.QueryTimeout := updownQueryTimeout.Position;
   Sess.KeepAlive := updownKeepAlive.Position;
@@ -610,7 +641,7 @@ begin
     Result := TConnectionParameters.Create;
     Result.SessionPath := SelectedSessionPath;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
-    Result.NetType := TNetType(comboNetType.ItemIndex);
+    Result.NetType := SelectedNetType;
     Result.ServerVersion := FServerVersion;
     Result.Hostname := editHost.Text;
     Result.Username := editUsername.Text;
@@ -892,7 +923,7 @@ begin
   end else begin
     PageControlDetails.ActivePage := tabSettings;
 
-    comboNetType.ItemIndex := Integer(Sess.NetType);
+    SelectedNetType := Sess.NetType;
     editHost.Text := Sess.Hostname;
     editUsername.Text := Sess.Username;
     editPassword.Text := Sess.Password;
@@ -1244,7 +1275,7 @@ begin
       or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
       or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
       or (Sess.SessionColor <> ColorBoxBackgroundColor.Selected)
-      or (Sess.NetType <> TNetType(comboNetType.ItemIndex))
+      or (Sess.NetType <> SelectedNetType)
       or (Sess.StartupScriptFilename <> editStartupScript.Text)
       or (Sess.LibraryOrProvider <> comboLibrary.Text)
       or (Sess.AllDatabasesStr <> editDatabases.Text)
