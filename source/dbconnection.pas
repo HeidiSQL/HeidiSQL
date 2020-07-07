@@ -2630,7 +2630,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
-      FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
+      FSQLSpecifities[spFuncLeft] := IfThen(Parameters.IsProxySQLAdmin, 'SUBSTR(%s, 1, %d)', 'LEFT(%s, %d)');
       FSQLSpecifities[spFuncNow] := IfThen(Parameters.IsProxySQLAdmin, 'CURRENT_TIMESTAMP', 'NOW()');
       FSQLSpecifities[spLockedTables] := '';
     end;
@@ -4896,44 +4896,70 @@ begin
     Result := inherited;
     Exit;
   end;
-  // !!Fallback!! for old MySQL pre-5.0 servers
+
+  // !!Fallback!! for old MySQL pre-5.0 servers and ProxySQL
   Result := TTableColumnList.Create(True);
-  ColQuery := GetResults('SHOW FULL COLUMNS FROM '+QuoteIdent(Table.Database)+'.'+QuoteIdent(Table.Name));
-  while not ColQuery.Eof do begin
-    Col := TTableColumn.Create(Self);
-    Result.Add(Col);
-    Col.Name := ColQuery.Col(0);
-    Col.OldName := Col.Name;
-    Col.ParseDatatype(ColQuery.Col('Type'));
-    Col.Collation := ColQuery.Col('Collation', True);
-    if Col.Collation.ToLowerInvariant = 'null' then
-      Col.Collation := '';
-    Col.AllowNull := ColQuery.Col('Null').ToLowerInvariant = 'yes';
 
-    DefText := ColQuery.Col('Default');
-    ExtraText := ColQuery.Col('Extra');
-    Col.OnUpdateType := cdtNothing;
-    if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
-      Col.DefaultType := cdtAutoInc;
-      Col.DefaultText := 'AUTO_INCREMENT';
-    end else if ColQuery.IsNull('Default') then begin
+  if Parameters.IsProxySQLAdmin then begin
+
+    // ProxySQL has no IS.COLUMNS
+    Result := TTableColumnList.Create(True);
+    ColQuery := GetResults('SELECT * FROM pragma_table_info('+EscapeString(Table.Name)+')');
+    while not ColQuery.Eof do begin
+      Col := TTableColumn.Create(Self);
+      Result.Add(Col);
+      Col.Name := ColQuery.Col('name');
+      Col.OldName := Col.Name;
+      Col.ParseDatatype(ColQuery.Col('type'));
+      Col.AllowNull := ColQuery.Col('notnull') <> '1';
       Col.DefaultType := cdtNothing;
-    end else if IsTextDefault(DefText, Col.DataType) then begin
-      Col.DefaultType := cdtText;
-      Col.DefaultText := IfThen(DefText.StartsWith(''''), ExtractLiteral(DefText, ''), DefText);
-    end else begin
-      Col.DefaultType := cdtExpression;
-      Col.DefaultText := DefText;
+      Col.DefaultText := '';
+      Col.OnUpdateType := cdtNothing;
+      Col.OnUpdateText := '';
+      ColQuery.Next;
     end;
-    Col.OnUpdateText := RegExprGetMatch('^on update (.*)$', ExtraText, 1);
-    if not Col.OnUpdateText.IsEmpty then begin
-      Col.OnUpdateType := cdtExpression;
-    end;
+    ColQuery.Free;
 
-    Col.Comment := ColQuery.Col('Comment', True);
-    ColQuery.Next;
+  end else begin
+
+    // MySQL pre-5.0 has no IS.COLUMNS table
+    ColQuery := GetResults('SHOW FULL COLUMNS FROM '+QuoteIdent(Table.Database)+'.'+QuoteIdent(Table.Name));
+    while not ColQuery.Eof do begin
+      Col := TTableColumn.Create(Self);
+      Result.Add(Col);
+      Col.Name := ColQuery.Col(0);
+      Col.OldName := Col.Name;
+      Col.ParseDatatype(ColQuery.Col('Type'));
+      Col.Collation := ColQuery.Col('Collation', True);
+      if Col.Collation.ToLowerInvariant = 'null' then
+        Col.Collation := '';
+      Col.AllowNull := ColQuery.Col('Null').ToLowerInvariant = 'yes';
+
+      DefText := ColQuery.Col('Default');
+      ExtraText := ColQuery.Col('Extra');
+      Col.OnUpdateType := cdtNothing;
+      if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
+        Col.DefaultType := cdtAutoInc;
+        Col.DefaultText := 'AUTO_INCREMENT';
+      end else if ColQuery.IsNull('Default') then begin
+        Col.DefaultType := cdtNothing;
+      end else if IsTextDefault(DefText, Col.DataType) then begin
+        Col.DefaultType := cdtText;
+        Col.DefaultText := IfThen(DefText.StartsWith(''''), ExtractLiteral(DefText, ''), DefText);
+      end else begin
+        Col.DefaultType := cdtExpression;
+        Col.DefaultText := DefText;
+      end;
+      Col.OnUpdateText := RegExprGetMatch('^on update (.*)$', ExtraText, 1);
+      if not Col.OnUpdateText.IsEmpty then begin
+        Col.OnUpdateType := cdtExpression;
+      end;
+
+      Col.Comment := ColQuery.Col('Comment', True);
+      ColQuery.Next;
+    end;
+    ColQuery.Free;
   end;
-  ColQuery.Free;
 end;
 
 
@@ -5078,37 +5104,85 @@ end;
 
 function TMySQLConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
 var
-  KeyQuery: TDBQuery;
+  KeyQuery, ColQuery: TDBQuery;
   NewKey: TTableKey;
 begin
   Result := TTableKeyList.Create(True);
-  KeyQuery := GetResults('SHOW INDEXES FROM '+QuoteIdent(Table.Name)+' FROM '+QuoteIdent(Table.Database));
-  NewKey := nil;
-  while not KeyQuery.Eof do begin
-    if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('Key_name')) then begin
+
+  if Parameters.IsProxySQLAdmin then begin
+
+    ColQuery := GetResults('SELECT * '+
+      'FROM pragma_table_info('+EscapeString(Table.Name)+') '+
+      'WHERE pk!=0 ORDER BY pk');
+    NewKey := nil;
+    while not ColQuery.Eof do begin
+      if not Assigned(NewKey) then begin
+        NewKey := TTableKey.Create(Self);
+        Result.Add(NewKey);
+        NewKey.Name := 'PRIMARY';
+        NewKey.OldName := NewKey.Name;
+        NewKey.IndexType := TTableKey.PRIMARY;
+        NewKey.OldIndexType := NewKey.IndexType;
+      end;
+      NewKey.Columns.Add(ColQuery.Col('name'));
+      NewKey.SubParts.Add('');
+      ColQuery.Next;
+    end;
+    ColQuery.Free;
+
+    KeyQuery := GetResults('SELECT * '+
+      'FROM pragma_index_list('+EscapeString(Table.Name)+') '+
+      'WHERE origin!='+EscapeString('pk'));
+    while not KeyQuery.Eof do begin
       NewKey := TTableKey.Create(Self);
       Result.Add(NewKey);
-      NewKey.Name := KeyQuery.Col('Key_name');
+      NewKey.Name := KeyQuery.Col('name');
       NewKey.OldName := NewKey.Name;
-      if NewKey.Name.ToLowerInvariant = 'primary' then
-        NewKey.IndexType := TTableKey.PRIMARY
-      else if KeyQuery.Col('Non_unique') = '0' then
-        NewKey.IndexType := TTableKey.UNIQUE
-      else if KeyQuery.Col('Index_type').ToLowerInvariant = 'fulltext' then
-        NewKey.IndexType := TTableKey.FULLTEXT
-      else
-        NewKey.IndexType := TTableKey.KEY;
-      // Todo: spatial keys
+      NewKey.IndexType := IfThen(KeyQuery.Col('unique')='0', TTableKey.KEY, TTableKey.UNIQUE);
       NewKey.OldIndexType := NewKey.IndexType;
-      if ExecRegExpr('(BTREE|HASH)', KeyQuery.Col('Index_type')) then
-        NewKey.Algorithm := KeyQuery.Col('Index_type');
-      NewKey.Comment := KeyQuery.Col('Index_comment', True);
+      ColQuery := GetResults('SELECT * '+
+        'FROM pragma_index_info('+EscapeString(NewKey.Name)+')');
+      while not ColQuery.Eof do begin
+        NewKey.Columns.Add(ColQuery.Col('name'));
+        NewKey.SubParts.Add('');
+        ColQuery.Next;
+      end;
+      ColQuery.Free;
+      KeyQuery.Next;
     end;
-    NewKey.Columns.Add(KeyQuery.Col('Column_name'));
-    NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
-    KeyQuery.Next;
+    KeyQuery.Free;
+
+  end else begin
+
+    KeyQuery := GetResults('SHOW INDEXES FROM '+QuoteIdent(Table.Name)+' FROM '+QuoteIdent(Table.Database));
+    NewKey := nil;
+    while not KeyQuery.Eof do begin
+      if (not Assigned(NewKey)) or (NewKey.Name <> KeyQuery.Col('Key_name')) then begin
+        NewKey := TTableKey.Create(Self);
+        Result.Add(NewKey);
+        NewKey.Name := KeyQuery.Col('Key_name');
+        NewKey.OldName := NewKey.Name;
+        if NewKey.Name.ToLowerInvariant = 'primary' then
+          NewKey.IndexType := TTableKey.PRIMARY
+        else if KeyQuery.Col('Non_unique') = '0' then
+          NewKey.IndexType := TTableKey.UNIQUE
+        else if KeyQuery.Col('Index_type').ToLowerInvariant = 'fulltext' then
+          NewKey.IndexType := TTableKey.FULLTEXT
+        else
+          NewKey.IndexType := TTableKey.KEY;
+        // Todo: spatial keys
+        NewKey.OldIndexType := NewKey.IndexType;
+        if ExecRegExpr('(BTREE|HASH)', KeyQuery.Col('Index_type')) then
+          NewKey.Algorithm := KeyQuery.Col('Index_type');
+        NewKey.Comment := KeyQuery.Col('Index_comment', True);
+      end;
+      NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+      NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
+      KeyQuery.Next;
+    end;
+    KeyQuery.Free;
+
   end;
-  KeyQuery.Free;
 end;
 
 
@@ -5426,7 +5500,10 @@ var
   Rows: String;
 begin
   // Get row number from a mysql table
-  Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
+  if Parameters.IsProxySQLAdmin then
+    Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0)
+  else
+    Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
   Result := MakeInt(Rows);
 end;
 

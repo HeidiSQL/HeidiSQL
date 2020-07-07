@@ -5513,10 +5513,12 @@ begin
           and ((ColMaxLen > GRIDMAXDATA) or (ColMaxLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
             case DBObj.Connection.Parameters.NetTypeGroup of
-              ngMSSQL: Select := Select + ' LEFT(CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ' + IntToStr(GRIDMAXDATA) + '), ';
-              ngMySQL: Select := Select + ' LEFT(' + DBObj.Connection.QuoteIdent(c.Name) + ', ' + IntToStr(GRIDMAXDATA) + '), ';
-              ngPgSQL, ngSQLite: Select := Select + ' SUBSTR(' + DBObj.Connection.QuoteIdent(c.Name) + ', 1, ' + IntToStr(GRIDMAXDATA) + '), ';
-              else raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(DBObj.Connection.Parameters.NetType)]);
+              ngMSSQL: Select := Select + ' ' +
+                DBObj.Connection.GetSQLSpecifity(spFuncLeft, ['CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))', GRIDMAXDATA]) +
+                ', ';
+              else Select := Select + ' ' +
+                DBObj.Connection.GetSQLSpecifity(spFuncLeft, [DBObj.Connection.QuoteIdent(c.Name), GRIDMAXDATA]) +
+                ', ';
             end;
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
