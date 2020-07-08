@@ -253,7 +253,8 @@ object frmTableEditor: TfrmTableEditor
         DragMode = dmAutomatic
         EditDelay = 0
         Header.AutoSizeIndex = 0
-        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
+        Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
         PopupMenu = popupIndexes
         TabOrder = 1
@@ -412,7 +413,7 @@ object frmTableEditor: TfrmTableEditor
         Align = alClient
         EditDelay = 0
         Header.AutoSizeIndex = 0
-        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
         Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
         TabOrder = 1
@@ -650,7 +651,7 @@ object frmTableEditor: TfrmTableEditor
     DragMode = dmAutomatic
     EditDelay = 0
     Header.AutoSizeIndex = -1
-    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoAutoResizeInclCaption]
+    Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
     Header.PopupMenu = MainForm.popupListHeader
     Images = MainForm.VirtualImageListMain
     IncrementalSearch = isAll

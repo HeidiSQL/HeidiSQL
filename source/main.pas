@@ -13860,6 +13860,7 @@ begin
   Grid.EditDelay := OrgGrid.EditDelay;
   Grid.Font.Assign(OrgGrid.Font);
   Grid.Header.Options := OrgGrid.Header.Options;
+  Grid.Header.PopupMenu := OrgGrid.Header.PopupMenu;
   Grid.Header.ParentFont := OrgGrid.Header.ParentFont;
   Grid.Header.Images := OrgGrid.Header.Images;
   Grid.WantTabs := OrgGrid.WantTabs;

@@ -119,7 +119,8 @@ object frmTableTools: TfrmTableTools
         Header.AutoSizeIndex = -1
         Header.Images = MainForm.VirtualImageListMain
         Header.MainColumn = -1
-        Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+        Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
+        Header.PopupMenu = MainForm.popupListHeader
         IncrementalSearch = isAll
         TabOrder = 0
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]

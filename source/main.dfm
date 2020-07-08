@@ -423,7 +423,7 @@ object MainForm: TMainForm
                 Height = 253
                 Align = alClient
                 Header.AutoSizeIndex = 0
-                Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+                Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 Images = VirtualImageListMain
@@ -505,7 +505,7 @@ object MainForm: TMainForm
                 DragOperations = []
                 Header.AutoSizeIndex = 2
                 Header.Height = 20
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 HintMode = hmTooltip
@@ -561,7 +561,7 @@ object MainForm: TMainForm
                 DragOperations = []
                 Header.AutoSizeIndex = 1
                 Header.Height = 20
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 HintMode = hmTooltip
@@ -630,7 +630,7 @@ object MainForm: TMainForm
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.Height = 20
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
                 Header.SortDirection = sdDescending
@@ -788,7 +788,7 @@ object MainForm: TMainForm
                 Align = alClient
                 Header.AutoSizeIndex = 4
                 Header.Height = 20
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
                 Header.PopupMenu = popupListHeader
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
@@ -858,7 +858,7 @@ object MainForm: TMainForm
             EditDelay = 500
             Header.AutoSizeIndex = -1
             Header.Height = 20
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
             Header.PopupMenu = popupListHeader
             Header.SortColumn = 0
             HintMode = hmTooltip
@@ -1229,7 +1229,7 @@ object MainForm: TMainForm
             Header.Height = 20
             Header.Images = VirtualImageListMain
             Header.MainColumn = -1
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoVisible, hoAutoResizeInclCaption]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
             IncrementalSearch = isInitializedOnly
             LineStyle = lsSolid
             PopupMenu = popupDataGrid
@@ -1450,7 +1450,8 @@ object MainForm: TMainForm
             Header.Height = 20
             Header.Images = VirtualImageListMain
             Header.MainColumn = -1
-            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoAutoResizeInclCaption]
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoDisableAnimatedResize, hoAutoResizeInclCaption]
+            Header.PopupMenu = popupListHeader
             IncrementalSearch = isAll
             LineStyle = lsSolid
             PopupMenu = popupDataGrid

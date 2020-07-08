@@ -103,7 +103,7 @@ object frmInsertFiles: TfrmInsertFiles
       EditDelay = 0
       Header.AutoSizeIndex = 2
       Header.Images = MainForm.VirtualImageListMain
-      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
       Header.PopupMenu = MainForm.popupListHeader
       TabOrder = 2
       TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -175,7 +175,7 @@ object frmInsertFiles: TfrmInsertFiles
       Height = 128
       Anchors = [akLeft, akTop, akRight, akBottom]
       Header.AutoSizeIndex = 0
-      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoHotTrack, hoShowImages, hoShowSortGlyphs, hoVisible, hoAutoResizeInclCaption]
+      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoHotTrack, hoShowImages, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
       Header.PopupMenu = MainForm.popupListHeader
       Header.SortColumn = 0
       TabOrder = 0
