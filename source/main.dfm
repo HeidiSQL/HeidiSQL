@@ -3653,10 +3653,33 @@ object MainForm: TMainForm
         ImageIndex = 80
         OnClick = InsertValue
       end
-      object DataUNIXtimestamp: TMenuItem
+      object DataUnixTimestamp: TMenuItem
         Caption = 'unix timestamp'
         Hint = 'Insert UNIX timestamp'
         ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object N14: TMenuItem
+        Caption = '-'
+      end
+      object DataUtcDateTime: TMenuItem
+        Caption = 'utc datetime'
+        ImageIndex = 69
+        OnClick = InsertValue
+      end
+      object DataUtcDate: TMenuItem
+        Caption = 'utc date'
+        ImageIndex = 69
+        OnClick = InsertValue
+      end
+      object DataUtcTime: TMenuItem
+        Caption = 'utc time'
+        ImageIndex = 69
+        OnClick = InsertValue
+      end
+      object DataUtcUnixTimestamp: TMenuItem
+        Caption = 'utc unix timestamp'
+        ImageIndex = 69
         OnClick = InsertValue
       end
       object N12: TMenuItem

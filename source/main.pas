@@ -530,7 +530,7 @@ type
     btnPreviewClose: TToolButton;
     actDataSaveBlobToFile: TAction;
     SaveBLOBtofile1: TMenuItem;
-    DataUNIXtimestamp: TMenuItem;
+    DataUnixTimestamp: TMenuItem;
     popupExecuteQuery: TPopupMenu;
     Run1: TMenuItem;
     RunSelection1: TMenuItem;
@@ -689,6 +689,11 @@ type
     menuQuickFilterClipboard4: TMenuItem;
     menuQuickFilterClipboard5: TMenuItem;
     menuQuickFilterClipboard6: TMenuItem;
+    DataUtcDateTime: TMenuItem;
+    DataUtcDate: TMenuItem;
+    DataUtcTime: TMenuItem;
+    DataUtcUnixTimestamp: TMenuItem;
+    N14: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -7389,24 +7394,43 @@ end;
 
 procedure TMainForm.DataInsertValueClick(Sender: TObject);
 var
-  Timestamp: TDateTime;
+  LocalTime, UtcTime: TDateTime;
   y, m, d, h, i, s, ms: Word;
   Uid: TGuid;
-  StrUid: String;
-  UnixTimestamp: Int64;
+  DateTimeSQL, StrUid: String;
+  UnixTimestamp, UtcUnixTimestamp: Int64;
   SystemTime: TSystemTime;
   ColNum: TColumnIndex;
   Col: TTableColumn;
+  Conn: TDBConnection;
+const
+  FrmDateTime = '%s: %.4d-%.2d-%.2d %.2d:%.2d:%.2d';
+  FrmDate = '%s: %.4d-%.2d-%.2d';
+  FrmTime = '%s: %.2d:%.2d:%.2d';
+  FrmYear = '%s: %.4d';
+  FrmUnixTs = '%s: %d';
 begin
-  Timestamp := ActiveConnection.ParseDateTime(ActiveConnection.GetVar('SELECT CURRENT_TIMESTAMP'));
-  DecodeDateTime(Timestamp, y, m, d, h, i, s, ms);
-  DataDateTime.Caption := Format('%s: %.4d-%.2d-%.2d %.2d:%.2d:%.2d', [_('Date and time'), y,m,d,h,i,s]);
-  DataDate.Caption := Format('%s: %.4d-%.2d-%.2d', [_('Date'), y,m,d]);
-  DataTime.Caption := Format('%s: %.2d:%.2d:%.2d', [_('Time'), h,i,s]);
-  DataYear.Caption := Format('%s: %.4d', [_('Year'), y]);
+  // Local and UTC date/time menu items
+  Conn := ActiveConnection;
+  DateTimeSQL := 'SELECT ' + Conn.GetSQLSpecifity(spFuncNow);
+  LocalTime := Conn.ParseDateTime(Conn.GetVar(DateTimeSQL));
+  DecodeDateTime(LocalTime, y, m, d, h, i, s, ms);
+  DataDateTime.Caption := Format(FrmDateTime, [_('Date and time'), y,m,d,h,i,s]);
+  DataDate.Caption := Format(FrmDate, [_('Date'), y,m,d]);
+  DataTime.Caption := Format(FrmTime, [_('Time'), h,i,s]);
+  DataYear.Caption := Format(FrmYear, [_('Year'), y]);
   GetSystemTime(SystemTime);
   UnixTimestamp := DateTimeToUnix(SystemTimeToDateTime(SystemTime));
-  DataUNIXtimestamp.Caption := _('UNIX Timestamp')+': ' + IntToStr(UnixTimestamp);
+  DataUnixTimestamp.Caption := Format(FrmUnixTs, [_('UNIX Timestamp'), UnixTimestamp]);
+
+  UtcTime := IncSecond(LocalTime, FTimeZoneOffset);
+  DecodeDateTime(UtcTime, y, m, d, h, i, s, ms);
+  DataUtcDateTime.Caption := Format(FrmDateTime, ['UTC '+_('Date and time'), y,m,d,h,i,s]);
+  DataUtcDate.Caption := Format(FrmDate, ['UTC '+_('Date'), y,m,d]);
+  DataUtcTime.Caption := Format(FrmTime, ['UTC '+_('Time'), h,i,s]);
+  UtcUnixTimestamp := UnixTimestamp + FTimeZoneOffset;
+  DataUtcUnixTimestamp.Caption := Format(FrmUnixTs, ['UTC '+_('UNIX Timestamp'), UtcUnixTimestamp]);
+
   CreateGuid(Uid);
   StrUid := GuidToString(Uid);
   DataGUID.Caption := _('GUID') + ': ' + StrUid;
