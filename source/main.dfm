@@ -3333,14 +3333,14 @@ object MainForm: TMainForm
     object actQuickFilterNull: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column IS NULL'
-      ImageIndex = 151
+      ImageIndex = 167
       ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end
     object actQuickFilterNotNull: TAction
       Category = 'Data'
       Caption = 'Quick filter: Column IS NOT NULL'
-      ImageIndex = 167
+      ImageIndex = 151
       ImageName = 'icons8-rename'
       OnExecute = QuickFilterClick
     end

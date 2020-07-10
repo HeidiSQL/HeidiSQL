@@ -7296,7 +7296,11 @@ begin
     if menuQuickFilter[i].Action = nil then
       Continue;
     Act := menuQuickFilter[i].Action as TAction;
-    Act.Caption := StrEllipsis(Act.Hint, 100);
+    // Stop here
+    if Act = actRemoveFilter then
+      Break;
+    if not Act.Hint.IsEmpty then
+      Act.Caption := StrEllipsis(Act.Hint, 100);
   end;
 
 end;
