@@ -60,6 +60,8 @@ var
   AppLanguage: String;
   WantedStyle: String;
 begin
+  PostponedLogItems := TDBLogItems.Create(True);
+
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
   // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator
   FormatSettings.DateSeparator := '-';
