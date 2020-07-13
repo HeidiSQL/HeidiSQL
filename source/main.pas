@@ -12681,7 +12681,7 @@ begin
   if Tree.Header.Columns.Count >= 2 then begin
     // See https://github.com/HeidiSQL/HeidiSQL/issues/466
     // Column count may be 0 in an early stage of creating a new query tab
-    Tree.Header.Columns[1].Width := Min(Tree.Width div 3, 100);
+    Tree.Header.Columns[1].Width := Max(Tree.Width div 3, 100);
   end;
 end;
 
