@@ -6559,3 +6559,9 @@ msgstr "Sort operation on grid containing more than %d rows can take longer. Do 
 
 msgid "Sort warning on grid rows:"
 msgstr "Sort warning on grid rows:"
+
+msgid "Size &Column to Fit"
+msgstr "Size &Column to Fit"
+
+msgid "Size &All Columns to Fit"
+msgstr "Size &All Columns to Fit"
