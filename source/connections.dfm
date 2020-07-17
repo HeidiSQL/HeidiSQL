@@ -6,7 +6,7 @@ object connform: Tconnform
   ClientHeight = 451
   ClientWidth = 649
   Color = clBtnFace
-  Constraints.MinHeight = 490
+  Constraints.MinHeight = 470
   Constraints.MinWidth = 640
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
