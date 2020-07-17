@@ -5416,10 +5416,12 @@ begin
     if ColSortIndex > -1 then begin
       Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
       if ColSortDirection = sdAscending then begin
-        SortText := '▲';
+        // This is a bit wrong - "Ubuntu" has the first character, but not the
+        // second one which seems available on many Windows fonts. See #1090
+        SortText := IfThen(IsWine, '↑', '▲');
         NumCharTop := 0;
       end else begin
-        SortText := '▼';
+        SortText := IfThen(IsWine, '↓', '▼');
         NumCharTop := 5;
       end;
       // Paint arrow:
