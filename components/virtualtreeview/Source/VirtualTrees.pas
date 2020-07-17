@@ -19881,7 +19881,10 @@ begin
       FOnEdited(Self, FFocusedNode, FEditColumn);
   end;
   DoStateChange([], [tsEditPending]);
-  SetFocus();
+  // Causes the editor to end prematurely, after having tabbed into a new cell
+  // see https://github.com/JAM-Software/Virtual-TreeView/commit/de863b4417dfd98caffe8d0c283959b4842d2a82
+  // see https://github.com/HeidiSQL/HeidiSQL/issues/937
+  //SetFocus();
 end;
 
 //----------------------------------------------------------------------------------------------------------------------

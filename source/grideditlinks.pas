@@ -22,6 +22,7 @@ type
 
   TBaseGridEditorLink = class(TInterfacedObject, IVTEditLink)
   private
+    FInstanceId: Integer;
     FParentForm: TWinControl;      // A back reference to the main form
     FTree: TVirtualStringTree;        // A back reference to the tree calling.
     FNode: PVirtualNode;              // The node to be edited.
@@ -38,6 +39,7 @@ type
     FModified: Boolean;
     FAllowEdit: Boolean;
     FBeginEditTime: Cardinal;
+    procedure Log(Msg: String);
     procedure TempWindowProc(var Message: TMessage);
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoEndEdit(Sender: TObject);
@@ -219,6 +221,9 @@ var
 
 implementation
 
+uses
+  main;
+
 
 procedure TAllKeysRadioButton.WMGetDlgCode(var Msg: TMessage);
 begin
@@ -233,6 +238,11 @@ begin
   Msg.Result := Msg.Result or DLGC_WANTALLKEYS;
 end;
 
+procedure TBaseGridEditorLink.Log(Msg: String);
+begin
+  MainForm.LogSQL('#'+FInstanceId.ToString+': '+Msg);
+end;
+
 
 constructor TBaseGridEditorLink.Create;
 begin
@@ -243,6 +253,7 @@ end;
 constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
 begin
   inherited Create;
+  FInstanceId := Random(100);
   FTree := Tree;
   // Enable mouse scrolling, plus ensure the editor component
   // is not partly hidden when it pops up in a bottom cell
@@ -363,6 +374,9 @@ begin
         FOldWindowProc(Message);
       except
         // EAccessViolation occurring in some cases
+        on E:Exception do begin
+          Log(E.Message+' Message CharCode:'+TWMChar(Message).CharCode.ToString+' Msg:'+Message.Msg.ToString);
+        end;
       end;
     end;
   end;
