@@ -425,6 +425,7 @@ procedure Tloaddataform.ClientParse(Sender: TObject);
 var
   P, ContentLen, ProgressCharsPerStep, ProgressChars: Integer;
   IgnoreLines, ValueCount, PacketSize: Integer;
+  RowCountInChunk: Int64;
   EnclLen, TermLen, LineTermLen: Integer;
   Contents: String;
   EnclTest, TermTest, LineTermTest: String;
@@ -432,6 +433,8 @@ var
   IsEncl, IsTerm, IsLineTerm, IsEof: Boolean;
   InEncl: Boolean;
   OutStream: TMemoryStream;
+const
+  MaxRowCountPerChunk = 1000;
 
   procedure NextChar;
   begin
@@ -527,9 +530,10 @@ var
       Delete(SQL, Length(SQL)-1, 2);
       StreamWrite(OutStream, SQL + ')');
       SQL := '';
-      if (OutStream.Size < PacketSize) and (P < ContentLen) then
-        SQL := SQL + ', ('
-      else begin
+      Inc(RowCountInChunk);
+      if (OutStream.Size < PacketSize) and (P < ContentLen) and (RowCountInChunk < MaxRowCountPerChunk) then begin
+        SQL := SQL + ', (';
+      end else begin
         OutStream.Position := 0;
         ChunkSize := OutStream.Size;
         SetLength(SA, ChunkSize div SizeOf(AnsiChar));
@@ -537,6 +541,7 @@ var
         OutStream.Size := 0;
         FConnection.Query(UTF8ToString(SA), False, lcScript);
         SQL := '';
+        RowCountInChunk := 0;
       end;
     end else
       SQL := '';
@@ -566,6 +571,7 @@ begin
   ProgressCharsPerStep := ContentLen div ProgressBarSteps;
   ProgressChars := 0;
   RowCount := 0;
+  RowCountInChunk := 0;
   IgnoreLines := UpDownIgnoreLines.Position;
   ValueCount := 0;
   PacketSize := SIZE_MB div 2;
