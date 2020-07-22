@@ -2130,7 +2130,8 @@ begin
       StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
         '&bits=' + IntToStr(GetExecutableBits) +
         '&thm=' + EncodeURLParam(TStyleManager.ActiveStyle.Name) +
-        '&env=' + EncodeURLParam(Environment);
+        '&env=' + EncodeURLParam(Environment) +
+        '&winver=' + EncodeURLParam(IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion));
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
