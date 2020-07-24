@@ -1559,7 +1559,14 @@ end;
 
 function TConnectionParameters.IsMySQL: Boolean;
 begin
-  Result := IsAnyMySQL and (Pos('mysql', LowerCase(ServerVersion)) > 0);
+  Result := IsAnyMySQL
+    and (not IsMariaDB)
+    and (not IsPercona)
+    and (not IsTokudb)
+    and (not IsInfiniDB)
+    and (not IsInfobright)
+    and (not IsProxySQLAdmin)
+    and (not IsMemSQL);
 end;
 
 
