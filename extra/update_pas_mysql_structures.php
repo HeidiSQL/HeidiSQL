@@ -16,48 +16,103 @@ if(mysqli_errno($mysqli)) {
     die (mysqli_error($mysqli));
 }
 
-$fstruc = [];
+$functionTexts = [];
 $nl = "\r\n";
+$hSyntax = "Syntax\n------";
+$hDesc = "Description\n-----------";
+
+// Syntax
+// ------ 
+// ADDDATE(date,INTERVAL expr unit), ADDDATE(expr,days)
+// 
+// Description
+// ----------- 
 
 while($row = mysqli_fetch_object($query)) {
-    $isFunc = preg_match('#^(Syntax\:\s*)?'.preg_quote($row->name).'(\([^\)]*\))([^\n]*\n)?(.*)$#is', $row->description, $matches);
-    if($isFunc) {
-        //var_dump($matches);
-        $declaration = $matches[2];
-        $declaration = str_replace("'", "''", $declaration);
+	$name = $row->name;
+	$desc = str_replace("\r\n", "\n", $row->description);
 
-        $description = $matches[4];
-        $description = preg_replace('#\bURL\:\s+\S+#s', ' ', $description);
-        $description = str_replace("'", "''", $description );
-        //$description = preg_replace('#(\s+)#', ' ', $description);
-        //$description = wordwrap($description,72, " '".$nl."        +'");
-        $description = trim($description);
-        $description = preg_split('#\r?\n#', $description);
-        $description = implode("'+sLineBreak\r\n        +'", $description);
-        $fstruc[$row->name] = sprintf("    (".$nl
-            ."      Name:         '%s';".$nl
-            ."      Declaration:  '%s';".$nl
-            ."      Category:     '%s';".$nl
-            ."      Version:      %s;".$nl
-            ."      Description:  '%s'".$nl
-            ."    ),".$nl.$nl,
-            $row->name,
-            $declaration,
-            $row->categ,
-            'SQL_VERSION_ANSI',
-            $description
-        );
-        #break;
-    }
+	$pSyntax = strpos($desc, $hSyntax);
+	$pDesc = strpos($desc, $hDesc);
+	
+	if($pSyntax === false) {
+		continue;
+	}
+	
+	$syntax = substr($desc, $pSyntax, $pDesc-$pSyntax);
+	$syntax = substr($syntax, strlen($hSyntax));
+	$syntax = trim($syntax);
+	$syntax = str_replace("\n", " ", $syntax);
+	if(!preg_match('#^'.preg_quote($name).'\(#i', $syntax)) {
+		continue;
+	}
+	$declarations = [];
+	$parCount = 0;
+	$decl = '';
+	for($i=strpos($syntax, '('); $i<strlen($syntax); $i++) {
+		if($syntax[$i] == '(') {
+			$parCount++;
+			$decl .= $syntax[$i];
+		}
+		else if($syntax[$i] == ')') {
+			$parCount--;
+			$decl .= $syntax[$i];
+		}
+		else if($parCount > 0) {
+			$decl .= $syntax[$i];
+		}
+		
+		if($parCount == 0 && !empty($decl)) {
+			if(!in_array($decl, $declarations)) {
+				$decl = str_replace("'", "''", $decl);
+				$declarations[] = $decl;
+			}
+			$decl = '';
+		}
+	}
+	
+	if($pDesc !== false) {
+		$descr = substr($desc, $pDesc);
+		$descr = substr($descr, strlen($hDesc));
+		$descr = preg_replace("#^\w+\n----(.*)#m", '', $descr);
+        $descr = preg_replace('#\bURL\:\s+\S+#s', ' ', $descr);
+		$descr = trim($descr);
+		$descr = str_replace("'", "''", $descr);
+		//$description = preg_replace('#(\s+)#', ' ', $description);
+		//$description = wordwrap($description,72, " '".$nl."        +'");
+		$descr = preg_split('#\r?\n#', $descr);
+		$descr = implode("'+sLineBreak\r\n        +'", $descr);
+	}
+	else {
+		$descr = '';
+	}
+	
+	foreach($declarations as $declaration) {
+
+		$functionTexts[] = sprintf("    (".$nl
+			."      Name:         '%s';".$nl
+			."      Declaration:  '%s';".$nl
+			."      Category:     '%s';".$nl
+			."      Version:      %s;".$nl
+			."      Description:  '%s'".$nl
+			."    ),".$nl.$nl,
+			$row->name,
+			$declaration,
+			$row->categ,
+			'SQL_VERSION_ANSI',
+			$descr
+		);
+		#break;
+	}
 }
-#die();
-// Sort alphabetically by function name
-asort($fstruc);
 
 // produce output
 $counter = 0;
-foreach( $fstruc as $func )
+echo "  MySqlFunctions: Array [0..".(count($functionTexts)-1)."] of TMysqlFunction =" . $nl
+  . "  (" . $nl;
+foreach($functionTexts as $key=>$funcText)
 {
-    echo '    // Function nr. '.++$counter.$nl;
-    echo $func;
+    //echo '    // Function nr. '.++$counter.$nl;
+    echo $funcText;
 }
+echo "  );" . $nl;
