@@ -23,5 +23,10 @@ If you'd like to contribute by translating HeidiSQL into your mother tongue, you
 [Transifex](https://www.transifex.com/heidisql/heidisql/), and join an existing language or request a
 new one.
 
+# Contributing to HeidiSQL
+* Pull requests will only be accepted for bugfixes. No new features please.
+* Please mention a ticket id in your pull request. If there is no ticket for that particular bug yet, go and create an issue request first, and fill out all fields of the issue template.
+* To become a developer member, ask Ansgar via email (see https://www.heidisql.com/imprint.php for email address)
+
 # Icons8 copyright
 Icons added in January 2019 into a TImageCollection component are copyright by [Icons8](https://icons8.com). Used with a special permission from Icons8 given to Ansgar for this project only. Do not copy them for anything else other than building HeidiSQL.
