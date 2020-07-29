@@ -4916,10 +4916,14 @@ var
   Filters: TStringList;
   val: String;
 begin
-  // If filter box is empty but filter generator box not, most users expect
+  // If filter generator box has text, most users expect
   // the filter to be auto generated on button click
-  if (SynMemoFilter.GetTextLen = 0) and (editFilterSearch.Text <> '') then
+  if (editFilterSearch.Text <> '')
+    and (Sender is TAction)
+    and ((Sender as TAction).ActionComponent = btnFilterApply)
+    then begin
     editFilterSearchChange(editFilterSearch);
+  end;
 
   if SynMemoFilter.GetTextLen > 0 then begin
     // Recreate recent filters list
