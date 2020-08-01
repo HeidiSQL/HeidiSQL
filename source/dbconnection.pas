@@ -5101,7 +5101,7 @@ begin
         Result.Add(NewKey);
         NewKey.Name := KeyQuery.Col('CONSTRAINT_NAME');
         NewKey.OldName := NewKey.Name;
-        if KeyQuery.Col('CONSTRAINT_TYPE').ToLowerInvariant.StartsWith('primary') then
+        if KeyQuery.Col('CONSTRAINT_TYPE').StartsWith(TTableKey.PRIMARY, True) then
           NewKey.IndexType := TTableKey.PRIMARY
         else
           NewKey.IndexType := KeyQuery.Col('CONSTRAINT_TYPE');
@@ -5133,7 +5133,7 @@ begin
       if not Assigned(NewKey) then begin
         NewKey := TTableKey.Create(Self);
         Result.Add(NewKey);
-        NewKey.Name := 'PRIMARY';
+        NewKey.Name := TTableKey.PRIMARY;
         NewKey.OldName := NewKey.Name;
         NewKey.IndexType := TTableKey.PRIMARY;
         NewKey.OldIndexType := NewKey.IndexType;
@@ -5176,11 +5176,11 @@ begin
         Result.Add(NewKey);
         NewKey.Name := KeyQuery.Col('Key_name');
         NewKey.OldName := NewKey.Name;
-        if NewKey.Name.ToLowerInvariant = 'primary' then
+        if CompareText(NewKey.Name, TTableKey.PRIMARY) = 0 then
           NewKey.IndexType := TTableKey.PRIMARY
         else if KeyQuery.Col('Non_unique') = '0' then
           NewKey.IndexType := TTableKey.UNIQUE
-        else if KeyQuery.Col('Index_type').ToLowerInvariant = 'fulltext' then
+        else if CompareText(KeyQuery.Col('Index_type'), TTableKey.FULLTEXT) = 0 then
           NewKey.IndexType := TTableKey.FULLTEXT
         else
           NewKey.IndexType := TTableKey.KEY;
@@ -5283,7 +5283,7 @@ begin
     if not Assigned(NewKey) then begin
       NewKey := TTableKey.Create(Self);
       Result.Add(NewKey);
-      NewKey.Name := 'PRIMARY';
+      NewKey.Name := TTableKey.PRIMARY;
       NewKey.OldName := NewKey.Name;
       NewKey.IndexType := TTableKey.PRIMARY;
       NewKey.OldIndexType := NewKey.IndexType;
