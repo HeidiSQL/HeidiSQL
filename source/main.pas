@@ -5376,7 +5376,7 @@ begin
   // Paint specified elements on column header
 
   PaintArea := PaintInfo.PaintRectangle;
-  PaintArea.Inflate(-PaintInfo.Column.Margin, -((PaintArea.Height - Sender.Images.Height) div 2));
+  PaintArea.Inflate(-PaintInfo.Column.Margin, 0);
   DC := PaintInfo.TargetCanvas.Handle;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
@@ -5420,9 +5420,14 @@ begin
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then begin
       Inc(SortArea.Left, SortArea.Width - Sender.Images.Width);
+      // Prepare default font size, also if user selected a bigger one for the grid - we reserved a 16x16 space.
+      // Font.Height + Font.Size must be set with these values to get this working, larger or smaller Size/Height
+      // result in wrong size for multiple sort columns.
+      PaintInfo.TargetCanvas.Font.Height := -11;
+      PaintInfo.TargetCanvas.Font.Size := 10;
       if ColSortDirection = sdAscending then begin
-        // This is a bit wrong - "Ubuntu" has the first character, but not the
-        // second one which seems available on many Windows fonts. See #1090
+        // This is a bit wrong - but the "Ubuntu" font doesn't have the triangle character,
+        // which seems available on many Windows fonts only. See #1090
         SortText := IfThen(IsWine, '↑', '▲');
         NumCharTop := 0;
       end else begin
