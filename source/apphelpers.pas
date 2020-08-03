@@ -4116,10 +4116,15 @@ begin
   Result := TStringList.Create;
   FRegistry.GetKeyNames(Result);
   for i:=Result.Count-1 downto 0 do begin
-    FRegistry.OpenKey(CurPath+'\'+Result[i], False);
-    if FRegistry.ValueExists(GetValueName(asSessionFolder)) then begin
-      Folders.Add(Result[i]);
-      Result.Delete(i);
+    // Issue #1111 describes a recursive endless loop, which may be caused by an empty key name here?
+    if Result[i].IsEmpty then
+      Continue;
+    // ... may also be caused by some non accessible key. Check result of .OpenKey before looking for "Folder" value:
+    if FRegistry.OpenKey(CurPath+'\'+Result[i], False) then begin
+      if FRegistry.ValueExists(GetValueName(asSessionFolder)) then begin
+        Folders.Add(Result[i]);
+        Result.Delete(i);
+      end;
     end;
   end;
 end;
