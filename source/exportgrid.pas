@@ -85,6 +85,7 @@ type
     procedure SelectRecentFile(Sender: TObject);
     procedure PutFilenamePlaceholder(Sender: TObject);
     function EscapePHP(Text: String): String;
+    function EscapeLatex(Text: String): String;
   public
     { Public declarations }
     property Grid: TVirtualStringTree read FGrid write FGrid;
@@ -517,6 +518,22 @@ begin
 end;
 
 
+function TfrmExportGrid.EscapeLatex(Text: String): String;
+var
+  TextChr: Char;
+const
+  NeedBackslash: TSysCharset = ['_', '$', '%', '&'];
+begin
+  // String escaping for LaTeX output. Mostly uses backslash. Probably incomplete.
+  // See pm from H. Flick
+  // See https://tex.stackexchange.com/a/301984
+  Result := Text;
+  for TextChr in NeedBackslash do begin
+    Result := StringReplace(Result, TextChr, '\'+TextChr, [rfReplaceAll]);
+  end;
+end;
+
+
 procedure TfrmExportGrid.btnOKClick(Sender: TObject);
 var
   Col, ExcludeCol: TColumnIndex;
@@ -687,7 +704,7 @@ begin
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
-              Header := Header + Grid.Header.Columns[Col].Text + Separator;
+              Header := Header + EscapeLatex(Grid.Header.Columns[Col].Text) + Separator;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
           Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
@@ -870,6 +887,7 @@ begin
             end;
 
             efLaTeX: begin
+              Data := EscapeLatex(Data);
               if (not GridData.IsNull(Col)) and (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
                 // Special encloser for numeric values, see https://www.heidisql.com/forum.php?t=36530
                 Data := '$' + Data + '$';
