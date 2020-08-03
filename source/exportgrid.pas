@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList,
-  extra_controls;
+  extra_controls, dbstructures, SynRegExpr;
 
 type
   TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
@@ -84,8 +84,9 @@ type
     procedure SetExportFormatByFilename;
     procedure SelectRecentFile(Sender: TObject);
     procedure PutFilenamePlaceholder(Sender: TObject);
-    function EscapePHP(Text: String): String;
-    function EscapeLatex(Text: String): String;
+    function FormatExcelCsv(Text, Encloser: String; DataType: TDBDatatype): String;
+    function FormatPhp(Text: String): String;
+    function FormatLatex(Text: String): String;
   public
     { Public declarations }
     property Grid: TVirtualStringTree read FGrid write FGrid;
@@ -95,7 +96,7 @@ type
 
 implementation
 
-uses main, apphelpers, dbconnection, dbstructures;
+uses main, apphelpers, dbconnection;
 
 {$R *.dfm}
 
@@ -506,7 +507,19 @@ begin
 end;
 
 
-function TfrmExportGrid.EscapePHP(Text: String): String;
+function TfrmExportGrid.FormatExcelCsv(Text, Encloser: String; DataType: TDBDatatype): String;
+begin
+  Result := Text;
+  // Escape encloser characters inside data per de-facto CSV.
+  if not Encloser.IsEmpty then
+    Result := StringReplace(Result, Encloser, Encloser+Encloser, [rfReplaceAll]);
+  if DataType.Category = dtcTemporal then begin
+    Result := ReplaceRegExpr('\.(\d+)$', Result, FormatSettings.DecimalSeparator + '$1', True);
+  end;
+end;
+
+
+function TfrmExportGrid.FormatPhp(Text: String): String;
 begin
   // String escaping for PHP output. Incompatible to TDBConnection.EscapeString.
   Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
@@ -518,7 +531,7 @@ begin
 end;
 
 
-function TfrmExportGrid.EscapeLatex(Text: String): String;
+function TfrmExportGrid.FormatLatex(Text: String): String;
 var
   TextChr: Char;
 const
@@ -704,7 +717,7 @@ begin
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
-              Header := Header + EscapeLatex(Grid.Header.Columns[Col].Text) + Separator;
+              Header := Header + FormatLatex(Grid.Header.Columns[Col].Text) + Separator;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
           Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
@@ -774,9 +787,9 @@ begin
         // JavaScript Object Notation
         Header := '{' + CRLF;
         if chkIncludeQuery.Checked then
-          Header := Header + #9 + '"query": '+EscapePHP(GridData.SQL)+',' + CRLF
+          Header := Header + #9 + '"query": '+FormatPhp(GridData.SQL)+',' + CRLF
         else
-          Header := Header + #9 + '"table": '+EscapePHP(TableName)+',' + CRLF ;
+          Header := Header + #9 + '"table": '+FormatPhp(TableName)+',' + CRLF ;
         Header := Header + #9 + '"rows":' + CRLF + #9 + '[';
       end;
 
@@ -877,17 +890,17 @@ begin
             end;
 
             efExcel, efCSV: begin
-              // Escape encloser characters inside data per de-facto CSV.
-              Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
               if GridData.IsNull(Col) then
                 Data := editNull.Text
-              else
+              else begin
+                Data := FormatExcelCsv(Data, Encloser, GridData.DataType(Col));
                 Data := Encloser + Data + Encloser;
+              end;
               tmp := tmp + Data + Separator;
             end;
 
             efLaTeX: begin
-              Data := EscapeLatex(Data);
+              Data := FormatLatex(Data);
               if (not GridData.IsNull(Col)) and (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
                 // Special encloser for numeric values, see https://www.heidisql.com/forum.php?t=36530
                 Data := '$' + Data + '$';
@@ -945,11 +958,11 @@ begin
                   Data := UnformatNumber(Data);
                 end;
                 else
-                  Data := EscapePHP(Data);
+                  Data := FormatPhp(Data);
               end;
 
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + #9#9 + EscapePHP(Grid.Header.Columns[Col].Text) + ' => ' + Data + ','+CRLF
+                tmp := tmp + #9#9 + FormatPhp(Grid.Header.Columns[Col].Text) + ' => ' + Data + ','+CRLF
               else
                 tmp := tmp + #9#9 + Data + ','+CRLF;
             end;
@@ -957,7 +970,7 @@ begin
             efJSON: begin
               tmp := tmp + #9#9#9;
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + EscapePHP(Grid.Header.Columns[Col].Text) + ': ';
+                tmp := tmp + FormatPhp(Grid.Header.Columns[Col].Text) + ': ';
               if GridData.IsNull(Col) then
                 tmp := tmp + 'null,' +CRLF
               else begin
@@ -965,7 +978,7 @@ begin
                   dtcInteger, dtcReal:
                     tmp := tmp + Data;
                   else
-                    tmp := tmp + EscapePHP(Data)
+                    tmp := tmp + FormatPhp(Data)
                 end;
                 tmp := tmp + ',' + CRLF;
               end;
