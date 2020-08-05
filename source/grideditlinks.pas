@@ -217,7 +217,7 @@ type
 
 
 var
-  ActiveGridEditor: TBaseGridEditorLink;
+  ActiveGridEditor: TBaseGridEditorLink=nil;
 
 implementation
 
@@ -272,8 +272,9 @@ var
   NewNode: PVirtualNode;
   DoPrev: Boolean;
 begin
-  inherited;
   ActiveGridEditor := nil;
+  FMainControl.WindowProc := FOldWindowProc;
+  FMainControl := nil;
   if FLastKeyDown = VK_TAB then begin
     DoPrev := ssShift in FLastShiftState;
     // Advance to next/previous visible column/node.
@@ -288,23 +289,25 @@ begin
           NewColumn := LastCol;
           NewNode := FTree.GetPreviousVisible(NewNode);
         end else
-          NewColumn := FTree.Header.Columns.GetPreviousColumn(NewColumn);
+          NewColumn := FTree.Header.Columns.GetPreviousVisibleColumn(NewColumn);
       end else begin
         if NewColumn = LastCol then begin
           NewColumn := FirstCol;
           NewNode := FTree.GetNextVisible(NewNode);
         end else
-          NewColumn := FTree.Header.Columns.GetNextColumn(NewColumn);
+          NewColumn := FTree.Header.Columns.GetNextVisibleColumn(NewColumn);
       end;
       if not Assigned(NewNode) then
         Break;
-      FTree.FocusedNode := NewNode;
-      FTree.FocusedColumn := NewColumn;
-      if not FTree.EditNode(FTree.FocusedNode, FTree.FocusedColumn) then
-        FTree.SetFocus;
+      if not FTree.CanEdit(NewNode, NewColumn) then
+        Continue;
+      FTree.ClearSelection;
+      FTree.Selected[NewNode] := True;
+      FTree.EditNode(NewNode, NewColumn);
       Break;
     end;
   end;
+  inherited;
 end;
 
 function TBaseGridEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
@@ -384,7 +387,7 @@ end;
 
 procedure TBaseGridEditorLink.ProcessMessage(var Message: TMessage);
 begin
-  if Assigned(FMainControl) then
+  if (FMainControl <> nil) and FMainControl.HandleAllocated then
     FMainControl.WindowProc(Message);
 end;
 

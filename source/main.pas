@@ -5834,7 +5834,7 @@ end;
 procedure TMainForm.PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
 begin
   // Leave editing mode on tab changes so the editor does not stay somewhere
-  if Assigned(ActiveGridEditor)
+  if (ActiveGridEditor <> nil)
     and Assigned(ActiveGridEditor.Tree)
     and ActiveGridEditor.Tree.IsEditing then begin
     LogSQL('Cancelling tree edit mode on '+ActiveGridEditor.Tree.Name, lcDebug);
