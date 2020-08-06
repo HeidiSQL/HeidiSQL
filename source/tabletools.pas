@@ -1419,7 +1419,7 @@ end;
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
   IsFirstRowInChunk, NeedsDBStructure: Boolean;
-  Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp, Dummy: String;
+  Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   i: Integer;
   RowCount, Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;

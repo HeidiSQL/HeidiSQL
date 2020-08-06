@@ -1520,6 +1520,7 @@ var
 begin
   // Helper to find a node by its index
   Result := nil;
+  Node := nil;
   try
     if Assigned(ParentNode) then
       Node := VT.GetFirstChild(ParentNode)

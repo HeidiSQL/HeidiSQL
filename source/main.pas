@@ -1725,8 +1725,6 @@ var
   NTHandle: THandle;
   TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
-  OldSnippetsDir, CurrentSnippetsDir, TargetSnippet: String;
-  Files: TStringDynArray;
   dti: TDBDatatypeCategoryIndex;
 begin
   caption := APPNAME;
@@ -3776,7 +3774,8 @@ end;
 function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
 var
   i, FilesProcessed: Integer;
-  Filesize, FilesizeSum, CurrentPosition, StartTime: Int64;
+  Filesize, FilesizeSum, CurrentPosition: Int64;
+  StartTime: UInt64;
   msgtext: String;
   AbsentFiles, PopupFileList: TStringList;
   DoRunFiles: Boolean;
@@ -3861,6 +3860,7 @@ begin
         FilesProcessed := 0;
         StartTime := GetTickCount64;
         Conn := ActiveConnection;
+        RunSuccess := False;
         // PROGDLG_MODAL was used previously, but somehow that focuses some other application
         ProgressDialog.StartProgressDialog(Handle, nil, PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
         for i:=0 to Filenames.Count-1 do begin
@@ -4618,12 +4618,13 @@ begin
   Comp := (Item.GetParentMenu as TPopupMenu).PopupComponent;
   // Try to find memo from menu item's popup component, and if that fails, check ActiveControl.
   // See #353
-  if Assigned(Comp) and (Comp is TSynMemo) then begin
+  if (Comp <> nil) and (Comp is TSynMemo) then begin
     Memo := Comp as TSynMemo;
   end else if ActiveControl is TSynMemo then begin
     Memo := ActiveControl as TSynMemo;
-  end;
-  if Assigned(Memo) then begin
+  end else
+    Memo := nil;
+  if Memo <> nil then begin
     Dialog := TSaveDialog.Create(Self);
     Dialog.Options := Dialog.Options + [ofOverwritePrompt];
     Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
@@ -7093,7 +7094,6 @@ var
   Obj: PDBObject;
   HasFocus, IsDbOrObject: Boolean;
   Version: Integer;
-  Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
   if DBtreeClicked(Sender) then begin
@@ -7855,9 +7855,9 @@ end;
 }
 procedure TMainForm.AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
-  i, ConfirmResult: Integer;
+  ConfirmResult: Integer;
   MsgStr: String;
-  LongSortRowNum: Integer;
+  LongSortRowNum: Cardinal;
 begin
   // Don't call sorting procedure on right click
   // Some list-headers have a contextmenu which should popup then.
@@ -9905,10 +9905,8 @@ var
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
   idx, MicroSecondsPrecision: Integer;
-  KeyCol, TextCol, SQL, CreateTable, NowText: String;
+  KeyCol, TextCol, SQL, NowText: String;
   Columns: TTableColumnList;
-  Keys: TTableKeyList;
-  ForeignKeys: TForeignKeyList;
   ForeignResults, Results: TDBQuery;
   Conn: TDBConnection;
   RowNum: PInt64;

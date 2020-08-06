@@ -9416,7 +9416,6 @@ end;
 procedure SQLite_CollationNeededCallback(userData: Pointer; ppDb:Psqlite3; eTextRep:integer; zName:PAnsiChar); cdecl;
 var
   Conn: TSQLiteConnection;
-  Lib: TSQLiteLib;
 begin
   // SQLite connection requests a yet non existing collation. Create it and show that in the log.
   // userData is a pointer to the connection object, see caller in SetActive()
