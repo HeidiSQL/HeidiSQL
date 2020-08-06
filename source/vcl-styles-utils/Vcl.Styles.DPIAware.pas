@@ -140,7 +140,11 @@ begin
 end;
 
 destructor TStyleDPIAwareness.Destroy;
+var
+  i : Integer;
 begin
+  for i := 0 to FScaledStyles.Count - 1 do
+    TStyleDPI(FScaledStyles.Objects[i]).Free;
   FScaledStyles.Free;
   inherited;
 end;

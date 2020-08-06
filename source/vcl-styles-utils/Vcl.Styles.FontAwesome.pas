@@ -29,8 +29,8 @@ interface
 {$ENDIF}
 
 uses
-  GDIPOBJ,
-  GDIPAPI,
+  Winapi.GDIPOBJ,
+  Winapi.GDIPAPI,
   Winapi.Windows,
   System.Classes,
   {$IFDEF WinXCtrls}

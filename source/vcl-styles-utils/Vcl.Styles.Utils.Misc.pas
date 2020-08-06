@@ -40,9 +40,6 @@ function WM_To_String(const WM_Message: Integer): string;
 {$ENDIF}
 function ExecutingInMainThread: boolean;
 
-var
-  GlobalMainThreadID: TThreadID = 0;
-
 implementation
 
 uses
@@ -51,12 +48,15 @@ uses
 
 function ExecutingInMainThread: boolean;
 begin
-  {$IFDEF LimitStylesToCurrentProcess}
-  if (GlobalMainThreadID = 0) then
-    Exit(GetCurrentThreadId = MainThreadId);
+  // VCL is not thread safe and some components like CEF will create Windows
+  // controls in secondary threads. It's strongly recommended to define
+  // LimitStylesToMainApplicationThread in VCL.Styles.Utils.inc if you see
+  // dialogs or controls partially themed.
+  {$IFDEF LimitStylesToMainApplicationThread}
+  Result := (GetCurrentThreadId = MainThreadId);
+  {$ELSE}
+  Result := True;
   {$ENDIF}
-
-  Result := (GlobalMainThreadID = 0) or (GlobalMainThreadID = GetCurrentThreadID);
 end;
 
 {$IFDEF EventLog}

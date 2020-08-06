@@ -288,6 +288,7 @@ implementation
 
 uses
   Winapi.Messages,
+  Vcl.Controls,
 {$IFDEF USE_ZIP}
   System.Zip,
 {$ENDIF}

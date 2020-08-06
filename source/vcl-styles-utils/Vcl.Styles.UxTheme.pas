@@ -66,6 +66,7 @@ uses
   System.Generics.Defaults,
   WinApi.Windows,
   WinApi.UxTheme,
+  Vcl.Controls,
   Vcl.Graphics,
   Vcl.GraphUtil,
   Vcl.Themes,
@@ -1898,7 +1899,7 @@ var
   SaveIndex: Integer;
   LCanvas: TCanvas;
   LRect: TRect;
-  LColor, LStartColor: TColor;
+  LColor: TColor;
 begin
   case iPartId of
     LVP_LISTITEM:
