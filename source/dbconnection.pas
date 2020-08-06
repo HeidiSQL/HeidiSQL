@@ -1060,10 +1060,11 @@ begin
             raise EDbError.Create(_('PLink cancelled'));
           end;
         end;
-      end else if ErrorText.StartsWith('Using username ', True)
-        or ErrorText.StartsWith('Pre-authentication banner ', True)
+      end else if
+        ErrorText.StartsWith('Using username ', True) // see issue #577 - new plink version sends this informational text to error pipe
+        or ErrorText.StartsWith('Pre-authentication banner ', True) // see issue #704
+        or ErrorText.StartsWith('Access granted. Press Return to begin session', True) // see issue #1114
         then begin
-        // See #577 - new plink version sends this informational text to error pipe
         FConnection.Log(lcError, 'PLink: '+ErrorText);
         SendText(CRLF);
       end else begin
