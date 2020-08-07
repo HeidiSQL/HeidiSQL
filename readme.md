@@ -4,10 +4,10 @@
 ![](https://img.shields.io/github/languages/code-size/HeidiSQL/HeidiSQL.svg?style=flat)
 
 # HeidiSQL
-HeidiSQL is a useful and reliable tool designed for web developers using the popular [MariaDB](http://www.mariadb.org/) or [MySQL](http://www.mysql.com/) server, [Microsoft SQL databases](http://www.microsoft.com/sql/) or [PostgreSQL](http://www.postgresql.org/). It enables you to browse and edit data, create and edit tables, views, procedures, triggers and scheduled events. Also, you can export structure and data, either to SQL file, clipboard or to other servers. Read about [features](https://www.heidisql.com/#featurelist) or see some [screenshots](https://www.heidisql.com/screenshots.php). 
+HeidiSQL is a graphical interface for managing [MariaDB](http://www.mariadb.org/) or [MySQL](http://www.mysql.com/) servers, [Microsoft SQL databases](http://www.microsoft.com/sql/), [PostgreSQL](http://www.postgresql.org/) or [SQLite](https://www.sqlite.org/). "Heidi" lets you browse and edit data, create and edit tables, views, procedures, triggers and scheduled events. Also, you can export structure and data, either to SQL file, clipboard or to other servers. Read about [features](https://www.heidisql.com/#featurelist) or see some [screenshots](https://www.heidisql.com/screenshots.php). 
 
 # Need help?
-Look at [the online help page](http://www.heidisql.com/help.php) to learn how to use HeidiSQL.
+Look at [the online help page](https://www.heidisql.com/help.php) to learn how to use HeidiSQL. The [forum](https://www.heidisql.com/forum.php) is meant to ask questions. The [issue tracker](https://github.com/HeidiSQL/HeidiSQL/issues) is the place to report bugs or request new features.
 
 # Building
 Delphi 10.4 is required for building HeidiSQL. Older Delphi versions will most likely fail; newer Delphi versions may work or fail. Unfortunately, Lazarus or one 
