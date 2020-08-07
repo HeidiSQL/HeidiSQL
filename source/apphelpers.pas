@@ -214,6 +214,7 @@ type
       FRestoreTabsInitValue: Boolean;
       FSettingsFile: String;
       FSettings: Array[TAppSettingIndex] of TAppSetting;
+      const FPortableLockFileBase: String='portable.lock';
       procedure InitSetting(Index: TAppSettingIndex; Name: String;
         DefaultInt: Integer=0; DefaultBool: Boolean=False; DefaultString: String='';
         Session: Boolean=False);
@@ -3399,7 +3400,7 @@ begin
   FReads := 0;
   FWrites := 0;
 
-  PortableLockFile := ExtractFilePath(ParamStr(0)) + SPortableLockFile;
+  PortableLockFile := ExtractFilePath(ParamStr(0)) + FPortableLockFileBase;
 
   // Use filename from command line. If not given, use file in directory of executable.
   rx := TRegExpr.Create;
