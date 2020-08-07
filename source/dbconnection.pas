@@ -1659,7 +1659,7 @@ begin
       else
         Result := 3306;
     end;
-    ngMSSQL: Result := 1433;
+    ngMSSQL: Result := 0; // => autodetection by driver (previously 1433)
     ngPgSQL: Result := 5432;
     else Result := 0;
   end;
