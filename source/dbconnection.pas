@@ -8465,8 +8465,16 @@ begin
           Result := Result + '=' + Connection.EscapeString(Connection.GetDateTimeValue(ColVal, DataType(j).Index));
         dtcBinary:
           Result := Result + '=' + HexValue(ColVal);
-        else
-          Result := Result + '=' + Connection.EscapeString(ColVal);
+        else begin
+          // Any other data type goes here, including text:
+          case DataType(j).Index of
+            // Support international characters with N-prefix on MSSQL, see #1115:
+            dtNchar, dtNvarchar, dtNtext:
+              Result := Result + '=N' + Connection.EscapeString(ColVal);
+            else
+              Result := Result + '=' + Connection.EscapeString(ColVal);
+          end;
+        end;
       end;
     end;
   end;
