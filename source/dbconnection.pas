@@ -945,7 +945,7 @@ var
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
-  Waited, ReturnedSomethingAt, PortChecks: Integer;
+  Waited, PortChecks: Integer;
 begin
   // Check if local port is open
   PortChecks := 0;
@@ -1008,10 +1008,10 @@ begin
     raise EDbError.Create(ErrorText);
   end;
 
-  // Wait until timeout has finished, or some text returned.
+  // Wait until timeout has finished.
+  // Todo: Find a way to wait only until connection is established
   // Parse pipe output and probably show some message in a dialog.
   Waited := 0;
-  ReturnedSomethingAt := -1;
   while Waited < FConnection.Parameters.SSHTimeout*1000 do begin
     Inc(Waited, 200);
     WaitForSingleObject(FProcessInfo.hProcess, 200);
@@ -1022,7 +1022,6 @@ begin
     OutText := Trim(ReadPipe(FOutPipe));
     ErrorText := ReadPipe(FErrorPipe);
     if (OutText <> '') or (ErrorText <> '') then begin
-      ReturnedSomethingAt := Waited;
       FConnection.Log(lcDebug, Format('PLink output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [Waited, OutText, ErrorText]));
     end;
 
@@ -1079,10 +1078,6 @@ begin
         end;
       end;
     end;
-
-    // Exit loop after 2s idletime when there was output earlier
-    if (ReturnedSomethingAt > 0) and (Waited >= ReturnedSomethingAt+2000) then
-      Break;
     
     Application.ProcessMessages;
   end;
