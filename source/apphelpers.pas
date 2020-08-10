@@ -4143,6 +4143,7 @@ begin
     Sessions.Add(ParentPath+Names[i]);
   for i:=0 to Folders.Count-1 do
     GetSessionPaths(ParentPath+Folders[i]+'\', Sessions);
+  Sessions.Sort;
   Names.Free;
   Folders.Free;
 end;
