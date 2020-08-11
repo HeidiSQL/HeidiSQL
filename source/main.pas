@@ -5543,14 +5543,7 @@ begin
           and (not IsKeyColumn) // We need full length of any key column, so DataGridLoadFullRow() has the chance to fetch the right row
           and ((ColMaxLen > GRIDMAXDATA) or (ColMaxLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
-            case DBObj.Connection.Parameters.NetTypeGroup of
-              ngMSSQL: Select := Select + ' ' +
-                DBObj.Connection.GetSQLSpecifity(spFuncLeft, ['CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))', GRIDMAXDATA]) +
-                ', ';
-              else Select := Select + ' ' +
-                DBObj.Connection.GetSQLSpecifity(spFuncLeft, [DBObj.Connection.QuoteIdent(c.Name), GRIDMAXDATA]) +
-                ', ';
-            end;
+            Select := Select + DBObj.Connection.GetSQLSpecifity(spFuncLeft, [c.CastAsText, GRIDMAXDATA]) + ', ';
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
           end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dtHierarchyid) then begin
@@ -7192,7 +7185,7 @@ begin
   Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
   if InDataGrid
     and (SelectedTableColumns[Grid.FocusedColumn].DataType.Index = dtJson)
-    and (Results.Connection.Parameters.NetTypeGroup = ngPgSQL) then begin
+    and Results.Connection.Parameters.IsAnyPostgreSQL then begin
     Col := Col + '::text';
   end;
 

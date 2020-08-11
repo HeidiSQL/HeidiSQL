@@ -9201,7 +9201,7 @@ begin
         Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(SIZE_MB)+'))';
     end;
     ngPgSQL: begin
-      if DataType.Index = dtUnknown then
+      if (DataType.Index = dtUnknown) or (DataType.Category = dtcBinary) then
         Result := Result + '::text';
     end;
   end;
