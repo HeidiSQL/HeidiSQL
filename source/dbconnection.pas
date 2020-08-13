@@ -8336,10 +8336,12 @@ var
   FieldTypeOID: POid;
 begin
   // Get table name from a result set
+  // "123::regclass" results are quoted if they contain special characters
   Result := EmptyStr;
   FieldTypeOID := FConnection.Lib.PQftable(FCurrentResults, Column);
   if not FConnection.RegClasses.ContainsKey(FieldTypeOID) then begin
     Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
+    Result := FConnection.DeQuoteIdent(Result);
     FConnection.RegClasses.Add(FieldTypeOID, Result);
   end else begin
     FConnection.RegClasses.TryGetValue(FieldTypeOID, Result);
