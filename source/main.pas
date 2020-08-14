@@ -1256,6 +1256,7 @@ type
     procedure PrepareImageList;
     property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
     property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
+    function SelectedTableFocusedColumn: TTableColumn;
 end;
 
 
@@ -4553,7 +4554,7 @@ begin
   // Data-Tab
   else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
-    keyword := SelectedTableColumns[DataGrid.FocusedColumn].DataType.Name;
+    keyword := SelectedTableFocusedColumn.DataType.Name;
 
   end else if ActiveControl = ActiveQueryHelpers then begin
     // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
@@ -6645,7 +6646,7 @@ begin
       // Item needs prompt
       Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
       Col := Conn.QuoteIdent(Col, False);
-      if (SelectedTableColumns[DataGrid.FocusedColumn].DataType.Index = dtJson)
+      if (SelectedTableFocusedColumn.DataType.Index = dtJson)
         and (Conn.Parameters.NetTypeGroup = ngPgSQL) then begin
         Col := Col + '::text';
       end;
@@ -7184,7 +7185,7 @@ begin
 
   Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
   if InDataGrid
-    and (SelectedTableColumns[Grid.FocusedColumn].DataType.Index = dtJson)
+    and (SelectedTableFocusedColumn.DataType.Index = dtJson)
     and Results.Connection.Parameters.IsAnyPostgreSQL then begin
     Col := Col + '::text';
   end;
@@ -13482,6 +13483,23 @@ begin
       Tab.tabsetQuery.SelectNext(True)
     else
       MessageBeep(MB_ICONEXCLAMATION);
+  end;
+end;
+
+
+function TMainForm.SelectedTableFocusedColumn: TTableColumn;
+var
+  Col: TTableColumn;
+begin
+  // Return column object of focused data grid column.
+  // DataGrid columns can be deselected by user, but SelectedTableColumns has all of them,
+  // so we cannot access them by their 0-based number. Instead, search by name/caption.
+  Result := nil;
+  for Col in SelectedTableColumns do begin
+    if Col.Name = DataGrid.Header.Columns[DataGrid.FocusedColumn].Text then begin
+      Result := Col;
+      Break;
+    end;
   end;
 end;
 
