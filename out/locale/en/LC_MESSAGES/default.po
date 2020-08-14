@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-06-13 11:14+0200\n"
+"PO-Revision-Date: 2020-08-14 08:37+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.3.1\n"
+"X-Generator: Poedit 2.4.1\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6565,3 +6565,6 @@ msgstr "Size &Column to Fit"
 
 msgid "Size &All Columns to Fit"
 msgstr "Size &All Columns to Fit"
+
+msgid "This view probably contains an error in its code."
+msgstr "This view probably contains an error in its code."

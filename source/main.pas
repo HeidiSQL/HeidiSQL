@@ -8983,7 +8983,12 @@ begin
         try
           if FActiveDbObj.NodeType in [lntTable, lntView] then begin
             SelectedTableColumns := FActiveDbObj.TableColumns;
-            SelectedTableKeys := FActiveDbObj.TableKeys;
+            try
+              SelectedTableKeys := FActiveDbObj.TableKeys;
+            except // No show stopper, happening when a view references a renamed table column, see #1130
+              on E:EDbError do
+                ErrorDialog(_('This view probably contains an error in its code.')+sLineBreak+sLineBreak+E.Message);
+            end;
             SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
           end;
           if not FTreeRefreshInProgress then
