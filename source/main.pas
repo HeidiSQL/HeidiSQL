@@ -19,7 +19,8 @@ uses
   insertfiles, searchreplace, loaddata, copytable, VirtualTrees.HeaderPopup, VirtualTrees.Utils, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
-  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls;
+  Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
+  SynEditCodeFolding;
 
 
 type
@@ -694,6 +695,8 @@ type
     DataUtcTime: TMenuItem;
     DataUtcUnixTimestamp: TMenuItem;
     N14: TMenuItem;
+    actCodeFolding: TAction;
+    ToolButton11: TToolButton;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1070,6 +1073,10 @@ type
       var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
     procedure AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
       var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
+    procedure SynMemoQueryScanForFoldRanges(Sender: TObject;
+      FoldRanges: TSynFoldRanges; LinesToScan: TStrings; FromLine,
+      ToLine: Integer);
+    procedure actCodeFoldingExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1681,6 +1688,7 @@ begin
   AppSettings.WriteInt(asLogHeight, SynMemoSQLLog.Height);
   AppSettings.WriteBool(asFilterPanel, actFilterPanel.Checked);
   AppSettings.WriteBool(asWrapLongLines, actQueryWordWrap.Checked);
+  AppSettings.WriteBool(asCodeFolding, actCodeFolding.Checked);
   AppSettings.WriteBool(asSingleQueries, actSingleQueries.Checked);
   AppSettings.WriteBool(asLogHorizontalScrollbar, actLogHorizontalScrollbar.Checked);
   AppSettings.WriteBool(asMainWinMaximized, WindowState=wsMaximized);
@@ -1900,6 +1908,7 @@ begin
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
+  actCodeFolding.Checked := AppSettings.ReadBool(asCodeFolding);
   actSingleQueries.Checked := AppSettings.ReadBool(asSingleQueries);
   actBatchInOneGo.Checked := not AppSettings.ReadBool(asSingleQueries);
   actPreferencesLogging.ImageIndex := actPreferences.ImageIndex;
@@ -4714,6 +4723,19 @@ end;
 procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
   // SetupSynEditors applies all customizations to any SynEditor
+  if (Sender as TAction).Checked then
+    actCodeFolding.Checked := False;
+  SetupSynEditors;
+end;
+
+
+procedure TMainForm.actCodeFoldingExecute(Sender: TObject);
+begin
+  // Activates code folding
+  // Wordwrap does not work in conjunction with code folding.
+  // See https://github.com/SynEdit/SynEdit/blob/master/CodeFolding.md
+  if (Sender as TAction).Checked then
+    actQueryWordWrap.Checked := False;
   SetupSynEditors;
 end;
 
@@ -6491,6 +6513,25 @@ begin
   end;
   rx.Free;
 
+end;
+
+
+procedure TMainForm.SynMemoQueryScanForFoldRanges(Sender: TObject;
+  FoldRanges: TSynFoldRanges; LinesToScan: TStrings; FromLine, ToLine: Integer);
+var
+  Line: Integer;
+  LineText: String;
+begin
+  // Code folding detection based on keywords in beginning of lines
+  for Line:=FromLine to ToLine do begin
+    LineText := LinesToScan[Line].TrimLeft;
+    if LineText.StartsWith('#region', True) then
+      FoldRanges.StartFoldRange(Line+1, FoldRegionType)
+    else if LineText.StartsWith('#endregion', True) then
+      FoldRanges.StopFoldRange(Line+1, FoldRegionType)
+    else
+      FoldRanges.NoFoldInfo(Line+1);
+  end;
 end;
 
 
@@ -12033,8 +12074,12 @@ begin
     Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
     Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
     Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
-    if Editor <> SynMemoSQLLog then
+    if Editor <> SynMemoSQLLog then begin
       Editor.WordWrap := actQueryWordWrap.Checked;
+      // Assignment of OnScanForFoldRanges event is required for UseCodeFolding
+      Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;
+      Editor.UseCodeFolding := actCodeFolding.Checked;
+    end;
     Editor.ActiveLineColor := ActiveLineColor;
     Editor.Options := BaseEditor.Options;
     if Editor = SynMemoSQLLog then

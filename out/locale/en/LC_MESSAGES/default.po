@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-08-14 08:37+0200\n"
+"PO-Revision-Date: 2020-08-16 12:57+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -71,6 +71,12 @@ msgstr "Binary editor"
 #: texteditor.dfm:66 texteditor.dfm:67
 msgid "Wrap long lines"
 msgstr "Wrap long lines"
+
+msgid "Code folding"
+msgstr "Code folding"
+
+msgid "Enable code folding in SQL editors"
+msgstr "Enable code folding in SQL editors"
 
 #. frmBinEditor..tlbStandard..btnLoadBinary..Hint
 #. frmBinEditor..tlbStandard..btnLoadBinary..Caption

@@ -145,7 +145,7 @@ type
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
-    asWrapLongLines, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
+    asWrapLongLines, asCodeFolding, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
     asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
     asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort, asLibrary, asAllProviders,
@@ -3497,6 +3497,7 @@ begin
   InitSetting(asQueryhelperswidth,                'queryhelperswidth',                     200);
   InitSetting(asStopOnErrorsInBatchMode,          'StopOnErrorsInBatchMode',               0, True);
   InitSetting(asWrapLongLines,                    'WrapLongLines',                         0, False);
+  InitSetting(asCodeFolding,                      'CodeFolding',                           0, True);
   InitSetting(asDisplayBLOBsAsText,               'DisplayBLOBsAsText',                    0, True);
   InitSetting(asSingleQueries,                    'SingleQueries',                         0, True);
   InitSetting(asMemoEditorWidth,                  'MemoEditorWidth',                       100);
