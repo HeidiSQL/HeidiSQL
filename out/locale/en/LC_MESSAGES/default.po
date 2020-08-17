@@ -75,8 +75,20 @@ msgstr "Wrap long lines"
 msgid "Code folding"
 msgstr "Code folding"
 
+msgid "Enable code folding"
+msgstr "Enable code folding"
+
 msgid "Enable code folding in SQL editors"
 msgstr "Enable code folding in SQL editors"
+
+msgid "Insert region start marker"
+msgstr "Insert region start marker"
+
+msgid "Insert region end marker"
+msgid "Insert region end marker"
+
+msgid "Fold selection"
+msgstr "Fold selection"
 
 #. frmBinEditor..tlbStandard..btnLoadBinary..Hint
 #. frmBinEditor..tlbStandard..btnLoadBinary..Caption

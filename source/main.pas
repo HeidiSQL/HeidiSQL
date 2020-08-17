@@ -493,7 +493,6 @@ type
     actReformatSQL: TAction;
     ReformatSQL1: TMenuItem;
     btnReformatSQL: TToolButton;
-    ReformatSQL2: TMenuItem;
     menuQueryInsertFunction: TMenuItem;
     menuFilterInsertFunction: TMenuItem;
     actBlobAsText: TAction;
@@ -697,6 +696,34 @@ type
     N14: TMenuItem;
     actCodeFolding: TAction;
     ToolButton11: TToolButton;
+    MainMenuQuery: TMenuItem;
+    RunSQLfile1: TMenuItem;
+    Runcurrentquery2: TMenuItem;
+    RunSelection2: TMenuItem;
+    Sendbatchinonego1: TMenuItem;
+    Sendqueriesonebyone2: TMenuItem;
+    N18: TMenuItem;
+    ReformatSQL3: TMenuItem;
+    Clear1: TMenuItem;
+    Explaincurrentquery2: TMenuItem;
+    Explainanalyzerforcurrentquery2: TMenuItem;
+    Newquerytab2: TMenuItem;
+    Closequerytab1: TMenuItem;
+    Wraplonglines1: TMenuItem;
+    Previousresulttab2: TMenuItem;
+    Nextresulttab2: TMenuItem;
+    Uncomment2: TMenuItem;
+    Folding1: TMenuItem;
+    Codefolding1: TMenuItem;
+    N19: TMenuItem;
+    N20: TMenuItem;
+    N24: TMenuItem;
+    actCodeFoldingStartRegion: TAction;
+    actCodeFoldingEndRegion: TAction;
+    Insertregionstartmarker1: TMenuItem;
+    Insertregionendmarker1: TMenuItem;
+    actCodeFoldingFoldSelection: TAction;
+    Foldselection1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1077,6 +1104,9 @@ type
       FoldRanges: TSynFoldRanges; LinesToScan: TStrings; FromLine,
       ToLine: Integer);
     procedure actCodeFoldingExecute(Sender: TObject);
+    procedure actCodeFoldingStartRegionExecute(Sender: TObject);
+    procedure actCodeFoldingEndRegionExecute(Sender: TObject);
+    procedure actCodeFoldingFoldSelectionExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1908,7 +1938,8 @@ begin
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
-  actCodeFolding.Checked := AppSettings.ReadBool(asCodeFolding);
+  if AppSettings.ReadBool(asCodeFolding) and (not actCodeFolding.Checked) then
+    actCodeFolding.Execute;
   actSingleQueries.Checked := AppSettings.ReadBool(asSingleQueries);
   actBatchInOneGo.Checked := not AppSettings.ReadBool(asSingleQueries);
   actPreferencesLogging.ImageIndex := actPreferences.ImageIndex;
@@ -4740,6 +4771,44 @@ begin
 end;
 
 
+procedure TMainForm.actCodeFoldingStartRegionExecute(Sender: TObject);
+var
+  Memo: TSynMemo;
+begin
+  // Insert #region
+  if not actCodeFolding.Checked then
+    actCodeFolding.Execute;
+  Memo := ActiveSynMemo(False);
+  Memo.InsertLine(Memo.CaretXY, Memo.CaretXY, '#region ', True);
+end;
+
+
+procedure TMainForm.actCodeFoldingEndRegionExecute(Sender: TObject);
+var
+  Memo: TSynMemo;
+begin
+  // Insert #endregion
+  if not actCodeFolding.Checked then
+    actCodeFolding.Execute;
+  Memo := ActiveSynMemo(False);
+  Memo.InsertLine(Memo.CaretXY, Memo.CaretXY, '#endregion ', True);
+end;
+
+
+procedure TMainForm.actCodeFoldingFoldSelectionExecute(Sender: TObject);
+var
+  Memo: TSynMemo;
+  AfterText: String;
+begin
+  // Wrap selected text in region/endregion
+  if not actCodeFolding.Checked then
+    actCodeFolding.Execute;
+  Memo := ActiveSynMemo(False);
+  AfterText := IfThen(Memo.SelText.EndsWith(sLineBreak), '', sLineBreak);
+  Memo.SelText := '#region ' + sLineBreak + Memo.SelText + AfterText + '#endregion' + sLineBreak;
+end;
+
+
 procedure TMainForm.PopupQueryLoadPopup(Sender: TObject);
 var
   i, j: Integer;
@@ -6165,6 +6234,9 @@ begin
   actClearQueryEditor.Enabled := InQueryTab;
   actSetDelimiter.Enabled := InQueryTab;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
+  actCodeFoldingStartRegion.Enabled := InQueryTab;
+  actCodeFoldingEndRegion.Enabled := InQueryTab;
+  actCodeFoldingFoldSelection.Enabled := HasSelection;
 end;
 
 

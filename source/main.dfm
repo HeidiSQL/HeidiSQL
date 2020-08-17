@@ -2091,9 +2091,6 @@ object MainForm: TMainForm
         Action = actFilterPanel
         AutoCheck = True
       end
-      object ReformatSQL2: TMenuItem
-        Action = actReformatSQL
-      end
     end
     object MainMenuSearch: TMenuItem
       Caption = 'Search'
@@ -2108,6 +2105,85 @@ object MainForm: TMainForm
       end
       object actFindTextOnServer1: TMenuItem
         Action = actFindTextOnServer
+      end
+    end
+    object MainMenuQuery: TMenuItem
+      Caption = 'Query'
+      object Newquerytab2: TMenuItem
+        Action = actNewQueryTab
+      end
+      object Closequerytab1: TMenuItem
+        Action = actCloseQueryTab
+      end
+      object Clear1: TMenuItem
+        Action = actClearQueryEditor
+      end
+      object N19: TMenuItem
+        Caption = '-'
+      end
+      object RunSQLfile1: TMenuItem
+        Action = actExecuteQuery
+      end
+      object RunSelection2: TMenuItem
+        Action = actExecuteSelection
+      end
+      object Runcurrentquery2: TMenuItem
+        Action = actExecuteCurrentQuery
+      end
+      object Sendbatchinonego1: TMenuItem
+        Action = actBatchInOneGo
+        AutoCheck = True
+      end
+      object Sendqueriesonebyone2: TMenuItem
+        Action = actSingleQueries
+        AutoCheck = True
+      end
+      object N18: TMenuItem
+        Caption = '-'
+      end
+      object Nextresulttab2: TMenuItem
+        Action = actNextResult
+      end
+      object Previousresulttab2: TMenuItem
+        Action = actPreviousResult
+      end
+      object N24: TMenuItem
+        Caption = '-'
+      end
+      object ReformatSQL3: TMenuItem
+        Action = actReformatSQL
+      end
+      object Wraplonglines1: TMenuItem
+        Action = actQueryWordWrap
+        AutoCheck = True
+      end
+      object Uncomment2: TMenuItem
+        Action = actToggleComment
+      end
+      object Folding1: TMenuItem
+        Caption = 'Code folding'
+        object Codefolding1: TMenuItem
+          Action = actCodeFolding
+          AutoCheck = True
+        end
+        object Insertregionstartmarker1: TMenuItem
+          Action = actCodeFoldingStartRegion
+        end
+        object Insertregionendmarker1: TMenuItem
+          Action = actCodeFoldingEndRegion
+        end
+        object Foldselection1: TMenuItem
+          Action = actCodeFoldingFoldSelection
+        end
+      end
+      object N20: TMenuItem
+        Caption = '-'
+      end
+      object Explaincurrentquery2: TMenuItem
+        Action = actExplainCurrentQuery
+      end
+      object Explainanalyzerforcurrentquery2: TMenuItem
+        Action = actExplainAnalyzeCurrentQuery
       end
     end
     object MainMenuTools: TMenuItem
@@ -3397,10 +3473,28 @@ object MainForm: TMainForm
     object actCodeFolding: TAction
       Category = 'SQL'
       AutoCheck = True
-      Caption = 'Code folding'
+      Caption = 'Enable code folding'
       Hint = 'Enable code folding in SQL editors'
       ImageIndex = 198
       OnExecute = actCodeFoldingExecute
+    end
+    object actCodeFoldingStartRegion: TAction
+      Category = 'SQL'
+      Caption = 'Insert region start marker'
+      ImageIndex = 120
+      OnExecute = actCodeFoldingStartRegionExecute
+    end
+    object actCodeFoldingEndRegion: TAction
+      Category = 'SQL'
+      Caption = 'Insert region end marker'
+      ImageIndex = 121
+      OnExecute = actCodeFoldingEndRegionExecute
+    end
+    object actCodeFoldingFoldSelection: TAction
+      Category = 'SQL'
+      Caption = 'Fold selection'
+      ImageIndex = 122
+      OnExecute = actCodeFoldingFoldSelectionExecute
     end
   end
   object menuConnections: TPopupMenu
