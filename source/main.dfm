@@ -2150,6 +2150,9 @@ object MainForm: TMainForm
       object N24: TMenuItem
         Caption = '-'
       end
+      object SetdelimiterusedinSQLexecution1: TMenuItem
+        Action = actSetDelimiter
+      end
       object ReformatSQL3: TMenuItem
         Action = actReformatSQL
       end

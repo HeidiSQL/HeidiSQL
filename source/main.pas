@@ -724,6 +724,7 @@ type
     Insertregionendmarker1: TMenuItem;
     actCodeFoldingFoldSelection: TAction;
     Foldselection1: TMenuItem;
+    SetdelimiterusedinSQLexecution1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
