@@ -7199,13 +7199,14 @@ end;
 procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   Obj: PDBObject;
-  HasFocus, IsDbOrObject: Boolean;
+  HasFocus, IsDbOrObject, IsObject: Boolean;
   Version: Integer;
 begin
   // DBtree and ListTables both use popupDB as menu
   if DBtreeClicked(Sender) then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDbOrObject := Obj.NodeType in [lntDb, lntTable..lntEvent];
+    IsObject := Obj.NodeType in [lntTable..lntEvent];
     actCreateDatabase.Enabled := (Obj.NodeType = lntNone)
       and (Obj.Connection.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]);
     actAttachDatabase.Visible := Obj.Connection.Parameters.IsAnySQLite;
@@ -7215,8 +7216,7 @@ begin
     actCreateRoutine.Enabled := IsDbOrObject or (Obj.GroupType in [lntFunction, lntProcedure]);
     actCreateTrigger.Enabled := IsDbOrObject or (Obj.GroupType = lntTrigger);
     actCreateEvent.Enabled := IsDbOrObject or (Obj.GroupType = lntEvent);
-    actDropObjects.Enabled := IsDbOrObject // Used for databases in this context!
-      and (Obj.Connection.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]);
+    actDropObjects.Enabled := IsObject;
     actDetachDatabase.Visible := Obj.Connection.Parameters.IsAnySQLite;
     actDetachDatabase.Enabled := actDetachDatabase.Visible and (Obj.NodeType = lntDb);
     actCopyTable.Enabled := Obj.NodeType in [lntTable, lntView];
