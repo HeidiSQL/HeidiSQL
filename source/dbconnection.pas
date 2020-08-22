@@ -9199,8 +9199,10 @@ begin
         Result := 'CAST('+Result+' AS CHAR)';
     end;
     ngMSSQL: begin
-      if DataType.Index = dtUnknown then
-        Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(SIZE_MB)+'))';
+      // Be sure LEFT() and "col LIKE xyz" work with MSSQL
+      // Also, prevent exceeding size limit of 8000 for NVARCHAR
+      if DataType.Index in [dtUnknown, dtNtext] then
+        Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     end;
     ngPgSQL: begin
       if (DataType.Index = dtUnknown) or (DataType.Category = dtcBinary) then
