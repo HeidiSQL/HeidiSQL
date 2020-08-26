@@ -5010,9 +5010,10 @@ var
   Filters: TStringList;
   val: String;
 begin
-  // If filter generator box has text, most users expect
+  // If filter box is empty but filter generator box has text, most users expect
   // the filter to be auto generated on button click
-  if (editFilterSearch.Text <> '')
+  if (SynMemoFilter.GetTextLen = 0)
+    and (editFilterSearch.Text <> '')
     and (Sender is TAction)
     and ((Sender as TAction).ActionComponent = btnFilterApply)
     then begin
