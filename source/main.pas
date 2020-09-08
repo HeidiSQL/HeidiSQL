@@ -10291,10 +10291,10 @@ begin
     cl := GetThemeColor(clHighlight)
   end else if vsSelected in Node.States then begin
     // Selected but not focused cell
-    if VT.Color > ColorAdjustBrightness(clWhite, -19) then
-      cl := ColorAdjustBrightness(VT.Color, -19)
+    if VT.Color > ColorAdjustBrightness(clWhite, -29) then
+      cl := ColorAdjustBrightness(VT.Color, -29)
     else
-      cl := ColorAdjustBrightness(VT.Color, 19);
+      cl := ColorAdjustBrightness(VT.Color, 29);
   end else if r.IsNull(Column) then begin
     // Cell with NULL value
     clNull := AppSettings.ReadInt(asFieldNullBackground);
