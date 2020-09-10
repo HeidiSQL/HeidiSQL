@@ -1039,10 +1039,17 @@ var
   SiblingSessions: TStringList;
 begin
   // Rename session
+  // Note that this is triggered only if the text was effectively changed
   Sess := Sender.GetNodeData(Node);
+
   SiblingSessions := NodeSessionNames(Node.Parent, ParentKey);
+
   if SiblingSessions.IndexOf(NewText) > -1 then begin
-    ErrorDialog(f_('Session "%s" already exists!', [ParentKey+NewText]));
+    ErrorDialog(
+      f_('Session "%s" already exists!', [ParentKey+NewText])
+      + sLineBreak + sLineBreak
+      + _('If you want to change the case of a session name, you need to rename it before doing the actual case change.')
+      );
     NewText := Sess.SessionName;
   end else begin
     AppSettings.SessionPath := Sess.SessionPath;
