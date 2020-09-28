@@ -260,7 +260,6 @@ begin
   FParentForm := GetParentForm(FTree);
   // Avoid flicker
   FParentForm.Repaint;
-  SendMessage(FParentForm.Handle, WM_SETREDRAW, 0, 0);
   FModified := False;
   FAllowEdit := AllowEdit;
   ActiveGridEditor := Self;
