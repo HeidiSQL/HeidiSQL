@@ -565,6 +565,7 @@ const
     sqlite3_libversion: function(): PAnsiChar; cdecl;
     sqlite3_close: function(ppDb: Psqlite3): Integer; cdecl;
     sqlite3_db_config: function (ppDb: Psqlite3; op: Integer): Integer; cdecl varargs;
+    sqlite3_enable_load_extension: function(ppDb: Psqlite3; onoff: Integer): Integer; cdecl;
     sqlite3_errmsg: function(ppDb: Psqlite3): PAnsiChar; cdecl;
     sqlite3_errcode: function(ppDb: Psqlite3): Integer; cdecl;
     sqlite3_prepare_v2: function(ppDb: Psqlite3; zSql: PAnsiChar; nByte: Integer; var ppStmt: Psqlite3_stmt; var pzTail: PAnsiChar): Integer; cdecl;
@@ -19889,6 +19890,7 @@ begin
   AssignProc(@sqlite3_libversion, 'sqlite3_libversion');
   AssignProc(@sqlite3_close, 'sqlite3_close');
   AssignProc(@sqlite3_db_config, 'sqlite3_db_config');
+  AssignProc(@sqlite3_enable_load_extension, 'sqlite3_enable_load_extension');
   AssignProc(@sqlite3_errmsg, 'sqlite3_errmsg');
   AssignProc(@sqlite3_errcode, 'sqlite3_errcode');
   AssignProc(@sqlite3_prepare_v2, 'sqlite3_prepare_v2');
