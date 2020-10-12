@@ -2296,6 +2296,7 @@ var
   Sections: TStringList;
   TabsIni: TIniFile;
   SectionTabExists: Boolean;
+  pid: Cardinal;
 begin
   // Store query tab unsaved contents and setup, in tabs.ini
 
@@ -2323,11 +2324,12 @@ begin
       end;
     end;
 
-    // Tabs with deleted files don't get restored anyway. But closed tabs with physically existing
-    // files still need to be erased
+    // Tabs with deleted backup files don't get restored anyway. But a section from a closed user loaded tab
+    // still needs to be erased. Otherwise it's loaded on next app start again.
     Sections := TStringList.Create;
     TabsIni.ReadSections(Sections);
     for Section in Sections do begin
+      // Loop through local tabs
       SectionTabExists := False;
       for Tab in QueryTabs do begin
         if Tab.Uid = Section then begin
@@ -2335,8 +2337,9 @@ begin
           Break;
         end;
       end;
-      // Delete tab section if no tab was closed
-      if not SectionTabExists then begin
+      // Delete tab section if tab was closed and section belongs to this app instance
+      pid := Cardinal(TabsIni.ReadInteger(Section, 'pid', 0));
+      if (not SectionTabExists) and (pid = GetCurrentProcessId) then begin
         TabsIni.EraseSection(Section);
       end;
     end;
