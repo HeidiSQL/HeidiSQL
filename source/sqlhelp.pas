@@ -90,6 +90,8 @@ begin
   Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
   Width := AppSettings.ReadInt(asSQLHelpWindowWidth);
   Height := AppSettings.ReadInt(asSQLHelpWindowHeight);
+  MakeFullyVisible;
+
   pnlLeft.Width := AppSettings.ReadInt(asSQLHelpPnlLeftWidth);
   memoDescription.Height := AppSettings.ReadInt(asSQLHelpPnlRightTopHeight);
   Caption := DEFAULT_WINDOW_CAPTION;
