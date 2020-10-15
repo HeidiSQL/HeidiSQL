@@ -1545,13 +1545,13 @@ begin
       end else
         Struc := 'CREATE DATABASE IF NOT EXISTS '+Quoter.QuoteIdent(FinalDbName);
       Output(Struc, True, NeedsDBStructure, False, False, NeedsDBStructure);
-      Output('USE '+Quoter.QuoteIdent(FinalDbName), True, NeedsDBStructure, False, False, NeedsDBStructure);
+      Output(Quoter.GetSQLSpecifity(spUSEQuery, [Quoter.QuoteIdent(FinalDbName)]), True, NeedsDBStructure, False, False, NeedsDBStructure);
       Output(CRLF, False, NeedsDBStructure, False, False, NeedsDBStructure);
     end;
   end;
   if ToServer and (not chkExportDatabasesCreate.Checked) then begin
     // Export to server without "CREATE/USE dbname" and "Same dbs as on source server" - needs a "USE dbname"
-    Output('USE '+Quoter.QuoteIdent(FinalDbName), True, False, False, False, NeedsDBStructure);
+    Output(Quoter.GetSQLSpecifity(spUSEQuery, [Quoter.QuoteIdent(FinalDbName)]), True, False, False, False, NeedsDBStructure);
   end;
 
   // Table structure
