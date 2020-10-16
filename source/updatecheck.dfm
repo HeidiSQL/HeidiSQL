@@ -13,6 +13,7 @@ object frmUpdateCheck: TfrmUpdateCheck
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
+  Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow

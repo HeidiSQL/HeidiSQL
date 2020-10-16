@@ -2552,6 +2552,11 @@ begin
         DbAlias := TPath.GetFileNameWithoutExtension(FileNames[i]);
         Query('ATTACH DATABASE '+EscapeString(FileNames[i])+' AS '+QuoteIdent(DbAlias));
       end;
+      // See issue #1186:
+      if FLib.sqlite3_enable_load_extension(FHandle, 1) <> SQLITE_OK then begin
+        Log(lcError, 'Could not enable load_extension()');
+      end;
+
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
       FServerVersionUntouched := GetVar('SELECT sqlite_version()');
       FConnectionStarted := GetTickCount div 1000;
