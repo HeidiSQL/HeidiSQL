@@ -174,7 +174,8 @@ const
   STRSKIPPED: String = 'Skipped - ';
   EXPORT_FILE_FOOTER = '/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */;'+CRLF+
     '/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;'+CRLF+
-    '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
+    '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF+
+    '/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;'+CRLF;
 
 var
   OUTPUT_FILE,
@@ -773,7 +774,10 @@ begin
   Conn := Mainform.ActiveConnection;
 
   if Assigned(ExportStream) then begin
+    // For output to file or directory:
     Output(EXPORT_FILE_FOOTER, False, True, False, False, False);
+    // For direct output to database or server:
+    Output('/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */', True, False, False, True, True);
     Output('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */', True, False, False, True, True);
     Output('/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
@@ -1498,6 +1502,7 @@ begin
       ExportStream := TMemoryStream.Create;
   end;
   if not FHeaderCreated then begin
+    // For output to file or directory:
     if DBObj.Connection.CharacterSet = 'utf8mb4' then
       SetCharsetCode := '/*!40101 SET NAMES utf8 */;' + CRLF +
         '/*!50503 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF
@@ -1517,11 +1522,16 @@ begin
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       SetCharsetCode +
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
-      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;' + CRLF;
+      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;' + CRLF +
+      '/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;' + CRLF;
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
+    Output(CRLF, False, True, True, False, False);
+
+    // For direct output to database or server:
     Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     Output('/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */', True, False, False, True, True);
-    Output(CRLF, False, True, True, False, False);
+    Output('/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */', True, False, False, True, True);
+
     FHeaderCreated := True;
   end;
 
