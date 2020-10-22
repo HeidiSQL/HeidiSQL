@@ -1464,6 +1464,7 @@ begin
       EnumEditor := TEnumEditorLink.Create(VT, True);
       EnumEditor.ValueList := TStringList.Create;
       EnumEditor.ValueList.Text := DBObject.Connection.CollationList.Text;
+      EnumEditor.ValueList.Sort;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
