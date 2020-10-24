@@ -1153,6 +1153,7 @@ type
     FSearchReplaceDialog: TfrmSearchReplace;
     FPreferencesDialog: Toptionsform;
     FCreateDatabaseDialog: TCreateDatabaseForm;
+    FTableToolsDialog: TfrmTableTools;
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
@@ -2740,33 +2741,33 @@ var
   InDBTree: Boolean;
   Node: PVirtualNode;
   DBObj: PDBObject;
-  Dialog: TfrmTableTools;
 begin
   // Show table tools dialog
-  Dialog := TfrmTableTools.Create(Self);
+  FTableToolsDialog := TfrmTableTools.Create(Self);
   Act := Sender as TAction;
-  Dialog.PreSelectObjects.Clear;
+  FTableToolsDialog.PreSelectObjects.Clear;
   InDBTree := (Act.ActionComponent is TMenuItem)
     and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
   if InDBTree then
-    Dialog.PreSelectObjects.Add(ActiveDbObj)
+    FTableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
   else begin
     Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       DBObj := ListTables.GetNodeData(Node);
-      Dialog.PreSelectObjects.Add(DBObj^);
+      FTableToolsDialog.PreSelectObjects.Add(DBObj^);
       Node := GetNextNode(ListTables, Node, True);
     end;
   end;
   if Sender = actMaintenance then
-    Dialog.ToolMode := tmMaintenance
+    FTableToolsDialog.ToolMode := tmMaintenance
   else if Sender = actFindTextOnServer then
-    Dialog.ToolMode := tmFind
+    FTableToolsDialog.ToolMode := tmFind
   else if Sender = actExportTables then
-    Dialog.ToolMode := tmSQLExport
+    FTableToolsDialog.ToolMode := tmSQLExport
   else if Sender = actBulkTableEdit then
-    Dialog.ToolMode := tmBulkTableEdit;
-  Dialog.ShowModal;
+    FTableToolsDialog.ToolMode := tmBulkTableEdit;
+  FTableToolsDialog.ShowModal;
+  FreeAndNil(FTableToolsDialog);
 end;
 
 
@@ -4632,7 +4633,10 @@ begin
   // Show completion proposal explicitely, without the use of its own ShortCut property,
   // to support a customized shortcut, see
   SynCompletionProposal.Editor := ActiveSynMemo(False);
-  SynCompletionProposal.ActivateCompletion;
+  if Screen.ActiveControl is TCustomSynEdit then
+    SynCompletionProposal.ActivateCompletion
+  else
+    MessageBeep(MB_ICONEXCLAMATION);
 end;
 
 {***
@@ -12126,6 +12130,8 @@ begin
     Editors.Add(SqlHelpDialog.memoDescription);
     Editors.Add(SqlHelpDialog.MemoExample);
   end;
+  if Assigned(FTableToolsDialog) then
+    Editors.Add(FTableToolsDialog.SynMemoFindText);
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
@@ -13353,6 +13359,7 @@ var
   Combo: TComboBox;
   rx: TRegExpr;
   TextMatches: Boolean;
+  PressedShortcut: TShortCut;
 begin
   // Support for Ctrl+Backspace shortcut in edit + combobox controls
   Handled := False;
@@ -13387,6 +13394,14 @@ begin
       ', expression "'+rx.Expression+'" matched: '+TextMatches.ToInteger.ToString,
       lcDebug);
     rx.Free;
+
+  end else begin
+    // Listen to certain shortcut(s) in other forms than mainform, which do not listen to ActionList
+    PressedShortcut := ShortCut(Msg.CharCode, KeyDataToShiftState(Msg.KeyData));
+    if PressedShortcut = actSynEditCompletionPropose.ShortCut then begin
+      actSynEditCompletionPropose.Execute;
+      Handled := True;
+    end;
   end;
 end;
 

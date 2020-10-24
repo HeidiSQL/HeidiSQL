@@ -11,7 +11,8 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages;
+  dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages,
+  SynEdit, SynMemo;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -36,7 +37,6 @@ type
     btnHelpMaintenance: TButton;
     tabFind: TTabSheet;
     lblFindText: TLabel;
-    memoFindText: TMemo;
     comboDataTypes: TComboBox;
     lblDataTypes: TLabel;
     tabSQLexport: TTabSheet;
@@ -83,6 +83,11 @@ type
     comboMatchType: TComboBox;
     lblMatchType: TLabel;
     menuExportRemoveDefiner: TMenuItem;
+    tabsTextType: TPageControl;
+    tabSimpleText: TTabSheet;
+    tabSQL: TTabSheet;
+    memoFindText: TMemo;
+    SynMemoFindText: TSynMemo;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -244,6 +249,8 @@ begin
 
   // Find text tab
   memoFindText.Text := AppSettings.ReadString(asTableToolsFindText);
+  SynMemoFindText.Text := AppSettings.ReadString(asTableToolsFindSQL);
+  tabsTextType.ActivePageIndex := AppSettings.ReadInt(asTableToolsFindTextTab);
   comboDatatypes.Items.Add(_('All data types'));
   for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do
     comboDatatypes.Items.Add(DatatypeCategories[dtc].Name);
@@ -371,6 +378,8 @@ begin
   if comboBulkTableEditCharset.Items.Count > 0 then
     comboBulkTableEditCharset.ItemIndex := 0;
 
+  MainForm.SetupSynEditors;
+  MainForm.SynCompletionProposal.AddEditor(SynMemoFindText);
   ValidateControls(Sender);
 end;
 
@@ -391,7 +400,9 @@ var
 begin
   case ToolMode of
     tmFind: begin
+      AppSettings.WriteInt(asTableToolsFindTextTab, tabsTextType.ActivePageIndex);
       AppSettings.WriteString(asTableToolsFindText, memoFindText.Text);
+      AppSettings.WriteString(asTableToolsFindSQL, SynMemoFindText.Text);
       AppSettings.WriteInt(asTableToolsDatatype, comboDatatypes.ItemIndex);
       AppSettings.WriteBool(asTableToolsFindCaseSensitive, chkCaseSensitive.Checked);
       AppSettings.WriteInt(asTableToolsFindMatchType, comboMatchType.ItemIndex);
@@ -446,7 +457,7 @@ end;
 
 procedure TfrmTableTools.ValidateControls(Sender: TObject);
 var
-  SomeChecked, OptionChecked: Boolean;
+  SomeChecked, OptionChecked, FindModeSQL: Boolean;
   op: String;
   i: Integer;
 begin
@@ -473,7 +484,11 @@ begin
     end;
   end else if tabsTools.ActivePage = tabFind then begin
     btnExecute.Caption := _('Find');
-    btnExecute.Enabled := SomeChecked and (memoFindText.Text <> '');
+    btnExecute.Enabled := SomeChecked;
+    FindModeSQL := tabsTextType.ActivePage = tabSQL;
+    chkCaseSensitive.Enabled := not FindModeSQL;
+    lblMatchType.Enabled := not FindModeSQL;
+    comboMatchType.Enabled := not FindModeSQL;
     // Enable "See results" button if there were results
     btnSeeResults.Enabled := False;
     if Assigned(FResults) then for i:=0 to FResults.Count-1 do begin
@@ -904,7 +919,10 @@ begin
           Column := DBObj.Connection.QuoteIdent(Col.Name);
           if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
 
-            if (Col.DataType.Category in [dtcInteger, dtcReal]) and (comboMatchType.ItemIndex=1) then begin
+            if tabsTextType.ActivePage = tabSQL then begin
+              SQL := SQL + Column + ' ' + SynMemoFindText.Text + ' OR ';
+
+            end else if (Col.DataType.Category in [dtcInteger, dtcReal]) and (comboMatchType.ItemIndex=1) then begin
               // Search numbers
               SQL := SQL + Column + '=' + UnformatNumber(FindText) + ' OR ';
 

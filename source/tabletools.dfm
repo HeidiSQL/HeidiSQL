@@ -112,9 +112,9 @@ object frmTableTools: TfrmTableTools
       TabOrder = 1
       object ResultGrid: TVirtualStringTree
         Left = 0
-        Top = 180
+        Top = 193
         Width = 600
-        Height = 156
+        Height = 143
         Align = alClient
         Header.AutoSizeIndex = -1
         Header.Images = MainForm.VirtualImageListMain
@@ -138,7 +138,7 @@ object frmTableTools: TfrmTableTools
         Left = 0
         Top = 0
         Width = 600
-        Height = 180
+        Height = 193
         ActivePage = tabSQLexport
         Align = alTop
         Images = MainForm.VirtualImageListMain
@@ -150,7 +150,7 @@ object frmTableTools: TfrmTableTools
           ImageName = 'icons8-support'
           DesignSize = (
             592
-            151)
+            164)
           object lblOperation: TLabel
             Left = 3
             Top = 14
@@ -255,17 +255,17 @@ object frmTableTools: TfrmTableTools
           ImageName = 'icons8-find'
           DesignSize = (
             592
-            151)
+            164)
           object lblFindText: TLabel
             Left = 3
-            Top = 14
+            Top = 27
             Width = 60
             Height = 13
             Caption = 'Text to find:'
           end
           object lblDataTypes: TLabel
             Left = 3
-            Top = 83
+            Top = 90
             Width = 114
             Height = 13
             Anchors = [akLeft, akBottom]
@@ -273,48 +273,39 @@ object frmTableTools: TfrmTableTools
           end
           object lblMatchType: TLabel
             Left = 3
-            Top = 129
+            Top = 140
             Width = 58
             Height = 13
+            Anchors = [akLeft, akBottom]
             Caption = 'Match type:'
-          end
-          object memoFindText: TMemo
-            Left = 208
-            Top = 11
-            Width = 381
-            Height = 59
-            Anchors = [akLeft, akTop, akRight, akBottom]
-            ScrollBars = ssVertical
-            TabOrder = 0
-            OnChange = ValidateControls
           end
           object comboDataTypes: TComboBox
             Left = 208
-            Top = 76
+            Top = 87
             Width = 381
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
-            TabOrder = 1
+            TabOrder = 0
           end
           object chkCaseSensitive: TCheckBox
             Left = 208
-            Top = 103
+            Top = 114
             Width = 381
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
             Caption = 'Case sensitive'
-            TabOrder = 2
+            TabOrder = 1
           end
           object comboMatchType: TComboBox
             Left = 208
-            Top = 126
+            Top = 137
             Width = 381
             Height = 21
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
             ItemIndex = 0
-            TabOrder = 3
+            TabOrder = 2
             Text = 'Left and right wildcard'
             Items.Strings = (
               'Left and right wildcard'
@@ -323,6 +314,69 @@ object frmTableTools: TfrmTableTools
               'Right wildcard'
               'Regular expression')
           end
+          object tabsTextType: TPageControl
+            Left = 208
+            Top = 3
+            Width = 381
+            Height = 78
+            ActivePage = tabSimpleText
+            Anchors = [akLeft, akTop, akRight, akBottom]
+            TabOrder = 3
+            OnChange = ValidateControls
+            object tabSimpleText: TTabSheet
+              Caption = 'Simple text'
+              object memoFindText: TMemo
+                Left = 0
+                Top = 0
+                Width = 373
+                Height = 50
+                Align = alClient
+                ScrollBars = ssVertical
+                TabOrder = 0
+                OnChange = ValidateControls
+                ExplicitLeft = -8
+                ExplicitTop = -20
+              end
+            end
+            object tabSQL: TTabSheet
+              Caption = 'SQL'
+              ImageIndex = 1
+              object SynMemoFindText: TSynMemo
+                Left = 0
+                Top = 0
+                Width = 373
+                Height = 50
+                SingleLineMode = False
+                Align = alClient
+                Font.Charset = DEFAULT_CHARSET
+                Font.Color = clWindowText
+                Font.Height = -13
+                Font.Name = 'Courier New'
+                Font.Style = []
+                TabOrder = 0
+                CodeFolding.GutterShapeSize = 11
+                CodeFolding.CollapsedLineColor = clGrayText
+                CodeFolding.FolderBarLinesColor = clGrayText
+                CodeFolding.IndentGuidesColor = clGray
+                CodeFolding.IndentGuides = True
+                CodeFolding.ShowCollapsedLine = False
+                CodeFolding.ShowHintMark = True
+                UseCodeFolding = False
+                Gutter.Font.Charset = DEFAULT_CHARSET
+                Gutter.Font.Color = clWindowText
+                Gutter.Font.Height = -11
+                Gutter.Font.Name = 'Courier New'
+                Gutter.Font.Style = []
+                Gutter.Visible = False
+                Gutter.Width = 0
+                Highlighter = MainForm.SynSQLSynUsed
+                Lines.Strings = (
+                  '> NOW()')
+                Options = [eoAutoIndent, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoHideShowScrollbars, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabsToSpaces]
+                FontSmoothing = fsmNone
+              end
+            end
+          end
         end
         object tabSQLexport: TTabSheet
           Caption = 'SQL export'
@@ -330,7 +384,7 @@ object frmTableTools: TfrmTableTools
           ImageName = 'icons8-outgoing-data-100'
           DesignSize = (
             592
-            151)
+            164)
           object lblExportData: TLabel
             Left = 3
             Top = 50
@@ -500,7 +554,7 @@ object frmTableTools: TfrmTableTools
           ImageName = 'icons8-sheets-100'
           DesignSize = (
             592
-            151)
+            164)
           object chkBulkTableEditDatabase: TCheckBox
             Left = 3
             Top = 5
