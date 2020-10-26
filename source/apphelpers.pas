@@ -3518,7 +3518,7 @@ begin
   InitSetting(asWindowsAuth,                      'WindowsAuth',                           0, False, '', True);
   InitSetting(asLoginPrompt,                      'LoginPrompt',                           0, False, '', True);
   InitSetting(asPort,                             'Port',                                  0, False, '', True);
-  InitSetting(asLibrary,                          'Library',                               0, False, 'libmariadb.dll', True);
+  InitSetting(asLibrary,                          'Library',                               0, False, ''); // Gets its default in TConnectionParameters.Create
   InitSetting(asAllProviders,                     'AllProviders',                          0, False);
   InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, 'plink.exe');
   InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);

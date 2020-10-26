@@ -1293,7 +1293,7 @@ begin
     FPort := MakeInt(AppSettings.ReadString(asPort));
     FCompressed := AppSettings.ReadBool(asCompressed);
     FAllDatabases := AppSettings.ReadString(asDatabases);
-    FLibraryOrProvider := AppSettings.ReadString(asLibrary);
+    FLibraryOrProvider := AppSettings.ReadString(asLibrary, '', DefaultLibrary);
     FComment := AppSettings.ReadString(asComment);
 
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
