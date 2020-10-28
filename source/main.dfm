@@ -3499,6 +3499,12 @@ object MainForm: TMainForm
       ImageIndex = 122
       OnExecute = actCodeFoldingFoldSelectionExecute
     end
+    object actConnectionProperties: TAction
+      Category = 'Tools'
+      Caption = 'Connection properties'
+      ImageIndex = 135
+      OnExecute = actConnectionPropertiesExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -3624,6 +3630,9 @@ object MainForm: TMainForm
     end
     object menuRefreshDB: TMenuItem
       Action = actRefresh
+    end
+    object Connectionproperties1: TMenuItem
+      Action = actConnectionProperties
     end
     object Disconnect1: TMenuItem
       Action = actDisconnect

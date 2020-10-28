@@ -725,6 +725,8 @@ type
     actCodeFoldingFoldSelection: TAction;
     Foldselection1: TMenuItem;
     SetdelimiterusedinSQLexecution1: TMenuItem;
+    actConnectionProperties: TAction;
+    Connectionproperties1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1108,6 +1110,7 @@ type
     procedure actCodeFoldingStartRegionExecute(Sender: TObject);
     procedure actCodeFoldingEndRegionExecute(Sender: TObject);
     procedure actCodeFoldingFoldSelectionExecute(Sender: TObject);
+    procedure actConnectionPropertiesExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1345,10 +1348,8 @@ end;
 procedure TMainForm.StatusBarClick(Sender: TObject);
 var
   Click: TPoint;
-  i, j: Integer;
+  i: Integer;
   PanelRect: TRect;
-  Infos: TStringList;
-  InfoText: String;
 begin
   // Handle click events on specific statusbar panels
   Click := StatusBar.ScreenToClient(Mouse.CursorPos);
@@ -1357,16 +1358,7 @@ begin
     if PtInRect(PanelRect, Click) then begin
       // We found the clicked panel
       case i of
-        3: begin
-          if ActiveConnection <> nil then begin
-            Infos := ActiveConnection.ConnectionInfo;
-            InfoText := '';
-            for j:=0 to Infos.Count-1 do begin
-              InfoText := InfoText + Infos.Names[j] + ': ' + Infos.ValueFromIndex[j] + CRLF;
-            end;
-            MessageDialog(Trim(InfoText), mtInformation, [mbOK]);
-          end;
-        end;
+        3: actConnectionProperties.Execute;
       end;
       Break;
     end;
@@ -4791,6 +4783,25 @@ begin
 end;
 
 
+procedure TMainForm.actConnectionPropertiesExecute(Sender: TObject);
+var
+  Conn: TDBConnection;
+  i: Integer;
+  Infos: TStringList;
+  InfoText: String;
+begin
+  Conn := ActiveConnection;
+  if Conn <> nil then begin
+    Infos := Conn.ConnectionInfo;
+    InfoText := '';
+    for i:=0 to Infos.Count-1 do begin
+      InfoText := InfoText + Infos.Names[i] + ': ' + Infos.ValueFromIndex[i] + sLineBreak;
+    end;
+    MessageDialog(Trim(InfoText), mtInformation, [mbOK]);
+  end;
+end;
+
+
 procedure TMainForm.actCodeFoldingEndRegionExecute(Sender: TObject);
 var
   Memo: TSynMemo;
@@ -7218,6 +7229,7 @@ begin
     IsObject := Obj.NodeType in [lntTable..lntEvent];
     actCreateDatabase.Enabled := (Obj.NodeType = lntNone)
       and (Obj.Connection.Parameters.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL]);
+    actConnectionProperties.Enabled := Obj.NodeType = lntNone;
     actAttachDatabase.Visible := Obj.Connection.Parameters.IsAnySQLite;
     actAttachDatabase.Enabled := actAttachDatabase.Visible and (Obj.NodeType = lntNone);
     actCreateTable.Enabled := IsDb or IsObject or (Obj.GroupType = lntTable);
@@ -7241,6 +7253,7 @@ begin
   end else begin
     HasFocus := Assigned(ListTables.FocusedNode);
     actCreateDatabase.Enabled := False;
+    actConnectionProperties.Enabled := False;
     actAttachDatabase.Visible := False;
     actCreateTable.Enabled := True;
     actCreateView.Enabled := True;
