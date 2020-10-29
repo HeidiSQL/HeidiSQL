@@ -1462,6 +1462,8 @@ begin
       end;
     9: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT, True);
+      EnumEditor.AllowCustomText := True;
+      EnumEditor.ItemMustExist := True;
       EnumEditor.ValueList := TStringList.Create;
       EnumEditor.ValueList.Text := DBObject.Connection.CollationList.Text;
       EnumEditor.ValueList.Sort;
