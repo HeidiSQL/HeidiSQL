@@ -1299,30 +1299,36 @@ begin
       // Suggest length/set if required
       if (not Col.LengthCustomized) or (Col.DataType.RequiresLength and (Col.LengthSet = '')) then
         Col.LengthSet := Col.DataType.DefLengthSet;
-      // Auto-fix user selected default type which can be invalid now
-      case Col.DataType.Category of
-        dtcInteger: begin
-          Col.DefaultType := cdtExpression;
-          if Col.AllowNull then
-            Col.DefaultType := cdtNull
-          else
-            Col.DefaultText := IntToStr(MakeInt(Col.DefaultText));
-        end;
-        dtcReal: begin
-          Col.DefaultType := cdtExpression;
-          if Col.AllowNull then
-            Col.DefaultType := cdtNull
-          else
-            Col.DefaultText := FloatToStr(MakeFloat(Col.DefaultText));
-        end;
-        dtcText, dtcBinary, dtcSpatial, dtcOther: begin
-          Col.DefaultType := cdtText;
-          if Col.AllowNull then
-            Col.DefaultType := cdtNull;
-        end;
-        dtcTemporal: begin
-          if Col.DefaultType = cdtAutoinc then
-            Col.DefaultType := cdtNothing;
+      // Auto-change default type and text
+      if not Col.DataType.HasDefault then begin
+        Col.DefaultType := cdtNothing;
+        Col.DefaultText := '';
+      end else begin
+        // Auto-fix user selected default type which can be invalid now
+        case Col.DataType.Category of
+          dtcInteger: begin
+            Col.DefaultType := cdtExpression;
+            if Col.AllowNull then
+              Col.DefaultType := cdtNull
+            else
+              Col.DefaultText := IntToStr(MakeInt(Col.DefaultText));
+          end;
+          dtcReal: begin
+            Col.DefaultType := cdtExpression;
+            if Col.AllowNull then
+              Col.DefaultType := cdtNull
+            else
+              Col.DefaultText := FloatToStr(MakeFloat(Col.DefaultText));
+          end;
+          dtcText, dtcBinary, dtcSpatial, dtcOther: begin
+            Col.DefaultType := cdtText;
+            if Col.AllowNull then
+              Col.DefaultType := cdtNull;
+          end;
+          dtcTemporal: begin
+            if Col.DefaultType = cdtAutoinc then
+              Col.DefaultType := cdtNothing;
+          end;
         end;
       end;
 
