@@ -23,12 +23,12 @@ type
     procedure DisplaySortingControls(Sender: TObject);
   private
     { Private declarations }
-    ColumnNames : TStringList;
-    OrderColumns : TOrderColArray;
-    OldOrderClause : String;
-    procedure comboColumnsChange( Sender: TObject );
-    procedure btnOrderClick( Sender: TObject );
-    procedure btnDeleteClick( Sender: TObject );
+    FColumnNames: TStringList;
+    FOrderColumns: TOrderColArray;
+    FOldOrderClause: String;
+    procedure comboColumnsChange(Sender: TObject);
+    procedure btnOrderClick(Sender: TObject);
+    procedure btnDeleteClick(Sender: TObject);
     procedure Modified;
   public
     { Public declarations }
@@ -47,14 +47,14 @@ procedure TDataSortingForm.FormCreate(Sender: TObject);
 var
   i: Integer;
 begin
-  ColumnNames := TStringList.Create;
+  FColumnNames := TStringList.Create;
   // Take column names from listColumns and add here
   for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
-    ColumnNames.Add(Mainform.SelectedTableColumns[i].Name);
+    FColumnNames.Add(Mainform.SelectedTableColumns[i].Name);
   end;
 
-  OrderColumns := Mainform.DataGridSortColumns;
-  OldOrderClause := ComposeOrderClause(OrderColumns);
+  FOrderColumns := Copy(Mainform.DataGridSortColumns, 0, MaxInt);
+  FOldOrderClause := ComposeOrderClause(FOrderColumns);
 
   // First creation of controls
   DisplaySortingControls(Sender);
@@ -94,7 +94,7 @@ begin
   // Create line with controls for each order column
   // TODO: disable repaint on every created control. Sending WM_SETREDRAW=0 message creates artefacts.
   LockWindowUpdate(pnlBevel.Handle);
-  for i:=0 to Length(OrderColumns)-1 do begin
+  for i:=0 to Length(FOrderColumns)-1 do begin
     // 1. Label with number
     lblNumber := TLabel.Create(self);
     lblNumber.Parent := pnlBevel;
@@ -107,15 +107,15 @@ begin
     lblNumber.Caption := IntToStr(i+1) + '.';
     lblNumber.Tag := i+1;
 
-    // 2. Dropdown with columnnames
+    // 2. Dropdown with column names
     comboColumns := TComboBox.Create(self);
     comboColumns.Parent := pnlBevel;
     comboColumns.Width := Width2;
     comboColumns.Left := lblNumber.Left + lblNumber.Width + Margin;
     comboColumns.Top := TopPos;
-    comboColumns.Items.Text := ColumnNames.Text;
+    comboColumns.Items.Text := FColumnNames.Text;
     comboColumns.Style := csDropDownList; // Not editable
-    comboColumns.ItemIndex := ColumnNames.IndexOf(OrderColumns[i].ColumnName);
+    comboColumns.ItemIndex := FColumnNames.IndexOf(FOrderColumns[i].ColumnName);
     comboColumns.Tag := i+1;
     comboColumns.OnChange := comboColumnsChange;
     lblNumber.Height := comboColumns.Height;
@@ -131,7 +131,7 @@ begin
     btnOrder.GroupIndex := i+1; // if > 0 enables Down = True
     btnOrder.Glyph.Transparent := True;
     btnOrder.Glyph.AlphaFormat := afDefined;
-    if OrderColumns[i].SortDirection = ORDER_DESC then begin
+    if FOrderColumns[i].SortDirection = ORDER_DESC then begin
       MainForm.VirtualImageListMain.GetBitmap(110, btnOrder.Glyph);
       btnOrder.Down := True;
     end else begin
@@ -200,7 +200,7 @@ var
   combo : TComboBox;
 begin
   combo := Sender as TComboBox;
-  OrderColumns[combo.Tag-1].ColumnName := combo.Text;
+  FOrderColumns[combo.Tag-1].ColumnName := combo.Text;
 
   // Enables OK button
   Modified;
@@ -216,12 +216,12 @@ var
 begin
   btn := Sender as TSpeedButton;
   btn.Glyph := nil;
-  if OrderColumns[btn.Tag-1].SortDirection = ORDER_ASC then begin
+  if FOrderColumns[btn.Tag-1].SortDirection = ORDER_ASC then begin
     MainForm.VirtualImageListMain.GetBitmap(110, btn.Glyph);
-    OrderColumns[btn.Tag-1].SortDirection := ORDER_DESC;
+    FOrderColumns[btn.Tag-1].SortDirection := ORDER_DESC;
   end else begin
     MainForm.VirtualImageListMain.GetBitmap(109, btn.Glyph);
-    OrderColumns[btn.Tag-1].SortDirection := ORDER_ASC;
+    FOrderColumns[btn.Tag-1].SortDirection := ORDER_ASC;
   end;
 
   // Enables OK button
@@ -239,16 +239,16 @@ var
 begin
   btn := Sender as TButton;
 
-  if Length(OrderColumns)>1 then
+  if Length(FOrderColumns)>1 then
   begin
     // Move remaining items one up
-    for i := btn.Tag-1 to Length(OrderColumns) - 2 do
+    for i := btn.Tag-1 to Length(FOrderColumns) - 2 do
     begin
-      OrderColumns[i] := OrderColumns[i+1];
+      FOrderColumns[i] := FOrderColumns[i+1];
     end;
   end;
   // Delete last item
-  SetLength(OrderColumns, Length(OrderColumns)-1);
+  SetLength(FOrderColumns, Length(FOrderColumns)-1);
 
   // Refresh controls
   DisplaySortingControls(Sender);
@@ -266,27 +266,27 @@ var
   i, new : Integer;
   UnusedColumns : TStringList;
 begin
-  SetLength( OrderColumns, Length(OrderColumns)+1 );
-  new := Length(OrderColumns)-1;
-  OrderColumns[new] := TOrderCol.Create;
+  SetLength(FOrderColumns, Length(FOrderColumns)+1 );
+  new := Length(FOrderColumns)-1;
+  FOrderColumns[new] := TOrderCol.Create;
 
   // Take first unused column as default for new sort column
   UnusedColumns := TStringList.Create;
-  UnusedColumns.AddStrings( ColumnNames );
-  for i := 0 to Length(OrderColumns) - 1 do
+  UnusedColumns.AddStrings( FColumnNames );
+  for i := 0 to Length(FOrderColumns) - 1 do
   begin
-    if UnusedColumns.IndexOf(OrderColumns[i].ColumnName) > -1 then
+    if UnusedColumns.IndexOf(FOrderColumns[i].ColumnName) > -1 then
     begin
-      UnusedColumns.Delete( UnusedColumns.IndexOf(OrderColumns[i].ColumnName) );
+      UnusedColumns.Delete( UnusedColumns.IndexOf(FOrderColumns[i].ColumnName) );
     end;
   end;
   if UnusedColumns.Count > 0 then
-    OrderColumns[new].ColumnName := UnusedColumns[0]
+    FOrderColumns[new].ColumnName := UnusedColumns[0]
   else
-    OrderColumns[new].ColumnName := ColumnNames[0];
+    FOrderColumns[new].ColumnName := FColumnNames[0];
 
   // Sort ASC by default
-  OrderColumns[new].SortDirection := ORDER_ASC;
+  FOrderColumns[new].SortDirection := ORDER_ASC;
 
   // Refresh controls
   DisplaySortingControls(Sender);
@@ -302,7 +302,7 @@ end;
 }
 procedure TDataSortingForm.Modified;
 begin
-  btnOk.Enabled := ComposeOrderClause(OrderColumns) <> OldOrderClause;
+  btnOk.Enabled := ComposeOrderClause(FOrderColumns) <> FOldOrderClause;
 end;
 
 
@@ -312,7 +312,7 @@ end;
 procedure TDataSortingForm.btnOKClick(Sender: TObject);
 begin
   // TODO: apply ordering
-  Mainform.DataGridSortColumns := OrderColumns;
+  Mainform.DataGridSortColumns := FOrderColumns;
   InvalidateVT(Mainform.DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   btnCancel.OnClick(Sender);
 end;
