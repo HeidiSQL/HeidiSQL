@@ -367,7 +367,7 @@ type
   function RunningAsUwp: Boolean;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String): Boolean;
-  function ProcessExists(pid: Cardinal; ExeNameMatchesExpression: String=''): Boolean;
+  function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
 
 var
@@ -2940,12 +2940,11 @@ begin
 end;
 
 
-function ProcessExists(pid: Cardinal; ExeNameMatchesExpression: String=''): Boolean;
+function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
 var
   Proc: TProcessEntry32;
   SnapShot: THandle;
   ContinueLoop: Boolean;
-  rx: TRegExpr;
 begin
   // Check if a given process id exists
   SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
@@ -2953,26 +2952,7 @@ begin
   Result := False;
   ContinueLoop := Process32First(SnapShot, Proc);
   while ContinueLoop do begin
-    if Proc.th32ProcessID = pid then begin
-      // Found the process id, probably check if it matches a given pattern
-      if not ExeNameMatchesExpression.IsEmpty then begin
-        rx := TRegExpr.Create;
-        rx.ModifierI := True;
-        rx.Expression := ExeNameMatchesExpression;
-        try
-          Result := rx.Exec(Proc.szExeFile);
-        except
-          on E:Exception do begin
-            MainForm.LogSQL(E.Message, lcError);
-            Result := False;
-          end;
-        end;
-        rx.Free;
-      end else begin
-        // Pattern empty
-        Result := True;
-      end;
-    end;
+    Result := (Proc.th32ProcessID = pid) and ContainsText(Proc.szExeFile, ExeNamePattern);
     if Result then
       Break;
     ContinueLoop := Process32Next(SnapShot, Proc);

@@ -2361,7 +2361,6 @@ var
   pid: Cardinal;
   EditorHeight, HelpersWidth: Integer;
   BindParams: String;
-  ExeNameExpression: String;
 begin
   // Restore query tab setup from tabs.ini
   Result := True;
@@ -2372,11 +2371,6 @@ begin
 
     Sections := TStringList.Create;
     TabsIni.ReadSections(Sections);
-    ExeNameExpression := '(' +
-      QuoteRegExprMetaChars(ExtractFileName(Application.ExeName)) +
-      '|' +
-      QuoteRegExprMetaChars(APPNAME) +
-      ')';
 
     for Section in Sections do begin
 
@@ -2388,7 +2382,7 @@ begin
       BindParams := TabsIni.ReadString(Section, 'BindParams', '');
 
       // Don't restore this tab if it belongs to a different running Heidi process
-      if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid, ExeNameExpression) then begin
+      if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid, APPNAME) then begin
         LogSQL(IfThen(BackupFilename.IsEmpty, Filename, BackupFilename)+' loaded in process #'+pid.ToString);
         Continue;
       end;
