@@ -3333,11 +3333,11 @@ begin
     if (not Assigned(UrlHandle)) and FURL.StartsWith('https:', true) then begin
       // Try again without SSL. See issue #65 and #1209
       InsecureUrl := ReplaceRegExpr('^https:', FURL, 'http:');
-      MainForm.LogSQL(f_('Could not open %s (%s) - trying again without SSL...', [FURL, GetLastError]), lcError);
+      MainForm.LogSQL(f_('Could not open %s (%s) - trying again without SSL...', [FURL, SysErrorMessage(Windows.GetLastError)]), lcError);
       UrlHandle := InternetOpenURL(NetHandle, PChar(InsecureUrl), nil, 0, INTERNET_FLAG_RELOAD, 0);
     end;
     if not Assigned(UrlHandle) then begin
-      raise Exception.CreateFmt(_('Could not open %s (%s)'), [FURL, GetLastError]);
+      raise Exception.CreateFmt(_('Could not open %s (%s)'), [FURL, SysErrorMessage(Windows.GetLastError)]);
     end;
 
     // Detect content length
