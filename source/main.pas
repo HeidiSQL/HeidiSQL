@@ -13576,16 +13576,7 @@ begin
       CheckWebpage := THttpDownload.Create(MainForm);
       CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email);
       try
-        try
-          CheckWebpage.SendRequest('');
-        except
-          on E:Exception do begin
-            // Try again without SSL. See issue #65
-            LogSQL(E.Message, lcError);
-            CheckWebpage.URL := ReplaceRegExpr('^https:', CheckWebpage.URL, 'http:');
-            CheckWebpage.SendRequest('');
-          end;
-        end;
+        CheckWebpage.SendRequest('');
         CheckResult := CheckWebpage.LastContent;
         LogSQL('HTTP response: "'+CheckResult+'"', lcDebug);
         rx.Expression := '^\d';

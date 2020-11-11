@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-08-28 07:56+0200\n"
+"PO-Revision-Date: 2020-11-11 20:03+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -4352,8 +4352,11 @@ msgid "Save new %s?"
 msgstr "Save new %s?"
 
 #: helpers.pas:2821
-msgid "Could not open URL: %s"
-msgstr "Could not open URL: %s"
+msgid "Could not open %s (%s)"
+msgstr "Could not open %s (%s)"
+
+msgid "Could not open %s (%s) - trying again without SSL..."
+msgstr "Could not open %s (%s) - trying again without SSL..."
 
 #: helpers.pas:2829
 msgid "Server did not send required \"Content-Length\" header: %s"
