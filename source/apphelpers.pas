@@ -3312,7 +3312,6 @@ var
   UserAgent, OS: String;
   HttpStatus: Integer;
   ContentChunk: UTF8String;
-  InsecureUrl: String;
 begin
   DoStore := False;
   if MainForm.IsWine then
@@ -3332,9 +3331,9 @@ begin
     UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     if (not Assigned(UrlHandle)) and FURL.StartsWith('https:', true) then begin
       // Try again without SSL. See issue #65 and #1209
-      InsecureUrl := ReplaceRegExpr('^https:', FURL, 'http:');
       MainForm.LogSQL(f_('Could not open %s (%s) - trying again without SSL...', [FURL, SysErrorMessage(Windows.GetLastError)]), lcError);
-      UrlHandle := InternetOpenURL(NetHandle, PChar(InsecureUrl), nil, 0, INTERNET_FLAG_RELOAD, 0);
+      FURL := ReplaceRegExpr('^https:', FURL, 'http:');
+      UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     end;
     if not Assigned(UrlHandle) then begin
       raise Exception.CreateFmt(_('Could not open %s (%s)'), [FURL, SysErrorMessage(Windows.GetLastError)]);
