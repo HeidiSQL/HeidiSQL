@@ -1475,7 +1475,6 @@ begin
   // Select startup SQL file, SSL file or whatever button clicked
   Edit := Sender as TButtonedEdit;
   Selector := TOpenDialog.Create(Self);
-  //Selector.InitialDir := ?;
   if Edit = editHost then begin
     Selector.Filter := 'SQLite databases ('+FILEFILTER_SQLITEDB+')|'+FILEFILTER_SQLITEDB+'|'+_('All files')+' (*.*)|*.*';
     Selector.Options := Selector.Options - [ofFileMustExist];
@@ -1497,7 +1496,10 @@ begin
       break;
     end;
   end;
-
+  // Set initial directory to the one from the edit's file
+  Selector.InitialDir := ExtractFilePath(Edit.Text);
+  if Selector.InitialDir.IsEmpty then
+    Selector.InitialDir := AppSettings.DirnameUserDocuments;
   if Selector.Execute then begin
     FileNames := TStringList.Create;
     FileNames.Assign(Selector.Files);
