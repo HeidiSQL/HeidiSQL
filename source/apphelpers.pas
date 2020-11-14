@@ -2017,7 +2017,7 @@ begin
     // FreeMemory(Dat.lpData);
 
     // Bring first instance to front
-    if not IsWindowVisible(Wnd) then
+    if IsIconic(Wnd) then
       ShowWindow(Wnd, SW_RESTORE);
     BringWindowToTop(Wnd);
     SetForegroundWindow(Wnd);
