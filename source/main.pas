@@ -1875,6 +1875,8 @@ begin
   // Dynamically create actions and menuitems in "Copy as" context menu
   for ExportFormat:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
     CopyAsAction := TAction.Create(ActionList1);
+    CopyAsAction.ActionList := ActionList1;
+    CopyAsAction.Category := actExportData.Category;
     CopyAsAction.Name := TfrmExportGrid.CopyAsActionPrefix + Integer(ExportFormat).ToString;
     CopyAsAction.Caption := TfrmExportGrid.FormatToDescription[ExportFormat];
     CopyAsAction.ImageIndex := TfrmExportGrid.FormatToImageIndex[ExportFormat];
