@@ -623,8 +623,6 @@ type
     actGotoTab31: TMenuItem;
     actGotoTab41: TMenuItem;
     actGotoTab51: TMenuItem;
-    actCopyRows: TAction;
-    Copyselectedrows1: TMenuItem;
     actClearQueryLog: TAction;
     ControlBarMain: TControlBar;
     ImageCollectionIcons8: TImageCollection;
@@ -727,6 +725,7 @@ type
     SetdelimiterusedinSQLexecution1: TMenuItem;
     actConnectionProperties: TAction;
     Connectionproperties1: TMenuItem;
+    menuCopyAs: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1747,7 +1746,8 @@ procedure TMainForm.FormCreate(Sender: TObject);
 var
   i, j, MonitorIndex: Integer;
   QueryTab: TQueryTab;
-  Action: TAction;
+  Action, CopyAsAction: TAction;
+  ExportFormat: TGridExportFormat;
   dwInfoSize,           // Size of VERSIONINFO structure
   dwVerSize,            // Size of Version Info Data
   dwWnd: DWORD;         // Handle for the size call.
@@ -1755,6 +1755,7 @@ var
   ptrVerBuf: Pointer;
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
+  CopyAsMenu: TMenuItem;
   NTHandle: THandle;
   TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
@@ -1870,6 +1871,20 @@ begin
     end;
   end;
   FunctionCategories.Free;
+
+  // Dynamically create actions and menuitems in "Copy as" context menu
+  for ExportFormat:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
+    CopyAsAction := TAction.Create(ActionList1);
+    CopyAsAction.Name := TfrmExportGrid.CopyAsActionPrefix + Integer(ExportFormat).ToString;
+    CopyAsAction.Caption := TfrmExportGrid.FormatToDescription[ExportFormat];
+    CopyAsAction.ImageIndex := TfrmExportGrid.FormatToImageIndex[ExportFormat];
+    CopyAsAction.Tag := Integer(ExportFormat);
+    CopyAsAction.OnExecute := actCopyOrCutExecute;
+    CopyAsMenu := TMenuItem.Create(popupDataGrid);
+    CopyAsMenu.Action := CopyAsAction;
+    menuCopyAs.Add(CopyAsMenu);
+  end;
+
 
   Delimiter := AppSettings.ReadString(asDelimiter);
 
@@ -10868,8 +10883,9 @@ end;
 
 procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
-  Control: TWinControl;
+  CurrentControl: TWinControl;
   SendingControl: TComponent;
+  SenderName: String;
   Edit: TCustomEdit;
   Combo: TCustomComboBox;
   Grid: TVirtualStringTree;
@@ -10885,11 +10901,12 @@ var
   ExportDialog: TfrmExportGrid;
 begin
   // Copy text from a focused control to clipboard
-  Control := Screen.ActiveControl;
+  CurrentControl := Screen.ActiveControl;
+  SendingControl := TAction(Sender).ActionComponent;
+  SenderName := TAction(Sender).Name;
   DoCut := Sender = actCut;
-  DoCopyRows := Sender = actCopyRows;
+  DoCopyRows := SenderName.StartsWith(TfrmExportGrid.CopyAsActionPrefix);
   FClipboardHasNull := False;
-  SendingControl := (Sender as TAction).ActionComponent;
   Screen.Cursor := crHourglass;
   try
     if SendingControl = btnPreviewCopy then begin
@@ -10897,20 +10914,20 @@ begin
         imgPreview.Picture.SaveToClipBoardFormat(ClpFormat, ClpData, APalette);
         ClipBoard.SetAsHandle(ClpFormat, ClpData);
       end;
-    end else if Control is TCustomEdit then begin
-      Edit := TCustomEdit(Control);
+    end else if CurrentControl is TCustomEdit then begin
+      Edit := TCustomEdit(CurrentControl);
       if Edit.SelLength > 0 then begin
         if DoCut then Edit.CutToClipboard
         else Edit.CopyToClipboard;
       end;
-    end else if Control is TCustomComboBox then begin
-      Combo := TCustomComboBox(Control);
+    end else if CurrentControl is TCustomComboBox then begin
+      Combo := TCustomComboBox(CurrentControl);
       if Combo.SelLength > 0 then begin
         Clipboard.AsText := Combo.SelText;
         if DoCut then Combo.SelText := '';
       end;
-    end else if Control is TVirtualStringTree then begin
-      Grid := Control as TVirtualStringTree;
+    end else if CurrentControl is TVirtualStringTree then begin
+      Grid := CurrentControl as TVirtualStringTree;
       if Assigned(Grid.FocusedNode) then begin
         IsResultGrid := Grid = ActiveGrid;
         FGridCopying := True;
@@ -10938,8 +10955,8 @@ begin
           Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
         FGridCopying := False;
       end;
-    end else if Control is TSynMemo then begin
-      SynMemo := Control as TSynMemo;
+    end else if CurrentControl is TSynMemo then begin
+      SynMemo := CurrentControl as TSynMemo;
       if SynMemo.SelAvail then begin
         // Create both text and RTF clipboard format, so rich text applications can paste highlighted SQL
         Clipboard.Open;
@@ -10954,7 +10971,7 @@ begin
         Exporter.Free;
       end;
     end else begin
-      raise Exception.Create('Unhandled control in clipboard action: '+IfThen(Assigned(Control), Control.Name, 'nil'));
+      raise Exception.Create('Unhandled control in clipboard action: '+IfThen(Assigned(CurrentControl), CurrentControl.Name, 'nil'));
     end;
   except
     on E:Exception do begin
