@@ -616,7 +616,7 @@ begin
     // although it should do so according to TUTF8Encoding.GetPreamble.
     // Now, only newer Excel versions need that BOM, so we add it explicitly here
     S := TStringStream.Create(Header, Encoding);
-    if (ExportFormat = efExcel) and (Encoding = TEncoding.UTF8) then begin
+    if (ExportFormat = efExcel) and (Encoding = TEncoding.UTF8) and radioOutputFile.Checked then begin
       Bom := TBytes.Create($EF, $BB, $BF);
       S.Write(Bom, 3);
     end;
