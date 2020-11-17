@@ -1641,7 +1641,7 @@ end;
 procedure TSynSQLSyn.MinusProc;
 begin
   Inc(Run);
-  if (FLine[Run] = '-') and ((FDialect <> sqlMySQL) or (FLine[Run+1] = ' ')) then
+  if (FLine[Run] = '-') and ((FDialect <> sqlMySQL) or IsWhiteChar(FLine[Run+1])) then
   begin
     FTokenID := tkComment;
     repeat
