@@ -6164,6 +6164,10 @@ begin
         obj.NodeType := lntTrigger
       else if (tp = 'FN') or (tp = 'TF') or (tp = 'IF') then
         obj.NodeType := lntFunction;
+      // Set reasonable default value for calculation of export chunks. See #343
+      // OFFSET..FETCH supported from v11.0/2012
+      if ServerVersionInt >= 1100 then
+        obj.AvgRowLen := 10*SIZE_KB;
       Results.Next;
     end;
     FreeAndNil(Results);
@@ -6596,9 +6600,18 @@ begin
         // TOP(x) clause for UPDATES + DELETES introduced in MSSQL 2005
         if ServerVersionInt >= 900 then
           Result := Result + 'TOP('+IntToStr(Limit)+') ';
-      end else if QueryType = 'SELECT' then
-        Result := Result + 'TOP '+IntToStr(Limit)+' ';
-      Result := Result + QueryBody;
+        Result := Result + QueryBody;
+      end else if QueryType = 'SELECT' then begin
+        if ServerVersionInt >= 1100 then begin
+          Result := Result + QueryBody;
+          if not ContainsText(Result, ' ORDER BY ') then
+            Result := Result + ' ORDER BY 1'; // mandatory for using with OFFSET/FETCH
+          Result := Result + ' OFFSET '+Offset.ToString+' ROWS FETCH NEXT '+Limit.ToString+' ROWS ONLY';
+        end else begin
+          // OFFSET not supported in < 2012
+          Result := Result + 'TOP ' + IntToStr(Limit) + ' ' + QueryBody;
+        end;
+      end;
     end;
     ngMySQL: begin
       Result := Result + QueryBody + ' LIMIT ';
