@@ -726,6 +726,8 @@ type
     actConnectionProperties: TAction;
     Connectionproperties1: TMenuItem;
     menuCopyAs: TMenuItem;
+    actRenameTab: TAction;
+    Renametab1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1110,6 +1112,7 @@ type
     procedure actCodeFoldingEndRegionExecute(Sender: TObject);
     procedure actCodeFoldingFoldSelectionExecute(Sender: TObject);
     procedure actConnectionPropertiesExecute(Sender: TObject);
+    procedure actRenameTabExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2302,7 +2305,7 @@ end;
 procedure TMainForm.StoreTabs;
 var
   Tab: TQueryTab;
-  Section: String;
+  Section, TabCaption: String;
   Sections: TStringList;
   TabsIni: TIniFile;
   SectionTabExists: Boolean;
@@ -2319,10 +2322,16 @@ begin
 
       if Tab.Memo.GetTextLen > 0 then begin
         // Avoid writing the tabs.ini file if nothing was effectively changed
+        TabCaption := Tab.TabSheet.Caption;
+        TabCaption := TabCaption.Trim([' ','*']);
+        if ExecRegExpr('^'+QuoteRegExprMetaChars(_('Query')+' #')+'\d+$', TabCaption) then
+          TabCaption := '';
         if TabsIni.ReadString(Section, 'BackupFilename', '') <> Tab.MemoBackupFilename then
           TabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
         if TabsIni.ReadString(Section, 'Filename', '') <> Tab.MemoFilename then
           TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
+        if TabsIni.ReadString(Section, 'Caption', '') <> TabCaption then
+          TabsIni.WriteString(Section, 'Caption', TabCaption);
         if TabsIni.ReadInteger(Section, 'pid', 0) <> Integer(GetCurrentProcessId) then
           TabsIni.WriteInteger(Section, 'pid', Integer(GetCurrentProcessId));
         if TabsIni.ReadInteger(Section, 'EditorHeight', 0) <> Tab.pnlMemo.Height then
@@ -2373,7 +2382,7 @@ function TMainForm.RestoreTabs: Boolean;
 var
   Tab: TQueryTab;
   Sections: TStringList;
-  Section, Filename, BackupFilename: String;
+  Section, Filename, BackupFilename, TabCaption: String;
   TabsIni: TIniFile;
   pid: Cardinal;
   EditorHeight, HelpersWidth: Integer;
@@ -2393,6 +2402,7 @@ begin
 
       Filename := TabsIni.ReadString(Section, 'Filename', '');
       BackupFilename := TabsIni.ReadString(Section, 'BackupFilename', '');
+      TabCaption := TabsIni.ReadString(Section, 'Caption', '');
       pid := Cardinal(TabsIni.ReadInteger(Section, 'pid', 0));
       EditorHeight := TabsIni.ReadInteger(Section, 'EditorHeight', 0);
       HelpersWidth := TabsIni.ReadInteger(Section, 'HelpersWidth', 0);
@@ -2413,6 +2423,8 @@ begin
           Tab.LoadContents(BackupFilename, True, UTF8NoBOMEncoding);
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
+          if not TabCaption.IsEmpty then
+            SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
           if HelpersWidth > 50 then
@@ -2429,6 +2441,8 @@ begin
           Tab.Uid := Section;
           Tab.LoadContents(Filename, True, nil);
           Tab.MemoFilename := Filename;
+          if not TabCaption.IsEmpty then
+            SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
             Tab.Memo.Height := EditorHeight;
           if HelpersWidth > 50 then
@@ -11455,6 +11469,33 @@ begin
 end;
 
 
+procedure TMainForm.actRenameTabExecute(Sender: TObject);
+var
+  ClickedMenu: TMenu;
+  aPoint: TPoint;
+  PageIndex: Integer;
+  NewCaption: String;
+begin
+  // Rename query tab
+  try
+    ClickedMenu := GetClickedMenu(Sender);
+    aPoint := PageControlMain.ScreenToClient(TPopupMenu(ClickedMenu).PopupPoint);
+    PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
+    NewCaption := PageControlMain.Pages[PageIndex].Caption;
+    NewCaption := NewCaption.Trim([' ', '*']);
+    if InputQuery(_('Rename tab'), _('Enter new name'), NewCaption) then begin
+      SetTabCaption(PageIndex, NewCaption);
+      ValidateQueryControls(Sender);
+    end;
+  except
+    on E:Exception do begin
+      raise;
+      ErrorDialog(E.Message);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.popupMainTabsPopup(Sender: TObject);
 var
   aPoint: TPoint;
@@ -11464,6 +11505,7 @@ begin
   aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
   PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
   menuCloseTab.Enabled := IsQueryTab(PageIndex, False);
+  actRenameTab.Enabled := IsQueryTab(PageIndex, True);
 end;
 
 

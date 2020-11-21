@@ -3496,6 +3496,12 @@ object MainForm: TMainForm
       ImageIndex = 135
       OnExecute = actConnectionPropertiesExecute
     end
+    object actRenameTab: TAction
+      Category = 'File'
+      Caption = 'Rename tab'
+      ImageIndex = 58
+      OnExecute = actRenameTabExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -4270,6 +4276,9 @@ object MainForm: TMainForm
       Caption = 'Close query tab'
       ImageIndex = 133
       OnClick = menuCloseQueryTab
+    end
+    object Renametab1: TMenuItem
+      Action = actRenameTab
     end
   end
   object TimerFilterVT: TTimer
