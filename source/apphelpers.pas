@@ -319,7 +319,7 @@ type
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
-  procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+  procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True); overload;
   procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
   procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
@@ -1554,14 +1554,15 @@ begin
 end;
 
 
-procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True); overload;
 var
   OldFocus: PVirtualNode;
 begin
   if Node = VT.RootNode then
     Node := nil;
   OldFocus := VT.FocusedNode;
-  VT.ClearSelection;
+  if ClearSelection then
+    VT.ClearSelection;
   VT.FocusedNode := Node;
   VT.Selected[Node] := True;
   VT.ScrollIntoView(Node, False);
