@@ -4720,10 +4720,16 @@ var
   CanSave: TModalResult;
   OnlySelection: Boolean;
   SaveDialog: TSaveDialog;
+  QueryTab: TQueryTab;
+  DefaultFilename: String;
 begin
   // Save SQL
   CanSave := mrNo;
+  QueryTab := ActiveQueryTab;
   SaveDialog := TSaveDialog.Create(Self);
+  DefaultFilename := QueryTab.TabSheet.Caption;
+  DefaultFilename := DefaultFilename.Trim([' ', '*']);
+  SaveDialog.FileName := ValidFilename(DefaultFilename);
   SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
   if (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet) then begin
     SaveDialog.InitialDir := AppSettings.DirnameSnippets;
@@ -4746,9 +4752,9 @@ begin
   end;
   if CanSave = mrYes then begin
     OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
-    ActiveQueryTab.SaveContents(SaveDialog.FileName, OnlySelection);
+    QueryTab.SaveContents(SaveDialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i] = ActiveQueryTab then
+      if QueryTabs[i] = QueryTab then
         continue;
       if QueryTabs[i].MemoFilename = SaveDialog.FileName then
         QueryTabs[i].Memo.Modified := True;
@@ -8236,10 +8242,10 @@ begin
     // Determine free filename
     LogfilePattern := '%.6u.log';
     i := 1;
-    FFileNameSessionLog := LogDir + goodfilename(Format(LogfilePattern, [i]));
+    FFileNameSessionLog := LogDir + ValidFilename(Format(LogfilePattern, [i]));
     while FileExists(FFileNameSessionLog) do begin
       inc(i);
-      FFileNameSessionLog := LogDir + goodfilename(Format(LogfilePattern, [i]));
+      FFileNameSessionLog := LogDir + ValidFilename(Format(LogfilePattern, [i]));
     end;
 
     // Create file handle for writing
@@ -13914,7 +13920,7 @@ begin
     Result := '';
   end else begin
     Result := IncludeTrailingBackslash(AppSettings.DirnameBackups)
-      + goodfilename(Format(BACKUP_FILEPATTERN, [Uid]))
+      + ValidFilename(Format(BACKUP_FILEPATTERN, [Uid]))
       ;
   end;
 end;

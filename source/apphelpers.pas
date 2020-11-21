@@ -289,7 +289,7 @@ type
   function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
   function GetShellFolder(FolderId: TGUID): String;
-  function goodfilename( str: String ): String;
+  function ValidFilename(Str: String): String;
   function ExtractBaseFileName(FileName: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -799,13 +799,14 @@ end;
   @param string Filename
   @return string
 }
-function goodfilename( str: String ): String;
+function ValidFilename(Str: String): String;
 var
-  c : Char;
+  c: Char;
 begin
-  result := str;
-  for c in ['\', '/', ':', '*', '?', '"', '<', '>', '|'] do
-    result := StringReplace( result, c, '_', [rfReplaceAll] );
+  Result := Str;
+  for c in TPath.GetInvalidFileNameChars do begin
+    Result := StringReplace(Result, c, '_', [rfReplaceAll]);
+  end;
 end;
 
 
@@ -2696,12 +2697,12 @@ begin
   Arguments := TStringList.Create;
 
   if Assigned(DBObj) then begin
-    Arguments.Values['session'] := goodfilename(DBObj.Connection.Parameters.SessionName);
-    Arguments.Values['host'] := goodfilename(DBObj.Connection.Parameters.Hostname);
-    Arguments.Values['u'] := goodfilename(DBObj.Connection.Parameters.Username);
-    Arguments.Values['db'] := goodfilename(DBObj.Database);
+    Arguments.Values['session'] := ValidFilename(DBObj.Connection.Parameters.SessionName);
+    Arguments.Values['host'] := ValidFilename(DBObj.Connection.Parameters.Hostname);
+    Arguments.Values['u'] := ValidFilename(DBObj.Connection.Parameters.Username);
+    Arguments.Values['db'] := ValidFilename(DBObj.Database);
   end;
-  Arguments.Values['date'] := goodfilename(DateTimeToStr(Now));
+  Arguments.Values['date'] := ValidFilename(DateTimeToStr(Now));
   DecodeDateTime(Now, Year, Month, Day, Hour, Min, Sec, MSec);
   Arguments.Values['d'] := Format('%.2d', [Day]);
   Arguments.Values['m'] := Format('%.2d', [Month]);
