@@ -2123,6 +2123,9 @@ begin
     if Assigned(FLib.mysql_optionsv) then
       FLib.mysql_optionsv(FHandle, Integer(MYSQL_OPT_CONNECT_ATTR_ADD), 'program_name', APPNAME);
 
+    // Seems to be still required on some systems, for importing CSV files
+    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_LOCAL_INFILE), PAnsiChar('1'));
+
     Connected := FLib.mysql_real_connect(
       FHandle,
       PAnsiChar(Utf8Encode(FinalHost)),
