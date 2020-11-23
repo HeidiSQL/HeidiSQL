@@ -562,6 +562,11 @@ begin
   Value := '';
   OutStream := TMemoryStream.Create;
 
+  // Turns SQL errors into warnings, e.g. when providing an empty string for an integer column
+  if FConnection.Parameters.IsAnyMySQL then begin
+    FConnection.Query('/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='''' */');
+  end;
+
   MainForm.ShowStatusMsg(f_('Reading textfile (%s) ...', [FormatByteNumber(_GetFileSize(editFilename.Text))]));
   Contents := ReadTextfile(editFilename.Text, FFileEncoding);
   ContentLen := Length(Contents);
@@ -613,6 +618,10 @@ begin
   Contents := '';
   FreeAndNil(OutStream);
   RowCount := Max(RowCount-IgnoreLines, 0);
+
+  if FConnection.Parameters.IsAnyMySQL then begin
+    FConnection.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */');
+  end;
 end;
 
 
