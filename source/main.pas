@@ -459,7 +459,7 @@ type
     menuAutoRefresh: TMenuItem;
     popupMainTabs: TPopupMenu;
     menuNewQueryTab: TMenuItem;
-    menuCloseTab: TMenuItem;
+    menuCloseQueryTab: TMenuItem;
     actNewQueryTab: TAction;
     actCloseQueryTab: TAction;
     Newquerytab1: TMenuItem;
@@ -726,7 +726,8 @@ type
     actConnectionProperties: TAction;
     Connectionproperties1: TMenuItem;
     menuCopyAs: TMenuItem;
-    actRenameTab: TAction;
+    actRenameQueryTab: TAction;
+    menuRenameQueryTab: TMenuItem;
     Renametab1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
@@ -922,7 +923,7 @@ type
     procedure PageControlMainMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure actNewQueryTabExecute(Sender: TObject);
     procedure actCloseQueryTabExecute(Sender: TObject);
-    procedure menuCloseQueryTab(Sender: TObject);
+    procedure menuCloseQueryTabClick(Sender: TObject);
     procedure CloseQueryTab(PageIndex: Integer);
     procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
@@ -1112,7 +1113,8 @@ type
     procedure actCodeFoldingEndRegionExecute(Sender: TObject);
     procedure actCodeFoldingFoldSelectionExecute(Sender: TObject);
     procedure actConnectionPropertiesExecute(Sender: TObject);
-    procedure actRenameTabExecute(Sender: TObject);
+    procedure actRenameQueryTabExecute(Sender: TObject);
+    procedure menuRenameQueryTabClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -11465,7 +11467,7 @@ begin
 end;
 
 
-procedure TMainForm.menuCloseQueryTab(Sender: TObject);
+procedure TMainForm.menuCloseQueryTabClick(Sender: TObject);
 var
   aPoint: TPoint;
 begin
@@ -11475,30 +11477,37 @@ begin
 end;
 
 
-procedure TMainForm.actRenameTabExecute(Sender: TObject);
+procedure TMainForm.actRenameQueryTabExecute(Sender: TObject);
 var
-  ClickedMenu: TMenu;
   aPoint: TPoint;
   PageIndex: Integer;
   NewCaption: String;
 begin
   // Rename query tab
-  try
-    ClickedMenu := GetClickedMenu(Sender);
-    aPoint := PageControlMain.ScreenToClient(TPopupMenu(ClickedMenu).PopupPoint);
+  if Sender = menuRenameQueryTab then begin
+    aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
     PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
+  end else begin
+    PageIndex := PageControlMain.ActivePageIndex;
+  end;
+  if not IsQueryTab(PageIndex, True) then begin
+    // Action may have been triggered through shortcut, and active tab is not a query tab
+    MessageBeep(MB_ICONASTERISK);
+  end else begin
     NewCaption := PageControlMain.Pages[PageIndex].Caption;
     NewCaption := NewCaption.Trim([' ', '*']);
-    if InputQuery(_('Rename tab'), _('Enter new name'), NewCaption) then begin
+    if InputQuery(actRenameQueryTab.Caption, _('Enter new name'), NewCaption) then begin
       SetTabCaption(PageIndex, NewCaption);
       ValidateQueryControls(Sender);
     end;
-  except
-    on E:Exception do begin
-      raise;
-      ErrorDialog(E.Message);
-    end;
   end;
+end;
+
+
+procedure TMainForm.menuRenameQueryTabClick(Sender: TObject);
+begin
+  // Rename tab by click on menu item (not by shortcut!)
+  actRenameQueryTabExecute(Sender);
 end;
 
 
@@ -11510,8 +11519,12 @@ begin
   // Detect if there is a tab under mouse position
   aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
   PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
-  menuCloseTab.Enabled := IsQueryTab(PageIndex, False);
-  actRenameTab.Enabled := IsQueryTab(PageIndex, True);
+  menuCloseQueryTab.ImageIndex := actCloseQueryTab.ImageIndex;
+  menuCloseQueryTab.Caption := actCloseQueryTab.Caption;
+  menuCloseQueryTab.Enabled := IsQueryTab(PageIndex, False);
+  menuRenameQueryTab.ImageIndex := actRenameQueryTab.ImageIndex;
+  menuRenameQueryTab.Caption := actRenameQueryTab.Caption;
+  menuRenameQueryTab.Enabled := IsQueryTab(PageIndex, True);
 end;
 
 

@@ -369,7 +369,6 @@ type
   function ThemeIsDark(ThemeName: String): Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
-  function GetClickedMenu(Sender: TObject): TMenu;
 
 var
   AppSettings: TAppSettings;
@@ -2972,22 +2971,6 @@ begin
   chk.OnClick := nil;
   chk.Checked := State;
   chk.OnClick := ClickEvent;
-end;
-
-
-function GetClickedMenu(Sender: TObject): TMenu;
-var
-  ClickedControl: TComponent;
-begin
-  Result := nil;
-  if Sender is TAction then begin
-    ClickedControl := (Sender as TAction).ActionComponent;
-    if ClickedControl is TMenuItem then begin
-      Result := (ClickedControl as TMenuItem).GetParentMenu;
-    end;
-  end;
-  if Result = nil then
-    raise Exception.Create('Could not find menu from '+Sender.ClassName+' instance');
 end;
 
 

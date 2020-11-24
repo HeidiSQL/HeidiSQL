@@ -2115,6 +2115,9 @@ object MainForm: TMainForm
       object Closequerytab1: TMenuItem
         Action = actCloseQueryTab
       end
+      object Renametab1: TMenuItem
+        Action = actRenameQueryTab
+      end
       object Clear1: TMenuItem
         Action = actClearQueryEditor
       end
@@ -3496,11 +3499,11 @@ object MainForm: TMainForm
       ImageIndex = 135
       OnExecute = actConnectionPropertiesExecute
     end
-    object actRenameTab: TAction
+    object actRenameQueryTab: TAction
       Category = 'File'
-      Caption = 'Rename tab'
+      Caption = 'Rename query tab'
       ImageIndex = 58
-      OnExecute = actRenameTabExecute
+      OnExecute = actRenameQueryTabExecute
     end
   end
   object menuConnections: TPopupMenu
@@ -4272,13 +4275,15 @@ object MainForm: TMainForm
     object menuNewQueryTab: TMenuItem
       Action = actNewQueryTab
     end
-    object menuCloseTab: TMenuItem
+    object menuCloseQueryTab: TMenuItem
       Caption = 'Close query tab'
       ImageIndex = 133
-      OnClick = menuCloseQueryTab
+      OnClick = menuCloseQueryTabClick
     end
-    object Renametab1: TMenuItem
-      Action = actRenameTab
+    object menuRenameQueryTab: TMenuItem
+      Caption = 'Rename tab'
+      ImageIndex = 58
+      OnClick = menuRenameQueryTabClick
     end
   end
   object TimerFilterVT: TTimer
