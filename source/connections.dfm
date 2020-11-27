@@ -1005,6 +1005,9 @@ object connform: Tconnform
       ImageName = 'icons8-folder-other'
       OnClick = btnNewClick
     end
+    object Filter1: TMenuItem
+      Action = actFilter
+    end
   end
   object TimerStatistics: TTimer
     Interval = 60000
@@ -1092,6 +1095,17 @@ object connform: Tconnform
       ImageIndex = 72
       ImageName = 'icons8-database-symbol'
       OnClick = FindAddDatabaseFilesClick
+    end
+  end
+  object ActionListConnections: TActionList
+    Images = MainForm.VirtualImageListMain
+    Left = 112
+    Top = 208
+    object actFilter: TAction
+      Caption = 'Filter ...'
+      ImageIndex = 30
+      ShortCut = 16454
+      OnExecute = actFilterExecute
     end
   end
 end

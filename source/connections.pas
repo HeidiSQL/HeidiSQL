@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
   dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
-  System.Math;
+  System.Math, System.Actions, Vcl.ActnList;
 
 type
   Tconnform = class(TExtForm)
@@ -127,6 +127,9 @@ type
     menuAddDatabaseFiles: TMenuItem;
     lblIgnoreDatabasePattern: TLabel;
     editIgnoreDatabasePattern: TEdit;
+    ActionListConnections: TActionList;
+    actFilter: TAction;
+    Filter1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -188,6 +191,7 @@ type
     procedure ListSessionsBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure actFilterExecute(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -595,6 +599,11 @@ begin
   ListSessions.EditNode(NewNode, 0);
 end;
 
+
+procedure Tconnform.actFilterExecute(Sender: TObject);
+begin
+  editSearch.SetFocus;
+end;
 
 procedure Tconnform.btnDeleteClick(Sender: TObject);
 var
