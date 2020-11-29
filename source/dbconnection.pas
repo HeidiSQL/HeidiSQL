@@ -495,6 +495,7 @@ type
       property LastErrorMsg: String read GetLastErrorMsg;
       property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
+      property QuoteChar: Char read FQuoteChar;
       property QuoteChars: String read FQuoteChars;
       function ServerVersionStr: String;
       function ServerVersionInt: Integer;
@@ -4858,7 +4859,7 @@ begin
           end;
         end;
       end;
-      if (not MaxLen.IsEmpty) and (MaxLen <> Col.DataType.MaxTextLen) then
+      if (not MaxLen.IsEmpty) and (MaxLen <> Col.DataType.MaxSize.ToString) then
         Col.LengthSet := MaxLen;
     end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
@@ -9200,7 +9201,7 @@ begin
         InLiteral := not InLiteral;
     end;
     LengthSet := Copy(Source, ParenthLeft+1, i-2);
-    if LengthSet = DataType.MaxTextLen then
+    if LengthSet = DataType.MaxSize.ToString then
       LengthSet := '';
   end else begin
     LengthSet := '';

@@ -16,7 +16,7 @@ uses
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, options, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, VirtualTrees.HeaderPopup, VirtualTrees.Utils, Cromis.DirectoryWatch, SyncDB, gnugettext,
+  insertfiles, searchreplace, loaddata, copytable, csv_detector, VirtualTrees.HeaderPopup, VirtualTrees.Utils, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
@@ -1303,6 +1303,7 @@ type
     property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
     property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
     function SelectedTableFocusedColumn: TTableColumn;
+    property FormatSettings: TFormatSettings read FFormatSettings;
 end;
 
 
@@ -1344,6 +1345,11 @@ begin
       // while avoiding StatusBar.Repaint which refreshes all panels
       SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
       StatusBar.OnDrawPanel(StatusBar, StatusBar.Panels[PanelNr], PanelRect);
+      InvalidateRect(StatusBar.Handle, PanelRect, False);
+      // Alternatives:
+      //RedrawWindow(StatusBar.Handle, @PanelRect, 0, RDW_UPDATENOW);
+      //UpdateWindow(StatusBar.Handle);
+      //StatusBar.Repaint;
     end;
   end;
 end;
@@ -12227,6 +12233,8 @@ begin
   end;
   if Assigned(FTableToolsDialog) then
     Editors.Add(FTableToolsDialog.SynMemoFindText);
+  if Assigned(frmCsvDetector) then
+    Editors.Add(frmCsvDetector.SynMemoCreateTable);
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
@@ -13569,9 +13577,9 @@ end;
 procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
-  SetProgressPosition(0);
   SetProgressState(pbsNormal);
   ProgressBarStatus.Visible := True;
+  SetProgressPosition(0);
   ProgressBarStatus.Max := MaxValue;
 end;
 
@@ -13589,6 +13597,8 @@ end;
 procedure TMainForm.SetProgressPosition(Value: Integer);
 begin
   // Advance progress bar and task progress position
+  if not ProgressBarStatus.Visible then
+    LogSQL('Advancing hidden progress bar', lcError);
   try
     ProgressBarStatus.Position := Value;
   except

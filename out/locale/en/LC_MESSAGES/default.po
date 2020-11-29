@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-11-24 17:51+0100\n"
+"PO-Revision-Date: 2020-11-29 14:22+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6598,3 +6598,9 @@ msgstr "Rename query tab"
 
 msgid "Enter new name"
 msgstr "Enter new name"
+
+msgid "Analyzing %s rows..."
+msgstr "Analyzing %s rows..."
+
+msgid "New table"
+msgstr "New table"
