@@ -2289,7 +2289,7 @@ var
   );
 
 
-  MySqlFunctions: Array [0..374] of TMysqlFunction =
+  MySqlFunctions: Array [0..375] of TMysqlFunction =
   (
     (
       Name:         'BIT_COUNT';
@@ -3182,6 +3182,16 @@ var
         +'+-------------+'+sLineBreak
         +'| 09:49:08.09 |'+sLineBreak
         +'+-------------+'
+    ),
+
+    // Added by hand, for https://github.com/HeidiSQL/HeidiSQL/issues/74#issuecomment-559321533
+    // and again, for https://www.heidisql.com/forum.php?t=37278
+    (
+      Name:         'CURRENT_TIMESTAMP';
+      Declaration:  '()';
+      Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'CURRENT_TIMESTAMP and CURRENT_TIMESTAMP() are synonyms for NOW()'
     ),
 
     (
