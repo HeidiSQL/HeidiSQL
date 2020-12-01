@@ -6292,6 +6292,7 @@ begin
   actExecuteQuery.Enabled := HasConnection and InQueryTab and NotEmpty and (not Tab.QueryRunning);
   actExecuteSelection.Enabled := HasConnection and InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
+  actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actExplainAnalyzeCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
