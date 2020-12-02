@@ -3036,14 +3036,14 @@ var
   Batch: TSQLBatch;
   Tab: TQueryTab;
   BindParam: Integer;
-  NewSQL, msg, Command, SQLNoComments: String;
+  NewSQL, msg, Command, SQLNoComments, CurrentQuery: String;
   Query: TSQLSentence;
   rx: TRegExpr;
   ContainsUnsafeQueries, DoExecute: Boolean;
 begin
-  Screen.Cursor := crHourGlass;
   Tab := ActiveQueryTab;
   OperationRunning(True);
+  DoExecute := True;
 
   ShowStatusMsg(_('Splitting SQL queries ...'));
   Batch := TSQLBatch.Create;
@@ -3053,14 +3053,20 @@ begin
   end else if Sender = actExecuteCurrentQuery then begin
     Batch.SQL := GetCurrentQuery(Tab);
   end else if Sender = actExplainCurrentQuery then begin
-    Batch.SQL := 'EXPLAIN ' + GetCurrentQuery(Tab);
+    CurrentQuery := GetCurrentQuery(Tab);
+    if CurrentQuery.Trim.IsEmpty then begin
+      ErrorDialog(_('Current query is empty'), _('Please move the cursor inside the query you want to use.'));
+      DoExecute := False;
+    end else begin
+      Batch.SQL := 'EXPLAIN ' + CurrentQuery;
+    end;
   end else begin
     Batch.SQL := Tab.Memo.Text;
     Tab.LeftOffsetInMemo := 0;
   end;
 
   // Check if there is bind parameters
-  if tab.ListBindParams.Count > 0 then begin
+  if (tab.ListBindParams.Count > 0) and DoExecute then begin
     NewSQL := Batch.SQL;
 	  // Replace all parameters by their values
 	  // by descending to avoid having problems with similar variables name (eg test & test1)
@@ -3077,8 +3083,7 @@ begin
     Batch.SQL := NewSQL;
   end;
 
-  DoExecute := True;
-  if AppSettings.ReadBool(asWarnUnsafeUpdates) then begin
+  if AppSettings.ReadBool(asWarnUnsafeUpdates) and DoExecute then begin
     ShowStatusMsg(_('Checking queries for unsafe UPDATEs/DELETEs ...'));
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -3094,7 +3099,6 @@ begin
     end;
     rx.Free;
     if ContainsUnsafeQueries then begin
-      Screen.Cursor := crDefault;
       msg := _('Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re doing.');
       DoExecute := MessageDialog(_('Run unsafe queries without a WHERE clause?'), msg, mtConfirmation, [mbYes, mbNo], asWarnUnsafeUpdates) = mrYes;
     end;
@@ -3448,13 +3452,13 @@ end;
 procedure TMainForm.actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
 var
   Conn: TDBConnection;
-  SQL: String;
+  CurrentQuery: String;
 begin
   // Send EXPLAIN output to analyzer
   Conn := ActiveConnection;
-  SQL := GetCurrentQuery(ActiveQueryTab);
+  CurrentQuery := GetCurrentQuery(ActiveQueryTab);
   try
-    Conn.ExplainAnalyzer(SQL, Conn.Database);
+    Conn.ExplainAnalyzer(CurrentQuery, Conn.Database);
   except
     on E:EDbError do
       ErrorDialog(E.Message);

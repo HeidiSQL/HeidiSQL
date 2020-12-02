@@ -5764,6 +5764,9 @@ begin
   // Send EXPLAIN output to MariaDB.org
   Result := True;
   Database := DatabaseName;
+  if SQL.Trim.IsEmpty then begin
+    raise EDbError.Create(_('Please move the cursor inside the query you want to use.'));
+  end;
   Results := GetResults('EXPLAIN '+SQL);
   Raw := '+' + CRLF + '|';
   for i:=0 to Results.ColumnCount-1 do begin
