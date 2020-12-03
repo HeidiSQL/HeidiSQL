@@ -431,7 +431,8 @@ const
     Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
-    MaxSize:         Int64; // TEXT and BLOB allow custom length, but we want to leave the default max length away from ALTER TABLE's
+    MaxSize:         Int64;
+    DefaultSize:     Int64;   // TEXT and BLOB allow custom length, but we want to leave the default max length away from ALTER TABLE's
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     LoadPart:        Boolean; // Select per SUBSTR() or LEFT()
@@ -936,6 +937,7 @@ var
       HasLength:       True;
       RequiresLength:  False;
       MaxSize:         65535;
+      DefaultSize:     65535;
       HasBinary:       True;
       HasDefault:      False;
       LoadPart:        True;
@@ -1055,6 +1057,7 @@ var
       HasLength:       True;
       RequiresLength:  False;
       MaxSize:         65535;
+      DefaultSize:     65535;
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        True;

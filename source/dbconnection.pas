@@ -4859,7 +4859,7 @@ begin
           end;
         end;
       end;
-      if (not MaxLen.IsEmpty) and (MaxLen <> Col.DataType.MaxSize.ToString) then
+      if (not MaxLen.IsEmpty) and (MaxLen <> Col.DataType.DefaultSize.ToString) then
         Col.LengthSet := MaxLen;
     end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
@@ -9204,7 +9204,7 @@ begin
         InLiteral := not InLiteral;
     end;
     LengthSet := Copy(Source, ParenthLeft+1, i-2);
-    if LengthSet = DataType.MaxSize.ToString then
+    if LengthSet = DataType.DefaultSize.ToString then
       LengthSet := '';
   end else begin
     LengthSet := '';
