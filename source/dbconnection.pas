@@ -57,9 +57,9 @@ type
   PTableColumn = ^TTableColumn;
   TTableColumnList = class(TObjectList<TTableColumn>)
     public
-      Loaded: Boolean;
       procedure Assign(Source: TTableColumnList);
   end;
+  TColumnCache = TDictionary<String,TTableColumnList>;
 
   TTableKey = class(TPersistent)
     const
@@ -85,9 +85,9 @@ type
   end;
   TTableKeyList = class(TObjectList<TTableKey>)
     public
-      Loaded: Boolean;
       procedure Assign(Source: TTableKeyList);
   end;
+  TKeyCache = TDictionary<String,TTableKeyList>;
 
   // Helper object to manage foreign keys in a TObjectList
   TForeignKey = class(TPersistent)
@@ -105,9 +105,9 @@ type
   end;
   TForeignKeyList = class(TObjectList<TForeignKey>)
     public
-      Loaded: Boolean;
       procedure Assign(Source: TForeignKeyList);
   end;
+  TForeignKeyCache = TDictionary<String,TForeignKeyList>;
 
   TRoutineParam = class(TObject)
     public
@@ -121,9 +121,6 @@ type
       FCreateCodeLoaded: Boolean;
       FWasSelected: Boolean;
       FConnection: TDBConnection;
-      FTableColumns: TTableColumnList;
-      FTableKeys: TTableKeyList;
-      FTableForeignKeys: TForeignKeyList;
       function GetObjType: String;
       function GetImageIndex: Integer;
       function GetOverlayImageIndex: Integer;
@@ -172,12 +169,15 @@ type
       FLargestObjectSize: Int64;
       FLastUpdate: TDateTime;
       FCollation: String;
+      FOnlyNodeType: TListNodeType;
+      FObjectsLoaded: Boolean;
     public
       property Database: String read FDatabase;
       property DataSize: Int64 read FDataSize;
       property LargestObjectSize: Int64 read FLargestObjectSize;
       property LastUpdate: TDateTime read FLastUpdate;
       property Collation: String read FCollation;
+      property OnlyNodeType: TListNodeType read FOnlyNodeType;
   end;
   TDatabaseCache = class(TObjectList<TDBObjectList>); // A list of db object lists, used for caching
   TDBObjectComparer = class(TComparer<TDBObject>)
@@ -394,6 +394,9 @@ type
       FSessionVariables: TDBQuery;
       FInformationSchemaObjects: TStringList;
       FDatabaseCache: TDatabaseCache;
+      FColumnCache: TColumnCache;
+      FKeyCache: TKeyCache;
+      FForeignKeyCache: TForeignKeyCache;
       FCurrentUserHostCombination: String;
       FAllUserHostCombinations: TStringList;
       FLockedByThread: TThread;
@@ -1780,6 +1783,9 @@ begin
   FIsUnicode := False;
   FIsSSL := False;
   FDatabaseCache := TDatabaseCache.Create(True);
+  FColumnCache := TColumnCache.Create;
+  FKeyCache := TKeyCache.Create;
+  FForeignKeyCache := TForeignKeyCache.Create;
   FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
@@ -4810,6 +4816,7 @@ var
   dt, SchemaClause, DefText, ExtraText, MaxLen: String;
 begin
   // Generic: query table columns from IS.COLUMNS
+  Log(lcDebug, 'Getting fresh columns for '+Table.QuotedDbAndTableName);
   Result := TTableColumnList.Create(True);
   TableIdx := InformationSchemaObjects.IndexOf('columns');
   if Table.Schema <> '' then
@@ -5818,8 +5825,12 @@ begin
   FreeAndNil(FSessionVariables);
   FreeAndNil(FTableEngines);
   FreeAndNil(FInformationSchemaObjects);
-  if IncludeDBObjects then
+  if IncludeDBObjects then begin
     ClearAllDbObjects;
+    FColumnCache.Clear;
+    FKeyCache.Clear;
+    FForeignKeyCache.Clear;
+  end;
   FTableEngineDefault := '';
   FCurrentUserHostCombination := '';
   FThreadID := 0;
@@ -5891,54 +5902,105 @@ end;
 
 function TDBConnection.GetDbObjects(db: String; Refresh: Boolean=False; OnlyNodeType: TListNodeType=lntNone): TDBObjectList;
 var
-  Cache: TDBObjectList;
-  i: Integer;
+  CacheAllTypes, TempList: TDBObjectList;
+  i, j, ObjIndex: Integer;
+  DbObjectCopy: TDBObject;
 begin
   // Cache and return a db's table list
-  if Refresh then
-    ClearDbObjects(db);
 
-  // Find list in cache
-  Cache := nil;
+  // Find all-types list in cache
+  CacheAllTypes := nil;
   for i:=0 to FDatabaseCache.Count-1 do begin
-    if FDatabaseCache[i].Database = db then begin
-      Cache := FDatabaseCache[i];
+    if (FDatabaseCache[i].Database = db) and (FDatabaseCache[i].OnlyNodeType=lntNone) then begin
+      CacheAllTypes := FDatabaseCache[i];
+      Break;
+    end;
+  end;
+
+  // First time creation of all-types list
+  if CacheAllTypes = nil then begin
+    CacheAllTypes := TDBObjectList.Create(TDBObjectComparer.Create, True);
+    CacheAllTypes.FOnlyNodeType := lntNone;
+    CacheAllTypes.FDatabase := db;
+    CacheAllTypes.FObjectsLoaded := False;
+    FDatabaseCache.Add(CacheAllTypes);
+  end;
+  // Fill all-types list if not yet fetched
+  if (not CacheAllTypes.FObjectsLoaded) or Refresh then begin
+    TempList := TDBObjectList.Create(TDBObjectComparer.Create, False);
+    FetchDbObjects(db, TempList);
+    // Find youngest last update
+    for i:=0 to TempList.Count-1 do begin
+      TempList.FLastUpdate := Max(TempList.FLastUpdate, Max(TempList[i].Updated, TempList[i].Created));
+    end;
+    // Sort list like it get sorted in AnyGridCompareNodes
+    TempList.Sort;
+
+    CacheAllTypes.FLargestObjectSize := TempList.FLargestObjectSize;
+    CacheAllTypes.FLastUpdate := TempList.FLastUpdate;
+    CacheAllTypes.FDataSize := TempList.FDataSize;
+    CacheAllTypes.FObjectsLoaded := True;
+    // Assign templist properties to existing objects and add non existing
+    for i:=0 to TempList.Count-1 do begin
+      ObjIndex := -1;
+      for j:=0 to CacheAllTypes.Count-1 do begin
+        if CacheAllTypes[j].IsSameAs(TempList[i]) then begin
+          ObjIndex := j;
+          Break;
+        end;
+      end;
+      if ObjIndex > -1 then
+        CacheAllTypes[ObjIndex].Assign(TempList[i])
+      else
+        CacheAllTypes.Add(TempList[i]);
+    end;
+    // Delete no longer existing
+    for i:=0 to CacheAllTypes.Count-1 do begin
+      ObjIndex := -1;
+      for j:=0 to TempList.Count-1 do begin
+        if TempList[j].IsSameAs(CacheAllTypes[i]) then begin
+          ObjIndex := j;
+          Break;
+        end;
+      end;
+      if ObjIndex = -1 then
+        CacheAllTypes.Delete(i);
+    end;
+    // Free list, clear detail caches and call change event
+    TempList.Free;
+    FColumnCache.Clear;
+    FKeyCache.Clear;
+    FForeignKeyCache.Clear;
+    if Assigned(FOnObjectnamesChanged) then
+      FOnObjectnamesChanged(Self, db);
+  end;
+
+  // Now we can see if we already have a result with the right type.
+  // All-types list is already there, so this first loop should find it.
+  Result := nil;
+  for i:=0 to FDatabaseCache.Count-1 do begin
+    if (FDatabaseCache[i].Database = db) and (FDatabaseCache[i].OnlyNodeType=OnlyNodeType) then begin
+      Result := FDatabaseCache[i];
       break;
     end;
   end;
-
-  // Fill cache if not yet fetched
-  if not Assigned(Cache) then begin
-    Cache := TDBObjectList.Create(TDBObjectComparer.Create);
-    Cache.OwnsObjects := True;
-    Cache.FLastUpdate := 0;
-    Cache.FDataSize := 0;
-    Cache.FDatabase := db;
-    FetchDbObjects(db, Cache);
-    // Find youngest last update
-    for i:=0 to Cache.Count-1 do
-      Cache.FLastUpdate := Max(Cache.FLastUpdate, Max(Cache[i].Updated, Cache[i].Created));
-    // Sort list like it get sorted in AnyGridCompareNodes
-    Cache.Sort;
-    // Add list of objects in this database to cached list of all databases
-    FDatabaseCache.Add(Cache);
-    if Assigned(FOnObjectnamesChanged) then
-      FOnObjectnamesChanged(Self, FDatabase);
-  end;
-
-  if OnlyNodeType = lntNone then begin
-    Result := Cache;
-  end else begin
-    Result := TDBObjectList.Create(TDBObjectComparer.Create);
-    Result.OwnsObjects := False;
-    Result.FLastUpdate := Cache.FLastUpdate;
-    Result.FDataSize := Cache.FDataSize;
-    Result.FDatabase := Cache.FDatabase;
-    Result.FCollation := Cache.FCollation;
-    for i:=0 to Cache.Count-1 do begin
-      if Cache[i].NodeType = OnlyNodeType then
-        Result.Add(Cache[i]);
+  // Certain-types list not yet in cache. Create and cache it
+  if Result = nil then begin
+    Result := TDBObjectList.Create(TDBObjectComparer.Create, True);
+    Result.FOnlyNodeType := OnlyNodeType;
+    Result.FLastUpdate := CacheAllTypes.FLastUpdate;
+    Result.FDataSize := CacheAllTypes.FDataSize;
+    Result.FObjectsLoaded := True;
+    Result.FDatabase := CacheAllTypes.FDatabase;
+    Result.FCollation := CacheAllTypes.FCollation;
+    for i:=0 to CacheAllTypes.Count-1 do begin
+      if CacheAllTypes[i].NodeType = OnlyNodeType then begin
+        DbObjectCopy := TDBObject.Create(Self);
+        DbObjectCopy.Assign(CacheAllTypes[i]);
+        Result.Add(DbObjectCopy);
+      end;
     end;
+    FDatabaseCache.Add(Result);
   end;
 end;
 
@@ -8609,12 +8671,6 @@ begin
   FCreateCode := '';
   FCreateCodeLoaded := False;
   FConnection := OwnerConnection;
-  FTableColumns := TTableColumnList.Create;
-  FTableColumns.Loaded := False;
-  FTableKeys := TTableKeyList.Create;
-  FTableKeys.Loaded := False;
-  FTableForeignKeys := TForeignKeyList.Create;
-  FTableForeignKeys.Loaded := False;
 end;
 
 
@@ -8640,9 +8696,6 @@ begin
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
     FCreateCodeLoaded := s.FCreateCodeLoaded;
-    FTableColumns.Assign(s.FTableColumns);
-    FTableKeys.Assign(s.FTableKeys);
-    FTableForeignKeys.Assign(s.FTableForeignKeys);
   end else
     inherited;
 end;
@@ -8650,12 +8703,12 @@ end;
 
 procedure TDBObject.UnloadDetails;
 begin
-  FTableColumns.Clear;
-  FTableColumns.Loaded := False;
-  FTableKeys.Clear;
-  FTableKeys.Loaded := False;
-  FTableForeignKeys.Clear;
-  FTableForeignKeys.Loaded := False;
+  if FConnection.FColumnCache.ContainsKey(QuotedDbAndTableName) then
+    FConnection.FColumnCache.Remove(QuotedDbAndTableName);
+  if FConnection.FKeyCache.ContainsKey(QuotedDbAndTableName) then
+    FConnection.FKeyCache.Remove(QuotedDbAndTableName);
+  if FConnection.FForeignKeyCache.ContainsKey(QuotedDbAndTableName) then
+    FConnection.FForeignKeyCache.Remove(QuotedDbAndTableName);
   FCreateCode := '';
   FCreateCodeLoaded := False;
 end;
@@ -8873,86 +8926,41 @@ end;
 
 function TDBObject.GetTableColumns: TTableColumnList;
 var
-  Db: TDBObjectList;
-  Table: TDBObject;
+  ColumnsInCache: TTableColumnList;
 begin
   // Return columns from table object
-  if not FTableColumns.Loaded then begin
-    for Db in Connection.FDatabaseCache do begin
-      for Table in Db do begin
-        if (Table <> Self) and Table.IsSameAs(Self) then begin
-          FConnection.Log(lcDebug, 'Getting columns from cached '+Table.QuotedDbAndTableName);
-          FTableColumns := Table.GetTableColumns;
-          Break;
-        end;
-      end;
-      if FTableColumns.Loaded then
-        Break;
-    end;
-    if not FTableColumns.Loaded then begin
-      FConnection.Log(lcDebug, 'Getting fresh columns for '+QuotedDbAndTableName);
-      FTableColumns := Connection.GetTableColumns(Self);
-      FTableColumns.Loaded := True;
-    end;
+  if not FConnection.FColumnCache.ContainsKey(QuotedDbAndTableName) then begin
+    FConnection.FColumnCache.Add(QuotedDbAndTableName, Connection.GetTableColumns(Self));
   end;
+  FConnection.FColumnCache.TryGetValue(QuotedDbAndTableName, ColumnsInCache);
   Result := TTableColumnList.Create;
-  Result.Assign(FTableColumns);
+  Result.Assign(ColumnsInCache);
 end;
 
 function TDBObject.GetTableKeys: TTableKeyList;
 var
-  Db: TDBObjectList;
-  DbObj: TDBObject;
+  KeysInCache: TTableKeyList;
 begin
   // Return keys from table object
-  if not FTableKeys.Loaded then begin
-    for Db in Connection.FDatabaseCache do begin
-      for DbObj in Db do begin
-        if (DbObj <> Self) and DbObj.IsSameAs(Self) then begin
-          FConnection.Log(lcDebug, 'Getting keys from database cache for '+QuotedDbAndTableName);
-          FTableKeys := Dbobj.GetTableKeys;
-          Break;
-        end;
-      end;
-      if FTableKeys.Loaded then
-        Break;
-    end;
-    if not FTableKeys.Loaded then begin
-      FConnection.Log(lcDebug, 'Getting fresh keys for '+QuotedDbAndTableName);
-      FTableKeys := Connection.GetTableKeys(Self);
-      FTableKeys.Loaded := True;
-    end;
+  if not FConnection.FKeyCache.ContainsKey(QuotedDbAndTableName) then begin
+    FConnection.FKeyCache.Add(QuotedDbAndTableName, Connection.GetTableKeys(Self));
   end;
+  FConnection.FKeyCache.TryGetValue(QuotedDbAndTableName, KeysInCache);
   Result := TTableKeyList.Create;
-  Result.Assign(FTableKeys);
+  Result.Assign(KeysInCache);
 end;
 
 function TDBObject.GetTableForeignKeys: TForeignKeyList;
 var
-  Db: TDBObjectList;
-  DbObj: TDBObject;
+  ForeignKeysInCache: TForeignKeyList;
 begin
   // Return foreign keys from table object
-  if not FTableForeignKeys.Loaded then begin
-    for Db in Connection.FDatabaseCache do begin
-      for DbObj in Db do begin
-        if (DbObj <> Self) and DbObj.IsSameAs(Self) then begin
-          FConnection.Log(lcDebug, 'Getting foreign keys from database cache for '+QuotedDbAndTableName);
-          FTableForeignKeys := Dbobj.GetTableForeignKeys;
-          Break;
-        end;
-      end;
-      if FTableForeignKeys.Loaded then
-        Break;
-    end;
-    if not FTableForeignKeys.Loaded then begin
-      FConnection.Log(lcDebug, 'Getting fresh foreign keys for '+QuotedDbAndTableName);
-      FTableForeignKeys := Connection.GetTableForeignKeys(Self);
-      FTableForeignKeys.Loaded := True;
-    end;
+  if not FConnection.FForeignKeyCache.ContainsKey(QuotedDbAndTableName) then begin
+    FConnection.FForeignKeyCache.Add(QuotedDbAndTableName, Connection.GetTableForeignKeys(Self));
   end;
+  FConnection.FForeignKeyCache.TryGetValue(QuotedDbAndTableName, ForeignKeysInCache);
   Result := TForeignKeyList.Create;
-  Result.Assign(FTableForeignKeys);
+  Result.Assign(ForeignKeysInCache);
 end;
 
 
@@ -9245,7 +9253,6 @@ begin
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
-  Loaded := Source.Loaded;
 end;
 
 
@@ -9346,7 +9353,6 @@ begin
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
-  Loaded := Source.Loaded;
 end;
 
 
@@ -9440,7 +9446,6 @@ begin
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
-  Loaded := Source.Loaded;
 end;
 
 
