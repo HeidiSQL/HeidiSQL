@@ -2982,6 +2982,11 @@ object MainForm: TMainForm
       ShortCut = 16468
       OnExecute = actNewQueryTabExecute
     end
+    object actNewQueryTabNofocus: TAction
+      Category = 'File'
+      Caption = 'New query tab in background'
+      OnExecute = actNewQueryTabExecute
+    end
     object actCloseQueryTab: TAction
       Category = 'File'
       Caption = 'Close query tab'

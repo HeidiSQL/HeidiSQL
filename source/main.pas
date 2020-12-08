@@ -57,6 +57,16 @@ type
   end;
   TResultTabs = TObjectList<TResultTab>;
   TQueryTab = class(TComponent)
+    const
+      IdentBackupFilename = 'BackupFilename';
+      IdentFilename = 'Filename';
+      IdentCaption = 'Caption';
+      IdentPid = 'pid';
+      IdentEditorHeight = 'EditorHeight';
+      IdentHelpersWidth = 'HelpersWidth';
+      IdentBindParams = 'BindParams';
+      IdentEditorTopLine = 'EditorTopLine';
+      IdentTabFocused = 'TabFocused';
     private
       FMemo: TSynMemo;
       FMemoFilename: String;
@@ -729,6 +739,7 @@ type
     actRenameQueryTab: TAction;
     menuRenameQueryTab: TMenuItem;
     Renametab1: TMenuItem;
+    actNewQueryTabNofocus: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -930,7 +941,7 @@ type
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
     function ActiveQueryTab: TQueryTab;
-    function GetOrCreateEmptyQueryTab: TQueryTab;
+    function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
     function GetQueryTabByNumber(Number: Integer): TQueryTab;
     function GetQueryTabByHelpers(FindTree: TBaseVirtualTree): TQueryTab;
     function ActiveQueryMemo: TSynMemo;
@@ -2270,7 +2281,7 @@ begin
   // Load SQL file(s) by command line
   if not RunQueryFiles(FileNames, nil, false) then begin
     for i:=0 to FileNames.Count-1 do begin
-      Tab := GetOrCreateEmptyQueryTab;
+      Tab := GetOrCreateEmptyQueryTab(False);
       Tab.LoadContents(FileNames[i], True, nil);
       if i = FileNames.Count-1 then
         SetMainTab(Tab.TabSheet);
@@ -2328,27 +2339,29 @@ begin
       Tab.BackupUnsavedContent;
       Section := Tab.Uid;
 
-      if Tab.Memo.GetTextLen > 0 then begin
-        // Avoid writing the tabs.ini file if nothing was effectively changed
-        TabCaption := Tab.TabSheet.Caption;
-        TabCaption := TabCaption.Trim([' ','*']);
-        if ExecRegExpr('^'+QuoteRegExprMetaChars(_('Query')+' #')+'\d+$', TabCaption) then
-          TabCaption := '';
-        if TabsIni.ReadString(Section, 'BackupFilename', '') <> Tab.MemoBackupFilename then
-          TabsIni.WriteString(Section, 'BackupFilename', Tab.MemoBackupFilename);
-        if TabsIni.ReadString(Section, 'Filename', '') <> Tab.MemoFilename then
-          TabsIni.WriteString(Section, 'Filename', Tab.MemoFilename);
-        if TabsIni.ReadString(Section, 'Caption', '') <> TabCaption then
-          TabsIni.WriteString(Section, 'Caption', TabCaption);
-        if TabsIni.ReadInteger(Section, 'pid', 0) <> Integer(GetCurrentProcessId) then
-          TabsIni.WriteInteger(Section, 'pid', Integer(GetCurrentProcessId));
-        if TabsIni.ReadInteger(Section, 'EditorHeight', 0) <> Tab.pnlMemo.Height then
-          TabsIni.WriteInteger(Section, 'EditorHeight', Tab.pnlMemo.Height);
-        if TabsIni.ReadInteger(Section, 'HelpersWidth', 0) <> Tab.pnlHelpers.Width then
-          TabsIni.WriteInteger(Section, 'HelpersWidth', Tab.pnlHelpers.Width);
-        if TabsIni.ReadString(Section, 'BindParams', '') <> Tab.ListBindParams.AsText then
-          TabsIni.WriteString(Section, 'BindParams', Tab.ListBindParams.AsText);
-      end;
+      // Avoid writing the tabs.ini file if nothing was effectively changed
+      TabCaption := Tab.TabSheet.Caption;
+      TabCaption := TabCaption.Trim([' ','*']);
+      if ExecRegExpr('^'+QuoteRegExprMetaChars(_('Query')+' #')+'\d+$', TabCaption) then
+        TabCaption := '';
+      if TabsIni.ReadString(Section, TQueryTab.IdentBackupFilename, '') <> Tab.MemoBackupFilename then
+        TabsIni.WriteString(Section, TQueryTab.IdentBackupFilename, Tab.MemoBackupFilename);
+      if TabsIni.ReadString(Section, TQueryTab.IdentFilename, '') <> Tab.MemoFilename then
+        TabsIni.WriteString(Section, TQueryTab.IdentFilename, Tab.MemoFilename);
+      if TabsIni.ReadString(Section, TQueryTab.IdentCaption, '') <> TabCaption then
+        TabsIni.WriteString(Section, TQueryTab.IdentCaption, TabCaption);
+      if TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0) <> Integer(GetCurrentProcessId) then
+        TabsIni.WriteInteger(Section, TQueryTab.IdentPid, Integer(GetCurrentProcessId));
+      if TabsIni.ReadInteger(Section, TQueryTab.IdentEditorHeight, 0) <> Tab.pnlMemo.Height then
+        TabsIni.WriteInteger(Section, TQueryTab.IdentEditorHeight, Tab.pnlMemo.Height);
+      if TabsIni.ReadInteger(Section, TQueryTab.IdentHelpersWidth, 0) <> Tab.pnlHelpers.Width then
+        TabsIni.WriteInteger(Section, TQueryTab.IdentHelpersWidth, Tab.pnlHelpers.Width);
+      if TabsIni.ReadString(Section, TQueryTab.IdentBindParams, '') <> Tab.ListBindParams.AsText then
+        TabsIni.WriteString(Section, TQueryTab.IdentBindParams, Tab.ListBindParams.AsText);
+      if TabsIni.ReadInteger(Section, TQueryTab.IdentEditorTopLine, 1) <> Tab.Memo.TopLine then
+        TabsIni.WriteInteger(Section, TQueryTab.IdentEditorTopLine, Tab.Memo.TopLine);
+      if TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False) <> (Tab.TabSheet = Tab.TabSheet.PageControl.ActivePage) then
+        TabsIni.WriteBool(Section, TQueryTab.IdentTabFocused, (Tab.TabSheet = Tab.TabSheet.PageControl.ActivePage));
     end;
 
     // Tabs with deleted backup files don't get restored anyway. But a section from a closed user loaded tab
@@ -2365,7 +2378,7 @@ begin
         end;
       end;
       // Delete tab section if tab was closed and section belongs to this app instance
-      pid := Cardinal(TabsIni.ReadInteger(Section, 'pid', 0));
+      pid := Cardinal(TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0));
       if (not SectionTabExists) and (pid = GetCurrentProcessId) then begin
         TabsIni.EraseSection(Section);
       end;
@@ -2393,8 +2406,9 @@ var
   Section, Filename, BackupFilename, TabCaption: String;
   TabsIni: TIniFile;
   pid: Cardinal;
-  EditorHeight, HelpersWidth: Integer;
+  EditorHeight, HelpersWidth, EditorTopLine: Integer;
   BindParams: String;
+  TabFocused: Boolean;
 begin
   // Restore query tab setup from tabs.ini
   Result := True;
@@ -2408,13 +2422,15 @@ begin
 
     for Section in Sections do begin
 
-      Filename := TabsIni.ReadString(Section, 'Filename', '');
-      BackupFilename := TabsIni.ReadString(Section, 'BackupFilename', '');
-      TabCaption := TabsIni.ReadString(Section, 'Caption', '');
-      pid := Cardinal(TabsIni.ReadInteger(Section, 'pid', 0));
-      EditorHeight := TabsIni.ReadInteger(Section, 'EditorHeight', 0);
-      HelpersWidth := TabsIni.ReadInteger(Section, 'HelpersWidth', 0);
-      BindParams := TabsIni.ReadString(Section, 'BindParams', '');
+      Filename := TabsIni.ReadString(Section, TQueryTab.IdentFilename, '');
+      BackupFilename := TabsIni.ReadString(Section, TQueryTab.IdentBackupFilename, '');
+      TabCaption := TabsIni.ReadString(Section, TQueryTab.IdentCaption, '');
+      pid := Cardinal(TabsIni.ReadInteger(Section, TQueryTab.IdentPid, 0));
+      EditorHeight := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorHeight, 0);
+      HelpersWidth := TabsIni.ReadInteger(Section, TQueryTab.IdentHelpersWidth, 0);
+      BindParams := TabsIni.ReadString(Section, TQueryTab.IdentBindParams, '');
+      EditorTopLine := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorTopLine, 1);
+      TabFocused := TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False);
 
       // Don't restore this tab if it belongs to a different running Heidi process
       if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid, APPNAME) then begin
@@ -2426,7 +2442,7 @@ begin
       // Both of them may not exist.
       if not BackupFilename.IsEmpty then begin
         if FileExists(BackupFilename) then begin
-          Tab := GetOrCreateEmptyQueryTab;
+          Tab := GetOrCreateEmptyQueryTab(False);
           Tab.Uid := Section;
           Tab.LoadContents(BackupFilename, True, UTF8NoBOMEncoding);
           Tab.MemoFilename := Filename;
@@ -2439,13 +2455,16 @@ begin
             Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
+          Tab.Memo.TopLine := EditorTopLine;
+          if TabFocused then
+            SetMainTab(Tab.TabSheet);
         end else begin
           // Remove tab section if backup file is gone or inaccessible for some reason
           TabsIni.EraseSection(Section);
         end;
       end else if not Filename.IsEmpty then begin
         if FileExists(Filename) then begin
-          Tab := GetOrCreateEmptyQueryTab;
+          Tab := GetOrCreateEmptyQueryTab(False);
           Tab.Uid := Section;
           Tab.LoadContents(Filename, True, nil);
           Tab.MemoFilename := Filename;
@@ -2457,6 +2476,9 @@ begin
             Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
+          Tab.Memo.TopLine := EditorTopLine;
+          if TabFocused then
+            SetMainTab(Tab.TabSheet);
         end else begin
           // Remove tab section if user stored file was deleted by user
           TabsIni.EraseSection(Section);
@@ -3842,7 +3864,7 @@ begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
     if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
       for i:=0 to Dialog.Files.Count-1 do begin
-        Tab := GetOrCreateEmptyQueryTab;
+        Tab := GetOrCreateEmptyQueryTab(False);
         Tab.LoadContents(Dialog.Files[i], True, Encoding);
         if i = Dialog.Files.Count-1 then
           SetMainTab(Tab.TabSheet);
@@ -4975,9 +4997,8 @@ begin
   FileList := TStringList.Create;
   FileList.Add(Filename);
   if not RunQueryFiles(FileList, nil, false) then begin
-    Tab := GetOrCreateEmptyQueryTab;
+    Tab := GetOrCreateEmptyQueryTab(True);
     Tab.LoadContents(Filename, True, nil);
-    SetMainTab(Tab.TabSheet);
   end;
   FileList.Free;
 end;
@@ -7026,7 +7047,7 @@ begin
   // query-memo - load their contents into seperate tabs
   if not RunQueryFiles(AFiles, nil, False) then begin
     for i:=0 to AFiles.Count-1 do begin
-      Tab := GetOrCreateEmptyQueryTab;
+      Tab := GetOrCreateEmptyQueryTab(True);
       Tab.LoadContents(AFiles[i], False, nil);
     end;
   end;
@@ -11454,7 +11475,9 @@ begin
   SetupSynEditors;
 
   // Show new tab
-  SetMainTab(QueryTab.TabSheet);
+  if Sender <> actNewQueryTabNofocus then begin
+    SetMainTab(QueryTab.TabSheet);
+  end;
 end;
 
 
@@ -11856,7 +11879,7 @@ begin
 end;
 
 
-function TMainForm.GetOrCreateEmptyQueryTab: TQueryTab;
+function TMainForm.GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
 var
   i: Integer;
 begin
@@ -11865,19 +11888,22 @@ begin
   // or c) create a new one
   // Result should never be nil, unlike in ActiveQueryTab
   Result := nil;
+  // Search empty tab
+  for i:=0 to QueryTabs.Count-1 do begin
+    if (QueryTabs[i].MemoFilename='') and (QueryTabs[i].Memo.GetTextLen=0) then begin
+      Result := QueryTabs[i];
+      if DoFocus then
+        SetMainTab(Result.TabSheet);
+      Break;
+    end;
+  end;
+  // Create new tab
   if Result = nil then begin
-    // Search empty tab
-    for i:=0 to QueryTabs.Count-1 do begin
-      if (QueryTabs[i].MemoFilename='') and (QueryTabs[i].Memo.GetTextLen=0) then begin
-        Result := QueryTabs[i];
-        break;
-      end;
-    end;
-    // Create new tab
-    if Result = nil then begin
-      actNewQueryTabExecute(Self);
-      Result := QueryTabs[QueryTabs.Count-1];
-    end;
+    if DoFocus then
+      actNewQueryTabExecute(actNewQueryTab)
+    else
+      actNewQueryTabExecute(actNewQueryTabNofocus);
+    Result := QueryTabs[QueryTabs.Count-1];
   end;
 end;
 
@@ -12086,8 +12112,13 @@ var
   MsgButtons: TMsgDlgButtons;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
-  // Unhide tabsheet so the user sees the memo content
-  Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
+
+  // Unhide tabsheet so the user sees the memo content.
+  // If the dialog is suppressed anyway, the user does not need to see the text, and we avoid
+  // storing this as the focused tab
+  if AppSettings.ReadBool(asPromptSaveFileOnTabClose) then begin
+    Tab.TabSheet.PageControl.ActivePage := Tab.TabSheet;
+  end;
 
   // Prompt for saving unsaved contents
   if Tab.MemoFilename <> '' then
@@ -12565,7 +12596,7 @@ begin
     ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
     if not RunQueryFiles(FileNames, nil, False) then begin
       for i:=0 to FileNames.Count-1 do begin
-        Tab := GetOrCreateEmptyQueryTab;
+        Tab := GetOrCreateEmptyQueryTab(True);
         Tab.LoadContents(FileNames[i], True, nil);
       end;
     end;
