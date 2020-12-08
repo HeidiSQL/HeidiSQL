@@ -9352,6 +9352,8 @@ var
   TableNames, ProcNames: TStringList;
 begin
   // Tell SQL highlighter about names of tables and procedures in selected database
+  if (ActiveConnection <> Connection) or (Database <> Connection.Database) then
+    Exit;
   SynSQLSynUsed.TableNames.Clear;
   SynSQLSynUsed.ProcNames.Clear;
   if Connection.DbObjectsCached(Database) then begin
