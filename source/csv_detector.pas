@@ -217,7 +217,7 @@ var
   Value: TGridValue;
   Col: TTableColumn;
   i, j, k: Integer;
-  UnknownTypeYet, ValueIsInteger, ValueIsFloat, ValueIsText: Boolean;
+  UnknownTypeYet, IsInteger, IsFloat, IsDate, IsDatetime, IsText: Boolean;
   ValueSize, TypeSize: Int64;
   FloatValue: Extended;
   LoopType: TDBDatatype;
@@ -249,20 +249,39 @@ begin
     for j:=0 to Rows[i].Count-1 do begin
       Value := Rows[i][j];
       Col := Result[j];
-      ValueIsInteger := IntToStr(StrToInt64Def(Value.OldText, -1)) = Value.OldText;
+
+      // Detect data type of current value
+
+      IsInteger := IntToStr(StrToInt64Def(Value.OldText, -1)) = Value.OldText;
+
       FloatValue := StrToFloatDef(Value.OldText, -1, MainForm.FormatSettings);
-      ValueIsFloat := Value.OldText.Contains('.');
-      if ValueIsFloat then begin
+      IsFloat := Value.OldText.Contains('.');
+      if IsFloat then begin
         for k:=1 to Length(Value.OldText) do begin
-          ValueIsFloat := ValueIsFloat and CharInSet(Value.OldText[k], FloatChars);
-          if not ValueIsFloat then
+          IsFloat := IsFloat and CharInSet(Value.OldText[k], FloatChars);
+          if not IsFloat then
             Break;
         end;
       end;
-      // Todo: date, datetime (really?)
-      ValueIsText := (not ValueIsInteger) and (not ValueIsFloat);
 
-      ValueSize := IfThen(ValueIsInteger, StrToInt64Def(Value.OldText, -1), Length(Value.OldText));
+      { Using StrToDateTimeDef allows values like '2020-12-08 foo'
+      IsDate := (not IsInteger) and (not IsFloat)
+        and (StrToDateDef(Value.OldText, MaxDateTime) <> MaxDateTime);
+      IsDatetime := (not IsInteger) and (not IsFloat)
+        and (StrToDateTimeDef(Value.OldText, MaxDateTime) <> MaxDateTime);}
+      IsDate := (not IsInteger) and (not IsFloat)
+        and ExecRegExpr('^\d{4}-\d{2}-\d{2}$', Value.OldText);
+      IsDatetime := (not IsInteger) and (not IsFloat)
+        and ExecRegExpr('^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}$', Value.OldText);
+
+      IsText := (not IsInteger) and (not IsFloat) and (not IsDate) and (not IsDatetime);
+
+      ValueSize := IfThen(IsInteger, StrToInt64Def(Value.OldText, -1), Length(Value.OldText));
+
+      //MainForm.LogSQL(Format('Value:"%s" IsInteger:%d IsFloat:%d IsDate:%d IsDateTime:%d IsText:%d',
+      //  [Value.OldText, IsInteger.ToInteger, IsFloat.ToInteger, IsDate.ToInteger, IsDatetime.ToInteger, IsText.ToInteger]), lcDebug);
+
+      // Now, find a fitting data type for this column
 
       for k:=Low(FConnection.Datatypes) to High(FConnection.Datatypes) do begin
 
@@ -272,7 +291,7 @@ begin
           Col.AllowNull := True;
 
         // Integer types
-        if (LoopType.Category = dtcInteger) and ValueIsInteger and (UnknownTypeYet or (Col.DataType.Category = dtcInteger)) then begin
+        if (LoopType.Category = dtcInteger) and IsInteger and (UnknownTypeYet or (Col.DataType.Category = dtcInteger)) then begin
           if (ValueSize > Col.DataType.MaxSize) and (ValueSize <= LoopType.MaxSize)
             then begin
             Col.DataType := LoopType;
@@ -280,7 +299,7 @@ begin
         end;
 
         // Float types
-        if (LoopType.Category = dtcReal) and ValueIsFloat and (UnknownTypeYet or (Col.DataType.Category = dtcReal)) then begin
+        if (LoopType.Category = dtcReal) and IsFloat and (UnknownTypeYet or (Col.DataType.Category = dtcReal)) then begin
           if (ValueSize > Col.DataType.MaxSize) and (ValueSize <= LoopType.MaxSize)
             then begin
             Col.DataType := LoopType;
@@ -289,8 +308,17 @@ begin
           end;
         end;
 
+        // Datetime type
+        if IsDatetime and (UnknownTypeYet or (Col.DataType.Index in [dtDate, dtDatetime])) and (LoopType.Index = dtDatetime) then begin
+          Col.DataType := LoopType;
+        end;
+        // Date type
+        if IsDate and (UnknownTypeYet or (Col.DataType.Index = dtDate)) and (LoopType.Index = dtDate) then begin
+          Col.DataType := LoopType;
+        end;
+
         // Text types - fall back here if nothing else matches
-        if (LoopType.Category = dtcText) and ValueIsText then begin
+        if (LoopType.Category = dtcText) and IsText then begin
           if ((not Col.LengthSet.IsEmpty) and (ValueSize > StrToInt64Def(Col.LengthSet, 0)))
             or ((ValueSize > Col.DataType.MaxSize) and (ValueSize <= LoopType.MaxSize))
             or (Col.DataType.Category <> LoopType.Category)
