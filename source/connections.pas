@@ -933,6 +933,7 @@ begin
     PageControlDetails.ActivePage := tabSettings;
 
     SelectedNetType := Sess.NetType;
+    FLastSelectedNetTypeGroup := Sess.NetTypeGroup;
     editHost.Text := Sess.Hostname;
     editUsername.Text := Sess.Username;
     editPassword.Text := Sess.Password;
