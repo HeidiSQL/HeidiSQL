@@ -279,7 +279,7 @@ type
       function IsAnyPostgreSQL: Boolean;
       function IsAnySQLite: Boolean;
       function IsMariaDB: Boolean;
-      function IsMySQL: Boolean;
+      function IsMySQL(StrictDetect: Boolean): Boolean;
       function IsPercona: Boolean;
       function IsTokudb: Boolean;
       function IsInfiniDB: Boolean;
@@ -1419,80 +1419,52 @@ end;
 
 
 function TConnectionParameters.NetTypeName(LongFormat: Boolean): String;
-var
-  Prefix: String;
+const
+  PrefixMysql = 'MariaDB or MySQL';
+  PrefixProxysql = 'ProxySQL Admin';
+  PrefixMssql = 'Microsoft SQL Server';
+  PrefixPostgres = 'PostgreSQL';
+  PrefixRedshift = 'Redshift PG';
+  PrefixSqlite = 'SQLite';
 begin
   // Return the name of a net type, either in short or long format
-  case NetTypeGroup of
-    ngMySQL: begin
-      if IsMariaDB then
-        Prefix := 'MariaDB'
-      else if IsPercona then
-        Prefix := 'Percona'
-      else if IsTokudb then
-        Prefix := 'TokuDB'
-      else if IsInfiniDB then
-        Prefix := 'InfiniDB'
-      else if IsInfobright then
-        Prefix := 'Infobright'
-      else if IsMemSQL then
-        Prefix := 'MemSQL'
-      else if IsProxySQLAdmin then
-        Prefix := 'ProxySQL Admin'
-      else if ContainsText(ServerVersion, 'mysql') then
-        Prefix := 'MySQL'
-      else
-        Prefix := 'MariaDB or MySQL';
-    end;
-    ngMSSQL: begin
-      Prefix := 'Microsoft SQL Server';
-    end;
-    ngPgSQL: begin
-      if IsRedshift then
-        Prefix := 'Redshift PG'
-      else
-        Prefix := 'PostgreSQL';
-    end;
-    ngSQLite: begin
-      Prefix := 'SQLite';
-    end;
-  end;
+  Result := 'Unknown';
 
-  case LongFormat of
-    True: case FNetType of
-      ntMySQL_TCPIP:
-        Result := Prefix+' (TCP/IP)';
-      ntMySQL_NamedPipe:
-        Result := Prefix+' (named pipe)';
-      ntMySQL_SSHtunnel:
-        Result := Prefix+' (SSH tunnel)';
-      ntMySQL_ProxySQLAdmin:
-        Result := Prefix+' (Experimental)';
-      ntMSSQL_NamedPipe:
-        Result := Prefix+' (named pipe)';
-      ntMSSQL_TCPIP:
-        Result := Prefix+' (TCP/IP)';
-      ntMSSQL_SPX:
-        Result := Prefix+' (SPX/IPX)';
-      ntMSSQL_VINES:
-        Result := Prefix+' (Banyan VINES)';
-      ntMSSQL_RPC:
-        Result := Prefix+' (Windows RPC)';
-      ntPgSQL_TCPIP:
-        Result := Prefix+' (TCP/IP)';
-      ntPgSQL_SSHtunnel:
-        Result := Prefix+' (SSH tunnel)';
-      ntSQLite:
-        Result := Prefix+' (Experimental)';
-      else
-        Result := Prefix;
+  if LongFormat then begin
+    case FNetType of
+      ntMySQL_TCPIP:            Result := PrefixMysql+' (TCP/IP)';
+      ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
+      ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
+      ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
+      ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
+      ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
+      ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX)';
+      ntMSSQL_VINES:            Result := PrefixMssql+' (Banyan VINES)';
+      ntMSSQL_RPC:              Result := PrefixMssql+' (Windows RPC)';
+      ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
+      ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
+      ntSQLite:                 Result := PrefixSqlite+' (Experimental)';
     end;
-
-    False: case NetTypeGroup of
-      ngMSSQL:
-        Result := 'MS SQL';
-      else
-        Result := Prefix;
+  end
+  else begin
+    case NetTypeGroup of
+      ngMySQL: begin
+        if IsMariaDB then              Result := 'MariaDB'
+        else if IsPercona then         Result := 'Percona'
+        else if IsTokudb then          Result := 'TokuDB'
+        else if IsInfiniDB then        Result := 'InfiniDB'
+        else if IsInfobright then      Result := 'Infobright'
+        else if IsMemSQL then          Result := 'MemSQL'
+        else if IsProxySQLAdmin then   Result := 'ProxySQL Admin'
+        else if IsMySQL(True) then     Result := 'MySQL'
+        else                           Result := PrefixMysql;
+      end;
+      ngMSSQL:                         Result := 'MS SQL';
+      ngPgSQL: begin
+        if IsRedshift then             Result := PrefixRedshift
+        else                           Result := PrefixPostgres;
+      end;
+      ngSQLite:                        Result := PrefixSqlite;
     end;
   end;
 end;
@@ -1556,16 +1528,20 @@ begin
 end;
 
 
-function TConnectionParameters.IsMySQL: Boolean;
+function TConnectionParameters.IsMySQL(StrictDetect: Boolean): Boolean;
 begin
-  Result := IsAnyMySQL
-    and (not IsMariaDB)
-    and (not IsPercona)
-    and (not IsTokudb)
-    and (not IsInfiniDB)
-    and (not IsInfobright)
-    and (not IsProxySQLAdmin)
-    and (not IsMemSQL);
+  if StrictDetect then begin
+    Result := IsAnyMySQL and ContainsText(ServerVersion, 'mysql');
+  end else begin
+    Result := IsAnyMySQL
+      and (not IsMariaDB)
+      and (not IsPercona)
+      and (not IsTokudb)
+      and (not IsInfiniDB)
+      and (not IsInfobright)
+      and (not IsProxySQLAdmin)
+      and (not IsMemSQL);
+  end;
 end;
 
 
@@ -4862,7 +4838,7 @@ begin
     Result := Result or ((ServerVersionInt < 100201) and (not Value.StartsWith('CURRENT_TIMESTAMP', True)));
     // Inexact fallback detection, wrong if MariaDB allows "0+1" as expression at some point
     Result := Result or Value.IsEmpty or IsInt(Value[1]);
-  end else if FParameters.IsMySQL then begin
+  end else if FParameters.IsMySQL(False) then begin
     // Only MySQL case with expression in default value is as follows:
     if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
       Result := False;

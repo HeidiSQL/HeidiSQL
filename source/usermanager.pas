@@ -581,8 +581,8 @@ begin
           // http://dev.mysql.com/doc/refman/5.7/en/show-grants.html
           // As of MySQL 5.7.6, SHOW GRANTS output does not include IDENTIFIED BY PASSWORD clauses.
           // Use the SHOW CREATE USER statement instead. See Section 14.7.5.12, "SHOW CREATE USER Syntax".
-          if (FConnection.Parameters.IsMySQL and (FConnection.ServerVersionInt < 50706))
-            or (not FConnection.Parameters.IsMySQL) then begin
+          if (FConnection.Parameters.IsMySQL(False) and (FConnection.ServerVersionInt < 50706))
+            or (not FConnection.Parameters.IsMySQL(False)) then begin
             if not FAdded then begin
               editPassword.TextHint := FConnection.UnescapeString(rxGrant.Match[10]);
               // Set password for changed user, to silence the error message about invalid length
