@@ -1439,7 +1439,7 @@ begin
         Prefix := 'MemSQL'
       else if IsProxySQLAdmin then
         Prefix := 'ProxySQL Admin'
-      else if IsMySQL then
+      else if ContainsText(ServerVersion, 'mysql') then
         Prefix := 'MySQL'
       else
         Prefix := 'MariaDB or MySQL';
