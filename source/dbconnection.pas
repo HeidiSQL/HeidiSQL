@@ -428,7 +428,6 @@ type
       function GetCollationList: TStringList;
       function GetCharsetTable: TDBQuery; virtual;
       function GetCharsetList: TStringList;
-      function GetInformationSchemaObjects: TStringList; virtual;
       function GetConnectionUptime: Integer;
       function GetServerUptime: Integer;
       function GetServerNow: TDateTime;
@@ -517,7 +516,7 @@ type
       property CollationList: TStringList read GetCollationList;
       property CharsetTable: TDBQuery read GetCharsetTable;
       property CharsetList: TStringList read GetCharsetList;
-      property InformationSchemaObjects: TStringList read GetInformationSchemaObjects;
+      property InformationSchemaObjects: TStringList read FInformationSchemaObjects;
       function ResultCount: Integer;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property AllUserHostCombinations: TStringList read GetAllUserHostCombinations;
@@ -596,7 +595,6 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
-      function GetInformationSchemaObjects: TStringList; override;
       function GetRowCount(Obj: TDBObject): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
@@ -621,6 +619,7 @@ type
       FRegClasses: TOidStringPairs;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
+      procedure DoAfterConnect; override;
       function GetThreadId: Int64; override;
       procedure SetCharacterSet(CharsetName: String); override;
       function GetLastErrorCode: Cardinal; override;
@@ -1793,6 +1792,8 @@ begin
   FForeignKeyQueriesFailed := False;
   // System database/schema, should be uppercase on MSSQL only, see #855
   FInfSch := 'information_schema';
+  FInformationSchemaObjects := TStringList.Create;
+  FInformationSchemaObjects.CaseSensitive := False;
   // Characters in identifiers which don't need to be quoted
   FIdentCharsNoQuote := ['A'..'Z', 'a'..'z', '0'..'9', '_'];
 end;
@@ -2839,8 +2840,41 @@ begin
     end;
   end;
 
-  if ServerVersionInt >= 50000 then
+  if ServerVersionInt >= 50000 then begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
+    // List of known IS tables since MySQL 5, taken from https://dev.mysql.com/doc/refman/5.6/en/information-schema.html
+    FInformationSchemaObjects.CommaText :=
+      'CHARACTER_SETS,'+
+      'COLLATIONS,'+
+      'COLLATION_CHARACTER_SET_APPLICABILITY,'+
+      'COLUMNS,'+
+      'COLUMN_PRIVILEGES,'+
+      'ENGINES,'+
+      'EVENTS,'+
+      'GLOBAL_STATUS,'+
+      'SESSION_STATUS,'+
+      'GLOBAL_VARIABLES,'+
+      'SESSION_VARIABLES,'+
+      'KEY_COLUMN_USAGE,'+
+      'OPTIMIZER_TRACE,'+
+      'PARAMETERS,'+
+      'PARTITIONS,'+
+      'PLUGINS,'+
+      'PROCESSLIST,'+
+      'PROFILING,'+
+      'REFERENTIAL_CONSTRAINTS,'+
+      'ROUTINES,'+
+      'SCHEMATA,'+
+      'SCHEMA_PRIVILEGES,'+
+      'STATISTICS,'+
+      'TABLES,'+
+      'TABLESPACES,'+
+      'TABLE_CONSTRAINTS,'+
+      'TABLE_PRIVILEGES,'+
+      'TRIGGERS,'+
+      'USER_PRIVILEGES,'+
+      'VIEWS';
+  end;
 
   if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
@@ -2869,6 +2903,40 @@ begin
       FSQLSpecifities[spDbObjectsTypeCol] := 'type';
     end;
   end;
+  // List of known IS tables
+  FInformationSchemaObjects.CommaText := 'CHECK_CONSTRAINTS,'+
+    'COLUMN_DOMAIN_USAGE,'+
+    'COLUMN_PRIVILEGES,'+
+    'COLUMNS,'+
+    'CONSTRAINT_COLUMN_USAGE,'+
+    'CONSTRAINT_TABLE_USAGE,'+
+    'DOMAIN_CONSTRAINTS,'+
+    'DOMAINS,'+
+    'KEY_COLUMN_USAGE,'+
+    'PARAMETERS,'+
+    'REFERENTIAL_CONSTRAINTS,'+
+    'ROUTINES,'+
+    'ROUTINE_COLUMNS,'+
+    'SCHEMATA,'+
+    'TABLE_CONSTRAINTS,'+
+    'TABLE_PRIVILEGES,'+
+    'TABLES,'+
+    'VIEW_COLUMN_USAGE,'+
+    'VIEW_TABLE_USAGE,'+
+    'VIEWS';
+end;
+
+
+procedure TPgConnection.DoAfterConnect;
+begin
+  inherited;
+  // List of known IS tables
+  FInformationSchemaObjects.CommaText := 'columns,'+
+    'constraint_column_usage'+
+    'key_column_usage,'+
+    'referential_constraints'+
+    'table_constraints,'+
+    'tables';
 end;
 
 
@@ -5622,58 +5690,6 @@ function TDBConnection.GetSQLSpecifity(Specifity: TSQLSpecifityId; const Args: a
 begin
   Result := GetSQLSpecifity(Specifity);
   Result := Format(Result, Args);
-end;
-
-
-function TDBConnection.GetInformationSchemaObjects: TStringList;
-var
-  Objects: TDBObjectList;
-  Obj: TDBObject;
-begin
-  Log(lcDebug, 'Fetching objects in '+InfSch+' db ...');
-  Ping(True);
-  if not Assigned(FInformationSchemaObjects) then begin
-    FInformationSchemaObjects := TStringList.Create;
-    // Need to find strings case insensitively:
-    FInformationSchemaObjects.CaseSensitive := False;
-    // Gracefully return an empty list on old servers
-    if AllDatabases.IndexOf(InfSch) > -1 then begin
-      Objects := GetDBObjects(InfSch);
-      for Obj in Objects do
-        FInformationSchemaObjects.Add(Obj.Name);
-    end;
-  end;
-  Result := FInformationSchemaObjects;
-end;
-
-
-function TAdoDBConnection.GetInformationSchemaObjects: TStringList;
-begin
-  // MS SQL hides information_schema
-  inherited;
-  if FInformationSchemaObjects.Count = 0 then begin
-    FInformationSchemaObjects.CommaText := 'CHECK_CONSTRAINTS,'+
-      'COLUMN_DOMAIN_USAGE,'+
-      'COLUMN_PRIVILEGES,'+
-      'COLUMNS,'+
-      'CONSTRAINT_COLUMN_USAGE,'+
-      'CONSTRAINT_TABLE_USAGE,'+
-      'DOMAIN_CONSTRAINTS,'+
-      'DOMAINS,'+
-      'KEY_COLUMN_USAGE,'+
-      'PARAMETERS,'+
-      'REFERENTIAL_CONSTRAINTS,'+
-      'ROUTINES,'+
-      'ROUTINE_COLUMNS,'+
-      'SCHEMATA,'+
-      'TABLE_CONSTRAINTS,'+
-      'TABLE_PRIVILEGES,'+
-      'TABLES,'+
-      'VIEW_COLUMN_USAGE,'+
-      'VIEW_TABLE_USAGE,'+
-      'VIEWS';
-  end;
-  Result := FInformationSchemaObjects;
 end;
 
 
