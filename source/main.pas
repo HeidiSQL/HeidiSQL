@@ -9474,7 +9474,7 @@ begin
         TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
         Break;
       end;
-      WalkNode := Sender.NodeParent[WalkNode];
+      WalkNode := WalkNode.Parent;
     end;
   end;
 end;
