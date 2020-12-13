@@ -2016,6 +2016,7 @@ begin
   CalcNullColors;
 
   DataLocalNumberFormat := AppSettings.ReadBool(asDataLocalNumberFormat);
+  DataGridTable := nil;
 
   // Database tree options
   actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
@@ -10441,7 +10442,7 @@ begin
   if not Assigned(DataGridFocusedCell) then
     DataGridFocusedCell := TStringList.Create;
   // Remember focused node and column for selected table
-  if Assigned(DataGrid.FocusedNode) and (ActiveConnection<>nil) and Assigned(DataGridTable) then begin
+  if Assigned(DataGrid.FocusedNode) and (ActiveConnection<>nil) and (DataGridTable<>nil) then begin
     KeyName := DataGridTable.QuotedDatabase+'.'+DataGridTable.QuotedName;
     FocusedCol := '';
     if DataGrid.FocusedColumn > NoColumn then
