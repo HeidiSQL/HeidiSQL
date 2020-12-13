@@ -2017,6 +2017,7 @@ begin
 
   DataLocalNumberFormat := AppSettings.ReadBool(asDataLocalNumberFormat);
   DataGridTable := nil;
+  FActiveDbObj := nil;
 
   // Database tree options
   actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
@@ -9497,7 +9498,8 @@ begin
   // Remember currently selected object
   if FocusNewObject = nil then begin
     FocusNewObject := TDBObject.Create(ActiveConnection);
-    FocusNewObject.Assign(ActiveDbObj);
+    if FActiveDbObj <> nil then
+      FocusNewObject.Assign(FActiveDbObj);
   end;
 
   // ReInit tree population
