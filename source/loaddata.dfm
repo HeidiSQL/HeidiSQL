@@ -355,11 +355,10 @@ object loaddataform: Tloaddataform
     object ToolBarColMove: TToolBar
       Left = 10
       Top = 91
-      Width = 58
+      Width = 87
       Height = 66
       Align = alNone
-      AutoSize = True
-      ButtonWidth = 58
+      ButtonWidth = 54
       Caption = 'ToolBarColMove'
       Images = MainForm.VirtualImageListMain
       List = True
