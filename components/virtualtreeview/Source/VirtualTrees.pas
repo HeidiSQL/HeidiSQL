@@ -1,4 +1,4 @@
-unit VirtualTrees;
+ï»¿unit VirtualTrees;
 
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in compliance
@@ -510,8 +510,9 @@ type
                                // selection rectangle.
     toAlwaysSelectNode,        // If this flag is set to true, the tree view tries to always have a node selected.
                                // This behavior is closer to the Windows TreeView and useful in Windows Explorer style applications.
-    toRestoreSelection,         // Set to true if upon refill the previously selected nodes should be selected again.
-                               // The nodes will be identified by its caption only.
+    toRestoreSelection,        // Set to true if upon refill the previously selected nodes should be selected again.
+                               // The nodes will be identified by its caption (text in MainColumn)
+                               // You may use TVTHeader.RestoreSelectiuonColumnIndex to define an other column that should be used for indentification.
     toSyncCheckboxesWithSelection  // If checkboxes are shown, they follow the change in selections. When checkboxes are
                                    // changed, the selections follow them and vice-versa.
                                    // **Only supported for ctCheckBox type checkboxes.
@@ -636,6 +637,8 @@ type
     procedure SetPaintOptions(const Value: TVTPaintOptions);
     procedure SetSelectionOptions(const Value: TVTSelectionOptions);
   protected
+    // Mitigator function to use the correct style service for this context (either the style assigned to the control for Delphi > 10.4 or the application style)
+    function StyleServices(AControl: TControl = nil): TCustomStyleServices;
   public
     constructor Create(AOwner: TBaseVirtualTree); virtual;
     procedure AssignTo(Dest: TPersistent); override;
@@ -858,6 +861,8 @@ type
   strict protected
     procedure CreateParams(var Params: TCreateParams); override;
     procedure Paint; override;
+    // Mitigator function to use the correct style service for this context (either the style assigned to the control for Delphi > 10.4 or the application style)
+    function StyleServices(AControl: TControl = nil): TCustomStyleServices;
   public
     function CalcHintRect(MaxWidth: TDimension; const AHint: string; AData: Pointer): TRect; override;
     function IsHintMsg(var Msg: TMsg): Boolean; override;
@@ -1157,6 +1162,8 @@ type
     property HoverIndex: TColumnIndex read FHoverIndex;
     property DownIndex: TColumnIndex read FDownIndex;
     property CheckBoxHit: Boolean read FCheckBoxHit;
+    // Mitigator function to use the correct style service for this context (either the style assigned to the control for Delphi > 10.4 or the application style)
+    function StyleServices(AControl: TControl = nil): TCustomStyleServices;
   public
     constructor Create(AOwner: TVTHeader); virtual;
     destructor Destroy; override;
@@ -1218,7 +1225,7 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   published
     property MaxHeightPercent: TVTConstraintPercent index 0 read FMaxHeightPercent write SetConstraints default 0;
-    property MaxWidthPercent: TVTConstraintPercent index 1 read FMaxWidthPercent write SetConstraints default 0;
+    property MaxWidthPercent: TVTConstraintPercent index 1 read FMaxWidthPercent write SetConstraints default 95;
     property MinHeightPercent: TVTConstraintPercent index 2 read FMinHeightPercent write SetConstraints default 0;
     property MinWidthPercent: TVTConstraintPercent index 3 read FMinWidthPercent write SetConstraints default 0;
   end;
@@ -1310,8 +1317,8 @@ type
     FSortColumn: TColumnIndex;
     FSortDirection: TSortDirection;
     FDragImage: TVTDragImage;          // drag image management during header drag
-    FLastWidth: TDimension;               // Used to adjust spring columns. This is the width of all visible columns,
-                                       // not the header rectangle.
+    FLastWidth: TDimension;            // Used to adjust spring columns. This is the width of all visible columns, not the header rectangle.
+    FRestoreSelectionColumnIndex: Integer;      // The column that is used to implement the coRestoreSelection option
     function GetMainColumn: TColumnIndex;
     function GetUseColumns: Boolean;
     function IsFontStored: Boolean;
@@ -1330,6 +1337,7 @@ type
     procedure SetSortColumn(Value: TColumnIndex);
     procedure SetSortDirection(const Value: TSortDirection);
     procedure SetStyle(Value: TVTHeaderStyle);
+    function GetRestoreSelectionColumnIndex: Integer;
   protected
     FStates: THeaderStates;            // Used to keep track of internal states the header can enter.
     FDragStart: TPoint;                // initial mouse drag position
@@ -1387,8 +1395,10 @@ type
       Options: TVTColumnOptions = [coVisible]): TDimension;
     procedure RestoreColumns;
     procedure SaveToStream(const Stream: TStream); virtual;
+    procedure StyleChanged(); virtual;
 
     property DragImage: TVTDragImage read FDragImage;
+    property RestoreSelectionColumnIndex: Integer read GetRestoreSelectionColumnIndex write fRestoreSelectionColumnIndex default NoColumn;
     property States: THeaderStates read FStates;
     property Treeview: TBaseVirtualTree read FOwner;
     property UseColumns: Boolean read GetUseColumns;
@@ -1665,6 +1675,8 @@ type
     property BackGroundColor: TColor read GetBackgroundColor;
     property HeaderFontColor: TColor read  GetHeaderFontColor;
     property NodeFontColor: TColor read GetNodeFontColor;
+    // Mitigator function to use the correct style service for this context (either the style assigned to the control for Delphi > 10.4 or the application style)
+    function StyleServices(AControl: TControl = nil): TCustomStyleServices;
   published
     property BorderColor: TColor index cBorderColor read GetColor write SetColor default clBtnFace;
     property DisabledColor: TColor index cDisabledColor read GetColor write SetColor default clBtnShadow;
@@ -2514,6 +2526,8 @@ type
     function GetRangeX: Cardinal;
     function GetDoubleBuffered: Boolean;
     procedure SetDoubleBuffered(const Value: Boolean);
+    function GetVclStyleEnabled: Boolean; inline;
+    procedure SetOnPrepareButtonImages(const Value: TVTPrepareButtonImagesEvent);
 
   protected
     FFontChanged: Boolean;                       // flag for keeping informed about font changes in the off screen buffer   // [IPK] - private to protected
@@ -2760,6 +2774,7 @@ type
     procedure StructureChange(Node: PVirtualNode; Reason: TChangeReason); virtual;
     function SuggestDropEffect(Source: TObject; Shift: TShiftState; Pt: TPoint; AllowedEffects: Integer): Integer; virtual;
     procedure ToggleSelection(StartNode, EndNode: PVirtualNode); virtual;
+    procedure TrySetFocus();
     procedure UnselectNodes(StartNode, EndNode: PVirtualNode); virtual;
     procedure UpdateColumnCheckState(Col: TVirtualTreeColumn);
     procedure UpdateDesigner; virtual;
@@ -2775,9 +2790,10 @@ type
     procedure WriteNode(Stream: TStream; Node: PVirtualNode); virtual;
 
     procedure VclStyleChanged; virtual;
-    property VclStyleEnabled: Boolean read FVclStyleEnabled;
+    property VclStyleEnabled: Boolean read GetVclStyleEnabled;
     property TotalInternalDataSize: Cardinal read FTotalInternalDataSize;
-
+    // Mitigator function to use the correct style service for this context (either the style assigned to the control for Delphi > 10.4 or the application style)
+    function StyleServices(AControl: TControl = nil): TCustomStyleServices;
     property Alignment: TAlignment read FAlignment write SetAlignment default taLeftJustify;
     property AnimationDuration: Cardinal read FAnimationDuration write SetAnimationDuration default 200;
     property AutoExpandDelay: Cardinal read FAutoExpandDelay write FAutoExpandDelay default 1000;
@@ -2965,7 +2981,7 @@ type
     property OnNodeMoved: TVTNodeMovedEvent read FOnNodeMoved write FOnNodeMoved;
     property OnNodeMoving: TVTNodeMovingEvent read FOnNodeMoving write FOnNodeMoving;
     property OnPaintBackground: TVTBackgroundPaintEvent read FOnPaintBackground write FOnPaintBackground;
-    property OnPrepareButtonBitmaps : TVTPrepareButtonImagesEvent read FOnPrepareButtonImages write FOnPrepareButtonImages;
+    property OnPrepareButtonBitmaps : TVTPrepareButtonImagesEvent read FOnPrepareButtonImages write SetOnPrepareButtonImages;
     property OnRemoveFromSelection: TVTRemoveFromSelectionEvent read FOnRemoveFromSelection write FOnRemoveFromSelection;
     property OnRenderOLEData: TVTRenderOLEDataEvent read FOnRenderOLEData write FOnRenderOLEData;
     property OnResetNode: TVTChangeEvent read FOnResetNode write FOnResetNode;
@@ -3579,6 +3595,7 @@ type
     property ShowHint;
     property StateImages;
     property StyleElements;
+    {$if CompilerVersion >= 34}property StyleName;{$ifend}
     property TabOrder;
     property TabStop default True;
     property TextMargin;
@@ -4042,7 +4059,7 @@ const
 
   // Do not modify the copyright in any way! Usage of this unit is prohibited without the copyright notice
   // in the compiled binary file.
-  Copyright: string = 'Virtual Treeview © 1999, 2010, 2016 Mike Lischke, Joachim Marder';
+  Copyright: string = 'Virtual Treeview Â© 1999, 2010, 2016 Mike Lischke, Joachim Marder';
 
 var
   StandardOLEFormat: TFormatEtc = (
@@ -4273,6 +4290,14 @@ var
 
   //---------------------------------------------------------------------------
 
+  {$if CompilerVersion >= 34}
+  // Mitigator function to use the correct style service for this context (either the style assigned to the control for Delphi > 10.4 or the application style)
+  function StyleServices: TCustomStyleServices;
+  begin
+    Result := Vcl.Themes.StyleServices(pControl);
+  end;
+  {$ifend}
+
   procedure AddSystemImage(IL: TImageList; Index: Integer);
   const
     States: array [0..19] of Integer = (
@@ -4348,7 +4373,7 @@ begin
         Res := GetThemePartSize(Theme, BM.Canvas.Handle, Details.Part, Details.State, nil, TS_TRUE, lSize) = S_OK;
       end
       else
-        Res := StyleServices.GetElementSize(BM.Canvas.Handle, StyleServices.GetElementDetails(tbCheckBoxUncheckedNormal), TElementSize.esActual, lSize);
+        Res := StyleServices.GetElementSize(BM.Canvas.Handle, StyleServices.GetElementDetails(tbCheckBoxUncheckedNormal), TElementSize.esActual, lSize {$IF CompilerVersion >= 34}, pControl.CurrentPPI{$IFEND});
     if not Res then begin
       lSize := TSize.Create(GetSystemMetrics(SM_CXMENUCHECK), GetSystemMetrics(SM_CYMENUCHECK));
       if lSize.cx = 0 then begin // error? (Should happen rarely only)
@@ -4358,8 +4383,7 @@ begin
     end;//if
 
     Result := TImageList.CreateSize(lSize.cx, lSize.cy);
-    with Result do
-      Handle := ImageList_Create(Width, Height, cFlags, 0, AllocBy);
+    Result.Handle := ImageList_Create(Result.Width, Result.Height, cFlags, 0, Result.AllocBy);
     Result.Masked := True;
     Result.BkColor := clWhite;
 
@@ -4676,6 +4700,11 @@ begin
         FFocusedColumn := FHeader.MainColumn;
     end;
   end;
+end;
+
+function TCustomVirtualTreeOptions.StyleServices(AControl: TControl): TCustomStyleServices;
+begin
+  Exit(Vcl.Themes.StyleServices{$if CompilerVersion >= 34}(FOwner){$ifend});
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -5472,7 +5501,7 @@ begin
     if (Node = nil) or (Tree.FHintMode <> hmToolTip) then
     begin
       Canvas.Font := Screen.HintFont;
-      Canvas.Font.Height := Tree.ScaledPixels(Canvas.Font.Height);
+      Canvas.Font.Height := MulDiv(Canvas.Font.Height, Tree.ScaledPixels(96), Screen.PixelsPerInch); // See issue #992
       Y := 2;
     end
     else
@@ -5500,16 +5529,16 @@ begin
         if Tree.VclStyleEnabled  then
         begin
           InflateRect(R, -1, -1); // Fixes missing border when VCL styles are used
-          LDetails := StyleServices.GetElementDetails(thHintNormal);
-          if StyleServices.GetElementColor(LDetails, ecGradientColor1, LColor) and (LColor <> clNone) then
+          LDetails := StyleServices(Tree).GetElementDetails(thHintNormal);
+          if StyleServices(Tree).GetElementColor(LDetails, ecGradientColor1, LColor) and (LColor <> clNone) then
             LGradientStart := LColor
           else
             LGradientStart := clInfoBk;
-          if StyleServices.GetElementColor(LDetails, ecGradientColor2, LColor) and (LColor <> clNone) then
+          if StyleServices(Tree).GetElementColor(LDetails, ecGradientColor2, LColor) and (LColor <> clNone) then
             LGradientEnd := LColor
           else
             LGradientEnd := clInfoBk;
-          if StyleServices.GetElementColor(LDetails, ecTextColor, LColor) and (LColor <> clNone) then
+          if StyleServices(Tree).GetElementColor(LDetails, ecTextColor, LColor) and (LColor <> clNone) then
             Font.Color := LColor
           else
             Font.Color := Screen.HintFont.Color;
@@ -5521,23 +5550,23 @@ begin
           Font.Color := clInfoText;
           Pen.Color := clBlack;
           Brush.Color := clInfoBk;
-          if IsWinVistaOrAbove and StyleServices.Enabled and ((toThemeAware in Tree.TreeOptions.PaintOptions) or
+          if IsWinVistaOrAbove and StyleServices(Tree).Enabled and ((toThemeAware in Tree.TreeOptions.PaintOptions) or
              (toUseExplorerTheme in Tree.TreeOptions.PaintOptions)) then
           begin
             if toUseExplorerTheme in Tree.TreeOptions.PaintOptions then // ToolTip style
-              StyleServices.DrawElement(Canvas.Handle, StyleServices.GetElementDetails(tttStandardNormal), R)
+              StyleServices(Tree).DrawElement(Canvas.Handle, StyleServices(Tree).GetElementDetails(tttStandardNormal), R {$IF CompilerVersion >= 34}, nil, FCurrentPPI{$IFEND})
             else
               begin // Hint style
                 LClipRect := R;
                 InflateRect(R, 4, 4);
-                StyleServices.DrawElement(Handle, StyleServices.GetElementDetails(tttStandardNormal), R, @LClipRect);
+                StyleServices(Tree).DrawElement(Handle, StyleServices(Tree).GetElementDetails(tttStandardNormal), R, @LClipRect{$IF CompilerVersion >= 34}, FCurrentPPI{$IFEND});
                 R := LClipRect;
-                StyleServices.DrawEdge(Handle, StyleServices.GetElementDetails(twWindowRoot), R, [eeRaisedOuter], [efRect]);
+                StyleServices(Tree).DrawEdge(Handle, StyleServices(Tree).GetElementDetails(twWindowRoot), R, [eeRaisedOuter], [efRect]);
               end;
           end
           else
             if Tree.VclStyleEnabled then
-              StyleServices.DrawElement(Canvas.Handle, StyleServices.GetElementDetails(tttStandardNormal), R)
+              StyleServices(Tree).DrawElement(Canvas.Handle, StyleServices(Tree).GetElementDetails(tttStandardNormal), R {$IF CompilerVersion >= 34}, nil, FCurrentPPI{$IFEND})
             else
               Rectangle(R);
         end;
@@ -5552,6 +5581,11 @@ begin
         Winapi.Windows.DrawTextW(Handle, PWideChar(HintText), Length(HintText), R, DrawFormat);
       end;
   end;
+end;
+
+function TVirtualTreeHintWindow.StyleServices(AControl: TControl): TCustomStyleServices;
+begin
+  Result := Vcl.Themes.StyleServices{$if CompilerVersion >= 34}(AControl){$ifend};
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -5605,7 +5639,7 @@ begin
           if (Node = nil) or (Tree.FHintMode <> hmToolTip) then
           begin
             Canvas.Font := Screen.HintFont;
-            Canvas.Font.Height := Tree.ScaledPixels(Canvas.Font.Height);
+            Canvas.Font.Height := MulDiv(Canvas.Font.Height, Tree.ScaledPixels(96), Screen.PixelsPerInch); // See issue #992
           end
           else
           begin
@@ -6862,6 +6896,9 @@ begin
     if coAutoSpring in ToBeSet then
       FSpringRest := 0;
 
+    if coVisible in ToBeCleared then
+      Owner.Header.UpdateMainColumn(); // Fixes issue #946
+
     if ((coFixed in ToBeSet) or (coFixed in ToBeCleared)) and (coVisible in FOptions) then
       Owner.Header.RescaleHeader;
 
@@ -7810,6 +7847,18 @@ procedure TVirtualTreeColumns.SetItem(Index: TColumnIndex; Value: TVirtualTreeCo
 
 begin
   inherited SetItem(Index, Value);
+end;
+
+function TVirtualTreeColumns.StyleServices(AControl: TControl): TCustomStyleServices;
+begin
+{$if CompilerVersion >= 34}
+  if AControl = nil then
+    Result := Vcl.Themes.StyleServices(FHeader.Treeview)
+  else
+    Result := Vcl.Themes.StyleServices(AControl);
+{$else}
+  Result := Vcl.Themes.StyleServices;
+{$ifend}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -9074,7 +9123,7 @@ var
         if (FHeader.Treeview.VclStyleEnabled and (seClient in FHeader.FOwner.StyleElements)) then
         begin
           Details := StyleServices.GetElementDetails(thHeaderItemRightNormal);
-          StyleServices.DrawElement(Handle, Details, BackgroundRect, @BackgroundRect);
+          StyleServices.DrawElement(Handle, Details, BackgroundRect, @BackgroundRect {$IF CompilerVersion  >= 34}, FHeader.Treeview.FCurrentPPI{$IFEND});
         end
         else
         if tsUseThemes in FHeader.Treeview.FStates then
@@ -9179,7 +9228,7 @@ var
                 Details := StyleServices.GetElementDetails(thHeaderItemHot)
               else
                 Details := StyleServices.GetElementDetails(thHeaderItemNormal);
-            StyleServices.DrawElement(TargetCanvas.Handle, Details, PaintRectangle, @PaintRectangle);
+            StyleServices.DrawElement(TargetCanvas.Handle, Details, PaintRectangle, @PaintRectangle{$IF CompilerVersion >= 34}, FHeader.TreeView.FCurrentPPI{$IFEND});
           end
           else
             begin
@@ -9301,7 +9350,7 @@ var
             else
               Glyph := thHeaderSortArrowSortedDown;
             Details := StyleServices.GetElementDetails(Glyph);
-            if not StyleServices.DrawElement(TargetCanvas.Handle, Details, Pos, @Pos) then
+            if not StyleServices.DrawElement(TargetCanvas.Handle, Details, Pos, @Pos {$IF CompilerVersion  >= 34}, FHeader.TreeView.FCurrentPPI {$IFEND}) then
               PaintInfo.DrawSortArrow(FHeader.FSortDirection);
           end
           else
@@ -9456,7 +9505,7 @@ constructor TVTFixedAreaConstraints.Create(AOwner: TVTHeader);
 
 begin
   inherited Create;
-
+  FMaxWidthPercent := 95;
   FHeader := AOwner;
 end;
 
@@ -9909,6 +9958,11 @@ begin
   end;
 end;
 
+procedure TVTHeader.StyleChanged();
+begin
+  AutoScale(); // Elements may have chnaged in size
+end;
+
 //----------------------------------------------------------------------------------------------------------------------
 
 function TVTHeader.CanWriteColumns: Boolean;
@@ -10287,6 +10341,14 @@ function TVTHeader.GetOwner: TPersistent;
 
 begin
   Result := FOwner;
+end;
+
+function TVTHeader.GetRestoreSelectionColumnIndex: Integer;
+begin
+  if fRestoreSelectionColumnIndex >= 0 then
+    Result := fRestoreSelectionColumnIndex
+  else
+    Result := MainColumn;
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -11008,7 +11070,7 @@ begin
     RecalculateHeader;
 
     with FFixedAreaConstraints do
-      if (FMinHeightPercent > 0) or (FMaxHeightPercent > 0) then
+      if (FMaxWidthPercent > 0) or (FMinWidthPercent > 0) or (FMinHeightPercent > 0) or (FMaxHeightPercent > 0) then
       begin
         ComputeConstraints;
 
@@ -11029,15 +11091,20 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TVTHeader.UpdateMainColumn;
+procedure TVTHeader.UpdateMainColumn();
 
 // Called once the load process of the owner tree is done.
 
 begin
   if FMainColumn < 0 then
-    FMainColumn := 0;
+    MainColumn := 0;
   if FMainColumn > FColumns.Count - 1 then
-    FMainColumn := FColumns.Count - 1;
+    MainColumn := FColumns.Count - 1;
+  if (FMainColumn >= 0) and not (coVisible in Self.Columns[FMainColumn].Options) then
+  begin
+    // Issue #946: Choose new MainColumn if current one ist not visible
+    MainColumn := Self.Columns.GetFirstVisibleColumn();
+  end
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -11939,6 +12006,18 @@ begin
   end;
 end;
 
+function TVTColors.StyleServices(AControl: TControl): TCustomStyleServices;
+begin
+{$if CompilerVersion >= 34}
+  if AControl = nil then
+    Result := Vcl.Themes.StyleServices(fOwner)
+  else
+    Result := Vcl.Themes.StyleServices(AControl);
+{$else}
+  Result := Vcl.Themes.StyleServices;
+{$ifend}
+end;
+
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TVTColors.Assign(Source: TPersistent);
@@ -12093,7 +12172,6 @@ begin
 
   if not (csDesigning in ComponentState) then //Don't create worker thread in IDE, there is no use for it
     TWorkerThread.AddThreadReference();
-  VclStyleChanged();
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -12154,6 +12232,11 @@ begin
   FHotMinusBM.Free;
   FSelectedHotPlusBM.Free;
   FSelectedHotMinusBM.Free;
+
+  // Fixes issue #1002
+  Images := nil;
+  StateImages := nil;
+  CustomCheckImages := nil;
 
   inherited;
 end;
@@ -13433,6 +13516,11 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+function TBaseVirtualTree.GetVclStyleEnabled: Boolean;
+begin
+  Exit(FVclStyleEnabled);
+end;
+
 function TBaseVirtualTree.GetVerticalAlignment(Node: PVirtualNode): Byte;
 
 begin
@@ -13969,33 +14057,45 @@ var
 begin
   if VclStyleEnabled and (seClient in StyleElements) then
   begin
-    Size.cx := ScaledPixels(11);
-    Size.cy := ScaledPixels(11);
-    FillBitmap(FPlusBM);
-    FillBitmap(FHotPlusBM);
-    FillBitmap(FSelectedHotPlusBM);
-    FillBitmap(FMinusBM);
-    FillBitmap(FHotMinusBM);
-    FillBitmap(FSelectedHotMinusBM);
-    R := Rect(0,0,Size. cx,Size.cy);
-    // tcbCategoryGlyphClosed, tcbCategoryGlyphOpened from CategoryButtons
-    StyleServices.DrawElement(FPlusBM.Canvas.Handle, StyleServices.GetElementDetails(tcbCategoryGlyphClosed), R);
-    StyleServices.DrawElement(FMinusBM.Canvas.Handle, StyleServices.GetElementDetails(tcbCategoryGlyphOpened), R);
-    FHotMinusBM.Canvas.Draw(0, 0, FMinusBM);
-    FSelectedHotMinusBM.Canvas.Draw(0, 0, FMinusBM);
-    FHotPlusBM.Canvas.Draw(0, 0, FPlusBM);
-    FSelectedHotPlusBM.Canvas.Draw(0, 0, FPlusBM);
-    if Assigned(FOnPrepareButtonImages) then
-      FOnPrepareButtonImages(Self, FPlusBM, FHotPlusBM, FSelectedHotPlusBM, FMinusBM, FHotMinusBM, FSelectedHotMinusBM, size);
-  end
+    if NeedButtons then begin
+      if StyleServices.GetElementSize(FPlusBM.Canvas.Handle, StyleServices.GetElementDetails(tcbCategoryGlyphClosed), TElementSize.esActual, Size) then
+        Size.cx := ScaledPixels(Size.cx) // I would have expected that the returned value is dpi-sclaed, but this is not the case in RAD Studio 10.4.1. See issue #984
+      else
+        Size.cx := ScaledPixels(11);
+      Size.cy := Size.cx;
+      FillBitmap(FPlusBM);
+      FillBitmap(FHotPlusBM);
+      FillBitmap(FSelectedHotPlusBM);
+      FillBitmap(FMinusBM);
+      FillBitmap(FHotMinusBM);
+      FillBitmap(FSelectedHotMinusBM);
+      R := Rect(0,0,Size. cx,Size.cy);
+      // tcbCategoryGlyphClosed, tcbCategoryGlyphOpened from CategoryButtons
+      StyleServices.DrawElement(FPlusBM.Canvas.Handle, StyleServices.GetElementDetails(tcbCategoryGlyphClosed), R {$IF CompilerVersion >= 34}, nil, FCurrentPPI{$IFEND});
+      StyleServices.DrawElement(FMinusBM.Canvas.Handle, StyleServices.GetElementDetails(tcbCategoryGlyphOpened), R {$IF CompilerVersion >= 34}, nil, FCurrentPPI{$IFEND});
+      FHotMinusBM.Canvas.Draw(0, 0, FMinusBM);
+      FSelectedHotMinusBM.Canvas.Draw(0, 0, FMinusBM);
+      FHotPlusBM.Canvas.Draw(0, 0, FPlusBM);
+      FSelectedHotPlusBM.Canvas.Draw(0, 0, FPlusBM);
+      if Assigned(FOnPrepareButtonImages) then
+        FOnPrepareButtonImages(Self, FPlusBM, FHotPlusBM, FSelectedHotPlusBM, FMinusBM, FHotMinusBM, FSelectedHotMinusBM, size);
+    end;//if NeedButtons
+  end// if VclStyleEnabled
     else
-      begin
-        Size.cx := 9;
-        Size.cy := 9;
+      begin // No stlye
+        Size.cx := ScaledPixels(9);
+        Size.cy := ScaledPixels(9);
         if tsUseThemes in FStates then
         begin
           R := Rect(0, 0, 100, 100);
+          {$if CompilerVersion >= 33}
+          if TOSVersion.Check(10) and (TOSVersion.Build >= 15063)  then
+            Theme := OpenThemeDataForDPI(Handle, 'TREEVIEW', Self.FCurrentPPI)
+          else
+            Theme := OpenThemeData(Handle, 'TREEVIEW');
+          {$else}
           Theme := OpenThemeData(Handle, 'TREEVIEW');
+          {$ifend}
           GetThemePartSize(Theme, FPlusBM.Canvas.Handle, TVP_GLYPH, GLPS_OPENED, @R, TS_TRUE, Size);
         end
           else
@@ -14025,7 +14125,7 @@ begin
                   FillBitmap(FMinusBM);
                   FillBitmap(FHotMinusBM);
                   FillBitmap(FSelectedHotMinusBM);
-                  // Weil die selbstgezeichneten Bitmaps sehen im Vcl Style scheiße aus
+                  // Weil die selbstgezeichneten Bitmaps sehen im Vcl Style scheiÃŸe aus
                   // Because the self-drawn bitmaps view Vcl Style shit
                   if Theme = 0 then
                   begin
@@ -14130,8 +14230,8 @@ begin
         end;
         if tsUseThemes in FStates then
           CloseThemeData(Theme);
-      end;
-  end;
+      end;// if NeedButtons
+  end;// else
 
   if NeedLines then
   begin
@@ -15047,6 +15147,12 @@ begin
   DoSetOffsetXY(Point(FOffsetX, Value), DefaultScrollUpdateFlags);
 end;
 
+procedure TBaseVirtualTree.SetOnPrepareButtonImages(const Value: TVTPrepareButtonImagesEvent);
+begin
+  FOnPrepareButtonImages := Value;
+  PrepareBitmaps(True, False);
+end;
+
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TBaseVirtualTree.SetOptions(const Value: TCustomVirtualTreeOptions);
@@ -15783,7 +15889,6 @@ begin
 
   if not (csLoading in ComponentState) then
   begin
-    PrepareBitmaps(True, False);
     if HandleAllocated then begin
       AutoScale(False);
       Invalidate;
@@ -18367,6 +18472,7 @@ const
 var
   Flags: TScalingFlags;
   Run: PVirtualNode;
+  lNewNodeTotalHeight: Cardinal;
 begin
   if (toAutoChangeScale in FOptions.FAutoOptions) then
   begin
@@ -18400,7 +18506,13 @@ begin
             if vsInitialized in Run.States then
               SetNodeHeight(Run, MulDiv(Run.NodeHeight, M, D))
             else // prevent initialization of non-initialzed nodes
+            begin
               Run.NodeHeight := MulDiv(Run.NodeHeight, M, D);
+              // The next three lines fix issue #1000
+              lNewNodeTotalHeight := MulDiv(Run.TotalHeight, M, D);
+              FRoot.TotalHeight := FRoot.TotalHeight + lNewNodeTotalHeight - Run.TotalHeight;
+              Run.TotalHeight := lNewNodeTotalHeight;
+            end;
             Run := GetNextNoInit(Run);
           end; // while
         finally
@@ -18410,6 +18522,8 @@ begin
     end;// if M<>D
   end;//if toAutoChangeScale
   inherited ChangeScale(M, D{$if CompilerVersion >= 31}, isDpiChange{$ifend});
+  if (M <> D) then
+    PrepareBitmaps(True, False); // See issue #991
   // It is important to do this call after calling inherited, so that the Font has been updated.
   AutoScale(M <> D);
 end;
@@ -18419,14 +18533,15 @@ end;
 procedure TBaseVirtualTree.ChangeTreeStatesAsync(EnterStates, LeaveStates: TVirtualTreeStates);
 begin
   //TODO: If this works reliable, move to TWorkerThread
-  if (Self.HandleAllocated) then
+  if not (csDestroying in ComponentState) then
     TThread.Synchronize(nil, procedure
       begin
         // Prevent invalid combination tsUseCache + tsValidationNeeded (#915)
         if not ((tsUseCache in EnterStates) and (tsValidationNeeded in FStates + LeaveStates)) then
-          DoStateChange(EnterStates, LeaveStates)
+          DoStateChange(EnterStates, LeaveStates);
+        if (tsValidating in FStates) and (tsValidating in LeaveStates) then
+          UpdateEditBounds();
       end);
-
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -18645,6 +18760,7 @@ procedure TBaseVirtualTree.CreateWnd;
 // Initializes data which depends on a valid window handle.
 
 begin
+  VclStyleChanged(); // Moved here due to issue #986
   DoStateChange([tsWindowCreating]);
   inherited;
   DoStateChange([], [tsWindowCreating]);
@@ -19423,7 +19539,7 @@ begin
       FOnEditCancelled(Self, FEditColumn);
     if not (csDestroying in ComponentState) then
       FEditLink := nil;
-    SetFocus();
+    TrySetFocus();
   end;
 end;
 
@@ -19827,13 +19943,12 @@ begin
   if Assigned(FFocusedNode) and not (vsDisabled in FFocusedNode.States) and
     not (toReadOnly in FOptions.FMiscOptions) and (FEditLink = nil) then
   begin
+    ScrollIntoView(FFocusedNode, toCenterScrollIntoView in FOptions.SelectionOptions, not (toDisableAutoscrollOnEdit in FOptions.AutoOptions));
     FEditLink := DoCreateEditor(FFocusedNode, FEditColumn);
     if Assigned(FEditLink) then
     begin
       DoStateChange([tsEditing], [tsDrawSelecting, tsDrawSelPending, tsToggleFocusedSelection, tsOLEDragPending,
         tsOLEDragging, tsClearPending, tsDrawSelPending, tsScrollPending, tsScrolling]);
-      ScrollIntoView(FFocusedNode, toCenterScrollIntoView in FOptions.SelectionOptions,
-        not (toDisableAutoscrollOnEdit in FOptions.AutoOptions));
       if FEditLink.PrepareEdit(Self, FFocusedNode, FEditColumn) then
       begin
         UpdateEditBounds;
@@ -19884,7 +19999,7 @@ begin
   // Causes the editor to end prematurely, after having tabbed into a new cell
   // see https://github.com/JAM-Software/Virtual-TreeView/commit/de863b4417dfd98caffe8d0c283959b4842d2a82
   // see https://github.com/HeidiSQL/HeidiSQL/issues/937
-  //SetFocus();
+  //TrySetFocus();
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -23904,13 +24019,13 @@ begin
       end
       else
       begin
-        if (Index in [ckButtonNormal..ckButtonDisabled]) or not StyleServices.GetElementSize(Canvas.Handle, Details, TElementSize.esActual, lSize) then begin
+        if (Index in [ckButtonNormal..ckButtonDisabled]) or not StyleServices.GetElementSize(Canvas.Handle, Details, TElementSize.esActual, lSize{$IF CompilerVersion >= 34}, CurrentPPI{$IFEND}) then begin
           // radio buttons fail in RAD Studio 10 Seattle and lower, fallback to checkbox images. See issue #615
-          if not StyleServices.GetElementSize(Canvas.Handle, StyleServices.GetElementDetails(tbCheckBoxUncheckedNormal), TElementSize.esActual, lSize) then
+          if not StyleServices.GetElementSize(Canvas.Handle, StyleServices.GetElementDetails(tbCheckBoxUncheckedNormal), TElementSize.esActual, lSize{$IF CompilerVersion >= 34}, CurrentPPI{$IFEND}) then
             lSize := TSize.Create(GetSystemMetrics(SM_CXMENUCHECK), GetSystemMetrics(SM_CYMENUCHECK));
         end;//if
         R := Rect(XPos, YPos, XPos + lSize.cx, YPos + lSize.cy);
-        StyleServices.DrawElement(Canvas.Handle, Details, R);
+        StyleServices.DrawElement(Canvas.Handle, Details, R {$IF CompilerVersion  >= 34}, nil, FCurrentPPI{$IFEND});
         Canvas.Refresh; // Every time you give a Canvas.Handle away to some other code you can't control you have to call Canvas.Refresh afterwards because the Canvas object and the HDC can be out of sync.
       end;
       if (Index in [ckButtonNormal..ckButtonDisabled]) then begin
@@ -25055,7 +25170,7 @@ begin
   ShowWindow(FPanningWindow, SW_SHOWNOACTIVATE);
 
   // Setup the panscroll timer and capture all mouse input.
-  SetFocus;
+  TrySetFocus();
   SetCapture(Handle);
   SetTimer(Handle, ScrollTimer, 20, nil);
 end;
@@ -25109,6 +25224,18 @@ begin
     else
       DoStructureChange(Node, Reason);
   end;
+end;
+
+function TBaseVirtualTree.StyleServices(AControl: TControl): TCustomStyleServices;
+begin
+{$if CompilerVersion >= 34}
+  if AControl = nil then
+    Result := Vcl.Themes.StyleServices(Self)
+  else
+    Result := Vcl.Themes.StyleServices(AControl);
+{$else}
+  Result := Vcl.Themes.StyleServices;
+{$ifend}
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -25254,6 +25381,19 @@ begin
       ClearTempCache;
     end;
   end;
+end;
+
+procedure TBaseVirtualTree.TrySetFocus();
+begin
+  if Visible and CanFocus then
+  begin
+    try
+      Self.SetFocus();
+    except
+      on EInvalidOperation do
+        Exit;
+    end;
+  end;//if
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -25595,12 +25735,13 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TBaseVirtualTree.VclStyleChanged;
+procedure TBaseVirtualTree.VclStyleChanged();
 
   // Updates the member FVclStyleEnabled, should be called initially and when the VCL style changes
 
 begin
   FVclStyleEnabled := StyleServices.Enabled and not StyleServices.IsSystemStyle and not (csDesigning in ComponentState);
+  Header.StyleChanged();
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -25641,8 +25782,8 @@ begin
 
     if not Handled then
     begin
-      if (Message.Msg in [WM_NCLBUTTONDOWN, WM_NCRBUTTONDOWN, WM_NCMBUTTONDOWN]) and not Focused and CanFocus then
-        SetFocus;
+      if (Message.Msg in [WM_NCLBUTTONDOWN, WM_NCRBUTTONDOWN, WM_NCMBUTTONDOWN]) and not Focused then
+        TrySetFocus;
       inherited;
     end;
   end;
@@ -28593,7 +28734,7 @@ function TBaseVirtualTree.GetNodeData(Node: PVirtualNode): Pointer;
 // Returns the address of the user defined data area in the node.
 
 begin
-  Assert(FNodeDataSize > 0, 'NodeDataSize not initialized.');
+  Assert((FNodeDataSize > 0) or not Assigned(Node), 'NodeDataSize not initialized.');
   if (FNodeDataSize <= 0) or (Node = nil) or (Node = FRoot) then
     Result := nil
   else
@@ -28609,11 +28750,14 @@ function TBaseVirtualTree.GetNodeData<T>(pNode: PVirtualNode): T;
 
 // Returns the associated data converted to the class given in the generic part of the function.
 
+var
+  P: Pointer;
 begin
-  if Assigned(pNode) then
-    Result := T(Self.GetNodeData(pNode)^)
+  P := Self.GetNodeData(pNode);
+  if Assigned(P) then
+    Exit(T(P^))
   else
-    Result := Default(T);
+    Exit(Default(T));
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -32763,6 +32907,8 @@ constructor TVTEdit.Create(Link: TStringEditLink);
 
 begin
   inherited Create(nil);
+  if not Assigned(Link) then
+    raise EArgumentException.Create('Paramter Link must not be nil.');
   ShowHint := False;
   ParentShowHint := False;
   // This assignment increases the reference count for the interface.
@@ -32846,7 +32992,7 @@ procedure TVTEdit.WMDestroy(var Message: TWMDestroy);
 begin
   // If editing stopped by other means than accept or cancel then we have to do default processing for
   // pending changes.
-  if Assigned(FLink) and not FLink.FStopping then
+  if Assigned(FLink) and not FLink.FStopping  and not (csRecreating in Self.ControlState) then
   begin
     with FLink, FTree do
     begin
@@ -32924,7 +33070,7 @@ begin
           end;
 
           case EditOptions of
-            toDefaultEdit: Tree.SetFocus;
+            toDefaultEdit: Tree.TrySetFocus;
             toVerticalEdit:
               if NextNode <> nil then
               begin
@@ -33050,6 +33196,8 @@ procedure TVTEdit.CreateParams(var Params: TCreateParams);
 
 begin
   inherited;
+  if not Assigned(FLink.FNode) then
+    exit; // Prevent AV exceptions occasionally seen in code below
 
   // Only with multiline style we can use the text formatting rectangle.
   // This does not harm formatting as single line control, if we don't use word wrapping.
@@ -33521,7 +33669,7 @@ begin
         if Node = FDropTargetNode then
         begin
           if ((FLastDropMode = dmOnNode) or (vsSelected in Node.States)) then
-            Canvas.Font.Color := FColors.GetSelectedNodeFontColor(Focused);
+            Canvas.Font.Color := FColors.GetSelectedNodeFontColor(Focused or (toPopupMode in FOptions.FPaintOptions));
         end
         else
           if vsSelected in Node.States then
@@ -33598,7 +33746,7 @@ begin
       if BidiMode <> bdLeftToRight then
         DrawFormat := DrawFormat or DT_RTLREADING;
       // Check if the text must be shortend.
-      if (Column > NoColumn) and ((NodeWidth - 2 * FTextMargin) > R.Right - R.Left) then
+      if (Column > NoColumn) and ((NodeWidth - 2 * FTextMargin) > R.Width) then
       begin
         Text := DoShortenString(Canvas, Node, Column, Text, R.Right - R.Left, TripleWidth);
         if Alignment = taRightJustify then
@@ -33669,7 +33817,7 @@ begin
     end
     else begin
       Inc(R.Left, FTextMargin);
-      if PaintInfo.Alignment = taRightJustify then
+      if PaintInfo.Alignment = taLeftJustify then
         Inc(R.Left, NodeWidth); // room for node text
     end;
 
@@ -33792,7 +33940,7 @@ begin
   if (toRestoreSelection in TreeOptions.SelectionOptions) and Assigned(FPreviouslySelected) and Assigned(OnGetText) then
   begin
     // See if this was the previously selected node and restore it in this case
-    Self.OnGetText(Self, Result, 0, ttNormal, NewNodeText);
+    Self.OnGetText(Self, Result, Header.RestoreSelectionColumnIndex, ttNormal, NewNodeText);
     if FPreviouslySelected.IndexOf(NewNodeText) >= 0 then
     begin
       // Select this node and make sure that the parent node is expanded
@@ -34423,7 +34571,7 @@ function TCustomVirtualStringTree.ContentToHTML(Source: TVSTTextSourceType; cons
 
 // Renders the current tree content (depending on Source) as HTML text encoded in UTF-8.
 // If Caption is not empty then it is used to create and fill the header for the table built here.
-// Based on ideas and code from Frank van den Bergh and Andreas Hörstemeier.
+// Based on ideas and code from Frank van den Bergh and Andreas HÃ¶rstemeier.
 
 begin
   Result := VirtualTrees.Export.ContentToHTML(Self, Source, Caption);
@@ -34497,7 +34645,7 @@ end;
 function TCustomVirtualStringTree.ContentToRTF(Source: TVSTTextSourceType): RawByteString;
 
 // Renders the current tree content (depending on Source) as RTF (rich text).
-// Based on ideas and code from Frank van den Bergh and Andreas Hörstemeier.
+// Based on ideas and code from Frank van den Bergh and Andreas HÃ¶rstemeier.
 
 begin
   Result := VirtualTrees.Export.ContentToRTF(Self, Source);
