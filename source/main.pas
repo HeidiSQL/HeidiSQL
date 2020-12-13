@@ -10785,11 +10785,12 @@ begin
   vt.BeginUpdate;
   OldOffset := vt.OffsetXY;
   vt.Clear;
-  if Conn <> nil then begin
+  Screen.Cursor := crHourglass;
+
+  if Conn <> nil then try
     Results := GridResult(vt);
     if Results <> nil then
       FreeAndNil(Results);
-    Screen.Cursor := crHourglass;
     if vt = ListVariables then begin
       // Do not use FHostListResults on Variables tab, as we cannot query
       // session and global variables in one query
@@ -10909,11 +10910,14 @@ begin
     end;
 
     FHostListResults[Tab.PageIndex] := Results;
-    Screen.Cursor := crDefault;
     if Results <> nil then
       vt.RootNodeCount := Results.RecordCount;
     vt.OffsetXY := OldOffset;
+  except
+    on E:Exception do ErrorDialog(E.Message);
   end;
+
+  Screen.Cursor := crDefault;
   // Apply or reset filter
   editFilterVTChange(Sender);
   vt.EndUpdate;
