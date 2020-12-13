@@ -1842,6 +1842,7 @@ begin
   ClearCache(True);
   FKeepAliveTimer.Free;
   FFavorites.Free;
+  FInformationSchemaObjects.Free;
   inherited;
 end;
 
@@ -5816,7 +5817,6 @@ begin
   FreeAndNil(FCharsetTable);
   FreeAndNil(FSessionVariables);
   FreeAndNil(FTableEngines);
-  FreeAndNil(FInformationSchemaObjects);
   if IncludeDBObjects then begin
     ClearAllDbObjects;
     FColumnCache.Clear;
