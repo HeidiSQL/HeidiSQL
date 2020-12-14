@@ -9738,12 +9738,15 @@ begin
         end else if HandleUnixTimestampColumn(Sender, Column) then begin
           try
             Timestamp := Trunc(StrToFloat(Results.Col(Column), FFormatSettings));
+            Dec(Timestamp, FTimeZoneOffset);
+            CellText := DateTimeToStr(UnixToDateTime(Timestamp));
           except
             // EConvertError in StrToFloat or EInvalidOp in Trunc or...
-            Timestamp := 0;
+            on E:Exception do begin
+              CellText := Results.Col(Column);
+              LogSQL('Error when calculating Unix timestamp from "'+CellText+'": '+E.Message, lcError);
+            end;
           end;
-          Dec(Timestamp, FTimeZoneOffset);
-          CellText := DateTimeToStr(UnixToDateTime(Timestamp));
         end else begin
           if DataLocalNumberFormat and (not EditingAndFocused) then
             CellText := FormatNumber(Results.Col(Column), True)
