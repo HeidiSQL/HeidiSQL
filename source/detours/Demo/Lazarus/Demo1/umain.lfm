@@ -1,0 +1,39 @@
+object Main: TMain
+  Left = 256
+  Height = 137
+  Top = 145
+  Width = 242
+  BorderStyle = bsToolWindow
+  Caption = 'Main'
+  ClientHeight = 137
+  ClientWidth = 242
+  OnCreate = FormCreate
+  LCLVersion = '2.0.8.0'
+  object BtnHook: TButton
+    Left = 49
+    Height = 27
+    Top = 23
+    Width = 141
+    Caption = 'Hook'
+    OnClick = BtnHookClick
+    TabOrder = 0
+  end
+  object BtnMsgBox: TButton
+    Left = 48
+    Height = 25
+    Top = 56
+    Width = 141
+    Caption = 'MessageBox'
+    OnClick = BtnMsgBoxClick
+    TabOrder = 1
+  end
+  object BtnUnhook: TButton
+    Left = 49
+    Height = 26
+    Top = 88
+    Width = 141
+    Caption = 'Unhook'
+    OnClick = BtnUnhookClick
+    TabOrder = 2
+  end
+end

@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //************************************************************************************************
@@ -339,7 +339,7 @@ implementation
 
 uses
   // IOUtils,
-  Vcl.Styles.Utils.SysControls;
+  Vcl.Styles.Utils.SysControls, Vcl.Styles.Utils.Graphics;
 
 //
 // procedure Addlog(const Msg: string);
@@ -536,7 +536,7 @@ begin
     DC := Bmp.Canvas.Handle;
 
     LDetails := StyleServices.GetElementDetails(thHeaderItemNormal);
-    StyleServices.DrawElement(DC, LDetails, R);
+    DrawStyleElement(DC, LDetails, R);
 
     for i := 0 to ButtonsCount - 1 do
     begin
@@ -561,7 +561,7 @@ begin
         LDetails := StyleServices.GetElementDetails(thHeaderItemHot);
       if FPressedSection = i then
         LDetails := StyleServices.GetElementDetails(thHeaderItemPressed);
-      StyleServices.DrawElement(DC, LDetails, LSectionRect);
+      DrawStyleElement(DC, LDetails, LSectionRect);
 
       TxtRect := LSectionRect;
       inc(TxtRect.Left, 4);
@@ -572,7 +572,7 @@ begin
         R := LDropDownRect;
         if SectionHot then
         begin
-          StyleServices.DrawElement(DC, LSplitDetails, R);
+          DrawStyleElement(DC, LSplitDetails, R);
           with Bmp.Canvas do
           begin
             Pen.Color := StyleServices.GetSystemColor(clBtnShadow);
@@ -958,7 +958,7 @@ begin
   if StyleServices.Available then
   begin
     Details := StyleServices.GetElementDetails(ttPane);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
   end;
   { Draw active tab }
   if TabIndex >= 0 then
@@ -1047,7 +1047,7 @@ begin
   if StyleServices.Available then
   begin
     Details := StyleServices.GetElementDetails(DrawState);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
   end;
 
   { Image }
@@ -1295,7 +1295,7 @@ begin
       LDetails.State := 0;
       if StyleServices.HasTransparentParts(LDetails) then
         StyleServices.DrawParentBackground(Handle, DC, LDetails, False);
-      StyleServices.DrawElement(DC, LDetails, R);
+      DrawStyleElement(DC, LDetails, R);
     end;
   except
     Bmp.Free;
@@ -1352,16 +1352,16 @@ begin
             DrawParentBackground(DC, @ItemRect);
             if (LButtonHot or (bsPressed in LState) or (bsChecked in LState)) and (bsEnabled in LState) then
             begin
-              StyleServices.DrawElement(DC, LDetails, ItemRect);
+              DrawStyleElement(DC, LDetails, ItemRect);
             end;
           end
           else
-            StyleServices.DrawElement(DC, LDetails, ItemRect);
+            DrawStyleElement(DC, LDetails, ItemRect);
         end
         else
         begin
           LDetails := StyleServices.GetElementDetails(ttbSeparatorNormal);
-          StyleServices.DrawElement(DC, LDetails, ItemRect);
+          DrawStyleElement(DC, LDetails, ItemRect);
         end;
 
         if not(bsSep in LStyle) then
@@ -1385,7 +1385,7 @@ begin
               LDetails := StyleServices.GetElementDetails(ttbDropDownButtonGlyphHot);
             if ((bsPressed in LState) and (bsEnabled in LState)) then
               LDetails := StyleServices.GetElementDetails(ttbDropDownButtonGlyphPressed);
-            StyleServices.DrawElement(DC, LDetails, R);
+            DrawStyleElement(DC, LDetails, R);
 
             { Adjust bitmap position }
 
@@ -1702,7 +1702,7 @@ begin
     end;
 
     FillR.SetLocation(FStep * FillR.Width, FillR.Top);
-    StyleServices.DrawElement(Canvas.Handle, LDetails, FillR);
+    DrawStyleElement(Canvas.Handle, LDetails, FillR);
     // Inc(FStep,1);
     // if FStep mod 20=0 then
     // FStep:=0;
@@ -1727,7 +1727,7 @@ begin
       FillR.Top := FillR.Bottom - LPos;
       LDetails := StyleServices.GetElementDetails(tpChunkVert);
     end;
-    StyleServices.DrawElement(Canvas.Handle, LDetails, FillR);
+    DrawStyleElement(Canvas.Handle, LDetails, FillR);
   end;
 end;
 
@@ -1743,7 +1743,7 @@ begin
     Details := StyleServices.GetElementDetails(tpBar)
   else
     Details := StyleServices.GetElementDetails(tpBarVert);
-  StyleServices.DrawElement(Canvas.Handle, Details, R);
+  DrawStyleElement(Canvas.Handle, Details, R);
 end;
 
 procedure TSysProgressBarStyleHook.TimerAction(Sender: TObject);
@@ -1946,7 +1946,7 @@ begin
       R.Bottom := SysControl.ClientRect.Bottom;
     { band }
     Details := StyleServices.GetElementDetails(trBand);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
     { text }
     LTextRect := Rect(R.Left + 10, R.Top, R.Left + Margin.Left, R.Bottom);
 
@@ -1957,7 +1957,7 @@ begin
     { gripper }
     R := Rect(R.Left + 2, R.Top + 2, R.Left + 6, R.Bottom - 2);
     Details := StyleServices.GetElementDetails(trGripper);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
   end;
 end;
 
@@ -1972,7 +1972,7 @@ begin
   LDetails.Part := 0;
   if StyleServices.HasTransparentParts(LDetails) then
     StyleServices.DrawParentBackground(Handle, Canvas.Handle, LDetails, False);
-  StyleServices.DrawElement(Canvas.Handle, LDetails, LRect);
+  DrawStyleElement(Canvas.Handle, LDetails, LRect);
 end;
 
 procedure TSysReBarStyleHook.PaintNC(Canvas: TCanvas);
@@ -1984,7 +1984,7 @@ begin
   Canvas.FillRect(Rect(0, 0, SysControl.Width, SysControl.Height));
   LDetails.Element := teToolBar;
   LDetails.Part := 0;
-  StyleServices.DrawElement(Canvas.Handle, LDetails, Rect(0, 0, SysControl.Width, SysControl.Height));
+  DrawStyleElement(Canvas.Handle, LDetails, Rect(0, 0, SysControl.Width, SysControl.Height));
 end;
 
 procedure TSysReBarStyleHook.WndProc(var Message: TMessage);
@@ -2021,7 +2021,7 @@ var
   Borders: array [0 .. 2] of Integer;
 begin
   Details := StyleServices.GetElementDetails(tsStatusRoot);
-  StyleServices.DrawElement(Canvas.Handle, Details, Rect(0, 0, SysControl.Width, SysControl.Height));
+  DrawStyleElement(Canvas.Handle, Details, Rect(0, 0, SysControl.Width, SysControl.Height));
 
   if SendMessage(Handle, SB_ISSIMPLE, 0, 0) > 0 then
   begin
@@ -2034,12 +2034,12 @@ begin
     R.Right := R.Right - Borders[2];
 
     Details := StyleServices.GetElementDetails(tsPane);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
 
     R1 := SysControl.ClientRect;
     R1.Left := R1.Right - R.Height;
     Details := StyleServices.GetElementDetails(tsGripper);
-    StyleServices.DrawElement(Canvas.Handle, Details, R1);
+    DrawStyleElement(Canvas.Handle, Details, R1);
     Details := StyleServices.GetElementDetails(tsPane);
     SetLength(LText, Word(SendMessage(Handle, SB_GETTEXTLENGTH, 0, 0)));
     if Length(LText) > 0 then
@@ -2059,13 +2059,13 @@ begin
       if IsRectEmpty(R) then
         Exit;
       Details := StyleServices.GetElementDetails(tsPane);
-      StyleServices.DrawElement(Canvas.Handle, Details, R);
+      DrawStyleElement(Canvas.Handle, Details, R);
       if i = Count - 1 then
       begin
         R1 := SysControl.ClientRect;
         R1.Left := R1.Right - R.Height;
         Details := StyleServices.GetElementDetails(tsGripper);
-        StyleServices.DrawElement(Canvas.Handle, Details, R1);
+        DrawStyleElement(Canvas.Handle, Details, R1);
       end;
       Details := StyleServices.GetElementDetails(tsPane);
       InflateRect(R, -1, -1);
@@ -2119,7 +2119,7 @@ begin
   if TrackBarStyle and TBS_VERT = 0 then
   begin
     LDetails := StyleServices.GetElementDetails(ttbTrack);
-    StyleServices.DrawElement(Canvas.Handle, LDetails, LRect);
+    DrawStyleElement(Canvas.Handle, LDetails, LRect);
   end
   else
   begin
@@ -2129,7 +2129,7 @@ begin
     LRect.Right := LRect2.Bottom;
     LRect.Bottom := LRect2.Right;
     LDetails := StyleServices.GetElementDetails(ttbTrackVert);
-    StyleServices.DrawElement(Canvas.Handle, LDetails, LRect);
+    DrawStyleElement(Canvas.Handle, LDetails, LRect);
   end;
 
   SendMessage(Handle, TBM_GETCHANNELRECT, 0, IntPtr(@LRect));
@@ -2323,7 +2323,7 @@ begin
     end;
 
     LDetails := StyleServices.GetElementDetails(LThemedTrackBar);
-    StyleServices.DrawElement(Canvas.Handle, LDetails, LRect);
+    DrawStyleElement(Canvas.Handle, LDetails, LRect);
   end;
 
   if Focused then
@@ -2435,7 +2435,7 @@ begin
       DrawState := tsArrowBtnLeftNormal;
 
     Details := StyleServices.GetElementDetails(DrawState);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
 
     R := SysControl.ClientRect;
     R.Left := R.Right - R.Width div 2;
@@ -2447,7 +2447,7 @@ begin
       DrawState := tsArrowBtnRightNormal;
 
     Details := StyleServices.GetElementDetails(DrawState);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
   end
   else
   begin
@@ -2461,7 +2461,7 @@ begin
       DrawState := tsArrowBtnUpNormal;
 
     Details := StyleServices.GetElementDetails(DrawState);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
 
     R := SysControl.ClientRect;
     R.Top := R.Bottom - R.Height div 2;
@@ -2474,7 +2474,7 @@ begin
       DrawState := tsArrowBtnDownNormal;
 
     Details := StyleServices.GetElementDetails(DrawState);
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
   end;
 end;
 

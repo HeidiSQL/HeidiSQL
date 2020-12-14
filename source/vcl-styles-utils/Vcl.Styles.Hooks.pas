@@ -16,7 +16,7 @@
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
 //
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
 //
 // Contributor(s): Mahdi Safsafi.
 //
@@ -253,7 +253,7 @@ begin
                   LThemedButton := tbPushButtonNormal;
 
                 LDetails := StyleServices.GetElementDetails(LThemedButton);
-                StyleServices.DrawElement(DC, LDetails, LRect);
+                DrawStyleElement(DC, LDetails, LRect);
                 Result := True;
               end;
             end;
@@ -301,7 +301,7 @@ begin
                   LThemedButton := tbCheckBoxUncheckedNormal;
               end;
               LDetails := StyleServices.GetElementDetails(LThemedButton);
-              StyleServices.DrawElement(DC, LDetails, LRect);
+              DrawStyleElement(DC, LDetails, LRect);
               Result := True;
             end;
 
@@ -334,7 +334,7 @@ begin
                   LThemedButton := tbRadioButtonUncheckedNormal;
               end;
               LDetails := StyleServices.GetElementDetails(LThemedButton);
-              StyleServices.DrawElement(DC, LDetails, LRect);
+              DrawStyleElement(DC, LDetails, LRect);
               Result := True;
             end;
         end;
@@ -357,7 +357,7 @@ begin
                   LThemedComboBox := tcDropDownButtonNormal;
 
                 LDetails := StyleServices.GetElementDetails(LThemedComboBox);
-                StyleServices.DrawElement(DC, LDetails, LRect);
+                DrawStyleElement(DC, LDetails, LRect);
                 Result := True;
               end;
 
@@ -376,7 +376,7 @@ begin
                   LThemedScrollBar := tsArrowBtnUpNormal;
 
                 LDetails := StyleServices.GetElementDetails(LThemedScrollBar);
-                StyleServices.DrawElement(DC, LDetails, LRect);
+                DrawStyleElement(DC, LDetails, LRect);
                 Result := True;
               end;
 
@@ -395,7 +395,7 @@ begin
                   LThemedScrollBar := tsArrowBtnDownNormal;
 
                 LDetails := StyleServices.GetElementDetails(LThemedScrollBar);
-                StyleServices.DrawElement(DC, LDetails, LRect);
+                DrawStyleElement(DC, LDetails, LRect);
                 Result := True;
               end;
 
@@ -414,7 +414,7 @@ begin
                   LThemedScrollBar := tsArrowBtnLeftNormal;
 
                 LDetails := StyleServices.GetElementDetails(LThemedScrollBar);
-                StyleServices.DrawElement(DC, LDetails, LRect);
+                DrawStyleElement(DC, LDetails, LRect);
                 Result := True;
               end;
 
@@ -433,7 +433,7 @@ begin
                   LThemedScrollBar := tsArrowBtnRightNormal;
 
                 LDetails := StyleServices.GetElementDetails(LThemedScrollBar);
-                StyleServices.DrawElement(DC, LDetails, LRect);
+                DrawStyleElement(DC, LDetails, LRect);
                 Result := True;
               end;
 
@@ -827,6 +827,9 @@ end;
 const
   themelib = 'uxtheme.dll';
 
+var
+  hnd: THandle;
+
 initialization
 
  VCLStylesLock := TCriticalSection.Create;
@@ -845,7 +848,7 @@ begin
 {$ENDIF HOOK_TProgressBar}
   LSetStylePtr := TStyleManager.SetStyle;
 
-  BeginHooks;
+  hnd := BeginTransaction();
   @Trampoline_user32_GetSysColor := InterceptCreate(user32, 'GetSysColor', @Detour_GetSysColor);
   @Trampoline_user32_GetSysColorBrush := InterceptCreate(user32, 'GetSysColorBrush', @Detour_GetSysColorBrush);
   @Trampoline_user32_FillRect := InterceptCreate(user32, 'FillRect', @Detour_FillRect);
@@ -867,12 +870,12 @@ begin
   {$IFEND CompilerVersion}
 {$ENDIF HOOK_TDateTimePicker}
 
-  EndHooks;
+  EndTransaction(hnd);
 end;
 
 finalization
 
-  BeginUnHooks;
+  hnd := BeginTransaction();
   InterceptRemove(@Trampoline_user32_GetSysColor);
   InterceptRemove(@Trampoline_user32_GetSysColorBrush);
   InterceptRemove(@Trampoline_user32_FillRect);
@@ -892,7 +895,7 @@ finalization
   {$IFEND CompilerVersion}
 {$ENDIF HOOK_TDateTimePicker}
 
-  EndUnHooks;
+  EndTransaction(hnd);
   VCLStylesBrush.Free;
   VCLStylesLock.Free;
   VCLStylesLock := nil;

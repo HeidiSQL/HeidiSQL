@@ -13,7 +13,7 @@
 // and limitations under the License.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2014-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2014-2020 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
