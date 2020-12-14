@@ -9074,7 +9074,7 @@ var
   Columns: TTableColumnList;
 begin
   Item := Sender.GetNodeData(Node);
-  if not Assigned(ParentNode) then begin
+  if (not Assigned(ParentNode)) or (ParentNode = nil) then begin
     Item^ := TDBObject.Create(FConnections[Node.Index]);
     // Ensure plus sign is visible for root (and dbs, see below)
     Include(InitialStates, ivsHasChildren);
