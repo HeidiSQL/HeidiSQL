@@ -7874,6 +7874,7 @@ var
   Tabs: TTabSet;
   Rect: TRect;
   Org: TPoint;
+  QueryTab: TQueryTab;
   ResultTab: TResultTab;
   HintSQL: TStringList;
 begin
@@ -7889,12 +7890,15 @@ begin
   // Check if user wants these balloon hints
   if not AppSettings.ReadBool(asHintsOnResultTabs) then
     Exit;
+  QueryTab := ActiveQueryTab;
+  if idx >= QueryTab.ResultTabs.Count then
+    Exit;
 
   // Make SQL readable for the tooltip balloon. WrapText() is unsuitable here.
   // See issue #2014
   // Also, wee need to work around the awful looking balloon text:
   // http://qc.embarcadero.com/wc/qcmain.aspx?d=73771
-  ResultTab := ActiveQueryTab.ResultTabs[idx];
+  ResultTab := QueryTab.ResultTabs[idx];
   HintSQL := TStringList.Create;
   HintSQL.Text := Trim(ResultTab.Results.SQL);
   for i:=0 to HintSQL.Count-1 do begin
