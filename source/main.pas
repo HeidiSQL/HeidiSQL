@@ -13113,7 +13113,7 @@ begin
              end;
              HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Name;
              HELPERNODE_KEYWORDS: CellText := MySQLKeywords[Node.Index];
-             HELPERNODE_SNIPPETS: CellText := FSnippetFilenames[Node.Index];
+             HELPERNODE_SNIPPETS: CellText := IfThen(Node.Index<FSnippetFilenames.Count, FSnippetFilenames[Node.Index], '');
              HELPERNODE_HISTORY: begin
                CellText := Tab.HistoryDays[Node.Index];
                if CellText = DateToStr(Today) then
