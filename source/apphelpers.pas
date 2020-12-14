@@ -325,6 +325,7 @@ type
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
+  function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
   function GetLightness(AColor: TColor): Byte;
   function ReformatSQL(SQL: String): String;
   function ParamBlobToStr(lpData: Pointer): String;
@@ -1681,6 +1682,19 @@ begin
   else if MinutesAgo = 1 then Result := f_('%s minute ago', [FormatNumber(MinutesAgo)])
   else if MinutesAgo > 0 then Result := f_('%s minutes ago', [FormatNumber(MinutesAgo)])
   else Result := _('less than a minute ago');
+end;
+
+
+function DateTimeToStrDef(DateTime: TDateTime; Default: String) : String;
+begin
+  try
+    if DateTime = 0 then
+      Result := Default
+    else
+      Result := DateTimeToStr(DateTime);
+  except
+    on EInvalidOp do Result := Default;
+  end;
 end;
 
 

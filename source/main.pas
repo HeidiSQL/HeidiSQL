@@ -6152,8 +6152,8 @@ begin
     end;
     1: if Obj.Rows > -1 then CellText := FormatNumber(Obj.Rows);
     2: if Obj.Size > -1 then CellText := FormatByteNumber(Obj.Size);
-    3: if Obj.Created <> 0 then CellText := DateTimeToStr(Obj.Created);
-    4: if Obj.Updated <> 0 then CellText := DateTimeToStr(Obj.Updated);
+    3: CellText := DateTimeToStrDef(Obj.Created, '');
+    4: CellText := DateTimeToStrDef(Obj.Updated, '');
     5: CellText := Obj.Engine;
     6: CellText := Obj.Comment;
     7: if Obj.Version > -1 then CellText := IntToStr(Obj.Version);
