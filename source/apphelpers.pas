@@ -326,6 +326,7 @@ type
   function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
   function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
+  function TruncDef(X: Real; Default: Int64): Int64;
   function GetLightness(AColor: TColor): Byte;
   function ReformatSQL(SQL: String): String;
   function ParamBlobToStr(lpData: Pointer): String;
@@ -1067,8 +1068,8 @@ function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
 var
   d, h, m, s, ts: Integer;
 begin
-  s := Trunc(Seconds);
-  ts := Trunc((Seconds - s) * 10); // ts = tenth of a second
+  s := TruncDef(Seconds, 0);
+  ts := TruncDef((Seconds - s) * 10, 0); // ts = tenth of a second
   d := s div (60*60*24);
   s := s mod (60*60*24);
   h := s div (60*60);
@@ -1692,6 +1693,16 @@ begin
       Result := Default
     else
       Result := DateTimeToStr(DateTime);
+  except
+    on EInvalidOp do Result := Default;
+  end;
+end;
+
+
+function TruncDef(X: Real; Default: Int64): Int64;
+begin
+  try
+    Result := Trunc(X);
   except
     on EInvalidOp do Result := Default;
   end;
