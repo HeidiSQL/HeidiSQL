@@ -633,8 +633,12 @@ function Tconnform.SelectedSessionPath: String;
 var
   Sess: PConnectionParameters;
 begin
-  Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
-  Result := Sess.SessionPath;
+  if not Assigned(ListSessions.FocusedNode) then
+    Result := ''
+  else begin
+    Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+    Result := Sess.SessionPath;
+  end;
 end;
 
 
@@ -1010,6 +1014,9 @@ begin
     Exit;
 
   AppSettings.SessionPath := SelectedSessionPath;
+  if AppSettings.SessionPath.IsEmpty then
+    Exit;
+
   DummyDate := StrToDateTime('2000-01-01');
   LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
   if LastConnect <> DummyDate then begin
