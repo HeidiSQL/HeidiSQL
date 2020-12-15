@@ -998,7 +998,7 @@ end;
 
 procedure Tconnform.TimerStatisticsTimer(Sender: TObject);
 var
-  LastConnect, Created, DummyDate: TDateTime;
+  LastConnect, Created: TDateTime;
 begin
   // Continuously update statistics labels
   lblLastConnectRight.Caption := _('unknown or never');
@@ -1017,15 +1017,14 @@ begin
   if AppSettings.SessionPath.IsEmpty then
     Exit;
 
-  DummyDate := StrToDateTime('2000-01-01');
-  LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
-  if LastConnect <> DummyDate then begin
+  LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DateTimeNever);
+  if LastConnect <> DateTimeNever then begin
     lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
     lblLastConnectRight.Caption := DateBackFriendlyCaption(LastConnect);
     lblLastConnectRight.Enabled := True;
   end;
-  Created := StrToDateTimeDef(AppSettings.ReadString(asSessionCreated), DummyDate);
-  if Created <> DummyDate then begin
+  Created := StrToDateTimeDef(AppSettings.ReadString(asSessionCreated), DateTimeNever);
+  if Created <> DateTimeNever then begin
     lblCreatedRight.Hint := DateTimeToStr(Created);
     lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
     lblCreatedRight.Enabled := True;

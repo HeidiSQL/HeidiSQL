@@ -1631,7 +1631,7 @@ var
   JumpTask: TJumpTask;
   SessionPath: String;
   i: Integer;
-  LastConnect, DummyDate: TDateTime;
+  LastConnect: TDateTime;
 begin
   // Store names of open sessions
   OpenSessions := TStringList.Create;
@@ -1650,8 +1650,7 @@ begin
     AppSettings.GetSessionPaths('', SessionPaths);
     for SessionPath in SessionPaths do begin
       AppSettings.SessionPath := SessionPath;
-      DummyDate := StrToDateTime('2000-01-01');
-      LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
+      LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DateTimeNever);
       if DaysBetween(LastConnect, Now) <= 30 then
         SortedSessions.Values[SessionPath] := IntToStr(AppSettings.ReadInt(asConnectCount));
     end;
@@ -2139,7 +2138,7 @@ var
   LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
-  DefaultLastrunDate, LastActiveSession, Environment: String;
+  LastActiveSession, Environment: String;
   frm : TfrmUpdateCheck;
   StatsCall: THttpDownload;
   SessionPaths: TStringlist;
@@ -2147,15 +2146,9 @@ var
   Tab: TQueryTab;
   SessionManager: TConnForm;
 begin
-  DefaultLastrunDate := '2000-01-01';
-
   // Do an updatecheck if checked in settings
   if AppSettings.ReadBool(asUpdatecheck) then begin
-    try
-      LastUpdatecheck := StrToDateTime(AppSettings.ReadString(asUpdatecheckLastrun));
-    except
-      LastUpdatecheck := StrToDateTime(DefaultLastrunDate);
-    end;
+    LastUpdatecheck := StrToDateTimeDef(AppSettings.ReadString(asUpdatecheckLastrun), DateTimeNever);
     UpdatecheckInterval := AppSettings.ReadInt(asUpdatecheckInterval);
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
       frm := TfrmUpdateCheck.Create(Self);
@@ -2186,11 +2179,7 @@ begin
 
   // Call user statistics if checked in settings
   if AppSettings.ReadBool(asDoUsageStatistics) then begin
-    try
-      LastStatsCall := StrToDateTime(AppSettings.ReadString(asLastUsageStatisticCall));
-    except
-      LastStatsCall := StrToDateTime(DefaultLastrunDate);
-    end;
+    LastStatsCall := StrToDateTimeDef(AppSettings.ReadString(asLastUsageStatisticCall), DateTimeNever);
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
       // Report used app version, bits, and theme name (so we find mostly unused ones for removal)
       // Also report environment: WinDesktop, WinUWP or Wine
@@ -2209,11 +2198,7 @@ begin
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
-        try
-          LastConnect := StrToDateTime(AppSettings.ReadString(asLastConnect));
-        except
-          LastConnect := StrToDateTime(DefaultLastrunDate);
-        end;
+        LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DateTimeNever);
         if LastConnect > LastStatsCall then begin
           StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(AppSettings.ReadInt(asNetType)) + '-' + IntToStr(AppSettings.ReadInt(asServerVersion));
         end;

@@ -381,6 +381,7 @@ var
   NumberChars: TSysCharSet;
   LibHandleUser32: THandle;
   UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
+  DateTimeNever: TDateTime;
 
 implementation
 
@@ -3631,7 +3632,7 @@ begin
   InitSetting(asUpdatecheck,                      'Updatecheck',                           0, False);
   InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
   InitSetting(asUpdatecheckInterval,              'UpdatecheckInterval',                   3);
-  InitSetting(asUpdatecheckLastrun,               'UpdatecheckLastrun',                    0, False, '2000-01-01');
+  InitSetting(asUpdatecheckLastrun,               'UpdatecheckLastrun',                    0, False, DateToStr(DateTimeNever));
   InitSetting(asUpdateCheckWindowWidth,           'UpdateCheckWindowWidth',                400);
   InitSetting(asUpdateCheckWindowHeight,          'UpdateCheckWindowHeight',               460);
   InitSetting(asTableToolsWindowWidth,            'TableTools_WindowWidth',                800);
@@ -3666,12 +3667,12 @@ begin
   InitSetting(asCopyTableRecentFilter,            'CopyTable_RecentFilter_%s',             0, False, '');
   InitSetting(asServerVersion,                    'ServerVersion',                         0, False, '', True);
   InitSetting(asServerVersionFull,                'ServerVersionFull',                     0, False, '', True);
-  InitSetting(asLastConnect,                      'LastConnect',                           0, False, '2000-01-01', True);
+  InitSetting(asLastConnect,                      'LastConnect',                           0, False, DateToStr(DateTimeNever), True);
   InitSetting(asConnectCount,                     'ConnectCount',                          0, False, '', True);
   InitSetting(asRefusedCount,                     'RefusedCount',                          0, False, '', True);
   InitSetting(asSessionCreated,                   'SessionCreated',                        0, False, '', True);
   InitSetting(asDoUsageStatistics,                'DoUsageStatistics',                     0, False);
-  InitSetting(asLastUsageStatisticCall,           'LastUsageStatisticCall',                0, False, '2000-01-01');
+  InitSetting(asLastUsageStatisticCall,           'LastUsageStatisticCall',                0, False, DateToStr(DateTimeNever));
   InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
@@ -4359,6 +4360,8 @@ NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.Thousa
 LibHandleUser32 := LoadLibrary('User32.dll');
 
 UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
+
+DateTimeNever := MinDateTime;
 
 end.
 
