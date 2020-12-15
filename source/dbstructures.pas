@@ -408,7 +408,7 @@ const
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
     dtJson, dtCidr, dtInet, dtMacaddr,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtRegClass, dtUnknown,
+    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtRegClass, dtRegProc, dtUnknown,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid, dtXML,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
@@ -1655,7 +1655,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..35] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..36] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1830,7 +1830,7 @@ var
       Index:           dtVarchar;
       NativeTypes:     '18|19|24|1043|1043';
       Name:            'VARCHAR';
-      Names:           'char|bpchar|varchar|name|enum|regproc|character varying';
+      Names:           'char|bpchar|varchar|name|enum|character varying';
       Description:     'Variable-length with limit.';
       HasLength:       True;
       RequiresLength:  False;
@@ -2087,6 +2087,19 @@ var
       Name:            'REGCLASS';
       Names:           'regclass';
       Description:     'Relation name';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dtRegProc;
+      NativeTypes:     '24';
+      Name:            'REGPROC';
+      Names:           'regproc|regprocedure';
+      Description:     'Function name';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
