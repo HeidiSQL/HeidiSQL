@@ -7526,7 +7526,9 @@ var
   Data: TDBQuery;
   DbObj: TDBObject;
   Conn: TDBConnection;
-  Col, Query: String;
+  ColIdx: Integer;
+  ColName, Query: String;
+  ColType: TDBDatatype;
   TableCol: TTableColumn;
   Item: TMenuItem;
   i: Integer;
@@ -7540,26 +7542,28 @@ begin
   QFvalues[0].Caption := '';
   QFvalues[0].Hint := '';
   QFvalues[0].OnClick := nil;
-  if DataGrid.FocusedColumn = NoColumn then
+  ColIdx := DataGrid.FocusedColumn;
+  if ColIdx = NoColumn then
     Exit;
-  Col := DataGridResult.ColumnOrgNames[DataGrid.FocusedColumn];
+  ColName := DataGridResult.ColumnOrgNames[ColIdx];
+  ColType := DataGridResult.DataType(ColIdx);
   ShowStatusMsg(_('Fetching distinct values ...'));
   DbObj := ActiveDbObj;
   Conn := DbObj.Connection;
   MaxSize := SIZE_GB;
-  ColumnHasIndex := DataGridResult.ColIsKeyPart(DataGrid.FocusedColumn)
-    or DataGridResult.ColIsUniqueKeyPart(DataGrid.FocusedColumn)
-    or DataGridResult.ColIsPrimaryKeyPart(DataGrid.FocusedColumn);
+  ColumnHasIndex := DataGridResult.ColIsKeyPart(ColIdx)
+    or DataGridResult.ColIsUniqueKeyPart(ColIdx)
+    or DataGridResult.ColIsPrimaryKeyPart(ColIdx);
   if ColumnHasIndex then begin
     MaxSize := MaxSize * 5;
   end;
   try
     if DbObj.Size > MaxSize then
       raise Exception.Create(f_('Table too large (>%s), avoiding long running SELECT query', [FormatByteNumber(MaxSize)]));
-    Query := Conn.QuoteIdent(Col)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
+    Query := Conn.QuoteIdent(ColName)+', COUNT(*) AS c FROM '+DbObj.QuotedName;
     if SynMemoFilter.Text <> '' then
       Query := Query + ' WHERE ' + SynMemoFilter.Text + CRLF;
-    Query := Query + ' GROUP BY '+Conn.QuoteIdent(Col)+' ORDER BY c DESC, '+Conn.QuoteIdent(Col);
+    Query := Query + ' GROUP BY '+Conn.QuoteIdent(ColName)+' ORDER BY c DESC, '+Conn.QuoteIdent(ColName);
     Data := Conn.GetResults(Conn.ApplyLimitClause('SELECT', Query, 30, 0));
     for i:=0 to Data.RecordCount-1 do begin
       if QFvalues.Count > i then
@@ -7568,10 +7572,12 @@ begin
         Item := TMenuItem.Create(QFvalues);
         QFvalues.Add(Item);
       end;
-      if Data.IsNull(Col) then
-        Item.Hint := Conn.QuoteIdent(Col)+' IS NULL'
+      if Data.IsNull(ColName) then
+        Item.Hint := Conn.QuoteIdent(ColName)+' IS NULL'
+      else if ColType.Category in [dtcBinary, dtcSpatial] then
+        Item.Hint := Conn.QuoteIdent(ColName)+'='+Data.HexValue(0)
       else
-        Item.Hint := Conn.QuoteIdent(Col)+'='+Conn.EscapeString(Data.Col(Col));
+        Item.Hint := Conn.QuoteIdent(ColName)+'='+Conn.EscapeString(Data.Col(ColName));
       Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
       if SynMemoFilter.Text <> '' then begin
         if Pos(Item.Hint, SynMemoFilter.Text) > 0 then
@@ -7589,7 +7595,7 @@ begin
       QFvalues[0].Caption := StrEllipsis(E.Message, 100);
       QFvalues[0].Hint := E.Message;
       for TableCol in SelectedTableColumns do begin
-        if (TableCol.Name = Col) and (TableCol.DataType.Index in [dtEnum, dtSet]) then begin
+        if (TableCol.Name = ColName) and (TableCol.DataType.Index in [dtEnum, dtSet]) then begin
           ValueList := TableCol.ValueList;
           for i:=0 to ValueList.Count-1 do begin
             if QFvalues.Count > i+1 then
@@ -7598,7 +7604,7 @@ begin
               Item := TMenuItem.Create(QFvalues);
               QFvalues.Add(Item);
             end;
-            Item.Hint := Conn.QuoteIdent(Col)+'='+Conn.EscapeString(ValueList[i]);
+            Item.Hint := Conn.QuoteIdent(ColName)+'='+Conn.EscapeString(ValueList[i]);
             Item.Caption := StrEllipsis(Item.Hint, 100);
             Item.OnClick := QuickFilterClick;
           end;
