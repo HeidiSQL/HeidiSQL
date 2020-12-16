@@ -67,6 +67,13 @@ type
       IdentBindParams = 'BindParams';
       IdentEditorTopLine = 'EditorTopLine';
       IdentTabFocused = 'TabFocused';
+      HelperNodeColumns = 0;
+      HelperNodeFunctions = 1;
+      HelperNodeKeywords = 2;
+      HelperNodeSnippets = 3;
+      HelperNodeHistory = 4;
+      HelperNodeProfile = 5;
+      HelperNodeBinding = 6;
     private
       FMemo: TSynMemo;
       FMemoFilename: String;
@@ -2588,8 +2595,8 @@ begin
       end;
 
       FreeAndNil(ActiveObjectEditor);
-      RefreshHelperNode(HELPERNODE_PROFILE);
-      RefreshHelperNode(HELPERNODE_COLUMNS);
+      RefreshHelperNode(TQueryTab.HelperNodeProfile);
+      RefreshHelperNode(TQueryTab.HelperNodeColumns);
 
       // Last chance to access connection related properties before disconnecting
 
@@ -3120,7 +3127,7 @@ begin
     Tab.ResultTabs.Clear;
     Tab.tabsetQuery.Tabs.Clear;
     FreeAndNil(Tab.QueryProfile);
-    ProfileNode := FindNode(Tab.treeHelpers, HELPERNODE_PROFILE, nil);
+    ProfileNode := FindNode(Tab.treeHelpers, TQueryTab.HelperNodeProfile, nil);
     Tab.DoProfile := Assigned(ProfileNode) and (Tab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
     if Tab.DoProfile then try
       ActiveConnection.Query('SET profiling=1');
@@ -3298,7 +3305,7 @@ begin
       Tab.MaxProfileTime := Max(Time, Tab.MaxProfileTime);
       Tab.QueryProfile.Next;
     end;
-    ProfileNode := FindNode(Tab.treeHelpers, HELPERNODE_PROFILE, nil);
+    ProfileNode := FindNode(Tab.treeHelpers, TQueryTab.HelperNodeProfile, nil);
     Tab.treeHelpers.ReinitNode(ProfileNode, True);
     Tab.treeHelpers.InvalidateChildren(ProfileNode, True);
     Thread.Connection.Query('SET profiling=0');
@@ -3393,7 +3400,7 @@ begin
         LogSQL(f_('Error when updating query history: %s', [E.Message]), lcError);
     end;
 
-    RefreshHelperNode(HELPERNODE_HISTORY);
+    RefreshHelperNode(TQueryTab.HelperNodeHistory);
   end;
 
   // Clean up
@@ -4652,7 +4659,7 @@ begin
     Tree := ActiveQueryHelpers;
     if Assigned(Tree.FocusedNode)
       and (Tree.GetNodeLevel(Tree.FocusedNode)=1)
-      and (Tree.FocusedNode.Parent.Index in [HELPERNODE_FUNCTIONS, HELPERNODE_KEYWORDS]) then
+      and (Tree.FocusedNode.Parent.Index in [TQueryTab.HelperNodeFunctions, TQueryTab.HelperNodeKeywords]) then
       keyword := Tree.Text[Tree.FocusedNode, 0];
   end;
 
@@ -6982,16 +6989,16 @@ begin
     case Tree.GetNodeLevel(Tree.FocusedNode) of
       1:
         case Tree.FocusedNode.Parent.Index of
-          HELPERNODE_SNIPPETS:
+          TQueryTab.HelperNodeSnippets:
             Text := ReadTextFile(AppSettings.DirnameSnippets + Tree.Text[Tree.FocusedNode, 0] + '.sql', nil);
-          HELPERNODE_HISTORY:
+          TQueryTab.HelperNodeHistory:
             Text := '';
           else begin
             Node := Tree.GetFirstChild(Tree.FocusedNode.Parent);
             while Assigned(Node) do begin
               if Tree.Selected[Node] then begin
                 ItemText := Tree.Text[Node, 0];
-                if Node.Parent.Index = HELPERNODE_COLUMNS then
+                if Node.Parent.Index = TQueryTab.HelperNodeColumns then
                   ItemText := ActiveConnection.QuoteIdent(ItemText, False); // Quote column names
                 if ShiftPressed then
                   Text := Text + ItemText + ',' + CRLF
@@ -7005,7 +7012,7 @@ begin
         end;
       2:
         case Tree.FocusedNode.Parent.Parent.Index of
-          HELPERNODE_HISTORY: begin
+          TQueryTab.HelperNodeHistory: begin
             History := ActiveQueryTab.HistoryDays.Objects[Tree.FocusedNode.Parent.Index] as TQueryHistory;
             Text := History[Tree.FocusedNode.Index].SQL;
           end;
@@ -8017,7 +8024,7 @@ begin
     Screen.Cursor := crHourglass;
     AppSettings.SessionPath := PathToDelete;
     AppSettings.DeleteCurrentKey;
-    RefreshHelperNode(HELPERNODE_HISTORY);
+    RefreshHelperNode(TQueryTab.HelperNodeHistory);
     Screen.Cursor := crDefault;
   end;
   Values.Free;
@@ -8325,7 +8332,7 @@ begin
   if Tree = ActiveQueryHelpers then begin
     case Sender.GetNodeLevel(Node) of
       1: case Node.Parent.Index of
-        HELPERNODE_FUNCTIONS: begin
+        TQueryTab.HelperNodeFunctions: begin
           NewHint := MySQLFunctions[Node.Index].Name + MySQLFunctions[Node.Index].Declaration +
             ':' + sLineBreak + MySQLFunctions[Node.Index].Description;
           if not NewHint.IsEmpty then begin
@@ -9207,7 +9214,7 @@ begin
           if DataGrid.Tag = VTREE_LOADED then
             InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
           // Update the list of columns
-          RefreshHelperNode(HELPERNODE_COLUMNS);
+          RefreshHelperNode(TQueryTab.HelperNodeColumns);
         except on E:EDbError do
           ErrorDialog(E.Message);
         end;
@@ -9222,8 +9229,8 @@ begin
     // When clicked node is from a different connection than before, do session specific stuff here:
     if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
-      RefreshHelperNode(HELPERNODE_HISTORY);
-      RefreshHelperNode(HELPERNODE_PROFILE);
+      RefreshHelperNode(TQueryTab.HelperNodeHistory);
+      RefreshHelperNode(TQueryTab.HelperNodeProfile);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
           SynSQLSynUsed.SQLDialect := sqlMySQL;
@@ -12417,7 +12424,7 @@ begin
   ColumnNames := TStringList.Create;
   DefaultValues := TStringList.Create;
   Tree := ActiveQueryHelpers;
-  Node := Tree.GetFirstChild(FindNode(Tree, HELPERNODE_COLUMNS, nil));
+  Node := Tree.GetFirstChild(FindNode(Tree, TQueryTab.HelperNodeColumns, nil));
   while Assigned(Node) do begin
     if Tree.Selected[Node] then begin
       Column := SelectedTableColumns[Node.Index];
@@ -12894,7 +12901,7 @@ var
   History: TQueryHistory;
 begin
   // Paint green value bar in cell
-  if (Node.Parent.Index=HELPERNODE_PROFILE)
+  if (Node.Parent.Index=TQueryTab.HelperNodeProfile)
     and (Column=1)
     and (Sender.GetNodeLevel(Node)=1)
     then begin
@@ -12906,7 +12913,7 @@ begin
   end;
   if (Sender.GetNodeLevel(Node)=2)
     and (Column=1)
-    and (Node.Parent.Parent.Index=HELPERNODE_HISTORY) then begin
+    and (Node.Parent.Parent.Index=TQueryTab.HelperNodeHistory) then begin
     Tab := GetQueryTabByHelpers(Sender);
     if Tab <> nil then begin
       History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
@@ -12923,7 +12930,7 @@ var
   Tab: TQueryTab;
 begin
   // Paint text in datatype's color
-  if (Node.Parent.Index=HELPERNODE_COLUMNS)
+  if (Node.Parent.Index=TQueryTab.HelperNodeColumns)
     and (Column=1)
     and (Sender.GetNodeLevel(Node)=1)
     and (ActiveDbObj.NodeType in [lntView, lntTable])
@@ -12931,7 +12938,7 @@ begin
     TargetCanvas.Font.Color := DatatypeCategories[SelectedTableColumns[Node.Index].DataType.Category].Color;
   end;
   if (Sender.GetNodeLevel(Node)=2)
-    and (Node.Parent.Parent.Index=HELPERNODE_HISTORY)
+    and (Node.Parent.Parent.Index=TQueryTab.HelperNodeHistory)
     and (ActiveConnection <> nil) then begin
     Tab := GetQueryTabByHelpers(Sender);
     if Tab <> nil then begin
@@ -12944,7 +12951,7 @@ begin
   // If there is no value for bind variable, the font style is Italic and Underline
   if (Sender.GetNodeLevel(Node)=1)
     and (Column=1)
-    and (Node.Parent.Index=HELPERNODE_BINDING) then begin
+    and (Node.Parent.Index=TQueryTab.HelperNodeBinding) then begin
       Tab := GetQueryTabByHelpers(Sender);
       if StrLen(PChar(Tab.ListBindParams.Items[Node.Index].Value)) = 0 then
         TargetCanvas.Font.Style := [fsItalic]+[fsUnderline];
@@ -12984,7 +12991,7 @@ procedure TMainForm.treeQueryHelpersEditing(Sender: TBaseVirtualTree;
 begin
   // If current column is value of Bind Param, we allow editing
   if (Column = 1)
-    and (Sender.FocusedNode.Parent.Index = HELPERNODE_BINDING) then begin
+    and (Sender.FocusedNode.Parent.Index = TQueryTab.HelperNodeBinding) then begin
       Allowed := True;
     end
 end;
@@ -13000,7 +13007,7 @@ begin
   if not Assigned(NewNode) then
     Exit;
   if (Tree.GetNodeLevel(NewNode) = 0) or
-    (NewNode.Parent.Index=HELPERNODE_SNIPPETS)
+    (NewNode.Parent.Index=TQueryTab.HelperNodeSnippets)
     then begin
     Tree.ClearSelection;
     Tree.TreeOptions.SelectionOptions := Tree.TreeOptions.SelectionOptions - [toMultiSelect]
@@ -13016,7 +13023,7 @@ var
 begin
   // Free some memory, taken by probably big SQL query history items
   if (Sender.GetNodeLevel(Node)=1)
-    and (Node.Parent.Index = HELPERNODE_HISTORY) then begin
+    and (Node.Parent.Index = TQueryTab.HelperNodeHistory) then begin
     Tab := GetQueryTabByHelpers(Sender);
     if Tab <> nil then begin
       Tab.HistoryDays.Objects[Node.Index].Free;
@@ -13036,25 +13043,25 @@ begin
     Exit;
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
-         HELPERNODE_COLUMNS: if (ActiveDbObj <> nil) and (ActiveDbObj.NodeType <> lntNone) then
+         TQueryTab.HelperNodeColumns: if (ActiveDbObj <> nil) and (ActiveDbObj.NodeType <> lntNone) then
               ImageIndex := ActiveDbObj.ImageIndex
             else
               ImageIndex := 14;
-         HELPERNODE_FUNCTIONS: ImageIndex := 13;
-         HELPERNODE_KEYWORDS: ImageIndex := 25;
-         HELPERNODE_SNIPPETS: ImageIndex := 51;
-         HELPERNODE_HISTORY: ImageIndex := 149;
-         HELPERNODE_PROFILE: ImageIndex := 145;
-         HELPERNODE_BINDING: ImageIndex := 119;
+         TQueryTab.HelperNodeFunctions: ImageIndex := 13;
+         TQueryTab.HelperNodeKeywords: ImageIndex := 25;
+         TQueryTab.HelperNodeSnippets: ImageIndex := 51;
+         TQueryTab.HelperNodeHistory: ImageIndex := 149;
+         TQueryTab.HelperNodeProfile: ImageIndex := 145;
+         TQueryTab.HelperNodeBinding: ImageIndex := 119;
        end;
     1: case Node.Parent.Index of
-         HELPERNODE_COLUMNS: ImageIndex := 42;
-         HELPERNODE_FUNCTIONS: ImageIndex := 13;
-         HELPERNODE_KEYWORDS: ImageIndex := 25;
-         HELPERNODE_SNIPPETS: ImageIndex := 68;
-         HELPERNODE_HISTORY: ImageIndex := 80;
-         HELPERNODE_PROFILE: ImageIndex := 145;
-         HELPERNODE_BINDING: ImageIndex := 42;
+         TQueryTab.HelperNodeColumns: ImageIndex := 42;
+         TQueryTab.HelperNodeFunctions: ImageIndex := 13;
+         TQueryTab.HelperNodeKeywords: ImageIndex := 25;
+         TQueryTab.HelperNodeSnippets: ImageIndex := 68;
+         TQueryTab.HelperNodeHistory: ImageIndex := 80;
+         TQueryTab.HelperNodeProfile: ImageIndex := 145;
+         TQueryTab.HelperNodeBinding: ImageIndex := 42;
        end;
   end;
 end;
@@ -13072,30 +13079,30 @@ begin
   case Column of
     0: case Sender.GetNodeLevel(Node) of
         0: case Node.Index of
-             HELPERNODE_COLUMNS: begin
+             TQueryTab.HelperNodeColumns: begin
                CellText := _('Columns');
                if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
                  lntProcedure, lntFunction: CellText := f_('Parameters in %s', [ActiveDbObj.Name]);
                  lntTable, lntView: CellText := f_('Columns in %s', [ActiveDbObj.Name]);
                end;
              end;
-             HELPERNODE_FUNCTIONS: CellText := _('SQL functions');
-             HELPERNODE_KEYWORDS: CellText := _('SQL keywords');
-             HELPERNODE_SNIPPETS: CellText := _('Snippets');
-             HELPERNODE_HISTORY: CellText := _('Query history');
-             HELPERNODE_PROFILE: begin
+             TQueryTab.HelperNodeFunctions: CellText := _('SQL functions');
+             TQueryTab.HelperNodeKeywords: CellText := _('SQL keywords');
+             TQueryTab.HelperNodeSnippets: CellText := _('Snippets');
+             TQueryTab.HelperNodeHistory: CellText := _('Query history');
+             TQueryTab.HelperNodeProfile: begin
                   CellText := _('Query profile');
                   if Assigned(Tab.QueryProfile) then
                     CellText := CellText + ' ('+FormatNumber(Tab.ProfileTime, 6)+'s)';
                 end;
-             HELPERNODE_BINDING: begin
+             TQueryTab.HelperNodeBinding: begin
                   CellText := _('Bind parameters');
                   if(Tab.BindParamsActivated) then
                     CellText := CellText + ' ('+FormatNumber(Tab.ListBindParams.Count)+')';
                 end;
            end;
         1: case Node.Parent.Index of
-             HELPERNODE_COLUMNS: begin
+             TQueryTab.HelperNodeColumns: begin
                if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
                  lntTable, lntView:
                    if SelectedTableColumns.Count > Integer(Node.Index) then
@@ -13105,26 +13112,26 @@ begin
                      CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
                end;
              end;
-             HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Name;
-             HELPERNODE_KEYWORDS: CellText := MySQLKeywords[Node.Index];
-             HELPERNODE_SNIPPETS: CellText := IfThen(Node.Index<FSnippetFilenames.Count, FSnippetFilenames[Node.Index], '');
-             HELPERNODE_HISTORY: begin
+             TQueryTab.HelperNodeFunctions: CellText := MySQLFunctions[Node.Index].Name;
+             TQueryTab.HelperNodeKeywords: CellText := MySQLKeywords[Node.Index];
+             TQueryTab.HelperNodeSnippets: CellText := IfThen(Node.Index<FSnippetFilenames.Count, FSnippetFilenames[Node.Index], '');
+             TQueryTab.HelperNodeHistory: begin
                CellText := Tab.HistoryDays[Node.Index];
                if CellText = DateToStr(Today) then
                  CellText := CellText + ', '+_('today')
                else if CellText = DateToStr(Yesterday) then
                  CellText := CellText + ', '+_('yesterday');
              end;
-             HELPERNODE_PROFILE: begin
+             TQueryTab.HelperNodeProfile: begin
                   if Assigned(Tab.QueryProfile) then begin
                     Tab.QueryProfile.RecNo := Node.Index;
                     CellText := Tab.QueryProfile.Col(Column);
                   end;
                 end;
-             HELPERNODE_BINDING: CellText := Tab.ListBindParams[Node.Index].Name;
+             TQueryTab.HelperNodeBinding: CellText := Tab.ListBindParams[Node.Index].Name;
            end;
         2: case Node.Parent.Parent.Index of
-             HELPERNODE_HISTORY: begin
+             TQueryTab.HelperNodeHistory: begin
                History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
                CellText := Copy(TimeToStr(History[Node.Index].Time), 1, 5)+': '+History[Node.Index].SQL;
              end
@@ -13134,21 +13141,21 @@ begin
     1: case Sender.GetNodeLevel(Node) of
         0: CellText := '';
         1: case Node.Parent.Index of
-             HELPERNODE_COLUMNS: begin
+             TQueryTab.HelperNodeColumns: begin
                if (ActiveDbObj <> nil)
                 and (ActiveDbObj.NodeType in [lntTable, lntView])
                 and (SelectedTableColumns.Count > Integer(Node.Index)) then begin
                    CellText := SelectedTableColumns[Node.Index].DataType.Name;
                end;
              end;
-             HELPERNODE_FUNCTIONS: CellText := MySQLFunctions[Node.Index].Declaration;
-             HELPERNODE_PROFILE: begin
+             TQueryTab.HelperNodeFunctions: CellText := MySQLFunctions[Node.Index].Declaration;
+             TQueryTab.HelperNodeProfile: begin
                   if Assigned(Tab.QueryProfile) then begin
                     Tab.QueryProfile.RecNo := Node.Index;
                     CellText := FormatNumber(Tab.QueryProfile.Col(Column))+'s';
                   end;
                 end;
-             HELPERNODE_BINDING: begin
+             TQueryTab.HelperNodeBinding: begin
                   // If value is empty, display MsgBindParamNoValue
                   if StrLen(PChar(Tab.ListBindParams[Node.Index].Value))>0 then
                     CellText := Tab.ListBindParams[Node.Index].Value
@@ -13158,7 +13165,7 @@ begin
              else CellText := '';
            end;
         2: case Node.Parent.Parent.Index of
-             HELPERNODE_HISTORY: begin
+             TQueryTab.HelperNodeHistory: begin
                History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
                CellText := FormatNumber(History[Node.Index].Duration / 1000, 3)+'s';
              end;
@@ -13175,14 +13182,14 @@ begin
   case Sender.GetNodeLevel(Node) of
     0: begin
       Include(InitialStates, ivsHasChildren);
-      if Node.Index = HELPERNODE_PROFILE then
+      if Node.Index = TQueryTab.HelperNodeProfile then
         Node.CheckType := ctCheckbox;
-      if Node.Index = HELPERNODE_BINDING then
+      if Node.Index = TQueryTab.HelperNodeBinding then
         Node.CheckType := ctCheckbox;
     end;
     1: begin
       AppSettings.ResetPath;
-      if (Node.Parent.Index = HELPERNODE_HISTORY) and AppSettings.ReadBool(asQueryHistoryEnabled) then
+      if (Node.Parent.Index = TQueryTab.HelperNodeHistory) and AppSettings.ReadBool(asQueryHistoryEnabled) then
         Include(InitialStates, ivsHasChildren);
     end;
   end;
@@ -13212,7 +13219,7 @@ var
 begin
   Tree := Sender as TVirtualStringTree;
   // If the column is clicked a parameter value, it goes directly into the edit mode
-  if (HitInfo.HitNode.Parent.Index = HELPERNODE_BINDING) and (HitInfo.HitColumn = 1) then
+  if (HitInfo.HitNode.Parent.Index = TQueryTab.HelperNodeBinding) and (HitInfo.HitColumn = 1) then
     Tree.EditNode(Sender.FocusedNode,Sender.FocusedColumn);
 end;
 
@@ -13225,11 +13232,13 @@ var
   Item: TQueryHistoryItem;
   Tab: TQueryTab;
   i: Integer;
+  Conn: TDBConnection;
 begin
   Tab := GetQueryTabByHelpers(Sender);
+  Conn := ActiveConnection;
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
-         HELPERNODE_COLUMNS: begin
+         TQueryTab.HelperNodeColumns: begin
            ChildCount := 0;
            if ActiveDbObj <> nil then case ActiveDbObj.NodeType of
              lntTable, lntView:
@@ -13241,17 +13250,17 @@ begin
                  ChildCount := 0;
            end;
          end;
-         HELPERNODE_FUNCTIONS: ChildCount := Length(MySQLFunctions);
-         HELPERNODE_KEYWORDS: ChildCount := MySQLKeywords.Count;
-         HELPERNODE_SNIPPETS: ChildCount := FSnippetFilenames.Count;
-         HELPERNODE_HISTORY: begin
+         TQueryTab.HelperNodeFunctions: ChildCount := Length(MySQLFunctions);
+         TQueryTab.HelperNodeKeywords: ChildCount := MySQLKeywords.Count;
+         TQueryTab.HelperNodeSnippets: ChildCount := FSnippetFilenames.Count;
+         TQueryTab.HelperNodeHistory: begin
            AppSettings.ResetPath;
-           if AppSettings.ReadBool(asQueryHistoryEnabled) then begin
+           if AppSettings.ReadBool(asQueryHistoryEnabled) and (Conn <> nil) then begin
              // Find all unique days in history
              if not Assigned(Tab.HistoryDays) then
                Tab.HistoryDays := TStringList.Create;
              Tab.HistoryDays.Clear;
-             History := TQueryHistory.Create(ActiveConnection.Parameters.SessionPath);
+             History := TQueryHistory.Create(Conn.Parameters.SessionPath);
              for Item in History do begin
                QueryDay := DateToStr(Item.Time);
                if Tab.HistoryDays.IndexOf(QueryDay) = -1 then
@@ -13262,20 +13271,22 @@ begin
              ChildCount := Tab.HistoryDays.Count;
            end;
          end;
-         HELPERNODE_PROFILE: if not Assigned(Tab.QueryProfile) then ChildCount := 0
+         TQueryTab.HelperNodeProfile: if not Assigned(Tab.QueryProfile) then ChildCount := 0
             else ChildCount := Tab.QueryProfile.RecordCount;
-         HELPERNODE_BINDING: ChildCount := Tab.ListBindParams.Count;
+         TQueryTab.HelperNodeBinding: ChildCount := Tab.ListBindParams.Count;
        end;
     1: case Node.Parent.Index of
-      HELPERNODE_HISTORY: begin
-        History := TQueryHistory.Create(ActiveConnection.Parameters.SessionPath);
-        Tab.HistoryDays.Objects[Node.Index] := History;
-        for i:=History.Count-1 downto 0 do begin
-          QueryDay := DateToStr(History[i].Time);
-          if QueryDay <> Tab.HistoryDays[Node.Index] then
-            History.Delete(i);
+      TQueryTab.HelperNodeHistory: begin
+        if Conn <> nil then begin
+          History := TQueryHistory.Create(Conn.Parameters.SessionPath);
+          Tab.HistoryDays.Objects[Node.Index] := History;
+          for i:=History.Count-1 downto 0 do begin
+            QueryDay := DateToStr(History[i].Time);
+            if QueryDay <> Tab.HistoryDays[Node.Index] then
+              History.Delete(i);
+          end;
+          ChildCount := History.Count;
         end;
-        ChildCount := History.Count;
       end;
       else ChildCount := 0;
     end;
@@ -13306,7 +13317,7 @@ begin
       LogSQL(f_('Error with snippets directory: %s', [E.Message]), lcError);
     end;
   end;
-  RefreshHelperNode(HELPERNODE_SNIPPETS);
+  RefreshHelperNode(TQueryTab.HelperNodeSnippets);
 end;
 
 
@@ -13322,7 +13333,7 @@ begin
   case Sender.GetNodeLevel(Node) of
 
     0: case Node.Index of
-      HELPERNODE_BINDING: begin
+      TQueryTab.HelperNodeBinding: begin
         // Disallow checkbox clicking on "Bind parameters" when text too big
         if NewState in CheckedStates then begin
           if Tab.Memo.GetTextLen < SIZE_MB then begin
@@ -13371,28 +13382,28 @@ begin
   case Tree.GetNodeLevel(Tree.FocusedNode) of
     0: ;
     1: case Tree.FocusedNode.Parent.Index of
-      HELPERNODE_COLUMNS: if ActiveDbObj.NodeType in [lntTable, lntView] then begin
+      TQueryTab.HelperNodeColumns: if ActiveDbObj.NodeType in [lntTable, lntView] then begin
           menuQueryHelpersGenerateSelect.Enabled := True;
           menuQueryHelpersGenerateInsert.Enabled := True;
           menuQueryHelpersGenerateUpdate.Enabled := True;
           menuQueryHelpersGenerateDelete.Enabled := True;
         end;
-      HELPERNODE_FUNCTIONS: menuHelp.Enabled := True;
-      HELPERNODE_KEYWORDS: menuHelp.Enabled := True;
-      HELPERNODE_SNIPPETS: begin
+      TQueryTab.HelperNodeFunctions: menuHelp.Enabled := True;
+      TQueryTab.HelperNodeKeywords: menuHelp.Enabled := True;
+      TQueryTab.HelperNodeSnippets: begin
         menuDeleteSnippet.Enabled := True;
         menuInsertSnippetAtCursor.Enabled := True;
         menuLoadSnippet.Enabled := True;
         menuExplore.Enabled := True;
       end;
-      HELPERNODE_PROFILE: begin // Query profile
+      TQueryTab.HelperNodeProfile: begin // Query profile
 
       end;
-      HELPERNODE_HISTORY:
+      TQueryTab.HelperNodeHistory:
         menuClearQueryHistory.Enabled := True;
     end;
     2: case Tree.FocusedNode.Parent.Parent.Index of
-      HELPERNODE_HISTORY:
+      TQueryTab.HelperNodeHistory:
         menuClearQueryHistory.Enabled := True;
     end;
   end;
@@ -13444,7 +13455,7 @@ begin
     Tab.treeHelpers.CheckState[Node] := OldCheckState;
     Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
     // Disable profiling when not on MySQL
-    if (NodeIndex = HELPERNODE_PROFILE) and (Conn <> nil) and (not Conn.Parameters.IsAnyMySQL) then begin
+    if (NodeIndex = TQueryTab.HelperNodeProfile) and (Conn <> nil) and (not Conn.Parameters.IsAnyMySQL) then begin
       Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
     end;
     // Do not check expansion state of children unless the parent node is expanded, to avoid
@@ -14034,7 +14045,7 @@ var
   Node: PVirtualNode;
 begin
   // Return state of bind params checkbox
-  Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+  Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
   Result := treeHelpers.CheckState[Node] in CheckedStates;
 end;
 
@@ -14044,7 +14055,7 @@ var
   Node: PVirtualNode;
 begin
   // Check bind params checkbox
-  Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+  Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
   if Value then
     treeHelpers.CheckState[Node] := csCheckedNormal
   else
@@ -14098,7 +14109,7 @@ begin
     Exit;
   if Memo.GetTextLen > SIZE_MB then begin
     MessageDialog(_('The query is too long to enable detection of bind parameters'), mtError, [mbOK]);
-    Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+    Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
     treeHelpers.CheckState[Node] := csUncheckedNormal;
     Exit;
   end;
@@ -14147,9 +14158,9 @@ begin
   ListBindParams.CleanToKeep;
 
   // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
-  MainForm.RefreshHelperNode(HELPERNODE_BINDING);
+  MainForm.RefreshHelperNode(TQueryTab.HelperNodeBinding);
   if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
-    Node := FindNode(treeHelpers, HELPERNODE_BINDING, nil);
+    Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
     treeHelpers.Expanded[Node] := True;
   end;
 

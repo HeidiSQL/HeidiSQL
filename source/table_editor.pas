@@ -441,7 +441,7 @@ begin
     Mainform.UpdateEditorTab;
     MainForm.tabData.TabVisible := True;
     Mainform.RefreshTree(DBObject);
-    Mainform.RefreshHelperNode(HELPERNODE_COLUMNS);
+    Mainform.RefreshHelperNode(TQueryTab.HelperNodeColumns);
     ResetModificationFlags;
     AlterCodeValid := False;
     CreateCodeValid := False;

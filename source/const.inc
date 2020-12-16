@@ -106,12 +106,4 @@ const
 
   SYNCOMPLETION_PATTERN = '\image{%d}\hspace{5}\color{clGrayText}%s\column{}\color{clWindowText}%s\color{clGrayText}%s';
 
-  HELPERNODE_COLUMNS = 0;
-  HELPERNODE_FUNCTIONS = 1;
-  HELPERNODE_KEYWORDS = 2;
-  HELPERNODE_SNIPPETS = 3;
-  HELPERNODE_HISTORY = 4;
-  HELPERNODE_PROFILE = 5;
-  HELPERNODE_BINDING = 6;
-
 
