@@ -9910,6 +9910,7 @@ begin
       ErrorDialog(E.Message);
   end;
   Grid.RepaintNode(Grid.FocusedNode);
+  ValidateControls(Sender);
 end;
 
 
