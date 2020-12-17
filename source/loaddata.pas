@@ -454,8 +454,6 @@ var
   IsEncl, IsTerm, IsLineTerm, IsEof: Boolean;
   InEncl: Boolean;
   OutStream: TMemoryStream;
-const
-  MaxRowCountPerChunk = 1000;
 
   procedure NextChar;
   begin
@@ -552,7 +550,7 @@ const
       StreamWrite(OutStream, SQL + ')');
       SQL := '';
       Inc(RowCountInChunk);
-      if (OutStream.Size < PacketSize) and (P < ContentLen) and (RowCountInChunk < MaxRowCountPerChunk) then begin
+      if (OutStream.Size < PacketSize) and (P < ContentLen) and (RowCountInChunk < FConnection.MaxRowsPerInsert) then begin
         SQL := SQL + ', (';
       end else begin
         OutStream.Position := 0;

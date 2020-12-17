@@ -411,6 +411,7 @@ type
       FForeignKeyQueriesFailed: Boolean;
       FInfSch: String;
       FIdentCharsNoQuote: TSysCharSet;
+      FMaxRowsPerInsert: Int64;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -529,6 +530,7 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; virtual;
       function GetTableKeys(Table: TDBObject): TTableKeyList; virtual;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; virtual;
+      property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -1772,6 +1774,7 @@ begin
   FInformationSchemaObjects.CaseSensitive := False;
   // Characters in identifiers which don't need to be quoted
   FIdentCharsNoQuote := ['A'..'Z', 'a'..'z', '0'..'9', '_'];
+  FMaxRowsPerInsert := 10000;
 end;
 
 
@@ -1802,6 +1805,7 @@ begin
   for i:=0 to High(MSSQLDatatypes) do
     FDatatypes[i] := MSSQLDatatypes[i];
   FInfSch := 'INFORMATION_SCHEMA';
+  FMaxRowsPerInsert := 1000;
 end;
 
 

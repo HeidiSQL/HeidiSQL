@@ -1440,10 +1440,12 @@ end;
 
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
-  IsFirstRowInChunk, NeedsDBStructure: Boolean;
+  NeedsDBStructure: Boolean;
+  InsertSizeExceeded, RowLimitExceeded: Boolean;
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   i: Integer;
-  RowCount, Limit, Offset, ResultCount: Int64;
+  RowCount, RowCountInChunk: Int64;
+  Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TDBQuery;
   ColumnList: TTableColumnList;
@@ -1735,11 +1737,11 @@ begin
         BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
           Output(BaseInsert, False, True, True, True, True);
-          IsFirstRowInChunk := True;
+          RowCountInChunk := 0;
 
           while not Data.Eof do begin
             Row := '';
-            if not IsFirstRowInChunk then
+            if RowCountInChunk > 0 then
               Row := Row + ','+CRLF+#9+'(';
             for i:=0 to Data.ColumnCount-1 do begin
               if Data.ColIsVirtual(i) then
@@ -1767,12 +1769,13 @@ begin
             Delete(Row, Length(Row)-1, 2);
             Row := Row + ')';
             // Break if stream would increase over the barrier of 1MB, and throw away current row
-            if (not IsFirstRowInChunk)
-              and (ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > updownInsertSize.Position*SIZE_KB*0.9)
-              then
-              break;
+            InsertSizeExceeded := ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > updownInsertSize.Position*SIZE_KB*0.9;
+            // Same with MSSQL which is limited to 1000 rows per INSERT
+            RowLimitExceeded := RowCountInChunk >= Quoter.MaxRowsPerInsert;
+            if (RowCountInChunk > 0) and (InsertSizeExceeded or RowLimitExceeded) then
+              Break;
             Inc(RowCount);
-            IsFirstRowInChunk := False;
+            Inc(RowCountInChunk);
             Output(Row, False, True, True, True, True);
             Data.Next;
           end;
