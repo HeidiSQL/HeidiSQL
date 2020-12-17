@@ -7428,7 +7428,10 @@ end;
 
 function TDBQuery.ColumnCount: Integer;
 begin
-  Result := ColumnNames.Count;
+  if Assigned(FColumnNames) then
+    Result := FColumnNames.Count
+  else
+    Result := -1;
 end;
 
 
