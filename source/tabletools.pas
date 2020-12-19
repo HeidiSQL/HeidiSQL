@@ -1512,6 +1512,8 @@ begin
         TargetFileName := ChangeFileExt(TargetFileName, '_temp.sql');
       if not IsValidFilePath(TargetFileName) then
         raise EFCreateError.CreateFmt(_('Filename or path contains illegal characters: "%s"'), [TargetFilename]);
+      if not DirectoryExists(ExtractFilePath(FExportFileName)) then
+        ForceDirectories(ExtractFilePath(FExportFileName));
       ExportStream := TFileStream.Create(TargetFileName, fmCreate or fmOpenWrite);
     end;
     // ToDir handled above
