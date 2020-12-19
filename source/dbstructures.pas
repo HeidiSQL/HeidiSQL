@@ -406,7 +406,7 @@ const
     dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
     dtDate, dtTime, dtYear, dtDatetime, dtDatetime2, dtDatetimeOffset, dtSmalldatetime, dtTimestamp, dtInterval,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
-    dtJson, dtCidr, dtInet, dtMacaddr,
+    dtJson, dtJsonB, dtCidr, dtInet, dtMacaddr,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
     dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtRegClass, dtRegProc, dtUnknown,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid, dtXML,
@@ -1655,7 +1655,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..36] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..37] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -2119,6 +2119,19 @@ var
       HasDefault:      False;
       LoadPart:        False;
       Category:        dtcText;
+    ),
+    (
+      Index:           dtJsonB;
+      NativeTypes:     '3802';
+      Name:            'JSONB';
+      Names:           'jsonb';
+      Description:     'JavaScript Object Notation data in a binary form';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcBinary;
     ),
     (
       Index:           dtUniqueidentifier;
