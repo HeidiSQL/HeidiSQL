@@ -1256,7 +1256,7 @@ object optionsform: Toptionsform
         HotKey = 0
         Modifiers = []
         TabOrder = 1
-        OnChange = HotKey1Change
+        OnChange = HotKeyChange
         OnEnter = HotKeyEnter
         OnExit = HotKeyExit
       end
@@ -1270,7 +1270,7 @@ object optionsform: Toptionsform
         InvalidKeys = []
         Modifiers = []
         TabOrder = 2
-        OnChange = HotKey2Change
+        OnChange = HotKeyChange
         OnEnter = HotKeyEnter
         OnExit = HotKeyExit
       end

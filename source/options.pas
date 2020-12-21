@@ -216,8 +216,7 @@ type
     procedure FormDestroy(Sender: TObject);
     procedure chkThemePreviewClick(Sender: TObject);
     procedure chkCompletionProposalClick(Sender: TObject);
-    procedure HotKey1Change(Sender: TObject);
-    procedure HotKey2Change(Sender: TObject);
+    procedure HotKeyChange(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -230,6 +229,7 @@ type
     FThemePreview: TfrmThemePreview;
     procedure InitLanguages;
     procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
+    function EnsureShortcutIsUnused(RequestShortcut: TShortCut): Boolean;
   public
     { Public declarations }
   end;
@@ -1222,25 +1222,74 @@ begin
 end;
 
 
-procedure Toptionsform.HotKey1Change(Sender: TObject);
+function Toptionsform.EnsureShortcutIsUnused(RequestShortcut: TShortCut): Boolean;
 var
+  Node, NodeWantsIt: PVirtualNode;
   Data: PShortcutItemData;
+  Tree: TVirtualStringTree;
+  MsgFormat, Msg: String;
 begin
-  // Shortcut 1 changed
-  Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
-  Data.Shortcut1 := (Sender as THotKey).HotKey;
-  Modified(Sender);
+  Result := True;
+  if RequestShortcut = 0 then
+    Exit;
+  MsgFormat := _('Keyboard shortcut [%s] is already assigned to "%s".') + sLineBreak + sLineBreak +
+    _('Remove it there and assign to "%s" instead?');
+  Tree := TreeShortcutItems;
+  NodeWantsIt := Tree.FocusedNode;
+  Node := GetNextNode(Tree, nil, False);
+  while Assigned(Node) do begin
+    if Tree.GetNodeLevel(Node) = 1 then begin
+      Data := Tree.GetNodeData(Node);
+      Msg := Format(MsgFormat, [ShortCutToText(RequestShortcut), Tree.Text[Node, 0], Tree.Text[NodeWantsIt, 0]]);
+      if Node = NodeWantsIt then begin
+        // Ignore requesting node
+      end else begin
+        if Data.ShortCut1 = RequestShortcut then begin
+          if MessageDialog(Msg, mtConfirmation, [mbYes, mbNo]) = mrYes then
+            Data.ShortCut1 := 0 // Unassign shortcut 1
+          else
+            Result := False;
+        end;
+        if Data.ShortCut2 = RequestShortcut then begin
+          if MessageDialog(Msg, mtConfirmation, [mbYes, mbNo]) = mrYes then
+            Data.ShortCut2 := 0 // Unassign shortcut 2
+          else
+            Result := False;
+        end;
+      end;
+    end;
+    if Result = False then
+      Break;
+    Node := GetNextNode(Tree, Node, False);
+  end;
+
 end;
 
 
-procedure Toptionsform.HotKey2Change(Sender: TObject);
+procedure Toptionsform.HotKeyChange(Sender: TObject);
 var
   Data: PShortcutItemData;
+  HotKeyEdit: THotKey;
+  EventHandler: TNotifyEvent;
 begin
-  // Shortcut 2 changed
+  // Shortcut 1 or 2 changed
+  HotKeyEdit := Sender as THotKey;
   Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
-  Data.Shortcut2 := (Sender as THotKey).HotKey;
-  Modified(Sender);
+  if EnsureShortcutIsUnused(HotKeyEdit.HotKey) then begin
+    if HotKeyEdit = HotKey1 then
+      Data.Shortcut1 := HotKeyEdit.HotKey
+    else
+      Data.Shortcut2 := HotKeyEdit.HotKey;
+    Modified(Sender);
+  end else begin
+    // Undo change in hotkey editor, without triggering OnChange event
+    EventHandler := HotKeyEdit.OnChange;
+    if HotKeyEdit = HotKey1 then
+      HotKeyEdit.HotKey := Data.ShortCut1
+    else
+      HotKeyEdit.HotKey := Data.ShortCut2;
+    HotKeyEdit.OnChange := EventHandler;
+  end;
 end;
 
 
