@@ -11,7 +11,7 @@ uses
   connections in '..\..\source\connections.pas' {connform},
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
-  options in '..\..\source\options.pas' {optionsform},
+  preferences in '..\..\source\preferences.pas' {frmPreferences},
   tabletools in '..\..\source\tabletools.pas' {frmTableTools},
   printlist in '..\..\source\printlist.pas' {printlistForm},
   copytable in '..\..\source\copytable.pas' {CopyTableForm},

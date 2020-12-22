@@ -14,7 +14,7 @@ uses
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
-  routine_editor, trigger_editor, event_editor, options, EditVar, apphelpers, createdatabase, table_editor,
+  routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, csv_detector, VirtualTrees.HeaderPopup, VirtualTrees.Utils, Cromis.DirectoryWatch, SyncDB, gnugettext,
   JumpList, System.Actions, System.UITypes, pngimage,
@@ -1176,7 +1176,6 @@ type
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     FSearchReplaceDialog: TfrmSearchReplace;
-    FPreferencesDialog: Toptionsform;
     FCreateDatabaseDialog: TCreateDatabaseForm;
     FTableToolsDialog: TfrmTableTools;
     FGridEditFunctionMode: Boolean;
@@ -2631,13 +2630,13 @@ end;
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
 begin
   // Preferences
-  FPreferencesDialog := Toptionsform.Create(Self);
+  frmPreferences := TfrmPreferences.Create(Self);
   if Sender = actPreferencesLogging then
-    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabLogging
+    frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabLogging
   else if Sender = actPreferencesData then
-    FPreferencesDialog.pagecontrolMain.ActivePage := FPreferencesDialog.tabGridFormatting;
-  FPreferencesDialog.ShowModal;
-  FreeAndNil(FPreferencesDialog);
+    frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabGridFormatting;
+  frmPreferences.ShowModal;
+  frmPreferences := nil; // Important in SetupSynEditors
 end;
 
 procedure TMainForm.actHelpExecute(Sender: TObject);
@@ -12274,8 +12273,8 @@ begin
   Editors.Add(SynMemoSQLLog);
   if Assigned(ActiveObjectEditor) then
     FindEditors(ActiveObjectEditor);
-  if Assigned(FPreferencesDialog) then
-    Editors.Add(FPreferencesDialog.SynMemoSQLSample);
+  if Assigned(frmPreferences) then
+    Editors.Add(frmPreferences.SynMemoSQLSample);
   if Assigned(FCreateDatabaseDialog) then
     Editors.Add(FCreateDatabaseDialog.SynMemoCreateCode);
   if SqlHelpDialog <> nil then begin

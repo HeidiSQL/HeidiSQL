@@ -1,4 +1,4 @@
-object optionsform: Toptionsform
+object frmPreferences: TfrmPreferences
   Left = 547
   Top = 163
   BorderIcons = [biSystemMenu]
