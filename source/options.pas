@@ -13,7 +13,7 @@ uses
   StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, StdActns, Menus,
   dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections,
-  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons;
+  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons, System.Actions;
 
 type
   TShortcutItemData = record
@@ -465,6 +465,7 @@ begin
       mtInformation,
       [mbOk]);
   end;
+  MainForm.ActionList1.State := asNormal;
 end;
 
 
@@ -738,6 +739,9 @@ begin
   // Files
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
+
+  // Disable global shortcuts
+  MainForm.ActionList1.State := asSuspended;
 
   FRestartOptionTouched := False;
   btnApply.Enabled := False;
