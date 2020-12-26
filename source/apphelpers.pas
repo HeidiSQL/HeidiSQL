@@ -14,7 +14,7 @@ uses
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, dbstructures, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
-  CommCtrl, Winapi.KnownFolders;
+  CommCtrl, Winapi.KnownFolders, SynUnicode;
 
 type
 
@@ -1141,7 +1141,7 @@ end;
 
 
 {**
-  Detect stream's content encoding by examing first 100k bytes (MaxBufferSize). Result can be:
+  Detect stream's content encoding through SynEdit's GetEncoding. Result can be:
     UTF-16 BE with BOM
     UTF-16 LE with BOM
     UTF-8 with or without BOM
@@ -1152,143 +1152,21 @@ end;
 }
 function DetectEncoding(Stream: TStream): TEncoding;
 var
-  ByteOrderMark: Char;
-  BytesRead: Integer;
-  Utf8Test: array[0..2] of AnsiChar;
-  Buffer: array of Byte;
-  BufferSize, i, FoundUTF8Strings: Integer;
-const
-  UNICODE_BOM = Char($FEFF);
-  UNICODE_BOM_SWAPPED = Char($FFFE);
-  UTF8_BOM = AnsiString(#$EF#$BB#$BF);
-  MinimumCountOfUTF8Strings = 1;
-  MaxBufferSize = 1000000;
-
-  // 3 trailing bytes are the maximum in valid UTF-8 streams,
-  // so a count of 4 trailing bytes is enough to detect invalid UTF-8 streams
-  function CountOfTrailingBytes: Integer;
-  begin
-    Result := 0;
-    inc(i);
-    while (i < BufferSize) and (Result < 4) do begin
-      if Buffer[i] in [$80..$BF] then
-        inc(Result)
-      else
-        Break;
-      inc(i);
-    end;
-  end;
-
+  SynEnc: TSynEncoding;
+  WithBOM: Boolean;
 begin
-  // Byte Order Mark
-  ByteOrderMark := #0;
-  if (Stream.Size - Stream.Position) >= SizeOf(ByteOrderMark) then begin
-    BytesRead := Stream.Read(ByteOrderMark, SizeOf(ByteOrderMark));
-    if (ByteOrderMark <> UNICODE_BOM) and (ByteOrderMark <> UNICODE_BOM_SWAPPED) then begin
-      ByteOrderMark := #0;
-      Stream.Seek(-BytesRead, soFromCurrent);
-      if (Stream.Size - Stream.Position) >= Length(Utf8Test) * SizeOf(AnsiChar) then begin
-        BytesRead := Stream.Read(Utf8Test[0], Length(Utf8Test) * SizeOf(AnsiChar));
-        if Utf8Test <> UTF8_BOM then
-          Stream.Seek(-BytesRead, soFromCurrent);
-      end;
+  SynEnc := SynUnicode.GetEncoding(Stream, WithBOM);
+  case SynEnc of
+    seUTF8: begin
+      if WithBOM then
+        Result := TEncoding.UTF8
+      else
+        Result := UTF8NoBOMEncoding;
     end;
-  end;
-  // Test Byte Order Mark
-  if ByteOrderMark = UNICODE_BOM then
-    Result := TEncoding.Unicode
-  else if ByteOrderMark = UNICODE_BOM_SWAPPED then
-    Result := TEncoding.BigEndianUnicode
-  else if Utf8Test = UTF8_BOM then
-    Result := TEncoding.UTF8
-  else begin
-    { @note Taken from SynUnicode.pas }
-    { If no BOM was found, check for leading/trailing byte sequences,
-      which are uncommon in usual non UTF-8 encoded text.
-
-      NOTE: There is no 100% save way to detect UTF-8 streams. The bigger
-            MinimumCountOfUTF8Strings, the lower is the probability of
-            a false positive. On the other hand, a big MinimumCountOfUTF8Strings
-            makes it unlikely to detect files with only little usage of non
-            US-ASCII chars, like usual in European languages. }
-
-    // if no special characteristics are found it is not UTF-8
-    Result := TEncoding.Default;
-
-    // start analysis at actual Stream.Position
-    BufferSize := Min(MaxBufferSize, Stream.Size - Stream.Position);
-
-    if BufferSize > 0 then begin
-      SetLength(Buffer, BufferSize);
-      Stream.ReadBuffer(Buffer[0], BufferSize);
-      Stream.Seek(-BufferSize, soFromCurrent);
-
-      FoundUTF8Strings := 0;
-      i := 0;
-      while i < BufferSize do begin
-        if FoundUTF8Strings = MinimumCountOfUTF8Strings then begin
-          Result := TEncoding.UTF8;
-          Break;
-        end;
-        case Buffer[i] of
-          $00..$7F: // skip US-ASCII characters as they could belong to various charsets
-            ;
-          $C2..$DF:
-            if CountOfTrailingBytes = 1 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $E0:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$A0..$BF]) and (CountOfTrailingBytes = 1) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $E1..$EC, $EE..$EF:
-            if CountOfTrailingBytes = 2 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $ED:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$80..$9F]) and (CountOfTrailingBytes = 1) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $F0:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$90..$BF]) and (CountOfTrailingBytes = 2) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $F1..$F3:
-            if CountOfTrailingBytes = 3 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $F4:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$80..$8F]) and (CountOfTrailingBytes = 2) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $C0, $C1, $F5..$FF: // invalid UTF-8 bytes
-            Break;
-          $80..$BF: // trailing bytes are consumed when handling leading bytes,
-                     // any occurence of "orphaned" trailing bytes is invalid UTF-8
-            Break;
-        end;
-        inc(i);
-      end;
-    end;
+    seUTF16LE: Result := TEncoding.Unicode;
+    seUTF16BE: Result := TEncoding.BigEndianUnicode;
+    seAnsi: Result := TEncoding.ANSI;
+    else Result := UTF8NoBOMEncoding;
   end;
 end;
 
