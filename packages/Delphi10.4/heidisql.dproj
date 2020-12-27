@@ -170,10 +170,10 @@
         </DCCReference>
         <DCCReference Include="..\..\source\dbstructures.pas"/>
         <DCCReference Include="..\..\source\column_selection.pas">
-            <Form>ColumnSelectionForm</Form>
+            <Form>frmColumnSelection</Form>
         </DCCReference>
         <DCCReference Include="..\..\source\data_sorting.pas">
-            <Form>DataSortingForm</Form>
+            <Form>frmDataSorting</Form>
         </DCCReference>
         <DCCReference Include="..\..\source\createdatabase.pas">
             <Form>CreateDatabaseForm</Form>

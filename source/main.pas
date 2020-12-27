@@ -7848,9 +7848,9 @@ begin
     btn.Down := not btn.Down;
     if not btn.Down then Exit;
     if btn = tbtnDataColumns then
-      frm := TColumnSelectionForm.Create(self)
+      frm := TfrmColumnSelection.Create(self)
     else if btn = tbtnDataSorting then
-      frm := TDataSortingForm.Create(self)
+      frm := TfrmDataSorting.Create(self)
     else
       frm := TForm.Create(self); // Dummy fallback, should never get created
     // Position new form relative to btn's position
@@ -9891,7 +9891,7 @@ begin
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 
   end else begin
-    frm := TColumnSelectionForm.Create(self);
+    frm := TfrmColumnSelection.Create(Self);
     // Position new form relative to btn's position
     frm.Top := HitInfo.Y + DataGrid.ClientOrigin.Y - Integer(DataGrid.Header.Height);
     frm.Left := HitInfo.X + DataGrid.ClientOrigin.X;

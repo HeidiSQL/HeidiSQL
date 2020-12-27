@@ -7,7 +7,7 @@ uses
   apphelpers, gnugettext, extra_controls;
 
 type
-  TColumnSelectionForm = class(TExtForm)
+  TfrmColumnSelection = class(TExtForm)
     btnCancel: TButton;
     btnOK: TButton;
     chkSelectAll: TCheckBox;
@@ -43,7 +43,7 @@ uses main;
 
 
 
-procedure TColumnSelectionForm.FormCreate(Sender: TObject);
+procedure TfrmColumnSelection.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
@@ -52,7 +52,7 @@ begin
 end;
 
 
-procedure TColumnSelectionForm.FormDestroy(Sender: TObject);
+procedure TfrmColumnSelection.FormDestroy(Sender: TObject);
 begin
   AppSettings.WriteInt(asColumnSelectorWidth, Width);
   AppSettings.WriteInt(asColumnSelectorHeight, Height);
@@ -63,7 +63,7 @@ end;
 {**
   FormShow
 }
-procedure TColumnSelectionForm.FormShow(Sender: TObject);
+procedure TfrmColumnSelection.FormShow(Sender: TObject);
 var
   i: Integer;
   Col: String;
@@ -91,7 +91,7 @@ end;
 {**
   OK clicked
 }
-procedure TColumnSelectionForm.btnOKClick(Sender: TObject);
+procedure TfrmColumnSelection.btnOKClick(Sender: TObject);
 var
   i: Integer;
   Col: String;
@@ -113,7 +113,7 @@ end;
 {**
   Select / Deselect all
 }
-procedure TColumnSelectionForm.chkSelectAllClick(Sender: TObject);
+procedure TfrmColumnSelection.chkSelectAllClick(Sender: TObject);
 var
   cb: TCheckBox;
   i: Integer;
@@ -132,7 +132,7 @@ begin
 end;
 
 
-procedure TColumnSelectionForm.editFilterLeftButtonClick(Sender: TObject);
+procedure TfrmColumnSelection.editFilterLeftButtonClick(Sender: TObject);
 begin
   if IsNotEmpty(editFilter.Text) then begin
     FLastFilter := editFilter.Text;
@@ -148,7 +148,7 @@ end;
   Click within column list
   Updates state of "Select / deselect all" checkbox
 }
-procedure TColumnSelectionForm.chklistColumnsClickCheck(Sender: TObject);
+procedure TfrmColumnSelection.chklistColumnsClickCheck(Sender: TObject);
 var
   i : Integer;
   AllSelected, NoneSelected : Boolean;
@@ -187,7 +187,7 @@ end;
 {**
   Sort / Unsort the list with fields
 }
-procedure TColumnSelectionForm.PopulateList(Sender: TObject);
+procedure TfrmColumnSelection.PopulateList(Sender: TObject);
 var
   i: Integer;
   Col: String;
@@ -212,7 +212,7 @@ begin
 end;
 
 
-procedure TColumnSelectionForm.btnCancelClick(Sender: TObject);
+procedure TfrmColumnSelection.btnCancelClick(Sender: TObject);
 begin
   Mainform.tbtnDataColumns.Down := False;
   Close;
@@ -222,7 +222,7 @@ end;
 {**
   Cancel this dialog if the user clicks elsewhere on mainform
 }
-procedure TColumnSelectionForm.FormDeactivate(Sender: TObject);
+procedure TfrmColumnSelection.FormDeactivate(Sender: TObject);
 begin
   btnCancel.OnClick(Sender);
 end;
@@ -231,7 +231,7 @@ end;
 {**
   Be sure the form is destroyed after closing.
 }
-procedure TColumnSelectionForm.FormClose(Sender: TObject; var Action:
+procedure TfrmColumnSelection.FormClose(Sender: TObject; var Action:
     TCloseAction);
 begin
   Action := caFree;

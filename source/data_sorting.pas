@@ -8,7 +8,7 @@ uses
 
 
 type
-  TDataSortingForm = class(TExtForm)
+  TfrmDataSorting = class(TExtForm)
     pnlBevel: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
@@ -43,7 +43,7 @@ uses main;
 {$R *.dfm}
 
 
-procedure TDataSortingForm.FormCreate(Sender: TObject);
+procedure TfrmDataSorting.FormCreate(Sender: TObject);
 var
   i: Integer;
 begin
@@ -64,7 +64,7 @@ end;
 {**
   Create controls for order columns
 }
-procedure TDataSortingForm.DisplaySortingControls(Sender: TObject);
+procedure TfrmDataSorting.DisplaySortingControls(Sender: TObject);
 var
   lblNumber: TLabel;
   btnDelete: TButton;
@@ -195,7 +195,7 @@ end;
 {**
   Dropdown for column selection was changed
 }
-procedure TDataSortingForm.comboColumnsChange( Sender: TObject );
+procedure TfrmDataSorting.comboColumnsChange( Sender: TObject );
 var
   combo : TComboBox;
 begin
@@ -210,7 +210,7 @@ end;
 {**
   Button for selecting sort-direction was clicked
 }
-procedure TDataSortingForm.btnOrderClick( Sender: TObject );
+procedure TfrmDataSorting.btnOrderClick( Sender: TObject );
 var
   btn: TSpeedButton;
 begin
@@ -232,7 +232,7 @@ end;
 {**
   Delete order column
 }
-procedure TDataSortingForm.btnDeleteClick( Sender: TObject );
+procedure TfrmDataSorting.btnDeleteClick( Sender: TObject );
 var
   btn : TButton;
   i : Integer;
@@ -261,7 +261,7 @@ end;
 {**
   Add a new order column
 }
-procedure TDataSortingForm.btnAddColClick(Sender: TObject);
+procedure TfrmDataSorting.btnAddColClick(Sender: TObject);
 var
   i, new : Integer;
   UnusedColumns : TStringList;
@@ -300,7 +300,7 @@ end;
   Gets called when any option has changed.
   Enables the OK button if ORDER options have changed
 }
-procedure TDataSortingForm.Modified;
+procedure TfrmDataSorting.Modified;
 begin
   btnOk.Enabled := ComposeOrderClause(FOrderColumns) <> FOldOrderClause;
 end;
@@ -309,7 +309,7 @@ end;
 {**
   OK clicked: Write ORDER clause to registry
 }
-procedure TDataSortingForm.btnOKClick(Sender: TObject);
+procedure TfrmDataSorting.btnOKClick(Sender: TObject);
 begin
   // TODO: apply ordering
   Mainform.DataGridSortColumns := FOrderColumns;
@@ -318,7 +318,7 @@ begin
 end;
 
 
-procedure TDataSortingForm.btnCancelClick(Sender: TObject);
+procedure TfrmDataSorting.btnCancelClick(Sender: TObject);
 begin
   Mainform.tbtnDataSorting.Down := False;
   Close;
@@ -328,7 +328,7 @@ end;
 {**
   Be sure the form is destroyed after closing.
 }
-procedure TDataSortingForm.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TfrmDataSorting.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Action := caFree;
 end;
@@ -337,7 +337,7 @@ end;
 {**
   Cancel this dialog if the user clicks elsewhere on mainform
 }
-procedure TDataSortingForm.FormDeactivate(Sender: TObject);
+procedure TfrmDataSorting.FormDeactivate(Sender: TObject);
 begin
   btnCancel.OnClick(Sender);
 end;
