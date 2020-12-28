@@ -371,6 +371,7 @@ type
   function ThemeIsDark(ThemeName: String): Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
+  function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
 
 var
   AppSettings: TAppSettings;
@@ -2875,6 +2876,19 @@ begin
   chk.OnClick := nil;
   chk.Checked := State;
   chk.OnClick := ClickEvent;
+end;
+
+
+function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
+  LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
+const
+  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{5}\color{%s}%s';
+begin
+  // Return formatted item string for a TSynCompletionProposal
+  if LeftColor = -1 then LeftColor := clGrayText;
+  if CenterColor = -1 then CenterColor := clWindowText;
+  if RightColor = -1 then RightColor := clGrayText;
+  Result := Format(LineFormat, [ImageIndex, ColorToString(LeftColor), LeftText, ColorToString(CenterColor), CenterText, ColorToString(RightColor), RightText]);
 end;
 
 

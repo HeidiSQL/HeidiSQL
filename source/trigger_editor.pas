@@ -253,7 +253,7 @@ procedure TfrmTriggerEditor.SynCompletionProposalStatementExecute(Kind: SynCompl
   var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
 var
   Proposal: TSynCompletionProposal;
-  Token: String;
+  Token, DisplayText: String;
   Columns: TDBQuery;
 begin
   // Propose column names from referencing table
@@ -267,8 +267,8 @@ begin
     else try
       Columns := DBObject.Connection.GetResults('SHOW COLUMNS FROM '+DBObject.Connection.QuoteIdent(comboTable.Text));
       while not Columns.Eof do begin
-        Proposal.InsertList.Add(Columns.Col('Field'));
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field'), '']) );
+        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field'), '');
+        Proposal.AddItem(DisplayText, Columns.Col('Field'));
         Columns.Next;
       end;
     except

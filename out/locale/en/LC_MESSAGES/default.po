@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-12-26 08:59+0100\n"
+"PO-Revision-Date: 2020-12-28 13:15+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: Poedit 2.4.2\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6624,3 +6624,6 @@ msgstr "Really auto-detect file encoding?"
 
 msgid "Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails."
 msgstr "Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails."
+
+msgid "keyword"
+msgstr "keyword"

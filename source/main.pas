@@ -6442,10 +6442,10 @@ var
   Conn: TDBConnection;
   RoutineEditor: TfrmRoutineEditor;
   Param: TRoutineParam;
+  DisplayText: String;
 
   procedure AddTable(Obj: TDBObject);
   var
-    DisplayText: String;
     FunctionDeclaration: String;
     FuncParams: TRoutineParamList;
     FuncParam: TRoutineParam;
@@ -6465,8 +6465,7 @@ var
       FuncParams.Free;
     end;
 
-    DisplayText := Format(SYNCOMPLETION_PATTERN,
-      [Obj.ImageIndex, LowerCase(_(Obj.ObjType)), Obj.Name, FunctionDeclaration]);
+    DisplayText := SynCompletionProposalPrettyText(Obj.ImageIndex, _(LowerCase(Obj.ObjType)), Obj.Name, FunctionDeclaration);
     Proposal.AddItem(DisplayText, Obj.Name+FunctionDeclaration);
   end;
 
@@ -6493,8 +6492,8 @@ var
       if (Obj.Name.ToLowerInvariant = tblname.ToLowerInvariant) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := Obj.TableColumns;
         for Col in Columns do begin
-          Proposal.InsertList.Add(Col.Name);
-          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '']) );
+          DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '', DatatypeCategories[Col.DataType.Category].NullColor);
+          Proposal.AddItem(DisplayText, Col.Name);
           Inc(ColumnsInList);
         end;
         Columns.Free;
@@ -6536,8 +6535,8 @@ begin
     try
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
-        Proposal.InsertList.Add(Results.Col(0));
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_PRIMARYKEY, 'variable', Results.Col(0), ' ('+StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll])+')'] ) );
+        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_PRIMARYKEY, _('Variable'), Results.Col(0), StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll]));
+        Proposal.AddItem(DisplayText, Results.Col(0));
         Results.Next;
       end;
     except
@@ -6633,8 +6632,8 @@ begin
 
       // All databases
       for i:=0 to Conn.AllDatabases.Count-1 do begin
-        Proposal.InsertList.Add(ActiveConnection.AllDatabases[i]);
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_DB, 'database', Conn.AllDatabases[i], '']));
+        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_DB, _('database'), Conn.AllDatabases[i], '');
+        Proposal.AddItem(DisplayText, Conn.AllDatabases[i]);
       end;
 
       // Tables from current db
@@ -6653,14 +6652,14 @@ begin
         // Hide unsupported functions
         if MySqlFunctions[i].Version > Conn.ServerVersionInt then
           continue;
-        Proposal.InsertList.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FUNCTION, 'function', MySQLFunctions[i].Name, MySQLFunctions[i].Declaration]));
+        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FUNCTION, _('function'), MySQLFunctions[i].Name, MySQLFunctions[i].Declaration);
+        Proposal.AddItem(DisplayText, MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
       end;
 
       // Keywords
       for i:=0 to MySQLKeywords.Count-1 do begin
-        Proposal.InsertList.Add(MySQLKeywords[i]);
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_KEYWORD, 'keyword', MySQLKeywords[i], '']) );
+        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_KEYWORD, _('keyword'), MySQLKeywords[i], '');
+        Proposal.AddItem(DisplayText, MySQLKeywords[i]);
       end;
 
       // Procedure params
@@ -6671,8 +6670,8 @@ begin
           else if Param.Context = 'OUT' then ImageIndex := 121
           else if Param.Context = 'INOUT' then ImageIndex := 122
           else ImageIndex := -1;
-          Proposal.InsertList.Add(Param.Name);
-          Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ImageIndex, Param.Datatype, Param.Name, '']));
+          DisplayText := SynCompletionProposalPrettyText(ImageIndex, Param.Datatype, Param.Name, '');
+          Proposal.AddItem(DisplayText, Param.Name);
         end;
       end;
 
