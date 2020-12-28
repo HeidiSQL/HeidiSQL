@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
   SynCompletionProposal, SynRegExpr,
-  dbconnection, dbstructures, apphelpers, gnugettext, ComCtrls;
+  dbconnection, dbstructures, apphelpers, gnugettext, ComCtrls, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -77,7 +77,7 @@ begin
   SynCompletionProposalStatement.TimerInterval := Mainform.SynCompletionProposal.TimerInterval;
   SynCompletionProposalStatement.ItemHeight := Mainform.SynCompletionProposal.ItemHeight;
   SynCompletionProposalStatement.Margin := Mainform.SynCompletionProposal.Margin;
-  SynCompletionProposalStatement.Font := Font;
+  TExtForm.InheritFont(SynCompletionProposalStatement.Font);
 end;
 
 
