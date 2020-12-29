@@ -34,13 +34,11 @@ object frmSearchReplace: TfrmSearchReplace
   object lblReplaceHint: TLabel
     Left = 90
     Top = 87
-    Width = 336
+    Width = 259
     Height = 13
     Anchors = [akLeft, akTop, akRight]
-    AutoSize = False
     Caption = 'Replacement can have \n for new lines and \t for tabs'
     Enabled = False
-    WordWrap = True
   end
   object lblSearchIn: TLabel
     Left = 8
