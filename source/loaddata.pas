@@ -274,6 +274,7 @@ begin
         comboTable.ItemIndex := 0;
       end;
     end;
+    frmCsvDetector := nil; // check for Assigned() must be false in SetupSynEditors
   end;
 
   if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
