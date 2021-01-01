@@ -9479,12 +9479,12 @@ begin
   // Set bold text if painted node is in focused path
   if (Column = Sender.Header.MainColumn) then begin
     WalkNode := Sender.FocusedNode;
-    while WalkNode <> nil do begin
+    while Assigned(WalkNode) do begin
       if WalkNode = Node then begin
         TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
         Break;
       end;
-      WalkNode := WalkNode.Parent;
+      WalkNode := Sender.NodeParent[WalkNode];
     end;
   end;
 end;
