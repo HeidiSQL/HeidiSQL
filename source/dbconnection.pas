@@ -42,7 +42,7 @@ type
       DefaultText: String;
       OnUpdateType: TColumnDefaultType;
       OnUpdateText: String;
-      Comment, Charset, Collation, Expression, Virtuality: String;
+      Comment, Charset, Collation, GenerationExpression, Virtuality: String;
       constructor Create(AOwner: TDBConnection; Serialized: String='');
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
@@ -4921,7 +4921,7 @@ begin
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
     Col.Collation := ColQuery.Col('COLLATION_NAME');
     // MSSQL has no expression
-    Col.Expression := ColQuery.Col('GENERATION_EXPRESSION', True);
+    Col.GenerationExpression := ColQuery.Col('GENERATION_EXPRESSION', True);
     // PG has no extra:
     ExtraText := ColQuery.Col('EXTRA', True);
     Col.Virtuality := RegExprGetMatch('\b(\w+)\s+generated\b', ExtraText.ToLowerInvariant, 1);
@@ -9016,7 +9016,7 @@ begin
   Comment := FromSerialized('Comment', '');
   Charset := FromSerialized('Charset', '');
   Collation := FromSerialized('Collation', '');
-  Expression := FromSerialized('Expression', '');
+  GenerationExpression := FromSerialized('Expression', '');
   Virtuality := FromSerialized('Virtuality', '');
   NumVal := FromSerialized('Status', Integer(esUntouched).ToString);
   FStatus := TEditingStatus(NumVal.ToInteger);
@@ -9051,7 +9051,7 @@ begin
     Comment := s.Comment;
     Charset := s.Charset;
     Collation := s.Collation;
-    Expression := s.Expression;
+    GenerationExpression := s.GenerationExpression;
     Virtuality := s.Virtuality;
     FStatus := s.FStatus;
   end else
@@ -9083,7 +9083,7 @@ begin
   s.AddPair('Comment', Comment);
   s.AddPair('Charset', Charset);
   s.AddPair('Collation', Collation);
-  s.AddPair('Expression', Expression);
+  s.AddPair('GenerationExpression', GenerationExpression);
   s.AddPair('Virtuality', Virtuality);
   s.AddPair('Status', Integer(FStatus).ToString);
 
@@ -9113,7 +9113,7 @@ var
   end;
 begin
   Result := '';
-  IsVirtual := (Expression <> '') and (Virtuality <> '');
+  IsVirtual := (GenerationExpression <> '') and (Virtuality <> '');
 
   if InParts(cpName) then begin
     Result := Result + FConnection.QuoteIdent(Name) + ' ';
@@ -9160,7 +9160,7 @@ begin
 
   if InParts(cpVirtuality) then begin
     if IsVirtual then
-      Result := Result + 'AS ('+Expression+') ' + Virtuality + ' ';
+      Result := Result + 'AS ('+GenerationExpression+') ' + Virtuality + ' ';
   end;
 
   if InParts(cpComment) then begin

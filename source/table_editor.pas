@@ -1202,7 +1202,7 @@ begin
       if (CellText <> '') and (chkCharsetConvert.Checked) then
         CellText := comboCollation.Text;
     end;
-    10: CellText := Col.Expression;
+    10: CellText := Col.GenerationExpression;
     11: CellText := Col.Virtuality;
   end;
 end;
@@ -1350,7 +1350,7 @@ begin
     end;
     8: Col.Comment := NewText;
     9: Col.Collation := NewText;
-    10: Col.Expression := NewText;
+    10: Col.GenerationExpression := NewText;
     11: Col.Virtuality := NewText;
   end;
   if WasModified then begin
