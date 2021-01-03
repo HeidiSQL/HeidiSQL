@@ -542,7 +542,7 @@ begin
   // Also, do this after the data type was altered, if from TEXT > VARCHAR e.g.
   for i:=0 to FColumns.Count-1 do begin
     if (Conn.Parameters.IsAnyMySQL or Conn.Parameters.IsAnyPostgreSQL)
-      and (FColumns[i].FStatus = esModified)
+      and (FColumns[i].Status = esModified)
       and (FColumns[i].DefaultType = cdtNothing)
       and (FColumns[i].OldDataType.HasDefault)
       then

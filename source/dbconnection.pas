@@ -31,6 +31,7 @@ type
   TTableColumn = class(TPersistent)
     private
       FConnection: TDBConnection;
+      FStatus: TEditingStatus;
       procedure SetStatus(Value: TEditingStatus);
     public
       Name, OldName: String;
@@ -42,7 +43,6 @@ type
       OnUpdateType: TColumnDefaultType;
       OnUpdateText: String;
       Comment, Charset, Collation, Expression, Virtuality: String;
-      FStatus: TEditingStatus;
       constructor Create(AOwner: TDBConnection; Serialized: String='');
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
