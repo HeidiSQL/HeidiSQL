@@ -147,6 +147,7 @@ type
       function QuotedName(AlwaysQuote: Boolean=True; SeparateSegments: Boolean=True): String;
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
+      function SchemaClauseIS(Prefix: String): String;
       function RowCount(Reload: Boolean): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
@@ -356,7 +357,7 @@ type
     spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost, spLikeCompare,
     spAddColumn, spChangeColumn,
     spGlobalStatus, spCommandsCounters, spSessionVariables, spGlobalVariables,
-    spISTableSchemaCol,
+    spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
     spFuncLength, spFuncCeil, spFuncLeft, spFuncNow,
     spLockedTables);
@@ -2631,7 +2632,7 @@ begin
         );
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
-      FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
+      FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
       FSQLSpecifities[spKillProcess] := 'KILL %d';
@@ -2652,7 +2653,7 @@ begin
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SELECT '+QuoteIdent('comment')+', '+QuoteIdent('value')+' FROM '+QuoteIdent('master')+'.'+QuoteIdent('dbo')+'.'+QuoteIdent('syscurconfigs')+' ORDER BY '+QuoteIdent('comment');
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
-      FSQLSpecifities[spISTableSchemaCol] := 'TABLE_CATALOG';
+      FSQLSpecifities[spISSchemaCol] := '%s_CATALOG';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
       FSQLSpecifities[spKillProcess] := 'KILL %d';
@@ -2673,7 +2674,7 @@ begin
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
-      FSQLSpecifities[spISTableSchemaCol] := 'table_schema';
+      FSQLSpecifities[spISSchemaCol] := '%s_schema';
       FSQLSpecifities[spUSEQuery] := 'SET search_path TO %s';
       FSQLSpecifities[spKillQuery] := 'SELECT pg_cancel_backend(%d)';
       FSQLSpecifities[spKillProcess] := 'SELECT pg_cancel_backend(%d)';
@@ -2694,7 +2695,7 @@ begin
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
       FSQLSpecifities[spSessionVariables] := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
-      FSQLSpecifities[spISTableSchemaCol] := 'TABLE_SCHEMA';
+      FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := '-- USE %s neither supported nor required'; // Cannot be empty without causing problems
       FSQLSpecifities[spKillQuery] := 'KILL %d';
       FSQLSpecifities[spKillProcess] := 'KILL %d';
@@ -3489,17 +3490,6 @@ var
   TableKey: TTableKey;
   TableForeignKeys: TForeignKeyList;
   TableForeignKey: TForeignKey;
-
-  // Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
-  // TODO: Does not work on MSSQL 2000
-  function SchemaClauseIS(Prefix: String): String;
-  begin
-    if Obj.Schema <> '' then
-      Result := Prefix+'_SCHEMA='+EscapeString(Obj.Schema)
-    else
-      Result := Prefix+'_CATALOG='+EscapeString(Obj.Database);
-  end;
-
 begin
   case Obj.NodeType of
     lntTable: begin
@@ -3553,7 +3543,7 @@ begin
           Result := GetVar('SELECT VIEW_DEFINITION'+
             ' FROM '+InfSch+'.VIEWS'+
             ' WHERE TABLE_NAME='+EscapeString(Obj.Name)+
-            ' AND '+SchemaClauseIS('TABLE')
+            ' AND '+Obj.SchemaClauseIS('TABLE')
             );
         end;
       end;
@@ -3607,7 +3597,7 @@ begin
             ' FROM '+InfSch+'.ROUTINES'+
             ' WHERE ROUTINE_NAME='+EscapeString(Obj.Name)+
             ' AND ROUTINE_TYPE='+EscapeString('FUNCTION')+
-            ' AND '+SchemaClauseIS('ROUTINE')
+            ' AND '+Obj.SchemaClauseIS('ROUTINE')
             );
         end;
       end;
@@ -3629,7 +3619,7 @@ begin
             ' FROM '+InfSch+'.ROUTINES'+
             ' WHERE ROUTINE_NAME='+EscapeString(Obj.Name)+
             ' AND ROUTINE_TYPE='+EscapeString('PROCEDURE')+
-            ' AND '+SchemaClauseIS('ROUTINE')
+            ' AND '+Obj.SchemaClauseIS('ROUTINE')
             );
         end;
       end;
@@ -4862,18 +4852,14 @@ var
   TableIdx: Integer;
   ColQuery: TDBQuery;
   Col: TTableColumn;
-  dt, SchemaClause, DefText, ExtraText, MaxLen: String;
+  dt, DefText, ExtraText, MaxLen: String;
 begin
   // Generic: query table columns from IS.COLUMNS
   Log(lcDebug, 'Getting fresh columns for '+Table.QuotedDbAndTableName);
   Result := TTableColumnList.Create(True);
   TableIdx := InformationSchemaObjects.IndexOf('columns');
-  if Table.Schema <> '' then
-    SchemaClause := 'TABLE_SCHEMA='+EscapeString(Table.Schema)
-  else
-    SchemaClause := GetSQLSpecifity(spISTableSchemaCol)+'='+EscapeString(Table.Database);
   ColQuery := GetResults('SELECT * FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[TableIdx])+
-    ' WHERE '+SchemaClause+' AND TABLE_NAME='+EscapeString(Table.Name)+
+    ' WHERE '+Table.SchemaClauseIS('TABLE')+' AND TABLE_NAME='+EscapeString(Table.Name)+
     ' ORDER BY ORDINAL_POSITION');
   while not ColQuery.Eof do begin
     Col := TTableColumn.Create(Self);
@@ -8907,6 +8893,16 @@ end;
 function TDBObject.QuotedColumn(AlwaysQuote: Boolean=True): String;
 begin
   Result := Connection.QuoteIdent(Column, AlwaysQuote);
+end;
+
+// Return fitting schema clause for queries in IS.TABLES, IS.ROUTINES etc.
+// TODO: Does not work on MSSQL 2000
+function TDBObject.SchemaClauseIS(Prefix: String): String;
+begin
+  if Schema <> '' then
+    Result := Prefix+'_SCHEMA' + '=' + Connection.EscapeString(Schema)
+  else
+    Result := Connection.GetSQLSpecifity(spISSchemaCol, [Prefix]) + '=' + Connection.EscapeString(Database);
 end;
 
 function TDBObject.RowCount(Reload: Boolean): Int64;
