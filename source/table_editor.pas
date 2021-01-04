@@ -171,6 +171,8 @@ type
     procedure menuCopyColumnsClick(Sender: TObject);
     procedure menuPasteColumnsClick(Sender: TObject);
     procedure listColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure AnyTreeStructureChange(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Reason: TChangeReason);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -188,6 +190,7 @@ type
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
     procedure CalcMinColWidth;
+    procedure UpdateTabCaptions;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -362,6 +365,7 @@ begin
   btnHelp.Top := btnSave.Top;
   btnDiscard.Top := btnSave.Top;
   UpdateSQLCode;
+  UpdateTabCaptions;
   CalcMinColWidth;
   // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
@@ -2550,6 +2554,21 @@ begin
   listColumns.Invalidate;
   Modification(Sender);
   ColsFromClp.Free;
+end;
+
+
+procedure TfrmTableEditor.AnyTreeStructureChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Reason: TChangeReason);
+begin
+  UpdateTabCaptions;
+end;
+
+
+procedure TfrmTableEditor.UpdateTabCaptions;
+begin
+  // Append number of listed keys (or whatever) to the tab caption
+  tabIndexes.Caption := _('Indexes') + ' (' + FKeys.Count.ToString + ')';
+  tabForeignKeys.Caption := _('Foreign keys') + ' (' + FForeignKeys.Count.ToString + ')';
 end;
 
 

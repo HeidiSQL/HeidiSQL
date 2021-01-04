@@ -274,6 +274,7 @@ object frmTableEditor: TfrmTableEditor
         OnInitChildren = treeIndexesInitChildren
         OnInitNode = treeIndexesInitNode
         OnNewText = treeIndexesNewText
+        OnStructureChange = AnyTreeStructureChange
         Columns = <
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -428,6 +429,7 @@ object frmTableEditor: TfrmTableEditor
         OnGetText = listForeignKeysGetText
         OnGetImageIndex = listForeignKeysGetImageIndex
         OnNewText = listForeignKeysNewText
+        OnStructureChange = AnyTreeStructureChange
         Columns = <
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
