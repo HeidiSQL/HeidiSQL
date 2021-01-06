@@ -171,6 +171,8 @@ type
     procedure menuCopyColumnsClick(Sender: TObject);
     procedure menuPasteColumnsClick(Sender: TObject);
     procedure listColumnsChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure AnyTreeStructureChange(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Reason: TChangeReason);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -188,6 +190,7 @@ type
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
     procedure CalcMinColWidth;
+    procedure UpdateTabCaptions;
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
@@ -362,6 +365,7 @@ begin
   btnHelp.Top := btnSave.Top;
   btnDiscard.Top := btnSave.Top;
   UpdateSQLCode;
+  UpdateTabCaptions;
   CalcMinColWidth;
   // Indicate change mechanisms can call their events now. See Modification().
   FLoaded := True;
@@ -441,7 +445,7 @@ begin
     Mainform.UpdateEditorTab;
     MainForm.tabData.TabVisible := True;
     Mainform.RefreshTree(DBObject);
-    Mainform.RefreshHelperNode(HELPERNODE_COLUMNS);
+    Mainform.RefreshHelperNode(TQueryTab.HelperNodeColumns);
     ResetModificationFlags;
     AlterCodeValid := False;
     CreateCodeValid := False;
@@ -542,7 +546,7 @@ begin
   // Also, do this after the data type was altered, if from TEXT > VARCHAR e.g.
   for i:=0 to FColumns.Count-1 do begin
     if (Conn.Parameters.IsAnyMySQL or Conn.Parameters.IsAnyPostgreSQL)
-      and (FColumns[i].FStatus = esModified)
+      and (FColumns[i].Status = esModified)
       and (FColumns[i].DefaultType = cdtNothing)
       and (FColumns[i].OldDataType.HasDefault)
       then
@@ -1202,7 +1206,7 @@ begin
       if (CellText <> '') and (chkCharsetConvert.Checked) then
         CellText := comboCollation.Text;
     end;
-    10: CellText := Col.Expression;
+    10: CellText := Col.GenerationExpression;
     11: CellText := Col.Virtuality;
   end;
 end;
@@ -1299,30 +1303,36 @@ begin
       // Suggest length/set if required
       if (not Col.LengthCustomized) or (Col.DataType.RequiresLength and (Col.LengthSet = '')) then
         Col.LengthSet := Col.DataType.DefLengthSet;
-      // Auto-fix user selected default type which can be invalid now
-      case Col.DataType.Category of
-        dtcInteger: begin
-          Col.DefaultType := cdtExpression;
-          if Col.AllowNull then
-            Col.DefaultType := cdtNull
-          else
-            Col.DefaultText := IntToStr(MakeInt(Col.DefaultText));
-        end;
-        dtcReal: begin
-          Col.DefaultType := cdtExpression;
-          if Col.AllowNull then
-            Col.DefaultType := cdtNull
-          else
-            Col.DefaultText := FloatToStr(MakeFloat(Col.DefaultText));
-        end;
-        dtcText, dtcBinary, dtcSpatial, dtcOther: begin
-          Col.DefaultType := cdtText;
-          if Col.AllowNull then
-            Col.DefaultType := cdtNull;
-        end;
-        dtcTemporal: begin
-          if Col.DefaultType = cdtAutoinc then
-            Col.DefaultType := cdtNothing;
+      // Auto-change default type and text
+      if not Col.DataType.HasDefault then begin
+        Col.DefaultType := cdtNothing;
+        Col.DefaultText := '';
+      end else begin
+        // Auto-fix user selected default type which can be invalid now
+        case Col.DataType.Category of
+          dtcInteger: begin
+            Col.DefaultType := cdtExpression;
+            if Col.AllowNull then
+              Col.DefaultType := cdtNull
+            else
+              Col.DefaultText := IntToStr(MakeInt(Col.DefaultText));
+          end;
+          dtcReal: begin
+            Col.DefaultType := cdtExpression;
+            if Col.AllowNull then
+              Col.DefaultType := cdtNull
+            else
+              Col.DefaultText := FloatToStr(MakeFloat(Col.DefaultText));
+          end;
+          dtcText, dtcBinary, dtcSpatial, dtcOther: begin
+            Col.DefaultType := cdtText;
+            if Col.AllowNull then
+              Col.DefaultType := cdtNull;
+          end;
+          dtcTemporal: begin
+            if Col.DefaultType = cdtAutoinc then
+              Col.DefaultType := cdtNothing;
+          end;
         end;
       end;
 
@@ -1344,7 +1354,7 @@ begin
     end;
     8: Col.Comment := NewText;
     9: Col.Collation := NewText;
-    10: Col.Expression := NewText;
+    10: Col.GenerationExpression := NewText;
     11: Col.Virtuality := NewText;
   end;
   if WasModified then begin
@@ -1462,8 +1472,11 @@ begin
       end;
     9: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT, True);
+      EnumEditor.AllowCustomText := True;
+      EnumEditor.ItemMustExist := True;
       EnumEditor.ValueList := TStringList.Create;
       EnumEditor.ValueList.Text := DBObject.Connection.CollationList.Text;
+      EnumEditor.ValueList.Sort;
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
@@ -2541,6 +2554,21 @@ begin
   listColumns.Invalidate;
   Modification(Sender);
   ColsFromClp.Free;
+end;
+
+
+procedure TfrmTableEditor.AnyTreeStructureChange(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Reason: TChangeReason);
+begin
+  UpdateTabCaptions;
+end;
+
+
+procedure TfrmTableEditor.UpdateTabCaptions;
+begin
+  // Append number of listed keys (or whatever) to the tab caption
+  tabIndexes.Caption := _('Indexes') + ' (' + FKeys.Count.ToString + ')';
+  tabForeignKeys.Caption := _('Foreign keys') + ' (' + FForeignKeys.Count.ToString + ')';
 end;
 
 

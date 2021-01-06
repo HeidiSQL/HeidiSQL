@@ -3,8 +3,8 @@ unit Vcl.Styles.Preview;
 interface
 
 Uses
-  System.Classes, System.Generics.Collections, Winapi.Windows, Vcl.Styles,
-  Vcl.Themes, Vcl.Forms, Vcl.Graphics, Vcl.Controls, Vcl.ExtCtrls;
+  System.Classes, System.Generics.Collections, Winapi.Windows, Vcl.Themes, Vcl.Styles,
+  Vcl.Forms, Vcl.Graphics, Vcl.Controls, Vcl.ExtCtrls, Vcl.Styles.Utils.Graphics;
 
 type
   TPreviewType = (ptOriginal, ptTabs);
@@ -87,7 +87,8 @@ type
 implementation
 
 uses
-  System.SysUtils, System.Types, System.UITypes;
+  System.SysUtils, System.Types, System.UITypes,
+  Vcl.Styles.Utils.Misc;
 
 const
   ORIGINAL_PPI = 96;
@@ -157,7 +158,10 @@ var
   LDetails : TThemedElementDetails;
 begin
   LDetails := FStyle.GetElementDetails(twCaptionActive);
-  FStyle.GetElementSize(0, LDetails, esActual, LSize);
+  if Assigned(Application.Mainform) then
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+  else
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
   Result := LSize.cy;
 end;
 
@@ -167,7 +171,10 @@ var
   LDetails : TThemedElementDetails;
 begin
   LDetails := FStyle.GetElementDetails(twFrameLeftActive);
-  FStyle.GetElementSize(0, LDetails, esActual, LSize);
+  if Assigned(Application.Mainform) then
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+  else
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
   Result := LSize.cx;
 end;
 
@@ -177,7 +184,10 @@ var
   LDetails : TThemedElementDetails;
 begin
   LDetails  := FStyle.GetElementDetails(twFrameRightActive);
-  FStyle.GetElementSize(0, LDetails, esActual, LSize);
+  if Assigned(Application.Mainform) then
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+  else
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
   Result := LSize.cx;
 end;
 
@@ -187,7 +197,10 @@ var
   LDetails : TThemedElementDetails;
 begin
   LDetails   := FStyle.GetElementDetails(twFrameBottomActive);
-  FStyle.GetElementSize(0, LDetails, esActual, LSize);
+  if Assigned(Application.Mainform) then
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+  else
+    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
   Result := LSize.cy;
 end;
 
@@ -206,7 +219,10 @@ begin
   Result.Left   := FFormBorderSize.Left;
   Result.Top    := FFormBorderSize.Top;
   Result.Right  := FBitmap.Width - FFormBorderSize.Right;
-  Result.Bottom := Result.Top + MulDiv(MENU_ITEM_HEIGHT, screen.PixelsPerInch, ORIGINAL_PPI);
+  if Assigned(Application.Mainform) then
+    Result.Bottom := Result.Top + MulDiv(MENU_ITEM_HEIGHT, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI)
+  else
+    Result.Bottom := Result.Top + MulDiv(MENU_ITEM_HEIGHT, Screen.PixelsPerInch, ORIGINAL_PPI);
 end;
 
 function TVisualStylePreview.GetTabsRect : TRect;
@@ -216,7 +232,10 @@ begin
   Result.Left   := FFormBorderSize.Left;
   Result.Top    := FFormBorderSize.Top;
   Result.Right  := FBitmap.Width - FFormBorderSize.Right;
-  Result.Bottom := Result.Top + MulDiv(TABS_HEIGHT, screen.PixelsPerInch, ORIGINAL_PPI);
+  if Assigned(Application.Mainform) then
+    Result.Bottom := Result.Top + MulDiv(TABS_HEIGHT, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI)
+  else
+    Result.Bottom := Result.Top + MulDiv(TABS_HEIGHT, Screen.PixelsPerInch, ORIGINAL_PPI);
 end;
 
 function TVisualStylePreview.RectVCenter(var aRect : TRect; aBounds : TRect): TRect;
@@ -290,7 +309,7 @@ begin
   //Draw background
   LDetails.Element := teWindow;
   LDetails.Part    := 0;
-  FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LClientRect);
+  DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LClientRect);
 
   //Draw caption border
   LDetails := FStyle.GetElementDetails(twCaptionActive);
@@ -303,13 +322,13 @@ begin
     if (LRegion <> 0) then DeleteObject(LRegion);
   end;
 
-  FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LCaptionRect);
+  DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LCaptionRect);
   LTextRect       := LCaptionRect;
   LCaptionDetails := LDetails;
 
   //Draw icon
   LIconDetails := FStyle.GetElementDetails(twSysButtonNormal);
-  LIconRect    := Rect(0, 0, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON));
+  LIconRect    := Rect(0, 0, GetSysMetrics(SM_CXSMICON), GetSysMetrics(SM_CYSMICON));
 
   if not(FStyle.GetElementContentRect(0, LIconDetails, LCaptionRect, LButtonRect)) then
     LButtonRect := Rect(0, 0, 0, 0);
@@ -319,7 +338,10 @@ begin
   if (LButtonRect.Width > 0) and (FIcon <> 0) then
     DrawIconEx(FBitmap.Canvas.Handle, LIconRect.Left, LIconRect.Top, FIcon, 0, 0, 0, 0, DI_NORMAL);
 
-  Inc(LTextRect.Left, LButtonRect.Width + MulDiv(5, screen.PixelsPerInch, ORIGINAL_PPI));
+  if Assigned(Application.Mainform) then
+    Inc(LTextRect.Left, LButtonRect.Width + MulDiv(5, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI))
+  else
+    Inc(LTextRect.Left, LButtonRect.Width + MulDiv(5, Screen.PixelsPerInch, ORIGINAL_PPI));
 
   //Draw buttons
 
@@ -358,17 +380,17 @@ begin
   //Draw left border
   LRect    := Rect(0, FFormBorderSize.Top, FFormBorderSize.Left, FBitmap.Height - FFormBorderSize.Bottom);
   LDetails := FStyle.GetElementDetails(twFrameLeftActive);
-  FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LRect);
+  DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LRect);
 
   //Draw right border
   LRect    := Rect(FBitmap.Width - FFormBorderSize.Right, FFormBorderSize.Top, FBitmap.Width, FBitmap.Height - FFormBorderSize.Bottom);
   LDetails := FStyle.GetElementDetails(twFrameRightActive);
-  FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LRect);
+  DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LRect);
 
   //Draw Bottom border
   LRect    := Rect(0, FBitmap.Height - FFormBorderSize.Bottom, FBitmap.Width, FBitmap.Height);
   LDetails := FStyle.GetElementDetails(twFrameBottomActive);
-  FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LRect);
+  DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LRect);
 end;
 
 procedure TVisualStylePreview.DrawMainMenu;
@@ -384,15 +406,24 @@ begin
   LMenuRect := GetMainMenuRect;
 
   LDetails := FStyle.GetElementDetails(tmMenuBarBackgroundActive);
-  FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LMenuRect);
+  DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LMenuRect);
 
   LDetails := FStyle.GetElementDetails(tmMenuBarItemNormal);
   FStyle.GetElementColor(LDetails, ecTextColor, LColor);
 
-  LWidth := MulDiv(MENU_ITEM_WIDTH, screen.PixelsPerInch, ORIGINAL_PPI);
+  if Assigned(Application.Mainform) then
+  begin
+    LWidth := MulDiv(MENU_ITEM_WIDTH, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+    LItemRect.Left   := LMenuRect.Left + MulDiv(10, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+    LItemRect.Top    := LMenuRect.Top  + MulDiv(3, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+  end
+  else
+  begin
+    LWidth := MulDiv(MENU_ITEM_WIDTH, Screen.PixelsPerInch, ORIGINAL_PPI);
+    LItemRect.Left   := LMenuRect.Left + MulDiv(10, Screen.PixelsPerInch, ORIGINAL_PPI);
+    LItemRect.Top    := LMenuRect.Top  + MulDiv(3, Screen.PixelsPerInch, ORIGINAL_PPI);
+  end;
 
-  LItemRect.Left   := LMenuRect.Left + MulDiv(10, screen.PixelsPerInch, ORIGINAL_PPI);
-  LItemRect.Top    := LMenuRect.Top  + MulDiv(3, screen.PixelsPerInch, ORIGINAL_PPI);
   LItemRect.Right  := LItemRect.Left + LWidth;
   LItemRect.Bottom := LMenuRect.Bottom;
   FStyle.DrawText(FBitmap.Canvas.Handle, LDetails, FFileMenuText, LItemRect, [tfLeft], LColor);
@@ -426,9 +457,18 @@ var
   LPadding    : integer;
 begin
   LMenuRect := GetMainMenuRect;
-  LWidth    := MulDiv(BUTTON_WIDTH,  screen.PixelsPerInch, ORIGINAL_PPI);
-  LHeight   := MulDiv(BUTTON_HEIGHT, screen.PixelsPerInch, ORIGINAL_PPI);
-  LPadding  := MulDiv(PANEL_PADDING, screen.PixelsPerInch, ORIGINAL_PPI);
+  if Assigned(Application.Mainform) then
+  begin
+    LWidth    := MulDiv(BUTTON_WIDTH,  Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+    LHeight   := MulDiv(BUTTON_HEIGHT, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+    LPadding  := MulDiv(PANEL_PADDING, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+  end
+  else
+  begin
+    LWidth    := MulDiv(BUTTON_WIDTH,  Screen.PixelsPerInch, ORIGINAL_PPI);
+    LHeight   := MulDiv(BUTTON_HEIGHT, Screen.PixelsPerInch, ORIGINAL_PPI);
+    LPadding  := MulDiv(PANEL_PADDING, Screen.PixelsPerInch, ORIGINAL_PPI);
+  end;
 
   LButtonRect.Left   := FFormBorderSize.Left + LPadding;
   LButtonRect.Top    := LMenuRect.Bottom + LPadding;
@@ -438,7 +478,7 @@ begin
   for i := 1 to 3 do
     begin
       LDetails := FStyle.GetElementDetails(ttbButtonNormal);
-      FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LButtonRect);
+      DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LButtonRect);
 
       FStyle.GetElementColor(LDetails, ecTextColor, LColor);
       FStyle.DrawText(FBitmap.Canvas.Handle, LDetails, FButtonText + IntToStr(i), LButtonRect, TTextFormatFlags(DT_VCENTER or DT_CENTER), LColor);
@@ -463,9 +503,18 @@ var
   LHeight     : integer;
   LPadding    : integer;
 begin
-  LWidth    := MulDiv(BUTTON_WIDTH,  screen.PixelsPerInch, ORIGINAL_PPI);
-  LHeight   := MulDiv(BUTTON_HEIGHT, screen.PixelsPerInch, ORIGINAL_PPI);
-  LPadding  := MulDiv(PANEL_PADDING, screen.PixelsPerInch, ORIGINAL_PPI);
+  if Assigned(Application.Mainform) then
+  begin
+    LWidth    := MulDiv(BUTTON_WIDTH,  Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+    LHeight   := MulDiv(BUTTON_HEIGHT, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+    LPadding  := MulDiv(PANEL_PADDING, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+  end
+  else
+  begin
+    LWidth    := MulDiv(BUTTON_WIDTH,  Screen.PixelsPerInch, ORIGINAL_PPI);
+    LHeight   := MulDiv(BUTTON_HEIGHT, Screen.PixelsPerInch, ORIGINAL_PPI);
+    LPadding  := MulDiv(PANEL_PADDING, Screen.PixelsPerInch, ORIGINAL_PPI);
+  end;
 
   LButtonRect.Left   := FFormBorderSize.Left + LPadding;
   LButtonRect.Right  := LButtonRect.Left + LWidth;
@@ -500,7 +549,7 @@ begin
           end;
       end;
 
-      FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LButtonRect);
+      DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LButtonRect);
       FStyle.GetElementColor(LDetails, ecTextColor, LColor);
       FStyle.DrawText(FBitmap.Canvas.Handle, LDetails, LCaption, LButtonRect, TTextFormatFlags(DT_VCENTER or DT_CENTER), LColor);
 
@@ -522,15 +571,23 @@ var
   LFlags    : TTextFormat;
   LOffset   : integer;
 begin
-  LWidth    := MulDiv(TAB_WIDTH,  screen.PixelsPerInch, ORIGINAL_PPI);
-  LOffset   := MulDiv(TAB_OFFSET, screen.PixelsPerInch, ORIGINAL_PPI);
+  if Assigned(Application.Mainform) then
+  begin
+    LWidth    := MulDiv(TAB_WIDTH,  Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+    LOffset   := MulDiv(TAB_OFFSET, Application.MainForm.Monitor.PixelsPerInch, ORIGINAL_PPI);
+  end
+  else
+  begin
+    LWidth    := MulDiv(TAB_WIDTH,  Screen.PixelsPerInch, ORIGINAL_PPI);
+    LOffset   := MulDiv(TAB_OFFSET, Screen.PixelsPerInch, ORIGINAL_PPI);
+  end;
   LTabsRect := GetTabsRect;
   LFlags    := TTextFormatFlags(DT_VCENTER or DT_CENTER);
   LColor    := clBlack;
 
   // Tabs background
   LDetails := StyleServices.GetElementDetails(ttPane);
-  FStyle.DrawElement(FBitmap.Canvas.Handle, LDetails, LTabsRect);
+  DrawStyleElement(FBitmap.Canvas.Handle, LDetails, LTabsRect);
 
 
   // Selected tab

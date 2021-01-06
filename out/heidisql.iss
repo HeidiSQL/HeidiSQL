@@ -74,8 +74,6 @@ Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "O
 Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"; GroupDescription: "Options:";
 Name: "activate_updatechecks"; Description: "Automatically check {#WebSite} for updates"; GroupDescription: "Options:";
 Name: "activate_statistics"; Description: "Automatically report client and server versions on {#WebSite}"; GroupDescription: "Options:";
-Name: "theme_windows"; Description: "Use default Windows theme"; GroupDescription: "Select theme:"; Flags: exclusive
-Name: "theme_material"; Description: "Use dark Material theme"; GroupDescription: "Select theme:"; Flags: exclusive unchecked
 
 [InstallDelete]
 Type: files; Name: "{app}\heidisql32.exe"
@@ -130,54 +128,6 @@ Root: HKCR; Subkey: "SQLScriptFile\shell\open\command"; ValueType: string; Value
 ; Enable auto-updatechecks if this option was checked. Only save the value when it's checked, as the default in preferences is False (see const.inc)
 Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "Updatecheck"; ValueData: 1; Tasks: activate_updatechecks
 Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "DoUsageStatistics"; ValueData: 1; Tasks: activate_statistics
-
-; Store theme selection: "Windows"
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: string; ValueName: "Theme"; ValueData: "Windows"; Tasks: theme_windows
-; SQL colors from "Light" preset
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Comment Foreground"; ValueData: "8421504"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr ConditionalComment Foreground"; ValueData: "8421504"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr DataType Foreground"; ValueData: "128"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr DelimitedIdentifier Foreground"; ValueData: "32896"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Function Foreground"; ValueData: "8388608"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Identifier Foreground"; ValueData: "32896"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Key Foreground"; ValueData: "16711680"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Number Foreground"; ValueData: "8388736"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr String Foreground"; ValueData: "32768"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Symbol Foreground"; ValueData: "16711680"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr TableName Foreground"; ValueData: "16711935"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Variable Foreground"; ValueData: "8388736"; Tasks: theme_windows
-; Data type colors from "Light" preset
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Binary"; ValueData: "8388736"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Datetime"; ValueData: "128"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Numeric"; ValueData: "16711680"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Other"; ValueData: "32896"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Real"; ValueData: "16711752"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Spatial"; ValueData: "8421376"; Tasks: theme_windows
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Text"; ValueData: "32768"; Tasks: theme_windows
-
-; Store theme selection: "Material"
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: string; ValueName: "Theme"; ValueData: "Material"; Tasks: theme_material
-; SQL colors from "Material" preset
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Comment Foreground"; ValueData: "8023636"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr ConditionalComment Foreground"; ValueData: "12108397"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr DataType Foreground"; ValueData: "15372999"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr DelimitedIdentifier Foreground"; ValueData: "16757122"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Function Foreground"; ValueData: "14929603"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Identifier Foreground"; ValueData: "16757122"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Key Foreground"; ValueData: "14929603"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Number Foreground"; ValueData: "7361535"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr String Foreground"; ValueData: "8906947"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Symbol Foreground"; ValueData: "12897152"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr TableName Foreground"; ValueData: "6911735"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "SQL Attr Variable Foreground"; ValueData: "7064575"; Tasks: theme_material
-; Data type colors from "Dark" preset
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Binary"; ValueData: "13203071"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Datetime"; ValueData: "7566281"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Numeric"; ValueData: "16750469"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Other"; ValueData: "7586241"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Real"; ValueData: "13663613"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Spatial"; ValueData: "13553267"; Tasks: theme_material
-Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "FieldColor_Text"; ValueData: "7591283"; Tasks: theme_material
 
 [Run]
 Filename: "{app}\{#ProgExeName}"; Description: "Launch {#ProgName}"; Flags: nowait postinstall skipifsilent

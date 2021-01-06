@@ -1,4 +1,4 @@
-object ColumnSelectionForm: TColumnSelectionForm
+object frmColumnSelection: TfrmColumnSelection
   Left = 0
   Top = 0
   BorderStyle = bsSizeToolWin

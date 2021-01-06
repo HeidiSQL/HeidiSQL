@@ -11,7 +11,8 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages;
+  dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages,
+  SynEdit, SynMemo;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -36,7 +37,6 @@ type
     btnHelpMaintenance: TButton;
     tabFind: TTabSheet;
     lblFindText: TLabel;
-    memoFindText: TMemo;
     comboDataTypes: TComboBox;
     lblDataTypes: TLabel;
     tabSQLexport: TTabSheet;
@@ -83,6 +83,11 @@ type
     comboMatchType: TComboBox;
     lblMatchType: TLabel;
     menuExportRemoveDefiner: TMenuItem;
+    tabsTextType: TPageControl;
+    tabSimpleText: TTabSheet;
+    tabSQL: TTabSheet;
+    memoFindText: TMemo;
+    SynMemoFindText: TSynMemo;
     procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -173,8 +178,9 @@ uses main, dbstructures;
 const
   STRSKIPPED: String = 'Skipped - ';
   EXPORT_FILE_FOOTER = '/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */;'+CRLF+
-    '/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */;'+CRLF+
-    '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF;
+    '/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;'+CRLF+
+    '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF+
+    '/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;'+CRLF;
 
 var
   OUTPUT_FILE,
@@ -243,6 +249,8 @@ begin
 
   // Find text tab
   memoFindText.Text := AppSettings.ReadString(asTableToolsFindText);
+  SynMemoFindText.Text := AppSettings.ReadString(asTableToolsFindSQL);
+  tabsTextType.ActivePageIndex := AppSettings.ReadInt(asTableToolsFindTextTab);
   comboDatatypes.Items.Add(_('All data types'));
   for dtc:=Low(DatatypeCategories) to High(DatatypeCategories) do
     comboDatatypes.Items.Add(DatatypeCategories[dtc].Name);
@@ -370,6 +378,8 @@ begin
   if comboBulkTableEditCharset.Items.Count > 0 then
     comboBulkTableEditCharset.ItemIndex := 0;
 
+  MainForm.SetupSynEditors;
+  MainForm.SynCompletionProposal.AddEditor(SynMemoFindText);
   ValidateControls(Sender);
 end;
 
@@ -390,7 +400,9 @@ var
 begin
   case ToolMode of
     tmFind: begin
+      AppSettings.WriteInt(asTableToolsFindTextTab, tabsTextType.ActivePageIndex);
       AppSettings.WriteString(asTableToolsFindText, memoFindText.Text);
+      AppSettings.WriteString(asTableToolsFindSQL, SynMemoFindText.Text);
       AppSettings.WriteInt(asTableToolsDatatype, comboDatatypes.ItemIndex);
       AppSettings.WriteBool(asTableToolsFindCaseSensitive, chkCaseSensitive.Checked);
       AppSettings.WriteInt(asTableToolsFindMatchType, comboMatchType.ItemIndex);
@@ -445,7 +457,7 @@ end;
 
 procedure TfrmTableTools.ValidateControls(Sender: TObject);
 var
-  SomeChecked, OptionChecked: Boolean;
+  SomeChecked, OptionChecked, FindModeSQL: Boolean;
   op: String;
   i: Integer;
 begin
@@ -472,7 +484,11 @@ begin
     end;
   end else if tabsTools.ActivePage = tabFind then begin
     btnExecute.Caption := _('Find');
-    btnExecute.Enabled := SomeChecked and (memoFindText.Text <> '');
+    btnExecute.Enabled := SomeChecked;
+    FindModeSQL := tabsTextType.ActivePage = tabSQL;
+    chkCaseSensitive.Enabled := not FindModeSQL;
+    lblMatchType.Enabled := not FindModeSQL;
+    comboMatchType.Enabled := not FindModeSQL;
     // Enable "See results" button if there were results
     btnSeeResults.Enabled := False;
     if Assigned(FResults) then for i:=0 to FResults.Count-1 do begin
@@ -773,9 +789,12 @@ begin
   Conn := Mainform.ActiveConnection;
 
   if Assigned(ExportStream) then begin
+    // For output to file or directory:
     Output(EXPORT_FILE_FOOTER, False, True, False, False, False);
+    // For direct output to database or server:
+    Output('/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */', True, False, False, True, True);
     Output('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */', True, False, False, True, True);
-    Output('/*!40014 SET FOREIGN_KEY_CHECKS=IF(@OLD_FOREIGN_KEY_CHECKS IS NULL, 1, @OLD_FOREIGN_KEY_CHECKS) */', True, False, False, True, True);
+    Output('/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
 
@@ -900,7 +919,10 @@ begin
           Column := DBObj.Connection.QuoteIdent(Col.Name);
           if (comboDatatypes.ItemIndex = 0) or (Integer(Col.DataType.Category) = comboDatatypes.ItemIndex-1) then begin
 
-            if (Col.DataType.Category in [dtcInteger, dtcReal]) and (comboMatchType.ItemIndex=1) then begin
+            if tabsTextType.ActivePage = tabSQL then begin
+              SQL := SQL + Column + ' ' + SynMemoFindText.Text + ' OR ';
+
+            end else if (Col.DataType.Category in [dtcInteger, dtcReal]) and (comboMatchType.ItemIndex=1) then begin
               // Search numbers
               SQL := SQL + Column + '=' + UnformatNumber(FindText) + ' OR ';
 
@@ -1418,13 +1440,14 @@ end;
 
 procedure TfrmTableTools.DoExport(DBObj: TDBObject);
 var
-  IsFirstRowInChunk, NeedsDBStructure: Boolean;
+  NeedsDBStructure: Boolean;
+  InsertSizeExceeded, RowLimitExceeded: Boolean;
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   i: Integer;
-  RowCount, Limit, Offset, ResultCount: Int64;
+  RowCount, RowCountInChunk: Int64;
+  Limit, Offset, ResultCount: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TDBQuery;
-  rx: TRegExpr;
   ColumnList: TTableColumnList;
   Column: TTableColumn;
   Quoter: TDBConnection;
@@ -1489,6 +1512,8 @@ begin
         TargetFileName := ChangeFileExt(TargetFileName, '_temp.sql');
       if not IsValidFilePath(TargetFileName) then
         raise EFCreateError.CreateFmt(_('Filename or path contains illegal characters: "%s"'), [TargetFilename]);
+      if not DirectoryExists(ExtractFilePath(FExportFileName)) then
+        ForceDirectories(ExtractFilePath(FExportFileName));
       ExportStream := TFileStream.Create(TargetFileName, fmCreate or fmOpenWrite);
     end;
     // ToDir handled above
@@ -1498,6 +1523,7 @@ begin
       ExportStream := TMemoryStream.Create;
   end;
   if not FHeaderCreated then begin
+    // For output to file or directory:
     if DBObj.Connection.CharacterSet = 'utf8mb4' then
       SetCharsetCode := '/*!40101 SET NAMES utf8 */;' + CRLF +
         '/*!50503 SET NAMES '+DBObj.Connection.CharacterSet+' */;' + CRLF
@@ -1517,11 +1543,16 @@ begin
       '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' + CRLF +
       SetCharsetCode +
       '/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;' + CRLF +
-      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;' + CRLF;
+      '/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */;' + CRLF +
+      '/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;' + CRLF;
     Output(Header, False, DBObj.Database<>ExportLastDatabase, True, False, False);
+    Output(CRLF, False, True, True, False, False);
+
+    // For direct output to database or server:
     Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     Output('/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */', True, False, False, True, True);
-    Output(CRLF, False, True, True, False, False);
+    Output('/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */', True, False, False, True, True);
+
     FHeaderCreated := True;
   end;
 
@@ -1573,16 +1604,6 @@ begin
             Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 );
-            if ToServer then begin
-              rx := TRegExpr.Create;
-              rx.ModifierI := True;
-              rx.Expression := '(\s)(TYPE|ENGINE)(\=|\s+)(\w+)';
-              if FTargetConnection.ServerVersionInt < 40018 then
-                Struc := rx.Replace(Struc, '${1}TYPE${3}${4}', true)
-              else
-                Struc := rx.Replace(Struc, '${1}ENGINE${3}${4}', true);
-              rx.Free;
-            end;
           end;
 
           lntView: begin
@@ -1718,11 +1739,11 @@ begin
         BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
         while true do begin
           Output(BaseInsert, False, True, True, True, True);
-          IsFirstRowInChunk := True;
+          RowCountInChunk := 0;
 
           while not Data.Eof do begin
             Row := '';
-            if not IsFirstRowInChunk then
+            if RowCountInChunk > 0 then
               Row := Row + ','+CRLF+#9+'(';
             for i:=0 to Data.ColumnCount-1 do begin
               if Data.ColIsVirtual(i) then
@@ -1750,12 +1771,13 @@ begin
             Delete(Row, Length(Row)-1, 2);
             Row := Row + ')';
             // Break if stream would increase over the barrier of 1MB, and throw away current row
-            if (not IsFirstRowInChunk)
-              and (ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > updownInsertSize.Position*SIZE_KB*0.9)
-              then
-              break;
+            InsertSizeExceeded := ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > updownInsertSize.Position*SIZE_KB*0.9;
+            // Same with MSSQL which is limited to 1000 rows per INSERT
+            RowLimitExceeded := RowCountInChunk >= Quoter.MaxRowsPerInsert;
+            if (RowCountInChunk > 0) and (InsertSizeExceeded or RowLimitExceeded) then
+              Break;
             Inc(RowCount);
-            IsFirstRowInChunk := False;
+            Inc(RowCountInChunk);
             Output(Row, False, True, True, True, True);
             Data.Next;
           end;

@@ -406,9 +406,9 @@ const
     dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
     dtDate, dtTime, dtYear, dtDatetime, dtDatetime2, dtDatetimeOffset, dtSmalldatetime, dtTimestamp, dtInterval,
     dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
-    dtJson, dtCidr, dtInet, dtMacaddr,
+    dtJson, dtJsonB, dtCidr, dtInet, dtMacaddr,
     dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtRegClass, dtUnknown,
+    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtRegClass, dtRegProc, dtUnknown,
     dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid, dtXML,
     dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
     );
@@ -431,7 +431,8 @@ const
     Description:     String;
     HasLength:       Boolean; // Can have Length- or Set-attribute?
     RequiresLength:  Boolean; // Must have a Length- or Set-attribute?
-    MaxTextLen:      String;  // TEXT and BLOB allow custom length, but we want to leave the default max length away from ALTER TABLE's
+    MaxSize:         Int64;
+    DefaultSize:     Int64;   // TEXT and BLOB allow custom length, but we want to leave the default max length away from ALTER TABLE's
     HasBinary:       Boolean; // Can be binary?
     HasDefault:      Boolean; // Can have a default value?
     LoadPart:        Boolean; // Select per SUBSTR() or LEFT()
@@ -654,6 +655,7 @@ var
         'The unsigned range is 0 to 255.';
       HasLength:       True;
       RequiresLength:  False;
+      MaxSize:         127;
       HasBinary:       False;
       HasDefault:      True;
       LoadPart:        False;
@@ -668,6 +670,7 @@ var
         'The unsigned range is 0 to 65535.';
       HasLength:       True;
       RequiresLength:  False;
+      MaxSize:         32767;
       HasBinary:       False;
       HasDefault:      True;
       LoadPart:        False;
@@ -682,6 +685,7 @@ var
         'The unsigned range is 0 to 16777215.';
       HasLength:       True;
       RequiresLength:  False;
+      MaxSize:         8388607;
       HasBinary:       False;
       HasDefault:      True;
       LoadPart:        False;
@@ -696,6 +700,7 @@ var
         'The unsigned range is 0 to 4294967295.';
       HasLength:       True;
       RequiresLength:  False;
+      MaxSize:         2147483647;
       HasBinary:       False;
       HasDefault:      True;
       LoadPart:        False;
@@ -710,6 +715,7 @@ var
         '9223372036854775807. The unsigned range is 0 to 18446744073709551615.';
       HasLength:       True;
       RequiresLength:  False;
+      MaxSize:         9223372036854775807;
       HasBinary:       False;
       HasDefault:      True;
       LoadPart:        False;
@@ -763,10 +769,11 @@ var
         'the default is 0. If M is omitted, the default is 10.';
       HasLength:       True;
       RequiresLength:  True;
+      MaxSize:         9223372036854775807;
       HasBinary:       False;
       HasDefault:      True;
       LoadPart:        False;
-      DefLengthSet:    '10,0';
+      DefLengthSet:    '20,6';
       Category:        dtcReal;
     ),
     (
@@ -857,24 +864,6 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtChar;
-      NativeType:      mytString;
-      Name:            'CHAR';
-      Description:     'CHAR[(M)]' + sLineBreak +
-        'A fixed-length string that is always right-padded with spaces to the ' +
-        'specified length when stored. M represents the column length in ' +
-        'characters. The range of M is 0 to 255. If M is omitted, the length is 1.' + sLineBreak + sLineBreak +
-        '*Note*: Trailing spaces are removed when CHAR values are retrieved ' +
-        'unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled.';
-      HasLength:       True;
-      RequiresLength:  True;
-      HasBinary:       True;
-      HasDefault:      True;
-      LoadPart:        False;
-      DefLengthSet:    '50';
-      Category:        dtcText;
-    ),
-    (
       Index:           dtVarchar;
       NativeType:      mytVarstring;
       Name:            'VARCHAR';
@@ -890,9 +879,29 @@ var
         'remove trailing spaces from VARCHAR values.';
       HasLength:       True;
       RequiresLength:  True;
+      MaxSize:         255;
       HasBinary:       True; // MySQL-Help says the opposite but it's valid for older versions at least.
       HasDefault:      True;
       LoadPart:        True;
+      DefLengthSet:    '50';
+      Category:        dtcText;
+    ),
+    (
+      Index:           dtChar;
+      NativeType:      mytString;
+      Name:            'CHAR';
+      Description:     'CHAR[(M)]' + sLineBreak +
+        'A fixed-length string that is always right-padded with spaces to the ' +
+        'specified length when stored. M represents the column length in ' +
+        'characters. The range of M is 0 to 255. If M is omitted, the length is 1.' + sLineBreak + sLineBreak +
+        '*Note*: Trailing spaces are removed when CHAR values are retrieved ' +
+        'unless the PAD_CHAR_TO_FULL_LENGTH SQL mode is enabled.';
+      HasLength:       True;
+      RequiresLength:  True;
+      MaxSize:         255;
+      HasBinary:       True;
+      HasDefault:      True;
+      LoadPart:        False;
       DefLengthSet:    '50';
       Category:        dtcText;
     ),
@@ -907,6 +916,7 @@ var
         'prefix that indicates the number of bytes in the value.';
       HasLength:       False;
       RequiresLength:  False;
+      MaxSize:         255;
       HasBinary:       True;
       HasDefault:      False;
       LoadPart:        False;
@@ -926,7 +936,8 @@ var
         'values M characters long.';
       HasLength:       True;
       RequiresLength:  False;
-      MaxTextLen:      '65535';
+      MaxSize:         65535;
+      DefaultSize:     65535;
       HasBinary:       True;
       HasDefault:      False;
       LoadPart:        True;
@@ -1045,7 +1056,8 @@ var
         'values M bytes long.';
       HasLength:       True;
       RequiresLength:  False;
-      MaxTextLen:      '65535';
+      MaxSize:         65535;
+      DefaultSize:     65535;
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        True;
@@ -1643,7 +1655,7 @@ var
     )
   );
 
-  PostgreSQLDatatypes: Array[0..35] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..37] of TDBDatatype =
   (
     (
       Index:           dtUnknown;
@@ -1818,7 +1830,7 @@ var
       Index:           dtVarchar;
       NativeTypes:     '18|19|24|1043|1043';
       Name:            'VARCHAR';
-      Names:           'char|bpchar|varchar|name|enum|regproc|character varying';
+      Names:           'char|bpchar|varchar|name|enum|character varying';
       Description:     'Variable-length with limit.';
       HasLength:       True;
       RequiresLength:  False;
@@ -2083,6 +2095,19 @@ var
       Category:        dtcOther;
     ),
     (
+      Index:           dtRegProc;
+      NativeTypes:     '24';
+      Name:            'REGPROC';
+      Names:           'regproc|regprocedure';
+      Description:     'Function name';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
       Index:           dtJson;
       NativeTypes:     '114';
       Name:            'JSON';
@@ -2094,6 +2119,19 @@ var
       HasDefault:      False;
       LoadPart:        False;
       Category:        dtcText;
+    ),
+    (
+      Index:           dtJsonB;
+      NativeTypes:     '3802';
+      Name:            'JSONB';
+      Names:           'jsonb';
+      Description:     'JavaScript Object Notation data in a binary form';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcBinary;
     ),
     (
       Index:           dtUniqueidentifier;
@@ -2280,7 +2318,7 @@ var
   );
 
 
-  MySqlFunctions: Array [0..374] of TMysqlFunction =
+  MySqlFunctions: Array [0..375] of TMysqlFunction =
   (
     (
       Name:         'BIT_COUNT';
@@ -3173,6 +3211,16 @@ var
         +'+-------------+'+sLineBreak
         +'| 09:49:08.09 |'+sLineBreak
         +'+-------------+'
+    ),
+
+    // Added by hand, for https://github.com/HeidiSQL/HeidiSQL/issues/74#issuecomment-559321533
+    // and again, for https://www.heidisql.com/forum.php?t=37278
+    (
+      Name:         'CURRENT_TIMESTAMP';
+      Declaration:  '()';
+      Category:     'Date and Time Functions';
+      Version:      SQL_VERSION_ANSI;
+      Description:  'CURRENT_TIMESTAMP and CURRENT_TIMESTAMP() are synonyms for NOW()'
     ),
 
     (

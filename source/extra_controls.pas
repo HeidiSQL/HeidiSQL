@@ -19,7 +19,7 @@ type
       procedure FilterNodesByEdit(Edit: TButtonedEdit; Tree: TVirtualStringTree);
     public
       constructor Create(AOwner: TComponent); override;
-      procedure InheritFont(AFont: TFont);
+      class procedure InheritFont(AFont: TFont);
       property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
       class procedure FixControls(ParentComp: TComponent);
   end;
@@ -119,7 +119,7 @@ begin
 end;
 
 
-procedure TExtForm.InheritFont(AFont: TFont);
+class procedure TExtForm.InheritFont(AFont: TFont);
 var
   LogFont: TLogFont;
   GUIFontName: String;

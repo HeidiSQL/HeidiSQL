@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.Utils.Graphics.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -264,8 +264,9 @@ procedure AlphaBlendRectangle(const ACanvas: TCanvas; const AColor: TColor; cons
 procedure AlphaBlendRectangle(const DC: HDC; const AColor: TColor; const ARect: TRect;
   SourceConstantAlpha: byte); overload;
 
-procedure DrawStyleElement(HDC: HDC; LDetails: TThemedElementDetails; pRect: TRect; RestoreDC: Boolean = True);
-  overload;
+procedure DrawStyleElement(HDC: HDC; LDetails: TThemedElementDetails; pRect:
+    TRect; RestoreDC: Boolean = True; const AStyle: TCustomStyleServices =
+    nil); overload;
 {$IF (CompilerVersion >= 33)}
 procedure DrawStyleElement(HDC: HDC; LDetails: TThemedElementDetails; pRect: TRect; ClipRect: pRect; DPI: Integer = 0;
   RestoreDC: Boolean = True); overload;
@@ -293,7 +294,7 @@ uses
   System.Zip,
 {$ENDIF}
   System.Types,
-  System.Math;
+  System.Math, Vcl.Forms;
 
 type
   PRGBArray24 = ^TRGBArray24;
@@ -787,15 +788,28 @@ begin
   end;
 end;
 
-procedure DrawStyleElement(HDC: HDC; LDetails: TThemedElementDetails; pRect: TRect; RestoreDC: Boolean = True);
+procedure DrawStyleElement(HDC: HDC; LDetails: TThemedElementDetails; pRect:
+    TRect; RestoreDC: Boolean = True; const AStyle: TCustomStyleServices = nil);
 var
   SaveIndex: Integer;
+  LStyle: TCustomStyleServices;
 begin
   SaveIndex := 0;
+  if Assigned(AStyle) then
+    LStyle := AStyle
+  else
+    LStyle := StyleServices;
   if RestoreDC then
     SaveIndex := SaveDC(HDC);
   try
-    StyleServices.DrawElement(HDC, LDetails, pRect, nil);
+    {$IF (CompilerVersion >= 34)}
+    if Assigned(Application.Mainform) then
+      LStyle.DrawElement(HDC, LDetails, pRect, nil, Application.MainForm.Monitor.PixelsPerInch)
+    else
+      LStyle.DrawElement(HDC, LDetails, pRect, nil, Screen.PixelsPerInch);
+    {$ELSE}
+    LStyle.DrawElement(HDC, LDetails, pRect, nil);
+    {$ENDIF}
   finally
     if (SaveIndex > 0) and RestoreDC then
       Winapi.Windows.RestoreDC(HDC, SaveIndex);

@@ -14,7 +14,7 @@
 //
 // The Original Code is Vcl.Styles.Utils.Misc.pas.
 //
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -39,12 +39,17 @@ procedure AddToLog(const Msg: string); overload;
 function WM_To_String(const WM_Message: Integer): string;
 {$ENDIF}
 function ExecutingInMainThread: boolean;
+function GetSysMetrics(nIndex: Integer): Integer;
+
+var
+  GlobalMainThreadID: TThreadID = 0;
 
 implementation
 
 uses
   Winapi.CommCtrl,
-  System.SysUtils;
+  System.SysUtils,
+  Vcl.Forms;
 
 function ExecutingInMainThread: boolean;
 begin
@@ -56,6 +61,24 @@ begin
   Result := (GetCurrentThreadId = MainThreadId);
   {$ELSE}
   Result := True;
+  {$ENDIF}
+end;
+
+function GetSysMetrics(nIndex: Integer): Integer;
+begin
+  {$IF (CompilerVersion >= 33)}
+  if TOSVersion.Check(10) and (TOSVersion.Build >= 14393) then
+  begin
+    // Windows 10, version 1607 or higher
+    if Assigned(Application.Mainform) then
+      Result := GetSystemMetricsForDPI(nIndex, Application.Mainform.Monitor.PixelsPerInch)
+    else
+      Result := GetSystemMetricsForDPI(nIndex, Screen.PixelsPerInch);
+  end
+  else
+    Result := GetSystemMetrics(nIndex);
+  {$ELSE}
+  Result := GetSystemMetrics(nIndex);
   {$ENDIF}
 end;
 

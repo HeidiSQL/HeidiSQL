@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.UxTheme.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -103,6 +103,7 @@ const
   VSCLASS_SEARCHEDITBOX = 'SearchEditBox';
   VSCLASS_SEARCHBOX = 'SearchBox';
   VSCLASS_CompositedSEARCHBOX = 'SearchBoxCompositedSearchBox::SearchBox';
+  VSCLASS_SearchBoxComposited = 'SearchBoxComposited::SearchBox';
   VSCLASS_INACTIVESEARCHBOX = 'InactiveSearchBoxCompositedSearchBox::SearchBox';
 {$ENDIF}
 
@@ -284,7 +285,7 @@ end;
 
 {$IF CompilerVersion >= 30}
 function InterceptCreateOrdinal(const Module: string; MethodName: Integer; const InterceptProc: Pointer;
-  ForceLoadModule: Boolean = True; Options: Byte = v1compatibility): Pointer;
+  ForceLoadModule: Boolean = True; const Options: TInterceptOptions = DefaultInterceptOptions): Pointer;
 var
   pOrgPointer: Pointer;
   LModule: THandle;
@@ -298,7 +299,7 @@ begin
   begin
     pOrgPointer := GetProcAddress(LModule, PChar(MethodName));
     if Assigned(pOrgPointer) then
-      Result := DDetours.InterceptCreate(pOrgPointer, InterceptProc, Options);
+      DDetours.InterceptCreate(pOrgPointer, InterceptProc, Result, nil, Options);
   end;
 end;
 {$IFEND}
@@ -480,6 +481,7 @@ begin
   finally
     VCLStylesLock.Leave;
   end;
+  // OutputDebugString(PChar(Format('Detour_UxTheme_DrawThemeMain hTheme %d iPartId %d iStateId %d  text %s', [hTheme, iPartId, iStateId, LThemeClass])));
 end;
 
 function Detour_UxTheme_DrawThemeBackgroundEx(hTheme: hTheme; hdc: hdc; iPartId, iStateId: Integer; const pRect: TRect;
@@ -623,7 +625,6 @@ begin
     {$IFDEF HOOK_SearchBox}
     if SameText(VSCLASS_SEARCHEDITBOX, LThemeClass) then
     begin
-      pColor := clNone;
       case iPartId of
         1:
           case iStateId of
@@ -709,6 +710,28 @@ begin
       end
       else
         Result := S_OK;
+    end
+    else
+    {$ENDIF}
+    {$IFDEF HOOK_VirtualShell}
+    if SameText(LThemeClass, VSCLASS_SCROLLBAR) then
+    begin
+      // Fix a theme issue in Mustangpeak Virtual Shell
+      pColor := clNone;
+      case iPartId of
+        11:
+          case iStateId  of
+            0 : pColor := ColorToRGB(StyleServices.GetStyleColor(scPanel));
+          end;
+      end;
+
+     if TColor(pColor) = clNone then
+     begin
+       Result := Trampoline_UxTheme_GetThemeColor(hTheme, iPartId, iStateId, iPropId, pColor);
+       //OutputDebugString(PChar(Format('Detour_GetThemeColor Class %s hTheme %d iPartId %d iStateId %d  iPropId %d Color %8.x', [LThemeClass, hTheme, iPartId, iStateId, iPropId, pColor])));
+     end
+     else
+       Result := S_OK;
     end
     else
     {$ENDIF}
@@ -861,7 +884,7 @@ begin
               pColor := ColorToRGB(StyleServices.GetSystemColor(clBtnText));
           end;
       else
-        pColor := ColorToRGB(clRed);
+        pColor := ColorToRGB(clBtnText);
       end;
 
       if TColor(pColor) = clNone then
@@ -878,14 +901,12 @@ begin
     if SameText(LThemeClass, VSCLASS_TREEVIEW) or SameText(LThemeClass, VSCLASS_PROPERTREE) or
        SameText(LThemeClass, 'ExplorerNavPane') then
     begin
-
       pColor := clNone;
       case iPartId of
         0, 2:
           case iStateId of
             0:
               pColor := ColorToRGB(StyleServices.GetSystemColor(clWindow)); // OK
-
           end;
       end;
 
@@ -900,7 +921,7 @@ begin
     else
     {$ENDIF}
     {$IFDEF HOOK_ListView}
-              if (SameText(LThemeClass, VSCLASS_ITEMSVIEW) or SameText(LThemeClass, VSCLASS_LISTVIEW) or
+    if (SameText(LThemeClass, VSCLASS_ITEMSVIEW) or SameText(LThemeClass, VSCLASS_LISTVIEW) or
       SameText(LThemeClass, VSCLASS_LISTVIEWSTYLE) or SameText(LThemeClass, VSCLASS_ITEMSVIEW_LISTVIEW) or
       SameText(LThemeClass, VSCLASS_EXPLORER_LISTVIEW)) then
     begin
@@ -1509,7 +1530,7 @@ begin
     case iPartId of
       1 :
       begin
-        if iStateId = 2 then
+        if iStateId in [1,2] then
         begin
           SaveIndex := SaveDC(hdc);
           try
@@ -1960,7 +1981,7 @@ begin
         try
           if hwnd <> 0 then
             DrawStyleParentBackground(hwnd, hdc, pRect);
-          StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+          DrawStyleElement(hdc, LDetails, pRect);
         finally
           RestoreDC(hdc, SaveIndex);
         end;
@@ -1984,7 +2005,7 @@ begin
         try
           if hwnd <> 0 then
             DrawStyleParentBackground(hwnd, hdc, pRect);
-          StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+          DrawStyleElement(hdc, LDetails, pRect);
         finally
           RestoreDC(hdc, SaveIndex);
         end;
@@ -2137,7 +2158,7 @@ begin
         try
           if hwnd <> 0 then
             DrawStyleParentBackground(hwnd, hdc, pRect);
-          StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+          DrawStyleElement(hdc, LDetails, pRect);
         finally
           RestoreDC(hdc, SaveIndex);
         end;
@@ -3234,11 +3255,16 @@ end;
 {$ENDIF}
 
 {$IF Defined(HOOK_Button) or Defined(HOOK_AllButtons)}
-function UxTheme_Button(hTheme: hTheme; hdc: hdc; iPartId, iStateId: Integer; const pRect: TRect; Foo: Pointer;
-  Trampoline: TDrawThemeBackground; LThemeClass: string; hwnd: hwnd): HRESULT; stdcall;
+function UxTheme_Button(hTheme: hTheme; hndc: hdc; iPartId, iStateId: Integer;
+    const pRect: TRect; Foo: Pointer; Trampoline: TDrawThemeBackground;
+    LThemeClass: string; hwnd: hwnd): HRESULT; stdcall;
 var
   LDetails: TThemedElementDetails;
   SaveIndex: Integer;
+  LBtnBmp: TBitmap;
+  LDC: HDC;
+  LColor: TColor;
+  LCanvas: TCanvas;
 begin
   case iPartId of
 
@@ -3258,14 +3284,31 @@ begin
           PBS_DEFAULTED_ANIMATING:
             LDetails := StyleServices.GetElementDetails(tbPushButtonDefaultedAnimating);
         end;
-
-        SaveIndex := SaveDC(hdc);
+        
+        SaveIndex := SaveDC(hndc);
         try
-          if hwnd <> 0 then
-            DrawStyleParentBackground(hwnd, hdc, pRect);
-          StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+          LBtnBmp := TBitmap.Create;
+          LCanvas := TCanvas.Create;
+          try
+            LCanvas.Handle := hndc;
+            LBtnBmp.PixelFormat := pf24bit;
+            LBtnBmp.Transparent := True;
+            LBtnBmp.SetSize(pRect.Width, pRect.Height);
+            LDC := LBtnBmp.Canvas.Handle;
+            LColor := StyleServices.GetSystemColor(clBtnFace);
+            DrawStyleFillRect(LDC, pRect, LColor);
+
+            if hwnd <> 0 then
+              DrawStyleParentBackground(hwnd, hndc, pRect);
+            DrawStyleElement(LDC, LDetails, pRect);
+
+            LCanvas.Draw(0, 0, LBtnBmp);
+          finally
+            LCanvas.Free;
+            LBtnBmp.Free;
+          end;
         finally
-          RestoreDC(hdc, SaveIndex);
+          RestoreDC(hndc, SaveIndex);
         end;
 
         exit(S_OK);
@@ -3289,13 +3332,30 @@ begin
             LDetails := StyleServices.GetElementDetails(tbPushButtonDefaultedAnimating);
         end;
 
-        SaveIndex := SaveDC(hdc);
+        SaveIndex := SaveDC(hndc);
         try
-          if hwnd <> 0 then
-            DrawStyleParentBackground(hwnd, hdc, pRect);
-          StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+          LBtnBmp := TBitmap.Create;
+          LCanvas := TCanvas.Create;
+          try
+            LCanvas.Handle := hndc;
+            LBtnBmp.PixelFormat := pf24bit;
+            LBtnBmp.Transparent := True;
+            LBtnBmp.SetSize(pRect.Width, pRect.Height);
+            LDC := LBtnBmp.Canvas.Handle;
+            LColor := StyleServices.GetSystemColor(clBtnFace);
+            DrawStyleFillRect(LDC, pRect, LColor);
+
+            if hwnd <> 0 then
+              DrawStyleParentBackground(hwnd, hndc, pRect);
+            DrawStyleElement(LDC, LDetails, pRect);
+
+            LCanvas.Draw(0, 0, LBtnBmp);
+          finally
+            LCanvas.Free;
+            LBtnBmp.Free;
+          end;
         finally
-          RestoreDC(hdc, SaveIndex);
+          RestoreDC(hndc, SaveIndex);
         end;
 
         exit(S_OK);
@@ -3316,13 +3376,13 @@ begin
             LDetails := StyleServices.GetElementDetails(tbCommandLinkGlyphDefaulted);
         end;
 
-        SaveIndex := SaveDC(hdc);
+        SaveIndex := SaveDC(hndc);
         try
           if hwnd <> 0 then
-            DrawStyleParentBackground(hwnd, hdc, pRect);
-          StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+            DrawStyleParentBackground(hwnd, hndc, pRect);
+          DrawStyleElement(hndc, LDetails, pRect);
         finally
-          RestoreDC(hdc, SaveIndex);
+          RestoreDC(hndc, SaveIndex);
         end;
 
         exit(S_OK);
@@ -3349,7 +3409,7 @@ begin
             LDetails := StyleServices.GetElementDetails(tbRadioButtonCheckedDisabled);
         end;
 
-        DrawStyleElement(hdc, LDetails, pRect);
+        DrawStyleElement(hndc, LDetails, pRect);
         exit(S_OK);
       end;
 
@@ -3399,13 +3459,13 @@ begin
             LDetails := StyleServices.GetElementDetails(tbCheckBoxExcludedDisabled);
         end;
 
-        DrawStyleElement(hdc, LDetails, pRect);
+        DrawStyleElement(hndc, LDetails, pRect);
         exit(S_OK);
       end
   end;
 
   // OutputDebugString(PChar(Format('UxTheme_Button  class %s hTheme %d iPartId %d iStateId %d', [THThemesClasses.Items[hTheme],hTheme, iPartId, iStateId])));
-  exit(Trampoline(hTheme, hdc, iPartId, iStateId, pRect, Foo));
+  exit(Trampoline(hTheme, hndc, iPartId, iStateId, pRect, Foo));
 end;
 {$ENDIF}
 
@@ -3460,7 +3520,7 @@ begin
         try
           if (hwnd <> 0) then
             DrawStyleParentBackground(hwnd, hdc, pRect);
-          StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+          DrawStyleElement(hdc, LDetails, pRect);
         finally
           RestoreDC(hdc, SaveIndex);
         end;
@@ -3555,7 +3615,7 @@ begin
   try
     if hwnd <> 0 then
       DrawStyleParentBackground(hwnd, hdc, pRect);
-    StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+    DrawStyleElement(hdc, LDetails, pRect);
   finally
     RestoreDC(hdc, SaveIndex);
   end;
@@ -3777,13 +3837,13 @@ begin
   LDetails := StyleServices.GetElementDetails(LScrollDetails);
 
   if (iPartId = SBP_THUMBBTNHORZ) then
-    StyleServices.DrawElement(hdc, StyleServices.GetElementDetails(tsUpperTrackHorzNormal), pRect, nil)
+    DrawStyleElement(hdc, StyleServices.GetElementDetails(tsUpperTrackHorzNormal), pRect)
   else if (iPartId = SBP_THUMBBTNVERT) then
-    StyleServices.DrawElement(hdc, StyleServices.GetElementDetails(tsUpperTrackVertNormal), pRect, nil);
+    DrawStyleElement(hdc, StyleServices.GetElementDetails(tsUpperTrackVertNormal), pRect);
 
   // OutputDebugString(PChar(Format('UxTheme_ScrollBar class %s hTheme %d iPartId %d iStateId %d Left %d Top %d Width %d Height %d',
   // [THThemesClasses.Items[hTheme],hTheme, iPartId, iStateId, PRect.Left, prect.Top, prect.Width, prect.Height])));
-  StyleServices.DrawElement(hdc, LDetails, pRect, nil);
+  DrawStyleElement(hdc, LDetails, pRect);
   exit(S_OK);
 end;
 {$ENDIF}
@@ -4611,6 +4671,7 @@ begin
 {$IFDEF HOOK_SearchBox}
   FuncsDrawThemeBackground.Add(VSCLASS_SEARCHBOX, @UxTheme_SearchBox);
   FuncsDrawThemeBackground.Add(VSCLASS_CompositedSEARCHBOX, @UxTheme_SearchBox);
+  FuncsDrawThemeBackground.Add(VSCLASS_SearchBoxComposited, @UxTheme_SearchBox);
   FuncsDrawThemeBackground.Add(VSCLASS_INACTIVESEARCHBOX, @UxTheme_SearchBox);
 {$ENDIF}
 {$IFDEF HOOK_CommandModule}

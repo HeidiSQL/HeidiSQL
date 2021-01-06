@@ -1,25 +1,20 @@
 // **************************************************************************************************
-// Delphi Instruction Decode Library
+// x86 Instruction Decode Library
 // Unit InstDecode
-// https://github.com/MahdiSafsafi/delphi-detours-library
-
-// The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
-// you may not use this file except in compliance with the License. You may obtain a copy of the
-// License at http://www.mozilla.org/MPL/
+// https://github.com/MahdiSafsafi/DDetours
 //
-// Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
-// ANY KIND, either express or implied. See the License for the specific language governing rights
-// and limitations under the License.
-//
-// The Original Code is InstDecode.pas.
-//
-// The Initial Developer of the Original Code is Mahdi Safsafi [SMP3].
-// Portions created by Mahdi Safsafi . are Copyright (C) 2013-2017 Mahdi Safsafi .
-// All Rights Reserved.
-//
+// This Source Code Form is subject to the terms of the Mozilla 
+// Public License, v. 2.0. If a copy of the MPL was not distributed 
+// with this file, You can obtain one at
+// https://mozilla.org/MPL/2.0/.
 // **************************************************************************************************
 
 { ===============================> CHANGE LOG <======================================================
+  ==>  Jun, 7, 2020:
+  +Added support for older Delphi version (D7+).
+  +Added support for FPC.
+  +Fixed some bug related to displacement.
+  
   ==>  Dec 27,2014 , Mahdi Safsafi :
   +BugFix : IN/INS/OUT/OUTS instructions decoding.
   +BugFix : MOV with offset instructions decoding.
@@ -50,24 +45,18 @@ unit InstDecode;
 
 {$IFDEF FPC}
 {$MODE DELPHI}
+{$HINTS OFF}
+{$WARN 4056 OFF}
+{$WARN 4082 OFF}
 {$ENDIF FPC}
 
 interface
 
-{$I Defs.inc}
+{$I DDetoursDefs.inc}
 
-uses SysUtils;
-
-type
-  PInt8 = ^Int8;
-  PInt16 = ^Int16;
-  PInt32 = ^Int32;
-  PInt64 = ^Int64;
-
-  PUInt8 = ^UInt8;
-  PUInt16 = ^UInt16;
-  PUInt32 = ^UInt32;
-  PUInt64 = ^UInt64;
+uses
+  SysUtils,
+  LegacyTypes;
 
 const
   { CPUX }
@@ -345,16 +334,16 @@ type
     Vex: TVex;
     LID: TInternalData; { Internal Data }
     Errors: Byte;
-    InstSize: Byte;
+    InstSize: Integer;
     Options: Byte;
-    UserTag: UInt64;
+    UserTag: NativeInt;
   end;
 
   PInstruction = ^TInstruction;
 
   TDecoderProc = procedure(PInst: PInstruction);
 
-function DecodeInst(PInst: PInstruction): ShortInt;
+function DecodeInst(PInst: PInstruction): Integer;
 
 { Useful ModRm Routines }
 function GetModRm_Mod(const Value: Byte): Byte; {$IFDEF MustInline}inline; {$ENDIF}
@@ -651,7 +640,7 @@ const
     { 81 } Decode_SP_T38_F0_F7,
     { 82 } Decode_66_ModRm_Ib,
     { 83 } Decode_F2_ModRm_Ib);
-{$REGION 'COMMON'}
+  { .$REGION 'COMMON' }
   { ========================== COMMON =============================== }
 
 procedure SetInstError(PInst: PInstruction; Error: Byte);
@@ -757,16 +746,19 @@ begin
   DispOnly := (PInst^.ModRm.iMod = $00) and (PInst^.ModRm.Rm = $05);
 
   case Size of
-    ops8bits: Disp := (PUInt8(PInst^.NextInst)^); // and $FF;
-    ops16bits: Disp := (PUInt16(PInst^.NextInst)^); // and $FFFF;
+    ops8bits:
+      Disp := (PInt8(PInst^.NextInst)^); // and $FF;
+    ops16bits:
+      Disp := (PInt16(PInst^.NextInst)^); // and $FFFF;
     ops32bits:
       begin
-        Disp := (PUInt32(PInst^.NextInst)^); // and $FFFFFFFF;
+        Disp := (PInt32(PInst^.NextInst)^); // and $FFFFFFFF;
         if (PInst^.Archi = CPUX64) and DispOnly then
           { RIP disp ! }
           PInst^.Disp.Flags := PInst^.Disp.Flags or dfRip;
       end;
-  else SetInstError(PInst, ERROR_DISP_SIZE);
+  else
+    SetInstError(PInst, ERROR_DISP_SIZE);
   end;
 
   if DispOnly then
@@ -823,11 +815,16 @@ var
 begin
   Imm := $00;
   case immSize of
-    ops8bits: Imm := (PInt8(PInst^.NextInst)^);
-    ops16bits: Imm := (PInt16(PInst^.NextInst)^);
-    ops32bits: Imm := (PInt32(PInst^.NextInst)^);
-    ops64bits: Imm := (PInt64(PInst^.NextInst)^);
-  else SetInstError(PInst, ERROR_IMM_SIZE);
+    ops8bits:
+      Imm := (PInt8(PInst^.NextInst)^);
+    ops16bits:
+      Imm := (PInt16(PInst^.NextInst)^);
+    ops32bits:
+      Imm := (PInt32(PInst^.NextInst)^);
+    ops64bits:
+      Imm := (PInt64(PInst^.NextInst)^);
+  else
+    SetInstError(PInst, ERROR_IMM_SIZE);
   end;
 
   {
@@ -851,10 +848,14 @@ var
 begin
   Value := $00;
   case Size of
-    ops8bits: Value := (PInt8(PInst^.NextInst)^);
-    ops16bits: Value := (PInt16(PInst^.NextInst)^);
-    ops32bits: Value := (PInt32(PInst^.NextInst)^);
-    ops64bits: Value := (PInt64(PInst^.NextInst)^);
+    ops8bits:
+      Value := (PInt8(PInst^.NextInst)^);
+    ops16bits:
+      Value := (PInt16(PInst^.NextInst)^);
+    ops32bits:
+      Value := (PInt32(PInst^.NextInst)^);
+    ops64bits:
+      Value := (PInt64(PInst^.NextInst)^);
   end;
   Inc(PInst^.NextInst, Size);
   if PInst^.OpType = otNone then
@@ -862,13 +863,13 @@ begin
   if PInst^.OpCode in [$70 .. $8F] then
     PInst^.OpType := otJ or otJcc;
   if Assigned(PInst^.VirtualAddr) then
-    VA := PInst^.VirtualAddr + (PInst^.NextInst - PInst^.Addr)
+    VA := PByte(NativeInt(PInst^.VirtualAddr) + NativeInt(NativeInt(PInst^.NextInst) - NativeInt(PInst^.Addr)))
   else
     VA := PInst^.NextInst;
   PInst^.Branch.Size := Size;
   PInst^.Branch.Falgs := bfUsed or bfRel;
   PInst^.Branch.Value := Value;
-  PInst^.Branch.Target := VA + Value;
+  PInst^.Branch.Target := PByte(NativeInt(VA) + Value);
 end;
 
 procedure Decode_Branch_ModRm(PInst: PInstruction);
@@ -882,7 +883,7 @@ begin
   PInst^.Branch.Size := PInst^.Disp.Size;
   PInst^.Branch.Falgs := bfUsed or bfIndirect or bfAbs;
   if Assigned(PInst^.VirtualAddr) then
-    VA := PInst^.VirtualAddr + (PInst^.NextInst - PInst^.Addr)
+    VA := PByte(NativeInt(PInst^.VirtualAddr) + (NativeInt(PInst^.NextInst) - NativeInt(PInst^.Addr)))
   else
     VA := PInst^.NextInst;
   if (PInst^.ModRm.iMod = $00) and (PInst^.ModRm.Rm = $05) then
@@ -895,7 +896,7 @@ begin
         VA := PByte(UInt64(VA) and $FFFFFFFF);
       { Displacement = RIP + Offset }
       PInst^.Branch.Falgs := PInst^.Branch.Falgs or bfRip;
-      P := VA + Int32(PInst^.Disp.Value);
+      P := PByte(NativeInt(VA) + NativeInt(PInst^.Disp.Value));
       { Memory 64-bits }
       PInst^.Branch.Target := PByte(PUInt64(P)^);
     end
@@ -960,8 +961,8 @@ begin
   Inc(PInst^.NextInst);
 end;
 
-{$ENDREGION}
-{$REGION 'PREFIXES'}
+{ .$ENDREGION }
+{ .$REGION 'PREFIXES' }
 { ========================== PREFIXES =============================== }
 
 procedure Decode_ES_Prefix(PInst: PInstruction);
@@ -1170,8 +1171,8 @@ begin
   Inc(PInst^.NextInst);
   DecoderProcTable[OneByteTable[PInst^.NextInst^]](PInst);
 end;
-{$ENDREGION}
-{$REGION 'ESCAPE'}
+{ .$ENDREGION }
+{ .$REGION 'ESCAPE' }
 { ========================== ESCAPE =============================== }
 
 procedure JumpError(PInst: PInstruction);
@@ -1223,8 +1224,8 @@ begin
     DecoderProcTable[ThreeByteTable3A[PInst^.NextInst^]](PInst);
 end;
 
-{$ENDREGION}
-{$REGION 'FPU'}
+{ .$ENDREGION }
+{ .$REGION 'FPU' }
 { ========================== FPU =============================== }
 
 procedure Decode_Escape_FPU_D8(PInst: PInstruction);
@@ -1404,8 +1405,8 @@ begin
   Decode_NA_ModRm(PInst);
 end;
 
-{$ENDREGION}
-{$REGION 'GROUPS'}
+{ .$ENDREGION }
+{ .$REGION 'GROUPS' }
 { ========================== GROUPS =============================== }
 
 procedure Decode_Group_1(PInst: PInstruction);
@@ -1781,8 +1782,8 @@ begin
   Decode_Invalid_Group(PInst);
 end;
 
-{$ENDREGION}
-{$REGION 'DECODERS'}
+{ .$ENDREGION }
+{ .$REGION 'DECODERS' }
 { ========================== DECODERS PROC =============================== }
 
 procedure Decode_NA_CALL_Ap_I64(PInst: PInstruction);
@@ -2327,9 +2328,9 @@ begin
   SetOpCode(PInst);
   Decode_Imm(PInst, PInst^.LID.vOpSize);
 end;
-{$ENDREGION}
+{ .$ENDREGION }
 
-function DecodeInst(PInst: PInstruction): ShortInt;
+function DecodeInst(PInst: PInstruction): Integer;
 var
   P: PByte;
   LArchi: Byte;
@@ -2373,7 +2374,7 @@ begin
   PInst^.OpTable := tbOneByte;
 
   DecoderProcTable[OneByteTable[P^]](PInst);
-  Result := PInst^.NextInst - P;
+  Result := Integer(NativeInt(PInst^.NextInst) - NativeInt(P));
   PInst^.InstSize := Result;
 
   if Result > CPUX_TO_INST_LENGTH[PInst^.Archi] then

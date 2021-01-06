@@ -1,0 +1,41 @@
+version 2.2(Jun 9, 2020):
+  +Added support for older Delphi version: Now the minimal supported Delphi version is D7.
+  +Added support for FPC.
+  +Added recursive section feature: EnterRecursiveSection/ExitRecursiveSection.
+  +Added param/tag feature for all InterceptCreate functions.
+  +Added GetTrampolineParam function to get user param.
+  +Added GetCreatorThreadIdFromTrampoline function to get thread id that created the hook/trampoline.
+  +Added detection for non valid trampoline pointer.
+  +Added unittest.
+  +Replaced BeginHooks/BeginUnHooks by BeginTransaction.
+  +Replaced EndHooks/EndUnHooks by EndTransaction.
+  +Replaced GetNHook by GetHookCount.
+  +Replaced TDetours<T> by TIntercept<T,U>/TIntercept<T>
+  +Fixed many bugs related to MultiBytesNop.
+  +Fixed wrong displacement value for some branch instructions on x64.
+  +Fixed wrong offset size on x86 for GetJmpType function.
+  +Removed v1 compatibility.
+  +Now the library does not rely on Object.
+  +Code refactoring.
+
+Jan 24,2015:
+  +Added support for vtable patching.
+  +Added GetNHook/IsHooked support for Interface.
+
+Jan 20,2015:
+  +Added support to hook Delphi Interface by name.
+
+Version2 , Mahdi Safsafi:
+  +Many bug fix.
+  +Added new hooking model architecture.
+  +Added multi hook support.
+  +Added COM hook support.
+  +Added instruction maping feature.
+  +Added hook detecting feature.
+  +Added BeginHooks/EndHooks.
+  +Added BeginUnHooks/EndUnHooks.
+  +Added IDetours interface.
+  +Added MultiNop instructions support.
+  +Generate better opcodes.
+  +Improved support for x64.
+  +Improved AllocMemAt function.

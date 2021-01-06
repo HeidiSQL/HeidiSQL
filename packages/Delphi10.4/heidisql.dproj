@@ -7,7 +7,7 @@
         <TargetedPlatforms>3</TargetedPlatforms>
         <AppType>Application</AppType>
         <FrameworkType>VCL</FrameworkType>
-        <ProjectVersion>19.0</ProjectVersion>
+        <ProjectVersion>19.1</ProjectVersion>
         <Platform Condition="'$(Platform)'==''">Win64</Platform>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
@@ -149,8 +149,8 @@
         <DCCReference Include="..\..\source\usermanager.pas">
             <Form>UserManagerForm</Form>
         </DCCReference>
-        <DCCReference Include="..\..\source\options.pas">
-            <Form>optionsform</Form>
+        <DCCReference Include="..\..\source\preferences.pas">
+            <Form>frmPreferences</Form>
         </DCCReference>
         <DCCReference Include="..\..\source\tabletools.pas">
             <Form>frmTableTools</Form>
@@ -170,10 +170,10 @@
         </DCCReference>
         <DCCReference Include="..\..\source\dbstructures.pas"/>
         <DCCReference Include="..\..\source\column_selection.pas">
-            <Form>ColumnSelectionForm</Form>
+            <Form>frmColumnSelection</Form>
         </DCCReference>
         <DCCReference Include="..\..\source\data_sorting.pas">
-            <Form>DataSortingForm</Form>
+            <Form>frmDataSorting</Form>
         </DCCReference>
         <DCCReference Include="..\..\source\createdatabase.pas">
             <Form>CreateDatabaseForm</Form>
@@ -233,6 +233,10 @@
         </DCCReference>
         <DCCReference Include="..\..\source\theme_preview.pas">
             <Form>frmThemePreview</Form>
+        </DCCReference>
+        <DCCReference Include="..\..\source\csv_detector.pas">
+            <Form>frmCsvDetector</Form>
+            <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Debug">
             <Key>Cfg_2</Key>

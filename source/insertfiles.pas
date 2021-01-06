@@ -604,6 +604,11 @@ begin
   while Assigned(Node) do begin
     ListFiles.FocusedNode := Node;
     FileInfo := ListFiles.GetNodeData(Node);
+    if not FileExists(FileInfo.Filename) then begin
+      ErrorDialog('File does not exist: '+FileInfo.Filename);
+      Node := ListFiles.GetNextSibling(Node);
+      Continue;
+    end;
     FileSize := _GetFileSize(FileInfo.Filename);
     FileReadDone := False;
     sql := 'INSERT INTO '+FConnection.QuotedDbAndTableName(comboDBs.Text, comboTables.Text) + ' (';

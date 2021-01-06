@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -234,7 +234,7 @@ implementation
 
 uses
   Vcl.Styles.Utils.Misc,
-  Vcl.Styles.Utils.SysControls;
+  Vcl.Styles.Utils.SysControls, Vcl.Styles.Utils.Graphics, Winapi.UxTheme;
 
 // -----------------------------------------------------------------------------------
 procedure FillDC(const DC: HDC; const R: TRect; const Color: TColor);
@@ -352,7 +352,14 @@ begin
       LDetails := StyleServices.GetElementDetails(twSmallCaptionInActive);
   end;
   StyleServices.GetElementSize(0, LDetails, esActual, ElementSize);
+  {$IF (CompilerVersion >= 34)}
+  if Assigned(Application.Mainform) then
+    CaptionHeight := Round(ElementSize.Height * Application.MainForm.Monitor.PixelsPerInch / 96)
+  else
+    CaptionHeight := Round(ElementSize.Height * Screen.PixelsPerInch / 96);
+  {$ELSE}
   CaptionHeight := ElementSize.Height;
+  {$ENDIF}
   Result := Rect(0, 0, SysControl.Width, CaptionHeight);
 
 end;
@@ -390,6 +397,23 @@ begin
     LDetails := StyleServices.GetElementDetails(FButtonState);
     if not StyleServices.GetElementContentRect(0, LDetails, CaptionRect, Result) then
       Result := Rect(0, 0, 0, 0);
+
+    {$IF (CompilerVersion >= 34)}
+    if Assigned(Application.Mainform) then
+    begin
+      Result.Height := Round(Result.Height * Application.MainForm.Monitor.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Application.MainForm.Monitor.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Application.MainForm.Monitor.PixelsPerInch / 96);
+    end
+    else
+    begin
+      Result.Height := Round(Result.Height * Screen.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Screen.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Screen.PixelsPerInch / 96);
+    end;
+    {$ENDIF}
   end;
 end;
 
@@ -413,6 +437,23 @@ begin
 
     if not StyleServices.GetElementContentRect(0, LDetails, CaptionRect, Result) then
       Result := Rect(0, 0, 0, 0);
+
+    {$IF (CompilerVersion >= 34)}
+    if Assigned(Application.Mainform) then
+    begin
+      Result.Height := Round(Result.Height * Application.MainForm.Monitor.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Application.MainForm.Monitor.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Application.MainForm.Monitor.PixelsPerInch / 96);
+    end
+    else
+    begin
+      Result.Height := Round(Result.Height * Screen.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Screen.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Screen.PixelsPerInch / 96);
+    end;
+    {$ENDIF}
   end;
 end;
 
@@ -481,6 +522,23 @@ begin
 
     if not StyleServices.GetElementContentRect(0, LDetails, CaptionRect, Result) then
       Result := Rect(0, 0, 0, 0);
+
+    {$IF (CompilerVersion >= 34)}
+    if Assigned(Application.Mainform) then
+    begin
+      Result.Height := Round(Result.Height * Application.MainForm.Monitor.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Application.MainForm.Monitor.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Application.MainForm.Monitor.PixelsPerInch / 96);
+    end
+    else
+    begin
+      Result.Height := Round(Result.Height * Screen.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Screen.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Screen.PixelsPerInch / 96);
+    end;
+    {$ENDIF}
   end;
 end;
 
@@ -505,6 +563,23 @@ begin
 
     if not StyleServices.GetElementContentRect(0, LDetails, CaptionRect, Result) then
       Result := Rect(0, 0, 0, 0);
+
+    {$IF (CompilerVersion >= 34)}
+    if Assigned(Application.Mainform) then
+    begin
+      Result.Height := Round(Result.Height * Application.MainForm.Monitor.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Application.MainForm.Monitor.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Application.MainForm.Monitor.PixelsPerInch / 96);
+    end
+    else
+    begin
+      Result.Height := Round(Result.Height * Screen.PixelsPerInch / 96);
+      // The button is right aligned so move the left side
+      Result.Left := Result.Left + Result.Width - Round(Result.Width * Screen.PixelsPerInch / 96);
+      Result.Top := Round(Result.Top * Screen.PixelsPerInch / 96);
+    end;
+    {$ENDIF}
   end;
 
 end;
@@ -621,7 +696,14 @@ begin
     Detail := twSmallCaptionActive;
   Details := StyleServices.GetElementDetails(Detail);
   StyleServices.GetElementSize(0, Details, esActual, Size);
-  Result.Top := Size.cy;
+  {$IF (CompilerVersion >= 34)}
+  if Assigned(Application.Mainform) then
+    Result.Top := Round(Size.cy * Application.MainForm.Monitor.PixelsPerInch / 96)
+  else
+    Result.Top := Round(Size.cy * Screen.PixelsPerInch / 96);
+  {$ELSE}
+    Result.Top := Size.cy;
+  {$ENDIF}
   { Left border width }
   if not UseSmallBorder then
     Detail := twFrameLeftActive
@@ -726,10 +808,10 @@ begin
     IconDetails := StyleServices.GetElementDetails(twSysButtonNormal);
     if not StyleServices.GetElementContentRect(0, IconDetails, CaptionRect, ButtonRect) then
       ButtonRect := Rect(0, 0, 0, 0);
-    //R := ButtonRect;
-    R := Rect(0, 0, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON));
+
+    R := Rect(0, 0, GetSysMetrics(SM_CXSMICON), GetSysMetrics(SM_CYSMICON));
     RectVCenter(R, ButtonRect);
-    Result := ButtonRect;
+    Result := R;
   end;
 
 end;
@@ -755,7 +837,16 @@ var
   Info: TWndClassEx;
   Buffer: array [0 .. 255] of Char;
 begin
-  TmpHandle := THandle(SendMessage(Handle, WM_GETICON, ICON_SMALL, 0));
+  TmpHandle := 0;
+
+  {$IF (CompilerVersion >= 33)}
+  if Assigned(Application.Mainform) and (Application.MainForm.Monitor.PixelsPerInch <> Screen.PixelsPerInch) then
+    TmpHandle := Application.Icon.Handle;
+  {$ENDIF}
+
+  if TmpHandle = 0 then
+    TmpHandle := THandle(SendMessage(Handle, WM_GETICON, ICON_SMALL, 0));
+
   if TmpHandle = 0 then
     TmpHandle := THandle(SendMessage(Handle, WM_GETICON, ICON_BIG, 0));
 
@@ -781,10 +872,10 @@ begin
     FIcon := TIcon.Create;
   if TmpHandle <> 0 then
   begin
-    IconX := GetSystemMetrics(SM_CXSMICON);
+    IconX := GetSysMetrics(SM_CXSMICON);
     if IconX = 0 then
       IconX := GetSystemMetrics(SM_CXSIZE);
-    IconY := GetSystemMetrics(SM_CYSMICON);
+    IconY := GetSysMetrics(SM_CYSMICON);
     if IconY = 0 then
       IconY := GetSystemMetrics(SM_CYSIZE);
     FIcon.Handle := CopyImage(TmpHandle, IMAGE_ICON, IconX, IconY, 0);
@@ -844,7 +935,7 @@ begin
       LDetails := StyleServices.GetElementDetails(twSmallCaptionInActive);
   end;
   CaptionDetails := LDetails;
-  StyleServices.DrawElement(DC, LDetails, LCaptionRect, nil);
+  DrawStyleElement(DC, LDetails, LCaptionRect);
 
   { Draw icon }
 
@@ -854,16 +945,31 @@ begin
     if not StyleServices.GetElementContentRect(0, IconDetails, LCaptionRect, ButtonRect) then
       ButtonRect := Rect(0, 0, 0, 0);
 
-    R := Rect(0, 0, GetSystemMetrics(SM_CXSMICON), GetSystemMetrics(SM_CYSMICON));
+    {$IF (CompilerVersion >= 34)}
+    if Assigned(Application.Mainform) then
+    begin
+      ButtonRect.Top := Round(ButtonRect.Top * Application.MainForm.Monitor.PixelsPerInch / 96);
+      ButtonRect.Height := Round(ButtonRect.Height * Application.MainForm.Monitor.PixelsPerInch / 96);
+      ButtonRect.Width := Round(ButtonRect.Width * Application.MainForm.Monitor.PixelsPerInch / 96);
+    end
+    else
+    begin
+      ButtonRect.Top := Round(ButtonRect.Top * Screen.PixelsPerInch / 96);
+      ButtonRect.Height := Round(ButtonRect.Height * Screen.PixelsPerInch / 96);
+      ButtonRect.Width := Round(ButtonRect.Width * Screen.PixelsPerInch / 96);
+    end;
+    {$ENDIF}
+
+    R := Rect(0, 0, GetSysMetrics(SM_CXSMICON), GetSysMetrics(SM_CYSMICON));
     RectVCenter(R, ButtonRect);
 
     if ButtonRect.Width > 0 then
       DrawIconEx(CaptionBmp.Canvas.Handle, R.Left, R.Top, GetIconFast.Handle, 0, 0, 0, 0, DI_NORMAL);
-    Inc(TextRect.Left, ButtonRect.Width + 5);
+    Inc(TextRect.Left, ButtonRect.Width + 8);
     FSysMenuButtonRect := ButtonRect;
   end
   else
-    Inc(TextRect.Left, 7);
+    Inc(TextRect.Left, 8);
 
   { Draw buttons }
   LSysMenu := GetSystemMenu(Handle, False);
@@ -904,7 +1010,7 @@ begin
       LDetails := StyleServices.GetElementDetails(FButtonState);
     ButtonRect := CloseButtonRect;
     if (ButtonRect.Width > 0) then
-      StyleServices.DrawElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
+      DrawStyleElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
 
     if ButtonRect.Left > 0 then
       TextRect.Right := ButtonRect.Left;
@@ -938,7 +1044,7 @@ begin
     ButtonRect := MaxButtonRect;
 
     if ButtonRect.Width > 0 then
-      StyleServices.DrawElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
+      DrawStyleElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
     if ButtonRect.Left > 0 then
       TextRect.Right := ButtonRect.Left;
   end;
@@ -957,7 +1063,7 @@ begin
     LDetails := StyleServices.GetElementDetails(FButtonState);
     ButtonRect := MinButtonRect;
     if ButtonRect.Width > 0 then
-      StyleServices.DrawElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
+      DrawStyleElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
     if ButtonRect.Left > 0 then
       TextRect.Right := ButtonRect.Left;
   end;
@@ -977,16 +1083,20 @@ begin
     if not StyleServices.GetElementContentRect(0, LDetails, LCaptionRect, ButtonRect) then
       ButtonRect := Rect(0, 0, 0, 0);
     if ButtonRect.Width > 0 then
-      StyleServices.DrawElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
+      DrawStyleElement(CaptionBmp.Canvas.Handle, LDetails, ButtonRect);
 
     if ButtonRect.Left > 0 then
       TextRect.Right := ButtonRect.Left;
   end;
 
+  // Draw background and buttons first, then caption text directly on the Canvas.
+  // This to make sure "right to left" caption is displayed properly
+  Canvas.Draw(0, 0, CaptionBmp);
+
   { draw text }
   TextFormat := [tfLeft, tfSingleLine, tfVerticalCenter];
-  if SysControl.BidiMode = bmRightToLeft then
-    Include(TextFormat, tfRtlReading);
+//  if SysControl.BidiMode = bmRightToLeft then
+//    Include(TextFormat, tfRtlReading);
   // Important: Must retrieve Text prior to calling DrawText as it causes
   // CaptionBuffer.Canvas to free its handle, making the outcome of the call
   // to DrawText dependent on parameter evaluation order.
@@ -996,16 +1106,27 @@ begin
     and (TextTopOffset <> 0) and (biSystemMenu in LBorderIcons) then
   begin
     Inc(TextRect.Left, R.Left);
-    MoveWindowOrg(CaptionBmp.Canvas.Handle, 0, TextTopOffset);
-    StyleServices.DrawText(CaptionBmp.Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat);
-    MoveWindowOrg(CaptionBmp.Canvas.Handle, 0, -TextTopOffset);
+    MoveWindowOrg(Canvas.Handle, 0, TextTopOffset);
+    if Assigned(Application.Mainform) then
+      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clRed, Application.MainForm.Monitor.PixelsPerInch)
+    else
+      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clRed, Screen.PixelsPerInch);
+    MoveWindowOrg(Canvas.Handle, 0, -TextTopOffset);
   end
   else
-    StyleServices.DrawText(CaptionBmp.Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat);
+  begin
+    {$IF (CompilerVersion >= 33)}
+    if Assigned(Application.Mainform) then
+      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clBlue, Application.MainForm.Monitor.PixelsPerInch)
+    else
+      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clBlue, Screen.PixelsPerInch);
+    {$ELSE}
+    StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat);
+    {$ENDIF}
+  end;
 
   FCaptionRect := TextRect;
 
-  Canvas.Draw(0, 0, CaptionBmp);
   CaptionBmp.Free;
 
   DC := Canvas.Handle;
@@ -1029,7 +1150,7 @@ begin
 
   R := Rect(0, LCaptionRect.Height, LBorderSize.Left, SysControl.Height);
   if SysControl.Width > LBorderSize.Left then
-    StyleServices.DrawElement(DC, LDetails, R);
+    DrawStyleElement(DC, LDetails, R);
 
   { Right Border }
   if FFrameActive then
@@ -1048,7 +1169,7 @@ begin
   end;
   R := Rect(SysControl.Width - LBorderSize.Right, LCaptionRect.Height, SysControl.Width, SysControl.Height);
   if SysControl.Width > LBorderSize.Right then
-    StyleServices.DrawElement(DC, LDetails, R);
+    DrawStyleElement(DC, LDetails, R);
 
   { Bottom Border }
   if FFrameActive then
@@ -1066,7 +1187,7 @@ begin
       LDetails := StyleServices.GetElementDetails(twSmallFrameBottomInActive);
   end;
   R := Rect(0, SysControl.Height - LBorderSize.Bottom, SysControl.Width, SysControl.Height);
-  StyleServices.DrawElement(DC, LDetails, R);
+  DrawStyleElement(DC, LDetails, R);
 end;
 
 procedure TSysDialogStyleHook.Restore;
@@ -1105,11 +1226,17 @@ end;
 function TSysDialogStyleHook.NormalizePoint(const P: TPoint): TPoint;
 var
   WindowPos, ClientPos: TPoint;
+  bsize: TRect;
 begin
   { Convert the point from the screen to the client window . }
   WindowPos := Point(SysControl.Left, SysControl.Top);
   ClientPos := Point(0, 0);
   ClientToScreen(Handle, ClientPos);
+  if GetWindowLong(Handle, GWL_EXSTYLE) and WS_EX_LAYOUTRTL > 0 then
+  begin
+    bsize := BorderSize;
+    ClientPos.X := ClientPos.X - SysControl.Width + bsize.left + bsize.Right;
+  end;
   Result := P;
   ScreenToClient(Handle, Result);
   Inc(Result.X, ClientPos.X - WindowPos.X);
@@ -1175,8 +1302,7 @@ begin
       case Message.HitTest of
         HTCLOSE:
           if CloseButtonRect.Contains(P) then
-            if Message.Result <> 0 then // only if the app doesn't processes this message
-              Close;
+            Close;
         HTMAXBUTTON:
           begin
             if MaxButtonRect.Contains(P) then
@@ -1276,7 +1402,7 @@ end;
 
 procedure TSysDialogStyleHook.WndProc(var Message: TMessage);
 var
-  DFBW: Integer;
+  DFBW,DX: Integer;
   LBorderSize: TRect;
   LParentHandle: HWND;
 begin
@@ -1288,16 +1414,23 @@ begin
         FSysCloseButtonDisabled := IsSysCloseButtonDisabled;
       end;
 
-    WM_CREATE:
+    WM_SHOWWINDOW:
       begin
         Message.Result := CallDefaultProc(Message);
         { DFBW =Default Frame Border Width }
-        DFBW := GetSystemMetrics(SM_CXBORDER);
+        DFBW := GetSysMetrics(SM_CXBORDER);
         Inc(DFBW);
         LBorderSize := GetBorderSize;
-        if (SysControl.Width > LBorderSize.Left) and (SysControl.Width > LBorderSize.Right) then
-          SetWindowPos(Handle, 0, 0, 0, SysControl.Width + DFBW, SysControl.Height + DFBW + 1, SWP_NOMOVE or SWP_NOZORDER or SWP_FRAMECHANGED);
-        Exit;
+        DX := LBorderSize.Left + LBorderSize.Right - 2*DFBW;
+
+        // Adjust the window size if the vcl style border is smaller or larger
+        // than the default frame border is.
+        if (DFBW <> LBorderSize.Left) then
+          SetWindowPos(Handle, 0, 0, 0, SysControl.Width + DX, SysControl.Height + DX + 1, SWP_NOMOVE or SWP_NOZORDER or SWP_FRAMECHANGED);
+
+        // This code was moved from WM_CREATE: to be able to change TaskDialog, ColorDialog... sizes.
+        // E.g. the TaskDialog size is changed after creation to fit controls added to it. So in
+        // order to change its size - we need to do it here.
       end;
 
     WM_DESTROY:
@@ -1639,8 +1772,8 @@ end;
 function TSysScrollingStyleHook.GetDefaultScrollBarSize: TSize;
 begin
   { Return the default ScrollBar button size . }
-  Result.cx := GetSystemMetrics(SM_CXVSCROLL);
-  Result.cy := GetSystemMetrics(SM_CYVSCROLL);
+  Result.cx := GetSysMetrics(SM_CXVSCROLL);
+  Result.cy := GetSysMetrics(SM_CYVSCROLL);
 end;
 
 function TSysScrollingStyleHook.GetHorzLeftRect: TRect;
@@ -1761,8 +1894,8 @@ begin
   Result := HorzScrollRect;
   if Result.Width > 0 then
   begin
-    Result.Left := Result.Left + GetSystemMetrics(SM_CXHTHUMB);
-    Result.Right := Result.Right - GetSystemMetrics(SM_CXHTHUMB);
+    Result.Left := Result.Left + GetSysMetrics(SM_CXHTHUMB);
+    Result.Right := Result.Right - GetSysMetrics(SM_CXHTHUMB);
   end
   else
     Result := Rect(0, 0, 0, 0);
@@ -1773,8 +1906,8 @@ begin
   Result := VertScrollRect;
   if Result.Width > 0 then
   begin
-    Result.Top := Result.Top + GetSystemMetrics(SM_CYVTHUMB);
-    Result.Bottom := Result.Bottom - GetSystemMetrics(SM_CYVTHUMB);
+    Result.Top := Result.Top + GetSysMetrics(SM_CYVTHUMB);
+    Result.Bottom := Result.Bottom - GetSysMetrics(SM_CYVTHUMB);
   end
   else
     Result := Rect(0, 0, 0, 0);
@@ -2634,7 +2767,7 @@ begin
             DC := GetDC(Handle);
             try
               LDetails := StyleServices.GetElementDetails(tsSizeBoxLeftAlign);
-              StyleServices.DrawElement(DC, LDetails, SysControl.ClientRect);
+              DrawStyleElement(DC, LDetails, SysControl.ClientRect);
             finally
               ReleaseDC(Handle, DC);
             end;

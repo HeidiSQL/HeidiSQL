@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
   SynCompletionProposal, SynRegExpr,
-  dbconnection, dbstructures, apphelpers, gnugettext, ComCtrls;
+  dbconnection, dbstructures, apphelpers, gnugettext, ComCtrls, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -77,7 +77,7 @@ begin
   SynCompletionProposalStatement.TimerInterval := Mainform.SynCompletionProposal.TimerInterval;
   SynCompletionProposalStatement.ItemHeight := Mainform.SynCompletionProposal.ItemHeight;
   SynCompletionProposalStatement.Margin := Mainform.SynCompletionProposal.Margin;
-  SynCompletionProposalStatement.Font := Font;
+  TExtForm.InheritFont(SynCompletionProposalStatement.Font);
 end;
 
 
@@ -253,7 +253,7 @@ procedure TfrmTriggerEditor.SynCompletionProposalStatementExecute(Kind: SynCompl
   var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
 var
   Proposal: TSynCompletionProposal;
-  Token: String;
+  Token, DisplayText: String;
   Columns: TDBQuery;
 begin
   // Propose column names from referencing table
@@ -267,8 +267,8 @@ begin
     else try
       Columns := DBObject.Connection.GetResults('SHOW COLUMNS FROM '+DBObject.Connection.QuoteIdent(comboTable.Text));
       while not Columns.Eof do begin
-        Proposal.InsertList.Add(Columns.Col('Field'));
-        Proposal.ItemList.Add(Format(SYNCOMPLETION_PATTERN, [ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field'), '']) );
+        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, GetFirstWord(Columns.Col('Type')), Columns.Col('Field'), '');
+        Proposal.AddItem(DisplayText, Columns.Col('Field'));
         Columns.Next;
       end;
     except

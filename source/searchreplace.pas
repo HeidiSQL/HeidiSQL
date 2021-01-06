@@ -419,7 +419,7 @@ begin
         Inc(MatchCount);
 
         // Set focus on node and column
-        SelectNode(Grid, Node);
+        SelectNode(Grid, Node, False);
         Grid.FocusedColumn := Column;
 
         // Replace logic

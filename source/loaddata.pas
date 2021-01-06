@@ -53,11 +53,13 @@ type
     chkLocalNumbers: TCheckBox;
     chkTruncateTable: TCheckBox;
     btnCheckAll: TToolButton;
+    const ProgressBarSteps=100;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
+    procedure comboTablePopulate(SelectTableName: String; RefreshDbObjects: Boolean);
     procedure comboTableChange(Sender: TObject);
     procedure btnImportClick(Sender: TObject);
     procedure ServerParse(Sender: TObject);
@@ -72,23 +74,22 @@ type
   private
     { Private declarations }
     FFileEncoding: TEncoding;
-    Term, Encl, Escp, LineTerm: String;
-    RowCount, ColumnCount: Integer;
-    Columns: TTableColumnList;
+    FTerm, FEncl, FEscp, FLineTerm: String;
+    FRowCount, FColumnCount: Integer;
+    FColumns: TTableColumnList;
     FConnection: TDBConnection;
   public
     { Public declarations }
+    property FileEncoding: TEncoding read FFileEncoding;
   end;
 
 
 implementation
 
-uses Main, apphelpers;
+uses Main, apphelpers, csv_detector;
 
 {$R *.DFM}
 
-const
-  ProgressBarSteps=100;
 
 
 procedure Tloaddataform.FormCreate(Sender: TObject);
@@ -222,6 +223,14 @@ end;
 
 
 procedure Tloaddataform.comboDatabaseChange(Sender: TObject);
+begin
+  comboTablePopulate('', False);
+  grpParseMethod.OnClick(Sender);
+  comboTableChange(Sender);
+end;
+
+
+procedure Tloaddataform.comboTablePopulate(SelectTableName: String; RefreshDbObjects: Boolean);
 var
   count, i: Integer;
   DBObjects: TDBObjectList;
@@ -231,19 +240,19 @@ begin
   comboTable.Items.Clear;
   seldb := Mainform.ActiveDatabase;
   seltable := Mainform.ActiveDbObj.Name;
-  DBObjects := FConnection.GetDBObjects(comboDatabase.Text);
+  DBObjects := FConnection.GetDBObjects(comboDatabase.Text, RefreshDbObjects);
   for i:=0 to DBObjects.Count-1 do begin
     if DBObjects[i].NodeType in [lntTable, lntView] then
       comboTable.Items.Add(DBObjects[i].Name);
     count := comboTable.Items.Count-1;
-    if (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
+    if SelectTableName.IsEmpty and (comboDatabase.Text = seldb) and (comboTable.Items[count] = seltable) then
+      comboTable.ItemIndex := count
+    else if (not SelectTableName.IsEmpty) and (SelectTableName = comboTable.Items[count]) then
       comboTable.ItemIndex := count;
   end;
-  if comboTable.ItemIndex = -1 then
-    comboTable.ItemIndex := 0;
-
-  grpParseMethod.OnClick(Sender);
-  comboTableChange(Sender);
+  if (comboTable.ItemIndex = -1) and (comboTable.Items.Count >= 1) then
+    comboTable.ItemIndex := 0; // First real table
+  comboTable.Items.Add('<'+_('New table')+'>');
 end;
 
 
@@ -253,20 +262,33 @@ var
   DBObjects: TDBObjectList;
   Obj: TDBObject;
 begin
-  // fill columns:
+  // fill columns, or show csv detector:
   chklistColumns.Items.Clear;
+  if comboTable.ItemIndex = comboTable.Items.Count-1 then begin
+    frmCsvDetector := TfrmCsvDetector.Create(Self);
+    case frmCsvDetector.ShowModal of
+      mrOk: begin
+        // table got created and combo is refreshed
+      end;
+      else begin
+        comboTable.ItemIndex := 0;
+      end;
+    end;
+    frmCsvDetector := nil; // check for Assigned() must be false in SetupSynEditors
+  end;
+
   if (comboDatabase.Text <> '') and (comboTable.Text <> '') then begin
-    if not Assigned(Columns) then
-      Columns := TTableColumnList.Create;
+    if not Assigned(FColumns) then
+      FColumns := TTableColumnList.Create;
     DBObjects := FConnection.GetDBObjects(comboDatabase.Text);
     for Obj in DBObjects do begin
       if (Obj.Database=comboDatabase.Text) and (Obj.Name=comboTable.Text) then begin
         case Obj.NodeType of
-          lntTable, lntView: Columns := Obj.TableColumns;
+          lntTable, lntView: FColumns := Obj.TableColumns;
         end;
       end;
     end;
-    for Col in Columns do
+    for Col in FColumns do
       chklistColumns.Items.Add(Col.Name);
   end;
 
@@ -301,23 +323,23 @@ begin
     end;
   end;
 
-  ColumnCount := 0;
+  FColumnCount := 0;
   for i:=0 to chkListColumns.Items.Count-1 do begin
     if chkListColumns.Checked[i] then
-      Inc(ColumnCount);
+      Inc(FColumnCount);
   end;
 
-  Term := FConnection.UnescapeString(editFieldTerminator.Text);
-  Encl := FConnection.UnescapeString(editFieldEncloser.Text);
-  LineTerm := FConnection.UnescapeString(editLineTerminator.Text);
-  Escp := FConnection.UnescapeString(editFieldEscaper.Text);
+  FTerm := FConnection.UnescapeString(editFieldTerminator.Text);
+  FEncl := FConnection.UnescapeString(editFieldEncloser.Text);
+  FLineTerm := FConnection.UnescapeString(editLineTerminator.Text);
+  FEscp := FConnection.UnescapeString(editFieldEscaper.Text);
 
   try
     case grpParseMethod.ItemIndex of
       0: ServerParse(Sender);
       1: ClientParse(Sender);
     end;
-    MainForm.LogSQL(FormatNumber(RowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
+    MainForm.LogSQL(FormatNumber(FRowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
     // SHOW WARNINGS is implemented as of MySQL 4.1.0
     if FConnection.Parameters.IsAnyMySQL and (FConnection.ServerVersionInt >= 40100) then begin
       Warnings := FConnection.GetResults('SHOW WARNINGS');
@@ -331,7 +353,7 @@ begin
       end;
     end;
     // Hint user if zero rows were detected in file
-    if (ModalResult <> mrNone) and (RowCount = 0) then begin
+    if (ModalResult <> mrNone) and (FRowCount = 0) then begin
       ErrorDialog(_('No rows were imported'),
         _('This can have several causes:')+CRLF+
         _(' - File is empty')+CRLF+
@@ -377,21 +399,21 @@ begin
   end;
 
   // Fields:
-  if (Term <> '') or (Encl <> '') or (Escp <> '') then
+  if (FTerm <> '') or (FEncl <> '') or (FEscp <> '') then
     SQL := SQL + 'FIELDS ';
   if editFieldTerminator.Text <> '' then
-    SQL := SQL + 'TERMINATED BY ' + FConnection.EscapeString(Term) + ' ';
-  if Encl <> '' then begin
+    SQL := SQL + 'TERMINATED BY ' + FConnection.EscapeString(FTerm) + ' ';
+  if FEncl <> '' then begin
     if chkFieldsEnclosedOptionally.Checked then
       SQL := SQL + 'OPTIONALLY ';
-    SQL := SQL + 'ENCLOSED BY ' + FConnection.EscapeString(Encl) + ' ';
+    SQL := SQL + 'ENCLOSED BY ' + FConnection.EscapeString(FEncl) + ' ';
   end;
-  if Escp <> '' then
-    SQL := SQL + 'ESCAPED BY ' + FConnection.EscapeString(Escp) + ' ';
+  if FEscp <> '' then
+    SQL := SQL + 'ESCAPED BY ' + FConnection.EscapeString(FEscp) + ' ';
 
   // Lines:
-  if LineTerm <> '' then
-    SQL := SQL + 'LINES TERMINATED BY ' + FConnection.EscapeString(LineTerm) + ' ';
+  if FLineTerm <> '' then
+    SQL := SQL + 'LINES TERMINATED BY ' + FConnection.EscapeString(FLineTerm) + ' ';
   if updownIgnoreLines.Position > 0 then
     SQL := SQL + 'IGNORE ' + inttostr(updownIgnoreLines.Position) + ' LINES ';
 
@@ -400,7 +422,7 @@ begin
   SetColVars := '';
   for i:=0 to chklistColumns.Items.Count-1 do begin
     if chklistColumns.Checked[i] then begin
-      if chkLocalNumbers.Checked and (Columns[i].DataType.Category in [dtcInteger, dtcReal]) then begin
+      if chkLocalNumbers.Checked and (FColumns[i].DataType.Category in [dtcInteger, dtcReal]) then begin
         SQL := SQL + '@ColVar' + IntToStr(i) + ', ';
         SetColVars := SetColVars + FConnection.QuoteIdent(chklistColumns.Items[i]) +
           ' = REPLACE(REPLACE(@ColVar' + IntToStr(i) + ', '+FConnection.EscapeString(FormatSettings.ThousandSeparator)+', ''''), '+FConnection.EscapeString(FormatSettings.DecimalSeparator)+', ''.''), ';
@@ -417,7 +439,7 @@ begin
 
 
   FConnection.Query(SQL);
-  RowCount := Max(FConnection.RowsAffected, 0);
+  FRowCount := Max(FConnection.RowsAffected, 0);
 end;
 
 
@@ -433,8 +455,6 @@ var
   IsEncl, IsTerm, IsLineTerm, IsEof: Boolean;
   InEncl: Boolean;
   OutStream: TMemoryStream;
-const
-  MaxRowCountPerChunk = 1000;
 
   procedure NextChar;
   begin
@@ -442,7 +462,7 @@ const
     Inc(ProgressChars);
     if ProgressChars >= ProgressCharsPerStep then begin
       Mainform.ProgressStep;
-      Mainform.ShowStatusMsg(f_('Importing textfile, row %s, %d%%', [FormatNumber(RowCount-IgnoreLines), Mainform.ProgressBarStatus.Position]));
+      Mainform.ShowStatusMsg(f_('Importing textfile, row %s, %d%%', [FormatNumber(FRowCount-IgnoreLines), Mainform.ProgressBarStatus.Position]));
       ProgressChars := 0;
     end;
   end;
@@ -467,8 +487,8 @@ const
     ValuesCounted: Integer;
   begin
     Inc(ValueCount);
-    if ValueCount <= ColumnCount then begin
-      if Copy(Value, 1, EnclLen) = Encl then begin
+    if ValueCount <= FColumnCount then begin
+      if Copy(Value, 1, EnclLen) = FEncl then begin
         Delete(Value, 1, EnclLen);
         Delete(Value, Length(Value)-EnclLen+1, EnclLen);
       end;
@@ -502,7 +522,7 @@ const
       end;
 
       if Value <> 'NULL' then begin
-        if chkLocalNumbers.Checked and (Columns[ColumnIndex].DataType.Category in [dtcInteger, dtcReal]) then
+        if chkLocalNumbers.Checked and (FColumns[ColumnIndex].DataType.Category in [dtcInteger, dtcReal]) then
           Value := UnformatNumber(Value)
         else
           Value := FConnection.EscapeString(Value);
@@ -520,18 +540,18 @@ const
   begin
     if SQL = '' then
       Exit;
-    Inc(RowCount);
-    for i:=ValueCount to ColumnCount do begin
+    Inc(FRowCount);
+    for i:=ValueCount to FColumnCount do begin
       Value := 'NULL';
       AddValue;
     end;
     ValueCount := 0;
-    if RowCount > IgnoreLines then begin
+    if FRowCount > IgnoreLines then begin
       Delete(SQL, Length(SQL)-1, 2);
       StreamWrite(OutStream, SQL + ')');
       SQL := '';
       Inc(RowCountInChunk);
-      if (OutStream.Size < PacketSize) and (P < ContentLen) and (RowCountInChunk < MaxRowCountPerChunk) then begin
+      if (OutStream.Size < PacketSize) and (P < ContentLen) and (RowCountInChunk < FConnection.MaxRowsPerInsert) then begin
         SQL := SQL + ', (';
       end else begin
         OutStream.Position := 0;
@@ -548,9 +568,9 @@ const
   end;
 
 begin
-  TermLen := Length(Term);
-  EnclLen := Length(Encl);
-  LineTermLen := Length(LineTerm);
+  TermLen := Length(FTerm);
+  EnclLen := Length(FEncl);
+  LineTermLen := Length(FLineTerm);
 
   SetLength(TermTest, TermLen);
   SetLength(EnclTest, EnclLen);
@@ -562,6 +582,11 @@ begin
   Value := '';
   OutStream := TMemoryStream.Create;
 
+  // Turns SQL errors into warnings, e.g. when providing an empty string for an integer column
+  if FConnection.Parameters.IsAnyMySQL then begin
+    FConnection.Query('/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='''' */');
+  end;
+
   MainForm.ShowStatusMsg(f_('Reading textfile (%s) ...', [FormatByteNumber(_GetFileSize(editFilename.Text))]));
   Contents := ReadTextfile(editFilename.Text, FFileEncoding);
   ContentLen := Length(Contents);
@@ -570,7 +595,7 @@ begin
   P := 0;
   ProgressCharsPerStep := ContentLen div ProgressBarSteps;
   ProgressChars := 0;
-  RowCount := 0;
+  FRowCount := 0;
   RowCountInChunk := 0;
   IgnoreLines := UpDownIgnoreLines.Position;
   ValueCount := 0;
@@ -580,9 +605,9 @@ begin
   // TODO: read chunks!
   while P <= ContentLen do begin
     // Check characters left-side from current position
-    IsEncl := TestLeftChars(EnclTest, Encl, EnclLen);
-    IsTerm := TestLeftChars(TermTest, Term, TermLen);
-    IsLineTerm := TestLeftChars(LineTermTest, LineTerm, LineTermLen) and (ValueCount >= ColumnCount-1);
+    IsEncl := TestLeftChars(EnclTest, FEncl, EnclLen);
+    IsTerm := TestLeftChars(TermTest, FTerm, TermLen);
+    IsLineTerm := TestLeftChars(LineTermTest, FLineTerm, LineTermLen) and (ValueCount >= FColumnCount-1);
     IsEof := P = ContentLen;
 
     Value := Value + Contents[P];
@@ -612,7 +637,11 @@ begin
 
   Contents := '';
   FreeAndNil(OutStream);
-  RowCount := Max(RowCount-IgnoreLines, 0);
+  FRowCount := Max(FRowCount-IgnoreLines, 0);
+
+  if FConnection.Parameters.IsAnyMySQL then begin
+    FConnection.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */');
+  end;
 end;
 
 

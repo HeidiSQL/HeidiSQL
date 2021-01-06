@@ -74,10 +74,6 @@ type
     FGrid: TVirtualStringTree;
     FRecentFiles: TStringList;
     FHiddenCopyMode: Boolean;
-    const FFormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
-    const FFormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'), ('JSON'));
     procedure SaveDialogTypeChange(Sender: TObject);
     function GetExportFormat: TGridExportFormat;
     procedure SetExportFormat(Value: TGridExportFormat);
@@ -89,6 +85,13 @@ type
     function FormatLatex(Text: String): String;
   public
     { Public declarations }
+    const FormatToFileExtension: Array[TGridExportFormat] of String =
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
+    const FormatToDescription: Array[TGridExportFormat] of String =
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'), ('JSON'));
+    const FormatToImageIndex: Array[TGridExportFormat] of Integer =
+      (49, 50, 32, 48, 201, 201, 201, 153, 154, 202, 199, 200);
+    const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TVirtualStringTree read FGrid write FGrid;
     property ExportFormat: TGridExportFormat read GetExportFormat write SetExportFormat;
   end;
@@ -105,6 +108,7 @@ uses main, apphelpers, dbconnection;
 procedure TfrmExportGrid.FormCreate(Sender: TObject);
 var
   FormatDesc: String;
+  SenderName: String;
 begin
   HasSizeGrip := True;
   Width := AppSettings.ReadInt(asGridExportWindowWidth);
@@ -115,13 +119,14 @@ begin
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
   grpFormat.Items.Clear;
-  for FormatDesc in FFormatToDescription do
+  for FormatDesc in FormatToDescription do
     grpFormat.Items.Add(FormatDesc);
-  FHiddenCopyMode := Owner = MainForm.actCopyRows;
+  SenderName := Owner.Name;
+  FHiddenCopyMode := SenderName.StartsWith(CopyAsActionPrefix);
 
   if FHiddenCopyMode then begin
     radioOutputCopyToClipboard.Checked := True;
-    grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportClpFormat);
+    grpFormat.ItemIndex := Owner.Tag;
     grpSelection.ItemIndex := 0; // Always use selected cells in copy mode
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportClpColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportClpIncludeAutoInc);
@@ -280,7 +285,7 @@ begin
   if radioOutputFile.Checked then begin
     Filename := ExtractFilePath(editFilename.Text) +
       ExtractBaseFileName(editFilename.Text) +
-      '.' + FFormatToFileExtension[ExportFormat];
+      '.' + FormatToFileExtension[ExportFormat];
     if CompareText(Filename, editFilename.Text) <> 0 then
       editFilename.Text := Filename;
   end;
@@ -296,9 +301,9 @@ begin
   // Set format by file extension
   ext := LowerCase(Copy(ExtractFileExt(editFilename.Text), 2, 10));
   for efrm :=Low(TGridExportFormat) to High(TGridExportFormat) do begin
-    if ext = FFormatToFileExtension[ExportFormat] then
+    if ext = FormatToFileExtension[ExportFormat] then
       break;
-    if ext = FFormatToFileExtension[efrm] then begin
+    if ext = FormatToFileExtension[efrm] then begin
       ExportFormat := efrm;
       break;
     end;
@@ -325,7 +330,7 @@ begin
   Dialog.FileName := ExtractBaseFileName(Filename);
   Dialog.Filter := '';
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do
-    Dialog.Filter := Dialog.Filter + FFormatToDescription[ef] + ' (*.'+FFormatToFileExtension[ef]+')|*.'+FFormatToFileExtension[ef]+'|';
+    Dialog.Filter := Dialog.Filter + FormatToDescription[ef] + ' (*.'+FormatToFileExtension[ef]+')|*.'+FormatToFileExtension[ef]+'|';
   Dialog.Filter := Dialog.Filter + _('All files')+' (*.*)|*.*';
   Dialog.OnTypeChange := SaveDialogTypeChange;
   Dialog.FilterIndex := grpFormat.ItemIndex+1;
@@ -395,7 +400,6 @@ procedure TfrmExportGrid.btnSetClipboardDefaultsClick(Sender: TObject);
 begin
   // Store copy-to-clipboard settings
   AppSettings.ResetPath;
-  AppSettings.WriteInt(asGridExportClpFormat, grpFormat.ItemIndex);
   AppSettings.WriteBool(asGridExportClpColumnNames, chkIncludeColumnNames.Checked);
   AppSettings.WriteBool(asGridExportClpIncludeAutoInc, chkIncludeAutoIncrement.Checked);
   AppSettings.WriteBool(asGridExportRemoveLinebreaks, chkRemoveLinebreaks.Checked);
@@ -480,7 +484,7 @@ begin
   Dialog := Sender as TSaveDialog;
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
     if Dialog.FilterIndex = Integer(ef)+1 then
-      Dialog.DefaultExt := FFormatToFileExtension[ef];
+      Dialog.DefaultExt := FormatToFileExtension[ef];
   end;
 end;
 
@@ -612,7 +616,7 @@ begin
     // although it should do so according to TUTF8Encoding.GetPreamble.
     // Now, only newer Excel versions need that BOM, so we add it explicitly here
     S := TStringStream.Create(Header, Encoding);
-    if (ExportFormat = efExcel) and (Encoding = TEncoding.UTF8) then begin
+    if (ExportFormat = efExcel) and (Encoding = TEncoding.UTF8) and radioOutputFile.Checked then begin
       Bom := TBytes.Create($EF, $BB, $BF);
       S.Write(Bom, 3);
     end;

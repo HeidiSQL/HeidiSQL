@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
   dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
-  System.Math;
+  System.Math, System.Actions, Vcl.ActnList;
 
 type
   Tconnform = class(TExtForm)
@@ -127,6 +127,9 @@ type
     menuAddDatabaseFiles: TMenuItem;
     lblIgnoreDatabasePattern: TLabel;
     editIgnoreDatabasePattern: TEdit;
+    ActionListConnections: TActionList;
+    actFilter: TAction;
+    Filter1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -188,6 +191,7 @@ type
     procedure ListSessionsBeforeCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure actFilterExecute(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -596,6 +600,11 @@ begin
 end;
 
 
+procedure Tconnform.actFilterExecute(Sender: TObject);
+begin
+  editSearch.SetFocus;
+end;
+
 procedure Tconnform.btnDeleteClick(Sender: TObject);
 var
   Sess: PConnectionParameters;
@@ -624,8 +633,12 @@ function Tconnform.SelectedSessionPath: String;
 var
   Sess: PConnectionParameters;
 begin
-  Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
-  Result := Sess.SessionPath;
+  if not Assigned(ListSessions.FocusedNode) then
+    Result := ''
+  else begin
+    Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+    Result := Sess.SessionPath;
+  end;
 end;
 
 
@@ -924,6 +937,7 @@ begin
     PageControlDetails.ActivePage := tabSettings;
 
     SelectedNetType := Sess.NetType;
+    FLastSelectedNetTypeGroup := Sess.NetTypeGroup;
     editHost.Text := Sess.Hostname;
     editUsername.Text := Sess.Username;
     editPassword.Text := Sess.Password;
@@ -984,7 +998,7 @@ end;
 
 procedure Tconnform.TimerStatisticsTimer(Sender: TObject);
 var
-  LastConnect, Created, DummyDate: TDateTime;
+  LastConnect, Created: TDateTime;
 begin
   // Continuously update statistics labels
   lblLastConnectRight.Caption := _('unknown or never');
@@ -1000,15 +1014,17 @@ begin
     Exit;
 
   AppSettings.SessionPath := SelectedSessionPath;
-  DummyDate := StrToDateTime('2000-01-01');
-  LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DummyDate);
-  if LastConnect <> DummyDate then begin
+  if AppSettings.SessionPath.IsEmpty then
+    Exit;
+
+  LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DateTimeNever);
+  if LastConnect <> DateTimeNever then begin
     lblLastConnectRight.Hint := DateTimeToStr(LastConnect);
     lblLastConnectRight.Caption := DateBackFriendlyCaption(LastConnect);
     lblLastConnectRight.Enabled := True;
   end;
-  Created := StrToDateTimeDef(AppSettings.ReadString(asSessionCreated), DummyDate);
-  if Created <> DummyDate then begin
+  Created := StrToDateTimeDef(AppSettings.ReadString(asSessionCreated), DateTimeNever);
+  if Created <> DateTimeNever then begin
     lblCreatedRight.Hint := DateTimeToStr(Created);
     lblCreatedRight.Caption := DateBackFriendlyCaption(Created);
     lblCreatedRight.Enabled := True;
@@ -1475,7 +1491,6 @@ begin
   // Select startup SQL file, SSL file or whatever button clicked
   Edit := Sender as TButtonedEdit;
   Selector := TOpenDialog.Create(Self);
-  //Selector.InitialDir := ?;
   if Edit = editHost then begin
     Selector.Filter := 'SQLite databases ('+FILEFILTER_SQLITEDB+')|'+FILEFILTER_SQLITEDB+'|'+_('All files')+' (*.*)|*.*';
     Selector.Options := Selector.Options - [ofFileMustExist];
@@ -1497,7 +1512,10 @@ begin
       break;
     end;
   end;
-
+  // Set initial directory to the one from the edit's file
+  Selector.InitialDir := ExtractFilePath(Edit.Text);
+  if Selector.InitialDir.IsEmpty then
+    Selector.InitialDir := AppSettings.DirnameUserDocuments;
   if Selector.Execute then begin
     FileNames := TStringList.Create;
     FileNames.Assign(Selector.Files);

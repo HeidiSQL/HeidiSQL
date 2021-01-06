@@ -1,4 +1,4 @@
-object DataSortingForm: TDataSortingForm
+object frmDataSortingForm: TfrmDataSorting
   Left = 0
   Top = 0
   BorderStyle = bsNone

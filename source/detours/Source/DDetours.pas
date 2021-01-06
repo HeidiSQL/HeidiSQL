@@ -1,238 +1,214 @@
 // **************************************************************************************************
 // Delphi Detours Library.
 // Unit DDetours
-// https://github.com/MahdiSafsafi/delphi-detours-library
-
-// The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
-// you may not use this file except in compliance with the License. You may obtain a copy of the
-// License at http://www.mozilla.org/MPL/
+// https://github.com/MahdiSafsafi/DDetours
 //
-// Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
-// ANY KIND, either express or implied. See the License for the specific language governing rights
-// and limitations under the License.
-//
-// The Original Code is DDetours.pas.
-//
-// Contributor(s):
-// David Millington
-// RRUZ
-//
-// The Initial Developer of the Original Code is Mahdi Safsafi [SMP3].
-// Portions created by Mahdi Safsafi . are Copyright (C) 2013-2017 Mahdi Safsafi .
-// All Rights Reserved.
-//
+// This Source Code Form is subject to the terms of the Mozilla
+// Public License, v. 2.0. If a copy of the MPL was not distributed
+// with this file, You can obtain one at
+// https://mozilla.org/MPL/2.0/.
 // **************************************************************************************************
-
-{ ===============================> CHANGE LOG <======================================================
-
-  Jan 24,2015:
-  +Added support for vtable patching.
-  +Added GetNHook/IsHooked support for Interface.
-
-  Jan 20,2015:
-  +Added support to hook Delphi Interface by name.
-
-  Version2 , Mahdi Safsafi:
-  +Many bug fix.
-  +Added new hooking model architecture.
-  +Added multi hook support.
-  +Added COM hook support.
-  +Added instruction maping feature.
-  +Added hook detecting feature.
-  +Added BeginHooks/EndHooks.
-  +Added BeginUnHooks/EndUnHooks.
-  +Added IDetours interface.
-  +Added MultiNop instructions support.
-  +Generate better opcodes.
-  +Improved support for x64.
-  +Improved AllocMemAt function.
-  ====================================================================================================== }
+//
+// Contributors:
+// - David Millington : Added TDetours<T> class.
+// **************************************************************************************************
 
 unit DDetours;
 
+{define FIX_MADEXCEPT if you are using crash on buffer overrun/underrun feature from MadExcept }
+{.$DEFINE FIX_MADEXCEPT}
+
 {$IFDEF FPC}
 {$MODE DELPHI}
+{$HINTS OFF}
+{$WARN 4045 OFF}
+{$WARN 4055 OFF}
+{$WARN 4056 OFF}
+{$WARN 4082 OFF}
+{$WARN 5024 OFF}
+{$WARN 5028 OFF}
+{$WARN 5057 OFF}
+{$WARN 5058 OFF}
 {$ENDIF FPC}
 
 interface
 
-{$I Defs.inc}
+{$I DDetoursDefs.inc}
 
 uses
-  InstDecode,
-  CPUID,
-  SysUtils,
-{$IFDEF DXE2UP}
+
+{$IFDEF RENAMED_NAMESPACE}
+  System.SysUtils,
+  System.Classes,
   WinApi.Windows,
-{$ELSE !DXE2UP}
+  WinApi.TLHelp32,
+{$IFNDEF SUPPORTS_MONITOR}
+  System.SyncObjs,
+{$ENDIF SUPPORTS_MONITOR}
+{$ELSE !RENAMED_NAMESPACE}
+  SysUtils,
   Windows,
-{$ENDIF DXE2UP}
-  Classes
-{$IFDEF MustUseGenerics}
-    , Generics.Collections //
-    , Typinfo, RTTI
-{$ENDIF MustUseGenerics}
-    ;
+  Classes,
+{$IFNDEF SUPPORTS_MONITOR}
+  SyncObjs,
+{$ENDIF SUPPORTS_MONITOR}
+{$IFNDEF FPC}
+  TLHelp32,
+{$ENDIF FPC}
+{$ENDIF RENAMED_NAMESPACE}
+{$IFDEF SUPPORTS_RTTI}
+  System.Generics.Collections,
+  System.Typinfo, System.RTTI,
+{$ENDIF SUPPORTS_RTTI}
+  LegacyTypes,
+  CPUID,
+  InstDecode;
 
 type
   InterceptException = Exception;
-{$IFNDEF DXE2UP}
-  SIZE_T = NativeUInt;
-{$ENDIF !DXE2UP}
+  TTransactionOption = (toSuspendThread);
+  TTransactionOptions = set of TTransactionOption;
+
+  TInterceptOption = (ioForceLoad, ioRecursive);
+  TInterceptOptions = set of TInterceptOption;
 
 const
   { Maximum allowed number of hooks. }
   MAX_HOOKS = 7;
 
-  { Options }
-  Root = 1; // Future use.
-  ST = 2; // Suspend Threads.
+  DefaultInterceptOptions = [];
+  SErrorInvalidTType = '<T> must be a method';
 
-{$IFDEF BuildThreadSafe}
-  {
-    Make the new version compatible with the old one !
-    ===================================================
-    I don't guarantee that i will continue
-    supporting old release .
-    ==> You sould update your code
-    when you have some time !
-  }
-  v1compatibility = ST;
-{$ELSE !BuildThreadSafe}
-  v1compatibility = 0;
-{$ENDIF BuildThreadSafe}
-  { ======================================================================================================================================================= }
-function InterceptCreate(const TargetProc, InterceptProc: Pointer; Options: Byte = v1compatibility): Pointer; overload;
-function InterceptCreate(const TargetInterface; MethodIndex: Integer; const InterceptProc: Pointer; Options: Byte = v1compatibility): Pointer; overload;
-function InterceptCreate(const Module, MethodName: String; const InterceptProc: Pointer; ForceLoadModule: Boolean = True; Options: Byte = v1compatibility)
+  { ========================================= DDetours Interface ========================================= }
+function InterceptCreate(const TargetProc, InterceptProc: Pointer; const Param: Pointer = nil; const Options: TInterceptOptions = DefaultInterceptOptions)
   : Pointer; overload;
-procedure InterceptCreate(const TargetProc, InterceptProc: Pointer; var TrampoLine: Pointer; Options: Byte = v1compatibility); overload;
-function InterceptRemove(const Trampo: Pointer; Options: Byte = v1compatibility): Integer;
-function GetNHook(const TargetProc: Pointer): ShortInt; overload;
-function GetNHook(const TargetInterface; MethodIndex: Integer): ShortInt; overload;
+function InterceptCreate(const TargetInterface; MethodIndex: Integer; const InterceptProc: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions): Pointer; overload;
+function InterceptCreate(const Module, MethodName: String; const InterceptProc: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions): Pointer; overload;
+procedure InterceptCreate(const TargetProc, InterceptProc: Pointer; var TrampoLine: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions); overload;
+
+{$IFDEF SUPPORTS_RTTI}
+function InterceptCreate(const TargetInterface; const MethodName: String; const InterceptProc: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions): Pointer; overload;
+{$ENDIF SUPPORTS_RTTI}
+function InterceptRemove(const TrampoLine: Pointer): Integer; overload;
+
+function GetHookCount(const TargetProc: Pointer): Integer; overload;
+function GetHookCount(const TargetInterface; MethodIndex: Integer): Integer; overload;
+{$IFDEF SUPPORTS_RTTI}
+function GetHookCount(const TargetInterface; const MethodName: String): Integer; overload;
+{$ENDIF SUPPORTS_RTTI}
 function IsHooked(const TargetProc: Pointer): Boolean; overload;
 function IsHooked(const TargetInterface; MethodIndex: Integer): Boolean; overload;
-function PatchVt(const TargetInterface; MethodIndex: Integer; InterceptProc: Pointer): Pointer;
-function UnPatchVt(const Trampo: Pointer): Boolean;
-
-{$IFDEF MustUseGenerics }
-function InterceptCreate(const TargetInterface; const MethodName: String; const InterceptProc: Pointer; Options: Byte = v1compatibility): Pointer; overload;
-function GetNHook(const TargetInterface; const MethodName: String): ShortInt; overload;
+{$IFDEF SUPPORTS_RTTI}
 function IsHooked(const TargetInterface; const MethodName: String): Boolean; overload;
-function BeginHooks(): Boolean;
-function EndHooks(): Boolean;
-function BeginUnHooks(): Boolean;
-function EndUnHooks(): Boolean;
+{$ENDIF SUPPORTS_RTTI}
+function PatchVt(const TargetInterface; MethodIndex: Integer; InterceptProc: Pointer): Pointer;
+function UnPatchVt(const TrampoLine: Pointer): Boolean;
+
+function BeginTransaction(Options: TTransactionOptions = [toSuspendThread]): THandle;
+function EndTransaction(Handle: THandle): Boolean;
+
+function EnterRecursiveSection(var TrampoLine; MaxRecursionLevel: NativeInt = 0): Boolean;
+function ExitRecursiveSection(var TrampoLine): Boolean;
+
+function GetCreatorThreadIdFromTrampoline(var TrampoLine): TThreadId;
+function GetTrampolineParam(var TrampoLine): Pointer;
+
+{$IFDEF SUPPORTS_GENERICS}
+
+type
+  IIntercept<T, U> = interface(IInterface)
+    ['{EECBF3C2-3938-4923-835A-B0A6AD27744D}']
+    function GetTrampoline(): T;
+    function GetParam(): U;
+    function GetCreatorThreadId(): TThreadId;
+    function GetInterceptOptions(): TInterceptOptions;
+    function EnterRecursive(MaxRecursionLevel: NativeInt = 0): Boolean;
+    function ExitRecursive(): Boolean;
+
+    property NextHook: T read GetTrampoline;
+    property TrampoLine: T read GetTrampoline; // alias to NextHook
+    property Param: U read GetParam;
+    property CreatorThreadId: TThreadId read GetCreatorThreadId;
+    property InterceptOptions: TInterceptOptions read GetInterceptOptions;
+  end;
+
+  {
+    Based on David Millington's original implementation TDetours<T>.
+  }
+  TIntercept<T, U> = class(TInterfacedObject, IIntercept<T, U>)
+  private
+    FNextHook: T;
+    FTrampolinePtr: Pointer;
+    FParam: U;
+    FCreatorThreadId: TThreadId;
+    FInterceptOptions: TInterceptOptions;
+    function TToPointer(const A): Pointer;
+    function PointerToT(const P): T;
+    function EnsureTIsMethod(): Boolean;
+  public
+    function GetTrampoline(): T;
+    function GetParam(): U;
+    function GetCreatorThreadId(): TThreadId;
+    function GetInterceptOptions(): TInterceptOptions;
+    function EnterRecursive(MaxRecursionLevel: NativeInt = 0): Boolean;
+    function ExitRecursive(): Boolean;
+    constructor Create(const TargetProc, InterceptProc: T; const AParam: U; const AInterceptOptions: TInterceptOptions = DefaultInterceptOptions); virtual;
+    destructor Destroy(); override;
+    property Param: U read FParam;
+    property NextHook: T read FNextHook;
+    property TrampoLine: T read FNextHook; // alias to NextHook
+    property CreatorThreadId: TThreadId read FCreatorThreadId;
+    property InterceptOptions: TInterceptOptions read FInterceptOptions;
+  end;
+
+  TIntercept<T> = class(TIntercept<T, Pointer>)
+  public
+    constructor Create(const TargetProc, InterceptProc: T; const AParam: Pointer = nil;
+      const AInterceptOptions: TInterceptOptions = DefaultInterceptOptions); override;
+  end;
+{$ENDIF SUPPORTS_GENERICS}
 
 type
   DetourException = Exception;
 
-  IGenericCast<T> = interface(IInterface)
-    ['{B19D793C-3225-439C-A2F3-04A72D41879E}']
-    function TToPointer(const _T: T): Pointer;
-    function PointerToT(const _P: Pointer): T;
-  end;
-
-  IDetours<T> = interface(IInterface)
-    ['{04552E96-C716-4378-BE9A-CD383D20AB91}']
-    function NextHook: T;
-    function GetInstalled: Boolean;
-    function GetHookCount: ShortInt;
-    procedure SetHook(const TargetProc, InterceptProc: T);
-    procedure Enable;
-    procedure Disable;
-    property TrampoLine: T read NextHook; // Call the original
-  end;
-
-  TDetours<T> = class(TInterfacedObject, IGenericCast<T>, IDetours<T>)
-  private
-    FTargetProc: PByte;
-    FInterceptProc: PByte;
-    FNextHook: T;
-    function __TToPointer(const _T): Pointer;
-    function __PointerToT(const _P): T;
-    function TToPointer(const _T: T): Pointer;
-    function PointerToT(const _P: Pointer): T;
-    function NextHook: T;
-    function GetInstalled: Boolean;
-    function GetHookCount: ShortInt;
-  protected
-    function CheckTType: Boolean;
-    procedure SetHook(const TargetProc, InterceptProc: T);
-  public
-    constructor Create(const TargetProc, InterceptProc: T);
-    destructor Destroy; override;
-    procedure Enable;
-    procedure Disable;
-    property TrampoLine: T read NextHook; // Call the original
-    property Installed: Boolean read GetInstalled;
-    property nHook: ShortInt read GetHookCount;
-  end;
-
-const
-  SInvalidTType = '%s must be procedure.';
-  SDetoursNotInstalled = 'Detour is not installed; trampoline pointer is nil';
-{$ENDIF MustUseGenerics }
-{$IFDEF FPC}
-
-var
-  Critical: TRTLCriticalSection;
-{$ENDIF FPC}
-
 implementation
 
-{$OVERFLOWCHECKS OFF}
-{$IFNDEF FPC}
-
-{ Delphi }
-uses
-{$IFDEF DXE2UP}
-  WinApi.TLHelp32;
-{$ELSE !DXE2UP}
-  TLHelp32;
-{$ENDIF DXE2UP}
-{$ELSE FPC}
-
-type
-  tagTHREADENTRY32 = record
-    dwSize: DWORD;
-    cntUsage: DWORD;
-    th32ThreadID: DWORD; // this thread
-    th32OwnerProcessID: DWORD; // Process this thread is associated with
-    tpBasePri: Longint;
-    tpDeltaPri: Longint;
-    dwFlags: DWORD;
-  end;
-
-  THREADENTRY32 = tagTHREADENTRY32;
-  PTHREADENTRY32 = ^tagTHREADENTRY32;
-  LPTHREADENTRY32 = ^tagTHREADENTRY32;
-  TThreadEntry32 = tagTHREADENTRY32;
-
-  TCreateToolhelp32Snapshot = function(dwFlags, th32ProcessID: DWORD): THandle stdcall;
-  TThread32First = function(hSnapshot: THandle; var lpte: TThreadEntry32): BOOL stdcall;
-  TThread32Next = function(hSnapshot: THandle; var lpte: TThreadEntry32): BOOL stdcall;
-
-var
-  CreateToolhelp32Snapshot: TCreateToolhelp32Snapshot;
-  Thread32First: TThread32First;
-  Thread32Next: TThread32Next;
-
 const
-  TH32CS_SNAPTHREAD = $00000004;
-{$ENDIF !FPC}
+  { Nops }
+  Nop9: array [0 .. 8] of Byte = ($66, $0F, $1F, $84, $00, $00, $00, $00, $00);
+  Nop8: array [0 .. 7] of Byte = ($0F, $1F, $84, $00, $00, $00, $00, $00);
+  Nop7: array [0 .. 6] of Byte = ($0F, $1F, $80, $00, $00, $00, $00);
+  Nop6: array [0 .. 5] of Byte = ($66, $0F, $1F, $44, $00, $00);
+  Nop5: array [0 .. 4] of Byte = ($0F, $1F, $44, $00, $00);
+  Nop4: array [0 .. 3] of Byte = ($0F, $1F, $40, $00);
+  Nop3: array [0 .. 2] of Byte = ($0F, $1F, $00);
+  Nop2: array [0 .. 1] of Byte = ($66, $90);
+  Nop1: array [0 .. 0] of Byte = ($90);
+  MultiNops: array [0 .. 8] of PByte = ( //
+    @Nop1, { Standard Nop }
+    @Nop2, { 2 Bytes Nop }
+    @Nop3, { 3 Bytes Nop }
+    @Nop4, { 4 Bytes Nop }
+    @Nop5, { 5 Bytes Nop }
+    @Nop6, { 6 Bytes Nop }
+    @Nop7, { 7 Bytes Nop }
+    @Nop8, { 8 Bytes Nop }
+    @Nop9 { 9 Bytes Nop }
+    );
 
-type
-  TOpenThread = function(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwThreadId: DWORD): THandle; stdcall;
+  { Arithmetic operands }
+  arNone = $00;
+  arPlus = $08;
+  arMin = $10;
+  arAdd = arPlus or $01;
+  arSub = arMin or $01;
+  arInc = arPlus or $02;
+  arDec = arMin or $02;
 
-var
-  OpenThread: TOpenThread;
-  hKernel: THandle;
-  OpenThreadExist: Boolean = False;
-  FreeKernel: Boolean = False;
-  SizeOfAlloc: DWORD = 0; // See initialization !
-
-const
   { Instructions OpCodes }
   opJmpRelz = $E9;
   opJmpRelb = $EB;
@@ -242,14 +218,92 @@ const
   opPrfAddrSize = $67;
   opNop = $90;
 
-  fDscrHasTmp = $01;
+  { thread constants }
+  THREAD_SUSPEND_RESUME = $0002;
+
+  { Error messages }
+  SErrorSmallFunctionSize = 'Size of function is too small, risk to override others adjacent functions.';
+  SErrorInvalidJmp = 'Invalid JMP Type.';
+  SErrorInvalidJmp64 = 'Invalid JMP Type for x64.';
+  SErrorInvalidJmp32 = 'Invalid JMP Type for x32.';
+  SErrorInvalidDstSave = 'Invalid DstSave Address pointer.';
+  SErrorUnsupportedMultiNop = 'Multi Bytes Nop Instructions not supported by your CPU.';
+  SErrorRipDisp = 'Failed to correcr RIP Displacement.';
+  SErrorBigTrampoSize = 'Exceed maximum TrampoSize.';
+  SErrorMaxHook = 'Exceed maximum allowed of hooks.';
+  SErrorInvalidTargetProc = 'Invalid TargetProc Pointer.';
+  SErrorInvalidInterceptProc = 'Invalid InterceptProc Pointer.';
+  SErrorInvalidDescriptor = 'Invalid Descriptor.';
+  SErrorInvalidTrampoline = 'Invalid TrampoLine Pointer.';
+  SErrorBeginUnHook = 'BeginUnHooks must be called outside BeginHooks/EndHooks.';
+  SErrorRecursiveSectionUnsupported = 'Trampoline was not marked to use recursive section.';
+  SErrorTlsOutOfIndexes = 'Tls out of indexes.';
+  { JMP Type }
+  JT_NONE = 0;
+  JT_REL8 = 1;
+  JT_REL16 = 2;
+  JT_REL32 = 3;
+  JT_MEM16 = 4;
+  JT_MEM32 = 5;
+  JT_MEM64 = 6;
+  JT_RIPZ = 7;
+
+{$IFDEF CPUX64}
+  JT_MEMN = JT_MEM64;
+{$ELSE !CPUX64}
+  JT_MEMN = JT_MEM32;
+{$ENDIF CPUX64}
+  { Jmp Type To Size }
+  JmpTypeToSize: array [0 .. 7] of Byte = ( //
+    0, { None }
+    2, { JT_REL8  = $EB + Rel8 }
+    4, { JT_REL16 = OpSizePrf + $E9 + Rel16 }
+    5, { JT_REL32 = $E9 + Rel32 }
+    7, { JT_MEM16 = OpSizePrf + $FF /4 + Disp32 }
+    6, { JT_MEM32 = $FF /4 + Disp32 }
+    6, { JT_MEM64 = $FF /4 + Disp32 }
+    14 { JT_RIPZ  = $FF /4 + Disp32 + DQ }
+    );
+
+  SizeToJmpType: array [0 .. 4] of Byte = ( //
+{$IFDEF CPUX86}
+    JT_REL8, { db }
+    JT_REL16, { dw }
+    JT_REL32, { dd }
+    JT_MEM32, { dd }
+    JT_MEM32 { dd }
+{$ELSE !CPUX86}
+    JT_REL8, { db }
+    JT_REL32, { dw }
+    JT_REL32, { dd }
+    JT_MEM64, { dq }
+    JT_MEM64 { dq }
+{$ENDIF CPUX86}
+    );
+
   DscrSigSize = $08;
-  TrampoSize = 64;
   TmpSize = 32;
 
+  TrampolineSignature = $544C544C;
+
 type
+  TArrayOfThreadId = array [0 .. HIGH(SmallInt) - 1] of DWORD;
+  PArrayOfThreadId = ^TArrayOfThreadId;
+
+  TTransactionStruct = record
+    Options: TTransactionOptions;
+    TID: DWORD;
+    PID: DWORD;
+    ThreadPriority: Integer;
+    SuspendedThreadCount: Integer;
+    SuspendedThreads: PArrayOfThreadId;
+  end;
+
+  PTransactionStruct = ^TTransactionStruct;
+
+  TOpenThread = function(dwDesiredAccess: DWORD; bInheritHandle: BOOL; dwThreadId: DWORD): THandle; stdcall;
+
   TDscrSig = array [0 .. DscrSigSize - 1] of Byte;
-  TTrampoData = array [0 .. TrampoSize - 1] of Byte;
 
   TVirtualProtect = function(lpAddress: Pointer; dwSize: SIZE_T; flNewProtect: DWORD; var OldProtect: DWORD): BOOL; stdcall;
   TVirtualAlloc = function(lpvAddress: Pointer; dwSize: SIZE_T; flAllocationType, flProtect: DWORD): Pointer; stdcall;
@@ -257,6 +311,9 @@ type
   TFlushInstructionCache = function(hProcess: THandle; const lpBaseAddress: Pointer; dwSize: SIZE_T): BOOL; stdcall;
   TGetCurrentProcess = function: THandle; stdcall;
   TVirtualFree = function(lpAddress: Pointer; dwSize: SIZE_T; dwFreeType: DWORD): BOOL; stdcall;
+
+  { TEnumThreadCallBack for EnumProcessThreads }
+  TEnumThreadCallBack = function(ID: DWORD; Param: Pointer): Boolean;
 
   TInternalFuncs = record
     VirtualAlloc: TVirtualAlloc;
@@ -267,36 +324,6 @@ type
     GetCurrentProcess: TGetCurrentProcess;
   end;
 
-var
-  InternalFuncs: TInternalFuncs;
-
-const
-  { Descriptor Signature }
-{$IFDEF CPUX64}
-  DscrSig: TDscrSig = ( //
-    $90, { NOP }
-    $40, { REX }
-    $40, { REX }
-    $40, { REX }
-    $0F, { ESCAPE TWO BYTE }
-    $1F, { HINT_NOP }
-    $F3, { PRF }
-    $F3 { PRF }
-    );
-{$ELSE !CPUX64}
-  DscrSig: TDscrSig = ( //
-    $90, { NOP }
-    $40, { INC EAX }
-    $48, { DEC EAX }
-    $90, { NOP }
-    $0F, { ESCAPE TWO BYTE }
-    $1F, { HINT_NOP }
-    $F3, { PRF }
-    $F3 { PRF }
-    );
-{$ENDIF CPUX64}
-
-type
   TTrampoInfo = record
     Addr: PByte; // Pointer to first trampoline instruction .
     Size: Byte; // Stolen bytes size .
@@ -336,139 +363,121 @@ type
   TNextHook = packed record
     ID: Byte; { Hook ID . }
     PDscr: PDescriptor;
+    Signature: Cardinal;
+    threadid: TThreadId;
+    Param: Pointer;
+    TlsRecursionLevelIndex: DWORD;
+    InterceptOptions: TInterceptOptions;
   end;
 
   PNextHook = ^TNextHook;
 
-  TThreadsIDList = class(TList);
-
-  TInterceptMonitor = class(TObject)
-    class procedure InternalCreate;
-    class procedure InternalDestroy;
-    class var FLock: TObject;
-    class procedure Enter;
-    class procedure Leave;
+  TTrampoDataVt = record
+    vAddr: Pointer;
+    Addr: Pointer;
   end;
 
-  TIntercept = class(TObject)
-  private
-    FOptions: Byte;
-    FList: TThreadsIDList;
-    class function GetRoot(P: PByte): PByte;
-  public
-    constructor Create(Options: Byte); virtual;
-    destructor Destroy; override;
-
-  protected
-    function GetDescriptor(P: PByte): PDescriptor;
-    function IsValidDescriptor(P: PByte): Boolean;
-    function CreateNewDescriptor: PDescriptor;
-    procedure InsertDescriptor(PAt: PByte; PDscr: PDescriptor);
-    procedure RemoveDescriptor(PDscr: PDescriptor);
-    function InstallHook(TargetProc, InterceptProc: PByte; const Options: Byte = $00): PByte;
-    function AddHook(PDscr: PDescriptor; InterceptProc: PByte; const Options: Byte = $00): PByte;
-    function RemoveHook(Trampo: PByte): Integer;
-  end;
+  PTrampoDataVt = ^TTrampoDataVt;
 
 const
-  { Error Str }
-  ErrFuncSize = 'Size of function is too small, risk to override others adjacent functions.';
-  ErrJmpInvalid = 'Invalid JMP Type.';
-  ErrJmpInvalid64 = 'Invalid JMP Type for x64.';
-  ErrJmpInvalid32 = 'Invalid JMP Type for x32.';
-  ErrJmpInvalidDstSave = 'Invalid DstSave Address pointer.';
-  ErrMultiNopNotSup = 'Multi Bytes Nop Instructions not supported by your CPU.';
-  ErrRipDisp = 'Failed to correcr RIP Displacement.';
-  ErrTrampoSize = 'Exceed maximum TrampoSize.';
-  ErrMaxHook = 'Exceed maximum allowed of hooks.';
-  ErrTargetProc = 'Invalid TargetProc Pointer.';
-  ErrInterceptProc = 'Invalid InterceptProc Pointer.';
-  ErrInvalidDscr = 'Invalid Descriptor.';
-  ErrInvalidTrampo = 'Invalid TrampoLine Pointer.';
-  ErrBgnUnHooks = 'BeginUnHooks must be called outside BeginHooks/EndHooks.';
+  TrampoSize = SizeOf(TNextHook) + 64;
 
-  { JMP Type }
-  tJmpNone = 0;
-  tJmpRel8 = 1;
-  tJmpRel16 = 2;
-  tJmpRel32 = 3;
-  tJmpMem16 = 4;
-  tJmpMem32 = 5;
-  tJmpMem64 = 6;
-  tJmpRipZ = 7;
-
+  { Descriptor Signature }
 {$IFDEF CPUX64}
-  tJmpMemN = tJmpMem64;
+  DscrSig: TDscrSig = ( //
+    $90, { NOP }
+    $40, { REX }
+    $40, { REX }
+    $40, { REX }
+    $0F, { ESCAPE TWO BYTE }
+    $1F, { HINT_NOP }
+    $F3, { PRF }
+    $F3 { PRF }
+    );
 {$ELSE !CPUX64}
-  tJmpMemN = tJmpMem32;
+  DscrSig: TDscrSig = ( //
+    $90, { NOP }
+    $40, { INC EAX }
+    $48, { DEC EAX }
+    $90, { NOP }
+    $0F, { ESCAPE TWO BYTE }
+    $1F, { HINT_NOP }
+    $F3, { PRF }
+    $F3 { PRF }
+    );
 {$ENDIF CPUX64}
-  { Jmp Type To Size }
-  JmpTypeToSize: array [0 .. 7] of Byte = ( //
-    0, { None }
-    2, { tJmpRel8  = $EB + Rel8 }
-    4, { tJmpRel16 = OpSizePrf + $E9 + Rel16 }
-    5, { tJmpRel32 = $E9 + Rel32 }
-    7, { tJmpMem16 = OpSizePrf + $FF /4 + Disp32 }
-    6, { tJmpMem32 = $FF /4 + Disp32 }
-    6, { tJmpMem64 = $FF /4 + Disp32 }
-    14 { tJmpRipZ  = $FF /4 + Disp32 + DQ }
-    );
+{$IFDEF FPC}
+{$I 'TlHelp32.inc'}
+{$ENDIF FPC}
 
-  SizeToJmpType: array [0 .. 4] of Byte = ( //
-{$IFDEF CPUX86}
-    tJmpRel8, { db }
-    tJmpRel16, { dw }
-    tJmpRel32, { dd }
-    tJmpMem32, { dd }
-    tJmpMem32 { dd }
-{$ELSE !CPUX86}
-    tJmpRel8, { db }
-    tJmpRel32, { dw }
-    tJmpRel32, { dd }
-    tJmpMem64, { dq }
-    tJmpMem64 { dq }
-{$ENDIF CPUX86}
-    );
+var
+  OpenThread: TOpenThread = nil;
+{$IFDEF FPC}
+  CreateToolhelp32Snapshot: TCreateToolhelp32Snapshot = nil;
+  Thread32First: TThread32First = nil;
+  Thread32Next: TThread32Next = nil;
+{$ENDIF FPC}
+  hKernel: THandle;
+  OpenThreadExist: Boolean = False;
+  FreeKernel: Boolean = False;
+  SizeOfAlloc: DWORD = 0; // See initialization !
+  SysInfo: TSystemInfo;
+  InternalFuncs: TInternalFuncs;
+{$IFDEF SUPPORTS_MONITOR}
+  FLock: TObject = nil;
+{$ELSE !SUPPORTS_MONITOR}
+  FLock: TCriticalSection = nil;
+{$ENDIF SUPPORTS_MONITOR }
+  { ================================== Utils ================================== }
 
-  {
-    // Useful function when debugging !
-    procedure DbgPrint(const msg: string; Value: Int64); overload;
-    var
-    s: string;
-    begin
-    s := msg;
-    if s <> EmptyStr then
-    s := s + ' = ' + IntToStr(Value)
-    else
-    s := IntToStr(Value);
-    OutputDebugStringW(PChar(s));
-    end;
+function GetUInt64Size(const Value: UInt64): Integer; {$IFDEF SUPPORTS_INLINE}inline; {$ENDIF SUPPORTS_INLINE}
+begin
+  if UInt8(Value) = Value then
+    Result := 1
+  else if UInt16(Value) = Value then
+    Result := 2
+  else if UInt32(Value) = Value then
+    Result := 4
+  else
+    Result := 8;
+end;
 
-    procedure DbgPrint(const msg: string); overload;
-    begin
-    OutputDebugStringW(PChar(msg));
-    end;
+function GetInt64Size(const Value: Int64): Integer; {$IFDEF SUPPORTS_INLINE}inline; {$ENDIF SUPPORTS_INLINE}
+begin
+  if Int8(Value) = Value then
+    Result := 1
+  else if Int16(Value) = Value then
+    Result := 2
+  else if Int32(Value) = Value then
+    Result := 4
+  else
+    Result := 8;
+end;
 
-    procedure ShowMsg(const msg: string);
-    begin
-    MessageBoxW(0, PChar(msg), nil, MB_OK);
-    end;
-  }
-const
-  THREAD_SUSPEND_RESUME = $0002;
+procedure EnterLook(LockedObject: TObject); {$IFDEF SUPPORTS_INLINE}inline; {$ENDIF SUPPORTS_INLINE}
+begin
+{$IFDEF SUPPORTS_MONITOR}
+  TMonitor.Enter(LockedObject);
+{$ELSE !SUPPORTS_MONITOR}
+  TCriticalSection(LockedObject).Enter();
+{$ENDIF SUPPORTS_MONITOR}
+end;
 
-function SuspendAllThreads(RTID: TThreadsIDList): Boolean;
+procedure LeaveLook(LockedObject: TObject); {$IFDEF SUPPORTS_INLINE}inline; {$ENDIF SUPPORTS_INLINE}
+begin
+{$IFDEF SUPPORTS_MONITOR}
+  TMonitor.Exit(LockedObject);
+{$ELSE !SUPPORTS_MONITOR}
+  TCriticalSection(LockedObject).Leave();
+{$ENDIF SUPPORTS_MONITOR}
+end;
+
+function EnumProcessThreads(PID: DWORD; CallBack: TEnumThreadCallBack; Param: Pointer): BOOL;
 var
   hSnap: THandle;
-  PID: DWORD;
   te: TThreadEntry32;
-  nCount: DWORD;
-  hThread: THandle;
   Next: Boolean;
-  CurrentThreadId: Cardinal;
 begin
-  PID := GetCurrentProcessId;
-  CurrentThreadId := GetCurrentThreadId;
   hSnap := CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, PID);
   Result := hSnap <> INVALID_HANDLE_VALUE;
   if Result then
@@ -477,51 +486,21 @@ begin
     Next := Thread32First(hSnap, te);
     while Next do
     begin
-      if (te.th32OwnerProcessID = PID) and (te.th32ThreadID <> CurrentThreadId) then
+      if (te.th32OwnerProcessID = PID) then
       begin
-        { Allow the caller thread to access the Detours .
-          => Suspend all threads, except the current thread . }
-        hThread := OpenThread(THREAD_SUSPEND_RESUME, False, te.th32ThreadID);
-        if hThread <> INVALID_HANDLE_VALUE then
-        begin
-          nCount := SuspendThread(hThread);
-          if nCount <> DWORD(-1) then // thread's previously was running  .
-            { Only add threads that was running before suspending them ! }
-            RTID.Add(Pointer(NativeUInt(te.th32ThreadID)));
-          CloseHandle(hThread);
+        try
+          if not CallBack(te.th32ThreadID, Param) then
+            break;
+        except
         end;
       end;
       Next := Thread32Next(hSnap, te);
     end;
-    CloseHandle(hSnap);
+    Result := CloseHandle(hSnap);
   end;
 end;
 
-function ResumeSuspendedThreads(RTID: TThreadsIDList): Boolean;
-var
-  i: Integer;
-  TID: DWORD;
-  hThread: THandle;
-begin
-  Result := False;
-  if Assigned(RTID) then
-    for i := 0 to RTID.Count - 1 do
-    begin
-      TID := DWORD(RTID.Items[i]);
-      if TID <> DWORD(-1) then
-      begin
-        Result := True;
-        hThread := OpenThread(THREAD_SUSPEND_RESUME, False, TID);
-        if hThread <> INVALID_HANDLE_VALUE then
-        begin
-          ResumeThread(hThread);
-          CloseHandle(hThread);
-        end;
-      end;
-    end;
-end;
-
-function SetMemPermission(const P: Pointer; const Size: NativeUInt; const NewProtect: DWORD): DWORD;
+function SetMemPermission(const P: Pointer; const Size: SIZE_T; const NewProtect: DWORD): DWORD;
 const
   PAGE_EXECUTE_FLAGS = PAGE_EXECUTE or PAGE_EXECUTE_READ or PAGE_EXECUTE_READWRITE or PAGE_EXECUTE_WRITECOPY;
 begin
@@ -538,7 +517,7 @@ begin
   end;
 end;
 
-function GetDispDataSize(PInst: PInstruction): ShortInt;
+function GetDispDataSize(PInst: PInstruction): Integer;
 begin
   Result := 0;
   if PInst^.Disp.Flags and dfUsed <> 0 then
@@ -546,10 +525,13 @@ begin
     if PInst^.Archi = CPUX32 then
     begin
       if PInst^.Prefixes and Prf_OpSize <> 0 then
-        Exit(ops16bits)
+        Result := ops16bits
       else
-        Exit(ops32bits);
-    end else begin
+        Result := ops32bits;
+      Exit;
+    end
+    else
+    begin
       case PInst^.OperandFlags of
         opdD64:
           begin
@@ -558,14 +540,15 @@ begin
               PrfOpSize results in O16.
             }
             if PInst^.Prefixes and Prf_OpSize <> 0 then
-              Exit(ops16bits)
+              Result := ops16bits
             else
-              Exit(ops64bits);
+              Result := ops64bits;
           end;
         opdF64, opdDv64:
           begin
             { The operand size is forced to a 64-bit operand size in PM64 ! }
-            Exit(ops64bits);
+            Result := (ops64bits);
+            Exit;
           end;
         opdDf64:
           begin
@@ -575,25 +558,27 @@ begin
               PrfOpSize is ignored in EM64T.
             }
             if (CPUVendor = vAMD) and (PInst^.Prefixes and Prf_OpSize <> 0) then
-              Exit(ops16bits)
+              Result := (ops16bits)
             else
-              Exit(ops64bits);
+              Result := (ops64bits);
+            Exit;
           end;
       else
         begin
           if PInst^.Rex.W then
-            Exit(ops64bits)
+            Result := (ops64bits)
           else if (PInst^.Prefixes and Prf_OpSize <> 0) then
-            Exit(ops16bits)
+            Result := (ops16bits)
           else
-            Exit(ops32bits);
+            Result := (ops32bits);
+          Exit;
         end;
       end;
     end;
   end;
 end;
 
-function fDecodeInst(PInst: PInstruction): ShortInt;
+function fDecodeInst(PInst: PInstruction): Integer;
 var
   IsNxtInstData: Boolean;
 begin
@@ -621,11 +606,14 @@ begin
   end;
 end;
 
-function RoundMultipleOf(const Value, n: NativeUInt): NativeUInt; {$IFDEF MustInline}inline; {$ENDIF}
+function RoundMultipleOf(const Value, MultipleOf: NativeInt): NativeInt; {$IFDEF SUPPORTS_INLINE}inline; {$ENDIF SUPPORTS_INLINE}
 begin
   if Value = 0 then
-    Exit(n);
-  Result := ((Value + (n - 1)) and not(n - 1));
+  begin
+    Result := (MultipleOf);
+    Exit;
+  end;
+  Result := ((Value + (MultipleOf - 1)) and not(MultipleOf - 1));
 end;
 
 function AllocMemAt(const Addr: Pointer; const MemSize, flProtect: DWORD): Pointer;
@@ -653,21 +641,21 @@ begin
   pMax := SysInfo.lpMaximumApplicationAddress;
   dwAllocGran := SysInfo.dwAllocationGranularity;
 
-  if (P < pMin) or (P > pMax) then
+  if (NativeUInt(P) < NativeUInt(pMin)) or (NativeUInt(P) > NativeUInt(pMax)) then
     Exit;
   if InternalFuncs.VirtualQuery(P, mbi, SizeOf(mbi)) = 0 then
     Exit;
 
   pBase := mbi.BaseAddress;
   Q := pBase;
-  while Q < pMax do
+  while NativeUInt(Q) < NativeUInt(pMax) do
   begin
     if InternalFuncs.VirtualQuery(Q, mbi, SizeOf(mbi)) = 0 then
       Exit;
     if (mbi.State = MEM_FREE) and (mbi.RegionSize >= dwAllocGran) and (mbi.RegionSize >= MemSize) then
     begin
       { The address (P) must be multiple of the allocation granularity (dwAllocationGranularity) . }
-      P := PByte(RoundMultipleOf(NativeUInt(Q), dwAllocGran));
+      P := PByte(RoundMultipleOf(NativeInt(Q), dwAllocGran));
       Result := InternalFuncs.VirtualAlloc(P, MemSize, MEM_RESERVE or MEM_COMMIT, flProtect);
       if Assigned(Result) then
         Exit;
@@ -679,13 +667,13 @@ begin
     try to allocate at the range [pMin - Addr]
   }
   Q := pBase;
-  while Q > pMin do
+  while NativeUInt(Q) > NativeUInt(pMin) do
   begin
     if InternalFuncs.VirtualQuery(Q, mbi, SizeOf(mbi)) = 0 then
       Exit;
     if (mbi.State = MEM_FREE) and (mbi.RegionSize >= dwAllocGran) and (mbi.RegionSize >= MemSize) then
     begin
-      P := PByte(RoundMultipleOf(NativeUInt(Q), dwAllocGran));
+      P := PByte(RoundMultipleOf(NativeInt(Q), dwAllocGran));
       Result := InternalFuncs.VirtualAlloc(P, MemSize, MEM_RESERVE or MEM_COMMIT, flProtect);
       if Assigned(Result) then
         Exit;
@@ -711,58 +699,57 @@ begin
   end;
 end;
 
-function InsertJmp(Src, Dst: PByte; JmpType: Byte; const DstSave: PByte = nil): ShortInt;
+function InsertJmp(Src, Dst: PByte; JmpType: Integer; const DstSave: PByte = nil): Integer;
 var
-  Offset32: Int32;
-  Offset64: Int64;
-  JmpSize: Byte;
+  Offset: NativeInt;
+  JmpSize: Integer;
 begin
   Result := 1;
   JmpSize := JmpTypeToSize[JmpType];
-  Offset32 := Int32(UInt64(Dst) - UInt64(Src)) - JmpSize;
+  Offset := NativeInt(NativeInt(Dst) - NativeInt(Src)) - JmpSize;
   case JmpType of
-    tJmpNone:
+    JT_NONE:
       begin
-        raise InterceptException.Create(ErrJmpInvalid);
+        raise InterceptException.Create(SErrorInvalidJmp);
       end;
-    tJmpRel8:
+    JT_REL8:
       begin
         PByte(Src)^ := opJmpRelb;
         Inc(Src);
-        PInt8(Src)^ := Int8(Offset32);
+        PInt8(Src)^ := Int8(Offset);
       end;
-    tJmpRel16:
+    JT_REL16:
       begin
 {$IFDEF CPUX64}
         {
           JMP Rel16
           ==> Not supported on x64!
         }
-        raise InterceptException.Create(ErrJmpInvalid64);
+        raise InterceptException.Create(SErrorInvalidJmp64);
 {$ENDIF CPUX64}
         PByte(Src)^ := opPrfOpSize;
         Inc(Src);
         PByte(Src)^ := opJmpRelz;
         Inc(Src);
-        PInt16(Src)^ := Int16(Offset32);
+        PInt16(Src)^ := Int16(Offset);
       end;
-    tJmpRel32:
+    JT_REL32:
       begin
         PByte(Src)^ := opJmpRelz;
         Inc(Src);
-        PInt32(Src)^ := Offset32;
+        PInt32(Src)^ := Offset;
       end;
-    tJmpMem16:
+    JT_MEM16:
       begin
 {$IFDEF CPUX64}
         {
           JMP WORD [012345]
           ==> Not supported on x64!
         }
-        raise InterceptException.Create(ErrJmpInvalid64);
+        raise InterceptException.Create(SErrorInvalidJmp64);
 {$ENDIF CPUX64}
         if not Assigned(DstSave) then
-          raise InterceptException.Create(ErrJmpInvalidDstSave);
+          raise InterceptException.Create(SErrorInvalidDstSave);
         PByte(Src)^ := opPrfOpSize;
         Inc(Src);
         PWord(Src)^ := opJmpMem;
@@ -770,50 +757,45 @@ begin
         PUInt32(Src)^ := UInt32(DstSave);
         PUInt16(DstSave)^ := UInt16(Dst);
       end;
-    tJmpMem32:
+    JT_MEM32:
       begin
 {$IFDEF CPUX64}
         {
           JMP DWORD [012345]
           ==> Not supported on x64!
         }
-        raise InterceptException.Create(ErrJmpInvalid64);
+        raise InterceptException.Create(SErrorInvalidJmp64);
 {$ENDIF CPUX64}
         if not Assigned(DstSave) then
-          raise InterceptException.Create(ErrJmpInvalidDstSave);
+          raise InterceptException.Create(SErrorInvalidDstSave);
         PWord(Src)^ := opJmpMem;
         Inc(Src, 2);
         PUInt32(Src)^ := UInt32(DstSave);
         PUInt32(DstSave)^ := UInt32(Dst);
       end;
-    tJmpMem64:
+    JT_MEM64:
       begin
 {$IFDEF CPUX86}
         {
           JMP QWORD [0123456789]
           ==> Not supported on x32!
         }
-        raise InterceptException.Create(ErrJmpInvalid32);
+        raise InterceptException.Create(SErrorInvalidJmp32);
 {$ENDIF CPUX86}
         if not Assigned(DstSave) then
-          raise InterceptException.Create(ErrJmpInvalidDstSave);
+          raise InterceptException.Create(SErrorInvalidDstSave);
         { RIP Disp ! }
         PUInt64(DstSave)^ := UInt64(Dst);
-        Offset64 := Int64(UInt64(DstSave) - UInt64(Src)) - JmpSize;
-        Offset32 := Integer(Offset64);
-        { If the distance between DispAddr and Src exceed 32-bits then
-          the only way to insert a jump
-          is to use tJmpRipZ method ! }
-        if Offset32 <> Offset64 then
-          Exit(-1);
+        Offset := NativeInt(NativeInt(DstSave) - NativeInt(Src)) - JmpSize;
+
         PWord(Src)^ := opJmpMem;
         Inc(Src, 2);
-        PInt32(Src)^ := Offset32;
+        PInt32(Src)^ := Offset;
       end;
-    tJmpRipZ:
+    JT_RIPZ:
       begin
 {$IFDEF CPUX86}
-        raise InterceptException.Create(ErrJmpInvalid32);
+        raise InterceptException.Create(SErrorInvalidJmp32);
 {$ENDIF CPUX86}
         {
           This is the most harder way to insert a jump !
@@ -841,160 +823,113 @@ begin
   end;
 end;
 
-function GetUInt64Size(const Value: UInt64): Byte;
-begin
-  if UInt8(Value) = Value then
-    Exit(1)
-  else if UInt16(Value) = Value then
-    Exit(2)
-  else if UInt32(Value) = Value then
-    Exit(4)
-  else
-    Exit(8);
-end;
-
-function GetInt64Size(const Value: Int64): Byte;
-begin
-  if Int8(Value) = Value then
-    Exit(1)
-  else if Int16(Value) = Value then
-    Exit(2)
-  else if Int32(Value) = Value then
-    Exit(4)
-  else
-    Exit(8);
-end;
-
-function GetJmpType(Src, Dst, DstSave: PByte): Byte;
+function GetJmpType(Src, Dst, DstSave: PByte): Integer;
 var
-  Offset: Int64;
-  OffsetSize: Byte;
+  Offset: NativeInt;
+  OffsetSize: Integer;
 begin
-  Offset := Int64(UInt64(Src) - UInt64(Dst));
+  Offset := NativeInt(NativeInt(Src) - NativeInt(Dst));
   OffsetSize := GetInt64Size(Offset);
   Result := SizeToJmpType[OffsetSize shr 1];
 {$IFDEF CPUX64}
-  if Result = tJmpMem64 then
+  if Result = JT_MEM64 then
   begin
     if not Assigned(DstSave) then
-      raise InterceptException.Create(ErrJmpInvalidDstSave);
-    Offset := Int64(UInt64(DstSave) - UInt64(Src)) - 7;
-    if Int32(Offset) <> Offset then
-      Exit(tJmpRipZ);
+      raise InterceptException.Create(SErrorInvalidDstSave);
+    Offset := NativeInt(NativeInt(DstSave) - NativeInt(Src)) - 7;
+    if Integer(Offset) <> Offset then
+    begin
+      Result := (JT_RIPZ);
+      Exit;
+    end;
   end;
 {$ENDIF CPUX64}
 end;
 
-{$IFDEF UseMultiBytesNop}
-
-const
-  Nop9: array [0 .. 8] of Byte = ($66, $0F, $1F, $84, $00, $00, $00, $00, $00);
-  Nop8: array [0 .. 7] of Byte = ($0F, $1F, $84, $00, $00, $00, $00, $00);
-  Nop7: array [0 .. 6] of Byte = ($0F, $1F, $80, $00, $00, $00, $00);
-  Nop6: array [0 .. 5] of Byte = ($66, $0F, $1F, $44, $00, $00);
-  Nop5: array [0 .. 4] of Byte = ($0F, $1F, $44, $00, $00);
-  Nop4: array [0 .. 3] of Byte = ($0F, $1F, $40, $00);
-  Nop3: array [0 .. 2] of Byte = ($0F, $1F, $00);
-  Nop2: array [0 .. 1] of Byte = ($66, $90);
-  Nop1: array [0 .. 0] of Byte = ($90);
-  MultiNops: array [0 .. 8] of PByte = ( //
-    @Nop1, { Standard Nop }
-    @Nop2, { 2 Bytes Nop }
-    @Nop3, { 3 Bytes Nop }
-    @Nop4, { 4 Bytes Nop }
-    @Nop5, { 5 Bytes Nop }
-    @Nop6, { 6 Bytes Nop }
-    @Nop7, { 7 Bytes Nop }
-    @Nop8, { 8 Bytes Nop }
-    @Nop9 { 9 Bytes Nop }
-
-    );
-
-function IsMultiBytesNop(const P: PByte; Len: ShortInt = 0): Boolean;
+function IsMultiBytesNop(P: Pointer; Size: Integer): Boolean;
 var
   i: Integer;
-  nL: Integer;
 begin
-  for i := Length(MultiNops) downto 1 do
-  begin
-    nL := i;
-    Result := CompareMem(MultiNops[i - 1], P, nL);
-    if Result then
-    begin
-      if Len < 0 then
-        Exit;
-      Result := (nL = Len);
-      if Result then
-        Exit;
-    end;
-  end;
-end;
-
-procedure FillMultiNop(var Buff; Size: Integer);
-var
-  i: Integer;
-  nL: Byte;
-  P: PByte;
-begin
-  { Multi Bytes Nop Instructions seems to be
-    faster to execute rather than
-    the traditional (NOP x n) instructions.
-
-    However it's not supported by all CPU !
-    ==> Use FillNop(P,Size,True)!
-
-    ==> CPUID implement a routine to detect
-    if the CPU support Multi Bytes Nop .
-  }
-  if not(iMultiNop in CPUInsts) then
-    raise InterceptException.Create(ErrMultiNopNotSup);
-
-  P := PByte(@Buff);
-  for i := Length(MultiNops) downto 1 do
-  begin
-    nL := i;
-    if Size = 0 then
-      Break;
-    while Size >= nL do
-    begin
-      Move(MultiNops[i - 1]^, P^, nL);
-      Dec(Size, nL);
-      Inc(P, nL);
-    end;
-  end;
-end;
-{$ENDIF UseMultiBytesNop}
-
-function IsNop(const P: PByte; Len: ShortInt; MultiBytesNop: Boolean = False): Boolean;
-var
-  i: Integer;
-  Q: PByte;
-begin
-  { Return True if the first instructions are nop/multi nop ! }
   Result := False;
-  Q := P;
-{$IFDEF UseMultiBytesNop}
-  if (MultiBytesNop and (iMultiNop in CPUInsts)) then
-    Result := IsMultiBytesNop(P, Len)
-  else
-{$ENDIF UseMultiBytesNop}
-    for i := 0 to Len - 1 do
+  if Size > 0 then
+  begin
+    while (Size > 0) do
     begin
-      Result := (Q^ = opNop);
+      for i := Length(MultiNops) downto 1 do
+      begin
+        if Size >= i then
+        begin
+          Result := CompareMem(MultiNops[i - 1], P, i);
+          if Result then
+          begin
+            Inc(PByte(P), i);
+            Dec(Size, i);
+            break;
+          end;
+        end;
+      end;
       if not Result then
         Exit;
-      Inc(Q); // Next Byte.
+    end;
+    Result := True;
+  end;
+end;
+
+procedure FillMultiNop(var Buffer; Size: Integer);
+var
+  i: Integer;
+  P: PByte;
+begin
+  { Multi Bytes Nop Instruction is fast to execute compared to
+    the traditional NOP instruction.
+
+    However it's not supported by all CPU !
+    ==> Use FillNop(P,Size,True).
+
+    ==> CPUID implements a routine to detect
+    if the CPU supports Multi Bytes Nop .
+  }
+  if not(iMultiNop in CPUInsts) then
+    raise InterceptException.Create(SErrorUnsupportedMultiNop);
+
+  P := PByte(@Buffer);
+  for i := Length(MultiNops) downto 1 do
+  begin
+    while Size >= i do
+    begin
+      Move(MultiNops[i - 1]^, P^, i);
+      Dec(Size, i);
+      Inc(P, i);
+    end;
+    if Size = 0 then
+      Exit;
+  end;
+end;
+
+function IsNop(P: PByte; Size: Integer): Boolean;
+var
+  i: Integer;
+begin
+  { Return True if the first instructions are nop/multi nop. }
+  Result := False;
+  if iMultiNop in CPUInsts then
+    Result := IsMultiBytesNop(P, Size)
+  else
+    for i := 0 to Size - 1 do
+    begin
+      Result := (P^ = opNop);
+      if not Result then
+        Exit;
+      Inc(P); // Next Byte.
     end;
 end;
 
-procedure FillNop(var P; const Size: Integer; const MultiBytesNop: Boolean = False); {$IFDEF MustInline}inline; {$ENDIF}
+procedure FillNop(var P; Size: Integer; MultipleNop: Boolean);
 begin
-{$IFDEF UseMultiBytesNop}
-  if (MultiBytesNop and (iMultiNop in CPUInsts)) then
+  if MultipleNop and (iMultiNop in CPUInsts) then
     FillMultiNop(P, Size)
   else
-{$ENDIF UseMultiBytesNop}
-    FillChar(PByte(@P)^, Size, opNop);
+    FillChar(P, Size, opNop);
 end;
 
 function GetPrefixesCount(Prefixes: WORD): Byte;
@@ -1040,7 +975,8 @@ begin
         if PInst^.Prefixes and Prf_VEX3 = 0 then
           Inc(Result, 2); // 0F + 38|3A !
       end;
-    tbFPU: Inc(Result, 2); // [$D8..$D9] + ModRm !
+    tbFPU:
+      Inc(Result, 2); // [$D8..$D9] + ModRm !
   end;
   if PInst^.Prefixes and Prf_Vex2 <> 0 then
     Inc(Result); // VEX.P0
@@ -1054,6 +990,33 @@ begin
     Move(PInst^.Addr^, P^, Result);
 end;
 
+function GetJccOpCode(PInst: PInstruction; RelSize: Integer): DWORD;
+var
+  OpCode: Byte;
+  Opcodes: array [0 .. 3] of Byte;
+begin
+  FillChar(PByte(@Opcodes[0])^, 4, #00);
+  OpCode := PInst^.OpCode and $F;
+  case RelSize of
+    ops8bits:
+      begin
+        Opcodes[0] := $70 or OpCode;
+      end;
+    ops16bits:
+      begin
+        Opcodes[0] := opPrfOpSize;
+        Opcodes[1] := $0F;
+        Opcodes[2] := $80 or OpCode;
+      end;
+    ops32bits:
+      begin
+        Opcodes[0] := $0F;
+        Opcodes[1] := $80 or OpCode;
+      end;
+  end;
+  Result := PDWORD(@Opcodes[0])^;
+end;
+
 function CorrectJ(PInst: PInstruction; NewAddr: PByte): Integer;
 const
   { Convert LOOP instruction to relative word jcc ! }
@@ -1063,39 +1026,11 @@ const
 var
   Offset: Int64;
   POpc: PByte;
-  // Opcsz: Integer;
   NOpc: DWORD;
   PQ: PByte;
-  Relsz: Byte;
-  JmpType: Byte;
-  JmpSize: Byte;
-  function GetJccOpCode(RelSize: Byte): DWORD;
-  var
-    LOp: Byte;
-    Opc: array [0 .. 3] of Byte;
-  begin
-    FillChar(PByte(@Opc[0])^, 4, #0);
-    LOp := PInst^.OpCode and $F;
-    case RelSize of
-      ops8bits:
-        begin
-          Opc[0] := $70 or LOp;
-        end;
-      ops16bits:
-        begin
-          Opc[0] := opPrfOpSize;
-          Opc[1] := $0F;
-          Opc[2] := $80 or LOp;
-        end;
-      ops32bits:
-        begin
-          Opc[0] := $0F;
-          Opc[1] := $80 or LOp;
-        end;
-    end;
-    Result := PDWORD(@Opc[0])^;
-  end;
-
+  Relsz: Integer;
+  JmpType: Integer;
+  JmpSize: Integer;
 begin
   PQ := NewAddr;
   JmpSize := 0;
@@ -1211,7 +1146,7 @@ begin
               PQ^ := 14;
               Inc(PQ);
               { Insert Jmp @LoopDst }
-              InsertJmp(PQ, PInst.Branch.Target, tJmpRipZ);
+              InsertJmp(PQ, PInst.Branch.Target, JT_RIPZ);
               Inc(PQ, 14);
             end;
         end;
@@ -1313,14 +1248,16 @@ begin
               PQ^ := 14;
               Inc(PQ);
               { Insert Jmp @Dst }
-              InsertJmp(PQ, PInst.Branch.Target, tJmpRipZ);
+              InsertJmp(PQ, PInst.Branch.Target, JT_RIPZ);
               Inc(PQ, 14);
             end;
         end;
       end;
-    end else begin
+    end
+    else
+    begin
       { Jcc ! }
-      NOpc := GetJccOpCode(Relsz);
+      NOpc := GetJccOpCode(PInst, Relsz);
       case Relsz of
         ops8bits:
           begin
@@ -1371,9 +1308,9 @@ begin
             Inc(PQ);
             PQ^ := 2;
             Inc(PQ);
-            JmpType := GetJmpType(NewAddr + 4, PInst^.Branch.Target, NewAddr + 4 + 6);
+            JmpType := GetJmpType(PByte(NativeInt(NewAddr) + 4), PInst^.Branch.Target, PByte(NativeInt(NewAddr) + 4 + 6));
             JmpSize := JmpTypeToSize[JmpSize];
-            if JmpType > tJmpRel32 then
+            if JmpType > JT_REL32 then
               Inc(JmpSize, SizeOf(Pointer));
 
             { Jmp To Next Valid Instruction ! }
@@ -1381,8 +1318,7 @@ begin
             Inc(PQ);
             PQ^ := JmpSize;
             Inc(PQ);
-
-            InsertJmp(NewAddr + 4, PInst^.Branch.Target, JmpType, NewAddr + 4 + 6);
+            InsertJmp(PByte(NativeInt(NewAddr) + 4), PInst^.Branch.Target, JmpType, PByte(NativeInt(NewAddr) + 4 + 6));
             Inc(PQ, JmpSize);
           end;
       end;
@@ -1390,7 +1326,7 @@ begin
   finally
     FreeMem(POpc);
   end;
-  Result := PQ - NewAddr;
+  Result := Integer(NativeInt(PQ) - NativeInt(NewAddr));
   if Result = 00 then
   begin
     Move(PInst^.Addr^, NewAddr^, PInst^.InstSize);
@@ -1404,8 +1340,6 @@ begin
 end;
 
 function CorrectRipDisp(PInst: PInstruction; NewAddr: PByte): Integer;
-type
-  PNativeUInt = ^NativeUInt;
 var
   Offset: Int64;
   P: PByte;
@@ -1427,9 +1361,9 @@ begin
   if PInst^.AddrMode = am32 then
     P := PByte(UInt64(P) and $FFFFFFFF);
 
-  P := P + Int64(PInst^.Disp.Value);
+  P := PByte(Int64(P) + Int64(PInst^.Disp.Value));
 
-  Offset := Int64(UInt64(P) - UInt64(NewAddr) - PInst^.InstSize);
+  Offset := Int64(Int64(P) - Int64(NewAddr) - PInst^.InstSize);
   if Int32(Offset) <> Offset then
   begin
     rReg := rEAX;
@@ -1447,17 +1381,17 @@ begin
       PByte(NewAddr)^ := $48; // REX.W!
       Inc(NewAddr);
 {$ENDIF CPUX64}
-      { MOV REG,Imm(NativeUInt) }
+      { MOV REG,Imm(NativeInt) }
       PByte(NewAddr)^ := $B8 + (rReg and $7);
       Inc(NewAddr);
-      PNativeUInt(NewAddr)^ := NativeUInt(P);
-      Inc(NewAddr, SizeOf(NativeUInt));
+      PNativeInt(NewAddr)^ := NativeInt(P);
+      Inc(NewAddr, SizeOf(NativeInt));
 
       { Set the original instruction opcodes }
       POpc := GetMemory(MAX_INST_LENGTH_N);
       L := GetInstOpCodes(PInst, POpc);
 
-      Move(PByte(@POpc[0])^, NewAddr^, L);
+      Move(POpc^, NewAddr^, L);
       Inc(NewAddr, L);
       pMR := NewAddr;
       if (PInst^.OpKind and kGrp <> 0) or (PInst^.OpTable = tbFPU) then
@@ -1472,14 +1406,15 @@ begin
       Inc(NewAddr);
 
       FreeMemory(POpc);
-      Exit(NewAddr - pFrst);
+      Result := (NativeInt(NewAddr) - NativeInt(pFrst));
+      Exit;
     end
     else
-      raise InterceptException.Create(ErrRipDisp);
+      raise InterceptException.Create(SErrorRipDisp);
   end;
   Move(PInst^.Addr^, NewAddr^, PInst^.InstSize);
   Inc(NewAddr, PInst^.InstSize);
-  PInt32(NewAddr - SizeOf(Int32))^ := Int32(Offset);
+  PInt32(NativeInt(NewAddr) - SizeOf(Int32))^ := Int32(Offset);
 
   Result := PInst^.InstSize;
 end;
@@ -1488,8 +1423,8 @@ function CorrectJmpRel(PInst: PInstruction; NewAddr: PByte): Integer;
 var
   JmpType: Byte;
 begin
-  JmpType := GetJmpType(NewAddr, PInst^.Branch.Target, NewAddr + 6);
-  InsertJmp(NewAddr, PInst^.Branch.Target, JmpType, NewAddr + 6);
+  JmpType := GetJmpType(NewAddr, PInst^.Branch.Target, PByte(NativeInt(NewAddr) + 6));
+  InsertJmp(NewAddr, PInst^.Branch.Target, JmpType, PByte(NativeInt(NewAddr) + 6));
   Result := JmpTypeToSize[JmpType];
 end;
 
@@ -1565,7 +1500,7 @@ begin
         Inc(P, SizeOf(UInt64));
       end;
   end;
-  Result := P - NewAddr;
+  Result := NativeInt(P) - NativeInt(NewAddr);
   if Result = 0 then
   begin
     Move(PInst^.Addr^, P^, PInst^.InstSize);
@@ -1618,30 +1553,29 @@ begin
   FreeMemory(PInst);
 end;
 
-const
-  arNone = $00;
-  arPlus = $08;
-  arMin = $10;
-  arAdd = arPlus or $01;
-  arSub = arMin or $01;
-  arInc = arPlus or $02;
-  arDec = arMin or $02;
-
+{$IFNDEF FPC}
 {$WARN COMPARISON_TRUE OFF}
+{$ENDIF FPC}
 
-function GetInstArithmeticType(PInst: PInstruction): Byte;
+function GetInstArithmeticType(PInst: PInstruction): Integer;
   function IsInstAdd(PInst: PInstruction): Boolean;
   begin
     Result := False;
     if PInst^.OpTable = tbOneByte then
     begin
       if (PInst^.OpCode >= $00) and (PInst^.OpCode < $06) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
     if (PInst^.OpKind = kGrp) and (PInst^.ModRm.Reg = $00) then
     begin
       if (PInst^.OpCode > $7F) and (PInst^.OpCode < $84) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
   end;
   function IsInstSub(PInst: PInstruction): Boolean;
@@ -1650,12 +1584,18 @@ function GetInstArithmeticType(PInst: PInstruction): Byte;
     if PInst^.OpTable = tbOneByte then
     begin
       if (PInst^.OpCode > $27) and (PInst^.OpCode < $2E) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
     if (PInst^.OpKind = kGrp) and (PInst^.ModRm.Reg = $05) then
     begin
       if (PInst^.OpCode > $7F) and (PInst^.OpCode < $84) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
   end;
   function IsInstInc(PInst: PInstruction): Boolean;
@@ -1664,12 +1604,18 @@ function GetInstArithmeticType(PInst: PInstruction): Byte;
     if (PInst^.Archi = CPUX32) and (PInst^.OpTable = tbOneByte) then
     begin
       if (PInst^.OpCode >= $40) and (PInst^.OpCode <= $47) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
     if (PInst^.OpKind = kGrp) and (PInst^.ModRm.Reg = $00) then
     begin
       if (PInst^.OpCode = $FE) or (PInst^.OpCode = $FF) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
   end;
   function IsInstDec(PInst: PInstruction): Boolean;
@@ -1678,37 +1624,45 @@ function GetInstArithmeticType(PInst: PInstruction): Byte;
     if (PInst^.Archi = CPUX32) and (PInst^.OpTable = tbOneByte) then
     begin
       if (PInst^.OpCode >= $48) and (PInst^.OpCode <= $4F) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
     if (PInst^.OpKind = kGrp) and (PInst^.ModRm.Reg = $01) then
     begin
       if (PInst^.OpCode = $FE) or (PInst^.OpCode = $FF) then
-        Exit(True);
+      begin
+        Result := (True);
+        Exit;
+      end;
     end;
   end;
 
 begin
   { Return Instruction Arithmetic (+ or - or ..) }
   Result := arNone;
-  if IsInstAdd(PInst) then
-    Exit(arAdd);
-  if IsInstInc(PInst) then
-    Exit(arAdd);
-  if IsInstSub(PInst) then
-    Exit(arSub);
-  if IsInstDec(PInst) then
-    Exit(arSub);
+  if IsInstAdd(PInst) or IsInstInc(PInst) then
+    Result := (arAdd)
+  else if IsInstSub(PInst) or IsInstDec(PInst) then
+    Result := (arSub);
 end;
+{$IFNDEF FPC}
 {$WARN COMPARISON_TRUE ON}
+{$ENDIF FPC}
 
-function EvalArithU(Arith: Byte; Value: NativeUInt; Offset: NativeInt): NativeUInt;
+function EvalArith(Arith: Integer; Value: NativeInt; Offset: NativeInt): NativeInt;
 begin
   Result := Value;
   case Arith of
-    arAdd: Inc(Result, Offset);
-    arInc: Inc(Result);
-    arSub: Dec(Result, Offset);
-    arDec: Dec(Result);
+    arAdd:
+      Inc(Result, Offset);
+    arInc:
+      Inc(Result);
+    arSub:
+      Dec(Result, Offset);
+    arDec:
+      Dec(Result);
   end;
 end;
 
@@ -1732,22 +1686,23 @@ var
   Inst: TInstruction;
   PObj: PByte;
   imm: Int64;
-  Arith: Byte;
+  Arith: Integer;
   Skip: Boolean;
   sReg: ShortInt;
 begin
 
   if not Assigned(@AIntf) then
-    Exit(nil);
+  begin
+    Result := nil;
+    Exit;
+  end;
 
   sReg := -1;
   PObj := PByte(AIntf);
-{$IFNDEF FPC}
-  Inst := default (TInstruction);
-{$ENDIF !FPC}
+  FillChar(Inst, SizeOf(TInstruction), #00);
   Inst.Archi := CPUX;
   Pvt := PPointer(AIntf)^; // vTable !
-  PCode := PPointer(Pvt + Offset)^; // Code Entry !
+  PCode := PPointer(NativeInt(Pvt) + Offset)^; // Code Entry !
   Inst.NextInst := PCode;
   {
     At the top of code entry delphi will generate :
@@ -1763,7 +1718,7 @@ begin
     fDecodeInst(@Inst);
     { Keep looping until JMP/RET ! }
     if (Inst.Branch.Falgs and bfUsed <> 0) or (Inst.OpType = otRET) then
-      Break;
+      break;
 
     Arith := GetInstArithmeticType(@Inst);
     Skip := (Arith = arNone);
@@ -1800,7 +1755,7 @@ begin
     if not Skip then
     begin
       imm := Inst.imm.Value;
-      PObj := PByte(EvalArithU(Arith, NativeUInt(PObj), imm));
+      PObj := PByte(EvalArith(Arith, NativeInt(PObj), imm));
     end;
   end;
 
@@ -1822,13 +1777,10 @@ begin
     => Return first instruction that was
     implemented on Interface object !
   }
-{$IFNDEF FPC}
-  Inst := default (TInstruction);
-{$ENDIF !FPC}
+  FillChar(Inst, SizeOf(TInstruction), #00);
   Inst.Archi := CPUX;
   Pvt := PPointer(PInterface)^; // Virtual Table !
   P := Pvt;
-  // Inc(PByte(P), MethodIndex * SizeOf(NativeUInt));
   Inc(P, MethodIndex);
   P := PPointer(P)^;
   PDst := PByte(P);
@@ -1840,13 +1792,13 @@ begin
     if Assigned(Inst.Branch.Target) then
     begin
       PDst := Inst.Branch.Target;
-      Break;
+      break;
     end;
   end;
   Result := PDst;
 end;
 
-{$IFDEF MustUseGenerics}
+{$IFDEF SUPPORTS_RTTI}
 
 function GetMethodPtrFromObjByName(Obj: TObject; const MethodName: String): Pointer;
 var
@@ -1865,7 +1817,10 @@ begin
   for LMethod in LMethods do
   begin
     if SameText(LMethod.Name, MethodName) then
-      Exit(LMethod.CodeAddress);
+    begin
+      Result := LMethod.CodeAddress;
+      Exit;
+    end;
   end;
 end;
 
@@ -1883,68 +1838,42 @@ begin
   end;
 end;
 
+{$ENDIF  SUPPORTS_RTTI}
+
+function GetRoot(P: PByte): PByte;
 var
-  GlobalThreadList: TDictionary<THandle, TThreadsIDList>;
-
-{$ENDIF MustUseGenerics}
-  { TIntercept }
-
-constructor TIntercept.Create(Options: Byte);
+  Inst: TInstruction;
 begin
-  FOptions := Options;
-  FList := nil;
-
-  if (FOptions and ST = ST)
-{$IFDEF MustUseGenerics}
-    and (not GlobalThreadList.ContainsKey(GetCurrentThread))
-{$ENDIF MustUseGenerics}
-  then
-  begin
-    { Suspend All threads ! }
-    if OpenThreadExist then
-    begin
-      FList := TThreadsIDList.Create;
-      SuspendAllThreads(FList);
-    end;
-  end;
-
-  if not Assigned(FList) then
-  begin
-    TInterceptMonitor.Enter();
-  end;
+  Result := P;
+  FillChar(Inst, SizeOf(TInstruction), #00);
+  Inst.Addr := P;
+  Inst.Archi := CPUX;
+  Inst.VirtualAddr := nil;
+  {
+    While the opcode is jmp and the jmp destination
+    address is known get the next jmp .
+  }
+  fDecodeInst(@Inst);
+  if (Inst.OpType = otJMP) and (Assigned(Inst.Branch.Target)) then
+    Result := GetRoot(Inst.Branch.Target);
 end;
 
-destructor TIntercept.Destroy;
+function IsValidDescriptor(P: PByte): Boolean;
 begin
-  if Assigned(FList) then
-  begin
-    ResumeSuspendedThreads(FList);
-    FreeAndNil(FList);
-  end else begin
-    TInterceptMonitor.Leave();
-  end;
-  inherited;
+  Result := CompareMem(P, PByte(@DscrSig[0]), SizeOf(DscrSig));
 end;
 
-function TIntercept.GetDescriptor(P: PByte): PDescriptor;
+function GetDescriptor(P: PByte): PDescriptor;
 var
   Inst: TInstruction;
   function IsDscrpInst(PInst: PInstruction): Boolean;
   begin
-    Result :=
-{$IFDEF UseMultiBytesNop}
-      (IsNop(PInst.Addr, 6, True)) or
-{$ELSE !UseMultiBytesNop}
-      (IsNop(PInst.Addr, 6)) or
-{$ENDIF UseMultiBytesNop}
-      (Assigned(PInst.Branch.Target));
+    Result := Assigned(PInst.Branch.Target) or IsNop(PInst.Addr, 6);
   end;
 
 begin
   Result := nil;
-{$IFNDEF FPC}
-  Inst := default (TInstruction);
-{$ENDIF !FPC}
+  FillChar(Inst, SizeOf(TInstruction), #00);
   Inst.Archi := CPUX;
   Inst.VirtualAddr := nil;
   { Find last JMP ! }
@@ -1969,39 +1898,11 @@ begin
   end;
 end;
 
-class function TIntercept.GetRoot(P: PByte): PByte;
-var
-  Inst: TInstruction;
-begin
-  Result := P;
-{$IFNDEF FPC}
-  Inst := default (TInstruction);
-{$ENDIF !FPC}
-  Inst.Addr := P;
-  Inst.Archi := CPUX;
-  Inst.VirtualAddr := nil;
-  {
-    While the opcode is jmp and the jmp destination
-    address is known get the next jmp .
-  }
-  fDecodeInst(@Inst);
-  if (Inst.OpType = otJMP) and (Assigned(Inst.Branch.Target)) then
-    Result := GetRoot(Inst.Branch.Target);
-end;
-
-function TIntercept.CreateNewDescriptor: PDescriptor;
+function CreateNewDescriptor(): PDescriptor;
 begin
   { Create a new descriptor tables ! }
   Result := AllocMem(SizeOf(TDescriptor));
-  {
-    Hahaha .. this stupid code (between commenet)
-    had take me 2h to figure why my libray does not works !
-    I didn't know what i was thinking in when i wrote this code !
-    :)
-  }
-  // SetMemPermission(Result, SizeOf(TDescriptor), PAGE_READWRITE);
-  // SetMemPermission(@Result^.JmpMems, SizeOf(TJmpMem) * (MAX_HOOKS + 1), PAGE_EXECUTE_READWRITE);
-  FillNop(Result^, SizeOf(TDescriptor));
+  FillNop(Result^, SizeOf(TDescriptor), False);
   FillNop(Result^.JmpMems[0], SizeOf(TJmpMem) * (MAX_HOOKS + 1), True);
 
   { A valid descriptor have a valid signature . }
@@ -2011,7 +1912,7 @@ begin
   Result^.ExMem := nil;
 end;
 
-procedure TIntercept.InsertDescriptor(PAt: PByte; PDscr: PDescriptor);
+procedure InsertDescriptor(PAt: PByte; PDscr: PDescriptor);
 const
   { JMP from Target to Code Entry }
   kJmpCE = 1;
@@ -2038,7 +1939,6 @@ var
   PExMem: PByte;
   LPExMem: PByte;
 begin
-  JmpKind := kJmpCE;
   Sb := 0;
   P := PAt;
   PDscr^.OrgPtr := P;
@@ -2046,12 +1946,8 @@ begin
 {$IFDEF CPUX64}
   Tmp := nil;
   PExMem := TryAllocMemAt(P, SizeOfAlloc, PAGE_EXECUTE_READWRITE);
-{$ELSE !CPUX64}
-  PExMem := TryAllocMemAt(nil, SizeOfAlloc, PAGE_EXECUTE_READWRITE);
-{$ENDIF CPUX64}
   LPExMem := PExMem;
-{$IFDEF CPUX64}
-  sJmpType := tJmpNone;
+  sJmpType := JT_NONE;
   JmpKind := kJmpRipZCE;
   { Try to find the perfect jump instruction ! }
   {
@@ -2074,13 +1970,17 @@ begin
           JmpKind := kJmpTmpJmpCE;
       end;
     end;
-  end else begin
+  end
+  else
+  begin
     JmpKind := kJmpCE;
   end;
+{$ELSE !CPUX64}
+  PExMem := TryAllocMemAt(nil, SizeOfAlloc, PAGE_EXECUTE_READWRITE);
+  JmpKind := kJmpCE;
+  LPExMem := PExMem;
 {$ENDIF CPUX64}
-{$IFNDEF FPC}
-  Inst := default (TInstruction);
-{$ENDIF !FPC}
+  FillChar(Inst, SizeOf(TInstruction), #00);
   Inst.Archi := CPUX;
   Inst.NextInst := P;
   Inst.VirtualAddr := nil;
@@ -2090,21 +1990,21 @@ begin
   while Sb < JmpSize do
   begin
     if Inst.OpType = otRET then
-      raise InterceptException.Create(ErrFuncSize);
+      raise InterceptException.Create(SErrorSmallFunctionSize);
     Inst.Addr := Inst.NextInst;
     Inc(Sb, fDecodeInst(@Inst));
   end;
 
   if Sb > TrampoSize then
-    raise InterceptException.Create(ErrTrampoSize);
+    raise InterceptException.Create(SErrorBigTrampoSize);
 
   { Trampoline momory }
   T := PExMem;
-  FillNop(T^, TrampoSize);
+  FillNop(T^, TrampoSize, False);
 
   PDscr^.Trampo := AllocMem(SizeOf(TTrampoInfo));
   PDscr^.Trampo^.PData := AllocMem(Sb + 6);
-  FillNop(PDscr^.Trampo^.PData^, Sb + 6);
+  FillNop(PDscr^.Trampo^.PData^, Sb + 6, False);
   { Save original target routine instruction . }
   Move(P^, PDscr^.Trampo^.PData^, Sb);
   PDscr^.Trampo^.Addr := T; // Pointer to the first trampoline instruction.
@@ -2113,7 +2013,7 @@ begin
   Tsz := MapInsts(P, T, Sb);
   OrgAccess := SetMemPermission(P, Sb, PAGE_EXECUTE_READWRITE);
   try
-    FillNop(P^, Sb);
+    FillNop(P^, Sb, False);
     case JmpKind of
       kJmpCE:
         begin
@@ -2144,10 +2044,10 @@ begin
             JMP @Tmp ==> Tmp is allocated nearly from TargetProc !
 
             Tmp:
-            JMP @PDscr^.CodeEntry  ==> tJmpRipZ
+            JMP @PDscr^.CodeEntry  ==> JT_RIPZ
           }
           InsertJmp(P, Tmp, fJmpType, Tmp + 6);
-          InsertJmp(Tmp, @PDscr^.CodeEntry, tJmpRipZ, nil);
+          InsertJmp(Tmp, @PDscr^.CodeEntry, JT_RIPZ, nil);
         end;
       kJmpRipZCE:
         begin
@@ -2155,9 +2055,9 @@ begin
             Not a good jump !
 
             TargetProc :
-            JMP @PDscr^.CodeEntry  ==> tJmpRipZ
+            JMP @PDscr^.CodeEntry  ==> JT_RIPZ
           }
-          InsertJmp(P, @PDscr^.CodeEntry, tJmpRipZ, nil);
+          InsertJmp(P, @PDscr^.CodeEntry, JT_RIPZ, nil);
         end;
 {$ENDIF CPUX64}
     end;
@@ -2169,10 +2069,9 @@ begin
       executing originals instructions.
     }
 {$IFDEF CPUX64}
-    // InsertJmp(T + Tsz, P + JmpTypeToSize[fJmpType], tJmpRipZ);
-    InsertJmp(T + Tsz, P + Sb, tJmpRipZ);
+    InsertJmp(T + Tsz, P + Sb, JT_RIPZ);
 {$ELSE !CPUX64}
-    InsertJmp(T + Tsz, P + Sb, tJmpMem32, T + Tsz + 6);
+    InsertJmp(PByte(NativeInt(T) + Tsz), PByte(NativeInt(P) + Sb), JT_MEM32, PByte(NativeInt(T) + Tsz + 6));
 {$ENDIF CPUX64}
     { Save LPExMem ==> we need it when deleting descriptor }
     PDscr^.ExMem := LPExMem;
@@ -2184,15 +2083,39 @@ begin
   end;
 end;
 
-function TIntercept.IsValidDescriptor(P: PByte): Boolean;
+procedure MadExceptFreeMem(P: Pointer);
+var
+  Page: Pointer;
+  mbi: TMemoryBasicInformation;
+  Permission: DWORD;
 begin
-  Result := CompareMem(P, PByte(@DscrSig[0]), SizeOf(DscrSig));
+  if InternalFuncs.VirtualQuery(P, mbi, SizeOf(mbi)) <> 0 then
+  begin
+    Page := mbi.BaseAddress;
+    Permission := SetMemPermission(Page, SysInfo.dwPageSize, PAGE_READWRITE);
+    FreeMem(P);
+    SetMemPermission(Page, SysInfo.dwPageSize, Permission);
+  end
+  else
+    FreeMem(P);
 end;
 
-function TIntercept.AddHook(PDscr: PDescriptor; InterceptProc: PByte; const Options: Byte): PByte;
+function GetNextHookPtrFromTrampoline(TrampoLine: Pointer): PNextHook;
+begin
+  if Assigned(TrampoLine) then
+  begin
+    Result := PNextHook(NativeInt(TrampoLine) - SizeOf(TNextHook));
+    if Result^.Signature = TrampolineSignature then
+      Exit;
+  end;
+  raise DetourException.Create(SErrorInvalidTrampoline);
+end;
+
+function AddHook(PDscr: PDescriptor; InterceptProc: PByte; Param: Pointer; Options: TInterceptOptions): PByte;
 var
   n: ShortInt;
   NxHook: PByte;
+  LTlsRecursionLevelIndex: DWORD;
 begin
   {
     Return a pointer to a function that can
@@ -2200,45 +2123,57 @@ begin
   }
   n := PDscr^.nHook;
   if n + 1 > MAX_HOOKS then
-    raise InterceptException.Create(ErrMaxHook);
+    raise InterceptException.Create(SErrorMaxHook);
 
   { Alloc memory for the NextHook ! }
   NxHook := AllocMem(TrampoSize);
   Result := NxHook;
 
-  FillNop(Result^, TrampoSize);
+  FillNop(Result^, TrampoSize, False);
 
   PNextHook(Result)^.PDscr := PDscr;
   PNextHook(Result)^.ID := n + 1;
+  PNextHook(Result)^.threadid := GetCurrentThreadId();
+  PNextHook(Result)^.Param := Param;
+  PNextHook(Result)^.Signature := TrampolineSignature;
+  PNextHook(Result)^.InterceptOptions := Options;
+  if ioRecursive in Options then
+  begin
+    LTlsRecursionLevelIndex := TlsAlloc();
+    if LTlsRecursionLevelIndex <> TLS_OUT_OF_INDEXES then
+      PNextHook(Result)^.TlsRecursionLevelIndex := LTlsRecursionLevelIndex
+    else
+      raise DetourException.Create(SErrorTlsOutOfIndexes);
+  end;
   Inc(Result, SizeOf(TNextHook));
 
   { Redirect code to InterceptProc ! }
-  InsertJmp(@PDscr^.JmpMems[n], InterceptProc, tJmpMemN, @PDscr^.JmpAddrs[n]);
+  InsertJmp(@PDscr^.JmpMems[n], InterceptProc, JT_MEMN, @PDscr^.JmpAddrs[n]);
   { Redirect code to TrampoLine ! }
-  InsertJmp(@PDscr^.JmpMems[n + 1], PDscr^.Trampo^.Addr, tJmpMemN, @PDscr^.JmpAddrs[n + 1]);
+  InsertJmp(@PDscr^.JmpMems[n + 1], PDscr^.Trampo^.Addr, JT_MEMN, @PDscr^.JmpAddrs[n + 1]);
   { Redirect code to next hook ! }
-  InsertJmp(Result, @PDscr^.JmpMems[n + 1], tJmpMemN, Result + 6);
+  InsertJmp(Result, @PDscr^.JmpMems[n + 1], JT_MEMN, PByte(NativeInt(Result) + 6));
   Inc(PDscr^.nHook);
 
-  SetMemPermission(Result, JmpTypeToSize[tJmpRipZ], PAGE_EXECUTE_READWRITE);
+  SetMemPermission(Result, JmpTypeToSize[JT_RIPZ], PAGE_EXECUTE_READWRITE);
 end;
 
-function TIntercept.InstallHook(TargetProc, InterceptProc: PByte; const Options: Byte = $00): PByte;
+function InstallHook(TargetProc, InterceptProc: PByte; Param: Pointer; Options: TInterceptOptions): PByte;
 var
   P: PByte;
   PDscr: PDescriptor;
 begin
   if not Assigned(TargetProc) then
-    raise InterceptException.Create(ErrTargetProc);
+    raise InterceptException.Create(SErrorInvalidTargetProc);
 
   if not Assigned(InterceptProc) then
-    raise InterceptException.Create(ErrInterceptProc);
+    raise InterceptException.Create(SErrorInvalidInterceptProc);
 
   PDscr := GetDescriptor(TargetProc);
   if not Assigned(PDscr) then
   begin
     P := GetRoot(TargetProc);
-    PDscr := CreateNewDescriptor;
+    PDscr := CreateNewDescriptor();
     try
       InsertDescriptor(P, PDscr);
     except
@@ -2246,10 +2181,10 @@ begin
       raise;
     end;
   end;
-  Result := AddHook(PDscr, InterceptProc);
+  Result := AddHook(PDscr, InterceptProc, Param, Options);
 end;
 
-procedure TIntercept.RemoveDescriptor(PDscr: PDescriptor);
+procedure RemoveDescriptor(PDscr: PDescriptor);
 var
   OrgAccess: DWORD;
   P: PByte;
@@ -2266,7 +2201,7 @@ begin
     { Restore the old stolen instructions ! }
     Move(PDscr^.Trampo^.PData^, PDscr^.OrgPtr^, PDscr^.Trampo^.Size);
 
-    FillNop(PDscr^.ExMem^, SizeOfAlloc);
+    FillNop(PDscr^.ExMem^, SizeOfAlloc, False);
     FreeMem(PDscr^.Trampo^.PData);
     FreeMem(PDscr^.Trampo);
 
@@ -2277,29 +2212,33 @@ begin
         RaiseLastOSError;
     end;
 
-    FillNop(PDscr^, SizeOf(TDescriptor));
+    FillNop(PDscr^, SizeOf(TDescriptor), False);
+{$IFDEF FIX_MADEXCEPT}
+    MadExceptFreeMem(PDscr);
+{$ELSE !FIX_MADEXCEPT}
     FreeMem(PDscr);
+{$ENDIF FIX_MADEXCEPT}
   finally
     SetMemPermission(P, sz, OrgAccess);
   end;
 end;
 
-function TIntercept.RemoveHook(Trampo: PByte): Integer;
+function RemoveHook(TrampoLine: PByte): Integer;
 var
   PNxtHook: PNextHook;
   PDscr: PDescriptor;
   n: Byte;
 begin
-  if not Assigned(Trampo) then
-    raise InterceptException.Create(ErrInvalidTrampo);
+  if not Assigned(TrampoLine) then
+    raise InterceptException.Create(SErrorInvalidTrampoline);
 
-  PNxtHook := PNextHook(Trampo - SizeOf(TNextHook));
+  PNxtHook := GetNextHookPtrFromTrampoline(TrampoLine);
   if not Assigned(PNxtHook) then
-    raise InterceptException.Create(ErrInvalidTrampo);
+    raise InterceptException.Create(SErrorInvalidTrampoline);
 
   PDscr := PNxtHook^.PDscr;
   if not IsValidDescriptor(PByte(PDscr)) then
-    raise InterceptException.Create(ErrInvalidDscr);
+    raise InterceptException.Create(SErrorInvalidDescriptor);
 
   n := PNxtHook^.ID;
   Dec(PDscr^.nHook);
@@ -2317,24 +2256,27 @@ begin
   if Result = 0 then
     RemoveDescriptor(PDscr);
 
-  FreeMem(PNxtHook);
+  if ioRecursive in PNxtHook^.InterceptOptions then
+    TlsFree(PNxtHook^.TlsRecursionLevelIndex);
+
+{$IFDEF FIX_MADEXCEPT}
+    MadExceptFreeMem(PNxtHook);
+{$ELSE !FIX_MADEXCEPT}
+    FreeMem(PNxtHook);
+{$ENDIF FIX_MADEXCEPT}
+
 end;
 
-function InterceptCreate(const TargetProc, InterceptProc: Pointer; Options: Byte = v1compatibility): Pointer;
-var
-  Intercept: TIntercept;
+{ ======================================= InterceptCreate ======================================= }
+
+function InterceptCreate(const TargetProc, InterceptProc: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions): Pointer;
 begin
-  Intercept := TIntercept.Create(Options);
-  try
-    Result := Intercept.InstallHook(TargetProc, InterceptProc, Options);
-  finally
-    Intercept.Free;
-  end;
+  Result := InstallHook(TargetProc, InterceptProc, Param, Options);
 end;
 
-{ =====> Support for Interface <===== }
-
-function InterceptCreate(const TargetInterface; MethodIndex: Integer; const InterceptProc: Pointer; Options: Byte = v1compatibility): Pointer;
+function InterceptCreate(const TargetInterface; MethodIndex: Integer; const InterceptProc: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions): Pointer;
 var
   P: PByte;
 begin
@@ -2344,28 +2286,12 @@ begin
   P := GetInterfaceMethodPtrByIndex(TargetInterface, MethodIndex);
   if Assigned(P) then
   begin
-    Result := InterceptCreate(P, InterceptProc, Options);
+    Result := InterceptCreate(P, InterceptProc, Param, Options);
   end;
 end;
 
-{$IFDEF MustUseGenerics}
-
-function InterceptCreate(const TargetInterface; const MethodName: String; const InterceptProc: Pointer; Options: Byte = v1compatibility): Pointer; overload;
-var
-  P: PByte;
-begin
-  Result := nil;
-  if (not Assigned(@TargetInterface)) or (MethodName = EmptyStr) then
-    Exit;
-
-  P := GetInterfaceMethodPtrByName(TargetInterface, MethodName);
-  if Assigned(P) then
-    Result := InterceptCreate(P, InterceptProc, Options);
-end;
-{$ENDIF MustUseGenerics}
-
-function InterceptCreate(const Module, MethodName: string; const InterceptProc: Pointer; ForceLoadModule: Boolean = True;
-  Options: Byte = v1compatibility): Pointer;
+function InterceptCreate(const Module, MethodName: string; const InterceptProc: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions): Pointer;
 var
   pOrgPointer: Pointer;
   LModule: THandle;
@@ -2373,88 +2299,95 @@ begin
   { RRUZ's idea ==> Looks great ! }
   Result := nil;
   LModule := GetModuleHandle(PChar(Module));
-  if (LModule = 0) and ForceLoadModule then
+  if (LModule = 0) and (ioForceLoad in Options) then
     LModule := LoadLibrary(PChar(Module));
 
   if LModule <> 0 then
   begin
     pOrgPointer := GetProcAddress(LModule, PChar(MethodName));
     if Assigned(pOrgPointer) then
-      Result := InterceptCreate(pOrgPointer, InterceptProc, Options);
+      Result := InterceptCreate(pOrgPointer, InterceptProc, Param, Options);
   end;
 end;
 
-procedure InterceptCreate(const TargetProc, InterceptProc: Pointer; var TrampoLine: Pointer; Options: Byte = v1compatibility);
-var
-  Intercept: TIntercept;
+procedure InterceptCreate(const TargetProc, InterceptProc: Pointer; var TrampoLine: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions);
 begin
-  Intercept := TIntercept.Create(Options);
-  try
-    TrampoLine := Intercept.InstallHook(TargetProc, InterceptProc, Options);
-  finally
-    Intercept.Free;
-  end;
+  TrampoLine := InstallHook(TargetProc, InterceptProc, Param, Options);
 end;
 
-function InterceptRemove(const Trampo: Pointer; Options: Byte = v1compatibility): Integer;
+{$IFDEF SUPPORTS_RTTI}
+
+function InterceptCreate(const TargetInterface; const MethodName: String; const InterceptProc: Pointer; const Param: Pointer = nil;
+  const Options: TInterceptOptions = DefaultInterceptOptions): Pointer; overload;
 var
-  Intercept: TIntercept;
+  P: PByte;
 begin
-  if not Assigned(Trampo) then
-    Exit(-1);
-  Intercept := TIntercept.Create(Options);
-  try
-    Result := Intercept.RemoveHook(Trampo);
-  finally
-    Intercept.Free;
-  end;
+  { Interface support }
+  Result := nil;
+  if (not Assigned(@TargetInterface)) or (MethodName = EmptyStr) then
+    Exit;
+
+  P := GetInterfaceMethodPtrByName(TargetInterface, MethodName);
+  if Assigned(P) then
+    Result := InterceptCreate(P, InterceptProc);
 end;
 
-function GetNHook(const TargetProc: Pointer): ShortInt;
+{$ENDIF SUPPORTS_RTTI}
+{ ======================================= InterceptRemove ======================================= }
+
+function InterceptRemove(const TrampoLine: Pointer): Integer;
+begin
+  if Assigned(TrampoLine) then
+    Result := RemoveHook(TrampoLine)
+  else
+    Result := -1;
+end;
+
+{ ======================================= GetHookCount ======================================= }
+
+function GetHookCount(const TargetProc: Pointer): Integer;
 var
-  Intercept: TIntercept;
   PDscr: PDescriptor;
 begin
-  {
-    Return the number of installed hooks !
-    Return -1 if no hooks installed !
-  }
-  Result := -1;
-  if not Assigned(TargetProc) then
-    raise InterceptException.Create(ErrTargetProc);
-
-  Intercept := TIntercept.Create(0);
-  try
-    PDscr := Intercept.GetDescriptor(TargetProc);
+  { Return the number of installed hooks. }
+  if Assigned(TargetProc) then
+  begin
+    PDscr := GetDescriptor(TargetProc);
     if Assigned(PDscr) then
+    begin
       Result := PDscr^.nHook;
-  finally
-    Intercept.Free;
-  end;
+      Exit;
+    end;
+  end
+  else
+    raise InterceptException.Create(SErrorInvalidTargetProc);
+  Result := 0;
 end;
 
-function GetNHook(const TargetInterface; MethodIndex: Integer): ShortInt; overload;
+function GetHookCount(const TargetInterface; MethodIndex: Integer): Integer; overload;
 var
   P: PByte;
 begin
   P := GetInterfaceMethodPtrByIndex(TargetInterface, MethodIndex);
-  Result := GetNHook(P);
+  Result := GetHookCount(P);
 end;
+{$IFDEF SUPPORTS_RTTI}
 
-{$IFDEF MustUseGenerics }
-
-function GetNHook(const TargetInterface; const MethodName: String): ShortInt; overload;
+function GetHookCount(const TargetInterface; const MethodName: String): Integer; overload;
 var
   P: PByte;
 begin
+  { Interface support }
   P := GetInterfaceMethodPtrByName(TargetInterface, MethodName);
-  Result := GetNHook(P);
+  Result := GetHookCount(P);
 end;
-{$ENDIF MustUseGenerics }
+{$ENDIF  SUPPORTS_RTTI}
+{ ======================================= IsHooked ======================================= }
 
 function IsHooked(const TargetProc: Pointer): Boolean;
 begin
-  Result := GetNHook(TargetProc) > 0;
+  Result := GetHookCount(TargetProc) > 0;
 end;
 
 function IsHooked(const TargetInterface; MethodIndex: Integer): Boolean; overload;
@@ -2465,24 +2398,18 @@ begin
   Result := IsHooked(P);
 end;
 
-{$IFDEF MustUseGenerics }
+{$IFDEF SUPPORTS_RTTI}
 
 function IsHooked(const TargetInterface; const MethodName: String): Boolean; overload;
 var
   P: PByte;
 begin
+  { Interface support }
   P := GetInterfaceMethodPtrByName(TargetInterface, MethodName);
   Result := IsHooked(P);
 end;
-{$ENDIF MustUseGenerics }
-
-type
-  TTrampoDataVt = record
-    vAddr: Pointer;
-    Addr: Pointer;
-  end;
-
-  PTrampoDataVt = ^TTrampoDataVt;
+{$ENDIF  SUPPORTS_RTTI}
+{ ======================================= Patch ======================================= }
 
 function PatchVt(const TargetInterface; MethodIndex: Integer; InterceptProc: Pointer): Pointer;
 var
@@ -2502,7 +2429,6 @@ begin
   if not Assigned(InterceptProc) then
     Exit;
 
-  TInterceptMonitor.Enter;
   try
     vt := PPointer(TargetInterface)^;
     P := vt;
@@ -2530,216 +2456,288 @@ begin
     Inc(Q, 2);
     PInt32(Q)^ := $00;
     Inc(Q, 4);
-    PNativeUInt(Q)^ := NativeUInt(DstAddr);
+    PNativeInt(Q)^ := NativeInt(DstAddr);
 {$ELSE !CPUX64}
     PWord(Q)^ := opJmpMem;
     Inc(Q, 2);
-    PUInt32(Q)^ := UInt32(Q + 4);
-    PUInt32(Q + 4)^ := UInt32(DstAddr);
+    PUInt32(Q)^ := UInt32(NativeInt(Q) + 4);
+    PUInt32(NativeInt(Q) + 4)^ := UInt32(DstAddr);
 {$ENDIF CPUX64}
   finally
-    TInterceptMonitor.Leave;
   end;
 end;
 
-function UnPatchVt(const Trampo: Pointer): Boolean;
+function UnPatchVt(const TrampoLine: Pointer): Boolean;
 var
   OrgAccess: DWORD;
   PInfo: PTrampoDataVt;
 begin
-  if not Assigned(Trampo) then
-    Exit(False);
+  if not Assigned(TrampoLine) then
+  begin
+    Result := False;
+    Exit;
+  end;
 
-  TInterceptMonitor.Enter;
   try
-    PInfo := PTrampoDataVt(PByte(Trampo) - SizeOf(TTrampoDataVt));
+    PInfo := PTrampoDataVt(NativeInt(TrampoLine) - SizeOf(TTrampoDataVt));
     OrgAccess := SetMemPermission(PInfo^.vAddr, 32, PAGE_EXECUTE_READWRITE);
     try
       PPointer(PInfo^.vAddr)^ := PInfo^.Addr;
     finally
       SetMemPermission(PInfo^.vAddr, 32, OrgAccess);
     end;
-    Result := InternalFuncs.VirtualFree(Trampo, 0, MEM_RELEASE);
+    Result := InternalFuncs.VirtualFree(TrampoLine, 0, MEM_RELEASE);
   finally
-    TInterceptMonitor.Leave;
   end;
 end;
 
-{ TInterceptMonitor }
+{ ======================================= Trampoline misc =================================== }
 
-class procedure TInterceptMonitor.InternalCreate;
+function GetCreatorThreadIdFromTrampoline(var TrampoLine): TThreadId;
+var
+  PNxtHook: PNextHook;
 begin
-  FLock := TObject.Create;
+  PNxtHook := GetNextHookPtrFromTrampoline(PPointer(@TrampoLine)^);
+  Result := PNxtHook^.threadid;
 end;
 
-class procedure TInterceptMonitor.InternalDestroy;
+function GetTrampolineParam(var TrampoLine): Pointer;
+var
+  PNxtHook: PNextHook;
 begin
-  FreeAndNil(FLock);
+  PNxtHook := GetNextHookPtrFromTrampoline(PPointer(@TrampoLine)^);
+  Result := PNxtHook^.Param;
 end;
 
-class procedure TInterceptMonitor.Enter;
+{ ======================================= Recursive Section ======================================= }
+
+function EnterRecursiveSection(var TrampoLine; MaxRecursionLevel: NativeInt = 0): Boolean;
+var
+  PNxtHook: PNextHook;
+  RecursionLevel: NativeInt;
 begin
-  {
-    If the current thread is working with DDL (Insert/Remove hook)..
-    others threads must wait before accessing
-    detours (Insert/Remove/...).
-  }
-{$IFNDEF FPC}
-  TMonitor.Enter(FLock);
-{$ELSE FPC}
-  EnterCriticalSection(Critical);
-{$ENDIF !FPC}
+  PNxtHook := GetNextHookPtrFromTrampoline(PPointer(@TrampoLine)^);
+  if ioRecursive in PNxtHook^.InterceptOptions then
+  begin
+    RecursionLevel := NativeInt(TlsGetValue(PNxtHook^.TlsRecursionLevelIndex));
+    Result := RecursionLevel <= MaxRecursionLevel;
+    if Result then
+    begin
+      Inc(RecursionLevel);
+      TlsSetValue(PNxtHook^.TlsRecursionLevelIndex, Pointer(RecursionLevel));
+    end;
+  end
+  else
+    raise DetourException.Create(SErrorRecursiveSectionUnsupported);
 end;
 
-class procedure TInterceptMonitor.Leave;
+function ExitRecursiveSection(var TrampoLine): Boolean;
+var
+  PNxtHook: PNextHook;
+  RecursionLevel: NativeInt;
 begin
-  {
-    After the current thread finish it's
-    job with TIntercept .. others thread
-    can now access TIntercept .
-  }
-{$IFNDEF FPC}
-  TMonitor.Exit(FLock);
-{$ELSE}
-  LeaveCriticalSection(Critical);
-{$ENDIF}
+  PNxtHook := GetNextHookPtrFromTrampoline(PPointer(@TrampoLine)^);
+  if ioRecursive in PNxtHook^.InterceptOptions then
+  begin
+    RecursionLevel := NativeInt(TlsGetValue(PNxtHook^.TlsRecursionLevelIndex));
+    Result := RecursionLevel >= 0;
+    if Result then
+    begin
+      Dec(RecursionLevel);
+      TlsSetValue(PNxtHook^.TlsRecursionLevelIndex, Pointer(RecursionLevel));
+    end;
+  end
+  else
+    raise DetourException.Create(SErrorRecursiveSectionUnsupported);
 end;
 
-{$IFDEF MustUseGenerics }
-{ ***** BEGIN LICENSE BLOCK *****
-  *
-  * The initial developer of the original TDetour
-  * class is David Millington .
-  *
-  * ***** END LICENSE BLOCK ***** }
+{ ======================================= Transaction ======================================= }
+function CountThreadCallBack(ID: DWORD; Param: Pointer): BOOL;
+begin
+  Assert(Assigned(Param));
+  Inc(PInteger(Param)^);
+  Result := True;
+end;
 
-{ TDetours<T> }
+function SuspendOrResumeThread(threadid: DWORD; Suspend: Boolean): DWORD;
+var
+  hThread: THandle;
+begin
+  hThread := OpenThread(THREAD_SUSPEND_RESUME, False, threadid);
+  if hThread <> THandle(0) then
+  begin
+    if Suspend then
+      Result := SuspendThread(hThread)
+    else
+      Result := ResumeThread(hThread);
+    CloseHandle(hThread);
+  end
+  else
+    Result := DWORD(-1);
+end;
 
-function TDetours<T>.CheckTType: Boolean;
+function SuspendThreadCallBack(ID: DWORD; Param: Pointer): BOOL;
+var
+  PStruct: PTransactionStruct;
+  SuspendCount: DWORD;
+begin
+  Assert(Assigned(Param));
+  PStruct := PTransactionStruct(Param);
+  if ID <> PStruct^.TID then
+  begin
+    SuspendCount := SuspendOrResumeThread(ID, True);
+    if SuspendCount <> DWORD(-1) then
+    // thread's previously was running  .
+    begin
+      { Only add threads that was running before suspending them ! }
+      PStruct^.SuspendedThreads^[PStruct^.SuspendedThreadCount] := ID;
+      Inc(PStruct^.SuspendedThreadCount);
+    end;
+  end;
+  Result := True;
+end;
+
+function BeginTransaction(Options: TTransactionOptions = [toSuspendThread]): THandle;
+var
+  PStruct: PTransactionStruct;
+  ThreadCount: Integer;
+  P: Pointer;
+  ThreadHandle: THandle;
+begin
+  EnterLook(FLock);
+  try
+    ThreadHandle := GetCurrentThread();
+    PStruct := GetMemory(SizeOf(TTransactionStruct));
+    FillChar(PStruct^, SizeOf(TTransactionStruct), #00);
+    PStruct^.Options := Options;
+    PStruct^.PID := GetCurrentProcessId();
+    PStruct^.TID := GetCurrentThreadId();
+    PStruct^.ThreadPriority := GetThreadPriority(ThreadHandle);
+    SetThreadPriority(ThreadHandle, THREAD_PRIORITY_TIME_CRITICAL);
+    Result := THandle(PStruct);
+    if toSuspendThread in Options then
+    begin
+      ThreadCount := 0;
+      EnumProcessThreads(PStruct^.PID, @CountThreadCallBack, @ThreadCount);
+      if ThreadCount > 1 then
+      begin
+        P := GetMemory(ThreadCount * 2 * SizeOf(DWORD));
+        PStruct^.SuspendedThreads := P;
+        EnumProcessThreads(PStruct^.PID, @SuspendThreadCallBack, PStruct);
+      end;
+    end;
+  finally
+    LeaveLook(FLock);
+  end;
+end;
+
+function EndTransaction(Handle: THandle): Boolean;
+var
+  PStruct: PTransactionStruct;
+  i: Integer;
+begin
+  EnterLook(FLock);
+  Result := True;
+  PStruct := PTransactionStruct(Handle);
+  try
+    if PStruct^.SuspendedThreadCount > 0 then
+    begin
+      for i := 0 to PStruct^.SuspendedThreadCount - 1 do
+      begin
+        SuspendOrResumeThread(PStruct^.SuspendedThreads^[i], False);
+      end;
+      FreeMemory(PStruct^.SuspendedThreads);
+    end;
+    SetThreadPriority(GetCurrentThread(), PStruct^.ThreadPriority);
+    FreeMemory(PTransactionStruct(Handle));
+  finally
+    LeaveLook(FLock);
+  end;
+end;
+
+{$IFDEF SUPPORTS_GENERICS}
+{ TIntercept<T,U> }
+
+function TIntercept<T, U>.TToPointer(const A): Pointer;
+begin
+  Result := Pointer(A);
+end;
+
+function TIntercept<T, U>.PointerToT(const P): T;
+begin
+  Result := T(P);
+end;
+
+function TIntercept<T, U>.EnsureTIsMethod(): Boolean;
 var
   LPInfo: PTypeInfo;
 begin
-  LPInfo := TypeInfo(T);
   Result := SizeOf(T) = SizeOf(Pointer);
   if Result then
-    Result := LPInfo.Kind = tkProcedure;
-  if not Result then
-    raise DetourException.CreateFmt(SInvalidTType, [LPInfo.Name]);
-end;
-
-constructor TDetours<T>.Create(const TargetProc, InterceptProc: T);
-begin
-  inherited Create();
-  CheckTType;
-  SetHook(TargetProc, InterceptProc);
-end;
-
-destructor TDetours<T>.Destroy;
-begin
-  Disable;
-  inherited;
-end;
-
-procedure TDetours<T>.SetHook(const TargetProc, InterceptProc: T);
-begin
-  FTargetProc := TToPointer(TargetProc);
-  FInterceptProc := TToPointer(InterceptProc);
-  FNextHook := T(nil);
-  Assert(Assigned(FTargetProc) and Assigned(FInterceptProc), 'Target or replacement methods are not assigned');
-end;
-
-procedure TDetours<T>.Disable;
-var
-  PTrampoline: Pointer;
-begin
-  if Installed then
   begin
-    PTrampoline := TToPointer(FNextHook);
-    DDetours.InterceptRemove(PTrampoline);
-    FNextHook := T(nil);
+    LPInfo := TypeInfo(T);
+    if LPInfo.Kind = tkProcedure then
+      Exit
+    else
+      raise DetourException.Create(SErrorInvalidTType);
   end;
 end;
 
-procedure TDetours<T>.Enable;
+constructor TIntercept<T, U>.Create(const TargetProc, InterceptProc: T; const AParam: U; const AInterceptOptions: TInterceptOptions = DefaultInterceptOptions);
 begin
-  if not Installed then
-    FNextHook := PointerToT(InterceptCreate(FTargetProc, FInterceptProc));
+  EnsureTIsMethod();
+  FCreatorThreadId := GetCurrentThreadId();
+  FInterceptOptions := AInterceptOptions;
+  FParam := AParam;
+  FTrampolinePtr := InterceptCreate(TToPointer(TargetProc), TToPointer(InterceptProc), @FParam, AInterceptOptions);
+  FNextHook := PointerToT(FTrampolinePtr);
 end;
 
-function TDetours<T>.GetHookCount: ShortInt;
+function TIntercept<T, U>.GetTrampoline(): T;
 begin
-  Result := GetNHook(FTargetProc);
-end;
-
-function TDetours<T>.GetInstalled: Boolean;
-begin
-  Result := Assigned(TToPointer(FNextHook));
-end;
-
-function TDetours<T>.NextHook: T;
-begin
-  Assert(Installed, SDetoursNotInstalled);
   Result := FNextHook;
 end;
 
-function TDetours<T>.PointerToT(const _P: Pointer): T;
+function TIntercept<T, U>.GetParam(): U;
 begin
-  Result := __PointerToT(_P);
+  Result := FParam;
 end;
 
-function TDetours<T>.TToPointer(const _T: T): Pointer;
+function TIntercept<T, U>.GetCreatorThreadId(): TThreadId;
 begin
-  Result := __TToPointer(_T);
+  Result := FCreatorThreadId;
 end;
 
-function TDetours<T>.__PointerToT(const _P): T;
+function TIntercept<T, U>.GetInterceptOptions(): TInterceptOptions;
 begin
-  Result := T(_P);
+  Result := FInterceptOptions;
 end;
 
-function TDetours<T>.__TToPointer(const _T): Pointer;
+function TIntercept<T, U>.EnterRecursive(MaxRecursionLevel: NativeInt = 0): Boolean;
 begin
-  Result := Pointer(_T);
+  Result := EnterRecursiveSection(FTrampolinePtr, MaxRecursionLevel);
 end;
 
-{ --------------------------------------------------------------------------- }
-function BeginHooks(): Boolean;
-var
-  List: TThreadsIDList;
+function TIntercept<T, U>.ExitRecursive(): Boolean;
 begin
-  List := TThreadsIDList.Create;
-  GlobalThreadList.Add(GetCurrentThread, List);
-  Result := SuspendAllThreads(List);
+  Result := ExitRecursiveSection(FTrampolinePtr);
 end;
 
-function EndHooks(): Boolean;
-var
-  List: TThreadsIDList;
-  currThread: THandle;
+destructor TIntercept<T, U>.Destroy();
 begin
-  currThread := GetCurrentThread;
-  List := GlobalThreadList[currThread];
-  Assert(Assigned(List));
-  Result := ResumeSuspendedThreads(List);
-  GlobalThreadList.Remove(currThread);
-  FreeAndNil(List);
+  InterceptRemove(TToPointer(FNextHook));
+  inherited;
 end;
 
-function BeginUnHooks(): Boolean;
+{ TIntercept<T> }
+constructor TIntercept<T>.Create(const TargetProc, InterceptProc: T; const AParam: Pointer = nil;
+  const AInterceptOptions: TInterceptOptions = DefaultInterceptOptions);
 begin
-  if GlobalThreadList.ContainsKey(GetCurrentThread) then
-    raise InterceptException.Create(ErrBgnUnHooks);
-  Result := BeginHooks;
+  inherited Create(TargetProc, InterceptProc, AParam, InterceptOptions);
 end;
 
-function EndUnHooks(): Boolean;
-begin
-  Result := EndHooks;
-end;
-{$ENDIF MustUseGenerics}
-
-var
-  SysInfo: TSystemInfo;
+{$ENDIF SUPPORTS_GENERICS}
+{ ======================================= Initialization ======================================= }
 
 procedure InitInternalFuncs();
 
@@ -2750,13 +2748,11 @@ procedure InitInternalFuncs();
     Inst: TInstruction;
   begin
     Sb := 0;
-    Func := TIntercept.GetRoot(Func);
+    Func := GetRoot(Func);
     Result := VirtualAlloc(nil, 64, MEM_RESERVE or MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     P := Result;
-    mb := JmpTypeToSize[tJmpRipZ];
-{$IFNDEF FPC}
-    Inst := default (TInstruction);
-{$ENDIF !FPC}
+    mb := JmpTypeToSize[JT_RIPZ];
+    FillChar(Inst, SizeOf(TInstruction), #00);
     Inst.Archi := CPUX;
     Inst.NextInst := Func;
     while Sb <= mb do
@@ -2768,33 +2764,33 @@ procedure InitInternalFuncs();
     fn := MapInsts(Func, P, Sb);
     Inc(P, fn);
 {$IFDEF CPUX64}
-    InsertJmp(P, Func + Sb, tJmpRipZ);
+    InsertJmp(P, PByte(NativeInt(Func) + Sb), JT_RIPZ);
 {$ELSE !CPUX64}
-    InsertJmp(P, Func + Sb, tJmpRel32);
+    InsertJmp(P, PByte(NativeInt(Func) + Sb), JT_REL32);
 {$ENDIF CPUX64}
   end;
 
 begin
-{$IFDEF HookInternalFuncs}
+{$IFDEF HOOK_INTERNAL_FUNCTIONS}
   @InternalFuncs.VirtualAlloc := CloneFunc(@VirtualAlloc);
   @InternalFuncs.VirtualFree := CloneFunc(@VirtualFree);
   @InternalFuncs.VirtualProtect := CloneFunc(@VirtualProtect);
   @InternalFuncs.VirtualQuery := CloneFunc(@VirtualQuery);
   @InternalFuncs.FlushInstructionCache := CloneFunc(@FlushInstructionCache);
   @InternalFuncs.GetCurrentProcess := CloneFunc(@GetCurrentProcess);
-{$ELSE !HookInternalFuncs}
+{$ELSE !HOOK_INTERNAL_FUNCTIONS}
   @InternalFuncs.VirtualAlloc := @VirtualAlloc;
   @InternalFuncs.VirtualFree := @VirtualFree;
   @InternalFuncs.VirtualProtect := @VirtualProtect;
   @InternalFuncs.VirtualQuery := @VirtualQuery;
   @InternalFuncs.FlushInstructionCache := @FlushInstructionCache;
   @InternalFuncs.GetCurrentProcess := @GetCurrentProcess;
-{$ENDIF HookInternalFuncs}
+{$ENDIF HOOK_INTERNAL_FUNCTIONS}
 end;
 
 procedure FreeInternalFuncs;
 begin
-{$IFDEF HookInternalFuncs}
+{$IFDEF HOOK_INTERNAL_FUNCTIONS}
   InternalFuncs.VirtualFree(@InternalFuncs.VirtualAlloc, 0, MEM_RELEASE);
   InternalFuncs.VirtualFree(@InternalFuncs.VirtualProtect, 0, MEM_RELEASE);
   InternalFuncs.VirtualFree(@InternalFuncs.VirtualQuery, 0, MEM_RELEASE);
@@ -2802,22 +2798,22 @@ begin
   InternalFuncs.VirtualFree(@InternalFuncs.GetCurrentProcess, 0, MEM_RELEASE);
   // VirtualFree must be the last one !
   InternalFuncs.VirtualFree(@InternalFuncs.VirtualFree, 0, MEM_RELEASE);
-{$ENDIF HookInternalFuncs}
+{$ENDIF HOOK_INTERNAL_FUNCTIONS}
 end;
 
 initialization
 
-TInterceptMonitor.InternalCreate;
-{$IFDEF MustUseGenerics}
-GlobalThreadList := TDictionary<THandle, TThreadsIDList>.Create;
-{$ENDIF MustUseGenerics}
+{$IFDEF SUPPORTS_MONITOR}
+  FLock := TObject.Create();
+{$ELSE SUPPORTS_MONITOR}
+  FLock := TCriticalSection.Create();
+{$ENDIF SUPPORTS_MONITOR}
 GetSystemInfo(SysInfo);
 SizeOfAlloc := SysInfo.dwPageSize;
 if SizeOfAlloc < (TmpSize + TrampoSize + 64) then
   SizeOfAlloc := (TmpSize + TrampoSize + 64);
 {$IFDEF FPC}
 OpenThread := nil;
-InitializeCriticalSection(Critical);
 {$ELSE !FPC}
 @OpenThread := nil;
 {$ENDIF !FPC}
@@ -2843,19 +2839,14 @@ begin
 end;
 { The OpenThread function does not exist on OS version < Win XP }
 OpenThreadExist := (@OpenThread <> nil);
-InitInternalFuncs;
+InitInternalFuncs();
 
 finalization
 
-{$IFDEF MustUseGenerics}
-  GlobalThreadList.Free;
-{$ENDIF MustUseGenerics}
 if (FreeKernel) and (hKernel > 0) then
   FreeLibrary(hKernel);
-FreeInternalFuncs;
-{$IFDEF FPC}
-DeleteCriticalSection(Critical);
-{$ENDIF FPC}
-TInterceptMonitor.InternalDestroy;
+FreeInternalFuncs();
+if Assigned(FLock) then
+  FreeAndNil(FLock);
 
 end.

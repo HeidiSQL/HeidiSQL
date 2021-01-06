@@ -1,48 +1,44 @@
 // **************************************************************************************************
 // CPUID for Delphi.
 // Unit CPUID
-// https://github.com/MahdiSafsafi/delphi-detours-library
-
-// The contents of this file are subject to the Mozilla Public License Version 1.1 (the "License");
-// you may not use this file except in compliance with the License. You may obtain a copy of the
-// License at http://www.mozilla.org/MPL/
+// https://github.com/MahdiSafsafi/DDetours
 //
-// Software distributed under the License is distributed on an "AS IS" basis, WITHOUT WARRANTY OF
-// ANY KIND, either express or implied. See the License for the specific language governing rights
-// and limitations under the License.
-//
-// The Original Code is CPUID.pas.
-//
-// The Initial Developer of the Original Code is Mahdi Safsafi [SMP3].
-// Portions created by Mahdi Safsafi . are Copyright (C) 2013-2017 Mahdi Safsafi .
-// All Rights Reserved.
-//
+// This Source Code Form is subject to the terms of the Mozilla 
+// Public License, v. 2.0. If a copy of the MPL was not distributed 
+// with this file, You can obtain one at
+// https://mozilla.org/MPL/2.0/.
 // **************************************************************************************************
 
 unit CPUID;
 {$IFDEF FPC}
 {$MODE DELPHI}
+{$WARN 4055 OFF}
+{$WARN 4082 OFF}
+{$WARN 5057 OFF}
 {$ENDIF FPC}
 
 interface
 
-{$I Defs.inc}
+{$I DDetoursDefs.inc}
 
-uses SysUtils;
+uses
+  SysUtils
+{$IFNDEF FPC}, LegacyTypes{$ENDIF FPC}
+    ;
 
 type
   { Do not change registers order ! }
   TCPUIDStruct = packed record
-    rEAX: UInt32; { EAX Register }
-    rEBX: UInt32; { EBX Register }
-    rEDX: UInt32; { EDX Register }
-    rECX: UInt32; { ECX Register }
+    rEAX: Cardinal; { EAX Register }
+    rEBX: Cardinal; { EBX Register }
+    rEDX: Cardinal; { EDX Register }
+    rECX: Cardinal; { ECX Register }
   end;
 
   PCPUIDStruct = ^TCPUIDStruct;
 
-procedure CallCPUID(const ID: NativeUInt; var CPUIDStruct: TCPUIDStruct);
-function IsCPUIDSupported: Boolean;
+procedure CallCPUID(ID: NativeUInt; var CPUIDStruct: TCPUIDStruct);
+function IsCPUIDSupported(): Boolean;
 
 type
   TCPUVendor = (vUnknown, vIntel, vAMD, vNextGen);
@@ -61,7 +57,25 @@ var
 
 function ___IsCPUIDSupported: Boolean;
 asm
-  {$IFDEF CPUX86}
+  {$IFDEF CPUX64}
+  PUSH RCX
+  MOV RCX,RCX
+  PUSHFQ
+  POP RAX
+  MOV RCX, RAX
+  XOR RAX, $200000
+  PUSH RAX
+  POPFQ
+  PUSHFQ
+  POP RAX
+  XOR RAX, RCX
+  SHR RAX, 21
+  AND RAX, 1
+  PUSH RCX
+  POPFQ
+  POP RCX
+  {$ELSE !CPUX64}
+
   PUSH ECX
   PUSHFD
   POP EAX { EAX = EFLAGS }
@@ -86,24 +100,7 @@ asm
   PUSH ECX
   POPFD  { Restore original EFLAGS value . }
   POP ECX
-  {$ELSE !CPUX86}
-  PUSH RCX
-  MOV RCX,RCX
-  PUSHFQ
-  POP RAX
-  MOV RCX, RAX
-  XOR RAX, $200000
-  PUSH RAX
-  POPFQ
-  PUSHFQ
-  POP RAX
-  XOR RAX, RCX
-  SHR RAX, 21
-  AND RAX, 1
-  PUSH RCX
-  POPFQ
-  POP RCX
-  {$ENDIF CPUX86}
+  {$ENDIF CPUX64}
 end;
 
 procedure ___CallCPUID(const ID: NativeInt; var CPUIDStruct);
@@ -112,7 +109,29 @@ asm
   ALL REGISTERS (rDX,rCX,rBX) MUST BE SAVED BEFORE
   EXECUTING CPUID INSTRUCTION !
    }
-  {$IFDEF CPUX86}
+  {$IFDEF CPUX64}
+  PUSH R9
+  PUSH RBX
+  PUSH RDX
+  MOV RAX,RCX
+  MOV R9,RDX
+  CPUID
+  {$IFNDEF FPC}
+  MOV R9.TCPUIDStruct.rEAX,EAX
+  MOV R9.TCPUIDStruct.rEBX,EBX
+  MOV R9.TCPUIDStruct.rECX,ECX
+  MOV R9.TCPUIDStruct.rEDX,EDX
+  {$ELSE FPC}
+  MOV [R9].TCPUIDStruct.rEAX,EAX
+  MOV [R9].TCPUIDStruct.rEBX,EBX
+  MOV [R9].TCPUIDStruct.rECX,ECX
+  MOV [R9].TCPUIDStruct.rEDX,EDX
+  {$ENDIF !FPC}
+  POP RDX
+  POP RBX
+  POP R9
+  {$ELSE !CPUX64}
+
   PUSH EDI
   PUSH ECX
   PUSH EBX
@@ -132,21 +151,7 @@ asm
   POP EBX
   POP ECX
   POP EDI
-  {$ELSE !CPUX86}
-  PUSH R9
-  PUSH RBX
-  PUSH RDX
-  MOV RAX,RCX
-  MOV R9,RDX
-  CPUID
-  MOV R9.TCPUIDStruct.rEAX,EAX
-  MOV R9.TCPUIDStruct.rEBX,EBX
-  MOV R9.TCPUIDStruct.rECX,ECX
-  MOV R9.TCPUIDStruct.rEDX,EDX
-  POP RDX
-  POP RBX
-  POP R9
-  {$ENDIF CPUX86}
+  {$ENDIF CPUX64}
 end;
 
 function ___IsAVXSupported: Boolean;
@@ -160,7 +165,7 @@ asm
   2) Detect CPUID.1:ECX.AVX[bit 28] = 1
   => AVX instructions supported.
 
-  3) Issue XGETBV and verify that XCR0[2:1] = ‘11b’
+  3) Issue XGETBV and verify that XCR0[2:1] = â€˜11bâ€™
   => XMM state and YMM state are enabled by OS.
 
    }
@@ -207,7 +212,7 @@ asm
   {$ENDIF CPUX64}
 end;
 
-procedure CallCPUID(const ID: NativeUInt; var CPUIDStruct: TCPUIDStruct);
+procedure CallCPUID(ID: NativeUInt; var CPUIDStruct: TCPUIDStruct);
 begin
   FillChar(CPUIDStruct, SizeOf(TCPUIDStruct), #0);
   if not CPUIDSupported then
@@ -224,7 +229,7 @@ end;
 type
   TVendorName = array [0 .. 12] of AnsiChar;
 
-function GetVendorName: TVendorName;
+function GetVendorName(): TVendorName;
 var
   Info: PCPUIDStruct;
   P: PByte;
@@ -234,7 +239,7 @@ begin
     Exit;
   Info := GetMemory(SizeOf(TCPUIDStruct));
   CallCPUID(0, Info^);
-  P := PByte(Info) + 4; // Skip EAX !
+  P := PByte(NativeInt(Info) + 4); // Skip EAX !
   Move(P^, PByte(@Result[0])^, 12);
   FreeMemory(Info);
 end;
@@ -243,7 +248,7 @@ procedure __Init__;
 var
   vn: TVendorName;
   Info: TCPUIDStruct;
-  r: UInt32;
+  r: Cardinal;
 begin
   CPUVendor := vUnknown;
 {$IFDEF CPUX64}
@@ -264,7 +269,8 @@ begin
     CallCPUID(1, Info);
     r := Info.rEAX and $F00;
     case r of
-      $F00, $600: Include(CPUInsts, iMultiNop);
+      $F00, $600:
+        Include(CPUInsts, iMultiNop);
     end;
     if ___IsAVXSupported then
       Include(CPUEncoding, VEX);

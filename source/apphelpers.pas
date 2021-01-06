@@ -14,7 +14,7 @@ uses
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, dbstructures, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
-  CommCtrl, Winapi.KnownFolders;
+  CommCtrl, Winapi.KnownFolders, SynUnicode;
 
 type
 
@@ -160,7 +160,7 @@ type
     asGridExportColumnNames, asGridExportIncludeAutoInc, asGridExportIncludeQuery, asGridExportRemoveLinebreaks,
     asGridExportSeparator, asGridExportEncloser, asGridExportTerminator, asGridExportNull,
 
-    asGridExportClpFormat, asGridExportClpColumnNames, asGridExportClpIncludeAutoInc, asGridExportClpRemoveLinebreaks,
+    asGridExportClpColumnNames, asGridExportClpIncludeAutoInc, asGridExportClpRemoveLinebreaks,
     asGridExportClpSeparator, asGridExportClpEncloser, asGridExportClpTerminator, asGridExportClpNull,
 
     asCSVImportSeparator, asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
@@ -168,7 +168,7 @@ type
     asCSVImportDuplicateHandling, asCSVImportParseMethod,
     asUpdatecheck, asUpdatecheckBuilds, asUpdatecheckInterval, asUpdatecheckLastrun, asUpdateCheckWindowWidth, asUpdateCheckWindowHeight,
     asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
-    asTableToolsFindText, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
+    asTableToolsFindTextTab, asTableToolsFindText, asTableToolsFindSQL, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
     asEditVarWindowWidth, asEditVarWindowHeight, asUsermanagerWindowWidth, asUsermanagerWindowHeight, asUsermanagerListWidth,
     asSelectDBOWindowWidth, asSelectDBOWindowHeight,
     asSessionManagerListWidth, asSessionManagerWindowWidth, asSessionManagerWindowHeight, asSessionManagerWindowLeft, asSessionManagerWindowTop,
@@ -289,7 +289,7 @@ type
   function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
   function GetShellFolder(FolderId: TGUID): String;
-  function goodfilename( str: String ): String;
+  function ValidFilename(Str: String): String;
   function ExtractBaseFileName(FileName: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
@@ -319,12 +319,14 @@ type
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
-  procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+  procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True); overload;
   procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
   procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function DateBackFriendlyCaption(d: TDateTime): String;
+  function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
+  function TruncDef(X: Real; Default: Int64): Int64;
   function GetLightness(AColor: TColor): Byte;
   function ReformatSQL(SQL: String): String;
   function ParamBlobToStr(lpData: Pointer): String;
@@ -367,8 +369,9 @@ type
   function RunningAsUwp: Boolean;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String): Boolean;
-  function ProcessExists(pid: Cardinal): Boolean;
+  function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
+  function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
 
 var
   AppSettings: TAppSettings;
@@ -379,6 +382,7 @@ var
   NumberChars: TSysCharSet;
   LibHandleUser32: THandle;
   UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
+  DateTimeNever: TDateTime;
 
 implementation
 
@@ -798,13 +802,14 @@ end;
   @param string Filename
   @return string
 }
-function goodfilename( str: String ): String;
+function ValidFilename(Str: String): String;
 var
-  c : Char;
+  c: Char;
 begin
-  result := str;
-  for c in ['\', '/', ':', '*', '?', '"', '<', '>', '|'] do
-    result := StringReplace( result, c, '_', [rfReplaceAll] );
+  Result := Str;
+  for c in TPath.GetInvalidFileNameChars do begin
+    Result := StringReplace(Result, c, '_', [rfReplaceAll]);
+  end;
 end;
 
 
@@ -1065,8 +1070,8 @@ function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
 var
   d, h, m, s, ts: Integer;
 begin
-  s := Trunc(Seconds);
-  ts := Trunc((Seconds - s) * 10); // ts = tenth of a second
+  s := TruncDef(Seconds, 0);
+  ts := TruncDef((Seconds - s) * 10, 0); // ts = tenth of a second
   d := s div (60*60*24);
   s := s mod (60*60*24);
   h := s div (60*60);
@@ -1137,7 +1142,7 @@ end;
 
 
 {**
-  Detect stream's content encoding by examing first 100k bytes (MaxBufferSize). Result can be:
+  Detect stream's content encoding through SynEdit's GetEncoding. Result can be:
     UTF-16 BE with BOM
     UTF-16 LE with BOM
     UTF-8 with or without BOM
@@ -1148,143 +1153,21 @@ end;
 }
 function DetectEncoding(Stream: TStream): TEncoding;
 var
-  ByteOrderMark: Char;
-  BytesRead: Integer;
-  Utf8Test: array[0..2] of AnsiChar;
-  Buffer: array of Byte;
-  BufferSize, i, FoundUTF8Strings: Integer;
-const
-  UNICODE_BOM = Char($FEFF);
-  UNICODE_BOM_SWAPPED = Char($FFFE);
-  UTF8_BOM = AnsiString(#$EF#$BB#$BF);
-  MinimumCountOfUTF8Strings = 1;
-  MaxBufferSize = 1000000;
-
-  // 3 trailing bytes are the maximum in valid UTF-8 streams,
-  // so a count of 4 trailing bytes is enough to detect invalid UTF-8 streams
-  function CountOfTrailingBytes: Integer;
-  begin
-    Result := 0;
-    inc(i);
-    while (i < BufferSize) and (Result < 4) do begin
-      if Buffer[i] in [$80..$BF] then
-        inc(Result)
-      else
-        Break;
-      inc(i);
-    end;
-  end;
-
+  SynEnc: TSynEncoding;
+  WithBOM: Boolean;
 begin
-  // Byte Order Mark
-  ByteOrderMark := #0;
-  if (Stream.Size - Stream.Position) >= SizeOf(ByteOrderMark) then begin
-    BytesRead := Stream.Read(ByteOrderMark, SizeOf(ByteOrderMark));
-    if (ByteOrderMark <> UNICODE_BOM) and (ByteOrderMark <> UNICODE_BOM_SWAPPED) then begin
-      ByteOrderMark := #0;
-      Stream.Seek(-BytesRead, soFromCurrent);
-      if (Stream.Size - Stream.Position) >= Length(Utf8Test) * SizeOf(AnsiChar) then begin
-        BytesRead := Stream.Read(Utf8Test[0], Length(Utf8Test) * SizeOf(AnsiChar));
-        if Utf8Test <> UTF8_BOM then
-          Stream.Seek(-BytesRead, soFromCurrent);
-      end;
+  SynEnc := SynUnicode.GetEncoding(Stream, WithBOM);
+  case SynEnc of
+    seUTF8: begin
+      if WithBOM then
+        Result := TEncoding.UTF8
+      else
+        Result := UTF8NoBOMEncoding;
     end;
-  end;
-  // Test Byte Order Mark
-  if ByteOrderMark = UNICODE_BOM then
-    Result := TEncoding.Unicode
-  else if ByteOrderMark = UNICODE_BOM_SWAPPED then
-    Result := TEncoding.BigEndianUnicode
-  else if Utf8Test = UTF8_BOM then
-    Result := TEncoding.UTF8
-  else begin
-    { @note Taken from SynUnicode.pas }
-    { If no BOM was found, check for leading/trailing byte sequences,
-      which are uncommon in usual non UTF-8 encoded text.
-
-      NOTE: There is no 100% save way to detect UTF-8 streams. The bigger
-            MinimumCountOfUTF8Strings, the lower is the probability of
-            a false positive. On the other hand, a big MinimumCountOfUTF8Strings
-            makes it unlikely to detect files with only little usage of non
-            US-ASCII chars, like usual in European languages. }
-
-    // if no special characteristics are found it is not UTF-8
-    Result := TEncoding.Default;
-
-    // start analysis at actual Stream.Position
-    BufferSize := Min(MaxBufferSize, Stream.Size - Stream.Position);
-
-    if BufferSize > 0 then begin
-      SetLength(Buffer, BufferSize);
-      Stream.ReadBuffer(Buffer[0], BufferSize);
-      Stream.Seek(-BufferSize, soFromCurrent);
-
-      FoundUTF8Strings := 0;
-      i := 0;
-      while i < BufferSize do begin
-        if FoundUTF8Strings = MinimumCountOfUTF8Strings then begin
-          Result := TEncoding.UTF8;
-          Break;
-        end;
-        case Buffer[i] of
-          $00..$7F: // skip US-ASCII characters as they could belong to various charsets
-            ;
-          $C2..$DF:
-            if CountOfTrailingBytes = 1 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $E0:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$A0..$BF]) and (CountOfTrailingBytes = 1) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $E1..$EC, $EE..$EF:
-            if CountOfTrailingBytes = 2 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $ED:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$80..$9F]) and (CountOfTrailingBytes = 1) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $F0:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$90..$BF]) and (CountOfTrailingBytes = 2) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $F1..$F3:
-            if CountOfTrailingBytes = 3 then
-              inc(FoundUTF8Strings)
-            else
-              Break;
-          $F4:
-            begin
-              inc(i);
-              if (i < BufferSize) and (Buffer[i] in [$80..$8F]) and (CountOfTrailingBytes = 2) then
-                inc(FoundUTF8Strings)
-              else
-                Break;
-            end;
-          $C0, $C1, $F5..$FF: // invalid UTF-8 bytes
-            Break;
-          $80..$BF: // trailing bytes are consumed when handling leading bytes,
-                     // any occurence of "orphaned" trailing bytes is invalid UTF-8
-            Break;
-        end;
-        inc(i);
-      end;
-    end;
+    seUTF16LE: Result := TEncoding.Unicode;
+    seUTF16BE: Result := TEncoding.BigEndianUnicode;
+    seAnsi: Result := TEncoding.ANSI;
+    else Result := UTF8NoBOMEncoding;
   end;
 end;
 
@@ -1553,14 +1436,15 @@ begin
 end;
 
 
-procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode); overload;
+procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True); overload;
 var
   OldFocus: PVirtualNode;
 begin
   if Node = VT.RootNode then
     Node := nil;
   OldFocus := VT.FocusedNode;
-  VT.ClearSelection;
+  if ClearSelection then
+    VT.ClearSelection;
   VT.FocusedNode := Node;
   VT.Selected[Node] := True;
   VT.ScrollIntoView(Node, False);
@@ -1679,6 +1563,29 @@ begin
   else if MinutesAgo = 1 then Result := f_('%s minute ago', [FormatNumber(MinutesAgo)])
   else if MinutesAgo > 0 then Result := f_('%s minutes ago', [FormatNumber(MinutesAgo)])
   else Result := _('less than a minute ago');
+end;
+
+
+function DateTimeToStrDef(DateTime: TDateTime; Default: String) : String;
+begin
+  try
+    if DateTime = 0 then
+      Result := Default
+    else
+      Result := DateTimeToStr(DateTime);
+  except
+    on EInvalidOp do Result := Default;
+  end;
+end;
+
+
+function TruncDef(X: Real; Default: Int64): Int64;
+begin
+  try
+    Result := Trunc(X);
+  except
+    on EInvalidOp do Result := Default;
+  end;
 end;
 
 
@@ -2017,7 +1924,7 @@ begin
     // FreeMemory(Dat.lpData);
 
     // Bring first instance to front
-    if not IsWindowVisible(Wnd) then
+    if IsIconic(Wnd) then
       ShowWindow(Wnd, SW_RESTORE);
     BringWindowToTop(Wnd);
     SetForegroundWindow(Wnd);
@@ -2694,12 +2601,12 @@ begin
   Arguments := TStringList.Create;
 
   if Assigned(DBObj) then begin
-    Arguments.Values['session'] := goodfilename(DBObj.Connection.Parameters.SessionName);
-    Arguments.Values['host'] := goodfilename(DBObj.Connection.Parameters.Hostname);
-    Arguments.Values['u'] := goodfilename(DBObj.Connection.Parameters.Username);
-    Arguments.Values['db'] := goodfilename(DBObj.Database);
+    Arguments.Values['session'] := ValidFilename(DBObj.Connection.Parameters.SessionName);
+    Arguments.Values['host'] := ValidFilename(DBObj.Connection.Parameters.Hostname);
+    Arguments.Values['u'] := ValidFilename(DBObj.Connection.Parameters.Username);
+    Arguments.Values['db'] := ValidFilename(DBObj.Database);
   end;
-  Arguments.Values['date'] := goodfilename(DateTimeToStr(Now));
+  Arguments.Values['date'] := ValidFilename(DateTimeToStr(Now));
   DecodeDateTime(Now, Year, Month, Day, Hour, Min, Sec, MSec);
   Arguments.Values['d'] := Format('%.2d', [Day]);
   Arguments.Values['m'] := Format('%.2d', [Month]);
@@ -2940,7 +2847,7 @@ begin
 end;
 
 
-function ProcessExists(pid: Cardinal): Boolean;
+function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
 var
   Proc: TProcessEntry32;
   SnapShot: THandle;
@@ -2952,7 +2859,7 @@ begin
   Result := False;
   ContinueLoop := Process32First(SnapShot, Proc);
   while ContinueLoop do begin
-    Result := Proc.th32ProcessID = pid;
+    Result := (Proc.th32ProcessID = pid) and ContainsText(Proc.szExeFile, ExeNamePattern);
     if Result then
       Break;
     ContinueLoop := Process32Next(SnapShot, Proc);
@@ -2971,6 +2878,18 @@ begin
   chk.OnClick := ClickEvent;
 end;
 
+
+function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
+  LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
+const
+  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{5}\color{%s}%s';
+begin
+  // Return formatted item string for a TSynCompletionProposal
+  if LeftColor = -1 then LeftColor := clGrayText;
+  if CenterColor = -1 then CenterColor := clWindowText;
+  if RightColor = -1 then RightColor := clGrayText;
+  Result := Format(LineFormat, [ImageIndex, ColorToString(LeftColor), LeftText, ColorToString(CenterColor), CenterText, ColorToString(RightColor), RightText]);
+end;
 
 
 
@@ -3329,8 +3248,15 @@ begin
   FLastContent := '';
   try
     UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
-    if not Assigned(UrlHandle) then
-      raise Exception.CreateFmt(_('Could not open URL: %s'), [FURL]);
+    if (not Assigned(UrlHandle)) and FURL.StartsWith('https:', true) then begin
+      // Try again without SSL. See issue #65 and #1209
+      MainForm.LogSQL(f_('Could not open %s (%s) - trying again without SSL...', [FURL, SysErrorMessage(Windows.GetLastError)]), lcError);
+      FURL := ReplaceRegExpr('^https:', FURL, 'http:');
+      UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
+    end;
+    if not Assigned(UrlHandle) then begin
+      raise Exception.CreateFmt(_('Could not open %s (%s)'), [FURL, SysErrorMessage(Windows.GetLastError)]);
+    end;
 
     // Detect content length
     HeadSize := SizeOf(Head);
@@ -3518,7 +3444,7 @@ begin
   InitSetting(asWindowsAuth,                      'WindowsAuth',                           0, False, '', True);
   InitSetting(asLoginPrompt,                      'LoginPrompt',                           0, False, '', True);
   InitSetting(asPort,                             'Port',                                  0, False, '', True);
-  InitSetting(asLibrary,                          'Library',                               0, False, 'libmariadb.dll', True);
+  InitSetting(asLibrary,                          'Library',                               0, False, '', True); // Gets its default in TConnectionParameters.Create
   InitSetting(asAllProviders,                     'AllProviders',                          0, False);
   InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, 'plink.exe');
   InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);
@@ -3574,7 +3500,6 @@ begin
   InitSetting(asGridExportTerminator,             'GridExportTerminator',                  0, False, '\r\n');
   InitSetting(asGridExportNull,                   'GridExportNull',                        0, False, '\N');
   // Copy to clipboard defaults:
-  InitSetting(asGridExportClpFormat,              'GridExportClpFormat',                   0);
   InitSetting(asGridExportClpColumnNames,         'GridExportClpColumnNames',              0, False);
   InitSetting(asGridExportClpIncludeAutoInc,      'GridExportClpAutoInc',                  0, True);
   InitSetting(asGridExportClpRemoveLinebreaks,    'GridExportClpRemoveLinebreaks',         0, False);
@@ -3599,13 +3524,15 @@ begin
   InitSetting(asUpdatecheck,                      'Updatecheck',                           0, False);
   InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
   InitSetting(asUpdatecheckInterval,              'UpdatecheckInterval',                   3);
-  InitSetting(asUpdatecheckLastrun,               'UpdatecheckLastrun',                    0, False, '2000-01-01');
+  InitSetting(asUpdatecheckLastrun,               'UpdatecheckLastrun',                    0, False, DateToStr(DateTimeNever));
   InitSetting(asUpdateCheckWindowWidth,           'UpdateCheckWindowWidth',                400);
   InitSetting(asUpdateCheckWindowHeight,          'UpdateCheckWindowHeight',               460);
   InitSetting(asTableToolsWindowWidth,            'TableTools_WindowWidth',                800);
   InitSetting(asTableToolsWindowHeight,           'TableTools_WindowHeight',               420);
   InitSetting(asTableToolsTreeWidth,              'TableTools_TreeWidth',                  300);
+  InitSetting(asTableToolsFindTextTab,            'TableToolsFindTextTab',                 0);
   InitSetting(asTableToolsFindText,               'TableTools_FindText',                   0, False, '');
+  InitSetting(asTableToolsFindSQL,                'TableToolsFindSQL',                     0, False, '');
   InitSetting(asTableToolsDatatype,               'TableTools_Datatype',                   0);
   InitSetting(asTableToolsFindCaseSensitive,      'TableTools_FindCaseSensitive',          0, False);
   InitSetting(asTableToolsFindMatchType,          'TableToolsFindMatchType',               0);
@@ -3632,12 +3559,12 @@ begin
   InitSetting(asCopyTableRecentFilter,            'CopyTable_RecentFilter_%s',             0, False, '');
   InitSetting(asServerVersion,                    'ServerVersion',                         0, False, '', True);
   InitSetting(asServerVersionFull,                'ServerVersionFull',                     0, False, '', True);
-  InitSetting(asLastConnect,                      'LastConnect',                           0, False, '2000-01-01', True);
+  InitSetting(asLastConnect,                      'LastConnect',                           0, False, DateToStr(DateTimeNever), True);
   InitSetting(asConnectCount,                     'ConnectCount',                          0, False, '', True);
   InitSetting(asRefusedCount,                     'RefusedCount',                          0, False, '', True);
   InitSetting(asSessionCreated,                   'SessionCreated',                        0, False, '', True);
   InitSetting(asDoUsageStatistics,                'DoUsageStatistics',                     0, False);
-  InitSetting(asLastUsageStatisticCall,           'LastUsageStatisticCall',                0, False, '2000-01-01');
+  InitSetting(asLastUsageStatisticCall,           'LastUsageStatisticCall',                0, False, DateToStr(DateTimeNever));
   InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
@@ -4325,6 +4252,8 @@ NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.Thousa
 LibHandleUser32 := LoadLibrary('User32.dll');
 
 UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
+
+DateTimeNever := MinDateTime;
 
 end.
 

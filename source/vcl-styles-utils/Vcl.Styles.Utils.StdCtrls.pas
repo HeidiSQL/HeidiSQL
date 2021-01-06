@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2019 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -248,7 +248,7 @@ uses
   Vcl.ExtCtrls,
   System.UITypes,
   Vcl.Styles.Utils.Misc,
-  Vcl.Styles.Utils.SysControls;
+  Vcl.Styles.Utils.SysControls, Vcl.Styles.Utils.Graphics;
 
 { TSysEditStyleHook }
 
@@ -303,7 +303,7 @@ begin
     R := Rect(0, 0, SysControl.Width, SysControl.Height);
     InflateRect(R, -2, -2);
     ExcludeClipRect(Canvas.Handle, R.Left, R.Top, R.Right, R.Bottom);
-    StyleServices.DrawElement(Canvas.Handle, Details,
+    DrawStyleElement(Canvas.Handle, Details,
       Rect(0, 0, SysControl.Width, SysControl.Height));
   end;
 end;
@@ -588,6 +588,7 @@ var
   Buffer: string;
   BufferLength: Integer;
 begin
+  Canvas.Font.Assign(SysControl.Font);
   LText := SysControl.Text;
   LRect := SysControl.ClientRect;
 
@@ -607,7 +608,7 @@ begin
 
   LDetails := StyleServices.GetElementDetails(Detail);
   DrawRect := SysControl.ClientRect;
-  StyleServices.DrawElement(Canvas.Handle, LDetails, LRect);
+  DrawStyleElement(Canvas.Handle, LDetails, LRect);
 
 
   if Button_GetImageList(handle, IL) and (IL.himl <> 0) and
@@ -694,7 +695,7 @@ begin
     if (SysControl.Style and BS_MULTILINE = BS_MULTILINE) then
     begin
       Exclude(TextFormat, tfSingleLine);
-      include(TextFormat, tfWordBreak)
+      include(TextFormat, tfWordBreak);
     end;
 
 
@@ -740,6 +741,7 @@ var
   LState: TSysCheckBoxState;
   Size: TSize;
 begin
+  Canvas.Font.Assign(SysControl.Font);
   DC := Canvas.Handle;
   LRect := SysControl.ClientRect;
   LState := CheckBoxState;
@@ -757,8 +759,8 @@ begin
   if LState = cbChecked then
     Detail := TThemedButton(Integer(Detail) + 4);
 
-  Size.cx := GetSystemMetrics(SM_CXMENUCHECK);
-  Size.cy := GetSystemMetrics(SM_CYMENUCHECK);
+  Size.cx := GetSysMetrics(SM_CXMENUCHECK);
+  Size.cy := GetSysMetrics(SM_CYMENUCHECK);
 
   LDetails := StyleServices.GetElementDetails(Detail);
   BoxRect := Rect(0, 0, Size.cx, Size.cy);
@@ -776,7 +778,7 @@ begin
     TxtRect := Rect(BoxRect.Right + 2, LRect.Top, LRect.Right, LRect.Bottom);
   end;
 
-  StyleServices.DrawElement(DC, LDetails, BoxRect);
+  DrawStyleElement(DC, LDetails, BoxRect);
 
   if Focused then
     Canvas.DrawFocusRect(LRect);
@@ -795,6 +797,7 @@ var
   LState: TSysCheckBoxState;
   Size: TSize;
 begin
+  Canvas.Font.Assign(SysControl.Font);
   DC := Canvas.Handle;
   LRect := SysControl.ClientRect;
   LState := CheckBoxState;
@@ -816,8 +819,8 @@ begin
 
   // LDetails := StyleServices.GetElementDetails(tbCheckBoxUncheckedNormal);
   // StyleServices.GetElementSize(DC, LDetails, esActual, Size);
-  Size.cx := GetSystemMetrics(SM_CXMENUCHECK);
-  Size.cy := GetSystemMetrics(SM_CYMENUCHECK);
+  Size.cx := GetSysMetrics(SM_CXMENUCHECK);
+  Size.cy := GetSysMetrics(SM_CYMENUCHECK);
 
   LDetails := StyleServices.GetElementDetails(Detail);
   BoxRect := Rect(0, 0, Size.cx, Size.cy);
@@ -835,7 +838,7 @@ begin
     TxtRect := Rect(BoxRect.Right + 2, LRect.Top, LRect.Right, LRect.Bottom);
   end;
 
-  StyleServices.DrawElement(DC, LDetails, BoxRect);
+  DrawStyleElement(DC, LDetails, BoxRect);
 
   if Focused then
     Canvas.DrawFocusRect(LRect);
@@ -860,6 +863,7 @@ var
   end;
 
 begin
+  Canvas.Font.Assign(SysControl.Font);
   CaptionRect := GetCaptionRect(Canvas);
   R := GetBoxRect;
 
@@ -880,7 +884,7 @@ begin
   try
     ExcludeClipRect(Canvas.Handle, CaptionRect.Left, CaptionRect.Top,
       CaptionRect.Right, CaptionRect.Bottom);
-    StyleServices.DrawElement(Canvas.Handle, LDetails, R);
+    DrawStyleElement(Canvas.Handle, LDetails, R);
   finally
     RestoreDC(Canvas.Handle, SaveIndex);
   end;
@@ -1181,16 +1185,16 @@ begin
           if R.Height > 0 then
           begin
             Details := StyleServices.GetElementDetails(tsUpperTrackVertNormal);
-            StyleServices.DrawElement(B.Canvas.Handle, Details, R);
+            DrawStyleElement(B.Canvas.Handle, Details, R);
           end;
           Details := StyleServices.GetElementDetails(FVSliderState);
-          StyleServices.DrawElement(B.Canvas.Handle, Details,
+          DrawStyleElement(B.Canvas.Handle, Details,
             ListBoxVertSliderRect);
           Details := StyleServices.GetElementDetails(FVUpState);
-          StyleServices.DrawElement(B.Canvas.Handle, Details,
+          DrawStyleElement(B.Canvas.Handle, Details,
             ListBoxVertUpButtonRect);
           Details := StyleServices.GetElementDetails(FVDownState);
-          StyleServices.DrawElement(B.Canvas.Handle, Details,
+          DrawStyleElement(B.Canvas.Handle, Details,
             ListBoxVertDownButtonRect);
         end;
 
@@ -1226,9 +1230,9 @@ begin
   Result := SysControl.ClientRect;
   InflateRect(Result, -2, -2);
   if SysControl.BiDiMode <> bmRightToLeft then
-    Result.Left := Result.Right - GetSystemMetrics(SM_CXVSCROLL) + 1
+    Result.Left := Result.Right - GetSysMetrics(SM_CXVSCROLL) + 1
   else
-    Result.Right := Result.Left + GetSystemMetrics(SM_CXVSCROLL) - 1;
+    Result.Right := Result.Left + GetSysMetrics(SM_CXVSCROLL) - 1;
 end;
 
 procedure TSysComboBoxStyleHook.HookListBox(AListHandle: HWnd);
@@ -1279,7 +1283,7 @@ function TSysComboBoxStyleHook.ListBoxVertDownButtonRect: TRect;
 begin
   Result := ListBoxVertScrollRect;
   if Result.Width > 0 then
-    Result.Top := Result.Bottom - GetSystemMetrics(SM_CYVTHUMB)
+    Result.Top := Result.Bottom - GetSysMetrics(SM_CYVTHUMB)
   else
     Result := TRect.Empty;
 end;
@@ -1294,9 +1298,9 @@ begin
   Result := ListBoxBoundsRect;
   OffsetRect(Result, -Result.Left, -Result.Top);
   if SysControl.BiDiMode <> bmRightToLeft then
-    Result.Left := Result.Right - GetSystemMetrics(SM_CYVSCROLL) - 1
+    Result.Left := Result.Right - GetSysMetrics(SM_CYVSCROLL) - 1
   else
-    Result.Right := Result.Left + GetSystemMetrics(SM_CYVSCROLL);
+    Result.Right := Result.Left + GetSysMetrics(SM_CYVSCROLL);
 end;
 
 function TSysComboBoxStyleHook.ListBoxVertScrollRect: TRect;
@@ -1306,9 +1310,9 @@ begin
   InflateRect(Result, -1, -1);
   OffsetRect(Result, 1, 1);
   if SysControl.BiDiMode <> TBidiModeDirection.bmRightToLeft then
-    Result.Left := Result.Right - GetSystemMetrics(SM_CXVSCROLL)
+    Result.Left := Result.Right - GetSysMetrics(SM_CXVSCROLL)
   else
-    Result.Right := Result.Left + GetSystemMetrics(SM_CXVSCROLL);
+    Result.Right := Result.Left + GetSysMetrics(SM_CXVSCROLL);
   if ListBoxBoundsRect.Height > 30 then OffsetRect(Result, -1, -1);
 
 end;
@@ -1369,8 +1373,8 @@ begin
   Result := ListBoxVertScrollRect;
   if Result.Width > 0 then
   begin
-    Result.Top := Result.Top + GetSystemMetrics(SM_CYVTHUMB);
-    Result.Bottom := Result.Bottom - GetSystemMetrics(SM_CYVTHUMB);
+    Result.Top := Result.Top + GetSysMetrics(SM_CYVTHUMB);
+    Result.Bottom := Result.Bottom - GetSysMetrics(SM_CYVTHUMB);
   end
   else
     Result := TRect.Empty;
@@ -1394,7 +1398,7 @@ function TSysComboBoxStyleHook.ListBoxVertUpButtonRect: TRect;
 begin
   Result := ListBoxVertScrollRect;
   if Result.Width > 0 then
-    Result.Top := Result.Bottom - GetSystemMetrics(SM_CYVTHUMB)
+    Result.Top := Result.Bottom - GetSysMetrics(SM_CYVTHUMB)
   else
     Result := TRect.Empty;
 end;
@@ -2078,7 +2082,7 @@ begin
       GetWindowRect(FListHandle, ListRect);
       GetWindowRect(Handle, ControlRect);
       R.Bottom := ListRect.Top - ControlRect.Top;
-      StyleServices.DrawElement(Buffer.Canvas.Handle, Details, R);
+      DrawStyleElement(Buffer.Canvas.Handle, Details, R);
       R := Rect(0, SysControl.Height - (ControlRect.Bottom - ListRect.Bottom),
         SysControl.Width, SysControl.Height);
       with Buffer.Canvas do
@@ -2091,7 +2095,7 @@ begin
       R.Bottom := ListRect.Top - ControlRect.Top;
     end
     else
-      StyleServices.DrawElement(Buffer.Canvas.Handle, Details, R);
+      DrawStyleElement(Buffer.Canvas.Handle, Details, R);
 
     // if not (seClient in SysControl.StyleElements) and (FEditHandle = 0) then
     // begin
@@ -2108,7 +2112,7 @@ begin
     if Style <> csSimple then
     begin
       Details := StyleServices.GetElementDetails(BtnDrawState);
-      StyleServices.DrawElement(Buffer.Canvas.Handle, Details, ButtonRect);
+      DrawStyleElement(Buffer.Canvas.Handle, Details, ButtonRect);
     end;
     // calculation of exclude area for drawing buffer
     if (SendMessage(Handle, CB_GETCURSEL, 0, 0) >= 0) and (FEditHandle = 0) then
@@ -2285,15 +2289,25 @@ begin
         then
         begin
           //DrawItem(Canvas, LItemIndex, R, Focused);
-          LDetails := StyleServices.GetElementDetails
-            (TThemedComboBox.tcComboBoxDontCare);
+          LDetails := StyleServices.GetElementDetails(TThemedComboBox.tcComboBoxDontCare);
+          {$IF (CompilerVersion >= 33)}
+          if Assigned(Application.Mainform) then
+            Canvas.Font.Size := Round(Font.Size * Application.MainForm.Monitor.PixelsPerInch / Screen.PixelsPerInch)
+          else
+            Canvas.Font.Size := Font.Size;
+          {$ENDIF}
           DrawText(Canvas.Handle, LDetails, SysControl.Text, R,
             [tfLeft, tfVerticalCenter, tfSingleLine]);
         end
         else
         begin
-          LDetails := StyleServices.GetElementDetails
-            (TThemedComboBox.tcComboBoxDontCare);
+          LDetails := StyleServices.GetElementDetails(TThemedComboBox.tcComboBoxDontCare);
+          {$IF (CompilerVersion >= 33)}
+          if Assigned(Application.Mainform) then
+            Canvas.Font.Size := Round(Font.Size * Application.MainForm.Monitor.PixelsPerInch / Screen.PixelsPerInch)
+          else
+            Canvas.Font.Size := Font.Size;
+          {$ENDIF}
           DrawText(Canvas.Handle, LDetails, SysControl.Text, R,
             [tfLeft, tfVerticalCenter, tfSingleLine]);
         end;
@@ -2649,13 +2663,17 @@ begin
     ElementSize := esActual;
     R := SysControl.ClientRect;
     with StyleServices do
-      if not GetElementSize(Canvas.Handle,
-        GetElementDetails(tbCheckBoxCheckedNormal), LRect, ElementSize, BoxSize)
-      then
+    begin
+      {$IF (CompilerVersion >= 33)}
+      if not (Assigned(Application.Mainform) and GetElementSize(Canvas.Handle, GetElementDetails(tbCheckBoxCheckedNormal), LRect, ElementSize, BoxSize, Application.MainForm.Monitor.PixelsPerInch)) then
+      {$ELSE}
+      if not GetElementSize(Canvas.Handle, GetElementDetails(tbCheckBoxCheckedNormal), LRect, ElementSize, BoxSize) then
+      {$ENDIF}
       begin
-        BoxSize.cx := GetSystemMetrics(SM_CXMENUCHECK);
-        BoxSize.cy := GetSystemMetrics(SM_CYMENUCHECK);
+        BoxSize.cx := GetSysMetrics(SM_CXMENUCHECK);
+        BoxSize.cy := GetSysMetrics(SM_CYMENUCHECK);
       end;
+    end;
     if not RightAlignment then
     begin
       R := Rect(0, 0, BoxSize.cx, BoxSize.cy);
@@ -2669,7 +2687,7 @@ begin
         SysControl.Width, SysControl.Height));
     end;
 
-    StyleServices.DrawElement(Canvas.Handle, Details, R);
+    DrawStyleElement(Canvas.Handle, Details, R);
     Canvas.Font := SysControl.Font;
 
     R := Rect(0, 0, SysControl.Width - BoxSize.cx - 10, SysControl.Height);

@@ -11,7 +11,7 @@ uses
   connections in '..\..\source\connections.pas' {connform},
   loaddata in '..\..\source\loaddata.pas' {loaddataform},
   usermanager in '..\..\source\usermanager.pas' {UserManagerForm},
-  options in '..\..\source\options.pas' {optionsform},
+  preferences in '..\..\source\preferences.pas' {frmPreferences},
   tabletools in '..\..\source\tabletools.pas' {frmTableTools},
   printlist in '..\..\source\printlist.pas' {printlistForm},
   copytable in '..\..\source\copytable.pas' {CopyTableForm},
@@ -19,8 +19,8 @@ uses
   apphelpers in '..\..\source\apphelpers.pas',
   sqlhelp in '..\..\source\sqlhelp.pas' {frmSQLhelp},
   dbstructures in '..\..\source\dbstructures.pas',
-  column_selection in '..\..\source\column_selection.pas' {ColumnSelectionForm},
-  data_sorting in '..\..\source\data_sorting.pas' {DataSortingForm},
+  column_selection in '..\..\source\column_selection.pas' {frmColumnSelection},
+  data_sorting in '..\..\source\data_sorting.pas' {frmDataSorting},
   createdatabase in '..\..\source\createdatabase.pas' {CreateDatabaseForm},
   updatecheck in '..\..\source\updatecheck.pas' {frmUpdateCheck},
   editvar in '..\..\source\editvar.pas' {frmEditVariable},
@@ -46,7 +46,8 @@ uses
   Vcl.Themes,
   Vcl.Styles,
   Vcl.Graphics,
-  theme_preview in '..\..\source\theme_preview.pas' {frmThemePreview};
+  theme_preview in '..\..\source\theme_preview.pas' {frmThemePreview},
+  csv_detector in '..\..\source\csv_detector.pas' {frmCsvDetector};
 
 {.$R *.RES}
 {$R ..\..\res\icon.RES}

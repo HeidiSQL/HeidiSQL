@@ -113,6 +113,7 @@ type
   public
     ValueList, DisplayList: TStringList;
     AllowCustomText: Boolean;
+    ItemMustExist: Boolean;
     constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
@@ -873,6 +874,7 @@ constructor TEnumEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean)
 begin
   inherited;
   AllowCustomText := False;
+  ItemMustExist := False;
   FCombo := TComboBox.Create(FParentForm);
   FCombo.Hide;
   FCombo.Parent := FParentForm;
@@ -908,7 +910,7 @@ function TEnumEditorLink.EndEdit: Boolean; stdcall;
 var
   NewText: String;
 begin
-  if AllowCustomText and FAllowEdit then
+  if AllowCustomText and FAllowEdit and (not ItemMustExist) then
     NewText := FCombo.Text
   else if (ValueList.Count > 0) and (FCombo.ItemIndex > -1) then
     NewText := ValueList[FCombo.ItemIndex]
@@ -930,15 +932,16 @@ begin
       Items := DisplayList
     else
       Items := ValueList;
-    for i:=0 to Items.Count - 1 do
+    for i:=0 to Items.Count - 1 do begin
       FCombo.Items.Add(Items[i]);
+    end;
+    FCombo.ItemIndex := ValueList.IndexOf(FCellText);
     if AllowCustomText and FAllowEdit then begin
       FCombo.Style := csDropDown;
       FCombo.Text := FCellText;
     end else begin
       // Set style to OwnerDraw, otherwise we wouldn't be able to adjust the combo's height
       FCombo.Style := csOwnerDrawFixed;
-      FCombo.ItemIndex := ValueList.IndexOf(FCellText);
     end;
   end;
 end;
