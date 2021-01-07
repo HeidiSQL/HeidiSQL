@@ -587,7 +587,9 @@ type
 
 const
   LOCALE_SISO639LANGNAME = $59;    // Used by Lazarus software development tool
+  {$EXTERNALSYM LOCALE_SISO639LANGNAME}
   LOCALE_SISO3166CTRYNAME = $5A;   // Used by Lazarus software development tool
+  {$EXTERNALSYM LOCALE_SISO3166CTRYNAME}
   GETTEXT_CONTEXT_GLUE = #4;
 
 var
@@ -3305,7 +3307,10 @@ begin
     a:=b;
     offset:=offset+bufsize;
   end;
+{$IFNDEF VER340} // Delphi 10.4 Sydney / BDS 21
+  // this causes a hint in Deohi 10.4
   Result:=0;
+{$ENDIF}
 end;
 
 procedure TFileLocator.Analyze;
@@ -4247,38 +4252,38 @@ begin
           // Replace German shortcut names
 {$IFDEF dx_has_dotted_unitnames}
           sbShortCut.
-            Replace(Vcl.Consts.SmkcBkSp {'Rück'}, 'BkSp').
-            Replace(Vcl.Consts.SmkcEnter {'Eingabe'}, 'Enter').
-            Replace(Vcl.Consts.SmkcSpace {'Leer'}, 'Space').
-            Replace(Vcl.Consts.SmkcPgUp {'BildAuf'}, 'PgUp').
-            Replace(Vcl.Consts.SmkcPgDn {'BildAb'}, 'PgDn').
-            Replace(Vcl.Consts.SmkcEnd {'Ende'}, 'End').
-            Replace(Vcl.Consts.SmkcHome {'Pos1'}, 'Home').
-            Replace(Vcl.Consts.SmkcLeft {'Links'}, 'Left').
-            Replace(Vcl.Consts.SmkcUp {'Auf'}, 'Up').
-            Replace(Vcl.Consts.SmkcRight {'Rechts'}, 'Right').
-            Replace(Vcl.Consts.SmkcDown {'Ab'}, 'Down').
-            Replace(Vcl.Consts.SmkcIns {'Einfg'}, 'Ins').
-            Replace(Vcl.Consts.SmkcDel {'Entf'}, 'Del').
-            Replace(Vcl.Consts.SmkcShift {'Umsch+'}, 'Shift+').
-            Replace(Vcl.Consts.SmkcCtrl {'Strg+'}, 'Ctrl+');
+            Replace(Vcl.Consts.SmkcBkSp, 'BkSp'). // 'Rueck'
+            Replace(Vcl.Consts.SmkcEnter, 'Enter'). // 'Eingabe'
+            Replace(Vcl.Consts.SmkcSpace, 'Space'). // 'Leer'
+            Replace(Vcl.Consts.SmkcPgUp, 'PgUp'). // 'BildAuf'
+            Replace(Vcl.Consts.SmkcPgDn, 'PgDn'). // 'BildAb'
+            Replace(Vcl.Consts.SmkcEnd, 'End'). // 'Ende'
+            Replace(Vcl.Consts.SmkcHome, 'Home'). // 'Pos1'
+            Replace(Vcl.Consts.SmkcLeft, 'Left'). // 'Links'
+            Replace(Vcl.Consts.SmkcUp, 'Up'). // 'Auf'
+            Replace(Vcl.Consts.SmkcRight, 'Right'). // 'Rechts'
+            Replace(Vcl.Consts.SmkcDown, 'Down'). // 'Ab'
+            Replace(Vcl.Consts.SmkcIns, 'Ins'). // 'Einfg'
+            Replace(Vcl.Consts.SmkcDel, 'Del'). // 'Entf'
+            Replace(Vcl.Consts.SmkcShift, 'Shift+'). // 'Umsch+'
+            Replace(Vcl.Consts.SmkcCtrl, 'Ctrl+'); // 'Strg+'
 {$ELSE ~dx_has_dotted_unitnames}
           sbShortCut.
-            Replace(Consts.SmkcBkSp {'Rück'}, 'BkSp').
-            Replace(Consts.SmkcEnter {'Eingabe'}, 'Enter').
-            Replace(Consts.SmkcSpace {'Leer'}, 'Space').
-            Replace(Consts.SmkcPgUp {'BildAuf'}, 'PgUp').
-            Replace(Consts.SmkcPgDn {'BildAb'}, 'PgDn').
-            Replace(Consts.SmkcEnd {'Ende'}, 'End').
-            Replace(Consts.SmkcHome {'Pos1'}, 'Home').
-            Replace(Consts.SmkcLeft {'Links'}, 'Left').
-            Replace(Consts.SmkcUp {'Auf'}, 'Up').
-            Replace(Consts.SmkcRight {'Rechts'}, 'Right').
-            Replace(Consts.SmkcDown {'Ab'}, 'Down').
-            Replace(Consts.SmkcIns {'Einfg'}, 'Ins').
-            Replace(Consts.SmkcDel {'Entf'}, 'Del').
-            Replace(Consts.SmkcShift {'Umsch+'}, 'Shift+').
-            Replace(Consts.SmkcCtrl {'Strg+'}, 'Ctrl+');
+            Replace(Consts.SmkcBkSp, 'BkSp'). // 'Rueck'
+            Replace(Consts.SmkcEnter, 'Enter'). // 'Eingabe'
+            Replace(Consts.SmkcSpace, 'Space'). // 'Leer'
+            Replace(Consts.SmkcPgUp, 'PgUp'). // 'BildAuf'
+            Replace(Consts.SmkcPgDn, 'PgDn'). // 'BildAb'
+            Replace(Consts.SmkcEnd, 'End'). // 'Ende'
+            Replace(Consts.SmkcHome, 'Home'). // 'Pos1'
+            Replace(Consts.SmkcLeft, 'Left'). // 'Links'
+            Replace(Consts.SmkcUp, 'Up'). // 'Auf'
+            Replace(Consts.SmkcRight, 'Right'). // 'Rechts'
+            Replace(Consts.SmkcDown, 'Down'). // 'Ab'
+            Replace(Consts.SmkcIns, 'Ins'). // 'Einfg'
+            Replace(Consts.SmkcDel, 'Del'). // 'Entf'
+            Replace(Consts.SmkcShift, 'Shift+'). // 'Umsch+'
+            Replace(Consts.SmkcCtrl, 'Ctrl+'); // 'Strg+'
 {$ENDIF dx_has_dotted_unitnames}
           Result := sbShortCut.ToString;
         finally
@@ -4300,21 +4305,21 @@ begin
     // if currently used language is not German: replace the German names by English names
     if not SameText(GetCurrentLanguageCode, 'de') then
       begin
-        Result := StringReplace(Result, Consts.SmkcBkSp  {'Rück'}, 'BkSp', []);
-        Result := StringReplace(Result, Consts.SmkcEnter {'Eingabe'}, 'Enter', []);
-        Result := StringReplace(Result, Consts.SmkcSpace {'Leer'}, 'Space', []);
-        Result := StringReplace(Result, Consts.SmkcPgUp {'BildAuf'}, 'PgUp', []);
-        Result := StringReplace(Result, Consts.SmkcPgDn {'BildAb'}, 'PgDn', []);
-        Result := StringReplace(Result, Consts.SmkcEnd {'Ende'}, 'End', []);
-        Result := StringReplace(Result, Consts.SmkcHome {'Pos1'}, 'Home', []);
-        Result := StringReplace(Result, Consts.SmkcLeft {'Links'}, 'Left', []);
-        Result := StringReplace(Result, Consts.SmkcUp {'Auf'}, 'Up', []);
-        Result := StringReplace(Result, Consts.SmkcRight {'Rechts'}, 'Right', []);
-        Result := StringReplace(Result, Consts.SmkcDown {'Ab'}, 'Down', []);
-        Result := StringReplace(Result, Consts.SmkcIns {'Einfg'}, 'Ins', []);
-        Result := StringReplace(Result, Consts.SmkcDel {'Entf'}, 'Del', []);
-        Result := StringReplace(Result, Consts.SmkcShift {'Umsch+'}, 'Shift+', []);
-        Result := StringReplace(Result, Consts.SmkcCtrl {'Strg+'}, 'Ctrl+', []);
+        Result := StringReplace(Result, Consts.SmkcBkSp, 'BkSp', []); // 'Rueck'
+        Result := StringReplace(Result, Consts.SmkcEnter, 'Enter', []); // 'Eingabe'
+        Result := StringReplace(Result, Consts.SmkcSpace, 'Space', []); // 'Leer'
+        Result := StringReplace(Result, Consts.SmkcPgUp, 'PgUp', []); // 'BildAuf'
+        Result := StringReplace(Result, Consts.SmkcPgDn, 'PgDn', []); // 'BildAb'
+        Result := StringReplace(Result, Consts.SmkcEnd, 'End', []); // 'Ende'
+        Result := StringReplace(Result, Consts.SmkcHome, 'Home', []); // 'Pos1'
+        Result := StringReplace(Result, Consts.SmkcLeft, 'Left', []); // 'Links'
+        Result := StringReplace(Result, Consts.SmkcUp, 'Up', []); // 'Auf'
+        Result := StringReplace(Result, Consts.SmkcRight, 'Right', []); // 'Rechts'
+        Result := StringReplace(Result, Consts.SmkcDown, 'Down', []); // 'Ab'
+        Result := StringReplace(Result, Consts.SmkcIns, 'Ins', []); // 'Einfg'
+        Result := StringReplace(Result, Consts.SmkcDel, 'Del', []); // 'Entf'
+        Result := StringReplace(Result, Consts.SmkcShift, 'Shift+', []); // 'Umsch+'
+        Result := StringReplace(Result, Consts.SmkcCtrl, 'Ctrl+', []); // 'Strg+'
       end;
   finally
     HookShortCutToText.Enable;
