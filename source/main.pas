@@ -6707,6 +6707,9 @@ procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
 var
   Edit: TSynMemo;
 begin
+  // Crashed with scTopLine and an non-set ActiveQueryTab while resizing main window, so limit to modifications
+  if not (scModified in Changes) then
+    Exit;
   // Don't ask for saving empty contents. See issue #614
   Edit := Sender as TSynMemo;
   if Edit.GetTextLen = 0 then begin
