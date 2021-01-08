@@ -3821,6 +3821,16 @@ object MainForm: TMainForm
         ImageIndex = 112
         OnClick = InsertValue
       end
+      object DataGUIDlowercase: TMenuItem
+        Caption = 'GUID lowercase'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
+      object DataGUIDlowercaseWobraces: TMenuItem
+        Caption = 'GUID lowercase without braces'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
     end
     object InsertfilesintoBLOBfields3: TMenuItem
       Action = actInsertFiles

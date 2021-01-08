@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-12-29 22:18+0100\n"
+"PO-Revision-Date: 2021-01-08 16:47+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -759,6 +759,10 @@ msgstr "Partitions"
 #: exportgrid.dfm:5
 msgid "Export grid rows"
 msgstr "Export grid rows"
+
+# Grid context menu
+msgid "Copy as"
+msgstr "Copy as"
 
 #. frmExportGrid..grpFormat..Caption
 #: exportgrid.dfm:54
@@ -5958,6 +5962,12 @@ msgstr "GUID"
 msgid "GUID without braces"
 msgstr "GUID without braces"
 
+msgid "GUID lowercase"
+msgstr "GUID lowercase"
+
+msgid "GUID lowercase without braces"
+msgstr "GUID lowercase without braces"
+
 msgid "Query timeout:"
 msgstr "Query timeout:"
 
@@ -6320,6 +6330,9 @@ msgstr "Add comments"
 
 msgid "Remove AUTO_INCREMENT clauses"
 msgstr "Remove AUTO_INCREMENT clauses"
+
+msgid "Remove DEFINER clauses"
+msgstr "Remove DEFINER clauses"
 
 msgid "%s%s missing."
 msgstr "%s%s missing."

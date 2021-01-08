@@ -747,6 +747,8 @@ type
     menuRenameQueryTab: TMenuItem;
     Renametab1: TMenuItem;
     actNewQueryTabNofocus: TAction;
+    DataGUIDlowercase: TMenuItem;
+    DataGUIDlowercaseWobraces: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -7678,6 +7680,8 @@ begin
   StrUid := GuidToString(Uid);
   DataGUID.Caption := _('GUID') + ': ' + StrUid;
   DataGUIDwobraces.Caption := _('GUID without braces') + ': ' + Copy(StrUid, 2, Length(StrUid)-2);
+  DataGUIDlowercase.Caption := _('GUID lowercase') + ': ' + StrUid.ToLower;
+  DataGUIDlowercaseWobraces.Caption := _('GUID lowercase without braces') + ': ' + Copy(StrUid, 2, Length(StrUid)-2).ToLower;
 
   ColNum := DataGrid.FocusedColumn;
   DataDefaultValue.Caption := _('Default value')+': ?';
