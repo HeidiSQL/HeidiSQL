@@ -82,6 +82,7 @@ type
       procedure Modification(Sender: TObject);
       function SQLCode: String;
       property ImageIndex: Integer read GetImageIndex;
+      property Connection: TDBConnection read FConnection;
   end;
   TTableKeyList = class(TObjectList<TTableKey>)
     public
@@ -102,12 +103,34 @@ type
       procedure Assign(Source: TPersistent); override;
       function SQLCode(IncludeSymbolName: Boolean): String;
       function ReferenceTableObj: TDBObject;
+      property Connection: TDBConnection read FConnection;
   end;
   TForeignKeyList = class(TObjectList<TForeignKey>)
     public
       procedure Assign(Source: TForeignKeyList);
   end;
   TForeignKeyCache = TDictionary<String,TForeignKeyList>;
+
+  TCheckConstraint = class(TPersistent)
+    private
+      FConnection: TDBConnection;
+      FName, FCheckClause: String;
+      FModified, FAdded: Boolean;
+    public
+      constructor Create(AOwner: TDBConnection);
+      procedure Assign(Source: TPersistent); override;
+      function SQLCode: String;
+      property Connection: TDBConnection read FConnection;
+      property Name: String read FName write FName;
+      property CheckClause: String read FCheckClause write FCheckClause;
+      property Modified: Boolean read FModified write FModified;
+      property Added: Boolean read FAdded write FAdded;
+  end;
+  TCheckConstraintList = class(TObjectList<TCheckConstraint>)
+    public
+      procedure Assign(Source: TCheckConstraintList);
+  end;
+  TCheckConstraintCache = TDictionary<String,TCheckConstraintList>;
 
   TRoutineParam = class(TObject)
     public
@@ -128,6 +151,7 @@ type
       function GetTableColumns: TTableColumnList;
       function GetTableKeys: TTableKeyList;
       function GetTableForeignKeys: TForeignKeyList;
+      function GetTableCheckConstraints: TCheckConstraintList;
     public
       // Table options:
       Name, Schema, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
@@ -161,6 +185,7 @@ type
       property TableColumns: TTableColumnList read GetTableColumns;
       property TableKeys: TTableKeyList read GetTableKeys;
       property TableForeignKeys: TForeignKeyList read GetTableForeignKeys;
+      property TableCheckConstraints: TCheckConstraintList read GetTableCheckConstraints;
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = class(TObjectList<TDBObject>)
@@ -398,6 +423,7 @@ type
       FColumnCache: TColumnCache;
       FKeyCache: TKeyCache;
       FForeignKeyCache: TForeignKeyCache;
+      FCheckConstraintCache: TCheckConstraintCache;
       FCurrentUserHostCombination: String;
       FAllUserHostCombinations: TStringList;
       FLockedByThread: TThread;
@@ -499,6 +525,10 @@ type
       property LastErrorMsg: String read GetLastErrorMsg;
       property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
+      property ColumnCache: TColumnCache read FColumnCache;
+      property KeyCache: TKeyCache read FKeyCache;
+      property ForeignKeyCache: TForeignKeyCache read FForeignKeyCache;
+      property CheckConstraintCache: TCheckConstraintCache read FCheckConstraintCache;
       property QuoteChar: Char read FQuoteChar;
       property QuoteChars: String read FQuoteChars;
       function ServerVersionStr: String;
@@ -531,6 +561,7 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; virtual;
       function GetTableKeys(Table: TDBObject): TTableKeyList; virtual;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; virtual;
+      function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
     published
       property Active: Boolean read FActive write SetActive default False;
@@ -1764,6 +1795,7 @@ begin
   FColumnCache := TColumnCache.Create;
   FKeyCache := TKeyCache.Create;
   FForeignKeyCache := TForeignKeyCache.Create;
+  FCheckConstraintCache := TCheckConstraintCache.Create;
   FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
@@ -2857,6 +2889,9 @@ begin
       'USER_PRIVILEGES,'+
       'VIEWS';
   end;
+  if Parameters.IsMariaDB and (ServerVersionInt >= 100201) then begin
+    FInformationSchemaObjects.Add('CHECK_CONSTRAINTS');
+  end;
 
   if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
@@ -3490,6 +3525,8 @@ var
   TableKey: TTableKey;
   TableForeignKeys: TForeignKeyList;
   TableForeignKey: TForeignKey;
+  TableCheckConstraints: TCheckConstraintList;
+  TableCheckConstraint: TCheckConstraint;
 begin
   case Obj.NodeType of
     lntTable: begin
@@ -3511,6 +3548,12 @@ begin
         Result := Result + CRLF + #9 + TableForeignKey.SQLCode(True) + ',';
       end;
       TableForeignKeys.Free;
+
+      TableCheckConstraints := Obj.GetTableCheckConstraints;
+      for TableCheckConstraint in TableCheckConstraints do begin
+        Result := Result + CRLF + #9 + TableCheckConstraint.SQLCode + ',';
+      end;
+      TableCheckConstraints.Free;
 
       Delete(Result, Length(Result), 1);
       Result := Result + CRLF + ')';
@@ -5556,6 +5599,27 @@ begin
 end;
 
 
+function TDBConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList;
+var
+  CheckQuery: TDBQuery;
+  CheckConstraint: TCheckConstraint;
+begin
+  Result := TCheckConstraintList.Create(True);
+  if FInformationSchemaObjects.IndexOf('CHECK_CONSTRAINTS') = -1 then
+    Exit;
+  CheckQuery := GetResults('SELECT * FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent('CHECK_CONSTRAINTS')+
+    ' WHERE '+Table.SchemaClauseIS('CONSTRAINT')+' AND TABLE_NAME='+EscapeString(Table.Name));
+  while not CheckQuery.Eof do begin
+    CheckConstraint := TCheckConstraint.Create(Self);
+    Result.Add(CheckConstraint);
+    CheckConstraint.Name := CheckQuery.Col('CONSTRAINT_NAME');
+    CheckConstraint.CheckClause := CheckQuery.Col('CHECK_CLAUSE');
+    CheckQuery.Next;
+  end;
+  CheckQuery.Free;
+end;
+
+
 function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
 var
   Rows: String;
@@ -5812,6 +5876,7 @@ begin
     FColumnCache.Clear;
     FKeyCache.Clear;
     FForeignKeyCache.Clear;
+    FCheckConstraintCache.Clear;
   end;
   FTableEngineDefault := '';
   FCurrentUserHostCombination := '';
@@ -5953,6 +6018,7 @@ begin
     FColumnCache.Clear;
     FKeyCache.Clear;
     FForeignKeyCache.Clear;
+    FCheckConstraintCache.Clear;
     if Assigned(FOnObjectnamesChanged) then
       FOnObjectnamesChanged(Self, db);
   end;
@@ -8694,6 +8760,8 @@ begin
     FConnection.FKeyCache.Remove(QuotedDbAndTableName);
   if FConnection.FForeignKeyCache.ContainsKey(QuotedDbAndTableName) then
     FConnection.FForeignKeyCache.Remove(QuotedDbAndTableName);
+  if FConnection.FCheckConstraintCache.ContainsKey(QuotedDbAndTableName) then
+    FConnection.FCheckConstraintCache.Remove(QuotedDbAndTableName);
   FCreateCode := '';
   FCreateCodeLoaded := False;
 end;
@@ -8956,6 +9024,19 @@ begin
   FConnection.FForeignKeyCache.TryGetValue(QuotedDbAndTableName, ForeignKeysInCache);
   Result := TForeignKeyList.Create;
   Result.Assign(ForeignKeysInCache);
+end;
+
+function TDBObject.GetTableCheckConstraints: TCheckConstraintList;
+var
+  CheckConstraintsInCache: TCheckConstraintList;
+begin
+  // Return check constraint from table object
+  if not FConnection.CheckConstraintCache.ContainsKey(QuotedDbAndTableName) then begin
+    FConnection.CheckConstraintCache.Add(QuotedDbAndTableName, Connection.GetTableCheckConstraints(Self));
+  end;
+  FConnection.CheckConstraintCache.TryGetValue(QuotedDbAndTableName, CheckConstraintsInCache);
+  Result := TCheckConstraintList.Create;
+  Result.Assign(CheckConstraintsInCache);
 end;
 
 
@@ -9244,7 +9325,7 @@ var
   Item, ItemCopy: TTableColumn;
 begin
   for Item in Source do begin
-    ItemCopy := TTableColumn.Create(Item.FConnection);
+    ItemCopy := TTableColumn.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
@@ -9344,7 +9425,7 @@ var
   Item, ItemCopy: TTableKey;
 begin
   for Item in Source do begin
-    ItemCopy := TTableKey.Create(Item.FConnection);
+    ItemCopy := TTableKey.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
@@ -9437,13 +9518,51 @@ var
   Item, ItemCopy: TForeignKey;
 begin
   for Item in Source do begin
-    ItemCopy := TForeignKey.Create(Item.FConnection);
+    ItemCopy := TForeignKey.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
 end;
 
 
+{ *** TCheckConstraint }
+
+constructor TCheckConstraint.Create(AOwner: TDBConnection);
+begin
+  inherited Create;
+  FConnection := AOwner;
+end;
+
+
+procedure TCheckConstraint.Assign(Source: TPersistent);
+var
+  s: TCheckConstraint;
+begin
+  if Source is TCheckConstraint then begin
+    s := Source as TCheckConstraint;
+    FName := s.Name;
+    FCheckClause := s.CheckClause;
+    FModified := s.Modified;
+    FAdded := s.Added;
+  end else
+    inherited;
+end;
+
+function TCheckConstraint.SQLCode: String;
+begin
+  Result := 'CONSTRAINT '+FConnection.QuoteIdent(FName)+' CHECK ('+FCheckClause+')';
+end;
+
+procedure TCheckConstraintList.Assign(Source: TCheckConstraintList);
+var
+  Item, ItemCopy: TCheckConstraint;
+begin
+  for Item in Source do begin
+    ItemCopy := TCheckConstraint.Create(Item.Connection);
+    ItemCopy.Assign(Item);
+    Add(ItemCopy);
+  end;
+end;
 
 
 procedure SQLite_CollationNeededCallback(userData: Pointer; ppDb:Psqlite3; eTextRep:integer; zName:PAnsiChar); cdecl;

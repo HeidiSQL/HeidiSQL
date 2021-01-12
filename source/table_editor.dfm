@@ -263,7 +263,7 @@ object frmTableEditor: TfrmTableEditor
         TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toFullVertGridLines, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus, toRightClickSelect]
         OnBeforePaint = treeIndexesBeforePaint
-        OnClick = treeIndexesClick
+        OnClick = AnyTreeClick
         OnCreateEditor = treeIndexesCreateEditor
         OnDragOver = treeIndexesDragOver
         OnDragDrop = treeIndexesDragDrop
@@ -422,7 +422,7 @@ object frmTableEditor: TfrmTableEditor
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
         TreeOptions.SelectionOptions = [toExtendedFocus]
         OnBeforePaint = listForeignKeysBeforePaint
-        OnClick = treeIndexesClick
+        OnClick = AnyTreeClick
         OnCreateEditor = listForeignKeysCreateEditor
         OnEditing = listForeignKeysEditing
         OnFocusChanged = listForeignKeysFocusChanged
@@ -466,6 +466,84 @@ object frmTableEditor: TfrmTableEditor
             Position = 5
             Text = 'On DELETE'
             Width = 80
+          end>
+      end
+    end
+    object tabCheckConstraints: TTabSheet
+      Caption = 'Check constraints'
+      ImageIndex = 55
+      object tlbCheckConstraints: TToolBar
+        Left = 0
+        Top = 0
+        Width = 66
+        Height = 121
+        Align = alLeft
+        AutoSize = True
+        ButtonWidth = 66
+        Caption = 'tlbCheckConstraints'
+        Images = MainForm.VirtualImageListMain
+        List = True
+        ShowCaptions = True
+        TabOrder = 0
+        object btnAddCheckConstraint: TToolButton
+          Left = 0
+          Top = 0
+          Caption = 'Add'
+          ImageIndex = 45
+          Wrap = True
+          OnClick = btnAddCheckConstraintClick
+        end
+        object btnRemoveCheckConstraint: TToolButton
+          Left = 0
+          Top = 22
+          Caption = 'Remove'
+          Enabled = False
+          ImageIndex = 46
+          Wrap = True
+        end
+        object btnClearCheckConstraints: TToolButton
+          Left = 0
+          Top = 44
+          Caption = 'Clear'
+          Enabled = False
+          ImageIndex = 26
+        end
+      end
+      object listCheckConstraints: TVirtualStringTree
+        Left = 66
+        Top = 0
+        Width = 620
+        Height = 121
+        Align = alClient
+        EditDelay = 0
+        Header.AutoSizeIndex = 1
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
+        Header.PopupMenu = MainForm.popupListHeader
+        Images = MainForm.VirtualImageListMain
+        TabOrder = 1
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toExtendedFocus]
+        OnBeforePaint = listCheckConstraintsBeforePaint
+        OnClick = AnyTreeClick
+        OnCreateEditor = listCheckConstraintsCreateEditor
+        OnFocusChanged = listCheckConstraintsFocusChanged
+        OnGetText = listCheckConstraintsGetText
+        OnGetImageIndex = listCheckConstraintsGetImageIndex
+        OnNewText = listCheckConstraintsNewText
+        OnStructureChange = AnyTreeStructureChange
+        Columns = <
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable, coStyleColor]
+            Position = 0
+            Text = 'Name'
+            Width = 200
+          end
+          item
+            Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable, coStyleColor]
+            Position = 1
+            Text = 'Check clause'
+            Width = 416
           end>
       end
     end
