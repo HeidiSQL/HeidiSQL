@@ -2823,6 +2823,7 @@ var
   TZI: TTimeZoneInformation;
   Minutes, Hours, i: Integer;
   Offset: String;
+  ObjNames: TStringList;
 begin
   inherited;
 
@@ -2856,41 +2857,14 @@ begin
 
   if ServerVersionInt >= 50000 then begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
-    // List of known IS tables since MySQL 5, taken from https://dev.mysql.com/doc/refman/5.6/en/information-schema.html
-    FInformationSchemaObjects.CommaText :=
-      'CHARACTER_SETS,'+
-      'COLLATIONS,'+
-      'COLLATION_CHARACTER_SET_APPLICABILITY,'+
-      'COLUMNS,'+
-      'COLUMN_PRIVILEGES,'+
-      'ENGINES,'+
-      'EVENTS,'+
-      'GLOBAL_STATUS,'+
-      'SESSION_STATUS,'+
-      'GLOBAL_VARIABLES,'+
-      'SESSION_VARIABLES,'+
-      'KEY_COLUMN_USAGE,'+
-      'OPTIMIZER_TRACE,'+
-      'PARAMETERS,'+
-      'PARTITIONS,'+
-      'PLUGINS,'+
-      'PROCESSLIST,'+
-      'PROFILING,'+
-      'REFERENTIAL_CONSTRAINTS,'+
-      'ROUTINES,'+
-      'SCHEMATA,'+
-      'SCHEMA_PRIVILEGES,'+
-      'STATISTICS,'+
-      'TABLES,'+
-      'TABLESPACES,'+
-      'TABLE_CONSTRAINTS,'+
-      'TABLE_PRIVILEGES,'+
-      'TRIGGERS,'+
-      'USER_PRIVILEGES,'+
-      'VIEWS';
   end;
-  if Parameters.IsMariaDB and (ServerVersionInt >= 100201) then begin
-    FInformationSchemaObjects.Add('CHECK_CONSTRAINTS');
+
+  // List of IS tables
+  try
+    ObjNames := GetCol('SHOW TABLES FROM '+QuoteIdent(FInfSch));
+    FInformationSchemaObjects.CommaText := ObjNames.CommaText;
+    ObjNames.Free;
+  except // silently fail if IS does not exist, on super old servers
   end;
 
   if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
@@ -2921,8 +2895,8 @@ begin
     end;
   end;
   // List of known IS tables
-  // CHECK_CONSTRAINTS is there but does not work due to missing TABLE_NAME column: https://www.heidisql.com/forum.php?t=37462
-  FInformationSchemaObjects.CommaText := 'COLUMN_DOMAIN_USAGE,'+
+  FInformationSchemaObjects.CommaText := 'CHECK_CONSTRAINTS,'+
+    'COLUMN_DOMAIN_USAGE,'+
     'COLUMN_PRIVILEGES,'+
     'COLUMNS,'+
     'CONSTRAINT_COLUMN_USAGE,'+
@@ -2945,15 +2919,14 @@ end;
 
 
 procedure TPgConnection.DoAfterConnect;
+var
+  ObjNames: TStringList;
 begin
   inherited;
   // List of known IS tables
-  FInformationSchemaObjects.CommaText := 'columns,'+
-    'constraint_column_usage'+
-    'key_column_usage,'+
-    'referential_constraints'+
-    'table_constraints,'+
-    'tables';
+  ObjNames := GetCol('SELECT table_name FROM information_schema.tables WHERE table_schema='+EscapeString(FInfSch));
+  FInformationSchemaObjects.CommaText := ObjNames.CommaText;
+  ObjNames.Free;
 end;
 
 
@@ -5603,20 +5576,30 @@ function TDBConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstra
 var
   CheckQuery: TDBQuery;
   CheckConstraint: TCheckConstraint;
+  IdxTableName: Integer;
 begin
   Result := TCheckConstraintList.Create(True);
-  if FInformationSchemaObjects.IndexOf('CHECK_CONSTRAINTS') = -1 then
+  IdxTableName := FInformationSchemaObjects.IndexOf('CHECK_CONSTRAINTS');
+  if IdxTableName = -1 then
     Exit;
-  CheckQuery := GetResults('SELECT * FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent('CHECK_CONSTRAINTS')+
-    ' WHERE '+Table.SchemaClauseIS('CONSTRAINT')+' AND TABLE_NAME='+EscapeString(Table.Name));
-  while not CheckQuery.Eof do begin
-    CheckConstraint := TCheckConstraint.Create(Self);
-    Result.Add(CheckConstraint);
-    CheckConstraint.Name := CheckQuery.Col('CONSTRAINT_NAME');
-    CheckConstraint.CheckClause := CheckQuery.Col('CHECK_CLAUSE');
-    CheckQuery.Next;
+  try
+    CheckQuery := GetResults('SELECT * FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[IdxTableName])+
+      ' WHERE '+Table.SchemaClauseIS('CONSTRAINT')+' AND TABLE_NAME='+EscapeString(Table.Name));
+    while not CheckQuery.Eof do begin
+      CheckConstraint := TCheckConstraint.Create(Self);
+      Result.Add(CheckConstraint);
+      CheckConstraint.Name := CheckQuery.Col('CONSTRAINT_NAME');
+      CheckConstraint.CheckClause := CheckQuery.Col('CHECK_CLAUSE');
+      CheckQuery.Next;
+    end;
+    CheckQuery.Free;
+  except
+    on E:EDbError do begin
+      Log(lcError, 'Detection of check constraints disabled due to error in query');
+      // Table is likely not there or does not have expected columns - prevent further queries with the same error:
+      FInformationSchemaObjects.Delete(IdxTableName);
+    end;
   end;
-  CheckQuery.Free;
 end;
 
 
