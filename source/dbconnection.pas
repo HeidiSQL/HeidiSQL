@@ -2921,8 +2921,8 @@ begin
     end;
   end;
   // List of known IS tables
-  FInformationSchemaObjects.CommaText := 'CHECK_CONSTRAINTS,'+
-    'COLUMN_DOMAIN_USAGE,'+
+  // CHECK_CONSTRAINTS is there but does not work due to missing TABLE_NAME column: https://www.heidisql.com/forum.php?t=37462
+  FInformationSchemaObjects.CommaText := 'COLUMN_DOMAIN_USAGE,'+
     'COLUMN_PRIVILEGES,'+
     'COLUMNS,'+
     'CONSTRAINT_COLUMN_USAGE,'+
