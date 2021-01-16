@@ -194,6 +194,8 @@ type
       Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
     procedure listCheckConstraintsNewText(Sender: TBaseVirtualTree;
       Node: PVirtualNode; Column: TColumnIndex; NewText: string);
+    procedure btnClearCheckConstraintsClick(Sender: TObject);
+    procedure btnRemoveCheckConstraintClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -202,7 +204,9 @@ type
     FKeys: TTableKeyList;
     FForeignKeys: TForeignKeyList;
     FCheckConstraints: TCheckConstraintList;
-    DeletedKeys, DeletedForeignKeys: TStringList;
+    FDeletedKeys,
+    FDeletedForeignKeys,
+    FDeletedCheckConstraints: TStringList;
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -251,8 +255,10 @@ begin
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
-  DeletedKeys := TStringList.Create;
-  DeletedForeignKeys := TStringList.Create;
+  FDeletedKeys := TStringList.Create;
+  FDeletedForeignKeys := TStringList.Create;
+  FDeletedCheckConstraints := TStringList.Create;
+  FDeletedCheckConstraints.Duplicates := dupIgnore;
   editName.MaxLength := NAME_LEN;
 end;
 
@@ -507,19 +513,25 @@ begin
       FColumns[i].Status := esUntouched;
     end;
   end;
-  DeletedKeys.Clear;
+  FDeletedKeys.Clear;
   for i:=0 to FKeys.Count-1 do begin
     FKeys[i].OldName := FKeys[i].Name;
     FKeys[i].OldIndexType := FKeys[i].IndexType;
     FKeys[i].Added := False;
     FKeys[i].Modified := False;
   end;
-  DeletedForeignKeys.Clear;
+  FDeletedForeignKeys.Clear;
   for i:=0 to FForeignKeys.Count-1 do begin
     FForeignKeys[i].OldKeyName := FForeignKeys[i].KeyName;
     FForeignKeys[i].Added := False;
     FForeignKeys[i].Modified := False;
   end;
+  FDeletedCheckConstraints.Clear;
+  for i:=0 to FCheckConstraints.Count-1 do begin
+    FCheckConstraints[i].Added := False;
+    FCheckConstraints[i].Modified := False;
+  end;
+
   Modified := False;
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
@@ -731,11 +743,11 @@ begin
   end;
 
   // Drop indexes, also changed indexes, which will be readded below
-  for i:=0 to DeletedKeys.Count-1 do begin
-    if DeletedKeys[i] = TTableKey.PRIMARY then
+  for i:=0 to FDeletedKeys.Count-1 do begin
+    if FDeletedKeys[i] = TTableKey.PRIMARY then
       IndexSQL := 'PRIMARY KEY'
     else
-      IndexSQL := 'INDEX ' + Conn.QuoteIdent(DeletedKeys[i]);
+      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i]);
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
@@ -751,17 +763,19 @@ begin
       Specs.Add('ADD '+FKeys[i].SQLCode);
   end;
 
-  for i:=0 to DeletedForeignKeys.Count-1 do
-    Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(DeletedForeignKeys[i]));
+  for i:=0 to FDeletedForeignKeys.Count-1 do
+    Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(FDeletedForeignKeys[i]));
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
   end;
 
   // Check constraints
-  // Todo: process constraint marked for deletion
+  for i:=0 to FDeletedCheckConstraints.Count-1 do begin
+    Specs.Add('DROP CONSTRAINT ' + Conn.QuoteIdent(FDeletedCheckConstraints[i]));
+  end;
   for Constraint in FCheckConstraints do begin
-    if Constraint.Added or Constraint.Modified or (Specs.Count > 0) then
+    if Constraint.Added or Constraint.Modified then
       Specs.Add('ADD ' + Constraint.SQLCode);
   end;
 
@@ -875,23 +889,6 @@ begin
   end;
 end;
 
-
-procedure TfrmTableEditor.btnAddCheckConstraintClick(Sender: TObject);
-var
-  CheckConstraint: TCheckConstraint;
-  idx: Integer;
-begin
-  // Add new check constraint
-  CheckConstraint := TCheckConstraint.Create(DBObject.Connection);
-  idx := FCheckConstraints.Add(CheckConstraint);
-  CheckConstraint.Name := 'CC'+IntToStr(idx+1);
-  CheckConstraint.CheckClause := '';
-  CheckConstraint.Added := True;
-  Modification(Sender);
-  listCheckConstraints.Repaint;
-  SelectNode(listCheckConstraints, idx);
-  listCheckConstraints.EditNode(listCheckConstraints.FocusedNode, listCheckConstraints.Header.MainColumn);
-end;
 
 procedure TfrmTableEditor.btnAddColumnClick(Sender: TObject);
 var
@@ -1671,7 +1668,7 @@ begin
     0: begin
       idx := treeIndexes.FocusedNode.Index;
       if not FKeys[idx].Added then
-        DeletedKeys.Add(FKeys[idx].OldName);
+        FDeletedKeys.Add(FKeys[idx].OldName);
       FKeys.Delete(idx);
       // Delete node although ReinitChildren would do the same, but the Repaint before
       // creates AVs in certain cases. See issue #2557
@@ -1705,7 +1702,7 @@ begin
   SelectNode(treeIndexes, nil);
   for TblKey in FKeys do begin
     if not TblKey.Added then
-      DeletedKeys.Add(TblKey.OldName);
+      FDeletedKeys.Add(TblKey.OldName);
   end;
   FKeys.Clear;
   Modification(Sender);
@@ -1824,6 +1821,55 @@ begin
 end;
 
 
+procedure TfrmTableEditor.btnAddCheckConstraintClick(Sender: TObject);
+var
+  CheckConstraint: TCheckConstraint;
+  idx: Integer;
+begin
+  // Add new check constraint
+  CheckConstraint := TCheckConstraint.Create(DBObject.Connection);
+  idx := FCheckConstraints.Add(CheckConstraint);
+  CheckConstraint.Name := 'CC'+IntToStr(idx+1);
+  CheckConstraint.CheckClause := '';
+  CheckConstraint.Added := True;
+  Modification(Sender);
+  listCheckConstraints.Repaint;
+  SelectNode(listCheckConstraints, idx);
+  listCheckConstraints.EditNode(listCheckConstraints.FocusedNode, listCheckConstraints.Header.MainColumn);
+end;
+
+
+procedure TfrmTableEditor.btnRemoveCheckConstraintClick(Sender: TObject);
+var
+  Constraint: TCheckConstraint;
+begin
+  // Remove a foreign key
+  listCheckConstraints.CancelEditNode;
+  Constraint := FCheckConstraints[listCheckConstraints.FocusedNode.Index];
+  if (not Constraint.Added) and (not Constraint.Modified) then
+    FDeletedCheckConstraints.Add(Constraint.Name);
+  FCheckConstraints.Delete(listCheckConstraints.FocusedNode.Index);
+  Modification(Sender);
+  listCheckConstraints.Repaint;
+end;
+
+
+procedure TfrmTableEditor.btnClearCheckConstraintsClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  // Clear all check constraints
+  listCheckConstraints.CancelEditNode;
+  for i:=FCheckConstraints.Count-1 downto 0 do begin
+    if (not FCheckConstraints[i].Added) and (not FCheckConstraints[i].Modified) then
+      FDeletedCheckConstraints.Add(FCheckConstraints[i].Name);
+    FCheckConstraints.Delete(i);
+  end;
+  Modification(Sender);
+  listCheckConstraints.Repaint;
+end;
+
+
 procedure TfrmTableEditor.listCheckConstraintsBeforePaint(
   Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 begin
@@ -1839,13 +1885,26 @@ procedure TfrmTableEditor.listCheckConstraintsCreateEditor(
 var
   VT: TVirtualStringTree;
   Edit: TInplaceEditorLink;
+  EnumEditor: TEnumEditorLink;
+  i: Integer;
 begin
   // Edit check constraint
   VT := Sender as TVirtualStringTree;
-  Edit := TInplaceEditorLink.Create(VT, True);
-  Edit.TitleText := VT.Header.Columns[Column].Text;
-  Edit.ButtonVisible := True;
-  EditLink := Edit;
+  case Column of
+    0: begin
+      Edit := TInplaceEditorLink.Create(VT, True);
+      Edit.TitleText := VT.Header.Columns[Column].Text;
+      Edit.ButtonVisible := True;
+      EditLink := Edit;
+    end;
+    1: begin
+      EnumEditor := TEnumEditorLink.Create(VT, True);
+      for i:=Low(MySQLFunctions) to High(MySQLFunctions) do
+        EnumEditor.ValueList.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+      EnumEditor.AllowCustomText := True;
+      EditLink := EnumEditor;
+    end;
+  end;
 end;
 
 
@@ -1892,6 +1951,8 @@ var
 begin
   // Check constraint edited
   Constraint := FCheckConstraints[Node.Index];
+  if (not Constraint.Added) and (not Constraint.Modified) then
+    FDeletedCheckConstraints.Add(Constraint.Name);
   case Column of
     0: Constraint.Name := NewText;
     1: Constraint.CheckClause := NewText;
@@ -2361,7 +2422,7 @@ begin
     listForeignKeys.CancelEditNode;
   Key := FForeignKeys[listForeignKeys.FocusedNode.Index];
   if not Key.Added then
-    DeletedForeignKeys.Add(Key.OldKeyName);
+    FDeletedForeignKeys.Add(Key.OldKeyName);
   FForeignKeys.Delete(listForeignKeys.FocusedNode.Index);
   Modification(Sender);
   listForeignKeys.Repaint;
@@ -2377,7 +2438,7 @@ begin
     listForeignKeys.CancelEditNode;
   for i:=FForeignKeys.Count-1 downto 0 do begin
     if not FForeignKeys[i].Added then
-      DeletedForeignKeys.Add(FForeignKeys[i].OldKeyName);
+      FDeletedForeignKeys.Add(FForeignKeys[i].OldKeyName);
     FForeignKeys.Delete(i);
   end;
   Modification(Sender);

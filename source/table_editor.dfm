@@ -500,6 +500,7 @@ object frmTableEditor: TfrmTableEditor
           Enabled = False
           ImageIndex = 46
           Wrap = True
+          OnClick = btnRemoveCheckConstraintClick
         end
         object btnClearCheckConstraints: TToolButton
           Left = 0
@@ -507,6 +508,7 @@ object frmTableEditor: TfrmTableEditor
           Caption = 'Clear'
           Enabled = False
           ImageIndex = 26
+          OnClick = btnClearCheckConstraintsClick
         end
       end
       object listCheckConstraints: TVirtualStringTree
