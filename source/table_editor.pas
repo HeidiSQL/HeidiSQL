@@ -2383,7 +2383,7 @@ procedure TfrmTableEditor.popupPropertiesPopup(Sender: TObject);
 var
   Comp: TComponent;
 begin
-  Comp := (Sender as TPopupMenu).PopupComponent;
+  Comp := PopupComponent(Sender);
   if Comp = treeIndexes then begin
     menuRemoveProperty.Enabled := btnRemoveIndex.Enabled;
     menuClearProperties.Enabled := btnClearIndexes.Enabled;

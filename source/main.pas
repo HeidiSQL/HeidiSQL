@@ -4704,20 +4704,17 @@ var
   Comp: TComponent;
   Memo: TSynMemo;
   Dialog: TSaveDialog;
-  Item: TMenuItem;
 begin
   // Save to textfile, from any TSynMemo (SQL log, "CREATE code" tab in editor, ...)
-  Item := (Sender as TAction).ActionComponent as TMenuItem;
-  Comp := (Item.GetParentMenu as TPopupMenu).PopupComponent;
+  Memo := nil;
   // Try to find memo from menu item's popup component, and if that fails, check ActiveControl.
   // See #353
-  if (Comp <> nil) and (Comp is TSynMemo) then begin
-    Memo := Comp as TSynMemo;
-  end else if ActiveControl is TSynMemo then begin
+  Comp := PopupComponent(Sender);
+  if Comp is TSynMemo then
+    Memo := Comp as TSynMemo
+  else if ActiveControl is TSynMemo then
     Memo := ActiveControl as TSynMemo;
-  end else
-    Memo := nil;
-  if Memo <> nil then begin
+  if Assigned(Memo) then begin
     Dialog := TSaveDialog.Create(Self);
     Dialog.Options := Dialog.Options + [ofOverwritePrompt];
     Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
