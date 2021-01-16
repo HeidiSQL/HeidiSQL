@@ -2787,18 +2787,13 @@ end;
 
 procedure TMainForm.actTableToolsExecute(Sender: TObject);
 var
-  Act: TAction;
-  InDBTree: Boolean;
   Node: PVirtualNode;
   DBObj: PDBObject;
 begin
   // Show table tools dialog
   FTableToolsDialog := TfrmTableTools.Create(Self);
-  Act := Sender as TAction;
   FTableToolsDialog.PreSelectObjects.Clear;
-  InDBTree := (Act.ActionComponent is TMenuItem)
-    and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
-  if InDBTree then
+  if DBTreeClicked(Sender) then
     FTableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
   else begin
     Node := GetNextNode(ListTables, nil, True);
@@ -4425,27 +4420,12 @@ end;
 
 
 function TMainForm.DBTreeClicked(Sender: TObject): Boolean;
-var
-  ClickedControl: TComponent;
-  ClickedMenu: TMenu;
 begin
   // Find out if user rightclicked in tree or in database tab,
   // which is a bit complex, so outsourced here.
-  Result := DBTree.Focused or (PageControlMain.ActivePage <> tabDatabase);
-  if Sender is TAction then begin
-    ClickedControl := (Sender as TAction).ActionComponent;
-    if ClickedControl is TMenuItem then begin
-      ClickedMenu := (ClickedControl as TMenuItem).GetParentMenu;
-      if ClickedMenu is TPopupMenu then
-        Result := (ClickedMenu as TPopupMenu).PopupComponent = DBTree;
-    end;
-  end else if Sender is TPopupMenu then begin
-    Result := (Sender as TPopupMenu).PopupComponent = DBTree;
-  end else if Sender is TMenuItem then begin
-    ClickedMenu := (Sender as TMenuItem).GetParentMenu;
-    if ClickedMenu is TPopupMenu then
-      Result := (ClickedMenu as TPopupMenu).PopupComponent = DBTree;
-  end;
+  Result := DBTree.Focused
+    or (PageControlMain.ActivePage <> tabDatabase)
+    or (PopupComponent(Sender) = DBtree);
 end;
 
 
@@ -7303,7 +7283,7 @@ var
   Version: Integer;
 begin
   // DBtree and ListTables both use popupDB as menu
-  if DBtreeClicked(Sender) then begin
+  if PopupComponent(Sender) = DBtree then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDb := Obj.NodeType = lntDb;
     IsObject := Obj.NodeType in [lntTable..lntEvent];

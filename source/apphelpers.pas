@@ -2895,16 +2895,21 @@ end;
 
 function PopupComponent(Sender: TObject): TComponent;
 var
-  ParentMenu: TMenu;
+  Menu: TObject;
 begin
-  // Return owner component of clicked menu item
+  // Return owner component of clicked menu item, probably combined with a TAction
   Result := nil;
-  if not (Sender is TMenuItem) then
-    Exit;
-  ParentMenu := (Sender as TMenuItem).GetParentMenu;
-  if not (ParentMenu is TPopupMenu) then
-    Exit;
-  Result := (ParentMenu as TPopupMenu).PopupComponent;
+  Menu := nil;
+  if Sender is TAction then
+    Sender := (Sender as TAction).ActionComponent;
+
+  if Sender is TMenuItem then
+    Menu := (Sender as TMenuItem).GetParentMenu
+  else if Sender is TPopupMenu then
+    Menu := Sender;
+
+  if Menu is TPopupMenu then
+    Result := (Menu as TPopupMenu).PopupComponent;
 end;
 
 
