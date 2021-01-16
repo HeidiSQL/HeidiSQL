@@ -372,6 +372,7 @@ type
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
+  function PopupComponent(Sender: TObject): TComponent;
 
 var
   AppSettings: TAppSettings;
@@ -2889,6 +2890,21 @@ begin
   if CenterColor = -1 then CenterColor := clWindowText;
   if RightColor = -1 then RightColor := clGrayText;
   Result := Format(LineFormat, [ImageIndex, ColorToString(LeftColor), LeftText, ColorToString(CenterColor), CenterText, ColorToString(RightColor), RightText]);
+end;
+
+
+function PopupComponent(Sender: TObject): TComponent;
+var
+  ParentMenu: TMenu;
+begin
+  // Return owner component of clicked menu item
+  Result := nil;
+  if not (Sender is TMenuItem) then
+    Exit;
+  ParentMenu := (Sender as TMenuItem).GetParentMenu;
+  if not (ParentMenu is TPopupMenu) then
+    Exit;
+  Result := (ParentMenu as TPopupMenu).PopupComponent;
 end;
 
 

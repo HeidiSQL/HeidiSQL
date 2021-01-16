@@ -58,13 +58,13 @@ type
     tabALTERCode: TTabSheet;
     SynMemoCREATEcode: TSynMemo;
     SynMemoALTERcode: TSynMemo;
-    popupIndexes: TPopupMenu;
-    menuAddIndex: TMenuItem;
+    popupProperties: TPopupMenu;
+    menuAddProperty: TMenuItem;
     menuAddIndexColumn: TMenuItem;
-    menuRemoveIndex: TMenuItem;
+    menuRemoveProperty: TMenuItem;
     menuMoveUpIndex: TMenuItem;
     menuMoveDownIndex: TMenuItem;
-    menuClearIndexes: TMenuItem;
+    menuClearProperties: TMenuItem;
     popupColumns: TPopupMenu;
     menuAddColumn: TMenuItem;
     menuRemoveColumn: TMenuItem;
@@ -92,6 +92,7 @@ type
     btnRemoveCheckConstraint: TToolButton;
     btnClearCheckConstraints: TToolButton;
     listCheckConstraints: TVirtualStringTree;
+    Copy1: TMenuItem;
     procedure Modification(Sender: TObject);
     procedure btnAddColumnClick(Sender: TObject);
     procedure btnRemoveColumnClick(Sender: TObject);
@@ -196,6 +197,10 @@ type
       Node: PVirtualNode; Column: TColumnIndex; NewText: string);
     procedure btnClearCheckConstraintsClick(Sender: TObject);
     procedure btnRemoveCheckConstraintClick(Sender: TObject);
+    procedure popupPropertiesPopup(Sender: TObject);
+    procedure menuRemovePropertyClick(Sender: TObject);
+    procedure menuClearPropertiesClick(Sender: TObject);
+    procedure menuAddPropertyClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1813,9 +1818,6 @@ begin
   btnMoveUpIndex.Enabled := HasNode and (Level = 1) and (Node <> treeIndexes.GetFirstChild(Node.Parent));
   btnMoveDownIndex.Enabled := HasNode and (Level = 1) and (Node <> treeIndexes.GetLastChild(Node.Parent));
 
-  menuAddIndexColumn.Enabled := HasNode;
-  menuRemoveIndex.Enabled := btnRemoveIndex.Enabled;
-  menuClearIndexes.Enabled := btnClearIndexes.Enabled;
   menuMoveUpIndex.Enabled := btnMoveUpIndex.Enabled;
   menuMoveDownIndex.Enabled := btnMoveDownIndex.Enabled;
 end;
@@ -2332,6 +2334,69 @@ begin
   AddItem(menuCreateIndex, TTableKey.UNIQUE, ICONINDEX_UNIQUEKEY);
   AddItem(menuCreateIndex, TTableKey.FULLTEXT, ICONINDEX_FULLTEXTKEY);
   AddItem(menuCreateIndex, TTableKey.SPATIAL, ICONINDEX_SPATIALKEY);
+end;
+
+
+procedure TfrmTableEditor.menuAddPropertyClick(Sender: TObject);
+var
+  Comp: TComponent;
+begin
+  Comp := PopupComponent(Sender);
+  if Comp = treeIndexes then
+    btnAddIndex.OnClick(Sender)
+  else if Comp = listForeignKeys then
+    btnAddForeignKey.OnClick(Sender)
+  else if Comp = listCheckConstraints then
+    btnAddCheckConstraint.OnClick(Sender);
+end;
+
+
+procedure TfrmTableEditor.menuRemovePropertyClick(Sender: TObject);
+var
+  Comp: TComponent;
+begin
+  Comp := PopupComponent(Sender);
+  if Comp = treeIndexes then
+    btnRemoveIndex.OnClick(Sender)
+  else if Comp = listForeignKeys then
+    btnRemoveForeignKey.OnClick(Sender)
+  else if Comp = listCheckConstraints then
+    btnRemoveCheckConstraint.OnClick(Sender);
+end;
+
+
+procedure TfrmTableEditor.menuClearPropertiesClick(Sender: TObject);
+var
+  Comp: TComponent;
+begin
+  Comp := PopupComponent(Sender);
+  if Comp = treeIndexes then
+    btnClearIndexes.OnClick(Sender)
+  else if Comp = listForeignKeys then
+    btnClearForeignKeys.OnClick(Sender)
+  else if Comp = listCheckConstraints then
+    btnClearCheckConstraints.OnClick(Sender);
+end;
+
+
+procedure TfrmTableEditor.popupPropertiesPopup(Sender: TObject);
+var
+  Comp: TComponent;
+begin
+  Comp := (Sender as TPopupMenu).PopupComponent;
+  if Comp = treeIndexes then begin
+    menuRemoveProperty.Enabled := btnRemoveIndex.Enabled;
+    menuClearProperties.Enabled := btnClearIndexes.Enabled;
+    menuAddIndexColumn.Enabled := Assigned(treeIndexes.FocusedNode);
+  end else if Comp = listForeignKeys then begin
+    menuRemoveProperty.Enabled := btnRemoveForeignKey.Enabled;
+    menuClearProperties.Enabled := btnClearForeignKeys.Enabled;
+    menuAddIndexColumn.Enabled := False;
+  end else if Comp = listCheckConstraints then begin
+    menuRemoveProperty.Enabled := btnRemoveCheckConstraint.Enabled;
+    menuClearProperties.Enabled := btnClearCheckConstraints.Enabled;
+    menuAddIndexColumn.Enabled := False;
+  end;
 end;
 
 

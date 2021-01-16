@@ -256,7 +256,7 @@ object frmTableEditor: TfrmTableEditor
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
         Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
-        PopupMenu = popupIndexes
+        PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoChangeScale]
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
@@ -417,6 +417,7 @@ object frmTableEditor: TfrmTableEditor
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
         Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
+        PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -522,6 +523,7 @@ object frmTableEditor: TfrmTableEditor
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
         Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
+        PopupMenu = popupProperties
         TabOrder = 1
         TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
         TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -869,16 +871,20 @@ object frmTableEditor: TfrmTableEditor
     TabOrder = 3
     OnClick = btnHelpClick
   end
-  object popupIndexes: TPopupMenu
+  object popupProperties: TPopupMenu
     Images = MainForm.VirtualImageListMain
-    Left = 344
+    OnPopup = popupPropertiesPopup
+    Left = 400
     Top = 360
-    object menuAddIndex: TMenuItem
-      Caption = 'Add index'
+    object Copy1: TMenuItem
+      Action = MainForm.actCopy
+    end
+    object menuAddProperty: TMenuItem
+      Caption = 'Add'
       ImageIndex = 45
       ImageName = 'icons8-add'
       ShortCut = 16429
-      OnClick = btnAddIndexClick
+      OnClick = menuAddPropertyClick
     end
     object menuAddIndexColumn: TMenuItem
       Caption = 'Add column'
@@ -887,19 +893,19 @@ object frmTableEditor: TfrmTableEditor
       ShortCut = 24621
       OnClick = menuAddIndexColumnClick
     end
-    object menuRemoveIndex: TMenuItem
+    object menuRemoveProperty: TMenuItem
       Caption = 'Remove'
       ImageIndex = 46
       ImageName = 'icons8-delete-button'
       ShortCut = 16430
-      OnClick = btnRemoveIndexClick
+      OnClick = menuRemovePropertyClick
     end
-    object menuClearIndexes: TMenuItem
+    object menuClearProperties: TMenuItem
       Caption = 'Clear'
       ImageIndex = 26
       ImageName = 'icons8-close-button'
       ShortCut = 24622
-      OnClick = btnClearIndexesClick
+      OnClick = menuClearPropertiesClick
     end
     object menuMoveUpIndex: TMenuItem
       Caption = 'Up'
