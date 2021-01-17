@@ -456,7 +456,7 @@ type
     N26: TMenuItem;
     actSessionManager: TAction;
     Sessionmanager1: TMenuItem;
-    actCreateRoutine: TAction;
+    actCreateProcedure: TAction;
     btnExit: TToolButton;
     lblSorryNoData: TLabel;
     menuPrint: TMenuItem;
@@ -749,6 +749,8 @@ type
     actNewQueryTabNofocus: TAction;
     DataGUIDlowercase: TMenuItem;
     DataGUIDlowercaseWobraces: TMenuItem;
+    actCreateFunction: TAction;
+    Storedfunction1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -4361,9 +4363,11 @@ begin
   Obj.Database := ActiveDatabase;
   if a = actCreateTable then Obj.NodeType := lntTable
   else if a = actCreateView then Obj.NodeType := lntView
-  else if a = actCreateRoutine then Obj.NodeType := lntProcedure
+  else if a = actCreateProcedure then Obj.NodeType := lntProcedure
   else if a = actCreateTrigger then Obj.NodeType := lntTrigger
-  else if a = actCreateEvent then Obj.NodeType := lntEvent;
+  else if a = actCreateEvent then Obj.NodeType := lntEvent
+  else if a = actCreateFunction then Obj.NodeType := lntFunction;
+
   PlaceObjectEditor(Obj);
 end;
 
@@ -7291,7 +7295,8 @@ begin
     actAttachDatabase.Enabled := actAttachDatabase.Visible and (Obj.NodeType = lntNone);
     actCreateTable.Enabled := IsDb or IsObject or (Obj.GroupType = lntTable);
     actCreateView.Enabled := IsDb or IsObject or (Obj.GroupType = lntView);
-    actCreateRoutine.Enabled := IsDb or IsObject or (Obj.GroupType in [lntFunction, lntProcedure]);
+    actCreateProcedure.Enabled := IsDb or IsObject or (Obj.GroupType in [lntFunction, lntProcedure]);
+    actCreateFunction.Enabled := actCreateProcedure.Enabled;
     actCreateTrigger.Enabled := IsDb or IsObject or (Obj.GroupType = lntTrigger);
     actCreateEvent.Enabled := IsDb or IsObject or (Obj.GroupType = lntEvent);
     actDropObjects.Enabled := IsObject or
@@ -7314,7 +7319,8 @@ begin
     actAttachDatabase.Visible := False;
     actCreateTable.Enabled := True;
     actCreateView.Enabled := True;
-    actCreateRoutine.Enabled := True;
+    actCreateProcedure.Enabled := True;
+    actCreateFunction.Enabled := True;
     actCreateTrigger.Enabled := True;
     actCreateEvent.Enabled := True;
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
@@ -7335,7 +7341,8 @@ begin
   if (ActiveConnection <> nil) and (ActiveConnection.Parameters.IsAnyMySQL) then begin
     Version := ActiveConnection.ServerVersionInt;
     actCreateView.Enabled := actCreateView.Enabled and (Version >= 50001);
-    actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Version >= 50003);
+    actCreateProcedure.Enabled := actCreateProcedure.Enabled and (Version >= 50003);
+    actCreateFunction.Enabled := actCreateFunction.Enabled and (Version >= 50003);
     actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Version >= 50002);
     actCreateEvent.Enabled := actCreateEvent.Enabled and (Version >= 50100);
   end;
