@@ -7,23 +7,33 @@ assignees: ''
 
 ---
 
+<!---
+Please don't remove the template.
+Please verify the bug exists with the latest HeidiSQL build from https://www.heidisql.com/download.php#nightlybuilds
+-->
+
+**Preconditions**
+<!---
+Provide the exact version of HeidiSQL (example: 11.1.0.6210), the server (example: MariaDB 10.3.27) and the operating system.
+If running on Linux or Mac, report Wine version (or whatever environment you are using).
+-->
+* HeidiSQL version:
+* Database type and version:
+* OS:
+
 **Describe the bug**
-A clear and concise description of what the bug is.
+<!---
+A clear and concise description of what the bug is. What did you expect? And what happened instead?
+-->
 
 **To Reproduce**
-Steps to reproduce the behavior:
+<!---
+Example:
 1. Go to '...'
 2. Click on '....'
-3. Scroll down to '....'
-4. See error
+3. See error message: xyz
+-->
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Environment:**
- - OS: [e.g. Windows 10, Ubuntu/Wine5.0]
- - HeidiSQL version [e.g. 11.0.0.6050]
- - Database type and version [e.g. MariaDB 10.3.12]
+**Screenshots or Crash reports**
+<!-- If applicable, add screenshots to help explain the bug.
+Crash reports with a callstack can be very helpful as well. -->
