@@ -6696,7 +6696,7 @@ begin
   Result := QueryType + ' ';
   case FParameters.NetTypeGroup of
     ngMSSQL: begin
-      if QueryType = 'UPDATE' then begin
+      if (QueryType = 'UPDATE') or (QueryType = 'DELETE') then begin
         // TOP(x) clause for UPDATES + DELETES introduced in MSSQL 2005
         if ServerVersionInt >= 900 then
           Result := Result + 'TOP('+IntToStr(Limit)+') ';
@@ -6711,7 +6711,8 @@ begin
           // OFFSET not supported in < 2012
           Result := Result + 'TOP ' + IntToStr(Limit) + ' ' + QueryBody;
         end;
-      end;
+      end else
+        Result := Result + QueryBody;
     end;
     ngMySQL: begin
       Result := Result + QueryBody + ' LIMIT ';
