@@ -4247,16 +4247,21 @@ end;
   If running a thread, log to queue and let the main thread later do logging
 }
 procedure TDBConnection.Log(Category: TDBLogCategory; Msg: String);
+var
+  LogMessage,
 begin
+  // If in a thread, synchronize logging with the main thread. Logging within a thread
+  // causes SynEdit to throw exceptions left and right.
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
+    (FLockedByThread as TQueryThread).LogFromThread(Msg, Category);
+    Exit;
+  end;
+
   if Assigned(FOnLog) then begin
+    LogMessage := Msg;
     if FLogPrefix <> '' then
-      Msg := '['+FLogPrefix+'] ' + Msg;
-    // If in a thread, synchronize logging with the main thread. Logging within a thread
-    // causes SynEdit to throw exceptions left and right.
-    if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then
-      (FLockedByThread as TQueryThread).LogFromOutside(Msg, Category)
-    else
-      FOnLog(Msg, Category, Self);
+      LogMessage := '['+FLogPrefix+'] ' + LogMessage;
+    FOnLog(LogMessage, Category, Self);
   end;
 end;
 

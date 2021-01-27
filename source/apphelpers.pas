@@ -119,12 +119,6 @@ type
     FRowsAffected: Int64;
     FRowsFound: Int64;
     FWarningCount: Int64;
-    FLogMsg: String;
-    FLogCategory: TDBLogCategory;
-    procedure BeforeQuery;
-    procedure AfterQuery;
-    procedure BatchFinished;
-    procedure Log;
   public
     property Connection: TDBConnection read FConnection;
     property Batch: TSQLBatch read FBatch;
@@ -141,7 +135,7 @@ type
     property ErrorMessage: String read FErrorMessage;
     constructor Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
     procedure Execute; override;
-    procedure LogFromOutside(Msg: String; Category: TDBLogCategory);
+    procedure LogFromThread(Msg: String; Category: TDBLogCategory);
   end;
 
   TAppSettingDataType = (adInt, adBool, adString);
@@ -2987,15 +2981,15 @@ begin
       end;
       FQueriesInPacket := i - FBatchPosition;
     end;
-    Synchronize(BeforeQuery);
+    Synchronize(procedure begin MainForm.BeforeQueryExecution(Self); end);
     try
       FConnection.LockedByThread := Self;
       DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
       if (not DoStoreResult) and (not LogMaxResultsDone) then begin
         // Inform user about preference setting for limiting result tabs
-        LogFromOutside(
-          f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)]),
-          lcInfo);
+        FConnection.Log(lcInfo,
+          f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)])
+          );
         LogMaxResultsDone := True;
       end;
       FConnection.Query(SQL, DoStoreResult, lcUserFiredSQL);
@@ -3015,46 +3009,20 @@ begin
       end;
     end;
     FConnection.LockedByThread := nil;
-    Synchronize(AfterQuery);
+    Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then
       break;
   end;
 
-  Synchronize(BatchFinished);
+  Synchronize(procedure begin MainForm.FinishedQueryExecution(Self); end);
 end;
 
 
-procedure TQueryThread.BeforeQuery;
+procedure TQueryThread.LogFromThread(Msg: String; Category: TDBLogCategory);
 begin
-  MainForm.BeforeQueryExecution(Self);
-end;
-
-
-procedure TQueryThread.LogFromOutside(Msg: String; Category: TDBLogCategory);
-begin
-  FLogMsg := Msg;
-  FLogCategory := Category;
-  Synchronize(Log);
-end;
-
-
-procedure TQueryThread.Log;
-begin
-  FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
-end;
-
-
-procedure TQueryThread.AfterQuery;
-begin
-  MainForm.AfterQueryExecution(Self);
-end;
-
-
-procedure TQueryThread.BatchFinished;
-begin
-  MainForm.FinishedQueryExecution(Self);
+  Queue(procedure begin FConnection.Log(Category, Msg); end);
 end;
 
 
