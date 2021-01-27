@@ -92,6 +92,15 @@ type
       property LastContent: String read FLastContent;
   end;
 
+  // Extended string list with support for empty values
+  TExtStringList = class(TStringList)
+    private
+      function GetValue(const Name: string): string;
+      procedure SetValue(const Name, Value: string); reintroduce;
+    public
+      property Values[const Name: string]: string read GetValue write SetValue;
+  end;
+
   // Threading stuff
   TQueryThread = class(TThread)
   private
@@ -2594,12 +2603,12 @@ end;
 
 function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
 var
-  Arguments: TStringList;
+  Arguments: TExtStringList;
   Year, Month, Day, Hour, Min, Sec, MSec: Word;
   i: Integer;
 begin
   // Rich format output filename, replace certain markers. See issue #2622
-  Arguments := TStringList.Create;
+  Arguments := TExtStringList.Create;
 
   if Assigned(DBObj) then begin
     Arguments.Values['session'] := ValidFilename(DBObj.Connection.Parameters.SessionName);
@@ -3328,6 +3337,26 @@ begin
     if Assigned(NetHandle) then
       InternetCloseHandle(NetHandle);
   end;
+end;
+
+
+
+{ TExtStringList }
+// taken from https://stackoverflow.com/questions/33893377/can-i-prevent-tstringlist-removing-key-value-pair-when-value-set-to-empty
+
+function TExtStringList.GetValue(const Name: string): string;
+begin
+  Result := Self.GetValue(Name);
+end;
+
+
+procedure TExtStringList.SetValue(const Name, Value: string);
+var
+  I: Integer;
+begin
+  I := IndexOfName(Name);
+  if I < 0 then I := Add('');
+  Put(I, Name + NameValueSeparator + Value);
 end;
 
 
