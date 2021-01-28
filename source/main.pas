@@ -5332,7 +5332,7 @@ begin
       // Causes access violations on a reconnected session firing a user-query:
       // SynMemoSQLLog.Repaint;
       // SynMemoSQLLog.Update;
-      // See TDBConnection.Log and TQueryThread.LogFromOutside
+      // See TDBConnection.Log and TQueryThread.LogFromThread
       // See https://github.com/HeidiSQL/HeidiSQL/issues/57
 
       // Log to file?

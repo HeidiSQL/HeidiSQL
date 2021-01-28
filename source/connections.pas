@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
   dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
-  System.Math, System.Actions, Vcl.ActnList;
+  System.Math, System.Actions, Vcl.ActnList, Vcl.StdActns;
 
 type
   Tconnform = class(TExtForm)
@@ -130,6 +130,8 @@ type
     ActionListConnections: TActionList;
     actFilter: TAction;
     Filter1: TMenuItem;
+    chkLogMigrations: TCheckBox;
+    editLogMigrationsPath: TButtonedEdit;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -192,6 +194,7 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actFilterExecute(Sender: TObject);
+    procedure editLogMigrationsPathRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -249,11 +252,13 @@ end;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  NetTypeStr: String;
+  NetTypeStr, FilenameHint: String;
   nt: TNetType;
   ntg: TNetTypeGroup;
   Params: TConnectionParameters;
   ComboItem: TComboExItem;
+  Placeholders: TStringList;
+  i: Integer;
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
@@ -294,6 +299,14 @@ begin
   end;
   Params.Free;
 
+  // Create filename placeholders hint
+  Placeholders := GetOutputFilenamePlaceholders;
+  FilenameHint := _('Allows the following replacement patterns:');
+  for i:=0 to Placeholders.Count-1 do begin
+    FilenameHint := FilenameHint + CRLF + '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+  end;
+  Placeholders.Free;
+  editLogMigrationsPath.Hint := FilenameHint;
 end;
 
 
@@ -472,6 +485,8 @@ begin
   Sess.SSLCACertificate := editSSLCACertificate.Text;
   Sess.SSLCipher := editSSLCipher.Text;
   Sess.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
+  Sess.LogMigrations := chkLogMigrations.Checked;
+  Sess.LogMigrationsPath := editLogMigrationsPath.Text;
   Sess.SaveToRegistry;
 
   FSessionModified := False;
@@ -653,6 +668,7 @@ begin
   end else begin
     Result := TConnectionParameters.Create;
     Result.SessionPath := SelectedSessionPath;
+    Result.Counter := FromReg.Counter;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
     Result.NetType := SelectedNetType;
     Result.ServerVersion := FServerVersion;
@@ -690,6 +706,8 @@ begin
     Result.FullTableStatus := chkFullTableStatus.Checked;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
     Result.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
+    Result.LogMigrations := chkLogMigrations.Checked;
+    Result.LogMigrationsPath := editLogMigrationsPath.Text;
   end;
 end;
 
@@ -974,6 +992,8 @@ begin
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     editSSLCipher.Text := Sess.SSLCipher;
     editIgnoreDatabasePattern.Text := Sess.IgnoreDatabasePattern;
+    chkLogMigrations.Checked := Sess.LogMigrations;
+    editLogMigrationsPath.Text := Sess.LogMigrationsPath;
     FServerVersion := Sess.ServerVersion;
   end;
 
@@ -1121,6 +1141,22 @@ begin
   if CurrentParams.NetType = ntSQLite then
     PickFile(Sender);
 end;
+
+
+procedure Tconnform.editLogMigrationsPathRightButtonClick(Sender: TObject);
+var
+  Browse: TBrowseForFolder;
+begin
+  // Select migrations path
+  Browse := TBrowseForFolder.Create(Self);
+  Browse.Folder := editLogMigrationsPath.Text;
+  Browse.DialogCaption := _('Select output directory');
+  Browse.BrowseOptions := Browse.BrowseOptions + [bifNoNewFolderButton, bifNewDialogStyle];
+  if Browse.Execute then
+    editLogMigrationsPath.Text := Browse.Folder;
+  Browse.Free;
+end;
+
 
 procedure Tconnform.editTrim(Sender: TObject);
 var
@@ -1316,7 +1352,10 @@ begin
       or (Sess.SSLCertificate <> editSSLCertificate.Text)
       or (Sess.SSLCACertificate <> editSSLCACertificate.Text)
       or (Sess.SSLCipher <> editSSLCipher.Text)
-      or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text);
+      or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text)
+      or (Sess.LogMigrations <> chkLogMigrations.Checked)
+      or (Sess.LogMigrationsPath <> editLogMigrationsPath.Text)
+      ;
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
@@ -1425,6 +1464,7 @@ begin
       chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
       chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL]) and (Params.NetType <> ntMySQL_ProxySQLAdmin);
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
+      editLogMigrationsPath.Enabled := Params.LogMigrations;
 
       Params.Free;
     end;

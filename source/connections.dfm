@@ -3,7 +3,7 @@ object connform: Tconnform
   Top = 129
   BorderIcons = [biSystemMenu, biHelp]
   Caption = 'Session manager'
-  ClientHeight = 451
+  ClientHeight = 506
   ClientWidth = 649
   Color = clBtnFace
   Constraints.MinHeight = 470
@@ -23,7 +23,7 @@ object connform: Tconnform
   OnShow = FormShow
   DesignSize = (
     649
-    451)
+    506)
   PixelsPerInch = 96
   TextHeight = 13
   object splitterMain: TSplitter
@@ -31,7 +31,7 @@ object connform: Tconnform
     Left = 208
     Top = 8
     Width = 8
-    Height = 403
+    Height = 458
     Cursor = crSizeWE
     Margins.Left = 0
     Margins.Top = 8
@@ -42,7 +42,7 @@ object connform: Tconnform
   end
   object btnSave: TButton
     Left = 64
-    Top = 418
+    Top = 473
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -55,7 +55,7 @@ object connform: Tconnform
   end
   object btnOpen: TButton
     Left = 389
-    Top = 418
+    Top = 473
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -67,7 +67,7 @@ object connform: Tconnform
   end
   object btnCancel: TButton
     Left = 475
-    Top = 418
+    Top = 473
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -78,7 +78,7 @@ object connform: Tconnform
   end
   object btnNew: TButton
     Left = 8
-    Top = 418
+    Top = 473
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -93,7 +93,7 @@ object connform: Tconnform
   end
   object btnDelete: TButton
     Left = 120
-    Top = 418
+    Top = 473
     Width = 50
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -109,7 +109,7 @@ object connform: Tconnform
     Left = 216
     Top = 8
     Width = 425
-    Height = 403
+    Height = 458
     Margins.Left = 0
     Margins.Top = 8
     Margins.Right = 8
@@ -154,7 +154,7 @@ object connform: Tconnform
       ImageName = 'icons8-support'
       DesignSize = (
         417
-        374)
+        429)
       object lblPort: TLabel
         Left = 3
         Top = 199
@@ -318,7 +318,7 @@ object connform: Tconnform
         Left = 190
         Top = 271
         Width = 220
-        Height = 98
+        Height = 153
         Anchors = [akLeft, akTop, akRight, akBottom]
         ScrollBars = ssVertical
         TabOrder = 11
@@ -355,7 +355,7 @@ object connform: Tconnform
       ImageName = 'icons8-lock'
       DesignSize = (
         417
-        374)
+        429)
       object lblSSHLocalPort: TLabel
         Left = 3
         Top = 174
@@ -528,7 +528,7 @@ object connform: Tconnform
       ImageName = 'icons8-support-orange'
       DesignSize = (
         417
-        374)
+        429)
       object lblSSLPrivateKey: TLabel
         Left = 3
         Top = 39
@@ -779,6 +779,30 @@ object connform: Tconnform
         TextHint = 'Regular expression'
         OnChange = Modification
       end
+      object chkLogMigrations: TCheckBox
+        Left = 190
+        Top = 370
+        Width = 220
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Log DDL queries to folder'
+        TabOrder = 15
+        OnClick = Modification
+      end
+      object editLogMigrationsPath: TButtonedEdit
+        Left = 190
+        Top = 393
+        Width = 219
+        Height = 21
+        Anchors = [akLeft, akTop, akRight]
+        Enabled = False
+        Images = MainForm.VirtualImageListMain
+        RightButton.ImageIndex = 51
+        RightButton.Visible = True
+        TabOrder = 16
+        OnChange = Modification
+        OnRightButtonClick = editLogMigrationsPathRightButtonClick
+      end
     end
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
@@ -844,7 +868,7 @@ object connform: Tconnform
   end
   object btnMore: TButton
     Left = 561
-    Top = 418
+    Top = 473
     Width = 80
     Height = 25
     Anchors = [akRight, akBottom]
@@ -859,7 +883,7 @@ object connform: Tconnform
     Left = 8
     Top = 8
     Width = 200
-    Height = 403
+    Height = 458
     Margins.Left = 8
     Margins.Top = 8
     Margins.Right = 0
@@ -872,7 +896,7 @@ object connform: Tconnform
       Left = 0
       Top = 26
       Width = 200
-      Height = 377
+      Height = 432
       Align = alClient
       DragMode = dmAutomatic
       Header.AutoSizeIndex = -1
