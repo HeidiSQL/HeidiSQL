@@ -140,7 +140,7 @@ type
 
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
-    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogMigrations, asLogMigrationsPath,
+    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asHintsOnResultTabs, asHightlightSameTextBackground,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
@@ -3399,8 +3399,9 @@ begin
   InitSetting(asLastUsedDB,                       'lastUsedDB',                            0, False, '', True);
   InitSetting(asTreeBackground,                   'TreeBackground',                        clNone, False, '', True);
   InitSetting(asIgnoreDatabasePattern,            'IgnoreDatabasePattern',                 0, False, '', True);
-  InitSetting(asLogMigrations,                    'LogMigrations',                         0, False, '', True);
-  InitSetting(asLogMigrationsPath,                'LogMigrationsPath',                     0, False, DirnameUserAppData + 'Migrations\%session\', True);
+  InitSetting(asLogFileDdl,                       'LogFileDdl',                            0, False, '', True);
+  InitSetting(asLogFileDml,                       'LogFileDml',                            0, False, '', True);
+  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs\%session\%db\%y%m%d.sql', True);
   if Screen.Fonts.IndexOf('Consolas') > -1 then
     InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
   else

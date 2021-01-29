@@ -288,8 +288,9 @@ type
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
-      FLogMigrations: Boolean;
-      FLogMigrationsPath: String;
+      FLogFileDdl: Boolean;
+      FLogFileDml: Boolean;
+      FLogFilePath: String;
       class var FLibraries: TNetGroupLibs;
       function GetImageIndex: Integer;
       function GetSessionName: String;
@@ -362,8 +363,9 @@ type
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
       property SSLCipher: String read FSSLCipher write FSSLCipher;
       property IgnoreDatabasePattern: String read FIgnoreDatabasePattern write FIgnoreDatabasePattern;
-      property LogMigrations: Boolean read FLogMigrations write FLogMigrations;
-      property LogMigrationsPath: String read FLogMigrationsPath write FLogMigrationsPath;
+      property LogFileDdl: Boolean read FLogFileDdl write FLogFileDdl;
+      property LogFileDml: Boolean read FLogFileDml write FLogFileDml;
+      property LogFilePath: String read FLogFilePath write FLogFilePath;
   end;
   PConnectionParameters = ^TConnectionParameters;
 
@@ -1290,8 +1292,9 @@ begin
 
   FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
   FIgnoreDatabasePattern := DefaultIgnoreDatabasePattern;
-  FLogMigrations := AppSettings.GetDefaultBool(asLogMigrations);
-  FLogMigrationsPath := AppSettings.GetDefaultString(asLogMigrationsPath);
+  FLogFileDdl := AppSettings.GetDefaultBool(asLogFileDdl);
+  FLogFileDml := AppSettings.GetDefaultBool(asLogFileDml);
+  FLogFilePath := AppSettings.GetDefaultString(asLogFilePath);
 
   // Must be read without session path
   FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
@@ -1361,8 +1364,9 @@ begin
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
     FIgnoreDatabasePattern := AppSettings.ReadString(asIgnoreDatabasePattern);
-    FLogMigrations := AppSettings.ReadBool(asLogMigrations);
-    FLogMigrationsPath := AppSettings.ReadString(asLogMigrationsPath);
+    FLogFileDdl := AppSettings.ReadBool(asLogFileDdl);
+    FLogFileDml := AppSettings.ReadBool(asLogFileDml);
+    FLogFilePath := AppSettings.ReadString(asLogFilePath);
 
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
@@ -1419,8 +1423,9 @@ begin
     AppSettings.WriteString(asSSLCA, FSSLCACertificate);
     AppSettings.WriteString(asSSLCipher, FSSLCipher);
     AppSettings.WriteString(asIgnoreDatabasePattern, FIgnoreDatabasePattern);
-    AppSettings.WriteBool(asLogMigrations, FLogMigrations);
-    AppSettings.WriteString(asLogMigrationsPath, FLogMigrationsPath);
+    AppSettings.WriteBool(asLogFileDdl, FLogFileDdl);
+    AppSettings.WriteBool(asLogFileDml, FLogFileDml);
+    AppSettings.WriteString(asLogFilePath, FLogFilePath);
     AppSettings.ResetPath;
     AppSettings.WriteString(asPlinkExecutable, FSSHPlinkExe);
   end;
@@ -4262,16 +4267,26 @@ var
   LogMessage,
   FilePath: String;
   DbObj: TDBObject;
-  LogMigrationsStream: TStreamWriter;
+  LogFileStream: TStreamWriter;
 
   function IsDdlQuery: Boolean;
   begin
-    Result := (Category in [lcSQL, lcUserFiredSQL, lcScript])
-      and (
-        Msg.StartsWith('CREATE', True)
+    Result := Msg.StartsWith('CREATE', True)
         or Msg.StartsWith('ALTER', True)
         or Msg.StartsWith('DROP', True)
-      )
+        or Msg.StartsWith('TRUNCATE', True)
+        or Msg.StartsWith('COMMENT', True)
+        or Msg.StartsWith('RENAME', True)
+        ;
+  end;
+
+  function IsDmlQuery: Boolean;
+  begin
+    Result := Msg.StartsWith('INSERT', True)
+        or Msg.StartsWith('UPDATE', True)
+        or Msg.StartsWith('DELETE', True)
+        or Msg.StartsWith('UPSERT', True)
+        ;
   end;
 
 begin
@@ -4289,23 +4304,27 @@ begin
     FOnLog(LogMessage, Category, Self);
   end;
 
-  if Parameters.LogMigrations and IsDdlQuery then begin
-    // Log DDL queries to migration file
-    DbObj := TDBObject.Create(Self);
-    DbObj.Database := IfThen(FDatabase.IsEmpty, 'nodb', FDatabase);
-    FilePath := IncludeTrailingPathDelimiter(Parameters.LogMigrationsPath) + '%db\%y%m%d-' + Parameters.Counter.ToString + '.sql';
-    FilePath := GetOutputFilename(FilePath, DbObj);
-    DbObj.Free;
-    try
-      ForceDirectories(ExtractFileDir(FilePath));
-      LogMigrationsStream := TStreamWriter.Create(FilePath, True, UTF8NoBOMEncoding);
-      LogMigrationsStream.Write(Msg + ';' + sLineBreak);
-      LogMigrationsStream.Free;
-    except
-      on E:Exception do begin
-        Parameters.LogMigrations := False;
-        Log(lcError, E.Message);
-        Log(lcInfo, _('Migration logging disabled'));
+  if Category in [lcSQL, lcUserFiredSQL, lcScript] then begin
+    if (Parameters.LogFileDdl and IsDdlQuery)
+      or (Parameters.LogFileDml and IsDmlQuery)
+      then begin
+      // Log DDL queries to migration file
+      DbObj := TDBObject.Create(Self);
+      DbObj.Database := IfThen(FDatabase.IsEmpty, 'nodb', FDatabase);
+      FilePath := GetOutputFilename(Parameters.LogFilePath, DbObj);
+      DbObj.Free;
+      try
+        ForceDirectories(ExtractFileDir(FilePath));
+        LogFileStream := TStreamWriter.Create(FilePath, True, UTF8NoBOMEncoding);
+        LogFileStream.Write(Msg + ';' + sLineBreak);
+        LogFileStream.Free;
+      except
+        on E:Exception do begin
+          Parameters.LogFileDdl := False;
+          Parameters.LogFileDml := False;
+          Log(lcError, E.Message);
+          Log(lcInfo, _('Logging disabled'));
+        end;
       end;
     end;
   end;
