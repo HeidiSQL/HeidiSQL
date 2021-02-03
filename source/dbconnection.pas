@@ -4919,7 +4919,7 @@ begin
     Result := Result or ((ServerVersionInt < 100201) and (not Value.StartsWith('CURRENT_TIMESTAMP', True)));
     // Inexact fallback detection, wrong if MariaDB allows "0+1" as expression at some point
     Result := Result or Value.IsEmpty or IsInt(Value[1]);
-  end else if FParameters.IsMySQL(False) then begin
+  end else if FParameters.IsAnyMySQL then begin
     // Only MySQL case with expression in default value is as follows:
     if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
       Result := False;
