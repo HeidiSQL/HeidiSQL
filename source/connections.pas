@@ -1449,7 +1449,7 @@ begin
       editSSLCertificate.Enabled := Params.WantSSL;
       lblSSLcipher.Enabled := Params.WantSSL;
       editSSLcipher.Enabled := Params.WantSSL;
-      lblQueryTimeout.Enabled := Params.NetTypeGroup in [ngMSSQL, ngPgSQL, ngSQLite];
+      lblQueryTimeout.Enabled := True;
       editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
