@@ -8,8 +8,7 @@ assignees: ''
 ---
 
 <!---
-Please don't remove the template.
-Please verify the bug exists with the latest HeidiSQL build from https://www.heidisql.com/download.php#nightlybuilds
+Please don't remove the template. The report will be closed without it.
 -->
 
 **Preconditions**
