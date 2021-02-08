@@ -271,7 +271,8 @@ type
     ntPgSQL_TCPIP,
     ntPgSQL_SSHtunnel,
     ntSQLite,
-    ntMySQL_ProxySQLAdmin
+    ntMySQL_ProxySQLAdmin,
+    ntMySQL_ClickHouse
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
@@ -314,6 +315,7 @@ type
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
       function IsProxySQLAdmin: Boolean;
+      function IsClickHouse: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
@@ -1471,6 +1473,7 @@ function TConnectionParameters.NetTypeName(LongFormat: Boolean): String;
 const
   PrefixMysql = 'MariaDB or MySQL';
   PrefixProxysql = 'ProxySQL Admin';
+  PrefixClickhouse = 'ClickHouse MySQL';
   PrefixMssql = 'Microsoft SQL Server';
   PrefixPostgres = 'PostgreSQL';
   PrefixRedshift = 'Redshift PG';
@@ -1485,6 +1488,7 @@ begin
       ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
       ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
+      ntMySQL_ClickHouse:       Result := PrefixClickhouse+' (Experimental)';
       ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
       ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX)';
@@ -1505,6 +1509,7 @@ begin
         else if IsInfobright then      Result := 'Infobright'
         else if IsMemSQL then          Result := 'MemSQL'
         else if IsProxySQLAdmin then   Result := 'ProxySQL Admin'
+        else if IsClickHouse then      Result := 'ClickHouse MySQL'
         else if IsMySQL(True) then     Result := 'MySQL'
         else                           Result := PrefixMysql;
       end;
@@ -1529,7 +1534,7 @@ end;
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin:
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse:
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
@@ -1589,6 +1594,7 @@ begin
       and (not IsInfiniDB)
       and (not IsInfobright)
       and (not IsProxySQLAdmin)
+      and (not IsClickHouse)
       and (not IsMemSQL);
   end;
 end;
@@ -1624,6 +1630,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsClickHouse: Boolean;
+begin
+  Result := NetType = ntMySQL_ClickHouse;
+end;
+
+
 function TConnectionParameters.IsAzure: Boolean;
 begin
   Result := IsAnyMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
@@ -1655,7 +1667,8 @@ begin
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173
       else if IsMemSQL then Result := 194
-      else if IsProxySQLAdmin then Result := 197;
+      else if IsProxySQLAdmin then Result := 197
+      else if IsClickHouse then Result := 203;
     end;
     ngMSSQL: begin
       Result := 123;
@@ -1679,6 +1692,8 @@ begin
     ngMySQL: begin
       if IsProxySQLAdmin then
         Result := 6032
+      else if IsClickHouse then
+        Result := 8123 // todo: is that correct?
       else
         Result := 3306;
     end;
@@ -2100,7 +2115,7 @@ begin
     end;
 
     case FParameters.NetType of
-      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin: begin
+      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse: begin
       end;
 
       ntMySQL_NamedPipe: begin
@@ -2886,7 +2901,7 @@ begin
   except // silently fail if IS does not exist, on super old servers
   end;
 
-  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
+  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) and (not Parameters.IsClickHouse) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
@@ -3783,7 +3798,7 @@ begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then begin
-      if Parameters.IsProxySQLAdmin then
+      if Parameters.IsProxySQLAdmin or Parameters.IsClickHouse then
         FThreadID := FLib.mysql_thread_id(FHandle)
       else
         FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
