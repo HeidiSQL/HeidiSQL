@@ -5649,15 +5649,36 @@ function TDBConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstra
 var
   CheckQuery: TDBQuery;
   CheckConstraint: TCheckConstraint;
-  IdxTableName: Integer;
+  ConTableIdx, TconTableIdx: Integer;
 begin
   Result := TCheckConstraintList.Create(True);
-  IdxTableName := FInformationSchemaObjects.IndexOf('CHECK_CONSTRAINTS');
-  if IdxTableName = -1 then
+  ConTableIdx := FInformationSchemaObjects.IndexOf('CHECK_CONSTRAINTS');
+  TconTableIdx := FInformationSchemaObjects.IndexOf('TABLE_CONSTRAINTS');
+  if (ConTableIdx = -1) or (TconTableIdx = -1) then
     Exit;
+
   try
-    CheckQuery := GetResults('SELECT * FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[IdxTableName])+
-      ' WHERE '+Table.SchemaClauseIS('CONSTRAINT')+' AND TABLE_NAME='+EscapeString(Table.Name));
+    if FParameters.IsMariaDB then begin
+      CheckQuery := GetResults('SELECT CONSTRAINT_NAME, CHECK_CLAUSE'+
+        ' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[ConTableIdx])+
+        ' WHERE'+
+        ' '+Table.SchemaClauseIS('CONSTRAINT')+
+        ' AND TABLE_NAME='+EscapeString(Table.Name)
+        );
+    end
+    else begin
+      CheckQuery := GetResults('SELECT tc.CONSTRAINT_NAME, cc.CHECK_CLAUSE'+
+        ' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[ConTableIdx])+' AS cc, '+
+        QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[TconTableIdx])+' AS tc'+
+        ' WHERE'+
+        ' '+Table.SchemaClauseIS('tc.CONSTRAINT')+
+        ' AND tc.TABLE_NAME='+EscapeString(Table.Name)+
+        ' AND tc.CONSTRAINT_TYPE='+EscapeString('CHECK')+
+        ' AND tc.CONSTRAINT_SCHEMA=cc.CONSTRAINT_SCHEMA'+
+        ' AND tc.CONSTRAINT_NAME=cc.CONSTRAINT_NAME'+
+        IfThen(FParameters.IsAnyPostgreSQL, ' AND cc.CONSTRAINT_NAME NOT LIKE '+EscapeString('%\_not\_null'), '')
+        );
+    end;
     while not CheckQuery.Eof do begin
       CheckConstraint := TCheckConstraint.Create(Self);
       Result.Add(CheckConstraint);
@@ -5670,7 +5691,7 @@ begin
     on E:EDbError do begin
       Log(lcError, 'Detection of check constraints disabled due to error in query');
       // Table is likely not there or does not have expected columns - prevent further queries with the same error:
-      FInformationSchemaObjects.Delete(IdxTableName);
+      FInformationSchemaObjects.Delete(ConTableIdx);
     end;
   end;
 end;
