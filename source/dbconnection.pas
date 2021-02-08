@@ -2686,11 +2686,12 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
-      FSQLSpecifities[spGlobalStatus] := IfThen(
-        Parameters.IsProxySQLAdmin,
-        'SELECT * FROM stats_mysql_global',
-        'SHOW /*!50002 GLOBAL */ STATUS'
-        );
+      if Parameters.IsProxySQLAdmin then
+        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM stats_mysql_global'
+      else if Parameters.IsClickHouse then
+        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM system.metrics'
+      else
+        FSQLSpecifities[spGlobalStatus] := 'SHOW /*!50002 GLOBAL */ STATUS';
       FSQLSpecifities[spCommandsCounters] := IfThen(
         Parameters.IsProxySQLAdmin,
         'SELECT * FROM stats_mysql_commands_counters',
