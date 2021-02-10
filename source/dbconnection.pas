@@ -2686,18 +2686,17 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spGlobalStatus] := 'SHOW /*!50002 GLOBAL */ STATUS';
       if Parameters.IsProxySQLAdmin then
-        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM stats_mysql_global'
-      else if Parameters.IsClickHouse then
-        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM system.metrics'
-      else
-        FSQLSpecifities[spGlobalStatus] := 'SHOW /*!50002 GLOBAL */ STATUS';
-      FSQLSpecifities[spCommandsCounters] := IfThen(
-        Parameters.IsProxySQLAdmin,
-        'SELECT * FROM stats_mysql_commands_counters',
-        'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%'''
-        );
+        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM stats_mysql_global';
+      if Parameters.IsClickHouse then
+        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM system.metrics';
+      FSQLSpecifities[spCommandsCounters] := 'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''';
+      if Parameters.IsProxySQLAdmin then
+        FSQLSpecifities[spCommandsCounters] := 'SELECT * FROM stats_mysql_commands_counters';
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
+      if Parameters.IsClickHouse then
+        FSQLSpecifities[spSessionVariables] := 'SELECT * FROM system.settings';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
