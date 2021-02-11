@@ -9219,7 +9219,8 @@ begin
           ErrorDialog(E.Message);
         end;
 
-        FActiveObjectGroup := ParentDBObj.GroupType;
+        if Assigned(ParentDBObj) then
+          FActiveObjectGroup := ParentDBObj.GroupType;
       end;
     end;
 
