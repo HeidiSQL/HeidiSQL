@@ -2131,7 +2131,7 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
-      Category:        dtcBinary;
+      Category:        dtcText;
     ),
     (
       Index:           dtUniqueidentifier;
