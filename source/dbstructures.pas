@@ -126,8 +126,10 @@ const
   SQLITE_PREPARE_NO_VTAB    = $04; // return an error (error code SQLITE_ERROR) if the statement uses any virtual tables
 
 
-  { SQLite Fundamental Datatypes
-    Every value in SQLite has one of five fundamental datatypes:
+
+  { SQLite Fundamental Datatypes
+
+    Every value in SQLite has one of five fundamental datatypes:
       64-bit signed integer
       64-bit IEEE floating point number
       string
@@ -135,7 +137,8 @@ const
       NULL
   }
   SQLITE_INTEGER  = 1;
-  SQLITE_FLOAT    = 2;
+
+  SQLITE_FLOAT    = 2;
   SQLITE_BLOB     = 4;
   SQLITE_NULL     = 5;
   SQLITE_TEXT     = 3;
@@ -165,7 +168,8 @@ const
 
 
 
-type
+
+type
   PUSED_MEM=^USED_MEM;
   USED_MEM = packed record
     next:       PUSED_MEM;
@@ -2131,7 +2135,7 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        False;
-      Category:        dtcBinary;
+      Category:        dtcText;
     ),
     (
       Index:           dtUniqueidentifier;
