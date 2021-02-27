@@ -2468,8 +2468,6 @@ begin
   Key := TForeignKey.Create(DBObject.Connection);
   idx := FForeignKeys.Add(Key);
   Key.KeyName := 'FK'+IntToStr(idx+1);
-  Key.OnUpdate := '';
-  Key.OnDelete := '';
   Key.Added := True;
   Modification(Sender);
   listForeignKeys.Repaint;
@@ -2647,14 +2645,9 @@ begin
     4: begin
         CellText := Key.OnUpdate;
         // Both ON UPDATE + DELETE default to "RESTRICT", see http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html
-        if CellText = '' then
-          CellText := 'RESTRICT';
+        // MySQL 8 has a "NO ACTION" default here, which makes any fallback wrong here
       end;
-    5: begin
-        CellText := Key.OnDelete;
-        if CellText = '' then
-          CellText := 'RESTRICT';
-      end;
+    5: CellText := Key.OnDelete;
   end;
 end;
 

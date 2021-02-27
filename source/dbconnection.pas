@@ -9537,6 +9537,9 @@ begin
   Columns.StrictDelimiter := True;
   ForeignColumns := TStringList.Create;
   ForeignColumns.StrictDelimiter := True;
+  // Explicit default action required, since MariaDB and MySQL have different defaults if it's left away, see issue #1320
+  OnUpdate := 'NO ACTION';
+  OnDelete := 'NO ACTION';
 end;
 
 destructor TForeignKey.Destroy;
