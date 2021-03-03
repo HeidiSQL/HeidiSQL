@@ -4111,7 +4111,7 @@ begin
     raise Exception.CreateFmt('File does not exist: %s', [Filename]);
   end;
 
-  Content := ReadTextfile(FileName, nil);
+  Content := ReadTextfile(FileName, UTF8NoBOMEncoding);
   Lines := Explode(CRLF, Content);
   for i:=0 to Lines.Count-1 do begin
     // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
