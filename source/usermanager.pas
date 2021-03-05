@@ -216,8 +216,11 @@ begin
   FixVT(treePrivs);
   Mainform.RestoreListSetup(listUsers);
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
-  PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
-  PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER');
+  PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,'+
+    'CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
+  PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
+    'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
+    'REPLICATION SLAVE ADMIN,SET USER');
 end;
 
 
@@ -240,7 +243,7 @@ end;
 
 procedure TUserManagerForm.FormShow(Sender: TObject);
 var
-  Version: Integer;
+  Version, i: Integer;
   Users: TDBQuery;
   U: TUser;
   tmp, PasswordExpr: String;
@@ -250,12 +253,12 @@ var
   PasswordLengthMatters: Boolean;
   UserTableColumns: TStringList;
 
-function InitPrivList(Values: String): TStringList;
-begin
-  Result := Explode(',', Values);
-  Result.Sorted := True;
-  Result.Duplicates := dupIgnore;
-end;
+  function InitPrivList(Values: String): TStringList;
+  begin
+    Result := Explode(',', Values);
+    Result.Sorted := True; // ensures dupIgnore works
+    Result.Duplicates := dupIgnore;
+  end;
 
 begin
   FConnection := Mainform.ActiveConnection;
@@ -302,6 +305,20 @@ begin
     // MySQL 8 has predefined length of hashed passwords only with
     // mysql_native_password plugin enabled users
     PasswordLengthMatters := False;
+  end;
+  // See https://mariadb.com/kb/en/changes-improvements-in-mariadb-105/#privileges-made-more-granular
+  if FConnection.Parameters.IsMariaDB and (Version > 100502) then begin
+    i := FPrivsGlobal.IndexOf('REPLICATION CLIENT');
+    if i > -1 then
+      FPrivsGlobal.Delete(i);
+    FPrivsGlobal.Add('BINLOG ADMIN'); // replaces REPLICATION CLIENT
+    FPrivsGlobal.Add('BINLOG REPLAY');
+    FPrivsGlobal.Add('CONNECTION ADMIN');
+    FPrivsGlobal.Add('FEDERATED ADMIN');
+    FPrivsGlobal.Add('READ_ONLY ADMIN');
+    FPrivsGlobal.Add('REPLICATION MASTER ADMIN');
+    FPrivsGlobal.Add('REPLICATION SLAVE ADMIN');
+    FPrivsGlobal.Add('SET USER');
   end;
 
   FPrivsTable.AddStrings(FPrivsColumn);

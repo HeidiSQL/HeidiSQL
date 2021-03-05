@@ -82,11 +82,9 @@ var
   LabelComp: TComponent;
 begin
   // Copy label caption
-  if Sender is TMenuItem then begin
-    LabelComp := TPopupMenu(TMenuItem(Sender).GetParentMenu).PopupComponent;
-    if LabelComp is TLabel then begin
-      Clipboard.AsText := TLabel(LabelComp).Caption;
-    end;
+  LabelComp := PopupComponent(Sender);
+  if LabelComp is TLabel then begin
+    Clipboard.AsText := TLabel(LabelComp).Caption;
   end;
 end;
 

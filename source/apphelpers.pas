@@ -92,6 +92,15 @@ type
       property LastContent: String read FLastContent;
   end;
 
+  // Extended string list with support for empty values
+  TExtStringList = class(TStringList)
+    private
+      function GetValue(const Name: string): string;
+      procedure SetValue(const Name, Value: string); reintroduce;
+    public
+      property Values[const Name: string]: string read GetValue write SetValue;
+  end;
+
   // Threading stuff
   TQueryThread = class(TThread)
   private
@@ -110,12 +119,6 @@ type
     FRowsAffected: Int64;
     FRowsFound: Int64;
     FWarningCount: Int64;
-    FLogMsg: String;
-    FLogCategory: TDBLogCategory;
-    procedure BeforeQuery;
-    procedure AfterQuery;
-    procedure BatchFinished;
-    procedure Log;
   public
     property Connection: TDBConnection read FConnection;
     property Batch: TSQLBatch read FBatch;
@@ -132,12 +135,12 @@ type
     property ErrorMessage: String read FErrorMessage;
     constructor Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
     procedure Execute; override;
-    procedure LogFromOutside(Msg: String; Category: TDBLogCategory);
+    procedure LogFromThread(Msg: String; Category: TDBLogCategory);
   end;
 
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
-    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern,
+    asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asHintsOnResultTabs, asHightlightSameTextBackground,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
@@ -372,6 +375,7 @@ type
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
+  function PopupComponent(Sender: TObject): TComponent;
 
 var
   AppSettings: TAppSettings;
@@ -2593,12 +2597,12 @@ end;
 
 function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
 var
-  Arguments: TStringList;
+  Arguments: TExtStringList;
   Year, Month, Day, Hour, Min, Sec, MSec: Word;
   i: Integer;
 begin
   // Rich format output filename, replace certain markers. See issue #2622
-  Arguments := TStringList.Create;
+  Arguments := TExtStringList.Create;
 
   if Assigned(DBObj) then begin
     Arguments.Values['session'] := ValidFilename(DBObj.Connection.Parameters.SessionName);
@@ -2892,6 +2896,26 @@ begin
 end;
 
 
+function PopupComponent(Sender: TObject): TComponent;
+var
+  Menu: TObject;
+begin
+  // Return owner component of clicked menu item, probably combined with a TAction
+  Result := nil;
+  Menu := nil;
+  if Sender is TAction then
+    Sender := (Sender as TAction).ActionComponent;
+
+  if Sender is TMenuItem then
+    Menu := (Sender as TMenuItem).GetParentMenu
+  else if Sender is TPopupMenu then
+    Menu := Sender;
+
+  if Menu is TPopupMenu then
+    Result := (Menu as TPopupMenu).PopupComponent;
+end;
+
+
 
 { Threading stuff }
 
@@ -2957,15 +2981,15 @@ begin
       end;
       FQueriesInPacket := i - FBatchPosition;
     end;
-    Synchronize(BeforeQuery);
+    Synchronize(procedure begin MainForm.BeforeQueryExecution(Self); end);
     try
       FConnection.LockedByThread := Self;
       DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
       if (not DoStoreResult) and (not LogMaxResultsDone) then begin
         // Inform user about preference setting for limiting result tabs
-        LogFromOutside(
-          f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)]),
-          lcInfo);
+        FConnection.Log(lcInfo,
+          f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)])
+          );
         LogMaxResultsDone := True;
       end;
       FConnection.Query(SQL, DoStoreResult, lcUserFiredSQL);
@@ -2985,46 +3009,20 @@ begin
       end;
     end;
     FConnection.LockedByThread := nil;
-    Synchronize(AfterQuery);
+    Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then
       break;
   end;
 
-  Synchronize(BatchFinished);
+  Synchronize(procedure begin MainForm.FinishedQueryExecution(Self); end);
 end;
 
 
-procedure TQueryThread.BeforeQuery;
+procedure TQueryThread.LogFromThread(Msg: String; Category: TDBLogCategory);
 begin
-  MainForm.BeforeQueryExecution(Self);
-end;
-
-
-procedure TQueryThread.LogFromOutside(Msg: String; Category: TDBLogCategory);
-begin
-  FLogMsg := Msg;
-  FLogCategory := Category;
-  Synchronize(Log);
-end;
-
-
-procedure TQueryThread.Log;
-begin
-  FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
-end;
-
-
-procedure TQueryThread.AfterQuery;
-begin
-  MainForm.AfterQueryExecution(Self);
-end;
-
-
-procedure TQueryThread.BatchFinished;
-begin
-  MainForm.FinishedQueryExecution(Self);
+  Queue(procedure begin FConnection.Log(Category, Msg); end);
 end;
 
 
@@ -3311,6 +3309,26 @@ end;
 
 
 
+{ TExtStringList }
+// taken from https://stackoverflow.com/questions/33893377/can-i-prevent-tstringlist-removing-key-value-pair-when-value-set-to-empty
+
+function TExtStringList.GetValue(const Name: string): string;
+begin
+  Result := Self.GetValue(Name);
+end;
+
+
+procedure TExtStringList.SetValue(const Name, Value: string);
+var
+  I: Integer;
+begin
+  I := IndexOfName(Name);
+  if I < 0 then I := Add('');
+  Put(I, Name + NameValueSeparator + Value);
+end;
+
+
+
 { TAppSettings }
 
 constructor TAppSettings.Create;
@@ -3381,6 +3399,9 @@ begin
   InitSetting(asLastUsedDB,                       'lastUsedDB',                            0, False, '', True);
   InitSetting(asTreeBackground,                   'TreeBackground',                        clNone, False, '', True);
   InitSetting(asIgnoreDatabasePattern,            'IgnoreDatabasePattern',                 0, False, '', True);
+  InitSetting(asLogFileDdl,                       'LogFileDdl',                            0, False, '', True);
+  InitSetting(asLogFileDml,                       'LogFileDml',                            0, False, '', True);
+  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs\%session\%db\%y%m%d.sql', True);
   if Screen.Fonts.IndexOf('Consolas') > -1 then
     InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
   else
@@ -4090,7 +4111,7 @@ begin
     raise Exception.CreateFmt('File does not exist: %s', [Filename]);
   end;
 
-  Content := ReadTextfile(FileName, nil);
+  Content := ReadTextfile(FileName, UTF8NoBOMEncoding);
   Lines := Explode(CRLF, Content);
   for i:=0 to Lines.Count-1 do begin
     // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.

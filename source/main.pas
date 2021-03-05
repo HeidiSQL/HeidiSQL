@@ -456,7 +456,7 @@ type
     N26: TMenuItem;
     actSessionManager: TAction;
     Sessionmanager1: TMenuItem;
-    actCreateRoutine: TAction;
+    actCreateProcedure: TAction;
     btnExit: TToolButton;
     lblSorryNoData: TLabel;
     menuPrint: TMenuItem;
@@ -747,6 +747,10 @@ type
     menuRenameQueryTab: TMenuItem;
     Renametab1: TMenuItem;
     actNewQueryTabNofocus: TAction;
+    DataGUIDlowercase: TMenuItem;
+    DataGUIDlowercaseWobraces: TMenuItem;
+    actCreateFunction: TAction;
+    Storedfunction1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -2785,18 +2789,13 @@ end;
 
 procedure TMainForm.actTableToolsExecute(Sender: TObject);
 var
-  Act: TAction;
-  InDBTree: Boolean;
   Node: PVirtualNode;
   DBObj: PDBObject;
 begin
   // Show table tools dialog
   FTableToolsDialog := TfrmTableTools.Create(Self);
-  Act := Sender as TAction;
   FTableToolsDialog.PreSelectObjects.Clear;
-  InDBTree := (Act.ActionComponent is TMenuItem)
-    and (TPopupMenu((Act.ActionComponent as TMenuItem).GetParentMenu).PopupComponent = DBTree);
-  if InDBTree then
+  if DBTreeClicked(Sender) then
     FTableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
   else begin
     Node := GetNextNode(ListTables, nil, True);
@@ -3857,7 +3856,8 @@ begin
     Encoding := GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
     if Encoding = nil then begin
       ProceedResult := MessageDialog(_('Really auto-detect file encoding?') + SLineBreak + SLineBreak +
-        _('Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails.'),
+        _('Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails.') + SLineBreak + SLineBreak +
+        _('To avoid this message select the correct encoding before pressing Open.'),
         mtConfirmation, [mbYes, mbCancel]);
     end else begin
       ProceedResult := mrYes;
@@ -4364,9 +4364,11 @@ begin
   Obj.Database := ActiveDatabase;
   if a = actCreateTable then Obj.NodeType := lntTable
   else if a = actCreateView then Obj.NodeType := lntView
-  else if a = actCreateRoutine then Obj.NodeType := lntProcedure
+  else if a = actCreateProcedure then Obj.NodeType := lntProcedure
   else if a = actCreateTrigger then Obj.NodeType := lntTrigger
-  else if a = actCreateEvent then Obj.NodeType := lntEvent;
+  else if a = actCreateEvent then Obj.NodeType := lntEvent
+  else if a = actCreateFunction then Obj.NodeType := lntFunction;
+
   PlaceObjectEditor(Obj);
 end;
 
@@ -4423,27 +4425,12 @@ end;
 
 
 function TMainForm.DBTreeClicked(Sender: TObject): Boolean;
-var
-  ClickedControl: TComponent;
-  ClickedMenu: TMenu;
 begin
   // Find out if user rightclicked in tree or in database tab,
   // which is a bit complex, so outsourced here.
-  Result := DBTree.Focused or (PageControlMain.ActivePage <> tabDatabase);
-  if Sender is TAction then begin
-    ClickedControl := (Sender as TAction).ActionComponent;
-    if ClickedControl is TMenuItem then begin
-      ClickedMenu := (ClickedControl as TMenuItem).GetParentMenu;
-      if ClickedMenu is TPopupMenu then
-        Result := (ClickedMenu as TPopupMenu).PopupComponent = DBTree;
-    end;
-  end else if Sender is TPopupMenu then begin
-    Result := (Sender as TPopupMenu).PopupComponent = DBTree;
-  end else if Sender is TMenuItem then begin
-    ClickedMenu := (Sender as TMenuItem).GetParentMenu;
-    if ClickedMenu is TPopupMenu then
-      Result := (ClickedMenu as TPopupMenu).PopupComponent = DBTree;
-  end;
+  Result := DBTree.Focused
+    or (PageControlMain.ActivePage <> tabDatabase)
+    or (PopupComponent(Sender) = DBtree);
 end;
 
 
@@ -4722,20 +4709,17 @@ var
   Comp: TComponent;
   Memo: TSynMemo;
   Dialog: TSaveDialog;
-  Item: TMenuItem;
 begin
   // Save to textfile, from any TSynMemo (SQL log, "CREATE code" tab in editor, ...)
-  Item := (Sender as TAction).ActionComponent as TMenuItem;
-  Comp := (Item.GetParentMenu as TPopupMenu).PopupComponent;
+  Memo := nil;
   // Try to find memo from menu item's popup component, and if that fails, check ActiveControl.
   // See #353
-  if (Comp <> nil) and (Comp is TSynMemo) then begin
-    Memo := Comp as TSynMemo;
-  end else if ActiveControl is TSynMemo then begin
+  Comp := PopupComponent(Sender);
+  if Comp is TSynMemo then
+    Memo := Comp as TSynMemo
+  else if ActiveControl is TSynMemo then
     Memo := ActiveControl as TSynMemo;
-  end else
-    Memo := nil;
-  if Memo <> nil then begin
+  if Assigned(Memo) then begin
     Dialog := TSaveDialog.Create(Self);
     Dialog.Options := Dialog.Options + [ofOverwritePrompt];
     Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
@@ -5348,7 +5332,7 @@ begin
       // Causes access violations on a reconnected session firing a user-query:
       // SynMemoSQLLog.Repaint;
       // SynMemoSQLLog.Update;
-      // See TDBConnection.Log and TQueryThread.LogFromOutside
+      // See TDBConnection.Log and TQueryThread.LogFromThread
       // See https://github.com/HeidiSQL/HeidiSQL/issues/57
 
       // Log to file?
@@ -6707,6 +6691,9 @@ procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
 var
   Edit: TSynMemo;
 begin
+  // Crashed with scTopLine and an non-set ActiveQueryTab while resizing main window, so limit to modifications
+  if not (scModified in Changes) then
+    Exit;
   // Don't ask for saving empty contents. See issue #614
   Edit := Sender as TSynMemo;
   if Edit.GetTextLen = 0 then begin
@@ -7298,7 +7285,7 @@ var
   Version: Integer;
 begin
   // DBtree and ListTables both use popupDB as menu
-  if DBtreeClicked(Sender) then begin
+  if PopupComponent(Sender) = DBtree then begin
     Obj := DBTree.GetNodeData(DBTree.FocusedNode);
     IsDb := Obj.NodeType = lntDb;
     IsObject := Obj.NodeType in [lntTable..lntEvent];
@@ -7309,7 +7296,8 @@ begin
     actAttachDatabase.Enabled := actAttachDatabase.Visible and (Obj.NodeType = lntNone);
     actCreateTable.Enabled := IsDb or IsObject or (Obj.GroupType = lntTable);
     actCreateView.Enabled := IsDb or IsObject or (Obj.GroupType = lntView);
-    actCreateRoutine.Enabled := IsDb or IsObject or (Obj.GroupType in [lntFunction, lntProcedure]);
+    actCreateProcedure.Enabled := IsDb or IsObject or (Obj.GroupType in [lntFunction, lntProcedure]);
+    actCreateFunction.Enabled := actCreateProcedure.Enabled;
     actCreateTrigger.Enabled := IsDb or IsObject or (Obj.GroupType = lntTrigger);
     actCreateEvent.Enabled := IsDb or IsObject or (Obj.GroupType = lntEvent);
     actDropObjects.Enabled := IsObject or
@@ -7332,7 +7320,8 @@ begin
     actAttachDatabase.Visible := False;
     actCreateTable.Enabled := True;
     actCreateView.Enabled := True;
-    actCreateRoutine.Enabled := True;
+    actCreateProcedure.Enabled := True;
+    actCreateFunction.Enabled := True;
     actCreateTrigger.Enabled := True;
     actCreateEvent.Enabled := True;
     actDropObjects.Enabled := ListTables.SelectedCount > 0;
@@ -7353,7 +7342,8 @@ begin
   if (ActiveConnection <> nil) and (ActiveConnection.Parameters.IsAnyMySQL) then begin
     Version := ActiveConnection.ServerVersionInt;
     actCreateView.Enabled := actCreateView.Enabled and (Version >= 50001);
-    actCreateRoutine.Enabled := actCreateRoutine.Enabled and (Version >= 50003);
+    actCreateProcedure.Enabled := actCreateProcedure.Enabled and (Version >= 50003);
+    actCreateFunction.Enabled := actCreateFunction.Enabled and (Version >= 50003);
     actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Version >= 50002);
     actCreateEvent.Enabled := actCreateEvent.Enabled and (Version >= 50100);
   end;
@@ -7675,6 +7665,8 @@ begin
   StrUid := GuidToString(Uid);
   DataGUID.Caption := _('GUID') + ': ' + StrUid;
   DataGUIDwobraces.Caption := _('GUID without braces') + ': ' + Copy(StrUid, 2, Length(StrUid)-2);
+  DataGUIDlowercase.Caption := _('GUID lowercase') + ': ' + StrUid.ToLower;
+  DataGUIDlowercaseWobraces.Caption := _('GUID lowercase without braces') + ': ' + Copy(StrUid, 2, Length(StrUid)-2).ToLower;
 
   ColNum := DataGrid.FocusedColumn;
   DataDefaultValue.Caption := _('Default value')+': ?';
@@ -9227,7 +9219,8 @@ begin
           ErrorDialog(E.Message);
         end;
 
-        FActiveObjectGroup := ParentDBObj.GroupType;
+        if Assigned(ParentDBObj) then
+          FActiveObjectGroup := ParentDBObj.GroupType;
       end;
     end;
 

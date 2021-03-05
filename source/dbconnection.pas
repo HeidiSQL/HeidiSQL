@@ -82,6 +82,7 @@ type
       procedure Modification(Sender: TObject);
       function SQLCode: String;
       property ImageIndex: Integer read GetImageIndex;
+      property Connection: TDBConnection read FConnection;
   end;
   TTableKeyList = class(TObjectList<TTableKey>)
     public
@@ -102,12 +103,34 @@ type
       procedure Assign(Source: TPersistent); override;
       function SQLCode(IncludeSymbolName: Boolean): String;
       function ReferenceTableObj: TDBObject;
+      property Connection: TDBConnection read FConnection;
   end;
   TForeignKeyList = class(TObjectList<TForeignKey>)
     public
       procedure Assign(Source: TForeignKeyList);
   end;
   TForeignKeyCache = TDictionary<String,TForeignKeyList>;
+
+  TCheckConstraint = class(TPersistent)
+    private
+      FConnection: TDBConnection;
+      FName, FCheckClause: String;
+      FModified, FAdded: Boolean;
+    public
+      constructor Create(AOwner: TDBConnection);
+      procedure Assign(Source: TPersistent); override;
+      function SQLCode: String;
+      property Connection: TDBConnection read FConnection;
+      property Name: String read FName write FName;
+      property CheckClause: String read FCheckClause write FCheckClause;
+      property Modified: Boolean read FModified write FModified;
+      property Added: Boolean read FAdded write FAdded;
+  end;
+  TCheckConstraintList = class(TObjectList<TCheckConstraint>)
+    public
+      procedure Assign(Source: TCheckConstraintList);
+  end;
+  TCheckConstraintCache = TDictionary<String,TCheckConstraintList>;
 
   TRoutineParam = class(TObject)
     public
@@ -128,6 +151,7 @@ type
       function GetTableColumns: TTableColumnList;
       function GetTableKeys: TTableKeyList;
       function GetTableForeignKeys: TForeignKeyList;
+      function GetTableCheckConstraints: TCheckConstraintList;
     public
       // Table options:
       Name, Schema, Database, Column, Engine, Comment, RowFormat, CreateOptions, Collation: String;
@@ -161,6 +185,7 @@ type
       property TableColumns: TTableColumnList read GetTableColumns;
       property TableKeys: TTableKeyList read GetTableKeys;
       property TableForeignKeys: TForeignKeyList read GetTableForeignKeys;
+      property TableCheckConstraints: TCheckConstraintList read GetTableCheckConstraints;
   end;
   PDBObject = ^TDBObject;
   TDBObjectList = class(TObjectList<TDBObject>)
@@ -246,7 +271,8 @@ type
     ntPgSQL_TCPIP,
     ntPgSQL_SSHtunnel,
     ntSQLite,
-    ntMySQL_ProxySQLAdmin
+    ntMySQL_ProxySQLAdmin,
+    ntMySQL_ClickHouse
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
@@ -263,6 +289,9 @@ type
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
+      FLogFileDdl: Boolean;
+      FLogFileDml: Boolean;
+      FLogFilePath: String;
       class var FLibraries: TNetGroupLibs;
       function GetImageIndex: Integer;
       function GetSessionName: String;
@@ -286,6 +315,7 @@ type
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
       function IsProxySQLAdmin: Boolean;
+      function IsClickHouse: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
@@ -300,7 +330,7 @@ type
       property NetType: TNetType read FNetType write FNetType;
       property NetTypeGroup: TNetTypeGroup read GetNetTypeGroup;
       property ServerVersion: String read FServerVersion write FServerVersion;
-      property Counter: Integer read FCounter;
+      property Counter: Integer read FCounter write FCounter;
       property LastConnect: TDateTime read FLastConnect;
       property SessionPath: String read FSessionPath write FSessionPath;
       property SessionName: String read GetSessionName;
@@ -335,6 +365,9 @@ type
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
       property SSLCipher: String read FSSLCipher write FSSLCipher;
       property IgnoreDatabasePattern: String read FIgnoreDatabasePattern write FIgnoreDatabasePattern;
+      property LogFileDdl: Boolean read FLogFileDdl write FLogFileDdl;
+      property LogFileDml: Boolean read FLogFileDml write FLogFileDml;
+      property LogFilePath: String read FLogFilePath write FLogFilePath;
   end;
   PConnectionParameters = ^TConnectionParameters;
 
@@ -398,6 +431,7 @@ type
       FColumnCache: TColumnCache;
       FKeyCache: TKeyCache;
       FForeignKeyCache: TForeignKeyCache;
+      FCheckConstraintCache: TCheckConstraintCache;
       FCurrentUserHostCombination: String;
       FAllUserHostCombinations: TStringList;
       FLockedByThread: TThread;
@@ -499,6 +533,10 @@ type
       property LastErrorMsg: String read GetLastErrorMsg;
       property ServerOS: String read FServerOS;
       property ServerVersionUntouched: String read FServerVersionUntouched;
+      property ColumnCache: TColumnCache read FColumnCache;
+      property KeyCache: TKeyCache read FKeyCache;
+      property ForeignKeyCache: TForeignKeyCache read FForeignKeyCache;
+      property CheckConstraintCache: TCheckConstraintCache read FCheckConstraintCache;
       property QuoteChar: Char read FQuoteChar;
       property QuoteChars: String read FQuoteChars;
       function ServerVersionStr: String;
@@ -531,6 +569,7 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; virtual;
       function GetTableKeys(Table: TDBObject): TTableKeyList; virtual;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; virtual;
+      function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
     published
       property Active: Boolean read FActive write SetActive default False;
@@ -1255,6 +1294,9 @@ begin
 
   FSessionColor := AppSettings.GetDefaultInt(asTreeBackground);
   FIgnoreDatabasePattern := DefaultIgnoreDatabasePattern;
+  FLogFileDdl := AppSettings.GetDefaultBool(asLogFileDdl);
+  FLogFileDml := AppSettings.GetDefaultBool(asLogFileDml);
+  FLogFilePath := AppSettings.GetDefaultString(asLogFilePath);
 
   // Must be read without session path
   FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
@@ -1324,6 +1366,9 @@ begin
     FLocalTimeZone := AppSettings.ReadBool(asLocalTimeZone);
     FFullTableStatus := AppSettings.ReadBool(asFullTableStatus);
     FIgnoreDatabasePattern := AppSettings.ReadString(asIgnoreDatabasePattern);
+    FLogFileDdl := AppSettings.ReadBool(asLogFileDdl);
+    FLogFileDml := AppSettings.ReadBool(asLogFileDml);
+    FLogFilePath := AppSettings.ReadString(asLogFilePath);
 
     FServerVersion := AppSettings.ReadString(asServerVersionFull);
     DummyDate := 0;
@@ -1380,6 +1425,9 @@ begin
     AppSettings.WriteString(asSSLCA, FSSLCACertificate);
     AppSettings.WriteString(asSSLCipher, FSSLCipher);
     AppSettings.WriteString(asIgnoreDatabasePattern, FIgnoreDatabasePattern);
+    AppSettings.WriteBool(asLogFileDdl, FLogFileDdl);
+    AppSettings.WriteBool(asLogFileDml, FLogFileDml);
+    AppSettings.WriteString(asLogFilePath, FLogFilePath);
     AppSettings.ResetPath;
     AppSettings.WriteString(asPlinkExecutable, FSSHPlinkExe);
   end;
@@ -1425,6 +1473,7 @@ function TConnectionParameters.NetTypeName(LongFormat: Boolean): String;
 const
   PrefixMysql = 'MariaDB or MySQL';
   PrefixProxysql = 'ProxySQL Admin';
+  PrefixClickhouse = 'ClickHouse MySQL';
   PrefixMssql = 'Microsoft SQL Server';
   PrefixPostgres = 'PostgreSQL';
   PrefixRedshift = 'Redshift PG';
@@ -1439,6 +1488,7 @@ begin
       ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
       ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
+      ntMySQL_ClickHouse:       Result := PrefixClickhouse+' (Experimental)';
       ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
       ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX)';
@@ -1459,6 +1509,7 @@ begin
         else if IsInfobright then      Result := 'Infobright'
         else if IsMemSQL then          Result := 'MemSQL'
         else if IsProxySQLAdmin then   Result := 'ProxySQL Admin'
+        else if IsClickHouse then      Result := 'ClickHouse MySQL'
         else if IsMySQL(True) then     Result := 'MySQL'
         else                           Result := PrefixMysql;
       end;
@@ -1483,7 +1534,7 @@ end;
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin:
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse:
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
@@ -1543,6 +1594,7 @@ begin
       and (not IsInfiniDB)
       and (not IsInfobright)
       and (not IsProxySQLAdmin)
+      and (not IsClickHouse)
       and (not IsMemSQL);
   end;
 end;
@@ -1578,6 +1630,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsClickHouse: Boolean;
+begin
+  Result := NetType = ntMySQL_ClickHouse;
+end;
+
+
 function TConnectionParameters.IsAzure: Boolean;
 begin
   Result := IsAnyMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
@@ -1609,7 +1667,8 @@ begin
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173
       else if IsMemSQL then Result := 194
-      else if IsProxySQLAdmin then Result := 197;
+      else if IsProxySQLAdmin then Result := 197
+      else if IsClickHouse then Result := 203;
     end;
     ngMSSQL: begin
       Result := 123;
@@ -1633,6 +1692,8 @@ begin
     ngMySQL: begin
       if IsProxySQLAdmin then
         Result := 6032
+      else if IsClickHouse then
+        Result := 8123 // todo: is that correct?
       else
         Result := 3306;
     end;
@@ -1754,6 +1815,7 @@ begin
   FRowsAffected := 0;
   FWarningCount := 0;
   FConnectionStarted := 0;
+  FDatabase := '';
   FLastQueryDuration := 0;
   FLastQueryNetworkDuration := 0;
   FThreadID := 0;
@@ -1764,6 +1826,7 @@ begin
   FColumnCache := TColumnCache.Create;
   FKeyCache := TKeyCache.Create;
   FForeignKeyCache := TForeignKeyCache.Create;
+  FCheckConstraintCache := TCheckConstraintCache.Create;
   FLoginPromptDone := False;
   FCurrentUserHostCombination := '';
   FKeepAliveTimer := TTimer.Create(Self);
@@ -2052,7 +2115,7 @@ begin
     end;
 
     case FParameters.NetType of
-      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin: begin
+      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse: begin
       end;
 
       ntMySQL_NamedPipe: begin
@@ -2115,6 +2178,9 @@ begin
 
     // Seems to be still required on some systems, for importing CSV files
     FLib.mysql_options(FHandle, Integer(MYSQL_OPT_LOCAL_INFILE), PAnsiChar('1'));
+
+    // Ensure we have some connection timeout
+    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_CONNECT_TIMEOUT), @FParameters.QueryTimeout);
 
     Connected := FLib.mysql_real_connect(
       FHandle,
@@ -2620,17 +2686,17 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
-      FSQLSpecifities[spGlobalStatus] := IfThen(
-        Parameters.IsProxySQLAdmin,
-        'SELECT * FROM stats_mysql_global',
-        'SHOW /*!50002 GLOBAL */ STATUS'
-        );
-      FSQLSpecifities[spCommandsCounters] := IfThen(
-        Parameters.IsProxySQLAdmin,
-        'SELECT * FROM stats_mysql_commands_counters',
-        'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%'''
-        );
+      FSQLSpecifities[spGlobalStatus] := 'SHOW /*!50002 GLOBAL */ STATUS';
+      if Parameters.IsProxySQLAdmin then
+        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM stats_mysql_global';
+      if Parameters.IsClickHouse then
+        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM system.metrics';
+      FSQLSpecifities[spCommandsCounters] := 'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''';
+      if Parameters.IsProxySQLAdmin then
+        FSQLSpecifities[spCommandsCounters] := 'SELECT * FROM stats_mysql_commands_counters';
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
+      if Parameters.IsClickHouse then
+        FSQLSpecifities[spSessionVariables] := 'SELECT * FROM system.settings';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
@@ -2791,6 +2857,7 @@ var
   TZI: TTimeZoneInformation;
   Minutes, Hours, i: Integer;
   Offset: String;
+  ObjNames: TStringList;
 begin
   inherited;
 
@@ -2824,41 +2891,17 @@ begin
 
   if ServerVersionInt >= 50000 then begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
-    // List of known IS tables since MySQL 5, taken from https://dev.mysql.com/doc/refman/5.6/en/information-schema.html
-    FInformationSchemaObjects.CommaText :=
-      'CHARACTER_SETS,'+
-      'COLLATIONS,'+
-      'COLLATION_CHARACTER_SET_APPLICABILITY,'+
-      'COLUMNS,'+
-      'COLUMN_PRIVILEGES,'+
-      'ENGINES,'+
-      'EVENTS,'+
-      'GLOBAL_STATUS,'+
-      'SESSION_STATUS,'+
-      'GLOBAL_VARIABLES,'+
-      'SESSION_VARIABLES,'+
-      'KEY_COLUMN_USAGE,'+
-      'OPTIMIZER_TRACE,'+
-      'PARAMETERS,'+
-      'PARTITIONS,'+
-      'PLUGINS,'+
-      'PROCESSLIST,'+
-      'PROFILING,'+
-      'REFERENTIAL_CONSTRAINTS,'+
-      'ROUTINES,'+
-      'SCHEMATA,'+
-      'SCHEMA_PRIVILEGES,'+
-      'STATISTICS,'+
-      'TABLES,'+
-      'TABLESPACES,'+
-      'TABLE_CONSTRAINTS,'+
-      'TABLE_PRIVILEGES,'+
-      'TRIGGERS,'+
-      'USER_PRIVILEGES,'+
-      'VIEWS';
   end;
 
-  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
+  // List of IS tables
+  try
+    ObjNames := GetCol('SHOW TABLES FROM '+QuoteIdent(FInfSch));
+    FInformationSchemaObjects.CommaText := ObjNames.CommaText;
+    ObjNames.Free;
+  except // silently fail if IS does not exist, on super old servers
+  end;
+
+  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) and (not Parameters.IsClickHouse) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
@@ -2910,15 +2953,14 @@ end;
 
 
 procedure TPgConnection.DoAfterConnect;
+var
+  ObjNames: TStringList;
 begin
   inherited;
   // List of known IS tables
-  FInformationSchemaObjects.CommaText := 'columns,'+
-    'constraint_column_usage'+
-    'key_column_usage,'+
-    'referential_constraints'+
-    'table_constraints,'+
-    'tables';
+  ObjNames := GetCol('SELECT table_name FROM information_schema.tables WHERE table_schema='+EscapeString(FInfSch));
+  FInformationSchemaObjects.CommaText := ObjNames.CommaText;
+  ObjNames.Free;
 end;
 
 
@@ -3490,6 +3532,8 @@ var
   TableKey: TTableKey;
   TableForeignKeys: TForeignKeyList;
   TableForeignKey: TForeignKey;
+  TableCheckConstraints: TCheckConstraintList;
+  TableCheckConstraint: TCheckConstraint;
 begin
   case Obj.NodeType of
     lntTable: begin
@@ -3511,6 +3555,12 @@ begin
         Result := Result + CRLF + #9 + TableForeignKey.SQLCode(True) + ',';
       end;
       TableForeignKeys.Free;
+
+      TableCheckConstraints := Obj.GetTableCheckConstraints;
+      for TableCheckConstraint in TableCheckConstraints do begin
+        Result := Result + CRLF + #9 + TableCheckConstraint.SQLCode + ',';
+      end;
+      TableCheckConstraints.Free;
 
       Delete(Result, Length(Result), 1);
       Result := Result + CRLF + ')';
@@ -3748,7 +3798,7 @@ begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then begin
-      if Parameters.IsProxySQLAdmin then
+      if Parameters.IsProxySQLAdmin or Parameters.IsClickHouse then
         FThreadID := FLib.mysql_thread_id(FHandle)
       else
         FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
@@ -4231,16 +4281,70 @@ end;
   If running a thread, log to queue and let the main thread later do logging
 }
 procedure TDBConnection.Log(Category: TDBLogCategory; Msg: String);
+var
+  LogMessage,
+  FilePath: String;
+  DbObj: TDBObject;
+  LogFileStream: TStreamWriter;
+
+  function IsDdlQuery: Boolean;
+  begin
+    Result := Msg.StartsWith('CREATE', True)
+        or Msg.StartsWith('ALTER', True)
+        or Msg.StartsWith('DROP', True)
+        or Msg.StartsWith('TRUNCATE', True)
+        or Msg.StartsWith('COMMENT', True)
+        or Msg.StartsWith('RENAME', True)
+        ;
+  end;
+
+  function IsDmlQuery: Boolean;
+  begin
+    Result := Msg.StartsWith('INSERT', True)
+        or Msg.StartsWith('UPDATE', True)
+        or Msg.StartsWith('DELETE', True)
+        or Msg.StartsWith('UPSERT', True)
+        ;
+  end;
+
 begin
+  // If in a thread, synchronize logging with the main thread. Logging within a thread
+  // causes SynEdit to throw exceptions left and right.
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
+    (FLockedByThread as TQueryThread).LogFromThread(Msg, Category);
+    Exit;
+  end;
+
   if Assigned(FOnLog) then begin
+    LogMessage := Msg;
     if FLogPrefix <> '' then
-      Msg := '['+FLogPrefix+'] ' + Msg;
-    // If in a thread, synchronize logging with the main thread. Logging within a thread
-    // causes SynEdit to throw exceptions left and right.
-    if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then
-      (FLockedByThread as TQueryThread).LogFromOutside(Msg, Category)
-    else
-      FOnLog(Msg, Category, Self);
+      LogMessage := '['+FLogPrefix+'] ' + LogMessage;
+    FOnLog(LogMessage, Category, Self);
+  end;
+
+  if Category in [lcSQL, lcUserFiredSQL, lcScript] then begin
+    if (Parameters.LogFileDdl and IsDdlQuery)
+      or (Parameters.LogFileDml and IsDmlQuery)
+      then begin
+      // Log DDL queries to migration file
+      DbObj := TDBObject.Create(Self);
+      DbObj.Database := IfThen(FDatabase.IsEmpty, 'nodb', FDatabase);
+      FilePath := GetOutputFilename(Parameters.LogFilePath, DbObj);
+      DbObj.Free;
+      try
+        ForceDirectories(ExtractFileDir(FilePath));
+        LogFileStream := TStreamWriter.Create(FilePath, True, UTF8NoBOMEncoding);
+        LogFileStream.Write(Msg + ';' + sLineBreak);
+        LogFileStream.Free;
+      except
+        on E:Exception do begin
+          Parameters.LogFileDdl := False;
+          Parameters.LogFileDml := False;
+          Log(lcError, E.Message);
+          Log(lcInfo, _('Logging disabled'));
+        end;
+      end;
+    end;
   end;
 end;
 
@@ -4833,7 +4937,7 @@ begin
     Result := Result or ((ServerVersionInt < 100201) and (not Value.StartsWith('CURRENT_TIMESTAMP', True)));
     // Inexact fallback detection, wrong if MariaDB allows "0+1" as expression at some point
     Result := Result or Value.IsEmpty or IsInt(Value[1]);
-  end else if FParameters.IsMySQL(False) then begin
+  end else if FParameters.IsAnyMySQL then begin
     // Only MySQL case with expression in default value is as follows:
     if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
       Result := False;
@@ -5556,6 +5660,58 @@ begin
 end;
 
 
+function TDBConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList;
+var
+  CheckQuery: TDBQuery;
+  CheckConstraint: TCheckConstraint;
+  ConTableIdx, TconTableIdx: Integer;
+begin
+  Result := TCheckConstraintList.Create(True);
+  ConTableIdx := FInformationSchemaObjects.IndexOf('CHECK_CONSTRAINTS');
+  TconTableIdx := FInformationSchemaObjects.IndexOf('TABLE_CONSTRAINTS');
+  if (ConTableIdx = -1) or (TconTableIdx = -1) then
+    Exit;
+
+  try
+    if FParameters.IsMariaDB then begin
+      CheckQuery := GetResults('SELECT CONSTRAINT_NAME, CHECK_CLAUSE'+
+        ' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[ConTableIdx])+
+        ' WHERE'+
+        ' '+Table.SchemaClauseIS('CONSTRAINT')+
+        ' AND TABLE_NAME='+EscapeString(Table.Name)
+        );
+    end
+    else begin
+      CheckQuery := GetResults('SELECT tc.CONSTRAINT_NAME, cc.CHECK_CLAUSE'+
+        ' FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[ConTableIdx])+' AS cc, '+
+        QuoteIdent(InfSch)+'.'+QuoteIdent(FInformationSchemaObjects[TconTableIdx])+' AS tc'+
+        ' WHERE'+
+        ' '+Table.SchemaClauseIS('tc.CONSTRAINT')+
+        ' AND tc.TABLE_NAME='+EscapeString(Table.Name)+
+        ' AND tc.CONSTRAINT_TYPE='+EscapeString('CHECK')+
+        ' AND tc.CONSTRAINT_SCHEMA=cc.CONSTRAINT_SCHEMA'+
+        ' AND tc.CONSTRAINT_NAME=cc.CONSTRAINT_NAME'+
+        IfThen(FParameters.IsAnyPostgreSQL, ' AND cc.CONSTRAINT_NAME NOT LIKE '+EscapeString('%\_not\_null'), '')
+        );
+    end;
+    while not CheckQuery.Eof do begin
+      CheckConstraint := TCheckConstraint.Create(Self);
+      Result.Add(CheckConstraint);
+      CheckConstraint.Name := CheckQuery.Col('CONSTRAINT_NAME');
+      CheckConstraint.CheckClause := CheckQuery.Col('CHECK_CLAUSE');
+      CheckQuery.Next;
+    end;
+    CheckQuery.Free;
+  except
+    on E:EDbError do begin
+      Log(lcError, 'Detection of check constraints disabled due to error in query');
+      // Table is likely not there or does not have expected columns - prevent further queries with the same error:
+      FInformationSchemaObjects.Delete(ConTableIdx);
+    end;
+  end;
+end;
+
+
 function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
 var
   Rows: String;
@@ -5812,6 +5968,7 @@ begin
     FColumnCache.Clear;
     FKeyCache.Clear;
     FForeignKeyCache.Clear;
+    FCheckConstraintCache.Clear;
   end;
   FTableEngineDefault := '';
   FCurrentUserHostCombination := '';
@@ -5953,6 +6110,7 @@ begin
     FColumnCache.Clear;
     FKeyCache.Clear;
     FForeignKeyCache.Clear;
+    FCheckConstraintCache.Clear;
     if Assigned(FOnObjectnamesChanged) then
       FOnObjectnamesChanged(Self, db);
   end;
@@ -6647,7 +6805,7 @@ begin
   Result := QueryType + ' ';
   case FParameters.NetTypeGroup of
     ngMSSQL: begin
-      if QueryType = 'UPDATE' then begin
+      if (QueryType = 'UPDATE') or (QueryType = 'DELETE') then begin
         // TOP(x) clause for UPDATES + DELETES introduced in MSSQL 2005
         if ServerVersionInt >= 900 then
           Result := Result + 'TOP('+IntToStr(Limit)+') ';
@@ -6662,7 +6820,8 @@ begin
           // OFFSET not supported in < 2012
           Result := Result + 'TOP ' + IntToStr(Limit) + ' ' + QueryBody;
         end;
-      end;
+      end else
+        Result := Result + QueryBody;
     end;
     ngMySQL: begin
       Result := Result + QueryBody + ' LIMIT ';
@@ -8694,6 +8853,8 @@ begin
     FConnection.FKeyCache.Remove(QuotedDbAndTableName);
   if FConnection.FForeignKeyCache.ContainsKey(QuotedDbAndTableName) then
     FConnection.FForeignKeyCache.Remove(QuotedDbAndTableName);
+  if FConnection.FCheckConstraintCache.ContainsKey(QuotedDbAndTableName) then
+    FConnection.FCheckConstraintCache.Remove(QuotedDbAndTableName);
   FCreateCode := '';
   FCreateCodeLoaded := False;
 end;
@@ -8956,6 +9117,19 @@ begin
   FConnection.FForeignKeyCache.TryGetValue(QuotedDbAndTableName, ForeignKeysInCache);
   Result := TForeignKeyList.Create;
   Result.Assign(ForeignKeysInCache);
+end;
+
+function TDBObject.GetTableCheckConstraints: TCheckConstraintList;
+var
+  CheckConstraintsInCache: TCheckConstraintList;
+begin
+  // Return check constraint from table object
+  if not FConnection.CheckConstraintCache.ContainsKey(QuotedDbAndTableName) then begin
+    FConnection.CheckConstraintCache.Add(QuotedDbAndTableName, Connection.GetTableCheckConstraints(Self));
+  end;
+  FConnection.CheckConstraintCache.TryGetValue(QuotedDbAndTableName, CheckConstraintsInCache);
+  Result := TCheckConstraintList.Create;
+  Result.Assign(CheckConstraintsInCache);
 end;
 
 
@@ -9244,7 +9418,7 @@ var
   Item, ItemCopy: TTableColumn;
 begin
   for Item in Source do begin
-    ItemCopy := TTableColumn.Create(Item.FConnection);
+    ItemCopy := TTableColumn.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
@@ -9344,7 +9518,7 @@ var
   Item, ItemCopy: TTableKey;
 begin
   for Item in Source do begin
-    ItemCopy := TTableKey.Create(Item.FConnection);
+    ItemCopy := TTableKey.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
@@ -9363,6 +9537,9 @@ begin
   Columns.StrictDelimiter := True;
   ForeignColumns := TStringList.Create;
   ForeignColumns.StrictDelimiter := True;
+  // Explicit default action required, since MariaDB and MySQL have different defaults if it's left away, see issue #1320
+  OnUpdate := 'NO ACTION';
+  OnDelete := 'NO ACTION';
 end;
 
 destructor TForeignKey.Destroy;
@@ -9437,13 +9614,51 @@ var
   Item, ItemCopy: TForeignKey;
 begin
   for Item in Source do begin
-    ItemCopy := TForeignKey.Create(Item.FConnection);
+    ItemCopy := TForeignKey.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
   end;
 end;
 
 
+{ *** TCheckConstraint }
+
+constructor TCheckConstraint.Create(AOwner: TDBConnection);
+begin
+  inherited Create;
+  FConnection := AOwner;
+end;
+
+
+procedure TCheckConstraint.Assign(Source: TPersistent);
+var
+  s: TCheckConstraint;
+begin
+  if Source is TCheckConstraint then begin
+    s := Source as TCheckConstraint;
+    FName := s.Name;
+    FCheckClause := s.CheckClause;
+    FModified := s.Modified;
+    FAdded := s.Added;
+  end else
+    inherited;
+end;
+
+function TCheckConstraint.SQLCode: String;
+begin
+  Result := 'CONSTRAINT '+FConnection.QuoteIdent(FName)+' CHECK ('+FCheckClause+')';
+end;
+
+procedure TCheckConstraintList.Assign(Source: TCheckConstraintList);
+var
+  Item, ItemCopy: TCheckConstraint;
+begin
+  for Item in Source do begin
+    ItemCopy := TCheckConstraint.Create(Item.Connection);
+    ItemCopy.Assign(Item);
+    Add(ItemCopy);
+  end;
+end;
 
 
 procedure SQLite_CollationNeededCallback(userData: Pointer; ppDb:Psqlite3; eTextRep:integer; zName:PAnsiChar); cdecl;

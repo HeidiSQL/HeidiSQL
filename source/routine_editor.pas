@@ -147,16 +147,16 @@ begin
   comboDataAccess.ItemIndex := 0;
   comboSecurity.ItemIndex := 0;
   editComment.Clear;
+  case Obj.NodeType of
+    lntProcedure: comboType.ItemIndex := 0;
+    lntFunction: comboType.ItemIndex := 1;
+  end;
   comboDefiner.Text := '';
   comboDefiner.TextHint := f_('Current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   comboDefiner.Hint := f_('Leave empty for current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
   if DBObject.Name <> '' then begin
     // Editing existing routine
-    case Obj.NodeType of
-      lntProcedure: comboType.ItemIndex := 0;
-      lntFunction: comboType.ItemIndex := 1;
-    end;
     DBObject.Connection.ParseRoutineStructure(Obj, Parameters);
     comboReturns.Text := Obj.Returns;
     chkDeterministic.Checked := Obj.Deterministic;

@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
   dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
-  System.Math, System.Actions, Vcl.ActnList;
+  System.Math, System.Actions, Vcl.ActnList, Vcl.StdActns;
 
 type
   Tconnform = class(TExtForm)
@@ -40,12 +40,6 @@ type
     editUsername: TEdit;
     editHost: TButtonedEdit;
     tabAdvanced: TTabSheet;
-    lblSSLPrivateKey: TLabel;
-    lblSSLCACertificate: TLabel;
-    lblSSLCertificate: TLabel;
-    editSSLPrivateKey: TButtonedEdit;
-    editSSLCACertificate: TButtonedEdit;
-    editSSLCertificate: TButtonedEdit;
     tabStatistics: TTabSheet;
     lblLastConnectLeft: TLabel;
     lblCounterLeft: TLabel;
@@ -79,7 +73,6 @@ type
     splitterMain: TSplitter;
     tabStart: TTabSheet;
     lblHelp: TLabel;
-    chkWantSSL: TCheckBox;
     btnImportSettings: TButton;
     timerSettingsImport: TTimer;
     popupNew: TPopupMenu;
@@ -107,8 +100,6 @@ type
     updownQueryTimeout: TUpDown;
     menuMoreGeneralHelp: TMenuItem;
     menuRename: TMenuItem;
-    lblSSLcipher: TLabel;
-    editSSLcipher: TEdit;
     lblKeepAlive: TLabel;
     editKeepAlive: TEdit;
     updownKeepAlive: TUpDown;
@@ -130,6 +121,20 @@ type
     ActionListConnections: TActionList;
     actFilter: TAction;
     Filter1: TMenuItem;
+    chkLogFileDdl: TCheckBox;
+    editLogFilePath: TButtonedEdit;
+    tabSSL: TTabSheet;
+    chkWantSSL: TCheckBox;
+    lblSSLPrivateKey: TLabel;
+    lblSSLCACertificate: TLabel;
+    lblSSLCertificate: TLabel;
+    lblSSLcipher: TLabel;
+    editSSLcipher: TEdit;
+    editSSLCertificate: TButtonedEdit;
+    editSSLCACertificate: TButtonedEdit;
+    editSSLPrivateKey: TButtonedEdit;
+    lblLogFile: TLabel;
+    chkLogFileDml: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -249,11 +254,13 @@ end;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  NetTypeStr: String;
+  NetTypeStr, FilenameHint: String;
   nt: TNetType;
   ntg: TNetTypeGroup;
   Params: TConnectionParameters;
   ComboItem: TComboExItem;
+  Placeholders: TStringList;
+  i: Integer;
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
@@ -294,6 +301,14 @@ begin
   end;
   Params.Free;
 
+  // Create filename placeholders hint
+  Placeholders := GetOutputFilenamePlaceholders;
+  FilenameHint := _('Allows the following replacement patterns:');
+  for i:=0 to Placeholders.Count-1 do begin
+    FilenameHint := FilenameHint + CRLF + '%' + Placeholders.Names[i] + ': ' + Placeholders.ValueFromIndex[i];
+  end;
+  Placeholders.Free;
+  editLogFilePath.Hint := FilenameHint;
 end;
 
 
@@ -472,6 +487,9 @@ begin
   Sess.SSLCACertificate := editSSLCACertificate.Text;
   Sess.SSLCipher := editSSLCipher.Text;
   Sess.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
+  Sess.LogFileDdl := chkLogFileDdl.Checked;
+  Sess.LogFileDml := chkLogFileDml.Checked;
+  Sess.LogFilePath := editLogFilePath.Text;
   Sess.SaveToRegistry;
 
   FSessionModified := False;
@@ -653,6 +671,7 @@ begin
   end else begin
     Result := TConnectionParameters.Create;
     Result.SessionPath := SelectedSessionPath;
+    Result.Counter := FromReg.Counter;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
     Result.NetType := SelectedNetType;
     Result.ServerVersion := FServerVersion;
@@ -690,6 +709,9 @@ begin
     Result.FullTableStatus := chkFullTableStatus.Checked;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
     Result.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
+    Result.LogFileDdl := chkLogFileDdl.Checked;
+    Result.LogFileDml := chkLogFileDml.Checked;
+    Result.LogFilePath := editLogFilePath.Text;
   end;
 end;
 
@@ -974,6 +996,9 @@ begin
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     editSSLCipher.Text := Sess.SSLCipher;
     editIgnoreDatabasePattern.Text := Sess.IgnoreDatabasePattern;
+    chkLogFileDdl.Checked := Sess.LogFileDdl;
+    chkLogFileDml.Checked := Sess.LogFileDml;
+    editLogFilePath.Text := Sess.LogFilePath;
     FServerVersion := Sess.ServerVersion;
   end;
 
@@ -1121,6 +1146,7 @@ begin
   if CurrentParams.NetType = ntSQLite then
     PickFile(Sender);
 end;
+
 
 procedure Tconnform.editTrim(Sender: TObject);
 var
@@ -1316,7 +1342,11 @@ begin
       or (Sess.SSLCertificate <> editSSLCertificate.Text)
       or (Sess.SSLCACertificate <> editSSLCACertificate.Text)
       or (Sess.SSLCipher <> editSSLCipher.Text)
-      or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text);
+      or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text)
+      or (Sess.LogFileDdl <> chkLogFileDdl.Checked)
+      or (Sess.LogFileDml <> chkLogFileDml.Checked)
+      or (Sess.LogFilePath <> editLogFilePath.Text)
+      ;
     PasswordModified := Sess.Password <> editPassword.Text;
     FOnlyPasswordModified := PasswordModified and (not FSessionModified);
     FSessionModified := FSessionModified or PasswordModified;
@@ -1400,7 +1430,7 @@ begin
       editUsername.Enabled := lblUsername.Enabled;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
@@ -1410,7 +1440,7 @@ begin
       // SSH tunnel tab:
       tabSSHtunnel.TabVisible := Params.NetType in [ntMySQL_SSHtunnel, ntPgSQL_SSHtunnel];
       // Advanced tab:
-      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
+      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
       lblSSLCACertificate.Enabled := Params.WantSSL;
@@ -1419,12 +1449,13 @@ begin
       editSSLCertificate.Enabled := Params.WantSSL;
       lblSSLcipher.Enabled := Params.WantSSL;
       editSSLcipher.Enabled := Params.WantSSL;
-      lblQueryTimeout.Enabled := Params.NetTypeGroup in [ngMSSQL, ngPgSQL, ngSQLite];
+      lblQueryTimeout.Enabled := True;
       editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
       chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL]) and (Params.NetType <> ntMySQL_ProxySQLAdmin);
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
+      editLogFilePath.Enabled := Params.LogFileDdl or Params.LogFileDml;
 
       Params.Free;
     end;
@@ -1496,7 +1527,7 @@ begin
     Selector.Options := Selector.Options - [ofFileMustExist];
     Selector.Options := Selector.Options + [ofAllowMultiSelect];
     Selector.DefaultExt := FILEEXT_SQLITEDB;
-  end else if Edit = editStartupScript then
+  end else if (Edit = editStartupScript) or (Edit = editLogFilePath) then
     Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPlinkExe then
     Selector.Filter := _('Executables')+' (*.exe)|*.exe|'+_('All files')+' (*.*)|*.*'

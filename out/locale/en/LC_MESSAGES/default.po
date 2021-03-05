@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2020-12-29 22:18+0100\n"
+"PO-Revision-Date: 2021-01-29 08:11+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -759,6 +759,10 @@ msgstr "Partitions"
 #: exportgrid.dfm:5
 msgid "Export grid rows"
 msgstr "Export grid rows"
+
+# Grid context menu
+msgid "Copy as"
+msgstr "Copy as"
 
 #. frmExportGrid..grpFormat..Caption
 #: exportgrid.dfm:54
@@ -2208,15 +2212,17 @@ msgstr "Select all"
 msgid "Select all|Select all items or text"
 msgstr "Select all|Select all items or text"
 
-#. MainForm..ActionList1..actCreateRoutine..Caption
-#: main.dfm:2401
-msgid "Stored routine"
-msgstr "Stored routine"
+msgid "Stored procedure"
+msgstr "Stored procedure"
 
-#. MainForm..ActionList1..actCreateRoutine..Hint
-#: main.dfm:2402
-msgid "Create stored routine|Create stored procedure or function"
-msgstr "Create stored routine|Create stored procedure or function"
+msgid "Create stored procedure"
+msgstr "Create stored procedure"
+
+msgid "Stored function"
+msgstr "Stored function"
+
+msgid "Create stored function"
+msgstr "Create stored function"
 
 #. MainForm..ActionList1..actNewQueryTab..Caption
 #: main.dfm:2408
@@ -5958,6 +5964,12 @@ msgstr "GUID"
 msgid "GUID without braces"
 msgstr "GUID without braces"
 
+msgid "GUID lowercase"
+msgstr "GUID lowercase"
+
+msgid "GUID lowercase without braces"
+msgstr "GUID lowercase without braces"
+
 msgid "Query timeout:"
 msgstr "Query timeout:"
 
@@ -6321,6 +6333,9 @@ msgstr "Add comments"
 msgid "Remove AUTO_INCREMENT clauses"
 msgstr "Remove AUTO_INCREMENT clauses"
 
+msgid "Remove DEFINER clauses"
+msgstr "Remove DEFINER clauses"
+
 msgid "%s%s missing."
 msgstr "%s%s missing."
 
@@ -6634,5 +6649,20 @@ msgstr "Really auto-detect file encoding?"
 msgid "Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails."
 msgstr "Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails."
 
+msgid "To avoid this message select the correct encoding before pressing Open."
+msgstr "To avoid this message select the correct encoding before pressing Open."
+
 msgid "keyword"
 msgstr "keyword"
+
+msgid "Check constraints"
+msgstr "Check constraints"
+
+msgid "Check clause"
+msgstr "Check clause"
+
+msgid "Log queries to file:"
+msgstr "Log queries to file:"
+
+msgid "Logging disabled"
+msgstr "Logging disabled"
