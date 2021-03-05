@@ -2700,7 +2700,8 @@ begin
   // Ensure query grids are not overlapped by sql log
   for Tab in QueryTabs do begin
     // Decrease height of pnlMemo if grid has not enough height
-    Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
+    // Disabled for annoyance reasons, see #1113
+    // Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
     // Try again and resize SQLLog if required
     SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, spltTopBottom.MinSize);
   end;
@@ -11363,7 +11364,7 @@ begin
   QueryTab.pnlMemo.Parent := QueryTab.TabSheet;
   QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
   QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
-  QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
+  QueryTab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
   QueryTab.pnlMemo.Constraints := pnlQueryMemo.Constraints;
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
