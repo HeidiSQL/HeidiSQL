@@ -3,7 +3,7 @@ object frmTextEditor: TfrmTextEditor
   Top = 0
   Caption = 'Text editor'
   ClientHeight = 104
-  ClientWidth = 332
+  ClientWidth = 571
   Color = clBtnFace
   Constraints.MinHeight = 100
   Constraints.MinWidth = 130
@@ -24,7 +24,7 @@ object frmTextEditor: TfrmTextEditor
     AlignWithMargins = True
     Left = 0
     Top = 82
-    Width = 322
+    Width = 561
     Height = 22
     Margins.Left = 0
     Margins.Top = 0
@@ -37,7 +37,7 @@ object frmTextEditor: TfrmTextEditor
     TabOrder = 0
     object lblTextLength: TLabel
       AlignWithMargins = True
-      Left = 210
+      Left = 355
       Top = 3
       Width = 65
       Height = 16
@@ -129,6 +129,17 @@ object frmTextEditor: TfrmTextEditor
         Top = 0
         Action = actSearchReplace
       end
+    end
+    object comboHighlighter: TComboBox
+      Left = 207
+      Top = 0
+      Width = 145
+      Height = 21
+      Align = alLeft
+      Style = csDropDownList
+      Sorted = True
+      TabOrder = 1
+      OnSelect = comboHighlighterSelect
     end
   end
   object popupLinebreaks: TPopupMenu

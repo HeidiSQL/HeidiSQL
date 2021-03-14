@@ -6,7 +6,24 @@ uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
   apphelpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
-  Vcl.ExtCtrls;
+  Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter,
+
+  SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm, SynHighlighterAsmMASM,
+  SynHighlighterBaan, SynHighlighterBat, SynHighlighterCAC, SynHighlighterCPM, SynHighlighterCS,
+  SynHighlighterCache, SynHighlighterCobol, SynHighlighterCpp, SynHighlighterCss, SynHighlighterDOT,
+  SynHighlighterDWS, SynHighlighterDfm, SynHighlighterDml, SynHighlighterEiffel,
+  SynHighlighterFortran, SynHighlighterFoxpro, SynHighlighterGLSL, SynHighlighterGWS,
+  SynHighlighterGalaxy, SynHighlighterGeneral, SynHighlighterGo, SynHighlighterHC11,
+  SynHighlighterHP48, SynHighlighterHashEntries, SynHighlighterHaskell, SynHighlighterHtml,
+  SynHighlighterIDL, SynHighlighterIni, SynHighlighterInno, SynHighlighterJSON, SynHighlighterJScript,
+  SynHighlighterJava, SynHighlighterKix, SynHighlighterLDraw, SynHighlighterLLVM, SynHighlighterM3,
+  SynHighlighterModelica, SynHighlighterMsg, SynHighlighterPHP, SynHighlighterPas, SynHighlighterPerl,
+  SynHighlighterProgress, SynHighlighterPython, SynHighlighterRC, SynHighlighterRexx,
+  SynHighlighterRuby, SynHighlighterSDD, SynHighlighterSQL, SynHighlighterST, SynHighlighterSml,
+  SynHighlighterTclTk, SynHighlighterTeX, SynHighlighterUNIXShellScript, SynHighlighterURI,
+  SynHighlighterUnreal, SynHighlighterVB, SynHighlighterVBScript, SynHighlighterVrml97,
+  SynHighlighterWebIDL, SynHighlighterXML, SynHighlighterZPL
+  ;
 
 {$I const.inc}
 
@@ -35,6 +52,7 @@ type
     btnSearchFindNext: TToolButton;
     btnSeparator1: TToolButton;
     TimerMemoChange: TTimer;
+    comboHighlighter: TComboBox;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
@@ -52,14 +70,18 @@ type
     procedure actSearchFindFindDialogClose(Sender: TObject);
     procedure actSearchReplaceReplaceDialogShow(Sender: TObject);
     procedure actSearchReplaceReplaceDialogClose(Sender: TObject);
+    procedure comboHighlighterSelect(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
     FStopping: Boolean;
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
-    FmemoText: TLineNormalizingMemo;
+    FmemoText: TSynMemo;
     FFindDialogActive, FReplaceDialogActive: Boolean;
+    FMaxLength: Integer;
+    FTableColumn: TTableColumn;
+    FHighlighter: TSynCustomHighlighter;
     procedure SetModified(NewVal: Boolean);
   public
     function GetText: String;
@@ -68,7 +90,8 @@ type
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
-    property memoText: TLineNormalizingMemo read FmemoText;
+    property memoText: TSynMemo read FmemoText;
+    property TableColumn: TTableColumn read FTableColumn write FTableColumn;
   end;
 
 
@@ -135,15 +158,15 @@ begin
   // Timer based onchange handler, so we don't scan the whole text on every typed character
   TimerMemoChange.Enabled := False;
   TextLen := Length(FmemoText.Text);
-  if FmemoText.MaxLength = 0 then
+  if FMaxLength = 0 then
     MaxLen := '?'
   else
-    MaxLen := FormatNumber(FmemoText.MaxLength);
+    MaxLen := FormatNumber(FMaxLength);
   if TextLen = 0 then
     Lines := 0
   else
     Lines := CountLineBreaks(FmemoText.Text) + 1;
-  CursorPos := FormatNumber(FmemoText.CaretPos.Y+1) + ' : ' + FormatNumber(FmemoText.CaretPos.X+1);
+  CursorPos := 'x:z'; //FormatNumber(FmemoText.CaretPos.Y+1) + ' : ' + FormatNumber(FmemoText.CaretPos.X+1);
   lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines), CursorPos]);
 end;
 
@@ -175,7 +198,7 @@ end;
 procedure TfrmTextEditor.SetMaxLength(len: integer);
 begin
   // Input: Length in number of bytes.
-  FmemoText.MaxLength := len;
+  FMaxLength := len;
 end;
 
 procedure TfrmTextEditor.SetFont(font: TFont);
@@ -185,9 +208,12 @@ begin
 end;
 
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
+var
+  Highlighters: TSynHighlighterList;
+  i: Integer;
 begin
   HasSizeGrip := True;
-  FmemoText := TLineNormalizingMemo.Create(Self);
+  FmemoText := TSynMemo.Create(Self);
   FmemoText.Parent := Self;
   FmemoText.Align := alClient;
   FmemoText.ScrollBars := ssBoth;
@@ -196,6 +222,9 @@ begin
   FmemoText.OnKeyDown := memoTextKeyDown;
   FmemoText.OnClick := memoTextClick;
   FmemoText.HideSelection := False; // Make found text visible when find dialog has focus
+  FmemoText.Options := FmemoText.Options - [eoScrollPastEol];
+  FmemoText.RightEdge := 0;
+  FmemoText.Gutter.ShowLineNumbers := True;
   // Use same text properties as in query/find/replace actions
   actSearchFind.Caption := MainForm.actQueryFind.Caption;
   actSearchFind.Hint := MainForm.actQueryFind.Hint;
@@ -214,8 +243,17 @@ begin
   Height := AppSettings.ReadInt(asMemoEditorHeight);
   if AppSettings.ReadBool(asMemoEditorMaximized) then
     WindowState := wsMaximized;
+
   if AppSettings.ReadBool(asMemoEditorWrap) then
     btnWrap.Click;
+
+  Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
+  for i:=0 to Highlighters.Count-1 do begin
+    comboHighlighter.Items.Add(Highlighters[i].GetFriendlyLanguageName);
+  end;
+
+  FTableColumn := nil;
+
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
 end;
@@ -229,11 +267,25 @@ begin
   end;
   AppSettings.WriteBool(asMemoEditorMaximized, WindowState=wsMaximized);
   AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
+  if Assigned(FTableColumn) and (comboHighlighter.Text <> AppSettings.GetDefaultString(asMemoEditorHighlighter)) then begin
+    AppSettings.SessionPath := MainForm.GetRegKeyTable;
+    AppSettings.WriteString(asMemoEditorHighlighter, comboHighlighter.Text, FTableColumn.Name);
+  end;
 end;
 
 
 procedure TfrmTextEditor.FormShow(Sender: TObject);
+var
+  HighlighterName: String;
 begin
+  // Select previously used highlighter
+  HighlighterName := AppSettings.GetDefaultString(asMemoEditorHighlighter);
+  if Assigned(FTableColumn) then begin
+    AppSettings.SessionPath := MainForm.GetRegKeyTable;
+    HighlighterName := AppSettings.ReadString(asMemoEditorHighlighter, FTableColumn.Name, HighlighterName);
+  end;
+  comboHighlighter.ItemIndex := comboHighlighter.Items.IndexOf(HighlighterName);
+  comboHighlighter.OnSelect(comboHighlighter);
   // Trigger change event, which is not fired when text is empty. See #132.
   TimerMemoChangeTimer(Self);
   FmemoText.SetFocus;
@@ -274,15 +326,35 @@ begin
   Screen.Cursor := crHourglass;
   // Changing the scrollbars invoke the OnChange event. We avoid thinking the text was really modified.
   WasModified := Modified;
-  if FmemoText.ScrollBars = ssBoth then
-    FmemoText.ScrollBars := ssVertical
-  else
+  if FmemoText.ScrollBars = ssBoth then begin
+    FmemoText.ScrollBars := ssVertical;
+    FmemoText.WordWrap := True;
+  end else begin
     FmemoText.ScrollBars := ssBoth;
+    FmemoText.WordWrap := False;
+  end;
   TToolbutton(Sender).Down := FmemoText.ScrollBars = ssVertical;
   Modified := WasModified;
   Screen.Cursor := crDefault;
 end;
 
+
+procedure TfrmTextEditor.comboHighlighterSelect(Sender: TObject);
+var
+  Highlighters: TSynHighlighterList;
+  i: Integer;
+begin
+  // Code highlighter selected
+  FmemoText.Highlighter := nil;
+  FHighlighter.Free;
+  Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
+  for i:=0 to Highlighters.Count-1 do begin
+    if comboHighlighter.Text = Highlighters[i].GetFriendlyLanguageName then begin
+      FHighlighter := Highlighters[i].Create(Self);
+      FmemoText.Highlighter := FHighlighter;
+    end;
+  end;
+end;
 
 procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
 var
@@ -297,8 +369,8 @@ begin
   if d.Execute then try
     Screen.Cursor := crHourglass;
     FmemoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
-    if (FmemoText.MaxLength > 0) and (Length(FmemoText.Text) > FmemoText.MaxLength) then
-      FmemoText.Text := copy(FmemoText.Text, 0, FmemoText.MaxLength);
+    if (FMaxLength > 0) and (Length(FmemoText.Text) > FMaxLength) then
+      FmemoText.Text := copy(FmemoText.Text, 0, FMaxLength);
     AppSettings.WriteInt(asFileDialogEncoding, d.EncodingIndex, Self.Name);
   finally
     Screen.Cursor := crDefault;

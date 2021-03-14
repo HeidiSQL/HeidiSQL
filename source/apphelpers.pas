@@ -149,7 +149,7 @@ type
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
     asWrapLongLines, asCodeFolding, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
-    asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
+    asMemoEditorWrap, asMemoEditorHighlighter, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
     asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort, asLibrary, asAllProviders,
     asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
@@ -3451,6 +3451,7 @@ begin
   InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      100);
   InitSetting(asMemoEditorMaximized,              'MemoEditorMaximized',                   0, False);
   InitSetting(asMemoEditorWrap,                   'MemoEditorWrap',                        0, False);
+  InitSetting(asMemoEditorHighlighter,            'MemoEditorHighlighter_%s',              0, False, 'General', True);
   InitSetting(asDelimiter,                        'Delimiter',                             0, False, ';');
   InitSetting(asSQLHelpWindowLeft,                'SQLHelp_WindowLeft',                    0);
   InitSetting(asSQLHelpWindowTop,                 'SQLHelp_WindowTop',                     0);
