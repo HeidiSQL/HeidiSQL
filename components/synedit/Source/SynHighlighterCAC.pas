@@ -46,7 +46,7 @@ Thanks to Primoz Gabrijelcic, Andy Jeffries.
 
 unit SynHighlighterCAC;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

@@ -38,7 +38,7 @@ located at http://SynEdit.SourceForge.net
 
 unit SynHighlighterCobol;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

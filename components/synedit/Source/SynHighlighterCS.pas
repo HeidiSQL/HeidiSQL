@@ -51,7 +51,7 @@ Based on SynHighlighterCpp.pas
 
 unit SynHighlighterCS;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

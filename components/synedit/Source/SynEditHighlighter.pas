@@ -29,7 +29,7 @@ Known Issues:
 
 unit SynEditHighlighter;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

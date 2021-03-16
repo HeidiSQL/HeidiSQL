@@ -68,7 +68,7 @@ www.host.org
 
 unit SynHighlighterURI;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

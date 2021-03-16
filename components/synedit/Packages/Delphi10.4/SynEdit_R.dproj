@@ -156,6 +156,7 @@
         <DCCReference Include="..\..\Source\SynHighlighterDml.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterDOT.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterDWS.pas"/>
+        <DCCReference Include="..\..\Source\SynHighlighterECMAScript.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterEiffel.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterFortran.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterFoxpro.pas"/>

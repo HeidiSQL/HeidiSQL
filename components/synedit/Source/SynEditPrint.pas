@@ -87,7 +87,7 @@ unit SynEditPrint;
 {$ENDIF}
 
 {$M+}
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

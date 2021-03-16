@@ -1,7 +1,7 @@
-object FrmMain: TFrmMain
+object FormMain: TFormMain
   Left = 379
   Top = 238
-  ActiveControl = BtnStart
+  ActiveControl = ButtonStart
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'SynGen'
@@ -30,21 +30,21 @@ object FrmMain: TFrmMain
     TabWidth = 80
     object TabHighlighter: TTabSheet
       Caption = 'Highlighter'
-      object LblAuthor: TLabel
+      object LabelAuthor: TLabel
         Left = 8
         Top = 20
         Width = 34
         Height = 13
         Caption = 'Author:'
       end
-      object LblDescription: TLabel
+      object LabelDescription: TLabel
         Left = 8
         Top = 52
         Width = 56
         Height = 13
         Caption = 'Description:'
       end
-      object LblVersion: TLabel
+      object LabelVersion: TLabel
         Left = 8
         Top = 84
         Width = 38
@@ -72,7 +72,7 @@ object FrmMain: TFrmMain
         Height = 21
         TabOrder = 2
       end
-      object ChkGetKeyWords: TCheckBox
+      object CheckBoxGetKeyWords: TCheckBox
         Left = 8
         Top = 188
         Width = 249
@@ -82,7 +82,7 @@ object FrmMain: TFrmMain
         State = cbChecked
         TabOrder = 4
       end
-      object ChkGPLHeader: TCheckBox
+      object CheckBoxGPLHeader: TCheckBox
         Left = 8
         Top = 168
         Width = 249
@@ -95,29 +95,28 @@ object FrmMain: TFrmMain
     end
     object TabLanguage: TTabSheet
       Caption = 'Language'
-      object LblFilter: TLabel
+      object LabelFilter: TLabel
         Left = 8
         Top = 20
         Width = 59
         Height = 13
         Caption = 'Default filter:'
       end
-      object LblLangName: TLabel
+      object LabelLangName: TLabel
         Left = 8
         Top = 52
         Width = 80
         Height = 13
         Caption = 'Language name:'
       end
-      object CboFilter: TComboBox
+      object ComboBoxFilter: TComboBox
         Left = 96
         Top = 16
         Width = 241
         Height = 21
-        ItemHeight = 13
         TabOrder = 0
         Text = 'All files (*.*)|*.*'
-        OnChange = CboLangNameChange
+        OnChange = ComboBoxLangNameChange
         Items.Strings = (
           'Pascal files (*.pas,*.dpr,*.dpk,*.inc)|*.pas;*.dpr;*.dpk;*.inc'
           'HP48 files (*.s,*.sou,*.a,*.hp)|*.s;*.sou;*.a;*.hp'
@@ -154,14 +153,13 @@ object FrmMain: TFrmMain
           'Fortran Files (*.for)|*.for'
           '68HC11 Assembler files (*.hc11,*.asm,*.asc)|*.hc11;*.asm;*.asc')
       end
-      object CboLangName: TComboBox
+      object ComboBoxLangName: TComboBox
         Left = 96
         Top = 48
         Width = 241
         Height = 21
-        ItemHeight = 13
         TabOrder = 1
-        OnChange = CboLangNameChange
+        OnChange = ComboBoxLangNameChange
         Items.Strings = (
           'HP48'
           'CA-Clipper'
@@ -200,7 +198,7 @@ object FrmMain: TFrmMain
     end
     object TabAttributes: TTabSheet
       Caption = 'Attributes'
-      object LblUnknownTokenAttr: TLabel
+      object LabelUnknownTokenAttr: TLabel
         Left = 8
         Top = 120
         Width = 164
@@ -214,46 +212,43 @@ object FrmMain: TFrmMain
         Height = 96
         Caption = 'Attribute names'
         TabOrder = 0
-        object LblIdentifier: TLabel
+        object LabelIdentifier: TLabel
           Left = 16
           Top = 32
           Width = 43
           Height = 13
           Caption = 'Identifier:'
         end
-        object LblReservedWord: TLabel
+        object LabelReservedWord: TLabel
           Left = 16
           Top = 64
           Width = 75
           Height = 13
           Caption = 'Reserved word:'
         end
-        object CboAttrIdentifier: TComboBox
+        object ComboBoxAttrIdentifier: TComboBox
           Left = 104
           Top = 28
           Width = 209
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 0
         end
-        object CboAttrReservedWord: TComboBox
+        object ComboBoxAttrReservedWord: TComboBox
           Left = 104
           Top = 60
           Width = 209
           Height = 21
           Style = csDropDownList
-          ItemHeight = 13
           TabOrder = 1
         end
       end
-      object CboUnknownTokenAttr: TComboBox
+      object ComboBoxUnknownTokenAttr: TComboBox
         Left = 184
         Top = 116
         Width = 153
         Height = 21
         Style = csDropDownList
-        ItemHeight = 13
         TabOrder = 1
         Items.Strings = (
           'Identifier'
@@ -273,7 +268,7 @@ object FrmMain: TFrmMain
         TabOrder = 3
         OnClick = ListBoxFieldsClick
       end
-      object BtnAdd: TButton
+      object ButtonAdd: TButton
         Left = 264
         Top = 8
         Width = 73
@@ -281,9 +276,9 @@ object FrmMain: TFrmMain
         Caption = 'Add'
         Enabled = False
         TabOrder = 0
-        OnClick = BtnAddClick
+        OnClick = ButtonAddClick
       end
-      object BtnDelete: TButton
+      object ButtonDelete: TButton
         Left = 264
         Top = 40
         Width = 73
@@ -291,7 +286,7 @@ object FrmMain: TFrmMain
         Caption = 'Delete'
         Enabled = False
         TabOrder = 1
-        OnClick = BtnDeleteClick
+        OnClick = ButtonDeleteClick
       end
       object EditAddField: TEdit
         Left = 8
@@ -304,7 +299,7 @@ object FrmMain: TFrmMain
       end
     end
   end
-  object BtnStart: TButton
+  object ButtonStart: TButton
     Left = 288
     Top = 257
     Width = 75
@@ -312,7 +307,7 @@ object FrmMain: TFrmMain
     Caption = 'Start!'
     Default = True
     TabOrder = 0
-    OnClick = BtnStartClick
+    OnClick = ButtonStartClick
   end
   object OpenDialog: TOpenDialog
     Filter = 'Grammar file (*.msg)|*.msg'
@@ -322,22 +317,22 @@ object FrmMain: TFrmMain
   object MainMenu: TMainMenu
     Left = 288
     Top = 184
-    object MnuFile: TMenuItem
+    object MenuItemFile: TMenuItem
       Caption = '&File'
-      object MnuOpen: TMenuItem
+      object MenuItemOpen: TMenuItem
         Caption = '&Open...'
         ShortCut = 16463
-        OnClick = MnuOpenClick
+        OnClick = MenuItemOpenClick
       end
-      object MnuExit: TMenuItem
+      object MenuItemExit: TMenuItem
         Caption = 'E&xit'
         ShortCut = 32883
-        OnClick = MnuExitClick
+        OnClick = MenuItemExitClick
       end
     end
-    object MnuStart: TMenuItem
+    object MenuItemStart: TMenuItem
       Caption = '&Start!'
-      OnClick = BtnStartClick
+      OnClick = ButtonStartClick
     end
   end
 end

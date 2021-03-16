@@ -36,7 +36,7 @@ Known Issues:
 
 unit SynHighlighterModelica;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

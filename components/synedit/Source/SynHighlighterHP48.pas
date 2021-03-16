@@ -45,7 +45,7 @@ The unit SynHighlighterHP48 provides SynEdit with a HP48 assembler highlighter.
 
 unit SynHighlighterHP48;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

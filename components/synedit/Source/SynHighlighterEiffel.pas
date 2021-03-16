@@ -44,7 +44,7 @@ The SynHighlighterEiffel unit provides SynEdit with an Eiffel highlighter.
 
 unit SynHighlighterEiffel;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

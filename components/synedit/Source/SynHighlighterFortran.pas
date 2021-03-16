@@ -46,7 +46,7 @@ Thanks to Martin Waldenburg.
 
 unit SynHighlighterFortran;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

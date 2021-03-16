@@ -45,7 +45,7 @@ The SynHighlighterJava unit provides SynEdit with a Java source (.java) highligh
 
 unit SynHighlighterJava;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

@@ -45,7 +45,7 @@ The SynHighlighterVisualLisp unit provides SynEdit with a Ruby highlighter.
 
 unit SynHighlighterRuby;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

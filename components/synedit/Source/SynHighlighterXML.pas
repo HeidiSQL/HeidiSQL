@@ -53,7 +53,7 @@ unit SynHighlighterXML;
 
 interface
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 uses
   Windows, Messages, Controls, Graphics, Registry,
@@ -830,7 +830,6 @@ procedure TSynXMLSyn.ScanForFoldRanges(FoldRanges: TSynFoldRanges;
   LinesToScan: TStrings; FromLine, ToLine: Integer);
 var
   Line: Integer;
-  TagStartPos: Integer;
   CurLine: string;
   RunPos: Integer;
   IsClosing: Boolean;

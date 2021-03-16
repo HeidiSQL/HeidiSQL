@@ -53,7 +53,7 @@ ashley@ashleybrown.co.uk
 
 unit SynHighlighterCSS;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

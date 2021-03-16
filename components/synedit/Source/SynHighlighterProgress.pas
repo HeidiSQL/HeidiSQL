@@ -47,7 +47,7 @@ highlighter is based.
 
 unit SynHighlighterProgress;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

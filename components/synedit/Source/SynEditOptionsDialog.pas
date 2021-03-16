@@ -40,7 +40,7 @@ Known Issues:
 unit SynEditOptionsDialog;
 {$ENDIF}
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

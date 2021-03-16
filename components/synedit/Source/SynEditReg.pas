@@ -87,6 +87,7 @@ uses
   {$ifdef SYN_DELPHI_2009_UP}
   SynHighlighterDWS,
   {$endif}
+  SynHighlighterECMAScript,
   SynHighlighterEiffel,
   SynHighlighterFortran,
   SynHighlighterFoxpro,
@@ -182,7 +183,7 @@ begin
     TSynM3Syn, TSynPasSyn, TSynVBSyn, TSynCobolSyn, TSynCSSyn, TSynGoSyn,
     // internet
     TSynCssSyn, TSynHTMLSyn, TSynJScriptSyn, TSynPHPSyn, TSynVBScriptSyn,
-    TSynXMLSyn, TSynJSONSyn, TSynVrml97Syn,
+    TSynXMLSyn, TSynJSONSyn, TSynVrml97Syn, TSynECMAScriptSyn,
     //interpreted
     TSynAWKSyn, TSynBATSyn,
     {$ifdef SYN_DELPHI_2009_UP}
