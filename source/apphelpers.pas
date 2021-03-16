@@ -289,7 +289,6 @@ type
   function IsInt(Str: String): Boolean;
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
-  function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
   function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
@@ -741,28 +740,6 @@ begin
     if Result = lbsMixed then
       break;
   until i > SeekSize;
-end;
-
-
-function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
-var
-  Offset: Integer;
-  BreakStr: String;
-begin
-  // Count number of given line breaks in text
-  Result := 0;
-  case LineBreak of
-    lbsWindows: BreakStr := CRLF;
-    lbsUnix: BreakStr := LB_UNIX;
-    lbsMac: BreakStr := LB_MAC;
-    lbsWide: BreakStr := LB_WIDE;
-    else Exit;
-  end;
-  Offset := PosEx(BreakStr, Text, 1);
-  while Offset <> 0 do begin
-    Inc(Result);
-    Offset := PosEx(BreakStr, Text, Offset + Length(BreakStr));
-  end;
 end;
 
 

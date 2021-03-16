@@ -141,23 +141,16 @@ end;
 
 procedure TfrmTextEditor.TimerMemoChangeTimer(Sender: TObject);
 var
-  Lines: Cardinal;
-  TextLen: Integer;
   MaxLen, CursorPos: String;
 begin
   // Timer based onchange handler, so we don't scan the whole text on every typed character
   TimerMemoChange.Enabled := False;
-  TextLen := Length(MemoText.Text);
   if FMaxLength = 0 then
     MaxLen := '?'
   else
     MaxLen := FormatNumber(FMaxLength);
-  if TextLen = 0 then
-    Lines := 0
-  else
-    Lines := CountLineBreaks(MemoText.Text) + 1;
-  CursorPos := 'x:z'; //FormatNumber(MemoText.CaretPos.Y+1) + ' : ' + FormatNumber(MemoText.CaretPos.X+1);
-  lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines), CursorPos]);
+  CursorPos := MemoText.CaretY.ToString + ':' + MemoText.CaretX.ToString;
+  lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(MemoText.GetTextLen), MaxLen, FormatNumber(MemoText.Lines.Count), CursorPos]);
 end;
 
 
