@@ -6234,7 +6234,7 @@ begin
       end;
     end;
   end;
-  inDataTab := PageControlMain.ActivePage = tabData;
+  inDataTab := Grid = DataGrid;
   inDataOrQueryTab := inDataTab or QueryTabActive;
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
   inGrid := Assigned(Grid) and (ActiveControl = Grid);
