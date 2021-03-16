@@ -18,7 +18,7 @@ uses
   SynHighlighterIDL, SynHighlighterIni, SynHighlighterInno, SynHighlighterJSON, SynHighlighterJScript,
   SynHighlighterJava, SynHighlighterKix, SynHighlighterLDraw, SynHighlighterM3,
   SynHighlighterModelica, SynHighlighterMsg, SynHighlighterPHP, SynHighlighterPas, SynHighlighterPerl,
-  SynHighlighterProgress, SynHighlighterPython, SynHighlighterRC, SynHighlighterRexx,
+  SynHighlighterProgress, SynHighlighterPython, SynHighlighterRC,
   SynHighlighterRuby, SynHighlighterSDD, SynHighlighterSQL, SynHighlighterST, SynHighlighterSml,
   SynHighlighterTclTk, SynHighlighterTeX, SynHighlighterUNIXShellScript, SynHighlighterURI,
   SynHighlighterUnreal, SynHighlighterVB, SynHighlighterVBScript, SynHighlighterVrml97,
