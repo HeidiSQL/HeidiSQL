@@ -16,7 +16,7 @@ uses
   SynHighlighterGalaxy, SynHighlighterGeneral, SynHighlighterGo, SynHighlighterHC11,
   SynHighlighterHP48, SynHighlighterHashEntries, SynHighlighterHaskell, SynHighlighterHtml,
   SynHighlighterIDL, SynHighlighterIni, SynHighlighterInno, SynHighlighterJSON, SynHighlighterJScript,
-  SynHighlighterJava, SynHighlighterKix, SynHighlighterLDraw, SynHighlighterLLVM, SynHighlighterM3,
+  SynHighlighterJava, SynHighlighterKix, SynHighlighterLDraw, SynHighlighterM3,
   SynHighlighterModelica, SynHighlighterMsg, SynHighlighterPHP, SynHighlighterPas, SynHighlighterPerl,
   SynHighlighterProgress, SynHighlighterPython, SynHighlighterRC, SynHighlighterRexx,
   SynHighlighterRuby, SynHighlighterSDD, SynHighlighterSQL, SynHighlighterST, SynHighlighterSml,
