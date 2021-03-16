@@ -22,7 +22,7 @@ uses
   SynHighlighterRuby, SynHighlighterSDD, SynHighlighterSQL, SynHighlighterST, SynHighlighterSml,
   SynHighlighterTclTk, SynHighlighterTeX, SynHighlighterUNIXShellScript, SynHighlighterURI,
   SynHighlighterUnreal, SynHighlighterVB, SynHighlighterVBScript, SynHighlighterVrml97,
-  SynHighlighterWebIDL, SynHighlighterXML, SynHighlighterZPL
+  SynHighlighterXML
   ;
 
 {$I const.inc}
