@@ -1209,7 +1209,7 @@ begin
   FTextEditor.Modified := FEdit.Modified;
   FTextEditor.SetMaxLength(Self.FMaxLength);
   FTextEditor.TableColumn := FTableColumn;
-  FTextEditor.memoText.ReadOnly := not FAllowEdit;
+  FTextEditor.MemoText.ReadOnly := not FAllowEdit;
   FTextEditor.ShowModal;
 end;
 

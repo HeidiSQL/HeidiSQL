@@ -20,7 +20,7 @@ uses
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding;
+  SynEditCodeFolding, texteditor;
 
 
 type
@@ -11991,13 +11991,21 @@ begin
   end;
   if (not Assigned(Result)) and QueryTabActive then
     Result := ActiveQueryMemo;
+  if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
+    Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
+  end;
+
 end;
 
 
 function TMainForm.ActiveGrid: TVirtualStringTree;
 begin
+  // Return current data or query grid, if main form is active
   Result := nil;
-  if PageControlMain.ActivePage = tabData then Result := DataGrid
+  if Screen.ActiveForm <> Self then
+    Exit;
+  if PageControlMain.ActivePage = tabData then
+    Result := DataGrid
   else if (ActiveQueryTab <> nil) and (ActiveQueryTab.ActiveResultTab <> nil) then
     Result := ActiveQueryTab.ActiveResultTab.Grid;
 end;
@@ -13520,8 +13528,10 @@ var
   rx: TRegExpr;
   TextMatches: Boolean;
   PressedShortcut: TShortCut;
+  Act: TContainedAction;
 begin
   // Support for Ctrl+Backspace shortcut in edit + combobox controls
+  //LogSQL(msg.CharCode.ToString);
   Handled := False;
   if (Msg.CharCode = VK_BACK) and KeyPressed(VK_CONTROL) then begin
     SendingControl := Screen.ActiveControl;
@@ -13558,10 +13568,22 @@ begin
   end else begin
     // Listen to certain shortcut(s) in other forms than mainform, which do not listen to ActionList
     PressedShortcut := ShortCut(Msg.CharCode, KeyDataToShiftState(Msg.KeyData));
-    if PressedShortcut = actSynEditCompletionPropose.ShortCut then begin
-      actSynEditCompletionPropose.Execute;
-      Handled := True;
+    for Act in ActionList1 do begin
+      if (Act = actSynEditCompletionPropose)
+        or (Act = actQueryFind) // Support find/replace on grid text editor
+        or (Act = actQueryFindAgain)
+        or (Act = actQueryReplace)
+        then begin
+
+        if PressedShortcut = Act.ShortCut then begin
+          Act.Execute;
+          Handled := True;
+          Break;
+        end;
+
+      end;
     end;
+
   end;
 end;
 

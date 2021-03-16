@@ -123,7 +123,7 @@ begin
   SearchText := '';
 
   if Assigned(_Editor) then begin
-    ObjName := _('SQL editor');
+    ObjName := _('Editor');
     if IsQueryTab then
       ObjName := ObjName + ': ' + MainForm.ActiveQueryTab.TabSheet.Caption;
     comboSearchIn.Items.AddObject(ObjName, _Editor);

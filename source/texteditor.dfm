@@ -117,17 +117,17 @@ object frmTextEditor: TfrmTextEditor
       object btnSearchFind: TToolButton
         Left = 138
         Top = 0
-        Action = actSearchFind
+        Action = MainForm.actQueryFind
       end
       object btnSearchFindNext: TToolButton
         Left = 161
         Top = 0
-        Action = actSearchFindNext
+        Action = MainForm.actQueryFindAgain
       end
       object btnSearchReplace: TToolButton
         Left = 184
         Top = 0
-        Action = actSearchReplace
+        Action = MainForm.actQueryReplace
       end
     end
     object comboHighlighter: TComboBox
@@ -141,6 +141,44 @@ object frmTextEditor: TfrmTextEditor
       TabOrder = 1
       OnSelect = comboHighlighterSelect
     end
+  end
+  object MemoText: TSynMemo
+    Left = 0
+    Top = 0
+    Width = 571
+    Height = 82
+    SingleLineMode = False
+    Align = alClient
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -13
+    Font.Name = 'Courier New'
+    Font.Style = []
+    TabOrder = 1
+    OnClick = MemoTextClick
+    OnKeyDown = MemoTextKeyDown
+    CodeFolding.GutterShapeSize = 11
+    CodeFolding.CollapsedLineColor = clGrayText
+    CodeFolding.FolderBarLinesColor = clGrayText
+    CodeFolding.IndentGuidesColor = clGray
+    CodeFolding.IndentGuides = True
+    CodeFolding.ShowCollapsedLine = False
+    CodeFolding.ShowHintMark = True
+    UseCodeFolding = False
+    Gutter.AutoSize = True
+    Gutter.Font.Charset = DEFAULT_CHARSET
+    Gutter.Font.Color = clWindowText
+    Gutter.Font.Height = -11
+    Gutter.Font.Name = 'Courier New'
+    Gutter.Font.Style = []
+    Gutter.ShowLineNumbers = True
+    Lines.Strings = (
+      'MemoText')
+    Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabIndent, eoTabsToSpaces]
+    RightEdge = 0
+    WantTabs = True
+    OnChange = MemoTextChange
+    FontSmoothing = fsmNone
   end
   object popupLinebreaks: TPopupMenu
     Images = MainForm.VirtualImageListMain
@@ -175,37 +213,6 @@ object frmTextEditor: TfrmTextEditor
       ImageIndex = 122
       ImageName = 'icons8-refresh'
       OnClick = SelectLinebreaks
-    end
-  end
-  object ActionList1: TActionList
-    Images = MainForm.VirtualImageListMain
-    Left = 64
-    Top = 16
-    object actSearchFind: TSearchFind
-      Category = 'Search'
-      Caption = '&Find...'
-      Dialog.OnClose = actSearchFindFindDialogClose
-      Dialog.OnShow = actSearchFindFindDialogShow
-      Dialog.Options = [frDown, frFindNext]
-      Hint = 'Find|Finds the specified text'
-      ImageIndex = 30
-      ShortCut = 16454
-    end
-    object actSearchFindNext: TSearchFindNext
-      Category = 'Search'
-      Caption = 'Find &Next'
-      Hint = 'Find Next|Repeats the last find'
-      ImageIndex = 142
-      ShortCut = 114
-    end
-    object actSearchReplace: TSearchReplace
-      Category = 'Search'
-      Caption = '&Replace'
-      Dialog.OnClose = actSearchReplaceReplaceDialogClose
-      Dialog.OnShow = actSearchReplaceReplaceDialogShow
-      Dialog.Options = [frDown, frFindNext, frReplace, frReplaceAll]
-      Hint = 'Replace|Replaces specific text with different text'
-      ImageIndex = 59
     end
   end
   object TimerMemoChange: TTimer

@@ -43,33 +43,26 @@ type
     menuMacLB: TMenuItem;
     menuMixedLB: TMenuItem;
     menuWideLB: TMenuItem;
-    ActionList1: TActionList;
-    actSearchFind: TSearchFind;
     btnSearchFind: TToolButton;
-    actSearchFindNext: TSearchFindNext;
-    actSearchReplace: TSearchReplace;
     btnSearchReplace: TToolButton;
     btnSearchFindNext: TToolButton;
     btnSeparator1: TToolButton;
     TimerMemoChange: TTimer;
     comboHighlighter: TComboBox;
+    MemoText: TSynMemo;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
     procedure btnWrapClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure memoTextChange(Sender: TObject);
-    procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure memoTextClick(Sender: TObject);
+    procedure MemoTextChange(Sender: TObject);
+    procedure MemoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure MemoTextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure SelectLinebreaks(Sender: TObject);
     procedure TimerMemoChangeTimer(Sender: TObject);
-    procedure actSearchFindFindDialogShow(Sender: TObject);
-    procedure actSearchFindFindDialogClose(Sender: TObject);
-    procedure actSearchReplaceReplaceDialogShow(Sender: TObject);
-    procedure actSearchReplaceReplaceDialogClose(Sender: TObject);
     procedure comboHighlighterSelect(Sender: TObject);
   private
     { Private declarations }
@@ -77,8 +70,6 @@ type
     FStopping: Boolean;
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
-    FmemoText: TSynMemo;
-    FFindDialogActive, FReplaceDialogActive: Boolean;
     FMaxLength: Integer;
     FTableColumn: TTableColumn;
     FHighlighter: TSynCustomHighlighter;
@@ -90,7 +81,6 @@ type
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
-    property memoText: TSynMemo read FmemoText;
     property TableColumn: TTableColumn read FTableColumn write FTableColumn;
   end;
 
@@ -106,7 +96,7 @@ function TfrmTextEditor.GetText: String;
 var
   LB: String;
 begin
-  Result := FmemoText.Text;
+  Result := MemoText.Text;
   // Convert linebreaks back to selected
   LB := '';
   case FSelectedLineBreaks of
@@ -135,8 +125,8 @@ begin
   end;
   if Assigned(Detected) then
     SelectLineBreaks(Detected);
-  FmemoText.Text := text;
-  FmemoText.SelectAll;
+  MemoText.Text := text;
+  MemoText.SelectAll;
   Modified := False;
 end;
 
@@ -157,7 +147,7 @@ var
 begin
   // Timer based onchange handler, so we don't scan the whole text on every typed character
   TimerMemoChange.Enabled := False;
-  TextLen := Length(FmemoText.Text);
+  TextLen := Length(MemoText.Text);
   if FMaxLength = 0 then
     MaxLen := '?'
   else
@@ -165,8 +155,8 @@ begin
   if TextLen = 0 then
     Lines := 0
   else
-    Lines := CountLineBreaks(FmemoText.Text) + 1;
-  CursorPos := 'x:z'; //FormatNumber(FmemoText.CaretPos.Y+1) + ' : ' + FormatNumber(FmemoText.CaretPos.X+1);
+    Lines := CountLineBreaks(MemoText.Text) + 1;
+  CursorPos := 'x:z'; //FormatNumber(MemoText.CaretPos.Y+1) + ' : ' + FormatNumber(MemoText.CaretPos.X+1);
   lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines), CursorPos]);
 end;
 
@@ -203,8 +193,8 @@ end;
 
 procedure TfrmTextEditor.SetFont(font: TFont);
 begin
-  FmemoText.Font.Name := font.Name;
-  FmemoText.Font.Size := font.Size;
+  MemoText.Font.Name := font.Name;
+  MemoText.Font.Size := font.Size;
 end;
 
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
@@ -213,25 +203,6 @@ var
   i: Integer;
 begin
   HasSizeGrip := True;
-  FmemoText := TSynMemo.Create(Self);
-  FmemoText.Parent := Self;
-  FmemoText.Align := alClient;
-  FmemoText.ScrollBars := ssBoth;
-  FmemoText.WantTabs := True;
-  FmemoText.OnChange := memoTextChange;
-  FmemoText.OnKeyDown := memoTextKeyDown;
-  FmemoText.OnClick := memoTextClick;
-  FmemoText.HideSelection := False; // Make found text visible when find dialog has focus
-  FmemoText.Options := FmemoText.Options - [eoScrollPastEol];
-  FmemoText.RightEdge := 0;
-  FmemoText.Gutter.ShowLineNumbers := True;
-  // Use same text properties as in query/find/replace actions
-  actSearchFind.Caption := MainForm.actQueryFind.Caption;
-  actSearchFind.Hint := MainForm.actQueryFind.Hint;
-  actSearchFindNext.Caption := MainForm.actQueryFindAgain.Caption;
-  actSearchFindNext.Hint := MainForm.actQueryFindAgain.Hint;
-  actSearchReplace.Caption := MainForm.actQueryReplace.Caption;
-  actSearchReplace.Hint := MainForm.actQueryReplace.Hint;
   // Assign linebreak values to their menu item tags, to write less code later
   menuWindowsLB.Tag := Integer(lbsWindows);
   menuUnixLB.Tag := Integer(lbsUnix);
@@ -288,11 +259,11 @@ begin
   comboHighlighter.OnSelect(comboHighlighter);
   // Trigger change event, which is not fired when text is empty. See #132.
   TimerMemoChangeTimer(Self);
-  FmemoText.SetFocus;
+  MemoText.SetFocus;
 end;
 
 
-procedure TfrmTextEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
+procedure TfrmTextEditor.MemoTextKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
   TimerMemoChange.Enabled := False;
@@ -300,12 +271,7 @@ begin
   case Key of
     // Cancel active dialog by Escape
     VK_ESCAPE: begin
-      if FFindDialogActive then
-        actSearchFind.Dialog.CloseDialog
-      else if FReplaceDialogActive then
-        actSearchReplace.Dialog.CloseDialog
-      else
-        btnCancelClick(Sender);
+      btnCancelClick(Sender);
     end;
     // Apply changes and end editing by Ctrl + Enter
     VK_RETURN: if ssCtrl in Shift then btnApplyClick(Sender);
@@ -313,7 +279,7 @@ begin
   end;
 end;
 
-procedure TfrmTextEditor.memoTextClick(Sender: TObject);
+procedure TfrmTextEditor.MemoTextClick(Sender: TObject);
 begin
   TimerMemoChange.Enabled := False;
   TimerMemoChange.Enabled := True;
@@ -326,14 +292,14 @@ begin
   Screen.Cursor := crHourglass;
   // Changing the scrollbars invoke the OnChange event. We avoid thinking the text was really modified.
   WasModified := Modified;
-  if FmemoText.ScrollBars = ssBoth then begin
-    FmemoText.ScrollBars := ssVertical;
-    FmemoText.WordWrap := True;
+  if MemoText.ScrollBars = ssBoth then begin
+    MemoText.ScrollBars := ssVertical;
+    MemoText.WordWrap := True;
   end else begin
-    FmemoText.ScrollBars := ssBoth;
-    FmemoText.WordWrap := False;
+    MemoText.ScrollBars := ssBoth;
+    MemoText.WordWrap := False;
   end;
-  TToolbutton(Sender).Down := FmemoText.ScrollBars = ssVertical;
+  TToolbutton(Sender).Down := MemoText.ScrollBars = ssVertical;
   Modified := WasModified;
   Screen.Cursor := crDefault;
 end;
@@ -345,13 +311,13 @@ var
   i: Integer;
 begin
   // Code highlighter selected
-  FmemoText.Highlighter := nil;
+  MemoText.Highlighter := nil;
   FHighlighter.Free;
   Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
   for i:=0 to Highlighters.Count-1 do begin
     if comboHighlighter.Text = Highlighters[i].GetFriendlyLanguageName then begin
       FHighlighter := Highlighters[i].Create(Self);
-      FmemoText.Highlighter := FHighlighter;
+      MemoText.Highlighter := FHighlighter;
     end;
   end;
 end;
@@ -368,9 +334,9 @@ begin
   d.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if d.Execute then try
     Screen.Cursor := crHourglass;
-    FmemoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
-    if (FMaxLength > 0) and (Length(FmemoText.Text) > FMaxLength) then
-      FmemoText.Text := copy(FmemoText.Text, 0, FMaxLength);
+    MemoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
+    if (FMaxLength > 0) and (Length(MemoText.Text) > FMaxLength) then
+      MemoText.Text := copy(MemoText.Text, 0, FMaxLength);
     AppSettings.WriteInt(asFileDialogEncoding, d.EncodingIndex, Self.Name);
   finally
     Screen.Cursor := crDefault;
@@ -413,7 +379,7 @@ begin
 end;
 
 
-procedure TfrmTextEditor.memoTextChange(Sender: TObject);
+procedure TfrmTextEditor.MemoTextChange(Sender: TObject);
 begin
   Modified := True;
   TimerMemoChange.Enabled := False;
@@ -427,30 +393,6 @@ begin
     FModified := NewVal;
     btnApply.Enabled := FModified;
   end;
-end;
-
-
-procedure TfrmTextEditor.actSearchFindFindDialogShow(Sender: TObject);
-begin
-  FFindDialogActive := True;
-end;
-
-
-procedure TfrmTextEditor.actSearchFindFindDialogClose(Sender: TObject);
-begin
-  FFindDialogActive := False;
-end;
-
-
-procedure TfrmTextEditor.actSearchReplaceReplaceDialogShow(Sender: TObject);
-begin
-  FReplaceDialogActive := True;
-end;
-
-
-procedure TfrmTextEditor.actSearchReplaceReplaceDialogClose(Sender: TObject);
-begin
-  FReplaceDialogActive := False;
 end;
 
 
