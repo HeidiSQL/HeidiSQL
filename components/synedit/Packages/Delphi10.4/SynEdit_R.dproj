@@ -178,6 +178,7 @@
         <DCCReference Include="..\..\Source\SynHighlighterJSON.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterKix.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterLDraw.pas"/>
+        <DCCReference Include="..\..\Source\SynHighlighterLLVM.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterM3.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterModelica.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterMsg.pas"/>
@@ -188,6 +189,7 @@
         <DCCReference Include="..\..\Source\SynHighlighterProgress.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterPython.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterRC.pas"/>
+        <DCCReference Include="..\..\Source\SynHighlighterRexx.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterRuby.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterSDD.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterSml.pas"/>
@@ -201,7 +203,9 @@
         <DCCReference Include="..\..\Source\SynHighlighterVB.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterVBScript.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterVrml97.pas"/>
+        <DCCReference Include="..\..\Source\SynHighlighterWebIDL.pas"/>
         <DCCReference Include="..\..\Source\SynHighlighterXML.pas"/>
+        <DCCReference Include="..\..\Source\SynHighlighterZPL.pas"/>
         <DCCReference Include="..\..\Source\SynMacroRecorder.pas"/>
         <DCCReference Include="..\..\Source\SynMemo.pas"/>
         <DCCReference Include="..\..\Source\SynRegExpr.pas"/>
