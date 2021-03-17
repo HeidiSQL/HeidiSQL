@@ -8,7 +8,7 @@ uses
   apphelpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
   Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter,
 
-  SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm, SynHighlighterAsmMASM,
+  SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm,
   SynHighlighterBaan, SynHighlighterBat, SynHighlighterCAC, SynHighlighterCPM, SynHighlighterCS,
   SynHighlighterCache, SynHighlighterCobol, SynHighlighterCpp, SynHighlighterCss, SynHighlighterDOT,
   SynHighlighterDWS, SynHighlighterDfm, SynHighlighterDml, SynHighlighterEiffel,
