@@ -302,8 +302,11 @@ procedure TfrmTextEditor.comboHighlighterSelect(Sender: TObject);
 var
   Highlighters: TSynHighlighterList;
   i: Integer;
+  SelStart, SelLength: Integer;
 begin
   // Code highlighter selected
+  SelStart := MemoText.SelStart;
+  SelLength := MemoText.SelLength;
   MemoText.Highlighter := nil;
   FHighlighter.Free;
   Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
@@ -311,8 +314,11 @@ begin
     if comboHighlighter.Text = Highlighters[i].GetFriendlyLanguageName then begin
       FHighlighter := Highlighters[i].Create(Self);
       MemoText.Highlighter := FHighlighter;
+      Break;
     end;
   end;
+  MemoText.SelStart := SelStart;
+  MemoText.SelLength := SelLength;
 end;
 
 procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
