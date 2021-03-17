@@ -388,8 +388,11 @@ end;
 
 procedure TfrmTextEditor.SetModified(NewVal: Boolean);
 begin
+  // Enables or disables "apply" button, and resets SynEdit's modification marker in its gutter
   if FModified <> NewVal then begin
     FModified := NewVal;
+    if not FModified then
+      MemoText.ResetModificationIndicator;
     btnApply.Enabled := FModified;
   end;
 end;

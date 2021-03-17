@@ -172,6 +172,7 @@ object frmTextEditor: TfrmTextEditor
     Gutter.Font.Name = 'Courier New'
     Gutter.Font.Style = []
     Gutter.ShowLineNumbers = True
+    Gutter.ShowModification = True
     Lines.Strings = (
       'MemoText')
     Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDragDropEditing, eoEnhanceEndKey, eoGroupUndo, eoShowScrollHint, eoSmartTabDelete, eoSmartTabs, eoTabIndent, eoTabsToSpaces]
