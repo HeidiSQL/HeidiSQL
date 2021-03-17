@@ -3806,6 +3806,8 @@ procedure TAppSettings.DeleteCurrentKey;
 var
   KeyPath: String;
 begin
+  // Delete the current registry key
+  // Note that, contrary to the documentation, .DeleteKey is done even when this key has subkeys
   PrepareRegistry;
   if FSessionPath.IsEmpty then
     raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])

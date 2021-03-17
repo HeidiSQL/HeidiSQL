@@ -2546,8 +2546,9 @@ var
   Tab: TQueryTab;
   ResultTab: TResultTab;
   i: Integer;
-  Keys: TStringList;
+  Keys, NamesInKey: TStringList;
   rx: TRegExpr;
+  ForceDeleteTableKey: Boolean;
 begin
   // Connection removed or added
   case Action of
@@ -2582,20 +2583,22 @@ begin
         end;
       end;
 
-      // Remove filters if unwanted
-      if not AppSettings.ReadBool(asReuseEditorConfiguration) then begin
-        AppSettings.SessionPath := Item.Parameters.SessionPath;
-        Keys := AppSettings.GetKeyNames;
-        rx := TRegExpr.Create;
-        rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
-        for i:=0 to Keys.Count-1 do begin
-          if rx.Exec(Keys[i]) then begin
-            AppSettings.SessionPath := Item.Parameters.SessionPath + '\' + Keys[i];
+      // Remove table keys if unwanted or empty
+      ForceDeleteTableKey := not AppSettings.ReadBool(asReuseEditorConfiguration);
+      AppSettings.SessionPath := Item.Parameters.SessionPath;
+      Keys := AppSettings.GetKeyNames;
+      rx := TRegExpr.Create;
+      rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
+      for i:=0 to Keys.Count-1 do begin
+        if rx.Exec(Keys[i]) then begin
+          AppSettings.SessionPath := Item.Parameters.SessionPath + '\' + Keys[i];
+          NamesInKey := AppSettings.GetValueNames;
+          if (NamesInKey.Count = 0) or ForceDeleteTableKey then begin
             AppSettings.DeleteCurrentKey;
           end;
         end;
-        rx.Free;
       end;
+      rx.Free;
 
       FreeAndNil(ActiveObjectEditor);
       RefreshHelperNode(TQueryTab.HelperNodeProfile);
