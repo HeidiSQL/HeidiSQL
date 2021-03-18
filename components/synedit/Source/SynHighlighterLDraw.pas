@@ -44,7 +44,7 @@ The SynHighlighterLDraw unit provides SynEdit with a LEGO LDraw (.ldr / .dat) hi
 
 unit SynHighlighterLDraw;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

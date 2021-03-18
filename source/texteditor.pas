@@ -6,7 +6,24 @@ uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
   apphelpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
-  Vcl.ExtCtrls;
+  Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter,
+
+  SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm,
+  SynHighlighterBaan, SynHighlighterBat, SynHighlighterCAC, SynHighlighterCPM, SynHighlighterCS,
+  SynHighlighterCache, SynHighlighterCobol, SynHighlighterCpp, SynHighlighterCss, SynHighlighterDOT,
+  SynHighlighterDWS, SynHighlighterDfm, SynHighlighterDml, SynHighlighterEiffel,
+  SynHighlighterFortran, SynHighlighterFoxpro, SynHighlighterGLSL, SynHighlighterGWS,
+  SynHighlighterGalaxy, SynHighlighterGeneral, SynHighlighterGo, SynHighlighterHC11,
+  SynHighlighterHP48, SynHighlighterHashEntries, SynHighlighterHaskell, SynHighlighterHtml,
+  SynHighlighterIDL, SynHighlighterIni, SynHighlighterInno, SynHighlighterJSON, SynHighlighterJScript,
+  SynHighlighterJava, SynHighlighterKix, SynHighlighterLDraw, SynHighlighterLLVM, SynHighlighterM3,
+  SynHighlighterModelica, SynHighlighterMsg, SynHighlighterPHP, SynHighlighterPas, SynHighlighterPerl,
+  SynHighlighterProgress, SynHighlighterPython, SynHighlighterRC, SynHighlighterRexx,
+  SynHighlighterRuby, SynHighlighterSDD, SynHighlighterSQL, SynHighlighterST, SynHighlighterSml,
+  SynHighlighterTclTk, SynHighlighterTeX, SynHighlighterUNIXShellScript, SynHighlighterURI,
+  SynHighlighterUnreal, SynHighlighterVB, SynHighlighterVBScript, SynHighlighterVrml97,
+  SynHighlighterWebIDL, SynHighlighterXML, SynHighlighterZPL
+  ;
 
 {$I const.inc}
 
@@ -26,40 +43,36 @@ type
     menuMacLB: TMenuItem;
     menuMixedLB: TMenuItem;
     menuWideLB: TMenuItem;
-    ActionList1: TActionList;
-    actSearchFind: TSearchFind;
     btnSearchFind: TToolButton;
-    actSearchFindNext: TSearchFindNext;
-    actSearchReplace: TSearchReplace;
     btnSearchReplace: TToolButton;
     btnSearchFindNext: TToolButton;
     btnSeparator1: TToolButton;
     TimerMemoChange: TTimer;
+    comboHighlighter: TComboBox;
+    MemoText: TSynMemo;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
     procedure btnWrapClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure memoTextChange(Sender: TObject);
-    procedure memoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure memoTextClick(Sender: TObject);
+    procedure MemoTextChange(Sender: TObject);
+    procedure MemoTextKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure MemoTextClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure SelectLinebreaks(Sender: TObject);
     procedure TimerMemoChangeTimer(Sender: TObject);
-    procedure actSearchFindFindDialogShow(Sender: TObject);
-    procedure actSearchFindFindDialogClose(Sender: TObject);
-    procedure actSearchReplaceReplaceDialogShow(Sender: TObject);
-    procedure actSearchReplaceReplaceDialogClose(Sender: TObject);
+    procedure comboHighlighterSelect(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
     FStopping: Boolean;
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
-    FmemoText: TLineNormalizingMemo;
-    FFindDialogActive, FReplaceDialogActive: Boolean;
+    FMaxLength: Integer;
+    FTableColumn: TTableColumn;
+    FHighlighter: TSynCustomHighlighter;
     procedure SetModified(NewVal: Boolean);
   public
     function GetText: String;
@@ -68,7 +81,7 @@ type
     procedure SetMaxLength(len: integer);
     procedure SetFont(font: TFont);
     property Modified: Boolean read FModified write SetModified;
-    property memoText: TLineNormalizingMemo read FmemoText;
+    property TableColumn: TTableColumn read FTableColumn write FTableColumn;
   end;
 
 
@@ -83,7 +96,7 @@ function TfrmTextEditor.GetText: String;
 var
   LB: String;
 begin
-  Result := FmemoText.Text;
+  Result := MemoText.Text;
   // Convert linebreaks back to selected
   LB := '';
   case FSelectedLineBreaks of
@@ -112,8 +125,8 @@ begin
   end;
   if Assigned(Detected) then
     SelectLineBreaks(Detected);
-  FmemoText.Text := text;
-  FmemoText.SelectAll;
+  MemoText.Text := text;
+  MemoText.SelectAll;
   Modified := False;
 end;
 
@@ -128,23 +141,16 @@ end;
 
 procedure TfrmTextEditor.TimerMemoChangeTimer(Sender: TObject);
 var
-  Lines: Cardinal;
-  TextLen: Integer;
   MaxLen, CursorPos: String;
 begin
   // Timer based onchange handler, so we don't scan the whole text on every typed character
   TimerMemoChange.Enabled := False;
-  TextLen := Length(FmemoText.Text);
-  if FmemoText.MaxLength = 0 then
+  if FMaxLength = 0 then
     MaxLen := '?'
   else
-    MaxLen := FormatNumber(FmemoText.MaxLength);
-  if TextLen = 0 then
-    Lines := 0
-  else
-    Lines := CountLineBreaks(FmemoText.Text) + 1;
-  CursorPos := FormatNumber(FmemoText.CaretPos.Y+1) + ' : ' + FormatNumber(FmemoText.CaretPos.X+1);
-  lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(TextLen), MaxLen, FormatNumber(Lines), CursorPos]);
+    MaxLen := FormatNumber(FMaxLength);
+  CursorPos := MemoText.CaretY.ToString + ':' + MemoText.CaretX.ToString;
+  lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(MemoText.GetTextLen), MaxLen, FormatNumber(MemoText.Lines.Count), CursorPos]);
 end;
 
 
@@ -175,34 +181,21 @@ end;
 procedure TfrmTextEditor.SetMaxLength(len: integer);
 begin
   // Input: Length in number of bytes.
-  FmemoText.MaxLength := len;
+  FMaxLength := len;
 end;
 
 procedure TfrmTextEditor.SetFont(font: TFont);
 begin
-  FmemoText.Font.Name := font.Name;
-  FmemoText.Font.Size := font.Size;
+  MemoText.Font.Name := font.Name;
+  MemoText.Font.Size := font.Size;
 end;
 
 procedure TfrmTextEditor.FormCreate(Sender: TObject);
+var
+  Highlighters: TSynHighlighterList;
+  i: Integer;
 begin
   HasSizeGrip := True;
-  FmemoText := TLineNormalizingMemo.Create(Self);
-  FmemoText.Parent := Self;
-  FmemoText.Align := alClient;
-  FmemoText.ScrollBars := ssBoth;
-  FmemoText.WantTabs := True;
-  FmemoText.OnChange := memoTextChange;
-  FmemoText.OnKeyDown := memoTextKeyDown;
-  FmemoText.OnClick := memoTextClick;
-  FmemoText.HideSelection := False; // Make found text visible when find dialog has focus
-  // Use same text properties as in query/find/replace actions
-  actSearchFind.Caption := MainForm.actQueryFind.Caption;
-  actSearchFind.Hint := MainForm.actQueryFind.Hint;
-  actSearchFindNext.Caption := MainForm.actQueryFindAgain.Caption;
-  actSearchFindNext.Hint := MainForm.actQueryFindAgain.Hint;
-  actSearchReplace.Caption := MainForm.actQueryReplace.Caption;
-  actSearchReplace.Hint := MainForm.actQueryReplace.Hint;
   // Assign linebreak values to their menu item tags, to write less code later
   menuWindowsLB.Tag := Integer(lbsWindows);
   menuUnixLB.Tag := Integer(lbsUnix);
@@ -214,8 +207,17 @@ begin
   Height := AppSettings.ReadInt(asMemoEditorHeight);
   if AppSettings.ReadBool(asMemoEditorMaximized) then
     WindowState := wsMaximized;
+
   if AppSettings.ReadBool(asMemoEditorWrap) then
     btnWrap.Click;
+
+  Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
+  for i:=0 to Highlighters.Count-1 do begin
+    comboHighlighter.Items.Add(Highlighters[i].GetFriendlyLanguageName);
+  end;
+
+  FTableColumn := nil;
+
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
 end;
@@ -229,18 +231,32 @@ begin
   end;
   AppSettings.WriteBool(asMemoEditorMaximized, WindowState=wsMaximized);
   AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
+  if Assigned(FTableColumn) and (comboHighlighter.Text <> AppSettings.GetDefaultString(asMemoEditorHighlighter)) then begin
+    AppSettings.SessionPath := MainForm.GetRegKeyTable;
+    AppSettings.WriteString(asMemoEditorHighlighter, comboHighlighter.Text, FTableColumn.Name);
+  end;
 end;
 
 
 procedure TfrmTextEditor.FormShow(Sender: TObject);
+var
+  HighlighterName: String;
 begin
+  // Select previously used highlighter
+  HighlighterName := AppSettings.GetDefaultString(asMemoEditorHighlighter);
+  if Assigned(FTableColumn) then begin
+    AppSettings.SessionPath := MainForm.GetRegKeyTable;
+    HighlighterName := AppSettings.ReadString(asMemoEditorHighlighter, FTableColumn.Name, HighlighterName);
+  end;
+  comboHighlighter.ItemIndex := comboHighlighter.Items.IndexOf(HighlighterName);
+  comboHighlighter.OnSelect(comboHighlighter);
   // Trigger change event, which is not fired when text is empty. See #132.
   TimerMemoChangeTimer(Self);
-  FmemoText.SetFocus;
+  MemoText.SetFocus;
 end;
 
 
-procedure TfrmTextEditor.memoTextKeyDown(Sender: TObject; var Key: Word; Shift:
+procedure TfrmTextEditor.MemoTextKeyDown(Sender: TObject; var Key: Word; Shift:
     TShiftState);
 begin
   TimerMemoChange.Enabled := False;
@@ -248,12 +264,7 @@ begin
   case Key of
     // Cancel active dialog by Escape
     VK_ESCAPE: begin
-      if FFindDialogActive then
-        actSearchFind.Dialog.CloseDialog
-      else if FReplaceDialogActive then
-        actSearchReplace.Dialog.CloseDialog
-      else
-        btnCancelClick(Sender);
+      btnCancelClick(Sender);
     end;
     // Apply changes and end editing by Ctrl + Enter
     VK_RETURN: if ssCtrl in Shift then btnApplyClick(Sender);
@@ -261,7 +272,7 @@ begin
   end;
 end;
 
-procedure TfrmTextEditor.memoTextClick(Sender: TObject);
+procedure TfrmTextEditor.MemoTextClick(Sender: TObject);
 begin
   TimerMemoChange.Enabled := False;
   TimerMemoChange.Enabled := True;
@@ -274,15 +285,41 @@ begin
   Screen.Cursor := crHourglass;
   // Changing the scrollbars invoke the OnChange event. We avoid thinking the text was really modified.
   WasModified := Modified;
-  if FmemoText.ScrollBars = ssBoth then
-    FmemoText.ScrollBars := ssVertical
-  else
-    FmemoText.ScrollBars := ssBoth;
-  TToolbutton(Sender).Down := FmemoText.ScrollBars = ssVertical;
+  if MemoText.ScrollBars = ssBoth then begin
+    MemoText.ScrollBars := ssVertical;
+    MemoText.WordWrap := True;
+  end else begin
+    MemoText.ScrollBars := ssBoth;
+    MemoText.WordWrap := False;
+  end;
+  TToolbutton(Sender).Down := MemoText.ScrollBars = ssVertical;
   Modified := WasModified;
   Screen.Cursor := crDefault;
 end;
 
+
+procedure TfrmTextEditor.comboHighlighterSelect(Sender: TObject);
+var
+  Highlighters: TSynHighlighterList;
+  i: Integer;
+  SelStart, SelLength: Integer;
+begin
+  // Code highlighter selected
+  SelStart := MemoText.SelStart;
+  SelLength := MemoText.SelLength;
+  MemoText.Highlighter := nil;
+  FHighlighter.Free;
+  Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
+  for i:=0 to Highlighters.Count-1 do begin
+    if comboHighlighter.Text = Highlighters[i].GetFriendlyLanguageName then begin
+      FHighlighter := Highlighters[i].Create(Self);
+      MemoText.Highlighter := FHighlighter;
+      Break;
+    end;
+  end;
+  MemoText.SelStart := SelStart;
+  MemoText.SelLength := SelLength;
+end;
 
 procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
 var
@@ -296,9 +333,9 @@ begin
   d.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if d.Execute then try
     Screen.Cursor := crHourglass;
-    FmemoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
-    if (FmemoText.MaxLength > 0) and (Length(FmemoText.Text) > FmemoText.MaxLength) then
-      FmemoText.Text := copy(FmemoText.Text, 0, FmemoText.MaxLength);
+    MemoText.Text := ReadTextFile(d.FileName, MainForm.GetEncodingByName(d.Encodings[d.EncodingIndex]));
+    if (FMaxLength > 0) and (Length(MemoText.Text) > FMaxLength) then
+      MemoText.Text := copy(MemoText.Text, 0, FMaxLength);
     AppSettings.WriteInt(asFileDialogEncoding, d.EncodingIndex, Self.Name);
   finally
     Screen.Cursor := crDefault;
@@ -341,7 +378,7 @@ begin
 end;
 
 
-procedure TfrmTextEditor.memoTextChange(Sender: TObject);
+procedure TfrmTextEditor.MemoTextChange(Sender: TObject);
 begin
   Modified := True;
   TimerMemoChange.Enabled := False;
@@ -351,34 +388,13 @@ end;
 
 procedure TfrmTextEditor.SetModified(NewVal: Boolean);
 begin
+  // Enables or disables "apply" button, and resets SynEdit's modification marker in its gutter
   if FModified <> NewVal then begin
     FModified := NewVal;
+    if not FModified then
+      MemoText.ResetModificationIndicator;
     btnApply.Enabled := FModified;
   end;
-end;
-
-
-procedure TfrmTextEditor.actSearchFindFindDialogShow(Sender: TObject);
-begin
-  FFindDialogActive := True;
-end;
-
-
-procedure TfrmTextEditor.actSearchFindFindDialogClose(Sender: TObject);
-begin
-  FFindDialogActive := False;
-end;
-
-
-procedure TfrmTextEditor.actSearchReplaceReplaceDialogShow(Sender: TObject);
-begin
-  FReplaceDialogActive := True;
-end;
-
-
-procedure TfrmTextEditor.actSearchReplaceReplaceDialogClose(Sender: TObject);
-begin
-  FReplaceDialogActive := False;
 end;
 
 

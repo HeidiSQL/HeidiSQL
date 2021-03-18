@@ -45,7 +45,7 @@ The SynHighlighterUNIXShellScript unit provides SynEdit with a UNIX Shell Script
 
 unit SynHighlighterUNIXShellScript;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

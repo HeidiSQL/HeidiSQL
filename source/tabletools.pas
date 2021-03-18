@@ -999,8 +999,11 @@ begin
                 + SQL;
           end;
           AddResults(SQL, DBObj.Connection);
-        end else
-          AddNotes(DBObj, f_('%s%s doesn''t have columns of selected type (%s).', [STRSKIPPED, DBObj.ObjType, comboDatatypes.Text]), '');
+        end else begin
+          // Prefer a normal log line, so the "Found rows" column has a number, to fix wrong sorting
+          //AddNotes(DBObj, f_('%s%s doesn''t have columns of selected type (%s).', [STRSKIPPED, DBObj.ObjType, comboDatatypes.Text]), '');
+          AddNotes(DBObj.Database, DBObj.Name, '0', '0%');
+        end;
       end;
     end;
 

@@ -37,7 +37,7 @@ located at http://SynEdit.SourceForge.net
 
 unit SynHighlighterIDL;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

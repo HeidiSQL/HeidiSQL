@@ -45,7 +45,7 @@ The SynHighlighterKix unit provides SynEdit with a Kix script file syntax highli
 
 unit SynHighlighterKix;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

@@ -219,6 +219,7 @@ const
   SYNS_LangCSS                  =  'CascadingStyleSheet';
   SYNS_LangDfm                  =  'BorlandForms';
   SYNS_LangDOT                  =  'DOT_Graph_Drawing_Description_language';
+  SYNS_LangECMAScript           =  'ECMAScript';
   SYNS_LangEiffel               =  'Eiffel';
   SYNS_LangFortran              =  'Fortran';
   SYNS_LangFoxpro               =  'Foxpro';
@@ -459,6 +460,7 @@ resourcestring
   SYNS_FilterDFM                =  'Borland Form Files (*.dfm;*.xfm)|*.dfm;*.xfm';
   SYNS_FilterDOT                =  'DOT Graph Drawing Description (*.dot)|*.dot';
   SYNS_FilterDWS                =  'DWScript Files (*.dws;*.pas;*.inc)|*.dws;*.pas;*.inc';
+  SYNS_FilterEcmaScript         =  'Javascript Files (*.js)|*.js';
   SYNS_FilterEiffel             =  'Eiffel (*.e;*.ace)|*.e;*.ace';
   SYNS_FilterFortran            =  'Fortran Files (*.for)|*.for';
   SYNS_FilterFoxpro             =  'Foxpro Files (*.prg)|*.prg';
@@ -519,6 +521,7 @@ resourcestring
   SYNS_FriendlyLangCSS                  =  'Cascading Style Sheet';
   SYNS_FriendlyLangDfm                  =  'Borland Forms';
   SYNS_FriendlyLangDOT                  =  'DOT Graph Drawing Description language';
+  SYNS_FriendlyLangEcmaScript           =  'ECMA Script';
   SYNS_FriendlyLangEiffel               =  'Eiffel';
   SYNS_FriendlyLangFortran              =  'Fortran';
   SYNS_FriendlyLangFoxpro               =  'Foxpro';
@@ -535,6 +538,7 @@ resourcestring
   SYNS_FriendlyLangINI                  =  'INI';
   SYNS_FriendlyLangInno                 =  'Inno Setup Script';
   SYNS_FriendlyLangJava                 =  'Java';
+  SYNS_FriendlyLangJavaScript           =  'JavaScript';
   SYNS_FriendlyLangJScript              =  'JavaScript';
   SYNS_FriendlyLangJSON                 =  'JSON';
   SYNS_FriendlyLangKIX                  =  'KiXtart';

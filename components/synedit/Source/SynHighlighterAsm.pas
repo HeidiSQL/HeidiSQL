@@ -47,7 +47,7 @@ Thanks to Martin Waldenburg, Hideo Koiso.
 
 unit SynHighlighterAsm;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

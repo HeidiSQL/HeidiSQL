@@ -41,7 +41,7 @@ program SynGen;
 
 uses
   Forms,
-  SynGenUnit in 'SynGenUnit.pas' {FrmMain},
+  SynGenUnit in 'SynGenUnit.pas' {FormMain},
   GenLex in 'GenLex.pas',
   HashTableGen in 'HashTableGen.pas' {FrmHashTableGen};
 
@@ -50,7 +50,7 @@ uses
 begin
   Application.Initialize;
   Application.Title := 'SynGen';
-  Application.CreateForm(TFrmMain, FrmMain);
+  Application.CreateForm(TFormMain, FormMain);
   Application.CreateForm(TFrmHashTableGen, FrmHashTableGen);
   Application.Run;
 end.

@@ -48,7 +48,7 @@ unit SynHighlighterHtml;
 
 interface
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 uses
 {$IFDEF UNICODE}

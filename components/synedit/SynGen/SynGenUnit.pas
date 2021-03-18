@@ -97,70 +97,70 @@ type
     constructor Create;
   end;
 
-  TFrmMain = class(TForm)
-    BtnStart: TButton;
-    OpenDialog: TOpenDialog;
-    PageControl: TPageControl;
-    TabLanguage: TTabSheet;
-    LblFilter: TLabel;
-    CboFilter: TComboBox;
-    LblLangName: TLabel;
-    CboLangName: TComboBox;
-    TabAttributes: TTabSheet;
-    GrpAttrNames: TGroupBox;
-    LblIdentifier: TLabel;
-    LblReservedWord: TLabel;
-    CboAttrIdentifier: TComboBox;
-    CboAttrReservedWord: TComboBox;
-    LblUnknownTokenAttr: TLabel;
-    CboUnknownTokenAttr: TComboBox;
-    TabFields: TTabSheet;
-    BtnAdd: TButton;
-    BtnDelete: TButton;
+  TFormMain = class(TForm)
+    ButtonAdd: TButton;
+    ButtonDelete: TButton;
+    ButtonStart: TButton;
+    ComboBoxAttrIdentifier: TComboBox;
+    ComboBoxAttrReservedWord: TComboBox;
+    ComboBoxFilter: TComboBox;
+    ComboBoxLangName: TComboBox;
+    ComboBoxUnknownTokenAttr: TComboBox;
+    CheckBoxGetKeyWords: TCheckBox;
+    CheckBoxGPLHeader: TCheckBox;
     EditAddField: TEdit;
-    ListBoxFields: TListBox;
-    MainMenu: TMainMenu;
-    MnuFile: TMenuItem;
-    MnuOpen: TMenuItem;
-    MnuExit: TMenuItem;
-    TabHighlighter: TTabSheet;
-    LblAuthor: TLabel;
-    LblDescription: TLabel;
-    LblVersion: TLabel;
     EditAuthor: TEdit;
     EditDescription: TEdit;
     EditVersion: TEdit;
-    MnuStart: TMenuItem;
-    ChkGetKeyWords: TCheckBox;
-    ChkGPLHeader: TCheckBox;
-    procedure BtnStartClick(Sender: TObject);
+    GrpAttrNames: TGroupBox;
+    LabelAuthor: TLabel;
+    LabelDescription: TLabel;
+    LabelFilter: TLabel;
+    LabelIdentifier: TLabel;
+    LabelLangName: TLabel;
+    LabelReservedWord: TLabel;
+    LabelUnknownTokenAttr: TLabel;
+    LabelVersion: TLabel;
+    ListBoxFields: TListBox;
+    MainMenu: TMainMenu;
+    MenuItemExit: TMenuItem;
+    MenuItemFile: TMenuItem;
+    MenuItemOpen: TMenuItem;
+    MenuItemStart: TMenuItem;
+    OpenDialog: TOpenDialog;
+    PageControl: TPageControl;
+    TabAttributes: TTabSheet;
+    TabFields: TTabSheet;
+    TabHighlighter: TTabSheet;
+    TabLanguage: TTabSheet;
+    procedure ButtonStartClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure CboLangNameChange(Sender: TObject);
+    procedure ComboBoxLangNameChange(Sender: TObject);
     procedure ListBoxFieldsClick(Sender: TObject);
-    procedure BtnAddClick(Sender: TObject);
-    procedure BtnDeleteClick(Sender: TObject);
+    procedure ButtonAddClick(Sender: TObject);
+    procedure ButtonDeleteClick(Sender: TObject);
     procedure EditAddFieldChange(Sender: TObject);
     procedure EditAddFieldKeyPress(Sender: TObject; var Key: Char);
-    procedure MnuExitClick(Sender: TObject);
-    procedure MnuOpenClick(Sender: TObject);
+    procedure MenuItemExitClick(Sender: TObject);
+    procedure MenuItemOpenClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    LexName: string;
-    IdentPre: string;
-    IdentStart: string;
-    IdentContent: string;
+    FLexName: string;
+    FIdentPre: string;
+    FIdentStart: string;
+    FIdentContent: string;
     FFileName: string;
-    IniFile: string;
-    OutFile: TextFile;
-    Sensitivity: Boolean;
-    LexFileContents: UnicodeString;
-    Lex: TGenLex;
-    KeyList: TList;
-    SetList: TList;
-    EnclosedList: TList;
-    SampleSourceList: TStringList;
-    IdentList: TStringList;
+    FIniFile: string;
+    FOutFile: TextFile;
+    FSensitivity: Boolean;
+    FLexFileContents: UnicodeString;
+    FLex: TGenLex;
+    FKeyList: TList;
+    FSetList: TList;
+    FEnclosedList: TList;
+    FSampleSourceList: TStringList;
+    FIdentList: TStringList;
     procedure ClearAll;
     function GetFilterName: string;
     function GetLangName: string;
@@ -185,7 +185,7 @@ type
   end;
 
 var
-  FrmMain: TFrmMain;
+  FormMain: TFormMain;
 
 implementation
 
@@ -308,7 +308,7 @@ begin
   Background := '';
 end;
 
-procedure TFrmMain.MakeSensitiveHashTable;
+procedure TFormMain.MakeSensitiveHashTable;
 var
   I: Char;
 begin
@@ -328,7 +328,7 @@ begin
   end;
 end;
 
-procedure TFrmMain.MakeHashTable;
+procedure TFormMain.MakeHashTable;
 var
   I, J: Char;
 begin
@@ -343,28 +343,28 @@ begin
   end;
 end;
 
-procedure TFrmMain.WriteSettings;
+procedure TFormMain.WriteSettings;
 begin
-  with TRegIniFile.Create(IniFile) do
+  with TRegIniFile.Create(FIniFile) do
   try
     WriteString('General', 'OpenDir', OpenDialog.InitialDir);
-    WriteBool(FFileName, 'GetKeyWords', ChkGetKeyWords.Checked);
-    WriteBool(FFileName, 'ChkGPLHeader', ChkGPLHeader.Checked);
+    WriteBool(FFileName, 'GetKeyWords', CheckBoxGetKeyWords.Checked);
+    WriteBool(FFileName, 'CheckBoxGPLHeader', CheckBoxGPLHeader.Checked);
     WriteString(FFileName, 'Author', EditAuthor.Text);
     WriteString(FFileName, 'Description', EditDescription.Text);
     WriteString(FFileName, 'Version', EditVersion.Text);
-    WriteString(FFileName, 'Filter', CboFilter.Text);
-    WriteString(FFileName, 'Language', CboLangName.Text);
-    WriteString(FFileName, 'AttrIdentifier', CboAttrIdentifier.Text);
-    WriteString(FFileName, 'AttrReservedWord', CboAttrReservedWord.Text);
-    WriteString(FFileName, 'UnknownTokenAttr', CboUnknownTokenAttr.Text);
+    WriteString(FFileName, 'Filter', ComboBoxFilter.Text);
+    WriteString(FFileName, 'Language', ComboBoxLangName.Text);
+    WriteString(FFileName, 'AttrIdentifier', ComboBoxAttrIdentifier.Text);
+    WriteString(FFileName, 'AttrReservedWord', ComboBoxAttrReservedWord.Text);
+    WriteString(FFileName, 'UnknownTokenAttr', ComboBoxUnknownTokenAttr.Text);
     WriteString(FFileName, 'Fields', ListBoxFields.Items.CommaText);
   finally
     Free;
   end;
 end;
 
-function TFrmMain.PerformFileOpen: Boolean;
+function TFormMain.PerformFileOpen: Boolean;
 var
   UserName: PChar;
 {$IFDEF SYN_COMPILER_5_UP}
@@ -385,115 +385,117 @@ begin
     // retrieve the required size of the user name buffer
     UserName := StrAlloc(Count); // allocate memory for the user name
     GetUserName(UserName, Count); // retrieve the user name
-    with TRegIniFile.Create(IniFile) do
+    with TRegIniFile.Create(FIniFile) do
     try
       EditAuthor.Text := ReadString(FFileName, 'Author', StrPas(UserName));
       EditDescription.Text := ReadString(FFileName, 'Description',
         'Syntax Parser/Highlighter');
       EditVersion.Text := ReadString(FFileName, 'Version', '0.1');
-      CboFilter.Text := ReadString(FFileName, 'Filter', 'All files (*.*)|*.*');
-      CboLangName.Text := ReadString(FFileName, 'Language', '');
-      ChkGetKeyWords.Checked := ReadBool(FFileName, 'GetKeyWords', True);
-      ChkGPLHeader.Checked := ReadBool(FFileName, 'ChkGPLHeader', True);
-      CboAttrIdentifier.ItemIndex := CboAttrIdentifier.Items.IndexOf
+      ComboBoxFilter.Text := ReadString(FFileName, 'Filter', 'All files (*.*)|*.*');
+      ComboBoxLangName.Text := ReadString(FFileName, 'Language', '');
+      CheckBoxGetKeyWords.Checked := ReadBool(FFileName, 'GetKeyWords', True);
+      CheckBoxGPLHeader.Checked := ReadBool(FFileName, 'CheckBoxGPLHeader', True);
+      ComboBoxAttrIdentifier.ItemIndex := ComboBoxAttrIdentifier.Items.IndexOf
         (ReadString(FFileName, 'AttrIdentifier', 'SYNS_AttrIdentifier'));
-      CboAttrReservedWord.ItemIndex := CboAttrReservedWord.Items.IndexOf
+      ComboBoxAttrReservedWord.ItemIndex := ComboBoxAttrReservedWord.Items.IndexOf
         (ReadString(FFileName, 'AttrReservedWord', 'SYNS_AttrReservedWord'));
-      CboUnknownTokenAttr.ItemIndex := CboUnknownTokenAttr.Items.IndexOf
+      ComboBoxUnknownTokenAttr.ItemIndex := ComboBoxUnknownTokenAttr.Items.IndexOf
         (ReadString(FFileName, 'UnknownTokenAttr', 'Identifier'));
       ListBoxFields.Items.CommaText := ReadString(FFileName, 'Fields', '');
     finally
       Free;
     end;
     StrDispose(UserName);
-    CboLangNameChange(Self);
+    ComboBoxLangNameChange(Self);
   end
   else
     Result := False;
 end;
 
-procedure TFrmMain.FormCreate(Sender: TObject);
+procedure TFormMain.FormCreate(Sender: TObject);
 var
   i: Integer;
+  items: TStrings;
 begin
-  for i := FrmMain.ComponentCount - 1 downto 0 do
-    if FrmMain.Components[i] is TComboBox then
-      if TComboBox(FrmMain.Components[i]).Parent = GrpAttrNames then
+  for i := FormMain.ComponentCount - 1 downto 0 do
+    if FormMain.Components[i] is TComboBox then
+      if TComboBox(FormMain.Components[i]).Parent = GrpAttrNames then
       begin
-        TComboBox(FrmMain.Components[i]).Items.Clear;
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrAsm');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrAsmComment');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrAsmKey');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrASP');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrAssembler');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrBlock');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrBrackets');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrCharacter');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrClass');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrComment');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrCondition');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrDir');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrDirective');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrDocumentation');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrEmbedSQL');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrEmbedText');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrEscapeAmpersand');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrForm');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrFunction');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrIcon');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrIdentifier');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrIllegalChar');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrIndirect');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrInvalidSymbol');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrInternalFunction');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrKey');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrLabel');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrMacro');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrMarker');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrMessage');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrMiscellaneous');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrNull');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrNumber');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrOperator');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrPragma');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrPreprocessor');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrQualifier');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrRegister');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrReservedWord');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrRpl');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrRplKey');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrRplComment');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSASM');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSASMComment');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSASMKey');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSecondReservedWord');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSection');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSpace');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSpecialVariable');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrString');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSymbol');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSyntaxError');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSystem');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrSystemValue');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrText');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrUnknownWord');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrUser');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrUserFunction');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrValue');
-        TComboBox(FrmMain.Components[i]).Items.Add('SYNS_AttrVariable');
+        items := TComboBox(FormMain.Components[i]).Items;
+        items.Clear;
+        items.Add('SYNS_AttrAsm');
+        items.Add('SYNS_AttrAsmComment');
+        items.Add('SYNS_AttrAsmKey');
+        items.Add('SYNS_AttrASP');
+        items.Add('SYNS_AttrAssembler');
+        items.Add('SYNS_AttrBlock');
+        items.Add('SYNS_AttrBrackets');
+        items.Add('SYNS_AttrCharacter');
+        items.Add('SYNS_AttrClass');
+        items.Add('SYNS_AttrComment');
+        items.Add('SYNS_AttrCondition');
+        items.Add('SYNS_AttrDir');
+        items.Add('SYNS_AttrDirective');
+        items.Add('SYNS_AttrDocumentation');
+        items.Add('SYNS_AttrEmbedSQL');
+        items.Add('SYNS_AttrEmbedText');
+        items.Add('SYNS_AttrEscapeAmpersand');
+        items.Add('SYNS_AttrForm');
+        items.Add('SYNS_AttrFunction');
+        items.Add('SYNS_AttrIcon');
+        items.Add('SYNS_AttrIdentifier');
+        items.Add('SYNS_AttrIllegalChar');
+        items.Add('SYNS_AttrIndirect');
+        items.Add('SYNS_AttrInvalidSymbol');
+        items.Add('SYNS_AttrInternalFunction');
+        items.Add('SYNS_AttrKey');
+        items.Add('SYNS_AttrLabel');
+        items.Add('SYNS_AttrMacro');
+        items.Add('SYNS_AttrMarker');
+        items.Add('SYNS_AttrMessage');
+        items.Add('SYNS_AttrMiscellaneous');
+        items.Add('SYNS_AttrNull');
+        items.Add('SYNS_AttrNumber');
+        items.Add('SYNS_AttrOperator');
+        items.Add('SYNS_AttrPragma');
+        items.Add('SYNS_AttrPreprocessor');
+        items.Add('SYNS_AttrQualifier');
+        items.Add('SYNS_AttrRegister');
+        items.Add('SYNS_AttrReservedWord');
+        items.Add('SYNS_AttrRpl');
+        items.Add('SYNS_AttrRplKey');
+        items.Add('SYNS_AttrRplComment');
+        items.Add('SYNS_AttrSASM');
+        items.Add('SYNS_AttrSASMComment');
+        items.Add('SYNS_AttrSASMKey');
+        items.Add('SYNS_AttrSecondReservedWord');
+        items.Add('SYNS_AttrSection');
+        items.Add('SYNS_AttrSpace');
+        items.Add('SYNS_AttrSpecialVariable');
+        items.Add('SYNS_AttrString');
+        items.Add('SYNS_AttrSymbol');
+        items.Add('SYNS_AttrSyntaxError');
+        items.Add('SYNS_AttrSystem');
+        items.Add('SYNS_AttrSystemValue');
+        items.Add('SYNS_AttrText');
+        items.Add('SYNS_AttrUnknownWord');
+        items.Add('SYNS_AttrUser');
+        items.Add('SYNS_AttrUserFunction');
+        items.Add('SYNS_AttrValue');
+        items.Add('SYNS_AttrVariable');
       end;
   PageControl.ActivePage := PageControl.Pages[0];
-  Lex := TGenLex.Create;
-  KeyList := TList.Create;
-  SetList := TList.Create;
-  EnclosedList := TList.Create;
-  SampleSourceList := TStringList.Create;
-  IdentList := TStringList.Create;
+  FLex := TGenLex.Create;
+  FKeyList := TList.Create;
+  FSetList := TList.Create;
+  FEnclosedList := TList.Create;
+  FSampleSourceList := TStringList.Create;
+  FIdentList := TStringList.Create;
   // read ini file
-  IniFile := Copy(ExtractFileName(Application.ExeName), 0,
+  FIniFile := Copy(ExtractFileName(Application.ExeName), 0,
     Length(ExtractFileName(Application.ExeName)) -
     Length(ExtractFileExt(Application.ExeName))) + '.ini';
-  with TRegIniFile.Create(IniFile) do
+  with TRegIniFile.Create(FIniFile) do
   try
     OpenDialog.InitialDir := ReadString('General', 'OpenDir',
       ExtractFilePath(Application.ExeName));
@@ -515,44 +517,44 @@ begin
     Application.Terminate
 end;
 
-procedure TFrmMain.ClearAll;
+procedure TFormMain.ClearAll;
 var
   I: Integer;
 begin
-  // Clear the contents of KeyList
-  for I := 0 to (KeyList.Count - 1) do
-    TObject(KeyList[I]).Free;
-  KeyList.Clear;
-  // Clear the contents of SetList
-  for I := 0 to (SetList.Count - 1) do
-    TObject(SetList[I]).Free;
-  SetList.Clear;
-  // Clear the contents of EnclosedList
-  for I := 0 to (EnclosedList.Count - 1) do
-    TObject(EnclosedList[I]).Free;
-  EnclosedList.Clear;
-  // Clear the contents of IdentList
-  for I := 0 to (IdentList.Count - 1) do
+  // Clear the contents of FKeyList
+  for I := 0 to (FKeyList.Count - 1) do
+    TObject(FKeyList[I]).Free;
+  FKeyList.Clear;
+  // Clear the contents of FSetList
+  for I := 0 to (FSetList.Count - 1) do
+    TObject(FSetList[I]).Free;
+  FSetList.Clear;
+  // Clear the contents of FEnclosedList
+  for I := 0 to (FEnclosedList.Count - 1) do
+    TObject(FEnclosedList[I]).Free;
+  FEnclosedList.Clear;
+  // Clear the contents of FIdentList
+  for I := 0 to (FIdentList.Count - 1) do
   begin
-    if Assigned(IdentList.Objects[I]) then
-      TObject(IdentList.Objects[I]).Free;
+    if Assigned(FIdentList.Objects[I]) then
+      TObject(FIdentList.Objects[I]).Free;
   end;
-  IdentList.Clear;
-  // Clear the contents of SampleSourceList
-  SampleSourceList.Clear;
+  FIdentList.Clear;
+  // Clear the contents of FSampleSourceList
+  FSampleSourceList.Clear;
 end;
 
-procedure TFrmMain.FormDestroy(Sender: TObject);
+procedure TFormMain.FormDestroy(Sender: TObject);
 begin
   ClearAll;
-  Lex.Free;
-  IdentList.Free;
-  KeyList.Free;
-  SetList.Free;
-  EnclosedList.Free;
+  FLex.Free;
+  FIdentList.Free;
+  FKeyList.Free;
+  FSetList.Free;
+  FEnclosedList.Free;
 end;
 
-procedure TFrmMain.BtnStartClick(Sender: TObject);
+procedure TFormMain.ButtonStartClick(Sender: TObject);
 var
   LexFileLines: TUnicodeStringList;
 begin
@@ -563,118 +565,118 @@ begin
   LexFileLines := TUnicodeStringList.Create;
   try
     LexFileLines.LoadFromFile(OpenDialog.FileName);
-    LexFileContents := LexFileLines.Text;
+    FLexFileContents := LexFileLines.Text;
   finally
     LexFileLines.Free;
   end;
-  Lex.Origin := PWideChar(LexFileContents);
-  Lex.Tokenize;
+  FLex.Origin := PWideChar(FLexFileContents);
+  FLex.Tokenize;
 
-  while Lex.RunId <> IDIdentifier do
-    Lex.Next;
-  LexName := Lex.RunToken;
+  while FLex.RunId <> IDIdentifier do
+    FLex.Next;
+  FLexName := FLex.RunToken;
 
-  Lex.Next;
-  while Lex.RunId <> IDIdentifier do
-    Lex.Next;
-  IdentPre := Lex.RunToken;
+  FLex.Next;
+  while FLex.RunId <> IDIdentifier do
+    FLex.Next;
+  FIdentPre := FLex.RunToken;
 
   OutFileCreate(OpenDialog.FileName);
   try
-    while not (Lex.RunId in [IdSensitive, IdIdentStart]) do
-      Lex.Next;
+    while not (FLex.RunId in [IdSensitive, IdIdentStart]) do
+      FLex.Next;
 
-    if Lex.RunId = IdSensitive then
-      Sensitivity := True
+    if FLex.RunId = IdSensitive then
+      FSensitivity := True
     else
-      Sensitivity := False;
-    Lex.Next;
+      FSensitivity := False;
+    FLex.Next;
 
-    while Lex.RunId <> IDCharSet do
-      Lex.Next;
-    IdentStart := Lex.RunToken;
-    Lex.Next;
+    while FLex.RunId <> IDCharSet do
+      FLex.Next;
+    FIdentStart := FLex.RunToken;
+    FLex.Next;
 
-    while Lex.RunId <> IDNull do
+    while FLex.RunId <> IDNull do
     begin
-      case Lex.RunId of       
-        IDCharSet: IdentContent := Lex.RunToken;
+      case FLex.RunId of
+        IDCharSet: FIdentContent := FLex.RunToken;
         IDKeys: FillKeyList;
         IDTokenTypes: FillTokenTypeList;
         IDChars: ParseCharSets;
         IDEnclosedBy: ParseEnclosedBy;
         IDSampleSource: ParseSampleSource;
       end;
-      Lex.Next;
+      FLex.Next;
     end;
 
-    if (KeyList.Count = 0) then
+    if (FKeyList.Count = 0) then
       raise Exception.Create('You should specify at least 1 keyword!');
-    if (IdentList.Count = 0) then
+    if (FIdentList.Count = 0) then
       raise Exception.Create('You should specify at least 1 token type');
     if not KeywordsAreAllAlphaNumAndDifferent then
       raise Exception.Create('One or more keywords contain unhandable characters');
       
-    FrmHashTableGen.AssignKeyWords(KeyList, Sensitivity);
+    FrmHashTableGen.AssignKeyWords(FKeyList, FSensitivity);
     FrmHashTableGen.ShowModal;
 
     WriteRest;
-    while (Lex.RunId <> IdNull) do
+    while (FLex.RunId <> IdNull) do
     begin
-      Lex.Next;
+      FLex.Next;
     end;
   finally
     Screen.Cursor := crDefault;
-    CloseFile(OutFile);
+    CloseFile(FOutFile);
   end;
-  MessageDlg(LexName + ' created on ' + DateTimeToStr(Now), mtInformation,
+  MessageDlg(FLexName + ' created on ' + DateTimeToStr(Now), mtInformation,
     [mbOk], 0);
 end;
 
-procedure TFrmMain.FillKeyList;
+procedure TFormMain.FillKeyList;
 var
   aLexKey: TLexKeys;
   aString: string;
   aTokenType: string;
 begin
-  Lex.Next;
+  FLex.Next;
 
   aTokenType := '';
-  while Lex.RunId <> IdCRLF do
+  while FLex.RunId <> IdCRLF do
   begin
-    if not (Lex.RunId in [IdSpace, IdBraceOpen]) then
-      aTokenType := aTokenType + Lex.RunToken;
-    Lex.Next;
+    if not (FLex.RunId in [IdSpace, IdBraceOpen]) then
+      aTokenType := aTokenType + FLex.RunToken;
+    FLex.Next;
   end;
 
   if (aTokenType = '') then
     aTokenType := 'Key';
 
-  while Lex.RunId <> IdStop do
+  while FLex.RunId <> IdStop do
   begin
-    while Lex.RunId in [IdSpace, IdBraceOpen, IdCRLF] do
-      Lex.Next;
-    if Lex.RunId <> IdStop then
+    while FLex.RunId in [IdSpace, IdBraceOpen, IdCRLF] do
+      FLex.Next;
+    if FLex.RunId <> IdStop then
     begin
       aString := '';
-      while not (Lex.RunId in [IdSpace, IdBraceOpen, IdCRLF]) do
+      while not (FLex.RunId in [IdSpace, IdBraceOpen, IdCRLF]) do
       begin
-        aString := aString + Lex.RunToken;
-        Lex.Next;
+        aString := aString + FLex.RunToken;
+        FLex.Next;
       end;
       aLexKey := TLexKeys.Create;
       aLexKey.TokenType := aTokenType;
       aLexKey.KeyName := aString;
-      KeyList.Add(aLexKey);
+      FKeyList.Add(aLexKey);
     end
     else
       Break;
-    Lex.Next;
+    FLex.Next;
   end;
-  KeyList.Sort(CompareKeys);
+  FKeyList.Sort(CompareKeys);
 end;
 
-procedure TFrmMain.FillTokenTypeList;
+procedure TFormMain.FillTokenTypeList;
 var
   i: Integer;
   List: TStringList;
@@ -682,30 +684,30 @@ var
   sLine: string;
   DefAttri: TLexDefaultAttri;
 begin
-  Lex.Next;
-  IdentList.Add(IdentPre + 'Unknown');
-  IdentList.Add(IdentPre + 'Null');
-  while (Lex.RunId <> IdStop) do
+  FLex.Next;
+  FIdentList.Add(FIdentPre + 'Unknown');
+  FIdentList.Add(FIdentPre + 'Null');
+  while (FLex.RunId <> IdStop) do
   begin
-    while Lex.RunId in [IdSpace, IdBraceOpen, IdCRLF, IDUnknown] do
-      Lex.Next;
-    if (Lex.RunId <> IdStop) then
+    while FLex.RunId in [IdSpace, IdBraceOpen, IdCRLF, IDUnknown] do
+      FLex.Next;
+    if (FLex.RunId <> IdStop) then
     begin
-      sIdent := IdentPre + Lex.RunToken;
+      sIdent := FIdentPre + FLex.RunToken;
       if not IsValidIdent(sIdent) then
         raise Exception.Create('Invalid identifier for token type: ' + sIdent);
 
-      if (IdentList.IndexOf(sIdent) < 0) then
-        IdentList.Add(sIdent);
-      Lex.Next;
+      if (FIdentList.IndexOf(sIdent) < 0) then
+        FIdentList.Add(sIdent);
+      FLex.Next;
 
       sLine := '';
-      while (Lex.RunId = IdSpace) do
-        Lex.Next;
-      while not (Lex.RunId in [IdStop, IdCRLF]) do
+      while (FLex.RunId = IdSpace) do
+        FLex.Next;
+      while not (FLex.RunId in [IdStop, IdCRLF]) do
       begin { is there more data on this line? }
-        sLine := sLine + Lex.RunToken;
-        Lex.Next;
+        sLine := sLine + FLex.RunToken;
+        FLex.Next;
       end;
 
       if (sLine <> '') then { The Msg file specifies default attributes }
@@ -727,14 +729,14 @@ begin
             end;
           end;
 
-          i := IdentList.IndexOf(sIdent);
+          i := FIdentList.IndexOf(sIdent);
           if (i >= 0) then
           begin
             DefAttri := TLexDefaultAttri.Create;
             DefAttri.Style := List.Values['Style'];
             DefAttri.Foreground := List.Values['Foreground'];
             DefAttri.Background := List.Values['Background'];
-            IdentList.Objects[i] := DefAttri;
+            FIdentList.Objects[i] := DefAttri;
           end;
         finally
           List.Free;
@@ -746,7 +748,7 @@ begin
   end;
 end;
 
-procedure TFrmMain.OutFileCreate(InName: string);
+procedure TFormMain.OutFileCreate(InName: string);
 var
   OutName, UName: string;
   sysTime: TSystemTime;
@@ -754,199 +756,190 @@ var
 begin
   OutName := ChangeFileExt(InName, '.pas');
   Uname := ExtractFileName(ChangeFileExt(InName, ''));
-  AssignFile(OutFile, OutName);
-  rewrite(OutFile);
+  AssignFile(FOutFile, OutName);
+  rewrite(FOutFile);
   GetSystemTime(sysTime);
   ISODate := Format('%.4d-%.2d-%.2d', [sysTime.wYear, sysTime.wMonth,
     sysTime.wDay]);
-  if ChkGPLHeader.Checked then
+  if CheckBoxGPLHeader.Checked then
   begin
-    Writeln(OutFile,
+    Writeln(FOutFile,
       '{-------------------------------------------------------------------------------');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'The contents of this file are subject to the Mozilla Public License');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'Version 1.1 (the "License"); you may not use this file except in compliance');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'with the License. You may obtain a copy of the License at');
-    Writeln(OutFile, 'http://www.mozilla.org/MPL/');
-    Writeln(OutFile);
-    Writeln(OutFile,
+    Writeln(FOutFile, 'http://www.mozilla.org/MPL/');
+    Writeln(FOutFile);
+    Writeln(FOutFile,
       'Software distributed under the License is distributed on an "AS IS" basis,');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License for');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'the specific language governing rights and limitations under the License.');
-    Writeln(OutFile);
-    Writeln(OutFile, 'Code template generated with SynGen.');
-    Writeln(OutFile, 'The original code is: ' + OutName + ', released ' + ISODate
+    Writeln(FOutFile);
+    Writeln(FOutFile, 'Code template generated with SynGen.');
+    Writeln(FOutFile, 'The original code is: ' + OutName + ', released ' + ISODate
       + '.');
-    Writeln(OutFile, 'Description: ' + EditDescription.Text);
-    Writeln(OutFile, 'The initial author of this file is ' + EditAuthor.Text +
+    Writeln(FOutFile, 'Description: ' + EditDescription.Text);
+    Writeln(FOutFile, 'The initial author of this file is ' + EditAuthor.Text +
       '.');
-    Writeln(OutFile, 'Copyright (c) ' + Format('%d', [sysTime.wYear]) +
+    Writeln(FOutFile, 'Copyright (c) ' + Format('%d', [sysTime.wYear]) +
       ', all rights reserved.');
-    Writeln(OutFile);
-    Writeln(OutFile,
+    Writeln(FOutFile);
+    Writeln(FOutFile,
       'Contributors to the SynEdit and mwEdit projects are listed in the');
-    Writeln(OutFile, 'Contributors.txt file.');
-    Writeln(OutFile);
-    Writeln(OutFile,
+    Writeln(FOutFile, 'Contributors.txt file.');
+    Writeln(FOutFile);
+    Writeln(FOutFile,
       'Alternatively, the contents of this file may be used under the terms of the');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'GNU General Public License Version 2 or later (the "GPL"), in which case');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'the provisions of the GPL are applicable instead of those above.');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'If you wish to allow use of your version of this file only under the terms');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'of the GPL and not to allow others to use your version of this file');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'under the MPL, indicate your decision by deleting the provisions above and');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'replace them with the notice and other provisions required by the GPL.');
-    Writeln(OutFile,
+    Writeln(FOutFile,
       'If you do not delete the provisions above, a recipient may use your version');
-    Writeln(OutFile, 'of this file under either the MPL or the GPL.');
-    Writeln(OutFile);
-    Writeln(OutFile, '$' + 'Id: ' + '$');
-    Writeln(OutFile);
-    Writeln(OutFile,
+    Writeln(FOutFile, 'of this file under either the MPL or the GPL.');
+    Writeln(FOutFile);
+    Writeln(FOutFile, '$' + 'Id: ' + '$');
+    Writeln(FOutFile);
+    Writeln(FOutFile,
       'You may retrieve the latest version of this file at the SynEdit home page,');
-    Writeln(OutFile, 'located at http://SynEdit.SourceForge.net');
-    Writeln(OutFile);
-    Writeln(OutFile,
+    Writeln(FOutFile, 'located at http://SynEdit.SourceForge.net');
+    Writeln(FOutFile);
+    Writeln(FOutFile,
       '-------------------------------------------------------------------------------}');
   end
   else
   begin
-    Writeln(OutFile,
+    Writeln(FOutFile,
       '{+-----------------------------------------------------------------------------+');
-    Writeln(OutFile, ' | Class:       ' + LexName);
-    Writeln(OutFile, ' | Created:     ' + ISODate);
-    Writeln(OutFile, ' | Last change: ' + ISODate);
-    Writeln(OutFile, ' | Author:      ' + EditAuthor.Text);
-    Writeln(OutFile, ' | Description: ' + EditDescription.Text);
-    Writeln(OutFile, ' | Version:     ' + EditVersion.Text);
-    Writeln(OutFile, ' |');
-    Writeln(OutFile, ' | Copyright (c) ' + Format('%d', [sysTime.wYear]) + #32 +
+    Writeln(FOutFile, ' | Class:       ' + FLexName);
+    Writeln(FOutFile, ' | Created:     ' + ISODate);
+    Writeln(FOutFile, ' | Last change: ' + ISODate);
+    Writeln(FOutFile, ' | Author:      ' + EditAuthor.Text);
+    Writeln(FOutFile, ' | Description: ' + EditDescription.Text);
+    Writeln(FOutFile, ' | Version:     ' + EditVersion.Text);
+    Writeln(FOutFile, ' |');
+    Writeln(FOutFile, ' | Copyright (c) ' + Format('%d', [sysTime.wYear]) + #32 +
       EditAuthor.Text + '. All rights reserved.');
-    Writeln(OutFile, ' |');
-    Writeln(OutFile, ' | Generated with SynGen.');
-    Writeln(OutFile,
+    Writeln(FOutFile, ' |');
+    Writeln(FOutFile, ' | Generated with SynGen.');
+    Writeln(FOutFile,
       ' +----------------------------------------------------------------------------+}');
   end;
-  Writeln(OutFile);
-  Writeln(OutFile, '{$IFNDEF Q' + UpperCase(Uname) + '}');
-  Writeln(OutFile, 'unit ' + Uname + ';');
-  Writeln(OutFile, '{$ENDIF}');
-  Writeln(OutFile);
-  Writeln(OutFile, '{$I SynEdit.inc}');
-  Writeln(OutFile);
-  Writeln(OutFile, 'interface');
-  Writeln(OutFile);
-  Writeln(OutFile, 'uses');
-  Writeln(OutFile, '{$IFDEF SYN_CLX}');
-  Writeln(OutFile, '  QGraphics,');
-  Writeln(OutFile, '  QSynEditTypes,');
-  Writeln(OutFile, '  QSynEditHighlighter,');
-  Writeln(OutFile, '  QSynUnicode,');
-  Writeln(OutFile, '{$ELSE}');
-  Writeln(OutFile, '  Graphics,');
-  Writeln(OutFile, '  SynEditTypes,');
-  Writeln(OutFile, '  SynEditHighlighter,');
-  Writeln(OutFile, '  SynUnicode,');
-  Writeln(OutFile, '{$ENDIF}');
-  Writeln(OutFile, '  SysUtils,');
-  Writeln(OutFile, '  Classes;');
-  Writeln(OutFile);
-  Writeln(OutFile, 'type');
-  Writeln(OutFile, '  T' + IdentPre + 'TokenKind = (');
+  Writeln(FOutFile);
+  Writeln(FOutFile, 'unit ' + Uname + ';');
+  Writeln(FOutFile);
+  Writeln(FOutFile, '{$I SynEdit.inc}');
+  Writeln(FOutFile);
+  Writeln(FOutFile, 'interface');
+  Writeln(FOutFile);
+  Writeln(FOutFile, 'uses');
+  Writeln(FOutFile, '  Graphics,');
+  Writeln(FOutFile, '  SynEditTypes,');
+  Writeln(FOutFile, '  SynEditHighlighter,');
+  Writeln(FOutFile, '  SynUnicode,');
+  Writeln(FOutFile, '  SysUtils,');
+  Writeln(FOutFile, '  Classes;');
+  Writeln(FOutFile);
+  Writeln(FOutFile, 'type');
+  Writeln(FOutFile, '  T' + FIdentPre + 'TokenKind = (');
 end;
 
-procedure TFrmMain.ParseCharsets;
+procedure TFormMain.ParseCharsets;
 begin
-  Lex.Next;
-  while Lex.RunId <> IdStop do
+  FLex.Next;
+  while FLex.RunId <> IdStop do
   begin
-    case Lex.RunId of
+    case FLex.RunId of
       IdCharset: RetrieveCharset;
     else
-      Lex.Next;
+      FLex.Next;
     end;
   end;
 end;
 
-procedure TFrmMain.ParseEnclosedBy;
+procedure TFormMain.ParseEnclosedBy;
 begin
-  Lex.Next;
-  while not (Lex.RunId in [IdStop, IdNull]) do
+  FLex.Next;
+  while not (FLex.RunId in [IdStop, IdNull]) do
     RetrieveEnclosedBy;
 end;
 
-procedure TFrmMain.ParseSampleSource;
+procedure TFormMain.ParseSampleSource;
 begin
-  Lex.Next;
-  if (Lex.RunId = IdCRLF) then
-    Lex.Next;
+  FLex.Next;
+  if (FLex.RunId = IdCRLF) then
+    FLex.Next;
 
-  while not (Lex.RunId in [IdStop, IdNull]) do
+  while not (FLex.RunId in [IdStop, IdNull]) do
     RetrieveSampleSource;
 end;
 
-procedure TFrmMain.RetrieveCharset;
+procedure TFormMain.RetrieveCharset;
 var
   aSet: TLexCharsets;
 begin
   aSet := TLexCharsets.Create;
-  aSet.Charset := Lex.RunToken;
-  while Lex.RunId <> IDIdentifier do
-    Lex.Next;
-  aSet.SetName := Lex.RunToken;
-  while Lex.RunId <> IDBeginProc do
-    Lex.Next;
-  Lex.Next;
-  while Lex.RunId in [IdCRLF, IdSpace] do
-    Lex.Next;
-  while not (Lex.RunId = IdEndProc) do
+  aSet.Charset := FLex.RunToken;
+  while FLex.RunId <> IDIdentifier do
+    FLex.Next;
+  aSet.SetName := FLex.RunToken;
+  while FLex.RunId <> IDBeginProc do
+    FLex.Next;
+  FLex.Next;
+  while FLex.RunId in [IdCRLF, IdSpace] do
+    FLex.Next;
+  while not (FLex.RunId = IdEndProc) do
   begin
-    aSet.ProcData := aSet.ProcData + Lex.RunToken;
-    Lex.Next;
+    aSet.ProcData := aSet.ProcData + FLex.RunToken;
+    FLex.Next;
   end;
-  SetList.Add(aSet);
-  Lex.Next;
+  FSetList.Add(aSet);
+  FLex.Next;
 end;
 
-procedure TFrmMain.RetrieveSampleSource;
+procedure TFormMain.RetrieveSampleSource;
 var
   sLine: string;
 begin
   sLine := '';
-  while not (Lex.RunId in [IdCRLF, IdNull, IdStop]) do
+  while not (FLex.RunId in [IdCRLF, IdNull, IdStop]) do
   begin
-    sLine := sLine + Lex.RunToken;
-    Lex.Next;
+    sLine := sLine + FLex.RunToken;
+    FLex.Next;
   end;
-  if (Lex.RunId = IdCRLF) then
-    Lex.Next;
+  if (FLex.RunId = IdCRLF) then
+    FLex.Next;
 
-  SampleSourceList.Add(sLine);
+  FSampleSourceList.Add(sLine);
 end;
 
-procedure TFrmMain.RetrieveEnclosedBy;
+procedure TFormMain.RetrieveEnclosedBy;
 var
   aThing: TLexEnclosedBy;
   sLine: string;
   iPos: Integer;
 begin
-  while Lex.RunId in [IdCRLF, IdSpace] do
-    Lex.Next;
+  while FLex.RunId in [IdCRLF, IdSpace] do
+    FLex.Next;
 
   sLine := '';
-  while not (Lex.RunId in [IdCRLF, IdNull, IdStop]) do
+  while not (FLex.RunId in [IdCRLF, IdNull, IdStop]) do
   begin
-    sLine := sLine + Lex.RunToken;
-    Lex.Next;
+    sLine := sLine + FLex.RunToken;
+    FLex.Next;
   end;
 
   if (sLine <> '') then
@@ -976,13 +969,13 @@ begin
     else
       aThing.EndsWith := sLine;
 
-    EnclosedList.Add(aThing);
+    FEnclosedList.Add(aThing);
   end
-  else if (Lex.RunId <> IdStop) then
-    Lex.Next;
+  else if (FLex.RunId <> IdStop) then
+    FLex.Next;
 end; { RetrieveEnclosedBy }
 
-function TFrmMain.FilterInvalidChars(const Value: string): string;
+function TFormMain.FilterInvalidChars(const Value: string): string;
 var
   i: Integer;
 begin
@@ -994,13 +987,13 @@ begin
   end;
 end; { FilterInvalidChars }
 
-function TFrmMain.GetFilterName: string;
+function TFormMain.GetFilterName: string;
 var
   FilterName: string;
 begin
   FilterName := '';
-  case CboFilter.ItemIndex of
-    -1: FilterName := 'SYNS_Filter' + FilterInvalidChars(CboLangName.Text);
+  case ComboBoxFilter.ItemIndex of
+    -1: FilterName := 'SYNS_Filter' + FilterInvalidChars(ComboBoxLangName.Text);
     0: FilterName := 'SYNS_FilterPascal';
     1: FilterName := 'SYNS_FilterHP48';
     2: FilterName := 'SYNS_FilterCAClipper';
@@ -1036,12 +1029,12 @@ begin
   Result := FilterName;
 end;
 
-function TFrmMain.GetFriendlyLangName: string;
+function TFormMain.GetFriendlyLangName: string;
 var
   LangName: string;
 begin
-  case CboLangName.ItemIndex of
-    -1: LangName := 'SYNS_FriendlyLang' + FilterInvalidChars(CboLangName.Text);
+  case ComboBoxLangName.ItemIndex of
+    -1: LangName := 'SYNS_FriendlyLang' + FilterInvalidChars(ComboBoxLangName.Text);
     0: LangName := 'SYNS_FriendlyLangHP48';
     1: LangName := 'SYNS_FriendlyLangCAClipper';
     2: LangName := 'SYNS_FriendlyLangCPP';
@@ -1079,12 +1072,12 @@ begin
   Result := LangName;
 end;
 
-function TFrmMain.GetLangName: string;
+function TFormMain.GetLangName: string;
 var
   LangName: string;
 begin
-  case CboLangName.ItemIndex of
-    -1: LangName := 'SYNS_Lang' + FilterInvalidChars(CboLangName.Text);
+  case ComboBoxLangName.ItemIndex of
+    -1: LangName := 'SYNS_Lang' + FilterInvalidChars(ComboBoxLangName.Text);
     0: LangName := 'SYNS_LangHP48';
     1: LangName := 'SYNS_LangCAClipper';
     2: LangName := 'SYNS_LangCPP';
@@ -1122,7 +1115,7 @@ begin
   Result := LangName;
 end;
 
-procedure TFrmMain.WriteRest;
+procedure TFormMain.WriteRest;
 var
   I, J: Integer;
   LineLength: Integer;
@@ -1134,407 +1127,403 @@ var
   sPrefix: string;
   DefAttri: TLexDefaultAttri;
 begin
-  IdentList.Sort;
-  SetList.Sort(CompareSets);
+  FIdentList.Sort;
+  FSetList.Sort(CompareSets);
   I := 0;
-  while I < IdentList.Count - 1 do
+  while I < FIdentList.Count - 1 do
   begin
-    Writeln(OutFile, '    ' + IdentList[I] + ',');
+    Writeln(FOutFile, '    ' + FIdentList[I] + ',');
     inc(I);
   end;
-  Writeln(OutFile, '    ' + IdentList[I] + ');');
-  Writeln(OutFile);
-  Write(OutFile, '  TRangeState = (rsUnKnown');
-  for I := 0 to (EnclosedList.Count - 1) do
-    Write(OutFile, ', rs' + TLexEnclosedBy(EnclosedList[I]).ProcName);
-  Writeln(OutFile, ');');
-  Writeln(OutFile);
-  Writeln(OutFile, '  TProcTableProc = procedure of object;');
-  Writeln(OutFile);
-  Writeln(OutFile, '  PIdentFuncTableFunc = ^TIdentFuncTableFunc;');
-  Writeln(OutFile, '  TIdentFuncTableFunc = function (Index: Integer): T' + IdentPre +
+  Writeln(FOutFile, '    ' + FIdentList[I] + ');');
+  Writeln(FOutFile);
+  Write(FOutFile, '  TRangeState = (rsUnknown');
+  for I := 0 to (FEnclosedList.Count - 1) do
+    Write(FOutFile, ', rs' + TLexEnclosedBy(FEnclosedList[I]).ProcName);
+  Writeln(FOutFile, ');');
+  Writeln(FOutFile);
+  Writeln(FOutFile, '  TProcTableProc = procedure of object;');
+  Writeln(FOutFile);
+  Writeln(FOutFile, '  PIdentFuncTableFunc = ^TIdentFuncTableFunc;');
+  Writeln(FOutFile, '  TIdentFuncTableFunc = function (Index: Integer): T' + FIdentPre +
     'TokenKind of object;');
-  Writeln(OutFile);
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'type');
-  Writeln(OutFile, '  ' + LexName + ' = class(TSynCustomHighlighter)');
-  Writeln(OutFile, '  private');
-  Writeln(OutFile, '    fRange: TRangeState;');
+  Writeln(FOutFile, 'type');
+  Writeln(FOutFile, '  ' + FLexName + ' = class(TSynCustomHighlighter)');
+  Writeln(FOutFile, '  private');
+  Writeln(FOutFile, '    FRange: TRangeState;');
 
   if ListBoxFields.Items.Count > 0 then
     for i := 0 to ListBoxFields.Items.Count - 1 do
-      Writeln(OutFile, '    ' + ListBoxFields.Items[i] + ';');
+      Writeln(FOutFile, '    ' + ListBoxFields.Items[i] + ';');
 
-  Writeln(OutFile, '    fTokenID: TtkTokenKind;');
-  Writeln(OutFile,
+  Writeln(FOutFile, '    FTokenId: TtkTokenKind;');
+  Writeln(FOutFile,
     '    fIdentFuncTable: array[0..' +
     IntToStr(FrmHashTableGen.KeyIndicesCount - 1) + ']' +
     ' of TIdentFuncTableFunc;');
 
   I := 0;
-  while I < IdentList.Count do
+  while I < FIdentList.Count do
   begin
-    if (IdentList[I] <> IdentPre + 'Null') and (IdentList[I] <> IdentPre +
+    if (FIdentList[I] <> FIdentPre + 'Null') and (FIdentList[I] <> FIdentPre +
       'Unknown') then
-      Writeln(OutFile, '    f' + Copy(IdentList[I], Length(IdentPre) + 1,
-        Length(IdentList[I])) + 'Attri: TSynHighlighterAttributes;');
+      Writeln(FOutFile, '    f' + Copy(FIdentList[I], Length(FIdentPre) + 1,
+        Length(FIdentList[I])) + 'Attri: TSynHighlighterAttributes;');
     inc(I);
   end;
 
-  Writeln(OutFile, '    function HashKey(Str: PWideChar): Cardinal;');
+  Writeln(FOutFile, '    function HashKey(Str: PWideChar): Cardinal;');
 
   I := 0;
-  while I < KeyList.Count do
+  while I < FKeyList.Count do
   begin
-    Writeln(OutFile, AnsiString('    function Func' +
-      ToAlphaNum(FirstLetterCap(TLexKeys(KeyList[I]).KeyName)) +
-      '(Index: Integer): T' + IdentPre + 'TokenKind;'));
+    Writeln(FOutFile, AnsiString('    function Func' +
+      ToAlphaNum(FirstLetterCap(TLexKeys(FKeyList[I]).KeyName)) +
+      '(Index: Integer): T' + FIdentPre + 'TokenKind;'));
     inc(I);
   end;
 
   I := 0;
-  while I < SetList.Count do
+  while I < FSetList.Count do
   begin
-    Writeln(OutFile, '    procedure ' + TLexCharsets(SetList[I]).SetName +
+    Writeln(FOutFile, '    procedure ' + TLexCharsets(FSetList[I]).SetName +
       'Proc;');
     inc(I);
   end;
 
-  Writeln(OutFile, '    procedure UnknownProc;');
-  Writeln(OutFile, '    function AltFunc(Index: Integer): T' + IdentPre + 'TokenKind;');
-  Writeln(OutFile, '    procedure InitIdent;');
-  Writeln(OutFile, '    function IdentKind(MayBe: PWideChar): T' + IdentPre +
+  Writeln(FOutFile, '    procedure UnknownProc;');
+  Writeln(FOutFile, '    function AltFunc(Index: Integer): T' + FIdentPre + 'TokenKind;');
+  Writeln(FOutFile, '    procedure InitIdent;');
+  Writeln(FOutFile, '    function IdentKind(MayBe: PWideChar): T' + FIdentPre +
     'TokenKind;');
-  Writeln(OutFile, '    procedure NullProc;');
-  if (IdentList.IndexOf(IdentPre + 'Space') >= 0) then
-    Writeln(OutFile, '    procedure SpaceProc;');
-  Writeln(OutFile, '    procedure CRProc;');
-  Writeln(OutFile, '    procedure LFProc;');
-  for I := 0 to (EnclosedList.Count - 1) do
+  Writeln(FOutFile, '    procedure NullProc;');
+  if (FIdentList.IndexOf(FIdentPre + 'Space') >= 0) then
+    Writeln(FOutFile, '    procedure SpaceProc;');
+  Writeln(FOutFile, '    procedure CRProc;');
+  Writeln(FOutFile, '    procedure LFProc;');
+  for I := 0 to (FEnclosedList.Count - 1) do
   begin
-    Writeln(OutFile, '    procedure ' + TLexEnclosedBy(EnclosedList[I]).ProcName
+    Writeln(FOutFile, '    procedure ' + TLexEnclosedBy(FEnclosedList[I]).ProcName
       + 'OpenProc;');
-    Writeln(OutFile, '    procedure ' + TLexEnclosedBy(EnclosedList[I]).ProcName
+    Writeln(FOutFile, '    procedure ' + TLexEnclosedBy(FEnclosedList[I]).ProcName
       + 'Proc;');
   end;
-  Writeln(OutFile, '  protected');
-  Writeln(OutFile, '    function GetSampleSource: UnicodeString; override;');
-  Writeln(OutFile, '    function IsFilterStored: Boolean; override;');
-  Writeln(OutFile, '  public');
-  Writeln(OutFile, '    constructor Create(AOwner: TComponent); override;');
-  Writeln(OutFile, '    class function GetFriendlyLanguageName: UnicodeString; override;');  
-  Writeln(OutFile, '    class function GetLanguageName: string; override;');
-  Writeln(OutFile, '    function GetRange: Pointer; override;');
-  Writeln(OutFile, '    procedure ResetRange; override;');
-  Writeln(OutFile, '    procedure SetRange(Value: Pointer); override;');
-  Writeln(OutFile,
+  Writeln(FOutFile, '  protected');
+  Writeln(FOutFile, '    function GetSampleSource: UnicodeString; override;');
+  Writeln(FOutFile, '    function IsFilterStored: Boolean; override;');
+  Writeln(FOutFile, '  public');
+  Writeln(FOutFile, '    constructor Create(AOwner: TComponent); override;');
+  Writeln(FOutFile, '    class function GetFriendlyLanguageName: UnicodeString; override;');
+  Writeln(FOutFile, '    class function GetLanguageName: string; override;');
+  Writeln(FOutFile, '    function GetRange: Pointer; override;');
+  Writeln(FOutFile, '    procedure ResetRange; override;');
+  Writeln(FOutFile, '    procedure SetRange(Value: Pointer); override;');
+  Writeln(FOutFile,
     '    function GetDefaultAttribute(Index: Integer): TSynHighlighterAttributes; override;');
-  Writeln(OutFile, '    function GetEol: Boolean; override;');
-  if ChkGetKeyWords.Checked then
-    Writeln(OutFile, '    function GetKeyWords(TokenKind: Integer): UnicodeString; override;');
-  Writeln(OutFile, '    function GetTokenID: TtkTokenKind;');
-  Writeln(OutFile,
+  Writeln(FOutFile, '    function GetEol: Boolean; override;');
+  if CheckBoxGetKeyWords.Checked then
+    Writeln(FOutFile, '    function GetKeyWords(TokenKind: Integer): UnicodeString; override;');
+  Writeln(FOutFile, '    function GetTokenID: TtkTokenKind;');
+  Writeln(FOutFile,
     '    function GetTokenAttribute: TSynHighlighterAttributes; override;');
-  Writeln(OutFile, '    function GetTokenKind: Integer; override;');
-  Writeln(OutFile, '    function IsIdentChar(AChar: WideChar): Boolean; override;');
-  Writeln(OutFile, '    procedure Next; override;');
-  Writeln(OutFile, '  published');
+  Writeln(FOutFile, '    function GetTokenKind: Integer; override;');
+  Writeln(FOutFile, '    function IsIdentChar(AChar: WideChar): Boolean; override;');
+  Writeln(FOutFile, '    procedure Next; override;');
+  Writeln(FOutFile, '  published');
 
   I := 0;
-  while I < IdentList.Count do
+  while I < FIdentList.Count do
   begin
-    if (IdentList[I] <> IdentPre + 'Null') and (IdentList[I] <> IdentPre +
+    if (FIdentList[I] <> FIdentPre + 'Null') and (FIdentList[I] <> FIdentPre +
       'Unknown') then
-      Writeln(OutFile, '    property ' + Copy(IdentList[I], Length(IdentPre) +
-        1, Length(IdentList[I]))
-        + 'Attri: TSynHighlighterAttributes read f' + Copy(IdentList[I],
-        Length(IdentPre) + 1, Length(IdentList[I])) +
-        'Attri write f' + Copy(IdentList[I], Length(IdentPre) + 1,
-        Length(IdentList[I])) + 'Attri;');
+      Writeln(FOutFile, '    property ' + Copy(FIdentList[I], Length(FIdentPre) +
+        1, Length(FIdentList[I]))
+        + 'Attri: TSynHighlighterAttributes read f' + Copy(FIdentList[I],
+        Length(FIdentPre) + 1, Length(FIdentList[I])) +
+        'Attri write f' + Copy(FIdentList[I], Length(FIdentPre) + 1,
+        Length(FIdentList[I])) + 'Attri;');
     inc(I);
   end;
 
-  Writeln(OutFile, '  end;');
-  Writeln(OutFile);
-  Writeln(OutFile, 'implementation');
-  Writeln(OutFile);
-  Writeln(OutFile, 'uses');
-  Writeln(OutFile, '{$IFDEF SYN_CLX}');
-  Writeln(OutFile, '  QSynEditStrConst;');
-  Writeln(OutFile, '{$ELSE}');
-  Writeln(OutFile, '  SynEditStrConst;');
-  Writeln(OutFile, '{$ENDIF}');
-  Writeln(OutFile);
-  if (CboFilter.ItemIndex = -1) or (CboLangName.ItemIndex = -1) then
+  Writeln(FOutFile, '  end;');
+  Writeln(FOutFile);
+  Writeln(FOutFile, 'implementation');
+  Writeln(FOutFile);
+  Writeln(FOutFile, 'uses');
+  Writeln(FOutFile, '  SynEditStrConst;');
+  Writeln(FOutFile);
+  if (ComboBoxFilter.ItemIndex = -1) or (ComboBoxLangName.ItemIndex = -1) then
   begin
-    Writeln(OutFile, 'resourcestring');
-    if (CboFilter.ItemIndex = -1) then
-      Writeln(OutFile, '  SYNS_Filter' + FilterInvalidChars(CboLangName.Text) +
-        ' = ''' + CboFilter.Text + ''';');
-    if (CboLangName.ItemIndex = -1) then
+    Writeln(FOutFile, 'resourcestring');
+    if (ComboBoxFilter.ItemIndex = -1) then
+      Writeln(FOutFile, '  SYNS_Filter' + FilterInvalidChars(ComboBoxLangName.Text) +
+        ' = ''' + ComboBoxFilter.Text + ''';');
+    if (ComboBoxLangName.ItemIndex = -1) then
     begin
-      Writeln(OutFile, '  SYNS_Lang' + FilterInvalidChars(CboLangName.Text) +
-        ' = ''' + CboLangName.Text + ''';');
+      Writeln(FOutFile, '  SYNS_Lang' + FilterInvalidChars(ComboBoxLangName.Text) +
+        ' = ''' + ComboBoxLangName.Text + ''';');
 
-      Writeln(OutFile, '  SYNS_FriendlyLang' + FilterInvalidChars(CboLangName.Text) +
-        ' = ''' + CboLangName.Text + ''';');
+      Writeln(FOutFile, '  SYNS_FriendlyLang' + FilterInvalidChars(ComboBoxLangName.Text) +
+        ' = ''' + ComboBoxLangName.Text + ''';');
     end;
 
     I := 0;
-    while I < IdentList.Count do
+    while I < FIdentList.Count do
     begin
-      AttrTemp := Copy(IdentList[I], Length(IdentPre) + 1,
-        Length(IdentList[I]));
-      if (CboAttrIdentifier.Items.IndexOf('SYNS_Attr' + AttrTemp) < 0) and
+      AttrTemp := Copy(FIdentList[I], Length(FIdentPre) + 1,
+        Length(FIdentList[I]));
+      if (ComboBoxAttrIdentifier.Items.IndexOf('SYNS_Attr' + AttrTemp) < 0) and
         (AttrTemp <> 'Unknown') then
       begin
-        Writeln(OutFile, '  SYNS_Attr' + FilterInvalidChars(AttrTemp) + ' = '''
+        Writeln(FOutFile, '  SYNS_Attr' + FilterInvalidChars(AttrTemp) + ' = '''
           + AttrTemp + ''';');
-        Writeln(OutFile, '  SYNS_FriendlyAttr' + FilterInvalidChars(AttrTemp) + ' = '''
+        Writeln(FOutFile, '  SYNS_FriendlyAttr' + FilterInvalidChars(AttrTemp) + ' = '''
           + AttrTemp + ''';');
       end;
       Inc(i);
     end;
-    Writeln(OutFile);
+    Writeln(FOutFile);
   end;
 
-  Writeln(OutFile, 'const');
-  Write(OutFile, FrmHashTableGen.GetKeyWordConstantsSource(Sensitivity));
-  Writeln(OutFile);
+  Writeln(FOutFile, 'const');
+  Write(FOutFile, FrmHashTableGen.GetKeyWordConstantsSource(FSensitivity));
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'procedure ' + LexName + '.InitIdent;');
-  Writeln(OutFile, 'var');
-  Writeln(OutFile, '  i: Integer;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do');
-  Writeln(OutFile, '    if KeyIndices[i] = -1 then');
-  Writeln(OutFile, '      fIdentFuncTable[i] := AltFunc;');
-  Writeln(OutFile, '');
+  Writeln(FOutFile, 'procedure ' + FLexName + '.InitIdent;');
+  Writeln(FOutFile, 'var');
+  Writeln(FOutFile, '  i: Integer;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  for i := Low(fIdentFuncTable) to High(fIdentFuncTable) do');
+  Writeln(FOutFile, '    if KeyIndices[i] = -1 then');
+  Writeln(FOutFile, '      fIdentFuncTable[i] := AltFunc;');
+  Writeln(FOutFile, '');
 
   I := 0;
-  while I < KeyList.Count do
+  while I < FKeyList.Count do
   begin
-    if I < KeyList.Count - 1 then
-      while TLexKeys(KeyList[I]).Key = TLexKeys(KeyList[I + 1]).Key do
+    if I < FKeyList.Count - 1 then
+      while TLexKeys(FKeyList[I]).Key = TLexKeys(FKeyList[I + 1]).Key do
       begin
         inc(I);
-        if I >= KeyList.Count - 1 then
+        if I >= FKeyList.Count - 1 then
           break;
       end;
-    KeyString := IntToStr(TLexKeys(KeyList[I]).Key);
-    Writeln(OutFile, '  fIdentFuncTable[' + KeyString + '] := Func' +
-      ToAlphaNum(FirstLetterCap(TLexKeys(KeyList[I]).KeyName)) + ';');
+    KeyString := IntToStr(TLexKeys(FKeyList[I]).Key);
+    Writeln(FOutFile, '  fIdentFuncTable[' + KeyString + '] := Func' +
+      ToAlphaNum(FirstLetterCap(TLexKeys(FKeyList[I]).KeyName)) + ';');
     inc(I);
   end;
 
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Write(OutFile, FrmHashTableGen.GetHashKeyFunctionSource(LexName));
-  Writeln(OutFile);
+  Write(FOutFile, FrmHashTableGen.GetHashKeyFunctionSource(FLexName));
+  Writeln(FOutFile);
 
   I := 0;
-  while I < KeyList.Count do
+  while I < FKeyList.Count do
   begin
-    KeyString := ToAlphaNum(FirstLetterCap(TLexKeys(KeyList[I]).KeyName));
-    Writeln(OutFile, 'function ' + LexName + '.Func' + KeyString + '(Index: Integer): T' +
-      IdentPre + 'TokenKind;');
-    Writeln(OutFile, 'begin');
-    if I < KeyList.Count - 1 then
-      while TLexKeys(KeyList[I]).Key = TLexKeys(KeyList[I + 1]).Key do
+    KeyString := ToAlphaNum(FirstLetterCap(TLexKeys(FKeyList[I]).KeyName));
+    Writeln(FOutFile, 'function ' + FLexName + '.Func' + KeyString + '(Index: Integer): T' +
+      FIdentPre + 'TokenKind;');
+    Writeln(FOutFile, 'begin');
+    if I < FKeyList.Count - 1 then
+      while TLexKeys(FKeyList[I]).Key = TLexKeys(FKeyList[I + 1]).Key do
       begin
-        Writeln(OutFile, '  if IsCurrentToken(KeyWords[Index]) then');
-        Writeln(OutFile, '    Result := ' + IdentPre + TLexKeys(KeyList[I]).TokenType);
-        Writeln(OutFile, '  else');
+        Writeln(FOutFile, '  if IsCurrentToken(KeyWords[Index]) then');
+        Writeln(FOutFile, '    Result := ' + FIdentPre + TLexKeys(FKeyList[I]).TokenType);
+        Writeln(FOutFile, '  else');
         inc(I);
-        if I >= KeyList.Count - 1 then
+        if I >= FKeyList.Count - 1 then
           break;
       end;
-      Writeln(OutFile, '  if IsCurrentToken(KeyWords[Index]) then');
-      Writeln(OutFile, '    Result := ' + IdentPre + TLexKeys(KeyList[I]).TokenType);
-      Writeln(OutFile, '  else');
-      Writeln(OutFile, '    Result := ' + IdentPre + 'Identifier;');
-    Writeln(OutFile, 'end;');
-    Writeln(OutFile);
+      Writeln(FOutFile, '  if IsCurrentToken(KeyWords[Index]) then');
+      Writeln(FOutFile, '    Result := ' + FIdentPre + TLexKeys(FKeyList[I]).TokenType);
+      Writeln(FOutFile, '  else');
+      Writeln(FOutFile, '    Result := ' + FIdentPre + 'Identifier;');
+    Writeln(FOutFile, 'end;');
+    Writeln(FOutFile);
     inc(I);
   end;
 
-  Writeln(OutFile, 'function ' + LexName + '.AltFunc(Index: Integer): T' + IdentPre +
+  Writeln(FOutFile, 'function ' + FLexName + '.AltFunc(Index: Integer): T' + FIdentPre +
     'TokenKind;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := ' + IdentPre + 'Identifier;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := ' + FIdentPre + 'Identifier;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.IdentKind(MayBe: PWideChar): T' +
-    IdentPre + 'TokenKind;');
-  Writeln(OutFile, 'var');
-  Writeln(OutFile, '  Key: Cardinal;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  fToIdent := MayBe;');
-  Writeln(OutFile, '  Key := HashKey(MayBe);');
-  Writeln(OutFile, '  if Key <= High(fIdentFuncTable) then');
-  Writeln(OutFile, '    Result := fIdentFuncTable[Key](KeyIndices[Key])');
-  Writeln(OutFile, '  else');
-  Writeln(OutFile, '    Result := ' + IdentPre + 'Identifier;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'function ' + FLexName + '.IdentKind(MayBe: PWideChar): T' +
+    FIdentPre + 'TokenKind;');
+  Writeln(FOutFile, 'var');
+  Writeln(FOutFile, '  Key: Cardinal;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  fToIdent := MayBe;');
+  Writeln(FOutFile, '  Key := HashKey(MayBe);');
+  Writeln(FOutFile, '  if Key <= High(fIdentFuncTable) then');
+  Writeln(FOutFile, '    Result := FIdentFuncTable[Key](KeyIndices[Key])');
+  Writeln(FOutFile, '  else');
+  Writeln(FOutFile, '    Result := ' + FIdentPre + 'Identifier;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  if (IdentList.IndexOf(IdentPre + 'Space') >= 0) then
+  if (FIdentList.IndexOf(FIdentPre + 'Space') >= 0) then
   begin
-    Writeln(OutFile, 'procedure ' + LexName + '.SpaceProc;');
-    Writeln(OutFile, 'begin');
-    Writeln(OutFile, '  inc(Run);');
-    Writeln(OutFile, '  fTokenID := ' + IdentPre + 'Space;');
-    Writeln(OutFile, '  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);');
-    Writeln(OutFile, 'end;');
-    Writeln(OutFile);
+    Writeln(FOutFile, 'procedure ' + FLexName + '.SpaceProc;');
+    Writeln(FOutFile, 'begin');
+    Writeln(FOutFile, '  inc(Run);');
+    Writeln(FOutFile, '  FTokenId := ' + FIdentPre + 'Space;');
+    Writeln(FOutFile, '  while (FLine[Run] <= #32) and not IsLineEnd(Run) do inc(Run);');
+    Writeln(FOutFile, 'end;');
+    Writeln(FOutFile);
   end;
 
-  Writeln(OutFile, 'procedure ' + LexName + '.NullProc;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  fTokenID := ' + IdentPre + 'Null;');
-  Writeln(OutFile, '  inc(Run);');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'procedure ' + FLexName + '.NullProc;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  FTokenId := ' + FIdentPre + 'Null;');
+  Writeln(FOutFile, '  inc(Run);');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'procedure ' + LexName + '.CRProc;');
-  Writeln(OutFile, 'begin');
-  if (IdentList.IndexOf(IdentPre + 'Space') >= 0) then
-    Writeln(OutFile, '  fTokenID := ' + IdentPre + 'Space;')
+  Writeln(FOutFile, 'procedure ' + FLexName + '.CRProc;');
+  Writeln(FOutFile, 'begin');
+  if (FIdentList.IndexOf(FIdentPre + 'Space') >= 0) then
+    Writeln(FOutFile, '  FTokenId := ' + FIdentPre + 'Space;')
   else
-    Writeln(OutFile, '  fTokenID := ' + IdentPre + 'Unknown;');
-  Writeln(OutFile, '  inc(Run);');
-  Writeln(OutFile, '  if fLine[Run] = #10 then');
-  Writeln(OutFile, '    inc(Run);');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+    Writeln(FOutFile, '  FTokenId := ' + FIdentPre + 'Unknown;');
+  Writeln(FOutFile, '  inc(Run);');
+  Writeln(FOutFile, '  if FLine[Run] = #10 then');
+  Writeln(FOutFile, '    inc(Run);');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'procedure ' + LexName + '.LFProc;');
-  Writeln(OutFile, 'begin');
-  if (IdentList.IndexOf(IdentPre + 'Space') >= 0) then
-    Writeln(OutFile, '  fTokenID := ' + IdentPre + 'Space;')
+  Writeln(FOutFile, 'procedure ' + FLexName + '.LFProc;');
+  Writeln(FOutFile, 'begin');
+  if (FIdentList.IndexOf(FIdentPre + 'Space') >= 0) then
+    Writeln(FOutFile, '  FTokenId := ' + FIdentPre + 'Space;')
   else
-    Writeln(OutFile, '  fTokenID := ' + IdentPre + 'Unknown;');
-  Writeln(OutFile, '  inc(Run);');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+    Writeln(FOutFile, '  FTokenId := ' + FIdentPre + 'Unknown;');
+  Writeln(FOutFile, '  inc(Run);');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  for I := 0 to (EnclosedList.Count - 1) do
+  for I := 0 to (FEnclosedList.Count - 1) do
   begin
-    Writeln(OutFile, 'procedure ' + LexName + '.' +
-      TLexEnclosedBy(EnclosedList[I]).ProcName + 'OpenProc;');
-    Writeln(OutFile, 'begin');
-    Writeln(OutFile, '  Inc(Run);');
-    if (Length(TLexEnclosedBy(EnclosedList[I]).StartsWith) > 1) then
+    Writeln(FOutFile, 'procedure ' + FLexName + '.' +
+      TLexEnclosedBy(FEnclosedList[I]).ProcName + 'OpenProc;');
+    Writeln(FOutFile, 'begin');
+    Writeln(FOutFile, '  Inc(Run);');
+    if (Length(TLexEnclosedBy(FEnclosedList[I]).StartsWith) > 1) then
     begin
-      Write(OutFile, '  if ');
-      for J := 2 to Length(TLexEnclosedBy(EnclosedList[I]).StartsWith) do
+      Write(FOutFile, '  if ');
+      for J := 2 to Length(TLexEnclosedBy(FEnclosedList[I]).StartsWith) do
       begin
         if (J > 2) then
         begin
-          Writeln(OutFile, ' and');
-          Write(OutFile, '     ');
+          Writeln(FOutFile, ' and');
+          Write(FOutFile, '     ');
         end;
-        Write(OutFile, '(fLine[Run' + AddInt(J - 2) + '] = ''' +
-          StuffString(TLexEnclosedBy(EnclosedList[I]).StartsWith[J]) + ''')');
+        Write(FOutFile, '(FLine[Run' + AddInt(J - 2) + '] = ''' +
+          StuffString(TLexEnclosedBy(FEnclosedList[I]).StartsWith[J]) + ''')');
       end;
-      Writeln(OutFile, ' then');
-      Writeln(OutFile, '  begin');
-      Writeln(OutFile, '    Inc(Run, ' +
-        IntToStr(Length(TLexEnclosedBy(EnclosedList[I]).StartsWith)-1) + ');');
-      Writeln(OutFile, '    fRange := rs' +
-        TLexEnclosedBy(EnclosedList[I]).ProcName + ';');
-      if not TLexEnclosedBy(EnclosedList[I]).MultiLine then
+      Writeln(FOutFile, ' then');
+      Writeln(FOutFile, '  begin');
+      Writeln(FOutFile, '    Inc(Run, ' +
+        IntToStr(Length(TLexEnclosedBy(FEnclosedList[I]).StartsWith)-1) + ');');
+      Writeln(FOutFile, '    FRange := rs' +
+        TLexEnclosedBy(FEnclosedList[I]).ProcName + ';');
+      if not TLexEnclosedBy(FEnclosedList[I]).MultiLine then
       begin
-        Writeln(OutFile, '    ' + TLexEnclosedBy(EnclosedList[I]).ProcName +
+        Writeln(FOutFile, '    ' + TLexEnclosedBy(FEnclosedList[I]).ProcName +
           'Proc;');
       end;
-      Writeln(OutFile, '    fTokenID := ' + IdentPre +
-        TLexEnclosedBy(EnclosedList[I]).TokenName + ';');
-      Writeln(OutFile, '  end');
-      Writeln(OutFile, '  else');
-      if (IdentList.IndexOf(IdentPre + 'Symbol') >= 0) then
-        Writeln(OutFile, '    fTokenID := ' + IdentPre + 'Symbol;')
+      Writeln(FOutFile, '    FTokenId := ' + FIdentPre +
+        TLexEnclosedBy(FEnclosedList[I]).TokenName + ';');
+      Writeln(FOutFile, '  end');
+      Writeln(FOutFile, '  else');
+      if (FIdentList.IndexOf(FIdentPre + 'Symbol') >= 0) then
+        Writeln(FOutFile, '    FTokenId := ' + FIdentPre + 'Symbol;')
       else
-        Writeln(OutFile, '    fTokenID := ' + IdentPre + 'Identifier;');
+        Writeln(FOutFile, '    FTokenId := ' + FIdentPre + 'Identifier;');
     end
     else
     begin
-      Writeln(OutFile, '  fRange := rs' +
-        TLexEnclosedBy(EnclosedList[I]).ProcName + ';');
-      if not TLexEnclosedBy(EnclosedList[I]).MultiLine then
+      Writeln(FOutFile, '  FRange := rs' +
+        TLexEnclosedBy(FEnclosedList[I]).ProcName + ';');
+      if not TLexEnclosedBy(FEnclosedList[I]).MultiLine then
       begin
-        Writeln(OutFile, '  ' + TLexEnclosedBy(EnclosedList[I]).ProcName +
+        Writeln(FOutFile, '  ' + TLexEnclosedBy(FEnclosedList[I]).ProcName +
           'Proc;');
       end;
-      Writeln(OutFile, '  fTokenID := ' + IdentPre +
-        TLexEnclosedBy(EnclosedList[I]).TokenName + ';');
+      Writeln(FOutFile, '  FTokenId := ' + FIdentPre +
+        TLexEnclosedBy(FEnclosedList[I]).TokenName + ';');
     end;
-    Writeln(OutFile, 'end;');
-    Writeln(OutFile);
-    Writeln(OutFile, 'procedure ' + LexName + '.' +
-      TLexEnclosedBy(EnclosedList[I]).ProcName + 'Proc;');
-    Writeln(OutFile, 'begin');
-    if TLexEnclosedBy(EnclosedList[I]).MultiLine then
+    Writeln(FOutFile, 'end;');
+    Writeln(FOutFile);
+    Writeln(FOutFile, 'procedure ' + FLexName + '.' +
+      TLexEnclosedBy(FEnclosedList[I]).ProcName + 'Proc;');
+    Writeln(FOutFile, 'begin');
+    if TLexEnclosedBy(FEnclosedList[I]).MultiLine then
     begin
-      Writeln(OutFile, '  case fLine[Run] of');
-      Writeln(OutFile, '     #0: NullProc;');
-      Writeln(OutFile, '    #10: LFProc;');
-      Writeln(OutFile, '    #13: CRProc;');
-      Writeln(OutFile, '  else');
-      Writeln(OutFile, '    begin');
+      Writeln(FOutFile, '  case FLine[Run] of');
+      Writeln(FOutFile, '     #0: NullProc;');
+      Writeln(FOutFile, '    #10: LFProc;');
+      Writeln(FOutFile, '    #13: CRProc;');
+      Writeln(FOutFile, '  else');
+      Writeln(FOutFile, '    begin');
       sPrefix := '    ';
     end
     else
       sPrefix := '';
-    Writeln(OutFile, sPrefix, '  fTokenID := ' + IdentPre +
-      TLexEnclosedBy(EnclosedList[I]).TokenName + ';');
-    Writeln(OutFile, sPrefix, '  repeat');
-    Write(OutFile, sPrefix, '    if ');
-    for J := 1 to Length(TLexEnclosedBy(EnclosedList[I]).EndsWith) do
+    Writeln(FOutFile, sPrefix, '  FTokenId := ' + FIdentPre +
+      TLexEnclosedBy(FEnclosedList[I]).TokenName + ';');
+    Writeln(FOutFile, sPrefix, '  repeat');
+    Write(FOutFile, sPrefix, '    if ');
+    for J := 1 to Length(TLexEnclosedBy(FEnclosedList[I]).EndsWith) do
     begin
       if (J > 1) then
       begin
-        Writeln(OutFile, ' and');
-        Write(OutFile, sPrefix, '       ');
+        Writeln(FOutFile, ' and');
+        Write(FOutFile, sPrefix, '       ');
       end;
-      Write(OutFile, '(fLine[Run' + AddInt(J - 1) + '] = ''' +
-        StuffString(TLexEnclosedBy(EnclosedList[I]).EndsWith[J]) + ''')');
+      Write(FOutFile, '(FLine[Run' + AddInt(J - 1) + '] = ''' +
+        StuffString(TLexEnclosedBy(FEnclosedList[I]).EndsWith[J]) + ''')');
     end;
-    Writeln(OutFile, ' then');
-    Writeln(OutFile, sPrefix, '    begin');
-    Writeln(OutFile, sPrefix, '      Inc(Run, ' +
-      IntToStr(Length(TLexEnclosedBy(EnclosedList[I]).EndsWith)) + ');');
-    Writeln(OutFile, sPrefix, '      fRange := rsUnKnown;');
-    Writeln(OutFile, sPrefix, '      Break;');
-    Writeln(OutFile, sPrefix, '    end;');
-    Writeln(OutFile, sPrefix, '    if not IsLineEnd(Run) then');
-    Writeln(OutFile, sPrefix, '      Inc(Run);');
-    Writeln(OutFile, sPrefix, '  until IsLineEnd(Run);');
-    Writeln(OutFile, sPrefix, 'end;');
-    if TLexEnclosedBy(EnclosedList[I]).MultiLine then
+    Writeln(FOutFile, ' then');
+    Writeln(FOutFile, sPrefix, '    begin');
+    Writeln(FOutFile, sPrefix, '      Inc(Run, ' +
+      IntToStr(Length(TLexEnclosedBy(FEnclosedList[I]).EndsWith)) + ');');
+    Writeln(FOutFile, sPrefix, '      FRange := rsUnknown;');
+    Writeln(FOutFile, sPrefix, '      Break;');
+    Writeln(FOutFile, sPrefix, '    end;');
+    Writeln(FOutFile, sPrefix, '    if not IsLineEnd(Run) then');
+    Writeln(FOutFile, sPrefix, '      Inc(Run);');
+    Writeln(FOutFile, sPrefix, '  until IsLineEnd(Run);');
+    Writeln(FOutFile, sPrefix, 'end;');
+    if TLexEnclosedBy(FEnclosedList[I]).MultiLine then
     begin
-      Writeln(OutFile, '  end;');
-      Writeln(OutFile, 'end;');
+      Writeln(FOutFile, '  end;');
+      Writeln(FOutFile, 'end;');
     end;
-    Writeln(OutFile);
+    Writeln(FOutFile);
   end;
 
-  Writeln(OutFile, 'constructor ' + LexName + '.Create(AOwner: TComponent);');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  inherited Create(AOwner);');
-  Writeln(OutFile, '  fCaseSensitive := ' + BoolStrs[Sensitivity] + ';');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'constructor ' + FLexName + '.Create(AOwner: TComponent);');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  inherited Create(AOwner);');
+  Writeln(FOutFile, '  fCaseSensitive := ' + BoolStrs[FSensitivity] + ';');
+  Writeln(FOutFile);
   
   I := 0;
-  while I < IdentList.Count do
+  while I < FIdentList.Count do
   begin
-    AttrTemp := Copy(IdentList[I], Length(IdentPre) + 1, Length(IdentList[I]));
+    AttrTemp := Copy(FIdentList[I], Length(FIdentPre) + 1, Length(FIdentList[I]));
     if AttrTemp = 'Key' then
-      AttrName := CboAttrReservedWord.Text
+      AttrName := ComboBoxAttrReservedWord.Text
     else if AttrTemp = 'Identifier' then
-      AttrName := CboAttrIdentifier.Text
+      AttrName := ComboBoxAttrIdentifier.Text
     else
       AttrName := 'SYNS_Attr' + FilterInvalidChars(AttrTemp);
 
@@ -1546,364 +1535,364 @@ begin
     else
       FriendlyAttrName := 'Friendly' + AttrName;
 
-    if (IdentList[I] <> IdentPre + 'Null') and (IdentList[I] <> IdentPre +
+    if (FIdentList[I] <> FIdentPre + 'Null') and (FIdentList[I] <> FIdentPre +
       'Unknown') then
     begin
       AttrTemp := 'f' + AttrTemp + 'Attri';
-      Writeln(OutFile, '  ' + AttrTemp + ' := TSynHighLighterAttributes.Create('
+      Writeln(FOutFile, '  ' + AttrTemp + ' := TSynHighLighterAttributes.Create('
         + AttrName + ', ' + FriendlyAttrName + ');');
-      if Assigned(IdentList.Objects[i]) then
+      if Assigned(FIdentList.Objects[i]) then
       begin
-        DefAttri := TLexDefaultAttri(IdentList.Objects[i]);
+        DefAttri := TLexDefaultAttri(FIdentList.Objects[i]);
         if (DefAttri.Style <> '') then
-          Writeln(OutFile, '  ' + AttrTemp + '.Style := ' + DefAttri.Style +
+          Writeln(FOutFile, '  ' + AttrTemp + '.Style := ' + DefAttri.Style +
             ';');
         if (DefAttri.Foreground <> '') then
-          Writeln(OutFile, '  ' + AttrTemp + '.Foreground := ' +
+          Writeln(FOutFile, '  ' + AttrTemp + '.Foreground := ' +
             DefAttri.Foreground + ';');
         if (DefAttri.Background <> '') then
-          Writeln(OutFile, '  ' + AttrTemp + '.Background := ' +
+          Writeln(FOutFile, '  ' + AttrTemp + '.Background := ' +
             DefAttri.Background + ';');
       end
-      else if (IdentList[I] = IdentPre + 'Key') then
-        Writeln(OutFile, '  ' + AttrTemp + '.Style := [fsBold];')
-      else if (IdentList[I] = IdentPre + 'Comment') then
+      else if (FIdentList[I] = FIdentPre + 'Key') then
+        Writeln(FOutFile, '  ' + AttrTemp + '.Style := [fsBold];')
+      else if (FIdentList[I] = FIdentPre + 'Comment') then
       begin
-        Writeln(OutFile, '  ' + AttrTemp + '.Style := [fsItalic];');
-        Writeln(OutFile, '  ' + AttrTemp + '.Foreground := clNavy;');
+        Writeln(FOutFile, '  ' + AttrTemp + '.Style := [fsItalic];');
+        Writeln(FOutFile, '  ' + AttrTemp + '.Foreground := clNavy;');
       end;
-      Writeln(OutFile, '  AddAttribute(' + AttrTemp + ');');
-      Writeln(OutFile);
+      Writeln(FOutFile, '  AddAttribute(' + AttrTemp + ');');
+      Writeln(FOutFile);
     end;
     Inc(I);
   end;
 
-  Writeln(OutFile, '  SetAttributesOnChange(DefHighlightChange);');
-  Writeln(OutFile, '  InitIdent;');
+  Writeln(FOutFile, '  SetAttributesOnChange(DefHighlightChange);');
+  Writeln(FOutFile, '  InitIdent;');
 
-  Writeln(OutFile, '  fDefaultFilter := ' + GetFilterName + ';');
-  Writeln(OutFile, '  fRange := rsUnknown;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, '  fDefaultFilter := ' + GetFilterName + ';');
+  Writeln(FOutFile, '  FRange := rsUnknown;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
   I := 0;
-  while I < SetList.Count do
+  while I < FSetList.Count do
   begin
-    Writeln(OutFile, 'procedure ' + LexName + '.' +
-      TLexCharsets(SetList[I]).SetName + 'Proc;');
-    Writeln(OutFile, 'begin');
-    Write(OutFile, '  ' + TLexCharsets(SetList[I]).ProcData);
-    Writeln(OutFile, 'end;');
-    Writeln(OutFile);
+    Writeln(FOutFile, 'procedure ' + FLexName + '.' +
+      TLexCharsets(FSetList[I]).SetName + 'Proc;');
+    Writeln(FOutFile, 'begin');
+    Write(FOutFile, '  ' + TLexCharsets(FSetList[I]).ProcData);
+    Writeln(FOutFile, 'end;');
+    Writeln(FOutFile);
     inc(I);
   end;
 
-  Writeln(OutFile, 'procedure ' + LexName + '.UnknownProc;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  inc(Run);');
-  Writeln(OutFile, '  fTokenID := ' + IdentPre + 'Unknown;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'procedure ' + FLexName + '.UnknownProc;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  inc(Run);');
+  Writeln(FOutFile, '  FTokenId := ' + FIdentPre + 'Unknown;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'procedure ' + LexName + '.Next;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  fTokenPos := Run;');
-  if (EnclosedList.Count > 0) then
+  Writeln(FOutFile, 'procedure ' + FLexName + '.Next;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  fTokenPos := Run;');
+  if (FEnclosedList.Count > 0) then
   begin
-    Writeln(OutFile, '  case fRange of');
-    for I := 0 to (EnclosedList.Count - 1) do
+    Writeln(FOutFile, '  case FRange of');
+    for I := 0 to (FEnclosedList.Count - 1) do
     begin
-      if TLexEnclosedBy(EnclosedList[I]).MultiLine then
+      if TLexEnclosedBy(FEnclosedList[I]).MultiLine then
       begin
-        Writeln(OutFile, '    rs' + TLexEnclosedBy(EnclosedList[I]).ProcName +
-          ': ' + TLexEnclosedBy(EnclosedList[I]).ProcName + 'Proc;');
+        Writeln(FOutFile, '    rs' + TLexEnclosedBy(FEnclosedList[I]).ProcName +
+          ': ' + TLexEnclosedBy(FEnclosedList[I]).ProcName + 'Proc;');
       end;
     end;
-    Writeln(OutFile, '  else');
-    Writeln(OutFile, '    case fLine[Run] of');
-    Writeln(OutFile, '      #0: NullProc;');
-    Writeln(OutFile, '      #10: LFProc;');
-    Writeln(OutFile, '      #13: CRProc;');
+    Writeln(FOutFile, '  else');
+    Writeln(FOutFile, '    case FLine[Run] of');
+    Writeln(FOutFile, '      #0: NullProc;');
+    Writeln(FOutFile, '      #10: LFProc;');
+    Writeln(FOutFile, '      #13: CRProc;');
 
-    for I := 0 to (EnclosedList.Count - 1) do
+    for I := 0 to (FEnclosedList.Count - 1) do
     begin
-      if (TLexEnclosedBy(EnclosedList[I]).StartsWith <> '') then
+      if (TLexEnclosedBy(FEnclosedList[I]).StartsWith <> '') then
       begin
-        Writeln(OutFile, '      ''' +
-          StuffString(TLexEnclosedBy(EnclosedList[I]).StartsWith[1]) +
-          ''': ' + TLexEnclosedBy(EnclosedList[I]).ProcName + 'OpenProc;');
+        Writeln(FOutFile, '      ''' +
+          StuffString(TLexEnclosedBy(FEnclosedList[I]).StartsWith[1]) +
+          ''': ' + TLexEnclosedBy(FEnclosedList[I]).ProcName + 'OpenProc;');
       end;
     end;
-    if (IdentList.IndexOf(IdentPre + 'Space') >= 0) then
-      Writeln(OutFile, '      #1..#9, #11, #12, #14..#32: SpaceProc;');
+    if (FIdentList.IndexOf(FIdentPre + 'Space') >= 0) then
+      Writeln(FOutFile, '      #1..#9, #11, #12, #14..#32: SpaceProc;');
     I := 0;
-    while I < SetList.Count do
+    while I < FSetList.Count do
     begin
-      Writeln(OutFile, '      ' + TLexCharsets(SetList[I]).Charset +
-        ': ' + TLexCharsets(SetList[I]).SetName + 'Proc;');
+      Writeln(FOutFile, '      ' + TLexCharsets(FSetList[I]).Charset +
+        ': ' + TLexCharsets(FSetList[I]).SetName + 'Proc;');
       Inc(I);
     end;
 
-    Writeln(OutFile, '    else');
-    Writeln(OutFile, '      UnknownProc;');
-    Writeln(OutFile, '    end;');
-    Writeln(OutFile, '  end;');
+    Writeln(FOutFile, '    else');
+    Writeln(FOutFile, '      UnknownProc;');
+    Writeln(FOutFile, '    end;');
+    Writeln(FOutFile, '  end;');
   end
   else
   begin
-    Writeln(OutFile, '  case fLine[Run] of');
-    Writeln(OutFile, '    #0: NullProc;');
-    Writeln(OutFile, '    #10: LFProc;');
-    Writeln(OutFile, '    #13: CRProc;');
+    Writeln(FOutFile, '  case FLine[Run] of');
+    Writeln(FOutFile, '    #0: NullProc;');
+    Writeln(FOutFile, '    #10: LFProc;');
+    Writeln(FOutFile, '    #13: CRProc;');
 
-    if (IdentList.IndexOf(IdentPre + 'Space') >= 0) then
-      Writeln(OutFile, '    #1..#9, #11, #12, #14..#32: SpaceProc;');
+    if (FIdentList.IndexOf(FIdentPre + 'Space') >= 0) then
+      Writeln(FOutFile, '    #1..#9, #11, #12, #14..#32: SpaceProc;');
     I := 0;
-    while I < SetList.Count do
+    while I < FSetList.Count do
     begin
-      Writeln(OutFile, '    ' + TLexCharsets(SetList[I]).Charset +
-        ': ' + TLexCharsets(SetList[I]).SetName + 'Proc;');
+      Writeln(FOutFile, '    ' + TLexCharsets(FSetList[I]).Charset +
+        ': ' + TLexCharsets(FSetList[I]).SetName + 'Proc;');
       Inc(I);
     end;
 
-    Writeln(OutFile, '  else');
-    Writeln(OutFile, '    UnknownProc;');
-    Writeln(OutFile, '  end;');
+    Writeln(FOutFile, '  else');
+    Writeln(FOutFile, '    UnknownProc;');
+    Writeln(FOutFile, '  end;');
   end;
-  Writeln(OutFile, '  inherited;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, '  inherited;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName +
+  Writeln(FOutFile, 'function ' + FLexName +
     '.GetDefaultAttribute(Index: Integer): TSynHighLighterAttributes;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  case Index of');
-  if (IdentList.IndexOf(IdentPre + 'Comment') >= 0) then
-    Writeln(OutFile, '    SYN_ATTR_COMMENT: Result := fCommentAttri;');
-  if (IdentList.IndexOf(IdentPre + 'Identifier') >= 0) then
-    Writeln(OutFile, '    SYN_ATTR_IDENTIFIER: Result := fIdentifierAttri;');
-  if (IdentList.IndexOf(IdentPre + 'Key') >= 0) then
-    Writeln(OutFile, '    SYN_ATTR_KEYWORD: Result := fKeyAttri;');
-  if (IdentList.IndexOf(IdentPre + 'String') >= 0) then
-    Writeln(OutFile, '    SYN_ATTR_STRING: Result := fStringAttri;');
-  if (IdentList.IndexOf(IdentPre + 'Space') >= 0) then
-    Writeln(OutFile, '    SYN_ATTR_WHITESPACE: Result := fSpaceAttri;');
-  if (IdentList.IndexOf(IdentPre + 'Symbol') >= 0) then
-    Writeln(OutFile, '    SYN_ATTR_SYMBOL: Result := fSymbolAttri;');
-  Writeln(OutFile, '  else');
-  Writeln(OutFile, '    Result := nil;');
-  Writeln(OutFile, '  end;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  case Index of');
+  if (FIdentList.IndexOf(FIdentPre + 'Comment') >= 0) then
+    Writeln(FOutFile, '    SYN_ATTR_COMMENT: Result := FCommentAttri;');
+  if (FIdentList.IndexOf(FIdentPre + 'Identifier') >= 0) then
+    Writeln(FOutFile, '    SYN_ATTR_IDENTIFIER: Result := FIdentifierAttri;');
+  if (FIdentList.IndexOf(FIdentPre + 'Key') >= 0) then
+    Writeln(FOutFile, '    SYN_ATTR_KEYWORD: Result := FKeyAttri;');
+  if (FIdentList.IndexOf(FIdentPre + 'String') >= 0) then
+    Writeln(FOutFile, '    SYN_ATTR_STRING: Result := FStringAttri;');
+  if (FIdentList.IndexOf(FIdentPre + 'Space') >= 0) then
+    Writeln(FOutFile, '    SYN_ATTR_WHITESPACE: Result := FSpaceAttri;');
+  if (FIdentList.IndexOf(FIdentPre + 'Symbol') >= 0) then
+    Writeln(FOutFile, '    SYN_ATTR_SYMBOL: Result := FSymbolAttri;');
+  Writeln(FOutFile, '  else');
+  Writeln(FOutFile, '    Result := nil;');
+  Writeln(FOutFile, '  end;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.GetEol: Boolean;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := Run = fLineLen + 1;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'function ' + FLexName + '.GetEol: Boolean;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := Run = FLineLen + 1;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  if ChkGetKeyWords.Checked then
+  if CheckBoxGetKeyWords.Checked then
   begin
-    Writeln(OutFile, 'function ' + LexName + '.GetKeyWords(TokenKind: Integer): UnicodeString;');
-    Writeln(OutFile, 'begin');
+    Writeln(FOutFile, 'function ' + FLexName + '.GetKeyWords(TokenKind: Integer): UnicodeString;');
+    Writeln(FOutFile, 'begin');
     TempStringList := TStringList.Create;
     try
       TempStringList.Sorted := True;
-      for I := 0 to KeyList.Count - 1 do
-        TempStringList.Add(TLexKeys(KeyList[I]).KeyName);
+      for I := 0 to FKeyList.Count - 1 do
+        TempStringList.Add(TLexKeys(FKeyList[I]).KeyName);
       if TempStringList.Count > 0 then
       begin
-        Writeln(OutFile, '  Result := ');
+        Writeln(FOutFile, '  Result := ');
         for I := 0 to Trunc(Int(Length(TempStringList.CommaText) div 70)) - 1 do
         begin
           if I = 0 then
             LineLength := 69
           else
             LineLength := 70;
-          Writeln(OutFile, '    ' + #39 + Copy(TempStringList.CommaText,
+          Writeln(FOutFile, '    ' + #39 + Copy(TempStringList.CommaText,
             I * 70, LineLength) + #39 + #32 + #43);
         end;
         I := Trunc(Int(Length(TempStringList.CommaText) div 70));
-        Writeln(OutFile, '    ' + #39 + Copy(TempStringList.CommaText,
+        Writeln(FOutFile, '    ' + #39 + Copy(TempStringList.CommaText,
           I * 70, Length(TempStringList.CommaText)) + #39 + ';')
       end
       else
-        Writeln(OutFile, '  Result := ' + #39 + #39 + ';');
+        Writeln(FOutFile, '  Result := ' + #39 + #39 + ';');
     finally
       TempStringList.Free;
     end;
-    Writeln(OutFile, 'end;');
-    Writeln(OutFile);
+    Writeln(FOutFile, 'end;');
+    Writeln(FOutFile);
   end;
 
-  Writeln(OutFile, 'function ' + LexName + '.GetTokenID: TtkTokenKind;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := fTokenId;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'function ' + FLexName + '.GetTokenID: TtkTokenKind;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := FTokenId;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName +
+  Writeln(FOutFile, 'function ' + FLexName +
     '.GetTokenAttribute: TSynHighLighterAttributes;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  case GetTokenID of');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  case GetTokenID of');
 
   I := 0;
-  while I < IdentList.Count do
+  while I < FIdentList.Count do
   begin
-    if (IdentList[I] <> IdentPre + 'Null') and (IdentList[I] <> IdentPre +
+    if (FIdentList[I] <> FIdentPre + 'Null') and (FIdentList[I] <> FIdentPre +
       'Unknown') then
-      Writeln(OutFile, '    ' + IdentList[I] + ': Result := f' +
-        Copy(IdentList[I], Length(IdentPre) + 1, Length(IdentList[I])) +
+      Writeln(FOutFile, '    ' + FIdentList[I] + ': Result := F' +
+        Copy(FIdentList[I], Length(FIdentPre) + 1, Length(FIdentList[I])) +
         'Attri;');
     inc(I);
   end;
-  Writeln(OutFile, '    ' + IdentPre + 'Unknown: Result := f' +
-    CboUnknownTokenAttr.Text + 'Attri;');
+  Writeln(FOutFile, '    ' + FIdentPre + 'Unknown: Result := F' +
+    ComboBoxUnknownTokenAttr.Text + 'Attri;');
 
-  Writeln(OutFile, '  else');
-  Writeln(OutFile, '    Result := nil;');
-  Writeln(OutFile, '  end;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, '  else');
+  Writeln(FOutFile, '    Result := nil;');
+  Writeln(FOutFile, '  end;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.GetTokenKind: Integer;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := Ord(fTokenId);');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'function ' + FLexName + '.GetTokenKind: Integer;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := Ord(FTokenId);');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.IsIdentChar(AChar: WideChar): Boolean;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  case AChar of');
-  Writeln(OutFile, '    ' + IdentContent + ':');
-  Writeln(OutFile, '      Result := True;');
-  Writeln(OutFile, '    else');
-  Writeln(OutFile, '      Result := False;');
-  Writeln(OutFile, '  end;');
-  Writeln(OutFile, 'end;');  
-  Writeln(OutFile);
+  Writeln(FOutFile, 'function ' + FLexName + '.IsIdentChar(AChar: WideChar): Boolean;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  case AChar of');
+  Writeln(FOutFile, '    ' + FIdentContent + ':');
+  Writeln(FOutFile, '      Result := True;');
+  Writeln(FOutFile, '    else');
+  Writeln(FOutFile, '      Result := False;');
+  Writeln(FOutFile, '  end;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.GetSampleSource: UnicodeString;');
-  Writeln(OutFile, 'begin');
-  if (SampleSourceList.Count = 0) then
+  Writeln(FOutFile, 'function ' + FLexName + '.GetSampleSource: UnicodeString;');
+  Writeln(FOutFile, 'begin');
+  if (FSampleSourceList.Count = 0) then
   begin
-    Writeln(OutFile, '  Result := ');
-    Writeln(OutFile, '    ''Sample source for: ''#13#10 +');
-    Writeln(OutFile, '    ''' + EditDescription.Text + ''';');
+    Writeln(FOutFile, '  Result := ');
+    Writeln(FOutFile, '    ''Sample source for: ''#13#10 +');
+    Writeln(FOutFile, '    ''' + EditDescription.Text + ''';');
   end
   else
   begin
-    Writeln(OutFile, '  Result := ');
-    for i := 0 to SampleSourceList.Count - 1 do
+    Writeln(FOutFile, '  Result := ');
+    for i := 0 to FSampleSourceList.Count - 1 do
     begin
-      if (i > 0) and (i < SampleSourceList.Count - 1) then
-        Writeln(OutFile, '#13#10 +');
-      if (i < SampleSourceList.Count - 1) then
-        Write(OutFile, '    ');
-      if SampleSourceList[i] <> '' then
-        Write(OutFile, '''', StuffString(SampleSourceList[i]), '''');
+      if (i > 0) and (i < FSampleSourceList.Count - 1) then
+        Writeln(FOutFile, '#13#10 +');
+      if (i < FSampleSourceList.Count - 1) then
+        Write(FOutFile, '    ');
+      if FSampleSourceList[i] <> '' then
+        Write(FOutFile, '''', StuffString(FSampleSourceList[i]), '''');
     end;
-    Writeln(OutFile, ';');
+    Writeln(FOutFile, ';');
   end;
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.IsFilterStored: Boolean;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := fDefaultFilter <> ' + GetFilterName + ';');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'function ' + FLexName + '.IsFilterStored: Boolean;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := FDefaultFilter <> ' + GetFilterName + ';');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'class function ' + LexName + '.GetFriendlyLanguageName: UnicodeString;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := ' + GetFriendlyLangName + ';');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'class function ' + FLexName + '.GetFriendlyLanguageName: UnicodeString;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := ' + GetFriendlyLangName + ';');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'class function ' + LexName + '.GetLanguageName: string;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := ' + GetLangName + ';');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'class function ' + FLexName + '.GetLanguageName: string;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := ' + GetLangName + ';');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'procedure ' + LexName + '.ResetRange;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  fRange := rsUnknown;');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'procedure ' + FLexName + '.ResetRange;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  FRange := rsUnknown;');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'procedure ' + LexName + '.SetRange(Value: Pointer);');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  fRange := TRangeState(Value);');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'procedure ' + FLexName + '.SetRange(Value: Pointer);');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  FRange := TRangeState(Value);');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'function ' + LexName + '.GetRange: Pointer;');
-  Writeln(OutFile, 'begin');
-  Writeln(OutFile, '  Result := Pointer(fRange);');
-  Writeln(OutFile, 'end;');
-  Writeln(OutFile);
+  Writeln(FOutFile, 'function ' + FLexName + '.GetRange: Pointer;');
+  Writeln(FOutFile, 'begin');
+  Writeln(FOutFile, '  Result := Pointer(FRange);');
+  Writeln(FOutFile, 'end;');
+  Writeln(FOutFile);
 
-  Writeln(OutFile, 'initialization');
-  Writeln(OutFile, '{$IFNDEF SYN_CPPB_1}');
-  Writeln(OutFile, '  RegisterPlaceableHighlighter(' + LexName + ');');
-  Writeln(OutFile, '{$ENDIF}');
-  Writeln(OutFile, 'end.');
+  Writeln(FOutFile, 'initialization');
+  Writeln(FOutFile, '{$IFNDEF SYN_CPPB_1}');
+  Writeln(FOutFile, '  RegisterPlaceableHighlighter(' + FLexName + ');');
+  Writeln(FOutFile, '{$ENDIF}');
+  Writeln(FOutFile, 'end.');
 end;
 
-procedure TFrmMain.CboLangNameChange(Sender: TObject);
+procedure TFormMain.ComboBoxLangNameChange(Sender: TObject);
 begin
-  if (CboLangName.Text <> '') and (CboFilter.Text <> '') then
-    BtnStart.Enabled := True
+  if (ComboBoxLangName.Text <> '') and (ComboBoxFilter.Text <> '') then
+    ButtonStart.Enabled := True
   else
-    BtnStart.Enabled := False;
+    ButtonStart.Enabled := False;
 end;
 
-procedure TFrmMain.ListBoxFieldsClick(Sender: TObject);
+procedure TFormMain.ListBoxFieldsClick(Sender: TObject);
 begin
-  BtnDelete.Enabled := True;
+  ButtonDelete.Enabled := True;
 end;
 
-procedure TFrmMain.BtnAddClick(Sender: TObject);
+procedure TFormMain.ButtonAddClick(Sender: TObject);
 begin
   ListBoxFields.Items.Add(EditAddField.Text);
   EditAddField.Clear;
 end;
 
-procedure TFrmMain.BtnDeleteClick(Sender: TObject);
+procedure TFormMain.ButtonDeleteClick(Sender: TObject);
 begin
-  BtnDelete.Enabled := False;
+  ButtonDelete.Enabled := False;
   ListBoxFields.Items.Delete(ListBoxFields.ItemIndex);
 end;
 
-procedure TFrmMain.EditAddFieldChange(Sender: TObject);
+procedure TFormMain.EditAddFieldChange(Sender: TObject);
 begin
-  BtnAdd.Enabled := EditAddField.Text <> '';
+  ButtonAdd.Enabled := EditAddField.Text <> '';
 end;
 
-procedure TFrmMain.EditAddFieldKeyPress(Sender: TObject; var Key: Char);
+procedure TFormMain.EditAddFieldKeyPress(Sender: TObject; var Key: Char);
 begin
   if (Key = ';') or (Key = #32) then
     Key := #0;
 end;
 
-procedure TFrmMain.MnuExitClick(Sender: TObject);
+procedure TFormMain.MenuItemExitClick(Sender: TObject);
 begin
   Close;
 end;
 
-procedure TFrmMain.MnuOpenClick(Sender: TObject);
+procedure TFormMain.MenuItemOpenClick(Sender: TObject);
 begin
   WriteSettings;
   PerformFileOpen;
 end;
 
-procedure TFrmMain.FormClose(Sender: TObject; var Action: TCloseAction);
+procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   WriteSettings;
 end;
 
-function TFrmMain.KeywordsAreAllAlphaNumAndDifferent: Boolean;
+function TFormMain.KeywordsAreAllAlphaNumAndDifferent: Boolean;
 var
   i: Integer;
   KeyWordList: TStringList;
@@ -1916,8 +1905,8 @@ begin
     KeyWordList.Duplicates := dupError;
 
     try
-      for i := 0 to KeyList.Count - 1 do
-        KeyWordList.Add(TLexKeys(KeyList[i]).KeyName);
+      for i := 0 to FKeyList.Count - 1 do
+        KeyWordList.Add(TLexKeys(FKeyList[i]).KeyName);
     except
       Result := False;
       Exit;
@@ -1926,8 +1915,8 @@ begin
     KeyWordList.Free;
   end;
 
-  for i := 0 to KeyList.Count - 1 do
-    if not IsASCIIAlphaNum(TLexKeys(KeyList[i]).KeyName) then
+  for i := 0 to FKeyList.Count - 1 do
+    if not IsASCIIAlphaNum(TLexKeys(FKeyList[i]).KeyName) then
     begin
       Result := False;
       Exit;
@@ -1935,4 +1924,3 @@ begin
 end;
 
 end.
-

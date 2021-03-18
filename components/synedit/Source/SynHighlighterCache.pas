@@ -46,7 +46,7 @@ Thanks to Martin Waldenburg.
 
 unit SynHighlighterCache;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

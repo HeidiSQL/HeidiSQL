@@ -36,7 +36,7 @@ unit SizeGrip;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls;
+  Windows, Messages, SysUtils, Classes, Graphics, Controls, System.Types;
 
 type
   TSizeGripStyle = ( sgsClassic, sgsWinXP );

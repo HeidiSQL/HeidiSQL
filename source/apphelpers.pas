@@ -149,7 +149,7 @@ type
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
     asWrapLongLines, asCodeFolding, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
-    asMemoEditorWrap, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
+    asMemoEditorWrap, asMemoEditorHighlighter, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
     asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort, asLibrary, asAllProviders,
     asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
@@ -289,7 +289,6 @@ type
   function IsInt(Str: String): Boolean;
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
-  function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
   function fixNewlines(txt: String): String;
   function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
@@ -741,28 +740,6 @@ begin
     if Result = lbsMixed then
       break;
   until i > SeekSize;
-end;
-
-
-function CountLineBreaks(Text: String; LineBreak: TLineBreaks=lbsWindows): Cardinal;
-var
-  Offset: Integer;
-  BreakStr: String;
-begin
-  // Count number of given line breaks in text
-  Result := 0;
-  case LineBreak of
-    lbsWindows: BreakStr := CRLF;
-    lbsUnix: BreakStr := LB_UNIX;
-    lbsMac: BreakStr := LB_MAC;
-    lbsWide: BreakStr := LB_WIDE;
-    else Exit;
-  end;
-  Offset := PosEx(BreakStr, Text, 1);
-  while Offset <> 0 do begin
-    Inc(Result);
-    Offset := PosEx(BreakStr, Text, Offset + Length(BreakStr));
-  end;
 end;
 
 
@@ -3451,6 +3428,7 @@ begin
   InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      100);
   InitSetting(asMemoEditorMaximized,              'MemoEditorMaximized',                   0, False);
   InitSetting(asMemoEditorWrap,                   'MemoEditorWrap',                        0, False);
+  InitSetting(asMemoEditorHighlighter,            'MemoEditorHighlighter_%s',              0, False, 'General', True);
   InitSetting(asDelimiter,                        'Delimiter',                             0, False, ';');
   InitSetting(asSQLHelpWindowLeft,                'SQLHelp_WindowLeft',                    0);
   InitSetting(asSQLHelpWindowTop,                 'SQLHelp_WindowTop',                     0);
@@ -3828,6 +3806,8 @@ procedure TAppSettings.DeleteCurrentKey;
 var
   KeyPath: String;
 begin
+  // Delete the current registry key
+  // Note that, contrary to the documentation, .DeleteKey is done even when this key has subkeys
   PrepareRegistry;
   if FSessionPath.IsEmpty then
     raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])

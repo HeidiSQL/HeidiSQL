@@ -20,7 +20,7 @@ uses
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding;
+  SynEditCodeFolding, texteditor;
 
 
 type
@@ -2546,8 +2546,9 @@ var
   Tab: TQueryTab;
   ResultTab: TResultTab;
   i: Integer;
-  Keys: TStringList;
+  Keys, NamesInKey: TStringList;
   rx: TRegExpr;
+  ForceDeleteTableKey: Boolean;
 begin
   // Connection removed or added
   case Action of
@@ -2582,20 +2583,22 @@ begin
         end;
       end;
 
-      // Remove filters if unwanted
-      if not AppSettings.ReadBool(asReuseEditorConfiguration) then begin
-        AppSettings.SessionPath := Item.Parameters.SessionPath;
-        Keys := AppSettings.GetKeyNames;
-        rx := TRegExpr.Create;
-        rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
-        for i:=0 to Keys.Count-1 do begin
-          if rx.Exec(Keys[i]) then begin
-            AppSettings.SessionPath := Item.Parameters.SessionPath + '\' + Keys[i];
+      // Remove table keys if unwanted or empty
+      ForceDeleteTableKey := not AppSettings.ReadBool(asReuseEditorConfiguration);
+      AppSettings.SessionPath := Item.Parameters.SessionPath;
+      Keys := AppSettings.GetKeyNames;
+      rx := TRegExpr.Create;
+      rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
+      for i:=0 to Keys.Count-1 do begin
+        if rx.Exec(Keys[i]) then begin
+          AppSettings.SessionPath := Item.Parameters.SessionPath + '\' + Keys[i];
+          NamesInKey := AppSettings.GetValueNames;
+          if (NamesInKey.Count = 0) or ForceDeleteTableKey then begin
             AppSettings.DeleteCurrentKey;
           end;
         end;
-        rx.Free;
       end;
+      rx.Free;
 
       FreeAndNil(ActiveObjectEditor);
       RefreshHelperNode(TQueryTab.HelperNodeProfile);
@@ -2700,7 +2703,8 @@ begin
   // Ensure query grids are not overlapped by sql log
   for Tab in QueryTabs do begin
     // Decrease height of pnlMemo if grid has not enough height
-    Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
+    // Disabled for annoyance reasons, see #1113
+    // Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
     // Try again and resize SQLLog if required
     SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, spltTopBottom.MinSize);
   end;
@@ -6233,7 +6237,7 @@ begin
       end;
     end;
   end;
-  inDataTab := PageControlMain.ActivePage = tabData;
+  inDataTab := Grid = DataGrid;
   inDataOrQueryTab := inDataTab or QueryTabActive;
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
   inGrid := Assigned(Grid) and (ActiveControl = Grid);
@@ -11363,7 +11367,7 @@ begin
   QueryTab.pnlMemo.Parent := QueryTab.TabSheet;
   QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
   QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
-  QueryTab.pnlMemo.Height := pnlQueryMemo.Height;
+  QueryTab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
   QueryTab.pnlMemo.Constraints := pnlQueryMemo.Constraints;
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
@@ -11990,13 +11994,21 @@ begin
   end;
   if (not Assigned(Result)) and QueryTabActive then
     Result := ActiveQueryMemo;
+  if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
+    Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
+  end;
+
 end;
 
 
 function TMainForm.ActiveGrid: TVirtualStringTree;
 begin
+  // Return current data or query grid, if main form is active
   Result := nil;
-  if PageControlMain.ActivePage = tabData then Result := DataGrid
+  if Screen.ActiveForm <> Self then
+    Exit;
+  if PageControlMain.ActivePage = tabData then
+    Result := DataGrid
   else if (ActiveQueryTab <> nil) and (ActiveQueryTab.ActiveResultTab <> nil) then
     Result := ActiveQueryTab.ActiveResultTab.Grid;
 end;
@@ -13519,8 +13531,10 @@ var
   rx: TRegExpr;
   TextMatches: Boolean;
   PressedShortcut: TShortCut;
+  Act: TContainedAction;
 begin
   // Support for Ctrl+Backspace shortcut in edit + combobox controls
+  //LogSQL(msg.CharCode.ToString);
   Handled := False;
   if (Msg.CharCode = VK_BACK) and KeyPressed(VK_CONTROL) then begin
     SendingControl := Screen.ActiveControl;
@@ -13557,10 +13571,22 @@ begin
   end else begin
     // Listen to certain shortcut(s) in other forms than mainform, which do not listen to ActionList
     PressedShortcut := ShortCut(Msg.CharCode, KeyDataToShiftState(Msg.KeyData));
-    if PressedShortcut = actSynEditCompletionPropose.ShortCut then begin
-      actSynEditCompletionPropose.Execute;
-      Handled := True;
+    for Act in ActionList1 do begin
+      if (Act = actSynEditCompletionPropose)
+        or (Act = actQueryFind) // Support find/replace on grid text editor
+        or (Act = actQueryFindAgain)
+        or (Act = actQueryReplace)
+        then begin
+
+        if PressedShortcut = Act.ShortCut then begin
+          Act.Execute;
+          Handled := True;
+          Break;
+        end;
+
+      end;
     end;
+
   end;
 end;
 

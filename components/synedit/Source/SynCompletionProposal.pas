@@ -45,7 +45,7 @@ Known Issues:
 unit SynCompletionProposal;
 {$ENDIF}
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

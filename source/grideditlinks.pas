@@ -1203,12 +1203,13 @@ procedure TInplaceEditorLink.ButtonClick(Sender: TObject);
 begin
   if not FButton.Visible then Exit; // Button was invisible, but hotkey was pressed
   FTextEditor := TfrmTextEditor.Create(FTree);
-  FTextEditor.SetFont(FEdit.Font);
+  FTextEditor.SetFont(MainForm.SynMemoQuery.Font);
   FTextEditor.SetText(FEdit.Text);
   FTextEditor.SetTitleText(TitleText);
   FTextEditor.Modified := FEdit.Modified;
   FTextEditor.SetMaxLength(Self.FMaxLength);
-  FTextEditor.memoText.ReadOnly := not FAllowEdit;
+  FTextEditor.TableColumn := FTableColumn;
+  FTextEditor.MemoText.ReadOnly := not FAllowEdit;
   FTextEditor.ShowModal;
 end;
 

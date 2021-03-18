@@ -40,7 +40,7 @@ Known Issues:
 
 unit SynMemo;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 

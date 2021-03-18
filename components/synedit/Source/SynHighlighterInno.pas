@@ -45,7 +45,7 @@ and http://www.wintax.nl/isx/ for My Inno Setup Extensions.
 
 unit SynHighlighterInno;
 
-{$I SynEdit.Inc}
+{$I SynEdit.inc}
 
 interface
 
