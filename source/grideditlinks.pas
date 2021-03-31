@@ -1205,9 +1205,13 @@ begin
   FTextEditor := TfrmTextEditor.Create(FTree);
   FTextEditor.SetFont(MainForm.SynMemoQuery.Font);
   FTextEditor.SetText(FEdit.Text);
+  if FEdit.HandleAllocated then begin
+    FTextEditor.MemoText.SelStart := FEdit.SelStart;
+    FTextEditor.MemoText.SelLength := FEdit.SelLength;
+  end;
   FTextEditor.SetTitleText(TitleText);
   FTextEditor.Modified := FEdit.Modified;
-  FTextEditor.SetMaxLength(Self.FMaxLength);
+  FTextEditor.SetMaxLength(FMaxLength);
   FTextEditor.TableColumn := FTableColumn;
   FTextEditor.MemoText.ReadOnly := not FAllowEdit;
   FTextEditor.ShowModal;
