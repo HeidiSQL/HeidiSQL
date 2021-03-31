@@ -149,7 +149,7 @@ begin
     MaxLen := '?'
   else
     MaxLen := FormatNumber(FMaxLength);
-  CursorPos := MemoText.CaretY.ToString + ':' + MemoText.CaretX.ToString;
+  CursorPos := FormatNumber(MemoText.CaretY) + ':' + FormatNumber(MemoText.CaretX);
   lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(MemoText.GetTextLen), MaxLen, FormatNumber(MemoText.Lines.Count), CursorPos]);
 end;
 
