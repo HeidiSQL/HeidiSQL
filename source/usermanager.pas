@@ -959,6 +959,9 @@ begin
     Sender.Expanded[n] := n = Node;
     n := Sender.GetNextSibling(n);
   end;
+  // Init out-of-view children of expanded node, to keep checked state in sync.
+  // Note that ReinitChildren is limited to visible nodes only, which we don't want here.
+  Sender.InitRecursive(Node, 1, False);
 end;
 
 
