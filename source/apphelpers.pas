@@ -379,7 +379,7 @@ type
 var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
-  SystemImageList: TImageList;
+  SystemImageList: TImageList = nil;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
   ConfirmIcon: TIcon;
   NumberChars: TSysCharSet;
