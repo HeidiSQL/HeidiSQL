@@ -3020,7 +3020,9 @@ end;
 
 function TSQLSentence.GetSQL: String;
 begin
-  Result := Copy(FOwner.SQL, LeftOffset, RightOffset-LeftOffset);
+  // Result := Copy(FOwner.SQL, LeftOffset, RightOffset-LeftOffset);
+  // Probably faster than Copy():
+  SetString(Result, PChar(FOwner.SQL) +LeftOffset -1, RightOffset-LeftOffset);
 end;
 
 
