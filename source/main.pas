@@ -10265,6 +10265,8 @@ begin
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
+  Sender.FocusedNode := Node;
+  Sender.FocusedColumn := Column;
   TBaseGridEditorLink(EditLink).TableColumn := TblColumn;
 end;
 
