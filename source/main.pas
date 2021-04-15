@@ -75,16 +75,13 @@ type
       HelperNodeProfile = 5;
       HelperNodeBinding = 6;
     private
-      FMemo: TSynMemo;
       FMemoFilename: String;
       FQueryRunning: Boolean;
       FLastChange: TDateTime;
-      procedure SetMemo(Value: TSynMemo);
       procedure SetMemoFilename(Value: String);
       procedure SetQueryRunning(Value: Boolean);
       procedure TimerLastChangeOnTimer(Sender: TObject);
       procedure TimerStatusUpdateOnTimer(Sender: TObject);
-      procedure MemoOnChange(Sender: TObject);
       function GetBindParamsActivated: Boolean;
       procedure SetBindParamsActivated(Value: Boolean);
     public
@@ -93,6 +90,7 @@ type
       ExecutionThread: TQueryThread;
       CloseButton: TSpeedButton;
       pnlMemo: TPanel;
+      Memo: TSynMemo;
       pnlHelpers: TPanel;
       filterHelpers: TButtonedEdit;
       treeHelpers: TVirtualStringTree;
@@ -122,7 +120,6 @@ type
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
       procedure BackupUnsavedContent;
       property ActiveResultTab: TResultTab read GetActiveResultTab;
-      property Memo: TSynMemo read FMemo write SetMemo;
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
       function MemoBackupFilename: String;
       property QueryRunning: Boolean read FQueryRunning write SetQueryRunning;
@@ -822,7 +819,6 @@ type
       TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
     procedure KillProcess(Sender: TObject);
-    procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: String);
@@ -1137,6 +1133,7 @@ type
     procedure actConnectionPropertiesExecute(Sender: TObject);
     procedure actRenameQueryTabExecute(Sender: TObject);
     procedure menuRenameQueryTabClick(Sender: TObject);
+    procedure SynMemoQueryChange(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1333,6 +1330,7 @@ var
   SecondInstMsgId: UINT = 0;
   SysLanguage: String;
   MainFormCreated: Boolean = False;
+  MainFormAfterCreateDone: Boolean = False;
   PostponedLogItems: TDBLogItems;
 
 const
@@ -2284,6 +2282,8 @@ begin
         SetMainTab(Tab.TabSheet);
     end;
   end;
+
+  MainFormAfterCreateDone := True;
 end;
 
 
@@ -5993,7 +5993,7 @@ begin
     end else if IsQueryTab(tab.PageIndex, True) then begin
       ActiveQueryMemo.SetFocus;
       ActiveQueryMemo.WordWrap := actQueryWordWrap.Checked;
-      SynMemoQueryStatusChange(ActiveQueryMemo, []);
+      SynMemoQueryChange(ActiveQueryMemo);
     end;
   end;
 
@@ -6696,25 +6696,34 @@ begin
 end;
 
 
-procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
-    TSynStatusChanges);
+procedure TMainForm.SynMemoQueryChange(Sender: TObject);
 var
   Edit: TSynMemo;
+  Tab: TQueryTab;
 begin
-  // Crashed with scTopLine and an non-set ActiveQueryTab while resizing main window, so limit to modifications
-  if not (scModified in Changes) then
+  if not MainFormAfterCreateDone then
     Exit;
-  // Don't ask for saving empty contents. See issue #614
+
   Edit := Sender as TSynMemo;
+  Tab := ActiveQueryTab;
+
+  // Check if bind param detection is enabled for text size <1M
+  // Uncheck checkbox if it's bigger
+  // Code moved back from TQueryTab.MemoOnChange here
+  Tab.TimerLastChange.Enabled := False;
+  Tab.FLastChange := Now;
+  Tab.TimerLastChange.Enabled := True;
+
+  // Don't ask for saving empty contents. See issue #614
   if Edit.GetTextLen = 0 then begin
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
   end;
+
   // Update various controls
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
 end;
-
 
 
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
@@ -11392,13 +11401,13 @@ begin
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
+  QueryTab.Memo.OnChange := SynMemoQuery.OnChange;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
   QueryTab.Memo.OnKeyPress := SynMemoQuery.OnKeyPress;
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
-  QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
@@ -13919,15 +13928,6 @@ begin
 end;
 
 
-procedure TQueryTab.SetMemo(Value: TSynMemo);
-begin
-  // Apply existing SynMemo and its events (only OnChange yet).
-  // TODO: Move more Memo events from TMainForm.actNewQueryTabExecute here, and keep there procedures in TQueryTab.
-  FMemo := Value;
-  FMemo.OnChange := MemoOnChange;
-end;
-
-
 procedure TQueryTab.MemofileModifiedTimerNotify(Sender: TObject);
 var
   OldTopLine: Integer;
@@ -14127,16 +14127,6 @@ begin
   // Marker for query tab that it is currently executing and waiting for a query
   FQueryRunning := Value;
   TimerStatusUpdate.Enabled := Value;
-end;
-
-
-procedure TQueryTab.MemoOnChange(Sender: TObject);
-begin
-  // Check if bind param detection is enabled for text size <1M
-  // Uncheck checkbox if it's bigger
-  TimerLastChange.Enabled := False;
-  FLastChange := Now;
-  TimerLastChange.Enabled := True;
 end;
 
 
