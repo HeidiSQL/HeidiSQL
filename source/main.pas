@@ -5623,7 +5623,7 @@ end;
 procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
-  Select: String;
+  Select, FixedFilter: String;
   RefreshingData, IsKeyColumn: Boolean;
   i, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
   ColMaxLen, Offset: Int64;
@@ -5633,6 +5633,7 @@ var
   OldScrollOffset: TPoint;
   DBObj: TDBObject;
   rx: TRegExpr;
+  OldCursor: TBufferCoord;
 
   procedure InitColumn(idx: Integer; TblCol: TTableColumn);
   var
@@ -5746,7 +5747,12 @@ begin
       rx := TRegExpr.Create;
       rx.ModifierI := True;
       rx.Expression := '^\s*WHERE\s+';
-      SynMemoFilter.Text := rx.Replace(SynMemoFilter.Text, '');
+      FixedFilter := rx.Replace(SynMemoFilter.Text, '');
+      if FixedFilter <> SynMemoFilter.Text then begin
+        OldCursor := SynMemoFilter.CaretXY;
+        SynMemoFilter.Text := FixedFilter;
+        SynMemoFilter.CaretXY := OldCursor;
+      end;
       rx.Free;
       Select := Select + ' WHERE ' + SynMemoFilter.Text + CRLF;
       tbtnDataFilter.ImageIndex := 108;
