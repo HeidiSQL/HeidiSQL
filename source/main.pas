@@ -2732,6 +2732,9 @@ begin
   // Simulated link label, has non inherited blue font color
   lblExplainProcess.Font.Color := clBlue;
   lblExplainProcessAnalyzer.Font.Color := clBlue;
+
+  // Call once after all query tabs were created:
+  ValidateControls(Sender);
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
@@ -4283,6 +4286,7 @@ begin
   end;
 
   StoreLastSessions;
+  ValidateControls(Connection);
   ShowStatusMsg;
 end;
 
@@ -6297,6 +6301,12 @@ var
   cap: String;
   InQueryTab: Boolean;
 begin
+  // Enable/disable TActions, according to the current window/connection state
+
+  // Prevent superfluous calls while setting up query tabs
+  if not MainFormAfterCreateDone then
+    Exit;
+
   for Tab in QueryTabs do begin
     cap := Trim(Tab.TabSheet.Caption);
     if cap[Length(cap)] = '*' then
