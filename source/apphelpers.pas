@@ -3501,7 +3501,7 @@ begin
   InitSetting(asGridExportTerminator,             'GridExportTerminator',                  0, False, '\r\n');
   InitSetting(asGridExportNull,                   'GridExportNull',                        0, False, '\N');
   // Copy to clipboard defaults:
-  InitSetting(asGridExportClpColumnNames,         'GridExportClpColumnNames',              0, False);
+  InitSetting(asGridExportClpColumnNames,         'GridExportClpColumnNames',              0, True);
   InitSetting(asGridExportClpIncludeAutoInc,      'GridExportClpAutoInc',                  0, True);
   InitSetting(asGridExportClpRemoveLinebreaks,    'GridExportClpRemoveLinebreaks',         0, False);
   InitSetting(asGridExportClpSeparator,           'GridExportClpSeparator',                0, False, ';');
