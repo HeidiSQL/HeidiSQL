@@ -2166,6 +2166,9 @@ object MainForm: TMainForm
       object Uncomment2: TMenuItem
         Action = actToggleComment
       end
+      object menuEditorCommands: TMenuItem
+        Caption = 'Editor commands'
+      end
       object Folding1: TMenuItem
         Caption = 'Code folding'
         object Codefolding1: TMenuItem

@@ -20,7 +20,7 @@ uses
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding, texteditor;
+  SynEditCodeFolding, texteditor, System.Character;
 
 
 type
@@ -748,6 +748,7 @@ type
     DataGUIDlowercaseWobraces: TMenuItem;
     actCreateFunction: TAction;
     Storedfunction1: TMenuItem;
+    menuEditorCommands: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -758,6 +759,8 @@ type
     procedure AfterFormCreate;
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure AddEditorCommandMenu(const S: string);
+    procedure EditorCommandOnClick(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
     procedure actApplyFilterExecute(Sender: TObject);
@@ -1193,6 +1196,7 @@ type
     FFormatSettings: TFormatSettings;
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
+    FEditorCommandStrings: TStringList;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1784,11 +1788,13 @@ var
   ptrVerBuf: Pointer;
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
-  CopyAsMenu: TMenuItem;
+  CopyAsMenu, CommandMenu: TMenuItem;
   NTHandle: THandle;
   TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
   dti: TDBDatatypeCategoryIndex;
+  EditorCommand: TSynEditorCommand;
+  CmdCap: String;
 begin
   caption := APPNAME;
 
@@ -1915,6 +1921,30 @@ begin
     CopyAsMenu.Action := CopyAsAction;
     menuCopyAs.Add(CopyAsMenu);
   end;
+
+  FEditorCommandStrings := TStringList.Create;
+  SynEditKeyCmds.GetEditorCommandValues(AddEditorCommandMenu);
+  for i:=0 to FEditorCommandStrings.Count-1 do begin
+    EditorCommand := ConvertCodeStringToCommand(FEditorCommandStrings[i]);
+    CommandMenu := TMenuItem.Create(MainMenu1);
+    CmdCap := FEditorCommandStrings[i];
+    CmdCap := Copy(CmdCap, 3, Length(CmdCap)-2);
+    // Insert spaces before uppercase chars
+    for j:=Length(CmdCap) downto 1 do begin
+      if (j > 1) and IsUpper(CmdCap[j]) then
+        Insert(' ', CmdCap, j);
+    end;
+    CommandMenu.Caption := CmdCap;
+    for j:=0 to SynMemoQuery.Keystrokes.Count-1 do begin
+      if SynMemoQuery.Keystrokes[j].Command = EditorCommand then begin
+        CommandMenu.Caption := CommandMenu.Caption + '   (' + ShortCutToText(SynMemoQuery.Keystrokes[j].ShortCut) + ')';
+        Break;
+      end;
+    end;
+    CommandMenu.OnClick := EditorCommandOnClick;
+    menuEditorCommands.Add(CommandMenu);
+  end;
+
 
 
   Delimiter := AppSettings.ReadString(asDelimiter);
@@ -2735,6 +2765,25 @@ begin
 
   // Call once after all query tabs were created:
   ValidateControls(Sender);
+end;
+
+procedure TMainForm.AddEditorCommandMenu(const S: string);
+begin
+  FEditorCommandStrings.Add(S);
+end;
+
+procedure TMainForm.EditorCommandOnClick(Sender: TObject);
+var
+  EditorCommand: TSynEditorCommand;
+  Editor: TSynMemo;
+begin
+  EditorCommand := IndexToEditorCommand(TMenuItem(Sender).MenuIndex);
+  Editor := ActiveSynMemo(False);
+  if Assigned(Editor) then begin
+    Editor.BeginUndoBlock;
+    Editor.ExecuteCommand(EditorCommand, #0, nil);
+    Editor.EndUndoBlock;
+  end;
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
