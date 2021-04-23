@@ -385,7 +385,7 @@ object frmPreferences: TfrmPreferences
       object lblQueryHistoryKeepDays: TLabel
         Left = 438
         Top = 247
-        Width = 257
+        Width = 209
         Height = 13
         Caption = 'days to keep queries before removing them'
       end
@@ -908,7 +908,7 @@ object frmPreferences: TfrmPreferences
       end
       object lblLongSortRowNum: TLabel
         Left = 8
-        Top = 303
+        Top = 326
         Width = 127
         Height = 13
         Caption = 'Sort warning on grid rows:'
@@ -1059,12 +1059,12 @@ object frmPreferences: TfrmPreferences
       end
       object chkHintsOnResultTabs: TCheckBox
         Left = 220
-        Top = 277
+        Top = 300
         Width = 475
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Pop up SQL text over result tabs'
-        TabOrder = 17
+        TabOrder = 18
         OnClick = Modified
       end
       object cboxRowHighlightSameText: TColorBox
@@ -1087,21 +1087,30 @@ object frmPreferences: TfrmPreferences
       end
       object editLongSortRowNum: TEdit
         Left = 220
-        Top = 300
+        Top = 323
         Width = 145
         Height = 21
-        TabOrder = 18
+        TabOrder = 19
         Text = '0'
       end
       object updownLongSortRowNum: TUpDown
         Left = 365
-        Top = 300
+        Top = 323
         Width = 16
         Height = 21
         Associate = editLongSortRowNum
         Max = 2147483647
-        TabOrder = 19
+        TabOrder = 20
         OnChanging = anyUpDownLimitChanging
+      end
+      object chkLowercaseHex: TCheckBox
+        Left = 220
+        Top = 277
+        Width = 475
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Lowercase hexadecimal'
+        TabOrder = 17
       end
     end
     object tabDataEditors: TTabSheet

@@ -766,7 +766,7 @@ type
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
-      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
+      function HexValue(Column: Integer; IgnoreErrors: Boolean=False; Lowercase: Boolean=False): String; overload;
       function HexValue(BinValue: String): String; overload;
       function HexValue(var ByteData: TBytes): String; overload;
       function DataType(Column: Integer): TDBDataType;
@@ -7752,7 +7752,7 @@ begin
 end;
 
 
-function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
+function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False; Lowercase: Boolean=False): String;
 var
     baData: TBytes;
 begin
@@ -7762,6 +7762,8 @@ begin
     Result := HexValue(baData);
   end else
     Result := HexValue(Col(Column, IgnoreErrors));
+  if Lowercase then
+    Result := Result.ToLowerInvariant;
 end;
 
 
