@@ -644,14 +644,14 @@ begin
             Value := FileContent;
           end else begin
             Value := StringReplace(Value, '%filesize%', IntToStr(FileSize), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filename%', FConnection.EscapeString(ExtractFileName(FileInfo.Filename), False, False), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filepath%', FConnection.EscapeString(ExtractFilePath(FileInfo.Filename), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filename%', FConnection.EscapeString(ExtractFileName(FileInfo.Filename), False, baFalse), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filepath%', FConnection.EscapeString(ExtractFilePath(FileInfo.Filename), False, baFalse), [rfReplaceAll]);
             FileAge(FileInfo.Filename, FileDate);
             DecodeDate(FileDate, y, m, d);
             DecodeTime(FileDate, h, mi, s, ms);
-            Value := StringReplace(Value, '%filedate%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d', [y,m,d]), False, False), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filedatetime%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), False, False), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filetime%', FConnection.EscapeString(Format('%.2d:%.2d:%.2d', [h,mi,s]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filedate%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d', [y,m,d]), False, baFalse), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filedatetime%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), False, baFalse), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filetime%', FConnection.EscapeString(Format('%.2d:%.2d:%.2d', [h,mi,s]), False, baFalse), [rfReplaceAll]);
           end;
         end;
         sql := sql + Value + ', ';
