@@ -96,7 +96,7 @@ type
     private
       FConnection: TDBConnection;
     public
-      KeyName, OldKeyName, ReferenceTable, OnUpdate, OnDelete: String;
+      KeyName, OldKeyName, ReferenceDb, ReferenceTable, OnUpdate, OnDelete: String;
       Columns, ForeignColumns: TStringList;
       Modified, Added, KeyNameWasCustomized: Boolean;
       constructor Create(AOwner: TDBConnection);
@@ -5505,6 +5505,7 @@ begin
         Result.Add(ForeignKey);
         ForeignKey.KeyName := ForeignQuery.Col('CONSTRAINT_NAME');
         ForeignKey.OldKeyName := ForeignKey.KeyName;
+        ForeignKey.ReferenceDb := ForeignQuery.Col('UNIQUE_CONSTRAINT_SCHEMA');
         ForeignKey.ReferenceTable := ForeignQuery.Col('UNIQUE_CONSTRAINT_SCHEMA') +
           '.' + ForeignQuery.Col('REFERENCED_TABLE_NAME');
         ForeignKey.OnUpdate := ForeignQuery.Col('UPDATE_RULE');
@@ -5617,6 +5618,7 @@ begin
       Result.Add(ForeignKey);
       ForeignKey.KeyName := ForeignQuery.Col('constraint_name');
       ForeignKey.OldKeyName := ForeignKey.KeyName;
+      ForeignKey.ReferenceDb := ForeignQuery.Col('ref_schema');
       ForeignKey.ReferenceTable := ForeignQuery.Col('ref_schema')+'.'+ForeignQuery.Col('ref_table');
       ForeignKey.OnUpdate := ForeignQuery.Col('update_rule');
       ForeignKey.OnDelete := ForeignQuery.Col('delete_rule');
@@ -9562,6 +9564,7 @@ begin
     s := Source as TForeignKey;
     KeyName := s.KeyName;
     OldKeyName := s.OldKeyName;
+    ReferenceDb := s.ReferenceDb;
     ReferenceTable := s.ReferenceTable;
     OnUpdate := s.OnUpdate;
     OnDelete := s.OnDelete;
@@ -9577,6 +9580,7 @@ end;
 function TForeignKey.SQLCode(IncludeSymbolName: Boolean): String;
 var
   i: Integer;
+  TablePart: String;
 begin
   Result := '';
   // Symbol names are unique in a db. In order to autocreate a valid name we leave the constraint clause away.
@@ -9586,7 +9590,15 @@ begin
   for i:=0 to Columns.Count-1 do
     Result := Result + FConnection.QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + FConnection.QuoteIdent(ReferenceTable, True, '.') + ' (';
+  Result := Result + ') REFERENCES ';
+  if (not ReferenceDb.IsEmpty) and (ReferenceTable.StartsWith(ReferenceDb)) then begin
+    TablePart := ReferenceTable.Substring(Length(ReferenceDb));
+    Result := Result + FConnection.QuoteIdent(ReferenceDb) + '.' + FConnection.QuoteIdent(TablePart);
+  end
+  else begin
+    Result := Result + FConnection.QuoteIdent(ReferenceTable, True, '.');
+  end;
+  Result := Result  + ' (';
   for i:=0 to ForeignColumns.Count-1 do
     Result := Result + FConnection.QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);
