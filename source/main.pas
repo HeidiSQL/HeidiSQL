@@ -2694,9 +2694,9 @@ var
     Result := Max(0, Tab.spltQuery.MinSize - (Tab.TabSheet.Height - Tab.pnlMemo.Height - Tab.spltQuery.Height - Tab.tabsetQuery.Height));
   end;
 
-  function CalcPanelWidth(PreferredWidth, Percentage: Integer): Integer;
+  function CalcPanelWidth(MaxPixels, MaxPercentage: Integer): Integer;
   begin
-    Result := Round(Min(PreferredWidth, Width / 100 * Percentage));
+    Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
   // Exit early when user pressed "Cancel" on connection dialog
@@ -2708,10 +2708,10 @@ begin
 
   // Super intelligent calculation of status bar panel width
   w1 := CalcPanelWidth(110, 10);
-  w2 := CalcPanelWidth(160, 10);
+  w2 := CalcPanelWidth(240, 10);
   w3 := CalcPanelWidth(200, 15);
-  w4 := CalcPanelWidth(200, 15);
-  w5 := CalcPanelWidth(140, 10);
+  w4 := CalcPanelWidth(220, 15);
+  w5 := CalcPanelWidth(220, 10);
   w6 := CalcPanelWidth(300, 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
   StatusBar.Panels[0].Width := w0;
