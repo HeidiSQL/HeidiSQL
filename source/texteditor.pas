@@ -50,6 +50,15 @@ type
     TimerMemoChange: TTimer;
     comboHighlighter: TComboBox;
     MemoText: TSynMemo;
+    popupEditor: TPopupMenu;
+    Copy1: TMenuItem;
+    Paste1: TMenuItem;
+    Selectall1: TMenuItem;
+    Undo1: TMenuItem;
+    Findtext1: TMenuItem;
+    Findorreplaceagain1: TMenuItem;
+    Replacetext1: TMenuItem;
+    N1: TMenuItem;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);

@@ -154,6 +154,7 @@ object frmTextEditor: TfrmTextEditor
     Font.Height = -13
     Font.Name = 'Courier New'
     Font.Style = []
+    PopupMenu = popupEditor
     TabOrder = 1
     OnClick = MemoTextClick
     OnKeyDown = MemoTextKeyDown
@@ -221,5 +222,34 @@ object frmTextEditor: TfrmTextEditor
     OnTimer = TimerMemoChangeTimer
     Left = 120
     Top = 16
+  end
+  object popupEditor: TPopupMenu
+    Images = MainForm.VirtualImageListMain
+    Left = 240
+    Top = 16
+    object Selectall1: TMenuItem
+      Action = MainForm.actSelectAll
+    end
+    object Copy1: TMenuItem
+      Action = MainForm.actCopy
+    end
+    object Paste1: TMenuItem
+      Action = MainForm.actPaste
+    end
+    object Undo1: TMenuItem
+      Action = MainForm.actUndo
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Findtext1: TMenuItem
+      Action = MainForm.actQueryFind
+    end
+    object Findorreplaceagain1: TMenuItem
+      Action = MainForm.actQueryFindAgain
+    end
+    object Replacetext1: TMenuItem
+      Action = MainForm.actQueryReplace
+    end
   end
 end
