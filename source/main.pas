@@ -78,6 +78,7 @@ type
       FMemoFilename: String;
       FQueryRunning: Boolean;
       FLastChange: TDateTime;
+      FDirectoryWatchNotficationRunning: Boolean;
       procedure SetMemoFilename(Value: String);
       procedure SetQueryRunning(Value: Boolean);
       procedure TimerLastChangeOnTimer(Sender: TObject);
@@ -13957,6 +13958,11 @@ var
   IsCurrentFile: Boolean;
 begin
   // Notification about file changes in loaded file's directory
+
+  if FDirectoryWatchNotficationRunning then
+    Exit;
+  FDirectoryWatchNotficationRunning := True;
+
   IsCurrentFile := DirectoryWatch.Directory + FileName = MemoFilename;
   case Action of
     waRemoved:
@@ -13984,6 +13990,7 @@ begin
       end;
 
   end;
+  FDirectoryWatchNotficationRunning := False;
 end;
 
 
@@ -13993,6 +14000,9 @@ var
   OldCursor: TBufferCoord;
 begin
   (Sender as TTimer).Enabled := False;
+  if FDirectoryWatchNotficationRunning then
+    Exit;
+  FDirectoryWatchNotficationRunning := True;
   if MessageDialog(_('Reload file?'), f_('File was modified from outside: %s', [MemoFilename]), mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
     OldCursor := Memo.CaretXY;
     OldTopLine := Memo.TopLine;
@@ -14000,6 +14010,7 @@ begin
     Memo.CaretXY := OldCursor;
     Memo.TopLine := OldTopLine;
   end;
+  FDirectoryWatchNotficationRunning := False;
 end;
 
 
