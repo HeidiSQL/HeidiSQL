@@ -6905,6 +6905,7 @@ var
   Act: TAction;
   Item: TMenuItem;
   Conn: TDBConnection;
+  ShiftKeyPressed: Boolean;
 begin
   // Set filter for "where..."-clause
   if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
@@ -6912,6 +6913,7 @@ begin
 
   Filter := '';
   Conn := ActiveConnection;
+  ShiftKeyPressed := KeyPressed(VK_SHIFT);
 
   if Sender is TAction then begin
     // Normal case for most quick filters
@@ -6954,7 +6956,7 @@ begin
 
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
-    if KeyPressed(VK_SHIFT)
+    if ShiftKeyPressed
       and (Pos(Filter, SynMemoFilter.Text) = 0) and (Pos(SynMemoFilter.Text, Filter) = 0)
       and (not SynMemoFilter.Text.Trim.IsEmpty)
       then begin
