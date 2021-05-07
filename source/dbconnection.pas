@@ -3152,7 +3152,9 @@ begin
       end;
       // more results? -1 = no, >0 = error, 0 = yes (keep looping)
       Inc(FStatementNum);
+      TimerStart := GetTickCount;
       QueryStatus := FLib.mysql_next_result(FHandle);
+      Inc(FLastQueryDuration, GetTickCount - TimerStart);
       if QueryStatus = 0 then
         QueryResult := FLib.mysql_store_result(FHandle)
       else if QueryStatus > 0 then begin
