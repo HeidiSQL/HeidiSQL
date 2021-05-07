@@ -141,7 +141,7 @@ type
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
-    asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asHintsOnResultTabs, asHightlightSameTextBackground,
+    asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asLowercaseHex, asHintsOnResultTabs, asHightlightSameTextBackground,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asReuseEditorConfiguration,
@@ -379,7 +379,7 @@ type
 var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
-  SystemImageList: TImageList;
+  SystemImageList: TImageList = nil;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
   ConfirmIcon: TIcon;
   NumberChars: TSysCharSet;
@@ -3020,7 +3020,9 @@ end;
 
 function TSQLSentence.GetSQL: String;
 begin
-  Result := Copy(FOwner.SQL, LeftOffset, RightOffset-LeftOffset);
+  // Result := Copy(FOwner.SQL, LeftOffset, RightOffset-LeftOffset);
+  // Probably faster than Copy():
+  SetString(Result, PChar(FOwner.SQL) +LeftOffset -1, RightOffset-LeftOffset);
 end;
 
 
@@ -3388,6 +3390,7 @@ begin
   InitSetting(asDataFontName,                     'DataFontName',                          0, False, 'Tahoma');
   InitSetting(asDataFontSize,                     'DataFontSize',                          8);
   InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, True);
+  InitSetting(asLowercaseHex,                     'LowercaseHex',                          0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
   InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(clInfoBk));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
@@ -3499,7 +3502,7 @@ begin
   InitSetting(asGridExportTerminator,             'GridExportTerminator',                  0, False, '\r\n');
   InitSetting(asGridExportNull,                   'GridExportNull',                        0, False, '\N');
   // Copy to clipboard defaults:
-  InitSetting(asGridExportClpColumnNames,         'GridExportClpColumnNames',              0, False);
+  InitSetting(asGridExportClpColumnNames,         'GridExportClpColumnNames',              0, True);
   InitSetting(asGridExportClpIncludeAutoInc,      'GridExportClpAutoInc',                  0, True);
   InitSetting(asGridExportClpRemoveLinebreaks,    'GridExportClpRemoveLinebreaks',         0, False);
   InitSetting(asGridExportClpSeparator,           'GridExportClpSeparator',                0, False, ';');

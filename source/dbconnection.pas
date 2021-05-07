@@ -26,6 +26,7 @@ type
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
+  TBoolAuto = (baFalse, baTrue, baAuto);
 
   // Column object, many of them in a TObjectList
   TTableColumn = class(TPersistent)
@@ -95,7 +96,7 @@ type
     private
       FConnection: TDBConnection;
     public
-      KeyName, OldKeyName, ReferenceTable, OnUpdate, OnDelete: String;
+      KeyName, OldKeyName, ReferenceDb, ReferenceTable, OnUpdate, OnDelete: String;
       Columns, ForeignColumns: TStringList;
       Modified, Added, KeyNameWasCustomized: Boolean;
       constructor Create(AOwner: TDBConnection);
@@ -484,7 +485,7 @@ type
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
       procedure Log(Category: TDBLogCategory; Msg: String);
-      function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String;
+      function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: TBoolAuto=baTrue): String;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function QuotedDbAndTableName(DB, Obj: String): String;
@@ -766,7 +767,7 @@ type
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
-      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
+      function HexValue(Column: Integer; IgnoreErrors: Boolean=False; Lowercase: Boolean=False): String; overload;
       function HexValue(BinValue: String): String; overload;
       function HexValue(var ByteData: TBytes): String; overload;
       function DataType(Column: Integer): TDBDataType;
@@ -3151,7 +3152,9 @@ begin
       end;
       // more results? -1 = no, >0 = error, 0 = yes (keep looping)
       Inc(FStatementNum);
+      TimerStart := GetTickCount;
       QueryStatus := FLib.mysql_next_result(FHandle);
+      Inc(FLastQueryDuration, GetTickCount - TimerStart);
       if QueryStatus = 0 then
         QueryResult := FLib.mysql_store_result(FHandle)
       else if QueryStatus > 0 then begin
@@ -4361,7 +4364,7 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
+function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: TBoolAuto=baTrue): String;
 var
   c1, c2, c3, c4, EscChar: Char;
 begin
@@ -4427,7 +4430,9 @@ begin
 
   end;
 
-  if DoQuote then begin
+  if (DoQuote = baTrue)
+    or ((DoQuote = baAuto) and (not ExecRegExpr('^(0x[a-fA-F0-9]*|\d+)$', Result)))
+    then begin
     // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
   end;
@@ -5502,6 +5507,7 @@ begin
         Result.Add(ForeignKey);
         ForeignKey.KeyName := ForeignQuery.Col('CONSTRAINT_NAME');
         ForeignKey.OldKeyName := ForeignKey.KeyName;
+        ForeignKey.ReferenceDb := ForeignQuery.Col('UNIQUE_CONSTRAINT_SCHEMA');
         ForeignKey.ReferenceTable := ForeignQuery.Col('UNIQUE_CONSTRAINT_SCHEMA') +
           '.' + ForeignQuery.Col('REFERENCED_TABLE_NAME');
         ForeignKey.OnUpdate := ForeignQuery.Col('UPDATE_RULE');
@@ -5614,6 +5620,7 @@ begin
       Result.Add(ForeignKey);
       ForeignKey.KeyName := ForeignQuery.Col('constraint_name');
       ForeignKey.OldKeyName := ForeignKey.KeyName;
+      ForeignKey.ReferenceDb := ForeignQuery.Col('ref_schema');
       ForeignKey.ReferenceTable := ForeignQuery.Col('ref_schema')+'.'+ForeignQuery.Col('ref_table');
       ForeignKey.OnUpdate := ForeignQuery.Col('update_rule');
       ForeignKey.OnDelete := ForeignQuery.Col('delete_rule');
@@ -7752,7 +7759,7 @@ begin
 end;
 
 
-function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
+function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False; Lowercase: Boolean=False): String;
 var
     baData: TBytes;
 begin
@@ -7762,6 +7769,8 @@ begin
     Result := HexValue(baData);
   end else
     Result := HexValue(Col(Column, IgnoreErrors));
+  if Lowercase then
+    Result := Result.ToLowerInvariant;
 end;
 
 
@@ -9557,6 +9566,7 @@ begin
     s := Source as TForeignKey;
     KeyName := s.KeyName;
     OldKeyName := s.OldKeyName;
+    ReferenceDb := s.ReferenceDb;
     ReferenceTable := s.ReferenceTable;
     OnUpdate := s.OnUpdate;
     OnDelete := s.OnDelete;
@@ -9572,6 +9582,7 @@ end;
 function TForeignKey.SQLCode(IncludeSymbolName: Boolean): String;
 var
   i: Integer;
+  TablePart: String;
 begin
   Result := '';
   // Symbol names are unique in a db. In order to autocreate a valid name we leave the constraint clause away.
@@ -9581,7 +9592,15 @@ begin
   for i:=0 to Columns.Count-1 do
     Result := Result + FConnection.QuoteIdent(Columns[i]) + ', ';
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
-  Result := Result + ') REFERENCES ' + FConnection.QuoteIdent(ReferenceTable, True, '.') + ' (';
+  Result := Result + ') REFERENCES ';
+  if (not ReferenceDb.IsEmpty) and (ReferenceTable.StartsWith(ReferenceDb)) then begin
+    TablePart := ReferenceTable.Substring(Length(ReferenceDb));
+    Result := Result + FConnection.QuoteIdent(ReferenceDb) + '.' + FConnection.QuoteIdent(TablePart);
+  end
+  else begin
+    Result := Result + FConnection.QuoteIdent(ReferenceTable, True, '.');
+  end;
+  Result := Result  + ' (';
   for i:=0 to ForeignColumns.Count-1 do
     Result := Result + FConnection.QuoteIdent(ForeignColumns[i]) + ', ';
   if ForeignColumns.Count > 0 then Delete(Result, Length(Result)-1, 2);

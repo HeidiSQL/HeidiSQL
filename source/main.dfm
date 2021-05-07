@@ -1339,9 +1339,9 @@ object MainForm: TMainForm
               RightEdge = 0
               TabWidth = 3
               WantTabs = True
+              OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
-              OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
               OnScanForFoldRanges = SynMemoQueryScanForFoldRanges
               FontSmoothing = fsmNone
@@ -2165,6 +2165,9 @@ object MainForm: TMainForm
       end
       object Uncomment2: TMenuItem
         Action = actToggleComment
+      end
+      object menuEditorCommands: TMenuItem
+        Caption = 'Editor commands'
       end
       object Folding1: TMenuItem
         Caption = 'Code folding'

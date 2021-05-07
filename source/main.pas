@@ -20,7 +20,7 @@ uses
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding, texteditor;
+  SynEditCodeFolding, texteditor, System.Character;
 
 
 type
@@ -75,16 +75,14 @@ type
       HelperNodeProfile = 5;
       HelperNodeBinding = 6;
     private
-      FMemo: TSynMemo;
       FMemoFilename: String;
       FQueryRunning: Boolean;
       FLastChange: TDateTime;
-      procedure SetMemo(Value: TSynMemo);
+      FDirectoryWatchNotficationRunning: Boolean;
       procedure SetMemoFilename(Value: String);
       procedure SetQueryRunning(Value: Boolean);
       procedure TimerLastChangeOnTimer(Sender: TObject);
       procedure TimerStatusUpdateOnTimer(Sender: TObject);
-      procedure MemoOnChange(Sender: TObject);
       function GetBindParamsActivated: Boolean;
       procedure SetBindParamsActivated(Value: Boolean);
     public
@@ -93,6 +91,7 @@ type
       ExecutionThread: TQueryThread;
       CloseButton: TSpeedButton;
       pnlMemo: TPanel;
+      Memo: TSynMemo;
       pnlHelpers: TPanel;
       filterHelpers: TButtonedEdit;
       treeHelpers: TVirtualStringTree;
@@ -122,7 +121,6 @@ type
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
       procedure BackupUnsavedContent;
       property ActiveResultTab: TResultTab read GetActiveResultTab;
-      property Memo: TSynMemo read FMemo write SetMemo;
       property MemoFilename: String read FMemoFilename write SetMemoFilename;
       function MemoBackupFilename: String;
       property QueryRunning: Boolean read FQueryRunning write SetQueryRunning;
@@ -751,6 +749,7 @@ type
     DataGUIDlowercaseWobraces: TMenuItem;
     actCreateFunction: TAction;
     Storedfunction1: TMenuItem;
+    menuEditorCommands: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -761,6 +760,8 @@ type
     procedure AfterFormCreate;
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
+    procedure AddEditorCommandMenu(const S: string);
+    procedure EditorCommandOnClick(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
     procedure actApplyFilterExecute(Sender: TObject);
@@ -822,7 +823,6 @@ type
       TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
     procedure KillProcess(Sender: TObject);
-    procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure TimerHostUptimeTimer(Sender: TObject);
     procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
         Column: TColumnIndex; NewText: String);
@@ -1137,6 +1137,7 @@ type
     procedure actConnectionPropertiesExecute(Sender: TObject);
     procedure actRenameQueryTabExecute(Sender: TObject);
     procedure menuRenameQueryTabClick(Sender: TObject);
+    procedure SynMemoQueryChange(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1196,6 +1197,7 @@ type
     FFormatSettings: TFormatSettings;
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
+    FEditorCommandStrings: TStringList;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1333,6 +1335,7 @@ var
   SecondInstMsgId: UINT = 0;
   SysLanguage: String;
   MainFormCreated: Boolean = False;
+  MainFormAfterCreateDone: Boolean = False;
   PostponedLogItems: TDBLogItems;
 
 const
@@ -1786,11 +1789,13 @@ var
   ptrVerBuf: Pointer;
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
-  CopyAsMenu: TMenuItem;
+  CopyAsMenu, CommandMenu: TMenuItem;
   NTHandle: THandle;
   TZI: TTimeZoneInformation;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
   dti: TDBDatatypeCategoryIndex;
+  EditorCommand: TSynEditorCommand;
+  CmdCap: String;
 begin
   caption := APPNAME;
 
@@ -1917,6 +1922,30 @@ begin
     CopyAsMenu.Action := CopyAsAction;
     menuCopyAs.Add(CopyAsMenu);
   end;
+
+  FEditorCommandStrings := TStringList.Create;
+  SynEditKeyCmds.GetEditorCommandValues(AddEditorCommandMenu);
+  for i:=0 to FEditorCommandStrings.Count-1 do begin
+    EditorCommand := ConvertCodeStringToCommand(FEditorCommandStrings[i]);
+    CommandMenu := TMenuItem.Create(MainMenu1);
+    CmdCap := FEditorCommandStrings[i];
+    CmdCap := Copy(CmdCap, 3, Length(CmdCap)-2);
+    // Insert spaces before uppercase chars
+    for j:=Length(CmdCap) downto 1 do begin
+      if (j > 1) and IsUpper(CmdCap[j]) then
+        Insert(' ', CmdCap, j);
+    end;
+    CommandMenu.Caption := CmdCap;
+    for j:=0 to SynMemoQuery.Keystrokes.Count-1 do begin
+      if SynMemoQuery.Keystrokes[j].Command = EditorCommand then begin
+        CommandMenu.Caption := CommandMenu.Caption + '   (' + ShortCutToText(SynMemoQuery.Keystrokes[j].ShortCut) + ')';
+        Break;
+      end;
+    end;
+    CommandMenu.OnClick := EditorCommandOnClick;
+    menuEditorCommands.Add(CommandMenu);
+  end;
+
 
 
   Delimiter := AppSettings.ReadString(asDelimiter);
@@ -2284,6 +2313,8 @@ begin
         SetMainTab(Tab.TabSheet);
     end;
   end;
+
+  MainFormAfterCreateDone := True;
 end;
 
 
@@ -2664,9 +2695,9 @@ var
     Result := Max(0, Tab.spltQuery.MinSize - (Tab.TabSheet.Height - Tab.pnlMemo.Height - Tab.spltQuery.Height - Tab.tabsetQuery.Height));
   end;
 
-  function CalcPanelWidth(PreferredWidth, Percentage: Integer): Integer;
+  function CalcPanelWidth(MaxPixels, MaxPercentage: Integer): Integer;
   begin
-    Result := Round(Min(PreferredWidth, Width / 100 * Percentage));
+    Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
   // Exit early when user pressed "Cancel" on connection dialog
@@ -2678,10 +2709,10 @@ begin
 
   // Super intelligent calculation of status bar panel width
   w1 := CalcPanelWidth(110, 10);
-  w2 := CalcPanelWidth(160, 10);
+  w2 := CalcPanelWidth(240, 10);
   w3 := CalcPanelWidth(200, 15);
-  w4 := CalcPanelWidth(200, 15);
-  w5 := CalcPanelWidth(140, 10);
+  w4 := CalcPanelWidth(220, 15);
+  w5 := CalcPanelWidth(220, 10);
   w6 := CalcPanelWidth(300, 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
   StatusBar.Panels[0].Width := w0;
@@ -2732,6 +2763,28 @@ begin
   // Simulated link label, has non inherited blue font color
   lblExplainProcess.Font.Color := clBlue;
   lblExplainProcessAnalyzer.Font.Color := clBlue;
+
+  // Call once after all query tabs were created:
+  ValidateControls(Sender);
+end;
+
+procedure TMainForm.AddEditorCommandMenu(const S: string);
+begin
+  FEditorCommandStrings.Add(S);
+end;
+
+procedure TMainForm.EditorCommandOnClick(Sender: TObject);
+var
+  EditorCommand: TSynEditorCommand;
+  Editor: TSynMemo;
+begin
+  EditorCommand := IndexToEditorCommand(TMenuItem(Sender).MenuIndex);
+  Editor := ActiveSynMemo(False);
+  if Assigned(Editor) then begin
+    Editor.BeginUndoBlock;
+    Editor.ExecuteCommand(EditorCommand, #0, nil);
+    Editor.EndUndoBlock;
+  end;
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
@@ -4283,6 +4336,7 @@ begin
   end;
 
   StoreLastSessions;
+  ValidateControls(Connection);
   ShowStatusMsg;
 end;
 
@@ -5623,7 +5677,7 @@ end;
 procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
-  Select: String;
+  Select, FixedFilter: String;
   RefreshingData, IsKeyColumn: Boolean;
   i, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
   ColMaxLen, Offset: Int64;
@@ -5633,6 +5687,7 @@ var
   OldScrollOffset: TPoint;
   DBObj: TDBObject;
   rx: TRegExpr;
+  OldCursor: TBufferCoord;
 
   procedure InitColumn(idx: Integer; TblCol: TTableColumn);
   var
@@ -5746,7 +5801,12 @@ begin
       rx := TRegExpr.Create;
       rx.ModifierI := True;
       rx.Expression := '^\s*WHERE\s+';
-      SynMemoFilter.Text := rx.Replace(SynMemoFilter.Text, '');
+      FixedFilter := rx.Replace(SynMemoFilter.Text, '');
+      if FixedFilter <> SynMemoFilter.Text then begin
+        OldCursor := SynMemoFilter.CaretXY;
+        SynMemoFilter.Text := FixedFilter;
+        SynMemoFilter.CaretXY := OldCursor;
+      end;
       rx.Free;
       Select := Select + ' WHERE ' + SynMemoFilter.Text + CRLF;
       tbtnDataFilter.ImageIndex := 108;
@@ -5987,7 +6047,7 @@ begin
     end else if IsQueryTab(tab.PageIndex, True) then begin
       ActiveQueryMemo.SetFocus;
       ActiveQueryMemo.WordWrap := actQueryWordWrap.Checked;
-      SynMemoQueryStatusChange(ActiveQueryMemo, []);
+      SynMemoQueryChange(ActiveQueryMemo);
     end;
   end;
 
@@ -6291,6 +6351,12 @@ var
   cap: String;
   InQueryTab: Boolean;
 begin
+  // Enable/disable TActions, according to the current window/connection state
+
+  // Prevent superfluous calls while setting up query tabs
+  if not MainFormAfterCreateDone then
+    Exit;
+
   for Tab in QueryTabs do begin
     cap := Trim(Tab.TabSheet.Caption);
     if cap[Length(cap)] = '*' then
@@ -6690,25 +6756,34 @@ begin
 end;
 
 
-procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes:
-    TSynStatusChanges);
+procedure TMainForm.SynMemoQueryChange(Sender: TObject);
 var
   Edit: TSynMemo;
+  Tab: TQueryTab;
 begin
-  // Crashed with scTopLine and an non-set ActiveQueryTab while resizing main window, so limit to modifications
-  if not (scModified in Changes) then
+  if not MainFormAfterCreateDone then
     Exit;
-  // Don't ask for saving empty contents. See issue #614
+
   Edit := Sender as TSynMemo;
+  Tab := ActiveQueryTab;
+
+  // Check if bind param detection is enabled for text size <1M
+  // Uncheck checkbox if it's bigger
+  // Code moved back from TQueryTab.MemoOnChange here
+  Tab.TimerLastChange.Enabled := False;
+  Tab.FLastChange := Now;
+  Tab.TimerLastChange.Enabled := True;
+
+  // Don't ask for saving empty contents. See issue #614
   if Edit.GetTextLen = 0 then begin
     ActiveQueryTab.MemoFilename := '';
     ActiveQueryTab.Memo.Modified := False;
   end;
+
   // Update various controls
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
 end;
-
 
 
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
@@ -6830,6 +6905,7 @@ var
   Act: TAction;
   Item: TMenuItem;
   Conn: TDBConnection;
+  ShiftKeyPressed: Boolean;
 begin
   // Set filter for "where..."-clause
   if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
@@ -6837,6 +6913,7 @@ begin
 
   Filter := '';
   Conn := ActiveConnection;
+  ShiftKeyPressed := KeyPressed(VK_SHIFT);
 
   if Sender is TAction then begin
     // Normal case for most quick filters
@@ -6852,15 +6929,15 @@ begin
       Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
       if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
         if Act = actQuickFilterPrompt1 then
-          Filter := Col + ' = ''' + Val + ''''
+          Filter := Col + ' = ' + Conn.EscapeString(Val, False, baAuto)
         else if Act = actQuickFilterPrompt2 then
-          Filter := Col + ' != ''' + Val + ''''
+          Filter := Col + ' != ' + Conn.EscapeString(Val, False, baAuto)
         else if Act = actQuickFilterPrompt3 then
-          Filter := Col + ' > ''' + Val + ''''
+          Filter := Col + ' > ' + Conn.EscapeString(Val, False, baAuto)
         else if Act = actQuickFilterPrompt4 then
-          Filter := Col + ' < ''' + Val + ''''
+          Filter := Col + ' < ' + Conn.EscapeString(Val, False, baAuto)
         else if Act = actQuickFilterPrompt5 then
-          Filter := Conn.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Val + '%''']);
+          Filter := Conn.GetSQLSpecifity(spLikeCompare, [Col, Conn.EscapeString('%'+Val+'%', False, baAuto)]);
       end;
     end
     else begin
@@ -6879,7 +6956,7 @@ begin
 
     SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
-    if KeyPressed(VK_SHIFT)
+    if ShiftKeyPressed
       and (Pos(Filter, SynMemoFilter.Text) = 0) and (Pos(SynMemoFilter.Text, Filter) = 0)
       and (not SynMemoFilter.Text.Trim.IsEmpty)
       then begin
@@ -7419,19 +7496,19 @@ begin
       HasNotNullValue := True;
       Value := Grid.Text[Node, Grid.FocusedColumn];
       if IncludedValues.IndexOf(Value) = -1 then begin
-        actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Results.Connection.EscapeString(Value) + ', ';
-        actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Results.Connection.EscapeString(Value) + ', ';
+        actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Results.Connection.EscapeString(Value, False, baAuto) + ', ';
+        actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Results.Connection.EscapeString(Value, False, baAuto) + ', ';
         actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''' + Results.Connection.EscapeString(Value, True, baFalse) + '%''']) +
           ' OR ';
         actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '''']) +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, baFalse) + '''']) +
           ' OR ';
         actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, baFalse) + '%''']) +
           ' OR ';
-        actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + Results.Connection.EscapeString(Value) + ' OR ';
-        actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + Results.Connection.EscapeString(Value) + ' OR ';
+        actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + Results.Connection.EscapeString(Value, False, baAuto) + ' OR ';
+        actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + Results.Connection.EscapeString(Value, False, baAuto) + ' OR ';
         IncludedValues.Add(Value);
       end;
     end;
@@ -7489,15 +7566,15 @@ begin
   Value := Trim(Clipboard.AsText);
   if Length(Value) < SIZE_KB then begin
     actQuickFilterClipboard1.Enabled := true;
-    actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value, False, baAuto);
     actQuickFilterClipboard2.Enabled := true;
-    actQuickFilterClipboard2.Hint := Col + ' != ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard2.Hint := Col + ' != ' + Results.Connection.EscapeString(Value, False, baAuto);
     actQuickFilterClipboard3.Enabled := true;
-    actQuickFilterClipboard3.Hint := Col + ' > ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard3.Hint := Col + ' > ' + Results.Connection.EscapeString(Value, False, baAuto);
     actQuickFilterClipboard4.Enabled := true;
-    actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value);
+    actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value, False, baAuto);
     actQuickFilterClipboard5.Enabled := true;
-    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']);
+    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, baFalse) + '%''']);
     actQuickFilterClipboard6.Enabled := true;
     actQuickFilterClipboard6.Hint := Col + ' IN (' + Value + ')';
   end else begin
@@ -7584,7 +7661,7 @@ begin
       if Data.IsNull(ColName) then
         Item.Hint := Conn.QuoteIdent(ColName)+' IS NULL'
       else if ColType.Category in [dtcBinary, dtcSpatial] then
-        Item.Hint := Conn.QuoteIdent(ColName)+'='+Data.HexValue(0)
+        Item.Hint := Conn.QuoteIdent(ColName)+'='+Data.HexValue(0, False, AppSettings.ReadBool(asLowercaseHex))
       else
         Item.Hint := Conn.QuoteIdent(ColName)+'='+Conn.EscapeString(Data.Col(ColName));
       Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
@@ -9622,7 +9699,7 @@ begin
     Conditions := TStringList.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       // The normal case: do a LIKE comparison
-      Condition := '''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
+      Condition := '''%' + Conn.EscapeString(ed.Text, True, baFalse)+'%''';
       Condition := Conn.GetSQLSpecifity(spLikeCompare, [SelectedTableColumns[i].CastAsText, Condition]);
       if not SelectedTableColumns[i].DataType.ValueMustMatch.IsEmpty then begin
         // Use an exact comparison for some PostgreSQL data types to overcome SQL errors, e.g. UUID, INT etc.
@@ -9761,7 +9838,7 @@ begin
         if actBlobAsText.Checked then
           CellText := Results.Col(Column)
         else
-          CellText := Results.HexValue(Column);
+          CellText := Results.HexValue(Column, False, AppSettings.ReadBool(asLowercaseHex));
       end;
       else begin
         CellText := Results.Col(Column);
@@ -10265,6 +10342,8 @@ begin
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
+  Sender.FocusedNode := Node;
+  Sender.FocusedColumn := Column;
   TBaseGridEditorLink(EditLink).TableColumn := TblColumn;
 end;
 
@@ -11384,13 +11463,13 @@ begin
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
+  QueryTab.Memo.OnChange := SynMemoQuery.OnChange;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
   QueryTab.Memo.OnKeyPress := SynMemoQuery.OnKeyPress;
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
-  QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
@@ -13652,7 +13731,7 @@ begin
     Editor.SelText := ImplodeStr(CRLF, Sel);
   end;
   if Assigned(Editor.OnChange) then
-    Editor.OnChange(Sender);
+    Editor.OnChange(Editor);
 end;
 
 
@@ -13881,6 +13960,11 @@ var
   IsCurrentFile: Boolean;
 begin
   // Notification about file changes in loaded file's directory
+
+  if FDirectoryWatchNotficationRunning then
+    Exit;
+  FDirectoryWatchNotficationRunning := True;
+
   IsCurrentFile := DirectoryWatch.Directory + FileName = MemoFilename;
   case Action of
     waRemoved:
@@ -13908,15 +13992,7 @@ begin
       end;
 
   end;
-end;
-
-
-procedure TQueryTab.SetMemo(Value: TSynMemo);
-begin
-  // Apply existing SynMemo and its events (only OnChange yet).
-  // TODO: Move more Memo events from TMainForm.actNewQueryTabExecute here, and keep there procedures in TQueryTab.
-  FMemo := Value;
-  FMemo.OnChange := MemoOnChange;
+  FDirectoryWatchNotficationRunning := False;
 end;
 
 
@@ -13926,6 +14002,9 @@ var
   OldCursor: TBufferCoord;
 begin
   (Sender as TTimer).Enabled := False;
+  if FDirectoryWatchNotficationRunning then
+    Exit;
+  FDirectoryWatchNotficationRunning := True;
   if MessageDialog(_('Reload file?'), f_('File was modified from outside: %s', [MemoFilename]), mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
     OldCursor := Memo.CaretXY;
     OldTopLine := Memo.TopLine;
@@ -13933,6 +14012,7 @@ begin
     Memo.CaretXY := OldCursor;
     Memo.TopLine := OldTopLine;
   end;
+  FDirectoryWatchNotficationRunning := False;
 end;
 
 
@@ -14119,16 +14199,6 @@ begin
   // Marker for query tab that it is currently executing and waiting for a query
   FQueryRunning := Value;
   TimerStatusUpdate.Enabled := Value;
-end;
-
-
-procedure TQueryTab.MemoOnChange(Sender: TObject);
-begin
-  // Check if bind param detection is enabled for text size <1M
-  // Uncheck checkbox if it's bigger
-  TimerLastChange.Enabled := False;
-  FLastChange := Now;
-  TimerLastChange.Enabled := True;
 end;
 
 
