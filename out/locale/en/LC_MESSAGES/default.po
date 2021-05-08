@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-04-23 15:44+0200\n"
+"PO-Revision-Date: 2021-05-08 09:23+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.2\n"
+"X-Generator: Poedit 2.4.3\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -5417,8 +5417,8 @@ msgid "Released: %s"
 msgstr "Released: %s"
 
 #: updatecheck.pas:152
-msgid "Download version %s"
-msgstr "Download version %s"
+msgid "Download version %s (%s)"
+msgstr "Download version %s (%s)"
 
 #: updatecheck.pas:168
 msgid "Revision %d (yours: %d)"

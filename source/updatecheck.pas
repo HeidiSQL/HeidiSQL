@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
-  apphelpers, gnugettext, ExtCtrls, extra_controls;
+  apphelpers, gnugettext, ExtCtrls, extra_controls, System.StrUtils;
 
 type
   TfrmUpdateCheck = class(TExtForm)
@@ -110,7 +110,7 @@ var
   CheckfileDownload: THttpDownLoad;
   CheckFilename: String;
   Ini: TIniFile;
-  ReleaseVersion: String;
+  ReleaseVersion, ReleasePackage: String;
   ReleaseRevision: Integer;
   Note: String;
   Compiled: TDateTime;
@@ -147,12 +147,13 @@ begin
     ReleaseVersion := Ini.ReadString(INISECT_RELEASE, 'Version', 'unknown');
     ReleaseRevision := Ini.ReadInteger(INISECT_RELEASE, 'Revision', 0);
     ReleaseURL := Ini.ReadString(INISECT_RELEASE, 'URL', '');
+    ReleasePackage := IfThen(AppSettings.PortableMode, 'portable', 'installer');
     memoRelease.Lines.Add(f_('Version %s (yours: %s)', [ReleaseVersion, Mainform.AppVersion]));
     memoRelease.Lines.Add(f_('Released: %s', [Ini.ReadString(INISECT_RELEASE, 'Date', '')]));
     Note := Ini.ReadString(INISECT_RELEASE, 'Note', '');
     if Note <> '' then
       memoRelease.Lines.Add(_('Notes') + ': ' + Note);
-    btnRelease.Caption := f_('Download version %s', [ReleaseVersion]);
+    btnRelease.Caption := f_('Download version %s (%s)', [ReleaseVersion, ReleasePackage]);
     // Enable the download button if the current version is outdated
     groupRelease.Enabled := ReleaseRevision > Mainform.AppVerRevision;
     btnRelease.Enabled := groupRelease.Enabled;
@@ -187,11 +188,22 @@ end;
 
 
 {**
-  Download release installer via web browser
+  Download release package via web browser
 }
 procedure TfrmUpdateCheck.btnReleaseClick(Sender: TObject);
+var
+  DownloadParam: String;
 begin
-  ShellExec(APPDOMAIN+'download.php?download=installer');
+  if AppSettings.PortableMode then begin
+    if GetExecutableBits = 64 then
+      DownloadParam := 'portable-64'
+    else
+      DownloadParam := 'portable';
+  end else begin
+    DownloadParam := 'installer';
+  end;
+
+  ShellExec(APPDOMAIN+'download.php?download='+DownloadParam);
 end;
 
 
