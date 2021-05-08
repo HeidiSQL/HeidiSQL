@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-05-08 09:23+0200\n"
+"PO-Revision-Date: 2021-05-08 17:18+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6672,3 +6672,9 @@ msgstr "Editor commands"
 
 msgid "Lowercase hexadecimal"
 msgstr "Lowercase hexadecimal"
+
+msgid "Update instructions"
+msgstr "Update instructions"
+
+msgid "Download the portable package and extract it in %s"
+msgstr "Download the portable package and extract it in %s"

@@ -2196,7 +2196,7 @@ begin
         frm.ReadCheckFile;
         // Show the dialog if release is available, or - when wanted - build checks are activated
         if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
-          or frm.btnRelease.Enabled then begin
+          or frm.LinkLabelRelease.Enabled then begin
           frm.ShowModal;
         end;
       except

@@ -2287,7 +2287,7 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
-    rx.Expression := 'https?://\S+';
+    rx.Expression := '(https?://|[A-Z]\:\\)\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
