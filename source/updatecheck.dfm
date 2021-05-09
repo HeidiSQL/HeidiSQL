@@ -1207,9 +1207,20 @@ object frmUpdateCheck: TfrmUpdateCheck
       Cursor = crHandPoint
       Anchors = [akLeft, akRight, akBottom]
       Caption = 'Download new release'
+      PopupMenu = popupDownloadRelease
       TabOrder = 1
       UseVisualStyle = True
       OnLinkClick = LinkLabelReleaseLinkClick
+    end
+  end
+  object popupDownloadRelease: TPopupMenu
+    Images = MainForm.VirtualImageListMain
+    Left = 32
+    Top = 116
+    object CopydownloadURL1: TMenuItem
+      Caption = 'Copy to clipboard'
+      ImageIndex = 3
+      OnClick = CopydownloadURL1Click
     end
   end
 end
