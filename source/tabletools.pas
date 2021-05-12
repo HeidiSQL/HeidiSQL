@@ -1607,6 +1607,8 @@ begin
             Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 );
+            if ToServer then
+              Struc := TSqlTranspiler.CreateTable(Struc, DBObj.Connection, FTargetConnection);
           end;
 
           lntView: begin

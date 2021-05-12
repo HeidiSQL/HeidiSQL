@@ -138,6 +138,10 @@ type
     procedure LogFromThread(Msg: String; Category: TDBLogCategory);
   end;
 
+  TSqlTranspiler = class(TObject)
+    class function CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
+  end;
+
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
@@ -3304,6 +3308,21 @@ begin
   I := IndexOfName(Name);
   if I < 0 then I := Add('');
   Put(I, Name + NameValueSeparator + Value);
+end;
+
+
+{ TSqlTranspiler }
+
+class function TSqlTranspiler.CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
+begin
+  Result := SQL;
+
+  if SourceDb.Parameters.IsMySQL(False) and TargetDb.Parameters.IsMariaDB then begin
+    // Remove COLLATE clause from virtual column definition:
+    // `tax_status` varchar(255) COLLATE utf8mb4_unicode_ci GENERATED ALWAYS AS (json_unquote(json_extract(`price`,'$.taxStatus'))) VIRTUAL
+    Result := ReplaceRegExpr('\sCOLLATE\s\w+(\s+GENERATED\s)', Result, '$1', [rroModifierI, rroUseSubstitution]);
+  end;
+
 end;
 
 
