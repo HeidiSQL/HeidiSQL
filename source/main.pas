@@ -7661,7 +7661,7 @@ begin
       if Data.IsNull(ColName) then
         Item.Hint := Conn.QuoteIdent(ColName)+' IS NULL'
       else if ColType.Category in [dtcBinary, dtcSpatial] then
-        Item.Hint := Conn.QuoteIdent(ColName)+'='+Data.HexValue(0, False, AppSettings.ReadBool(asLowercaseHex))
+        Item.Hint := Conn.QuoteIdent(ColName)+'='+Data.HexValue(0, False)
       else
         Item.Hint := Conn.QuoteIdent(ColName)+'='+Conn.EscapeString(Data.Col(ColName));
       Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
@@ -9838,7 +9838,7 @@ begin
         if actBlobAsText.Checked then
           CellText := Results.Col(Column)
         else
-          CellText := Results.HexValue(Column, False, AppSettings.ReadBool(asLowercaseHex));
+          CellText := Results.HexValue(Column, False);
       end;
       else begin
         CellText := Results.Col(Column);
