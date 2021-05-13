@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
   ExtCtrls, SynMemo, SynEditTypes, gnugettext, VirtualTrees, SynRegExpr,
   SynEditRegexSearch, SynEditMiscClasses, SynEditSearch, extra_controls,
-  Vcl.Menus;
+  Vcl.Menus, texteditor;
 
 type
   TfrmSearchReplace = class(TExtForm)
@@ -110,48 +110,59 @@ end;
 
 procedure TfrmSearchReplace.FormShow(Sender: TObject);
 var
-  SearchText, ObjName: String;
-  _Editor: TSynMemo;
-  _Grid: TVirtualStringTree;
-  IsQueryTab: Boolean;
+  SearchText, ItemLabel: String;
+  QueryMemo, AnySynMemo, UsedSynMemo: TSynMemo;
+  ResultGrid: TVirtualStringTree;
+  QueryTabOpen: Boolean;
 begin
   // Populate "Search in" pulldown with grid and editor
-  _Editor := MainForm.ActiveSynMemo(False);
-  _Grid := MainForm.ActiveGrid;
   comboSearchIn.Items.Clear;
-  IsQueryTab := MainForm.IsQueryTab(MainForm.PageControlMain.ActivePageIndex, True);
+  QueryTabOpen := MainForm.IsQueryTab(MainForm.PageControlMain.ActivePageIndex, True);
   SearchText := '';
 
-  if Assigned(_Editor) then begin
-    ObjName := _('Editor');
-    if IsQueryTab then
-      ObjName := ObjName + ': ' + MainForm.ActiveQueryTab.TabSheet.Caption;
-    comboSearchIn.Items.AddObject(ObjName, _Editor);
-    if _Editor.Focused then
-      comboSearchIn.ItemIndex := comboSearchIn.Items.Count-1;
-    if _Editor.SelAvail then
-      SearchText := _Editor.SelText
+  QueryMemo := MainForm.ActiveQueryMemo;
+  AnySynMemo := MainForm.ActiveSynMemo(True);
+  if Assigned(AnySynMemo) and (GetParentForm(AnySynMemo) is TfrmTextEditor) then begin
+    // Support text editor only, read-only or not. Ignore all other memos.
+    UsedSynMemo := AnySynMemo;
+  end
+  else begin
+    UsedSynMemo := QueryMemo;
+  end;
+  if Assigned(UsedSynMemo) then begin
+    if UsedSynMemo = QueryMemo then
+      ItemLabel := _('SQL editor') + ': ' + MainForm.ActiveQueryTab.TabSheet.Caption
     else
-      SearchText := _Editor.WordAtCursor;
-  end;
-
-  if Assigned(_Grid) then begin
-    ObjName := _('Data grid');
-    if IsQueryTab then
-      ObjName := _('Result grid')+': '+MainForm.ActiveQueryTab.tabsetQuery.Tabs[MainForm.ActiveQueryTab.tabsetQuery.TabIndex];
-    comboSearchIn.Items.AddObject(ObjName, _Grid);
-    if _Grid.Focused then
+      ItemLabel := GetParentForm(UsedSynMemo).Caption;
+    comboSearchIn.Items.AddObject(ItemLabel, UsedSynMemo);
+    if UsedSynMemo.Focused then
       comboSearchIn.ItemIndex := comboSearchIn.Items.Count-1;
-    if Assigned(_Grid.FocusedNode) then
-      SearchText := _Grid.Text[_Grid.FocusedNode, _Grid.FocusedColumn];
+    if UsedSynMemo.SelAvail then
+      SearchText := UsedSynMemo.SelText
+    else
+      SearchText := UsedSynMemo.WordAtCursor;
   end;
 
-  if (comboSearchIn.ItemIndex = -1) and (comboSearchIn.Items.Count > 0) then
+  ResultGrid := MainForm.ActiveGrid;
+  if Assigned(ResultGrid) then begin
+    ItemLabel := _('Data grid');
+    if QueryTabOpen then
+      ItemLabel := _('Result grid')+': '+MainForm.ActiveQueryTab.tabsetQuery.Tabs[MainForm.ActiveQueryTab.tabsetQuery.TabIndex];
+    comboSearchIn.Items.AddObject(ItemLabel, ResultGrid);
+    if ResultGrid.Focused then
+      comboSearchIn.ItemIndex := comboSearchIn.Items.Count-1;
+    if Assigned(ResultGrid.FocusedNode) then
+      SearchText := ResultGrid.Text[ResultGrid.FocusedNode, ResultGrid.FocusedColumn];
+  end;
+
+  if (comboSearchIn.ItemIndex = -1) and (comboSearchIn.Items.Count > 0) then begin
     comboSearchIn.ItemIndex := 0;
+  end;
 
   // Prefill search editor with selected text
-  if SearchText <> '' then
+  if SearchText <> '' then begin
     comboSearch.Text := SearchText;
+  end;
 
   ValidateControls(Sender);
   comboSearch.SetFocus;
