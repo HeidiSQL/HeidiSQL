@@ -1493,7 +1493,7 @@ begin
       ntMSSQL_RPC:              Result := PrefixMssql+' (Windows RPC)';
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
-      ntSQLite:                 Result := PrefixSqlite+' (Experimental)';
+      ntSQLite:                 Result := PrefixSqlite;
     end;
   end
   else begin
