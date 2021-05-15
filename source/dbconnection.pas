@@ -1327,9 +1327,9 @@ begin
     FSessionColor := AppSettings.ReadInt(asTreeBackground);
     FNetType := TNetType(AppSettings.ReadInt(asNetType));
     if (FNetType > High(TNetType)) or (FNetType < Low(TNetType)) then begin
-      ErrorDialog(f_('Broken "NetType" value (%d) found in settings for session "%s".', [Integer(FNetType), FSessionPath])
+      ErrorDialog(f_('Unsupported "NetType" value (%d) found in settings for session "%s".', [Integer(FNetType), FSessionPath])
         +CRLF+CRLF+
-        f_('Please report that on %s', ['https://github.com/HeidiSQL/HeidiSQL'])
+        _('Loaded as MySQL/MariaDB session.')
         );
       FNetType := ntMySQL_TCPIP;
     end;

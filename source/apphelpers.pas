@@ -215,6 +215,7 @@ type
       FReads, FWrites: Integer;
       FBasePath: String;
       FSessionPath: String;
+      FStoredPath: String;
       FRegistry: TRegistry;
       FPortableMode: Boolean;
       FPortableModeReadOnly: Boolean;
@@ -259,6 +260,8 @@ type
       function SessionPathExists(SessionPath: String): Boolean;
       function IsEmptyKey: Boolean;
       procedure ResetPath;
+      procedure StorePath;
+      procedure RestorePath;
       property SessionPath: String read FSessionPath write SetSessionPath;
       property PortableMode: Boolean read FPortableMode;
       property PortableModeReadOnly: Boolean read FPortableModeReadOnly write FPortableModeReadOnly;
@@ -2271,6 +2274,9 @@ var
       Btn.Default := True;
   end;
 begin
+  // Remember current path and restore it later, so the caller does not try to read from the wrong path after this dialog
+  AppSettings.StorePath;
+
   if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
     // Use modern task dialog on Vista and above
     Dialog := TTaskDialog.Create(nil);
@@ -2383,6 +2389,8 @@ begin
     else
       Result := mrNo;
   end;
+
+  AppSettings.RestorePath;
 end;
 
 
@@ -3761,6 +3769,17 @@ end;
 procedure TAppSettings.ResetPath;
 begin
   SessionPath := '';
+end;
+
+
+procedure TAppSettings.StorePath;
+begin
+  FStoredPath := SessionPath;
+end;
+
+procedure TAppSettings.RestorePath;
+begin
+  SessionPath := FStoredPath;
 end;
 
 

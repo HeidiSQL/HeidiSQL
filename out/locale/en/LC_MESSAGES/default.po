@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-05-08 17:18+0200\n"
+"PO-Revision-Date: 2021-05-15 08:22+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -4040,12 +4040,12 @@ msgid "Error: Session \"%s\" not found in registry."
 msgstr "Error: Session \"%s\" not found in registry."
 
 #: dbconnection.pas:680
-msgid "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
-msgstr "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
+msgid "Unsupported \"NetType\" value (%d) found in settings for session \"%s\"."
+msgstr "Unsupported \"NetType\" value (%d) found in settings for session \"%s\"."
 
 #: dbconnection.pas:681
-msgid "Please report that on %s"
-msgstr "Please report that on %s"
+msgid "Loaded as MySQL/MariaDB session."
+msgstr "Loaded as MySQL/MariaDB session."
 
 #. Comes into SQL log when assigning dll procedures from libmysql.dll
 #: dbconnection.pas:1038
