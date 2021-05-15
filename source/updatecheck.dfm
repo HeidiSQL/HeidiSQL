@@ -1205,7 +1205,7 @@ object frmUpdateCheck: TfrmUpdateCheck
       Width = 122
       Height = 19
       Cursor = crHandPoint
-      Anchors = [akLeft, akRight, akBottom]
+      Anchors = [akLeft, akBottom]
       Caption = 'Download new release'
       PopupMenu = popupDownloadRelease
       TabOrder = 1
