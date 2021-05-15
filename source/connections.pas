@@ -1430,7 +1430,7 @@ begin
       editUsername.Enabled := lblUsername.Enabled;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
@@ -1440,7 +1440,7 @@ begin
       // SSH tunnel tab:
       tabSSHtunnel.TabVisible := Params.NetType in [ntMySQL_SSHtunnel, ntPgSQL_SSHtunnel];
       // Advanced tab:
-      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
+      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
       lblSSLCACertificate.Enabled := Params.WantSSL;
