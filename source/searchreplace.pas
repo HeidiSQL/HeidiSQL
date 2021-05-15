@@ -39,10 +39,10 @@ type
     procedure FormShow(Sender: TObject);
     procedure comboSearchReplaceExit(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure DoSearchReplace(Sender: TObject);
     procedure btnWithDropDownClick(Sender: TObject);
     procedure menuHintClick(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     { Private declarations }
     procedure DoSearchReplaceText;
@@ -76,12 +76,8 @@ procedure TfrmSearchReplace.FormCreate(Sender: TObject);
   end;
 begin
   HasSizeGrip := True;
-  comboSearch.Items.Text := AppSettings.ReadString(asFindDialogSearchHistory);
-  comboReplace.Items.Text := AppSettings.ReadString(asFindDialogReplaceHistory);
   comboSearch.Text := '';
   comboReplace.Text := '';
-  if comboSearch.Items.Count > 0 then comboSearch.Text := comboSearch.Items[0];
-  if comboReplace.Items.Count > 0 then comboReplace.Text := comboReplace.Items[0];
 
   AddItem(popupSearchHints, '^', 'Start of line', '', True);
   AddItem(popupSearchHints, '$', 'End of line', '', True);
@@ -159,17 +155,23 @@ begin
     comboSearchIn.ItemIndex := 0;
   end;
 
+  comboSearch.Items.Text := AppSettings.ReadString(asFindDialogSearchHistory);
+  comboReplace.Items.Text := AppSettings.ReadString(asFindDialogReplaceHistory);
   // Prefill search editor with selected text
-  if SearchText <> '' then begin
-    comboSearch.Text := SearchText;
-  end;
+  if SearchText <> '' then
+    comboSearch.Text := SearchText
+  else if comboSearch.Items.Count > 0 then
+    comboSearch.Text := comboSearch.Items[0];
+  if comboReplace.Items.Count > 0 then
+    comboReplace.Text := comboReplace.Items[0];
 
   ValidateControls(Sender);
   comboSearch.SetFocus;
 end;
 
 
-procedure TfrmSearchReplace.FormDestroy(Sender: TObject);
+procedure TfrmSearchReplace.FormClose(Sender: TObject;
+  var Action: TCloseAction);
 begin
   AppSettings.WriteString(asFindDialogSearchHistory, comboSearch.Items.Text);
   AppSettings.WriteString(asFindDialogReplaceHistory, comboReplace.Items.Text);
