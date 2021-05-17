@@ -4147,7 +4147,7 @@ begin
         ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace');
       if Parameters.IsRedshift then begin
         DbQuery := DbQuery + ' WHERE '+QuoteIdent('nspowner')+' != 1'+
-          ' OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString(InfSch)+')';
+          ' OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString('public')+', '+EscapeString(InfSch)+')';
       end;
       DbQuery := DbQuery + ' ORDER BY '+QuoteIdent('nspname');
       FAllDatabases := GetCol(DbQuery);
