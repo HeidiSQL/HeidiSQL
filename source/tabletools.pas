@@ -134,6 +134,8 @@ type
     procedure CheckAllClick(Sender: TObject);
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure btnExportOptionsClick(Sender: TObject);
+  const
+    StatusMsg = '%s %s ...';
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -151,6 +153,7 @@ type
     FFindSeeResultSQL: TStringList;
     ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
     FObjectSizes, FObjectSizesDone, FObjectSizesDoneExact: Int64;
+    FStartTimeAll: Cardinal;
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure SetToolMode(Value: TToolMode);
@@ -738,9 +741,12 @@ begin
   Views := TDBObjectList.Create(False);
   FHeaderCreated := False;
   FCancelled := False;
+
   FObjectSizesDone := 0;
   FObjectSizesDoneExact := 0;
   MainForm.EnableProgress(100);
+  FStartTimeAll := GetTickCount;
+
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
     DBNode := TreeObjects.GetFirstChild(SessionNode);
@@ -835,6 +841,7 @@ begin
 
   btnCloseOrCancel.Caption := _('Close');
   btnCloseOrCancel.ModalResult := mrCancel;
+  MainForm.ShowStatusMsg;
   MainForm.DisableProgress;
   tabsTools.Enabled := True;
   treeObjects.Enabled := True;
@@ -1153,6 +1160,8 @@ begin
   lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]) + '. ' +
     f_('%s%% done', [FormatNumber(Percent, 1)]) + '.';
   MainForm.SetProgressPosition(Round(Percent));
+  MainForm.ShowStatusMsg(Format(StatusMsg, [tabsTools.ActivePage.Caption, FormatTimeNumber((GetTickCount-FStartTimeAll)/1000, True)]));
+  ResultGrid.Header.AutoFitColumns(False);
   Application.ProcessMessages;
 end;
 
