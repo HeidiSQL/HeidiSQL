@@ -113,6 +113,9 @@ Source: "libiconv-2-32.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check
 ; SQLite:
 Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; VC redistributable
+Source: VC_redist.x64.exe; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: VC_redist.x86.exe; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
 
 
 [Icons]
@@ -131,6 +134,8 @@ Root: HKCU; Subkey: "Software\{#ProgName}"; ValueType: dword; ValueName: "DoUsag
 
 [Run]
 Filename: "{app}\{#ProgExeName}"; Description: "Launch {#ProgName}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\VC_redist.x64.exe"; Parameters: "/q /norestart /q:a /c:""VC_RED~2.EXE /q:a /c:""""msiexec /i vcredist.msi /qn"""" """; Check: Is64BitInstallMode; StatusMsg: Installing VC++ 2019 x64 Redistributables...
+Filename: "{app}\VC_redist.x86.exe"; Parameters: "/q /norestart /q:a /c:""VC_RED~1.EXE /q:a /c:""""msiexec /i vcredist.msi /qn"""" """; Check: not Is64BitInstallMode; StatusMsg: Installing VC++ 2019 x86 Redistributables...
 
 [Code]
 var
