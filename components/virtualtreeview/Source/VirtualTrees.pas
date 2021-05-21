@@ -86,7 +86,7 @@ type
 {$ENDIF}
 
 const
-  VTVersion = '7.4.0' deprecated 'This const is going to be removed in a future version';
+  VTVersion = '7.5.0' deprecated 'This const is going to be removed in a future version';
 
 const
   VTTreeStreamVersion = 3;
@@ -1349,7 +1349,7 @@ type
     procedure AutoScale(); virtual;
     function CanSplitterResize(P: TPoint): Boolean;
     function CanWriteColumns: Boolean; virtual;
-    procedure ChangeScale(M, D: TDimension); virtual;
+    procedure ChangeScale(M, D: TDimension; isDpiChange: Boolean); virtual;
     function DetermineSplitterIndex(P: TPoint): Boolean; virtual;
     procedure DoAfterAutoFitColumn(Column: TColumnIndex); virtual;
     procedure DoAfterColumnWidthTracking(Column: TColumnIndex); virtual;
@@ -2399,6 +2399,7 @@ type
     function GetVisible(Node: PVirtualNode): Boolean;
     function GetVisiblePath(Node: PVirtualNode): Boolean;
     function HandleDrawSelection(X, Y: Integer): Boolean;
+    procedure HandleCheckboxClick(pHitNode: PVirtualNode; pKeys: LongInt);
     function HasVisibleNextSibling(Node: PVirtualNode): Boolean;
     function HasVisiblePreviousSibling(Node: PVirtualNode): Boolean;
     procedure ImageListChange(Sender: TObject);
@@ -2736,7 +2737,7 @@ type
     function InternalData(Node: PVirtualNode): Pointer;
     procedure InternalDisconnectNode(Node: PVirtualNode; KeepFocus: Boolean; Reindex: Boolean = True; ParentClearing: Boolean = False); virtual;
     procedure InternalRemoveFromSelection(Node: PVirtualNode); virtual;
-    procedure InterruptValidation;
+    procedure InterruptValidation(pWaitForValidationTermination: Boolean = True);
     procedure InvalidateCache;
     procedure Loaded; override;
     procedure MainColumnChanged; virtual;
@@ -3130,6 +3131,7 @@ type
     function IsEditing: Boolean;
     function IsMouseSelecting: Boolean;
     function IsEmpty: Boolean; inline;
+    function IsUpdating(): Boolean;
     function IterateSubtree(Node: PVirtualNode; Callback: TVTGetNodeProc; Data: Pointer; Filter: TVirtualNodeStates = [];
       DoInit: Boolean = False; ChildNodesOnly: Boolean = False): PVirtualNode;
     procedure LoadFromFile(const FileName: TFileName); virtual;
@@ -3215,6 +3217,7 @@ type
     property HasChildren[Node: PVirtualNode]: Boolean read GetHasChildren write SetHasChildren;
     property Header: TVTHeader read FHeader write SetHeader;
     property HotNode: PVirtualNode read FCurrentHotNode write SetHotNode;
+    property HotColumn: TColumnIndex read FCurrentHotColumn;
     property IsDisabled[Node: PVirtualNode]: Boolean read GetDisabled write SetDisabled;
     property IsEffectivelyFiltered[Node: PVirtualNode]: Boolean read GetEffectivelyFiltered;
     property IsEffectivelyVisible[Node: PVirtualNode]: Boolean read GetEffectivelyVisible;
@@ -4012,6 +4015,7 @@ type
 // utility routines
 function TreeFromNode(Node: PVirtualNode): TBaseVirtualTree;
 
+
 //----------------------------------------------------------------------------------------------------------------------
 
 implementation
@@ -4179,6 +4183,18 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+/// Wrapper function for styles services that handles differences between RAD Studio 10.4 and older versions,
+/// as well as the case if these controls are used inside the IDE.
+function VTStyleServices(AControl: TControl = nil): TCustomStyleServices;
+begin
+  if Assigned(VTStyleServicesFunc) then
+    Result := VTStyleServicesFunc(AControl)
+  else
+    Result := Vcl.Themes.StyleServices{$if CompilerVersion >= 34}(AControl){$ifend};
+end;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 
 procedure QuickSort(const TheArray: TNodeArray; L, R: Integer);
 
@@ -4290,13 +4306,11 @@ var
 
   //---------------------------------------------------------------------------
 
-  {$if CompilerVersion >= 34}
   // Mitigator function to use the correct style service for this context (either the style assigned to the control for Delphi > 10.4 or the application style)
   function StyleServices: TCustomStyleServices;
   begin
-    Result := Vcl.Themes.StyleServices(pControl);
+    Result := VTStyleServices(pControl);
   end;
-  {$ifend}
 
   procedure AddSystemImage(IL: TImageList; Index: Integer);
   const
@@ -4704,7 +4718,7 @@ end;
 
 function TCustomVirtualTreeOptions.StyleServices(AControl: TControl): TCustomStyleServices;
 begin
-  Exit(Vcl.Themes.StyleServices{$if CompilerVersion >= 34}(FOwner){$ifend});
+  Result := VTStyleServices(FOwner);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -5585,7 +5599,7 @@ end;
 
 function TVirtualTreeHintWindow.StyleServices(AControl: TControl): TCustomStyleServices;
 begin
-  Result := Vcl.Themes.StyleServices{$if CompilerVersion >= 34}(AControl){$ifend};
+  Result := VTStyleServices(AControl);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -7851,14 +7865,9 @@ end;
 
 function TVirtualTreeColumns.StyleServices(AControl: TControl): TCustomStyleServices;
 begin
-{$if CompilerVersion >= 34}
   if AControl = nil then
-    Result := Vcl.Themes.StyleServices(FHeader.Treeview)
-  else
-    Result := Vcl.Themes.StyleServices(AControl);
-{$else}
-  Result := Vcl.Themes.StyleServices;
-{$ifend}
+    AControl := FHeader.Treeview;
+  Result := VTStyleServices(AControl);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -8425,7 +8434,7 @@ begin
           Treeview.Invalidate;
         end;
 
-      if not (tsUpdating in Treeview.FStates) then
+      if not (Treeview.IsUpdating) then
         // This is mainly to let the designer know when a change occurs at design time which
         // doesn't involve the object inspector (like column resizing with the mouse).
         // This does NOT include design time code as the communication is done via an interface.
@@ -8465,7 +8474,7 @@ end;
 function TVirtualTreeColumns.Add: TVirtualTreeColumn;
 
 begin
-  Assert(GetCurrentThreadId = MainThreadId, 'UI controls may only be chnaged in UI thread.');
+  Assert(GetCurrentThreadId = MainThreadId, 'UI controls may only be changed in UI thread.');
   Result := TVirtualTreeColumn(inherited Add);
 end;
 
@@ -9645,11 +9654,12 @@ var
 begin
   if toAutoChangeScale in Treeview.TreeOptions.AutoOptions then
   begin
-    // Find the largest Columns[].Spacing
+    // Ensure a minimum header size based on the font, so that all text is visible.
+    // First find the largest Columns[].Spacing
     lMaxHeight := 0;
     for I := 0 to Self.Columns.Count - 1 do
       lMaxHeight := Max(lMaxHeight, Columns[I].Spacing);
-    // Calculate the required size based on the font, this is important as the use migth just vave increased the size of the icon font
+    // Calculate the required height based on the font, this is important as the user might just have increased the size of the system icon font.
     with TBitmap.Create do
       try
         Canvas.Font.Assign(FFont);
@@ -9657,7 +9667,7 @@ begin
       finally
         Free;
       end;
-    // Get the maximum of the scaled original value an
+    // Get the maximum of the scaled original value and the minimum needed header height.
     lMaxHeight := Max(lMaxHeight, FHeight);
     // Set the calculated size
     Self.SetHeight(lMaxHeight);
@@ -9975,11 +9985,13 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TVTHeader.ChangeScale(M, D: Integer);
+procedure TVTHeader.ChangeScale(M, D: Integer; isDpiChange: Boolean);
 var
   I: Integer;
 begin
   // This method is only executed if toAutoChangeScale is set
+  FMinHeight := MulDiv(FMinHeight, M, D);
+  FMaxHeight := MulDiv(FMaxHeight, M, D);
   Self.Height := MulDiv(FHeight, M, D);
   if not ParentFont then
     Font.Height := MulDiv(Font.Height, M, D);
@@ -9988,7 +10000,8 @@ begin
   begin
     Self.FColumns[I].Width := MulDiv(Self.FColumns[I].Width, M, D);
   end;//for I
-  AutoScale();
+  if not isDpiChange then
+    AutoScale();
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -12008,14 +12021,9 @@ end;
 
 function TVTColors.StyleServices(AControl: TControl): TCustomStyleServices;
 begin
-{$if CompilerVersion >= 34}
   if AControl = nil then
-    Result := Vcl.Themes.StyleServices(fOwner)
-  else
-    Result := Vcl.Themes.StyleServices(AControl);
-{$else}
-  Result := Vcl.Themes.StyleServices;
-{$ifend}
+    AControl := fOwner;
+  Result := VTStyleServices(AControl);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -12170,6 +12178,11 @@ begin
   FClipboardFormats := TClipboardFormats.Create(Self);
   FOptions := GetOptionsClass.Create(Self);
 
+  Touch.InteractiveGestures := [igPan, igPressAndTap];
+  Touch.InteractiveGestureOptions := [igoPanInertia,
+    igoPanSingleFingerHorizontal, igoPanSingleFingerVertical,
+    igoPanGutter, igoParentPassthrough];
+
   if not (csDesigning in ComponentState) then //Don't create worker thread in IDE, there is no use for it
     TWorkerThread.AddThreadReference();
 end;
@@ -12177,7 +12190,8 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 destructor TBaseVirtualTree.Destroy;
-
+var
+  WasValidating: Boolean;
 begin
   // Disconnect all remote MSAA connections
   if Assigned(FAccessibleItem) then begin
@@ -12189,7 +12203,14 @@ begin
     fAccessible := nil;
   end;
 
-  InterruptValidation();
+  WasValidating := (tsValidating in FStates);
+  InterruptValidation(True);
+  if WasValidating then
+  begin
+    // Make sure we dequeue the two synchronized calls from ChangeTreeStatesAsync(), fixes mem leak and AV reported in issue #1001, but is more a workaround.
+    CheckSynchronize();
+    CheckSynchronize();
+  end;// if
   Exclude(FOptions.FMiscOptions, toReadOnly);
   // Make sure there is no reference remaining to the releasing tree.
   TWorkerThread.ReleaseThreadReference();
@@ -12204,9 +12225,7 @@ begin
   FDragImage.Free;
   FColors.Free;
   FBackground.Free;
-  FImageChangeLink.Free;
-  FStateChangeLink.Free;
-  FCustomCheckChangeLink.Free;
+
   if CheckImageKind = ckSystemDefault then
     FCheckImages.Free;
   FScrollBarOptions.Free;
@@ -12237,6 +12256,10 @@ begin
   Images := nil;
   StateImages := nil;
   CustomCheckImages := nil;
+
+  FImageChangeLink.Free;
+  FStateChangeLink.Free;
+  FCustomCheckChangeLink.Free;
 
   inherited;
 end;
@@ -13501,9 +13524,10 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-function TBaseVirtualTree.GetTotalCount: Cardinal;
+function TBaseVirtualTree.GetTotalCount(): Cardinal;
 
 begin
+  Assert(GetCurrentThreadId = MainThreadId, 'UI controls may only be used in UI thread.'); // FUpdateCount is not thread-safe! So do not write it in non-UI threads.
   Inc(FUpdateCount);
   try
     ValidateNode(FRoot, True);
@@ -13833,17 +13857,16 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TBaseVirtualTree.InterruptValidation;
+procedure TBaseVirtualTree.InterruptValidation(pWaitForValidationTermination: Boolean = True);
 
 var
   WasValidating: Boolean;
-
 begin
   DoStateChange([tsStopValidation], [tsUseCache]);
 
   // Check the worker thread existance. It might already be gone (usually on destruction of the last tree).
   WasValidating := (tsValidating in FStates);
-  TWorkerThread.RemoveTree(Self);
+  TWorkerThread.RemoveTree(Self, pWaitForValidationTermination);
   if WasValidating then
     InvalidateCache();
 end;
@@ -14501,7 +14524,7 @@ begin
     if Node = nil then
       Node := FRoot;
 
-    Assert(GetCurrentThreadId = MainThreadId, 'UI controls may only be chnaged in UI thread.');
+    Assert(GetCurrentThreadId = MainThreadId, 'UI controls may only be changed in UI thread.');
     if NewChildCount = 0 then
       DeleteChildren(Node)
     else
@@ -18484,7 +18507,7 @@ begin
       else
         Flags := DefaultScalingFlags; // Important for #677
       if (sfHeight in Flags) then begin
-        FHeader.ChangeScale(M, D);
+        FHeader.ChangeScale(M, D, {$if CompilerVersion >= 31}isDpiChange{$ELSE} M <> D{$ifend});
         SetDefaultNodeHeight(MulDiv(FDefaultNodeHeight, M, D));
         Indent := MulDiv(Indent, M, D);
         FTextMargin := MulDiv(FTextMargin, M, D);
@@ -18510,7 +18533,7 @@ begin
               Run.NodeHeight := MulDiv(Run.NodeHeight, M, D);
               // The next three lines fix issue #1000
               lNewNodeTotalHeight := MulDiv(Run.TotalHeight, M, D);
-              FRoot.TotalHeight := FRoot.TotalHeight + lNewNodeTotalHeight - Run.TotalHeight;
+              FRoot.TotalHeight := FRoot.TotalHeight + lNewNodeTotalHeight - Run.TotalHeight; // 1 EIntOverflow exception seen here in debug build in 01/2021
               Run.TotalHeight := lNewNodeTotalHeight;
             end;
             Run := GetNextNoInit(Run);
@@ -19719,7 +19742,7 @@ begin
     if [hsColumnWidthTracking, hsResizing] * FHeader.States = [hsColumnWidthTracking] then
       UpdateWindow(Handle);
 
-    if not (tsUpdating in FStates) then
+    if not (IsUpdating) then
       UpdateDesigner; // design time only
 
     if Assigned(FOnColumnResize) and not (hsResizing in FHeader.States) then
@@ -22384,7 +22407,6 @@ end;
 procedure TBaseVirtualTree.HandleMouseDblClick(var Message: TWMMouse; const HitInfo: THitInfo);
 
 var
-  NewCheckState: TCheckState;
   Node: PVirtualNode;
   MayEdit: Boolean;
 
@@ -22427,12 +22449,8 @@ begin
     else
       if hiOnItemCheckBox in HitInfo.HitPositions then
       begin
-        NewCheckState := DetermineNextCheckState(HitInfo.HitNode.CheckType, HitInfo.HitNode.CheckState);
-        if (ssLeft in KeysToShiftState(Message.Keys)) and DoChecking(HitInfo.HitNode, NewCheckState) then
-        begin
-          SetCheckStateForAll(NewCheckState, True);
-          MayEdit := False;
-        end;
+        HandleCheckboxClick(HitInfo.HitNode, Message.Keys);
+        MayEdit := False;
       end// if hiOnItemCheckBox
       else
       begin
@@ -22467,6 +22485,22 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
+procedure TBaseVirtualTree.HandleCheckboxClick(pHitNode: PVirtualNode; pKeys: LongInt);
+var
+  NewCheckState: TCheckState;
+begin
+    NewCheckState := DetermineNextCheckState(pHitNode.CheckType, pHitNode.CheckState);
+    if (ssLeft in KeysToShiftState(pKeys)) and DoChecking(pHitNode, NewCheckState) then
+    begin
+      if (Self.SelectedCount > 1) and (Selected[pHitNode]) and not (toSyncCheckboxesWithSelection in TreeOptions.SelectionOptions) then
+        SetCheckStateForAll(NewCheckState, True)
+      else
+        DoCheckClick(pHitNode, NewCheckState);
+    end;//if ssLeft
+end;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 procedure TBaseVirtualTree.HandleMouseDown(var Message: TWMMouse; var HitInfo: THitInfo);
 
 // centralized mouse button down handling
@@ -22489,7 +22523,6 @@ var
   NewNode: Boolean;      // Node changed.
   NeedChangeEvent: Boolean;   // change event is required for selection change
   CanClear: Boolean;
-  NewCheckState: TCheckState;
   AltPressed: Boolean;   // Pressing the Alt key enables special processing for selection.
   FullRowDrag: Boolean;  // Start dragging anywhere within a node's bound.
   NodeRect: TRect;
@@ -22668,14 +22701,7 @@ begin
   // check event
   if hiOnItemCheckBox in HitInfo.HitPositions then
   begin
-    NewCheckState := DetermineNextCheckState(HitInfo.HitNode.CheckType, HitInfo.HitNode.CheckState);
-    if (ssLeft in KeysToShiftState(Message.Keys)) and DoChecking(HitInfo.HitNode, NewCheckState) then
-    begin
-      if (Self.SelectedCount > 1) and (Selected[HitInfo.HitNode]) and not (toSyncCheckboxesWithSelection in TreeOptions.SelectionOptions) then
-        SetCheckStateForAll(NewCheckState, True)
-      else
-        DoCheckClick(HitInfo.HitNode, NewCheckState);
-    end;//if ssLeft
+    HandleCheckboxClick(HitInfo.HitNode, Message.Keys);
     Exit;
   end;
 
@@ -23275,7 +23301,7 @@ begin
   // It is possible that there are invalid node references in the selection array
   // if the tree update is locked and changes in the structure were made.
   // Handle this potentially dangerous situation by packing the selection array explicitely.
-  if FUpdateCount > 0 then
+  if IsUpdating then
   begin
     Count := PackArray(FSelection, FSelectionCount);
     if Count > -1 then
@@ -25228,14 +25254,9 @@ end;
 
 function TBaseVirtualTree.StyleServices(AControl: TControl): TCustomStyleServices;
 begin
-{$if CompilerVersion >= 34}
   if AControl = nil then
-    Result := Vcl.Themes.StyleServices(Self)
-  else
-    Result := Vcl.Themes.StyleServices(AControl);
-{$else}
-  Result := Vcl.Themes.StyleServices;
-{$ifend}
+    AControl := Self;
+  Result := VTStyleServices(AControl);
 end;
 
 //----------------------------------------------------------------------------------------------------------------------
@@ -25712,8 +25733,8 @@ procedure TBaseVirtualTree.ValidateCache();
 // (if not already there) and signalling the thread it can start validating.
 
 begin
-  // Wait for thread to stop validation if it is currently validating this tree's cache.
-  InterruptValidation;
+  // stop validation if it is currently validating this tree's cache.
+  InterruptValidation();
 
   FStartIndex := 0;
   if (tsValidationNeeded in FStates) and (FVisibleCount > CacheThreshold) then
@@ -30019,6 +30040,12 @@ begin
   Result := (tsDrawSelPending in FStates) or (tsDrawSelecting in FStates);
 end;
 
+function TBaseVirtualTree.IsUpdating: Boolean;
+// The tree does currently not update its window because a BeginUpdate has not yet ended.
+begin
+  Exit(UpdateCount > 0);
+end;
+
 //----------------------------------------------------------------------------------------------------------------------
 
 function TBaseVirtualTree.IterateSubtree(Node: PVirtualNode; Callback: TVTGetNodeProc; Data: Pointer;
@@ -32636,7 +32663,7 @@ var
 begin
   UpdateHorizontalRange;
 
-  if (tsUpdating in FStates) or not HandleAllocated then
+  if IsUpdating or not HandleAllocated then
     Exit;
 
   // Adjust effect scroll offset depending on bidi mode.
@@ -32662,7 +32689,7 @@ begin
       ScrollInfo.nPage := Max(0, ClientWidth + 1);
 
       ScrollInfo.fMask := SIF_ALL or ScrollMasks[FScrollBarOptions.AlwaysVisible];
-      SetScrollInfo(Handle, SB_HORZ, ScrollInfo, DoRepaint);
+      SetScrollInfo(Handle, SB_HORZ, ScrollInfo, DoRepaint); // 1 app freeze seen here in TreeSize 8.1.0 after ScaleForPpi()
       if DoRepaint then
         RedrawWindow(Handle, nil, 0, RDW_FRAME or RDW_INVALIDATE); // Fixes issue #698
     end
@@ -32743,7 +32770,7 @@ var
 begin
   UpdateVerticalRange;
 
-  if tsUpdating in FStates then
+  if (IsUpdating) then
     Exit;
   Assert(GetCurrentThreadId = MainThreadId, 'UI controls like ' + Classname + ' and its scrollbars should only be manipulated through the main thread.');
 
@@ -34614,7 +34641,7 @@ begin
     end;
     if Self.SelectedCount = 1 then
       FPreviouslySelected.Clear();
-    Self.OnGetText(Self, Node, 0, ttNormal, lSelectedNodeCaption);
+    Self.OnGetText(Self, Node, Header.RestoreSelectionColumnIndex, ttNormal, lSelectedNodeCaption);
     FPreviouslySelected.Add(lSelectedNodeCaption);
   end;//if
 end;
@@ -34633,7 +34660,7 @@ begin
       FPreviouslySelected.Clear()
     else
     begin
-      Self.OnGetText(Self, Node, 0, ttNormal, lSelectedNodeCaption);
+      Self.OnGetText(Self, Node, Header.RestoreSelectionColumnIndex, ttNormal, lSelectedNodeCaption);
       if FPreviouslySelected.Find(lSelectedNodeCaption, lIndex) then
         FPreviouslySelected.Delete(lIndex);
     end;//else

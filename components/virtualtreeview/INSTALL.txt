@@ -1,0 +1,66 @@
+Supported Delphi version: RAD Studio XE3 and higher
+Supported Windows Versions: Windows Vista and higher
+
+Extract the entire(!) ZIP file and follow the instructions below.
+
+Delphi / RAD Studio 10.3 and higher Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Open the project group "Packages\RAD Studio *\VirtualTreeView.groupproj"
+2. Right click on "VirtualTreesD*.bpl" and click "Install"
+3. Go to "Tools > Options > Language > Delphi Options > Library > Library Path > [...]"
+   Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK"
+   Do this for both Win32 and Win64 platform, which you can choose in the dropdown box.
+4. C++ Builder users only:
+   In the Options dialog go to "Environment Options > C++ Options > Paths and Directories"
+   a) Click "Library Path > [...]"
+      Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK"
+   b) Click "System Include path > [...]"
+      Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK"
+5. Close the RAD Studio Options dialog by clicking "Save".
+
+
+Delphi / RAD Studio XE3 - 10.2 Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Open the project group "Packages\RAD Studio *\VirtualTreeView.groupproj"
+2. Right click on "VirtualTreesD*.bpl" and click "Install"
+3. Go to "Tools > Options > Environment Options > Delphi Options > Library > Library Path > [...]"
+   Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK"
+   Do this for both Win32 and Win64 platform, which you can choose in the dropdown box.
+4. C++ Builder users only:
+   In the Options dialog go to "Environment Options > C++ Options > Paths and Directories"
+   a) Click "Library Path > [...]"
+      Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK"
+   b) Click "System Include path > [...]"
+      Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK"
+5. Close the RAD Studio Options dialog by clicking "OK".
+
+
+Troubleshooting
+~~~~~~~~~~~~~~~
+In case you experience any problems, try to delete all these files from your disk and then start over:
+ - Virtualtrees.*
+ - VTAccessibility.*
+ - VTHeaderPopup.*
+ - VirtualTreesD.*
+ - VirtualTreesR.*
+I recommend using UltraSearch for this task: http://www.jam-software.de/ultrasearch/
+
+
+Please send comments and suggestions regarding the packages and the install
+instructions to joachim.marder@gmail.com or open an issue.
+
+
+C++ Builder XE3 and higher Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1. Open the project group "Packages\CBuilder XE*\VirtualTreeView.groupproj"
+   that is closest to your version.
+2. Right click on "VirtualTreesR*.bpl" and click "Build"
+3. Right click on "VirtualTreesD*.bpl" and click "Install"
+4. Go to "Tools > Options > Environment Options > Delphi Options > Library > Library Path > [...]"
+   Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK", "OK"
+5. Go to "Tools > Options > Environment Options > C++ Options > Paths and Directories"
+   a) Click "Library Path > [...]"
+      Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK"
+   b) Click "System Include path > [...]"
+      Browse to the "Source" folder of VirtualTreeView, press "OK", "Add", "OK", "OK"
+6. If you target Win64 you need to build VirtualTreesR*.bpl also for the platform "Win64"

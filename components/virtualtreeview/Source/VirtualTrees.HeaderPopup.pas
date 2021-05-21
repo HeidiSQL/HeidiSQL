@@ -1,4 +1,4 @@
-unit VirtualTrees.HeaderPopup;
+﻿unit VirtualTrees.HeaderPopup;
 
 //----------------------------------------------------------------------------------------------------------------------
 //
@@ -156,6 +156,7 @@ begin
         Options := Options - [coVisible]
       else
         Options := Options + [coVisible];
+      DoColumnChange(TVTMenuItem(Sender).Tag, coVisible in Options);
     end;
   end;
 end;
