@@ -1065,7 +1065,6 @@ type
     procedure lblExplainProcessAnalyzerClick(Sender: TObject);
     procedure popupSqlLogPopup(Sender: TObject);
     procedure actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
-    procedure menuQueryExplainClick(Sender: TObject);
     procedure menuAutoExpandClick(Sender: TObject);
     procedure pnlLeftResize(Sender: TObject);
     procedure editDatabaseTableFilterChange(Sender: TObject);
@@ -3506,17 +3505,6 @@ begin
   except
     ImageIndex := -1;
   end;
-end;
-
-
-procedure TMainForm.menuQueryExplainClick(Sender: TObject);
-var
-  SQL: String;
-begin
-  // Sub menu with EXPLAIN items pops up
-  SQL := GetCurrentQuery(ActiveQueryTab);
-  actExplainCurrentQuery.Enabled := ActiveConnection.Parameters.IsAnyMySQL;
-  actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled;
 end;
 
 
@@ -6350,6 +6338,7 @@ var
   Tab: TQueryTab;
   cap: String;
   InQueryTab: Boolean;
+  Conn: TDBConnection;
 begin
   // Enable/disable TActions, according to the current window/connection state
 
@@ -6370,12 +6359,13 @@ begin
   Tab := ActiveQueryTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
-  HasConnection := ActiveConnection <> nil;
+  Conn := ActiveConnection;
+  HasConnection := Conn <> nil;
   actExecuteQuery.Enabled := HasConnection and InQueryTab and NotEmpty and (not Tab.QueryRunning);
   actExecuteSelection.Enabled := HasConnection and InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
-  actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled;
-  actExplainAnalyzeCurrentQuery.Enabled := actExecuteQuery.Enabled;
+  actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled and (Conn.Parameters.NetTypeGroup in [ngMySQL, ngPgSQL]);
+  actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled and Conn.Parameters.IsAnyMySQL;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;

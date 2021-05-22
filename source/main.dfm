@@ -4106,7 +4106,6 @@ object MainForm: TMainForm
     end
     object menuQueryExplain: TMenuItem
       Caption = 'Explain'
-      OnClick = menuQueryExplainClick
       object Explaincurrentquery1: TMenuItem
         Action = actExplainCurrentQuery
       end
