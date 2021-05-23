@@ -10219,26 +10219,27 @@ begin
       if idx > -1 then try
         // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
         RefObj := ForeignKey.ReferenceTableObj;
+        if not Assigned(RefObj) then
+          Continue;
+
         TextCol := '';
-        if Assigned(RefObj) then begin
-          Columns := RefObj.TableColumns;
-          for TblColumn in Columns do begin
-            if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
-              TextCol := TblColumn.Name;
-              break;
-            end;
+        Columns := RefObj.TableColumns;
+        for TblColumn in Columns do begin
+          if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
+            TextCol := TblColumn.Name;
+            break;
           end;
         end;
 
         KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
         if TextCol <> '' then begin
           SQL := KeyCol+', ' + Conn.GetSQLSpecifity(spFuncLeft, [Conn.QuoteIdent(TextCol), 256])+
-            ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+
+            ' FROM ' + RefObj.QuotedDbAndTableName +
             ' GROUP BY '+KeyCol+', '+Conn.QuoteIdent(TextCol)+ // MSSQL complains if the text columns is not grouped
             ' ORDER BY '+Conn.QuoteIdent(TextCol);
         end else begin
           SQL := KeyCol+
-            ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+
+            ' FROM ' + RefObj.QuotedDbAndTableName +
             ' GROUP BY '+KeyCol+
             ' ORDER BY '+KeyCol;
         end;

@@ -2521,7 +2521,6 @@ procedure TfrmTableEditor.listForeignKeysEditing(Sender: TBaseVirtualTree; Node:
   Column: TColumnIndex; var Allowed: Boolean);
 var
   Key: TForeignKey;
-  ExistsQuery: String;
 begin
   // Disallow editing foreign columns when no reference table was selected.
   // Also, check for existance of reference table and warn if it's missing.
@@ -2531,16 +2530,11 @@ begin
     if Key.ReferenceTable = '' then
       ErrorDialog(_('Please select a reference table before selecting foreign columns.'))
     else begin
-      try
-        ExistsQuery := DBObject.Connection.ApplyLimitClause(
-          'SELECT',
-          '1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'),
-          1, 0);
-        DBObject.Connection.GetVar(ExistsQuery);
-        Allowed := True;
-      except
+      if Key.ReferenceTableObj = nil then begin
         // Leave Allowed = False
-        ErrorDialog(f_('Reference table "%s" seems to be missing, broken or non-accessible.', [Key.ReferenceTable]))
+        ErrorDialog(f_('Reference table "%s" seems to be missing, broken or non-accessible.', [Key.ReferenceTable]));
+      end else begin
+        Allowed := True;
       end;
     end;
   end else

@@ -9579,7 +9579,7 @@ begin
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
   Result := Result + ') REFERENCES ';
   if (not ReferenceDb.IsEmpty) and (ReferenceTable.StartsWith(ReferenceDb)) then begin
-    TablePart := ReferenceTable.Substring(Length(ReferenceDb));
+    TablePart := ReferenceTable.Substring(Length(ReferenceDb) + 1);
     Result := Result + FConnection.QuoteIdent(ReferenceDb) + '.' + FConnection.QuoteIdent(TablePart);
   end
   else begin
@@ -9602,12 +9602,17 @@ var
   RefDb, RefTable: String;
 begin
   // Find database object of reference table
-  RefDb := ReferenceTable.Substring(0, Pos('.', ReferenceTable)-1);
-  if not RefDb.IsEmpty then begin
-    RefTable := ReferenceTable.Substring(Length(RefDb)+1);
+  if (not ReferenceDb.IsEmpty) and (ReferenceTable.StartsWith(ReferenceDb)) then begin
+    RefDb := ReferenceDb;
+    RefTable := ReferenceTable.Substring(Length(ReferenceDb) + 1);
   end else begin
-    RefDb := FConnection.Database;
-    RefTable := ReferenceTable;
+    RefDb := ReferenceTable.Substring(0, Pos('.', ReferenceTable)-1);
+    if not RefDb.IsEmpty then begin
+      RefTable := ReferenceTable.Substring(Length(RefDb)+1);
+    end else begin
+      RefDb := FConnection.Database;
+      RefTable := ReferenceTable;
+    end;
   end;
   Result := FConnection.FindObject(RefDb, RefTable);
 end;
