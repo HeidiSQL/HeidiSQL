@@ -109,20 +109,23 @@ var
   SearchText, ItemLabel: String;
   QueryMemo, AnySynMemo, UsedSynMemo: TSynMemo;
   ResultGrid: TVirtualStringTree;
-  QueryTabOpen: Boolean;
+  QueryTabOpen, IsGridTextEditor, IsEditorWritable: Boolean;
 begin
   // Populate "Search in" pulldown with grid and editor
   comboSearchIn.Items.Clear;
   QueryTabOpen := MainForm.IsQueryTab(MainForm.PageControlMain.ActivePageIndex, True);
   SearchText := '';
+  UsedSynMemo := nil;
 
   QueryMemo := MainForm.ActiveQueryMemo;
   AnySynMemo := MainForm.ActiveSynMemo(True);
-  if Assigned(AnySynMemo) and (GetParentForm(AnySynMemo) is TfrmTextEditor) then begin
-    // Support text editor only, read-only or not. Ignore all other memos.
-    UsedSynMemo := AnySynMemo;
-  end
-  else begin
+  if Assigned(AnySynMemo) then begin
+    IsEditorWritable := not AnySynMemo.ReadOnly; // Support views and procedure editors
+    IsGridTextEditor := GetParentForm(AnySynMemo) is TfrmTextEditor; // Support grid text editor, read-only or not
+    if IsEditorWritable or IsGridTextEditor then
+      UsedSynMemo := AnySynMemo;
+  end;
+  if not Assigned(UsedSynMemo) then begin
     UsedSynMemo := QueryMemo;
   end;
   if Assigned(UsedSynMemo) then begin
@@ -295,10 +298,12 @@ begin
       Include(Options, ssoBackwards);
   end;
 
-  if Editor <> nil then
+  if Assigned(Editor) then
     DoSearchReplaceText
+  else if Assigned(Grid) then
+    DoSearchReplaceData
   else
-    DoSearchReplaceData;
+    ErrorDialog(_('No area selected'));
 end;
 
 
