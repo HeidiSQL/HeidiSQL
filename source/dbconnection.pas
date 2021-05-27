@@ -9077,12 +9077,14 @@ end;
 function TDBObject.GetTableColumns: TTableColumnList;
 var
   ColumnsInCache: TTableColumnList;
+  CacheKey: String;
 begin
   // Return columns from table object
-  if not FConnection.FColumnCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FColumnCache.Add(QuotedDbAndTableName, Connection.GetTableColumns(Self));
+  CacheKey := QuotedDbAndTableName;
+  if not FConnection.FColumnCache.ContainsKey(CacheKey) then begin
+    FConnection.FColumnCache.Add(CacheKey, Connection.GetTableColumns(Self));
   end;
-  FConnection.FColumnCache.TryGetValue(QuotedDbAndTableName, ColumnsInCache);
+  FConnection.FColumnCache.TryGetValue(CacheKey, ColumnsInCache);
   Result := TTableColumnList.Create;
   Result.Assign(ColumnsInCache);
 end;
