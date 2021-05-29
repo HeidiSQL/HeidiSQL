@@ -750,6 +750,7 @@ type
     actCreateFunction: TAction;
     Storedfunction1: TMenuItem;
     menuEditorCommands: TMenuItem;
+    N16: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);

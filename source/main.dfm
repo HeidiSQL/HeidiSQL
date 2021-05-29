@@ -2197,18 +2197,6 @@ object MainForm: TMainForm
     end
     object MainMenuTools: TMenuItem
       Caption = 'Tools'
-      object Previoustab1: TMenuItem
-        Action = actPreviousTab
-      end
-      object Nexttab1: TMenuItem
-        Action = actNextTab
-      end
-      object Previousresulttab1: TMenuItem
-        Action = actPreviousResult
-      end
-      object Nextresulttab1: TMenuItem
-        Action = actNextResult
-      end
       object Flush1: TMenuItem
         Caption = 'Flush'
         object MenuFlushHosts: TMenuItem
@@ -2272,6 +2260,21 @@ object MainForm: TMainForm
     end
     object MainMenuGoto: TMenuItem
       Caption = 'Go to'
+      object Previoustab1: TMenuItem
+        Action = actPreviousTab
+      end
+      object Nexttab1: TMenuItem
+        Action = actNextTab
+      end
+      object Previousresulttab1: TMenuItem
+        Action = actPreviousResult
+      end
+      object Nextresulttab1: TMenuItem
+        Action = actNextResult
+      end
+      object N16: TMenuItem
+        Caption = '-'
+      end
       object actGotoFilter1: TMenuItem
         Action = actGotoFilter
       end
