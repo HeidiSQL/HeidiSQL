@@ -164,7 +164,7 @@ begin
       AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
       AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);
       AppSettings.WriteString(asGridExportFilename, editFilename.Text);
-      AppSettings.WriteString(asGridExportRecentFiles, ImplodeStr(DELIM, FRecentFiles));
+      AppSettings.WriteString(asGridExportRecentFiles, Implode(DELIM, FRecentFiles));
       AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
       AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
       AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);

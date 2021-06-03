@@ -1264,7 +1264,7 @@ begin
       Databases.Add(Item.Caption);
   end;
   SelStart := editDatabases.SelStart;
-  editDatabases.Text := implodestr(';', Databases);
+  editDatabases.Text := Implode(';', Databases);
   editDatabases.SelStart := SelStart;
 end;
 
@@ -1555,7 +1555,7 @@ begin
       if ExtractFilePath(FileNames[i]) = ExtractFilePath(Application.ExeName) then
         FileNames[i] := ExtractFileName(FileNames[i]);
     end;
-    Edit.Text := implodestr(DELIM, FileNames);
+    Edit.Text := Implode(DELIM, FileNames);
     Modification(Selector);
   end;
   Selector.Free;

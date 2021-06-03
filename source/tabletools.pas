@@ -1903,7 +1903,7 @@ begin
 
   LogRow := FResults.Last;
   if Specs.Count > 0 then begin
-    DBObj.Connection.Query('ALTER TABLE ' + DBObj.QuotedDatabase + '.' + DBObj.QuotedName + ' ' + ImplodeStr(', ', Specs));
+    DBObj.Connection.Query('ALTER TABLE ' + DBObj.QuotedDatabase + '.' + DBObj.QuotedName + ' ' + Implode(', ', Specs));
     LogRow[2] := _('Done');
     LogRow[3] := _('Success');
   end else begin

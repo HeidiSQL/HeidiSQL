@@ -280,7 +280,7 @@ type
 
 {$I const.inc}
 
-  function implodestr(seperator: String; a: TStrings) :String;
+  function Implode(Separator: String; a: TStrings): String;
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   function StrEllipsis(const S: String; MaxLen: Integer; FromLeft: Boolean=True): String;
@@ -427,7 +427,7 @@ end;
   @param a TStringList Containing strings
   @return string
 }
-function implodestr(seperator: String; a: TStrings) :String;
+function Implode(Separator: String; a: TStrings): String;
 var
   i : Integer;
 begin
@@ -436,10 +436,9 @@ begin
   begin
     Result := Result + a[i];
     if i < a.Count-1 then
-      Result := Result + seperator;
+      Result := Result + Separator;
   end;
 end;
-
 
 
 function Explode(Separator, Text: String): TStringList;

@@ -1951,7 +1951,7 @@ begin
       // Move more exact (longer) types to the beginning
       TypesSorted := Explode('|', Types);
       TypesSorted.CustomSort(StringListCompareByLength);
-      Types := ImplodeStr('|', TypesSorted);
+      Types := Implode('|', TypesSorted);
       TypesSorted.Free;
     end;
 
@@ -3597,7 +3597,7 @@ begin
           else
             Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name));
           // Do not use Rows.Text, as the rows already include a trailing linefeed
-          Result := implodestr('', Rows);
+          Result := Implode('', Rows);
           Rows.Free;
         end;
         ngPgSQL: begin
@@ -3624,7 +3624,7 @@ begin
               DataType := '';
             Arguments.Add(ArgNames[i] + ' ' + DataType);
           end;
-          Result := Result + '(' + implodestr(', ', Arguments) + ') '+
+          Result := Result + '(' + Implode(', ', Arguments) + ') '+
             'RETURNS '+GetDatatypeByNativeType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
             'AS $$ '+ProcDetails.Col('prosrc')+' $$'
             // TODO: 'LANGUAGE SQL IMMUTABLE STRICT'
@@ -3649,7 +3649,7 @@ begin
             Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Schema+'.'+Obj.Name))
           else
             Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name));
-          Result := implodestr('', Rows);
+          Result := Implode('', Rows);
           Rows.Free;
         end;
         else begin
@@ -3701,7 +3701,7 @@ begin
     end;
   end;
   if Queries.Count > 0 then try
-    PrefetchResults(implodestr(';', Queries));
+    PrefetchResults(Implode(';', Queries));
   except
     on E:EDbError do;
   end;
@@ -9253,7 +9253,7 @@ begin
   s.AddPair('Virtuality', Virtuality);
   s.AddPair('Status', Integer(FStatus).ToString);
 
-  Result := implodestr(DELIMITER, s);
+  Result := Implode(DELIMITER, s);
   s.Free;
   Result := StringReplace(Result, #13, CHR13REPLACEMENT, [rfReplaceAll]);
   Result := StringReplace(Result, #10, CHR10REPLACEMENT, [rfReplaceAll]);

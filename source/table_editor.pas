@@ -558,7 +558,7 @@ var
   procedure FinishSpecs;
   begin
     if Specs.Count > 0 then begin
-      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs)) + ';' + CRLF;
+      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + Implode(',' + CRLF + #9, Specs)) + ';' + CRLF;
       Specs.Clear;
     end;
   end;
@@ -2431,7 +2431,7 @@ begin
       end;
     end;
     TblKey := TTableKey.Create(DBObject.Connection);
-    TblKey.Name := ImplodeStr('_', NewParts);
+    TblKey.Name := Implode('_', NewParts);
     TblKey.IndexType := NewType;
     TblKey.Added := True;
     TblKey.Columns := NewParts;
@@ -2633,9 +2633,9 @@ begin
   Key := FForeignKeys[Node.Index];
   case Column of
     0: CellText := Key.KeyName;
-    1: CellText := ImplodeStr(',', Key.Columns);
+    1: CellText := Implode(',', Key.Columns);
     2: CellText := Key.ReferenceTable;
-    3: CellText := ImplodeStr(',', Key.ForeignColumns);
+    3: CellText := Implode(',', Key.ForeignColumns);
     4: begin
         CellText := Key.OnUpdate;
         // Both ON UPDATE + DELETE default to "RESTRICT", see http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html

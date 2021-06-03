@@ -222,7 +222,7 @@ begin
     else
       AllDatabases.Add(editDBname.Text);
     AppSettings.SessionPath := FConnection.Parameters.SessionPath;
-    FConnection.Parameters.AllDatabasesStr := ImplodeStr(';', AllDatabases);
+    FConnection.Parameters.AllDatabasesStr := Implode(';', AllDatabases);
     AppSettings.WriteString(asDatabases, FConnection.Parameters.AllDatabasesStr);
   end;
 end;

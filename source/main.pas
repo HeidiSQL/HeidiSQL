@@ -1650,7 +1650,7 @@ begin
   OpenSessions := TStringList.Create;
   for Connection in Connections do
     OpenSessions.Add(Connection.Parameters.SessionPath);
-  AppSettings.WriteString(asLastSessions, ImplodeStr(DELIM, OpenSessions));
+  AppSettings.WriteString(asLastSessions, Implode(DELIM, OpenSessions));
   OpenSessions.Free;
   if Assigned(ActiveConnection) then
     AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
@@ -3995,7 +3995,7 @@ begin
       Dialog.Free;
     end else begin
       msgtext := f_('One or more of the selected files are larger than %s:', [FormatByteNumber(RunFileSize, 0)]) + CRLF +
-        ImplodeStr(CRLF, PopupFileList) + CRLF + CRLF +
+        Implode(CRLF, PopupFileList) + CRLF + CRLF +
         _('Just run these files to avoid loading them into the query-editor (= memory)?') + CRLF + CRLF +
         _('Press') + CRLF +
         _('  [Yes] to run file(s) without loading it into the editor') + CRLF +
@@ -4556,9 +4556,9 @@ begin
       ParamValues := '';
       case Obj.Connection.Parameters.NetTypeGroup of
         ngMySQL, ngPgSQL:
-          ParamValues := '(' + ImplodeStr(', ', Params) + ')';
+          ParamValues := '(' + Implode(', ', Params) + ')';
         ngMSSQL:
-          ParamValues := ' ' + ImplodeStr(' ', Params);
+          ParamValues := ' ' + Implode(' ', Params);
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Obj.Connection.Parameters.NetType)]);
       end;
@@ -5450,7 +5450,7 @@ begin
         end;
       end;
       AppSettings.SessionPath := Conn.Parameters.SessionPath;
-      AppSettings.WriteString(asHost, implodestr(DELIM, OldFiles));
+      AppSettings.WriteString(asHost, Implode(DELIM, OldFiles));
       RefreshTree;
     except
       on E:EDbError do begin
@@ -5488,7 +5488,7 @@ begin
       end;
     end;
     AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
-    AppSettings.WriteString(asHost, implodestr(DELIM, OldFiles));
+    AppSettings.WriteString(asHost, Implode(DELIM, OldFiles));
     RefreshTree;
   except
     on E:EDbError do begin
@@ -12545,13 +12545,13 @@ begin
 
 
   if MenuItem = menuQueryHelpersGenerateSelect then begin
-    sql := 'SELECT '+ImplodeStr(', ', ColumnNames)+CRLF+
+    sql := 'SELECT '+Implode(', ', ColumnNames)+CRLF+
       #9'FROM '+ActiveDbObj.QuotedName(False);
 
   end else if MenuItem = menuQueryHelpersGenerateInsert then begin
     sql := 'INSERT INTO '+ActiveDbObj.QuotedName(False)+CRLF+
-      #9'('+ImplodeStr(', ', ColumnNames)+')'+CRLF+
-      #9'VALUES ('+ImplodeStr(', ', DefaultValues)+')';
+      #9'('+Implode(', ', ColumnNames)+')'+CRLF+
+      #9'VALUES ('+Implode(', ', DefaultValues)+')';
 
   end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
     sql := 'UPDATE '+ActiveDbObj.QuotedName(False)+CRLF+#9'SET'+CRLF;
@@ -13720,7 +13720,7 @@ begin
       else
         Sel[i] := '-- '+Sel[i];
     end;
-    Editor.SelText := ImplodeStr(CRLF, Sel);
+    Editor.SelText := Implode(CRLF, Sel);
   end;
   if Assigned(Editor.OnChange) then
     Editor.OnChange(Editor);
@@ -14464,7 +14464,7 @@ begin
   for Param in Self do begin
     Lines.Add(Param.Name + FPairDelimiter + Param.Value);
   end;
-  Result := implodestr(FItemDelimiter, Lines);
+  Result := Implode(FItemDelimiter, Lines);
   Lines.Free;
 end;
 
