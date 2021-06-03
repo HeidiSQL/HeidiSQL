@@ -116,7 +116,7 @@ type
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
-      function LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+      function LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
       property BindParamsActivated: Boolean read GetBindParamsActivated write SetBindParamsActivated;
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
       procedure BackupUnsavedContent;
@@ -14008,11 +14008,12 @@ begin
 end;
 
 
-function TQueryTab.LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+function TQueryTab.LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
 var
   Content: String;
   Filesize: Int64;
   LineBreaks: TLineBreaks;
+  LoadSuccess: Boolean;
 begin
   Result := False;
   // Load file and add that to the undo-history of SynEdit.
@@ -14020,12 +14021,21 @@ begin
   // this would prevent SynEdit from adding this step to the undo-history
   // so we have to do it by replacing the SelText property
   Screen.Cursor := crHourGlass;
-  Filesize := _GetFileSize(filename);
-  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filename, FormatByteNumber(Filesize), Number]), lcInfo);
+  Result := False;
+  Filesize := _GetFileSize(Filepath);
+  LoadSuccess := False;
+  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filepath, FormatByteNumber(Filesize), Number]), lcInfo);
   try
-    Content := ReadTextfile(Filename, Encoding);
-    if Pos(AppSettings.DirnameSnippets, Filename) = 0 then
-      MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
+    Content := ReadTextfile(Filepath, Encoding);
+    LoadSuccess := True;
+  except on E:Exception do
+    // File does not exist, is locked or broken
+    ErrorDialog(E.message + sLineBreak + sLineBreak + Filepath);
+  end;
+
+  if LoadSuccess then begin
+    if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
+      MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
     Memo.UndoList.AddGroupBreak;
     Memo.BeginUpdate;
     LineBreaks := ScanLineBreaks(Content);
@@ -14045,12 +14055,10 @@ begin
     Memo.SelStart := Memo.SelEnd;
     Memo.EndUpdate;
     Memo.Modified := False;
-    MemoFilename := Filename;
+    MemoFilename := Filepath;
     Result := True;
-  except on E:Exception do
-    // File does not exist, is locked or broken
-    ErrorDialog(E.message + CRLF + CRLF + Filename);
   end;
+
   Screen.Cursor := crDefault;
 end;
 

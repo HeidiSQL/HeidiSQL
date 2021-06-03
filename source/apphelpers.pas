@@ -581,17 +581,20 @@ end;
 
 {***
   Return filesize of a given file
+  Partly taken from https://www.delphipraxis.net/194137-getfilesize-welches-ist-die-bessere-funktion-2.html
   @param string Filename
   @return int64 Size in bytes
 }
 function _GetFileSize(Filename: String): Int64;
 var
-  Attr: _WIN32_FILE_ATTRIBUTE_DATA;
+  Attr: TWin32FileAttributeData;
 begin
-  if FileExists(Filename) then begin
-    GetFileAttributesEx(PChar(Filename), GetFileExInfoStandard, @Attr);
+  FillChar(Attr, SizeOf(Attr), 0);
+  if GetFileAttributesEx(PChar(Filename), GetFileExInfoStandard, @Attr) then
+  begin
     Result := Int64(Attr.nFileSizeHigh) shl 32 + Int64(Attr.nFileSizeLow);
-  end else
+  end
+  else
     Result := -1;
 end;
 
@@ -2297,6 +2300,9 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
+    // This expression does not correctly detect filenames with all allowed characters, for which we would
+    // need to take TPath.GetInvalidPathChars into account. But to not excessively eat parts of the following
+    // text, we stop at the first space character
     rx.Expression := '(https?://|[A-Z]\:\\)\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
