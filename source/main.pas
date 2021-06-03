@@ -14015,13 +14015,12 @@ var
   LineBreaks: TLineBreaks;
   LoadSuccess: Boolean;
 begin
-  Result := False;
   // Load file and add that to the undo-history of SynEdit.
   // Normally we would do a simple SynMemo.Lines.LoadFromFile but
   // this would prevent SynEdit from adding this step to the undo-history
   // so we have to do it by replacing the SelText property
-  Screen.Cursor := crHourGlass;
   Result := False;
+  Screen.Cursor := crHourGlass;
   Filesize := _GetFileSize(Filepath);
   LoadSuccess := False;
   MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filepath, FormatByteNumber(Filesize), Number]), lcInfo);
