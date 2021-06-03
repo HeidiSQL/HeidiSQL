@@ -994,15 +994,15 @@ begin
           case DBObj.Connection.Parameters.NetTypeGroup of
             ngMySQL, ngPgSQL:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-                + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.RowCount,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
             ngMSSQL:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-                + 'CONVERT(VARCHAR(10), ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1)) + ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + 'CONVERT(VARCHAR(10), ROUND(100 / '+IntToStr(Max(DBObj.RowCount,1))+' * COUNT(*), 1)) + ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
             ngSQLite:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-                + '(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1) || ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + '(ROUND(100 / '+IntToStr(Max(DBObj.RowCount,1))+' * COUNT(*), 1) || ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
           end;
           AddResults(SQL, DBObj.Connection);
@@ -1474,9 +1474,9 @@ const
     BytesDone: Int64;
   begin
     LogRow := FResults.Last;
-    Percent := 100 / Max(DBObj.Rows,1) * Max(RowsDone,1);
+    Percent := 100 / Max(DBObj.RowCount,1) * Max(RowsDone,1);
     Percent := Min(Percent, 100);
-    BytesDone := Max(DBObj.Size,0) div Max(DBObj.Rows,1) * RowsDone;
+    BytesDone := Max(DBObj.Size,0) div Max(DBObj.RowCount,1) * RowsDone;
     FObjectSizesDoneExact := FObjectSizesDone + BytesDone;
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
     LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
@@ -1487,7 +1487,7 @@ begin
   // Handle one table, view or whatever in SQL export mode
   AddResults('SELECT '+DBObj.Connection.EscapeString(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
     DBObj.Connection.EscapeString(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
-    IntToStr(DBObj.Rows)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
+    IntToStr(DBObj.RowCount)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
     '0 AS '+DBObj.Connection.QuoteIdent('Duration')
     , DBObj.Connection
     );
@@ -1712,9 +1712,7 @@ begin
       if menuExportAddComments.Checked then
         Output('-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF+CRLF, False, True, True, False, False);
     end else begin
-      tmp := FormatNumber(DBObj.Rows)+' rows';
-      if LowerCase(DBObj.Engine) = 'innodb' then
-        tmp := '~'+tmp+' ('+_('approximately')+')';
+      tmp := FormatNumber(DBObj.RowCount)+' rows';
       if menuExportAddComments.Checked then
         Output('-- '+f_('Dumping data for table %s.%s: %s', [DBObj.Database, DBObj.Name, tmp])+CRLF, False, True, True, False, False);
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
