@@ -13743,7 +13743,7 @@ begin
   SetProgressPosition(0);
   ProgressBarStatus.Hide;
   if Assigned(TaskBarList3) then
-    TaskBarList3.SetProgressState(Application.MainForm.Handle, 0);
+    TaskBarList3.SetProgressState(Handle, 0);
 end;
 
 
@@ -13760,7 +13760,7 @@ begin
   end;
   ProgressBarStatus.Repaint;
   if Assigned(TaskBarList3) then
-    TaskBarList3.SetProgressValue(Application.MainForm.Handle, Value, ProgressBarStatus.Max);
+    TaskBarList3.SetProgressValue(Handle, Value, ProgressBarStatus.Max);
 end;
 
 
@@ -13784,7 +13784,7 @@ begin
       pbsPaused: Flag := 8;
       else Flag := 0;
     end;
-    TaskBarList3.SetProgressState(Application.MainForm.Handle, Flag);
+    TaskBarList3.SetProgressState(Handle, Flag);
   end;
 end;
 
