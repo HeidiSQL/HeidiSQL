@@ -128,6 +128,10 @@ type
       destructor Destroy; override;
       class function GenerateUid: String;
   end;
+  TQueryTabList = class(TObjectList<TQueryTab>)
+    public
+      function TabByControl(Memo: TSynMemo): TQueryTab;
+  end;
 
   TQueryHistoryItem = class(TObject)
     Time: TDateTime;
@@ -1240,7 +1244,7 @@ type
     procedure StoreTabs;
     function RestoreTabs: Boolean;
   public
-    QueryTabs: TObjectList<TQueryTab>;
+    QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
     ImportSettingsDone: Boolean;
@@ -1969,7 +1973,7 @@ begin
   InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
-  QueryTabs := TObjectList<TQueryTab>.Create(True);
+  QueryTabs := TQueryTabList.Create(True);
   QueryTabs.Add(QueryTab);
 
   // Populate generic results for "Host" subtabs
@@ -6756,7 +6760,9 @@ begin
     Exit;
 
   Edit := Sender as TSynMemo;
-  Tab := ActiveQueryTab;
+  Tab := QueryTabs.TabByControl(Edit);
+  if Tab <> ActiveQueryTab then
+    Exit;
 
   // Check if bind param detection is enabled for text size <1M
   // Uncheck checkbox if it's bigger
@@ -6767,8 +6773,8 @@ begin
 
   // Don't ask for saving empty contents. See issue #614
   if Edit.GetTextLen = 0 then begin
-    ActiveQueryTab.MemoFilename := '';
-    ActiveQueryTab.Memo.Modified := False;
+    Tab.MemoFilename := '';
+    Tab.Memo.Modified := False;
   end;
 
   // Update various controls
@@ -14295,6 +14301,22 @@ begin
   end;
 end;
 
+
+{ TQueryTabList }
+
+function TQueryTabList.TabByControl(Memo: TSynMemo): TQueryTab;
+var
+  Tab: TQueryTab;
+begin
+  // Find tab where passed memo resides
+  Result := nil;
+  for Tab in Self do begin
+    if Tab.Memo = Memo then begin
+      Result := Tab;
+      Break;
+    end;
+  end;
+end;
 
 
 
