@@ -134,8 +134,7 @@ type
       function ActiveMemo: TSynMemo;
       function ActiveHelpersTree: TVirtualStringTree;
       function TabByNumber(Number: Integer): TQueryTab;
-      function TabByControl(HelpersTree: TBaseVirtualTree): TQueryTab; overload;
-      function TabByControl(Memo: TSynMemo): TQueryTab; overload;
+      function TabByControl(Control: TWinControl): TQueryTab;
   end;
 
   TQueryHistoryItem = class(TObject)
@@ -14293,29 +14292,19 @@ begin
 end;
 
 
-function TQueryTabList.TabByControl(HelpersTree: TBaseVirtualTree): TQueryTab;
+function TQueryTabList.TabByControl(Control: TWinControl): TQueryTab;
 var
   Tab: TQueryTab;
 begin
-  // Find query tab where passed treeHelpers resides
+  // Find query tab where passed control resides
+  // Supports only most important controls in the upper area, excluding tab close button and result grid
   Result := nil;
   for Tab in Self do begin
-    if Tab.treeHelpers = HelpersTree then begin
-      Result := Tab;
-      Break;
-    end;
-  end;
-end;
-
-
-function TQueryTabList.TabByControl(Memo: TSynMemo): TQueryTab;
-var
-  Tab: TQueryTab;
-begin
-  // Find tab where passed memo resides
-  Result := nil;
-  for Tab in Self do begin
-    if Tab.Memo = Memo then begin
+    if (Control = Tab.TabSheet)
+      or (Control = Tab.pnlMemo) or (Control = Tab.Memo)
+      or (Control = Tab.pnlHelpers) or (Control = Tab.filterHelpers) or (Control = Tab.treeHelpers)
+      or (Control = Tab.tabsetQuery)
+      then begin
       Result := Tab;
       Break;
     end;
