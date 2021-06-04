@@ -130,7 +130,12 @@ type
   end;
   TQueryTabList = class(TObjectList<TQueryTab>)
     public
-      function TabByControl(Memo: TSynMemo): TQueryTab;
+      function ActiveTab: TQueryTab;
+      function ActiveMemo: TSynMemo;
+      function ActiveHelpersTree: TVirtualStringTree;
+      function TabByNumber(Number: Integer): TQueryTab;
+      function TabByControl(HelpersTree: TBaseVirtualTree): TQueryTab; overload;
+      function TabByControl(Memo: TSynMemo): TQueryTab; overload;
   end;
 
   TQueryHistoryItem = class(TObject)
@@ -956,12 +961,7 @@ type
     procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
-    function ActiveQueryTab: TQueryTab;
     function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
-    function GetQueryTabByNumber(Number: Integer): TQueryTab;
-    function GetQueryTabByHelpers(FindTree: TBaseVirtualTree): TQueryTab;
-    function ActiveQueryMemo: TSynMemo;
-    function ActiveQueryHelpers: TVirtualStringTree;
     function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
     function QueryTabActive: Boolean;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
@@ -1559,7 +1559,7 @@ var
 begin
   if QueryTabActive then begin
     // Switch between query editor and result grid
-    Tab := ActiveQueryTab;
+    Tab := QueryTabs.ActiveTab;
     if Tab.Memo.Focused then begin
       if Tab.ActiveResultTab <> nil then begin
         Grid := Tab.ActiveResultTab.Grid;
@@ -2814,7 +2814,7 @@ var
   m: TSynMemo;
 begin
   if Sender = actClearQueryEditor then begin
-    m := ActiveQueryMemo
+    m := QueryTabs.ActiveMemo
   end else if Sender = actClearQueryLog then begin
     m := SynMemoSQLLog;
     m.Gutter.LineNumberStart := m.Gutter.LineNumberStart + m.Lines.Count;
@@ -2827,9 +2827,9 @@ begin
   m.SelStart := 0;
   m.SelEnd := 0;
   if Sender = actClearQueryEditor then begin
-    ActiveQueryTab.MemoFilename := '';
-    ActiveQueryTab.Memo.Modified := False;
-    ActiveQueryTab.Uid := '';
+    QueryTabs.ActiveTab.MemoFilename := '';
+    QueryTabs.ActiveTab.Memo.Modified := False;
+    QueryTabs.ActiveTab.Uid := '';
   end;
   if m = SynMemoFilter then begin
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
@@ -3116,7 +3116,7 @@ var
   rx: TRegExpr;
   ContainsUnsafeQueries, DoExecute: Boolean;
 begin
-  Tab := ActiveQueryTab;
+  Tab := QueryTabs.ActiveTab;
   OperationRunning(True);
   DoExecute := True;
 
@@ -3228,7 +3228,7 @@ begin
   // Single query or query packet has finished
 
   ShowStatusMsg(_('Setting up result grid(s) ...'));
-  Tab := GetQueryTabByNumber(Thread.TabNumber);
+  Tab := QueryTabs.TabByNumber(Thread.TabNumber);
 
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
@@ -3325,7 +3325,7 @@ var
 
 begin
   // Find right query tab
-  Tab := GetQueryTabByNumber(Thread.TabNumber);
+  Tab := QueryTabs.TabByNumber(Thread.TabNumber);
 
   // Error handling
   if not Thread.ErrorMessage.IsEmpty then begin
@@ -3505,7 +3505,7 @@ procedure TMainForm.tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer;
 begin
   // Give result tabs of editable results a table icon
   try
-    ActiveQueryTab.ResultTabs[TabIndex].Results.TableName;
+    QueryTabs.ActiveTab.ResultTabs[TabIndex].Results.TableName;
     ImageIndex := 14;
   except
     ImageIndex := -1;
@@ -3520,7 +3520,7 @@ var
 begin
   // Send EXPLAIN output to analyzer
   Conn := ActiveConnection;
-  CurrentQuery := GetCurrentQuery(ActiveQueryTab);
+  CurrentQuery := GetCurrentQuery(QueryTabs.ActiveTab);
   try
     Conn.ExplainAnalyzer(CurrentQuery, Conn.Database);
   except
@@ -4701,9 +4701,9 @@ begin
     and Assigned(DataGrid.FocusedNode) then begin
     keyword := SelectedTableFocusedColumn.DataType.Name;
 
-  end else if ActiveControl = ActiveQueryHelpers then begin
+  end else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
     // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
-    Tree := ActiveQueryHelpers;
+    Tree := QueryTabs.ActiveHelpersTree;
     if Assigned(Tree.FocusedNode)
       and (Tree.GetNodeLevel(Tree.FocusedNode)=1)
       and (Tree.FocusedNode.Parent.Index in [TQueryTab.HelperNodeFunctions, TQueryTab.HelperNodeKeywords]) then
@@ -4797,7 +4797,7 @@ var
 begin
   // Save SQL
   CanSave := mrNo;
-  QueryTab := ActiveQueryTab;
+  QueryTab := QueryTabs.ActiveTab;
   SaveDialog := TSaveDialog.Create(Self);
   DefaultFilename := QueryTab.TabSheet.Caption;
   DefaultFilename := DefaultFilename.Trim([' ', '*']);
@@ -4842,12 +4842,12 @@ procedure TMainForm.actSaveSQLExecute(Sender: TObject);
 var
   i: Integer;
 begin
-  if ActiveQueryTab.MemoFilename <> '' then begin
-    ActiveQueryTab.SaveContents(ActiveQueryTab.MemoFilename, False);
+  if QueryTabs.ActiveTab.MemoFilename <> '' then begin
+    QueryTabs.ActiveTab.SaveContents(QueryTabs.ActiveTab.MemoFilename, False);
     for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i] = ActiveQueryTab then
+      if QueryTabs[i] = QueryTabs.ActiveTab then
         continue;
-      if QueryTabs[i].MemoFilename = ActiveQueryTab.MemoFilename then
+      if QueryTabs[i].MemoFilename = QueryTabs.ActiveTab.MemoFilename then
         QueryTabs[i].Memo.Modified := True;
     end;
     ValidateQueryControls(Sender);
@@ -6038,9 +6038,9 @@ begin
       if DataGrid.CanFocus and DataGrid.Enabled then
         DataGrid.SetFocus;
     end else if IsQueryTab(tab.PageIndex, True) then begin
-      ActiveQueryMemo.SetFocus;
-      ActiveQueryMemo.WordWrap := actQueryWordWrap.Checked;
-      SynMemoQueryChange(ActiveQueryMemo);
+      QueryTabs.ActiveMemo.SetFocus;
+      QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
+      SynMemoQueryChange(QueryTabs.ActiveMemo);
     end;
   end;
 
@@ -6361,7 +6361,7 @@ begin
       SetTabCaption(Tab.TabSheet.PageIndex, cap);
   end;
   InQueryTab := QueryTabActive;
-  Tab := ActiveQueryTab;
+  Tab := QueryTabs.ActiveTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
   Conn := ActiveConnection;
@@ -6761,7 +6761,7 @@ begin
 
   Edit := Sender as TSynMemo;
   Tab := QueryTabs.TabByControl(Edit);
-  if Tab <> ActiveQueryTab then
+  if Tab <> QueryTabs.ActiveTab then
     Exit;
 
   // Check if bind param detection is enabled for text size <1M
@@ -6970,7 +6970,7 @@ end;
 procedure TMainForm.popupQueryPopup(Sender: TObject);
 begin
   // Sets cursor into memo and activates TAction(s) like paste
-  ActiveQueryMemo.SetFocus;
+  QueryTabs.ActiveMemo.SetFocus;
 end;
 
 
@@ -7016,10 +7016,10 @@ var
   H: TVirtualStringTree;
 begin
   // dragging an object over the query-memo
-  Memo := ActiveQueryMemo;
+  Memo := QueryTabs.ActiveMemo;
   src := Source as TControl;
   // Accepting drag's from the same editor, from DBTree and from QueryHelpers
-  H := ActiveQueryHelpers;
+  H := QueryTabs.ActiveHelpersTree;
   Accept := (src = DBtree) or ((src = H) and Assigned(H.FocusedNode) and (H.GetNodeLevel(H.FocusedNode) in [1,2]));
   // set x-position of cursor
   Memo.CaretX := (x - Memo.Gutter.Width) div Memo.CharWidth - 1 + Memo.LeftChar;
@@ -7041,11 +7041,11 @@ var
   History: TQueryHistory;
 begin
   // dropping a tree node or listbox item into the query-memo
-  ActiveQueryMemo.UndoList.AddGroupBreak;
+  QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
   src := Source as TControl;
   Text := '';
   ShiftPressed := KeyPressed(VK_SHIFT);
-  Tree := ActiveQueryHelpers;
+  Tree := QueryTabs.ActiveHelpersTree;
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
   if src = DBtree then begin
@@ -7086,7 +7086,7 @@ begin
       2:
         case Tree.FocusedNode.Parent.Parent.Index of
           TQueryTab.HelperNodeHistory: begin
-            History := ActiveQueryTab.HistoryDays.Objects[Tree.FocusedNode.Parent.Index] as TQueryHistory;
+            History := QueryTabs.ActiveTab.HistoryDays.Objects[Tree.FocusedNode.Parent.Index] as TQueryHistory;
             Text := History[Tree.FocusedNode.Index].SQL;
           end;
         end;
@@ -7095,10 +7095,10 @@ begin
     raise Exception.Create(_('Unspecified source control in drag''n drop operation!'));
 
   if Text <> '' then begin
-    ActiveQueryMemo.SelText := Text;
-    ActiveQueryMemo.UndoList.AddGroupBreak;
+    QueryTabs.ActiveMemo.SelText := Text;
+    QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
     // Requires to set focus, as doubleclick actions also call this procedure
-    ActiveQueryMemo.SetFocus;
+    QueryTabs.ActiveMemo.SetFocus;
   end;
 end;
 
@@ -7940,7 +7940,7 @@ end;
 procedure TMainForm.filterQueryHelpersChange(Sender: TObject);
 begin
   // Filter nodes in query helpers
-  FilterNodesByEdit(Sender as TButtonedEdit, ActiveQueryHelpers);
+  FilterNodesByEdit(Sender as TButtonedEdit, QueryTabs.ActiveHelpersTree);
 end;
 
 
@@ -7966,7 +7966,7 @@ begin
   // Check if user wants these balloon hints
   if not AppSettings.ReadBool(asHintsOnResultTabs) then
     Exit;
-  QueryTab := ActiveQueryTab;
+  QueryTab := QueryTabs.ActiveTab;
   if idx >= QueryTab.ResultTabs.Count then
     Exit;
 
@@ -8011,7 +8011,7 @@ begin
   if SynMemoFilter.Focused then
     sm := SynMemoFilter
   else
-    sm := ActiveQueryMemo;
+    sm := QueryTabs.ActiveMemo;
   // Restore function name from array
   f := MySQLFunctions[TControl(Sender).tag].Name
     + MySQLFunctions[TControl(Sender).tag].Declaration;
@@ -8031,10 +8031,10 @@ var
   snippetfile : String;
 begin
   // Don't do anything if no item was selected
-  if not Assigned(ActiveQueryHelpers.FocusedNode) then
+  if not Assigned(QueryTabs.ActiveHelpersTree.FocusedNode) then
     Exit;
 
-  snippetfile := AppSettings.DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql';
+  snippetfile := AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + '.sql';
   if MessageDialog(_('Delete snippet file?'), snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
@@ -8066,7 +8066,7 @@ end;
 }
 procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(AppSettings.DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', False, nil);
+  QueryTabs.ActiveTab.LoadContents(AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + '.sql', False, nil);
 end;
 
 
@@ -8075,7 +8075,7 @@ end;
 }
 procedure TMainForm.menuLoadSnippetClick(Sender: TObject);
 begin
-  ActiveQueryTab.LoadContents(AppSettings.DirnameSnippets + ActiveQueryHelpers.Text[ActiveQueryHelpers.FocusedNode, 0] + '.sql', True, nil);
+  QueryTabs.ActiveTab.LoadContents(AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + '.sql', True, nil);
 end;
 
 
@@ -8407,7 +8407,7 @@ begin
 
   Tree := TVirtualStringTree(Sender);
 
-  if Tree = ActiveQueryHelpers then begin
+  if Tree = QueryTabs.ActiveHelpersTree then begin
     case Sender.GetNodeLevel(Node) of
       1: case Node.Parent.Index of
         TQueryTab.HelperNodeFunctions: begin
@@ -8644,9 +8644,9 @@ begin
   end else if tab = tabData then begin
     VT := DataGrid;
     FFilterTextData := editFilterVT.Text;
-  end else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then begin
+  end else if QueryTabActive and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then begin
     VT := ActiveGrid;
-    ActiveQueryTab.ActiveResultTab.FilterText := editFilterVT.Text;
+    QueryTabs.ActiveTab.ActiveResultTab.FilterText := editFilterVT.Text;
   end;
   if not Assigned(VT) then
     Exit;
@@ -9444,8 +9444,8 @@ begin
   // Clear Filter issue 3466
   FFilterTextDatabase := '';
 
-  if ActiveQueryHelpers <> nil then
-    ActiveQueryHelpers.Invalidate;
+  if QueryTabs.ActiveHelpersTree <> nil then
+    QueryTabs.ActiveHelpersTree.Invalidate;
 end;
 
 
@@ -9497,7 +9497,7 @@ begin
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) and QueryTabActive and Assigned(DBtree.FocusedNode) then begin
     DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
     if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
-      m := ActiveQueryMemo;
+      m := QueryTabs.ActiveMemo;
       m.DragDrop(Sender, m.CaretX, m.CaretY);
     end;
   end;
@@ -11962,18 +11962,6 @@ begin
 end;
 
 
-function TMainForm.ActiveQueryTab: TQueryTab;
-var
-  idx: Integer;
-begin
-  idx := PageControlMain.ActivePageIndex-tabQuery.PageIndex;
-  if (idx >= 0) and (idx < QueryTabs.Count) then
-    Result := QueryTabs[idx]
-  else
-    Result := nil;
-end;
-
-
 function TMainForm.GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
 var
   i: Integer;
@@ -11981,7 +11969,7 @@ begin
   // Return either a) current query tab if one is active
   // or b) the first empty one
   // or c) create a new one
-  // Result should never be nil, unlike in ActiveQueryTab
+  // Result should never be nil, unlike in QueryTabs.ActiveTab
   Result := nil;
   // Search empty tab
   for i:=0 to QueryTabs.Count-1 do begin
@@ -12003,60 +11991,6 @@ begin
 end;
 
 
-function TMainForm.GetQueryTabByNumber(Number: Integer): TQueryTab;
-var
-  i: Integer;
-begin
-  // Find right query tab
-  Result := nil;
-  for i:=0 to QueryTabs.Count-1 do begin
-    if QueryTabs[i].Number = Number then begin
-      Result := QueryTabs[i];
-      break;
-    end;
-  end;
-end;
-
-
-function TMainForm.GetQueryTabByHelpers(FindTree: TBaseVirtualTree): TQueryTab;
-var
-  Tab: TQueryTab;
-begin
-  // Find query tab where passed treeHelpers resides
-  Result := nil;
-  for Tab in QueryTabs do begin
-    if Tab.treeHelpers = FindTree then begin
-      Result := Tab;
-      break;
-    end;
-  end;
-end;
-
-
-function TMainForm.ActiveQueryMemo: TSynMemo;
-var
-  Tab: TQueryTab;
-begin
-  // Return current query memo
-  Tab := ActiveQueryTab;
-  Result := nil;
-  if Tab <> nil then
-    Result := Tab.Memo;
-end;
-
-
-function TMainForm.ActiveQueryHelpers: TVirtualStringTree;
-var
-  Tab: TQueryTab;
-begin
-  // Return current query helpers tree
-  Tab := ActiveQueryTab;
-  Result := nil;
-  if Tab <> nil then
-    Result := Tab.treeHelpers;
-end;
-
-
 function TMainForm.ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
 var
   Control: TWinControl;
@@ -12070,7 +12004,7 @@ begin
       Result := nil;
   end;
   if (not Assigned(Result)) and QueryTabActive then
-    Result := ActiveQueryMemo;
+    Result := QueryTabs.ActiveMemo;
   if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
     Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
   end;
@@ -12086,8 +12020,8 @@ begin
     Exit;
   if PageControlMain.ActivePage = tabData then
     Result := DataGrid
-  else if (ActiveQueryTab <> nil) and (ActiveQueryTab.ActiveResultTab <> nil) then
-    Result := ActiveQueryTab.ActiveResultTab.Grid;
+  else if (QueryTabs.ActiveTab <> nil) and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then
+    Result := QueryTabs.ActiveTab.ActiveResultTab.Grid;
 end;
 
 
@@ -12324,7 +12258,7 @@ begin
     else if tab = tabDatabase then f := FFilterTextDatabase
     else if tab = tabEditor then f := FFilterTextEditor
     else if tab = tabData then f := FFilterTextData
-    else if QueryTabActive and (ActiveQueryTab.ActiveResultTab <> nil) then f := ActiveQueryTab.ActiveResultTab.FilterText;
+    else if QueryTabActive and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then f := QueryTabs.ActiveTab.ActiveResultTab.FilterText;
     if editFilterVT.Text <> f then
       editFilterVT.Text := f
     else
@@ -12514,7 +12448,7 @@ begin
   MenuItem := (Sender as TMenuItem);
   ColumnNames := TStringList.Create;
   DefaultValues := TStringList.Create;
-  Tree := ActiveQueryHelpers;
+  Tree := QueryTabs.ActiveHelpersTree;
   Node := Tree.GetFirstChild(FindNode(Tree, TQueryTab.HelperNodeColumns, nil));
   while Assigned(Node) do begin
     if Tree.Selected[Node] then begin
@@ -12574,8 +12508,8 @@ begin
     sql := 'DELETE FROM '+ActiveDbObj.QuotedName(False)+' WHERE ' + WhereClause;
 
   end;
-  ActiveQueryMemo.UndoList.AddGroupBreak;
-  ActiveQueryMemo.SelText := sql;
+  QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
+  QueryTabs.ActiveMemo.SelText := sql;
 end;
 
 
@@ -12793,10 +12727,10 @@ begin
     x := Grid.FocusedColumn+1;
     if Grid.SelectedCount > 1 then
       AppendMsg := ' ('+FormatNumber(Grid.SelectedCount)+' sel)';
-  end else if QueryTabActive and ActiveQueryMemo.Focused then begin
-    x := ActiveQueryMemo.CaretX;
-    y := ActiveQueryMemo.CaretY;
-    AppendMsg := ' ('+FormatByteNumber(ActiveQueryMemo.GetTextLen)+')';
+  end else if QueryTabActive and QueryTabs.ActiveMemo.Focused then begin
+    x := QueryTabs.ActiveMemo.CaretX;
+    y := QueryTabs.ActiveMemo.CaretY;
+    AppendMsg := ' ('+FormatByteNumber(QueryTabs.ActiveMemo.GetTextLen)+')';
   end;
   if (x > -1) and (y > -1) then begin
     ShowStatusMsg('r'+FormatNumber(y)+' : c'+FormatNumber(x) + AppendMsg, 1)
@@ -12996,7 +12930,7 @@ begin
     and (Column=1)
     and (Sender.GetNodeLevel(Node)=1)
     then begin
-    Tab := GetQueryTabByHelpers(Sender);
+    Tab := QueryTabs.TabByControl(Sender);
     if Tab <> nil then begin
       Tab.QueryProfile.RecNo := Node.Index;
       PaintColorBar(MakeFloat(Tab.QueryProfile.Col(Column)), Tab.MaxProfileTime, TargetCanvas, CellRect);
@@ -13005,7 +12939,7 @@ begin
   if (Sender.GetNodeLevel(Node)=2)
     and (Column=1)
     and (Node.Parent.Parent.Index=TQueryTab.HelperNodeHistory) then begin
-    Tab := GetQueryTabByHelpers(Sender);
+    Tab := QueryTabs.TabByControl(Sender);
     if Tab <> nil then begin
       History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
       PaintColorBar(History[Node.Index].Duration, History.MaxDuration, TargetCanvas, CellRect);
@@ -13031,7 +12965,7 @@ begin
   if (Sender.GetNodeLevel(Node)=2)
     and (Node.Parent.Parent.Index=TQueryTab.HelperNodeHistory)
     and (ActiveConnection <> nil) then begin
-    Tab := GetQueryTabByHelpers(Sender);
+    Tab := QueryTabs.TabByControl(Sender);
     if Tab <> nil then begin
       History := Tab.HistoryDays.Objects[Node.Parent.Index] as TQueryHistory;
       if ActiveConnection.Database <> History[Node.Index].Database then
@@ -13043,7 +12977,7 @@ begin
   if (Sender.GetNodeLevel(Node)=1)
     and (Column=1)
     and (Node.Parent.Index=TQueryTab.HelperNodeBinding) then begin
-      Tab := GetQueryTabByHelpers(Sender);
+      Tab := QueryTabs.TabByControl(Sender);
       if StrLen(PChar(Tab.ListBindParams.Items[Node.Index].Value)) = 0 then
         TargetCanvas.Font.Style := [fsItalic]+[fsUnderline];
 
@@ -13072,7 +13006,7 @@ procedure TMainForm.treeQueryHelpersDblClick(Sender: TObject);
 var
   m: TSynMemo;
 begin
-  m := ActiveQueryMemo;
+  m := QueryTabs.ActiveMemo;
   m.DragDrop(Sender, m.CaretX, m.CaretY);
 end;
 
@@ -13115,7 +13049,7 @@ begin
   // Free some memory, taken by probably big SQL query history items
   if (Sender.GetNodeLevel(Node)=1)
     and (Node.Parent.Index = TQueryTab.HelperNodeHistory) then begin
-    Tab := GetQueryTabByHelpers(Sender);
+    Tab := QueryTabs.TabByControl(Sender);
     if Tab <> nil then begin
       Tab.HistoryDays.Objects[Node.Index].Free;
       Tab.HistoryDays.Delete(Node.Index);
@@ -13166,7 +13100,7 @@ var
 begin
   // Query helpers tree fetching node text
   CellText := '';
-  Tab := GetQueryTabByHelpers(Sender);
+  Tab := QueryTabs.TabByControl(Sender);
   case Column of
     0: case Sender.GetNodeLevel(Node) of
         0: case Node.Index of
@@ -13294,7 +13228,7 @@ var
   QueryTab: TQueryTab;
 begin
   Tree:= Sender as TVirtualStringTree;
-  QueryTab := ActiveQueryTab;
+  QueryTab := QueryTabs.ActiveTab;
 
   // Save new param value
   QueryTab.ListBindParams.Items[Sender.FocusedNode.Index].Value := NewText;
@@ -13325,7 +13259,7 @@ var
   i: Integer;
   Conn: TDBConnection;
 begin
-  Tab := GetQueryTabByHelpers(Sender);
+  Tab := QueryTabs.TabByControl(Sender);
   Conn := ActiveConnection;
   case Sender.GetNodeLevel(Node) of
     0: case Node.Index of
@@ -13419,7 +13353,7 @@ var
   Tree: TVirtualStringTree;
 begin
   Tree := Sender as TVirtualStringTree;
-  Tab := GetQueryTabByHelpers(Sender);
+  Tab := QueryTabs.TabByControl(Sender);
 
   case Sender.GetNodeLevel(Node) of
 
@@ -13855,7 +13789,7 @@ var
   Tab: TQueryTab;
 begin
   // Go back to the result tab left to the active one
-  Tab := ActiveQueryTab;
+  Tab := QueryTabs.ActiveTab;
   if Tab <> nil then begin
     if Tab.tabsetQuery.TabIndex > 0 then
       Tab.tabsetQuery.SelectNext(False)
@@ -13870,7 +13804,7 @@ var
   Tab: TQueryTab;
 begin
   // Advance to the next result tab
-  Tab := ActiveQueryTab;
+  Tab := QueryTabs.ActiveTab;
   if Tab <> nil then begin
     if Tab.tabsetQuery.TabIndex < Tab.tabsetQuery.Tabs.Count-1 then
       Tab.tabsetQuery.SelectNext(True)
@@ -14303,6 +14237,76 @@ end;
 
 
 { TQueryTabList }
+
+function TQueryTabList.ActiveTab: TQueryTab;
+var
+  idx: Integer;
+  FixedTab: TQueryTab;
+begin
+  // Return active tab
+  Result := nil;
+  if Self.Count < 1 then
+    Exit;
+  FixedTab := Self[0];
+  idx := FixedTab.TabSheet.PageControl.ActivePageIndex - FixedTab.TabSheet.PageIndex;
+  if (idx >= 0) and (idx < Self.Count) then
+    Result := Self[idx];
+end;
+
+
+function TQueryTabList.ActiveMemo: TSynMemo;
+var
+  Tab: TQueryTab;
+begin
+  // Return current query memo
+  Result := nil;
+  Tab := ActiveTab;
+  if Assigned(Tab) then
+    Result := Tab.Memo;
+end;
+
+
+function TQueryTabList.ActiveHelpersTree: TVirtualStringTree;
+var
+  Tab: TQueryTab;
+begin
+  // Return current query helpers tree
+  Result := nil;
+  Tab := ActiveTab;
+  if Assigned(Tab) then
+    Result := Tab.treeHelpers;
+end;
+
+
+function TQueryTabList.TabByNumber(Number: Integer): TQueryTab;
+var
+  Tab: TQueryTab;
+begin
+  // Find right query tab
+  Result := nil;
+  for Tab in Self do begin
+    if Tab.Number = Number then begin
+      Result := Tab;
+      break;
+    end;
+  end;
+end;
+
+
+function TQueryTabList.TabByControl(HelpersTree: TBaseVirtualTree): TQueryTab;
+var
+  Tab: TQueryTab;
+begin
+  // Find query tab where passed treeHelpers resides
+  Result := nil;
+  for Tab in Self do begin
+    if Tab.treeHelpers = HelpersTree then begin
+      Result := Tab;
+      Break;
+    end;
+  end;
+end;
+
 
 function TQueryTabList.TabByControl(Memo: TSynMemo): TQueryTab;
 var

@@ -110,14 +110,16 @@ var
   QueryMemo, AnySynMemo, UsedSynMemo: TSynMemo;
   ResultGrid: TVirtualStringTree;
   QueryTabOpen, IsGridTextEditor, IsEditorWritable: Boolean;
+  ActiveQueryTab: TQueryTab;
 begin
   // Populate "Search in" pulldown with grid and editor
   comboSearchIn.Items.Clear;
-  QueryTabOpen := MainForm.IsQueryTab(MainForm.PageControlMain.ActivePageIndex, True);
+  ActiveQueryTab := MainForm.QueryTabs.ActiveTab;
+  QueryTabOpen := Assigned(ActiveQueryTab);
   SearchText := '';
   UsedSynMemo := nil;
 
-  QueryMemo := MainForm.ActiveQueryMemo;
+  QueryMemo := MainForm.QueryTabs.ActiveMemo;
   AnySynMemo := MainForm.ActiveSynMemo(True);
   if Assigned(AnySynMemo) then begin
     IsEditorWritable := not AnySynMemo.ReadOnly; // Support views and procedure editors
@@ -130,7 +132,7 @@ begin
   end;
   if Assigned(UsedSynMemo) then begin
     if UsedSynMemo = QueryMemo then
-      ItemLabel := _('SQL editor') + ': ' + MainForm.ActiveQueryTab.TabSheet.Caption
+      ItemLabel := _('SQL editor') + ': ' + ActiveQueryTab.TabSheet.Caption
     else
       ItemLabel := GetParentForm(UsedSynMemo).Caption;
     comboSearchIn.Items.AddObject(ItemLabel, UsedSynMemo);
@@ -144,9 +146,10 @@ begin
 
   ResultGrid := MainForm.ActiveGrid;
   if Assigned(ResultGrid) then begin
-    ItemLabel := _('Data grid');
     if QueryTabOpen then
-      ItemLabel := _('Result grid')+': '+MainForm.ActiveQueryTab.tabsetQuery.Tabs[MainForm.ActiveQueryTab.tabsetQuery.TabIndex];
+      ItemLabel := _('Result grid')+': '+ActiveQueryTab.tabsetQuery.Tabs[ActiveQueryTab.tabsetQuery.TabIndex]
+    else
+      ItemLabel := _('Data grid');
     comboSearchIn.Items.AddObject(ItemLabel, ResultGrid);
     if ResultGrid.Focused then
       comboSearchIn.ItemIndex := comboSearchIn.Items.Count-1;
