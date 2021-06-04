@@ -1048,8 +1048,6 @@ begin
         tmp := '\end{tabular}' + CRLF;
       efPHPArray: begin
         tmp := ');' + CRLF;
-        if radioOutputFile.Checked then
-          tmp := tmp + '?>';
       end;
       efJSON: begin
         S.Size := S.Size - 1;
