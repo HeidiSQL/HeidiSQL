@@ -134,6 +134,8 @@ type
     procedure CheckAllClick(Sender: TObject);
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure btnExportOptionsClick(Sender: TObject);
+  const
+    StatusMsg = '%s %s ...';
   private
     { Private declarations }
     FResults: TObjectList<TStringList>;
@@ -151,6 +153,7 @@ type
     FFindSeeResultSQL: TStringList;
     ToFile, ToDir, ToClipboard, ToDb, ToServer: Boolean;
     FObjectSizes, FObjectSizesDone, FObjectSizesDoneExact: Int64;
+    FStartTimeAll: Cardinal;
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure SetToolMode(Value: TToolMode);
@@ -738,9 +741,12 @@ begin
   Views := TDBObjectList.Create(False);
   FHeaderCreated := False;
   FCancelled := False;
+
   FObjectSizesDone := 0;
   FObjectSizesDoneExact := 0;
   MainForm.EnableProgress(100);
+  FStartTimeAll := GetTickCount;
+
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
     DBNode := TreeObjects.GetFirstChild(SessionNode);
@@ -835,6 +841,7 @@ begin
 
   btnCloseOrCancel.Caption := _('Close');
   btnCloseOrCancel.ModalResult := mrCancel;
+  MainForm.ShowStatusMsg;
   MainForm.DisableProgress;
   tabsTools.Enabled := True;
   treeObjects.Enabled := True;
@@ -987,15 +994,15 @@ begin
           case DBObj.Connection.Parameters.NetTypeGroup of
             ngMySQL, ngPgSQL:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-                + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + 'CONCAT(ROUND(100 / '+IntToStr(Max(DBObj.RowCount,1))+' * COUNT(*), 1), ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
             ngMSSQL:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-                + 'CONVERT(VARCHAR(10), ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1)) + ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + 'CONVERT(VARCHAR(10), ROUND(100 / '+IntToStr(Max(DBObj.RowCount,1))+' * COUNT(*), 1)) + ''%'' AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
             ngSQLite:
               SQL := 'SELECT '''+DBObj.Database+''' AS '+DBObj.Connection.QuoteIdent('Database')+', '''+DBObj.Name+''' AS '+DBObj.Connection.QuoteIdent('Table')+', COUNT(*) AS '+DBObj.Connection.QuoteIdent('Found rows')+', '
-                + '(ROUND(100 / '+IntToStr(Max(DBObj.Rows,1))+' * COUNT(*), 1) || ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
+                + '(ROUND(100 / '+IntToStr(Max(DBObj.RowCount,1))+' * COUNT(*), 1) || ''%'') AS '+DBObj.Connection.QuoteIdent('Relevance')+' FROM '+DBObj.QuotedDatabase+'.'+DBObj.QuotedName+' WHERE '
                 + SQL;
           end;
           AddResults(SQL, DBObj.Connection);
@@ -1153,6 +1160,8 @@ begin
   lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]) + '. ' +
     f_('%s%% done', [FormatNumber(Percent, 1)]) + '.';
   MainForm.SetProgressPosition(Round(Percent));
+  MainForm.ShowStatusMsg(Format(StatusMsg, [tabsTools.ActivePage.Caption, FormatTimeNumber((GetTickCount-FStartTimeAll)/1000, True)]));
+  ResultGrid.Header.AutoFitColumns(False);
   Application.ProcessMessages;
 end;
 
@@ -1465,9 +1474,9 @@ const
     BytesDone: Int64;
   begin
     LogRow := FResults.Last;
-    Percent := 100 / Max(DBObj.Rows,1) * Max(RowsDone,1);
+    Percent := 100 / Max(DBObj.RowCount,1) * Max(RowsDone,1);
     Percent := Min(Percent, 100);
-    BytesDone := Max(DBObj.Size,0) div Max(DBObj.Rows,1) * RowsDone;
+    BytesDone := Max(DBObj.Size,0) div Max(DBObj.RowCount,1) * RowsDone;
     FObjectSizesDoneExact := FObjectSizesDone + BytesDone;
     LogRow[2] := FormatNumber(RowsDone) + ' / ' + FormatNumber(Percent, 0)+'%';
     LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
@@ -1478,7 +1487,7 @@ begin
   // Handle one table, view or whatever in SQL export mode
   AddResults('SELECT '+DBObj.Connection.EscapeString(DBObj.Database)+' AS '+DBObj.Connection.QuoteIdent('Database')+', ' +
     DBObj.Connection.EscapeString(DBObj.Name)+' AS '+DBObj.Connection.QuoteIdent('Table')+', ' +
-    IntToStr(DBObj.Rows)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
+    IntToStr(DBObj.RowCount)+' AS '+DBObj.Connection.QuoteIdent('Rows')+', '+
     '0 AS '+DBObj.Connection.QuoteIdent('Duration')
     , DBObj.Connection
     );
@@ -1607,6 +1616,8 @@ begin
             Insert('IF NOT EXISTS ', Struc, Pos('TABLE', Struc) + 6);
             if ToDb then
               Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('EXISTS', Struc) + 7 );
+            if ToServer then
+              Struc := TSqlTranspiler.CreateTable(Struc, DBObj.Connection, FTargetConnection);
           end;
 
           lntView: begin
@@ -1701,9 +1712,7 @@ begin
       if menuExportAddComments.Checked then
         Output('-- '+f_('Table data not exported because this is %s table which holds its data in separate tables.', [DBObj.Engine])+CRLF+CRLF, False, True, True, False, False);
     end else begin
-      tmp := FormatNumber(DBObj.Rows)+' rows';
-      if LowerCase(DBObj.Engine) = 'innodb' then
-        tmp := '~'+tmp+' ('+_('approximately')+')';
+      tmp := FormatNumber(DBObj.RowCount)+' rows';
       if menuExportAddComments.Checked then
         Output('-- '+f_('Dumping data for table %s.%s: %s', [DBObj.Database, DBObj.Name, tmp])+CRLF, False, True, True, False, False);
       TargetDbAndObject := Quoter.QuoteIdent(DBObj.Name);
@@ -1892,7 +1901,7 @@ begin
 
   LogRow := FResults.Last;
   if Specs.Count > 0 then begin
-    DBObj.Connection.Query('ALTER TABLE ' + DBObj.QuotedDatabase + '.' + DBObj.QuotedName + ' ' + ImplodeStr(', ', Specs));
+    DBObj.Connection.Query('ALTER TABLE ' + DBObj.QuotedDatabase + '.' + DBObj.QuotedName + ' ' + Implode(', ', Specs));
     LogRow[2] := _('Done');
     LogRow[3] := _('Success');
   end else begin

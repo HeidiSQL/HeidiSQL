@@ -116,7 +116,7 @@ type
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
-      function LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+      function LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
       property BindParamsActivated: Boolean read GetBindParamsActivated write SetBindParamsActivated;
       procedure SaveContents(Filename: String; OnlySelection: Boolean);
       procedure BackupUnsavedContent;
@@ -127,6 +127,10 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       class function GenerateUid: String;
+  end;
+  TQueryTabList = class(TObjectList<TQueryTab>)
+    public
+      function TabByControl(Memo: TSynMemo): TQueryTab;
   end;
 
   TQueryHistoryItem = class(TObject)
@@ -750,6 +754,7 @@ type
     actCreateFunction: TAction;
     Storedfunction1: TMenuItem;
     menuEditorCommands: TMenuItem;
+    N16: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1065,7 +1070,6 @@ type
     procedure lblExplainProcessAnalyzerClick(Sender: TObject);
     procedure popupSqlLogPopup(Sender: TObject);
     procedure actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
-    procedure menuQueryExplainClick(Sender: TObject);
     procedure menuAutoExpandClick(Sender: TObject);
     procedure pnlLeftResize(Sender: TObject);
     procedure editDatabaseTableFilterChange(Sender: TObject);
@@ -1240,7 +1244,7 @@ type
     procedure StoreTabs;
     function RestoreTabs: Boolean;
   public
-    QueryTabs: TObjectList<TQueryTab>;
+    QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
     ImportSettingsDone: Boolean;
@@ -1650,7 +1654,7 @@ begin
   OpenSessions := TStringList.Create;
   for Connection in Connections do
     OpenSessions.Add(Connection.Parameters.SessionPath);
-  AppSettings.WriteString(asLastSessions, ImplodeStr(DELIM, OpenSessions));
+  AppSettings.WriteString(asLastSessions, Implode(DELIM, OpenSessions));
   OpenSessions.Free;
   if Assigned(ActiveConnection) then
     AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
@@ -1969,7 +1973,7 @@ begin
   InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
-  QueryTabs := TObjectList<TQueryTab>.Create(True);
+  QueryTabs := TQueryTabList.Create(True);
   QueryTabs.Add(QueryTab);
 
   // Populate generic results for "Host" subtabs
@@ -2196,7 +2200,7 @@ begin
         frm.ReadCheckFile;
         // Show the dialog if release is available, or - when wanted - build checks are activated
         if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
-          or frm.btnRelease.Enabled then begin
+          or frm.LinkLabelRelease.Enabled then begin
           frm.ShowModal;
         end;
       except
@@ -3509,17 +3513,6 @@ begin
 end;
 
 
-procedure TMainForm.menuQueryExplainClick(Sender: TObject);
-var
-  SQL: String;
-begin
-  // Sub menu with EXPLAIN items pops up
-  SQL := GetCurrentQuery(ActiveQueryTab);
-  actExplainCurrentQuery.Enabled := ActiveConnection.Parameters.IsAnyMySQL;
-  actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled;
-end;
-
-
 procedure TMainForm.actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
 var
   Conn: TDBConnection;
@@ -4006,7 +3999,7 @@ begin
       Dialog.Free;
     end else begin
       msgtext := f_('One or more of the selected files are larger than %s:', [FormatByteNumber(RunFileSize, 0)]) + CRLF +
-        ImplodeStr(CRLF, PopupFileList) + CRLF + CRLF +
+        Implode(CRLF, PopupFileList) + CRLF + CRLF +
         _('Just run these files to avoid loading them into the query-editor (= memory)?') + CRLF + CRLF +
         _('Press') + CRLF +
         _('  [Yes] to run file(s) without loading it into the editor') + CRLF +
@@ -4567,9 +4560,9 @@ begin
       ParamValues := '';
       case Obj.Connection.Parameters.NetTypeGroup of
         ngMySQL, ngPgSQL:
-          ParamValues := '(' + ImplodeStr(', ', Params) + ')';
+          ParamValues := '(' + Implode(', ', Params) + ')';
         ngMSSQL:
-          ParamValues := ' ' + ImplodeStr(' ', Params);
+          ParamValues := ' ' + Implode(' ', Params);
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Obj.Connection.Parameters.NetType)]);
       end;
@@ -5461,7 +5454,7 @@ begin
         end;
       end;
       AppSettings.SessionPath := Conn.Parameters.SessionPath;
-      AppSettings.WriteString(asHost, implodestr(DELIM, OldFiles));
+      AppSettings.WriteString(asHost, Implode(DELIM, OldFiles));
       RefreshTree;
     except
       on E:EDbError do begin
@@ -5499,7 +5492,7 @@ begin
       end;
     end;
     AppSettings.SessionPath := Obj.Connection.Parameters.SessionPath;
-    AppSettings.WriteString(asHost, implodestr(DELIM, OldFiles));
+    AppSettings.WriteString(asHost, Implode(DELIM, OldFiles));
     RefreshTree;
   except
     on E:EDbError do begin
@@ -6350,6 +6343,7 @@ var
   Tab: TQueryTab;
   cap: String;
   InQueryTab: Boolean;
+  Conn: TDBConnection;
 begin
   // Enable/disable TActions, according to the current window/connection state
 
@@ -6370,12 +6364,13 @@ begin
   Tab := ActiveQueryTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
-  HasConnection := ActiveConnection <> nil;
+  Conn := ActiveConnection;
+  HasConnection := Conn <> nil;
   actExecuteQuery.Enabled := HasConnection and InQueryTab and NotEmpty and (not Tab.QueryRunning);
   actExecuteSelection.Enabled := HasConnection and InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
-  actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled;
-  actExplainAnalyzeCurrentQuery.Enabled := actExecuteQuery.Enabled;
+  actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled and (Conn.Parameters.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]);
+  actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled and Conn.Parameters.IsAnyMySQL;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
@@ -6765,7 +6760,9 @@ begin
     Exit;
 
   Edit := Sender as TSynMemo;
-  Tab := ActiveQueryTab;
+  Tab := QueryTabs.TabByControl(Edit);
+  if Tab <> ActiveQueryTab then
+    Exit;
 
   // Check if bind param detection is enabled for text size <1M
   // Uncheck checkbox if it's bigger
@@ -6776,8 +6773,8 @@ begin
 
   // Don't ask for saving empty contents. See issue #614
   if Edit.GetTextLen = 0 then begin
-    ActiveQueryTab.MemoFilename := '';
-    ActiveQueryTab.Memo.Modified := False;
+    Tab.MemoFilename := '';
+    Tab.Memo.Modified := False;
   end;
 
   // Update various controls
@@ -7661,7 +7658,7 @@ begin
       if Data.IsNull(ColName) then
         Item.Hint := Conn.QuoteIdent(ColName)+' IS NULL'
       else if ColType.Category in [dtcBinary, dtcSpatial] then
-        Item.Hint := Conn.QuoteIdent(ColName)+'='+Data.HexValue(0, False, AppSettings.ReadBool(asLowercaseHex))
+        Item.Hint := Conn.QuoteIdent(ColName)+'='+Data.HexValue(0, False)
       else
         Item.Hint := Conn.QuoteIdent(ColName)+'='+Conn.EscapeString(Data.Col(ColName));
       Item.Caption := StrEllipsis(Item.Hint, 100) + ' (' + FormatNumber(Data.Col('c')) + ')';
@@ -9838,7 +9835,7 @@ begin
         if actBlobAsText.Checked then
           CellText := Results.Col(Column)
         else
-          CellText := Results.HexValue(Column, False, AppSettings.ReadBool(asLowercaseHex));
+          CellText := Results.HexValue(Column, False);
       end;
       else begin
         CellText := Results.Col(Column);
@@ -10229,26 +10226,27 @@ begin
       if idx > -1 then try
         // Find the first text column if available and use that for displaying in the pulldown instead of using meaningless id numbers
         RefObj := ForeignKey.ReferenceTableObj;
+        if not Assigned(RefObj) then
+          Continue;
+
         TextCol := '';
-        if Assigned(RefObj) then begin
-          Columns := RefObj.TableColumns;
-          for TblColumn in Columns do begin
-            if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
-              TextCol := TblColumn.Name;
-              break;
-            end;
+        Columns := RefObj.TableColumns;
+        for TblColumn in Columns do begin
+          if (TblColumn.DataType.Category = dtcText) and (TblColumn.Name <> ForeignKey.ForeignColumns[idx]) then begin
+            TextCol := TblColumn.Name;
+            break;
           end;
         end;
 
         KeyCol := Conn.QuoteIdent(ForeignKey.ForeignColumns[idx]);
         if TextCol <> '' then begin
           SQL := KeyCol+', ' + Conn.GetSQLSpecifity(spFuncLeft, [Conn.QuoteIdent(TextCol), 256])+
-            ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+
+            ' FROM ' + RefObj.QuotedDbAndTableName +
             ' GROUP BY '+KeyCol+', '+Conn.QuoteIdent(TextCol)+ // MSSQL complains if the text columns is not grouped
             ' ORDER BY '+Conn.QuoteIdent(TextCol);
         end else begin
           SQL := KeyCol+
-            ' FROM '+Conn.QuoteIdent(ForeignKey.ReferenceTable, True, '.')+
+            ' FROM ' + RefObj.QuotedDbAndTableName +
             ' GROUP BY '+KeyCol+
             ' ORDER BY '+KeyCol;
         end;
@@ -12553,13 +12551,13 @@ begin
 
 
   if MenuItem = menuQueryHelpersGenerateSelect then begin
-    sql := 'SELECT '+ImplodeStr(', ', ColumnNames)+CRLF+
+    sql := 'SELECT '+Implode(', ', ColumnNames)+CRLF+
       #9'FROM '+ActiveDbObj.QuotedName(False);
 
   end else if MenuItem = menuQueryHelpersGenerateInsert then begin
     sql := 'INSERT INTO '+ActiveDbObj.QuotedName(False)+CRLF+
-      #9'('+ImplodeStr(', ', ColumnNames)+')'+CRLF+
-      #9'VALUES ('+ImplodeStr(', ', DefaultValues)+')';
+      #9'('+Implode(', ', ColumnNames)+')'+CRLF+
+      #9'VALUES ('+Implode(', ', DefaultValues)+')';
 
   end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
     sql := 'UPDATE '+ActiveDbObj.QuotedName(False)+CRLF+#9'SET'+CRLF;
@@ -13728,7 +13726,7 @@ begin
       else
         Sel[i] := '-- '+Sel[i];
     end;
-    Editor.SelText := ImplodeStr(CRLF, Sel);
+    Editor.SelText := Implode(CRLF, Sel);
   end;
   if Assigned(Editor.OnChange) then
     Editor.OnChange(Editor);
@@ -13751,7 +13749,7 @@ begin
   SetProgressPosition(0);
   ProgressBarStatus.Hide;
   if Assigned(TaskBarList3) then
-    TaskBarList3.SetProgressState(Application.MainForm.Handle, 0);
+    TaskBarList3.SetProgressState(Handle, 0);
 end;
 
 
@@ -13768,7 +13766,7 @@ begin
   end;
   ProgressBarStatus.Repaint;
   if Assigned(TaskBarList3) then
-    TaskBarList3.SetProgressValue(Application.MainForm.Handle, Value, ProgressBarStatus.Max);
+    TaskBarList3.SetProgressValue(Handle, Value, ProgressBarStatus.Max);
 end;
 
 
@@ -13792,7 +13790,7 @@ begin
       pbsPaused: Flag := 8;
       else Flag := 0;
     end;
-    TaskBarList3.SetProgressState(Application.MainForm.Handle, Flag);
+    TaskBarList3.SetProgressState(Handle, Flag);
   end;
 end;
 
@@ -14016,24 +14014,33 @@ begin
 end;
 
 
-function TQueryTab.LoadContents(Filename: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+function TQueryTab.LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
 var
   Content: String;
   Filesize: Int64;
   LineBreaks: TLineBreaks;
+  LoadSuccess: Boolean;
 begin
-  Result := False;
   // Load file and add that to the undo-history of SynEdit.
   // Normally we would do a simple SynMemo.Lines.LoadFromFile but
   // this would prevent SynEdit from adding this step to the undo-history
   // so we have to do it by replacing the SelText property
+  Result := False;
   Screen.Cursor := crHourGlass;
-  Filesize := _GetFileSize(filename);
-  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filename, FormatByteNumber(Filesize), Number]), lcInfo);
+  Filesize := _GetFileSize(Filepath);
+  LoadSuccess := False;
+  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filepath, FormatByteNumber(Filesize), Number]), lcInfo);
   try
-    Content := ReadTextfile(Filename, Encoding);
-    if Pos(AppSettings.DirnameSnippets, Filename) = 0 then
-      MainForm.AddOrRemoveFromQueryLoadHistory(Filename, True, True);
+    Content := ReadTextfile(Filepath, Encoding);
+    LoadSuccess := True;
+  except on E:Exception do
+    // File does not exist, is locked or broken
+    ErrorDialog(E.message + sLineBreak + sLineBreak + Filepath);
+  end;
+
+  if LoadSuccess then begin
+    if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
+      MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
     Memo.UndoList.AddGroupBreak;
     Memo.BeginUpdate;
     LineBreaks := ScanLineBreaks(Content);
@@ -14053,12 +14060,10 @@ begin
     Memo.SelStart := Memo.SelEnd;
     Memo.EndUpdate;
     Memo.Modified := False;
-    MemoFilename := Filename;
+    MemoFilename := Filepath;
     Result := True;
-  except on E:Exception do
-    // File does not exist, is locked or broken
-    ErrorDialog(E.message + CRLF + CRLF + Filename);
   end;
+
   Screen.Cursor := crDefault;
 end;
 
@@ -14297,6 +14302,22 @@ begin
 end;
 
 
+{ TQueryTabList }
+
+function TQueryTabList.TabByControl(Memo: TSynMemo): TQueryTab;
+var
+  Tab: TQueryTab;
+begin
+  // Find tab where passed memo resides
+  Result := nil;
+  for Tab in Self do begin
+    if Tab.Memo = Memo then begin
+      Result := Tab;
+      Break;
+    end;
+  end;
+end;
+
 
 
 
@@ -14465,7 +14486,7 @@ begin
   for Param in Self do begin
     Lines.Add(Param.Name + FPairDelimiter + Param.Value);
   end;
-  Result := implodestr(FItemDelimiter, Lines);
+  Result := Implode(FItemDelimiter, Lines);
   Lines.Free;
 end;
 

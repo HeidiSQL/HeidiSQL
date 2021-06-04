@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-04-23 15:44+0200\n"
+"PO-Revision-Date: 2021-05-24 14:15+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.2\n"
+"X-Generator: Poedit 2.4.3\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -4040,12 +4040,12 @@ msgid "Error: Session \"%s\" not found in registry."
 msgstr "Error: Session \"%s\" not found in registry."
 
 #: dbconnection.pas:680
-msgid "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
-msgstr "Broken \"NetType\" value (%d) found in settings for session \"%s\"."
+msgid "Unsupported \"NetType\" value (%d) found in settings for session \"%s\"."
+msgstr "Unsupported \"NetType\" value (%d) found in settings for session \"%s\"."
 
 #: dbconnection.pas:681
-msgid "Please report that on %s"
-msgstr "Please report that on %s"
+msgid "Loaded as MySQL/MariaDB session."
+msgstr "Loaded as MySQL/MariaDB session."
 
 #. Comes into SQL log when assigning dll procedures from libmysql.dll
 #: dbconnection.pas:1038
@@ -5417,8 +5417,8 @@ msgid "Released: %s"
 msgstr "Released: %s"
 
 #: updatecheck.pas:152
-msgid "Download version %s"
-msgstr "Download version %s"
+msgid "Download version %s (%s)"
+msgstr "Download version %s (%s)"
 
 #: updatecheck.pas:168
 msgid "Revision %d (yours: %d)"
@@ -6672,3 +6672,12 @@ msgstr "Editor commands"
 
 msgid "Lowercase hexadecimal"
 msgstr "Lowercase hexadecimal"
+
+msgid "Update instructions"
+msgstr "Update instructions"
+
+msgid "Download the portable package and extract it in %s"
+msgstr "Download the portable package and extract it in %s"
+
+msgid "No area selected"
+msgstr "No area selected"

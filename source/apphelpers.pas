@@ -138,6 +138,10 @@ type
     procedure LogFromThread(Msg: String; Category: TDBLogCategory);
   end;
 
+  TSqlTranspiler = class(TObject)
+    class function CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
+  end;
+
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
@@ -211,6 +215,7 @@ type
       FReads, FWrites: Integer;
       FBasePath: String;
       FSessionPath: String;
+      FStoredPath: String;
       FRegistry: TRegistry;
       FPortableMode: Boolean;
       FPortableModeReadOnly: Boolean;
@@ -255,6 +260,8 @@ type
       function SessionPathExists(SessionPath: String): Boolean;
       function IsEmptyKey: Boolean;
       procedure ResetPath;
+      procedure StorePath;
+      procedure RestorePath;
       property SessionPath: String read FSessionPath write SetSessionPath;
       property PortableMode: Boolean read FPortableMode;
       property PortableModeReadOnly: Boolean read FPortableModeReadOnly write FPortableModeReadOnly;
@@ -273,7 +280,7 @@ type
 
 {$I const.inc}
 
-  function implodestr(seperator: String; a: TStrings) :String;
+  function Implode(Separator: String; a: TStrings): String;
   function Explode(Separator, Text: String) :TStringList;
   procedure ExplodeQuotedList(Text: String; var List: TStringList);
   function StrEllipsis(const S: String; MaxLen: Integer; FromLeft: Boolean=True): String;
@@ -420,7 +427,7 @@ end;
   @param a TStringList Containing strings
   @return string
 }
-function implodestr(seperator: String; a: TStrings) :String;
+function Implode(Separator: String; a: TStrings): String;
 var
   i : Integer;
 begin
@@ -429,10 +436,9 @@ begin
   begin
     Result := Result + a[i];
     if i < a.Count-1 then
-      Result := Result + seperator;
+      Result := Result + Separator;
   end;
 end;
-
 
 
 function Explode(Separator, Text: String): TStringList;
@@ -574,17 +580,20 @@ end;
 
 {***
   Return filesize of a given file
+  Partly taken from https://www.delphipraxis.net/194137-getfilesize-welches-ist-die-bessere-funktion-2.html
   @param string Filename
   @return int64 Size in bytes
 }
 function _GetFileSize(Filename: String): Int64;
 var
-  Attr: _WIN32_FILE_ATTRIBUTE_DATA;
+  Attr: TWin32FileAttributeData;
 begin
-  if FileExists(Filename) then begin
-    GetFileAttributesEx(PChar(Filename), GetFileExInfoStandard, @Attr);
+  FillChar(Attr, SizeOf(Attr), 0);
+  if GetFileAttributesEx(PChar(Filename), GetFileExInfoStandard, @Attr) then
+  begin
     Result := Int64(Attr.nFileSizeHigh) shl 32 + Int64(Attr.nFileSizeLow);
-  end else
+  end
+  else
     Result := -1;
 end;
 
@@ -2267,6 +2276,9 @@ var
       Btn.Default := True;
   end;
 begin
+  // Remember current path and restore it later, so the caller does not try to read from the wrong path after this dialog
+  AppSettings.StorePath;
+
   if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
     // Use modern task dialog on Vista and above
     Dialog := TTaskDialog.Create(nil);
@@ -2287,7 +2299,10 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
-    rx.Expression := 'https?://\S+';
+    // This expression does not correctly detect filenames with all allowed characters, for which we would
+    // need to take TPath.GetInvalidPathChars into account. But to not excessively eat parts of the following
+    // text, we stop at the first space character
+    rx.Expression := '(https?://|[A-Z]\:\\)\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
@@ -2379,6 +2394,8 @@ begin
     else
       Result := mrNo;
   end;
+
+  AppSettings.RestorePath;
 end;
 
 
@@ -3307,6 +3324,21 @@ begin
 end;
 
 
+{ TSqlTranspiler }
+
+class function TSqlTranspiler.CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
+begin
+  Result := SQL;
+
+  if SourceDb.Parameters.IsMySQL(False) and TargetDb.Parameters.IsMariaDB then begin
+    // Remove COLLATE clause from virtual column definition:
+    // `tax_status` varchar(255) COLLATE utf8mb4_unicode_ci GENERATED ALWAYS AS (json_unquote(json_extract(`price`,'$.taxStatus'))) VIRTUAL
+    Result := ReplaceRegExpr('\sCOLLATE\s\w+(\s+GENERATED\s)', Result, '$1', [rroModifierI, rroUseSubstitution]);
+  end;
+
+end;
+
+
 
 { TAppSettings }
 
@@ -3742,6 +3774,17 @@ end;
 procedure TAppSettings.ResetPath;
 begin
   SessionPath := '';
+end;
+
+
+procedure TAppSettings.StorePath;
+begin
+  FStoredPath := SessionPath;
+end;
+
+procedure TAppSettings.RestorePath;
+begin
+  SessionPath := FStoredPath;
 end;
 
 

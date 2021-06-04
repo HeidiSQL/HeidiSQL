@@ -145,6 +145,7 @@ type
       FCreateCodeLoaded: Boolean;
       FWasSelected: Boolean;
       FConnection: TDBConnection;
+      FRowCount: Int64;
       function GetObjType: String;
       function GetImageIndex: Integer;
       function GetOverlayImageIndex: Integer;
@@ -173,7 +174,7 @@ type
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function SchemaClauseIS(Prefix: String): String;
-      function RowCount(Reload: Boolean): Int64;
+      function RowCount(Reload: Boolean=False): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
@@ -272,8 +273,7 @@ type
     ntPgSQL_TCPIP,
     ntPgSQL_SSHtunnel,
     ntSQLite,
-    ntMySQL_ProxySQLAdmin,
-    ntMySQL_ClickHouse
+    ntMySQL_ProxySQLAdmin
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
@@ -316,7 +316,6 @@ type
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
       function IsProxySQLAdmin: Boolean;
-      function IsClickHouse: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
@@ -471,7 +470,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
+      function GetRowCount(Obj: TDBObject): Int64;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetLockedByThread(Value: TThread); virtual;
@@ -606,7 +605,6 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
-      function GetRowCount(Obj: TDBObject): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
       procedure SetLockedByThread(Value: TThread); override;
     public
@@ -638,7 +636,6 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -678,7 +675,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
@@ -717,7 +713,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -767,7 +762,7 @@ type
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
-      function HexValue(Column: Integer; IgnoreErrors: Boolean=False; Lowercase: Boolean=False): String; overload;
+      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
       function HexValue(BinValue: String): String; overload;
       function HexValue(var ByteData: TBytes): String; overload;
       function DataType(Column: Integer): TDBDataType;
@@ -1327,9 +1322,9 @@ begin
     FSessionColor := AppSettings.ReadInt(asTreeBackground);
     FNetType := TNetType(AppSettings.ReadInt(asNetType));
     if (FNetType > High(TNetType)) or (FNetType < Low(TNetType)) then begin
-      ErrorDialog(f_('Broken "NetType" value (%d) found in settings for session "%s".', [Integer(FNetType), FSessionPath])
+      ErrorDialog(f_('Unsupported "NetType" value (%d) found in settings for session "%s".', [Integer(FNetType), FSessionPath])
         +CRLF+CRLF+
-        f_('Please report that on %s', ['https://github.com/HeidiSQL/HeidiSQL'])
+        _('Loaded as MySQL/MariaDB session.')
         );
       FNetType := ntMySQL_TCPIP;
     end;
@@ -1474,7 +1469,6 @@ function TConnectionParameters.NetTypeName(LongFormat: Boolean): String;
 const
   PrefixMysql = 'MariaDB or MySQL';
   PrefixProxysql = 'ProxySQL Admin';
-  PrefixClickhouse = 'ClickHouse MySQL';
   PrefixMssql = 'Microsoft SQL Server';
   PrefixPostgres = 'PostgreSQL';
   PrefixRedshift = 'Redshift PG';
@@ -1489,7 +1483,6 @@ begin
       ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
       ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
-      ntMySQL_ClickHouse:       Result := PrefixClickhouse+' (Experimental)';
       ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
       ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX)';
@@ -1497,7 +1490,7 @@ begin
       ntMSSQL_RPC:              Result := PrefixMssql+' (Windows RPC)';
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
-      ntSQLite:                 Result := PrefixSqlite+' (Experimental)';
+      ntSQLite:                 Result := PrefixSqlite;
     end;
   end
   else begin
@@ -1510,7 +1503,6 @@ begin
         else if IsInfobright then      Result := 'Infobright'
         else if IsMemSQL then          Result := 'MemSQL'
         else if IsProxySQLAdmin then   Result := 'ProxySQL Admin'
-        else if IsClickHouse then      Result := 'ClickHouse MySQL'
         else if IsMySQL(True) then     Result := 'MySQL'
         else                           Result := PrefixMysql;
       end;
@@ -1535,7 +1527,7 @@ end;
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse:
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin:
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
@@ -1595,7 +1587,6 @@ begin
       and (not IsInfiniDB)
       and (not IsInfobright)
       and (not IsProxySQLAdmin)
-      and (not IsClickHouse)
       and (not IsMemSQL);
   end;
 end;
@@ -1631,12 +1622,6 @@ begin
 end;
 
 
-function TConnectionParameters.IsClickHouse: Boolean;
-begin
-  Result := NetType = ntMySQL_ClickHouse;
-end;
-
-
 function TConnectionParameters.IsAzure: Boolean;
 begin
   Result := IsAnyMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
@@ -1668,8 +1653,7 @@ begin
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173
       else if IsMemSQL then Result := 194
-      else if IsProxySQLAdmin then Result := 197
-      else if IsClickHouse then Result := 203;
+      else if IsProxySQLAdmin then Result := 197;
     end;
     ngMSSQL: begin
       Result := 123;
@@ -1693,8 +1677,6 @@ begin
     ngMySQL: begin
       if IsProxySQLAdmin then
         Result := 6032
-      else if IsClickHouse then
-        Result := 8123 // todo: is that correct?
       else
         Result := 3306;
     end;
@@ -1966,7 +1948,7 @@ begin
       // Move more exact (longer) types to the beginning
       TypesSorted := Explode('|', Types);
       TypesSorted.CustomSort(StringListCompareByLength);
-      Types := ImplodeStr('|', TypesSorted);
+      Types := Implode('|', TypesSorted);
       TypesSorted.Free;
     end;
 
@@ -2116,7 +2098,7 @@ begin
     end;
 
     case FParameters.NetType of
-      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin, ntMySQL_ClickHouse: begin
+      ntMySQL_TCPIP, ntMySQL_ProxySQLAdmin: begin
       end;
 
       ntMySQL_NamedPipe: begin
@@ -2687,17 +2669,17 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
-      FSQLSpecifities[spGlobalStatus] := 'SHOW /*!50002 GLOBAL */ STATUS';
-      if Parameters.IsProxySQLAdmin then
-        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM stats_mysql_global';
-      if Parameters.IsClickHouse then
-        FSQLSpecifities[spGlobalStatus] := 'SELECT * FROM system.metrics';
-      FSQLSpecifities[spCommandsCounters] := 'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%''';
-      if Parameters.IsProxySQLAdmin then
-        FSQLSpecifities[spCommandsCounters] := 'SELECT * FROM stats_mysql_commands_counters';
+      FSQLSpecifities[spGlobalStatus] := IfThen(
+        Parameters.IsProxySQLAdmin,
+        'SELECT * FROM stats_mysql_global',
+        'SHOW /*!50002 GLOBAL */ STATUS'
+        );
+      FSQLSpecifities[spCommandsCounters] := IfThen(
+        Parameters.IsProxySQLAdmin,
+        'SELECT * FROM stats_mysql_commands_counters',
+        'SHOW /*!50002 GLOBAL */ STATUS LIKE ''Com\_%'''
+        );
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
-      if Parameters.IsClickHouse then
-        FSQLSpecifities[spSessionVariables] := 'SELECT * FROM system.settings';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
@@ -2902,7 +2884,7 @@ begin
   except // silently fail if IS does not exist, on super old servers
   end;
 
-  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) and (not Parameters.IsClickHouse) then
+  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
@@ -3612,7 +3594,7 @@ begin
           else
             Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name));
           // Do not use Rows.Text, as the rows already include a trailing linefeed
-          Result := implodestr('', Rows);
+          Result := Implode('', Rows);
           Rows.Free;
         end;
         ngPgSQL: begin
@@ -3639,7 +3621,7 @@ begin
               DataType := '';
             Arguments.Add(ArgNames[i] + ' ' + DataType);
           end;
-          Result := Result + '(' + implodestr(', ', Arguments) + ') '+
+          Result := Result + '(' + Implode(', ', Arguments) + ') '+
             'RETURNS '+GetDatatypeByNativeType(MakeInt(ProcDetails.Col('prorettype'))).Name+' '+
             'AS $$ '+ProcDetails.Col('prosrc')+' $$'
             // TODO: 'LANGUAGE SQL IMMUTABLE STRICT'
@@ -3664,7 +3646,7 @@ begin
             Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Schema+'.'+Obj.Name))
           else
             Rows := GetCol('EXEC sp_helptext '+EscapeString(Obj.Database+'.'+Obj.Name));
-          Result := implodestr('', Rows);
+          Result := Implode('', Rows);
           Rows.Free;
         end;
         else begin
@@ -3716,7 +3698,7 @@ begin
     end;
   end;
   if Queries.Count > 0 then try
-    PrefetchResults(implodestr(';', Queries));
+    PrefetchResults(Implode(';', Queries));
   except
     on E:EDbError do;
   end;
@@ -3801,7 +3783,7 @@ begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then begin
-      if Parameters.IsProxySQLAdmin or Parameters.IsClickHouse then
+      if Parameters.IsProxySQLAdmin then
         FThreadID := FLib.mysql_thread_id(FHandle)
       else
         FThreadID := StrToInt64Def(GetVar('SELECT CONNECTION_ID()'), 0);
@@ -4162,7 +4144,7 @@ begin
         ' FROM '+QuoteIdent('pg_catalog')+'.'+QuoteIdent('pg_namespace');
       if Parameters.IsRedshift then begin
         DbQuery := DbQuery + ' WHERE '+QuoteIdent('nspowner')+' != 1'+
-          ' OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString(InfSch)+')';
+          ' OR '+QuoteIdent('nspname')+' IN ('+EscapeString('pg_catalog')+', '+EscapeString('public')+', '+EscapeString(InfSch)+')';
       end;
       DbQuery := DbQuery + ' ORDER BY '+QuoteIdent('nspname');
       FAllDatabases := GetCol(DbQuery);
@@ -5719,61 +5701,17 @@ begin
 end;
 
 
-function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
-var
-  Rows: String;
-begin
-  // Get row number from a mysql table
-  if Parameters.IsProxySQLAdmin then
-    Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0)
-  else
-    Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
-  Result := MakeInt(Rows);
-end;
-
-
-function TAdoDBConnection.GetRowCount(Obj: TDBObject): Int64;
-var
-  Rows: String;
-begin
-  // Get row number from a mssql table
-  if ServerVersionInt >= 900 then begin
-    Rows := GetVar('SELECT SUM('+QuoteIdent('rows')+') FROM '+QuoteIdent('sys')+'.'+QuoteIdent('partitions')+
-      ' WHERE '+QuoteIdent('index_id')+' IN (0, 1)'+
-      ' AND '+QuoteIdent('object_id')+' = object_id('+EscapeString(Obj.Database+'.'+Obj.Schema+'.'+Obj.Name)+')'
-      );
-  end else begin
-    Rows := GetVar('SELECT COUNT(*) FROM '+Obj.QuotedDbAndTableName);
-  end;
-  Result := MakeInt(Rows);
-end;
-
-
-function TPgConnection.GetRowCount(Obj: TDBObject): Int64;
-var
-  Rows: String;
-begin
-  // Get row number from a postgres table
-  Rows := GetVar('SELECT '+QuoteIdent('reltuples')+'::bigint FROM '+QuoteIdent('pg_class')+
-    ' LEFT JOIN '+QuoteIdent('pg_namespace')+
-    '   ON ('+QuoteIdent('pg_namespace')+'.'+QuoteIdent('oid')+' = '+QuoteIdent('pg_class')+'.'+QuoteIdent('relnamespace')+')'+
-    ' WHERE '+QuoteIdent('pg_class')+'.'+QuoteIdent('relkind')+'='+EscapeString('r')+
-    ' AND '+QuoteIdent('pg_namespace')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
-    ' AND '+QuoteIdent('pg_class')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)
-    );
-  Result := MakeInt(Rows);
-end;
-
-
-function TSQLiteConnection.GetRowCount(Obj: TDBObject): Int64;
+function TDBConnection.GetRowCount(Obj: TDBObject): Int64;
 var
   Rows: String;
 begin
   // Get row number from a table
-  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
+  if Obj.NodeType in [lntView, lntTable] then
+    Rows := GetVar('SELECT COUNT(*) FROM ' + Obj.QuotedDbAndTableName, 0)
+  else
+    Rows := '';
   Result := MakeInt(Rows);
 end;
-
 
 
 procedure TDBConnection.Drop(Obj: TDBObject);
@@ -7759,7 +7697,7 @@ begin
 end;
 
 
-function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False; Lowercase: Boolean=False): String;
+function TDBQuery.HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
 var
     baData: TBytes;
 begin
@@ -7769,7 +7707,7 @@ begin
     Result := HexValue(baData);
   end else
     Result := HexValue(Col(Column, IgnoreErrors));
-  if Lowercase then
+  if AppSettings.ReadBool(asLowercaseHex) then
     Result := Result.ToLowerInvariant;
 end;
 
@@ -8804,6 +8742,7 @@ begin
   Database := '';
   Schema := '';
   Rows := -1;
+  FRowCount := -1;
   Size := -1;
   Created := 0;
   Updated := 0;
@@ -8845,6 +8784,7 @@ begin
     Updated := s.Updated;
     Comment := s.Comment;
     Rows := s.Rows;
+    FRowCount := s.FRowCount;
     Size := s.Size;
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
@@ -9075,12 +9015,13 @@ begin
     Result := Connection.GetSQLSpecifity(spISSchemaCol, [Prefix]) + '=' + Connection.EscapeString(Database);
 end;
 
-function TDBObject.RowCount(Reload: Boolean): Int64;
+function TDBObject.RowCount(Reload: Boolean=False): Int64;
 begin
-  if (Rows = -1) or Reload then begin
-    Rows := Connection.GetRowCount(Self);
+  if (FRowCount = -1) or Reload then begin
+    if NodeType in [lntTable, lntView] then
+      FRowCount := Connection.GetRowCount(Self);
   end;
-  Result := Rows;
+  Result := FRowCount;
 end;
 
 procedure TDBObject.Drop;
@@ -9092,12 +9033,14 @@ end;
 function TDBObject.GetTableColumns: TTableColumnList;
 var
   ColumnsInCache: TTableColumnList;
+  CacheKey: String;
 begin
   // Return columns from table object
-  if not FConnection.FColumnCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FColumnCache.Add(QuotedDbAndTableName, Connection.GetTableColumns(Self));
+  CacheKey := QuotedDbAndTableName;
+  if not FConnection.FColumnCache.ContainsKey(CacheKey) then begin
+    FConnection.FColumnCache.Add(CacheKey, Connection.GetTableColumns(Self));
   end;
-  FConnection.FColumnCache.TryGetValue(QuotedDbAndTableName, ColumnsInCache);
+  FConnection.FColumnCache.TryGetValue(CacheKey, ColumnsInCache);
   Result := TTableColumnList.Create;
   Result.Assign(ColumnsInCache);
 end;
@@ -9266,7 +9209,7 @@ begin
   s.AddPair('Virtuality', Virtuality);
   s.AddPair('Status', Integer(FStatus).ToString);
 
-  Result := implodestr(DELIMITER, s);
+  Result := Implode(DELIMITER, s);
   s.Free;
   Result := StringReplace(Result, #13, CHR13REPLACEMENT, [rfReplaceAll]);
   Result := StringReplace(Result, #10, CHR10REPLACEMENT, [rfReplaceAll]);
@@ -9594,7 +9537,7 @@ begin
   if Columns.Count > 0 then Delete(Result, Length(Result)-1, 2);
   Result := Result + ') REFERENCES ';
   if (not ReferenceDb.IsEmpty) and (ReferenceTable.StartsWith(ReferenceDb)) then begin
-    TablePart := ReferenceTable.Substring(Length(ReferenceDb));
+    TablePart := ReferenceTable.Substring(Length(ReferenceDb) + 1);
     Result := Result + FConnection.QuoteIdent(ReferenceDb) + '.' + FConnection.QuoteIdent(TablePart);
   end
   else begin
@@ -9617,12 +9560,17 @@ var
   RefDb, RefTable: String;
 begin
   // Find database object of reference table
-  RefDb := ReferenceTable.Substring(0, Pos('.', ReferenceTable)-1);
-  if not RefDb.IsEmpty then begin
-    RefTable := ReferenceTable.Substring(Length(RefDb)+1);
+  if (not ReferenceDb.IsEmpty) and (ReferenceTable.StartsWith(ReferenceDb)) then begin
+    RefDb := ReferenceDb;
+    RefTable := ReferenceTable.Substring(Length(ReferenceDb) + 1);
   end else begin
-    RefDb := FConnection.Database;
-    RefTable := ReferenceTable;
+    RefDb := ReferenceTable.Substring(0, Pos('.', ReferenceTable)-1);
+    if not RefDb.IsEmpty then begin
+      RefTable := ReferenceTable.Substring(Length(RefDb)+1);
+    end else begin
+      RefDb := FConnection.Database;
+      RefTable := ReferenceTable;
+    end;
   end;
   Result := FConnection.FindObject(RefDb, RefTable);
 end;

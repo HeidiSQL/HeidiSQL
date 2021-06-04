@@ -545,7 +545,7 @@ begin
     Params.Add(tmp);
   end;
   if Params.Count > 0 then
-    Result := Result + CRLF + #9 + implodestr(','+CRLF+#9, Params) + CRLF;
+    Result := Result + CRLF + #9 + Implode(','+CRLF+#9, Params) + CRLF;
   Result := Result + ')'+CRLF;
   if comboReturns.Enabled then
     Result := Result + 'RETURNS '+comboReturns.Text+CRLF;

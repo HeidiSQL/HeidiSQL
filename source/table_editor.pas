@@ -558,7 +558,7 @@ var
   procedure FinishSpecs;
   begin
     if Specs.Count > 0 then begin
-      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + ImplodeStr(',' + CRLF + #9, Specs)) + ';' + CRLF;
+      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + Implode(',' + CRLF + #9, Specs)) + ';' + CRLF;
       Specs.Clear;
     end;
   end;
@@ -2431,7 +2431,7 @@ begin
       end;
     end;
     TblKey := TTableKey.Create(DBObject.Connection);
-    TblKey.Name := ImplodeStr('_', NewParts);
+    TblKey.Name := Implode('_', NewParts);
     TblKey.IndexType := NewType;
     TblKey.Added := True;
     TblKey.Columns := NewParts;
@@ -2521,7 +2521,6 @@ procedure TfrmTableEditor.listForeignKeysEditing(Sender: TBaseVirtualTree; Node:
   Column: TColumnIndex; var Allowed: Boolean);
 var
   Key: TForeignKey;
-  ExistsQuery: String;
 begin
   // Disallow editing foreign columns when no reference table was selected.
   // Also, check for existance of reference table and warn if it's missing.
@@ -2531,16 +2530,11 @@ begin
     if Key.ReferenceTable = '' then
       ErrorDialog(_('Please select a reference table before selecting foreign columns.'))
     else begin
-      try
-        ExistsQuery := DBObject.Connection.ApplyLimitClause(
-          'SELECT',
-          '1 FROM '+DBObject.Connection.QuoteIdent(Key.ReferenceTable, True, '.'),
-          1, 0);
-        DBObject.Connection.GetVar(ExistsQuery);
-        Allowed := True;
-      except
+      if Key.ReferenceTableObj = nil then begin
         // Leave Allowed = False
-        ErrorDialog(f_('Reference table "%s" seems to be missing, broken or non-accessible.', [Key.ReferenceTable]))
+        ErrorDialog(f_('Reference table "%s" seems to be missing, broken or non-accessible.', [Key.ReferenceTable]));
+      end else begin
+        Allowed := True;
       end;
     end;
   end else
@@ -2639,9 +2633,9 @@ begin
   Key := FForeignKeys[Node.Index];
   case Column of
     0: CellText := Key.KeyName;
-    1: CellText := ImplodeStr(',', Key.Columns);
+    1: CellText := Implode(',', Key.Columns);
     2: CellText := Key.ReferenceTable;
-    3: CellText := ImplodeStr(',', Key.ForeignColumns);
+    3: CellText := Implode(',', Key.ForeignColumns);
     4: begin
         CellText := Key.OnUpdate;
         // Both ON UPDATE + DELETE default to "RESTRICT", see http://dev.mysql.com/doc/refman/5.1/en/innodb-foreign-key-constraints.html

@@ -14,6 +14,7 @@ object frmUpdateCheck: TfrmUpdateCheck
   Font.Style = []
   OldCreateOrder = False
   Position = poOwnerFormCenter
+  OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
@@ -1184,17 +1185,6 @@ object frmUpdateCheck: TfrmUpdateCheck
     DesignSize = (
       358
       110)
-    object btnRelease: TButton
-      Left = 6
-      Top = 78
-      Width = 345
-      Height = 25
-      Anchors = [akLeft, akRight, akBottom]
-      Caption = 'Download new release'
-      ModalResult = 1
-      TabOrder = 0
-      OnClick = btnReleaseClick
-    end
     object memoRelease: TMemo
       Left = 6
       Top = 16
@@ -1207,7 +1197,30 @@ object frmUpdateCheck: TfrmUpdateCheck
         'memoRelease')
       ReadOnly = True
       ScrollBars = ssVertical
+      TabOrder = 0
+    end
+    object LinkLabelRelease: TLinkLabel
+      Left = 6
+      Top = 87
+      Width = 122
+      Height = 19
+      Cursor = crHandPoint
+      Anchors = [akLeft, akBottom]
+      Caption = 'Download new release'
+      PopupMenu = popupDownloadRelease
       TabOrder = 1
+      UseVisualStyle = True
+      OnLinkClick = LinkLabelReleaseLinkClick
+    end
+  end
+  object popupDownloadRelease: TPopupMenu
+    Images = MainForm.VirtualImageListMain
+    Left = 32
+    Top = 116
+    object CopydownloadURL1: TMenuItem
+      Caption = 'Copy to clipboard'
+      ImageIndex = 3
+      OnClick = CopydownloadURL1Click
     end
   end
 end

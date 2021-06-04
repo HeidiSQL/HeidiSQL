@@ -643,7 +643,7 @@ begin
           P.OrgPrivs.AddStrings(P.AllPrivileges);
           P.OrgPrivs.Delete(P.OrgPrivs.IndexOf('GRANT'));
         end else begin
-          rxTemp.Expression := '\b('+ImplodeStr('|', AllPnames)+')(\s+\(([^\)]+)\))?,';
+          rxTemp.Expression := '\b('+Implode('|', AllPnames)+')(\s+\(([^\)]+)\))?,';
           if rxTemp.Exec(rxGrant.Match[1]+',') then while True do begin
             if rxTemp.Match[3] = '' then
               P.OrgPrivs.Add(rxTemp.Match[1])
@@ -1318,7 +1318,7 @@ begin
           WithClauses.Add('MAX_USER_CONNECTIONS '+IntToStr(udMaxUserConnections.Position));
       end;
       if WithClauses.Count > 0 then
-        Grant := Grant + ' WITH ' + ImplodeStr(' ', WithClauses);
+        Grant := Grant + ' WITH ' + Implode(' ', WithClauses);
 
       if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) or (RequireClause <> '') then
         FConnection.Query(Grant);

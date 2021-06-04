@@ -4,7 +4,8 @@ interface
 
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
-  apphelpers, gnugettext, ExtCtrls, extra_controls;
+  apphelpers, gnugettext, ExtCtrls, extra_controls, System.StrUtils, Vcl.Dialogs,
+  Vcl.Menus, Vcl.Clipbrd;
 
 type
   TfrmUpdateCheck = class(TExtForm)
@@ -12,24 +13,34 @@ type
     groupBuild: TGroupBox;
     btnBuild: TButton;
     groupRelease: TGroupBox;
-    btnRelease: TButton;
+    LinkLabelRelease: TLinkLabel;
     lblStatus: TLabel;
     memoRelease: TMemo;
     memoBuild: TMemo;
     imgDonate: TImage;
     btnChangelog: TButton;
+    popupDownloadRelease: TPopupMenu;
+    CopydownloadURL1: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
-    procedure btnReleaseClick(Sender: TObject);
+    procedure LinkLabelReleaseLinkClick(Sender: TObject; const Link: string;
+      LinkType: TSysLinkType);
     procedure FormShow(Sender: TObject);
     procedure btnChangelogClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure CopydownloadURL1Click(Sender: TObject);
+  const
+    SLinkDownloadRelease= 'download-release';
+    SLinkInstructionsPortable = 'instructions-portable';
+    SLinkChangelog = 'changelog';
   private
     { Private declarations }
-    ReleaseURL, BuildURL : String;
+    BuildURL: String;
     FLastStatusUpdate: Cardinal;
     procedure Status(txt: String);
     procedure DownloadProgress(Sender: TObject);
+    function GetLinkUrl(Sender: TObject; LinkType: String): String;
   public
     { Public declarations }
     BuildRevision: Integer;
@@ -63,6 +74,11 @@ procedure TfrmUpdateCheck.FormDestroy(Sender: TObject);
 begin
   AppSettings.WriteInt(asUpdateCheckWindowWidth, Width);
   AppSettings.WriteInt(asUpdateCheckWindowHeight, Height);
+end;
+
+procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 {**
@@ -110,7 +126,7 @@ var
   CheckfileDownload: THttpDownLoad;
   CheckFilename: String;
   Ini: TIniFile;
-  ReleaseVersion: String;
+  ReleaseVersion, ReleasePackage: String;
   ReleaseRevision: Integer;
   Note: String;
   Compiled: TDateTime;
@@ -119,7 +135,7 @@ const
   INISECT_BUILD = 'Build';
 begin
   // Init GUI controls
-  btnRelease.Enabled := False;
+  LinkLabelRelease.Enabled := False;
   btnBuild.Enabled := False;
   memoRelease.Clear;
   memoBuild.Clear;
@@ -146,16 +162,22 @@ begin
   if Ini.SectionExists(INISECT_RELEASE) then begin
     ReleaseVersion := Ini.ReadString(INISECT_RELEASE, 'Version', 'unknown');
     ReleaseRevision := Ini.ReadInteger(INISECT_RELEASE, 'Revision', 0);
-    ReleaseURL := Ini.ReadString(INISECT_RELEASE, 'URL', '');
+    ReleasePackage := IfThen(AppSettings.PortableMode, 'portable', 'installer');
     memoRelease.Lines.Add(f_('Version %s (yours: %s)', [ReleaseVersion, Mainform.AppVersion]));
     memoRelease.Lines.Add(f_('Released: %s', [Ini.ReadString(INISECT_RELEASE, 'Date', '')]));
     Note := Ini.ReadString(INISECT_RELEASE, 'Note', '');
     if Note <> '' then
       memoRelease.Lines.Add(_('Notes') + ': ' + Note);
-    btnRelease.Caption := f_('Download version %s', [ReleaseVersion]);
+
+    LinkLabelRelease.Caption := f_('Download version %s (%s)', [ReleaseVersion, ReleasePackage]);
+    LinkLabelRelease.Caption := '<a id="'+SLinkDownloadRelease+'">' + LinkLabelRelease.Caption + '</a>';
+    if AppSettings.PortableMode then begin
+      LinkLabelRelease.Caption := LinkLabelRelease.Caption + '   <a id="'+SLinkInstructionsPortable+'">'+_('Update instructions')+'</a>';
+    end;
+
     // Enable the download button if the current version is outdated
     groupRelease.Enabled := ReleaseRevision > Mainform.AppVerRevision;
-    btnRelease.Enabled := groupRelease.Enabled;
+    LinkLabelRelease.Enabled := groupRelease.Enabled;
     memoRelease.Enabled := groupRelease.Enabled;
     if not memoRelease.Enabled then
       memoRelease.Font.Color := GetThemeColor(cl3DDkShadow)
@@ -177,7 +199,7 @@ begin
     // A new release should have priority over a new nightly build.
     // So the user should not be able to download a newer build here
     // before having installed the new release.
-    btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not btnRelease.Enabled));
+    btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not LinkLabelRelease.Enabled));
   end;
 
   if FileExists(CheckFilename) then
@@ -187,19 +209,39 @@ end;
 
 
 {**
-  Download release installer via web browser
+  Download release package via web browser
 }
-procedure TfrmUpdateCheck.btnReleaseClick(Sender: TObject);
+procedure TfrmUpdateCheck.LinkLabelReleaseLinkClick(Sender: TObject;
+  const Link: string; LinkType: TSysLinkType);
 begin
-  ShellExec(APPDOMAIN+'download.php?download=installer');
+  case LinkType of
+
+    sltURL: ShellExec(Link);
+
+    sltID: begin
+      if Link = SLinkDownloadRelease then begin
+        ShellExec(GetLinkUrl(Sender, Link));
+        Close;
+      end
+      else if Link = SLinkInstructionsPortable then begin
+        MessageDialog(f_('Download the portable package and extract it in %s', [ExtractFilePath(Application.ExeName)]), mtInformation, [mbOK]);
+      end;
+    end;
+
+  end;
 end;
 
 
 procedure TfrmUpdateCheck.btnChangelogClick(Sender: TObject);
 begin
-  ShellExec(APPDOMAIN+'download.php?place='+EncodeURLParam(TButton(Sender).Name)+'#nightlybuilds');
+  ShellExec(GetLinkUrl(Sender, SLinkChangelog));
 end;
 
+
+procedure TfrmUpdateCheck.CopydownloadURL1Click(Sender: TObject);
+begin
+  Clipboard.AsText := GetLinkUrl(LinkLabelRelease, SLinkDownloadRelease);
+end;
 
 {**
   Download latest build and replace running exe
@@ -279,6 +321,32 @@ begin
   Download := Sender as THttpDownload;
   Status(f_('Downloading: %s / %s', [FormatByteNumber(Download.BytesRead), FormatByteNumber(Download.ContentLength)]) + ' ...');
   FLastStatusUpdate := GetTickCount;
+end;
+
+
+function TfrmUpdateCheck.GetLinkUrl(Sender: TObject; LinkType: String): String;
+var
+  DownloadParam, PlaceParam: String;
+begin
+  PlaceParam := 'place='+EncodeURLParam(TWinControl(Sender).Name);
+
+  if LinkType = SLinkDownloadRelease then begin
+    if AppSettings.PortableMode then begin
+      if GetExecutableBits = 64 then
+        DownloadParam := 'download=portable-64'
+      else
+        DownloadParam := 'download=portable';
+    end else begin
+      DownloadParam := 'download=installer';
+    end;
+    Result := 'download.php?'+DownloadParam+'&'+PlaceParam;
+  end
+
+  else if LinkType = SLinkChangelog then begin
+    Result := 'download.php?'+PlaceParam+'#nightlybuilds';
+  end;
+
+  Result := APPDOMAIN + Result;
 end;
 
 
