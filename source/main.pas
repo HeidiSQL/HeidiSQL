@@ -11463,6 +11463,7 @@ begin
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
   QueryTab.Memo.Name := SynMemoQuery.Name + i.ToString;
+  QueryTab.Memo.Text := '';
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
   QueryTab.Memo.Constraints := SynMemoQuery.Constraints;
@@ -11505,6 +11506,7 @@ begin
 
   QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.pnlHelpers);
   QueryTab.filterHelpers.Name := filterQueryHelpers.Name + i.ToString;
+  QueryTab.filterHelpers.Text := '';
   QueryTab.filterHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.filterHelpers.Align := filterQueryHelpers.Align;
   QueryTab.filterHelpers.TextHint := filterQueryHelpers.TextHint;
