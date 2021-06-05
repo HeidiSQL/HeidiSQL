@@ -2034,6 +2034,9 @@ object MainForm: TMainForm
       object Closetab1: TMenuItem
         Action = actCloseQueryTab
       end
+      object Closeallquerytabs1: TMenuItem
+        Action = actCloseAllQueryTabs
+      end
       object N2: TMenuItem
         Caption = '-'
       end
@@ -3523,6 +3526,13 @@ object MainForm: TMainForm
       ImageIndex = 58
       OnExecute = actRenameQueryTabExecute
     end
+    object actCloseAllQueryTabs: TAction
+      Category = 'File'
+      Caption = 'Close all query tabs'
+      Enabled = False
+      ImageIndex = 133
+      OnExecute = actCloseAllQueryTabsExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -4309,6 +4319,12 @@ object MainForm: TMainForm
       Caption = 'Close query tab'
       ImageIndex = 133
       OnClick = menuCloseQueryTabClick
+    end
+    object actCloseAllQueryTabs1: TMenuItem
+      Action = actCloseAllQueryTabs
+    end
+    object N25: TMenuItem
+      Caption = '-'
     end
     object menuRenameQueryTab: TMenuItem
       Caption = 'Rename tab'

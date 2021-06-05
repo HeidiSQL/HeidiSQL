@@ -760,6 +760,10 @@ type
     Storedfunction1: TMenuItem;
     menuEditorCommands: TMenuItem;
     N16: TMenuItem;
+    actCloseAllQueryTabs: TAction;
+    actCloseAllQueryTabs1: TMenuItem;
+    N25: TMenuItem;
+    Closeallquerytabs1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1141,6 +1145,7 @@ type
     procedure actRenameQueryTabExecute(Sender: TObject);
     procedure menuRenameQueryTabClick(Sender: TObject);
     procedure SynMemoQueryChange(Sender: TObject);
+    procedure actCloseAllQueryTabsExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -6378,6 +6383,7 @@ begin
   actClearQueryEditor.Enabled := InQueryTab;
   actSetDelimiter.Enabled := InQueryTab;
   actCloseQueryTab.Enabled := IsQueryTab(PageControlMain.ActivePageIndex, False);
+  actCloseAllQueryTabs.Enabled := QueryTabs.Count > 1;
   actCodeFoldingStartRegion.Enabled := InQueryTab;
   actCodeFoldingEndRegion.Enabled := InQueryTab;
   actCodeFoldingFoldSelection.Enabled := HasSelection;
@@ -11594,6 +11600,17 @@ procedure TMainForm.actCloseQueryTabExecute(Sender: TObject);
 begin
   // Close active query tab by main action
   CloseQueryTab(PageControlMain.ActivePageIndex);
+end;
+
+
+procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
+var
+  i: Integer;
+begin
+  // Close all tabs
+  for i:=PageControlMain.PageCount-1 downto tabQuery.PageIndex do begin
+    CloseQueryTab(PageControlMain.Pages[i].PageIndex);
+  end;
 end;
 
 
