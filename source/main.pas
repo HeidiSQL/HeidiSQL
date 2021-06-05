@@ -764,6 +764,7 @@ type
     actCloseAllQueryTabs1: TMenuItem;
     N25: TMenuItem;
     Closeallquerytabs1: TMenuItem;
+    menuCloseRightQueryTabs: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1146,6 +1147,7 @@ type
     procedure menuRenameQueryTabClick(Sender: TObject);
     procedure SynMemoQueryChange(Sender: TObject);
     procedure actCloseAllQueryTabsExecute(Sender: TObject);
+    procedure menuCloseRightQueryTabsClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -11603,6 +11605,32 @@ begin
 end;
 
 
+procedure TMainForm.menuCloseQueryTabClick(Sender: TObject);
+var
+  aPoint: TPoint;
+begin
+  // Close query tab by menu item
+  aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
+  CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
+end;
+
+
+procedure TMainForm.menuCloseRightQueryTabsClick(Sender: TObject);
+var
+  aPoint: TPoint;
+  i, PageIndexClick: Integer;
+begin
+  // Close tabs to the right
+  aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
+  PageIndexClick := GetMainTabAt(aPoint.X, aPoint.Y);
+  if PageIndexClick > -1 then begin
+    for i:=PageControlMain.PageCount-1 downto PageIndexClick+1 do begin
+      CloseQueryTab(PageControlMain.Pages[i].PageIndex);
+    end;
+  end;
+end;
+
+
 procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
 var
   i: Integer;
@@ -11611,16 +11639,6 @@ begin
   for i:=PageControlMain.PageCount-1 downto tabQuery.PageIndex do begin
     CloseQueryTab(PageControlMain.Pages[i].PageIndex);
   end;
-end;
-
-
-procedure TMainForm.menuCloseQueryTabClick(Sender: TObject);
-var
-  aPoint: TPoint;
-begin
-  // Close query tab by menu item
-  aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
-  CloseQueryTab(GetMainTabAt(aPoint.X, aPoint.Y));
 end;
 
 
@@ -11661,17 +11679,18 @@ end;
 procedure TMainForm.popupMainTabsPopup(Sender: TObject);
 var
   aPoint: TPoint;
-  PageIndex: Integer;
+  PageIndexClick: Integer;
 begin
   // Detect if there is a tab under mouse position
   aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
-  PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
+  PageIndexClick := GetMainTabAt(aPoint.X, aPoint.Y);
   menuCloseQueryTab.ImageIndex := actCloseQueryTab.ImageIndex;
   menuCloseQueryTab.Caption := actCloseQueryTab.Caption;
-  menuCloseQueryTab.Enabled := IsQueryTab(PageIndex, False);
+  menuCloseQueryTab.Enabled := IsQueryTab(PageIndexClick, False);
+  menuCloseRightQueryTabs.Enabled := (QueryTabs.Count > 0) and (PageIndexClick < QueryTabs.Last.TabSheet.PageIndex) and (PageIndexClick > -1);
   menuRenameQueryTab.ImageIndex := actRenameQueryTab.ImageIndex;
   menuRenameQueryTab.Caption := actRenameQueryTab.Caption;
-  menuRenameQueryTab.Enabled := IsQueryTab(PageIndex, True);
+  menuRenameQueryTab.Enabled := IsQueryTab(PageIndexClick, True);
 end;
 
 

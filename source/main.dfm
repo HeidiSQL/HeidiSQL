@@ -4320,6 +4320,11 @@ object MainForm: TMainForm
       ImageIndex = 133
       OnClick = menuCloseQueryTabClick
     end
+    object menuCloseRightQueryTabs: TMenuItem
+      Caption = 'Close query tabs to the right'
+      ImageIndex = 133
+      OnClick = menuCloseRightQueryTabsClick
+    end
     object actCloseAllQueryTabs1: TMenuItem
       Action = actCloseAllQueryTabs
     end
