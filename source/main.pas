@@ -133,6 +133,7 @@ type
       function ActiveTab: TQueryTab;
       function ActiveMemo: TSynMemo;
       function ActiveHelpersTree: TVirtualStringTree;
+      function HasActiveTab: Boolean;
       function TabByNumber(Number: Integer): TQueryTab;
       function TabByControl(Control: TWinControl): TQueryTab;
   end;
@@ -962,7 +963,6 @@ type
     procedure FixQueryTabCloseButtons;
     function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
     function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
-    function QueryTabActive: Boolean;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -1556,7 +1556,7 @@ var
   Tab: TQueryTab;
   Grid: TVirtualStringTree;
 begin
-  if QueryTabActive then begin
+  if QueryTabs.HasActiveTab then begin
     // Switch between query editor and result grid
     Tab := QueryTabs.ActiveTab;
     if Tab.Memo.Focused then begin
@@ -6290,7 +6290,7 @@ begin
     end;
   end;
   inDataTab := Grid = DataGrid;
-  inDataOrQueryTab := inDataTab or QueryTabActive;
+  inDataOrQueryTab := inDataTab or QueryTabs.HasActiveTab;
   inDataOrQueryTabNotEmpty := inDataOrQueryTab and Assigned(Grid) and (Grid.RootNodeCount > 0);
   inGrid := Assigned(Grid) and (ActiveControl = Grid);
 
@@ -6359,7 +6359,7 @@ begin
     if Tab.TabSheet.Caption <> cap then
       SetTabCaption(Tab.TabSheet.PageIndex, cap);
   end;
-  InQueryTab := QueryTabActive;
+  InQueryTab := QueryTabs.HasActiveTab;
   Tab := QueryTabs.ActiveTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
@@ -8643,7 +8643,7 @@ begin
   end else if tab = tabData then begin
     VT := DataGrid;
     FFilterTextData := editFilterVT.Text;
-  end else if QueryTabActive and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then begin
+  end else if QueryTabs.HasActiveTab and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then begin
     VT := ActiveGrid;
     QueryTabs.ActiveTab.ActiveResultTab.FilterText := editFilterVT.Text;
   end;
@@ -9236,7 +9236,7 @@ begin
 
     case FActiveDbObj.NodeType of
       lntNone: begin
-        if (not DBtree.Dragging) and (not QueryTabActive) then
+        if (not DBtree.Dragging) and (not QueryTabs.HasActiveTab) then
           MainTabToActivate := tabHost;
         FActiveDbObj.Connection.Database := '';
       end;
@@ -9250,7 +9250,7 @@ begin
             Exit;
           end;
         end;
-        if (not DBtree.Dragging) and (not QueryTabActive) then
+        if (not DBtree.Dragging) and (not QueryTabs.HasActiveTab) then
           MainTabToActivate := tabDatabase;
         FActiveObjectGroup := FActiveDbObj.GroupType;
       end;
@@ -9493,7 +9493,7 @@ var
   m: TSynMemo;
 begin
   // Paste DB or table name into query window on treeview double click.
-  if AppSettings.ReadBool(asDoubleClickInsertsNodeText) and QueryTabActive and Assigned(DBtree.FocusedNode) then begin
+  if AppSettings.ReadBool(asDoubleClickInsertsNodeText) and QueryTabs.HasActiveTab and Assigned(DBtree.FocusedNode) then begin
     DBObj := DBtree.GetNodeData(DBtree.FocusedNode);
     if DBObj.NodeType in [lntDb, lntTable..lntEvent] then begin
       m := QueryTabs.ActiveMemo;
@@ -12002,7 +12002,7 @@ begin
     if (not AcceptReadOnlyMemo) and Result.ReadOnly then
       Result := nil;
   end;
-  if (not Assigned(Result)) and QueryTabActive then
+  if (not Assigned(Result)) and QueryTabs.HasActiveTab then
     Result := QueryTabs.ActiveMemo;
   if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
     Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
@@ -12052,12 +12052,6 @@ begin
   end;
 end;
 
-
-function TMainForm.QueryTabActive: Boolean;
-begin
-  // Find out if the active main tab is a query tab
-  Result := IsQueryTab(PageControlMain.ActivePageIndex, True);
-end;
 
 function TMainForm.IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
 var
@@ -12257,7 +12251,7 @@ begin
     else if tab = tabDatabase then f := FFilterTextDatabase
     else if tab = tabEditor then f := FFilterTextEditor
     else if tab = tabData then f := FFilterTextData
-    else if QueryTabActive and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then f := QueryTabs.ActiveTab.ActiveResultTab.FilterText;
+    else if QueryTabs.HasActiveTab and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then f := QueryTabs.ActiveTab.ActiveResultTab.FilterText;
     if editFilterVT.Text <> f then
       editFilterVT.Text := f
     else
@@ -12726,7 +12720,7 @@ begin
     x := Grid.FocusedColumn+1;
     if Grid.SelectedCount > 1 then
       AppendMsg := ' ('+FormatNumber(Grid.SelectedCount)+' sel)';
-  end else if QueryTabActive and QueryTabs.ActiveMemo.Focused then begin
+  end else if QueryTabs.HasActiveTab and QueryTabs.ActiveMemo.Focused then begin
     x := QueryTabs.ActiveMemo.CaretX;
     y := QueryTabs.ActiveMemo.CaretY;
     AppendMsg := ' ('+FormatByteNumber(QueryTabs.ActiveMemo.GetTextLen)+')';
@@ -14250,6 +14244,12 @@ begin
   idx := FixedTab.TabSheet.PageControl.ActivePageIndex - FixedTab.TabSheet.PageIndex;
   if (idx >= 0) and (idx < Self.Count) then
     Result := Self[idx];
+end;
+
+
+function TQueryTabList.HasActiveTab: Boolean;
+begin
+  Result := ActiveTab <> nil;
 end;
 
 
