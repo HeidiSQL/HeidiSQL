@@ -6034,6 +6034,11 @@ begin
     Exit;
 
   tab := PageControlMain.ActivePage;
+  // Query helpers need a hit here, since RefreshHelperNode now only does its update on the active tab
+  // See https://www.heidisql.com/forum.php?t=37961
+  RefreshHelperNode(TQueryTab.HelperNodeColumns);
+  RefreshHelperNode(TQueryTab.HelperNodeSnippets);
+  RefreshHelperNode(TQueryTab.HelperNodeHistory);
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   // Do this only if the user clicked the new tab. Not on automatic tab changes.
@@ -11433,6 +11438,7 @@ begin
   QueryTab.Uid := TQueryTab.GenerateUid;
 
   QueryTab.TabSheet := TTabSheet.Create(PageControlMain);
+  QueryTab.TabSheet.Name := tabQuery.Name + i.ToString;
   QueryTab.TabSheet.PageControl := PageControlMain;
   QueryTab.TabSheet.ImageIndex := tabQuery.ImageIndex;
 
@@ -11448,6 +11454,7 @@ begin
 
   // Dumb code which replicates all controls from tabQuery
   QueryTab.pnlMemo := TPanel.Create(QueryTab.TabSheet);
+  QueryTab.pnlMemo.Name := pnlQueryMemo.Name + i.ToString;
   QueryTab.pnlMemo.Parent := QueryTab.TabSheet;
   QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
   QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
@@ -11455,6 +11462,7 @@ begin
   QueryTab.pnlMemo.Constraints := pnlQueryMemo.Constraints;
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
+  QueryTab.Memo.Name := SynMemoQuery.Name + i.ToString;
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
   QueryTab.Memo.Constraints := SynMemoQuery.Constraints;
@@ -11487,6 +11495,7 @@ begin
   QueryTab.spltHelpers.Width := spltQueryHelpers.Width;
 
   QueryTab.pnlHelpers := TPanel.Create(QueryTab.pnlMemo);
+  QueryTab.pnlHelpers.Name := pnlQueryHelpers.Name + i.ToString;
   QueryTab.pnlHelpers.Parent := QueryTab.pnlMemo;
   QueryTab.pnlHelpers.Align := pnlQueryHelpers.Align;
   QueryTab.pnlHelpers.Constraints := pnlQueryHelpers.Constraints;
@@ -11495,6 +11504,7 @@ begin
   QueryTab.pnlHelpers.Width := pnlQueryHelpers.Width;
 
   QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.pnlHelpers);
+  QueryTab.filterHelpers.Name := filterQueryHelpers.Name + i.ToString;
   QueryTab.filterHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.filterHelpers.Align := filterQueryHelpers.Align;
   QueryTab.filterHelpers.TextHint := filterQueryHelpers.TextHint;
@@ -11507,6 +11517,7 @@ begin
   QueryTab.filterHelpers.OnRightButtonClick := filterQueryHelpers.OnRightButtonClick;
 
   QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlHelpers);
+  QueryTab.treeHelpers.Name := treeQueryHelpers.Name + i.ToString;
   QueryTab.treeHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.treeHelpers.Align := treeQueryHelpers.Align;
   QueryTab.treeHelpers.Left := treeQueryHelpers.Left;
@@ -11555,6 +11566,7 @@ begin
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
   QueryTab.tabsetQuery := TTabSet.Create(QueryTab.TabSheet);
+  QueryTab.tabsetQuery.Name := tabsetQuery.Name + i.ToString;
   QueryTab.tabsetQuery.Parent := QueryTab.TabSheet;
   // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
   QueryTab.tabsetQuery.Top := QueryTab.spltQuery.Top + QueryTab.spltQuery.Height;
@@ -13489,41 +13501,42 @@ begin
   if not Assigned(QueryTabs) then
     Exit;
   Conn := ActiveConnection;
-  for Tab in QueryTabs do begin
-    Node := FindNode(Tab.treeHelpers, NodeIndex, nil);
-    // Store node + children states
-    OldStates := Node.States;
-    OldCheckState := Node.CheckState;
-    ExpandedChildren := TStringList.Create;
+  Tab := QueryTabs.ActiveTab;
+  if Tab = nil then
+    Exit;
+  Node := FindNode(Tab.treeHelpers, NodeIndex, nil);
+  // Store node + children states
+  OldStates := Node.States;
+  OldCheckState := Node.CheckState;
+  ExpandedChildren := TStringList.Create;
+  Child := Tab.treeHelpers.GetFirstChild(Node);
+  while Assigned(Child) do begin
+    if vsExpanded in Child.States then
+      ExpandedChildren.Add(IntToStr(Child.Index));
+    Child := Tab.treeHelpers.GetNextSibling(Child);
+  end;
+  // Keep scroll offset
+  Tab.treeHelpers.BeginUpdate;
+  // Remove children and grandchildren
+  Tab.treeHelpers.ResetNode(Node);
+  // Restore old node + children states
+  Tab.treeHelpers.CheckState[Node] := OldCheckState;
+  Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
+  // Disable profiling when not on MySQL
+  if (NodeIndex = TQueryTab.HelperNodeProfile) and (Conn <> nil) and (not Conn.Parameters.IsAnyMySQL) then begin
+    Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
+  end;
+  // Do not check expansion state of children unless the parent node is expanded, to avoid
+  // initializing children when not required. Accesses registry items when doing so.
+  if Tab.treeHelpers.Expanded[Node] then begin
     Child := Tab.treeHelpers.GetFirstChild(Node);
     while Assigned(Child) do begin
-      if vsExpanded in Child.States then
-        ExpandedChildren.Add(IntToStr(Child.Index));
+      Tab.treeHelpers.Expanded[Child] := ExpandedChildren.IndexOf(IntToStr(Child.Index)) > -1;
       Child := Tab.treeHelpers.GetNextSibling(Child);
     end;
-    // Keep scroll offset
-    Tab.treeHelpers.BeginUpdate;
-    // Remove children and grandchildren
-    Tab.treeHelpers.ResetNode(Node);
-    // Restore old node + children states
-    Tab.treeHelpers.CheckState[Node] := OldCheckState;
-    Tab.treeHelpers.Expanded[Node] := vsExpanded in OldStates;
-    // Disable profiling when not on MySQL
-    if (NodeIndex = TQueryTab.HelperNodeProfile) and (Conn <> nil) and (not Conn.Parameters.IsAnyMySQL) then begin
-      Tab.treeHelpers.CheckState[Node] := csUncheckedNormal;
-    end;
-    // Do not check expansion state of children unless the parent node is expanded, to avoid
-    // initializing children when not required. Accesses registry items when doing so.
-    if Tab.treeHelpers.Expanded[Node] then begin
-      Child := Tab.treeHelpers.GetFirstChild(Node);
-      while Assigned(Child) do begin
-        Tab.treeHelpers.Expanded[Child] := ExpandedChildren.IndexOf(IntToStr(Child.Index)) > -1;
-        Child := Tab.treeHelpers.GetNextSibling(Child);
-      end;
-    end;
-    ExpandedChildren.Free;
-    Tab.treeHelpers.EndUpdate;
   end;
+  ExpandedChildren.Free;
+  Tab.treeHelpers.EndUpdate;
 end;
 
 
