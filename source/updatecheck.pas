@@ -195,11 +195,17 @@ begin
     Note := Ini.ReadString(INISECT_BUILD, 'Note', '');
     if Note <> '' then
       memoBuild.Lines.Add(_('Notes') + ': * ' + StringReplace(Note, '%||%', CRLF+'* ', [rfReplaceAll] ) );
-    btnBuild.Caption := f_('Download and install build %d', [BuildRevision]);
-    // A new release should have priority over a new nightly build.
-    // So the user should not be able to download a newer build here
-    // before having installed the new release.
-    btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not LinkLabelRelease.Enabled));
+    if GetExecutableBits = 64 then begin
+      btnBuild.Caption := f_('Download and install build %d', [BuildRevision]);
+      // A new release should have priority over a new nightly build.
+      // So the user should not be able to download a newer build here
+      // before having installed the new release.
+      btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not LinkLabelRelease.Enabled));
+    end
+    else begin
+      btnBuild.Caption := _('No build updates for 32 bit version');
+    end;
+
   end;
 
   if FileExists(CheckFilename) then

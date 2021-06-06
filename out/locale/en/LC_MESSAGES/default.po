@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-06-05 08:39+0200\n"
+"PO-Revision-Date: 2021-06-06 17:21+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -3687,6 +3687,9 @@ msgstr "Nightly build"
 #: updatecheck.dfm:63
 msgid "Download nightly build"
 msgstr "Download nightly build"
+
+msgid "No build updates for 32 bit version"
+msgstr "No build updates for 32 bit version"
 
 #. frmUpdateCheck..groupRelease..Caption
 #: updatecheck.dfm:90
