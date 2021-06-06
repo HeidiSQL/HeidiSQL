@@ -365,10 +365,16 @@ begin
 
   except
     on E:EDbError do begin
-      Screen.Cursor := crDefault;
       ModalResult := mrNone;
       MainForm.SetProgressState(pbsError);
       ErrorDialog(E.Message);
+    end;
+    on E:EStreamError do begin
+      // all file stream errors, eg. EFOpenError and EReadError
+      // http://docwiki.embarcadero.com/Libraries/Sydney/en/System.Classes.EStreamError
+      ModalResult := mrNone;
+      MainForm.SetProgressState(pbsError);
+      ErrorDialog(E.Message + sLineBreak + sLineBreak + editFilename.Text);
     end;
   end;
 
