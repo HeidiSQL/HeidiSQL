@@ -26,7 +26,6 @@ type
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
-  TBoolAuto = (baFalse, baTrue, baAuto);
 
   // Column object, many of them in a TObjectList
   TTableColumn = class(TPersistent)
@@ -484,7 +483,8 @@ type
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
       procedure Log(Category: TDBLogCategory; Msg: String);
-      function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: TBoolAuto=baTrue): String;
+      function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
+      function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function QuotedDbAndTableName(DB, Obj: String): String;
@@ -4346,7 +4346,7 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: TBoolAuto=baTrue): String;
+function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
 var
   c1, c2, c3, c4, EscChar: Char;
 begin
@@ -4412,12 +4412,27 @@ begin
 
   end;
 
-  if (DoQuote = baTrue)
-    or ((DoQuote = baAuto) and (not ExecRegExpr('^(0x[a-fA-F0-9]*|\d+)$', Result)))
-    then begin
+  if DoQuote then begin
     // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
   end;
+end;
+
+
+function TDBConnection.EscapeString(Text: String; Datatype: TDBDatatype): String;
+var
+  DoQuote: Boolean;
+const
+  CategoriesNeedQuote = [dtcText, dtcBinary, dtcTemporal, dtcSpatial, dtcOther];
+begin
+  // Quote text based on the passed datatype
+  DoQuote := Datatype.Category in CategoriesNeedQuote;
+  case Datatype.Category of
+    // Some special cases
+    dtcBinary: if ExecRegExpr('^0x[a-fA-F0-9]*$', Text) then DoQuote := False;
+    dtcInteger, dtcReal: if not ExecRegExpr('^\d+(\.\d+)?$', Text) then DoQuote := True;
+  end;
+  Result := EscapeString(Text, False, DoQuote);
 end;
 
 

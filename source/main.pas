@@ -6911,6 +6911,7 @@ end;
 procedure TMainForm.QuickFilterClick(Sender: TObject);
 var
   Filter, Val, Col: String;
+  TableCol: TTableColumn;
   Act: TAction;
   Item: TMenuItem;
   Conn: TDBConnection;
@@ -6929,24 +6930,25 @@ begin
     Act := Sender as TAction;
     if ExecRegExpr('Prompt\d+$', Act.Name) then begin
       // Item needs prompt
-      Col := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
-      Col := Conn.QuoteIdent(Col, False);
-      if (SelectedTableFocusedColumn.DataType.Index = dtJson)
+      TableCol := SelectedTableFocusedColumn;
+      Col := Conn.QuoteIdent(TableCol.Name, False);
+
+      if (TableCol.DataType.Index = dtJson)
         and (Conn.Parameters.NetTypeGroup = ngPgSQL) then begin
         Col := Col + '::text';
       end;
       Val := DataGrid.Text[DataGrid.FocusedNode, DataGrid.FocusedColumn];
       if InputQuery(_('Specify filter-value...'), Act.Caption, Val) then begin
         if Act = actQuickFilterPrompt1 then
-          Filter := Col + ' = ' + Conn.EscapeString(Val, False, baAuto)
+          Filter := Col + ' = ' + Conn.EscapeString(Val, TableCol.DataType)
         else if Act = actQuickFilterPrompt2 then
-          Filter := Col + ' != ' + Conn.EscapeString(Val, False, baAuto)
+          Filter := Col + ' != ' + Conn.EscapeString(Val, TableCol.DataType)
         else if Act = actQuickFilterPrompt3 then
-          Filter := Col + ' > ' + Conn.EscapeString(Val, False, baAuto)
+          Filter := Col + ' > ' + Conn.EscapeString(Val, TableCol.DataType)
         else if Act = actQuickFilterPrompt4 then
-          Filter := Col + ' < ' + Conn.EscapeString(Val, False, baAuto)
+          Filter := Col + ' < ' + Conn.EscapeString(Val, TableCol.DataType)
         else if Act = actQuickFilterPrompt5 then
-          Filter := Conn.GetSQLSpecifity(spLikeCompare, [Col, Conn.EscapeString('%'+Val+'%', False, baAuto)]);
+          Filter := Conn.GetSQLSpecifity(spLikeCompare, [Col, Conn.EscapeString('%'+Val+'%', TableCol.DataType)]);
       end;
     end
     else begin
@@ -7452,6 +7454,7 @@ var
   OldDataLocalNumberFormat: Boolean;
   IncludedValues: TStringList;
   Act: TAction;
+  Datatype: TDBDatatype;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
@@ -7474,9 +7477,10 @@ begin
     Exit;
   Results := GridResult(Grid);
 
+  Datatype := Results.DataType(Grid.FocusedColumn);
   Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
   if InDataGrid
-    and (SelectedTableFocusedColumn.DataType.Index = dtJson)
+    and (Datatype.Index = dtJson)
     and Results.Connection.Parameters.IsAnyPostgreSQL then begin
     Col := Col + '::text';
   end;
@@ -7505,19 +7509,19 @@ begin
       HasNotNullValue := True;
       Value := Grid.Text[Node, Grid.FocusedColumn];
       if IncludedValues.IndexOf(Value) = -1 then begin
-        actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Results.Connection.EscapeString(Value, False, baAuto) + ', ';
-        actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Results.Connection.EscapeString(Value, False, baAuto) + ', ';
+        actQuickFilterFocused1.Hint := actQuickFilterFocused1.Hint + Results.Connection.EscapeString(Value, Datatype) + ', ';
+        actQuickFilterFocused2.Hint := actQuickFilterFocused2.Hint + Results.Connection.EscapeString(Value, Datatype) + ', ';
         actQuickFilterFocused3.Hint := actQuickFilterFocused3.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''' + Results.Connection.EscapeString(Value, True, baFalse) + '%''']) +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
           ' OR ';
         actQuickFilterFocused4.Hint := actQuickFilterFocused4.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, baFalse) + '''']) +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '''']) +
           ' OR ';
         actQuickFilterFocused5.Hint := actQuickFilterFocused5.Hint +
-          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, baFalse) + '%''']) +
+          Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']) +
           ' OR ';
-        actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + Results.Connection.EscapeString(Value, False, baAuto) + ' OR ';
-        actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + Results.Connection.EscapeString(Value, False, baAuto) + ' OR ';
+        actQuickFilterFocused6.Hint := actQuickFilterFocused6.Hint + Col + ' > ' + Results.Connection.EscapeString(Value, Datatype) + ' OR ';
+        actQuickFilterFocused7.Hint := actQuickFilterFocused7.Hint + Col + ' < ' + Results.Connection.EscapeString(Value, Datatype) + ' OR ';
         IncludedValues.Add(Value);
       end;
     end;
@@ -7575,15 +7579,15 @@ begin
   Value := Trim(Clipboard.AsText);
   if Length(Value) < SIZE_KB then begin
     actQuickFilterClipboard1.Enabled := true;
-    actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value, False, baAuto);
+    actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value, Datatype);
     actQuickFilterClipboard2.Enabled := true;
-    actQuickFilterClipboard2.Hint := Col + ' != ' + Results.Connection.EscapeString(Value, False, baAuto);
+    actQuickFilterClipboard2.Hint := Col + ' != ' + Results.Connection.EscapeString(Value, Datatype);
     actQuickFilterClipboard3.Enabled := true;
-    actQuickFilterClipboard3.Hint := Col + ' > ' + Results.Connection.EscapeString(Value, False, baAuto);
+    actQuickFilterClipboard3.Hint := Col + ' > ' + Results.Connection.EscapeString(Value, Datatype);
     actQuickFilterClipboard4.Enabled := true;
-    actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value, False, baAuto);
+    actQuickFilterClipboard4.Hint := Col + ' < ' + Results.Connection.EscapeString(Value, Datatype);
     actQuickFilterClipboard5.Enabled := true;
-    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, baFalse) + '%''']);
+    actQuickFilterClipboard5.Hint := Results.Connection.GetSQLSpecifity(spLikeCompare, [Col, '''%' + Results.Connection.EscapeString(Value, True, False) + '%''']);
     actQuickFilterClipboard6.Enabled := true;
     actQuickFilterClipboard6.Hint := Col + ' IN (' + Value + ')';
   end else begin
@@ -9708,7 +9712,7 @@ begin
     Conditions := TStringList.Create;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       // The normal case: do a LIKE comparison
-      Condition := '''%' + Conn.EscapeString(ed.Text, True, baFalse)+'%''';
+      Condition := '''%' + Conn.EscapeString(ed.Text, True, False)+'%''';
       Condition := Conn.GetSQLSpecifity(spLikeCompare, [SelectedTableColumns[i].CastAsText, Condition]);
       if not SelectedTableColumns[i].DataType.ValueMustMatch.IsEmpty then begin
         // Use an exact comparison for some PostgreSQL data types to overcome SQL errors, e.g. UUID, INT etc.
