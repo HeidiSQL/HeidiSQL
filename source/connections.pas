@@ -335,6 +335,8 @@ begin
       RefreshSessions(SessNode);
     end;
   end;
+  if not Assigned(ParentNode) then
+    RefreshBackgroundColors;
 end;
 
 
@@ -494,6 +496,7 @@ begin
 
   FSessionModified := False;
   ListSessions.Invalidate;
+  RefreshBackgroundColors;
   ValidateControls;
 
   // Apply session color (and othher settings) to opened connection(s)
@@ -972,7 +975,6 @@ begin
     updownKeepAlive.Position := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
-    RefreshBackgroundColors;
     ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
     comboLibrary.Items := Sess.GetLibraries;
