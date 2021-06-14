@@ -13654,7 +13654,13 @@ begin
   // Prevent completion window from showing up after Alt-Tab. See issue #2640
   // and issue #3342
   // Does not work for some reason in TApplicationEvents.OnDeactivate
-  SynCompletionProposal.Form.Enabled := False;
+  // Triggers an EAccessViolation when changing some VCL styles
+  try
+    SynCompletionProposal.Form.Enabled := False;
+  except
+    on E:EAccessViolation do
+      LogSQL(E.Message, lcError);
+  end;
   // Gets activated again in SynCompletionProposalExecute
 end;
 
