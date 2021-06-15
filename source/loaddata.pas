@@ -388,11 +388,21 @@ procedure Tloaddataform.ServerParse(Sender: TObject);
 var
   SQL, SetColVars, SelectedCharset: String;
   i: Integer;
+  Filename: String;
 begin
   SQL := 'LOAD DATA ';
   if chkLowPriority.Checked and chkLowPriority.Enabled then
     SQL := SQL + 'LOW_PRIORITY ';
-  SQL := SQL + 'LOCAL INFILE ' + FConnection.EscapeString(editFilename.Text) + ' ';
+
+  // Issue #1387: Use 8.3 filename, to prevent "file not found" error from MySQL library
+  // Todo: test on Wine
+  Filename := ExtractShortPathName(editFilename.Text);
+  if not Filename.IsEmpty then
+    MainForm.LogSQL('Converting filename to 8.3 format: '+editFilename.Text+' => '+Filename, lcInfo)
+  else
+    Filename := editFilename.Text;
+  SQL := SQL + 'LOCAL INFILE ' + FConnection.EscapeString(Filename) + ' ';
+
   case grpDuplicates.ItemIndex of
     1: SQL := SQL + 'IGNORE ';
     2: SQL := SQL + 'REPLACE ';
