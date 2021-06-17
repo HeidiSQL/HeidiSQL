@@ -1942,7 +1942,7 @@ begin
     CmdCap := Copy(CmdCap, 3, Length(CmdCap)-2);
     // Insert spaces before uppercase chars
     for j:=Length(CmdCap) downto 1 do begin
-      if (j > 1) and IsUpper(CmdCap[j]) then
+      if (j > 1) and CmdCap[j].IsUpper then
         Insert(' ', CmdCap, j);
     end;
     CommandMenu.Caption := CmdCap;
@@ -13186,7 +13186,7 @@ begin
              end;
              TQueryTab.HelperNodeFunctions: CellText := MySQLFunctions[Node.Index].Name;
              TQueryTab.HelperNodeKeywords: CellText := MySQLKeywords[Node.Index];
-             TQueryTab.HelperNodeSnippets: CellText := IfThen(Node.Index<FSnippetFilenames.Count, FSnippetFilenames[Node.Index], '');
+             TQueryTab.HelperNodeSnippets: CellText := IfThen(Node.Index < Cardinal(FSnippetFilenames.Count), FSnippetFilenames[Node.Index], '');
              TQueryTab.HelperNodeHistory: begin
                CellText := Tab.HistoryDays[Node.Index];
                if CellText = DateToStr(Today) then
