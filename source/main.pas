@@ -11431,10 +11431,11 @@ end;
 procedure TMainForm.actNewQueryTabExecute(Sender: TObject);
 var
   i: Integer;
-  QueryTab: TQueryTab;
+  QueryTab, OldTab: TQueryTab;
   HelperColumn: TVirtualTreeColumn;
 begin
   i := QueryTabs[QueryTabs.Count-1].Number + 1;
+  OldTab := QueryTabs.ActiveTab;
 
   QueryTabs.Add(TQueryTab.Create(Self));
   QueryTab := QueryTabs[QueryTabs.Count-1];
@@ -11462,7 +11463,10 @@ begin
   QueryTab.pnlMemo.Parent := QueryTab.TabSheet;
   QueryTab.pnlMemo.BevelOuter := pnlQueryMemo.BevelOuter;
   QueryTab.pnlMemo.Align := pnlQueryMemo.Align;
-  QueryTab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
+  if Assigned(OldTab) then
+    QueryTab.pnlMemo.Height := OldTab.pnlMemo.Height
+  else
+    QueryTab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
   QueryTab.pnlMemo.Constraints := pnlQueryMemo.Constraints;
 
   QueryTab.Memo := TSynMemo.Create(QueryTab.pnlMemo);
@@ -11506,7 +11510,10 @@ begin
   QueryTab.pnlHelpers.Constraints := pnlQueryHelpers.Constraints;
   QueryTab.pnlHelpers.BevelOuter := pnlQueryHelpers.BevelOuter;
   QueryTab.pnlHelpers.Left := pnlQueryHelpers.Left;
-  QueryTab.pnlHelpers.Width := pnlQueryHelpers.Width;
+  if Assigned(OldTab) then
+    QueryTab.pnlHelpers.Width := OldTab.pnlHelpers.Width
+  else
+    QueryTab.pnlHelpers.Width := AppSettings.GetDefaultInt(asQueryhelperswidth);
 
   QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.pnlHelpers);
   QueryTab.filterHelpers.Name := filterQueryHelpers.Name + i.ToString;
@@ -14156,8 +14163,10 @@ var
   Node: PVirtualNode;
 begin
   // Return state of bind params checkbox
+  Result := False;
   Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
-  Result := treeHelpers.CheckState[Node] in CheckedStates;
+  if Assigned(Node) then
+    Result := treeHelpers.CheckState[Node] in CheckedStates;
 end;
 
 
