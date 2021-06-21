@@ -2684,6 +2684,7 @@ begin
   else if Sender = actPreferencesData then
     frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabGridFormatting;
   frmPreferences.ShowModal;
+  frmPreferences.Free;
   frmPreferences := nil; // Important in SetupSynEditors
 end;
 
@@ -3544,6 +3545,7 @@ begin
   ExportDialog := TfrmExportGrid.Create(Self);
   ExportDialog.Grid := ActiveGrid;
   ExportDialog.ShowModal;
+  ExportDialog.Free;
 end;
 
 
