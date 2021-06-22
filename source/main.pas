@@ -3229,6 +3229,7 @@ var
   NewTab: TResultTab;
   col: TVirtualTreeColumn;
   TabCaption: String;
+  TabsetColor: TColor;
   Results: TDBQuery;
   i: Integer;
 begin
@@ -3236,6 +3237,13 @@ begin
 
   ShowStatusMsg(_('Setting up result grid(s) ...'));
   Tab := QueryTabs.TabByNumber(Thread.TabNumber);
+
+  // Use session color on result tabs
+  TabsetColor := Thread.Connection.Parameters.SessionColor;
+  if TabsetColor <> clNone then begin
+    Tab.tabsetQuery.SelectedColor := TabsetColor;
+    Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 5, False);
+  end;
 
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
