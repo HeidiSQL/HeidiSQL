@@ -18,7 +18,6 @@ object UserManagerForm: TUserManagerForm
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (

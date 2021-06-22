@@ -16,7 +16,6 @@ object CopyTableForm: TCopyTableForm
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (

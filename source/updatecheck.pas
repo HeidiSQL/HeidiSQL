@@ -27,7 +27,6 @@ type
       LinkType: TSysLinkType);
     procedure FormShow(Sender: TObject);
     procedure btnChangelogClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CopydownloadURL1Click(Sender: TObject);
   const
@@ -70,15 +69,10 @@ begin
   Height := AppSettings.ReadInt(asUpdateCheckWindowHeight);
 end;
 
-procedure TfrmUpdateCheck.FormDestroy(Sender: TObject);
+procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   AppSettings.WriteInt(asUpdateCheckWindowWidth, Width);
   AppSettings.WriteInt(asUpdateCheckWindowHeight, Height);
-end;
-
-procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
 end;
 
 {**

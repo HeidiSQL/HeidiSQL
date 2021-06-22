@@ -2213,7 +2213,7 @@ begin
         on E:Exception do
           LogSQL(f_('Error when checking for updates: %s', [E.Message]));
       end;
-      frm.Free;
+      frm.Free; // FormClose has no caFree, as it may not have been called
     end;
   end;
 
@@ -2554,6 +2554,7 @@ var
 begin
   Dialog := TConnForm.Create(Self);
   Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 
@@ -2575,6 +2576,7 @@ begin
   if FConnections.Count = 0 then begin
     Dialog := TConnForm.Create(Self);
     DlgResult := Dialog.ShowModal;
+    Dialog.Free;
     if DlgResult = mrCancel then
       actExitApplication.Execute;
   end;
@@ -2673,6 +2675,7 @@ begin
   // Import Textfile
   Dialog := Tloaddataform.Create(Self);
   Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
@@ -2804,6 +2807,7 @@ var
 begin
   Dialog := TUserManagerForm.Create(Self);
   Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
@@ -2949,6 +2953,7 @@ begin
   // copy table
   Dialog := TCopyTableForm.Create(Self);
   Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 
@@ -3734,6 +3739,7 @@ var
 begin
   Dialog := TfrmInsertFiles.Create(Self);
   Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 // Drop Table(s)
@@ -4413,7 +4419,7 @@ var
 begin
   frm := TfrmUpdateCheck.Create(Self);
   frm.ShowModal;
-  FreeAndNil(frm);
+  frm.Free; // FormClose has no caFree, as it may not have been called
 end;
 
 
@@ -4741,6 +4747,7 @@ var
 begin
   SyncForm := TfrmSyncDB.Create(Self);
   SyncForm.ShowModal;
+  SyncForm.Free;
 end;
 
 
@@ -4763,7 +4770,8 @@ end;
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
   if FActiveDbObj.Connection.ServerVersionInt >= 40100 then begin
-    SqlHelpDialog := TfrmSQLhelp.Create(Self);
+    if not Assigned(SqlHelpDialog) then
+      SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
     SqlHelpDialog.Keyword := keyword;
   end else

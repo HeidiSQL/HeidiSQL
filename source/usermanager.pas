@@ -108,7 +108,6 @@ type
     comboSSL: TComboBox;
     lblSSL: TLabel;
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnAddUserClick(Sender: TObject);
     procedure btnDeleteUserClick(Sender: TObject);
@@ -221,16 +220,6 @@ begin
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
     'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
     'REPLICATION SLAVE ADMIN,SET USER');
-end;
-
-
-procedure TUserManagerForm.FormDestroy(Sender: TObject);
-begin
-  // FormDestroy: Save GUI setup
-  AppSettings.WriteInt(asUsermanagerWindowWidth, Width);
-  AppSettings.WriteInt(asUsermanagerWindowHeight, Height);
-  AppSettings.WriteInt(asUsermanagerListWidth, pnlLeft.Width);
-  Mainform.SaveListSetup(listUsers);
 end;
 
 
@@ -413,7 +402,11 @@ begin
   FreeAndNil(FPrivsTable);
   FreeAndNil(FPrivsRoutine);
   FreeAndNil(FPrivsColumn);
-  Action := caFree;
+  // Save GUI setup
+  AppSettings.WriteInt(asUsermanagerWindowWidth, Width);
+  AppSettings.WriteInt(asUsermanagerWindowHeight, Height);
+  AppSettings.WriteInt(asUsermanagerListWidth, pnlLeft.Width);
+  Mainform.SaveListSetup(listUsers);
 end;
 
 

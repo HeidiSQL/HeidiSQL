@@ -14,7 +14,6 @@ object frmSyncDB: TfrmSyncDB
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
-  OnClose = FormClose
   OnCreate = FormCreate
   DesignSize = (
     534

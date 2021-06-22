@@ -27,7 +27,6 @@ type
     treeDifferences: TVirtualStringTree;
     lblDifferences: TLabel;
     procedure FormCreate(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure treeSourceChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure treeSourceChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure treeSourceChecking(Sender: TBaseVirtualTree; Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
@@ -94,12 +93,6 @@ end;
 
 
 { TfrmSyncDB }
-
-procedure TfrmSyncDB.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
-end;
-
 
 procedure TfrmSyncDB.FormCreate(Sender: TObject);
 var

@@ -15,7 +15,6 @@ type
     btnSave: TButton;
     TimerStartScan: TTimer;
     procedure FormShow(Sender: TObject);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnScanClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnSaveClick(Sender: TObject);
@@ -52,12 +51,6 @@ begin
   MainForm.SetupSynEditors;
   TimerStartScan.Enabled := True;
 end;
-
-procedure TfrmCsvDetector.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
-end;
-
 
 procedure TfrmCsvDetector.btnScanClick(Sender: TObject);
 var

@@ -88,7 +88,6 @@ type
     tabSQL: TTabSheet;
     memoFindText: TMemo;
     SynMemoFindText: TSynMemo;
-    procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -309,15 +308,6 @@ begin
 end;
 
 
-procedure TfrmTableTools.FormDestroy(Sender: TObject);
-begin
-  // Save GUI setup
-  AppSettings.WriteInt(asTableToolsWindowWidth, Width);
-  AppSettings.WriteInt(asTableToolsWindowHeight, Height);
-  AppSettings.WriteInt(asTableToolsTreeWidth, TreeObjects.Width);
-end;
-
-
 procedure TfrmTableTools.FormShow(Sender: TObject);
 var
   Node, FirstChecked: PVirtualNode;
@@ -392,7 +382,10 @@ begin
   // Auto close temorary connection
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
-  Action := caFree;
+  // Save GUI setup
+  AppSettings.WriteInt(asTableToolsWindowWidth, Width);
+  AppSettings.WriteInt(asTableToolsWindowHeight, Height);
+  AppSettings.WriteInt(asTableToolsTreeWidth, TreeObjects.Width);
 end;
 
 

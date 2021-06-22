@@ -32,7 +32,6 @@ type
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure TreeElementsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
-    procedure FormDestroy(Sender: TObject);
     procedure TreeElementsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnRecentFiltersClick(Sender: TObject);
@@ -72,14 +71,6 @@ begin
   Height := AppSettings.ReadInt(asCopyTableWindowHeight);
   MainForm.SetupSynEditors;
   FixVT(TreeElements);
-end;
-
-
-procedure TCopyTableForm.FormDestroy(Sender: TObject);
-begin
-  // Save GUI stuff
-  AppSettings.WriteInt(asCopyTableWindowWidth, Width);
-  AppSettings.WriteInt(asCopyTableWindowHeight, Height);
 end;
 
 
@@ -193,7 +184,9 @@ begin
       AppSettings.WriteString(asCopyTableRecentFilter, NewValues[i], IntToStr(i));
     end;
   end;
-  Action := caFree;
+  // Store GUI setup
+  AppSettings.WriteInt(asCopyTableWindowWidth, Width);
+  AppSettings.WriteInt(asCopyTableWindowHeight, Height);
 end;
 
 

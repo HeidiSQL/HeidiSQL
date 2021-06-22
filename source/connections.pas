@@ -156,7 +156,6 @@ type
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure FormDestroy(Sender: TObject);
     procedure TimerStatisticsTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
@@ -340,18 +339,6 @@ begin
 end;
 
 
-procedure Tconnform.FormDestroy(Sender: TObject);
-begin
-  // Save GUI stuff
-  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
-  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
-  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
-  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
-  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
-  MainForm.SaveListSetup(ListSessions);
-end;
-
-
 procedure Tconnform.FormResize(Sender: TObject);
 begin
   splitterMainMoved(splitterMain);
@@ -368,7 +355,13 @@ procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // Suspend calculating statistics as long as they're not visible
   TimerStatistics.Enabled := False;
-  Action := caFree;
+  // Save GUI stuff
+  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
+  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
+  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
+  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
+  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
+  MainForm.SaveListSetup(ListSessions);
 end;
 
 

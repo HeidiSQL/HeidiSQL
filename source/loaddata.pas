@@ -55,7 +55,6 @@ type
     btnCheckAll: TToolButton;
     const ProgressBarSteps=100;
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure comboDatabaseChange(Sender: TObject);
@@ -114,25 +113,6 @@ begin
 end;
 
 
-procedure Tloaddataform.FormDestroy(Sender: TObject);
-begin
-  // Save settings
-  AppSettings.WriteInt(asCSVImportWindowWidth, Width);
-  AppSettings.WriteInt(asCSVImportWindowHeight, Height);
-  AppSettings.WriteString(asCSVImportFilename, editFilename.Text);
-  AppSettings.WriteString(asCSVImportSeparator, editFieldTerminator.Text);
-  AppSettings.WriteString(asCSVImportEncloser, editFieldEncloser.Text);
-  AppSettings.WriteString(asCSVImportTerminator, editLineTerminator.Text);
-  AppSettings.WriteBool(asCSVImportFieldsEnclosedOptionally, chkFieldsEnclosedOptionally.Checked);
-  AppSettings.WriteString(asCSVImportFieldEscaper, editFieldEscaper.Text);
-  AppSettings.WriteInt(asCSVImportIgnoreLines, updownIgnoreLines.Position);
-  AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
-  AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
-  AppSettings.WriteInt(asCSVImportDuplicateHandling, grpDuplicates.ItemIndex);
-  AppSettings.WriteInt(asCSVImportParseMethod, grpParseMethod.ItemIndex);
-end;
-
-
 procedure Tloaddataform.FormResize(Sender: TObject);
 var
   HalfWidth, RightBoxX: Integer;
@@ -179,7 +159,20 @@ end;
 
 procedure Tloaddataform.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  Action := caFree;
+  // Save settings
+  AppSettings.WriteInt(asCSVImportWindowWidth, Width);
+  AppSettings.WriteInt(asCSVImportWindowHeight, Height);
+  AppSettings.WriteString(asCSVImportFilename, editFilename.Text);
+  AppSettings.WriteString(asCSVImportSeparator, editFieldTerminator.Text);
+  AppSettings.WriteString(asCSVImportEncloser, editFieldEncloser.Text);
+  AppSettings.WriteString(asCSVImportTerminator, editLineTerminator.Text);
+  AppSettings.WriteBool(asCSVImportFieldsEnclosedOptionally, chkFieldsEnclosedOptionally.Checked);
+  AppSettings.WriteString(asCSVImportFieldEscaper, editFieldEscaper.Text);
+  AppSettings.WriteInt(asCSVImportIgnoreLines, updownIgnoreLines.Position);
+  AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
+  AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
+  AppSettings.WriteInt(asCSVImportDuplicateHandling, grpDuplicates.ItemIndex);
+  AppSettings.WriteInt(asCSVImportParseMethod, grpParseMethod.ItemIndex);
 end;
 
 
@@ -274,6 +267,7 @@ begin
         comboTable.ItemIndex := 0;
       end;
     end;
+    frmCsvDetector.Free;
     frmCsvDetector := nil; // check for Assigned() must be false in SetupSynEditors
   end;
 

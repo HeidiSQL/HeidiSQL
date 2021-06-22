@@ -52,7 +52,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnInsertClick(Sender: TObject);
     procedure AddFile(Filename: String);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListFilesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure ListFilesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
@@ -148,12 +147,6 @@ begin
     comboDBs.ItemIndex := 0;
   comboDBs.OnChange(Sender);
   ListFilesChange(ListFiles, nil);
-end;
-
-
-procedure TfrmInsertFiles.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
 end;
 
 

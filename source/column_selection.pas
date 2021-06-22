@@ -23,7 +23,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDeactivate(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure editFilterLeftButtonClick(Sender: TObject);
   private
     { Private declarations }
@@ -49,14 +48,6 @@ begin
   Width := AppSettings.ReadInt(asColumnSelectorWidth);
   Height := AppSettings.ReadInt(asColumnSelectorHeight);
   FCheckedColumns := TStringList.Create;
-end;
-
-
-procedure TfrmColumnSelection.FormDestroy(Sender: TObject);
-begin
-  AppSettings.WriteInt(asColumnSelectorWidth, Width);
-  AppSettings.WriteInt(asColumnSelectorHeight, Height);
-  FCheckedColumns.Free;
 end;
 
 
@@ -234,7 +225,10 @@ end;
 procedure TfrmColumnSelection.FormClose(Sender: TObject; var Action:
     TCloseAction);
 begin
+  AppSettings.WriteInt(asColumnSelectorWidth, Width);
+  AppSettings.WriteInt(asColumnSelectorHeight, Height);
   Action := caFree;
+  FCheckedColumns.Free;
 end;
 
 

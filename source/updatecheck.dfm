@@ -16,7 +16,6 @@ object frmUpdateCheck: TfrmUpdateCheck
   Position = poOwnerFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     374
