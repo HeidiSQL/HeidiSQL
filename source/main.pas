@@ -3248,6 +3248,10 @@ begin
   if TabsetColor <> clNone then begin
     Tab.tabsetQuery.SelectedColor := TabsetColor;
     Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 5, False);
+  end
+  else begin
+    Tab.tabsetQuery.SelectedColor := clWindow;
+    Tab.tabsetQuery.UnselectedColor := clBtnFace;
   end;
 
   // Create result tabs
@@ -6412,6 +6416,13 @@ begin
   actCodeFoldingStartRegion.Enabled := InQueryTab;
   actCodeFoldingEndRegion.Enabled := InQueryTab;
   actCodeFoldingFoldSelection.Enabled := HasSelection;
+  if HasConnection and (Conn.Parameters.SessionColor <> clNone) then begin
+    Tab.Memo.Gutter.Color := Conn.Parameters.SessionColor;
+  end
+  else begin
+    Tab.Memo.Gutter.Color := clBtnFace;
+  end;
+
 end;
 
 
@@ -9392,6 +9403,7 @@ begin
     InvalidateVT(ListProcesses, VTREE_NOTLOADED, False);
     InvalidateVT(ListCommandstats, VTREE_NOTLOADED, False);
     InvalidateVT(ListTables, VTREE_NOTLOADED, False);
+    ValidateQueryControls(Self);
   end;
 
   // Make wanted tab visible before activating, to avoid unset tab on Wine
