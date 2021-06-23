@@ -6416,11 +6416,13 @@ begin
   actCodeFoldingStartRegion.Enabled := InQueryTab;
   actCodeFoldingEndRegion.Enabled := InQueryTab;
   actCodeFoldingFoldSelection.Enabled := HasSelection;
-  if HasConnection and (Conn.Parameters.SessionColor <> clNone) then begin
-    Tab.Memo.Gutter.Color := Conn.Parameters.SessionColor;
-  end
-  else begin
-    Tab.Memo.Gutter.Color := clBtnFace;
+  if InQueryTab then begin
+    if HasConnection and (Conn.Parameters.SessionColor <> clNone) then begin
+      Tab.Memo.Gutter.Color := Conn.Parameters.SessionColor;
+    end
+    else begin
+      Tab.Memo.Gutter.Color := clBtnFace;
+    end;
   end;
 
 end;
