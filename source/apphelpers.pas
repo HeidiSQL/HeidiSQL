@@ -382,6 +382,7 @@ type
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
+  function IsWine: Boolean;
 
 var
   AppSettings: TAppSettings;
@@ -393,6 +394,7 @@ var
   LibHandleUser32: THandle;
   UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
   DateTimeNever: TDateTime;
+  IsWineStored: Integer = -1;
 
 implementation
 
@@ -2910,6 +2912,26 @@ begin
 end;
 
 
+function IsWine: Boolean;
+var
+  NTHandle: THandle;
+  wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
+begin
+  // Detect if we're running on Wine, not on native Windows
+  // Idea taken from http://ruminatedrumblings.blogspot.com/2008/04/detecting-virtualized-environment.html
+  if IsWineStored = -1 then begin
+    NTHandle := LoadLibrary('NTDLL.DLL');
+    if NTHandle>32 then
+      wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name')
+    else
+      wine_nt_to_unix_file_name := nil;
+    IsWineStored := IfThen(Assigned(wine_nt_to_unix_file_name), 1, 0);
+    FreeLibrary(NTHandle);
+  end;
+  Result := IsWineStored = 1;
+end;
+
+
 
 { Threading stuff }
 
@@ -3227,7 +3249,7 @@ var
   ContentChunk: UTF8String;
 begin
   DoStore := False;
-  if MainForm.IsWine then
+  if IsWine then
     OS := 'Linux/Wine'
   else
     OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);

@@ -1186,7 +1186,6 @@ type
     FOperatingGrid: TBaseVirtualTree;
     FActiveDbObj: TDBObject;
     FActiveObjectGroup: TListNodeType;
-    FIsWine: Boolean;
     FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
@@ -1284,7 +1283,6 @@ type
     property AppVersion: String read FAppVersion;
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
-    property IsWine: Boolean read FIsWine;
     property FocusedTables: TDBObjectList read FFocusedTables;
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure CallSQLHelpWithKeyword( keyword: String );
@@ -1800,9 +1798,7 @@ var
   FunctionCategories: TStringList;
   miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
   CopyAsMenu, CommandMenu: TMenuItem;
-  NTHandle: THandle;
   TZI: TTimeZoneInformation;
-  wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
   dti: TDBDatatypeCategoryIndex;
   EditorCommand: TSynEditorCommand;
   CmdCap: String;
@@ -1848,16 +1844,6 @@ begin
   FAppVerRevision := LoWord(FI.dwFileVersionLS);
   FAppVersion := Format('%d.%d.%d.%d', [FAppVerMajor, FAppVerMinor, FAppVerRelease, FAppVerRevision]);
   FreeMem(ptrVerBuf);
-
-  // Detect if we're running on Wine, not on native Windows
-  // Idea taken from http://ruminatedrumblings.blogspot.com/2008/04/detecting-virtualized-environment.html
-  NTHandle := LoadLibrary('NTDLL.DLL');
-  if NTHandle>32 then
-    wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name')
-  else
-    wine_nt_to_unix_file_name := nil;
-  FIsWine := Assigned(wine_nt_to_unix_file_name);
-  FreeLibrary(NTHandle);
 
   // Taskbar button interface for Windows 7
   // Possibly fails. See http://www.heidisql.com/forum.php?t=22451
@@ -2149,7 +2135,7 @@ begin
   treeQueryHelpers.RootNodeCount := 7;
 
   // Initialize taskbar jump list
-  if not FIsWine then begin
+  if not IsWine then begin
     FJumpList := TJumpList.Create;
     FJumpList.ApplicationId := APPNAME + IntToStr(GetExecutableBits);
   end;
@@ -3849,7 +3835,7 @@ begin
   if not Conn.Parameters.IsAnyMySQL then
     ErrorDialog(_('Command line only works on MySQL connections.'))
   else begin
-    if FIsWine then begin
+    if IsWine then begin
       cmd := 'mysql';
       sep := '/';
     end else begin
@@ -3864,7 +3850,7 @@ begin
         CRLF+CRLF+f_('Current setting is: "%s"', [path]));
     end else begin
       p := '';
-      if FIsWine then begin
+      if IsWine then begin
         p := ' -e '+path+cmd;
         path := '';
         cmd := '$TERM';
@@ -8449,7 +8435,7 @@ var
   NewHint: String;
 begin
   // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
-  if FIsWine then
+  if IsWine then
     Exit;
 
   Tree := TVirtualStringTree(Sender);

@@ -323,6 +323,7 @@ type
       function DefaultPort: Integer;
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
+      function GetExternalCliArguments: String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
       property NetType: TNetType read FNetType write FNetType;

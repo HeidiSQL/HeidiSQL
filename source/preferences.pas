@@ -498,7 +498,7 @@ begin
 
   // Misecllaneous
   // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
-  if MainForm.IsWine then begin
+  if IsWine then begin
     editMySQLBinaries.RightButton.Visible := False;
     editMySQLBinaries.OnDblClick := nil;
   end;
