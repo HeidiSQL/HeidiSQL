@@ -323,7 +323,7 @@ type
       function DefaultPort: Integer;
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
-      function GetExternalCliArguments: String;
+      function GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: Boolean): String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
       property NetType: TNetType read FNetType write FNetType;
@@ -1720,6 +1720,54 @@ begin
     ngPgSQL: Result := '^pg_temp_\d';
     else Result := '';
   end;
+end;
+
+
+function TConnectionParameters.GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: Boolean): String;
+var
+  Args: TStringList;
+begin
+  // for mysql(dump)
+  Args := TStringList.Create;
+  Result := '';
+  if WantSSL then
+    Args.Add('--ssl');
+  if not SSLPrivateKey.IsEmpty then
+    Args.Add('--ssl-key="'+SSLPrivateKey+'"');
+  if not SSLCertificate.IsEmpty then
+    Args.Add('--ssl-cert="'+SSLCertificate+'"');
+  if not SSLCACertificate.IsEmpty then
+    Args.Add('--ssl-ca="'+SSLCACertificate+'"');
+
+  case NetType of
+    ntMySQL_NamedPipe: begin
+      Args.Add('--pipe');
+      Args.Add('--socket="'+Hostname+'"');
+      end;
+    ntMySQL_SSHtunnel: begin
+      Args.Add('--host="localhost"');
+      Args.Add('--port='+IntToStr(SSHLocalPort));
+      end;
+    else begin
+      Args.Add('--host="'+Hostname+'"');
+      Args.Add('--port='+IntToStr(Port));
+      end;
+  end;
+
+  Args.Add('--user="'+Username+'"');
+  if Password <> '' then begin
+    if ReplacePassword then
+      Args.Add('--password="***"')
+    else
+      Args.Add('--password="'+StringReplace(Password, '"', '\"', [rfReplaceAll])+'"');
+  end;
+  if Compressed then
+    Args.Add('--compress');
+  if Connection.Database <> '' then
+    Args.Add('--database="' + Connection.Database + '"');
+
+  Result := ' ' + Implode(' ', Args);
+  Args.Free;
 end;
 
 

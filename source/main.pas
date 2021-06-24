@@ -3828,7 +3828,6 @@ var
   path, p, log, cmd: String;
   sep: Char;
   Conn: TDBConnection;
-  PasswordStart, PasswordEnd: Integer;
 begin
   // Launch mysql.exe
   Conn := ActiveConnection;
@@ -3856,43 +3855,10 @@ begin
         cmd := '$TERM';
       end;
 
-      if Conn.Parameters.WantSSL then
-        p := p + ' --ssl';
-      if not Conn.Parameters.SSLPrivateKey.IsEmpty then
-        p := p + ' --ssl-key="'+Conn.Parameters.SSLPrivateKey+'"';
-      if not Conn.Parameters.SSLCertificate.IsEmpty then
-        p := p + ' --ssl-cert="'+Conn.Parameters.SSLCertificate+'"';
-      if not Conn.Parameters.SSLCACertificate.IsEmpty then
-        p := p + ' --ssl-ca="'+Conn.Parameters.SSLCACertificate+'"';
-
-      case Conn.Parameters.NetType of
-        ntMySQL_NamedPipe:
-          p := p + ' --pipe --socket="'+Conn.Parameters.Hostname+'"';
-        ntMySQL_SSHtunnel:
-          p := p + ' --host="localhost" --port='+IntToStr(Conn.Parameters.SSHLocalPort);
-        else
-          p := p + ' --host="'+Conn.Parameters.Hostname+'" --port='+IntToStr(Conn.Parameters.Port);
-      end;
-
-      p := p + ' --user="'+Conn.Parameters.Username+'"';
-      // Markers for removing password from log line
-      PasswordStart := -1;
-      PasswordEnd := -1;
-      if Conn.Parameters.Password <> '' then begin
-        PasswordStart := Length(path + cmd + p) +14;
-        p := p + ' --password="'+StringReplace(Conn.Parameters.Password, '"', '\"', [rfReplaceAll])+'"';
-        PasswordEnd := Length(path + cmd + p);
-      end;
-      if Conn.Parameters.Compressed then
-        p := p + ' --compress';
-      if ActiveDatabase <> '' then
-        p := p + ' --database="' + ActiveDatabase + '"';
-      log := path + cmd + p;
-      if PasswordStart > -1 then begin
-        Delete(log, PasswordStart, PasswordEnd-PasswordStart);
-        Insert('********', log, PasswordStart);
-      end;
+      log := path + cmd + p + Conn.Parameters.GetExternalCliArguments(Conn, True);
       LogSQL(f_('Launching command line: %s', [log]), lcInfo);
+
+      p := p + Conn.Parameters.GetExternalCliArguments(Conn, False);
       ShellExec(cmd, path, p);
     end;
   end;
