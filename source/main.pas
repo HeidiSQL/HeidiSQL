@@ -12365,7 +12365,6 @@ begin
     Editor.Font.Name := AppSettings.ReadString(asFontName);
     Editor.Font.Size := AppSettings.ReadInt(asFontSize);
     Editor.Gutter.BorderColor := GetThemeColor(clWindow);
-    Editor.Gutter.Color := GetThemeColor(clBtnFace);
     Editor.Gutter.Font.Name := Editor.Font.Name;
     Editor.Gutter.Font.Size := Editor.Font.Size;
     Editor.Gutter.Font.Color := BaseEditor.Gutter.Font.Color;
