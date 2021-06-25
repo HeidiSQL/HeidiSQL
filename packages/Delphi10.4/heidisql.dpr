@@ -47,7 +47,8 @@ uses
   Vcl.Styles,
   Vcl.Graphics,
   theme_preview in '..\..\source\theme_preview.pas' {frmThemePreview},
-  csv_detector in '..\..\source\csv_detector.pas' {frmCsvDetector};
+  csv_detector in '..\..\source\csv_detector.pas' {frmCsvDetector},
+  generic_types in '..\..\source\generic_types.pas';
 
 {.$R *.RES}
 {$R ..\..\res\icon.RES}

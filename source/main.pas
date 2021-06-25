@@ -20,7 +20,7 @@ uses
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding, texteditor, System.Character;
+  SynEditCodeFolding, texteditor, System.Character, generic_types;
 
 
 type
@@ -155,8 +155,6 @@ type
   TQueryHistoryItemComparer = class(TComparer<TQueryHistoryItem>)
     function Compare(const Left, Right: TQueryHistoryItem): Integer; override;
   end;
-
-  TThreeStateBoolean = (nbUnset, nbFalse, nbTrue);
 
   ITaskbarList = interface(IUnknown)
     [SID_ITaskbarList]
@@ -3855,10 +3853,10 @@ begin
         cmd := '$TERM';
       end;
 
-      log := path + cmd + p + Conn.Parameters.GetExternalCliArguments(Conn, True);
+      log := path + cmd + p + Conn.Parameters.GetExternalCliArguments(Conn, nbTrue);
       LogSQL(f_('Launching command line: %s', [log]), lcInfo);
 
-      p := p + Conn.Parameters.GetExternalCliArguments(Conn, False);
+      p := p + Conn.Parameters.GetExternalCliArguments(Conn, nbFalse);
       ShellExec(cmd, path, p);
     end;
   end;

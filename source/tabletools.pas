@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
   VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
   dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages,
-  SynEdit, SynMemo;
+  SynEdit, SynMemo, ClipBrd, generic_types;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -88,9 +88,11 @@ type
     tabSQL: TTabSheet;
     memoFindText: TMemo;
     SynMemoFindText: TSynMemo;
+    menuCopyMysqldumpCommand: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
+    function GetCheckedObjects(DBNode: PVirtualNode): TDBObjectList;
     procedure TreeObjectsGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: String);
     procedure TreeObjectsInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -133,6 +135,7 @@ type
     procedure CheckAllClick(Sender: TObject);
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure btnExportOptionsClick(Sender: TObject);
+    procedure menuCopyMysqldumpCommandClick(Sender: TObject);
   const
     StatusMsg = '%s %s ...';
   private
@@ -240,6 +243,7 @@ begin
   OUTPUT_DIR := _('Directory - one file per object in database subdirectories');
   OUTPUT_DB := _('Database');
   OUTPUT_SERVER := _('Server')+': ';
+  // Todo: sanitize misleading names
   DATA_NO := _('No data');
   DATA_REPLACE := _('Delete + insert (truncate existing data)');
   DATA_INSERT := _('Insert');
@@ -376,6 +380,75 @@ begin
   MainForm.SetupSynEditors;
   MainForm.SynCompletionProposal.AddEditor(SynMemoFindText);
   ValidateControls(Sender);
+end;
+
+
+procedure TfrmTableTools.menuCopyMysqldumpCommandClick(Sender: TObject);
+var
+  BinPath, ConnectionArguments, FullCommand: String;
+  Arguments, DatabaseNames: TStringList;
+  Conn: TDBConnection;
+  SessionNode, DBNode: PVirtualNode;
+  DBObj: PDBObject;
+begin
+  // Copy command line for use with mysqldump
+  Screen.Cursor := crHourGlass;
+  Conn := MainForm.ActiveConnection;
+
+  BinPath := AppSettings.ReadString(asMySQLBinaries);
+  if (not BinPath.IsEmpty) and (BinPath[Length(BinPath)] <> DirSep) then
+    BinPath := BinPath + DirSep;
+  BinPath := BinPath + IfThen(IsWine, 'mysqldump', 'mysqldump.exe');
+
+  ConnectionArguments := Conn.Parameters.GetExternalCliArguments(nil, nbUnset);
+
+  Arguments := TStringList.Create;
+
+  if chkExportDatabasesDrop.Checked then
+    Arguments.Add('--add-drop-database');
+  if not chkExportDatabasesCreate.Checked then
+    Arguments.Add('--no-create-db');
+  if chkExportTablesDrop.Checked then
+    Arguments.Add('--add-drop-table');
+  if not chkExportTablesCreate.Checked then
+    Arguments.Add('--no-create-info');
+  // Data output. No support for delete+insert - will just use inserts.
+  if comboExportData.Text = DATA_NO then
+    Arguments.Add('--no-data')
+  else if comboExportData.Text = DATA_UPDATE then
+    Arguments.Add('--replace')
+  else if comboExportData.Text = DATA_INSERTNEW then
+    Arguments.Add('--insert-ignore');
+  // Output file. No support for server, database and clipboard
+  if comboExportOutputType.Text = OUTPUT_FILE then
+    Arguments.Add('--result-file="'+comboExportOutputTarget.Text+'"')
+  else if comboExportOutputType.Text = OUTPUT_DIR then
+    Arguments.Add('--tab="'+comboExportOutputTarget.Text+'"');
+
+  // Use checked database names
+  DatabaseNames := TStringList.Create;
+  SessionNode := TreeObjects.GetFirstChild(nil);
+  while Assigned(SessionNode) do begin
+    DBNode := TreeObjects.GetFirstChild(SessionNode);
+    while Assigned(DBNode) do begin
+      if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
+        DBObj := TreeObjects.GetNodeData(DBNode);
+        DatabaseNames.Add(DBObj.Database);
+        // Todo: loop through tables?
+        // CheckedObjects := GetCheckedObjects(DBNode);
+      end;
+      DBNode := TreeObjects.GetNextSibling(DBNode);
+    end;
+    SessionNode := TreeObjects.GetNextSibling(SessionNode);
+  end;
+  Arguments.Add('--databases ' + Implode(' ', DatabaseNames));
+  DatabaseNames.Free;
+
+  FullCommand := BinPath + ConnectionArguments + ' ' + Implode(' ', Arguments);
+  Arguments.Free;
+
+  Clipboard.AsText := FullCommand;
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -638,6 +711,43 @@ begin
 end;
 
 
+function TfrmTableTools.GetCheckedObjects(DBNode: PVirtualNode): TDBObjectList;
+var
+  Child, GrandChild: PVirtualNode;
+  ChildObj, GrandChildObj: PDBObject;
+begin
+  // Return list with checked objects from database node
+  // The caller doesn't need to care whether type grouping in tree is activated
+  Result := TDBObjectList.Create(False);
+  Child := TreeObjects.GetFirstChild(DBNode);
+  while Assigned(Child) do begin
+    if Child.CheckState in CheckedStates then begin
+      ChildObj := TreeObjects.GetNodeData(Child);
+
+      case ChildObj.NodeType of
+
+        lntGroup: begin
+          GrandChild := TreeObjects.GetFirstChild(Child);
+          while Assigned(GrandChild) do begin
+            if GrandChild.CheckState in CheckedStates then begin
+              GrandChildObj := TreeObjects.GetNodeData(GrandChild);
+              Result.Add(GrandChildObj^);
+            end;
+            GrandChild := TreeObjects.GetNextSibling(GrandChild);
+          end;
+        end
+
+        else begin
+          Result.Add(ChildObj^);
+        end;
+
+      end;
+    end;
+    Child := TreeObjects.GetNextSibling(Child);
+  end;
+end;
+
+
 procedure TfrmTableTools.Execute(Sender: TObject);
 var
   SessionNode, DBNode: PVirtualNode;
@@ -678,40 +788,6 @@ var
     end;
   end;
 
-  procedure SetCheckedObjects(DBNode: PVirtualNode);
-  var
-    Child, GrandChild: PVirtualNode;
-    ChildObj, GrandChildObj: PDBObject;
-  begin
-    CheckedObjects.Clear;
-    Child := TreeObjects.GetFirstChild(DBNode);
-    while Assigned(Child) do begin
-      if Child.CheckState in CheckedStates then begin
-        ChildObj := TreeObjects.GetNodeData(Child);
-
-        case ChildObj.NodeType of
-
-          lntGroup: begin
-            GrandChild := TreeObjects.GetFirstChild(Child);
-            while Assigned(GrandChild) do begin
-              if GrandChild.CheckState in CheckedStates then begin
-                GrandChildObj := TreeObjects.GetNodeData(GrandChild);
-                CheckedObjects.Add(GrandChildObj^);
-              end;
-              GrandChild := TreeObjects.GetNextSibling(GrandChild);
-            end;
-          end
-
-          else begin
-            CheckedObjects.Add(ChildObj^);
-          end;
-
-        end;
-      end;
-      Child := TreeObjects.GetNextSibling(Child);
-    end;
-  end;
-
 begin
   Screen.Cursor := crHourGlass;
   // Disable critical controls so ProcessMessages is unable to do things while export is in progress
@@ -731,7 +807,6 @@ begin
   ResultGrid.Clear;
   FResults.Clear;
   FFindSeeResultSQL.Clear;
-  CheckedObjects := TDBObjectList.Create(False);
   Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
   Views := TDBObjectList.Create(False);
   FHeaderCreated := False;
@@ -750,7 +825,7 @@ begin
         Triggers.Clear;
         Views.Clear;
         FSecondExportPass := False;
-        SetCheckedObjects(DBNode);
+        CheckedObjects := GetCheckedObjects(DBNode);
         for DBObj in CheckedObjects do begin
           // Triggers have to be exported at the very end
           if (FToolMode = tmSQLExport) and (DBObj.NodeType = lntTrigger) then

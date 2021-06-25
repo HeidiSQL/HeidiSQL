@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, windows, dbstructures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils;
+  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types;
 
 
 type
@@ -323,7 +323,7 @@ type
       function DefaultPort: Integer;
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
-      function GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: Boolean): String;
+      function GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
       property NetType: TNetType read FNetType write FNetType;
@@ -1723,7 +1723,7 @@ begin
 end;
 
 
-function TConnectionParameters.GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: Boolean): String;
+function TConnectionParameters.GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
 var
   Args: TStringList;
 begin
@@ -1756,14 +1756,15 @@ begin
 
   Args.Add('--user="'+Username+'"');
   if Password <> '' then begin
-    if ReplacePassword then
-      Args.Add('--password="***"')
-    else
-      Args.Add('--password="'+StringReplace(Password, '"', '\"', [rfReplaceAll])+'"');
+    case ReplacePassword of
+      nbTrue: Args.Add('--password="***"');
+      nbFalse: Args.Add('--password="'+StringReplace(Password, '"', '\"', [rfReplaceAll])+'"');
+      nbUnset: Args.Add('--password'); // will prompt
+    end;
   end;
   if Compressed then
     Args.Add('--compress');
-  if Connection.Database <> '' then
+  if Assigned(Connection) and (Connection.Database <> '') then
     Args.Add('--database="' + Connection.Database + '"');
 
   Result := ' ' + Implode(' ', Args);

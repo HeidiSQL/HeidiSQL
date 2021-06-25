@@ -383,6 +383,7 @@ type
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
+  function DirSep: Char;
 
 var
   AppSettings: TAppSettings;
@@ -2931,6 +2932,14 @@ begin
   Result := IsWineStored = 1;
 end;
 
+
+function DirSep: Char;
+begin
+  if IsWine then
+    Result := '/'
+  else
+    Result := '\';
+end;
 
 
 { Threading stuff }

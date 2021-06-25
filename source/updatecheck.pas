@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
   apphelpers, gnugettext, ExtCtrls, extra_controls, System.StrUtils, Vcl.Dialogs,
-  Vcl.Menus, Vcl.Clipbrd;
+  Vcl.Menus, Vcl.Clipbrd, generic_types;
 
 type
   TfrmUpdateCheck = class(TExtForm)

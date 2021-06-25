@@ -8,7 +8,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext,
-  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd, extra_controls;
+  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd, extra_controls, generic_types;
 
 type
   TAboutBox = class(TExtForm)

@@ -697,5 +697,9 @@ object frmTableTools: TfrmTableTools
       AutoCheck = True
       Caption = 'Remove DEFINER clauses'
     end
+    object menuCopyMysqldumpCommand: TMenuItem
+      Caption = 'Copy mysqldump command'
+      OnClick = menuCopyMysqldumpCommandClick
+    end
   end
 end
