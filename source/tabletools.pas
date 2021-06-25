@@ -823,6 +823,8 @@ begin
 
     // Activate ansi mode or whatever again, locally
     Conn.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_LOCAL_SQL_MODE, '''') */');
+    // Reset timezone for reading to previous value
+    Conn.Query('/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, ''system'') */');
   end;
   ExportLastDatabase := '';
 
@@ -1494,6 +1496,9 @@ begin
   if not Assigned(ExportStream) then begin
     // Very first round here. Prevent "SHOW CREATE db|table" from using double quotes
     DBObj.Connection.Query('/*!40101 SET @OLD_LOCAL_SQL_MODE=@@SQL_MODE, SQL_MODE='''' */');
+    // Set same timezone for reading date/time values as for the output
+    DBObj.Connection.Query('/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */');
+    DBObj.Connection.Query('/*!40103 SET TIME_ZONE=''+00:00'' */');
   end;
 
   if ToServer then
