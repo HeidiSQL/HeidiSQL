@@ -602,15 +602,15 @@ begin
   if not Result then
     Exit;
   case FTableColumn.DataType.Index of
-    dtDate:
+    dbdtDate:
       FMaskEdit.EditMask := '0000-00-00;1; ';
-    dtDatetime, dtDatetime2, dtTimestamp, dtInt, dtBigint: begin
+    dbdtDatetime, dbdtDatetime2, dbdtTimestamp, dbdtInt, dbdtBigint: begin
         if MicroSecondsPrecision > 0 then
           FMaskEdit.EditMask := '0000-00-00 00\:00\:00.'+StringOfChar('0', MicroSecondsPrecision)+';1; '
         else
           FMaskEdit.EditMask := '0000-00-00 00\:00\:00;1; ';
       end;
-    dtTime: begin
+    dbdtTime: begin
         ForceTextLen := 10;
         if MicroSecondsPrecision > 0 then begin
           FMaskEdit.EditMask := '#900\:00\:00.'+StringOfChar('0', MicroSecondsPrecision)+';1; ';
@@ -620,7 +620,7 @@ begin
         while Length(FCellText) < ForceTextLen do
           FCellText := ' ' + FCellText;
       end;
-    dtYear:
+    dbdtYear:
       FMaskEdit.EditMask := '0000;1; ';
   end;
   FMaskEdit.Text := FCellText;
@@ -763,13 +763,13 @@ begin
       ms := 0;
 
     case FTableColumn.DataType.Index of
-      dtYear: begin
+      dbdtYear: begin
         i := MakeInt(FMaskEdit.Text);
         i := i + Offset;
         text := IntToStr(i);
       end;
 
-      dtDate: begin
+      dbdtDate: begin
         d := StrToDate(FMaskEdit.Text);
         // De- or increase focused date segment
         case FMaskEdit.SelStart of
@@ -780,7 +780,7 @@ begin
         text := DateToStr(d);
       end;
 
-      dtDateTime, dtDateTime2, dtTimestamp, dtInt, dtBigint: begin
+      dbdtDateTime, dbdtDateTime2, dbdtTimestamp, dbdtInt, dbdtBigint: begin
         dt := StrToDateTime(FMaskEdit.Text);
         case FMaskEdit.SelStart of
           0..3: dt := IncYear(dt, Offset);
@@ -798,7 +798,7 @@ begin
           text := text + '.' + Format('%.'+IntToStr(MicroSecondsPrecision)+'d', [ms]);
       end;
 
-      dtTime: begin
+      dbdtTime: begin
         i := TimeToSeconds(FMaskEdit.Text);
         case FMaskEdit.SelStart of
           0..3: Inc(i, Offset*60*60);
@@ -862,7 +862,7 @@ begin
     rx.Free;
   end;
   // No microseconds for UNIX timestamp columns
-  if FTableColumn.DataType.Index in [dtInt, dtBigint] then
+  if FTableColumn.DataType.Index in [dbdtInt, dbdtBigint] then
     Result := 0;
 end;
 
@@ -1430,7 +1430,7 @@ begin
   FRadioAutoInc.Enabled := FRadioAutoInc.Checked or (FTableColumn.DataType.Category = dtcInteger);
 
   // Provide items with a check mark for ENUM and SET columns
-  if FTableColumn.DataType.Index in [dtEnum, dtSet] then begin
+  if FTableColumn.DataType.Index in [dbdtEnum, dbdtSet] then begin
     FTextEdit.RightButton.Visible := True;
     ValueList := FTableColumn.ValueList;
     SelectedValues := Explode(',', FTextEdit.Text);
@@ -1438,7 +1438,7 @@ begin
     for i:=0 to ValueList.Count-1 do begin
       Item := TMenuItem.Create(FTextDropDown);
       Item.Caption := ValueList[i];
-      Item.RadioItem := FTableColumn.DataType.Index = dtEnum;
+      Item.RadioItem := FTableColumn.DataType.Index = dbdtEnum;
       Item.Checked := SelectedValues.IndexOf(Item.Caption) > -1;
       Item.OnClick := EditDropDownClick;
       FTextDropDown.Items.Add(Item);

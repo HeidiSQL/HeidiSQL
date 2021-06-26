@@ -5745,9 +5745,9 @@ begin
           and ((ColMaxLen > GRIDMAXDATA) or (ColMaxLen = 0)) // No need to blow SQL with LEFT() if column is shorter anyway
           then begin
             Select := Select + DBObj.Connection.GetSQLSpecifity(spFuncLeft, [c.CastAsText, GRIDMAXDATA]) + ', ';
-          end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dtTimestamp) then begin
+          end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dbdtTimestamp) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS INT), ';
-          end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dtHierarchyid) then begin
+          end else if DBObj.Connection.Parameters.IsAnyMSSQL and (c.DataType.Index=dbdtHierarchyid) then begin
             Select := Select + ' CAST(' + DBObj.Connection.QuoteIdent(c.Name) + ' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+')), ';
           end else begin
             Select := Select + ' ' + DBObj.Connection.QuoteIdent(c.Name) + ', ';
@@ -6914,7 +6914,7 @@ begin
       TableCol := SelectedTableFocusedColumn;
       Col := Conn.QuoteIdent(TableCol.Name, False);
 
-      if (TableCol.DataType.Index = dtJson)
+      if (TableCol.DataType.Index = dbdtJson)
         and (Conn.Parameters.NetTypeGroup = ngPgSQL) then begin
         Col := Col + '::text';
       end;
@@ -7461,7 +7461,7 @@ begin
   Datatype := Results.DataType(Grid.FocusedColumn);
   Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
   if InDataGrid
-    and (Datatype.Index = dtJson)
+    and (Datatype.Index = dbdtJson)
     and Results.Connection.Parameters.IsAnyPostgreSQL then begin
     Col := Col + '::text';
   end;
@@ -7675,7 +7675,7 @@ begin
       QFvalues[0].Caption := StrEllipsis(E.Message, 100);
       QFvalues[0].Hint := E.Message;
       for TableCol in SelectedTableColumns do begin
-        if (TableCol.Name = ColName) and (TableCol.DataType.Index in [dtEnum, dtSet]) then begin
+        if (TableCol.Name = ColName) and (TableCol.DataType.Index in [dbdtEnum, dbdtSet]) then begin
           ValueList := TableCol.ValueList;
           for i:=0 to ValueList.Count-1 do begin
             if QFvalues.Count > i+1 then
@@ -10285,7 +10285,7 @@ begin
 
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
-  else if (Results.DataType(Column).Index in [dtEnum, dtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
+  else if (Results.DataType(Column).Index in [dbdtEnum, dbdtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
     EnumEditor := TEnumEditorLink.Create(VT, AllowEdit);
     EnumEditor.ValueList := Results.ValueList(Column);
     EditLink := EnumEditor;
@@ -10307,17 +10307,17 @@ begin
     // Ensure date/time editor starts with a non-empty text value
     if (Results.Col(Column) = '') and AppSettings.ReadBool(asFieldEditorDatetimePrefill) then begin
       case Results.DataType(Column).Index of
-        dtDate: NowText := DateToStr(Now);
-        dtTime: NowText := TimeToStr(Now);
+        dbdtDate: NowText := DateToStr(Now);
+        dbdtTime: NowText := TimeToStr(Now);
         // Add this case to prevent error with datatype year and sql_mode STRICT_TRANS_TABLES
         // who absolutly want year and not date time
         // http://www.heidisql.com/forum.php?t=14728
-        dtYear: NowText := FormatDateTime('yyyy',Now);
+        dbdtYear: NowText := FormatDateTime('yyyy',Now);
         else NowText := DateTimeToStr(Now);
       end;
       MicroSecondsPrecision := MakeInt(Results.ColAttributes(Column).LengthSet);
       // Don't generate MicroSecond when DataType is Year
-      if (MicroSecondsPrecision > 0) and (Results.DataType(Column).Index <> dtYear ) then
+      if (MicroSecondsPrecision > 0) and (Results.DataType(Column).Index <> dbdtYear ) then
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
@@ -10329,7 +10329,7 @@ begin
     then begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit);
     EditLink := DateTimeEditor;
-  end else if (Results.DataType(Column).Index = dtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
+  end else if (Results.DataType(Column).Index = dbdtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
     SetEditor := TSetEditorLink.Create(VT, AllowEdit);
     SetEditor.ValueList := Results.ValueList(Column);
     EditLink := SetEditor;

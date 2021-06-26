@@ -73,12 +73,9 @@ const
 
   { SQLite Result Codes
     result code definitions
-
     Many SQLite functions return an integer result code from the set shown
     here in order to indicate success or failure.
-
     New error codes may be added in future versions of SQLite.
-
     See also: [extended result code definitions]
   }
   SQLITE_OK           = 0;   // Successful result
@@ -118,7 +115,6 @@ const
     These constants define various flags that can be passed into
     "prepFlags" parameter of the [sqlite3_prepare_v3()] and
     [sqlite3_prepare16_v3()] interfaces.
-
     New flags may be added in future releases of SQLite.
   }
   SQLITE_PREPARE_PERSISTENT = $01; // prepared statement will be retained for a long time and probably reused many times
@@ -126,8 +122,10 @@ const
   SQLITE_PREPARE_NO_VTAB    = $04; // return an error (error code SQLITE_ERROR) if the statement uses any virtual tables
 
 
-  { SQLite Fundamental Datatypes
-    Every value in SQLite has one of five fundamental datatypes:
+
+  { SQLite Fundamental Datatypes
+
+    Every value in SQLite has one of five fundamental datatypes:
       64-bit signed integer
       64-bit IEEE floating point number
       string
@@ -135,12 +133,12 @@ const
       NULL
   }
   SQLITE_INTEGER  = 1;
-  SQLITE_FLOAT    = 2;
+
+  SQLITE_FLOAT    = 2;
   SQLITE_BLOB     = 4;
   SQLITE_NULL     = 5;
   SQLITE_TEXT     = 3;
   SQLITE3_TEXT    = 3;
-
   { CAPI3REF: Database Connection Configuration Options
     These constants are the available integer configuration options that
     can be passed as the second argument to the [sqlite3_db_config()] interface.
@@ -165,7 +163,7 @@ const
 
 
 
-type
+type
   PUSED_MEM=^USED_MEM;
   USED_MEM = packed record
     next:       PUSED_MEM;
@@ -402,15 +400,15 @@ const
     );
 
   // MySQL data types
-  TDBDatatypeIndex = (dtTinyint, dtSmallint, dtMediumint, dtInt, dtBigint, dtSerial, dtBigSerial,
-    dtFloat, dtDouble, dtDecimal, dtNumeric, dtReal, dtDoublePrecision, dtMoney, dtSmallmoney,
-    dtDate, dtTime, dtYear, dtDatetime, dtDatetime2, dtDatetimeOffset, dtSmalldatetime, dtTimestamp, dtInterval,
-    dtChar, dtNchar, dtVarchar, dtNvarchar, dtTinytext, dtText, dtNtext, dtMediumtext, dtLongtext,
-    dtJson, dtJsonB, dtCidr, dtInet, dtMacaddr,
-    dtBinary, dtVarbinary, dtTinyblob, dtBlob, dtMediumblob, dtLongblob, dtImage,
-    dtEnum, dtSet, dtBit, dtVarBit, dtBool, dtRegClass, dtRegProc, dtUnknown,
-    dtCursor, dtSqlvariant, dtTable, dtUniqueidentifier, dtHierarchyid, dtXML,
-    dtPoint, dtLinestring, dtLineSegment, dtPolygon, dtGeometry, dtBox, dtPath, dtCircle, dtMultipoint, dtMultilinestring, dtMultipolygon, dtGeometrycollection
+  TDBDatatypeIndex = (dbdtTinyint, dbdtSmallint, dbdtMediumint, dbdtInt, dbdtBigint, dbdtSerial, dbdtBigSerial,
+    dbdtFloat, dbdtDouble, dbdtDecimal, dbdtNumeric, dbdtReal, dbdtDoublePrecision, dbdtMoney, dbdtSmallmoney,
+    dbdtDate, dbdtTime, dbdtYear, dbdtDatetime, dbdtDatetime2, dbdtDatetimeOffset, dbdtSmalldatetime, dbdtTimestamp, dbdtInterval,
+    dbdtChar, dbdtNchar, dbdtVarchar, dbdtNvarchar, dbdtTinytext, dbdtText, dbdtNtext, dbdtMediumtext, dbdtLongtext,
+    dbdtJson, dbdtJsonB, dbdtCidr, dbdtInet, dbdtMacaddr,
+    dbdtBinary, dbdtVarbinary, dbdtTinyblob, dbdtBlob, dbdtMediumblob, dbdtLongblob, dbdtImage,
+    dbdtEnum, dbdtSet, dbdtBit, dbdtVarBit, dbdtBool, dbdtRegClass, dbdtRegProc, dbdtUnknown,
+    dbdtCursor, dbdtSqlvariant, dbdtTable, dbdtUniqueidentifier, dbdtHierarchyid, dbdtXML,
+    dbdtPoint, dbdtLinestring, dbdtLineSegment, dbdtPolygon, dbdtGeometry, dbdtBox, dbdtPath, dbdtCircle, dbdtMultipoint, dbdtMultilinestring, dbdtMultipolygon, dbdtGeometrycollection
     );
 
   // MySQL data type categorization
@@ -635,7 +633,7 @@ var
   MySQLDatatypes: array [0..37] of TDBDatatype =
   (
     (
-      Index:           dtUnknown;
+      Index:           dbdtUnknown;
       NativeTypes:     '99999';
       Name:            'UNKNOWN';
       Description:     'Unknown data type';
@@ -647,7 +645,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtTinyint;
+      Index:           dbdtTinyint;
       NativeType:      mytTiny;
       Name:            'TINYINT';
       Description:     'TINYINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -662,7 +660,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtSmallint;
+      Index:           dbdtSmallint;
       NativeType:      mytShort;
       Name:            'SMALLINT';
       Description:     'SMALLINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -677,7 +675,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtMediumint;
+      Index:           dbdtMediumint;
       NativeType:      mytInt24;
       Name:            'MEDIUMINT';
       Description:     'MEDIUMINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -692,7 +690,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtInt;
+      Index:           dbdtInt;
       NativeType:      mytLong;
       Name:            'INT';
       Description:     'INT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -707,7 +705,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtBigint;
+      Index:           dbdtBigint;
       NativeType:      mytLonglong;
       Name:            'BIGINT';
       Description:     'BIGINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -722,7 +720,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtFloat;
+      Index:           dbdtFloat;
       NativeType:      mytFloat;
       Name:            'FLOAT';
       Description:     'FLOAT[(M,D)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -739,7 +737,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtDouble;
+      Index:           dbdtDouble;
       NativeType:      mytDouble;
       Name:            'DOUBLE';
       Description:     'DOUBLE[(M,D)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -756,7 +754,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtDecimal;
+      Index:           dbdtDecimal;
       NativeType:      mytNewdecimal;
       Name:            'DECIMAL';
       Description:     'DECIMAL[(M[,D])] [UNSIGNED] [ZEROFILL]' + sLineBreak +
@@ -777,7 +775,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtDate;
+      Index:           dbdtDate;
       NativeType:      mytDate;
       Name:            'DATE';
       Description:     'DATE' + sLineBreak +
@@ -793,7 +791,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtTime;
+      Index:           dbdtTime;
       NativeType:      mytTime;
       Name:            'TIME';
       Description:     'TIME' + sLineBreak +
@@ -809,7 +807,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtYear;
+      Index:           dbdtYear;
       NativeType:      mytYear;
       Name:            'YEAR';
       Description:     'YEAR[(2|4)]' + sLineBreak +
@@ -828,7 +826,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetime;
+      Index:           dbdtDatetime;
       NativeType:      mytDatetime;
       Name:            'DATETIME';
       Description:     'DATETIME' + sLineBreak +
@@ -845,7 +843,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtTimestamp;
+      Index:           dbdtTimestamp;
       NativeType:      mytTimestamp;
       Name:            'TIMESTAMP';
       Description:     'TIMESTAMP' + sLineBreak +
@@ -864,7 +862,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtVarchar;
+      Index:           dbdtVarchar;
       NativeType:      mytVarstring;
       Name:            'VARCHAR';
       Description:     'VARCHAR(M)' + sLineBreak +
@@ -887,7 +885,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtChar;
+      Index:           dbdtChar;
       NativeType:      mytString;
       Name:            'CHAR';
       Description:     'CHAR[(M)]' + sLineBreak +
@@ -906,7 +904,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtTinytext;
+      Index:           dbdtTinytext;
       NativeType:      mytTinyblob;
       Name:            'TINYTEXT';
       Description:     'TINYTEXT' + sLineBreak +
@@ -923,7 +921,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtText;
+      Index:           dbdtText;
       NativeType:      mytBlob;
       Name:            'TEXT';
       Description:     'TEXT[(M)]' + sLineBreak +
@@ -944,7 +942,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtMediumtext;
+      Index:           dbdtMediumtext;
       NativeType:      mytMediumblob;
       Name:            'MEDIUMTEXT';
       Description:     'MEDIUMTEXT' + sLineBreak +
@@ -960,7 +958,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtLongtext;
+      Index:           dbdtLongtext;
       NativeType:      mytLongblob;
       Name:            'LONGTEXT';
       Description:     'LONGTEXT' + sLineBreak +
@@ -979,7 +977,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtJson;
+      Index:           dbdtJson;
       NativeType:      mytJson;
       Name:            'JSON';
       Description:     'JSON' + sLineBreak +
@@ -997,7 +995,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtBinary;
+      Index:           dbdtBinary;
       NativeType:      mytString;
       Name:            'BINARY';
       Description:     'BINARY(M)' + sLineBreak +
@@ -1013,7 +1011,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtVarbinary;
+      Index:           dbdtVarbinary;
       NativeType:      mytVarstring;
       Name:            'VARBINARY';
       Description:     'VARBINARY(M)' + sLineBreak +
@@ -1029,7 +1027,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtTinyblob;
+      Index:           dbdtTinyblob;
       NativeType:      mytTinyblob;
       Name:           'TINYBLOB';
       Description:     'TINYBLOB' + sLineBreak +
@@ -1044,7 +1042,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtBlob;
+      Index:           dbdtBlob;
       NativeType:      mytBlob;
       Name:            'BLOB';
       Description:     'BLOB[(M)]' + sLineBreak +
@@ -1064,7 +1062,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtMediumblob;
+      Index:           dbdtMediumblob;
       NativeType:      mytMediumblob;
       Name:            'MEDIUMBLOB';
       Description:     'MEDIUMBLOB' + sLineBreak +
@@ -1079,7 +1077,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtLongblob;
+      Index:           dbdtLongblob;
       NativeType:      mytLongblob;
       Name:            'LONGBLOB';
       Description:     'LONGBLOB' + sLineBreak +
@@ -1096,7 +1094,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtEnum;
+      Index:           dbdtEnum;
       NativeType:      mytEnum;
       Name:            'ENUM';
       Description:     'ENUM(''value1'',''value2'',...)' + sLineBreak +
@@ -1113,7 +1111,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtSet;
+      Index:           dbdtSet;
       NativeType:      mytSet;
       Name:            'SET';
       Description:     'SET(''value1'',''value2'',...)' + sLineBreak +
@@ -1130,7 +1128,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtBit;
+      Index:           dbdtBit;
       NativeType:      mytBit;
       Name:            'BIT';
       Description:     'BIT[(M)]' + sLineBreak +
@@ -1144,7 +1142,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtPoint;
+      Index:           dbdtPoint;
       NativeType:      mytGeometry;
       Name:            'POINT';
       Description:     'POINT(x,y)' + sLineBreak +
@@ -1157,7 +1155,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtLinestring;
+      Index:           dbdtLinestring;
       NativeType:      mytGeometry;
       Name:            'LINESTRING';
       Description:     'LINESTRING(pt1,pt2,...)' + sLineBreak +
@@ -1172,7 +1170,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtPolygon;
+      Index:           dbdtPolygon;
       NativeType:      mytGeometry;
       Name:            'POLYGON';
       Description:     'POLYGON(ls1,ls2,...)' + sLineBreak +
@@ -1187,7 +1185,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtGeometry;
+      Index:           dbdtGeometry;
       NativeType:      mytGeometry;
       Name:            'GEOMETRY';
       Description:     '';
@@ -1199,7 +1197,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtMultipoint;
+      Index:           dbdtMultipoint;
       NativeType:      mytGeometry;
       Name:            'MULTIPOINT';
       Description:     'MULTIPOINT(pt1,pt2,...)' + sLineBreak +
@@ -1213,7 +1211,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtMultilinestring;
+      Index:           dbdtMultilinestring;
       NativeType:      mytGeometry;
       Name:            'MULTILINESTRING';
       Description:     'MULTILINESTRING(ls1,ls2,...)' + sLineBreak +
@@ -1227,7 +1225,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtMultipolygon;
+      Index:           dbdtMultipolygon;
       NativeType:      mytGeometry;
       Name:            'MULTIPOLYGON';
       Description:     'MULTIPOLYGON(poly1,poly2,...)' + sLineBreak +
@@ -1242,7 +1240,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtGeometrycollection;
+      Index:           dbdtGeometrycollection;
       NativeType:      mytGeometry;
       Name:            'GEOMETRYCOLLECTION';
       Description:     'GEOMETRYCOLLECTION(g1,g2,...)' + sLineBreak +
@@ -1261,7 +1259,7 @@ var
   MSSQLDatatypes: array [0..33] of TDBDatatype =
   (
     (
-      Index:           dtUnknown;
+      Index:           dbdtUnknown;
       NativeTypes:     '99999';
       Name:            'UNKNOWN';
       Description:     'Unknown data type';
@@ -1273,7 +1271,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index: dtTinyint;
+      Index: dbdtTinyint;
       Name:            'TINYINT';
       Description:     'Integer data from 0 through 255.';
       HasLength:       False;
@@ -1284,7 +1282,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtSmallint;
+      Index:           dbdtSmallint;
       Name:            'SMALLINT';
       Description:     'Integer data from -2^15 (-32,768) through 2^15 - 1 (32,767).';
       HasLength:       False;
@@ -1295,7 +1293,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtInt;
+      Index:           dbdtInt;
       Name:            'INT';
       Description:     'Integer (whole number) data from -2^31 (-2,147,483,648) through 2^31 - 1 (2,147,483,647).';
       HasLength:       False;
@@ -1306,7 +1304,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtBigint;
+      Index:           dbdtBigint;
       Name:            'BIGINT';
       Description:     'Integer (whole number) data from -2^63 (-9,223,372,036,854,775,808) through 2^63-1 (9,223,372,036,854,775,807).';
       HasLength:       False;
@@ -1317,7 +1315,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtBit;
+      Index:           dbdtBit;
       Name:            'BIT';
       Description:     '0 or 1';
       HasLength:       False;
@@ -1328,7 +1326,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtDecimal;
+      Index:           dbdtDecimal;
       Name:            'DECIMAL';
       Description:     'Fixed precision and scale numeric data from -10^38 +1 through 10^38 1.';
       HasLength:       True;
@@ -1340,7 +1338,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtNumeric;
+      Index:           dbdtNumeric;
       Name:            'NUMERIC';
       Description:     'Functionally equivalent to decimal.';
       HasLength:       True;
@@ -1352,7 +1350,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtMoney;
+      Index:           dbdtMoney;
       Name:            'MONEY';
       Description:     'Monetary data values from -2^63 (-922,337,203,685,477.5808) through 2^63 - 1 (+922,337,203,685,477.5807), with accuracy to a ten-thousandth of a monetary unit.';
       HasLength:       True;
@@ -1363,7 +1361,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtSmallmoney;
+      Index:           dbdtSmallmoney;
       Name:            'SMALLMONEY';
       Description:     'Monetary data values from -214,748.3648 through +214,748.3647, with accuracy to a ten-thousandth of a monetary unit.';
       HasLength:       True;
@@ -1374,7 +1372,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtFloat;
+      Index:           dbdtFloat;
       Name:            'FLOAT';
       Description:     'Floating precision number data with the following valid values: -1.79E + 308 through -2.23E - 308, 0 and 2.23E + 308 through 1.79E + 308.';
       HasLength:       True;
@@ -1385,7 +1383,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtReal;
+      Index:           dbdtReal;
       Name:            'REAL';
       Description:     'Floating precision number data with the following valid values: -3.40E + 38 through -1.18E - 38, 0 and 1.18E - 38 through 3.40E + 38.';
       HasLength:       True;
@@ -1396,7 +1394,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtTime;
+      Index:           dbdtTime;
       Name:            'TIME';
       Description:     'The time data type stores time values only, based on a 24-hour clock. '+
         'The time data type has a range of 00:00:00.0000000 through 23:59:59.9999999 with an '+
@@ -1412,7 +1410,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDate;
+      Index:           dbdtDate;
       Name:            'DATE';
       Description:     'The date data type has a range of January 1, 01 through December 31, '+
         '9999 with an accuracy of 1 day. The default value is January 1, 1900. The storage size '+
@@ -1426,7 +1424,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetime;
+      Index:           dbdtDatetime;
       Name:            'DATETIME';
       Description:     'Date and time data from January 1, 1753, through December 31, 9999, with an accuracy of three-hundredths of a second, or 3.33 milliseconds.';
       HasLength:       False;
@@ -1438,7 +1436,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetime2;
+      Index:           dbdtDatetime2;
       Name:            'DATETIME2';
       Description:     'Date and time data from January 1,1 AD through December 31, 9999 AD, with an accuracy of three-hundredths of a second, or 3.33 milliseconds.';
       HasLength:       True;
@@ -1450,7 +1448,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetimeOffset;
+      Index:           dbdtDatetimeOffset;
       Name:            'DATETIMEOFFSET';
       Description:     'Defines a date that is combined with a time of a day that has time zone awareness and is based on a 24-hour clock.';
       HasLength:       False;
@@ -1462,7 +1460,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtSmalldatetime;
+      Index:           dbdtSmalldatetime;
       Name:            'SMALLDATETIME';
       Description:     'Date and time data from January 1, 1900, through June 6, 2079, with an accuracy of one minute.';
       HasLength:       False;
@@ -1474,7 +1472,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtTimestamp;
+      Index:           dbdtTimestamp;
       Name:            'TIMESTAMP';
       Description:     'A database-wide unique number that gets updated every time a row gets updated.';
       HasLength:       False;
@@ -1485,7 +1483,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtChar;
+      Index:           dbdtChar;
       Name:            'CHAR';
       Description:     'Fixed-length non-Unicode character data with a maximum length of 8,000 characters.';
       HasLength:       True;
@@ -1497,7 +1495,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtVarchar;
+      Index:           dbdtVarchar;
       Name:            'VARCHAR';
       Description:     'Variable-length non-Unicode data with a maximum of 8,000 characters.';
       HasLength:       True;
@@ -1509,7 +1507,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtText;
+      Index:           dbdtText;
       Name:            'TEXT';
       Description:     'Variable-length non-Unicode data with a maximum length of 2^31 - 1 (2,147,483,647) characters.';
       HasLength:       False;
@@ -1520,7 +1518,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtNchar;
+      Index:           dbdtNchar;
       Name:            'NCHAR';
       Description:     'Fixed-length Unicode data with a maximum length of 4,000 characters.';
       HasLength:       True;
@@ -1532,7 +1530,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtNvarchar;
+      Index:           dbdtNvarchar;
       Name:            'NVARCHAR';
       Description:     'Variable-length Unicode data with a maximum length of 4,000 characters. sysname is a system-supplied user-defined data type that is functionally equivalent to nvarchar(128) and is used to reference database object names.';
       HasLength:       True;
@@ -1544,7 +1542,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtNtext;
+      Index:           dbdtNtext;
       Name:            'NTEXT';
       Description:     'Variable-length Unicode data with a maximum length of 2^30 - 1 (1,073,741,823) characters.';
       HasLength:       False;
@@ -1555,7 +1553,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtBinary;
+      Index:           dbdtBinary;
       Name:            'BINARY';
       Description:     'Fixed-length binary data with a maximum length of 8,000 bytes.';
       HasLength:       False;
@@ -1566,7 +1564,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtVarbinary;
+      Index:           dbdtVarbinary;
       Name:            'VARBINARY';
       Description:     'Variable-length binary data with a maximum length of 8,000 bytes.';
       HasLength:       False;
@@ -1577,7 +1575,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtImage;
+      Index:           dbdtImage;
       Name:            'IMAGE';
       Description:     'Variable-length binary data with a maximum length of 2^31 - 1 (2,147,483,647) bytes.';
       HasLength:       False;
@@ -1588,7 +1586,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtCursor;
+      Index:           dbdtCursor;
       Name:            'CURSOR';
       Description:     'A reference to a cursor.';
       HasLength:       False;
@@ -1599,7 +1597,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtSqlvariant;
+      Index:           dbdtSqlvariant;
       Name:            'SQL_VARIANT';
       Description:     'A data type that stores values of various SQL Server-supported data types, except text, ntext, timestamp, and sql_variant.';
       HasLength:       False;
@@ -1610,7 +1608,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtTable;
+      Index:           dbdtTable;
       Name:            'TABLE';
       Description:     'A special data type used to store a result set for later processing .';
       HasLength:       False;
@@ -1621,7 +1619,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtUniqueidentifier;
+      Index:           dbdtUniqueidentifier;
       Name:            'UNIQUEIDENTIFIER';
       Description:     'A globally unique identifier (GUID).';
       HasLength:       False;
@@ -1632,7 +1630,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtHierarchyid;
+      Index:           dbdtHierarchyid;
       Name:            'HIERARCHYID';
       Description:     'Represents a position in a hierarchy.';
       HasLength:       False;
@@ -1643,7 +1641,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtXML;
+      Index:           dbdtXML;
       Name:            'XML';
       Description:     'Lets you store XML documents and fragments.';
       HasLength:       False;
@@ -1658,7 +1656,7 @@ var
   PostgreSQLDatatypes: Array[0..37] of TDBDatatype =
   (
     (
-      Index:           dtUnknown;
+      Index:           dbdtUnknown;
       NativeTypes:     '99999';
       Name:            'UNKNOWN';
       Description:     'Unknown data type';
@@ -1670,7 +1668,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtSmallint;
+      Index:           dbdtSmallint;
       NativeTypes:     '21';
       Name:            'SMALLINT';
       Names:           'smallint|int2';
@@ -1684,7 +1682,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtInt;
+      Index:           dbdtInt;
       // 26 = oid, 28 = xid
       NativeTypes:     '23|26|28';
       Name:            'INTEGER';
@@ -1699,7 +1697,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtBigint;
+      Index:           dbdtBigint;
       NativeTypes:     '20';
       Name:            'BIGINT';
       Names:           'bigint|int8';
@@ -1713,7 +1711,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtSerial;
+      Index:           dbdtSerial;
       Name:            'SERIAL';
       Names:           'serial|serial4';
       Description:     'Autoincrementing integer. Range: 1 to 2147483647. Storage Size: 4 Bytes.';
@@ -1725,7 +1723,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtBigSerial;
+      Index:           dbdtBigSerial;
       Name:            'BIGSERIAL';
       Names:           'bigserial|serial8';
       Description:     'Large autoincrementing integer. Range: 1 to 9223372036854775807. Storage Size: 8 Bytes.';
@@ -1737,7 +1735,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtVarBit;
+      Index:           dbdtVarBit;
       NativeTypes:     '1562';
       Name:            'BIT VARYING';
       Names:           'bit varying|varbit';
@@ -1750,7 +1748,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtBit;
+      Index:           dbdtBit;
       NativeTypes:     '1560';
       Name:            'BIT';
       Names:           'bit';
@@ -1763,7 +1761,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtNumeric;
+      Index:           dbdtNumeric;
       NativeTypes:     '1700';
       Name:            'NUMERIC';
       Names:           'numeric|float8|decimal';
@@ -1776,7 +1774,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtReal;
+      Index:           dbdtReal;
       NativeTypes:     '700';
       Name:            'REAL';
       Names:           'real|float4';
@@ -1789,7 +1787,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtDoublePrecision;
+      Index:           dbdtDoublePrecision;
       NativeTypes:     '701|1700';
       Name:            'DOUBLE PRECISION';
       Names:           'double precision|float8';
@@ -1802,7 +1800,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtMoney;
+      Index:           dbdtMoney;
       NativeTypes:     '790';
       Name:            'MONEY';
       Description:     'Currency amount. Range: -92233720368547758.08 to +92233720368547758.07. Storage Size: 8 Bytes.';
@@ -1814,7 +1812,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtChar;
+      Index:           dbdtChar;
       NativeTypes:     '18|1042';
       Name:            'CHAR';
       Names:           'CHARACTER';
@@ -1827,7 +1825,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtVarchar;
+      Index:           dbdtVarchar;
       NativeTypes:     '18|19|24|1043|1043';
       Name:            'VARCHAR';
       Names:           'char|bpchar|varchar|name|enum|character varying';
@@ -1840,7 +1838,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtText;
+      Index:           dbdtText;
       NativeTypes:     '25|22|30|143|629|651|719|791|1000|1028|1040|1041|1115|1182|1183|1185|1187|1231|1263|1270|1561|1563|2201|2207|2211|2949|2951|3643|3644|3645|3735|3770';
       Name:            'TEXT';
       Names:           'text|int2vector|oidvector|bool';
@@ -1853,7 +1851,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtCidr;
+      Index:           dbdtCidr;
       NativeTypes:     '650';
       Name:            'CIDR';
       Names:           'cidr';
@@ -1866,7 +1864,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtInet;
+      Index:           dbdtInet;
       NativeTypes:     '869';
       Name:            'INET';
       Names:           'inet';
@@ -1879,7 +1877,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtMacaddr;
+      Index:           dbdtMacaddr;
       NativeTypes:     '829';
       Name:            'MACADDR';
       Names:           'macaddr';
@@ -1892,7 +1890,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtDate;
+      Index:           dbdtDate;
       NativeTypes:     '1082';
       Name:            'DATE';
       Description:     'Calendar date (year, month, day).';
@@ -1905,7 +1903,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtTime;
+      Index:           dbdtTime;
       NativeTypes:     '1083';
       Name:            'TIME';
       Description:     'Time of day.';
@@ -1918,7 +1916,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetime;
+      Index:           dbdtDatetime;
       NativeTypes:     '1082|1114|702';
       Name:            'TIMESTAMP';
       Names:           'timestamp|datetime|abstime|timestamp without time zone';
@@ -1932,7 +1930,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetime2;
+      Index:           dbdtDatetime2;
       NativeTypes:     '1184';
       Name:            'TIMESTAMPTZ';
       Names:           'timestamptz|timestamp with time zone';
@@ -1946,7 +1944,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDate;
+      Index:           dbdtDate;
       NativeTypes:     '1082';
       Name:            'DATE';
       Description:     'Calendar date (year, month, day).';
@@ -1959,7 +1957,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtInterval;
+      Index:           dbdtInterval;
       NativeTypes:     '1186';
       Name:            'INTERVAL';
       Description:     'time interval	from -178000000 years to 178000000 years';
@@ -1972,7 +1970,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtBlob;
+      Index:           dbdtBlob;
       NativeTypes:     '17';
       Name:            'BYTEA';
       Description:     'Binary data ("byte array").';
@@ -1984,7 +1982,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtPoint;
+      Index:           dbdtPoint;
       NativeTypes:     '600';
       Name:            'POINT';
       Description:     'Point on a plane (x,y). Storage size: 16 bytes.';
@@ -1996,7 +1994,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtLinestring;
+      Index:           dbdtLinestring;
       NativeTypes:     '628';
       Name:            'LINE';
       Description:     'Infinite line ((x1,y1),(x2,y2)). Storage size: 32 bytes.';
@@ -2008,7 +2006,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtLineSegment;
+      Index:           dbdtLineSegment;
       NativeTypes:     '601';
       Name:            'LSEG';
       Description:     'Finite line segment ((x1,y1),(x2,y2)). Storage size: 32 bytes.';
@@ -2020,7 +2018,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtBox;
+      Index:           dbdtBox;
       NativeTypes:     '603';
       Name:            'BOX';
       Description:     'Rectangular box ((x1,y1),(x2,y2)). Storage size: 32 bytes.';
@@ -2032,7 +2030,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtPath;
+      Index:           dbdtPath;
       NativeTypes:     '602';
       Name:            'PATH';
       Description:     'Closed path (similar to polygon) ((x1,y1),...). Storage size: 16+16n bytes.';
@@ -2044,7 +2042,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtPolygon;
+      Index:           dbdtPolygon;
       NativeTypes:     '604';
       Name:            'POLYGON';
       Description:     'Closed path (similar to polygon) ((x1,y1),...). Storage size: 40+16n bytes.';
@@ -2056,7 +2054,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtCircle;
+      Index:           dbdtCircle;
       NativeTypes:     '718';
       Name:            'CIRCLE';
       Description:     'Circle <(x,y),r> (center point and radius). Storage size: 24 bytes.';
@@ -2068,7 +2066,7 @@ var
       Category:        dtcSpatial;
     ),
     (
-      Index:           dtBool;
+      Index:           dbdtBool;
       NativeTypes:     '16';
       Name:            'BOOLEAN';
       Names:           'boolean|bool';
@@ -2082,7 +2080,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtRegClass;
+      Index:           dbdtRegClass;
       NativeTypes:     '2205';
       Name:            'REGCLASS';
       Names:           'regclass';
@@ -2095,7 +2093,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtRegProc;
+      Index:           dbdtRegProc;
       NativeTypes:     '24';
       Name:            'REGPROC';
       Names:           'regproc|regprocedure';
@@ -2108,7 +2106,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtJson;
+      Index:           dbdtJson;
       NativeTypes:     '114';
       Name:            'JSON';
       Names:           'json';
@@ -2121,7 +2119,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtJsonB;
+      Index:           dbdtJsonB;
       NativeTypes:     '3802';
       Name:            'JSONB';
       Names:           'jsonb';
@@ -2134,7 +2132,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtUniqueidentifier;
+      Index:           dbdtUniqueidentifier;
       NativeTypes:     '2950';
       Name:            'UUID';
       Names:           'uuid';
@@ -2152,7 +2150,7 @@ var
   SQLiteDatatypes: Array[0..14] of TDBDatatype =
   (
     (
-      Index:           dtUnknown;
+      Index:           dbdtUnknown;
       Name:            'UNKNOWN';
       Description:     'Unknown data type';
       HasLength:       False;
@@ -2163,7 +2161,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtTinyint;
+      Index:           dbdtTinyint;
       Name:            'TINYINT';
       Names:           'INT2|BOOLEAN|BOOL';
       HasLength:       False;
@@ -2174,7 +2172,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtInt;
+      Index:           dbdtInt;
       Name:            'INTEGER';
       Names:           'INT|MEDIUMINT|INT8';
       HasLength:       False;
@@ -2185,7 +2183,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtBigint;
+      Index:           dbdtBigint;
       Name:            'BIGINT';
       Names:           'UNSIGNED BIG INT';
       HasLength:       False;
@@ -2196,7 +2194,7 @@ var
       Category:        dtcInteger;
     ),
     (
-      Index:           dtChar;
+      Index:           dbdtChar;
       Name:            'CHAR';
       Names:           'CHARACTER|CHAR|NCHAR|NATIVE CHARACTER';
       HasLength:       True;
@@ -2208,7 +2206,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtVarchar;
+      Index:           dbdtVarchar;
       Name:            'VARCHAR';
       Names:           'VARCHAR|VARYING CHARACTER|NVARCHAR|CHARACTER|CHAR|NCHAR|NATIVE CHARACTER';
       HasLength:       True;
@@ -2220,7 +2218,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtText;
+      Index:           dbdtText;
       Name:            'TEXT';
       Names:           'CLOB';
       HasLength:       False;
@@ -2231,7 +2229,7 @@ var
       Category:        dtcText;
     ),
     (
-      Index:           dtUniqueidentifier;
+      Index:           dbdtUniqueidentifier;
       Name:            'UNIQUEIDENTIFIER';
       HasLength:       False;
       RequiresLength:  False;
@@ -2241,7 +2239,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtBlob;
+      Index:           dbdtBlob;
       Name:            'BLOB';
       HasLength:       False;
       RequiresLength:  False;
@@ -2251,7 +2249,7 @@ var
       Category:        dtcBinary;
     ),
     (
-      Index:           dtReal;
+      Index:           dbdtReal;
       Name:            'REAL';
       Names:           'REAL|NUMERIC|DOUBLE|DOUBLE PRECISION|FLOAT|DECIMAL';
       HasLength:       False;
@@ -2262,7 +2260,7 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dtDate;
+      Index:           dbdtDate;
       Name:            'DATE';
       HasLength:       False;
       RequiresLength:  False;
@@ -2272,7 +2270,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtTime;
+      Index:           dbdtTime;
       Name:            'TIME';
       HasLength:       False;
       RequiresLength:  False;
@@ -2282,7 +2280,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtDatetime;
+      Index:           dbdtDatetime;
       Name:            'DATETIME';
       HasLength:       False;
       RequiresLength:  False;
@@ -2292,7 +2290,7 @@ var
       Category:        dtcTemporal;
     ),
     (
-      Index:           dtEnum;
+      Index:           dbdtEnum;
       NativeType:      mytEnum;
       Name:            'ENUM';
       HasLength:       True;
@@ -2304,7 +2302,7 @@ var
       Category:        dtcOther;
     ),
     (
-      Index:           dtSet;
+      Index:           dbdtSet;
       NativeType:      mytSet;
       Name:            'SET';
       HasLength:       True;

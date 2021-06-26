@@ -2907,7 +2907,7 @@ begin
   if ((ServerVersionInt >= 50300) and Parameters.IsMariaDB) or
     ((ServerVersionInt >= 50604) and (not Parameters.IsMariaDB)) then begin
     for i:=Low(FDatatypes) to High(FDatatypes) do begin
-      if FDatatypes[i].Index in [dtDatetime, dtDatetime2, dtTime, dtTimestamp] then
+      if FDatatypes[i].Index in [dbdtDatetime, dbdtDatetime2, dbdtTime, dbdtTimestamp] then
         FDatatypes[i].HasLength := True;
     end;
   end;
@@ -7077,10 +7077,10 @@ begin
           FAutoIncrementColumn := i;
         for j:=0 to High(FConnection.Datatypes) do begin
           if (Field.flags and ENUM_FLAG) = ENUM_FLAG then begin
-            if FConnection.Datatypes[j].Index = dtEnum then
+            if FConnection.Datatypes[j].Index = dbdtEnum then
               FColumnTypes[i] := FConnection.Datatypes[j];
           end else if (Field.flags and SET_FLAG) = SET_FLAG then begin
-            if FConnection.Datatypes[j].Index = dtSet then
+            if FConnection.Datatypes[j].Index = dbdtSet then
               FColumnTypes[i] := FConnection.Datatypes[j];
           end else if Field._type = Cardinal(FConnection.Datatypes[j].NativeType) then begin
             // Text and Blob types share the same constants (see FIELD_TYPEs)
@@ -7089,7 +7089,7 @@ begin
               IsBinary := Field.charsetnr = COLLATION_BINARY
             else
               IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (FConnection.Datatypes[j].Index in [dtChar..dtLongtext]) then
+            if IsBinary and (FConnection.Datatypes[j].Index in [dbdtChar..dbdtLongtext]) then
               continue;
             FColumnTypes[i] := FConnection.Datatypes[j];
             break;
@@ -7171,39 +7171,39 @@ begin
           ftTimeStampOffset, ftObject, ftSingle //49..51 }
         case LastResult.Fields[i].DataType of
           ftSmallint, ftWord:
-            TypeIndex := dtMediumInt;
+            TypeIndex := dbdtMediumInt;
           ftInteger:
-            TypeIndex := dtInt;
+            TypeIndex := dbdtInt;
           ftAutoInc: begin
-            TypeIndex := dtInt;
+            TypeIndex := dbdtInt;
             FAutoIncrementColumn := i;
           end;
           ftLargeint:
-            TypeIndex := dtBigInt;
+            TypeIndex := dbdtBigInt;
           ftBCD, ftFMTBcd:
-            TypeIndex := dtDecimal;
+            TypeIndex := dbdtDecimal;
           ftFixedChar, ftFixedWideChar:
-            TypeIndex := dtChar;
+            TypeIndex := dbdtChar;
           ftString, ftWideString, ftBoolean, ftGuid:
-            TypeIndex := dtVarchar;
+            TypeIndex := dbdtVarchar;
           ftMemo, ftWideMemo:
-            TypeIndex := dtText;
+            TypeIndex := dbdtText;
           ftBlob, ftVariant:
-            TypeIndex := dtMediumBlob;
+            TypeIndex := dbdtMediumBlob;
           ftBytes:
-            TypeIndex := dtBinary;
+            TypeIndex := dbdtBinary;
           ftVarBytes:
-            TypeIndex := dtVarbinary;
+            TypeIndex := dbdtVarbinary;
           ftFloat:
-            TypeIndex := dtFloat;
+            TypeIndex := dbdtFloat;
           ftDate:
-            TypeIndex := dtDate;
+            TypeIndex := dbdtDate;
           ftTime:
-            TypeIndex := dtTime;
+            TypeIndex := dbdtTime;
           ftDateTime:
-            TypeIndex := dtDateTime;
+            TypeIndex := dbdtDateTime;
           //ftTimeStampOffset: // this is NOT data type DATETIMEOFFSET
-          //  TypeIndex := dtDatetime;
+          //  TypeIndex := dbdtDatetime;
           else
             raise EDbError.CreateFmt(_('Unknown data type for column #%d - %s: %d'), [i, FColumnNames[i], Integer(LastResult.Fields[i].DataType)]);
         end;
@@ -7686,7 +7686,7 @@ begin
       else
         Result := Connection.DecodeAPIString(AnsiStr);
       // Create string bitmask for BIT fields
-      if Datatype(Column).Index = dtBit then begin
+      if Datatype(Column).Index = dbdtBit then begin
         Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, column);
         // FConnection.Log(lcInfo, Field.name+':  def: '+field.def+'  length: '+inttostr(field.length)+'  max_length: '+inttostr(field.max_length)+'  decimals: '+inttostr(field.decimals));
         for c in Result do begin
@@ -7730,7 +7730,7 @@ begin
       except
         Result := String(FCurrentResults.Fields[Column].AsAnsiString);
       end;
-      if Datatype(Column).Index = dtBit then begin
+      if Datatype(Column).Index = dbdtBit then begin
         if UpperCase(Result) = 'TRUE' then
           Result := '1'
         else
@@ -7753,7 +7753,7 @@ begin
       SetString(AnsiStr, FConnection.Lib.PQgetvalue(FCurrentResults, FRecNoLocal, Column), FColumnLengths[Column]);
       if Datatype(Column).Category in [dtcBinary, dtcSpatial] then
         Result := String(AnsiStr)
-      else if Datatype(Column).Index = dtbool then
+      else if Datatype(Column).Index = dbdtBool then
         if AnsiStr='t' then Result := 'true' else Result := 'false'
       else
         Result := Connection.DecodeAPIString(AnsiStr);
@@ -7867,17 +7867,17 @@ begin
   ColAttr := ColAttributes(Column);
   if Assigned(ColAttr) then begin
     case ColAttr.DataType.Index of
-      dtChar, dtVarchar, dtBinary, dtVarBinary, dtBit: Result := MakeInt(ColAttr.LengthSet);
-      dtTinyText, dtTinyBlob: Result := 255;
-      dtText, dtBlob: begin
+      dbdtChar, dbdtVarchar, dbdtBinary, dbdtVarBinary, dbdtBit: Result := MakeInt(ColAttr.LengthSet);
+      dbdtTinyText, dbdtTinyBlob: Result := 255;
+      dbdtText, dbdtBlob: begin
         case FConnection.Parameters.NetTypeGroup of
           ngMySQL: Result := 65535;
           ngMSSQL: Result := MaxInt;
           ngPgSQL: Result := High(Int64);
         end;
       end;
-      dtMediumText, dtMediumBlob: Result := 16777215;
-      dtLongText, dtLongBlob: Result := 4294967295;
+      dbdtMediumText, dbdtMediumBlob: Result := 16777215;
+      dbdtLongText, dbdtLongBlob: Result := 4294967295;
     end;
   end;
 end;
@@ -7892,9 +7892,9 @@ begin
   Result.Delimiter := ',';
   ColAttr := ColAttributes(Column);
   if Assigned(ColAttr) then case ColAttr.DataType.Index of
-    dtEnum, dtSet:
+    dbdtEnum, dbdtSet:
       Result.DelimitedText := ColAttr.LengthSet;
-    dtBool:
+    dbdtBool:
       Result.DelimitedText := 'true,false';
   end;
 end;
@@ -8376,13 +8376,13 @@ begin
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
           Val := Connection.EscapeString(Cell.NewText);
-          if (Datatype(i).Index = dtBit) and FConnection.Parameters.IsAnyMySQL then
+          if (Datatype(i).Index = dbdtBit) and FConnection.Parameters.IsAnyMySQL then
             Val := 'b' + Val;
         end;
         dtcBinary, dtcSpatial:
           Val := HexValue(Cell.NewText);
         else begin
-          if Datatype(i).Index in [dtNchar, dtNvarchar, dtNtext] then
+          if Datatype(i).Index in [dbdtNchar, dbdtNvarchar, dbdtNtext] then
             Val := 'N' + Connection.EscapeString(Cell.NewText)
           else if Datatype(i).Category = dtcTemporal then
             Val := Connection.EscapeString(Connection.GetDateTimeValue(Cell.NewText, Datatype(i).Index))
@@ -8713,7 +8713,7 @@ begin
       Result := Result + ' AND';
 
     Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
-    if (DataType(j).Index = dtJson) and (Self is TPGQuery) then begin
+    if (DataType(j).Index = dbdtJson) and (Self is TPGQuery) then begin
       Result := Result + '::text';
     end;
 
@@ -8730,7 +8730,7 @@ begin
     else begin
       case DataType(j).Category of
         dtcInteger, dtcReal: begin
-          if DataType(j).Index = dtBit then
+          if DataType(j).Index = dbdtBit then
             Result := Result + '=b' + Connection.EscapeString(ColVal)
           else begin
             // Guess (!) the default value silently inserted by the server. This is likely
@@ -8748,7 +8748,7 @@ begin
           // Any other data type goes here, including text:
           case DataType(j).Index of
             // Support international characters with N-prefix on MSSQL, see #1115:
-            dtNchar, dtNvarchar, dtNtext:
+            dbdtNchar, dbdtNvarchar, dbdtNtext:
               Result := Result + '=N' + Connection.EscapeString(ColVal);
             else
               Result := Result + '=' + Connection.EscapeString(ColVal);
@@ -9210,9 +9210,9 @@ begin
   // Apply given or default attributes
   Name := FromSerialized('Name', '');
   OldName := FromSerialized('OldName', '');
-  NumVal := FromSerialized('DataType', Integer(dtUnknown).ToString);
+  NumVal := FromSerialized('DataType', Integer(dbdtUnknown).ToString);
   DataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
-  NumVal := FromSerialized('OldDataType', Integer(dtUnknown).ToString);
+  NumVal := FromSerialized('OldDataType', Integer(dbdtUnknown).ToString);
   OldDataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
   for i:=Low(Connection.Datatypes) to High(Connection.Datatypes) do begin
     if Connection.Datatypes[i].Index = DataTypeIdx then
@@ -9406,7 +9406,7 @@ begin
   Result := TStringList.Create;
   Result.QuoteChar := '''';
   Result.Delimiter := ',';
-  if DataType.Index in [dtEnum, dtSet] then
+  if DataType.Index in [dbdtEnum, dbdtSet] then
     Result.DelimitedText := LengthSet;
 end;
 
@@ -9445,17 +9445,17 @@ begin
   Result := FConnection.QuoteIdent(Name);
   case FConnection.Parameters.NetTypeGroup of
     ngMySQL, ngSQLite: begin
-      if DataType.Index in [dtUnknown, dtDate, dtDatetime, dtTime, dtTimestamp] then
+      if DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp] then
         Result := 'CAST('+Result+' AS CHAR)';
     end;
     ngMSSQL: begin
       // Be sure LEFT() and "col LIKE xyz" work with MSSQL
       // Also, prevent exceeding size limit of 8000 for NVARCHAR
-      if DataType.Index in [dtUnknown, dtNtext, dtText] then
+      if DataType.Index in [dbdtUnknown, dbdtNtext, dbdtText] then
         Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     end;
     ngPgSQL: begin
-      if (DataType.Index = dtUnknown) or (DataType.Category = dtcBinary) then
+      if (DataType.Index = dbdtUnknown) or (DataType.Category = dtcBinary) then
         Result := Result + '::text';
     end;
   end;

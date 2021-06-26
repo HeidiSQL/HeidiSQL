@@ -1190,7 +1190,7 @@ begin
     3: Result := Col.DataType.HasLength;
     4: begin
       Result := (Col.DataType.Category in [dtcInteger, dtcReal])
-        and (Col.DataType.Index <> dtBit)
+        and (Col.DataType.Index <> dbdtBit)
         and (DBObject.Connection.Parameters.IsAnyMySQL);
       if (not Result) and Col.Unsigned then begin
         Col.Unsigned := False;
@@ -1213,7 +1213,7 @@ begin
     end;
     6: begin
       Result := (Col.DataType.Category in [dtcInteger, dtcReal])
-        and (Col.DataType.Index <> dtBit)
+        and (Col.DataType.Index <> dbdtBit)
         and (DBObject.Connection.Parameters.IsAnyMySQL);
       if (not Result) and Col.ZeroFill then begin
         Col.ZeroFill := False;
@@ -1647,7 +1647,7 @@ begin
     end;
     if not ColExists then begin
       NewCol := Column.Name;
-      if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Column.DataType.Index in [dtTinyText, dtText, dtMediumText, dtLongText, dtTinyBlob, dtBlob, dtMediumBlob, dtLongBlob]) then
+      if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Column.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
         PartLength := '100';
       break;
     end;
@@ -2177,7 +2177,7 @@ begin
 
     TblKey.Columns.Insert(ColPos, ColName);
     PartLength := '';
-    if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Col.DataType.Index in [dtTinyText, dtText, dtMediumText, dtLongText, dtTinyBlob, dtBlob, dtMediumBlob, dtLongBlob]) then
+    if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Col.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
       PartLength := '100';
     TblKey.Subparts.Insert(ColPos, PartLength);
     IndexNode.States := IndexNode.States + [vsHasChildren, vsExpanded];

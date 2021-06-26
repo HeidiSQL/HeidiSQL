@@ -1843,7 +1843,7 @@ begin
                 Row := Row + 'NULL'
               else case Data.DataType(i).Category of
                 dtcInteger, dtcReal: begin
-                  if Data.DataType(i).Index = dtBit then
+                  if Data.DataType(i).Index = dbdtBit then
                     Row := Row + 'b' + Quoter.EscapeString(Data.Col(i))
                   else
                     Row := Row + Data.Col(i);

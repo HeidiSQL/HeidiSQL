@@ -930,7 +930,7 @@ begin
                 Data := ''
               else if GridData.IsNull(Col) then
                 Data := 'NULL'
-              else if (GridData.DataType(Col).Index = dtBit) and GridData.Connection.Parameters.IsAnyMySQL then
+              else if (GridData.DataType(Col).Index = dbdtBit) and GridData.Connection.Parameters.IsAnyMySQL then
                 Data := 'b' + GridData.Connection.EscapeString(Data)
               else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
                 or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)

@@ -279,7 +279,7 @@ begin
       for k:=Low(FConnection.Datatypes) to High(FConnection.Datatypes) do begin
 
         LoopType := FConnection.Datatypes[k];
-        UnknownTypeYet := Col.DataType.Index = dtUnknown;
+        UnknownTypeYet := Col.DataType.Index = dbdtUnknown;
         if (ValueSize = 0) or (CompareText(Value.OldText, 'null')=0) then
           Col.AllowNull := True;
 
@@ -302,11 +302,11 @@ begin
         end;
 
         // Datetime type
-        if IsDatetime and (UnknownTypeYet or (Col.DataType.Index in [dtDate, dtDatetime])) and (LoopType.Index = dtDatetime) then begin
+        if IsDatetime and (UnknownTypeYet or (Col.DataType.Index in [dbdtDate, dbdtDatetime])) and (LoopType.Index = dbdtDatetime) then begin
           Col.DataType := LoopType;
         end;
         // Date type
-        if IsDate and (UnknownTypeYet or (Col.DataType.Index = dtDate)) and (LoopType.Index = dtDate) then begin
+        if IsDate and (UnknownTypeYet or (Col.DataType.Index = dbdtDate)) and (LoopType.Index = dbdtDate) then begin
           Col.DataType := LoopType;
         end;
 
