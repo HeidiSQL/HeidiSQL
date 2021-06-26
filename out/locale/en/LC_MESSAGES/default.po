@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-06-25 08:53+0200\n"
+"PO-Revision-Date: 2021-06-26 09:09+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6431,12 +6431,6 @@ msgstr "Go to tab 5"
 
 msgid "Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL"
 msgstr "Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL"
-
-msgid "Does not work on Windows 10 S"
-msgstr "Does not work on Windows 10 S"
-
-msgid "The network type defined for this session is not compatible to your Windows 10 S"
-msgstr "The network type defined for this session is not compatible to your Windows 10 S"
 
 msgid "Error when checking for updates: %s"
 msgstr "Error when checking for updates: %s"

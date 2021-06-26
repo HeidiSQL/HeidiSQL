@@ -301,7 +301,6 @@ type
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(Connection: TDbConnection): TDBQuery;
       function NetTypeName(LongFormat: Boolean): String;
-      function IsCompatibleToWin10S: Boolean;
       function GetNetTypeGroup: TNetTypeGroup;
       function IsAnyMySQL: Boolean;
       function IsAnyMSSQL: Boolean;
@@ -1521,13 +1520,6 @@ begin
 end;
 
 
-function TConnectionParameters.IsCompatibleToWin10S: Boolean;
-begin
-  // Using plink on 10S is not possible
-  Result := (FNetType <> ntMySQL_SSHtunnel) and (FNetType <> ntPgSQL_SSHtunnel);
-end;
-
-
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
@@ -2110,11 +2102,6 @@ var
   UserNameSize: DWORD;
 begin
   if Value and (FHandle = nil) then begin
-
-    // Die if trying to run plink on Win10S
-    if RunningOnWindows10S and (not FParameters.IsCompatibleToWin10S) then begin
-      raise EDbError.Create(_('The network type defined for this session is not compatible to your Windows 10 S'));
-    end;
 
     DoBeforeConnect;
 

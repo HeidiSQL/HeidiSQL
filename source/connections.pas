@@ -289,9 +289,6 @@ begin
       if Params.GetNetTypeGroup <> ntg then
         Continue;
       NetTypeStr := Params.NetTypeName(True);
-      if RunningOnWindows10S and (not Params.IsCompatibleToWin10S) then begin
-        NetTypeStr := NetTypeStr + ' ['+_('Does not work on Windows 10 S')+']';
-      end;
       ComboItem := TComboExItem.Create(comboNetType.ItemsEx);
       ComboItem.Caption := NetTypeStr;
       ComboItem.ImageIndex := Params.ImageIndex;
