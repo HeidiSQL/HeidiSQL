@@ -5,7 +5,13 @@ interface
 uses
   Classes, SysUtils, windows, dbstructures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types;
+  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Phys, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys.IB,
+  FireDAC.Phys.IBDef, FireDAC.VCLUI.Wait, FireDAC.Comp.Client,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
+  FireDAC.DApt, FireDAC.Comp.DataSet;
 
 
 type
@@ -271,9 +277,11 @@ type
     ntPgSQL_TCPIP,
     ntPgSQL_SSHtunnel,
     ntSQLite,
-    ntMySQL_ProxySQLAdmin
+    ntMySQL_ProxySQLAdmin,
+    ntInterbase_TCPIP,
+    ntInterbase_Local
     );
-  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite);
+  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
 
   TConnectionParameters = class(TObject)
@@ -306,6 +314,7 @@ type
       function IsAnyMSSQL: Boolean;
       function IsAnyPostgreSQL: Boolean;
       function IsAnySQLite: Boolean;
+      function IsAnyInterbase: Boolean;
       function IsMariaDB: Boolean;
       function IsMySQL(StrictDetect: Boolean): Boolean;
       function IsPercona: Boolean;
@@ -720,6 +729,37 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
+  end;
+
+  TInterbaseConnection = class(TDBConnection)
+    private
+      FFDHandle: TFDConnection;
+      FLastError: String;
+      FLastErrorCode: Integer;
+      //FLib: TSQLiteLib;
+      //FLastRawResults: TSQLiteRawResults;
+      //FMainDbName: UTF8String;
+      procedure SetActive(Value: Boolean); override;
+      //procedure DoBeforeConnect; override;
+      //function GetThreadId: Int64; override;
+      procedure OnFdError(ASender: TObject; AInitiator: TObject; var AException: Exception);
+      function GetLastErrorCode: Cardinal; override;
+      function GetLastErrorMsg: String; override;
+      //function GetAllDatabases: TStringList; override;
+      //function GetCharsetTable: TDBQuery; override;
+      //procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      //property Lib: TSQLiteLib read FLib;
+      //procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      function Ping(Reconnect: Boolean): Boolean; override;
+      //function GetCreateCode(Obj: TDBObject): String; override;
+      //function GetRowCount(Obj: TDBObject): Int64; override;
+      //property LastRawResults: TSQLiteRawResults read FLastRawResults;
+      //function GetTableColumns(Table: TDBObject): TTableColumnList; override;
+      //function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      //function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
 
 
@@ -1444,6 +1484,8 @@ begin
       Result := TPgConnection.Create(AOwner);
     ngSQLite:
       Result := TSQLiteConnection.Create(AOwner);
+    ngInterbase:
+      Result := TInterbaseConnection.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1476,6 +1518,7 @@ const
   PrefixPostgres = 'PostgreSQL';
   PrefixRedshift = 'Redshift PG';
   PrefixSqlite = 'SQLite';
+  PrefixInterbase = 'Interbase';
 begin
   // Return the name of a net type, either in short or long format
   Result := 'Unknown';
@@ -1494,6 +1537,8 @@ begin
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
       ntSQLite:                 Result := PrefixSqlite;
+      ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP)';
+      ntInterbase_Local:        Result := PrefixInterbase+' (Local)';
     end;
   end
   else begin
@@ -1515,6 +1560,7 @@ begin
         else                           Result := PrefixPostgres;
       end;
       ngSQLite:                        Result := PrefixSqlite;
+      ngInterbase:                     Result := PrefixInterbase;
     end;
   end;
 end;
@@ -1531,6 +1577,8 @@ begin
       Result := ngPgSQL;
     ntSQLite:
       Result := ngSQLite;
+    ntInterbase_TCPIP, ntInterbase_Local:
+      Result := ngInterbase;
     else begin
       // Return default net group here. Raising an exception lets the app die for some reason.
       // Reproduction: click drop-down button on "Database(s)" session setting
@@ -1562,6 +1610,12 @@ end;
 function TConnectionParameters.IsAnySQLite;
 begin
   Result := NetTypeGroup = ngSQLite;
+end;
+
+
+function TConnectionParameters.IsAnyInterbase;
+begin
+  Result := NetTypeGroup = ngInterbase;
 end;
 
 
@@ -1659,9 +1713,8 @@ begin
       Result := 187;
       if IsRedshift then Result := 195;
     end;
-    ngSQLite: begin
-      Result := 196;
-    end
+    ngSQLite: Result := 196;
+    ngInterbase: Result := 203;
     else Result := ICONINDEX_SERVER;
   end;
 end;
@@ -1678,6 +1731,7 @@ begin
     end;
     ngMSSQL: Result := 0; // => autodetection by driver (previously 1433)
     ngPgSQL: Result := 5432;
+    ngInterbase: Result := 3050;
     else Result := 0;
   end;
 end;
@@ -1689,6 +1743,7 @@ begin
     ngMySQL: Result := 'root';
     ngMSSQL: Result := 'sa';
     ngPgSQL: Result := 'postgres';
+    ngInterbase: Result := 'sysdba';
     else Result := '';
   end;
 end;
@@ -1701,6 +1756,7 @@ begin
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
     ngSQLite: Result := 'sqlite3.dll';
+    ngInterbase: Result := 'IB';
     else Result := '';
   end;
 end;
@@ -1810,6 +1866,10 @@ begin
           end;
         end;
         Providers.Free;
+      end;
+      ngInterbase: begin
+        FoundLibs.Add('IB');
+        FoundLibs.Add('FB');
       end;
     end;
     rx.Free;
@@ -1933,6 +1993,21 @@ begin
 end;
 
 
+constructor TInterbaseConnection.Create(AOwner: TComponent);
+var
+  i: Integer;
+begin
+  inherited;
+  FQuoteChar := '"';
+  FQuoteChars := '"[]';
+  SetLength(FDatatypes, Length(SQLiteDatatypes));
+  for i:=0 to High(SQLiteDatatypes) do
+    FDatatypes[i] := SQLiteDatatypes[i];
+  // SQLite does not have IS:
+  FInfSch := '';
+end;
+
+
 destructor TDBConnection.Destroy;
 begin
   ClearCache(True);
@@ -1971,6 +2046,14 @@ destructor TSQLiteConnection.Destroy;
 begin
   if Active then Active := False;
   FLib.Free;
+  inherited;
+end;
+
+
+destructor TInterbaseConnection.Destroy;
+begin
+  if Active then Active := False;
+  FreeAndNil(FFdHandle);
   inherited;
 end;
 
@@ -2674,6 +2757,74 @@ begin
 end;
 
 
+procedure TInterbaseConnection.SetActive(Value: Boolean);
+var
+  tmpdb: String;
+begin
+  if Value then begin
+    DoBeforeConnect;
+
+    FFDHandle := TFDConnection.Create(Owner);
+    FFDHandle.OnError := OnFdError;
+    FFDHandle.DriverName := Parameters.LibraryOrProvider; // Auto-sets Params.DriverID
+    FFDHandle.LoginPrompt := False;
+    case Parameters.NetType of
+      ntInterbase_TCPIP: begin
+        FFDHandle.Params.Values['Protocol'] := 'ipTCPIP';
+        FFDHandle.Params.Values['Server'] := Parameters.Hostname;
+        FFDHandle.Params.Values['Port'] := Parameters.Port.ToString;
+      end;
+      ntInterbase_Local: FFDHandle.Params.Values['Protocol'] := 'ipLocal';
+    end;
+    FFDHandle.Params.Values['Database'] := Parameters.AllDatabasesStr;
+    FFDHandle.Params.Values['User_Name'] := Parameters.Username;
+    FFDHandle.Params.Values['Password'] := Parameters.Password;
+    FFDHandle.Params.Values['CharacterSet'] := 'UTF8';
+    FFDHandle.Params.Values['ExtendedMetadata'] := 'True';
+    try
+      FFDHandle.Connected := True;
+    except
+      // Let OnFdError set FLastError
+    end;
+
+    if FFDHandle.Connected then begin
+      FActive := True;
+      FIsUnicode := True;
+      //! Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
+
+      FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
+      //! FServerVersionUntouched := GetVar('SELECT sqlite_version()');
+      FConnectionStarted := GetTickCount div 1000;
+      FServerUptime := -1;
+
+      DoAfterConnect;
+
+      if FDatabase <> '' then begin
+        tmpdb := FDatabase;
+        FDatabase := '';
+        try
+          Database := tmpdb;
+        except
+          FDatabase := tmpdb;
+          Database := '';
+        end;
+      end;
+    end else begin
+      Log(lcError, LastErrorMsg);
+      FConnectionStarted := 0;
+      raise EDbError.Create(LastErrorMsg);
+    end;
+  end else begin
+    if FFdHandle <> nil then begin
+      ClearCache(False);
+      FFdHandle.Connected := False;
+      FActive := False;
+      Log(lcInfo, f_(MsgDisconnect, [Parameters.Hostname, DateTimeToStr(Now)]));
+    end;
+  end;
+end;
+
+
 procedure TDBConnection.DoBeforeConnect;
 var
   UsingPass: String;
@@ -3085,6 +3236,12 @@ begin
   // Restart keep-alive timer
   FKeepAliveTimer.Enabled := False;
   FKeepAliveTimer.Enabled := True;
+end;
+
+
+function TInterbaseConnection.Ping(Reconnect: Boolean): Boolean;
+begin
+  FFDHandle.Ping;
 end;
 
 
@@ -3939,6 +4096,25 @@ begin
 end;
 
 
+function TInterbaseConnection.GetLastErrorCode: Cardinal;
+begin
+  Result := Cardinal(FLastErrorCode);
+end;
+
+
+procedure TInterbaseConnection.OnFdError(ASender: TObject; AInitiator: TObject; var AException: Exception);
+var
+  oExc: EFDDBEngineException;
+begin
+  if AException is EFDDBEngineException then begin
+    oExc := EFDDBEngineException(AException);
+    FLastErrorCode := oExc.ErrorCode;
+    FLastError := oExc.Message;
+  end;
+end;
+
+
+
 {**
   Return the last error nicely formatted
 }
@@ -4013,6 +4189,13 @@ begin
   Result := DecodeAPIString(FLib.sqlite3_errmsg(FHandle));
   Result := f_(MsgSQLError, [LastErrorCode, Result]);
 end;
+
+
+function TInterbaseConnection.GetLastErrorMsg: String;
+begin
+  Result := f_(MsgSQLError, [LastErrorCode, FLastError]);
+end;
+
 
 
 {**
