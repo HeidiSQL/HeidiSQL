@@ -731,35 +731,36 @@ type
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
 
+  TInterbaseRawResults = Array of TFDQuery;
   TInterbaseConnection = class(TDBConnection)
     private
       FFDHandle: TFDConnection;
       FLastError: String;
       FLastErrorCode: Integer;
       //FLib: TSQLiteLib;
-      //FLastRawResults: TSQLiteRawResults;
+      FLastRawResults: TInterbaseRawResults;
       //FMainDbName: UTF8String;
       procedure SetActive(Value: Boolean); override;
-      //procedure DoBeforeConnect; override;
-      //function GetThreadId: Int64; override;
+      procedure DoBeforeConnect; override;
+      function GetThreadId: Int64; override;
       procedure OnFdError(ASender: TObject; AInitiator: TObject; var AException: Exception);
       function GetLastErrorCode: Cardinal; override;
       function GetLastErrorMsg: String; override;
-      //function GetAllDatabases: TStringList; override;
-      //function GetCharsetTable: TDBQuery; override;
-      //procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+      function GetAllDatabases: TStringList; override;
+      function GetCharsetTable: TDBQuery; override;
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       //property Lib: TSQLiteLib read FLib;
-      //procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
-      //function GetCreateCode(Obj: TDBObject): String; override;
-      //function GetRowCount(Obj: TDBObject): Int64; override;
-      //property LastRawResults: TSQLiteRawResults read FLastRawResults;
-      //function GetTableColumns(Table: TDBObject): TTableColumnList; override;
-      //function GetTableKeys(Table: TDBObject): TTableKeyList; override;
-      //function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
+      function GetCreateCode(Obj: TDBObject): String; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
+      property LastRawResults: TInterbaseRawResults read FLastRawResults;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; override;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
   end;
 
 
@@ -923,6 +924,27 @@ type
       FCurrentResults: TSQLiteGridRows;
       FRecNoLocal: Integer;
       FResultList: TSQLiteRawResults;
+      procedure SetRecNo(Value: Int64); override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
+      function ColIsKeyPart(Column: Integer): Boolean; override;
+      function IsNull(Column: Integer): Boolean; overload; override;
+      function HasResult: Boolean; override;
+      function DatabaseName: String; override;
+      function TableName(Column: Integer): String; overload; override;
+  end;
+
+  TInterbaseQuery = class(TDBQuery)
+    private
+      FConnection: TInterbaseConnection;
+      FCurrentResults: TFDDataSet;
+      FRecNoLocal: Integer;
+      FResultList: TInterbaseRawResults;
       procedure SetRecNo(Value: Int64); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -1504,6 +1526,8 @@ begin
       Result := TPGQuery.Create(Connection);
     ngSQLite:
       Result := TSQLiteQuery.Create(Connection);
+    ngInterbase:
+      Result := TInterbaseQuery.Create(Connection);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1537,8 +1561,8 @@ begin
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
       ntSQLite:                 Result := PrefixSqlite;
-      ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP)';
-      ntInterbase_Local:        Result := PrefixInterbase+' (Local)';
+      ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP, experimental)';
+      ntInterbase_Local:        Result := PrefixInterbase+' (Local, experimental)';
     end;
   end
   else begin
@@ -2945,6 +2969,27 @@ begin
       FSQLSpecifities[spFuncNow] := 'DATETIME()';
       FSQLSpecifities[spLockedTables] := '';
     end;
+    ngInterbase: begin
+      FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
+      FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+      FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
+      FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
+      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
+      FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
+      FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
+      FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
+      FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
+      FSQLSpecifities[spUSEQuery] := 'USE %s';
+      FSQLSpecifities[spKillQuery] := 'KILL %d';
+      FSQLSpecifities[spKillProcess] := 'KILL %d';
+      FSQLSpecifities[spFuncLength] := 'LENGTH';
+      FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
+      FSQLSpecifities[spFuncNow] := 'timestamp ''NOW'' from rdb$database';
+      FSQLSpecifities[spLockedTables] := '';
+    end;
 
   end;
 
@@ -3007,6 +3052,13 @@ begin
   // Throws EDbError on any failure:
   FLib := TSQLiteLib.Create(LibraryPath);
   Log(lcDebug, FLib.DllFile + ' v' + ServerVersionUntouched + ' loaded.');
+  inherited;
+end;
+
+
+procedure TInterbaseConnection.DoBeforeConnect;
+begin
+  // Todo
   inherited;
 end;
 
@@ -3241,7 +3293,14 @@ end;
 
 function TInterbaseConnection.Ping(Reconnect: Boolean): Boolean;
 begin
-  FFDHandle.Ping;
+  Log(lcDebug, 'Ping server ...');
+  if FActive then begin
+    FFDHandle.Ping;
+  end;
+  Result := FActive;
+  // Restart keep-alive timer
+  FKeepAliveTimer.Enabled := False;
+  FKeepAliveTimer.Enabled := True;
 end;
 
 
@@ -3567,6 +3626,50 @@ begin
 end;
 
 
+procedure TInterbaseConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+var
+  TimerStart: Cardinal;
+  FdQuery: TFDQuery;
+begin
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+    Log(lcDebug, _('Waiting for running query to finish ...'));
+    try
+      FLockedByThread.WaitFor;
+    except
+      on E:EThread do;
+    end;
+  end;
+
+  Ping(True);
+  Log(LogCategory, SQL);
+  FLastQuerySQL := SQL;
+  TimerStart := GetTickCount;
+  SetLength(FLastRawResults, 0);
+  FRowsFound := 0;
+  FRowsAffected := 0;
+  FWarningCount := 0;
+  FdQuery := TFDQuery.Create(Self);
+  FdQuery.Connection := FFDHandle;
+  try
+    FdQuery.ResourceOptions.CmdExecTimeout := Parameters.QueryTimeout;
+    FdQuery.Open(SQL);
+    FRowsAffected := FdQuery.RowsAffected;
+    FRowsFound := FdQuery.RecordCount;
+    FLastQueryDuration := GetTickCount - TimerStart;
+    FLastQueryNetworkDuration := 0;
+    SetLength(FLastRawResults, Length(FLastRawResults)+1);
+    FLastRawResults[Length(FLastRawResults)-1] := FdQuery;
+  except
+    on E:EFDDBEngineException do begin
+      SetLength(FLastRawResults, 0);
+      Log(lcError, GetLastErrorMsg + ' :: ' + E.Message);
+      raise EDbError.Create(GetLastErrorMsg);
+    end;
+  end;
+  FLastQueryNetworkDuration := GetTickCount - TimerStart;
+end;
+
+
 function TDBConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
@@ -3640,6 +3743,12 @@ begin
       Result := inherited;
     end;
   end;
+end;
+
+
+function TInterbaseConnection.GetCreateCode(Obj: TDBObject): String;
+begin
+  // Todo
 end;
 
 
@@ -4023,6 +4132,13 @@ begin
 end;
 
 
+function TInterbaseConnection.GetThreadId: Int64;
+begin
+  // Todo
+  Result := 0;
+end;
+
+
 {**
   Return currently used character set
 }
@@ -4098,7 +4214,8 @@ end;
 
 function TInterbaseConnection.GetLastErrorCode: Cardinal;
 begin
-  Result := Cardinal(FLastErrorCode);
+  // Note: there seem to be negative codes
+  Result := Abs(FLastErrorCode);
 end;
 
 
@@ -4210,7 +4327,7 @@ begin
   Result := 0;
   rx := TRegExpr.Create;
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL, ngSQLite: begin
+    ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
       rx.Expression := '(\d+)\.(\d+)(\.(\d+))?';
       if rx.Exec(FServerVersionUntouched) then begin
         Result := StrToIntDef(rx.Match[1], 0) *10000 +
@@ -4252,7 +4369,7 @@ var
   major, minor, build: Integer;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL, ngSQLite: begin
+    ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
       v := IntToStr(ServerVersionInt);
       major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
       minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
@@ -4392,6 +4509,18 @@ begin
     except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
+    ApplyIgnoreDatabasePattern(FAllDatabases);
+    Result := FAllDatabases;
+  end;
+end;
+
+
+function TInterbaseConnection.GetAllDatabases: TStringList;
+begin
+  Result := inherited;
+  if not Assigned(Result) then begin
+    FAllDatabases := TStringList.Create;
+    FFDHandle.GetCatalogNames('', FAllDatabases);
     ApplyIgnoreDatabasePattern(FAllDatabases);
     Result := FAllDatabases;
   end;
@@ -5046,6 +5175,12 @@ begin
 end;
 
 
+function TInterbaseConnection.GetCharsetTable: TDBQuery;
+begin
+  // Todo
+end;
+
+
 function TDBConnection.GetCharsetList: TStringList;
 var
   c: TDBQuery;
@@ -5449,6 +5584,12 @@ begin
 end;
 
 
+function TInterbaseConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+begin
+  // Todo
+end;
+
+
 function TDBConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
 var
   ColTableIdx, ConTableIdx: Integer;
@@ -5694,6 +5835,12 @@ begin
 end;
 
 
+function TInterbaseConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+begin
+  // Todo
+end;
+
+
 function TDBConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
 var
   ForeignQuery, ColQuery: TDBQuery;
@@ -5887,6 +6034,13 @@ begin
 end;
 
 
+function TInterbaseConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+begin
+  // Todo
+  // use parent?
+end;
+
+
 function TDBConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList;
 var
   CheckQuery: TDBQuery;
@@ -5995,6 +6149,15 @@ begin
 end;
 
 
+function TInterbaseConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a table
+  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
+  Result := MakeInt(Rows);
+end;
+
 
 procedure TDBConnection.Drop(Obj: TDBObject);
 begin
@@ -6054,6 +6217,8 @@ begin
       Result := Length(TPGConnection(Self).LastRawResults);
     ngSQLite:
       Result := Length(TSQLiteConnection(Self).LastRawResults);
+    ngInterbase:
+      Result := Length(TInterbaseConnection(Self).LastRawResults);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Parameters.NetType)]);
   end;
@@ -6730,6 +6895,12 @@ begin
 end;
 
 
+procedure TInterbaseConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+begin
+  // Todo
+end;
+
+
 function TDBConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
 var
   i: Integer;
@@ -7129,6 +7300,13 @@ begin
 end;
 
 
+constructor TInterbaseQuery.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnection := AOwner as TInterbaseConnection;
+end;
+
+
 destructor TDBQuery.Destroy;
 begin
   FreeAndNil(FColumnNames);
@@ -7195,6 +7373,21 @@ begin
   if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
     for i:=Low(FResultList) to High(FResultList) do
       FResultList[i].Free;
+  end;
+  SetLength(FResultList, 0);
+  inherited;
+end;
+
+
+destructor TInterbaseQuery.Destroy;
+var
+  i: Integer;
+begin
+  if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
+    for i:=Low(FResultList) to High(FResultList) do begin
+      FResultList[i].Close;
+      FResultList[i].Free;
+    end;
   end;
   SetLength(FResultList, 0);
   inherited;
@@ -7552,6 +7745,65 @@ begin
 end;
 
 
+procedure TInterbaseQuery.Execute(AddResult: Boolean; UseRawResult: Integer);
+var
+  i, NumFields, NumResults: Integer;
+  LastResult:  TFDQuery;
+begin
+  if UseRawResult = -1 then begin
+    Connection.Query(FSQL, FStoreResult);
+    UseRawResult := 0;
+  end;
+  if Connection.ResultCount > UseRawResult then begin
+    LastResult := TInterbaseConnection(Connection).LastRawResults[UseRawResult]
+  end else begin
+    LastResult := nil;
+  end;
+  if AddResult and (Length(FResultList) = 0) then
+    AddResult := False;
+  if AddResult then
+    NumResults := Length(FResultList)+1
+  else begin
+    for i:=Low(FResultList) to High(FResultList) do begin
+      FResultList[i].Free;
+    end;
+    NumResults := 1;
+    FRecordCount := 0;
+    FAutoIncrementColumn := -1;
+    FEditingPrepared := False;
+  end;
+  if LastResult <> nil then begin
+    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    SetLength(FResultList, NumResults);
+    FResultList[NumResults-1] := LastResult;
+    FRecordCount := FRecordCount + LastResult.RecordCount;
+  end;
+  if not AddResult then begin
+    if HasResult then begin
+      // FCurrentResults is normally done in SetRecNo, but never if result has no rows
+      FCurrentResults := LastResult;
+      NumFields := LastResult.FieldCount;
+      SetLength(FColumnTypes, NumFields);
+      SetLength(FColumnLengths, NumFields);
+      SetLength(FColumnFlags, NumFields);
+      FColumnNames.Clear;
+      FColumnOrgNames.Clear;
+      for i:=0 to NumFields-1 do begin
+        FColumnNames.Add(LastResult.Fields[i].FieldName);
+        FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
+        FColumnTypes[i] := FConnection.Datatypes[0];
+      end;
+      FRecNo := -1;
+      First;
+    end else begin
+      SetLength(FColumnTypes, 0);
+      SetLength(FColumnLengths, 0);
+      SetLength(FColumnFlags, 0);
+    end;
+  end;
+end;
+
+
 procedure TDBQuery.SetColumnOrgNames(Value: TStringList);
 begin
   // Retrieve original column names from caller
@@ -7797,6 +8049,62 @@ begin
 end;
 
 
+procedure TInterbaseQuery.SetRecNo(Value: Int64);
+var
+  i, j: Integer;
+  RowFound: Boolean;
+  Row: TGridRow;
+  NumRows, WantedLocalRecNo: Int64;
+begin
+  if Value = FRecNo then
+    Exit;
+  if (not FEditingPrepared) and (Value >= RecordCount) then begin
+    FRecNo := RecordCount;
+    FEof := True;
+    FCurrentResults.Last;
+  end else begin
+
+    // Find row in edited data
+    RowFound := False;
+    if FEditingPrepared then begin
+      for Row in FUpdateData do begin
+        if Row.RecNo = Value then begin
+          FCurrentUpdateRow := Row;
+          for i:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
+          RowFound := True;
+          break;
+        end;
+      end;
+    end;
+
+    // Row not edited data - find it in normal result
+    if not RowFound then begin
+      NumRows := 0;
+      try
+        for i:=Low(FResultList) to High(FResultList) do begin
+          Inc(NumRows, FResultList[i].RecordCount);
+          if NumRows > Value then begin
+            FCurrentResults := FResultList[i];
+            WantedLocalRecNo := FCurrentResults.RecordCount-(NumRows-Value);
+            FCurrentResults.RecNo := WantedLocalRecNo+1;
+            FCurrentUpdateRow := nil;
+            for j:=Low(FColumnLengths) to High(FColumnLengths) do
+              FColumnLengths[j] := FCurrentResults.Fields[j].DataSize;
+            break;
+          end;
+        end;
+      except
+        // Catch broken connection
+        raise;
+      end;
+    end;
+
+    FRecNo := Value;
+    FEof := False;
+  end;
+end;
+
 
 function TDBQuery.ColumnCount: Integer;
 begin
@@ -7953,6 +8261,19 @@ begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
       Result := FCurrentResults[FRecNoLocal][Column].OldText;
+    end;
+  end else if not IgnoreErrors then
+    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+end;
+
+
+function TInterbaseQuery.Col(Column: Integer; IgnoreErrors: Boolean): String;
+begin
+  if ColumnExists(Column) then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      Result := FCurrentUpdateRow[Column].NewText;
+    end else begin
+      Result := FCurrentResults.Fields[Column].AsString;
     end;
   end else if not IgnoreErrors then
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
@@ -8150,6 +8471,13 @@ begin
 end;
 
 
+function TInterbaseQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+begin
+  // Todo
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and UNIQUE_KEY_FLAG) = UNIQUE_KEY_FLAG;
@@ -8174,6 +8502,13 @@ begin
 end;
 
 
+function TInterbaseQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
+begin
+  // Todo
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and MULTIPLE_KEY_FLAG) = MULTIPLE_KEY_FLAG;
@@ -8194,6 +8529,13 @@ end;
 
 function TSQLiteQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
+  Result := False;
+end;
+
+
+function TInterbaseQuery.ColIsKeyPart(Column: Integer): Boolean;
+begin
+  // Todo
   Result := False;
 end;
 
@@ -8275,6 +8617,15 @@ begin
 end;
 
 
+function TInterbaseQuery.IsNull(Column: Integer): Boolean;
+begin
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow[Column].NewIsNull
+  else
+    Result := FCurrentResults.Fields[Column].IsNull;
+end;
+
+
 function TDBQuery.IsFunction(Column: Integer): Boolean;
 begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then
@@ -8303,6 +8654,12 @@ end;
 
 
 function TSQLiteQuery.HasResult: Boolean;
+begin
+  Result := Length(FResultList) > 0;
+end;
+
+
+function TInterbaseQuery.HasResult: Boolean;
 begin
   Result := Length(FResultList) > 0;
 end;
@@ -8726,6 +9083,13 @@ begin
 end;
 
 
+function TInterbaseQuery.DatabaseName: String;
+begin
+  // Todo
+  Result := Connection.Database;
+end;
+
+
 function TDBQuery.TableName: String;
 var
   i: Integer;
@@ -8816,6 +9180,12 @@ begin
   Result := EmptyStr;
   tblA := FConnection.Lib.sqlite3_column_table_name(FCurrentResults.Statement, Column);
   Result := FConnection.DecodeAPIString(tblA);
+end;
+
+
+function TInterbaseQuery.TableName(Column: Integer): String;
+begin
+  // Todo
 end;
 
 
