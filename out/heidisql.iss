@@ -31,6 +31,7 @@ Name: "pl"; MessagesFile: "compiler:Languages\Polish.isl"
 Name: "pt"; MessagesFile: "compiler:Languages\Portuguese.isl"
 Name: "pt_BR"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
 Name: "ru"; MessagesFile: "compiler:Languages\Russian.isl"
+Name: "sk"; MessagesFile: "compiler:Languages\Slovak.isl"
 Name: "sl"; MessagesFile: "compiler:Languages\Slovenian.isl"
 Name: "es"; MessagesFile: "compiler:Languages\Spanish.isl"
 Name: "tr"; MessagesFile: "compiler:Languages\Turkish.isl"
@@ -48,7 +49,7 @@ AppPublisher=Ansgar Becker
 AppPublisherURL={#WebSite}
 AppSupportURL={#WebSite}forum.php
 AppUpdatesURL={#WebSite}download.php
-AppContact={#ProgNameLower}@anse.de
+AppContact=anse@heidisql.com
 AppReadmeFile={#WebSite}help.php?place=installer
 
 CloseApplications=yes
@@ -58,6 +59,7 @@ DefaultGroupName={#ProgName}
 AllowNoIcons=yes
 LicenseFile=license.txt
 ChangesAssociations=yes
+WizardStyle=modern
 WizardImageFile={#ResourceDir}installer-logo.bmp
 WizardSmallImageFile={#ResourceDir}installer-small-logo.bmp
 OutputDir={#OutDir}

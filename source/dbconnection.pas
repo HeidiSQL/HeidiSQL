@@ -5,7 +5,13 @@ interface
 uses
   Classes, SysUtils, windows, dbstructures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils;
+  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types,
+  FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
+  FireDAC.Phys, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys.IB,
+  FireDAC.Phys.IBDef, FireDAC.VCLUI.Wait, FireDAC.Comp.Client,
+  FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
+  FireDAC.DApt, FireDAC.Comp.DataSet;
 
 
 type
@@ -26,7 +32,6 @@ type
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
   // General purpose editing status flag
   TEditingStatus = (esUntouched, esModified, esDeleted, esAddedUntouched, esAddedModified, esAddedDeleted);
-  TBoolAuto = (baFalse, baTrue, baAuto);
 
   // Column object, many of them in a TObjectList
   TTableColumn = class(TPersistent)
@@ -145,7 +150,6 @@ type
       FCreateCodeLoaded: Boolean;
       FWasSelected: Boolean;
       FConnection: TDBConnection;
-      FRowCount: Int64;
       function GetObjType: String;
       function GetImageIndex: Integer;
       function GetOverlayImageIndex: Integer;
@@ -174,7 +178,7 @@ type
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function SchemaClauseIS(Prefix: String): String;
-      function RowCount(Reload: Boolean=False): Int64;
+      function RowCount(Reload: Boolean): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
@@ -273,9 +277,11 @@ type
     ntPgSQL_TCPIP,
     ntPgSQL_SSHtunnel,
     ntSQLite,
-    ntMySQL_ProxySQLAdmin
+    ntMySQL_ProxySQLAdmin,
+    ntInterbase_TCPIP,
+    ntInterbase_Local
     );
-  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite);
+  TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
 
   TConnectionParameters = class(TObject)
@@ -303,12 +309,12 @@ type
       function CreateConnection(AOwner: TComponent): TDBConnection;
       function CreateQuery(Connection: TDbConnection): TDBQuery;
       function NetTypeName(LongFormat: Boolean): String;
-      function IsCompatibleToWin10S: Boolean;
       function GetNetTypeGroup: TNetTypeGroup;
       function IsAnyMySQL: Boolean;
       function IsAnyMSSQL: Boolean;
       function IsAnyPostgreSQL: Boolean;
       function IsAnySQLite: Boolean;
+      function IsAnyInterbase: Boolean;
       function IsMariaDB: Boolean;
       function IsMySQL(StrictDetect: Boolean): Boolean;
       function IsPercona: Boolean;
@@ -325,6 +331,7 @@ type
       function DefaultPort: Integer;
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
+      function GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
       property NetType: TNetType read FNetType write FNetType;
@@ -470,7 +477,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject): Int64;
+      function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetLockedByThread(Value: TThread); virtual;
@@ -484,7 +491,8 @@ type
       destructor Destroy; override;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
       procedure Log(Category: TDBLogCategory; Msg: String);
-      function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: TBoolAuto=baTrue): String;
+      function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
+      function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function QuotedDbAndTableName(DB, Obj: String): String;
@@ -605,6 +613,7 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
+      function GetRowCount(Obj: TDBObject): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
       procedure SetLockedByThread(Value: TThread); override;
     public
@@ -636,6 +645,7 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -675,6 +685,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
@@ -713,7 +724,40 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
+      function GetTableColumns(Table: TDBObject): TTableColumnList; override;
+      function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
+  end;
+
+  TInterbaseRawResults = Array of TFDQuery;
+  TInterbaseConnection = class(TDBConnection)
+    private
+      FFDHandle: TFDConnection;
+      FLastError: String;
+      FLastErrorCode: Integer;
+      //FLib: TSQLiteLib;
+      FLastRawResults: TInterbaseRawResults;
+      //FMainDbName: UTF8String;
+      procedure SetActive(Value: Boolean); override;
+      procedure DoBeforeConnect; override;
+      function GetThreadId: Int64; override;
+      procedure OnFdError(ASender: TObject; AInitiator: TObject; var AException: Exception);
+      function GetLastErrorCode: Cardinal; override;
+      function GetLastErrorMsg: String; override;
+      function GetAllDatabases: TStringList; override;
+      function GetCharsetTable: TDBQuery; override;
+      procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      //property Lib: TSQLiteLib read FLib;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
+      function Ping(Reconnect: Boolean): Boolean; override;
+      function GetCreateCode(Obj: TDBObject): String; override;
+      function GetRowCount(Obj: TDBObject): Int64; override;
+      property LastRawResults: TInterbaseRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; override;
@@ -880,6 +924,27 @@ type
       FCurrentResults: TSQLiteGridRows;
       FRecNoLocal: Integer;
       FResultList: TSQLiteRawResults;
+      procedure SetRecNo(Value: Int64); override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); override;
+      function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; override;
+      function ColIsPrimaryKeyPart(Column: Integer): Boolean; override;
+      function ColIsUniqueKeyPart(Column: Integer): Boolean; override;
+      function ColIsKeyPart(Column: Integer): Boolean; override;
+      function IsNull(Column: Integer): Boolean; overload; override;
+      function HasResult: Boolean; override;
+      function DatabaseName: String; override;
+      function TableName(Column: Integer): String; overload; override;
+  end;
+
+  TInterbaseQuery = class(TDBQuery)
+    private
+      FConnection: TInterbaseConnection;
+      FCurrentResults: TFDDataSet;
+      FRecNoLocal: Integer;
+      FResultList: TInterbaseRawResults;
       procedure SetRecNo(Value: Int64); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -1441,6 +1506,8 @@ begin
       Result := TPgConnection.Create(AOwner);
     ngSQLite:
       Result := TSQLiteConnection.Create(AOwner);
+    ngInterbase:
+      Result := TInterbaseConnection.Create(AOwner);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1459,6 +1526,8 @@ begin
       Result := TPGQuery.Create(Connection);
     ngSQLite:
       Result := TSQLiteQuery.Create(Connection);
+    ngInterbase:
+      Result := TInterbaseQuery.Create(Connection);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FNetType)]);
   end;
@@ -1473,6 +1542,7 @@ const
   PrefixPostgres = 'PostgreSQL';
   PrefixRedshift = 'Redshift PG';
   PrefixSqlite = 'SQLite';
+  PrefixInterbase = 'Interbase';
 begin
   // Return the name of a net type, either in short or long format
   Result := 'Unknown';
@@ -1491,6 +1561,8 @@ begin
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
       ntSQLite:                 Result := PrefixSqlite;
+      ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP, experimental)';
+      ntInterbase_Local:        Result := PrefixInterbase+' (Local, experimental)';
     end;
   end
   else begin
@@ -1512,15 +1584,9 @@ begin
         else                           Result := PrefixPostgres;
       end;
       ngSQLite:                        Result := PrefixSqlite;
+      ngInterbase:                     Result := PrefixInterbase;
     end;
   end;
-end;
-
-
-function TConnectionParameters.IsCompatibleToWin10S: Boolean;
-begin
-  // Using plink on 10S is not possible
-  Result := (FNetType <> ntMySQL_SSHtunnel) and (FNetType <> ntPgSQL_SSHtunnel);
 end;
 
 
@@ -1535,6 +1601,8 @@ begin
       Result := ngPgSQL;
     ntSQLite:
       Result := ngSQLite;
+    ntInterbase_TCPIP, ntInterbase_Local:
+      Result := ngInterbase;
     else begin
       // Return default net group here. Raising an exception lets the app die for some reason.
       // Reproduction: click drop-down button on "Database(s)" session setting
@@ -1566,6 +1634,12 @@ end;
 function TConnectionParameters.IsAnySQLite;
 begin
   Result := NetTypeGroup = ngSQLite;
+end;
+
+
+function TConnectionParameters.IsAnyInterbase;
+begin
+  Result := NetTypeGroup = ngInterbase;
 end;
 
 
@@ -1663,9 +1737,8 @@ begin
       Result := 187;
       if IsRedshift then Result := 195;
     end;
-    ngSQLite: begin
-      Result := 196;
-    end
+    ngSQLite: Result := 196;
+    ngInterbase: Result := 203;
     else Result := ICONINDEX_SERVER;
   end;
 end;
@@ -1682,6 +1755,7 @@ begin
     end;
     ngMSSQL: Result := 0; // => autodetection by driver (previously 1433)
     ngPgSQL: Result := 5432;
+    ngInterbase: Result := 3050;
     else Result := 0;
   end;
 end;
@@ -1693,6 +1767,7 @@ begin
     ngMySQL: Result := 'root';
     ngMSSQL: Result := 'sa';
     ngPgSQL: Result := 'postgres';
+    ngInterbase: Result := 'sysdba';
     else Result := '';
   end;
 end;
@@ -1705,6 +1780,7 @@ begin
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
     ngSQLite: Result := 'sqlite3.dll';
+    ngInterbase: Result := 'IB';
     else Result := '';
   end;
 end;
@@ -1716,6 +1792,55 @@ begin
     ngPgSQL: Result := '^pg_temp_\d';
     else Result := '';
   end;
+end;
+
+
+function TConnectionParameters.GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
+var
+  Args: TStringList;
+begin
+  // for mysql(dump)
+  Args := TStringList.Create;
+  Result := '';
+  if WantSSL then
+    Args.Add('--ssl');
+  if not SSLPrivateKey.IsEmpty then
+    Args.Add('--ssl-key="'+SSLPrivateKey+'"');
+  if not SSLCertificate.IsEmpty then
+    Args.Add('--ssl-cert="'+SSLCertificate+'"');
+  if not SSLCACertificate.IsEmpty then
+    Args.Add('--ssl-ca="'+SSLCACertificate+'"');
+
+  case NetType of
+    ntMySQL_NamedPipe: begin
+      Args.Add('--pipe');
+      Args.Add('--socket="'+Hostname+'"');
+      end;
+    ntMySQL_SSHtunnel: begin
+      Args.Add('--host="localhost"');
+      Args.Add('--port='+IntToStr(SSHLocalPort));
+      end;
+    else begin
+      Args.Add('--host="'+Hostname+'"');
+      Args.Add('--port='+IntToStr(Port));
+      end;
+  end;
+
+  Args.Add('--user="'+Username+'"');
+  if Password <> '' then begin
+    case ReplacePassword of
+      nbTrue: Args.Add('--password="***"');
+      nbFalse: Args.Add('--password="'+StringReplace(Password, '"', '\"', [rfReplaceAll])+'"');
+      nbUnset: Args.Add('--password'); // will prompt
+    end;
+  end;
+  if Compressed then
+    Args.Add('--compress');
+  if Assigned(Connection) and (Connection.Database <> '') then
+    Args.Add('--database="' + Connection.Database + '"');
+
+  Result := ' ' + Implode(' ', Args);
+  Args.Free;
 end;
 
 
@@ -1765,6 +1890,10 @@ begin
           end;
         end;
         Providers.Free;
+      end;
+      ngInterbase: begin
+        FoundLibs.Add('IB');
+        FoundLibs.Add('FB');
       end;
     end;
     rx.Free;
@@ -1888,6 +2017,21 @@ begin
 end;
 
 
+constructor TInterbaseConnection.Create(AOwner: TComponent);
+var
+  i: Integer;
+begin
+  inherited;
+  FQuoteChar := '"';
+  FQuoteChars := '"[]';
+  SetLength(FDatatypes, Length(SQLiteDatatypes));
+  for i:=0 to High(SQLiteDatatypes) do
+    FDatatypes[i] := SQLiteDatatypes[i];
+  // SQLite does not have IS:
+  FInfSch := '';
+end;
+
+
 destructor TDBConnection.Destroy;
 begin
   ClearCache(True);
@@ -1926,6 +2070,14 @@ destructor TSQLiteConnection.Destroy;
 begin
   if Active then Active := False;
   FLib.Free;
+  inherited;
+end;
+
+
+destructor TInterbaseConnection.Destroy;
+begin
+  if Active then Active := False;
+  FreeAndNil(FFdHandle);
   inherited;
 end;
 
@@ -2057,11 +2209,6 @@ var
   UserNameSize: DWORD;
 begin
   if Value and (FHandle = nil) then begin
-
-    // Die if trying to run plink on Win10S
-    if RunningOnWindows10S and (not FParameters.IsCompatibleToWin10S) then begin
-      raise EDbError.Create(_('The network type defined for this session is not compatible to your Windows 10 S'));
-    end;
 
     DoBeforeConnect;
 
@@ -2634,6 +2781,74 @@ begin
 end;
 
 
+procedure TInterbaseConnection.SetActive(Value: Boolean);
+var
+  tmpdb: String;
+begin
+  if Value then begin
+    DoBeforeConnect;
+
+    FFDHandle := TFDConnection.Create(Owner);
+    FFDHandle.OnError := OnFdError;
+    FFDHandle.DriverName := Parameters.LibraryOrProvider; // Auto-sets Params.DriverID
+    FFDHandle.LoginPrompt := False;
+    case Parameters.NetType of
+      ntInterbase_TCPIP: begin
+        FFDHandle.Params.Values['Protocol'] := 'ipTCPIP';
+        FFDHandle.Params.Values['Server'] := Parameters.Hostname;
+        FFDHandle.Params.Values['Port'] := Parameters.Port.ToString;
+      end;
+      ntInterbase_Local: FFDHandle.Params.Values['Protocol'] := 'ipLocal';
+    end;
+    FFDHandle.Params.Values['Database'] := Parameters.AllDatabasesStr;
+    FFDHandle.Params.Values['User_Name'] := Parameters.Username;
+    FFDHandle.Params.Values['Password'] := Parameters.Password;
+    FFDHandle.Params.Values['CharacterSet'] := 'UTF8';
+    FFDHandle.Params.Values['ExtendedMetadata'] := 'True';
+    try
+      FFDHandle.Connected := True;
+    except
+      // Let OnFdError set FLastError
+    end;
+
+    if FFDHandle.Connected then begin
+      FActive := True;
+      FIsUnicode := True;
+      //! Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
+
+      FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
+      //! FServerVersionUntouched := GetVar('SELECT sqlite_version()');
+      FConnectionStarted := GetTickCount div 1000;
+      FServerUptime := -1;
+
+      DoAfterConnect;
+
+      if FDatabase <> '' then begin
+        tmpdb := FDatabase;
+        FDatabase := '';
+        try
+          Database := tmpdb;
+        except
+          FDatabase := tmpdb;
+          Database := '';
+        end;
+      end;
+    end else begin
+      Log(lcError, LastErrorMsg);
+      FConnectionStarted := 0;
+      raise EDbError.Create(LastErrorMsg);
+    end;
+  end else begin
+    if FFdHandle <> nil then begin
+      ClearCache(False);
+      FFdHandle.Connected := False;
+      FActive := False;
+      Log(lcInfo, f_(MsgDisconnect, [Parameters.Hostname, DateTimeToStr(Now)]));
+    end;
+  end;
+end;
+
+
 procedure TDBConnection.DoBeforeConnect;
 var
   UsingPass: String;
@@ -2754,6 +2969,27 @@ begin
       FSQLSpecifities[spFuncNow] := 'DATETIME()';
       FSQLSpecifities[spLockedTables] := '';
     end;
+    ngInterbase: begin
+      FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
+      FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+      FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
+      FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
+      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
+      FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
+      FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
+      FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
+      FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
+      FSQLSpecifities[spUSEQuery] := 'USE %s';
+      FSQLSpecifities[spKillQuery] := 'KILL %d';
+      FSQLSpecifities[spKillProcess] := 'KILL %d';
+      FSQLSpecifities[spFuncLength] := 'LENGTH';
+      FSQLSpecifities[spFuncCeil] := 'CEIL';
+      FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
+      FSQLSpecifities[spFuncNow] := 'timestamp ''NOW'' from rdb$database';
+      FSQLSpecifities[spLockedTables] := '';
+    end;
 
   end;
 
@@ -2820,6 +3056,13 @@ begin
 end;
 
 
+procedure TInterbaseConnection.DoBeforeConnect;
+begin
+  // Todo
+  inherited;
+end;
+
+
 procedure TDBConnection.DoAfterConnect;
 begin
   AppSettings.SessionPath := FParameters.SessionPath;
@@ -2867,7 +3110,7 @@ begin
   if ((ServerVersionInt >= 50300) and Parameters.IsMariaDB) or
     ((ServerVersionInt >= 50604) and (not Parameters.IsMariaDB)) then begin
     for i:=Low(FDatatypes) to High(FDatatypes) do begin
-      if FDatatypes[i].Index in [dtDatetime, dtDatetime2, dtTime, dtTimestamp] then
+      if FDatatypes[i].Index in [dbdtDatetime, dbdtDatetime2, dbdtTime, dbdtTimestamp] then
         FDatatypes[i].HasLength := True;
     end;
   end;
@@ -3040,6 +3283,19 @@ begin
       if Reconnect then
         Active := True;
     end;
+  end;
+  Result := FActive;
+  // Restart keep-alive timer
+  FKeepAliveTimer.Enabled := False;
+  FKeepAliveTimer.Enabled := True;
+end;
+
+
+function TInterbaseConnection.Ping(Reconnect: Boolean): Boolean;
+begin
+  Log(lcDebug, 'Ping server ...');
+  if FActive then begin
+    FFDHandle.Ping;
   end;
   Result := FActive;
   // Restart keep-alive timer
@@ -3370,6 +3626,50 @@ begin
 end;
 
 
+procedure TInterbaseConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+var
+  TimerStart: Cardinal;
+  FdQuery: TFDQuery;
+begin
+  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+    Log(lcDebug, _('Waiting for running query to finish ...'));
+    try
+      FLockedByThread.WaitFor;
+    except
+      on E:EThread do;
+    end;
+  end;
+
+  Ping(True);
+  Log(LogCategory, SQL);
+  FLastQuerySQL := SQL;
+  TimerStart := GetTickCount;
+  SetLength(FLastRawResults, 0);
+  FRowsFound := 0;
+  FRowsAffected := 0;
+  FWarningCount := 0;
+  FdQuery := TFDQuery.Create(Self);
+  FdQuery.Connection := FFDHandle;
+  try
+    FdQuery.ResourceOptions.CmdExecTimeout := Parameters.QueryTimeout;
+    FdQuery.Open(SQL);
+    FRowsAffected := FdQuery.RowsAffected;
+    FRowsFound := FdQuery.RecordCount;
+    FLastQueryDuration := GetTickCount - TimerStart;
+    FLastQueryNetworkDuration := 0;
+    SetLength(FLastRawResults, Length(FLastRawResults)+1);
+    FLastRawResults[Length(FLastRawResults)-1] := FdQuery;
+  except
+    on E:EFDDBEngineException do begin
+      SetLength(FLastRawResults, 0);
+      Log(lcError, GetLastErrorMsg + ' :: ' + E.Message);
+      raise EDbError.Create(GetLastErrorMsg);
+    end;
+  end;
+  FLastQueryNetworkDuration := GetTickCount - TimerStart;
+end;
+
+
 function TDBConnection.GetLastResults: TDBQueryList;
 var
   r: TDBQuery;
@@ -3443,6 +3743,12 @@ begin
       Result := inherited;
     end;
   end;
+end;
+
+
+function TInterbaseConnection.GetCreateCode(Obj: TDBObject): String;
+begin
+  // Todo
 end;
 
 
@@ -3826,6 +4132,13 @@ begin
 end;
 
 
+function TInterbaseConnection.GetThreadId: Int64;
+begin
+  // Todo
+  Result := 0;
+end;
+
+
 {**
   Return currently used character set
 }
@@ -3897,6 +4210,26 @@ function TSQLiteConnection.GetLastErrorCode: Cardinal;
 begin
   Result := FLib.sqlite3_errcode(FHandle);
 end;
+
+
+function TInterbaseConnection.GetLastErrorCode: Cardinal;
+begin
+  // Note: there seem to be negative codes
+  Result := Abs(FLastErrorCode);
+end;
+
+
+procedure TInterbaseConnection.OnFdError(ASender: TObject; AInitiator: TObject; var AException: Exception);
+var
+  oExc: EFDDBEngineException;
+begin
+  if AException is EFDDBEngineException then begin
+    oExc := EFDDBEngineException(AException);
+    FLastErrorCode := oExc.ErrorCode;
+    FLastError := oExc.Message;
+  end;
+end;
+
 
 
 {**
@@ -3975,6 +4308,13 @@ begin
 end;
 
 
+function TInterbaseConnection.GetLastErrorMsg: String;
+begin
+  Result := f_(MsgSQLError, [LastErrorCode, FLastError]);
+end;
+
+
+
 {**
   Get version string as normalized integer
   "5.1.12-beta-community-123" => 50112
@@ -3987,7 +4327,7 @@ begin
   Result := 0;
   rx := TRegExpr.Create;
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL, ngSQLite: begin
+    ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
       rx.Expression := '(\d+)\.(\d+)(\.(\d+))?';
       if rx.Exec(FServerVersionUntouched) then begin
         Result := StrToIntDef(rx.Match[1], 0) *10000 +
@@ -4029,7 +4369,7 @@ var
   major, minor, build: Integer;
 begin
   case FParameters.NetTypeGroup of
-    ngMySQL, ngPgSQL, ngSQLite: begin
+    ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
       v := IntToStr(ServerVersionInt);
       major := StrToIntDef(Copy(v, 1, Length(v)-4), 0);
       minor := StrToIntDef(Copy(v, Length(v)-3, 2), 0);
@@ -4169,6 +4509,18 @@ begin
     except on E:EDbError do
       FAllDatabases := TStringList.Create;
     end;
+    ApplyIgnoreDatabasePattern(FAllDatabases);
+    Result := FAllDatabases;
+  end;
+end;
+
+
+function TInterbaseConnection.GetAllDatabases: TStringList;
+begin
+  Result := inherited;
+  if not Assigned(Result) then begin
+    FAllDatabases := TStringList.Create;
+    FFDHandle.GetCatalogNames('', FAllDatabases);
     ApplyIgnoreDatabasePattern(FAllDatabases);
     Result := FAllDatabases;
   end;
@@ -4346,7 +4698,7 @@ end;
   @param boolean Escape text so it can be used in a LIKE-comparison
   @return string
 }
-function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: TBoolAuto=baTrue): String;
+function TDBConnection.EscapeString(Text: String; ProcessJokerChars: Boolean=false; DoQuote: Boolean=True): String;
 var
   c1, c2, c3, c4, EscChar: Char;
 begin
@@ -4412,12 +4764,27 @@ begin
 
   end;
 
-  if (DoQuote = baTrue)
-    or ((DoQuote = baAuto) and (not ExecRegExpr('^(0x[a-fA-F0-9]*|\d+)$', Result)))
-    then begin
+  if DoQuote then begin
     // Add surrounding single quotes
     Result := Char(#39) + Result + Char(#39);
   end;
+end;
+
+
+function TDBConnection.EscapeString(Text: String; Datatype: TDBDatatype): String;
+var
+  DoQuote: Boolean;
+const
+  CategoriesNeedQuote = [dtcText, dtcBinary, dtcTemporal, dtcSpatial, dtcOther];
+begin
+  // Quote text based on the passed datatype
+  DoQuote := Datatype.Category in CategoriesNeedQuote;
+  case Datatype.Category of
+    // Some special cases
+    dtcBinary: if ExecRegExpr('^0x[a-fA-F0-9]*$', Text) then DoQuote := False;
+    dtcInteger, dtcReal: if not ExecRegExpr('^\d+(\.\d+)?$', Text) then DoQuote := True;
+  end;
+  Result := EscapeString(Text, False, DoQuote);
 end;
 
 
@@ -4805,6 +5172,12 @@ begin
     //FCharsetTable := // Todo!
   end;
   Result := FCharsetTable;
+end;
+
+
+function TInterbaseConnection.GetCharsetTable: TDBQuery;
+begin
+  // Todo
 end;
 
 
@@ -5211,6 +5584,12 @@ begin
 end;
 
 
+function TInterbaseConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+begin
+  // Todo
+end;
+
+
 function TDBConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
 var
   ColTableIdx, ConTableIdx: Integer;
@@ -5456,6 +5835,12 @@ begin
 end;
 
 
+function TInterbaseConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
+begin
+  // Todo
+end;
+
+
 function TDBConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
 var
   ForeignQuery, ColQuery: TDBQuery;
@@ -5649,6 +6034,13 @@ begin
 end;
 
 
+function TInterbaseConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+begin
+  // Todo
+  // use parent?
+end;
+
+
 function TDBConnection.GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList;
 var
   CheckQuery: TDBQuery;
@@ -5701,15 +6093,68 @@ begin
 end;
 
 
-function TDBConnection.GetRowCount(Obj: TDBObject): Int64;
+function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a mysql table
+  if Parameters.IsProxySQLAdmin then
+    Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0)
+  else
+    Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
+  Result := MakeInt(Rows);
+end;
+
+
+function TAdoDBConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a mssql table
+  if ServerVersionInt >= 900 then begin
+    Rows := GetVar('SELECT SUM('+QuoteIdent('rows')+') FROM '+QuoteIdent('sys')+'.'+QuoteIdent('partitions')+
+      ' WHERE '+QuoteIdent('index_id')+' IN (0, 1)'+
+      ' AND '+QuoteIdent('object_id')+' = object_id('+EscapeString(Obj.Database+'.'+Obj.Schema+'.'+Obj.Name)+')'
+      );
+  end else begin
+    Rows := GetVar('SELECT COUNT(*) FROM '+Obj.QuotedDbAndTableName);
+  end;
+  Result := MakeInt(Rows);
+end;
+
+
+function TPgConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a postgres table
+  Rows := GetVar('SELECT '+QuoteIdent('reltuples')+'::bigint FROM '+QuoteIdent('pg_class')+
+    ' LEFT JOIN '+QuoteIdent('pg_namespace')+
+    '   ON ('+QuoteIdent('pg_namespace')+'.'+QuoteIdent('oid')+' = '+QuoteIdent('pg_class')+'.'+QuoteIdent('relnamespace')+')'+
+    ' WHERE '+QuoteIdent('pg_class')+'.'+QuoteIdent('relkind')+'='+EscapeString('r')+
+    ' AND '+QuoteIdent('pg_namespace')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
+    ' AND '+QuoteIdent('pg_class')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)
+    );
+  Result := MakeInt(Rows);
+end;
+
+
+function TSQLiteConnection.GetRowCount(Obj: TDBObject): Int64;
 var
   Rows: String;
 begin
   // Get row number from a table
-  if Obj.NodeType in [lntView, lntTable] then
-    Rows := GetVar('SELECT COUNT(*) FROM ' + Obj.QuotedDbAndTableName, 0)
-  else
-    Rows := '';
+  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
+  Result := MakeInt(Rows);
+end;
+
+
+function TInterbaseConnection.GetRowCount(Obj: TDBObject): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a table
+  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
   Result := MakeInt(Rows);
 end;
 
@@ -5772,6 +6217,8 @@ begin
       Result := Length(TPGConnection(Self).LastRawResults);
     ngSQLite:
       Result := Length(TSQLiteConnection(Self).LastRawResults);
+    ngInterbase:
+      Result := Length(TInterbaseConnection(Self).LastRawResults);
     else
       raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(Parameters.NetType)]);
   end;
@@ -6448,6 +6895,12 @@ begin
 end;
 
 
+procedure TInterbaseConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+begin
+  // Todo
+end;
+
+
 function TDBConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
 var
   i: Integer;
@@ -6847,6 +7300,13 @@ begin
 end;
 
 
+constructor TInterbaseQuery.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FConnection := AOwner as TInterbaseConnection;
+end;
+
+
 destructor TDBQuery.Destroy;
 begin
   FreeAndNil(FColumnNames);
@@ -6919,6 +7379,21 @@ begin
 end;
 
 
+destructor TInterbaseQuery.Destroy;
+var
+  i: Integer;
+begin
+  if HasResult and (FConnection <> nil) and (FConnection.Active) then begin
+    for i:=Low(FResultList) to High(FResultList) do begin
+      FResultList[i].Close;
+      FResultList[i].Free;
+    end;
+  end;
+  SetLength(FResultList, 0);
+  inherited;
+end;
+
+
 procedure TMySQLQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, j, NumFields, NumResults: Integer;
@@ -6978,10 +7453,10 @@ begin
           FAutoIncrementColumn := i;
         for j:=0 to High(FConnection.Datatypes) do begin
           if (Field.flags and ENUM_FLAG) = ENUM_FLAG then begin
-            if FConnection.Datatypes[j].Index = dtEnum then
+            if FConnection.Datatypes[j].Index = dbdtEnum then
               FColumnTypes[i] := FConnection.Datatypes[j];
           end else if (Field.flags and SET_FLAG) = SET_FLAG then begin
-            if FConnection.Datatypes[j].Index = dtSet then
+            if FConnection.Datatypes[j].Index = dbdtSet then
               FColumnTypes[i] := FConnection.Datatypes[j];
           end else if Field._type = Cardinal(FConnection.Datatypes[j].NativeType) then begin
             // Text and Blob types share the same constants (see FIELD_TYPEs)
@@ -6990,7 +7465,7 @@ begin
               IsBinary := Field.charsetnr = COLLATION_BINARY
             else
               IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (FConnection.Datatypes[j].Index in [dtChar..dtLongtext]) then
+            if IsBinary and (FConnection.Datatypes[j].Index in [dbdtChar..dbdtLongtext]) then
               continue;
             FColumnTypes[i] := FConnection.Datatypes[j];
             break;
@@ -7072,39 +7547,39 @@ begin
           ftTimeStampOffset, ftObject, ftSingle //49..51 }
         case LastResult.Fields[i].DataType of
           ftSmallint, ftWord:
-            TypeIndex := dtMediumInt;
+            TypeIndex := dbdtMediumInt;
           ftInteger:
-            TypeIndex := dtInt;
+            TypeIndex := dbdtInt;
           ftAutoInc: begin
-            TypeIndex := dtInt;
+            TypeIndex := dbdtInt;
             FAutoIncrementColumn := i;
           end;
           ftLargeint:
-            TypeIndex := dtBigInt;
+            TypeIndex := dbdtBigInt;
           ftBCD, ftFMTBcd:
-            TypeIndex := dtDecimal;
+            TypeIndex := dbdtDecimal;
           ftFixedChar, ftFixedWideChar:
-            TypeIndex := dtChar;
+            TypeIndex := dbdtChar;
           ftString, ftWideString, ftBoolean, ftGuid:
-            TypeIndex := dtVarchar;
+            TypeIndex := dbdtVarchar;
           ftMemo, ftWideMemo:
-            TypeIndex := dtText;
+            TypeIndex := dbdtText;
           ftBlob, ftVariant:
-            TypeIndex := dtMediumBlob;
+            TypeIndex := dbdtMediumBlob;
           ftBytes:
-            TypeIndex := dtBinary;
+            TypeIndex := dbdtBinary;
           ftVarBytes:
-            TypeIndex := dtVarbinary;
+            TypeIndex := dbdtVarbinary;
           ftFloat:
-            TypeIndex := dtFloat;
+            TypeIndex := dbdtFloat;
           ftDate:
-            TypeIndex := dtDate;
+            TypeIndex := dbdtDate;
           ftTime:
-            TypeIndex := dtTime;
+            TypeIndex := dbdtTime;
           ftDateTime:
-            TypeIndex := dtDateTime;
+            TypeIndex := dbdtDateTime;
           //ftTimeStampOffset: // this is NOT data type DATETIMEOFFSET
-          //  TypeIndex := dtDatetime;
+          //  TypeIndex := dbdtDatetime;
           else
             raise EDbError.CreateFmt(_('Unknown data type for column #%d - %s: %d'), [i, FColumnNames[i], Integer(LastResult.Fields[i].DataType)]);
         end;
@@ -7258,6 +7733,65 @@ begin
       end;
       if StepResult <> -1 then begin
         FConnection.Lib.sqlite3_reset(LastResult.Statement);
+      end;
+      FRecNo := -1;
+      First;
+    end else begin
+      SetLength(FColumnTypes, 0);
+      SetLength(FColumnLengths, 0);
+      SetLength(FColumnFlags, 0);
+    end;
+  end;
+end;
+
+
+procedure TInterbaseQuery.Execute(AddResult: Boolean; UseRawResult: Integer);
+var
+  i, NumFields, NumResults: Integer;
+  LastResult:  TFDQuery;
+begin
+  if UseRawResult = -1 then begin
+    Connection.Query(FSQL, FStoreResult);
+    UseRawResult := 0;
+  end;
+  if Connection.ResultCount > UseRawResult then begin
+    LastResult := TInterbaseConnection(Connection).LastRawResults[UseRawResult]
+  end else begin
+    LastResult := nil;
+  end;
+  if AddResult and (Length(FResultList) = 0) then
+    AddResult := False;
+  if AddResult then
+    NumResults := Length(FResultList)+1
+  else begin
+    for i:=Low(FResultList) to High(FResultList) do begin
+      FResultList[i].Free;
+    end;
+    NumResults := 1;
+    FRecordCount := 0;
+    FAutoIncrementColumn := -1;
+    FEditingPrepared := False;
+  end;
+  if LastResult <> nil then begin
+    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    SetLength(FResultList, NumResults);
+    FResultList[NumResults-1] := LastResult;
+    FRecordCount := FRecordCount + LastResult.RecordCount;
+  end;
+  if not AddResult then begin
+    if HasResult then begin
+      // FCurrentResults is normally done in SetRecNo, but never if result has no rows
+      FCurrentResults := LastResult;
+      NumFields := LastResult.FieldCount;
+      SetLength(FColumnTypes, NumFields);
+      SetLength(FColumnLengths, NumFields);
+      SetLength(FColumnFlags, NumFields);
+      FColumnNames.Clear;
+      FColumnOrgNames.Clear;
+      for i:=0 to NumFields-1 do begin
+        FColumnNames.Add(LastResult.Fields[i].FieldName);
+        FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
+        FColumnTypes[i] := FConnection.Datatypes[0];
       end;
       FRecNo := -1;
       First;
@@ -7515,6 +8049,62 @@ begin
 end;
 
 
+procedure TInterbaseQuery.SetRecNo(Value: Int64);
+var
+  i, j: Integer;
+  RowFound: Boolean;
+  Row: TGridRow;
+  NumRows, WantedLocalRecNo: Int64;
+begin
+  if Value = FRecNo then
+    Exit;
+  if (not FEditingPrepared) and (Value >= RecordCount) then begin
+    FRecNo := RecordCount;
+    FEof := True;
+    FCurrentResults.Last;
+  end else begin
+
+    // Find row in edited data
+    RowFound := False;
+    if FEditingPrepared then begin
+      for Row in FUpdateData do begin
+        if Row.RecNo = Value then begin
+          FCurrentUpdateRow := Row;
+          for i:=Low(FColumnLengths) to High(FColumnLengths) do
+            FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
+          RowFound := True;
+          break;
+        end;
+      end;
+    end;
+
+    // Row not edited data - find it in normal result
+    if not RowFound then begin
+      NumRows := 0;
+      try
+        for i:=Low(FResultList) to High(FResultList) do begin
+          Inc(NumRows, FResultList[i].RecordCount);
+          if NumRows > Value then begin
+            FCurrentResults := FResultList[i];
+            WantedLocalRecNo := FCurrentResults.RecordCount-(NumRows-Value);
+            FCurrentResults.RecNo := WantedLocalRecNo+1;
+            FCurrentUpdateRow := nil;
+            for j:=Low(FColumnLengths) to High(FColumnLengths) do
+              FColumnLengths[j] := FCurrentResults.Fields[j].DataSize;
+            break;
+          end;
+        end;
+      except
+        // Catch broken connection
+        raise;
+      end;
+    end;
+
+    FRecNo := Value;
+    FEof := False;
+  end;
+end;
+
 
 function TDBQuery.ColumnCount: Integer;
 begin
@@ -7587,7 +8177,7 @@ begin
       else
         Result := Connection.DecodeAPIString(AnsiStr);
       // Create string bitmask for BIT fields
-      if Datatype(Column).Index = dtBit then begin
+      if Datatype(Column).Index = dbdtBit then begin
         Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, column);
         // FConnection.Log(lcInfo, Field.name+':  def: '+field.def+'  length: '+inttostr(field.length)+'  max_length: '+inttostr(field.max_length)+'  decimals: '+inttostr(field.decimals));
         for c in Result do begin
@@ -7631,7 +8221,7 @@ begin
       except
         Result := String(FCurrentResults.Fields[Column].AsAnsiString);
       end;
-      if Datatype(Column).Index = dtBit then begin
+      if Datatype(Column).Index = dbdtBit then begin
         if UpperCase(Result) = 'TRUE' then
           Result := '1'
         else
@@ -7654,7 +8244,7 @@ begin
       SetString(AnsiStr, FConnection.Lib.PQgetvalue(FCurrentResults, FRecNoLocal, Column), FColumnLengths[Column]);
       if Datatype(Column).Category in [dtcBinary, dtcSpatial] then
         Result := String(AnsiStr)
-      else if Datatype(Column).Index = dtbool then
+      else if Datatype(Column).Index = dbdtBool then
         if AnsiStr='t' then Result := 'true' else Result := 'false'
       else
         Result := Connection.DecodeAPIString(AnsiStr);
@@ -7671,6 +8261,19 @@ begin
       Result := FCurrentUpdateRow[Column].NewText;
     end else begin
       Result := FCurrentResults[FRecNoLocal][Column].OldText;
+    end;
+  end else if not IgnoreErrors then
+    Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
+end;
+
+
+function TInterbaseQuery.Col(Column: Integer; IgnoreErrors: Boolean): String;
+begin
+  if ColumnExists(Column) then begin
+    if FEditingPrepared and Assigned(FCurrentUpdateRow) then begin
+      Result := FCurrentUpdateRow[Column].NewText;
+    end else begin
+      Result := FCurrentResults.Fields[Column].AsString;
     end;
   end else if not IgnoreErrors then
     Raise EDbError.CreateFmt(_(MsgInvalidColumn), [Column, ColumnCount, RecordCount]);
@@ -7768,17 +8371,17 @@ begin
   ColAttr := ColAttributes(Column);
   if Assigned(ColAttr) then begin
     case ColAttr.DataType.Index of
-      dtChar, dtVarchar, dtBinary, dtVarBinary, dtBit: Result := MakeInt(ColAttr.LengthSet);
-      dtTinyText, dtTinyBlob: Result := 255;
-      dtText, dtBlob: begin
+      dbdtChar, dbdtVarchar, dbdtBinary, dbdtVarBinary, dbdtBit: Result := MakeInt(ColAttr.LengthSet);
+      dbdtTinyText, dbdtTinyBlob: Result := 255;
+      dbdtText, dbdtBlob: begin
         case FConnection.Parameters.NetTypeGroup of
           ngMySQL: Result := 65535;
           ngMSSQL: Result := MaxInt;
           ngPgSQL: Result := High(Int64);
         end;
       end;
-      dtMediumText, dtMediumBlob: Result := 16777215;
-      dtLongText, dtLongBlob: Result := 4294967295;
+      dbdtMediumText, dbdtMediumBlob: Result := 16777215;
+      dbdtLongText, dbdtLongBlob: Result := 4294967295;
     end;
   end;
 end;
@@ -7793,9 +8396,9 @@ begin
   Result.Delimiter := ',';
   ColAttr := ColAttributes(Column);
   if Assigned(ColAttr) then case ColAttr.DataType.Index of
-    dtEnum, dtSet:
+    dbdtEnum, dbdtSet:
       Result.DelimitedText := ColAttr.LengthSet;
-    dtBool:
+    dbdtBool:
       Result.DelimitedText := 'true,false';
   end;
 end;
@@ -7868,6 +8471,13 @@ begin
 end;
 
 
+function TInterbaseQuery.ColIsPrimaryKeyPart(Column: Integer): Boolean;
+begin
+  // Todo
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and UNIQUE_KEY_FLAG) = UNIQUE_KEY_FLAG;
@@ -7892,6 +8502,13 @@ begin
 end;
 
 
+function TInterbaseQuery.ColIsUniqueKeyPart(Column: Integer): Boolean;
+begin
+  // Todo
+  Result := False;
+end;
+
+
 function TMySQLQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
   Result := (FColumnFlags[Column] and MULTIPLE_KEY_FLAG) = MULTIPLE_KEY_FLAG;
@@ -7912,6 +8529,13 @@ end;
 
 function TSQLiteQuery.ColIsKeyPart(Column: Integer): Boolean;
 begin
+  Result := False;
+end;
+
+
+function TInterbaseQuery.ColIsKeyPart(Column: Integer): Boolean;
+begin
+  // Todo
   Result := False;
 end;
 
@@ -7993,6 +8617,15 @@ begin
 end;
 
 
+function TInterbaseQuery.IsNull(Column: Integer): Boolean;
+begin
+  if FEditingPrepared and Assigned(FCurrentUpdateRow) then
+    Result := FCurrentUpdateRow[Column].NewIsNull
+  else
+    Result := FCurrentResults.Fields[Column].IsNull;
+end;
+
+
 function TDBQuery.IsFunction(Column: Integer): Boolean;
 begin
   if FEditingPrepared and Assigned(FCurrentUpdateRow) then
@@ -8021,6 +8654,12 @@ end;
 
 
 function TSQLiteQuery.HasResult: Boolean;
+begin
+  Result := Length(FResultList) > 0;
+end;
+
+
+function TInterbaseQuery.HasResult: Boolean;
 begin
   Result := Length(FResultList) > 0;
 end;
@@ -8277,13 +8916,13 @@ begin
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
           Val := Connection.EscapeString(Cell.NewText);
-          if (Datatype(i).Index = dtBit) and FConnection.Parameters.IsAnyMySQL then
+          if (Datatype(i).Index = dbdtBit) and FConnection.Parameters.IsAnyMySQL then
             Val := 'b' + Val;
         end;
         dtcBinary, dtcSpatial:
           Val := HexValue(Cell.NewText);
         else begin
-          if Datatype(i).Index in [dtNchar, dtNvarchar, dtNtext] then
+          if Datatype(i).Index in [dbdtNchar, dbdtNvarchar, dbdtNtext] then
             Val := 'N' + Connection.EscapeString(Cell.NewText)
           else if Datatype(i).Category = dtcTemporal then
             Val := Connection.EscapeString(Connection.GetDateTimeValue(Cell.NewText, Datatype(i).Index))
@@ -8444,6 +9083,13 @@ begin
 end;
 
 
+function TInterbaseQuery.DatabaseName: String;
+begin
+  // Todo
+  Result := Connection.Database;
+end;
+
+
 function TDBQuery.TableName: String;
 var
   i: Integer;
@@ -8537,6 +9183,12 @@ begin
 end;
 
 
+function TInterbaseQuery.TableName(Column: Integer): String;
+begin
+  // Todo
+end;
+
+
 function TDBQuery.QuotedDbAndTableName: String;
 begin
   // Prefer TDBObject when quoting as it knows its schema
@@ -8614,7 +9266,7 @@ begin
       Result := Result + ' AND';
 
     Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
-    if (DataType(j).Index = dtJson) and (Self is TPGQuery) then begin
+    if (DataType(j).Index = dbdtJson) and (Self is TPGQuery) then begin
       Result := Result + '::text';
     end;
 
@@ -8631,7 +9283,7 @@ begin
     else begin
       case DataType(j).Category of
         dtcInteger, dtcReal: begin
-          if DataType(j).Index = dtBit then
+          if DataType(j).Index = dbdtBit then
             Result := Result + '=b' + Connection.EscapeString(ColVal)
           else begin
             // Guess (!) the default value silently inserted by the server. This is likely
@@ -8649,7 +9301,7 @@ begin
           // Any other data type goes here, including text:
           case DataType(j).Index of
             // Support international characters with N-prefix on MSSQL, see #1115:
-            dtNchar, dtNvarchar, dtNtext:
+            dbdtNchar, dbdtNvarchar, dbdtNtext:
               Result := Result + '=N' + Connection.EscapeString(ColVal);
             else
               Result := Result + '=' + Connection.EscapeString(ColVal);
@@ -8742,7 +9394,6 @@ begin
   Database := '';
   Schema := '';
   Rows := -1;
-  FRowCount := -1;
   Size := -1;
   Created := 0;
   Updated := 0;
@@ -8784,7 +9435,6 @@ begin
     Updated := s.Updated;
     Comment := s.Comment;
     Rows := s.Rows;
-    FRowCount := s.FRowCount;
     Size := s.Size;
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
@@ -9015,13 +9665,12 @@ begin
     Result := Connection.GetSQLSpecifity(spISSchemaCol, [Prefix]) + '=' + Connection.EscapeString(Database);
 end;
 
-function TDBObject.RowCount(Reload: Boolean=False): Int64;
+function TDBObject.RowCount(Reload: Boolean): Int64;
 begin
-  if (FRowCount = -1) or Reload then begin
-    if NodeType in [lntTable, lntView] then
-      FRowCount := Connection.GetRowCount(Self);
+  if (Rows = -1) or Reload then begin
+    Rows := Connection.GetRowCount(Self);
   end;
-  Result := FRowCount;
+  Result := Rows;
 end;
 
 procedure TDBObject.Drop;
@@ -9114,9 +9763,9 @@ begin
   // Apply given or default attributes
   Name := FromSerialized('Name', '');
   OldName := FromSerialized('OldName', '');
-  NumVal := FromSerialized('DataType', Integer(dtUnknown).ToString);
+  NumVal := FromSerialized('DataType', Integer(dbdtUnknown).ToString);
   DataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
-  NumVal := FromSerialized('OldDataType', Integer(dtUnknown).ToString);
+  NumVal := FromSerialized('OldDataType', Integer(dbdtUnknown).ToString);
   OldDataTypeIdx := TDBDatatypeIndex(NumVal.ToInteger);
   for i:=Low(Connection.Datatypes) to High(Connection.Datatypes) do begin
     if Connection.Datatypes[i].Index = DataTypeIdx then
@@ -9310,7 +9959,7 @@ begin
   Result := TStringList.Create;
   Result.QuoteChar := '''';
   Result.Delimiter := ',';
-  if DataType.Index in [dtEnum, dtSet] then
+  if DataType.Index in [dbdtEnum, dbdtSet] then
     Result.DelimitedText := LengthSet;
 end;
 
@@ -9349,17 +9998,17 @@ begin
   Result := FConnection.QuoteIdent(Name);
   case FConnection.Parameters.NetTypeGroup of
     ngMySQL, ngSQLite: begin
-      if DataType.Index in [dtUnknown, dtDate, dtDatetime, dtTime, dtTimestamp] then
+      if DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp] then
         Result := 'CAST('+Result+' AS CHAR)';
     end;
     ngMSSQL: begin
       // Be sure LEFT() and "col LIKE xyz" work with MSSQL
       // Also, prevent exceeding size limit of 8000 for NVARCHAR
-      if DataType.Index in [dtUnknown, dtNtext, dtText] then
+      if DataType.Index in [dbdtUnknown, dbdtNtext, dbdtText] then
         Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     end;
     ngPgSQL: begin
-      if (DataType.Index = dtUnknown) or (DataType.Category = dtcBinary) then
+      if (DataType.Index = dbdtUnknown) or (DataType.Category = dtcBinary) then
         Result := Result + '::text';
     end;
   end;

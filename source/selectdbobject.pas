@@ -125,7 +125,7 @@ begin
       Obj.Assign(DBObj^);
       // Database privileges can be wildcarded. Tables/columns not so.
       if Obj.NodeType = lntDb then
-        Obj.Database := FConnection.EscapeString(Obj.Database, True, baFalse);
+        Obj.Database := FConnection.EscapeString(Obj.Database, True, False);
       if Obj.NodeType = lntNone then begin
         Obj.NodeType := lntDb;
         Obj.Database := '%';
@@ -148,9 +148,9 @@ begin
   if Assigned(Node) then begin
     case Sender.GetNodeLevel(Node) of
       0: editDb.Text := '%';
-      1: editDb.Text := FConnection.EscapeString(Tree.Text[Node, 0], True, baFalse);
-      2: editDb.Text := FConnection.EscapeString(Tree.Text[Node.Parent, 0], True, baFalse);
-      3: editDb.Text := FConnection.EscapeString(Tree.Text[Node.Parent.Parent, 0], True, baFalse);
+      1: editDb.Text := FConnection.EscapeString(Tree.Text[Node, 0], True, False);
+      2: editDb.Text := FConnection.EscapeString(Tree.Text[Node.Parent, 0], True, False);
+      3: editDb.Text := FConnection.EscapeString(Tree.Text[Node.Parent.Parent, 0], True, False);
     end;
   end;
   // Indicate automatic changes only

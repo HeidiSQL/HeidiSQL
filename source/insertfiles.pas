@@ -52,7 +52,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure btnInsertClick(Sender: TObject);
     procedure AddFile(Filename: String);
-    procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListFilesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure ListFilesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       TextType: TVSTTextType; var CellText: string);
@@ -148,12 +147,6 @@ begin
     comboDBs.ItemIndex := 0;
   comboDBs.OnChange(Sender);
   ListFilesChange(ListFiles, nil);
-end;
-
-
-procedure TfrmInsertFiles.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
 end;
 
 
@@ -644,14 +637,14 @@ begin
             Value := FileContent;
           end else begin
             Value := StringReplace(Value, '%filesize%', IntToStr(FileSize), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filename%', FConnection.EscapeString(ExtractFileName(FileInfo.Filename), False, baFalse), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filepath%', FConnection.EscapeString(ExtractFilePath(FileInfo.Filename), False, baFalse), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filename%', FConnection.EscapeString(ExtractFileName(FileInfo.Filename), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filepath%', FConnection.EscapeString(ExtractFilePath(FileInfo.Filename), False, False), [rfReplaceAll]);
             FileAge(FileInfo.Filename, FileDate);
             DecodeDate(FileDate, y, m, d);
             DecodeTime(FileDate, h, mi, s, ms);
-            Value := StringReplace(Value, '%filedate%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d', [y,m,d]), False, baFalse), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filedatetime%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), False, baFalse), [rfReplaceAll]);
-            Value := StringReplace(Value, '%filetime%', FConnection.EscapeString(Format('%.2d:%.2d:%.2d', [h,mi,s]), False, baFalse), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filedate%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d', [y,m,d]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filedatetime%', FConnection.EscapeString(Format('%.4d-%.2d-%.2d %.2d:%.2d:%.2d', [y,m,d,h,mi,s]), False, False), [rfReplaceAll]);
+            Value := StringReplace(Value, '%filetime%', FConnection.EscapeString(Format('%.2d:%.2d:%.2d', [h,mi,s]), False, False), [rfReplaceAll]);
           end;
         end;
         sql := sql + Value + ', ';

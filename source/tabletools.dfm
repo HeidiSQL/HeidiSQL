@@ -15,7 +15,6 @@ object frmTableTools: TfrmTableTools
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnShow = FormShow
   DesignSize = (
     764
@@ -334,8 +333,6 @@ object frmTableTools: TfrmTableTools
                 ScrollBars = ssVertical
                 TabOrder = 0
                 OnChange = ValidateControls
-                ExplicitLeft = -8
-                ExplicitTop = -20
               end
             end
             object tabSQL: TTabSheet
@@ -699,6 +696,10 @@ object frmTableTools: TfrmTableTools
     object menuExportRemoveDefiner: TMenuItem
       AutoCheck = True
       Caption = 'Remove DEFINER clauses'
+    end
+    object menuCopyMysqldumpCommand: TMenuItem
+      Caption = 'Copy mysqldump command'
+      OnClick = menuCopyMysqldumpCommandClick
     end
   end
 end

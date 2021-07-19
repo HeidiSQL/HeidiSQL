@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-05-24 14:15+0200\n"
+"PO-Revision-Date: 2021-06-26 09:09+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.3\n"
+"X-Generator: Poedit 3.0\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -3688,6 +3688,9 @@ msgstr "Nightly build"
 msgid "Download nightly build"
 msgstr "Download nightly build"
 
+msgid "No build updates for 32 bit version"
+msgstr "No build updates for 32 bit version"
+
 #. frmUpdateCheck..groupRelease..Caption
 #: updatecheck.dfm:90
 msgid "Official release"
@@ -6429,12 +6432,6 @@ msgstr "Go to tab 5"
 msgid "Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL"
 msgstr "Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL"
 
-msgid "Does not work on Windows 10 S"
-msgstr "Does not work on Windows 10 S"
-
-msgid "The network type defined for this session is not compatible to your Windows 10 S"
-msgstr "The network type defined for this session is not compatible to your Windows 10 S"
-
 msgid "Error when checking for updates: %s"
 msgstr "Error when checking for updates: %s"
 
@@ -6681,3 +6678,12 @@ msgstr "Download the portable package and extract it in %s"
 
 msgid "No area selected"
 msgstr "No area selected"
+
+msgid "Close all query tabs"
+msgstr "Close all query tabs"
+
+msgid "Close query tabs to the right"
+msgstr "Close query tabs to the right"
+
+msgid "Copy mysqldump command"
+msgstr "Copy mysqldump command"

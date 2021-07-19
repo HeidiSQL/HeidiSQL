@@ -214,7 +214,6 @@ type
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure comboGridTextColorsPresetSelect(Sender: TObject);
     procedure comboThemeSelect(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure chkThemePreviewClick(Sender: TObject);
     procedure chkCompletionProposalClick(Sender: TObject);
     procedure HotKeyChange(Sender: TObject);
@@ -471,7 +470,8 @@ begin
       [mbOk]);
   end;
   MainForm.ActionList1.State := asNormal;
-  Action := caFree;
+  AppSettings.WriteInt(asPreferencesWindowWidth, Width);
+  AppSettings.WriteInt(asPreferencesWindowHeight, Height);
 end;
 
 
@@ -498,7 +498,7 @@ begin
 
   // Misecllaneous
   // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
-  if MainForm.IsWine then begin
+  if IsWine then begin
     editMySQLBinaries.RightButton.Visible := False;
     editMySQLBinaries.OnDblClick := nil;
   end;
@@ -614,12 +614,6 @@ begin
   comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
 end;
 
-
-procedure TfrmPreferences.FormDestroy(Sender: TObject);
-begin
-  AppSettings.WriteInt(asPreferencesWindowWidth, Width);
-  AppSettings.WriteInt(asPreferencesWindowHeight, Height);
-end;
 
 procedure TfrmPreferences.FormShow(Sender: TObject);
 var

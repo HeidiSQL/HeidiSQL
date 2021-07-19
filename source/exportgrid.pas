@@ -52,7 +52,6 @@ type
     btnSetClipboardDefaults: TButton;
     chkRemoveLinebreaks: TCheckBox;
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure CalcSize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure editFilenameRightButtonClick(Sender: TObject);
@@ -154,33 +153,6 @@ begin
 end;
 
 
-procedure TfrmExportGrid.FormDestroy(Sender: TObject);
-begin
-  // Store settings
-  if not FHiddenCopyMode then begin
-    AppSettings.WriteInt(asGridExportWindowWidth, Width);
-    AppSettings.WriteInt(asGridExportWindowHeight, Height);
-    if ModalResult = mrOK then begin
-      AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
-      AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);
-      AppSettings.WriteString(asGridExportFilename, editFilename.Text);
-      AppSettings.WriteString(asGridExportRecentFiles, Implode(DELIM, FRecentFiles));
-      AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
-      AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
-      AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
-      AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
-      AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
-      AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
-      AppSettings.WriteBool(asGridExportRemoveLinebreaks, chkRemoveLinebreaks.Checked);
-      AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
-      AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
-      AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
-      AppSettings.WriteString(asGridExportNull, FCSVNull);
-    end;
-  end;
-end;
-
-
 procedure TfrmExportGrid.FormResize(Sender: TObject);
 begin
   grpFormat.Width := Width div 3;
@@ -200,8 +172,26 @@ end;
 
 procedure TfrmExportGrid.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  // Destroy dialog - not cached
-  Action := caFree;
+  // Store settings
+  AppSettings.WriteInt(asGridExportWindowWidth, Width);
+  AppSettings.WriteInt(asGridExportWindowHeight, Height);
+  if ModalResult = mrOK then begin
+    AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
+    AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);
+    AppSettings.WriteString(asGridExportFilename, editFilename.Text);
+    AppSettings.WriteString(asGridExportRecentFiles, Implode(DELIM, FRecentFiles));
+    AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
+    AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
+    AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
+    AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
+    AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
+    AppSettings.WriteBool(asGridExportIncludeQuery, chkIncludeQuery.Checked);
+    AppSettings.WriteBool(asGridExportRemoveLinebreaks, chkRemoveLinebreaks.Checked);
+    AppSettings.WriteString(asGridExportSeparator, FCSVSeparator);
+    AppSettings.WriteString(asGridExportEncloser, FCSVEncloser);
+    AppSettings.WriteString(asGridExportTerminator, FCSVTerminator);
+    AppSettings.WriteString(asGridExportNull, FCSVNull);
+  end;
 end;
 
 
@@ -940,7 +930,7 @@ begin
                 Data := ''
               else if GridData.IsNull(Col) then
                 Data := 'NULL'
-              else if (GridData.DataType(Col).Index = dtBit) and GridData.Connection.Parameters.IsAnyMySQL then
+              else if (GridData.DataType(Col).Index = dbdtBit) and GridData.Connection.Parameters.IsAnyMySQL then
                 Data := 'b' + GridData.Connection.EscapeString(Data)
               else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
                 or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
@@ -1048,8 +1038,6 @@ begin
         tmp := '\end{tabular}' + CRLF;
       efPHPArray: begin
         tmp := ');' + CRLF;
-        if radioOutputFile.Checked then
-          tmp := tmp + '?>';
       end;
       efJSON: begin
         S.Size := S.Size - 1;

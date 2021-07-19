@@ -372,7 +372,6 @@ type
   function IsValidFilePath(FilePath: String): Boolean;
   function FileIsWritable(FilePath: String): Boolean;
   function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
-  function RunningOnWindows10S: Boolean;
   function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetUwpFullName: String;
   function RunningAsUwp: Boolean;
@@ -382,6 +381,8 @@ type
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
+  function IsWine: Boolean;
+  function DirSep: Char;
 
 var
   AppSettings: TAppSettings;
@@ -393,6 +394,7 @@ var
   LibHandleUser32: THandle;
   UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
   DateTimeNever: TDateTime;
+  IsWineStored: Integer = -1;
 
 implementation
 
@@ -2779,26 +2781,6 @@ begin
 end;
 
 
-function RunningOnWindows10S: Boolean;
-const
-  PRODUCT_CLOUD = $000000B2;  //* Windows 10 S
-  PRODUCT_CLOUDN = $000000B3; //* Windows 10 S N
-  PRODUCT_CORE = $00000065;   //* Windows 10 Home
-var
-  pdwReturnedProductType: DWORD;
-begin
-  // Detect if we're running on Windows 10 S
-  // Taken from https://forums.embarcadero.com/message.jspa?messageID=900804
-  Result := False;
-  // Avoid crash on WinXP
-  if Win32MajorVersion >= 6 then begin
-    if GetProductInfo(Win32MajorVersion, Win32MinorVersion, TOSVersion.ServicePackMajor, TOSVersion.ServicePackMinor, pdwReturnedProductType) then begin
-      Result := (pdwReturnedProductType = PRODUCT_CLOUD) OR (pdwReturnedProductType = PRODUCT_CLOUDN);
-    end;
-  end;
-end;
-
-
 function GetUwpFullName: String;
 var
   Len: Cardinal;
@@ -2909,6 +2891,34 @@ begin
     Result := (Menu as TPopupMenu).PopupComponent;
 end;
 
+
+function IsWine: Boolean;
+var
+  NTHandle: THandle;
+  wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
+begin
+  // Detect if we're running on Wine, not on native Windows
+  // Idea taken from http://ruminatedrumblings.blogspot.com/2008/04/detecting-virtualized-environment.html
+  if IsWineStored = -1 then begin
+    NTHandle := LoadLibrary('NTDLL.DLL');
+    if NTHandle>32 then
+      wine_nt_to_unix_file_name := GetProcAddress(NTHandle, 'wine_nt_to_unix_file_name')
+    else
+      wine_nt_to_unix_file_name := nil;
+    IsWineStored := IfThen(Assigned(wine_nt_to_unix_file_name), 1, 0);
+    FreeLibrary(NTHandle);
+  end;
+  Result := IsWineStored = 1;
+end;
+
+
+function DirSep: Char;
+begin
+  if IsWine then
+    Result := '/'
+  else
+    Result := '\';
+end;
 
 
 { Threading stuff }
@@ -3227,7 +3237,7 @@ var
   ContentChunk: UTF8String;
 begin
   DoStore := False;
-  if MainForm.IsWine then
+  if IsWine then
     OS := 'Linux/Wine'
   else
     OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);

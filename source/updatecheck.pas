@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
   apphelpers, gnugettext, ExtCtrls, extra_controls, System.StrUtils, Vcl.Dialogs,
-  Vcl.Menus, Vcl.Clipbrd;
+  Vcl.Menus, Vcl.Clipbrd, generic_types;
 
 type
   TfrmUpdateCheck = class(TExtForm)
@@ -27,7 +27,6 @@ type
       LinkType: TSysLinkType);
     procedure FormShow(Sender: TObject);
     procedure btnChangelogClick(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure CopydownloadURL1Click(Sender: TObject);
   const
@@ -70,15 +69,10 @@ begin
   Height := AppSettings.ReadInt(asUpdateCheckWindowHeight);
 end;
 
-procedure TfrmUpdateCheck.FormDestroy(Sender: TObject);
+procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   AppSettings.WriteInt(asUpdateCheckWindowWidth, Width);
   AppSettings.WriteInt(asUpdateCheckWindowHeight, Height);
-end;
-
-procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
-begin
-  Action := caFree;
 end;
 
 {**
@@ -195,11 +189,17 @@ begin
     Note := Ini.ReadString(INISECT_BUILD, 'Note', '');
     if Note <> '' then
       memoBuild.Lines.Add(_('Notes') + ': * ' + StringReplace(Note, '%||%', CRLF+'* ', [rfReplaceAll] ) );
-    btnBuild.Caption := f_('Download and install build %d', [BuildRevision]);
-    // A new release should have priority over a new nightly build.
-    // So the user should not be able to download a newer build here
-    // before having installed the new release.
-    btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not LinkLabelRelease.Enabled));
+    if GetExecutableBits = 64 then begin
+      btnBuild.Caption := f_('Download and install build %d', [BuildRevision]);
+      // A new release should have priority over a new nightly build.
+      // So the user should not be able to download a newer build here
+      // before having installed the new release.
+      btnBuild.Enabled := (Mainform.AppVerRevision = 0) or ((BuildRevision > Mainform.AppVerRevision) and (not LinkLabelRelease.Enabled));
+    end
+    else begin
+      btnBuild.Caption := _('No build updates for 32 bit version');
+    end;
+
   end;
 
   if FileExists(CheckFilename) then

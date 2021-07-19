@@ -156,7 +156,6 @@ type
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure FormDestroy(Sender: TObject);
     procedure TimerStatisticsTimer(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
@@ -290,9 +289,6 @@ begin
       if Params.GetNetTypeGroup <> ntg then
         Continue;
       NetTypeStr := Params.NetTypeName(True);
-      if RunningOnWindows10S and (not Params.IsCompatibleToWin10S) then begin
-        NetTypeStr := NetTypeStr + ' ['+_('Does not work on Windows 10 S')+']';
-      end;
       ComboItem := TComboExItem.Create(comboNetType.ItemsEx);
       ComboItem.Caption := NetTypeStr;
       ComboItem.ImageIndex := Params.ImageIndex;
@@ -335,18 +331,8 @@ begin
       RefreshSessions(SessNode);
     end;
   end;
-end;
-
-
-procedure Tconnform.FormDestroy(Sender: TObject);
-begin
-  // Save GUI stuff
-  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
-  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
-  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
-  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
-  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
-  MainForm.SaveListSetup(ListSessions);
+  if not Assigned(ParentNode) then
+    RefreshBackgroundColors;
 end;
 
 
@@ -366,7 +352,13 @@ procedure Tconnform.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // Suspend calculating statistics as long as they're not visible
   TimerStatistics.Enabled := False;
-  Action := caFree;
+  // Save GUI stuff
+  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
+  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
+  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
+  AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
+  AppSettings.WriteInt(asSessionManagerWindowTop, Top);
+  MainForm.SaveListSetup(ListSessions);
 end;
 
 
@@ -494,6 +486,7 @@ begin
 
   FSessionModified := False;
   ListSessions.Invalidate;
+  RefreshBackgroundColors;
   ValidateControls;
 
   // Apply session color (and othher settings) to opened connection(s)
@@ -972,7 +965,6 @@ begin
     updownKeepAlive.Position := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
-    RefreshBackgroundColors;
     ColorBoxBackgroundColor.Selected := Sess.SessionColor;
     editDatabases.Text := Sess.AllDatabasesStr;
     comboLibrary.Items := Sess.GetLibraries;
@@ -1424,18 +1416,18 @@ begin
       editHost.RightButton.Visible := Params.IsAnySQLite;
       chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
       chkWindowsAuth.Enabled := Params.IsAnyMSSQL or Params.IsAnyMySQL;
-      lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL])
+      lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase])
         and ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
       editUsername.Enabled := lblUsername.Enabled;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
       lblDatabase.Caption := IfThen(Params.IsAnyPostgreSQL, _('Database')+':', _('Databases')+':');
-      lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
+      lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       editDatabases.Enabled := lblDatabase.Enabled;
       // SSH tunnel tab:
       tabSSHtunnel.TabVisible := Params.NetType in [ntMySQL_SSHtunnel, ntPgSQL_SSHtunnel];

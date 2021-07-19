@@ -29,7 +29,6 @@ type
     MemoExample: TSynMemo;
     timerSearch: TTimer;
     procedure FormCreate(Sender: TObject);
-    procedure FormDestroy(Sender: TObject);
     procedure memosKeyDown(Sender: TObject; var Key: Word;
       Shift: TShiftState);
     procedure ButtonOnlinehelpClick(Sender: TObject);
@@ -108,7 +107,14 @@ end;
 
 procedure TfrmSQLhelp.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
+  AppSettings.WriteInt(asSQLHelpWindowLeft, Left );
+  AppSettings.WriteInt(asSQLHelpWindowTop, Top );
+  AppSettings.WriteInt(asSQLHelpWindowWidth, Width);
+  AppSettings.WriteInt(asSQLHelpWindowHeight, Height);
+  AppSettings.WriteInt(asSQLHelpPnlLeftWidth, pnlLeft.Width);
+  AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, memoDescription.Height);
   Action := caFree;
+  SqlHelpDialog := nil;
 end;
 
 
@@ -261,18 +267,6 @@ end;
 procedure TfrmSQLhelp.ButtonCloseClick(Sender: TObject);
 begin
   Close;
-end;
-
-
-procedure TfrmSQLhelp.FormDestroy(Sender: TObject);
-begin
-  AppSettings.WriteInt(asSQLHelpWindowLeft, Left );
-  AppSettings.WriteInt(asSQLHelpWindowTop, Top );
-  AppSettings.WriteInt(asSQLHelpWindowWidth, Width);
-  AppSettings.WriteInt(asSQLHelpWindowHeight, Height);
-  AppSettings.WriteInt(asSQLHelpPnlLeftWidth, pnlLeft.Width);
-  AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, memoDescription.Height);
-  SqlHelpDialog := nil;
 end;
 
 

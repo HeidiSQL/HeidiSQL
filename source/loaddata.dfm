@@ -16,7 +16,6 @@ object loaddataform: Tloaddataform
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (

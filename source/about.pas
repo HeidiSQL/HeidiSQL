@@ -8,7 +8,7 @@ interface
 
 uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext,
-  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd, extra_controls;
+  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd, extra_controls, generic_types;
 
 type
   TAboutBox = class(TExtForm)
@@ -126,7 +126,7 @@ begin
     lblEnvironment.Caption := lblEnvironment.Caption +
       ' Windows v'+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion) +
       ', Store Package ' + GetUwpFullName;
-  end else if MainForm.IsWine then begin
+  end else if IsWine then begin
     lblEnvironment.Caption := lblEnvironment.Caption +
       ' Linux/Wine';
   end else begin

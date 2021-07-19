@@ -32,7 +32,6 @@ type
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     procedure TreeElementsInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
-    procedure FormDestroy(Sender: TObject);
     procedure TreeElementsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure btnRecentFiltersClick(Sender: TObject);
@@ -72,14 +71,6 @@ begin
   Height := AppSettings.ReadInt(asCopyTableWindowHeight);
   MainForm.SetupSynEditors;
   FixVT(TreeElements);
-end;
-
-
-procedure TCopyTableForm.FormDestroy(Sender: TObject);
-begin
-  // Save GUI stuff
-  AppSettings.WriteInt(asCopyTableWindowWidth, Width);
-  AppSettings.WriteInt(asCopyTableWindowHeight, Height);
 end;
 
 
@@ -193,7 +184,9 @@ begin
       AppSettings.WriteString(asCopyTableRecentFilter, NewValues[i], IntToStr(i));
     end;
   end;
-  Action := caFree;
+  // Store GUI setup
+  AppSettings.WriteInt(asCopyTableWindowWidth, Width);
+  AppSettings.WriteInt(asCopyTableWindowHeight, Height);
 end;
 
 
@@ -250,7 +243,7 @@ begin
          nColumns:      CellText := _('Columns');
          nKeys:         CellText := _('Indexes');
          nForeignKeys:  CellText := _('Foreign keys');
-         nData:         CellText := f_('Data (%s rows)', [FormatNumber(FDBObj.RowCount)]);
+         nData:         CellText := f_('Data (%s rows)', [FormatNumber(FDBObj.RowCount(False))]);
          else raise Exception.Create(_(SUnhandledNodeIndex));
        end;
        if Node.Index <> nData then begin
@@ -310,7 +303,7 @@ begin
       end;
       if ChildCount > 0 then
         Include(InitialStates, ivsHasChildren);
-      if (ChildCount = 0) or ((Node.Index = nData) and (FDBObj.RowCount <= 0)) then
+      if (ChildCount = 0) or ((Node.Index = nData) and (FDBObj.RowCount(False) = 0)) then
         Node.States := Node.States + [vsDisabled]
       else if AppSettings.ReadBool(Option) then
         Node.CheckState := csCheckedNormal;

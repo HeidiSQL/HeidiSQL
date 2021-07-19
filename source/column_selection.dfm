@@ -16,7 +16,6 @@ object frmColumnSelection: TfrmColumnSelection
   OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
-  OnDestroy = FormDestroy
   OnDeactivate = FormDeactivate
   OnShow = FormShow
   DesignSize = (
