@@ -2603,8 +2603,10 @@ var
   FinalPort: Integer;
 
   function EscapeConnectOption(Option: String): String;
-  begin // See issue #704
+  begin
+    // See issue #704 and #1417, and docs: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
     Result := StringReplace(Option, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
   end;
 begin
   if Value then begin
@@ -2629,12 +2631,12 @@ begin
       end;
     end;
 
-    ConnInfo := 'host='''+FinalHost+''' '+
+    ConnInfo := 'host='''+EscapeConnectOption(FinalHost)+''' '+
       'port='''+IntToStr(FinalPort)+''' '+
-      'user='''+FParameters.Username+''' ' +
-      'password='''+FParameters.Password+''' '+
-      'dbname='''+dbname+''' '+
-      'application_name='''+APPNAME+'''';
+      'user='''+EscapeConnectOption(FParameters.Username)+''' ' +
+      'password='''+EscapeConnectOption(FParameters.Password)+''' '+
+      'dbname='''+EscapeConnectOption(dbname)+''' '+
+      'application_name='''+EscapeConnectOption(APPNAME)+'''';
     if FParameters.WantSSL then begin
       ConnInfo := ConnInfo + ' sslmode=''require''';
       if FParameters.SSLPrivateKey <> '' then
