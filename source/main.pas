@@ -3097,6 +3097,16 @@ begin
       break;
     end;
   end;
+  if Result = '' then begin //we didn't find any query to run.  let's run the query ending directly to our left.
+    for Query in BatchAll do begin
+      LogSQL(Query.SQL);
+      if (Tab.Memo.SelStart = Query.RightOffset) then begin
+        Result := Query.SQL;
+        Tab.LeftOffsetInMemo := Query.LeftOffset;
+        break;
+      end;
+    end;
+  end;
   BatchAll.Free;
 end;
 
