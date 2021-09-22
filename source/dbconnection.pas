@@ -2946,7 +2946,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'SELECT pg_cancel_backend(%d)';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
-      FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
+      FSQLSpecifities[spFuncLeft] := 'SUBSTRING(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'NOW()';
       FSQLSpecifities[spLockedTables] := '';
     end;
