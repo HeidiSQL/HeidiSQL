@@ -1,14 +1,5 @@
-﻿V7.3: (04 Nov 2019)
-See: https://github.com/Virtual-TreeView/Virtual-TreeView/milestone/13
-
-V7.2.1: (07 Mar 2019)
-See: https://github.com/Virtual-TreeView/Virtual-TreeView/milestone/14?closed=1
-
-V7.2: (18 Feb 2019)
-See: https://github.com/Virtual-TreeView/Virtual-TreeView/milestone/12?closed=1
-
-V7.1: (27 Dec 2018)
-See: https://github.com/Virtual-TreeView/Virtual-TreeView/milestone/11?closed=1
+V7.1 and later:
+https://github.com/JAM-Software/Virtual-TreeView/milestones?state=closed
 
 V7.0: (22 Jul 2018)
   * The support for Windows XP/2003 has been dropped (issue #707). This means:

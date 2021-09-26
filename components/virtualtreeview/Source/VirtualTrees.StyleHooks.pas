@@ -33,8 +33,9 @@ uses
   Winapi.Windows,
   Winapi.Messages,
   Winapi.UxTheme,
-
   System.Classes,
+  System.UITypes,
+  Vcl.Graphics,
   Vcl.Themes,
   Vcl.Forms,
   Vcl.Controls;
@@ -99,6 +100,9 @@ type
   public
     constructor Create(AControl: TWinControl); override;
     destructor Destroy; override;
+    /// Draws an expand arrow like used in the RAD Studio IDE.
+    /// The code is not yet dpi-aware.
+    class procedure DrawExpandArrow(pBitmap: TBitmap; pExpanded: Boolean; pColor: TColor = clNone);
     property HorzScrollRect;
     property VertScrollRect;
   end;
@@ -120,7 +124,6 @@ uses
   System.SysUtils,
   System.Math,
   System.Types,
-  Vcl.Graphics,
   VirtualTrees;
 
 type
@@ -201,6 +204,32 @@ begin
   FHorzScrollWnd.StyleHook := nil;
   FreeAndNil(FHorzScrollWnd);
   inherited;
+end;
+
+class procedure TVclStyleScrollBarsHook.DrawExpandArrow(pBitmap: TBitmap; pExpanded: Boolean; pColor: TColor);
+const
+  Size: TRect = (Left: 0; Top: 0; Right: 12; Bottom: 12);
+  ArrowPoints: array[Boolean, 0..5] of TPoint = (
+    ((X:3; Y:1), (X:8; Y:6), (X:3; Y:11), (X:4; Y:11), (X:9; Y:6), (X:3; Y:0)),
+    ((X:1; Y:3), (X:6; Y:8), (X:11; Y:3), (X:11; Y:4), (X:6; Y:9), (X:0; Y:3))
+  );
+var
+  canvas: TCanvas;
+begin
+  pBitmap.SetSize(Size.Width, Size.Height);
+  canvas := pBitmap.Canvas;
+  canvas.FillRect(Size);
+  if pColor = clNone then
+  begin
+    if Assigned(VTStyleServicesFunc) then
+      canvas.Pen.Color := VTStyleServicesFunc.GetSystemColor(clGrayText)
+    else
+      canvas.Pen.Color := Vcl.Themes.StyleServices.GetSystemColor(clGrayText)
+  end
+  else
+    canvas.Pen.Color := pColor;
+  canvas.Pen.Width := 1;
+  canvas.Polyline(ArrowPoints[pExpanded]);
 end;
 
 procedure TVclStyleScrollBarsHook.DrawHorzScrollBar(DC: HDC);

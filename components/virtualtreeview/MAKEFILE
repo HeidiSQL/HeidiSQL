@@ -1,0 +1,56 @@
+PROJECT = VirtualTrees
+EMBARCADERO = $(PROGRAMFILES)\Embarcadero\RAD Studio
+STUDIO = $(PROGRAMFILES)\Embarcadero\Studio
+BDSCOMMONDIRMAIN = %PUBLIC%\Documents\Embarcadero\Studio
+# Default MS Build version
+!IF EXIST("$(PROGRAMFILES)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe")
+BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe"
+!ELSE
+!IF EXIST("$(PROGRAMFILES)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe")
+BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe"
+!ELSE
+BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\msbuild.exe"
+!ENDIF
+!ENDIF
+BUILD = $(BUILDEXE) /t:Rebuild
+
+clean:  
+	ECHO Project: $(PROJECT) $(EMBARCADERO)
+	DEL /S /Q .\*.HPP
+	DEL /S /Q .\*.DCU
+#TODO: Add demos and package folders
+	 
+# build all packages for Delphi 10.4.   Note: The variable $@ is expanded to the build target name
+10.1 10.2 10.3 10.4+: Source\*.pas "Packages\RAD Studio $@\$(PROJECT)R.dpk" "Packages\RAD Studio $@\$(PROJECT)R.dproj" "Packages\RAD Studio $@\$(PROJECT)D.dpk" "Packages\RAD Studio $@\$(PROJECT)D.dproj"
+	SET BDS=$(STUDIO)\21.0
+	$(BUILD) "Packages\RAD Studio $@\$(PROJECT)R.dproj"
+	$(BUILD) "Packages\RAD Studio $@\$(PROJECT)D.dproj"
+	$(BUILD) /property:Platform=Win64 "Packages\RAD Studio $@\$(PROJECT)R.dproj"
+	$(MAKE) _samples
+
+"Demos\Advanced\Advanced.exe": "Demos\Advanced\*.dproj" "Demos\Advanced\*.dpr" "Demos\Advanced\*.pas"
+	$(BUILD) "Demos\Advanced\Advanced.dproj"
+
+"Demos\Minimal\Minimal.exe": "Demos\Minimal\*.dproj" "Demos\Minimal\*.dpr" "Demos\Minimal\*.pas"
+	$(BUILD) "Demos\Minimal\Minimal.dproj"
+
+"Demos\Objects\Objects.exe": "Demos\Objects\*.dproj" "Demos\Objects\*.dpr" "Demos\Objects\*.pas"
+	$(BUILD) "Demos\Objects\MVCDemo.dproj"
+
+"Demos\OLE\OLE.exe": "Demos\OLE\*.dproj" "Demos\OLE\*.dpr" "Demos\OLE\*.pas"
+	$(BUILD) "Demos\OLE\OLE.dproj"
+
+_samples: "Demos\Advanced\Advanced.exe" "Demos\Minimal\Minimal.exe" "Demos\Objects\Objects.exe" "Demos\OLE\OLE.exe"
+	
+_continuousbuilds: clean 10.4+
+
+_release:
+#This small batch file is intended to create a source code release file of the VirtualTreeView as ZIP archive
+#It expects the ZIP.EXE from the InfoZip project V3.0 or higher to be in the system's search path
+#Download e.g. from: ftp://ftp.info-zip.org/pub/infozip/win32/
+	ZIP -9 -r .\VirtualTreeView.zip  INSTALL.txt Changes.txt Source Design Packages Demos Contributions Help\VirtualTreeview.chm -i *.pas -i *.dpk -i *.groupproj -i *.dproj -i *.cbproj -i *.hlp -i *.rc -i *.res -i *.cfg -i *.dpr -i *.dof -i *.bpr -i *.dfm -i *.cpp -i *.inc -i *.dcr -i *.chm -i *.png -i *.js -i *.txt -i *.bmp -i *.uni
+	ECHO Source code zip archive "VirtualTreeView.zip" created. 
+	ECHO !!! Please ensure that the const TVTVersion is correct or remove const!!!
+	ECHO !!! Please add version number to ZIP file name!!!
+	ECHO !!! Please create release at: https://github.com/Virtual-TreeView/Virtual-TreeView/releases
+	ECHO !!! Let JAM web-team upload the file to our server at https://www.jam-software.com/virtual-treeview

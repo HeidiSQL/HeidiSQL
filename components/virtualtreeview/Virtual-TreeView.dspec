@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "id": "JAM.VirtualTreeView",
+    "version": "7.4.0",
+    "description": "Virtual TreeView VCL Component",
+    "authors": "Joachim Marder",
+    "projectUrl": "https://github.com/Virtual-TreeView/Virtual-TreeView",
+    "license": "MPL-1.1, LGPL-2.0+",
+    "copyright": "Various, See project page",
+    "tags": "VCL, TreeView"
+  },
+  "targetPlatforms": [
+    {
+      "compiler": "XE3",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "17"
+      }
+    },
+    {
+      "compiler": "XE4",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "18"
+      }
+    },
+    {
+      "compiler": "XE5",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "19"
+      }
+    },
+    {
+      "compiler": "XE6",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "20"
+      }
+    },
+    {
+      "compiler": "XE7",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "21"
+      }
+    },
+    {
+      "compiler": "XE8",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "22"
+      }
+    },
+    {
+      "compiler": "10.0",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "23",
+        "compiler" : "$compilerNoPoint$"      
+      }
+    },
+    {
+      "compiler": "10.1",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "24"
+      }
+    },
+    {
+      "compiler": "10.2",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "25"
+      }
+    },
+    {
+      "compiler": "10.3",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "26"
+      }
+    },
+    {
+      "compiler": "10.4",
+      "platforms": "Win32, Win64",
+      "template": "default",
+      "variables" : {
+        "libsuffix" : "27"
+      }
+    }
+  ],
+  "templates": [
+    {
+      "comment": "all other compiler versions follow normal folder naming",
+      "name": "default",
+      "source": [
+        {
+          "src": ".\\Source\\*.pas",
+          "dest": "Source"
+        },
+        {
+          "src": ".\\Source\\*.res",
+          "dest": "Source"
+        },
+        {
+          "src": ".\\Design\\*.*",
+          "dest": "Design"
+        },
+        {
+          "src": ".\\packages\\Rad Studio $compiler$\\**",
+          "flatten": false,
+          "dest": "packages\\Rad Studio $compiler$"
+        }
+      ],
+      "searchPaths": [
+        {
+          "path": "Source",
+          "source": true
+        }
+      ],
+      "build": [
+        {
+          "id": "VirtualTreesR",
+          "project": ".\\Packages\\Rad Studio $compiler$\\VirtualTreesR.dproj",
+          "buildForDesign": true,
+          "buildForDesignComment" : "when true, will also build win32 if the platform is not win32, so that other packages that need this for design will work"
+        },
+        {
+          "id": "VirtualTreesD",
+          "project": ".\\Packages\\Rad Studio $compiler$\\VirtualTreesD.dproj",
+          "designOnly" : true,
+          "designOnlyComment" : "designOnly forces compilation with win32 compiler"          
+        }
+      ],
+      "runtime": [
+        {
+          "buildId": "VirtualTreesR",
+          "src": "bin\\VirtualTreesR$libsuffix$.bpl",
+          "copyLocal": true
+        }
+      ],
+      "design": [
+        {
+          "buildId": "VirtualTreesD",
+          "src": "bin\\VirtualTreesD$libsuffix$.bpl",
+          "install": true
+        }
+      ]
+    }
+  ]
+}
