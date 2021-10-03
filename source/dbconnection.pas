@@ -454,6 +454,7 @@ type
       FInfSch: String;
       FIdentCharsNoQuote: TSysCharSet;
       FMaxRowsPerInsert: Int64;
+      FCaseSensitivity: Integer;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -1951,6 +1952,7 @@ begin
   // Characters in identifiers which don't need to be quoted
   FIdentCharsNoQuote := ['A'..'Z', 'a'..'z', '0'..'9', '_'];
   FMaxRowsPerInsert := 10000;
+  FCaseSensitivity := 0;
 end;
 
 
@@ -2396,6 +2398,7 @@ begin
       if FServerVersionUntouched.IsEmpty then begin
         FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
       end;
+      FCaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', IntToStr(FCaseSensitivity)));
 
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
@@ -5274,13 +5277,9 @@ end;
 
 
 function TDBConnection.IdentifierEquals(Ident1, Ident2: String): Boolean;
-var
-  CaseSensitivity: Integer;
 begin
   // Compare only name of identifier, in the case fashion the server tells us
-  // 1 is probably a bad default value, as this expects the server to run on Windows
-  CaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', '1'));
-  case CaseSensitivity of
+  case FCaseSensitivity of
     0: Result := Ident1 = Ident2;
     else Result := CompareText(Ident1, Ident2) = 0;
   end;
@@ -9467,7 +9466,7 @@ begin
   if (not Assigned(CompareTo)) or (CompareTo = nil) then begin
     Result := False;
   end else begin
-    Result := (Name = CompareTo.Name)
+    Result := FConnection.IdentifierEquals(Name, CompareTo.Name)
       and (NodeType = CompareTo.NodeType)
       and (Database = CompareTo.Database)
       and (Schema = CompareTo.Schema)
