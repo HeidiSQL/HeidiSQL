@@ -400,7 +400,7 @@ type
     );
 
   // MySQL data types
-  TDBDatatypeIndex = (dbdtTinyint, dbdtSmallint, dbdtMediumint, dbdtInt, dbdtBigint, dbdtSerial, dbdtBigSerial,
+  TDBDatatypeIndex = (dbdtTinyint, dbdtSmallint, dbdtMediumint, dbdtInt, dbdtUint, dbdtBigint, dbdtSerial, dbdtBigSerial,
     dbdtFloat, dbdtDouble, dbdtDecimal, dbdtNumeric, dbdtReal, dbdtDoublePrecision, dbdtMoney, dbdtSmallmoney,
     dbdtDate, dbdtTime, dbdtYear, dbdtDatetime, dbdtDatetime2, dbdtDatetimeOffset, dbdtSmalldatetime, dbdtTimestamp, dbdtInterval,
     dbdtChar, dbdtNchar, dbdtVarchar, dbdtNvarchar, dbdtTinytext, dbdtText, dbdtNtext, dbdtMediumtext, dbdtLongtext,
@@ -2147,7 +2147,7 @@ var
     )
   );
 
-  SQLiteDatatypes: Array[0..14] of TDBDatatype =
+  SQLiteDatatypes: Array[0..15] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -2175,6 +2175,17 @@ var
       Index:           dbdtInt;
       Name:            'INTEGER';
       Names:           'INT|MEDIUMINT|INT8';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dbdtUint;
+      Name:            'UINT';
+      Names:           'UINT';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
