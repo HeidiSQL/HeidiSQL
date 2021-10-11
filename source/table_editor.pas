@@ -1525,11 +1525,11 @@ begin
   Col := Sender.GetNodeData(Node);
   case Column of
     2: begin // Datatype pulldown
-      DatatypeEditor := TDatatypeEditorLink.Create(VT, True);
+      DatatypeEditor := TDatatypeEditorLink.Create(VT, True, Col^);
       EditLink := DataTypeEditor;
       end;
     9: begin // Collation pulldown
-      EnumEditor := TEnumEditorLink.Create(VT, True);
+      EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
       EnumEditor.AllowCustomText := True;
       EnumEditor.ItemMustExist := True;
       EnumEditor.ValueList := TStringList.Create;
@@ -1539,7 +1539,7 @@ begin
       EditLink := EnumEditor;
       end;
     7: begin
-      DefaultEditor := TColumnDefaultEditorLink.Create(VT, True);
+      DefaultEditor := TColumnDefaultEditorLink.Create(VT, True, Col^);
       DefaultEditor.DefaultType := Col.DefaultType;
       DefaultEditor.DefaultText := Col.DefaultText;
       DefaultEditor.OnUpdateType := Col.OnUpdateType;
@@ -1547,7 +1547,7 @@ begin
       EditLink := DefaultEditor;
     end;
     11: begin // Virtuality pulldown
-      EnumEditor := TEnumEditorLink.Create(VT, True);
+      EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
       EnumEditor.ValueList := TStringList.Create;
       if DBObject.Connection.Parameters.IsMariaDB then
         EnumEditor.ValueList.CommaText := ',VIRTUAL,PERSISTENT'
@@ -1556,13 +1556,12 @@ begin
       EditLink := EnumEditor;
     end
     else begin
-      Edit := TInplaceEditorLink.Create(VT, True);
+      Edit := TInplaceEditorLink.Create(VT, True, Col^);
       Edit.TitleText := VT.Header.Columns[Column].Text;
       Edit.ButtonVisible := True;
       EditLink := Edit;
     end;
   end;
-  TBaseGridEditorLink(EditLink).TableColumn := Col^;
 end;
 
 
@@ -1888,21 +1887,21 @@ var
   VT: TVirtualStringTree;
   Edit: TInplaceEditorLink;
   EnumEditor: TEnumEditorLink;
-  i: Integer;
+  SQLFunc: TSQLFunction;
 begin
   // Edit check constraint
   VT := Sender as TVirtualStringTree;
   case Column of
     0: begin
-      Edit := TInplaceEditorLink.Create(VT, True);
+      Edit := TInplaceEditorLink.Create(VT, True, nil);
       Edit.TitleText := VT.Header.Columns[Column].Text;
       Edit.ButtonVisible := True;
       EditLink := Edit;
     end;
     1: begin
-      EnumEditor := TEnumEditorLink.Create(VT, True);
-      for i:=Low(MySQLFunctions) to High(MySQLFunctions) do
-        EnumEditor.ValueList.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+      EnumEditor := TEnumEditorLink.Create(VT, True, nil);
+      for SQLFunc in DBObject.Connection.SQLFunctions do
+        EnumEditor.ValueList.Add(SQLFunc.Name + SQLFunc.Declaration);
       EnumEditor.AllowCustomText := True;
       EditLink := EnumEditor;
     end;
@@ -2007,18 +2006,18 @@ begin
   Level := (Sender as TVirtualStringtree).GetNodeLevel(Node);
   if (Level = 0) and (Column = 1) then begin
     // Index type pulldown
-    EnumEditor := TEnumEditorLink.Create(VT, True);
+    EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.ValueList := TStringList.Create;
     EnumEditor.ValueList.CommaText := TTableKey.PRIMARY +','+ TTableKey.KEY +','+ TTableKey.UNIQUE +','+ TTableKey.FULLTEXT +','+ TTableKey.SPATIAL;
     EditLink := EnumEditor;
   end else if (Level = 0) and (Column = 2) then begin
     // Algorithm pulldown
-    EnumEditor := TEnumEditorLink.Create(VT, True);
+    EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     EnumEditor.ValueList := Explode(',', ',BTREE,HASH,RTREE');
     EditLink := EnumEditor;
   end else if (Level = 1) and (Column = 0) then begin
     // Column names pulldown
-    EnumEditor := TEnumEditorLink.Create(VT, True);
+    EnumEditor := TEnumEditorLink.Create(VT, True, nil);
     ColNode := listColumns.GetFirst;
     while Assigned(ColNode) do begin
       Col := listColumns.GetNodeData(ColNode);
@@ -2028,7 +2027,7 @@ begin
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
     EditLink := EnumEditor;
   end else
-    EditLink := TInplaceEditorLink.Create(VT, True);
+    EditLink := TInplaceEditorLink.Create(VT, True, nil);
 end;
 
 
@@ -2560,9 +2559,9 @@ begin
   // Init grid editor in foreign key list
   VT := Sender as TVirtualStringTree;
   case Column of
-    0: EditLink := TInplaceEditorLink.Create(VT, True);
+    0: EditLink := TInplaceEditorLink.Create(VT, True, nil);
     1: begin
-        SetEditor := TSetEditorLink.Create(VT, True);
+        SetEditor := TSetEditorLink.Create(VT, True, nil);
         ColNode := listColumns.GetFirst;
         while Assigned(ColNode) do begin
           PCol := listColumns.GetNodeData(ColNode);
@@ -2572,7 +2571,7 @@ begin
         EditLink := SetEditor;
       end;
     2: begin
-        EnumEditor := TEnumEditorLink.Create(VT, True);
+        EnumEditor := TEnumEditorLink.Create(VT, True, nil);
         EnumEditor.AllowCustomText := True;
         DBObjects := DBObject.Connection.GetDBObjects(DBObject.Connection.Database);
         for Obj in DBObjects do begin
@@ -2583,7 +2582,7 @@ begin
       end;
     3: begin
         Key := FForeignKeys[Node.Index];
-        SetEditor := TSetEditorLink.Create(VT, True);
+        SetEditor := TSetEditorLink.Create(VT, True, nil);
         Obj := Key.ReferenceTableObj;
         if Obj <> nil then begin
           Columns := Obj.TableColumns;
@@ -2594,7 +2593,7 @@ begin
         EditLink := SetEditor;
       end;
     4, 5: begin
-        EnumEditor := TEnumEditorLink.Create(VT, True);
+        EnumEditor := TEnumEditorLink.Create(VT, True, nil);
         EnumEditor.ValueList.Text := 'RESTRICT'+CRLF+'CASCADE'+CRLF+'SET NULL'+CRLF+'NO ACTION';
         EditLink := EnumEditor;
       end;

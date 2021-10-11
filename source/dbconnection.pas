@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, windows, dbstructures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types,
+  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types, System.IniFiles,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Phys, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys.IB,
@@ -262,6 +262,18 @@ type
       destructor Destroy; override;
   end;
 
+  TSQLFunction = class(TPersistent)
+    public
+      Name, Declaration, Category, Description: String;
+  end;
+  TSQLFunctionList = class(TObjectList<TSQLFunction>)
+    private
+      FOwner: TDBConnection;
+      FCategories: TStringList;
+    public
+      constructor Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+      property Categories: TStringList read FCategories;
+  end;
 
   { TConnectionParameters and friends }
 
@@ -455,6 +467,7 @@ type
       FIdentCharsNoQuote: TSysCharSet;
       FMaxRowsPerInsert: Int64;
       FCaseSensitivity: Integer;
+      FSQLFunctions: TSQLFunctionList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -580,6 +593,7 @@ type
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; virtual;
       function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
+      property SQLFunctions: TSQLFunctionList read FSQLFunctions;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -3069,6 +3083,8 @@ end;
 
 
 procedure TDBConnection.DoAfterConnect;
+var
+  SQLFunctionsFileOrder: String;
 begin
   AppSettings.SessionPath := FParameters.SessionPath;
   AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
@@ -3080,6 +3096,24 @@ begin
     FKeepAliveTimer.Interval := FParameters.KeepAlive * 1000;
     FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
   end;
+
+  if FParameters.IsMariaDB then
+    SQLFunctionsFileOrder := 'mariadb,mysql'
+  else if FParameters.IsAnyMySQL then
+    SQLFunctionsFileOrder := 'mysql'
+  else if FParameters.IsRedshift then
+    SQLFunctionsFileOrder := 'redshift,postgresql'
+  else if FParameters.IsAnyPostgreSQL then
+    SQLFunctionsFileOrder := 'postgresql'
+  else if FParameters.IsAnyMSSQL then
+    SQLFunctionsFileOrder := 'mssql'
+  else if FParameters.IsAnySQLite then
+    SQLFunctionsFileOrder := 'sqlite'
+  else if FParameters.IsAnyInterbase then
+    SQLFunctionsFileOrder := 'interbase'
+  else
+    SQLFunctionsFileOrder := '';
+  FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
 end;
 
 
@@ -10274,6 +10308,49 @@ begin
     ItemCopy := TCheckConstraint.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
+  end;
+end;
+
+
+{ TSQLFunctionList }
+
+constructor TSQLFunctionList.Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+var
+  TryFiles: TStringList;
+  TryFile: String;
+  Ini: TMemIniFile;
+  Sections: TStringList;
+  IniFilePath, Section: String;
+  SQLFunc: TSQLFunction;
+begin
+  inherited Create(True);
+  FOwner := AOwner;
+
+  FCategories := TStringList.Create;
+  FCategories.Duplicates := dupIgnore;
+  FCategories.Sorted := True; // ensures dupIgnore works
+
+  TryFiles := Explode(',', SQLFunctionsFileOrder);
+  for TryFile in TryFiles do begin
+    IniFilePath := ExtractFilePath(Application.ExeName) + 'functions-'+TryFile+'.ini';
+    if FileExists(IniFilePath) then begin
+      FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
+      Ini := TMemIniFile.Create(IniFilePath);
+      Sections := TStringList.Create;
+      Ini.ReadSections(Sections);
+      for Section in Sections do begin
+        SQLFunc := TSQLFunction.Create;
+        SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
+        SQLFunc.Declaration := '(' + Ini.ReadString(Section, 'Declaration', '') + ')';
+        SQLFunc.Category := Ini.ReadString(Section, 'Category', '');
+        SQLFunc.Description := Ini.ReadString(Section, 'Description', '');
+        SQLFunc.Description := StringReplace(SQLFunc.Description, '\n', sLineBreak, [rfReplaceAll]);
+        Add(SQLFunc);
+        FCategories.Add(SQLFunc.Category);
+      end;
+      Ini.Free;
+      Break;
+    end;
   end;
 end;
 

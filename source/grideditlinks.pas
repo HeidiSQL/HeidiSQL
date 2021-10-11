@@ -47,11 +47,11 @@ type
     function GetCellRect(InnerTextBounds: Boolean): TRect;
   public
     // The table column of the cell being edited. Mostly used in data grids.
-    property TableColumn: TTableColumn read FTableColumn write FTableColumn;
+    property TableColumn: TTableColumn read FTableColumn;
     // The original constructor, not used any more, throws an exception if you do
     constructor Create; overload;
     // The right constructor, we need the Tree reference
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); overload; virtual;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); overload; virtual;
     destructor Destroy; override;
     property Tree: TVirtualStringTree read FTree;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; virtual; stdcall;
@@ -70,7 +70,7 @@ type
   public
     MaxLength: Integer;
     TitleText: String;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function CancelEdit: Boolean; override;
@@ -97,7 +97,7 @@ type
     procedure TextChange(Sender: TObject);
     function MicroSecondsPrecision: Integer;
   public
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -114,7 +114,7 @@ type
     ValueList, DisplayList: TStringList;
     AllowCustomText: Boolean;
     ItemMustExist: Boolean;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -132,7 +132,7 @@ type
     procedure BtnCancelClick(Sender: TObject);
   public
     ValueList: TStringList;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -153,7 +153,7 @@ type
   public
     ButtonVisible: Boolean;
     TitleText: String;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function CancelEdit: Boolean; override;
@@ -182,7 +182,7 @@ type
   public
     DefaultType, OnUpdateType: TColumnDefaultType;
     DefaultText, OnUpdateText: String;
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -208,7 +208,7 @@ type
         PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure DoTreeSelectFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
   public
-    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean); override;
+    constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
     function EndEdit: Boolean; override;
@@ -251,7 +251,7 @@ begin
     [Self.ClassName, 'Create', Self.ClassName, 'Create(VirtualStringTree)']);
 end;
 
-constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor TBaseGridEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited Create;
   FInstanceId := Random(100);
@@ -264,6 +264,7 @@ begin
   FModified := False;
   FAllowEdit := AllowEdit;
   ActiveGridEditor := Self;
+  FTableColumn := Col;
 end;
 
 destructor TBaseGridEditorLink.Destroy;
@@ -468,7 +469,7 @@ end;
 
 
 
-constructor THexEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor THexEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
 end;
@@ -530,7 +531,7 @@ end;
 
 { DateTime editor }
 
-constructor TDateTimeEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor TDateTimeEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
 
@@ -870,7 +871,7 @@ end;
 
 { Enum editor }
 
-constructor TEnumEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor TEnumEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
   AllowCustomText := False;
@@ -975,7 +976,7 @@ end;
 
 { SET editor }
 
-constructor TSetEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor TSetEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
   ValueList := TStringList.Create;
@@ -1111,7 +1112,7 @@ end;
 
 { TInplaceEditorLink }
 
-constructor TInplaceEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor TInplaceEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
   ButtonVisible := false;
@@ -1249,11 +1250,11 @@ end;
 
 { Column default editor }
 
-constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 const
   m = 5;
 var
-  i: Integer;
+  SQLFunc: TSQLFunction;
 begin
   inherited;
 
@@ -1323,8 +1324,8 @@ begin
   FExpressionEdit.Width := FExpressionEdit.Parent.Width - 2*FExpressionEdit.Left;
   FExpressionEdit.OnChange := EditChange;
   FExpressionEdit.DropDownCount := 20;
-  for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
-    FExpressionEdit.Items.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+  for SQLFunc in FTableColumn.Connection.SQLFunctions do begin
+    FExpressionEdit.Items.Add(SQLFunc.Name + SQLFunc.Declaration);
   end;
 
   FlblOnUpdate := TLabel.Create(FPanel);
@@ -1341,8 +1342,8 @@ begin
   FOnUpdateEdit.Width := FOnUpdateEdit.Parent.Width - 2*FOnUpdateEdit.Left;
   FOnUpdateEdit.OnChange := EditChange;
   FOnUpdateEdit.DropDownCount := 20;
-  for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
-    FOnUpdateEdit.Items.Add(MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+  for SQLFunc in FTableColumn.Connection.SQLFunctions do begin
+    FOnUpdateEdit.Items.Add(SQLFunc.Name + SQLFunc.Declaration);
   end;
 
   FRadioAutoInc := TAllKeysRadioButton.Create(FPanel);
@@ -1599,7 +1600,7 @@ end;
 
 
 { Datatype selector }
-constructor TDataTypeEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean);
+constructor TDataTypeEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
 begin
   inherited;
 

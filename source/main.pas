@@ -1146,6 +1146,7 @@ type
     procedure SynMemoQueryChange(Sender: TObject);
     procedure actCloseAllQueryTabsExecute(Sender: TObject);
     procedure menuCloseRightQueryTabsClick(Sender: TObject);
+    procedure popupFilterPopup(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1793,8 +1794,6 @@ var
   dwWnd: DWORD;         // Handle for the size call.
   FI: PVSFixedFileInfo; // Delphi structure; see WINDOWS.PAS
   ptrVerBuf: Pointer;
-  FunctionCategories: TStringList;
-  miGroup, miFilterGroup, miFunction, miFilterFunction: TMenuItem;
   CopyAsMenu, CommandMenu: TMenuItem;
   TZI: TTimeZoneInformation;
   dti: TDBDatatypeCategoryIndex;
@@ -1858,49 +1857,6 @@ begin
 
   // Load snippet filenames
   SetSnippetFilenames;
-
-  // Create function menu items in popupQuery and popupFilter
-  menuQueryInsertFunction.Clear;
-  menuFilterInsertFunction.Clear;
-  FunctionCategories := GetFunctionCategories;
-  for i:=0 to FunctionCategories.Count-1 do begin
-    // Create a menu item which gets subitems later
-    miGroup := TMenuItem.Create(popupQuery);
-    miGroup.Caption := FunctionCategories[i];
-    menuQueryInsertFunction.Add(miGroup);
-    miFilterGroup := TMenuItem.Create(popupFilter);
-    miFilterGroup.Caption := miGroup.Caption;
-    menuFilterInsertFunction.Add(miFilterGroup);
-    for j:=0 to Length(MySqlFunctions)-1 do begin
-      if MySqlFunctions[j].Category <> FunctionCategories[i] then
-        continue;
-      miFunction := TMenuItem.Create(popupQuery);
-      miFunction.Caption := MySqlFunctions[j].Name;
-      miFunction.ImageIndex := 13;
-      // Prevent generating a hotkey
-      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
-      // Prevent generating a seperator line
-      if miFunction.Caption = '-' then
-        miFunction.Caption := '&-';
-      miFunction.Hint := MySqlFunctions[j].Name + MySqlFunctions[j].Declaration + ' - ' + StrEllipsis(MySqlFunctions[j].Description, 200);
-      // Prevent generating a seperator for ShortHint and LongHint
-      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
-      miFunction.Tag := j;
-      // Place menuitem on menu
-      miFunction.OnClick := insertFunction;
-      miGroup.Add(miFunction);
-      // Create a copy of the menuitem for popupFilter
-      miFilterFunction := TMenuItem.Create(popupFilter);
-      miFilterFunction.Caption := miFunction.Caption;
-      miFilterFunction.Hint := miFunction.Hint;
-      miFilterFunction.ImageIndex := miFunction.ImageIndex;
-      miFilterFunction.Tag := miFunction.Tag;
-      miFilterFunction.OnClick := miFunction.OnClick;
-      miFilterFunction.Enabled := miFunction.Enabled;
-      miFilterGroup.Add(miFilterFunction);
-    end;
-  end;
-  FunctionCategories.Free;
 
   // Dynamically create actions and menuitems in "Copy as" context menu
   for ExportFormat:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
@@ -6485,6 +6441,7 @@ var
   RoutineEditor: TfrmRoutineEditor;
   Param: TRoutineParam;
   DisplayText: String;
+  SQLFunc: TSQLFunction;
 
   procedure AddTable(Obj: TDBObject);
   var
@@ -6690,13 +6647,11 @@ begin
       end;
 
       // Functions
-      for i:=0 to Length(MySQLFunctions)-1 do begin
-        // Hide unsupported functions
-        if MySqlFunctions[i].Version > Conn.ServerVersionInt then
-          continue;
-        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FUNCTION, _('function'), MySQLFunctions[i].Name, MySQLFunctions[i].Declaration);
-        Proposal.AddItem(DisplayText, MySQLFunctions[i].Name + MySQLFunctions[i].Declaration);
+      for SQLFunc in Conn.SQLFunctions do begin
+        DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FUNCTION, _('function'), SQLFunc.Name, SQLFunc.Declaration);
+        Proposal.AddItem(DisplayText, SQLFunc.Name + SQLFunc.Declaration);
       end;
+
 
       // Keywords
       for i:=0 to MySQLKeywords.Count-1 do begin
@@ -6963,9 +6918,41 @@ end;
 
 
 procedure TMainForm.popupQueryPopup(Sender: TObject);
+var
+  SQLFuncs: TSQLFunctionList;
+  i, j: Integer;
+  miGroup, miFunction: TMenuItem;
 begin
   // Sets cursor into memo and activates TAction(s) like paste
   QueryTabs.ActiveMemo.SetFocus;
+  // Create function menu items in popup menu
+  menuQueryInsertFunction.Clear;
+  SQLFuncs := ActiveConnection.SQLFunctions;
+  for i:=0 to SQLFuncs.Categories.Count-1 do begin
+    // Create a menu item which gets subitems later
+    miGroup := TMenuItem.Create(popupQuery);
+    miGroup.Caption := SQLFuncs.Categories[i];
+    menuQueryInsertFunction.Add(miGroup);
+    for j:=0 to SQLFuncs.Count-1 do begin
+      if SQLFuncs[j].Category <> SQLFuncs.Categories[i] then
+        Continue;
+      miFunction := TMenuItem.Create(popupQuery);
+      miFunction.Caption := SQLFuncs[j].Name;
+      miFunction.ImageIndex := 13;
+      // Prevent generating a hotkey
+      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
+      // Prevent generating a seperator line
+      if miFunction.Caption = '-' then
+        miFunction.Caption := '&-';
+      miFunction.Hint := SQLFuncs[j].Name + SQLFuncs[j].Declaration + ' - ' + StrEllipsis(SQLFuncs[j].Description, 200);
+      // Prevent generating a seperator for ShortHint and LongHint
+      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
+      miFunction.Tag := j;
+      // Place menuitem on menu
+      miFunction.OnClick := insertFunction;
+      miGroup.Add(miFunction);
+    end;
+  end;
 end;
 
 
@@ -7419,6 +7406,43 @@ begin
     actCreateFunction.Enabled := actCreateFunction.Enabled and (Version >= 50003);
     actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Version >= 50002);
     actCreateEvent.Enabled := actCreateEvent.Enabled and (Version >= 50100);
+  end;
+end;
+
+
+procedure TMainForm.popupFilterPopup(Sender: TObject);
+var
+  SQLFuncs: TSQLFunctionList;
+  i, j: Integer;
+  miGroup, miFunction: TMenuItem;
+begin
+  // Create function menu items in popup menu
+  menuFilterInsertFunction.Clear;
+  SQLFuncs := ActiveConnection.SQLFunctions;
+  for i:=0 to SQLFuncs.Categories.Count-1 do begin
+    // Create a menu item which gets subitems later
+    miGroup := TMenuItem.Create(popupFilter);
+    miGroup.Caption := SQLFuncs.Categories[i];
+    menuFilterInsertFunction.Add(miGroup);
+    for j:=0 to SQLFuncs.Count-1 do begin
+      if SQLFuncs[j].Category <> SQLFuncs.Categories[i] then
+        Continue;
+      miFunction := TMenuItem.Create(popupFilter);
+      miFunction.Caption := SQLFuncs[j].Name;
+      miFunction.ImageIndex := 13;
+      // Prevent generating a hotkey
+      miFunction.Caption := StringReplace(miFunction.Caption, '&', '&&', [rfReplaceAll]);
+      // Prevent generating a seperator line
+      if miFunction.Caption = '-' then
+        miFunction.Caption := '&-';
+      miFunction.Hint := SQLFuncs[j].Name + SQLFuncs[j].Declaration + ' - ' + StrEllipsis(SQLFuncs[j].Description, 200);
+      // Prevent generating a seperator for ShortHint and LongHint
+      miFunction.Hint := StringReplace( miFunction.Hint, '|', '¦', [rfReplaceAll] );
+      miFunction.Tag := j;
+      // Place menuitem on menu
+      miFunction.OnClick := insertFunction;
+      miGroup.Add(miFunction);
+    end;
   end;
 end;
 
@@ -8003,15 +8027,17 @@ procedure TMainForm.insertFunction(Sender: TObject);
 var
   f : String;
   sm : TSynMemo;
+  Conn: TDBConnection;
 begin
   // Detect which memo is focused
   if SynMemoFilter.Focused then
     sm := SynMemoFilter
   else
     sm := QueryTabs.ActiveMemo;
-  // Restore function name from array
-  f := MySQLFunctions[TControl(Sender).tag].Name
-    + MySQLFunctions[TControl(Sender).tag].Declaration;
+  // Restore function name from tag
+  Conn := ActiveConnection;
+  f := Conn.SQLFunctions[TControl(Sender).tag].Name
+    + Conn.SQLFunctions[TControl(Sender).tag].Declaration;
   sm.UndoList.AddGroupBreak;
   sm.SelText := f;
   sm.UndoList.AddGroupBreak;
@@ -8397,6 +8423,7 @@ procedure TMainForm.AnyGridGetHint(Sender: TBaseVirtualTree; Node:
 var
   Tree: TVirtualStringTree;
   NewHint: String;
+  Conn: TDBConnection;
 begin
   // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
   if IsWine then
@@ -8405,11 +8432,12 @@ begin
   Tree := TVirtualStringTree(Sender);
 
   if Tree = QueryTabs.ActiveHelpersTree then begin
+    Conn := ActiveConnection;
     case Sender.GetNodeLevel(Node) of
       1: case Node.Parent.Index of
         TQueryTab.HelperNodeFunctions: begin
-          NewHint := MySQLFunctions[Node.Index].Name + MySQLFunctions[Node.Index].Declaration +
-            ':' + sLineBreak + MySQLFunctions[Node.Index].Description;
+          NewHint := Conn.SQLFunctions[Node.Index].Name + Conn.SQLFunctions[Node.Index].Declaration +
+            ':' + sLineBreak + Conn.SQLFunctions[Node.Index].Description;
           if not NewHint.IsEmpty then begin
             HintText := NewHint;
           end;
@@ -10208,6 +10236,7 @@ var
   RowNum: PInt64;
   RefObj: TDBObject;
   AllowEdit: Boolean;
+  SQLFunc: TSQLFunction;
 begin
   VT := Sender as TVirtualStringTree;
   Results := GridResult(VT);
@@ -10216,6 +10245,7 @@ begin
   Conn := Results.Connection;
   // Allow editing, or leave readonly mode
   AllowEdit := Results.IsEditable;
+  TblColumn := Results.ColAttributes(Column);
 
   // Find foreign key values
   if AppSettings.ReadBool(asForeignDropDown) and (Sender = DataGrid) then begin
@@ -10252,7 +10282,7 @@ begin
 
         ForeignResults := Conn.GetResults(SQL);
         if ForeignResults.RecordCount < ForeignItemsLimit then begin
-          EnumEditor := TEnumEditorLink.Create(VT, AllowEdit);
+          EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
           EditLink := EnumEditor;
           while not ForeignResults.Eof do begin
             EnumEditor.ValueList.Add(ForeignResults.Col(0));
@@ -10273,30 +10303,29 @@ begin
 
   FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(Column);
   if FGridEditFunctionMode then begin
-    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit);
-    for idx:=Low(MySQLFunctions) to High(MySQLFunctions) do
-      EnumEditor.ValueList.Add(MySQLFunctions[idx].Name + MySQLFunctions[idx].Declaration);
+    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
+    for SQLFunc in Conn.SQLFunctions do
+      EnumEditor.ValueList.Add(SQLFunc.Name + SQLFunc.Declaration);
     EnumEditor.AllowCustomText := True;
     EditLink := EnumEditor;
   end;
 
   TypeCat := Results.DataType(Column).Category;
-  TblColumn := Results.ColAttributes(Column);
 
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
   else if (Results.DataType(Column).Index in [dbdtEnum, dbdtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
-    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit);
+    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
     EnumEditor.ValueList := Results.ValueList(Column);
     EditLink := EnumEditor;
   end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
-    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit);
+    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
     InplaceEditor.MaxLength := Results.MaxLength(Column);
     InplaceEditor.TitleText := Results.ColumnOrgNames[Column];
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
-    HexEditor := THexEditorLink.Create(VT, AllowEdit);
+    HexEditor := THexEditorLink.Create(VT, AllowEdit, TblColumn);
     HexEditor.MaxLength := Results.MaxLength(Column);
     HexEditor.TitleText := Results.ColumnOrgNames[Column];
     EditLink := HexEditor;
@@ -10321,26 +10350,25 @@ begin
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
-    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit);
+    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
     EditLink := DateTimeEditor;
   end else if AppSettings.ReadBool(asFieldEditorDatetime)
     and HandleUnixTimestampColumn(Sender, Column)
     and Assigned(TblColumn) // see above
     then begin
-    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit);
+    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
     EditLink := DateTimeEditor;
   end else if (Results.DataType(Column).Index = dbdtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
-    SetEditor := TSetEditorLink.Create(VT, AllowEdit);
+    SetEditor := TSetEditorLink.Create(VT, AllowEdit, TblColumn);
     SetEditor.ValueList := Results.ValueList(Column);
     EditLink := SetEditor;
   end else begin
-    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit);
+    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
     InplaceEditor.ButtonVisible := False;
     EditLink := InplaceEditor;
   end;
   Sender.FocusedNode := Node;
   Sender.FocusedColumn := Column;
-  TBaseGridEditorLink(EditLink).TableColumn := TblColumn;
 end;
 
 
@@ -13172,7 +13200,7 @@ begin
                      CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
                end;
              end;
-             TQueryTab.HelperNodeFunctions: CellText := MySQLFunctions[Node.Index].Name;
+             TQueryTab.HelperNodeFunctions: CellText := ActiveConnection.SQLFunctions[Node.Index].Name;
              TQueryTab.HelperNodeKeywords: CellText := MySQLKeywords[Node.Index];
              TQueryTab.HelperNodeSnippets: CellText := IfThen(Node.Index < Cardinal(FSnippetFilenames.Count), FSnippetFilenames[Node.Index], '');
              TQueryTab.HelperNodeHistory: begin
@@ -13208,7 +13236,7 @@ begin
                    CellText := SelectedTableColumns[Node.Index].DataType.Name;
                end;
              end;
-             TQueryTab.HelperNodeFunctions: CellText := MySQLFunctions[Node.Index].Declaration;
+             TQueryTab.HelperNodeFunctions: CellText := ActiveConnection.SQLFunctions[Node.Index].Declaration;
              TQueryTab.HelperNodeProfile: begin
                   if Assigned(Tab.QueryProfile) then begin
                     Tab.QueryProfile.RecNo := Node.Index;
@@ -13310,7 +13338,7 @@ begin
                  ChildCount := 0;
            end;
          end;
-         TQueryTab.HelperNodeFunctions: ChildCount := Length(MySQLFunctions);
+         TQueryTab.HelperNodeFunctions: ChildCount := ActiveConnection.SQLFunctions.Count;
          TQueryTab.HelperNodeKeywords: ChildCount := MySQLKeywords.Count;
          TQueryTab.HelperNodeSnippets: ChildCount := FSnippetFilenames.Count;
          TQueryTab.HelperNodeHistory: begin
@@ -13477,7 +13505,7 @@ var
  VT: TVirtualStringTree;
 begin
   VT := Sender as TVirtualStringTree;
-  InplaceEditor := TInplaceEditorLink.Create(VT, True);
+  InplaceEditor := TInplaceEditorLink.Create(VT, True, nil);
   InplaceEditor.ButtonVisible := true;
   EditLink := InplaceEditor;
 end;

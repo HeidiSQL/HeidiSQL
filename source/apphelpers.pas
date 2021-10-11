@@ -1630,6 +1630,8 @@ end;
 
 function ReformatSQL(SQL: String): String;
 var
+  Conn: TDBConnection;
+  SQLFunc: TSQLFunction;
   AllKeywords, ImportantKeywords, PairKeywords: TStringList;
   i, Run, KeywordMaxLen: Integer;
   IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
@@ -1640,15 +1642,17 @@ const
   WordChars = ['a'..'z', 'A'..'Z', '0'..'9', '_', '.'];
   WhiteSpaces = [#9, #10, #13, #32];
 begin
+  Conn := MainForm.ActiveConnection;
   // Known SQL keywords, get converted to UPPERCASE
   AllKeywords := TStringList.Create;
   AllKeywords.Text := MySQLKeywords.Text;
-  for i:=Low(MySQLFunctions) to High(MySQLFunctions) do begin
+
+  for SQLFunc in Conn.SQLFunctions do begin
     // Leave out operator functions like ">>", and the "X()" function so hex values don't get touched
-    if (MySQLFunctions[i].Declaration <> '') and (MySQLFunctions[i].Name <> 'X') then
-      AllKeywords.Add(MySQLFunctions[i].Name);
+    if (SQLFunc.Declaration <> '') and (SQLFunc.Name <> 'X') then
+      AllKeywords.Add(SQLFunc.Name);
   end;
-  Datatypes := Mainform.ActiveConnection.Datatypes;
+  Datatypes := Conn.Datatypes;
   for i:=Low(Datatypes) to High(Datatypes) do
     AllKeywords.Add(Datatypes[i].Name);
   KeywordMaxLen := 0;

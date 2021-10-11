@@ -818,7 +818,7 @@ procedure Tconnform.ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVi
   Column: TColumnIndex; out EditLink: IVTEditLink);
 begin
   // Use our own text editor to rename a session
-  EditLink := TInplaceEditorLink.Create(Sender as TVirtualStringTree, True);
+  EditLink := TInplaceEditorLink.Create(Sender as TVirtualStringTree, True, nil);
 end;
 
 

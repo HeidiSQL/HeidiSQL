@@ -118,6 +118,8 @@ Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not 
 ; VC redistributable
 Source: VC_redist.x64.exe; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: VC_redist.x86.exe; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; SQL function definitions
+Source: "functions-*.ini"; DestDir: "{app}"; Flags: ignoreversion
 
 
 [Icons]

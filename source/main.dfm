@@ -4259,6 +4259,7 @@ object MainForm: TMainForm
   end
   object popupFilter: TPopupMenu
     Images = VirtualImageListMain
+    OnPopup = popupFilterPopup
     Left = 344
     Top = 248
     object menuFilterCopy: TMenuItem
