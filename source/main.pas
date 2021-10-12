@@ -13160,6 +13160,7 @@ procedure TMainForm.treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVir
 var
   History: TQueryHistory;
   Tab: TQueryTab;
+  Conn: TDBConnection;
 begin
   // Query helpers tree fetching node text
   CellText := '';
@@ -13200,7 +13201,11 @@ begin
                      CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
                end;
              end;
-             TQueryTab.HelperNodeFunctions: CellText := ActiveConnection.SQLFunctions[Node.Index].Name;
+             TQueryTab.HelperNodeFunctions: begin
+               Conn := ActiveConnection;
+               if Conn <> nil then
+                 CellText := Conn.SQLFunctions[Node.Index].Name;
+             end;
              TQueryTab.HelperNodeKeywords: CellText := MySQLKeywords[Node.Index];
              TQueryTab.HelperNodeSnippets: CellText := IfThen(Node.Index < Cardinal(FSnippetFilenames.Count), FSnippetFilenames[Node.Index], '');
              TQueryTab.HelperNodeHistory: begin
@@ -13236,7 +13241,11 @@ begin
                    CellText := SelectedTableColumns[Node.Index].DataType.Name;
                end;
              end;
-             TQueryTab.HelperNodeFunctions: CellText := ActiveConnection.SQLFunctions[Node.Index].Declaration;
+             TQueryTab.HelperNodeFunctions: begin
+               Conn := ActiveConnection;
+               if Conn <> nil then
+                 CellText := Conn.SQLFunctions[Node.Index].Declaration;
+             end;
              TQueryTab.HelperNodeProfile: begin
                   if Assigned(Tab.QueryProfile) then begin
                     Tab.QueryProfile.RecNo := Node.Index;
