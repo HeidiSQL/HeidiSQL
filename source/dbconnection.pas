@@ -270,9 +270,11 @@ type
     private
       FOwner: TDBConnection;
       FCategories: TStringList;
+      FNames: TStringList;
     public
       constructor Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
       property Categories: TStringList read FCategories;
+      property Names: TStringList read FNames;
   end;
 
   { TConnectionParameters and friends }
@@ -10329,6 +10331,9 @@ begin
   FCategories := TStringList.Create;
   FCategories.Duplicates := dupIgnore;
   FCategories.Sorted := True; // ensures dupIgnore works
+  FNames := TStringList.Create;
+  FNames.Duplicates := dupIgnore;
+  FNames.Sorted := True;
 
   TryFiles := Explode(',', SQLFunctionsFileOrder);
   for TryFile in TryFiles do begin
@@ -10347,6 +10352,7 @@ begin
         SQLFunc.Description := StringReplace(SQLFunc.Description, '\n', sLineBreak, [rfReplaceAll]);
         Add(SQLFunc);
         FCategories.Add(SQLFunc.Category);
+        FNames.Add(SQLFunc.Name);
       end;
       Ini.Free;
       Break;

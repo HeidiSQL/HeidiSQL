@@ -9240,6 +9240,7 @@ var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
   TabHostName: String;
+  SQLFunc: TSQLFunction;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
@@ -9347,6 +9348,12 @@ begin
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
+      // Overwrite function names predefined by SynEdit
+      SynSQLSynUsed.FunctionNames.BeginUpdate;
+      SynSQLSynUsed.FunctionNames.Clear;
+      SynSQLSynUsed.FunctionNames.AddStrings(FActiveDbObj.Connection.SQLFunctions.Names);
+      SynSQLSynUsed.FunctionNames.EndUpdate;
+
     end;
     if (FActiveDbObj.NodeType <> lntNone)
       and (
