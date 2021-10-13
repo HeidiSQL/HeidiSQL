@@ -9348,7 +9348,7 @@ begin
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
-      // Overwrite function names predefined by SynEdit
+      // Extend predefined MySQLFunctions from SynHighlighterSQL with our own functions list
       SynSQLSynUsed.FunctionNames.BeginUpdate;
       SynSQLSynUsed.FunctionNames.Clear;
       SynSQLSynUsed.FunctionNames.AddStrings(FActiveDbObj.Connection.SQLFunctions.Names);
