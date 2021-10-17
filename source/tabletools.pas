@@ -1806,7 +1806,9 @@ begin
       Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
       if comboExportData.Text = DATA_REPLACE then
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
-      Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
+      if DBObj.Engine.ToLowerInvariant <> 'innodb' then begin
+        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
+      end;
       while true do begin
         Data := DBObj.Connection.GetResults(
           DBObj.Connection.ApplyLimitClause(
@@ -1888,7 +1890,9 @@ begin
           break;
 
       end;
-      Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
+      if DBObj.Engine.ToLowerInvariant <> 'innodb' then begin
+        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
+      end;
       Output(CRLF, False, True, True, True, True);
       // Cosmetic fix for estimated InnoDB row count
       DBObj.Rows := RowCount;
