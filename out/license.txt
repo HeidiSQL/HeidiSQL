@@ -31,3 +31,6 @@ or data being rendered inaccurate or losses sustained by you or third
 parties or a failure of the program to operate with any other programs),
 even if such holder or other party has been advised of the possibility of
 such damages.
+
+This product includes software developed by the OpenSSL Project
+for use in the OpenSSL Toolkit. (http://www.openssl.org/)
