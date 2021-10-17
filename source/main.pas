@@ -3040,18 +3040,25 @@ end;
 function TMainForm.GetCurrentQuery(Tab: TQueryTab): String;
 var
   BatchAll: TSQLBatch;
-  Query: TSQLSentence;
+  Query, PrevQuery: TSQLSentence;
 begin
   // Return SQL query on cursor position
   Result := '';
   BatchAll := TSQLBatch.Create;
   BatchAll.SQL := Tab.Memo.Text;
+  PrevQuery := nil;
   for Query in BatchAll do begin
     if (Tab.Memo.SelStart >= Query.LeftOffset-1) and (Tab.Memo.SelStart < Query.RightOffset) then begin
       Result := Query.SQL;
       Tab.LeftOffsetInMemo := Query.LeftOffset;
       break;
     end;
+    PrevQuery := Query;
+  end;
+  // Prefer query left to the current one, if current one contains no text
+  if Trim(Result).IsEmpty and Assigned(PrevQuery) then begin
+    Result := PrevQuery.SQL;
+    Tab.LeftOffsetInMemo := PrevQuery.LeftOffset;
   end;
   BatchAll.Free;
 end;
