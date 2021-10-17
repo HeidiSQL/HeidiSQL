@@ -441,7 +441,11 @@ begin
     end;
     SessionNode := TreeObjects.GetNextSibling(SessionNode);
   end;
-  Arguments.Add('--databases ' + Implode(' ', DatabaseNames));
+  // --databases or --all-databases can't be used with --tab
+  if comboExportOutputType.Text <> OUTPUT_DIR then
+    Arguments.Add('--databases ' + Implode(' ', DatabaseNames))
+  else
+    Arguments.Add(Implode(' ', DatabaseNames));
   DatabaseNames.Free;
 
   FullCommand := BinPath + ConnectionArguments + ' ' + Implode(' ', Arguments);
