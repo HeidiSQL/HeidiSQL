@@ -3630,7 +3630,7 @@ begin
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
-  InitSetting(asCompletionProposalSearchOnMid,    'CompletionProposalSearchOnMid',         0, False);
+  InitSetting(asCompletionProposalSearchOnMid,    'CompletionProposalSearchOnMid',         0, True);
   InitSetting(asCompletionProposalWidth,          'CompletionProposalWidth',               350);
   InitSetting(asCompletionProposalNbLinesInWindow,'CompletionProposalNbLinesInWindow',     12);
   InitSetting(asAutoUppercase,                    'AutoUppercase',                         0, True);
