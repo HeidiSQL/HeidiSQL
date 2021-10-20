@@ -763,6 +763,8 @@ type
     N25: TMenuItem;
     Closeallquerytabs1: TMenuItem;
     menuCloseRightQueryTabs: TMenuItem;
+    actSynMoveDown: TAction;
+    actSynMoveUp: TAction;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1147,6 +1149,8 @@ type
     procedure actCloseAllQueryTabsExecute(Sender: TObject);
     procedure menuCloseRightQueryTabsClick(Sender: TObject);
     procedure popupFilterPopup(Sender: TObject);
+    procedure actSynMoveDownExecute(Sender: TObject);
+    procedure actSynMoveUpExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1895,6 +1899,13 @@ begin
     CommandMenu.OnClick := EditorCommandOnClick;
     menuEditorCommands.Add(CommandMenu);
   end;
+  // Custom additional editor commands
+  CommandMenu := TMenuItem.Create(MainMenu1);
+  CommandMenu.Action := actSynMoveDown;
+  menuEditorCommands.Add(CommandMenu);
+  CommandMenu := TMenuItem.Create(MainMenu1);
+  CommandMenu.Action := actSynMoveUp;
+  menuEditorCommands.Add(CommandMenu);
 
 
 
@@ -4677,6 +4688,37 @@ begin
     SynCompletionProposal.ActivateCompletion
   else
     MessageBeep(MB_ICONEXCLAMATION);
+end;
+
+procedure TMainForm.actSynMoveDownExecute(Sender: TObject);
+var
+  Editor: TSynMemo;
+begin
+  // Move line of text one down
+  Editor := ActiveSynMemo(False);
+  if Assigned(Editor) and (Editor.CaretY < Editor.Lines.Count) then begin
+    //Logsql('Editor.CaretY:'+Editor.CaretY.ToString+' Editor.Lines.Count:'+Editor.Lines.Count.ToString);
+    Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY);
+    Editor.CaretY := Editor.CaretY + 1;
+    Editor.Repaint;
+    if Assigned(Editor.OnChange) then
+      Editor.OnChange(Editor);
+  end;
+end;
+
+procedure TMainForm.actSynMoveUpExecute(Sender: TObject);
+var
+  Editor: TSynMemo;
+begin
+  // Move line of text one up
+  Editor := ActiveSynMemo(False);
+  if Assigned(Editor) and (Editor.CaretY >= 2) then begin
+    Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY-2);
+    Editor.CaretY := Editor.CaretY - 1;
+    Editor.Repaint;
+    if Assigned(Editor.OnChange) then
+      Editor.OnChange(Editor);
+  end;
 end;
 
 {***
@@ -9247,7 +9289,6 @@ var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
   TabHostName: String;
-  SQLFunc: TSQLFunction;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;

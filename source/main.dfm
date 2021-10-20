@@ -3533,6 +3533,18 @@ object MainForm: TMainForm
       ImageIndex = 133
       OnExecute = actCloseAllQueryTabsExecute
     end
+    object actSynMoveDown: TAction
+      Category = 'SQL'
+      Caption = 'Move line down'
+      ShortCut = 32808
+      OnExecute = actSynMoveDownExecute
+    end
+    object actSynMoveUp: TAction
+      Category = 'SQL'
+      Caption = 'Move line up'
+      ShortCut = 32806
+      OnExecute = actSynMoveUpExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
