@@ -2509,7 +2509,6 @@ begin
       on E:Exception do begin
         // Session params not found in registry
         MainForm.LogSQL(E.Message);
-        SessName := '';
       end;
     end;
   end;

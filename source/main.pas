@@ -2222,7 +2222,11 @@ begin
   ParseCommandLine(Windows.GetCommandLine, ConnectionParams, FileNames);
   if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
-    InitConnection(ConnectionParams, True, Connection);
+    try
+      InitConnection(ConnectionParams, True, Connection);
+    except on E:Exception do
+      ErrorDialog(E.Message);
+    end;
   end else if AppSettings.ReadBool(asAutoReconnect) then begin
     // Auto connection via preference setting
     // Do not autoconnect if we're in commandline mode and the connection was not successful
