@@ -4946,6 +4946,8 @@ begin
     if not AlwaysQuote then begin
       if MySQLKeywords.IndexOf(Result) > -1 then
         AlwaysQuote := True
+      else if SQLFunctions.Names.IndexOf(Result) > -1 then
+        AlwaysQuote := True
       else for i:=1 to Length(Result) do begin
         if not CharInSet(Result[i], FIdentCharsNoQuote) then begin
           AlwaysQuote := True;
