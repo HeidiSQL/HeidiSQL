@@ -765,6 +765,8 @@ type
     menuCloseRightQueryTabs: TMenuItem;
     actSynMoveDown: TAction;
     actSynMoveUp: TAction;
+    actCopyTabsToSpaces: TAction;
+    Copywithtabstospaces1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1151,6 +1153,8 @@ type
     procedure popupFilterPopup(Sender: TObject);
     procedure actSynMoveDownExecute(Sender: TObject);
     procedure actSynMoveUpExecute(Sender: TObject);
+    procedure actCopyTabsToSpacesExecute(Sender: TObject);
+    procedure actCopyUpdate(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2907,6 +2911,18 @@ begin
   Dialog.Free;
 end;
 
+
+procedure TMainForm.actCopyTabsToSpacesExecute(Sender: TObject);
+begin
+  // issue #1285: copy text with tabs converted to spaces
+  actCopyOrCutExecute(Sender);
+  Clipboard.AsText := StringReplace(Clipboard.AsText, #9, ' ', [rfReplaceAll]);
+end;
+
+procedure TMainForm.actCopyUpdate(Sender: TObject);
+begin
+  actCopyTabsToSpaces.Enabled := actCopy.Enabled;
+end;
 
 procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var

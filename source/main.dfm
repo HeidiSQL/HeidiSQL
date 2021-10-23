@@ -2075,6 +2075,9 @@ object MainForm: TMainForm
       object CopyItem: TMenuItem
         Action = actCopy
       end
+      object Copywithtabstospaces1: TMenuItem
+        Action = actCopyTabsToSpaces
+      end
       object PasteItem: TMenuItem
         Action = actPaste
       end
@@ -2372,6 +2375,7 @@ object MainForm: TMainForm
       ImageName = 'icons8-copy-100'
       ShortCut = 16451
       OnExecute = actCopyOrCutExecute
+      OnUpdate = actCopyUpdate
     end
     object actPaste: TAction
       Category = 'Various'
@@ -2406,6 +2410,13 @@ object MainForm: TMainForm
       ImageIndex = 40
       ImageName = 'icons8-undo'
       ShortCut = 32776
+    end
+    object actCopyTabsToSpaces: TAction
+      Category = 'Various'
+      Caption = 'Copy with tabs to spaces'
+      ImageIndex = 3
+      ShortCut = 24643
+      OnExecute = actCopyTabsToSpacesExecute
     end
     object actAboutBox: TAction
       Category = 'Various'
