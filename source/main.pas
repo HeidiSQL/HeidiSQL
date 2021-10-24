@@ -9413,6 +9413,8 @@ begin
           SynSQLSynUsed.SQLDialect := sqlPostgres;
         ngSQLite:
           SynSQLSynUsed.SQLDialect := sqlStandard;
+        ngInterbase:
+          SynSQLSynUsed.SQLDialect := sqlInterbase6;
         else
           raise Exception.CreateFmt(_(MsgUnhandledNetType), [Integer(FActiveDbObj.Connection.Parameters.NetType)]);
       end;
