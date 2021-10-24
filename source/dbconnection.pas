@@ -456,6 +456,7 @@ type
       FCurrentUserHostCombination: String;
       FAllUserHostCombinations: TStringList;
       FLockedByThread: TThread;
+      FStringQuoteChar: Char;
       FQuoteChar: Char;
       FQuoteChars: String;
       FDatatypes: TDBDataTypeArray;
@@ -764,6 +765,7 @@ type
       function GetLastErrorCode: Cardinal; override;
       function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
+      function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
@@ -1969,6 +1971,7 @@ begin
   FIdentCharsNoQuote := ['A'..'Z', 'a'..'z', '0'..'9', '_'];
   FMaxRowsPerInsert := 10000;
   FCaseSensitivity := 0;
+  FStringQuoteChar := '''';
 end;
 
 
@@ -2040,6 +2043,7 @@ var
   i: Integer;
 begin
   inherited;
+  FStringQuoteChar := '"';
   FQuoteChar := '"';
   FQuoteChars := '"[]';
   SetLength(FDatatypes, Length(SQLiteDatatypes));
@@ -3002,7 +3006,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
-      FSQLSpecifities[spUSEQuery] := 'USE %s';
+      FSQLSpecifities[spUSEQuery] := '-- USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
@@ -4803,11 +4807,20 @@ begin
       Result := escChars(Result, '''', '''', '''', '''', '''');
     end;
 
+    ngInterbase: begin
+      c1 := '''';
+      c2 := '''';
+      c3 := '''';
+      c4 := '''';
+      EscChar := '\';
+      Result := escChars(Text, EscChar, c1, c2, c3, c4);
+    end;
+
   end;
 
   if DoQuote then begin
     // Add surrounding single quotes
-    Result := Char(#39) + Result + Char(#39);
+    Result := FStringQuoteChar + Result + FStringQuoteChar;
   end;
 end;
 
@@ -5155,6 +5168,18 @@ begin
 end;
 
 
+function TInterbaseConnection.GetCollationTable: TDBQuery;
+begin
+  inherited;
+  if not Assigned(FCollationTable) then begin
+    FCollationTable := GetResults('SELECT RDB$COLLATION_NAME AS '+EscapeString('Collation')+', RDB$COLLATION_ID AS '+EscapeString('Id')+', RDB$CHARACTER_SET_ID FROM RDB$COLLATIONS');
+  end;
+  if Assigned(FCollationTable) then
+    FCollationTable.First;
+  Result := FCollationTable;
+end;
+
+
 function TDBConnection.GetCollationList: TStringList;
 var
   c: TDBQuery;
@@ -5220,7 +5245,10 @@ end;
 
 function TInterbaseConnection.GetCharsetTable: TDBQuery;
 begin
-  // Todo
+  inherited;
+  if not Assigned(FCharsetTable) then
+    FCharsetTable := GetResults('SELECT RDB$CHARACTER_SET_NAME AS '+EscapeString('Charset')+', RDB$CHARACTER_SET_NAME AS '+EscapeString('Description')+' FROM RDB$CHARACTER_SETS');
+  Result := FCharsetTable;
 end;
 
 
@@ -6935,8 +6963,33 @@ end;
 
 
 procedure TInterbaseConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+var
+  obj: TDBObject;
+  Results: TDBQuery;
 begin
-  // Todo
+  // Tables and views
+  Results := nil;
+  try
+    Results := GetResults('SELECT DISTINCT RDB$RELATION_NAME, RDB$VIEW_CONTEXT AS '+EscapeString('ViewContext') +
+      ' FROM RDB$RELATION_FIELDS WHERE RDB$SYSTEM_FLAG=0');
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col(0);
+      obj.Created := Now;
+      obj.Updated := Now;
+      obj.Database := db;
+      if Results.IsNull(1) then
+        obj.NodeType := lntTable
+      else
+        obj.NodeType := lntView;
+      obj.NodeType := lntTable;
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  except
+    on E:EDbError do;
+  end;
 end;
 
 
