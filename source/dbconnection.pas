@@ -2985,7 +2985,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
-      FSQLSpecifities[spUSEQuery] := '-- USE %s neither supported nor required'; // Cannot be empty without causing problems
+      FSQLSpecifities[spUSEQuery] := '';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
@@ -3006,7 +3006,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
-      FSQLSpecifities[spUSEQuery] := '-- USE %s';
+      FSQLSpecifities[spUSEQuery] := '';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
@@ -4063,6 +4063,7 @@ end;
 procedure TDBConnection.SetDatabase(Value: String);
 var
   s: String;
+  UseQuery: String;
 begin
   Log(lcDebug, 'SetDatabase('+Value+'), FDatabase: '+FDatabase);
   if Value <> FDatabase then begin
@@ -4082,8 +4083,13 @@ begin
           s := s + ', ' + EscapeString('public');
       end else
         s := QuoteIdent(Value);
-      Query(GetSQLSpecifity(spUSEQuery, [s]), False);
-      // FDatabase is set via DetectUSEQuery
+      UseQuery := GetSQLSpecifity(spUSEQuery);
+      if not UseQuery.IsEmpty then begin
+        Query(GetSQLSpecifity(spUSEQuery, [s]), False);
+      end;
+      FDatabase := DeQuoteIdent(Value);
+      if Assigned(FOnDatabaseChanged) then
+        FOnDatabaseChanged(Self, Value);
     end;
 
     // Save last used database in session, see #983
@@ -4105,6 +4111,7 @@ procedure TDBConnection.DetectUSEQuery(SQL: String);
 var
   rx: TRegExpr;
   Quotes: String;
+  NewDb: String;
 begin
   // Detect query for switching current working database or schema
   rx := TRegExpr.Create;
@@ -4114,11 +4121,14 @@ begin
   rx.Expression := StringReplace(rx.Expression, ' ', '\s+', [rfReplaceAll]);
   rx.Expression := StringReplace(rx.Expression, '%s', '['+Quotes+']?([^'+Quotes+']+)['+Quotes+']*', [rfReplaceAll]);
   if rx.Exec(SQL) then begin
-    FDatabase := Trim(rx.Match[1]);
-    FDatabase := DeQuoteIdent(FDatabase);
-    Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
-    if Assigned(FOnDatabaseChanged) then
-      FOnDatabaseChanged(Self, Database);
+    NewDb := Trim(rx.Match[1]);
+    NewDb := DeQuoteIdent(NewDb);
+    if (not NewDb.IsEmpty) and (NewDb <> FDatabase) then begin
+      FDatabase := NewDb;
+      Log(lcDebug, f_('Database "%s" selected', [FDatabase]));
+      if Assigned(FOnDatabaseChanged) then
+        FOnDatabaseChanged(Self, Database);
+    end;
   end;
   rx.Free;
 end;
