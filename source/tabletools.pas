@@ -183,7 +183,7 @@ uses main, dbstructures;
 const
   STRSKIPPED: String = 'Skipped - ';
   EXPORT_FILE_FOOTER =
-    '/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;'+CRLF+
+    '/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, ''system'') */;'+CRLF+
     '/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */;'+CRLF+
     '/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;'+CRLF+
     '/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;'+CRLF+
@@ -441,7 +441,11 @@ begin
     end;
     SessionNode := TreeObjects.GetNextSibling(SessionNode);
   end;
-  Arguments.Add('--databases ' + Implode(' ', DatabaseNames));
+  // --databases or --all-databases can't be used with --tab
+  if comboExportOutputType.Text <> OUTPUT_DIR then
+    Arguments.Add('--databases ' + Implode(' ', DatabaseNames))
+  else
+    Arguments.Add(Implode(' ', DatabaseNames));
   DatabaseNames.Free;
 
   FullCommand := BinPath + ConnectionArguments + ' ' + Implode(' ', Arguments);
@@ -871,6 +875,7 @@ begin
     Output('/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */', True, False, False, True, True);
     Output('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */', True, False, False, True, True);
     Output('/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */', True, False, False, True, True);
+    Output('/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, ''system'') */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
       StreamToClipboard(ExportStream, nil, false);
 
@@ -1638,6 +1643,8 @@ begin
     Output(CRLF, False, True, True, False, False);
 
     // For direct output to database or server:
+    Output('/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */', True, False, False, True, True);
+    Output('/*!40103 SET TIME_ZONE=''+00:00'' */', True, False, False, True, True);
     Output('/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */', True, False, False, True, True);
     Output('/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE=''NO_AUTO_VALUE_ON_ZERO'' */', True, False, False, True, True);
     Output('/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */', True, False, False, True, True);
@@ -1803,7 +1810,9 @@ begin
       Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
       if comboExportData.Text = DATA_REPLACE then
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
-      Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
+      if DBObj.Engine.ToLowerInvariant <> 'innodb' then begin
+        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' DISABLE KEYS */', True, True, True, True, True);
+      end;
       while true do begin
         Data := DBObj.Connection.GetResults(
           DBObj.Connection.ApplyLimitClause(
@@ -1885,7 +1894,9 @@ begin
           break;
 
       end;
-      Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
+      if DBObj.Engine.ToLowerInvariant <> 'innodb' then begin
+        Output('/*!40000 ALTER TABLE '+TargetDbAndObject+' ENABLE KEYS */', True, True, True, True, True);
+      end;
       Output(CRLF, False, True, True, True, True);
       // Cosmetic fix for estimated InnoDB row count
       DBObj.Rows := RowCount;

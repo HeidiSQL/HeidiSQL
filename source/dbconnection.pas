@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, windows, dbstructures, SynRegExpr, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types,
+  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types, System.IniFiles,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Phys, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys.IB,
@@ -262,6 +262,20 @@ type
       destructor Destroy; override;
   end;
 
+  TSQLFunction = class(TPersistent)
+    public
+      Name, Declaration, Category, Description: String;
+  end;
+  TSQLFunctionList = class(TObjectList<TSQLFunction>)
+    private
+      FOwner: TDBConnection;
+      FCategories: TStringList;
+      FNames: TStringList;
+    public
+      constructor Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+      property Categories: TStringList read FCategories;
+      property Names: TStringList read FNames;
+  end;
 
   { TConnectionParameters and friends }
 
@@ -442,6 +456,7 @@ type
       FCurrentUserHostCombination: String;
       FAllUserHostCombinations: TStringList;
       FLockedByThread: TThread;
+      FStringQuoteChar: Char;
       FQuoteChar: Char;
       FQuoteChars: String;
       FDatatypes: TDBDataTypeArray;
@@ -454,6 +469,8 @@ type
       FInfSch: String;
       FIdentCharsNoQuote: TSysCharSet;
       FMaxRowsPerInsert: Int64;
+      FCaseSensitivity: Integer;
+      FSQLFunctions: TSQLFunctionList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
       procedure DoAfterConnect; virtual;
@@ -579,6 +596,7 @@ type
       function GetTableForeignKeys(Table: TDBObject): TForeignKeyList; virtual;
       function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
+      property SQLFunctions: TSQLFunctionList read FSQLFunctions;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -747,6 +765,7 @@ type
       function GetLastErrorCode: Cardinal; override;
       function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
+      function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
@@ -1951,6 +1970,8 @@ begin
   // Characters in identifiers which don't need to be quoted
   FIdentCharsNoQuote := ['A'..'Z', 'a'..'z', '0'..'9', '_'];
   FMaxRowsPerInsert := 10000;
+  FCaseSensitivity := 0;
+  FStringQuoteChar := '''';
 end;
 
 
@@ -2022,6 +2043,7 @@ var
   i: Integer;
 begin
   inherited;
+  FStringQuoteChar := '"';
   FQuoteChar := '"';
   FQuoteChars := '"[]';
   SetLength(FDatatypes, Length(SQLiteDatatypes));
@@ -2396,6 +2418,7 @@ begin
       if FServerVersionUntouched.IsEmpty then begin
         FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
       end;
+      FCaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', IntToStr(FCaseSensitivity)));
 
       if FDatabase <> '' then begin
         tmpdb := FDatabase;
@@ -2603,8 +2626,10 @@ var
   FinalPort: Integer;
 
   function EscapeConnectOption(Option: String): String;
-  begin // See issue #704
+  begin
+    // See issue #704 and #1417, and docs: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
     Result := StringReplace(Option, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
   end;
 begin
   if Value then begin
@@ -2629,12 +2654,12 @@ begin
       end;
     end;
 
-    ConnInfo := 'host='''+FinalHost+''' '+
+    ConnInfo := 'host='''+EscapeConnectOption(FinalHost)+''' '+
       'port='''+IntToStr(FinalPort)+''' '+
-      'user='''+FParameters.Username+''' ' +
-      'password='''+FParameters.Password+''' '+
-      'dbname='''+dbname+''' '+
-      'application_name='''+APPNAME+'''';
+      'user='''+EscapeConnectOption(FParameters.Username)+''' ' +
+      'password='''+EscapeConnectOption(FParameters.Password)+''' '+
+      'dbname='''+EscapeConnectOption(dbname)+''' '+
+      'application_name='''+EscapeConnectOption(APPNAME)+'''';
     if FParameters.WantSSL then begin
       ConnInfo := ConnInfo + ' sslmode=''require''';
       if FParameters.SSLPrivateKey <> '' then
@@ -2944,7 +2969,7 @@ begin
       FSQLSpecifities[spKillProcess] := 'SELECT pg_cancel_backend(%d)';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
-      FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
+      FSQLSpecifities[spFuncLeft] := 'SUBSTRING(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'NOW()';
       FSQLSpecifities[spLockedTables] := '';
     end;
@@ -2981,7 +3006,7 @@ begin
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
-      FSQLSpecifities[spUSEQuery] := 'USE %s';
+      FSQLSpecifities[spUSEQuery] := '-- USE %s';
       FSQLSpecifities[spKillQuery] := 'KILL %d';
       FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
@@ -3064,6 +3089,8 @@ end;
 
 
 procedure TDBConnection.DoAfterConnect;
+var
+  SQLFunctionsFileOrder: String;
 begin
   AppSettings.SessionPath := FParameters.SessionPath;
   AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
@@ -3075,6 +3102,24 @@ begin
     FKeepAliveTimer.Interval := FParameters.KeepAlive * 1000;
     FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
   end;
+
+  if FParameters.IsMariaDB then
+    SQLFunctionsFileOrder := 'mariadb,mysql'
+  else if FParameters.IsAnyMySQL then
+    SQLFunctionsFileOrder := 'mysql'
+  else if FParameters.IsRedshift then
+    SQLFunctionsFileOrder := 'redshift,postgresql'
+  else if FParameters.IsAnyPostgreSQL then
+    SQLFunctionsFileOrder := 'postgresql'
+  else if FParameters.IsAnyMSSQL then
+    SQLFunctionsFileOrder := 'mssql'
+  else if FParameters.IsAnySQLite then
+    SQLFunctionsFileOrder := 'sqlite'
+  else if FParameters.IsAnyInterbase then
+    SQLFunctionsFileOrder := 'interbase'
+  else
+    SQLFunctionsFileOrder := '';
+  FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
 end;
 
 
@@ -4762,11 +4807,20 @@ begin
       Result := escChars(Result, '''', '''', '''', '''', '''');
     end;
 
+    ngInterbase: begin
+      c1 := '''';
+      c2 := '''';
+      c3 := '''';
+      c4 := '''';
+      EscChar := '\';
+      Result := escChars(Text, EscChar, c1, c2, c3, c4);
+    end;
+
   end;
 
   if DoQuote then begin
     // Add surrounding single quotes
-    Result := Char(#39) + Result + Char(#39);
+    Result := FStringQuoteChar + Result + FStringQuoteChar;
   end;
 end;
 
@@ -4904,6 +4958,8 @@ begin
   if GluePos = 0 then begin
     if not AlwaysQuote then begin
       if MySQLKeywords.IndexOf(Result) > -1 then
+        AlwaysQuote := True
+      else if SQLFunctions.Names.IndexOf(Result) > -1 then
         AlwaysQuote := True
       else for i:=1 to Length(Result) do begin
         if not CharInSet(Result[i], FIdentCharsNoQuote) then begin
@@ -5112,6 +5168,18 @@ begin
 end;
 
 
+function TInterbaseConnection.GetCollationTable: TDBQuery;
+begin
+  inherited;
+  if not Assigned(FCollationTable) then begin
+    FCollationTable := GetResults('SELECT RDB$COLLATION_NAME AS '+EscapeString('Collation')+', RDB$COLLATION_ID AS '+EscapeString('Id')+', RDB$CHARACTER_SET_ID FROM RDB$COLLATIONS');
+  end;
+  if Assigned(FCollationTable) then
+    FCollationTable.First;
+  Result := FCollationTable;
+end;
+
+
 function TDBConnection.GetCollationList: TStringList;
 var
   c: TDBQuery;
@@ -5177,7 +5245,10 @@ end;
 
 function TInterbaseConnection.GetCharsetTable: TDBQuery;
 begin
-  // Todo
+  inherited;
+  if not Assigned(FCharsetTable) then
+    FCharsetTable := GetResults('SELECT RDB$CHARACTER_SET_NAME AS '+EscapeString('Charset')+', RDB$CHARACTER_SET_NAME AS '+EscapeString('Description')+' FROM RDB$CHARACTER_SETS');
+  Result := FCharsetTable;
 end;
 
 
@@ -5272,13 +5343,9 @@ end;
 
 
 function TDBConnection.IdentifierEquals(Ident1, Ident2: String): Boolean;
-var
-  CaseSensitivity: Integer;
 begin
   // Compare only name of identifier, in the case fashion the server tells us
-  // 1 is probably a bad default value, as this expects the server to run on Windows
-  CaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', '1'));
-  case CaseSensitivity of
+  case FCaseSensitivity of
     0: Result := Ident1 = Ident2;
     else Result := CompareText(Ident1, Ident2) = 0;
   end;
@@ -6896,8 +6963,33 @@ end;
 
 
 procedure TInterbaseConnection.FetchDbObjects(db: String; var Cache: TDBObjectList);
+var
+  obj: TDBObject;
+  Results: TDBQuery;
 begin
-  // Todo
+  // Tables and views
+  Results := nil;
+  try
+    Results := GetResults('SELECT DISTINCT RDB$RELATION_NAME, RDB$VIEW_CONTEXT AS '+EscapeString('ViewContext') +
+      ' FROM RDB$RELATION_FIELDS WHERE RDB$SYSTEM_FLAG=0');
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col(0);
+      obj.Created := Now;
+      obj.Updated := Now;
+      obj.Database := db;
+      if Results.IsNull(1) then
+        obj.NodeType := lntTable
+      else
+        obj.NodeType := lntView;
+      obj.NodeType := lntTable;
+      Results.Next;
+    end;
+    FreeAndNil(Results);
+  except
+    on E:EDbError do;
+  end;
 end;
 
 
@@ -9465,7 +9557,7 @@ begin
   if (not Assigned(CompareTo)) or (CompareTo = nil) then begin
     Result := False;
   end else begin
-    Result := (Name = CompareTo.Name)
+    Result := FConnection.IdentifierEquals(Name, CompareTo.Name)
       and (NodeType = CompareTo.NodeType)
       and (Database = CompareTo.Database)
       and (Schema = CompareTo.Schema)
@@ -10273,6 +10365,53 @@ begin
     ItemCopy := TCheckConstraint.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
+  end;
+end;
+
+
+{ TSQLFunctionList }
+
+constructor TSQLFunctionList.Create(AOwner: TDBConnection; SQLFunctionsFileOrder: String);
+var
+  TryFiles: TStringList;
+  TryFile: String;
+  Ini: TMemIniFile;
+  Sections: TStringList;
+  IniFilePath, Section: String;
+  SQLFunc: TSQLFunction;
+begin
+  inherited Create(True);
+  FOwner := AOwner;
+
+  FCategories := TStringList.Create;
+  FCategories.Duplicates := dupIgnore;
+  FCategories.Sorted := True; // ensures dupIgnore works
+  FNames := TStringList.Create;
+  FNames.Duplicates := dupIgnore;
+  FNames.Sorted := True;
+
+  TryFiles := Explode(',', SQLFunctionsFileOrder);
+  for TryFile in TryFiles do begin
+    IniFilePath := ExtractFilePath(Application.ExeName) + 'functions-'+TryFile+'.ini';
+    if FileExists(IniFilePath) then begin
+      FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
+      Ini := TMemIniFile.Create(IniFilePath);
+      Sections := TStringList.Create;
+      Ini.ReadSections(Sections);
+      for Section in Sections do begin
+        SQLFunc := TSQLFunction.Create;
+        SQLFunc.Name := Ini.ReadString(Section, 'Name', Section);
+        SQLFunc.Declaration := '(' + Ini.ReadString(Section, 'Declaration', '') + ')';
+        SQLFunc.Category := Ini.ReadString(Section, 'Category', '');
+        SQLFunc.Description := Ini.ReadString(Section, 'Description', '');
+        SQLFunc.Description := StringReplace(SQLFunc.Description, '\n', sLineBreak, [rfReplaceAll]);
+        Add(SQLFunc);
+        FCategories.Add(SQLFunc.Category);
+        FNames.Add(SQLFunc.Name);
+      end;
+      Ini.Free;
+      Break;
+    end;
   end;
 end;
 

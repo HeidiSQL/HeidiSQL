@@ -43,7 +43,8 @@ contains
   VirtualTrees.ClipBoard in '..\..\Source\VirtualTrees.ClipBoard.pas',
   VirtualTrees.Actions in '..\..\Source\VirtualTrees.Actions.pas',
   VirtualTrees.Export in '..\..\Source\VirtualTrees.Export.pas',
-  VirtualTrees.Utils in '..\..\Source\VirtualTrees.Utils.pas';
+  VirtualTrees.Utils in '..\..\Source\VirtualTrees.Utils.pas',
+  VirtualTrees.Types in '..\..\Source\VirtualTrees.Types.pas';
 
 end.
 

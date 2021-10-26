@@ -110,6 +110,7 @@ Source: "libssl-1_1-x64.dll"; DestDir: "{app}"; DestName: "libssl-1_1-x64.dll"; 
 Source: "libssl-1_1-32.dll"; DestDir: "{app}"; DestName: "libssl-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libcrypto-1_1-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libcrypto-1_1-32.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "LICENSE-openssl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libiconv-2-64.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libiconv-2-32.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 ; SQLite:
@@ -118,6 +119,8 @@ Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not 
 ; VC redistributable
 Source: VC_redist.x64.exe; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: VC_redist.x86.exe; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; SQL function definitions
+Source: "functions-*.ini"; DestDir: "{app}"; Flags: ignoreversion
 
 
 [Icons]
