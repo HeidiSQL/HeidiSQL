@@ -2043,13 +2043,12 @@ var
   i: Integer;
 begin
   inherited;
-  FStringQuoteChar := '"';
   FQuoteChar := '"';
   FQuoteChars := '"[]';
-  SetLength(FDatatypes, Length(SQLiteDatatypes));
-  for i:=0 to High(SQLiteDatatypes) do
-    FDatatypes[i] := SQLiteDatatypes[i];
-  // SQLite does not have IS:
+  SetLength(FDatatypes, Length(InterbaseDatatypes));
+  for i:=0 to High(InterbaseDatatypes) do
+    FDatatypes[i] := InterbaseDatatypes[i];
+  // Interbase does not have IS:
   FInfSch := '';
 end;
 
@@ -3695,6 +3694,7 @@ begin
   FWarningCount := 0;
   FdQuery := TFDQuery.Create(Self);
   FdQuery.Connection := FFDHandle;
+  // Todo: suppress mouse cursor updates
   try
     FdQuery.ResourceOptions.CmdExecTimeout := Parameters.QueryTimeout;
     FdQuery.Open(SQL);
@@ -5182,7 +5182,7 @@ function TInterbaseConnection.GetCollationTable: TDBQuery;
 begin
   inherited;
   if not Assigned(FCollationTable) then begin
-    FCollationTable := GetResults('SELECT RDB$COLLATION_NAME AS '+EscapeString('Collation')+', RDB$COLLATION_ID AS '+EscapeString('Id')+', RDB$CHARACTER_SET_ID FROM RDB$COLLATIONS');
+    FCollationTable := GetResults('SELECT RDB$COLLATION_NAME AS '+QuoteIdent('Collation')+', RDB$COLLATION_ID AS '+QuoteIdent('Id')+', RDB$CHARACTER_SET_ID FROM RDB$COLLATIONS');
   end;
   if Assigned(FCollationTable) then
     FCollationTable.First;
@@ -5399,6 +5399,10 @@ begin
   Log(lcDebug, 'Getting fresh columns for '+Table.QuotedDbAndTableName);
   Result := TTableColumnList.Create(True);
   TableIdx := InformationSchemaObjects.IndexOf('columns');
+  if TableIdx = -1 then begin
+    // No is.columns table available
+    Exit;
+  end;
   ColQuery := GetResults('SELECT * FROM '+QuoteIdent(InfSch)+'.'+QuoteIdent(InformationSchemaObjects[TableIdx])+
     ' WHERE '+Table.SchemaClauseIS('TABLE')+' AND TABLE_NAME='+EscapeString(Table.Name)+
     ' ORDER BY ORDINAL_POSITION');
@@ -5662,8 +5666,44 @@ end;
 
 
 function TInterbaseConnection.GetTableColumns(Table: TDBObject): TTableColumnList;
+var
+  ColQuery: TDBQuery;
+  Col: TTableColumn;
 begin
   // Todo
+  Result := TTableColumnList.Create(True);
+  ColQuery := GetResults('SELECT r.RDB$FIELD_NAME AS field_name,'+
+    '   r.RDB$DESCRIPTION AS field_description,'+
+    '   r.RDB$DEFAULT_VALUE AS field_default_value,'+
+    '   r.RDB$NULL_FLAG AS null_flag,'+
+    '   f.RDB$FIELD_LENGTH AS field_length,'+
+    '   f.RDB$FIELD_PRECISION AS field_precision,'+
+    '   f.RDB$FIELD_SCALE AS field_scale,'+
+    '   f.RDB$FIELD_TYPE AS field_type,'+
+    '   f.RDB$FIELD_SUB_TYPE AS field_subtype,'+
+    '   coll.RDB$COLLATION_NAME AS field_collation,'+
+    '   cset.RDB$CHARACTER_SET_NAME AS field_charset'+
+    ' FROM RDB$RELATION_FIELDS r'+
+    ' LEFT JOIN RDB$FIELDS f ON r.RDB$FIELD_SOURCE = f.RDB$FIELD_NAME'+
+    ' LEFT JOIN RDB$COLLATIONS coll ON f.RDB$COLLATION_ID = coll.RDB$COLLATION_ID'+
+    ' LEFT JOIN RDB$CHARACTER_SETS cset ON f.RDB$CHARACTER_SET_ID = cset.RDB$CHARACTER_SET_ID'+
+    ' WHERE r.RDB$RELATION_NAME='+EscapeString(Table.Name)+
+    ' ORDER BY r.RDB$FIELD_POSITION');
+  while not ColQuery.Eof do begin
+    Col := TTableColumn.Create(Self);
+    Result.Add(Col);
+    Col.Name := ColQuery.Col('FIELD_NAME');
+    Col.OldName := Col.Name;
+    //Col.ParseDatatype(ColQuery.Col('type'));
+    Col.DataType := GetDatatypeByNativeType(MakeInt(ColQuery.Col('FIELD_TYPE')));
+    Col.AllowNull := ColQuery.IsNull('NULL_FLAG');
+    Col.DefaultType := cdtNothing;
+    Col.DefaultText := '';
+    Col.OnUpdateType := cdtNothing;
+    Col.OnUpdateText := '';
+    ColQuery.Next;
+  end;
+  ColQuery.Free;
 end;
 
 
@@ -6980,7 +7020,7 @@ begin
   // Tables and views
   Results := nil;
   try
-    Results := GetResults('SELECT DISTINCT RDB$RELATION_NAME, RDB$VIEW_CONTEXT AS '+EscapeString('ViewContext') +
+    Results := GetResults('SELECT DISTINCT RDB$RELATION_NAME, RDB$VIEW_CONTEXT AS '+QuoteIdent('ViewContext') +
       ' FROM RDB$RELATION_FIELDS WHERE RDB$SYSTEM_FLAG=0');
     while not Results.Eof do begin
       obj := TDBObject.Create(Self);

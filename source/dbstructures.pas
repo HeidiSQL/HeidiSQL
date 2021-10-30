@@ -411,16 +411,11 @@ type
   // MySQL data type categorization
   TDBDatatypeCategoryIndex = (dtcInteger, dtcReal, dtcText, dtcBinary, dtcTemporal, dtcSpatial, dtcOther);
 
-  // MySQL native column type constants. See include/mysql.h.pp in the server code
-  TMySQLType = (mytDecimal, mytTiny, mytShort, mytLong, mytFloat, mytDouble, mytNull, mytTimestamp,
-    mytLonglong, mytInt24, mytDate, mytTime, mytDatetime, mytYear, mytNewdate, mytVarchar,
-    mytBit, mytTimestamp2, mytDatetime2, mytTime2, mytJson=245, mytNewdecimal, mytEnum, mytSet, mytTinyblob,
-    mytMediumblob, mytLongblob, mytBlob, mytVarstring, mytString, mytGeometry);
   // MySQL data type structure
   TDBDatatype = record
     Index:           TDBDatatypeIndex;
-    NativeType:      TMySQLType; // See above
-    NativeTypes:     String; // Same as above, but for multiple postgresql oid's
+    NativeType:      Integer; // MySQL column type constant (e.g. 1 = TINYINT). See include/mysql.h.pp.
+    NativeTypes:     String;  // Same as above, but for multiple ids (e.g. PostgreSQL oids). Prefer over NativeType. See GetDatatypeByNativeType.
     Name:            String;
     Names:           String;
     Description:     String;
@@ -634,7 +629,7 @@ var
     ),
     (
       Index:           dbdtTinyint;
-      NativeType:      mytTiny;
+      NativeType:      1;
       Name:            'TINYINT';
       Description:     'TINYINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A very small integer. The signed range is -128 to 127. ' +
@@ -649,7 +644,7 @@ var
     ),
     (
       Index:           dbdtSmallint;
-      NativeType:      mytShort;
+      NativeType:      2;
       Name:            'SMALLINT';
       Description:     'SMALLINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A small integer. The signed range is -32768 to 32767. ' +
@@ -664,7 +659,7 @@ var
     ),
     (
       Index:           dbdtMediumint;
-      NativeType:      mytInt24;
+      NativeType:      9;
       Name:            'MEDIUMINT';
       Description:     'MEDIUMINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A medium-sized integer. The signed range is -8388608 to 8388607. ' +
@@ -679,7 +674,7 @@ var
     ),
     (
       Index:           dbdtInt;
-      NativeType:      mytLong;
+      NativeType:      3;
       Name:            'INT';
       Description:     'INT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A normal-size integer. The signed range is -2147483648 to 2147483647. ' +
@@ -694,7 +689,7 @@ var
     ),
     (
       Index:           dbdtBigint;
-      NativeType:      mytLonglong;
+      NativeType:      8;
       Name:            'BIGINT';
       Description:     'BIGINT[(M)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A large integer. The signed range is -9223372036854775808 to ' +
@@ -709,7 +704,7 @@ var
     ),
     (
       Index:           dbdtFloat;
-      NativeType:      mytFloat;
+      NativeType:      4;
       Name:            'FLOAT';
       Description:     'FLOAT[(M,D)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A small (single-precision) floating-point number. Allowable values are '+
@@ -726,7 +721,7 @@ var
     ),
     (
       Index:           dbdtDouble;
-      NativeType:      mytDouble;
+      NativeType:      5;
       Name:            'DOUBLE';
       Description:     'DOUBLE[(M,D)] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A normal-size (double-precision) floating-point number. Allowable ' +
@@ -743,7 +738,7 @@ var
     ),
     (
       Index:           dbdtDecimal;
-      NativeType:      mytNewdecimal;
+      NativeType:      246;
       Name:            'DECIMAL';
       Description:     'DECIMAL[(M[,D])] [UNSIGNED] [ZEROFILL]' + sLineBreak +
         'A packed "exact" fixed-point number. M is the total number of digits ' +
@@ -764,7 +759,7 @@ var
     ),
     (
       Index:           dbdtDate;
-      NativeType:      mytDate;
+      NativeType:      10;
       Name:            'DATE';
       Description:     'DATE' + sLineBreak +
         'A date. The supported range is ''1000-01-01'' to ''9999-12-31''. MySQL ' +
@@ -780,7 +775,7 @@ var
     ),
     (
       Index:           dbdtTime;
-      NativeType:      mytTime;
+      NativeType:      11;
       Name:            'TIME';
       Description:     'TIME' + sLineBreak +
         'A time. The range is ''-838:59:59'' to ''838:59:59''. MySQL displays TIME ' +
@@ -796,7 +791,7 @@ var
     ),
     (
       Index:           dbdtYear;
-      NativeType:      mytYear;
+      NativeType:      13;
       Name:            'YEAR';
       Description:     'YEAR[(2|4)]' + sLineBreak +
         'A year in two-digit or four-digit format. The default is four-digit ' +
@@ -815,7 +810,7 @@ var
     ),
     (
       Index:           dbdtDatetime;
-      NativeType:      mytDatetime;
+      NativeType:      12;
       Name:            'DATETIME';
       Description:     'DATETIME' + sLineBreak +
         'A date and time combination. The supported range is ''1000-01-01 ' +
@@ -832,7 +827,7 @@ var
     ),
     (
       Index:           dbdtTimestamp;
-      NativeType:      mytTimestamp;
+      NativeType:      7;
       Name:            'TIMESTAMP';
       Description:     'TIMESTAMP' + sLineBreak +
         'A timestamp. The range is ''1970-01-01 00:00:01'' UTC to ''2038-01-09 ' +
@@ -851,7 +846,7 @@ var
     ),
     (
       Index:           dbdtVarchar;
-      NativeType:      mytVarstring;
+      NativeType:      253;
       Name:            'VARCHAR';
       Description:     'VARCHAR(M)' + sLineBreak +
         'A variable-length string. M represents the maximum column length in ' +
@@ -874,7 +869,7 @@ var
     ),
     (
       Index:           dbdtChar;
-      NativeType:      mytString;
+      NativeType:      254;
       Name:            'CHAR';
       Description:     'CHAR[(M)]' + sLineBreak +
         'A fixed-length string that is always right-padded with spaces to the ' +
@@ -893,7 +888,7 @@ var
     ),
     (
       Index:           dbdtTinytext;
-      NativeType:      mytTinyblob;
+      NativeType:      249;
       Name:            'TINYTEXT';
       Description:     'TINYTEXT' + sLineBreak +
         'A TEXT column with a maximum length of 255 (2^8 - 1) characters. The ' +
@@ -910,7 +905,7 @@ var
     ),
     (
       Index:           dbdtText;
-      NativeType:      mytBlob;
+      NativeType:      252;
       Name:            'TEXT';
       Description:     'TEXT[(M)]' + sLineBreak +
         'A TEXT column with a maximum length of 65,535 (2^16 - 1) characters. The ' +
@@ -931,7 +926,7 @@ var
     ),
     (
       Index:           dbdtMediumtext;
-      NativeType:      mytMediumblob;
+      NativeType:      250;
       Name:            'MEDIUMTEXT';
       Description:     'MEDIUMTEXT' + sLineBreak +
         'A TEXT column with a maximum length of 16,777,215 (2^24 - 1) characters. ' +
@@ -947,7 +942,7 @@ var
     ),
     (
       Index:           dbdtLongtext;
-      NativeType:      mytLongblob;
+      NativeType:      251;
       Name:            'LONGTEXT';
       Description:     'LONGTEXT' + sLineBreak +
         'A TEXT column with a maximum length of 4,294,967,295 or 4GB (2^32 - 1) ' +
@@ -966,7 +961,7 @@ var
     ),
     (
       Index:           dbdtJson;
-      NativeType:      mytJson;
+      NativeType:      245;
       Name:            'JSON';
       Description:     'JSON' + sLineBreak +
         'Documents stored in JSON columns are converted to an internal format that '+
@@ -984,7 +979,7 @@ var
     ),
     (
       Index:           dbdtBinary;
-      NativeType:      mytString;
+      NativeType:      254;
       Name:            'BINARY';
       Description:     'BINARY(M)' + sLineBreak +
         'The BINARY type is similar to the CHAR type, but stores binary byte ' +
@@ -1000,7 +995,7 @@ var
     ),
     (
       Index:           dbdtVarbinary;
-      NativeType:      mytVarstring;
+      NativeType:      253;
       Name:            'VARBINARY';
       Description:     'VARBINARY(M)' + sLineBreak +
         'The VARBINARY type is similar to the VARCHAR type, but stores binary ' +
@@ -1016,7 +1011,7 @@ var
     ),
     (
       Index:           dbdtTinyblob;
-      NativeType:      mytTinyblob;
+      NativeType:      249;
       Name:           'TINYBLOB';
       Description:     'TINYBLOB' + sLineBreak +
         'A BLOB column with a maximum length of 255 (2^8 - 1) bytes. Each ' +
@@ -1031,7 +1026,7 @@ var
     ),
     (
       Index:           dbdtBlob;
-      NativeType:      mytBlob;
+      NativeType:      252;
       Name:            'BLOB';
       Description:     'BLOB[(M)]' + sLineBreak +
         'A BLOB column with a maximum length of 65,535 (2^16 - 1) bytes. Each ' +
@@ -1051,7 +1046,7 @@ var
     ),
     (
       Index:           dbdtMediumblob;
-      NativeType:      mytMediumblob;
+      NativeType:      250;
       Name:            'MEDIUMBLOB';
       Description:     'MEDIUMBLOB' + sLineBreak +
         'A BLOB column with a maximum length of 16,777,215 (2^24 - 1) bytes. Each ' +
@@ -1066,7 +1061,7 @@ var
     ),
     (
       Index:           dbdtLongblob;
-      NativeType:      mytLongblob;
+      NativeType:      251;
       Name:            'LONGBLOB';
       Description:     'LONGBLOB' + sLineBreak +
         'A BLOB column with a maximum length of 4,294,967,295 or 4GB (2^32 - 1) ' +
@@ -1083,7 +1078,7 @@ var
     ),
     (
       Index:           dbdtEnum;
-      NativeType:      mytEnum;
+      NativeType:      247;
       Name:            'ENUM';
       Description:     'ENUM(''value1'',''value2'',...)' + sLineBreak +
         'An enumeration. A string object that can have only one value, chosen ' +
@@ -1100,7 +1095,7 @@ var
     ),
     (
       Index:           dbdtSet;
-      NativeType:      mytSet;
+      NativeType:      248;
       Name:            'SET';
       Description:     'SET(''value1'',''value2'',...)' + sLineBreak +
         'A set. A string object that can have zero or more values, each of which ' +
@@ -1117,7 +1112,7 @@ var
     ),
     (
       Index:           dbdtBit;
-      NativeType:      mytBit;
+      NativeType:      16;
       Name:            'BIT';
       Description:     'BIT[(M)]' + sLineBreak +
         'A bit-field type. M indicates the number of bits per value, from 1 to ' +
@@ -1131,7 +1126,7 @@ var
     ),
     (
       Index:           dbdtPoint;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'POINT';
       Description:     'POINT(x,y)' + sLineBreak +
         'Constructs a WKB Point using its coordinates.';
@@ -1144,7 +1139,7 @@ var
     ),
     (
       Index:           dbdtLinestring;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'LINESTRING';
       Description:     'LINESTRING(pt1,pt2,...)' + sLineBreak +
         'Constructs a WKB LineString value from a number of WKB Point arguments. ' +
@@ -1159,7 +1154,7 @@ var
     ),
     (
       Index:           dbdtPolygon;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'POLYGON';
       Description:     'POLYGON(ls1,ls2,...)' + sLineBreak +
         'Constructs a WKB Polygon value from a number of WKB LineString ' +
@@ -1174,7 +1169,7 @@ var
     ),
     (
       Index:           dbdtGeometry;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'GEOMETRY';
       Description:     '';
       HasLength:       False;
@@ -1186,7 +1181,7 @@ var
     ),
     (
       Index:           dbdtMultipoint;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'MULTIPOINT';
       Description:     'MULTIPOINT(pt1,pt2,...)' + sLineBreak +
         'Constructs a WKB MultiPoint value using WKB Point arguments. If any ' +
@@ -1200,7 +1195,7 @@ var
     ),
     (
       Index:           dbdtMultilinestring;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'MULTILINESTRING';
       Description:     'MULTILINESTRING(ls1,ls2,...)' + sLineBreak +
         'Constructs a WKB MultiLineString value using WKB LineString arguments. ' +
@@ -1214,7 +1209,7 @@ var
     ),
     (
       Index:           dbdtMultipolygon;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'MULTIPOLYGON';
       Description:     'MULTIPOLYGON(poly1,poly2,...)' + sLineBreak +
         'Constructs a WKB MultiPolygon value from a set of WKB Polygon ' +
@@ -1229,7 +1224,7 @@ var
     ),
     (
       Index:           dbdtGeometrycollection;
-      NativeType:      mytGeometry;
+      NativeType:      255;
       Name:            'GEOMETRYCOLLECTION';
       Description:     'GEOMETRYCOLLECTION(g1,g2,...)' + sLineBreak +
         'Constructs a WKB GeometryCollection. If any argument is not a ' +
@@ -2290,7 +2285,6 @@ var
     ),
     (
       Index:           dbdtEnum;
-      NativeType:      mytEnum;
       Name:            'ENUM';
       HasLength:       True;
       RequiresLength:  True;
@@ -2302,7 +2296,6 @@ var
     ),
     (
       Index:           dbdtSet;
-      NativeType:      mytSet;
       Name:            'SET';
       HasLength:       True;
       RequiresLength:  True;
@@ -2314,6 +2307,165 @@ var
     )
   );
 
+  // Interbase field types
+  // Taken from https://docwiki.embarcadero.com/InterBase/2020/en/RDB$FIELDS
+  InterbaseDatatypes: Array[0..13] of TDBDatatype =
+  (
+    (
+      Index:           dbdtUnknown;
+      Name:            'UNKNOWN';
+      Description:     'Unknown data type';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dbdtBlob;
+      NativeTypes:     '261';
+      Name:            'BLOB';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        True;
+      Category:        dtcBinary;
+    ),
+    (
+      Index:           dbdtBool;
+      NativeTypes:     '17';
+      Name:            'BOOLEAN';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcOther;
+    ),
+    (
+      Index:           dbdtChar;
+      NativeTypes:     '14';
+      Name:            'CHAR';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dbdtVarchar;
+      NativeTypes:     '37|40';
+      Name:            'VARCHAR';
+      HasLength:       True;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        True;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dbdtFloat;
+      NativeTypes:     '10|11';
+      Name:            'FLOAT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dbdtDouble;
+      NativeTypes:     '27';
+      Name:            'DOUBLE PRECISION';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcReal;
+    ),
+    (
+      Index:           dbdtBigint;
+      NativeTypes:     '16';
+      Name:            'INT64';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dbdtInt;
+      NativeTypes:     '8';
+      Name:            'INTEGER';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dbdtNumeric;
+      NativeTypes:     '9';
+      Name:            'QUAD';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dbdtSmallint;
+      NativeTypes:     '7';
+      Name:            'SMALLINT';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcInteger;
+    ),
+    (
+      Index:           dbdtDate;
+      NativeTypes:     '12';
+      Name:            'DATE';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dbdtTime;
+      NativeTypes:     '13';
+      Name:            'TIME';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcTemporal;
+    ),
+    (
+      Index:           dbdtTimestamp;
+      NativeTypes:     '35';
+      Name:            'TIMESTAMP';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcTemporal;
+    )
+  );
 
   MySQLVariables: array [0..417] of TServerVariable =
   (
