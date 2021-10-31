@@ -3697,9 +3697,14 @@ begin
   // Todo: suppress mouse cursor updates
   try
     FdQuery.ResourceOptions.CmdExecTimeout := Parameters.QueryTimeout;
-    FdQuery.Open(SQL);
+    if DoStoreResult then begin
+      FdQuery.Open(SQL);
+      FRowsFound := FdQuery.RecordCount;
+    end else begin
+      FdQuery.ExecSQL(SQL);
+      FRowsFound := 0;
+    end;
     FRowsAffected := FdQuery.RowsAffected;
-    FRowsFound := FdQuery.RecordCount;
     FLastQueryDuration := GetTickCount - TimerStart;
     FLastQueryNetworkDuration := 0;
     SetLength(FLastRawResults, Length(FLastRawResults)+1);
@@ -5954,7 +5959,7 @@ end;
 
 function TInterbaseConnection.GetTableKeys(Table: TDBObject): TTableKeyList;
 begin
-  // Todo
+  Result := TTableKeyList.Create(True);
 end;
 
 
@@ -6155,6 +6160,7 @@ function TInterbaseConnection.GetTableForeignKeys(Table: TDBObject): TForeignKey
 begin
   // Todo
   // use parent?
+  Result := TForeignKeyList.Create(True);
 end;
 
 
@@ -7387,6 +7393,10 @@ begin
           Result := Result + IntToStr(Offset) + ', ';
         Result := Result + IntToStr(Limit);
       end;
+    end;
+    ngInterbase: begin
+      // No support for limit nor offset
+      Result := Result + QueryBody;
     end;
   end;
 end;
@@ -9789,7 +9799,11 @@ end;
 
 function TDBObject.QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
 begin
-  Result := QuotedDatabase(AlwaysQuote) + '.' + QuotedName(AlwaysQuote);
+  // Used in data grid query, exclude database in Interbase mode
+  if FConnection.Parameters.IsAnyInterbase then
+    Result := QuotedName(AlwaysQuote)
+  else
+    Result := QuotedDatabase(AlwaysQuote) + '.' + QuotedName(AlwaysQuote);
 end;
 
 function TDBObject.QuotedColumn(AlwaysQuote: Boolean=True): String;
