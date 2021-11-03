@@ -3698,17 +3698,19 @@ begin
   try
     FdQuery.ResourceOptions.CmdExecTimeout := Parameters.QueryTimeout;
     if DoStoreResult then begin
-      FdQuery.Open(SQL);
-      FRowsFound := FdQuery.RecordCount;
+      FdQuery.SQL.Text := SQL;
+      if FdQuery.OpenOrExecute then begin
+        FRowsFound := FdQuery.RecordCount;
+        SetLength(FLastRawResults, Length(FLastRawResults)+1);
+        FLastRawResults[Length(FLastRawResults)-1] := FdQuery;
+      end;
     end else begin
       FdQuery.ExecSQL(SQL);
-      FRowsFound := 0;
+      FRowsAffected := FdQuery.RowsAffected;
+      FdQuery.Free;
     end;
-    FRowsAffected := FdQuery.RowsAffected;
     FLastQueryDuration := GetTickCount - TimerStart;
     FLastQueryNetworkDuration := 0;
-    SetLength(FLastRawResults, Length(FLastRawResults)+1);
-    FLastRawResults[Length(FLastRawResults)-1] := FdQuery;
   except
     on E:EFDDBEngineException do begin
       SetLength(FLastRawResults, 0);
@@ -7969,7 +7971,7 @@ begin
             TypeIndex := dbdtBinary;
           ftVarBytes:
             TypeIndex := dbdtVarbinary;
-          ftFloat:
+          ftFloat, ftSingle:
             TypeIndex := dbdtFloat;
           ftDate:
             TypeIndex := dbdtDate;
