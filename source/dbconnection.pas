@@ -7899,7 +7899,8 @@ end;
 
 procedure TInterbaseQuery.Execute(AddResult: Boolean; UseRawResult: Integer);
 var
-  i, NumFields, NumResults: Integer;
+  i, j, NumFields, NumResults: Integer;
+  TypeIndex: TDBDatatypeIndex;
   LastResult:  TFDQuery;
 begin
   if UseRawResult = -1 then begin
@@ -7943,7 +7944,46 @@ begin
       for i:=0 to NumFields-1 do begin
         FColumnNames.Add(LastResult.Fields[i].FieldName);
         FColumnOrgNames.Add(FColumnNames[FColumnNames.Count-1]);
-        FColumnTypes[i] := FConnection.Datatypes[0];
+        case LastResult.Fields[i].DataType of
+          ftSmallint, ftWord:
+            TypeIndex := dbdtMediumInt;
+          ftInteger:
+            TypeIndex := dbdtInt;
+          ftAutoInc: begin
+            TypeIndex := dbdtInt;
+            FAutoIncrementColumn := i;
+          end;
+          ftLargeint:
+            TypeIndex := dbdtBigInt;
+          ftBCD, ftFMTBcd:
+            TypeIndex := dbdtDecimal;
+          ftFixedChar, ftFixedWideChar:
+            TypeIndex := dbdtChar;
+          ftString, ftWideString, ftBoolean, ftGuid:
+            TypeIndex := dbdtVarchar;
+          ftMemo, ftWideMemo:
+            TypeIndex := dbdtText;
+          ftBlob, ftVariant:
+            TypeIndex := dbdtMediumBlob;
+          ftBytes:
+            TypeIndex := dbdtBinary;
+          ftVarBytes:
+            TypeIndex := dbdtVarbinary;
+          ftFloat:
+            TypeIndex := dbdtFloat;
+          ftDate:
+            TypeIndex := dbdtDate;
+          ftTime:
+            TypeIndex := dbdtTime;
+          ftDateTime, ftTimeStamp:
+            TypeIndex := dbdtDateTime;
+          else
+            raise EDbError.CreateFmt(_('Unknown data type for column #%d - %s: %d'), [i, FColumnNames[i], Integer(LastResult.Fields[i].DataType)]);
+        end;
+        for j:=0 to High(FConnection.DataTypes) do begin
+          if TypeIndex = FConnection.DataTypes[j].Index then
+            FColumnTypes[i] := FConnection.DataTypes[j];
+        end;
       end;
       FRecNo := -1;
       First;
