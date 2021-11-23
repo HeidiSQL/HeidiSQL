@@ -1157,7 +1157,7 @@ begin
   if Result then begin
     FButton.Visible := ButtonVisible;
     SetBounds(Rect(0, 0, 0, 0));
-    if (Length(FEdit.Text) > SIZE_KB*100) or (ScanLineBreaks(FEdit.Text) <> lbsNone) then
+    if (Length(FEdit.Text) > SIZE_KB) or (ScanLineBreaks(FEdit.Text) <> lbsNone) then
       ButtonClick(FTree)
     else begin
       FPanel.Show;
