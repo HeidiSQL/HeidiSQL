@@ -135,6 +135,7 @@ type
     editSSLPrivateKey: TButtonedEdit;
     lblLogFile: TLabel;
     chkLogFileDml: TCheckBox;
+    timerEditFilterDelay: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -196,6 +197,7 @@ type
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actFilterExecute(Sender: TObject);
+    procedure timerEditFilterDelayTimer(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1556,8 +1558,16 @@ end;
 
 procedure Tconnform.editSearchChange(Sender: TObject);
 begin
+  // Filter session nodes - start delay
+  timerEditFilterDelay.Enabled := False;
+  timerEditFilterDelay.Enabled := True;
+end;
+
+procedure Tconnform.timerEditFilterDelayTimer(Sender: TObject);
+begin
   // Filter session nodes
-  FilterNodesByEdit(Sender as TButtonedEdit, ListSessions);
+  FilterNodesByEdit(editSearch, ListSessions);
+  timerEditFilterDelay.Enabled := False;
 end;
 
 procedure Tconnform.editSearchRightButtonClick(Sender: TObject);

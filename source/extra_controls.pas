@@ -185,6 +185,8 @@ begin
           break;
       end;
       Tree.IsVisible[Node] := match;
+      if match and IsNotEmpty(Edit.Text) then
+        Tree.VisiblePath[Node] := True;
     end;
     Node := Tree.GetNext(Node);
   end;

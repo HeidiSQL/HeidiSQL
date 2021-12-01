@@ -1155,4 +1155,11 @@ object connform: Tconnform
       OnExecute = actFilterExecute
     end
   end
+  object timerEditFilterDelay: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = timerEditFilterDelayTimer
+    Left = 24
+    Top = 272
+  end
 end
