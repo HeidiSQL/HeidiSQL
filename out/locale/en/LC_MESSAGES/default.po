@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-06-26 09:09+0200\n"
+"PO-Revision-Date: 2021-12-05 20:52+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -356,6 +356,9 @@ msgstr "SSH tunnel"
 #: connections.dfm:374
 msgid "Separated by semicolon"
 msgstr "Separated by semicolon"
+
+msgid "Single database name"
+msgstr "Single database name"
 
 #. connform..PageControlDetails..tabSettings..chkLoginPrompt..Caption
 #: connections.dfm:384

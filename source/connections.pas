@@ -1429,6 +1429,7 @@ begin
       updownPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
       lblDatabase.Caption := IfThen(Params.IsAnyPostgreSQL, _('Database')+':', _('Databases')+':');
+      editDatabases.TextHint := IfThen(Params.IsAnyPostgreSQL, _('Single database name'), _('Separated by semicolon'));
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       editDatabases.Enabled := lblDatabase.Enabled;
       // SSH tunnel tab:
