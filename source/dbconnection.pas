@@ -101,7 +101,7 @@ type
     private
       FConnection: TDBConnection;
     public
-      KeyName, OldKeyName, ReferenceDb, ReferenceTable, OnUpdate, OnDelete: String;
+      KeyName, OldKeyName, Db, ReferenceDb, ReferenceTable, OnUpdate, OnDelete: String;
       Columns, ForeignColumns: TStringList;
       Modified, Added, KeyNameWasCustomized: Boolean;
       constructor Create(AOwner: TDBConnection);
@@ -5998,6 +5998,7 @@ begin
         Result.Add(ForeignKey);
         ForeignKey.KeyName := ForeignQuery.Col('CONSTRAINT_NAME');
         ForeignKey.OldKeyName := ForeignKey.KeyName;
+        ForeignKey.Db := Table.Database;
         ForeignKey.ReferenceDb := ForeignQuery.Col('UNIQUE_CONSTRAINT_SCHEMA');
         ForeignKey.ReferenceTable := ForeignQuery.Col('UNIQUE_CONSTRAINT_SCHEMA') +
           '.' + ForeignQuery.Col('REFERENCED_TABLE_NAME');
@@ -6111,6 +6112,7 @@ begin
       Result.Add(ForeignKey);
       ForeignKey.KeyName := ForeignQuery.Col('constraint_name');
       ForeignKey.OldKeyName := ForeignKey.KeyName;
+      ForeignKey.Db := Table.Schema;
       ForeignKey.ReferenceDb := ForeignQuery.Col('ref_schema');
       ForeignKey.ReferenceTable := ForeignQuery.Col('ref_schema')+'.'+ForeignQuery.Col('ref_table');
       ForeignKey.OnUpdate := ForeignQuery.Col('update_rule');
@@ -10356,6 +10358,7 @@ begin
     s := Source as TForeignKey;
     KeyName := s.KeyName;
     OldKeyName := s.OldKeyName;
+    Db := s.Db;
     ReferenceDb := s.ReferenceDb;
     ReferenceTable := s.ReferenceTable;
     OnUpdate := s.OnUpdate;
@@ -10385,7 +10388,10 @@ begin
   Result := Result + ') REFERENCES ';
   if (not ReferenceDb.IsEmpty) and (ReferenceTable.StartsWith(ReferenceDb)) then begin
     TablePart := ReferenceTable.Substring(Length(ReferenceDb) + 1);
-    Result := Result + FConnection.QuoteIdent(ReferenceDb) + '.' + FConnection.QuoteIdent(TablePart);
+    if ReferenceDb <> Db then
+      Result := Result + FConnection.QuoteIdent(ReferenceDb) + '.' + FConnection.QuoteIdent(TablePart)
+    else
+      Result := Result + FConnection.QuoteIdent(TablePart);
   end
   else begin
     Result := Result + FConnection.QuoteIdent(ReferenceTable, True, '.');
