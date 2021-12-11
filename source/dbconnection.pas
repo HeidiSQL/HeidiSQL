@@ -10101,15 +10101,13 @@ begin
     Result := Result + ' '; // Add space after each part
   end;
 
-  if InParts(cpAllowNull) then begin
-    if not IsVirtual then begin
-      if not AllowNull then
-        Result := Result + 'NOT ';
-      Result := Result + 'NULL ';
-    end;
+  if InParts(cpAllowNull) and (not IsVirtual) then begin
+    if not AllowNull then
+      Result := Result + 'NOT ';
+    Result := Result + 'NULL ';
   end;
 
-  if InParts(cpDefault) then begin
+  if InParts(cpDefault) and (not IsVirtual) then begin
     if DefaultType <> cdtNothing then begin
       case DefaultType of
         // cdtNothing: leave out whole clause
@@ -10129,9 +10127,8 @@ begin
     end;
   end;
 
-  if InParts(cpVirtuality) then begin
-    if IsVirtual then
-      Result := Result + 'AS ('+GenerationExpression+') ' + Virtuality + ' ';
+  if InParts(cpVirtuality) and IsVirtual then begin
+    Result := Result + 'AS ('+GenerationExpression+') ' + Virtuality + ' ';
   end;
 
   if InParts(cpComment) then begin
@@ -10139,7 +10136,7 @@ begin
       Result := Result + 'COMMENT ' + FConnection.EscapeString(Comment) + ' ';
   end;
 
-  if InParts(cpCollation) then begin
+  if InParts(cpCollation) and (not IsVirtual) then begin
     if Collation <> '' then begin
       Result := Result + 'COLLATE ';
       if OverrideCollation <> '' then
