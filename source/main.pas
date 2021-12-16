@@ -11820,6 +11820,8 @@ begin
   // Ask user if query content shall be saved to disk
   if not ConfirmTabClose(PageIndex, False) then
     Exit;
+  // Block too quick further close actions, fix issue #1496. Action gets enabled again in PageControlMainChange/ValidateQueryControls
+  actCloseQueryTab.Enabled := False;
   // Work around bugs in ComCtrls.TPageControl.RemovePage
   NewPageIndex := PageControlMain.ActivePageIndex;
   if NewPageIndex >= PageIndex then
