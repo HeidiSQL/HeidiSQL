@@ -1883,6 +1883,7 @@ begin
 
   FEditorCommandStrings := TStringList.Create;
   SynEditKeyCmds.GetEditorCommandValues(AddEditorCommandMenu);
+
   for i:=0 to FEditorCommandStrings.Count-1 do begin
     EditorCommand := ConvertCodeStringToCommand(FEditorCommandStrings[i]);
     CommandMenu := TMenuItem.Create(MainMenu1);
@@ -1903,7 +1904,6 @@ begin
     CommandMenu.OnClick := EditorCommandOnClick;
     menuEditorCommands.Add(CommandMenu);
   end;
-  // Custom additional editor commands
   CommandMenu := TMenuItem.Create(MainMenu1);
   CommandMenu.Action := actSynMoveDown;
   menuEditorCommands.Add(CommandMenu);
@@ -12044,21 +12044,25 @@ begin
   case Button of
     mbLeft: begin
       // Simulate doubleclick on tab to close it
-      CurTickcount := GetTickCount;
-      TabNumber := GetMainTabAt(X, Y);
-      if (TabNumber = FLastTabNumberOnMouseUp)
-        and (CurTickcount - FLastMouseUpOnPageControl <= GetDoubleClickTime) then begin
-        CloseQueryTab(TabNumber);
-      end else begin
-        FLastMouseUpOnPageControl := CurTickcount;
-        FLastTabNumberOnMouseUp := TabNumber;
+      if AppSettings.ReadBool(asTabCloseOnDoubleClick) then begin
+        CurTickcount := GetTickCount;
+        TabNumber := GetMainTabAt(X, Y);
+        if (TabNumber = FLastTabNumberOnMouseUp)
+          and (CurTickcount - FLastMouseUpOnPageControl <= GetDoubleClickTime) then begin
+          CloseQueryTab(TabNumber);
+        end else begin
+          FLastMouseUpOnPageControl := CurTickcount;
+          FLastTabNumberOnMouseUp := TabNumber;
+        end;
       end;
     end;
 
     mbMiddle: begin
       // Middle click on tab
-      TabNumber := GetMainTabAt(X, Y);
-      CloseQueryTab(TabNumber);
+      if AppSettings.ReadBool(asTabCloseOnDoubleClick) then begin
+        TabNumber := GetMainTabAt(X, Y);
+        CloseQueryTab(TabNumber);
+      end;
     end;
   end;
 

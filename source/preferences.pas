@@ -174,6 +174,7 @@ type
     HotKey1: THotKey;
     HotKey2: THotKey;
     chkLowercaseHex: TCheckBox;
+    chkTabCloseOnDoubleClick: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -413,9 +414,10 @@ begin
   // Populate SynMemo settings to all instances
   Mainform.SetupSynEditors;
 
-  // Files
+  // Files and tabs
   AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
   AppSettings.WriteBool(asRestoreTabs, chkRestoreTabs.Checked);
+  AppSettings.WriteBool(asTabCloseOnDoubleClick, chkTabCloseOnDoubleClick.Checked);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -737,9 +739,10 @@ begin
   TreeShortcutItems.ReinitChildren(nil, True);
   SelectNode(TreeShortcutItems, nil);
 
-  // Files
+  // Files and tabs
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
+  chkTabCloseOnDoubleClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;

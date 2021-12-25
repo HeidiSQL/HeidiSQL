@@ -1284,7 +1284,7 @@ object frmPreferences: TfrmPreferences
       end
     end
     object tabFiles: TTabSheet
-      Caption = 'Files'
+      Caption = 'Files and tabs'
       ImageIndex = 10
       ImageName = 'icons8-save-button-100'
       DesignSize = (
@@ -1311,6 +1311,14 @@ object frmPreferences: TfrmPreferences
         Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
         TabOrder = 1
         OnClick = Modified
+      end
+      object chkTabCloseOnDoubleClick: TCheckBox
+        Left = 220
+        Top = 54
+        Width = 477
+        Height = 17
+        Caption = 'Close tab on doubleclick and middleclick'
+        TabOrder = 2
       end
     end
   end
