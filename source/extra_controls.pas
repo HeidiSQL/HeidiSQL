@@ -134,7 +134,8 @@ begin
     // Apply system font. See issue #3204.
     // Code taken from http://www.gerixsoft.com/blog/delphi/system-font
     if SystemParametersInfo(SPI_GETICONTITLELOGFONT, SizeOf(TLogFont), @LogFont, 0) then begin
-      AFont.Height := LogFont.lfHeight;
+      // Leave font size at default, as the system's font size is probably scaled up
+      //AFont.Height := LogFont.lfHeight;
       AFont.Orientation := LogFont.lfOrientation;
       AFont.Charset := TFontCharset(LogFont.lfCharSet);
       AFont.Name := PChar(@LogFont.lfFaceName);
