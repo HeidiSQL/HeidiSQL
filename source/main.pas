@@ -1793,7 +1793,7 @@ end;
 }
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  i, j: Integer;
+  i, j, MonitorIndex: Integer;
   QueryTab: TQueryTab;
   Action, CopyAsAction: TAction;
   ExportFormat: TGridExportFormat;
@@ -1955,6 +1955,18 @@ begin
   FixVT(ListCommandStats);
   FixVT(ListTables);
   FixVT(treeQueryHelpers);
+
+  // Window position
+  Left := AppSettings.ReadInt(asMainWinLeft);
+  Top := AppSettings.ReadInt(asMainWinTop);
+  // ... state
+  if AppSettings.ReadBool(asMainWinMaximized) then
+    WindowState := wsMaximized;
+  // ... and monitor placement
+  MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
+  MonitorIndex := Max(0, MonitorIndex);
+  MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
+  MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
@@ -2700,23 +2712,12 @@ begin
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
-var
-  MonitorIndex: Integer;
 begin
-  // Window position
-  Left := AppSettings.ReadInt(asMainWinLeft);
-  Top := AppSettings.ReadInt(asMainWinTop);
-  // .. dimensions
-  Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
-  // ... state
-  if AppSettings.ReadBool(asMainWinMaximized) then
-    WindowState := wsMaximized;
-  // ... and monitor placement
-  MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
-  MonitorIndex := Max(0, MonitorIndex);
-  MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
-  MakeFullyVisible(Screen.Monitors[MonitorIndex]);
+  // Window dimensions
+  if WindowState <> wsMaximized then begin
+    Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
+    Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
+  end;
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListDatabases);
