@@ -65,14 +65,12 @@ begin
   imgDonate.OnClick := MainForm.DonateClick;
   imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
   HasSizeGrip := True;
-  Width := AppSettings.ReadInt(asUpdateCheckWindowWidth);
-  Height := AppSettings.ReadInt(asUpdateCheckWindowHeight);
 end;
 
 procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  AppSettings.WriteInt(asUpdateCheckWindowWidth, Width);
-  AppSettings.WriteInt(asUpdateCheckWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asUpdateCheckWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asUpdateCheckWindowHeight, Self, Height);
 end;
 
 {**
@@ -90,6 +88,8 @@ end;
 }
 procedure TfrmUpdateCheck.FormShow(Sender: TObject);
 begin
+  Width := AppSettings.ReadIntDpiAware(asUpdateCheckWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asUpdateCheckWindowHeight, Self);
   Caption := f_('Check for %s updates', [APPNAME]) + ' ...';
   Screen.Cursor := crHourglass;
   try

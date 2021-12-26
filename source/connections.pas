@@ -266,17 +266,6 @@ begin
   // Fix GUI stuff
   HasSizeGrip := True;
 
-  Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
-  Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
-  Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);
-  Top := AppSettings.ReadInt(asSessionManagerWindowTop, '', Top);
-  // Move to visible area if window was on a now plugged off monitor previously
-  MakeFullyVisible;
-
-  pnlLeft.Width := AppSettings.ReadInt(asSessionManagerListWidth);
-  splitterMain.OnMoved(Sender);
-  FixVT(ListSessions);
-  MainForm.RestoreListSetup(ListSessions);
   ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
   ListSessions.OnHeaderDraggedOut := MainForm.AnyGridHeaderDraggedOut;
@@ -355,9 +344,9 @@ begin
   // Suspend calculating statistics as long as they're not visible
   TimerStatistics.Enabled := False;
   // Save GUI stuff
-  AppSettings.WriteInt(asSessionManagerListWidth, pnlLeft.Width);
-  AppSettings.WriteInt(asSessionManagerWindowWidth, Width);
-  AppSettings.WriteInt(asSessionManagerWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asSessionManagerListWidth, Self, pnlLeft.Width);
+  AppSettings.WriteIntDpiAware(asSessionManagerWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asSessionManagerWindowHeight, Self, Height);
   AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
   AppSettings.WriteInt(asSessionManagerWindowTop, Top);
   MainForm.SaveListSetup(ListSessions);
@@ -371,6 +360,17 @@ var
   PSess: PConnectionParameters;
   Node: PVirtualNode;
 begin
+  Width := AppSettings.ReadIntDpiAware(asSessionManagerWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asSessionManagerWindowHeight, Self);
+  Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);
+  Top := AppSettings.ReadInt(asSessionManagerWindowTop, '', Top);
+  // Move to visible area if window was on a now plugged off monitor previously
+  MakeFullyVisible;
+  pnlLeft.Width := AppSettings.ReadIntDpiAware(asSessionManagerListWidth, Self);
+  splitterMain.OnMoved(Sender);
+  FixVT(ListSessions);
+  MainForm.RestoreListSetup(ListSessions);
+
   // Init sessions tree
   RefreshSessions(nil);
 

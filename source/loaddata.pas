@@ -95,8 +95,6 @@ procedure Tloaddataform.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
   // Restore settings
-  Width := AppSettings.ReadInt(asCSVImportWindowWidth);
-  Height := AppSettings.ReadInt(asCSVImportWindowHeight);
   editFilename.Text := AppSettings.ReadString(asCSVImportFilename);
   editFieldTerminator.Text := AppSettings.ReadString(asCSVImportSeparator);
   editFieldEncloser.Text := AppSettings.ReadString(asCSVImportEncloser);
@@ -133,6 +131,9 @@ end;
 
 procedure Tloaddataform.FormShow(Sender: TObject);
 begin
+  Width := AppSettings.ReadIntDpiAware(asCSVImportWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asCSVImportWindowHeight, Self);
+
   FConnection := MainForm.ActiveConnection;
 
   // Disable features supported in MySQL only, if active connection is not MySQL
@@ -160,8 +161,8 @@ end;
 procedure Tloaddataform.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // Save settings
-  AppSettings.WriteInt(asCSVImportWindowWidth, Width);
-  AppSettings.WriteInt(asCSVImportWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asCSVImportWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asCSVImportWindowHeight, Self, Height);
   AppSettings.WriteString(asCSVImportFilename, editFilename.Text);
   AppSettings.WriteString(asCSVImportSeparator, editFieldTerminator.Text);
   AppSettings.WriteString(asCSVImportEncloser, editFieldEncloser.Text);

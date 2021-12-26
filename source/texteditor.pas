@@ -211,14 +211,6 @@ begin
   menuMacLB.Tag := Integer(lbsMac);
   menuWideLB.Tag := Integer(lbsWide);
   menuMixedLB.Tag := Integer(lbsMixed);
-  // Restore form dimensions
-  Width := AppSettings.ReadInt(asMemoEditorWidth);
-  Height := AppSettings.ReadInt(asMemoEditorHeight);
-  if AppSettings.ReadBool(asMemoEditorMaximized) then
-    WindowState := wsMaximized;
-
-  if AppSettings.ReadBool(asMemoEditorWrap) then
-    btnWrap.Click;
 
   Highlighters := SynEditHighlighter.GetPlaceableHighlighters;
   for i:=0 to Highlighters.Count-1 do begin
@@ -235,8 +227,8 @@ end;
 procedure TfrmTextEditor.FormDestroy(Sender: TObject);
 begin
   if WindowState <> wsMaximized then begin
-    AppSettings.WriteInt(asMemoEditorWidth, Width);
-    AppSettings.WriteInt(asMemoEditorHeight, Height);
+    AppSettings.WriteIntDpiAware(asMemoEditorWidth, Self, Width);
+    AppSettings.WriteIntDpiAware(asMemoEditorHeight, Self, Height);
   end;
   AppSettings.WriteBool(asMemoEditorMaximized, WindowState=wsMaximized);
   AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
@@ -251,6 +243,15 @@ procedure TfrmTextEditor.FormShow(Sender: TObject);
 var
   HighlighterName: String;
 begin
+  // Restore form dimensions
+  Width := AppSettings.ReadIntDpiAware(asMemoEditorWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asMemoEditorHeight, Self);
+  if AppSettings.ReadBool(asMemoEditorMaximized) then
+    WindowState := wsMaximized;
+
+  if AppSettings.ReadBool(asMemoEditorWrap) then
+    btnWrap.Click;
+
   // Select previously used highlighter
   HighlighterName := AppSettings.GetDefaultString(asMemoEditorHighlighter);
   if Assigned(FTableColumn) then begin

@@ -1769,8 +1769,8 @@ begin
   if WindowState = wsNormal then begin
     AppSettings.WriteInt(asMainWinLeft, Left);
     AppSettings.WriteInt(asMainWinTop, Top);
-    AppSettings.WriteInt(asMainWinWidth, Width);
-    AppSettings.WriteInt(asMainWinHeight, Height);
+    AppSettings.WriteIntDpiAware(asMainWinWidth, Self, Width);
+    AppSettings.WriteIntDpiAware(asMainWinHeight, Self, Height);
   end;
   SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
@@ -1793,7 +1793,7 @@ end;
 }
 procedure TMainForm.FormCreate(Sender: TObject);
 var
-  i, j, MonitorIndex: Integer;
+  i, j: Integer;
   QueryTab: TQueryTab;
   Action, CopyAsAction: TAction;
   ExportFormat: TGridExportFormat;
@@ -1956,21 +1956,6 @@ begin
   FixVT(ListTables);
   FixVT(treeQueryHelpers);
 
-  // Window position
-  Left := AppSettings.ReadInt(asMainWinLeft);
-  Top := AppSettings.ReadInt(asMainWinTop);
-  // .. dimensions
-  Width := AppSettings.ReadInt(asMainWinWidth);
-  Height := AppSettings.ReadInt(asMainWinHeight);
-  // ... state
-  if AppSettings.ReadBool(asMainWinMaximized) then
-    WindowState := wsMaximized;
-  // ... and monitor placement
-  MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
-  MonitorIndex := Max(0, MonitorIndex);
-  MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
-  MakeFullyVisible(Screen.Monitors[MonitorIndex]);
-
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
@@ -2030,14 +2015,6 @@ begin
     menuAutoExpand.Click;
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) then
     menuDoubleClickInsertsNodeText.Click;
-
-  // Restore width of columns of all VirtualTrees
-  RestoreListSetup(ListDatabases);
-  RestoreListSetup(ListVariables);
-  RestoreListSetup(ListStatus);
-  RestoreListSetup(ListProcesses);
-  RestoreListSetup(ListCommandStats);
-  RestoreListSetup(ListTables);
 
   // Shortcuts
   FActionList1DefaultCaptions := TStringList.Create;
@@ -2723,7 +2700,32 @@ begin
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
+var
+  MonitorIndex: Integer;
 begin
+  // Window position
+  Left := AppSettings.ReadInt(asMainWinLeft);
+  Top := AppSettings.ReadInt(asMainWinTop);
+  // .. dimensions
+  Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
+  // ... state
+  if AppSettings.ReadBool(asMainWinMaximized) then
+    WindowState := wsMaximized;
+  // ... and monitor placement
+  MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
+  MonitorIndex := Max(0, MonitorIndex);
+  MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
+  MakeFullyVisible(Screen.Monitors[MonitorIndex]);
+
+  // Restore width of columns of all VirtualTrees
+  RestoreListSetup(ListDatabases);
+  RestoreListSetup(ListVariables);
+  RestoreListSetup(ListStatus);
+  RestoreListSetup(ListProcesses);
+  RestoreListSetup(ListCommandStats);
+  RestoreListSetup(ListTables);
+
   // Manually set focus to tree - otherwise the database filter as the first
   // control catches focus on startup, which is ugly.
   if DBtree.CanFocus then

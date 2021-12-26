@@ -237,10 +237,12 @@ type
       constructor Create;
       destructor Destroy; override;
       function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
+      function ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
       function ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
       function ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String; overload;
       function ReadString(ValueName: String): String; overload;
       procedure WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
+      procedure WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
       procedure WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
       procedure WriteString(Index: TAppSettingIndex; Value: String; FormatName: String=''); overload;
       procedure WriteString(ValueName, Value: String); overload;
@@ -3997,6 +3999,13 @@ begin
 end;
 
 
+function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
+begin
+  Result := ReadInt(Index, FormatName, Default);
+  Result := Round(Result * AControl.ScaleFactor);
+end;
+
+
 function TAppSettings.ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
 var
   I: Integer;
@@ -4074,6 +4083,13 @@ end;
 procedure TAppSettings.WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
 begin
   Write(Index, FormatName, adInt, Value, False, '');
+end;
+
+
+procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
+begin
+  Value := Round(Value / AControl.ScaleFactor);
+  WriteInt(Index, Value, FormatName);
 end;
 
 

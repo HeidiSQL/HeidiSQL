@@ -95,8 +95,8 @@ end;
 
 procedure TfrmBinEditor.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asMemoEditorWidth, Width);
-  AppSettings.WriteInt(asMemoEditorHeight, Height);
+  AppSettings.WriteIntDpiAware(asMemoEditorWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asMemoEditorHeight, Self, Height);
   AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
 end;
 
@@ -104,8 +104,8 @@ end;
 procedure TfrmBinEditor.FormShow(Sender: TObject);
 begin
   // Restore form dimensions
-  Width := AppSettings.ReadInt(asMemoEditorWidth);
-  Height := AppSettings.ReadInt(asMemoEditorHeight);
+  Width := AppSettings.ReadIntDpiAware(asMemoEditorWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asMemoEditorHeight, Self);
   if AppSettings.ReadBool(asMemoEditorWrap) then
     btnWrap.Click;
   // Fix label position:

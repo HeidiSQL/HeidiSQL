@@ -56,15 +56,13 @@ uses main, apphelpers;
 procedure TfrmEditVariable.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
-  Width := AppSettings.ReadInt(asEditVarWindowWidth);
-  Height := AppSettings.ReadInt(asEditVarWindowHeight);
 end;
 
 
 procedure TfrmEditVariable.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asEditVarWindowWidth, Width);
-  AppSettings.WriteInt(asEditVarWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asEditVarWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asEditVarWindowHeight, Self, Height);
 end;
 
 
@@ -93,6 +91,8 @@ procedure TfrmEditVariable.FormShow(Sender: TObject);
 var
   val: String;
 begin
+  Width := AppSettings.ReadIntDpiAware(asEditVarWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asEditVarWindowHeight, Self);
   // Verify variable type by value
   FVarType := vtString;
   if IsInt(FVarValue) then

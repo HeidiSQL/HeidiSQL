@@ -85,14 +85,6 @@ procedure TfrmSQLhelp.FormCreate(Sender: TObject);
 begin
   // Set window-layout
   lblKeyword.Font.Style := [fsBold];
-  Top := AppSettings.ReadInt(asSQLHelpWindowTop);
-  Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
-  Width := AppSettings.ReadInt(asSQLHelpWindowWidth);
-  Height := AppSettings.ReadInt(asSQLHelpWindowHeight);
-  MakeFullyVisible;
-
-  pnlLeft.Width := AppSettings.ReadInt(asSQLHelpPnlLeftWidth);
-  memoDescription.Height := AppSettings.ReadInt(asSQLHelpPnlRightTopHeight);
   Caption := DEFAULT_WINDOW_CAPTION;
   FixVT(treeTopics);
   HasSizeGrip := True;
@@ -109,10 +101,10 @@ procedure TfrmSQLhelp.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   AppSettings.WriteInt(asSQLHelpWindowLeft, Left );
   AppSettings.WriteInt(asSQLHelpWindowTop, Top );
-  AppSettings.WriteInt(asSQLHelpWindowWidth, Width);
-  AppSettings.WriteInt(asSQLHelpWindowHeight, Height);
-  AppSettings.WriteInt(asSQLHelpPnlLeftWidth, pnlLeft.Width);
-  AppSettings.WriteInt(asSQLHelpPnlRightTopHeight, memoDescription.Height);
+  AppSettings.WriteIntDpiAware(asSQLHelpWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asSQLHelpWindowHeight, Self, Height);
+  AppSettings.WriteIntDpiAware(asSQLHelpPnlLeftWidth, Self, pnlLeft.Width);
+  AppSettings.WriteIntDpiAware(asSQLHelpPnlRightTopHeight, Self, memoDescription.Height);
   Action := caFree;
   SqlHelpDialog := nil;
 end;
@@ -272,6 +264,14 @@ end;
 
 procedure TfrmSQLhelp.FormShow(Sender: TObject);
 begin
+  Top := AppSettings.ReadInt(asSQLHelpWindowTop);
+  Left := AppSettings.ReadInt(asSQLHelpWindowLeft);
+  Width := AppSettings.ReadIntDpiAware(asSQLHelpWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asSQLHelpWindowHeight, Self);
+  MakeFullyVisible;
+
+  pnlLeft.Width := AppSettings.ReadIntDpiAware(asSQLHelpPnlLeftWidth, Self);
+  memoDescription.Height := AppSettings.ReadIntDpiAware(asSQLHelpPnlRightTopHeight, Self);
   // Apply themed colors in OnShow, not OnCreate, as a check with <> nil returns false otherwise
   MainForm.SetupSynEditors;
   // These SynMemo's don't have any (SQL) highligher, so we have to assign correct colors for basic text

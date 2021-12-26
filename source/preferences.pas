@@ -472,8 +472,8 @@ begin
       [mbOk]);
   end;
   MainForm.ActionList1.State := asNormal;
-  AppSettings.WriteInt(asPreferencesWindowWidth, Width);
-  AppSettings.WriteInt(asPreferencesWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asPreferencesWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asPreferencesWindowHeight, Self, Height);
 end;
 
 
@@ -494,9 +494,6 @@ var
   IconPack: String;
 begin
   HasSizeGrip := True;
-
-  Width := AppSettings.ReadInt(asPreferencesWindowWidth);
-  Height := AppSettings.ReadInt(asPreferencesWindowHeight);
 
   // Misecllaneous
   // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
@@ -622,7 +619,10 @@ var
   LangCode, GUIFont: String;
   i: Integer;
 begin
-  screen.Cursor := crHourGlass;
+  Screen.Cursor := crHourGlass;
+
+  Width := AppSettings.ReadIntDpiAware(asPreferencesWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asPreferencesWindowHeight, Self);
 
   // Read and display values
   chkAutoReconnect.Checked := AppSettings.ReadBool(asAutoReconnect);;
