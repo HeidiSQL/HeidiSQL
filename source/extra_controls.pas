@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
   SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
-  ShLwApi, Vcl.ExtCtrls, VirtualTrees, SynRegExpr;
+  ShLwApi, Vcl.ExtCtrls, VirtualTrees, SynRegExpr, Vcl.Controls;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -22,6 +22,8 @@ type
       class procedure InheritFont(AFont: TFont);
       property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
       class procedure FixControls(ParentComp: TComponent);
+      class procedure SaveListSetup(List: TVirtualStringTree);
+      class procedure RestoreListSetup(List: TVirtualStringTree);
   end;
 
 
@@ -145,6 +147,136 @@ begin
       ErrorDialog('Could not detect system font, using SystemParametersInfo.');
     end;
   end;
+end;
+
+
+{**
+  Save setup of a VirtualStringTree to registry
+}
+class procedure TExtForm.SaveListSetup( List: TVirtualStringTree );
+var
+  i, ColWidth: Integer;
+  ColWidths, ColsVisible, ColPos, Regname: String;
+  OwnerForm: TWinControl;
+begin
+  // Prevent sporadic crash on startup
+  if List = nil then
+    Exit;
+  OwnerForm := GetParentFormOrFrame(List);
+  // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
+  // In that case we would cause an exception when accessing it. Emergency break in that case.
+  // See issue #1462
+  // TODO: Test this, probably fixed by implementing GetParentFormOrFrame, and then again, probably not.
+  if not Assigned(OwnerForm) then
+    Exit;
+
+  ColWidths := '';
+  ColsVisible := '';
+  ColPos := '';
+
+  for i := 0 to List.Header.Columns.Count - 1 do
+  begin
+    // Column widths
+    if ColWidths <> '' then
+      ColWidths := ColWidths + ',';
+    ColWidth := Round(List.Header.Columns[i].Width / OwnerForm.ScaleFactor);
+    ColWidths := ColWidths + IntToStr(ColWidth);
+
+    // Column visibility
+    if coVisible in List.Header.Columns[i].Options then
+    begin
+      if ColsVisible <> '' then
+        ColsVisible := ColsVisible + ',';
+      ColsVisible := ColsVisible + IntToStr(i);
+    end;
+
+    // Column position
+    if ColPos <> '' then
+      ColPos := ColPos + ',';
+    ColPos := ColPos + IntToStr(List.Header.Columns[i].Position);
+
+  end;
+
+  // Lists can have the same name over different forms or frames. Find parent form or frame,
+  // so we can prepend its name into the registry value name.
+  Regname := OwnerForm.Name + '.' + List.Name;
+  AppSettings.ResetPath;
+  AppSettings.WriteString(asListColWidths, ColWidths, Regname);
+  AppSettings.WriteString(asListColsVisible, ColsVisible, Regname);
+  AppSettings.WriteString(asListColPositions, ColPos, Regname);
+  AppSettings.WriteString(asListColSort, IntToStr(List.Header.SortColumn) + ',' + IntToStr(Integer(List.Header.SortDirection)), RegName);
+end;
+
+
+{**
+  Restore setup of VirtualStringTree from registry
+}
+class procedure TExtForm.RestoreListSetup( List: TVirtualStringTree );
+var
+  i : Byte;
+  ColWidth, colpos : Integer;
+  Value : String;
+  ValueList : TStringList;
+  Regname: String;
+  OwnerForm: TWinControl;
+begin
+  ValueList := TStringList.Create;
+
+  // Column widths
+  OwnerForm := GetParentFormOrFrame(List);
+  Regname := OwnerForm.Name + '.' + List.Name;
+  Value := AppSettings.ReadString(asListColWidths, Regname);
+  if Value <> '' then begin
+    ValueList := Explode( ',', Value );
+    for i := 0 to ValueList.Count - 1 do
+    begin
+      ColWidth := MakeInt(ValueList[i]);
+      ColWidth := Round(ColWidth * OwnerForm.ScaleFactor);
+      // Check if column number exists and width is at least 1 pixel
+      if (List.Header.Columns.Count > i) and (ColWidth > 0) and (ColWidth < 1000) then
+        List.Header.Columns[i].Width := ColWidth;
+    end;
+  end;
+
+  // Column visibility
+  Value := AppSettings.ReadString(asListColsVisible, Regname);
+  if Value <> '' then begin
+    ValueList := Explode( ',', Value );
+    for i:=0 to List.Header.Columns.Count-1 do begin
+      if ValueList.IndexOf( IntToStr(i) ) > -1 then
+        List.Header.Columns[i].Options := List.Header.Columns[i].Options + [coVisible]
+      else
+        List.Header.Columns[i].Options := List.Header.Columns[i].Options - [coVisible];
+    end;
+  end;
+
+  // Column position
+  Value := AppSettings.ReadString(asListColPositions, Regname);
+  if Value <> '' then begin
+    ValueList := Explode( ',', Value );
+    for i := 0 to ValueList.Count - 1 do
+    begin
+      colpos := MakeInt(ValueList[i]);
+      // Check if column number exists
+      if List.Header.Columns.Count > i then
+        List.Header.Columns[i].Position := colpos;
+    end;
+  end;
+
+  // Sort column and direction
+  Value := AppSettings.ReadString(asListColSort, Regname);
+  if Value <> '' then begin
+    ValueList := Explode(',', Value);
+    if ValueList.Count = 2 then begin
+      List.Header.SortColumn := MakeInt(ValueList[0]);
+      if MakeInt(ValueList[1]) = 0 then
+        List.Header.SortDirection := sdAscending
+      else
+        List.Header.SortDirection := sdDescending;
+    end;
+  end;
+
+  ValueList.Free;
 end;
 
 

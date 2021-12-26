@@ -249,7 +249,7 @@ begin
   pnlLeft.Width := AppSettings.ReadIntDpiAware(asUsermanagerListWidth, Self);
   FixVT(listUsers);
   FixVT(treePrivs);
-  Mainform.RestoreListSetup(listUsers);
+  RestoreListSetup(listUsers);
 
   FConnection := Mainform.ActiveConnection;
   Version := FConnection.ServerVersionInt;
@@ -407,7 +407,7 @@ begin
   AppSettings.WriteIntDpiAware(asUsermanagerWindowWidth, Self, Width);
   AppSettings.WriteIntDpiAware(asUsermanagerWindowHeight, Self, Height);
   AppSettings.WriteIntDpiAware(asUsermanagerListWidth, Self, pnlLeft.Width);
-  Mainform.SaveListSetup(listUsers);
+  SaveListSetup(listUsers);
 end;
 
 

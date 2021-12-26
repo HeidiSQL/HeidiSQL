@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees, SynRegExpr,
+  ComCtrls, ToolWin, VirtualTrees, SynRegExpr, extra_controls,
   dbconnection, apphelpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
 
 type
@@ -112,8 +112,6 @@ begin
   comboSecurity.Items.Add('Definer');
   comboSecurity.Items.Add('Invoker');
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
-  FixVT(listParameters);
-  Mainform.RestoreListSetup(listParameters);
   Parameters := TRoutineParamList.Create;
   editName.MaxLength := NAME_LEN;
 end;
@@ -122,7 +120,7 @@ end;
 destructor TfrmRoutineEditor.Destroy;
 begin
   // Store GUI setup
-  Mainform.SaveListSetup(listParameters);
+  TExtForm.SaveListSetup(listParameters);
   inherited;
 end;
 
@@ -132,6 +130,8 @@ var
   i: Integer;
 begin
   inherited;
+  FixVT(listParameters);
+  TExtForm.RestoreListSetup(listParameters);
   if Obj.NodeType = lntProcedure then FAlterRoutineType := 'PROCEDURE'
   else FAlterRoutineType := 'FUNCTION';
   editName.Text := DBObject.Name;

@@ -6,7 +6,7 @@ uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
   SynMemo, Menus, Clipbrd, Math, System.UITypes,
-  grideditlinks, dbstructures, dbconnection, apphelpers, gnugettext, StrUtils;
+  grideditlinks, dbstructures, dbconnection, apphelpers, gnugettext, StrUtils, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -242,19 +242,6 @@ uses main;
 constructor TfrmTableEditor.Create(AOwner: TComponent);
 begin
   inherited;
-  FixVT(listColumns);
-  FixVT(treeIndexes);
-  FixVT(listForeignKeys);
-  FixVT(listCheckConstraints);
-  // Try the best to auto fit various column widths, respecting a custom DPI setting and a pulldown arrow
-  listColumns.Header.Columns[2].Width := Mainform.Canvas.TextWidth('GEOMETRYCOLLECTION') + 6*listColumns.TextMargin;
-  listColumns.Header.Columns[7].Width := Mainform.Canvas.TextWidth('AUTO_INCREMENT') + 4*listColumns.TextMargin;
-  listColumns.Header.Columns[9].Width := Mainform.Canvas.TextWidth('macroman_general_ci') + 6*listColumns.TextMargin;
-  // Overide column widths by custom values
-  Mainform.RestoreListSetup(listColumns);
-  Mainform.RestoreListSetup(treeIndexes);
-  Mainform.RestoreListSetup(listForeignKeys);
-  MainForm.RestoreListSetup(listCheckConstraints);
   comboRowFormat.Items.CommaText := 'DEFAULT,DYNAMIC,FIXED,COMPRESSED,REDUNDANT,COMPACT';
   comboInsertMethod.Items.CommaText := 'NO,FIRST,LAST';
   FColumns := TTableColumnList.Create;
@@ -271,10 +258,10 @@ end;
 destructor TfrmTableEditor.Destroy;
 begin
   // Store GUI setup
-  Mainform.SaveListSetup(listColumns);
-  Mainform.SaveListSetup(treeIndexes);
-  Mainform.SaveListSetup(listForeignKeys);
-  MainForm.SaveListSetup(listCheckConstraints);
+  TExtForm.SaveListSetup(listColumns);
+  TExtForm.SaveListSetup(treeIndexes);
+  TExtForm.SaveListSetup(listForeignKeys);
+  TExtForm.SaveListSetup(listCheckConstraints);
   inherited;
 end;
 
@@ -285,8 +272,21 @@ var
   rx: TRegExpr;
 begin
   inherited;
-
   FLoaded := False;
+
+  FixVT(listColumns);
+  FixVT(treeIndexes);
+  FixVT(listForeignKeys);
+  FixVT(listCheckConstraints);
+  // Try the best to auto fit various column widths, respecting a custom DPI setting and a pulldown arrow
+  listColumns.Header.Columns[2].Width := Mainform.Canvas.TextWidth('GEOMETRYCOLLECTION') + 6*listColumns.TextMargin;
+  listColumns.Header.Columns[7].Width := Mainform.Canvas.TextWidth('AUTO_INCREMENT') + 4*listColumns.TextMargin;
+  listColumns.Header.Columns[9].Width := Mainform.Canvas.TextWidth('macroman_general_ci') + 6*listColumns.TextMargin;
+  // Overide column widths by custom values
+  TExtForm.RestoreListSetup(listColumns);
+  TExtForm.RestoreListSetup(treeIndexes);
+  TExtForm.RestoreListSetup(listForeignKeys);
+  TExtForm.RestoreListSetup(listCheckConstraints);
   comboEngine.Items := DBObject.Connection.TableEngines;
   comboEngine.Items.Insert(0, '<'+_('Server default')+'>');
   comboEngine.ItemIndex := 0;

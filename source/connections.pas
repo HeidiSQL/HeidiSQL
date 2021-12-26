@@ -349,7 +349,7 @@ begin
   AppSettings.WriteIntDpiAware(asSessionManagerWindowHeight, Self, Height);
   AppSettings.WriteInt(asSessionManagerWindowLeft, Left);
   AppSettings.WriteInt(asSessionManagerWindowTop, Top);
-  MainForm.SaveListSetup(ListSessions);
+  SaveListSetup(ListSessions);
 end;
 
 
@@ -369,7 +369,7 @@ begin
   pnlLeft.Width := AppSettings.ReadIntDpiAware(asSessionManagerListWidth, Self);
   splitterMain.OnMoved(Sender);
   FixVT(ListSessions);
-  MainForm.RestoreListSetup(ListSessions);
+  RestoreListSetup(ListSessions);
 
   // Init sessions tree
   RefreshSessions(nil);
