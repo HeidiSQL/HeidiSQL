@@ -10,7 +10,7 @@ object connform: Tconnform
   Constraints.MinWidth = 640
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -24,7 +24,7 @@ object connform: Tconnform
     749
     506)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object splitterMain: TSplitter
     AlignWithMargins = True
     Left = 208

@@ -9,7 +9,7 @@ object frmUpdateCheck: TfrmUpdateCheck
   Constraints.MinWidth = 300
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -21,7 +21,7 @@ object frmUpdateCheck: TfrmUpdateCheck
     374
     415)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object lblStatus: TLabel
     Left = 8
     Top = 375

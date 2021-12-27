@@ -9,7 +9,7 @@ object frmTextEditor: TfrmTextEditor
   Constraints.MinWidth = 130
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -19,7 +19,7 @@ object frmTextEditor: TfrmTextEditor
   OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object Panel1: TPanel
     AlignWithMargins = True
     Left = 0

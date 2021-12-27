@@ -9,7 +9,7 @@ object frmSyncDB: TfrmSyncDB
   Constraints.MinWidth = 550
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -19,7 +19,7 @@ object frmSyncDB: TfrmSyncDB
     534
     362)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object lblSource: TLabel
     Left = 8
     Top = 8

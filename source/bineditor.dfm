@@ -7,7 +7,11 @@ object frmBinEditor: TfrmBinEditor
   Color = clBtnFace
   Constraints.MinHeight = 100
   Constraints.MinWidth = 130
-  ParentFont = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -12
+  Font.Name = 'Tahoma'
+  Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
@@ -18,7 +22,7 @@ object frmBinEditor: TfrmBinEditor
     215
     95)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object lblTextLength: TLabel
     Left = 103
     Top = 77
