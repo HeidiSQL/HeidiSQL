@@ -1468,7 +1468,7 @@ end;
 
 procedure Tconnform.splitterMainMoved(Sender: TObject);
 var
-  ButtonWidth: Integer;
+  HorizSpace, ButtonWidth: Integer;
 begin
   // Splitter resized - adjust width of bottom left buttons
   ButtonWidth := Round((pnlLeft.Width - 2 * pnlLeft.Margins.Left) / 3);
@@ -1480,9 +1480,10 @@ begin
   btnDelete.Left := btnSave.Left + btnSave.Width + pnlLeft.Margins.Left;
 
   // Resize bottom right buttons
-  ButtonWidth := Round((PageControlDetails.Width - 2 * PageControlDetails.Margins.Right) / 3);
-  ButtonWidth := Max(ButtonWidth, 50);
-  ButtonWidth := Min(ButtonWidth, 100);
+  HorizSpace := PageControlDetails.Width - 2 * PageControlDetails.Margins.Right;
+  ButtonWidth := Round(HorizSpace / 3);
+  ButtonWidth := Max(ButtonWidth, Round(50 * ScaleFactor));
+  ButtonWidth := Min(ButtonWidth, Round(100 * ScaleFactor));
   btnMore.Width := ButtonWidth;
   btnCancel.Width := ButtonWidth;
   btnOpen.Width := ButtonWidth;

@@ -1239,7 +1239,7 @@ begin
     FPanel.BoundsRect := GetCellRect(False);
     R := GetCellRect(True);
     if FButton.Visible then
-      Dec(R.Right, 20);
+      Dec(R.Right, Round(20 * FPanel.ScaleFactor));
     FEdit.BoundsRect := R;
 
     FButton.BoundsRect := Rect(FEdit.BoundsRect.Right, 0, FPanel.Width, FPanel.Height);
