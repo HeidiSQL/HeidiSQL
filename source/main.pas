@@ -2657,6 +2657,8 @@ var
 
   function CalcPanelWidth(MaxPixels, MaxPercentage: Integer): Integer;
   begin
+    // No additional DPI scaling - percentage calculation fits better
+    //MaxPixels := ScaleSize(MaxPixels);
     Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
@@ -2716,6 +2718,8 @@ begin
     Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
     Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
   end;
+
+  LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListDatabases);

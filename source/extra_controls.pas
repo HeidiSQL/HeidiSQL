@@ -24,6 +24,8 @@ type
       class procedure FixControls(ParentComp: TComponent);
       class procedure SaveListSetup(List: TVirtualStringTree);
       class procedure RestoreListSetup(List: TVirtualStringTree);
+      function ScaleSize(x: Extended): Integer; overload;
+      class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
   end;
 
 
@@ -331,6 +333,16 @@ begin
 end;
 
 
+function TExtForm.ScaleSize(x: Extended): Integer;
+begin
+  // Shorthand for dpi scaling hardcoded width/height values of controls
+  Result := ScaleSize(x, Self);
+end;
 
+class function TExtForm.ScaleSize(x: Extended; Control: TControl): Integer;
+begin
+  // Same as above for callers without a form
+  Result := Round(x * Control.ScaleFactor);
+end;
 
 end.
