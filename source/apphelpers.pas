@@ -3474,8 +3474,8 @@ begin
   InitSetting(asCodeFolding,                      'CodeFolding',                           0, True);
   InitSetting(asDisplayBLOBsAsText,               'DisplayBLOBsAsText',                    0, True);
   InitSetting(asSingleQueries,                    'SingleQueries',                         0, True);
-  InitSetting(asMemoEditorWidth,                  'MemoEditorWidth',                       100);
-  InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      100);
+  InitSetting(asMemoEditorWidth,                  'MemoEditorWidth',                       500);
+  InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      200);
   InitSetting(asMemoEditorMaximized,              'MemoEditorMaximized',                   0, False);
   InitSetting(asMemoEditorWrap,                   'MemoEditorWrap',                        0, False);
   InitSetting(asMemoEditorHighlighter,            'MemoEditorHighlighter_%s',              0, False, 'General', True);
