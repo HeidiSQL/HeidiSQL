@@ -1155,6 +1155,8 @@ type
     procedure actSynMoveUpExecute(Sender: TObject);
     procedure actCopyTabsToSpacesExecute(Sender: TObject);
     procedure actCopyUpdate(Sender: TObject);
+    procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
+      NewDPI: Integer);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1699,6 +1701,17 @@ begin
     on E:Exception do
       LogSQL(E.Message, lcError);
   end;
+end;
+
+
+procedure TMainForm.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+var
+  Factor: Extended;
+begin
+  // Moving window to different screen or user changed DPI setting for current screen
+  Factor := 100 / PixelsPerInch * NewDPI;
+  LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
 end;
 
 

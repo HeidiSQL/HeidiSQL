@@ -16,6 +16,8 @@ type
       procedure SetHasSizeGrip(Value: Boolean);
     protected
       procedure DoShow; override;
+      procedure DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
+      procedure DoAfterMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
       procedure FilterNodesByEdit(Edit: TButtonedEdit; Tree: TVirtualStringTree);
     public
       constructor Create(AOwner: TComponent); override;
@@ -67,6 +69,21 @@ end;
 procedure TExtForm.DoShow;
 begin
   FixControls(Self);
+  inherited;
+end;
+
+
+procedure TExtForm.DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer);
+begin
+  // Reduce flicker
+  inherited;
+  LockWindowUpdate(Handle);
+end;
+
+procedure TExtForm.DoAfterMonitorDpiChanged(OldDPI, NewDPI: Integer);
+begin
+  // Release window updates
+  LockWindowUpdate(0);
   inherited;
 end;
 
