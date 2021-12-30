@@ -1340,9 +1340,9 @@ object MainForm: TMainForm
               RightEdge = 0
               TabWidth = 3
               WantTabs = True
-              OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
+              OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
               OnScanForFoldRanges = SynMemoQueryScanForFoldRanges
               FontSmoothing = fsmNone

@@ -1147,7 +1147,7 @@ type
     procedure actConnectionPropertiesExecute(Sender: TObject);
     procedure actRenameQueryTabExecute(Sender: TObject);
     procedure menuRenameQueryTabClick(Sender: TObject);
-    procedure SynMemoQueryChange(Sender: TObject);
+    procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure actCloseAllQueryTabsExecute(Sender: TObject);
     procedure menuCloseRightQueryTabsClick(Sender: TObject);
     procedure popupFilterPopup(Sender: TObject);
@@ -4738,9 +4738,8 @@ begin
     //Logsql('Editor.CaretY:'+Editor.CaretY.ToString+' Editor.Lines.Count:'+Editor.Lines.Count.ToString);
     Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY);
     Editor.CaretY := Editor.CaretY + 1;
+    // OnStatusChanged implicitly fired here
     Editor.Repaint;
-    if Assigned(Editor.OnChange) then
-      Editor.OnChange(Editor);
   end;
 end;
 
@@ -4753,9 +4752,8 @@ begin
   if Assigned(Editor) and (Editor.CaretY >= 2) then begin
     Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY-2);
     Editor.CaretY := Editor.CaretY - 1;
+    // OnStatusChanged implicitly fired here
     Editor.Repaint;
-    if Assigned(Editor.OnChange) then
-      Editor.OnChange(Editor);
   end;
 end;
 
@@ -6066,7 +6064,7 @@ begin
     end else if IsQueryTab(tab.PageIndex, True) then begin
       QueryTabs.ActiveMemo.SetFocus;
       QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
-      SynMemoQueryChange(QueryTabs.ActiveMemo);
+      SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
     end;
   end;
 
@@ -6786,10 +6784,11 @@ begin
 end;
 
 
-procedure TMainForm.SynMemoQueryChange(Sender: TObject);
+procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 var
   Edit: TSynMemo;
   Tab: TQueryTab;
+  ContentOrCursor: Boolean;
 begin
   if not MainFormAfterCreateDone then
     Exit;
@@ -6799,22 +6798,26 @@ begin
   if Tab <> QueryTabs.ActiveTab then
     Exit;
 
-  // Check if bind param detection is enabled for text size <1M
-  // Uncheck checkbox if it's bigger
-  // Code moved back from TQueryTab.MemoOnChange here
-  Tab.TimerLastChange.Enabled := False;
-  Tab.FLastChange := Now;
-  Tab.TimerLastChange.Enabled := True;
+  ContentOrCursor := (scCaretX in Changes) or (scCaretY in Changes) or (scModified in Changes);
+  if ContentOrCursor then begin
+    // Check if bind param detection is enabled for text size <1M
+    // Uncheck checkbox if it's bigger
+    // Code moved back from TQueryTab.MemoOnChange here
+    Tab.TimerLastChange.Enabled := False;
+    Tab.FLastChange := Now;
+    Tab.TimerLastChange.Enabled := True;
 
-  // Don't ask for saving empty contents. See issue #614
-  if Edit.GetTextLen = 0 then begin
-    Tab.MemoFilename := '';
-    Tab.Memo.Modified := False;
+    // Don't ask for saving empty contents. See issue #614
+    if Edit.GetTextLen = 0 then begin
+      Tab.MemoFilename := '';
+      Tab.Memo.Modified := False;
+    end;
+
+    // Update various controls
+    ValidateQueryControls(Sender);
+
+    UpdateLineCharPanel;
   end;
-
-  // Update various controls
-  ValidateQueryControls(Sender);
-  UpdateLineCharPanel;
 end;
 
 
@@ -11463,7 +11466,7 @@ begin
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
-  QueryTab.Memo.OnChange := SynMemoQuery.OnChange;
+  QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
@@ -13697,10 +13700,13 @@ begin
   rx.Expression := '^(\s*)(\-\- |#)?(.*)$';
   if not Editor.SelAvail then begin
     rx.Exec(Editor.LineText);
-    if rx.MatchLen[2] > 0 then
-      Editor.LineText := rx.Match[1] + rx.Match[3]
-    else
+    if rx.MatchLen[2] > 0 then begin
+      Editor.LineText := rx.Match[1] + rx.Match[3];
+      Editor.CaretX := Editor.CaretX - rx.MatchLen[2];
+    end else begin
       Editor.LineText := '-- '+Editor.LineText;
+      Editor.CaretX := Editor.CaretX + 3;
+    end;
   end else begin
     Sel := Explode(CRLF, Editor.SelText);
     IsComment := False;
@@ -13714,9 +13720,9 @@ begin
         Sel[i] := '-- '+Sel[i];
     end;
     Editor.SelText := Implode(CRLF, Sel);
+    if Assigned(Editor.OnStatusChange) then
+      Editor.OnStatusChange(Editor, [scCaretX]);
   end;
-  if Assigned(Editor.OnChange) then
-    Editor.OnChange(Editor);
 end;
 
 
