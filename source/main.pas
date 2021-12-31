@@ -767,6 +767,8 @@ type
     actSynMoveUp: TAction;
     actCopyTabsToSpaces: TAction;
     Copywithtabstospaces1: TMenuItem;
+    Movelinedown1: TMenuItem;
+    Movelineup1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1892,9 +1894,9 @@ begin
     menuCopyAs.Add(CopyAsMenu);
   end;
 
+  // Generate submenu with SynEdit commands
   FEditorCommandStrings := TStringList.Create;
   SynEditKeyCmds.GetEditorCommandValues(AddEditorCommandMenu);
-
   for i:=0 to FEditorCommandStrings.Count-1 do begin
     EditorCommand := ConvertCodeStringToCommand(FEditorCommandStrings[i]);
     CommandMenu := TMenuItem.Create(MainMenu1);
@@ -1915,13 +1917,6 @@ begin
     CommandMenu.OnClick := EditorCommandOnClick;
     menuEditorCommands.Add(CommandMenu);
   end;
-  CommandMenu := TMenuItem.Create(MainMenu1);
-  CommandMenu.Action := actSynMoveDown;
-  menuEditorCommands.Add(CommandMenu);
-  CommandMenu := TMenuItem.Create(MainMenu1);
-  CommandMenu.Action := actSynMoveUp;
-  menuEditorCommands.Add(CommandMenu);
-
 
 
   Delimiter := AppSettings.ReadString(asDelimiter);
@@ -4740,6 +4735,8 @@ begin
     Editor.CaretY := Editor.CaretY + 1;
     // OnStatusChanged implicitly fired here
     Editor.Repaint;
+  end else begin
+    MessageBeep(MB_ICONERROR);
   end;
 end;
 
@@ -4754,6 +4751,8 @@ begin
     Editor.CaretY := Editor.CaretY - 1;
     // OnStatusChanged implicitly fired here
     Editor.Repaint;
+  end else begin
+    MessageBeep(MB_ICONERROR);
   end;
 end;
 

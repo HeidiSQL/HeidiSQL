@@ -2085,6 +2085,12 @@ object MainForm: TMainForm
       object Cut1: TMenuItem
         Action = actCut
       end
+      object Movelinedown1: TMenuItem
+        Action = actSynMoveDown
+      end
+      object Movelineup1: TMenuItem
+        Action = actSynMoveUp
+      end
       object N13: TMenuItem
         Caption = '-'
       end
@@ -3548,12 +3554,14 @@ object MainForm: TMainForm
     object actSynMoveDown: TAction
       Category = 'SQL'
       Caption = 'Move line down'
+      ImageIndex = 75
       ShortCut = 32808
       OnExecute = actSynMoveDownExecute
     end
     object actSynMoveUp: TAction
       Category = 'SQL'
       Caption = 'Move line up'
+      ImageIndex = 74
       ShortCut = 32806
       OnExecute = actSynMoveUpExecute
     end
