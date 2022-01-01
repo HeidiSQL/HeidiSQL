@@ -2307,10 +2307,7 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
-    // This expression does not correctly detect filenames with all allowed characters, for which we would
-    // need to take TPath.GetInvalidPathChars into account. But to not excessively eat parts of the following
-    // text, we stop at the first space character
-    rx.Expression := '(https?://|[A-Z]\:\\)\S+';
+    rx.Expression := 'https?://\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
