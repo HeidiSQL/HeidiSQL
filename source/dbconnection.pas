@@ -2975,7 +2975,7 @@ begin
     ngSQLite: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
-      FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
+      FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
