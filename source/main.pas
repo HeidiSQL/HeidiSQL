@@ -769,6 +769,7 @@ type
     Copywithtabstospaces1: TMenuItem;
     Movelinedown1: TMenuItem;
     Movelineup1: TMenuItem;
+    menuToggleAll: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1159,6 +1160,7 @@ type
     procedure actCopyUpdate(Sender: TObject);
     procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
       NewDPI: Integer);
+    procedure menuToggleAllClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -3264,6 +3266,7 @@ begin
 
     TabCaption := TabCaption + ' (' + FormatNumber(Results.RecordCount) + 'r × ' + FormatNumber(Results.ColumnCount) + 'c)';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
+    NewTab.Grid.Name := Format('Tab%dGrid%d', [Tab.Number, Tab.ResultTabs.Count]);
 
     NewTab.Grid.BeginUpdate;
     NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
@@ -9659,6 +9662,39 @@ end;
 {**
   Collapse all db nodes
 }
+procedure TMainForm.menuToggleAllClick(Sender: TObject);
+var
+  Grid: TVirtualStringTree;
+  Col: TColumnIndex;
+  VisibleColCount: Integer;
+  DoHide, AllowHideAll: Boolean;
+begin
+  // Toggle visibility of all columns in list
+  // Always leave one column visible, synced with poAllowHideAll from popupListHeader.Options
+  // Logsql(PopupComponent(Sender).Name+': '+PopupComponent(Sender).ClassName);
+  Grid := PopupComponent(Sender) as TVirtualStringTree;
+
+  VisibleColCount := 0;
+  Col := Grid.Header.Columns.GetFirstColumn;
+  while Col > NoColumn do begin
+    if coVisible in Grid.Header.Columns[Col].Options then
+      Inc(VisibleColCount);
+    Col := Grid.Header.Columns.GetNextColumn(Col);
+  end;
+  DoHide := VisibleColCount = Grid.Header.Columns.Count;
+  AllowHideAll := poAllowHideAll in popupListHeader.Options;
+
+  Col := Grid.Header.Columns.GetFirstColumn;
+  while Col > NoColumn do begin
+    if DoHide and ((Col <> Grid.Header.Columns.GetFirstColumn) or AllowHideAll) then
+      Grid.Header.Columns[Col].Options := Grid.Header.Columns[Col].Options - [coVisible]
+    else
+      Grid.Header.Columns[Col].Options := Grid.Header.Columns[Col].Options + [coVisible];
+    Col := Grid.Header.Columns.GetNextColumn(Col);
+  end;
+
+end;
+
 procedure TMainForm.menuTreeCollapseAllClick(Sender: TObject);
 var
   n: PVirtualNode;

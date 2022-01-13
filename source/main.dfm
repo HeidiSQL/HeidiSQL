@@ -4099,6 +4099,10 @@ object MainForm: TMainForm
     Images = VirtualImageListMain
     Left = 424
     Top = 208
+    object menuToggleAll: TMenuItem
+      Caption = 'Toggle visibility of all columns'
+      OnClick = menuToggleAllClick
+    end
   end
   object SynCompletionProposal: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]
