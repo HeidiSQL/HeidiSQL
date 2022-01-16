@@ -81,12 +81,12 @@ begin
       Components[i].Free;
   end;
 
-  Margin := 3;
-  MarginBig := Margin * 2;
-  Width1 := 15;
-  Width2 := 160;
-  Width3 := 23;
-  Width4 := 23;
+  Margin := ScaleSize(3);
+  MarginBig := ScaleSize(Margin * 2);
+  Width1 := ScaleSize(15);
+  Width2 := ScaleSize(160);
+  Width3 := ScaleSize(23);
+  Width4 := ScaleSize(23);
 
   // Set initial width to avoid resizing form to 0
   TopPos := pnlBevel.BorderWidth + MarginBig;
