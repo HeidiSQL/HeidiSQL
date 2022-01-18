@@ -43,8 +43,8 @@ end;
 
 procedure TfrmThemePreview.FormShow(Sender: TObject);
 begin
-  Width := AppSettings.ReadInt(asThemePreviewWidth);
-  Height := AppSettings.ReadInt(asThemePreviewHeight);
+  Width := AppSettings.ReadIntDpiAware(asThemePreviewWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asThemePreviewHeight, Self);
   Top := AppSettings.ReadInt(asThemePreviewTop);
   Left := AppSettings.ReadInt(asThemePreviewLeft);
   ToggleCheckBoxWithoutClick(FToggleCheckbox, True);
@@ -53,8 +53,8 @@ end;
 procedure TfrmThemePreview.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
 
-  AppSettings.WriteInt(asThemePreviewWidth, Width);
-  AppSettings.WriteInt(asThemePreviewHeight, Height);
+  AppSettings.WriteIntDpiAware(asThemePreviewWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asThemePreviewHeight, Self, Height);
   AppSettings.WriteInt(asThemePreviewTop, Top);
   AppSettings.WriteInt(asThemePreviewLeft, Left);
   ToggleCheckBoxWithoutClick(FToggleCheckbox, False);

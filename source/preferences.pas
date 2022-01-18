@@ -174,6 +174,7 @@ type
     HotKey1: THotKey;
     HotKey2: THotKey;
     chkLowercaseHex: TCheckBox;
+    chkTabCloseOnDoubleClick: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -413,9 +414,10 @@ begin
   // Populate SynMemo settings to all instances
   Mainform.SetupSynEditors;
 
-  // Files
+  // Files and tabs
   AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
   AppSettings.WriteBool(asRestoreTabs, chkRestoreTabs.Checked);
+  AppSettings.WriteBool(asTabCloseOnDoubleClick, chkTabCloseOnDoubleClick.Checked);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -470,8 +472,8 @@ begin
       [mbOk]);
   end;
   MainForm.ActionList1.State := asNormal;
-  AppSettings.WriteInt(asPreferencesWindowWidth, Width);
-  AppSettings.WriteInt(asPreferencesWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asPreferencesWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asPreferencesWindowHeight, Self, Height);
 end;
 
 
@@ -492,9 +494,6 @@ var
   IconPack: String;
 begin
   HasSizeGrip := True;
-
-  Width := AppSettings.ReadInt(asPreferencesWindowWidth);
-  Height := AppSettings.ReadInt(asPreferencesWindowHeight);
 
   // Misecllaneous
   // Hide browse button on Wine, as the browse dialog returns Windows-style paths, while we need a Unix path
@@ -620,7 +619,10 @@ var
   LangCode, GUIFont: String;
   i: Integer;
 begin
-  screen.Cursor := crHourGlass;
+  Screen.Cursor := crHourGlass;
+
+  Width := AppSettings.ReadIntDpiAware(asPreferencesWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asPreferencesWindowHeight, Self);
 
   // Read and display values
   chkAutoReconnect.Checked := AppSettings.ReadBool(asAutoReconnect);;
@@ -737,9 +739,10 @@ begin
   TreeShortcutItems.ReinitChildren(nil, True);
   SelectNode(TreeShortcutItems, nil);
 
-  // Files
+  // Files and tabs
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
+  chkTabCloseOnDoubleClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;

@@ -45,8 +45,6 @@ uses main;
 procedure TfrmColumnSelection.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
-  Width := AppSettings.ReadInt(asColumnSelectorWidth);
-  Height := AppSettings.ReadInt(asColumnSelectorHeight);
   FCheckedColumns := TStringList.Create;
 end;
 
@@ -59,6 +57,8 @@ var
   i: Integer;
   Col: String;
 begin
+  Width := AppSettings.ReadIntDpiAware(asColumnSelectorWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asColumnSelectorHeight, Self);
   FCheckedColumns.Clear;
   for i:=0 to Mainform.SelectedTableColumns.Count-1 do begin
     Col := Mainform.SelectedTableColumns[i].Name;
@@ -225,8 +225,8 @@ end;
 procedure TfrmColumnSelection.FormClose(Sender: TObject; var Action:
     TCloseAction);
 begin
-  AppSettings.WriteInt(asColumnSelectorWidth, Width);
-  AppSettings.WriteInt(asColumnSelectorHeight, Height);
+  AppSettings.WriteIntDpiAware(asColumnSelectorWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asColumnSelectorHeight, Self, Height);
   Action := caFree;
   FCheckedColumns.Free;
 end;

@@ -118,26 +118,26 @@ begin
   HasSizeGrip := True;
   ListFiles.Images := GetSystemImageList;
   DragAcceptFiles(Handle, True);
-  MainForm.RestoreListSetup(ListColumns);
-  MainForm.RestoreListSetup(ListFiles);
-  FixVT(ListFiles);
-  FixVT(ListColumns);
 end;
 
 
 procedure TfrmInsertFiles.FormDestroy(Sender: TObject);
 begin
-  AppSettings.WriteInt(asFileImportWindowWidth, Width);
-  AppSettings.WriteInt(asFileImportWindowHeight, Height);
-  MainForm.SaveListSetup(ListColumns);
-  MainForm.SaveListSetup(listFiles);
+  AppSettings.WriteIntDpiAware(asFileImportWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asFileImportWindowHeight, Self, Height);
+  SaveListSetup(ListColumns);
+  SaveListSetup(listFiles);
 end;
 
 
 procedure TfrmInsertFiles.FormShow(Sender: TObject);
 begin
-  Width := AppSettings.ReadInt(asFileImportWindowWidth);
-  Height := AppSettings.ReadInt(asFileImportWindowHeight);
+  Width := AppSettings.ReadIntDpiAware(asFileImportWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asFileImportWindowHeight, Self);
+  RestoreListSetup(ListColumns);
+  RestoreListSetup(ListFiles);
+  FixVT(ListFiles);
+  FixVT(ListColumns);
   FConnection := Mainform.ActiveConnection;
   Caption := FConnection.Parameters.SessionName + ' - ' + MainForm.actInsertFiles.Caption;
   comboDBs.Items.Clear;

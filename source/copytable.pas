@@ -67,8 +67,6 @@ const
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
-  Width := AppSettings.ReadInt(asCopyTableWindowWidth);
-  Height := AppSettings.ReadInt(asCopyTableWindowHeight);
   MainForm.SetupSynEditors;
   FixVT(TreeElements);
 end;
@@ -96,6 +94,8 @@ var
   Item: TMenuItem;
   Tree: TVirtualStringTree;
 begin
+  Width := AppSettings.ReadIntDpiAware(asCopyTableWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asCopyTableWindowHeight, Self);
   if Mainform.DBtree.Focused then
     Tree := Mainform.DBtree
   else
@@ -185,8 +185,8 @@ begin
     end;
   end;
   // Store GUI setup
-  AppSettings.WriteInt(asCopyTableWindowWidth, Width);
-  AppSettings.WriteInt(asCopyTableWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asCopyTableWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asCopyTableWindowHeight, Self, Height);
 end;
 
 

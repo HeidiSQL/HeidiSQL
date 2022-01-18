@@ -10,7 +10,7 @@ object UserManagerForm: TUserManagerForm
   Constraints.MinWidth = 450
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -24,7 +24,7 @@ object UserManagerForm: TUserManagerForm
     484
     364)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object Splitter1: TSplitter
     AlignWithMargins = True
     Left = 185

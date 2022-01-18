@@ -767,6 +767,9 @@ type
     actSynMoveUp: TAction;
     actCopyTabsToSpaces: TAction;
     Copywithtabstospaces1: TMenuItem;
+    Movelinedown1: TMenuItem;
+    Movelineup1: TMenuItem;
+    menuToggleAll: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1147,7 +1150,7 @@ type
     procedure actConnectionPropertiesExecute(Sender: TObject);
     procedure actRenameQueryTabExecute(Sender: TObject);
     procedure menuRenameQueryTabClick(Sender: TObject);
-    procedure SynMemoQueryChange(Sender: TObject);
+    procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
     procedure actCloseAllQueryTabsExecute(Sender: TObject);
     procedure menuCloseRightQueryTabsClick(Sender: TObject);
     procedure popupFilterPopup(Sender: TObject);
@@ -1155,6 +1158,9 @@ type
     procedure actSynMoveUpExecute(Sender: TObject);
     procedure actCopyTabsToSpacesExecute(Sender: TObject);
     procedure actCopyUpdate(Sender: TObject);
+    procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
+      NewDPI: Integer);
+    procedure menuToggleAllClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1313,8 +1319,6 @@ type
     procedure CalcNullColors;
     procedure HandleDataGridAttributes(RefreshingData: Boolean);
     function GetRegKeyTable: String;
-    procedure SaveListSetup( List: TVirtualStringTree );
-    procedure RestoreListSetup( List: TVirtualStringTree );
     procedure UpdateEditorTab;
     procedure SetWindowCaption;
     procedure DefaultHandler(var Message); override;
@@ -1704,6 +1708,17 @@ begin
 end;
 
 
+procedure TMainForm.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+var
+  Factor: Extended;
+begin
+  // Moving window to different screen or user changed DPI setting for current screen
+  Factor := 100 / PixelsPerInch * NewDPI;
+  LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
+end;
+
+
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   i: Integer;
@@ -1769,8 +1784,8 @@ begin
   if WindowState = wsNormal then begin
     AppSettings.WriteInt(asMainWinLeft, Left);
     AppSettings.WriteInt(asMainWinTop, Top);
-    AppSettings.WriteInt(asMainWinWidth, Width);
-    AppSettings.WriteInt(asMainWinHeight, Height);
+    AppSettings.WriteIntDpiAware(asMainWinWidth, Self, Width);
+    AppSettings.WriteIntDpiAware(asMainWinHeight, Self, Height);
   end;
   SaveListSetup(ListDatabases);
   SaveListSetup(ListVariables);
@@ -1881,6 +1896,7 @@ begin
     menuCopyAs.Add(CopyAsMenu);
   end;
 
+  // Generate submenu with SynEdit commands
   FEditorCommandStrings := TStringList.Create;
   SynEditKeyCmds.GetEditorCommandValues(AddEditorCommandMenu);
   for i:=0 to FEditorCommandStrings.Count-1 do begin
@@ -1903,14 +1919,6 @@ begin
     CommandMenu.OnClick := EditorCommandOnClick;
     menuEditorCommands.Add(CommandMenu);
   end;
-  // Custom additional editor commands
-  CommandMenu := TMenuItem.Create(MainMenu1);
-  CommandMenu.Action := actSynMoveDown;
-  menuEditorCommands.Add(CommandMenu);
-  CommandMenu := TMenuItem.Create(MainMenu1);
-  CommandMenu.Action := actSynMoveUp;
-  menuEditorCommands.Add(CommandMenu);
-
 
 
   Delimiter := AppSettings.ReadString(asDelimiter);
@@ -1959,9 +1967,6 @@ begin
   // Window position
   Left := AppSettings.ReadInt(asMainWinLeft);
   Top := AppSettings.ReadInt(asMainWinTop);
-  // .. dimensions
-  Width := AppSettings.ReadInt(asMainWinWidth);
-  Height := AppSettings.ReadInt(asMainWinHeight);
   // ... state
   if AppSettings.ReadBool(asMainWinMaximized) then
     WindowState := wsMaximized;
@@ -2030,14 +2035,6 @@ begin
     menuAutoExpand.Click;
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) then
     menuDoubleClickInsertsNodeText.Click;
-
-  // Restore width of columns of all VirtualTrees
-  RestoreListSetup(ListDatabases);
-  RestoreListSetup(ListVariables);
-  RestoreListSetup(ListStatus);
-  RestoreListSetup(ListProcesses);
-  RestoreListSetup(ListCommandStats);
-  RestoreListSetup(ListTables);
 
   // Shortcuts
   FActionList1DefaultCaptions := TStringList.Create;
@@ -2670,6 +2667,8 @@ var
 
   function CalcPanelWidth(MaxPixels, MaxPercentage: Integer): Integer;
   begin
+    // No additional DPI scaling - percentage calculation fits better
+    //MaxPixels := ScaleSize(MaxPixels);
     Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
@@ -2724,6 +2723,22 @@ end;
 
 procedure TMainForm.FormShow(Sender: TObject);
 begin
+  // Window dimensions
+  if WindowState <> wsMaximized then begin
+    Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
+    Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
+  end;
+
+  LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
+
+  // Restore width of columns of all VirtualTrees
+  RestoreListSetup(ListDatabases);
+  RestoreListSetup(ListVariables);
+  RestoreListSetup(ListStatus);
+  RestoreListSetup(ListProcesses);
+  RestoreListSetup(ListCommandStats);
+  RestoreListSetup(ListTables);
+
   // Manually set focus to tree - otherwise the database filter as the first
   // control catches focus on startup, which is ugly.
   if DBtree.CanFocus then
@@ -3251,6 +3266,7 @@ begin
 
     TabCaption := TabCaption + ' (' + FormatNumber(Results.RecordCount) + 'r × ' + FormatNumber(Results.ColumnCount) + 'c)';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
+    NewTab.Grid.Name := Format('Tab%dGrid%d', [Tab.Number, Tab.ResultTabs.Count]);
 
     NewTab.Grid.BeginUpdate;
     NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
@@ -4720,9 +4736,10 @@ begin
     //Logsql('Editor.CaretY:'+Editor.CaretY.ToString+' Editor.Lines.Count:'+Editor.Lines.Count.ToString);
     Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY);
     Editor.CaretY := Editor.CaretY + 1;
+    // OnStatusChanged implicitly fired here
     Editor.Repaint;
-    if Assigned(Editor.OnChange) then
-      Editor.OnChange(Editor);
+  end else begin
+    MessageBeep(MB_ICONERROR);
   end;
 end;
 
@@ -4735,9 +4752,10 @@ begin
   if Assigned(Editor) and (Editor.CaretY >= 2) then begin
     Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY-2);
     Editor.CaretY := Editor.CaretY - 1;
+    // OnStatusChanged implicitly fired here
     Editor.Repaint;
-    if Assigned(Editor.OnChange) then
-      Editor.OnChange(Editor);
+  end else begin
+    MessageBeep(MB_ICONERROR);
   end;
 end;
 
@@ -6048,7 +6066,7 @@ begin
     end else if IsQueryTab(tab.PageIndex, True) then begin
       QueryTabs.ActiveMemo.SetFocus;
       QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
-      SynMemoQueryChange(QueryTabs.ActiveMemo);
+      SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
     end;
   end;
 
@@ -6768,10 +6786,11 @@ begin
 end;
 
 
-procedure TMainForm.SynMemoQueryChange(Sender: TObject);
+procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 var
   Edit: TSynMemo;
   Tab: TQueryTab;
+  ContentOrCursor: Boolean;
 begin
   if not MainFormAfterCreateDone then
     Exit;
@@ -6781,22 +6800,26 @@ begin
   if Tab <> QueryTabs.ActiveTab then
     Exit;
 
-  // Check if bind param detection is enabled for text size <1M
-  // Uncheck checkbox if it's bigger
-  // Code moved back from TQueryTab.MemoOnChange here
-  Tab.TimerLastChange.Enabled := False;
-  Tab.FLastChange := Now;
-  Tab.TimerLastChange.Enabled := True;
+  ContentOrCursor := (scCaretX in Changes) or (scCaretY in Changes) or (scModified in Changes);
+  if ContentOrCursor then begin
+    // Check if bind param detection is enabled for text size <1M
+    // Uncheck checkbox if it's bigger
+    // Code moved back from TQueryTab.MemoOnChange here
+    Tab.TimerLastChange.Enabled := False;
+    Tab.FLastChange := Now;
+    Tab.TimerLastChange.Enabled := True;
 
-  // Don't ask for saving empty contents. See issue #614
-  if Edit.GetTextLen = 0 then begin
-    Tab.MemoFilename := '';
-    Tab.Memo.Modified := False;
+    // Don't ask for saving empty contents. See issue #614
+    if Edit.GetTextLen = 0 then begin
+      Tab.MemoFilename := '';
+      Tab.Memo.Modified := False;
+    end;
+
+    // Update various controls
+    ValidateQueryControls(Sender);
+
+    UpdateLineCharPanel;
   end;
-
-  // Update various controls
-  ValidateQueryControls(Sender);
-  UpdateLineCharPanel;
 end;
 
 
@@ -8303,133 +8326,6 @@ end;
 
 
 {**
-  Save setup of a VirtualStringTree to registry
-}
-procedure TMainForm.SaveListSetup( List: TVirtualStringTree );
-var
-  i, ColWidth: Integer;
-  ColWidths, ColsVisible, ColPos, Regname: String;
-  OwnerForm: TWinControl;
-begin
-  // Prevent sporadic crash on startup
-  if List = nil then
-    Exit;
-  ColWidths := '';
-  ColsVisible := '';
-  ColPos := '';
-  OwnerForm := GetParentFormOrFrame(List);
-  for i := 0 to List.Header.Columns.Count - 1 do
-  begin
-    // Column widths
-    if ColWidths <> '' then
-      ColWidths := ColWidths + ',';
-    ColWidth := List.Header.Columns[i].Width;
-    ColWidths := ColWidths + IntToStr(ColWidth);
-
-    // Column visibility
-    if coVisible in List.Header.Columns[i].Options then
-    begin
-      if ColsVisible <> '' then
-        ColsVisible := ColsVisible + ',';
-      ColsVisible := ColsVisible + IntToStr(i);
-    end;
-
-    // Column position
-    if ColPos <> '' then
-      ColPos := ColPos + ',';
-    ColPos := ColPos + IntToStr(List.Header.Columns[i].Position);
-
-  end;
-
-  // On a windows shutdown, GetParentForm() seems sporadically unable to find the owner form
-  // In that case we would cause an exception when accessing it. Emergency break in that case.
-  // See issue #1462
-  // TODO: Test this, probably fixed by implementing GetParentFormOrFrame, and then again, probably not.
-  if not Assigned(OwnerForm) then
-    Exit;
-  // Lists can have the same name over different forms or frames. Find parent form or frame,
-  // so we can prepend its name into the registry value name.
-  Regname := OwnerForm.Name + '.' + List.Name;
-  AppSettings.ResetPath;
-  AppSettings.WriteString(asListColWidths, ColWidths, Regname);
-  AppSettings.WriteString(asListColsVisible, ColsVisible, Regname);
-  AppSettings.WriteString(asListColPositions, ColPos, Regname);
-  AppSettings.WriteString(asListColSort, IntToStr(List.Header.SortColumn) + ',' + IntToStr(Integer(List.Header.SortDirection)), RegName);
-end;
-
-
-{**
-  Restore setup of VirtualStringTree from registry
-}
-procedure TMainForm.RestoreListSetup( List: TVirtualStringTree );
-var
-  i : Byte;
-  colwidth, colpos : Integer;
-  Value : String;
-  ValueList : TStringList;
-  Regname: String;
-  OwnerForm: TWinControl;
-begin
-  ValueList := TStringList.Create;
-
-  // Column widths
-  OwnerForm := GetParentFormOrFrame(List);
-  Regname := OwnerForm.Name + '.' + List.Name;
-  Value := AppSettings.ReadString(asListColWidths, Regname);
-  if Value <> '' then begin
-    ValueList := Explode( ',', Value );
-    for i := 0 to ValueList.Count - 1 do
-    begin
-      colwidth := MakeInt(ValueList[i]);
-      // Check if column number exists and width is at least 1 pixel
-      if (List.Header.Columns.Count > i) and (colwidth > 0) and (colwidth < 1000) then
-        List.Header.Columns[i].Width := colwidth;
-    end;
-  end;
-
-  // Column visibility
-  Value := AppSettings.ReadString(asListColsVisible, Regname);
-  if Value <> '' then begin
-    ValueList := Explode( ',', Value );
-    for i:=0 to List.Header.Columns.Count-1 do begin
-      if ValueList.IndexOf( IntToStr(i) ) > -1 then
-        List.Header.Columns[i].Options := List.Header.Columns[i].Options + [coVisible]
-      else
-        List.Header.Columns[i].Options := List.Header.Columns[i].Options - [coVisible];
-    end;
-  end;
-
-  // Column position
-  Value := AppSettings.ReadString(asListColPositions, Regname);
-  if Value <> '' then begin
-    ValueList := Explode( ',', Value );
-    for i := 0 to ValueList.Count - 1 do
-    begin
-      colpos := MakeInt(ValueList[i]);
-      // Check if column number exists
-      if List.Header.Columns.Count > i then
-        List.Header.Columns[i].Position := colpos;
-    end;
-  end;
-
-  // Sort column and direction
-  Value := AppSettings.ReadString(asListColSort, Regname);
-  if Value <> '' then begin
-    ValueList := Explode(',', Value);
-    if ValueList.Count = 2 then begin
-      List.Header.SortColumn := MakeInt(ValueList[0]);
-      if MakeInt(ValueList[1]) = 0 then
-        List.Header.SortDirection := sdAscending
-      else
-        List.Header.SortDirection := sdDescending;
-    end;
-  end;
-
-  ValueList.Free;
-end;
-
-
-{**
   Start writing logfile.
   Called either in FormShow or after closing preferences dialog
 }
@@ -9766,6 +9662,39 @@ end;
 {**
   Collapse all db nodes
 }
+procedure TMainForm.menuToggleAllClick(Sender: TObject);
+var
+  Grid: TVirtualStringTree;
+  Col: TColumnIndex;
+  VisibleColCount: Integer;
+  DoHide, AllowHideAll: Boolean;
+begin
+  // Toggle visibility of all columns in list
+  // Always leave one column visible, synced with poAllowHideAll from popupListHeader.Options
+  // Logsql(PopupComponent(Sender).Name+': '+PopupComponent(Sender).ClassName);
+  Grid := PopupComponent(Sender) as TVirtualStringTree;
+
+  VisibleColCount := 0;
+  Col := Grid.Header.Columns.GetFirstColumn;
+  while Col > NoColumn do begin
+    if coVisible in Grid.Header.Columns[Col].Options then
+      Inc(VisibleColCount);
+    Col := Grid.Header.Columns.GetNextColumn(Col);
+  end;
+  DoHide := VisibleColCount = Grid.Header.Columns.Count;
+  AllowHideAll := poAllowHideAll in popupListHeader.Options;
+
+  Col := Grid.Header.Columns.GetFirstColumn;
+  while Col > NoColumn do begin
+    if DoHide and ((Col <> Grid.Header.Columns.GetFirstColumn) or AllowHideAll) then
+      Grid.Header.Columns[Col].Options := Grid.Header.Columns[Col].Options - [coVisible]
+    else
+      Grid.Header.Columns[Col].Options := Grid.Header.Columns[Col].Options + [coVisible];
+    Col := Grid.Header.Columns.GetNextColumn(Col);
+  end;
+
+end;
+
 procedure TMainForm.menuTreeCollapseAllClick(Sender: TObject);
 var
   n: PVirtualNode;
@@ -11572,7 +11501,7 @@ begin
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
-  QueryTab.Memo.OnChange := SynMemoQuery.OnChange;
+  QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
@@ -12044,21 +11973,25 @@ begin
   case Button of
     mbLeft: begin
       // Simulate doubleclick on tab to close it
-      CurTickcount := GetTickCount;
-      TabNumber := GetMainTabAt(X, Y);
-      if (TabNumber = FLastTabNumberOnMouseUp)
-        and (CurTickcount - FLastMouseUpOnPageControl <= GetDoubleClickTime) then begin
-        CloseQueryTab(TabNumber);
-      end else begin
-        FLastMouseUpOnPageControl := CurTickcount;
-        FLastTabNumberOnMouseUp := TabNumber;
+      if AppSettings.ReadBool(asTabCloseOnDoubleClick) then begin
+        CurTickcount := GetTickCount;
+        TabNumber := GetMainTabAt(X, Y);
+        if (TabNumber = FLastTabNumberOnMouseUp)
+          and (CurTickcount - FLastMouseUpOnPageControl <= GetDoubleClickTime) then begin
+          CloseQueryTab(TabNumber);
+        end else begin
+          FLastMouseUpOnPageControl := CurTickcount;
+          FLastTabNumberOnMouseUp := TabNumber;
+        end;
       end;
     end;
 
     mbMiddle: begin
       // Middle click on tab
-      TabNumber := GetMainTabAt(X, Y);
-      CloseQueryTab(TabNumber);
+      if AppSettings.ReadBool(asTabCloseOnDoubleClick) then begin
+        TabNumber := GetMainTabAt(X, Y);
+        CloseQueryTab(TabNumber);
+      end;
     end;
   end;
 
@@ -13802,10 +13735,13 @@ begin
   rx.Expression := '^(\s*)(\-\- |#)?(.*)$';
   if not Editor.SelAvail then begin
     rx.Exec(Editor.LineText);
-    if rx.MatchLen[2] > 0 then
-      Editor.LineText := rx.Match[1] + rx.Match[3]
-    else
+    if rx.MatchLen[2] > 0 then begin
+      Editor.LineText := rx.Match[1] + rx.Match[3];
+      Editor.CaretX := Editor.CaretX - rx.MatchLen[2];
+    end else begin
       Editor.LineText := '-- '+Editor.LineText;
+      Editor.CaretX := Editor.CaretX + 3;
+    end;
   end else begin
     Sel := Explode(CRLF, Editor.SelText);
     IsComment := False;
@@ -13819,9 +13755,9 @@ begin
         Sel[i] := '-- '+Sel[i];
     end;
     Editor.SelText := Implode(CRLF, Sel);
+    if Assigned(Editor.OnStatusChange) then
+      Editor.OnStatusChange(Editor, [scCaretX]);
   end;
-  if Assigned(Editor.OnChange) then
-    Editor.OnChange(Editor);
 end;
 
 

@@ -9,7 +9,7 @@ object CopyTableForm: TCopyTableForm
   Constraints.MinWidth = 380
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -22,7 +22,7 @@ object CopyTableForm: TCopyTableForm
     364
     304)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object lblNewTablename: TLabel
     Left = 8
     Top = 8

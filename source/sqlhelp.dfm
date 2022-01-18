@@ -7,7 +7,7 @@ object frmSQLhelp: TfrmSQLhelp
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   FormStyle = fsStayOnTop
@@ -16,7 +16,7 @@ object frmSQLhelp: TfrmSQLhelp
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object btnSearchOnline: TButton
     Left = 363
     Top = 322

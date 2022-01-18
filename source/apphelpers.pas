@@ -183,7 +183,7 @@ type
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
-    asPromptSaveFileOnTabClose, asRestoreTabs, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
+    asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
@@ -237,10 +237,12 @@ type
       constructor Create;
       destructor Destroy; override;
       function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
+      function ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
       function ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
       function ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String; overload;
       function ReadString(ValueName: String): String; overload;
       procedure WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
+      procedure WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
       procedure WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
       procedure WriteString(Index: TAppSettingIndex; Value: String; FormatName: String=''); overload;
       procedure WriteString(ValueName, Value: String); overload;
@@ -2305,10 +2307,7 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
-    // This expression does not correctly detect filenames with all allowed characters, for which we would
-    // need to take TPath.GetInvalidPathChars into account. But to not excessively eat parts of the following
-    // text, we stop at the first space character
-    rx.Expression := '(https?://|[A-Z]\:\\)\S+';
+    rx.Expression := 'https?://\S+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
@@ -3472,8 +3471,8 @@ begin
   InitSetting(asCodeFolding,                      'CodeFolding',                           0, True);
   InitSetting(asDisplayBLOBsAsText,               'DisplayBLOBsAsText',                    0, True);
   InitSetting(asSingleQueries,                    'SingleQueries',                         0, True);
-  InitSetting(asMemoEditorWidth,                  'MemoEditorWidth',                       100);
-  InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      100);
+  InitSetting(asMemoEditorWidth,                  'MemoEditorWidth',                       500);
+  InitSetting(asMemoEditorHeight,                 'MemoEditorHeight',                      200);
   InitSetting(asMemoEditorMaximized,              'MemoEditorMaximized',                   0, False);
   InitSetting(asMemoEditorWrap,                   'MemoEditorWrap',                        0, False);
   InitSetting(asMemoEditorHighlighter,            'MemoEditorHighlighter_%s',              0, False, 'General', True);
@@ -3625,6 +3624,7 @@ begin
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
+  InitSetting(asTabCloseOnDoubleClick,            'TabCloseOnDoubleClick',                 0, True);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);
@@ -3996,6 +3996,13 @@ begin
 end;
 
 
+function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
+begin
+  Result := ReadInt(Index, FormatName, Default);
+  Result := Round(Result * AControl.ScaleFactor);
+end;
+
+
 function TAppSettings.ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
 var
   I: Integer;
@@ -4073,6 +4080,13 @@ end;
 procedure TAppSettings.WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
 begin
   Write(Index, FormatName, adInt, Value, False, '');
+end;
+
+
+procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
+begin
+  Value := Round(Value / AControl.ScaleFactor);
+  WriteInt(Index, Value, FormatName);
 end;
 
 

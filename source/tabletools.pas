@@ -250,11 +250,6 @@ begin
   DATA_INSERTNEW := _('Insert ignore (do not update existing)');
   DATA_UPDATE := _('Replace existing data');
 
-  // Restore GUI setup
-  Width := AppSettings.ReadInt(asTableToolsWindowWidth);
-  Height := AppSettings.ReadInt(asTableToolsWindowHeight);
-  TreeObjects.Width := AppSettings.ReadInt(asTableToolsTreeWidth);
-
   // Find text tab
   memoFindText.Text := AppSettings.ReadString(asTableToolsFindText);
   SynMemoFindText.Text := AppSettings.ReadString(asTableToolsFindSQL);
@@ -320,6 +315,11 @@ var
   idx: Integer;
   DBObj: TDBObject;
 begin
+  // Restore GUI setup
+  Width := AppSettings.ReadIntDpiAware(asTableToolsWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asTableToolsWindowHeight, Self);
+  TreeObjects.Width := AppSettings.ReadIntDpiAware(asTableToolsTreeWidth, Self);
+
   // When this form is displayed the second time, databases may be deleted or filtered.
   // Also, checked nodes must be unchecked and unchecked nodes may need to be checked.
   TreeObjects.Clear;
@@ -462,9 +462,9 @@ begin
   if Assigned(FTargetConnection) then
     FreeAndNil(FTargetConnection);
   // Save GUI setup
-  AppSettings.WriteInt(asTableToolsWindowWidth, Width);
-  AppSettings.WriteInt(asTableToolsWindowHeight, Height);
-  AppSettings.WriteInt(asTableToolsTreeWidth, TreeObjects.Width);
+  AppSettings.WriteIntDpiAware(asTableToolsWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asTableToolsWindowHeight, Self, Height);
+  AppSettings.WriteIntDpiAware(asTableToolsTreeWidth, Self, TreeObjects.Width);
 end;
 
 

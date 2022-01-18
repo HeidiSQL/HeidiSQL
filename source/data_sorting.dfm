@@ -1,4 +1,4 @@
-object frmDataSortingForm: TfrmDataSorting
+object frmDataSorting: TfrmDataSorting
   Left = 0
   Top = 0
   BorderStyle = bsNone
@@ -8,7 +8,7 @@ object frmDataSortingForm: TfrmDataSorting
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -16,7 +16,7 @@ object frmDataSortingForm: TfrmDataSorting
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object pnlBevel: TPanel
     Left = 0
     Top = 0

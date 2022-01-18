@@ -6,20 +6,21 @@ object MainForm: TMainForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu1
   OldCreateOrder = True
   Position = poDesigned
   ShowHint = True
+  OnBeforeMonitorDpiChanged = FormBeforeMonitorDpiChanged
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object spltTopBottom: TSplitter
     Left = 0
     Top = 363
@@ -1339,9 +1340,9 @@ object MainForm: TMainForm
               RightEdge = 0
               TabWidth = 3
               WantTabs = True
-              OnChange = SynMemoQueryChange
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
+              OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
               OnScanForFoldRanges = SynMemoQueryScanForFoldRanges
               FontSmoothing = fsmNone
@@ -2083,6 +2084,12 @@ object MainForm: TMainForm
       end
       object Cut1: TMenuItem
         Action = actCut
+      end
+      object Movelinedown1: TMenuItem
+        Action = actSynMoveDown
+      end
+      object Movelineup1: TMenuItem
+        Action = actSynMoveUp
       end
       object N13: TMenuItem
         Caption = '-'
@@ -3547,12 +3554,14 @@ object MainForm: TMainForm
     object actSynMoveDown: TAction
       Category = 'SQL'
       Caption = 'Move line down'
+      ImageIndex = 75
       ShortCut = 32808
       OnExecute = actSynMoveDownExecute
     end
     object actSynMoveUp: TAction
       Category = 'SQL'
       Caption = 'Move line up'
+      ImageIndex = 74
       ShortCut = 32806
       OnExecute = actSynMoveUpExecute
     end
@@ -4090,6 +4099,10 @@ object MainForm: TMainForm
     Images = VirtualImageListMain
     Left = 424
     Top = 208
+    object menuToggleAll: TMenuItem
+      Caption = 'Toggle visibility of all columns'
+      OnClick = menuToggleAllClick
+    end
   end
   object SynCompletionProposal: TSynCompletionProposal
     Options = [scoLimitToMatchedText, scoUseInsertList, scoUsePrettyText, scoUseBuiltInTimer, scoEndCharCompletion, scoCompleteWithTab, scoCompleteWithEnter]

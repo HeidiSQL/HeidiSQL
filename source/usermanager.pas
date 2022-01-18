@@ -208,12 +208,6 @@ begin
   // Restore GUI setup
   HasSizeGrip := True;
   lblWarning.Font.Color := clRed;
-  Width := AppSettings.ReadInt(asUsermanagerWindowWidth);
-  Height := AppSettings.ReadInt(asUsermanagerWindowHeight);
-  pnlLeft.Width := AppSettings.ReadInt(asUsermanagerListWidth);
-  FixVT(listUsers);
-  FixVT(treePrivs);
-  Mainform.RestoreListSetup(listUsers);
   PrivsRead := Explode(',', 'SELECT,SHOW VIEW,SHOW DATABASES,PROCESS,EXECUTE');
   PrivsWrite := Explode(',', 'ALTER,CREATE,DROP,DELETE,UPDATE,INSERT,ALTER ROUTINE,CREATE ROUTINE,CREATE TEMPORARY TABLES,'+
     'CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
@@ -250,6 +244,13 @@ var
   end;
 
 begin
+  Width := AppSettings.ReadIntDpiAware(asUsermanagerWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asUsermanagerWindowHeight, Self);
+  pnlLeft.Width := AppSettings.ReadIntDpiAware(asUsermanagerListWidth, Self);
+  FixVT(listUsers);
+  FixVT(treePrivs);
+  RestoreListSetup(listUsers);
+
   FConnection := Mainform.ActiveConnection;
   Version := FConnection.ServerVersionInt;
   FPrivsGlobal := InitPrivList('FILE,PROCESS,RELOAD,SHUTDOWN');
@@ -403,10 +404,10 @@ begin
   FreeAndNil(FPrivsRoutine);
   FreeAndNil(FPrivsColumn);
   // Save GUI setup
-  AppSettings.WriteInt(asUsermanagerWindowWidth, Width);
-  AppSettings.WriteInt(asUsermanagerWindowHeight, Height);
-  AppSettings.WriteInt(asUsermanagerListWidth, pnlLeft.Width);
-  Mainform.SaveListSetup(listUsers);
+  AppSettings.WriteIntDpiAware(asUsermanagerWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asUsermanagerWindowHeight, Self, Height);
+  AppSettings.WriteIntDpiAware(asUsermanagerListWidth, Self, pnlLeft.Width);
+  SaveListSetup(listUsers);
 end;
 
 

@@ -110,8 +110,6 @@ var
   SenderName: String;
 begin
   HasSizeGrip := True;
-  Width := AppSettings.ReadInt(asGridExportWindowWidth);
-  Height := AppSettings.ReadInt(asGridExportWindowHeight);
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
   FRecentFiles := Explode(DELIM, AppSettings.ReadString(asGridExportRecentFiles));
   comboEncoding.Items.Assign(MainForm.FileEncodings);
@@ -165,6 +163,8 @@ end;
 procedure TfrmExportGrid.FormShow(Sender: TObject);
 begin
   // Show dialog. Expect "Grid" property to be set now by the caller.
+  Width := AppSettings.ReadIntDpiAware(asGridExportWindowWidth, Self);
+  Height := AppSettings.ReadIntDpiAware(asGridExportWindowHeight, Self);
   chkIncludeAutoIncrement.OnClick := CalcSize;
   CalcSize(Sender);
 end;
@@ -173,8 +173,8 @@ end;
 procedure TfrmExportGrid.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   // Store settings
-  AppSettings.WriteInt(asGridExportWindowWidth, Width);
-  AppSettings.WriteInt(asGridExportWindowHeight, Height);
+  AppSettings.WriteIntDpiAware(asGridExportWindowWidth, Self, Width);
+  AppSettings.WriteIntDpiAware(asGridExportWindowHeight, Self, Height);
   if ModalResult = mrOK then begin
     AppSettings.WriteBool(asGridExportOutputCopy, radioOutputCopyToClipboard.Checked);
     AppSettings.WriteBool(asGridExportOutputFile, radioOutputFile.Checked);

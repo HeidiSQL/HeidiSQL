@@ -10,7 +10,7 @@ object frmExportGrid: TfrmExportGrid
   Constraints.MinWidth = 350
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -23,7 +23,7 @@ object frmExportGrid: TfrmExportGrid
     373
     445)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object btnOK: TButton
     Left = 209
     Top = 412

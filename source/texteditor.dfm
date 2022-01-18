@@ -2,14 +2,14 @@ object frmTextEditor: TfrmTextEditor
   Left = 0
   Top = 0
   Caption = 'Text editor'
-  ClientHeight = 104
-  ClientWidth = 571
+  ClientHeight = 161
+  ClientWidth = 484
   Color = clBtnFace
-  Constraints.MinHeight = 100
-  Constraints.MinWidth = 130
+  Constraints.MinHeight = 200
+  Constraints.MinWidth = 500
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -19,12 +19,12 @@ object frmTextEditor: TfrmTextEditor
   OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object Panel1: TPanel
     AlignWithMargins = True
     Left = 0
-    Top = 82
-    Width = 561
+    Top = 139
+    Width = 474
     Height = 22
     Margins.Left = 0
     Margins.Top = 0
@@ -39,7 +39,7 @@ object frmTextEditor: TfrmTextEditor
       AlignWithMargins = True
       Left = 355
       Top = 3
-      Width = 65
+      Width = 76
       Height = 16
       Align = alLeft
       BiDiMode = bdLeftToRight
@@ -134,7 +134,7 @@ object frmTextEditor: TfrmTextEditor
       Left = 207
       Top = 0
       Width = 145
-      Height = 21
+      Height = 22
       Align = alLeft
       Style = csDropDownList
       Sorted = True
@@ -145,8 +145,8 @@ object frmTextEditor: TfrmTextEditor
   object MemoText: TSynMemo
     Left = 0
     Top = 0
-    Width = 571
-    Height = 82
+    Width = 484
+    Height = 139
     SingleLineMode = False
     Align = alClient
     Font.Charset = DEFAULT_CHARSET

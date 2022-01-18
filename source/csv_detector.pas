@@ -280,7 +280,7 @@ begin
 
         LoopType := FConnection.Datatypes[k];
         UnknownTypeYet := Col.DataType.Index = dbdtUnknown;
-        if (ValueSize = 0) or (CompareText(Value.OldText, 'null')=0) then
+        if (ValueSize = 0) or (CompareText(Value.OldText, 'null')=0) or (CompareText(Value.OldText, '\N')=0) then
           Col.AllowNull := True;
 
         // Integer types

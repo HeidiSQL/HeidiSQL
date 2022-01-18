@@ -8,7 +8,7 @@ object frmLogin: TfrmLogin
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -19,7 +19,7 @@ object frmLogin: TfrmLogin
     270
     176)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object btnOK: TButton
     Left = 164
     Top = 143

@@ -8,7 +8,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -20,7 +20,7 @@ object CreateDatabaseForm: TCreateDatabaseForm
     317
     227)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object lblDBName: TLabel
     Left = 8
     Top = 19

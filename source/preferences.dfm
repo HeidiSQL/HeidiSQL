@@ -10,7 +10,7 @@ object frmPreferences: TfrmPreferences
   Constraints.MinWidth = 600
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
-  Font.Height = -11
+  Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
   OldCreateOrder = False
@@ -22,7 +22,7 @@ object frmPreferences: TfrmPreferences
     722
     460)
   PixelsPerInch = 96
-  TextHeight = 13
+  TextHeight = 14
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
@@ -1284,7 +1284,7 @@ object frmPreferences: TfrmPreferences
       end
     end
     object tabFiles: TTabSheet
-      Caption = 'Files'
+      Caption = 'Files and tabs'
       ImageIndex = 10
       ImageName = 'icons8-save-button-100'
       DesignSize = (
@@ -1311,6 +1311,14 @@ object frmPreferences: TfrmPreferences
         Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
         TabOrder = 1
         OnClick = Modified
+      end
+      object chkTabCloseOnDoubleClick: TCheckBox
+        Left = 220
+        Top = 54
+        Width = 477
+        Height = 17
+        Caption = 'Close tab on doubleclick and middleclick'
+        TabOrder = 2
       end
     end
   end

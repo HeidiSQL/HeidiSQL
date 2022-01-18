@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2021-12-05 20:52+0100\n"
+"PO-Revision-Date: 2022-01-13 07:53+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2839,6 +2839,9 @@ msgstr "Tabs to spaces"
 #: options.dfm:455
 msgid "Prompt to save modified files on tab close"
 msgstr "Prompt to save modified files on tab close"
+
+msgid "Close tab on doubleclick and middleclick"
+msgstr "Close tab on doubleclick and middleclick"
 
 msgid "Show query warnings dialog"
 msgstr "Show query warnings dialog"
@@ -6530,8 +6533,8 @@ msgid "Your code is saved anyway, as auto-restoring is activated."
 msgstr "Your code is saved anyway, as auto-restoring is activated."
 
 #. Tab caption in preferences
-msgid "Files"
-msgstr "Files"
+msgid "Files and tabs"
+msgstr "Files and tabs"
 
 msgid "Reopen previously used SQL files and unsaved content in tabs *"
 msgstr "Reopen previously used SQL files and unsaved content in tabs *"
@@ -6690,3 +6693,9 @@ msgstr "Close query tabs to the right"
 
 msgid "Copy mysqldump command"
 msgstr "Copy mysqldump command"
+
+msgid "Scaling controls to screen DPI: %d%%"
+msgstr "Scaling controls to screen DPI: %d%%"
+
+msgid "Toggle visibility of all columns"
+msgstr "Toggle visibility of all columns"
