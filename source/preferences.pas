@@ -175,6 +175,10 @@ type
     HotKey2: THotKey;
     chkLowercaseHex: TCheckBox;
     chkTabCloseOnDoubleClick: TCheckBox;
+    lblRealTrailingZeros: TLabel;
+    editRealTrailingZeros: TEdit;
+    updownRealTrailingZeros: TUpDown;
+    lblRealTrailingZerosHint: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -365,6 +369,7 @@ begin
   AppSettings.WriteInt(asRowBackgroundEven, cboxRowBackgroundEven.Selected);
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
   AppSettings.WriteInt(asHightlightSameTextBackground, cboxRowHighlightSameText.Selected);
+  AppSettings.WriteInt(asRealTrailingZeros, updownRealTrailingZeros.Position);
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
   AppSettings.WriteBool(asLowercaseHex, chkLowercaseHex.Checked);
   AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
@@ -716,6 +721,7 @@ begin
   cboxRowBackgroundEven.Selected := AppSettings.ReadInt(asRowBackgroundEven);
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
   cboxRowHighlightSameText.Selected := AppSettings.ReadInt(asHightlightSameTextBackground);
+  updownRealTrailingZeros.Position := AppSettings.ReadInt(asRealTrailingZeros);
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
   chkLowercaseHex.Checked := AppSettings.ReadBool(asLowercaseHex);
   chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-01-13 07:53+0100\n"
+"PO-Revision-Date: 2022-02-03 08:18+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -2926,6 +2926,12 @@ msgstr "Data editors"
 #. Preferences > Grid formatting
 msgid "Alternating row background:"
 msgstr "Alternating row background:"
+
+msgid "Max decimal zeros for floats:"
+msgstr "Max decimal zeros for floats:"
+
+msgid "Set to -1 to keep all zeros"
+msgstr "Set to -1 to keep all zeros"
 
 #. Preferences > Grid formatting
 msgid "Local number format"

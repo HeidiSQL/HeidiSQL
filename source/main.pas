@@ -9820,6 +9820,7 @@ var
   RowNumber: PInt64;
   Results: TDBQuery;
   Timestamp: Int64;
+  DotPos, i, NumZeros, NumDecimals, KeepDecimals: Integer;
 begin
   if Column = -1 then
     Exit;
@@ -9857,10 +9858,30 @@ begin
             end;
           end;
         end else begin
+          CellText := Results.Col(Column);
+
+          // Keep only wanted trailing zeros directly after decimal separator
+          if (Results.DataType(Column).Category = dtcReal) and (AppSettings.ReadInt(asRealTrailingZeros) >= 0) then begin
+            DotPos := Pos('.', CellText);
+            if DotPos > 0 then begin
+              NumZeros := 0;
+              NumDecimals := 0;
+              for i:=DotPos+1 to Length(CellText) do begin
+                Inc(NumDecimals);
+                if CellText[i] = '0' then
+                  Inc(NumZeros)
+                else
+                  NumZeros := 0;
+              end;
+              KeepDecimals := Max(NumDecimals - NumZeros, AppSettings.ReadInt(asRealTrailingZeros));
+              CellText := Copy(CellText, 1, Length(CellText) - (NumDecimals - KeepDecimals));
+              if CellText[Length(CellText)] = '.' then
+                CellText := Copy(CellText, 1, Length(CellText)-1);
+            end;
+          end;
+
           if DataLocalNumberFormat and (not EditingAndFocused) then
-            CellText := FormatNumber(Results.Col(Column), True)
-          else
-            CellText := Results.Col(Column);
+            CellText := FormatNumber(CellText, True);
         end;
       end;
       dtcBinary, dtcSpatial: begin

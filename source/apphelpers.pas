@@ -200,7 +200,7 @@ type
     asPreferencesWindowWidth, asPreferencesWindowHeight,
     asFileDialogEncoding,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
-    asCreateDbCollation,
+    asCreateDbCollation, asRealTrailingZeros,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3702,6 +3702,7 @@ begin
   InitSetting(asThemePreviewTop,                  'ThemePreviewTop',                       300);
   InitSetting(asThemePreviewLeft,                 'ThemePreviewLeft',                      300);
   InitSetting(asCreateDbCollation,                'CreateDbCollation',                     0, False, '');
+  InitSetting(asRealTrailingZeros,                'RealTrailingZeros',                     1);
 
   // Initialization values
   FRestoreTabsInitValue := ReadBool(asRestoreTabs);

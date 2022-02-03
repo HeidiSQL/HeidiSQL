@@ -912,6 +912,20 @@ object frmPreferences: TfrmPreferences
         Height = 13
         Caption = 'Sort warning on grid rows:'
       end
+      object lblRealTrailingZeros: TLabel
+        Left = 8
+        Top = 257
+        Width = 153
+        Height = 14
+        Caption = 'Max decimal zeros for floats:'
+      end
+      object lblRealTrailingZerosHint: TLabel
+        Left = 296
+        Top = 257
+        Width = 159
+        Height = 14
+        Caption = 'Set to -1 to keep all zeros'
+      end
       object editMaxColWidth: TEdit
         Left = 220
         Top = 8
@@ -1048,22 +1062,22 @@ object frmPreferences: TfrmPreferences
       end
       object chkLocalNumberFormat: TCheckBox
         Left = 220
-        Top = 254
+        Top = 281
         Width = 475
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Local number format'
-        TabOrder = 16
+        TabOrder = 18
         OnClick = Modified
       end
       object chkHintsOnResultTabs: TCheckBox
         Left = 220
-        Top = 300
+        Top = 327
         Width = 475
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Pop up SQL text over result tabs'
-        TabOrder = 18
+        TabOrder = 20
         OnClick = Modified
       end
       object cboxRowHighlightSameText: TColorBox
@@ -1086,29 +1100,46 @@ object frmPreferences: TfrmPreferences
       end
       object editLongSortRowNum: TEdit
         Left = 220
-        Top = 323
+        Top = 351
         Width = 145
         Height = 21
-        TabOrder = 19
+        TabOrder = 21
         Text = '0'
       end
       object updownLongSortRowNum: TUpDown
         Left = 365
-        Top = 323
+        Top = 351
         Width = 16
         Height = 21
         Associate = editLongSortRowNum
         Max = 2147483647
-        TabOrder = 20
+        TabOrder = 22
         OnChanging = anyUpDownLimitChanging
       end
       object chkLowercaseHex: TCheckBox
         Left = 220
-        Top = 277
+        Top = 304
         Width = 475
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Lowercase hexadecimal'
+        TabOrder = 19
+      end
+      object editRealTrailingZeros: TEdit
+        Left = 220
+        Top = 254
+        Width = 42
+        Height = 22
+        TabOrder = 16
+        Text = '0'
+      end
+      object updownRealTrailingZeros: TUpDown
+        Left = 262
+        Top = 254
+        Width = 16
+        Height = 22
+        Associate = editRealTrailingZeros
+        Min = -1
         TabOrder = 17
       end
     end
