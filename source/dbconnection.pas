@@ -237,7 +237,7 @@ type
   end;
   TGridRows = class(TObjectList<TGridRow>);
 
-  // PLink.exe related
+  // SSH related
   TProcessPipe = class(TObject)
     public
       ReadHandle: THandle;
@@ -245,7 +245,7 @@ type
       constructor Create;
       destructor Destroy; override;
   end;
-  TPlink = class(TObject)
+  TSecureShellCmd = class(TObject)
     private
       FProcessInfo: TProcessInformation;
       FInPipe: TProcessPipe;
@@ -303,7 +303,7 @@ type
       FNetType: TNetType;
       FHostname, FUsername, FPassword, FAllDatabases, FLibraryOrProvider, FComment, FStartupScriptFilename,
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
-      FSSHHost, FSSHUser, FSSHPassword, FSSHPlinkExe, FSSHPrivateKey,
+      FSSHHost, FSSHUser, FSSHPassword, FSSHExe, FSSHPrivateKey,
       FIgnoreDatabasePattern: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
       FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
@@ -379,7 +379,7 @@ type
       property SSHTimeout: Integer read FSSHTimeout write FSSHTimeout;
       property SSHPrivateKey: String read FSSHPrivateKey write FSSHPrivateKey;
       property SSHLocalPort: Integer read FSSHLocalPort write FSSHLocalPort;
-      property SSHPlinkExe: String read FSSHPlinkExe write FSSHPlinkExe;
+      property SSHExe: String read FSSHExe write FSSHExe;
       property WantSSL: Boolean read FWantSSL write FWantSSL;
       property SSLPrivateKey: String read FSSLPrivateKey write FSSLPrivateKey;
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
@@ -423,7 +423,7 @@ type
       FServerUptime: Integer;
       FServerDateTimeOnStartup: String;
       FParameters: TConnectionParameters;
-      FPlink: TPlink;
+      FSecureShellCmd: TSecureShellCmd;
       FLoginPromptDone: Boolean;
       FDatabase: String;
       FAllDatabases: TStringList;
@@ -1038,9 +1038,9 @@ end;
 
 
 
-{ TPlink }
+{ TSecureShellCmd }
 
-constructor TPlink.Create(Connection: TDBConnection);
+constructor TSecureShellCmd.Create(Connection: TDBConnection);
 begin
   inherited Create;
   FConnection := Connection;
@@ -1050,9 +1050,9 @@ begin
 end;
 
 
-destructor TPlink.Destroy;
+destructor TSecureShellCmd.Destroy;
 begin
-  FConnection.Log(lcInfo, f_('Closing plink.exe process #%d ...', [FProcessInfo.dwProcessId]));
+  FConnection.Log(lcInfo, f_('Closing SSH process #%d ...', [FProcessInfo.dwProcessId]));
   TerminateProcess(FProcessInfo.hProcess, 0);
   CloseHandle(FProcessInfo.hProcess);
   CloseHandle(FProcessInfo.hThread);
@@ -1063,48 +1063,53 @@ begin
 end;
 
 
-procedure TPlink.Connect;
+procedure TSecureShellCmd.Connect;
 var
-  PlinkCmd, PlinkCmdDisplay: String;
+  SshCmd, SshCmdDisplay: String;
   OutText, ErrorText, UserInput: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
   Waited, PortChecks: Integer;
+  IsPlink: Boolean;
 begin
   // Check if local port is open
   PortChecks := 0;
   while not PortOpen(FConnection.Parameters.SSHLocalPort) do begin
     Inc(PortChecks);
     if PortChecks >= 20 then
-      raise EDbError.CreateFmt(_('Could not execute PLink: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
+      raise EDbError.CreateFmt(_('Could not execute SSH command: Port %d already in use.'), [FConnection.Parameters.SSHLocalPort]);
     FConnection.Log(lcInfo, f_('Port #%d in use. Checking if #%d is available...', [FConnection.Parameters.SSHLocalPort, FConnection.Parameters.SSHLocalPort+1]));
     FConnection.Parameters.SSHLocalPort := FConnection.Parameters.SSHLocalPort + 1;
   end;
 
-  // Build plink.exe command line
+  // Build SSH command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-  PlinkCmd := FConnection.Parameters.SSHPlinkExe + ' -ssh ';
+  IsPlink := FConnection.Parameters.SSHExe.ToLowerInvariant.Contains('plink');
+  SshCmd := FConnection.Parameters.SSHExe;
+  if IsPlink then
+    SshCmd := SshCmd + ' -ssh';
+  SshCmd := SshCmd + ' ';
   if FConnection.Parameters.SSHUser.Trim <> '' then
-    PlinkCmd := PlinkCmd + FConnection.Parameters.SSHUser.Trim + '@';
+    SshCmd := SshCmd + FConnection.Parameters.SSHUser.Trim + '@';
   if FConnection.Parameters.SSHHost.Trim <> '' then
-    PlinkCmd := PlinkCmd + FConnection.Parameters.SSHHost.Trim
+    SshCmd := SshCmd + FConnection.Parameters.SSHHost.Trim
   else
-    PlinkCmd := PlinkCmd + FConnection.Parameters.Hostname;
+    SshCmd := SshCmd + FConnection.Parameters.Hostname;
   if FConnection.Parameters.SSHPassword <> '' then begin
     // Escape double quote with backslash, see issue #261
-    PlinkCmd := PlinkCmd + ' -pw "' + StringReplace(FConnection.Parameters.SSHPassword, '"', '\"', [rfReplaceAll]) + '"';
+    SshCmd := SshCmd + ' -pw "' + StringReplace(FConnection.Parameters.SSHPassword, '"', '\"', [rfReplaceAll]) + '"';
   end;
   if FConnection.Parameters.SSHPort > 0 then
-    PlinkCmd := PlinkCmd + ' -P ' + IntToStr(FConnection.Parameters.SSHPort);
+    SshCmd := SshCmd + IfThen(IsPlink, ' -P ', ' -p ') + IntToStr(FConnection.Parameters.SSHPort);
   if FConnection.Parameters.SSHPrivateKey <> '' then
-    PlinkCmd := PlinkCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
-  PlinkCmd := PlinkCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
+    SshCmd := SshCmd + ' -i "' + FConnection.Parameters.SSHPrivateKey + '"';
+  SshCmd := SshCmd + ' -N -L ' + IntToStr(FConnection.Parameters.SSHLocalPort) + ':' + FConnection.Parameters.Hostname + ':' + IntToStr(FConnection.Parameters.Port);
   rx := TRegExpr.Create;
   rx.Expression := '(-pw\s+")[^"]*(")';
-  PlinkCmdDisplay := rx.Replace(PlinkCmd, '${1}******${2}', True);
-  FConnection.Log(lcInfo, f_('Attempt to create plink.exe process, waiting %ds for response ...', [FConnection.Parameters.SSHTimeout]));
-  FConnection.Log(lcInfo, PlinkCmdDisplay);
+  SshCmdDisplay := rx.Replace(SshCmd, '${1}******${2}', True);
+  FConnection.Log(lcInfo, f_('Attempt to create SSH process, waiting %ds for response ...', [FConnection.Parameters.SSHTimeout]));
+  FConnection.Log(lcInfo, SshCmdDisplay);
 
   // Prepare process
   FillChar(StartupInfo, SizeOf(StartupInfo), 0);
@@ -1119,7 +1124,7 @@ begin
   FillChar(FProcessInfo, SizeOf(FProcessInfo), 0);
   if not CreateProcess(
        nil,
-       PChar(PlinkCmd),
+       PChar(SshCmd),
        nil,
        nil,
        true,
@@ -1128,8 +1133,8 @@ begin
        PChar(GetCurrentDir),
        StartupInfo,
        FProcessInfo) then begin
-    ErrorText := CRLF + CRLF + PlinkCmdDisplay + CRLF + CRLF + 'System message: ' + SysErrorMessage(GetLastError);
-    ErrorText := f_('Could not execute PLink: %s', [ErrorText]);
+    ErrorText := CRLF + CRLF + SshCmdDisplay + CRLF + CRLF + 'System message: ' + SysErrorMessage(GetLastError);
+    ErrorText := f_('Could not execute SSH command: %s', [ErrorText]);
     raise EDbError.Create(ErrorText);
   end;
 
@@ -1142,30 +1147,30 @@ begin
     WaitForSingleObject(FProcessInfo.hProcess, 200);
     GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
     if ExitCode <> STILL_ACTIVE then
-      raise EDbError.CreateFmt(_('PLink exited unexpected. Command line was: %s'), [CRLF+PlinkCmdDisplay]);
+      raise EDbError.CreateFmt(_('SSH exited unexpected. Command line was: %s'), [CRLF+SshCmdDisplay]);
 
     OutText := Trim(ReadPipe(FOutPipe));
     ErrorText := ReadPipe(FErrorPipe);
     if (OutText <> '') or (ErrorText <> '') then begin
-      FConnection.Log(lcDebug, Format('PLink output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [Waited, OutText, ErrorText]));
+      FConnection.Log(lcDebug, Format('SSH output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [Waited, OutText, ErrorText]));
     end;
 
     if OutText <> '' then begin
       if ExecRegExpr('login as\s*\:', OutText) then begin
         // Prompt for username
-        UserInput := InputBox('PLink:', OutText, '');
+        UserInput := InputBox('SSH:', OutText, '');
         SendText(UserInput + CRLF);
       end else if ExecRegExpr('(password|Passphrase for key "[^"]+")\s*\:', OutText) then begin
         // Prompt for sensitive input. Send * as first char of prompt param so InputBox hides input characters
-        UserInput := InputBox('PLink:', #31+OutText, '');
+        UserInput := InputBox('SSH:', #31+OutText, '');
         SendText(UserInput + CRLF);
       end else begin
         // Informational message box
         rx.Expression := '^[^\.]+\.';
         if rx.Exec(OutText) then begin // First words end with a dot - use it as caption
-          MessageDialog('PLink: '+rx.Match[0], OutText, mtInformation, [mbOK])
+          MessageDialog('SSH: '+rx.Match[0], OutText, mtInformation, [mbOK])
         end else begin
-          MessageDialog('PLink:', OutText, mtInformation, [mbOK]);
+          MessageDialog('SSH:', OutText, mtInformation, [mbOK]);
         end;
       end;
     end;
@@ -1181,7 +1186,7 @@ begin
             SendText('n');
           mrCancel: begin
             Destroy;
-            raise EDbError.Create(_('PLink cancelled'));
+            raise EDbError.Create(_('SSH command cancelled'));
           end;
         end;
       end else if
@@ -1189,7 +1194,7 @@ begin
         or ErrorText.StartsWith('Pre-authentication banner ', True) // see issue #704
         or ErrorText.StartsWith('Access granted. Press Return to begin session', True) // see issue #1114
         then begin
-        FConnection.Log(lcError, 'PLink: '+ErrorText);
+        FConnection.Log(lcError, 'SSH: '+ErrorText);
         SendText(CRLF);
       end else begin
         // Any other error message goes here.
@@ -1199,7 +1204,7 @@ begin
           raise EDbError.Create(ErrorText);
         end else begin
           // Just show error text and proceed looping
-          MessageDialog('PLink:', ErrorText, mtError, [mbOK]);
+          MessageDialog('SSH:', ErrorText, mtError, [mbOK]);
         end;
       end;
     end;
@@ -1210,7 +1215,7 @@ begin
 end;
 
 
-function TPlink.ReadPipe(const Pipe: TProcessPipe): String;
+function TSecureShellCmd.ReadPipe(const Pipe: TProcessPipe): String;
 var
   BufferReadCount, OutLen: Cardinal;
   BytesRemaining: Cardinal;
@@ -1257,7 +1262,7 @@ begin
 end;
 
 
-function TPlink.AsciiToAnsi(Text: AnsiString): AnsiString;
+function TSecureShellCmd.AsciiToAnsi(Text: AnsiString): AnsiString;
 const
   cMaxLength = 255;
 var
@@ -1275,7 +1280,7 @@ begin
 end;
 
 
-function TPlink.CleanEscSeq(const Buffer: String): String;
+function TSecureShellCmd.CleanEscSeq(const Buffer: String): String;
 var
   i: Integer;
   chr: Char;
@@ -1319,7 +1324,7 @@ begin
 end;
 
 
-procedure TPlink.SendText(Text: String);
+procedure TSecureShellCmd.SendText(Text: String);
 var
   WrittenBytes: Cardinal;
   TextA: AnsiString;
@@ -1353,6 +1358,7 @@ begin
   FLibraryOrProvider := DefaultLibrary;
   FComment := AppSettings.GetDefaultString(asComment);
 
+  FSSHExe := AppSettings.GetDefaultString(asSshExecutable);
   FSSHHost := AppSettings.GetDefaultString(asSSHtunnelHost);
   FSSHPort := AppSettings.GetDefaultInt(asSSHtunnelHostPort);
   FSSHUser := AppSettings.GetDefaultString(asSSHtunnelUser);
@@ -1377,9 +1383,6 @@ begin
   FLogFileDdl := AppSettings.GetDefaultBool(asLogFileDdl);
   FLogFileDml := AppSettings.GetDefaultBool(asLogFileDml);
   FLogFilePath := AppSettings.GetDefaultString(asLogFilePath);
-
-  // Must be read without session path
-  FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
 
   FLastConnect := 0;
   FCounter := 0;
@@ -1424,6 +1427,7 @@ begin
     FLibraryOrProvider := AppSettings.ReadString(asLibrary, '', DefaultLibrary);
     FComment := AppSettings.ReadString(asComment);
 
+    FSSHExe := AppSettings.ReadString(asSshExecutable);
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
     FSSHPort := AppSettings.ReadInt(asSSHtunnelHostPort);
     FSSHUser := AppSettings.ReadString(asSSHtunnelUser);
@@ -1456,8 +1460,11 @@ begin
     FCounter := AppSettings.ReadInt(asConnectCount);
     AppSettings.ResetPath;
 
-    // Must be read without session path
-    FSSHPlinkExe := AppSettings.ReadString(asPlinkExecutable);
+    if FSSHExe.IsEmpty then begin
+      // Legacy support: was a global setting
+      // Globals must be read without session path
+      FSSHExe := AppSettings.ReadString(asPlinkExecutable);
+    end;
   end;
 end;
 
@@ -1492,6 +1499,7 @@ begin
     AppSettings.WriteString(asComment, FComment);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
     AppSettings.WriteInt(asTreeBackground, FSessionColor);
+    AppSettings.WriteString(asSshExecutable, FSSHExe);
     AppSettings.WriteString(asSSHtunnelHost, FSSHHost);
     AppSettings.WriteInt(asSSHtunnelHostPort, FSSHPort);
     AppSettings.WriteString(asSSHtunnelUser, FSSHUser);
@@ -1509,7 +1517,6 @@ begin
     AppSettings.WriteBool(asLogFileDml, FLogFileDml);
     AppSettings.WriteString(asLogFilePath, FLogFilePath);
     AppSettings.ResetPath;
-    AppSettings.WriteString(asPlinkExecutable, FSSHPlinkExe);
   end;
 end;
 
@@ -2275,9 +2282,9 @@ begin
       end;
 
       ntMySQL_SSHtunnel: begin
-        // Create plink.exe process
-        FPlink := TPlink.Create(Self);
-        FPlink.Connect;
+        // Create SSH process
+        FSecureShellCmd := TSecureShellCmd.Create(Self);
+        FSecureShellCmd.Connect;
         FinalHost := '127.0.0.1';
         FinalPort := FParameters.SSHLocalPort;
       end;
@@ -2348,8 +2355,8 @@ begin
       Log(lcError, Error);
       FConnectionStarted := 0;
       FHandle := nil;
-      if FPlink <> nil then
-        FPlink.Free;
+      if FSecureShellCmd <> nil then
+        FSecureShellCmd.Free;
       raise EDbError.Create(Error);
     end else begin
       FActive := True;
@@ -2445,8 +2452,8 @@ begin
     ClearCache(False);
     FConnectionStarted := 0;
     FHandle := nil;
-    if FPlink <> nil then
-      FPlink.Free;
+    if FSecureShellCmd <> nil then
+      FSecureShellCmd.Free;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 
@@ -2645,9 +2652,9 @@ begin
 
     case FParameters.NetType of
       ntPgSQL_SSHtunnel: begin
-        // Create plink.exe process
-        FPlink := TPlink.Create(Self);
-        FPlink.Connect;
+        // Create SSH process
+        FSecureShellCmd := TSecureShellCmd.Create(Self);
+        FSecureShellCmd.Connect;
         FinalHost := '127.0.0.1';
         FinalPort := FParameters.SSHLocalPort;
       end;
@@ -2682,8 +2689,8 @@ begin
         on E:EAccessViolation do;
       end;
       FHandle := nil;
-      if FPlink <> nil then
-        FPlink.Free;
+      if FSecureShellCmd <> nil then
+        FSecureShellCmd.Free;
       raise EDbError.Create(Error);
     end;
     FActive := True;
@@ -2724,8 +2731,8 @@ begin
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
-    if FPlink <> nil then
-      FPlink.Free;
+    if FSecureShellCmd <> nil then
+      FSecureShellCmd.Free;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;

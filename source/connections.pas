@@ -54,8 +54,8 @@ type
     lblSSHLocalPort: TLabel;
     lblSSHUser: TLabel;
     lblSSHPassword: TLabel;
-    editSSHPlinkExe: TButtonedEdit;
-    lblSSHPlinkExe: TLabel;
+    editSSHExe: TButtonedEdit;
+    lblSSHExe: TLabel;
     comboNetType: TComboBoxEx;
     lblSSHhost: TLabel;
     editSSHhost: TEdit;
@@ -65,7 +65,7 @@ type
     editDatabases: TButtonedEdit;
     lblDatabase: TLabel;
     chkLoginPrompt: TCheckBox;
-    lblPlinkTimeout: TLabel;
+    lblSSHTimeout: TLabel;
     editSSHTimeout: TEdit;
     updownSSHTimeout: TUpDown;
     chkWindowsAuth: TCheckBox;
@@ -162,7 +162,7 @@ type
     procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       out EditLink: IVTEditLink);
     procedure PickFile(Sender: TObject);
-    procedure editSSHPlinkExeChange(Sender: TObject);
+    procedure editSSHExeChange(Sender: TObject);
     procedure editHostChange(Sender: TObject);
     procedure editDatabasesRightButtonClick(Sender: TObject);
     procedure chkLoginPromptClick(Sender: TObject);
@@ -467,7 +467,7 @@ begin
   Sess.AllDatabasesStr := editDatabases.Text;
   Sess.Comment := memoComment.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
-  Sess.SSHPlinkExe := editSSHPlinkExe.Text;
+  Sess.SSHExe := editSSHExe.Text;
   Sess.SSHHost := editSSHhost.Text;
   Sess.SSHPort := MakeInt(editSSHport.Text);
   Sess.SSHUser := editSSHUser.Text;
@@ -690,7 +690,7 @@ begin
     Result.SSHTimeout := updownSSHTimeout.Position;
     Result.SSHPrivateKey := editSSHPrivateKey.Text;
     Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
-    Result.SSHPlinkExe := editSSHplinkexe.Text;
+    Result.SSHExe := editSSHexe.Text;
     Result.WantSSL := chkWantSSL.Checked;
     Result.SSLPrivateKey := editSSLPrivateKey.Text;
     Result.SSLCertificate := editSSLCertificate.Text;
@@ -976,7 +976,7 @@ begin
     end;
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
-    editSSHPlinkExe.Text := Sess.SSHPlinkExe;
+    editSSHExe.Text := Sess.SSHExe;
     editSSHHost.Text := Sess.SSHHost;
     editSSHport.Text := IntToStr(Sess.SSHPort);
     editSSHUser.Text := Sess.SSHUser;
@@ -1325,7 +1325,7 @@ begin
       or (Sess.Comment <> memoComment.Text)
       or (Sess.SSHHost <> editSSHHost.Text)
       or (IntToStr(Sess.SSHPort) <> editSSHPort.Text)
-      or (Sess.SSHPlinkExe <> editSSHPlinkExe.Text)
+      or (Sess.SSHExe <> editSSHExe.Text)
       or (IntToStr(Sess.SSHLocalPort) <> editSSHlocalport.Text)
       or (Sess.SSHUser <> editSSHUser.Text)
       or (Sess.SSHPassword <> editSSHPassword.Text)
@@ -1525,10 +1525,10 @@ begin
     Selector.DefaultExt := FILEEXT_SQLITEDB;
   end else if (Edit = editStartupScript) or (Edit = editLogFilePath) then
     Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
-  else if Edit = editSSHPlinkExe then
+  else if Edit = editSSHExe then
     Selector.Filter := _('Executables')+' (*.exe)|*.exe|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPrivateKey then
-    Selector.Filter := _('PuTTY private key')+' (*.ppk)|*.ppk|'+_('All files')+' (*.*)|*.*'
+    Selector.Filter := _('All files')+' (*.*)|*.*'
   else
     Selector.Filter := _('Privacy Enhanced Mail certificates')+' (*.pem)|*.pem|'+_('Certificates')+' (*.crt)|*.crt|'+_('All files')+' (*.*)|*.*';
   // Find relevant label and set open dialog's title
@@ -1577,12 +1577,15 @@ begin
   editSearch.Clear;
 end;
 
-procedure Tconnform.editSSHPlinkExeChange(Sender: TObject);
+procedure Tconnform.editSSHExeChange(Sender: TObject);
+var
+  Path: String;
 begin
-  if not FileExists(editSSHPlinkExe.Text) then
-    editSSHPlinkExe.Font.Color := clRed
+  Path := editSSHExe.Text;
+  if (not FileExists(Path)) and Path.ToLowerInvariant.Contains('plink') then
+    editSSHExe.Font.Color := clRed
   else
-    editSSHPlinkExe.Font.Color := GetThemeColor(clWindowText);
+    editSSHExe.Font.Color := GetThemeColor(clWindowText);
   Modification(Sender);
 end;
 
