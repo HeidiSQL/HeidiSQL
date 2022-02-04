@@ -3240,7 +3240,7 @@ begin
   TabsetColor := Thread.Connection.Parameters.SessionColor;
   if TabsetColor <> clNone then begin
     Tab.tabsetQuery.SelectedColor := TabsetColor;
-    Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 5, False);
+    Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 20, False);
   end
   else begin
     Tab.tabsetQuery.SelectedColor := clWindow;
@@ -11621,7 +11621,7 @@ begin
   // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
   QueryTab.tabsetQuery.Top := QueryTab.spltQuery.Top + QueryTab.spltQuery.Height;
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
-  InheritFont(QueryTab.tabsetQuery.Font);
+  QueryTab.tabsetQuery.Font.Assign(tabsetQuery.Font);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
   QueryTab.tabsetQuery.Style := tabsetQuery.Style;
   QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;
