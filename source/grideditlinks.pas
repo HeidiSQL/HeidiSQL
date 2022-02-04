@@ -1251,12 +1251,14 @@ end;
 { Column default editor }
 
 constructor TColumnDefaultEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn);
-const
-  m = 5;
 var
   SQLFunc: TSQLFunction;
+  m: Integer;
 begin
   inherited;
+
+  // Margin between controls and to edge of panel
+  m := TExtForm.ScaleSize(5, FParentForm);
 
   FPanel := TPanel.Create(FParentForm);
   FPanel.Hide;
@@ -1357,7 +1359,7 @@ begin
 
   FBtnOk := TButton.Create(FPanel);
   FBtnOk.Parent := FPanel;
-  FBtnOk.Width := 60;
+  FBtnOk.Width := TExtForm.ScaleSize(60, FParentForm);
   FBtnOk.Top := FRadioAutoInc.Top + FRadioAutoInc.Height + m;
   FBtnOk.Left := FPanel.Width - 3*m - 2*FBtnOk.Width - 2*FPanel.BorderWidth;
   FBtnOk.OnClick := BtnOkClick;
