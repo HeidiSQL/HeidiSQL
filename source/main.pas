@@ -1923,8 +1923,6 @@ begin
 
   Delimiter := AppSettings.ReadString(asDelimiter);
 
-  InheritFont(SynCompletionProposal.Font);
-
   // Define static query tab as first one in our QueryTabs list
   QueryTab := TQueryTab.Create(Self);
   QueryTab.TabSheet := tabQuery;
@@ -6590,6 +6588,8 @@ var
 
 begin
   Proposal := Sender as TSynCompletionProposal;
+  Proposal.Font.Assign(Font);
+  Proposal.ItemHeight := ScaleSize(PROPOSAL_ITEM_HEIGHT);
   Proposal.ClearList;
   Conn := ActiveConnection;
   Editor := Proposal.Form.CurrentEditor;

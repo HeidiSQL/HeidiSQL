@@ -75,9 +75,7 @@ begin
   SynCompletionProposalStatement.Width := Mainform.SynCompletionProposal.Width;
   SynCompletionProposalStatement.Options := Mainform.SynCompletionProposal.Options;
   SynCompletionProposalStatement.TimerInterval := Mainform.SynCompletionProposal.TimerInterval;
-  SynCompletionProposalStatement.ItemHeight := Mainform.SynCompletionProposal.ItemHeight;
   SynCompletionProposalStatement.Margin := Mainform.SynCompletionProposal.Margin;
-  TExtForm.InheritFont(SynCompletionProposalStatement.Font);
 end;
 
 
@@ -258,6 +256,8 @@ var
 begin
   // Propose column names from referencing table
   Proposal := Sender as TSynCompletionProposal;
+  Proposal.Font.Assign(Font);
+  Proposal.ItemHeight := TExtForm.ScaleSize(PROPOSAL_ITEM_HEIGHT, Self);
   Token := UpperCase(Proposal.PreviousToken);
   Proposal.InsertList.Clear;
   Proposal.ItemList.Clear;
