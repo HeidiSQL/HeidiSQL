@@ -2680,10 +2680,10 @@ begin
 
   // Super intelligent calculation of status bar panel width
   w1 := CalcPanelWidth('r10 : c10 (10 KiB)', 10);
-  w2 := CalcPanelWidth('Connected: 00:00 h', 10);
+  w2 := CalcPanelWidth('Connected: 1 day, 00:00 h', 10);
   w3 := CalcPanelWidth('MariaDB or MySQL 5.7.6', 15);
-  w4 := CalcPanelWidth('Uptime: 3 days, 00:00 h', 15);
-  w5 := CalcPanelWidth('Server time: 00:00', 10);
+  w4 := CalcPanelWidth('Uptime: 13 days, 00:00 h', 15);
+  w5 := CalcPanelWidth('Server time: 20:00 ', 10);
   w6 := CalcPanelWidth('DummyDummyDummyDummyDummy', 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
   //logsql(format('IconWidth:%d 0:%d 1:%d 2:%d 3:%d 4:%d 5:%d 6:%d', [IconWidth, w0, w1, w2, w3, w4, w5, w6]));
