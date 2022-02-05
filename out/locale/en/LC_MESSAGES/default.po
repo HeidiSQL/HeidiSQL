@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-02-04 22:25+0100\n"
+"PO-Revision-Date: 2022-02-05 20:01+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -6697,6 +6697,9 @@ msgstr "Copy mysqldump command"
 
 msgid "Scaling controls to screen DPI: %d%%"
 msgstr "Scaling controls to screen DPI: %d%%"
+
+msgid "Caution: Style \"%s\" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!"
+msgstr "Caution: Style \"%s\" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!"
 
 msgid "Toggle visibility of all columns"
 msgstr "Toggle visibility of all columns"

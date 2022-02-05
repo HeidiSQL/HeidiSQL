@@ -2730,6 +2730,10 @@ begin
   end;
 
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
+  if TStyleManager.IsCustomStyleActive and (ScaleFactor<>1) then begin
+    LogSQL(f_('Caution: Style "%s" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!', [TStyleManager.ActiveStyle.Name]));
+  end;
+
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListDatabases);
