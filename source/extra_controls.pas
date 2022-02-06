@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
   SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
-  ShLwApi, Vcl.ExtCtrls, VirtualTrees, SynRegExpr, Vcl.Controls;
+  ShLwApi, Vcl.ExtCtrls, VirtualTrees, SynRegExpr, Vcl.Controls, Winapi.ShlObj;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -28,6 +28,20 @@ type
       class procedure RestoreListSetup(List: TVirtualStringTree);
       function ScaleSize(x: Extended): Integer; overload;
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
+  end;
+
+  // Modern file-open-dialog with high DPI support and encoding selector
+  TExtFileOpenDialog = class(TFileOpenDialog)
+    private
+      FEncodings: TStringList;
+      FEncodingIndex: Integer;
+    protected
+      procedure DoOnExecute; override;
+    public
+      constructor Create(AOwner: TComponent); override;
+      destructor Destroy; override;
+      property Encodings: TStringList read FEncodings write FEncodings;
+      property EncodingIndex: Integer read FEncodingIndex write FEncodingIndex default 0;
   end;
 
 
@@ -361,5 +375,49 @@ begin
   // Same as above for callers without a form
   Result := Round(x * Control.ScaleFactor);
 end;
+
+
+
+{ TExtFileOpenDialog }
+
+constructor TExtFileOpenDialog.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FEncodings := TStringList.Create;
+end;
+
+
+destructor TExtFileOpenDialog.Destroy;
+begin
+  FEncodings.Free;
+  inherited Destroy;
+end;
+
+
+procedure TExtFileOpenDialog.DoOnExecute;
+var
+  iCustomize: IFileDialogCustomize;
+  i: Integer;
+const
+  idEncodingCombo = 1;
+begin
+  // Add encodings selector
+  if Dialog.QueryInterface(IFileDialogCustomize, iCustomize) = S_OK then
+  begin
+    iCustomize.StartVisualGroup(0, PChar(_('Encoding:')));
+    try
+      // note other controls available: AddCheckButton, AddEditBox, AddPushButton, AddRadioButtonList...
+      iCustomize.AddComboBox(idEncodingCombo);
+      for i:=0 to FEncodings.Count - 1 do begin
+        iCustomize.AddControlItem(idEncodingCombo, i, PChar(FEncodings[i]));
+      end;
+      iCustomize.SetSelectedControlItem(idEncodingCombo, EncodingIndex);
+    finally
+      iCustomize.EndVisualGroup;
+    end;
+  end;
+end;
+
+
 
 end.
