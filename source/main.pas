@@ -3882,19 +3882,14 @@ procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 var
   i, ProceedResult: Integer;
   Dialog: TExtFileOpenDialog;
-  FileType: TFileTypeItem;
   Encoding: TEncoding;
   Tab: TQueryTab;
 begin
   AppSettings.ResetPath;
   Dialog := TExtFileOpenDialog.Create(Self);
   Dialog.Options := Dialog.Options + [fdoAllowMultiSelect];
-  FileType := Dialog.FileTypes.Add;
-  FileType.DisplayName := _('SQL files');
-  FileType.FileMask := '*.sql';
-  FileType := Dialog.FileTypes.Add;
-  FileType.DisplayName := _('All files');
-  FileType.FileMask := '*.*';
+  Dialog.AddFileType('*.sql', _('SQL files'));
+  Dialog.AddFileType('*.*', _('All files'));
   Dialog.DefaultExtension := 'sql';
   Dialog.Encodings.Assign(FileEncodings);
   Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);

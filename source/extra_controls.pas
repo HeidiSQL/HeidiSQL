@@ -40,6 +40,7 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
+      procedure AddFileType(FileMask, DisplayName: String);
       property Encodings: TStringList read FEncodings write FEncodings;
       property EncodingIndex: Integer read FEncodingIndex write FEncodingIndex default 0;
   end;
@@ -391,6 +392,17 @@ destructor TExtFileOpenDialog.Destroy;
 begin
   FEncodings.Free;
   inherited Destroy;
+end;
+
+
+procedure TExtFileOpenDialog.AddFileType(FileMask, DisplayName: String);
+var
+  FileType: TFileTypeItem;
+begin
+  // Shorthand for callers
+  FileType := FileTypes.Add;
+  FileType.DisplayName := DisplayName;
+  FileType.FileMask := FileMask;
 end;
 
 

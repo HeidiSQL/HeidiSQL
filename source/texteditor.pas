@@ -333,12 +333,12 @@ end;
 
 procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
 var
-  d: TOpenTextFileDialog;
+  d: TExtFileOpenDialog;
 begin
   AppSettings.ResetPath;
-  d := TOpenTextFileDialog.Create(Self);
-  d.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
-  d.FilterIndex := 0;
+  d := TExtFileOpenDialog.Create(Self);
+  d.AddFileType('*.txt', _('Text files'));
+  d.AddFileType('*.*', _('All files'));
   d.Encodings.Assign(MainForm.FileEncodings);
   d.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if d.Execute then try
