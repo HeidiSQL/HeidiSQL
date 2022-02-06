@@ -3493,7 +3493,7 @@ begin
   InitSetting(asLibrary,                          'Library',                               0, False, '', True); // Gets its default in TConnectionParameters.Create
   InitSetting(asAllProviders,                     'AllProviders',                          0, False);
   InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, 'plink.exe'); // Legacy support with global setting
-  InitSetting(asSshExecutable,                    'SshExecutable',                         0, False, 'ssh.exe', True);
+  InitSetting(asSshExecutable,                    'SshExecutable',                         0, False, '', True);
   InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);
   InitSetting(asSSHtunnelHostPort,                'SSHtunnelHostPort',                     22, False, '', True);
   InitSetting(asSSHtunnelPort,                    'SSHtunnelPort',                         0, False, '', True);
