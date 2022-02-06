@@ -34,15 +34,18 @@ type
   TExtFileOpenDialog = class(TFileOpenDialog)
     private
       FEncodings: TStringList;
-      FEncodingIndex: Integer;
+      FEncodingIndex: Cardinal;
+      const idEncodingCombo = 1;
+      procedure FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
     protected
       procedure DoOnExecute; override;
+      function DoOnFileOkClick: Boolean; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure AddFileType(FileMask, DisplayName: String);
       property Encodings: TStringList read FEncodings write FEncodings;
-      property EncodingIndex: Integer read FEncodingIndex write FEncodingIndex default 0;
+      property EncodingIndex: Cardinal read FEncodingIndex write FEncodingIndex;
   end;
 
 
@@ -385,13 +388,14 @@ constructor TExtFileOpenDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FEncodings := TStringList.Create;
+  FEncodingIndex := 0;
 end;
 
 
 destructor TExtFileOpenDialog.Destroy;
 begin
   FEncodings.Free;
-  inherited Destroy;
+  inherited;
 end;
 
 
@@ -410,8 +414,6 @@ procedure TExtFileOpenDialog.DoOnExecute;
 var
   iCustomize: IFileDialogCustomize;
   i: Integer;
-const
-  idEncodingCombo = 1;
 begin
   // Add encodings selector
   if Dialog.QueryInterface(IFileDialogCustomize, iCustomize) = S_OK then
@@ -423,13 +425,32 @@ begin
       for i:=0 to FEncodings.Count - 1 do begin
         iCustomize.AddControlItem(idEncodingCombo, i, PChar(FEncodings[i]));
       end;
-      iCustomize.SetSelectedControlItem(idEncodingCombo, EncodingIndex);
+      iCustomize.SetSelectedControlItem(idEncodingCombo, FEncodingIndex);
+      if not Assigned(OnFileOkClick) then
+        OnFileOkClick := FileOkClickNoOp;
     finally
       iCustomize.EndVisualGroup;
     end;
   end;
 end;
 
+
+procedure TExtFileOpenDialog.FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
+begin
+  // Dummy procedure, just makes sure parent class calls DoOnFileOkClick
+end;
+
+
+function TExtFileOpenDialog.DoOnFileOkClick: Boolean;
+var
+  iCustomize: IFileDialogCustomize;
+begin
+  Result := inherited;
+  if Dialog.QueryInterface(IFileDialogCustomize, iCustomize) = S_OK then
+  begin
+    iCustomize.GetSelectedControlItem(idEncodingCombo, FEncodingIndex);
+  end;
+end;
 
 
 end.
