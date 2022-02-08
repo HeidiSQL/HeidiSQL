@@ -2463,7 +2463,7 @@ begin
           if not TabCaption.IsEmpty then
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
-            Tab.Memo.Height := EditorHeight;
+            Tab.pnlMemo.Height := EditorHeight;
           if HelpersWidth > 50 then
             Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
@@ -2654,14 +2654,7 @@ end;
 procedure TMainForm.FormResize(Sender: TObject);
 var
   PanelRect: TRect;
-  Tab: TQueryTab;
   w0, w1, w2, w3, w4, w5, w6: Integer;
-
-  function GridNeedHeight: Integer;
-  begin
-    // Return missing number of height pixels the query grid needs
-    Result := Max(0, Tab.spltQuery.MinSize - (Tab.TabSheet.Height - Tab.pnlMemo.Height - Tab.spltQuery.Height - Tab.tabsetQuery.Height));
-  end;
 
   function CalcPanelWidth(SampleText: String; MaxPercentage: Integer): Integer;
   var
@@ -2703,15 +2696,6 @@ begin
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   FixQueryTabCloseButtons;
 
-  // Ensure query grids are not overlapped by sql log
-  for Tab in QueryTabs do begin
-    // Decrease height of pnlMemo if grid has not enough height
-    // Disabled for annoyance reasons, see #1113
-    // Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
-    // Try again and resize SQLLog if required
-    SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, spltTopBottom.MinSize);
-  end;
-
   // Right aligned button
   if imgDonate.Visible then begin
     imgDonate.Width := 122;
@@ -2722,11 +2706,27 @@ begin
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
+var
+  Tab: TQueryTab;
+  ResizeResult: Boolean;
 begin
   // Window dimensions
   if WindowState <> wsMaximized then begin
     Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
     Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
+  end;
+
+  // Reset height of query memos and log panel if area between them is hidden through resize
+  ResizeResult := False;
+  for Tab in QueryTabs do begin
+    if Tab.pnlMemo.ClientToScreen(Tab.pnlMemo.ClientRect).Bottom > SynMemoSQLLog.ClientToScreen(SynMemoSQLLog.ClientRect).Top - 50 then begin
+      LogSQL('Reset height of query tab #'+Tab.Number.ToString+' to give result area vertical space.');
+      Tab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
+      ResizeResult := True;
+    end;
+  end;
+  if ResizeResult then begin
+    SynMemoSQLLog.Height := AppSettings.GetDefaultInt(asLogHeight);
   end;
 
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
