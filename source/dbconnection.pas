@@ -1085,7 +1085,7 @@ begin
 
   // Build SSH command line
   // plink bob@domain.com -pw myPassw0rd1 -P 22 -i "keyfile.pem" -L 55555:localhost:3306
-  IsPlink := FConnection.Parameters.SSHExe.ToLowerInvariant.Contains('plink');
+  IsPlink := ExecRegExprI('([pk]link|putty)', FConnection.Parameters.SSHExe);
   SshCmd := FConnection.Parameters.SSHExe;
   if IsPlink then
     SshCmd := SshCmd + ' -ssh';

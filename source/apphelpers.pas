@@ -310,6 +310,7 @@ type
   function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
   function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String; Overload;
   function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
+  function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
@@ -1018,6 +1019,22 @@ function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Inte
 begin
   // Version without possibility to delete captured match from input
   Result := RegExprGetMatch(Expression, Input, ReturnMatchNum, False, False);
+end;
+
+
+function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
+var
+  r: TRegExpr;
+begin
+  Result := False;
+  r := TRegExpr.Create;
+  r.ModifierI := True;
+  try
+    r.Expression := ARegExpr;
+    Result := r.Exec(AInputStr);
+  finally
+    r.Free;
+  end;
 end;
 
 
