@@ -444,23 +444,6 @@ object connform: Tconnform
         TextHint = 'Your secure shell password'
         OnChange = Modification
       end
-      object editSSHExe: TButtonedEdit
-        Left = 190
-        Top = 9
-        Width = 320
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.VirtualImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 0
-        Text = 'editSSHExe'
-        TextHint = 'Doubleclick to select file'
-        OnChange = editSSHExeChange
-        OnDblClick = PickFile
-        OnExit = editTrim
-        OnRightButtonClick = PickFile
-      end
       object editSSHhost: TEdit
         Left = 190
         Top = 36
@@ -519,6 +502,16 @@ object connform: Tconnform
         Position = 1
         TabOrder = 6
         Wrap = True
+      end
+      object comboSSHExe: TComboBox
+        Left = 190
+        Top = 8
+        Width = 320
+        Height = 22
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 0
+        Text = 'comboSSHExe'
+        OnChange = Modification
       end
     end
     object tabAdvanced: TTabSheet
