@@ -8,7 +8,7 @@ uses
   extra_controls, dbstructures, SynRegExpr;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
 
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
@@ -85,11 +85,11 @@ type
   public
     { Public declarations }
     const FormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
     const FormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'), ('JSON'));
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('SQL UPDATEs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'), ('JSON'));
     const FormatToImageIndex: Array[TGridExportFormat] of Integer =
-      (49, 50, 32, 48, 201, 201, 201, 153, 154, 202, 199, 200);
+      (49, 50, 32, 48, 201, 201, 201, 201, 153, 154, 202, 199, 200);
     const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TVirtualStringTree read FGrid write FGrid;
     property ExportFormat: TGridExportFormat read GetExportFormat write SetExportFormat;
@@ -811,6 +811,11 @@ begin
 
         efXML: tmp := #9'<row>' + CRLF;
 
+        efSQLUpdate: begin
+          tmp := '';
+          tmp := tmp + 'UPDATE ' + GridData.Connection.QuoteIdent(Tablename) + ' SET ';
+        end;
+
         efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
           tmp := '';
           if ExportFormat = efSQLDeleteInsert then begin
@@ -925,7 +930,7 @@ begin
               end;
             end;
 
-            efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+            efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate: begin
               if GridData.ColIsVirtual(Col) then
                 Data := ''
               else if GridData.IsNull(Col) then
@@ -938,8 +943,11 @@ begin
                 Data := GridData.Connection.EscapeString(Data)
               else if Data = '' then
                 Data := GridData.Connection.EscapeString(Data);
-              if not Data.IsEmpty then
+              if not Data.IsEmpty then begin
+                if ExportFormat = efSQLUpdate then
+                  tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text) + '=';
                 tmp := tmp + Data + ', ';
+              end;
             end;
 
             efPHPArray: begin
@@ -997,6 +1005,10 @@ begin
         efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
           Delete(tmp, Length(tmp)-1, 2);
           tmp := tmp + ');' + CRLF;
+        end;
+        efSQLUpdate : begin
+          Delete(tmp, length(tmp)-1,2);
+          tmp := tmp + ' WHERE' + GridData.GetWhereClause + ';' + sLineBreak;
         end;
         efPHPArray:
           tmp := tmp + #9 + '),' + CRLF;
