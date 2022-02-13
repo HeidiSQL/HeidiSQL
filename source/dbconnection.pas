@@ -2307,7 +2307,12 @@ begin
     end;
 
     // Gather client options
-    ClientFlags := CLIENT_LOCAL_FILES or CLIENT_INTERACTIVE or CLIENT_PROTOCOL_41 or CLIENT_MULTI_STATEMENTS or CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS;
+    ClientFlags := CLIENT_LOCAL_FILES
+      or CLIENT_INTERACTIVE
+      or CLIENT_PROTOCOL_41
+      or CLIENT_MULTI_STATEMENTS
+      or CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS
+      or CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA;
     if Parameters.Compressed then
       ClientFlags := ClientFlags or CLIENT_COMPRESS;
     if Parameters.WantSSL then

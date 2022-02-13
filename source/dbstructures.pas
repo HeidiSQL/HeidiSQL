@@ -42,31 +42,56 @@ const
   BINCMP_FLAG = 131072;
 
   // Client connection options
-  CLIENT_LONG_PASSWORD = 1;
-  CLIENT_FOUND_ROWS = 2; // Found instead of affected rows
-  CLIENT_LONG_FLAG = 4;
-  CLIENT_CONNECT_WITH_DB = 8;
-  CLIENT_NO_SCHEMA = 16; // Don't allow database.table.column
-  CLIENT_COMPRESS = 32;
-  CLIENT_ODBC = 64;
-  CLIENT_LOCAL_FILES = 128;
-  CLIENT_IGNORE_SPACE = 256; // Ignore spaces before '('
-  CLIENT_PROTOCOL_41 = 512;
-  CLIENT_INTERACTIVE = 1024;
-  CLIENT_SSL = 2048; // Switch to SSL after handshake
-  CLIENT_IGNORE_SIGPIPE = 4096;
-  CLIENT_TRANSACTIONS = 8192;
-  CLIENT_RESERVED = 16384;
-  CLIENT_SECURE_CONNECTION = 32768;
-  CLIENT_MULTI_STATEMENTS = 65536;
-  CLIENT_MULTI_RESULTS = 131072;
-  CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS = 4194304;
-  CLIENT_SSL_VERIFY_SERVER_CERT = 67108864;
-  CLIENT_REMEMBER_OPTIONS = 134217728;
+  CLIENT_LONG_PASSWORD: Int64 = 0; // obsolete flag
+  CLIENT_MYSQL: Int64 = 1; // mysql/old mariadb server/client
+  CLIENT_FOUND_ROWS: Int64 = 2; // Found instead of affected rows
+  CLIENT_LONG_FLAG: Int64 = 4; // Get all column flags
+  CLIENT_CONNECT_WITH_DB: Int64 = 8; // One can specify db on connect
+  CLIENT_NO_SCHEMA: Int64 = 16; // Don't allow database.table.column
+  CLIENT_COMPRESS: Int64 = 32; // Can use compression protocol
+  CLIENT_ODBC: Int64 = 64; // Odbc client
+  CLIENT_LOCAL_FILES: Int64 = 128; // Can use LOAD DATA LOCAL
+  CLIENT_IGNORE_SPACE: Int64 = 256; // Ignore spaces before '('
+  CLIENT_PROTOCOL_41: Int64 = 512; // New 4.1 protocol
+  CLIENT_INTERACTIVE: Int64 = 1024; // This is an interactive client
+  CLIENT_SSL: Int64 = 2048; // Switch to SSL after handshake
+  CLIENT_IGNORE_SIGPIPE: Int64 = 4096; // IGNORE sigpipes
+  CLIENT_TRANSACTIONS: Int64 = 8192; // Client knows about transactions
+  CLIENT_RESERVED: Int64 = 16384; // Old flag for 4.1 protocol
+  CLIENT_SECURE_CONNECTION: Int64 = 32768; // New 4.1 authentication
+  CLIENT_MULTI_STATEMENTS: Int64 = 1 Shl 16; // Enable/disable multi-stmt support
+  CLIENT_MULTI_RESULTS: Int64 = 1 Shl 17; // Enable/disable multi-results
+  CLIENT_PS_MULTI_RESULTS: Int64 = 1 Shl 18; // Multi-results in PS-protocol
+  CLIENT_PLUGIN_AUTH: Int64 = 1 Shl 19; // Client supports plugin authentication
+  CLIENT_CONNECT_ATTRS: Int64 = 1 Shl 20; // Client supports connection attributes
+  // Enable authentication response packet to be larger than 255 bytes.
+  CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA: Int64 = 1 Shl 21;
+  // Don't close the connection for a connection with expired password.
+  CLIENT_CAN_HANDLE_EXPIRED_PASSWORDS: Int64 = 1 Shl 22;
+  {
+  Capable of handling server state change information. Its a hint to the
+  server to include the state change information in Ok packet.
+  }
+  CLIENT_SESSION_TRACK: Int64 = 1 Shl 23;
+  // Client no longer needs EOF packet
+  CLIENT_DEPRECATE_EOF: Int64 = 1 Shl 24;
+  CLIENT_PROGRESS_OBSOLETE: Int64 = 1 Shl 29;
+  CLIENT_SSL_VERIFY_SERVER_CERT: Int64 = 1 Shl 30;
+  {
+  It used to be that if mysql_real_connect() failed, it would delete any
+  options set by the client, unless the CLIENT_REMEMBER_OPTIONS flag was
+  given.
+  That behaviour does not appear very useful, and it seems unlikely that
+  any applications would actually depend on this. So from MariaDB 5.5 we
+  always preserve any options set in case of failed connect, and this
+  option is effectively always set.
+  }
+  CLIENT_REMEMBER_OPTIONS: Int64 = 1 Shl 31;
 
   COLLATION_BINARY = 63;
   // Equivalent to COLLATION_BINARY, this is what a new driver returns when connected to a pre-4.1 server.
   COLLATION_NONE =  0;
+
 
   { SQLite Result Codes
     result code definitions
