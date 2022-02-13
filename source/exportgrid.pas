@@ -5,10 +5,10 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList,
-  extra_controls, dbstructures, SynRegExpr;
+  extra_controls, dbstructures, SynRegExpr, System.StrUtils;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efTextile, efPHPArray, efMarkDown, efJSON);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efTextile, efJiraTextile, efPHPArray, efMarkDown, efJSON);
 
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
@@ -85,11 +85,11 @@ type
   public
     { Public declarations }
     const FormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('textile'), ('php'), ('md'), ('json'));
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('textile'), ('jira-textile'), ('php'), ('md'), ('json'));
     const FormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('SQL UPDATEs'), ('LaTeX'), ('Textile'), ('PHP Array'), ('Markdown Here'), ('JSON'));
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('SQL UPDATEs'), ('LaTeX'), ('Textile'), ('Jira Textile'), ('PHP Array'), ('Markdown Here'), ('JSON'));
     const FormatToImageIndex: Array[TGridExportFormat] of Integer =
-      (49, 50, 32, 48, 201, 201, 201, 201, 153, 154, 202, 199, 200);
+      (49, 50, 32, 48, 201, 201, 201, 201, 153, 154, 154, 202, 199, 200);
     const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TVirtualStringTree read FGrid write FGrid;
     property ExportFormat: TGridExportFormat read GetExportFormat write SetExportFormat;
@@ -719,12 +719,12 @@ begin
         end;
       end;
 
-      efTextile: begin
-        Separator := ' |_. ';
+      efTextile, efJiraTextile: begin
+        Separator := IfThen(ExportFormat=efTextile, ' |_. ', ' || ');
         Encloser := '';
-        Terminator := ' |'+CRLF;
+        Terminator := IfThen(ExportFormat=efTextile, ' |', ' ||') + CRLF;
         if chkIncludeColumnNames.Checked then begin
-          Header := '|_. ';
+          Header := TrimLeft(Separator);
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
@@ -735,6 +735,7 @@ begin
           Header := Header + Terminator;
         end;
         Separator := ' | ';
+        Terminator := ' |' + CRLF;
       end;
 
       efPHPArray: begin
@@ -842,7 +843,7 @@ begin
           tmp := tmp + ' VALUES (';
         end;
 
-        efTextile: tmp := TrimLeft(Separator);
+        efTextile, efJiraTextile: tmp := TrimLeft(Separator);
 
         efPHPArray: tmp := #9 + 'array('+CRLF;
 
@@ -907,7 +908,7 @@ begin
               tmp := tmp + Data + Separator;
             end;
 
-            efTextile: begin
+            efTextile, efJiraTextile: begin
               tmp := tmp + Data + Separator;
             end;
 
@@ -997,7 +998,7 @@ begin
       case ExportFormat of
         efHTML:
           tmp := tmp + '        </tr>' + CRLF;
-        efExcel, efCSV, efLaTeX, efTextile: begin
+        efExcel, efCSV, efLaTeX, efTextile, efJiraTextile: begin
           Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
           tmp := tmp + Terminator;
         end;
