@@ -8,7 +8,7 @@ uses
   extra_controls, dbstructures, SynRegExpr;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efTextile, efPHPArray, efMarkDown, efJSON);
 
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
@@ -85,9 +85,9 @@ type
   public
     { Public declarations }
     const FormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('textile'), ('php'), ('md'), ('json'));
     const FormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('SQL UPDATEs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'), ('JSON'));
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('SQL UPDATEs'), ('LaTeX'), ('Textile'), ('PHP Array'), ('Markdown Here'), ('JSON'));
     const FormatToImageIndex: Array[TGridExportFormat] of Integer =
       (49, 50, 32, 48, 201, 201, 201, 201, 153, 154, 202, 199, 200);
     const CopyAsActionPrefix = 'actCopyAs';
@@ -719,21 +719,22 @@ begin
         end;
       end;
 
-      efWiki: begin
-        Separator := ' || ';
+      efTextile: begin
+        Separator := ' |_. ';
         Encloser := '';
-        Terminator := ' ||'+CRLF;
+        Terminator := ' |'+CRLF;
         if chkIncludeColumnNames.Checked then begin
-          Header := '|| ';
+          Header := '|_. ';
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
-              Header := Header + '*' + Grid.Header.Columns[Col].Text + '*' + Separator;
+              Header := Header + Grid.Header.Columns[Col].Text  + Separator;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
           Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
           Header := Header + Terminator;
         end;
+        Separator := ' | ';
       end;
 
       efPHPArray: begin
@@ -841,7 +842,7 @@ begin
           tmp := tmp + ' VALUES (';
         end;
 
-        efWiki: tmp := TrimLeft(Separator);
+        efTextile: tmp := TrimLeft(Separator);
 
         efPHPArray: tmp := #9 + 'array('+CRLF;
 
@@ -906,7 +907,7 @@ begin
               tmp := tmp + Data + Separator;
             end;
 
-            efWiki: begin
+            efTextile: begin
               tmp := tmp + Data + Separator;
             end;
 
@@ -996,7 +997,7 @@ begin
       case ExportFormat of
         efHTML:
           tmp := tmp + '        </tr>' + CRLF;
-        efExcel, efCSV, efLaTeX, efWiki: begin
+        efExcel, efCSV, efLaTeX, efTextile: begin
           Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
           tmp := tmp + Terminator;
         end;
