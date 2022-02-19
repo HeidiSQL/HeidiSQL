@@ -2229,6 +2229,7 @@ var
   ClientFlags, FinalPort: Integer;
   Error, tmpdb, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
+  ErrorHint: String;
   sslca, sslkey, sslcert, sslcipher: PAnsiChar;
   PluginDir: AnsiString;
   Status: TDBQuery;
@@ -2362,7 +2363,14 @@ begin
       FHandle := nil;
       if FSecureShellCmd <> nil then
         FSecureShellCmd.Free;
-      raise EDbError.Create(Error);
+      if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
+        ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
+          [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
+          );
+      end else begin
+        ErrorHint := '';
+      end;
+      raise EDbError.Create(Error, LastErrorCode, ErrorHint);
     end else begin
       FActive := True;
       // Catch late init_connect error by firing mysql_ping(), which detects a broken
@@ -2467,7 +2475,7 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, Error, NetLib, DataSource, QuotedPassword, ServerVersion: String;
+  tmpdb, Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
   rx: TRegExpr;
   i: Integer;
   IsOldProvider: Boolean;
@@ -2617,7 +2625,14 @@ begin
         Error := LastErrorMsg;
         Log(lcError, Error);
         FConnectionStarted := 0;
-        raise EDbError.Create(Error);
+        if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
+          ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
+            [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
+            );
+        end else begin
+          ErrorHint := '';
+        end;
+        raise EDbError.Create(Error, LastErrorCode, ErrorHint);
       end;
     end;
   end else begin
@@ -2633,7 +2648,7 @@ end;
 procedure TPgConnection.SetActive(Value: Boolean);
 var
   dbname, ConnInfo, Error, tmpdb: String;
-  FinalHost: String;
+  FinalHost, ErrorHint: String;
   FinalPort: Integer;
 
   function EscapeConnectOption(Option: String): String;
@@ -2696,7 +2711,14 @@ begin
       FHandle := nil;
       if FSecureShellCmd <> nil then
         FSecureShellCmd.Free;
-      raise EDbError.Create(Error);
+      if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
+        ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
+          [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
+          );
+      end else begin
+        ErrorHint := '';
+      end;
+      raise EDbError.Create(Error, LastErrorCode, ErrorHint);
     end;
     FActive := True;
     FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
@@ -2746,7 +2768,7 @@ end;
 procedure TSQLiteConnection.SetActive(Value: Boolean);
 var
   ConnectResult: Integer;
-  tmpdb: String;
+  tmpdb, ErrorHint: String;
   FileNames: TStringList;
   MainFile, DbAlias: String;
   i: Integer;
@@ -2803,6 +2825,13 @@ begin
       Log(lcError, LastErrorMsg);
       FConnectionStarted := 0;
       FHandle := nil;
+      if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
+        ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
+          [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
+          );
+      end else begin
+        ErrorHint := '';
+      end;
       raise EDbError.Create(LastErrorMsg);
     end;
   end else begin
@@ -3040,7 +3069,7 @@ begin
   LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
-  FLib := TMySQLLib.Create(LibraryPath);
+  FLib := TMySQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
   Log(lcDebug, FLib.DllFile + ' v' + DecodeApiString(FLib.mysql_get_client_info) + ' loaded.');
   inherited;
 end;
@@ -3055,7 +3084,7 @@ begin
   LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   try
-    FLib := TPostgreSQLLib.Create(LibraryPath);
+    FLib := TPostgreSQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
     Log(lcDebug, FLib.DllFile + ' v' + IntToStr(FLib.PQlibVersion) + ' loaded.');
   except
     on E:EDbError do begin
@@ -3086,7 +3115,7 @@ begin
   LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
-  FLib := TSQLiteLib.Create(LibraryPath);
+  FLib := TSQLiteLib.Create(LibraryPath, Parameters.DefaultLibrary);
   Log(lcDebug, FLib.DllFile + ' v' + ServerVersionUntouched + ' loaded.');
   inherited;
 end;
@@ -4319,18 +4348,13 @@ begin
 
   Msg := DecodeAPIString(FLib.mysql_error(FHandle));
 
-  if SynRegExpr.ExecRegExpr('(Unknown SSL error|SSL connection error)', Msg) then begin
-    // Find specific strings in error message and provide helpful message
-    Additional := f_('Please select a different library in your session settings. (Current: "%s")', [FParameters.LibraryOrProvider]);
-  end else begin
-    // Find "(errno: 123)" in message and add more meaningful message from perror.exe
-    rx := TRegExpr.Create;
-    rx.Expression := '.+\(errno\:\s+(\d+)\)';
-    if rx.Exec(Msg) then begin
-      Additional := MySQLErrorCodes.Values[rx.Match[1]];
-    end;
-    rx.Free;
+  // Find "(errno: 123)" in message and add more meaningful message from perror.exe
+  rx := TRegExpr.Create;
+  rx.Expression := '.+\(errno\:\s+(\d+)\)';
+  if rx.Exec(Msg) then begin
+    Additional := MySQLErrorCodes.Values[rx.Match[1]];
   end;
+  rx.Free;
 
   if Additional <> '' then begin
     Msg := Msg + sLineBreak + sLineBreak + Additional;

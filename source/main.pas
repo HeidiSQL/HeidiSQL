@@ -4307,7 +4307,7 @@ begin
 
   except
     on E:EDbError do begin
-      ErrorDialog(E.Message);
+      MessageDialog(_('Connection failed'), E.Message, mtError, [mbOK], asUnused, E.Hint);
       // attempt failed
       if AppSettings.SessionPathExists(Params.SessionPath) then begin
         // Save "refused" counter

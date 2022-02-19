@@ -486,9 +486,13 @@ type
 
   // Custom exception class for any connection or database related error
   EDbError = class(Exception)
+    private
+      FErrorCode: Cardinal;
+      FHint: String;
     public
-      ErrorCode: Cardinal;
-      constructor Create(const Msg: string; const ErrorCode: Cardinal=0);
+      property ErrorCode: Cardinal read FErrorCode;
+      property Hint: String read FHint;
+      constructor Create(const Msg: string; const ErrorCode: Cardinal=0; const Hint: String='');
   end;
 
   // DLL loading
@@ -503,7 +507,7 @@ type
     public
       property Handle: HMODULE read FHandle;
       property DllFile: String read FDllFile;
-      constructor Create(DllFile: String);
+      constructor Create(DllFile, DefaultDll: String);
       destructor Destroy; override;
   end;
   TMySQLLib = class(TDbLib)
@@ -4617,9 +4621,10 @@ uses apphelpers;
 
 { EDbError }
 
-constructor EDbError.Create(const Msg: string; const ErrorCode: Cardinal=0);
+constructor EDbError.Create(const Msg: string; const ErrorCode: Cardinal=0; const Hint: String='');
 begin
-  Self.ErrorCode := ErrorCode;
+  FErrorCode := ErrorCode;
+  FHint := Hint;
   inherited Create(Msg);
 end;
 
@@ -4627,9 +4632,9 @@ end;
 
 { TDbLib }
 
-constructor TDbLib.Create(DllFile: String);
+constructor TDbLib.Create(DllFile, DefaultDll: String);
 var
-  msg: String;
+  msg, ErrorHint: String;
 begin
   // Load DLL as is (with or without path)
   inherited Create;
@@ -4647,9 +4652,17 @@ begin
     msg := f_('Library %s could not be loaded. Please select a different one.',
       [ExtractFileName(FDllFile)]
       );
-    if Windows.GetLastError <> 0 then
+    if Windows.GetLastError <> 0 then begin
       msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
-    Raise EDbError.Create(msg);
+    end;
+    if (DefaultDll <> '') and (ExtractFileName(FDllFile) <> DefaultDll) then begin
+      ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
+        [DefaultDll, ExtractFileName(FDllFile)]
+        );
+    end else begin
+      ErrorHint := '';
+    end;
+    Raise EDbError.Create(msg, Windows.GetLastError, ErrorHint);
   end;
 
   // Dll was loaded, now initialize required procedures

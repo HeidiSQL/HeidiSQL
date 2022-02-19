@@ -358,7 +358,7 @@ type
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
   function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
-  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused): Integer; overload;
+  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetLocaleString(const ResourceId: Integer): WideString;
@@ -2261,7 +2261,7 @@ begin
 end;
 
 
-function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused): Integer;
+function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer;
 var
   m: String;
   Dialog: TTaskDialog;
@@ -2343,7 +2343,8 @@ begin
         else
           WebSearchHost := '[unknown host]';
         rx.Free;
-        Dialog.FooterText := '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
+        Dialog.FooterText := IfThen(FooterText.IsEmpty, '', FooterText + sLineBreak + sLineBreak) +
+          '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
         Dialog.FooterIcon := tdiInformation;
       end;
       mtInformation:
@@ -2403,8 +2404,10 @@ begin
   end else begin
     // Backwards compatible dialog on Windows XP
     m := Msg;
-    if Title <> '' then
-      m := Title + CRLF + CRLF + m;
+    if not Title.IsEmpty then
+      m := Title + SLineBreak + SLineBreak + m;
+    if not FooterText.IsEmpty then
+      m := m + SLineBreak + SLineBreak + FooterText;
 
     if KeepAskingSetting <> asUnused then
       KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting)
@@ -2423,7 +2426,7 @@ end;
 
 function ErrorDialog(Msg: string): Integer;
 begin
-  Result := MessageDialog(Msg, mtError, [mbOK]);
+  Result := MessageDialog('', Msg, mtError, [mbOK]);
 end;
 
 
