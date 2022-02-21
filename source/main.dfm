@@ -13,6 +13,7 @@ object MainForm: TMainForm
   OldCreateOrder = True
   Position = poDesigned
   ShowHint = True
+  OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
   OnBeforeMonitorDpiChanged = FormBeforeMonitorDpiChanged
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate

@@ -1161,6 +1161,8 @@ type
     procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
       NewDPI: Integer);
     procedure menuToggleAllClick(Sender: TObject);
+    procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+      NewDPI: Integer);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1707,6 +1709,13 @@ begin
   end;
 end;
 
+
+procedure TMainForm.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+begin
+  // DPI settings change finished
+  FixQueryTabCloseButtons;
+end;
 
 procedure TMainForm.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
   NewDPI: Integer);
