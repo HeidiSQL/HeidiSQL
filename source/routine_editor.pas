@@ -85,8 +85,8 @@ type
     { Public declarations }
     Parameters: TRoutineParamList;
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure Init(Obj: TDBObject); override;
+    function DeInit: TModalResult; override;
     function ApplyModifications: TModalResult; override;
   end;
 
@@ -114,14 +114,6 @@ begin
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   Parameters := TRoutineParamList.Create;
   editName.MaxLength := NAME_LEN;
-end;
-
-
-destructor TfrmRoutineEditor.Destroy;
-begin
-  // Store GUI setup
-  TExtForm.SaveListSetup(listParameters);
-  inherited;
 end;
 
 
@@ -188,6 +180,14 @@ begin
   Mainform.actRunRoutines.Enabled := DBObject.Name <> '';
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
+end;
+
+
+function TfrmRoutineEditor.DeInit: TModalResult;
+begin
+  // Store GUI setup
+  TExtForm.SaveListSetup(listParameters);
+  Result := inherited;
 end;
 
 

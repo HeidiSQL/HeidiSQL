@@ -225,8 +225,8 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure Init(Obj: TDBObject); override;
+    function DeInit: TModalResult; override;
     function ApplyModifications: TModalResult; override;
   end;
 
@@ -252,17 +252,6 @@ begin
   FDeletedCheckConstraints := TStringList.Create;
   FDeletedCheckConstraints.Duplicates := dupIgnore;
   editName.MaxLength := NAME_LEN;
-end;
-
-
-destructor TfrmTableEditor.Destroy;
-begin
-  // Store GUI setup
-  TExtForm.SaveListSetup(listColumns);
-  TExtForm.SaveListSetup(treeIndexes);
-  TExtForm.SaveListSetup(listForeignKeys);
-  TExtForm.SaveListSetup(listCheckConstraints);
-  inherited;
 end;
 
 
@@ -412,6 +401,17 @@ begin
   // Empty status panel
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
+end;
+
+
+function TfrmTableEditor.DeInit: TModalResult;
+begin
+  // Store GUI setup
+  TExtForm.SaveListSetup(listColumns);
+  TExtForm.SaveListSetup(treeIndexes);
+  TExtForm.SaveListSetup(listForeignKeys);
+  TExtForm.SaveListSetup(listCheckConstraints);
+  Result := inherited;
 end;
 
 

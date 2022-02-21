@@ -41,7 +41,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Init(Obj: TDBObject); virtual;
-      function DeInit: TModalResult;
+      function DeInit: TModalResult; virtual;
       property Modified: Boolean read FModified write SetModified;
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
