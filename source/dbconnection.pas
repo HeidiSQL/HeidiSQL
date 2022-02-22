@@ -414,7 +414,7 @@ type
     spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
     spFuncLength, spFuncCeil, spFuncLeft, spFuncNow,
-    spLockedTables);
+    spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks);
 
   TDBConnection = class(TComponent)
     private
@@ -2970,6 +2970,8 @@ begin
       FSQLSpecifities[spFuncLeft] := IfThen(Parameters.IsProxySQLAdmin, 'SUBSTR(%s, 1, %d)', 'LEFT(%s, %d)');
       FSQLSpecifities[spFuncNow] := IfThen(Parameters.IsProxySQLAdmin, 'CURRENT_TIMESTAMP', 'NOW()');
       FSQLSpecifities[spLockedTables] := '';
+      FSQLSpecifities[spDisableForeignKeyChecks] := 'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0';
+      FSQLSpecifities[spEnableForeignKeyChecks] := 'SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1)';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -2991,6 +2993,8 @@ begin
       FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
       FSQLSpecifities[spFuncNow] := 'GETDATE()';
       FSQLSpecifities[spLockedTables] := '';
+      FSQLSpecifities[spDisableForeignKeyChecks] := '';
+      FSQLSpecifities[spEnableForeignKeyChecks] := '';
     end;
     ngPgSQL: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP SCHEMA %s';
@@ -3012,6 +3016,8 @@ begin
       FSQLSpecifities[spFuncLeft] := 'SUBSTRING(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'NOW()';
       FSQLSpecifities[spLockedTables] := '';
+      FSQLSpecifities[spDisableForeignKeyChecks] := '';
+      FSQLSpecifities[spEnableForeignKeyChecks] := '';
     end;
     ngSQLite: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3033,6 +3039,8 @@ begin
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'DATETIME()';
       FSQLSpecifities[spLockedTables] := '';
+      FSQLSpecifities[spDisableForeignKeyChecks] := '';
+      FSQLSpecifities[spEnableForeignKeyChecks] := '';
     end;
     ngInterbase: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3054,6 +3062,8 @@ begin
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'timestamp ''NOW'' from rdb$database';
       FSQLSpecifities[spLockedTables] := '';
+      FSQLSpecifities[spDisableForeignKeyChecks] := '';
+      FSQLSpecifities[spEnableForeignKeyChecks] := '';
     end;
 
   end;

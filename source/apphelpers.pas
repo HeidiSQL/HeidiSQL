@@ -2350,10 +2350,6 @@ begin
       mtInformation:
         Dialog.MainIcon := tdiInformation;
       mtConfirmation, mtCustom: begin
-        if not Assigned(ConfirmIcon) then begin
-          ConfirmIcon := TIcon.Create;
-          ConfirmIcon.LoadFromResourceName(hInstance, 'Z_ICONQUESTION');
-        end;
         Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
         Dialog.CustomMainIcon := ConfirmIcon;
       end;
@@ -4350,6 +4346,9 @@ LibHandleUser32 := LoadLibrary('User32.dll');
 UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
 
 DateTimeNever := MinDateTime;
+
+ConfirmIcon := TIcon.Create;
+ConfirmIcon.LoadFromResourceName(hInstance, 'Z_ICONQUESTION');
 
 end.
 

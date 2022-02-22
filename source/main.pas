@@ -4428,7 +4428,11 @@ procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
   TableOrView: TDBObject;
   Objects: TDBObjectList;
-  Names: String;
+  Names, QueryDisableChecks, QueryEnableChecks: String;
+  Conn: TDBConnection;
+  Dialog: TTaskDialog;
+  DialogResult: TModalResult;
+  DisableForeignKeyChecks: Boolean;
 begin
   // Delete rows from selected tables and views
 
@@ -4445,21 +4449,48 @@ begin
   if Objects.Count = 0 then
     ErrorDialog(_('No table(s) selected.'))
   else begin
-    if MessageDialog(f_('Empty %d table(s) and/or view(s)?', [Objects.count]), Names,
-      mtConfirmation, [mbOk, mbCancel]) = mrOk then begin
+    Conn := ActiveConnection;
+    QueryDisableChecks := Conn.GetSQLSpecifity(spDisableForeignKeyChecks);
+    QueryEnableChecks := Conn.GetSQLSpecifity(spEnableForeignKeyChecks);
+    if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
+      Dialog := TTaskDialog.Create(Self);
+      Dialog.Text := f_('Empty %d table(s) and/or view(s)?', [Objects.count]);
+      Dialog.CommonButtons := [tcbOk, tcbCancel];
+      Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
+      Dialog.CustomMainIcon := ConfirmIcon;
+      if not QueryDisableChecks.IsEmpty then
+        Dialog.VerificationText := _('Disable foreign key checks');
+      Dialog.Execute;
+      DialogResult := Dialog.ModalResult;
+      DisableForeignKeyChecks := tfVerificationFlagChecked in Dialog.Flags;
+      Dialog.Free;
+    end else begin
+      DialogResult := MessageDialog(f_('Empty %d table(s) and/or view(s)?', [Objects.count]), Names, mtConfirmation, [mbOk, mbCancel]);
+      DisableForeignKeyChecks := False;
+    end;
+    if DialogResult = mrOk then begin
       Screen.Cursor := crHourglass;
       EnableProgress(Objects.Count);
       try
-        for TableOrView in Objects do begin
-          TableOrView.Connection.Query(TableOrView.Connection.GetSQLSpecifity(spEmptyTable) + TableOrView.QuotedName);
-          ProgressStep;
+        if DisableForeignKeyChecks and (not QueryDisableChecks.IsEmpty) then
+          Conn.Query(QueryDisableChecks);
+        try
+          for TableOrView in Objects do begin
+            Conn.Query(Conn.GetSQLSpecifity(spEmptyTable) + TableOrView.QuotedName);
+            ProgressStep;
+          end;
+          actRefresh.Execute;
+        except
+          on E:EDbError do begin
+            SetProgressState(pbsError);
+            ErrorDialog(E.Message);
+          end;
         end;
-        actRefresh.Execute;
+        if DisableForeignKeyChecks and (not QueryEnableChecks.IsEmpty) then
+          Conn.Query(QueryEnableChecks);
       except
-        on E:EDbError do begin
-          SetProgressState(pbsError);
+        on E:EDbError do
           ErrorDialog(E.Message);
-        end;
       end;
       Objects.Free;
       DisableProgress;
