@@ -547,7 +547,7 @@ var
   Header, Data, tmp, Encloser, Separator, Terminator, TableName, Filename: String;
   Node: PVirtualNode;
   GridData: TDBQuery;
-  SelectionOnly: Boolean;
+  SelectionOnly, HasNulls: Boolean;
   i: Integer;
   NodeCount: Cardinal;
   RowNum: PInt64;
@@ -868,6 +868,7 @@ begin
             Data := GridData.HexValue(Col);
           end else begin
             Data := GridData.Col(Col);
+            RemoveNullChars(Data, HasNulls);
           end;
 
           // Keep formatted numeric values

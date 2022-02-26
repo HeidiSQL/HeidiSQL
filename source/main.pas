@@ -11138,13 +11138,13 @@ procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
   CurrentControl: TWinControl;
   SendingControl: TComponent;
-  SenderName: String;
+  SenderName, TextCopy: String;
   Edit: TCustomEdit;
   Combo: TCustomComboBox;
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   DoCut, DoCopyRows: Boolean;
-  IsResultGrid: Boolean;
+  IsResultGrid, HasNulls: Boolean;
   ClpFormat: Word;
   ClpData: THandle;
   APalette: HPalette;
@@ -11199,13 +11199,19 @@ begin
             if Results.IsNull(Grid.FocusedColumn) then begin
               Clipboard.AsText := '';
               FClipboardHasNull := True;
-            end else
-              Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+            end else begin
+              TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+              RemoveNullChars(TextCopy, HasNulls);
+              Clipboard.AsText := TextCopy;
+            end;
             if DoCut then
               Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
           end;
-        end else
-          Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+        end else begin
+          TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+          RemoveNullChars(TextCopy, HasNulls);
+          Clipboard.AsText := TextCopy;
+        end;
         FGridCopying := False;
       end;
     end else if CurrentControl is TSynMemo then begin
