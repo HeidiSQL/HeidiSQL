@@ -299,6 +299,7 @@ type
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function fixNewlines(txt: String): String;
+  procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
   function ExtractBaseFileName(FileName: String): String;
@@ -769,6 +770,30 @@ begin
   txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
   txt := StringReplace(txt, #10, CRLF, [rfReplaceAll]);
   result := txt;
+end;
+
+
+{***
+  Mangle input text so that SynEdit can load it.
+}
+procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
+var
+  i, Len: Integer;
+  c: Char;
+begin
+  Len := Length(Text);
+  if Len = 0 then
+    Exit;
+  i := 1;
+  HasNulls := False;
+  repeat
+    c := Text[i];
+    if c = #0 then begin
+      Text[i] := #32; // space
+      HasNulls := True;
+    end;
+    Inc(i);
+  until i > Len;
 end;
 
 

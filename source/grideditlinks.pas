@@ -314,6 +314,7 @@ end;
 function TBaseGridEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean;
 var
   FCellTextBounds: TRect;
+  HasNulls: Boolean;
 begin
   Result := not FStopping;
   if not Result then
@@ -322,6 +323,11 @@ begin
   FColumn := Column;
   FCellFont := TFont.Create;
   FTree.GetTextInfo(FNode, FColumn, FCellFont, FCellTextBounds, FCellText);
+  apphelpers.RemoveNullChars(FCellText, HasNulls);
+  if HasNulls and FAllowEdit then begin
+    FAllowEdit := False;
+  end;
+
   // Not all editors have a connection assigned, e.g. session manager tree
   if Assigned(FTableColumn) then begin
     FCellFont.Color := DatatypeCategories[FTableColumn.DataType.Category].Color;
@@ -549,7 +555,6 @@ begin
   FMaskEdit.OnKeyDown := DoKeyDown;
   FMaskEdit.OnKeyUp := DoKeyUp;
   FMaskEdit.OnChange := TextChange;
-  FMaskEdit.ReadOnly := not FAllowEdit;
   FMainControl := FMaskEdit;
 
   FUpDown := TUpDown.Create(FPanel);
@@ -602,6 +607,7 @@ begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if not Result then
     Exit;
+  FMaskEdit.ReadOnly := not FAllowEdit;
   case FTableColumn.DataType.Index of
     dbdtDate:
       FMaskEdit.EditMask := '0000-00-00;1; ';
@@ -1130,7 +1136,6 @@ begin
   FEdit.ParentColor := True;
   FEdit.BorderStyle := bsNone;
   FEdit.OnKeyDown := DoKeyDown;
-  FEdit.ReadOnly := not FAllowEdit;
   FMainControl := FEdit;
 
   FButton := TButton.Create(FPanel);
@@ -1225,6 +1230,7 @@ begin
   if not Result then
     Exit;
 
+  FEdit.ReadOnly := not FAllowEdit;
   FEdit.Font.Assign(FCellFont);
   FEdit.Font.Color := GetThemeColor(clWindowText);
   FPanel.Color := FCellBackground;
