@@ -11221,7 +11221,7 @@ begin
         Clipboard.Open;
         Clipboard.AsText := SynMemo.SelText;
         Exporter := TSynExporterRTF.Create(Self);
-        Exporter.Highlighter := SynSQLSynUsed;
+        Exporter.Highlighter := SynMemo.Highlighter;
         Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
         if DoCut then SynMemo.CutToClipboard
         else SynMemo.CopyToClipboard;
@@ -11234,7 +11234,7 @@ begin
     end;
   except
     on E:Exception do begin
-      LogSQL(E.Message);
+      LogSQL(E.ClassName + ': ' + E.Message);
       MessageBeep(MB_ICONASTERISK);
     end;
   end;
