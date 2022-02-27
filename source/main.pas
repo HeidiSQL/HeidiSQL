@@ -1714,7 +1714,7 @@ procedure TMainForm.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
   NewDPI: Integer);
 begin
   // DPI settings change finished
-  FixQueryTabCloseButtons;
+  FormResize(Sender);
 end;
 
 procedure TMainForm.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
@@ -2688,7 +2688,7 @@ begin
   w5 := CalcPanelWidth('Server time: 20:00 ', 10);
   w6 := CalcPanelWidth('DummyDummyDummyDummyDummy', 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
-  //logsql(format('IconWidth:%d 0:%d 1:%d 2:%d 3:%d 4:%d 5:%d 6:%d', [IconWidth, w0, w1, w2, w3, w4, w5, w6]));
+  //logsql(format('IconWidth:%d 0:%d 1:%d 2:%d 3:%d 4:%d 5:%d 6:%d', [VirtualImageListMain.Width, w0, w1, w2, w3, w4, w5, w6]));
   StatusBar.Panels[0].Width := w0;
   StatusBar.Panels[1].Width := w1;
   StatusBar.Panels[2].Width := w2;
@@ -2707,8 +2707,10 @@ begin
 
   // Right aligned button
   if imgDonate.Visible then begin
-    imgDonate.Width := 122;
-    imgDonate.Height := 22;
+    imgDonate.Stretch := True;
+    imgDonate.Proportional := True;
+    imgDonate.Width := ScaleSize(82);
+    imgDonate.Height := ScaleSize(22);
     imgDonate.Left := ControlBarMain.Width - imgDonate.Width;
   end;
 
