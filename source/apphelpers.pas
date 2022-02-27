@@ -779,21 +779,15 @@ end;
 procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
 var
   i, Len: Integer;
-  c: Char;
 begin
-  Len := Length(Text);
-  if Len = 0 then
-    Exit;
-  i := 1;
   HasNulls := False;
-  repeat
-    c := Text[i];
-    if c = #0 then begin
+  Len := Length(Text);
+  for i:=1 to Len do begin
+    if Text[i] = #0 then begin
       Text[i] := #32; // space
       HasNulls := True;
     end;
-    Inc(i);
-  until i > Len;
+  end;
 end;
 
 
