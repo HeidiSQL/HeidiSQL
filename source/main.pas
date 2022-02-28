@@ -1161,6 +1161,8 @@ type
     procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
       NewDPI: Integer);
     procedure menuToggleAllClick(Sender: TObject);
+    procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+      NewDPI: Integer);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1708,6 +1710,13 @@ begin
 end;
 
 
+procedure TMainForm.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
+  NewDPI: Integer);
+begin
+  // DPI settings change finished
+  FormResize(Sender);
+end;
+
 procedure TMainForm.FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
   NewDPI: Integer);
 var
@@ -1922,8 +1931,6 @@ begin
 
 
   Delimiter := AppSettings.ReadString(asDelimiter);
-
-  InheritFont(SynCompletionProposal.Font);
 
   // Define static query tab as first one in our QueryTabs list
   QueryTab := TQueryTab.Create(Self);
@@ -2465,7 +2472,7 @@ begin
           if not TabCaption.IsEmpty then
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
-            Tab.Memo.Height := EditorHeight;
+            Tab.pnlMemo.Height := EditorHeight;
           if HelpersWidth > 50 then
             Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
@@ -2656,19 +2663,13 @@ end;
 procedure TMainForm.FormResize(Sender: TObject);
 var
   PanelRect: TRect;
-  Tab: TQueryTab;
   w0, w1, w2, w3, w4, w5, w6: Integer;
 
-  function GridNeedHeight: Integer;
+  function CalcPanelWidth(SampleText: String; MaxPercentage: Integer): Integer;
+  var
+    MaxPixels: Integer;
   begin
-    // Return missing number of height pixels the query grid needs
-    Result := Max(0, Tab.spltQuery.MinSize - (Tab.TabSheet.Height - Tab.pnlMemo.Height - Tab.spltQuery.Height - Tab.tabsetQuery.Height));
-  end;
-
-  function CalcPanelWidth(MaxPixels, MaxPercentage: Integer): Integer;
-  begin
-    // No additional DPI scaling - percentage calculation fits better
-    //MaxPixels := ScaleSize(MaxPixels);
+    MaxPixels := StatusBar.Canvas.TextWidth(SampleText) + VirtualImageListMain.Width + 20;
     Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
@@ -2680,13 +2681,14 @@ begin
     Exit;
 
   // Super intelligent calculation of status bar panel width
-  w1 := CalcPanelWidth(110, 10);
-  w2 := CalcPanelWidth(240, 10);
-  w3 := CalcPanelWidth(200, 15);
-  w4 := CalcPanelWidth(220, 15);
-  w5 := CalcPanelWidth(220, 10);
-  w6 := CalcPanelWidth(300, 20);
+  w1 := CalcPanelWidth('r10 : c10 (10 KiB)', 10);
+  w2 := CalcPanelWidth('Connected: 1 day, 00:00 h', 10);
+  w3 := CalcPanelWidth('MariaDB or MySQL 5.7.6', 15);
+  w4 := CalcPanelWidth('Uptime: 13 days, 00:00 h', 15);
+  w5 := CalcPanelWidth('Server time: 20:00 ', 10);
+  w6 := CalcPanelWidth('DummyDummyDummyDummyDummy', 20);
   w0 := StatusBar.Width - w1 - w2 - w3 - w4 - w5 - w6;
+  //logsql(format('IconWidth:%d 0:%d 1:%d 2:%d 3:%d 4:%d 5:%d 6:%d', [VirtualImageListMain.Width, w0, w1, w2, w3, w4, w5, w6]));
   StatusBar.Panels[0].Width := w0;
   StatusBar.Panels[1].Width := w1;
   StatusBar.Panels[2].Width := w2;
@@ -2703,25 +2705,21 @@ begin
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   FixQueryTabCloseButtons;
 
-  // Ensure query grids are not overlapped by sql log
-  for Tab in QueryTabs do begin
-    // Decrease height of pnlMemo if grid has not enough height
-    // Disabled for annoyance reasons, see #1113
-    // Tab.pnlMemo.Height := Max(Tab.pnlMemo.Height-GridNeedHeight, Tab.spltQuery.MinSize);
-    // Try again and resize SQLLog if required
-    SynMemoSQLLog.Height := Max(SynMemoSQLLog.Height-GridNeedHeight, spltTopBottom.MinSize);
-  end;
-
   // Right aligned button
   if imgDonate.Visible then begin
-    imgDonate.Width := 122;
-    imgDonate.Height := 22;
+    imgDonate.Stretch := True;
+    imgDonate.Proportional := True;
+    imgDonate.Width := ScaleSize(82);
+    imgDonate.Height := ScaleSize(22);
     imgDonate.Left := ControlBarMain.Width - imgDonate.Width;
   end;
 
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
+var
+  Tab: TQueryTab;
+  ResizeResult: Boolean;
 begin
   // Window dimensions
   if WindowState <> wsMaximized then begin
@@ -2729,7 +2727,24 @@ begin
     Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
   end;
 
+  // Reset height of query memos and log panel if area between them is hidden through resize
+  ResizeResult := False;
+  for Tab in QueryTabs do begin
+    if Tab.pnlMemo.ClientToScreen(Tab.pnlMemo.ClientRect).Bottom > SynMemoSQLLog.ClientToScreen(SynMemoSQLLog.ClientRect).Top - 50 then begin
+      LogSQL('Reset height of query tab #'+Tab.Number.ToString+' to give result area vertical space.');
+      Tab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
+      ResizeResult := True;
+    end;
+  end;
+  if ResizeResult then begin
+    SynMemoSQLLog.Height := AppSettings.GetDefaultInt(asLogHeight);
+  end;
+
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
+  if TStyleManager.IsCustomStyleActive and (ScaleFactor<>1) then begin
+    LogSQL(f_('Caution: Style "%s" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!', [TStyleManager.ActiveStyle.Name]));
+  end;
+
 
   // Restore width of columns of all VirtualTrees
   RestoreListSetup(ListDatabases);
@@ -3240,7 +3255,7 @@ begin
   TabsetColor := Thread.Connection.Parameters.SessionColor;
   if TabsetColor <> clNone then begin
     Tab.tabsetQuery.SelectedColor := TabsetColor;
-    Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 5, False);
+    Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 20, False);
   end
   else begin
     Tab.tabsetQuery.SelectedColor := clWindow;
@@ -3877,15 +3892,16 @@ end;
 procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 var
   i, ProceedResult: Integer;
-  Dialog: TOpenTextFileDialog;
+  Dialog: TExtFileOpenDialog;
   Encoding: TEncoding;
   Tab: TQueryTab;
 begin
   AppSettings.ResetPath;
-  Dialog := TOpenTextFileDialog.Create(Self);
-  Dialog.Options := Dialog.Options + [ofAllowMultiSelect];
-  Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-  Dialog.DefaultExt := 'sql';
+  Dialog := TExtFileOpenDialog.Create(Self);
+  Dialog.Options := Dialog.Options + [fdoAllowMultiSelect];
+  Dialog.AddFileType('*.sql', _('SQL files'));
+  Dialog.AddFileType('*.*', _('All files'));
+  Dialog.DefaultExtension := 'sql';
   Dialog.Encodings.Assign(FileEncodings);
   Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if Dialog.Execute then begin
@@ -4302,7 +4318,7 @@ begin
 
   except
     on E:EDbError do begin
-      ErrorDialog(E.Message);
+      MessageDialog(_('Connection failed'), E.Message, mtError, [mbOK], asUnused, E.Hint);
       // attempt failed
       if AppSettings.SessionPathExists(Params.SessionPath) then begin
         // Save "refused" counter
@@ -4414,7 +4430,11 @@ procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
   TableOrView: TDBObject;
   Objects: TDBObjectList;
-  Names: String;
+  Names, QueryDisableChecks, QueryEnableChecks: String;
+  Conn: TDBConnection;
+  Dialog: TTaskDialog;
+  DialogResult: TModalResult;
+  DisableForeignKeyChecks: Boolean;
 begin
   // Delete rows from selected tables and views
 
@@ -4431,21 +4451,48 @@ begin
   if Objects.Count = 0 then
     ErrorDialog(_('No table(s) selected.'))
   else begin
-    if MessageDialog(f_('Empty %d table(s) and/or view(s)?', [Objects.count]), Names,
-      mtConfirmation, [mbOk, mbCancel]) = mrOk then begin
+    Conn := ActiveConnection;
+    QueryDisableChecks := Conn.GetSQLSpecifity(spDisableForeignKeyChecks);
+    QueryEnableChecks := Conn.GetSQLSpecifity(spEnableForeignKeyChecks);
+    if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
+      Dialog := TTaskDialog.Create(Self);
+      Dialog.Text := f_('Empty %d table(s) and/or view(s)?', [Objects.count]);
+      Dialog.CommonButtons := [tcbOk, tcbCancel];
+      Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
+      Dialog.CustomMainIcon := ConfirmIcon;
+      if not QueryDisableChecks.IsEmpty then
+        Dialog.VerificationText := _('Disable foreign key checks');
+      Dialog.Execute;
+      DialogResult := Dialog.ModalResult;
+      DisableForeignKeyChecks := tfVerificationFlagChecked in Dialog.Flags;
+      Dialog.Free;
+    end else begin
+      DialogResult := MessageDialog(f_('Empty %d table(s) and/or view(s)?', [Objects.count]), Names, mtConfirmation, [mbOk, mbCancel]);
+      DisableForeignKeyChecks := False;
+    end;
+    if DialogResult = mrOk then begin
       Screen.Cursor := crHourglass;
       EnableProgress(Objects.Count);
       try
-        for TableOrView in Objects do begin
-          TableOrView.Connection.Query(TableOrView.Connection.GetSQLSpecifity(spEmptyTable) + TableOrView.QuotedName);
-          ProgressStep;
+        if DisableForeignKeyChecks and (not QueryDisableChecks.IsEmpty) then
+          Conn.Query(QueryDisableChecks);
+        try
+          for TableOrView in Objects do begin
+            Conn.Query(Conn.GetSQLSpecifity(spEmptyTable) + TableOrView.QuotedName);
+            ProgressStep;
+          end;
+          actRefresh.Execute;
+        except
+          on E:EDbError do begin
+            SetProgressState(pbsError);
+            ErrorDialog(E.Message);
+          end;
         end;
-        actRefresh.Execute;
+        if DisableForeignKeyChecks and (not QueryEnableChecks.IsEmpty) then
+          Conn.Query(QueryEnableChecks);
       except
-        on E:EDbError do begin
-          SetProgressState(pbsError);
+        on E:EDbError do
           ErrorDialog(E.Message);
-        end;
       end;
       Objects.Free;
       DisableProgress;
@@ -6590,6 +6637,8 @@ var
 
 begin
   Proposal := Sender as TSynCompletionProposal;
+  Proposal.Font.Assign(Font);
+  Proposal.ItemHeight := ScaleSize(PROPOSAL_ITEM_HEIGHT);
   Proposal.ClearList;
   Conn := ActiveConnection;
   Editor := Proposal.Form.CurrentEditor;
@@ -9820,6 +9869,7 @@ var
   RowNumber: PInt64;
   Results: TDBQuery;
   Timestamp: Int64;
+  DotPos, i, NumZeros, NumDecimals, KeepDecimals: Integer;
 begin
   if Column = -1 then
     Exit;
@@ -9857,10 +9907,30 @@ begin
             end;
           end;
         end else begin
+          CellText := Results.Col(Column);
+
+          // Keep only wanted trailing zeros directly after decimal separator
+          if (Results.DataType(Column).Category = dtcReal) and (AppSettings.ReadInt(asRealTrailingZeros) >= 0) then begin
+            DotPos := Pos('.', CellText);
+            if DotPos > 0 then begin
+              NumZeros := 0;
+              NumDecimals := 0;
+              for i:=DotPos+1 to Length(CellText) do begin
+                Inc(NumDecimals);
+                if CellText[i] = '0' then
+                  Inc(NumZeros)
+                else
+                  NumZeros := 0;
+              end;
+              KeepDecimals := Max(NumDecimals - NumZeros, AppSettings.ReadInt(asRealTrailingZeros));
+              CellText := Copy(CellText, 1, Length(CellText) - (NumDecimals - KeepDecimals));
+              if CellText[Length(CellText)] = '.' then
+                CellText := Copy(CellText, 1, Length(CellText)-1);
+            end;
+          end;
+
           if DataLocalNumberFormat and (not EditingAndFocused) then
-            CellText := FormatNumber(Results.Col(Column), True)
-          else
-            CellText := Results.Col(Column);
+            CellText := FormatNumber(CellText, True);
         end;
       end;
       dtcBinary, dtcSpatial: begin
@@ -11070,13 +11140,13 @@ procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
   CurrentControl: TWinControl;
   SendingControl: TComponent;
-  SenderName: String;
+  SenderName, TextCopy: String;
   Edit: TCustomEdit;
   Combo: TCustomComboBox;
   Grid: TVirtualStringTree;
   SynMemo: TSynMemo;
   DoCut, DoCopyRows: Boolean;
-  IsResultGrid: Boolean;
+  IsResultGrid, HasNulls: Boolean;
   ClpFormat: Word;
   ClpData: THandle;
   APalette: HPalette;
@@ -11131,13 +11201,19 @@ begin
             if Results.IsNull(Grid.FocusedColumn) then begin
               Clipboard.AsText := '';
               FClipboardHasNull := True;
-            end else
-              Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+            end else begin
+              TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+              RemoveNullChars(TextCopy, HasNulls);
+              Clipboard.AsText := TextCopy;
+            end;
             if DoCut then
               Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
           end;
-        end else
-          Clipboard.AsText := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+        end else begin
+          TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+          RemoveNullChars(TextCopy, HasNulls);
+          Clipboard.AsText := TextCopy;
+        end;
         FGridCopying := False;
       end;
     end else if CurrentControl is TSynMemo then begin
@@ -11147,7 +11223,7 @@ begin
         Clipboard.Open;
         Clipboard.AsText := SynMemo.SelText;
         Exporter := TSynExporterRTF.Create(Self);
-        Exporter.Highlighter := SynSQLSynUsed;
+        Exporter.Highlighter := SynMemo.Highlighter;
         Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
         if DoCut then SynMemo.CutToClipboard
         else SynMemo.CopyToClipboard;
@@ -11160,7 +11236,7 @@ begin
     end;
   except
     on E:Exception do begin
-      LogSQL(E.Message);
+      LogSQL(E.ClassName + ': ' + E.Message);
       MessageBeep(MB_ICONASTERISK);
     end;
   end;
@@ -11600,7 +11676,7 @@ begin
   // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
   QueryTab.tabsetQuery.Top := QueryTab.spltQuery.Top + QueryTab.spltQuery.Height;
   QueryTab.tabsetQuery.Align := tabsetQuery.Align;
-  InheritFont(QueryTab.tabsetQuery.Font);
+  QueryTab.tabsetQuery.Font.Assign(tabsetQuery.Font);
   QueryTab.tabsetQuery.Images := tabsetQuery.Images;
   QueryTab.tabsetQuery.Style := tabsetQuery.Style;
   QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;

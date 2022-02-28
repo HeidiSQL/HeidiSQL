@@ -379,12 +379,12 @@ object connform: Tconnform
         Caption = 'Password:'
         FocusControl = editSSHPassword
       end
-      object lblSSHPlinkExe: TLabel
+      object lblSSHExe: TLabel
         Left = 3
         Top = 12
         Width = 87
         Height = 13
-        Caption = 'plink.exe location:'
+        Caption = 'SSH executable:'
       end
       object lblSSHhost: TLabel
         Left = 3
@@ -402,12 +402,12 @@ object connform: Tconnform
         Caption = 'Private key file:'
         FocusControl = editSSHPrivateKey
       end
-      object lblPlinkTimeout: TLabel
+      object lblSSHTimeout: TLabel
         Left = 3
         Top = 120
         Width = 86
         Height = 13
-        Caption = 'plink.exe timeout:'
+        Caption = 'SSH timeout:'
       end
       object editSSHlocalport: TEdit
         Left = 190
@@ -444,23 +444,6 @@ object connform: Tconnform
         TextHint = 'Your secure shell password'
         OnChange = Modification
       end
-      object editSSHPlinkExe: TButtonedEdit
-        Left = 190
-        Top = 9
-        Width = 320
-        Height = 21
-        Anchors = [akLeft, akTop, akRight]
-        Images = MainForm.VirtualImageListMain
-        RightButton.ImageIndex = 51
-        RightButton.Visible = True
-        TabOrder = 0
-        Text = 'editSSHPlinkExe'
-        TextHint = 'Doubleclick to select plink.exe ...'
-        OnChange = editSSHPlinkExeChange
-        OnDblClick = PickFile
-        OnExit = editTrim
-        OnRightButtonClick = PickFile
-      end
       object editSSHhost: TEdit
         Left = 190
         Top = 36
@@ -494,7 +477,7 @@ object connform: Tconnform
         RightButton.Visible = True
         TabOrder = 7
         Text = 'editSSHPrivateKey'
-        TextHint = 'PuTTY private key (*.ppk)'
+        TextHint = 'Private key / identify file'
         OnChange = Modification
         OnDblClick = PickFile
         OnExit = editTrim
@@ -519,6 +502,16 @@ object connform: Tconnform
         Position = 1
         TabOrder = 6
         Wrap = True
+      end
+      object comboSSHExe: TComboBox
+        Left = 190
+        Top = 8
+        Width = 320
+        Height = 22
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 0
+        Text = 'comboSSHExe'
+        OnChange = Modification
       end
     end
     object tabAdvanced: TTabSheet

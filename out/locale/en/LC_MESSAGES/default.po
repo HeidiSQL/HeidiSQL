@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-01-13 07:53+0100\n"
+"PO-Revision-Date: 2022-02-22 21:16+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -405,8 +405,8 @@ msgstr "Username:"
 
 #. connform..PageControlDetails..tabSSHtunnel..lblSSHPlinkExe..Caption
 #: connections.dfm:448
-msgid "plink.exe location:"
-msgstr "plink.exe location:"
+msgid "SSH executable:"
+msgstr "SSH executable:"
 
 #. connform..PageControlDetails..tabSSHtunnel..lblSSHhost..Caption
 #: connections.dfm:455
@@ -425,8 +425,8 @@ msgstr "Download plink.exe"
 
 #. connform..PageControlDetails..tabSSHtunnel..lblPlinkTimeout..Caption
 #: connections.dfm:487
-msgid "plink.exe timeout:"
-msgstr "plink.exe timeout:"
+msgid "SSH timeout:"
+msgstr "SSH timeout:"
 
 #. connform..PageControlDetails..tabSSHtunnel..editSSHUser..TextHint
 #: connections.dfm:508
@@ -438,15 +438,10 @@ msgstr "Your secure shell username"
 msgid "Your secure shell password"
 msgstr "Your secure shell password"
 
-#. connform..PageControlDetails..tabSSHtunnel..editSSHPlinkExe..TextHint
-#: connections.dfm:534
-msgid "Doubleclick to select plink.exe ..."
-msgstr "Doubleclick to select plink.exe ..."
-
 #. connform..PageControlDetails..tabSSHtunnel..editSSHPrivateKey..TextHint
 #: connections.dfm:571
-msgid "PuTTY private key (*.ppk)"
-msgstr "PuTTY private key (*.ppk)"
+msgid "Private key / identify file"
+msgstr "Private key / identify file"
 
 #. UserManagerForm..pnlRight..PageControlSettings..tabSSL..Caption
 #: usermanager.dfm:468
@@ -2927,6 +2922,12 @@ msgstr "Data editors"
 msgid "Alternating row background:"
 msgstr "Alternating row background:"
 
+msgid "Max decimal zeros for floats:"
+msgstr "Max decimal zeros for floats:"
+
+msgid "Set to -1 to keep all zeros"
+msgstr "Set to -1 to keep all zeros"
+
 #. Preferences > Grid formatting
 msgid "Local number format"
 msgstr "Local number format"
@@ -4070,8 +4071,8 @@ msgid "SSL parameters successfully set."
 msgstr "SSL parameters successfully set."
 
 #: dbconnection.pas:1151
-msgid "Attempt to create plink.exe process, waiting %ds for response ..."
-msgstr "Attempt to create plink.exe process, waiting %ds for response ..."
+msgid "Attempt to create SSH process, waiting %ds for response ..."
+msgstr "Attempt to create SSH process, waiting %ds for response ..."
 
 #. Plink connection
 msgid "Error creating I/O pipes"
@@ -4082,20 +4083,20 @@ msgid "Error reading I/O pipes"
 msgstr "Error reading I/O pipes"
 
 #. Plink connection
-msgid "PLink cancelled"
-msgstr "PLink cancelled"
+msgid "SSH command cancelled"
+msgstr "SSH command cancelled"
 
 #: dbconnection.pas:1162
-msgid "PLink exited unexpected. Command line was: %s"
-msgstr "PLink exited unexpected. Command line was: %s"
+msgid "SSH exited unexpected. Command line was: %s"
+msgstr "SSH exited unexpected. Command line was: %s"
 
 #: dbconnection.pas:1165
-msgid "Could not execute PLink: %s"
-msgstr "Could not execute PLink: %s"
+msgid "Could not execute SSH command: %s"
+msgstr "Could not execute SSH command: %s"
 
 #. Plink connection
-msgid "Could not execute PLink: Port %d already in use."
-msgstr "Could not execute PLink: Port %d already in use."
+msgid "Could not execute SSH command: Port %d already in use."
+msgstr "Could not execute SSH command: Port %d already in use."
 
 #. Plink connection
 msgid "Port #%d in use. Checking if #%d is available..."
@@ -4160,8 +4161,8 @@ msgid "Connecting to %s via %s, username %s, using password: %s ..."
 msgstr "Connecting to %s via %s, username %s, using password: %s ..."
 
 #: dbconnection.pas:1582
-msgid "Closing plink.exe process #%d ..."
-msgstr "Closing plink.exe process #%d ..."
+msgid "Closing SSH process #%d ..."
+msgstr "Closing SSH process #%d ..."
 
 #: dbconnection.pas:1600 dbconnection.pas:1706
 msgid "Waiting for running query to finish ..."
@@ -4883,8 +4884,8 @@ msgid "unknown"
 msgstr "unknown"
 
 #. Give the user some hint what he can do with his SSL related connection error
-msgid "Please select a different library in your session settings. (Current: \"%s\")"
-msgstr "Please select a different library in your session settings. (Current: \"%s\")"
+msgid "You could try the default library %s in your session settings. (Current: %s)"
+msgstr "You could try the default library %s in your session settings. (Current: %s)"
 
 #: main.pas:5261
 msgid "Specify filter-value..."
@@ -6697,5 +6698,14 @@ msgstr "Copy mysqldump command"
 msgid "Scaling controls to screen DPI: %d%%"
 msgstr "Scaling controls to screen DPI: %d%%"
 
+msgid "Caution: Style \"%s\" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!"
+msgstr "Caution: Style \"%s\" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!"
+
 msgid "Toggle visibility of all columns"
 msgstr "Toggle visibility of all columns"
+
+msgid "Connection failed"
+msgstr "Connection failed"
+
+msgid "Disable foreign key checks"
+msgstr "Disable foreign key checks"

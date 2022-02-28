@@ -41,7 +41,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Init(Obj: TDBObject); virtual;
-      function DeInit: TModalResult;
+      function DeInit: TModalResult; virtual;
       property Modified: Boolean read FModified write SetModified;
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
@@ -156,7 +156,7 @@ type
     asMemoEditorWrap, asMemoEditorHighlighter, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
     asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort, asLibrary, asAllProviders,
-    asPlinkExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
+    asPlinkExecutable, asSshExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
     asSSLCert, asSSLCA, asSSLCipher, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
     asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asExportSQLCreateDatabases,
@@ -200,7 +200,7 @@ type
     asPreferencesWindowWidth, asPreferencesWindowHeight,
     asFileDialogEncoding,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
-    asCreateDbCollation,
+    asCreateDbCollation, asRealTrailingZeros,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -299,6 +299,7 @@ type
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function fixNewlines(txt: String): String;
+  procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
   function ExtractBaseFileName(FileName: String): String;
@@ -310,6 +311,7 @@ type
   function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
   function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String; Overload;
   function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
+  function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
@@ -357,7 +359,7 @@ type
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
   function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
-  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused): Integer; overload;
+  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetLocaleString(const ResourceId: Integer): WideString;
@@ -772,6 +774,24 @@ end;
 
 
 {***
+  Mangle input text so that SynEdit can load it.
+}
+procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
+var
+  i, Len: Integer;
+begin
+  HasNulls := False;
+  Len := Length(Text);
+  for i:=1 to Len do begin
+    if Text[i] = #0 then begin
+      Text[i] := #32; // space
+      HasNulls := True;
+    end;
+  end;
+end;
+
+
+{***
   Get the path of a Windows(r)-shellfolder, specified by a KNOWNFOLDERID constant
   @see https://docs.microsoft.com/en-us/windows/win32/shell/knownfolderid
   @param TGUID constant
@@ -1018,6 +1038,22 @@ function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Inte
 begin
   // Version without possibility to delete captured match from input
   Result := RegExprGetMatch(Expression, Input, ReturnMatchNum, False, False);
+end;
+
+
+function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
+var
+  r: TRegExpr;
+begin
+  Result := False;
+  r := TRegExpr.Create;
+  r.ModifierI := True;
+  try
+    r.Expression := ARegExpr;
+    Result := r.Exec(AInputStr);
+  finally
+    r.Free;
+  end;
 end;
 
 
@@ -2244,7 +2280,7 @@ begin
 end;
 
 
-function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused): Integer;
+function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer;
 var
   m: String;
   Dialog: TTaskDialog;
@@ -2326,16 +2362,13 @@ begin
         else
           WebSearchHost := '[unknown host]';
         rx.Free;
-        Dialog.FooterText := '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
+        Dialog.FooterText := IfThen(FooterText.IsEmpty, '', FooterText + sLineBreak + sLineBreak) +
+          '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
         Dialog.FooterIcon := tdiInformation;
       end;
       mtInformation:
         Dialog.MainIcon := tdiInformation;
       mtConfirmation, mtCustom: begin
-        if not Assigned(ConfirmIcon) then begin
-          ConfirmIcon := TIcon.Create;
-          ConfirmIcon.LoadFromResourceName(hInstance, 'Z_ICONQUESTION');
-        end;
         Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
         Dialog.CustomMainIcon := ConfirmIcon;
       end;
@@ -2386,8 +2419,10 @@ begin
   end else begin
     // Backwards compatible dialog on Windows XP
     m := Msg;
-    if Title <> '' then
-      m := Title + CRLF + CRLF + m;
+    if not Title.IsEmpty then
+      m := Title + SLineBreak + SLineBreak + m;
+    if not FooterText.IsEmpty then
+      m := m + SLineBreak + SLineBreak + FooterText;
 
     if KeepAskingSetting <> asUnused then
       KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting)
@@ -2406,7 +2441,7 @@ end;
 
 function ErrorDialog(Msg: string): Integer;
 begin
-  Result := MessageDialog(Msg, mtError, [mbOK]);
+  Result := MessageDialog('', Msg, mtError, [mbOK]);
 end;
 
 
@@ -3492,7 +3527,8 @@ begin
   InitSetting(asPort,                             'Port',                                  0, False, '', True);
   InitSetting(asLibrary,                          'Library',                               0, False, '', True); // Gets its default in TConnectionParameters.Create
   InitSetting(asAllProviders,                     'AllProviders',                          0, False);
-  InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, 'plink.exe');
+  InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, 'plink.exe'); // Legacy support with global setting
+  InitSetting(asSshExecutable,                    'SshExecutable',                         0, False, '', True);
   InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);
   InitSetting(asSSHtunnelHostPort,                'SSHtunnelHostPort',                     22, False, '', True);
   InitSetting(asSSHtunnelPort,                    'SSHtunnelPort',                         0, False, '', True);
@@ -3702,6 +3738,7 @@ begin
   InitSetting(asThemePreviewTop,                  'ThemePreviewTop',                       300);
   InitSetting(asThemePreviewLeft,                 'ThemePreviewLeft',                      300);
   InitSetting(asCreateDbCollation,                'CreateDbCollation',                     0, False, '');
+  InitSetting(asRealTrailingZeros,                'RealTrailingZeros',                     1);
 
   // Initialization values
   FRestoreTabsInitValue := ReadBool(asRestoreTabs);
@@ -4328,6 +4365,9 @@ LibHandleUser32 := LoadLibrary('User32.dll');
 UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
 
 DateTimeNever := MinDateTime;
+
+ConfirmIcon := TIcon.Create;
+ConfirmIcon.LoadFromResourceName(hInstance, 'Z_ICONQUESTION');
 
 end.
 

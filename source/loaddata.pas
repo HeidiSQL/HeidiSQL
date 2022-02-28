@@ -658,13 +658,15 @@ end;
 
 procedure Tloaddataform.btnOpenFileClick(Sender: TObject);
 var
-  Dialog: TOpenTextFileDialog;
+  Dialog: TExtFileOpenDialog;
   TestStream: TFileStream;
 begin
   AppSettings.ResetPath;
-  Dialog := TOpenTextFileDialog.Create(Self);
-  Dialog.Filter := _('CSV files')+' (*.csv)|*.csv|'+_('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
-  Dialog.DefaultExt := 'csv';
+  Dialog := TExtFileOpenDialog.Create(Self);
+  Dialog.AddFileType('*.csv', _('CSV files'));
+  Dialog.AddFileType('*.txt', _('Text files'));
+  Dialog.AddFileType('*.*', _('All files'));
+  Dialog.DefaultExtension := 'csv';
   Dialog.Encodings.Assign(Mainform.FileEncodings);
   Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if Dialog.Execute then begin

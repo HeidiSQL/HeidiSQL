@@ -62,7 +62,6 @@ type
   public
     { Public declarations }
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
     procedure Init(Obj: TDBObject); override;
     function ApplyModifications: TModalResult; override;
   end;
@@ -81,13 +80,6 @@ begin
   comboEveryInterval.Items := Explode('|', 'YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|WEEK|SECOND|YEAR_MONTH|'+
     'DAY_HOUR|DAY_MINUTE|DAY_SECOND|HOUR_MINUTE|HOUR_SECOND|MINUTE_SECOND');
   grpState.Items := Explode('|', 'Enable|Disable|Disable on slave');
-end;
-
-
-destructor TfrmEventEditor.Destroy;
-begin
-  // Store GUI setup? Nothing yet.
-  inherited;
 end;
 
 

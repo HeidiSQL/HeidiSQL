@@ -12,7 +12,7 @@ uses
   Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
   dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
-  System.Math, System.Actions, Vcl.ActnList, Vcl.StdActns;
+  System.Math, System.Actions, System.IOUtils, Vcl.ActnList, Vcl.StdActns;
 
 type
   Tconnform = class(TExtForm)
@@ -54,8 +54,7 @@ type
     lblSSHLocalPort: TLabel;
     lblSSHUser: TLabel;
     lblSSHPassword: TLabel;
-    editSSHPlinkExe: TButtonedEdit;
-    lblSSHPlinkExe: TLabel;
+    lblSSHExe: TLabel;
     comboNetType: TComboBoxEx;
     lblSSHhost: TLabel;
     editSSHhost: TEdit;
@@ -65,7 +64,7 @@ type
     editDatabases: TButtonedEdit;
     lblDatabase: TLabel;
     chkLoginPrompt: TCheckBox;
-    lblPlinkTimeout: TLabel;
+    lblSSHTimeout: TLabel;
     editSSHTimeout: TEdit;
     updownSSHTimeout: TUpDown;
     chkWindowsAuth: TCheckBox;
@@ -136,6 +135,7 @@ type
     lblLogFile: TLabel;
     chkLogFileDml: TCheckBox;
     timerEditFilterDelay: TTimer;
+    comboSSHExe: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -162,7 +162,6 @@ type
     procedure ListSessionsCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
       out EditLink: IVTEditLink);
     procedure PickFile(Sender: TObject);
-    procedure editSSHPlinkExeChange(Sender: TObject);
     procedure editHostChange(Sender: TObject);
     procedure editDatabasesRightButtonClick(Sender: TObject);
     procedure chkLoginPromptClick(Sender: TObject);
@@ -255,13 +254,14 @@ end;
 
 procedure Tconnform.FormCreate(Sender: TObject);
 var
-  NetTypeStr, FilenameHint: String;
+  NetTypeStr, FilenameHint, ExePath, ExeFile: String;
   nt: TNetType;
   ntg: TNetTypeGroup;
   Params: TConnectionParameters;
   ComboItem: TComboExItem;
   Placeholders: TStringList;
   i: Integer;
+  ExeFiles: TStringDynArray;
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
@@ -296,6 +296,17 @@ begin
   end;
   Placeholders.Free;
   editLogFilePath.Hint := FilenameHint;
+
+  // Populate dropdown with supported SSH executables
+  ExeFiles := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.exe');
+  for ExePath in ExeFiles do begin
+    ExeFile := ExtractFileName(ExePath);
+    if ExecRegExprI('([pk]link|putty)', ExeFile) then begin
+      comboSSHExe.Items.Add(ExeFile);
+    end;
+  end;
+  SetLength(ExeFiles, 0);
+  comboSSHExe.Items.Add('ssh.exe');
 end;
 
 
@@ -467,7 +478,7 @@ begin
   Sess.AllDatabasesStr := editDatabases.Text;
   Sess.Comment := memoComment.Text;
   Sess.StartupScriptFilename := editStartupScript.Text;
-  Sess.SSHPlinkExe := editSSHPlinkExe.Text;
+  Sess.SSHExe := comboSSHExe.Text;
   Sess.SSHHost := editSSHhost.Text;
   Sess.SSHPort := MakeInt(editSSHport.Text);
   Sess.SSHUser := editSSHUser.Text;
@@ -690,7 +701,7 @@ begin
     Result.SSHTimeout := updownSSHTimeout.Position;
     Result.SSHPrivateKey := editSSHPrivateKey.Text;
     Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
-    Result.SSHPlinkExe := editSSHplinkexe.Text;
+    Result.SSHExe := comboSSHExe.Text;
     Result.WantSSL := chkWantSSL.Checked;
     Result.SSLPrivateKey := editSSLPrivateKey.Text;
     Result.SSLCertificate := editSSLCertificate.Text;
@@ -976,7 +987,7 @@ begin
     end;
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
-    editSSHPlinkExe.Text := Sess.SSHPlinkExe;
+    comboSSHExe.Text := Sess.SSHExe;
     editSSHHost.Text := Sess.SSHHost;
     editSSHport.Text := IntToStr(Sess.SSHPort);
     editSSHUser.Text := Sess.SSHUser;
@@ -1325,7 +1336,7 @@ begin
       or (Sess.Comment <> memoComment.Text)
       or (Sess.SSHHost <> editSSHHost.Text)
       or (IntToStr(Sess.SSHPort) <> editSSHPort.Text)
-      or (Sess.SSHPlinkExe <> editSSHPlinkExe.Text)
+      or (Sess.SSHExe <> comboSSHExe.Text)
       or (IntToStr(Sess.SSHLocalPort) <> editSSHlocalport.Text)
       or (Sess.SSHUser <> editSSHUser.Text)
       or (Sess.SSHPassword <> editSSHPassword.Text)
@@ -1525,10 +1536,8 @@ begin
     Selector.DefaultExt := FILEEXT_SQLITEDB;
   end else if (Edit = editStartupScript) or (Edit = editLogFilePath) then
     Selector.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
-  else if Edit = editSSHPlinkExe then
-    Selector.Filter := _('Executables')+' (*.exe)|*.exe|'+_('All files')+' (*.*)|*.*'
   else if Edit = editSSHPrivateKey then
-    Selector.Filter := _('PuTTY private key')+' (*.ppk)|*.ppk|'+_('All files')+' (*.*)|*.*'
+    Selector.Filter := _('All files')+' (*.*)|*.*'
   else
     Selector.Filter := _('Privacy Enhanced Mail certificates')+' (*.pem)|*.pem|'+_('Certificates')+' (*.crt)|*.crt|'+_('All files')+' (*.*)|*.*';
   // Find relevant label and set open dialog's title
@@ -1576,15 +1585,5 @@ procedure Tconnform.editSearchRightButtonClick(Sender: TObject);
 begin
   editSearch.Clear;
 end;
-
-procedure Tconnform.editSSHPlinkExeChange(Sender: TObject);
-begin
-  if not FileExists(editSSHPlinkExe.Text) then
-    editSSHPlinkExe.Font.Color := clRed
-  else
-    editSSHPlinkExe.Font.Color := GetThemeColor(clWindowText);
-  Modification(Sender);
-end;
-
 
 end.

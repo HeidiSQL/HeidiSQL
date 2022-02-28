@@ -5,10 +5,10 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList,
-  extra_controls, dbstructures, SynRegExpr;
+  extra_controls, dbstructures, SynRegExpr, System.StrUtils;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efLaTeX, efWiki, efPHPArray, efMarkDown, efJSON);
+  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efTextile, efJiraTextile, efPHPArray, efMarkDown, efJSON);
 
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
@@ -85,11 +85,11 @@ type
   public
     { Public declarations }
     const FormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('wiki'), ('php'), ('md'), ('json'));
+      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('textile'), ('jira-textile'), ('php'), ('md'), ('json'));
     const FormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('LaTeX'), ('Wiki markup'), ('PHP Array'), ('Markdown Here'), ('JSON'));
+      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('SQL UPDATEs'), ('LaTeX'), ('Textile'), ('Jira Textile'), ('PHP Array'), ('Markdown Here'), ('JSON'));
     const FormatToImageIndex: Array[TGridExportFormat] of Integer =
-      (49, 50, 32, 48, 201, 201, 201, 153, 154, 202, 199, 200);
+      (49, 50, 32, 48, 201, 201, 201, 201, 153, 154, 154, 202, 199, 200);
     const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TVirtualStringTree read FGrid write FGrid;
     property ExportFormat: TGridExportFormat read GetExportFormat write SetExportFormat;
@@ -547,7 +547,7 @@ var
   Header, Data, tmp, Encloser, Separator, Terminator, TableName, Filename: String;
   Node: PVirtualNode;
   GridData: TDBQuery;
-  SelectionOnly: Boolean;
+  SelectionOnly, HasNulls: Boolean;
   i: Integer;
   NodeCount: Cardinal;
   RowNum: PInt64;
@@ -719,21 +719,23 @@ begin
         end;
       end;
 
-      efWiki: begin
-        Separator := ' || ';
+      efTextile, efJiraTextile: begin
+        Separator := IfThen(ExportFormat=efTextile, ' |_. ', ' || ');
         Encloser := '';
-        Terminator := ' ||'+CRLF;
+        Terminator := IfThen(ExportFormat=efTextile, ' |', ' ||') + CRLF;
         if chkIncludeColumnNames.Checked then begin
-          Header := '|| ';
+          Header := TrimLeft(Separator);
           Col := Grid.Header.Columns.GetFirstVisibleColumn;
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
-              Header := Header + '*' + Grid.Header.Columns[Col].Text + '*' + Separator;
+              Header := Header + Grid.Header.Columns[Col].Text  + Separator;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
           Delete(Header, Length(Header)-Length(Separator)+1, Length(Separator));
           Header := Header + Terminator;
         end;
+        Separator := ' | ';
+        Terminator := ' |' + CRLF;
       end;
 
       efPHPArray: begin
@@ -811,6 +813,11 @@ begin
 
         efXML: tmp := #9'<row>' + CRLF;
 
+        efSQLUpdate: begin
+          tmp := '';
+          tmp := tmp + 'UPDATE ' + GridData.Connection.QuoteIdent(Tablename) + ' SET ';
+        end;
+
         efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
           tmp := '';
           if ExportFormat = efSQLDeleteInsert then begin
@@ -836,7 +843,7 @@ begin
           tmp := tmp + ' VALUES (';
         end;
 
-        efWiki: tmp := TrimLeft(Separator);
+        efTextile, efJiraTextile: tmp := TrimLeft(Separator);
 
         efPHPArray: tmp := #9 + 'array('+CRLF;
 
@@ -861,6 +868,7 @@ begin
             Data := GridData.HexValue(Col);
           end else begin
             Data := GridData.Col(Col);
+            RemoveNullChars(Data, HasNulls);
           end;
 
           // Keep formatted numeric values
@@ -901,7 +909,7 @@ begin
               tmp := tmp + Data + Separator;
             end;
 
-            efWiki: begin
+            efTextile, efJiraTextile: begin
               tmp := tmp + Data + Separator;
             end;
 
@@ -925,7 +933,7 @@ begin
               end;
             end;
 
-            efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+            efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate: begin
               if GridData.ColIsVirtual(Col) then
                 Data := ''
               else if GridData.IsNull(Col) then
@@ -938,8 +946,11 @@ begin
                 Data := GridData.Connection.EscapeString(Data)
               else if Data = '' then
                 Data := GridData.Connection.EscapeString(Data);
-              if not Data.IsEmpty then
+              if not Data.IsEmpty then begin
+                if ExportFormat = efSQLUpdate then
+                  tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text) + '=';
                 tmp := tmp + Data + ', ';
+              end;
             end;
 
             efPHPArray: begin
@@ -988,7 +999,7 @@ begin
       case ExportFormat of
         efHTML:
           tmp := tmp + '        </tr>' + CRLF;
-        efExcel, efCSV, efLaTeX, efWiki: begin
+        efExcel, efCSV, efLaTeX, efTextile, efJiraTextile: begin
           Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
           tmp := tmp + Terminator;
         end;
@@ -997,6 +1008,10 @@ begin
         efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
           Delete(tmp, Length(tmp)-1, 2);
           tmp := tmp + ');' + CRLF;
+        end;
+        efSQLUpdate : begin
+          Delete(tmp, length(tmp)-1,2);
+          tmp := tmp + ' WHERE' + GridData.GetWhereClause + ';' + sLineBreak;
         end;
         efPHPArray:
           tmp := tmp + #9 + '),' + CRLF;

@@ -160,6 +160,8 @@ begin
     MaxLen := FormatNumber(FMaxLength);
   CursorPos := FormatNumber(MemoText.CaretY) + ':' + FormatNumber(MemoText.CaretX);
   lblTextLength.Caption := f_('%s characters (max: %s), %s lines, cursor at %s', [FormatNumber(MemoText.GetTextLen), MaxLen, FormatNumber(MemoText.Lines.Count), CursorPos]);
+  if MemoText.ReadOnly then
+    lblTextLength.Caption := lblTextLength.Caption + ', read-only';
 end;
 
 
@@ -258,6 +260,11 @@ begin
     AppSettings.SessionPath := MainForm.GetRegKeyTable;
     HighlighterName := AppSettings.ReadString(asMemoEditorHighlighter, FTableColumn.Name, HighlighterName);
   end;
+
+  if MemoText.ReadOnly then begin
+    MemoText.Color := clBtnFace;
+  end;
+
   comboHighlighter.ItemIndex := comboHighlighter.Items.IndexOf(HighlighterName);
   comboHighlighter.OnSelect(comboHighlighter);
   // Trigger change event, which is not fired when text is empty. See #132.
@@ -333,12 +340,12 @@ end;
 
 procedure TfrmTextEditor.btnLoadTextClick(Sender: TObject);
 var
-  d: TOpenTextFileDialog;
+  d: TExtFileOpenDialog;
 begin
   AppSettings.ResetPath;
-  d := TOpenTextFileDialog.Create(Self);
-  d.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
-  d.FilterIndex := 0;
+  d := TExtFileOpenDialog.Create(Self);
+  d.AddFileType('*.txt', _('Text files'));
+  d.AddFileType('*.*', _('All files'));
   d.Encodings.Assign(MainForm.FileEncodings);
   d.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if d.Execute then try

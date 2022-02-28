@@ -103,4 +103,5 @@ const
   MsgInvalidColumn: String = 'Column #%d not available. Query returned %d columns and %d rows.';
   FILEFILTER_SQLITEDB = '*.sqlite3;*.sqlite;*.db;*.s3db';
   FILEEXT_SQLITEDB = 'sqlite3';
+  PROPOSAL_ITEM_HEIGHT = 18;
 
