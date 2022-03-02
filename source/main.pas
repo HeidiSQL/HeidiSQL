@@ -10311,7 +10311,7 @@ var
   Conn: TDBConnection;
   RowNum: PInt64;
   RefObj: TDBObject;
-  AllowEdit: Boolean;
+  AllowEdit, DisplayHex: Boolean;
   SQLFunc: TSQLFunction;
 begin
   VT := Sender as TVirtualStringTree;
@@ -10360,10 +10360,18 @@ begin
         if ForeignResults.RecordCount < ForeignItemsLimit then begin
           EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
           EditLink := EnumEditor;
+          DisplayHex := (not actBlobAsText.Checked) and (ForeignResults.DataType(0).Category in [dtcBinary, dtcSpatial]);
           while not ForeignResults.Eof do begin
-            EnumEditor.ValueList.Add(ForeignResults.Col(0));
-            if TextCol <> '' then
-              EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
+            if DisplayHex then
+              EnumEditor.ValueList.Add(ForeignResults.HexValue(0))
+            else
+              EnumEditor.ValueList.Add(ForeignResults.Col(0));
+            if TextCol <> '' then begin
+              if DisplayHex then
+                EnumEditor.DisplayList.Add(ForeignResults.HexValue(0)+': '+ForeignResults.Col(1))
+              else
+                EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
+            end;
             ForeignResults.Next;
           end;
         end else begin

@@ -8568,9 +8568,13 @@ begin
   if BinLen = 0 then begin
     Result := Connection.EscapeString('');
   end else begin
-    SetLength(Result, BinLen*2);
-    BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-    Result := '0x' + Result;
+    if ExecRegExprI(REGEXP_HEX_FORMAT, BinValue) then begin
+      Result := BinValue; // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
   end;
 end;
 
@@ -8584,9 +8588,13 @@ begin
   if BinLen = 0 then begin
     Result := Connection.EscapeString('');
   end else begin
-    SetLength(Result, BinLen*2);
-    BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-    Result := '0x' + Result;
+    if ExecRegExprI(REGEXP_HEX_FORMAT, String(Ansi)) then begin
+      Result := String(Ansi); // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
   end;
 
 end;
@@ -9537,7 +9545,7 @@ begin
         end;
         dtcTemporal:
           Result := Result + '=' + Connection.EscapeString(Connection.GetDateTimeValue(ColVal, DataType(j).Index));
-        dtcBinary:
+        dtcBinary, dtcSpatial:
           Result := Result + '=' + HexValue(ColVal);
         else begin
           // Any other data type goes here, including text:

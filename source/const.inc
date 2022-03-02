@@ -104,4 +104,5 @@ const
   FILEFILTER_SQLITEDB = '*.sqlite3;*.sqlite;*.db;*.s3db';
   FILEEXT_SQLITEDB = 'sqlite3';
   PROPOSAL_ITEM_HEIGHT = 18;
+  REGEXP_HEX_FORMAT = '^0x[0-9a-z]+$';
 
