@@ -2709,7 +2709,7 @@ begin
   if imgDonate.Visible then begin
     imgDonate.Stretch := True;
     imgDonate.Proportional := True;
-    imgDonate.Width := ScaleSize(82);
+    imgDonate.Width := ScaleSize(129);
     imgDonate.Height := ScaleSize(22);
     imgDonate.Left := ControlBarMain.Width - imgDonate.Width;
   end;
