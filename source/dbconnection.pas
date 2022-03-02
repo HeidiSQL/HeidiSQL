@@ -597,6 +597,7 @@ type
       function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
+      function IsHex(Text: String): Boolean;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -4898,8 +4899,12 @@ begin
   DoQuote := Datatype.Category in CategoriesNeedQuote;
   case Datatype.Category of
     // Some special cases
-    dtcBinary: if ExecRegExpr('^0x[a-fA-F0-9]*$', Text) then DoQuote := False;
-    dtcInteger, dtcReal: if not ExecRegExpr('^\d+(\.\d+)?$', Text) then DoQuote := True;
+    dtcBinary:
+      if IsHex(Text) then
+        DoQuote := False;
+    dtcInteger, dtcReal:
+      if not ExecRegExpr('^\d+(\.\d+)?$', Text) then
+        DoQuote := True;
   end;
   Result := EscapeString(Text, False, DoQuote);
 end;
@@ -6261,6 +6266,31 @@ begin
       Log(lcError, 'Detection of check constraints disabled due to error in query');
       // Table is likely not there or does not have expected columns - prevent further queries with the same error:
       FInformationSchemaObjects.Delete(ConTableIdx);
+    end;
+  end;
+end;
+
+
+function TDBConnection.IsHex(Text: String): Boolean;
+var
+  i, Len: Integer;
+const
+  HexChars: TSysCharSet = ['0'..'9','a'..'f', 'A'..'F'];
+begin
+  // Check first kilobyte of passed text whether it's a hex encoded string. Hopefully faster than a regex.
+  Result := False;
+  Len := Length(Text);
+  if (Len >= 4) and (Len mod 2 = 0) then begin
+    Result := (Text[1] = '0') and (Text[2] = 'x');
+    if Result then begin
+      for i:=3 to SIZE_KB do begin
+        if not CharInSet(Text[i], HexChars) then begin
+          Result := False;
+          Break;
+        end;
+        if i >= Len then
+          Break;
+      end;
     end;
   end;
 end;
@@ -8552,8 +8582,6 @@ begin
     Result := HexValue(baData);
   end else
     Result := HexValue(Col(Column, IgnoreErrors));
-  if AppSettings.ReadBool(asLowercaseHex) then
-    Result := Result.ToLowerInvariant;
 end;
 
 
@@ -8568,13 +8596,15 @@ begin
   if BinLen = 0 then begin
     Result := Connection.EscapeString('');
   end else begin
-    if ExecRegExprI(REGEXP_HEX_FORMAT, BinValue) then begin
+    if FConnection.IsHex(BinValue) then begin
       Result := BinValue; // Already hex encoded
     end else begin
       SetLength(Result, BinLen*2);
       BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
       Result := '0x' + Result;
     end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
   end;
 end;
 
@@ -8588,15 +8618,16 @@ begin
   if BinLen = 0 then begin
     Result := Connection.EscapeString('');
   end else begin
-    if ExecRegExprI(REGEXP_HEX_FORMAT, String(Ansi)) then begin
+    if FConnection.IsHex(String(Ansi)) then begin
       Result := String(Ansi); // Already hex encoded
     end else begin
       SetLength(Result, BinLen*2);
       BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
       Result := '0x' + Result;
     end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
   end;
-
 end;
 
 function TDBQuery.DataType(Column: Integer): TDBDataType;
