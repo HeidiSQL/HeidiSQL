@@ -770,6 +770,7 @@ type
     Movelinedown1: TMenuItem;
     Movelineup1: TMenuItem;
     menuToggleAll: TMenuItem;
+    menuCloseTabOnDblClick: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1163,6 +1164,7 @@ type
     procedure menuToggleAllClick(Sender: TObject);
     procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
       NewDPI: Integer);
+    procedure menuCloseTabOnDblClickClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -11756,6 +11758,12 @@ begin
 end;
 
 
+procedure TMainForm.menuCloseTabOnDblClickClick(Sender: TObject);
+begin
+  AppSettings.WriteBool(asTabCloseOnDoubleClick, menuCloseTabOnDblClick.Checked);
+end;
+
+
 procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
 var
   i: Integer;
@@ -11816,6 +11824,7 @@ begin
   menuRenameQueryTab.ImageIndex := actRenameQueryTab.ImageIndex;
   menuRenameQueryTab.Caption := actRenameQueryTab.Caption;
   menuRenameQueryTab.Enabled := IsQueryTab(PageIndexClick, True);
+  menuCloseTabOnDblClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
 end;
 
 

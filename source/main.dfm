@@ -4374,6 +4374,11 @@ object MainForm: TMainForm
       ImageIndex = 58
       OnClick = menuRenameQueryTabClick
     end
+    object menuCloseTabOnDblClick: TMenuItem
+      AutoCheck = True
+      Caption = 'Close tab on doubleclick and middleclick'
+      OnClick = menuCloseTabOnDblClickClick
+    end
   end
   object TimerFilterVT: TTimer
     Enabled = False
