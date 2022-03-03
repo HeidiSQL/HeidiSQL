@@ -929,8 +929,6 @@ end;
 
 
 function TEnumEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-var
-  i: Integer;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if Result then begin
