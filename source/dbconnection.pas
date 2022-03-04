@@ -9,7 +9,7 @@ uses
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Phys, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys.IB,
-  FireDAC.Phys.IBDef, FireDAC.VCLUI.Wait, FireDAC.Comp.Client,
+  FireDAC.Phys.FB, FireDAC.Phys.IBDef, FireDAC.VCLUI.Wait, FireDAC.Comp.Client,
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
   FireDAC.DApt, FireDAC.Comp.DataSet;
 
@@ -2871,6 +2871,7 @@ begin
     FFDHandle.Params.Values['Password'] := Parameters.Password;
     FFDHandle.Params.Values['CharacterSet'] := 'UTF8';
     FFDHandle.Params.Values['ExtendedMetadata'] := 'True';
+
     try
       FFDHandle.Connected := True;
     except
@@ -3048,7 +3049,7 @@ begin
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
-      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spCurrentUserHost] := 'select current_user || ''@'' || mon$attachments.mon$remote_host from mon$attachments where mon$attachments.mon$attachment_id = current_connection';
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
@@ -5743,8 +5744,9 @@ begin
     '   cset.RDB$CHARACTER_SET_NAME AS field_charset'+
     ' FROM RDB$RELATION_FIELDS r'+
     ' LEFT JOIN RDB$FIELDS f ON r.RDB$FIELD_SOURCE = f.RDB$FIELD_NAME'+
-    ' LEFT JOIN RDB$COLLATIONS coll ON f.RDB$COLLATION_ID = coll.RDB$COLLATION_ID'+
     ' LEFT JOIN RDB$CHARACTER_SETS cset ON f.RDB$CHARACTER_SET_ID = cset.RDB$CHARACTER_SET_ID'+
+    ' LEFT JOIN RDB$COLLATIONS coll ON f.RDB$COLLATION_ID = coll.RDB$COLLATION_ID'+
+    '                              AND F.RDB$CHARACTER_SET_ID = COLL.RDB$CHARACTER_SET_ID'+
     ' WHERE r.RDB$RELATION_NAME='+EscapeString(Table.Name)+
     ' ORDER BY r.RDB$FIELD_POSITION');
   while not ColQuery.Eof do begin
@@ -6212,10 +6214,44 @@ end;
 
 
 function TInterbaseConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+var
+  ForeignQuery: TDBQuery;
+  ForeignKey: TForeignKey;
 begin
-  // Todo
-  // use parent?
+  // SQLite: query PRAGMA foreign_key_list
   Result := TForeignKeyList.Create(True);
+  ForeignQuery := GetResults(
+            'select strc.rdb$relation_name' +#13#10+
+            '     , strc.rdb$constraint_name' +#13#10+
+            '     , fkrc.rdb$relation_name as "ReferenceTable"' +#13#10+
+            '     , stis.rdb$field_name as "from"' +#13#10+
+            '     , fkis.rdb$field_name as "to"' +#13#10+
+            '     , rdb$ref_constraints.rdb$update_rule' +#13#10+
+            '     , rdb$ref_constraints.rdb$delete_rule' +#13#10+
+            '  from rdb$relation_constraints strc' +#13#10+
+            '  join rdb$ref_constraints on RDB$REF_CONSTRAINTS.rdb$constraint_name = strc.rdb$constraint_name' +#13#10+
+            '  join rdb$relation_constraints fkrc on fkrc.rdb$constraint_name = rdb$ref_constraints.rdb$const_name_uq' +#13#10+
+            '  join rdb$index_segments stis on stis.rdb$index_name = strc.rdb$index_name' +#13#10+
+            '  join rdb$index_segments fkis on fkis.rdb$index_name = fkrc.rdb$index_name' +#13#10+
+            ' where strc.rdb$relation_name = ' +QuotedStr(Table.Name)+#13#10+
+            '   and strc.rdb$constraint_type = ''FOREIGN KEY''');
+
+  ForeignKey := nil;
+  while not ForeignQuery.Eof do begin
+    if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('rdb$constraint_name')) then begin
+      ForeignKey := TForeignKey.Create(Self);
+      Result.Add(ForeignKey);
+      ForeignKey.KeyName := ForeignQuery.Col('rdb$constraint_name');
+      ForeignKey.OldKeyName := ForeignKey.KeyName;
+      ForeignKey.ReferenceTable := ForeignQuery.Col('ReferenceTable');
+      ForeignKey.OnUpdate := ForeignQuery.Col('rdb$update_rule');
+      ForeignKey.OnDelete := ForeignQuery.Col('rdb$delete_rule');
+    end;
+    ForeignKey.Columns.Add(ForeignQuery.Col('from'));
+    ForeignKey.ForeignColumns.Add(ForeignQuery.Col('to'));
+    ForeignQuery.Next;
+  end;
+  ForeignQuery.Free;
 end;
 
 
@@ -7106,26 +7142,99 @@ begin
   // Tables and views
   Results := nil;
   try
-    Results := GetResults('SELECT DISTINCT RDB$RELATION_NAME, RDB$VIEW_CONTEXT AS '+QuoteIdent('ViewContext') +
-      ' FROM RDB$RELATION_FIELDS WHERE RDB$SYSTEM_FLAG=0');
-    while not Results.Eof do begin
-      obj := TDBObject.Create(Self);
-      Cache.Add(obj);
-      obj.Name := Results.Col(0);
-      obj.Created := Now;
-      obj.Updated := Now;
-      obj.Database := db;
-      if Results.IsNull(1) then
-        obj.NodeType := lntTable
-      else
-        obj.NodeType := lntView;
-      obj.NodeType := lntTable;
-      Results.Next;
+    Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, RDB$RELATION_TYPE AS '+QuoteIdent('ViewContext') +
+      ' FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    try
+      while not Results.Eof do begin
+        obj := TDBObject.Create(Self);
+        Cache.Add(obj);
+        obj.Name := Results.Col(0);
+        obj.Created := Now;
+        obj.Updated := Now;
+        obj.Database := db;
+        obj.Comment := Results.Col('RDB$DESCRIPTION');
+        if Results.Col('ViewContext') = '0' then
+          obj.NodeType := lntTable
+        else
+          obj.NodeType := lntView;
+        Results.Next;
+      end;
+    finally
+      FreeAndNil(Results);
     end;
-    FreeAndNil(Results);
   except
     on E:EDbError do;
   end;
+
+  // Procedures
+  try
+    Results := GetResults('SELECT RDB$PROCEDURE_NAME, RDB$DESCRIPTION FROM RDB$PROCEDURES WHERE RDB$SYSTEM_FLAG = 0');
+    try
+
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('RDB$PROCEDURE_NAME');
+      obj.Database := db;
+      Obj.NodeType := lntProcedure;
+      obj.Created := Now;
+      obj.Updated := Now;
+      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Results.Next;
+    end;
+    finally
+      FreeAndNil(Results);
+    end;
+  except
+    on E:EDbError do;
+  end;
+
+  // Triggers
+  try
+    Results := GetResults('SELECT RDB$TRIGGER_NAME, RDB$DESCRIPTION FROM RDB$TRIGGERS WHERE RDB$SYSTEM_FLAG = 0');
+    try
+
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('RDB$TRIGGER_NAME');
+      obj.Database := db;
+      Obj.NodeType := lntTrigger;
+      obj.Created := Now;
+      obj.Updated := Now;
+      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Results.Next;
+    end;
+    finally
+      FreeAndNil(Results);
+    end;
+  except
+    on E:EDbError do;
+  end;
+
+  // Functions
+  try
+    Results := GetResults('SELECT rdb$function_name, RDB$DESCRIPTION FROM rdb$functions WHERE RDB$SYSTEM_FLAG = 0');
+    try
+
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('RDB$function_name');
+      obj.Database := db;
+      Obj.NodeType := lntFunction;
+      obj.Created := Now;
+      obj.Updated := Now;
+      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Results.Next;
+    end;
+    finally
+      FreeAndNil(Results);
+    end;
+  except
+    on E:EDbError do;
+  end;
+
 end;
 
 
