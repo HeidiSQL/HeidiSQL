@@ -1,7 +1,6 @@
 program heidisql;
 
 uses
-  madExcept,
   Forms,
   SysUtils,
   Dialogs,
