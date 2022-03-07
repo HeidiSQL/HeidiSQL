@@ -15,7 +15,6 @@ object frmTriggerEditor: TfrmTriggerEditor
     Height = 13
     Align = alTop
     Caption = 'Trigger statement: (e.g. "SET NEW.columnA = TRIM(OLD.columnA)"'
-    ExplicitWidth = 327
   end
   object PageControlMain: TPageControl
     AlignWithMargins = True
