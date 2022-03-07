@@ -3049,7 +3049,10 @@ begin
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
-      FSQLSpecifities[spCurrentUserHost] := 'select current_user || ''@'' || mon$attachments.mon$remote_host from mon$attachments where mon$attachments.mon$attachment_id = current_connection';
+      if Self.Parameters.LibraryOrProvider = 'IB' then
+        FSQLSpecifities[spCurrentUserHost] := 'select user from rdb$database'
+      else
+        FSQLSpecifities[spCurrentUserHost] := 'select current_user || ''@'' || mon$attachments.mon$remote_host from mon$attachments where mon$attachments.mon$attachment_id = current_connection';
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
@@ -7153,10 +7156,21 @@ begin
         obj.Updated := Now;
         obj.Database := db;
         obj.Comment := Results.Col('RDB$DESCRIPTION');
-        if Results.Col('ViewContext') = '0' then
-          obj.NodeType := lntTable
+
+        if self. Parameters.LibraryOrProvider.Equals('IB') then
+        begin
+          if Results.Col('ViewContext') = 'PERSISTENT' then
+            obj.NodeType := lntTable
+          else
+            obj.NodeType := lntView;
+        end
         else
-          obj.NodeType := lntView;
+        begin
+          if Results.Col('ViewContext') = '0' then
+            obj.NodeType := lntTable
+          else
+            obj.NodeType := lntView;
+        end;
         Results.Next;
       end;
     finally
