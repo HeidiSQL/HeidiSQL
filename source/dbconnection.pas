@@ -3065,7 +3065,7 @@ begin
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
-      FSQLSpecifities[spFuncNow] := 'timestamp ''NOW'' from rdb$database';
+      FSQLSpecifities[spFuncNow] := ' cast(''now'' as timestamp) from rdb$database';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
