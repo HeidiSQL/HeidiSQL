@@ -26,7 +26,7 @@ object frmTableEditor: TfrmTableEditor
     Width = 694
     Height = 150
     Margins.Bottom = 0
-    ActivePage = tabIndexes
+    ActivePage = tabBasic
     Align = alTop
     Images = MainForm.VirtualImageListMain
     TabOrder = 0
@@ -67,7 +67,7 @@ object frmTableEditor: TfrmTableEditor
         Left = 96
         Top = 30
         Width = 589
-        Height = 77
+        Height = 78
         Anchors = [akLeft, akTop, akRight, akBottom]
         Lines.Strings = (
           'memoComment')
@@ -275,14 +275,12 @@ object frmTableEditor: TfrmTableEditor
         OnInitNode = treeIndexesInitNode
         OnNewText = treeIndexesNewText
         OnStructureChange = AnyTreeStructureChange
-        Touch.InteractiveGestures = [igPan, igPressAndTap]
-        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Text = 'Name'
-            Width = 430
+            Width = 434
           end
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -433,8 +431,6 @@ object frmTableEditor: TfrmTableEditor
         OnGetImageIndex = listForeignKeysGetImageIndex
         OnNewText = listForeignKeysNewText
         OnStructureChange = AnyTreeStructureChange
-        Touch.InteractiveGestures = [igPan, igPressAndTap]
-        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -540,8 +536,6 @@ object frmTableEditor: TfrmTableEditor
         OnGetImageIndex = listCheckConstraintsGetImageIndex
         OnNewText = listCheckConstraintsNewText
         OnStructureChange = AnyTreeStructureChange
-        Touch.InteractiveGestures = [igPan, igPressAndTap]
-        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <
           item
             Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus, coEditable, coStyleColor]
@@ -564,7 +558,7 @@ object frmTableEditor: TfrmTableEditor
       object SynMemoPartitions: TSynMemo
         Left = 0
         Top = 0
-        Width = 686
+        Width = 593
         Height = 121
         SingleLineMode = False
         Align = alClient
@@ -574,14 +568,6 @@ object frmTableEditor: TfrmTableEditor
         Font.Name = 'Courier New'
         Font.Style = []
         TabOrder = 0
-        CodeFolding.GutterShapeSize = 11
-        CodeFolding.CollapsedLineColor = clGrayText
-        CodeFolding.FolderBarLinesColor = clGrayText
-        CodeFolding.IndentGuidesColor = clGray
-        CodeFolding.IndentGuides = True
-        CodeFolding.ShowCollapsedLine = False
-        CodeFolding.ShowHintMark = True
-        UseCodeFolding = False
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
         Gutter.Font.Charset = DEFAULT_CHARSET
@@ -606,7 +592,7 @@ object frmTableEditor: TfrmTableEditor
       object SynMemoCREATEcode: TSynMemo
         Left = 0
         Top = 0
-        Width = 686
+        Width = 593
         Height = 121
         SingleLineMode = False
         Align = alClient
@@ -616,14 +602,6 @@ object frmTableEditor: TfrmTableEditor
         Font.Name = 'Courier New'
         Font.Style = []
         TabOrder = 0
-        CodeFolding.GutterShapeSize = 11
-        CodeFolding.CollapsedLineColor = clGrayText
-        CodeFolding.FolderBarLinesColor = clGrayText
-        CodeFolding.IndentGuidesColor = clGray
-        CodeFolding.IndentGuides = True
-        CodeFolding.ShowCollapsedLine = False
-        CodeFolding.ShowHintMark = True
-        UseCodeFolding = False
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
         Gutter.Font.Charset = DEFAULT_CHARSET
@@ -648,7 +626,7 @@ object frmTableEditor: TfrmTableEditor
       object SynMemoALTERcode: TSynMemo
         Left = 0
         Top = 0
-        Width = 686
+        Width = 593
         Height = 121
         SingleLineMode = False
         Align = alClient
@@ -658,14 +636,6 @@ object frmTableEditor: TfrmTableEditor
         Font.Name = 'Courier New'
         Font.Style = []
         TabOrder = 0
-        CodeFolding.GutterShapeSize = 11
-        CodeFolding.CollapsedLineColor = clGrayText
-        CodeFolding.FolderBarLinesColor = clGrayText
-        CodeFolding.IndentGuidesColor = clGray
-        CodeFolding.IndentGuides = True
-        CodeFolding.ShowCollapsedLine = False
-        CodeFolding.ShowHintMark = True
-        UseCodeFolding = False
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
         Gutter.Font.Charset = DEFAULT_CHARSET
@@ -792,8 +762,6 @@ object frmTableEditor: TfrmTableEditor
     OnKeyPress = listColumnsKeyPress
     OnNewText = listColumnsNewText
     OnNodeMoved = listColumnsNodeMoved
-    Touch.InteractiveGestures = [igPan, igPressAndTap]
-    Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
     Columns = <
       item
         Alignment = taRightJustify
