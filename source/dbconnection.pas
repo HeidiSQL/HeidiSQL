@@ -2884,7 +2884,11 @@ begin
       //! Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
 
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
-      //! FServerVersionUntouched := GetVar('SELECT sqlite_version()');
+
+      if Self.Parameters.LibraryOrProvider.Equals('IB') then
+        FServerVersionUntouched := ''
+      else
+        FServerVersionUntouched := GetVar('SELECT rdb$get_context(''SYSTEM'', ''ENGINE_VERSION'') as version from rdb$database');
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
 
