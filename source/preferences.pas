@@ -906,7 +906,7 @@ begin
     if (Components[i] is TSynSQLSyn) and (Components[i] <> SynMemoSQLSample.Highlighter) then begin
       Highlighter := Components[i] as TSynSQLSyn;
 
-      // Translate highlighter postfix after last underscore ...
+      // Translate highlighter postfix after last underscore: SynSQLSyn_White, SynSQLSyn_Black, ...
       TranslatedHighlighterName := '';
       if rx.Exec(Highlighter.Name) then begin
         TranslatedHighlighterName := _(rx.Match[1]);
@@ -920,8 +920,13 @@ begin
         // Use 3 hardcoded default values for additional colors, which are not part
         // of the highlighter's attributes
         SynMemoSQLSample.ActiveLineColor := StringToColor(AppSettings.GetDefaultString(asSQLColActiveLine));
-        MainForm.MatchingBraceForegroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
-        MainForm.MatchingBraceBackgroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
+        if ThemeIsDark(comboTheme.Text) then begin
+          MainForm.MatchingBraceForegroundColor := $0028EFFF;
+          MainForm.MatchingBraceBackgroundColor := $004D513B;
+        end else begin
+          MainForm.MatchingBraceForegroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceForeground));
+          MainForm.MatchingBraceBackgroundColor := StringToColor(AppSettings.GetDefaultString(asSQLColMatchingBraceBackground));
+        end;
         Break;
       end;
     end;
