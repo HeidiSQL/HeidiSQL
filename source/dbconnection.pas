@@ -293,7 +293,9 @@ type
     ntSQLite,
     ntMySQL_ProxySQLAdmin,
     ntInterbase_TCPIP,
-    ntInterbase_Local
+    ntInterbase_Local,
+    ntFirebird_TCPIP,
+    ntFirebird_Local
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
@@ -339,6 +341,8 @@ type
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
+      function IsInterbase: Boolean;
+      function IsFirebird: Boolean;
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
@@ -759,6 +763,8 @@ type
       //FLib: TSQLiteLib;
       FLastRawResults: TInterbaseRawResults;
       //FMainDbName: UTF8String;
+      class var FIbDriver: TFDPhysIBDriverLink;
+      class var FFbDriver: TFDPhysFBDriverLink;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       function GetThreadId: Int64; override;
@@ -1570,6 +1576,7 @@ const
   PrefixRedshift = 'Redshift PG';
   PrefixSqlite = 'SQLite';
   PrefixInterbase = 'Interbase';
+  PrefixFirebird = 'Firebird';
 begin
   // Return the name of a net type, either in short or long format
   Result := 'Unknown';
@@ -1590,6 +1597,8 @@ begin
       ntSQLite:                 Result := PrefixSqlite;
       ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP, experimental)';
       ntInterbase_Local:        Result := PrefixInterbase+' (Local, experimental)';
+      ntFirebird_TCPIP:         Result := PrefixFirebird+' (TCP/IP, experimental)';
+      ntFirebird_Local:         Result := PrefixFirebird+' (Local, experimental)';
     end;
   end
   else begin
@@ -1628,7 +1637,7 @@ begin
       Result := ngPgSQL;
     ntSQLite:
       Result := ngSQLite;
-    ntInterbase_TCPIP, ntInterbase_Local:
+    ntInterbase_TCPIP, ntInterbase_Local, ntFirebird_TCPIP, ntFirebird_Local:
       Result := ngInterbase;
     else begin
       // Return default net group here. Raising an exception lets the app die for some reason.
@@ -1741,6 +1750,18 @@ begin
 end;
 
 
+function TConnectionParameters.IsInterbase: Boolean;
+begin
+  Result := NetType in [ntInterbase_TCPIP, ntInterbase_Local];
+end;
+
+
+function TConnectionParameters.IsFirebird: Boolean;
+begin
+  Result := NetType in [ntFirebird_TCPIP, ntFirebird_Local];
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   if IsFolder then
@@ -1765,7 +1786,10 @@ begin
       if IsRedshift then Result := 195;
     end;
     ngSQLite: Result := 196;
-    ngInterbase: Result := 203;
+    ngInterbase: begin
+      Result := 203;
+      if IsFirebird then Result := 204;
+    end
     else Result := ICONINDEX_SERVER;
   end;
 end;
@@ -1802,13 +1826,18 @@ end;
 
 function TConnectionParameters.DefaultLibrary: String;
 begin
+  Result := '';
   case NetTypeGroup of
     ngMySQL: Result := 'libmariadb.dll';
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
     ngSQLite: Result := 'sqlite3.dll';
-    ngInterbase: Result := 'IB';
-    else Result := '';
+    ngInterbase: begin
+      if IsInterbase then
+        Result := IfThen(GetExecutableBits=64, 'ibclient64.dll', 'gds32.dll')
+      else if IsFirebird then
+        Result := 'fbclient.dll';
+    end
   end;
 end;
 
@@ -1896,9 +1925,11 @@ begin
         rx.Expression := '^libpq.*\.dll$';
       ngSQLite:
         rx.Expression := '^sqlite.*\.dll$';
+      ngInterbase:
+        rx.Expression := '^(gds32|ibclient|fbclient).*\.dll$';
     end;
     case NetTypeGroup of
-      ngMySQL, ngPgSQL, ngSQLite: begin
+      ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
         Dlls := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
@@ -1917,10 +1948,6 @@ begin
           end;
         end;
         Providers.Free;
-      end;
-      ngInterbase: begin
-        FoundLibs.Add('IB');
-        FoundLibs.Add('FB');
       end;
     end;
     rx.Free;
@@ -2856,16 +2883,39 @@ begin
 
     FFDHandle := TFDConnection.Create(Owner);
     FFDHandle.OnError := OnFdError;
-    FFDHandle.DriverName := Parameters.LibraryOrProvider; // Auto-sets Params.DriverID
+    //FFDHandle.DriverName := Parameters.LibraryOrProvider; // Auto-sets Params.DriverID
     FFDHandle.LoginPrompt := False;
+
+    // Create virtual Interbase or Firebird driver id, once
+    if Parameters.IsInterbase then begin
+      if not Assigned(FIbDriver) then begin
+        FIbDriver := TFDPhysIBDriverLink.Create(Owner);
+        FIbDriver.VendorLib := Parameters.LibraryOrProvider;
+        FIbDriver.DriverID := Parameters.LibraryOrProvider;
+      end;
+      FFDHandle.Params.Values['DriverID'] := FIbDriver.DriverID;
+    end
+    else if Parameters.IsFirebird then begin
+      if not Assigned(FFbDriver) then begin
+        FFbDriver := TFDPhysFBDriverLink.Create(Owner);
+        FFbDriver.VendorLib := Parameters.LibraryOrProvider;
+        FFbDriver.DriverID := Parameters.LibraryOrProvider;
+      end;
+      FFDHandle.Params.Values['DriverID'] := FFbDriver.DriverID;
+    end;
+
+    // TCP/IP or local?
     case Parameters.NetType of
-      ntInterbase_TCPIP: begin
+      ntInterbase_TCPIP, ntFirebird_TCPIP: begin
         FFDHandle.Params.Values['Protocol'] := 'ipTCPIP';
         FFDHandle.Params.Values['Server'] := Parameters.Hostname;
         FFDHandle.Params.Values['Port'] := Parameters.Port.ToString;
       end;
-      ntInterbase_Local: FFDHandle.Params.Values['Protocol'] := 'ipLocal';
+      ntInterbase_Local, ntFirebird_Local: begin
+        FFDHandle.Params.Values['Protocol'] := 'ipLocal';
+      end;
     end;
+
     FFDHandle.Params.Values['Database'] := Parameters.AllDatabasesStr;
     FFDHandle.Params.Values['User_Name'] := Parameters.Username;
     FFDHandle.Params.Values['Password'] := Parameters.Password;
@@ -2885,7 +2935,7 @@ begin
 
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
 
-      if Self.Parameters.LibraryOrProvider.Equals('IB') then
+      if Parameters.IsInterbase then
         FServerVersionUntouched := ''
       else
         FServerVersionUntouched := GetVar('SELECT rdb$get_context(''SYSTEM'', ''ENGINE_VERSION'') as version from rdb$database');
@@ -7161,7 +7211,7 @@ begin
         obj.Database := db;
         obj.Comment := Results.Col('RDB$DESCRIPTION');
 
-        if self. Parameters.LibraryOrProvider.Equals('IB') then
+        if Parameters.IsInterbase then
         begin
           if Results.Col('ViewContext') = 'PERSISTENT' then
             obj.NodeType := lntTable
