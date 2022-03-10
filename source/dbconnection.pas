@@ -755,16 +755,16 @@ type
   end;
 
   TInterbaseRawResults = Array of TFDQuery;
+  TIbDrivers = TDictionary<String, TFDPhysIBDriverLink>;
+  TFbDrivers = TDictionary<String, TFDPhysFBDriverLink>;
   TInterbaseConnection = class(TDBConnection)
     private
       FFDHandle: TFDConnection;
       FLastError: String;
       FLastErrorCode: Integer;
-      //FLib: TSQLiteLib;
       FLastRawResults: TInterbaseRawResults;
-      //FMainDbName: UTF8String;
-      class var FIbDriver: TFDPhysIBDriverLink;
-      class var FFbDriver: TFDPhysFBDriverLink;
+      class var FIbDrivers: TIbDrivers;
+      class var FFbDrivers: TFbDrivers;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       function GetThreadId: Int64; override;
@@ -778,7 +778,6 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      //property Lib: TSQLiteLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
@@ -2876,7 +2875,9 @@ end;
 
 procedure TInterbaseConnection.SetActive(Value: Boolean);
 var
-  tmpdb: String;
+  tmpdb, DriverId: String;
+  IbDriver: TFDPhysIBDriverLink;
+  FbDriver: TFDPhysFBDriverLink;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -2887,21 +2888,34 @@ begin
     FFDHandle.LoginPrompt := False;
 
     // Create virtual Interbase or Firebird driver id, once
+    DriverId := Parameters.LibraryOrProvider;
     if Parameters.IsInterbase then begin
-      if not Assigned(FIbDriver) then begin
-        FIbDriver := TFDPhysIBDriverLink.Create(Owner);
-        FIbDriver.VendorLib := Parameters.LibraryOrProvider;
-        FIbDriver.DriverID := Parameters.LibraryOrProvider;
+      if not Assigned(FIbDrivers) then begin
+        FIbDrivers := TIbDrivers.Create;
       end;
-      FFDHandle.Params.Values['DriverID'] := FIbDriver.DriverID;
+      if not FIbDrivers.ContainsKey(DriverId) then begin
+        Log(lcInfo, 'Creating virtual driver id with '+Parameters.LibraryOrProvider);
+        IbDriver := TFDPhysIBDriverLink.Create(Owner);
+        IbDriver.VendorLib := Parameters.LibraryOrProvider;
+        IbDriver.DriverID := DriverId;
+        FIbDrivers.Add(DriverId, IbDriver);
+      end;
+      FIbDrivers.TryGetValue(DriverId, IbDriver);
+      FFDHandle.Params.Values['DriverID'] := IbDriver.DriverID;
     end
     else if Parameters.IsFirebird then begin
-      if not Assigned(FFbDriver) then begin
-        FFbDriver := TFDPhysFBDriverLink.Create(Owner);
-        FFbDriver.VendorLib := Parameters.LibraryOrProvider;
-        FFbDriver.DriverID := Parameters.LibraryOrProvider;
+      if not Assigned(FFbDrivers) then begin
+        FFbDrivers := TFbDrivers.Create;
       end;
-      FFDHandle.Params.Values['DriverID'] := FFbDriver.DriverID;
+      if not FFbDrivers.ContainsKey(DriverId) then begin
+        Log(lcInfo, 'Creating virtual driver id link with '+Parameters.LibraryOrProvider);
+        FbDriver := TFDPhysFBDriverLink.Create(Owner);
+        FbDriver.VendorLib := Parameters.LibraryOrProvider;
+        FbDriver.DriverID := DriverId;
+        FFbDrivers.Add(DriverId, FbDriver);
+      end;
+      FFbDrivers.TryGetValue(DriverId, FbDriver);
+      FFDHandle.Params.Values['DriverID'] := FbDriver.DriverID;
     end;
 
     // TCP/IP or local?
