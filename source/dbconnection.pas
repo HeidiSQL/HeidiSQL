@@ -5387,7 +5387,7 @@ function TInterbaseConnection.GetCharsetTable: TDBQuery;
 begin
   inherited;
   if not Assigned(FCharsetTable) then
-    FCharsetTable := GetResults('SELECT RDB$CHARACTER_SET_NAME AS '+EscapeString('Charset')+', RDB$CHARACTER_SET_NAME AS '+EscapeString('Description')+' FROM RDB$CHARACTER_SETS');
+    FCharsetTable := GetResults('SELECT RDB$CHARACTER_SET_NAME AS '+QuoteIdent('Charset')+', RDB$CHARACTER_SET_NAME AS '+QuoteIdent('Description')+' FROM RDB$CHARACTER_SETS');
   Result := FCharsetTable;
 end;
 
