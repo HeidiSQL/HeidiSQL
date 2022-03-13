@@ -20,7 +20,7 @@ uses
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding, texteditor, System.Character, generic_types;
+  SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types;
 
 
 type
@@ -1224,6 +1224,7 @@ type
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
     FEditorCommandStrings: TStringList;
+    FLastSelWordInEditor: String;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -7368,103 +7369,143 @@ end;
 procedure TMainForm.SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
 var
   Editor : TSynEdit;
-  OpenChars: array of Char;
-  CloseChars: array of Char;
-  P: TBufferCoord;
+  BufCrd: TBufferCoord;
   Pix: TPoint;
-  D: TDisplayCoord;
+  DisCrd: TDisplayCoord;
+  Pnt: TPoint;
   S: String;
-  I: Integer;
+  I, SearchPos, CharIndex: Integer;
   Attri: TSynHighlighterAttributes;
-  ArrayLength: Integer;
-  start: Integer;
+  SelStart: Integer;
   TmpCharA, TmpCharB: Char;
-
-  function IsCharBracket(AChar: Char): Boolean;
-  begin
-    Result := CharInSet(AChar, ['{','[','(','<','}',']',')','>']);
-  end;
+  rx: TRegExpr;
+  SelWord, Line: String;
+const
+  BracketChars: TSysCharSet = ['{','[','(','<','}',']',')','>'];
+  OpenChars: Array of Char = ['{','[','(','<'];
+  CloseChars: Array of Char = ['}',']',')','>'];
 
   function CharToPixels(P: TBufferCoord): TPoint;
   begin
     Result := Editor.RowColumnToPixels(Editor.BufferToDisplayPos(P));
   end;
 begin
-  // Highlight matching brackets
-  Editor := TSynEdit(Sender);
-  if Editor.SelAvail then exit;
-  ArrayLength := 3;
-
-  SetLength(OpenChars, ArrayLength);
-  SetLength(CloseChars, ArrayLength);
-  for i := 0 to ArrayLength - 1 do
-    Case i of
-      0: begin OpenChars[i] := '('; CloseChars[i] := ')'; end;
-      1: begin OpenChars[i] := '{'; CloseChars[i] := '}'; end;
-      2: begin OpenChars[i] := '['; CloseChars[i] := ']'; end;
-      3: begin OpenChars[i] := '<'; CloseChars[i] := '>'; end;
-    end;
-
-  P := Editor.CaretXY;
-  D := Editor.DisplayXY;
-
-  Start := Editor.SelStart;
-
-  if (Start > 0) and (Start <= length(Editor.Text)) then
-    TmpCharA := Editor.Text[Start]
-  else
-    TmpCharA := #0;
-
-  if (Start >= 0) and (Start < length(Editor.Text)) then
-    TmpCharB := Editor.Text[Start + 1]
-  else
-    TmpCharB := #0;
-
-  if not IsCharBracket(TmpCharA) and not IsCharBracket(TmpCharB) then
+  if not MainFormCreated then
     Exit;
-  S := TmpCharB;
-  if not IsCharBracket(TmpCharB) then begin
-    P.Char := P.Char - 1;
-    S := TmpCharA;
-  end;
-  Editor.GetHighlighterAttriAtRowCol(P, S, Attri);
+  if (MatchingBraceBackgroundColor = clNone) and (MatchingBraceForegroundColor = clNone) then
+    Exit;
+  Editor := TSynEdit(Sender);
+  // Prevent lagging on large contents
+  if Editor.GetTextLen > 5*SIZE_MB then
+    Exit;
 
-  if (Editor.Highlighter.SymbolAttribute = Attri) then begin
-    for i:=Low(OpenChars) to High(OpenChars) do begin
-      if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
-        Pix := CharToPixels(P);
-
-        Editor.Canvas.Brush.Style := bsSolid;
-        Editor.Canvas.Font.Assign(Editor.Font);
-        Editor.Canvas.Font.Style := Attri.Style;
-
-        if (TransientType = ttAfter) then begin
-          Editor.Canvas.Font.Color := MatchingBraceForegroundColor;
-          Editor.Canvas.Brush.Color := MatchingBraceBackgroundColor;
-        end else begin
-          Editor.Canvas.Font.Color := Attri.Foreground;
-          Editor.Canvas.Brush.Color := Attri.Background;
-        end;
-        if Editor.Canvas.Font.Color = clNone then
-          Editor.Canvas.Font.Color := Editor.Font.Color;
-        if Editor.Canvas.Brush.Color = clNone then
-          Editor.Canvas.Brush.Color := Editor.Color;
-
-        Editor.Canvas.TextOut(Pix.X, Pix.Y, S);
-        P := Editor.GetMatchingBracketEx(P);
-
-        if (P.Char > 0) and (P.Line > 0) then begin
-          Pix := CharToPixels(P);
-          if Pix.X > Editor.Gutter.Width then begin
-            if S = OpenChars[i] then
-              Editor.Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
-            else Editor.Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
+  // Highlight matching words, if selected text is a (small) word
+  if Editor.SelLength < Editor.CharsInWindow then begin
+    SelWord := Editor.SelText;
+    BufCrd := Editor.CaretXY;
+    CharIndex := Editor.RowColToCharIndex(BufCrd);
+    // Ensure GetWordAtRowCol finds the word by moving Char to the left of the selection
+    BufCrd.Char := Max(0, BufCrd.Char - (CharIndex - Editor.SelStart));
+    if SelWord <> FLastSelWordInEditor then
+      Editor.Invalidate; // causes lots of additional implicit calls to OnPaintTransient
+    FLastSelWordInEditor := SelWord;
+    if (not SelWord.IsEmpty) and (SelWord = Editor.GetWordAtRowCol(BufCrd)) then begin
+      rx := TRegExpr.Create;
+      rx.Expression := '\b(' + QuoteRegExprMetaChars(SelWord) + ')\b';
+      rx.ModifierI := True;
+      for i:=Editor.TopLine to Editor.TopLine + Editor.LinesInWindow do begin
+        Line := Editor.Lines[i-1];
+        if rx.Exec(Line) then while True do begin
+          SearchPos := rx.MatchPos[1];
+          BufCrd := BufferCoord(SearchPos, i);
+          DisCrd := Editor.BufferToDisplayPos(BufCrd);
+          Pnt := Editor.RowColumnToPixels(DisCrd);
+          if (not Editor.IsPointInSelection(BufCrd)) // Found match is not the selection itself
+            and Editor.GetHighlighterAttriAtRowCol(BufCrd, SelWord, Attri)
+            then begin
+            //logsql(SelWord+': '+Attri.FriendlyName);
+            Canvas.Font.Style := Attri.Style;
+            // Todo: check if we need to handle TransientType ttAfter and ttBefore
+            Canvas.Font.Color:= MatchingBraceForegroundColor;
+            Canvas.Brush.Color:= MatchingBraceBackgroundColor;
+            if Canvas.Font.Color = clNone then
+              Canvas.Font.Color := Editor.Font.Color;
+            if Canvas.Brush.Color = clNone then
+              Canvas.Brush.Color := Editor.Color;
+            Canvas.TextOut(Pnt.X, Pnt.Y, rx.Match[1]);
           end;
+          if not rx.ExecNext then
+            Break;
         end;
-
       end;
+      rx.Free;
     end;
-    Editor.Canvas.Brush.Style := bsSolid;
+  end;
+
+  // Highlight matching brackets, only without selection
+  if not Editor.SelAvail then begin
+
+    BufCrd := Editor.CaretXY;
+    SelStart := Editor.SelStart;
+
+    if (SelStart > 0) and (SelStart <= Editor.GetTextLen) then
+      TmpCharA := Editor.Text[SelStart]
+    else
+      TmpCharA := #0;
+
+    if (SelStart >= 0) and (SelStart < Editor.GetTextLen) then
+      TmpCharB := Editor.Text[SelStart + 1]
+    else
+      TmpCharB := #0;
+
+    if not CharInSet(TmpCharA, BracketChars) and not CharInSet(TmpCharB, BracketChars) then
+      Exit;
+    S := TmpCharB;
+    if not CharInSet(TmpCharB, BracketChars) then begin
+      BufCrd.Char := BufCrd.Char - 1;
+      S := TmpCharA;
+    end;
+    Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri);
+
+    if (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then begin
+
+      for i:=Low(OpenChars) to High(OpenChars) do begin
+        if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
+          Pix := CharToPixels(BufCrd);
+
+          Canvas.Brush.Style := bsSolid;
+          Canvas.Font.Assign(Editor.Font);
+          Canvas.Font.Style := Attri.Style;
+
+          if (TransientType = ttAfter) then begin
+            Canvas.Font.Color := MatchingBraceForegroundColor;
+            Canvas.Brush.Color := MatchingBraceBackgroundColor;
+          end else begin
+            Canvas.Font.Color := Attri.Foreground;
+            Canvas.Brush.Color := Attri.Background;
+          end;
+          if Canvas.Font.Color = clNone then
+            Canvas.Font.Color := Editor.Font.Color;
+          if Canvas.Brush.Color = clNone then
+            Canvas.Brush.Color := Editor.Color;
+
+          Canvas.TextOut(Pix.X, Pix.Y, S);
+          BufCrd := Editor.GetMatchingBracketEx(BufCrd);
+
+          if (BufCrd.Char > 0) and (BufCrd.Line > 0) then begin
+            Pix := CharToPixels(BufCrd);
+            if Pix.X > Editor.Gutter.Width then begin
+              if S = OpenChars[i] then
+                Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
+              else
+                Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
+            end;
+          end;
+
+        end;
+      end;
+      Canvas.Brush.Style := bsSolid;
+    end;
   end;
 end;
 
@@ -12518,7 +12559,9 @@ begin
     Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
     Editor.WantTabs := BaseEditor.WantTabs;
     Editor.OnKeyPress := BaseEditor.OnKeyPress;
-    Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
+    if Editor <> SynMemoSQLLog then begin
+      Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
+    end;
     // Shortcuts
     if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
       KeyStroke := Editor.Keystrokes[j];
