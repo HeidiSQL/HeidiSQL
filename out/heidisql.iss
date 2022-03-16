@@ -42,7 +42,6 @@ AppId={#ProgName}
 AppName={#ProgName}
 AppVerName={#ProgName} {#ProgVersion}
 VersionInfoVersion={#ProgVersion}
-
 ; Displayed on the "Support" dialog of the Add/Remove Programs Control Panel applet:
 AppVersion={#ProgShortVersion}
 AppPublisher=Ansgar Becker
@@ -51,7 +50,8 @@ AppSupportURL={#WebSite}forum.php
 AppUpdatesURL={#WebSite}download.php
 AppContact=anse@heidisql.com
 AppReadmeFile={#WebSite}help.php?place=installer
-
+Compression=lzma2
+SolidCompression=yes
 CloseApplications=yes
 ShowLanguageDialog=auto
 DefaultDirName={commonpf}\{#ProgName}
