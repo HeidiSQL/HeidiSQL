@@ -7395,9 +7395,10 @@ begin
   if (MatchingBraceBackgroundColor = clNone) and (MatchingBraceForegroundColor = clNone) then
     Exit;
   Editor := TSynEdit(Sender);
-  // Prevent lagging on large contents
-  if Editor.GetTextLen > 5*SIZE_MB then
-    Exit;
+  // Check for Editor.GetTextLen causes some endless loop in SynEdit.
+  // But not due to activated WordWrap. Must be some interlocked WM_GETTEXTLENGTH message, or an undefined text length.
+  //if Editor.GetTextLen > 5*SIZE_MB then
+  //  Exit;
 
   // Highlight matching words, if selected text is a (small) word
   if Editor.SelLength < Editor.CharsInWindow then begin
