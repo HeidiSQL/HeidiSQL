@@ -4787,6 +4787,8 @@ begin
     Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY);
     Editor.CaretY := Editor.CaretY + 1;
     // OnStatusChanged implicitly fired here
+    if Assigned(Editor.OnChange) then
+      Editor.OnChange(Editor);
     Editor.Repaint;
   end else begin
     MessageBeep(MB_ICONERROR);
@@ -4803,6 +4805,8 @@ begin
     Editor.Lines.Exchange(Editor.CaretY-1, Editor.CaretY-2);
     Editor.CaretY := Editor.CaretY - 1;
     // OnStatusChanged implicitly fired here
+    if Assigned(Editor.OnChange) then
+      Editor.OnChange(Editor);
     Editor.Repaint;
   end else begin
     MessageBeep(MB_ICONERROR);
