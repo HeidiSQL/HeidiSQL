@@ -6647,6 +6647,8 @@ begin
   Proposal.Font.Assign(Font);
   Proposal.ItemHeight := ScaleSize(PROPOSAL_ITEM_HEIGHT);
   Proposal.ClearList;
+  Proposal.Columns[0].ColumnWidth := ScaleSize(100); // Kind of random value, but fits well
+  Proposal.Columns[1].ColumnWidth := ScaleSize(100);
   Conn := ActiveConnection;
   Editor := Proposal.Form.CurrentEditor;
   Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
