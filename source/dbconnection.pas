@@ -9,7 +9,7 @@ uses
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Phys, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys.IB,
-  FireDAC.Phys.IBDef, FireDAC.VCLUI.Wait, FireDAC.Comp.Client,
+  FireDAC.Phys.FB, FireDAC.Phys.IBDef, FireDAC.VCLUI.Wait, FireDAC.Comp.Client,
   FireDAC.Stan.Param, FireDAC.DatS, FireDAC.DApt.Intf,
   FireDAC.DApt, FireDAC.Comp.DataSet;
 
@@ -293,7 +293,9 @@ type
     ntSQLite,
     ntMySQL_ProxySQLAdmin,
     ntInterbase_TCPIP,
-    ntInterbase_Local
+    ntInterbase_Local,
+    ntFirebird_TCPIP,
+    ntFirebird_Local
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
@@ -339,6 +341,8 @@ type
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
+      function IsInterbase: Boolean;
+      function IsFirebird: Boolean;
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
@@ -597,6 +601,7 @@ type
       function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
+      function IsHex(Text: String): Boolean;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -750,14 +755,16 @@ type
   end;
 
   TInterbaseRawResults = Array of TFDQuery;
+  TIbDrivers = TDictionary<String, TFDPhysIBDriverLink>;
+  TFbDrivers = TDictionary<String, TFDPhysFBDriverLink>;
   TInterbaseConnection = class(TDBConnection)
     private
       FFDHandle: TFDConnection;
       FLastError: String;
       FLastErrorCode: Integer;
-      //FLib: TSQLiteLib;
       FLastRawResults: TInterbaseRawResults;
-      //FMainDbName: UTF8String;
+      class var FIbDrivers: TIbDrivers;
+      class var FFbDrivers: TFbDrivers;
       procedure SetActive(Value: Boolean); override;
       procedure DoBeforeConnect; override;
       function GetThreadId: Int64; override;
@@ -771,7 +778,6 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      //property Lib: TSQLiteLib read FLib;
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
@@ -1569,6 +1575,7 @@ const
   PrefixRedshift = 'Redshift PG';
   PrefixSqlite = 'SQLite';
   PrefixInterbase = 'Interbase';
+  PrefixFirebird = 'Firebird';
 begin
   // Return the name of a net type, either in short or long format
   Result := 'Unknown';
@@ -1589,6 +1596,8 @@ begin
       ntSQLite:                 Result := PrefixSqlite;
       ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP, experimental)';
       ntInterbase_Local:        Result := PrefixInterbase+' (Local, experimental)';
+      ntFirebird_TCPIP:         Result := PrefixFirebird+' (TCP/IP, experimental)';
+      ntFirebird_Local:         Result := PrefixFirebird+' (Local, experimental)';
     end;
   end
   else begin
@@ -1627,7 +1636,7 @@ begin
       Result := ngPgSQL;
     ntSQLite:
       Result := ngSQLite;
-    ntInterbase_TCPIP, ntInterbase_Local:
+    ntInterbase_TCPIP, ntInterbase_Local, ntFirebird_TCPIP, ntFirebird_Local:
       Result := ngInterbase;
     else begin
       // Return default net group here. Raising an exception lets the app die for some reason.
@@ -1740,6 +1749,18 @@ begin
 end;
 
 
+function TConnectionParameters.IsInterbase: Boolean;
+begin
+  Result := NetType in [ntInterbase_TCPIP, ntInterbase_Local];
+end;
+
+
+function TConnectionParameters.IsFirebird: Boolean;
+begin
+  Result := NetType in [ntFirebird_TCPIP, ntFirebird_Local];
+end;
+
+
 function TConnectionParameters.GetImageIndex: Integer;
 begin
   if IsFolder then
@@ -1764,7 +1785,10 @@ begin
       if IsRedshift then Result := 195;
     end;
     ngSQLite: Result := 196;
-    ngInterbase: Result := 203;
+    ngInterbase: begin
+      Result := 203;
+      if IsFirebird then Result := 204;
+    end
     else Result := ICONINDEX_SERVER;
   end;
 end;
@@ -1801,13 +1825,18 @@ end;
 
 function TConnectionParameters.DefaultLibrary: String;
 begin
+  Result := '';
   case NetTypeGroup of
     ngMySQL: Result := 'libmariadb.dll';
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
     ngSQLite: Result := 'sqlite3.dll';
-    ngInterbase: Result := 'IB';
-    else Result := '';
+    ngInterbase: begin
+      if IsInterbase then
+        Result := IfThen(GetExecutableBits=64, 'ibclient64.dll', 'gds32.dll')
+      else if IsFirebird then
+        Result := 'fbclient.dll';
+    end
   end;
 end;
 
@@ -1895,9 +1924,11 @@ begin
         rx.Expression := '^libpq.*\.dll$';
       ngSQLite:
         rx.Expression := '^sqlite.*\.dll$';
+      ngInterbase:
+        rx.Expression := '^(gds32|ibclient|fbclient).*\.dll$';
     end;
     case NetTypeGroup of
-      ngMySQL, ngPgSQL, ngSQLite: begin
+      ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
         Dlls := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.dll');
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
@@ -1916,10 +1947,6 @@ begin
           end;
         end;
         Providers.Free;
-      end;
-      ngInterbase: begin
-        FoundLibs.Add('IB');
-        FoundLibs.Add('FB');
       end;
     end;
     rx.Free;
@@ -2848,28 +2875,67 @@ end;
 
 procedure TInterbaseConnection.SetActive(Value: Boolean);
 var
-  tmpdb: String;
+  tmpdb, DriverId: String;
+  IbDriver: TFDPhysIBDriverLink;
+  FbDriver: TFDPhysFBDriverLink;
 begin
   if Value then begin
     DoBeforeConnect;
 
     FFDHandle := TFDConnection.Create(Owner);
     FFDHandle.OnError := OnFdError;
-    FFDHandle.DriverName := Parameters.LibraryOrProvider; // Auto-sets Params.DriverID
+    //FFDHandle.DriverName := Parameters.LibraryOrProvider; // Auto-sets Params.DriverID
     FFDHandle.LoginPrompt := False;
+
+    // Create virtual Interbase or Firebird driver id, once
+    DriverId := Parameters.LibraryOrProvider;
+    if Parameters.IsInterbase then begin
+      if not Assigned(FIbDrivers) then begin
+        FIbDrivers := TIbDrivers.Create;
+      end;
+      if not FIbDrivers.ContainsKey(DriverId) then begin
+        Log(lcInfo, 'Creating virtual driver id with '+Parameters.LibraryOrProvider);
+        IbDriver := TFDPhysIBDriverLink.Create(Owner);
+        IbDriver.VendorLib := Parameters.LibraryOrProvider;
+        IbDriver.DriverID := DriverId;
+        FIbDrivers.Add(DriverId, IbDriver);
+      end;
+      FIbDrivers.TryGetValue(DriverId, IbDriver);
+      FFDHandle.Params.Values['DriverID'] := IbDriver.DriverID;
+    end
+    else if Parameters.IsFirebird then begin
+      if not Assigned(FFbDrivers) then begin
+        FFbDrivers := TFbDrivers.Create;
+      end;
+      if not FFbDrivers.ContainsKey(DriverId) then begin
+        Log(lcInfo, 'Creating virtual driver id link with '+Parameters.LibraryOrProvider);
+        FbDriver := TFDPhysFBDriverLink.Create(Owner);
+        FbDriver.VendorLib := Parameters.LibraryOrProvider;
+        FbDriver.DriverID := DriverId;
+        FFbDrivers.Add(DriverId, FbDriver);
+      end;
+      FFbDrivers.TryGetValue(DriverId, FbDriver);
+      FFDHandle.Params.Values['DriverID'] := FbDriver.DriverID;
+    end;
+
+    // TCP/IP or local?
     case Parameters.NetType of
-      ntInterbase_TCPIP: begin
+      ntInterbase_TCPIP, ntFirebird_TCPIP: begin
         FFDHandle.Params.Values['Protocol'] := 'ipTCPIP';
         FFDHandle.Params.Values['Server'] := Parameters.Hostname;
         FFDHandle.Params.Values['Port'] := Parameters.Port.ToString;
       end;
-      ntInterbase_Local: FFDHandle.Params.Values['Protocol'] := 'ipLocal';
+      ntInterbase_Local, ntFirebird_Local: begin
+        FFDHandle.Params.Values['Protocol'] := 'ipLocal';
+      end;
     end;
+
     FFDHandle.Params.Values['Database'] := Parameters.AllDatabasesStr;
     FFDHandle.Params.Values['User_Name'] := Parameters.Username;
     FFDHandle.Params.Values['Password'] := Parameters.Password;
     FFDHandle.Params.Values['CharacterSet'] := 'UTF8';
     FFDHandle.Params.Values['ExtendedMetadata'] := 'True';
+
     try
       FFDHandle.Connected := True;
     except
@@ -2882,7 +2948,11 @@ begin
       //! Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
 
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
-      //! FServerVersionUntouched := GetVar('SELECT sqlite_version()');
+
+      if Parameters.IsInterbase then
+        FServerVersionUntouched := ''
+      else
+        FServerVersionUntouched := GetVar('SELECT rdb$get_context(''SYSTEM'', ''ENGINE_VERSION'') as version from rdb$database');
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
 
@@ -3047,7 +3117,10 @@ begin
       FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
       FSQLSpecifities[spRenameTable] := 'RENAME TABLE %s TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
-      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      if Self.Parameters.LibraryOrProvider = 'IB' then
+        FSQLSpecifities[spCurrentUserHost] := 'select user from rdb$database'
+      else
+        FSQLSpecifities[spCurrentUserHost] := 'select current_user || ''@'' || mon$attachments.mon$remote_host from mon$attachments where mon$attachments.mon$attachment_id = current_connection';
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
@@ -3060,7 +3133,7 @@ begin
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
-      FSQLSpecifities[spFuncNow] := 'timestamp ''NOW'' from rdb$database';
+      FSQLSpecifities[spFuncNow] := ' cast(''now'' as timestamp) from rdb$database';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -4898,8 +4971,12 @@ begin
   DoQuote := Datatype.Category in CategoriesNeedQuote;
   case Datatype.Category of
     // Some special cases
-    dtcBinary: if ExecRegExpr('^0x[a-fA-F0-9]*$', Text) then DoQuote := False;
-    dtcInteger, dtcReal: if not ExecRegExpr('^\d+(\.\d+)?$', Text) then DoQuote := True;
+    dtcBinary:
+      if IsHex(Text) then
+        DoQuote := False;
+    dtcInteger, dtcReal:
+      if not ExecRegExpr('^\d+(\.\d+)?$', Text) then
+        DoQuote := True;
   end;
   Result := EscapeString(Text, False, DoQuote);
 end;
@@ -5310,7 +5387,7 @@ function TInterbaseConnection.GetCharsetTable: TDBQuery;
 begin
   inherited;
   if not Assigned(FCharsetTable) then
-    FCharsetTable := GetResults('SELECT RDB$CHARACTER_SET_NAME AS '+EscapeString('Charset')+', RDB$CHARACTER_SET_NAME AS '+EscapeString('Description')+' FROM RDB$CHARACTER_SETS');
+    FCharsetTable := GetResults('SELECT RDB$CHARACTER_SET_NAME AS '+QuoteIdent('Charset')+', RDB$CHARACTER_SET_NAME AS '+QuoteIdent('Description')+' FROM RDB$CHARACTER_SETS');
   Result := FCharsetTable;
 end;
 
@@ -5738,8 +5815,9 @@ begin
     '   cset.RDB$CHARACTER_SET_NAME AS field_charset'+
     ' FROM RDB$RELATION_FIELDS r'+
     ' LEFT JOIN RDB$FIELDS f ON r.RDB$FIELD_SOURCE = f.RDB$FIELD_NAME'+
-    ' LEFT JOIN RDB$COLLATIONS coll ON f.RDB$COLLATION_ID = coll.RDB$COLLATION_ID'+
     ' LEFT JOIN RDB$CHARACTER_SETS cset ON f.RDB$CHARACTER_SET_ID = cset.RDB$CHARACTER_SET_ID'+
+    ' LEFT JOIN RDB$COLLATIONS coll ON f.RDB$COLLATION_ID = coll.RDB$COLLATION_ID'+
+    '                              AND F.RDB$CHARACTER_SET_ID = COLL.RDB$CHARACTER_SET_ID'+
     ' WHERE r.RDB$RELATION_NAME='+EscapeString(Table.Name)+
     ' ORDER BY r.RDB$FIELD_POSITION');
   while not ColQuery.Eof do begin
@@ -6207,10 +6285,44 @@ end;
 
 
 function TInterbaseConnection.GetTableForeignKeys(Table: TDBObject): TForeignKeyList;
+var
+  ForeignQuery: TDBQuery;
+  ForeignKey: TForeignKey;
 begin
-  // Todo
-  // use parent?
+  // SQLite: query PRAGMA foreign_key_list
   Result := TForeignKeyList.Create(True);
+  ForeignQuery := GetResults(
+            'select strc.rdb$relation_name' +#13#10+
+            '     , strc.rdb$constraint_name' +#13#10+
+            '     , fkrc.rdb$relation_name as "ReferenceTable"' +#13#10+
+            '     , stis.rdb$field_name as "from"' +#13#10+
+            '     , fkis.rdb$field_name as "to"' +#13#10+
+            '     , rdb$ref_constraints.rdb$update_rule' +#13#10+
+            '     , rdb$ref_constraints.rdb$delete_rule' +#13#10+
+            '  from rdb$relation_constraints strc' +#13#10+
+            '  join rdb$ref_constraints on RDB$REF_CONSTRAINTS.rdb$constraint_name = strc.rdb$constraint_name' +#13#10+
+            '  join rdb$relation_constraints fkrc on fkrc.rdb$constraint_name = rdb$ref_constraints.rdb$const_name_uq' +#13#10+
+            '  join rdb$index_segments stis on stis.rdb$index_name = strc.rdb$index_name' +#13#10+
+            '  join rdb$index_segments fkis on fkis.rdb$index_name = fkrc.rdb$index_name' +#13#10+
+            ' where strc.rdb$relation_name = ' +QuotedStr(Table.Name)+#13#10+
+            '   and strc.rdb$constraint_type = ''FOREIGN KEY''');
+
+  ForeignKey := nil;
+  while not ForeignQuery.Eof do begin
+    if (not Assigned(ForeignKey)) or (ForeignKey.KeyName <> ForeignQuery.Col('rdb$constraint_name')) then begin
+      ForeignKey := TForeignKey.Create(Self);
+      Result.Add(ForeignKey);
+      ForeignKey.KeyName := ForeignQuery.Col('rdb$constraint_name');
+      ForeignKey.OldKeyName := ForeignKey.KeyName;
+      ForeignKey.ReferenceTable := ForeignQuery.Col('ReferenceTable');
+      ForeignKey.OnUpdate := ForeignQuery.Col('rdb$update_rule');
+      ForeignKey.OnDelete := ForeignQuery.Col('rdb$delete_rule');
+    end;
+    ForeignKey.Columns.Add(ForeignQuery.Col('from'));
+    ForeignKey.ForeignColumns.Add(ForeignQuery.Col('to'));
+    ForeignQuery.Next;
+  end;
+  ForeignQuery.Free;
 end;
 
 
@@ -6261,6 +6373,31 @@ begin
       Log(lcError, 'Detection of check constraints disabled due to error in query');
       // Table is likely not there or does not have expected columns - prevent further queries with the same error:
       FInformationSchemaObjects.Delete(ConTableIdx);
+    end;
+  end;
+end;
+
+
+function TDBConnection.IsHex(Text: String): Boolean;
+var
+  i, Len: Integer;
+const
+  HexChars: TSysCharSet = ['0'..'9','a'..'f', 'A'..'F'];
+begin
+  // Check first kilobyte of passed text whether it's a hex encoded string. Hopefully faster than a regex.
+  Result := False;
+  Len := Length(Text);
+  if (Len >= 4) and (Len mod 2 = 0) then begin
+    Result := (Text[1] = '0') and (Text[2] = 'x');
+    if Result then begin
+      for i:=3 to SIZE_KB do begin
+        if not CharInSet(Text[i], HexChars) then begin
+          Result := False;
+          Break;
+        end;
+        if i >= Len then
+          Break;
+      end;
     end;
   end;
 end;
@@ -7076,26 +7213,110 @@ begin
   // Tables and views
   Results := nil;
   try
-    Results := GetResults('SELECT DISTINCT RDB$RELATION_NAME, RDB$VIEW_CONTEXT AS '+QuoteIdent('ViewContext') +
-      ' FROM RDB$RELATION_FIELDS WHERE RDB$SYSTEM_FLAG=0');
-    while not Results.Eof do begin
-      obj := TDBObject.Create(Self);
-      Cache.Add(obj);
-      obj.Name := Results.Col(0);
-      obj.Created := Now;
-      obj.Updated := Now;
-      obj.Database := db;
-      if Results.IsNull(1) then
-        obj.NodeType := lntTable
-      else
-        obj.NodeType := lntView;
-      obj.NodeType := lntTable;
-      Results.Next;
+    Results := GetResults('SELECT RDB$RELATION_NAME, RDB$DESCRIPTION, RDB$RELATION_TYPE AS '+QuoteIdent('ViewContext') +
+      ' FROM RDB$RELATIONS WHERE RDB$RELATIONS.RDB$SYSTEM_FLAG = 0');
+    try
+      while not Results.Eof do begin
+        obj := TDBObject.Create(Self);
+        Cache.Add(obj);
+        obj.Name := Results.Col(0);
+        obj.Created := Now;
+        obj.Updated := Now;
+        obj.Database := db;
+        obj.Comment := Results.Col('RDB$DESCRIPTION');
+
+        if Parameters.IsInterbase then
+        begin
+          if Results.Col('ViewContext') = 'PERSISTENT' then
+            obj.NodeType := lntTable
+          else
+            obj.NodeType := lntView;
+        end
+        else
+        begin
+          if Results.Col('ViewContext') = '0' then
+            obj.NodeType := lntTable
+          else
+            obj.NodeType := lntView;
+        end;
+        Results.Next;
+      end;
+    finally
+      FreeAndNil(Results);
     end;
-    FreeAndNil(Results);
   except
     on E:EDbError do;
   end;
+
+  // Procedures
+  try
+    Results := GetResults('SELECT RDB$PROCEDURE_NAME, RDB$DESCRIPTION FROM RDB$PROCEDURES WHERE RDB$SYSTEM_FLAG = 0');
+    try
+
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('RDB$PROCEDURE_NAME');
+      obj.Database := db;
+      Obj.NodeType := lntProcedure;
+      obj.Created := Now;
+      obj.Updated := Now;
+      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Results.Next;
+    end;
+    finally
+      FreeAndNil(Results);
+    end;
+  except
+    on E:EDbError do;
+  end;
+
+  // Triggers
+  try
+    Results := GetResults('SELECT RDB$TRIGGER_NAME, RDB$DESCRIPTION FROM RDB$TRIGGERS WHERE RDB$SYSTEM_FLAG = 0');
+    try
+
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('RDB$TRIGGER_NAME');
+      obj.Database := db;
+      Obj.NodeType := lntTrigger;
+      obj.Created := Now;
+      obj.Updated := Now;
+      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Results.Next;
+    end;
+    finally
+      FreeAndNil(Results);
+    end;
+  except
+    on E:EDbError do;
+  end;
+
+  // Functions
+  try
+    Results := GetResults('SELECT rdb$function_name, RDB$DESCRIPTION FROM rdb$functions WHERE RDB$SYSTEM_FLAG = 0');
+    try
+
+    while not Results.Eof do begin
+      obj := TDBObject.Create(Self);
+      Cache.Add(obj);
+      obj.Name := Results.Col('RDB$function_name');
+      obj.Database := db;
+      Obj.NodeType := lntFunction;
+      obj.Created := Now;
+      obj.Updated := Now;
+      Obj.Comment := Results.Col('RDB$DESCRIPTION');
+      Results.Next;
+    end;
+    finally
+      FreeAndNil(Results);
+    end;
+  except
+    on E:EDbError do;
+  end;
+
 end;
 
 
@@ -8552,8 +8773,6 @@ begin
     Result := HexValue(baData);
   end else
     Result := HexValue(Col(Column, IgnoreErrors));
-  if AppSettings.ReadBool(asLowercaseHex) then
-    Result := Result.ToLowerInvariant;
 end;
 
 
@@ -8568,9 +8787,15 @@ begin
   if BinLen = 0 then begin
     Result := Connection.EscapeString('');
   end else begin
-    SetLength(Result, BinLen*2);
-    BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-    Result := '0x' + Result;
+    if FConnection.IsHex(BinValue) then begin
+      Result := BinValue; // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
   end;
 end;
 
@@ -8584,11 +8809,16 @@ begin
   if BinLen = 0 then begin
     Result := Connection.EscapeString('');
   end else begin
-    SetLength(Result, BinLen*2);
-    BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-    Result := '0x' + Result;
+    if FConnection.IsHex(String(Ansi)) then begin
+      Result := String(Ansi); // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
   end;
-
 end;
 
 function TDBQuery.DataType(Column: Integer): TDBDataType;
@@ -9537,7 +9767,7 @@ begin
         end;
         dtcTemporal:
           Result := Result + '=' + Connection.EscapeString(Connection.GetDateTimeValue(ColVal, DataType(j).Index));
-        dtcBinary:
+        dtcBinary, dtcSpatial:
           Result := Result + '=' + HexValue(ColVal);
         else begin
           // Any other data type goes here, including text:

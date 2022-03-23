@@ -42,7 +42,6 @@ AppId={#ProgName}
 AppName={#ProgName}
 AppVerName={#ProgName} {#ProgVersion}
 VersionInfoVersion={#ProgVersion}
-
 ; Displayed on the "Support" dialog of the Add/Remove Programs Control Panel applet:
 AppVersion={#ProgShortVersion}
 AppPublisher=Ansgar Becker
@@ -51,7 +50,8 @@ AppSupportURL={#WebSite}forum.php
 AppUpdatesURL={#WebSite}download.php
 AppContact=anse@heidisql.com
 AppReadmeFile={#WebSite}help.php?place=installer
-
+Compression=lzma2
+SolidCompression=yes
 CloseApplications=yes
 ShowLanguageDialog=auto
 DefaultDirName={commonpf}\{#ProgName}
@@ -116,6 +116,11 @@ Source: "libiconv-2-32.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check
 ; SQLite:
 Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; Interbase/Firebird:
+Source: "ibclient64-14.1.dll"; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "gds32-14.1.dll"; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "fbclient-4.0-64.dll"; DestDir: "{app}"; DestName: "fbclient-4.0.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "fbclient-4.0-32.dll"; DestDir: "{app}"; DestName: "fbclient-4.0.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 ; VC redistributable
 Source: VC_redist.x64.exe; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: VC_redist.x86.exe; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion

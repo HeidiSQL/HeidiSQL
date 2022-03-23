@@ -334,6 +334,12 @@ begin
       Break;
     end;
   end;
+  // In case the combobox is empty:
+  if MemoText.Highlighter = nil then begin
+    FHighlighter := TSynGeneralSyn.Create(Self);
+    MemoText.Highlighter := FHighlighter;
+  end;
+
   MemoText.SelStart := SelStart;
   MemoText.SelLength := SelLength;
 end;

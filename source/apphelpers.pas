@@ -4326,7 +4326,10 @@ end;
 function TAppSettings.DirnameSnippets: String;
 begin
   // Folder for snippets
-  Result := IncludeTrailingBackslash(ReadString(asCustomSnippetsDirectory));
+  Result := ReadString(asCustomSnippetsDirectory);
+  if Result.IsEmpty then
+    Result := GetDefaultString(asCustomSnippetsDirectory);
+  Result := IncludeTrailingBackslash(Result);
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;

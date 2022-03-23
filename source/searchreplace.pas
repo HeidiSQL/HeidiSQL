@@ -194,11 +194,16 @@ end;
 
 
 function TfrmSearchReplace.GetGrid: TVirtualStringTree;
+var
+  o: TObject;
 begin
   // Return selected target object as grid
   Result := nil;
-  if (comboSearchIn.ItemIndex > -1) and (comboSearchIn.Items.Objects[comboSearchIn.ItemIndex] is TVirtualStringTree) then
-    Result := comboSearchIn.Items.Objects[comboSearchIn.ItemIndex] as TVirtualStringTree;
+  if comboSearchIn.ItemIndex > -1 then begin
+    o := comboSearchIn.Items.Objects[comboSearchIn.ItemIndex];
+    if (o <> nil) and (o is TVirtualStringTree) then
+      Result := o as TVirtualStringTree;
+  end;
 end;
 
 

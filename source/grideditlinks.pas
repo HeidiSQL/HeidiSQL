@@ -929,19 +929,13 @@ end;
 
 
 function TEnumEditorLink.PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; stdcall;
-var
-  i: Integer;
-  Items: TStringList;
 begin
   Result := inherited PrepareEdit(Tree, Node, Column);
   if Result then begin
     if DisplayList.Count = ValueList.Count then
-      Items := DisplayList
+      FCombo.Items.AddStrings(DisplayList)
     else
-      Items := ValueList;
-    for i:=0 to Items.Count - 1 do begin
-      FCombo.Items.Add(Items[i]);
-    end;
+      FCombo.Items.AddStrings(ValueList);
     FCombo.ItemIndex := ValueList.IndexOf(FCellText);
     if AllowCustomText and FAllowEdit then begin
       FCombo.Style := csDropDown;
