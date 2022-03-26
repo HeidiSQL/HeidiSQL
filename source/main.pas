@@ -7472,9 +7472,9 @@ begin
       BufCrd.Char := BufCrd.Char - 1;
       S := TmpCharA;
     end;
-    Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri);
 
-    if (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then begin
+    if Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri) and (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then
+    begin
 
       for i:=Low(OpenChars) to High(OpenChars) do begin
         if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
@@ -10692,7 +10692,11 @@ begin
   if not Assigned(DataGridFocusedCell) then
     DataGridFocusedCell := TStringList.Create;
   // Remember focused node and column for selected table
-  if Assigned(DataGrid.FocusedNode) and (ActiveConnection<>nil) and (DataGridTable<>nil) then begin
+  if Assigned(DataGrid.FocusedNode)
+    and (ActiveConnection <> nil)
+    and (DataGridTable <> nil)
+    and Assigned(DataGridTable)
+    then begin
     KeyName := DataGridTable.QuotedDatabase+'.'+DataGridTable.QuotedName;
     FocusedCol := '';
     if DataGrid.FocusedColumn > NoColumn then
