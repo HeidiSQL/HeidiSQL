@@ -9895,13 +9895,19 @@ begin
   if (not Assigned(CompareTo)) or (CompareTo = nil) then begin
     Result := False;
   end else begin
-    Result := FConnection.IdentifierEquals(Name, CompareTo.Name)
-      and (NodeType = CompareTo.NodeType)
-      and (Database = CompareTo.Database)
-      and (Schema = CompareTo.Schema)
-      and (Column = CompareTo.Column)
-      and (ArgTypes = CompareTo.ArgTypes)
-      and (Connection = CompareTo.Connection);
+    try
+      Result := FConnection.IdentifierEquals(Name, CompareTo.Name)
+        and (NodeType = CompareTo.NodeType)
+        and (Database = CompareTo.Database)
+        and (Schema = CompareTo.Schema)
+        and (Column = CompareTo.Column)
+        and (ArgTypes = CompareTo.ArgTypes)
+        and (Connection = CompareTo.Connection);
+    except
+      // No reproduction recipe yet, but numerous crashes from above were reported
+      on E:EAccessViolation do
+        Result := False;
+    end;
   end;
 end;
 

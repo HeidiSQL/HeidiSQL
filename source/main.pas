@@ -10697,11 +10697,17 @@ begin
     and (DataGridTable <> nil)
     and Assigned(DataGridTable)
     then begin
-    KeyName := DataGridTable.QuotedDatabase+'.'+DataGridTable.QuotedName;
-    FocusedCol := '';
-    if DataGrid.FocusedColumn > NoColumn then
-      FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
-    DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + FocusedCol;
+    try
+      KeyName := DataGridTable.QuotedDatabase+'.'+DataGridTable.QuotedName;
+      FocusedCol := '';
+      if DataGrid.FocusedColumn > NoColumn then
+        FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
+      DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + FocusedCol;
+    except
+      on E:EAccessViolation do begin
+        LogSQL('HandleDataGridAttributes: '+E.Message, lcError);
+      end;
+    end;
   end;
   DataGridFocusedNodeIndex := 0;
   DataGridFocusedColumnName := '';
