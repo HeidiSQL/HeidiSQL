@@ -8916,12 +8916,12 @@ begin
     case Kind of
       ikNormal, ikSelected: begin
         case Results.Connection.Parameters.NetTypeGroup of
-          ngMySQL: IsIdle := Results.Col('Info') = '';
-          ngMSSQL: IsIdle := (Results.Col(6) <> 'running') and (Results.Col(6) <> 'runnable');
+          ngMySQL: IsIdle := Results.Col('Info', True) = '';
+          ngMSSQL: IsIdle := (Results.Col(6, True) <> 'running') and (Results.Col(6, True) <> 'runnable');
           else IsIdle := False;
         end;
         if IsIdle then begin
-          if MakeInt(Results.Col(5)) < 60 then
+          if MakeInt(Results.Col(5, True)) < 60 then
             ImageIndex := 151 // Idle, same icon as in lower right status panel
           else
             ImageIndex := 167 // Long idle thread
@@ -8929,9 +8929,9 @@ begin
           ImageIndex := actExecuteQuery.ImageIndex; // Running query
         end;
       ikOverlay: begin
-        if IntToStr(Results.Connection.ThreadId) = Results.Col(0) then
+        if IntToStr(Results.Connection.ThreadId) = Results.Col(0, True) then
           ImageIndex := 168; // Indicate users own thread id
-        if CompareText(Results.Col(4), 'Killed') = 0 then
+        if CompareText(Results.Col(4, True), 'Killed') = 0 then
           ImageIndex := 158; // Broken
         end;
       else;
