@@ -10122,14 +10122,12 @@ end;
 function TDBObject.GetTableColumns: TTableColumnList;
 var
   ColumnsInCache: TTableColumnList;
-  CacheKey: String;
 begin
   // Return columns from table object
-  CacheKey := QuotedDbAndTableName;
-  if not FConnection.FColumnCache.ContainsKey(CacheKey) then begin
-    FConnection.FColumnCache.Add(CacheKey, Connection.GetTableColumns(Self));
+  if not FConnection.FColumnCache.ContainsKey(QuotedDbAndTableName) then begin
+    FConnection.FColumnCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableColumns(Self));
   end;
-  FConnection.FColumnCache.TryGetValue(CacheKey, ColumnsInCache);
+  FConnection.FColumnCache.TryGetValue(QuotedDbAndTableName, ColumnsInCache);
   Result := TTableColumnList.Create;
   Result.Assign(ColumnsInCache);
 end;
@@ -10140,7 +10138,7 @@ var
 begin
   // Return keys from table object
   if not FConnection.FKeyCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FKeyCache.Add(QuotedDbAndTableName, Connection.GetTableKeys(Self));
+    FConnection.FKeyCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableKeys(Self));
   end;
   FConnection.FKeyCache.TryGetValue(QuotedDbAndTableName, KeysInCache);
   Result := TTableKeyList.Create;
@@ -10153,7 +10151,7 @@ var
 begin
   // Return foreign keys from table object
   if not FConnection.FForeignKeyCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FForeignKeyCache.Add(QuotedDbAndTableName, Connection.GetTableForeignKeys(Self));
+    FConnection.FForeignKeyCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableForeignKeys(Self));
   end;
   FConnection.FForeignKeyCache.TryGetValue(QuotedDbAndTableName, ForeignKeysInCache);
   Result := TForeignKeyList.Create;
@@ -10166,7 +10164,7 @@ var
 begin
   // Return check constraint from table object
   if not FConnection.CheckConstraintCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.CheckConstraintCache.Add(QuotedDbAndTableName, Connection.GetTableCheckConstraints(Self));
+    FConnection.CheckConstraintCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableCheckConstraints(Self));
   end;
   FConnection.CheckConstraintCache.TryGetValue(QuotedDbAndTableName, CheckConstraintsInCache);
   Result := TCheckConstraintList.Create;
