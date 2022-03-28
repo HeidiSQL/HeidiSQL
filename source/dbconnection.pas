@@ -2254,7 +2254,7 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort: Integer;
-  Error, tmpdb, StatusName: String;
+  Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
   sslca, sslkey, sslcert, sslcipher: PAnsiChar;
@@ -2466,17 +2466,8 @@ begin
       end;
       FCaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', IntToStr(FCaseSensitivity)));
 
-      if FDatabase <> '' then begin
-        tmpdb := FDatabase;
-        FDatabase := '';
-        try
-          Database := tmpdb;
-        except
-          // Trigger OnDatabaseChange event for <no db> if wanted db is not available
-          FDatabase := tmpdb;
-          Database := '';
-        end;
-      end;
+      // Triggers OnDatabaseChange event for <no db>
+      Database := '';
       DoAfterConnect;
     end;
   end
@@ -2502,7 +2493,7 @@ end;
 
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
-  tmpdb, Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
+  Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
   rx: TRegExpr;
   i: Integer;
   IsOldProvider: Boolean;
@@ -2629,6 +2620,8 @@ begin
       for i:=0 to FAdoHandle.Properties.Count-1 do
         Log(lcDebug, f_('OLE DB property "%s": %s', [FAdoHandle.Properties[i].Name, String(FAdoHandle.Properties[i].Value)]));
 
+      // Triggers OnDatabaseChange event for <no db>
+      Database := '';
       DoAfterConnect;
 
       // Reopen closed datasets after reconnecting
@@ -2636,16 +2629,6 @@ begin
       //for i:=0 to FAdoHandle.DataSetCount-1 do
       //  FAdoHandle.DataSets[i].Open;
 
-      if FDatabase <> '' then begin
-        tmpdb := FDatabase;
-        FDatabase := '';
-        try
-          Database := tmpdb;
-        except
-          FDatabase := tmpdb;
-          Database := '';
-        end;
-      end;
     except
       on E:Exception do begin
         FLastError := E.Message;
@@ -2674,7 +2657,7 @@ end;
 
 procedure TPgConnection.SetActive(Value: Boolean);
 var
-  dbname, ConnInfo, Error, tmpdb: String;
+  dbname, ConnInfo, Error: String;
   FinalHost, ErrorHint: String;
   FinalPort: Integer;
 
@@ -2764,18 +2747,9 @@ begin
       FIsSSL := False;
     end;
 
+    // Triggers OnDatabaseChange event for <no db>
+    Database := '';
     DoAfterConnect;
-
-    if FDatabase <> '' then begin
-      tmpdb := FDatabase;
-      FDatabase := '';
-      try
-        Database := tmpdb;
-      except
-        FDatabase := tmpdb;
-        Database := '';
-      end;
-    end;
   end else begin
     try
       FLib.PQfinish(FHandle);
@@ -2795,7 +2769,7 @@ end;
 procedure TSQLiteConnection.SetActive(Value: Boolean);
 var
   ConnectResult: Integer;
-  tmpdb, ErrorHint: String;
+  ErrorHint: String;
   FileNames: TStringList;
   MainFile, DbAlias: String;
   i: Integer;
@@ -2836,18 +2810,10 @@ begin
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
 
+      // Triggers OnDatabaseChange event for <no db>
+      Database := '';
       DoAfterConnect;
 
-      if FDatabase <> '' then begin
-        tmpdb := FDatabase;
-        FDatabase := '';
-        try
-          Database := tmpdb;
-        except
-          FDatabase := tmpdb;
-          Database := '';
-        end;
-      end;
     end else begin
       Log(lcError, LastErrorMsg);
       FConnectionStarted := 0;
@@ -2875,7 +2841,7 @@ end;
 
 procedure TInterbaseConnection.SetActive(Value: Boolean);
 var
-  tmpdb, DriverId: String;
+  DriverId: String;
   IbDriver: TFDPhysIBDriverLink;
   FbDriver: TFDPhysFBDriverLink;
 begin
@@ -2956,18 +2922,10 @@ begin
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
 
+      // Triggers OnDatabaseChange event for <no db>
+      Database := '';
       DoAfterConnect;
 
-      if FDatabase <> '' then begin
-        tmpdb := FDatabase;
-        FDatabase := '';
-        try
-          Database := tmpdb;
-        except
-          FDatabase := tmpdb;
-          Database := '';
-        end;
-      end;
     end else begin
       Log(lcError, LastErrorMsg);
       FConnectionStarted := 0;
@@ -9937,13 +9895,19 @@ begin
   if (not Assigned(CompareTo)) or (CompareTo = nil) then begin
     Result := False;
   end else begin
-    Result := FConnection.IdentifierEquals(Name, CompareTo.Name)
-      and (NodeType = CompareTo.NodeType)
-      and (Database = CompareTo.Database)
-      and (Schema = CompareTo.Schema)
-      and (Column = CompareTo.Column)
-      and (ArgTypes = CompareTo.ArgTypes)
-      and (Connection = CompareTo.Connection);
+    try
+      Result := FConnection.IdentifierEquals(Name, CompareTo.Name)
+        and (NodeType = CompareTo.NodeType)
+        and (Database = CompareTo.Database)
+        and (Schema = CompareTo.Schema)
+        and (Column = CompareTo.Column)
+        and (ArgTypes = CompareTo.ArgTypes)
+        and (Connection = CompareTo.Connection);
+    except
+      // No reproduction recipe yet, but numerous crashes from above were reported
+      on E:EAccessViolation do
+        Result := False;
+    end;
   end;
 end;
 

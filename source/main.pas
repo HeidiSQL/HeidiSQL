@@ -7472,9 +7472,9 @@ begin
       BufCrd.Char := BufCrd.Char - 1;
       S := TmpCharA;
     end;
-    Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri);
 
-    if (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then begin
+    if Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri) and (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then
+    begin
 
       for i:=Low(OpenChars) to High(OpenChars) do begin
         if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
@@ -8916,12 +8916,12 @@ begin
     case Kind of
       ikNormal, ikSelected: begin
         case Results.Connection.Parameters.NetTypeGroup of
-          ngMySQL: IsIdle := Results.Col('Info') = '';
-          ngMSSQL: IsIdle := (Results.Col(6) <> 'running') and (Results.Col(6) <> 'runnable');
+          ngMySQL: IsIdle := Results.Col('Info', True) = '';
+          ngMSSQL: IsIdle := (Results.Col(6, True) <> 'running') and (Results.Col(6, True) <> 'runnable');
           else IsIdle := False;
         end;
         if IsIdle then begin
-          if MakeInt(Results.Col(5)) < 60 then
+          if MakeInt(Results.Col(5, True)) < 60 then
             ImageIndex := 151 // Idle, same icon as in lower right status panel
           else
             ImageIndex := 167 // Long idle thread
@@ -8929,9 +8929,9 @@ begin
           ImageIndex := actExecuteQuery.ImageIndex; // Running query
         end;
       ikOverlay: begin
-        if IntToStr(Results.Connection.ThreadId) = Results.Col(0) then
+        if IntToStr(Results.Connection.ThreadId) = Results.Col(0, True) then
           ImageIndex := 168; // Indicate users own thread id
-        if CompareText(Results.Col(4), 'Killed') = 0 then
+        if CompareText(Results.Col(4, True), 'Killed') = 0 then
           ImageIndex := 158; // Broken
         end;
       else;
@@ -10692,12 +10692,22 @@ begin
   if not Assigned(DataGridFocusedCell) then
     DataGridFocusedCell := TStringList.Create;
   // Remember focused node and column for selected table
-  if Assigned(DataGrid.FocusedNode) and (ActiveConnection<>nil) and (DataGridTable<>nil) then begin
-    KeyName := DataGridTable.QuotedDatabase+'.'+DataGridTable.QuotedName;
-    FocusedCol := '';
-    if DataGrid.FocusedColumn > NoColumn then
-      FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
-    DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + FocusedCol;
+  if Assigned(DataGrid.FocusedNode)
+    and (ActiveConnection <> nil)
+    and (DataGridTable <> nil)
+    and Assigned(DataGridTable)
+    then begin
+    try
+      KeyName := DataGridTable.QuotedDatabase+'.'+DataGridTable.QuotedName;
+      FocusedCol := '';
+      if DataGrid.FocusedColumn > NoColumn then
+        FocusedCol := DataGrid.Header.Columns[DataGrid.FocusedColumn].Text;
+      DataGridFocusedCell.Values[KeyName] := IntToStr(DataGrid.FocusedNode.Index) + DELIM + FocusedCol;
+    except
+      on E:EAccessViolation do begin
+        LogSQL('HandleDataGridAttributes: '+E.Message, lcError);
+      end;
+    end;
   end;
   DataGridFocusedNodeIndex := 0;
   DataGridFocusedColumnName := '';

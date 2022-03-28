@@ -789,6 +789,11 @@ var
         ErrorDialog(E.Message);
         FCancelled := True;
       end;
+      on E:EInOutError do begin
+        // ForceDirectories failed with "Unable to create directory."
+        ErrorDialog(E.Message);
+        FCancelled := True;
+      end;
     end;
   end;
 
