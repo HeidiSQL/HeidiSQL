@@ -671,6 +671,11 @@ var
   FromReg: PConnectionParameters;
 begin
   // Return non-stored parameters
+  if not Assigned(ListSessions.FocusedNode) then begin
+    Result := nil;
+    Exit;
+  end;
+
   FromReg := ListSessions.GetNodeData(ListSessions.FocusedNode);
   if FromReg.IsFolder then begin
     Result := FromReg^;
