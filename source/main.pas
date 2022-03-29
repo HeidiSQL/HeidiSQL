@@ -7420,7 +7420,8 @@ begin
       rx := TRegExpr.Create;
       rx.Expression := '\b(' + QuoteRegExprMetaChars(SelWord) + ')\b';
       rx.ModifierI := True;
-      for i:=Editor.TopLine to Editor.TopLine + Editor.LinesInWindow do begin
+      // Note: TopLine is wrong when lines are soft-wrapped, so we use RowToLine
+      for i:=Editor.RowToLine(Editor.TopLine) to Editor.RowToLine(Editor.TopLine + Editor.LinesInWindow) do begin
         Line := Editor.Lines[i-1];
         if rx.Exec(Line) then while True do begin
           SearchPos := rx.MatchPos[1];
