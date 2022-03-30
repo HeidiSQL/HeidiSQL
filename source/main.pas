@@ -9654,7 +9654,16 @@ begin
         TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
         Break;
       end;
-      WalkNode := Sender.NodeParent[WalkNode];
+      try
+        // This crashes in some situations, which I could never reproduce.
+        // See uploaded crash reports and issue #1270.
+        WalkNode := Sender.NodeParent[WalkNode];
+      except
+        on E:EAccessViolation do begin
+          LogSQL('DBtreePaintText, NodeParent: '+E.Message, lcError);
+          Break;
+        end;
+      end;
     end;
   end;
 end;
