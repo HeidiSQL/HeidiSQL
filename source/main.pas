@@ -6390,8 +6390,8 @@ begin
   actDataOpenUrl.Enabled := (Length(CellText)<SIZE_MB) and ExecRegExpr('^(https?://[^\s]+|www\.\w\S+)$', CellText);
   actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
-  actPreviousResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
-  actNextResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
+  actPreviousResult.Enabled := HasConnection and QueryTabs.HasActiveTab and Assigned(QueryTabs.ActiveTab.ActiveResultTab);
+  actNextResult.Enabled := actPreviousResult.Enabled;
 
   // Activate export-options if we're on Data- or Query-tab
   actExportData.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
