@@ -115,6 +115,7 @@ type
       TimerStatusUpdate: TTimer;
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
+      procedure DirectoryWatchErrorHandler(const Sender: TObject; const ErrorCode: Integer; const ErrorMessage: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
       function LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
       property BindParamsActivated: Boolean read GetBindParamsActivated write SetBindParamsActivated;
@@ -14099,6 +14100,7 @@ begin
   DirectoryWatch := TDirectoryWatch.Create;
   DirectoryWatch.WatchSubTree := False;
   DirectoryWatch.OnNotify := DirectoryWatchNotify;
+  DirectoryWatch.OnError := DirectoryWatchErrorHandler;
   // Do not trigger useless file deletion messages, see issue #2948
   DirectoryWatch.WatchActions := DirectoryWatch.WatchActions - [waRemoved];
   // Do not trigger file access. See https://www.heidisql.com/forum.php?t=15500
@@ -14182,6 +14184,12 @@ begin
 
   end;
   FDirectoryWatchNotficationRunning := False;
+end;
+
+
+procedure TQueryTab.DirectoryWatchErrorHandler(const Sender: TObject; const ErrorCode: Integer; const ErrorMessage: string);
+begin
+  MainForm.LogSQL(Format('File watcher (%d): %s', [ErrorCode, ErrorMessage]), lcError);
 end;
 
 

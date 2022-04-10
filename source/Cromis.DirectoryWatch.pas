@@ -257,6 +257,7 @@ begin
           begin
             ErrorMessage := SysErrorMessage(ERROR_NOTIFY_ENUM_DIR);
             SignalError(ErrorMessage, ERROR_NOTIFY_ENUM_DIR);
+            Terminate;
           end;
 
           repeat
@@ -276,6 +277,7 @@ begin
         begin
           ErrorMessage := SysErrorMessage(GetLastError);
           SignalError(ErrorMessage);
+          Terminate;
         end;
       end;
     end
@@ -283,12 +285,14 @@ begin
     begin
       ErrorMessage := SysErrorMessage(GetLastError);
       SignalError(ErrorMessage);
+      Terminate;
     end;
   except
     on E :Exception do
     begin
       ErrorMessage := E.Message;
       SignalError(ErrorMessage);
+      Terminate;
     end;
   end;
 end;
