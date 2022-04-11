@@ -3049,7 +3049,7 @@ begin
     end;
     ngSQLite: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
-      FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+      FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
       FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
