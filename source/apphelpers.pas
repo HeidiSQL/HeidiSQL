@@ -302,7 +302,6 @@ type
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
-  function ExtractBaseFileName(FileName: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
@@ -824,17 +823,6 @@ begin
   for c in TPath.GetInvalidFileNameChars do begin
     Result := StringReplace(Result, c, '_', [rfReplaceAll]);
   end;
-end;
-
-
-function ExtractBaseFileName(FileName: String): String;
-var
-  Ext: String;
-begin
-  // Extract file name without path and file extension
-  FileName := ExtractFileName(FileName);
-  Ext := ExtractFileExt(FileName);
-  Result := Copy(FileName, 1, Length(FileName)-Length(Ext));
 end;
 
 

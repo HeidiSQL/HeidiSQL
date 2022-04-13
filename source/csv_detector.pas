@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo, extra_controls, apphelpers,
-  loaddata, dbconnection, Vcl.ExtCtrls, gnugettext, dbstructures, System.Math, SynRegExpr;
+  loaddata, dbconnection, Vcl.ExtCtrls, gnugettext, dbstructures, System.Math, SynRegExpr, System.IOUtils;
 
 type
   TfrmCsvDetector = class(TExtForm)
@@ -344,7 +344,7 @@ var
   TableName: String;
 begin
   // Compose CREATE TABLE
-  TableName := ExtractBaseFileName(FLoadDataFrm.editFilename.Text);
+  TableName := TPath.GetFileNameWithoutExtension(FLoadDataFrm.editFilename.Text);
   TableName := ValidFilename(TableName);
   Result := 'CREATE TABLE '+FConnection.QuoteIdent(FLoadDataFrm.comboDatabase.Text)+'.'+FConnection.QuoteIdent(TableName)+' (' + sLineBreak;
   for Col in Columns do begin
