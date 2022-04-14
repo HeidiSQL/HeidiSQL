@@ -3248,7 +3248,7 @@ var
   TabCaption: String;
   TabsetColor: TColor;
   Results: TDBQuery;
-  i: Integer;
+  i, HeaderPadding, HeaderLineBreaks: Integer;
 begin
   // Single query or query packet has finished
 
@@ -3291,6 +3291,8 @@ begin
     NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
     NewTab.Grid.Header.Columns.BeginUpdate;
     NewTab.Grid.Header.Columns.Clear;
+    HeaderLineBreaks := 0;
+    HeaderPadding := NewTab.Grid.Header.Height - GetTextHeight(NewTab.Grid.Font);
     for i:=0 to NewTab.Results.ColumnCount-1 do begin
       col := NewTab.Grid.Header.Columns.Add;
       col.Text := NewTab.Results.ColumnNames[i];
@@ -3302,8 +3304,10 @@ begin
         col.ImageIndex := ICONINDEX_UNIQUEKEY
       else if NewTab.Results.ColIsKeyPart(i) then
         col.ImageIndex := ICONINDEX_INDEXKEY;
+      HeaderLineBreaks := Max(HeaderLineBreaks, col.text.CountChar(#10));
     end;
     NewTab.Grid.Header.Columns.EndUpdate;
+    NewTab.Grid.Header.Height := GetTextHeight(NewTab.Grid.Font) * (HeaderLineBreaks+1) + HeaderPadding;
     NewTab.Grid.RootNodeCount := NewTab.Results.RecordCount;
     NewTab.Grid.EndUpdate;
     for i:=0 to NewTab.Grid.Header.Columns.Count-1 do
