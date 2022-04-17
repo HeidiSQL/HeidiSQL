@@ -4092,7 +4092,7 @@ object MainForm: TMainForm
   object TimerRefresh: TTimer
     Enabled = False
     Interval = 5000
-    OnTimer = actRefreshExecute
+    OnTimer = TimerRefreshTimer
     Left = 688
     Top = 197
   end

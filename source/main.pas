@@ -1166,6 +1166,7 @@ type
     procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
       NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
+    procedure TimerRefreshTimer(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -6920,6 +6921,14 @@ begin
     ShowStatusMsg('', 4);
   end;
 
+end;
+
+
+procedure TMainForm.TimerRefreshTimer(Sender: TObject);
+begin
+  // Auto-refreshing grid or list. Only if main form is active, to prevent issues like #669
+  if Screen.ActiveForm = Self then
+    actRefresh.Execute;
 end;
 
 
