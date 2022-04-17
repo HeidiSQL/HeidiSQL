@@ -6033,6 +6033,7 @@ end;
 procedure TMainForm.DisplayRowCountStats(Sender: TBaseVirtualTree);
 var
   DBObject: TDBObject;
+  ObjInCache: PDBObject;
   IsFiltered, IsLimited: Boolean;
   cap: String;
   RowsTotal: Int64;
@@ -6064,6 +6065,13 @@ begin
           cap := cap + ', '+_('all rows match to filter')
         else
           cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' '+_('rows match to filter');
+      end;
+      // Update cached object reference with new row count, which may enable "Data" option
+      // in table copy dialog. See issue #666
+      if Assigned(DBtree.FocusedNode) then begin
+        ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
+        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then
+          ObjInCache.Rows := RowsTotal;
       end;
     end;
   end;
