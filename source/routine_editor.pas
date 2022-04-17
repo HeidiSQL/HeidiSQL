@@ -459,6 +459,8 @@ var
   TargetExists: Boolean;
 begin
   // Save changes
+  btnSave.Enabled := False;
+  btnDiscard.Enabled := False;
   Result := mrOk;
   case comboType.ItemIndex of
     0: ProcOrFunc := 'PROCEDURE';
@@ -510,8 +512,6 @@ begin
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);
     Modified := False;
-    btnSave.Enabled := Modified;
-    btnDiscard.Enabled := Modified;
     Mainform.actRunRoutines.Enabled := True;
   except
     on E:EDbError do begin
@@ -519,6 +519,8 @@ begin
       Result := mrAbort;
     end;
   end;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 
