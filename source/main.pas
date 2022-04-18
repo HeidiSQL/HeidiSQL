@@ -11796,6 +11796,7 @@ begin
   // Show new tab
   if Sender <> actNewQueryTabNofocus then begin
     SetMainTab(QueryTab.TabSheet);
+    QueryTab.Memo.SetFocus;
   end;
 end;
 
