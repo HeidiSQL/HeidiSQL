@@ -6077,6 +6077,7 @@ begin
     end;
   end;
   lblDataTop.Caption := cap;
+  lblDataTop.Hint := cap;
 end;
 
 

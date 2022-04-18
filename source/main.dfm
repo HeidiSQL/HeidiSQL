@@ -1040,7 +1040,6 @@ object MainForm: TMainForm
               AutoSize = False
               Caption = 'Data'
               Layout = tlCenter
-              WordWrap = True
             end
             object tlbDataButtons: TToolBar
               Left = 452
