@@ -368,11 +368,11 @@ end;
 
 
 procedure TfrmTextEditor.btnCancelClick(Sender: TObject);
+var
+  Action: TCloseAction;
 begin
-  if FStopping then
-    Exit;
-  FStopping := True;
-  TCustomVirtualStringTree(Owner).CancelEditNode;
+  Action := caNone;
+  FormClose(Self, Action);
 end;
 
 
