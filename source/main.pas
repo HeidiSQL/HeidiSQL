@@ -12415,7 +12415,7 @@ function TMainForm.ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): B
 var
   msg: String;
   Tab: TQueryTab;
-  SaveDialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
   MsgButtons: TMsgDlgButtons;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
@@ -12444,17 +12444,25 @@ begin
   case MessageDialog(_('Modified query'), msg, mtConfirmation, MsgButtons, asPromptSaveFileOnTabClose) of
     mrNo: Result := True;
     mrYes: begin
-      SaveDialog := TSaveDialog.Create(Self);
-      SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
-      SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-      SaveDialog.DefaultExt := 'sql';
-      if Tab.MemoFilename <> '' then
-        Tab.SaveContents(Tab.MemoFilename, False)
-      else if SaveDialog.Execute then
-        Tab.SaveContents(SaveDialog.FileName, False);
-      // The save dialog can be cancelled.
-      Result := not Tab.Memo.Modified;
-      SaveDialog.Free;
+      if Tab.MemoFilename <> '' then begin
+        Tab.SaveContents(Tab.MemoFilename, False);
+        Result := True;
+      end
+      else begin
+        Dialog := TExtFileSaveDialog.Create(Self);
+        Dialog.Options := Dialog.Options + [fdoOverwritePrompt];
+        Dialog.AddFileType('*.sql', _('SQL files'));
+        Dialog.AddFileType('*.*', _('All files'));
+        Dialog.DefaultExtension := 'sql';
+        Dialog.LineBreakIndex := Tab.MemoLineBreaks;
+        if Dialog.Execute then begin
+          Tab.SaveContents(Dialog.FileName, False);
+          Tab.MemoLineBreaks := Dialog.LineBreakIndex;
+        end;
+        // The save dialog can be cancelled.
+        Result := not Tab.Memo.Modified;
+        Dialog.Free;
+      end;
     end;
     else Result := False;
   end;
