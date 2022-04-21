@@ -8593,9 +8593,16 @@ end;
 }
 procedure TMainForm.AnyGridHeaderDraggedOut(Sender: TVTHeader; Column:
     TColumnIndex; DropPosition: TPoint);
+var
+  Remaining: TColumnsArray;
 begin
-  // Hide the draggedout column
-  Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
+  // Hide the draggedout column, if it's not the last one
+  // See also menuToggleAllClick, where hiding all is restricted through the poAllowHideAll option
+  Remaining := Sender.Columns.GetVisibleColumns;
+  if Length(Remaining) > 1 then
+    Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
+  // Dynamic arrays are free'd when their scope ends, so this should not be required:
+  SetLength(Remaining, 0);
 end;
 
 
