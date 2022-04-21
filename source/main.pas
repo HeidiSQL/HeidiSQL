@@ -1947,7 +1947,7 @@ begin
   QueryTab.filterHelpers := filterQueryHelpers;
   QueryTab.treeHelpers := treeQueryHelpers;
   QueryTab.Memo := SynMemoQuery;
-  QueryTab.MemoLineBreaks := lbsNone;
+  QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
@@ -4877,32 +4877,34 @@ var
   i: Integer;
   CanSave: TModalResult;
   OnlySelection: Boolean;
-  SaveDialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
   QueryTab: TQueryTab;
   DefaultFilename: String;
 begin
   // Save SQL
   CanSave := mrNo;
   QueryTab := QueryTabs.ActiveTab;
-  SaveDialog := TSaveDialog.Create(Self);
+  Dialog := TExtFileSaveDialog.Create(Self);
   DefaultFilename := QueryTab.TabSheet.Caption;
   DefaultFilename := DefaultFilename.Trim([' ', '*']);
-  SaveDialog.FileName := ValidFilename(DefaultFilename);
-  SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+  Dialog.FileName := ValidFilename(DefaultFilename);
+  Dialog.Options := Dialog.Options + [fdoOverwritePrompt];
   if (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet) then begin
-    SaveDialog.InitialDir := AppSettings.DirnameSnippets;
-    SaveDialog.Options := SaveDialog.Options + [ofNoChangeDir];
-    SaveDialog.Title := _('Save snippet');
+    Dialog.DefaultFolder := AppSettings.DirnameSnippets;
+    Dialog.Options := Dialog.Options + [fdoNoChangeDir];
+    Dialog.Title := _('Save snippet');
   end;
-  SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-  SaveDialog.DefaultExt := 'sql';
-  while (CanSave = mrNo) and SaveDialog.Execute do begin
+  Dialog.AddFileType('*.sql', _('SQL files'));
+  Dialog.AddFileType('*.*', _('All files'));
+  Dialog.DefaultExtension := 'sql';
+  Dialog.LineBreakIndex := QueryTab.MemoLineBreaks;
+  while (CanSave = mrNo) and Dialog.Execute do begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     CanSave := mrYes;
     for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i].MemoFilename = SaveDialog.FileName then begin
-        CanSave := MessageDialog(f_('Overwrite "%s"?', [SaveDialog.FileName]), f_('This file is already open in query tab #%d.', [QueryTabs[i].Number]),
+      if QueryTabs[i].MemoFilename = Dialog.FileName then begin
+        CanSave := MessageDialog(f_('Overwrite "%s"?', [Dialog.FileName]), f_('This file is already open in query tab #%d.', [QueryTabs[i].Number]),
           mtWarning, [mbYes, mbNo, mbCancel]);
         break;
       end;
@@ -4910,17 +4912,18 @@ begin
   end;
   if CanSave = mrYes then begin
     OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
-    QueryTab.SaveContents(SaveDialog.FileName, OnlySelection);
+    QueryTab.MemoLineBreaks := Dialog.LineBreakIndex;
+    QueryTab.SaveContents(Dialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = QueryTab then
         continue;
-      if QueryTabs[i].MemoFilename = SaveDialog.FileName then
+      if QueryTabs[i].MemoFilename = Dialog.FileName then
         QueryTabs[i].Memo.Modified := True;
     end;
     ValidateQueryControls(Sender);
     SetSnippetFilenames;
   end;
-  SaveDialog.Free;
+  Dialog.Free;
 end;
 
 
@@ -11691,6 +11694,7 @@ begin
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
+  QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
