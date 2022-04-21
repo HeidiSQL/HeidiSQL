@@ -3056,7 +3056,7 @@ begin
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
-      FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spChangeColumn] := 'RENAME COLUMN %s TO %s'; // SQLite only supports renaming
       FSQLSpecifities[spSessionVariables] := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';

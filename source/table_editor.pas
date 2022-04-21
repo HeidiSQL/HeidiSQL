@@ -656,7 +656,7 @@ begin
 
       case Conn.Parameters.NetTypeGroup of
 
-        ngMySQL, ngSQLite: begin
+        ngMySQL: begin
           ColSpec := Col.SQLCode(OverrideCollation);
           // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
           if Conn.ServerVersionInt >= 40001 then begin
@@ -730,6 +730,22 @@ begin
           AddQuery('COMMENT ON COLUMN %s.'+Conn.QuoteIdent(Col.Name)+' IS '+Conn.EscapeString(Col.Comment));
         end;
 
+        ngSQLite: begin
+          ColSpec := Col.SQLCode;
+          case Col.Status of
+            esModified: begin
+              // Rename
+              if Col.Name <> Col.OldName then begin
+                Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)]));
+              end;
+            end;
+            esAddedUntouched, esAddedModified: begin
+              Specs.Add(Format(AddColBase, [ColSpec]));
+            end;
+          end;
+          FinishSpecs;
+        end;
+
       end;
 
     end;
@@ -741,8 +757,8 @@ begin
   for i:=0 to FColumns.Count-1 do begin
     if FColumns[i].Status = esDeleted then begin
       Specs.Add('DROP COLUMN '+Conn.QuoteIdent(FColumns[i].OldName));
-      // MSSQL wants one ALTER TABLE query per DROP COLUMN
-      if Conn.Parameters.IsAnyMSSQL then
+      // MSSQL + SQLite want one ALTER TABLE query per DROP COLUMN
+      if Conn.Parameters.NetTypeGroup in [ngMSSQL, ngSQLite] then
         FinishSpecs;
     end;
   end;
