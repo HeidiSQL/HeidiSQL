@@ -4840,7 +4840,7 @@ procedure TMainForm.actSaveSynMemoToTextfileExecute(Sender: TObject);
 var
   Comp: TComponent;
   Memo: TSynMemo;
-  Dialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
 begin
   // Save to textfile, from any TSynMemo (SQL log, "CREATE code" tab in editor, ...)
   Memo := nil;
@@ -4852,13 +4852,18 @@ begin
   else if ActiveControl is TSynMemo then
     Memo := ActiveControl as TSynMemo;
   if Assigned(Memo) then begin
-    Dialog := TSaveDialog.Create(Self);
-    Dialog.Options := Dialog.Options + [ofOverwritePrompt];
-    Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-    Dialog.DefaultExt := 'sql';
+    Dialog := TExtFileSaveDialog.Create(Self);
+    Dialog.Options := Dialog.Options + [fdoOverWritePrompt];
+    Dialog.AddFileType('*.sql', _('SQL files'));
+    Dialog.AddFileType('*.*', _('All files'));
+    Dialog.DefaultExtension := 'sql';
+    Dialog.LineBreakIndex := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
     if Dialog.Execute then begin
       Screen.Cursor := crHourGlass;
-      SaveUnicodeFile(Dialog.FileName, Memo.Text);
+      SaveUnicodeFile(
+        Dialog.FileName,
+        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines)
+        );
       Screen.Cursor := crDefault;
     end;
   end else begin
@@ -14300,13 +14305,8 @@ begin
     Text := Memo.SelText
   else
     Text := Memo.Text;
-  LB := '';
-  case MemoLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
+  LB := GetLineBreak(MemoLineBreaks);
+  if LB <> CRLF then
     Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
   try
     FileDir := ExtractFilePath(Filename);

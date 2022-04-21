@@ -299,6 +299,7 @@ type
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function fixNewlines(txt: String): String;
+  function GetLineBreak(LineBreakIndex: TLineBreaks): String;
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
@@ -769,6 +770,16 @@ begin
   txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
   txt := StringReplace(txt, #10, CRLF, [rfReplaceAll]);
   result := txt;
+end;
+
+
+function GetLineBreak(LineBreakIndex: TLineBreaks): String;
+begin
+  case LineBreakIndex of
+    lbsUnix: Result := LB_UNIX;
+    lbsMac: Result := LB_MAC;
+    else Result := CRLF;
+  end;
 end;
 
 
