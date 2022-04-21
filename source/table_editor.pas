@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, Clipbrd, Math, System.UITypes,
+  SynMemo, Menus, Clipbrd, Math, System.UITypes, System.Generics.Collections,
   grideditlinks, dbstructures, dbconnection, apphelpers, gnugettext, StrUtils, extra_controls;
 
 type
@@ -220,6 +220,7 @@ type
     function ComposeAlterStatement: TSQLBatch;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
+    function GetKeyImageIndexes(Col: TTableColumn): TList<Integer>;
     procedure CalcMinColWidth;
     procedure UpdateTabCaptions;
   public
@@ -1079,22 +1080,38 @@ begin
 end;
 
 
+function TfrmTableEditor.GetKeyImageIndexes(Col: TTableColumn): TList<Integer>;
+var
+  idx, i: Integer;
+begin
+  Result := TList<Integer>.Create;
+  for i:=0 to FKeys.Count-1 do begin
+    if FKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
+      idx := FKeys[i].ImageIndex;
+      if not Result.Contains(idx) then
+        Result.Add(idx);
+    end;
+  end;
+  for i:=0 to FForeignKeys.Count-1 do begin
+    if FForeignKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
+      idx := ICONINDEX_FOREIGNKEY;
+      if not Result.Contains(idx) then
+        Result.Add(idx);
+    end;
+  end;
+end;
+
+
 procedure TfrmTableEditor.CalcMinColWidth;
 var
   i, j, MinWidthThisCol, MinWidthAllCols: Integer;
+  ImageIndexes: TList<Integer>;
 begin
-  // Find maximum column widths so the index icons have enough room after auto-fitting
+  // Find maximum width for first column so the index icons have enough room after auto-fitting
   MinWidthAllCols := 0;
   for i:=0 to FColumns.Count-1 do begin
-    MinWidthThisCol := 0;
-    for j:=0 to FKeys.Count-1 do begin
-      if FKeys[j].Columns.IndexOf(FColumns[i].Name) > -1 then
-        Inc(MinWidthThisCol, listColumns.Images.Width);
-    end;
-    for j:=0 to FForeignKeys.Count-1 do begin
-      if FForeignKeys[j].Columns.IndexOf(FColumns[i].Name) > -1 then
-        Inc(MinWidthThisCol, listColumns.Images.Width);
-    end;
+    ImageIndexes := GetKeyImageIndexes(FColumns[i]);
+    MinWidthThisCol := ImageIndexes.Count * listColumns.Images.Width;
     MinWidthAllCols := Max(MinWidthAllCols, MinWidthThisCol);
   end;
   // Add space for number
@@ -1111,28 +1128,22 @@ var
   ImageIndex, X, Y, i: Integer;
   VT: TVirtualStringTree;
   Checked: Boolean;
+  ImageIndexes: TList<Integer>;
 begin
   VT := TVirtualStringTree(Sender);
   Col := Sender.GetNodeData(Node);
   Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
 
-  // Paint one icon per index of which this column is part of
+  // Paint one icon per index type of which this column is part of
   if Column = 0 then begin
+    ImageIndexes := TList<Integer>.Create;
     X := 0;
-    for i:=0 to FKeys.Count-1 do begin
-      if FKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
-        ImageIndex := FKeys[i].ImageIndex;
-        VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
-        Inc(X, VT.Images.Width);
-      end;
+    ImageIndexes := GetKeyImageIndexes(Col^);
+    for i in ImageIndexes do begin
+      VT.Images.Draw(TargetCanvas, X, Y, i);
+      Inc(X, VT.Images.Width);
     end;
-    for i:=0 to FForeignKeys.Count-1 do begin
-      if FForeignKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
-        ImageIndex := ICONINDEX_FOREIGNKEY;
-        VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
-        Inc(X, VT.Images.Width);
-      end;
-    end;
+    ImageIndexes.Free;
   end;
 
   // Paint checkbox image in certain columns
