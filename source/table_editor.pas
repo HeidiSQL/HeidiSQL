@@ -1109,18 +1109,19 @@ end;
 
 procedure TfrmTableEditor.CalcMinColWidth;
 var
-  i, j, MinWidthThisCol, MinWidthAllCols: Integer;
+  i, MinWidthThisCol, MinWidthAllCols: Integer;
   ImageIndexes: TList<Integer>;
 begin
-  // Find maximum width for first column so the index icons have enough room after auto-fitting
+  // Find maximum width for first column so both the index icons and the text have enough room
   MinWidthAllCols := 0;
   for i:=0 to FColumns.Count-1 do begin
     ImageIndexes := GetKeyImageIndexes(FColumns[i]);
     MinWidthThisCol := ImageIndexes.Count * listColumns.Images.Width;
     MinWidthAllCols := Max(MinWidthAllCols, MinWidthThisCol);
   end;
-  // Add space for number
-  Inc(MinWidthAllCols, listColumns.Canvas.TextWidth(IntToStr(FColumns.Count+1)) + listColumns.TextMargin*4);
+  // Add room for text and extra spacing
+  Inc(MinWidthAllCols, listColumns.GetMaxColumnWidth(0));
+  Inc(MinWidthAllCols, listColumns.TextMargin);
   listColumns.Header.Columns[0].Width := MinWidthAllCols;
 end;
 
@@ -1141,7 +1142,6 @@ begin
 
   // Paint one icon per index type of which this column is part of
   if Column = 0 then begin
-    ImageIndexes := TList<Integer>.Create;
     X := 0;
     ImageIndexes := GetKeyImageIndexes(Col^);
     for i in ImageIndexes do begin
