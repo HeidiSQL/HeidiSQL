@@ -292,7 +292,7 @@ begin
   treeIndexes.Clear;
   listForeignKeys.Clear;
   listCheckConstraints.Clear;
-  tabALTERcode.TabVisible := DBObject.Name <> '';
+  tabALTERcode.TabVisible := ObjectExists;
   // Clear value editors
   memoComment.Text := '';
   if Obj.Connection.ServerVersionInt < 50503 then
@@ -309,7 +309,7 @@ begin
   comboInsertMethod.ItemIndex := -1;
   SynMemoPartitions.Clear;
 
-  if DBObject.Name = '' then begin
+  if not ObjectExists then begin
     // Creating new table
     editName.Text := '';
     if DBObject.Connection.Parameters.IsAnyMySQL then
@@ -460,7 +460,7 @@ begin
   // Create or alter table
   Result := mrOk;
 
-  if DBObject.Name = '' then
+  if not ObjectExists then
     Batch := ComposeCreateStatement
   else
     Batch := ComposeAlterStatement;
@@ -468,11 +468,11 @@ begin
     for Query in Batch do
       DBObject.Connection.Query(Query.SQL);
     // Rename table
-    if (DBObject.Name <> '') and (editName.Text <> DBObject.Name) then begin
+    if ObjectExists and (editName.Text <> DBObject.Name) then begin
       Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
       DBObject.Connection.Query(Rename);
     end;
-    tabALTERcode.TabVisible := DBObject.Name <> '';
+    tabALTERcode.TabVisible := ObjectExists;
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
       for i:=0 to FColumns.Count-1 do begin
@@ -483,7 +483,7 @@ begin
     // Set table name for altering if Apply was clicked
     DBObject.Name := editName.Text;
     DBObject.UnloadDetails;
-    tabALTERcode.TabVisible := DBObject.Name <> '';
+    tabALTERcode.TabVisible := ObjectExists;
     Mainform.UpdateEditorTab;
     MainForm.tabData.TabVisible := True;
     Mainform.RefreshTree(DBObject);
@@ -2301,7 +2301,7 @@ end;
 
 procedure TfrmTableEditor.chkCharsetConvertClick(Sender: TObject);
 begin
-  chkCharsetConvert.Enabled := (DBObject.Name <> '') and (comboCollation.ItemIndex > -1);
+  chkCharsetConvert.Enabled := ObjectExists and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
 end;

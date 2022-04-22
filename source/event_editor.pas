@@ -109,7 +109,7 @@ begin
   udEveryQuantity.Position := 1;
   comboEveryInterval.ItemIndex := comboEveryInterval.Items.IndexOf('DAY');
   tabALTERcode.TabVisible := False;
-  if DBObject.Name <> '' then begin
+  if ObjectExists then begin
     // Edit mode
     tabALTERcode.TabVisible := True;
     editName.Text := DBObject.Name;
@@ -221,7 +221,7 @@ var
 begin
   // Create or alter table
   Result := mrOk;
-  if DBObject.Name = '' then
+  if not ObjectExists then
     sql := ComposeCreateStatement
   else
     sql := ComposeAlterStatement;
@@ -229,7 +229,7 @@ begin
     MainForm.ActiveConnection.Query(sql);
     DBObject.Name := editName.Text;
     DBObject.UnloadDetails;
-    tabALTERcode.TabVisible := DBObject.Name <> '';
+    tabALTERcode.TabVisible := ObjectExists;
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);
     Modified := False;
@@ -296,7 +296,7 @@ begin
     Result := Result + #9 + 'ON COMPLETION NOT PRESERVE'
   else
     Result := Result + #9 + 'ON COMPLETION PRESERVE';
-  if (DBObject.Name <> '') and (DBObject.Name <> editName.Text) then
+  if ObjectExists and (DBObject.Name <> editName.Text) then
     Result := Result + CRLF + #9 + 'RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text);
   Result := Result + CRLF + #9 + UpperCase(grpState.Items[grpState.ItemIndex]);
   Result := Result + CRLF + #9 + 'COMMENT ' + DBObject.Connection.EscapeString(editComment.Text);

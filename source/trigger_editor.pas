@@ -104,7 +104,7 @@ begin
   end;
   if comboTable.Items.Count > 0 then
     comboTable.ItemIndex := 0;
-  if DBObject.Name <> '' then begin
+  if ObjectExists then begin
     // Edit mode
     editName.Text := DBObject.Name;
     Definitions := MainForm.ActiveConnection.GetResults('SHOW TRIGGERS FROM '+Obj.Connection.QuoteIdent(Mainform.ActiveDatabase));
@@ -203,7 +203,7 @@ end;
 procedure TfrmTriggerEditor.comboChange(Sender: TObject);
 begin
   // Auto generate trigger name as long as it was not user-edited. See issue #3477.
-  if (DBObject.Name = '') and (not editName.Modified) then
+  if (not ObjectExists) and (not editName.Modified) then
     editName.Text := comboTable.Text+'_'+LowerCase(comboTiming.Text)+'_'+LowerCase(comboEvent.Text);
   Modification(Sender);
 end;
@@ -226,7 +226,7 @@ begin
     // So, we take the risk of loosing the trigger for cases in which the user has SQL errors in
     // his statement. The user must fix such errors and re-press "Save" while we have them in memory,
     // otherwise the trigger attributes are lost forever.
-    if DBObject.Name <> '' then try
+    if ObjectExists then try
       DBObject.Connection.Query('DROP TRIGGER '+DBObject.Connection.QuoteIdent(DBObject.Name));
     except
     end;

@@ -36,6 +36,7 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     protected
+      function ObjectExists: Boolean;
     public
       DBObject: TDBObject;
       constructor Create(AOwner: TComponent); override;
@@ -1795,6 +1796,11 @@ end;
 procedure TDBObjectEditor.SetModified(Value: Boolean);
 begin
   FModified := Value;
+end;
+
+function TDBObjectEditor.ObjectExists: Boolean;
+begin
+  Result := not DBObject.Name.IsEmpty;
 end;
 
 procedure TDBObjectEditor.Init(Obj: TDBObject);
