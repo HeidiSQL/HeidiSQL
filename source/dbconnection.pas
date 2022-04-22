@@ -413,7 +413,7 @@ type
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId, spDatabaseDrop,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost, spLikeCompare,
-    spAddColumn, spChangeColumn,
+    spAddColumn, spChangeColumn, spRenameColumn,
     spGlobalStatus, spCommandsCounters, spSessionVariables, spGlobalVariables,
     spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
@@ -3034,6 +3034,7 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s ILIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
+      FSQLSpecifities[spRenameColumn] := 'RENAME COLUMN %s TO %s';
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISSchemaCol] := '%s_schema';
@@ -3056,7 +3057,8 @@ begin
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
-      FSQLSpecifities[spChangeColumn] := 'RENAME COLUMN %s TO %s'; // SQLite only supports renaming
+      FSQLSpecifities[spChangeColumn] := ''; // SQLite only supports renaming
+      FSQLSpecifities[spRenameColumn] := 'RENAME COLUMN %s TO %s';
       FSQLSpecifities[spSessionVariables] := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
@@ -3083,6 +3085,7 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spRenameColumn] := '';
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';

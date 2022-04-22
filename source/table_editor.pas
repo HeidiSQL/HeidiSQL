@@ -704,7 +704,9 @@ begin
               // Rename
               if Col.Name <> Col.OldName then begin
                 FinishSpecs;
-                Specs.Add(Format('RENAME COLUMN %s TO %s', [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)]));
+                Specs.Add(
+                  Conn.GetSQLSpecifity(spRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
+                  );
                 FinishSpecs;
               end;
               // Type
@@ -738,7 +740,9 @@ begin
             esModified: begin
               // Rename
               if Col.Name <> Col.OldName then begin
-                Specs.Add(Format(AlterColBase, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)]));
+                Specs.Add(
+                  Conn.GetSQLSpecifity(spRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
+                  );
               end;
             end;
             esAddedUntouched, esAddedModified: begin
