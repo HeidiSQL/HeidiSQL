@@ -1986,7 +1986,7 @@ begin
   FLastQueryNetworkDuration := 0;
   FThreadID := 0;
   FLogPrefix := '';
-  FIsUnicode := False;
+  FIsUnicode := True;
   FIsSSL := False;
   FDatabaseCache := TDatabaseCache.Create(True);
   FColumnCache := TColumnCache.Create;
@@ -2434,6 +2434,9 @@ begin
             Raise;
         end;
       end;
+
+      FIsUnicode := CharacterSet.StartsWith('utf', True);
+      if not IsUnicode then
       try
         CharacterSet := 'utf8mb4';
       except
@@ -2445,7 +2448,7 @@ begin
             Log(lcError, E.Message);
         end;
       end;
-      Log(lcInfo, _('Characterset')+': '+GetCharacterSet);
+      Log(lcInfo, _('Characterset')+': '+CharacterSet);
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
       Status := GetResults(GetSQLSpecifity(spGlobalStatus));
@@ -2579,7 +2582,6 @@ begin
       // CharacterSet := 'utf8';
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
-      FIsUnicode := True;
       FAdoHandle.CommandTimeout := Parameters.QueryTimeout;
       try
         // Gracefully accept failure on MS Azure (SQL Server 11), which does not have a sysprocesses table
@@ -2735,7 +2737,6 @@ begin
     FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
-    FIsUnicode := True;
     Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout*1000));
     try
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
@@ -2788,7 +2789,6 @@ begin
 
     if ConnectResult = SQLITE_OK then begin
       FActive := True;
-      FIsUnicode := True;
       FLib.sqlite3_collation_needed(FHandle, Self, SQLite_CollationNeededCallback);
       Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
       // Override "main" database name with custom one
@@ -2911,7 +2911,6 @@ begin
 
     if FFDHandle.Connected then begin
       FActive := True;
-      FIsUnicode := True;
       //! Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
 
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
@@ -4298,7 +4297,6 @@ end;
 
 function TMySQLConnection.GetCharacterSet: String;
 begin
-  Result := inherited;
   Result := DecodeAPIString(FLib.mysql_character_set_name(FHandle));
 end;
 
@@ -4317,11 +4315,12 @@ var
   Return: Integer;
 begin
   FStatementNum := 0;
+  Log(lcInfo, 'Changing character set from '+CharacterSet+' to '+CharsetName);
   Return := FLib.mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
   if Return <> 0 then
     raise EDbError.Create(LastErrorMsg)
   else
-    FIsUnicode := Pos('utf8', LowerCase(CharsetName)) = 1;
+    FIsUnicode := CharsetName.StartsWith('utf', True);
 end;
 
 
