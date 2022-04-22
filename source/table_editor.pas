@@ -1002,6 +1002,7 @@ begin
     NodeFocus := listColumns.GetLast;
   if Assigned(NodeFocus) then
     SelectNode(listColumns, NodeFocus.Index);
+  listColumns.Repaint; // .Invalidate does not remove nodes immediately
   Modification(Sender);
   ValidateColumnControls;
 end;
