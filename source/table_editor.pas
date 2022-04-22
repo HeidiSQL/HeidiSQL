@@ -212,6 +212,7 @@ type
     FDeletedKeys,
     FDeletedForeignKeys,
     FDeletedCheckConstraints: TStringList;
+    FAlterRestrictedMessageDisplayed: Boolean;
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -253,6 +254,7 @@ begin
   FDeletedCheckConstraints := TStringList.Create;
   FDeletedCheckConstraints.Duplicates := dupIgnore;
   editName.MaxLength := NAME_LEN;
+  FAlterRestrictedMessageDisplayed := False;
 end;
 
 
@@ -1256,6 +1258,20 @@ begin
     // No editing of collation allowed if "Convert data" was checked
     9: Result := not chkCharsetConvert.Checked;
     else Result := True;
+  end;
+
+  // SQLite does not support altering existing columns, except renaming. See issue #1256
+  if ObjectExists and DBObject.Connection.Parameters.IsAnySQLite then begin
+    if Col.Status in [esUntouched, esModified, esDeleted] then begin
+      Result := Result and (Column = 1);
+      if (not Result) and (not FAlterRestrictedMessageDisplayed) then begin
+        MainForm.LogSQL(
+          f_('Altering tables restricted. For details see %s', ['https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes']),
+          lcInfo
+          );
+        FAlterRestrictedMessageDisplayed := True;
+      end;
+    end;
   end;
 end;
 
