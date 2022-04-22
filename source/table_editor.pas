@@ -360,10 +360,11 @@ begin
     // See issue #196
     memoComment.Text := DBObject.Comment;
 
-    rx.Expression := '\b(PARTITION\s+.+)(\*/)';
-    if rx.Exec(DBObject.CreateCode) then
-      SynMemoPartitions.Text := rx.Match[1]
-    else
+    rx.Expression := '\b(PARTITION\s+BY\s+.+)$';
+    if rx.Exec(DBObject.CreateCode) then begin
+      SynMemoPartitions.Text := Trim(rx.Match[1]);
+      SynMemoPartitions.Text := ReplaceRegExpr('\*/$', SynMemoPartitions.Text, '');
+    end else
       SynMemoPartitions.Clear;
 
     FColumns := DBObject.TableColumns;
