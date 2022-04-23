@@ -487,7 +487,7 @@ begin
     on E:EDbError do begin
       Screen.Cursor := crDefault;
       Msg := E.Message;
-      if FConnection.LastErrorCode = 1075 then
+      if FConnection.LastErrorCode = ER_WRONG_AUTO_KEY then
         Msg := Msg + CRLF + CRLF +  f_('Please select the required index for the %s flag.', ['auto_increment']);
       ErrorDialog(Msg);
       ModalResult := mrNone;

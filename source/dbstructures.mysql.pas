@@ -88,6 +88,11 @@ const
   // Equivalent to COLLATION_BINARY, this is what a new driver returns when connected to a pre-4.1 server.
   COLLATION_NONE =  0;
 
+  // Relevant MySQL error codes, taken from include/mysql/server/mysqld_error.h
+  ER_MUST_CHANGE_PASSWORD = 1820;
+  ER_NO_SUCH_THREAD = 1094;
+  ER_NONEXISTING_GRANT = 1141;
+  ER_WRONG_AUTO_KEY = 1075;
 
 type
   PUSED_MEM=^USED_MEM;

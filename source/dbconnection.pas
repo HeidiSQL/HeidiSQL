@@ -2420,7 +2420,7 @@ begin
         ThreadId;
       except
         on E:EDbError do begin
-          if GetLastErrorCode =  1820 then begin
+          if GetLastErrorCode = ER_MUST_CHANGE_PASSWORD then begin
             PasswordChangeDialog := TfrmPasswordChange.Create(Self);
             PasswordChangeDialog.lblHeading.Caption := GetLastErrorMsg;
             PasswordChangeDialog.ShowModal;

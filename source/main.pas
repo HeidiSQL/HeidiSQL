@@ -6520,7 +6520,7 @@ begin
         Conn.Query(Conn.GetSQLSpecifity(spKillProcess, [pid]));
       except
         on E:EDbError do begin
-          if Conn.LastErrorCode <> 1094 then
+          if Conn.LastErrorCode <> ER_NO_SUCH_THREAD then
             if MessageDialog(E.Message, mtError, [mbOK, mbAbort]) = mrAbort then
               break;
         end;
