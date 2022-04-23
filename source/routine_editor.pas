@@ -93,7 +93,7 @@ type
 
 implementation
 
-uses main, dbstructures, grideditlinks;
+uses main, dbstructures, dbstructures.mysql, grideditlinks;
 
 {$R *.dfm}
 

@@ -1373,7 +1373,7 @@ const
 implementation
 
 uses
-  About, printlist, dbstructures, UpdateCheck,
+  About, printlist, dbstructures, dbstructures.mysql, UpdateCheck,
   column_selection, data_sorting, grideditlinks, ExportGrid, jpeg, GIFImg;
 
 
