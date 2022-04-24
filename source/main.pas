@@ -190,6 +190,7 @@ type
     MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
     MainMenuHelp: TMenuItem;
+	FollowForeignKey: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
     menuAbout: TMenuItem;
@@ -198,6 +199,7 @@ type
     PasteItem: TMenuItem;
     StatusBar: TStatusBar;
     ActionList1: TActionList;
+	actFollowForeignKey: TAction;
     actCopy: TAction;
     actPaste: TAction;
     actNewWindow: TAction;
@@ -954,6 +956,7 @@ type
     procedure ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure AnyGridAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure actFollowForeignKeyExecute(Sender: TObject);
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
     procedure actSelectAllExecute(Sender: TObject);
@@ -11248,6 +11251,63 @@ begin
   if (Column = 4) and (vt = ListCommandStats) then begin
     // Only paint bar in percentage column
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), 100, TargetCanvas, CellRect);
+  end;
+end;
+
+
+procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
+var
+  //vt: TVirtualStringTree;
+  CurrentControl: TWinControl;
+  Grid: TVirtualStringTree;
+  TextCopy, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
+  HasNulls: Boolean;
+  ForeignKey: TForeignKey;
+  i: Integer;
+  PDBObj: PDBObject;
+  DBObj: TDBObject;
+  Node: PVirtualNode;
+begin
+  //vt := Sender as TVirtualStringTree;
+  CurrentControl := Screen.ActiveControl;
+  Grid := CurrentControl as TVirtualStringTree;
+  TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+  //RemoveNullChars(TextCopy, HasNulls);
+  //get column name from header
+  FocusedColumnName := Grid.Header.Columns[Grid.FocusedColumn].Text;
+
+  //find foreign key for current column
+  for ForeignKey in ActiveDBObj.TableForeignKeys do begin
+    i := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Grid.FocusedColumn].Text);
+    if i > -1 then begin
+      ForeignColumnName := ForeignKey.ForeignColumns[i];
+      ReferenceTable := ForeignKey.ReferenceTable;
+      break;
+    end;
+  end;
+  // jump to ReferenceTable
+  Node := GetNextNode(ListTables, nil);
+  while Assigned(Node) do begin
+    PDBObj := ListTables.GetNodeData(Node);
+    DBObj := PDBObj^;
+    if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
+      // ShowStatusMsg('--' + DBObj.Database + '.' + DBObj.Name, 0);
+      ActiveDBObj := DBObj;
+      // SetMainTab(tabEditor);
+	  break;
+	end;
+    Node := GetNextNode(ListTables, Node);
+  end;
+
+  // filter to show only rows with 
+  if ForeignColumnName.Length > 0 then begin
+    // Sleep(200);
+    SynMemoFilter.UndoList.AddGroupBreak;
+    // SynMemoFilter.SelectAll;
+    // SynMemoFilter.SelText := ForeignColumnName + ' = "' + StringReplace(TextCopy, ',', '', [rfReplaceAll]) + '"';
+    SynMemoFilter.Text := ForeignColumnName + ' = "' + TextCopy + '"';
+    ToggleFilterPanel(True);
+    actApplyFilterExecute(nil);
   end;
 end;
 

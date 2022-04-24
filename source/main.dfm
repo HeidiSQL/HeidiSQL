@@ -2374,6 +2374,13 @@ object MainForm: TMainForm
       ImageName = 'icons8-close-button'
       OnExecute = actExitApplicationExecute
     end
+    object actFollowForeignKey: TAction
+      Category = 'Various'
+      Caption = 'Follow Foreign Key'
+      Hint = 'Follow foreign key to the linked table'
+      ImageIndex = 61
+      OnExecute = actFollowForeignKeyExecute
+    end
     object actCopy: TAction
       Category = 'Various'
       Caption = '&Copy'
@@ -3785,6 +3792,9 @@ object MainForm: TMainForm
     OnPopup = popupDataGridPopup
     Left = 200
     Top = 248
+    object FollowForeignKey: TMenuItem
+      Action = actFollowForeignKey
+    end
     object Copy3: TMenuItem
       Action = actCopy
     end
