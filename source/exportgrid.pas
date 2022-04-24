@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList,
-  extra_controls, dbstructures, SynRegExpr, System.StrUtils;
+  extra_controls, dbstructures, SynRegExpr, System.StrUtils, System.IOUtils;
 
 type
   TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efTextile, efJiraTextile, efPHPArray, efMarkDown, efJSON);
@@ -274,7 +274,7 @@ begin
   // Be careful about triggering editFilename.OnChange event, as we may have come here from that event!
   if radioOutputFile.Checked then begin
     Filename := ExtractFilePath(editFilename.Text) +
-      ExtractBaseFileName(editFilename.Text) +
+      TPath.GetFileNameWithoutExtension(editFilename.Text) +
       '.' + FormatToFileExtension[ExportFormat];
     if CompareText(Filename, editFilename.Text) <> 0 then
       editFilename.Text := Filename;
@@ -317,7 +317,7 @@ begin
   Dialog := TSaveDialog.Create(Self);
   Filename := GetOutputFilename(editFilename.Text, MainForm.ActiveDbObj);
   Dialog.InitialDir := ExtractFilePath(Filename);
-  Dialog.FileName := ExtractBaseFileName(Filename);
+  Dialog.FileName := TPath.GetFileNameWithoutExtension(Filename);
   Dialog.Filter := '';
   for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do
     Dialog.Filter := Dialog.Filter + FormatToDescription[ef] + ' (*.'+FormatToFileExtension[ef]+')|*.'+FormatToFileExtension[ef]+'|';

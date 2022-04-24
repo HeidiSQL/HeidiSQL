@@ -115,6 +115,7 @@ type
       TimerStatusUpdate: TTimer;
       function GetActiveResultTab: TResultTab;
       procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
+      procedure DirectoryWatchErrorHandler(const Sender: TObject; const ErrorCode: Integer; const ErrorMessage: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
       function LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
       property BindParamsActivated: Boolean read GetBindParamsActivated write SetBindParamsActivated;
@@ -1165,6 +1166,7 @@ type
     procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
       NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
+    procedure TimerRefreshTimer(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1371,7 +1373,7 @@ const
 implementation
 
 uses
-  About, printlist, dbstructures, UpdateCheck,
+  About, printlist, dbstructures, dbstructures.mysql, UpdateCheck,
   column_selection, data_sorting, grideditlinks, ExportGrid, jpeg, GIFImg;
 
 
@@ -1945,7 +1947,7 @@ begin
   QueryTab.filterHelpers := filterQueryHelpers;
   QueryTab.treeHelpers := treeQueryHelpers;
   QueryTab.Memo := SynMemoQuery;
-  QueryTab.MemoLineBreaks := lbsNone;
+  QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
@@ -3247,7 +3249,7 @@ var
   TabCaption: String;
   TabsetColor: TColor;
   Results: TDBQuery;
-  i: Integer;
+  i, HeaderPadding, HeaderLineBreaks: Integer;
 begin
   // Single query or query packet has finished
 
@@ -3290,6 +3292,8 @@ begin
     NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
     NewTab.Grid.Header.Columns.BeginUpdate;
     NewTab.Grid.Header.Columns.Clear;
+    HeaderLineBreaks := 0;
+    HeaderPadding := NewTab.Grid.Header.Height - GetTextHeight(NewTab.Grid.Font);
     for i:=0 to NewTab.Results.ColumnCount-1 do begin
       col := NewTab.Grid.Header.Columns.Add;
       col.Text := NewTab.Results.ColumnNames[i];
@@ -3301,8 +3305,10 @@ begin
         col.ImageIndex := ICONINDEX_UNIQUEKEY
       else if NewTab.Results.ColIsKeyPart(i) then
         col.ImageIndex := ICONINDEX_INDEXKEY;
+      HeaderLineBreaks := Max(HeaderLineBreaks, col.text.CountChar(#10));
     end;
     NewTab.Grid.Header.Columns.EndUpdate;
+    NewTab.Grid.Header.Height := GetTextHeight(NewTab.Grid.Font) * (HeaderLineBreaks+1) + HeaderPadding;
     NewTab.Grid.RootNodeCount := NewTab.Results.RecordCount;
     NewTab.Grid.EndUpdate;
     for i:=0 to NewTab.Grid.Header.Columns.Count-1 do
@@ -4834,7 +4840,7 @@ procedure TMainForm.actSaveSynMemoToTextfileExecute(Sender: TObject);
 var
   Comp: TComponent;
   Memo: TSynMemo;
-  Dialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
 begin
   // Save to textfile, from any TSynMemo (SQL log, "CREATE code" tab in editor, ...)
   Memo := nil;
@@ -4846,13 +4852,18 @@ begin
   else if ActiveControl is TSynMemo then
     Memo := ActiveControl as TSynMemo;
   if Assigned(Memo) then begin
-    Dialog := TSaveDialog.Create(Self);
-    Dialog.Options := Dialog.Options + [ofOverwritePrompt];
-    Dialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-    Dialog.DefaultExt := 'sql';
+    Dialog := TExtFileSaveDialog.Create(Self);
+    Dialog.Options := Dialog.Options + [fdoOverWritePrompt];
+    Dialog.AddFileType('*.sql', _('SQL files'));
+    Dialog.AddFileType('*.*', _('All files'));
+    Dialog.DefaultExtension := 'sql';
+    Dialog.LineBreakIndex := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
     if Dialog.Execute then begin
       Screen.Cursor := crHourGlass;
-      SaveUnicodeFile(Dialog.FileName, Memo.Text);
+      SaveUnicodeFile(
+        Dialog.FileName,
+        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines)
+        );
       Screen.Cursor := crDefault;
     end;
   end else begin
@@ -4866,32 +4877,34 @@ var
   i: Integer;
   CanSave: TModalResult;
   OnlySelection: Boolean;
-  SaveDialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
   QueryTab: TQueryTab;
   DefaultFilename: String;
 begin
   // Save SQL
   CanSave := mrNo;
   QueryTab := QueryTabs.ActiveTab;
-  SaveDialog := TSaveDialog.Create(Self);
+  Dialog := TExtFileSaveDialog.Create(Self);
   DefaultFilename := QueryTab.TabSheet.Caption;
   DefaultFilename := DefaultFilename.Trim([' ', '*']);
-  SaveDialog.FileName := ValidFilename(DefaultFilename);
-  SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+  Dialog.FileName := ValidFilename(DefaultFilename);
+  Dialog.Options := Dialog.Options + [fdoOverwritePrompt];
   if (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet) then begin
-    SaveDialog.InitialDir := AppSettings.DirnameSnippets;
-    SaveDialog.Options := SaveDialog.Options + [ofNoChangeDir];
-    SaveDialog.Title := _('Save snippet');
+    Dialog.DefaultFolder := AppSettings.DirnameSnippets;
+    Dialog.Options := Dialog.Options + [fdoNoChangeDir];
+    Dialog.Title := _('Save snippet');
   end;
-  SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-  SaveDialog.DefaultExt := 'sql';
-  while (CanSave = mrNo) and SaveDialog.Execute do begin
+  Dialog.AddFileType('*.sql', _('SQL files'));
+  Dialog.AddFileType('*.*', _('All files'));
+  Dialog.DefaultExtension := 'sql';
+  Dialog.LineBreakIndex := QueryTab.MemoLineBreaks;
+  while (CanSave = mrNo) and Dialog.Execute do begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
     CanSave := mrYes;
     for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i].MemoFilename = SaveDialog.FileName then begin
-        CanSave := MessageDialog(f_('Overwrite "%s"?', [SaveDialog.FileName]), f_('This file is already open in query tab #%d.', [QueryTabs[i].Number]),
+      if QueryTabs[i].MemoFilename = Dialog.FileName then begin
+        CanSave := MessageDialog(f_('Overwrite "%s"?', [Dialog.FileName]), f_('This file is already open in query tab #%d.', [QueryTabs[i].Number]),
           mtWarning, [mbYes, mbNo, mbCancel]);
         break;
       end;
@@ -4899,17 +4912,18 @@ begin
   end;
   if CanSave = mrYes then begin
     OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
-    QueryTab.SaveContents(SaveDialog.FileName, OnlySelection);
+    QueryTab.MemoLineBreaks := Dialog.LineBreakIndex;
+    QueryTab.SaveContents(Dialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = QueryTab then
         continue;
-      if QueryTabs[i].MemoFilename = SaveDialog.FileName then
+      if QueryTabs[i].MemoFilename = Dialog.FileName then
         QueryTabs[i].Memo.Modified := True;
     end;
     ValidateQueryControls(Sender);
     SetSnippetFilenames;
   end;
-  SaveDialog.Free;
+  Dialog.Free;
 end;
 
 
@@ -6028,6 +6042,7 @@ end;
 procedure TMainForm.DisplayRowCountStats(Sender: TBaseVirtualTree);
 var
   DBObject: TDBObject;
+  ObjInCache: PDBObject;
   IsFiltered, IsLimited: Boolean;
   cap: String;
   RowsTotal: Int64;
@@ -6060,9 +6075,17 @@ begin
         else
           cap := cap + ', ' + FormatNumber(Datagrid.RootNodeCount) + ' '+_('rows match to filter');
       end;
+      // Update cached object reference with new row count, which may enable "Data" option
+      // in table copy dialog. See issue #666
+      if Assigned(DBtree.FocusedNode) then begin
+        ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
+        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then
+          ObjInCache.Rows := RowsTotal;
+      end;
     end;
   end;
   lblDataTop.Caption := cap;
+  lblDataTop.Hint := cap;
 end;
 
 
@@ -6390,8 +6413,8 @@ begin
   actDataOpenUrl.Enabled := (Length(CellText)<SIZE_MB) and ExecRegExpr('^(https?://[^\s]+|www\.\w\S+)$', CellText);
   actUnixTimestampColumn.Enabled := HasConnection and inDataTab and EnableTimestamp;
   actUnixTimestampColumn.Checked := inDataTab and HandleUnixTimestampColumn(Grid, Grid.FocusedColumn);
-  actPreviousResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
-  actNextResult.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
+  actPreviousResult.Enabled := HasConnection and QueryTabs.HasActiveTab and Assigned(QueryTabs.ActiveTab.ActiveResultTab);
+  actNextResult.Enabled := actPreviousResult.Enabled;
 
   // Activate export-options if we're on Data- or Query-tab
   actExportData.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
@@ -6497,7 +6520,7 @@ begin
         Conn.Query(Conn.GetSQLSpecifity(spKillProcess, [pid]));
       except
         on E:EDbError do begin
-          if Conn.LastErrorCode <> 1094 then
+          if Conn.LastErrorCode <> ER_NO_SUCH_THREAD then
             if MessageDialog(E.Message, mtError, [mbOK, mbAbort]) = mrAbort then
               break;
         end;
@@ -6907,6 +6930,14 @@ begin
     ShowStatusMsg('', 4);
   end;
 
+end;
+
+
+procedure TMainForm.TimerRefreshTimer(Sender: TObject);
+begin
+  // Auto-refreshing grid or list. Only if main form is active, to prevent issues like #669
+  if Screen.ActiveForm = Self then
+    actRefresh.Execute;
 end;
 
 
@@ -7420,7 +7451,8 @@ begin
       rx := TRegExpr.Create;
       rx.Expression := '\b(' + QuoteRegExprMetaChars(SelWord) + ')\b';
       rx.ModifierI := True;
-      for i:=Editor.TopLine to Editor.TopLine + Editor.LinesInWindow do begin
+      // Note: TopLine is wrong when lines are soft-wrapped, so we use RowToLine
+      for i:=Editor.RowToLine(Editor.TopLine) to Editor.RowToLine(Editor.TopLine + Editor.LinesInWindow) do begin
         Line := Editor.Lines[i-1];
         if rx.Exec(Line) then while True do begin
           SearchPos := rx.MatchPos[1];
@@ -8561,9 +8593,16 @@ end;
 }
 procedure TMainForm.AnyGridHeaderDraggedOut(Sender: TVTHeader; Column:
     TColumnIndex; DropPosition: TPoint);
+var
+  Remaining: TColumnsArray;
 begin
-  // Hide the draggedout column
-  Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
+  // Hide the draggedout column, if it's not the last one
+  // See also menuToggleAllClick, where hiding all is restricted through the poAllowHideAll option
+  Remaining := Sender.Columns.GetVisibleColumns;
+  if Length(Remaining) > 1 then
+    Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
+  // Dynamic arrays are free'd when their scope ends, so this should not be required:
+  SetLength(Remaining, 0);
 end;
 
 
@@ -9653,7 +9692,16 @@ begin
         TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
         Break;
       end;
-      WalkNode := Sender.NodeParent[WalkNode];
+      try
+        // This crashes in some situations, which I could never reproduce.
+        // See uploaded crash reports and issue #1270.
+        WalkNode := Sender.NodeParent[WalkNode];
+      except
+        on E:EAccessViolation do begin
+          LogSQL('DBtreePaintText, NodeParent: '+E.Message, lcError);
+          Break;
+        end;
+      end;
     end;
   end;
 end;
@@ -11653,6 +11701,7 @@ begin
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
+  QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
   QueryTab.spltHelpers := TSplitter.Create(QueryTab.pnlMemo);
@@ -11764,6 +11813,7 @@ begin
   // Show new tab
   if Sender <> actNewQueryTabNofocus then begin
     SetMainTab(QueryTab.TabSheet);
+    QueryTab.Memo.SetFocus;
   end;
 end;
 
@@ -12372,7 +12422,7 @@ function TMainForm.ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): B
 var
   msg: String;
   Tab: TQueryTab;
-  SaveDialog: TSaveDialog;
+  Dialog: TExtFileSaveDialog;
   MsgButtons: TMsgDlgButtons;
 begin
   Tab := QueryTabs[PageIndex-tabQuery.PageIndex];
@@ -12401,17 +12451,25 @@ begin
   case MessageDialog(_('Modified query'), msg, mtConfirmation, MsgButtons, asPromptSaveFileOnTabClose) of
     mrNo: Result := True;
     mrYes: begin
-      SaveDialog := TSaveDialog.Create(Self);
-      SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
-      SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*';
-      SaveDialog.DefaultExt := 'sql';
-      if Tab.MemoFilename <> '' then
-        Tab.SaveContents(Tab.MemoFilename, False)
-      else if SaveDialog.Execute then
-        Tab.SaveContents(SaveDialog.FileName, False);
-      // The save dialog can be cancelled.
-      Result := not Tab.Memo.Modified;
-      SaveDialog.Free;
+      if Tab.MemoFilename <> '' then begin
+        Tab.SaveContents(Tab.MemoFilename, False);
+        Result := True;
+      end
+      else begin
+        Dialog := TExtFileSaveDialog.Create(Self);
+        Dialog.Options := Dialog.Options + [fdoOverwritePrompt];
+        Dialog.AddFileType('*.sql', _('SQL files'));
+        Dialog.AddFileType('*.*', _('All files'));
+        Dialog.DefaultExtension := 'sql';
+        Dialog.LineBreakIndex := Tab.MemoLineBreaks;
+        if Dialog.Execute then begin
+          Tab.SaveContents(Dialog.FileName, False);
+          Tab.MemoLineBreaks := Dialog.LineBreakIndex;
+        end;
+        // The save dialog can be cancelled.
+        Result := not Tab.Memo.Modified;
+        Dialog.Free;
+      end;
     end;
     else Result := False;
   end;
@@ -14089,6 +14147,7 @@ begin
   DirectoryWatch := TDirectoryWatch.Create;
   DirectoryWatch.WatchSubTree := False;
   DirectoryWatch.OnNotify := DirectoryWatchNotify;
+  DirectoryWatch.OnError := DirectoryWatchErrorHandler;
   // Do not trigger useless file deletion messages, see issue #2948
   DirectoryWatch.WatchActions := DirectoryWatch.WatchActions - [waRemoved];
   // Do not trigger file access. See https://www.heidisql.com/forum.php?t=15500
@@ -14172,6 +14231,12 @@ begin
 
   end;
   FDirectoryWatchNotficationRunning := False;
+end;
+
+
+procedure TQueryTab.DirectoryWatchErrorHandler(const Sender: TObject; const ErrorCode: Integer; const ErrorMessage: string);
+begin
+  MainForm.LogSQL(Format('File watcher (%d): %s', [ErrorCode, ErrorMessage]), lcError);
 end;
 
 
@@ -14259,13 +14324,8 @@ begin
     Text := Memo.SelText
   else
     Text := Memo.Text;
-  LB := '';
-  case MemoLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
+  LB := GetLineBreak(MemoLineBreaks);
+  if LB <> CRLF then
     Text := StringReplace(Text, CRLF, LB, [rfReplaceAll]);
   try
     FileDir := ExtractFilePath(Filename);

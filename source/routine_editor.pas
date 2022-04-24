@@ -93,7 +93,7 @@ type
 
 implementation
 
-uses main, dbstructures, grideditlinks;
+uses main, dbstructures, dbstructures.mysql, grideditlinks;
 
 {$R *.dfm}
 
@@ -147,7 +147,7 @@ begin
   comboDefiner.TextHint := f_('Current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   comboDefiner.Hint := f_('Leave empty for current user (%s)', [Obj.Connection.CurrentUserHostCombination]);
   SynMemoBody.Text := 'BEGIN'+CRLF+CRLF+'END';
-  if DBObject.Name <> '' then begin
+  if ObjectExists then begin
     // Editing existing routine
     DBObject.Connection.ParseRoutineStructure(Obj, Parameters);
     comboReturns.Text := Obj.Returns;
@@ -177,7 +177,7 @@ begin
   btnDiscard.Top := btnSave.Top;
   btnRunProc.Top := btnSave.Top;
   btnRunProc.Left := Width - btnRunProc.Width - 3;
-  Mainform.actRunRoutines.Enabled := DBObject.Name <> '';
+  Mainform.actRunRoutines.Enabled := ObjectExists;
   Mainform.ShowStatusMsg;
   Screen.Cursor := crDefault;
 end;
@@ -459,6 +459,8 @@ var
   TargetExists: Boolean;
 begin
   // Save changes
+  btnSave.Enabled := False;
+  btnDiscard.Enabled := False;
   Result := mrOk;
   case comboType.ItemIndex of
     0: ProcOrFunc := 'PROCEDURE';
@@ -469,7 +471,7 @@ begin
   // Create a temp routine, check for syntax errors, then drop the old routine and create it.
   // See also: http://dev.mysql.com/doc/refman/5.0/en/alter-procedure.html
   try
-    if DBObject.Name <> '' then begin
+    if ObjectExists then begin
       // Create temp name
       i := 0;
       allRoutineNames := DBObject.Connection.GetCol('SELECT ROUTINE_NAME FROM '+DBObject.Connection.QuoteIdent(DBObject.Connection.InfSch)+'.'+DBObject.Connection.QuoteIdent('ROUTINES')+
@@ -510,8 +512,6 @@ begin
     Mainform.UpdateEditorTab;
     Mainform.RefreshTree(DBObject);
     Modified := False;
-    btnSave.Enabled := Modified;
-    btnDiscard.Enabled := Modified;
     Mainform.actRunRoutines.Enabled := True;
   except
     on E:EDbError do begin
@@ -519,6 +519,8 @@ begin
       Result := mrAbort;
     end;
   end;
+  btnSave.Enabled := Modified;
+  btnDiscard.Enabled := Modified;
 end;
 
 

@@ -5,8 +5,8 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
   ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, Clipbrd, Math, System.UITypes,
-  grideditlinks, dbstructures, dbconnection, apphelpers, gnugettext, StrUtils, extra_controls;
+  SynMemo, Menus, Clipbrd, Math, System.UITypes, System.Generics.Collections,
+  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, StrUtils, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -212,6 +212,7 @@ type
     FDeletedKeys,
     FDeletedForeignKeys,
     FDeletedCheckConstraints: TStringList;
+    FAlterRestrictedMessageDisplayed: Boolean;
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -220,6 +221,7 @@ type
     function ComposeAlterStatement: TSQLBatch;
     procedure UpdateSQLcode;
     function CellEditingAllowed(Node: PVirtualNode; Column: TColumnIndex): Boolean;
+    function GetKeyImageIndexes(Col: TTableColumn): TList<Integer>;
     procedure CalcMinColWidth;
     procedure UpdateTabCaptions;
   public
@@ -252,6 +254,7 @@ begin
   FDeletedCheckConstraints := TStringList.Create;
   FDeletedCheckConstraints.Duplicates := dupIgnore;
   editName.MaxLength := NAME_LEN;
+  FAlterRestrictedMessageDisplayed := False;
 end;
 
 
@@ -291,7 +294,7 @@ begin
   treeIndexes.Clear;
   listForeignKeys.Clear;
   listCheckConstraints.Clear;
-  tabALTERcode.TabVisible := DBObject.Name <> '';
+  tabALTERcode.TabVisible := ObjectExists;
   // Clear value editors
   memoComment.Text := '';
   if Obj.Connection.ServerVersionInt < 50503 then
@@ -308,7 +311,7 @@ begin
   comboInsertMethod.ItemIndex := -1;
   SynMemoPartitions.Clear;
 
-  if DBObject.Name = '' then begin
+  if not ObjectExists then begin
     // Creating new table
     editName.Text := '';
     if DBObject.Connection.Parameters.IsAnyMySQL then
@@ -359,10 +362,11 @@ begin
     // See issue #196
     memoComment.Text := DBObject.Comment;
 
-    rx.Expression := '\b(PARTITION\s+.+)(\*/)';
-    if rx.Exec(DBObject.CreateCode) then
-      SynMemoPartitions.Text := rx.Match[1]
-    else
+    rx.Expression := '\b(PARTITION\s+BY\s+.+)$';
+    if rx.Exec(DBObject.CreateCode) then begin
+      SynMemoPartitions.Text := Trim(rx.Match[1]);
+      SynMemoPartitions.Text := ReplaceRegExpr('\*/$', SynMemoPartitions.Text, '');
+    end else
       SynMemoPartitions.Clear;
 
     FColumns := DBObject.TableColumns;
@@ -458,7 +462,7 @@ begin
   // Create or alter table
   Result := mrOk;
 
-  if DBObject.Name = '' then
+  if not ObjectExists then
     Batch := ComposeCreateStatement
   else
     Batch := ComposeAlterStatement;
@@ -466,11 +470,11 @@ begin
     for Query in Batch do
       DBObject.Connection.Query(Query.SQL);
     // Rename table
-    if (DBObject.Name <> '') and (editName.Text <> DBObject.Name) then begin
+    if ObjectExists and (editName.Text <> DBObject.Name) then begin
       Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
       DBObject.Connection.Query(Rename);
     end;
-    tabALTERcode.TabVisible := DBObject.Name <> '';
+    tabALTERcode.TabVisible := ObjectExists;
     if chkCharsetConvert.Checked then begin
       // Autoadjust column collations
       for i:=0 to FColumns.Count-1 do begin
@@ -481,7 +485,7 @@ begin
     // Set table name for altering if Apply was clicked
     DBObject.Name := editName.Text;
     DBObject.UnloadDetails;
-    tabALTERcode.TabVisible := DBObject.Name <> '';
+    tabALTERcode.TabVisible := ObjectExists;
     Mainform.UpdateEditorTab;
     MainForm.tabData.TabVisible := True;
     Mainform.RefreshTree(DBObject);
@@ -656,7 +660,7 @@ begin
 
       case Conn.Parameters.NetTypeGroup of
 
-        ngMySQL, ngSQLite: begin
+        ngMySQL: begin
           ColSpec := Col.SQLCode(OverrideCollation);
           // Server version requirement, see http://dev.mysql.com/doc/refman/4.1/en/alter-table.html
           if Conn.ServerVersionInt >= 40001 then begin
@@ -702,7 +706,9 @@ begin
               // Rename
               if Col.Name <> Col.OldName then begin
                 FinishSpecs;
-                Specs.Add(Format('RENAME COLUMN %s TO %s', [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)]));
+                Specs.Add(
+                  Conn.GetSQLSpecifity(spRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
+                  );
                 FinishSpecs;
               end;
               // Type
@@ -730,6 +736,24 @@ begin
           AddQuery('COMMENT ON COLUMN %s.'+Conn.QuoteIdent(Col.Name)+' IS '+Conn.EscapeString(Col.Comment));
         end;
 
+        ngSQLite: begin
+          ColSpec := Col.SQLCode;
+          case Col.Status of
+            esModified: begin
+              // Rename
+              if Col.Name <> Col.OldName then begin
+                Specs.Add(
+                  Conn.GetSQLSpecifity(spRenameColumn, [Conn.QuoteIdent(Col.OldName), Conn.QuoteIdent(Col.Name)])
+                  );
+              end;
+            end;
+            esAddedUntouched, esAddedModified: begin
+              Specs.Add(Format(AddColBase, [ColSpec]));
+            end;
+          end;
+          FinishSpecs;
+        end;
+
       end;
 
     end;
@@ -741,8 +765,8 @@ begin
   for i:=0 to FColumns.Count-1 do begin
     if FColumns[i].Status = esDeleted then begin
       Specs.Add('DROP COLUMN '+Conn.QuoteIdent(FColumns[i].OldName));
-      // MSSQL wants one ALTER TABLE query per DROP COLUMN
-      if Conn.Parameters.IsAnyMSSQL then
+      // MSSQL + SQLite want one ALTER TABLE query per DROP COLUMN
+      if Conn.Parameters.NetTypeGroup in [ngMSSQL, ngSQLite] then
         FinishSpecs;
     end;
   end;
@@ -980,6 +1004,7 @@ begin
     NodeFocus := listColumns.GetLast;
   if Assigned(NodeFocus) then
     SelectNode(listColumns, NodeFocus.Index);
+  listColumns.Repaint; // .Invalidate does not remove nodes immediately
   Modification(Sender);
   ValidateColumnControls;
 end;
@@ -1063,26 +1088,43 @@ begin
 end;
 
 
+function TfrmTableEditor.GetKeyImageIndexes(Col: TTableColumn): TList<Integer>;
+var
+  idx, i: Integer;
+begin
+  Result := TList<Integer>.Create;
+  for i:=0 to FKeys.Count-1 do begin
+    if FKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
+      idx := FKeys[i].ImageIndex;
+      if not Result.Contains(idx) then
+        Result.Add(idx);
+    end;
+  end;
+  for i:=0 to FForeignKeys.Count-1 do begin
+    if FForeignKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
+      idx := ICONINDEX_FOREIGNKEY;
+      if not Result.Contains(idx) then
+        Result.Add(idx);
+    end;
+  end;
+end;
+
+
 procedure TfrmTableEditor.CalcMinColWidth;
 var
-  i, j, MinWidthThisCol, MinWidthAllCols: Integer;
+  i, MinWidthThisCol, MinWidthAllCols: Integer;
+  ImageIndexes: TList<Integer>;
 begin
-  // Find maximum column widths so the index icons have enough room after auto-fitting
+  // Find maximum width for first column so both the index icons and the text have enough room
   MinWidthAllCols := 0;
   for i:=0 to FColumns.Count-1 do begin
-    MinWidthThisCol := 0;
-    for j:=0 to FKeys.Count-1 do begin
-      if FKeys[j].Columns.IndexOf(FColumns[i].Name) > -1 then
-        Inc(MinWidthThisCol, listColumns.Images.Width);
-    end;
-    for j:=0 to FForeignKeys.Count-1 do begin
-      if FForeignKeys[j].Columns.IndexOf(FColumns[i].Name) > -1 then
-        Inc(MinWidthThisCol, listColumns.Images.Width);
-    end;
+    ImageIndexes := GetKeyImageIndexes(FColumns[i]);
+    MinWidthThisCol := ImageIndexes.Count * listColumns.Images.Width;
     MinWidthAllCols := Max(MinWidthAllCols, MinWidthThisCol);
   end;
-  // Add space for number
-  Inc(MinWidthAllCols, listColumns.Canvas.TextWidth(IntToStr(FColumns.Count+1)) + listColumns.TextMargin*4);
+  // Add room for text and extra spacing
+  Inc(MinWidthAllCols, listColumns.GetMaxColumnWidth(0));
+  Inc(MinWidthAllCols, listColumns.TextMargin);
   listColumns.Header.Columns[0].Width := MinWidthAllCols;
 end;
 
@@ -1095,28 +1137,21 @@ var
   ImageIndex, X, Y, i: Integer;
   VT: TVirtualStringTree;
   Checked: Boolean;
+  ImageIndexes: TList<Integer>;
 begin
   VT := TVirtualStringTree(Sender);
   Col := Sender.GetNodeData(Node);
   Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
 
-  // Paint one icon per index of which this column is part of
+  // Paint one icon per index type of which this column is part of
   if Column = 0 then begin
     X := 0;
-    for i:=0 to FKeys.Count-1 do begin
-      if FKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
-        ImageIndex := FKeys[i].ImageIndex;
-        VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
-        Inc(X, VT.Images.Width);
-      end;
+    ImageIndexes := GetKeyImageIndexes(Col^);
+    for i in ImageIndexes do begin
+      VT.Images.Draw(TargetCanvas, X, Y, i);
+      Inc(X, VT.Images.Width);
     end;
-    for i:=0 to FForeignKeys.Count-1 do begin
-      if FForeignKeys[i].Columns.IndexOf(Col.Name) > -1 then begin
-        ImageIndex := ICONINDEX_FOREIGNKEY;
-        VT.Images.Draw(TargetCanvas, X, Y, ImageIndex);
-        Inc(X, VT.Images.Width);
-      end;
-    end;
+    ImageIndexes.Free;
   end;
 
   // Paint checkbox image in certain columns
@@ -1223,6 +1258,20 @@ begin
     // No editing of collation allowed if "Convert data" was checked
     9: Result := not chkCharsetConvert.Checked;
     else Result := True;
+  end;
+
+  // SQLite does not support altering existing columns, except renaming. See issue #1256
+  if ObjectExists and DBObject.Connection.Parameters.IsAnySQLite then begin
+    if Col.Status in [esUntouched, esModified, esDeleted] then begin
+      Result := Result and (Column = 1);
+      if (not Result) and (not FAlterRestrictedMessageDisplayed) then begin
+        MainForm.LogSQL(
+          f_('Altering tables restricted. For details see %s', ['https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes']),
+          lcInfo
+          );
+        FAlterRestrictedMessageDisplayed := True;
+      end;
+    end;
   end;
 end;
 
@@ -2268,7 +2317,7 @@ end;
 
 procedure TfrmTableEditor.chkCharsetConvertClick(Sender: TObject);
 begin
-  chkCharsetConvert.Enabled := (DBObject.Name <> '') and (comboCollation.ItemIndex > -1);
+  chkCharsetConvert.Enabled := ObjectExists and (comboCollation.ItemIndex > -1);
   listColumns.Repaint;
   Modification(Sender);
 end;

@@ -5,7 +5,7 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
   ExtCtrls,
-  dbconnection, dbstructures, apphelpers, gnugettext, Vcl.ComCtrls;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, gnugettext, Vcl.ComCtrls;
 
 type
   TFrame = TDBObjectEditor;
@@ -215,7 +215,7 @@ var
   sql, ViewName, RenameView: String;
 begin
   // Create or Alter code
-  if DBObject.Name = '' then begin
+  if not ObjectExists then begin
     sql := 'CREATE ';
     ViewName := editName.Text;
   end else begin
@@ -234,7 +234,7 @@ begin
     sql := sql + 'WITH '+Uppercase(rgCheck.Items[rgCheck.ItemIndex])+' CHECK OPTION';
   sql := sql + ';' + sLineBreak;
 
-  if (DBObject.Name <> '') and (DBObject.Name <> editName.Text) then begin
+  if ObjectExists and (DBObject.Name <> editName.Text) then begin
     RenameView := DBObject.Connection.QuoteIdent(editName.Text);
     sql := sql + 'RENAME TABLE '+ViewName + ' TO '+RenameView + ';' + sLineBreak;
   end;

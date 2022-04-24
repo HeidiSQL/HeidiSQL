@@ -1040,7 +1040,6 @@ object MainForm: TMainForm
               AutoSize = False
               Caption = 'Data'
               Layout = tlCenter
-              WordWrap = True
             end
             object tlbDataButtons: TToolBar
               Left = 452
@@ -4092,7 +4091,7 @@ object MainForm: TMainForm
   object TimerRefresh: TTimer
     Enabled = False
     Interval = 5000
-    OnTimer = actRefreshExecute
+    OnTimer = TimerRefreshTimer
     Left = 688
     Top = 197
   end

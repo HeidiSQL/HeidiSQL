@@ -459,56 +459,58 @@ var
   Conn: TDBConnection;
 begin
   // Overtake edited values for current parameter object and save to registry
-  Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
-  Sess.Hostname := editHost.Text;
-  Sess.Username := editUsername.Text;
-  Sess.Password := editPassword.Text;
-  Sess.LoginPrompt := chkLoginPrompt.Checked;
-  Sess.WindowsAuth := chkWindowsAuth.Checked;
-  Sess.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
-  Sess.Port := updownPort.Position;
-  Sess.NetType := SelectedNetType;
-  Sess.Compressed := chkCompressed.Checked;
-  Sess.QueryTimeout := updownQueryTimeout.Position;
-  Sess.KeepAlive := updownKeepAlive.Position;
-  Sess.LocalTimeZone := chkLocalTimeZone.Checked;
-  Sess.FullTableStatus := chkFullTableStatus.Checked;
-  Sess.SessionColor := ColorBoxBackgroundColor.Selected;
-  Sess.LibraryOrProvider := comboLibrary.Text;
-  Sess.AllDatabasesStr := editDatabases.Text;
-  Sess.Comment := memoComment.Text;
-  Sess.StartupScriptFilename := editStartupScript.Text;
-  Sess.SSHExe := comboSSHExe.Text;
-  Sess.SSHHost := editSSHhost.Text;
-  Sess.SSHPort := MakeInt(editSSHport.Text);
-  Sess.SSHUser := editSSHUser.Text;
-  Sess.SSHPassword := editSSHPassword.Text;
-  Sess.SSHTimeout := updownSSHTimeout.Position;
-  Sess.SSHPrivateKey := editSSHPrivateKey.Text;
-  Sess.SSHLocalPort := MakeInt(editSSHlocalport.Text);
-  Sess.WantSSL := chkWantSSL.Checked;
-  Sess.SSLPrivateKey := editSSLPrivateKey.Text;
-  Sess.SSLCertificate := editSSLCertificate.Text;
-  Sess.SSLCACertificate := editSSLCACertificate.Text;
-  Sess.SSLCipher := editSSLCipher.Text;
-  Sess.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
-  Sess.LogFileDdl := chkLogFileDdl.Checked;
-  Sess.LogFileDml := chkLogFileDml.Checked;
-  Sess.LogFilePath := editLogFilePath.Text;
-  Sess.SaveToRegistry;
+  if Assigned(ListSessions.FocusedNode) then begin
+    Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+    Sess.Hostname := editHost.Text;
+    Sess.Username := editUsername.Text;
+    Sess.Password := editPassword.Text;
+    Sess.LoginPrompt := chkLoginPrompt.Checked;
+    Sess.WindowsAuth := chkWindowsAuth.Checked;
+    Sess.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
+    Sess.Port := updownPort.Position;
+    Sess.NetType := SelectedNetType;
+    Sess.Compressed := chkCompressed.Checked;
+    Sess.QueryTimeout := updownQueryTimeout.Position;
+    Sess.KeepAlive := updownKeepAlive.Position;
+    Sess.LocalTimeZone := chkLocalTimeZone.Checked;
+    Sess.FullTableStatus := chkFullTableStatus.Checked;
+    Sess.SessionColor := ColorBoxBackgroundColor.Selected;
+    Sess.LibraryOrProvider := comboLibrary.Text;
+    Sess.AllDatabasesStr := editDatabases.Text;
+    Sess.Comment := memoComment.Text;
+    Sess.StartupScriptFilename := editStartupScript.Text;
+    Sess.SSHExe := comboSSHExe.Text;
+    Sess.SSHHost := editSSHhost.Text;
+    Sess.SSHPort := MakeInt(editSSHport.Text);
+    Sess.SSHUser := editSSHUser.Text;
+    Sess.SSHPassword := editSSHPassword.Text;
+    Sess.SSHTimeout := updownSSHTimeout.Position;
+    Sess.SSHPrivateKey := editSSHPrivateKey.Text;
+    Sess.SSHLocalPort := MakeInt(editSSHlocalport.Text);
+    Sess.WantSSL := chkWantSSL.Checked;
+    Sess.SSLPrivateKey := editSSLPrivateKey.Text;
+    Sess.SSLCertificate := editSSLCertificate.Text;
+    Sess.SSLCACertificate := editSSLCACertificate.Text;
+    Sess.SSLCipher := editSSLCipher.Text;
+    Sess.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
+    Sess.LogFileDdl := chkLogFileDdl.Checked;
+    Sess.LogFileDml := chkLogFileDml.Checked;
+    Sess.LogFilePath := editLogFilePath.Text;
+    Sess.SaveToRegistry;
+
+    // Apply session color (and othher settings) to opened connection(s)
+    for Conn in MainForm.Connections do begin
+      if Conn.Parameters.SessionPath = Sess.SessionPath then begin
+        Conn.Parameters.SessionColor := Sess.SessionColor;
+        MainForm.DBtree.Invalidate;
+      end;
+    end;
+  end;
 
   FSessionModified := False;
   ListSessions.Invalidate;
   RefreshBackgroundColors;
   ValidateControls;
-
-  // Apply session color (and othher settings) to opened connection(s)
-  for Conn in MainForm.Connections do begin
-    if Conn.Parameters.SessionPath = Sess.SessionPath then begin
-      Conn.Parameters.SessionColor := Sess.SessionColor;
-      MainForm.DBtree.Repaint;
-    end;
-  end;
 end;
 
 
@@ -671,6 +673,11 @@ var
   FromReg: PConnectionParameters;
 begin
   // Return non-stored parameters
+  if not Assigned(ListSessions.FocusedNode) then begin
+    Result := nil;
+    Exit;
+  end;
+
   FromReg := ListSessions.GetNodeData(ListSessions.FocusedNode);
   if FromReg.IsFolder then begin
     Result := FromReg^;

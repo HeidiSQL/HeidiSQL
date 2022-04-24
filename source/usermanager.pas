@@ -6,7 +6,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
   ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr, extra_controls,
-  dbconnection, dbstructures, apphelpers, VirtualTrees, Menus, gnugettext;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, VirtualTrees, Menus, gnugettext;
 
 {$I const.inc}
 
@@ -555,7 +555,7 @@ begin
     except
       on E:EDbError do begin
         Msg := E.Message;
-        if FConnection.LastErrorCode = 1141 then begin
+        if FConnection.LastErrorCode = ER_NONEXISTING_GRANT then begin
           // Disable this user node lately, for old server which do not show skip-name-resolve variable
           Msg := Msg + CRLF + CRLF + f_('Starting the server without %s may solve this issue.', ['--skip-name-resolve']);
           User.Problem := upUnknown;

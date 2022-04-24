@@ -3,9 +3,11 @@ unit dbconnection;
 interface
 
 uses
-  Classes, SysUtils, windows, dbstructures, SynRegExpr, Generics.Collections, Generics.Defaults,
+  Classes, SysUtils, Windows, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  gnugettext, AnsiStrings, Controls, Forms, System.IOUtils, generic_types, System.IniFiles,
+  AnsiStrings, Controls, Forms, System.IOUtils, System.IniFiles,
+  SynRegExpr, gnugettext, generic_types,
+  dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
   FireDAC.Stan.Error, FireDAC.UI.Intf, FireDAC.Phys.Intf, FireDAC.Stan.Def,
   FireDAC.Phys, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys.IB,
@@ -413,7 +415,7 @@ type
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId, spDatabaseDrop,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost, spLikeCompare,
-    spAddColumn, spChangeColumn,
+    spAddColumn, spChangeColumn, spRenameColumn,
     spGlobalStatus, spCommandsCounters, spSessionVariables, spGlobalVariables,
     spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
@@ -489,7 +491,7 @@ type
       procedure ApplyIgnoreDatabasePattern(Dbs: TStringList);
       function GetTableEngines: TStringList; virtual;
       function GetCollationTable: TDBQuery; virtual;
-      function GetCollationList: TStringList;
+      function GetCollationList: TStringList; virtual;
       function GetCharsetTable: TDBQuery; virtual;
       function GetCharsetList: TStringList;
       function GetConnectionUptime: Integer;
@@ -738,6 +740,7 @@ type
       function GetLastErrorCode: Cardinal; override;
       function GetLastErrorMsg: String; override;
       function GetAllDatabases: TStringList; override;
+      function GetCollationList: TStringList; override;
       function GetCharsetTable: TDBQuery; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
@@ -1985,7 +1988,7 @@ begin
   FLastQueryNetworkDuration := 0;
   FThreadID := 0;
   FLogPrefix := '';
-  FIsUnicode := False;
+  FIsUnicode := True;
   FIsSSL := False;
   FDatabaseCache := TDatabaseCache.Create(True);
   FColumnCache := TColumnCache.Create;
@@ -2417,7 +2420,7 @@ begin
         ThreadId;
       except
         on E:EDbError do begin
-          if GetLastErrorCode =  1820 then begin
+          if GetLastErrorCode = ER_MUST_CHANGE_PASSWORD then begin
             PasswordChangeDialog := TfrmPasswordChange.Create(Self);
             PasswordChangeDialog.lblHeading.Caption := GetLastErrorMsg;
             PasswordChangeDialog.ShowModal;
@@ -2433,6 +2436,9 @@ begin
             Raise;
         end;
       end;
+
+      FIsUnicode := CharacterSet.StartsWith('utf', True);
+      if not IsUnicode then
       try
         CharacterSet := 'utf8mb4';
       except
@@ -2444,7 +2450,7 @@ begin
             Log(lcError, E.Message);
         end;
       end;
-      Log(lcInfo, _('Characterset')+': '+GetCharacterSet);
+      Log(lcInfo, _('Characterset')+': '+CharacterSet);
       FConnectionStarted := GetTickCount div 1000;
       FServerUptime := -1;
       Status := GetResults(GetSQLSpecifity(spGlobalStatus));
@@ -2578,7 +2584,6 @@ begin
       // CharacterSet := 'utf8';
       // CurCharset := CharacterSet;
       // Log(lcDebug, 'Characterset: '+CurCharset);
-      FIsUnicode := True;
       FAdoHandle.CommandTimeout := Parameters.QueryTimeout;
       try
         // Gracefully accept failure on MS Azure (SQL Server 11), which does not have a sysprocesses table
@@ -2734,7 +2739,6 @@ begin
     FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
     FServerVersionUntouched := GetVar('SELECT VERSION()');
     FConnectionStarted := GetTickCount div 1000;
-    FIsUnicode := True;
     Query('SET statement_timeout TO '+IntToStr(Parameters.QueryTimeout*1000));
     try
       FServerUptime := StrToIntDef(GetVar('SELECT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP - pg_postmaster_start_time())::INTEGER'), -1);
@@ -2787,7 +2791,6 @@ begin
 
     if ConnectResult = SQLITE_OK then begin
       FActive := True;
-      FIsUnicode := True;
       FLib.sqlite3_collation_needed(FHandle, Self, SQLite_CollationNeededCallback);
       Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
       // Override "main" database name with custom one
@@ -2910,7 +2913,6 @@ begin
 
     if FFDHandle.Connected then begin
       FActive := True;
-      FIsUnicode := True;
       //! Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
 
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
@@ -3033,6 +3035,7 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s ILIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
+      FSQLSpecifities[spRenameColumn] := 'RENAME COLUMN %s TO %s';
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISSchemaCol] := '%s_schema';
@@ -3049,13 +3052,14 @@ begin
     end;
     ngSQLite: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
-      FSQLSpecifities[spEmptyTable] := 'TRUNCATE ';
+      FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
       FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
       FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
-      FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spChangeColumn] := ''; // SQLite only supports renaming
+      FSQLSpecifities[spRenameColumn] := 'RENAME COLUMN %s TO %s';
       FSQLSpecifities[spSessionVariables] := 'SELECT null, null'; // Todo: combine "PRAGMA pragma_list" + "PRAGMA a; PRAGMY b; ..."?
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
@@ -3082,6 +3086,7 @@ begin
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := 'CHANGE COLUMN %s %s';
+      FSQLSpecifities[spRenameColumn] := '';
       FSQLSpecifities[spSessionVariables] := 'SHOW VARIABLES';
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
@@ -4294,7 +4299,6 @@ end;
 
 function TMySQLConnection.GetCharacterSet: String;
 begin
-  Result := inherited;
   Result := DecodeAPIString(FLib.mysql_character_set_name(FHandle));
 end;
 
@@ -4313,11 +4317,12 @@ var
   Return: Integer;
 begin
   FStatementNum := 0;
+  Log(lcInfo, 'Changing character set from '+CharacterSet+' to '+CharsetName);
   Return := FLib.mysql_set_character_set(FHandle, PAnsiChar(Utf8Encode(CharsetName)));
   if Return <> 0 then
     raise EDbError.Create(LastErrorMsg)
   else
-    FIsUnicode := Pos('utf8', LowerCase(CharsetName)) = 1;
+    FIsUnicode := CharsetName.StartsWith('utf', True);
 end;
 
 
@@ -5288,6 +5293,14 @@ begin
     Result.Add(c.Col('Collation'));
     c.Next;
   end;
+end;
+
+
+function TSQLiteConnection.GetCollationList: TStringList;
+begin
+  // See https://www.sqlite.org/datatype3.html#collation_sequence_examples
+  Result := TStringList.Create;
+  Result.CommaText := 'nocase,binary,rtrim';
 end;
 
 
@@ -10122,14 +10135,12 @@ end;
 function TDBObject.GetTableColumns: TTableColumnList;
 var
   ColumnsInCache: TTableColumnList;
-  CacheKey: String;
 begin
   // Return columns from table object
-  CacheKey := QuotedDbAndTableName;
-  if not FConnection.FColumnCache.ContainsKey(CacheKey) then begin
-    FConnection.FColumnCache.Add(CacheKey, Connection.GetTableColumns(Self));
+  if not FConnection.FColumnCache.ContainsKey(QuotedDbAndTableName) then begin
+    FConnection.FColumnCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableColumns(Self));
   end;
-  FConnection.FColumnCache.TryGetValue(CacheKey, ColumnsInCache);
+  FConnection.FColumnCache.TryGetValue(QuotedDbAndTableName, ColumnsInCache);
   Result := TTableColumnList.Create;
   Result.Assign(ColumnsInCache);
 end;
@@ -10140,7 +10151,7 @@ var
 begin
   // Return keys from table object
   if not FConnection.FKeyCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FKeyCache.Add(QuotedDbAndTableName, Connection.GetTableKeys(Self));
+    FConnection.FKeyCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableKeys(Self));
   end;
   FConnection.FKeyCache.TryGetValue(QuotedDbAndTableName, KeysInCache);
   Result := TTableKeyList.Create;
@@ -10153,7 +10164,7 @@ var
 begin
   // Return foreign keys from table object
   if not FConnection.FForeignKeyCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.FForeignKeyCache.Add(QuotedDbAndTableName, Connection.GetTableForeignKeys(Self));
+    FConnection.FForeignKeyCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableForeignKeys(Self));
   end;
   FConnection.FForeignKeyCache.TryGetValue(QuotedDbAndTableName, ForeignKeysInCache);
   Result := TForeignKeyList.Create;
@@ -10166,7 +10177,7 @@ var
 begin
   // Return check constraint from table object
   if not FConnection.CheckConstraintCache.ContainsKey(QuotedDbAndTableName) then begin
-    FConnection.CheckConstraintCache.Add(QuotedDbAndTableName, Connection.GetTableCheckConstraints(Self));
+    FConnection.CheckConstraintCache.AddOrSetValue(QuotedDbAndTableName, Connection.GetTableCheckConstraints(Self));
   end;
   FConnection.CheckConstraintCache.TryGetValue(QuotedDbAndTableName, CheckConstraintsInCache);
   Result := TCheckConstraintList.Create;

@@ -107,13 +107,8 @@ var
 begin
   Result := MemoText.Text;
   // Convert linebreaks back to selected
-  LB := '';
-  case FSelectedLineBreaks of
-    lbsUnix: LB := LB_UNIX;
-    lbsMac: LB := LB_MAC;
-    lbsWide: LB := LB_WIDE;
-  end;
-  if LB <> '' then
+  LB := GetLineBreak(FSelectedLineBreaks);
+  if LB <> CRLF then
     Result := StringReplace(Result, CRLF, LB, [rfReplaceAll]);
 end;
 
@@ -368,11 +363,11 @@ end;
 
 
 procedure TfrmTextEditor.btnCancelClick(Sender: TObject);
+var
+  Action: TCloseAction;
 begin
-  if FStopping then
-    Exit;
-  FStopping := True;
-  TCustomVirtualStringTree(Owner).CancelEditNode;
+  Action := caNone;
+  FormClose(Self, Action);
 end;
 
 

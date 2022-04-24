@@ -12,7 +12,7 @@ uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, dbstructures, SynMemo, Menus, WinInet, gnugettext, Themes,
+  dbconnection, dbstructures, dbstructures.mysql, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
   CommCtrl, Winapi.KnownFolders, SynUnicode;
 
@@ -36,6 +36,7 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     protected
+      function ObjectExists: Boolean;
     public
       DBObject: TDBObject;
       constructor Create(AOwner: TComponent); override;
@@ -299,10 +300,10 @@ type
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function fixNewlines(txt: String): String;
+  function GetLineBreak(LineBreakIndex: TLineBreaks): String;
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   function GetShellFolder(FolderId: TGUID): String;
   function ValidFilename(Str: String): String;
-  function ExtractBaseFileName(FileName: String): String;
   function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
   function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
@@ -773,6 +774,16 @@ begin
 end;
 
 
+function GetLineBreak(LineBreakIndex: TLineBreaks): String;
+begin
+  case LineBreakIndex of
+    lbsUnix: Result := LB_UNIX;
+    lbsMac: Result := LB_MAC;
+    else Result := CRLF;
+  end;
+end;
+
+
 {***
   Mangle input text so that SynEdit can load it.
 }
@@ -824,17 +835,6 @@ begin
   for c in TPath.GetInvalidFileNameChars do begin
     Result := StringReplace(Result, c, '_', [rfReplaceAll]);
   end;
-end;
-
-
-function ExtractBaseFileName(FileName: String): String;
-var
-  Ext: String;
-begin
-  // Extract file name without path and file extension
-  FileName := ExtractFileName(FileName);
-  Ext := ExtractFileExt(FileName);
-  Result := Copy(FileName, 1, Length(FileName)-Length(Ext));
 end;
 
 
@@ -1796,6 +1796,11 @@ end;
 procedure TDBObjectEditor.SetModified(Value: Boolean);
 begin
   FModified := Value;
+end;
+
+function TDBObjectEditor.ObjectExists: Boolean;
+begin
+  Result := not DBObject.Name.IsEmpty;
 end;
 
 procedure TDBObjectEditor.Init(Obj: TDBObject);
