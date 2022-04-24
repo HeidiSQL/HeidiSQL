@@ -11260,6 +11260,8 @@ var
   //vt: TVirtualStringTree;
   CurrentControl: TWinControl;
   Grid: TVirtualStringTree;
+  Results: TDBQuery;
+  RowNum: PInt64;
   TextCopy, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
   HasNulls: Boolean;
   ForeignKey: TForeignKey;
@@ -11271,7 +11273,10 @@ begin
   //vt := Sender as TVirtualStringTree;
   CurrentControl := Screen.ActiveControl;
   Grid := CurrentControl as TVirtualStringTree;
-  TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
+  Results := GridResult(Grid);
+  RowNum := Grid.GetNodeData(Grid.FocusedNode);
+  Results.RecNo := RowNum^;
+  TextCopy := Results.Col(Grid.FocusedColumn);
   //RemoveNullChars(TextCopy, HasNulls);
   //get column name from header
   FocusedColumnName := Grid.Header.Columns[Grid.FocusedColumn].Text;
