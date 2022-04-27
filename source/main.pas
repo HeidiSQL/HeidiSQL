@@ -11257,12 +11257,11 @@ end;
 
 procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
 var
-  //vt: TVirtualStringTree;
   CurrentControl: TWinControl;
   Grid: TVirtualStringTree;
   Results: TDBQuery;
   RowNum: PInt64;
-  TextCopy, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
+  FocusedValue, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
   HasNulls: Boolean;
   ForeignKey: TForeignKey;
   i: Integer;
@@ -11270,14 +11269,12 @@ var
   DBObj: TDBObject;
   Node: PVirtualNode;
 begin
-  //vt := Sender as TVirtualStringTree;
   CurrentControl := Screen.ActiveControl;
   Grid := CurrentControl as TVirtualStringTree;
   Results := GridResult(Grid);
   RowNum := Grid.GetNodeData(Grid.FocusedNode);
   Results.RecNo := RowNum^;
-  TextCopy := Results.Col(Grid.FocusedColumn);
-  //RemoveNullChars(TextCopy, HasNulls);
+  FocusedValue := Results.Col(Grid.FocusedColumn);
   //get column name from header
   FocusedColumnName := Grid.Header.Columns[Grid.FocusedColumn].Text;
 
@@ -11290,30 +11287,26 @@ begin
       break;
     end;
   end;
+  if ForeignColumnName = '' then begin
+    LogSQL(f_('Foreign key not found for column "%s"', [FocusedColumnName]), lcInfo);
+	exit;
+  end;
   // jump to ReferenceTable
   Node := GetNextNode(ListTables, nil);
   while Assigned(Node) do begin
     PDBObj := ListTables.GetNodeData(Node);
     DBObj := PDBObj^;
     if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
-      // ShowStatusMsg('--' + DBObj.Database + '.' + DBObj.Name, 0);
       ActiveDBObj := DBObj;
-      // SetMainTab(tabEditor);
 	  break;
 	end;
     Node := GetNextNode(ListTables, Node);
   end;
-
-  // filter to show only rows with 
-  if ForeignColumnName.Length > 0 then begin
-    // Sleep(200);
-    SynMemoFilter.UndoList.AddGroupBreak;
-    // SynMemoFilter.SelectAll;
-    // SynMemoFilter.SelText := ForeignColumnName + ' = "' + StringReplace(TextCopy, ',', '', [rfReplaceAll]) + '"';
-    SynMemoFilter.Text := ForeignColumnName + ' = "' + TextCopy + '"';
-    ToggleFilterPanel(True);
-    actApplyFilterExecute(nil);
-  end;
+  // filter to show only rows linked by the foreign key
+  SynMemoFilter.UndoList.AddGroupBreak;
+  SynMemoFilter.Text := ForeignColumnName + ' = "' + FocusedValue + '"';
+  ToggleFilterPanel(True);
+  actApplyFilter.Execute;
   // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
   AppSettings.SessionPath := GetRegKeyTable;
   AppSettings.WriteString(asFilter, SynMemoFilter.Text);
