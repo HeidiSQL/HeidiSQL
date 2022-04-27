@@ -7704,6 +7704,7 @@ begin
   menuSQLHelpData.Enabled := InDataGrid;
   Refresh3.Enabled := InDataGrid;
   actGridEditFunction.Enabled := CellFocused;
+  actFollowForeignKey.Enabled := InDataGrid;
 
   if not CellFocused then
     Exit;
