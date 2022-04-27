@@ -18,3 +18,4 @@ __recovery
 *.po
 *.res
 out/Backups/*
+out/*
