@@ -11314,6 +11314,9 @@ begin
     ToggleFilterPanel(True);
     actApplyFilterExecute(nil);
   end;
+  // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
+  AppSettings.SessionPath := GetRegKeyTable;
+  AppSettings.WriteString(asFilter, SynMemoFilter.Text);
 end;
 
 
