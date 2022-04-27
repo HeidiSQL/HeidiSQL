@@ -1170,6 +1170,7 @@ type
       NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
+    procedure AnyGridDblClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -10324,6 +10325,12 @@ begin
   UpdateLineCharPanel;
 end;
 
+
+procedure TMainForm.AnyGridDblClick(Sender: TObject);
+begin
+  //if KeyPressed(VK_MENU) then // VK_MENU is Alt key
+    actFollowForeignKey.Execute;
+end;
 
 procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var

@@ -1247,6 +1247,7 @@ object MainForm: TMainForm
             OnChange = AnyGridChange
             OnColumnResize = DataGridColumnResize
             OnCreateEditor = AnyGridCreateEditor
+            OnDblClick = AnyGridDblClick
             OnEditCancelled = AnyGridEditCancelled
             OnEdited = AnyGridEdited
             OnEditing = AnyGridEditing
