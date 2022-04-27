@@ -3794,6 +3794,7 @@ object MainForm: TMainForm
     Top = 248
     object FollowForeignKey: TMenuItem
       Action = actFollowForeignKey
+      ShortCut = 32807
     end
     object Copy3: TMenuItem
       Action = actCopy
