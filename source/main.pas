@@ -190,6 +190,7 @@ type
     MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
     MainMenuHelp: TMenuItem;
+    FollowForeignKey: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
     menuAbout: TMenuItem;
@@ -198,6 +199,7 @@ type
     PasteItem: TMenuItem;
     StatusBar: TStatusBar;
     ActionList1: TActionList;
+    actFollowForeignKey: TAction;
     actCopy: TAction;
     actPaste: TAction;
     actNewWindow: TAction;
@@ -954,6 +956,7 @@ type
     procedure ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure AnyGridAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure actFollowForeignKeyExecute(Sender: TObject);
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
     procedure actSelectAllExecute(Sender: TObject);
@@ -1167,6 +1170,7 @@ type
       NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
+    procedure AnyGridDblClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -7700,6 +7704,7 @@ begin
   menuSQLHelpData.Enabled := InDataGrid;
   Refresh3.Enabled := InDataGrid;
   actGridEditFunction.Enabled := CellFocused;
+  actFollowForeignKey.Enabled := InDataGrid;
 
   if not CellFocused then
     Exit;
@@ -10322,6 +10327,12 @@ begin
 end;
 
 
+procedure TMainForm.AnyGridDblClick(Sender: TObject);
+begin
+  //if KeyPressed(VK_MENU) then // VK_MENU is Alt key
+    actFollowForeignKey.Execute;
+end;
+
 procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   g: TVirtualStringTree;
@@ -11249,6 +11260,64 @@ begin
     // Only paint bar in percentage column
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), 100, TargetCanvas, CellRect);
   end;
+end;
+
+
+procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
+var
+  CurrentControl: TWinControl;
+  Grid: TVirtualStringTree;
+  Results: TDBQuery;
+  RowNum: PInt64;
+  FocusedValue, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
+  HasNulls: Boolean;
+  ForeignKey: TForeignKey;
+  i: Integer;
+  PDBObj: PDBObject;
+  DBObj: TDBObject;
+  Node: PVirtualNode;
+begin
+  CurrentControl := Screen.ActiveControl;
+  Grid := CurrentControl as TVirtualStringTree;
+  Results := GridResult(Grid);
+  RowNum := Grid.GetNodeData(Grid.FocusedNode);
+  Results.RecNo := RowNum^;
+  FocusedValue := Results.Col(Grid.FocusedColumn);
+  //get column name from header
+  FocusedColumnName := Grid.Header.Columns[Grid.FocusedColumn].Text;
+
+  //find foreign key for current column
+  for ForeignKey in ActiveDBObj.TableForeignKeys do begin
+    i := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Grid.FocusedColumn].Text);
+    if i > -1 then begin
+      ForeignColumnName := ForeignKey.ForeignColumns[i];
+      ReferenceTable := ForeignKey.ReferenceTable;
+      break;
+    end;
+  end;
+  if ForeignColumnName = '' then begin
+    LogSQL(f_('Foreign key not found for column "%s"', [FocusedColumnName]), lcInfo);
+	exit;
+  end;
+  // jump to ReferenceTable
+  Node := GetNextNode(ListTables, nil);
+  while Assigned(Node) do begin
+    PDBObj := ListTables.GetNodeData(Node);
+    DBObj := PDBObj^;
+    if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
+      ActiveDBObj := DBObj;
+	  break;
+	end;
+    Node := GetNextNode(ListTables, Node);
+  end;
+  // filter to show only rows linked by the foreign key
+  SynMemoFilter.UndoList.AddGroupBreak;
+  SynMemoFilter.Text := ForeignColumnName + ' = "' + FocusedValue + '"';
+  ToggleFilterPanel(True);
+  actApplyFilter.Execute;
+  // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
+  AppSettings.SessionPath := GetRegKeyTable;
+  AppSettings.WriteString(asFilter, SynMemoFilter.Text);
 end;
 
 
