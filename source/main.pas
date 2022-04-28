@@ -10329,7 +10329,7 @@ end;
 
 procedure TMainForm.AnyGridDblClick(Sender: TObject);
 begin
-  //if KeyPressed(VK_MENU) then // VK_MENU is Alt key
+  if KeyPressed(VK_SHIFT) then
     actFollowForeignKey.Execute;
 end;
 
