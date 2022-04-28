@@ -7679,7 +7679,7 @@ var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
   i: Integer;
-  Col, Value: String;
+  Col, Value, FocusedColumnName: String;
   CellFocused, InDataGrid, HasNullValue, HasNotNullValue: Boolean;
   RowNumber: PInt64;
   Node: PVirtualNode;
@@ -7704,7 +7704,6 @@ begin
   menuSQLHelpData.Enabled := InDataGrid;
   Refresh3.Enabled := InDataGrid;
   actGridEditFunction.Enabled := CellFocused;
-  actFollowForeignKey.Enabled := InDataGrid;
 
   if not CellFocused then
     Exit;
@@ -7850,6 +7849,19 @@ begin
       Act.Caption := StrEllipsis(Act.Hint, 100);
   end;
 
+  if (InDataGrid) then begin
+    //get column name from header
+    FocusedColumnName := Grid.Header.Columns[Grid.FocusedColumn].Text;
+
+    //find foreign key for current column
+    for ForeignKey in ActiveDBObj.TableForeignKeys do begin
+      i := ForeignKey.Columns.IndexOf(FocusedColumnName);
+      if i > -1 then begin
+        actFollowForeignKey.Enabled := True;
+        break;
+      end;
+    end;
+  end;
 end;
 
 
@@ -10329,7 +10341,7 @@ end;
 
 procedure TMainForm.AnyGridDblClick(Sender: TObject);
 begin
-  if KeyPressed(VK_SHIFT) then
+  if actFollowForeignKey.Enabled and KeyPressed(VK_SHIFT) then
     actFollowForeignKey.Execute;
 end;
 
