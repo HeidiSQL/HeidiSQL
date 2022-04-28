@@ -1247,7 +1247,6 @@ object MainForm: TMainForm
             OnChange = AnyGridChange
             OnColumnResize = DataGridColumnResize
             OnCreateEditor = AnyGridCreateEditor
-            OnDblClick = AnyGridDblClick
             OnEditCancelled = AnyGridEditCancelled
             OnEdited = AnyGridEdited
             OnEditing = AnyGridEditing
@@ -2374,13 +2373,6 @@ object MainForm: TMainForm
       ImageIndex = 26
       ImageName = 'icons8-close-button'
       OnExecute = actExitApplicationExecute
-    end
-    object actFollowForeignKey: TAction
-      Category = 'Various'
-      Caption = 'Follow Foreign Key'
-      Hint = 'Follow foreign key to the linked table'
-      ImageIndex = 61
-      OnExecute = actFollowForeignKeyExecute
     end
     object actCopy: TAction
       Category = 'Various'
@@ -3793,10 +3785,6 @@ object MainForm: TMainForm
     OnPopup = popupDataGridPopup
     Left = 200
     Top = 248
-    object FollowForeignKey: TMenuItem
-      Action = actFollowForeignKey
-      ShortCut = 32807
-    end
     object Copy3: TMenuItem
       Action = actCopy
     end
