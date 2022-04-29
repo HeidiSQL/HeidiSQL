@@ -3794,9 +3794,6 @@ object MainForm: TMainForm
     OnPopup = popupDataGridPopup
     Left = 200
     Top = 248
-    object FollowForeignKey: TMenuItem
-      Action = actFollowForeignKey
-    end
     object Copy3: TMenuItem
       Action = actCopy
     end
@@ -3927,6 +3924,9 @@ object MainForm: TMainForm
     end
     object OpenURL1: TMenuItem
       Action = actDataOpenUrl
+    end
+    object FollowForeignKey: TMenuItem
+      Action = actFollowForeignKey
     end
     object N4a: TMenuItem
       Caption = '-'
