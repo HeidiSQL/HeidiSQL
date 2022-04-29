@@ -1170,7 +1170,6 @@ type
       NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
-    procedure AnyGridDblClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -10336,13 +10335,6 @@ begin
   // Ensure "delete row" button state is valid, see issue #624
   ValidateControls(Sender);
   UpdateLineCharPanel;
-end;
-
-
-procedure TMainForm.AnyGridDblClick(Sender: TObject);
-begin
-  if actFollowForeignKey.Enabled and KeyPressed(VK_SHIFT) then
-    actFollowForeignKey.Execute;
 end;
 
 procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
