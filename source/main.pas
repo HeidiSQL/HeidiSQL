@@ -7850,9 +7850,7 @@ begin
   end;
 
   if (InDataGrid) then begin
-    //get column name from header
-    FocusedColumnName := Grid.Header.Columns[Grid.FocusedColumn].Text;
-
+    FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn];
     //find foreign key for current column
     for ForeignKey in ActiveDBObj.TableForeignKeys do begin
       i := ForeignKey.Columns.IndexOf(FocusedColumnName);
@@ -11294,13 +11292,11 @@ begin
   Results := GridResult(Grid);
   RowNum := Grid.GetNodeData(Grid.FocusedNode);
   Results.RecNo := RowNum^;
-  FocusedValue := Results.Col(Grid.FocusedColumn);
-  //get column name from header
-  FocusedColumnName := Grid.Header.Columns[Grid.FocusedColumn].Text;
+  FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn];
 
   //find foreign key for current column
   for ForeignKey in ActiveDBObj.TableForeignKeys do begin
-    i := ForeignKey.Columns.IndexOf(Grid.Header.Columns[Grid.FocusedColumn].Text);
+    i := ForeignKey.Columns.IndexOf(FocusedColumnName);
     if i > -1 then begin
       ForeignColumnName := ForeignKey.ForeignColumns[i];
       ReferenceTable := ForeignKey.ReferenceTable;
@@ -11322,7 +11318,8 @@ begin
 	end;
     Node := GetNextNode(ListTables, Node);
   end;
-  Datatype := ActiveDBObj.TableColumns[Grid.FocusedColumn].DataType;
+  Datatype := Results.DataType(Grid.FocusedColumn);
+  FocusedValue := Results.Col(Grid.FocusedColumn);
   // filter to show only rows linked by the foreign key
   SynMemoFilter.UndoList.AddGroupBreak;
   SynMemoFilter.Text := Results.Connection.QuoteIdent(ForeignColumnName, False) + ActiveDBObj.EscapeString(FocusedValue, Datatype);
