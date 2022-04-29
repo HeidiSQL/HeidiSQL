@@ -11284,12 +11284,12 @@ var
   Results: TDBQuery;
   RowNum: PInt64;
   FocusedValue, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
-  HasNulls: Boolean;
   ForeignKey: TForeignKey;
   i: Integer;
   PDBObj: PDBObject;
   DBObj: TDBObject;
   Node: PVirtualNode;
+  Datatype: TDBDatatype;
 begin
   CurrentControl := Screen.ActiveControl;
   Grid := CurrentControl as TVirtualStringTree;
@@ -11302,7 +11302,7 @@ begin
 
   //find foreign key for current column
   for ForeignKey in ActiveDBObj.TableForeignKeys do begin
-    i := ForeignKey.Columns.IndexOf(DataGrid.Header.Columns[Grid.FocusedColumn].Text);
+    i := ForeignKey.Columns.IndexOf(Grid.Header.Columns[Grid.FocusedColumn].Text);
     if i > -1 then begin
       ForeignColumnName := ForeignKey.ForeignColumns[i];
       ReferenceTable := ForeignKey.ReferenceTable;
@@ -11324,9 +11324,10 @@ begin
 	end;
     Node := GetNextNode(ListTables, Node);
   end;
+  Datatype := ActiveDBObj.TableColumns[Grid.FocusedColumn].DataType;
   // filter to show only rows linked by the foreign key
   SynMemoFilter.UndoList.AddGroupBreak;
-  SynMemoFilter.Text := ForeignColumnName + ' = "' + FocusedValue + '"';
+  SynMemoFilter.Text := Results.Connection.QuoteIdent(ForeignColumnName, False) + '=' + Results.Connection.EscapeString(FocusedValue, Datatype);
   ToggleFilterPanel(True);
   actApplyFilter.Execute;
   // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
