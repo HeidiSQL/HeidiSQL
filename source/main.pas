@@ -190,6 +190,7 @@ type
     MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
     MainMenuHelp: TMenuItem;
+    FollowForeignKey: TMenuItem;
     N1: TMenuItem;
     FileExitItem: TMenuItem;
     menuAbout: TMenuItem;
@@ -198,6 +199,7 @@ type
     PasteItem: TMenuItem;
     StatusBar: TStatusBar;
     ActionList1: TActionList;
+    actFollowForeignKey: TAction;
     actCopy: TAction;
     actPaste: TAction;
     actNewWindow: TAction;
@@ -954,6 +956,7 @@ type
     procedure ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     procedure AnyGridAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure actFollowForeignKeyExecute(Sender: TObject);
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
     procedure actSelectAllExecute(Sender: TObject);
@@ -7675,7 +7678,7 @@ var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
   i: Integer;
-  Col, Value: String;
+  Col, Value, FocusedColumnName: String;
   CellFocused, InDataGrid, HasNullValue, HasNotNullValue: Boolean;
   RowNumber: PInt64;
   Node: PVirtualNode;
@@ -7683,6 +7686,7 @@ var
   IncludedValues: TStringList;
   Act: TAction;
   Datatype: TDBDatatype;
+  ForeignKey: TForeignKey;
 const
   CLPBRD : String = 'CLIPBOARD';
 begin
@@ -7845,6 +7849,18 @@ begin
       Act.Caption := StrEllipsis(Act.Hint, 100);
   end;
 
+  actFollowForeignKey.Enabled := False;
+  if (InDataGrid) then begin
+    FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn];
+    //find foreign key for current column
+    for ForeignKey in ActiveDBObj.TableForeignKeys do begin
+      i := ForeignKey.Columns.IndexOf(FocusedColumnName);
+      if i > -1 then begin
+        actFollowForeignKey.Enabled := True;
+        break;
+      end;
+    end;
+  end;
 end;
 
 
@@ -11249,6 +11265,64 @@ begin
     // Only paint bar in percentage column
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), 100, TargetCanvas, CellRect);
   end;
+end;
+
+
+procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
+var
+  CurrentControl: TWinControl;
+  Grid: TVirtualStringTree;
+  Results: TDBQuery;
+  RowNum: PInt64;
+  FocusedValue, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
+  ForeignKey: TForeignKey;
+  i: Integer;
+  PDBObj: PDBObject;
+  DBObj: TDBObject;
+  Node: PVirtualNode;
+  Datatype: TDBDatatype;
+begin
+  CurrentControl := Screen.ActiveControl;
+  Grid := CurrentControl as TVirtualStringTree;
+  Results := GridResult(Grid);
+  RowNum := Grid.GetNodeData(Grid.FocusedNode);
+  Results.RecNo := RowNum^;
+  FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn];
+
+  //find foreign key for current column
+  for ForeignKey in ActiveDBObj.TableForeignKeys do begin
+    i := ForeignKey.Columns.IndexOf(FocusedColumnName);
+    if i > -1 then begin
+      ForeignColumnName := ForeignKey.ForeignColumns[i];
+      ReferenceTable := ForeignKey.ReferenceTable;
+      break;
+    end;
+  end;
+  if ForeignColumnName = '' then begin
+    LogSQL(f_('Foreign key not found for column "%s"', [FocusedColumnName]), lcInfo);
+	exit;
+  end;
+  // jump to ReferenceTable
+  Node := GetNextNode(ListTables, nil);
+  while Assigned(Node) do begin
+    PDBObj := ListTables.GetNodeData(Node);
+    DBObj := PDBObj^;
+    if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
+      ActiveDBObj := DBObj;
+	  break;
+	end;
+    Node := GetNextNode(ListTables, Node);
+  end;
+  Datatype := Results.DataType(Grid.FocusedColumn);
+  FocusedValue := Results.Col(Grid.FocusedColumn);
+  // filter to show only rows linked by the foreign key
+  SynMemoFilter.UndoList.AddGroupBreak;
+  SynMemoFilter.Text := Results.Connection.QuoteIdent(ForeignColumnName, False) + '=' + Results.Connection.EscapeString(FocusedValue, Datatype);
+  ToggleFilterPanel(True);
+  actApplyFilter.Execute;
+  // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
+  AppSettings.SessionPath := GetRegKeyTable;
+  AppSettings.WriteString(asFilter, SynMemoFilter.Text);
 end;
 
 
