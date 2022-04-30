@@ -11270,26 +11270,24 @@ end;
 
 procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
 var
-  CurrentControl: TWinControl;
-  Grid: TVirtualStringTree;
   Results: TDBQuery;
   RowNum: PInt64;
-  FocusedValue, FocusedColumnName, ForeignColumnName, ReferenceTable: String;
+  FocusedColumnName, ForeignColumnName, ReferenceTable: String;
   ForeignKey: TForeignKey;
   i: Integer;
-  PDBObj: PDBObject;
   DBObj: TDBObject;
-  Node: PVirtualNode;
   Datatype: TDBDatatype;
+  DbObjects: TDBObjectList;
+  Filter: String;
+  Conn: TDBConnection;
 begin
-  CurrentControl := Screen.ActiveControl;
-  Grid := CurrentControl as TVirtualStringTree;
-  Results := GridResult(Grid);
-  RowNum := Grid.GetNodeData(Grid.FocusedNode);
+  Results := GridResult(DataGrid);
+  RowNum := DataGrid.GetNodeData(DataGrid.FocusedNode);
   Results.RecNo := RowNum^;
-  FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn];
+  FocusedColumnName := Results.ColumnOrgNames[DataGrid.FocusedColumn];
+  Conn := Results.Connection;
 
-  //find foreign key for current column
+  // find foreign key for current column
   for ForeignKey in ActiveDBObj.TableForeignKeys do begin
     i := ForeignKey.Columns.IndexOf(FocusedColumnName);
     if i > -1 then begin
@@ -11300,29 +11298,29 @@ begin
   end;
   if ForeignColumnName = '' then begin
     LogSQL(f_('Foreign key not found for column "%s"', [FocusedColumnName]), lcInfo);
-	exit;
+    Exit;
   end;
   // jump to ReferenceTable
-  Node := GetNextNode(ListTables, nil);
-  while Assigned(Node) do begin
-    PDBObj := ListTables.GetNodeData(Node);
-    DBObj := PDBObj^;
+  DbObjects := Conn.GetDBObjects(ActiveDatabase);
+  for DBObj in DbObjects do begin
     if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
       ActiveDBObj := DBObj;
-	  break;
-	end;
-    Node := GetNextNode(ListTables, Node);
+      Break;
+    end;
   end;
-  Datatype := Results.DataType(Grid.FocusedColumn);
-  FocusedValue := Results.Col(Grid.FocusedColumn);
+
+  Datatype := Results.DataType(DataGrid.FocusedColumn);
   // filter to show only rows linked by the foreign key
-  SynMemoFilter.UndoList.AddGroupBreak;
-  SynMemoFilter.Text := Results.Connection.QuoteIdent(ForeignColumnName, False) + '=' + Results.Connection.EscapeString(FocusedValue, Datatype);
+  if DataType.Category in [dtcBinary, dtcSpatial] then
+    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Results.HexValue(DataGrid.FocusedColumn)
+  else
+    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Conn.EscapeString(Results.Col(DataGrid.FocusedColumn));
+  SynMemoFilter.Text := Filter;
   ToggleFilterPanel(True);
   actApplyFilter.Execute;
   // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
   AppSettings.SessionPath := GetRegKeyTable;
-  AppSettings.WriteString(asFilter, SynMemoFilter.Text);
+  AppSettings.WriteString(asFilter, Filter);
 end;
 
 

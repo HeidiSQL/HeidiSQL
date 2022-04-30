@@ -2379,7 +2379,7 @@ object MainForm: TMainForm
       Caption = 'Follow Foreign Key'
       Enabled = False
       Hint = 'Follow foreign key to the linked table'
-      ImageIndex = 61
+      ImageIndex = 136
       OnExecute = actFollowForeignKeyExecute
     end
     object actCopy: TAction
