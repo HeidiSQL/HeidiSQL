@@ -363,6 +363,7 @@ var
   rx: TRegExpr;
   Prompt: TModalResult;
   ReplaceFlags: TReplaceFlags;
+  FocusChangeAllowed: Boolean;
 begin
   // Data grid version of DoSearchReplaceText
   MainForm.ShowStatusMsg(_('Searching ...'));
@@ -383,6 +384,7 @@ begin
   ReplaceFlags := [rfReplaceAll];
   if not (ssoMatchCase in Options) then
     Include(ReplaceFlags, rfIgnoreCase);
+  FocusChangeAllowed := True;
 
   // Init regular expression
   rx := TRegExpr.Create;
@@ -445,6 +447,11 @@ begin
         Inc(MatchCount);
 
         // Set focus on node and column
+        if (Node <> Grid.FocusedNode) and Assigned(Grid.OnFocusChanging) then begin
+          Grid.OnFocusChanging(Grid, Grid.FocusedNode, Node, Grid.FocusedColumn, Column, FocusChangeAllowed);
+          if not FocusChangeAllowed then
+            Break;
+        end;
         SelectNode(Grid, Node, False);
         Grid.FocusedColumn := Column;
 
@@ -485,6 +492,8 @@ begin
     end;
 
     if Match and (not (ssoReplaceAll in Options)) then
+      Break;
+    if not FocusChangeAllowed then
       Break;
 
     if Backwards then
