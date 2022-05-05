@@ -4641,6 +4641,7 @@ begin
     DataLocalNumberFormat := False;
     FSearchReplaceDialog.ShowModal;
     DataLocalNumberFormat := OldDataLocalNumberFormat;
+    ValidateControls(Sender);
   end;
 end;
 
