@@ -3026,11 +3026,17 @@ begin
       BatchStartOffset := FBatch[i].LeftOffset;
       while i < FBatch.Count do begin
         PacketSize := FBatch[i].RightOffset - BatchStartOffset + ((i-FBatchPosition) * 20);
-        if (PacketSize >= MaxAllowedPacket) and (SQL <> '') then begin
-          // TODO: Log('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-FUserQueryOffset)+' queries.', lcDebug);
-          break;
+        if not SQL.IsEmpty then begin
+          if PacketSize >= MaxAllowedPacket then begin
+            // TODO: Log('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-FUserQueryOffset)+' queries.', lcDebug);
+            Break;
+          end
+          else begin
+            // Don't append to the very last query. See issue #1583
+            SQL := SQL + '; ';
+          end;
         end;
-        SQL := SQL + FBatch[i].SQL + ';';
+        SQL := SQL + FBatch[i].SQL;
         Inc(i);
       end;
       FQueriesInPacket := i - FBatchPosition;
