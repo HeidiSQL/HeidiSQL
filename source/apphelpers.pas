@@ -388,6 +388,7 @@ type
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
+  function GetCharsCount(const AStr: String): Integer;
 
 var
   AppSettings: TAppSettings;
@@ -2968,6 +2969,19 @@ begin
     Result := '/'
   else
     Result := '\';
+end;
+
+
+function GetCharsCount(const AStr: String): Integer;
+var
+  P: PWideChar;
+begin
+  Result := 0;
+  P := PWideChar(AStr);
+  while P <> '' do begin
+    Inc(Result);
+    P := CharNextW(P);
+  end;
 end;
 
 
