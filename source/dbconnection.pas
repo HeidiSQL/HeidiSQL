@@ -9314,7 +9314,7 @@ begin
     if not (Datatype(i).Category in [dtcText, dtcBinary]) then
       continue;
     Val := Col(i);
-    if Length(Val) = GRIDMAXDATA then begin
+    if GetCharsCount(Val) = GRIDMAXDATA then begin
       Result := False;
       break;
     end;

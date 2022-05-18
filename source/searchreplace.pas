@@ -343,12 +343,16 @@ begin
   Editor.EndUpdate;
   MainForm.ShowStatusMsg;
 
-  if ssoReplaceAll in Options then
-    MessageDialog(f_('Text "%s" replaced %s times.', [comboSearch.Text, FormatNumber(Occurences)]), mtInformation, [mbOk])
-  else begin
+  if ssoReplaceAll in Options then begin
+    MessageDialog(f_('Text "%s" replaced %s times.', [comboSearch.Text, FormatNumber(Occurences)]), mtInformation, [mbOk]);
+    if Occurences = 0 then
+      ModalResult := mrNone;
+  end else begin
     if (OldCaretXY.Char = Editor.CaretXY.Char) and
-      (OldCaretXY.Line = Editor.CaretXY.Line) then
+      (OldCaretXY.Line = Editor.CaretXY.Line) then begin
       MessageDialog(f_('Text "%s" not found.', [comboSearch.Text]), mtInformation, [mbOk]);
+      ModalResult := mrNone;
+    end;
   end;
 end;
 
@@ -363,6 +367,7 @@ var
   rx: TRegExpr;
   Prompt: TModalResult;
   ReplaceFlags: TReplaceFlags;
+  NodeSelected: Boolean;
 begin
   // Data grid version of DoSearchReplaceText
   MainForm.ShowStatusMsg(_('Searching ...'));
@@ -383,6 +388,7 @@ begin
   ReplaceFlags := [rfReplaceAll];
   if not (ssoMatchCase in Options) then
     Include(ReplaceFlags, rfIgnoreCase);
+  NodeSelected := True;
 
   // Init regular expression
   rx := TRegExpr.Create;
@@ -445,7 +451,9 @@ begin
         Inc(MatchCount);
 
         // Set focus on node and column
-        SelectNode(Grid, Node, False);
+        NodeSelected := SelectNode(Grid, Node, False);
+        if not NodeSelected then
+          Break;
         Grid.FocusedColumn := Column;
 
         // Replace logic
@@ -486,6 +494,8 @@ begin
 
     if Match and (not (ssoReplaceAll in Options)) then
       Break;
+    if not NodeSelected then
+      Break;
 
     if Backwards then
       Node := GetPreviousNode(Grid, Node, SelectedOnly)
@@ -493,13 +503,13 @@ begin
       Node := GetNextNode(Grid, Node, SelectedOnly);
   end;
 
-  if ssoReplaceAll in Options then begin
-    if MatchCount > 0 then
-      MessageDialog(f_('Text "%s" %d times replaced.', [Search, ReplaceCount]), mtInformation, [mbOk])
-    else
-      MessageDialog(f_('Text "%s" not found.', [Search]), mtInformation, [mbOk]);
-  end else if MatchCount = 0 then
+  if (ssoReplaceAll in Options) and (MatchCount > 0) then begin
+    MessageDialog(f_('Text "%s" %d times replaced.', [Search, ReplaceCount]), mtInformation, [mbOk])
+  end;
+  if MatchCount = 0 then begin
     MessageDialog(f_('Text "%s" not found.', [Search]), mtInformation, [mbOk]);
+    ModalResult := mrNone;
+  end;
 
   MainForm.ShowStatusMsg;
 end;

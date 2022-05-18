@@ -2374,6 +2374,14 @@ object MainForm: TMainForm
       ImageName = 'icons8-close-button'
       OnExecute = actExitApplicationExecute
     end
+    object actFollowForeignKey: TAction
+      Category = 'Various'
+      Caption = 'Follow Foreign Key'
+      Enabled = False
+      Hint = 'Follow foreign key to the linked table'
+      ImageIndex = 136
+      OnExecute = actFollowForeignKeyExecute
+    end
     object actCopy: TAction
       Category = 'Various'
       Caption = '&Copy'
@@ -3915,6 +3923,9 @@ object MainForm: TMainForm
     end
     object OpenURL1: TMenuItem
       Action = actDataOpenUrl
+    end
+    object FollowForeignKey: TMenuItem
+      Action = actFollowForeignKey
     end
     object N4a: TMenuItem
       Caption = '-'

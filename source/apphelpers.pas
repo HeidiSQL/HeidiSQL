@@ -332,8 +332,8 @@ type
   function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
-  procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
-  procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True); overload;
+  function SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
+  function SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
   procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
   procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
   function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
@@ -388,6 +388,7 @@ type
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
+  function GetCharsCount(const AStr: String): Integer;
 
 var
   AppSettings: TAppSettings;
@@ -1455,31 +1456,39 @@ begin
 end;
 
 
-procedure SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil); overload;
+function SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
 var
   Node: PVirtualNode;
 begin
   // Helper to focus and highlight a node by its index
   Node := FindNode(VT, idx, ParentNode);
   if Assigned(Node) then
-    SelectNode(VT, Node);
+    Result := SelectNode(VT, Node)
+  else
+    Result := False;
 end;
 
 
-procedure SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True); overload;
+function SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
 var
   OldFocus: PVirtualNode;
 begin
   if Node = VT.RootNode then
     Node := nil;
   OldFocus := VT.FocusedNode;
-  if ClearSelection then
-    VT.ClearSelection;
-  VT.FocusedNode := Node;
-  VT.Selected[Node] := True;
-  VT.ScrollIntoView(Node, False);
-  if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
-    VT.OnFocusChanged(VT, Node, VT.Header.MainColumn);
+  Result := True;
+  if (Node <> OldFocus) and Assigned(VT.OnFocusChanging) then begin
+    VT.OnFocusChanging(VT, OldFocus, Node, VT.FocusedColumn, VT.FocusedColumn, Result);
+  end;
+  if Result then begin
+    if ClearSelection then
+      VT.ClearSelection;
+    VT.FocusedNode := Node;
+    VT.Selected[Node] := True;
+    VT.ScrollIntoView(Node, False);
+    if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
+      VT.OnFocusChanged(VT, Node, VT.Header.MainColumn);
+  end;
 end;
 
 
@@ -2963,6 +2972,19 @@ begin
 end;
 
 
+function GetCharsCount(const AStr: String): Integer;
+var
+  P: PWideChar;
+begin
+  Result := 0;
+  P := PWideChar(AStr);
+  while P <> '' do begin
+    Inc(Result);
+    P := CharNextW(P);
+  end;
+end;
+
+
 { Threading stuff }
 
 constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
@@ -3018,11 +3040,17 @@ begin
       BatchStartOffset := FBatch[i].LeftOffset;
       while i < FBatch.Count do begin
         PacketSize := FBatch[i].RightOffset - BatchStartOffset + ((i-FBatchPosition) * 20);
-        if (PacketSize >= MaxAllowedPacket) and (SQL <> '') then begin
-          // TODO: Log('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-FUserQueryOffset)+' queries.', lcDebug);
-          break;
+        if not SQL.IsEmpty then begin
+          if PacketSize >= MaxAllowedPacket then begin
+            // TODO: Log('Limiting batch packet size to '+FormatByteNumber(Length(SQL))+' with '+FormatNumber(i-FUserQueryOffset)+' queries.', lcDebug);
+            Break;
+          end
+          else begin
+            // Don't append to the very last query. See issue #1583
+            SQL := SQL + '; ';
+          end;
         end;
-        SQL := SQL + FBatch[i].SQL + ';';
+        SQL := SQL + FBatch[i].SQL;
         Inc(i);
       end;
       FQueriesInPacket := i - FBatchPosition;
