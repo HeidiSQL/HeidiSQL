@@ -1129,7 +1129,7 @@ type
     procedure actGotoFilterExecute(Sender: TObject);
     procedure actGotoTabNumberExecute(Sender: TObject);
     procedure StatusBarClick(Sender: TObject);
-    procedure SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
+    procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     procedure filterQueryHelpersChange(Sender: TObject);
@@ -7381,7 +7381,7 @@ begin
 end;
 
 
-procedure TMainForm.SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
+procedure TMainForm.AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 var
   Editor: TSynEdit;
@@ -7399,6 +7399,7 @@ begin
     NewFontSize := Max(NewFontSize, 1);
     AppSettings.ResetPath;
     AppSettings.WriteInt(asFontSize, NewFontSize);
+    Editor.Font.Size := NewFontSize;
     SetupSynEditors;
     Handled := True;
   end else begin

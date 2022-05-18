@@ -218,6 +218,8 @@ begin
 
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
+
+  MemoText.OnMouseWheel := MainForm.AnySynMemoMouseWheel;
 end;
 
 
