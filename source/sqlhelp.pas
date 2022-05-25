@@ -273,7 +273,7 @@ begin
   pnlLeft.Width := AppSettings.ReadIntDpiAware(asSQLHelpPnlLeftWidth, Self);
   memoDescription.Height := AppSettings.ReadIntDpiAware(asSQLHelpPnlRightTopHeight, Self);
   // Apply themed colors in OnShow, not OnCreate, as a check with <> nil returns false otherwise
-  MainForm.SetupSynEditors;
+  MainForm.SetupSynEditors(Self);
   // These SynMemo's don't have any (SQL) highligher, so we have to assign correct colors for basic text
   memoDescription.Font.Color := GetThemeColor(clWindowText);
   MemoExample.Font.Color := GetThemeColor(clWindowText);

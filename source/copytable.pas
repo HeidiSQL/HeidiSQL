@@ -67,7 +67,7 @@ const
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
-  MainForm.SetupSynEditors;
+  MainForm.SetupSynEditors(Self);
   FixVT(TreeElements);
 end;
 

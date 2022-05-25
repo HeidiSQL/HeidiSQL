@@ -120,7 +120,7 @@ begin
 
   // Invoke SQL preview
   Modified(Sender);
-  MainForm.SetupSynEditors;
+  MainForm.SetupSynEditors(Self);
 end;
 
 

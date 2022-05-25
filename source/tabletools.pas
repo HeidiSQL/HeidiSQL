@@ -377,7 +377,7 @@ begin
   if comboBulkTableEditCharset.Items.Count > 0 then
     comboBulkTableEditCharset.ItemIndex := 0;
 
-  MainForm.SetupSynEditors;
+  MainForm.SetupSynEditors(Self);
   MainForm.SynCompletionProposal.AddEditor(SynMemoFindText);
   ValidateControls(Sender);
 end;
