@@ -12760,7 +12760,7 @@ begin
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
   // Shortcuts
-  Editor.Keystrokes := BaseEditor.KeyStrokes;
+  //Editor.Keystrokes := BaseEditor.KeyStrokes;
 end;
 
 
