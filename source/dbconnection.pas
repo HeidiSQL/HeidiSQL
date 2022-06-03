@@ -2437,7 +2437,9 @@ begin
         end;
       end;
 
-      FIsUnicode := CharacterSet.StartsWith('utf', True);
+      // mysql_character_set_name() from libmysql.dll reports utf8* if in fact we're on some latin* charset
+      // See https://www.heidisql.com/forum.php?t=39278
+      FIsUnicode := CharacterSet.StartsWith('utf', True) and (not FParameters.LibraryOrProvider.StartsWith('libmysql', True));
       if not IsUnicode then
       try
         CharacterSet := 'utf8mb4';
