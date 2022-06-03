@@ -12759,8 +12759,10 @@ begin
   if Editor <> SynMemoSQLLog then begin
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
-  // Shortcuts
-  //Editor.Keystrokes := BaseEditor.KeyStrokes;
+  // Don't reapply shortcuts to base editor again, see issue 1600
+  if Editor <> BaseEditor then begin
+    Editor.Keystrokes := BaseEditor.KeyStrokes;
+  end;
 end;
 
 
