@@ -5920,16 +5920,20 @@ begin
           NewKey.IndexType := TTableKey.UNIQUE
         else if CompareText(KeyQuery.Col('Index_type'), TTableKey.FULLTEXT) = 0 then
           NewKey.IndexType := TTableKey.FULLTEXT
+        else if CompareText(KeyQuery.Col('Index_type'), TTableKey.SPATIAL) = 0 then
+          NewKey.IndexType := TTableKey.SPATIAL
         else
           NewKey.IndexType := TTableKey.KEY;
-        // Todo: spatial keys
         NewKey.OldIndexType := NewKey.IndexType;
         if ExecRegExpr('(BTREE|HASH)', KeyQuery.Col('Index_type')) then
           NewKey.Algorithm := KeyQuery.Col('Index_type');
         NewKey.Comment := KeyQuery.Col('Index_comment', True);
       end;
       NewKey.Columns.Add(KeyQuery.Col('Column_name'));
-      NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
+      if NewKey.IndexType = TTableKey.SPATIAL then
+        NewKey.SubParts.Add('') // Prevent "Incorrect prefix key"
+      else
+        NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
       KeyQuery.Next;
     end;
     KeyQuery.Free;
