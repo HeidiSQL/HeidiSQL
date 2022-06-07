@@ -691,7 +691,7 @@ begin
   updownGridRowsLineCount.Position := AppSettings.ReadInt(asGridRowLineCount);
 
   // SQL:
-  Mainform.SetupSynEditors;
+  Mainform.SetupSynEditor(SynMemoSQLSample);
   comboSQLFontName.ItemIndex := comboSQLFontName.Items.IndexOf(SynMemoSQLSample.Font.Name);
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;

@@ -1317,7 +1317,7 @@ object MainForm: TMainForm
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
               OnKeyPress = SynMemoQueryKeyPress
-              OnMouseWheel = SynMemoQueryMouseWheel
+              OnMouseWheel = AnySynMemoMouseWheel
               CodeFolding.GutterShapeSize = 11
               CodeFolding.CollapsedLineColor = clGrayText
               CodeFolding.FolderBarLinesColor = clGrayText

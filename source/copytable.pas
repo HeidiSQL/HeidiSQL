@@ -67,7 +67,7 @@ const
 procedure TCopyTableForm.FormCreate(Sender: TObject);
 begin
   HasSizeGrip := True;
-  MainForm.SetupSynEditors;
+  MainForm.SetupSynEditors(Self);
   FixVT(TreeElements);
 end;
 
@@ -479,10 +479,8 @@ begin
     if InsertCode <> '' then
       FConnection.Query(InsertCode);
     // actRefresh takes care of whether the table editor is open
-    if FConnection.Database = comboDatabase.Text then
-      MainForm.actRefresh.Execute
-    else
-      FConnection.ClearDbObjects(comboDatabase.Text);
+    // See also issue #1597
+    MainForm.actRefresh.Execute
   except
     on E:EDbError do begin
       Screen.Cursor := crDefault;

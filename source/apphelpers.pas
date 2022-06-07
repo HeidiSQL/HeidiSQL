@@ -11,7 +11,7 @@ interface
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
   Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
-  Registry, DateUtils, Generics.Collections, StrUtils, AnsiStrings, TlHelp32, Types,
+  Registry, DateUtils, Generics.Collections, System.Contnrs, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, dbstructures, dbstructures.mysql, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
   CommCtrl, Winapi.KnownFolders, SynUnicode;
@@ -388,8 +388,8 @@ type
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
-  function GetCharsCount(const AStr: String): Integer;
-
+  function StrHasNumChars(const AStr: String; NumChars: Cardinal): Boolean;
+  procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
 var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
@@ -2972,17 +2972,35 @@ begin
 end;
 
 
-function GetCharsCount(const AStr: String): Integer;
+function StrHasNumChars(const AStr: String; NumChars: Cardinal): Boolean;
 var
   P: PWideChar;
+  _NumChars: Cardinal;
 begin
-  Result := 0;
+  _NumChars := 0;
   P := PWideChar(AStr);
   while P <> '' do begin
-    Inc(Result);
+    Inc(_NumChars);
+    if _NumChars > NumChars then
+      Break;
     P := CharNextW(P);
   end;
+  Result := _NumChars = NumChars;
 end;
+
+
+procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
+var
+  i: Integer;
+begin
+  for i:=0 to BaseForm.ComponentCount-1 do begin
+    if BaseForm.Components[i] is ClassType then
+      List.Add(BaseForm.Components[i] as ClassType)
+    else
+      FindComponentInstances(BaseForm.Components[i], ClassType, List);
+  end;
+end;
+
 
 
 { Threading stuff }

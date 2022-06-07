@@ -1129,7 +1129,7 @@ type
     procedure actGotoFilterExecute(Sender: TObject);
     procedure actGotoTabNumberExecute(Sender: TObject);
     procedure StatusBarClick(Sender: TObject);
-    procedure SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
+    procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     procedure filterQueryHelpersChange(Sender: TObject);
@@ -1230,6 +1230,8 @@ type
     FActionList1DefaultHints: TStringList;
     FEditorCommandStrings: TStringList;
     FLastSelWordInEditor: String;
+    FMatchingBraceForegroundColor: TColor;
+    FMatchingBraceBackgroundColor: TColor;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1293,8 +1295,6 @@ type
     SelectedTableForeignKeys: TForeignKeyList;
     SelectedTableTimestampColumns: TStringList;
     FilterPanelManuallyOpened: Boolean;
-    MatchingBraceForegroundColor,
-    MatchingBraceBackgroundColor: TColor;
 
     // Task button interface
     TaskbarList: ITaskbarList;
@@ -1332,7 +1332,9 @@ type
     procedure UpdateEditorTab;
     procedure SetWindowCaption;
     procedure DefaultHandler(var Message); override;
-    procedure SetupSynEditors;
+    procedure SetupSynEditors; overload;
+    procedure SetupSynEditors(BaseForm: TComponent); overload;
+    procedure SetupSynEditor(Editor: TSynMemo);
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
     procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
     function GetEncodingByName(Name: String): TEncoding;
@@ -1356,6 +1358,8 @@ type
     property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
     function SelectedTableFocusedColumn: TTableColumn;
     property FormatSettings: TFormatSettings read FFormatSettings;
+    property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
+    property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
 end;
 
 
@@ -7381,7 +7385,7 @@ begin
 end;
 
 
-procedure TMainForm.SynMemoQueryMouseWheel(Sender: TObject; Shift: TShiftState;
+procedure TMainForm.AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 var
   Editor: TSynEdit;
@@ -7399,6 +7403,7 @@ begin
     NewFontSize := Max(NewFontSize, 1);
     AppSettings.ResetPath;
     AppSettings.WriteInt(asFontSize, NewFontSize);
+    Editor.Font.Size := NewFontSize;
     SetupSynEditors;
     Handled := True;
   end else begin
@@ -7433,7 +7438,7 @@ const
 begin
   if not MainFormCreated then
     Exit;
-  if (MatchingBraceBackgroundColor = clNone) and (MatchingBraceForegroundColor = clNone) then
+  if (FMatchingBraceBackgroundColor = clNone) and (FMatchingBraceForegroundColor = clNone) then
     Exit;
   Editor := TSynEdit(Sender);
   // Check for Editor.GetTextLen causes some endless loop in SynEdit.
@@ -7469,8 +7474,8 @@ begin
             //logsql(SelWord+': '+Attri.FriendlyName);
             Canvas.Font.Style := Attri.Style;
             // Todo: check if we need to handle TransientType ttAfter and ttBefore
-            Canvas.Font.Color:= MatchingBraceForegroundColor;
-            Canvas.Brush.Color:= MatchingBraceBackgroundColor;
+            Canvas.Font.Color:= FMatchingBraceForegroundColor;
+            Canvas.Brush.Color:= FMatchingBraceBackgroundColor;
             if Canvas.Font.Color = clNone then
               Canvas.Font.Color := Editor.Font.Color;
             if Canvas.Brush.Color = clNone then
@@ -11637,7 +11642,7 @@ begin
   if not Assigned(ActiveObjectEditor) then begin
     ActiveObjectEditor := EditorClass.Create(tabEditor);
     ActiveObjectEditor.Parent := tabEditor;
-    MainForm.SetupSynEditors;
+    SetupSynEditors(ActiveObjectEditor);
   end;
   ActiveObjectEditor.Init(Obj);
   UpdateFilterPanel(Self);
@@ -11881,7 +11886,7 @@ begin
   QueryTab.tabsetQuery.OnMouseMove := tabsetQuery.OnMouseMove;
   QueryTab.tabsetQuery.OnMouseLeave := tabsetQuery.OnMouseLeave;
 
-  SetupSynEditors;
+  SetupSynEditor(QueryTab.Memo);
 
   // Show new tab
   if Sender <> actNewQueryTabNofocus then begin
@@ -12629,25 +12634,14 @@ procedure TMainform.SetupSynEditors;
 var
   i, j: Integer;
   Editors: TObjectList;
-  BaseEditor, Editor: TSynMemo;
+  BaseEditor: TSynMemo;
   KeyStroke: TSynEditKeyStroke;
-  ActiveLineColor: TColor;
   Attri: TSynHighlighterAttributes;
   Shortcut1, Shortcut2: TShortcut;
-
-  procedure FindEditors(Comp: TComponent);
-  var i: Integer;
-  begin
-    for i:=0 to Comp.ComponentCount-1 do begin
-      if Comp.Components[i] is TSynMemo then
-        Editors.Add(Comp.Components[i]);
-      FindEditors(Comp.Components[i]);
-    end;
-  end;
-
 begin
-  // Restore font, highlighter and shortcuts for each instantiated TSynMemo
-  Editors := TObjectList.Create;
+  // Setup all known TSynMemo's
+  // This version includes global settings for keyboard shortcut, highlighting and completion proposal
+  Editors := TObjectList.Create(False);
   BaseEditor := SynMemoQuery;
   for i:=0 to QueryTabs.Count-1 do
     Editors.Add(QueryTabs[i].Memo);
@@ -12655,7 +12649,7 @@ begin
   Editors.Add(SynMemoProcessView);
   Editors.Add(SynMemoSQLLog);
   if Assigned(ActiveObjectEditor) then
-    FindEditors(ActiveObjectEditor);
+    FindComponentInstances(ActiveObjectEditor, TSynMemo, Editors);
   if Assigned(frmPreferences) then
     Editors.Add(frmPreferences.SynMemoSQLSample);
   if Assigned(FCreateDatabaseDialog) then
@@ -12673,67 +12667,37 @@ begin
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
   else
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
-  ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
-  MatchingBraceForegroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
-  MatchingBraceBackgroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
+  FMatchingBraceForegroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
+  FMatchingBraceBackgroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
 
-  for i:=0 to Editors.Count-1 do begin
-    Editor := Editors[i] as TSynMemo;
-    LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
-    Editor.Color := GetThemeColor(clWindow);
-    Editor.ScrollHintColor := GetThemeColor(clInfoBk);
-    Editor.Font.Name := AppSettings.ReadString(asFontName);
-    Editor.Font.Size := AppSettings.ReadInt(asFontSize);
-    Editor.Gutter.BorderColor := GetThemeColor(clWindow);
-    Editor.Gutter.Font.Name := Editor.Font.Name;
-    Editor.Gutter.Font.Size := Editor.Font.Size;
-    Editor.Gutter.Font.Color := BaseEditor.Gutter.Font.Color;
-    Editor.Gutter.AutoSize := BaseEditor.Gutter.AutoSize;
-    Editor.Gutter.DigitCount := BaseEditor.Gutter.DigitCount;
-    Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
-    Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
-    Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
-    if Editor <> SynMemoSQLLog then begin
-      Editor.WordWrap := actQueryWordWrap.Checked;
-      // Assignment of OnScanForFoldRanges event is required for UseCodeFolding
-      Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;
-      Editor.UseCodeFolding := actCodeFolding.Checked;
-    end;
-    Editor.ActiveLineColor := ActiveLineColor;
-    Editor.Options := BaseEditor.Options;
-    if Editor = SynMemoSQLLog then
-      Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
-    Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
-    Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
-    Editor.WantTabs := BaseEditor.WantTabs;
-    Editor.OnKeyPress := BaseEditor.OnKeyPress;
-    if Editor <> SynMemoSQLLog then begin
-      Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
-    end;
-    // Shortcuts
-    if Editor = BaseEditor then for j:=0 to Editor.Keystrokes.Count-1 do begin
-      KeyStroke := Editor.Keystrokes[j];
-      Shortcut1 := AppSettings.ReadInt(asActionShortcut1, EditorCommandToCodeString(Keystroke.Command));
-      Shortcut2 := AppSettings.ReadInt(asActionShortcut2, EditorCommandToCodeString(Keystroke.Command));
-      try
-        if Shortcut1<>0 then
-          Keystroke.ShortCut := Shortcut1;
-        if Shortcut2<>0 then
-          Keystroke.ShortCut2 := Shortcut2;
-      except
-        on E:ESynKeyError do begin
-          LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to Tools > Preferences > Shortcuts to change this settings.',
-            [ShortCutToText(Shortcut1), ShortCutToText(Shortcut2), EditorCommandToCodeString(Keystroke.Command), E.Message, _('Tools'), _('Preferences'), _('Shortcuts')]), lcError);
-        end;
+  // Shortcuts
+  for j:=0 to BaseEditor.Keystrokes.Count-1 do begin
+    KeyStroke := BaseEditor.Keystrokes[j];
+    Shortcut1 := AppSettings.ReadInt(asActionShortcut1, EditorCommandToCodeString(Keystroke.Command));
+    Shortcut2 := AppSettings.ReadInt(asActionShortcut2, EditorCommandToCodeString(Keystroke.Command));
+    try
+      if Shortcut1<>0 then
+        Keystroke.ShortCut := Shortcut1;
+      if Shortcut2<>0 then
+        Keystroke.ShortCut2 := Shortcut2;
+    except
+      on E:ESynKeyError do begin
+        LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to Tools > Preferences > Shortcuts to change this settings.',
+          [ShortCutToText(Shortcut1), ShortCutToText(Shortcut2), EditorCommandToCodeString(Keystroke.Command), E.Message, _('Tools'), _('Preferences'), _('Shortcuts')]), lcError);
       end;
-    end else
-      Editor.Keystrokes := BaseEditor.KeyStrokes;
+    end;
   end;
+  // Apply events and options to all known editors
+  for i:=0 to Editors.Count-1 do begin
+    SetupSynEditor(Editors[i] as TSynMemo);
+  end;
+  Editors.Free;
   // Highlighting
   for i:=0 to SynSQLSynUsed.AttrCount - 1 do begin
     Attri := SynSQLSynUsed.Attribute[i];
     Attri.Foreground := AppSettings.ReadInt(asHighlighterForeground, Attri.Name, Attri.Foreground);
     Attri.Background := AppSettings.ReadInt(asHighlighterBackground, Attri.Name, Attri.Background);
+    // IntegerStyle gathers all font styles (bold, italic, ...) in one number
     Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.Name, Attri.IntegerStyle);
   end;
   // Completion proposal
@@ -12741,6 +12705,64 @@ begin
     SynCompletionProposal.Options := SynCompletionProposal.Options + [scoLimitToMatchedTextAnywhere]
   else
     SynCompletionProposal.Options := SynCompletionProposal.Options - [scoLimitToMatchedTextAnywhere];
+end;
+
+
+procedure TMainForm.SetupSynEditors(BaseForm: TComponent);
+var
+  Editors: TObjectList;
+  i: Integer;
+begin
+  // Restore font, highlighter and shortcuts for all TSynMemo's in given base form
+  Editors := TObjectList.Create(False);
+  FindComponentInstances(BaseForm, TSynMemo, Editors);
+  for i:=0 to Editors.Count-1 do begin
+    SetupSynEditor(Editors[i] as TSynMemo);
+  end;
+  Editors.Free;
+end;
+
+
+procedure TMainForm.SetupSynEditor(Editor: TSynMemo);
+var
+  BaseEditor: TSynMemo;
+begin
+  LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
+  BaseEditor := SynMemoQuery;
+  Editor.Color := GetThemeColor(clWindow);
+  Editor.ScrollHintColor := GetThemeColor(clInfoBk);
+  Editor.Font.Name := AppSettings.ReadString(asFontName);
+  Editor.Font.Size := AppSettings.ReadInt(asFontSize);
+  Editor.Gutter.BorderColor := GetThemeColor(clWindow);
+  Editor.Gutter.Font.Name := Editor.Font.Name;
+  Editor.Gutter.Font.Size := Editor.Font.Size;
+  Editor.Gutter.Font.Color := BaseEditor.Gutter.Font.Color;
+  Editor.Gutter.AutoSize := BaseEditor.Gutter.AutoSize;
+  Editor.Gutter.DigitCount := BaseEditor.Gutter.DigitCount;
+  Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
+  Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
+  Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
+  if Editor <> SynMemoSQLLog then begin
+    Editor.WordWrap := actQueryWordWrap.Checked;
+    // Assignment of OnScanForFoldRanges event is required for UseCodeFolding
+    Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;
+    Editor.UseCodeFolding := actCodeFolding.Checked;
+  end;
+  Editor.ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
+  Editor.Options := BaseEditor.Options;
+  if Editor = SynMemoSQLLog then
+    Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
+  Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
+  Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
+  Editor.WantTabs := BaseEditor.WantTabs;
+  Editor.OnKeyPress := BaseEditor.OnKeyPress;
+  if Editor <> SynMemoSQLLog then begin
+    Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
+  end;
+  // Don't reapply shortcuts to base editor again, see issue 1600
+  if Editor <> BaseEditor then begin
+    Editor.Keystrokes := BaseEditor.KeyStrokes;
+  end;
 end;
 
 

@@ -48,7 +48,7 @@ end;
 procedure TfrmCsvDetector.FormShow(Sender: TObject);
 begin
   SynMemoCreateTable.Highlighter := MainForm.SynSQLSynUsed;
-  MainForm.SetupSynEditors;
+  MainForm.SetupSynEditors(Self);
   TimerStartScan.Enabled := True;
 end;
 
