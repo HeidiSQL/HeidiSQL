@@ -1170,6 +1170,7 @@ type
       NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
+    procedure SynCompletionProposalChange(Sender: TObject; AIndex: Integer);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -6538,6 +6539,16 @@ begin
     InvalidateVT(ListProcesses, VTREE_NOTLOADED, True);
   end;
   TimerRefresh.Enabled := t; // re-enable autorefresh timer
+end;
+
+
+procedure TMainForm.SynCompletionProposalChange(Sender: TObject;
+  AIndex: Integer);
+var
+  Proposal: TSynCompletionProposal;
+begin
+  Proposal := Sender as TSynCompletionProposal;
+  Proposal.Title := Proposal.InsertItem(AIndex);
 end;
 
 
