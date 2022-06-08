@@ -613,7 +613,7 @@ var
 begin
   FillChar(fos, SizeOf(fos), 0);
   fos.wFunc := FO_DELETE;
-  fos.pFrom := PChar(sFileName);
+  fos.pFrom := PChar(sFileName + #0);
   fos.fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION or FOF_SILENT;
   Result := (0 = ShFileOperation(fos));
 end;
