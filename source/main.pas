@@ -8317,7 +8317,7 @@ begin
   if MessageDialog(_('Delete snippet file?'), snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
-    if DeleteFile(snippetfile) then begin
+    if DeleteFileWithUndo(snippetfile) then begin
       // Refresh list with snippets
       SetSnippetFilenames;
     end else begin
@@ -12571,7 +12571,7 @@ begin
     end else begin
       // Delete backup file if tab is closed by user, intentionally
       if (not Tab.MemoBackupFilename.IsEmpty) and FileExists(Tab.MemoBackupFilename) then begin
-        if not DeleteFile(Tab.MemoBackupFilename) then begin
+        if not DeleteFileWithUndo(Tab.MemoBackupFilename) then begin
           ErrorDialog(f_('Backup file could not be deleted: %s', [Tab.MemoBackupFilename]));
         end;
       end;

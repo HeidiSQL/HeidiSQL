@@ -893,7 +893,7 @@ begin
       StartTime := GetTickCount;
       FileNameZip := FExportFileName;
       if FileExists(FileNameZip) then
-        DeleteFile(FileNameZip);
+        DeleteFileWithUndo(FileNameZip);
       Zip := TZipFile.Create;
       Zip.Open(FileNameZip, zmWrite);
       FileNameInZip := ExtractFileName(ChangeFileExt(FileNameZip, '.sql'));

@@ -293,6 +293,7 @@ type
   function EncodeURLParam(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
+  function DeleteFileWithUndo(sFileName: String): Boolean;
   function MakeInt(Str: String) : Int64;
   function MakeFloat(Str: String): Extended;
   function CleanupNumber(Str: String): String;
@@ -603,6 +604,18 @@ begin
   end
   else
     Result := -1;
+end;
+
+
+function DeleteFileWithUndo(sFileName: string): Boolean;
+var
+  fos: TSHFileOpStruct;
+begin
+  FillChar(fos, SizeOf(fos), 0);
+  fos.wFunc := FO_DELETE;
+  fos.pFrom := PChar(sFileName);
+  fos.fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION or FOF_SILENT;
+  Result := (0 = ShFileOperation(fos));
 end;
 
 
