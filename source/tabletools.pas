@@ -903,7 +903,7 @@ begin
       LogRow := FResults.Last;
       LogRow[2] := _('Compressing done.');
       LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
-      ResultGrid.Repaint;
+      UpdateResultGrid;
     end;
 
     // Activate ansi mode or whatever again, locally
