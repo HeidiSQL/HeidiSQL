@@ -2437,19 +2437,33 @@ begin
         end;
       end;
 
-      // mysql_character_set_name() from libmysql.dll reports utf8* if in fact we're on some latin* charset
+      // We need the server version before checking the current character set
+      FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
+      FServerVersionUntouched := FServerVersionUntouched.Trim([' ', '-']);
+      if FServerVersionUntouched.IsEmpty then begin
+        FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
+      end;
+      // mysql_character_set_name() reports utf8* if in fact we're on some latin* charset on v5.1 servers
       // See https://www.heidisql.com/forum.php?t=39278
-      FIsUnicode := CharacterSet.StartsWith('utf', True) and (not FParameters.LibraryOrProvider.StartsWith('libmysql', True));
+      FIsUnicode := CharacterSet.StartsWith('utf', True) and (ServerVersionInt >= 50500);
       if not IsUnicode then
       try
         CharacterSet := 'utf8mb4';
       except
+        // older servers without *mb4 support go here
         on E:EDbError do try
           Log(lcError, E.Message);
           CharacterSet := 'utf8';
         except
-          on E:EDbError do
+          // v5.1 returned "Unknown character set: 'utf8mb3'" with libmariadb
+          on E:EDbError do try
             Log(lcError, E.Message);
+            Query('SET NAMES utf8');
+          except
+            // give up
+            on E:EDbError do
+              Log(lcError, E.Message);
+          end;
         end;
       end;
       Log(lcInfo, _('Characterset')+': '+CharacterSet);
@@ -2467,11 +2481,6 @@ begin
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
       FServerOS := GetSessionVariable('version_compile_os');
       FRealHostname := GetSessionVariable('hostname');
-      FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
-      FServerVersionUntouched := FServerVersionUntouched.Trim([' ', '-']);
-      if FServerVersionUntouched.IsEmpty then begin
-        FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
-      end;
       FCaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', IntToStr(FCaseSensitivity)));
 
       // Triggers OnDatabaseChange event for <no db>
