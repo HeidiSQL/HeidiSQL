@@ -3,16 +3,16 @@
         <ProjectGuid>{C4296A31-CCFB-4D2F-8BEC-26CD630E9987}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj">
+        <Projects Include="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesR.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj">
+        <Projects Include="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesD.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\synedit\Packages\110A\SynEdit_R.dproj">
+        <Projects Include="..\..\components\synedit\Packages\Delphi11.1\SynEdit_R.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\..\components\synedit\Packages\110A\SynEdit_D.dproj">
+        <Projects Include="..\..\components\synedit\Packages\Delphi11.1\SynEdit_D.dproj">
             <Dependencies/>
         </Projects>
         <Projects Include="heidisql.dproj">
@@ -27,40 +27,40 @@
         </BorlandProject>
     </ProjectExtensions>
     <Target Name="VirtualTreesR">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesR.dproj"/>
     </Target>
     <Target Name="VirtualTreesR:Clean">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesR.dproj" Targets="Clean"/>
     </Target>
     <Target Name="VirtualTreesR:Make">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesR.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesR.dproj" Targets="Make"/>
     </Target>
     <Target Name="VirtualTreesD">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesD.dproj"/>
     </Target>
     <Target Name="VirtualTreesD:Clean">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesD.dproj" Targets="Clean"/>
     </Target>
     <Target Name="VirtualTreesD:Make">
-        <MSBuild Projects="..\..\components\virtualtreeview\packages\RAD Studio 10.4+\VirtualTreesD.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\virtualtreeview\packages\Delphi11.1\VirtualTreesD.dproj" Targets="Make"/>
     </Target>
     <Target Name="SynEdit_R">
-        <MSBuild Projects="..\..\components\synedit\Packages\110A\SynEdit_R.dproj"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.1\SynEdit_R.dproj"/>
     </Target>
     <Target Name="SynEdit_R:Clean">
-        <MSBuild Projects="..\..\components\synedit\Packages\110A\SynEdit_R.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.1\SynEdit_R.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SynEdit_R:Make">
-        <MSBuild Projects="..\..\components\synedit\Packages\110A\SynEdit_R.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.1\SynEdit_R.dproj" Targets="Make"/>
     </Target>
     <Target Name="SynEdit_D">
-        <MSBuild Projects="..\..\components\synedit\Packages\110A\SynEdit_D.dproj"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.1\SynEdit_D.dproj"/>
     </Target>
     <Target Name="SynEdit_D:Clean">
-        <MSBuild Projects="..\..\components\synedit\Packages\110A\SynEdit_D.dproj" Targets="Clean"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.1\SynEdit_D.dproj" Targets="Clean"/>
     </Target>
     <Target Name="SynEdit_D:Make">
-        <MSBuild Projects="..\..\components\synedit\Packages\110A\SynEdit_D.dproj" Targets="Make"/>
+        <MSBuild Projects="..\..\components\synedit\Packages\Delphi11.1\SynEdit_D.dproj" Targets="Make"/>
     </Target>
     <Target Name="heidisql">
         <MSBuild Projects="heidisql.dproj"/>
