@@ -26,7 +26,10 @@ uses
   System.SysUtils,
   System.StrUtils,
   System.Generics.Collections,
-  System.UITypes;
+  System.UITypes,
+  VirtualTrees.Types,
+  VirtualTrees.ClipBoard,
+  VirtualTrees.Header;
 
 type
   TCustomVirtualStringTreeCracker = class(TCustomVirtualStringTree)

@@ -118,13 +118,31 @@ var
   VTStyleServicesFunc: TVTStyleServicesFunc = nil;
 
 
+/// Wrapper function for styles services that handles differences between RAD Studio 10.4 and older versions,
+/// as well as the case if these controls are used inside the IDE.
+function VTStyleServices(AControl: TControl = nil): TCustomStyleServices;
+
+
 implementation
 
 uses
   System.SysUtils,
   System.Math,
   System.Types,
-  VirtualTrees;
+  VirtualTrees,
+  VirtualTrees.Header,
+  VirtualTrees.DrawTree;
+
+function VTStyleServices(AControl: TControl = nil): TCustomStyleServices;
+begin
+  if Assigned(VTStyleServicesFunc) then
+    Result := VTStyleServicesFunc(AControl)
+  else
+    Result := Vcl.Themes.StyleServices{$if CompilerVersion >= 34}(AControl){$ifend};
+end;
+
+//----------------------------------------------------------------------------------------------------------------------
+
 
 type
   TBaseVirtualTreeCracker = class(TBaseVirtualTree)

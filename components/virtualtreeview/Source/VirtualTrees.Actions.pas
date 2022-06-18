@@ -1,4 +1,4 @@
-unit VirtualTrees.Actions;
+﻿unit VirtualTrees.Actions;
 
 interface
 
@@ -7,7 +7,8 @@ uses
   System.Actions,
   Vcl.Controls,
   Vcl.ActnList,
-  VirtualTrees;
+  VirtualTrees,
+  VirtualTrees.Types;
 
 type
   TVirtualTreeAction = class(TCustomAction)
