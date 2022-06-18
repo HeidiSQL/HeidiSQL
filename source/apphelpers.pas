@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
-  Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
+  Windows, ShlObj, ActiveX, VirtualTrees, VirtualTrees.Types, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, System.Contnrs, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, dbstructures, dbstructures.mysql, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,

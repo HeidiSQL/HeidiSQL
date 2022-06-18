@@ -3,7 +3,7 @@ unit selectdbobject;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, Graphics, extra_controls,
+  Windows, Classes, Controls, Forms, StdCtrls, VirtualTrees, VirtualTrees.Types, Graphics, extra_controls,
   dbconnection, gnugettext;
 
 type

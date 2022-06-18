@@ -10,13 +10,14 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo, StrUtils,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
+  SynEdit, SynEditTypes, SynEditKeyCmds, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, csv_detector, VirtualTrees.HeaderPopup, VirtualTrees.Utils, Cromis.DirectoryWatch, SyncDB, gnugettext,
+  insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
+  VirtualTrees, VirtualTrees.Header, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
@@ -6039,7 +6040,7 @@ end;
 procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 begin
   // Remember current table after last column resizing so we can auto size them as long as this did not happen
-  if not (tsUpdating in Sender.Treeview.TreeStates) then
+  if not (tsUpdating in TBaseVirtualTree(Sender.Treeview).TreeStates) then
     FDataGridColumnWidthsCustomized := True;
 end;
 
@@ -8450,7 +8451,7 @@ begin
   end;
   Screen.Cursor := crHourglass;
   Sender.SortColumn := HitInfo.Column;
-  Sender.Treeview.SortTree( HitInfo.Column, Sender.SortDirection );
+  TBaseVirtualTree(Sender.Treeview).SortTree( HitInfo.Column, Sender.SortDirection );
   Screen.Cursor := crDefault;
 end;
 

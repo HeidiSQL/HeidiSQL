@@ -552,18 +552,20 @@ var
   Node: PVirtualNode;
   FileInfo: PFileInfo;
   CheckState: TCheckState;
+  Tree: TBaseVirtualTree;
 begin
   // Header column click / check
   MainForm.AnyGridHeaderClick(Sender, HitInfo);
   CheckState := Sender.Columns[HitInfo.Column].CheckState;
   if (HitInfo.Column = ColBinary) and (not (CheckState in [csMixedNormal, csMixedPressed])) then begin
-    Node := Sender.Treeview.GetFirst;
+    Tree := TBaseVirtualTree(Sender.Treeview);
+    Node := Tree.GetFirst;
     while Assigned(Node) do begin
-      FileInfo := Sender.Treeview.GetNodeData(Node);
+      FileInfo := Tree.GetNodeData(Node);
       FileInfo.IsBinary := CheckState in CheckedStates;
-      Node := Sender.Treeview.GetNextSibling(Node);
+      Node := Tree.GetNextSibling(Node);
     end;
-    Sender.Treeview.InvalidateChildren(nil, false);
+    Tree.InvalidateChildren(nil, false);
   end;
 end;
 
