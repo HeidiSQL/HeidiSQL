@@ -1074,7 +1074,7 @@ end;
 
 procedure TSecureShellCmd.Connect;
 var
-  SshCmd, SshCmdDisplay: String;
+  SshCmd, SshCmdDisplay, DialogTitle: String;
   OutText, ErrorText, UserInput: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
@@ -1151,6 +1151,7 @@ begin
   // Todo: Find a way to wait only until connection is established
   // Parse pipe output and probably show some message in a dialog.
   Waited := 0;
+  DialogTitle := ExtractFileName(FConnection.Parameters.SSHExe);
   while Waited < FConnection.Parameters.SSHTimeout*1000 do begin
     Inc(Waited, 200);
     WaitForSingleObject(FProcessInfo.hProcess, 200);
@@ -1167,19 +1168,19 @@ begin
     if OutText <> '' then begin
       if ExecRegExpr('login as\s*\:', OutText) then begin
         // Prompt for username
-        UserInput := InputBox('SSH:', OutText, '');
+        UserInput := InputBox(DialogTitle, OutText, '');
         SendText(UserInput + CRLF);
       end else if ExecRegExpr('(password|Passphrase for key "[^"]+")\s*\:', OutText) then begin
         // Prompt for sensitive input. Send * as first char of prompt param so InputBox hides input characters
-        UserInput := InputBox('SSH:', #31+OutText, '');
+        UserInput := InputBox(DialogTitle, #31+OutText, '');
         SendText(UserInput + CRLF);
       end else begin
         // Informational message box
         rx.Expression := '^[^\.]+\.';
         if rx.Exec(OutText) then begin // First words end with a dot - use it as caption
-          MessageDialog('SSH: '+rx.Match[0], OutText, mtInformation, [mbOK])
+          MessageDialog(DialogTitle + ': ' + rx.Match[0], OutText, mtInformation, [mbOK])
         end else begin
-          MessageDialog('SSH:', OutText, mtInformation, [mbOK]);
+          MessageDialog(DialogTitle, OutText, mtInformation, [mbOK]);
         end;
       end;
     end;
@@ -1213,7 +1214,7 @@ begin
           raise EDbError.Create(ErrorText);
         end else begin
           // Just show error text and proceed looping
-          MessageDialog('SSH:', ErrorText, mtError, [mbOK]);
+          MessageDialog(DialogTitle, ErrorText, mtError, [mbOK]);
         end;
       end;
     end;
