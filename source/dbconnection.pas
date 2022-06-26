@@ -3067,7 +3067,7 @@ begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
       FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
-      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spCurrentUserHost] := ''; // unsupported
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := ''; // SQLite only supports renaming
@@ -4032,11 +4032,17 @@ begin
             );
         end;
         else begin
-          Result := GetVar('SELECT VIEW_DEFINITION'+
-            ' FROM '+InfSch+'.VIEWS'+
-            ' WHERE TABLE_NAME='+EscapeString(Obj.Name)+
-            ' AND '+Obj.SchemaClauseIS('TABLE')
-            );
+          if not Obj.FCreateCode.IsEmpty then begin
+            // SQlite views go here
+            Result := Obj.FCreateCode;
+          end
+          else begin
+            Result := GetVar('SELECT VIEW_DEFINITION'+
+              ' FROM '+InfSch+'.VIEWS'+
+              ' WHERE TABLE_NAME='+EscapeString(Obj.Name)+
+              ' AND '+Obj.SchemaClauseIS('TABLE')
+              );
+          end;
         end;
       end;
     end;
@@ -6560,8 +6566,10 @@ begin
   // Return current user@host combination, used by various object editors for DEFINER clauses
   Log(lcDebug, 'Fetching user@host ...');
   Ping(True);
-  if FCurrentUserHostCombination = '' then
-    FCurrentUserHostCombination := GetVar(GetSQLSpecifity(spCurrentUserHost));
+  if FCurrentUserHostCombination.IsEmpty and (not GetSQLSpecifity(spCurrentUserHost).IsEmpty) then
+    FCurrentUserHostCombination := GetVar(GetSQLSpecifity(spCurrentUserHost))
+  else
+    FCurrentUserHostCombination := '';
   Result := FCurrentUserHostCombination;
 end;
 
@@ -7172,7 +7180,7 @@ begin
   Results := nil;
   try
     Results := GetResults('SELECT * FROM '+QuoteIdent(db)+'.sqlite_master '+
-      'WHERE type='+EscapeString('table')+' AND name NOT LIKE '+EscapeString('sqlite_%'));
+      'WHERE type IN('+EscapeString('table')+', '+EscapeString('view')+') AND name NOT LIKE '+EscapeString('sqlite_%'));
   except
     on E:EDbError do;
   end;
@@ -7184,7 +7192,11 @@ begin
       obj.Created := Now;
       obj.Updated := Now;
       obj.Database := db;
-      obj.NodeType := lntTable;
+      if Results.Col('type').ToLowerInvariant = 'view' then begin
+        obj.NodeType := lntView;
+        obj.FCreateCode := Results.Col('sql');
+      end else
+        obj.NodeType := lntTable;
       Results.Next;
     end;
     FreeAndNil(Results);
