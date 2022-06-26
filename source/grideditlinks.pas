@@ -261,6 +261,7 @@ begin
   FParentForm := GetParentForm(FTree);
   // Avoid flicker
   FParentForm.Repaint;
+  FMainControl := nil;
   FModified := False;
   FAllowEdit := AllowEdit;
   ActiveGridEditor := Self;
@@ -274,8 +275,10 @@ var
   DoPrev: Boolean;
 begin
   ActiveGridEditor := nil;
-  FMainControl.WindowProc := FOldWindowProc;
-  FMainControl := nil;
+  if Assigned(FMainControl) then begin
+    FMainControl.WindowProc := FOldWindowProc;
+    FMainControl := nil;
+  end;
   if FLastKeyDown = VK_TAB then begin
     DoPrev := ssShift in FLastShiftState;
     // Advance to next/previous visible column/node.
