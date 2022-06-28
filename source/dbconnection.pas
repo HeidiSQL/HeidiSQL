@@ -7887,13 +7887,13 @@ begin
               IsBinary := Field.charsetnr = COLLATION_BINARY
             else
               IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (FConnection.Datatypes[j].Index in [dbdtChar..dbdtLongtext]) then
+            if IsBinary and (FConnection.Datatypes[j].Category = dtcText) then
               continue;
             FColumnTypes[i] := FConnection.Datatypes[j];
-            break;
+            Break;
           end;
         end;
-        FConnection.Log(lcDebug, 'Detected column type for '+FColumnNames[i]+': '+FColumnTypes[i].Name);
+        FConnection.Log(lcDebug, 'Detected column type for '+FColumnNames[i]+' ('+IntToStr(Field._type)+'): '+FColumnTypes[i].Name);
       end;
       FRecNo := -1;
       First;

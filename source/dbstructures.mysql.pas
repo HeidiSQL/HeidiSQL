@@ -370,7 +370,7 @@ var
 
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array [0..37] of TDBDatatype =
+  MySQLDatatypes: array [0..38] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -727,6 +727,21 @@ var
         'from a text representation. The binary format is structured to enable the '+
         'server to look up subobjects or nested values directly by key or array index '+
         'without reading all values before or after them in the document.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dbdtUniqueidentifier;
+      NativeType:      254;
+      Name:            'UUID';
+      Description:     'UUID' + sLineBreak +
+        'The UUID data type is intended for the storage of 128-bit UUID (Universally ' +
+        'Unique Identifier) data. See the UUID function page for more details on UUIDs ' +
+        'themselves.';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;
