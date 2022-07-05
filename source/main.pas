@@ -12163,6 +12163,7 @@ begin
     Item := TMenuItem.Create(Menu);
     Item.Caption := ItemText;
     Item.OnClick := editDatabaseTableFilterMenuClick;
+    Item.Tag := 0;
     Item.Checked := ItemText = Edit.Text;
     Menu.Items.Add(Item);
   end;
@@ -12176,6 +12177,14 @@ begin
   Item.Enabled := Edit.Text <> '';
   Menu.Items.Add(Item);
 
+  Item := TMenuItem.Create(Menu);
+  Item.Caption := _('Empty recent filters');
+  Item.ImageIndex := 26;
+  Item.OnClick := editDatabaseTableFilterMenuClick;
+  Item.Tag := 2;
+  Item.Enabled := Menu.Items.Count > 1;
+  Menu.Items.Add(Item);
+
   P := Edit.ClientToScreen(Edit.ClientRect.TopLeft);
   Menu.Popup(p.X, p.Y+16);
 end;
@@ -12186,15 +12195,21 @@ var
   Menu: TPopupMenu;
   Item: TMenuItem;
   Edit: TButtonedEdit;
+  Setting: TAppSettingIndex;
 begin
   // Insert text from filter history menu
   Item := Sender as TMenuItem;
   Menu := Item.Owner as TPopupMenu;
   Edit := Menu.Owner as TButtonedEdit;
-  if Item.Tag = 1 then
-    Edit.Clear
+  if Edit = editDatabaseFilter then
+    Setting := asDatabaseFilter
   else
-    Edit.Text := Item.Caption;
+    Setting := asTableFilter;
+  case Item.Tag of
+    0: Edit.Text := Item.Caption;
+    1: Edit.Clear;
+    2: AppSettings.DeleteValue(Setting);
+  end;
   Menu.Free;
 end;
 

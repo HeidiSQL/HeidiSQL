@@ -3953,6 +3953,7 @@ begin
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
   Result := FRegistry.DeleteValue(ValueName);
+  FSettings[Index].Synced := False;
 end;
 
 
