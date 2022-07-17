@@ -220,6 +220,8 @@ begin
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
 
   MemoText.OnMouseWheel := MainForm.AnySynMemoMouseWheel;
+  if AppSettings.ReadBool(asMemoEditorMaximized) then
+    WindowState := wsMaximized;
 end;
 
 
@@ -243,10 +245,10 @@ var
   HighlighterName: String;
 begin
   // Restore form dimensions
-  Width := AppSettings.ReadIntDpiAware(asMemoEditorWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asMemoEditorHeight, Self);
-  if AppSettings.ReadBool(asMemoEditorMaximized) then
-    WindowState := wsMaximized;
+  if WindowState <> wsMaximized then begin
+    Width := AppSettings.ReadIntDpiAware(asMemoEditorWidth, Self);
+    Height := AppSettings.ReadIntDpiAware(asMemoEditorHeight, Self);
+  end;
 
   if AppSettings.ReadBool(asMemoEditorWrap) then
     btnWrap.Click;
