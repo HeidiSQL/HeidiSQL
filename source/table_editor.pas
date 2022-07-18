@@ -1797,6 +1797,7 @@ begin
              CellText := TblKey.Name;
         1: CellText := TblKey.IndexType;
         2: CellText := TblKey.Algorithm;
+        3: CellText := TblKey.Comment;
       end;
     end;
     1: begin
@@ -2100,6 +2101,7 @@ begin
                TblKey.Name := TTableKey.PRIMARY;
            end;
          2: TblKey.Algorithm := NewText;
+         3: TblKey.Comment := NewText;
        end;
        // Needs to be called manually for Name and IndexType properties:
        TblKey.Modification(Sender);

@@ -10589,6 +10589,9 @@ begin
 
   if Algorithm <> '' then
     Result := Result + ' USING ' + Algorithm;
+
+  if not Comment.IsEmpty then
+    Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
 end;
 
 procedure TTableKeyList.Assign(Source: TTableKeyList);
