@@ -5889,7 +5889,8 @@ begin
     Select := Select + ' FROM '+DBObj.QuotedDbAndTableName;
 
     // Append WHERE clause, and gracefully allow superfluous WHERE from user input
-    if SynMemoFilter.GetTextLen > 0 then begin
+    // Also, don't add a "WHERE ..." when the filter contains comments only
+    if Length(Trim(TSQLBatch.GetSQLWithoutComments(SynMemoFilter.Text))) > 0 then begin
       rx := TRegExpr.Create;
       rx.ModifierI := True;
       rx.Expression := '^\s*WHERE\s+';
