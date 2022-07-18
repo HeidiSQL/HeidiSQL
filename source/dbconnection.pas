@@ -7542,6 +7542,7 @@ begin
     if (CreateCode[i] = '(') and (not InLiteral) then
       Inc(ParenthesesCount);
   end;
+  Params := TSQLBatch.GetSQLWithoutComments(Params);
 
   // Extract parameters from left part
   rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
