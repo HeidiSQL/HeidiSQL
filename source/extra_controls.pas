@@ -5,7 +5,7 @@ interface
 uses
   Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
   SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
-  ShLwApi, Vcl.ExtCtrls, VirtualTrees, SynRegExpr, Vcl.Controls, Winapi.ShlObj;
+  ShLwApi, Vcl.ExtCtrls, VirtualTrees, VirtualTrees.Types, SynRegExpr, Vcl.Controls, Winapi.ShlObj;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar

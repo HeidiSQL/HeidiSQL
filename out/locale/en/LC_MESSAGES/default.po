@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-04-30 09:36+0200\n"
+"PO-Revision-Date: 2022-07-05 07:23+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.0\n"
+"X-Generator: Poedit 3.1\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6715,3 +6715,6 @@ msgstr "Altering tables restricted. For details see %s"
 
 msgid "Foreign key not found for column \"%s\""
 msgstr "Foreign key not found for column \"%s\""
+
+msgid "Empty recent filters"
+msgstr "Empty recent filters"

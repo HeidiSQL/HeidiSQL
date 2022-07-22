@@ -5,7 +5,7 @@ unit grideditlinks;
 interface
 
 uses
-  Windows, Forms, Graphics, Messages, VirtualTrees, ComCtrls, SysUtils, Classes,
+  Windows, Forms, Graphics, Messages, VirtualTrees, VirtualTrees.Types, ComCtrls, SysUtils, Classes,
   StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, gnugettext,
   StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
@@ -261,6 +261,7 @@ begin
   FParentForm := GetParentForm(FTree);
   // Avoid flicker
   FParentForm.Repaint;
+  FMainControl := nil;
   FModified := False;
   FAllowEdit := AllowEdit;
   ActiveGridEditor := Self;
@@ -274,8 +275,10 @@ var
   DoPrev: Boolean;
 begin
   ActiveGridEditor := nil;
-  FMainControl.WindowProc := FOldWindowProc;
-  FMainControl := nil;
+  if Assigned(FMainControl) then begin
+    FMainControl.WindowProc := FOldWindowProc;
+    FMainControl := nil;
+  end;
   if FLastKeyDown = VK_TAB then begin
     DoPrev := ssShift in FLastShiftState;
     // Advance to next/previous visible column/node.

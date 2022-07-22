@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
+  ComCtrls, ToolWin, VirtualTrees, VirtualTrees.Types, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
   SynMemo, Menus, Clipbrd, Math, System.UITypes, System.Generics.Collections,
   grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, StrUtils, extra_controls;
 
@@ -1797,6 +1797,7 @@ begin
              CellText := TblKey.Name;
         1: CellText := TblKey.IndexType;
         2: CellText := TblKey.Algorithm;
+        3: CellText := TblKey.Comment;
       end;
     end;
     1: begin
@@ -2100,6 +2101,7 @@ begin
                TblKey.Name := TTableKey.PRIMARY;
            end;
          2: TblKey.Algorithm := NewText;
+         3: TblKey.Comment := NewText;
        end;
        // Needs to be called manually for Name and IndexType properties:
        TblKey.Modification(Sender);

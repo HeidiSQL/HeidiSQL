@@ -10,7 +10,7 @@ interface
 
 uses
   Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
-  Windows, ShlObj, ActiveX, VirtualTrees, SynRegExpr, Messages, Math,
+  Windows, ShlObj, ActiveX, VirtualTrees, VirtualTrees.Types, SynRegExpr, Messages, Math,
   Registry, DateUtils, Generics.Collections, System.Contnrs, StrUtils, AnsiStrings, TlHelp32, Types,
   dbconnection, dbstructures, dbstructures.mysql, SynMemo, Menus, WinInet, gnugettext, Themes,
   Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
@@ -67,9 +67,12 @@ type
       FSQL: String;
       procedure SetSQL(Value: String);
       function GetSize: Integer;
+      function GetSQLWithoutComments: String; overload;
     public
+      class function GetSQLWithoutComments(FullSQL: String): String; overload;
       property Size: Integer read GetSize;
       property SQL: String read FSQL write SetSQL;
+      property SQLWithoutComments: String read GetSQLWithoutComments;
   end;
 
   // Download
@@ -293,6 +296,7 @@ type
   function EncodeURLParam(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
+  function DeleteFileWithUndo(sFileName: String): Boolean;
   function MakeInt(Str: String) : Int64;
   function MakeFloat(Str: String): Extended;
   function CleanupNumber(Str: String): String;
@@ -603,6 +607,18 @@ begin
   end
   else
     Result := -1;
+end;
+
+
+function DeleteFileWithUndo(sFileName: string): Boolean;
+var
+  fos: TSHFileOpStruct;
+begin
+  FillChar(fos, SizeOf(fos), 0);
+  fos.wFunc := FO_DELETE;
+  fos.pFrom := PChar(sFileName + #0);
+  fos.fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION or FOF_SILENT;
+  Result := (0 = ShFileOperation(fos));
 end;
 
 
@@ -3142,54 +3158,8 @@ end;
 
 
 function TSQLSentence.GetSQLWithoutComments: String;
-var
-  InLineComment, InMultiLineComment: Boolean;
-  AddCur: Boolean;
-  i: Integer;
-  FullSQL: String;
-  Cur, Prev1, Prev2: Char;
 begin
-  // Strip comments out of SQL sentence
-  // TODO: leave quoted string literals and identifiers untouched
-  FullSQL := GetSQL;
-  Result := '';
-  InLineComment := False;
-  InMultiLineComment := False;
-  Prev1 := #0;
-  Prev2 := #0;
-  for i:=1 to Length(FullSQL) do begin
-    Cur := FullSQL[i];
-    AddCur := True;
-    if i > 1 then Prev1 := FullSQL[i-1];
-    if i > 2 then Prev2 := FullSQL[i-2];
-
-    if (Cur = '*') and (Prev1 = '/') then begin
-      InMultiLineComment := True;
-      Delete(Result, Length(Result), 1); // Delete comment chars
-    end
-    else if InMultiLineComment and (Cur = '/') and (Prev1 = '*') then begin
-      InMultiLineComment := False;
-      Delete(Result, Length(Result), 1);
-      AddCur := False;
-    end;
-
-    if not InMultiLineComment then begin
-      if InLineComment and ((Cur = #13) or (Cur = #10)) then begin
-        InLineComment := False; // Reset
-      end
-      else if Cur = '#' then begin
-        InLineComment := True;
-      end
-      else if (Cur = ' ') and (Prev1 = '-') and (Prev2 = '-') then begin
-        InLineComment := True;
-        Delete(Result, Length(Result)-1, 2); // Delete comment chars
-      end;
-    end;
-
-    if AddCur and (not InLineComment) and (not InMultiLineComment) then begin
-      Result := Result + Cur;
-    end;
-  end;
+  Result := FOwner.GetSQLWithoutComments(GetSQL);
 end;
 
 
@@ -3299,6 +3269,59 @@ begin
   end;
 end;
 
+function TSQLBatch.GetSQLWithoutComments: String;
+begin
+  Result := GetSQLWithoutComments(SQL);
+end;
+
+class function TSQLBatch.GetSQLWithoutComments(FullSQL: String): String;
+var
+  InLineComment, InMultiLineComment: Boolean;
+  AddCur: Boolean;
+  i: Integer;
+  Cur, Prev1, Prev2: Char;
+begin
+  // Strip comments out of SQL sentence
+  // TODO: leave quoted string literals and identifiers untouched
+  Result := '';
+  InLineComment := False;
+  InMultiLineComment := False;
+  Prev1 := #0;
+  Prev2 := #0;
+  for i:=1 to Length(FullSQL) do begin
+    Cur := FullSQL[i];
+    AddCur := True;
+    if i > 1 then Prev1 := FullSQL[i-1];
+    if i > 2 then Prev2 := FullSQL[i-2];
+
+    if (Cur = '*') and (Prev1 = '/') then begin
+      InMultiLineComment := True;
+      System.Delete(Result, Length(Result), 1); // Delete comment chars
+    end
+    else if InMultiLineComment and (Cur = '/') and (Prev1 = '*') then begin
+      InMultiLineComment := False;
+      System.Delete(Result, Length(Result), 1);
+      AddCur := False;
+    end;
+
+    if not InMultiLineComment then begin
+      if InLineComment and ((Cur = #13) or (Cur = #10)) then begin
+        InLineComment := False; // Reset
+      end
+      else if Cur = '#' then begin
+        InLineComment := True;
+      end
+      else if (Cur = ' ') and (Prev1 = '-') and (Prev2 = '-') then begin
+        InLineComment := True;
+        System.Delete(Result, Length(Result)-1, 2); // Delete comment chars
+      end;
+    end;
+
+    if AddCur and (not InLineComment) and (not InMultiLineComment) then begin
+      Result := Result + Cur;
+    end;
+  end;
+end;
 
 { THttpDownload }
 
@@ -3940,6 +3963,7 @@ begin
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
   Result := FRegistry.DeleteValue(ValueName);
+  FSettings[Index].Synced := False;
 end;
 
 

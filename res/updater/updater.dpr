@@ -225,9 +225,11 @@ begin
 
   // Move update file to final path
   Status('Moving downloaded file to desired directory ...');
-  if not MoveFile(PChar(DownloadPath), PChar(AppPath)) then
-    Status('Failed to move file "'+DownloadPath+'" to "'+AppPath+'"', True)
+  // Issue #1616: MoveFile() does not work when target directory is a symlink, so we prefer CopyFile + DeleteFile
+  if not CopyFile(PChar(DownloadPath), PChar(AppPath), False) then
+    Status('Failed to copy file "'+DownloadPath+'" to "'+AppPath+'"', True)
   else begin
+    DeleteFile(PChar(DownloadPath));
     Status('Success. Restarting '+AppName+' now ...');
     FillChar(SUInfo, SizeOf(SUInfo), #0);
     SUInfo.cb := SizeOf(SUInfo);

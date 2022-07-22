@@ -10,7 +10,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  VirtualTrees, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
+  VirtualTrees, VirtualTrees.Header, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
   dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages,
   SynEdit, SynMemo, ClipBrd, generic_types;
 
@@ -893,7 +893,7 @@ begin
       StartTime := GetTickCount;
       FileNameZip := FExportFileName;
       if FileExists(FileNameZip) then
-        DeleteFile(FileNameZip);
+        DeleteFileWithUndo(FileNameZip);
       Zip := TZipFile.Create;
       Zip.Open(FileNameZip, zmWrite);
       FileNameInZip := ExtractFileName(ChangeFileExt(FileNameZip, '.sql'));
@@ -903,7 +903,7 @@ begin
       LogRow := FResults.Last;
       LogRow[2] := _('Compressing done.');
       LogRow[3] := FormatTimeNumber((GetTickCount-StartTime) / 1000, True);
-      ResultGrid.Repaint;
+      UpdateResultGrid;
     end;
 
     // Activate ansi mode or whatever again, locally

@@ -1074,7 +1074,7 @@ end;
 
 procedure TSecureShellCmd.Connect;
 var
-  SshCmd, SshCmdDisplay: String;
+  SshCmd, SshCmdDisplay, DialogTitle: String;
   OutText, ErrorText, UserInput: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
@@ -1151,6 +1151,7 @@ begin
   // Todo: Find a way to wait only until connection is established
   // Parse pipe output and probably show some message in a dialog.
   Waited := 0;
+  DialogTitle := ExtractFileName(FConnection.Parameters.SSHExe);
   while Waited < FConnection.Parameters.SSHTimeout*1000 do begin
     Inc(Waited, 200);
     WaitForSingleObject(FProcessInfo.hProcess, 200);
@@ -1167,19 +1168,19 @@ begin
     if OutText <> '' then begin
       if ExecRegExpr('login as\s*\:', OutText) then begin
         // Prompt for username
-        UserInput := InputBox('SSH:', OutText, '');
+        UserInput := InputBox(DialogTitle, OutText, '');
         SendText(UserInput + CRLF);
       end else if ExecRegExpr('(password|Passphrase for key "[^"]+")\s*\:', OutText) then begin
         // Prompt for sensitive input. Send * as first char of prompt param so InputBox hides input characters
-        UserInput := InputBox('SSH:', #31+OutText, '');
+        UserInput := InputBox(DialogTitle, #31+OutText, '');
         SendText(UserInput + CRLF);
       end else begin
         // Informational message box
         rx.Expression := '^[^\.]+\.';
         if rx.Exec(OutText) then begin // First words end with a dot - use it as caption
-          MessageDialog('SSH: '+rx.Match[0], OutText, mtInformation, [mbOK])
+          MessageDialog(DialogTitle + ': ' + rx.Match[0], OutText, mtInformation, [mbOK])
         end else begin
-          MessageDialog('SSH:', OutText, mtInformation, [mbOK]);
+          MessageDialog(DialogTitle, OutText, mtInformation, [mbOK]);
         end;
       end;
     end;
@@ -1213,7 +1214,7 @@ begin
           raise EDbError.Create(ErrorText);
         end else begin
           // Just show error text and proceed looping
-          MessageDialog('SSH:', ErrorText, mtError, [mbOK]);
+          MessageDialog(DialogTitle, ErrorText, mtError, [mbOK]);
         end;
       end;
     end;
@@ -2437,19 +2438,33 @@ begin
         end;
       end;
 
-      // mysql_character_set_name() from libmysql.dll reports utf8* if in fact we're on some latin* charset
+      // We need the server version before checking the current character set
+      FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
+      FServerVersionUntouched := FServerVersionUntouched.Trim([' ', '-']);
+      if FServerVersionUntouched.IsEmpty then begin
+        FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
+      end;
+      // mysql_character_set_name() reports utf8* if in fact we're on some latin* charset on v5.1 servers
       // See https://www.heidisql.com/forum.php?t=39278
-      FIsUnicode := CharacterSet.StartsWith('utf', True) and (not FParameters.LibraryOrProvider.StartsWith('libmysql', True));
+      FIsUnicode := CharacterSet.StartsWith('utf', True) and (ServerVersionInt >= 50500);
       if not IsUnicode then
       try
         CharacterSet := 'utf8mb4';
       except
+        // older servers without *mb4 support go here
         on E:EDbError do try
           Log(lcError, E.Message);
           CharacterSet := 'utf8';
         except
-          on E:EDbError do
+          // v5.1 returned "Unknown character set: 'utf8mb3'" with libmariadb
+          on E:EDbError do try
             Log(lcError, E.Message);
+            Query('SET NAMES utf8');
+          except
+            // give up
+            on E:EDbError do
+              Log(lcError, E.Message);
+          end;
         end;
       end;
       Log(lcInfo, _('Characterset')+': '+CharacterSet);
@@ -2467,11 +2482,6 @@ begin
       FServerDateTimeOnStartup := GetVar('SELECT ' + GetSQLSpecifity(spFuncNow));
       FServerOS := GetSessionVariable('version_compile_os');
       FRealHostname := GetSessionVariable('hostname');
-      FServerVersionUntouched := GetSessionVariable('version') + ' - ' + GetSessionVariable('version_comment');
-      FServerVersionUntouched := FServerVersionUntouched.Trim([' ', '-']);
-      if FServerVersionUntouched.IsEmpty then begin
-        FServerVersionUntouched := DecodeAPIString(FLib.mysql_get_server_info(FHandle));
-      end;
       FCaseSensitivity := MakeInt(GetSessionVariable('lower_case_table_names', IntToStr(FCaseSensitivity)));
 
       // Triggers OnDatabaseChange event for <no db>
@@ -3057,7 +3067,7 @@ begin
       FSQLSpecifities[spEmptyTable] := 'DELETE FROM ';
       FSQLSpecifities[spRenameTable] := 'ALTER TABLE %s RENAME TO %s';
       FSQLSpecifities[spRenameView] := FSQLSpecifities[spRenameTable];
-      FSQLSpecifities[spCurrentUserHost] := 'SELECT CURRENT_USER()';
+      FSQLSpecifities[spCurrentUserHost] := ''; // unsupported
       FSQLSpecifities[spLikeCompare] := '%s LIKE %s';
       FSQLSpecifities[spAddColumn] := 'ADD COLUMN %s';
       FSQLSpecifities[spChangeColumn] := ''; // SQLite only supports renaming
@@ -4022,11 +4032,17 @@ begin
             );
         end;
         else begin
-          Result := GetVar('SELECT VIEW_DEFINITION'+
-            ' FROM '+InfSch+'.VIEWS'+
-            ' WHERE TABLE_NAME='+EscapeString(Obj.Name)+
-            ' AND '+Obj.SchemaClauseIS('TABLE')
-            );
+          if not Obj.FCreateCode.IsEmpty then begin
+            // SQlite views go here
+            Result := Obj.FCreateCode;
+          end
+          else begin
+            Result := GetVar('SELECT VIEW_DEFINITION'+
+              ' FROM '+InfSch+'.VIEWS'+
+              ' WHERE TABLE_NAME='+EscapeString(Obj.Name)+
+              ' AND '+Obj.SchemaClauseIS('TABLE')
+              );
+          end;
         end;
       end;
     end;
@@ -5920,16 +5936,20 @@ begin
           NewKey.IndexType := TTableKey.UNIQUE
         else if CompareText(KeyQuery.Col('Index_type'), TTableKey.FULLTEXT) = 0 then
           NewKey.IndexType := TTableKey.FULLTEXT
+        else if CompareText(KeyQuery.Col('Index_type'), TTableKey.SPATIAL) = 0 then
+          NewKey.IndexType := TTableKey.SPATIAL
         else
           NewKey.IndexType := TTableKey.KEY;
-        // Todo: spatial keys
         NewKey.OldIndexType := NewKey.IndexType;
         if ExecRegExpr('(BTREE|HASH)', KeyQuery.Col('Index_type')) then
           NewKey.Algorithm := KeyQuery.Col('Index_type');
         NewKey.Comment := KeyQuery.Col('Index_comment', True);
       end;
       NewKey.Columns.Add(KeyQuery.Col('Column_name'));
-      NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
+      if NewKey.IndexType = TTableKey.SPATIAL then
+        NewKey.SubParts.Add('') // Prevent "Incorrect prefix key"
+      else
+        NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
       KeyQuery.Next;
     end;
     KeyQuery.Free;
@@ -6546,8 +6566,10 @@ begin
   // Return current user@host combination, used by various object editors for DEFINER clauses
   Log(lcDebug, 'Fetching user@host ...');
   Ping(True);
-  if FCurrentUserHostCombination = '' then
-    FCurrentUserHostCombination := GetVar(GetSQLSpecifity(spCurrentUserHost));
+  if FCurrentUserHostCombination.IsEmpty and (not GetSQLSpecifity(spCurrentUserHost).IsEmpty) then
+    FCurrentUserHostCombination := GetVar(GetSQLSpecifity(spCurrentUserHost))
+  else
+    FCurrentUserHostCombination := '';
   Result := FCurrentUserHostCombination;
 end;
 
@@ -7158,7 +7180,7 @@ begin
   Results := nil;
   try
     Results := GetResults('SELECT * FROM '+QuoteIdent(db)+'.sqlite_master '+
-      'WHERE type='+EscapeString('table')+' AND name NOT LIKE '+EscapeString('sqlite_%'));
+      'WHERE type IN('+EscapeString('table')+', '+EscapeString('view')+') AND name NOT LIKE '+EscapeString('sqlite_%'));
   except
     on E:EDbError do;
   end;
@@ -7170,7 +7192,11 @@ begin
       obj.Created := Now;
       obj.Updated := Now;
       obj.Database := db;
-      obj.NodeType := lntTable;
+      if Results.Col('type').ToLowerInvariant = 'view' then begin
+        obj.NodeType := lntView;
+        obj.FCreateCode := Results.Col('sql');
+      end else
+        obj.NodeType := lntTable;
       Results.Next;
     end;
     FreeAndNil(Results);
@@ -7516,6 +7542,7 @@ begin
     if (CreateCode[i] = '(') and (not InLiteral) then
       Inc(ParenthesesCount);
   end;
+  Params := TSQLBatch.GetSQLWithoutComments(Params);
 
   // Extract parameters from left part
   rx.Expression := '(^|,)\s*((IN|OUT|INOUT)\s+)?(\S+)\s+([^\s,\(]+(\([^\)]*\))?[^,]*)';
@@ -7861,13 +7888,13 @@ begin
               IsBinary := Field.charsetnr = COLLATION_BINARY
             else
               IsBinary := (Field.flags and BINARY_FLAG) = BINARY_FLAG;
-            if IsBinary and (FConnection.Datatypes[j].Index in [dbdtChar..dbdtLongtext]) then
+            if IsBinary and (FConnection.Datatypes[j].Category = dtcText) then
               continue;
             FColumnTypes[i] := FConnection.Datatypes[j];
-            break;
+            Break;
           end;
         end;
-        FConnection.Log(lcDebug, 'Detected column type for '+FColumnNames[i]+': '+FColumnTypes[i].Name);
+        FConnection.Log(lcDebug, 'Detected column type for '+FColumnNames[i]+' ('+IntToStr(Field._type)+'): '+FColumnTypes[i].Name);
       end;
       FRecNo := -1;
       First;
@@ -10562,6 +10589,9 @@ begin
 
   if Algorithm <> '' then
     Result := Result + ' USING ' + Algorithm;
+
+  if not Comment.IsEmpty then
+    Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
 end;
 
 procedure TTableKeyList.Assign(Source: TTableKeyList);

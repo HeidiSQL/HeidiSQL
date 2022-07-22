@@ -280,7 +280,7 @@ object frmTableEditor: TfrmTableEditor
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
             Position = 0
             Text = 'Name'
-            Width = 434
+            Width = 214
           end
           item
             Options = [coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -292,6 +292,11 @@ object frmTableEditor: TfrmTableEditor
             Position = 2
             Text = 'Algorithm'
             Width = 80
+          end
+          item
+            Position = 3
+            Text = 'Comment'
+            Width = 120
           end>
       end
       object tlbIndexes: TToolBar

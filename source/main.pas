@@ -10,13 +10,14 @@ interface
 uses
   Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
   Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo, StrUtils,
-  SynEdit, SynEditTypes, SynEditKeyCmds, VirtualTrees, DateUtils,
+  SynEdit, SynEditTypes, SynEditKeyCmds, DateUtils,
   ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
   CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
-  insertfiles, searchreplace, loaddata, copytable, csv_detector, VirtualTrees.HeaderPopup, VirtualTrees.Utils, Cromis.DirectoryWatch, SyncDB, gnugettext,
+  insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
+  VirtualTrees, VirtualTrees.Header, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
   JumpList, System.Actions, System.UITypes, pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
@@ -1170,6 +1171,7 @@ type
       NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
+    procedure SynCompletionProposalChange(Sender: TObject; AIndex: Integer);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -5887,7 +5889,8 @@ begin
     Select := Select + ' FROM '+DBObj.QuotedDbAndTableName;
 
     // Append WHERE clause, and gracefully allow superfluous WHERE from user input
-    if SynMemoFilter.GetTextLen > 0 then begin
+    // Also, don't add a "WHERE ..." when the filter contains comments only
+    if Length(Trim(TSQLBatch.GetSQLWithoutComments(SynMemoFilter.Text))) > 0 then begin
       rx := TRegExpr.Create;
       rx.ModifierI := True;
       rx.Expression := '^\s*WHERE\s+';
@@ -6038,7 +6041,7 @@ end;
 procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 begin
   // Remember current table after last column resizing so we can auto size them as long as this did not happen
-  if not (tsUpdating in Sender.Treeview.TreeStates) then
+  if not (tsUpdating in TBaseVirtualTree(Sender.Treeview).TreeStates) then
     FDataGridColumnWidthsCustomized := True;
 end;
 
@@ -6538,6 +6541,16 @@ begin
     InvalidateVT(ListProcesses, VTREE_NOTLOADED, True);
   end;
   TimerRefresh.Enabled := t; // re-enable autorefresh timer
+end;
+
+
+procedure TMainForm.SynCompletionProposalChange(Sender: TObject;
+  AIndex: Integer);
+var
+  Proposal: TSynCompletionProposal;
+begin
+  Proposal := Sender as TSynCompletionProposal;
+  Proposal.Title := Proposal.InsertItem(AIndex);
 end;
 
 
@@ -8306,7 +8319,7 @@ begin
   if MessageDialog(_('Delete snippet file?'), snippetfile, mtConfirmation, [mbOk, mbCancel]) = mrOk then
   begin
     Screen.Cursor := crHourGlass;
-    if DeleteFile(snippetfile) then begin
+    if DeleteFileWithUndo(snippetfile) then begin
       // Refresh list with snippets
       SetSnippetFilenames;
     end else begin
@@ -8439,7 +8452,7 @@ begin
   end;
   Screen.Cursor := crHourglass;
   Sender.SortColumn := HitInfo.Column;
-  Sender.Treeview.SortTree( HitInfo.Column, Sender.SortDirection );
+  TBaseVirtualTree(Sender.Treeview).SortTree( HitInfo.Column, Sender.SortDirection );
   Screen.Cursor := crDefault;
 end;
 
@@ -12151,6 +12164,7 @@ begin
     Item := TMenuItem.Create(Menu);
     Item.Caption := ItemText;
     Item.OnClick := editDatabaseTableFilterMenuClick;
+    Item.Tag := 0;
     Item.Checked := ItemText = Edit.Text;
     Menu.Items.Add(Item);
   end;
@@ -12164,6 +12178,14 @@ begin
   Item.Enabled := Edit.Text <> '';
   Menu.Items.Add(Item);
 
+  Item := TMenuItem.Create(Menu);
+  Item.Caption := _('Empty recent filters');
+  Item.ImageIndex := 26;
+  Item.OnClick := editDatabaseTableFilterMenuClick;
+  Item.Tag := 2;
+  Item.Enabled := Menu.Items.Count > 1;
+  Menu.Items.Add(Item);
+
   P := Edit.ClientToScreen(Edit.ClientRect.TopLeft);
   Menu.Popup(p.X, p.Y+16);
 end;
@@ -12174,15 +12196,21 @@ var
   Menu: TPopupMenu;
   Item: TMenuItem;
   Edit: TButtonedEdit;
+  Setting: TAppSettingIndex;
 begin
   // Insert text from filter history menu
   Item := Sender as TMenuItem;
   Menu := Item.Owner as TPopupMenu;
   Edit := Menu.Owner as TButtonedEdit;
-  if Item.Tag = 1 then
-    Edit.Clear
+  if Edit = editDatabaseFilter then
+    Setting := asDatabaseFilter
   else
-    Edit.Text := Item.Caption;
+    Setting := asTableFilter;
+  case Item.Tag of
+    0: Edit.Text := Item.Caption;
+    1: Edit.Clear;
+    2: AppSettings.DeleteValue(Setting);
+  end;
   Menu.Free;
 end;
 
@@ -12560,7 +12588,7 @@ begin
     end else begin
       // Delete backup file if tab is closed by user, intentionally
       if (not Tab.MemoBackupFilename.IsEmpty) and FileExists(Tab.MemoBackupFilename) then begin
-        if not DeleteFile(Tab.MemoBackupFilename) then begin
+        if not DeleteFileWithUndo(Tab.MemoBackupFilename) then begin
           ErrorDialog(f_('Backup file could not be deleted: %s', [Tab.MemoBackupFilename]));
         end;
       end;

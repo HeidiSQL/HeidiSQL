@@ -4,7 +4,7 @@ interface
 
 uses
   Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees, SynRegExpr, extra_controls,
+  ComCtrls, ToolWin, VirtualTrees, VirtualTrees.EditLink, SynRegExpr, extra_controls,
   dbconnection, apphelpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
 
 type

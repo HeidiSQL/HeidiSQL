@@ -4121,6 +4121,7 @@ object MainForm: TMainForm
     Width = 350
     EndOfTokenChr = ',()[]. ='#9
     TriggerChars = '.'
+    Title = ' '
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
     Font.Height = -11
@@ -4141,6 +4142,7 @@ object MainForm: TMainForm
     ItemHeight = 18
     Images = VirtualImageListMain
     Margin = 1
+    OnChange = SynCompletionProposalChange
     OnExecute = SynCompletionProposalExecute
     ShortCut = 0
     Editor = SynMemoQuery
