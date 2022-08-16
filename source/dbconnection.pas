@@ -10383,8 +10383,9 @@ begin
 
   if InParts(cpAllowNull) and (not IsVirtual) then begin
     if not AllowNull then
-      Result := Result + 'NOT ';
-    Result := Result + 'NULL ';
+      Result := Result + 'NOT NULL '
+    else if not FConnection.Parameters.IsAnyInterbase then
+      Result := Result + 'NULL ';
   end;
 
   if InParts(cpDefault) and (not IsVirtual) then begin
