@@ -9222,7 +9222,7 @@ begin
     c.OldIsNull := False;
     ColAttr := ColAttributes(i);
     if Assigned(ColAttr) then begin
-      c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtAutoInc];
+      c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtAutoInc, cdtExpression];
       if ColAttr.DefaultType in [cdtText] then
         c.OldText := FConnection.UnescapeString(ColAttr.DefaultText);
     end;
