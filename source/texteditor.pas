@@ -220,6 +220,7 @@ begin
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
 
   MemoText.OnMouseWheel := MainForm.AnySynMemoMouseWheel;
+  MemoText.OnPaintTransient := MainForm.SynMemoQuery.OnPaintTransient;
   if AppSettings.ReadBool(asMemoEditorMaximized) then
     WindowState := wsMaximized;
 end;
