@@ -7485,6 +7485,7 @@ begin
             and Editor.GetHighlighterAttriAtRowCol(BufCrd, SelWord, Attri)
             then begin
             //logsql(SelWord+': '+Attri.FriendlyName);
+            Canvas.Font.Size := Editor.Font.Size;
             Canvas.Font.Style := Attri.Style;
             // Todo: check if we need to handle TransientType ttAfter and ttBefore
             Canvas.Font.Color:= FMatchingBraceForegroundColor;
