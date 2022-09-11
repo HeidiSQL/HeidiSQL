@@ -6718,3 +6718,15 @@ msgstr "Foreign key not found for column \"%s\""
 
 msgid "Empty recent filters"
 msgstr "Empty recent filters"
+
+msgid "Customize highlighter"
+msgstr "Customize highlighter"
+
+msgid "Example text"
+msgstr "Example text"
+
+msgid "Color picker"
+msgstr "Color picker"
+
+msgid "Style:"
+msgstr "Style:"

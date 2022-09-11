@@ -280,6 +280,7 @@ type
       function DirnameUserDocuments: String;
       function DirnameSnippets: String;
       function DirnameBackups: String;
+      function DirnameHighlighters: String;
       // "Static" options, initialized in OnCreate only. For settings which need a restart to take effect.
       property RestoreTabsInitValue: Boolean read FRestoreTabsInitValue;
   end;
@@ -4418,6 +4419,19 @@ begin
     Result := ExtractFilePath(Application.ExeName) + 'Backups\'
   end else begin
     Result := DirnameUserAppData + 'Backups\';
+  end;
+  if not DirectoryExists(Result) then begin
+    ForceDirectories(Result);
+  end;
+end;
+
+
+function TAppSettings.DirnameHighlighters: string;
+begin
+  if PortableMode then begin
+    Result := ExtractFilePath(Application.ExeName) + 'Highlighters\'
+  end else begin
+    Result := DirnameUserAppData + 'Highlighters\';
   end;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);

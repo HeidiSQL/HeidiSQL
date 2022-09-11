@@ -257,6 +257,10 @@
             <Form>frmCsvDetector</Form>
         </DCCReference>
         <DCCReference Include="..\..\source\generic_types.pas"/>
+        <DCCReference Include="..\..\source\customize_highlighter.pas">
+            <Form>frmCustomizeHighlighter</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <None Include="..\..\source\const.inc"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
