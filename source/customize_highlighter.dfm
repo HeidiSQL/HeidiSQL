@@ -39,20 +39,6 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Height = 15
     Caption = 'Style:'
   end
-  object lblSample: TLabel
-    Left = 277
-    Top = 175
-    Width = 156
-    Height = 26
-    Alignment = taCenter
-    Anchors = [akLeft, akTop, akRight]
-    AutoSize = False
-    Caption = 'Example text'
-    Color = clBtnFace
-    ParentColor = False
-    Transparent = False
-    Layout = tlCenter
-  end
   object comboHighlighter: TComboBox
     Left = 8
     Top = 8
@@ -101,7 +87,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 8
+    TabOrder = 7
   end
   object btnOK: TButton
     Left = 196
@@ -112,7 +98,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 7
+    TabOrder = 6
     OnClick = SaveSettings
   end
   object editBackground: TButtonedEdit
@@ -143,16 +129,6 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     OnExit = Modified
     OnRightButtonClick = editColorRightButtonClick
   end
-  object pnlSample: TPanel
-    Left = 277
-    Top = 136
-    Width = 156
-    Height = 33
-    Caption = 'Example text'
-    Color = clGradientActiveCaption
-    ParentBackground = False
-    TabOrder = 6
-  end
   object btnApply: TButton
     Left = 358
     Top = 216
@@ -160,7 +136,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'Apply'
-    TabOrder = 9
+    TabOrder = 8
     OnClick = SaveSettings
   end
 end

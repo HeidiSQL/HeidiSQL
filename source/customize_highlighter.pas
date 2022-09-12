@@ -5,10 +5,10 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.GraphUtil, System.Math,
-  System.StrUtils, SynEditHighlighter, gnugettext, apphelpers;
+  System.StrUtils, SynEditHighlighter, gnugettext, apphelpers, extra_controls;
 
 type
-  TfrmCustomizeHighlighter = class(TForm)
+  TfrmCustomizeHighlighter = class(TExtForm)
     comboHighlighter: TComboBox;
     listboxAttributes: TListBox;
     lblBackground: TLabel;
@@ -20,9 +20,7 @@ type
     btnOK: TButton;
     editBackground: TButtonedEdit;
     editForeground: TButtonedEdit;
-    pnlSample: TPanel;
     btnApply: TButton;
-    lblSample: TLabel;
     procedure listboxAttributesClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure comboHighlighterSelect(Sender: TObject);
@@ -37,7 +35,6 @@ type
     FOnChange: TNotifyEvent;
     procedure SetFriendlyLanguageName(FriendlyLanguageName: String);
     function GetFriendlyLanguageName: String;
-    procedure UpdateSampleBox;
   public
     { Public-Deklarationen }
     property FriendlyLanguageName: String read GetFriendlyLanguageName write SetFriendlyLanguageName;
@@ -73,7 +70,6 @@ begin
     FAttr.Style := FAttr.Style + [fsItalic]
   else
     FAttr.Style := FAttr.Style - [fsItalic];
-  UpdateSampleBox;
 end;
 
 procedure TfrmCustomizeHighlighter.comboHighlighterSelect(Sender: TObject);
@@ -159,7 +155,6 @@ begin
   editForeground.Enabled := AttrSelected;
   chkBold.Enabled := AttrSelected;
   chkItalic.Enabled := AttrSelected;
-  pnlSample.Enabled := AttrSelected;
   // Overtake values
   if AttrSelected then begin
     editBackground.Text := IfThen(FAttr.Background <> clNone, ColorToWebColorStr(FAttr.Background), '');
@@ -173,7 +168,6 @@ begin
     chkBold.Checked := False;
     chkItalic.Checked := False;
   end;
-  UpdateSampleBox;
 end;
 
 procedure TfrmCustomizeHighlighter.SetFriendlyLanguageName(FriendlyLanguageName: String);
@@ -188,21 +182,5 @@ begin
   Result := FHighlighter.FriendlyLanguageName;
 end;
 
-procedure TfrmCustomizeHighlighter.UpdateSampleBox;
-var
-  AttrSelected: Boolean;
-begin
-  // Visualize current colors
-  AttrSelected := FAttr <> nil;
-  pnlSample.Color := TColor(IfThen(AttrSelected, FAttr.Background, clBtnFace));
-  pnlSample.Font.Color := TColor(IfThen(AttrSelected, FAttr.Foreground, clWindowText));
-  if AttrSelected then
-    pnlSample.Font.Style := FAttr.Style;
-
-  lblSample.Color := TColor(IfThen(AttrSelected, FAttr.Background, clBtnFace));
-  lblSample.Font.Color := TColor(IfThen(AttrSelected, FAttr.Foreground, clWindowText));
-  if AttrSelected then
-    lblSample.Font.Style := FAttr.Style;
-end;
 
 end.
