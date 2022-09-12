@@ -63,11 +63,8 @@ procedure TfrmCustomizeHighlighter.Modified(Sender: TObject);
 begin
   // Apply modification to current attribute
   // Silence exception caused by invalid color strings
-  try
-    FAttr.Background := WebColorStrToColor(editBackground.Text);
-    FAttr.Foreground := WebColorStrToColor(editForeground.Text);
-  except
-  end;
+  FAttr.Background := WebColorStrToColorDef(editBackground.Text, clNone);
+  FAttr.Foreground := WebColorStrToColorDef(editForeground.Text, clNone);
   if chkBold.Checked then
     FAttr.Style := FAttr.Style + [fsBold]
   else
@@ -111,10 +108,7 @@ begin
   Edit := Sender as TButtonedEdit;
   Dialog := TColorDialog.Create(Self);
   Dialog.Options := [cdFullOpen, cdAnyColor];
-  try
-    Dialog.Color := WebColorStrToColor(Edit.Text);
-  except
-  end;
+  Dialog.Color := WebColorStrToColorDef(Edit.Text, clNone);
   if Dialog.Execute then begin
     Edit.Text := ColorToWebColorStr(Dialog.Color);
   end;
@@ -142,8 +136,9 @@ begin
   // Form destroyed
   if Assigned(FHighlighter) then
     FHighlighter.Free;
-  if Assigned(FAttr) then
-    FAttr.Free;
+  // causes an exception when closing:
+  //if Assigned(FAttr) then
+  //  FAttr.Free;
 end;
 
 procedure TfrmCustomizeHighlighter.listboxAttributesClick(Sender: TObject);
@@ -166,10 +161,18 @@ begin
   chkItalic.Enabled := AttrSelected;
   pnlSample.Enabled := AttrSelected;
   // Overtake values
-  editBackground.Text := IfThen(AttrSelected, ColorToWebColorStr(FAttr.Background), '');
-  editForeground.Text := IfThen(AttrSelected, ColorToWebColorStr(FAttr.Foreground), '');
-  chkBold.Checked := AttrSelected and (fsBold in FAttr.Style);
-  chkItalic.Checked := AttrSelected and (fsItalic in FAttr.Style);
+  if AttrSelected then begin
+    editBackground.Text := IfThen(FAttr.Background <> clNone, ColorToWebColorStr(FAttr.Background), '');
+    editForeground.Text := IfThen(FAttr.Foreground <> clNone, ColorToWebColorStr(FAttr.Foreground), '');
+    chkBold.Checked := fsBold in FAttr.Style;
+    chkItalic.Checked := fsItalic in FAttr.Style;
+  end
+  else begin
+    editBackground.Text := '';
+    editForeground.Text := '';
+    chkBold.Checked := False;
+    chkItalic.Checked := False;
+  end;
   UpdateSampleBox;
 end;
 

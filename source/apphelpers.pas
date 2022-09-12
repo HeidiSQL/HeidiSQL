@@ -395,6 +395,8 @@ type
   function DirSep: Char;
   function StrHasNumChars(const AStr: String; NumChars: Cardinal): Boolean;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
+  function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
+
 var
   AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
@@ -3018,6 +3020,14 @@ begin
   end;
 end;
 
+function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
+begin
+  try
+    Result := WebColorStrToColor(WebColor);
+  except
+    Result := Default;
+  end;
+end;
 
 
 { Threading stuff }
