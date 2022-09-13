@@ -6,7 +6,7 @@ uses
   Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
   ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
   apphelpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
-  Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter,
+  Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter, customize_highlighter,
 
   SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm,
   SynHighlighterBaan, SynHighlighterBat, SynHighlighterCAC, SynHighlighterCPM, SynHighlighterCS,
@@ -59,6 +59,8 @@ type
     Findorreplaceagain1: TMenuItem;
     Replacetext1: TMenuItem;
     N1: TMenuItem;
+    ToolButton1: TToolButton;
+    btnCustomizeHighlighter: TToolButton;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
@@ -73,6 +75,7 @@ type
     procedure SelectLinebreaks(Sender: TObject);
     procedure TimerMemoChangeTimer(Sender: TObject);
     procedure comboHighlighterSelect(Sender: TObject);
+    procedure btnCustomizeHighlighterClick(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -83,6 +86,7 @@ type
     FTableColumn: TTableColumn;
     FHighlighter: TSynCustomHighlighter;
     procedure SetModified(NewVal: Boolean);
+    procedure CustomizeHighlighterChanged(Sender: TObject);
   public
     function GetText: String;
     procedure SetText(text: String);
@@ -160,6 +164,27 @@ begin
 end;
 
 
+procedure TfrmTextEditor.btnCustomizeHighlighterClick(Sender: TObject);
+var
+  Dialog: TfrmCustomizeHighlighter;
+begin
+  // let user customize highlighter colors
+  Dialog := TfrmCustomizeHighlighter.Create(Self);
+  Dialog.FriendlyLanguageName := MemoText.Highlighter.FriendlyLanguageName;
+  Dialog.OnChange := CustomizeHighlighterChanged;
+  Dialog.ShowModal;
+  Dialog.Free;
+end;
+
+procedure TfrmTextEditor.CustomizeHighlighterChanged(Sender: TObject);
+var
+  Dialog: TfrmCustomizeHighlighter;
+begin
+  Dialog := Sender as TfrmCustomizeHighlighter;
+  comboHighlighter.ItemIndex := comboHighlighter.Items.IndexOf(Dialog.FriendlyLanguageName);
+  comboHighlighter.OnSelect(comboHighlighter);
+end;
+
 procedure TfrmTextEditor.SelectLinebreaks(Sender: TObject);
 var
   Selected, Item: TMenuItem;
@@ -220,6 +245,7 @@ begin
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
 
   MemoText.OnMouseWheel := MainForm.AnySynMemoMouseWheel;
+  MemoText.OnPaintTransient := MainForm.SynMemoQuery.OnPaintTransient;
   if AppSettings.ReadBool(asMemoEditorMaximized) then
     WindowState := wsMaximized;
 end;
@@ -338,6 +364,8 @@ begin
     FHighlighter := TSynGeneralSyn.Create(Self);
     MemoText.Highlighter := FHighlighter;
   end;
+
+  MemoText.Highlighter.LoadFromFile(AppSettings.DirnameHighlighters + MemoText.Highlighter.LanguageName + '.ini');
 
   MemoText.SelStart := SelStart;
   MemoText.SelLength := SelLength;

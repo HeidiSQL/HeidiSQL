@@ -129,9 +129,24 @@ object frmTextEditor: TfrmTextEditor
         Top = 0
         Action = MainForm.actQueryReplace
       end
+      object ToolButton1: TToolButton
+        Left = 211
+        Top = 0
+        Width = 8
+        Caption = 'ToolButton1'
+        ImageIndex = 60
+        Style = tbsSeparator
+      end
+      object btnCustomizeHighlighter: TToolButton
+        Left = 219
+        Top = 0
+        Caption = 'Customize highlighter'
+        ImageIndex = 39
+        OnClick = btnCustomizeHighlighterClick
+      end
     end
     object comboHighlighter: TComboBox
-      Left = 207
+      Left = 242
       Top = 0
       Width = 145
       Height = 22
