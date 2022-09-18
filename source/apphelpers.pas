@@ -393,7 +393,6 @@ type
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
-  function StrHasNumChars(const AStr: String; NumChars: Cardinal): Boolean;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
 
@@ -2989,24 +2988,6 @@ begin
   else
     Result := '\';
 end;
-
-
-function StrHasNumChars(const AStr: String; NumChars: Cardinal): Boolean;
-var
-  P: PWideChar;
-  _NumChars: Cardinal;
-begin
-  _NumChars := 0;
-  P := PWideChar(AStr);
-  while P <> '' do begin
-    Inc(_NumChars);
-    if _NumChars > NumChars then
-      Break;
-    P := CharNextW(P);
-  end;
-  Result := _NumChars = NumChars;
-end;
-
 
 procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
 var

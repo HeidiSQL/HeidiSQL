@@ -9330,22 +9330,29 @@ begin
 end;
 
 
+// Issue #1351 and https://www.heidisql.com/forum.php?t=39239
+//   Data view editor truncated for TEXT columns when emoji is present
+// Issue #1658:
+//   Saving BLOB to file creates corrupted files
 function TDBQuery.HasFullData: Boolean;
 var
-  Val: String;
   i: Integer;
 begin
   Result := True;
-  // In case we created a update-row we know for sure that we already loaded full contents
-  if Assigned(FCurrentUpdateRow) then
-    Result := True
-  else for i:=0 to ColumnCount-1 do begin
-    if not (Datatype(i).Category in [dtcText, dtcBinary]) then
-      continue;
-    Val := Col(i);
-    if StrHasNumChars(Val, GRIDMAXDATA) then begin
-      Result := False;
-      break;
+  if Assigned(FCurrentUpdateRow) then begin
+    // In case we created a update-row we know for sure that we already loaded full contents
+    Result := True;
+  end
+  else begin
+    // This is done only once, before EnsureFullRow creates an update-row which returns true above.
+    // Delphi/Length() counts bytes, while SQL/LEFT() counts characters.
+    for i:=0 to ColumnCount-1 do begin
+      if ColumnNames[i].StartsWith('LEFT', True) or ColumnNames[i].StartsWith('SUBSTR', True) then begin
+        if Length(Col(i)) >= GRIDMAXDATA then begin
+          Result := False;
+          Break;
+        end;
+      end;
     end;
   end;
 end;
