@@ -1306,6 +1306,9 @@ begin
       editUsername.Text := Params.DefaultUsername;
     if not editIgnoreDatabasePattern.Modified then
       editIgnoreDatabasePattern.Text := Params.DefaultIgnoreDatabasePattern;
+    if not editHost.Modified then
+      editHost.Text := Params.DefaultHost;
+
     comboLibrary.Items := Params.GetLibraries;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
   end;

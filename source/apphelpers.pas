@@ -3584,7 +3584,7 @@ begin
   InitSetting(asSQLHelpWindowHeight,              'SQLHelp_WindowHeight',                  400);
   InitSetting(asSQLHelpPnlLeftWidth,              'SQLHelp_PnlLeftWidth',                  150);
   InitSetting(asSQLHelpPnlRightTopHeight,         'SQLHelp_PnlRightTopHeight',             150);
-  InitSetting(asHost,                             'Host',                                  0, False, '127.0.0.1', True);
+  InitSetting(asHost,                             'Host',                                  0, False, '', True);
   InitSetting(asUser,                             'User',                                  0, False, '', True);
   InitSetting(asPassword,                         'Password',                              0, False, '', True);
   InitSetting(asCleartextPluginEnabled,           'CleartextPluginEnabled',                0, False, '', True);

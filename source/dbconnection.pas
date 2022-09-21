@@ -348,6 +348,7 @@ type
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
+      function DefaultHost: String;
       function DefaultPort: Integer;
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
@@ -1356,7 +1357,7 @@ begin
   FIsFolder := False;
 
   FNetType := TNetType(AppSettings.GetDefaultInt(asNetType));
-  FHostname := AppSettings.GetDefaultString(asHost);
+  FHostname := DefaultHost;
   FLoginPrompt := AppSettings.GetDefaultBool(asLoginPrompt);
   FWindowsAuth := AppSettings.GetDefaultBool(asWindowsAuth);
   FCleartextPluginEnabled := AppSettings.GetDefaultBool(asCleartextPluginEnabled);
@@ -1841,6 +1842,17 @@ begin
       else if IsFirebird then
         Result := 'fbclient.dll';
     end
+  end;
+end;
+
+
+function TConnectionParameters.DefaultHost: string;
+begin
+  // See issue #1602: SQLite connecting to IP causes out-of-memory crash
+  Result := '';
+  case NetTypeGroup of
+    ngSQLite: Result := '';
+    else Result := '127.0.0.1';
   end;
 end;
 
