@@ -9349,6 +9349,8 @@ end;
 function TDBQuery.HasFullData: Boolean;
 var
   i: Integer;
+  P: PWideChar;
+  NumChars: Integer;
 begin
   Result := True;
   if Assigned(FCurrentUpdateRow) then begin
@@ -9359,11 +9361,27 @@ begin
     // This is done only once, before EnsureFullRow creates an update-row which returns true above.
     // Delphi/Length() counts bytes, while SQL/LEFT() counts characters.
     for i:=0 to ColumnCount-1 do begin
-      if ColumnNames[i].StartsWith('LEFT', True) or ColumnNames[i].StartsWith('SUBSTR', True) then begin
-        if Length(Col(i)) >= GRIDMAXDATA then begin
-          Result := False;
-          Break;
+      //if TableName.Contains('test') then
+      //  FConnection.Log(lcInfo, 'HasFullData: '+ColumnNames[i]+' / '+ColumnOrgNames[i]);
+      if FConnection.Parameters.IsAnyMySQL then begin
+        if ColumnNames[i].StartsWith('LEFT', True) or ColumnNames[i].StartsWith('SUBSTR', True) then begin
+          if Length(Col(i)) >= GRIDMAXDATA then begin
+            Result := False;
+            Break;
+          end;
         end;
+      end
+      else begin
+        // MS SQL does not provide the original column names with function calls like LEFT(..)
+        NumChars := 0;
+        P := PWideChar(Col(i));
+        while P <> '' do begin
+          Inc(NumChars);
+          if NumChars > GRIDMAXDATA then
+            Break;
+          P := CharNextW(P);
+        end;
+        Result := NumChars <> GRIDMAXDATA;
       end;
     end;
   end;
