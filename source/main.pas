@@ -4725,6 +4725,8 @@ begin
     OldDbObject := TDBObject.Create(FActiveDbObj.Connection);
     OldDbObject.Assign(FActiveDbObj);
     RefreshTree(OldDbObject);
+  end else if tab1 = tabEditor then begin
+    RefreshTree;
   end else if tab1 = tabData then
     InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
@@ -9447,8 +9449,7 @@ begin
             end;
             SelectedTableForeignKeys := FActiveDbObj.TableForeignKeys;
           end;
-          if not FTreeRefreshInProgress then
-            PlaceObjectEditor(FActiveDbObj);
+          PlaceObjectEditor(FActiveDbObj);
           // When a table is clicked in the tree, and the current
           // tab is a Host or Database tab, switch to showing table columns.
           if (PagecontrolMain.ActivePage = tabHost) or (PagecontrolMain.ActivePage = tabDatabase) then
@@ -11643,23 +11644,28 @@ var
   EditorClass: TDBObjectEditorClass;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
-  if Assigned(ActiveObjectEditor) and (Obj.NodeType <> ActiveObjectEditor.DBObject.NodeType) then
-    FreeAndNil(ActiveObjectEditor);
-  case Obj.NodeType of
-    lntTable: EditorClass := TfrmTableEditor;
-    lntView: EditorClass := TfrmView;
-    lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
-    lntTrigger: EditorClass := TfrmTriggerEditor;
-    lntEvent: EditorClass := TfrmEventEditor;
-    else Exit;
+  if FTreeRefreshInProgress and Assigned(ActiveObjectEditor) then begin
+    ActiveObjectEditor.Init(Obj);
+    UpdateFilterPanel(Self);
+  end else begin
+    if Assigned(ActiveObjectEditor) and (Obj.NodeType <> ActiveObjectEditor.DBObject.NodeType) then
+      FreeAndNil(ActiveObjectEditor);
+    case Obj.NodeType of
+      lntTable: EditorClass := TfrmTableEditor;
+      lntView: EditorClass := TfrmView;
+      lntProcedure, lntFunction: EditorClass := TfrmRoutineEditor;
+      lntTrigger: EditorClass := TfrmTriggerEditor;
+      lntEvent: EditorClass := TfrmEventEditor;
+      else Exit;
+    end;
+    if not Assigned(ActiveObjectEditor) then begin
+      ActiveObjectEditor := EditorClass.Create(tabEditor);
+      ActiveObjectEditor.Parent := tabEditor;
+      SetupSynEditors(ActiveObjectEditor);
+    end;
+    ActiveObjectEditor.Init(Obj);
+    UpdateFilterPanel(Self);
   end;
-  if not Assigned(ActiveObjectEditor) then begin
-    ActiveObjectEditor := EditorClass.Create(tabEditor);
-    ActiveObjectEditor.Parent := tabEditor;
-    SetupSynEditors(ActiveObjectEditor);
-  end;
-  ActiveObjectEditor.Init(Obj);
-  UpdateFilterPanel(Self);
 end;
 
 
