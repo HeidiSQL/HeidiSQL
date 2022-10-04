@@ -10454,7 +10454,7 @@ begin
       Result := Result + 'COMMENT ' + FConnection.EscapeString(Comment) + ' ';
   end;
 
-  if InParts(cpCollation) and (not IsVirtual) then begin
+  if InParts(cpCollation) and (not IsVirtual) and (DataType.Index <> dbdtJson) then begin
     if Collation <> '' then begin
       Result := Result + 'COLLATE ';
       if OverrideCollation <> '' then
