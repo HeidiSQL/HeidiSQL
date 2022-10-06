@@ -9344,12 +9344,11 @@ end;
 
 // Issue #1351 and https://www.heidisql.com/forum.php?t=39239
 //   Data view editor truncated for TEXT columns when emoji is present
-// Issue #1658:
-//   Saving BLOB to file creates corrupted files
+// Issue #1658: Saving BLOB to file creates corrupted files
+// Issue #1673: Truncated text in Postgres mode
 function TDBQuery.HasFullData: Boolean;
 var
   i: Integer;
-  P: PWideChar;
   NumChars: Integer;
 begin
   Result := True;
@@ -9359,29 +9358,20 @@ begin
   end
   else begin
     // This is done only once, before EnsureFullRow creates an update-row which returns true above.
-    // Delphi/Length() counts bytes, while SQL/LEFT() counts characters.
+    // Delphi's Length() likely counts characters different than SQL/LEFT().
     for i:=0 to ColumnCount-1 do begin
-      //if TableName.Contains('test') then
-      //  FConnection.Log(lcInfo, 'HasFullData: '+ColumnNames[i]+' / '+ColumnOrgNames[i]);
-      if FConnection.Parameters.IsAnyMySQL then begin
-        if ColumnNames[i].StartsWith('LEFT', True) or ColumnNames[i].StartsWith('SUBSTR', True) then begin
-          if Length(Col(i)) >= GRIDMAXDATA then begin
-            Result := False;
-            Break;
-          end;
-        end;
-      end
-      else begin
-        // MS SQL does not provide the original column names with function calls like LEFT(..)
-        NumChars := 0;
-        P := PWideChar(Col(i));
-        while P <> '' do begin
-          Inc(NumChars);
-          if NumChars > GRIDMAXDATA then
-            Break;
-          P := CharNextW(P);
-        end;
-        Result := NumChars > GRIDMAXDATA;
+      if not DataType(i).LoadPart then
+        Continue;
+      NumChars := Col(i).Length;
+      {if TableName.Contains('issue') then
+        FConnection.Log(lcInfo, 'HasFullData: RowNum:'+RecNo.ToString+
+          ' ColumnNames['+i.ToString+']:'+ColumnNames[i]+
+          ' ColumnOrgNames['+i.ToString+']:'+ColumnOrgNames[i]+
+          ' NumChars:'+NumChars.ToString
+          );}
+      if (NumChars <= GRIDMAXDATA) and (NumChars >= GRIDMAXDATA / SizeOf(Char)) then begin
+        Result := False;
+        Break;
       end;
     end;
   end;
