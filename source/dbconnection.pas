@@ -9381,7 +9381,7 @@ begin
             Break;
           P := CharNextW(P);
         end;
-        Result := NumChars <> GRIDMAXDATA;
+        Result := NumChars > GRIDMAXDATA;
       end;
     end;
   end;
