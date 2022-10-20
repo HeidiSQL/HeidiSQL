@@ -13,7 +13,6 @@ object frmPreferences: TfrmPreferences
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -21,7 +20,6 @@ object frmPreferences: TfrmPreferences
   DesignSize = (
     722
     460)
-  PixelsPerInch = 96
   TextHeight = 14
   object pagecontrolMain: TPageControl
     Left = 8
@@ -549,6 +547,15 @@ object frmPreferences: TfrmPreferences
         Height = 17
         Caption = 'Import/script queries'
         TabOrder = 9
+        OnClick = Modified
+      end
+      object chkLogTimestamp: TCheckBox
+        Left = 220
+        Top = 292
+        Width = 475
+        Height = 17
+        Caption = 'Add timestamp to all log messages'
+        TabOrder = 16
         OnClick = Modified
       end
     end

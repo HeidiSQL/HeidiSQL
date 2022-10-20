@@ -179,6 +179,7 @@ type
     editRealTrailingZeros: TEdit;
     updownRealTrailingZeros: TUpDown;
     lblRealTrailingZerosHint: TLabel;
+    chkLogTimestamp: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -311,6 +312,7 @@ begin
   AppSettings.WriteBool(asQueryHistoryEnabled, chkQueryHistory.Checked);
   AppSettings.WriteInt(asQueryHistoryKeepDays, updownQueryHistoryKeepDays.Position);
   AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
+  AppSettings.WriteBool(asLogTimestamp, chkLogTimestamp.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
     AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.Name);
@@ -683,6 +685,7 @@ begin
   chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);
   updownQueryHistoryKeepDays.Position := AppSettings.ReadInt(asQueryHistoryKeepDays);
   chkHorizontalScrollbar.Checked := AppSettings.ReadBool(asLogHorizontalScrollbar);
+  chkLogTimestamp.Checked := AppSettings.ReadBool(asLogTimestamp);
 
   // Default column width in grids:
   updownMaxColWidth.Position := AppSettings.ReadInt(asMaxColWidth);

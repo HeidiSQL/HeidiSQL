@@ -192,7 +192,7 @@ type
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
-    asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asFieldColorNumeric,
+    asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asLogTimestamp, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
     asFieldColorOther, asFieldEditorBinary, asFieldEditorDatetime, asFieldEditorDatetimePrefill, asFieldEditorEnum,
     asFieldEditorSet, asFieldNullBackground, asRowBackgroundEven, asRowBackgroundOdd, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
@@ -3753,6 +3753,7 @@ begin
   InitSetting(asLogScript,                        'LogScript',                             0, False);
   InitSetting(asLogInfos,                         'LogInfos',                              0, True);
   InitSetting(asLogDebug,                         'LogDebug',                              0, False);
+  InitSetting(asLogTimestamp,                     'LogTimestamp',                          0, False);
   InitSetting(asFieldColorNumeric,                'FieldColor_Numeric',                    $00FF0000);
   InitSetting(asFieldColorReal,                   'FieldColor_Real',                       $00FF0048);
   InitSetting(asFieldColorText,                   'FieldColor_Text',                       $00008000);

@@ -5427,7 +5427,10 @@ var
 begin
   LogItem := TDBLogItem.Create;
   LogItem.Category := Category;
-  LogItem.LineText := Msg;
+  if AppSettings.ReadBool(asLogTimestamp) then
+    LogItem.LineText := '['+FormatDateTime('hh:nn:ss.zzz', Now)+'] '+ Msg
+  else
+    LogItem.LineText := Msg;
   LogItem.Connection := Connection;
   PostponedLogItems.Add(LogItem);
 
