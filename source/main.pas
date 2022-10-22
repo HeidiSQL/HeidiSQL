@@ -2417,13 +2417,24 @@ end;
 function TMainForm.RestoreTabs: Boolean;
 var
   Tab: TQueryTab;
-  Sections: TStringList;
+  Sections, SlowTabs: TStringList;
   Section, Filename, BackupFilename, TabCaption: String;
   TabsIni: TIniFile;
   pid: Cardinal;
   EditorHeight, HelpersWidth, EditorTopLine: Integer;
   BindParams: String;
   TabFocused: Boolean;
+  TabLoadStart, TabLoadTime: UInt64;
+const
+  SlowLoadMilliseconds = 5000;
+
+  procedure CheckSlowTabLoad(CurTab: TQueryTab);
+  begin
+    TabLoadTime := GetTickCount64 - TabLoadStart;
+    if TabLoadTime > SlowLoadMilliseconds then begin
+      SlowTabs.Add('• ' + Trim(Tab.TabSheet.Caption) + ' (' + FormatTimeNumber(TabLoadTime / 1000, True) + ')');
+    end;
+  end;
 begin
   // Restore query tab setup from tabs.ini
   Result := True;
@@ -2434,8 +2445,10 @@ begin
 
     Sections := TStringList.Create;
     TabsIni.ReadSections(Sections);
+    SlowTabs := TStringList.Create;
 
     for Section in Sections do begin
+      TabLoadStart := GetTickCount64;
 
       Filename := TabsIni.ReadString(Section, TQueryTab.IdentFilename, '');
       BackupFilename := TabsIni.ReadString(Section, TQueryTab.IdentBackupFilename, '');
@@ -2473,6 +2486,7 @@ begin
           Tab.Memo.TopLine := EditorTopLine;
           if TabFocused then
             SetMainTab(Tab.TabSheet);
+          CheckSlowTabLoad(Tab);
         end else begin
           // Remove tab section if backup file is gone or inaccessible for some reason
           TabsIni.EraseSection(Section);
@@ -2494,6 +2508,7 @@ begin
           Tab.Memo.TopLine := EditorTopLine;
           if TabFocused then
             SetMainTab(Tab.TabSheet);
+          CheckSlowTabLoad(Tab);
         end else begin
           // Remove tab section if user stored file was deleted by user
           TabsIni.EraseSection(Section);
@@ -2505,6 +2520,16 @@ begin
     Sections.Free;
     // Close file
     TabsIni.Free;
+
+    // Warn user about tabs which were loading slow
+    if SlowTabs.Count > 0 then begin
+      MessageDialog(
+        f_('%d tab(s) took longer than expected to restore. Closing and reopening these should fix that: %s',
+          [SlowTabs.Count, sLineBreak + sLineBreak + SlowTabs.Text]),
+        mtWarning, [mbOk]);
+    end;
+    SlowTabs.Free;
+
   except
     on E:Exception do begin
       Result := False;

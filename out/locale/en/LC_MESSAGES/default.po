@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-10-20 18:45+0200\n"
+"PO-Revision-Date: 2022-10-22 17:29+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.2\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6739,3 +6739,6 @@ msgstr "Error in code formatting: %s"
 
 msgid "Auto-disabling wordwrap for large text"
 msgstr "Auto-disabling wordwrap for large text"
+
+msgid "%d tab(s) took longer than expected to restore. Closing and reopening these should fix that: %s"
+msgstr "%d tab(s) took longer than expected to restore. Closing and reopening these should fix that: %s"
