@@ -604,6 +604,7 @@ type
       function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
+      function IsNumeric(Text: String): Boolean;
       function IsHex(Text: String): Boolean;
     published
       property Active: Boolean read FActive write SetActive default False;
@@ -4968,7 +4969,7 @@ begin
       if IsHex(Text) then
         DoQuote := False;
     dtcInteger, dtcReal:
-      if not ExecRegExpr('^\d+(\.\d+)?$', Text) then
+      if (not IsNumeric(Text)) and (not IsHex(Text)) then
         DoQuote := True;
   end;
   Result := EscapeString(Text, False, DoQuote);
@@ -6380,6 +6381,13 @@ begin
       FInformationSchemaObjects.Delete(ConTableIdx);
     end;
   end;
+end;
+
+
+function TDBConnection.IsNumeric(Text: String): Boolean;
+begin
+  // Check if value is an integer or float number
+  Result := ExecRegExpr('^[+-]?\d+(\.\d+)?$', Text);
 end;
 
 
@@ -9414,7 +9422,7 @@ begin
         Val := Cell.NewText
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
-          Val := Connection.EscapeString(Cell.NewText);
+          Val := Connection.EscapeString(Cell.NewText, Datatype(i));
           if (Datatype(i).Index = dbdtBit) and FConnection.Parameters.IsAnyMySQL then
             Val := 'b' + Val;
         end;
