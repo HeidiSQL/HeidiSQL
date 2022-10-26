@@ -3,8 +3,8 @@ object frmPreferences: TfrmPreferences
   Top = 163
   BorderIcons = [biSystemMenu]
   Caption = 'Preferences'
-  ClientHeight = 460
-  ClientWidth = 722
+  ClientHeight = 452
+  ClientWidth = 720
   Color = clBtnFace
   Constraints.MinHeight = 480
   Constraints.MinWidth = 600
@@ -18,14 +18,14 @@ object frmPreferences: TfrmPreferences
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    722
-    460)
+    720
+    452)
   TextHeight = 14
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
-    Width = 708
-    Height = 417
+    Width = 706
+    Height = 409
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.VirtualImageListMain
@@ -37,70 +37,70 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 137
       ImageName = 'icons8-settings'
       DesignSize = (
-        700
-        388)
+        698
+        380)
       object lblMySQLBinaries: TLabel
         Left = 8
         Top = 177
-        Width = 152
-        Height = 13
+        Width = 174
+        Height = 14
         Caption = 'MySQL command line programs:'
       end
       object lblLanguage: TLabel
         Left = 8
         Top = 231
-        Width = 112
-        Height = 13
+        Width = 127
+        Height = 14
         Caption = 'Application language: *'
       end
       object lblCustomSnippetsDirectory: TLabel
         Left = 8
         Top = 204
-        Width = 129
-        Height = 13
+        Width = 146
+        Height = 14
         Caption = 'Custom snippets directory:'
       end
       object lblGUIFont: TLabel
         Left = 8
         Top = 258
-        Width = 54
-        Height = 13
+        Width = 62
+        Height = 14
         Caption = 'GUI font: *'
       end
       object lblGUIFontSize: TLabel
-        Left = 664
+        Left = 662
         Top = 258
-        Width = 10
-        Height = 13
+        Width = 12
+        Height = 14
         Anchors = [akTop, akRight]
         Caption = 'pt'
       end
       object lblTheme: TLabel
         Left = 8
         Top = 285
-        Width = 72
-        Height = 13
+        Width = 85
+        Height = 14
         Caption = 'Style Theme: *'
       end
       object lblIconPack: TLabel
         Left = 8
         Top = 312
-        Width = 50
-        Height = 13
+        Width = 57
+        Height = 14
         Caption = 'Icon pack:'
       end
       object lblWebSearchBaseUrl: TLabel
         Left = 8
         Top = 339
-        Width = 102
-        Height = 13
+        Width = 115
+        Height = 14
         Hint = 'Used in footer of various message dialogs'
         Caption = 'Web search base url:'
       end
       object chkAutoReconnect: TCheckBox
         Left = 220
         Top = 31
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Automatically reconnect to previously opened sessions on startup'
@@ -110,7 +110,7 @@ object frmPreferences: TfrmPreferences
       object chkRestoreLastDB: TCheckBox
         Left = 220
         Top = 54
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Restore last used database on startup'
@@ -133,7 +133,7 @@ object frmPreferences: TfrmPreferences
         Left = 409
         Top = 75
         Width = 43
-        Height = 21
+        Height = 22
         Enabled = False
         TabOrder = 4
         Text = '1'
@@ -143,7 +143,7 @@ object frmPreferences: TfrmPreferences
         Left = 452
         Top = 75
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editUpdatecheckInterval
         Enabled = False
         Max = 999
@@ -154,7 +154,7 @@ object frmPreferences: TfrmPreferences
       object chkUpdateCheckBuilds: TCheckBox
         Left = 488
         Top = 77
-        Width = 207
+        Width = 205
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Also check for updated nightly builds'
@@ -165,7 +165,7 @@ object frmPreferences: TfrmPreferences
       object chkDoStatistics: TCheckBox
         Left = 220
         Top = 100
-        Width = 475
+        Width = 473
         Height = 17
         Hint = 
           'This option, if enabled, will cause HeidiSQL to ping heidisql.co' +
@@ -179,7 +179,7 @@ object frmPreferences: TfrmPreferences
       object chkAllowMultiInstances: TCheckBox
         Left = 220
         Top = 8
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Allow multiple application instances'
@@ -200,8 +200,8 @@ object frmPreferences: TfrmPreferences
       object editMySQLBinaries: TButtonedEdit
         Left = 220
         Top = 174
-        Width = 475
-        Height = 21
+        Width = 473
+        Height = 22
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
         RightButton.ImageIndex = 51
@@ -217,8 +217,8 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         Left = 220
         Top = 228
-        Width = 475
-        Height = 21
+        Width = 473
+        Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 12
@@ -227,8 +227,8 @@ object frmPreferences: TfrmPreferences
       object editCustomSnippetsDirectory: TButtonedEdit
         Left = 220
         Top = 201
-        Width = 475
-        Height = 21
+        Width = 473
+        Height = 22
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
         RightButton.ImageIndex = 51
@@ -244,8 +244,8 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         Left = 220
         Top = 255
-        Width = 362
-        Height = 21
+        Width = 360
+        Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 13
@@ -253,10 +253,10 @@ object frmPreferences: TfrmPreferences
       end
       object editGUIFontSize: TEdit
         Tag = 1
-        Left = 589
+        Left = 587
         Top = 255
         Width = 50
-        Height = 21
+        Height = 22
         Anchors = [akTop, akRight]
         TabOrder = 14
         Text = '8'
@@ -264,10 +264,10 @@ object frmPreferences: TfrmPreferences
       end
       object updownGUIFontSize: TUpDown
         Tag = 1
-        Left = 639
+        Left = 637
         Top = 255
         Width = 16
-        Height = 21
+        Height = 22
         Anchors = [akTop, akRight]
         Associate = editGUIFontSize
         Min = 4
@@ -278,7 +278,7 @@ object frmPreferences: TfrmPreferences
       object chkWheelZoom: TCheckBox
         Left = 220
         Top = 123
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use Ctrl+Mousewheel for zooming'
@@ -289,8 +289,8 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         Left = 220
         Top = 282
-        Width = 362
-        Height = 21
+        Width = 360
+        Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         Sorted = True
@@ -300,8 +300,8 @@ object frmPreferences: TfrmPreferences
       object comboIconPack: TComboBox
         Left = 220
         Top = 309
-        Width = 475
-        Height = 21
+        Width = 473
+        Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 18
@@ -310,8 +310,8 @@ object frmPreferences: TfrmPreferences
       object comboWebSearchBaseUrl: TComboBox
         Left = 220
         Top = 336
-        Width = 475
-        Height = 21
+        Width = 473
+        Height = 22
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 19
         Text = 'comboWebSearchBaseUrl'
@@ -327,7 +327,7 @@ object frmPreferences: TfrmPreferences
           'https://www.google.com/search?q=%query')
       end
       object chkThemePreview: TCheckBox
-        Left = 588
+        Left = 586
         Top = 284
         Width = 97
         Height = 17
@@ -342,55 +342,55 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 56
       ImageName = 'icons8-index'
       DesignSize = (
-        700
-        388)
+        698
+        380)
       object Label4: TLabel
         Left = 8
         Top = 11
-        Width = 37
-        Height = 13
+        Width = 42
+        Height = 14
         Caption = 'Log last'
       end
       object lblLogLinesHint: TLabel
         Left = 297
         Top = 11
-        Width = 71
-        Height = 13
+        Width = 82
+        Height = 14
         Caption = 'lines in SQL log'
       end
       object lblLogSnipHint: TLabel
         Left = 297
         Top = 38
-        Width = 139
-        Height = 13
+        Width = 160
+        Height = 14
         Caption = 'characters  (0 = no snipping)'
       end
       object lblLogSnip: TLabel
         Left = 8
         Top = 38
-        Width = 96
-        Height = 13
+        Width = 112
+        Height = 14
         Caption = 'Snip SQL log lines to'
       end
       object lblLogLevel: TLabel
         Left = 8
         Top = 95
-        Width = 57
-        Height = 13
+        Width = 65
+        Height = 14
         Caption = 'Log events:'
       end
       object lblQueryHistoryKeepDays: TLabel
         Left = 438
         Top = 247
-        Width = 209
-        Height = 13
+        Width = 241
+        Height = 14
         Caption = 'days to keep queries before removing them'
       end
       object editLogLines: TEdit
         Left = 220
         Top = 8
         Width = 53
-        Height = 21
+        Height = 22
         TabOrder = 0
         Text = '1'
         OnChange = Modified
@@ -399,7 +399,7 @@ object frmPreferences: TfrmPreferences
         Left = 273
         Top = 8
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editLogLines
         Min = 1
         Max = 32767
@@ -412,7 +412,7 @@ object frmPreferences: TfrmPreferences
         Left = 273
         Top = 35
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editLogSnip
         Max = 32767
         Position = 2000
@@ -423,7 +423,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 35
         Width = 53
-        Height = 21
+        Height = 22
         TabOrder = 2
         Text = '2000'
         OnChange = Modified
@@ -485,8 +485,8 @@ object frmPreferences: TfrmPreferences
       object editLogDir: TButtonedEdit
         Left = 361
         Top = 62
-        Width = 334
-        Height = 21
+        Width = 332
+        Height = 22
         Anchors = [akLeft, akTop, akRight]
         Enabled = False
         Images = MainForm.VirtualImageListMain
@@ -521,7 +521,7 @@ object frmPreferences: TfrmPreferences
         Left = 361
         Top = 244
         Width = 53
-        Height = 21
+        Height = 22
         Enabled = False
         TabOrder = 13
         Text = '1'
@@ -531,7 +531,7 @@ object frmPreferences: TfrmPreferences
         Left = 414
         Top = 244
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editQueryHistoryKeepDays
         Enabled = False
         Min = 1
@@ -564,69 +564,84 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 57
       ImageName = 'icons8-play'
       DesignSize = (
-        700
-        388)
+        698
+        380)
       object lblFont: TLabel
         Left = 8
         Top = 11
-        Width = 55
-        Height = 13
+        Width = 63
+        Height = 14
         Caption = 'Editor font:'
       end
       object lblSQLFontSizeUnit: TLabel
         Left = 446
         Top = 11
-        Width = 10
-        Height = 13
+        Width = 12
+        Height = 14
         Caption = 'pt'
       end
       object Label1: TLabel
         Left = 8
         Top = 37
-        Width = 51
-        Height = 13
+        Width = 60
+        Height = 14
         Caption = 'Tab width:'
       end
       object lblMaxQueryResults: TLabel
         Left = 8
         Top = 64
-        Width = 101
-        Height = 13
+        Width = 114
+        Height = 14
         Caption = 'Maximum result sets:'
       end
       object lblSQLColElement: TLabel
         Left = 8
         Top = 186
-        Width = 42
-        Height = 13
+        Width = 49
+        Height = 14
         Caption = 'Element:'
       end
       object lblSQLColBackground: TLabel
         Left = 220
         Top = 280
-        Width = 60
-        Height = 13
+        Width = 68
+        Height = 14
         Caption = 'Background:'
       end
       object lblSQLColForeground: TLabel
         Left = 220
         Top = 233
-        Width = 60
-        Height = 13
+        Width = 67
+        Height = 14
         Caption = 'Foreground:'
       end
       object lblEditorColorsPreset: TLabel
         Left = 8
         Top = 159
-        Width = 68
-        Height = 13
+        Width = 75
+        Height = 14
         Caption = 'Colors preset:'
+      end
+      object lblCompletionProposal: TLabel
+        Left = 8
+        Top = 87
+        Width = 144
+        Height = 14
+        Caption = 'Auto completion proposal:'
+      end
+      object lblCompletionProposalIntervalUnit: TLabel
+        Left = 446
+        Top = 87
+        Width = 15
+        Height = 14
+        Caption = 'ms'
+        Enabled = False
       end
       object comboSQLFontName: TComboBox
         Left = 220
         Top = 8
         Width = 145
-        Height = 21
+        Height = 22
         Style = csDropDownList
         TabOrder = 0
         OnChange = SQLFontChange
@@ -635,7 +650,7 @@ object frmPreferences: TfrmPreferences
         Left = 371
         Top = 8
         Width = 43
-        Height = 21
+        Height = 22
         TabOrder = 1
         Text = '9'
         OnExit = SQLFontChange
@@ -644,7 +659,7 @@ object frmPreferences: TfrmPreferences
         Left = 414
         Top = 8
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editSQLFontSize
         Position = 9
         TabOrder = 2
@@ -653,9 +668,9 @@ object frmPreferences: TfrmPreferences
       object chkCompletionProposal: TCheckBox
         Left = 220
         Top = 87
-        Width = 145
+        Width = 101
         Height = 17
-        Caption = 'Enable autocompletion'
+        Caption = 'Enable'
         TabOrder = 8
         OnClick = chkCompletionProposalClick
       end
@@ -672,7 +687,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 34
         Width = 41
-        Height = 21
+        Height = 22
         TabOrder = 3
         Text = '0'
         OnExit = SQLFontChange
@@ -681,7 +696,7 @@ object frmPreferences: TfrmPreferences
         Left = 261
         Top = 34
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editSQLTabWidth
         TabOrder = 4
         OnClick = updownSQLFontSizeClick
@@ -690,7 +705,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 61
         Width = 41
-        Height = 21
+        Height = 22
         TabOrder = 6
         Text = '1'
         OnChange = Modified
@@ -699,7 +714,7 @@ object frmPreferences: TfrmPreferences
         Left = 261
         Top = 61
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editMaxQueryResults
         Min = 1
         Position = 1
@@ -710,9 +725,9 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 183
         Width = 145
-        Height = 21
+        Height = 22
         Style = csDropDownList
-        TabOrder = 13
+        TabOrder = 15
         OnChange = comboSQLColElementChange
       end
       object chkSQLBold: TCheckBox
@@ -721,7 +736,7 @@ object frmPreferences: TfrmPreferences
         Width = 61
         Height = 17
         Caption = 'Bold'
-        TabOrder = 14
+        TabOrder = 16
         OnClick = SQLFontChange
       end
       object chkSQLItalic: TCheckBox
@@ -730,7 +745,7 @@ object frmPreferences: TfrmPreferences
         Width = 50
         Height = 17
         Caption = 'Italic'
-        TabOrder = 15
+        TabOrder = 17
         OnClick = SQLFontChange
       end
       object cboxSQLColForeground: TColorBox
@@ -740,7 +755,7 @@ object frmPreferences: TfrmPreferences
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 16
+        TabOrder = 18
         OnChange = SQLFontChange
       end
       object cboxSQLColBackground: TColorBox
@@ -750,15 +765,15 @@ object frmPreferences: TfrmPreferences
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 17
+        TabOrder = 19
         OnChange = SQLFontChange
       end
       object SynMemoSQLSample: TSynMemo
         AlignWithMargins = True
         Left = 371
         Top = 156
-        Width = 324
-        Height = 214
+        Width = 322
+        Height = 197
         Cursor = crHandPoint
         SingleLineMode = False
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -767,7 +782,7 @@ object frmPreferences: TfrmPreferences
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        TabOrder = 18
+        TabOrder = 20
         OnClick = SynMemoSQLSampleClick
         CodeFolding.GutterShapeSize = 11
         CodeFolding.CollapsedLineColor = clGrayText
@@ -798,46 +813,66 @@ object frmPreferences: TfrmPreferences
       object chkQueryWarningsMessage: TCheckBox
         Left = 220
         Top = 110
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show query warnings dialog'
-        TabOrder = 10
+        TabOrder = 12
         OnClick = Modified
       end
       object chkAutoUppercase: TCheckBox
         Left = 220
         Top = 133
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Auto uppercase reserved words and functions'
-        TabOrder = 11
+        TabOrder = 13
         OnClick = Modified
       end
       object comboEditorColorsPreset: TComboBox
         Left = 220
         Top = 156
         Width = 145
-        Height = 21
+        Height = 22
         Style = csDropDownList
         ItemIndex = 0
-        TabOrder = 12
+        TabOrder = 14
         Text = 'Current custom settings'
         OnChange = comboEditorColorsPresetChange
         Items.Strings = (
           'Current custom settings')
       end
       object chkCompletionProposalSearchOnMid: TCheckBox
-        Left = 432
+        Left = 496
         Top = 87
-        Width = 263
+        Width = 197
         Height = 17
         Anchors = [akLeft, akTop, akRight]
-        Caption = 'Find matches in middle of entered text'
+        Caption = 'Find matches in the middle'
+        Enabled = False
+        TabOrder = 11
+        OnClick = Modified
+      end
+      object editCompletionProposalInterval: TEdit
+        Left = 371
+        Top = 84
+        Width = 43
+        Height = 22
         Enabled = False
         TabOrder = 9
-        OnClick = Modified
+        Text = '0'
+        OnChange = Modified
+      end
+      object updownCompletionProposalInterval: TUpDown
+        Left = 414
+        Top = 84
+        Width = 20
+        Height = 22
+        Associate = editCompletionProposalInterval
+        Enabled = False
+        TabOrder = 10
+        OnChanging = anyUpDownLimitChanging
       end
     end
     object tabGridFormatting: TTabSheet
@@ -845,78 +880,78 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 41
       ImageName = 'icons8-data-grid'
       DesignSize = (
-        700
-        388)
+        698
+        380)
       object lblMaxColWidth: TLabel
         Left = 8
         Top = 11
-        Width = 113
-        Height = 13
+        Width = 132
+        Height = 14
         Caption = 'Maximum column width:'
       end
       object lblDataFontHint: TLabel
         Left = 444
         Top = 93
-        Width = 10
-        Height = 13
+        Width = 12
+        Height = 14
         Caption = 'pt'
       end
       object lblDataFont: TLabel
         Left = 8
         Top = 92
-        Width = 26
-        Height = 13
+        Width = 29
+        Height = 14
         Caption = 'Font:'
         FocusControl = comboDataFontName
       end
       object lblMaxTotalRows: TLabel
         Left = 8
         Top = 38
-        Width = 144
-        Height = 13
+        Width = 165
+        Height = 14
         Caption = 'Rows per page and maximum:'
       end
       object lblGridRowsLinecount: TLabel
         Left = 8
         Top = 65
-        Width = 122
-        Height = 13
+        Width = 140
+        Height = 14
         Caption = 'Lines of text in grid rows:'
       end
       object lblGridTextColors: TLabel
         Left = 8
         Top = 119
-        Width = 77
-        Height = 13
+        Width = 87
+        Height = 14
         Caption = 'Grid text colors:'
       end
       object lblNullBackground: TLabel
         Left = 8
         Top = 173
-        Width = 87
-        Height = 13
+        Width = 100
+        Height = 14
         Hint = 'Use "None" to disable'
         Caption = 'NULL background:'
       end
       object Label2: TLabel
         Left = 8
         Top = 201
-        Width = 137
-        Height = 13
+        Width = 157
+        Height = 14
         Caption = 'Alternating row background:'
       end
       object Label3: TLabel
         Left = 8
         Top = 229
-        Width = 112
-        Height = 13
+        Width = 129
+        Height = 14
         Caption = 'Same text background:'
       end
       object lblLongSortRowNum: TLabel
         Left = 8
-        Top = 326
-        Width = 127
-        Height = 13
+        Top = 354
+        Width = 146
+        Height = 14
         Caption = 'Sort warning on grid rows:'
       end
       object lblRealTrailingZeros: TLabel
@@ -929,7 +964,7 @@ object frmPreferences: TfrmPreferences
       object lblRealTrailingZerosHint: TLabel
         Left = 296
         Top = 257
-        Width = 159
+        Width = 143
         Height = 14
         Caption = 'Set to -1 to keep all zeros'
       end
@@ -937,7 +972,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 8
         Width = 42
-        Height = 21
+        Height = 22
         TabOrder = 0
         Text = '1'
         OnChange = Modified
@@ -946,7 +981,7 @@ object frmPreferences: TfrmPreferences
         Left = 262
         Top = 8
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editMaxColWidth
         Min = 1
         Max = 1000
@@ -958,7 +993,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 89
         Width = 145
-        Height = 21
+        Height = 22
         Style = csDropDownList
         TabOrder = 6
         OnChange = DataFontsChange
@@ -967,7 +1002,7 @@ object frmPreferences: TfrmPreferences
         Left = 371
         Top = 89
         Width = 42
-        Height = 21
+        Height = 22
         TabOrder = 7
         Text = '8'
         OnChange = DataFontsChange
@@ -976,7 +1011,7 @@ object frmPreferences: TfrmPreferences
         Left = 413
         Top = 89
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editDataFontSize
         Position = 8
         TabOrder = 8
@@ -985,7 +1020,7 @@ object frmPreferences: TfrmPreferences
         Left = 371
         Top = 35
         Width = 132
-        Height = 21
+        Height = 22
         NumbersOnly = True
         TabOrder = 3
         OnChange = Modified
@@ -995,7 +1030,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 35
         Width = 145
-        Height = 21
+        Height = 22
         NumbersOnly = True
         TabOrder = 2
         OnChange = Modified
@@ -1005,7 +1040,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 62
         Width = 42
-        Height = 21
+        Height = 22
         TabOrder = 4
         Text = '1'
         OnChange = Modified
@@ -1014,7 +1049,7 @@ object frmPreferences: TfrmPreferences
         Left = 262
         Top = 62
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editGridRowsLineCount
         Min = 1
         Position = 1
@@ -1025,7 +1060,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 143
         Width = 145
-        Height = 21
+        Height = 22
         Style = csDropDownList
         TabOrder = 10
         OnSelect = comboGridTextColorsSelect
@@ -1070,7 +1105,7 @@ object frmPreferences: TfrmPreferences
       object chkLocalNumberFormat: TCheckBox
         Left = 220
         Top = 281
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Local number format'
@@ -1080,7 +1115,7 @@ object frmPreferences: TfrmPreferences
       object chkHintsOnResultTabs: TCheckBox
         Left = 220
         Top = 327
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Pop up SQL text over result tabs'
@@ -1100,7 +1135,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 116
         Width = 145
-        Height = 21
+        Height = 22
         Style = csDropDownList
         TabOrder = 9
         OnSelect = comboGridTextColorsPresetSelect
@@ -1109,7 +1144,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 351
         Width = 145
-        Height = 21
+        Height = 22
         TabOrder = 21
         Text = '0'
       end
@@ -1117,7 +1152,7 @@ object frmPreferences: TfrmPreferences
         Left = 365
         Top = 351
         Width = 16
-        Height = 21
+        Height = 22
         Associate = editLongSortRowNum
         Max = 2147483647
         TabOrder = 22
@@ -1126,7 +1161,7 @@ object frmPreferences: TfrmPreferences
       object chkLowercaseHex: TCheckBox
         Left = 220
         Top = 304
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Lowercase hexadecimal'
@@ -1155,19 +1190,19 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 33
       ImageName = 'icons8-compose'
       DesignSize = (
-        700
-        388)
+        698
+        380)
       object lblLineBreakStyle: TLabel
         Left = 8
         Top = 188
-        Width = 111
-        Height = 13
+        Width = 124
+        Height = 14
         Caption = 'Default linebreak style:'
       end
       object chkEditorBinary: TCheckBox
         Left = 220
         Top = 8
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable popup BLOB/HEX editor'
@@ -1177,7 +1212,7 @@ object frmPreferences: TfrmPreferences
       object chkEditorDatetime: TCheckBox
         Left = 220
         Top = 31
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable inplace date/time editor'
@@ -1187,7 +1222,7 @@ object frmPreferences: TfrmPreferences
       object chkPrefillDateTime: TCheckBox
         Left = 220
         Top = 54
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prefill empty date/time fields with current date/time'
@@ -1197,7 +1232,7 @@ object frmPreferences: TfrmPreferences
       object chkEditorEnum: TCheckBox
         Left = 220
         Top = 77
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable ENUM pulldown editor'
@@ -1207,7 +1242,7 @@ object frmPreferences: TfrmPreferences
       object chkEditorSet: TCheckBox
         Left = 220
         Top = 100
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable SET checkbox editor'
@@ -1217,7 +1252,7 @@ object frmPreferences: TfrmPreferences
       object chkReuseEditorConfiguration: TCheckBox
         Left = 220
         Top = 139
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Remember filters, sorting and column selection across sessions'
@@ -1227,7 +1262,7 @@ object frmPreferences: TfrmPreferences
       object chkForeignDropDown: TCheckBox
         Left = 220
         Top = 162
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show values in foreign key columns'
@@ -1238,7 +1273,7 @@ object frmPreferences: TfrmPreferences
         Left = 220
         Top = 185
         Width = 145
-        Height = 21
+        Height = 22
         Style = csDropDownList
         TabOrder = 7
         OnClick = Modified
@@ -1249,19 +1284,19 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 13
       ImageName = 'icons8-lightning-bolt-100'
       DesignSize = (
-        700
-        388)
+        698
+        380)
       object lblShortcut1: TLabel
         Left = 306
         Top = 64
-        Width = 45
-        Height = 13
+        Width = 52
+        Height = 14
         Caption = 'Shortcut:'
       end
       object lblShortcutHint: TLabel
         Left = 306
         Top = 3
-        Width = 391
+        Width = 389
         Height = 55
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -1271,15 +1306,15 @@ object frmPreferences: TfrmPreferences
       object lblShortcut2: TLabel
         Left = 306
         Top = 108
-        Width = 98
-        Height = 13
+        Width = 111
+        Height = 14
         Caption = 'Secondary shortcut:'
       end
       object TreeShortcutItems: TVirtualStringTree
         Left = 0
         Top = 0
         Width = 300
-        Height = 388
+        Height = 380
         Align = alLeft
         Header.AutoSizeIndex = 0
         Header.MainColumn = -1
@@ -1296,7 +1331,7 @@ object frmPreferences: TfrmPreferences
       object HotKey1: THotKey
         Left = 306
         Top = 83
-        Width = 279
+        Width = 277
         Height = 19
         Anchors = [akLeft, akTop, akRight]
         HotKey = 0
@@ -1309,7 +1344,7 @@ object frmPreferences: TfrmPreferences
       object HotKey2: THotKey
         Left = 306
         Top = 127
-        Width = 279
+        Width = 277
         Height = 19
         Anchors = [akLeft, akTop, akRight]
         HotKey = 0
@@ -1326,12 +1361,12 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 10
       ImageName = 'icons8-save-button-100'
       DesignSize = (
-        700
-        388)
+        698
+        380)
       object chkAskFileSave: TCheckBox
         Left = 220
         Top = 8
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt to save modified files on tab close'
@@ -1343,7 +1378,7 @@ object frmPreferences: TfrmPreferences
       object chkRestoreTabs: TCheckBox
         Left = 220
         Top = 31
-        Width = 475
+        Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
@@ -1361,8 +1396,8 @@ object frmPreferences: TfrmPreferences
     end
   end
   object btnCancel: TButton
-    Left = 561
-    Top = 429
+    Left = 559
+    Top = 421
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1372,8 +1407,8 @@ object frmPreferences: TfrmPreferences
     TabOrder = 2
   end
   object btnOK: TButton
-    Left = 481
-    Top = 429
+    Left = 479
+    Top = 421
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1384,8 +1419,8 @@ object frmPreferences: TfrmPreferences
     OnClick = Apply
   end
   object btnApply: TButton
-    Left = 641
-    Top = 429
+    Left = 639
+    Top = 421
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1396,7 +1431,7 @@ object frmPreferences: TfrmPreferences
   end
   object btnRestoreDefaults: TButton
     Left = 8
-    Top = 429
+    Top = 421
     Width = 177
     Height = 25
     Anchors = [akLeft, akBottom]

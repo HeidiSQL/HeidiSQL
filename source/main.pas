@@ -2068,6 +2068,7 @@ begin
   end;
 
   // Size of completion proposal window
+  SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);
   SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
   SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 

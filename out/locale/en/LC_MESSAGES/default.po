@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-10-22 17:29+0200\n"
+"PO-Revision-Date: 2022-10-26 19:09+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -2820,10 +2820,11 @@ msgstr "Tab width:"
 msgid "Maximum result sets:"
 msgstr "Maximum result sets:"
 
-#. optionsform..pagecontrolMain..tabSQL..chkCompletionProposal..Caption
-#: options.dfm:418
-msgid "Enable autocompletion"
-msgstr "Enable autocompletion"
+msgid "Auto completion proposal:"
+msgstr "Auto completion proposal:"
+
+msgid "Enable"
+msgstr "Enable"
 
 msgid "Auto uppercase reserved words and functions"
 msgstr "Auto uppercase reserved words and functions"
@@ -6594,8 +6595,8 @@ msgstr "Note: The database file will not get deleted."
 msgid "Show SQL completion proposal"
 msgstr "Show SQL completion proposal"
 
-msgid "Find matches in middle of entered text"
-msgstr "Find matches in middle of entered text"
+msgid "Find matches in the middle"
+msgstr "Find matches in the middle"
 
 msgid "Wait longer for sorting?"
 msgstr "Wait longer for sorting?"

@@ -180,6 +180,10 @@ type
     updownRealTrailingZeros: TUpDown;
     lblRealTrailingZerosHint: TLabel;
     chkLogTimestamp: TCheckBox;
+    lblCompletionProposal: TLabel;
+    editCompletionProposalInterval: TEdit;
+    updownCompletionProposalInterval: TUpDown;
+    lblCompletionProposalIntervalUnit: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -392,6 +396,7 @@ begin
   end;
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
+  AppSettings.WriteInt(asCompletionProposalInterval, updownCompletionProposalInterval.Position);
   AppSettings.WriteBool(asCompletionProposalSearchOnMid, chkCompletionProposalSearchOnMid.Checked);
   AppSettings.WriteBool(asAutoUppercase, chkAutoUppercase.Checked);
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
@@ -429,7 +434,7 @@ begin
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
   MainForm.PrepareImageList;
-
+  MainForm.SynCompletionProposal.TimerInterval := updownCompletionProposalInterval.Position;
   Mainform.LogToFile := chkLogToFile.Checked;
   MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
   MainForm.actLogHorizontalScrollbar.OnExecute(MainForm.actLogHorizontalScrollbar);
@@ -539,6 +544,8 @@ begin
   // SQL
   EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Sorted := True;
+  updownCompletionProposalInterval.Min := 0;
+  updownCompletionProposalInterval.Max := MaxInt;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
     #9'''String literal'' AS lit' + CRLF +
     'FROM tableA AS ta' + CRLF +
@@ -699,6 +706,7 @@ begin
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
   chkCompletionProposal.Checked := AppSettings.ReadBool(asCompletionProposal);
+  updownCompletionProposalInterval.Position := AppSettings.ReadInt(asCompletionProposalInterval);
   chkCompletionProposalSearchOnMid.Checked := AppSettings.ReadBool(asCompletionProposalSearchOnMid);
   chkAutoUppercase.Checked := AppSettings.ReadBool(asAutoUppercase);
   chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
@@ -872,8 +880,14 @@ end;
 
 
 procedure TfrmPreferences.chkCompletionProposalClick(Sender: TObject);
+var
+  Enable: Boolean;
 begin
-  chkCompletionProposalSearchOnMid.Enabled := TCheckBox(Sender).Checked;
+  Enable := TCheckBox(Sender).Checked;
+  editCompletionProposalInterval.Enabled := Enable;
+  updownCompletionProposalInterval.Enabled := Enable;
+  lblCompletionProposalIntervalUnit.Enabled := Enable;
+  chkCompletionProposalSearchOnMid.Enabled := Enable;
   Modified(Sender);
 end;
 
