@@ -6400,7 +6400,7 @@ begin
   // Check first kilobyte of passed text whether it's a hex encoded string. Hopefully faster than a regex.
   Result := False;
   Len := Length(Text);
-  if (Len >= 4) and (Len mod 2 = 0) then begin
+  if Len >= 3 then begin
     Result := (Text[1] = '0') and (Text[2] = 'x');
     if Result then begin
       for i:=3 to SIZE_KB do begin
