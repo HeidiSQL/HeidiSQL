@@ -1185,9 +1185,9 @@ begin
           MessageDialog(DialogTitle, OutText, mtInformation, [mbOK]);
         end;
       end;
-    end;
+    end
 
-    if ErrorText <> '' then begin
+    else if ErrorText <> '' then begin
       rx.Expression := '([^\.]+\?)(\s*\(y\/n\s*(,[^\)]+)?\)\s*)$';
       if rx.Exec(ErrorText) then begin
         // Prompt user with question
