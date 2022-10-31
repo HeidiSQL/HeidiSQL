@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-10-26 19:09+0200\n"
+"PO-Revision-Date: 2022-10-31 17:24+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -5341,6 +5341,9 @@ msgstr "Selected operations cannot be applied to a %s"
 #: tabletools.pas:1563
 msgid "Unhandled tree level"
 msgstr "Unhandled tree level"
+
+msgid "Export finished"
+msgstr "Export finished"
 
 #: table_editor.pas:380
 msgid "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
