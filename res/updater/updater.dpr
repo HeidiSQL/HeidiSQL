@@ -218,10 +218,12 @@ begin
   BackupPath := ExtractFilepath(Paramstr(0))+ExtractFilename(AppPath)+'.backup.exe';
   if FileExists(BackupPath) then
     DeleteFile(PChar(BackupPath));
-  if not MoveFile(PChar(AppPath), PChar(BackupPath)) then
+  if not CopyFile(PChar(AppPath), PChar(BackupPath), False) then
     Status('Failed to create backup file "'+BackupPath+'" from "'+AppPath+'"', True)
-  else
+  else begin
+    DeleteFile(PChar(AppPath));
     Status('Success.');
+  end;
 
   // Move update file to final path
   Status('Moving downloaded file to desired directory ...');
