@@ -4218,7 +4218,7 @@ begin
     end;
 
     // Save last used database in session, see #983
-    if not FParameters.SessionName.IsEmpty then begin
+    if not FParameters.SessionPath.Trim.IsEmpty then begin
       AppSettings.SessionPath := FParameters.SessionPath;
       AppSettings.WriteString(asLastUsedDB, Value);
     end;
