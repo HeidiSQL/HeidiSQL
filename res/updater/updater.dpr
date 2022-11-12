@@ -11,8 +11,9 @@ uses
 var
   WClass: TWndClass;
   BackupPath, AppPath, DownloadPath: String;
-  hAppHandle, HLabel: HWND;
+  MainWin, HLabel: HWND;
   AppMsg: TMsg;
+  FormShowing: Boolean = False;
 
 const
   AppName = 'HeidiSQL';
@@ -145,7 +146,7 @@ end;
 procedure Status(Text: String; IsError: Boolean=False);
 begin
   // Display status message on label
-  SendMessage(HLabel, WM_SETTEXT, 1, Integer(PChar(Text)) );
+  SendMessage(HLabel, WM_SETTEXT, 0, LPARAM(PChar(Text)) );
   UpdateWindow(hLabel);
   if IsError then begin
     Sleep(4000);
@@ -197,7 +198,8 @@ var
   SUInfo: TStartupInfo;
   ProcInfo: TProcessInformation;
 begin
-  KillTimer(hAppHandle, 0);
+  FormShowing := True;
+  KillTimer(MainWin, 0);
   AppPath := Paramstr(1);
   DownloadPath := ParamStr(2);
 
@@ -254,14 +256,14 @@ begin
 end;
 
 
-function WindowProc(hWnd, msg, wpr, lpr: Longint): Longint; stdcall;
+function WindowProc(hWnd: HWND; msg: UINT; wpr: WPARAM; lpr: LPARAM): LRESULT; stdcall;
 var
   x, y: integer;
   Font: HFont;
 begin
   // Custom window procedure
   case msg of
-
+    // WM_NCCREATE: Non-client part of the window is being created
     WM_CREATE: begin
       // Center window
       x := GetSystemMetrics(SM_CXSCREEN);
@@ -283,7 +285,7 @@ begin
         WindowHeight - 2*WindowPadding,     // Height
         hWnd,                               // Parent hwnd
         0,                                  // ID
-        hAppHandle,                         // HInstance of program
+        MainWin,                            // HInstance of program
         nil                                 // Params for main window
         );
       // Cosmetics
@@ -292,9 +294,14 @@ begin
       SetBkColor(hwnd, COLOR_BTNFACE+1);
     end;
 
-    WM_SHOWWINDOW: SetTimer(hAppHandle, 0, 200, @FormShow);
+    WM_SHOWWINDOW: begin
+      if not FormShowing then
+        SetTimer(MainWin, 0, 200, @FormShow);
+    end;
 
-    WM_DESTROY: PostQuitMessage(0);
+    WM_DESTROY: begin
+      PostQuitMessage(0);
+    end;
 
   end;
 
@@ -307,11 +314,11 @@ end;
 begin
   // Define window class
   WClass.hInstance := hInstance;
+  WClass.lpszClassName := 'WndClass';
   WClass.style := CS_HREDRAW or CS_VREDRAW;
   WClass.hIcon := LoadIcon(hInstance, IDI_WINLOGO);
   WClass.lpfnWndProc := @WindowProc;
   WClass.hbrBackground := COLOR_BTNFACE+1;
-  WClass.lpszClassName := 'WndClass';
   WClass.hCursor := LoadCursor(0, IDC_ARROW);
   WClass.cbClsExtra := 0;
   WClass.cbWndExtra := 0;
@@ -319,18 +326,18 @@ begin
   RegisterClass(WClass);
 
   // Create form
-  hAppHandle := CreateWindow(
+  MainWin := CreateWindow(
     WClass.lpszClassName,
     AppName+' Updater',
     WS_POPUPWINDOW or WS_CAPTION or WS_VISIBLE,
-    100, // Default x + y coordinates, will be centered in WM_CREATE
+    100,            // Default x + y coordinates, will be centered in WM_CREATE
     100,
-    WindowWidth,
-    WindowHeight,
-    0,
-    0,
-    hInstance,
-    nil
+    WindowWidth,    // nWidth
+    WindowHeight,   // nHeight
+    0,              // hWndParent
+    0,              // hMenu
+    hInstance,      // hInstance
+    nil             // lpParam
     );
 
   // Message loop
