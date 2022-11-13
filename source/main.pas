@@ -9962,15 +9962,15 @@ begin
     Line := '';
     for i:=0 to Conditions.Count-1 do begin
       if i > 0 then
-        Line := Line + ' OR ';
-      Line := Line + Conditions[i];
+        Conditions[i] := ' OR ' + Conditions[i];
       // Add linebreak near right window edge
-      if (Length(Line) > SynMemoFilter.CharsInWindow-30) or (i = Conditions.Count-1) then begin
-        Clause := Clause + Line + CRLF;
+      if (not Line.IsEmpty) and (Length(Line + Conditions[i]) >= SynMemoFilter.CharsInWindow-5) then begin
+        Clause := Clause + Line + sLineBreak;
         Line := '';
       end;
+      Line := Line + Conditions[i];
     end;
-    Clause := Clause + Conn.LikeClauseTail;
+    Clause := Clause + Line + Conn.LikeClauseTail;
 
   end;
   SynMemoFilter.UndoList.AddGroupBreak;
