@@ -9980,8 +9980,24 @@ end;
 
 
 procedure TMainForm.SynMemoFilterStatusChange(Sender: TObject; Changes: TSynStatusChanges);
+var
+  TextHeight: Integer;
+  LineCount: Integer;
+  PanelHeight: Integer;
+const
+  MinDisplayLineCount = 2;
+  MaxDisplayLineCount = 8;
 begin
   actClearFilterEditor.Enabled := (Sender as TSynMemo).GetTextLen > 0;
+
+  LineCount := SynMemoFilter.DisplayLineCount;
+  LineCount := Min(LineCount, MaxDisplayLineCount);
+  LineCount := Max(LineCount, MinDisplayLineCount);
+  TextHeight := LineCount * SynMemoFilter.LineHeight + 10;
+  PanelHeight := pnlFilter.Height + (TextHeight - SynMemoFilter.Height);
+  PanelHeight := Max(PanelHeight, btnFilterApply.Top + btnFilterApply.Height + 5);
+  if PanelHeight <> pnlFilter.Height then
+    pnlFilter.Height := PanelHeight;
 end;
 
 
