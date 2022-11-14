@@ -225,7 +225,7 @@ begin
     for Value in Row do begin
       Col := TTableColumn.Create(FConnection);
       if IgnoreLines > 0 then
-        Col.Name := Value.OldText
+        Col.Name := Trim(Value.OldText)
       else
         Col.Name := 'col_'+Row.IndexOf(Value).ToString;
       Col.DataType := FConnection.Datatypes[0]; // UNKNOWN by default
