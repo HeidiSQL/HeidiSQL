@@ -921,7 +921,7 @@ begin
   end;
   FModifiedDbs.Clear;
 
-  AddNotes('', '', _('Export finished'), '');
+  AddNotes('', '', f_('%s finished', [tabsTools.ActivePage.Caption]), '');
   btnCloseOrCancel.Caption := _('Close');
   btnCloseOrCancel.ModalResult := mrCancel;
   MainForm.ShowStatusMsg;
