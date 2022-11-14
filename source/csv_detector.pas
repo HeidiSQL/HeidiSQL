@@ -226,7 +226,7 @@ begin
     for Value in Row do begin
       Col := TTableColumn.Create(FConnection);
       if IgnoreLines > 0 then
-        Col.Name := Trim(Value.OldText)
+        Col.Name := FConnection.CleanIdent(Value.OldText)
       else
         Col.Name := 'col_'+Row.IndexOf(Value).ToString;
       Col.DataType := FConnection.Datatypes[0]; // UNKNOWN by default
@@ -350,7 +350,7 @@ var
 begin
   // Compose CREATE TABLE
   TableName := TPath.GetFileNameWithoutExtension(FLoadDataFrm.editFilename.Text);
-  TableName := ValidFilename(TableName);
+  TableName := FConnection.CleanIdent(TableName);
   Result := 'CREATE TABLE '+FConnection.QuoteIdent(FLoadDataFrm.comboDatabase.Text)+'.'+FConnection.QuoteIdent(TableName)+' (' + sLineBreak;
   for Col in Columns do begin
     Result := Result + #9 + Col.SQLCode;

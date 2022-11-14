@@ -519,6 +519,7 @@ type
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
+      function CleanIdent(Identifier: String): String;
       function QuotedDbAndTableName(DB, Obj: String): String;
       function FindObject(DB, Obj: String): TDBObject;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
@@ -5124,6 +5125,15 @@ begin
   for Quote in FQuoteChars do begin
     Result := StringReplace(Result, Quote, '', [rfReplaceAll]);
   end;
+end;
+
+
+function TDBConnection.CleanIdent(Identifier: string): string;
+begin
+  Result := Trim(Identifier);
+  Result := LowerCase(Result);
+  Result := ReplaceRegExpr('[^a-z0-9]', Result, '_');
+  Result := ReplaceRegExpr('_+', Result, '_');
 end;
 
 
