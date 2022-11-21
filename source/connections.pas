@@ -214,6 +214,7 @@ type
     procedure FinalizeModifications(var CanProceed: Boolean);
     procedure ValidateControls;
     function NodeSessionNames(Node: PVirtualNode; var RegKey: String): TStringList;
+    function GetWindowCaption: String;
     procedure MenuDatabasesClick(Sender: TObject);
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
@@ -252,6 +253,14 @@ begin
 end;
 
 
+function Tconnform.GetWindowCaption: String;
+begin
+  Result := APPNAME + ' ' + MainForm.AppVersion + ' - ' + _('Session manager');
+  if not SelectedSessionPath.IsEmpty then
+    Result := Result + ': ' + SelectedSessionPath;
+end;
+
+
 procedure Tconnform.FormCreate(Sender: TObject);
 var
   NetTypeStr, FilenameHint, ExePath, ExeFile: String;
@@ -265,6 +274,7 @@ var
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
+  Caption := GetWindowCaption;
 
   ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
@@ -1484,6 +1494,8 @@ begin
   menuSave.Enabled := btnSave.Enabled;
   menuSaveAs.Enabled := SessionFocused;
   menuDelete.Enabled := btnDelete.Enabled;
+
+  Caption := GetWindowCaption;
 end;
 
 
