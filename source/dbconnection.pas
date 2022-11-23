@@ -297,7 +297,8 @@ type
     ntInterbase_TCPIP,
     ntInterbase_Local,
     ntFirebird_TCPIP,
-    ntFirebird_Local
+    ntFirebird_Local,
+    ntMySQL_RDS
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
@@ -340,6 +341,7 @@ type
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
       function IsProxySQLAdmin: Boolean;
+      function IsMySQLonRDS: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
@@ -1593,6 +1595,7 @@ begin
       ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
       ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
+      ntMySQL_RDS:              Result := 'MySQL on RDS';
       ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
       ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX)';
@@ -1635,7 +1638,7 @@ end;
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin:
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS:
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
@@ -1694,7 +1697,7 @@ end;
 function TConnectionParameters.IsMySQL(StrictDetect: Boolean): Boolean;
 begin
   if StrictDetect then begin
-    Result := IsAnyMySQL and ContainsText(ServerVersion, 'mysql');
+    Result := IsAnyMySQL and (ContainsText(ServerVersion, 'mysql') or IsMySQLonRDS);
   end else begin
     Result := IsAnyMySQL
       and (not IsMariaDB)
@@ -1735,6 +1738,12 @@ end;
 function TConnectionParameters.IsProxySQLAdmin: Boolean;
 begin
   Result := NetType = ntMySQL_ProxySQLAdmin;
+end;
+
+
+function TConnectionParameters.IsMySQLonRDS: Boolean;
+begin
+  Result := NetType = ntMySQL_RDS;
 end;
 
 
@@ -1781,7 +1790,8 @@ begin
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173
       else if IsMemSQL then Result := 194
-      else if IsProxySQLAdmin then Result := 197;
+      else if IsProxySQLAdmin then Result := 197
+      else if IsMySQLonRDS then Result := 205;
     end;
     ngMSSQL: begin
       Result := 123;
@@ -1889,7 +1899,7 @@ begin
       Args.Add('--pipe');
       Args.Add('--socket="'+Hostname+'"');
       end;
-    ntMySQL_SSHtunnel: begin
+    ntMySQL_SSHtunnel, ntMySQL_RDS: begin
       Args.Add('--host="localhost"');
       Args.Add('--port='+IntToStr(SSHLocalPort));
       end;
@@ -2327,7 +2337,7 @@ begin
         FinalSocket := FParameters.Hostname;
       end;
 
-      ntMySQL_SSHtunnel: begin
+      ntMySQL_SSHtunnel, ntMySQL_RDS: begin
         // Create SSH process
         FSecureShellCmd := TSecureShellCmd.Create(Self);
         FSecureShellCmd.Connect;
@@ -3019,8 +3029,11 @@ begin
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
-      FSQLSpecifities[spKillQuery] := 'KILL %d';
-      FSQLSpecifities[spKillProcess] := 'KILL %d';
+      FSQLSpecifities[spKillQuery] := 'KILL %d'; // may be overwritten in DoAfterConnect
+      if Parameters.NetType = ntMySQL_RDS then
+        FSQLSpecifities[spKillProcess] := 'CALL mysql.rds_kill(%d)'
+      else
+        FSQLSpecifities[spKillProcess] := 'KILL %d';
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := IfThen(Parameters.IsProxySQLAdmin, 'SUBSTR(%s, 1, %d)', 'LEFT(%s, %d)');
