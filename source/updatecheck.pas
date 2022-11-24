@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
   apphelpers, gnugettext, ExtCtrls, extra_controls, System.StrUtils, Vcl.Dialogs,
-  Vcl.Menus, Vcl.Clipbrd, generic_types;
+  Vcl.Menus, Vcl.Clipbrd, generic_types, System.DateUtils;
 
 type
   TfrmUpdateCheck = class(TExtForm)
@@ -255,6 +255,8 @@ var
   ResPointer: PChar;
   Stream: TMemoryStream;
   BuildSizeDownloaded: Int64;
+  DoOverwrite: Boolean;
+  UpdaterAge: TDateTime;
 begin
   Download := THttpDownload.Create(Self);
   Download.URL := BuildURL;
@@ -289,11 +291,20 @@ begin
         Stream.WriteBuffer(ResPointer[0], SizeOfResource(HInstance, ResInfoblockHandle));
         Stream.Position := 0;
         UpdaterFilename := GetTempDir + AppName+'_updater.exe';
-        if FileExists(UpdaterFilename) and (Stream.Size = _GetFileSize(UpdaterFilename)) then
+
+        DoOverwrite := True;
+        if FileExists(UpdaterFilename) and (Stream.Size = _GetFileSize(UpdaterFilename)) then begin
           // Do not replace old updater if it's still valid. Avoids annoyance for cases in which
           // user has whitelisted this .exe in his antivirus or whatever software.
-        else
+          FileAge(UpdaterFilename, UpdaterAge);
+          if Abs(DaysBetween(Now, UpdaterAge)) < 30 then
+            DoOverwrite := False;
+        end;
+
+        if DoOverwrite then begin
           Stream.SaveToFile(UpdaterFilename);
+        end;
+
         // Calling the script will now post a WM_CLOSE this running exe...
         ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+DownloadFilename+'"');
       finally

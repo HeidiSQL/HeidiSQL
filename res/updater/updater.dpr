@@ -5,6 +5,9 @@ program updater;
 
 {$R manifest.RES}
 
+// (un)comment the following resource inclusion to vary the binary size. Update checker trusts the same file size before overwriting the old one.
+{$R ..\icon.RES}
+
 uses
   Windows, Messages, Tlhelp32, psapi;
 
