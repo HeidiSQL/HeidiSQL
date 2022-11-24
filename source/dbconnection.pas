@@ -4982,12 +4982,16 @@ begin
   DoQuote := Datatype.Category in CategoriesNeedQuote;
   case Datatype.Category of
     // Some special cases
-    dtcBinary:
+    dtcBinary: begin
       if IsHex(Text) then
         DoQuote := False;
-    dtcInteger, dtcReal:
+    end;
+    dtcInteger, dtcReal: begin
       if (not IsNumeric(Text)) and (not IsHex(Text)) then
         DoQuote := True;
+      if Datatype.Index = dbdtBit then
+        DoQuote := True;
+    end;
   end;
   Result := EscapeString(Text, False, DoQuote);
 end;
