@@ -3029,11 +3029,14 @@ begin
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
-      FSQLSpecifities[spKillQuery] := 'KILL %d'; // may be overwritten in DoAfterConnect
-      if Parameters.NetType = ntMySQL_RDS then
+      if Parameters.NetType = ntMySQL_RDS then begin
+        FSQLSpecifities[spKillQuery] := 'CALL mysql.rds_kill_query(%d)';
         FSQLSpecifities[spKillProcess] := 'CALL mysql.rds_kill(%d)'
-      else
+      end
+      else begin
+        FSQLSpecifities[spKillQuery] := 'KILL %d'; // may be overwritten in DoAfterConnect
         FSQLSpecifities[spKillProcess] := 'KILL %d';
+      end;
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := IfThen(Parameters.IsProxySQLAdmin, 'SUBSTR(%s, 1, %d)', 'LEFT(%s, %d)');
@@ -3285,7 +3288,7 @@ begin
     end;
   end;
 
-  if ServerVersionInt >= 50000 then begin
+  if (ServerVersionInt >= 50000) and (not Parameters.IsMySQLonRDS) then begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
   end;
 
