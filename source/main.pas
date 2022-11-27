@@ -410,7 +410,7 @@ type
     menuDeleteSnippet: TMenuItem;
     menuHelp: TMenuItem;
     menuLoadSnippet: TMenuItem;
-    menuInsertSnippetAtCursor: TMenuItem;
+    menuInsertAtCursor: TMenuItem;
     menuExplore: TMenuItem;
     menuSQLhelp2: TMenuItem;
     menuSQLhelpData: TMenuItem;
@@ -887,7 +887,7 @@ type
         TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure menuDeleteSnippetClick(Sender: TObject);
     procedure menuExploreClick(Sender: TObject);
-    procedure menuInsertSnippetAtCursorClick(Sender: TObject);
+    procedure menuInsertAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
     procedure AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
     procedure AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
@@ -8377,9 +8377,14 @@ end;
 {**
   Load snippet at cursor
 }
-procedure TMainForm.menuInsertSnippetAtCursorClick(Sender: TObject);
+procedure TMainForm.menuInsertAtCursorClick(Sender: TObject);
+var
+  Tree: TVirtualStringTree;
+  Tab: TQueryTab;
 begin
-  QueryTabs.ActiveTab.LoadContents(AppSettings.DirnameSnippets + QueryTabs.ActiveHelpersTree.Text[QueryTabs.ActiveHelpersTree.FocusedNode, 0] + '.sql', False, nil);
+  Tree := QueryTabs.ActiveHelpersTree;
+  Tab := QueryTabs.ActiveTab;
+  Tab.Memo.DragDrop(Tree, Tab.Memo.CaretX, Tab.Memo.CaretY);
 end;
 
 
@@ -13867,7 +13872,7 @@ begin
   menuQueryHelpersGenerateInsert.Enabled := False;
   menuQueryHelpersGenerateUpdate.Enabled := False;
   menuQueryHelpersGenerateDelete.Enabled := False;
-  menuInsertSnippetAtCursor.Enabled := False;
+  menuInsertAtCursor.Enabled := False;
   menuLoadSnippet.Enabled := False;
   menuDeleteSnippet.Enabled := False;
   menuExplore.Enabled := False;
@@ -13877,17 +13882,26 @@ begin
   case Tree.GetNodeLevel(Tree.FocusedNode) of
     0: ;
     1: case Tree.FocusedNode.Parent.Index of
-      TQueryTab.HelperNodeColumns: if ActiveDbObj.NodeType in [lntTable, lntView] then begin
+      TQueryTab.HelperNodeColumns: begin
+        if ActiveDbObj.NodeType in [lntTable, lntView] then begin
           menuQueryHelpersGenerateSelect.Enabled := True;
           menuQueryHelpersGenerateInsert.Enabled := True;
           menuQueryHelpersGenerateUpdate.Enabled := True;
           menuQueryHelpersGenerateDelete.Enabled := True;
+          menuInsertAtCursor.Enabled := True;
         end;
-      TQueryTab.HelperNodeFunctions: menuHelp.Enabled := True;
-      TQueryTab.HelperNodeKeywords: menuHelp.Enabled := True;
+      end;
+      TQueryTab.HelperNodeFunctions: begin
+        menuHelp.Enabled := True;
+        menuInsertAtCursor.Enabled := True;
+      end;
+      TQueryTab.HelperNodeKeywords: begin
+        menuHelp.Enabled := True;
+        menuInsertAtCursor.Enabled := True;
+      end;
       TQueryTab.HelperNodeSnippets: begin
         menuDeleteSnippet.Enabled := True;
-        menuInsertSnippetAtCursor.Enabled := True;
+        menuInsertAtCursor.Enabled := True;
         menuLoadSnippet.Enabled := True;
         menuExplore.Enabled := True;
       end;
@@ -13898,8 +13912,10 @@ begin
         menuClearQueryHistory.Enabled := True;
     end;
     2: case Tree.FocusedNode.Parent.Parent.Index of
-      TQueryTab.HelperNodeHistory:
+      TQueryTab.HelperNodeHistory: begin
         menuClearQueryHistory.Enabled := True;
+        menuInsertAtCursor.Enabled := True;
+      end;
     end;
   end;
 end;
