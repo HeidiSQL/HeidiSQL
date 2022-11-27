@@ -4247,12 +4247,11 @@ object MainForm: TMainForm
     Images = VirtualImageListMain
     Left = 344
     Top = 152
-    object menuInsertSnippetAtCursor: TMenuItem
+    object menuInsertAtCursor: TMenuItem
       Caption = 'Insert at cursor'
       Default = True
-      Enabled = False
       ImageIndex = 52
-      OnClick = menuInsertSnippetAtCursorClick
+      OnClick = menuInsertAtCursorClick
     end
     object menuLoadSnippet: TMenuItem
       Caption = 'Load'
