@@ -1194,7 +1194,7 @@ object frmPreferences: TfrmPreferences
         380)
       object lblLineBreakStyle: TLabel
         Left = 8
-        Top = 188
+        Top = 212
         Width = 124
         Height = 14
         Caption = 'Default linebreak style:'
@@ -1251,31 +1251,40 @@ object frmPreferences: TfrmPreferences
       end
       object chkReuseEditorConfiguration: TCheckBox
         Left = 220
-        Top = 139
+        Top = 163
         Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Remember filters, sorting and column selection across sessions'
-        TabOrder = 5
+        TabOrder = 6
         OnClick = Modified
       end
       object chkForeignDropDown: TCheckBox
         Left = 220
-        Top = 162
+        Top = 186
         Width = 473
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show values in foreign key columns'
-        TabOrder = 6
+        TabOrder = 7
         OnClick = Modified
       end
       object comboLineBreakStyle: TComboBox
         Left = 220
-        Top = 185
+        Top = 209
         Width = 145
         Height = 22
         Style = csDropDownList
-        TabOrder = 7
+        TabOrder = 8
+        OnClick = Modified
+      end
+      object chkColumnHeaderClick: TCheckBox
+        Left = 220
+        Top = 140
+        Width = 475
+        Height = 17
+        Caption = 'Click on column headers toggles sorting'
+        TabOrder = 5
         OnClick = Modified
       end
     end

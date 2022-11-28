@@ -8473,6 +8473,9 @@ begin
     Exit;
   if Sender.Columns[HitInfo.Column].CheckBox then
     Exit;
+  // Header click disabled
+  if not AppSettings.ReadBool(asColumnHeaderClick) then
+    Exit;
   // Large query result sorting takes too long, see #293
   LongSortRowNum := AppSettings.ReadInt(asQueryGridLongSortRowNum);
   if TVirtualStringTree(Sender.Treeview).RootNodeCount > LongSortRowNum then begin
@@ -10213,6 +10216,9 @@ begin
   if HitInfo.Column = NoColumn then
     Exit;
   if HitInfo.Button = mbLeft then begin
+    // Header click disabled
+    if not AppSettings.ReadBool(asColumnHeaderClick) then
+      Exit;
     ColName := Sender.Columns[HitInfo.Column].Text;
     // Add a new order column after a columns title has been clicked
     // Check if order column is already existant

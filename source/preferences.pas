@@ -184,6 +184,7 @@ type
     editCompletionProposalInterval: TEdit;
     updownCompletionProposalInterval: TUpDown;
     lblCompletionProposalIntervalUnit: TLabel;
+    chkColumnHeaderClick: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -387,6 +388,7 @@ begin
   AppSettings.WriteBool(asFieldEditorDatetimePrefill, chkPrefillDatetime.Checked);
   AppSettings.WriteBool(asFieldEditorEnum, chkEditorEnum.Checked);
   AppSettings.WriteBool(asFieldEditorSet, chkEditorSet.Checked);
+  AppSettings.WriteBool(asColumnHeaderClick, chkColumnHeaderClick.Checked);
   AppSettings.WriteBool(asReuseEditorConfiguration, chkReuseEditorConfiguration.Checked);
   AppSettings.WriteBool(asForeignDropDown, chkForeignDropDown.Checked);
   case comboLineBreakStyle.ItemIndex of
@@ -744,6 +746,7 @@ begin
   chkPrefillDateTime.Checked := AppSettings.ReadBool(asFieldEditorDatetimePrefill);
   chkEditorEnum.Checked := AppSettings.ReadBool(asFieldEditorEnum);
   chkEditorSet.Checked := AppSettings.ReadBool(asFieldEditorEnum);
+  chkColumnHeaderClick.Checked := AppSettings.ReadBool(asColumnHeaderClick);
   chkReuseEditorConfiguration.Checked := AppSettings.ReadBool(asReuseEditorConfiguration);
   chkForeignDropDown.Checked := AppSettings.ReadBool(asForeignDropDown);
   case TLineBreaks(AppSettings.ReadInt(asLineBreakStyle)) of

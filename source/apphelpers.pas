@@ -152,7 +152,7 @@ type
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asLowercaseHex, asHintsOnResultTabs, asHightlightSameTextBackground,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
-    asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asReuseEditorConfiguration,
+    asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asColumnHeaderClick, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
@@ -3549,6 +3549,7 @@ begin
   InitSetting(asDatagridMaximumRows,              'DatagridMaximumRows',                   100000);
   InitSetting(asDatagridRowsPerStep,              'DatagridRowsPerStep',                   1000);
   InitSetting(asGridRowLineCount,                 'GridRowLineCount',                      1);
+  InitSetting(asColumnHeaderClick,                'ColumnHeaderClick',                     0, True);
   InitSetting(asReuseEditorConfiguration,         'ReuseEditorConfiguration',              0, True);
   InitSetting(asLogToFile,                        'LogToFile',                             0, False);
   InitSetting(asMainWinMaximized,                 'MainWinMaximized',                      0, False);
