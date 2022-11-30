@@ -300,6 +300,7 @@ type
   function DeleteFileWithUndo(sFileName: String): Boolean;
   function MakeInt(Str: String) : Int64;
   function MakeFloat(Str: String): Extended;
+  function RoundCommercial(e: Extended): Int64;
   function CleanupNumber(Str: String): String;
   function IsInt(Str: String): Boolean;
   function IsFloat(Str: String): Boolean;
@@ -727,6 +728,16 @@ begin
     Result := Result * SIZE_TB
   else if (p_pb > 0) and (p_pb = Length(Str)-Length(NAME_PB)+1) then
     Result := Result * SIZE_PB;
+end;
+
+
+function RoundCommercial(e: Extended): Int64;
+begin
+  // "Kaufmännisch runden"
+  // In contrast to Delphi's Round() which rounds *.5 to the next even number
+  Result := Trunc(e);
+  if Frac(e) >= 0.5 then
+    Result := Result + 1;
 end;
 
 

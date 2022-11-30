@@ -210,7 +210,8 @@ end;
 }
 class procedure TExtForm.SaveListSetup( List: TVirtualStringTree );
 var
-  i, ColWidth: Integer;
+  i: Integer;
+  ColWidth: Int64;
   ColWidths, ColsVisible, ColPos, Regname: String;
   OwnerForm: TWinControl;
 begin
@@ -234,7 +235,7 @@ begin
     // Column widths
     if ColWidths <> '' then
       ColWidths := ColWidths + ',';
-    ColWidth := Round(List.Header.Columns[i].Width / OwnerForm.ScaleFactor);
+    ColWidth := RoundCommercial(List.Header.Columns[i].Width / OwnerForm.ScaleFactor);
     ColWidths := ColWidths + IntToStr(ColWidth);
 
     // Column visibility
@@ -269,7 +270,8 @@ end;
 class procedure TExtForm.RestoreListSetup( List: TVirtualStringTree );
 var
   i : Byte;
-  ColWidth, colpos : Integer;
+  colpos : Integer;
+  ColWidth: Int64;
   Value : String;
   ValueList : TStringList;
   Regname: String;
@@ -286,7 +288,7 @@ begin
     for i := 0 to ValueList.Count - 1 do
     begin
       ColWidth := MakeInt(ValueList[i]);
-      ColWidth := Round(ColWidth * OwnerForm.ScaleFactor);
+      ColWidth := RoundCommercial(ColWidth * OwnerForm.ScaleFactor);
       // Check if column number exists and width is at least 1 pixel
       if (List.Header.Columns.Count > i) and (ColWidth > 0) and (ColWidth < 1000) then
         List.Header.Columns[i].Width := ColWidth;
