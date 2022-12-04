@@ -7122,8 +7122,9 @@ begin
         obj.NodeType := lntFunction;
       // Set reasonable default value for calculation of export chunks. See #343
       // OFFSET..FETCH supported from v11.0/2012
-      if ServerVersionInt >= 1100 then
-        obj.AvgRowLen := 10*SIZE_KB;
+      // Disabled, leave at -1 and prefer a generic calculation in TfrmTableTools.DoExport
+      //if ServerVersionInt >= 1100 then
+      //  obj.AvgRowLen := 10*SIZE_KB;
       Results.Next;
     end;
     FreeAndNil(Results);

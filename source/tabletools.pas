@@ -1549,6 +1549,7 @@ var
   TargetFileName, SetCharsetCode: String;
 const
   TempDelim = '//';
+  AssumedAvgRowLen = 10000;
 
   procedure LogStatistic(RowsDone: Int64);
   var
@@ -1813,7 +1814,8 @@ begin
       Offset := 0;
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
-      Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
+      // Take care of disabled "Get full table status" session setting, where AvgRowLen is 0
+      Limit := Round(100 * SIZE_MB / IfThen(DBObj.AvgRowLen>0, DBObj.AvgRowLen, AssumedAvgRowLen));
       if comboExportData.Text = DATA_REPLACE then
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       if DBObj.Engine.ToLowerInvariant <> 'innodb' then begin
