@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-11-14 19:43+0100\n"
+"PO-Revision-Date: 2022-12-06 19:09+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -2960,6 +2960,9 @@ msgstr "Enable SET checkbox editor"
 #: options.dfm:829
 msgid "Prefill empty date/time fields with current date/time"
 msgstr "Prefill empty date/time fields with current date/time"
+
+msgid "Click on column headers toggles sorting"
+msgstr "Click on column headers toggles sorting"
 
 #. optionsform..pagecontrolMain..tabData..chkRememberFilters..Caption
 #: options.dfm:838
