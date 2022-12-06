@@ -4349,7 +4349,8 @@ begin
       MessageDialog(_('SSL not used.'),
         _('Your SSL settings were not accepted by the server, or the server does not support any SSL configuration.'),
         mtWarning,
-        [mbOK]
+        [mbOK],
+        asSSLWarnUnused
         );
     end;
 
