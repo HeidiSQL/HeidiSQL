@@ -99,6 +99,7 @@ const
   MsgSQLError: String = 'SQL Error (%d): %s';
   MsgSQLErrorMultiStatements: String = 'SQL Error (%d) in statement #%d: %s';
   MsgUnhandledNetType: String = 'Unhandled connection type (%d)';
+  MsgUnhandledControl: String = 'Unhandled control in %s';
   MsgDisconnect: String = 'Connection to %s closed at %s';
   MsgInvalidColumn: String = 'Column #%d not available. Query returned %d columns and %d rows.';
   FILEFILTER_SQLITEDB = '*.sqlite3;*.sqlite;*.db;*.s3db';

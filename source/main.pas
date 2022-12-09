@@ -1006,7 +1006,6 @@ type
     procedure actDataShowAllExecute(Sender: TObject);
     procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-    procedure editFilterVTRightButtonClick(Sender: TObject);
     procedure AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex);
     procedure ListTablesKeyPress(Sender: TObject; var Key: Char);
@@ -8782,12 +8781,6 @@ begin
 end;
 
 
-procedure TMainForm.editFilterVTRightButtonClick(Sender: TObject);
-begin
-  (Sender as TButtonedEdit).Clear;
-end;
-
-
 procedure TMainForm.editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
 begin
   if Key = #27 then
@@ -12220,8 +12213,12 @@ begin
   AppSettings.SessionPath := '';
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
+  else if Edit = editTableFilter then
+    Setting := asTableFilter
+  else if Edit = editFilterVT then
+    Setting := asFilterVT
   else
-    Setting := asTableFilter;
+    raise Exception.CreateFmt(MsgUnhandledControl, ['editDatabaseTableFilterLeftButtonClick']);
   History := TStringList.Create;
   History.Text := AppSettings.ReadString(Setting);
   for ItemText in History do begin
@@ -12268,8 +12265,12 @@ begin
   Edit := Menu.Owner as TButtonedEdit;
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
+  else if Edit = editTableFilter then
+    Setting := asTableFilter
+  else if Edit = editFilterVT then
+    Setting := asFilterVT
   else
-    Setting := asTableFilter;
+    raise Exception.CreateFmt(MsgUnhandledControl, ['editDatabaseTableFilterMenuClick']);
   case Item.Tag of
     0: Edit.Text := Item.Caption;
     1: Edit.Clear;
@@ -12291,8 +12292,12 @@ begin
   AppSettings.SessionPath := '';
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
+  else if Edit = editTableFilter then
+    Setting := asTableFilter
+  else if Edit = editFilterVT then
+    Setting := asFilterVT
   else
-    Setting := asTableFilter;
+    raise Exception.CreateFmt(MsgUnhandledControl, ['editDatabaseTableFilterExit']);
   History := TStringList.Create;
   History.Text := AppSettings.ReadString(Setting);
   i := History.IndexOf(Edit.Text);

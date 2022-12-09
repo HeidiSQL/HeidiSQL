@@ -376,13 +376,18 @@ object MainForm: TMainForm
           Width = 154
           Height = 21
           Images = VirtualImageListMain
+          LeftButton.ImageIndex = 192
+          LeftButton.Visible = True
           RightButton.Hint = 'Clear filter'
           RightButton.ImageIndex = 193
           RightButton.Visible = True
           TabOrder = 0
           TextHint = 'Regular expression'
           OnChange = editFilterVTChange
-          OnRightButtonClick = editFilterVTRightButtonClick
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
+          OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnRightButtonClick = buttonedEditClear
         end
       end
       object PageControlMain: TPageControl
