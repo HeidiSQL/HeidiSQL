@@ -80,12 +80,14 @@ type
       FQueryRunning: Boolean;
       FLastChange: TDateTime;
       FDirectoryWatchNotficationRunning: Boolean;
+      FErrorLine: Integer;
       procedure SetMemoFilename(Value: String);
       procedure SetQueryRunning(Value: Boolean);
       procedure TimerLastChangeOnTimer(Sender: TObject);
       procedure TimerStatusUpdateOnTimer(Sender: TObject);
       function GetBindParamsActivated: Boolean;
       procedure SetBindParamsActivated(Value: Boolean);
+      procedure SetErrorLine(Value: Integer);
     public
       Number: Integer;
       Uid: String;
@@ -129,6 +131,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       class function GenerateUid: String;
+      property ErrorLine: Integer read FErrorLine write SetErrorLine;
   end;
   TQueryTabList = class(TObjectList<TQueryTab>)
     public
@@ -1171,6 +1174,8 @@ type
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
     procedure SynCompletionProposalChange(Sender: TObject; AIndex: Integer);
+    procedure SynMemoQuerySpecialLineColors(Sender: TObject; Line: Integer;
+      var Special: Boolean; var FG, BG: TColor);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -3371,6 +3376,7 @@ var
   var
     rx: TRegExpr;
     SelStart, ErrorPos: Integer;
+    ErrorCoord: TBufferCoord;
   begin
     // Try to set memo cursor to the relevant position
     if Tab.LeftOffsetInMemo > 0 then
@@ -3390,12 +3396,15 @@ var
     rx.Free;
 
     if ErroneousSQL <> '' then begin
-      // Examine 1kb of memo text at given offset
-      ErrorPos := Pos(ErroneousSQL, Copy(Tab.Memo.Text, SelStart, SIZE_KB));
-      if ErrorPos > 0 then
+      // Examine 1M of memo text at given offset
+      ErrorPos := Pos(ErroneousSQL, Copy(Tab.Memo.Text, SelStart, SIZE_MB));
+      if ErrorPos > 0 then begin
         Inc(SelStart, ErrorPos-1);
-      Tab.Memo.SelLength := 0;
-      Tab.Memo.SelStart := SelStart;
+        Tab.Memo.SelLength := 0;
+        Tab.Memo.SelStart := SelStart;
+        ErrorCoord := Tab.Memo.CharIndexToRowCol(SelStart);
+        Tab.ErrorLine := ErrorCoord.Line;
+      end;
     end;
   end;
 
@@ -6919,6 +6928,24 @@ begin
 end;
 
 
+procedure TMainForm.SynMemoQuerySpecialLineColors(Sender: TObject;
+  Line: Integer; var Special: Boolean; var FG, BG: TColor);
+var
+  Edit: TSynMemo;
+  Tab: TQueryTab;
+begin
+  // Paint error line with red background
+  Edit := Sender as TSynMemo;
+  Tab := QueryTabs.TabByControl(Edit);
+  if Tab <> QueryTabs.ActiveTab then
+    Exit;
+  if Line = Tab.ErrorLine then begin
+    Special := True;
+    FG := clWhite;
+    BG := clRed;
+  end;
+end;
+
 procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 var
   Edit: TSynMemo;
@@ -6935,6 +6962,9 @@ begin
 
   ContentOrCursor := (scCaretX in Changes) or (scCaretY in Changes) or (scModified in Changes);
   if ContentOrCursor then begin
+    // Disable error marker
+    Tab.ErrorLine := -1;
+
     // Check if bind param detection is enabled for text size <1M
     // Uncheck checkbox if it's bigger
     // Code moved back from TQueryTab.MemoOnChange here
@@ -11842,6 +11872,7 @@ begin
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
+  QueryTab.Memo.OnSpecialLineColors := SynMemoQuery.OnSpecialLineColors;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
@@ -14629,6 +14660,15 @@ begin
     treeHelpers.CheckState[Node] := csCheckedNormal
   else
     treeHelpers.CheckState[Node] := csUncheckedNormal;
+end;
+
+
+procedure TQueryTab.SetErrorLine(Value: Integer);
+begin
+  if Value <> FErrorLine then begin
+    FErrorLine := Value;
+    Memo.Repaint;
+  end;
 end;
 
 

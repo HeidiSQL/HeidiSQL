@@ -1347,6 +1347,7 @@ object MainForm: TMainForm
               WantTabs = True
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
+              OnSpecialLineColors = SynMemoQuerySpecialLineColors
               OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
               OnScanForFoldRanges = SynMemoQueryScanForFoldRanges
