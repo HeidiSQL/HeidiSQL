@@ -9115,7 +9115,8 @@ begin
       except
         // Silence error: "Multiple-step operation generated errors. Check each status value."
         // @see #496
-        on E:EOleException do;
+        //on E:EOleException do;
+        // Silence more: see #1724
       end;
     end;
   end;
