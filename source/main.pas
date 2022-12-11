@@ -778,6 +778,7 @@ type
     Movelineup1: TMenuItem;
     menuToggleAll: TMenuItem;
     menuCloseTabOnDblClick: TMenuItem;
+    Undo1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);

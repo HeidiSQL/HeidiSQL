@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-12-06 19:09+0100\n"
+"PO-Revision-Date: 2022-12-11 12:51+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -1731,6 +1731,9 @@ msgstr "Cut|Cuts the selection and puts it on the Clipboard"
 #: main.dfm:1924
 msgid "&Undo"
 msgstr "&Undo"
+
+msgid "Undo|Revert last modification"
+msgstr "Undo|Revert last modification"
 
 #. MainForm..ActionList1..actAboutBox..Caption
 #: main.dfm:1931
@@ -6752,3 +6755,27 @@ msgstr "Auto-disabling wordwrap for large text"
 
 msgid "%d tab(s) took longer than expected to restore. Closing and reopening these should fix that: %s"
 msgstr "%d tab(s) took longer than expected to restore. Closing and reopening these should fix that: %s"
+
+msgid "Library:"
+msgstr "Library:"
+
+msgid "Move line up"
+msgstr "Move line up"
+
+msgid "Move line down"
+msgstr "Move line down"
+
+msgid "New query tab in background"
+msgstr "New query tab in background"
+
+msgid "Follow foreign key"
+msgstr "Follow foreign key"
+
+msgid "Follow foreign key to the linked table"
+msgstr "Follow foreign key to the linked table"
+
+msgid "Copy with tabs to spaces"
+msgstr "Copy with tabs to spaces"
+
+msgid "Connection properties"
+msgstr "Connection properties"

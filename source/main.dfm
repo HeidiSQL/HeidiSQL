@@ -2079,6 +2079,9 @@ object MainForm: TMainForm
     object MainMenuEdit: TMenuItem
       Caption = 'Edit'
       Hint = 'Edit commands'
+      object Undo1: TMenuItem
+        Action = actUndo
+      end
       object CopyItem: TMenuItem
         Action = actCopy
       end
@@ -2428,6 +2431,7 @@ object MainForm: TMainForm
       Category = 'Various'
       Caption = '&Undo'
       Enabled = False
+      Hint = 'Undo|Revert last modification'
       ImageIndex = 40
       ImageName = 'icons8-undo'
       ShortCut = 32776
