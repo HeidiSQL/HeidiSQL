@@ -1146,7 +1146,7 @@ object MainForm: TMainForm
               Height = 22
               Action = actApplyFilter
               Anchors = [akTop, akRight]
-              TabOrder = 2
+              TabOrder = 3
             end
             object btnFilterClear: TButton
               Left = 713
@@ -1155,7 +1155,7 @@ object MainForm: TMainForm
               Height = 22
               Action = actClearFilterEditor
               Anchors = [akTop, akRight]
-              TabOrder = 3
+              TabOrder = 4
             end
             object SynMemoFilter: TSynMemo
               Left = 0
@@ -1170,7 +1170,7 @@ object MainForm: TMainForm
               Font.Name = 'Courier New'
               Font.Style = []
               PopupMenu = popupFilter
-              TabOrder = 0
+              TabOrder = 1
               CodeFolding.GutterShapeSize = 11
               CodeFolding.CollapsedLineColor = clGrayText
               CodeFolding.FolderBarLinesColor = clGrayText
@@ -1204,7 +1204,7 @@ object MainForm: TMainForm
               Width = 156
               Height = 21
               Anchors = [akTop, akRight]
-              TabOrder = 1
+              TabOrder = 2
               OnChange = editFilterSearchChange
               OnEnter = editFilterSearchEnter
               OnExit = editFilterSearchExit
@@ -1219,7 +1219,7 @@ object MainForm: TMainForm
               Style = csDropDownList
               Anchors = [akLeft, akTop, akRight]
               DropDownCount = 20
-              TabOrder = 4
+              TabOrder = 0
               OnSelect = LoadRecentFilter
             end
           end
