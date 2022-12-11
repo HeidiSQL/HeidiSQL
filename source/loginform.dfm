@@ -11,14 +11,12 @@ object frmLogin: TfrmLogin
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     270
     176)
-  PixelsPerInch = 96
   TextHeight = 14
   object btnOK: TButton
     Left = 164

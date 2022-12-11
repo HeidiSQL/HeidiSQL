@@ -12,7 +12,6 @@ object frmBinEditor: TfrmBinEditor
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -21,7 +20,6 @@ object frmBinEditor: TfrmBinEditor
   DesignSize = (
     215
     95)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblTextLength: TLabel
     Left = 103

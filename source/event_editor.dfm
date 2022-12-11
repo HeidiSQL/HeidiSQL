@@ -32,6 +32,14 @@ object frmEventEditor: TfrmEventEditor
     Font.Name = 'Courier New'
     Font.Style = []
     TabOrder = 1
+    CodeFolding.GutterShapeSize = 11
+    CodeFolding.CollapsedLineColor = clGrayText
+    CodeFolding.FolderBarLinesColor = clGrayText
+    CodeFolding.IndentGuidesColor = clGray
+    CodeFolding.IndentGuides = True
+    CodeFolding.ShowCollapsedLine = False
+    CodeFolding.ShowHintMark = True
+    UseCodeFolding = False
     Gutter.AutoSize = True
     Gutter.DigitCount = 2
     Gutter.Font.Charset = DEFAULT_CHARSET
@@ -198,8 +206,8 @@ object frmEventEditor: TfrmEventEditor
         Top = 11
         Width = 133
         Height = 21
-        Date = 40273.547337048610000000
-        Time = 40273.547337048610000000
+        Date = 40273.000000000000000000
+        Time = 0.547337048607005300
         TabOrder = 1
         OnChange = Modification
       end
@@ -208,8 +216,8 @@ object frmEventEditor: TfrmEventEditor
         Top = 11
         Width = 133
         Height = 21
-        Date = 40273.548026377310000000
-        Time = 40273.548026377310000000
+        Date = 40273.000000000000000000
+        Time = 0.548026377313362900
         Kind = dtkTime
         TabOrder = 2
         OnChange = Modification
@@ -266,8 +274,8 @@ object frmEventEditor: TfrmEventEditor
         Top = 75
         Width = 133
         Height = 21
-        Date = 40273.548478379630000000
-        Time = 40273.548478379630000000
+        Date = 40273.000000000000000000
+        Time = 0.548478379627340500
         TabOrder = 8
         OnChange = Modification
       end
@@ -276,8 +284,8 @@ object frmEventEditor: TfrmEventEditor
         Top = 75
         Width = 133
         Height = 21
-        Date = 40273.549206851850000000
-        Time = 40273.549206851850000000
+        Date = 40273.000000000000000000
+        Time = 0.549206851850613000
         Kind = dtkTime
         TabOrder = 9
         OnChange = Modification
@@ -287,8 +295,8 @@ object frmEventEditor: TfrmEventEditor
         Top = 102
         Width = 133
         Height = 21
-        Date = 40273.549548981480000000
-        Time = 40273.549548981480000000
+        Date = 40273.000000000000000000
+        Time = 0.549548981478437800
         Kind = dtkTime
         TabOrder = 12
         OnChange = Modification
@@ -298,8 +306,8 @@ object frmEventEditor: TfrmEventEditor
         Top = 102
         Width = 133
         Height = 21
-        Date = 40273.549452245370000000
-        Time = 40273.549452245370000000
+        Date = 40273.000000000000000000
+        Time = 0.549452245366410400
         TabOrder = 11
         OnChange = Modification
       end
@@ -320,6 +328,14 @@ object frmEventEditor: TfrmEventEditor
         Font.Name = 'Courier New'
         Font.Style = []
         TabOrder = 0
+        CodeFolding.GutterShapeSize = 11
+        CodeFolding.CollapsedLineColor = clGrayText
+        CodeFolding.FolderBarLinesColor = clGrayText
+        CodeFolding.IndentGuidesColor = clGray
+        CodeFolding.IndentGuides = True
+        CodeFolding.ShowCollapsedLine = False
+        CodeFolding.ShowHintMark = True
+        UseCodeFolding = False
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
         Gutter.Font.Charset = DEFAULT_CHARSET
@@ -354,6 +370,14 @@ object frmEventEditor: TfrmEventEditor
         Font.Name = 'Courier New'
         Font.Style = []
         TabOrder = 0
+        CodeFolding.GutterShapeSize = 11
+        CodeFolding.CollapsedLineColor = clGrayText
+        CodeFolding.FolderBarLinesColor = clGrayText
+        CodeFolding.IndentGuidesColor = clGray
+        CodeFolding.IndentGuides = True
+        CodeFolding.ShowCollapsedLine = False
+        CodeFolding.ShowHintMark = True
+        UseCodeFolding = False
         Gutter.AutoSize = True
         Gutter.DigitCount = 2
         Gutter.Font.Charset = DEFAULT_CHARSET

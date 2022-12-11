@@ -13,7 +13,6 @@ object frmSearchReplace: TfrmSearchReplace
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poOwnerFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -21,7 +20,6 @@ object frmSearchReplace: TfrmSearchReplace
   DesignSize = (
     434
     311)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblSearch: TLabel
     Left = 8

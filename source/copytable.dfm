@@ -12,7 +12,6 @@ object CopyTableForm: TCopyTableForm
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -21,7 +20,6 @@ object CopyTableForm: TCopyTableForm
   DesignSize = (
     364
     304)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblNewTablename: TLabel
     Left = 8
@@ -102,6 +100,8 @@ object CopyTableForm: TCopyTableForm
     OnGetImageIndex = TreeElementsGetImageIndex
     OnInitChildren = TreeElementsInitChildren
     OnInitNode = TreeElementsInitNode
+    Touch.InteractiveGestures = [igPan, igPressAndTap]
+    Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
     Columns = <>
   end
   object MemoFilter: TSynMemo
@@ -117,6 +117,14 @@ object CopyTableForm: TCopyTableForm
     Font.Name = 'Courier New'
     Font.Style = []
     TabOrder = 4
+    CodeFolding.GutterShapeSize = 11
+    CodeFolding.CollapsedLineColor = clGrayText
+    CodeFolding.FolderBarLinesColor = clGrayText
+    CodeFolding.IndentGuidesColor = clGray
+    CodeFolding.IndentGuides = True
+    CodeFolding.ShowCollapsedLine = False
+    CodeFolding.ShowHintMark = True
+    UseCodeFolding = False
     Gutter.AutoSize = True
     Gutter.DigitCount = 2
     Gutter.Font.Charset = DEFAULT_CHARSET

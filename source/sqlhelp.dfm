@@ -11,11 +11,9 @@ object frmSQLhelp: TfrmSQLhelp
   Font.Name = 'Tahoma'
   Font.Style = []
   FormStyle = fsStayOnTop
-  OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 14
   object btnSearchOnline: TButton
     Left = 363
@@ -114,6 +112,8 @@ object frmSQLhelp: TfrmSQLhelp
         OnGetNodeDataSize = treeTopicsGetNodeDataSize
         OnInitChildren = treeTopicsInitChildren
         OnInitNode = treeTopicsInitNode
+        Touch.InteractiveGestures = [igPan, igPressAndTap]
+        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <>
       end
     end
@@ -180,6 +180,14 @@ object frmSQLhelp: TfrmSQLhelp
         Font.Style = []
         TabOrder = 0
         OnKeyDown = memosKeyDown
+        CodeFolding.GutterShapeSize = 11
+        CodeFolding.CollapsedLineColor = clGrayText
+        CodeFolding.FolderBarLinesColor = clGrayText
+        CodeFolding.IndentGuidesColor = clGray
+        CodeFolding.IndentGuides = True
+        CodeFolding.ShowCollapsedLine = False
+        CodeFolding.ShowHintMark = True
+        UseCodeFolding = False
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
         Gutter.Font.Height = -11
@@ -207,6 +215,14 @@ object frmSQLhelp: TfrmSQLhelp
         Font.Style = []
         TabOrder = 1
         OnKeyDown = memosKeyDown
+        CodeFolding.GutterShapeSize = 11
+        CodeFolding.CollapsedLineColor = clGrayText
+        CodeFolding.FolderBarLinesColor = clGrayText
+        CodeFolding.IndentGuidesColor = clGray
+        CodeFolding.IndentGuides = True
+        CodeFolding.ShowCollapsedLine = False
+        CodeFolding.ShowHintMark = True
+        UseCodeFolding = False
         Gutter.Font.Charset = DEFAULT_CHARSET
         Gutter.Font.Color = clWindowText
         Gutter.Font.Height = -11

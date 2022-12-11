@@ -13,7 +13,6 @@ object frmInsertFiles: TfrmInsertFiles
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -21,7 +20,6 @@ object frmInsertFiles: TfrmInsertFiles
   DesignSize = (
     511
     491)
-  PixelsPerInch = 96
   TextHeight = 14
   object btnInsert: TButton
     Left = 272
@@ -115,6 +113,8 @@ object frmInsertFiles: TfrmInsertFiles
       OnPaintText = ListColumnsPaintText
       OnGetNodeDataSize = ListColumnsGetNodeDataSize
       OnNewText = ListColumnsNewText
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
       Columns = <
         item
           Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
@@ -196,6 +196,8 @@ object frmInsertFiles: TfrmInsertFiles
       OnKeyPress = GridKeyPress
       OnKeyUp = ListFilesKeyUp
       OnStructureChange = ListFilesStructureChange
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
       Columns = <
         item
           Position = 0

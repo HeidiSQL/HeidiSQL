@@ -12,7 +12,6 @@ object frmEditVariable: TfrmEditVariable
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -20,7 +19,6 @@ object frmEditVariable: TfrmEditVariable
   DesignSize = (
     291
     222)
-  PixelsPerInch = 96
   TextHeight = 14
   object btnOK: TButton
     Left = 127

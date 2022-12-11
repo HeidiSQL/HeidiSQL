@@ -10,7 +10,6 @@ object MainForm: TMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu1
-  OldCreateOrder = True
   Position = poDesigned
   ShowHint = True
   OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
@@ -20,7 +19,6 @@ object MainForm: TMainForm
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 14
   object spltTopBottom: TSplitter
     Left = 0
@@ -185,6 +183,8 @@ object MainForm: TMainForm
         OnInitChildren = DBtreeInitChildren
         OnInitNode = DBtreeInitNode
         OnMouseUp = DBtreeMouseUp
+        Touch.InteractiveGestures = [igPan, igPressAndTap]
+        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <
           item
             Position = 0
@@ -450,6 +450,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = ListDatabasesInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -538,6 +540,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -591,6 +595,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -663,6 +669,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Alignment = taRightJustify
@@ -820,6 +828,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -895,6 +905,8 @@ object MainForm: TMainForm
             OnInitNode = ListTablesInitNode
             OnKeyPress = ListTablesKeyPress
             OnNewText = ListTablesNewText
+            Touch.InteractiveGestures = [igPan, igPressAndTap]
+            Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
             Columns = <
               item
                 Position = 0
@@ -1269,6 +1281,8 @@ object MainForm: TMainForm
             OnMouseUp = AnyGridMouseUp
             OnMouseWheel = AnyGridMouseWheel
             OnNewText = AnyGridNewText
+            Touch.InteractiveGestures = [igPan, igPressAndTap]
+            Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
             Columns = <>
           end
         end
@@ -1417,6 +1431,8 @@ object MainForm: TMainForm
                 OnNewText = treeQueryHelpersNewText
                 OnNodeClick = treeQueryHelpersNodeClick
                 OnResize = treeQueryHelpersResize
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -1496,6 +1512,8 @@ object MainForm: TMainForm
             OnMouseWheel = AnyGridMouseWheel
             OnNewText = AnyGridNewText
             OnStartOperation = AnyGridStartOperation
+            Touch.InteractiveGestures = [igPan, igPressAndTap]
+            Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
             Columns = <>
           end
           object tabsetQuery: TTabSet

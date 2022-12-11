@@ -15,14 +15,12 @@ object frmPasswordChange: TfrmPasswordChange
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     456
     187)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblHeading: TLabel
     Left = 8

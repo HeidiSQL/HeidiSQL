@@ -1335,6 +1335,8 @@ object frmPreferences: TfrmPreferences
         OnGetNodeDataSize = TreeShortcutItemsGetNodeDataSize
         OnInitChildren = TreeShortcutItemsInitChildren
         OnInitNode = TreeShortcutItemsInitNode
+        Touch.InteractiveGestures = [igPan, igPressAndTap]
+        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <>
       end
       object HotKey1: THotKey

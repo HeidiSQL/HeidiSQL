@@ -13,7 +13,6 @@ object connform: Tconnform
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   ShowHint = True
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -23,7 +22,6 @@ object connform: Tconnform
   DesignSize = (
     749
     506)
-  PixelsPerInch = 96
   TextHeight = 14
   object splitterMain: TSplitter
     AlignWithMargins = True
@@ -940,6 +938,8 @@ object connform: Tconnform
       OnNewText = ListSessionsNewText
       OnNodeDblClick = ListSessionsNodeDblClick
       OnStructureChange = ListSessionsStructureChange
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
       Columns = <
         item
           Position = 0

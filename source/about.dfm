@@ -12,13 +12,11 @@ object AboutBox: TAboutBox
   Font.Name = 'Tahoma'
   Font.Style = []
   FormStyle = fsStayOnTop
-  OldCreateOrder = True
   Position = poOwnerFormCenter
   OnShow = FormShow
   DesignSize = (
     481
     315)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblAppName: TLabel
     Left = 117

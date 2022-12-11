@@ -12,7 +12,6 @@ object frmUpdateCheck: TfrmUpdateCheck
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poOwnerFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -20,7 +19,6 @@ object frmUpdateCheck: TfrmUpdateCheck
   DesignSize = (
     374
     415)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblStatus: TLabel
     Left = 8

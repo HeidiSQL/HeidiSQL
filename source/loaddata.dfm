@@ -12,7 +12,6 @@ object loaddataform: Tloaddataform
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -21,7 +20,6 @@ object loaddataform: Tloaddataform
   DesignSize = (
     509
     494)
-  PixelsPerInch = 96
   TextHeight = 14
   object btnImport: TButton
     Left = 345
