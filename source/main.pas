@@ -1177,6 +1177,8 @@ type
     procedure SynCompletionProposalChange(Sender: TObject; AIndex: Integer);
     procedure SynMemoQuerySpecialLineColors(Sender: TObject; Line: Integer;
       var Special: Boolean; var FG, BG: TColor);
+    procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
+      var Special: Boolean; var FG, BG: TColor);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1380,6 +1382,8 @@ var
 
 const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
+  ErrorLineForeground: TColor = $00FFFFFF;
+  ErrorLineBackground: TColor = $00000080;
 
 {$I const.inc}
 
@@ -6942,10 +6946,31 @@ begin
     Exit;
   if Line = Tab.ErrorLine then begin
     Special := True;
-    FG := clWhite;
-    BG := clRed;
+    FG := ErrorLineForeground;
+    BG := ErrorLineBackground;
   end;
 end;
+
+
+procedure TMainForm.SynMemoSQLLogSpecialLineColors(Sender: TObject;
+  Line: Integer; var Special: Boolean; var FG, BG: TColor);
+var
+  Edit: TSynMemo;
+  LineText, Search: String;
+begin
+  // Paint error line with red background
+  Edit := Sender as TSynMemo;
+  LineText := Copy(Edit.Lines[Line-1], 1, 100);
+  Search := f_(MsgSQLError, [-1, '']);
+  Search := Copy(Search, 1, Pos('-1', Search)-1);
+  //Logsql(LineText+' ::: '+Search);
+  if LineText.Contains(Search) then begin
+    Special := True;
+    FG := ErrorLineForeground;
+    BG := ErrorLineBackground;
+  end;
+end;
+
 
 procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
 var

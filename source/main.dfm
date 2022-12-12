@@ -65,6 +65,7 @@ object MainForm: TMainForm
     ReadOnly = True
     RightEdge = 0
     ScrollBars = ssVertical
+    OnSpecialLineColors = SynMemoSQLLogSpecialLineColors
     FontSmoothing = fsmNone
   end
   object StatusBar: TStatusBar
