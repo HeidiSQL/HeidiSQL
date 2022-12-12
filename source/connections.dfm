@@ -995,7 +995,7 @@ object connform: Tconnform
       LeftButton.Visible = True
       RightButton.ImageIndex = 193
       TabOrder = 1
-      TextHint = 'Filter ...'
+      TextHint = 'Filter'
       OnChange = editSearchChange
       OnRightButtonClick = editSearchRightButtonClick
     end
