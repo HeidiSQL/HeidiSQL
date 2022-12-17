@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-12-17 09:12+0100\n"
+"PO-Revision-Date: 2022-12-17 09:19+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -1236,6 +1236,7 @@ msgstr "Default"
 msgid "Data"
 msgstr "Data"
 
+# Short and longer hint, separated by pipe
 #. MainForm..panelTop..pnlLeft..comboDBFilter....Hint
 #: main.dfm:384
 msgid "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
@@ -1250,6 +1251,7 @@ msgstr "Database filter"
 msgid "Table filter"
 msgstr "Table filter"
 
+# Short and longer hint, separated by pipe
 #. Table filter box hint
 msgid "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 msgstr "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
@@ -1635,8 +1637,8 @@ msgstr "New window..."
 msgid "E&xit"
 msgstr "E&xit"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actExitApplication..Hint
-#: main.dfm:1887
 msgid "Exit|Exit application"
 msgstr "Exit|Exit application"
 
@@ -1669,8 +1671,8 @@ msgstr "Various"
 msgid "&Copy"
 msgstr "&Copy"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actCopy..Hint
-#: main.dfm:1894
 msgid "Copy|Copy to Clipboard"
 msgstr "Copy|Copy to Clipboard"
 
@@ -1679,8 +1681,8 @@ msgstr "Copy|Copy to Clipboard"
 msgid "&Paste"
 msgstr "&Paste"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actPaste..Hint
-#: main.dfm:1902
 msgid "Paste|Paste from Clipboard"
 msgstr "Paste|Paste from Clipboard"
 
@@ -1722,8 +1724,8 @@ msgstr "Manage user authentication and privileges"
 msgid "Cu&t"
 msgstr "Cu&t"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actCut..Hint
-#: main.dfm:1917
 msgid "Cut|Cuts the selection and puts it on the Clipboard"
 msgstr "Cut|Cuts the selection and puts it on the Clipboard"
 
@@ -1860,8 +1862,8 @@ msgstr "Execute selected SQL...|Execute selected SQL-query/queries..."
 msgid "Run current query"
 msgstr "Run current query"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actExecuteCurrentQuery..Hint
-#: main.dfm:1997
 msgid "Run current query|Run currently focused SQL query"
 msgstr "Run current query|Run currently focused SQL query"
 
@@ -2181,8 +2183,8 @@ msgstr "Remove filter"
 msgid "&Previous tab"
 msgstr "&Previous tab"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actPreviousTab..Hint
-#: main.dfm:2377
 msgid "Previous tab|Go back to the previous tab"
 msgstr "Previous tab|Go back to the previous tab"
 
@@ -2191,8 +2193,8 @@ msgstr "Previous tab|Go back to the previous tab"
 msgid "&Next tab"
 msgstr "&Next tab"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actNextTab..Hint
-#: main.dfm:2386
 msgid "Next tab|Go to the next tab"
 msgstr "Next tab|Go to the next tab"
 
@@ -2209,8 +2211,8 @@ msgstr "Next result tab"
 msgid "Select all"
 msgstr "Select all"
 
+# Short and longer hint, separated by pipe
 #. MainForm..ActionList1..actSelectAll..Hint
-#: main.dfm:2394
 msgid "Select all|Select all items or text"
 msgstr "Select all|Select all items or text"
 
