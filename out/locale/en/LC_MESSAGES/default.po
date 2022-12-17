@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-12-11 12:51+0100\n"
+"PO-Revision-Date: 2022-12-17 09:12+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -1732,6 +1732,7 @@ msgstr "Cut|Cuts the selection and puts it on the Clipboard"
 msgid "&Undo"
 msgstr "&Undo"
 
+# Short and longer hint, separated by pipe
 msgid "Undo|Revert last modification"
 msgstr "Undo|Revert last modification"
 
