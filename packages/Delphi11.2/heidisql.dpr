@@ -53,7 +53,9 @@ uses
   Vcl.Graphics,
   theme_preview in '..\..\source\theme_preview.pas' {frmThemePreview},
   csv_detector in '..\..\source\csv_detector.pas' {frmCsvDetector},
-  generic_types in '..\..\source\generic_types.pas';
+  generic_types in '..\..\source\generic_types.pas',
+  customize_highlighter in '..\..\source\customize_highlighter.pas' {frmCustomizeHighlighter},
+  Xml.VerySimple in '..\..\source\Xml.VerySimple.pas';
 
 {.$R *.RES}
 {$R ..\..\res\icon.RES}
@@ -68,6 +70,7 @@ var
   WantedStyle: String;
 begin
   PostponedLogItems := TDBLogItems.Create(True);
+  //Application.MainFormOnTaskBar := True;
 
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
   // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator
