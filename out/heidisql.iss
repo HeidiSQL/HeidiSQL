@@ -70,6 +70,8 @@ ArchitecturesInstallIn64BitMode=x64
 UsePreviousAppDir=yes
 DirExistsWarning=auto
 PrivilegesRequired=none
+SignedUninstaller=yes
+SignTool=signtool $f
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Options:"; MinVersion: 4,4
