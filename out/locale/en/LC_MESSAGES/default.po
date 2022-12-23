@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-12-17 09:19+0100\n"
+"PO-Revision-Date: 2022-12-23 11:10+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -385,11 +385,11 @@ msgstr "Use your client time zone in date/time SQL functions, e.g. NOW(), for My
 msgid "Use own client time zone"
 msgstr "Use own client time zone"
 
-# Session > Advanced
+#. Session > Advanced
 msgid "Get full table status"
 msgstr "Get full table status"
 
-# Session > Advanced
+#. Session > Advanced
 msgid "Disable to speed up internal queries on databases with many tables"
 msgstr "Disable to speed up internal queries on databases with many tables"
 
@@ -749,7 +749,7 @@ msgstr "CREATE code"
 msgid "ALTER code"
 msgstr "ALTER code"
 
-# Table editor
+#. Table editor
 msgid "Partitions"
 msgstr "Partitions"
 
@@ -758,7 +758,7 @@ msgstr "Partitions"
 msgid "Export grid rows"
 msgstr "Export grid rows"
 
-# Grid context menu
+#. Grid context menu
 msgid "Copy as"
 msgstr "Copy as"
 
@@ -1176,7 +1176,7 @@ msgstr "Table:"
 msgid "Columns:"
 msgstr "Columns:"
 
-# CSV import
+#. CSV import
 msgid "Cannot truncate table"
 msgstr "Cannot truncate table"
 
@@ -1236,8 +1236,7 @@ msgstr "Default"
 msgid "Data"
 msgstr "Data"
 
-# Short and longer hint, separated by pipe
-#. MainForm..panelTop..pnlLeft..comboDBFilter....Hint
+#. Short and longer hint, separated by pipe
 #: main.dfm:384
 msgid "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
 msgstr "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
@@ -1251,8 +1250,7 @@ msgstr "Database filter"
 msgid "Table filter"
 msgstr "Table filter"
 
-# Short and longer hint, separated by pipe
-#. Table filter box hint
+#. Table filter box hint, short and longer hint, separated by pipe
 msgid "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 msgstr "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 
@@ -1637,8 +1635,7 @@ msgstr "New window..."
 msgid "E&xit"
 msgstr "E&xit"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actExitApplication..Hint
+#. Short and longer hint, separated by pipe
 msgid "Exit|Exit application"
 msgstr "Exit|Exit application"
 
@@ -1671,8 +1668,7 @@ msgstr "Various"
 msgid "&Copy"
 msgstr "&Copy"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actCopy..Hint
+#. Short and longer hint, separated by pipe
 msgid "Copy|Copy to Clipboard"
 msgstr "Copy|Copy to Clipboard"
 
@@ -1681,8 +1677,7 @@ msgstr "Copy|Copy to Clipboard"
 msgid "&Paste"
 msgstr "&Paste"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actPaste..Hint
+#. Short and longer hint, separated by pipe
 msgid "Paste|Paste from Clipboard"
 msgstr "Paste|Paste from Clipboard"
 
@@ -1724,8 +1719,7 @@ msgstr "Manage user authentication and privileges"
 msgid "Cu&t"
 msgstr "Cu&t"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actCut..Hint
+#. Short and longer hint, separated by pipe
 msgid "Cut|Cuts the selection and puts it on the Clipboard"
 msgstr "Cut|Cuts the selection and puts it on the Clipboard"
 
@@ -1734,7 +1728,7 @@ msgstr "Cut|Cuts the selection and puts it on the Clipboard"
 msgid "&Undo"
 msgstr "&Undo"
 
-# Short and longer hint, separated by pipe
+#. Short and longer hint, separated by pipe
 msgid "Undo|Revert last modification"
 msgstr "Undo|Revert last modification"
 
@@ -1862,8 +1856,7 @@ msgstr "Execute selected SQL...|Execute selected SQL-query/queries..."
 msgid "Run current query"
 msgstr "Run current query"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actExecuteCurrentQuery..Hint
+#. Short and longer hint, separated by pipe
 msgid "Run current query|Run currently focused SQL query"
 msgstr "Run current query|Run currently focused SQL query"
 
@@ -2039,7 +2032,7 @@ msgstr "SQL help browser"
 msgid "Refresh"
 msgstr "Refresh"
 
-# Full table status refresh
+#. Full table status refresh
 msgid "Full status refresh"
 msgstr "Full status refresh"
 
@@ -2183,8 +2176,7 @@ msgstr "Remove filter"
 msgid "&Previous tab"
 msgstr "&Previous tab"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actPreviousTab..Hint
+#. Short and longer hint, separated by pipe
 msgid "Previous tab|Go back to the previous tab"
 msgstr "Previous tab|Go back to the previous tab"
 
@@ -2193,8 +2185,7 @@ msgstr "Previous tab|Go back to the previous tab"
 msgid "&Next tab"
 msgstr "&Next tab"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actNextTab..Hint
+#. Short and longer hint, separated by pipe
 msgid "Next tab|Go to the next tab"
 msgstr "Next tab|Go to the next tab"
 
@@ -2211,8 +2202,7 @@ msgstr "Next result tab"
 msgid "Select all"
 msgstr "Select all"
 
-# Short and longer hint, separated by pipe
-#. MainForm..ActionList1..actSelectAll..Hint
+#. Short and longer hint, separated by pipe
 msgid "Select all|Select all items or text"
 msgstr "Select all|Select all items or text"
 
@@ -2497,7 +2487,7 @@ msgstr "Compressing"
 msgid "Insert value"
 msgstr "Insert value"
 
-# Data grid context menu
+#. Data grid context menu
 msgid "This is a UNIX timestamp column"
 msgstr "This is a UNIX timestamp column"
 
@@ -5271,11 +5261,11 @@ msgstr "do not update existing"
 msgid "existing data"
 msgstr "existing data"
 
-# Export SQL data
+#. Export SQL data
 msgid "Max INSERT size:"
 msgstr "Max INSERT size:"
 
-# Export SQL data
+#. Export SQL data
 msgid "KB (0 = Single INSERTs)"
 msgstr "KB (0 = Single INSERTs)"
 
@@ -5545,7 +5535,7 @@ msgstr "No"
 msgid "Connected"
 msgstr "Connected"
 
-# Main form status bar
+#. Main form status bar
 msgid "Disconnected"
 msgstr "Disconnected"
 
@@ -5959,11 +5949,11 @@ msgstr "End of file block was cut within some multibyte character, at position %
 msgid "Recent sessions"
 msgstr "Recent sessions"
 
-# GetParentFormOrFrame
+#. GetParentFormOrFrame
 msgid "Could not determine parent form of this %s"
 msgstr "Could not determine parent form of this %s"
 
-# Button on update check dialog, appearing right after application start
+#. Button on update check dialog, appearing right after application start
 msgid "Skip"
 msgstr "Skip"
 
@@ -6464,7 +6454,7 @@ msgstr "Error when checking for updates: %s"
 msgid "Please update %s through the Microsoft Store."
 msgstr "Please update %s through the Microsoft Store."
 
-# Text in parentheses for detected linebreak style in popup text editor
+#. Text in parentheses for detected linebreak style in popup text editor
 msgid "detected"
 msgstr "detected"
 
