@@ -314,7 +314,7 @@ type
   function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
-  procedure ShellExec(cmd: String; path: String=''; params: String='');
+  procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
   function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
   function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String; Overload;
   function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
@@ -371,7 +371,7 @@ type
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetLocaleString(const ResourceId: Integer): WideString;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
-  procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+  procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   function f_(const Pattern: string; const Args: array of const): string;
   function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
   function GetOutputFilenamePlaceholders: TStringList;
@@ -396,6 +396,7 @@ type
   function DirSep: Char;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
+  {function GetCurrentUserSID: String;}
 
 var
   AppSettings: TAppSettings;
@@ -968,17 +969,19 @@ end;
   @param string Command or URL to execute
   @param string Working directory, only usefull is first param is a system command
 }
-procedure ShellExec(cmd: String; path: String=''; params: String='');
+procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
 var
   Msg: String;
+  ShowCmd: Integer;
 begin
+  ShowCmd := IfThen(RunHidden, SW_HIDE, SW_SHOWNORMAL);
   Msg := 'Executing shell command: "'+cmd+'"';
   if not path.IsEmpty then
     Msg := Msg + ' path: "'+path+'"';
   if not params.IsEmpty then
     Msg := Msg + ' params: "'+params+'"';
   MainForm.LogSQL(Msg, lcDebug);
-  ShellExecute(0, 'open', PChar(cmd), PChar(params), PChar(path), SW_SHOWNORMAL);
+  ShellExecute(0, 'open', PChar(cmd), PChar(params), PChar(path), ShowCmd);
 end;
 
 
@@ -2527,7 +2530,7 @@ begin
 end;
 
 
-procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
 var
   rx: TRegExpr;
   ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
@@ -2578,6 +2581,10 @@ begin
   CommandLine := Copy(CommandLine, Pos(ExeName, CommandLine)+Length(ExeName), Length(CommandLine));
   CommandLine := CommandLine + ' ';
   rx := TRegExpr.Create;
+
+  // --runfrom=scheduler after build update
+  RunFrom := GetParamValue('rf', 'runfrom');
+
   SessName := GetParamValue('d', 'description');
   if SessName <> '' then begin
     try
@@ -3020,6 +3027,56 @@ begin
     Result := Default;
   end;
 end;
+
+
+{ Get SID of current Windows user, probably useful in the future
+function GetCurrentUserSID: string;
+type
+  PTOKEN_USER = ^TOKEN_USER;
+  _TOKEN_USER = record
+     User: TSidAndAttributes;
+  end;
+  TOKEN_USER = _TOKEN_USER;
+var
+  hToken: THandle;
+  cbBuf: Cardinal;
+  ptiUser: PTOKEN_USER;
+  bSuccess: Boolean;
+  StrSid: PWideChar;
+begin
+  // Taken from https://stackoverflow.com/a/71730865/4110077
+  // SidToString does not exist, prefer WinApi.Windows.ConvertSidToStringSid()
+  Result := '';
+
+  // Get the calling thread's access token.
+  if not OpenThreadToken(GetCurrentThread(), TOKEN_QUERY, True, hToken) then
+  begin
+    if (GetLastError <> ERROR_NO_TOKEN) then
+      Exit;
+
+    // Retry against process token if no thread token exists.
+    if not OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, hToken) then
+      Exit;
+  end;
+  try
+    // Obtain the size of the user information in the token.
+    bSuccess := GetTokenInformation(hToken, TokenUser, nil, 0, cbBuf);
+    ptiUser  := nil;
+    try
+      while (not bSuccess) and (GetLastError = ERROR_INSUFFICIENT_BUFFER) do
+      begin
+        ReallocMem(ptiUser, cbBuf);
+        bSuccess := GetTokenInformation(hToken, TokenUser, ptiUser, cbBuf, cbBuf);
+      end;
+      ConvertSidToStringSid(ptiUser.User.Sid, StrSid);
+      Result := StrSid;
+    finally
+      FreeMem(ptiUser);
+    end;
+  finally
+    CloseHandle(hToken);
+  end;
+end; }
 
 
 { Threading stuff }

@@ -5,7 +5,7 @@ interface
 uses
   Windows, Messages, SysUtils, Classes, Forms, StdCtrls, IniFiles, Controls, Graphics,
   apphelpers, gnugettext, ExtCtrls, extra_controls, System.StrUtils, Vcl.Dialogs,
-  Vcl.Menus, Vcl.Clipbrd, generic_types, System.DateUtils;
+  Vcl.Menus, Vcl.Clipbrd, generic_types, System.DateUtils, System.IOUtils;
 
 type
   TfrmUpdateCheck = class(TExtForm)
@@ -37,14 +37,19 @@ type
     { Private declarations }
     BuildURL: String;
     FLastStatusUpdate: Cardinal;
+    FRestartTaskName: String;
     procedure Status(txt: String);
     procedure DownloadProgress(Sender: TObject);
     function GetLinkUrl(Sender: TObject; LinkType: String): String;
+    function GetTaskXmlFileContents: String;
   public
     { Public declarations }
     BuildRevision: Integer;
     procedure ReadCheckFile;
   end;
+
+procedure DeleteRestartTask;
+
 
 implementation
 
@@ -65,12 +70,16 @@ begin
   imgDonate.OnClick := MainForm.DonateClick;
   imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
   HasSizeGrip := True;
+  FRestartTaskName := 'yet_invalid';
 end;
 
 procedure TfrmUpdateCheck.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   AppSettings.WriteIntDpiAware(asUpdateCheckWindowWidth, Self, Width);
   AppSettings.WriteIntDpiAware(asUpdateCheckWindowHeight, Self, Height);
+  if ModalResult <> btnBuild.ModalResult then begin
+    DeleteRestartTask;
+  end;
 end;
 
 {**
@@ -118,7 +127,7 @@ end;
 procedure TfrmUpdateCheck.ReadCheckFile;
 var
   CheckfileDownload: THttpDownLoad;
-  CheckFilename: String;
+  CheckFilename, TaskXmlFile: String;
   Ini: TIniFile;
   ReleaseVersion, ReleasePackage: String;
   ReleaseRevision: Integer;
@@ -198,6 +207,13 @@ begin
     end
     else begin
       btnBuild.Caption := _('No build updates for 32 bit version');
+    end;
+
+    if btnBuild.Enabled then begin
+      TaskXmlFile := GetTempDir + APPNAME + '_task_restart.xml';
+      SaveUnicodeFile(TaskXmlFile, GetTaskXmlFileContents);
+      FRestartTaskName := ValidFilename(ParamStr(0));
+      ShellExec('schtasks', '', '/Create /TN "'+FRestartTaskName+'" /xml '+TaskXmlFile, True);
     end;
 
   end;
@@ -306,7 +322,7 @@ begin
         end;
 
         // Calling the script will now post a WM_CLOSE this running exe...
-        ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+DownloadFilename+'"');
+        ShellExec(UpdaterFilename, '', '"'+ParamStr(0)+'" "'+DownloadFilename+'" "'+FRestartTaskName+'"');
       finally
         UnlockResource(ResHandle);
         FreeResource(ResHandle);
@@ -360,5 +376,63 @@ begin
   Result := APPDOMAIN + Result;
 end;
 
+
+function TfrmUpdateCheck.GetTaskXmlFileContents: String;
+begin
+  Result := '<?xml version="1.0" encoding="UTF-16"?>' + sLineBreak +
+    '<Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">' + sLineBreak +
+    '  <RegistrationInfo>' + sLineBreak +
+    '    <Date>2022-12-24T12:39:17.5068755</Date>' + sLineBreak +
+    '    <Author>' + APPNAME + ' ' + MainForm.AppVersion + '</Author>' + sLineBreak +
+    '    <URI>\' + APPNAME + '_restart</URI>' + sLineBreak +
+    '  </RegistrationInfo>' + sLineBreak +
+    '  <Triggers>' + sLineBreak +
+    '    <TimeTrigger>' + sLineBreak +
+    '      <StartBoundary>2022-12-24T12:42:36</StartBoundary>' + sLineBreak +
+    '      <Enabled>true</Enabled>' + sLineBreak +
+    '    </TimeTrigger>' + sLineBreak +
+    '  </Triggers>' + sLineBreak +
+    '  <Principals>' + sLineBreak +
+    '    <Principal id="Author">' + sLineBreak +
+    // Note: no <UserId> with the current users SID
+    '      <LogonType>InteractiveToken</LogonType>' + sLineBreak +
+    '      <RunLevel>LeastPrivilege</RunLevel>' + sLineBreak +
+    '    </Principal>' + sLineBreak +
+    '  </Principals>' + sLineBreak +
+    '  <Settings>' + sLineBreak +
+    '    <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>' + sLineBreak +
+    '    <DisallowStartIfOnBatteries>true</DisallowStartIfOnBatteries>' + sLineBreak +
+    '    <StopIfGoingOnBatteries>true</StopIfGoingOnBatteries>' + sLineBreak +
+    '    <AllowHardTerminate>true</AllowHardTerminate>' + sLineBreak +
+    '    <StartWhenAvailable>false</StartWhenAvailable>' + sLineBreak +
+    '    <RunOnlyIfNetworkAvailable>false</RunOnlyIfNetworkAvailable>' + sLineBreak +
+    '    <IdleSettings>' + sLineBreak +
+    '      <StopOnIdleEnd>true</StopOnIdleEnd>' + sLineBreak +
+    '      <RestartOnIdle>false</RestartOnIdle>' + sLineBreak +
+    '    </IdleSettings>' + sLineBreak +
+    '    <AllowStartOnDemand>true</AllowStartOnDemand>' + sLineBreak +
+    '    <Enabled>true</Enabled>' + sLineBreak +
+    '    <Hidden>false</Hidden>' + sLineBreak +
+    '    <RunOnlyIfIdle>false</RunOnlyIfIdle>' + sLineBreak +
+    '    <WakeToRun>false</WakeToRun>' + sLineBreak +
+    '    <ExecutionTimeLimit>PT72H</ExecutionTimeLimit>' + sLineBreak +
+    '    <Priority>7</Priority>' + sLineBreak +
+    '  </Settings>' + sLineBreak +
+    '  <Actions Context="Author">' + sLineBreak +
+    '    <Exec>' + sLineBreak +
+    '      <Command>' + ParamStr(0) + '</Command>' + sLineBreak +
+    '      <Arguments>--runfrom=scheduler</Arguments>' + sLineBreak +
+    '    </Exec>' + sLineBreak +
+    '  </Actions>' + sLineBreak +
+    '</Task>';
+end;
+
+
+procedure DeleteRestartTask;
+begin
+  // TN = Task Name
+  // F = Force, suppress prompt
+  ShellExec('schtasks', '', '/Delete /TN "'+ValidFilename(ParamStr(0))+'" /F', True);
+end;
 
 end.

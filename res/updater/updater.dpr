@@ -9,7 +9,7 @@ program updater;
 {$R ..\icon.RES}
 
 uses
-  Windows, Messages, Tlhelp32, psapi;
+  Windows, Messages, Tlhelp32, psapi, Winapi.ShellAPI;
 
 var
   WClass: TWndClass;
@@ -77,6 +77,28 @@ begin
       break;
   Result := Copy(FileName, 1, i);
 end;
+
+
+{ Version of ValidFilename in main project, without usage of large IOutils SysUtils units
+function ValidFilename(Str: String): String;
+var
+  InvChar: Char;
+  i: Integer;
+  InvalidFileNameChars: TArray<Char>;
+begin
+  Result := Str;
+  InvalidFileNameChars := TArray<Char>.Create(
+    #0, #1, #2, #3, #4, #5, #6, #7, #8, #9, #10, #11, #12,
+    #13, #14, #15, #16, #17, #18, #19, #20, #21, #22, #23, #24,
+    #25, #26, #27, #28, #29, #30, #31,
+    '"', '*', '/', ':', '<', '>', '?', '\', '|');
+  for InvChar in InvalidFileNameChars do begin
+    for i := 1 to Length(Str) do begin
+      if Result[i] = InvChar then
+        Result[i] := '_';
+    end;
+  end;
+end; }
 
 
 function Trim(const S: string): string;
@@ -198,17 +220,17 @@ end;
 // Callback function for Timer
 procedure FormShow(wnd: HWND; uMsg: UINT; idEvent: UINT; dwTime: DWORD); stdcall;
 var
-  SUInfo: TStartupInfo;
-  ProcInfo: TProcessInformation;
+  RestartTaskName, RestartCmd, RestartParams: String;
 begin
   FormShowing := True;
   KillTimer(MainWin, 0);
   AppPath := Paramstr(1);
   DownloadPath := ParamStr(2);
+  RestartTaskName := ParamStr(3);
 
   // Paremeter syntax check
-  if (AppPath = '') or (DownloadPath = '') then begin
-    Status('Syntax: '+ExtractFilename(Paramstr(0))+' OldFile.exe NewFile.exe'+#13#10+
+  if (AppPath = '') or (DownloadPath = '') or (RestartTaskName = '') then begin
+    Status('Syntax: '+ExtractFilename(Paramstr(0))+' OldFile.exe NewFile.exe RestartTaskName'+#13#10+
       'Please don''t execute this file directly.', True);
   end;
   if (not FileExists(AppPath)) or (not FileExists(DownloadPath)) then
@@ -237,23 +259,10 @@ begin
     Status('Failed to copy file "'+DownloadPath+'" to "'+AppPath+'"', True)
   else begin
     DeleteFile(PChar(DownloadPath));
-    Status('Success. Restarting '+AppName+' now ...');
-    FillChar(SUInfo, SizeOf(SUInfo), #0);
-    SUInfo.cb := SizeOf(SUInfo);
-    SUInfo.dwFlags := STARTF_USESHOWWINDOW;
-    SUInfo.wShowWindow := SW_SHOWNORMAL;
-    CreateProcess(
-      nil,
-      PChar(AppPath),
-      nil,
-      nil,
-      False,
-      CREATE_NEW_CONSOLE or NORMAL_PRIORITY_CLASS,
-      nil,
-      PChar(ExtractFilePath(AppPath)),
-      SUInfo,
-      ProcInfo
-      );
+    Status('Success. Restarting '+AppName+' through task "'+RestartTaskName+'" now ...');
+    RestartCmd := 'schtasks';
+    RestartParams := '/Run /TN ' + RestartTaskName;
+    ShellExecute(0, 'open', PChar(RestartCmd), PChar(RestartParams), '', SW_HIDE);
   end;
   PostQuitMessage(0);
 end;

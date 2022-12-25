@@ -2170,7 +2170,7 @@ var
   LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
-  LastActiveSession, Environment: String;
+  LastActiveSession, Environment, RunFrom: String;
   frm : TfrmUpdateCheck;
   StatsCall: THttpDownload;
   SessionPaths: TStringlist;
@@ -2247,7 +2247,14 @@ begin
   end;
 
   ConnectionParams := nil;
-  ParseCommandLine(Windows.GetCommandLine, ConnectionParams, FileNames);
+  RunFrom := '';
+  ParseCommandLine(Windows.GetCommandLine, ConnectionParams, FileNames, RunFrom);
+
+  // Delete scheduled task from previous
+  if RunFrom = 'scheduler' then begin
+    DeleteRestartTask;
+  end;
+
   if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
     try
@@ -13160,12 +13167,13 @@ var
   Tab: TQueryTab;
   ConnectionParams: TConnectionParameters;
   FileNames: TStringList;
+  RunFrom: String;
 begin
   // Probably a second instance is posting its command line parameters here
   if (Msg.CopyDataStruct.dwData = SecondInstMsgId) and (SecondInstMsgId <> 0) then begin
     LogSQL(f_('Preventing second application instance - disabled in %s > %s > %s.', [_('Tools'), _('Preferences'), _('General')]), lcInfo);
     ConnectionParams := nil;
-    ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames);
+    ParseCommandLine(ParamBlobToStr(Msg.CopyDataStruct.lpData), ConnectionParams, FileNames, RunFrom);
     if not RunQueryFiles(FileNames, nil, False) then begin
       for i:=0 to FileNames.Count-1 do begin
         Tab := GetOrCreateEmptyQueryTab(True);
