@@ -3,8 +3,8 @@ unit event_editor;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, SynEdit, SynMemo, SynRegExpr, ComCtrls, ExtCtrls, WideStrUtils,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
+  Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo, SynRegExpr, Vcl.ComCtrls, Vcl.ExtCtrls, System.WideStrUtils,
   apphelpers, dbconnection, dbstructures, gnugettext;
 
 type

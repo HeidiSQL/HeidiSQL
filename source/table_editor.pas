@@ -3,10 +3,10 @@ unit table_editor;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees, VirtualTrees.Types, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, Clipbrd, Math, System.UITypes, System.Generics.Collections,
-  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, StrUtils, extra_controls;
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, VirtualTrees.Types, SynRegExpr, Winapi.ActiveX, Vcl.ExtCtrls, SynEdit,
+  SynMemo, Vcl.Menus, Vcl.Clipbrd, System.Math, System.UITypes, System.Generics.Collections,
+  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, System.StrUtils, extra_controls;
 
 type
   TFrame = TDBObjectEditor;

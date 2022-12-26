@@ -3,9 +3,9 @@ unit dbconnection;
 interface
 
 uses
-  Classes, SysUtils, Windows, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  AnsiStrings, Controls, Forms, System.IOUtils, System.IniFiles,
+  System.Classes, System.SysUtils, Winapi.Windows, Generics.Collections, Generics.Defaults,
+  System.DateUtils, System.Types, System.Math, Vcl.Dialogs, Data.Win.ADODB, Data.DB, Data.DBCommon, System.Win.ComObj, Vcl.Graphics, Vcl.ExtCtrls, System.StrUtils,
+  System.AnsiStrings, Vcl.Controls, Vcl.Forms, System.IOUtils, System.IniFiles, System.Variants,
   SynRegExpr, gnugettext, generic_types,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
@@ -1284,14 +1284,14 @@ var
   PText: PAnsiChar;
 begin
   Result := '';
-  PText := AnsiStrings.AnsiStrAlloc(cMaxLength);
+  PText := AnsiStrAlloc(cMaxLength);
   while Text <> '' do begin
-    AnsiStrings.StrPCopy(PText, copy(Text, 1, cMaxLength-1));
+    System.AnsiStrings.StrPCopy(PText, copy(Text, 1, cMaxLength-1));
     OemToAnsi(PText, PText);
-    Result := Result + AnsiStrings.StrPas(PText);
+    Result := Result + System.AnsiStrings.StrPas(PText);
     Delete(Text, 1, cMaxLength-1);
   end;
-  AnsiStrings.StrDispose(PText);
+  System.AnsiStrings.StrDispose(PText);
 end;
 
 
@@ -4323,7 +4323,7 @@ begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then // We return the application process id, as there is no connection pid in SQLite
-      FThreadID := Windows.GetCurrentProcessId;
+      FThreadID := GetCurrentProcessId;
   end;
   Result := FThreadID;
 end;

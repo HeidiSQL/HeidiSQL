@@ -3,7 +3,7 @@ unit data_sorting;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Buttons,
   Vcl.Graphics, apphelpers, gnugettext, extra_controls;
 
 

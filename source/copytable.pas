@@ -4,8 +4,8 @@ unit copytable;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, VirtualTrees, SynEdit, SynMemo, Menus, gnugettext;
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, extra_controls,
+  dbconnection, dbstructures, dbstructures.mysql, VirtualTrees, SynEdit, SynMemo, Vcl.Menus, gnugettext;
 
 type
   TCopyTableForm = class(TExtForm)

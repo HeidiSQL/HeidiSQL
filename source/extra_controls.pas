@@ -3,9 +3,9 @@ unit extra_controls;
 interface
 
 uses
-  Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
+  System.Classes, System.SysUtils, Vcl.Forms, Winapi.Windows, Winapi.Messages, System.Types, Vcl.StdCtrls, Vcl.Clipbrd,
   SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
-  ShLwApi, Vcl.ExtCtrls, VirtualTrees, VirtualTrees.Types, SynRegExpr, Vcl.Controls, Winapi.ShlObj;
+  Winapi.ShLwApi, Vcl.ExtCtrls, VirtualTrees, VirtualTrees.Types, SynRegExpr, Vcl.Controls, Winapi.ShlObj;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar

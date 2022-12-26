@@ -5,10 +5,10 @@ unit grideditlinks;
 interface
 
 uses
-  Windows, Forms, Graphics, Messages, VirtualTrees, VirtualTrees.Types, ComCtrls, SysUtils, Classes,
-  StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
+  Winapi.Windows, Vcl.Forms, Vcl.Graphics, Winapi.Messages, VirtualTrees, VirtualTrees.Types, Vcl.ComCtrls, System.SysUtils, System.Classes,
+  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.CheckLst, Vcl.Controls, System.Types, Vcl.Dialogs, Vcl.Menus, Vcl.Mask, System.DateUtils, System.Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, gnugettext,
-  StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
+  System.StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control

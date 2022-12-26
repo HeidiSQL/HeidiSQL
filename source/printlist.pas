@@ -9,7 +9,7 @@ unit printlist;
 interface
 
 uses
-  Windows, Classes, Controls, Forms, Dialogs, StdCtrls, Printers, VirtualTrees, gnugettext;
+  Winapi.Windows, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Printers, VirtualTrees, gnugettext;
 
 type
   TprintlistForm = class(TForm)

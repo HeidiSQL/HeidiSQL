@@ -3,11 +3,11 @@ unit texteditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
-  apphelpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
+  Winapi.Windows, System.Classes, Vcl.Graphics, Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, VirtualTrees,
+  Vcl.ComCtrls, Vcl.ToolWin, Vcl.Dialogs, System.SysUtils, Vcl.Menus, Vcl.ExtDlgs,
+  apphelpers, gnugettext, Vcl.ActnList, Vcl.StdActns, extra_controls, System.Actions,
   Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter, customize_highlighter,
-  JSON, Rest.Json, Xml.VerySimple,
+  System.JSON, Rest.Json, Xml.VerySimple,
 
   SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm,
   SynHighlighterBaan, SynHighlighterBat, SynHighlighterCAC, SynHighlighterCPM, SynHighlighterCS,

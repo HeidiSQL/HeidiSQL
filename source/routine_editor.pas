@@ -3,8 +3,8 @@ unit routine_editor;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, SynEdit, SynMemo, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees, VirtualTrees.EditLink, SynRegExpr, extra_controls,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, SynEdit, SynMemo, Vcl.StdCtrls,
+  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, VirtualTrees.EditLink, SynRegExpr, extra_controls,
   dbconnection, apphelpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
 
 type

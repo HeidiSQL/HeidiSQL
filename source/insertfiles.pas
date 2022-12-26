@@ -3,8 +3,8 @@ unit insertfiles;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
-  ShellApi, Math, Graphics, ComCtrls, ToolWin, extra_controls,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  Winapi.ShellApi, System.Math, Vcl.Graphics, Vcl.ComCtrls, Vcl.ToolWin, extra_controls,
   dbconnection, dbstructures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext, apphelpers;
 
 type

@@ -3,8 +3,8 @@ unit bineditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, gnugettext, extra_controls;
+  Winapi.Windows, System.Classes, Vcl.Graphics, Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, VirtualTrees,
+  Vcl.ComCtrls, Vcl.ToolWin, Vcl.Dialogs, System.SysUtils, gnugettext, extra_controls;
 
 {$I const.inc}
 

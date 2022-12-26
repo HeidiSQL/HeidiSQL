@@ -2,10 +2,10 @@ program heidisql;
 
 uses
   madExcept,
-  Forms,
-  SysUtils,
-  Dialogs,
-  Windows,
+  Vcl.Forms,
+  System.SysUtils,
+  Vcl.Dialogs,
+  Winapi.Windows,
   main in '..\..\source\main.pas' {MainForm},
   about in '..\..\source\about.pas' {AboutBox},
   connections in '..\..\source\connections.pas' {connform},

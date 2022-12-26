@@ -3,9 +3,9 @@ unit trigger_editor;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, SynEdit, SynMemo,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo,
   SynCompletionProposal, SynRegExpr,
-  dbconnection, dbstructures, dbstructures.mysql, apphelpers, gnugettext, ComCtrls, extra_controls;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, gnugettext, Vcl.ComCtrls, extra_controls;
 
 type
   TFrame = TDBObjectEditor;

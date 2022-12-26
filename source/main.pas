@@ -8,17 +8,17 @@
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, GraphUtil, Forms, Controls, Menus, StdCtrls, Dialogs, Buttons,
-  Messages, ExtCtrls, ComCtrls, StdActns, ActnList, ImgList, ToolWin, Clipbrd, SynMemo, StrUtils,
-  SynEdit, SynEditTypes, SynEditKeyCmds, DateUtils,
-  ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
-  SynHighlighterSQL, Tabs, SynUnicode, SynRegExpr, ExtActns, IOUtils, Types, Themes, ComObj,
-  CommCtrl, Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, Math, ExtDlgs, Registry, AppEvnts,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.GraphUtil, Vcl.Forms, Vcl.Controls, Vcl.Menus, Vcl.StdCtrls, Vcl.Dialogs, Vcl.Buttons,
+  Winapi.Messages, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.StdActns, Vcl.ActnList, Vcl.ImgList, Vcl.ToolWin, Vcl.Clipbrd, SynMemo, System.StrUtils,
+  SynEdit, SynEditTypes, SynEditKeyCmds, System.DateUtils,
+  Winapi.ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
+  SynHighlighterSQL, Vcl.Tabs, SynUnicode, SynRegExpr, Vcl.ExtActns, System.IOUtils, System.Types, Vcl.Themes, System.Win.ComObj,
+  Winapi.CommCtrl, System.Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, System.Math, Vcl.ExtDlgs, System.Win.Registry, Vcl.AppEvnts,
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
   VirtualTrees, VirtualTrees.Header, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
-  JumpList, System.Actions, System.UITypes, pngimage,
+  JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
   SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types;
@@ -1392,7 +1392,7 @@ implementation
 
 uses
   About, printlist, dbstructures, dbstructures.mysql, UpdateCheck,
-  column_selection, data_sorting, grideditlinks, ExportGrid, jpeg, GIFImg;
+  column_selection, data_sorting, grideditlinks, ExportGrid, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
 
 
 
@@ -2248,7 +2248,7 @@ begin
 
   ConnectionParams := nil;
   RunFrom := '';
-  ParseCommandLine(Windows.GetCommandLine, ConnectionParams, FileNames, RunFrom);
+  ParseCommandLine(GetCommandLine, ConnectionParams, FileNames, RunFrom);
 
   // Delete scheduled task from previous
   if RunFrom = 'scheduler' then begin
@@ -2424,7 +2424,7 @@ begin
       ErrorDialog(_('Storing tab setup failed'),
         'Tabs won''t be stored in this session.' + CRLF + CRLF +
         E.Message + CRLF + CRLF +
-        SysErrorMessage(Windows.GetLastError)
+        SysErrorMessage(GetLastError)
         );
     end;
   end;
@@ -2553,7 +2553,7 @@ begin
       ErrorDialog(_('Restoring tab setup failed'),
         'Tabs won''t be stored in this session.' + CRLF + CRLF +
         E.Message + CRLF + CRLF +
-        SysErrorMessage(Windows.GetLastError)
+        SysErrorMessage(GetLastError)
         );
     end;
   end;
