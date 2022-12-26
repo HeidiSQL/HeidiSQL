@@ -3290,7 +3290,7 @@ begin
 
   SetLength (a, bufsize);
   SetLength (b, bufsize);
-  str.Read(a[1],bufsize);
+  str.ReadBuffer(a[1],bufsize);
 
   while true do begin
     rd:=str.Read(b[1],bufsize);
@@ -3307,10 +3307,10 @@ begin
     a:=b;
     offset:=offset+bufsize;
   end;
-{$IFNDEF VER340} // Delphi 10.4 Sydney / BDS 21
-  // this causes a hint in Deohi 10.4
+{$IF CompilerVersion<34}
+  // this causes a hint in Delphi 10.4 and newer
   Result:=0;
-{$ENDIF}
+{$IFEND}
 end;
 
 procedure TFileLocator.Analyze;
