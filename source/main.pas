@@ -7409,6 +7409,7 @@ var
   //OldSelStart, OldSelEnd: Integer;
   LineWithToken: String;
   TableIndex, ProcIndex: Integer;
+  OldOnChange: TNotifyEvent;
 const
   WordChars = ['A'..'Z', 'a'..'z', '_'];
   IgnoreChars = [#8]; // Backspace, and probably more which should not trigger uppercase
@@ -7451,7 +7452,9 @@ begin
     //OldSelEnd := Editor.SelEnd;
 
     EndOfTokenRowCol := Editor.WordEndEx(StartOfTokenRowCol);
+    OldOnChange := Editor.OnChange;
     Editor.InsertBlock(StartOfTokenRowCol, EndOfTokenRowCol, PWideChar(Replacement), True);
+    Editor.OnChange := OldOnChange;
 
     Editor.CaretXY := OldCaretXY;
     //Editor.SelStart := OldSelStart; // breaks at least some undo steps
