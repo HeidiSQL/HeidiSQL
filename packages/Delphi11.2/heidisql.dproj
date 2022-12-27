@@ -74,6 +74,7 @@
         <DCC_F>false</DCC_F>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <SanitizedProjectName>heidisql</SanitizedProjectName>
+        <DCC_Namespace>Vcl;System;Winapi;System.Win;Data;$(DCC_Namespace)</DCC_Namespace>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
         <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
