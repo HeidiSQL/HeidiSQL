@@ -7453,6 +7453,7 @@ begin
 
     EndOfTokenRowCol := Editor.WordEndEx(StartOfTokenRowCol);
     OldOnChange := Editor.OnChange;
+    Editor.OnChange := nil;
     Editor.InsertBlock(StartOfTokenRowCol, EndOfTokenRowCol, PWideChar(Replacement), True);
     Editor.OnChange := OldOnChange;
 
