@@ -3,7 +3,7 @@ unit dbconnection;
 interface
 
 uses
-  System.Classes, System.SysUtils, Winapi.Windows, Generics.Collections, Generics.Defaults,
+  System.Classes, System.SysUtils, Winapi.Windows, System.Generics.Collections, System.Generics.Defaults,
   System.DateUtils, System.Types, System.Math, Vcl.Dialogs, Data.Win.ADODB, Data.DB, Data.DBCommon, System.Win.ComObj, Vcl.Graphics, Vcl.ExtCtrls, System.StrUtils,
   System.AnsiStrings, Vcl.Controls, Vcl.Forms, System.IOUtils, System.IniFiles, System.Variants,
   SynRegExpr, gnugettext, generic_types,

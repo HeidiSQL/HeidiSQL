@@ -10,7 +10,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
-  VirtualTrees, Vcl.Menus, Vcl.Graphics, Generics.Collections, Winapi.ActiveX, extra_controls, Winapi.Messages,
+  VirtualTrees, Vcl.Menus, Vcl.Graphics, System.Generics.Collections, Winapi.ActiveX, extra_controls, Winapi.Messages,
   dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, Data.Win.ADODB, System.StrUtils,
   System.Math, System.Actions, System.IOUtils, Vcl.ActnList, Vcl.StdActns;
 

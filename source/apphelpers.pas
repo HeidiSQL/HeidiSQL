@@ -11,7 +11,7 @@ interface
 uses
   System.Classes, System.SysUtils, Vcl.Graphics, Vcl.GraphUtil, Vcl.ClipBrd, Vcl.Dialogs, Vcl.Forms, Vcl.Controls, Winapi.ShellApi,
   Winapi.Windows, Winapi.ShlObj, Winapi.ActiveX, VirtualTrees, VirtualTrees.Types, SynRegExpr, Winapi.Messages, System.Math,
-  System.Win.Registry, System.DateUtils, Generics.Collections, System.Contnrs, System.StrUtils, System.AnsiStrings, Winapi.TlHelp32, System.Types,
+  System.Win.Registry, System.DateUtils, System.Generics.Collections, System.Contnrs, System.StrUtils, System.AnsiStrings, Winapi.TlHelp32, System.Types,
   dbconnection, dbstructures, dbstructures.mysql, SynMemo, Vcl.Menus, Winapi.WinInet, gnugettext, Vcl.Themes,
   System.Character, Vcl.ImgList, System.UITypes, Vcl.ActnList, Winapi.WinSock, System.IOUtils, Vcl.StdCtrls, Vcl.ComCtrls,
   Winapi.CommCtrl, Winapi.KnownFolders, SynUnicode;

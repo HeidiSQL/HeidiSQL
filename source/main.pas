@@ -13,7 +13,7 @@ uses
   SynEdit, SynEditTypes, SynEditKeyCmds, System.DateUtils,
   Winapi.ShlObj, SynEditMiscClasses, SynEditSearch, SynEditRegexSearch, SynCompletionProposal, SynEditHighlighter,
   SynHighlighterSQL, Vcl.Tabs, SynUnicode, SynRegExpr, Vcl.ExtActns, System.IOUtils, System.Types, Vcl.Themes, System.Win.ComObj,
-  Winapi.CommCtrl, System.Contnrs, Generics.Collections, Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, System.Math, Vcl.ExtDlgs, System.Win.Registry, Vcl.AppEvnts,
+  Winapi.CommCtrl, System.Contnrs, System.Generics.Collections, System.Generics.Defaults, SynEditExport, SynExportHTML, SynExportRTF, System.Math, Vcl.ExtDlgs, System.Win.Registry, Vcl.AppEvnts,
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
