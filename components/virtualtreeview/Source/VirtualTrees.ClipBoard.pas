@@ -32,8 +32,7 @@ uses
   Winapi.Windows,
   Winapi.ActiveX,
   System.Classes,
-  VirtualTrees,
-  VirtualTrees.Types;
+  VirtualTrees;
 
 type
   TClipboardFormatEntry = record
@@ -98,16 +97,6 @@ type
     class function FindFormat(const FormatString: string; var Fmt: Word): TVirtualTreeClass; overload;
     class function FindFormat(Fmt: Word; var Description: string): TVirtualTreeClass; overload;
   end;
-
-var
-  // Clipboard format IDs used in OLE drag'n drop and clipboard transfers.
-  CF_VIRTUALTREE,
-  CF_VTREFERENCE,
-  CF_VRTF,
-  CF_VRTFNOOBJS,   // Unfortunately CF_RTF* is already defined as being
-                   // registration strings so I have to use different identifiers.
-  CF_HTML,
-  CF_CSV: Word;
 
 
 implementation

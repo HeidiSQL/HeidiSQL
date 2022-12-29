@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, SynEdit, SynMemo, Vcl.StdCtrls,
-  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, VirtualTrees.EditLink, SynRegExpr, extra_controls,
+  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, SynRegExpr, extra_controls,
   dbconnection, apphelpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
 
 type

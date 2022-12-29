@@ -118,31 +118,13 @@ var
   VTStyleServicesFunc: TVTStyleServicesFunc = nil;
 
 
-/// Wrapper function for styles services that handles differences between RAD Studio 10.4 and older versions,
-/// as well as the case if these controls are used inside the IDE.
-function VTStyleServices(AControl: TControl = nil): TCustomStyleServices;
-
-
 implementation
 
 uses
   System.SysUtils,
   System.Math,
   System.Types,
-  VirtualTrees,
-  VirtualTrees.Header,
-  VirtualTrees.DrawTree;
-
-function VTStyleServices(AControl: TControl = nil): TCustomStyleServices;
-begin
-  if Assigned(VTStyleServicesFunc) then
-    Result := VTStyleServicesFunc(AControl)
-  else
-    Result := Vcl.Themes.StyleServices{$if CompilerVersion >= 34}(AControl){$ifend};
-end;
-
-//----------------------------------------------------------------------------------------------------------------------
-
+  VirtualTrees;
 
 type
   TBaseVirtualTreeCracker = class(TBaseVirtualTree)
@@ -516,10 +498,7 @@ end;
 procedure TVclStyleScrollBarsHook.WMHScroll(var Msg: TWMHScroll);
 begin
   CallDefaultProc(TMessage(Msg));
-  if not (Msg.ScrollCode in [SB_THUMBTRACK, SB_THUMBPOSITION]) then
-    UpdateScroll
-  else
-    PaintScroll;
+  PaintScroll;
   Handled := True;
 end;
 
@@ -532,7 +511,7 @@ end;
 procedure TVclStyleScrollBarsHook.WMKeyDown(var Msg: TMessage);
 begin
   CallDefaultProc(TMessage(Msg));
-  UpdateScroll;
+  PaintScroll;
   Handled := True;
 end;
 
@@ -948,10 +927,7 @@ end;
 procedure TVclStyleScrollBarsHook.WMVScroll(var Msg: TWMVScroll);
 begin
   CallDefaultProc(TMessage(Msg));
-  if not (Msg.ScrollCode in [SB_THUMBTRACK, SB_THUMBPOSITION]) then
-    UpdateScroll
-  else
-    PaintScroll;
+  PaintScroll;
   Handled := True;
 end;
 
