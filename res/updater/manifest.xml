@@ -6,7 +6,7 @@
 		processorArchitecture="*"
 		name="HeidiSQL"
 		type="win32" />
-	<description>A lightweight, fast and flexible interface to MySQL</description>
+	<description>HeidiSQL build updater</description>
 	<trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
 		<security>
 			<requestedPrivileges>

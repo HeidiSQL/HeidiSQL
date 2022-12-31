@@ -62,7 +62,7 @@ uses
 {$R ..\..\res\icon-question.RES}
 {$R ..\..\res\version.RES}
 {$R ..\..\res\manifest.RES}
-{$R ..\..\res\updater.RES}
+{$IFDEF CPUX64}{$R ..\..\res\updater.RES}{$ENDIF}
 {$R ..\..\res\styles.RES}
 
 var
