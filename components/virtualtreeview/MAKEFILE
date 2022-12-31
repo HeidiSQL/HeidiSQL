@@ -3,9 +3,6 @@ EMBARCADERO = $(PROGRAMFILES)\Embarcadero\RAD Studio
 STUDIO = $(PROGRAMFILES)\Embarcadero\Studio
 BDSCOMMONDIRMAIN = %PUBLIC%\Documents\Embarcadero\Studio
 # Default MS Build version
-!IF EXIST("$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe")
-BUILDEXE = "$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe"
-!ELSE 
 !IF EXIST("$(PROGRAMFILES)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe")
 BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe"
 !ELSE
@@ -13,7 +10,6 @@ BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Curr
 BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe"
 !ELSE
 BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\msbuild.exe"
-!ENDIF
 !ENDIF
 !ENDIF
 BUILD = $(BUILDEXE) /t:Rebuild
@@ -54,6 +50,7 @@ _release:
 #Download e.g. from: ftp://ftp.info-zip.org/pub/infozip/win32/
 	ZIP -9 -r .\VirtualTreeView.zip  INSTALL.txt Changes.txt Source Design Packages Demos Contributions Help\VirtualTreeview.chm -i *.pas -i *.dpk -i *.groupproj -i *.dproj -i *.cbproj -i *.hlp -i *.rc -i *.res -i *.cfg -i *.dpr -i *.dof -i *.bpr -i *.dfm -i *.cpp -i *.inc -i *.dcr -i *.chm -i *.png -i *.js -i *.txt -i *.bmp -i *.uni
 	ECHO Source code zip archive "VirtualTreeView.zip" created. 
+	ECHO !!! Please ensure that the const TVTVersion is correct or remove const!!!
 	ECHO !!! Please add version number to ZIP file name!!!
 	ECHO !!! Please create release at: https://github.com/Virtual-TreeView/Virtual-TreeView/releases
 	ECHO !!! Let JAM web-team upload the file to our server at https://www.jam-software.com/virtual-treeview

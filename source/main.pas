@@ -17,7 +17,7 @@ uses
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  VirtualTrees, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
+  VirtualTrees, VirtualTrees.Header, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,

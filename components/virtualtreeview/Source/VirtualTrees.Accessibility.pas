@@ -99,7 +99,8 @@ type
 implementation
 
 uses
-  System.SysUtils, Vcl.Forms, System.Variants, System.Math;
+  System.SysUtils, Vcl.Forms, System.Variants, System.Math,
+  VirtualTrees.Types;
 
 type
 

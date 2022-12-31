@@ -6,7 +6,7 @@
         <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
         <FrameworkType>VCL</FrameworkType>
         <MainSource>VirtualTreesR.dpk</MainSource>
-        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <Platform Condition="'$(Platform)'==''">Win64</Platform>
         <ProjectGuid>{B62F3689-96E1-47D5-9FB2-2A2718281FDB}</ProjectGuid>
         <ProjectVersion>19.5</ProjectVersion>
         <TargetedPlatforms>3</TargetedPlatforms>
@@ -64,17 +64,25 @@
         </DelphiCompile>
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="vclx.dcp"/>
-        <DCCReference Include="..\..\Source\VirtualTrees.pas"/>
-        <DCCReference Include="..\..\Source\VirtualTrees.HeaderPopup.pas"/>
-        <DCCReference Include="..\..\Source\VirtualTrees.AccessibilityFactory.pas"/>
         <DCCReference Include="..\..\Source\VirtualTrees.Accessibility.pas"/>
-        <DCCReference Include="..\..\Source\VirtualTrees.StyleHooks.pas"/>
-        <DCCReference Include="..\..\Source\VirtualTrees.Classes.pas"/>
-        <DCCReference Include="..\..\Source\VirtualTrees.WorkerThread.pas"/>
-        <DCCReference Include="..\..\Source\VirtualTrees.ClipBoard.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.AccessibilityFactory.pas"/>
         <DCCReference Include="..\..\Source\VirtualTrees.Actions.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Classes.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.ClipBoard.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Colors.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.DataObject.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.DragImage.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.DragnDrop.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.DrawTree.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.EditLink.pas"/>
         <DCCReference Include="..\..\Source\VirtualTrees.Export.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Header.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.HeaderPopup.pas"/>
+        <DCCReference Include="..\..\source\VirtualTrees.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.StyleHooks.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.Types.pas"/>
         <DCCReference Include="..\..\Source\VirtualTrees.Utils.pas"/>
+        <DCCReference Include="..\..\Source\VirtualTrees.WorkerThread.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -133,4 +141,5 @@
     </ProjectExtensions>
     <Import Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" Project="$(BDS)\Bin\CodeGear.Delphi.Targets"/>
     <Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
+    <Import Project="$(MSBuildProjectName).deployproj" Condition="Exists('$(MSBuildProjectName).deployproj')"/>
 </Project>
