@@ -17,6 +17,7 @@ unit DDetours;
 
 {define FIX_MADEXCEPT if you are using crash on buffer overrun/underrun feature from MadExcept }
 {.$DEFINE FIX_MADEXCEPT}
+{.$define DEVMODE}
 
 {$IFDEF FPC}
 {$MODE DELPHI}
@@ -591,7 +592,7 @@ begin
 {$IFDEF CPUX64}
   IsNxtInstData := ((PInst^.Disp.Flags and (dfUsed or dfRip) = (dfUsed or dfRip)) and (PInst^.Disp.Value = 0));
 {$ELSE !CPUX64}
-  IsNxtInstData := (PInst^.Disp.Value = UInt64(PInst^.NextInst));
+  IsNxtInstData := (PInst^.Disp.Value = Int64(PInst^.NextInst));
 {$ENDIF CPUX64}
   if IsNxtInstData then
   begin
@@ -1037,7 +1038,7 @@ begin
   GetMem(POpc, MAX_INST_LENGTH_N + 1);
   try
     // Opcsz := GetInstOpCodes(PInst, POpc);
-    Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 6);
+    Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 6);
     Relsz := GetInt64Size(Offset);
 {$IFDEF CPUX64}
     if Relsz = ops16bits then
@@ -1110,7 +1111,7 @@ begin
         case Relsz of
           ops16bits:
             begin
-              Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 5);
+              Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 5);
               PQ^ := opPrfOpSize;
               Inc(PQ);
               PWord(PQ)^ := LOOP_To_JccZ[PInst^.OpCode and 3];
@@ -1120,7 +1121,7 @@ begin
             end;
           ops32bits:
             begin
-              Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 6);
+              Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 6);
               PWord(PQ)^ := LOOP_To_JccZ[PInst^.OpCode and 3];
               Inc(PQ, 2);
               PInt32(PQ)^ := Int32(Offset);
@@ -1204,7 +1205,7 @@ begin
                 TEST CX,CX
                 JZ @Dst
               }
-              Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 5);
+              Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 5);
               PQ^ := opPrfOpSize;
               Inc(PQ);
               PQ^ := $0F;
@@ -1220,7 +1221,7 @@ begin
                 TEST ECX,ECX
                 JZ @Dst
               }
-              Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 6);
+              Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 6);
               PQ^ := $0F;
               Inc(PQ);
               PQ^ := $84; // JZ !
@@ -1261,7 +1262,7 @@ begin
       case Relsz of
         ops8bits:
           begin
-            Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 2);
+            Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 2);
             PInt8(PQ)^ := UInt8(NOpc);
             Inc(PQ);
             PInt8(PQ)^ := Int8(Offset);
@@ -1269,7 +1270,7 @@ begin
           end;
         ops16bits:
           begin
-            Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 5);
+            Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 5);
             PUInt32(PQ)^ := UInt32(NOpc);
             Inc(PQ, 3);
             PInt16(PQ)^ := Int16(Offset);
@@ -1277,7 +1278,7 @@ begin
           end;
         ops32bits:
           begin
-            Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(PQ) - 6);
+            Offset := Int64(Int64(PInst^.Branch.Target) - Int64(PQ) - 6);
             PUInt16(PQ)^ := UInt16(NOpc);
             Inc(PQ, 2);
             PInt32(PQ)^ := Int32(Offset);
@@ -1435,7 +1436,7 @@ var
   P: PByte;
 begin
   P := NewAddr;
-  Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(P) - 6);
+  Offset := Int64(Int64(PInst^.Branch.Target) - Int64(P) - 6);
   Relsz := GetInt64Size(Offset);
 {$IFDEF CPUX64}
   { Only 32-bits relative offset is supported on x64! }
@@ -1449,7 +1450,7 @@ begin
   case Relsz of
     ops16bits:
       begin
-        Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(P) - 4);
+        Offset := Int64(Int64(PInst^.Branch.Target) - Int64(P) - 4);
         P^ := opPrfOpSize;
         Inc(P);
         P^ := $E8;
@@ -1459,7 +1460,7 @@ begin
       end;
     ops32bits:
       begin
-        Offset := Int64(UInt64(PInst^.Branch.Target) - UInt64(P) - 5);
+        Offset := Int64(Int64(PInst^.Branch.Target) - Int64(P) - 5);
         P^ := $E8;
         Inc(P);
         PInt32(P)^ := Int32(Offset);
