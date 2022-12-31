@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-12-23 11:10+0100\n"
+"PO-Revision-Date: 2022-12-31 11:47+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -2968,6 +2968,10 @@ msgstr "Remember filters, sorting and column selection across sessions"
 #. Preferences > Data
 msgid "Show values in foreign key columns"
 msgstr "Show values in foreign key columns"
+
+#. Preferences checkbox
+msgid "Incremental search through typing"
+msgstr "Incremental search through typing"
 
 msgid "Connected table has too many rows. Foreign key drop-down is limited to %d items."
 msgstr "Connected table has too many rows. Foreign key drop-down is limited to %d items."
