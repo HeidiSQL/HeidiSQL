@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.FormStyleHooks.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -195,7 +195,7 @@ end;
 { TFormStyleHookRgn }
 
 procedure TFormStyleHookRgn.WMWindowPosChanging(var Message
-  : TWMWindowPosChanging);
+: TWMWindowPosChanging);
 var
   Changed: Boolean;
 

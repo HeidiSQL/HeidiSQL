@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.UxTheme.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -154,30 +154,30 @@ const
 
 type
   TDrawThemeBackground = function(hTheme: hTheme; hdc: hdc; iPartId, iStateId: Integer; const pRect: TRect; Foo: Pointer): HRESULT; stdcall;
-  TFuncDrawThemeBackground  =  function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; Foo: Pointer; Trampoline : TDrawThemeBackground; LThemeClass : string; hwnd : HWND): HRESULT; stdcall;
+  TFuncDrawThemeBackground  =  function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; Foo: Pointer; Trampoline: TDrawThemeBackground; LThemeClass: string; hwnd: HWND): HRESULT; stdcall;
 
 var
-  Trampoline_UxTheme_OpenThemeDataEx       : function(hwnd: HWND; pszClassList: LPCWSTR; dwFlags: DWORD): HTHEME; stdcall = nil;
-  Trampoline_UxTheme_OpenThemeData         : function(hwnd: HWND; pszClassList: LPCWSTR): HTHEME; stdcall =  nil;
+  Trampoline_UxTheme_OpenThemeDataEx: function(hwnd: HWND; pszClassList: LPCWSTR; dwFlags: DWORD): HTHEME; stdcall = nil;
+  Trampoline_UxTheme_OpenThemeData: function(hwnd: HWND; pszClassList: LPCWSTR): HTHEME; stdcall =  nil;
 {$IF CompilerVersion >= 30}
-  Trampoline_UxTheme_OpenThemeDataForDPI   : function(hwnd: HWND; pszClassList: LPCWSTR; dpi: UINT): HTHEME; stdcall =  nil;
+  Trampoline_UxTheme_OpenThemeDataForDPI: function(hwnd: HWND; pszClassList: LPCWSTR; dpi: UINT): HTHEME; stdcall =  nil;
 {$IFEND}
-  Trampoline_UxTheme_CloseThemeData        : function(hTheme: HTHEME): HRESULT; stdcall =  nil;
-  Trampoline_UxTheme_DrawThemeBackground   : function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; pClipRect: Pointer): HRESULT; stdcall =  nil;
-  Trampoline_UxTheme_DrawThemeBackgroundEx : function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; pOptions: Pointer): HResult; stdcall =  nil;
-  Trampoline_UxTheme_GetThemeColor         : function(hTheme: HTHEME; iPartId, iStateId, iPropId: Integer; var pColor: COLORREF): HRESULT; stdcall = nil;
-  Trampoline_UxTheme_GetThemeSysColor      : function(hTheme: HTHEME; iColorId: Integer): COLORREF; stdcall =  nil;
-  Trampoline_UxTheme_GetThemeSysColorBrush : function(hTheme: HTHEME; iColorId: Integer): HBRUSH; stdcall =  nil;
-  Trampoline_UxTheme_DrawThemeText         : function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer;  pszText: LPCWSTR; iCharCount: Integer; dwTextFlags, dwTextFlags2: DWORD; const pRect: TRect): HRESULT; stdcall = nil;
-  Trampoline_UxTheme_DrawThemeTextEx       : function(hTheme: HTHEME; hdc: HDC; iPartId: Integer; iStateId: Integer; pszText: LPCWSTR; cchText: Integer; dwTextFlags: DWORD; pRect: PRect; var pOptions: TDTTOpts): HResult; stdcall = nil;
-  Trampoline_UxTheme_DrawThemeEdge         : function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pDestRect: TRect; uEdge, uFlags: UINT; pContentRect: PRECT): HRESULT; stdcall = nil;
+  Trampoline_UxTheme_CloseThemeData: function(hTheme: HTHEME): HRESULT; stdcall =  nil;
+  Trampoline_UxTheme_DrawThemeBackground: function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; pClipRect: Pointer): HRESULT; stdcall =  nil;
+  Trampoline_UxTheme_DrawThemeBackgroundEx: function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pRect: TRect; pOptions: Pointer): HResult; stdcall =  nil;
+  Trampoline_UxTheme_GetThemeColor: function(hTheme: HTHEME; iPartId, iStateId, iPropId: Integer; var pColor: COLORREF): HRESULT; stdcall = nil;
+  Trampoline_UxTheme_GetThemeSysColor: function(hTheme: HTHEME; iColorId: Integer): COLORREF; stdcall =  nil;
+  Trampoline_UxTheme_GetThemeSysColorBrush: function(hTheme: HTHEME; iColorId: Integer): HBRUSH; stdcall =  nil;
+  Trampoline_UxTheme_DrawThemeText: function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer;  pszText: LPCWSTR; iCharCount: Integer; dwTextFlags, dwTextFlags2: DWORD; const pRect: TRect): HRESULT; stdcall = nil;
+  Trampoline_UxTheme_DrawThemeTextEx: function(hTheme: HTHEME; hdc: HDC; iPartId: Integer; iStateId: Integer; pszText: LPCWSTR; cchText: Integer; dwTextFlags: DWORD; pRect: PRect; var pOptions: TDTTOpts): HResult; stdcall = nil;
+  Trampoline_UxTheme_DrawThemeEdge: function(hTheme: HTHEME; hdc: HDC; iPartId, iStateId: Integer; const pDestRect: TRect; uEdge, uFlags: UINT; pContentRect: PRECT): HRESULT; stdcall = nil;
 
-  THThemesClasses  : TDictionary<HTHEME, string>;
-  THThemesHWND     : TDictionary<HTHEME, HWND>;
+  THThemesClasses: TDictionary<HTHEME, string>;
+  THThemesHWND: TDictionary<HTHEME, HWND>;
 
-  FuncsDrawThemeBackground  : TDictionary<string, TFuncDrawThemeBackground>;
+  FuncsDrawThemeBackground: TDictionary<string, TFuncDrawThemeBackground>;
 
-  VCLStylesLock    : TCriticalSection = nil;
+  VCLStylesLock: TCriticalSection = nil;
 
 { Helper methods }
 
@@ -530,7 +530,7 @@ end;
   Doesn't affect Compressed files font color (blue)
 }
 
-function Detour_UxTheme_GetThemeColor(hTheme: hTheme; iPartId, iStateId, iPropId: Integer; var pColor: COLORREF) : HRESULT; stdcall;
+function Detour_UxTheme_GetThemeColor(hTheme: hTheme; iPartId, iStateId, iPropId: Integer; var pColor: COLORREF): HRESULT; stdcall;
 var
   LThemeClass: string;
 begin
@@ -677,8 +677,8 @@ begin
       case iPartId of
         9:
           case iStateId  of
-            1 :  pColor := ColorToRGB(StyleServices.GetSystemColor(clWindow));
-            2 :  pColor := ColorToRGB(StyleServices.GetSystemColor(clHighlight));
+            1:  pColor := ColorToRGB(StyleServices.GetSystemColor(clWindow));
+            2:  pColor := ColorToRGB(StyleServices.GetSystemColor(clHighlight));
           end;
       end;
 
@@ -699,7 +699,7 @@ begin
       case iPartId of
         13:
           case iStateId  of
-            0 : pColor := ColorToRGB(StyleServices.GetSystemColor(clBtnFace));
+            0: pColor := ColorToRGB(StyleServices.GetSystemColor(clBtnFace));
           end;
       end;
 
@@ -721,7 +721,7 @@ begin
       case iPartId of
         11:
           case iStateId  of
-            0 : pColor := ColorToRGB(StyleServices.GetStyleColor(scPanel));
+            0: pColor := ColorToRGB(StyleServices.GetStyleColor(scPanel));
           end;
       end;
 
@@ -1181,12 +1181,12 @@ begin
                   LDetails := StyleServices.GetElementDetails(tmPopupItemNormal);
                 MPI_HOT:
                   LDetails := StyleServices.GetElementDetails(tmPopupItemHot);
-                // MPI_PUSHED         : LDetails := StyleServices.GetElementDetails(tmMenuBarItemPushed);
+                // MPI_PUSHED: LDetails := StyleServices.GetElementDetails(tmMenuBarItemPushed);
                 MPI_DISABLED:
                   LDetails := StyleServices.GetElementDetails(tmPopupItemDisabled);
                 MPI_DISABLEDHOT:
                   LDetails := StyleServices.GetElementDetails(tmPopupItemDisabledHot);
-                // MPI_DISABLEDPUSHED : LDetails := StyleServices.GetElementDetails(tmMenuBarItemDisabledPushed);
+                // MPI_DISABLEDPUSHED: LDetails := StyleServices.GetElementDetails(tmMenuBarItemDisabledPushed);
               else
                 LDetails := StyleServices.GetElementDetails(tmPopupItemNormal);
               end;
@@ -1280,11 +1280,11 @@ begin
         MC_TRAILINGGRIDCELLUPPER, MC_GRIDCELLUPPER, MC_GRIDCELL:
           begin
             // case iStateId of
-            // MCGCB_SELECTED           :   LDetails := StyleServices.GetElementDetails(tgCellSelected);
-            // MCGCB_HOT                :   LDetails := StyleServices.GetElementDetails(tgFixedCellHot);
-            // MCGCB_SELECTEDHOT        :   LDetails := StyleServices.GetElementDetails(tgCellSelected);
-            // MCGCB_SELECTEDNOTFOCUSED :   LDetails := StyleServices.GetElementDetails(tgCellSelected);
-            // MCGCB_TODAY              :   LDetails := StyleServices.GetElementDetails(tgFixedCellHot);
+            // MCGCB_SELECTED:   LDetails := StyleServices.GetElementDetails(tgCellSelected);
+            // MCGCB_HOT:   LDetails := StyleServices.GetElementDetails(tgFixedCellHot);
+            // MCGCB_SELECTEDHOT:   LDetails := StyleServices.GetElementDetails(tgCellSelected);
+            // MCGCB_SELECTEDNOTFOCUSED:   LDetails := StyleServices.GetElementDetails(tgCellSelected);
+            // MCGCB_TODAY:   LDetails := StyleServices.GetElementDetails(tgFixedCellHot);
             // else
             // LDetails := StyleServices.GetElementDetails(tgCellNormal);
             // end;
@@ -2169,8 +2169,8 @@ begin
     HP_HEADERSORTARROW:
       begin
         // case iStateId of
-        // HSAS_SORTEDUP    : LDetails := StyleServices.GetElementDetails(thHeaderSortArrowSortedUp);
-        // HSAS_SORTEDDOWN  : LDetails := StyleServices.GetElementDetails(thHeaderSortArrowSortedDown);
+        // HSAS_SORTEDUP: LDetails := StyleServices.GetElementDetails(thHeaderSortArrowSortedUp);
+        // HSAS_SORTEDDOWN: LDetails := StyleServices.GetElementDetails(thHeaderSortArrowSortedDown);
         // end;
 
         LColor := GetStyleHighLightColor();
@@ -3585,7 +3585,7 @@ begin
       LDetails := StyleServices.GetElementDetails(tpChunkVert); // GetElementDetails(tpFillVert); not defined
 
     // Use the Native PP_PULSEOVERLAY part to get better results.
-    // PP_PULSEOVERLAY : if SameText(THThemesClasses.Items[hTheme], VSCLASS_PROGRESS) then
+    // PP_PULSEOVERLAY: if SameText(THThemesClasses.Items[hTheme], VSCLASS_PROGRESS) then
     // LDetails := StyleServices.GetElementDetails(tpChunk)//GetElementDetails(tpPulseOverlay);
     // else
     // LDetails := StyleServices.GetElementDetails(tpBar);
@@ -3596,8 +3596,8 @@ begin
       else
         LDetails := StyleServices.GetElementDetails(tpChunk);
 
-    // PP_PULSEOVERLAYVERT :   LDetails := StyleServices.GetElementDetails(tpPulseOverlayVert);
-    // PP_MOVEOVERLAYVERT  :   LDetails := StyleServices.GetElementDetails(tpMoveOverlayVert);
+    // PP_PULSEOVERLAYVERT:   LDetails := StyleServices.GetElementDetails(tpPulseOverlayVert);
+    // PP_MOVEOVERLAYVERT:   LDetails := StyleServices.GetElementDetails(tpMoveOverlayVert);
 
     PP_TRANSPARENTBAR:
       LDetails := StyleServices.GetElementDetails(tpBar); // GetElementDetails(tpTransparentBarNormal); not defined

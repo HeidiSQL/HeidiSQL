@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.Utils.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2016 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //**************************************************************************************************
@@ -36,27 +36,27 @@ type
 
   TVclStylesUtils = class
   private
-     FClone     : Boolean;
-     FStream    : TStream;
-     FStyleExt  : TCustomStyleExt;
-     FElements  : TVCLStylesElements;
+     FClone: Boolean;
+     FStream: TStream;
+     FStyleExt: TCustomStyleExt;
+     FElements: TVCLStylesElements;
      //FSourceInfo: TSourceInfo;
   public
-     procedure SetFilters(Filters : TObjectList<TBitmapFilter>);
+     procedure SetFilters(Filters: TObjectList<TBitmapFilter>);
      procedure ApplyChanges;
      procedure SaveToFile(const FileName: string);
      //property  SourceInfo: TSourceInfo read FSourceInfo;
-     property  StyleExt  :  TCustomStyleExt read FStyleExt;
-     property  Elements  : TVCLStylesElements read FElements write FElements;
-     constructor Create(const  StyleName : string;Clone:Boolean=False);
+     property  StyleExt:  TCustomStyleExt read FStyleExt;
+     property  Elements: TVCLStylesElements read FElements write FElements;
+     constructor Create(const  StyleName: string;Clone:Boolean=False);
      destructor Destroy;override;
-     class procedure SaveSettings(const FileName:String;Elements :TVCLStylesElements; FilterType : TVCLStylesFilter;Filters : TObjectList<TBitmapFilter>);
-     class procedure LoadSettings(const FileName:String;var Elements :TVCLStylesElements; var FilterType : TVCLStylesFilter;Filters : TObjectList<TBitmapFilter>);
+     class procedure SaveSettings(const FileName:String;Elements :TVCLStylesElements; FilterType: TVCLStylesFilter;Filters: TObjectList<TBitmapFilter>);
+     class procedure LoadSettings(const FileName:String;var Elements :TVCLStylesElements; var FilterType: TVCLStylesFilter;Filters: TObjectList<TBitmapFilter>);
      //class procedure LoadAndApplySettings(const FileName:String);
   end;
 
 const
-  VCLStylesFilterNames : Array[TVCLStylesFilter] of string = ('HSL','RGB','Blend','Texture Blend');
+  VCLStylesFilterNames: Array[TVCLStylesFilter] of string = ('HSL','RGB','Blend','Texture Blend');
 
 implementation
 
@@ -70,7 +70,7 @@ uses
 
 
 { TVclStylesUtils }
-constructor TVclStylesUtils.Create(const  StyleName : string;Clone:Boolean=False);
+constructor TVclStylesUtils.Create(const  StyleName: string;Clone:Boolean=False);
 var
   FSourceInfo: TSourceInfo;
 begin
@@ -117,11 +117,11 @@ begin
   end;
 end;
 
-class procedure TVclStylesUtils.SaveSettings(const FileName:String;Elements :TVCLStylesElements; FilterType : TVCLStylesFilter;Filters : TObjectList<TBitmapFilter>);
+class procedure TVclStylesUtils.SaveSettings(const FileName:String;Elements :TVCLStylesElements; FilterType: TVCLStylesFilter;Filters: TObjectList<TBitmapFilter>);
 var
-  Doc       : IXMLDocument;
-  RootNode, ChildNode, oNode : IXMLNode;
-  LFilter   : TBitmapFilter;
+  Doc: IXMLDocument;
+  RootNode, ChildNode, oNode: IXMLNode;
+  LFilter: TBitmapFilter;
 begin
   Doc   :=TXMLDocument.Create(nil);
   try
@@ -149,16 +149,16 @@ begin
   end;
 end;
 
-class procedure TVclStylesUtils.LoadSettings(const FileName:String;var Elements :TVCLStylesElements; var FilterType : TVCLStylesFilter;Filters : TObjectList<TBitmapFilter>);
+class procedure TVclStylesUtils.LoadSettings(const FileName:String;var Elements :TVCLStylesElements; var FilterType: TVCLStylesFilter;Filters: TObjectList<TBitmapFilter>);
 var
-  Doc       : IXMLDocument;
-  RootNode, ChildNode, oNode : IXMLNode;
+  Doc: IXMLDocument;
+  RootNode, ChildNode, oNode: IXMLNode;
   LFilterType  :TVCLStylesFilter;
-  i : Integer;
-  LClassName : string;
-  Ctx : TRttiContext;
-  RttiInstanceType : TRttiInstanceType;
-  Value : TValue;
+  i: Integer;
+  LClassName: string;
+  Ctx: TRttiContext;
+  RttiInstanceType: TRttiInstanceType;
+  Value: TValue;
 begin
   Doc   :=LoadXMLDocument(FileName);
   try
@@ -215,14 +215,14 @@ end;
 
 procedure TVclStylesUtils.SetFilters(Filters: TObjectList<TBitmapFilter>);
 var
-  LBitmap   : TBitmap;
+  LBitmap: TBitmap;
   BitmapList: TObjectList<TBitmap>;
-  Index     : Integer;
-  Filter    : TBitmapFilter;
-  Element   : TIdentMapEntry;
-  LColor    : TColor;
+  Index: Integer;
+  Filter: TBitmapFilter;
+  Element: TIdentMapEntry;
+  LColor: TColor;
   StyleColor: TStyleColor;
-  StyleFont : TStyleFont;
+  StyleFont: TStyleFont;
 begin
    if vseBitmaps in FElements then
    begin

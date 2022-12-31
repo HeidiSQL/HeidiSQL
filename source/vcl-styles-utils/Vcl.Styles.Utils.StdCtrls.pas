@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -2021,8 +2021,8 @@ begin
     if (FDefListBoxProc <> nil) then
       Result := CallWindowProc(FDefListBoxProc, FListHandle, Msg.Msg, Msg.wParam, Msg.lParam);
   except
-    on e : exception do
-      OutputDebugString(PWideChar('CallDefaultListBoxProc error : ' + e.message + chr(0)));
+    on e: exception do
+      OutputDebugString(PWideChar('CallDefaultListBoxProc error: ' + e.message + chr(0)));
   end;
 end;
 
@@ -2586,7 +2586,7 @@ begin
 end;
 
 function TSysCheckBoxStyleHook.GetDrawState(State: TSysCheckBoxState)
-  : TThemedButton;
+: TThemedButton;
 begin
   Result := tbButtonDontCare;
 
@@ -2815,7 +2815,7 @@ begin
 end;
 
 function TSysRadioButtonStyleHook.GetDrawState(State: TSysCheckBoxState)
-  : TThemedButton;
+: TThemedButton;
 begin
   Result := tbButtonDontCare;
 

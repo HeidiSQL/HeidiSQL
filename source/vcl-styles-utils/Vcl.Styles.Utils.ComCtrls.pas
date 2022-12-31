@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //************************************************************************************************
@@ -276,7 +276,7 @@ type
   TSysProgressBarStyleHook = class(TSysStyleHook)
   strict private
     FStep: Integer;
-    // FLastPos : Integer;
+    // FLastPos: Integer;
     FOrientation: TProgressBarOrientation;
     FTimer: TTimer;
     procedure TimerAction(Sender: TObject);
@@ -2674,7 +2674,7 @@ const
 var
   LDetails: TThemedElementDetails;
   LRect: TRect;
-  s : string;
+  s: string;
 begin
   LRect := SysControl.ClientRect;
   if GetBkMode(Canvas.Handle) = TRANSPARENT then

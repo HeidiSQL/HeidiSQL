@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.DateTimePickers
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //**************************************************************************************************
@@ -66,8 +66,8 @@ type
     procedure SetMouseOnButton(const Value: Boolean);
  public
     function GetButtonRect_: TRect;
-    property _FDroppedDown : Boolean read GetDroppedDown Write SetDroppedDown;
-    property _FMouseOnButton : Boolean read GetMouseOnButton Write SetMouseOnButton;
+    property _FDroppedDown: Boolean read GetDroppedDown Write SetDroppedDown;
+    property _FMouseOnButton: Boolean read GetMouseOnButton Write SetMouseOnButton;
  end;
 
 { TDateTimePickerStyleHookHelper }
@@ -99,8 +99,8 @@ end;
 { TDateTimePickerStyleHookFix }
 procedure TDateTimePickerStyleHookFix.SetColorsCalendar;
 Var
-  LTextColor, LBackColor : TColor;
-  LDateTimePicker : TDateTimePicker;
+  LTextColor, LBackColor: TColor;
+  LDateTimePicker: TDateTimePicker;
 begin
    LDateTimePicker:=TDateTimePicker(Control);
    //get the vcl styles colors
@@ -176,7 +176,7 @@ var
   LPaintStruct: TPaintStruct;
   LRect: TRect;
   LDetails: TThemedElementDetails;
-  sDateTime  : string;
+  sDateTime: string;
 begin
   DC := Message.WParam;
   LCanvas := TCanvas.Create;
@@ -203,8 +203,8 @@ begin
 
     //only works for DateFormat = dfShort
     case TDateTimePicker(Control).Kind of
-     dtkDate : sDateTime:=DateToStr(TDateTimePicker(Control).DateTime);
-     dtkTime : sDateTime:=TimeToStr(TDateTimePicker(Control).DateTime);
+     dtkDate: sDateTime:=DateToStr(TDateTimePicker(Control).DateTime);
+     dtkTime: sDateTime:=TimeToStr(TDateTimePicker(Control).DateTime);
     end;
 
     //draw the current date/time value

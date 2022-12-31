@@ -16,7 +16,7 @@
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
 //
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 //
 // Contributor(s): Mahdi Safsafi.
 //
@@ -74,11 +74,11 @@ var
   VCLStylesLock: TCriticalSection = nil;
   LSetStylePtr: TSetStyle;
 
-  Trampoline_SetStyle  : procedure(Self: TObject; Style: TCustomStyleServices);
-  Trampoline_user32_FillRect  : function(hDC: hDC; const lprc: TRect; hbr: HBRUSH): Integer; stdcall;
-  Trampoline_user32_DrawEdge  : function(hDC: hDC; var qrc: TRect; edge: UINT; grfFlags: UINT): BOOL;  stdcall = nil;
-  Trampoline_user32_DrawFrameControl : function (DC: HDC; Rect: PRect; uType, uState: UINT): BOOL; stdcall = nil;
-  Trampoline_user32_LoadIconW  : function (hInstance: HINST; lpIconName: PWideChar): HICON; stdcall = nil;
+  Trampoline_SetStyle: procedure(Self: TObject; Style: TCustomStyleServices);
+  Trampoline_user32_FillRect: function(hDC: hDC; const lprc: TRect; hbr: HBRUSH): Integer; stdcall;
+  Trampoline_user32_DrawEdge: function(hDC: hDC; var qrc: TRect; edge: UINT; grfFlags: UINT): BOOL;  stdcall = nil;
+  Trampoline_user32_DrawFrameControl: function (DC: HDC; Rect: PRect; uType, uState: UINT): BOOL; stdcall = nil;
+  Trampoline_user32_LoadIconW: function (hInstance: HINST; lpIconName: PWideChar): HICON; stdcall = nil;
   Trampoline_user32_GetSysColorBrush: function(nIndex: Integer): HBRUSH; stdcall;
   {$IFDEF HOOK_UXTHEME}
   Trampoline_user32_LoadImageW: function (hInst: HINST; ImageName: LPCWSTR; ImageType: UINT; X, Y: Integer; Flags: UINT): THandle; stdcall = nil;
@@ -148,7 +148,7 @@ begin
     The reason to change the previous code implementation
     is that the win32 graphics may differ with the VCL graphics:
     Eg: TColor is signed in VCL and Unsigned in Win32Api.
-    When hooking : keep always using the native way !
+    When hooking: keep always using the native way !
     Need Color ?
     Use GetObject with LOGBRUSH ! or use TBrushColorPair !
   }
@@ -216,7 +216,7 @@ const
 var
   LRect: TRect;
   LDetails: TThemedElementDetails;
-  CanDraw : Boolean;
+  CanDraw: Boolean;
 
   LThemedButton: TThemedButton;
   LThemedComboBox: TThemedComboBox;
@@ -446,7 +446,7 @@ begin
     Exit(Trampoline_user32_DrawFrameControl(DC, Rect, uType, uState));
 end;
 
-function GetStyleHighLightColor : TColor;
+function GetStyleHighLightColor: TColor;
 begin
   if ColorIsBright(StyleServices.GetSystemColor(clBtnFace)) or not ColorIsBright(StyleServices.GetSystemColor(clHighlight)) then
     Result := StyleServices.GetSystemColor(clBtnText)
@@ -456,10 +456,10 @@ end;
 
 function Detour_LoadIconW(_hInstance: HINST; lpIconName: PWideChar): HICON; stdcall;
 var
-  s : string;
-  LIcon : TIcon;
-  LHandle : THandle;
-  MustRelease : Boolean;
+  s: string;
+  LIcon: TIcon;
+  LHandle: THandle;
+  MustRelease: Boolean;
 
    procedure DrawIcon(const ACode: Word);
    begin
@@ -496,12 +496,12 @@ begin
 
       if _hInstance=0 then
       case NativeUInt(lpIconName) of
-       32518 : DrawIcon(fa_shield);
-       32516 : DrawIcon(fa_info_circle);
-       32515 : DrawIcon(fa_warning);
-       32513 : DrawIcon(fa_minus_circle);
-       32514 : DrawIcon(fa_question_circle);
-       32517 : DrawIcon(fa_windows);
+       32518: DrawIcon(fa_shield);
+       32516: DrawIcon(fa_info_circle);
+       32515: DrawIcon(fa_warning);
+       32513: DrawIcon(fa_minus_circle);
+       32514: DrawIcon(fa_question_circle);
+       32517: DrawIcon(fa_windows);
       end;
 	   
     finally
@@ -519,11 +519,11 @@ function Detour_LoadImageW(hInst: HINST; ImageName: LPCWSTR; ImageType: UINT; X,
 const
   ExplorerFrame = 'explorerframe.dll';
 var
-  hModule : WinApi.Windows.HMODULE;
-  LBitmap : TBitmap;
-  s : string;
-  LRect, LRect2 : TRect;
-  LBackColor, LColor : TColor;
+  hModule: WinApi.Windows.HMODULE;
+  LBitmap: TBitmap;
+  s: string;
+  LRect, LRect2: TRect;
+  LBackColor, LColor: TColor;
 begin
   if not(ExecutingInMainThread) or StyleServices.IsSystemStyle or not(TSysStyleManager.Enabled) then
     Exit(Trampoline_user32_LoadImageW(hInst, ImageName, ImageType, X, Y, Flags));
@@ -694,10 +694,10 @@ begin
             581:
               begin
                 case NativeUInt(ImageName) of
-                  577 : LColor := StyleServices.GetSystemColor(clBtnText);
-                  578 : LColor := StyleServices.GetSystemColor(clHighlight);
-                  579 : LColor := StyleServices.GetSystemColor(clGrayText);
-                  581 : LColor := StyleServices.GetSystemColor(clBtnText);
+                  577: LColor := StyleServices.GetSystemColor(clBtnText);
+                  578: LColor := StyleServices.GetSystemColor(clHighlight);
+                  579: LColor := StyleServices.GetSystemColor(clGrayText);
+                  581: LColor := StyleServices.GetSystemColor(clBtnText);
                   else
                     LColor:= StyleServices.GetSystemColor(clBtnText);
                 end;
@@ -718,9 +718,9 @@ begin
             582..584:
               begin
                 case NativeUInt(ImageName) of
-                  582 : LColor := StyleServices.GetSystemColor(clBtnText);
-                  583 : LColor := StyleServices.GetSystemColor(clHighlight);
-                  584 : LColor := StyleServices.GetSystemColor(clGrayText);
+                  582: LColor := StyleServices.GetSystemColor(clBtnText);
+                  583: LColor := StyleServices.GetSystemColor(clHighlight);
+                  584: LColor := StyleServices.GetSystemColor(clGrayText);
                 else
                   LColor := StyleServices.GetSystemColor(clBtnText);
                 end;
@@ -796,7 +796,7 @@ end;
   {$IF CompilerVersion>=29}
   function Detour_SetWindowTheme(hwnd: HWND; pszSubAppName: LPCWSTR; pszSubIdList: LPCWSTR): HRESULT; stdcall;
   var
-    LControl : TWinControl;
+    LControl: TWinControl;
   begin
     if not(ExecutingInMainThread) then
       Exit(Trampoline_SetWindowTheme(hwnd, pszSubAppName, pszSubIdList));

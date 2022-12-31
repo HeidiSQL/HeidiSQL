@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.Fixes
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // Contributors
@@ -163,7 +163,7 @@ type
   strict private
     function _getDroppedDown: Boolean;
   private
-    property _DroppedDown : Boolean read _getDroppedDown;
+    property _DroppedDown: Boolean read _getDroppedDown;
   end;
 {$IFEND}
 

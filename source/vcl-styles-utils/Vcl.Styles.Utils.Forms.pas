@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -100,8 +100,8 @@ type
     function IsHorzScrollDisabled: Boolean;
     function IsVertScrollDisabled: Boolean;
   protected
-    property LstPos : Integer read FLstPos write FLstPos;
-    property AllowScrolling : Boolean read FAllowScrolling write FAllowScrolling;
+    property LstPos: Integer read FLstPos write FLstPos;
+    property AllowScrolling: Boolean read FAllowScrolling write FAllowScrolling;
     function NormalizePoint(const P: TPoint): TPoint;
     procedure Scroll(const Kind: TScrollBarKind; const ScrollType: TSysScrollingType; Pos, Delta: Integer); virtual;
     procedure DoScroll(const Kind: TScrollBarKind; const ScrollType: TSysScrollingType; Pos, Delta: Integer);
@@ -1108,9 +1108,9 @@ begin
     Inc(TextRect.Left, R.Left);
     MoveWindowOrg(Canvas.Handle, 0, TextTopOffset);
     if Assigned(Application.Mainform) then
-      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clRed, Application.MainForm.Monitor.PixelsPerInch)
+      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clRed{$IF RTLVersion > 32}, Application.MainForm.Monitor.PixelsPerInch{$IFEND})
     else
-      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clRed, Screen.PixelsPerInch);
+      StyleServices.DrawText(Canvas.Handle, CaptionDetails, LText, TextRect, TextFormat, clRed{$IF RTLVersion > 32}, Screen.PixelsPerInch{$IFEND});
     MoveWindowOrg(Canvas.Handle, 0, -TextTopOffset);
   end
   else
@@ -1357,7 +1357,7 @@ end;
 procedure TSysDialogStyleHook.WMSetText(var Message: TMessage);
 var
   FRedraw: Boolean;
-  LBorderStyle : TFormBorderStyle;
+  LBorderStyle: TFormBorderStyle;
 begin
   LBorderStyle := BorderStyle;
   if (LBorderStyle = bsNone) or (WindowState = wsMinimized) or (StyleServices.IsSystemStyle) then
