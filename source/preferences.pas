@@ -185,6 +185,7 @@ type
     updownCompletionProposalInterval: TUpDown;
     lblCompletionProposalIntervalUnit: TLabel;
     chkColumnHeaderClick: TCheckBox;
+    chkIncrementalSearch: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -391,6 +392,7 @@ begin
   AppSettings.WriteBool(asColumnHeaderClick, chkColumnHeaderClick.Checked);
   AppSettings.WriteBool(asReuseEditorConfiguration, chkReuseEditorConfiguration.Checked);
   AppSettings.WriteBool(asForeignDropDown, chkForeignDropDown.Checked);
+  AppSettings.WriteBool(asIncrementalSearch, chkIncrementalSearch.Checked);
   case comboLineBreakStyle.ItemIndex of
     1: AppSettings.WriteInt(asLineBreakStyle, Integer(lbsUnix));
     2: AppSettings.WriteInt(asLineBreakStyle, Integer(lbsMac));
@@ -749,6 +751,7 @@ begin
   chkColumnHeaderClick.Checked := AppSettings.ReadBool(asColumnHeaderClick);
   chkReuseEditorConfiguration.Checked := AppSettings.ReadBool(asReuseEditorConfiguration);
   chkForeignDropDown.Checked := AppSettings.ReadBool(asForeignDropDown);
+  chkIncrementalSearch.Checked := AppSettings.ReadBool(asIncrementalSearch);
   case TLineBreaks(AppSettings.ReadInt(asLineBreakStyle)) of
     lbsNone, lbsWindows: comboLineBreakStyle.ItemIndex := 0;
     lbsUnix: comboLineBreakStyle.ItemIndex := 1;

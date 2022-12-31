@@ -1287,6 +1287,15 @@ object frmPreferences: TfrmPreferences
         TabOrder = 5
         OnClick = Modified
       end
+      object chkIncrementalSearch: TCheckBox
+        Left = 220
+        Top = 209
+        Width = 469
+        Height = 17
+        Caption = 'Incremental search through typing'
+        TabOrder = 8
+        OnClick = Modified
+      end
     end
     object tabShortcuts: TTabSheet
       Caption = 'Shortcuts'

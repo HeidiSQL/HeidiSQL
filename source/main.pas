@@ -2037,12 +2037,7 @@ begin
     actFavoriteObjectsOnly.Execute;
 
   // Data-Font:
-  DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  QueryGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-  QueryGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-  FixVT(DataGrid, AppSettings.ReadInt(asGridRowLineCount));
-  FixVT(QueryGrid, AppSettings.ReadInt(asGridRowLineCount));
+  ApplyFontToGrids;
   // Load color settings
   DatatypeCategories[dtcInteger].Color := AppSettings.ReadInt(asFieldColorNumeric);
   DatatypeCategories[dtcReal].Color := AppSettings.ReadInt(asFieldColorReal);
@@ -8969,27 +8964,32 @@ end;
 
 procedure TMainForm.ApplyFontToGrids;
 var
-  i, j: Integer;
   QueryTab: TQueryTab;
+  ResultTab: TResultTab;
   Grid: TVirtualStringTree;
+  IncrementalSearchActive: Boolean;
+  AllGrids: TObjectList<TVirtualStringTree>;
 begin
-  // Apply somehow changed font settings to all existing grids
-  DataGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  DataGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-  FixVT(Mainform.DataGrid, AppSettings.ReadInt(asGridRowLineCount));
-  // .. include invisible mother query grid
-  QueryGrid.Font.Name := AppSettings.ReadString(asDataFontName);
-  QueryGrid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-  // .. and all chid query grids
-  for i:=Mainform.tabQuery.PageIndex to Mainform.PageControlMain.PageCount-1 do begin
-    QueryTab := Mainform.QueryTabs[i-Mainform.tabQuery.PageIndex];
-    for j:=0 to QueryTab.ResultTabs.Count-1 do begin
-      Grid := QueryTab.ResultTabs[j].Grid;
-      Grid.Font.Name := AppSettings.ReadString(asDataFontName);
-      Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-      FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+  // Apply changed settings to all existing data and query grids
+  LogSQL('Apply grid settings...', lcDebug);
+  AllGrids := TObjectList<TVirtualStringTree>.Create(False);
+  IncrementalSearchActive := AppSettings.ReadBool(asIncrementalSearch);
+  AllGrids.Add(DataGrid); // Data tab grid
+  for QueryTab in QueryTabs do begin // Query tab child grids
+    for ResultTab in QueryTab.ResultTabs do begin
+      AllGrids.Add(ResultTab.Grid);
     end;
   end;
+  for Grid in AllGrids do begin
+    Grid.Font.Name := AppSettings.ReadString(asDataFontName);
+    Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
+    FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+    if IncrementalSearchActive then
+      Grid.IncrementalSearch := isInitializedOnly
+    else
+      Grid.IncrementalSearch := isNone;
+  end;
+  AllGrids.Free;
 end;
 
 

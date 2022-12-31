@@ -199,7 +199,7 @@ type
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asDoubleClickInsertsNodeText, asForeignDropDown,
-    asQueryHistoryEnabled, asQueryHistoryKeepDays,
+    asIncrementalSearch, asQueryHistoryEnabled, asQueryHistoryKeepDays,
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
     asPreferencesWindowWidth, asPreferencesWindowHeight,
     asFileDialogEncoding,
@@ -3861,6 +3861,7 @@ begin
   InitSetting(asAutoExpand,                       'AutoExpand',                            0, False);
   InitSetting(asDoubleClickInsertsNodeText,       'DoubleClickInsertsNodeText',            0, True);
   InitSetting(asForeignDropDown,                  'ForeignDropDown',                       0, True);
+  InitSetting(asIncrementalSearch,                'IncrementalSearch',                     0, True);
   InitSetting(asQueryHistoryEnabled,              'QueryHistory',                          0, True);
   InitSetting(asQueryHistoryKeepDays,             'QueryHistoryKeeypDays',                 30);
   InitSetting(asColumnSelectorWidth,              'ColumnSelectorWidth',                   200, False, '');
