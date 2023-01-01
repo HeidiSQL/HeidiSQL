@@ -7,7 +7,7 @@ program updater;
 
 {$R manifest.RES}
 // (un)comment the following resource inclusion to vary the binary size. Update checker trusts the same file size before overwriting the old one.
-{$R ..\icon.RES}
+{.$R ..\icon.RES}
 
 uses
   Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.PsAPI, Winapi.ShellAPI, System.SysUtils;
@@ -97,7 +97,7 @@ begin
   // EnumWindows will stop processing if we return false
   Result := True;
   WndPath := GetEXEFromHandle(Wnd);
-  if (LowerCase(WndPath) <> LowerCase(AppPath)) and (LowerCase(WndPath) <> LowerCase(ExtractFilename(AppPath))) then
+  if LowerCase(ExtractFilename(WndPath)) <> LowerCase(ExtractFilename(AppPath)) then
     Exit;
 
   SetLength(WndTitle, 256);
@@ -106,7 +106,7 @@ begin
   GetWindowText(Wnd, PChar(WndTitle), 256);
   WndTitle := Trim(WndTitle);
 
-  Hint := 'Closing "'+WndTitle+'"';
+  Hint := 'Closing "'+WndTitle+'", path: "' + WndPath + '"';
   Status(Hint);
   WaitTime := 0;
   PostMessage(Wnd, WM_CLOSE, 0, 0);
@@ -136,8 +136,13 @@ begin
       Status('Syntax: '+ExtractFilename(Paramstr(0))+' OldFile.exe NewFile.exe RestartTaskName'+#13#10+
         'Please don''t execute this file directly.', True);
     end;
-    if (not FileExists(AppPath)) or (not FileExists(DownloadPath)) then
-      Status('Error: Either target file "'+AppPath+'" or download file "'+DownloadPath+'" does not exist.', True);
+
+    Status('AppPath: "'+AppPath+'"');
+    Status('DownloadPath: "'+DownloadPath+'"');
+    if not FileExists(AppPath) then
+      Status('Error: target file "'+AppPath+'" does not exist.', True);
+    if not FileExists(DownloadPath) then
+      Status('Error: downloaded file "'+DownloadPath+'" does not exist.', True);
 
     // Terminate running instances
     Status('Close running '+AppName+' instances ...');
