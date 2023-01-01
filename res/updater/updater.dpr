@@ -133,8 +133,8 @@ begin
 
     // Parameter syntax check
     if (AppPath = '') or (DownloadPath = '') or (RestartTaskName = '') then begin
-      Status('Syntax: '+ExtractFilename(Paramstr(0))+' OldFile.exe NewFile.exe RestartTaskName'+#13#10+
-        'Please don''t execute this file directly.', True);
+      Status('Syntax: '+ExtractFilename(Paramstr(0))+' OldFile.exe NewFile.exe RestartTaskName');
+      Status('Please don''t execute this file directly.', True);
     end;
 
     Status('AppPath: "'+AppPath+'"');
