@@ -136,6 +136,7 @@ type
     chkLogFileDml: TCheckBox;
     timerEditFilterDelay: TTimer;
     comboSSHExe: TComboBox;
+    chkSSHActive: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -489,6 +490,7 @@ begin
     Sess.AllDatabasesStr := editDatabases.Text;
     Sess.Comment := memoComment.Text;
     Sess.StartupScriptFilename := editStartupScript.Text;
+    Sess.SSHActive := chkSSHActive.Checked;
     Sess.SSHExe := comboSSHExe.Text;
     Sess.SSHHost := editSSHhost.Text;
     Sess.SSHPort := MakeInt(editSSHport.Text);
@@ -711,6 +713,7 @@ begin
     Result.AllDatabasesStr := editDatabases.Text;
     Result.LibraryOrProvider := comboLibrary.Text;
     Result.Comment := memoComment.Text;
+    Result.SSHActive := chkSSHActive.Checked;
     Result.SSHHost := editSSHHost.Text;
     Result.SSHPort := MakeInt(editSSHPort.Text);
     Result.SSHUser := editSSHuser.Text;
@@ -1004,6 +1007,7 @@ begin
     end;
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
+    chkSSHActive.Checked := Sess.SSHActive;
     comboSSHExe.Text := Sess.SSHExe;
     editSSHHost.Text := Sess.SSHHost;
     editSSHport.Text := IntToStr(Sess.SSHPort);
@@ -1318,6 +1322,7 @@ begin
       editIgnoreDatabasePattern.Text := Params.DefaultIgnoreDatabasePattern;
     if not editHost.Modified then
       editHost.Text := Params.DefaultHost;
+    chkSSHActive.Checked := Params.DefaultSshActive;
 
     comboLibrary.Items := Params.GetLibraries;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
@@ -1354,6 +1359,7 @@ begin
       or (Sess.LibraryOrProvider <> comboLibrary.Text)
       or (Sess.AllDatabasesStr <> editDatabases.Text)
       or (Sess.Comment <> memoComment.Text)
+      or (Sess.SSHActive <> chkSSHActive.Checked)
       or (Sess.SSHHost <> editSSHHost.Text)
       or (IntToStr(Sess.SSHPort) <> editSSHPort.Text)
       or (Sess.SSHExe <> comboSSHExe.Text)
@@ -1464,7 +1470,23 @@ begin
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       editDatabases.Enabled := lblDatabase.Enabled;
       // SSH tunnel tab:
-      tabSSHtunnel.TabVisible := Params.NetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel];
+      tabSSHtunnel.TabVisible := Params.SshSupport;
+      lblSSHExe.Enabled := Params.SSHActive;
+      comboSSHExe.Enabled := Params.SSHActive;
+      lblSSHhost.Enabled := Params.SSHActive;
+      editSSHhost.Enabled := Params.SSHActive;
+      editSSHport.Enabled := Params.SSHActive;
+      lblSSHUser.Enabled := Params.SSHActive;
+      editSSHUser.Enabled := Params.SSHActive;
+      lblSSHPassword.Enabled := Params.SSHActive;
+      editSSHPassword.Enabled := Params.SSHActive;
+      lblSSHTimeout.Enabled := Params.SSHActive;
+      editSSHTimeout.Enabled := Params.SSHActive;
+      updownSSHTimeout.Enabled := Params.SSHActive;
+      lblSSHkeyfile.Enabled := Params.SSHActive;
+      editSSHPrivateKey.Enabled := Params.SSHActive;
+      lblSSHLocalPort.Enabled := Params.SSHActive;
+      editSSHlocalport.Enabled := Params.SSHActive;
       // Advanced tab:
       chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;

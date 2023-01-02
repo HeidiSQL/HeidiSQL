@@ -311,7 +311,7 @@ type
       FSSHHost, FSSHUser, FSSHPassword, FSSHExe, FSSHPrivateKey,
       FIgnoreDatabasePattern: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
-      FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
+      FSSHActive, FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
@@ -329,6 +329,7 @@ type
       function CreateQuery(Connection: TDbConnection): TDBQuery;
       function NetTypeName(LongFormat: Boolean): String;
       function GetNetTypeGroup: TNetTypeGroup;
+      function SshSupport: Boolean;
       function IsAnyMySQL: Boolean;
       function IsAnyMSSQL: Boolean;
       function IsAnyPostgreSQL: Boolean;
@@ -354,6 +355,7 @@ type
       function DefaultPort: Integer;
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
+      function DefaultSshActive: Boolean;
       function GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
@@ -381,6 +383,7 @@ type
       property Compressed: Boolean read FCompressed write FCompressed;
       property LocalTimeZone: Boolean read FLocalTimeZone write FLocalTimeZone;
       property FullTableStatus: Boolean read FFullTableStatus write FFullTableStatus;
+      property SSHActive: Boolean read FSSHActive write FSSHActive;
       property SSHHost: String read FSSHHost write FSSHHost;
       property SSHPort: Integer read FSSHPort write FSSHPort;
       property SSHUser: String read FSSHUser write FSSHUser;
@@ -1373,6 +1376,7 @@ begin
   FLibraryOrProvider := DefaultLibrary;
   FComment := AppSettings.GetDefaultString(asComment);
 
+  FSSHActive := DefaultSshActive;
   FSSHExe := AppSettings.GetDefaultString(asSshExecutable);
   FSSHHost := AppSettings.GetDefaultString(asSSHtunnelHost);
   FSSHPort := AppSettings.GetDefaultInt(asSSHtunnelHostPort);
@@ -1442,6 +1446,8 @@ begin
     FLibraryOrProvider := AppSettings.ReadString(asLibrary, '', DefaultLibrary);
     FComment := AppSettings.ReadString(asComment);
 
+    // Auto-activate SSH for sessions created before asSSHtunnelActive was introduced
+    FSSHActive := AppSettings.ReadBool(asSSHtunnelActive, '', DefaultSshActive);
     FSSHExe := AppSettings.ReadString(asSshExecutable);
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
     FSSHPort := AppSettings.ReadInt(asSSHtunnelHostPort);
@@ -1514,6 +1520,7 @@ begin
     AppSettings.WriteString(asComment, FComment);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
     AppSettings.WriteInt(asTreeBackground, FSessionColor);
+    AppSettings.WriteBool(asSSHtunnelActive, FSSHActive);
     AppSettings.WriteString(asSshExecutable, FSSHExe);
     AppSettings.WriteString(asSSHtunnelHost, FSSHHost);
     AppSettings.WriteInt(asSSHtunnelHostPort, FSSHPort);
@@ -1655,6 +1662,12 @@ begin
       Result := ngMySQL;
     end;
   end;
+end;
+
+
+function TConnectionParameters.SshSupport: Boolean;
+begin
+  Result := FNetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel];
 end;
 
 
@@ -1878,6 +1891,12 @@ begin
 end;
 
 
+function TConnectionParameters.DefaultSshActive: Boolean;
+begin
+  Result := FNetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel];
+end;
+
+
 function TConnectionParameters.GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
 var
   Args: TStringList;
@@ -2014,6 +2033,7 @@ begin
   FThreadID := 0;
   FLogPrefix := '';
   FIsUnicode := True;
+  FSecureShellCmd := nil;
   FIsSSL := False;
   FDatabaseCache := TDatabaseCache.Create(True);
   FColumnCache := TColumnCache.Create;
@@ -2339,10 +2359,12 @@ begin
 
       ntMySQL_SSHtunnel, ntMySQL_RDS: begin
         // Create SSH process
-        FSecureShellCmd := TSecureShellCmd.Create(Self);
-        FSecureShellCmd.Connect;
-        FinalHost := '127.0.0.1';
-        FinalPort := FParameters.SSHLocalPort;
+        if Parameters.SSHActive then begin
+          FSecureShellCmd := TSecureShellCmd.Create(Self);
+          FSecureShellCmd.Connect;
+          FinalHost := '127.0.0.1';
+          FinalPort := FParameters.SSHLocalPort;
+        end;
       end;
     end;
 
@@ -2724,10 +2746,12 @@ begin
     case FParameters.NetType of
       ntPgSQL_SSHtunnel: begin
         // Create SSH process
-        FSecureShellCmd := TSecureShellCmd.Create(Self);
-        FSecureShellCmd.Connect;
-        FinalHost := '127.0.0.1';
-        FinalPort := FParameters.SSHLocalPort;
+        if Parameters.SSHActive then begin
+          FSecureShellCmd := TSecureShellCmd.Create(Self);
+          FSecureShellCmd.Connect;
+          FinalHost := '127.0.0.1';
+          FinalPort := FParameters.SSHLocalPort;
+        end;
       end;
     end;
 
