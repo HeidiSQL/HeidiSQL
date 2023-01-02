@@ -414,7 +414,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
-        TabOrder = 8
+        TabOrder = 9
         Text = 'editSSHlocalport'
         OnChange = Modification
       end
@@ -424,7 +424,7 @@ object connform: Tconnform
         Width = 320
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 3
+        TabOrder = 4
         Text = 'editSSHUser'
         TextHint = 'Your secure shell username'
         OnChange = Modification
@@ -437,7 +437,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
-        TabOrder = 4
+        TabOrder = 5
         Text = 'editSSHPassword'
         TextHint = 'Your secure shell password'
         OnChange = Modification
@@ -448,7 +448,7 @@ object connform: Tconnform
         Width = 260
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
+        TabOrder = 2
         Text = 'editSSHhost'
         OnChange = Modification
         OnExit = editTrim
@@ -460,7 +460,7 @@ object connform: Tconnform
         Height = 21
         Anchors = [akTop, akRight]
         NumbersOnly = True
-        TabOrder = 2
+        TabOrder = 3
         Text = 'editSSHport'
         OnChange = Modification
       end
@@ -473,7 +473,7 @@ object connform: Tconnform
         Images = MainForm.VirtualImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 7
+        TabOrder = 8
         Text = 'editSSHPrivateKey'
         TextHint = 'Private key / identify file'
         OnChange = Modification
@@ -486,7 +486,7 @@ object connform: Tconnform
         Top = 145
         Width = 60
         Height = 21
-        TabOrder = 5
+        TabOrder = 6
         Text = '1'
         OnChange = Modification
       end
@@ -498,7 +498,7 @@ object connform: Tconnform
         Associate = editSSHTimeout
         Min = 1
         Position = 1
-        TabOrder = 6
+        TabOrder = 7
         Wrap = True
       end
       object comboSSHExe: TComboBox
@@ -507,7 +507,7 @@ object connform: Tconnform
         Width = 320
         Height = 22
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 0
+        TabOrder = 1
         Text = 'comboSSHExe'
         OnChange = Modification
       end
@@ -518,7 +518,7 @@ object connform: Tconnform
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use SSH tunnel'
-        TabOrder = 9
+        TabOrder = 0
         OnClick = Modification
       end
     end
