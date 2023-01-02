@@ -1796,15 +1796,15 @@ begin
     Result := 174
   else case NetTypeGroup of
     ngMySQL: begin
-      Result := 164;
-      if IsMariaDB then Result := 166
-      else if IsPercona then Result := 169
+      if IsPercona then Result := 169
       else if IsTokudb then Result := 171
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173
       else if IsMemSQL then Result := 194
       else if IsProxySQLAdmin then Result := 197
-      else if IsMySQLonRDS then Result := 205;
+      else if IsMySQLonRDS then Result := 205
+      else if IsMariaDB then Result := 166
+      else Result := 164;
     end;
     ngMSSQL: begin
       Result := 123;
