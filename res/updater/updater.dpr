@@ -7,7 +7,7 @@ program updater;
 
 {$R manifest.RES}
 // (un)comment the following resource inclusion to vary the binary size. Update checker trusts the same file size before overwriting the old one.
-{.$R ..\icon.RES}
+{$R ..\icon.RES}
 
 uses
   Winapi.Windows, Winapi.Messages, Winapi.TlHelp32, Winapi.PsAPI, Winapi.ShellAPI, System.SysUtils;
@@ -169,7 +169,7 @@ begin
       DeleteFile(PChar(DownloadPath));
       Status('Success. Restarting '+AppName+' through task "'+RestartTaskName+'" now ...');
       RestartCmd := 'schtasks';
-      RestartParams := '/Run /TN ' + RestartTaskName;
+      RestartParams := '/Run /TN "' + RestartTaskName + '"';
       ShellExecute(0, 'open', PChar(RestartCmd), PChar(RestartParams), '', SW_HIDE);
     end;
 
