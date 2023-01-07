@@ -2507,7 +2507,7 @@ begin
         if FileExists(Filename) then begin
           Tab := GetOrCreateEmptyQueryTab(False);
           Tab.Uid := Section;
-          Tab.LoadContents(Filename, True, nil);
+          Tab.LoadContents(Filename, True, UTF8NoBOMEncoding);
           Tab.MemoFilename := Filename;
           if not TabCaption.IsEmpty then
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
