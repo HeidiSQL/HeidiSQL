@@ -241,7 +241,7 @@ end;
 
 procedure TBaseGridEditorLink.Log(Msg: String);
 begin
-  MainForm.LogSQL('#'+FInstanceId.ToString+': '+Msg);
+  MainForm.LogSQL('#'+FInstanceId.ToString+': '+Msg, lcDebug);
 end;
 
 
