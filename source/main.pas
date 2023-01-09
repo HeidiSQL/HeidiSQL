@@ -8975,6 +8975,7 @@ begin
   AllGrids := TObjectList<TVirtualStringTree>.Create(False);
   IncrementalSearchActive := AppSettings.ReadBool(asIncrementalSearch);
   AllGrids.Add(DataGrid); // Data tab grid
+  AllGrids.Add(QueryGrid); // Mother query grid
   for QueryTab in QueryTabs do begin // Query tab child grids
     for ResultTab in QueryTab.ResultTabs do begin
       AllGrids.Add(ResultTab.Grid);
