@@ -4939,7 +4939,10 @@ begin
   CanSave := mrNo;
   QueryTab := QueryTabs.ActiveTab;
   Dialog := TExtFileSaveDialog.Create(Self);
-  DefaultFilename := QueryTab.TabSheet.Caption;
+  if QueryTab.MemoFilename.IsEmpty then
+    DefaultFilename := QueryTab.TabSheet.Caption
+  else
+    DefaultFilename := ExtractFileName(QueryTab.MemoFilename);
   DefaultFilename := DefaultFilename.Trim([' ', '*']);
   Dialog.FileName := ValidFilename(DefaultFilename);
   Dialog.Options := Dialog.Options + [fdoOverwritePrompt];
