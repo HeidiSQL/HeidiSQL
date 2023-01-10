@@ -485,6 +485,8 @@ type
       FSQLFunctions: TSQLFunctionList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
+      procedure StartSSHTunnel(var FinalHost: String; var FinalPort: Integer);
+      procedure EndSSHTunnel;
       procedure DoAfterConnect; virtual;
       procedure DetectUSEQuery(SQL: String); virtual;
       procedure SetDatabase(Value: String);
@@ -1667,7 +1669,7 @@ end;
 
 function TConnectionParameters.SshSupport: Boolean;
 begin
-  Result := FNetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel];
+  Result := FNetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel, ntMSSQL_TCPIP];
 end;
 
 
@@ -2358,13 +2360,7 @@ begin
       end;
 
       ntMySQL_SSHtunnel, ntMySQL_RDS: begin
-        // Create SSH process
-        if Parameters.SSHActive then begin
-          FSecureShellCmd := TSecureShellCmd.Create(Self);
-          FSecureShellCmd.Connect;
-          FinalHost := '127.0.0.1';
-          FinalPort := FParameters.SSHLocalPort;
-        end;
+        StartSSHTunnel(FinalHost, FinalPort);
       end;
     end;
 
@@ -2438,8 +2434,7 @@ begin
       Log(lcError, Error);
       FConnectionStarted := 0;
       FHandle := nil;
-      if FSecureShellCmd <> nil then
-        FSecureShellCmd.Free;
+      EndSSHTunnel;
       if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
           [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
@@ -2547,8 +2542,7 @@ begin
     ClearCache(False);
     FConnectionStarted := 0;
     FHandle := nil;
-    if FSecureShellCmd <> nil then
-      FSecureShellCmd.Free;
+    EndSSHTunnel;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 
@@ -2558,12 +2552,17 @@ end;
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
   Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
+  FinalHost: String;
   rx: TRegExpr;
-  i: Integer;
+  FinalPort, i: Integer;
   IsOldProvider: Boolean;
 begin
   if Value then begin
     DoBeforeConnect;
+    FinalHost := Parameters.Hostname;
+    FinalPort := Parameters.Port;
+    StartSSHTunnel(FinalHost, FinalPort);
+
     try
       // Creating the ADO object throws exceptions if MDAC is missing, especially on Wine
       FAdoHandle := TAdoConnection.Create(Owner);
@@ -2596,9 +2595,9 @@ begin
       ntMSSQL_RPC: NetLib := 'DBMSRPCN';
     end;
 
-    DataSource := Parameters.Hostname;
-    if (Parameters.NetType = ntMSSQL_TCPIP) and (Parameters.Port <> 0) then
-      DataSource := DataSource + ','+IntToStr(Parameters.Port);
+    DataSource := FinalHost;
+    if (Parameters.NetType = ntMSSQL_TCPIP) and (FinalPort <> 0) then
+      DataSource := DataSource + ','+IntToStr(FinalPort);
 
     // Quote password, just in case there is a semicolon or a double quote in it.
     // See http://forums.asp.net/t/1957484.aspx?Passwords+ending+with+semi+colon+as+the+terminal+element+in+connection+strings+
@@ -2713,6 +2712,7 @@ begin
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
+    EndSSHTunnel;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;
@@ -2743,17 +2743,7 @@ begin
     FinalHost := FParameters.Hostname;
     FinalPort := FParameters.Port;
 
-    case FParameters.NetType of
-      ntPgSQL_SSHtunnel: begin
-        // Create SSH process
-        if Parameters.SSHActive then begin
-          FSecureShellCmd := TSecureShellCmd.Create(Self);
-          FSecureShellCmd.Connect;
-          FinalHost := '127.0.0.1';
-          FinalPort := FParameters.SSHLocalPort;
-        end;
-      end;
-    end;
+    StartSSHTunnel(FinalHost, FinalPort);
 
     ConnInfo := 'host='''+EscapeConnectOption(FinalHost)+''' '+
       'port='''+IntToStr(FinalPort)+''' '+
@@ -2784,8 +2774,7 @@ begin
         on E:EAccessViolation do;
       end;
       FHandle := nil;
-      if FSecureShellCmd <> nil then
-        FSecureShellCmd.Free;
+      EndSSHTunnel;
       if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
           [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
@@ -2823,8 +2812,7 @@ begin
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
-    if FSecureShellCmd <> nil then
-      FSecureShellCmd.Free;
+    EndSSHTunnel;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;
@@ -3237,6 +3225,27 @@ procedure TInterbaseConnection.DoBeforeConnect;
 begin
   // Todo
   inherited;
+end;
+
+
+procedure TDBConnection.StartSSHTunnel(var FinalHost: String; var FinalPort: Integer);
+begin
+  // Create SSH process
+  if Parameters.SSHActive and (FSecureShellCmd = nil) then begin
+    FSecureShellCmd := TSecureShellCmd.Create(Self);
+    FSecureShellCmd.Connect;
+    FinalHost := '127.0.0.1';
+    FinalPort := FParameters.SSHLocalPort;
+  end;
+end;
+
+
+procedure TDBConnection.EndSSHTunnel;
+begin
+  if FSecureShellCmd <> nil then begin
+    FSecureShellCmd.Free;
+    FSecureShellCmd := nil;
+  end;
 end;
 
 

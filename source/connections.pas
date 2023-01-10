@@ -1470,7 +1470,7 @@ begin
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       editDatabases.Enabled := lblDatabase.Enabled;
       // SSH tunnel tab:
-      tabSSHtunnel.TabVisible := Params.SshSupport;
+      chkSSHActive.Enabled := Params.SshSupport;
       lblSSHExe.Enabled := Params.SSHActive;
       comboSSHExe.Enabled := Params.SSHActive;
       lblSSHhost.Enabled := Params.SSHActive;
