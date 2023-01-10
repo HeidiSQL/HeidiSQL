@@ -967,6 +967,7 @@ begin
   tabSettings.TabVisible := SessionFocused;
   tabSSHtunnel.TabVisible := SessionFocused;
   tabAdvanced.TabVisible := SessionFocused;
+  tabSSL.TabVisible := SessionFocused;
   tabStatistics.TabVisible := SessionFocused;
   menuRename.Enabled := Assigned(Node);
   menuNewSessionInFolder.Enabled := InFolder;
