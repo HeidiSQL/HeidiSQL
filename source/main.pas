@@ -10291,10 +10291,10 @@ begin
     for i := Low(DataGridSortColumns) to High(DataGridSortColumns) do begin
       if DataGridSortColumns[i].ColumnName = ColName then begin
         // AddOrderCol is already in the list. Switch its direction:
-        // ASC > DESC > [delete col]
+        // DESC > ASC > [delete col]
         columnexists := True;
-        if DataGridSortColumns[i].SortDirection = ORDER_ASC then
-          DataGridSortColumns[i].SortDirection := ORDER_DESC
+        if DataGridSortColumns[i].SortDirection = ORDER_DESC then
+          DataGridSortColumns[i].SortDirection := ORDER_ASC
         else begin
           // Delete order col
           for j := i to High(DataGridSortColumns) - 1 do
@@ -10311,7 +10311,7 @@ begin
       SetLength(DataGridSortColumns, i+1);
       DataGridSortColumns[i] := TOrderCol.Create;
       DataGridSortColumns[i].ColumnName := ColName;
-      DataGridSortColumns[i].SortDirection := ORDER_ASC;
+      DataGridSortColumns[i].SortDirection := ORDER_DESC;
     end;
     // Refresh grid, and remember X scroll offset, so the just clicked column is still at the same place.
     FDataGridLastClickedColumnHeader := HitInfo.Column;
