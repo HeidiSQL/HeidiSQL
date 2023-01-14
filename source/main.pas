@@ -1241,6 +1241,7 @@ type
     FLastSelWordInEditor: String;
     FMatchingBraceForegroundColor: TColor;
     FMatchingBraceBackgroundColor: TColor;
+    FSynEditInOnPaintTransient: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -7549,6 +7550,10 @@ begin
     Exit;
   if (FMatchingBraceBackgroundColor = clNone) and (FMatchingBraceForegroundColor = clNone) then
     Exit;
+  if FSynEditInOnPaintTransient then
+    Exit;
+  FSynEditInOnPaintTransient := True;
+
   Editor := TSynEdit(Sender);
   // Check for Editor.GetTextLen causes some endless loop in SynEdit.
   // But not due to activated WordWrap. Must be some interlocked WM_GETTEXTLENGTH message, or an undefined text length.
@@ -7616,55 +7621,58 @@ begin
     else
       TmpCharB := #0;
 
-    if not CharInSet(TmpCharA, BracketChars) and not CharInSet(TmpCharB, BracketChars) then
-      Exit;
-    S := TmpCharB;
-    if not CharInSet(TmpCharB, BracketChars) then begin
-      BufCrd.Char := BufCrd.Char - 1;
-      S := TmpCharA;
-    end;
-
-    if Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri) and (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then
-    begin
-
-      for i:=Low(OpenChars) to High(OpenChars) do begin
-        if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
-          Pix := CharToPixels(BufCrd);
-
-          Canvas.Brush.Style := bsSolid;
-          Canvas.Font.Assign(Editor.Font);
-          Canvas.Font.Style := Attri.Style;
-
-          if (TransientType = ttAfter) then begin
-            Canvas.Font.Color := MatchingBraceForegroundColor;
-            Canvas.Brush.Color := MatchingBraceBackgroundColor;
-          end else begin
-            Canvas.Font.Color := Attri.Foreground;
-            Canvas.Brush.Color := Attri.Background;
-          end;
-          if Canvas.Font.Color = clNone then
-            Canvas.Font.Color := Editor.Font.Color;
-          if Canvas.Brush.Color = clNone then
-            Canvas.Brush.Color := Editor.Color;
-
-          Canvas.TextOut(Pix.X, Pix.Y, S);
-          BufCrd := Editor.GetMatchingBracketEx(BufCrd);
-
-          if (BufCrd.Char > 0) and (BufCrd.Line > 0) then begin
-            Pix := CharToPixels(BufCrd);
-            if Pix.X > Editor.Gutter.Width then begin
-              if S = OpenChars[i] then
-                Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
-              else
-                Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
-            end;
-          end;
-
-        end;
+    if CharInSet(TmpCharA, BracketChars) or CharInSet(TmpCharB, BracketChars) then begin
+      S := TmpCharB;
+      if not CharInSet(TmpCharB, BracketChars) then begin
+        BufCrd.Char := BufCrd.Char - 1;
+        S := TmpCharA;
       end;
-      Canvas.Brush.Style := bsSolid;
+
+      if Editor.GetHighlighterAttriAtRowCol(BufCrd, S, Attri) and (Attri.FriendlyName = SYNS_FriendlyAttrSymbol) then
+      begin
+
+        for i:=Low(OpenChars) to High(OpenChars) do begin
+          if (S = OpenChars[i]) or (S = CloseChars[i]) then begin
+            Pix := CharToPixels(BufCrd);
+
+            Canvas.Brush.Style := bsSolid;
+            Canvas.Font.Assign(Editor.Font);
+            Canvas.Font.Style := Attri.Style;
+
+            if (TransientType = ttAfter) then begin
+              Canvas.Font.Color := MatchingBraceForegroundColor;
+              Canvas.Brush.Color := MatchingBraceBackgroundColor;
+            end else begin
+              Canvas.Font.Color := Attri.Foreground;
+              Canvas.Brush.Color := Attri.Background;
+            end;
+            if Canvas.Font.Color = clNone then
+              Canvas.Font.Color := Editor.Font.Color;
+            if Canvas.Brush.Color = clNone then
+              Canvas.Brush.Color := Editor.Color;
+
+            Canvas.TextOut(Pix.X, Pix.Y, S);
+            BufCrd := Editor.GetMatchingBracketEx(BufCrd);
+
+            if (BufCrd.Char > 0) and (BufCrd.Line > 0) then begin
+              Pix := CharToPixels(BufCrd);
+              if Pix.X > Editor.Gutter.Width then begin
+                if S = OpenChars[i] then
+                  Canvas.TextOut(Pix.X, Pix.Y, CloseChars[i])
+                else
+                  Canvas.TextOut(Pix.X, Pix.Y, OpenChars[i]);
+              end;
+            end;
+
+          end;
+        end;
+        Canvas.Brush.Style := bsSolid;
+      end;
     end;
   end;
+
+  // Release event handler
+  FSynEditInOnPaintTransient := False;
 end;
 
 
@@ -12838,6 +12846,7 @@ begin
     BaseEditor.Options := BaseEditor.Options - [eoTabsToSpaces];
   FMatchingBraceForegroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceForeground));
   FMatchingBraceBackgroundColor := StringToColor(AppSettings.ReadString(asSQLColMatchingBraceBackground));
+  FSynEditInOnPaintTransient := False;
 
   // Shortcuts
   for j:=0 to BaseEditor.Keystrokes.Count-1 do begin
