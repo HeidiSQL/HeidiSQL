@@ -5,6 +5,7 @@ uses
   Vcl.Forms,
   System.SysUtils,
   Vcl.Dialogs,
+  Vcl.Controls,
   Winapi.Windows,
   main in '..\..\source\main.pas' {MainForm},
   about in '..\..\source\about.pas' {AboutBox},
