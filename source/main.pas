@@ -9581,7 +9581,9 @@ begin
       PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious(True));
 
     // When clicked node is from a different connection than before, do session specific stuff here:
-    if (PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection) then begin
+    if Assigned(FActiveDbObj)
+      and ((PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection))
+      then begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
       RefreshHelperNode(TQueryTab.HelperNodeHistory);
       RefreshHelperNode(TQueryTab.HelperNodeProfile);
