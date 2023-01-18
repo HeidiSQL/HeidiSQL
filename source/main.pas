@@ -5471,6 +5471,7 @@ var
   LogIt: Boolean;
   LogItem: TDBLogItem;
 begin
+  OldSettingsPath := AppSettings.SessionPath;
   LogItem := TDBLogItem.Create;
   LogItem.Category := Category;
   if AppSettings.ReadBool(asLogTimestamp) then
@@ -5484,8 +5485,6 @@ begin
     Exit;
   if csDestroying in ComponentState then
     Exit;
-
-  OldSettingsPath := AppSettings.SessionPath;
 
   for LogItem in PostponedLogItems do begin
 
