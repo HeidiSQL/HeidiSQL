@@ -1207,6 +1207,7 @@ type
     FFilterTextDatabase,
     FFilterTextData: String;
     FTreeRefreshInProgress: Boolean;
+    FRefreshActionDisabledAt: Cardinal;
     FDataGridColumnWidthsCustomized: Boolean;
     FDataGridLastClickedColumnHeader: Integer;
     FDataGridLastClickedColumnLeftPos: Integer;
@@ -4748,7 +4749,10 @@ var
 begin
   // Refresh
   // Force data tab update when appropriate.
+  // Disable refresh action and re-enable in ApplicationOnIdle event
   tab1 := PageControlMain.ActivePage;
+  actRefresh.Enabled := False;
+  FRefreshActionDisabledAt := GetTickCount;
   if ActiveControl = DBtree then
     RefreshTree
   else if tab1 = tabHost then begin
@@ -14111,6 +14115,13 @@ begin
     ListTables.SortTree(ListTables.Header.SortColumn, ListTables.Header.SortDirection);
     FListTablesSorted := True;
   end;
+
+  // Re-enable refresh action when application is idle
+  if (not actRefresh.Enabled) and (FRefreshActionDisabledAt < (GetTickCount - 1000)) then
+  begin
+    actRefresh.Enabled := True;
+  end;
+
 end;
 
 
