@@ -10,6 +10,7 @@
 #define WebSite "https://www." + ProgNameLower + ".com/"
 #define OutDir "."
 #define ResourceDir OutDir + "\..\res\"
+#define SnippetsDir "{userdocs}\" + ProgName + "\Snippets"
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
@@ -74,10 +75,11 @@ SignedUninstaller=yes
 SignTool=signtool $f
 
 [Tasks]
-Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Options:"; MinVersion: 4,4
-Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"; GroupDescription: "Options:";
-Name: "activate_updatechecks"; Description: "Automatically check {#WebSite} for updates"; GroupDescription: "Options:";
-Name: "activate_statistics"; Description: "Automatically report client and server versions on {#WebSite}"; GroupDescription: "Options:";
+Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Local options:"; MinVersion: 4,4
+Name: "install_snippets"; Description: "Create example SQL snippet files in {#SnippetsDir}"; GroupDescription: "Local options:";
+Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"; GroupDescription: "Local options:";
+Name: "activate_updatechecks"; Description: "Automatically check {#WebSite} for updates"; GroupDescription: "Telemetry:";
+Name: "activate_statistics"; Description: "Automatically report client and server versions on {#WebSite}"; GroupDescription: "Telemetry:";
 
 [InstallDelete]
 Type: files; Name: "{app}\heidisql32.exe"
@@ -92,7 +94,7 @@ Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "Snippets\*.sql"; DestDir: "{userdocs}\{#ProgName}\Snippets";
+Source: "Snippets\*.sql"; DestDir: "{#SnippetsDir}"; Tasks: install_snippets
 Source: "plink-64.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plink-32.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: not Is64BitInstallMode; Flags: ignoreversion
 ; MySQL + MariaDB:
