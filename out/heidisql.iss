@@ -50,7 +50,7 @@ AppSupportURL={#WebSite}forum.php
 AppUpdatesURL={#WebSite}download.php
 AppContact=anse@heidisql.com
 AppReadmeFile={#WebSite}help.php?place=installer
-Compression=lzma2
+Compression=lzma2/ultra64
 SolidCompression=yes
 CloseApplications=yes
 ShowLanguageDialog=auto
