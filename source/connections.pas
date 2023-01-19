@@ -1596,7 +1596,7 @@ begin
   // Set initial directory to the one from the edit's file
   Selector.InitialDir := ExtractFilePath(Edit.Text);
   if Selector.InitialDir.IsEmpty then
-    Selector.InitialDir := AppSettings.DirnameUserDocuments;
+    Selector.InitialDir := TPath.GetPathRoot(Application.ExeName);
   if Selector.Execute then begin
     FileNames := TStringList.Create;
     FileNames.Assign(Selector.Files);

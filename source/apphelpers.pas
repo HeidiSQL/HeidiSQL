@@ -4460,9 +4460,7 @@ function TAppSettings.DirnameUserDocuments: String;
 begin
   // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
   Result := GetShellFolder(FOLDERID_Documents) + '\' + APPNAME + '\';
-  if not DirectoryExists(Result) then begin
-    ForceDirectories(Result);
-  end;
+  // Do not auto-create it, as we only use it for snippets which can also have a custom path.
 end;
 
 
