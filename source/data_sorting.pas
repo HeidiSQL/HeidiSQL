@@ -256,8 +256,7 @@ var
   UnusedColumns: TStringList;
   NewSortItem, SortItem: TSortItem;
 begin
-  NewSortItem := TSortItem.Create;
-  FSortItems.Add(NewSortItem);
+  NewSortItem := FSortItems.AddNew;
 
   // Take first unused column as default for new sort item
   UnusedColumns := TStringList.Create;

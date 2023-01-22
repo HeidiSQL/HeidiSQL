@@ -10317,8 +10317,7 @@ begin
         SortOrder := sioDescending
       else
         SortOrder := sioAscending;
-      SortItem := TSortItem.Create(ColName, SortOrder);
-      FDataGridSortItems.Add(SortItem);
+      FDataGridSortItems.AddNew(ColName, SortOrder);
     end;
 
     // Refresh grid, and remember X scroll offset, so the just clicked column is still at the same place.
@@ -10998,10 +10997,9 @@ begin
       // Check if column exists, could be renamed or deleted
       for i:=0 to SelectedTableColumns.Count-1 do begin
         if SelectedTableColumns[i].Name = rx.Match[2] then begin
-          SortItem := TSortItem.Create;
+          SortItem := FDataGridSortItems.AddNew;
           SortItem.Column := rx.Match[2];
           SortItem.Order := TSortItemOrder(StrToIntDef(rx.Match[1], 0));
-          FDataGridSortItems.Add(SortItem);
           Break;
         end;
       end;

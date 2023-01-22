@@ -23,12 +23,11 @@ type
     public
       Column: String;
       Order: TSortItemOrder;
-      constructor Create; overload;
-      constructor Create(lColumn: String; lOrder: TSortItemOrder=sioAscending); overload;
       procedure Assign(Source: TPersistent); override;
   end;
   TSortItems = class(TObjectList<TSortItem>)
     public
+      function AddNew(Column: String=''; Order: TSortItemOrder=sioAscending): TSortItem;
       function ComposeOrderClause: String;
       function FindByColumn(Column: String): TSortItem;
       procedure Assign(Source: TSortItems);
@@ -1806,21 +1805,6 @@ end;
 
 { *** TSortItem }
 
-constructor TSortItem.Create;
-begin
-  inherited;
-  Column := '';
-  Order := sioAscending;
-end;
-
-constructor TSortItem.Create(lColumn: String; lOrder: TSortItemOrder=sioAscending);
-begin
-  inherited Create;
-  Column := lColumn;
-  Order := lOrder;
-end;
-
-
 procedure TSortItem.Assign(Source: TPersistent);
 var
   SourceItem: TSortItem;
@@ -1836,6 +1820,15 @@ end;
 
 
 { *** TSortItems }
+
+function TSortItems.AddNew(Column: String=''; Order: TSortItemOrder=sioAscending): TSortItem;
+begin
+  Result := TSortItem.Create;
+  Result.Column := Column;
+  Result.Order := Order;
+  Add(Result);
+end;
+
 
 function TSortItems.ComposeOrderClause: String;
 var
@@ -1874,9 +1867,8 @@ var
 begin
   Clear;
   for Item in Source do begin
-    ItemCopy := TSortItem.Create;
+    ItemCopy := AddNew;
     ItemCopy.Assign(Item);
-    Add(ItemCopy);
   end;
 end;
 
