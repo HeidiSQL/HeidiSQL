@@ -10292,6 +10292,7 @@ var
   frm: TForm;
   ColName: String;
   SortItem: TSortItem;
+  SortOrder: TSortItemOrder;
 begin
   if HitInfo.Column = NoColumn then
     Exit;
@@ -10312,7 +10313,11 @@ begin
         FDataGridSortItems.Remove(SortItem);
     end
     else begin
-      SortItem := TSortItem.Create(ColName, sioAscending);
+      if KeyPressed(VK_SHIFT) then
+        SortOrder := sioDescending
+      else
+        SortOrder := sioAscending;
+      SortItem := TSortItem.Create(ColName, SortOrder);
       FDataGridSortItems.Add(SortItem);
     end;
 
