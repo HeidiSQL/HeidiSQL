@@ -5966,7 +5966,7 @@ begin
 
     // Append ORDER clause
     if FDataGridSortItems.Count > 0 then begin
-      Select := Select + ' ORDER BY ' + FDataGridSortItems.ComposeOrderClause;
+      Select := Select + ' ORDER BY ' + FDataGridSortItems.ComposeOrderClause(DBObj.Connection);
       tbtnDataSorting.ImageIndex := 108;
       tbtnDataSorting.Caption := _('Sorting') + ' ('+IntToStr(FDataGridSortItems.Count)+')';
     end else begin

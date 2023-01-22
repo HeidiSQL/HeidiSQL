@@ -28,7 +28,7 @@ type
   TSortItems = class(TObjectList<TSortItem>)
     public
       function AddNew(Column: String=''; Order: TSortItemOrder=sioAscending): TSortItem;
-      function ComposeOrderClause: String;
+      function ComposeOrderClause(Connection: TDBConnection): String;
       function FindByColumn(Column: String): TSortItem;
       procedure Assign(Source: TSortItems);
   end;
@@ -1830,19 +1830,21 @@ begin
 end;
 
 
-function TSortItems.ComposeOrderClause: String;
+function TSortItems.ComposeOrderClause(Connection: TDBConnection): String;
 var
   SortItem: TSortItem;
-  Conn: TDBConnection;
+  SortOrder: String;
 begin
   // Concat all sort options to an ORDER BY clause
   Result := '';
-  Conn := MainForm.ActiveConnection;
   for SortItem in Self do begin
     if Result <> '' then
       Result := Result + ', ';
-    Result := Result + Conn.QuoteIdent(SortItem.Column) +
-      ' ' + IfThen(SortItem.Order = sioAscending, Conn.GetSQLSpecifity(spOrderAsc), Conn.GetSQLSpecifity(spOrderDesc));
+    if SortItem.Order = sioAscending then
+      SortOrder := Connection.GetSQLSpecifity(spOrderAsc)
+    else
+      SortOrder := Connection.GetSQLSpecifity(spOrderDesc);
+    Result := Result + Connection.QuoteIdent(SortItem.Column) + ' ' + SortOrder;
   end;
 end;
 

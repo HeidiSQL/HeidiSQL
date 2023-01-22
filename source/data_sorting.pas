@@ -55,7 +55,7 @@ begin
 
   FSortItems := TSortItems.Create(True);
   FSortItems.Assign(MainForm.DataGridSortItems);
-  FOldOrderClause := FSortItems.ComposeOrderClause;
+  FOldOrderClause := FSortItems.ComposeOrderClause(MainForm.ActiveConnection);
 
   // First creation of controls
   DisplaySortingControls(Sender);
@@ -284,7 +284,7 @@ end;
 }
 procedure TfrmDataSorting.Modified;
 begin
-  btnOk.Enabled := FSortItems.ComposeOrderClause <> FOldOrderClause;
+  btnOk.Enabled := FSortItems.ComposeOrderClause(MainForm.ActiveConnection) <> FOldOrderClause;
 end;
 
 
