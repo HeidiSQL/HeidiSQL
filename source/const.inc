@@ -71,12 +71,6 @@ const
   {Pebibyte} NAME_PB = ' PiB';
   {Exbibyte} NAME_EB = ' EiB';
 
-  // Used by ListViews and Grids
-  ORDER_ASC = 0;            // Used for tag-value of "Direction"-button
-  ORDER_DESC = 1;           // dito
-  TXT_ASC = 'ASC';          // Used for caption of "Direction"-button
-  TXT_DESC = 'DESC';        // dito
-
   // Data grid: How many bytes to fetch from data fields that are potentially large.
   GRIDMAXDATA: Integer = 256;
 

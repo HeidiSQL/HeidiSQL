@@ -1211,6 +1211,7 @@ type
     FDataGridColumnWidthsCustomized: Boolean;
     FDataGridLastClickedColumnHeader: Integer;
     FDataGridLastClickedColumnLeftPos: Integer;
+    FDataGridSortItems: TSortItems;
     FSnippetFilenames: TStringList;
     FConnections: TDBConnectionList;
     FTreeClickHistory: TNodeArray;
@@ -1292,7 +1293,6 @@ type
 
     // Data grid related stuff
     DataGridHiddenColumns: TStringList;
-    DataGridSortColumns: TOrderColArray;
     DataGridWantedRowCount: Int64;
     DataGridTable: TDBObject;
     DataGridFocusedCell: TStringList;
@@ -1348,6 +1348,7 @@ type
     procedure SetupSynEditor(Editor: TSynMemo);
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
     procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
+    property DataGridSortItems: TSortItems read FDataGridSortItems write FDataGridSortItems;
     function GetEncodingByName(Name: String): TEncoding;
     function GetEncodingName(Encoding: TEncoding): String;
     function GetCharsetByEncoding(Encoding: TEncoding): String;
@@ -2049,6 +2050,8 @@ begin
   DatatypeCategories[dtcSpatial].Color := AppSettings.ReadInt(asFieldColorSpatial);
   DatatypeCategories[dtcOther].Color := AppSettings.ReadInt(asFieldColorOther);
   CalcNullColors;
+
+  FDataGridSortItems := TSortItems.Create(True);
 
   DataLocalNumberFormat := AppSettings.ReadBool(asDataLocalNumberFormat);
   DataGridTable := nil;
@@ -5724,21 +5727,21 @@ const
   NumSortChars: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
 
   procedure GetSortIndex(Column: TVirtualTreeColumn; var SortIndex: Integer; var SortDirection: VirtualTrees.TSortDirection);
-  var i: Integer;
+  var
+    SortItem: TSortItem;
   begin
     SortIndex := -1;
     if Column.Owner.Header.Treeview = DataGrid then begin
       // Data grid supports multiple sorted columns
-      for i:=0 to Length(DataGridSortColumns)-1 do begin
-        if DataGridSortColumns[i].ColumnName = PaintInfo.Column.Text then begin
-          SortIndex := i;
-          if DataGridSortColumns[i].SortDirection = ORDER_ASC then
-            SortDirection := sdAscending
-          else
-            SortDirection := sdDescending;
-          Break;
-        end;
+      SortItem := FDataGridSortItems.FindByColumn(PaintInfo.Column.Text);
+      if Assigned(SortItem) then begin
+        SortIndex := FDataGridSortItems.IndexOf(SortItem);
+        if SortItem.Order = sioAscending then
+          SortDirection := sdAscending
+        else
+          SortDirection := sdDescending;
       end;
+
     end else begin
       // We're in a query grid, supporting a single sorted column
       if Column.Owner.Header.SortColumn = Column.Index then begin
@@ -5962,10 +5965,10 @@ begin
     SynMemoFilter.OnStatusChange(SynMemoFilter, []);
 
     // Append ORDER clause
-    if Length(DataGridSortColumns) > 0 then begin
-      Select := Select + ' ORDER BY ' + ComposeOrderClause(DataGridSortColumns);
+    if FDataGridSortItems.Count > 0 then begin
+      Select := Select + ' ORDER BY ' + FDataGridSortItems.ComposeOrderClause;
       tbtnDataSorting.ImageIndex := 108;
-      tbtnDataSorting.Caption := _('Sorting') + ' ('+IntToStr(Length(DataGridSortColumns))+')';
+      tbtnDataSorting.Caption := _('Sorting') + ' ('+IntToStr(FDataGridSortItems.Count)+')';
     end else begin
       tbtnDataSorting.ImageIndex := 107;
       tbtnDataSorting.Caption := _('Sorting');
@@ -10287,9 +10290,8 @@ end;
 procedure TMainForm.DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
   frm: TForm;
-  i, j: Integer;
-  columnexists : Boolean;
   ColName: String;
+  SortItem: TSortItem;
 begin
   if HitInfo.Column = NoColumn then
     Exit;
@@ -10300,32 +10302,20 @@ begin
     ColName := Sender.Columns[HitInfo.Column].Text;
     // Add a new order column after a columns title has been clicked
     // Check if order column is already existant
-    columnexists := False;
-    for i := Low(DataGridSortColumns) to High(DataGridSortColumns) do begin
-      if DataGridSortColumns[i].ColumnName = ColName then begin
-        // AddOrderCol is already in the list. Switch its direction:
-        // DESC > ASC > [delete col]
-        columnexists := True;
-        if DataGridSortColumns[i].SortDirection = ORDER_DESC then
-          DataGridSortColumns[i].SortDirection := ORDER_ASC
-        else begin
-          // Delete order col
-          for j := i to High(DataGridSortColumns) - 1 do
-            DataGridSortColumns[j] := DataGridSortColumns[j+1];
-          SetLength(DataGridSortColumns, Length(DataGridSortColumns)-1);
-        end;
-        // We found the matching column, no need to loop further
-        break;
-      end;
+    SortItem := FDataGridSortItems.FindByColumn(ColName);
+    if Assigned(SortItem) then begin
+      // AddOrderCol is already in the list. Switch its direction:
+      // ASC > DESC > [delete col]
+      if SortItem.Order = sioAscending then
+        SortItem.Order := sioDescending
+      else
+        FDataGridSortItems.Remove(SortItem);
+    end
+    else begin
+      SortItem := TSortItem.Create(ColName, sioAscending);
+      FDataGridSortItems.Add(SortItem);
     end;
 
-    if not columnexists then begin
-      i := Length(DataGridSortColumns);
-      SetLength(DataGridSortColumns, i+1);
-      DataGridSortColumns[i] := TOrderCol.Create;
-      DataGridSortColumns[i].ColumnName := ColName;
-      DataGridSortColumns[i].SortDirection := ORDER_DESC;
-    end;
     // Refresh grid, and remember X scroll offset, so the just clicked column is still at the same place.
     FDataGridLastClickedColumnHeader := HitInfo.Column;
     FDataGridLastClickedColumnLeftPos := Sender.Columns[HitInfo.Column].Left;
@@ -10898,8 +10888,9 @@ end;
 procedure TMainForm.HandleDataGridAttributes(RefreshingData: Boolean);
 var
   rx: TRegExpr;
-  idx, i: Integer;
+  i: Integer;
   Sort, KeyName, FocusedCol, CellFocus, Filter: String;
+  SortItem: TSortItem;
 begin
   actDataResetSorting.Enabled := False;
   // Clear filter, column names and sort structure if gr
@@ -10939,7 +10930,7 @@ begin
   if not RefreshingData then begin
     DataGridHiddenColumns.Clear;
     SynMemoFilter.Clear;
-    SetLength(DataGridSortColumns, 0);
+    FDataGridSortItems.Clear;
     DataGridWantedRowCount := 0;
     while DataGridFocusedNodeIndex >= DataGridWantedRowCount do
       Inc(DataGridWantedRowCount, AppSettings.ReadInt(asDatagridRowsPerStep));
@@ -10956,8 +10947,10 @@ begin
     else if AppSettings.ValueExists(asFilter) then
       AppSettings.DeleteValue(asFilter);
 
-    for i := 0 to High(DataGridSortColumns) do
-      Sort := Sort + IntToStr(DataGridSortColumns[i].SortDirection) + '_' + DataGridSortColumns[i].ColumnName + DELIM;
+    Sort := '';
+    for SortItem in FDataGridSortItems do begin
+      Sort := Sort + IntToStr(Integer(SortItem.Order)) + '_' + SortItem.Column + DELIM;
+    end;
     if Sort <> '' then
       AppSettings.WriteString(asSort, Sort)
     else if AppSettings.ValueExists(asSort) then
@@ -10992,26 +10985,25 @@ begin
 
   // Sort
   if AppSettings.ValueExists(asSort) then begin
-    SetLength(DataGridSortColumns, 0);
+    FDataGridSortItems.Clear;
     rx := TRegExpr.Create;
     rx.Expression := '\b(\d)_(.+)\'+DELIM;
     rx.ModifierG := False;
     if rx.Exec(AppSettings.ReadString(asSort)) then while true do begin
-      idx := Length(DataGridSortColumns);
       // Check if column exists, could be renamed or deleted
       for i:=0 to SelectedTableColumns.Count-1 do begin
         if SelectedTableColumns[i].Name = rx.Match[2] then begin
-          SetLength(DataGridSortColumns, idx+1);
-          DataGridSortColumns[idx] := TOrderCol.Create;
-          DataGridSortColumns[idx].ColumnName := rx.Match[2];
-          DataGridSortColumns[idx].SortDirection := StrToIntDef(rx.Match[1], ORDER_ASC);
-          break;
+          SortItem := TSortItem.Create;
+          SortItem.Column := rx.Match[2];
+          SortItem.Order := TSortItemOrder(StrToIntDef(rx.Match[1], 0));
+          FDataGridSortItems.Add(SortItem);
+          Break;
         end;
       end;
       if not rx.ExecNext then
         break;
     end;
-    actDataResetSorting.Enabled := Length(DataGridSortColumns) > 0;
+    actDataResetSorting.Enabled := FDataGridSortItems.Count > 0;
   end;
 
   AppSettings.ResetPath;
@@ -13177,7 +13169,7 @@ end;
 
 procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
 begin
-  SetLength(DataGridSortColumns, 0);
+  FDataGridSortItems.Clear;
   InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 

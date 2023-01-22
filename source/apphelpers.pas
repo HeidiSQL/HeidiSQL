@@ -18,11 +18,21 @@ uses
 
 type
 
-  TOrderCol = class(TObject)
-    ColumnName: String;
-    SortDirection: Byte;
+  TSortItemOrder = (sioAscending, sioDescending);
+  TSortItem = class(TPersistent)
+    public
+      Column: String;
+      Order: TSortItemOrder;
+      constructor Create; overload;
+      constructor Create(lColumn: String; lOrder: TSortItemOrder=sioAscending); overload;
+      procedure Assign(Source: TPersistent); override;
   end;
-  TOrderColArray = Array of TOrderCol;
+  TSortItems = class(TObjectList<TSortItem>)
+    public
+      function ComposeOrderClause: String;
+      function FindByColumn(Column: String): TSortItem;
+      procedure Assign(Source: TSortItems);
+  end;
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
 
@@ -335,7 +345,6 @@ type
   procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
-  function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   function SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
@@ -1425,28 +1434,6 @@ begin
 end;
 
 
-{**
-  Concat all sort options to a ORDER clause
-}
-function ComposeOrderClause(Cols: TOrderColArray): String;
-var
-  i : Integer;
-  sort : String;
-begin
-  result := '';
-  for i := 0 to Length(Cols) - 1 do
-  begin
-    if result <> '' then
-      result := result + ', ';
-    if Cols[i].SortDirection = ORDER_ASC then
-      sort := TXT_ASC
-    else
-      sort := TXT_DESC;
-    result := result + MainForm.ActiveConnection.QuoteIdent( Cols[i].ColumnName ) + ' ' + sort;
-  end;
-end;
-
-
 procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
 var
   Node: PVirtualNode;
@@ -1816,6 +1803,82 @@ begin
   SetLength(Result, Run-2);
 end;
 
+
+{ *** TSortItem }
+
+constructor TSortItem.Create;
+begin
+  inherited;
+  Column := '';
+  Order := sioAscending;
+end;
+
+constructor TSortItem.Create(lColumn: String; lOrder: TSortItemOrder=sioAscending);
+begin
+  inherited Create;
+  Column := lColumn;
+  Order := lOrder;
+end;
+
+
+procedure TSortItem.Assign(Source: TPersistent);
+var
+  SourceItem: TSortItem;
+begin
+  if Source is TSortItem then begin
+    SourceItem := Source as TSortItem;
+    Column := SourceItem.Column;
+    Order := SourceItem.Order;
+  end
+  else
+    Inherited;
+end;
+
+
+{ *** TSortItems }
+
+function TSortItems.ComposeOrderClause: String;
+var
+  SortItem: TSortItem;
+  Conn: TDBConnection;
+begin
+  // Concat all sort options to an ORDER BY clause
+  Result := '';
+  Conn := MainForm.ActiveConnection;
+  for SortItem in Self do begin
+    if Result <> '' then
+      Result := Result + ', ';
+    Result := Result + Conn.QuoteIdent(SortItem.Column) +
+      ' ' + IfThen(SortItem.Order = sioAscending, Conn.GetSQLSpecifity(spOrderAsc), Conn.GetSQLSpecifity(spOrderDesc));
+  end;
+end;
+
+
+function TSortItems.FindByColumn(Column: String): TSortItem;
+var
+  SortItem: TSortItem;
+begin
+  Result := nil;
+  for SortItem in Self do begin
+    if SortItem.Column = Column then begin
+      Result := SortItem;
+      Break;
+    end;
+  end;
+end;
+
+
+procedure TSortItems.Assign(Source: TSortItems);
+var
+  Item, ItemCopy: TSortItem;
+begin
+  Clear;
+  for Item in Source do begin
+    ItemCopy := TSortItem.Create;
+    ItemCopy.Assign(Item);
+    Add(ItemCopy);
+  end;
+end;
 
 
 { *** TDBObjectEditor }

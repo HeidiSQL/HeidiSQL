@@ -426,7 +426,8 @@ type
     spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
     spFuncLength, spFuncCeil, spFuncLeft, spFuncNow,
-    spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks);
+    spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks,
+    spOrderAsc, spOrderDesc);
 
   TDBConnection = class(TComponent)
     private
@@ -3016,6 +3017,9 @@ begin
   Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
     [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
     ));
+
+  FSQLSpecifities[spOrderAsc] := 'ASC';
+  FSQLSpecifities[spOrderDesc] := 'DESC';
 
   case Parameters.NetTypeGroup of
     ngMySQL: begin
