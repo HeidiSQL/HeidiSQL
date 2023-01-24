@@ -137,8 +137,9 @@ object connform: Tconnform
       object btnImportSettings: TButton
         Left = 10
         Top = 184
-        Width = 159
+        Width = 497
         Height = 25
+        Anchors = [akLeft, akTop, akRight]
         Caption = 'Import settings ...'
         ImageIndex = 101
         TabOrder = 0
