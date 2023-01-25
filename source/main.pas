@@ -6670,7 +6670,7 @@ var
   i, j, ImageIndex, ColumnsInList: Integer;
   Results: TDBQuery;
   DBObjects: TDBObjectList;
-  sql, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
+  CurrentQuery, TableClauses, TableName, LeftPart, Token1, Token2, Token3, Token, Ident: String;
   Tables: TStringList;
   rx: TRegExpr;
   Start, TokenTypeInt: Integer;
@@ -6796,15 +6796,15 @@ begin
     // 1. find currently edited sql query around the cursor position in synmemo
     if Editor = SynMemoFilter then begin
       // Make sure the below regexp can find structure
-      sql := 'SELECT * FROM '+ActiveDbObj.QuotedName+' WHERE ' + Editor.Text;
+      CurrentQuery := 'SELECT * FROM '+ActiveDbObj.QuotedName+' WHERE ' + Editor.Text;
     end else begin
       // In a query tab
       Queries := TSQLBatch.Create;
       Queries.SQL := Editor.Text;
       for Query in Queries do begin
         if (Query.LeftOffset <= Editor.SelStart) and (Editor.SelStart < Query.RightOffset) then begin
-          sql := Query.SQL;
-          break;
+          CurrentQuery := Query.SQLWithoutComments;
+          Break;
         end;
       end;
       Queries.Free;
@@ -6814,7 +6814,7 @@ begin
     rx.ModifierG := True;
     rx.ModifierI := True;
     rx.Expression := '\b(FROM|INTO|UPDATE)\s+(IGNORE\s+)?(.+)(WHERE|HAVING|ORDER|GROUP)?';
-    if rx.Exec(sql) then begin
+    if rx.Exec(CurrentQuery) then begin
       TableClauses := rx.Match[3];
       // Ensure tables in JOIN clause(s) are splitted by comma
       TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
