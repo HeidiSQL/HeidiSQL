@@ -10,7 +10,7 @@
 #define WebSite "https://www." + ProgNameLower + ".com/"
 #define OutDir "."
 #define ResourceDir OutDir + "\..\res\"
-#define SnippetsDir "{userdocs}\" + ProgName + "\Snippets"
+#define SnippetsDir "{autodocs}\" + ProgName + "\Snippets"
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
@@ -55,7 +55,7 @@ Compression=lzma2/ultra64
 SolidCompression=yes
 CloseApplications=yes
 ShowLanguageDialog=auto
-DefaultDirName={commonpf}\{#ProgName}
+DefaultDirName={autopf}\{#ProgName}
 DefaultGroupName={#ProgName}
 AllowNoIcons=yes
 LicenseFile=license.txt
@@ -70,7 +70,8 @@ SetupIconFile={#ResourceDir}mainicon.ico
 ArchitecturesInstallIn64BitMode=x64
 UsePreviousAppDir=yes
 DirExistsWarning=auto
-PrivilegesRequired=none
+PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=commandline dialog
 SignedUninstaller=yes
 SignTool=signtool $f
 
@@ -134,8 +135,9 @@ Source: "functions-*.ini"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"
-Name: "{group}\General help"; Filename: "http://www.heidisql.com/help.php?place=startmenu"
-Name: "{userdesktop}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"; MinVersion: 4,4; Tasks: desktopicon
+Name: "{group}\Website"; Filename: "{#Website}"
+Name: "{group}\General help"; Filename: "{#Website}help.php?place=startmenu"
+Name: "{autodesktop}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"; MinVersion: 4,4; Tasks: desktopicon
 
 [Registry]
 Root: HKCR; Subkey: ".sql"; ValueType: string; ValueName: ""; ValueData: "SQLScriptFile"; Flags: noerror uninsdeletevalue; Tasks: associatesqlfiles
