@@ -114,6 +114,7 @@ begin
   Mainform.SynCompletionProposal.AddEditor(SynMemoBody);
   Parameters := TRoutineParamList.Create;
   editName.MaxLength := NAME_LEN;
+  FMainSynMemo := SynMemoBody;
 end;
 
 
@@ -164,6 +165,7 @@ begin
     lblDisabledWhy.Visible := Obj.Body = '';
     PageControlMain.Enabled := not lblDisabledWhy.Visible;
     SynMemoBody.Enabled := PageControlMain.Enabled;
+    SynMemoBody.TopLine := FMainSynMemoPreviousTopLine;
   end else begin
     editName.Text := '';
   end;

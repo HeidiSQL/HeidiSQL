@@ -76,6 +76,7 @@ begin
   SynCompletionProposalStatement.Options := Mainform.SynCompletionProposal.Options;
   SynCompletionProposalStatement.TimerInterval := Mainform.SynCompletionProposal.TimerInterval;
   SynCompletionProposalStatement.Margin := Mainform.SynCompletionProposal.Margin;
+  FMainSynMemo := SynMemoBody;
 end;
 
 
@@ -140,6 +141,7 @@ begin
           end;
         end;
         SynMemoBody.Text := Body;
+        SynMemoBody.TopLine := FMainSynMemoPreviousTopLine;
         Found := True;
         break;
       end;

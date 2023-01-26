@@ -64,6 +64,7 @@ begin
   editName.MaxLength := NAME_LEN;
   comboSecurity.Items.Add('Definer');
   comboSecurity.Items.Add('Invoker');
+  FMainSynMemo := SynMemoBody;
 end;
 
 
@@ -103,6 +104,7 @@ begin
     rgAlgorithm.Enabled := editName.Enabled;
     rgCheck.Enabled := rgAlgorithm.Enabled;
     SynMemoBody.Enabled := rgAlgorithm.Enabled;
+    SynMemoBody.TopLine := FMainSynMemoPreviousTopLine;
   end else begin
     // Create mode
     editName.Text := '';

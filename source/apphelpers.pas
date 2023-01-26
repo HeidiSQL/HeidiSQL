@@ -14,7 +14,7 @@ uses
   System.Win.Registry, System.DateUtils, System.Generics.Collections, System.Contnrs, System.StrUtils, System.AnsiStrings, Winapi.TlHelp32, System.Types,
   dbconnection, dbstructures, dbstructures.mysql, SynMemo, Vcl.Menus, Winapi.WinInet, gnugettext, Vcl.Themes,
   System.Character, Vcl.ImgList, System.UITypes, Vcl.ActnList, Winapi.WinSock, System.IOUtils, Vcl.StdCtrls, Vcl.ComCtrls,
-  Winapi.CommCtrl, Winapi.KnownFolders, SynUnicode;
+  Winapi.CommCtrl, Winapi.KnownFolders, SynUnicode, SynEdit;
 
 type
 
@@ -45,6 +45,8 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     protected
+      FMainSynMemo: TSynMemo; // Main editor in case of routine, view, trigger or event
+      FMainSynMemoPreviousTopLine: Integer;
       function ObjectExists: Boolean;
     public
       DBObject: TDBObject;
@@ -1883,6 +1885,8 @@ begin
   // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
   // repeatedly breaks the GUI layout when you reload the project
   Align := alClient;
+  FMainSynMemo := nil;
+  DBObject := nil;
   TranslateComponent(Self);
 end;
 
@@ -1908,10 +1912,16 @@ var
   popup: TPopupMenu;
   Item: TMenuItem;
   i: Integer;
+  IsRefresh: Boolean;
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
   TExtForm.FixControls(Self);
+  IsRefresh := Assigned(DBObject) and DBObject.IsSameAs(Obj);
+  if IsRefresh and Assigned(FMainSynMemo) then
+    FMainSynMemoPreviousTopLine := FMainSynMemo.TopLine
+  else
+    FMainSynMemoPreviousTopLine := 0;
   DBObject := TDBObject.Create(Obj.Connection);
   DBObject.Assign(Obj);
   Mainform.UpdateEditorTab;
@@ -1976,6 +1986,7 @@ begin
   Result := mrOk;
   if Modified then begin
     ObjType := _(LowerCase(DBObject.ObjType));
+    // Todo: no save button for objects without minimum requirements, such as name. See #1134
     if DBObject.Name <> '' then
       Msg := f_('Save modified %s "%s"?', [ObjType, DBObject.Name])
     else
