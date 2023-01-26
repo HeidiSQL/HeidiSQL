@@ -1090,7 +1090,7 @@ var
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
-  Waited, PortChecks: Integer;
+  Waited, PortChecks, SshTimeOutMilliseconds: Integer;
   IsPlink: Boolean;
 begin
   // Check if local port is open
@@ -1163,7 +1163,8 @@ begin
   // Parse pipe output and probably show some message in a dialog.
   Waited := 0;
   DialogTitle := ExtractFileName(FConnection.Parameters.SSHExe);
-  while Waited < FConnection.Parameters.SSHTimeout*1000 do begin
+  SshTimeOutMilliseconds := FConnection.Parameters.SSHTimeout * 1000;
+  while Waited < SshTimeOutMilliseconds do begin
     Inc(Waited, 200);
     WaitForSingleObject(FProcessInfo.hProcess, 200);
     GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
