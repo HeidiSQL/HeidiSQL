@@ -1348,33 +1348,6 @@ object frmPreferences: TfrmPreferences
         Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <>
       end
-      object HotKey1: THotKey
-        Left = 306
-        Top = 83
-        Width = 263
-        Height = 19
-        Anchors = [akLeft, akTop, akRight]
-        HotKey = 0
-        Modifiers = []
-        TabOrder = 1
-        OnChange = HotKeyChange
-        OnEnter = HotKeyEnter
-        OnExit = HotKeyExit
-      end
-      object HotKey2: THotKey
-        Left = 306
-        Top = 127
-        Width = 263
-        Height = 19
-        Anchors = [akLeft, akTop, akRight]
-        HotKey = 0
-        InvalidKeys = []
-        Modifiers = []
-        TabOrder = 2
-        OnChange = HotKeyChange
-        OnEnter = HotKeyEnter
-        OnExit = HotKeyExit
-      end
     end
     object tabFiles: TTabSheet
       Caption = 'Files and tabs'

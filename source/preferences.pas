@@ -171,8 +171,6 @@ type
     lblLongSortRowNum: TLabel;
     editLongSortRowNum: TEdit;
     updownLongSortRowNum: TUpDown;
-    HotKey1: THotKey;
-    HotKey2: THotKey;
     chkLowercaseHex: TCheckBox;
     chkTabCloseOnDoubleClick: TCheckBox;
     lblRealTrailingZeros: TLabel;
@@ -239,6 +237,8 @@ type
     FRestartOptionTouched: Boolean;
     FRestartOptionApplied: Boolean;
     FThemePreview: TfrmThemePreview;
+    FHotKey1: TExtSynHotKey;
+    FHotKey2: TExtSynHotKey;
     procedure InitLanguages;
     procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
     function EnsureShortcutIsUnused(RequestShortcut: TShortCut): Boolean;
@@ -621,6 +621,36 @@ begin
   end;
 
   // Shortcuts
+  FHotKey1 := TExtSynHotKey.Create(Self);
+  FHotKey1.Parent := tabShortcuts;
+  FHotKey1.Left := lblShortcut1.Left;
+  FHotKey1.Top := lblShortcut1.Top + lblShortcut1.Height + 4;
+  FHotKey1.Width := tabShortcuts.Width - FHotKey1.Left - 50;
+  FHotKey1.Height := editDataFontSize.Height;
+  FHotKey1.Anchors := [akLeft, akTop, akRight];
+  FHotKey1.HotKey := 0;
+  FHotKey1.InvalidKeys := [];
+  FHotKey1.Modifiers := [];
+  FHotKey1.Enabled := False;
+  FHotKey1.OnChange := HotKeyChange;
+  FHotKey1.OnEnter := HotKeyEnter;
+  FHotKey1.OnExit := HotKeyExit;
+
+  FHotKey2 := TExtSynHotKey.Create(Self);
+  FHotKey2.Parent := tabShortcuts;
+  FHotKey2.Left := lblShortcut2.Left;
+  FHotKey2.Top := lblShortcut2.Top + lblShortcut2.Height + 4;
+  FHotKey2.Width := tabShortcuts.Width - FHotKey2.Left - 50;
+  FHotKey2.Height := editDataFontSize.Height;
+  FHotKey2.Anchors := [akLeft, akTop, akRight];
+  FHotKey2.HotKey := 0;
+  FHotKey2.InvalidKeys := [];
+  FHotKey2.Modifiers := [];
+  FHotKey2.Enabled := False;
+  FHotKey2.OnChange := HotKeyChange;
+  FHotKey2.OnEnter := HotKeyEnter;
+  FHotKey2.OnExit := HotKeyExit;
+
   FShortcutCategories := TStringList.Create;
   for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
     if FShortcutCategories.IndexOf(Mainform.ActionList1.Actions[i].Category) = -1 then
@@ -1139,7 +1169,7 @@ begin
   lblShortcutHint.Enabled := ShortcutFocused;
   lblShortcut1.Enabled := ShortcutFocused;
   lblShortcut2.Enabled := ShortcutFocused;
-  HotKey1.Enabled := lblShortcut1.Enabled;
+  FHotKey1.Enabled := lblShortcut1.Enabled;
   if ShortcutFocused then begin
     Data := Sender.GetNodeData(Node);
     lblShortcutHint.Caption := TreeShortcutItems.Text[Node, 0];
@@ -1148,10 +1178,10 @@ begin
       if MainForm.ActionList1DefaultHints[Data.Action.Index] <> '' then
         lblShortcutHint.Caption := MainForm.ActionList1DefaultHints[Data.Action.Index];
     end;
-    HotKey1.HotKey := Data.ShortCut1;
-    HotKey2.HotKey := Data.ShortCut2;
+    FHotKey1.HotKey := Data.ShortCut1;
+    FHotKey2.HotKey := Data.ShortCut2;
   end;
-  HotKey2.Enabled := lblShortcut2.Enabled;
+  FHotKey2.Enabled := lblShortcut2.Enabled;
 end;
 
 
@@ -1311,14 +1341,14 @@ end;
 procedure TfrmPreferences.HotKeyChange(Sender: TObject);
 var
   Data: PShortcutItemData;
-  HotKeyEdit: THotKey;
+  HotKeyEdit: TExtSynHotKey;
   EventHandler: TNotifyEvent;
 begin
   // Shortcut 1 or 2 changed
-  HotKeyEdit := Sender as THotKey;
+  HotKeyEdit := Sender as TExtSynHotKey;
   Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
   if EnsureShortcutIsUnused(HotKeyEdit.HotKey) then begin
-    if HotKeyEdit = HotKey1 then
+    if HotKeyEdit = FHotKey1 then
       Data.Shortcut1 := HotKeyEdit.HotKey
     else
       Data.Shortcut2 := HotKeyEdit.HotKey;
@@ -1326,7 +1356,7 @@ begin
   end else begin
     // Undo change in hotkey editor, without triggering OnChange event
     EventHandler := HotKeyEdit.OnChange;
-    if HotKeyEdit = HotKey1 then
+    if HotKeyEdit = FHotKey1 then
       HotKeyEdit.HotKey := Data.ShortCut1
     else
       HotKeyEdit.HotKey := Data.ShortCut2;
