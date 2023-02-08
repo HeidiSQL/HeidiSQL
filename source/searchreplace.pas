@@ -334,24 +334,34 @@ begin
   Editor.BeginUpdate;
 
   MainForm.ShowStatusMsg(_('Searching ...'));
-  Occurences := Editor.SearchReplace(
-    comboSearch.Text,
-    Replacement,
-    Options
-    );
+  Occurences := -1; // So we can test whether an exception happened
+  try
+    Occurences := Editor.SearchReplace(
+      comboSearch.Text,
+      Replacement,
+      Options
+      );
+  except
+    on E:Exception do begin
+      ErrorDialog(E.ClassName + ': ' + E.Message);
+      ModalResult := mrNone;
+    end;
+  end;
 
   Editor.EndUpdate;
   MainForm.ShowStatusMsg;
 
-  if ssoReplaceAll in Options then begin
-    MessageDialog(f_('Text "%s" replaced %s times.', [comboSearch.Text, FormatNumber(Occurences)]), mtInformation, [mbOk]);
-    if Occurences = 0 then
-      ModalResult := mrNone;
-  end else begin
-    if (OldCaretXY.Char = Editor.CaretXY.Char) and
-      (OldCaretXY.Line = Editor.CaretXY.Line) then begin
-      MessageDialog(f_('Text "%s" not found.', [comboSearch.Text]), mtInformation, [mbOk]);
-      ModalResult := mrNone;
+  if Occurences > -1 then begin
+    if ssoReplaceAll in Options then begin
+      MessageDialog(f_('Text "%s" replaced %s times.', [comboSearch.Text, FormatNumber(Occurences)]), mtInformation, [mbOk]);
+      if Occurences = 0 then
+        ModalResult := mrNone;
+    end else begin
+      if (OldCaretXY.Char = Editor.CaretXY.Char) and
+        (OldCaretXY.Line = Editor.CaretXY.Line) then begin
+        MessageDialog(f_('Text "%s" not found.', [comboSearch.Text]), mtInformation, [mbOk]);
+        ModalResult := mrNone;
+      end;
     end;
   end;
 end;
