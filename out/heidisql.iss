@@ -109,15 +109,20 @@ Source: "libmysql-6.1-32.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; C
 Source: "libpq-10-64.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq-10-32.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq-12-64.dll"; DestDir: "{app}"; DestName: "libpq-12.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libpq-15-64.dll"; DestDir: "{app}"; DestName: "libpq-15.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl-8-64.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl-8-32.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libintl-9-64.dll"; DestDir: "{app}"; DestName: "libintl-9.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libssl-1_1-x64.dll"; DestDir: "{app}"; DestName: "libssl-1_1-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libssl-1_1-32.dll"; DestDir: "{app}"; DestName: "libssl-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libssl-3-x64.dll"; DestDir: "{app}"; DestName: "libssl-3-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libcrypto-1_1-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libcrypto-1_1-32.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libcrypto-3-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-3-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "LICENSE-openssl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libiconv-2-64.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libiconv-2-32.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libwinpthread-1-64.dll"; DestDir: "{app}"; DestName: "libwinpthread-1.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 ; SQLite:
 Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
