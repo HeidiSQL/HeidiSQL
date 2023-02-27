@@ -198,6 +198,7 @@ type
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actFilterExecute(Sender: TObject);
     procedure timerEditFilterDelayTimer(Sender: TObject);
+    procedure chkSSHActiveClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1203,6 +1204,13 @@ begin
   Modification(Sender);
 end;
 
+
+procedure Tconnform.chkSSHActiveClick(Sender: TObject);
+begin
+  if (comboSSHExe.Text = '') and (comboSSHExe.Items.Count > 0) then
+    comboSSHExe.ItemIndex := 0;
+  Modification(Sender);
+end;
 
 procedure Tconnform.ColorBoxBackgroundColorGetColors(Sender: TCustomColorBox;
   Items: TStrings);
