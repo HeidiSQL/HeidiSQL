@@ -1834,6 +1834,8 @@ begin
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;
+        if FCancelled then
+          Break;
         Data.PrepareColumnAttributes;
         BaseInsert := 'INSERT INTO ';
         if comboExportData.Text = DATA_INSERTNEW then
@@ -1884,7 +1886,7 @@ begin
             InsertSizeExceeded := ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > MaxInsertSize;
             // Same with MSSQL which is limited to 1000 rows per INSERT
             RowLimitExceeded := RowCountInChunk >= Quoter.MaxRowsPerInsert;
-            if (RowCountInChunk > 0) and (InsertSizeExceeded or RowLimitExceeded) then
+            if (RowCountInChunk > 0) and (InsertSizeExceeded or RowLimitExceeded or FCancelled) then
               Break;
             Inc(RowCount);
             Inc(RowCountInChunk);
@@ -1893,7 +1895,7 @@ begin
           end;
           Output('', True, True, True, True, True);
           LogStatistic(RowCount);
-          if Data.Eof then
+          if Data.Eof or FCancelled then
             break;
 
         end;
