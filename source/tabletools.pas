@@ -1540,7 +1540,7 @@ var
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   i: Integer;
   RowCount, RowCountInChunk: Int64;
-  Limit, Offset, ResultCount: Int64;
+  Limit, Offset, ResultCount, MaxInsertSize: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TDBQuery;
   ColumnList: TTableColumnList;
@@ -1595,6 +1595,8 @@ begin
 
   StartTime := GetTickCount;
   ExportStreamStartOfQueryPos := 0;
+  MaxInsertSize := Trunc(updownInsertSize.Position * SIZE_KB * 0.9);
+
   if ToDir then begin
     FreeAndNil(ExportStream);
     DbDir := IncludeTrailingPathDelimiter(GetOutputFilename(comboExportOutputTarget.Text, DBObj)) + DBObj.Database + '\';
@@ -1879,7 +1881,7 @@ begin
             Delete(Row, Length(Row)-1, 2);
             Row := Row + ')';
             // Break if stream would increase over the barrier of 1MB, and throw away current row
-            InsertSizeExceeded := ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > updownInsertSize.Position*SIZE_KB*0.9;
+            InsertSizeExceeded := ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > MaxInsertSize;
             // Same with MSSQL which is limited to 1000 rows per INSERT
             RowLimitExceeded := RowCountInChunk >= Quoter.MaxRowsPerInsert;
             if (RowCountInChunk > 0) and (InsertSizeExceeded or RowLimitExceeded) then

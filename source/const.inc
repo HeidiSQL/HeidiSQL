@@ -47,20 +47,20 @@ const
   ICONINDEX_KEYWORD = 25;
 
   // Size of byte units
-  {Kibibyte} SIZE_KB = 1024;
-  {Mebibyte} SIZE_MB = 1048576;
-  {Gibibyte} SIZE_GB = 1073741824;
-  {Tebibyte} SIZE_TB = 1099511627776;
-  {Pebibyte} SIZE_PB = 1125899906842624;
-  {Exbibyte} SIZE_EB = 1152921504606846976;
+  {Kibibyte} SIZE_KB = Int64(1024);
+  {Mebibyte} SIZE_MB = Int64(1048576);
+  {Gibibyte} SIZE_GB = Int64(1073741824);
+  {Tebibyte} SIZE_TB = Int64(1099511627776);
+  {Pebibyte} SIZE_PB = Int64(1125899906842624);
+  {Exbibyte} SIZE_EB = Int64(1152921504606846976);
 
   // Size of byte units for formatting purposes
-  {Kibibyte} FSIZE_KB = 1000;
-  {Mebibyte} FSIZE_MB = 1024000;
-  {Gibibyte} FSIZE_GB = 1048576000;
-  {Tebibyte} FSIZE_TB = 1073741824000;
-  {Pebibyte} FSIZE_PB = 1099511627776000;
-  {Exbibyte} FSIZE_EB = 1125899906842624000;
+  {Kibibyte} FSIZE_KB = Int64(1000);
+  {Mebibyte} FSIZE_MB = Int64(1024000);
+  {Gibibyte} FSIZE_GB = Int64(1048576000);
+  {Tebibyte} FSIZE_TB = Int64(1073741824000);
+  {Pebibyte} FSIZE_PB = Int64(1099511627776000);
+  {Exbibyte} FSIZE_EB = Int64(1125899906842624000);
 
   // Abbreviations of byte unit names
   {Bytes} NAME_BYTES = ' B';
@@ -72,9 +72,9 @@ const
   {Exbibyte} NAME_EB = ' EiB';
 
   // Data grid: How many bytes to fetch from data fields that are potentially large.
-  GRIDMAXDATA: Integer = 256;
+  GRIDMAXDATA: Int64 = 256;
 
-  BACKUP_MAXFILESIZE: Integer = 10 * SIZE_MB;
+  BACKUP_MAXFILESIZE = 10 * SIZE_MB;
   BACKUP_FILEPATTERN: String = 'query-tab-%s.sql';
 
   VTREE_NOTLOADED = 0;
