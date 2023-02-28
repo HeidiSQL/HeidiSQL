@@ -1091,6 +1091,7 @@ var
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
   Waited, PortChecks, SshTimeOutMilliseconds: Integer;
+  SshCheckIntervalMilliseconds: Integer;
   IsPlink: Boolean;
 begin
   // Check if local port is open
@@ -1164,10 +1165,12 @@ begin
   Waited := 0;
   DialogTitle := ExtractFileName(FConnection.Parameters.SSHExe);
   SshTimeOutMilliseconds := FConnection.Parameters.SSHTimeout * 1000;
+  SshCheckIntervalMilliseconds := FConnection.Parameters.SSHTimeout * 100;
   while Waited < SshTimeOutMilliseconds do begin
-    Inc(Waited, 200);
-    WaitForSingleObject(FProcessInfo.hProcess, 200);
+    Inc(Waited, SshCheckIntervalMilliseconds);
+    WaitForSingleObject(FProcessInfo.hProcess, SshCheckIntervalMilliseconds);
     GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
+    FConnection.Log(lcDebug, 'SSH process exit code after '+Waited.ToString+'ms: '+ExitCode.ToString);
     if ExitCode <> STILL_ACTIVE then
       raise EDbError.CreateFmt(_('SSH exited unexpected. Command line was: %s'), [CRLF+SshCmdDisplay]);
 
