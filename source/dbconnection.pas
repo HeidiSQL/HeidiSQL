@@ -1090,9 +1090,10 @@ var
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
-  Waited, PortChecks, SshTimeOutMilliseconds: Integer;
-  SshCheckIntervalMilliseconds: Integer;
+  PortChecks: Integer;
+  CheckIntervalMs: Integer;
   IsPlink: Boolean;
+  TimeStartedMs, WaitedMs, WaitedLeftMs, TimeOutMs: Int64;
 begin
   // Check if local port is open
   PortChecks := 0;
@@ -1162,22 +1163,30 @@ begin
   // Wait until timeout has finished.
   // Todo: Find a way to wait only until connection is established
   // Parse pipe output and probably show some message in a dialog.
-  Waited := 0;
+  WaitedMs := 0;
   DialogTitle := ExtractFileName(FConnection.Parameters.SSHExe);
-  SshTimeOutMilliseconds := FConnection.Parameters.SSHTimeout * 1000;
-  SshCheckIntervalMilliseconds := FConnection.Parameters.SSHTimeout * 100;
-  while Waited < SshTimeOutMilliseconds do begin
-    Inc(Waited, SshCheckIntervalMilliseconds);
-    WaitForSingleObject(FProcessInfo.hProcess, SshCheckIntervalMilliseconds);
+  TimeOutMs := FConnection.Parameters.SSHTimeout * 1000;
+  CheckIntervalMs := FConnection.Parameters.SSHTimeout * 100;
+  TimeStartedMs := GetTickCount64;
+  while WaitedMs < TimeOutMs do begin
+    WaitForSingleObject(FProcessInfo.hProcess, CheckIntervalMs);
+    WaitedMs := GetTickCount64 - TimeStartedMs;
+    // On Wine, WaitForSingleObject does not really seem to wait. See #1771
+    WaitedLeftMs := TimeStartedMs + WaitedMs - GetTickCount64;
+    if WaitedLeftMs > 0 then begin
+      FConnection.Log(lcDebug, 'Wait additional '+WaitedLeftMs.ToString+'ms (see issue #1771)...');
+      Sleep(WaitedLeftMs);
+    end;
     GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
-    FConnection.Log(lcDebug, 'SSH process exit code after '+Waited.ToString+'ms: '+ExitCode.ToString);
-    if ExitCode <> STILL_ACTIVE then
+    if ExitCode <> STILL_ACTIVE then begin
+      FConnection.Log(lcError, 'SSH process exited after '+WaitedMs.ToString+'ms with code '+ExitCode.ToString+'. Should be '+STILL_ACTIVE.ToString+' (STILL_ACTIVE)');
       raise EDbError.CreateFmt(_('SSH exited unexpected. Command line was: %s'), [CRLF+SshCmdDisplay]);
+    end;
 
     OutText := Trim(ReadPipe(FOutPipe));
     ErrorText := ReadPipe(FErrorPipe);
     if (OutText <> '') or (ErrorText <> '') then begin
-      FConnection.Log(lcDebug, Format('SSH output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [Waited, OutText, ErrorText]));
+      FConnection.Log(lcDebug, Format('SSH output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [WaitedMs, OutText, ErrorText]));
     end;
 
     if OutText <> '' then begin
