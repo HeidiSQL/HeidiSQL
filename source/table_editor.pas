@@ -2645,7 +2645,7 @@ begin
       end;
     4, 5: begin
         EnumEditor := TEnumEditorLink.Create(VT, True, nil);
-        EnumEditor.ValueList.Text := 'RESTRICT'+CRLF+'CASCADE'+CRLF+'SET NULL'+CRLF+'NO ACTION';
+        EnumEditor.ValueList := Explode(',', DBObject.Connection.GetSQLSpecifity(spForeignKeyEventAction));
         EditLink := EnumEditor;
       end;
   end;

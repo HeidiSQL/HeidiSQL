@@ -421,7 +421,7 @@ type
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId, spDatabaseDrop,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost, spLikeCompare,
-    spAddColumn, spChangeColumn, spRenameColumn,
+    spAddColumn, spChangeColumn, spRenameColumn, spForeignKeyEventAction,
     spGlobalStatus, spCommandsCounters, spSessionVariables, spGlobalVariables,
     spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
@@ -3033,6 +3033,7 @@ begin
 
   FSQLSpecifities[spOrderAsc] := 'ASC';
   FSQLSpecifities[spOrderDesc] := 'DESC';
+  FSQLSpecifities[spForeignKeyEventAction] := 'RESTRICT,CASCADE,SET NULL,NO ACTION';
 
   case Parameters.NetTypeGroup of
     ngMySQL: begin
@@ -3107,6 +3108,7 @@ begin
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
       FSQLSpecifities[spRenameColumn] := 'RENAME COLUMN %s TO %s';
+      FSQLSpecifities[spForeignKeyEventAction] := 'RESTRICT,CASCADE,SET NULL,NO ACTION,SET DEFAULT';
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISSchemaCol] := '%s_schema';
