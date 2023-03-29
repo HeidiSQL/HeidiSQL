@@ -1313,11 +1313,16 @@ end;
 
 procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
 var
-  TextContent, HTMLContent: AnsiString;
+  TextContent, HTMLContent, HTMLHeader, NullPos: AnsiString;
   GlobalMem: HGLOBAL;
   lp: PChar;
   ClpLen: Integer;
   CF_HTML: Word;
+
+  function FormatPos(Num: Integer): String;
+  begin
+    Result := System.AnsiStrings.Format('%.10d', [Num]);
+  end;
 begin
   // Copy unicode text to clipboard
   if Assigned(Text) then begin
@@ -1339,16 +1344,37 @@ begin
     HTML.Position := 0;
     HTML.Read(PAnsiChar(HTMLContent)^, HTML.Size);
     if CreateHTMLHeader then begin
-      HTMLContent := 'Version:0.9' + CRLF +
-        'StartHTML:000089' + CRLF +
-        'EndHTML:같같같' + CRLF +
-        'StartFragment:000089' + CRLF +
-        'EndFragment:같같같' + CRLF +
-        HTMLContent + CRLF;
+      NullPos := FormatPos(0);
+      HTMLHeader := 'Version:0.9' + CRLF +
+        'StartHTML:' + NullPos + CRLF +
+        'EndHTML:' + NullPos + CRLF +
+        'StartFragment:' + NullPos + CRLF +
+        'EndFragment:' + NullPos + CRLF;
+      HTMLHeader := System.AnsiStrings.StringReplace(
+        HTMLHeader,
+        'StartHTML:' + NullPos,
+        'StartHTML:' + FormatPos(Length(HTMLHeader)),
+        []
+        );
+      HTMLContent := HTMLHeader + HTMLContent;
       HTMLContent := System.AnsiStrings.StringReplace(
-        HTMLContent, '같같같',
-        System.AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
-        [rfReplaceAll]);
+        HTMLContent,
+        'EndHTML:' + NullPos,
+        'EndHTML:' + FormatPos(Length(HTMLContent)),
+        []
+        );
+      HTMLContent := System.AnsiStrings.StringReplace(
+        HTMLContent,
+        'StartFragment:' + NullPos,
+        'StartFragment:' + FormatPos(Pos('<body>', HTMLContent) + 6),
+        []
+        );
+      HTMLContent := System.AnsiStrings.StringReplace(
+        HTMLContent,
+        'EndFragment:' + NullPos,
+        'EndFragment:' + FormatPos(Length(HTMLContent)),
+        []
+        );
     end;
     ClpLen := Length(HTMLContent) + 1;
     GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
