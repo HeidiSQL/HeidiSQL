@@ -623,14 +623,11 @@ begin
           '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
           '    <meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + CRLF +
           '    <style type="text/css">' + CRLF +
-          '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'", Arial, Helvetica, sans-serif; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
-          '      table, td {border: 1px solid silver;}' + CRLF +
+          '      th, td {vertical-align: top;}' + CRLF +
+          '      table, td {border: 1px solid silver; padding: 2px;}' + CRLF +
           '      table {border-collapse: collapse;}' + CRLF;
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          // Adjust preferred width of columns.
-          Header := Header +
-           '      thead .col' + IntToStr(Col) + ' {width: ' + IntToStr(Grid.Header.Columns[Col].Width) + 'px;}' + CRLF;
           // Right-justify all cells to match the grid on screen.
           if Grid.Header.Columns[Col].Alignment = taRightJustify then
             Header := Header + '      .col' + IntToStr(Col) + ' {text-align: right;}' + CRLF;

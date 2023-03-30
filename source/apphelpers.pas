@@ -1318,10 +1318,15 @@ var
   lp: PChar;
   ClpLen: Integer;
   CF_HTML: Word;
+  StartHTML, EndHTML, StartFragment, EndFragment: Integer;
+const
+  PosFormat: AnsiString = '%.10d';
 
-  function FormatPos(Num: Integer): String;
+  procedure ReplacePos(Name: AnsiString; Value: Integer);
+  var NewPos: AnsiString;
   begin
-    Result := System.AnsiStrings.Format('%.10d', [Num]);
+    NewPos := Format(PosFormat, [Value]);
+    HTMLContent := StringReplace(HTMLContent, Name+':'+NullPos, Name+':'+NewPos, []);
   end;
 begin
   // Copy unicode text to clipboard
@@ -1344,37 +1349,21 @@ begin
     HTML.Position := 0;
     HTML.Read(PAnsiChar(HTMLContent)^, HTML.Size);
     if CreateHTMLHeader then begin
-      NullPos := FormatPos(0);
-      HTMLHeader := 'Version:0.9' + CRLF +
-        'StartHTML:' + NullPos + CRLF +
-        'EndHTML:' + NullPos + CRLF +
-        'StartFragment:' + NullPos + CRLF +
-        'EndFragment:' + NullPos + CRLF;
-      HTMLHeader := System.AnsiStrings.StringReplace(
-        HTMLHeader,
-        'StartHTML:' + NullPos,
-        'StartHTML:' + FormatPos(Length(HTMLHeader)),
-        []
-        );
+      NullPos := Format(PosFormat, [0]);
+      HTMLHeader := 'Version:0.9' + sLineBreak +
+        'StartHTML:' + NullPos + sLineBreak +
+        'EndHTML:' + NullPos + sLineBreak +
+        'StartFragment:' + NullPos + sLineBreak +
+        'EndFragment:' + NullPos + sLineBreak;
+      StartHTML := Length(HTMLHeader);
       HTMLContent := HTMLHeader + HTMLContent;
-      HTMLContent := System.AnsiStrings.StringReplace(
-        HTMLContent,
-        'EndHTML:' + NullPos,
-        'EndHTML:' + FormatPos(Length(HTMLContent)),
-        []
-        );
-      HTMLContent := System.AnsiStrings.StringReplace(
-        HTMLContent,
-        'StartFragment:' + NullPos,
-        'StartFragment:' + FormatPos(Pos('<body>', HTMLContent) + 6),
-        []
-        );
-      HTMLContent := System.AnsiStrings.StringReplace(
-        HTMLContent,
-        'EndFragment:' + NullPos,
-        'EndFragment:' + FormatPos(Length(HTMLContent)),
-        []
-        );
+      EndHTML := Length(HTMLContent);
+      StartFragment := Pos(AnsiString('<body>'), HTMLContent) + 6;
+      EndFragment := Pos(AnsiString('</body'), HTMLContent)-1;
+      ReplacePos('StartHTML', StartHTML);
+      ReplacePos('EndHTML', EndHTML);
+      ReplacePos('StartFragment', StartFragment);
+      ReplacePos('EndFragment', EndFragment);
     end;
     ClpLen := Length(HTMLContent) + 1;
     GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
