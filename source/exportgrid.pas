@@ -1075,7 +1075,7 @@ begin
           efHTML: HTML := S;
         end;
       end;
-      StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
+      StreamToClipboard(S, HTML);
     end else begin
       try
         S.SaveToFile(Filename);

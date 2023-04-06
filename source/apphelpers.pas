@@ -340,7 +340,7 @@ type
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
-  procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
+  procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
@@ -1311,7 +1311,7 @@ begin
 end;
 
 
-procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
+procedure StreamToClipboard(Text, HTML: TStream);
 var
   TextContent, HTMLContent, HTMLHeader, NullPos: AnsiString;
   GlobalMem: HGLOBAL;
@@ -1348,7 +1348,8 @@ begin
     SetLength(HTMLContent, HTML.Size);
     HTML.Position := 0;
     HTML.Read(PAnsiChar(HTMLContent)^, HTML.Size);
-    if CreateHTMLHeader then begin
+    if Pos(AnsiString('Version:'), HTMLContent) = 0 then begin
+      // Only required if header was not already prepended by SynEdit, e.g. in grid export of SQL Inserts
       NullPos := Format(PosFormat, [0]);
       HTMLHeader := 'Version:0.9' + sLineBreak +
         'StartHTML:' + NullPos + sLineBreak +

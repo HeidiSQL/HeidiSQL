@@ -882,7 +882,7 @@ begin
     Output('/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */', True, False, False, True, True);
     Output('/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, ''system'') */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
-      StreamToClipboard(ExportStream, nil, false);
+      StreamToClipboard(ExportStream, nil);
 
     if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then
       FileName := TFileStream(ExportStream).FileName;
