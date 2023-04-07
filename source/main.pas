@@ -10134,7 +10134,7 @@ end;
 procedure TMainForm.AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
-  EditingAndFocused: Boolean;
+  EditingAndFocused, IsScientific: Boolean;
   RowNumber: PInt64;
   Results: TDBQuery;
   Timestamp: Int64;
@@ -10178,10 +10178,12 @@ begin
         end else begin
           CellText := Results.Col(Column);
 
-          // Keep only wanted trailing zeros directly after decimal separator
+          // Keep only wanted number of trailing zeros after decimal separator
+          // Bug fixed: Do not cut trailing zeros in scientific values like 2.0e30 => 2.0e3
           if (Results.DataType(Column).Category = dtcReal) and (AppSettings.ReadInt(asRealTrailingZeros) >= 0) then begin
             DotPos := Pos('.', CellText);
-            if DotPos > 0 then begin
+            IsScientific := ContainsText(CellText, 'e');
+            if (not IsScientific) and (DotPos > 0) then begin
               NumZeros := 0;
               NumDecimals := 0;
               for i:=DotPos+1 to Length(CellText) do begin
