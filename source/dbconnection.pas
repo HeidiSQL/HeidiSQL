@@ -10524,14 +10524,24 @@ begin
         cdtText:           Result := Result + 'DEFAULT '+FConnection.EscapeString(DefaultText);
         cdtNull:           Result := Result + 'DEFAULT NULL';
         cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
-        cdtExpression:     Result := Result + 'DEFAULT '+DefaultText;
+        cdtExpression: begin
+          if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
+            Result := Result + 'DEFAULT ('+DefaultText+')'
+          else
+            Result := Result + 'DEFAULT '+DefaultText;
+        end;
       end;
       case OnUpdateType of
         // cdtNothing: leave out whole clause
         // cdtText:    not supported, but may be valid in MariaDB?
         // cdtNull:    not supported, but may be valid in MariaDB?
         // cdtAutoInc: not valid in ON UPDATE
-        cdtExpression:     Result := Result + ' ON UPDATE '+OnUpdateText;
+        cdtExpression: begin
+          if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
+            Result := Result + ' ON UPDATE ('+OnUpdateText+')'
+          else
+            Result := Result + ' ON UPDATE '+OnUpdateText;
+        end;
       end;
       Result := Result + ' ';
     end;
