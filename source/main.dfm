@@ -2274,6 +2274,9 @@ object MainForm: TMainForm
       object Launchcommandline1: TMenuItem
         Action = actLaunchCommandline
       end
+      object SequalSuggest1: TMenuItem
+        Action = actSequalSuggest
+      end
       object N7: TMenuItem
         Caption = '-'
       end
@@ -3601,6 +3604,11 @@ object MainForm: TMainForm
       ImageIndex = 74
       ShortCut = 32806
       OnExecute = actSynMoveUpExecute
+    end
+    object actSequalSuggest: TAction
+      Category = 'Tools'
+      Caption = 'Sequal Suggest'
+      OnExecute = actSequalSuggestExecute
     end
   end
   object menuConnections: TPopupMenu

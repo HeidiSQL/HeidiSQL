@@ -98,6 +98,11 @@ Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMo
 Source: "Snippets\*.sql"; DestDir: "{#SnippetsDir}"; Tasks: install_snippets
 Source: "plink-64.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plink-32.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; OpenSSL libraries, used by Indy HTTP:
+Source: "libeay32-64.exe"; DestDir: "{app}"; DestName: "libeay32.exe"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libeay32-32.exe"; DestDir: "{app}"; DestName: "libeay32.exe"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "ssleay32-64.exe"; DestDir: "{app}"; DestName: "ssleay32.exe"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "ssleay32-32.exe"; DestDir: "{app}"; DestName: "ssleay32.exe"; Check: not Is64BitInstallMode; Flags: ignoreversion
 ; MySQL + MariaDB:
 Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmariadb32.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion

@@ -216,6 +216,7 @@ type
     asFileDialogEncoding,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
+    asSequalSuggestWindowWidth, asSequalSuggestWindowHeight,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3873,6 +3874,9 @@ begin
   InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
+  InitSetting(asSequalSuggestWindowWidth,         'SequalSuggestWindowWidth',              500);
+  InitSetting(asSequalSuggestWindowHeight,        'SequalSuggestWindowHeight',             400);
+
   // Default folder for snippets
   if FPortableMode then
     DefaultSnippetsDirectory := ExtractFilePath(ParamStr(0))

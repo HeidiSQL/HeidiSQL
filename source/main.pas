@@ -21,7 +21,7 @@ uses
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
   System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types;
+  SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types, Sequal.Suggest;
 
 
 type
@@ -779,6 +779,8 @@ type
     menuToggleAll: TMenuItem;
     menuCloseTabOnDblClick: TMenuItem;
     Undo1: TMenuItem;
+    actSequalSuggest: TAction;
+    SequalSuggest1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1179,6 +1181,7 @@ type
       var Special: Boolean; var FG, BG: TColor);
     procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
       var Special: Boolean; var FG, BG: TColor);
+    procedure actSequalSuggestExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -11634,6 +11637,15 @@ begin
     MessageBeep(MB_ICONASTERISK);
 end;
 
+
+procedure TMainForm.actSequalSuggestExecute(Sender: TObject);
+var
+  SequalSuggestForm: TSequalSuggestForm;
+begin
+  // Show Sequal Suggest dialog
+  SequalSuggestForm := TSequalSuggestForm.Create(Self);
+  SequalSuggestForm.ShowModal;
+end;
 
 procedure TMainForm.actSelectAllExecute(Sender: TObject);
 var

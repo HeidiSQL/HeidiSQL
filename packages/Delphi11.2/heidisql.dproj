@@ -255,6 +255,10 @@
             <Form>frmCustomizeHighlighter</Form>
         </DCCReference>
         <DCCReference Include="..\..\source\Xml.VerySimple.pas"/>
+        <DCCReference Include="..\..\source\Sequal.Suggest.pas">
+            <Form>SequalSuggestForm</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <None Include="..\..\source\const.inc"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

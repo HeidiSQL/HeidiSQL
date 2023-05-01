@@ -56,7 +56,8 @@ uses
   csv_detector in '..\..\source\csv_detector.pas' {frmCsvDetector},
   generic_types in '..\..\source\generic_types.pas',
   customize_highlighter in '..\..\source\customize_highlighter.pas' {frmCustomizeHighlighter},
-  Xml.VerySimple in '..\..\source\Xml.VerySimple.pas';
+  Xml.VerySimple in '..\..\source\Xml.VerySimple.pas',
+  Sequal.Suggest in '..\..\source\Sequal.Suggest.pas' {SequalSuggestForm};
 
 {.$R *.RES}
 {$R ..\..\res\icon.RES}
@@ -105,7 +106,6 @@ begin
     if TStyleManager.ActiveStyle.Name <> WantedStyle then begin
       AppSettings.WriteString(asTheme, TStyleManager.ActiveStyle.Name);
     end;
-
     Application.CreateForm(TMainForm, MainForm);
     MainForm.AfterFormCreate;
     Application.OnDeactivate := MainForm.ApplicationDeActivate;
