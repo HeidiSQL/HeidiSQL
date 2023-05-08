@@ -216,7 +216,7 @@ type
     asFileDialogEncoding,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
-    asSequalSuggestWindowWidth, asSequalSuggestWindowHeight,
+    asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -407,7 +407,7 @@ type
   function DirSep: Char;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
-  {function GetCurrentUserSID: String;}
+  function UserAgent(OwnerComponent: TComponent): String;
 
 var
   AppSettings: TAppSettings;
@@ -3114,6 +3114,18 @@ begin
 end;
 
 
+function UserAgent(OwnerComponent: TComponent): String;
+var
+  OS: String;
+begin
+  if IsWine then
+    OS := 'Linux/Wine'
+  else
+    OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
+  Result := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
+end;
+
+
 { Get SID of current Windows user, probably useful in the future
 function GetCurrentUserSID: string;
 type
@@ -3488,17 +3500,11 @@ var
   BytesInChunk, HeadSize, Reserved, TimeOutSeconds: Cardinal;
   LocalFile: File;
   DoStore: Boolean;
-  UserAgent, OS: String;
   HttpStatus: Integer;
   ContentChunk: UTF8String;
 begin
   DoStore := False;
-  if IsWine then
-    OS := 'Linux/Wine'
-  else
-    OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
-  UserAgent := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+FOwner.Name+')';
-  NetHandle := InternetOpen(PChar(UserAgent), INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+  NetHandle := InternetOpen(PChar(UserAgent(FOwner)), INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
 
   // Do not let the user wait 30s
   TimeOutSeconds := FTimeOut * 1000;
@@ -3876,6 +3882,8 @@ begin
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
   InitSetting(asSequalSuggestWindowWidth,         'SequalSuggestWindowWidth',              500);
   InitSetting(asSequalSuggestWindowHeight,        'SequalSuggestWindowHeight',             400);
+  InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
+  InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
 
   // Default folder for snippets
   if FPortableMode then

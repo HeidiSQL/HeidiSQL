@@ -781,6 +781,7 @@ type
     Undo1: TMenuItem;
     actSequalSuggest: TAction;
     SequalSuggest1: TMenuItem;
+    SequalSuggest2: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
