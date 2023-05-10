@@ -100,6 +100,7 @@ object frmSQLhelp: TfrmSQLhelp
         Margins.Right = 0
         Margins.Bottom = 0
         Align = alClient
+        Constraints.MinWidth = 30
         Header.AutoSizeIndex = 0
         Header.MainColumn = -1
         Images = MainForm.VirtualImageListMain
@@ -173,6 +174,7 @@ object frmSQLhelp: TfrmSQLhelp
         Height = 153
         SingleLineMode = False
         Align = alTop
+        Constraints.MinHeight = 30
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
@@ -208,6 +210,7 @@ object frmSQLhelp: TfrmSQLhelp
         Height = 104
         SingleLineMode = False
         Align = alClient
+        Constraints.MinHeight = 30
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
         Font.Height = -13
