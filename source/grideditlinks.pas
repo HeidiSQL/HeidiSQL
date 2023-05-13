@@ -1358,7 +1358,7 @@ begin
   FRadioAutoInc.Width := FRadioAutoInc.Parent.Width - 2 * FRadioAutoInc.Left;
   FRadioAutoInc.OnClick := RadioClick;
   FRadioAutoInc.OnKeyDown := DoKeyDown;
-  FRadioAutoInc.Caption := 'AUTO_INCREMENT';
+  FRadioAutoInc.Caption := Col.AutoIncName;
 
   FBtnOk := TButton.Create(FPanel);
   FBtnOk.Parent := FPanel;
@@ -1522,7 +1522,7 @@ begin
       cdtText: Col.DefaultText := FTextEdit.Text;
       cdtNull: Col.DefaultText := 'NULL';
       cdtExpression: Col.DefaultText := FExpressionEdit.Text;
-      cdtAutoInc: Col.DefaultText := 'AUTO_INCREMENT';
+      cdtAutoInc: Col.DefaultText := Col.AutoIncName;
     end;
 
     if FOnUpdateEdit.Text <> '' then

@@ -1297,7 +1297,7 @@ begin
         cdtText:         CellText := Col.Connection.EscapeString(Col.DefaultText);
         cdtNull:         CellText := 'NULL';
         cdtExpression:   CellText := Col.DefaultText;
-        cdtAutoInc:      CellText := 'AUTO_INCREMENT';
+        cdtAutoInc:      CellText := Col.AutoIncName;
       end;
       case Col.OnUpdateType of
         // cdtNothing: leave clause away

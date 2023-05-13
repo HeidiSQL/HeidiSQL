@@ -61,6 +61,7 @@ type
       function CastAsText: String;
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
+      function AutoIncName: String;
   end;
   PTableColumn = ^TTableColumn;
   TTableColumnList = class(TObjectList<TTableColumn>)
@@ -425,7 +426,7 @@ type
     spGlobalStatus, spCommandsCounters, spSessionVariables, spGlobalVariables,
     spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
-    spFuncLength, spFuncCeil, spFuncLeft, spFuncNow,
+    spFuncLength, spFuncCeil, spFuncLeft, spFuncNow, spFuncLastAutoIncNumber,
     spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks,
     spOrderAsc, spOrderDesc);
 
@@ -3071,6 +3072,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := IfThen(Parameters.IsProxySQLAdmin, 'SUBSTR(%s, 1, %d)', 'LEFT(%s, %d)');
       FSQLSpecifities[spFuncNow] := IfThen(Parameters.IsProxySQLAdmin, 'CURRENT_TIMESTAMP', 'NOW()');
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := 'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0';
       FSQLSpecifities[spEnableForeignKeyChecks] := 'SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1)';
@@ -3094,6 +3096,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEILING';
       FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
       FSQLSpecifities[spFuncNow] := 'GETDATE()';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -3119,6 +3122,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTRING(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'NOW()';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LASTVAL()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -3143,6 +3147,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'DATETIME()';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -3170,6 +3175,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := ' cast(''now'' as timestamp) from rdb$database';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -5605,6 +5611,9 @@ begin
       // from an expression:
       Result := not Value.Contains('(');
     end;
+  end else if FParameters.IsAnyPostgreSQL then begin
+    // text only if starting with '
+    Result := Value.StartsWith('''');
   end else begin
     // MS SQL, PG and SQLite:
     Result := True;
@@ -5684,20 +5693,30 @@ begin
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
     Col.OnUpdateType := cdtNothing;
-    if ExecRegExpr('\bauto_increment\b', ExtraText.ToLowerInvariant) then begin
+    if ColQuery.Col('COLUMN_DEFAULT').StartsWith('nextval(', True) then begin
+      // PG auto increment
       Col.DefaultType := cdtAutoInc;
-      Col.DefaultText := 'AUTO_INCREMENT';
-    end else if DefText.ToLowerInvariant = 'null' then begin
+      Col.DefaultText := ColQuery.Col('COLUMN_DEFAULT');
+    end
+    else if ExecRegExpr('\bauto_increment\b', ExtraText.ToLowerInvariant) then begin
+      // MySQL auto increment
+      Col.DefaultType := cdtAutoInc;
+      Col.DefaultText := Col.AutoIncName;
+    end
+    else if DefText.ToLowerInvariant = 'null' then begin
       Col.DefaultType := cdtNull;
-    end else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
+    end
+    else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
       if Col.AllowNull then
         Col.DefaultType := cdtNull
       else
         Col.DefaultType := cdtNothing;
-    end else if IsTextDefault(DefText, Col.DataType) then begin
+    end
+    else if IsTextDefault(DefText, Col.DataType) then begin
       Col.DefaultType := cdtText;
       Col.DefaultText := IfThen(DefText.StartsWith(''''), ExtractLiteral(DefText, ''), DefText);
-    end else begin
+    end
+    else begin
       Col.DefaultType := cdtExpression;
       Col.DefaultText := DefText;
     end;
@@ -5770,7 +5789,7 @@ begin
       Col.OnUpdateType := cdtNothing;
       if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
         Col.DefaultType := cdtAutoInc;
-        Col.DefaultText := 'AUTO_INCREMENT';
+        Col.DefaultText := Col.AutoIncName;
       end else if ColQuery.IsNull('Default') then begin
         Col.DefaultType := cdtNothing;
       end else if IsTextDefault(DefText, Col.DataType) then begin
@@ -9545,7 +9564,7 @@ begin
           if Assigned(ColAttr) and (ColAttr.DefaultType = cdtAutoInc) then begin
             Row[i].NewText := UnformatNumber(Row[i].NewText);
             if Row[i].NewText = '0' then
-              Row[i].NewText := Connection.GetVar('SELECT LAST_INSERT_ID()');
+              Row[i].NewText := Connection.GetVar('SELECT ' + Connection.GetSQLSpecifity(spFuncLastAutoIncNumber));
             Row[i].NewIsNull := False;
             break;
           end;
@@ -10500,7 +10519,16 @@ begin
   end;
 
   if InParts(cpType) then begin
-    Result := Result + DataType.Name;
+    case FConnection.Parameters.NetTypeGroup of
+      ngPgSQL: begin
+        if DefaultType = cdtAutoInc then
+          Result := Result + 'SERIAL'
+        else
+          Result := Result + DataType.Name;
+      end;
+      else Result := Result + DataType.Name;
+    end;
+
     if (LengthSet <> '') and DataType.HasLength then
       Result := Result + '(' + LengthSet + ')';
     if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
@@ -10523,7 +10551,12 @@ begin
         // cdtNothing: leave out whole clause
         cdtText:           Result := Result + 'DEFAULT '+FConnection.EscapeString(DefaultText);
         cdtNull:           Result := Result + 'DEFAULT NULL';
-        cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
+        cdtAutoInc: begin
+          case FConnection.Parameters.NetTypeGroup of
+            ngPgSQL:;
+            else Result := Result + AutoIncName;
+          end;
+        end;
         cdtExpression: begin
           if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
             Result := Result + 'DEFAULT ('+DefaultText+')'
@@ -10630,6 +10663,16 @@ begin
     end;
   end;
 end;
+
+
+function TTableColumn.AutoIncName: String;
+begin
+  case FConnection.Parameters.NetTypeGroup of
+    ngPgSQL: Result := 'SERIAL';
+    else Result := 'AUTO_INCREMENT';
+  end;
+end;
+
 
 procedure TTableColumnList.Assign(Source: TTableColumnList);
 var

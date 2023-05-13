@@ -347,7 +347,7 @@ end;
 procedure TCopyTableForm.btnOKClick(Sender: TObject);
 var
   CreateCode, InsertCode, TargetTable, DataCols, Msg: String;
-  TableExistence: String;
+  TableExistence, AutoIncName: String;
   ParentNode, Node: PVirtualNode;
   DoData, AutoIncGetsKey, AutoIncRemoved, TableHasAutoInc: Boolean;
   SelectedColumns: TTableColumnList;
@@ -409,9 +409,11 @@ begin
 
   // Columns code. Remove auto_increment attribute if pkey was unchecked, to overcome
   // "there can be only one auto column and it must be defined as a key"
+  AutoIncName := 'unknown';
   for Column in SelectedColumns do begin
     AutoIncGetsKey := False;
     AutoIncRemoved := False;
+    AutoIncName := Column.AutoIncName;
     if Column.DefaultType = cdtAutoInc then begin
       for Key in SelectedKeys do begin
         // Don't check index type, MySQL allows auto-increment columns on nearly all indexes
@@ -486,7 +488,7 @@ begin
       Screen.Cursor := crDefault;
       Msg := E.Message;
       if FConnection.LastErrorCode = ER_WRONG_AUTO_KEY then
-        Msg := Msg + CRLF + CRLF +  f_('Please select the required index for the %s flag.', ['auto_increment']);
+        Msg := Msg + CRLF + CRLF +  f_('Please select the required index for the %s flag.', [AutoIncName]);
       ErrorDialog(Msg);
       ModalResult := mrNone;
     end;
