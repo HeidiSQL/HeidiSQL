@@ -9747,8 +9747,9 @@ var
   Obj: TDBObject;
 begin
   Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
+  //Connection.Log(lcDebug, FColumnNames[Column]+':  org_table:'+Field.org_table+ '  table:'+Field.table);
 
-  if Field.table^ <> Field.org_table^ then begin
+  if Field.table <> Field.org_table then begin
     // Probably a VIEW, in which case we rely on the first column's table name.
     // TODO: This is unsafe when joining a view with a table/view.
     if Field.db <> '' then begin
