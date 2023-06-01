@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.FontAwesome.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //**************************************************************************************************
@@ -577,25 +577,25 @@ type
   //http://fortawesome.github.io/Font-Awesome/cheatsheet/
   TFontAwesome = class
   private
-    FPrivateFontCollection : TGPPrivateFontCollection;
+    FPrivateFontCollection: TGPPrivateFontCollection;
     procedure LoadFontFromResource;
   public
     constructor Create;
     Destructor Destroy; override;
-    procedure DrawChar(DC: HDC; const AChar: Char; DestRect: TRect; AColor : TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
-    procedure DrawChar(DC: HDC; const AChar: Char; DestRect: TRect; AFontHeight : Integer; AColor : TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
+    procedure DrawChar(DC: HDC; const AChar: Char; DestRect: TRect; AColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
+    procedure DrawChar(DC: HDC; const AChar: Char; DestRect: TRect; AFontHeight: Integer; AColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
 
-    procedure DrawChar(DC: HDC; const ACode: Word; DestRect: TRect; AColor : TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
-    procedure DrawChar(DC: HDC; const ACode: Word; DestRect: TRect; AFontHeight : Integer; AColor : TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
+    procedure DrawChar(DC: HDC; const ACode: Word; DestRect: TRect; AColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
+    procedure DrawChar(DC: HDC; const ACode: Word; DestRect: TRect; AFontHeight: Integer; AColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft); overload;
 
-    function  GetIcon(const ACode: Word; Width, Height : Integer; AColor, ABackColor : TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft) : HICON; overload;
-    function  GetIcon(const ACode: Word; Width, Height, CharX, CharY : Integer; AColor, ABackColor : TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft) : HICON; overload;
+    function  GetIcon(const ACode: Word; Width, Height: Integer; AColor, ABackColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft): HICON; overload;
+    function  GetIcon(const ACode: Word; Width, Height, CharX, CharY: Integer; AColor, ABackColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft): HICON; overload;
   end;
   {$IFDEF WinXCtrls}
   TFontAwesomeAnimated = class(TCustomActivityIndicator)
   private
-    FFontAwesomeCode : Word;
-    FColor, FBackColor : TColor;
+    FFontAwesomeCode: Word;
+    FColor, FBackColor: TColor;
     procedure SetFontAwesomeCode(const Value: Word);
     procedure SetColor(const Value: TColor);
     procedure SetBackColor(const Value: TColor);
@@ -611,14 +611,14 @@ type
     property IndicatorColor;
     property IndicatorSize;
     property IndicatorType;
-    property Color : TColor read FColor write SetColor;
-    property BackColor : TColor read FBackColor write SetBackColor;
-    property FontAwesomeCode : Word read FFontAwesomeCode write SetFontAwesomeCode;
+    property Color: TColor read FColor write SetColor;
+    property BackColor: TColor read FBackColor write SetBackColor;
+    property FontAwesomeCode: Word read FFontAwesomeCode write SetFontAwesomeCode;
   end;
   {$ENDIF}
 
 var
-  FontAwesome :  TFontAwesome;
+  FontAwesome:  TFontAwesome;
 
 
 implementation
@@ -656,8 +656,8 @@ end;
 
 procedure TFontAwesome.LoadFontFromResource;
 var
- LStream : TResourceStream;
- LStatus : TStatus;
+ LStream: TResourceStream;
+ LStatus: TStatus;
  cFonts: DWord;
 begin
   LStream := TResourceStream.Create(HInstance, 'fontawesome', RT_RCDATA);
@@ -726,13 +726,13 @@ begin
   Result := GetIcon(ACode, Width, Height, Width, Height, AColor, ABackColor, Orientation, ImageAlignment);
 end;
 
-procedure TFontAwesome.DrawChar(DC: HDC; const ACode: Word; DestRect: TRect; AColor: TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft);
+procedure TFontAwesome.DrawChar(DC: HDC; const ACode: Word; DestRect: TRect; AColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft);
 begin
   DrawChar(DC, Chr(ACode), DestRect, AColor, Orientation, ImageAlignment);
 end;
 
 
-procedure TFontAwesome.DrawChar(DC: HDC; const AChar: Char; DestRect: TRect; AColor: TColor; Orientation : Integer = 0; ImageAlignment: TImageAlignment = iaLeft);
+procedure TFontAwesome.DrawChar(DC: HDC; const AChar: Char; DestRect: TRect; AColor: TColor; Orientation: Integer = 0; ImageAlignment: TImageAlignment = iaLeft);
 begin
   DrawChar(DC, AChar, DestRect, DestRect.Height, AColor, Orientation, ImageAlignment);
 end;
@@ -748,11 +748,11 @@ procedure TFontAwesome.DrawChar(DC: HDC; const AChar: Char; DestRect: TRect;
   AFontHeight: Integer; AColor: TColor; Orientation: Integer;
   ImageAlignment: TImageAlignment);
 var
- LFont : TGPFont;
- LGPGraphics : TGPGraphics;
- LBrush : TGPSolidBrush;
- LColor : Cardinal;
- LGPStringFormat : TGPStringFormat;
+ LFont: TGPFont;
+ LGPGraphics: TGPGraphics;
+ LBrush: TGPSolidBrush;
+ LColor: Cardinal;
+ LGPStringFormat: TGPStringFormat;
  LRect: TGPRectF;
 begin
   LGPGraphics := TGPGraphics.Create(DC);
@@ -785,11 +785,11 @@ end;
 
 //var
 //  LogFont: TLogFont;
-//  AFont  : HFONT;
+//  AFont: HFONT;
 //  pOldFont: HGDIOBJ;
 //  LColorRef: COLORREF;
 //  OldMode: integer;
-//  uFormat : Cardinal;
+//  uFormat: Cardinal;
 //begin
 //  if FFontHandle = 0 then exit;
 //
@@ -821,11 +821,11 @@ end;
 //        uFormat := DT_SINGLELINE;
 //
 //        case ImageAlignment of
-//         iaLeft   : uFormat := uFormat or DT_LEFT;
-//         iaRight  : uFormat := uFormat or DT_RIGHT;
-//         iaCenter : uFormat := uFormat or DT_CENTER;
-//         iaTop    : uFormat := uFormat or DT_TOP;
-//         iaBottom : uFormat := uFormat or DT_BOTTOM;
+//         iaLeft: uFormat := uFormat or DT_LEFT;
+//         iaRight: uFormat := uFormat or DT_RIGHT;
+//         iaCenter: uFormat := uFormat or DT_CENTER;
+//         iaTop: uFormat := uFormat or DT_TOP;
+//         iaBottom: uFormat := uFormat or DT_BOTTOM;
 //        end;
 //
 //        uFormat := uFormat or DT_NOCLIP;
@@ -941,8 +941,8 @@ end;
 
 procedure TFontAwesomeAnimated.ReloadFrames;
 var
-  i, LFrameSize, LAngleDelta, LAngle : Integer;
-  LBitmap : TBitmap;
+  i, LFrameSize, LAngleDelta, LAngle: Integer;
+  LBitmap: TBitmap;
 begin
   TCustomActivityIndicatorShadow(Self).FFrameSize  := 48;
   LFrameSize := TCustomActivityIndicatorShadow(Self).FFrameSize;

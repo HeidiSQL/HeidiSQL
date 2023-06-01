@@ -9,20 +9,29 @@ unit apphelpers;
 interface
 
 uses
-  Classes, SysUtils, Graphics, GraphUtil, ClipBrd, Dialogs, Forms, Controls, ShellApi,
-  Windows, ShlObj, ActiveX, VirtualTrees, VirtualTrees.Types, SynRegExpr, Messages, Math,
-  Registry, DateUtils, Generics.Collections, System.Contnrs, StrUtils, AnsiStrings, TlHelp32, Types,
-  dbconnection, dbstructures, dbstructures.mysql, SynMemo, Menus, WinInet, gnugettext, Themes,
-  Character, ImgList, System.UITypes, ActnList, WinSock, IOUtils, StdCtrls, ComCtrls,
-  CommCtrl, Winapi.KnownFolders, SynUnicode;
+  System.Classes, System.SysUtils, Vcl.Graphics, Vcl.GraphUtil, Vcl.ClipBrd, Vcl.Dialogs, Vcl.Forms, Vcl.Controls, Winapi.ShellApi,
+  Winapi.Windows, Winapi.ShlObj, Winapi.ActiveX, VirtualTrees, VirtualTrees.Types, SynRegExpr, Winapi.Messages, System.Math,
+  System.Win.Registry, System.DateUtils, System.Generics.Collections, System.Contnrs, System.StrUtils, System.AnsiStrings, Winapi.TlHelp32, System.Types,
+  dbconnection, dbstructures, dbstructures.mysql, SynMemo, Vcl.Menus, Winapi.WinInet, gnugettext, Vcl.Themes,
+  System.Character, Vcl.ImgList, System.UITypes, Vcl.ActnList, Winapi.WinSock, System.IOUtils, Vcl.StdCtrls, Vcl.ComCtrls,
+  Winapi.CommCtrl, Winapi.KnownFolders, SynUnicode, SynEdit;
 
 type
 
-  TOrderCol = class(TObject)
-    ColumnName: String;
-    SortDirection: Byte;
+  TSortItemOrder = (sioAscending, sioDescending);
+  TSortItem = class(TPersistent)
+    public
+      Column: String;
+      Order: TSortItemOrder;
+      procedure Assign(Source: TPersistent); override;
   end;
-  TOrderColArray = Array of TOrderCol;
+  TSortItems = class(TObjectList<TSortItem>)
+    public
+      function AddNew(Column: String=''; Order: TSortItemOrder=sioAscending): TSortItem;
+      function ComposeOrderClause(Connection: TDBConnection): String;
+      function FindByColumn(Column: String): TSortItem;
+      procedure Assign(Source: TSortItems);
+  end;
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
 
@@ -36,6 +45,8 @@ type
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
     protected
+      FMainSynMemo: TSynMemo; // Main editor in case of routine, view, trigger or event
+      FMainSynMemoPreviousTopLine: Integer;
       function ObjectExists: Boolean;
     public
       DBObject: TDBObject;
@@ -152,18 +163,18 @@ type
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asLowercaseHex, asHintsOnResultTabs, asHightlightSameTextBackground,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
-    asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asReuseEditorConfiguration,
+    asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asColumnHeaderClick, asReuseEditorConfiguration,
     asLogToFile, asMainWinMaximized, asMainWinLeft, asMainWinTop, asMainWinWidth,
     asMainWinHeight, asMainWinOnMonitor, asCoolBandIndex, asCoolBandBreak, asCoolBandWidth, asToolbarShowCaptions, asQuerymemoheight, asDbtreewidth,
     asDataPreviewHeight, asDataPreviewEnabled, asLogHeight, asQueryhelperswidth, asStopOnErrorsInBatchMode,
     asWrapLongLines, asCodeFolding, asDisplayBLOBsAsText, asSingleQueries, asMemoEditorWidth, asMemoEditorHeight, asMemoEditorMaximized,
-    asMemoEditorWrap, asMemoEditorHighlighter, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
+    asMemoEditorWrap, asMemoEditorHighlighter, asMemoEditorAlwaysFormatCode, asDelimiter, asSQLHelpWindowLeft, asSQLHelpWindowTop, asSQLHelpWindowWidth,
     asSQLHelpWindowHeight, asSQLHelpPnlLeftWidth, asSQLHelpPnlRightTopHeight, asHost,
     asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort, asLibrary, asAllProviders,
-    asPlinkExecutable, asSshExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
+    asSSHtunnelActive, asPlinkExecutable, asSshExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
-    asSSLCert, asSSLCA, asSSLCipher, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
-    asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asExportSQLCreateDatabases,
+    asSSLCert, asSSLCA, asSSLCipher, asSSLWarnUnused, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
+    asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asFilterVT, asExportSQLCreateDatabases,
     asExportSQLCreateTables, asExportSQLDataHow, asExportSQLDataInsertSize, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLRemoveAutoIncrement, asExportSQLRemoveDefiner,
     asGridExportWindowWidth, asGridExportWindowHeight, asGridExportOutputCopy, asGridExportOutputFile,
@@ -188,23 +199,24 @@ type
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
-    asCompletionProposal, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
+    asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
     asFindDialogReplaceHistory, asMaxQueryResults, asLogErrors,
-    asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asFieldColorNumeric,
+    asLogUserSQL, asLogSQL, asLogInfos, asLogDebug, asLogScript, asLogTimestamp, asFieldColorNumeric,
     asFieldColorReal, asFieldColorText, asFieldColorBinary, asFieldColorDatetime, asFieldColorSpatial,
     asFieldColorOther, asFieldEditorBinary, asFieldEditorDatetime, asFieldEditorDatetimePrefill, asFieldEditorEnum,
     asFieldEditorSet, asFieldNullBackground, asRowBackgroundEven, asRowBackgroundOdd, asGroupTreeObjects, asDisplayObjectSizeColumn, asSQLfile,
     asActionShortcut1, asActionShortcut2, asHighlighterForeground, asHighlighterBackground, asHighlighterStyle,
     asListColWidths, asListColsVisible, asListColPositions, asListColSort, asSessionFolder,
     asRecentFilter, asTimestampColumns, asDateTimeEditorCursorPos, asAppLanguage, asAutoExpand, asDoubleClickInsertsNodeText, asForeignDropDown,
-    asQueryHistoryEnabled, asQueryHistoryKeepDays,
+    asIncrementalSearch, asQueryHistoryEnabled, asQueryHistoryKeepDays,
     asColumnSelectorWidth, asColumnSelectorHeight, asDonatedEmail, asFavoriteObjects, asFavoriteObjectsOnly, asFullTableStatus, asLineBreakStyle,
     asPreferencesWindowWidth, asPreferencesWindowHeight,
     asFileDialogEncoding,
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
+    asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -300,6 +312,7 @@ type
   function DeleteFileWithUndo(sFileName: String): Boolean;
   function MakeInt(Str: String) : Int64;
   function MakeFloat(Str: String): Extended;
+  function RoundCommercial(e: Extended): Int64;
   function CleanupNumber(Str: String): String;
   function IsInt(Str: String): Boolean;
   function IsFloat(Str: String): Boolean;
@@ -313,7 +326,7 @@ type
   function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
-  procedure ShellExec(cmd: String; path: String=''; params: String='');
+  procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
   function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
   function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String; Overload;
   function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
@@ -328,13 +341,12 @@ type
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
-  procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
+  procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
-  function ComposeOrderClause(Cols: TOrderColArray): String;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   function SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
@@ -370,7 +382,7 @@ type
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   function GetLocaleString(const ResourceId: Integer): WideString;
   function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
-  procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+  procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   function f_(const Pattern: string; const Args: array of const): string;
   function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
   function GetOutputFilenamePlaceholders: TStringList;
@@ -393,9 +405,9 @@ type
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
-  function StrHasNumChars(const AStr: String; NumChars: Cardinal): Boolean;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
+  function UserAgent(OwnerComponent: TComponent): String;
 
 var
   AppSettings: TAppSettings;
@@ -731,6 +743,16 @@ begin
 end;
 
 
+function RoundCommercial(e: Extended): Int64;
+begin
+  // "Kaufmännisch runden"
+  // In contrast to Delphi's Round() which rounds *.5 to the next even number
+  Result := Trunc(e);
+  if Frac(e) >= 0.5 then
+    Result := Result + 1;
+end;
+
+
 {***
   SynEdit removes all newlines and semi-randomly decides a
   new newline format to use for any text edited.
@@ -958,17 +980,19 @@ end;
   @param string Command or URL to execute
   @param string Working directory, only usefull is first param is a system command
 }
-procedure ShellExec(cmd: String; path: String=''; params: String='');
+procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
 var
   Msg: String;
+  ShowCmd: Integer;
 begin
+  ShowCmd := IfThen(RunHidden, SW_HIDE, SW_SHOWNORMAL);
   Msg := 'Executing shell command: "'+cmd+'"';
   if not path.IsEmpty then
     Msg := Msg + ' path: "'+path+'"';
   if not params.IsEmpty then
     Msg := Msg + ' params: "'+params+'"';
   MainForm.LogSQL(Msg, lcDebug);
-  ShellExecute(0, 'open', PChar(cmd), PChar(params), PChar(path), SW_SHOWNORMAL);
+  ShellExecute(0, 'open', PChar(cmd), PChar(params), PChar(path), ShowCmd);
 end;
 
 
@@ -1288,13 +1312,23 @@ begin
 end;
 
 
-procedure StreamToClipboard(Text, HTML: TStream; CreateHTMLHeader: Boolean);
+procedure StreamToClipboard(Text, HTML: TStream);
 var
-  TextContent, HTMLContent: AnsiString;
+  TextContent, HTMLContent, HTMLHeader, NullPos: AnsiString;
   GlobalMem: HGLOBAL;
   lp: PChar;
   ClpLen: Integer;
   CF_HTML: Word;
+  StartHTML, EndHTML, StartFragment, EndFragment: Integer;
+const
+  PosFormat: AnsiString = '%.10d';
+
+  procedure ReplacePos(Name: AnsiString; Value: Integer);
+  var NewPos: AnsiString;
+  begin
+    NewPos := Format(PosFormat, [Value]);
+    HTMLContent := StringReplace(HTMLContent, Name+':'+NullPos, Name+':'+NewPos, []);
+  end;
 begin
   // Copy unicode text to clipboard
   if Assigned(Text) then begin
@@ -1315,17 +1349,23 @@ begin
     SetLength(HTMLContent, HTML.Size);
     HTML.Position := 0;
     HTML.Read(PAnsiChar(HTMLContent)^, HTML.Size);
-    if CreateHTMLHeader then begin
-      HTMLContent := 'Version:0.9' + CRLF +
-        'StartHTML:000089' + CRLF +
-        'EndHTML:°°°°°°' + CRLF +
-        'StartFragment:000089' + CRLF +
-        'EndFragment:°°°°°°' + CRLF +
-        HTMLContent + CRLF;
-      HTMLContent := AnsiStrings.StringReplace(
-        HTMLContent, '°°°°°°',
-        AnsiStrings.Format('%.6d', [Length(HTMLContent)]),
-        [rfReplaceAll]);
+    if Pos(AnsiString('Version:'), HTMLContent) = 0 then begin
+      // Only required if header was not already prepended by SynEdit, e.g. in grid export of SQL Inserts
+      NullPos := Format(PosFormat, [0]);
+      HTMLHeader := 'Version:0.9' + sLineBreak +
+        'StartHTML:' + NullPos + sLineBreak +
+        'EndHTML:' + NullPos + sLineBreak +
+        'StartFragment:' + NullPos + sLineBreak +
+        'EndFragment:' + NullPos + sLineBreak;
+      StartHTML := Length(HTMLHeader);
+      HTMLContent := HTMLHeader + HTMLContent;
+      EndHTML := Length(HTMLContent);
+      StartFragment := Pos(AnsiString('<body>'), HTMLContent) + 6;
+      EndFragment := Pos(AnsiString('</body'), HTMLContent)-1;
+      ReplacePos('StartHTML', StartHTML);
+      ReplacePos('EndHTML', EndHTML);
+      ReplacePos('StartFragment', StartFragment);
+      ReplacePos('EndFragment', EndFragment);
     end;
     ClpLen := Length(HTMLContent) + 1;
     GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
@@ -1409,28 +1449,6 @@ begin
   else if (Lightness > 128) and (Shift > 0) then
     Shift := 0 - Abs(Shift);
   Result := ColorAdjustLuma(Col, Shift, true);
-end;
-
-
-{**
-  Concat all sort options to a ORDER clause
-}
-function ComposeOrderClause(Cols: TOrderColArray): String;
-var
-  i : Integer;
-  sort : String;
-begin
-  result := '';
-  for i := 0 to Length(Cols) - 1 do
-  begin
-    if result <> '' then
-      result := result + ', ';
-    if Cols[i].SortDirection = ORDER_ASC then
-      sort := TXT_ASC
-    else
-      sort := TXT_DESC;
-    result := result + MainForm.ActiveConnection.QuoteIdent( Cols[i].ColumnName ) + ' ' + sort;
-  end;
 end;
 
 
@@ -1804,6 +1822,77 @@ begin
 end;
 
 
+{ *** TSortItem }
+
+procedure TSortItem.Assign(Source: TPersistent);
+var
+  SourceItem: TSortItem;
+begin
+  if Source is TSortItem then begin
+    SourceItem := Source as TSortItem;
+    Column := SourceItem.Column;
+    Order := SourceItem.Order;
+  end
+  else
+    Inherited;
+end;
+
+
+{ *** TSortItems }
+
+function TSortItems.AddNew(Column: String=''; Order: TSortItemOrder=sioAscending): TSortItem;
+begin
+  Result := TSortItem.Create;
+  Result.Column := Column;
+  Result.Order := Order;
+  Add(Result);
+end;
+
+
+function TSortItems.ComposeOrderClause(Connection: TDBConnection): String;
+var
+  SortItem: TSortItem;
+  SortOrder: String;
+begin
+  // Concat all sort options to an ORDER BY clause
+  Result := '';
+  for SortItem in Self do begin
+    if Result <> '' then
+      Result := Result + ', ';
+    if SortItem.Order = sioAscending then
+      SortOrder := Connection.GetSQLSpecifity(spOrderAsc)
+    else
+      SortOrder := Connection.GetSQLSpecifity(spOrderDesc);
+    Result := Result + Connection.QuoteIdent(SortItem.Column) + ' ' + SortOrder;
+  end;
+end;
+
+
+function TSortItems.FindByColumn(Column: String): TSortItem;
+var
+  SortItem: TSortItem;
+begin
+  Result := nil;
+  for SortItem in Self do begin
+    if SortItem.Column = Column then begin
+      Result := SortItem;
+      Break;
+    end;
+  end;
+end;
+
+
+procedure TSortItems.Assign(Source: TSortItems);
+var
+  Item, ItemCopy: TSortItem;
+begin
+  Clear;
+  for Item in Source do begin
+    ItemCopy := AddNew;
+    ItemCopy.Assign(Item);
+  end;
+end;
+
 
 { *** TDBObjectEditor }
 
@@ -1813,6 +1902,8 @@ begin
   // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
   // repeatedly breaks the GUI layout when you reload the project
   Align := alClient;
+  FMainSynMemo := nil;
+  DBObject := nil;
   TranslateComponent(Self);
 end;
 
@@ -1838,10 +1929,16 @@ var
   popup: TPopupMenu;
   Item: TMenuItem;
   i: Integer;
+  IsRefresh: Boolean;
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
   TExtForm.FixControls(Self);
+  IsRefresh := Assigned(DBObject) and DBObject.IsSameAs(Obj);
+  if IsRefresh and Assigned(FMainSynMemo) then
+    FMainSynMemoPreviousTopLine := FMainSynMemo.TopLine
+  else
+    FMainSynMemoPreviousTopLine := 0;
   DBObject := TDBObject.Create(Obj.Connection);
   DBObject.Assign(Obj);
   Mainform.UpdateEditorTab;
@@ -1906,6 +2003,7 @@ begin
   Result := mrOk;
   if Modified then begin
     ObjType := _(LowerCase(DBObject.ObjType));
+    // Todo: no save button for objects without minimum requirements, such as name. See #1134
     if DBObject.Name <> '' then
       Msg := f_('Save modified %s "%s"?', [ObjType, DBObject.Name])
     else
@@ -1938,7 +2036,7 @@ function ParamStrToBlob(out cbData: DWORD): Pointer;
 var
   cmd: String;
 begin
-  cmd := Windows.GetCommandLine;
+  cmd := GetCommandLine;
   cbData := Length(cmd)*2 + 3;
   Result := PChar(cmd);
 end;
@@ -2340,7 +2438,7 @@ var
       cap := _(BtnCaption);
       for i:=1 to Length(cap) do begin
         // Auto apply hotkey
-        if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and Character.TCharacter.IsLetter(cap[i]) then begin
+        if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and TCharacter.IsLetter(cap[i]) then begin
           Hotkeys := Hotkeys + LowerCase(cap[i]);
           Insert('&', cap, i);
           break;
@@ -2517,7 +2615,7 @@ begin
 end;
 
 
-procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList);
+procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
 var
   rx: TRegExpr;
   ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
@@ -2568,6 +2666,10 @@ begin
   CommandLine := Copy(CommandLine, Pos(ExeName, CommandLine)+Length(ExeName), Length(CommandLine));
   CommandLine := CommandLine + ' ';
   rx := TRegExpr.Create;
+
+  // --runfrom=scheduler after build update
+  RunFrom := GetParamValue('rf', 'runfrom');
+
   SessName := GetParamValue('d', 'description');
   if SessName <> '' then begin
     try
@@ -2990,24 +3092,6 @@ begin
     Result := '\';
 end;
 
-
-function StrHasNumChars(const AStr: String; NumChars: Cardinal): Boolean;
-var
-  P: PWideChar;
-  _NumChars: Cardinal;
-begin
-  _NumChars := 0;
-  P := PWideChar(AStr);
-  while P <> '' do begin
-    Inc(_NumChars);
-    if _NumChars > NumChars then
-      Break;
-    P := CharNextW(P);
-  end;
-  Result := _NumChars = NumChars;
-end;
-
-
 procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
 var
   i: Integer;
@@ -3028,6 +3112,68 @@ begin
     Result := Default;
   end;
 end;
+
+
+function UserAgent(OwnerComponent: TComponent): String;
+var
+  OS: String;
+begin
+  if IsWine then
+    OS := 'Linux/Wine'
+  else
+    OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
+  Result := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
+end;
+
+
+{ Get SID of current Windows user, probably useful in the future
+function GetCurrentUserSID: string;
+type
+  PTOKEN_USER = ^TOKEN_USER;
+  _TOKEN_USER = record
+     User: TSidAndAttributes;
+  end;
+  TOKEN_USER = _TOKEN_USER;
+var
+  hToken: THandle;
+  cbBuf: Cardinal;
+  ptiUser: PTOKEN_USER;
+  bSuccess: Boolean;
+  StrSid: PWideChar;
+begin
+  // Taken from https://stackoverflow.com/a/71730865/4110077
+  // SidToString does not exist, prefer WinApi.Windows.ConvertSidToStringSid()
+  Result := '';
+
+  // Get the calling thread's access token.
+  if not OpenThreadToken(GetCurrentThread(), TOKEN_QUERY, True, hToken) then
+  begin
+    if (GetLastError <> ERROR_NO_TOKEN) then
+      Exit;
+
+    // Retry against process token if no thread token exists.
+    if not OpenProcessToken(GetCurrentProcess, TOKEN_QUERY, hToken) then
+      Exit;
+  end;
+  try
+    // Obtain the size of the user information in the token.
+    bSuccess := GetTokenInformation(hToken, TokenUser, nil, 0, cbBuf);
+    ptiUser  := nil;
+    try
+      while (not bSuccess) and (GetLastError = ERROR_INSUFFICIENT_BUFFER) do
+      begin
+        ReallocMem(ptiUser, cbBuf);
+        bSuccess := GetTokenInformation(hToken, TokenUser, ptiUser, cbBuf, cbBuf);
+      end;
+      ConvertSidToStringSid(ptiUser.User.Sid, StrSid);
+      Result := StrSid;
+    finally
+      FreeMem(ptiUser);
+    end;
+  finally
+    CloseHandle(hToken);
+  end;
+end; }
 
 
 { Threading stuff }
@@ -3354,17 +3500,11 @@ var
   BytesInChunk, HeadSize, Reserved, TimeOutSeconds: Cardinal;
   LocalFile: File;
   DoStore: Boolean;
-  UserAgent, OS: String;
   HttpStatus: Integer;
   ContentChunk: UTF8String;
 begin
   DoStore := False;
-  if IsWine then
-    OS := 'Linux/Wine'
-  else
-    OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
-  UserAgent := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+FOwner.Name+')';
-  NetHandle := InternetOpen(PChar(UserAgent), INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
+  NetHandle := InternetOpen(PChar(UserAgent(FOwner)), INTERNET_OPEN_TYPE_PRECONFIG, nil, nil, 0);
 
   // Do not let the user wait 30s
   TimeOutSeconds := FTimeOut * 1000;
@@ -3376,12 +3516,12 @@ begin
     UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     if (not Assigned(UrlHandle)) and FURL.StartsWith('https:', true) then begin
       // Try again without SSL. See issue #65 and #1209
-      MainForm.LogSQL(f_('Could not open %s (%s) - trying again without SSL...', [FURL, SysErrorMessage(Windows.GetLastError)]), lcError);
+      MainForm.LogSQL(f_('Could not open %s (%s) - trying again without SSL...', [FURL, SysErrorMessage(GetLastError)]), lcError);
       FURL := ReplaceRegExpr('^https:', FURL, 'http:');
       UrlHandle := InternetOpenURL(NetHandle, PChar(FURL), nil, 0, INTERNET_FLAG_RELOAD, 0);
     end;
     if not Assigned(UrlHandle) then begin
-      raise Exception.CreateFmt(_('Could not open %s (%s)'), [FURL, SysErrorMessage(Windows.GetLastError)]);
+      raise Exception.CreateFmt(_('Could not open %s (%s)'), [FURL, SysErrorMessage(GetLastError)]);
     end;
 
     // Detect content length
@@ -3568,6 +3708,7 @@ begin
   InitSetting(asDatagridMaximumRows,              'DatagridMaximumRows',                   100000);
   InitSetting(asDatagridRowsPerStep,              'DatagridRowsPerStep',                   1000);
   InitSetting(asGridRowLineCount,                 'GridRowLineCount',                      1);
+  InitSetting(asColumnHeaderClick,                'ColumnHeaderClick',                     0, True);
   InitSetting(asReuseEditorConfiguration,         'ReuseEditorConfiguration',              0, True);
   InitSetting(asLogToFile,                        'LogToFile',                             0, False);
   InitSetting(asMainWinMaximized,                 'MainWinMaximized',                      0, False);
@@ -3596,6 +3737,7 @@ begin
   InitSetting(asMemoEditorMaximized,              'MemoEditorMaximized',                   0, False);
   InitSetting(asMemoEditorWrap,                   'MemoEditorWrap',                        0, False);
   InitSetting(asMemoEditorHighlighter,            'MemoEditorHighlighter_%s',              0, False, 'General', True);
+  InitSetting(asMemoEditorAlwaysFormatCode,       'MemoEditorAlwaysFormatCode',            0, False);
   InitSetting(asDelimiter,                        'Delimiter',                             0, False, ';');
   InitSetting(asSQLHelpWindowLeft,                'SQLHelp_WindowLeft',                    0);
   InitSetting(asSQLHelpWindowTop,                 'SQLHelp_WindowTop',                     0);
@@ -3603,7 +3745,7 @@ begin
   InitSetting(asSQLHelpWindowHeight,              'SQLHelp_WindowHeight',                  400);
   InitSetting(asSQLHelpPnlLeftWidth,              'SQLHelp_PnlLeftWidth',                  150);
   InitSetting(asSQLHelpPnlRightTopHeight,         'SQLHelp_PnlRightTopHeight',             150);
-  InitSetting(asHost,                             'Host',                                  0, False, '127.0.0.1', True);
+  InitSetting(asHost,                             'Host',                                  0, False, '', True);
   InitSetting(asUser,                             'User',                                  0, False, '', True);
   InitSetting(asPassword,                         'Password',                              0, False, '', True);
   InitSetting(asCleartextPluginEnabled,           'CleartextPluginEnabled',                0, False, '', True);
@@ -3612,6 +3754,7 @@ begin
   InitSetting(asPort,                             'Port',                                  0, False, '', True);
   InitSetting(asLibrary,                          'Library',                               0, False, '', True); // Gets its default in TConnectionParameters.Create
   InitSetting(asAllProviders,                     'AllProviders',                          0, False);
+  InitSetting(asSSHtunnelActive,                  'SSHtunnelActive',                       -1, False, '', True);
   InitSetting(asPlinkExecutable,                  'PlinkExecutable',                       0, False, 'plink.exe'); // Legacy support with global setting
   InitSetting(asSshExecutable,                    'SshExecutable',                         0, False, '', True);
   InitSetting(asSSHtunnelHost,                    'SSHtunnelHost',                         0, False, '', True);
@@ -3626,6 +3769,7 @@ begin
   InitSetting(asSSLCert,                          'SSL_Cert',                              0, False, '', True);
   InitSetting(asSSLCA,                            'SSL_CA',                                0, False, '', True);
   InitSetting(asSSLCipher,                        'SSL_Cipher',                            0, False, '', True);
+  InitSetting(asSSLWarnUnused,                    'SSL_WarnUnused',                        0, True);
   InitSetting(asNetType,                          'NetType',                               Integer(ntMySQL_TCPIP), False, '', True);
   InitSetting(asCompressed,                       'Compressed',                            0, False, '', True);
   InitSetting(asLocalTimeZone,                    'LocalTimeZone',                         0, False, '', True);
@@ -3636,6 +3780,7 @@ begin
   InitSetting(asComment,                          'Comment',                               0, False, '', True);
   InitSetting(asDatabaseFilter,                   'DatabaseFilter',                        0, False, '');
   InitSetting(asTableFilter,                      'TableFilter',                           0, False, '');
+  InitSetting(asFilterVT,                         'FilterVTHistory',                       0, False, '');
   InitSetting(asExportSQLCreateDatabases,         'ExportSQL_CreateDatabases',             0, False);
   InitSetting(asExportSQLCreateTables,            'ExportSQL_CreateTables',                0, False);
   InitSetting(asExportSQLDataHow,                 'ExportSQL_DataHow',                     0);
@@ -3735,6 +3880,11 @@ begin
   InitSetting(asWheelZoom,                        'WheelZoom',                             0, True);
   InitSetting(asDisplayBars,                      'DisplayBars',                           0, true);
   InitSetting(asMySQLBinaries,                    'MySQL_Binaries',                        0, False, '');
+  InitSetting(asSequalSuggestWindowWidth,         'SequalSuggestWindowWidth',              500);
+  InitSetting(asSequalSuggestWindowHeight,        'SequalSuggestWindowHeight',             400);
+  InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
+  InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
+
   // Default folder for snippets
   if FPortableMode then
     DefaultSnippetsDirectory := ExtractFilePath(ParamStr(0))
@@ -3750,6 +3900,7 @@ begin
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
+  InitSetting(asCompletionProposalInterval,       'CompletionProposalInterval',            500);
   InitSetting(asCompletionProposalSearchOnMid,    'CompletionProposalSearchOnMid',         0, True);
   InitSetting(asCompletionProposalWidth,          'CompletionProposalWidth',               350);
   InitSetting(asCompletionProposalNbLinesInWindow,'CompletionProposalNbLinesInWindow',     12);
@@ -3771,6 +3922,7 @@ begin
   InitSetting(asLogScript,                        'LogScript',                             0, False);
   InitSetting(asLogInfos,                         'LogInfos',                              0, True);
   InitSetting(asLogDebug,                         'LogDebug',                              0, False);
+  InitSetting(asLogTimestamp,                     'LogTimestamp',                          0, False);
   InitSetting(asFieldColorNumeric,                'FieldColor_Numeric',                    $00FF0000);
   InitSetting(asFieldColorReal,                   'FieldColor_Real',                       $00FF0048);
   InitSetting(asFieldColorText,                   'FieldColor_Text',                       $00008000);
@@ -3806,6 +3958,7 @@ begin
   InitSetting(asAutoExpand,                       'AutoExpand',                            0, False);
   InitSetting(asDoubleClickInsertsNodeText,       'DoubleClickInsertsNodeText',            0, True);
   InitSetting(asForeignDropDown,                  'ForeignDropDown',                       0, True);
+  InitSetting(asIncrementalSearch,                'IncrementalSearch',                     0, True);
   InitSetting(asQueryHistoryEnabled,              'QueryHistory',                          0, True);
   InitSetting(asQueryHistoryKeepDays,             'QueryHistoryKeeypDays',                 30);
   InitSetting(asColumnSelectorWidth,              'ColumnSelectorWidth',                   200, False, '');
@@ -4403,9 +4556,7 @@ function TAppSettings.DirnameUserDocuments: String;
 begin
   // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
   Result := GetShellFolder(FOLDERID_Documents) + '\' + APPNAME + '\';
-  if not DirectoryExists(Result) then begin
-    ForceDirectories(Result);
-  end;
+  // Do not auto-create it, as we only use it for snippets which can also have a custom path.
 end;
 
 

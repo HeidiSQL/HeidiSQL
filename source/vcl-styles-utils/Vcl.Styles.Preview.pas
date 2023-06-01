@@ -11,37 +11,37 @@ type
 
   TVisualStylePreview = class(TCustomControl)
     protected
-      FStyle           : TCustomStyleServices;
-      FIcon            : HICON;
-      FCaption         : TCaption;
-      FRegion          : HRGN;
-      FBitmap          : TBitmap;
-      FPreviewType     : TPreviewType;
-      FFormBorderSize  : TRect;
-      FBkgColor        : TColor;
-      FUnavailableText : string;
-      FSelectedText    : string;
-      FHotText         : string;
-      FNormalText      : string;
-      FDisabledText    : string;
-      FPressedText     : string;
-      FButtonText      : string;
-      FFileMenuText    : string;
-      FEditMenuText    : string;
-      FViewMenuText    : string;
-      FHelpMenuText    : string;
+      FStyle: TCustomStyleServices;
+      FIcon: HICON;
+      FCaption: TCaption;
+      FRegion: HRGN;
+      FBitmap: TBitmap;
+      FPreviewType: TPreviewType;
+      FFormBorderSize: TRect;
+      FBkgColor: TColor;
+      FUnavailableText: string;
+      FSelectedText: string;
+      FHotText: string;
+      FNormalText: string;
+      FDisabledText: string;
+      FPressedText: string;
+      FButtonText: string;
+      FFileMenuText: string;
+      FEditMenuText: string;
+      FViewMenuText: string;
+      FHelpMenuText: string;
 
-      procedure SetStyle(const aStyle : TCustomStyleServices);
+      procedure SetStyle(const aStyle: TCustomStyleServices);
 
-      function  GetFormBorderSize : TRect;
-      function  GetMainMenuRect : TRect;
-      function  GetTabsRect : TRect;
+      function  GetFormBorderSize: TRect;
+      function  GetMainMenuRect: TRect;
+      function  GetTabsRect: TRect;
 
-      function  GetCaptionHeight : integer;
-      function  GetLeftFormBorderWidth : integer;
-      function  GetRightFormBorderWidth : integer;
-      function  GetBottomFormBorderHeight : integer;
-      function  RectVCenter(var aRect : TRect; aBounds : TRect): TRect;
+      function  GetCaptionHeight: integer;
+      function  GetLeftFormBorderWidth: integer;
+      function  GetRightFormBorderWidth: integer;
+      function  GetBottomFormBorderHeight: integer;
+      function  RectVCenter(var aRect: TRect; aBounds: TRect): TRect;
 
       procedure DrawCaption;
       procedure DrawFormBorders;
@@ -60,25 +60,25 @@ type
       destructor  Destroy; override;
       procedure   AfterConstruction; override;
 
-      property Icon            : HICON                read FIcon            write FIcon;
-      property Style           : TCustomStyleServices read FStyle           write SetStyle;
-      property Caption         : TCaption             read FCaption         write FCaption;
-      property Bitmap          : TBitmap              read FBitmap          write FBitmap;
-      property UnavailableText : string               read FUnavailableText write FUnavailableText;
-      property SelectedText    : string               read FSelectedText    write FSelectedText;
-      property HotText         : string               read FHotText         write FHotText;
-      property NormalText      : string               read FNormalText      write FNormalText;
-      property DisabledText    : string               read FDisabledText    write FDisabledText;
-      property PressedText     : string               read FPressedText     write FPressedText;
-      property ButtonText      : string               read FButtonText      write FButtonText;
-      property FileMenuText    : string               read FFileMenuText    write FFileMenuText;
-      property EditMenuText    : string               read FEditMenuText    write FEditMenuText;
-      property ViewMenuText    : string               read FViewMenuText    write FViewMenuText;
-      property HelpMenuText    : string               read FHelpMenuText    write FHelpMenuText;
+      property Icon: HICON                read FIcon            write FIcon;
+      property Style: TCustomStyleServices read FStyle           write SetStyle;
+      property Caption: TCaption             read FCaption         write FCaption;
+      property Bitmap: TBitmap              read FBitmap          write FBitmap;
+      property UnavailableText: string               read FUnavailableText write FUnavailableText;
+      property SelectedText: string               read FSelectedText    write FSelectedText;
+      property HotText: string               read FHotText         write FHotText;
+      property NormalText: string               read FNormalText      write FNormalText;
+      property DisabledText: string               read FDisabledText    write FDisabledText;
+      property PressedText: string               read FPressedText     write FPressedText;
+      property ButtonText: string               read FButtonText      write FButtonText;
+      property FileMenuText: string               read FFileMenuText    write FFileMenuText;
+      property EditMenuText: string               read FEditMenuText    write FEditMenuText;
+      property ViewMenuText: string               read FViewMenuText    write FViewMenuText;
+      property HelpMenuText: string               read FHelpMenuText    write FHelpMenuText;
 
     published
-      property PreviewType     : TPreviewType         read FPreviewType     write FPreviewType;
-      property BkgColor        : TColor               read FBkgColor        write FBkgColor;
+      property PreviewType: TPreviewType         read FPreviewType     write FPreviewType;
+      property BkgColor: TColor               read FBkgColor        write FBkgColor;
       property Align;
       property Anchors;
       property Visible;
@@ -144,7 +144,7 @@ begin
   FBitmap.PixelFormat := pf32bit;
 end;
 
-procedure TVisualStylePreview.SetStyle(const aStyle : TCustomStyleServices);
+procedure TVisualStylePreview.SetStyle(const aStyle: TCustomStyleServices);
 begin
   if (FStyle <> nil) then FreeAndNil(FStyle);
 
@@ -152,10 +152,10 @@ begin
   Refresh;
 end;
 
-function TVisualStylePreview.GetCaptionHeight : integer;
+function TVisualStylePreview.GetCaptionHeight: integer;
 var
-  LSize    : TSize;
-  LDetails : TThemedElementDetails;
+  LSize: TSize;
+  LDetails: TThemedElementDetails;
 begin
   LDetails := FStyle.GetElementDetails(twCaptionActive);
   if Assigned(Application.Mainform) then
@@ -165,10 +165,10 @@ begin
   Result := LSize.cy;
 end;
 
-function TVisualStylePreview.GetLeftFormBorderWidth : integer;
+function TVisualStylePreview.GetLeftFormBorderWidth: integer;
 var
-  LSize    : TSize;
-  LDetails : TThemedElementDetails;
+  LSize: TSize;
+  LDetails: TThemedElementDetails;
 begin
   LDetails := FStyle.GetElementDetails(twFrameLeftActive);
   if Assigned(Application.Mainform) then
@@ -178,10 +178,10 @@ begin
   Result := LSize.cx;
 end;
 
-function TVisualStylePreview.GetRightFormBorderWidth : integer;
+function TVisualStylePreview.GetRightFormBorderWidth: integer;
 var
-  LSize    : TSize;
-  LDetails : TThemedElementDetails;
+  LSize: TSize;
+  LDetails: TThemedElementDetails;
 begin
   LDetails  := FStyle.GetElementDetails(twFrameRightActive);
   if Assigned(Application.Mainform) then
@@ -191,10 +191,10 @@ begin
   Result := LSize.cx;
 end;
 
-function TVisualStylePreview.GetBottomFormBorderHeight : integer;
+function TVisualStylePreview.GetBottomFormBorderHeight: integer;
 var
-  LSize    : TSize;
-  LDetails : TThemedElementDetails;
+  LSize: TSize;
+  LDetails: TThemedElementDetails;
 begin
   LDetails   := FStyle.GetElementDetails(twFrameBottomActive);
   if Assigned(Application.Mainform) then
@@ -212,7 +212,7 @@ begin
   Result.Bottom := GetBottomFormBorderHeight;
 end;
 
-function TVisualStylePreview.GetMainMenuRect : TRect;
+function TVisualStylePreview.GetMainMenuRect: TRect;
 const
   MENU_ITEM_HEIGHT = 20;
 begin
@@ -225,7 +225,7 @@ begin
     Result.Bottom := Result.Top + MulDiv(MENU_ITEM_HEIGHT, Screen.PixelsPerInch, ORIGINAL_PPI);
 end;
 
-function TVisualStylePreview.GetTabsRect : TRect;
+function TVisualStylePreview.GetTabsRect: TRect;
 const
   TABS_HEIGHT = 27;
 begin
@@ -238,7 +238,7 @@ begin
     Result.Bottom := Result.Top + MulDiv(TABS_HEIGHT, Screen.PixelsPerInch, ORIGINAL_PPI);
 end;
 
-function TVisualStylePreview.RectVCenter(var aRect : TRect; aBounds : TRect): TRect;
+function TVisualStylePreview.RectVCenter(var aRect: TRect; aBounds: TRect): TRect;
 begin
   OffsetRect(aRect, - aRect.Left, - aRect.Top);
   OffsetRect(aRect, 0, (aBounds.Height - aRect.Height) div 2);
@@ -249,9 +249,9 @@ end;
 
 procedure TVisualStylePreview.DrawDefaultPanel;
 var
-  LDetails : TThemedElementDetails;
-  LColor   : TColor;
-  LRect    : TRect;
+  LDetails: TThemedElementDetails;
+  LColor: TColor;
+  LRect: TRect;
 begin
   LRect := rect(0, 0, FBitmap.Width, FBitmap.Height);
 
@@ -293,15 +293,15 @@ end;
 
 procedure TVisualStylePreview.DrawCaption;
 var
-  LClientRect     : TRect;
-  LCaptionRect    : TRect;
-  LTextRect       : TRect;
-  LIconRect       : TRect;
-  LButtonRect     : TRect;
-  LDetails        : TThemedElementDetails;
-  LCaptionDetails : TThemedElementDetails;
-  LIconDetails    : TThemedElementDetails;
-  LRegion         : HRGN;
+  LClientRect: TRect;
+  LCaptionRect: TRect;
+  LTextRect: TRect;
+  LIconRect: TRect;
+  LButtonRect: TRect;
+  LDetails: TThemedElementDetails;
+  LCaptionDetails: TThemedElementDetails;
+  LIconDetails: TThemedElementDetails;
+  LRegion: HRGN;
 begin
   LClientRect  := ClientRect;
   LCaptionRect := Rect(0, 0, FBitmap.Width, FFormBorderSize.Top);
@@ -374,8 +374,8 @@ end;
 
 procedure TVisualStylePreview.DrawFormBorders;
 var
-  LRect    : TRect;
-  LDetails : TThemedElementDetails;
+  LRect: TRect;
+  LDetails: TThemedElementDetails;
 begin
   //Draw left border
   LRect    := Rect(0, FFormBorderSize.Top, FFormBorderSize.Left, FBitmap.Height - FFormBorderSize.Bottom);
@@ -397,11 +397,11 @@ procedure TVisualStylePreview.DrawMainMenu;
 const
   MENU_ITEM_WIDTH = 30;
 var
-  LMenuRect : TRect;
-  LItemRect : TRect;
-  LDetails  : TThemedElementDetails;
-  LColor    : TColor;
-  LWidth    : integer;
+  LMenuRect: TRect;
+  LItemRect: TRect;
+  LDetails: TThemedElementDetails;
+  LColor: TColor;
+  LWidth: integer;
 begin
   LMenuRect := GetMainMenuRect;
 
@@ -447,14 +447,14 @@ const
   BUTTON_HEIGHT = 25;
   PANEL_PADDING = 10;
 var
-  LMenuRect   : TRect;
-  LButtonRect : TRect;
-  LDetails    : TThemedElementDetails;
-  LColor      : TColor;
-  i           : integer;
-  LWidth      : integer;
-  LHeight     : integer;
-  LPadding    : integer;
+  LMenuRect: TRect;
+  LButtonRect: TRect;
+  LDetails: TThemedElementDetails;
+  LColor: TColor;
+  i: integer;
+  LWidth: integer;
+  LHeight: integer;
+  LPadding: integer;
 begin
   LMenuRect := GetMainMenuRect;
   if Assigned(Application.Mainform) then
@@ -494,14 +494,14 @@ const
   BUTTON_HEIGHT = 25;
   PANEL_PADDING = 10;
 var
-  LButtonRect : TRect;
-  LDetails    : TThemedElementDetails;
-  LColor      : TColor;
-  i           : integer;
-  LCaption    : string;
-  LWidth      : integer;
-  LHeight     : integer;
-  LPadding    : integer;
+  LButtonRect: TRect;
+  LDetails: TThemedElementDetails;
+  LColor: TColor;
+  i: integer;
+  LCaption: string;
+  LWidth: integer;
+  LHeight: integer;
+  LPadding: integer;
 begin
   if Assigned(Application.Mainform) then
   begin
@@ -563,13 +563,13 @@ const
   TAB_WIDTH  = 80;
   TAB_OFFSET = 3;
 var
-  LDetails  : TThemedElementDetails;
-  LTabsRect : TRect;
-  LItemRect : TRect;
-  LWidth    : integer;
-  LColor    : TColor;
-  LFlags    : TTextFormat;
-  LOffset   : integer;
+  LDetails: TThemedElementDetails;
+  LTabsRect: TRect;
+  LItemRect: TRect;
+  LWidth: integer;
+  LColor: TColor;
+  LFlags: TTextFormat;
+  LOffset: integer;
 begin
   if Assigned(Application.Mainform) then
   begin
@@ -650,8 +650,8 @@ begin
     DrawDefaultPanel
    else
     case FPreviewType of
-      ptOriginal : DrawOriginalPreview;
-      ptTabs     : DrawTabsPreview;
+      ptOriginal: DrawOriginalPreview;
+      ptTabs: DrawTabsPreview;
     end;
 
   Canvas.Draw(0, 0, FBitmap);

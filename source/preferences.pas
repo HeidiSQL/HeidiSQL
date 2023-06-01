@@ -9,10 +9,10 @@ unit preferences;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, ComCtrls, ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
-  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, ActnList, StdActns, Menus,
-  dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, Generics.Collections,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
+  Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
+  SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, Vcl.ActnList, Vcl.StdActns, Vcl.Menus,
+  dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, System.Generics.Collections,
   Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons, System.Actions;
 
 type
@@ -171,14 +171,19 @@ type
     lblLongSortRowNum: TLabel;
     editLongSortRowNum: TEdit;
     updownLongSortRowNum: TUpDown;
-    HotKey1: THotKey;
-    HotKey2: THotKey;
     chkLowercaseHex: TCheckBox;
     chkTabCloseOnDoubleClick: TCheckBox;
     lblRealTrailingZeros: TLabel;
     editRealTrailingZeros: TEdit;
     updownRealTrailingZeros: TUpDown;
     lblRealTrailingZerosHint: TLabel;
+    chkLogTimestamp: TCheckBox;
+    lblCompletionProposal: TLabel;
+    editCompletionProposalInterval: TEdit;
+    updownCompletionProposalInterval: TUpDown;
+    lblCompletionProposalIntervalUnit: TLabel;
+    chkColumnHeaderClick: TCheckBox;
+    chkIncrementalSearch: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -232,6 +237,8 @@ type
     FRestartOptionTouched: Boolean;
     FRestartOptionApplied: Boolean;
     FThemePreview: TfrmThemePreview;
+    FHotKey1: TExtSynHotKey;
+    FHotKey2: TExtSynHotKey;
     procedure InitLanguages;
     procedure SelectDirectory(Sender: TObject; NewFolderButton: Boolean);
     function EnsureShortcutIsUnused(RequestShortcut: TShortCut): Boolean;
@@ -311,6 +318,7 @@ begin
   AppSettings.WriteBool(asQueryHistoryEnabled, chkQueryHistory.Checked);
   AppSettings.WriteInt(asQueryHistoryKeepDays, updownQueryHistoryKeepDays.Position);
   AppSettings.WriteBool(asLogHorizontalScrollbar, chkHorizontalScrollbar.Checked);
+  AppSettings.WriteBool(asLogTimestamp, chkLogTimestamp.Checked);
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
     Attri := SynSQLSynSQLSample.Attribute[i];
     AppSettings.WriteInt(asHighlighterForeground, Attri.Foreground, Attri.Name);
@@ -381,8 +389,10 @@ begin
   AppSettings.WriteBool(asFieldEditorDatetimePrefill, chkPrefillDatetime.Checked);
   AppSettings.WriteBool(asFieldEditorEnum, chkEditorEnum.Checked);
   AppSettings.WriteBool(asFieldEditorSet, chkEditorSet.Checked);
+  AppSettings.WriteBool(asColumnHeaderClick, chkColumnHeaderClick.Checked);
   AppSettings.WriteBool(asReuseEditorConfiguration, chkReuseEditorConfiguration.Checked);
   AppSettings.WriteBool(asForeignDropDown, chkForeignDropDown.Checked);
+  AppSettings.WriteBool(asIncrementalSearch, chkIncrementalSearch.Checked);
   case comboLineBreakStyle.ItemIndex of
     1: AppSettings.WriteInt(asLineBreakStyle, Integer(lbsUnix));
     2: AppSettings.WriteInt(asLineBreakStyle, Integer(lbsMac));
@@ -390,6 +400,7 @@ begin
   end;
 
   AppSettings.WriteBool(asCompletionProposal, chkCompletionProposal.Checked);
+  AppSettings.WriteInt(asCompletionProposalInterval, updownCompletionProposalInterval.Position);
   AppSettings.WriteBool(asCompletionProposalSearchOnMid, chkCompletionProposalSearchOnMid.Checked);
   AppSettings.WriteBool(asAutoUppercase, chkAutoUppercase.Checked);
   AppSettings.WriteBool(asTabsToSpaces, chkTabsToSpaces.Checked);
@@ -427,7 +438,7 @@ begin
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
   MainForm.PrepareImageList;
-
+  MainForm.SynCompletionProposal.TimerInterval := updownCompletionProposalInterval.Position;
   Mainform.LogToFile := chkLogToFile.Checked;
   MainForm.actLogHorizontalScrollbar.Checked := chkHorizontalScrollbar.Checked;
   MainForm.actLogHorizontalScrollbar.OnExecute(MainForm.actLogHorizontalScrollbar);
@@ -537,6 +548,8 @@ begin
   // SQL
   EnumFontFamilies(Canvas.Handle, nil, @EnumFixedProc, LPARAM(Pointer(comboSQLFontName.Items)));
   comboSQLFontName.Sorted := True;
+  updownCompletionProposalInterval.Min := 0;
+  updownCompletionProposalInterval.Max := MaxInt;
   SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
     #9'''String literal'' AS lit' + CRLF +
     'FROM tableA AS ta' + CRLF +
@@ -608,6 +621,36 @@ begin
   end;
 
   // Shortcuts
+  FHotKey1 := TExtSynHotKey.Create(Self);
+  FHotKey1.Parent := tabShortcuts;
+  FHotKey1.Left := lblShortcut1.Left;
+  FHotKey1.Top := lblShortcut1.Top + lblShortcut1.Height + 4;
+  FHotKey1.Width := tabShortcuts.Width - FHotKey1.Left - 50;
+  FHotKey1.Height := editDataFontSize.Height;
+  FHotKey1.Anchors := [akLeft, akTop, akRight];
+  FHotKey1.HotKey := 0;
+  FHotKey1.InvalidKeys := [];
+  FHotKey1.Modifiers := [];
+  FHotKey1.Enabled := False;
+  FHotKey1.OnChange := HotKeyChange;
+  FHotKey1.OnEnter := HotKeyEnter;
+  FHotKey1.OnExit := HotKeyExit;
+
+  FHotKey2 := TExtSynHotKey.Create(Self);
+  FHotKey2.Parent := tabShortcuts;
+  FHotKey2.Left := lblShortcut2.Left;
+  FHotKey2.Top := lblShortcut2.Top + lblShortcut2.Height + 4;
+  FHotKey2.Width := tabShortcuts.Width - FHotKey2.Left - 50;
+  FHotKey2.Height := editDataFontSize.Height;
+  FHotKey2.Anchors := [akLeft, akTop, akRight];
+  FHotKey2.HotKey := 0;
+  FHotKey2.InvalidKeys := [];
+  FHotKey2.Modifiers := [];
+  FHotKey2.Enabled := False;
+  FHotKey2.OnChange := HotKeyChange;
+  FHotKey2.OnEnter := HotKeyEnter;
+  FHotKey2.OnExit := HotKeyExit;
+
   FShortcutCategories := TStringList.Create;
   for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
     if FShortcutCategories.IndexOf(Mainform.ActionList1.Actions[i].Category) = -1 then
@@ -683,6 +726,7 @@ begin
   chkQueryHistory.Checked := AppSettings.ReadBool(asQueryHistoryEnabled);
   updownQueryHistoryKeepDays.Position := AppSettings.ReadInt(asQueryHistoryKeepDays);
   chkHorizontalScrollbar.Checked := AppSettings.ReadBool(asLogHorizontalScrollbar);
+  chkLogTimestamp.Checked := AppSettings.ReadBool(asLogTimestamp);
 
   // Default column width in grids:
   updownMaxColWidth.Position := AppSettings.ReadInt(asMaxColWidth);
@@ -696,6 +740,7 @@ begin
   updownSQLFontSize.Position := SynMemoSQLSample.Font.Size;
   updownSQLTabWidth.Position := SynMemoSQLSample.TabWidth;
   chkCompletionProposal.Checked := AppSettings.ReadBool(asCompletionProposal);
+  updownCompletionProposalInterval.Position := AppSettings.ReadInt(asCompletionProposalInterval);
   chkCompletionProposalSearchOnMid.Checked := AppSettings.ReadBool(asCompletionProposalSearchOnMid);
   chkAutoUppercase.Checked := AppSettings.ReadBool(asAutoUppercase);
   chkTabsToSpaces.Checked := AppSettings.ReadBool(asTabsToSpaces);
@@ -733,8 +778,10 @@ begin
   chkPrefillDateTime.Checked := AppSettings.ReadBool(asFieldEditorDatetimePrefill);
   chkEditorEnum.Checked := AppSettings.ReadBool(asFieldEditorEnum);
   chkEditorSet.Checked := AppSettings.ReadBool(asFieldEditorEnum);
+  chkColumnHeaderClick.Checked := AppSettings.ReadBool(asColumnHeaderClick);
   chkReuseEditorConfiguration.Checked := AppSettings.ReadBool(asReuseEditorConfiguration);
   chkForeignDropDown.Checked := AppSettings.ReadBool(asForeignDropDown);
+  chkIncrementalSearch.Checked := AppSettings.ReadBool(asIncrementalSearch);
   case TLineBreaks(AppSettings.ReadInt(asLineBreakStyle)) of
     lbsNone, lbsWindows: comboLineBreakStyle.ItemIndex := 0;
     lbsUnix: comboLineBreakStyle.ItemIndex := 1;
@@ -869,8 +916,14 @@ end;
 
 
 procedure TfrmPreferences.chkCompletionProposalClick(Sender: TObject);
+var
+  Enable: Boolean;
 begin
-  chkCompletionProposalSearchOnMid.Enabled := TCheckBox(Sender).Checked;
+  Enable := TCheckBox(Sender).Checked;
+  editCompletionProposalInterval.Enabled := Enable;
+  updownCompletionProposalInterval.Enabled := Enable;
+  lblCompletionProposalIntervalUnit.Enabled := Enable;
+  chkCompletionProposalSearchOnMid.Enabled := Enable;
   Modified(Sender);
 end;
 
@@ -1116,7 +1169,7 @@ begin
   lblShortcutHint.Enabled := ShortcutFocused;
   lblShortcut1.Enabled := ShortcutFocused;
   lblShortcut2.Enabled := ShortcutFocused;
-  HotKey1.Enabled := lblShortcut1.Enabled;
+  FHotKey1.Enabled := lblShortcut1.Enabled;
   if ShortcutFocused then begin
     Data := Sender.GetNodeData(Node);
     lblShortcutHint.Caption := TreeShortcutItems.Text[Node, 0];
@@ -1125,10 +1178,10 @@ begin
       if MainForm.ActionList1DefaultHints[Data.Action.Index] <> '' then
         lblShortcutHint.Caption := MainForm.ActionList1DefaultHints[Data.Action.Index];
     end;
-    HotKey1.HotKey := Data.ShortCut1;
-    HotKey2.HotKey := Data.ShortCut2;
+    FHotKey1.HotKey := Data.ShortCut1;
+    FHotKey2.HotKey := Data.ShortCut2;
   end;
-  HotKey2.Enabled := lblShortcut2.Enabled;
+  FHotKey2.Enabled := lblShortcut2.Enabled;
 end;
 
 
@@ -1288,14 +1341,14 @@ end;
 procedure TfrmPreferences.HotKeyChange(Sender: TObject);
 var
   Data: PShortcutItemData;
-  HotKeyEdit: THotKey;
+  HotKeyEdit: TExtSynHotKey;
   EventHandler: TNotifyEvent;
 begin
   // Shortcut 1 or 2 changed
-  HotKeyEdit := Sender as THotKey;
+  HotKeyEdit := Sender as TExtSynHotKey;
   Data := TreeShortcutItems.GetNodeData(TreeShortcutItems.FocusedNode);
   if EnsureShortcutIsUnused(HotKeyEdit.HotKey) then begin
-    if HotKeyEdit = HotKey1 then
+    if HotKeyEdit = FHotKey1 then
       Data.Shortcut1 := HotKeyEdit.HotKey
     else
       Data.Shortcut2 := HotKeyEdit.HotKey;
@@ -1303,7 +1356,7 @@ begin
   end else begin
     // Undo change in hotkey editor, without triggering OnChange event
     EventHandler := HotKeyEdit.OnChange;
-    if HotKeyEdit = HotKey1 then
+    if HotKeyEdit = FHotKey1 then
       HotKeyEdit.HotKey := Data.ShortCut1
     else
       HotKeyEdit.HotKey := Data.ShortCut2;

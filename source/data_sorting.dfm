@@ -11,11 +11,9 @@ object frmDataSorting: TfrmDataSorting
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
-  PixelsPerInch = 96
   TextHeight = 14
   object pnlBevel: TPanel
     Left = 0

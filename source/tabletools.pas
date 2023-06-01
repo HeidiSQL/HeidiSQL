@@ -9,10 +9,10 @@ unit tabletools;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ComCtrls, Buttons, Dialogs, StdActns,
-  VirtualTrees, VirtualTrees.Header, ExtCtrls, Graphics, SynRegExpr, Math, Generics.Collections, extra_controls,
-  dbconnection, apphelpers, Menus, gnugettext, DateUtils, System.Zip, System.UITypes, StrUtils, Messages,
-  SynEdit, SynMemo, ClipBrd, generic_types;
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Buttons, Vcl.Dialogs, Vcl.StdActns,
+  VirtualTrees, VirtualTrees.Header, Vcl.ExtCtrls, Vcl.Graphics, SynRegExpr, System.Math, System.Generics.Collections, extra_controls,
+  dbconnection, apphelpers, Vcl.Menus, gnugettext, System.DateUtils, System.Zip, System.UITypes, System.StrUtils, Winapi.Messages,
+  SynEdit, SynMemo, Vcl.ClipBrd, generic_types;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
@@ -882,7 +882,7 @@ begin
     Output('/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */', True, False, False, True, True);
     Output('/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, ''system'') */', True, False, False, True, True);
     if comboExportOutputType.Text = OUTPUT_CLIPBOARD then
-      StreamToClipboard(ExportStream, nil, false);
+      StreamToClipboard(ExportStream, nil);
 
     if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then
       FileName := TFileStream(ExportStream).FileName;
@@ -921,6 +921,7 @@ begin
   end;
   FModifiedDbs.Clear;
 
+  AddNotes('', '', f_('%s finished', [tabsTools.ActivePage.Caption]), '');
   btnCloseOrCancel.Caption := _('Close');
   btnCloseOrCancel.ModalResult := mrCancel;
   MainForm.ShowStatusMsg;
@@ -1539,7 +1540,7 @@ var
   Struc, Header, DbDir, FinalDbName, BaseInsert, Row, TargetDbAndObject, BinContent, tmp: String;
   i: Integer;
   RowCount, RowCountInChunk: Int64;
-  Limit, Offset, ResultCount: Int64;
+  Limit, Offset, ResultCount, MaxInsertSize: Int64;
   StartTime: Cardinal;
   StrucResult, Data: TDBQuery;
   ColumnList: TTableColumnList;
@@ -1548,6 +1549,7 @@ var
   TargetFileName, SetCharsetCode: String;
 const
   TempDelim = '//';
+  AssumedAvgRowLen = 10000;
 
   procedure LogStatistic(RowsDone: Int64);
   var
@@ -1593,6 +1595,8 @@ begin
 
   StartTime := GetTickCount;
   ExportStreamStartOfQueryPos := 0;
+  MaxInsertSize := Trunc(updownInsertSize.Position * SIZE_KB * 0.9);
+
   if ToDir then begin
     FreeAndNil(ExportStream);
     DbDir := IncludeTrailingPathDelimiter(GetOutputFilename(comboExportOutputTarget.Text, DBObj)) + DBObj.Database + '\';
@@ -1812,7 +1816,8 @@ begin
       Offset := 0;
       RowCount := 0;
       // Calculate limit so we select ~100MB per loop
-      Limit := Round(100 * SIZE_MB / Max(DBObj.AvgRowLen,1));
+      // Take care of disabled "Get full table status" session setting, where AvgRowLen is 0
+      Limit := Round(100 * SIZE_MB / IfThen(DBObj.AvgRowLen>0, DBObj.AvgRowLen, AssumedAvgRowLen));
       if comboExportData.Text = DATA_REPLACE then
         Output('DELETE FROM '+TargetDbAndObject, True, True, True, True, True);
       if DBObj.Engine.ToLowerInvariant <> 'innodb' then begin
@@ -1829,6 +1834,8 @@ begin
         Inc(Offset, Limit);
         if Data.RecordCount = 0 then
           break;
+        if FCancelled then
+          Break;
         Data.PrepareColumnAttributes;
         BaseInsert := 'INSERT INTO ';
         if comboExportData.Text = DATA_INSERTNEW then
@@ -1876,10 +1883,10 @@ begin
             Delete(Row, Length(Row)-1, 2);
             Row := Row + ')';
             // Break if stream would increase over the barrier of 1MB, and throw away current row
-            InsertSizeExceeded := ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > updownInsertSize.Position*SIZE_KB*0.9;
+            InsertSizeExceeded := ExportStream.Size - ExportStreamStartOfQueryPos + Length(Row) > MaxInsertSize;
             // Same with MSSQL which is limited to 1000 rows per INSERT
             RowLimitExceeded := RowCountInChunk >= Quoter.MaxRowsPerInsert;
-            if (RowCountInChunk > 0) and (InsertSizeExceeded or RowLimitExceeded) then
+            if (RowCountInChunk > 0) and (InsertSizeExceeded or RowLimitExceeded or FCancelled) then
               Break;
             Inc(RowCount);
             Inc(RowCountInChunk);
@@ -1888,7 +1895,7 @@ begin
           end;
           Output('', True, True, True, True, True);
           LogStatistic(RowCount);
-          if Data.Eof then
+          if Data.Eof or FCancelled then
             break;
 
         end;

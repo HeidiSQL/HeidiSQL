@@ -13,7 +13,6 @@ object frmColumnSelection: TfrmColumnSelection
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
@@ -21,7 +20,6 @@ object frmColumnSelection: TfrmColumnSelection
   DesignSize = (
     184
     243)
-  PixelsPerInch = 96
   TextHeight = 14
   object btnCancel: TButton
     Left = 101
@@ -71,10 +69,10 @@ object frmColumnSelection: TfrmColumnSelection
     Top = 31
     Width = 168
     Height = 150
-    OnClickCheck = chklistColumnsClickCheck
     Anchors = [akLeft, akTop, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 4
+    OnClickCheck = chklistColumnsClickCheck
   end
   object editFilter: TButtonedEdit
     Left = 63

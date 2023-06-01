@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, extra_controls, gnugettext,
-  Vcl.Menus, Clipbrd, Vcl.ComCtrls, System.Math;
+  Vcl.Menus, Vcl.Clipbrd, Vcl.ComCtrls, System.Math;
 
 type
   TfrmPasswordChange = class(TExtForm)

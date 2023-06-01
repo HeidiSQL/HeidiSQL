@@ -3,8 +3,8 @@ unit exportgrid;
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ExtCtrls, Menus, ComCtrls, VirtualTrees, SynExportHTML, gnugettext, ActnList,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
+  Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, VirtualTrees, SynExportHTML, gnugettext, Vcl.ActnList,
   extra_controls, dbstructures, SynRegExpr, System.StrUtils, System.IOUtils;
 
 type
@@ -623,15 +623,11 @@ begin
           '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
           '    <meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + CRLF +
           '    <style type="text/css">' + CRLF +
-          '      thead tr {background-color: ActiveCaption; color: CaptionText;}' + CRLF +
-          '      th, td {vertical-align: top; font-family: "'+Grid.Font.Name+'", Arial, Helvetica, sans-serif; font-size: '+IntToStr(Grid.Font.Size)+'pt; padding: '+IntToStr(Grid.TextMargin-1)+'px; }' + CRLF +
-          '      table, td {border: 1px solid silver;}' + CRLF +
+          '      th, td {vertical-align: top;}' + CRLF +
+          '      table, td {border: 1px solid silver; padding: 2px;}' + CRLF +
           '      table {border-collapse: collapse;}' + CRLF;
         Col := Grid.Header.Columns.GetFirstVisibleColumn;
         while Col > NoColumn do begin
-          // Adjust preferred width of columns.
-          Header := Header +
-           '      thead .col' + IntToStr(Col) + ' {width: ' + IntToStr(Grid.Header.Columns[Col].Width) + 'px;}' + CRLF;
           // Right-justify all cells to match the grid on screen.
           if Grid.Header.Columns[Col].Alignment = taRightJustify then
             Header := Header + '      .col' + IntToStr(Col) + ' {text-align: right;}' + CRLF;
@@ -1079,7 +1075,7 @@ begin
           efHTML: HTML := S;
         end;
       end;
-      StreamToClipboard(S, HTML, (ExportFormat=efHTML) and (HTML <> nil));
+      StreamToClipboard(S, HTML);
     end else begin
       try
         S.SaveToFile(Filename);

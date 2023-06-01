@@ -12,13 +12,11 @@ object frmSyncDB: TfrmSyncDB
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnCreate = FormCreate
   DesignSize = (
     534
     362)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblSource: TLabel
     Left = 8
@@ -56,6 +54,8 @@ object frmSyncDB: TfrmSyncDB
     OnGetNodeDataSize = treeSourceGetNodeDataSize
     OnInitChildren = treeSourceInitChildren
     OnInitNode = treeSourceInitNode
+    Touch.InteractiveGestures = [igPan, igPressAndTap]
+    Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
     Columns = <
       item
         Position = 0
@@ -212,6 +212,8 @@ object frmSyncDB: TfrmSyncDB
     OnGetNodeDataSize = treeDifferencesGetNodeDataSize
     OnInitChildren = treeDifferencesInitChildren
     OnInitNode = treeDifferencesInitNode
+    Touch.InteractiveGestures = [igPan, igPressAndTap]
+    Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
     Columns = <>
   end
 end

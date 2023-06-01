@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.DbGrid.pas.                                                      
 //                                                                                                  
 // The Initial Developer of the Original Code is Rodrigo Ruz V.                                     
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.                         
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.                         
 // All Rights Reserved.                                                                             
 //                                                                                                  
 //**************************************************************************************************
@@ -56,7 +56,7 @@ type
     function GetSelRow: Integer;
     procedure SetSelRow(const Value: Integer);
    public
-    property TitleOffset : Byte read GetTitleOffset;
+    property TitleOffset: Byte read GetTitleOffset;
     property Indicators: TImageList read GetIndicators;
     property SelRow: Integer read GetSelRow write SetSelRow;
    end;
@@ -94,7 +94,7 @@ begin
   if (ACanvas.CanvasOrientation = coRightToLeft) and (not ARightToLeft) then
     ChangeBiDiModeAlignment(Alignment);
   case Alignment of
-    taLeftJustify : X := ARect.Left + DX;
+    taLeftJustify: X := ARect.Left + DX;
     taRightJustify: X := ARect.Right - ACanvas.TextWidth(AText) - 3;
   else
     X := ARect.Left + (ARect.Right - ARect.Left) shr 1 - (ACanvas.TextWidth(AText) shr 1);

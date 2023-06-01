@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.NC.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2014-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2014-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -2294,7 +2294,7 @@ procedure TNCControl.SetVisible(const Value: Boolean);
 begin
   if FVisible <> Value then
     FVisible := Value;
-  // TODO : Add parent notification
+  // TODO: Add parent notification
 end;
 
 procedure TNCControl.SetWidth(const Value: Integer);

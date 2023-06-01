@@ -3,10 +3,10 @@ unit table_editor;
 interface
 
 uses
-  Windows, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, StdCtrls,
-  ComCtrls, ToolWin, VirtualTrees, VirtualTrees.Types, SynRegExpr, ActiveX, ExtCtrls, SynEdit,
-  SynMemo, Menus, Clipbrd, Math, System.UITypes, System.Generics.Collections,
-  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, StrUtils, extra_controls;
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, VirtualTrees.Types, SynRegExpr, Winapi.ActiveX, Vcl.ExtCtrls, SynEdit,
+  SynMemo, Vcl.Menus, Vcl.Clipbrd, System.Math, System.UITypes, System.Generics.Collections,
+  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, System.StrUtils, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -1297,7 +1297,7 @@ begin
         cdtText:         CellText := Col.Connection.EscapeString(Col.DefaultText);
         cdtNull:         CellText := 'NULL';
         cdtExpression:   CellText := Col.DefaultText;
-        cdtAutoInc:      CellText := 'AUTO_INCREMENT';
+        cdtAutoInc:      CellText := Col.AutoIncName;
       end;
       case Col.OnUpdateType of
         // cdtNothing: leave clause away
@@ -2645,7 +2645,7 @@ begin
       end;
     4, 5: begin
         EnumEditor := TEnumEditorLink.Create(VT, True, nil);
-        EnumEditor.ValueList.Text := 'RESTRICT'+CRLF+'CASCADE'+CRLF+'SET NULL'+CRLF+'NO ACTION';
+        EnumEditor.ValueList := Explode(',', DBObject.Connection.GetSQLSpecifity(spForeignKeyEventAction));
         EditLink := EnumEditor;
       end;
   end;

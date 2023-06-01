@@ -261,6 +261,7 @@
             <Form>frmCustomizeHighlighter</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="..\..\source\Xml.VerySimple.pas"/>
         <None Include="..\..\source\const.inc"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

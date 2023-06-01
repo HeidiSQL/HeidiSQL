@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-07-05 07:23+0200\n"
+"PO-Revision-Date: 2022-12-31 11:47+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
+"Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: en\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -385,11 +385,11 @@ msgstr "Use your client time zone in date/time SQL functions, e.g. NOW(), for My
 msgid "Use own client time zone"
 msgstr "Use own client time zone"
 
-# Session > Advanced
+#. Session > Advanced
 msgid "Get full table status"
 msgstr "Get full table status"
 
-# Session > Advanced
+#. Session > Advanced
 msgid "Disable to speed up internal queries on databases with many tables"
 msgstr "Disable to speed up internal queries on databases with many tables"
 
@@ -749,7 +749,7 @@ msgstr "CREATE code"
 msgid "ALTER code"
 msgstr "ALTER code"
 
-# Table editor
+#. Table editor
 msgid "Partitions"
 msgstr "Partitions"
 
@@ -758,7 +758,7 @@ msgstr "Partitions"
 msgid "Export grid rows"
 msgstr "Export grid rows"
 
-# Grid context menu
+#. Grid context menu
 msgid "Copy as"
 msgstr "Copy as"
 
@@ -1176,7 +1176,7 @@ msgstr "Table:"
 msgid "Columns:"
 msgstr "Columns:"
 
-# CSV import
+#. CSV import
 msgid "Cannot truncate table"
 msgstr "Cannot truncate table"
 
@@ -1236,7 +1236,7 @@ msgstr "Default"
 msgid "Data"
 msgstr "Data"
 
-#. MainForm..panelTop..pnlLeft..comboDBFilter....Hint
+#. Short and longer hint, separated by pipe
 #: main.dfm:384
 msgid "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
 msgstr "Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. \"mydb;test.*;project\\d+\"."
@@ -1250,7 +1250,7 @@ msgstr "Database filter"
 msgid "Table filter"
 msgstr "Table filter"
 
-#. Table filter box hint
+#. Table filter box hint, short and longer hint, separated by pipe
 msgid "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 msgstr "Table filter|Can contain regular expressions, e.g. \"phpbb_\\d\""
 
@@ -1635,8 +1635,7 @@ msgstr "New window..."
 msgid "E&xit"
 msgstr "E&xit"
 
-#. MainForm..ActionList1..actExitApplication..Hint
-#: main.dfm:1887
+#. Short and longer hint, separated by pipe
 msgid "Exit|Exit application"
 msgstr "Exit|Exit application"
 
@@ -1669,8 +1668,7 @@ msgstr "Various"
 msgid "&Copy"
 msgstr "&Copy"
 
-#. MainForm..ActionList1..actCopy..Hint
-#: main.dfm:1894
+#. Short and longer hint, separated by pipe
 msgid "Copy|Copy to Clipboard"
 msgstr "Copy|Copy to Clipboard"
 
@@ -1679,8 +1677,7 @@ msgstr "Copy|Copy to Clipboard"
 msgid "&Paste"
 msgstr "&Paste"
 
-#. MainForm..ActionList1..actPaste..Hint
-#: main.dfm:1902
+#. Short and longer hint, separated by pipe
 msgid "Paste|Paste from Clipboard"
 msgstr "Paste|Paste from Clipboard"
 
@@ -1722,8 +1719,7 @@ msgstr "Manage user authentication and privileges"
 msgid "Cu&t"
 msgstr "Cu&t"
 
-#. MainForm..ActionList1..actCut..Hint
-#: main.dfm:1917
+#. Short and longer hint, separated by pipe
 msgid "Cut|Cuts the selection and puts it on the Clipboard"
 msgstr "Cut|Cuts the selection and puts it on the Clipboard"
 
@@ -1731,6 +1727,10 @@ msgstr "Cut|Cuts the selection and puts it on the Clipboard"
 #: main.dfm:1924
 msgid "&Undo"
 msgstr "&Undo"
+
+#. Short and longer hint, separated by pipe
+msgid "Undo|Revert last modification"
+msgstr "Undo|Revert last modification"
 
 #. MainForm..ActionList1..actAboutBox..Caption
 #: main.dfm:1931
@@ -1856,8 +1856,7 @@ msgstr "Execute selected SQL...|Execute selected SQL-query/queries..."
 msgid "Run current query"
 msgstr "Run current query"
 
-#. MainForm..ActionList1..actExecuteCurrentQuery..Hint
-#: main.dfm:1997
+#. Short and longer hint, separated by pipe
 msgid "Run current query|Run currently focused SQL query"
 msgstr "Run current query|Run currently focused SQL query"
 
@@ -2033,7 +2032,7 @@ msgstr "SQL help browser"
 msgid "Refresh"
 msgstr "Refresh"
 
-# Full table status refresh
+#. Full table status refresh
 msgid "Full status refresh"
 msgstr "Full status refresh"
 
@@ -2177,8 +2176,7 @@ msgstr "Remove filter"
 msgid "&Previous tab"
 msgstr "&Previous tab"
 
-#. MainForm..ActionList1..actPreviousTab..Hint
-#: main.dfm:2377
+#. Short and longer hint, separated by pipe
 msgid "Previous tab|Go back to the previous tab"
 msgstr "Previous tab|Go back to the previous tab"
 
@@ -2187,8 +2185,7 @@ msgstr "Previous tab|Go back to the previous tab"
 msgid "&Next tab"
 msgstr "&Next tab"
 
-#. MainForm..ActionList1..actNextTab..Hint
-#: main.dfm:2386
+#. Short and longer hint, separated by pipe
 msgid "Next tab|Go to the next tab"
 msgstr "Next tab|Go to the next tab"
 
@@ -2205,8 +2202,7 @@ msgstr "Next result tab"
 msgid "Select all"
 msgstr "Select all"
 
-#. MainForm..ActionList1..actSelectAll..Hint
-#: main.dfm:2394
+#. Short and longer hint, separated by pipe
 msgid "Select all|Select all items or text"
 msgstr "Select all|Select all items or text"
 
@@ -2491,7 +2487,7 @@ msgstr "Compressing"
 msgid "Insert value"
 msgstr "Insert value"
 
-# Data grid context menu
+#. Data grid context menu
 msgid "This is a UNIX timestamp column"
 msgstr "This is a UNIX timestamp column"
 
@@ -2802,6 +2798,9 @@ msgstr "Enable query history"
 msgid "days to keep queries before removing them"
 msgstr "days to keep queries before removing them"
 
+msgid "Add timestamp to all log messages"
+msgstr "Add timestamp to all log messages"
+
 #. optionsform..pagecontrolMain..tabSQL..lblFont..Caption
 #: options.dfm:357
 msgid "Editor font:"
@@ -2817,10 +2816,11 @@ msgstr "Tab width:"
 msgid "Maximum result sets:"
 msgstr "Maximum result sets:"
 
-#. optionsform..pagecontrolMain..tabSQL..chkCompletionProposal..Caption
-#: options.dfm:418
-msgid "Enable autocompletion"
-msgstr "Enable autocompletion"
+msgid "Auto completion proposal:"
+msgstr "Auto completion proposal:"
+
+msgid "Enable"
+msgstr "Enable"
 
 msgid "Auto uppercase reserved words and functions"
 msgstr "Auto uppercase reserved words and functions"
@@ -2957,6 +2957,9 @@ msgstr "Enable SET checkbox editor"
 msgid "Prefill empty date/time fields with current date/time"
 msgstr "Prefill empty date/time fields with current date/time"
 
+msgid "Click on column headers toggles sorting"
+msgstr "Click on column headers toggles sorting"
+
 #. optionsform..pagecontrolMain..tabData..chkRememberFilters..Caption
 #: options.dfm:838
 msgid "Remember filters, sorting and column selection across sessions"
@@ -2965,6 +2968,10 @@ msgstr "Remember filters, sorting and column selection across sessions"
 #. Preferences > Data
 msgid "Show values in foreign key columns"
 msgstr "Show values in foreign key columns"
+
+#. Preferences checkbox
+msgid "Incremental search through typing"
+msgstr "Incremental search through typing"
 
 msgid "Connected table has too many rows. Foreign key drop-down is limited to %d items."
 msgstr "Connected table has too many rows. Foreign key drop-down is limited to %d items."
@@ -5258,11 +5265,11 @@ msgstr "do not update existing"
 msgid "existing data"
 msgstr "existing data"
 
-# Export SQL data
+#. Export SQL data
 msgid "Max INSERT size:"
 msgstr "Max INSERT size:"
 
-# Export SQL data
+#. Export SQL data
 msgid "KB (0 = Single INSERTs)"
 msgstr "KB (0 = Single INSERTs)"
 
@@ -5337,6 +5344,12 @@ msgstr "Selected operations cannot be applied to a %s"
 #: tabletools.pas:1563
 msgid "Unhandled tree level"
 msgstr "Unhandled tree level"
+
+msgid "Export finished"
+msgstr "Export finished"
+
+msgid "%s finished"
+msgstr "%s finished"
 
 #: table_editor.pas:380
 msgid "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
@@ -5526,7 +5539,7 @@ msgstr "No"
 msgid "Connected"
 msgstr "Connected"
 
-# Main form status bar
+#. Main form status bar
 msgid "Disconnected"
 msgstr "Disconnected"
 
@@ -5940,11 +5953,11 @@ msgstr "End of file block was cut within some multibyte character, at position %
 msgid "Recent sessions"
 msgstr "Recent sessions"
 
-# GetParentFormOrFrame
+#. GetParentFormOrFrame
 msgid "Could not determine parent form of this %s"
 msgstr "Could not determine parent form of this %s"
 
-# Button on update check dialog, appearing right after application start
+#. Button on update check dialog, appearing right after application start
 msgid "Skip"
 msgstr "Skip"
 
@@ -6445,7 +6458,7 @@ msgstr "Error when checking for updates: %s"
 msgid "Please update %s through the Microsoft Store."
 msgstr "Please update %s through the Microsoft Store."
 
-# Text in parentheses for detected linebreak style in popup text editor
+#. Text in parentheses for detected linebreak style in popup text editor
 msgid "detected"
 msgstr "detected"
 
@@ -6591,8 +6604,8 @@ msgstr "Note: The database file will not get deleted."
 msgid "Show SQL completion proposal"
 msgstr "Show SQL completion proposal"
 
-msgid "Find matches in middle of entered text"
-msgstr "Find matches in middle of entered text"
+msgid "Find matches in the middle"
+msgstr "Find matches in the middle"
 
 msgid "Wait longer for sorting?"
 msgstr "Wait longer for sorting?"
@@ -6730,3 +6743,36 @@ msgstr "Color picker"
 
 msgid "Style:"
 msgstr "Style:"
+
+msgid "Error in code formatting: %s"
+msgstr "Error in code formatting: %s"
+
+msgid "Auto-disabling wordwrap for large text"
+msgstr "Auto-disabling wordwrap for large text"
+
+msgid "%d tab(s) took longer than expected to restore. Closing and reopening these should fix that: %s"
+msgstr "%d tab(s) took longer than expected to restore. Closing and reopening these should fix that: %s"
+
+msgid "Library:"
+msgstr "Library:"
+
+msgid "Move line up"
+msgstr "Move line up"
+
+msgid "Move line down"
+msgstr "Move line down"
+
+msgid "New query tab in background"
+msgstr "New query tab in background"
+
+msgid "Follow foreign key"
+msgstr "Follow foreign key"
+
+msgid "Follow foreign key to the linked table"
+msgstr "Follow foreign key to the linked table"
+
+msgid "Copy with tabs to spaces"
+msgstr "Copy with tabs to spaces"
+
+msgid "Connection properties"
+msgstr "Connection properties"

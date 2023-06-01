@@ -10,7 +10,6 @@ object MainForm: TMainForm
   Font.Name = 'Tahoma'
   Font.Style = []
   Menu = MainMenu1
-  OldCreateOrder = True
   Position = poDesigned
   ShowHint = True
   OnAfterMonitorDpiChanged = FormAfterMonitorDpiChanged
@@ -20,7 +19,6 @@ object MainForm: TMainForm
   OnDestroy = FormDestroy
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 14
   object spltTopBottom: TSplitter
     Left = 0
@@ -67,6 +65,7 @@ object MainForm: TMainForm
     ReadOnly = True
     RightEdge = 0
     ScrollBars = ssVertical
+    OnSpecialLineColors = SynMemoSQLLogSpecialLineColors
     FontSmoothing = fsmNone
   end
   object StatusBar: TStatusBar
@@ -185,6 +184,8 @@ object MainForm: TMainForm
         OnInitChildren = DBtreeInitChildren
         OnInitNode = DBtreeInitNode
         OnMouseUp = DBtreeMouseUp
+        Touch.InteractiveGestures = [igPan, igPressAndTap]
+        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <
           item
             Position = 0
@@ -376,13 +377,18 @@ object MainForm: TMainForm
           Width = 154
           Height = 21
           Images = VirtualImageListMain
+          LeftButton.ImageIndex = 192
+          LeftButton.Visible = True
           RightButton.Hint = 'Clear filter'
           RightButton.ImageIndex = 193
           RightButton.Visible = True
           TabOrder = 0
           TextHint = 'Regular expression'
           OnChange = editFilterVTChange
-          OnRightButtonClick = editFilterVTRightButtonClick
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
+          OnLeftButtonClick = editDatabaseTableFilterLeftButtonClick
+          OnRightButtonClick = buttonedEditClear
         end
       end
       object PageControlMain: TPageControl
@@ -445,6 +451,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = ListDatabasesInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -533,6 +541,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -586,6 +596,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -658,6 +670,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Alignment = taRightJustify
@@ -815,6 +829,8 @@ object MainForm: TMainForm
                 OnHeaderClick = AnyGridHeaderClick
                 OnHeaderDraggedOut = AnyGridHeaderDraggedOut
                 OnInitNode = AnyGridInitNode
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -890,6 +906,8 @@ object MainForm: TMainForm
             OnInitNode = ListTablesInitNode
             OnKeyPress = ListTablesKeyPress
             OnNewText = ListTablesNewText
+            Touch.InteractiveGestures = [igPan, igPressAndTap]
+            Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
             Columns = <
               item
                 Position = 0
@@ -1141,7 +1159,7 @@ object MainForm: TMainForm
               Height = 22
               Action = actApplyFilter
               Anchors = [akTop, akRight]
-              TabOrder = 2
+              TabOrder = 3
             end
             object btnFilterClear: TButton
               Left = 713
@@ -1150,7 +1168,7 @@ object MainForm: TMainForm
               Height = 22
               Action = actClearFilterEditor
               Anchors = [akTop, akRight]
-              TabOrder = 3
+              TabOrder = 4
             end
             object SynMemoFilter: TSynMemo
               Left = 0
@@ -1165,7 +1183,7 @@ object MainForm: TMainForm
               Font.Name = 'Courier New'
               Font.Style = []
               PopupMenu = popupFilter
-              TabOrder = 0
+              TabOrder = 1
               CodeFolding.GutterShapeSize = 11
               CodeFolding.CollapsedLineColor = clGrayText
               CodeFolding.FolderBarLinesColor = clGrayText
@@ -1199,7 +1217,7 @@ object MainForm: TMainForm
               Width = 156
               Height = 21
               Anchors = [akTop, akRight]
-              TabOrder = 1
+              TabOrder = 2
               OnChange = editFilterSearchChange
               OnEnter = editFilterSearchEnter
               OnExit = editFilterSearchExit
@@ -1214,7 +1232,7 @@ object MainForm: TMainForm
               Style = csDropDownList
               Anchors = [akLeft, akTop, akRight]
               DropDownCount = 20
-              TabOrder = 4
+              TabOrder = 0
               OnSelect = LoadRecentFilter
             end
           end
@@ -1264,6 +1282,8 @@ object MainForm: TMainForm
             OnMouseUp = AnyGridMouseUp
             OnMouseWheel = AnyGridMouseWheel
             OnNewText = AnyGridNewText
+            Touch.InteractiveGestures = [igPan, igPressAndTap]
+            Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
             Columns = <>
           end
         end
@@ -1342,6 +1362,7 @@ object MainForm: TMainForm
               WantTabs = True
               OnDropFiles = SynMemoQueryDropFiles
               OnReplaceText = SynMemoQueryReplaceText
+              OnSpecialLineColors = SynMemoQuerySpecialLineColors
               OnStatusChange = SynMemoQueryStatusChange
               OnPaintTransient = SynMemoQueryPaintTransient
               OnScanForFoldRanges = SynMemoQueryScanForFoldRanges
@@ -1411,6 +1432,8 @@ object MainForm: TMainForm
                 OnNewText = treeQueryHelpersNewText
                 OnNodeClick = treeQueryHelpersNodeClick
                 OnResize = treeQueryHelpersResize
+                Touch.InteractiveGestures = [igPan, igPressAndTap]
+                Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
                 Columns = <
                   item
                     Position = 0
@@ -1490,6 +1513,8 @@ object MainForm: TMainForm
             OnMouseWheel = AnyGridMouseWheel
             OnNewText = AnyGridNewText
             OnStartOperation = AnyGridStartOperation
+            Touch.InteractiveGestures = [igPan, igPressAndTap]
+            Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
             Columns = <>
           end
           object tabsetQuery: TTabSet
@@ -2073,6 +2098,9 @@ object MainForm: TMainForm
     object MainMenuEdit: TMenuItem
       Caption = 'Edit'
       Hint = 'Edit commands'
+      object Undo1: TMenuItem
+        Action = actUndo
+      end
       object CopyItem: TMenuItem
         Action = actCopy
       end
@@ -2245,6 +2273,9 @@ object MainForm: TMainForm
       end
       object Launchcommandline1: TMenuItem
         Action = actLaunchCommandline
+      end
+      object SequalSuggest1: TMenuItem
+        Action = actSequalSuggest
       end
       object N7: TMenuItem
         Caption = '-'
@@ -2422,6 +2453,7 @@ object MainForm: TMainForm
       Category = 'Various'
       Caption = '&Undo'
       Enabled = False
+      Hint = 'Undo|Revert last modification'
       ImageIndex = 40
       ImageName = 'icons8-undo'
       ShortCut = 32776
@@ -3573,6 +3605,12 @@ object MainForm: TMainForm
       ShortCut = 32806
       OnExecute = actSynMoveUpExecute
     end
+    object actSequalSuggest: TAction
+      Category = 'Tools'
+      Caption = 'Sequal Suggest'
+      ImageIndex = 206
+      OnExecute = actSequalSuggestExecute
+    end
   end
   object menuConnections: TPopupMenu
     AutoHotkeys = maManual
@@ -4238,6 +4276,9 @@ object MainForm: TMainForm
     object menuSQLhelp2: TMenuItem
       Action = actSQLhelp
     end
+    object SequalSuggest2: TMenuItem
+      Action = actSequalSuggest
+    end
     object menuQueryInsertFunction: TMenuItem
       Caption = 'Insert function'
       ImageIndex = 13
@@ -4247,12 +4288,11 @@ object MainForm: TMainForm
     Images = VirtualImageListMain
     Left = 344
     Top = 152
-    object menuInsertSnippetAtCursor: TMenuItem
+    object menuInsertAtCursor: TMenuItem
       Caption = 'Insert at cursor'
       Default = True
-      Enabled = False
       ImageIndex = 52
-      OnClick = menuInsertSnippetAtCursorClick
+      OnClick = menuInsertAtCursorClick
     end
     object menuLoadSnippet: TMenuItem
       Caption = 'Load'
@@ -17192,1237 +17232,1316 @@ object MainForm: TMainForm
               658352E807F8E960DF69205DC4579933E6EF1110FA7F1C2F8A6483B809ED0000
               000049454E44AE426082}
           end>
+      end
+      item
+        Name = 'server-rds-mysql'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D494844520000006400000064080600000070E295
+              54000000097048597300000B1300000B1301009A9C18000013B549444154789C
+              ED9D797C54D5D9C7BFE7CE4CD6C9BE02595992B089288802868255C08DB62ACA
+              0B822056A9FDB455D1DAB7D5BAB4A2F811D1EADB564105D7B6168BB228A8B46C
+              15411002610B4BC84676B2CF7ACFFBC72493C4DC494232779280DF3F60EEC99D
+              F39C99DF9CED39CF39574829F92E63C6DCDB26AD254655526F94144706111091
+              8630F983EA44204195200442012941550DA0A808E1FA9B1402848270AA804428
+              2014056977F41346BF3F06C7268D57845223A5DAB6605E4455A5501411929214
+              F3B5BFC9F0BF5255F3A504890045601002295554A92285409102104845454809
+              085404420A8490180C028BD5C9A9BC521C81D528460952B45B86434FDCD626CD
+              A8CFC73D2F62A5CA1229C4022104ED7F04EF23205D51C49D0E2956A3CA478122
+              1F17A1154A0FDA8E4788374029061634A6B9AA8DEF902DECCDC5200A85C22A90
+              037C588656F48420FD84E44DA1882221C4FC1EB0DF3E82B902F225F2ED9E1046
+              7741A4FB1FFA23C42A0551289077E96DB7BB4829E74844BE10E21D20C1577675
+              15442200D95F085609290A0462AE9EF6F441CC561079C07B2013F5B6A69B2052
+              8A0102B9DAA0C802017D5088EF209885E08C80F700DD84F1BE20820404EF00F9
+              20EEF47AFE3D8D14B3403923051F00C9DECEDE9B820C00DE4128792066773D1B
+              5F0EB2A0ABE36C21C5ED0A9C16820F902479AB38DD144480205120DE17AE1AD1
+              0D21FA2AF27604B920FE81176A8CE6C430D06668F74D8A74605524A08E077587
+              70CDD12F6A8410B74A55DE2AA59C8041EE541507AAF3FCAB9FA6207951F51EDF
+              208524C81680C42F4D416C40C3F572D1222542B25134F88D35FAF91DF3331AD1
+              724DB587A620B951656D1355097E028204215509E6909AC04D8A748409491D10
+              DC95F25F7008EA8050B52E605380EA3F3236CCBFA65E01874169F47F758CB62F
+              2B4EA38F3229182BAD0416DB08C4B44EC199AC4283CF9D4FBD9F068391643BF6
+              75672D725258AD9D08AB0387D2B92F4A5B90C41682B81C9B10E78F7F56157147
+              CEBD6509572639153B42F6A42BACF7A228E050D5CC4AAB73556C61EDBC84F23A
+              9C4633AEBEB6FD9AA22D88CDD6FC5A4884AA12BCAB928012FBE39610394F152A
+              A2856B39392E94E9631219101D4269553D874E97F3F59142AAEB6D1A995FF848
+              40416046CE3D17137CF250B8F26441403E0EC58EA18381ADB620A1A1AEFF1505
+              9C0D88BA7A2272EAE6280D3C690B3321BEB354F1938983B9715C2A71E14154D4
+              581891524EFF28339FEF3D4D6179ED797E1C9FB7814D6D80D7313825D541014F
+              584CF2E4E9E0FCB79DE62A0894A07A3627B44601226328A0427D15C11913094A
+              1835D15454BE4DA82DD65CA40A8886FF7BFC67A61913D2358575AA9235DB8FB1
+              62C3018EE557B45B78A93A518C7EAA39265108A10829D5CE7EEE2EA1AA124511
+              3235394606F8191587B37BF68C4603F5F5D6BAD379658A844045B8BE28814045
+              C516599459B1BFFFB6B2ADC320AC0114893C9CDE361FCDDC8F1E71BF0CF42F4B
+              09353AD737A820155A4DA4AFBA64B0D224C69AEDC73859788ECBD3E299342A11
+              45080C8AE0B6CC746ECB4CE7ADCF0EF2EC075F61B53BBBF5C1FB1AAA6B5D9178
+              E2D73BCB52469515279EA2D8F3FD1E570C838362081D3935C069366FB488DA50
+              97E3B6F53D53C60E3300FC37BB8887FEB2C59D3E203A84DB7F90C1ACC943890E
+              0B04E0AEA92398323A89FB966FE2F099F26E7CC4BE45D31A6855B50CF11F56F0
+              E990C4924BF3365ED260290DD3BCDF630FA3F807614EBEF413635078866AB76A
+              DE63773800301A5A67535056C3B20F7733E9A1F759F6E16E6C8DB5222936940D
+              CFDCCA03B78CE1471386306D6C2A999724921AAF5DB80B09A7D5847F787D5AD4
+              E8DC75C660EDEF133CF4213157CF0B3298FC971BFDCDF7786CCBA5CA986103AD
+              6B5FFC953FC00DBFFD90EC5CED5FFE80E8109E597035999778F65A1FCDAB606F
+              4E89DC9B6F65C7910A516BD17784E6AB3EE4BB084562ABF55FE1B4197E796C65
+              661B9788660D09884A5C6C0A8EBC47AAEDB7F77BB24FA9BB8F163A015E5C748D
+              C7FB0ACA6A98B774032B361EA0CE62D7BC273D3192599333C4F3778E121B7F3B
+              91876764101E6C6AD77E5F443A150222EB169A132A166BFD5DB386F49FF6AB25
+              021E6D3F67D7286B60C668B9EDA5BB8200566F3EC8EF57ED68F76DA1417E8405
+              FB1317114C48901FA1417E2444873071C400AE1CD67A09BBBAC1CECB1B8EF3F7
+              9D79EDE6D915DC3524294606F8FBAE863421A57C366BD9B4DFB4C9C7C3FD8ECE
+              1624AFA45AFE7AC5769E5B3891B9D78E60F7D1B3ACFBEA84C7FBABEB6D54D7DB
+              C82BAD6995FECABFF6302C355E9D35F57271EB950922D0CF4068A089DFDD328C
+              EB46C5B364CD614E149FEF9CA657A3F91D7BC5F7F18FADC7F8DBBF5D43E53FFD
+              FC87C4860775299F2379153CBFF688BC61C976DEDA72CA9D7EC5E0483E7A6402
+              77667A7D81AED7E13567D4A32BFEC389C27300BCB1787AB7F22AAFB1B16CDD31
+              7EBC7407DB0E97BAD31F9E91C19F165C4668E085D7B734E155EFE0BCA51B0018
+              9E12CDDC6B4778BC6FD4A0586ECD4C67C8808876F33B515CCBFD2BF6F2D80707
+              B1D85C038C49C363F8E891098C4E0DF75AB97B135E15A4A0AC86A7DEDE09C0EF
+              665F85C9A89DFD806833CFFFF4076C7A6E26E387751C8BB676770133966E67DF
+              A94A006242FD59F5F371DC3CB6BFF70ADF4BF0BAFFFCCDCFB22828ABC16454F8
+              C9C434CD7B36EC3AC9B31FEC02E0B507A7121CD0711354546961DE2B5FF3FEF6
+              33EEB43FDC319285D70CF44EC17B09BA2C68ACD97E1C805993877ABCE7AFEBBE
+              A5AACE4A7080094327176F00967C7498673F3AECBEFEC5F543F8C5F543BA5ED8
+              5E862E826CCBCA075C7D457B23AE573FDEC7E77B4FB75C37919D09037A6FFB19
+              1E79E780FB7AE13503BB2E4A2F5BF1D445903DC78AA8ACB100306D6CAAC7FB5E
+              5FBF9F7B967DD6251B9FEE2BE2C155DFBAAF175E3390F9933DDBEA2BE8228894
+              B076670E00D75F31480F13007C7EA09887DFDEEFBE7EE0C634A68FEEA79B3D5F
+              A0DBA2F83FB71D0560DCD07E8405FBEB6586CFBE3DCB92167DCA73732E6170BC
+              59377B7AA39B20074F9791DFE81E997E85BE23A1F7B79F69E5EF5AB1682C4643
+              2FEB1C3A89AE6123EF7C910DC0FCA923F53403C01FFE99CDA1BC6A0022CD7EBC
+              386FB4EE36F54057413ED8E26A4AD21222183754FFB6FDDEBFEEC1D918803169
+              780C3FBAA2C776A675195D05A9AAB3B26AD34100FE383F534F5380CB5DFFEB16
+              C3E1A76E1FD1E7D654748F745BFAF7AF51A56450FF707E7673679A91EEB5FD9B
+              F69F65FB91E650D867678F6AEFF68EE2D67C8EEE82D45BEC3CB9DAB568F5F0CC
+              2BF8B107778A37F9CDBB07DC31E0E3D3A3189F1EADBB4D6FE19358D0D59B0FF1
+              D91ED7FAC6B2FB26332C394A577B55F5765EF9F4B8FBFA77B70CD3D59E37F159
+              70EE7DCB37712CDFE5ADBD66B4FE0B4DAF7F7E92CA5A974B26212A90B1832275
+              B7E90D7C2648809F9170B36B82985370CE27365FFBFCA4FBF5BCC9293EB1D95D
+              7C26C8B4B1A9C4860761B33BF9CF81331DBFC10BACD9958FDAD899640E8D213C
+              D8CF2776BB83CF04199EE2EA5837EE3E45BDB5D33114DDA2C1E6646B76F312F0
+              CCF1BA6F33EF363E132473A4EBCBF8FBBF8F7470A777C7A16F6E39ED7E3D7BA2
+              C646A45EB63DD22782C4470493961081C5E6606776812F4CBAD977AA9213675D
+              E14311663FA6F5726FB04F04B92C2D0E80AF0EF7CCC9472F6F6C1E022FBA4EBF
+              E5006FE013419AA24BB273353693FA802D074B28AC6C00203536B8570F817D22
+              4842740800C59575BE30A7C92B1B73DCAF1FB8517F6F4157F1892051A1AE3D22
+              350DDA81D6BE60DD378594D7B8268A2392C21891D43BB740F844107F3FD7C910
+              7687E768FA1BC60DE2B22171BAAE2ABDF165F34471F1CD6DB793F5067C2288DA
+              B84661326A1FD9111F19CCABBF9CCACD570ED25590BFEDCCC3E67045B98F1914
+              C9F0C4503DCD75099F08D2B427C4EC21206EF5AF6F00E0CAA1FDD0332EC7E650
+              F9C77F9B977A17DF9CA1F4AE59888F0469EACCE322DB9EC0F1A30943DCA3B0B4
+              840871F9C0F6E37DBBCBCA2F9AA3EA2F1F1841525480AEF6CE179F08925BEC5A
+              EBD60AAE9E3929A3D5F54FAFD5B7D92AABB1F2C99E42F7F5C2CCC45E751C854F
+              0AD3B4EB766C7A7CABF4003F23A307C7B64ABB2A2D4A244405EA5A9E173E39EA
+              7E3D2A29444C1BA1EFFACCF9E01341F6E594E074AA449803DC4E4680C1FDC309
+              F0736DE2FACFFE33ACDD9923011EBA49DF794245AD8D17D71D735FCF9F388097
+              66653063742C417EED9F15A6373E11C46273B065BFCBE5DEB2891AD0386104C8
+              3A55CAA32BB7A9005346C432304EDF139F567E71924FBF3DEBEED2132203983B
+              BE3F7FBE7318774D18407C987EC17DEDE1B3F673F5E64300DCF1830C9AF64326
+              C5360BE270AA58ED4EBEC82A9600BFBF6DB8EE657AE4EDFDF2B71F1E533FCF2E
+              A7A471D2680E3070D3A531BC3A67280B331308F6F76D8DF19920DBB2F2C92DAE
+              C2CF64E089B9135D892D76AA96348EC45EF8E4A804189D1AC19569FAB7ED070B
+              6AE5EB5B0B58B43A9BC7FF95C3E6EC726AADAE09ECF491D1BC327B28E30787EB
+              5E8E267C3AC278B0F1F88DB9D70E67F1CC2B1897DEEC0ACF29AC0490F9E50DEE
+              358CA7EFF0BC2D4E0F0E15D4F2972D79DCB73A9B57BF3C43698D8DD040230F4D
+              4D61D1E4443AD8E9EC157C2AC8DEE3C5BCFCD13700DC7FF368AEB9CC15EC60B3
+              3BF9F64489FBBEE5EB8FB3EFD439E2C202B8F75ADFBBCB1B6C4EBE3C5CC1CFDF
+              3DCCBAFDAE15C71F0E8B62F91D1924EB3C02F4F918FCC57FEEE1A535DFB8E3A6
+              EA2D7616BDBCD97D1E4A130BFFBC9BC28A06EE9F3698F8F09E99BC399C9237B7
+              17F0D4C727A8A8B3931019C0B23BD2993844BFC96B8F4C8A96AFD9C3A407DF63
+              EE73EBC97CF07DBEDC97DBE61EBB5365E6B2FF526F75B2E6E1093D50CA66F6E7
+              D5F08B770FB3ED982B8CE981EB92F99F2BF55979ECB1596A5E690DDBB2F229AF
+              6EF0784F75839DEB9FD94AA09F8165F32EF55DE13468B0AB2CDF9CCBB24DA7A9
+              B53AB9E5F2381E9A9AE2753BBDCA6DA04545AD8DAB1FFB9241F1666EBBAAE7A3
+              46761C3FC7BC15596CCC2A63FCE0701EBC2EC5ABF9F786471E7548ADC5C18CE7
+              B6F3C88C0CC6A747B1F3A8EF0E401340BF707F6242FC88083211E8A750D5E020
+              BFC2829430614838A535FDF9DB9E920EF3EA0CBD5010CFFEF0E73F3EC2FCC9A9
+              2842B48A70EF161A43D90093C2D8D430C6A48492161F4C6C48FB0176D34646B3
+              3EAB9C5A2FAC50F742413C2325BCB33597A997C6931C134C6EA977D7E88580BB
+              AF4E60C290704203B4BF9AD21A1B157576CA6BED9CA9B070B8B0961325F5383A
+              78225B67E95382806B91E9933D8504E8E4041C3730AC951859F9351457DBC82E
+              ACE348512DC5D5DA27DD193DAC869E2F7D4E90269A0EA3F12652C2D28DA778F6
+              D6666FF3FA0365EC3E55E5755B9EE8F5A32C5F73BCB89E8D59CDFDD3E2A92917
+              AE2FABAFB0626B3E59F9AEF053A341B87D59661F787EBF17C4034FACCD616BE3
+              CC1C5CBEAC97670F65CA507DA31E3D0822FA6CDFE24D5EDA9CCBCA6DCDC1E161
+              8146EE9F92C4A3D7A77A636551F33BD614449134F8FEA9B44D08DF06E674B00F
+              77C381521E78FF08070B9A0FE01C9B1AC6F25919A44477CDF3DB6850D367A429
+              884155970AC95F7BDDD9453DC4990A0BBFFF570E4B379EE250A14B9828B38917
+              6E4F273DBE0B4BCD52BE2611CF6BFD495390BC88224B5168E97D7683FC4CF9FE
+              A12D6E769DACE2F18F7278EAE313ECCD7585363D73CB904ED71429258A109BC3
+              83FDEF8D0EF5EF7C0D91460B4EA3055067A092FD7D3D69CDFEBC1AFEB8EE244B
+              D69FA4D6E2E485DBD3090BECB8DB95521E96929B4C46037E26ED1FBA66EAD8C2
+              74C6160D24A32AD01AA9044F5343232B1182EF9FC8D69A3DA7AB59F8D621B2F2
+              6B796DEE50E2C2FCDBFC76A52A404802A3EBAA8CD135D3EDE62A6B9928E1AC53
+              DB19A9296B4DAEEB7C927AD549953F7975E141379A2392770883918ECE83BFD8
+              B03B559E589BC3A22949BC70C7D0C099CB2AAC0515CDAD916272A2DA0C947E93
+              7C83D5AAE43AD4F68F34D714E4C8E94F5B5D9BFC837646DFF49BD90EC4BBF6AA
+              B308A56783C97A23AF6F2D206748AD6D5472B8D2248814922093117B9579CEA1
+              8F47ED90F68E9BB54ECD3754A79DF27DEBDE33C6A40C0A8C4E7ECAD3F3442E76
+              B61DAB709A9CCD8F4935AA26CA2979BC2A24EF5D461BC0620253CB16664C9B3C
+              3A2588D361A7EAC42ECCD69AA723C2D3521B1C96F9AA492074794C54DF7838B1
+              16D50D0E793AAF4215125483405583DE2C530A9E3E977008EED9094ACB877801
+              AC6C9387B6209327B74DB3D6638D4BA638D1B02028D7906CAAB14F513D9C5C7D
+              B1E3300882ECCE2DB1E72A16045547535D792926A9B137E6EEB649DA82CC99D3
+              36CD60C46EA9C52E6B08AEB0DD643AEB38680D93A940CFEDE4EC9D045A144E85
+              591C3725145592A49831AA91A89D6C4EB405F9EA2BCFEF30082AECD67AFF28AE
+              0B7184EF1692F02E14FA82444A192CA12AD264B8CE2F22B0AEC0DFD4DE230B35
+              D116E4ECD976AC822D48C5191A94633E17391D2976F2BD8FC585400A29A68518
+              0C3986202355E101E7ED99D31624A0A3484107D80D0821BE42D04F4AF5196001
+              5ACFD6BB589072B522C4A34211450E15148713531776817BA15796C5A0DE2DA5
+              331ED4375C69175585592DA4EC2F90F34076FBEC10EF0D9304C512F56E29D578
+              50DF6C4A3C4FA48FC5ECC62198D2258494F300AF1DE2E2C571ABC0F55C4B598C
+              54175CC0356695AB46300FE13D219AD069222110B86B4C1CA82B9BD2FB30AB1A
+              6BC45D7A08D1844E8234B50302842C91A80BBBD994F524ABDD4278B169F2840F
+              A6DAAEA60CD1D494A9F1C8BED094C9169DB5FE4234E143DF478B3EA6B9F3EF15
+              C27CA75FD7B58FE8081F3BA35A35652DFB9826614C80CF7CFB020C08F75CCCA7
+              4D93277A28DC47E2AE15429620E5DD52AA8F81FA34301E977F4C175F720B1409
+              C148B94B201F1348EF3F70B70BFC3F9C434FDE627F724C0000000049454E44AE
+              426082}
+          end>
+      end
+      item
+        Name = 'logo-sequal'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D494844520000006400000064080600000070E295
+              54000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              00097048597300000EC300000EC301C76FA86400000B4249444154785EED9D0B
+              70D4C51DC777F7FFB8BBDC25B93CA1098F189022CA432108C2A430CC54A88EA3
+              8D8E7D286AA7D551A9D65A6DED3843B5B5763A0547ADD23AB6B5B454C4DA6955
+              AC561115AD4880040AA8A00984242610925CEEFD7F6D7FBFBDA48356920BE8B8
+              7F673F3397BDDD7BCCFEF7BBBFC7FE33B74B140AC530D0C1D297A49E6C66E90D
+              CDD46E3CCC597998D0804EB8ED12F7FD1E125A5E47C3D7CDE7C6D431DEE0DB15
+              9F16E917DE61FD373EA50F56872576C746DDDAD6E69B89E73B0B89AFDAAC15DE
+              BAD8C5E75653476DEA0F6F9DC32A23DFF3BAE2A63790F15824C0F5A99526AB88
+              3C1CFADAD95B29A57BF1BDD9AD87B4C0BC89E27332E32B41120FBCA6476EAA77
+              3CC7AD4EDCF3D2EDCEFB3DD77A7DE920C93A84B0E32EC5E3841607895E534ACC
+              F935EB83974CBF0684C9C4EE7A8115AF3C5F6A17E61B41926B1BF5F0F23AC7DA
+              DDB920FD44D3ABF68E768D3830B61A7508A56CF06D39F0AA1CCF8378C25834C4
+              8C59D5AF16AE3CFF6A10E5E0C0AA5758D1AD8BA415C51782A49FDAA5851A66BA
+              F6DEAEF3926BDED80225A3A66E1346208A0F730D6835B66B138D19C10BA625C3
+              2B168E05511256639B66D64D90D27D7D78664988D5DCC1500CCEF9B4F486A6D7
+              ED3D2046D070410663583110705D446706944EE6E93DE1C47DAF6E84EF294031
+              9CC37D524E46E90589FDE01FA24C3DD6F8636B7B3BA5A66613C235D1980FA009
+              5888CEC181D94D1DF5D94D07EEC6E6E4EFDE92F2DAA51624FBF20156F1D20D9E
+              97CCCEB11BDBBEC9D396185C31C8A38183290574DD3DDC47ECA6F66F8395448A
+              7FB2D4B577774A6725520B62ED6817FD4BFD6567BDDB93249431B48E931B4414
+              45873C605F77B1DDDCB1189B20964877FD725BC8E603A2CC6C684EF0810CC603
+              3A6AEB1802E30D85DC0BBEC73B9ABC4434651C6521F9E2B4F4D0F2E7AE75C0BD
+              68C10BCFBC915B90147D34BD1D2D906261A0775A8F25B0EA75C745B34C482B08
+              C7C55E8E0009EAB522633AF5349DA385F1941D14155BBECC575A418C33C6F216
+              720983499D72F6763D0CD9158C203FD5051DC358A28D2B3E88151A099CAC03FC
+              D4903A8694DDF91DD13FC8905A686100D715A73280F859460CCDCA6E697D041B
+              9C03479520A3C1985925062C78E9CC340DC13AD0F520309FA4D782CFA18B32CE
+              1A1B8FDE7FB1F8DEC84DF54A90D1C0D3B67051817327AED5C645F78214E8B746
+              EFF85143D773698149E0713FB8C1637DD73DA99BE78C53828C86F0F23A9E5CDB
+              2856E5A1CB66DEAB4DA900911CEF437776F3C30577A79B75E31391DB163F800D
+              A1AF4E57F7B24E0610C57D0DE6B8397BFC3A637AD51A561931C0726C7041F9CE
+              6E07DEAF6993CB49E8AABACBC03A62B195FF64C1F3A74A671D88F482200B8E8A
+              650389DCB0E00698E5BFD1AA8A0D62BBB8A6C05BEFB0E43BCE62F069AEEEC1EB
+              C23220161173EE842F1BA7953DDFF7ADC7B5E2BB96A9DBEFA78AB5AB939A8341
+              3EB5BEE9CECC73FB6E81D57BA917CF62FEE4520D5440215C8F70C7E334A86BD4
+              D489565BBA3D7C73FD0F8DDAF297E3F7BD6214DEB2C8165F2829BE1104C96E3D
+              44930FBEC64AD75DE9C24A7E56F6E5F7565A3B0ECF218E378EC7329885115A14
+              242C1A021FA76D63E5917B0A6F5BFC347E3676FBD37AF12F2FFADF6A53567C25
+              C810F1559BF5C25B178BC1E59C7F21F3ECDE49F6F6768B272DAA9F5DCD834BA7
+              6A5A59F84D7CBD9534D0CA3FDFC1C257CC9132887F6E88AFDECC067EB1C918AC
+              7E2C033F7B31FFFF9B48822F2DE478C06551ABA983B9FBBAB997B1890EA9B139
+              6F223567557B346848994929140A8542A15028140A8542A15028140A8542A150
+              28140A8542A15028140A8542A15028140A8542E16F7CF77384F8AF36537BF707
+              A3EB39E784150649F4A106F5F304C5E8F09D852437EC8AD8BB3A74E8795EB31D
+              2F1037E4D022015E78C792815CABBCF8469023F3EF67956FDEEC0DDCF5C2267B
+              77673DA1340E233DF2CFBA29C59F47076951B03DB8E4F4E90557CEC9F6DFF857
+              1A7DE85229DD972F7EA72EB0723FA0753B63C53C9ED5793C53C213D9E2111FF1
+              6C098FA543ACD08C86AE982DBE439B542E4A19F18F2083F31906D8115B6B50B1
+              5F2F6E1A30FC8351173FCA2A0AF107A0E27AF5DA322CA4C4378204164D12EED5
+              EB4D0DEDC280F53C1E3CB7AF03257B28A5697CAA8D8F622125BE10C439D8CB8A
+              575F8C7BF72ED42795CD17BBCDE5BBDD1F271E3175DCE1F48F583D76F95ADD9C
+              3D5ECAF881F84210880562927B3DC931C400CF837B9CE42C6064701FF8A04ECC
+              793521AC6A151169C540FC612187FB73E5C15E9BA76CE8F5F1BBCD0C033A2CD7
+              E3341220C6DC09016CD26755E5F7D9CF085F08029955AE3CD447D15D51B15F56
+              1E139D4300D1186EE734A0D7966ECCB59DF2BE8D9F2AFE10A4B53757BEDFC360
+              70D142443D0F30D3424BE9366756BF8B0DA9DF6F532EEB54715B8F8932F3ECBE
+              244F5AD06BE8763EC38ABA791ED14F2B33212110D75A70751D16D2E20B41E2EB
+              FE25863FD4306329C1BD76F336104A380475ADA6C4829457B82AF3DC89E21559
+              F1852013C99FC460B2F2F0C59835C138E72789E771163689DBD6BF1AAB3DCB1E
+              D1CC59D5CA657D52D8EF1E4988F89197BBC26D6121C32A2D20E6C2D3C41E8105
+              CBE7889764C61782F45FFFA4B008B7A53717A4F301B2296A309D0F645B82174C
+              FBBB68B2F08C24B9915E10FB3F9D5A74CD659CA7ADA5B4C09801838AA2E4D76F
+              B0247D4A05C68F443BB99E86AF9A2BB5BB42A417C469CB2D0AED3D5D55E20918
+              CA60393C6848B8CF7B4DA9D8E7BD9DACC1427AE417645F9728B35B5A523C9E25
+              B0D083DA08131DC5B05C8F8D29C4DA6FF1CF99AB5F91FE5A11E93B995EDF2C4A
+              AFBDBFC28B6708D120AA8FE478F086229E3B95B00E99F593C46698AC3C227DFC
+              40A416C46AEEA0953BBE8F77799936B9FC169E76A0C77945758833103FCE18D3
+              6B4E1BD3DD7BF95A2DBC7C8EF4F103915A90A135032EEA9C3D5D2ED5A1BBF99C
+              58816F3134A24FAD14F7AF9C9663BE1003915A90F4337B45FFDC23F1D95E6FAA
+              5A8831D2A210D71F9643B5AA62A27FB1E2196C2ABC7B693E562505520B421C4F
+              F4CF79AF6711A4BC21EE7AB618F1E1C0F547004C29EBEC0CCCABD9B69F2CA0A1
+              6567F8661365A905C96EDA2FCAF4134D71B0103CF60EA67F7E2E8B5515BD844F
+              2BAE5921F7A4FB08D276D669EFA7D15F37E0296DBA3EB9FCBB5E4C645823F717
+              FF21150DE17BD7639516057D133F106905C96C7C7BF019E1EE07F131F9AD3F28
+              E78EA769630B63453F5D96C4A6F08A85E225BF20AD20BC3F256285F376F778E7
+              9D23C6E04DC5E1E38707F12364106D42740B6466FB633F7A56374EAFF0C5FA63
+              086905D1C64545DF9CD6DEAFC32047C115392366589C533C670A5CDC3A51B55D
+              5F8981482B48E2C1D7857F72767716F14476E4153ABA2BDB657A6DA91DBCE8AC
+              D7B1A9E01BE78897FC849482D8FB8FD0CAAD37E30ABD04ACE37AAF3F8DE7E00E
+              DFD7417745187B14DC557BCF858F6AE6ECF1CA423E09528F358A32BBB52D69BF
+              DDED0D9EF229DA4E08E71AAC3FE08AA838854DAF29F1557635849482B0F2B088
+              15947B4BBC238912B1161C7E788525B08AC8CEA27BBED28ACFF519B9F3AAFC86
+              948250531727E3D8BB3ABF04AE0A67BF3D6C404777556010F3BC9ACDE0AEB203
+              3F7FD1885C3B5F09F249E0F5246864C54271929AB3FFE8143E143F4E34BC18EA
+              3DAED3920248774B1E134D86E6DBF3A6A413C4DAD3252C01027A198B862E82CC
+              69E8FFE8E8963EE6411D8C2F7A6DD981C0E2C9E25E4BA861862FAD03914E10BB
+              A95D94D61BAD673A078E6AB042A7C4E51A0C3A1EBDFDFF0FC73568D884E53CBF
+              17DC95155BF9BCAED796FB569013FBE5CF086BDB21CD9C3BD175DEEBB9D3DADE
+              7605B7DC63903941FAF4B14E8B832806A4BB7DA186991762FCC86EDA4F034BA6
+              F856102949ADDF39EA8992FADB6EE926D7C920ED4564FFDD4AFBAF7E9CBA5D71
+              3CB5F304692F364254B75D5235702FC6148542F1398690FF029A8D9B27B85043
+              410000000049454E44AE426082}
+          end>
       end>
     Left = 593
     Top = 339
   end
   object VirtualImageListMain: TVirtualImageList
     DisabledGrayscale = True
-    DisabledSuffix = '_Disabled'
     Images = <
       item
         CollectionIndex = 0
         CollectionName = 'icons8-circular-arrow-100'
-        Disabled = False
         Name = 'icons8-circular-arrow-100'
       end
       item
         CollectionIndex = 1
         CollectionName = 'icons8-server-100'
-        Disabled = False
         Name = 'icons8-server-100'
       end
       item
         CollectionIndex = 2
         CollectionName = 'icons8-cut-100'
-        Disabled = False
         Name = 'icons8-cut-100'
       end
       item
         CollectionIndex = 3
         CollectionName = 'icons8-copy-100'
-        Disabled = False
         Name = 'icons8-copy-100'
       end
       item
         CollectionIndex = 4
         CollectionName = 'icons8-paste-100'
-        Disabled = False
         Name = 'icons8-paste-100'
       end
       item
         CollectionIndex = 5
         CollectionName = 'icons8-database-100'
-        Disabled = False
         Name = 'icons8-database-100'
       end
       item
         CollectionIndex = 6
         CollectionName = 'icons8-database-symbol-100'
-        Disabled = False
         Name = 'icons8-database-symbol-100'
       end
       item
         CollectionIndex = 7
         CollectionName = 'icons8-delete-database-100'
-        Disabled = False
         Name = 'icons8-delete-database-100'
       end
       item
         CollectionIndex = 8
         CollectionName = 'icons8-database-administrator-100'
-        Disabled = False
         Name = 'icons8-database-administrator-100'
       end
       item
         CollectionIndex = 9
         CollectionName = 'icons8-outgoing-data-100'
-        Disabled = False
         Name = 'icons8-outgoing-data-100'
       end
       item
         CollectionIndex = 10
         CollectionName = 'icons8-save-button-100'
-        Disabled = False
         Name = 'icons8-save-button-100'
       end
       item
         CollectionIndex = 11
         CollectionName = 'icons8-user-account-100'
-        Disabled = False
         Name = 'icons8-user-account-100'
       end
       item
         CollectionIndex = 12
         CollectionName = 'icons8-edit'
-        Disabled = False
         Name = 'icons8-edit'
       end
       item
         CollectionIndex = 13
         CollectionName = 'icons8-lightning-bolt-100'
-        Disabled = False
         Name = 'icons8-lightning-bolt-100'
       end
       item
         CollectionIndex = 14
         CollectionName = 'icons8-data-sheet-100'
-        Disabled = False
         Name = 'icons8-data-sheet-100'
       end
       item
         CollectionIndex = 15
         CollectionName = 'icons8-data-sheet-100-add'
-        Disabled = False
         Name = 'icons8-data-sheet-100-add'
       end
       item
         CollectionIndex = 16
         CollectionName = 'icons8-data-sheet-100-delete'
-        Disabled = False
         Name = 'icons8-data-sheet-100-delete'
       end
       item
         CollectionIndex = 17
         CollectionName = 'icons8-data-sheet-100-edit'
-        Disabled = False
         Name = 'icons8-data-sheet-100-edit'
       end
       item
         CollectionIndex = 18
         CollectionName = 'icons8-data-sheet-100-key'
-        Disabled = False
         Name = 'icons8-data-sheet-100-key'
       end
       item
         CollectionIndex = 19
         CollectionName = 'icons8-sheets-100'
-        Disabled = False
         Name = 'icons8-sheets-100'
       end
       item
         CollectionIndex = 20
         CollectionName = 'icons8-export-100'
-        Disabled = False
         Name = 'icons8-export-100'
       end
       item
         CollectionIndex = 21
         CollectionName = 'icons8-add-user-male-100'
-        Disabled = False
         Name = 'icons8-add-user-male-100'
       end
       item
         CollectionIndex = 22
         CollectionName = 'icons8-key-100-blue'
-        Disabled = False
         Name = 'icons8-key-100-blue'
       end
       item
         CollectionIndex = 23
         CollectionName = 'icons8-key-100-green'
-        Disabled = False
         Name = 'icons8-key-100-green'
       end
       item
         CollectionIndex = 24
         CollectionName = 'icons8-key-100-red'
-        Disabled = False
         Name = 'icons8-key-100-red'
       end
       item
         CollectionIndex = 25
         CollectionName = 'icons8-key'
-        Disabled = False
         Name = 'icons8-key'
       end
       item
         CollectionIndex = 26
         CollectionName = 'icons8-close-button'
-        Disabled = False
         Name = 'icons8-close-button'
       end
       item
         CollectionIndex = 27
         CollectionName = 'icons8-data-backup'
-        Disabled = False
         Name = 'icons8-data-backup'
       end
       item
         CollectionIndex = 28
         CollectionName = 'icons8-reset'
-        Disabled = False
         Name = 'icons8-reset'
       end
       item
         CollectionIndex = 29
         CollectionName = 'icons8-disconnected'
-        Disabled = False
         Name = 'icons8-disconnected'
       end
       item
         CollectionIndex = 30
         CollectionName = 'icons8-find'
-        Disabled = False
         Name = 'icons8-find'
       end
       item
         CollectionIndex = 31
         CollectionName = 'icons8-help'
-        Disabled = False
         Name = 'icons8-help'
       end
       item
         CollectionIndex = 32
         CollectionName = 'icons8-html'
-        Disabled = False
         Name = 'icons8-html'
       end
       item
         CollectionIndex = 33
         CollectionName = 'icons8-compose'
-        Disabled = False
         Name = 'icons8-compose'
       end
       item
         CollectionIndex = 34
         CollectionName = 'icons8-print'
-        Disabled = False
         Name = 'icons8-print'
       end
       item
         CollectionIndex = 35
         CollectionName = 'icons8-go'
-        Disabled = False
         Name = 'icons8-go'
       end
       item
         CollectionIndex = 36
         CollectionName = 'icons8-server'
-        Disabled = False
         Name = 'icons8-server'
       end
       item
         CollectionIndex = 37
         CollectionName = 'icons8-connected'
-        Disabled = False
         Name = 'icons8-connected'
       end
       item
         CollectionIndex = 38
         CollectionName = 'icons8-server-100-export'
-        Disabled = False
         Name = 'icons8-server-100-export'
       end
       item
         CollectionIndex = 39
         CollectionName = 'icons8-support'
-        Disabled = False
         Name = 'icons8-support'
       end
       item
         CollectionIndex = 40
         CollectionName = 'icons8-undo'
-        Disabled = False
         Name = 'icons8-undo'
       end
       item
         CollectionIndex = 41
         CollectionName = 'icons8-data-grid'
-        Disabled = False
         Name = 'icons8-data-grid'
       end
       item
         CollectionIndex = 42
         CollectionName = 'icons8-rhombus'
-        Disabled = False
         Name = 'icons8-rhombus'
       end
       item
         CollectionIndex = 43
         CollectionName = 'icons8-user'
-        Disabled = False
         Name = 'icons8-user'
       end
       item
         CollectionIndex = 44
         CollectionName = 'icons8-note'
-        Disabled = False
         Name = 'icons8-note'
       end
       item
         CollectionIndex = 45
         CollectionName = 'icons8-add'
-        Disabled = False
         Name = 'icons8-add'
       end
       item
         CollectionIndex = 46
         CollectionName = 'icons8-delete-button'
-        Disabled = False
         Name = 'icons8-delete-button'
       end
       item
         CollectionIndex = 47
         CollectionName = 'icons8-image'
-        Disabled = False
         Name = 'icons8-image'
       end
       item
         CollectionIndex = 48
         CollectionName = 'icons8-source-code'
-        Disabled = False
         Name = 'icons8-source-code'
       end
       item
         CollectionIndex = 49
         CollectionName = 'icons8-microsoft-excel'
-        Disabled = False
         Name = 'icons8-microsoft-excel'
       end
       item
         CollectionIndex = 50
         CollectionName = 'icons8-csv'
-        Disabled = False
         Name = 'icons8-csv'
       end
       item
         CollectionIndex = 51
         CollectionName = 'icons8-folder'
-        Disabled = False
         Name = 'icons8-folder'
       end
       item
         CollectionIndex = 52
         CollectionName = 'icons8-opened-folder'
-        Disabled = False
         Name = 'icons8-opened-folder'
       end
       item
         CollectionIndex = 53
         CollectionName = 'icons8-filter'
-        Disabled = False
         Name = 'icons8-filter'
       end
       item
         CollectionIndex = 54
         CollectionName = 'icons8-paper-100-save'
-        Disabled = False
         Name = 'icons8-paper-100-save'
       end
       item
         CollectionIndex = 55
         CollectionName = 'icons8-checked'
-        Disabled = False
         Name = 'icons8-checked'
       end
       item
         CollectionIndex = 56
         CollectionName = 'icons8-index'
-        Disabled = False
         Name = 'icons8-index'
       end
       item
         CollectionIndex = 57
         CollectionName = 'icons8-play'
-        Disabled = False
         Name = 'icons8-play'
       end
       item
         CollectionIndex = 58
         CollectionName = 'icons8-rename'
-        Disabled = False
         Name = 'icons8-rename'
       end
       item
         CollectionIndex = 59
         CollectionName = 'icons8-find-and-replace'
-        Disabled = False
         Name = 'icons8-find-and-replace'
       end
       item
         CollectionIndex = 60
         CollectionName = 'icons8-sort-left'
-        Disabled = False
         Name = 'icons8-sort-left'
       end
       item
         CollectionIndex = 61
         CollectionName = 'icons8-sort-right'
-        Disabled = False
         Name = 'icons8-sort-right'
       end
       item
         CollectionIndex = 62
         CollectionName = 'icons8-word-wrap'
-        Disabled = False
         Name = 'icons8-word-wrap'
       end
       item
         CollectionIndex = 63
         CollectionName = 'icons8-error-100-stop'
-        Disabled = False
         Name = 'icons8-error-100-stop'
       end
       item
         CollectionIndex = 64
         CollectionName = 'icons8-checked-checkbox'
-        Disabled = False
         Name = 'icons8-checked-checkbox'
       end
       item
         CollectionIndex = 65
         CollectionName = 'icons8-unchecked-checkbox'
-        Disabled = False
         Name = 'icons8-unchecked-checkbox'
       end
       item
         CollectionIndex = 66
         CollectionName = 'icons8-sheets-of-paper-with-a-question-mark'
-        Disabled = False
         Name = 'icons8-sheets-of-paper-with-a-question-mark'
       end
       item
         CollectionIndex = 67
         CollectionName = 'icons8-page'
-        Disabled = False
         Name = 'icons8-page'
       end
       item
         CollectionIndex = 68
         CollectionName = 'icons8-brief'
-        Disabled = False
         Name = 'icons8-brief'
       end
       item
         CollectionIndex = 69
         CollectionName = 'icons8-internet'
-        Disabled = False
         Name = 'icons8-internet'
       end
       item
         CollectionIndex = 70
         CollectionName = 'icons8-database-100-yellow'
-        Disabled = False
         Name = 'icons8-database-100-yellow'
       end
       item
         CollectionIndex = 71
         CollectionName = 'icons8-grid-2'
-        Disabled = False
         Name = 'icons8-grid-2'
       end
       item
         CollectionIndex = 72
         CollectionName = 'icons8-database-symbol'
-        Disabled = False
         Name = 'icons8-database-symbol'
       end
       item
         CollectionIndex = 73
         CollectionName = 'icons8-chevron-down'
-        Disabled = False
         Name = 'icons8-chevron-down'
       end
       item
         CollectionIndex = 74
         CollectionName = 'icons8-sort-up'
-        Disabled = False
         Name = 'icons8-sort-up'
       end
       item
         CollectionIndex = 75
         CollectionName = 'icons8-caret-arrowhead-facing-down'
-        Disabled = False
         Name = 'icons8-caret-arrowhead-facing-down'
       end
       item
         CollectionIndex = 76
         CollectionName = 'icons8-sort-left-other'
-        Disabled = False
         Name = 'icons8-sort-left-other'
       end
       item
         CollectionIndex = 77
         CollectionName = 'icons8-sort-right-other'
-        Disabled = False
         Name = 'icons8-sort-right-other'
       end
       item
         CollectionIndex = 78
         CollectionName = 'icons8-double-left'
-        Disabled = False
         Name = 'icons8-double-left'
       end
       item
         CollectionIndex = 79
         CollectionName = 'icons8-double-right'
-        Disabled = False
         Name = 'icons8-double-right'
       end
       item
         CollectionIndex = 80
         CollectionName = 'icons8-event'
-        Disabled = False
         Name = 'icons8-event'
       end
       item
         CollectionIndex = 81
         CollectionName = 'icons8-eye'
-        Disabled = False
         Name = 'icons8-eye'
       end
       item
         CollectionIndex = 82
         CollectionName = 'icons8-eye-other'
-        Disabled = False
         Name = 'icons8-eye-other'
       end
       item
         CollectionIndex = 83
         CollectionName = 'icons8-denied'
-        Disabled = False
         Name = 'icons8-denied'
       end
       item
         CollectionIndex = 84
         CollectionName = 'icons8-user-100-edit'
-        Disabled = False
         Name = 'icons8-user-100-edit'
       end
       item
         CollectionIndex = 85
         CollectionName = 'icons8-add-user-male'
-        Disabled = False
         Name = 'icons8-add-user-male'
       end
       item
         CollectionIndex = 86
         CollectionName = 'icons8-denied-other'
-        Disabled = False
         Name = 'icons8-denied-other'
       end
       item
         CollectionIndex = 87
         CollectionName = 'icons8-add-other'
-        Disabled = False
         Name = 'icons8-add-other'
       end
       item
         CollectionIndex = 88
         CollectionName = 'icons8-delete-button-other'
-        Disabled = False
         Name = 'icons8-delete-button-other'
       end
       item
         CollectionIndex = 89
         CollectionName = 'icons8-skip-to-start'
-        Disabled = False
         Name = 'icons8-skip-to-start'
       end
       item
         CollectionIndex = 90
         CollectionName = 'icons8-end'
-        Disabled = False
         Name = 'icons8-end'
       end
       item
         CollectionIndex = 91
         CollectionName = 'icons8-rhombus-add'
-        Disabled = False
         Name = 'icons8-rhombus-add'
       end
       item
         CollectionIndex = 92
         CollectionName = 'icons8-rhombus-delete'
-        Disabled = False
         Name = 'icons8-rhombus-delete'
       end
       item
         CollectionIndex = 93
         CollectionName = 'icons8-rhombus-edit'
-        Disabled = False
         Name = 'icons8-rhombus-edit'
       end
       item
         CollectionIndex = 94
         CollectionName = 'icons8-update'
-        Disabled = False
         Name = 'icons8-update'
       end
       item
         CollectionIndex = 95
         CollectionName = 'icons8-collaboration'
-        Disabled = False
         Name = 'icons8-collaboration'
       end
       item
         CollectionIndex = 96
         CollectionName = 'icons8-bug'
-        Disabled = False
         Name = 'icons8-bug'
       end
       item
         CollectionIndex = 97
         CollectionName = 'icons8-collaboration-other'
-        Disabled = False
         Name = 'icons8-collaboration-other'
       end
       item
         CollectionIndex = 98
         CollectionName = 'icons8-support-orange'
-        Disabled = False
         Name = 'icons8-support-orange'
       end
       item
         CollectionIndex = 99
         CollectionName = 'icons8-more-info'
-        Disabled = False
         Name = 'icons8-more-info'
       end
       item
         CollectionIndex = 100
         CollectionName = 'icons8-export'
-        Disabled = False
         Name = 'icons8-export'
       end
       item
         CollectionIndex = 101
         CollectionName = 'icons8-import'
-        Disabled = False
         Name = 'icons8-import'
       end
       item
         CollectionIndex = 102
         CollectionName = 'icons8-eye-otherB'
-        Disabled = False
         Name = 'icons8-eye-otherB'
       end
       item
         CollectionIndex = 103
         CollectionName = 'icons8-eye-otherC'
-        Disabled = False
         Name = 'icons8-eye-otherC'
       end
       item
         CollectionIndex = 104
         CollectionName = 'icons8-play-selected'
-        Disabled = False
         Name = 'icons8-play-selected'
       end
       item
         CollectionIndex = 105
         CollectionName = 'icons8-play-cropped'
-        Disabled = False
         Name = 'icons8-play-cropped'
       end
       item
         CollectionIndex = 106
         CollectionName = 'icons8-semicolon'
-        Disabled = False
         Name = 'icons8-semicolon'
       end
       item
         CollectionIndex = 107
         CollectionName = 'icons8-caret-arrowhead-facing-down-other-gray'
-        Disabled = False
         Name = 'icons8-caret-arrowhead-facing-down-other-gray'
       end
       item
         CollectionIndex = 108
         CollectionName = 'icons8-caret-arrowhead-facing-down-other'
-        Disabled = False
         Name = 'icons8-caret-arrowhead-facing-down-other'
       end
       item
         CollectionIndex = 109
         CollectionName = 'icons8-alphabetical-sorting'
-        Disabled = False
         Name = 'icons8-alphabetical-sorting'
       end
       item
         CollectionIndex = 110
         CollectionName = 'icons8-alphabetical-sorting-2'
-        Disabled = False
         Name = 'icons8-alphabetical-sorting-2'
       end
       item
         CollectionIndex = 111
         CollectionName = 'icons8-red-triangle'
-        Disabled = False
         Name = 'icons8-red-triangle'
       end
       item
         CollectionIndex = 112
         CollectionName = 'icons8-star-filled'
-        Disabled = False
         Name = 'icons8-star-filled'
       end
       item
         CollectionIndex = 113
         CollectionName = 'icons8-star-filled-gray'
-        Disabled = False
         Name = 'icons8-star-filled-gray'
       end
       item
         CollectionIndex = 114
         CollectionName = 'icons8-code-file'
-        Disabled = False
         Name = 'icons8-code-file'
       end
       item
         CollectionIndex = 115
         CollectionName = 'icons8-color-palette'
-        Disabled = False
         Name = 'icons8-color-palette'
       end
       item
         CollectionIndex = 116
         CollectionName = 'icons8-querytab-right'
-        Disabled = False
         Name = 'icons8-querytab-right'
       end
       item
         CollectionIndex = 117
         CollectionName = 'icons8-querytab-left'
-        Disabled = False
         Name = 'icons8-querytab-left'
       end
       item
         CollectionIndex = 118
         CollectionName = 'icons8-select-all'
-        Disabled = False
         Name = 'icons8-select-all'
       end
       item
         CollectionIndex = 119
         CollectionName = 'icons8-source-code-other'
-        Disabled = False
         Name = 'icons8-source-code-other'
       end
       item
         CollectionIndex = 120
         CollectionName = 'icons8-refresh-right'
-        Disabled = False
         Name = 'icons8-refresh-right'
       end
       item
         CollectionIndex = 121
         CollectionName = 'icons8-refresh-left'
-        Disabled = False
         Name = 'icons8-refresh-left'
       end
       item
         CollectionIndex = 122
         CollectionName = 'icons8-refresh'
-        Disabled = False
         Name = 'icons8-refresh'
       end
       item
         CollectionIndex = 123
         CollectionName = 'icons8-windows-xp'
-        Disabled = False
         Name = 'icons8-windows-xp'
       end
       item
         CollectionIndex = 124
         CollectionName = 'icons8-apple-logo'
-        Disabled = False
         Name = 'icons8-apple-logo'
       end
       item
         CollectionIndex = 125
         CollectionName = 'icons8-linux'
-        Disabled = False
         Name = 'icons8-linux'
       end
       item
         CollectionIndex = 126
         CollectionName = 'icons8-key-100-lightblue'
-        Disabled = False
         Name = 'icons8-key-100-lightblue'
       end
       item
         CollectionIndex = 127
         CollectionName = 'icons8-unchecked-checkbox-other'
-        Disabled = False
         Name = 'icons8-unchecked-checkbox-other'
       end
       item
         CollectionIndex = 128
         CollectionName = 'icons8-checked-checkbox-other'
-        Disabled = False
         Name = 'icons8-checked-checkbox-other'
       end
       item
         CollectionIndex = 129
         CollectionName = 'icons8-edit-property'
-        Disabled = False
         Name = 'icons8-edit-property'
       end
       item
         CollectionIndex = 130
         CollectionName = 'icons8-add-property'
-        Disabled = False
         Name = 'icons8-add-property'
       end
       item
         CollectionIndex = 131
         CollectionName = 'icons8-delete-document'
-        Disabled = False
         Name = 'icons8-delete-document'
       end
       item
         CollectionIndex = 132
         CollectionName = 'icons8-querytab-add'
-        Disabled = False
         Name = 'icons8-querytab-add'
       end
       item
         CollectionIndex = 133
         CollectionName = 'icons8-querytab-close'
-        Disabled = False
         Name = 'icons8-querytab-close'
       end
       item
         CollectionIndex = 134
         CollectionName = 'icons8-close-button-small-centered'
-        Disabled = False
         Name = 'icons8-close-button-small-centered'
       end
       item
         CollectionIndex = 135
         CollectionName = 'icons8-server-edit'
-        Disabled = False
         Name = 'icons8-server-edit'
       end
       item
         CollectionIndex = 136
         CollectionName = 'icons8-data-grid-relation'
-        Disabled = False
         Name = 'icons8-data-grid-relation'
       end
       item
         CollectionIndex = 137
         CollectionName = 'icons8-settings'
-        Disabled = False
         Name = 'icons8-settings'
       end
       item
         CollectionIndex = 138
         CollectionName = 'icons8-invert-selection'
-        Disabled = False
         Name = 'icons8-invert-selection'
       end
       item
         CollectionIndex = 139
         CollectionName = 'icons8-alphabetical-sorting-delete'
-        Disabled = False
         Name = 'icons8-alphabetical-sorting-delete'
       end
       item
         CollectionIndex = 140
         CollectionName = 'icons8-broom'
-        Disabled = False
         Name = 'icons8-broom'
       end
       item
         CollectionIndex = 141
         CollectionName = 'icons8-data'
-        Disabled = False
         Name = 'icons8-data'
       end
       item
         CollectionIndex = 142
         CollectionName = 'icons8-search-more'
-        Disabled = False
         Name = 'icons8-search-more'
       end
       item
         CollectionIndex = 143
         CollectionName = 'icons8-sort'
-        Disabled = False
         Name = 'icons8-sort'
       end
       item
         CollectionIndex = 144
         CollectionName = 'icons8-secure'
-        Disabled = False
         Name = 'icons8-secure'
       end
       item
         CollectionIndex = 145
         CollectionName = 'icons8-bar-chart'
-        Disabled = False
         Name = 'icons8-bar-chart'
       end
       item
         CollectionIndex = 146
         CollectionName = 'icons8-find-other'
-        Disabled = False
         Name = 'icons8-find-other'
       end
       item
         CollectionIndex = 147
         CollectionName = 'icons8-lock'
-        Disabled = False
         Name = 'icons8-lock'
       end
       item
         CollectionIndex = 148
         CollectionName = 'icons8-paper-money'
-        Disabled = False
         Name = 'icons8-paper-money'
       end
       item
         CollectionIndex = 149
         CollectionName = 'icons8-clock-outline'
-        Disabled = False
         Name = 'icons8-clock-outline'
       end
       item
         CollectionIndex = 150
         CollectionName = 'icons8-hourglass'
-        Disabled = False
         Name = 'icons8-hourglass'
       end
       item
         CollectionIndex = 151
         CollectionName = 'icons8-active-state'
-        Disabled = False
         Name = 'icons8-active-state'
       end
       item
         CollectionIndex = 152
         CollectionName = 'icons8-image-other'
-        Disabled = False
         Name = 'icons8-image-other'
       end
       item
         CollectionIndex = 153
         CollectionName = 'icons8-latex'
-        Disabled = False
         Name = 'icons8-latex'
       end
       item
         CollectionIndex = 154
         CollectionName = 'icons8-textile'
-        Disabled = False
         Name = 'icons8-textile'
       end
       item
         CollectionIndex = 155
         CollectionName = 'icons8-copy-rows'
-        Disabled = False
         Name = 'icons8-copy-rows'
       end
       item
         CollectionIndex = 156
         CollectionName = 'icons8-paste-rows'
-        Disabled = False
         Name = 'icons8-paste-rows'
       end
       item
         CollectionIndex = 157
         CollectionName = 'icons8-checked-small'
-        Disabled = False
         Name = 'icons8-checked-small'
       end
       item
         CollectionIndex = 158
         CollectionName = 'icons8-close-button-small'
-        Disabled = False
         Name = 'icons8-close-button-small'
       end
       item
         CollectionIndex = 159
         CollectionName = 'icons8-close-window'
-        Disabled = False
         Name = 'icons8-close-window'
       end
       item
         CollectionIndex = 160
         CollectionName = 'icons8-close-window-dark'
-        Disabled = False
         Name = 'icons8-close-window-dark'
       end
       item
         CollectionIndex = 161
         CollectionName = 'icons8-error-small'
-        Disabled = False
         Name = 'icons8-error-small'
       end
       item
         CollectionIndex = 162
         CollectionName = 'icons8-edit-small'
-        Disabled = False
         Name = 'icons8-edit-small'
       end
       item
         CollectionIndex = 163
         CollectionName = 'icons8-add-small'
-        Disabled = False
         Name = 'icons8-add-small'
       end
       item
         CollectionIndex = 164
         CollectionName = 'icons8-mysql-logo'
-        Disabled = False
         Name = 'icons8-mysql-logo'
       end
       item
         CollectionIndex = 165
         CollectionName = 'icons8-comments'
-        Disabled = False
         Name = 'icons8-comments'
       end
       item
         CollectionIndex = 166
         CollectionName = 'icons8-mariadb-logo'
-        Disabled = False
         Name = 'icons8-mariadb-logo'
       end
       item
         CollectionIndex = 167
         CollectionName = 'icons8-inactive-state'
-        Disabled = False
         Name = 'icons8-inactive-state'
       end
       item
         CollectionIndex = 168
         CollectionName = 'icons8-star-filled-small'
-        Disabled = False
         Name = 'icons8-star-filled-small'
       end
       item
         CollectionIndex = 169
         CollectionName = 'icons8-percona-logo'
-        Disabled = False
         Name = 'icons8-percona-logo'
       end
       item
         CollectionIndex = 170
         CollectionName = 'icons8-terminal'
-        Disabled = False
         Name = 'icons8-terminal'
       end
       item
         CollectionIndex = 171
         CollectionName = 'icons8-tokudb-logo'
-        Disabled = False
         Name = 'icons8-tokudb-logo'
       end
       item
         CollectionIndex = 172
         CollectionName = 'icons8-infinidb-logo'
-        Disabled = False
         Name = 'icons8-infinidb-logo'
       end
       item
         CollectionIndex = 173
         CollectionName = 'icons8-infobright-logo'
-        Disabled = False
         Name = 'icons8-infobright-logo'
       end
       item
         CollectionIndex = 174
         CollectionName = 'icons8-folder-other'
-        Disabled = False
         Name = 'icons8-folder-other'
       end
       item
         CollectionIndex = 175
         CollectionName = 'icons8-unchecked-checkbox-grey'
-        Disabled = False
         Name = 'icons8-unchecked-checkbox-grey'
       end
       item
         CollectionIndex = 176
         CollectionName = 'icons8-checked-checkbox-grey'
-        Disabled = False
         Name = 'icons8-checked-checkbox-grey'
       end
       item
         CollectionIndex = 177
         CollectionName = 'icons8-internet-small'
-        Disabled = False
         Name = 'icons8-internet-small'
       end
       item
         CollectionIndex = 178
         CollectionName = 'icons8-light-small'
-        Disabled = False
         Name = 'icons8-light-small'
       end
       item
         CollectionIndex = 179
         CollectionName = 'icons8-mariadb-logo-small'
-        Disabled = False
         Name = 'icons8-mariadb-logo-small'
       end
       item
         CollectionIndex = 180
         CollectionName = 'icons8-csv-small'
-        Disabled = False
         Name = 'icons8-csv-small'
       end
       item
         CollectionIndex = 181
         CollectionName = 'icons8-final-state-small'
-        Disabled = False
         Name = 'icons8-final-state-small'
       end
       item
         CollectionIndex = 182
         CollectionName = 'icons8-query-inner-join-small'
-        Disabled = False
         Name = 'icons8-query-inner-join-small'
       end
       item
         CollectionIndex = 183
         CollectionName = 'icons8-star-filled-gray-small'
-        Disabled = False
         Name = 'icons8-star-filled-gray-small'
       end
       item
         CollectionIndex = 184
         CollectionName = 'icons8-circular-arrow-violet'
-        Disabled = False
         Name = 'icons8-circular-arrow-violet'
       end
       item
         CollectionIndex = 185
         CollectionName = 'icons8-paypal'
-        Disabled = False
         Name = 'icons8-paypal'
       end
       item
         CollectionIndex = 186
         CollectionName = 'icons8-pie-chart'
-        Disabled = False
         Name = 'icons8-pie-chart'
       end
       item
         CollectionIndex = 187
         CollectionName = 'icons8-postgresql'
-        Disabled = False
         Name = 'icons8-postgresql'
       end
       item
         CollectionIndex = 188
         CollectionName = 'icons8-azure'
-        Disabled = False
         Name = 'icons8-azure'
       end
       item
         CollectionIndex = 189
         CollectionName = 'icons8-run-file'
-        Disabled = False
         Name = 'icons8-run-file'
       end
       item
         CollectionIndex = 190
         CollectionName = 'icons8-clock-outline-other'
-        Disabled = False
         Name = 'icons8-clock-outline-other'
       end
       item
         CollectionIndex = 191
         CollectionName = 'icons8-filter-database'
-        Disabled = False
         Name = 'icons8-filter-database'
       end
       item
         CollectionIndex = 192
         CollectionName = 'icons8-filter-table'
-        Disabled = False
         Name = 'icons8-filter-table'
       end
       item
         CollectionIndex = 193
         CollectionName = 'icons8-clear-symbol'
-        Disabled = False
         Name = 'icons8-clear-symbol'
       end
       item
         CollectionIndex = 194
         CollectionName = 'server-memsql'
-        Disabled = False
         Name = 'server-memsql'
       end
       item
         CollectionIndex = 195
         CollectionName = 'icons8-redshift'
-        Disabled = False
         Name = 'icons8-redshift'
       end
       item
         CollectionIndex = 196
         CollectionName = 'icons8-sqlite'
-        Disabled = False
         Name = 'icons8-sqlite'
       end
       item
         CollectionIndex = 197
         CollectionName = 'server-proxysqladmin'
-        Disabled = False
         Name = 'server-proxysqladmin'
       end
       item
         CollectionIndex = 198
         CollectionName = 'code-folding'
-        Disabled = False
         Name = 'code-folding'
       end
       item
         CollectionIndex = 199
         CollectionName = 'icons8-markdown'
-        Disabled = False
         Name = 'icons8-markdown'
       end
       item
         CollectionIndex = 200
         CollectionName = 'icons8-js'
-        Disabled = False
         Name = 'icons8-js'
       end
       item
         CollectionIndex = 201
         CollectionName = 'icons8-sql'
-        Disabled = False
         Name = 'icons8-sql'
       end
       item
         CollectionIndex = 202
         CollectionName = 'icons8-php'
-        Disabled = False
         Name = 'icons8-php'
       end
       item
         CollectionIndex = 203
         CollectionName = 'server-interbase'
-        Disabled = False
         Name = 'server-interbase'
+      end
+      item
+        CollectionIndex = 204
+        CollectionName = 'server-firebird'
+        Name = 'server-firebird'
+      end
+      item
+        CollectionIndex = 205
+        CollectionName = 'server-rds-mysql'
+        Name = 'server-rds-mysql'
+      end
+      item
+        CollectionIndex = 206
+        CollectionName = 'logo-sequal'
+        Name = 'logo-sequal'
       end>
     ImageCollection = ImageCollectionIcons8
     ImageNameAvailable = False
@@ -25405,6 +25524,275 @@ object MainForm: TMainForm
               23542F18A3205F8CFCF418B9F3086B418085F72D9810311612549C43D0F5AB04
               658352E807F8E960DF69205DC4579933E6EF1110FA7F1C2F8A6483B809ED0000
               000049454E44AE426082}
+          end>
+      end
+      item
+        Name = 'server-rds-mysql'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D494844520000006400000064080600000070E295
+              54000000097048597300000B1300000B1301009A9C18000013B549444154789C
+              ED9D797C54D5D9C7BFE7CE4CD6C9BE02595992B089288802868255C08DB62ACA
+              0B822056A9FDB455D1DAB7D5BAB4A2F811D1EADB564105D7B6168BB228A8B46C
+              15411002610B4BC84676B2CF7ACFFBC72493C4DC494232779280DF3F60EEC99D
+              F39C99DF9CED39CF39574829F92E63C6DCDB26AD254655526F94144706111091
+              8630F983EA44204195200442012941550DA0A808E1FA9B1402848270AA804428
+              2014056977F41346BF3F06C7268D57845223A5DAB6605E4455A5501411929214
+              F3B5BFC9F0BF5255F3A504890045601002295554A92285409102104845454809
+              085404420A8490180C028BD5C9A9BC521C81D528460952B45B86434FDCD626CD
+              A8CFC73D2F62A5CA1229C4022104ED7F04EF23205D51C49D0E2956A3CA478122
+              1F17A1154A0FDA8E4788374029061634A6B9AA8DEF902DECCDC5200A85C22A90
+              037C588656F48420FD84E44DA1882221C4FC1EB0DF3E82B902F225F2ED9E1046
+              7741A4FB1FFA23C42A0551289077E96DB7BB4829E74844BE10E21D20C1577675
+              15442200D95F085609290A0462AE9EF6F441CC561079C07B2013F5B6A69B2052
+              8A0102B9DAA0C802017D5088EF209885E08C80F700DD84F1BE20820404EF00F9
+              20EEF47AFE3D8D14B3403923051F00C9DECEDE9B820C00DE4128792066773D1B
+              5F0EB2A0ABE36C21C5ED0A9C16820F902479AB38DD144480205120DE17AE1AD1
+              0D21FA2AF27604B920FE81176A8CE6C430D06668F74D8A74605524A08E077587
+              70CDD12F6A8410B74A55DE2AA59C8041EE541507AAF3FCAB9FA6207951F51EDF
+              208524C81680C42F4D416C40C3F572D1222542B25134F88D35FAF91DF3331AD1
+              724DB587A620B951656D1355097E028204215509E6909AC04D8A748409491D10
+              DC95F25F7008EA8050B52E605380EA3F3236CCBFA65E01874169F47F758CB62F
+              2B4EA38F3229182BAD0416DB08C4B44EC199AC4283CF9D4FBD9F068391643BF6
+              75672D725258AD9D08AB0387D2B92F4A5B90C41682B81C9B10E78F7F56157147
+              CEBD6509572639153B42F6A42BACF7A228E050D5CC4AAB73556C61EDBC84F23A
+              9C4633AEBEB6FD9AA22D88CDD6FC5A4884AA12BCAB928012FBE39610394F152A
+              A2856B39392E94E9631219101D4269553D874E97F3F59142AAEB6D1A995FF848
+              40416046CE3D17137CF250B8F26441403E0EC58EA18381ADB620A1A1AEFF1505
+              9C0D88BA7A2272EAE6280D3C690B3321BEB354F1938983B9715C2A71E14154D4
+              581891524EFF28339FEF3D4D6179ED797E1C9FB7814D6D80D7313825D541014F
+              584CF2E4E9E0FCB79DE62A0894A07A3627B44601226328A0427D15C11913094A
+              1835D15454BE4DA82DD65CA40A8886FF7BFC67A61913D2358575AA9235DB8FB1
+              62C3018EE557B45B78A93A518C7EAA39265108A10829D5CE7EEE2EA1AA124511
+              3235394606F8191587B37BF68C4603F5F5D6BAD379658A844045B8BE28814045
+              C516599459B1BFFFB6B2ADC320AC0114893C9CDE361FCDDC8F1E71BF0CF42F4B
+              09353AD737A820155A4DA4AFBA64B0D224C69AEDC73859788ECBD3E299342A11
+              45080C8AE0B6CC746ECB4CE7ADCF0EF2EC075F61B53BBBF5C1FB1AAA6B5D9178
+              E2D73BCB52469515279EA2D8F3FD1E570C838362081D3935C069366FB488DA50
+              97E3B6F53D53C60E3300FC37BB8887FEB2C59D3E203A84DB7F90C1ACC943890E
+              0B04E0AEA92398323A89FB966FE2F099F26E7CC4BE45D31A6855B50CF11F56F0
+              E990C4924BF3365ED260290DD3BCDF630FA3F807614EBEF413635078866AB76A
+              DE63773800301A5A67535056C3B20F7733E9A1F759F6E16E6C8DB5222936940D
+              CFDCCA03B78CE1471386306D6C2A999724921AAF5DB80B09A7D5847F787D5AD4
+              E8DC75C660EDEF133CF4213157CF0B3298FC971BFDCDF7786CCBA5CA986103AD
+              6B5FFC953FC00DBFFD90EC5CED5FFE80E8109E597035999778F65A1FCDAB606F
+              4E89DC9B6F65C7910A516BD17784E6AB3EE4BB084562ABF55FE1B4197E796C65
+              661B9788660D09884A5C6C0A8EBC47AAEDB7F77BB24FA9BB8F163A015E5C748D
+              C7FB0ACA6A98B774032B361EA0CE62D7BC273D3192599333C4F3778E121B7F3B
+              91876764101E6C6AD77E5F443A150222EB169A132A166BFD5DB386F49FF6AB25
+              021E6D3F67D7286B60C668B9EDA5BB8200566F3EC8EF57ED68F76DA1417E8405
+              FB1317114C48901FA1417E2444873071C400AE1CD67A09BBBAC1CECB1B8EF3F7
+              9D79EDE6D915DC3524294606F8FBAE863421A57C366BD9B4DFB4C9C7C3FD8ECE
+              1624AFA45AFE7AC5769E5B3891B9D78E60F7D1B3ACFBEA84C7FBABEB6D54D7DB
+              C82BAD6995FECABFF6302C355E9D35F57271EB950922D0CF4068A089DFDD328C
+              EB46C5B364CD614E149FEF9CA657A3F91D7BC5F7F18FADC7F8DBBF5D43E53FFD
+              FC87C4860775299F2379153CBFF688BC61C976DEDA72CA9D7EC5E0483E7A6402
+              77667A7D81AED7E13567D4A32BFEC389C27300BCB1787AB7F22AAFB1B16CDD31
+              7EBC7407DB0E97BAD31F9E91C19F165C4668E085D7B734E155EFE0BCA51B0018
+              9E12CDDC6B4778BC6FD4A0586ECD4C67C8808876F33B515CCBFD2BF6F2D80707
+              B1D85C038C49C363F8E891098C4E0DF75AB97B135E15A4A0AC86A7DEDE09C0EF
+              665F85C9A89DFD806833CFFFF4076C7A6E26E387751C8BB676770133966E67DF
+              A94A006242FD59F5F371DC3CB6BFF70ADF4BF0BAFFFCCDCFB22828ABC16454F8
+              C9C434CD7B36EC3AC9B31FEC02E0B507A7121CD0711354546961DE2B5FF3FEF6
+              33EEB43FDC319285D70CF44EC17B09BA2C68ACD97E1C805993877ABCE7AFEBBE
+              A5AACE4A7080094327176F00967C7498673F3AECBEFEC5F543F8C5F543BA5ED8
+              5E862E826CCBCA075C7D457B23AE573FDEC7E77B4FB75C37919D09037A6FFB19
+              1E79E780FB7AE13503BB2E4A2F5BF1D445903DC78AA8ACB100306D6CAAC7FB5E
+              5FBF9F7B967DD6251B9FEE2BE2C155DFBAAF175E3390F9933DDBEA2BE8228894
+              B076670E00D75F31480F13007C7EA09887DFDEEFBE7EE0C634A68FEEA79B3D5F
+              A0DBA2F83FB71D0560DCD07E8405FBEB6586CFBE3DCB92167DCA73732E6170BC
+              59377B7AA39B20074F9791DFE81E997E85BE23A1F7B79F69E5EF5AB1682C4643
+              2FEB1C3A89AE6123EF7C910DC0FCA923F53403C01FFE99CDA1BC6A0022CD7EBC
+              386FB4EE36F54057413ED8E26A4AD21222183754FFB6FDDEBFEEC1D918803169
+              780C3FBAA2C776A675195D05A9AAB3B26AD34100FE383F534F5380CB5DFFEB16
+              C3E1A76E1FD1E7D654748F745BFAF7AF51A56450FF707E7673679A91EEB5FD9B
+              F69F65FB91E650D867678F6AEFF68EE2D67C8EEE82D45BEC3CB9DAB568F5F0CC
+              2BF8B107778A37F9CDBB07DC31E0E3D3A3189F1EADBB4D6FE19358D0D59B0FF1
+              D91ED7FAC6B2FB26332C394A577B55F5765EF9F4B8FBFA77B70CD3D59E37F159
+              70EE7DCB37712CDFE5ADBD66B4FE0B4DAF7F7E92CA5A974B26212A90B1832275
+              B7E90D7C2648809F9170B36B82985370CE27365FFBFCA4FBF5BCC9293EB1D95D
+              7C26C8B4B1A9C4860761B33BF9CF81331DBFC10BACD9958FDAD899640E8D213C
+              D8CF2776BB83CF04199EE2EA5837EE3E45BDB5D33114DDA2C1E6646B76F312F0
+              CCF1BA6F33EF363E132473A4EBCBF8FBBF8F7470A777C7A16F6E39ED7E3D7BA2
+              C646A45EB63DD22782C4470493961081C5E6606776812F4CBAD977AA9213675D
+              E14311663FA6F5726FB04F04B92C2D0E80AF0EF7CCC9472F6F6C1E022FBA4EBF
+              E5006FE013419AA24BB273353693FA802D074B28AC6C00203536B8570F817D22
+              4842740800C59575BE30A7C92B1B73DCAF1FB8517F6F4157F1892051A1AE3D22
+              350DDA81D6BE60DD378594D7B8268A2392C21891D43BB740F844107F3FD7C910
+              7687E768FA1BC60DE2B22171BAAE2ABDF165F34471F1CD6DB793F5067C2288DA
+              B84661326A1FD9111F19CCABBF9CCACD570ED25590BFEDCCC3E67045B98F1914
+              C9F0C4503DCD75099F08D2B427C4EC21206EF5AF6F00E0CAA1FDD0332EC7E650
+              F9C77F9B977A17DF9CA1F4AE59888F0469EACCE322DB9EC0F1A30943DCA3B0B4
+              840871F9C0F6E37DBBCBCA2F9AA3EA2F1F1841525480AEF6CE179F08925BEC5A
+              EBD60AAE9E3929A3D5F54FAFD5B7D92AABB1F2C99E42F7F5C2CCC45E751C854F
+              0AD3B4EB766C7A7CABF4003F23A307C7B64ABB2A2D4A244405EA5A9E173E39EA
+              7E3D2A29444C1BA1EFFACCF9E01341F6E594E074AA449803DC4E4680C1FDC309
+              F0736DE2FACFFE33ACDD9923011EBA49DF794245AD8D17D71D735FCF9F388097
+              66653063742C417EED9F15A6373E11C46273B065BFCBE5DEB2891AD0386104C8
+              3A55CAA32BB7A9005346C432304EDF139F567E71924FBF3DEBEED2132203983B
+              BE3F7FBE7318774D18407C987EC17DEDE1B3F673F5E64300DCF1830C9AF64326
+              C5360BE270AA58ED4EBEC82A9600BFBF6DB8EE657AE4EDFDF2B71F1E533FCF2E
+              A7A471D2680E3070D3A531BC3A67280B331308F6F76D8DF19920DBB2F2C92DAE
+              C2CF64E089B9135D892D76AA96348EC45EF8E4A804189D1AC19569FAB7ED070B
+              6AE5EB5B0B58B43A9BC7FF95C3E6EC726AADAE09ECF491D1BC327B28E30787EB
+              5E8E267C3AC278B0F1F88DB9D70E67F1CC2B1897DEEC0ACF29AC0490F9E50DEE
+              358CA7EFF0BC2D4E0F0E15D4F2972D79DCB73A9B57BF3C43698D8DD040230F4D
+              4D61D1E4443AD8E9EC157C2AC8DEE3C5BCFCD13700DC7FF368AEB9CC15EC60B3
+              3BF9F64489FBBEE5EB8FB3EFD439E2C202B8F75ADFBBCB1B6C4EBE3C5CC1CFDF
+              3DCCBAFDAE15C71F0E8B62F91D1924EB3C02F4F918FCC57FEEE1A535DFB8E3A6
+              EA2D7616BDBCD97D1E4A130BFFBC9BC28A06EE9F3698F8F09E99BC399C9237B7
+              17F0D4C727A8A8B3931019C0B23BD2993844BFC96B8F4C8A96AFD9C3A407DF63
+              EE73EBC97CF07DBEDC97DBE61EBB5365E6B2FF526F75B2E6E1093D50CA66F6E7
+              D5F08B770FB3ED982B8CE981EB92F99F2BF55979ECB1596A5E690DDBB2F229AF
+              6EF0784F75839DEB9FD94AA09F8165F32EF55DE13468B0AB2CDF9CCBB24DA7A9
+              B53AB9E5F2381E9A9AE2753BBDCA6DA04545AD8DAB1FFB9241F1666EBBAAE7A3
+              46761C3FC7BC15596CCC2A63FCE0701EBC2EC5ABF9F786471E7548ADC5C18CE7
+              B6F3C88C0CC6A747B1F3A8EF0E401340BF707F6242FC88083211E8A750D5E020
+              BFC2829430614838A535FDF9DB9E920EF3EA0CBD5010CFFEF0E73F3EC2FCC9A9
+              2842B48A70EF161A43D90093C2D8D430C6A48492161F4C6C48FB0176D34646B3
+              3EAB9C5A2FAC50F742413C2325BCB33597A997C6931C134C6EA977D7E88580BB
+              AF4E60C290704203B4BF9AD21A1B157576CA6BED9CA9B070B8B0961325F5383A
+              78225B67E95382806B91E9933D8504E8E4041C3730AC951859F9351457DBC82E
+              ACE348512DC5D5DA27DD193DAC869E2F7D4E90269A0EA3F12652C2D28DA778F6
+              D6666FF3FA0365EC3E55E5755B9EE8F5A32C5F73BCB89E8D59CDFDD3E2A92917
+              AE2FABAFB0626B3E59F9AEF053A341B87D59661F787EBF17C4034FACCD616BE3
+              CC1C5CBEAC97670F65CA507DA31E3D0822FA6CDFE24D5EDA9CCBCA6DCDC1E161
+              8146EE9F92C4A3D7A77A636551F33BD614449134F8FEA9B44D08DF06E674B00F
+              77C381521E78FF08070B9A0FE01C9B1AC6F25919A44477CDF3DB6850D367A429
+              884155970AC95F7BDDD9453DC4990A0BBFFF570E4B379EE250A14B9828B38917
+              6E4F273DBE0B4BCD52BE2611CF6BFD495390BC88224B5168E97D7683FC4CF9FE
+              A12D6E769DACE2F18F7278EAE313ECCD7585363D73CB904ED71429258A109BC3
+              83FDEF8D0EF5EF7C0D91460B4EA3055067A092FD7D3D69CDFEBC1AFEB8EE244B
+              D69FA4D6E2E485DBD3090BECB8DB95521E96929B4C46037E26ED1FBA66EAD8C2
+              74C6160D24A32AD01AA9044F5343232B1182EF9FC8D69A3DA7AB59F8D621B2F2
+              6B796DEE50E2C2FCDBFC76A52A404802A3EBAA8CD135D3EDE62A6B9928E1AC53
+              DB19A9296B4DAEEB7C927AD549953F7975E141379A2392770883918ECE83BFD8
+              B03B559E589BC3A22949BC70C7D0C099CB2AAC0515CDAD916272A2DA0C947E93
+              7C83D5AAE43AD4F68F34D714E4C8E94F5B5D9BFC837646DFF49BD90EC4BBF6AA
+              B308A56783C97A23AF6F2D206748AD6D5472B8D2248814922093117B9579CEA1
+              8F47ED90F68E9BB54ECD3754A79DF27DEBDE33C6A40C0A8C4E7ECAD3F3442E76
+              B61DAB709A9CCD8F4935AA26CA2979BC2A24EF5D461BC0620253CB16664C9B3C
+              3A2588D361A7EAC42ECCD69AA723C2D3521B1C96F9AA492074794C54DF7838B1
+              16D50D0E793AAF4215125483405583DE2C530A9E3E977008EED9094ACB877801
+              AC6C9387B6209327B74DB3D6638D4BA638D1B02028D7906CAAB14F513D9C5C7D
+              B1E3300882ECCE2DB1E72A16045547535D792926A9B137E6EEB649DA82CC99D3
+              36CD60C46EA9C52E6B08AEB0DD643AEB38680D93A940CFEDE4EC9D045A144E85
+              591C3725145592A49831AA91A89D6C4EB405F9EA2BCFEF30082AECD67AFF28AE
+              0B7184EF1692F02E14FA82444A192CA12AD264B8CE2F22B0AEC0DFD4DE230B35
+              D116E4ECD976AC822D48C5191A94633E17391D2976F2BD8FC585400A29A68518
+              0C3986202355E101E7ED99D31624A0A3484107D80D0821BE42D04F4AF5196001
+              5ACFD6BB589072B522C4A34211450E15148713531776817BA15796C5A0DE2DA5
+              331ED4375C69175585592DA4EC2F90F34076FBEC10EF0D9304C512F56E29D578
+              50DF6C4A3C4FA48FC5ECC62198D2258494F300AF1DE2E2C571ABC0F55C4B598C
+              54175CC0356695AB46300FE13D219AD069222110B86B4C1CA82B9BD2FB30AB1A
+              6BC45D7A08D1844E8234B50302842C91A80BBBD994F524ABDD4278B169F2840F
+              A6DAAEA60CD1D494A9F1C8BED094C9169DB5FE4234E143DF478B3EA6B9F3EF15
+              C27CA75FD7B58FE8081F3BA35A35652DFB9826614C80CF7CFB020C08F75CCCA7
+              4D93277A28DC47E2AE15429620E5DD52AA8F81FA34301E977F4C175F720B1409
+              C148B94B201F1348EF3F70B70BFC3F9C434FDE627F724C0000000049454E44AE
+              426082}
+          end>
+      end
+      item
+        Name = 'logo-sequal'
+        SourceImages = <
+          item
+            Image.Data = {
+              89504E470D0A1A0A0000000D494844520000006400000064080600000070E295
+              54000000017352474200AECE1CE90000000467414D410000B18F0BFC61050000
+              00097048597300000EC300000EC301C76FA86400000B4249444154785EED9D0B
+              70D4C51DC777F7FFB8BBDC25B93CA1098F189022CA432108C2A430CC54A88EA3
+              8D8E7D286AA7D551A9D65A6DED3843B5B5763A0547ADD23AB6B5B454C4DA6955
+              AC561115AD4880040AA8A00984242610925CEEFD7F6D7FBFBDA48356920BE8B8
+              7F673F3397BDDD7BCCFEF7BBBFC7FE33B74B140AC530D0C1D297A49E6C66E90D
+              CDD46E3CCC597998D0804EB8ED12F7FD1E125A5E47C3D7CDE7C6D431DEE0DB15
+              9F16E917DE61FD373EA50F56872576C746DDDAD6E69B89E73B0B89AFDAAC15DE
+              BAD8C5E75653476DEA0F6F9DC32A23DFF3BAE2A63790F15824C0F5A99526AB88
+              3C1CFADAD95B29A57BF1BDD9AD87B4C0BC89E27332E32B41120FBCA6476EAA77
+              3CC7AD4EDCF3D2EDCEFB3DD77A7DE920C93A84B0E32EC5E3841607895E534ACC
+              F935EB83974CBF0684C9C4EE7A8115AF3C5F6A17E61B41926B1BF5F0F23AC7DA
+              DDB920FD44D3ABF68E768D3830B61A7508A56CF06D39F0AA1CCF8378C25834C4
+              8C59D5AF16AE3CFF6A10E5E0C0AA5758D1AD8BA415C51782A49FDAA5851A66BA
+              F6DEAEF3926BDED80225A3A66E1346208A0F730D6835B66B138D19C10BA625C3
+              2B168E05511256639B66D64D90D27D7D78664988D5DCC1500CCEF9B4F486A6D7
+              ED3D2046D070410663583110705D446706944EE6E93DE1C47DAF6E84EF294031
+              9CC37D524E46E90589FDE01FA24C3DD6F8636B7B3BA5A66613C235D1980FA009
+              5888CEC181D94D1DF5D94D07EEC6E6E4EFDE92F2DAA51624FBF20156F1D20D9E
+              97CCCEB11BDBBEC9D396185C31C8A38183290574DD3DDC47ECA6F66F8395448A
+              7FB2D4B577774A6725520B62ED6817FD4BFD6567BDDB93249431B48E931B4414
+              45873C605F77B1DDDCB1189B20964877FD725BC8E603A2CC6C684EF0810CC603
+              3A6AEB1802E30D85DC0BBEC73B9ABC4434651C6521F9E2B4F4D0F2E7AE75C0BD
+              68C10BCFBC915B90147D34BD1D2D906261A0775A8F25B0EA75C745B34C482B08
+              C7C55E8E0009EAB522633AF5349DA385F1941D14155BBECC575A418C33C6F216
+              720983499D72F6763D0CD9158C203FD5051DC358A28D2B3E88151A099CAC03FC
+              D4903A8694DDF91DD13FC8905A686100D715A73280F859460CCDCA6E697D041B
+              9C03479520A3C1985925062C78E9CC340DC13AD0F520309FA4D782CFA18B32CE
+              1A1B8FDE7FB1F8DEC84DF54A90D1C0D3B67051817327AED5C645F78214E8B746
+              EFF85143D773698149E0713FB8C1637DD73DA99BE78C53828C86F0F23A9E5CDB
+              2856E5A1CB66DEAB4DA900911CEF437776F3C30577A79B75E31391DB163F800D
+              A1AF4E57F7B24E0610C57D0DE6B8397BFC3A637AD51A561931C0726C7041F9CE
+              6E07DEAF6993CB49E8AABACBC03A62B195FF64C1F3A74A671D88F482200B8E8A
+              650389DCB0E00698E5BFD1AA8A0D62BBB8A6C05BEFB0E43BCE62F069AEEEC1EB
+              C23220161173EE842F1BA7953DDFF7ADC7B5E2BB96A9DBEFA78AB5AB939A8341
+              3EB5BEE9CECC73FB6E81D57BA917CF62FEE4520D5440215C8F70C7E334A86BD4
+              D489565BBA3D7C73FD0F8DDAF297E3F7BD6214DEB2C8165F2829BE1104C96E3D
+              44930FBEC64AD75DE9C24A7E56F6E5F7565A3B0ECF218E378EC7329885115A14
+              242C1A021FA76D63E5917B0A6F5BFC347E3676FBD37AF12F2FFADF6A53567C25
+              C810F1559BF5C25B178BC1E59C7F21F3ECDE49F6F6768B272DAA9F5DCD834BA7
+              6A5A59F84D7CBD9534D0CA3FDFC1C257CC9132887F6E88AFDECC067EB1C918AC
+              7E2C033F7B31FFFF9B48822F2DE478C06551ABA983B9FBBAB997B1890EA9B139
+              6F223567557B346848994929140A8542A15028140A8542A15028140A8542A150
+              28140A8542A15028140A8542A15028140A8542E16F7CF77384F8AF36537BF707
+              A3EB39E784150649F4A106F5F304C5E8F09D852437EC8AD8BB3A74E8795EB31D
+              2F1037E4D022015E78C792815CABBCF8469023F3EF67956FDEEC0DDCF5C2267B
+              77673DA1340E233DF2CFBA29C59F47076951B03DB8E4F4E90557CEC9F6DFF857
+              1A7DE85229DD972F7EA72EB0723FA0753B63C53C9ED5793C53C213D9E2111FF1
+              6C098FA543ACD08C86AE982DBE439B542E4A19F18F2083F31906D8115B6B50B1
+              5F2F6E1A30FC8351173FCA2A0AF107A0E27AF5DA322CA4C4378204164D12EED5
+              EB4D0DEDC280F53C1E3CB7AF03257B28A5697CAA8D8F622125BE10C439D8CB8A
+              575F8C7BF72ED42795CD17BBCDE5BBDD1F271E3175DCE1F48F583D76F95ADD9C
+              3D5ECAF881F84210880562927B3DC931C400CF837B9CE42C6064701FF8A04ECC
+              793521AC6A151169C540FC612187FB73E5C15E9BA76CE8F5F1BBCD0C033A2CD7
+              E3341220C6DC09016CD26755E5F7D9CF085F08029955AE3CD447D15D51B15F56
+              1E139D4300D1186EE734A0D7966ECCB59DF2BE8D9F2AFE10A4B53757BEDFC360
+              70D142443D0F30D3424BE9366756BF8B0DA9DF6F532EEB54715B8F8932F3ECBE
+              244F5AD06BE8763EC38ABA791ED14F2B33212110D75A70751D16D2E20B41E2EB
+              FE25863FD4306329C1BD76F336104A380475ADA6C4829457B82AF3DC89E21559
+              F1852013C99FC460B2F2F0C59835C138E72789E771163689DBD6BF1AAB3DCB1E
+              D1CC59D5CA657D52D8EF1E4988F89197BBC26D6121C32A2D20E6C2D3C41E8105
+              CBE7889764C61782F45FFFA4B008B7A53717A4F301B2296A309D0F645B82174C
+              FBBB68B2F08C24B9915E10FB3F9D5A74CD659CA7ADA5B4C09801838AA2E4D76F
+              B0247D4A05C68F443BB99E86AF9A2BB5BB42A417C469CB2D0AED3D5D55E20918
+              CA60393C6848B8CF7B4DA9D8E7BD9DACC1427AE417645F9728B35B5A523C9E25
+              B0D083DA08131DC5B05C8F8D29C4DA6FF1CF99AB5F91FE5A11E93B995EDF2C4A
+              AFBDBFC28B6708D120AA8FE478F086229E3B95B00E99F593C46698AC3C227DFC
+              40A416C46AEEA0953BBE8F77799936B9FC169E76A0C77945758833103FCE18D3
+              6B4E1BD3DD7BF95A2DBC7C8EF4F103915A90A135032EEA9C3D5D2ED5A1BBF99C
+              58816F3134A24FAD14F7AF9C9663BE1003915A90F4337B45FFDC23F1D95E6FAA
+              5A8831D2A210D71F9643B5AA62A27FB1E2196C2ABC7B693E562505520B421C4F
+              F4CF79AF6711A4BC21EE7AB618F1E1C0F547004C29EBEC0CCCABD9B69F2CA0A1
+              6567F8661365A905C96EDA2FCAF4134D71B0103CF60EA67F7E2E8B5515BD844F
+              2BAE5921F7A4FB08D276D669EFA7D15F37E0296DBA3EB9FCBB5E4C645823F717
+              FF21150DE17BD7639516057D133F106905C96C7C7BF019E1EE07F131F9AD3F28
+              E78EA769630B63453F5D96C4A6F08A85E225BF20AD20BC3F256285F376F778E7
+              9D23C6E04DC5E1E38707F12364106D42740B6466FB633F7A56374EAFF0C5FA63
+              086905D1C64545DF9CD6DEAFC32047C115392366589C533C670A5CDC3A51B55D
+              5F8981482B48E2C1D7857F72767716F14476E4153ABA2BDB657A6DA91DBCE8AC
+              D7B1A9E01BE78897FC849482D8FB8FD0CAAD37E30ABD04ACE37AAF3F8DE7E00E
+              DFD7417745187B14DC557BCF858F6AE6ECF1CA423E09528F358A32BBB52D69BF
+              DDED0D9EF229DA4E08E71AAC3FE08AA838854DAF29F1557635849482B0F2B088
+              15947B4BBC238912B1161C7E788525B08AC8CEA27BBED28ACFF519B9F3AAFC86
+              948250531727E3D8BB3ABF04AE0A67BF3D6C404777556010F3BC9ACDE0AEB203
+              3F7FD1885C3B5F09F249E0F5246864C54271929AB3FFE8143E143F4E34BC18EA
+              3DAED3920248774B1E134D86E6DBF3A6A413C4DAD3252C01027A198B862E82CC
+              69E8FFE8E8963EE6411D8C2F7A6DD981C0E2C9E25E4BA861862FAD03914E10BB
+              A95D94D61BAD673A078E6AB042A7C4E51A0C3A1EBDFDFF0FC73568D884E53CBF
+              17DC95155BF9BCAED796FB569013FBE5CF086BDB21CD9C3BD175DEEBB9D3DADE
+              7605B7DC63903941FAF4B14E8B832806A4BB7DA186991762FCC86EDA4F034BA6
+              F856102949ADDF39EA8992FADB6EE926D7C920ED4564FFDD4AFBAF7E9CBA5D71
+              3CB5F304692F364254B75D5235702FC6148542F1398690FF029A8D9B27B85043
+              410000000049454E44AE426082}
           end>
       end>
     Left = 689

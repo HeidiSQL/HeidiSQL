@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.WebBrowser.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -67,14 +67,14 @@ type
     function GetHostInfo(var pInfo: TDocHostUIInfo): HRESULT; stdcall;
     function ShowUI(const dwID: DWORD; const pActiveObject: IOleInPlaceActiveObject;
       const pCommandTarget: IOleCommandTarget; const pFrame: IOleInPlaceFrame; const pDoc: IOleInPlaceUIWindow)
-      : HRESULT; stdcall;
+: HRESULT; stdcall;
     function HideUI: HRESULT; stdcall;
     function UpdateUI: HRESULT; stdcall;
     function EnableModeless(const fEnable: BOOL): HRESULT; stdcall;
     function OnDocWindowActivate(const fActivate: BOOL): HRESULT; stdcall;
     function OnFrameWindowActivate(const fActivate: BOOL): HRESULT; stdcall;
     function ResizeBorder(const prcBorder: PRECT; const pUIWindow: IOleInPlaceUIWindow; const FrameWindow: BOOL)
-      : HRESULT; stdcall;
+: HRESULT; stdcall;
     function TranslateAccelerator(const lpMsg: PMSG; const pguidCmdGroup: PGUID; const nCmdID: DWORD): HRESULT; stdcall;
     function GetOptionKeyPath(var pchKey: POLESTR; const dw: DWORD): HRESULT; stdcall;
     function GetDropTarget(const pDropTarget: IDropTarget; out ppDropTarget: IDropTarget): HRESULT; stdcall;

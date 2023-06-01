@@ -3,8 +3,8 @@ unit event_editor;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, SynEdit, SynMemo, SynRegExpr, ComCtrls, ExtCtrls, WideStrUtils,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
+  Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo, SynRegExpr, Vcl.ComCtrls, Vcl.ExtCtrls, System.WideStrUtils,
   apphelpers, dbconnection, dbstructures, gnugettext;
 
 type
@@ -80,6 +80,7 @@ begin
   comboEveryInterval.Items := Explode('|', 'YEAR|QUARTER|MONTH|DAY|HOUR|MINUTE|WEEK|SECOND|YEAR_MONTH|'+
     'DAY_HOUR|DAY_MINUTE|DAY_SECOND|HOUR_MINUTE|HOUR_SECOND|MINUTE_SECOND');
   grpState.Items := Explode('|', 'Enable|Disable|Disable on slave');
+  FMainSynMemo := SynMemoBody;
 end;
 
 
@@ -187,6 +188,7 @@ begin
       SynMemoBody.Text := rx.Match[1];
 
     rx.Free;
+    SynMemoBody.TopLine := FMainSynMemoPreviousTopLine;
 
   end;
   radioScheduleClick(Self);

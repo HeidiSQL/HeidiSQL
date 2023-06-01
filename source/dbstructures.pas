@@ -6,7 +6,7 @@
 interface
 
 uses
-  gnugettext, Graphics, Windows, SysUtils;
+  gnugettext, Vcl.Graphics, Winapi.Windows, System.SysUtils;
 
 
 type
@@ -168,8 +168,8 @@ begin
     msg := f_('Library %s could not be loaded. Please select a different one.',
       [ExtractFileName(FDllFile)]
       );
-    if Windows.GetLastError <> 0 then begin
-      msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
+    if GetLastError <> 0 then begin
+      msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [GetLastError, SysErrorMessage(GetLastError)]);
     end;
     if (DefaultDll <> '') and (ExtractFileName(FDllFile) <> DefaultDll) then begin
       ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
@@ -178,7 +178,7 @@ begin
     end else begin
       ErrorHint := '';
     end;
-    Raise EDbError.Create(msg, Windows.GetLastError, ErrorHint);
+    Raise EDbError.Create(msg, GetLastError, ErrorHint);
   end;
 
   // Dll was loaded, now initialize required procedures
@@ -207,8 +207,8 @@ begin
       msg := f_('Library error in %s: Could not find procedure address for "%s"',
         [ExtractFileName(FDllFile), Name]
         );
-      if Windows.GetLastError <> 0 then
-        msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [Windows.GetLastError, SysErrorMessage(Windows.GetLastError)]);
+      if GetLastError <> 0 then
+        msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [GetLastError, SysErrorMessage(GetLastError)]);
       Raise EDbError.Create(msg, LIB_PROC_ERROR);
     end;
   end;

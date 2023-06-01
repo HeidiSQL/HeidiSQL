@@ -11,7 +11,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poOwnerFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -19,7 +18,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
   DesignSize = (
     317
     227)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblDBName: TLabel
     Left = 8
@@ -108,6 +106,14 @@ object CreateDatabaseForm: TCreateDatabaseForm
     Font.Name = 'Courier New'
     Font.Style = []
     TabOrder = 4
+    CodeFolding.GutterShapeSize = 11
+    CodeFolding.CollapsedLineColor = clGrayText
+    CodeFolding.FolderBarLinesColor = clGrayText
+    CodeFolding.IndentGuidesColor = clGray
+    CodeFolding.IndentGuides = True
+    CodeFolding.ShowCollapsedLine = False
+    CodeFolding.ShowHintMark = True
+    UseCodeFolding = False
     Gutter.Font.Charset = DEFAULT_CHARSET
     Gutter.Font.Color = clWindowText
     Gutter.Font.Height = -11

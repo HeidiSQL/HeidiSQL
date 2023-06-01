@@ -3,7 +3,7 @@ unit data_sorting;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, StdCtrls, ExtCtrls, ComCtrls, Buttons,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Buttons,
   Vcl.Graphics, apphelpers, gnugettext, extra_controls;
 
 
@@ -24,7 +24,7 @@ type
   private
     { Private declarations }
     FColumnNames: TStringList;
-    FOrderColumns: TOrderColArray;
+    FSortItems: TSortItems;
     FOldOrderClause: String;
     procedure comboColumnsChange(Sender: TObject);
     procedure btnOrderClick(Sender: TObject);
@@ -53,8 +53,9 @@ begin
     FColumnNames.Add(Mainform.SelectedTableColumns[i].Name);
   end;
 
-  FOrderColumns := Copy(Mainform.DataGridSortColumns, 0, MaxInt);
-  FOldOrderClause := ComposeOrderClause(FOrderColumns);
+  FSortItems := TSortItems.Create(True);
+  FSortItems.Assign(MainForm.DataGridSortItems);
+  FOldOrderClause := FSortItems.ComposeOrderClause(MainForm.ActiveConnection);
 
   // First creation of controls
   DisplaySortingControls(Sender);
@@ -66,6 +67,7 @@ end;
 }
 procedure TfrmDataSorting.DisplaySortingControls(Sender: TObject);
 var
+  SortItem: TSortItem;
   lblNumber: TLabel;
   btnDelete: TButton;
   comboColumns: TComboBox;
@@ -94,7 +96,8 @@ begin
   // Create line with controls for each order column
   // TODO: disable repaint on every created control. Sending WM_SETREDRAW=0 message creates artefacts.
   LockWindowUpdate(pnlBevel.Handle);
-  for i:=0 to Length(FOrderColumns)-1 do begin
+  for i:=0 to FSortItems.Count-1 do begin
+    SortItem := FSortItems[i];
     // 1. Label with number
     lblNumber := TLabel.Create(self);
     lblNumber.Parent := pnlBevel;
@@ -115,7 +118,7 @@ begin
     comboColumns.Top := TopPos;
     comboColumns.Items.Text := FColumnNames.Text;
     comboColumns.Style := csDropDownList; // Not editable
-    comboColumns.ItemIndex := FColumnNames.IndexOf(FOrderColumns[i].ColumnName);
+    comboColumns.ItemIndex := FColumnNames.IndexOf(SortItem.Column);
     comboColumns.Tag := i+1;
     comboColumns.OnChange := comboColumnsChange;
     lblNumber.Height := comboColumns.Height;
@@ -131,7 +134,7 @@ begin
     btnOrder.GroupIndex := i+1; // if > 0 enables Down = True
     btnOrder.Glyph.Transparent := True;
     btnOrder.Glyph.AlphaFormat := afDefined;
-    if FOrderColumns[i].SortDirection = ORDER_DESC then begin
+    if SortItem.Order = sioDescending then begin
       MainForm.VirtualImageListMain.GetBitmap(110, btnOrder.Glyph);
       btnOrder.Down := True;
     end else begin
@@ -200,7 +203,7 @@ var
   combo : TComboBox;
 begin
   combo := Sender as TComboBox;
-  FOrderColumns[combo.Tag-1].ColumnName := combo.Text;
+  FSortItems[combo.Tag-1].Column := combo.Text;
 
   // Enables OK button
   Modified;
@@ -216,12 +219,12 @@ var
 begin
   btn := Sender as TSpeedButton;
   btn.Glyph := nil;
-  if FOrderColumns[btn.Tag-1].SortDirection = ORDER_ASC then begin
+  if FSortItems[btn.Tag-1].Order = sioAscending then begin
     MainForm.VirtualImageListMain.GetBitmap(110, btn.Glyph);
-    FOrderColumns[btn.Tag-1].SortDirection := ORDER_DESC;
+    FSortItems[btn.Tag-1].Order := sioDescending;
   end else begin
     MainForm.VirtualImageListMain.GetBitmap(109, btn.Glyph);
-    FOrderColumns[btn.Tag-1].SortDirection := ORDER_ASC;
+    FSortItems[btn.Tag-1].Order := sioAscending;
   end;
 
   // Enables OK button
@@ -232,27 +235,14 @@ end;
 {**
   Delete order column
 }
-procedure TfrmDataSorting.btnDeleteClick( Sender: TObject );
+procedure TfrmDataSorting.btnDeleteClick(Sender: TObject);
 var
-  btn : TButton;
-  i : Integer;
+  btn: TButton;
 begin
   btn := Sender as TButton;
-
-  if Length(FOrderColumns)>1 then
-  begin
-    // Move remaining items one up
-    for i := btn.Tag-1 to Length(FOrderColumns) - 2 do
-    begin
-      FOrderColumns[i] := FOrderColumns[i+1];
-    end;
-  end;
-  // Delete last item
-  SetLength(FOrderColumns, Length(FOrderColumns)-1);
-
+  FSortItems.Delete(btn.Tag-1);
   // Refresh controls
-  DisplaySortingControls(Sender);
-
+  DisplaySortingControls(Self);
   // Enables OK button
   Modified;
 end;
@@ -263,30 +253,22 @@ end;
 }
 procedure TfrmDataSorting.btnAddColClick(Sender: TObject);
 var
-  i, new : Integer;
-  UnusedColumns : TStringList;
+  UnusedColumns: TStringList;
+  NewSortItem, SortItem: TSortItem;
 begin
-  SetLength(FOrderColumns, Length(FOrderColumns)+1 );
-  new := Length(FOrderColumns)-1;
-  FOrderColumns[new] := TOrderCol.Create;
+  NewSortItem := FSortItems.AddNew;
 
-  // Take first unused column as default for new sort column
+  // Take first unused column as default for new sort item
   UnusedColumns := TStringList.Create;
-  UnusedColumns.AddStrings( FColumnNames );
-  for i := 0 to Length(FOrderColumns) - 1 do
-  begin
-    if UnusedColumns.IndexOf(FOrderColumns[i].ColumnName) > -1 then
-    begin
-      UnusedColumns.Delete( UnusedColumns.IndexOf(FOrderColumns[i].ColumnName) );
-    end;
+  UnusedColumns.AddStrings(FColumnNames);
+  for SortItem in FSortItems do begin
+    if UnusedColumns.IndexOf(SortItem.Column) > -1 then
+      UnusedColumns.Delete(UnusedColumns.IndexOf(SortItem.Column));
   end;
   if UnusedColumns.Count > 0 then
-    FOrderColumns[new].ColumnName := UnusedColumns[0]
+    NewSortItem.Column := UnusedColumns[0]
   else
-    FOrderColumns[new].ColumnName := FColumnNames[0];
-
-  // Sort ASC by default
-  FOrderColumns[new].SortDirection := ORDER_ASC;
+    NewSortItem.Column := FColumnNames[0];
 
   // Refresh controls
   DisplaySortingControls(Sender);
@@ -302,7 +284,7 @@ end;
 }
 procedure TfrmDataSorting.Modified;
 begin
-  btnOk.Enabled := ComposeOrderClause(FOrderColumns) <> FOldOrderClause;
+  btnOk.Enabled := FSortItems.ComposeOrderClause(MainForm.ActiveConnection) <> FOldOrderClause;
 end;
 
 
@@ -312,7 +294,7 @@ end;
 procedure TfrmDataSorting.btnOKClick(Sender: TObject);
 begin
   // TODO: apply ordering
-  Mainform.DataGridSortColumns := FOrderColumns;
+  MainForm.DataGridSortItems.Assign(FSortItems);
   InvalidateVT(Mainform.DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
   btnCancel.OnClick(Sender);
 end;

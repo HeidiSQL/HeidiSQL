@@ -18,6 +18,9 @@
         <Projects Include="heidisql.dproj">
             <Dependencies/>
         </Projects>
+        <Projects Include="..\..\res\updater\updater.dproj">
+            <Dependencies/>
+        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -71,14 +74,23 @@
     <Target Name="heidisql:Make">
         <MSBuild Projects="heidisql.dproj" Targets="Make"/>
     </Target>
+    <Target Name="updater">
+        <MSBuild Projects="..\..\res\updater\updater.dproj"/>
+    </Target>
+    <Target Name="updater:Clean">
+        <MSBuild Projects="..\..\res\updater\updater.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="updater:Make">
+        <MSBuild Projects="..\..\res\updater\updater.dproj" Targets="Make"/>
+    </Target>
     <Target Name="Build">
-        <CallTarget Targets="VirtualTreesR;VirtualTreesD;SynEdit_R;SynEdit_D;heidisql"/>
+        <CallTarget Targets="VirtualTreesR;VirtualTreesD;SynEdit_R;SynEdit_D;heidisql;updater"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="VirtualTreesR:Clean;VirtualTreesD:Clean;SynEdit_R:Clean;SynEdit_D:Clean;heidisql:Clean"/>
+        <CallTarget Targets="VirtualTreesR:Clean;VirtualTreesD:Clean;SynEdit_R:Clean;SynEdit_D:Clean;heidisql:Clean;updater:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="VirtualTreesR:Make;VirtualTreesD:Make;SynEdit_R:Make;SynEdit_D:Make;heidisql:Make"/>
+        <CallTarget Targets="VirtualTreesR:Make;VirtualTreesD:Make;SynEdit_R:Make;SynEdit_D:Make;heidisql:Make;updater:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

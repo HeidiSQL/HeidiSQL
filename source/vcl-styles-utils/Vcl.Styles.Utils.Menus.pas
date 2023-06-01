@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -140,10 +140,10 @@ type
 {$ENDREGION}
 
   var
-    FOffset : Integer;
-    FOffsetCache : Integer;
-    FSeparatorHeightCache : Integer;
-    FItemHeightCache : Integer;
+    FOffset: Integer;
+    FOffsetCache: Integer;
+    FSeparatorHeightCache: Integer;
+    FItemHeightCache: Integer;
     FItemsPainted: Boolean;
     FParentSubItemPainted: Boolean;
     FPreviousHotItemIndex: integer;
@@ -153,11 +153,11 @@ type
     FCount: integer;
     FMenu: HMENU;
     FVCLMenuItems: TMenuItem;
-    FNCRect : TRect;
-    FEnterWithKeyboard : Boolean;
-    FPersistentHotKeys : Boolean;
+    FNCRect: TRect;
+    FEnterWithKeyboard: Boolean;
+    FPersistentHotKeys: Boolean;
 
-    FMenuBarHook : TObject;
+    FMenuBarHook: TObject;
     function GetMenuFromHandle(AHandle: HWND): HMENU;
     function GetItemsCount: integer;
     procedure MNSELECTITEM(var Message: TMessage); message MN_SELECTITEM;
@@ -171,20 +171,20 @@ type
       const Style: TSysPopupItemStyle); Virtual;
     procedure PaintBackground(Canvas: TCanvas); override;
     procedure GetNbSeparator(var PNbSeparator: Integer; const PIndex: Integer);
-    function GetMenuItemHeight(const Index: Integer) : Integer;
-    function GetOffset(UseCache: Boolean) : Integer;
+    function GetMenuItemHeight(const Index: Integer): Integer;
+    function GetOffset(UseCache: Boolean): Integer;
     function ItemIsVisible(const Index: Integer): Boolean;
     procedure SetMaxOffset();
     procedure RefreshMenu();
     procedure GetItemHeight();
     procedure GetSeparatorHeight();
     function GetClientRectHeight(var PValue: TRect): Integer;
-    function GetItemClicked(var PButton: Byte; PInitPos: TPoint) : Integer;
-    function GetMousePos() : TPoint;
+    function GetItemClicked(var PButton: Byte; PInitPos: TPoint): Integer;
+    function GetMousePos(): TPoint;
     procedure WndProc(var Message: TMessage); override;
     procedure UpdateColors; override;
     procedure SetOffset(PValue: Integer);
-    function GetBottom(const Index: Integer) : Integer;
+    function GetBottom(const Index: Integer): Integer;
   public
     constructor Create(AHandle: THandle); override;
     Destructor Destroy; override;
@@ -1269,7 +1269,7 @@ begin
   end;
 end;
 
-function TSysPopupStyleHook.GetMenuItemHeight(const Index: Integer) : Integer;
+function TSysPopupStyleHook.GetMenuItemHeight(const Index: Integer): Integer;
 var
   LItemRect: TRect;
 begin
@@ -1277,7 +1277,7 @@ begin
   Result := LItemRect.Height;
 end;
 
-function TSysPopupStyleHook.GetBottom(const Index: Integer) : Integer;
+function TSysPopupStyleHook.GetBottom(const Index: Integer): Integer;
 var
   LItemRect: TRect;
   P: TPoint;
@@ -1288,7 +1288,7 @@ begin
   Result := P.Y;
 end;
 
-function TSysPopupStyleHook.GetOffset(UseCache: Boolean) : Integer;
+function TSysPopupStyleHook.GetOffset(UseCache: Boolean): Integer;
 var
   LNbSeparator: Integer;
 begin
@@ -1478,7 +1478,7 @@ begin
   FOffsetCache := 0;
 end;
 
-function TSysPopupStyleHook.GetItemClicked(var PButton: Byte; PInitPos: TPoint) : Integer;
+function TSysPopupStyleHook.GetItemClicked(var PButton: Byte; PInitPos: TPoint): Integer;
 var
   ArrowHeight, i: Integer;
   R, LItemRect: TRect;
@@ -1529,7 +1529,7 @@ begin
     Result := -1;
 end;
 
-function TSysPopupStyleHook.GetMousePos() : TPoint;
+function TSysPopupStyleHook.GetMousePos(): TPoint;
 begin
   Result := Mouse.CursorPos;
   ScreenToClient(Handle, Result);
@@ -2034,7 +2034,7 @@ begin
     windows will delete this item but the VCL will not delete
     the item from Items property .And thats can cause the item to be painted !
     Do not access VCLMenuItems.Items[Index] directly
-    => Instead , use this one : VCLItem .
+    => Instead , use this one: VCLItem .
   }
   VisibleItems := nil;
   Result := nil;

@@ -14,7 +14,7 @@
 //
 // The Original Code is Vcl.Styles.Utils.Misc.pas.
 //
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -812,7 +812,7 @@ begin
       Result := 'LM_SETITEM';
     LM_GETITEM:
       Result := 'LM_GETITEM';
-    // LM_GETIDEALSIZE    : Result:= 'LM_GETIDEALSIZE';
+    // LM_GETIDEALSIZE: Result:= 'LM_GETIDEALSIZE';
 
   else
     begin

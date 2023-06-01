@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo, extra_controls, apphelpers,
-  loaddata, dbconnection, Vcl.ExtCtrls, gnugettext, dbstructures, System.Math, SynRegExpr, System.IOUtils;
+  loaddata, dbconnection, Vcl.ExtCtrls, gnugettext, dbstructures, System.Math, SynRegExpr, System.IOUtils,
+  System.StrUtils;
 
 type
   TfrmCsvDetector = class(TExtForm)
@@ -208,7 +209,7 @@ function TfrmCsvDetector.DetectColumnAttributes(Rows: TGridRows; IgnoreLines: In
 var
   Row: TGridRow;
   Value: TGridValue;
-  Col: TTableColumn;
+  Col, UnknownColumn: TTableColumn;
   i, j, k: Integer;
   UnknownTypeYet, IsInteger, IsFloat, IsDate, IsDatetime, IsText: Boolean;
   ValueSize, TypeSize: Int64;
@@ -225,7 +226,7 @@ begin
     for Value in Row do begin
       Col := TTableColumn.Create(FConnection);
       if IgnoreLines > 0 then
-        Col.Name := Value.OldText
+        Col.Name := FConnection.CleanIdent(Value.OldText)
       else
         Col.Name := 'col_'+Row.IndexOf(Value).ToString;
       Col.DataType := FConnection.Datatypes[0]; // UNKNOWN by default
@@ -237,11 +238,15 @@ begin
     Break;
   end;
 
+  UnknownColumn := TTableColumn.Create(FConnection);
   for i:=IgnoreLines to Rows.Count-1 do begin
     MainForm.ProgressStep;
     for j:=0 to Rows[i].Count-1 do begin
       Value := Rows[i][j];
-      Col := Result[j];
+      if j >= Result.Count then
+        Col := UnknownColumn
+      else
+        Col := Result[j];
 
       // Detect data type of current value
 
@@ -345,7 +350,7 @@ var
 begin
   // Compose CREATE TABLE
   TableName := TPath.GetFileNameWithoutExtension(FLoadDataFrm.editFilename.Text);
-  TableName := ValidFilename(TableName);
+  TableName := FConnection.CleanIdent(TableName);
   Result := 'CREATE TABLE '+FConnection.QuoteIdent(FLoadDataFrm.comboDatabase.Text)+'.'+FConnection.QuoteIdent(TableName)+' (' + sLineBreak;
   for Col in Columns do begin
     Result := Result + #9 + Col.SQLCode;

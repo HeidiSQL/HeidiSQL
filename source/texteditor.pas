@@ -3,10 +3,11 @@ unit texteditor;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, VirtualTrees,
-  ComCtrls, ToolWin, Dialogs, SysUtils, Menus, ExtDlgs,
-  apphelpers, gnugettext, ActnList, StdActns, extra_controls, System.Actions,
+  Winapi.Windows, System.Classes, Vcl.Graphics, Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, VirtualTrees,
+  Vcl.ComCtrls, Vcl.ToolWin, Vcl.Dialogs, System.SysUtils, Vcl.Menus, Vcl.ExtDlgs,
+  apphelpers, gnugettext, Vcl.ActnList, Vcl.StdActns, extra_controls, System.Actions,
   Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter, customize_highlighter,
+  System.JSON, Rest.Json, Xml.VerySimple,
 
   SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm,
   SynHighlighterBaan, SynHighlighterBat, SynHighlighterCAC, SynHighlighterCPM, SynHighlighterCS,
@@ -61,6 +62,10 @@ type
     N1: TMenuItem;
     ToolButton1: TToolButton;
     btnCustomizeHighlighter: TToolButton;
+    popupHighlighter: TPopupMenu;
+    menuCustomizeHighlighter: TMenuItem;
+    menuFormatCodeOnce: TMenuItem;
+    menuAlwaysFormatCode: TMenuItem;
     procedure btnApplyClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
     procedure btnLoadTextClick(Sender: TObject);
@@ -76,6 +81,8 @@ type
     procedure TimerMemoChangeTimer(Sender: TObject);
     procedure comboHighlighterSelect(Sender: TObject);
     procedure btnCustomizeHighlighterClick(Sender: TObject);
+    procedure menuFormatCodeOnceClick(Sender: TObject);
+    procedure menuAlwaysFormatCodeClick(Sender: TObject);
   private
     { Private declarations }
     FModified: Boolean;
@@ -85,6 +92,7 @@ type
     FMaxLength: Integer;
     FTableColumn: TTableColumn;
     FHighlighter: TSynCustomHighlighter;
+    FHighlighterFormatters: TStringList;
     procedure SetModified(NewVal: Boolean);
     procedure CustomizeHighlighterChanged(Sender: TObject);
   public
@@ -133,6 +141,13 @@ begin
   end;
   if Assigned(Detected) then
     SelectLineBreaks(Detected);
+  if (Length(text) > SIZE_MB) then begin
+    MainForm.LogSQL(_('Auto-disabling wordwrap for large text'));
+    btnWrap.Enabled := False;
+  end else begin
+    btnWrap.Enabled := True;
+  end;
+
   MemoText.Text := text;
   MemoText.SelectAll;
   Modified := False;
@@ -244,6 +259,12 @@ begin
   // Fix label position:
   lblTextLength.Top := tlbStandard.Top + (tlbStandard.Height-lblTextLength.Height) div 2;
 
+  // Define highlighters for which we have a reformatter
+  FHighlighterFormatters := TStringList.Create;
+  FHighlighterFormatters.Add(TSynJSONSyn.ClassName);
+  FHighlighterFormatters.Add(TSynSQLSyn.ClassName);
+  FHighlighterFormatters.Add(TSynXMLSyn.ClassName);
+
   MemoText.OnMouseWheel := MainForm.AnySynMemoMouseWheel;
   MemoText.OnPaintTransient := MainForm.SynMemoQuery.OnPaintTransient;
   if AppSettings.ReadBool(asMemoEditorMaximized) then
@@ -258,7 +279,9 @@ begin
     AppSettings.WriteIntDpiAware(asMemoEditorHeight, Self, Height);
   end;
   AppSettings.WriteBool(asMemoEditorMaximized, WindowState=wsMaximized);
-  AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
+  if btnWrap.Enabled then begin
+    AppSettings.WriteBool(asMemoEditorWrap, btnWrap.Down);
+  end;
   if Assigned(FTableColumn) and (comboHighlighter.Text <> AppSettings.GetDefaultString(asMemoEditorHighlighter)) then begin
     AppSettings.SessionPath := MainForm.GetRegKeyTable;
     AppSettings.WriteString(asMemoEditorHighlighter, comboHighlighter.Text, FTableColumn.Name);
@@ -276,8 +299,10 @@ begin
     Height := AppSettings.ReadIntDpiAware(asMemoEditorHeight, Self);
   end;
 
-  if AppSettings.ReadBool(asMemoEditorWrap) then
+  if AppSettings.ReadBool(asMemoEditorWrap) and btnWrap.Enabled then begin
     btnWrap.Click;
+  end;
+  menuAlwaysFormatCode.Checked := AppSettings.ReadBool(asMemoEditorAlwaysFormatCode);
 
   // Select previously used highlighter
   HighlighterName := AppSettings.GetDefaultString(asMemoEditorHighlighter);
@@ -334,7 +359,7 @@ begin
     MemoText.ScrollBars := ssBoth;
     MemoText.WordWrap := False;
   end;
-  TToolbutton(Sender).Down := MemoText.ScrollBars = ssVertical;
+  btnWrap.Down := MemoText.ScrollBars = ssVertical;
   Modified := WasModified;
   Screen.Cursor := crDefault;
 end;
@@ -365,6 +390,14 @@ begin
     MemoText.Highlighter := FHighlighter;
   end;
 
+  menuFormatCodeOnce.Enabled := FHighlighterFormatters.IndexOf(FHighlighter.ClassName) > -1;
+  if menuAlwaysFormatCode.Checked and menuFormatCodeOnce.Enabled then begin
+    menuFormatCodeOnce.OnClick(Sender);
+    SelStart := 0;
+    SelLength := 0;
+  end;
+
+  // Load custom highlighter settings from ini file, if exists:
   MemoText.Highlighter.LoadFromFile(AppSettings.DirnameHighlighters + MemoText.Highlighter.LanguageName + '.ini');
 
   MemoText.SelStart := SelStart;
@@ -400,6 +433,65 @@ var
 begin
   Action := caNone;
   FormClose(Self, Action);
+end;
+
+
+procedure TfrmTextEditor.menuAlwaysFormatCodeClick(Sender: TObject);
+begin
+  // Change setting for "always reformat"
+  AppSettings.WriteBool(asMemoEditorAlwaysFormatCode, menuAlwaysFormatCode.Checked);
+  if menuAlwaysFormatCode.Checked and menuFormatCodeOnce.Enabled then begin
+    menuFormatCodeOnce.OnClick(Sender);
+  end;
+end;
+
+
+procedure TfrmTextEditor.menuFormatCodeOnceClick(Sender: TObject);
+var
+  JsonTmp: TJSONValue;
+  Xml: TXmlVerySimple;
+  //XmlTmp: IXMLDocument;
+begin
+  // Reformat code if possible
+  try
+    if FHighlighter is TSynJSONSyn then begin
+      JsonTmp := TJSONObject.ParseJSONValue(MemoText.Text);
+      MemoText.Text := JsonTmp.Format;
+      JsonTmp.Free;
+      MemoText.SelStart := 0;
+      MemoText.SelLength := 0;
+    end
+    else if FHighlighter is TSynSQLSyn then begin
+      MemoText.Text := ReformatSQL(MemoText.Text);
+      MemoText.SelStart := 0;
+      MemoText.SelLength := 0;
+    end
+    else if FHighlighter is TSynXMLSyn then begin
+      {XmlTmp := TXMLDocument.Create(nil);
+      XmlTmp.LoadFromXML(MemoText.Text);
+      MemoText.BeginUpdate;
+      MemoText.Text := XMLDoc.FormatXMLData(MemoText.Text);
+      MemoText.EndUpdate;}
+      Xml := TXmlVerySimple.Create;
+      //Xml.Options := [doNodeAutoIndent, doParseProcessingInstr, doCaseInsensitive, doWriteBOM, doSimplifyTextNodes];
+      Xml.Clear;
+      Xml.Text := MemoText.Lines.Text.Trim;
+      MemoText.BeginUpdate;
+      MemoText.Lines.Text := Xml.Text;
+      MemoText.EndUpdate;
+      Xml.Free;
+      MemoText.SelStart := 0;
+      MemoText.SelLength := 0;
+    end
+    else begin
+      MessageBeep(MB_ICONEXCLAMATION);
+    end;
+  except
+    on E:Exception do begin
+      MessageBeep(MB_ICONERROR);
+      MainForm.LogSQL(f_('Error in code formatting: %s', [E.Message]));
+    end;
+  end;
 end;
 
 

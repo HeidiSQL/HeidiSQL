@@ -9,8 +9,8 @@ unit loaddata;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, CheckLst,
-  SynRegExpr, Buttons, ExtCtrls, ToolWin, ExtDlgs, Math, extra_controls,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.CheckLst,
+  SynRegExpr, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ToolWin, Vcl.ExtDlgs, System.Math, extra_controls,
   dbconnection, dbstructures, gnugettext;
 
 type

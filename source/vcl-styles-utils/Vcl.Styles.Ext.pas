@@ -15,7 +15,7 @@
 // The Original Code is Vcl.Styles.Ext.pas.
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2012-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -1665,9 +1665,11 @@ begin
       TextRect.Right := ButtonRect.Left;
 
     // Draw text
+    {$IF RTLVersion > 28}
     if Assigned(Application.Mainform) then
       CaptionBitmap.Canvas.Font.Size := Round(8*Application.MainForm.Monitor.PixelsPerInch / 96)
     else
+    {$IFEND}
       CaptionBitmap.Canvas.Font.Size := Round(8*Screen.PixelsPerInch / 96);
     Style.DrawText(CaptionBitmap.Canvas.Handle, CaptionDetails, FCaption, TextRect,
       [tfLeft, tfSingleLine, tfVerticalCenter]);
@@ -1694,9 +1696,11 @@ begin
   LDetails := Style.GetElementDetails(twFrameBottomActive);
   DrawStyleElement(FBitmap.Canvas.Handle, LDetails, CaptionRect, True, FStyle);
 
+  {$IF RTLVersion > 28}
   if Assigned(Application.Mainform) then
     FBitmap.Canvas.Font.Size := Round(8 * Application.MainForm.Monitor.PixelsPerInch / Screen.PixelsPerInch)
   else
+  {$IFEND}
     FBitmap.Canvas.Font.Size := 8;
 
   // Draw Main Menu
@@ -1742,12 +1746,14 @@ begin
   for i := 1 to 3 do
   begin
     ButtonRect.Top := LRect.Top + 30;
+    {$IF RTLVersion > 28}
     if Assigned(Application.Mainform) then
     begin
       ButtonRect.Width := Round(65 * Application.MainForm.Monitor.PixelsPerInch / 96);
       ButtonRect.Height := Round(25 * Application.MainForm.Monitor.PixelsPerInch / 96);
     end
     else
+    {$IFEND}
     begin
       ButtonRect.Width := Round(65 * Screen.PixelsPerInch / 96);
       ButtonRect.Height := Round(25 * Screen.PixelsPerInch / 96);
@@ -1764,12 +1770,14 @@ begin
   LDetails := Style.GetElementDetails(tbPushButtonNormal);
   ButtonRect.Left := BorderRect.Left + 2;
   ButtonRect.Top := ARect.Height - 45;
+  {$IF RTLVersion > 28}
   if Assigned(Application.Mainform) then
   begin
     ButtonRect.Width := Round(65 * Application.MainForm.Monitor.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Application.MainForm.Monitor.PixelsPerInch / 96);
   end
   else
+  {$IFEND}
   begin
     ButtonRect.Width := Round(65 * Screen.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Screen.PixelsPerInch / 96);
@@ -1784,12 +1792,14 @@ begin
   LDetails := Style.GetElementDetails(tbPushButtonHot);
   ButtonRect.Left := ButtonRect.Right + 2;
   ButtonRect.Top := ARect.Height - 45;
+  {$IF RTLVersion > 28}
   if Assigned(Application.Mainform) then
   begin
     ButtonRect.Width := Round(65 * Application.MainForm.Monitor.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Application.MainForm.Monitor.PixelsPerInch / 96);
   end
   else
+  {$IFEND}
   begin
     ButtonRect.Width := Round(65 * Screen.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Screen.PixelsPerInch / 96);
@@ -1804,12 +1814,14 @@ begin
   LDetails := Style.GetElementDetails(tbPushButtonPressed);
   ButtonRect.Left := ButtonRect.Right + 2;
   ButtonRect.Top := ARect.Height - 45;
+  {$IF RTLVersion > 28}
   if Assigned(Application.Mainform) then
   begin
     ButtonRect.Width := Round(65 * Application.MainForm.Monitor.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Application.MainForm.Monitor.PixelsPerInch / 96);
   end
   else
+  {$IFEND}
   begin
     ButtonRect.Width := Round(65 * Screen.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Screen.PixelsPerInch / 96);
@@ -1824,12 +1836,14 @@ begin
   LDetails := Style.GetElementDetails(tbPushButtonDisabled);
   ButtonRect.Left := ButtonRect.Right + 2;
   ButtonRect.Top := ARect.Height - 45;
+  {$IF RTLVersion > 28}
   if Assigned(Application.Mainform) then
   begin
     ButtonRect.Width := Round(65 * Application.MainForm.Monitor.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Application.MainForm.Monitor.PixelsPerInch / 96);
   end
   else
+  {$IFEND}
   begin
     ButtonRect.Width := Round(65 * Screen.PixelsPerInch / 96);
     ButtonRect.Height := Round(25 * Screen.PixelsPerInch / 96);

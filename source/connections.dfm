@@ -13,7 +13,6 @@ object connform: Tconnform
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   ShowHint = True
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -23,7 +22,6 @@ object connform: Tconnform
   DesignSize = (
     749
     506)
-  PixelsPerInch = 96
   TextHeight = 14
   object splitterMain: TSplitter
     AlignWithMargins = True
@@ -139,8 +137,9 @@ object connform: Tconnform
       object btnImportSettings: TButton
         Left = 10
         Top = 184
-        Width = 159
+        Width = 497
         Height = 25
+        Anchors = [akLeft, akTop, akRight]
         Caption = 'Import settings ...'
         ImageIndex = 101
         TabOrder = 0
@@ -357,7 +356,7 @@ object connform: Tconnform
         429)
       object lblSSHLocalPort: TLabel
         Left = 3
-        Top = 174
+        Top = 202
         Width = 51
         Height = 13
         Caption = 'Local port:'
@@ -365,7 +364,7 @@ object connform: Tconnform
       end
       object lblSSHUser: TLabel
         Left = 3
-        Top = 66
+        Top = 94
         Width = 52
         Height = 13
         Caption = 'Username:'
@@ -373,7 +372,7 @@ object connform: Tconnform
       end
       object lblSSHPassword: TLabel
         Left = 3
-        Top = 93
+        Top = 121
         Width = 50
         Height = 13
         Caption = 'Password:'
@@ -381,14 +380,14 @@ object connform: Tconnform
       end
       object lblSSHExe: TLabel
         Left = 3
-        Top = 12
+        Top = 40
         Width = 87
         Height = 13
         Caption = 'SSH executable:'
       end
       object lblSSHhost: TLabel
         Left = 3
-        Top = 39
+        Top = 67
         Width = 81
         Height = 13
         Caption = 'SSH host + port:'
@@ -396,7 +395,7 @@ object connform: Tconnform
       end
       object lblSSHkeyfile: TLabel
         Left = 3
-        Top = 147
+        Top = 175
         Width = 75
         Height = 13
         Caption = 'Private key file:'
@@ -404,29 +403,29 @@ object connform: Tconnform
       end
       object lblSSHTimeout: TLabel
         Left = 3
-        Top = 120
+        Top = 148
         Width = 86
         Height = 13
         Caption = 'SSH timeout:'
       end
       object editSSHlocalport: TEdit
         Left = 190
-        Top = 171
+        Top = 199
         Width = 320
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         NumbersOnly = True
-        TabOrder = 8
+        TabOrder = 9
         Text = 'editSSHlocalport'
         OnChange = Modification
       end
       object editSSHUser: TEdit
         Left = 190
-        Top = 63
+        Top = 91
         Width = 320
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 3
+        TabOrder = 4
         Text = 'editSSHUser'
         TextHint = 'Your secure shell username'
         OnChange = Modification
@@ -434,48 +433,48 @@ object connform: Tconnform
       end
       object editSSHPassword: TEdit
         Left = 190
-        Top = 90
+        Top = 118
         Width = 320
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         PasswordChar = '*'
-        TabOrder = 4
+        TabOrder = 5
         Text = 'editSSHPassword'
         TextHint = 'Your secure shell password'
         OnChange = Modification
       end
       object editSSHhost: TEdit
         Left = 190
-        Top = 36
+        Top = 64
         Width = 260
         Height = 21
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 1
+        TabOrder = 2
         Text = 'editSSHhost'
         OnChange = Modification
         OnExit = editTrim
       end
       object editSSHport: TEdit
         Left = 456
-        Top = 36
+        Top = 64
         Width = 54
         Height = 21
         Anchors = [akTop, akRight]
         NumbersOnly = True
-        TabOrder = 2
+        TabOrder = 3
         Text = 'editSSHport'
         OnChange = Modification
       end
       object editSSHPrivateKey: TButtonedEdit
         Left = 190
-        Top = 144
+        Top = 172
         Width = 320
         Height = 21
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
         RightButton.ImageIndex = 51
         RightButton.Visible = True
-        TabOrder = 7
+        TabOrder = 8
         Text = 'editSSHPrivateKey'
         TextHint = 'Private key / identify file'
         OnChange = Modification
@@ -485,33 +484,43 @@ object connform: Tconnform
       end
       object editSSHTimeout: TEdit
         Left = 190
-        Top = 117
+        Top = 145
         Width = 60
         Height = 21
-        TabOrder = 5
+        TabOrder = 6
         Text = '1'
         OnChange = Modification
       end
       object updownSSHTimeout: TUpDown
         Left = 250
-        Top = 117
+        Top = 145
         Width = 17
         Height = 21
         Associate = editSSHTimeout
         Min = 1
         Position = 1
-        TabOrder = 6
+        TabOrder = 7
         Wrap = True
       end
       object comboSSHExe: TComboBox
         Left = 190
-        Top = 8
+        Top = 36
         Width = 320
         Height = 22
         Anchors = [akLeft, akTop, akRight]
-        TabOrder = 0
+        TabOrder = 1
         Text = 'comboSSHExe'
         OnChange = Modification
+      end
+      object chkSSHActive: TCheckBox
+        Left = 190
+        Top = 13
+        Width = 324
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Use SSH tunnel'
+        TabOrder = 0
+        OnClick = Modification
       end
     end
     object tabAdvanced: TTabSheet
@@ -940,6 +949,8 @@ object connform: Tconnform
       OnNewText = ListSessionsNewText
       OnNodeDblClick = ListSessionsNodeDblClick
       OnStructureChange = ListSessionsStructureChange
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
       Columns = <
         item
           Position = 0
@@ -995,7 +1006,7 @@ object connform: Tconnform
       LeftButton.Visible = True
       RightButton.ImageIndex = 193
       TabOrder = 1
-      TextHint = 'Filter ...'
+      TextHint = 'Filter'
       OnChange = editSearchChange
       OnRightButtonClick = editSearchRightButtonClick
     end

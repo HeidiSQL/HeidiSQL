@@ -208,7 +208,7 @@ interface
 
 uses
 {$ifdef MSWINDOWS}
-  Windows,
+  Winapi.Windows,
 {$else}
   Libc,
 {$ifdef FPC}
@@ -219,9 +219,9 @@ uses
   System.AnsiStrings,
 {$ENDIF dx_midstr_in_AnsiStrings}
 {$IFDEF dx_has_WideStrings}
-  WideStrings,
+  System.WideStrings,
 {$ENDIF dx_has_WideStrings}
-  Types, Classes, StrUtils, SysUtils, TypInfo;
+  System.Types, System.Classes, System.StrUtils, System.SysUtils, System.TypInfo;
 
 (*****************************************************************************)
 (*                                                                           *)
@@ -807,10 +807,10 @@ var
 begin
   Result := '';
   SetLength(W,1);
-  Len := Windows.GetEnvironmentVariableW(PWideChar(Name), PWideChar(W), 1);
+  Len := Winapi.Windows.GetEnvironmentVariableW(PWideChar(Name), PWideChar(W), 1);
   if Len > 0 then begin
     SetLength(Result, Len - 1);
-    Windows.GetEnvironmentVariableW(PWideChar(Name), PWideChar(Result), Len);
+    Winapi.Windows.GetEnvironmentVariableW(PWideChar(Name), PWideChar(Result), Len);
   end;
 end;
 
@@ -1370,7 +1370,7 @@ var
 begin
   SetLength (Result,2000);
   errcode:=GetLastError();
-  Windows.FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,nil,errcode,0,PWideChar(Result),2000,nil);
+  Winapi.Windows.FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM,nil,errcode,0,PWideChar(Result),2000,nil);
   Result:=PWideChar(Result);
 end;
 {$endif}
@@ -3290,7 +3290,7 @@ begin
 
   SetLength (a, bufsize);
   SetLength (b, bufsize);
-  str.Read(a[1],bufsize);
+  str.ReadBuffer(a[1],bufsize);
 
   while true do begin
     rd:=str.Read(b[1],bufsize);
@@ -3307,10 +3307,10 @@ begin
     a:=b;
     offset:=offset+bufsize;
   end;
-{$IFNDEF VER340} // Delphi 10.4 Sydney / BDS 21
-  // this causes a hint in Deohi 10.4
+{$IF CompilerVersion<34}
+  // this causes a hint in Delphi 10.4 and newer
   Result:=0;
-{$ENDIF}
+{$IFEND}
 end;
 
 procedure TFileLocator.Analyze;
@@ -3399,7 +3399,7 @@ begin
             SetLength (filename8bit, offset-fs.position);
             fs.ReadBuffer (filename8bit[1], offset-fs.position);
             filename:=trim(utf8decode(filename8bit));
-            if PreferExternal and sysutils.fileexists(basedirectory+filename) then begin
+            if PreferExternal and System.sysutils.fileexists(basedirectory+filename) then begin
               // Disregard the internal version and use the external version instead
               FreeAndNil (fi);
             end else
@@ -4390,8 +4390,8 @@ initialization
   {$else}
   HookLoadResString:=THook.Create (@system.LoadResString, @LoadResStringA);
   {$endif}
-  HookLoadStr:=THook.Create (@sysutils.LoadStr, @SysUtilsLoadStr);
-  HookFmtLoadStr:=THook.Create (@sysutils.FmtLoadStr, @SysUtilsFmtLoadStr);
+  HookLoadStr:=THook.Create (@System.sysutils.LoadStr, @SysUtilsLoadStr);
+  HookFmtLoadStr:=THook.Create (@System.sysutils.FmtLoadStr, @SysUtilsFmtLoadStr);
 {$ifdef dx_German_Delphi_fix}
   // Create hook for Vcl.Menus.ShortCutToText to translate shortcut strings.
 {$IFDEF dx_has_dotted_unitnames}

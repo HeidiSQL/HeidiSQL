@@ -3,9 +3,10 @@ unit extra_controls;
 interface
 
 uses
-  Classes, SysUtils, Forms, Windows, Messages, System.Types, StdCtrls, Clipbrd,
+  System.Classes, System.SysUtils, Vcl.Forms, Winapi.Windows, Winapi.Messages, System.Types, Vcl.StdCtrls, Vcl.Clipbrd,
   SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
-  ShLwApi, Vcl.ExtCtrls, VirtualTrees, VirtualTrees.Types, SynRegExpr, Vcl.Controls, Winapi.ShlObj;
+  Winapi.ShLwApi, Vcl.ExtCtrls, VirtualTrees, VirtualTrees.Types, SynRegExpr, Vcl.Controls, Winapi.ShlObj,
+  SynEditMiscClasses, SynUnicode;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
@@ -63,6 +64,22 @@ type
       procedure AddFileType(FileMask, DisplayName: String);
       property LineBreaks: TStringList read FLineBreaks;
       property LineBreakIndex: TLineBreaks read FLineBreakIndex write FLineBreakIndex;
+  end;
+
+  TExtSynHotKey = class(TSynHotKey)
+    private
+      FOnChange: TNotifyEvent;
+      FOnEnter: TNotifyEvent;
+      FOnExit: TNotifyEvent;
+      procedure WMKillFocus(var Msg: TWMKillFocus); message WM_KILLFOCUS;
+      procedure WMSetFocus(var Msg: TWMSetFocus); message WM_SETFOCUS;
+    protected
+      procedure KeyDown(var Key: Word; Shift: TShiftState); override;
+      procedure Paint; override;
+    published
+      property OnChange: TNotifyEvent read FOnChange write FOnChange;
+      property OnEnter: TNotifyEvent read FOnEnter write FOnEnter;
+      property OnExit: TNotifyEvent read FOnExit write FOnExit;
   end;
 
 
@@ -210,7 +227,8 @@ end;
 }
 class procedure TExtForm.SaveListSetup( List: TVirtualStringTree );
 var
-  i, ColWidth: Integer;
+  i: Integer;
+  ColWidth: Int64;
   ColWidths, ColsVisible, ColPos, Regname: String;
   OwnerForm: TWinControl;
 begin
@@ -234,7 +252,7 @@ begin
     // Column widths
     if ColWidths <> '' then
       ColWidths := ColWidths + ',';
-    ColWidth := Round(List.Header.Columns[i].Width / OwnerForm.ScaleFactor);
+    ColWidth := RoundCommercial(List.Header.Columns[i].Width / OwnerForm.ScaleFactor);
     ColWidths := ColWidths + IntToStr(ColWidth);
 
     // Column visibility
@@ -269,7 +287,8 @@ end;
 class procedure TExtForm.RestoreListSetup( List: TVirtualStringTree );
 var
   i : Byte;
-  ColWidth, colpos : Integer;
+  colpos : Integer;
+  ColWidth: Int64;
   Value : String;
   ValueList : TStringList;
   Regname: String;
@@ -286,7 +305,7 @@ begin
     for i := 0 to ValueList.Count - 1 do
     begin
       ColWidth := MakeInt(ValueList[i]);
-      ColWidth := Round(ColWidth * OwnerForm.ScaleFactor);
+      ColWidth := RoundCommercial(ColWidth * OwnerForm.ScaleFactor);
       // Check if column number exists and width is at least 1 pixel
       if (List.Header.Columns.Count > i) and (ColWidth > 0) and (ColWidth < 1000) then
         List.Header.Columns[i].Width := ColWidth;
@@ -552,6 +571,46 @@ begin
       2: FLineBreakIndex := lbsMac;
     end;
   end;
+end;
+
+
+{ TExtSynHotKey }
+
+procedure TExtSynHotKey.WMKillFocus(var Msg: TWMKillFocus);
+begin
+  inherited;
+  if Assigned(FOnExit) then
+    FOnExit(Self);
+end;
+
+procedure TExtSynHotKey.WMSetFocus(var Msg: TWMSetFocus);
+begin
+  inherited;
+  if Assigned(FOnEnter) then
+    FOnEnter(Self);
+end;
+
+procedure TExtSynHotKey.KeyDown(var Key: Word; Shift: TShiftState);
+begin
+  inherited;
+  if Assigned(FOnChange) then
+    FOnChange(Self);
+end;
+
+procedure TExtSynHotKey.Paint;
+var
+  r: TRect;
+begin
+  r := ClientRect;
+  Canvas.Brush.Style := bsSolid;
+  Canvas.Brush.Color := Color;
+  InflateRect(r, -BorderWidth, -BorderWidth);
+  Canvas.FillRect(r);
+  if Enabled then
+    Canvas.Font.Color := clWindowText
+  else
+    Canvas.Font.Color := clGrayText;
+  SynUnicode.TextRect(Canvas, r, BorderWidth + 1, BorderWidth + 1, Text);
 end;
 
 

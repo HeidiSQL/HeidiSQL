@@ -3,9 +3,9 @@ unit dbconnection;
 interface
 
 uses
-  Classes, SysUtils, Windows, Generics.Collections, Generics.Defaults,
-  DateUtils, Types, Math, Dialogs, ADODB, DB, DBCommon, ComObj, Graphics, ExtCtrls, StrUtils,
-  AnsiStrings, Controls, Forms, System.IOUtils, System.IniFiles,
+  System.Classes, System.SysUtils, Winapi.Windows, System.Generics.Collections, System.Generics.Defaults,
+  System.DateUtils, System.Types, System.Math, Vcl.Dialogs, Data.Win.ADODB, Data.DB, Data.DBCommon, System.Win.ComObj, Vcl.Graphics, Vcl.ExtCtrls, System.StrUtils,
+  System.AnsiStrings, Vcl.Controls, Vcl.Forms, System.IOUtils, System.IniFiles, System.Variants,
   SynRegExpr, gnugettext, generic_types,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
@@ -61,6 +61,7 @@ type
       function CastAsText: String;
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
+      function AutoIncName: String;
   end;
   PTableColumn = ^TTableColumn;
   TTableColumnList = class(TObjectList<TTableColumn>)
@@ -297,7 +298,8 @@ type
     ntInterbase_TCPIP,
     ntInterbase_Local,
     ntFirebird_TCPIP,
-    ntFirebird_Local
+    ntFirebird_Local,
+    ntMySQL_RDS
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
   TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
@@ -310,7 +312,7 @@ type
       FSSHHost, FSSHUser, FSSHPassword, FSSHExe, FSSHPrivateKey,
       FIgnoreDatabasePattern: String;
       FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
-      FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
+      FSSHActive, FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
       FLastConnect: TDateTime;
@@ -328,6 +330,7 @@ type
       function CreateQuery(Connection: TDbConnection): TDBQuery;
       function NetTypeName(LongFormat: Boolean): String;
       function GetNetTypeGroup: TNetTypeGroup;
+      function SshSupport: Boolean;
       function IsAnyMySQL: Boolean;
       function IsAnyMSSQL: Boolean;
       function IsAnyPostgreSQL: Boolean;
@@ -340,6 +343,7 @@ type
       function IsInfiniDB: Boolean;
       function IsInfobright: Boolean;
       function IsProxySQLAdmin: Boolean;
+      function IsMySQLonRDS: Boolean;
       function IsAzure: Boolean;
       function IsMemSQL: Boolean;
       function IsRedshift: Boolean;
@@ -348,9 +352,11 @@ type
       property ImageIndex: Integer read GetImageIndex;
       function GetLibraries: TStringList;
       function DefaultLibrary: String;
+      function DefaultHost: String;
       function DefaultPort: Integer;
       function DefaultUsername: String;
       function DefaultIgnoreDatabasePattern: String;
+      function DefaultSshActive: Boolean;
       function GetExternalCliArguments(Connection: TDBConnection; ReplacePassword: TThreeStateBoolean): String;
     published
       property IsFolder: Boolean read FIsFolder write FIsFolder;
@@ -378,6 +384,7 @@ type
       property Compressed: Boolean read FCompressed write FCompressed;
       property LocalTimeZone: Boolean read FLocalTimeZone write FLocalTimeZone;
       property FullTableStatus: Boolean read FFullTableStatus write FFullTableStatus;
+      property SSHActive: Boolean read FSSHActive write FSSHActive;
       property SSHHost: String read FSSHHost write FSSHHost;
       property SSHPort: Integer read FSSHPort write FSSHPort;
       property SSHUser: String read FSSHUser write FSSHUser;
@@ -415,12 +422,13 @@ type
   TSQLSpecifityId = (spDatabaseTable, spDatabaseTableId, spDatabaseDrop,
     spDbObjectsTable, spDbObjectsCreateCol, spDbObjectsUpdateCol, spDbObjectsTypeCol,
     spEmptyTable, spRenameTable, spRenameView, spCurrentUserHost, spLikeCompare,
-    spAddColumn, spChangeColumn, spRenameColumn,
+    spAddColumn, spChangeColumn, spRenameColumn, spForeignKeyEventAction,
     spGlobalStatus, spCommandsCounters, spSessionVariables, spGlobalVariables,
     spISSchemaCol,
     spUSEQuery, spKillQuery, spKillProcess,
-    spFuncLength, spFuncCeil, spFuncLeft, spFuncNow,
-    spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks);
+    spFuncLength, spFuncCeil, spFuncLeft, spFuncNow, spFuncLastAutoIncNumber,
+    spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks,
+    spOrderAsc, spOrderDesc);
 
   TDBConnection = class(TComponent)
     private
@@ -479,6 +487,8 @@ type
       FSQLFunctions: TSQLFunctionList;
       procedure SetActive(Value: Boolean); virtual; abstract;
       procedure DoBeforeConnect; virtual;
+      procedure StartSSHTunnel(var FinalHost: String; var FinalPort: Integer);
+      procedure EndSSHTunnel;
       procedure DoAfterConnect; virtual;
       procedure DetectUSEQuery(SQL: String); virtual;
       procedure SetDatabase(Value: String);
@@ -518,6 +528,7 @@ type
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
+      function CleanIdent(Identifier: String): String;
       function QuotedDbAndTableName(DB, Obj: String): String;
       function FindObject(DB, Obj: String): TDBObject;
       function escChars(const Text: String; EscChar, Char1, Char2, Char3, Char4: Char): String;
@@ -603,6 +614,7 @@ type
       function GetTableCheckConstraints(Table: TDBObject): TCheckConstraintList; virtual;
       property MaxRowsPerInsert: Int64 read FMaxRowsPerInsert;
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
+      function IsNumeric(Text: String): Boolean;
       function IsHex(Text: String): Boolean;
     published
       property Active: Boolean read FActive write SetActive default False;
@@ -1079,8 +1091,10 @@ var
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
-  Waited, PortChecks: Integer;
+  PortChecks: Integer;
+  CheckIntervalMs: Integer;
   IsPlink: Boolean;
+  TimeStartedMs, WaitedMs, WaitedLeftMs, TimeOutMs: Int64;
 begin
   // Check if local port is open
   PortChecks := 0;
@@ -1150,19 +1164,30 @@ begin
   // Wait until timeout has finished.
   // Todo: Find a way to wait only until connection is established
   // Parse pipe output and probably show some message in a dialog.
-  Waited := 0;
+  WaitedMs := 0;
   DialogTitle := ExtractFileName(FConnection.Parameters.SSHExe);
-  while Waited < FConnection.Parameters.SSHTimeout*1000 do begin
-    Inc(Waited, 200);
-    WaitForSingleObject(FProcessInfo.hProcess, 200);
+  TimeOutMs := FConnection.Parameters.SSHTimeout * 1000;
+  CheckIntervalMs := FConnection.Parameters.SSHTimeout * 100;
+  TimeStartedMs := GetTickCount64;
+  while WaitedMs < TimeOutMs do begin
+    WaitForSingleObject(FProcessInfo.hProcess, CheckIntervalMs);
+    WaitedMs := GetTickCount64 - TimeStartedMs;
+    // On Wine, WaitForSingleObject does not really seem to wait. See #1771
+    WaitedLeftMs := TimeStartedMs + WaitedMs - GetTickCount64;
+    if WaitedLeftMs > 0 then begin
+      FConnection.Log(lcDebug, 'Wait additional '+WaitedLeftMs.ToString+'ms (see issue #1771)...');
+      Sleep(WaitedLeftMs);
+    end;
     GetExitCodeProcess(FProcessInfo.hProcess, ExitCode);
-    if ExitCode <> STILL_ACTIVE then
+    if ExitCode <> STILL_ACTIVE then begin
+      FConnection.Log(lcError, 'SSH process exited after '+WaitedMs.ToString+'ms with code '+ExitCode.ToString+'. Should be '+STILL_ACTIVE.ToString+' (STILL_ACTIVE)');
       raise EDbError.CreateFmt(_('SSH exited unexpected. Command line was: %s'), [CRLF+SshCmdDisplay]);
+    end;
 
     OutText := Trim(ReadPipe(FOutPipe));
     ErrorText := ReadPipe(FErrorPipe);
     if (OutText <> '') or (ErrorText <> '') then begin
-      FConnection.Log(lcDebug, Format('SSH output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [Waited, OutText, ErrorText]));
+      FConnection.Log(lcDebug, Format('SSH output after %d ms. OutPipe: "%s"  ErrorPipe: "%s"', [WaitedMs, OutText, ErrorText]));
     end;
 
     if OutText <> '' then begin
@@ -1183,9 +1208,9 @@ begin
           MessageDialog(DialogTitle, OutText, mtInformation, [mbOK]);
         end;
       end;
-    end;
+    end
 
-    if ErrorText <> '' then begin
+    else if ErrorText <> '' then begin
       rx.Expression := '([^\.]+\?)(\s*\(y\/n\s*(,[^\)]+)?\)\s*)$';
       if rx.Exec(ErrorText) then begin
         // Prompt user with question
@@ -1279,14 +1304,14 @@ var
   PText: PAnsiChar;
 begin
   Result := '';
-  PText := AnsiStrings.AnsiStrAlloc(cMaxLength);
+  PText := AnsiStrAlloc(cMaxLength);
   while Text <> '' do begin
-    AnsiStrings.StrPCopy(PText, copy(Text, 1, cMaxLength-1));
+    System.AnsiStrings.StrPCopy(PText, copy(Text, 1, cMaxLength-1));
     OemToAnsi(PText, PText);
-    Result := Result + AnsiStrings.StrPas(PText);
+    Result := Result + System.AnsiStrings.StrPas(PText);
     Delete(Text, 1, cMaxLength-1);
   end;
-  AnsiStrings.StrDispose(PText);
+  System.AnsiStrings.StrDispose(PText);
 end;
 
 
@@ -1356,7 +1381,7 @@ begin
   FIsFolder := False;
 
   FNetType := TNetType(AppSettings.GetDefaultInt(asNetType));
-  FHostname := AppSettings.GetDefaultString(asHost);
+  FHostname := DefaultHost;
   FLoginPrompt := AppSettings.GetDefaultBool(asLoginPrompt);
   FWindowsAuth := AppSettings.GetDefaultBool(asWindowsAuth);
   FCleartextPluginEnabled := AppSettings.GetDefaultBool(asCleartextPluginEnabled);
@@ -1368,6 +1393,7 @@ begin
   FLibraryOrProvider := DefaultLibrary;
   FComment := AppSettings.GetDefaultString(asComment);
 
+  FSSHActive := DefaultSshActive;
   FSSHExe := AppSettings.GetDefaultString(asSshExecutable);
   FSSHHost := AppSettings.GetDefaultString(asSSHtunnelHost);
   FSSHPort := AppSettings.GetDefaultInt(asSSHtunnelHostPort);
@@ -1437,6 +1463,8 @@ begin
     FLibraryOrProvider := AppSettings.ReadString(asLibrary, '', DefaultLibrary);
     FComment := AppSettings.ReadString(asComment);
 
+    // Auto-activate SSH for sessions created before asSSHtunnelActive was introduced
+    FSSHActive := AppSettings.ReadBool(asSSHtunnelActive, '', DefaultSshActive);
     FSSHExe := AppSettings.ReadString(asSshExecutable);
     FSSHHost := AppSettings.ReadString(asSSHtunnelHost);
     FSSHPort := AppSettings.ReadInt(asSSHtunnelHostPort);
@@ -1509,6 +1537,7 @@ begin
     AppSettings.WriteString(asComment, FComment);
     AppSettings.WriteString(asStartupScriptFilename, FStartupScriptFilename);
     AppSettings.WriteInt(asTreeBackground, FSessionColor);
+    AppSettings.WriteBool(asSSHtunnelActive, FSSHActive);
     AppSettings.WriteString(asSshExecutable, FSSHExe);
     AppSettings.WriteString(asSSHtunnelHost, FSSHHost);
     AppSettings.WriteInt(asSSHtunnelHostPort, FSSHPort);
@@ -1590,6 +1619,7 @@ begin
       ntMySQL_NamedPipe:        Result := PrefixMysql+' (named pipe)';
       ntMySQL_SSHtunnel:        Result := PrefixMysql+' (SSH tunnel)';
       ntMySQL_ProxySQLAdmin:    Result := PrefixProxysql+' (Experimental)';
+      ntMySQL_RDS:              Result := 'MySQL on RDS';
       ntMSSQL_NamedPipe:        Result := PrefixMssql+' (named pipe)';
       ntMSSQL_TCPIP:            Result := PrefixMssql+' (TCP/IP)';
       ntMSSQL_SPX:              Result := PrefixMssql+' (SPX/IPX)';
@@ -1632,7 +1662,7 @@ end;
 function TConnectionParameters.GetNetTypeGroup: TNetTypeGroup;
 begin
   case FNetType of
-    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin:
+    ntMySQL_TCPIP, ntMySQL_NamedPipe, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS:
       Result := ngMySQL;
     ntMSSQL_NamedPipe, ntMSSQL_TCPIP, ntMSSQL_SPX, ntMSSQL_VINES, ntMSSQL_RPC:
       Result := ngMSSQL;
@@ -1649,6 +1679,12 @@ begin
       Result := ngMySQL;
     end;
   end;
+end;
+
+
+function TConnectionParameters.SshSupport: Boolean;
+begin
+  Result := FNetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel, ntMSSQL_TCPIP];
 end;
 
 
@@ -1691,7 +1727,7 @@ end;
 function TConnectionParameters.IsMySQL(StrictDetect: Boolean): Boolean;
 begin
   if StrictDetect then begin
-    Result := IsAnyMySQL and ContainsText(ServerVersion, 'mysql');
+    Result := IsAnyMySQL and (ContainsText(ServerVersion, 'mysql') or IsMySQLonRDS);
   end else begin
     Result := IsAnyMySQL
       and (not IsMariaDB)
@@ -1735,6 +1771,12 @@ begin
 end;
 
 
+function TConnectionParameters.IsMySQLonRDS: Boolean;
+begin
+  Result := NetType = ntMySQL_RDS;
+end;
+
+
 function TConnectionParameters.IsAzure: Boolean;
 begin
   Result := IsAnyMSSQL and (Pos('azure', LowerCase(ServerVersion)) > 0);
@@ -1771,14 +1813,15 @@ begin
     Result := 174
   else case NetTypeGroup of
     ngMySQL: begin
-      Result := 164;
-      if IsMariaDB then Result := 166
-      else if IsPercona then Result := 169
+      if IsPercona then Result := 169
       else if IsTokudb then Result := 171
       else if IsInfiniDB then Result := 172
       else if IsInfobright then Result := 173
       else if IsMemSQL then Result := 194
-      else if IsProxySQLAdmin then Result := 197;
+      else if IsProxySQLAdmin then Result := 197
+      else if IsMySQLonRDS then Result := 205
+      else if IsMariaDB then Result := 166
+      else Result := 164;
     end;
     ngMSSQL: begin
       Result := 123;
@@ -1845,12 +1888,29 @@ begin
 end;
 
 
+function TConnectionParameters.DefaultHost: string;
+begin
+  // See issue #1602: SQLite connecting to IP causes out-of-memory crash
+  Result := '';
+  case NetTypeGroup of
+    ngSQLite: Result := '';
+    else Result := '127.0.0.1';
+  end;
+end;
+
+
 function TConnectionParameters.DefaultIgnoreDatabasePattern: String;
 begin
   case NetTypeGroup of
     ngPgSQL: Result := '^pg_temp_\d';
     else Result := '';
   end;
+end;
+
+
+function TConnectionParameters.DefaultSshActive: Boolean;
+begin
+  Result := FNetType in [ntMySQL_SSHtunnel, ntMySQL_RDS, ntPgSQL_SSHtunnel];
 end;
 
 
@@ -1875,7 +1935,7 @@ begin
       Args.Add('--pipe');
       Args.Add('--socket="'+Hostname+'"');
       end;
-    ntMySQL_SSHtunnel: begin
+    ntMySQL_SSHtunnel, ntMySQL_RDS: begin
       Args.Add('--host="localhost"');
       Args.Add('--port='+IntToStr(SSHLocalPort));
       end;
@@ -1990,6 +2050,7 @@ begin
   FThreadID := 0;
   FLogPrefix := '';
   FIsUnicode := True;
+  FSecureShellCmd := nil;
   FIsSSL := False;
   FDatabaseCache := TDatabaseCache.Create(True);
   FColumnCache := TColumnCache.Create;
@@ -2313,12 +2374,8 @@ begin
         FinalSocket := FParameters.Hostname;
       end;
 
-      ntMySQL_SSHtunnel: begin
-        // Create SSH process
-        FSecureShellCmd := TSecureShellCmd.Create(Self);
-        FSecureShellCmd.Connect;
-        FinalHost := '127.0.0.1';
-        FinalPort := FParameters.SSHLocalPort;
+      ntMySQL_SSHtunnel, ntMySQL_RDS: begin
+        StartSSHTunnel(FinalHost, FinalPort);
       end;
     end;
 
@@ -2392,8 +2449,7 @@ begin
       Log(lcError, Error);
       FConnectionStarted := 0;
       FHandle := nil;
-      if FSecureShellCmd <> nil then
-        FSecureShellCmd.Free;
+      EndSSHTunnel;
       if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
           [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
@@ -2501,8 +2557,7 @@ begin
     ClearCache(False);
     FConnectionStarted := 0;
     FHandle := nil;
-    if FSecureShellCmd <> nil then
-      FSecureShellCmd.Free;
+    EndSSHTunnel;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 
@@ -2512,12 +2567,17 @@ end;
 procedure TAdoDBConnection.SetActive(Value: Boolean);
 var
   Error, NetLib, DataSource, QuotedPassword, ServerVersion, ErrorHint: String;
+  FinalHost: String;
   rx: TRegExpr;
-  i: Integer;
+  FinalPort, i: Integer;
   IsOldProvider: Boolean;
 begin
   if Value then begin
     DoBeforeConnect;
+    FinalHost := Parameters.Hostname;
+    FinalPort := Parameters.Port;
+    StartSSHTunnel(FinalHost, FinalPort);
+
     try
       // Creating the ADO object throws exceptions if MDAC is missing, especially on Wine
       FAdoHandle := TAdoConnection.Create(Owner);
@@ -2550,9 +2610,9 @@ begin
       ntMSSQL_RPC: NetLib := 'DBMSRPCN';
     end;
 
-    DataSource := Parameters.Hostname;
-    if (Parameters.NetType = ntMSSQL_TCPIP) and (Parameters.Port <> 0) then
-      DataSource := DataSource + ','+IntToStr(Parameters.Port);
+    DataSource := FinalHost;
+    if (Parameters.NetType = ntMSSQL_TCPIP) and (FinalPort <> 0) then
+      DataSource := DataSource + ','+IntToStr(FinalPort);
 
     // Quote password, just in case there is a semicolon or a double quote in it.
     // See http://forums.asp.net/t/1957484.aspx?Passwords+ending+with+semi+colon+as+the+terminal+element+in+connection+strings+
@@ -2667,6 +2727,7 @@ begin
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
+    EndSSHTunnel;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;
@@ -2697,15 +2758,7 @@ begin
     FinalHost := FParameters.Hostname;
     FinalPort := FParameters.Port;
 
-    case FParameters.NetType of
-      ntPgSQL_SSHtunnel: begin
-        // Create SSH process
-        FSecureShellCmd := TSecureShellCmd.Create(Self);
-        FSecureShellCmd.Connect;
-        FinalHost := '127.0.0.1';
-        FinalPort := FParameters.SSHLocalPort;
-      end;
-    end;
+    StartSSHTunnel(FinalHost, FinalPort);
 
     ConnInfo := 'host='''+EscapeConnectOption(FinalHost)+''' '+
       'port='''+IntToStr(FinalPort)+''' '+
@@ -2736,8 +2789,7 @@ begin
         on E:EAccessViolation do;
       end;
       FHandle := nil;
-      if FSecureShellCmd <> nil then
-        FSecureShellCmd.Free;
+      EndSSHTunnel;
       if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
           [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
@@ -2775,8 +2827,7 @@ begin
     FActive := False;
     ClearCache(False);
     FConnectionStarted := 0;
-    if FSecureShellCmd <> nil then
-      FSecureShellCmd.Free;
+    EndSSHTunnel;
     Log(lcInfo, f_(MsgDisconnect, [FParameters.Hostname, DateTimeToStr(Now)]));
   end;
 end;
@@ -2981,6 +3032,10 @@ begin
     [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
     ));
 
+  FSQLSpecifities[spOrderAsc] := 'ASC';
+  FSQLSpecifities[spOrderDesc] := 'DESC';
+  FSQLSpecifities[spForeignKeyEventAction] := 'RESTRICT,CASCADE,SET NULL,NO ACTION';
+
   case Parameters.NetTypeGroup of
     ngMySQL: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3005,12 +3060,19 @@ begin
       FSQLSpecifities[spGlobalVariables] := 'SHOW GLOBAL VARIABLES';
       FSQLSpecifities[spISSchemaCol] := '%s_SCHEMA';
       FSQLSpecifities[spUSEQuery] := 'USE %s';
-      FSQLSpecifities[spKillQuery] := 'KILL %d';
-      FSQLSpecifities[spKillProcess] := 'KILL %d';
+      if Parameters.NetType = ntMySQL_RDS then begin
+        FSQLSpecifities[spKillQuery] := 'CALL mysql.rds_kill_query(%d)';
+        FSQLSpecifities[spKillProcess] := 'CALL mysql.rds_kill(%d)'
+      end
+      else begin
+        FSQLSpecifities[spKillQuery] := 'KILL %d'; // may be overwritten in DoAfterConnect
+        FSQLSpecifities[spKillProcess] := 'KILL %d';
+      end;
       FSQLSpecifities[spFuncLength] := 'LENGTH';
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := IfThen(Parameters.IsProxySQLAdmin, 'SUBSTR(%s, 1, %d)', 'LEFT(%s, %d)');
       FSQLSpecifities[spFuncNow] := IfThen(Parameters.IsProxySQLAdmin, 'CURRENT_TIMESTAMP', 'NOW()');
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := 'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0';
       FSQLSpecifities[spEnableForeignKeyChecks] := 'SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1)';
@@ -3034,6 +3096,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEILING';
       FSQLSpecifities[spFuncLeft] := 'LEFT(%s, %d)';
       FSQLSpecifities[spFuncNow] := 'GETDATE()';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -3048,6 +3111,7 @@ begin
       FSQLSpecifities[spAddColumn] := 'ADD %s';
       FSQLSpecifities[spChangeColumn] := 'ALTER COLUMN %s %s';
       FSQLSpecifities[spRenameColumn] := 'RENAME COLUMN %s TO %s';
+      FSQLSpecifities[spForeignKeyEventAction] := 'RESTRICT,CASCADE,SET NULL,NO ACTION,SET DEFAULT';
       FSQLSpecifities[spSessionVariables] := 'SHOW ALL';
       FSQLSpecifities[spGlobalVariables] := FSQLSpecifities[spSessionVariables];
       FSQLSpecifities[spISSchemaCol] := '%s_schema';
@@ -3058,6 +3122,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTRING(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'NOW()';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LASTVAL()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -3082,6 +3147,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := 'DATETIME()';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -3109,6 +3175,7 @@ begin
       FSQLSpecifities[spFuncCeil] := 'CEIL';
       FSQLSpecifities[spFuncLeft] := 'SUBSTR(%s, 1, %d)';
       FSQLSpecifities[spFuncNow] := ' cast(''now'' as timestamp) from rdb$database';
+      FSQLSpecifities[spFuncLastAutoIncNumber] := 'LAST_INSERT_ID()';
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
@@ -3186,6 +3253,27 @@ begin
 end;
 
 
+procedure TDBConnection.StartSSHTunnel(var FinalHost: String; var FinalPort: Integer);
+begin
+  // Create SSH process
+  if Parameters.SSHActive and (FSecureShellCmd = nil) then begin
+    FSecureShellCmd := TSecureShellCmd.Create(Self);
+    FSecureShellCmd.Connect;
+    FinalHost := '127.0.0.1';
+    FinalPort := FParameters.SSHLocalPort;
+  end;
+end;
+
+
+procedure TDBConnection.EndSSHTunnel;
+begin
+  if FSecureShellCmd <> nil then begin
+    FSecureShellCmd.Free;
+    FSecureShellCmd := nil;
+  end;
+end;
+
+
 procedure TDBConnection.DoAfterConnect;
 var
   SQLFunctionsFileOrder: String;
@@ -3258,7 +3346,7 @@ begin
     end;
   end;
 
-  if ServerVersionInt >= 50000 then begin
+  if (ServerVersionInt >= 50000) and (not Parameters.IsMySQLonRDS) then begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
   end;
 
@@ -4205,7 +4293,7 @@ begin
     end;
 
     // Save last used database in session, see #983
-    if not FParameters.SessionName.IsEmpty then begin
+    if not FParameters.SessionPath.Trim.IsEmpty then begin
       AppSettings.SessionPath := FParameters.SessionPath;
       AppSettings.WriteString(asLastUsedDB, Value);
     end;
@@ -4293,7 +4381,7 @@ begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then // We return the application process id, as there is no connection pid in SQLite
-      FThreadID := Windows.GetCurrentProcessId;
+      FThreadID := GetCurrentProcessId;
   end;
   Result := FThreadID;
 end;
@@ -4952,12 +5040,16 @@ begin
   DoQuote := Datatype.Category in CategoriesNeedQuote;
   case Datatype.Category of
     // Some special cases
-    dtcBinary:
+    dtcBinary: begin
       if IsHex(Text) then
         DoQuote := False;
-    dtcInteger, dtcReal:
-      if not ExecRegExpr('^\d+(\.\d+)?$', Text) then
+    end;
+    dtcInteger, dtcReal: begin
+      if (not IsNumeric(Text)) and (not IsHex(Text)) then
         DoQuote := True;
+      if Datatype.Index = dbdtBit then
+        DoQuote := True;
+    end;
   end;
   Result := EscapeString(Text, False, DoQuote);
 end;
@@ -5111,6 +5203,15 @@ begin
   for Quote in FQuoteChars do begin
     Result := StringReplace(Result, Quote, '', [rfReplaceAll]);
   end;
+end;
+
+
+function TDBConnection.CleanIdent(Identifier: string): string;
+begin
+  Result := Trim(Identifier);
+  Result := LowerCase(Result);
+  Result := ReplaceRegExpr('[^a-z0-9]', Result, '_');
+  Result := ReplaceRegExpr('_+', Result, '_');
 end;
 
 
@@ -5494,12 +5595,25 @@ begin
     // Inexact fallback detection, wrong if MariaDB allows "0+1" as expression at some point
     Result := Result or Value.IsEmpty or IsInt(Value[1]);
   end else if FParameters.IsAnyMySQL then begin
-    // Only MySQL case with expression in default value is as follows:
-    if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
-      Result := False;
-    end else begin
-      Result := True;
+    if ServerVersionInt <= 80013 then begin
+      // Only MySQL case with expression in default value is as follows:
+      if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
+        Result := False;
+      end else begin
+        Result := True;
+      end;
+    end
+    else begin
+      // https://dev.mysql.com/doc/refman/8.0/en/data-type-defaults.html#data-type-defaults-explicit
+      // MySQL 8.0.13+ expect expressions to be wrapped in (..) when you create a table.
+      // But checking if first char is an opening parenthesis does not work here, as we get the expression
+      // from IS.COLUMNS, not from SHOW CREATE TABLE. So here's a workaround for distinguishing text
+      // from an expression:
+      Result := not Value.Contains('(');
     end;
+  end else if FParameters.IsAnyPostgreSQL then begin
+    // text only if starting with '
+    Result := Value.StartsWith('''');
   end else begin
     // MS SQL, PG and SQLite:
     Result := True;
@@ -5579,20 +5693,30 @@ begin
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
     Col.OnUpdateType := cdtNothing;
-    if ExecRegExpr('\bauto_increment\b', ExtraText.ToLowerInvariant) then begin
+    if ColQuery.Col('COLUMN_DEFAULT').StartsWith('nextval(', True) then begin
+      // PG auto increment
       Col.DefaultType := cdtAutoInc;
-      Col.DefaultText := 'AUTO_INCREMENT';
-    end else if DefText.ToLowerInvariant = 'null' then begin
+      Col.DefaultText := ColQuery.Col('COLUMN_DEFAULT');
+    end
+    else if ExecRegExpr('\bauto_increment\b', ExtraText.ToLowerInvariant) then begin
+      // MySQL auto increment
+      Col.DefaultType := cdtAutoInc;
+      Col.DefaultText := Col.AutoIncName;
+    end
+    else if DefText.ToLowerInvariant = 'null' then begin
       Col.DefaultType := cdtNull;
-    end else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
+    end
+    else if ColQuery.IsNull('COLUMN_DEFAULT') then begin
       if Col.AllowNull then
         Col.DefaultType := cdtNull
       else
         Col.DefaultType := cdtNothing;
-    end else if IsTextDefault(DefText, Col.DataType) then begin
+    end
+    else if IsTextDefault(DefText, Col.DataType) then begin
       Col.DefaultType := cdtText;
       Col.DefaultText := IfThen(DefText.StartsWith(''''), ExtractLiteral(DefText, ''), DefText);
-    end else begin
+    end
+    else begin
       Col.DefaultType := cdtExpression;
       Col.DefaultText := DefText;
     end;
@@ -5665,7 +5789,7 @@ begin
       Col.OnUpdateType := cdtNothing;
       if ExecRegExpr('^auto_increment$', ExtraText.ToLowerInvariant) then begin
         Col.DefaultType := cdtAutoInc;
-        Col.DefaultText := 'AUTO_INCREMENT';
+        Col.DefaultText := Col.AutoIncName;
       end else if ColQuery.IsNull('Default') then begin
         Col.DefaultType := cdtNothing;
       end else if IsTextDefault(DefText, Col.DataType) then begin
@@ -6371,6 +6495,13 @@ begin
 end;
 
 
+function TDBConnection.IsNumeric(Text: String): Boolean;
+begin
+  // Check if value is an integer or float number
+  Result := ExecRegExpr('^[+-]?\d+(\.\d+)?$', Text);
+end;
+
+
 function TDBConnection.IsHex(Text: String): Boolean;
 var
   i, Len: Integer;
@@ -6380,7 +6511,7 @@ begin
   // Check first kilobyte of passed text whether it's a hex encoded string. Hopefully faster than a regex.
   Result := False;
   Len := Length(Text);
-  if (Len >= 4) and (Len mod 2 = 0) then begin
+  if Len >= 3 then begin
     Result := (Text[1] = '0') and (Text[2] = 'x');
     if Result then begin
       for i:=3 to SIZE_KB do begin
@@ -7072,8 +7203,9 @@ begin
         obj.NodeType := lntFunction;
       // Set reasonable default value for calculation of export chunks. See #343
       // OFFSET..FETCH supported from v11.0/2012
-      if ServerVersionInt >= 1100 then
-        obj.AvgRowLen := 10*SIZE_KB;
+      // Disabled, leave at -1 and prefer a generic calculation in TfrmTableTools.DoExport
+      //if ServerVersionInt >= 1100 then
+      //  obj.AvgRowLen := 10*SIZE_KB;
       Results.Next;
     end;
     FreeAndNil(Results);
@@ -9064,7 +9196,8 @@ begin
       except
         // Silence error: "Multiple-step operation generated errors. Check each status value."
         // @see #496
-        on E:EOleException do;
+        //on E:EOleException do;
+        // Silence more: see #1724
       end;
     end;
   end;
@@ -9330,22 +9463,37 @@ begin
 end;
 
 
+// Issue #1351 and https://www.heidisql.com/forum.php?t=39239
+//   Data view editor truncated for TEXT columns when emoji is present
+// Issue #1658: Saving BLOB to file creates corrupted files
+// Issue #1673: Truncated text in Postgres mode
 function TDBQuery.HasFullData: Boolean;
 var
-  Val: String;
   i: Integer;
+  NumChars: Integer;
 begin
   Result := True;
-  // In case we created a update-row we know for sure that we already loaded full contents
-  if Assigned(FCurrentUpdateRow) then
-    Result := True
-  else for i:=0 to ColumnCount-1 do begin
-    if not (Datatype(i).Category in [dtcText, dtcBinary]) then
-      continue;
-    Val := Col(i);
-    if StrHasNumChars(Val, GRIDMAXDATA) then begin
-      Result := False;
-      break;
+  if Assigned(FCurrentUpdateRow) then begin
+    // In case we created a update-row we know for sure that we already loaded full contents
+    Result := True;
+  end
+  else begin
+    // This is done only once, before EnsureFullRow creates an update-row which returns true above.
+    // Delphi's Length() likely counts characters different than SQL/LEFT().
+    for i:=0 to ColumnCount-1 do begin
+      if not DataType(i).LoadPart then
+        Continue;
+      NumChars := Col(i).Length;
+      {if TableName.Contains('issue') then
+        FConnection.Log(lcInfo, 'HasFullData: RowNum:'+RecNo.ToString+
+          ' ColumnNames['+i.ToString+']:'+ColumnNames[i]+
+          ' ColumnOrgNames['+i.ToString+']:'+ColumnOrgNames[i]+
+          ' NumChars:'+NumChars.ToString
+          );}
+      if (NumChars <= GRIDMAXDATA) and (NumChars >= GRIDMAXDATA / SizeOf(Char)) then begin
+        Result := False;
+        Break;
+      end;
     end;
   end;
 end;
@@ -9387,7 +9535,7 @@ begin
         Val := Cell.NewText
       else case Datatype(i).Category of
         dtcInteger, dtcReal: begin
-          Val := Connection.EscapeString(Cell.NewText);
+          Val := Connection.EscapeString(Cell.NewText, Datatype(i));
           if (Datatype(i).Index = dbdtBit) and FConnection.Parameters.IsAnyMySQL then
             Val := 'b' + Val;
         end;
@@ -9416,7 +9564,7 @@ begin
           if Assigned(ColAttr) and (ColAttr.DefaultType = cdtAutoInc) then begin
             Row[i].NewText := UnformatNumber(Row[i].NewText);
             if Row[i].NewText = '0' then
-              Row[i].NewText := Connection.GetVar('SELECT LAST_INSERT_ID()');
+              Row[i].NewText := Connection.GetVar('SELECT ' + Connection.GetSQLSpecifity(spFuncLastAutoIncNumber));
             Row[i].NewIsNull := False;
             break;
           end;
@@ -9599,8 +9747,9 @@ var
   Obj: TDBObject;
 begin
   Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
+  //Connection.Log(lcDebug, FColumnNames[Column]+':  org_table:'+Field.org_table+ '  table:'+Field.table);
 
-  if Field.table^ <> Field.org_table^ then begin
+  if Field.table <> Field.org_table then begin
     // Probably a VIEW, in which case we rely on the first column's table name.
     // TODO: This is unsafe when joining a view with a table/view.
     if Field.db <> '' then begin
@@ -10371,7 +10520,16 @@ begin
   end;
 
   if InParts(cpType) then begin
-    Result := Result + DataType.Name;
+    case FConnection.Parameters.NetTypeGroup of
+      ngPgSQL: begin
+        if DefaultType = cdtAutoInc then
+          Result := Result + 'SERIAL'
+        else
+          Result := Result + DataType.Name;
+      end;
+      else Result := Result + DataType.Name;
+    end;
+
     if (LengthSet <> '') and DataType.HasLength then
       Result := Result + '(' + LengthSet + ')';
     if (DataType.Category in [dtcInteger, dtcReal]) and Unsigned then
@@ -10394,15 +10552,30 @@ begin
         // cdtNothing: leave out whole clause
         cdtText:           Result := Result + 'DEFAULT '+FConnection.EscapeString(DefaultText);
         cdtNull:           Result := Result + 'DEFAULT NULL';
-        cdtAutoInc:        Result := Result + 'AUTO_INCREMENT';
-        cdtExpression:     Result := Result + 'DEFAULT '+DefaultText;
+        cdtAutoInc: begin
+          case FConnection.Parameters.NetTypeGroup of
+            ngPgSQL:;
+            else Result := Result + AutoIncName;
+          end;
+        end;
+        cdtExpression: begin
+          if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
+            Result := Result + 'DEFAULT ('+DefaultText+')'
+          else
+            Result := Result + 'DEFAULT '+DefaultText;
+        end;
       end;
       case OnUpdateType of
         // cdtNothing: leave out whole clause
         // cdtText:    not supported, but may be valid in MariaDB?
         // cdtNull:    not supported, but may be valid in MariaDB?
         // cdtAutoInc: not valid in ON UPDATE
-        cdtExpression:     Result := Result + ' ON UPDATE '+OnUpdateText;
+        cdtExpression: begin
+          if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
+            Result := Result + ' ON UPDATE ('+OnUpdateText+')'
+          else
+            Result := Result + ' ON UPDATE '+OnUpdateText;
+        end;
       end;
       Result := Result + ' ';
     end;
@@ -10417,7 +10590,7 @@ begin
       Result := Result + 'COMMENT ' + FConnection.EscapeString(Comment) + ' ';
   end;
 
-  if InParts(cpCollation) and (not IsVirtual) then begin
+  if InParts(cpCollation) and (not IsVirtual) and (DataType.Index <> dbdtJson) then begin
     if Collation <> '' then begin
       Result := Result + 'COLLATE ';
       if OverrideCollation <> '' then
@@ -10491,6 +10664,16 @@ begin
     end;
   end;
 end;
+
+
+function TTableColumn.AutoIncName: String;
+begin
+  case FConnection.Parameters.NetTypeGroup of
+    ngPgSQL: Result := 'SERIAL';
+    else Result := 'AUTO_INCREMENT';
+  end;
+end;
+
 
 procedure TTableColumnList.Assign(Source: TTableColumnList);
 var

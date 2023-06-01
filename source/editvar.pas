@@ -3,8 +3,8 @@ unit editvar;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  dbconnection, dbstructures, dbstructures.mysql, ComCtrls, gnugettext, SynRegExpr, extra_controls;
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls,
+  dbconnection, dbstructures, dbstructures.mysql, Vcl.ComCtrls, gnugettext, SynRegExpr, extra_controls;
 
 type
   TVarType = (vtString, vtNumeric, vtBoolean, vtEnum);

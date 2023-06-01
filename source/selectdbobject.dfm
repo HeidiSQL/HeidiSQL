@@ -12,7 +12,6 @@ object frmSelectDBObject: TfrmSelectDBObject
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
@@ -20,7 +19,6 @@ object frmSelectDBObject: TfrmSelectDBObject
   DesignSize = (
     232
     316)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblSelect: TLabel
     Left = 8
@@ -58,6 +56,8 @@ object frmSelectDBObject: TfrmSelectDBObject
     OnGetNodeDataSize = TreeDBOGetNodeDataSize
     OnInitChildren = TreeDBOInitChildren
     OnInitNode = TreeDBOInitNode
+    Touch.InteractiveGestures = [igPan, igPressAndTap]
+    Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
     Columns = <
       item
         Position = 0

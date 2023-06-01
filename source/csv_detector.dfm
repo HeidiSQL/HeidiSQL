@@ -10,14 +10,12 @@ object frmCsvDetector: TfrmCsvDetector
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
     635
     299)
-  PixelsPerInch = 96
   TextHeight = 14
   object btnScan: TButton
     Left = 8

@@ -7,8 +7,8 @@ unit About;
 interface
 
 uses
-  Windows, Classes, Graphics, Forms, Controls, StdCtrls, ExtCtrls, SysUtils, ComCtrls, pngimage, gnugettext,
-  Dialogs, SynRegExpr, Vcl.Menus, ClipBrd, extra_controls, generic_types;
+  Winapi.Windows, System.Classes, Vcl.Graphics, Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ExtCtrls, System.SysUtils, Vcl.ComCtrls, Vcl.Imaging.pngimage, gnugettext,
+  Vcl.Dialogs, SynRegExpr, Vcl.Menus, Vcl.ClipBrd, extra_controls, generic_types;
 
 type
   TAboutBox = class(TExtForm)

@@ -2,8 +2,8 @@ object frmTextEditor: TfrmTextEditor
   Left = 0
   Top = 0
   Caption = 'Text editor'
-  ClientHeight = 161
-  ClientWidth = 484
+  ClientHeight = 153
+  ClientWidth = 482
   Color = clBtnFace
   Constraints.MinHeight = 200
   Constraints.MinWidth = 500
@@ -12,19 +12,17 @@ object frmTextEditor: TfrmTextEditor
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 14
   object Panel1: TPanel
     AlignWithMargins = True
     Left = 0
-    Top = 139
-    Width = 474
+    Top = 131
+    Width = 472
     Height = 22
     Margins.Left = 0
     Margins.Top = 0
@@ -37,7 +35,7 @@ object frmTextEditor: TfrmTextEditor
     TabOrder = 0
     object lblTextLength: TLabel
       AlignWithMargins = True
-      Left = 355
+      Left = 409
       Top = 3
       Width = 76
       Height = 16
@@ -50,7 +48,7 @@ object frmTextEditor: TfrmTextEditor
     object tlbStandard: TToolBar
       Left = 0
       Top = 0
-      Width = 207
+      Width = 261
       Height = 22
       Align = alLeft
       AutoSize = True
@@ -79,7 +77,7 @@ object frmTextEditor: TfrmTextEditor
         Style = tbsDropDown
       end
       object btnLoadText: TToolButton
-        Left = 61
+        Left = 65
         Top = 0
         Hint = 'Load textfile'
         Caption = 'Load textfile'
@@ -88,7 +86,7 @@ object frmTextEditor: TfrmTextEditor
         OnClick = btnLoadTextClick
       end
       object btnCancel: TToolButton
-        Left = 84
+        Left = 88
         Top = 0
         Hint = 'Cancel'
         Caption = 'Cancel'
@@ -97,7 +95,7 @@ object frmTextEditor: TfrmTextEditor
         OnClick = btnCancelClick
       end
       object btnApply: TToolButton
-        Left = 107
+        Left = 111
         Top = 0
         Hint = 'Apply changes'
         Caption = 'Apply changes'
@@ -106,7 +104,7 @@ object frmTextEditor: TfrmTextEditor
         OnClick = btnApplyClick
       end
       object btnSeparator1: TToolButton
-        Left = 130
+        Left = 134
         Top = 0
         Width = 8
         Caption = 'btnSeparator1'
@@ -115,17 +113,17 @@ object frmTextEditor: TfrmTextEditor
         Style = tbsSeparator
       end
       object btnSearchFind: TToolButton
-        Left = 138
+        Left = 142
         Top = 0
         Action = MainForm.actQueryFind
       end
       object btnSearchFindNext: TToolButton
-        Left = 161
+        Left = 165
         Top = 0
         Action = MainForm.actQueryFindAgain
       end
       object btnSearchReplace: TToolButton
-        Left = 184
+        Left = 188
         Top = 0
         Action = MainForm.actQueryReplace
       end
@@ -141,12 +139,14 @@ object frmTextEditor: TfrmTextEditor
         Left = 219
         Top = 0
         Caption = 'Customize highlighter'
+        DropdownMenu = popupHighlighter
         ImageIndex = 39
+        Style = tbsDropDown
         OnClick = btnCustomizeHighlighterClick
       end
     end
     object comboHighlighter: TComboBox
-      Left = 242
+      Left = 261
       Top = 0
       Width = 145
       Height = 22
@@ -160,8 +160,8 @@ object frmTextEditor: TfrmTextEditor
   object MemoText: TSynMemo
     Left = 0
     Top = 0
-    Width = 484
-    Height = 139
+    Width = 482
+    Height = 131
     SingleLineMode = False
     Align = alClient
     Font.Charset = DEFAULT_CHARSET
@@ -265,6 +265,25 @@ object frmTextEditor: TfrmTextEditor
     end
     object Replacetext1: TMenuItem
       Action = MainForm.actQueryReplace
+    end
+  end
+  object popupHighlighter: TPopupMenu
+    Images = MainForm.VirtualImageListMain
+    Left = 352
+    Top = 32
+    object menuCustomizeHighlighter: TMenuItem
+      Caption = 'Customize highlighter'
+      ImageIndex = 39
+      OnClick = btnCustomizeHighlighterClick
+    end
+    object menuFormatCodeOnce: TMenuItem
+      Caption = 'Format code once'
+      OnClick = menuFormatCodeOnceClick
+    end
+    object menuAlwaysFormatCode: TMenuItem
+      AutoCheck = True
+      Caption = 'Always format code'
+      OnClick = menuAlwaysFormatCodeClick
     end
   end
 end

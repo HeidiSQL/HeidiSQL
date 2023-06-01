@@ -10,6 +10,7 @@
 #define WebSite "https://www." + ProgNameLower + ".com/"
 #define OutDir "."
 #define ResourceDir OutDir + "\..\res\"
+#define SnippetsDir "{autodocs}\" + ProgName + "\Snippets"
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
@@ -50,11 +51,11 @@ AppSupportURL={#WebSite}forum.php
 AppUpdatesURL={#WebSite}download.php
 AppContact=anse@heidisql.com
 AppReadmeFile={#WebSite}help.php?place=installer
-Compression=lzma2
+Compression=lzma2/ultra64
 SolidCompression=yes
 CloseApplications=yes
 ShowLanguageDialog=auto
-DefaultDirName={commonpf}\{#ProgName}
+DefaultDirName={autopf}\{#ProgName}
 DefaultGroupName={#ProgName}
 AllowNoIcons=yes
 LicenseFile=license.txt
@@ -69,18 +70,20 @@ SetupIconFile={#ResourceDir}mainicon.ico
 ArchitecturesInstallIn64BitMode=x64
 UsePreviousAppDir=yes
 DirExistsWarning=auto
-PrivilegesRequired=none
+PrivilegesRequired=admin
+PrivilegesRequiredOverridesAllowed=commandline dialog
+SignedUninstaller=yes
+SignTool=signtool $f
 
 [Tasks]
-Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Options:"; MinVersion: 4,4
-Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"; GroupDescription: "Options:";
-Name: "activate_updatechecks"; Description: "Automatically check {#WebSite} for updates"; GroupDescription: "Options:";
-Name: "activate_statistics"; Description: "Automatically report client and server versions on {#WebSite}"; GroupDescription: "Options:";
+Name: "desktopicon"; Description: "Create a &desktop icon"; GroupDescription: "Local options:"; MinVersion: 4,4
+Name: "install_snippets"; Description: "Create example SQL snippet files in {#SnippetsDir}"; GroupDescription: "Local options:";
+Name: "associatesqlfiles"; Description: "Associate .&SQL files with {#ProgName}"; GroupDescription: "Local options:";
+Name: "activate_updatechecks"; Description: "Automatically check {#WebSite} for updates"; GroupDescription: "Telemetry:";
+Name: "activate_statistics"; Description: "Automatically report client and server versions on {#WebSite}"; GroupDescription: "Telemetry:";
 
 [InstallDelete]
 Type: files; Name: "{app}\heidisql32.exe"
-Type: files; Name: "{app}\ssleay32.dll"
-Type: files; Name: "{app}\libeay32.dll"
 Type: files; Name: "{app}\libpq.dll"
 
 [Files]
@@ -90,9 +93,14 @@ Source: "license.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "gpl.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "plugins64\*.dll"; DestDir: "{app}\plugins"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plugins32\*.dll"; DestDir: "{app}\plugins"; Check: not Is64BitInstallMode; Flags: ignoreversion
-Source: "Snippets\*.sql"; DestDir: "{userdocs}\{#ProgName}\Snippets";
+Source: "Snippets\*.sql"; DestDir: "{#SnippetsDir}"; Tasks: install_snippets
 Source: "plink-64.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "plink-32.exe"; DestDir: "{app}"; DestName: "plink.exe"; Check: not Is64BitInstallMode; Flags: ignoreversion
+; OpenSSL libraries, used by Indy HTTP:
+Source: "libeay32-64.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libeay32-32.dll"; DestDir: "{app}"; DestName: "libeay32.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "ssleay32-64.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "ssleay32-32.dll"; DestDir: "{app}"; DestName: "ssleay32.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 ; MySQL + MariaDB:
 Source: "libmariadb64.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmariadb32.dll"; DestDir: "{app}"; DestName: "libmariadb.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
@@ -104,15 +112,20 @@ Source: "libmysql-6.1-32.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; C
 Source: "libpq-10-64.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq-10-32.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq-12-64.dll"; DestDir: "{app}"; DestName: "libpq-12.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "libpq-15-64.dll"; DestDir: "{app}"; DestName: "libpq-15.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl-8-64.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libintl-8-32.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libintl-9-64.dll"; DestDir: "{app}"; DestName: "libintl-9.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libssl-1_1-x64.dll"; DestDir: "{app}"; DestName: "libssl-1_1-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libssl-1_1-32.dll"; DestDir: "{app}"; DestName: "libssl-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libssl-3-x64.dll"; DestDir: "{app}"; DestName: "libssl-3-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libcrypto-1_1-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libcrypto-1_1-32.dll"; DestDir: "{app}"; DestName: "libcrypto-1_1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libcrypto-3-x64.dll"; DestDir: "{app}"; DestName: "libcrypto-3-x64.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "LICENSE-openssl"; DestDir: "{app}"; Flags: ignoreversion
 Source: "libiconv-2-64.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libiconv-2-32.dll"; DestDir: "{app}"; DestName: "libiconv-2.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libwinpthread-1-64.dll"; DestDir: "{app}"; DestName: "libwinpthread-1.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 ; SQLite:
 Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
@@ -130,8 +143,9 @@ Source: "functions-*.ini"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"
-Name: "{group}\General help"; Filename: "http://www.heidisql.com/help.php?place=startmenu"
-Name: "{userdesktop}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"; MinVersion: 4,4; Tasks: desktopicon
+Name: "{group}\Website"; Filename: "{#Website}"
+Name: "{group}\General help"; Filename: "{#Website}help.php?place=startmenu"
+Name: "{autodesktop}\{#ProgName}"; Filename: "{app}\{#ProgExeName}"; MinVersion: 4,4; Tasks: desktopicon
 
 [Registry]
 Root: HKCR; Subkey: ".sql"; ValueType: string; ValueName: ""; ValueData: "SQLScriptFile"; Flags: noerror uninsdeletevalue; Tasks: associatesqlfiles

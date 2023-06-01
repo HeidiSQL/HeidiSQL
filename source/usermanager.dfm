@@ -13,7 +13,6 @@ object UserManagerForm: TUserManagerForm
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
@@ -23,7 +22,6 @@ object UserManagerForm: TUserManagerForm
   DesignSize = (
     484
     364)
-  PixelsPerInch = 96
   TextHeight = 14
   object Splitter1: TSplitter
     AlignWithMargins = True
@@ -127,6 +125,8 @@ object UserManagerForm: TUserManagerForm
       OnHeaderClick = listUsersHeaderClick
       OnHotChange = listUsersHotChange
       OnInitNode = listUsersInitNode
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
       Columns = <
         item
           Position = 0
@@ -248,6 +248,8 @@ object UserManagerForm: TUserManagerForm
       OnGetImageIndex = treePrivsGetImageIndex
       OnInitChildren = treePrivsInitChildren
       OnInitNode = treePrivsInitNode
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
       Columns = <>
     end
     object PageControlSettings: TPageControl

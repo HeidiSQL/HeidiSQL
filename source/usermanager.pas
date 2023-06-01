@@ -4,9 +4,9 @@ unit usermanager;
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ComCtrls, StdCtrls,
-  ExtCtrls, ToolWin, ClipBrd, Generics.Collections, Generics.Defaults, SynRegExpr, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, apphelpers, VirtualTrees, Menus, gnugettext;
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls,
+  Vcl.ExtCtrls, Vcl.ToolWin, Vcl.ClipBrd, System.Generics.Collections, System.Generics.Defaults, SynRegExpr, extra_controls,
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, VirtualTrees, Vcl.Menus, gnugettext;
 
 {$I const.inc}
 

@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2020 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -134,7 +134,7 @@ type
     /// Collection of Styled Child Controls
     /// </summary>
     class property ChildRegSysStylesList: TObjectDictionary<HWND, TChildControlInfo> read FChildRegSysStylesList;
-    class procedure AddControlDirectly(Handle: HWND; const sClassName : string; IncludeChildControls : Boolean = False);
+    class procedure AddControlDirectly(Handle: HWND; const sClassName: string; IncludeChildControls: Boolean = False);
   end;
 
 
@@ -242,16 +242,16 @@ begin
   inherited;
 end;
 
-class procedure TSysStyleManager.AddControlDirectly(Handle: HWND; const sClassName : string; IncludeChildControls : Boolean = False);
+class procedure TSysStyleManager.AddControlDirectly(Handle: HWND; const sClassName: string; IncludeChildControls: Boolean = False);
 var
- LStyleHook  : TSysStyleHook;
- ParentStyle : DWORD;
+ LStyleHook: TSysStyleHook;
+ ParentStyle: DWORD;
 
   procedure AddChildControl(ChildHandle: HWND);
   var
     Info: TChildControlInfo;
-    sChildClassName : string;
-    LStyleHook  : TSysStyleHook;
+    sChildClassName: string;
+    LStyleHook: TSysStyleHook;
   begin
    { Hook the control directly ! }
     ZeroMemory(@Info, sizeof(TChildControlInfo));
@@ -269,7 +269,7 @@ var
     end;
   end;
 
-  function EnumChildProc(const hWindow: hWnd; const LParam : LParam): boolean; stdcall;
+  function EnumChildProc(const hWindow: hWnd; const LParam: LParam): boolean; stdcall;
   begin
     AddChildControl(hWindow);
     Result:= True;
@@ -318,7 +318,7 @@ var
 
   procedure RemoveUnusedHooks;
   var
-    LHandle : THandle;
+    LHandle: THandle;
   begin
    for LHandle in TSysStyleManager.SysStyleHookList.Keys do
     if TSysStyleClass(TSysStyleManager.SysStyleHookList.Items[LHandle]).MustRemove then
@@ -343,7 +343,7 @@ var
 
   procedure AddControl(Handle: HWND);
   var
-   LStyleHook : TSysStyleHook;
+   LStyleHook: TSysStyleHook;
   begin
     { Hook the control directly ! }
     RemoveUnusedHooks;

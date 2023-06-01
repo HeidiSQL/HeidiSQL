@@ -3,9 +3,9 @@ unit sqlhelp;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ComCtrls, ExtCtrls,
-  Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI, extra_controls,
-  SynURIOpener, SynEdit, VirtualTrees, Graphics,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls,
+  Vcl.Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI, extra_controls,
+  SynURIOpener, SynEdit, VirtualTrees, Vcl.Graphics,
   dbconnection, gnugettext;
 
 type

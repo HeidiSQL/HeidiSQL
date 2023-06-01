@@ -9,9 +9,9 @@ unit connections;
 interface
 
 uses
-  Windows, SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
-  VirtualTrees, Menus, Graphics, Generics.Collections, ActiveX, extra_controls, Messages,
-  dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, ADODB, StrUtils,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls,
+  VirtualTrees, Vcl.Menus, Vcl.Graphics, System.Generics.Collections, Winapi.ActiveX, extra_controls, Winapi.Messages,
+  dbconnection, gnugettext, SynRegExpr, System.Types, Vcl.GraphUtil, Data.Win.ADODB, System.StrUtils,
   System.Math, System.Actions, System.IOUtils, Vcl.ActnList, Vcl.StdActns;
 
 type
@@ -136,6 +136,7 @@ type
     chkLogFileDml: TCheckBox;
     timerEditFilterDelay: TTimer;
     comboSSHExe: TComboBox;
+    chkSSHActive: TCheckBox;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -197,6 +198,7 @@ type
       CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actFilterExecute(Sender: TObject);
     procedure timerEditFilterDelayTimer(Sender: TObject);
+    procedure chkSSHActiveClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -214,6 +216,7 @@ type
     procedure FinalizeModifications(var CanProceed: Boolean);
     procedure ValidateControls;
     function NodeSessionNames(Node: PVirtualNode; var RegKey: String): TStringList;
+    function GetWindowCaption: String;
     procedure MenuDatabasesClick(Sender: TObject);
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
@@ -252,6 +255,14 @@ begin
 end;
 
 
+function Tconnform.GetWindowCaption: String;
+begin
+  Result := APPNAME + ' ' + MainForm.AppVersion + ' - ' + _('Session manager');
+  if not SelectedSessionPath.IsEmpty then
+    Result := Result + ': ' + SelectedSessionPath;
+end;
+
+
 procedure Tconnform.FormCreate(Sender: TObject);
 var
   NetTypeStr, FilenameHint, ExePath, ExeFile: String;
@@ -265,6 +276,7 @@ var
 begin
   // Fix GUI stuff
   HasSizeGrip := True;
+  Caption := GetWindowCaption;
 
   ListSessions.OnCompareNodes := MainForm.AnyGridCompareNodes;
   ListSessions.OnHeaderClick := MainForm.AnyGridHeaderClick;
@@ -479,6 +491,7 @@ begin
     Sess.AllDatabasesStr := editDatabases.Text;
     Sess.Comment := memoComment.Text;
     Sess.StartupScriptFilename := editStartupScript.Text;
+    Sess.SSHActive := chkSSHActive.Checked;
     Sess.SSHExe := comboSSHExe.Text;
     Sess.SSHHost := editSSHhost.Text;
     Sess.SSHPort := MakeInt(editSSHport.Text);
@@ -701,6 +714,7 @@ begin
     Result.AllDatabasesStr := editDatabases.Text;
     Result.LibraryOrProvider := comboLibrary.Text;
     Result.Comment := memoComment.Text;
+    Result.SSHActive := chkSSHActive.Checked;
     Result.SSHHost := editSSHHost.Text;
     Result.SSHPort := MakeInt(editSSHPort.Text);
     Result.SSHUser := editSSHuser.Text;
@@ -954,6 +968,7 @@ begin
   tabSettings.TabVisible := SessionFocused;
   tabSSHtunnel.TabVisible := SessionFocused;
   tabAdvanced.TabVisible := SessionFocused;
+  tabSSL.TabVisible := SessionFocused;
   tabStatistics.TabVisible := SessionFocused;
   menuRename.Enabled := Assigned(Node);
   menuNewSessionInFolder.Enabled := InFolder;
@@ -994,6 +1009,7 @@ begin
     end;
     memoComment.Text := Sess.Comment;
     editStartupScript.Text := Sess.StartupScriptFilename;
+    chkSSHActive.Checked := Sess.SSHActive;
     comboSSHExe.Text := Sess.SSHExe;
     editSSHHost.Text := Sess.SSHHost;
     editSSHport.Text := IntToStr(Sess.SSHPort);
@@ -1189,6 +1205,13 @@ begin
 end;
 
 
+procedure Tconnform.chkSSHActiveClick(Sender: TObject);
+begin
+  if (comboSSHExe.Text = '') and (comboSSHExe.Items.Count > 0) then
+    comboSSHExe.ItemIndex := 0;
+  Modification(Sender);
+end;
+
 procedure Tconnform.ColorBoxBackgroundColorGetColors(Sender: TCustomColorBox;
   Items: TStrings);
 var
@@ -1306,6 +1329,10 @@ begin
       editUsername.Text := Params.DefaultUsername;
     if not editIgnoreDatabasePattern.Modified then
       editIgnoreDatabasePattern.Text := Params.DefaultIgnoreDatabasePattern;
+    if not editHost.Modified then
+      editHost.Text := Params.DefaultHost;
+    chkSSHActive.Checked := Params.DefaultSshActive;
+
     comboLibrary.Items := Params.GetLibraries;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
   end;
@@ -1341,6 +1368,7 @@ begin
       or (Sess.LibraryOrProvider <> comboLibrary.Text)
       or (Sess.AllDatabasesStr <> editDatabases.Text)
       or (Sess.Comment <> memoComment.Text)
+      or (Sess.SSHActive <> chkSSHActive.Checked)
       or (Sess.SSHHost <> editSSHHost.Text)
       or (IntToStr(Sess.SSHPort) <> editSSHPort.Text)
       or (Sess.SSHExe <> comboSSHExe.Text)
@@ -1442,7 +1470,7 @@ begin
       editUsername.Enabled := lblUsername.Enabled;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
-      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
+      lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
@@ -1451,9 +1479,25 @@ begin
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       editDatabases.Enabled := lblDatabase.Enabled;
       // SSH tunnel tab:
-      tabSSHtunnel.TabVisible := Params.NetType in [ntMySQL_SSHtunnel, ntPgSQL_SSHtunnel];
+      chkSSHActive.Enabled := Params.SshSupport;
+      lblSSHExe.Enabled := Params.SSHActive;
+      comboSSHExe.Enabled := Params.SSHActive;
+      lblSSHhost.Enabled := Params.SSHActive;
+      editSSHhost.Enabled := Params.SSHActive;
+      editSSHport.Enabled := Params.SSHActive;
+      lblSSHUser.Enabled := Params.SSHActive;
+      editSSHUser.Enabled := Params.SSHActive;
+      lblSSHPassword.Enabled := Params.SSHActive;
+      editSSHPassword.Enabled := Params.SSHActive;
+      lblSSHTimeout.Enabled := Params.SSHActive;
+      editSSHTimeout.Enabled := Params.SSHActive;
+      updownSSHTimeout.Enabled := Params.SSHActive;
+      lblSSHkeyfile.Enabled := Params.SSHActive;
+      editSSHPrivateKey.Enabled := Params.SSHActive;
+      lblSSHLocalPort.Enabled := Params.SSHActive;
+      editSSHlocalport.Enabled := Params.SSHActive;
       // Advanced tab:
-      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
+      chkWantSSL.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel];
       lblSSLPrivateKey.Enabled := Params.WantSSL;
       editSSLPrivateKey.Enabled := Params.WantSSL;
       lblSSLCACertificate.Enabled := Params.WantSSL;
@@ -1481,6 +1525,8 @@ begin
   menuSave.Enabled := btnSave.Enabled;
   menuSaveAs.Enabled := SessionFocused;
   menuDelete.Enabled := btnDelete.Enabled;
+
+  Caption := GetWindowCaption;
 end;
 
 
@@ -1558,7 +1604,7 @@ begin
   // Set initial directory to the one from the edit's file
   Selector.InitialDir := ExtractFilePath(Edit.Text);
   if Selector.InitialDir.IsEmpty then
-    Selector.InitialDir := AppSettings.DirnameUserDocuments;
+    Selector.InitialDir := TPath.GetPathRoot(Application.ExeName);
   if Selector.Execute then begin
     FileNames := TStringList.Create;
     FileNames.Assign(Selector.Files);

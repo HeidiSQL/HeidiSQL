@@ -11,10 +11,8 @@ object printlistForm: TprintlistForm
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnShow = FormShow
-  PixelsPerInch = 96
   TextHeight = 14
   object lblSelect: TLabel
     Left = 8

@@ -5,7 +5,7 @@
 
  TMyForm = class(TForm)
  private
-   FStyleDPIAwareness : TStyleDPIAwareness;
+   FStyleDPIAwareness: TStyleDPIAwareness;
 
  procedure TFrmMain.FormCreate(Sender: TObject);
  begin
@@ -40,7 +40,7 @@
 
   procedure TFrmMain.FormCreate(Sender: TObject);
   Var
-    StyleDPIAwareness : TStyleDPIAwareness;
+    StyleDPIAwareness: TStyleDPIAwareness;
   begin
     StyleDPIAwareness := TStyleDPIAwareness.Create(Self);
     StyleDPIAwareness.Parent := Self;
@@ -75,10 +75,10 @@ Type
 
   TStyleDPIAwareness = class(TControl)
   private
-    FScaledStyles : TStringList;
-    FRoundScalingFactor : Boolean;
-    FUseCustomScalingFactor : Boolean;
-    FCustomPPI : integer;
+    FScaledStyles: TStringList;
+    FRoundScalingFactor: Boolean;
+    FUseCustomScalingFactor: Boolean;
+    FCustomPPI: integer;
     FOldDPI: Integer;
    protected
     procedure CMStyleChanged(var Message: TMessage); message CM_STYLECHANGED;
@@ -88,14 +88,14 @@ Type
     destructor Destroy; override;
     procedure AfterDPIChange(OldDPI, NewDPI: Integer);
     procedure BeforeDPIChange(OldDPI, NewDPI: Integer);
-    procedure ScaleStyle(Style : TCustomStyleServices);
+    procedure ScaleStyle(Style: TCustomStyleServices);
     property OldDPI: Integer read FOldDPI write FOldDPI;
   published
-    property  RoundScalingFactor : Boolean read FRoundScalingFactor
+    property  RoundScalingFactor: Boolean read FRoundScalingFactor
       write FRoundScalingFactor default True;
-    property  UseCustomScalingFactor : Boolean read FUseCustomScalingFactor
+    property  UseCustomScalingFactor: Boolean read FUseCustomScalingFactor
       write FUseCustomScalingFactor default False;
-    property CustomPPI : integer read FCustomPPI write FCustomPPI default 96;
+    property CustomPPI: integer read FCustomPPI write FCustomPPI default 96;
   end;
 
 implementation
@@ -141,7 +141,7 @@ end;
 
 destructor TStyleDPIAwareness.Destroy;
 var
-  i : Integer;
+  i: Integer;
 begin
   for i := 0 to FScaledStyles.Count - 1 do
     TStyleDPI(FScaledStyles.Objects[i]).Free;
@@ -161,7 +161,7 @@ end;
 
 procedure TStyleDPIAwareness.RecreateForms;
 Var
-  i : Integer;
+  i: Integer;
 begin
   for i := 0 to Screen.FormCount - 1 do
   begin
@@ -172,19 +172,19 @@ end;
 
 procedure TStyleDPIAwareness.ScaleStyle(Style: TCustomStyleServices);
 Var
-  NewDPI : integer;
-  SeStyle : TObject;
-  SeStyleSource : TObject;
-  BitmapList : TList;
-  BitMap : TBitmap;
-  StyleObjectList : Tlist;
+  NewDPI: integer;
+  SeStyle: TObject;
+  SeStyleSource: TObject;
+  BitmapList: TList;
+  BitMap: TBitmap;
+  StyleObjectList: Tlist;
   i,n: integer;
-  StyleObject : TComponent;
+  StyleObject: TComponent;
   obj: TStyleDPI;
 
-  procedure ProcessBitmapLink(BL : TObject);
+  procedure ProcessBitmapLink(BL: TObject);
   Var
-    BLType : TRTTIType;
+    BLType: TRTTIType;
   begin
     BLType := TRttiContext.Create.GetType(BL.ClassType);
     BLType.GetProperty('Bottom').SetValue(BL,  Round((BLType.GetProperty('Bottom').GetValue(BL).AsInteger * NewDPI - 1) / OldDPI));
@@ -193,7 +193,7 @@ Var
     BLType.GetProperty('Top').SetValue(BL,  Round(BLType.GetProperty('Top').GetValue(BL).AsInteger * NewDPI / OldDPI));
   end;
 
-  procedure ProcessSO(aSO : TComponent;  aSOType : TRTTIType);
+  procedure ProcessSO(aSO: TComponent;  aSOType: TRTTIType);
   begin
     aSOType.GetProperty('Top').SetValue(aSO,  Round(aSOType.GetProperty('Top').GetValue(aSO).AsInteger * NewDPI / OldDPI));
     aSOType.GetProperty('Left').SetValue(aSO,  Round(aSOType.GetProperty('Left').GetValue(aSO).AsInteger * NewDPI / OldDPI));
@@ -208,12 +208,12 @@ Var
     aSOType.GetProperty('TextMarginRight').SetValue(aSO,  Round(aSOType.GetProperty('TextMarginRight').GetValue(aSO).AsInteger * NewDPI / OldDPI));
   end;
 
-  procedure ProcessStyleObject(SO : TComponent);
+  procedure ProcessStyleObject(SO: TComponent);
   var
     i: integer;
-    ChildSo : TComponent;
-    SOType : TRTTIType;
-    BitmapLink : TObject;
+    ChildSo: TComponent;
+    SOType: TRTTIType;
+    BitmapLink: TObject;
   begin
       SOType := TRttiContext.Create.GetType(SO.ClassType);
       ProcessSO(SO, SOType);
@@ -318,14 +318,14 @@ end;
    TGetBorderSize = function: TRect of object;
 
    TFormStyleHookFix = class helper for TFormStyleHook
-     procedure SetStretchedCaptionInc(Value : Integer);
+     procedure SetStretchedCaptionInc(Value: Integer);
      function GetBorderSizeAddr: Pointer;
      function Detour_GetBorderSize: TRect;
    end;
 
 var
-  Trampoline_TFormStyleHook_GetBorderSize : TGetBorderSize;
-  Detour_TFormStyleHook_GetBorderSize : TGetBorderSize;
+  Trampoline_TFormStyleHook_GetBorderSize: TGetBorderSize;
+  Detour_TFormStyleHook_GetBorderSize: TGetBorderSize;
 
 
 { TFormStyleHookFix }

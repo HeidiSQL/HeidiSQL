@@ -13,7 +13,6 @@ object frmExportGrid: TfrmExportGrid
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -22,7 +21,6 @@ object frmExportGrid: TfrmExportGrid
   DesignSize = (
     373
     445)
-  PixelsPerInch = 96
   TextHeight = 14
   object btnOK: TButton
     Left = 209

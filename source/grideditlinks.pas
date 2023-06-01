@@ -5,10 +5,10 @@ unit grideditlinks;
 interface
 
 uses
-  Windows, Forms, Graphics, Messages, VirtualTrees, VirtualTrees.Types, ComCtrls, SysUtils, Classes,
-  StdCtrls, ExtCtrls, CheckLst, Controls, Types, Dialogs, Menus, Mask, DateUtils, Math,
+  Winapi.Windows, Vcl.Forms, Vcl.Graphics, Winapi.Messages, VirtualTrees, VirtualTrees.Types, Vcl.ComCtrls, System.SysUtils, System.Classes,
+  Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.CheckLst, Vcl.Controls, System.Types, Vcl.Dialogs, Vcl.Menus, Vcl.Mask, System.DateUtils, System.Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, gnugettext,
-  StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
+  System.StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
 
 type
   // Radio buttons and checkboxes which do not pass <Enter> key to their parent control
@@ -241,7 +241,7 @@ end;
 
 procedure TBaseGridEditorLink.Log(Msg: String);
 begin
-  MainForm.LogSQL('#'+FInstanceId.ToString+': '+Msg);
+  MainForm.LogSQL('#'+FInstanceId.ToString+': '+Msg, lcDebug);
 end;
 
 
@@ -1358,7 +1358,7 @@ begin
   FRadioAutoInc.Width := FRadioAutoInc.Parent.Width - 2 * FRadioAutoInc.Left;
   FRadioAutoInc.OnClick := RadioClick;
   FRadioAutoInc.OnKeyDown := DoKeyDown;
-  FRadioAutoInc.Caption := 'AUTO_INCREMENT';
+  FRadioAutoInc.Caption := Col.AutoIncName;
 
   FBtnOk := TButton.Create(FPanel);
   FBtnOk.Parent := FPanel;
@@ -1522,7 +1522,7 @@ begin
       cdtText: Col.DefaultText := FTextEdit.Text;
       cdtNull: Col.DefaultText := 'NULL';
       cdtExpression: Col.DefaultText := FExpressionEdit.Text;
-      cdtAutoInc: Col.DefaultText := 'AUTO_INCREMENT';
+      cdtAutoInc: Col.DefaultText := Col.AutoIncName;
     end;
 
     if FOnUpdateEdit.Text <> '' then

@@ -11,7 +11,6 @@ object frmTableTools: TfrmTableTools
   Font.Height = -12
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
@@ -19,7 +18,6 @@ object frmTableTools: TfrmTableTools
   DesignSize = (
     764
     383)
-  PixelsPerInch = 96
   TextHeight = 14
   object lblCheckedSize: TLabel
     Left = 8
@@ -89,6 +87,8 @@ object frmTableTools: TfrmTableTools
       OnGetNodeDataSize = TreeObjectsGetNodeDataSize
       OnInitChildren = TreeObjectsInitChildren
       OnInitNode = TreeObjectsInitNode
+      Touch.InteractiveGestures = [igPan, igPressAndTap]
+      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
       Columns = <
         item
           Position = 0
@@ -131,6 +131,8 @@ object frmTableTools: TfrmTableTools
         OnGetNodeDataSize = ResultGridGetNodeDataSize
         OnHeaderClick = ResultGridHeaderClick
         OnInitNode = ResultGridInitNode
+        Touch.InteractiveGestures = [igPan, igPressAndTap]
+        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <>
       end
       object tabsTools: TPageControl
