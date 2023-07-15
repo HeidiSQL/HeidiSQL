@@ -553,7 +553,6 @@ type
       function MaxAllowedPacket: Int64; virtual;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId): String; overload;
       function GetSQLSpecifity(Specifity: TSQLSpecifityId; const Args: array of const): String; overload;
-      function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; virtual;
       function GetDateTimeValue(Input: String; Datatype: TDBDatatypeIndex): String;
       procedure ClearDbObjects(db: String);
       procedure ClearAllDbObjects;
@@ -663,7 +662,6 @@ type
       function GetCreateCode(Obj: TDBObject): String; override;
       property LastRawResults: TMySQLRawResults read FLastRawResults;
       function MaxAllowedPacket: Int64; override;
-      function ExplainAnalyzer(SQL, DatabaseName: String): Boolean; override;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
   end;
@@ -6719,44 +6717,6 @@ begin
     end;
   end;
   Result := FAllUserHostCombinations;
-end;
-
-
-function TDBConnection.ExplainAnalyzer(SQL, DatabaseName: String): Boolean;
-begin
-  Result := False;
-  MessageDialog(_('Not implemented for this DBMS'), mtError, [mbOK]);
-end;
-
-
-function TMySQLConnection.ExplainAnalyzer(SQL, DatabaseName: String): Boolean;
-var
-  Results: TDBQuery;
-  Raw, URL: String;
-  i: Integer;
-begin
-  // Send EXPLAIN output to MariaDB.org
-  Result := True;
-  Database := DatabaseName;
-  if SQL.Trim.IsEmpty then begin
-    raise EDbError.Create(_('Please move the cursor inside the query you want to use.'));
-  end;
-  Results := GetResults('EXPLAIN '+SQL);
-  Raw := '+' + CRLF + '|';
-  for i:=0 to Results.ColumnCount-1 do begin
-    Raw := Raw + Results.ColumnNames[i] + '|';
-  end;
-  Raw := Raw + CRLF + '+';
-  while not Results.Eof do begin
-    Raw := Raw + CRLF + '|';
-    for i:=0 to Results.ColumnCount-1 do begin
-      Raw := Raw + Results.Col(i) + '|';
-    end;
-    Results.Next;
-  end;
-  Raw := Raw + CRLF;
-  URL := 'https://mariadb.org/explain_analyzer/analyze/?raw_explain='+EncodeURLParam(Raw)+'&client='+APPNAME;
-  ShellExec(URL);
 end;
 
 

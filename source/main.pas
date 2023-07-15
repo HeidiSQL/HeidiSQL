@@ -594,13 +594,8 @@ type
     menuGroupObjects: TMenuItem;
     actLogHorizontalScrollbar: TAction;
     actGroupObjects: TAction;
-    lblExplainProcessAnalyzer: TLabel;
-    menuExplainAnalyzer: TMenuItem;
     menuQueryExplain: TMenuItem;
     actExplainCurrentQuery: TAction;
-    actExplainAnalyzeCurrentQuery: TAction;
-    Explaincurrentquery1: TMenuItem;
-    Explainanalyzerforcurrentquery1: TMenuItem;
     menuAutoExpand: TMenuItem;
     menuTreeOptions: TMenuItem;
     menuClearDataTabFilter: TMenuItem;
@@ -733,7 +728,6 @@ type
     ReformatSQL3: TMenuItem;
     Clear1: TMenuItem;
     Explaincurrentquery2: TMenuItem;
-    Explainanalyzerforcurrentquery2: TMenuItem;
     Newquerytab2: TMenuItem;
     Closequerytab1: TMenuItem;
     Wraplonglines1: TMenuItem;
@@ -1088,9 +1082,7 @@ type
     procedure DBtreeExpanding(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var Allowed: Boolean);
     procedure actGroupObjectsExecute(Sender: TObject);
-    procedure lblExplainProcessAnalyzerClick(Sender: TObject);
     procedure popupSqlLogPopup(Sender: TObject);
-    procedure actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
     procedure menuAutoExpandClick(Sender: TObject);
     procedure pnlLeftResize(Sender: TObject);
     procedure editDatabaseTableFilterChange(Sender: TObject);
@@ -2825,7 +2817,6 @@ begin
 
   // Simulated link label, has non inherited blue font color
   lblExplainProcess.Font.Color := clBlue;
-  lblExplainProcessAnalyzer.Font.Color := clBlue;
 
   // Call once after all query tabs were created:
   ValidateControls(Sender);
@@ -3610,23 +3601,6 @@ begin
     ImageIndex := 14;
   except
     ImageIndex := -1;
-  end;
-end;
-
-
-procedure TMainForm.actExplainAnalyzeCurrentQueryExecute(Sender: TObject);
-var
-  Conn: TDBConnection;
-  CurrentQuery: String;
-begin
-  // Send EXPLAIN output to analyzer
-  Conn := ActiveConnection;
-  CurrentQuery := GetCurrentQuery(QueryTabs.ActiveTab);
-  try
-    Conn.ExplainAnalyzer(CurrentQuery, Conn.Database);
-  except
-    on E:EDbError do
-      ErrorDialog(E.Message);
   end;
 end;
 
@@ -6545,7 +6519,6 @@ begin
   actExecuteSelection.Enabled := HasConnection and InQueryTab and HasSelection and (not Tab.QueryRunning);
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled and (Conn.Parameters.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]);
-  actExplainAnalyzeCurrentQuery.Enabled := actExplainCurrentQuery.Enabled and Conn.Parameters.IsAnyMySQL;
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
   actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
@@ -8847,8 +8820,6 @@ begin
   pnlProcessView.Enabled := EnableControls;
   lblExplainProcess.Enabled := EnableControls and ActiveConnection.Parameters.IsAnyMySQL;
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
-  lblExplainProcessAnalyzer.Enabled := lblExplainProcess.Enabled;
-  menuExplainAnalyzer.Enabled := lblExplainProcess.Enabled;
 end;
 
 
@@ -13253,17 +13224,6 @@ begin
   // To avoid confusion, terminate editors then.
   if Sender.IsEditing and (DeltaX=0) then
     Sender.EndEditNode;
-end;
-
-
-procedure TMainForm.lblExplainProcessAnalyzerClick(Sender: TObject);
-begin
-  try
-    ActiveConnection.ExplainAnalyzer(SynMemoProcessView.Text, listProcesses.Text[listProcesses.FocusedNode, 3]);
-  except
-    on E:EDbError do
-      ErrorDialog(E.Message);
-  end;
 end;
 
 
