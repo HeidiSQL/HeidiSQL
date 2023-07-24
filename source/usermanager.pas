@@ -660,7 +660,7 @@ begin
                   PCol.DBObj.NodeType := lntColumn;
                   PCol.DBObj.Database := P.DBObj.Database;
                   PCol.DBObj.Name := P.DBObj.Name;
-                  PCol.DBObj.Column := Trim(Cols[j]);
+                  PCol.DBObj.Column := FConnection.DeQuoteIdent(Trim(Cols[j]));
                   PCol.AllPrivileges := FPrivsColumn;
                   FPrivObjects.Add(PCol);
                 end;

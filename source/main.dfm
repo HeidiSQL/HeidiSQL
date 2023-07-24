@@ -742,17 +742,6 @@ object MainForm: TMainForm
                     Enabled = False
                     OnClick = lblExplainProcessClick
                   end
-                  object lblExplainProcessAnalyzer: TLabel
-                    Left = 170
-                    Top = 2
-                    Width = 162
-                    Height = 13
-                    Cursor = crHandPoint
-                    Hint = 'Analyze this query on MariaDB.org'
-                    Caption = 'EXPLAIN analyzer on MariaDB.org'
-                    Enabled = False
-                    OnClick = lblExplainProcessAnalyzerClick
-                  end
                 end
                 object SynMemoProcessView: TSynMemo
                   Left = 0
@@ -2232,9 +2221,6 @@ object MainForm: TMainForm
       object Explaincurrentquery2: TMenuItem
         Action = actExplainCurrentQuery
       end
-      object Explainanalyzerforcurrentquery2: TMenuItem
-        Action = actExplainAnalyzeCurrentQuery
-      end
     end
     object MainMenuTools: TMenuItem
       Caption = 'Tools'
@@ -2552,12 +2538,6 @@ object MainForm: TMainForm
       Caption = 'Explain current query'
       Hint = 'Run EXPLAIN <current query> and show results'
       OnExecute = actExecuteQueryExecute
-    end
-    object actExplainAnalyzeCurrentQuery: TAction
-      Category = 'SQL'
-      Caption = 'Explain analyzer for current query'
-      Hint = 'Run EXPLAIN <current query> and send results to MariaDB.org'
-      OnExecute = actExplainAnalyzeCurrentQueryExecute
     end
     object actDataPreview: TAction
       Category = 'Data'
@@ -3783,13 +3763,6 @@ object MainForm: TMainForm
       ImageIndex = 39
       OnClick = lblExplainProcessClick
     end
-    object menuExplainAnalyzer: TMenuItem
-      Caption = 'EXPLAIN analyzer on MariaDB.org'
-      Enabled = False
-      Hint = 'Pass EXPLAIN output to MariaDB'#39's analyzer webpage'
-      ImageIndex = 39
-      OnClick = lblExplainProcessAnalyzerClick
-    end
     object N1a: TMenuItem
       Caption = '-'
     end
@@ -4205,13 +4178,7 @@ object MainForm: TMainForm
       Action = actExecuteCurrentQuery
     end
     object menuQueryExplain: TMenuItem
-      Caption = 'Explain'
-      object Explaincurrentquery1: TMenuItem
-        Action = actExplainCurrentQuery
-      end
-      object Explainanalyzerforcurrentquery1: TMenuItem
-        Action = actExplainAnalyzeCurrentQuery
-      end
+      Action = actExplainCurrentQuery
     end
     object MenuItem1: TMenuItem
       Caption = '-'
