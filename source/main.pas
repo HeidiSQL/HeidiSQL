@@ -4246,6 +4246,8 @@ begin
   for i:=High(FTreeClickHistory) downto Low(FTreeClickHistory) do begin
     if FTreeClickHistory[i] <> nil then begin
       DBObj := DBtree.GetNodeData(FTreeClickHistory[i]);
+      if DBObj = nil then // Session disconnected
+        Break;
       if DBObj.Connection.Parameters.SessionPath = SessionPath then begin
         Node := FTreeClickHistory[i];
         break;
