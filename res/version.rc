@@ -9,7 +9,7 @@
       BEGIN
         VALUE "FileDescription", "%APPNAME% %APPVER%\000"
         VALUE "ProductName", "%APPNAME%\000"
-        VALUE "LegalCopyright", "See GPL license\000"
+        VALUE "LegalCopyright", "Ansgar Becker, see gpl.txt\000"
       END
     END
     BLOCK "VarFileInfo"
