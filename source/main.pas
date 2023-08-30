@@ -5807,7 +5807,7 @@ procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: 
 var
   vt: TVirtualStringTree;
   Select, FixedFilter: String;
-  RefreshingData, IsKeyColumn: Boolean;
+  RefreshingData, IsKeyColumn, NeedFullColumns: Boolean;
   i, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
   ColMaxLen, Offset: Int64;
   KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
@@ -5888,6 +5888,8 @@ begin
     WantedColumns := TTableColumnList.Create(False);
     WantedColumnOrgnames := TStringList.Create;
     FullColumnCount := 0;
+    // If any column has INVISIBLE attribute:
+    NeedFullColumns := False;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       c := SelectedTableColumns[i];
       IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
@@ -5913,13 +5915,14 @@ begin
           end;
         WantedColumns.Add(c);
         WantedColumnOrgnames.Add(c.Name);
+        NeedFullColumns := NeedFullColumns or c.Invisible;
       end;
     end;
     // Cut last comma
     Delete(Select, Length(Select)-1, 2);
 
     // Shorten the whole query if all columns are involved
-    if FullColumnCount = SelectedTableColumns.Count then
+    if (FullColumnCount = SelectedTableColumns.Count) and (not NeedFullColumns) then
       Select := '*';
 
     // Include db name for cases in which dbtree is switching databases and pending updates are in process

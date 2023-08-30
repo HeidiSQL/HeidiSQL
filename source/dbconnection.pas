@@ -45,7 +45,7 @@ type
       Name, OldName: String;
       DataType, OldDataType: TDBDatatype;
       LengthSet: String;
-      Unsigned, AllowNull, ZeroFill, LengthCustomized: Boolean;
+      Unsigned, AllowNull, ZeroFill, LengthCustomized, Invisible: Boolean;
       DefaultType: TColumnDefaultType;
       DefaultText: String;
       OnUpdateType: TColumnDefaultType;
@@ -5686,7 +5686,9 @@ begin
     Col.GenerationExpression := ColQuery.Col('GENERATION_EXPRESSION', True);
     // PG has no extra:
     ExtraText := ColQuery.Col('EXTRA', True);
+
     Col.Virtuality := RegExprGetMatch('\b(\w+)\s+generated\b', ExtraText.ToLowerInvariant, 1);
+    Col.Invisible := ExecRegExprI('\binvisible\b', ExtraText);
     Col.AllowNull := ColQuery.Col('IS_NULLABLE').ToLowerInvariant = 'yes';
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
@@ -10378,6 +10380,7 @@ begin
   Collation := FromSerialized('Collation', '');
   GenerationExpression := FromSerialized('Expression', '');
   Virtuality := FromSerialized('Virtuality', '');
+  Invisible := FromSerialized('Invisible', '0').ToInteger.ToBoolean;
   NumVal := FromSerialized('Status', Integer(esUntouched).ToString);
   FStatus := TEditingStatus(NumVal.ToInteger);
 
@@ -10413,6 +10416,7 @@ begin
     Collation := s.Collation;
     GenerationExpression := s.GenerationExpression;
     Virtuality := s.Virtuality;
+    Invisible := s.Invisible;
     FStatus := s.FStatus;
   end else
     inherited;
@@ -10445,6 +10449,7 @@ begin
   s.AddPair('Collation', Collation);
   s.AddPair('GenerationExpression', GenerationExpression);
   s.AddPair('Virtuality', Virtuality);
+  s.AddPair('Invisible', Invisible.ToInteger.ToString);
   s.AddPair('Status', Integer(FStatus).ToString);
 
   Result := Implode(DELIMITER, s);
