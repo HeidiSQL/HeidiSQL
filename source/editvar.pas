@@ -78,7 +78,7 @@ begin
       FVar := MySQLVariables[i];
       Found := True;
       if not FVar.IsDynamic then
-        raise EVariableError.CreateFmt(_('"%s" is a read only variable, not editable.'), [Value]);
+        raise EVariableError.CreateFmt(_('"%s" is a read only variable, not editable'), [Value]);
       break;
     end;
   end;

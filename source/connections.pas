@@ -979,7 +979,7 @@ begin
     PageControlDetails.ActivePage := tabStart;
     if ListSessions.RootNodeCount = 0 then
       lblHelp.Caption := f_('New here? In order to connect to a server, you have to create a so called '+
-        '"session" at first. Just click the "New" button on the bottom left to create your first session.'+
+        '"session" at first. Just click the "New" button on the bottom left to create your first session. '+
         'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start %s.', [APPNAME])
     else
       lblHelp.Caption := _('Please click a session on the left list to edit parameters, doubleclick to open it.');

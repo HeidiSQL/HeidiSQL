@@ -149,7 +149,7 @@ begin
     if QueryTabOpen then
       ItemLabel := _('Result grid')+': '+ActiveQueryTab.tabsetQuery.Tabs[ActiveQueryTab.tabsetQuery.TabIndex]
     else
-      ItemLabel := _('Data grid');
+      ItemLabel := _('Data Grid');
     comboSearchIn.Items.AddObject(ItemLabel, ResultGrid);
     if ResultGrid.Focused then
       comboSearchIn.ItemIndex := comboSearchIn.Items.Count-1;

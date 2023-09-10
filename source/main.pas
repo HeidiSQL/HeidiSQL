@@ -12851,8 +12851,17 @@ begin
         Keystroke.ShortCut2 := Shortcut2;
     except
       on E:ESynKeyError do begin
-        LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to Tools > Preferences > Shortcuts to change this settings.',
-          [ShortCutToText(Shortcut1), ShortCutToText(Shortcut2), EditorCommandToCodeString(Keystroke.Command), E.Message, _('Tools'), _('Preferences'), _('Shortcuts')]), lcError);
+        LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to %s > %s > %s to change this settings.',
+          [
+            ShortCutToText(Shortcut1),
+            ShortCutToText(Shortcut2),
+            EditorCommandToCodeString(Keystroke.Command),
+            E.Message,
+            _('Tools'),
+            _('Preferences'),
+            _('Shortcuts')
+          ]),
+          lcError);
       end;
     end;
   end;
@@ -14547,7 +14556,7 @@ begin
   Screen.Cursor := crHourGlass;
   Filesize := _GetFileSize(Filepath);
   LoadSuccess := False;
-  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filepath, FormatByteNumber(Filesize), Number]), lcInfo);
+  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d', [Filepath, FormatByteNumber(Filesize), Number]), lcInfo);
   try
     Content := ReadTextfile(Filepath, Encoding);
     LoadSuccess := True;
