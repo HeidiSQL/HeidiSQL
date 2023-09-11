@@ -522,7 +522,7 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual;
       procedure Log(Category: TDBLogCategory; Msg: String);
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
@@ -3544,12 +3544,7 @@ end;
 {**
    Executes a query
 }
-procedure TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
-var
-  QueryStatus: Integer;
-  NativeSQL: AnsiString;
-  TimerStart: Cardinal;
-  QueryResult: PMYSQL_RES;
+procedure TDBConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
@@ -3559,10 +3554,24 @@ begin
       on E:EThread do;
     end;
   end;
-
   Ping(True);
   Log(LogCategory, SQL);
   FLastQuerySQL := SQL;
+  FRowsFound := 0;
+  FRowsAffected := 0;
+  FWarningCount := 0;
+end;
+
+
+procedure TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+var
+  QueryStatus: Integer;
+  NativeSQL: AnsiString;
+  TimerStart: Cardinal;
+  QueryResult: PMYSQL_RES;
+begin
+  inherited;
+
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
@@ -3580,9 +3589,7 @@ begin
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
-    FRowsAffected := 0;
     FWarningCount := FLib.mysql_warning_count(FHandle);
-    FRowsFound := 0;
     TimerStart := GetTickCount;
     QueryResult := FLib.mysql_store_result(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
@@ -3643,22 +3650,10 @@ var
   QueryResult, NextResult: _RecordSet;
   Affected: Int64;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
   try
     QueryResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
     FLastQueryDuration := GetTickCount - TimerStart;
@@ -3700,27 +3695,14 @@ var
   QueryStatus: Integer;
   NativeSQL: AnsiString;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
     NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
-  FWarningCount := 0;
 
   QueryStatus := FLib.PQsendQuery(FHandle, PAnsiChar(NativeSQL));
 
@@ -3782,24 +3764,11 @@ var
   CurrentSQL, NextSQL: PAnsiChar;
   StepResult: Integer;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   CurrentSQL := PAnsiChar(UTF8Encode(SQL));
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
-  FWarningCount := 0;
   OldRowsAffected := FLib.sqlite3_total_changes(FHandle); // Temporary: substract these later from total num
 
   QueryResult := nil;
@@ -3860,23 +3829,10 @@ var
   TimerStart: Cardinal;
   FdQuery: TFDQuery;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
-  FWarningCount := 0;
   FdQuery := TFDQuery.Create(Self);
   FdQuery.Connection := FFDHandle;
   // Todo: suppress mouse cursor updates
