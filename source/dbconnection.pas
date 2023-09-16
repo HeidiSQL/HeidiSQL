@@ -9406,8 +9406,15 @@ begin
         FConnection.Log(lcInfo, 'HasFullData: RowNum:'+RecNo.ToString+
           ' ColumnNames['+i.ToString+']:'+ColumnNames[i]+
           ' ColumnOrgNames['+i.ToString+']:'+ColumnOrgNames[i]+
-          ' NumChars:'+NumChars.ToString
+          ' NumChars:'+NumChars.ToString+
+          ' ColumnLengths('+i.ToString+'):'+ColumnLengths(i).ToString
           );}
+      if ColumnNames[i].StartsWith('LEFT', True) or ColumnNames[i].StartsWith('SUBSTR', True) then begin
+        // This works at least in MySQL, and fixes issue #1850 where NumChars is > 256 when text contains emojis.
+        // MSSQL does not provide the original column names with function calls like LEFT(..)
+        Result := False;
+        Break;
+      end;
       if (NumChars <= GRIDMAXDATA) and (NumChars >= GRIDMAXDATA / SizeOf(Char)) then begin
         Result := False;
         Break;
