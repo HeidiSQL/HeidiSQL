@@ -9667,21 +9667,29 @@ end;
 function TMySQLQuery.TableName(Column: Integer): String;
 var
   Field: PMYSQL_FIELD;
-  tbl: AnsiString;
+  FieldDb, FieldTable, FieldOrgTable: String;
   Objects: TDBObjectList;
   Obj: TDBObject;
 begin
   Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
-  //Connection.Log(lcDebug, FColumnNames[Column]+':  org_table:'+Field.org_table+ '  table:'+Field.table);
+  {Connection.Log(lcDebug, FColumnNames[Column]+':'+
+    '  org_table:'+Field.org_table+
+    '  table:'+Field.table+
+    '  table^=org_table^:'+(Field.table^ = Field.org_table^).ToInteger.ToString+
+    '  table=org_table:'+(Field.table = Field.org_table).ToInteger.ToString
+    );}
+  FieldDb := FConnection.DecodeAPIString(Field.db);
+  FieldTable := FConnection.DecodeAPIString(Field.table);
+  FieldOrgTable := FConnection.DecodeAPIString(Field.org_table);
 
-  if Field.table <> Field.org_table then begin
+  if FieldTable <> FieldOrgTable then begin
     // Probably a VIEW, in which case we rely on the first column's table name.
     // TODO: This is unsafe when joining a view with a table/view.
-    if Field.db <> '' then begin
-      Objects := Connection.GetDBObjects(Connection.DecodeAPIString(Field.db));
+    if FieldDb <> '' then begin
+      Objects := Connection.GetDBObjects(FieldDb);
       for Obj in Objects do begin
-        if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
-          tbl := Field.table;
+        if (Obj.Name = FieldTable) and (Obj.NodeType = lntView) then begin
+          Result := FieldTable;
           break;
         end;
       end;
@@ -9689,10 +9697,8 @@ begin
   end else begin
     // Normal table column
     // Note: this is empty on data tab TEXT columns with LEFT(..) clause
-    tbl := Field.org_table;
+    Result := FieldOrgTable;
   end;
-
-  Result := Connection.DecodeAPIString(tbl);
 end;
 
 
