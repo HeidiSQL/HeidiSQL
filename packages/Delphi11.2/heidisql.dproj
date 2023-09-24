@@ -259,6 +259,10 @@
             <Form>SequalSuggestForm</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="..\..\source\reformatter.pas">
+            <Form>frmReformatter</Form>
+            <FormType>dfm</FormType>
+        </DCCReference>
         <None Include="..\..\source\const.inc"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>

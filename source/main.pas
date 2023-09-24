@@ -1391,7 +1391,8 @@ implementation
 
 uses
   About, printlist, dbstructures, dbstructures.mysql, UpdateCheck,
-  column_selection, data_sorting, grideditlinks, ExportGrid, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
+  column_selection, data_sorting, grideditlinks, ExportGrid, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg,
+  reformatter;
 
 
 
@@ -12948,7 +12949,6 @@ procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
   m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
-  NewSQL: String;
 begin
   // Reformat SQL query
   m := ActiveSynMemo(False);
@@ -12960,19 +12960,22 @@ begin
   CursorPosEnd := m.SelEnd;
   if not m.SelAvail then
     m.SelectAll;
-  NewSQL := m.SelText;
-  if Length(NewSQL) = 0 then
+  if m.SelLength = 0 then
     ErrorDialog(_('Cannot reformat'), _('The current editor is empty.'))
   else begin
-    Screen.Cursor := crHourglass;
-    m.UndoList.AddGroupBreak;
-    NewSQL := ReformatSQL(NewSQL);
-    m.SelText := NewSQL;
-    m.SelStart := CursorPosStart;
-    if CursorPosEnd > CursorPosStart then
-      m.SelEnd := CursorPosStart + Length(NewSQL);
-    m.UndoList.AddGroupBreak;
-    Screen.Cursor := crDefault;
+    frmReformatter := TfrmReformatter.Create(Self);
+    frmReformatter.InputCode := m.SelText;
+    if frmReformatter.ShowModal = mrOk then begin
+      Screen.Cursor := crHourglass;
+      m.UndoList.AddGroupBreak;
+      m.SelText := frmReformatter.OutputCode;
+      m.SelStart := CursorPosStart;
+      if CursorPosEnd > CursorPosStart then
+        m.SelEnd := CursorPosStart + Length(frmReformatter.OutputCode);
+      m.UndoList.AddGroupBreak;
+      Screen.Cursor := crDefault;
+    end;
+    frmReformatter.Free;
   end;
 end;
 
