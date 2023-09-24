@@ -12,6 +12,8 @@ object frmReformatter: TfrmReformatter
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poOwnerFormCenter
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
   DesignSize = (
     328
     172)
@@ -22,7 +24,7 @@ object frmReformatter: TfrmReformatter
     Width = 312
     Height = 125
     Anchors = [akLeft, akTop, akRight, akBottom]
-    Caption = 'Choose reformatter'
+    Caption = 'Select reformatter'
     ItemIndex = 0
     Items.Strings = (
       'Internal'
