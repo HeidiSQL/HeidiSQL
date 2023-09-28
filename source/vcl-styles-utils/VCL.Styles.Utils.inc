@@ -14,20 +14,18 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2023 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 //************************************************************************************************
-
 {$DEFINE USE_Vcl.Styles.Hooks}
 {$DEFINE HOOK_UXTHEME}
 {$DEFINE HOOK_TDateTimePicker}
 {$DEFINE HOOK_TProgressBar}
 {$DEFINE LimitStylesToMainApplicationThread}
 {.$DEFINE HOOK_VirtualShell}
-
+{.$DEFINE HOOK_ExplorerStatusBar}
 { Feature toggles for supported UxThemes - see Vcl.Styles.UxTheme }
-
 {$DEFINE HOOK_Button}
 {$DEFINE HOOK_AllButtons}
 {$DEFINE HOOK_Scrollbar}
