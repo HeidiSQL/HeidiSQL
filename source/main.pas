@@ -776,6 +776,8 @@ type
     actSequalSuggest: TAction;
     SequalSuggest1: TMenuItem;
     SequalSuggest2: TMenuItem;
+    popupDataTop: TPopupMenu;
+    menuQueryExactRowCount: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1175,6 +1177,7 @@ type
     procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
       var Special: Boolean; var FG, BG: TColor);
     procedure actSequalSuggestExecute(Sender: TObject);
+    procedure menuQueryExactRowCountClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1240,6 +1243,7 @@ type
     FMatchingBraceForegroundColor: TColor;
     FMatchingBraceBackgroundColor: TColor;
     FSynEditInOnPaintTransient: Boolean;
+    FExactRowCountMode: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -6110,14 +6114,28 @@ begin
   IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
   IsFiltered := SynMemoFilter.GetTextLen > 0;
   if DBObject.NodeType = lntTable then begin
-    if (not IsLimited) and (not IsFiltered) then
-      RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
-    else
-      RowsTotal := DBObject.RowCount(True);
+    if (not IsLimited) and (not IsFiltered) then begin
+      RowsTotal := DataGrid.RootNodeCount; // No need to fetch via SHOW TABLE STATUS
+      DBObject.RowsAreExact := True;
+      menuQueryExactRowCount.Enabled := False;
+    end
+    else begin
+      Screen.Cursor := crHourGlass;
+      if (not DBObject.RowsAreExact) or FExactRowCountMode then
+        RowsTotal := DBObject.RowCount(True, FExactRowCountMode)
+      else
+        RowsTotal := DBObject.Rows;
+      Screen.Cursor := crDefault;
+      menuQueryExactRowCount.Enabled := True;
+    end;
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
-      if DBObject.Engine = 'InnoDB' then
-        cap := cap + ' ('+_('approximately')+')';
+      if DBObject.Engine = 'InnoDB' then begin
+        if DBObject.RowsAreExact then
+          cap := cap + ' ('+_('exact')+')'
+        else
+          cap := cap + ' ('+_('approximately')+')';
+      end;
       // Display either LIMIT or WHERE effect, not both at the same time
       if IsLimited then
         cap := cap + ', '+_('limited to') + ' ' + FormatNumber(Datagrid.RootNodeCount)
@@ -6131,13 +6149,25 @@ begin
       // in table copy dialog. See issue #666
       if Assigned(DBtree.FocusedNode) then begin
         ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
-        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then
+        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then begin
           ObjInCache.Rows := RowsTotal;
+          ObjInCache.RowsAreExact := DBObject.RowsAreExact;
+        end;
       end;
     end;
   end;
   lblDataTop.Caption := cap;
   lblDataTop.Hint := cap;
+  FExactRowCountMode := False;
+end;
+
+
+procedure TMainForm.menuQueryExactRowCountClick(Sender: TObject);
+begin
+  // Activate exact row count mode and let DisplayRowCountStats do the rest
+  // See https://www.heidisql.com/forum.php?t=41310
+  FExactRowCountMode := True;
+  DisplayRowCountStats(DataGrid);
 end;
 
 

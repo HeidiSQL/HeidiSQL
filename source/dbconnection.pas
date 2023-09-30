@@ -168,7 +168,7 @@ type
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       // Routine options:
       Body, Definer, Returns, DataAccess, Security, ArgTypes: String;
-      Deterministic: Boolean;
+      Deterministic, RowsAreExact: Boolean;
 
       NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
@@ -181,7 +181,7 @@ type
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function SchemaClauseIS(Prefix: String): String;
-      function RowCount(Reload: Boolean): Int64;
+      function RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
@@ -510,7 +510,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual; abstract;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetLockedByThread(Value: TThread); virtual;
@@ -649,7 +649,7 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
       procedure SetLockedByThread(Value: TThread); override;
     public
@@ -680,7 +680,7 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -720,7 +720,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
@@ -760,7 +760,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -794,7 +794,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TInterbaseRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -6483,12 +6483,12 @@ begin
 end;
 
 
-function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
+function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
   // Get row number from a mysql table
-  if Parameters.IsProxySQLAdmin then
+  if Parameters.IsProxySQLAdmin or ForceExact then
     Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0)
   else
     Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
@@ -6496,7 +6496,7 @@ begin
 end;
 
 
-function TAdoDBConnection.GetRowCount(Obj: TDBObject): Int64;
+function TAdoDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -6513,7 +6513,7 @@ begin
 end;
 
 
-function TPgConnection.GetRowCount(Obj: TDBObject): Int64;
+function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -6529,7 +6529,7 @@ begin
 end;
 
 
-function TSQLiteConnection.GetRowCount(Obj: TDBObject): Int64;
+function TSQLiteConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -6539,7 +6539,7 @@ begin
 end;
 
 
-function TInterbaseConnection.GetRowCount(Obj: TDBObject): Int64;
+function TInterbaseConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -9965,6 +9965,7 @@ begin
   CreateOptions := '';
   FCreateCode := '';
   FCreateCodeLoaded := False;
+  RowsAreExact := False;
   FConnection := OwnerConnection;
 end;
 
@@ -9987,6 +9988,7 @@ begin
     Updated := s.Updated;
     Comment := s.Comment;
     Rows := s.Rows;
+    RowsAreExact := s.RowsAreExact;
     Size := s.Size;
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
@@ -10227,10 +10229,11 @@ begin
     Result := Connection.GetSQLSpecifity(spISSchemaCol, [Prefix]) + '=' + Connection.EscapeString(Database);
 end;
 
-function TDBObject.RowCount(Reload: Boolean): Int64;
+function TDBObject.RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
 begin
   if (Rows = -1) or Reload then begin
-    Rows := Connection.GetRowCount(Self);
+    Rows := Connection.GetRowCount(Self, ForceExact);
+    RowsAreExact := ForceExact;
   end;
   Result := Rows;
 end;
