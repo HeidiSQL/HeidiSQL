@@ -1046,6 +1046,7 @@ object MainForm: TMainForm
               Anchors = [akLeft, akTop, akRight, akBottom]
               AutoSize = False
               Caption = 'Data'
+              PopupMenu = popupDataTop
               Layout = tlCenter
             end
             object tlbDataButtons: TToolBar
@@ -25771,5 +25772,13 @@ object MainForm: TMainForm
     OnTimer = TimerStoreTabsTimer
     Left = 689
     Top = 299
+  end
+  object popupDataTop: TPopupMenu
+    Left = 352
+    Top = 320
+    object menuQueryExactRowCount: TMenuItem
+      Caption = 'Query exact row count'
+      OnClick = menuQueryExactRowCountClick
+    end
   end
 end
