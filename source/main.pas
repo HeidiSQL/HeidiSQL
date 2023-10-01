@@ -1415,9 +1415,17 @@ begin
     if PanelNr = 6 then begin
       // Immediately repaint this special panel, as it holds critical update messages,
       // while avoiding StatusBar.Repaint which refreshes all panels
-      SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
-      StatusBar.OnDrawPanel(StatusBar, StatusBar.Panels[PanelNr], PanelRect);
-      InvalidateRect(StatusBar.Handle, PanelRect, False);
+      try
+        SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
+        StatusBar.OnDrawPanel(StatusBar, StatusBar.Panels[PanelNr], PanelRect);
+        InvalidateRect(StatusBar.Handle, PanelRect, False);
+      except
+        on E:EAccessViolation do begin
+          // Happening on Wine: Access violation at address 00000002FB43C1AA in module 'comctl32.dll'.
+          // Found in uploaded crash reports
+          LogSQL('TMainForm.ShowStatusMsg: '+E.Message, lcError);
+        end;
+      end;
       // Alternatives:
       //RedrawWindow(StatusBar.Handle, @PanelRect, 0, RDW_UPDATENOW);
       //UpdateWindow(StatusBar.Handle);
