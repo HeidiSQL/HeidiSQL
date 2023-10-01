@@ -1351,6 +1351,9 @@ begin
   // Some modification -
   if FLoaded then begin
     Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+    if Sess = nil then
+      Exit;
+
     FSessionModified := (Sess.Hostname <> editHost.Text)
       or (Sess.Username <> editUsername.Text)
       or (Sess.LoginPrompt <> chkLoginPrompt.Checked)
