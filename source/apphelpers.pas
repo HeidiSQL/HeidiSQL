@@ -334,7 +334,7 @@ type
   function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
-  function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
+  function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   function GetTempDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
@@ -1138,14 +1138,16 @@ end;
 {**
   Format a number of seconds to a human readable time format
   @param Cardinal Number of seconds
-  @result String 12:34:56
+  @result String 12:34:56.7
 }
-function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
+function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
 var
-  d, h, m, s, ts: Integer;
+  d, h, m, s, ms: Integer;
+  msStr: String;
 begin
   s := TruncDef(Seconds, 0);
-  ts := TruncDef((Seconds - s) * 10, 0); // ts = tenth of a second
+  ms := TruncDef((Seconds - s) * Power(10, MilliSecondsPrecision), 0); // Milliseconds, with variable precision/digits
+  msStr := IntToStr(ms).PadLeft(MilliSecondsPrecision, '0');
   d := s div (60*60*24);
   s := s mod (60*60*24);
   h := s div (60*60);
@@ -1155,7 +1157,7 @@ begin
   if d > 0 then begin
     if DisplaySeconds then begin
       Result := Format('%d '+_('days')+', %.2d:%.2d:%.2d', [d, h, m, s]);
-      Result := Result + '.' + IntToStr(ts);
+      Result := Result + '.' + msStr; // Append milliseconds
     end
     else begin
       Result := Format('%d '+_('days')+', %.2d:%.2d h', [d, h, m]);
@@ -1163,7 +1165,7 @@ begin
   end else begin
     if DisplaySeconds then begin
       Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
-      Result := Result + '.' + IntToStr(ts);
+      Result := Result + '.' + msStr; // Append milliseconds
     end
     else begin
       Result := Format('%.2d:%.2d h', [h, m]);

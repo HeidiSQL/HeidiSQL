@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.Math, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, IdHTTP, IdSSLOpenSSL,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, IdHTTP, IdSSLOpenSSL, System.JSON,
   apphelpers, extra_controls, gnugettext, dbconnection, dbstructures, dbstructures.mysql;
 
 type
@@ -12,16 +12,21 @@ type
     grpReformatter: TRadioGroup;
     btnCancel: TButton;
     btnOk: TButton;
+    lblFormatProviderLink: TLinkLabel;
     procedure btnOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure grpReformatterClick(Sender: TObject);
+    procedure lblFormatProviderLinkLinkClick(Sender: TObject;
+      const Link: string; LinkType: TSysLinkType);
   private
     { Private declarations }
     FInputCode, FOutputCode: String;
   public
     { Public declarations }
-    function ReformatInternal(SQL: String): String;
-    function ReformatOnline(SQL: String): String;
+    function FormatSqlInternal(SQL: String): String;
+    function FormatSqlOnlineHeidisql(SQL: String): String;
+    function FormatSqlOnlineSqlformatOrg(SQL: String): String;
     property InputCode: String read FInputCode write FInputCode;
     property OutputCode: String read FOutputCode;
   end;
@@ -37,19 +42,29 @@ uses main;
 
 
 procedure TfrmReformatter.btnOkClick(Sender: TObject);
+var
+  StartTime: UInt64;
+  TimeElapsed: Double;
 begin
   Screen.Cursor := crHourGlass;
   try
+    StartTime := GetTickCount64;
     case grpReformatter.ItemIndex of
       0: begin
         // Internal
-        FOutputCode := ReformatInternal(FInputCode);
+        FOutputCode := FormatSqlInternal(FInputCode);
       end;
       1: begin
         // Online
-        FOutputCode := ReformatOnline(FInputCode);
+        FOutputCode := FormatSqlOnlineHeidisql(FInputCode);
+      end;
+      2: begin
+        // sqlformat.org
+        FOutputCode := FormatSqlOnlineSqlformatOrg(FInputCode);
       end;
     end;
+    TimeElapsed := GetTickCount64 - StartTime;
+    MainForm.LogSQL(f_('Code reformatted in %s, using formatter %s', [FormatTimeNumber(TimeElapsed/1000, True, 3), '#'+grpReformatter.ItemIndex.ToString]));
   except
     on E:EIdHTTPProtocolException do begin
       ErrorDialog(E.Message + sLineBreak + sLineBreak + E.ErrorMessage);
@@ -68,7 +83,8 @@ procedure TfrmReformatter.FormCreate(Sender: TObject);
 begin
   grpReformatter.Items.Clear;
   grpReformatter.Items.Add(_('Internal'));
-  grpReformatter.Items.Add(f_('Online on %s (%s)', [APPDOMAIN, 'sql-formatter']));
+  grpReformatter.Items.Add(f_('Online on %s', [APPDOMAIN]));
+  grpReformatter.Items.Add(f_('Online on %s', ['sqlformat.org']));
   grpReformatter.ItemIndex := AppSettings.ReadInt(asReformatter);
 end;
 
@@ -78,7 +94,28 @@ begin
 end;
 
 
-function TfrmReformatter.ReformatInternal(SQL: String): String;
+procedure TfrmReformatter.grpReformatterClick(Sender: TObject);
+begin
+  case grpReformatter.ItemIndex of
+    0: lblFormatProviderLink.Visible := False;
+    1: begin
+      lblFormatProviderLink.Caption := '<a href="https://github.com/doctrine/sql-formatter">github.com/doctrine/sql-formatter</a> (Jeremy Dorn)';
+      lblFormatProviderLink.Visible := True;
+    end;
+    2: begin
+      lblFormatProviderLink.Caption := '<a href="https://sqlformat.org/">SQLFormat.org</a> (Andi Albrecht)';
+      lblFormatProviderLink.Visible := True;
+    end;
+  end;
+end;
+
+procedure TfrmReformatter.lblFormatProviderLinkLinkClick(Sender: TObject;
+  const Link: string; LinkType: TSysLinkType);
+begin
+  apphelpers.ShellExec(Link);
+end;
+
+function TfrmReformatter.FormatSqlInternal(SQL: String): String;
 var
   Conn: TDBConnection;
   SQLFunc: TSQLFunction;
@@ -188,7 +225,7 @@ begin
 end;
 
 
-function TfrmReformatter.ReformatOnline(SQL: String): String;
+function TfrmReformatter.FormatSqlOnlineHeidisql(SQL: String): String;
 var
   HttpReq: TIdHTTP;
   SSLio: TIdSSLIOHandlerSocketOpenSSL;
@@ -213,5 +250,37 @@ begin
   HttpReq.Free;
 end;
 
+
+function TfrmReformatter.FormatSqlOnlineSqlformatOrg(SQL: String): String;
+var
+  HttpReq: TIdHTTP;
+  SSLio: TIdSSLIOHandlerSocketOpenSSL;
+  Parameters: TStringList;
+  JsonResponseStr: String;
+  JsonTmp: TJSONValue;
+begin
+  HttpReq := TIdHTTP.Create;
+  SSLio := TIdSSLIOHandlerSocketOpenSSL.Create;
+  HttpReq.IOHandler := SSLio;
+  SSLio.SSLOptions.SSLVersions := [sslvTLSv1_1, sslvTLSv1_2];
+  HttpReq.Request.CharSet := 'utf-8';
+  HttpReq.Request.UserAgent := apphelpers.UserAgent(Self);
+  // Parameter documentation: https://sqlformat.org/api/
+  Parameters := TStringList.Create;
+  Parameters.AddPair('sql', FInputCode);
+  Parameters.AddPair('reindent', '1');
+  if AppSettings.ReadBool(asTabsToSpaces) then
+    Parameters.AddPair('indent_width', AppSettings.ReadInt(asTabWidth).ToString)
+  else
+    Parameters.AddPair('indent_width', '2');
+  Parameters.AddPair('keyword_case', 'upper');
+  JsonResponseStr := HttpReq.Post('https://sqlformat.org/api/v1/format', Parameters);
+  if JsonResponseStr.IsEmpty then
+    raise Exception.Create(_('Empty result from online reformatter'));
+  JsonTmp := TJSONObject.ParseJSONValue(JsonResponseStr);
+  Result := JsonTmp.FindValue('result').Value;
+  JsonTmp.Free;
+  HttpReq.Free;
+end;
 
 end.

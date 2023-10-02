@@ -464,7 +464,7 @@ begin
     else if FHighlighter is TSynSQLSyn then begin
       // Prefer old internal formatter here, so the user does not run into request limits
       frmReformatter := TfrmReformatter.Create(Self);
-      MemoText.Text := frmReformatter.ReformatInternal(MemoText.Text);
+      MemoText.Text := frmReformatter.FormatSqlInternal(MemoText.Text);
       MemoText.SelStart := 0;
       MemoText.SelLength := 0;
       frmReformatter.Free;

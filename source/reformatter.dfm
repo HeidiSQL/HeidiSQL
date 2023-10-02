@@ -4,7 +4,7 @@ object frmReformatter: TfrmReformatter
   BorderStyle = bsDialog
   Caption = 'Reformat SQL'
   ClientHeight = 172
-  ClientWidth = 328
+  ClientWidth = 503
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,24 +15,26 @@ object frmReformatter: TfrmReformatter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   DesignSize = (
-    328
+    503
     172)
   TextHeight = 15
   object grpReformatter: TRadioGroup
     Left = 8
     Top = 8
-    Width = 312
+    Width = 487
     Height = 125
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Select reformatter'
     ItemIndex = 0
     Items.Strings = (
       'Internal'
-      'Online (heidisql.com)')
+      'Online (heidisql.com)'
+      'Online (sqlformat.org)')
     TabOrder = 0
+    OnClick = grpReformatterClick
   end
   object btnCancel: TButton
-    Left = 245
+    Left = 420
     Top = 139
     Width = 75
     Height = 25
@@ -41,10 +43,9 @@ object frmReformatter: TfrmReformatter
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 1
-    ExplicitTop = 200
   end
   object btnOk: TButton
-    Left = 164
+    Left = 339
     Top = 139
     Width = 75
     Height = 25
@@ -54,6 +55,16 @@ object frmReformatter: TfrmReformatter
     ModalResult = 1
     TabOrder = 2
     OnClick = btnOkClick
-    ExplicitTop = 200
+  end
+  object lblFormatProviderLink: TLinkLabel
+    Left = 8
+    Top = 142
+    Width = 121
+    Height = 19
+    Caption = 'lblFormatProviderLink'
+    TabOrder = 3
+    UseVisualStyle = True
+    Visible = False
+    OnLinkClick = lblFormatProviderLinkLinkClick
   end
 end

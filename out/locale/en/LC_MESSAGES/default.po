@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2023-09-30 12:29+0200\n"
+"PO-Revision-Date: 2023-10-02 18:16+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6612,11 +6612,14 @@ msgstr "Select reformatter"
 msgid "Internal"
 msgstr "Internal"
 
-msgid "Online on %s (%s)"
-msgstr "Online on %s (%s)"
+msgid "Online on %s"
+msgstr "Online on %s"
 
 msgid "Empty result from online reformatter"
 msgstr "Empty result from online reformatter"
 
 msgid "Query exact row count"
 msgstr "Query exact row count"
+
+msgid "Code reformatted in %s, using formatter %s"
+msgstr "Code reformatted in %s, using formatter %s"
