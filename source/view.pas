@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo,
   Vcl.ExtCtrls,
-  dbconnection, dbstructures, dbstructures.mysql, apphelpers, gnugettext, Vcl.ComCtrls;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, gnugettext, Vcl.ComCtrls, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -33,6 +33,7 @@ type
     procedure btnDiscardClick(Sender: TObject);
     procedure Modification(Sender: TObject);
     procedure comboDefinerDropDown(Sender: TObject);
+    procedure PageControlMainChange(Sender: TObject);
   private
     { Private declarations }
     function ComposeCreateStatement: TSQLBatch;
@@ -131,6 +132,7 @@ begin
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
   Mainform.ShowStatusMsg;
+  TExtForm.PageControlTabHighlight(PageControlMain);
   Screen.Cursor := crDefault;
 end;
 
@@ -209,6 +211,12 @@ begin
   Batch := ComposeCreateStatement;
   SynMemoCreateCode.Text := Batch.SQL;
   Batch.Free;
+end;
+
+
+procedure TfrmView.PageControlMainChange(Sender: TObject);
+begin
+  TExtForm.PageControlTabHighlight(PageControlMain);
 end;
 
 

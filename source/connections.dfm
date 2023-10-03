@@ -115,6 +115,7 @@ object connform: Tconnform
     Align = alClient
     Images = MainForm.VirtualImageListMain
     TabOrder = 6
+    OnChange = PageControlDetailsChange
     object tabStart: TTabSheet
       Caption = 'Start'
       ImageIndex = 112

@@ -26,6 +26,7 @@ object frmTriggerEditor: TfrmTriggerEditor
     Align = alTop
     Images = MainForm.VirtualImageListMain
     TabOrder = 4
+    OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39

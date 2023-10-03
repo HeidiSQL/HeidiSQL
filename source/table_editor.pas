@@ -2287,6 +2287,7 @@ begin
       SynMemoAlterCode.SetFocus;
   end;
   UpdateSQLcode;
+  TExtForm.PageControlTabHighlight(PageControlMain);
 end;
 
 

@@ -6272,6 +6272,7 @@ begin
   else Exit; // Silence compiler warning
   list.SetFocus;
   UpdateFilterPanel(Sender);
+  PageControlTabHighlight(PageControlHost);
 end;
 
 
@@ -6527,6 +6528,7 @@ begin
 
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
+  PageControlTabHighlight(PageControlMain);
 end;
 
 
@@ -9044,7 +9046,10 @@ begin
   end else begin
     VirtualImageListMain.ImageCollection := ImageCollectionIcons8;
   end;
+  // Add all normal color icons from collection to virtual image list
   VirtualImageListMain.Add('', 0, VirtualImageListMain.ImageCollection.Count-1);
+  // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
+  VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);
 end;
 
 

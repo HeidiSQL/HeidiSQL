@@ -538,6 +538,7 @@ var
 begin
   // Fired after various user clicks, and also on implicit child node checking
   SomeChecked := TreeObjects.CheckedCount > 0;
+  TExtForm.PageControlTabHighlight(tabsTools);
   btnSeeResults.Visible := tabsTools.ActivePage = tabFind;
   lblCheckedSize.Caption := f_('Selected objects size: %s', [FormatByteNumber(FObjectSizes)]);
   if tabsTools.ActivePage = tabMaintenance then begin

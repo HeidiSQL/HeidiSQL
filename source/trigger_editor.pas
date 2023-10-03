@@ -37,6 +37,7 @@ type
       var CurrentInput: String; var x, y: Integer; var CanExecute: Boolean);
     procedure comboDefinerDropDown(Sender: TObject);
     procedure comboChange(Sender: TObject);
+    procedure PageControlMainChange(Sender: TObject);
   private
     { Private declarations }
     function ComposeCreateStatement: String;
@@ -171,6 +172,7 @@ begin
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
   Mainform.ShowStatusMsg;
+  TExtForm.PageControlTabHighlight(PageControlMain);
   Screen.Cursor := crDefault;
 end;
 
@@ -187,6 +189,11 @@ begin
   SynMemoCreateCode.Text := ComposeCreateStatement;
 end;
 
+
+procedure TfrmTriggerEditor.PageControlMainChange(Sender: TObject);
+begin
+  TExtForm.PageControlTabHighlight(PageControlMain);
+end;
 
 procedure TfrmTriggerEditor.btnDiscardClick(Sender: TObject);
 begin

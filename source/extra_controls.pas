@@ -4,7 +4,7 @@ interface
 
 uses
   System.Classes, System.SysUtils, Vcl.Forms, Winapi.Windows, Winapi.Messages, System.Types, Vcl.StdCtrls, Vcl.Clipbrd,
-  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.ComCtrls,
+  SizeGrip, apphelpers, Vcl.Graphics, Vcl.Dialogs, gnugettext, Vcl.ImgList, Vcl.VirtualImageList, Vcl.ComCtrls,
   Winapi.ShLwApi, Vcl.ExtCtrls, VirtualTrees, VirtualTrees.Types, SynRegExpr, Vcl.Controls, Winapi.ShlObj,
   SynEditMiscClasses, SynUnicode;
 
@@ -29,6 +29,7 @@ type
       class procedure RestoreListSetup(List: TVirtualStringTree);
       function ScaleSize(x: Extended): Integer; overload;
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
+      class procedure PageControlTabHighlight(PageControl: TPageControl);
   end;
 
   // Modern file-open-dialog with high DPI support and encoding selector
@@ -414,6 +415,31 @@ class function TExtForm.ScaleSize(x: Extended; Control: TControl): Integer;
 begin
   // Same as above for callers without a form
   Result := Round(x * Control.ScaleFactor);
+end;
+
+
+class procedure TExtForm.PageControlTabHighlight(PageControl: TPageControl);
+var
+  i, CurrentImage, CountOriginals: Integer;
+  Images: TVirtualImageList;
+begin
+  // Set grayscale icon on inactive tabs
+  if not (PageControl.Images is TVirtualImageList) then
+    Exit;
+  Images := PageControl.Images as TVirtualImageList;
+  CountOriginals := Images.ImageCollection.Count;
+
+  for i:=0 to PageControl.PageCount-1 do begin
+    CurrentImage := PageControl.Pages[i].ImageIndex;
+    if PageControl.ActivePageIndex = i then begin
+      if CurrentImage >= CountOriginals then
+        PageControl.Pages[i].ImageIndex := CurrentImage - CountOriginals;
+    end
+    else begin
+      if CurrentImage < CountOriginals then
+        PageControl.Pages[i].ImageIndex := CurrentImage + CountOriginals;
+    end;
+  end;
 end;
 
 

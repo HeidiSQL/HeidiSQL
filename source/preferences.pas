@@ -282,6 +282,7 @@ procedure TfrmPreferences.pagecontrolMainChange(Sender: TObject);
 begin
   // See OnChanging procedure
   btnApply.Enabled := FWasModified;
+  TExtForm.PageControlTabHighlight(pagecontrolMain);
 end;
 
 
@@ -799,6 +800,8 @@ begin
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;
+
+  TExtForm.PageControlTabHighlight(pagecontrolMain);
 
   FRestartOptionTouched := False;
   btnApply.Enabled := False;

@@ -131,6 +131,7 @@ object frmRoutineEditor: TfrmRoutineEditor
     Constraints.MinHeight = 166
     Images = MainForm.VirtualImageListMain
     TabOrder = 0
+    OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 39

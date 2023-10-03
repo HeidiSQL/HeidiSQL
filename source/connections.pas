@@ -199,6 +199,7 @@ type
     procedure actFilterExecute(Sender: TObject);
     procedure timerEditFilterDelayTimer(Sender: TObject);
     procedure chkSSHActiveClick(Sender: TObject);
+    procedure PageControlDetailsChange(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -1528,6 +1529,7 @@ begin
   menuSave.Enabled := btnSave.Enabled;
   menuSaveAs.Enabled := SessionFocused;
   menuDelete.Enabled := btnDelete.Enabled;
+  TExtForm.PageControlTabHighlight(PageControlDetails);
 
   Caption := GetWindowCaption;
 end;
@@ -1572,6 +1574,11 @@ begin
   Inc(FButtonAnimationStep);
   if FButtonAnimationStep >= MaxAnimationSteps then
     FButtonAnimationStep := 0;
+end;
+
+procedure Tconnform.PageControlDetailsChange(Sender: TObject);
+begin
+  ValidateControls;
 end;
 
 procedure Tconnform.PickFile(Sender: TObject);
