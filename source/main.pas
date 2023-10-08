@@ -4692,6 +4692,8 @@ begin
   // Display search + replace dialog
   if not Assigned(FSearchReplaceDialog) then
     FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
+  if FSearchReplaceDialog.Visible then
+    Exit;
   FSearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
   if (ActiveSynMemo(False) <> nil) or (ActiveGrid <> nil) then begin
     OldDataLocalNumberFormat := DataLocalNumberFormat;
