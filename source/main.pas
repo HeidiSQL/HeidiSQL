@@ -11524,7 +11524,14 @@ begin
     LogSQL(f_('Foreign key not found for column "%s"', [FocusedColumnName]), lcInfo);
     Exit;
   end;
-  // jump to ReferenceTable
+  Datatype := Results.DataType(DataGrid.FocusedColumn-1);
+  // filter to show only rows linked by the foreign key
+  if DataType.Category in [dtcBinary, dtcSpatial] then
+    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Results.HexValue(DataGrid.FocusedColumn-1)
+  else
+    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Conn.EscapeString(Results.Col(DataGrid.FocusedColumn-1));
+
+  // Jumping to ReferenceTable. Caution, this invalidates the above used Results
   DbObjects := Conn.GetDBObjects(ActiveDatabase);
   for DBObj in DbObjects do begin
     if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
@@ -11533,12 +11540,6 @@ begin
     end;
   end;
 
-  Datatype := Results.DataType(DataGrid.FocusedColumn-1);
-  // filter to show only rows linked by the foreign key
-  if DataType.Category in [dtcBinary, dtcSpatial] then
-    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Results.HexValue(DataGrid.FocusedColumn-1)
-  else
-    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Conn.EscapeString(Results.Col(DataGrid.FocusedColumn-1));
   SynMemoFilter.Text := Filter;
   ToggleFilterPanel(True);
   actApplyFilter.Execute;
