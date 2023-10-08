@@ -10212,7 +10212,7 @@ begin
         // Normal integers are *copied* and *edited* as raw numbers, but probably *displayed* as formatted numbers.
         if FGridCopying then begin
           CellText := Results.Col(ResultCol);
-        end else if HandleUnixTimestampColumn(Sender, ResultCol) then begin
+        end else if HandleUnixTimestampColumn(Sender, Column) then begin
           try
             Timestamp := Trunc(StrToFloat(Results.Col(ResultCol), FFormatSettings));
             Dec(Timestamp, FTimeZoneOffset);
