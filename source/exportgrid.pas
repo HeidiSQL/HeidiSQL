@@ -406,6 +406,7 @@ var
   GridData: TDBQuery;
   Node: PVirtualNode;
   Col, ExcludeCol: TColumnIndex;
+  ResultCol: Integer;
   RowNum: PInt64;
   SelectionSize, AllSize, RowsCalculated: Int64;
 begin
@@ -422,12 +423,13 @@ begin
   while Assigned(Node) do begin
     RowNum := Grid.GetNodeData(Node);
     GridData.RecNo := RowNum^;
-    Col := Grid.Header.Columns.GetFirstVisibleColumn;
+    Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
     while Col > NoColumn do begin
+      ResultCol := Col - 1;
       if Col <> ExcludeCol then begin
-        Inc(AllSize, GridData.ColumnLengths(Col));
+        Inc(AllSize, GridData.ColumnLengths(ResultCol));
         if vsSelected in Node.States then
-          Inc(SelectionSize, GridData.ColumnLengths(Col));
+          Inc(SelectionSize, GridData.ColumnLengths(ResultCol));
       end;
       Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
     end;
@@ -544,6 +546,7 @@ end;
 procedure TfrmExportGrid.btnOKClick(Sender: TObject);
 var
   Col, ExcludeCol: TColumnIndex;
+  ResultCol: Integer;
   Header, Data, tmp, Encloser, Separator, Terminator, TableName, Filename: String;
   Node: PVirtualNode;
   GridData: TDBQuery;
@@ -586,7 +589,7 @@ begin
     end;
     ExcludeCol := NoColumn;
     if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
-      ExcludeCol := GridData.AutoIncrementColumn;
+      ExcludeCol := GridData.AutoIncrementColumn + 1;
 
     if radioOutputCopyToClipboard.Checked then
       Encoding := TEncoding.UTF8
@@ -626,7 +629,7 @@ begin
           '      th, td {vertical-align: top;}' + CRLF +
           '      table, td {border: 1px solid silver; padding: 2px;}' + CRLF +
           '      table {border-collapse: collapse;}' + CRLF;
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
           // Right-justify all cells to match the grid on screen.
           if Grid.Header.Columns[Col].Alignment = taRightJustify then
@@ -644,7 +647,7 @@ begin
           Header := Header +
             '      <thead>' + CRLF +
             '        <tr>' + CRLF;
-          Col := Grid.Header.Columns.GetFirstVisibleColumn;
+          Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
               Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
@@ -663,12 +666,13 @@ begin
         Encloser := GridData.Connection.UnescapeString(editEncloser.Text);
         Terminator := GridData.Connection.UnescapeString(editTerminator.Text);
         if chkIncludeColumnNames.Checked then begin
-          Col := Grid.Header.Columns.GetFirstVisibleColumn;
+          Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
             // Alter column name in header if data is not raw.
+            ResultCol := Col - 1;
             if Col <> ExcludeCol then begin
               Data := Grid.Header.Columns[Col].Text;
-              if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+              if (GridData.DataType(ResultCol).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
                 Data := 'HEX(' + Data + ')';
               // Add header item.
               if Header <> '' then
@@ -696,7 +700,7 @@ begin
         Encloser := '';
         Terminator := '\\ '+CRLF;
         Header := Header + '{';
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
           if Col <> ExcludeCol then
             Header := Header + ' c ';
@@ -704,7 +708,7 @@ begin
         end;
         Header := Header + '}' + CRLF;
         if chkIncludeColumnNames.Checked then begin
-          Col := Grid.Header.Columns.GetFirstVisibleColumn;
+          Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
               Header := Header + FormatLatex(Grid.Header.Columns[Col].Text) + Separator;
@@ -721,7 +725,7 @@ begin
         Terminator := IfThen(ExportFormat=efTextile, ' |', ' ||') + CRLF;
         if chkIncludeColumnNames.Checked then begin
           Header := TrimLeft(Separator);
-          Col := Grid.Header.Columns.GetFirstVisibleColumn;
+          Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
               Header := Header + Grid.Header.Columns[Col].Text  + Separator;
@@ -749,7 +753,7 @@ begin
         if chkIncludeQuery.Checked then
           Header := Header + '```sql' + CRLF + GridData.SQL + CRLF + '```' + CRLF;
         Header := Header + TrimLeft(Separator);
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
           if Col <> ExcludeCol then begin
             if chkIncludeColumnNames.Checked then
@@ -762,11 +766,12 @@ begin
         Header := Header + Terminator;
         // Write an extra line with dashes below the heading, otherwise the table won't parse
         Header := Header + TrimLeft(Separator);
-        Col := Grid.Header.Columns.GetFirstVisibleColumn;
+        Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
+          ResultCol := Col - 1;
           if Col <> ExcludeCol then begin
             Header := Header + '---';
-            if GridData.DataType(Col).Category in [dtcInteger, dtcReal] then
+            if GridData.DataType(ResultCol).Category in [dtcInteger, dtcReal] then
               Header := Header + ':';
             Header := Header + Separator;
           end;
@@ -827,9 +832,10 @@ begin
           tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
           if chkIncludeColumnNames.Checked then begin
             tmp := tmp + ' (';
-            Col := Grid.Header.Columns.GetFirstVisibleColumn;
+            Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
             while Col > NoColumn do begin
-              if (Col <> ExcludeCol) and (not GridData.ColIsVirtual(Col)) then
+              ResultCol := Col - 1;
+              if (Col <> ExcludeCol) and (not GridData.ColIsVirtual(ResultCol)) then
                 tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text)+', ';
               Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
             end;
@@ -856,19 +862,20 @@ begin
       end;
 
       // Row contents
-      Col := Grid.Header.Columns.GetFirstVisibleColumn;
+      Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
       while Col > NoColumn do begin
+        ResultCol := Col - 1;
         if Col <> ExcludeCol then begin
-          if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial])
+          if (GridData.DataType(ResultCol).Category in [dtcBinary, dtcSpatial])
             and (not Mainform.actBlobAsText.Checked) then begin
-            Data := GridData.HexValue(Col);
+            Data := GridData.HexValue(ResultCol);
           end else begin
-            Data := GridData.Col(Col);
+            Data := GridData.Col(ResultCol);
             RemoveNullChars(Data, HasNulls);
           end;
 
           // Keep formatted numeric values
-          if (GridData.DataType(Col).Category in [dtcInteger, dtcReal])
+          if (GridData.DataType(ResultCol).Category in [dtcInteger, dtcReal])
             and (ExportFormat in [efExcel, efHTML, efMarkDown]) then begin
             Data := FormatNumber(Data, False);
           end;
@@ -888,10 +895,10 @@ begin
             end;
 
             efExcel, efCSV: begin
-              if GridData.IsNull(Col) then
+              if GridData.IsNull(ResultCol) then
                 Data := editNull.Text
               else begin
-                Data := FormatExcelCsv(Data, Encloser, GridData.DataType(Col));
+                Data := FormatExcelCsv(Data, Encloser, GridData.DataType(ResultCol));
                 Data := Encloser + Data + Encloser;
               end;
               tmp := tmp + Data + Separator;
@@ -899,7 +906,7 @@ begin
 
             efLaTeX: begin
               Data := FormatLatex(Data);
-              if (not GridData.IsNull(Col)) and (GridData.DataType(Col).Category in [dtcInteger, dtcReal]) then
+              if (not GridData.IsNull(ResultCol)) and (GridData.DataType(ResultCol).Category in [dtcInteger, dtcReal]) then
                 // Special encloser for numeric values, see https://www.heidisql.com/forum.php?t=36530
                 Data := '$' + Data + '$';
               tmp := tmp + Data + Separator;
@@ -910,7 +917,7 @@ begin
             end;
 
             efMarkDown: begin
-              if GridData.IsNull(Col) then
+              if GridData.IsNull(ResultCol) then
                 Data := editNull.Text;
               tmp := tmp + Data + Separator;
             end;
@@ -920,24 +927,24 @@ begin
               tmp := tmp + #9#9'<field';
               if chkIncludeColumnNames.Checked then
                 tmp := tmp + ' name="' + HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '"';
-              if GridData.IsNull(Col) then
+              if GridData.IsNull(ResultCol) then
                 tmp := tmp + ' xsi:nil="true" />' + CRLF
               else begin
-                if (GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
+                if (GridData.DataType(ResultCol).Category in [dtcBinary, dtcSpatial]) and (not Mainform.actBlobAsText.Checked) then
                   tmp := tmp + ' format="hex"';
                 tmp := tmp + '>' + HTMLSpecialChars(Data) + '</field>' + CRLF;
               end;
             end;
 
             efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate: begin
-              if GridData.ColIsVirtual(Col) then
+              if GridData.ColIsVirtual(ResultCol) then
                 Data := ''
-              else if GridData.IsNull(Col) then
+              else if GridData.IsNull(ResultCol) then
                 Data := 'NULL'
-              else if (GridData.DataType(Col).Index = dbdtBit) and GridData.Connection.Parameters.IsAnyMySQL then
+              else if (GridData.DataType(ResultCol).Index = dbdtBit) and GridData.Connection.Parameters.IsAnyMySQL then
                 Data := 'b' + GridData.Connection.EscapeString(Data)
-              else if (GridData.DataType(Col).Category in [dtcText, dtcTemporal, dtcOther])
-                or ((GridData.DataType(Col).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
+              else if (GridData.DataType(ResultCol).Category in [dtcText, dtcTemporal, dtcOther])
+                or ((GridData.DataType(ResultCol).Category in [dtcBinary, dtcSpatial]) and Mainform.actBlobAsText.Checked)
                 then
                 Data := GridData.Connection.EscapeString(Data)
               else if Data = '' then
@@ -950,9 +957,9 @@ begin
             end;
 
             efPHPArray: begin
-              if GridData.IsNull(Col) then
+              if GridData.IsNull(ResultCol) then
                 Data := 'NULL'
-              else case GridData.DataType(Col).Category of
+              else case GridData.DataType(ResultCol).Category of
                 dtcInteger, dtcReal: begin
                   // Remove zeropadding to avoid octal => integer conversion in PHP
                   Data := FormatNumber(Data);
@@ -972,10 +979,10 @@ begin
               tmp := tmp + #9#9#9;
               if chkIncludeColumnNames.Checked then
                 tmp := tmp + FormatPhp(Grid.Header.Columns[Col].Text) + ': ';
-              if GridData.IsNull(Col) then
+              if GridData.IsNull(ResultCol) then
                 tmp := tmp + 'null,' +CRLF
               else begin
-                case GridData.DataType(Col).Category of
+                case GridData.DataType(ResultCol).Category of
                   dtcInteger, dtcReal:
                     tmp := tmp + Data;
                   else
