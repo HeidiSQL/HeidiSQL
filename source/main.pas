@@ -3672,13 +3672,16 @@ var
   ImgType: String;
   Content, Header: AnsiString;
   ContentStream: TMemoryStream;
-  StrLen: Integer;
+  StrLen, ResultCol: Integer;
   Graphic: TGraphic;
 begin
   // Load BLOB contents into preview area
   Grid := ActiveGrid;
   Results := GridResult(Grid);
   if not Assigned(Results) then
+    Exit;
+  ResultCol := Grid.FocusedColumn -1;
+  if ResultCol < 0 then
     Exit;
   Screen.Cursor := crHourGlass;
   try
@@ -3690,8 +3693,8 @@ begin
     RowNum := Grid.GetNodeData(Grid.FocusedNode);
     Results.RecNo := RowNum^;
 
-    Content := AnsiString(Results.Col(Grid.FocusedColumn-1));
-    StrLen := Results.ColumnLengths(Grid.FocusedColumn-1);
+    Content := AnsiString(Results.Col(ResultCol));
+    StrLen := Results.ColumnLengths(ResultCol);
     ContentStream := TMemoryStream.Create;
     ContentStream.Write(Content[1], StrLen);
     ContentStream.Position := 0;
