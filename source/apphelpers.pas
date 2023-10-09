@@ -408,6 +408,7 @@ type
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function UserAgent(OwnerComponent: TComponent): String;
+  function GetClipboardAsText: String;
 
 var
   AppSettings: TAppSettings;
@@ -3017,6 +3018,34 @@ begin
   else
     OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
   Result := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
+end;
+
+
+function GetClipboardAsText: String;
+var
+  AttemptsLeft: Integer;
+  Success: Boolean;
+  LastError: String;
+begin
+  AttemptsLeft := 5;
+  Result := '';
+  Success := False;
+  while AttemptsLeft > 0 do begin
+    Dec(AttemptsLeft);
+    try
+      Result := Clipboard.AsText;
+      Success := True;
+      Break;
+    except
+      // We could also just catch EClipboardException
+      on E:Exception do begin
+        LastError := E.Message;
+        Sleep(100);
+      end;
+    end;
+  end;
+  if not Success then
+    MainForm.LogSQL(LastError, lcError);
 end;
 
 

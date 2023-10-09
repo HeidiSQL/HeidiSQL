@@ -3017,7 +3017,7 @@ procedure TMainForm.actCopyTabsToSpacesExecute(Sender: TObject);
 begin
   // issue #1285: copy text with tabs converted to spaces
   actCopyOrCutExecute(Sender);
-  Clipboard.AsText := StringReplace(Clipboard.AsText, #9, ' ', [rfReplaceAll]);
+  Clipboard.AsText := StringReplace(GetClipboardAsText, #9, ' ', [rfReplaceAll]);
 end;
 
 procedure TMainForm.actCopyUpdate(Sender: TObject);
@@ -7984,7 +7984,7 @@ begin
   actQuickFilterNotNull.Hint := Col + ' IS NOT NULL';
 
   // Block 3: WHERE col = [clipboard content]
-  Value := Trim(Clipboard.AsText);
+  Value := Trim(GetClipboardAsText);
   if Length(Value) < SIZE_KB then begin
     actQuickFilterClipboard1.Enabled := true;
     actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value, Datatype);
@@ -11685,14 +11685,14 @@ begin
   end else if Control is TComboBox then begin
     Combo := TComboBox(Control);
     if Combo.Style = csDropDown then begin
-      Combo.SelText := ClipBoard.AsText;
+      Combo.SelText := GetClipboardAsText;
       Success := True;
     end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
       FGridPasting := True;
-      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := ClipBoard.AsText;
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := GetClipboardAsText;
       Success := True;
       FGridPasting := False;
     end;

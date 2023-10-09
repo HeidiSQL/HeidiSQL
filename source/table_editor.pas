@@ -2827,7 +2827,7 @@ var
 begin
   // Complement to "copy columns"
   ColsFromClp := TStringList.Create;
-  ColsFromClp.Text := Clipboard.AsText;
+  ColsFromClp.Text := GetClipboardAsText;
   Node := listColumns.FocusedNode;
   if not Assigned(Node) then
     Node := listColumns.GetLast;
