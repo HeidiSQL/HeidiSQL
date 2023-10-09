@@ -7871,7 +7871,7 @@ begin
   // Make sure ValidateControls detects the grid as focused, which is not the case when
   // it has 0 nodes, even with TreeOptions.SelectionOptions.RightclickSelect enabled
   Grid.SetFocus;
-  CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > NoColumn);
+  CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > 0);
   InDataGrid := Grid = DataGrid;
   DataInsertValue.Enabled := CellFocused;
   QFvalues.Enabled := CellFocused;

@@ -1523,10 +1523,11 @@ begin
     if ClearSelection then
       VT.ClearSelection;
     VT.FocusedNode := Node;
+    VT.FocusedColumn := VT.Header.Columns.GetFirstVisibleColumn(True);
     VT.Selected[Node] := True;
     VT.ScrollIntoView(Node, False);
     if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
-      VT.OnFocusChanged(VT, Node, VT.Header.MainColumn);
+      VT.OnFocusChanged(VT, Node, VT.FocusedColumn);
   end;
 end;
 
