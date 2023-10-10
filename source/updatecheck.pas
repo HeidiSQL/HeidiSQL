@@ -256,7 +256,7 @@ end;
 
 procedure TfrmUpdateCheck.CopydownloadURL1Click(Sender: TObject);
 begin
-  Clipboard.AsText := GetLinkUrl(LinkLabelRelease, SLinkDownloadRelease);
+  Clipboard.TryAsText := GetLinkUrl(LinkLabelRelease, SLinkDownloadRelease);
 end;
 
 {**

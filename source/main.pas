@@ -3017,7 +3017,7 @@ procedure TMainForm.actCopyTabsToSpacesExecute(Sender: TObject);
 begin
   // issue #1285: copy text with tabs converted to spaces
   actCopyOrCutExecute(Sender);
-  Clipboard.AsText := StringReplace(GetClipboardAsText, #9, ' ', [rfReplaceAll]);
+  Clipboard.TryAsText := StringReplace(Clipboard.TryAsText, #9, ' ', [rfReplaceAll]);
 end;
 
 procedure TMainForm.actCopyUpdate(Sender: TObject);
@@ -7984,7 +7984,7 @@ begin
   actQuickFilterNotNull.Hint := Col + ' IS NOT NULL';
 
   // Block 3: WHERE col = [clipboard content]
-  Value := Trim(GetClipboardAsText);
+  Value := Trim(Clipboard.TryAsText);
   if Length(Value) < SIZE_KB then begin
     actQuickFilterClipboard1.Enabled := true;
     actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value, Datatype);
@@ -11596,7 +11596,7 @@ begin
     end else if CurrentControl is TCustomComboBox then begin
       Combo := TCustomComboBox(CurrentControl);
       if Combo.SelLength > 0 then begin
-        Clipboard.AsText := Combo.SelText;
+        Clipboard.TryAsText := Combo.SelText;
         if DoCut then Combo.SelText := '';
       end;
     end else if CurrentControl is TVirtualStringTree then begin
@@ -11617,12 +11617,12 @@ begin
             RowNum := Grid.GetNodeData(Grid.FocusedNode);
             Results.RecNo := RowNum^;
             if Results.IsNull(Grid.FocusedColumn-1) then begin
-              Clipboard.AsText := '';
+              Clipboard.TryAsText := '';
               FClipboardHasNull := True;
             end else begin
               TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
               RemoveNullChars(TextCopy, HasNulls);
-              Clipboard.AsText := TextCopy;
+              Clipboard.TryAsText := TextCopy;
             end;
             if DoCut then
               Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
@@ -11630,7 +11630,7 @@ begin
         end else begin
           TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
           RemoveNullChars(TextCopy, HasNulls);
-          Clipboard.AsText := TextCopy;
+          Clipboard.TryAsText := TextCopy;
         end;
         FGridCopying := False;
       end;
@@ -11639,7 +11639,7 @@ begin
       if SynMemo.SelAvail then begin
         // Create both text and RTF clipboard format, so rich text applications can paste highlighted SQL
         Clipboard.Open;
-        Clipboard.AsText := SynMemo.SelText;
+        Clipboard.TryAsText := SynMemo.SelText;
         Exporter := TSynExporterRTF.Create(Self);
         Exporter.Highlighter := SynMemo.Highlighter;
         Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
@@ -11685,14 +11685,14 @@ begin
   end else if Control is TComboBox then begin
     Combo := TComboBox(Control);
     if Combo.Style = csDropDown then begin
-      Combo.SelText := GetClipboardAsText;
+      Combo.SelText := Clipboard.TryAsText;
       Success := True;
     end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
       FGridPasting := True;
-      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := GetClipboardAsText;
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := Clipboard.TryAsText;
       Success := True;
       FGridPasting := False;
     end;

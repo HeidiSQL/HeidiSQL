@@ -451,7 +451,7 @@ begin
   FullCommand := BinPath + ConnectionArguments + ' ' + Implode(' ', Arguments);
   Arguments.Free;
 
-  Clipboard.AsText := FullCommand;
+  Clipboard.TryAsText := FullCommand;
   Screen.Cursor := crDefault;
 end;
 

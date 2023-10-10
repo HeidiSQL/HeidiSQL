@@ -2814,7 +2814,7 @@ begin
     Cols.Add(Col.Serialize);
     Node := GetNextNode(listColumns, Node, True);
   end;
-  Clipboard.AsText := Cols.Text;
+  Clipboard.TryAsText := Cols.Text;
   Cols.Free;
 end;
 
@@ -2828,7 +2828,7 @@ var
 begin
   // Complement to "copy columns"
   ColsFromClp := TStringList.Create;
-  ColsFromClp.Text := GetClipboardAsText;
+  ColsFromClp.Text := Clipboard.TryAsText;
   Node := listColumns.FocusedNode;
   if not Assigned(Node) then
     Node := listColumns.GetLast;

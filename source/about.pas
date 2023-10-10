@@ -84,7 +84,7 @@ begin
   // Copy label caption
   LabelComp := PopupComponent(Sender);
   if LabelComp is TLabel then begin
-    Clipboard.AsText := TLabel(LabelComp).Caption;
+    Clipboard.TryAsText := TLabel(LabelComp).Caption;
   end;
 end;
 
