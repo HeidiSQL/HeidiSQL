@@ -157,6 +157,14 @@ type
     class function CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
   end;
 
+  TClipboardHelper = class helper for TClipboard
+  private
+    function GetTryAsText: String;
+    procedure SetTryAsText(AValue: String);
+  public
+    property TryAsText: String read GetTryAsText write SetTryAsText;
+  end;
+
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
@@ -408,7 +416,6 @@ type
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function UserAgent(OwnerComponent: TComponent): String;
-  function GetClipboardAsText: String;
 
 var
   AppSettings: TAppSettings;
@@ -1338,7 +1345,7 @@ begin
     SetLength(TextContent, Text.Size);
     Text.Position := 0;
     Text.Read(PAnsiChar(TextContent)^, Text.Size);
-    Clipboard.AsText := Utf8ToString(TextContent);
+    Clipboard.TryAsText := Utf8ToString(TextContent);
     SetString(TextContent, nil, 0);
   end;
 
@@ -3021,34 +3028,6 @@ begin
 end;
 
 
-function GetClipboardAsText: String;
-var
-  AttemptsLeft: Integer;
-  Success: Boolean;
-  LastError: String;
-begin
-  AttemptsLeft := 5;
-  Result := '';
-  Success := False;
-  while AttemptsLeft > 0 do begin
-    Dec(AttemptsLeft);
-    try
-      Result := Clipboard.AsText;
-      Success := True;
-      Break;
-    except
-      // We could also just catch EClipboardException
-      on E:Exception do begin
-        LastError := E.Message;
-        Sleep(100);
-      end;
-    end;
-  end;
-  if not Success then
-    MainForm.LogSQL(LastError, lcError);
-end;
-
-
 { Get SID of current Windows user, probably useful in the future
 function GetCurrentUserSID: string;
 type
@@ -3533,6 +3512,61 @@ begin
 
 end;
 
+
+{ TClipboardHelper }
+
+function TClipboardHelper.GetTryAsText: String;
+var
+  AttemptsLeft: Integer;
+  Success: Boolean;
+  LastError: String;
+begin
+  AttemptsLeft := 5;
+  Result := '';
+  Success := False;
+  while AttemptsLeft > 0 do begin
+    Dec(AttemptsLeft);
+    try
+      Result := AsText;
+      Success := True;
+      Break;
+    except
+      // We could also just catch EClipboardException
+      on E:Exception do begin
+        LastError := E.Message;
+        Sleep(100);
+      end;
+    end;
+  end;
+  if not Success then
+    MainForm.LogSQL(LastError, lcError);
+end;
+
+procedure TClipboardHelper.SetTryAsText(AValue: String);
+var
+  AttemptsLeft: Integer;
+  Success: Boolean;
+  LastError: String;
+begin
+  AttemptsLeft := 5;
+  Success := False;
+  while AttemptsLeft > 0 do begin
+    Dec(AttemptsLeft);
+    try
+      AsText := AValue;
+      Success := True;
+      Break;
+    except
+      // We could also just catch EClipboardException
+      on E:Exception do begin
+        LastError := E.Message;
+        Sleep(100);
+      end;
+    end;
+  end;
+  if not Success then
+    MainForm.LogSQL(LastError, lcError);
+end;
 
 
 { TAppSettings }
