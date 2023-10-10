@@ -1354,13 +1354,14 @@ begin
   end;
 
   // No specific colors for selected nodes, would interfere with blue selection background
-  if vsSelected in Node.States then Exit;
-  // Break early if nothing to do
-  if not (Column in [2, 7]) then Exit;
+  // Disabled in Oct 2023, probably works better than expected
+  //if vsSelected in Node.States then Exit;
 
   // Give datatype column specific color, as set in preferences
   TextColor := TargetCanvas.Font.Color;
   case Column of
+    0: TextColor := clGrayText;
+
     2: TextColor := DatatypeCategories[Col.DataType.Category].Color;
 
     7: case Col.DefaultType of

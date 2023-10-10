@@ -3359,7 +3359,7 @@ begin
     col := NewTab.Grid.Header.Columns.Add;
     col.CaptionAlignment := taRightJustify;
     col.Alignment := taRightJustify;
-    col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus];
+    col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus, coEditable, coResizable];
     col.Text := '#';
     for i:=0 to NewTab.Results.ColumnCount-1 do begin
       col := NewTab.Grid.Header.Columns.Add;
@@ -6030,7 +6030,7 @@ begin
       Col := vt.Header.Columns.Add;
       Col.CaptionAlignment := taRightJustify;
       Col.Alignment := taRightJustify;
-      Col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus];
+      Col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus, coEditable, coResizable];
       Col.Text := '#';
       for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);
