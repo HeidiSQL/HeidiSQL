@@ -125,6 +125,7 @@ begin
   Screen.Cursor := crHourGlass;
   btnScan.ImageIndex := 150;
   btnScan.Enabled := False;
+  btnSave.Enabled := False;
   // Parse contents to a TGridRows instance
   GridRows := TGridRows.Create(True);
   GridRow := nil;
@@ -144,57 +145,62 @@ begin
 
   InEncl := False;
 
-  MainForm.ShowStatusMsg(f_('Reading textfile (%s) ...', [FormatByteNumber(TestChunkSize)]));
-  Encoding := FLoadDataFrm.FileEncoding;
-  OpenTextfile(FLoadDataFrm.editFilename.Text, Stream, Encoding);
-  Contents := ReadTextfileChunk(Stream, Encoding, TestChunkSize);
-  Stream.Free;
-  ContentLen := Length(Contents);
-  MainForm.ShowStatusMsg;
+  try
+    MainForm.ShowStatusMsg(f_('Reading textfile (%s) ...', [FormatByteNumber(TestChunkSize)]));
+    Encoding := FLoadDataFrm.FileEncoding;
+    OpenTextfile(FLoadDataFrm.editFilename.Text, Stream, Encoding);
+    Contents := ReadTextfileChunk(Stream, Encoding, TestChunkSize);
+    Stream.Free;
+    ContentLen := Length(Contents);
+    MainForm.ShowStatusMsg;
 
-  P := 0;
-  ProgressCharsPerStep := ContentLen div FLoadDataFrm.ProgressBarSteps;
-  ProgressChars := 0;
-  MainForm.EnableProgress(FLoadDataFrm.ProgressBarSteps);
-  IgnoreLines := FLoadDataFrm.updownIgnoreLines.Position;
-  NextChar;
+    P := 0;
+    ProgressCharsPerStep := ContentLen div FLoadDataFrm.ProgressBarSteps;
+    ProgressChars := 0;
+    MainForm.EnableProgress(FLoadDataFrm.ProgressBarSteps);
+    IgnoreLines := FLoadDataFrm.updownIgnoreLines.Position;
+    NextChar;
 
-  while P <= ContentLen do begin
-    // Check characters left-side from current position
-    IsEncl := TestLeftChars(EnclTest, Encl, EnclLen);
-    IsTerm := TestLeftChars(TermTest, Term, TermLen);
-    IsLineTerm := TestLeftChars(LineTermTest, LineTerm, LineTermLen);
-    IsEof := P = ContentLen;
+    while P <= ContentLen do begin
+      // Check characters left-side from current position
+      IsEncl := TestLeftChars(EnclTest, Encl, EnclLen);
+      IsTerm := TestLeftChars(TermTest, Term, TermLen);
+      IsLineTerm := TestLeftChars(LineTermTest, LineTerm, LineTermLen);
+      IsEof := P = ContentLen;
 
-    Value := Value + Contents[P];
+      Value := Value + Contents[P];
 
-    if IsEncl then
-      InEncl := not InEncl;
+      if IsEncl then
+        InEncl := not InEncl;
 
-    if IsEof or (not InEncl) then begin
-      if IsLineTerm then begin
-        SetLength(Value, Length(Value)-LineTermLen);
-        AddValue;
-      end else if IsEof then begin
-        AddValue;
-      end else if IsTerm then begin
-        SetLength(Value, Length(Value)-TermLen);
-        AddValue;
+      if IsEof or (not InEncl) then begin
+        if IsLineTerm then begin
+          SetLength(Value, Length(Value)-LineTermLen);
+          AddValue;
+        end else if IsEof then begin
+          AddValue;
+        end else if IsTerm then begin
+          SetLength(Value, Length(Value)-TermLen);
+          AddValue;
+        end;
       end;
+
+      if IsLineTerm and (not InEncl) then
+        AddRow;
+
+      NextChar;
     end;
 
-    if IsLineTerm and (not InEncl) then
-      AddRow;
+    Contents := '';
 
-    NextChar;
+    // Find matching column types for values
+    Columns := DetectColumnAttributes(GridRows, IgnoreLines);
+    SynMemoCreateTable.Text := ComposeCreateStatement(Columns);
+    btnSave.Enabled := True;
+  except
+    on E:EFOpenError do
+      ErrorDialog(E.Message);
   end;
-
-  Contents := '';
-
-  // Find matching column types for values
-  Columns := DetectColumnAttributes(GridRows, IgnoreLines);
-  SynMemoCreateTable.Text := ComposeCreateStatement(Columns);
-
   GridRows.Free;
 
   MainForm.ShowStatusMsg;
