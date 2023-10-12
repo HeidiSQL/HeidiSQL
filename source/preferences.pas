@@ -184,6 +184,7 @@ type
     lblCompletionProposalIntervalUnit: TLabel;
     chkColumnHeaderClick: TCheckBox;
     chkIncrementalSearch: TCheckBox;
+    chkShowRowId: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -379,10 +380,11 @@ begin
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
   AppSettings.WriteInt(asHightlightSameTextBackground, cboxRowHighlightSameText.Selected);
   AppSettings.WriteInt(asRealTrailingZeros, updownRealTrailingZeros.Position);
+  AppSettings.WriteInt(asQueryGridLongSortRowNum, updownLongSortRowNum.Position);
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
   AppSettings.WriteBool(asLowercaseHex, chkLowercaseHex.Checked);
   AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
-  AppSettings.WriteInt(asQueryGridLongSortRowNum, updownLongSortRowNum.Position);
+  AppSettings.WriteBool(asShowRowId, chkShowRowId.Checked);
 
   // Editor Configuration
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
@@ -768,10 +770,11 @@ begin
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
   cboxRowHighlightSameText.Selected := AppSettings.ReadInt(asHightlightSameTextBackground);
   updownRealTrailingZeros.Position := AppSettings.ReadInt(asRealTrailingZeros);
+  updownLongSortRowNum.Position := AppSettings.ReadInt(asQueryGridLongSortRowNum);
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
   chkLowercaseHex.Checked := AppSettings.ReadBool(asLowercaseHex);
   chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);
-  updownLongSortRowNum.Position := AppSettings.ReadInt(asQueryGridLongSortRowNum);
+  chkShowRowId.Checked := AppSettings.ReadBool(asShowRowId);
 
   // Editor Configuration
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);

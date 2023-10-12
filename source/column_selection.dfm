@@ -46,7 +46,7 @@ object frmColumnSelection: TfrmColumnSelection
   end
   object chkSort: TCheckBox
     Left = 8
-    Top = 187
+    Top = 167
     Width = 168
     Height = 17
     Anchors = [akLeft, akRight, akBottom]
@@ -68,7 +68,7 @@ object frmColumnSelection: TfrmColumnSelection
     Left = 8
     Top = 31
     Width = 168
-    Height = 150
+    Height = 130
     Anchors = [akLeft, akTop, akRight, akBottom]
     ItemHeight = 13
     TabOrder = 4
@@ -88,5 +88,14 @@ object frmColumnSelection: TfrmColumnSelection
     TextHint = 'Filter'
     OnChange = PopulateList
     OnLeftButtonClick = editFilterLeftButtonClick
+  end
+  object chkShowRowId: TCheckBox
+    Left = 8
+    Top = 190
+    Width = 168
+    Height = 17
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Show static row id column'
+    TabOrder = 6
   end
 end

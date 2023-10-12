@@ -3,7 +3,7 @@ object frmPreferences: TfrmPreferences
   Top = 163
   BorderIcons = [biSystemMenu]
   Caption = 'Preferences'
-  ClientHeight = 442
+  ClientHeight = 482
   ClientWidth = 708
   Color = clBtnFace
   Constraints.MinHeight = 480
@@ -19,13 +19,13 @@ object frmPreferences: TfrmPreferences
   OnShow = FormShow
   DesignSize = (
     708
-    442)
+    482)
   TextHeight = 14
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
     Width = 692
-    Height = 395
+    Height = 435
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
     Images = MainForm.VirtualImageListMain
@@ -38,7 +38,7 @@ object frmPreferences: TfrmPreferences
       ImageName = 'icons8-settings'
       DesignSize = (
         684
-        366)
+        406)
       object lblMySQLBinaries: TLabel
         Left = 8
         Top = 177
@@ -343,7 +343,7 @@ object frmPreferences: TfrmPreferences
       ImageName = 'icons8-index'
       DesignSize = (
         684
-        366)
+        406)
       object Label4: TLabel
         Left = 8
         Top = 11
@@ -565,7 +565,7 @@ object frmPreferences: TfrmPreferences
       ImageName = 'icons8-play'
       DesignSize = (
         684
-        366)
+        406)
       object lblFont: TLabel
         Left = 8
         Top = 11
@@ -773,7 +773,7 @@ object frmPreferences: TfrmPreferences
         Left = 371
         Top = 156
         Width = 308
-        Height = 183
+        Height = 223
         Cursor = crHandPoint
         SingleLineMode = False
         Anchors = [akLeft, akTop, akRight, akBottom]
@@ -881,7 +881,7 @@ object frmPreferences: TfrmPreferences
       ImageName = 'icons8-data-grid'
       DesignSize = (
         684
-        366)
+        406)
       object lblMaxColWidth: TLabel
         Left = 8
         Top = 11
@@ -949,7 +949,7 @@ object frmPreferences: TfrmPreferences
       end
       object lblLongSortRowNum: TLabel
         Left = 8
-        Top = 354
+        Top = 285
         Width = 146
         Height = 14
         Caption = 'Sort warning on grid rows:'
@@ -1104,22 +1104,22 @@ object frmPreferences: TfrmPreferences
       end
       object chkLocalNumberFormat: TCheckBox
         Left = 220
-        Top = 281
+        Top = 310
         Width = 459
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Local number format'
-        TabOrder = 18
+        TabOrder = 20
         OnClick = Modified
       end
       object chkHintsOnResultTabs: TCheckBox
         Left = 220
-        Top = 327
+        Top = 356
         Width = 459
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Pop up SQL text over result tabs'
-        TabOrder = 20
+        TabOrder = 22
         OnClick = Modified
       end
       object cboxRowHighlightSameText: TColorBox
@@ -1142,30 +1142,30 @@ object frmPreferences: TfrmPreferences
       end
       object editLongSortRowNum: TEdit
         Left = 220
-        Top = 351
+        Top = 282
         Width = 145
         Height = 22
-        TabOrder = 21
+        TabOrder = 18
         Text = '0'
       end
       object updownLongSortRowNum: TUpDown
         Left = 365
-        Top = 351
+        Top = 282
         Width = 16
         Height = 22
         Associate = editLongSortRowNum
         Max = 2147483647
-        TabOrder = 22
+        TabOrder = 19
         OnChanging = anyUpDownLimitChanging
       end
       object chkLowercaseHex: TCheckBox
         Left = 220
-        Top = 304
+        Top = 333
         Width = 459
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Lowercase hexadecimal'
-        TabOrder = 19
+        TabOrder = 21
       end
       object editRealTrailingZeros: TEdit
         Left = 220
@@ -1184,6 +1184,16 @@ object frmPreferences: TfrmPreferences
         Min = -1
         TabOrder = 17
       end
+      object chkShowRowId: TCheckBox
+        Left = 220
+        Top = 379
+        Width = 461
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Show static row id column'
+        TabOrder = 23
+        OnClick = Modified
+      end
     end
     object tabDataEditors: TTabSheet
       Caption = 'Data editors'
@@ -1191,7 +1201,7 @@ object frmPreferences: TfrmPreferences
       ImageName = 'icons8-compose'
       DesignSize = (
         684
-        366)
+        406)
       object lblLineBreakStyle: TLabel
         Left = 3
         Top = 235
@@ -1303,7 +1313,7 @@ object frmPreferences: TfrmPreferences
       ImageName = 'icons8-lightning-bolt-100'
       DesignSize = (
         684
-        366)
+        406)
       object lblShortcut1: TLabel
         Left = 306
         Top = 64
@@ -1332,7 +1342,7 @@ object frmPreferences: TfrmPreferences
         Left = 0
         Top = 0
         Width = 300
-        Height = 366
+        Height = 406
         Align = alLeft
         Header.AutoSizeIndex = 0
         Header.MainColumn = -1
@@ -1355,7 +1365,7 @@ object frmPreferences: TfrmPreferences
       ImageName = 'icons8-save-button-100'
       DesignSize = (
         684
-        366)
+        406)
       object chkAskFileSave: TCheckBox
         Left = 220
         Top = 8
@@ -1390,7 +1400,7 @@ object frmPreferences: TfrmPreferences
   end
   object btnCancel: TButton
     Left = 545
-    Top = 409
+    Top = 449
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1401,7 +1411,7 @@ object frmPreferences: TfrmPreferences
   end
   object btnOK: TButton
     Left = 465
-    Top = 409
+    Top = 449
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1413,7 +1423,7 @@ object frmPreferences: TfrmPreferences
   end
   object btnApply: TButton
     Left = 625
-    Top = 409
+    Top = 449
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -1424,7 +1434,7 @@ object frmPreferences: TfrmPreferences
   end
   object btnRestoreDefaults: TButton
     Left = 8
-    Top = 409
+    Top = 449
     Width = 177
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -1437,8 +1447,8 @@ object frmPreferences: TfrmPreferences
     Options.AutoDetectLineLimit = 0
     Options.Visible = False
     SQLDialect = sqlMySQL
-    Left = 432
-    Top = 352
+    Left = 584
+    Top = 392
   end
   object SynSQLSyn_Dark: TSynSQLSyn
     Options.AutoDetectEnabled = False
@@ -1457,8 +1467,8 @@ object frmPreferences: TfrmPreferences
     TableNameAttri.Foreground = 16755327
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
-    Left = 200
-    Top = 352
+    Left = 592
+    Top = 168
   end
   object SynSQLSyn_Light: TSynSQLSyn
     Options.AutoDetectEnabled = False
@@ -1477,8 +1487,8 @@ object frmPreferences: TfrmPreferences
     TableNameAttri.Foreground = clFuchsia
     VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
-    Left = 120
-    Top = 352
+    Left = 592
+    Top = 112
   end
   object SynSQLSyn_Black: TSynSQLSyn
     Options.AutoDetectEnabled = False
@@ -1497,8 +1507,8 @@ object frmPreferences: TfrmPreferences
     TableNameAttri.Foreground = clBlack
     VariableAttri.Foreground = clBlack
     SQLDialect = sqlMySQL
-    Left = 196
-    Top = 404
+    Left = 588
+    Top = 228
   end
   object SynSQLSyn_White: TSynSQLSyn
     Options.AutoDetectEnabled = False
@@ -1517,8 +1527,8 @@ object frmPreferences: TfrmPreferences
     TableNameAttri.Foreground = clWhite
     VariableAttri.Foreground = clWhite
     SQLDialect = sqlMySQL
-    Left = 284
-    Top = 404
+    Left = 588
+    Top = 284
   end
   object SynSQLSyn_Material: TSynSQLSyn
     Options.AutoDetectEnabled = False
@@ -1537,7 +1547,7 @@ object frmPreferences: TfrmPreferences
     TableNameAttri.Foreground = 6911735
     VariableAttri.Foreground = 7064575
     SQLDialect = sqlMySQL
-    Left = 320
-    Top = 404
+    Left = 584
+    Top = 340
   end
 end

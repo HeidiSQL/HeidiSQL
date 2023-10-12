@@ -3360,6 +3360,8 @@ begin
     col.CaptionAlignment := taRightJustify;
     col.Alignment := taRightJustify;
     col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus, coEditable, coResizable];
+    if not AppSettings.ReadBool(asShowRowId) then
+      col.Options := col.Options - [coVisible];
     col.Text := '#';
     for i:=0 to NewTab.Results.ColumnCount-1 do begin
       col := NewTab.Grid.Header.Columns.Add;
@@ -6031,6 +6033,8 @@ begin
       Col.CaptionAlignment := taRightJustify;
       Col.Alignment := taRightJustify;
       Col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus, coEditable, coResizable];
+      if not AppSettings.ReadBool(asShowRowId) then
+        Col.Options := col.Options - [coVisible];
       Col.Text := '#';
       for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);

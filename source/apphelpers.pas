@@ -169,6 +169,7 @@ type
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asLowercaseHex, asHintsOnResultTabs, asHightlightSameTextBackground,
+    asShowRowId,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asColumnHeaderClick, asReuseEditorConfiguration,
@@ -3653,6 +3654,7 @@ begin
   InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, True);
   InitSetting(asLowercaseHex,                     'LowercaseHex',                          0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
+  InitSetting(asShowRowId,                        'ShowRowId',                             0, True);
   InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(clInfoBk));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
