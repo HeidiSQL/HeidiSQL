@@ -1393,8 +1393,19 @@ object frmPreferences: TfrmPreferences
         Top = 54
         Width = 477
         Height = 17
-        Caption = 'Close tab on doubleclick and middleclick'
+        Caption = 'Close tab on doubleclick'
         TabOrder = 2
+        OnClick = Modified
+      end
+      object chkTabCloseOnMiddleClick: TCheckBox
+        Left = 220
+        Top = 77
+        Width = 457
+        Height = 17
+        Anchors = [akLeft, akTop, akRight]
+        Caption = 'Close tab on middleclick'
+        TabOrder = 3
+        OnClick = Modified
       end
     end
   end

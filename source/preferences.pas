@@ -185,6 +185,7 @@ type
     chkColumnHeaderClick: TCheckBox;
     chkIncrementalSearch: TCheckBox;
     chkShowRowId: TCheckBox;
+    chkTabCloseOnMiddleClick: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -437,6 +438,7 @@ begin
   AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
   AppSettings.WriteBool(asRestoreTabs, chkRestoreTabs.Checked);
   AppSettings.WriteBool(asTabCloseOnDoubleClick, chkTabCloseOnDoubleClick.Checked);
+  AppSettings.WriteBool(asTabCloseOnMiddleClick, chkTabCloseOnMiddleClick.Checked);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -800,6 +802,7 @@ begin
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
   chkTabCloseOnDoubleClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
+  chkTabCloseOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;

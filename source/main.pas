@@ -778,6 +778,7 @@ type
     SequalSuggest2: TMenuItem;
     popupDataTop: TPopupMenu;
     menuQueryExactRowCount: TMenuItem;
+    menuCloseTabOnMiddleClick: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1178,6 +1179,7 @@ type
       var Special: Boolean; var FG, BG: TColor);
     procedure actSequalSuggestExecute(Sender: TObject);
     procedure menuQueryExactRowCountClick(Sender: TObject);
+    procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -12193,6 +12195,11 @@ begin
 end;
 
 
+procedure TMainForm.menuCloseTabOnMiddleClickClick(Sender: TObject);
+begin
+  AppSettings.WriteBool(asTabCloseOnMiddleClick, menuCloseTabOnMiddleClick.Checked);
+end;
+
 procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
 var
   i: Integer;
@@ -12254,6 +12261,7 @@ begin
   menuRenameQueryTab.Caption := actRenameQueryTab.Caption;
   menuRenameQueryTab.Enabled := IsQueryTab(PageIndexClick, True);
   menuCloseTabOnDblClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
+  menuCloseTabOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
 end;
 
 
@@ -12537,7 +12545,7 @@ begin
 
     mbMiddle: begin
       // Middle click on tab
-      if AppSettings.ReadBool(asTabCloseOnDoubleClick) then begin
+      if AppSettings.ReadBool(asTabCloseOnMiddleClick) then begin
         TabNumber := GetMainTabAt(X, Y);
         CloseQueryTab(TabNumber);
       end;

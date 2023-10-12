@@ -4396,8 +4396,13 @@ object MainForm: TMainForm
     end
     object menuCloseTabOnDblClick: TMenuItem
       AutoCheck = True
-      Caption = 'Close tab on doubleclick and middleclick'
+      Caption = 'Close tab on doubleclick'
       OnClick = menuCloseTabOnDblClickClick
+    end
+    object menuCloseTabOnMiddleClick: TMenuItem
+      AutoCheck = True
+      Caption = 'Close tab on middleclick'
+      OnClick = menuCloseTabOnMiddleClickClick
     end
   end
   object TimerFilterVT: TTimer
