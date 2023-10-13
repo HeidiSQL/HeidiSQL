@@ -11898,6 +11898,8 @@ var
   Cap: String;
 begin
   tabEditor.ImageIndex := ActiveObjectEditor.DBObject.ImageIndex;
+  // Reset to grayscale if in background:
+  PageControlTabHighlight(PageControlMain);
   Cap := _(ActiveObjectEditor.DBObject.ObjType)+': ';
   if ActiveObjectEditor.DBObject.Name = '' then
     Cap := Cap + '['+_('Untitled')+']'
