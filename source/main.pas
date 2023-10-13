@@ -5387,15 +5387,15 @@ begin
           continue; // Ignore invisible key column
         if ResultCol < 0 then
           Continue; // Ignore static row id column
-        if Results.ColIsPrimaryKeyPart(Col) and (Sender = actDataDuplicateRowWithoutKeys) then
+        if Results.ColIsPrimaryKeyPart(ResultCol) and (Sender = actDataDuplicateRowWithoutKeys) then
           continue; // Empty value for primary key column
-        if Results.ColIsVirtual(Col) then
+        if Results.ColIsVirtual(ResultCol) then
           continue; // Don't copy virtual column value
         Results.RecNo := DupeNum^;
-        Value := Results.Col(Col);
-        IsNull := Results.IsNull(Col);
+        Value := Results.Col(ResultCol);
+        IsNull := Results.IsNull(ResultCol);
         Results.RecNo := RowNum;
-        Results.SetCol(Col, Value, IsNull, False);
+        Results.SetCol(ResultCol, Value, IsNull, False);
       end;
     end;
   except on E:EDbError do
