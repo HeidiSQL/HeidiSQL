@@ -1419,7 +1419,7 @@ begin
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
 
-  if toVariableNodeHeight in VT.TreeOptions.MiscOptions then
+  if toGridExtensions in VT.TreeOptions.MiscOptions then
     VT.HintMode := hmHint // Show cell contents with linebreakds in datagrid and querygrid's
   else
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
