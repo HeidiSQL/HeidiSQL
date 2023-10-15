@@ -9,6 +9,8 @@
 *.rsm
 *.stat
 *.map
+*.d
+*.o
 
 # Generated source #
 ###################
