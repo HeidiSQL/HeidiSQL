@@ -165,6 +165,11 @@ type
     property TryAsText: String read GetTryAsText write SetTryAsText;
   end;
 
+  TWinControlHelper = class helper for TWinControl
+  public
+    procedure TrySetFocus;
+  end;
+
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
@@ -3567,6 +3572,18 @@ begin
   end;
   if not Success then
     MainForm.LogSQL(LastError, lcError);
+end;
+
+
+procedure TWinControlHelper.TrySetFocus;
+begin
+  try
+    if Enabled and CanFocus then
+      SetFocus;
+  except
+    on E:EInvalidOperation do
+      MessageBeep(MB_ICONWARNING);
+  end;
 end;
 
 

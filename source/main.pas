@@ -1634,7 +1634,7 @@ begin
         SelectNode(DataGrid, 0);
     end else begin
       ToggleFilterPanel(True);
-      SynMemoFilter.SetFocus;
+      SynMemoFilter.TrySetFocus;
     end;
   end else begin
     MessageBeep(MB_ICONASTERISK);
@@ -1647,7 +1647,7 @@ begin
   // Go to multi column filter generator
   if PageControlMain.ActivePage = tabData then begin
     ToggleFilterPanel(True);
-    editFilterSearch.SetFocus;
+    editFilterSearch.TrySetFocus;
   end else begin
     MessageBeep(MB_ICONASTERISK);
   end;
@@ -6072,7 +6072,7 @@ begin
 
     // Do not steel filter while writing filters
     if not SynMemoFilter.Focused then
-      vt.SetFocus;
+      vt.TrySetFocus;
 
     DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, Int64(vt.RootNodeCount)-1);
     SelectNode(vt, DataGridFocusedNodeIndex);
@@ -6252,13 +6252,14 @@ begin
   // Move focus to relevant controls in order for them to receive keyboard events.
   // Do this only if the user clicked the new tab. Not on automatic tab changes.
   if Sender = PageControlMain then begin
-    if tab = tabHost then PageControlHostChange(Sender)
-    else if tab = tabDatabase then ListTables.SetFocus
+    if tab = tabHost then
+      PageControlHostChange(Sender)
+    else if tab = tabDatabase then
+      ListTables.TrySetFocus
     else if tab = tabData then begin
-      if DataGrid.CanFocus and DataGrid.Enabled then
-        DataGrid.SetFocus;
+      DataGrid.TrySetFocus;
     end else if IsQueryTab(tab.PageIndex, True) then begin
-      QueryTabs.ActiveMemo.SetFocus;
+      QueryTabs.ActiveMemo.TrySetFocus;
       QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
       SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
     end;
@@ -6297,7 +6298,7 @@ begin
   else if tab = tabProcesslist then list := ListProcesses
   else if tab = tabCommandStats then list := ListCommandStats
   else Exit; // Silence compiler warning
-  list.SetFocus;
+  list.TrySetFocus;
   UpdateFilterPanel(Sender);
   PageControlTabHighlight(PageControlHost);
 end;
@@ -12138,7 +12139,7 @@ begin
   // Show new tab
   if Sender <> actNewQueryTabNofocus then begin
     SetMainTab(QueryTab.TabSheet);
-    QueryTab.Memo.SetFocus;
+    QueryTab.Memo.TrySetFocus;
   end;
 end;
 

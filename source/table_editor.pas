@@ -2280,12 +2280,10 @@ begin
   listCheckConstraints.EndEditNode;
   // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
   if PageControlMain.ActivePage = tabCREATEcode then begin
-    if SynMemoCreateCode.CanFocus then
-      SynMemoCreateCode.SetFocus;
+    SynMemoCreateCode.TrySetFocus;
   end
   else if PageControlMain.ActivePage = tabALTERcode then begin
-    if SynMemoALTERcode.CanFocus then
-      SynMemoAlterCode.SetFocus;
+    SynMemoAlterCode.TrySetFocus;
   end;
   UpdateSQLcode;
   TExtForm.PageControlTabHighlight(PageControlMain);
