@@ -28,6 +28,7 @@ type
     procedure editColorRightButtonClick(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
   private
     { Private-Deklarationen }
     FHighlighter: TSynCustomHighlighter;
@@ -137,6 +138,12 @@ begin
   //  FAttr.Free;
 end;
 
+procedure TfrmCustomizeHighlighter.FormShow(Sender: TObject);
+begin
+  // Ensure controls are disabled as long as no attribute is selected
+  listboxAttributes.OnClick(Sender);
+end;
+
 procedure TfrmCustomizeHighlighter.listboxAttributesClick(Sender: TObject);
 var
   i: Integer;
@@ -144,9 +151,11 @@ var
 begin
   // Attribute selected
   FAttr := nil;
-  for i:=0 to FHighlighter.AttrCount-1 do begin
-    if listboxAttributes.Items[listboxAttributes.ItemIndex] = FHighlighter.Attribute[i].FriendlyName then begin
-      FAttr := FHighlighter.Attribute[i];
+  if listboxAttributes.ItemIndex > -1 then begin
+    for i:=0 to FHighlighter.AttrCount-1 do begin
+      if listboxAttributes.Items[listboxAttributes.ItemIndex] = FHighlighter.Attribute[i].FriendlyName then begin
+        FAttr := FHighlighter.Attribute[i];
+      end;
     end;
   end;
   // Enable/disable controls

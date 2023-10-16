@@ -14,6 +14,7 @@ object frmCustomizeHighlighter: TfrmCustomizeHighlighter
   Position = poOwnerFormCenter
   OnCreate = FormCreate
   OnDestroy = FormDestroy
+  OnShow = FormShow
   DesignSize = (
     441
     249)
