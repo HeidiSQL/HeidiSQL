@@ -9544,6 +9544,7 @@ var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
   TabHostName: String;
+  EnteringSession: Boolean;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
@@ -9634,9 +9635,16 @@ begin
       PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious(True));
 
     // When clicked node is from a different connection than before, do session specific stuff here:
-    if (FActiveDbObj <> nil)
-      and ((PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection))
-      then begin
+    try
+      EnteringSession := (FActiveDbObj <> nil)
+        and ((PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection));
+    except
+      on E:EAccessViolation do begin
+        LogSQL(E.ClassName+' while moving focus in tree.', lcError);
+        EnteringSession := True;
+      end;
+    end;
+    if EnteringSession then begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
       RefreshHelperNode(TQueryTab.HelperNodeHistory);
       RefreshHelperNode(TQueryTab.HelperNodeProfile);
@@ -9659,8 +9667,8 @@ begin
       SynSQLSynUsed.FunctionNames.Clear;
       SynSQLSynUsed.FunctionNames.AddStrings(FActiveDbObj.Connection.SQLFunctions.Names);
       SynSQLSynUsed.FunctionNames.EndUpdate;
-
     end;
+
     if (FActiveDbObj.NodeType <> lntNone)
       and (
         (PrevDBObj = nil)
@@ -9675,6 +9683,7 @@ begin
       TabHostName := StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 60, False)
     else
       TabHostName := FActiveDbObj.Connection.Parameters.HostName;
+
     SetTabCaption(tabHost.PageIndex, _('Host')+': '+TabHostName);
     SetTabCaption(tabDatabase.PageIndex, _('Database')+': '+FActiveDbObj.Connection.Database);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
