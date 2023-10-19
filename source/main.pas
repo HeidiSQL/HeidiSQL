@@ -9562,7 +9562,7 @@ begin
     DBObj.WasSelected := True;
     FActiveDbObj := TDBObject.Create(DBObj.Connection);
     FActiveDbObj.Assign(DBObj^);
-    if Assigned(Node.Parent) then
+    if Assigned(Node.Parent) and (DBtree.GetNodeLevel(Node) > 0) then
       ParentDBObj := Sender.GetNodeData(Node.Parent);
 
     case FActiveDbObj.NodeType of

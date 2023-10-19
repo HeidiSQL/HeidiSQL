@@ -9942,6 +9942,7 @@ end;
 constructor TDBObject.Create(OwnerConnection: TDBConnection);
 begin
   NodeType := lntNone;
+  GroupType := lntNone;
   Name := '';
   Database := '';
   Schema := '';
