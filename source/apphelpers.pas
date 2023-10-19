@@ -2783,9 +2783,11 @@ begin
         end;
       end;
     end;
-  finally
-    CloseHandle(hFile);
+  except
+    on E:Exception do
+      MainForm.LogSQL('Could not detect executable architecture. Assuming '+Result.ToString+'bit: '+E.Message, lcError);
   end;
+  CloseHandle(hFile);
 end;
 
 
