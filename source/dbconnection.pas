@@ -7892,6 +7892,7 @@ begin
     for i:=Low(FResultList) to High(FResultList) do begin
       FConnection.Lib.mysql_free_result(FResultList[i]);
     end;
+    SetLength(FResultList, 0);
     NumResults := 1;
     FRecordCount := 0;
     FAutoIncrementColumn := -1;
@@ -8380,7 +8381,8 @@ begin
       for i:=Low(FResultList) to High(FResultList) do begin
         Inc(NumRows, FResultList[i].row_count);
         if NumRows > Value then begin
-          FCurrentResults := FResultList[i];
+          if FCurrentResults <> FResultList[i] then
+            FCurrentResults := FResultList[i];
           // Do not seek if FCurrentRow points to the previous row of the wanted row
           WantedLocalRecNo := FCurrentResults.row_count-(NumRows-Value);
           if (WantedLocalRecNo = 0) or (FRecNo+1 <> Value) or (FCurrentRow = nil) then
