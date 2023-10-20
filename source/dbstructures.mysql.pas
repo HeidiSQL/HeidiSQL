@@ -31,8 +31,10 @@ const
   AUTO_INCREMENT_FLAG = 512;
   TIMESTAMP_FLAG = 1024;
   SET_FLAG = 2048;
-  NUM_FLAG = 32768;
-  PART_KEY_FLAG = 16384;
+  NO_DEFAULT_VALUE_FLAG = 4096; // Field has no default value
+  ON_UPDATE_NOW_FLAG = 8192; // If a field is updated it will get the current time value (NOW())
+  NUM_FLAG = 32768; // Field is numeric
+  PART_KEY_FLAG = 16384; // wrong from here on, where do these come from?
   GROUP_FLAG = 32768;
   UNIQUE_FLAG = 65536;
   BINCMP_FLAG = 131072;
@@ -175,6 +177,10 @@ type
     charsetnr:        Cardinal;    // char set number (added in 4.1)
     _type:            Cardinal;    // Type of field. Se mysql_com.h for types
   end;
+
+  // Added in Oct 2023, to fix usage of mysql_fetch_lengths(). See issue #1863
+  PMYSQL_LENGTHS = ^TMYSQL_LENGTHS;
+  TMYSQL_LENGTHS = array[0..MaxInt div SizeOf(LongWord) - 1] of LongWord;
 
   MYSQL_ROW = array[0..$ffff] of PAnsiChar;
   PMYSQL_ROW = ^MYSQL_ROW;
@@ -339,7 +345,7 @@ type
     mysql_error: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_fetch_field_direct: function(Result: PMYSQL_RES; FieldNo: Cardinal): PMYSQL_FIELD; stdcall;
     mysql_fetch_field: function(Result: PMYSQL_RES): PMYSQL_FIELD; stdcall;
-    mysql_fetch_lengths: function(Result: PMYSQL_RES): PLongInt; stdcall;
+    mysql_fetch_lengths: function(Result: PMYSQL_RES): PMYSQL_LENGTHS; stdcall;
     mysql_fetch_row: function(Result: PMYSQL_RES): PMYSQL_ROW; stdcall;
     mysql_free_result: procedure(Result: PMYSQL_RES); stdcall;
     mysql_get_client_info: function: PAnsiChar; stdcall;

@@ -8347,7 +8347,7 @@ end;
 
 procedure TMySQLQuery.SetRecNo(Value: Int64);
 var
-  LengthPointer: PLongInt;
+  LengthsPointer: PMYSQL_LENGTHS;
   i, j: Integer;
   NumRows, WantedLocalRecNo: Int64;
   Row: TGridRow;
@@ -8381,8 +8381,7 @@ begin
       for i:=Low(FResultList) to High(FResultList) do begin
         Inc(NumRows, FResultList[i].row_count);
         if NumRows > Value then begin
-          if FCurrentResults <> FResultList[i] then
-            FCurrentResults := FResultList[i];
+          FCurrentResults := FResultList[i];
           // Do not seek if FCurrentRow points to the previous row of the wanted row
           WantedLocalRecNo := FCurrentResults.row_count-(NumRows-Value);
           if (WantedLocalRecNo = 0) or (FRecNo+1 <> Value) or (FCurrentRow = nil) then
@@ -8390,9 +8389,9 @@ begin
           FCurrentRow := FConnection.Lib.mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
           // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
-          LengthPointer := FConnection.Lib.mysql_fetch_lengths(FCurrentResults);
+          LengthsPointer := FConnection.Lib.mysql_fetch_lengths(FCurrentResults);
           for j:=Low(FColumnLengths) to High(FColumnLengths) do
-            FColumnLengths[j] := PInteger(Integer(LengthPointer) + j * SizeOf(Integer))^;
+            FColumnLengths[j] := LengthsPointer^[j];
           break;
         end;
       end;
