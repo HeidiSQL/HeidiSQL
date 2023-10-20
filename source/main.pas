@@ -1495,6 +1495,8 @@ var
   HintText: String;
 begin
   // Display various server, client and connection related details in a hint
+  if IsWine then
+    Exit;
   if (FLastHintMousepos.X = X) and (FLastHintMousepos.Y = Y) then
     Exit;
   FLastHintMousepos := Point(X, Y);
