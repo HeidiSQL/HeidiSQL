@@ -13448,9 +13448,9 @@ begin
       Killer.Parameters := ActiveConnection.Parameters;
       Killer.LogPrefix := _('Helper connection');
       Killer.OnLog := LogSQL;
-      Killer.Active := True;
-      KillCommand := Killer.GetSQLSpecifity(spKillQuery, [ActiveConnection.ThreadId]);
       try
+        Killer.Active := True;
+        KillCommand := Killer.GetSQLSpecifity(spKillQuery, [ActiveConnection.ThreadId]);
         Killer.Query(KillCommand);
       except
         on E:EDbError do begin
