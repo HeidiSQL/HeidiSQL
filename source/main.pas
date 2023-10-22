@@ -4902,7 +4902,7 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  if FActiveDbObj.Connection.ServerVersionInt >= 40100 then begin
+  if actSQLhelp.Enabled and (FActiveDbObj.Connection.ServerVersionInt >= 40100) then begin
     if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
