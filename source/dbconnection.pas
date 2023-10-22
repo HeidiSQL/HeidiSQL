@@ -10055,13 +10055,16 @@ end;
 function TDBObject.GetImageIndex: Integer;
 begin
   // Detect key icon index for specified db object (table, trigger, ...)
+  Result := -1;
   case NodeType of
     lntNone: begin
-      // Prevent AV with no connection
-      if FConnection <> nil then
+      // Prevent AV with no connection. Parameters may not have been initialized as well
+      if FConnection <> nil then try
         Result := FConnection.Parameters.ImageIndex
-      else
-        Result := -1;
+      except
+        on E:EAccessViolation do
+          Result := -1;
+      end;
     end;
 
     lntDb: Result := ICONINDEX_DB;
@@ -10086,8 +10089,6 @@ begin
     lntEvent: Result := ICONINDEX_EVENT;
 
     lntColumn: Result := ICONINDEX_FIELD;
-
-    else Result := -1;
   end;
 end;
 
