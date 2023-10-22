@@ -13252,7 +13252,7 @@ var
   DBObj: PDBObject;
   AllObjects: TDBObjectList;
 begin
-  if CellPaintMode=cpmPaint then begin
+  if CellPaintMode=cpmPaint then try
     DBObj := Sender.GetNodeData(Node);
     if DbObj.Connection.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then begin
       TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
@@ -13262,6 +13262,7 @@ begin
       AllObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
       PaintColorBar(DBObj.Size, AllObjects.LargestObjectSize, TargetCanvas, CellRect);
     end;
+  except; // Silence sporadic EAccessViolation when reading DbObj.Connection.Parameters, found in uploaded reports
   end;
 end;
 
