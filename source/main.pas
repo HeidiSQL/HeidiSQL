@@ -1436,6 +1436,9 @@ var
   PanelRect: TRect;
 begin
   // Handle click events on specific statusbar panels
+  // Prevent SendMessage on Wine
+  if IsWine then
+    Exit;
   Click := StatusBar.ScreenToClient(Mouse.CursorPos);
   for i:=0 to StatusBar.Panels.Count-1 do begin
     SendMessage(StatusBar.Handle, SB_GETRECT, i, Integer(@PanelRect));
@@ -2759,10 +2762,17 @@ begin
   StatusBar.Panels[6].Width := w6;
 
   // Retreive the rectancle of the statuspanel (in our case the fifth panel)
-  SendMessage(StatusBar.Handle, SB_GETRECT, 5, Integer(@PanelRect));
-  // Position the progressbar over the panel on the statusbar
-  with PanelRect do
-    ProgressBarStatus.SetBounds(Left, Top, Right-Left, Bottom-Top);
+  if not IsWine then begin
+    SendMessage(StatusBar.Handle, SB_GETRECT, 5, Integer(@PanelRect));
+    // Position the progressbar over the panel on the statusbar
+    ProgressBarStatus.SetBounds(
+      PanelRect.Left,
+      PanelRect.Top,
+      PanelRect.Right-PanelRect.Left,
+      PanelRect.Bottom-PanelRect.Top
+      );
+  end;
+
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   FixQueryTabCloseButtons;
 
@@ -14254,7 +14264,10 @@ begin
         Edit.SelStart := rx.MatchPos[0]-1;
         Edit.SelLength := LastStart - Edit.SelStart;
         // wParam=1 supports undo, in contrast to setting Edit.SelText
-        SendMessage(Edit.Handle, EM_REPLACESEL, 1, LongInt(PChar('')));
+        if IsWine then
+          Edit.SelText := ''
+        else
+          SendMessage(Edit.Handle, EM_REPLACESEL, 1, LongInt(PChar('')));
       end;
       Handled := True;
     end
@@ -14375,7 +14388,7 @@ procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
   SetProgressState(pbsNormal);
-  ProgressBarStatus.Visible := True;
+  ProgressBarStatus.Visible := True and (not IsWine);
   SetProgressPosition(0);
   ProgressBarStatus.Max := MaxValue;
 end;
@@ -14394,8 +14407,6 @@ end;
 procedure TMainForm.SetProgressPosition(Value: Integer);
 begin
   // Advance progress bar and task progress position
-  if not ProgressBarStatus.Visible then
-    LogSQL('Advancing hidden progress bar', lcError);
   try
     ProgressBarStatus.Position := Value;
   except
