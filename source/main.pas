@@ -14750,7 +14750,7 @@ begin
     LastSaveTime := GetTickCount;
     Screen.Cursor := crDefault;
   except
-    on E:EFCreateError do begin
+    on E:Exception do begin
       Screen.Cursor := crDefault;
       ErrorDialog(E.Message);
     end;
