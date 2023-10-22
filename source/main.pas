@@ -9346,11 +9346,13 @@ begin
           if Sender.ChildrenInitialized[Node] then
             CellText := CellText + ' (' + FormatNumber(Sender.ChildCount[Node]) + ')';
         end;
-        lntTable..lntEvent: begin
+        lntTable..lntEvent: try
           if (DBObj.Schema <> '') and (DBObj.Connection.Parameters.NetTypeGroup = ngMSSQL) then
             CellText := DBObj.Schema + '.' + DBObj.Name
           else
             CellText := DBObj.Name;
+        except
+          CellText := DBObj.Name;
         end;
         lntColumn: CellText := DBObj.Column;
       end;
