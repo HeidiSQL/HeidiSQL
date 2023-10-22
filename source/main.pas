@@ -4902,7 +4902,10 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  if actSQLhelp.Enabled and (FActiveDbObj.Connection.ServerVersionInt >= 40100) then begin
+  if FActiveDbObj.Connection.Parameters.IsAnyMySQL
+    and (FActiveDbObj.Connection.ServerVersionInt >= 40100)
+    and (not FActiveDbObj.Connection.Parameters.IsProxySQLAdmin)
+    then begin
     if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
@@ -6546,7 +6549,7 @@ begin
   actDataSetNull.Enabled := HasConnection and inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   // Help only supported on regular MySQL and MariaDB servers
-  actSQLHelp.Enabled := HasConnection and Conn.Parameters.IsAnyMySQL and (not Conn.Parameters.IsProxySQLAdmin);
+  actSQLHelp.Enabled := HasConnection;
 
   inSynMemo := ActiveSynMemo(True) <> nil;
   inSynMemoEditable := inSynMemo and (not ActiveSynMemo(True).ReadOnly);
