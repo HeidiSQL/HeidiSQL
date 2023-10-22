@@ -10220,7 +10220,7 @@ begin
   end;
   EditingAndFocused := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   Results := GridResult(Sender);
-  if not Results.Connection.Active then begin
+  if (Results = nil) or (not Results.Connection.Active) then begin
     EnableDataTab(False);
     Exit;
   end;
