@@ -25786,4 +25786,11 @@ object MainForm: TMainForm
       OnClick = menuQueryExactRowCountClick
     end
   end
+  object TimerCloseTabByButton: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = TimerCloseTabByButtonTimer
+    Left = 761
+    Top = 195
+  end
 end

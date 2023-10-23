@@ -779,6 +779,7 @@ type
     popupDataTop: TPopupMenu;
     menuQueryExactRowCount: TMenuItem;
     menuCloseTabOnMiddleClick: TMenuItem;
+    TimerCloseTabByButton: TTimer;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1180,6 +1181,7 @@ type
     procedure actSequalSuggestExecute(Sender: TObject);
     procedure menuQueryExactRowCountClick(Sender: TObject);
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
+    procedure TimerCloseTabByButtonTimer(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -12522,8 +12524,6 @@ end;
 
 
 procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  i: Integer;
 begin
   // Click on "Close" button of Query tab
   if Button <> mbLeft then
@@ -12532,8 +12532,19 @@ begin
   // here, we must check if also the MouseDown event was fired on this particular button. See issue #1469.
   if (Sender <> FLastMouseDownCloseButton) then
     Exit;
+  // Prevent EAccessViolation in TControl.GetClientWidth, see issue #1640
+  TimerCloseTabByButton.Enabled := True;
+end;
+
+
+procedure TMainForm.TimerCloseTabByButtonTimer(Sender: TObject);
+var
+  i: Integer;
+begin
+  // Asynchronous timer for mousedown event on query tab close button
+  TimerCloseTabByButton.Enabled := False;
   for i:=0 to QueryTabs.Count-1 do begin
-    if QueryTabs[i].CloseButton = Sender then begin
+    if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
       CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
       break;
     end;
