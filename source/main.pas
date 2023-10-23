@@ -4145,7 +4145,10 @@ var
   begin
     ProgressDialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
     Queries.Free;
-    Stream.Free;
+    try
+      Stream.Free;
+    except; // Eat error when stream wasn't yet created properly
+    end;
     // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
     if ProgressDialog.HasUserCancelled then
       MessageText := 'File "%s" partially executed, with %s queries and %s affected rows'
@@ -4159,11 +4162,10 @@ begin
   ProgressDialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
   Dummy := nil;
 
-  Result := True;
+  //Result := True;
   Lines := '';
   ErrorNotice := '';
   QueryCount := 0;
-  ErrorCount := 0;
   RowsAffected := 0;
   LinesRemain := '';
   Queries := TSQLBatch.Create;
@@ -4242,23 +4244,26 @@ begin
     end;
 
   except
-    on E:EFileStreamError do begin
-      StopProgress;
-      Result := False;
-      ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
-      AddOrRemoveFromQueryLoadHistory(FileName, False, True);
-    end;
-    on E:EDbError do begin
-      StopProgress;
-      Result := False;
-      ErrorDialog(E.Message + CRLF + CRLF +
-        f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
-        );
-    end;
-    on E:EEncodingError do begin
-      StopProgress;
-      Result := False;
-      ErrorDialog(E.Message);
+    on E:Exception do begin
+      if (E is EFileStreamError)
+        or (E is EEncodingError)
+        or (E is EReadError)
+        then begin
+        StopProgress;
+        Result := False;
+        ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
+        AddOrRemoveFromQueryLoadHistory(FileName, False, True);
+      end
+      else if E is EDbError then begin
+        StopProgress;
+        Result := False;
+        ErrorDialog(E.Message + CRLF + CRLF +
+          f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
+          );
+      end
+      else begin
+        raise;
+      end;
     end;
   end;
 end;
