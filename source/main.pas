@@ -10926,14 +10926,15 @@ var
   VT: TVirtualStringTree;
   ResultCol: Integer;
   SessionColor: TColor;
+  Conn: TDBConnection;
 begin
   if Column = -1 then
     Exit;
   ResultCol := Column -1;
   if ResultCol < 0 then begin
-    SessionColor := ActiveConnection.Parameters.SessionColor;
-    if SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then
-      TargetCanvas.Brush.Color := SessionColor
+    Conn := ActiveConnection;
+    if Assigned(Conn) and (Conn.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground)) then
+      TargetCanvas.Brush.Color := Conn.Parameters.SessionColor
     else
       TargetCanvas.Brush.Color := clBtnFace;
     TargetCanvas.FillRect(CellRect);
