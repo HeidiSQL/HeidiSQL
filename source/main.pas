@@ -4162,10 +4162,11 @@ begin
   ProgressDialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
   Dummy := nil;
 
-  //Result := True;
+  Result := True;
   Lines := '';
   ErrorNotice := '';
   QueryCount := 0;
+  ErrorCount := 0;
   RowsAffected := 0;
   LinesRemain := '';
   Queries := TSQLBatch.Create;
