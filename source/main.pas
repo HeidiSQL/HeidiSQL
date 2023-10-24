@@ -10925,12 +10925,17 @@ var
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
   ResultCol: Integer;
+  SessionColor: TColor;
 begin
   if Column = -1 then
     Exit;
   ResultCol := Column -1;
   if ResultCol < 0 then begin
-    TargetCanvas.Brush.Color := clBtnFace;
+    SessionColor := ActiveConnection.Parameters.SessionColor;
+    if SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then
+      TargetCanvas.Brush.Color := SessionColor
+    else
+      TargetCanvas.Brush.Color := clBtnFace;
     TargetCanvas.FillRect(CellRect);
     Exit;
   end;
