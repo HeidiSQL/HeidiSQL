@@ -10926,7 +10926,6 @@ var
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
   ResultCol: Integer;
-  SessionColor: TColor;
   Conn: TDBConnection;
 begin
   if Column = -1 then
@@ -13846,7 +13845,7 @@ begin
              end;
              TQueryTab.HelperNodeFunctions: begin
                Conn := ActiveConnection;
-               if Conn <> nil then
+               if (Conn <> nil) and (Conn.SQLFunctions.Count > Integer(Node.Index)) then
                  CellText := Conn.SQLFunctions[Node.Index].Name;
              end;
              TQueryTab.HelperNodeKeywords: CellText := MySQLKeywords[Node.Index];
@@ -13886,7 +13885,7 @@ begin
              end;
              TQueryTab.HelperNodeFunctions: begin
                Conn := ActiveConnection;
-               if Conn <> nil then
+               if (Conn <> nil) and (Conn.SQLFunctions.Count > Integer(Node.Index)) then
                  CellText := Conn.SQLFunctions[Node.Index].Declaration;
              end;
              TQueryTab.HelperNodeProfile: begin
