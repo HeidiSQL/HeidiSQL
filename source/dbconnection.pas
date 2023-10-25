@@ -2001,14 +2001,19 @@ begin
         SetLength(Dlls, 0);
       end;
       ngMSSQL: begin
-        Providers := TStringList.Create;
-        GetProviderNames(Providers);
-        for Provider in Providers do begin
-          if rx.Exec(Provider) then begin
-            FoundLibs.Add(Provider);
+        try
+          Providers := TStringList.Create;
+          GetProviderNames(Providers);
+          for Provider in Providers do begin
+            if rx.Exec(Provider) then begin
+              FoundLibs.Add(Provider);
+            end;
           end;
+          Providers.Free;
+        except
+          on E:EOleSysError do
+            ErrorDialog('OLE provider names not available.' + sLineBreak + E.Message);
         end;
-        Providers.Free;
       end;
     end;
     rx.Free;
