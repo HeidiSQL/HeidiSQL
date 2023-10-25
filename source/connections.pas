@@ -1001,7 +1001,11 @@ begin
     updownKeepAlive.Position := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
-    ColorBoxBackgroundColor.Selected := Sess.SessionColor;
+    ColorBoxBackgroundColor.Items.Objects[0] := TObject(Sess.SessionColor);
+    if Sess.SessionColor = clNone then
+      ColorBoxBackgroundColor.Selected := Sess.SessionColor
+    else
+      ColorBoxBackgroundColor.ItemIndex := 0;
     editDatabases.Text := Sess.AllDatabasesStr;
     comboLibrary.Items := Sess.GetLibraries;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryOrProvider);
