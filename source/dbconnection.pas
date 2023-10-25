@@ -1241,8 +1241,9 @@ begin
         end;
       end;
     end;
-    
-    Application.ProcessMessages;
+
+    // Crashes in TMainForm.DBtreeGetText:12, but most likely not required anyway:
+    //Application.ProcessMessages;
   end;
   rx.Free;
 end;
