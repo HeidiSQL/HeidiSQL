@@ -81,7 +81,12 @@ begin
     else list := Mainform.ActiveGrid;
   end;
   if Assigned(list) then
+  try
     list.Print(Printer, chkPrintHeader.Checked);
+  except
+    on E:EPrinter do
+      ErrorDialog(E.Message);
+  end;
   Screen.Cursor := crDefault;
 end;
 
