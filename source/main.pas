@@ -17,9 +17,9 @@ uses
   routine_editor, trigger_editor, event_editor, preferences, EditVar, apphelpers, createdatabase, table_editor,
   TableTools, View, Usermanager, SelectDBObject, connections, sqlhelp, dbconnection,
   insertfiles, searchreplace, loaddata, copytable, csv_detector, Cromis.DirectoryWatch, SyncDB, gnugettext,
-  VirtualTrees, VirtualTrees.Header, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
+  VirtualTrees, VirtualTrees.HeaderPopup, VirtualTrees.Utils, VirtualTrees.Types,
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
-  System.ImageList, Vcl.Styles.UxTheme, Vcl.Styles.Utils.Menus, Vcl.Styles.Utils.Forms,
+  System.ImageList, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
   SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types, Sequal.Suggest;
 
@@ -776,6 +776,10 @@ type
     actSequalSuggest: TAction;
     SequalSuggest1: TMenuItem;
     SequalSuggest2: TMenuItem;
+    popupDataTop: TPopupMenu;
+    menuQueryExactRowCount: TMenuItem;
+    menuCloseTabOnMiddleClick: TMenuItem;
+    TimerCloseTabByButton: TTimer;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1175,6 +1179,9 @@ type
     procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
       var Special: Boolean; var FG, BG: TColor);
     procedure actSequalSuggestExecute(Sender: TObject);
+    procedure menuQueryExactRowCountClick(Sender: TObject);
+    procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
+    procedure TimerCloseTabByButtonTimer(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1240,6 +1247,7 @@ type
     FMatchingBraceForegroundColor: TColor;
     FMatchingBraceBackgroundColor: TColor;
     FSynEditInOnPaintTransient: Boolean;
+    FExactRowCountMode: Boolean;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1391,7 +1399,8 @@ implementation
 
 uses
   About, printlist, dbstructures, dbstructures.mysql, UpdateCheck,
-  column_selection, data_sorting, grideditlinks, ExportGrid, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
+  column_selection, data_sorting, grideditlinks, ExportGrid, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg,
+  reformatter;
 
 
 
@@ -1407,7 +1416,7 @@ begin
     Msg := _(SIdle);
   if Msg <> StatusBar.Panels[PanelNr].Text then begin
     StatusBar.Panels[PanelNr].Text := Msg;
-    if PanelNr = 6 then begin
+    if (PanelNr = 6) and (not IsWine) then begin
       // Immediately repaint this special panel, as it holds critical update messages,
       // while avoiding StatusBar.Repaint which refreshes all panels
       SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
@@ -1429,6 +1438,9 @@ var
   PanelRect: TRect;
 begin
   // Handle click events on specific statusbar panels
+  // Prevent SendMessage on Wine
+  if IsWine then
+    Exit;
   Click := StatusBar.ScreenToClient(Mouse.CursorPos);
   for i:=0 to StatusBar.Panels.Count-1 do begin
     SendMessage(StatusBar.Handle, SB_GETRECT, i, Integer(@PanelRect));
@@ -1488,6 +1500,8 @@ var
   HintText: String;
 begin
   // Display various server, client and connection related details in a hint
+  if IsWine then
+    Exit;
   if (FLastHintMousepos.X = X) and (FLastHintMousepos.Y = Y) then
     Exit;
   FLastHintMousepos := Point(X, Y);
@@ -1619,7 +1633,7 @@ begin
         SelectNode(DataGrid, 0);
     end else begin
       ToggleFilterPanel(True);
-      SynMemoFilter.SetFocus;
+      SynMemoFilter.TrySetFocus;
     end;
   end else begin
     MessageBeep(MB_ICONASTERISK);
@@ -1632,7 +1646,7 @@ begin
   // Go to multi column filter generator
   if PageControlMain.ActivePage = tabData then begin
     ToggleFilterPanel(True);
-    editFilterSearch.SetFocus;
+    editFilterSearch.TrySetFocus;
   end else begin
     MessageBeep(MB_ICONASTERISK);
   end;
@@ -2750,10 +2764,17 @@ begin
   StatusBar.Panels[6].Width := w6;
 
   // Retreive the rectancle of the statuspanel (in our case the fifth panel)
-  SendMessage(StatusBar.Handle, SB_GETRECT, 5, Integer(@PanelRect));
-  // Position the progressbar over the panel on the statusbar
-  with PanelRect do
-    ProgressBarStatus.SetBounds(Left, Top, Right-Left, Bottom-Top);
+  if not IsWine then begin
+    SendMessage(StatusBar.Handle, SB_GETRECT, 5, Integer(@PanelRect));
+    // Position the progressbar over the panel on the statusbar
+    ProgressBarStatus.SetBounds(
+      PanelRect.Left,
+      PanelRect.Top,
+      PanelRect.Right-PanelRect.Left,
+      PanelRect.Bottom-PanelRect.Top
+      );
+  end;
+
   lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
   FixQueryTabCloseButtons;
 
@@ -2962,12 +2983,15 @@ end;
 
 
 function TMainForm.HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
+var
+  ResultCol: Integer;
 begin
   // Shorthand for various places where we would normally have to add all these conditions
+  ResultCol := Column - 1;
   Result := (Sender = DataGrid)
-    and (Column > NoColumn)
+    and (ResultCol > NoColumn)
     and (DataGridResult <> nil)
-    and (DataGridResult.DataType(Column).Category in [dtcInteger, dtcReal])
+    and (DataGridResult.DataType(ResultCol).Category in [dtcInteger, dtcReal])
     and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1);
 end;
 
@@ -3001,7 +3025,7 @@ procedure TMainForm.actCopyTabsToSpacesExecute(Sender: TObject);
 begin
   // issue #1285: copy text with tabs converted to spaces
   actCopyOrCutExecute(Sender);
-  Clipboard.AsText := StringReplace(Clipboard.AsText, #9, ' ', [rfReplaceAll]);
+  Clipboard.TryAsText := StringReplace(Clipboard.TryAsText, #9, ' ', [rfReplaceAll]);
 end;
 
 procedure TMainForm.actCopyUpdate(Sender: TObject);
@@ -3340,6 +3364,13 @@ begin
     NewTab.Grid.Header.Columns.Clear;
     HeaderLineBreaks := 0;
     HeaderPadding := NewTab.Grid.Header.Height - GetTextHeight(NewTab.Grid.Font);
+    col := NewTab.Grid.Header.Columns.Add;
+    col.CaptionAlignment := taRightJustify;
+    col.Alignment := taRightJustify;
+    col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus, coEditable, coResizable];
+    if not AppSettings.ReadBool(asShowRowId) then
+      col.Options := col.Options - [coVisible];
+    col.Text := '#';
     for i:=0 to NewTab.Results.ColumnCount-1 do begin
       col := NewTab.Grid.Header.Columns.Add;
       col.Text := NewTab.Results.ColumnNames[i];
@@ -3625,7 +3656,7 @@ begin
   Grid := ActiveGrid;
   (Sender as TAction).Enabled := (Grid <> nil)
     and (Grid.FocusedColumn <> NoColumn)
-    and (GridResult(Grid).DataType(Grid.FocusedColumn).Category = dtcBinary)
+    and (GridResult(Grid).DataType(Grid.FocusedColumn-1).Category = dtcBinary)
 end;
 
 
@@ -3651,13 +3682,16 @@ var
   ImgType: String;
   Content, Header: AnsiString;
   ContentStream: TMemoryStream;
-  StrLen: Integer;
+  StrLen, ResultCol: Integer;
   Graphic: TGraphic;
 begin
   // Load BLOB contents into preview area
   Grid := ActiveGrid;
   Results := GridResult(Grid);
   if not Assigned(Results) then
+    Exit;
+  ResultCol := Grid.FocusedColumn -1;
+  if ResultCol < 0 then
     Exit;
   Screen.Cursor := crHourGlass;
   try
@@ -3669,8 +3703,8 @@ begin
     RowNum := Grid.GetNodeData(Grid.FocusedNode);
     Results.RecNo := RowNum^;
 
-    Content := AnsiString(Results.Col(Grid.FocusedColumn));
-    StrLen := Results.ColumnLengths(Grid.FocusedColumn);
+    Content := AnsiString(Results.Col(ResultCol));
+    StrLen := Results.ColumnLengths(ResultCol);
     ContentStream := TMemoryStream.Create;
     ContentStream.Write(Content[1], StrLen);
     ContentStream.Position := 0;
@@ -3762,18 +3796,18 @@ begin
   Results := GridResult(Grid);
   Dialog := TSaveDialog.Create(Self);
   Dialog.Filter := _('All files')+' (*.*)|*.*';
-  Dialog.FileName := Results.ColumnOrgNames[Grid.FocusedColumn];
-  if not (Results.DataType(Grid.FocusedColumn).Category in [dtcBinary, dtcSpatial]) then
+  Dialog.FileName := Results.ColumnOrgNames[Grid.FocusedColumn-1];
+  if not (Results.DataType(Grid.FocusedColumn-1).Category in [dtcBinary, dtcSpatial]) then
     Dialog.FileName := Dialog.FileName + '.txt';
   if Dialog.Execute then begin
     Screen.Cursor := crHourGlass;
     AnyGridEnsureFullRow(Grid, Grid.FocusedNode);
     RowNum := Grid.GetNodeData(Grid.FocusedNode);
     Results.RecNo := RowNum^;
-    if Results.DataType(Grid.FocusedColumn).Category in [dtcBinary, dtcSpatial] then
-      Content := AnsiString(Results.Col(Grid.FocusedColumn))
+    if Results.DataType(Grid.FocusedColumn-1).Category in [dtcBinary, dtcSpatial] then
+      Content := AnsiString(Results.Col(Grid.FocusedColumn-1))
     else
-      Content := Utf8Encode(Results.Col(Grid.FocusedColumn));
+      Content := Utf8Encode(Results.Col(Grid.FocusedColumn-1));
     StrLen := Length(Content);
     try
       FileStream := TFileStream.Create(Dialog.FileName, fmCreate or fmOpenWrite);
@@ -4111,7 +4145,10 @@ var
   begin
     ProgressDialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
     Queries.Free;
-    Stream.Free;
+    try
+      Stream.Free;
+    except; // Eat error when stream wasn't yet created properly
+    end;
     // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
     if ProgressDialog.HasUserCancelled then
       MessageText := 'File "%s" partially executed, with %s queries and %s affected rows'
@@ -4208,23 +4245,26 @@ begin
     end;
 
   except
-    on E:EFileStreamError do begin
-      StopProgress;
-      Result := False;
-      ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
-      AddOrRemoveFromQueryLoadHistory(FileName, False, True);
-    end;
-    on E:EDbError do begin
-      StopProgress;
-      Result := False;
-      ErrorDialog(E.Message + CRLF + CRLF +
-        f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
-        );
-    end;
-    on E:EEncodingError do begin
-      StopProgress;
-      Result := False;
-      ErrorDialog(E.Message);
+    on E:Exception do begin
+      if (E is EFileStreamError)
+        or (E is EEncodingError)
+        or (E is EReadError)
+        then begin
+        StopProgress;
+        Result := False;
+        ErrorDialog(f_('Error while reading file "%s"', [FileName]), E.Message);
+        AddOrRemoveFromQueryLoadHistory(FileName, False, True);
+      end
+      else if E is EDbError then begin
+        StopProgress;
+        Result := False;
+        ErrorDialog(E.Message + CRLF + CRLF +
+          f_('Notice: You can disable the "%s" option to ignore such errors', [actQueryStopOnErrors.Caption])
+          );
+      end
+      else begin
+        raise;
+      end;
     end;
   end;
 end;
@@ -4668,6 +4708,8 @@ begin
   // Display search + replace dialog
   if not Assigned(FSearchReplaceDialog) then
     FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
+  if FSearchReplaceDialog.Visible then
+    Exit;
   FSearchReplaceDialog.chkReplace.Checked := Sender = actQueryReplace;
   if (ActiveSynMemo(False) <> nil) or (ActiveGrid <> nil) then begin
     OldDataLocalNumberFormat := DataLocalNumberFormat;
@@ -4868,7 +4910,10 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  if FActiveDbObj.Connection.ServerVersionInt >= 40100 then begin
+  if FActiveDbObj.Connection.Parameters.IsAnyMySQL
+    and (FActiveDbObj.Connection.ServerVersionInt >= 40100)
+    and (not FActiveDbObj.Connection.Parameters.IsProxySQLAdmin)
+    then begin
     if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
@@ -5328,7 +5373,7 @@ var
   Results: TDBQuery;
   RowNum: Int64;
   DupeNum: PInt64;
-  i: Integer;
+  Col, ResultCol: Integer;
   Value: String;
   IsNull, AllowNewNode: Boolean;
 begin
@@ -5351,18 +5396,21 @@ begin
       // Copy values from source row, ensure we have whole cell data
       DupeNum := Grid.GetNodeData(DupeNode);
       AnyGridEnsureFullRow(Grid, DupeNode);
-      for i:=0 to Grid.Header.Columns.Count-1 do begin
-        if not (coVisible in Grid.Header.Columns[i].Options) then
+      for Col:=0 to Grid.Header.Columns.Count-1 do begin
+        ResultCol := Col - 1;
+        if not (coVisible in Grid.Header.Columns[Col].Options) then
           continue; // Ignore invisible key column
-        if Results.ColIsPrimaryKeyPart(i) and (Sender = actDataDuplicateRowWithoutKeys) then
+        if ResultCol < 0 then
+          Continue; // Ignore static row id column
+        if Results.ColIsPrimaryKeyPart(ResultCol) and (Sender = actDataDuplicateRowWithoutKeys) then
           continue; // Empty value for primary key column
-        if Results.ColIsVirtual(i) then
+        if Results.ColIsVirtual(ResultCol) then
           continue; // Don't copy virtual column value
         Results.RecNo := DupeNum^;
-        Value := Results.Col(i);
-        IsNull := Results.IsNull(i);
+        Value := Results.Col(ResultCol);
+        IsNull := Results.IsNull(ResultCol);
         Results.RecNo := RowNum;
-        Results.SetCol(i, Value, IsNull, False);
+        Results.SetCol(ResultCol, Value, IsNull, False);
       end;
     end;
   except on E:EDbError do
@@ -5817,11 +5865,11 @@ var
   DBObj: TDBObject;
   rx: TRegExpr;
   OldCursor: TBufferCoord;
+  Col: TVirtualTreeColumn;
 
   procedure InitColumn(idx: Integer; TblCol: TTableColumn);
   var
     k: Integer;
-    Col: TVirtualTreeColumn;
   begin
     col := vt.Header.Columns.Add;
     col.Text := TblCol.Name;
@@ -5998,6 +6046,13 @@ begin
       // Set up grid column headers
       ShowStatusMsg(_('Setting up columns ...'));
       VisibleColumns := 0;
+      Col := vt.Header.Columns.Add;
+      Col.CaptionAlignment := taRightJustify;
+      Col.Alignment := taRightJustify;
+      Col.Options := col.Options + [coFixed]- [coAllowClick, coAllowFocus, coEditable, coResizable];
+      if not AppSettings.ReadBool(asShowRowId) then
+        Col.Options := col.Options - [coVisible];
+      Col.Text := '#';
       for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);
         if coVisible in vt.Header.Columns[i].Options then
@@ -6032,7 +6087,7 @@ begin
 
     // Do not steel filter while writing filters
     if not SynMemoFilter.Focused then
-      vt.SetFocus;
+      vt.TrySetFocus;
 
     DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, Int64(vt.RootNodeCount)-1);
     SelectNode(vt, DataGridFocusedNodeIndex);
@@ -6109,14 +6164,28 @@ begin
   IsLimited := DataGridWantedRowCount <= Datagrid.RootNodeCount;
   IsFiltered := SynMemoFilter.GetTextLen > 0;
   if DBObject.NodeType = lntTable then begin
-    if (not IsLimited) and (not IsFiltered) then
-      RowsTotal := DataGrid.RootNodeCount // No need to fetch via SHOW TABLE STATUS
-    else
-      RowsTotal := DBObject.RowCount(True);
+    if (not IsLimited) and (not IsFiltered) then begin
+      RowsTotal := DataGrid.RootNodeCount; // No need to fetch via SHOW TABLE STATUS
+      DBObject.RowsAreExact := True;
+      menuQueryExactRowCount.Enabled := False;
+    end
+    else begin
+      Screen.Cursor := crHourGlass;
+      if (not DBObject.RowsAreExact) or FExactRowCountMode then
+        RowsTotal := DBObject.RowCount(True, FExactRowCountMode)
+      else
+        RowsTotal := DBObject.Rows;
+      Screen.Cursor := crDefault;
+      menuQueryExactRowCount.Enabled := True;
+    end;
     if RowsTotal > -1 then begin
       cap := cap + ': ' + FormatNumber(RowsTotal) + ' ' + _('rows total');
-      if DBObject.Engine = 'InnoDB' then
-        cap := cap + ' ('+_('approximately')+')';
+      if DBObject.Engine = 'InnoDB' then begin
+        if DBObject.RowsAreExact then
+          cap := cap + ' ('+_('exact')+')'
+        else
+          cap := cap + ' ('+_('approximately')+')';
+      end;
       // Display either LIMIT or WHERE effect, not both at the same time
       if IsLimited then
         cap := cap + ', '+_('limited to') + ' ' + FormatNumber(Datagrid.RootNodeCount)
@@ -6130,13 +6199,25 @@ begin
       // in table copy dialog. See issue #666
       if Assigned(DBtree.FocusedNode) then begin
         ObjInCache := DBtree.GetNodeData(DBtree.FocusedNode);
-        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then
+        if Assigned(ObjInCache) and ObjInCache.IsSameAs(DBObject) then begin
           ObjInCache.Rows := RowsTotal;
+          ObjInCache.RowsAreExact := DBObject.RowsAreExact;
+        end;
       end;
     end;
   end;
   lblDataTop.Caption := cap;
   lblDataTop.Hint := cap;
+  FExactRowCountMode := False;
+end;
+
+
+procedure TMainForm.menuQueryExactRowCountClick(Sender: TObject);
+begin
+  // Activate exact row count mode and let DisplayRowCountStats do the rest
+  // See https://www.heidisql.com/forum.php?t=41310
+  FExactRowCountMode := True;
+  DisplayRowCountStats(DataGrid);
 end;
 
 
@@ -6186,13 +6267,14 @@ begin
   // Move focus to relevant controls in order for them to receive keyboard events.
   // Do this only if the user clicked the new tab. Not on automatic tab changes.
   if Sender = PageControlMain then begin
-    if tab = tabHost then PageControlHostChange(Sender)
-    else if tab = tabDatabase then ListTables.SetFocus
+    if tab = tabHost then
+      PageControlHostChange(Sender)
+    else if tab = tabDatabase then
+      ListTables.TrySetFocus
     else if tab = tabData then begin
-      if DataGrid.CanFocus and DataGrid.Enabled then
-        DataGrid.SetFocus;
+      DataGrid.TrySetFocus;
     end else if IsQueryTab(tab.PageIndex, True) then begin
-      QueryTabs.ActiveMemo.SetFocus;
+      QueryTabs.ActiveMemo.TrySetFocus;
       QueryTabs.ActiveMemo.WordWrap := actQueryWordWrap.Checked;
       SynMemoQueryStatusChange(QueryTabs.ActiveMemo, [scCaretX]);
     end;
@@ -6231,8 +6313,9 @@ begin
   else if tab = tabProcesslist then list := ListProcesses
   else if tab = tabCommandStats then list := ListCommandStats
   else Exit; // Silence compiler warning
-  list.SetFocus;
+  list.TrySetFocus;
   UpdateFilterPanel(Sender);
+  PageControlTabHighlight(PageControlHost);
 end;
 
 
@@ -6422,6 +6505,7 @@ var
   RowNum: PInt64;
   CellText: String;
   Conn: TDBConnection;
+  ResultCol: Integer;
 begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
 
@@ -6434,13 +6518,14 @@ begin
   CellText := '';
   if HasConnection and Assigned(Grid) then begin
     Results := GridResult(Grid);
+    ResultCol := Grid.FocusedColumn -1;
     if (Results<>nil) and Assigned(Grid.FocusedNode) then begin
       RowNum := Grid.GetNodeData(Grid.FocusedNode);
       Results.RecNo := RowNum^;
       GridHasChanges := Results.Modified or Results.Inserted;
-      if Grid.FocusedColumn > NoColumn then begin
-        EnableTimestamp := Results.DataType(Grid.FocusedColumn).Category in [dtcInteger, dtcReal];
-        CellText := Results.Col(Grid.FocusedColumn, True);
+      if ResultCol > NoColumn then begin
+        EnableTimestamp := Results.DataType(ResultCol).Category in [dtcInteger, dtcReal];
+        CellText := Results.Col(ResultCol, True);
       end;
     end;
   end;
@@ -6472,7 +6557,7 @@ begin
   actDataSetNull.Enabled := HasConnection and inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   // Help only supported on regular MySQL and MariaDB servers
-  actSQLHelp.Enabled := HasConnection and Conn.Parameters.IsAnyMySQL and (not Conn.Parameters.IsProxySQLAdmin);
+  actSQLHelp.Enabled := HasConnection;
 
   inSynMemo := ActiveSynMemo(True) <> nil;
   inSynMemoEditable := inSynMemo and (not ActiveSynMemo(True).ReadOnly);
@@ -6488,6 +6573,7 @@ begin
 
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
+  PageControlTabHighlight(PageControlMain);
 end;
 
 
@@ -7807,7 +7893,7 @@ begin
   // Make sure ValidateControls detects the grid as focused, which is not the case when
   // it has 0 nodes, even with TreeOptions.SelectionOptions.RightclickSelect enabled
   Grid.SetFocus;
-  CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > NoColumn);
+  CellFocused := Assigned(Grid.FocusedNode) and (Grid.FocusedColumn > 0);
   InDataGrid := Grid = DataGrid;
   DataInsertValue.Enabled := CellFocused;
   QFvalues.Enabled := CellFocused;
@@ -7821,8 +7907,8 @@ begin
     Exit;
   Results := GridResult(Grid);
 
-  Datatype := Results.DataType(Grid.FocusedColumn);
-  Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn], False);
+  Datatype := Results.DataType(Grid.FocusedColumn-1);
+  Col := Results.Connection.QuoteIdent(Results.ColumnOrgNames[Grid.FocusedColumn-1], False);
   if InDataGrid
     and (Datatype.Index = dbdtJson)
     and Results.Connection.Parameters.IsAnyPostgreSQL then begin
@@ -7847,7 +7933,7 @@ begin
     AnyGridEnsureFullRow(Grid, Node);
     RowNumber := Grid.GetNodeData(Node);
     Results.RecNo := RowNumber^;
-    if Results.IsNull(Grid.FocusedColumn) then
+    if Results.IsNull(Grid.FocusedColumn-1) then
       HasNullValue := True
     else begin
       HasNotNullValue := True;
@@ -7920,7 +8006,7 @@ begin
   actQuickFilterNotNull.Hint := Col + ' IS NOT NULL';
 
   // Block 3: WHERE col = [clipboard content]
-  Value := Trim(Clipboard.AsText);
+  Value := Trim(Clipboard.TryAsText);
   if Length(Value) < SIZE_KB then begin
     actQuickFilterClipboard1.Enabled := true;
     actQuickFilterClipboard1.Hint := Col + ' = ' + Results.Connection.EscapeString(Value, Datatype);
@@ -7963,7 +8049,7 @@ begin
 
   actFollowForeignKey.Enabled := False;
   if (InDataGrid) then begin
-    FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn];
+    FocusedColumnName := Results.ColumnOrgNames[Grid.FocusedColumn-1];
     //find foreign key for current column
     for ForeignKey in ActiveDBObj.TableForeignKeys do begin
       i := ForeignKey.Columns.IndexOf(FocusedColumnName);
@@ -7981,7 +8067,7 @@ var
   Data: TDBQuery;
   DbObj: TDBObject;
   Conn: TDBConnection;
-  ColIdx: Integer;
+  ColIdx, ResultCol: Integer;
   ColName, Query: String;
   ColType: TDBDatatype;
   TableCol: TTableColumn;
@@ -7998,17 +8084,18 @@ begin
   QFvalues[0].Hint := '';
   QFvalues[0].OnClick := nil;
   ColIdx := DataGrid.FocusedColumn;
+  ResultCol := ColIdx - 1;
   if ColIdx = NoColumn then
     Exit;
-  ColName := DataGridResult.ColumnOrgNames[ColIdx];
-  ColType := DataGridResult.DataType(ColIdx);
+  ColName := DataGridResult.ColumnOrgNames[ResultCol];
+  ColType := DataGridResult.DataType(ResultCol);
   ShowStatusMsg(_('Fetching distinct values ...'));
   DbObj := ActiveDbObj;
   Conn := DbObj.Connection;
   MaxSize := SIZE_GB;
-  ColumnHasIndex := DataGridResult.ColIsKeyPart(ColIdx)
-    or DataGridResult.ColIsUniqueKeyPart(ColIdx)
-    or DataGridResult.ColIsPrimaryKeyPart(ColIdx);
+  ColumnHasIndex := DataGridResult.ColIsKeyPart(ResultCol)
+    or DataGridResult.ColIsUniqueKeyPart(ResultCol)
+    or DataGridResult.ColIsPrimaryKeyPart(ResultCol);
   if ColumnHasIndex then begin
     MaxSize := MaxSize * 5;
   end;
@@ -9005,7 +9092,10 @@ begin
   end else begin
     VirtualImageListMain.ImageCollection := ImageCollectionIcons8;
   end;
+  // Add all normal color icons from collection to virtual image list
   VirtualImageListMain.Add('', 0, VirtualImageListMain.ImageCollection.Count-1);
+  // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
+  VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);
 end;
 
 
@@ -9267,11 +9357,13 @@ begin
           if Sender.ChildrenInitialized[Node] then
             CellText := CellText + ' (' + FormatNumber(Sender.ChildCount[Node]) + ')';
         end;
-        lntTable..lntEvent: begin
+        lntTable..lntEvent: try
           if (DBObj.Schema <> '') and (DBObj.Connection.Parameters.NetTypeGroup = ngMSSQL) then
             CellText := DBObj.Schema + '.' + DBObj.Name
           else
             CellText := DBObj.Name;
+        except
+          CellText := DBObj.Name;
         end;
         lntColumn: CellText := DBObj.Column;
       end;
@@ -9477,6 +9569,7 @@ var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
   TabHostName: String;
+  EnteringSession: Boolean;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
   MainTabToActivate := nil;
@@ -9494,7 +9587,7 @@ begin
     DBObj.WasSelected := True;
     FActiveDbObj := TDBObject.Create(DBObj.Connection);
     FActiveDbObj.Assign(DBObj^);
-    if Assigned(Node.Parent) then
+    if Assigned(Node.Parent) and (DBtree.GetNodeLevel(Node) > 0) then
       ParentDBObj := Sender.GetNodeData(Node.Parent);
 
     case FActiveDbObj.NodeType of
@@ -9567,9 +9660,16 @@ begin
       PrevDBObj := Sender.GetNodeData(TreeClickHistoryPrevious(True));
 
     // When clicked node is from a different connection than before, do session specific stuff here:
-    if Assigned(FActiveDbObj)
-      and ((PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection))
-      then begin
+    try
+      EnteringSession := (FActiveDbObj <> nil)
+        and ((PrevDBObj = nil) or (PrevDBObj.Connection <> FActiveDbObj.Connection));
+    except
+      on E:EAccessViolation do begin
+        LogSQL(E.ClassName+' while moving focus in tree.', lcError);
+        EnteringSession := True;
+      end;
+    end;
+    if EnteringSession then begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
       RefreshHelperNode(TQueryTab.HelperNodeHistory);
       RefreshHelperNode(TQueryTab.HelperNodeProfile);
@@ -9592,8 +9692,8 @@ begin
       SynSQLSynUsed.FunctionNames.Clear;
       SynSQLSynUsed.FunctionNames.AddStrings(FActiveDbObj.Connection.SQLFunctions.Names);
       SynSQLSynUsed.FunctionNames.EndUpdate;
-
     end;
+
     if (FActiveDbObj.NodeType <> lntNone)
       and (
         (PrevDBObj = nil)
@@ -9608,6 +9708,7 @@ begin
       TabHostName := StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 60, False)
     else
       TabHostName := FActiveDbObj.Connection.Parameters.HostName;
+
     SetTabCaption(tabHost.PageIndex, _('Host')+': '+TabHostName);
     SetTabCaption(tabDatabase.PageIndex, _('Database')+': '+FActiveDbObj.Connection.Database);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
@@ -10119,48 +10220,54 @@ var
   Results: TDBQuery;
   Timestamp: Int64;
   DotPos, i, NumZeros, NumDecimals, KeepDecimals: Integer;
+  ResultCol: Integer;
 begin
   if Column = -1 then
     Exit;
+  ResultCol := Column - 1;
+  if ResultCol < 0 then begin
+    CellText := (Node.Index +1).ToString;
+    Exit;
+  end;
   EditingAndFocused := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   Results := GridResult(Sender);
-  if not Results.Connection.Active then begin
+  if (Results = nil) or (not Results.Connection.Active) then begin
     EnableDataTab(False);
     Exit;
   end;
   // Happens in some crashes, see issue #2462
-  if Column >= Results.ColumnCount then
+  if ResultCol >= Results.ColumnCount then
     Exit;
   RowNumber := Sender.GetNodeData(Node);
   Results.RecNo := RowNumber^;
-  if Results.IsNull(Column) and (not EditingAndFocused) then
+  if Results.IsNull(ResultCol) and (not EditingAndFocused) then
     CellText := TEXT_NULL
   else begin
-    case Results.DataType(Column).Category of
+    case Results.DataType(ResultCol).Category of
       dtcInteger, dtcReal: begin
         // This is a bit crappy...
         // UNIX timestamps get *copied* as integers, but *displayed* and *edited* as date/time values.
         // Normal integers are *copied* and *edited* as raw numbers, but probably *displayed* as formatted numbers.
         if FGridCopying then begin
-          CellText := Results.Col(Column);
+          CellText := Results.Col(ResultCol);
         end else if HandleUnixTimestampColumn(Sender, Column) then begin
           try
-            Timestamp := Trunc(StrToFloat(Results.Col(Column), FFormatSettings));
+            Timestamp := Trunc(StrToFloat(Results.Col(ResultCol), FFormatSettings));
             Dec(Timestamp, FTimeZoneOffset);
             CellText := DateTimeToStr(UnixToDateTime(Timestamp));
           except
             // EConvertError in StrToFloat or EInvalidOp in Trunc or...
             on E:Exception do begin
-              CellText := Results.Col(Column);
+              CellText := Results.Col(ResultCol);
               LogSQL('Error when calculating Unix timestamp from "'+CellText+'": '+E.Message, lcError);
             end;
           end;
         end else begin
-          CellText := Results.Col(Column);
+          CellText := Results.Col(ResultCol);
 
           // Keep only wanted number of trailing zeros after decimal separator
           // Bug fixed: Do not cut trailing zeros in scientific values like 2.0e30 => 2.0e3
-          if (Results.DataType(Column).Category = dtcReal) and (AppSettings.ReadInt(asRealTrailingZeros) >= 0) then begin
+          if (Results.DataType(ResultCol).Category = dtcReal) and (AppSettings.ReadInt(asRealTrailingZeros) >= 0) then begin
             DotPos := Pos('.', CellText);
             IsScientific := ContainsText(CellText, 'e');
             if (not IsScientific) and (DotPos > 0) then begin
@@ -10186,12 +10293,12 @@ begin
       end;
       dtcBinary, dtcSpatial: begin
         if actBlobAsText.Checked then
-          CellText := Results.Col(Column)
+          CellText := Results.Col(ResultCol)
         else
-          CellText := Results.HexValue(Column, False);
+          CellText := Results.HexValue(ResultCol, False);
       end;
       else begin
-        CellText := Results.Col(Column);
+        CellText := Results.Col(ResultCol);
         if (Length(CellText) = GRIDMAXDATA) and (not Results.HasFullData) and (Sender = DataGrid) then
           CellText := CellText + ' [...]';
       end;
@@ -10224,25 +10331,32 @@ var
   cl: TColor;
   r: TDBQuery;
   RowNumber: PInt64;
+  ResultCol: Integer;
 begin
   if Column = NoColumn then
     Exit;
+  ResultCol := Column - 1;
+  if ResultCol < 0 then begin
+    TargetCanvas.Font.Color := clGrayText;
+    //TargetCanvas.Font.Style := [TFontStyle.fsItalic];
+    Exit;
+  end;
 
   r := GridResult(Sender);
   RowNumber := Sender.GetNodeData(Node);
   r.RecNo := RowNumber^;
 
   // Make primary key columns bold
-  if r.ColIsPrimaryKeyPart(Column) then
+  if r.ColIsPrimaryKeyPart(ResultCol) then
     TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
 
   // Do not apply any color on a selected, highlighted cell to keep readability
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then
     cl := GetThemeColor(clHighlightText)
-  else if r.IsNull(Column) then
-    cl := DatatypeCategories[r.DataType(Column).Category].NullColor
+  else if r.IsNull(ResultCol) then
+    cl := DatatypeCategories[r.DataType(ResultCol).Category].NullColor
   else
-    cl := DatatypeCategories[r.DataType(Column).Category].Color;
+    cl := DatatypeCategories[r.DataType(ResultCol).Category].Color;
   TargetCanvas.Font.Color := cl;
 end;
 
@@ -10252,14 +10366,19 @@ procedure TMainForm.AnyGridAfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas
 var
   Results: TDBQuery;
   RowNum: PInt64;
+  ResultCol: Integer;
 begin
   // Don't waist time
-  if Column = NoColumn then Exit;
+  if Column = NoColumn then
+    Exit;
+  ResultCol := Column - 1;
+  if ResultCol < 0 then
+    Exit;
   // Paint a red triangle at the top left corner of the cell
   Results := GridResult(Sender);
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
-  if Results.Modified(Column) then
+  if Results.Modified(ResultCol) then
     VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
 end;
 
@@ -10330,7 +10449,7 @@ begin
   Results := GridResult(Grid);
   Results.RecNo := RowNum^;
   try
-    Results.SetCol(Grid.FocusedColumn, '', True, False);
+    Results.SetCol(Grid.FocusedColumn-1, '', True, False);
   except
     on E:EDbError do
       ErrorDialog(E.Message);
@@ -10390,14 +10509,16 @@ var
   RowNum: PInt64;
   Timestamp: Int64;
   IsNull: Boolean;
+  ResultCol: Integer;
 begin
   Results := GridResult(Sender);
   if not Results.IsEditable then
     Exit;
+  ResultCol := Column - 1;
   RowNum := Sender.GetNodeData(Node);
   Results.RecNo := RowNum^;
   try
-    if (not FGridEditFunctionMode) and (Results.DataType(Column).Category in [dtcInteger, dtcReal]) then begin
+    if (not FGridEditFunctionMode) and (Results.DataType(ResultCol).Category in [dtcInteger, dtcReal]) then begin
       if HandleUnixTimestampColumn(Sender, Column) then begin
         Timestamp := DateTimeToUnix(StrToDateTime(NewText));
         Inc(Timestamp, FTimeZoneOffset);
@@ -10406,7 +10527,7 @@ begin
         NewText := NewText;
     end;
     IsNull := FGridPasting and FClipboardHasNull;
-    Results.SetCol(Column, NewText, IsNull, FGridEditFunctionMode);
+    Results.SetCol(ResultCol, NewText, IsNull, FGridEditFunctionMode);
   except
     on E:EDbError do
       ErrorDialog(E.Message);
@@ -10476,14 +10597,14 @@ begin
   g := TVirtualStringTree(Sender);
   case Key of
     VK_HOME: begin
-      g.FocusedColumn := g.Header.Columns.GetFirstVisibleColumn(False);
+      g.FocusedColumn := g.Header.Columns.GetFirstVisibleColumn(True);
       if ssCtrl in Shift then begin
         // VT itself focuses the first node since v7.0
       end else
         Key := 0;
     end;
     VK_END: begin
-      g.FocusedColumn := g.Header.Columns.GetLastVisibleColumn(False);
+      g.FocusedColumn := g.Header.Columns.GetLastVisibleColumn(True);
       if ssCtrl in Shift then begin
         if g = DataGrid then
           actDataShowAll.Execute;
@@ -10558,15 +10679,17 @@ var
   RefObj: TDBObject;
   AllowEdit, DisplayHex: Boolean;
   SQLFunc: TSQLFunction;
+  ResultCol: Integer;
 begin
   VT := Sender as TVirtualStringTree;
   Results := GridResult(VT);
   RowNum := VT.GetNodeData(Node);
   Results.RecNo := RowNum^;
+  ResultCol := Column - 1;
   Conn := Results.Connection;
   // Allow editing, or leave readonly mode
   AllowEdit := Results.IsEditable;
-  TblColumn := Results.ColAttributes(Column);
+  TblColumn := Results.ColAttributes(ResultCol);
 
   // Find foreign key values
   if AppSettings.ReadBool(asForeignDropDown) and (Sender = DataGrid) then begin
@@ -10630,7 +10753,7 @@ begin
     end;
   end;
 
-  FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(Column);
+  FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(ResultCol);
   if FGridEditFunctionMode then begin
     EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
     for SQLFunc in Conn.SQLFunctions do
@@ -10639,32 +10762,32 @@ begin
     EditLink := EnumEditor;
   end;
 
-  TypeCat := Results.DataType(Column).Category;
+  TypeCat := Results.DataType(ResultCol).Category;
 
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
-  else if (Results.DataType(Column).Index in [dbdtEnum, dbdtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
+  else if (Results.DataType(ResultCol).Index in [dbdtEnum, dbdtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
     EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
-    EnumEditor.ValueList := Results.ValueList(Column);
+    EnumEditor.ValueList := Results.ValueList(ResultCol);
     EditLink := EnumEditor;
   end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
     InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
-    InplaceEditor.MaxLength := Results.MaxLength(Column);
-    InplaceEditor.TitleText := Results.ColumnOrgNames[Column];
+    InplaceEditor.MaxLength := Results.MaxLength(ResultCol);
+    InplaceEditor.TitleText := Results.ColumnOrgNames[ResultCol];
     InplaceEditor.ButtonVisible := True;
     EditLink := InplaceEditor;
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
     HexEditor := THexEditorLink.Create(VT, AllowEdit, TblColumn);
-    HexEditor.MaxLength := Results.MaxLength(Column);
-    HexEditor.TitleText := Results.ColumnOrgNames[Column];
+    HexEditor.MaxLength := Results.MaxLength(ResultCol);
+    HexEditor.TitleText := Results.ColumnOrgNames[ResultCol];
     EditLink := HexEditor;
   end else if (TypeCat = dtcTemporal)
     and AppSettings.ReadBool(asFieldEditorDatetime)
     and Assigned(TblColumn) // Editor crashes without a column object (on joins), see #1024
     then begin
     // Ensure date/time editor starts with a non-empty text value
-    if (Results.Col(Column) = '') and AppSettings.ReadBool(asFieldEditorDatetimePrefill) then begin
-      case Results.DataType(Column).Index of
+    if (Results.Col(ResultCol) = '') and AppSettings.ReadBool(asFieldEditorDatetimePrefill) then begin
+      case Results.DataType(ResultCol).Index of
         dbdtDate: NowText := DateToStr(Now);
         dbdtTime: NowText := TimeToStr(Now);
         // Add this case to prevent error with datatype year and sql_mode STRICT_TRANS_TABLES
@@ -10673,9 +10796,9 @@ begin
         dbdtYear: NowText := FormatDateTime('yyyy',Now);
         else NowText := DateTimeToStr(Now);
       end;
-      MicroSecondsPrecision := MakeInt(Results.ColAttributes(Column).LengthSet);
+      MicroSecondsPrecision := MakeInt(Results.ColAttributes(ResultCol).LengthSet);
       // Don't generate MicroSecond when DataType is Year
-      if (MicroSecondsPrecision > 0) and (Results.DataType(Column).Index <> dbdtYear ) then
+      if (MicroSecondsPrecision > 0) and (Results.DataType(ResultCol).Index <> dbdtYear ) then
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
@@ -10687,9 +10810,9 @@ begin
     then begin
     DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
     EditLink := DateTimeEditor;
-  end else if (Results.DataType(Column).Index = dbdtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
+  end else if (Results.DataType(ResultCol).Index = dbdtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
     SetEditor := TSetEditorLink.Create(VT, AllowEdit, TblColumn);
-    SetEditor.ValueList := Results.ValueList(Column);
+    SetEditor.ValueList := Results.ValueList(ResultCol);
     EditLink := SetEditor;
   end else begin
     InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
@@ -10802,9 +10925,21 @@ var
   isEven, FocusedIsNull, CurrentIsNull: Boolean;
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
+  ResultCol: Integer;
+  Conn: TDBConnection;
 begin
   if Column = -1 then
     Exit;
+  ResultCol := Column -1;
+  if ResultCol < 0 then begin
+    Conn := ActiveConnection;
+    if Assigned(Conn) and (Conn.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground)) then
+      TargetCanvas.Brush.Color := Conn.Parameters.SessionColor
+    else
+      TargetCanvas.Brush.Color := clBtnFace;
+    TargetCanvas.FillRect(CellRect);
+    Exit;
+  end;
 
   r := GridResult(Sender);
   if (r=nil) or (not r.Connection.Active) then begin
@@ -10836,7 +10971,7 @@ begin
       cl := ColorAdjustBrightness(VT.Color, -29)
     else
       cl := ColorAdjustBrightness(VT.Color, 29);
-  end else if r.IsNull(Column) then begin
+  end else if r.IsNull(ResultCol) then begin
     // Cell with NULL value
     clNull := AppSettings.ReadInt(asFieldNullBackground);
     if clNull <> clNone then
@@ -10849,17 +10984,17 @@ begin
 
   // Probably display background color on fields with same text
   // Result pointer gets moved to the focused node.. careful!
-  if (Sender.FocusedNode <> nil) then begin
+  if (Sender.FocusedNode <> nil) and (Sender.FocusedColumn > 0) then begin
     if ((Node <> Sender.FocusedNode) and (Column = Sender.FocusedColumn))
       or ((Node = Sender.FocusedNode) and (Column <> Sender.FocusedColumn)) then begin
       clSameData := AppSettings.ReadInt(asHightlightSameTextBackground);
       if clSameData <> clNone then begin
-        FieldText := r.Col(Column);
-        CurrentIsNull := r.IsNull(Column);
+        FieldText := r.Col(ResultCol);
+        CurrentIsNull := r.IsNull(ResultCol);
         RowNumber := Sender.GetNodeData(Sender.FocusedNode);
         r.RecNo := RowNumber^; // moving result cursor
-        FocusedFieldText := r.Col(Sender.FocusedColumn);
-        FocusedIsNull := r.IsNull(Sender.FocusedColumn);
+        FocusedFieldText := r.Col(Sender.FocusedColumn-1);
+        FocusedIsNull := r.IsNull(Sender.FocusedColumn-1);
         if (CompareText(FieldText, FocusedFieldText) = 0) and (CurrentIsNull = FocusedIsNull) then begin
           TargetCanvas.Brush.Color := clSameData;
           TargetCanvas.FillRect(CellRect);
@@ -11416,7 +11551,7 @@ begin
   Results := GridResult(DataGrid);
   RowNum := DataGrid.GetNodeData(DataGrid.FocusedNode);
   Results.RecNo := RowNum^;
-  FocusedColumnName := Results.ColumnOrgNames[DataGrid.FocusedColumn];
+  FocusedColumnName := Results.ColumnOrgNames[DataGrid.FocusedColumn-1];
   Conn := Results.Connection;
 
   // find foreign key for current column
@@ -11432,7 +11567,14 @@ begin
     LogSQL(f_('Foreign key not found for column "%s"', [FocusedColumnName]), lcInfo);
     Exit;
   end;
-  // jump to ReferenceTable
+  Datatype := Results.DataType(DataGrid.FocusedColumn-1);
+  // filter to show only rows linked by the foreign key
+  if DataType.Category in [dtcBinary, dtcSpatial] then
+    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Results.HexValue(DataGrid.FocusedColumn-1)
+  else
+    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Conn.EscapeString(Results.Col(DataGrid.FocusedColumn-1));
+
+  // Jumping to ReferenceTable. Caution, this invalidates the above used Results
   DbObjects := Conn.GetDBObjects(ActiveDatabase);
   for DBObj in DbObjects do begin
     if DBObj.Database + '.' + DBObj.Name = ReferenceTable then begin
@@ -11441,12 +11583,6 @@ begin
     end;
   end;
 
-  Datatype := Results.DataType(DataGrid.FocusedColumn);
-  // filter to show only rows linked by the foreign key
-  if DataType.Category in [dtcBinary, dtcSpatial] then
-    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Results.HexValue(DataGrid.FocusedColumn)
-  else
-    Filter := Conn.QuoteIdent(ForeignColumnName)+'='+Conn.EscapeString(Results.Col(DataGrid.FocusedColumn));
   SynMemoFilter.Text := Filter;
   ToggleFilterPanel(True);
   actApplyFilter.Execute;
@@ -11498,7 +11634,7 @@ begin
     end else if CurrentControl is TCustomComboBox then begin
       Combo := TCustomComboBox(CurrentControl);
       if Combo.SelLength > 0 then begin
-        Clipboard.AsText := Combo.SelText;
+        Clipboard.TryAsText := Combo.SelText;
         if DoCut then Combo.SelText := '';
       end;
     end else if CurrentControl is TVirtualStringTree then begin
@@ -11518,13 +11654,13 @@ begin
             Results := GridResult(Grid);
             RowNum := Grid.GetNodeData(Grid.FocusedNode);
             Results.RecNo := RowNum^;
-            if Results.IsNull(Grid.FocusedColumn) then begin
-              Clipboard.AsText := '';
+            if Results.IsNull(Grid.FocusedColumn-1) then begin
+              Clipboard.TryAsText := '';
               FClipboardHasNull := True;
             end else begin
               TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
               RemoveNullChars(TextCopy, HasNulls);
-              Clipboard.AsText := TextCopy;
+              Clipboard.TryAsText := TextCopy;
             end;
             if DoCut then
               Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := '';
@@ -11532,7 +11668,7 @@ begin
         end else begin
           TextCopy := Grid.Text[Grid.FocusedNode, Grid.FocusedColumn];
           RemoveNullChars(TextCopy, HasNulls);
-          Clipboard.AsText := TextCopy;
+          Clipboard.TryAsText := TextCopy;
         end;
         FGridCopying := False;
       end;
@@ -11541,7 +11677,7 @@ begin
       if SynMemo.SelAvail then begin
         // Create both text and RTF clipboard format, so rich text applications can paste highlighted SQL
         Clipboard.Open;
-        Clipboard.AsText := SynMemo.SelText;
+        Clipboard.TryAsText := SynMemo.SelText;
         Exporter := TSynExporterRTF.Create(Self);
         Exporter.Highlighter := SynMemo.Highlighter;
         Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
@@ -11587,14 +11723,14 @@ begin
   end else if Control is TComboBox then begin
     Combo := TComboBox(Control);
     if Combo.Style = csDropDown then begin
-      Combo.SelText := ClipBoard.AsText;
+      Combo.SelText := Clipboard.TryAsText;
       Success := True;
     end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
     if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
       FGridPasting := True;
-      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := ClipBoard.AsText;
+      Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := Clipboard.TryAsText;
       Success := True;
       FGridPasting := False;
     end;
@@ -11794,6 +11930,8 @@ var
   Cap: String;
 begin
   tabEditor.ImageIndex := ActiveObjectEditor.DBObject.ImageIndex;
+  // Reset to grayscale if in background:
+  PageControlTabHighlight(PageControlMain);
   Cap := _(ActiveObjectEditor.DBObject.ObjType)+': ';
   if ActiveObjectEditor.DBObject.Name = '' then
     Cap := Cap + '['+_('Untitled')+']'
@@ -12032,7 +12170,7 @@ begin
   // Show new tab
   if Sender <> actNewQueryTabNofocus then begin
     SetMainTab(QueryTab.TabSheet);
-    QueryTab.Memo.SetFocus;
+    QueryTab.Memo.TrySetFocus;
   end;
 end;
 
@@ -12090,6 +12228,11 @@ begin
   AppSettings.WriteBool(asTabCloseOnDoubleClick, menuCloseTabOnDblClick.Checked);
 end;
 
+
+procedure TMainForm.menuCloseTabOnMiddleClickClick(Sender: TObject);
+begin
+  AppSettings.WriteBool(asTabCloseOnMiddleClick, menuCloseTabOnMiddleClick.Checked);
+end;
 
 procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
 var
@@ -12152,6 +12295,7 @@ begin
   menuRenameQueryTab.Caption := actRenameQueryTab.Caption;
   menuRenameQueryTab.Enabled := IsQueryTab(PageIndexClick, True);
   menuCloseTabOnDblClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
+  menuCloseTabOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
 end;
 
 
@@ -12391,8 +12535,6 @@ end;
 
 
 procedure TMainForm.CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-var
-  i: Integer;
 begin
   // Click on "Close" button of Query tab
   if Button <> mbLeft then
@@ -12401,8 +12543,19 @@ begin
   // here, we must check if also the MouseDown event was fired on this particular button. See issue #1469.
   if (Sender <> FLastMouseDownCloseButton) then
     Exit;
+  // Prevent EAccessViolation in TControl.GetClientWidth, see issue #1640
+  TimerCloseTabByButton.Enabled := True;
+end;
+
+
+procedure TMainForm.TimerCloseTabByButtonTimer(Sender: TObject);
+var
+  i: Integer;
+begin
+  // Asynchronous timer for mousedown event on query tab close button
+  TimerCloseTabByButton.Enabled := False;
   for i:=0 to QueryTabs.Count-1 do begin
-    if QueryTabs[i].CloseButton = Sender then begin
+    if QueryTabs[i].CloseButton = FLastMouseDownCloseButton then begin
       CloseQueryTab(QueryTabs[i].TabSheet.PageIndex);
       break;
     end;
@@ -12435,7 +12588,7 @@ begin
 
     mbMiddle: begin
       // Middle click on tab
-      if AppSettings.ReadBool(asTabCloseOnDoubleClick) then begin
+      if AppSettings.ReadBool(asTabCloseOnMiddleClick) then begin
         TabNumber := GetMainTabAt(X, Y);
         CloseQueryTab(TabNumber);
       end;
@@ -12851,8 +13004,17 @@ begin
         Keystroke.ShortCut2 := Shortcut2;
     except
       on E:ESynKeyError do begin
-        LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to Tools > Preferences > Shortcuts to change this settings.',
-          [ShortCutToText(Shortcut1), ShortCutToText(Shortcut2), EditorCommandToCodeString(Keystroke.Command), E.Message, _('Tools'), _('Preferences'), _('Shortcuts')]), lcError);
+        LogSQL(f_('Could not apply SynEdit keystroke shortcut "%s" (or secondary: "%s") to %s. %s. Please go to %s > %s > %s to change this settings.',
+          [
+            ShortCutToText(Shortcut1),
+            ShortCutToText(Shortcut2),
+            EditorCommandToCodeString(Keystroke.Command),
+            E.Message,
+            _('Tools'),
+            _('Preferences'),
+            _('Shortcuts')
+          ]),
+          lcError);
       end;
     end;
   end;
@@ -12939,7 +13101,6 @@ procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
   m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
-  NewSQL: String;
 begin
   // Reformat SQL query
   m := ActiveSynMemo(False);
@@ -12951,19 +13112,22 @@ begin
   CursorPosEnd := m.SelEnd;
   if not m.SelAvail then
     m.SelectAll;
-  NewSQL := m.SelText;
-  if Length(NewSQL) = 0 then
+  if m.SelLength = 0 then
     ErrorDialog(_('Cannot reformat'), _('The current editor is empty.'))
   else begin
-    Screen.Cursor := crHourglass;
-    m.UndoList.AddGroupBreak;
-    NewSQL := ReformatSQL(NewSQL);
-    m.SelText := NewSQL;
-    m.SelStart := CursorPosStart;
-    if CursorPosEnd > CursorPosStart then
-      m.SelEnd := CursorPosStart + Length(NewSQL);
-    m.UndoList.AddGroupBreak;
-    Screen.Cursor := crDefault;
+    frmReformatter := TfrmReformatter.Create(Self);
+    frmReformatter.InputCode := m.SelText;
+    if frmReformatter.ShowModal = mrOk then begin
+      Screen.Cursor := crHourglass;
+      m.UndoList.AddGroupBreak;
+      m.SelText := frmReformatter.OutputCode;
+      m.SelStart := CursorPosStart;
+      if CursorPosEnd > CursorPosStart then
+        m.SelEnd := CursorPosStart + Length(frmReformatter.OutputCode);
+      m.UndoList.AddGroupBreak;
+      Screen.Cursor := crDefault;
+    end;
+    frmReformatter.Free;
   end;
 end;
 
@@ -13115,7 +13279,7 @@ var
   DBObj: PDBObject;
   AllObjects: TDBObjectList;
 begin
-  if CellPaintMode=cpmPaint then begin
+  if CellPaintMode=cpmPaint then try
     DBObj := Sender.GetNodeData(Node);
     if DbObj.Connection.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then begin
       TargetCanvas.Brush.Color := DbObj.Connection.Parameters.SessionColor;
@@ -13125,6 +13289,7 @@ begin
       AllObjects := DBObj.Connection.GetDBObjects(DBObj.Database);
       PaintColorBar(DBObj.Size, AllObjects.LargestObjectSize, TargetCanvas, CellRect);
     end;
+  except; // Silence sporadic EAccessViolation when reading DbObj.Connection.Parameters, found in uploaded reports
   end;
 end;
 
@@ -13323,9 +13488,9 @@ begin
       Killer.Parameters := ActiveConnection.Parameters;
       Killer.LogPrefix := _('Helper connection');
       Killer.OnLog := LogSQL;
-      Killer.Active := True;
-      KillCommand := Killer.GetSQLSpecifity(spKillQuery, [ActiveConnection.ThreadId]);
       try
+        Killer.Active := True;
+        KillCommand := Killer.GetSQLSpecifity(spKillQuery, [ActiveConnection.ThreadId]);
         Killer.Query(KillCommand);
       except
         on E:EDbError do begin
@@ -13680,7 +13845,7 @@ begin
              end;
              TQueryTab.HelperNodeFunctions: begin
                Conn := ActiveConnection;
-               if Conn <> nil then
+               if (Conn <> nil) and (Conn.SQLFunctions.Count > Integer(Node.Index)) then
                  CellText := Conn.SQLFunctions[Node.Index].Name;
              end;
              TQueryTab.HelperNodeKeywords: CellText := MySQLKeywords[Node.Index];
@@ -13720,7 +13885,7 @@ begin
              end;
              TQueryTab.HelperNodeFunctions: begin
                Conn := ActiveConnection;
-               if Conn <> nil then
+               if (Conn <> nil) and (Conn.SQLFunctions.Count > Integer(Node.Index)) then
                  CellText := Conn.SQLFunctions[Node.Index].Declaration;
              end;
              TQueryTab.HelperNodeProfile: begin
@@ -14127,7 +14292,10 @@ begin
         Edit.SelStart := rx.MatchPos[0]-1;
         Edit.SelLength := LastStart - Edit.SelStart;
         // wParam=1 supports undo, in contrast to setting Edit.SelText
-        SendMessage(Edit.Handle, EM_REPLACESEL, 1, LongInt(PChar('')));
+        if IsWine then
+          Edit.SelText := ''
+        else
+          SendMessage(Edit.Handle, EM_REPLACESEL, 1, LongInt(PChar('')));
       end;
       Handled := True;
     end
@@ -14248,7 +14416,7 @@ procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
   SetProgressState(pbsNormal);
-  ProgressBarStatus.Visible := True;
+  ProgressBarStatus.Visible := True and (not IsWine);
   SetProgressPosition(0);
   ProgressBarStatus.Max := MaxValue;
 end;
@@ -14267,8 +14435,6 @@ end;
 procedure TMainForm.SetProgressPosition(Value: Integer);
 begin
   // Advance progress bar and task progress position
-  if not ProgressBarStatus.Visible then
-    LogSQL('Advancing hidden progress bar', lcError);
   try
     ProgressBarStatus.Position := Value;
   except
@@ -14547,7 +14713,7 @@ begin
   Screen.Cursor := crHourGlass;
   Filesize := _GetFileSize(Filepath);
   LoadSuccess := False;
-  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d ...', [Filepath, FormatByteNumber(Filesize), Number]), lcInfo);
+  MainForm.LogSQL(f_('Loading file "%s" (%s) into query tab #%d', [Filepath, FormatByteNumber(Filesize), Number]), lcInfo);
   try
     Content := ReadTextfile(Filepath, Encoding);
     LoadSuccess := True;
@@ -14609,7 +14775,7 @@ begin
     LastSaveTime := GetTickCount;
     Screen.Cursor := crDefault;
   except
-    on E:EFCreateError do begin
+    on E:Exception do begin
       Screen.Cursor := crDefault;
       ErrorDialog(E.Message);
     end;

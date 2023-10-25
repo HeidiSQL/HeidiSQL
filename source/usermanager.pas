@@ -764,7 +764,7 @@ begin
   treePrivs.FocusedNode := nil;
   treePrivs.Clear;
   treePrivs.RootNodeCount := FPrivObjects.Count;
-  treePrivs.ReinitNode(nil, True);
+  treePrivs.InvalidateChildren(nil, True);
   treePrivs.Invalidate;
 
   // Enable input boxes

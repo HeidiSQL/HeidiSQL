@@ -14,6 +14,7 @@ type
     chklistColumns: TCheckListBox;
     chkSort: TCheckBox;
     editFilter: TButtonedEdit;
+    chkShowRowId: TCheckBox;
     procedure btnCancelClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure chklistColumnsClickCheck(Sender: TObject);
@@ -76,6 +77,7 @@ begin
 
   // Restore last used sorting state from registry
   chkSort.Checked := AppSettings.ReadBool(asDisplayedColumnsSorted);
+  chkShowRowId.Checked := AppSettings.ReadBool(asShowRowId);
 end;
 
 
@@ -87,6 +89,7 @@ var
   i: Integer;
   Col: String;
 begin
+  AppSettings.WriteBool(asShowRowId, chkShowRowId.Checked);
   // Prepare string for storing in registry.
   // Use quote-character as separator to ensure columnnames can
   // be extracted safely later

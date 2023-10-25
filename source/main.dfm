@@ -1046,6 +1046,7 @@ object MainForm: TMainForm
               Anchors = [akLeft, akTop, akRight, akBottom]
               AutoSize = False
               Caption = 'Data'
+              PopupMenu = popupDataTop
               Layout = tlCenter
             end
             object tlbDataButtons: TToolBar
@@ -1243,7 +1244,7 @@ object MainForm: TMainForm
             PopupMenu = popupDataGrid
             TabOrder = 2
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
-            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toVariableNodeHeight, toEditOnClick, toEditOnDblClick]
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toEditOnClick, toEditOnDblClick]
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
             WantTabs = True
@@ -1471,7 +1472,7 @@ object MainForm: TMainForm
             PopupMenu = popupDataGrid
             TabOrder = 1
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
-            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toVariableNodeHeight, toEditOnClick, toEditOnDblClick]
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toEditOnClick, toEditOnDblClick]
             TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
             TreeOptions.SelectionOptions = [toExtendedFocus, toMultiSelect, toRightClickSelect]
             Visible = False
@@ -4395,8 +4396,13 @@ object MainForm: TMainForm
     end
     object menuCloseTabOnDblClick: TMenuItem
       AutoCheck = True
-      Caption = 'Close tab on doubleclick and middleclick'
+      Caption = 'Close tab on doubleclick'
       OnClick = menuCloseTabOnDblClickClick
+    end
+    object menuCloseTabOnMiddleClick: TMenuItem
+      AutoCheck = True
+      Caption = 'Close tab on middleclick'
+      OnClick = menuCloseTabOnMiddleClickClick
     end
   end
   object TimerFilterVT: TTimer
@@ -25771,5 +25777,20 @@ object MainForm: TMainForm
     OnTimer = TimerStoreTabsTimer
     Left = 689
     Top = 299
+  end
+  object popupDataTop: TPopupMenu
+    Left = 352
+    Top = 320
+    object menuQueryExactRowCount: TMenuItem
+      Caption = 'Query exact row count'
+      OnClick = menuQueryExactRowCountClick
+    end
+  end
+  object TimerCloseTabByButton: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = TimerCloseTabByButtonTimer
+    Left = 761
+    Top = 195
   end
 end

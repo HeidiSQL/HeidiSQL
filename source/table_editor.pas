@@ -1354,13 +1354,14 @@ begin
   end;
 
   // No specific colors for selected nodes, would interfere with blue selection background
-  if vsSelected in Node.States then Exit;
-  // Break early if nothing to do
-  if not (Column in [2, 7]) then Exit;
+  // Disabled in Oct 2023, probably works better than expected
+  //if vsSelected in Node.States then Exit;
 
   // Give datatype column specific color, as set in preferences
   TextColor := TargetCanvas.Font.Color;
   case Column of
+    0: TextColor := clGrayText;
+
     2: TextColor := DatatypeCategories[Col.DataType.Category].Color;
 
     7: case Col.DefaultType of
@@ -2279,14 +2280,13 @@ begin
   listCheckConstraints.EndEditNode;
   // Ensure SynMemo's have focus, otherwise Select-All and Copy actions may fail
   if PageControlMain.ActivePage = tabCREATEcode then begin
-    if SynMemoCreateCode.CanFocus then
-      SynMemoCreateCode.SetFocus;
+    SynMemoCreateCode.TrySetFocus;
   end
   else if PageControlMain.ActivePage = tabALTERcode then begin
-    if SynMemoALTERcode.CanFocus then
-      SynMemoAlterCode.SetFocus;
+    SynMemoAlterCode.TrySetFocus;
   end;
   UpdateSQLcode;
+  TExtForm.PageControlTabHighlight(PageControlMain);
 end;
 
 
@@ -2812,7 +2812,7 @@ begin
     Cols.Add(Col.Serialize);
     Node := GetNextNode(listColumns, Node, True);
   end;
-  Clipboard.AsText := Cols.Text;
+  Clipboard.TryAsText := Cols.Text;
   Cols.Free;
 end;
 
@@ -2826,7 +2826,7 @@ var
 begin
   // Complement to "copy columns"
   ColsFromClp := TStringList.Create;
-  ColsFromClp.Text := Clipboard.AsText;
+  ColsFromClp.Text := Clipboard.TryAsText;
   Node := listColumns.FocusedNode;
   if not Assigned(Node) then
     Node := listColumns.GetLast;

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2022-12-31 11:47+0100\n"
+"PO-Revision-Date: 2023-10-12 19:16+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.4\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -152,21 +152,6 @@ msgstr "OK"
 #: clickfilter.dfm:73 editvar.dfm:89
 msgid "String:"
 msgstr "String:"
-
-#. frmClickFilter..groupValue..radioExpression..Caption
-#: clickfilter.dfm:81
-msgid "Expression:"
-msgstr "Expression:"
-
-#. frmClickFilter..groupConcatType..Caption
-#: clickfilter.dfm:91
-msgid "Append to current filter"
-msgstr "Append to current filter"
-
-#. frmClickFilter..groupConcatType....Items.Strings
-#: clickfilter.dfm:96
-msgid "Reset"
-msgstr "Reset"
 
 #. ColumnSelectionForm..pnlBevel..chkSelectAll..Caption
 #: column_selection.dfm:55
@@ -335,17 +320,6 @@ msgstr "Databases:"
 msgid "Compressed client/server protocol"
 msgstr "Compressed client/server protocol"
 
-#. connform..PageControlDetails..tabSettings..comboNetType..Text
-#. connform..PageControlDetails..tabSettings..comboNetType....Items.Strings
-#: connections.dfm:359 connections.dfm:362
-msgid "TCP/IP"
-msgstr "TCP/IP"
-
-#. connform..PageControlDetails..tabSettings..comboNetType....Items.Strings
-#: connections.dfm:363
-msgid "Named pipe"
-msgstr "Named pipe"
-
 #. connform..PageControlDetails..tabSettings..comboNetType....Items.Strings
 #. connform..PageControlDetails..tabSSHtunnel..Caption
 #: connections.dfm:364 connections.dfm:414
@@ -418,11 +392,6 @@ msgstr "SSH host + port:"
 msgid "Private key file:"
 msgstr "Private key file:"
 
-#. connform..PageControlDetails..tabSSHtunnel..lblDownloadPlink..Caption
-#: connections.dfm:473
-msgid "Download plink.exe"
-msgstr "Download plink.exe"
-
 #. connform..PageControlDetails..tabSSHtunnel..lblPlinkTimeout..Caption
 #: connections.dfm:487
 msgid "SSH timeout:"
@@ -493,11 +462,6 @@ msgstr "Statistics"
 #: connections.dfm:689
 msgid "Last connect:"
 msgstr "Last connect:"
-
-#. connform..PageControlDetails..tabStatistics..lblCounterLeft..Caption
-#: connections.dfm:696
-msgid "Counter:"
-msgstr "Counter:"
 
 #. connform..PageControlDetails..tabStatistics..lblCreatedLeft..Caption
 #: connections.dfm:703
@@ -1569,11 +1533,6 @@ msgstr "Query"
 msgid "Attributes"
 msgstr "Attributes"
 
-#. MainForm..MainMenu1..File1..Caption
-#: main.dfm:1679
-msgid "&File"
-msgstr "&File"
-
 #. MainForm..MainMenu1..File1..Hint
 #: main.dfm:1680
 msgid "File related commands"
@@ -1583,11 +1542,6 @@ msgstr "File related commands"
 #: main.dfm:1686
 msgid "Connect to"
 msgstr "Connect to"
-
-#. MainForm..MainMenu1..Edit1..Caption
-#: main.dfm:1718
-msgid "&Edit"
-msgstr "&Edit"
 
 #. MainForm..MainMenu1..Edit1..Hint
 #: main.dfm:1719
@@ -1599,16 +1553,6 @@ msgstr "Edit commands"
 #: main.dfm:1747 sqlhelp.dfm:88
 msgid "Search"
 msgstr "Search"
-
-#. MainForm..MainMenu1..Extra1..Caption
-#: main.dfm:1762
-msgid "&Tools"
-msgstr "&Tools"
-
-#. MainForm..MainMenu1..Help1..Caption
-#: main.dfm:1837
-msgid "&Help"
-msgstr "&Help"
 
 #. MainForm..MainMenu1..Help1..Hint
 #: main.dfm:1838
@@ -2081,16 +2025,6 @@ msgstr "Support forum"
 msgid "Changelog"
 msgstr "Changelog"
 
-#. MainForm..ActionList1..actReadme..Caption
-#: main.dfm:2249
-msgid "Readme"
-msgstr "Readme"
-
-#. MainForm..ActionList1..actReadme..Hint
-#: main.dfm:2250
-msgid "Open readme file"
-msgstr "Open readme file"
-
 #. MainForm..ActionList1..actSaveSQLAs..Hint
 #: main.dfm:2258
 msgid "Save SQL to a textfile"
@@ -2459,11 +2393,6 @@ msgstr "Analyze selected process SQL"
 #: main.dfm:8699
 msgid "EXPLAIN analyzer on MariaDB.org"
 msgstr "EXPLAIN analyzer on MariaDB.org"
-
-#. MainForm..popupHost..menuExplainAnalyzer..Hint
-#: main.dfm:8701
-msgid "Pass EXPLAIN output to MariaDB's analyzer webpage"
-msgstr "Pass EXPLAIN output to MariaDB's analyzer webpage"
 
 #: tabletools.pas:1061 main.pas:2855 connections.pas:1047
 msgid "SQL files"
@@ -2835,16 +2764,14 @@ msgstr "Tabs to spaces"
 msgid "Prompt to save modified files on tab close"
 msgstr "Prompt to save modified files on tab close"
 
-msgid "Close tab on doubleclick and middleclick"
-msgstr "Close tab on doubleclick and middleclick"
+msgid "Close tab on doubleclick"
+msgstr "Close tab on doubleclick"
+
+msgid "Close tab on middleclick"
+msgstr "Close tab on middleclick"
 
 msgid "Show query warnings dialog"
 msgstr "Show query warnings dialog"
-
-#. optionsform..pagecontrolMain..tabHighlighter..Caption
-#: options.dfm:483
-msgid "Highlighter"
-msgstr "Highlighter"
 
 #. optionsform..pagecontrolMain..tabHighlighter..lblSQLColElement..Caption
 #: options.dfm:497
@@ -2870,9 +2797,6 @@ msgstr "Bold"
 #: options.dfm:530
 msgid "Italic"
 msgstr "Italic"
-
-msgid "Size:"
-msgstr "Size:"
 
 msgid "Colors preset:"
 msgstr "Colors preset:"
@@ -3470,14 +3394,6 @@ msgstr "Remove column"
 msgid "Copy selected columns"
 msgstr "Copy selected columns"
 
-#. grid export
-msgid "Copy selected rows"
-msgstr "Copy selected rows"
-
-#. grid export
-msgid "Copy selected rows in custom format"
-msgstr "Copy selected rows in custom format"
-
 #. frmTableEditor..popupColumns..menuPasteColumns..Caption
 #: table_editor.dfm:803
 msgid "Paste columns"
@@ -3984,14 +3900,6 @@ msgstr "Settings for \"%s\" were changed."
 msgid "Socket name:"
 msgstr "Socket name:"
 
-#: connections.pas:1049
-msgid "Executables"
-msgstr "Executables"
-
-#: connections.pas:1051
-msgid "PuTTY private key"
-msgstr "PuTTY private key"
-
 #: connections.pas:1053
 msgid "Privacy Enhanced Mail certificates"
 msgstr "Privacy Enhanced Mail certificates"
@@ -4064,11 +3972,6 @@ msgstr "Unsupported \"NetType\" value (%d) found in settings for session \"%s\".
 msgid "Loaded as MySQL/MariaDB session."
 msgstr "Loaded as MySQL/MariaDB session."
 
-#. Comes into SQL log when assigning dll procedures from libmysql.dll
-#: dbconnection.pas:1038
-msgid "Assign procedure \"%s\""
-msgstr "Assign procedure \"%s\""
-
 #: dbconnection.pas:1047
 msgid "Your %s is incompatible to %s, or your system is missing a dependent library."
 msgstr "Your %s is incompatible to %s, or your system is missing a dependent library."
@@ -4138,19 +4041,12 @@ msgstr "OLE DB property \"%s\": %s"
 msgid "Loading library file %s ..."
 msgstr "Loading library file %s ..."
 
-msgid "Trying to load library with full path: %s"
-msgstr "Trying to load library with full path: %s"
-
 #. DLL loading fails on one procedure
 msgid "Library error in %s: Could not find procedure address for \"%s\""
 msgstr "Library error in %s: Could not find procedure address for \"%s\""
 
 msgid "Library %s could not be loaded. Please select a different one."
 msgstr "Library %s could not be loaded. Please select a different one."
-
-#. DLL loading failed entirely
-msgid "Library %s seems unusable. Please select a different one."
-msgstr "Library %s seems unusable. Please select a different one."
 
 #: dbconnection.pas:1392
 msgid "Please launch %s from the directory where you have installed it. Or just reinstall %s."
@@ -4409,10 +4305,6 @@ msgstr "Attempt to write session setting without session path"
 msgid "%u files, %s, %u files selected."
 msgstr "%u files, %s, %u files selected."
 
-#: loaddata.pas:176
-msgid "Let server/database decide"
-msgstr "Let server/database decide"
-
 #: loaddata.pas:315
 msgid "Your file was imported but the server returned %s warnings and/or notes. See the log panel for details."
 msgstr "Your file was imported but the server returned %s warnings and/or notes. See the log panel for details."
@@ -4509,8 +4401,8 @@ msgid "Checking queries for unsafe UPDATEs/DELETEs ..."
 msgstr "Checking queries for unsafe UPDATEs/DELETEs ..."
 
 #. Query execution
-msgid "Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re doing."
-msgstr "Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you''re doing."
+msgid "Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you're doing."
+msgstr "Your query contains UPDATEs and/or DELETEs without a WHERE clause. Please confirm that you know what you're doing."
 
 #: main.pas:2166
 msgid "Query profiling requires %s or later, and the server must not be configured with %s."
@@ -4861,6 +4753,10 @@ msgstr "rows total"
 #: main.pas:4439
 msgid "approximately"
 msgstr "approximately"
+
+#. Row count statistics in data tab header
+msgid "exact"
+msgstr "exact"
 
 #: main.pas:4439
 msgid "limited to"
@@ -5231,16 +5127,6 @@ msgid "Create missing %s"
 msgstr "Create missing %s"
 
 #. TODO
-#: tabletools.pas:155
-msgid "Skipped"
-msgstr "Skipped"
-
-#. TODO
-#: tabletools.pas:156
-msgid "One big file"
-msgstr "One big file"
-
-#. TODO
 #: tabletools.pas:158
 msgid "Directory - one file per object in database subdirectories"
 msgstr "Directory - one file per object in database subdirectories"
@@ -5249,21 +5135,6 @@ msgstr "Directory - one file per object in database subdirectories"
 #: tabletools.pas:161
 msgid "No data"
 msgstr "No data"
-
-#. TODO
-#: tabletools.pas:162
-msgid "truncate existing data"
-msgstr "truncate existing data"
-
-#. TODO
-#: tabletools.pas:164
-msgid "do not update existing"
-msgstr "do not update existing"
-
-#. TODO
-#: tabletools.pas:165
-msgid "existing data"
-msgstr "existing data"
 
 #. Export SQL data
 msgid "Max INSERT size:"
@@ -5345,15 +5216,12 @@ msgstr "Selected operations cannot be applied to a %s"
 msgid "Unhandled tree level"
 msgstr "Unhandled tree level"
 
-msgid "Export finished"
-msgstr "Export finished"
-
 msgid "%s finished"
 msgstr "%s finished"
 
 #: table_editor.pas:380
-msgid "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
-msgstr "%s Index \"%s\" does not contain any column. You can add columns using drag''n drop from the columns list."
+msgid "%s Index \"%s\" does not contain any column. You can add columns using drag'n drop from the columns list."
+msgstr "%s Index \"%s\" does not contain any column. You can add columns using drag'n drop from the columns list."
 
 #: table_editor.pas:476
 msgid "Composing ALTER statement ..."
@@ -5375,10 +5243,6 @@ msgstr "Add duplicated column to index?"
 msgid "Index \"%s\" already contains the column \"%s\". It is possible to add a column twice into a index, but total nonsense in practice."
 msgstr "Index \"%s\" already contains the column \"%s\". It is possible to add a column twice into a index, but total nonsense in practice."
 
-#: table_editor.pas:1815
-msgid "The selected table engine (%s) does not support foreign keys."
-msgstr "The selected table engine (%s) does not support foreign keys."
-
 #: table_editor.pas:1946
 msgid "Key already exists. Really create another identical one?"
 msgstr "Key already exists. Really create another identical one?"
@@ -5399,10 +5263,6 @@ msgstr "Reference table \"%s\" seems to be missing, broken or non-accessible."
 msgid "Trigger definition not found!"
 msgstr "Trigger definition not found!"
 
-#: updatecheck.pas:76
-msgid "Initializing"
-msgstr "Initializing"
-
 #: updatecheck.pas:77
 msgid "Check for %s updates"
 msgstr "Check for %s updates"
@@ -5410,10 +5270,6 @@ msgstr "Check for %s updates"
 #: updatecheck.pas:93
 msgid "Downloading check file"
 msgstr "Downloading check file"
-
-#: updatecheck.pas:95
-msgid "Reading check file"
-msgstr "Reading check file"
 
 #: updatecheck.pas:100
 msgid "Error: Cannot determine current revision. Using a developer version?"
@@ -5426,10 +5282,6 @@ msgstr "Your %s is up-to-date (no update available)."
 #: updatecheck.pas:104
 msgid "Updates available."
 msgstr "Updates available."
-
-#. Update button on top right of main window
-msgid "Update available"
-msgstr "Update available"
 
 #: updatecheck.pas:147
 msgid "Version %s (yours: %s)"
@@ -5522,10 +5374,6 @@ msgstr "Unhandled privilege object: %s"
 #: usermanager.pas:1297
 msgid "Delete user %s@%s?"
 msgstr "Delete user %s@%s?"
-
-#. dbconnection.pas
-msgid "experimental"
-msgstr "experimental"
 
 #. dbconnection.pas
 msgid "Yes"
@@ -5716,8 +5564,8 @@ msgid "Unhandled tree node index"
 msgstr "Unhandled tree node index"
 
 #. const.inc
-msgid "Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns."
-msgstr "Selected columns don''t contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns."
+msgid "Selected columns don't contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns."
+msgstr "Selected columns don't contain a sufficient set of key columns to allow editing. Please select primary or unique key columns, or just all columns."
 
 #. const.inc
 msgid "Idle."
@@ -5945,10 +5793,6 @@ msgstr "%s%% of your file has been processed, but there were %s errors when exec
 msgid "Notice: You can disable the \"%s\" option to ignore such errors"
 msgstr "Notice: You can disable the \"%s\" option to ignore such errors"
 
-#. ReadTextFileChunk
-msgid "End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry reading..."
-msgstr "End of file block was cut within some multibyte character, at position %s. Increasing chunk size and retry reading..."
-
 #. InitConnection, JumpList
 msgid "Recent sessions"
 msgstr "Recent sessions"
@@ -5998,9 +5842,6 @@ msgstr "Query timeout:"
 
 msgid "Ping every X seconds:"
 msgstr "Ping every X seconds:"
-
-msgid "Connection attempts:"
-msgstr "Connection attempts:"
 
 msgid "Pop up SQL text over result tabs"
 msgstr "Pop up SQL text over result tabs"
@@ -6359,9 +6200,6 @@ msgstr "Remove AUTO_INCREMENT clauses"
 msgid "Remove DEFINER clauses"
 msgstr "Remove DEFINER clauses"
 
-msgid "%s%s missing."
-msgstr "%s%s missing."
-
 msgid "Filename or path contains illegal characters: \"%s\""
 msgstr "Filename or path contains illegal characters: \"%s\""
 
@@ -6461,18 +6299,6 @@ msgstr "Please update %s through the Microsoft Store."
 #. Text in parentheses for detected linebreak style in popup text editor
 msgid "detected"
 msgstr "detected"
-
-msgid "Migrating snippet files to new folder: %s"
-msgstr "Migrating snippet files to new folder: %s"
-
-msgid "Successfully moved \"%s\" to \"%s\""
-msgstr "Successfully moved \"%s\" to \"%s\""
-
-msgid "Error: Could not move \"%s\" to \"%s\" (Error: %s)"
-msgstr "Error: Could not move \"%s\" to \"%s\" (Error: %s)"
-
-msgid "Scaling font size from %d to %d."
-msgstr "Scaling font size from %d to %d."
 
 msgid "Current custom settings"
 msgstr "Current custom settings"
@@ -6735,9 +6561,6 @@ msgstr "Empty recent filters"
 msgid "Customize highlighter"
 msgstr "Customize highlighter"
 
-msgid "Example text"
-msgstr "Example text"
-
 msgid "Color picker"
 msgstr "Color picker"
 
@@ -6776,3 +6599,33 @@ msgstr "Copy with tabs to spaces"
 
 msgid "Connection properties"
 msgstr "Connection properties"
+
+msgid "Recent prompts:"
+msgstr "Recent prompts:"
+
+msgid "Generate SQL"
+msgstr "Generate SQL"
+
+msgid "Execute in new tab"
+msgstr "Execute in new tab"
+
+msgid "Select reformatter"
+msgstr "Select reformatter"
+
+msgid "Internal"
+msgstr "Internal"
+
+msgid "Online on %s"
+msgstr "Online on %s"
+
+msgid "Empty result from online reformatter"
+msgstr "Empty result from online reformatter"
+
+msgid "Query exact row count"
+msgstr "Query exact row count"
+
+msgid "Code reformatted in %s, using formatter %s"
+msgstr "Code reformatted in %s, using formatter %s"
+
+msgid "Show static row id column"
+msgstr "Show static row id column"

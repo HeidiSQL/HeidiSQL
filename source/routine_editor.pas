@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, SynEdit, SynMemo, Vcl.StdCtrls,
-  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, VirtualTrees.EditLink, SynRegExpr, extra_controls,
+  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, SynRegExpr, extra_controls,
   dbconnection, apphelpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
 
 type
@@ -77,6 +77,7 @@ type
     procedure btnDiscardClick(Sender: TObject);
     procedure comboDefinerDropDown(Sender: TObject);
     procedure btnMoveParamClick(Sender: TObject);
+    procedure PageControlMainChange(Sender: TObject);
   private
     { Private declarations }
     FAlterRoutineType: String;
@@ -181,6 +182,7 @@ begin
   btnRunProc.Left := Width - btnRunProc.Width - 3;
   Mainform.actRunRoutines.Enabled := ObjectExists;
   Mainform.ShowStatusMsg;
+  TExtForm.PageControlTabHighlight(PageControlMain);
   Screen.Cursor := crDefault;
 end;
 
@@ -201,6 +203,11 @@ begin
   SynMemoCreateCode.Text := ComposeCreateStatement(editName.Text);
 end;
 
+
+procedure TfrmRoutineEditor.PageControlMainChange(Sender: TObject);
+begin
+  TExtForm.PageControlTabHighlight(PageControlMain);
+end;
 
 procedure TfrmRoutineEditor.comboTypeSelect(Sender: TObject);
 var

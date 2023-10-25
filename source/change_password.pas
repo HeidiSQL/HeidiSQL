@@ -105,7 +105,7 @@ var
   OldImageIndex: Integer;
 begin
   // Copy new password to clipboard
-  Clipboard.AsText := editPassword.Text;
+  Clipboard.TryAsText := editPassword.Text;
   OldImageIndex := btnCopyToClipboard.ImageIndex;
   btnCopyToClipboard.ImageIndex := 55;
   btnCopyToClipboard.Repaint;

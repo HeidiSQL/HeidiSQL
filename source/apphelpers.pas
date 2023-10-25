@@ -157,10 +157,24 @@ type
     class function CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
   end;
 
+  TClipboardHelper = class helper for TClipboard
+  private
+    function GetTryAsText: String;
+    procedure SetTryAsText(AValue: String);
+  public
+    property TryAsText: String read GetTryAsText write SetTryAsText;
+  end;
+
+  TWinControlHelper = class helper for TWinControl
+  public
+    procedure TrySetFocus;
+  end;
+
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
     asFontName, asFontSize, asTabWidth, asDataFontName, asDataFontSize, asDataLocalNumberFormat, asLowercaseHex, asHintsOnResultTabs, asHightlightSameTextBackground,
+    asShowRowId,
     asLogsqlnum, asLogsqlwidth, asSessionLogsDirectory, asLogHorizontalScrollbar, asSQLColActiveLine,
     asSQLColMatchingBraceForeground, asSQLColMatchingBraceBackground,
     asMaxColWidth, asDatagridMaximumRows, asDatagridRowsPerStep, asGridRowLineCount, asColumnHeaderClick, asReuseEditorConfiguration,
@@ -198,7 +212,7 @@ type
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
-    asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
+    asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
@@ -217,6 +231,7 @@ type
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
+    asReformatter,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -333,7 +348,7 @@ type
   function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
   function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
-  function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
+  function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   function GetTempDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
@@ -359,7 +374,6 @@ type
   function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
   function TruncDef(X: Real; Default: Int64): Int64;
   function GetLightness(AColor: TColor): Byte;
-  function ReformatSQL(SQL: String): String;
   function ParamBlobToStr(lpData: Pointer): String;
   function ParamStrToBlob(out cbData: DWORD): Pointer;
   function CheckForSecondInstance: Boolean;
@@ -1138,14 +1152,16 @@ end;
 {**
   Format a number of seconds to a human readable time format
   @param Cardinal Number of seconds
-  @result String 12:34:56
+  @result String 12:34:56.7
 }
-function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean): String;
+function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
 var
-  d, h, m, s, ts: Integer;
+  d, h, m, s, ms: Integer;
+  msStr: String;
 begin
   s := TruncDef(Seconds, 0);
-  ts := TruncDef((Seconds - s) * 10, 0); // ts = tenth of a second
+  ms := TruncDef((Seconds - s) * Power(10, MilliSecondsPrecision), 0); // Milliseconds, with variable precision/digits
+  msStr := IntToStr(ms).PadLeft(MilliSecondsPrecision, '0');
   d := s div (60*60*24);
   s := s mod (60*60*24);
   h := s div (60*60);
@@ -1155,7 +1171,7 @@ begin
   if d > 0 then begin
     if DisplaySeconds then begin
       Result := Format('%d '+_('days')+', %.2d:%.2d:%.2d', [d, h, m, s]);
-      Result := Result + '.' + IntToStr(ts);
+      Result := Result + '.' + msStr; // Append milliseconds
     end
     else begin
       Result := Format('%d '+_('days')+', %.2d:%.2d h', [d, h, m]);
@@ -1163,7 +1179,7 @@ begin
   end else begin
     if DisplaySeconds then begin
       Result := Format('%.2d:%.2d:%.2d', [h, m, s]);
-      Result := Result + '.' + IntToStr(ts);
+      Result := Result + '.' + msStr; // Append milliseconds
     end
     else begin
       Result := Format('%.2d:%.2d h', [h, m]);
@@ -1335,7 +1351,7 @@ begin
     SetLength(TextContent, Text.Size);
     Text.Position := 0;
     Text.Read(PAnsiChar(TextContent)^, Text.Size);
-    Clipboard.AsText := Utf8ToString(TextContent);
+    Clipboard.TryAsText := Utf8ToString(TextContent);
     SetString(TextContent, nil, 0);
   end;
 
@@ -1408,7 +1424,7 @@ begin
   VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
 
-  if toVariableNodeHeight in VT.TreeOptions.MiscOptions then
+  if toGridExtensions in VT.TreeOptions.MiscOptions then
     VT.HintMode := hmHint // Show cell contents with linebreakds in datagrid and querygrid's
   else
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
@@ -1521,10 +1537,11 @@ begin
     if ClearSelection then
       VT.ClearSelection;
     VT.FocusedNode := Node;
+    VT.FocusedColumn := VT.Header.Columns.GetFirstVisibleColumn(True);
     VT.Selected[Node] := True;
     VT.ScrollIntoView(Node, False);
     if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
-      VT.OnFocusChanged(VT, Node, VT.Header.MainColumn);
+      VT.OnFocusChanged(VT, Node, VT.FocusedColumn);
   end;
 end;
 
@@ -1711,115 +1728,6 @@ begin
   Result := Round(Lightness);
 end;
 
-
-function ReformatSQL(SQL: String): String;
-var
-  Conn: TDBConnection;
-  SQLFunc: TSQLFunction;
-  AllKeywords, ImportantKeywords, PairKeywords: TStringList;
-  i, Run, KeywordMaxLen: Integer;
-  IsEsc, IsQuote, InComment, InBigComment, InString, InKeyword, InIdent, LastWasComment: Boolean;
-  c, p: Char;
-  Keyword, PreviousKeyword, TestPair: String;
-  Datatypes: TDBDataTypeArray;
-const
-  WordChars = ['a'..'z', 'A'..'Z', '0'..'9', '_', '.'];
-  WhiteSpaces = [#9, #10, #13, #32];
-begin
-  Conn := MainForm.ActiveConnection;
-  // Known SQL keywords, get converted to UPPERCASE
-  AllKeywords := TStringList.Create;
-  AllKeywords.Text := MySQLKeywords.Text;
-
-  for SQLFunc in Conn.SQLFunctions do begin
-    // Leave out operator functions like ">>", and the "X()" function so hex values don't get touched
-    if (SQLFunc.Declaration <> '') and (SQLFunc.Name <> 'X') then
-      AllKeywords.Add(SQLFunc.Name);
-  end;
-  Datatypes := Conn.Datatypes;
-  for i:=Low(Datatypes) to High(Datatypes) do
-    AllKeywords.Add(Datatypes[i].Name);
-  KeywordMaxLen := 0;
-  for i:=0 to AllKeywords.Count-1 do
-    KeywordMaxLen := Max(KeywordMaxLen, Length(AllKeywords[i]));
-
-  // A subset of the above list, each of them will get a linebreak left to it
-  ImportantKeywords := Explode(',', 'SELECT,FROM,LEFT,RIGHT,STRAIGHT,NATURAL,INNER,JOIN,WHERE,GROUP,ORDER,HAVING,LIMIT,CREATE,DROP,UPDATE,INSERT,REPLACE,TRUNCATE,DELETE');
-  // Keywords which followers should not get separated into a new line
-  PairKeywords := Explode(',', 'LEFT,RIGHT,STRAIGHT,NATURAL,INNER,ORDER,GROUP');
-
-  IsEsc := False;
-  InComment := False;
-  InBigComment := False;
-  LastWasComment := False;
-  InString := False;
-  InIdent := False;
-  Run := 1;
-  Result := '';
-  SQL := SQL + ' ';
-  SetLength(Result, Length(SQL)*2);
-  Keyword := '';
-  PreviousKeyword := '';
-  for i:=1 to Length(SQL) do begin
-    c := SQL[i]; // Current char
-    if i > 1 then p := SQL[i-1] else p := #0; // Previous char
-
-    // Detection logic - where are we?
-    if c = '\' then IsEsc := not IsEsc
-    else IsEsc := False;
-    IsQuote := (c = '''') or (c = '"');
-    if c = '`' then InIdent := not InIdent;
-    if (not IsEsc) and IsQuote then InString := not InString;
-    if (c = '#') or ((c = '-') and (p = '-')) then InComment := True;
-    if ((c = #10) or (c = #13)) and InComment then begin
-      LastWasComment := True;
-      InComment := False;
-    end;
-    if (c = '*') and (p = '/') and (not InComment) and (not InString) then InBigComment := True;
-    if (c = '/') and (p = '*') and (not InComment) and (not InString) then InBigComment := False;
-    InKeyword := (not InComment) and (not InBigComment) and (not InString) and (not InIdent) and CharInSet(c, WordChars);
-
-    // Creation of returning text
-    if InKeyword then begin
-      Keyword := Keyword + c;
-    end else begin
-      if Keyword <> '' then begin
-        if AllKeywords.IndexOf(KeyWord) > -1 then begin
-          while (Run > 1) and CharInSet(Result[Run-1], WhiteSpaces) do
-            Dec(Run);
-          Keyword := UpperCase(Keyword);
-          if Run > 1 then begin
-            // SELECT, WHERE, JOIN etc. get a new line, but don't separate LEFT JOIN with linebreaks
-            if LastWasComment or ((ImportantKeywords.IndexOf(Keyword) > -1) and (PairKeywords.IndexOf(PreviousKeyword) = -1)) then
-              Keyword := CRLF + Keyword
-            else if (Result[Run-1] <> '(') then
-              Keyword := ' ' + Keyword;
-          end;
-          LastWasComment := False;
-        end;
-        PreviousKeyword := Trim(Keyword);
-        Insert(Keyword, Result, Run);
-        Inc(Run, Length(Keyword));
-        Keyword := '';
-      end;
-      if (not InComment) and (not InBigComment) and (not InString) and (not InIdent) then begin
-        TestPair := Result[Run-1] + c;
-        if (TestPair = '  ') or (TestPair = '( ') then begin
-          c := Result[Run-1];
-          Dec(Run);
-        end;
-        if (TestPair = ' )') or (TestPair = ' ,') then
-          Dec(Run);
-      end;
-      Result[Run] := c;
-      Inc(Run);
-    end;
-
-  end;
-
-  // Cut overlength
-  SetLength(Result, Run-2);
-end;
 
 
 { *** TSortItem }
@@ -2875,9 +2783,11 @@ begin
         end;
       end;
     end;
-  finally
-    CloseHandle(hFile);
+  except
+    on E:Exception do
+      MainForm.LogSQL('Could not detect executable architecture. Assuming '+Result.ToString+'bit: '+E.Message, lcError);
   end;
+  CloseHandle(hFile);
 end;
 
 
@@ -3611,6 +3521,73 @@ begin
 end;
 
 
+{ TClipboardHelper }
+
+function TClipboardHelper.GetTryAsText: String;
+var
+  AttemptsLeft: Integer;
+  Success: Boolean;
+  LastError: String;
+begin
+  AttemptsLeft := 5;
+  Result := '';
+  Success := False;
+  while AttemptsLeft > 0 do begin
+    Dec(AttemptsLeft);
+    try
+      Result := AsText;
+      Success := True;
+      Break;
+    except
+      // We could also just catch EClipboardException
+      on E:Exception do begin
+        LastError := E.Message;
+        Sleep(100);
+      end;
+    end;
+  end;
+  if not Success then
+    MainForm.LogSQL(LastError, lcError);
+end;
+
+procedure TClipboardHelper.SetTryAsText(AValue: String);
+var
+  AttemptsLeft: Integer;
+  Success: Boolean;
+  LastError: String;
+begin
+  AttemptsLeft := 5;
+  Success := False;
+  while AttemptsLeft > 0 do begin
+    Dec(AttemptsLeft);
+    try
+      AsText := AValue;
+      Success := True;
+      Break;
+    except
+      // We could also just catch EClipboardException
+      on E:Exception do begin
+        LastError := E.Message;
+        Sleep(100);
+      end;
+    end;
+  end;
+  if not Success then
+    MainForm.LogSQL(LastError, lcError);
+end;
+
+
+procedure TWinControlHelper.TrySetFocus;
+begin
+  try
+    if Enabled and CanFocus then
+      SetFocus;
+  except
+    on E:EInvalidOperation do
+      MessageBeep(MB_ICONWARNING);
+  end;
+end;
+
 
 { TAppSettings }
 
@@ -3696,6 +3673,7 @@ begin
   InitSetting(asDataLocalNumberFormat,            'DataLocalNumberFormat',                 0, True);
   InitSetting(asLowercaseHex,                     'LowercaseHex',                          0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
+  InitSetting(asShowRowId,                        'ShowRowId',                             0, True);
   InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(clInfoBk));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
@@ -3884,6 +3862,7 @@ begin
   InitSetting(asSequalSuggestWindowHeight,        'SequalSuggestWindowHeight',             400);
   InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
   InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
+  InitSetting(asReformatter,                      'Reformatter',                           0);
 
   // Default folder for snippets
   if FPortableMode then
@@ -3896,6 +3875,7 @@ begin
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
   InitSetting(asTabCloseOnDoubleClick,            'TabCloseOnDoubleClick',                 0, True);
+  InitSetting(asTabCloseOnMiddleClick,            'TabCloseOnMiddleClick',                 0, True);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);

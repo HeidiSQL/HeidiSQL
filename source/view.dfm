@@ -112,6 +112,7 @@ object frmView: TfrmView
     Align = alTop
     Images = MainForm.VirtualImageListMain
     TabOrder = 0
+    OnChange = PageControlMainChange
     object tabOptions: TTabSheet
       Caption = 'Options'
       ImageIndex = 14

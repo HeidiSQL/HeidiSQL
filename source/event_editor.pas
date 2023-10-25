@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
   Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo, SynRegExpr, Vcl.ComCtrls, Vcl.ExtCtrls, System.WideStrUtils,
-  apphelpers, dbconnection, dbstructures, gnugettext;
+  apphelpers, dbconnection, dbstructures, gnugettext, extra_controls;
 
 type
   TFrame = TDBObjectEditor;
@@ -196,6 +196,7 @@ begin
   btnSave.Enabled := Modified;
   btnDiscard.Enabled := Modified;
   Mainform.ShowStatusMsg;
+  TExtForm.PageControlTabHighlight(PageControlMain);
   Screen.Cursor := crDefault;
 end;
 
@@ -309,6 +310,7 @@ end;
 procedure TfrmEventEditor.PageControlMainChange(Sender: TObject);
 begin
   UpdateSQLcode;
+  TExtForm.PageControlTabHighlight(PageControlMain);
 end;
 
 

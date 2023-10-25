@@ -199,6 +199,7 @@ type
     procedure actFilterExecute(Sender: TObject);
     procedure timerEditFilterDelayTimer(Sender: TObject);
     procedure chkSSHActiveClick(Sender: TObject);
+    procedure PageControlDetailsChange(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -979,7 +980,7 @@ begin
     PageControlDetails.ActivePage := tabStart;
     if ListSessions.RootNodeCount = 0 then
       lblHelp.Caption := f_('New here? In order to connect to a server, you have to create a so called '+
-        '"session" at first. Just click the "New" button on the bottom left to create your first session.'+
+        '"session" at first. Just click the "New" button on the bottom left to create your first session. '+
         'Give it a friendly name (e.g. "Local DB server") so you''ll recall it the next time you start %s.', [APPNAME])
     else
       lblHelp.Caption := _('Please click a session on the left list to edit parameters, doubleclick to open it.');
@@ -1000,7 +1001,11 @@ begin
     updownKeepAlive.Position := Sess.KeepAlive;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
-    ColorBoxBackgroundColor.Selected := Sess.SessionColor;
+    ColorBoxBackgroundColor.Items.Objects[0] := TObject(Sess.SessionColor);
+    if Sess.SessionColor = clNone then
+      ColorBoxBackgroundColor.Selected := Sess.SessionColor
+    else
+      ColorBoxBackgroundColor.ItemIndex := 0;
     editDatabases.Text := Sess.AllDatabasesStr;
     comboLibrary.Items := Sess.GetLibraries;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Sess.LibraryOrProvider);
@@ -1351,6 +1356,9 @@ begin
   // Some modification -
   if FLoaded then begin
     Sess := ListSessions.GetNodeData(ListSessions.FocusedNode);
+    if Sess = nil then
+      Exit;
+
     FSessionModified := (Sess.Hostname <> editHost.Text)
       or (Sess.Username <> editUsername.Text)
       or (Sess.LoginPrompt <> chkLoginPrompt.Checked)
@@ -1525,6 +1533,7 @@ begin
   menuSave.Enabled := btnSave.Enabled;
   menuSaveAs.Enabled := SessionFocused;
   menuDelete.Enabled := btnDelete.Enabled;
+  TExtForm.PageControlTabHighlight(PageControlDetails);
 
   Caption := GetWindowCaption;
 end;
@@ -1569,6 +1578,11 @@ begin
   Inc(FButtonAnimationStep);
   if FButtonAnimationStep >= MaxAnimationSteps then
     FButtonAnimationStep := 0;
+end;
+
+procedure Tconnform.PageControlDetailsChange(Sender: TObject);
+begin
+  ValidateControls;
 end;
 
 procedure Tconnform.PickFile(Sender: TObject);

@@ -14,7 +14,7 @@
 //
 //
 // Portions created by Mahdi Safsafi [SMP3]   e-mail SMP@LIVE.FR
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2023 Rodrigo Ruz V.
 // All Rights Reserved.
 //
 // **************************************************************************************************
@@ -1418,13 +1418,14 @@ begin
       begin
         Message.Result := CallDefaultProc(Message);
         { DFBW =Default Frame Border Width }
-        DFBW := GetSysMetrics(SM_CXBORDER);
-        Inc(DFBW);
+        DFBW := GetSysMetrics(SM_CXSIZEFRAME) * 2;
+        //Inc(DFBW);
         LBorderSize := GetBorderSize;
         DX := LBorderSize.Left + LBorderSize.Right - 2*DFBW;
 
         // Adjust the window size if the vcl style border is smaller or larger
         // than the default frame border is.
+
         if (DFBW <> LBorderSize.Left) then
           SetWindowPos(Handle, 0, 0, 0, SysControl.Width + DX, SysControl.Height + DX + 1, SWP_NOMOVE or SWP_NOZORDER or SWP_FRAMECHANGED);
 
@@ -1486,9 +1487,8 @@ begin
     Handled := False;
     Exit;
   end;
-  P.X := Longint(Word(Message.WParam));
-  P.Y := Longint(HiWord(Message.WParam));
-  GetCursorPos(P);
+  P.X := Int16(Message.LParam and $0000FFFF);
+  P.Y := Int16(Message.LParam shr 16);
   if FScrollKind = sbVertical then
   begin
     if (P.Y >= 0) then
@@ -1570,7 +1570,7 @@ begin
   GetCursorPos(P);
   if (FPrevPoint <> P) and (FDownPoint <> P) then
   begin
-    SendMessage(Handle, CM_SCROLLTRACKING, MakeWParam(P.X, P.Y), 0);
+    SendMessage(Handle, CM_SCROLLTRACKING, 0, PointToLParam(P));
     FPrevPoint := P;
     FDownPoint := Point(-1, -1);
   end;

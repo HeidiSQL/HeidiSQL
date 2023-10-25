@@ -7,7 +7,7 @@ uses
   Vcl.ComCtrls, Vcl.ToolWin, Vcl.Dialogs, System.SysUtils, Vcl.Menus, Vcl.ExtDlgs,
   apphelpers, gnugettext, Vcl.ActnList, Vcl.StdActns, extra_controls, System.Actions,
   Vcl.ExtCtrls, dbconnection, SynEdit, SynMemo, SynEditHighlighter, customize_highlighter,
-  System.JSON, Rest.Json, Xml.VerySimple,
+  System.JSON, Rest.Json, Xml.VerySimple, reformatter,
 
   SynHighlighterADSP21xx, SynHighlighterAWK, SynHighlighterAsm,
   SynHighlighterBaan, SynHighlighterBat, SynHighlighterCAC, SynHighlighterCPM, SynHighlighterCS,
@@ -462,9 +462,12 @@ begin
       MemoText.SelLength := 0;
     end
     else if FHighlighter is TSynSQLSyn then begin
-      MemoText.Text := ReformatSQL(MemoText.Text);
+      // Prefer old internal formatter here, so the user does not run into request limits
+      frmReformatter := TfrmReformatter.Create(Self);
+      MemoText.Text := frmReformatter.FormatSqlInternal(MemoText.Text);
       MemoText.SelStart := 0;
       MemoText.SelLength := 0;
+      frmReformatter.Free;
     end
     else if FHighlighter is TSynXMLSyn then begin
       {XmlTmp := TXMLDocument.Create(nil);

@@ -168,7 +168,7 @@ type
       Rows, Size, Version, AvgRowLen, MaxDataLen, IndexLen, DataLen, DataFree, AutoInc, CheckSum: Int64;
       // Routine options:
       Body, Definer, Returns, DataAccess, Security, ArgTypes: String;
-      Deterministic: Boolean;
+      Deterministic, RowsAreExact: Boolean;
 
       NodeType, GroupType: TListNodeType;
       constructor Create(OwnerConnection: TDBConnection);
@@ -181,7 +181,7 @@ type
       function QuotedDbAndTableName(AlwaysQuote: Boolean=True): String;
       function QuotedColumn(AlwaysQuote: Boolean=True): String;
       function SchemaClauseIS(Prefix: String): String;
-      function RowCount(Reload: Boolean): Int64;
+      function RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
       function GetCreateCode: String; overload;
       function GetCreateCode(RemoveAutoInc, RemoveDefiner: Boolean): String; overload;
       property ObjType: String read GetObjType;
@@ -510,7 +510,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject): Int64; virtual; abstract;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual; abstract;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetLockedByThread(Value: TThread); virtual;
@@ -522,7 +522,7 @@ type
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
-      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual; abstract;
+      procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); virtual;
       procedure Log(Category: TDBLogCategory; Msg: String);
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
@@ -649,7 +649,7 @@ type
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
       function GetCreateViewCode(Database, Name: String): String;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
       procedure SetLockedByThread(Value: TThread); override;
     public
@@ -680,7 +680,7 @@ type
       function GetAllDatabases: TStringList; override;
       function GetCollationTable: TDBQuery; override;
       function GetCharsetTable: TDBQuery; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
     public
       constructor Create(AOwner: TComponent); override;
@@ -720,7 +720,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function ConnectionInfo: TStringList; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TPGRawResults read FLastRawResults;
       property RegClasses: TOidStringPairs read FRegClasses;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
@@ -760,7 +760,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -794,7 +794,7 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject): Int64; override;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TInterbaseRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -1241,8 +1241,9 @@ begin
         end;
       end;
     end;
-    
-    Application.ProcessMessages;
+
+    // Crashes in TMainForm.DBtreeGetText:12, but most likely not required anyway:
+    //Application.ProcessMessages;
   end;
   rx.Free;
 end;
@@ -2001,14 +2002,19 @@ begin
         SetLength(Dlls, 0);
       end;
       ngMSSQL: begin
-        Providers := TStringList.Create;
-        GetProviderNames(Providers);
-        for Provider in Providers do begin
-          if rx.Exec(Provider) then begin
-            FoundLibs.Add(Provider);
+        try
+          Providers := TStringList.Create;
+          GetProviderNames(Providers);
+          for Provider in Providers do begin
+            if rx.Exec(Provider) then begin
+              FoundLibs.Add(Provider);
+            end;
           end;
+          Providers.Free;
+        except
+          on E:EOleSysError do
+            ErrorDialog('OLE provider names not available.' + sLineBreak + E.Message);
         end;
-        Providers.Free;
       end;
     end;
     rx.Free;
@@ -3544,12 +3550,7 @@ end;
 {**
    Executes a query
 }
-procedure TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
-var
-  QueryStatus: Integer;
-  NativeSQL: AnsiString;
-  TimerStart: Cardinal;
-  QueryResult: PMYSQL_RES;
+procedure TDBConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 begin
   if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
@@ -3559,10 +3560,24 @@ begin
       on E:EThread do;
     end;
   end;
-
   Ping(True);
   Log(LogCategory, SQL);
   FLastQuerySQL := SQL;
+  FRowsFound := 0;
+  FRowsAffected := 0;
+  FWarningCount := 0;
+end;
+
+
+procedure TMySQLConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
+var
+  QueryStatus: Integer;
+  NativeSQL: AnsiString;
+  TimerStart: Cardinal;
+  QueryResult: PMYSQL_RES;
+begin
+  inherited;
+
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
@@ -3580,9 +3595,7 @@ begin
   end else begin
     // We must call mysql_store_result() + mysql_free_result() to unblock the connection
     // See: http://dev.mysql.com/doc/refman/5.0/en/mysql-store-result.html
-    FRowsAffected := 0;
     FWarningCount := FLib.mysql_warning_count(FHandle);
-    FRowsFound := 0;
     TimerStart := GetTickCount;
     QueryResult := FLib.mysql_store_result(FHandle);
     FLastQueryNetworkDuration := GetTickCount - TimerStart;
@@ -3643,22 +3656,10 @@ var
   QueryResult, NextResult: _RecordSet;
   Affected: Int64;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
   try
     QueryResult := FAdoHandle.ConnectionObject.Execute(SQL, VarRowsAffected, 1);
     FLastQueryDuration := GetTickCount - TimerStart;
@@ -3700,27 +3701,14 @@ var
   QueryStatus: Integer;
   NativeSQL: AnsiString;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   if IsUnicode then
     NativeSQL := UTF8Encode(SQL)
   else
     NativeSQL := AnsiString(SQL);
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
-  FWarningCount := 0;
 
   QueryStatus := FLib.PQsendQuery(FHandle, PAnsiChar(NativeSQL));
 
@@ -3782,24 +3770,11 @@ var
   CurrentSQL, NextSQL: PAnsiChar;
   StepResult: Integer;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   CurrentSQL := PAnsiChar(UTF8Encode(SQL));
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
-  FWarningCount := 0;
   OldRowsAffected := FLib.sqlite3_total_changes(FHandle); // Temporary: substract these later from total num
 
   QueryResult := nil;
@@ -3860,23 +3835,10 @@ var
   TimerStart: Cardinal;
   FdQuery: TFDQuery;
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
-    Log(lcDebug, _('Waiting for running query to finish ...'));
-    try
-      FLockedByThread.WaitFor;
-    except
-      on E:EThread do;
-    end;
-  end;
+  inherited;
 
-  Ping(True);
-  Log(LogCategory, SQL);
-  FLastQuerySQL := SQL;
   TimerStart := GetTickCount;
   SetLength(FLastRawResults, 0);
-  FRowsFound := 0;
-  FRowsAffected := 0;
-  FWarningCount := 0;
   FdQuery := TFDQuery.Create(Self);
   FdQuery.Connection := FFDHandle;
   // Todo: suppress mouse cursor updates
@@ -6527,12 +6489,12 @@ begin
 end;
 
 
-function TMySQLConnection.GetRowCount(Obj: TDBObject): Int64;
+function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
   // Get row number from a mysql table
-  if Parameters.IsProxySQLAdmin then
+  if Parameters.IsProxySQLAdmin or ForceExact then
     Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0)
   else
     Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
@@ -6540,7 +6502,7 @@ begin
 end;
 
 
-function TAdoDBConnection.GetRowCount(Obj: TDBObject): Int64;
+function TAdoDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -6557,7 +6519,7 @@ begin
 end;
 
 
-function TPgConnection.GetRowCount(Obj: TDBObject): Int64;
+function TPgConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -6573,7 +6535,7 @@ begin
 end;
 
 
-function TSQLiteConnection.GetRowCount(Obj: TDBObject): Int64;
+function TSQLiteConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -6583,7 +6545,7 @@ begin
 end;
 
 
-function TInterbaseConnection.GetRowCount(Obj: TDBObject): Int64;
+function TInterbaseConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
@@ -7936,6 +7898,7 @@ begin
     for i:=Low(FResultList) to High(FResultList) do begin
       FConnection.Lib.mysql_free_result(FResultList[i]);
     end;
+    SetLength(FResultList, 0);
     NumResults := 1;
     FRecordCount := 0;
     FAutoIncrementColumn := -1;
@@ -8390,7 +8353,7 @@ end;
 
 procedure TMySQLQuery.SetRecNo(Value: Int64);
 var
-  LengthPointer: PLongInt;
+  LengthsPointer: PMYSQL_LENGTHS;
   i, j: Integer;
   NumRows, WantedLocalRecNo: Int64;
   Row: TGridRow;
@@ -8432,9 +8395,9 @@ begin
           FCurrentRow := FConnection.Lib.mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
           // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
-          LengthPointer := FConnection.Lib.mysql_fetch_lengths(FCurrentResults);
+          LengthsPointer := FConnection.Lib.mysql_fetch_lengths(FCurrentResults);
           for j:=Low(FColumnLengths) to High(FColumnLengths) do
-            FColumnLengths[j] := PInteger(Integer(LengthPointer) + j * SizeOf(Integer))^;
+            FColumnLengths[j] := LengthsPointer^[j];
           break;
         end;
       end;
@@ -9450,8 +9413,15 @@ begin
         FConnection.Log(lcInfo, 'HasFullData: RowNum:'+RecNo.ToString+
           ' ColumnNames['+i.ToString+']:'+ColumnNames[i]+
           ' ColumnOrgNames['+i.ToString+']:'+ColumnOrgNames[i]+
-          ' NumChars:'+NumChars.ToString
+          ' NumChars:'+NumChars.ToString+
+          ' ColumnLengths('+i.ToString+'):'+ColumnLengths(i).ToString
           );}
+      if ColumnNames[i].StartsWith('LEFT', True) or ColumnNames[i].StartsWith('SUBSTR', True) then begin
+        // This works at least in MySQL, and fixes issue #1850 where NumChars is > 256 when text contains emojis.
+        // MSSQL does not provide the original column names with function calls like LEFT(..)
+        Result := False;
+        Break;
+      end;
       if (NumChars <= GRIDMAXDATA) and (NumChars >= GRIDMAXDATA / SizeOf(Char)) then begin
         Result := False;
         Break;
@@ -9704,21 +9674,29 @@ end;
 function TMySQLQuery.TableName(Column: Integer): String;
 var
   Field: PMYSQL_FIELD;
-  tbl: AnsiString;
+  FieldDb, FieldTable, FieldOrgTable: String;
   Objects: TDBObjectList;
   Obj: TDBObject;
 begin
   Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
-  //Connection.Log(lcDebug, FColumnNames[Column]+':  org_table:'+Field.org_table+ '  table:'+Field.table);
+  {Connection.Log(lcDebug, FColumnNames[Column]+':'+
+    '  org_table:'+Field.org_table+
+    '  table:'+Field.table+
+    '  table^=org_table^:'+(Field.table^ = Field.org_table^).ToInteger.ToString+
+    '  table=org_table:'+(Field.table = Field.org_table).ToInteger.ToString
+    );}
+  FieldDb := FConnection.DecodeAPIString(Field.db);
+  FieldTable := FConnection.DecodeAPIString(Field.table);
+  FieldOrgTable := FConnection.DecodeAPIString(Field.org_table);
 
-  if Field.table <> Field.org_table then begin
+  if FieldTable <> FieldOrgTable then begin
     // Probably a VIEW, in which case we rely on the first column's table name.
     // TODO: This is unsafe when joining a view with a table/view.
-    if Field.db <> '' then begin
-      Objects := Connection.GetDBObjects(Connection.DecodeAPIString(Field.db));
+    if FieldDb <> '' then begin
+      Objects := Connection.GetDBObjects(FieldDb);
       for Obj in Objects do begin
-        if (Obj.Name = Connection.DecodeAPIString(Field.table)) and (Obj.NodeType = lntView) then begin
-          tbl := Field.table;
+        if (Obj.Name = FieldTable) and (Obj.NodeType = lntView) then begin
+          Result := FieldTable;
           break;
         end;
       end;
@@ -9726,10 +9704,8 @@ begin
   end else begin
     // Normal table column
     // Note: this is empty on data tab TEXT columns with LEFT(..) clause
-    tbl := Field.org_table;
+    Result := FieldOrgTable;
   end;
-
-  Result := Connection.DecodeAPIString(tbl);
 end;
 
 
@@ -9973,6 +9949,7 @@ end;
 constructor TDBObject.Create(OwnerConnection: TDBConnection);
 begin
   NodeType := lntNone;
+  GroupType := lntNone;
   Name := '';
   Database := '';
   Schema := '';
@@ -9996,6 +9973,7 @@ begin
   CreateOptions := '';
   FCreateCode := '';
   FCreateCodeLoaded := False;
+  RowsAreExact := False;
   FConnection := OwnerConnection;
 end;
 
@@ -10018,6 +9996,7 @@ begin
     Updated := s.Updated;
     Comment := s.Comment;
     Rows := s.Rows;
+    RowsAreExact := s.RowsAreExact;
     Size := s.Size;
     ArgTypes := s.ArgTypes;
     FCreateCode := s.FCreateCode;
@@ -10082,13 +10061,16 @@ end;
 function TDBObject.GetImageIndex: Integer;
 begin
   // Detect key icon index for specified db object (table, trigger, ...)
+  Result := -1;
   case NodeType of
     lntNone: begin
-      // Prevent AV with no connection
-      if FConnection <> nil then
+      // Prevent AV with no connection. Parameters may not have been initialized as well
+      if FConnection <> nil then try
         Result := FConnection.Parameters.ImageIndex
-      else
-        Result := -1;
+      except
+        on E:EAccessViolation do
+          Result := -1;
+      end;
     end;
 
     lntDb: Result := ICONINDEX_DB;
@@ -10113,8 +10095,6 @@ begin
     lntEvent: Result := ICONINDEX_EVENT;
 
     lntColumn: Result := ICONINDEX_FIELD;
-
-    else Result := -1;
   end;
 end;
 
@@ -10258,10 +10238,11 @@ begin
     Result := Connection.GetSQLSpecifity(spISSchemaCol, [Prefix]) + '=' + Connection.EscapeString(Database);
 end;
 
-function TDBObject.RowCount(Reload: Boolean): Int64;
+function TDBObject.RowCount(Reload: Boolean; ForceExact: Bool=False): Int64;
 begin
   if (Rows = -1) or Reload then begin
-    Rows := Connection.GetRowCount(Self);
+    Rows := Connection.GetRowCount(Self, ForceExact);
+    RowsAreExact := ForceExact;
   end;
   Result := Rows;
 end;

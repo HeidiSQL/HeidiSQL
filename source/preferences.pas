@@ -184,6 +184,8 @@ type
     lblCompletionProposalIntervalUnit: TLabel;
     chkColumnHeaderClick: TCheckBox;
     chkIncrementalSearch: TCheckBox;
+    chkShowRowId: TCheckBox;
+    chkTabCloseOnMiddleClick: TCheckBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -282,6 +284,7 @@ procedure TfrmPreferences.pagecontrolMainChange(Sender: TObject);
 begin
   // See OnChanging procedure
   btnApply.Enabled := FWasModified;
+  TExtForm.PageControlTabHighlight(pagecontrolMain);
 end;
 
 
@@ -378,10 +381,11 @@ begin
   AppSettings.WriteInt(asRowBackgroundOdd, cboxRowBackgroundOdd.Selected);
   AppSettings.WriteInt(asHightlightSameTextBackground, cboxRowHighlightSameText.Selected);
   AppSettings.WriteInt(asRealTrailingZeros, updownRealTrailingZeros.Position);
+  AppSettings.WriteInt(asQueryGridLongSortRowNum, updownLongSortRowNum.Position);
   AppSettings.WriteBool(asDataLocalNumberFormat, chkLocalNumberFormat.Checked);
   AppSettings.WriteBool(asLowercaseHex, chkLowercaseHex.Checked);
   AppSettings.WriteBool(asHintsOnResultTabs, chkHintsOnResultTabs.Checked);
-  AppSettings.WriteInt(asQueryGridLongSortRowNum, updownLongSortRowNum.Position);
+  AppSettings.WriteBool(asShowRowId, chkShowRowId.Checked);
 
   // Editor Configuration
   AppSettings.WriteBool(asFieldEditorBinary, chkEditorBinary.Checked);
@@ -434,6 +438,7 @@ begin
   AppSettings.WriteBool(asPromptSaveFileOnTabClose, chkAskFileSave.Checked);
   AppSettings.WriteBool(asRestoreTabs, chkRestoreTabs.Checked);
   AppSettings.WriteBool(asTabCloseOnDoubleClick, chkTabCloseOnDoubleClick.Checked);
+  AppSettings.WriteBool(asTabCloseOnMiddleClick, chkTabCloseOnMiddleClick.Checked);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -767,10 +772,11 @@ begin
   cboxRowBackgroundOdd.Selected := AppSettings.ReadInt(asRowBackgroundOdd);
   cboxRowHighlightSameText.Selected := AppSettings.ReadInt(asHightlightSameTextBackground);
   updownRealTrailingZeros.Position := AppSettings.ReadInt(asRealTrailingZeros);
+  updownLongSortRowNum.Position := AppSettings.ReadInt(asQueryGridLongSortRowNum);
   chkLocalNumberFormat.Checked := AppSettings.ReadBool(asDataLocalNumberFormat);
   chkLowercaseHex.Checked := AppSettings.ReadBool(asLowercaseHex);
   chkHintsOnResultTabs.Checked := AppSettings.ReadBool(asHintsOnResultTabs);
-  updownLongSortRowNum.Position := AppSettings.ReadInt(asQueryGridLongSortRowNum);
+  chkShowRowId.Checked := AppSettings.ReadBool(asShowRowId);
 
   // Editor Configuration
   chkEditorBinary.Checked := AppSettings.ReadBool(asFieldEditorBinary);
@@ -796,9 +802,12 @@ begin
   chkAskFileSave.Checked := AppSettings.ReadBool(asPromptSaveFileOnTabClose);
   chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
   chkTabCloseOnDoubleClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
+  chkTabCloseOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;
+
+  TExtForm.PageControlTabHighlight(pagecontrolMain);
 
   FRestartOptionTouched := False;
   btnApply.Enabled := False;

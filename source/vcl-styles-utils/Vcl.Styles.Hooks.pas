@@ -16,7 +16,7 @@
 //
 // The Initial Developer of the Original Code is Rodrigo Ruz V.
 //
-// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2021 Rodrigo Ruz V.
+// Portions created by Rodrigo Ruz V. are Copyright (C) 2013-2023 Rodrigo Ruz V.
 //
 // Contributor(s): Mahdi Safsafi.
 //
@@ -832,46 +832,46 @@ var
 
 initialization
 
- VCLStylesLock := TCriticalSection.Create;
- VCLStylesBrush := TObjectDictionary<string, TListStyleBrush>.Create([doOwnsValues]);
+  VCLStylesLock := TCriticalSection.Create;
+  VCLStylesBrush := TObjectDictionary<string, TListStyleBrush>.Create([doOwnsValues]);
 
-if StyleServices.Available then
-begin
+  if StyleServices.Available then
+  begin
 
-{$IFDEF HOOK_TDateTimePicker}
-  TCustomStyleEngine.RegisterStyleHook(TDateTimePicker, TStyleHook);
-{$ENDIF HOOK_TDateTimePicker}
+  {$IFDEF HOOK_TDateTimePicker}
+    TCustomStyleEngine.RegisterStyleHook(TDateTimePicker, TStyleHook);
+  {$ENDIF HOOK_TDateTimePicker}
 
 
-{$IFDEF HOOK_TProgressBar}
-  TCustomStyleEngine.RegisterStyleHook(TProgressBar, TStyleHook);
-{$ENDIF HOOK_TProgressBar}
-  LSetStylePtr := TStyleManager.SetStyle;
+  {$IFDEF HOOK_TProgressBar}
+    TCustomStyleEngine.RegisterStyleHook(TProgressBar, TStyleHook);
+  {$ENDIF HOOK_TProgressBar}
+    LSetStylePtr := TStyleManager.SetStyle;
 
-  hnd := BeginTransaction();
-  @Trampoline_user32_GetSysColor := InterceptCreate(user32, 'GetSysColor', @Detour_GetSysColor);
-  @Trampoline_user32_GetSysColorBrush := InterceptCreate(user32, 'GetSysColorBrush', @Detour_GetSysColorBrush);
-  @Trampoline_user32_FillRect := InterceptCreate(user32, 'FillRect', @Detour_FillRect);
-  @Trampoline_user32_DrawEdge := InterceptCreate(user32, 'DrawEdge', @Detour_DrawEdge);
-  @Trampoline_user32_DrawFrameControl :=  InterceptCreate(user32, 'DrawFrameControl', @Detour_WinApi_DrawFrameControl);
-  @Trampoline_user32_LoadIconW := InterceptCreate(user32, 'LoadIconW', @Detour_LoadIconW);
-{$IFDEF HOOK_UXTHEME}
-  if TOSVersion.Check(6) then
-   @Trampoline_user32_LoadImageW := InterceptCreate(user32, 'LoadImageW', @Detour_LoadImageW);
+    hnd := BeginTransaction();
+    @Trampoline_user32_GetSysColor := InterceptCreate(user32, 'GetSysColor', @Detour_GetSysColor);
+    @Trampoline_user32_GetSysColorBrush := InterceptCreate(user32, 'GetSysColorBrush', @Detour_GetSysColorBrush);
+    @Trampoline_user32_FillRect := InterceptCreate(user32, 'FillRect', @Detour_FillRect);
+    @Trampoline_user32_DrawEdge := InterceptCreate(user32, 'DrawEdge', @Detour_DrawEdge);
+    @Trampoline_user32_DrawFrameControl :=  InterceptCreate(user32, 'DrawFrameControl', @Detour_WinApi_DrawFrameControl);
+    @Trampoline_user32_LoadIconW := InterceptCreate(user32, 'LoadIconW', @Detour_LoadIconW);
+  {$IFDEF HOOK_UXTHEME}
+    if TOSVersion.Check(6) then
+     @Trampoline_user32_LoadImageW := InterceptCreate(user32, 'LoadImageW', @Detour_LoadImageW);
 
-{$ENDIF HOOK_UXTHEME}
+  {$ENDIF HOOK_UXTHEME}
 
-  @Trampoline_SetStyle := InterceptCreate(@LSetStylePtr, @Detour_SetStyle);
+    @Trampoline_SetStyle := InterceptCreate(@LSetStylePtr, @Detour_SetStyle);
 
-{$IFDEF HOOK_TDateTimePicker}
-  {$IF CompilerVersion>=29}
-  //@Trampoline_TMonthCalendar_CreateWnd := InterceptCreate(@TMonthCalendarClass.CreateWnd, @Detour_TMonthCalendar_CreateWnd);
-  @Trampoline_SetWindowTheme := InterceptCreate(themelib, 'SetWindowTheme', @Detour_SetWindowTheme);
-  {$IFEND CompilerVersion}
-{$ENDIF HOOK_TDateTimePicker}
+  {$IFDEF HOOK_TDateTimePicker}
+    {$IF CompilerVersion>=29}
+    //@Trampoline_TMonthCalendar_CreateWnd := InterceptCreate(@TMonthCalendarClass.CreateWnd, @Detour_TMonthCalendar_CreateWnd);
+    @Trampoline_SetWindowTheme := InterceptCreate(themelib, 'SetWindowTheme', @Detour_SetWindowTheme);
+    {$IFEND CompilerVersion}
+  {$ENDIF HOOK_TDateTimePicker}
 
-  EndTransaction(hnd);
-end;
+    EndTransaction(hnd);
+  end;
 
 finalization
 
