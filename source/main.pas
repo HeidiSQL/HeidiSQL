@@ -780,6 +780,7 @@ type
     menuQueryExactRowCount: TMenuItem;
     menuCloseTabOnMiddleClick: TMenuItem;
     TimerCloseTabByButton: TTimer;
+    menuTabsInMultipleLines: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1182,6 +1183,7 @@ type
     procedure menuQueryExactRowCountClick(Sender: TObject);
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
     procedure TimerCloseTabByButtonTimer(Sender: TObject);
+    procedure menuTabsInMultipleLinesClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2098,6 +2100,7 @@ begin
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
 
+  PageControlMain.MultiLine := AppSettings.ReadBool(asTabsInMultipleLines);
   SetMainTab(tabHost);
   FBtnAddTab := TSpeedButton.Create(PageControlMain);
   FBtnAddTab.Parent := PageControlMain;
@@ -12234,6 +12237,12 @@ begin
   AppSettings.WriteBool(asTabCloseOnMiddleClick, menuCloseTabOnMiddleClick.Checked);
 end;
 
+procedure TMainForm.menuTabsInMultipleLinesClick(Sender: TObject);
+begin
+  AppSettings.WriteBool(asTabsInMultipleLines, menuTabsInMultipleLines.Checked);
+  PageControlMain.MultiLine := menuTabsInMultipleLines.Checked;
+end;
+
 procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
 var
   i: Integer;
@@ -12296,6 +12305,7 @@ begin
   menuRenameQueryTab.Enabled := IsQueryTab(PageIndexClick, True);
   menuCloseTabOnDblClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
   menuCloseTabOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
+  menuTabsInMultipleLines.Checked := AppSettings.ReadBool(asTabsInMultipleLines)
 end;
 
 

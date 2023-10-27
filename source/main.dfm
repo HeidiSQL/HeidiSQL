@@ -4404,6 +4404,11 @@ object MainForm: TMainForm
       Caption = 'Close tab on middleclick'
       OnClick = menuCloseTabOnMiddleClickClick
     end
+    object menuTabsInMultipleLines: TMenuItem
+      AutoCheck = True
+      Caption = 'Tabs in multiple lines'
+      OnClick = menuTabsInMultipleLinesClick
+    end
   end
   object TimerFilterVT: TTimer
     Enabled = False
