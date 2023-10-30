@@ -9301,7 +9301,7 @@ begin
 
   end else begin
     // Values directly from a query result
-    CellText := StrEllipsis(Results.Col(Column), SIZE_KB*50);
+    CellText := StrEllipsis(Results.Col(Column, True), SIZE_KB*50);
   end;
 end;
 
