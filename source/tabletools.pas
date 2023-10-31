@@ -1695,7 +1695,7 @@ begin
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
     if menuExportAddComments.Checked then
       Output('-- '+f_('Dumping structure for %s %s.%s', [_(LowerCase(DBObj.ObjType)), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
-    if chkExportTablesDrop.Checked then begin
+    if chkExportTablesDrop.Checked and (not FSecondExportPass) then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
         Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';
