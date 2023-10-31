@@ -2751,43 +2751,12 @@ end;
 
 
 function GetExecutableBits: Byte;
-const
-  kb32 = 1024 * 32;
-var
-  ExeFilename: String;
-  Buffer: Array[0..kb32-1] of Byte; // warning: assuming both headers are in there!
-  hFile: DWord;
-  bRead: DWord;
-  bToRead: DWord;
-  pDos: PImageDosHeader;
-  pNt: PImageNtHeaders;
 begin
+  {$IFDEF WIN64}
+  Result := 64;
+  {$ELSE}
   Result := 32;
-  ExeFilename := ParamStr(0);
-  hFile := CreateFile(pChar(ExeFilename), GENERIC_READ, FILE_SHARE_READ, NIL, OPEN_EXISTING, 0, 0);
-  if hFile <> INVALID_HANDLE_VALUE then try
-    bToRead := GetFileSize(hFile, NIL);
-    if bToRead > kb32 then
-      bToRead := kb32;
-    if not ReadFile(hFile, Buffer, bToRead, bRead, NIL) then
-      Exit;
-    if bRead = bToRead then begin
-      pDos := @Buffer[0];
-      if pDos.e_magic = IMAGE_DOS_SIGNATURE then begin
-        pNt := PImageNtHeaders(LongInt(pDos) + pDos._lfanew);
-        if pNt.Signature = IMAGE_NT_SIGNATURE then begin
-          if pNt.FileHeader.Machine and IMAGE_FILE_32BIT_MACHINE > 0 then
-            Result := 32
-          else
-            Result := 64
-        end;
-      end;
-    end;
-  except
-    on E:Exception do
-      MainForm.LogSQL('Could not detect executable architecture. Assuming '+Result.ToString+'bit: '+E.Message, lcError);
-  end;
-  CloseHandle(hFile);
+  {$ENDIF}
 end;
 
 
