@@ -9697,7 +9697,8 @@ begin
       SynSQLSynUsed.FunctionNames.EndUpdate;
     end;
 
-    if (FActiveDbObj.NodeType <> lntNone)
+    if (FActiveDbObj <> nil)
+      and (FActiveDbObj.NodeType <> lntNone)
       and (
         (PrevDBObj = nil)
         or (PrevDBObj.Connection <> FActiveDbObj.Connection)
