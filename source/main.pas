@@ -13321,6 +13321,7 @@ procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDel
 var
   Control: TWinControl;
   VT: TBaseVirtualTree;
+  PageControl: TPageControl;
 begin
   // Wheel scrolling only works in component which has focus. Help out by doing that by hand at least for any VirtualTree.
   // See http://www.delphipraxis.net/viewtopic.php?p=1113607
@@ -13332,6 +13333,18 @@ begin
     VT.OffsetY := VT.OffsetY + (WheelDelta div 2); // Don't know why, but WheelDelta is twice as big as it normally appears
     VT.UpdateScrollBars(True);
     Handled := True;
+  end else if Control is TPageControl then begin
+    // Scroll tabs horizontally per mouse wheel
+    PageControl := Control as TPageControl;
+    if PageControl.MultiLine then begin
+      Handled := False;
+    end
+    else begin
+      PageControl.ScrollTabs(WheelDelta div WHEEL_DELTA);
+      if PageControl = PageControlMain then
+        FixQueryTabCloseButtons;
+      Handled := True;
+    end;
   end else
     Handled := False;
 end;
