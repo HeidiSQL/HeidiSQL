@@ -255,6 +255,7 @@ begin
   FDeletedCheckConstraints.Duplicates := dupIgnore;
   editName.MaxLength := NAME_LEN;
   FAlterRestrictedMessageDisplayed := False;
+  btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
 end;
 
 

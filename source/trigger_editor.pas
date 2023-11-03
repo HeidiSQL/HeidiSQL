@@ -3,7 +3,7 @@ unit trigger_editor;
 interface
 
 uses
-  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo,
+  Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Menus, SynEdit, SynMemo,
   SynCompletionProposal, SynRegExpr,
   dbconnection, dbstructures, dbstructures.mysql, apphelpers, gnugettext, Vcl.ComCtrls, extra_controls;
 
@@ -78,6 +78,7 @@ begin
   SynCompletionProposalStatement.TimerInterval := Mainform.SynCompletionProposal.TimerInterval;
   SynCompletionProposalStatement.Margin := Mainform.SynCompletionProposal.Margin;
   FMainSynMemo := SynMemoBody;
+  btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
 end;
 
 

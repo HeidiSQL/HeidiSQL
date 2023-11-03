@@ -5023,18 +5023,37 @@ end;
 procedure TMainForm.actSaveSQLExecute(Sender: TObject);
 var
   i: Integer;
+  ObjEditor: TDBObjectEditor;
+  Handled: Boolean;
 begin
-  if QueryTabs.ActiveTab.MemoFilename <> '' then begin
-    QueryTabs.ActiveTab.SaveContents(QueryTabs.ActiveTab.MemoFilename, False);
-    for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i] = QueryTabs.ActiveTab then
-        continue;
-      if QueryTabs[i].MemoFilename = QueryTabs.ActiveTab.MemoFilename then
-        QueryTabs[i].Memo.Modified := True;
+  Handled := False;
+  if QueryTabs.HasActiveTab then begin
+    // Save SQL tab contents to file
+    if QueryTabs.ActiveTab.MemoFilename <> '' then begin
+      QueryTabs.ActiveTab.SaveContents(QueryTabs.ActiveTab.MemoFilename, False);
+      for i:=0 to QueryTabs.Count-1 do begin
+        if QueryTabs[i] = QueryTabs.ActiveTab then
+          continue;
+        if QueryTabs[i].MemoFilename = QueryTabs.ActiveTab.MemoFilename then
+          QueryTabs[i].Memo.Modified := True;
+      end;
+      ValidateQueryControls(Sender);
+    end else
+      actSaveSQLAsExecute(Sender);
+    Handled := True;
+  end
+  else if PageControlMain.ActivePage = tabEditor then begin
+    // Save table, procedure, etc.
+    ObjEditor := ActiveObjectEditor;
+    if Assigned(ObjEditor) and ObjEditor.Modified then begin
+      ObjEditor.ApplyModifications;
+      Handled := True;
     end;
-    ValidateQueryControls(Sender);
-  end else
-    actSaveSQLAsExecute(Sender);
+  end;
+  if not Handled then begin
+    MessageBeep(MB_ICONASTERISK);
+  end;
+
 end;
 
 
@@ -6585,7 +6604,7 @@ var
   NotEmpty, HasSelection, HasConnection: Boolean;
   Tab: TQueryTab;
   cap: String;
-  InQueryTab: Boolean;
+  InQueryTab, InEditorTab: Boolean;
   Conn: TDBConnection;
 begin
   // Enable/disable TActions, according to the current window/connection state
@@ -6604,6 +6623,7 @@ begin
       SetTabCaption(Tab.TabSheet.PageIndex, cap);
   end;
   InQueryTab := QueryTabs.HasActiveTab;
+  InEditorTab := PageControlMain.ActivePage = tabEditor;
   Tab := QueryTabs.ActiveTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
@@ -6614,7 +6634,7 @@ begin
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled and (Conn.Parameters.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]);
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
-  actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
+  actSaveSQL.Enabled := (actSaveSQLAs.Enabled and Tab.Memo.Modified) or InEditorTab;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
   actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
   actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;

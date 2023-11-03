@@ -116,6 +116,7 @@ begin
   Parameters := TRoutineParamList.Create;
   editName.MaxLength := NAME_LEN;
   FMainSynMemo := SynMemoBody;
+  btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
 end;
 
 

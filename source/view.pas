@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo,
-  Vcl.ExtCtrls,
+  Vcl.ExtCtrls, Vcl.Menus,
   dbconnection, dbstructures, dbstructures.mysql, apphelpers, gnugettext, Vcl.ComCtrls, extra_controls;
 
 type
@@ -66,6 +66,7 @@ begin
   comboSecurity.Items.Add('Definer');
   comboSecurity.Items.Add('Invoker');
   FMainSynMemo := SynMemoBody;
+  btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
 end;
 
 
