@@ -1314,28 +1314,35 @@ begin
   if RequestShortcut = 0 then
     Exit;
   MsgFormat := _('Keyboard shortcut [%s] is already assigned to "%s".') + sLineBreak + sLineBreak +
-    _('Remove it there and assign to "%s" instead?');
+    _('Remove it there and assign to "%s" instead?') + sLineBreak + sLineBreak +
+    _('Press ignore to keep both and ignore all conflicts.');
   Tree := TreeShortcutItems;
   NodeWantsIt := Tree.FocusedNode;
   Node := GetNextNode(Tree, nil, False);
   while Assigned(Node) do begin
     if Tree.GetNodeLevel(Node) = 1 then begin
       Data := Tree.GetNodeData(Node);
-      Msg := Format(MsgFormat, [ShortCutToText(RequestShortcut), Tree.Text[Node, 0], Tree.Text[NodeWantsIt, 0]]);
+      Msg := Format(MsgFormat, [
+        ShortCutToText(RequestShortcut),
+        Tree.Text[Node, 0],
+        Tree.Text[NodeWantsIt, 0]
+        ]);
       if Node = NodeWantsIt then begin
         // Ignore requesting node
       end else begin
         if Data.ShortCut1 = RequestShortcut then begin
-          if MessageDialog(Msg, mtConfirmation, [mbYes, mbNo]) = mrYes then
-            Data.ShortCut1 := 0 // Unassign shortcut 1
-          else
-            Result := False;
+          case MessageDialog(Msg, mtConfirmation, [mbYes, mbNo, mbIgnore]) of
+            mrYes: Data.ShortCut1 := 0; // Unassign shortcut 1
+            mrNo: Result := False;
+            mrIgnore: Break; // Keep Result=True and exit loop, ignore further conflicts
+          end;
         end;
         if Data.ShortCut2 = RequestShortcut then begin
-          if MessageDialog(Msg, mtConfirmation, [mbYes, mbNo]) = mrYes then
-            Data.ShortCut2 := 0 // Unassign shortcut 2
-          else
-            Result := False;
+          case MessageDialog(Msg, mtConfirmation, [mbYes, mbNo, mbIgnore]) of
+            mrYes: Data.ShortCut2 := 0; // Unassign shortcut 2
+            mrNo: Result := False;
+            mrIgnore: Break;
+          end;
         end;
       end;
     end;

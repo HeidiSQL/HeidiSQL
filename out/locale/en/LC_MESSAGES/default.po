@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2023-10-27 13:06+0200\n"
+"PO-Revision-Date: 2023-11-03 11:39+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6488,6 +6488,10 @@ msgstr "Keyboard shortcut [%s] is already assigned to \"%s\"."
 #. Keyboard shortcut settings
 msgid "Remove it there and assign to \"%s\" instead?"
 msgstr "Remove it there and assign to \"%s\" instead?"
+
+#. Keyboard shortcut settings
+msgid "Press ignore to keep both and ignore all conflicts."
+msgstr "Press ignore to keep both and ignore all conflicts."
 
 msgid "Really auto-detect file encoding?"
 msgstr "Really auto-detect file encoding?"
