@@ -186,6 +186,8 @@ type
     chkIncrementalSearch: TCheckBox;
     chkShowRowId: TCheckBox;
     chkTabCloseOnMiddleClick: TCheckBox;
+    btnRemoveHotKey1: TButton;
+    btnRemoveHotKey2: TButton;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -229,6 +231,7 @@ type
     procedure chkThemePreviewClick(Sender: TObject);
     procedure chkCompletionProposalClick(Sender: TObject);
     procedure HotKeyChange(Sender: TObject);
+    procedure btnRemoveHotKeyClick(Sender: TObject);
   private
     { Private declarations }
     FWasModified: Boolean;
@@ -630,7 +633,7 @@ begin
   FHotKey1.Parent := tabShortcuts;
   FHotKey1.Left := lblShortcut1.Left;
   FHotKey1.Top := lblShortcut1.Top + lblShortcut1.Height + 4;
-  FHotKey1.Width := tabShortcuts.Width - FHotKey1.Left - 50;
+  FHotKey1.Width := tabShortcuts.Width - FHotKey1.Left - btnRemoveHotKey1.Width - 4 - 4;
   FHotKey1.Height := editDataFontSize.Height;
   FHotKey1.Anchors := [akLeft, akTop, akRight];
   FHotKey1.HotKey := 0;
@@ -640,12 +643,15 @@ begin
   FHotKey1.OnChange := HotKeyChange;
   FHotKey1.OnEnter := HotKeyEnter;
   FHotKey1.OnExit := HotKeyExit;
+  btnRemoveHotKey1.Left := FHotKey1.Left + FHotKey1.Width + 4;
+  btnRemoveHotKey1.Top := FHotKey1.Top;
+  btnRemoveHotKey1.Enabled := False;
 
   FHotKey2 := TExtSynHotKey.Create(Self);
   FHotKey2.Parent := tabShortcuts;
   FHotKey2.Left := lblShortcut2.Left;
   FHotKey2.Top := lblShortcut2.Top + lblShortcut2.Height + 4;
-  FHotKey2.Width := tabShortcuts.Width - FHotKey2.Left - 50;
+  FHotKey2.Width := tabShortcuts.Width - FHotKey2.Left - btnRemoveHotKey2.Width - 4 - 4;
   FHotKey2.Height := editDataFontSize.Height;
   FHotKey2.Anchors := [akLeft, akTop, akRight];
   FHotKey2.HotKey := 0;
@@ -655,6 +661,9 @@ begin
   FHotKey2.OnChange := HotKeyChange;
   FHotKey2.OnEnter := HotKeyEnter;
   FHotKey2.OnExit := HotKeyExit;
+  btnRemoveHotKey2.Left := FHotKey2.Left + FHotKey2.Width + 4;
+  btnRemoveHotKey2.Top := FHotKey2.Top;
+  btnRemoveHotKey2.Enabled := False;
 
   FShortcutCategories := TStringList.Create;
   for i:=0 to Mainform.ActionList1.ActionCount-1 do begin
@@ -1135,6 +1144,21 @@ begin
 end;
 
 
+procedure TfrmPreferences.btnRemoveHotKeyClick(Sender: TObject);
+begin
+  // Clear current shortcut
+  if Sender = btnRemoveHotKey1 then begin
+    FHotKey1.HotKey := 0;
+    HotKeyChange(FHotKey1);
+  end
+  else if Sender = btnRemoveHotKey2 then begin
+    FHotKey2.HotKey := 0;
+    HotKeyChange(FHotKey2);
+  end
+  else
+    MessageBeep(MB_ICONASTERISK);
+end;
+
 procedure TfrmPreferences.btnRestoreDefaultsClick(Sender: TObject);
 var
   ValueList: TStringlist;
@@ -1179,6 +1203,7 @@ begin
   lblShortcut1.Enabled := ShortcutFocused;
   lblShortcut2.Enabled := ShortcutFocused;
   FHotKey1.Enabled := lblShortcut1.Enabled;
+  btnRemoveHotKey1.Enabled := lblShortcut1.Enabled;
   if ShortcutFocused then begin
     Data := Sender.GetNodeData(Node);
     lblShortcutHint.Caption := TreeShortcutItems.Text[Node, 0];
@@ -1191,6 +1216,7 @@ begin
     FHotKey2.HotKey := Data.ShortCut2;
   end;
   FHotKey2.Enabled := lblShortcut2.Enabled;
+  btnRemoveHotKey2.Enabled := lblShortcut2.Enabled;
 end;
 
 
