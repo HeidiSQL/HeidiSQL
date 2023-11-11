@@ -657,7 +657,6 @@ type
     filterQueryHelpers: TButtonedEdit;
     TimerStoreTabs: TTimer;
     Duplicaterowwithkeys1: TMenuItem;
-    imgDonate: TImage;
     actGoToQueryResults: TAction;
     Switchtoqueryresults1: TMenuItem;
     actGoToDataMultiFilter: TAction;
@@ -781,6 +780,8 @@ type
     menuCloseTabOnMiddleClick: TMenuItem;
     TimerCloseTabByButton: TTimer;
     menuTabsInMultipleLines: TMenuItem;
+    ToolBarDonate: TToolBar;
+    btnDonate: TToolButton;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -2219,8 +2220,7 @@ begin
 
   // Probably hide image
   FHasDonatedDatabaseCheck := nbUnset;
-  imgDonate.Visible := HasDonated(True) <> nbTrue;
-  imgDonate.Repaint;
+  ToolBarDonate.Visible := HasDonated(True) <> nbTrue;
 
   // Call user statistics if checked in settings
   if AppSettings.ReadBool(asDoUsageStatistics) then begin
@@ -2782,12 +2782,9 @@ begin
   FixQueryTabCloseButtons;
 
   // Right aligned button
-  if imgDonate.Visible then begin
-    imgDonate.Stretch := True;
-    imgDonate.Proportional := True;
-    imgDonate.Width := ScaleSize(129);
-    imgDonate.Height := ScaleSize(22);
-    imgDonate.Left := ControlBarMain.Width - imgDonate.Width;
+  if ToolBarDonate.Visible then begin
+    ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
+    ToolBarDonate.Left := ControlBarMain.Width - ToolBarDonate.Width;
   end;
 
 end;

@@ -19,7 +19,6 @@ type
     lnklblWebpage: TLinkLabel;
     btnUpdateCheck: TButton;
     ImageHeidisql: TImage;
-    imgDonate: TImage;
     lblDonated: TLabel;
     editDonated: TEdit;
     btnDonatedOK: TButton;
@@ -27,6 +26,7 @@ type
     popupLabels: TPopupMenu;
     menuCopyLabel: TMenuItem;
     lblEnvironment: TLabel;
+    btnDonate: TButton;
     procedure OpenURL(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure editDonatedEnter(Sender: TObject);
@@ -71,8 +71,8 @@ begin
     nbTrue:
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
-  imgDonate.Visible := Check <> nbTrue;
-  MainForm.imgDonate.Visible := imgDonate.Visible;
+  btnDonate.Visible := Check <> nbTrue;
+  MainForm.ToolBarDonate.Visible := btnDonate.Visible;
   MainForm.FormResize(Self);
 end;
 
@@ -109,8 +109,9 @@ begin
   lblAppName.Font.Size := Round(lblAppName.Font.Size * 1.5);
   lblAppName.Font.Style := [fsBold];
 
-  imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
-  imgDonate.OnClick := MainForm.DonateClick;
+  btnDonate.Caption := f_('Donate to the %s project', [APPNAME]);
+  btnDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
+  btnDonate.OnClick := MainForm.DonateClick;
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text
@@ -135,6 +136,7 @@ begin
   end;
 
   Screen.Cursor := crDefault;
+  btnClose.TrySetFocus;
 end;
 
 

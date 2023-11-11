@@ -1,8 +1,8 @@
 object MainForm: TMainForm
   Left = 0
   Top = 463
-  ClientHeight = 466
-  ClientWidth = 977
+  ClientHeight = 408
+  ClientWidth = 865
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -22,8 +22,8 @@ object MainForm: TMainForm
   TextHeight = 14
   object spltTopBottom: TSplitter
     Left = 0
-    Top = 363
-    Width = 977
+    Top = 305
+    Width = 865
     Height = 4
     Cursor = crSizeNS
     Align = alBottom
@@ -32,8 +32,8 @@ object MainForm: TMainForm
   end
   object SynMemoSQLLog: TSynMemo
     Left = 0
-    Top = 367
-    Width = 977
+    Top = 309
+    Width = 865
     Height = 80
     SingleLineMode = True
     Align = alBottom
@@ -70,8 +70,8 @@ object MainForm: TMainForm
   end
   object StatusBar: TStatusBar
     Left = 0
-    Top = 447
-    Width = 977
+    Top = 389
+    Width = 865
     Height = 19
     AutoHint = True
     Panels = <
@@ -110,8 +110,8 @@ object MainForm: TMainForm
   object panelTop: TPanel
     Left = 0
     Top = 26
-    Width = 977
-    Height = 337
+    Width = 865
+    Height = 279
     Align = alClient
     AutoSize = True
     BevelOuter = bvNone
@@ -121,7 +121,7 @@ object MainForm: TMainForm
       Left = 169
       Top = 0
       Width = 4
-      Height = 337
+      Height = 279
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
     end
@@ -129,14 +129,14 @@ object MainForm: TMainForm
       Left = 0
       Top = 0
       Width = 169
-      Height = 337
+      Height = 279
       Align = alLeft
       BevelOuter = bvNone
       TabOrder = 0
       OnResize = pnlLeftResize
       object spltPreview: TSplitter
         Left = 0
-        Top = 233
+        Top = 175
         Width = 169
         Height = 4
         Cursor = crSizeNS
@@ -149,7 +149,7 @@ object MainForm: TMainForm
         Left = 0
         Top = 22
         Width = 169
-        Height = 211
+        Height = 153
         Align = alClient
         Constraints.MinWidth = 40
         DragMode = dmAutomatic
@@ -204,7 +204,7 @@ object MainForm: TMainForm
       end
       object pnlPreview: TPanel
         Left = 0
-        Top = 237
+        Top = 179
         Width = 169
         Height = 100
         Align = alBottom
@@ -334,15 +334,15 @@ object MainForm: TMainForm
     object pnlRight: TPanel
       Left = 173
       Top = 0
-      Width = 804
-      Height = 337
+      Width = 692
+      Height = 279
       Align = alClient
       BevelOuter = bvNone
       TabOrder = 1
       object pnlFilterVT: TPanel
         Left = 0
-        Top = 311
-        Width = 804
+        Top = 253
+        Width = 692
         Height = 26
         Align = alBottom
         BevelOuter = bvNone
@@ -351,15 +351,15 @@ object MainForm: TMainForm
         object lblFilterVT: TLabel
           Left = 36
           Top = 6
-          Width = 28
-          Height = 13
+          Width = 30
+          Height = 14
           Caption = 'Filter:'
         end
         object lblFilterVTInfo: TLabel
           Left = 239
           Top = 6
-          Width = 66
-          Height = 13
+          Width = 75
+          Height = 14
           Caption = 'lblFilterVTInfo'
         end
         object btnCloseFilterPanel: TSpeedButton
@@ -375,7 +375,7 @@ object MainForm: TMainForm
           Left = 70
           Top = 3
           Width = 154
-          Height = 21
+          Height = 22
           Images = VirtualImageListMain
           LeftButton.ImageIndex = 192
           LeftButton.Visible = True
@@ -394,8 +394,8 @@ object MainForm: TMainForm
       object PageControlMain: TPageControl
         Left = 0
         Top = 0
-        Width = 804
-        Height = 311
+        Width = 692
+        Height = 253
         ActivePage = tabHost
         Align = alClient
         HotTrack = True
@@ -413,8 +413,8 @@ object MainForm: TMainForm
           object PageControlHost: TPageControl
             Left = 0
             Top = 0
-            Width = 796
-            Height = 282
+            Width = 684
+            Height = 224
             ActivePage = tabDatabases
             Align = alClient
             HotTrack = True
@@ -427,8 +427,8 @@ object MainForm: TMainForm
               object ListDatabases: TVirtualStringTree
                 Left = 0
                 Top = 0
-                Width = 788
-                Height = 253
+                Width = 676
+                Height = 195
                 Align = alClient
                 Header.AutoSizeIndex = 0
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
@@ -509,8 +509,8 @@ object MainForm: TMainForm
               object ListVariables: TVirtualStringTree
                 Left = 0
                 Top = 0
-                Width = 788
-                Height = 253
+                Width = 676
+                Height = 195
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 2
@@ -557,7 +557,7 @@ object MainForm: TMainForm
                   item
                     Position = 2
                     Text = 'Global'
-                    Width = 424
+                    Width = 312
                   end>
               end
             end
@@ -567,8 +567,8 @@ object MainForm: TMainForm
               object ListStatus: TVirtualStringTree
                 Left = 0
                 Top = 0
-                Width = 788
-                Height = 253
+                Width = 676
+                Height = 195
                 Align = alClient
                 DragOperations = []
                 Header.AutoSizeIndex = 1
@@ -608,7 +608,7 @@ object MainForm: TMainForm
                     Alignment = taRightJustify
                     Position = 1
                     Text = 'Value'
-                    Width = 424
+                    Width = 312
                   end
                   item
                     Alignment = taRightJustify
@@ -629,8 +629,8 @@ object MainForm: TMainForm
               ImageIndex = 57
               object spltProcessList: TSplitter
                 Left = 0
-                Top = 180
-                Width = 788
+                Top = 122
+                Width = 676
                 Height = 4
                 Cursor = crSizeNS
                 Align = alBottom
@@ -639,8 +639,8 @@ object MainForm: TMainForm
               object ListProcesses: TVirtualStringTree
                 Left = 0
                 Top = 0
-                Width = 788
-                Height = 180
+                Width = 676
+                Height = 122
                 Align = alClient
                 Header.AutoSizeIndex = 7
                 Header.Height = 20
@@ -710,13 +710,13 @@ object MainForm: TMainForm
                   item
                     Position = 7
                     Text = 'Info'
-                    Width = 294
+                    Width = 182
                   end>
               end
               object pnlProcessViewBox: TPanel
                 Left = 0
-                Top = 184
-                Width = 788
+                Top = 126
+                Width = 676
                 Height = 69
                 Align = alBottom
                 BevelOuter = bvNone
@@ -724,7 +724,7 @@ object MainForm: TMainForm
                 object pnlProcessView: TPanel
                   Left = 0
                   Top = 0
-                  Width = 788
+                  Width = 676
                   Height = 18
                   Align = alTop
                   Alignment = taLeftJustify
@@ -734,8 +734,8 @@ object MainForm: TMainForm
                   object lblExplainProcess: TLabel
                     Left = 95
                     Top = 2
-                    Width = 41
-                    Height = 13
+                    Width = 47
+                    Height = 14
                     Cursor = crHandPoint
                     Hint = 'Analyze this query'
                     Caption = 'EXPLAIN'
@@ -746,7 +746,7 @@ object MainForm: TMainForm
                 object SynMemoProcessView: TSynMemo
                   Left = 0
                   Top = 18
-                  Width = 788
+                  Width = 676
                   Height = 51
                   SingleLineMode = False
                   Align = alClient
@@ -788,8 +788,8 @@ object MainForm: TMainForm
               object ListCommandStats: TVirtualStringTree
                 Left = 0
                 Top = 0
-                Width = 788
-                Height = 253
+                Width = 676
+                Height = 195
                 Align = alClient
                 Header.AutoSizeIndex = 4
                 Header.Height = 20
@@ -847,7 +847,7 @@ object MainForm: TMainForm
                   item
                     Position = 4
                     Text = 'Percentage'
-                    Width = 364
+                    Width = 252
                   end>
               end
             end
@@ -859,8 +859,8 @@ object MainForm: TMainForm
           object ListTables: TVirtualStringTree
             Left = 0
             Top = 0
-            Width = 796
-            Height = 282
+            Width = 684
+            Height = 224
             Align = alClient
             EditDelay = 500
             Header.AutoSizeIndex = -1
@@ -1019,8 +1019,8 @@ object MainForm: TMainForm
           object lblSorryNoData: TLabel
             Left = 0
             Top = 91
-            Width = 796
-            Height = 191
+            Width = 684
+            Height = 133
             Align = alClient
             Alignment = taCenter
             Caption = 'No data available for this item.'
@@ -1030,7 +1030,7 @@ object MainForm: TMainForm
           object pnlDataTop: TPanel
             Left = 0
             Top = 0
-            Width = 796
+            Width = 684
             Height = 25
             Align = alTop
             Alignment = taLeftJustify
@@ -1040,7 +1040,7 @@ object MainForm: TMainForm
             object lblDataTop: TLabel
               Left = 1
               Top = 1
-              Width = 514
+              Width = 574
               Height = 23
               Align = alLeft
               Anchors = [akLeft, akTop, akRight, akBottom]
@@ -1050,13 +1050,13 @@ object MainForm: TMainForm
               Layout = tlCenter
             end
             object tlbDataButtons: TToolBar
-              Left = 452
+              Left = 315
               Top = 1
-              Width = 343
+              Width = 368
               Height = 23
               Align = alRight
               AutoSize = True
-              ButtonWidth = 67
+              ButtonWidth = 72
               Caption = 'tlbDataButtons'
               Images = VirtualImageListMain
               List = True
@@ -1071,12 +1071,12 @@ object MainForm: TMainForm
                 Action = actDataShowNext
               end
               object tbtnDataShowAll: TToolButton
-                Left = 67
+                Left = 72
                 Top = 0
                 Action = actDataShowAll
               end
               object ToolButton2: TToolButton
-                Left = 134
+                Left = 144
                 Top = 0
                 Width = 8
                 Caption = 'ToolButton2'
@@ -1085,7 +1085,7 @@ object MainForm: TMainForm
                 Style = tbsSeparator
               end
               object tbtnDataSorting: TToolButton
-                Left = 142
+                Left = 152
                 Top = 0
                 AllowAllUp = True
                 Caption = 'Sorting'
@@ -1095,7 +1095,7 @@ object MainForm: TMainForm
                 OnClick = btnDataClick
               end
               object tbtnDataColumns: TToolButton
-                Left = 209
+                Left = 224
                 Top = 0
                 AllowAllUp = True
                 Caption = 'Columns'
@@ -1105,7 +1105,7 @@ object MainForm: TMainForm
                 OnClick = btnDataClick
               end
               object tbtnDataFilter: TToolButton
-                Left = 276
+                Left = 296
                 Top = 0
                 AllowAllUp = True
                 Caption = 'Filter'
@@ -1118,32 +1118,32 @@ object MainForm: TMainForm
           object pnlFilter: TPanel
             Left = 0
             Top = 25
-            Width = 796
+            Width = 684
             Height = 66
             Align = alTop
             BevelOuter = bvNone
             TabOrder = 1
             Visible = False
             DesignSize = (
-              796
+              684
               66)
             object lblTableFilter: TLabel
-              Left = 633
+              Left = 497
               Top = 0
-              Width = 123
-              Height = 13
+              Width = 141
+              Height = 14
               Anchors = [akTop, akRight]
               Caption = 'Create multi column filter:'
             end
             object lblRecentFilters: TLabel
               Left = 1
               Top = 3
-              Width = 68
-              Height = 13
+              Width = 76
+              Height = 14
               Caption = 'Recent filters:'
             end
             object btnFilterApply: TButton
-              Left = 633
+              Left = 497
               Top = 41
               Width = 76
               Height = 22
@@ -1152,7 +1152,7 @@ object MainForm: TMainForm
               TabOrder = 3
             end
             object btnFilterClear: TButton
-              Left = 713
+              Left = 577
               Top = 41
               Width = 76
               Height = 22
@@ -1163,7 +1163,7 @@ object MainForm: TMainForm
             object SynMemoFilter: TSynMemo
               Left = 0
               Top = 21
-              Width = 630
+              Width = 494
               Height = 42
               SingleLineMode = False
               Anchors = [akLeft, akTop, akRight, akBottom]
@@ -1202,10 +1202,10 @@ object MainForm: TMainForm
               FontSmoothing = fsmNone
             end
             object editFilterSearch: TEdit
-              Left = 633
+              Left = 497
               Top = 15
               Width = 156
-              Height = 21
+              Height = 22
               Anchors = [akTop, akRight]
               TabOrder = 2
               OnChange = editFilterSearchChange
@@ -1215,8 +1215,8 @@ object MainForm: TMainForm
             object comboRecentFilters: TComboBox
               Left = 77
               Top = 0
-              Width = 553
-              Height = 21
+              Width = 417
+              Height = 22
               AutoDropDown = True
               AutoCloseUp = True
               Style = csDropDownList
@@ -1229,8 +1229,8 @@ object MainForm: TMainForm
           object DataGrid: TVirtualStringTree
             Left = 0
             Top = 91
-            Width = 796
-            Height = 191
+            Width = 684
+            Height = 133
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0
@@ -1283,7 +1283,7 @@ object MainForm: TMainForm
           object spltQuery: TSplitter
             Left = 0
             Top = 96
-            Width = 796
+            Width = 684
             Height = 4
             Cursor = crSizeNS
             Align = alTop
@@ -1293,14 +1293,14 @@ object MainForm: TMainForm
           object pnlQueryMemo: TPanel
             Left = 0
             Top = 0
-            Width = 796
+            Width = 684
             Height = 96
             Align = alTop
             BevelOuter = bvNone
             Constraints.MinHeight = 40
             TabOrder = 0
             object spltQueryHelpers: TSplitter
-              Left = 607
+              Left = 495
               Top = 0
               Width = 4
               Height = 96
@@ -1311,7 +1311,7 @@ object MainForm: TMainForm
             object SynMemoQuery: TSynMemo
               Left = 0
               Top = 0
-              Width = 607
+              Width = 495
               Height = 96
               SingleLineMode = False
               Align = alClient
@@ -1377,7 +1377,7 @@ object MainForm: TMainForm
                 end>
             end
             object pnlQueryHelpers: TPanel
-              Left = 611
+              Left = 499
               Top = 0
               Width = 185
               Height = 96
@@ -1388,9 +1388,9 @@ object MainForm: TMainForm
               TabOrder = 1
               object treeQueryHelpers: TVirtualStringTree
                 Left = 0
-                Top = 21
+                Top = 22
                 Width = 185
-                Height = 75
+                Height = 74
                 Align = alClient
                 Constraints.MinWidth = 10
                 DragMode = dmAutomatic
@@ -1440,7 +1440,7 @@ object MainForm: TMainForm
                 Left = 0
                 Top = 0
                 Width = 185
-                Height = 21
+                Height = 22
                 Align = alTop
                 Images = VirtualImageListMain
                 LeftButton.ImageIndex = 30
@@ -1456,8 +1456,8 @@ object MainForm: TMainForm
           object QueryGrid: TVirtualStringTree
             Left = 0
             Top = 124
-            Width = 796
-            Height = 158
+            Width = 684
+            Height = 100
             Align = alClient
             AutoScrollDelay = 50
             EditDelay = 0
@@ -1510,7 +1510,7 @@ object MainForm: TMainForm
           object tabsetQuery: TTabSet
             Left = 0
             Top = 100
-            Width = 796
+            Width = 684
             Height = 24
             Align = alTop
             DitherBackground = False
@@ -1545,7 +1545,7 @@ object MainForm: TMainForm
   object ControlBarMain: TControlBar
     Left = 0
     Top = 0
-    Width = 977
+    Width = 865
     Height = 26
     Align = alTop
     AutoSize = True
@@ -1553,275 +1553,10 @@ object MainForm: TMainForm
     BevelOuter = bvNone
     BevelKind = bkNone
     TabOrder = 4
-    object imgDonate: TImage
-      Left = 810
-      Top = 2
-      Width = 129
-      Height = 22
-      Cursor = crHandPoint
-      Picture.Data = {
-        07544269746D6170D61F0000424DD61F00000000000036000000280000007A00
-        0000160000000100180000000000A01F0000C40E0000C40E0000000000000000
-        00009FAFA50C1D12030D06030D06030D06030D06030D06030D06030D06030D06
-        030D06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D
-        06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D0603
-        0D06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D06
-        030D06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D
-        06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D0603
-        0D06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D06
-        030D06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D
-        06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D0603
-        0D06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D06
-        030D06030D06030D06030D06030D06030D06030D06030D06030D06030D06030D
-        06030D06030D06030D060F2015AEBBB3D5FF07140B0000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        00000000000000000000000000000000000000000000000000000000000F2116
-        43FF000000000100003916005B24005B24005B24005B24005B24005B24005B24
-        005B24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B
-        24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B2400
-        5B24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B24
-        005B24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B
-        24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B2400
-        5B24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B24
-        005B24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B
-        24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B2400
-        5B24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B24
-        005B24005B24005B24005B24005B24005B24005B24005B24005B24005B24005B
-        24005B24005B24003214000000030D0643FF00000000010000662900A44200A4
-        4200A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200
-        A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200A442
-        00A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200A4
-        4200A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200
-        A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200A442
-        00A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200A4
-        4200A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200
-        A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200A442
-        00A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200A4
-        4200A44200A44200A44200A44200A44200A44200A44200A44200A44200A44200
-        A44200A44200A44200A44200A44200A44200A44200A442005A24000000030D06
-        F9FF00000000010000672900A64200A64200A64200A64200A64200A64200A642
-        00A64200A64200A64200A64200A64200A64200A64200A64200A64200A64200A6
-        4200A64200A64200A64200A64200A64200A64200A64200A64200A6420FAB4D1C
-        AF571CAF571CAF571CAF5718AE540FAB4D03A74400A64200A64200A64200A642
-        00A64200A64200A6420AA94A19AE541CAF5718AE530BA94A01A64200A64200A6
-        4200A6420FAB4D1CAF5715AD5101A64300A64200A64209A9491CAF5719AE5502
-        A64300A64200A64207A84817AE531CAF5714AD5104A74513AC501CAF5709A948
-        00A64200A64200A64209A9491AAE551CAF5710AB4E00A64200A64200A64205A7
-        4513AC501CAF561CAF5716AD520DAA4C01A64300A64200A64200A64200A64200
-        A64200A64200A64200A64200A64200A64200A64200A64200A64200A64200A642
-        00A64200A64200A64200A64200A64200A64200A64200A64200A64200A64200A6
-        4200A64200A642005B24000000030D0669FF00000000010000682900A64300A6
-        4300A64300A64300A64300A64300A64300A64300A64300A64300A64300A64300
-        A64300A64300A64300A64300A64300A64300A64300A64300A64300A64300A643
-        00A64300A64300A64300A643AAE1C0FFFFFFFFFFFFFFFFFFFFFFFFF2FAF5D2EF
-        DD9EDDB736B96A02A74400A64300A64300A64306A8475BC686C2EAD2F2FAF5FF
-        FFFFEFF9F3C1E9D158C48305A84600A64300A643A0DEB9FEFFFED4F0DF0FAB4D
-        00A64300A6436CCC93FFFFFFEFF9F316AD5300A6431FB15AABE2C1EDF9F2FEFF
-        FEE2F5EA8AD6A8C7EBD5FDFEFE61C88A00A64300A64320B15AB6E5C9F5FBF8FF
-        FFFFD4F0DF0EAB4D00A6432AB461A3DFBBDFF4E7FDFEFDFEFFFEEAF7EFCBEDD9
-        5DC68700A64300A64300A64300A64300A64300A64300A64300A64300A64300A6
-        4300A64300A64300A64300A64300A64300A64300A64300A64300A64300A64300
-        A64300A64300A64300A64300A64300A64300A64300A643005C24000000030D06
-        56FF00000000010000682900A74300A74300A74300A74300A74300A74300A743
-        00A74300A74300A74300A74300A74300A74300A74300A74300A74300A74300A7
-        4300A74300A74300A74300A74300A74300A74300A74300A74300A743BEE9CFFF
-        FFFFF9FDFADBF3E4D7F1E2E0F4E8F7FCF9FFFFFFF4FBF764C98C02A84500A743
-        01A84468CB8FFDFEFDFEFFFEEBF8F0D9F2E3E6F7EDFEFFFEF6FCF86ACB9102A8
-        4400A743B2E4C6FFFFFFE3F5EA12AD5000A74300A7437CD29FFFFFFFF6FCF81A
-        B05606A948A9E1BFFFFFFFF9FDFBDBF3E4DFF4E8F8FDFAFEFEFEFFFFFF6DCC93
-        00A74300A74396DAB1FFFFFFFEFFFEDEF4E7E2F5E91BB0561BB057E1F4E8FFFF
-        FFF8FDFADDF3E6D7F1E2DEF4E7EEF9F29EDEB700A74300A74300A74300A74300
-        A74300A74300A74300A74300A74300A74300A74300A74300A74300A74300A743
-        00A74300A74300A74300A74300A74300A74300A74300A74300A74300A74300A7
-        4300A74300A743005C25000000030D0644FF00000000010000692A00A94400A9
-        4400A94400A94400A94400A94400A94400A94400A94400A94400A94400A94400
-        A94400A94400A94400A94400A94400A94400A94400A94400A94400A94400A944
-        00A94400A94400A94400A944BEE9CFFFFFFFD5F1E016B05300A94413AF5152C4
-        80DDF3E6FFFFFFF7FCF940BE7200A9440EAD4EE4F6EBFFFFFFD8F2E22DB86503
-        AA4622B45CBDE8CEFFFFFFE2F5E922B45C00A944B2E5C6FFFFFFE3F5EA12AF51
-        00A94400A9447CD39FFFFFFFF6FCF81AB15711AE50DFF4E7FFFFFFA2DFBA08AB
-        4911AF507ED3A0FFFFFFFFFFFF6DCD9300A94400A944CFEEDBFFFFFFD1EFDD12
-        AF5116B05401A94481D4A2FFFFFFF8FDFA69CC910CAD4D00A9440FAE4F31B967
-        30B96700A94400A94400A94400A94400A94400A94400A94400A94400A94400A9
-        4400A94400A94400A94400A94400A94400A94400A94400A94400A94400A94400
-        A94400A94400A94400A94400A94400A94400A94400A944005D25000000030D06
-        45FF00000000010000692A00A94400A94400A94400A94400A94400A94400A944
-        00A94400A94400A94400A94400A94400A94400A94400A94400A94400A94400A9
-        4400A94400A94400A94400A94400A94400A94400A94400A94400A944BEE9CFFF
-        FFFFD5F1E016B05400A94400A94400A94443BF75F8FDFAFFFFFFB6E6C900A944
-        31B967FFFFFFFFFFFF7AD29D00A94400A94400A9444AC27AFEFFFEFFFFFF57C6
-        8400A944B2E5C6FFFFFFE3F6EA12AF5100A94400A9447CD39FFFFFFFF6FCF81A
-        B2570CAD4DCEEEDBFFFFFFD3F0DF56C68333BA6964CB8DFFFFFFFFFFFF6DCD93
-        01A94402AA45DFF4E7FFFFFFACE3C209AC4A06AB4808AC4AC0E9D0FFFFFFD8F2
-        E20BAD4C07AB4906AB4906AB4805AB4804AB4704AA4703AA4601AA4500A94400
-        A94400A94400A94400A94400A94400A94400A94400A94400A94400A94400A944
-        00A94400A94400A94400A94400A94400A94400A94400A94400A94400A94400A9
-        4400A94400A944005D25000000030D0676FF000000000100006A2A00AA4400AA
-        4400AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA4400
-        AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA44
-        00AA4400AA4400AA4400AA44BEE9CFFFFFFFD5F1E016B15400AA4400AA4400AA
-        4402AB46CBEED9FFFFFFF6FCF80BAE4C48C278FFFFFFFFFFFF62CB8C00AA4400
-        AA4400AA442DB965F0FAF4FFFFFF71CF9600AA44B2E5C6FFFFFFE3F6EA12B051
-        00AA4400AA447CD49FFFFFFFF6FCF81DB45A07AD4960CA8AF0FAF4FFFFFFFFFF
-        FFFFFFFFFFFFFFFFFFFFFFFFFF86D7A62FB96631BA68E5F6ECFFFFFFBCE9CE3A
-        BD6E38BD6D3ABD6EE3F5EAFFFFFFF1FAF4BFEAD0BFE9D0BFE9D0BEE9CFBDE9CE
-        A6E1BD42C07433BB6931BA672EB9652BB86328B76123B55D1EB45A19B25614B0
-        520FAF4E0BAE4C08AD4A06AC4802AB4600AA4400AA4400AA4400AA4400AA4400
-        AA4400AA4400AA4400AA4400AA4400AA4400AA4400AA44005E25000000030D06
-        75FF000000000100006A2B00AB4500AB4500AB4500AB4500AB4500AB4500AB45
-        00AB4500AB4500AB4500AB4500AB4500AB4500AB4500AB4500AB4500AB4500AB
-        4500AB4500AB4500AB4500AB4500AB4500AB4500AB4500AB4500AB45BEEACFFF
-        FFFFD5F1E116B25500AB4500AB4500AB4500AB4597DDB3FFFFFFFEFFFE2AB963
-        3DBF71FFFFFFFFFFFF68CD9000AB4500AB4500AB4535BD6BF8FDFAFFFFFF6FCF
-        9600AB45B2E5C6FFFFFFE4F6EB1BB4580FB04F17B2558CD9ABFFFFFFF7FCFA49
-        C37A38BD6D3EBF7166CC8F9DDFB8C2EBD3D1F0DDDCF3E5FFFFFFFFFFFF92DBAF
-        42C07542C075E7F7EDFFFFFFC0EAD144C17742C07544C176D6F1E1FFFFFFFFFF
-        FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1FAF563CB8D42C07542C07542C07542
-        C07542C07542C07542C07542C07542C07541C0743EBF723ABE6F37BD6D33BB6A
-        2DB96525B75F1DB45A14B1530DAF4E08AE4B04AC4700AB4500AB4500AB4500AB
-        4500AB4500AB45005E26000000030D0646FF000000000100006B2B00AC4500AC
-        4500AC4500AC4500AC4500AC4500AC4500AC4500AC4500AC4500AC4500AC4500
-        AC4500AC4500AC4500AC4500AC4500AC4500AC4500AC4500AC4500AC4500AC45
-        00AC4500AC4500AC4500AC45BEEACFFFFFFFD5F1E116B35500AC4500AC4500AC
-        4500AC4590DBADFFFFFFFEFFFE39BE6E14B353F3FBF6FFFFFFA4E1BD05AE4800
-        AC4501AD466ED095FFFFFFFEFFFE5CCA881CB559BCE9CEFFFFFFF4FBF765CC8E
-        40C17442C175B5E7C9FFFFFFF7FDFA50C67F42C17550C67F5FCB8A43C27642C1
-        7542C17573D198FFFFFFFFFFFF82D6A442C17542C175E7F7EDFFFFFFC0EAD144
-        C27742C17543C175B3E6C8FFFFFFE7F7ED74D29970D09770D097ADE4C3FFFFFF
-        E7F7EE58C88542C17542C17542C17542C17542C17542C17542C17542C17542C1
-        7542C17542C17542C17542C17542C17542C17542C17542C17542C1753FC0733A
-        BF6F35BD6C2EBB6623B75E18B4560FB15008AF4B01AD46005F26000000030D06
-        46FF000000000100006C2B00AD4600AD4600AD4600AD4600AD4600AD4600AD46
-        00AD4600AD4600AD4600AD4600AD4600AD4600AD4600AD4600AD4600AD4600AD
-        4600AD4600AD4600AD4600AD4600AD4600AD4600AD4600AD4600AD46BEEAD0FF
-        FFFFD5F1E116B45500AD4600AD4600AD4600AD4696DDB2FFFFFFFEFFFE33BD6A
-        03AE4896DDB3FFFFFFF6FCF88EDAAC4FC67F7BD49FE8F7EEFFFFFFDFF5E854C8
-        8242C275C5ECD5FFFFFFFFFFFFE5F6EC8BDAAB90DBAEF4FBF7FFFFFFDEF4E742
-        C27542C27590DBAEECF9F1B2E6C77FD6A27ED5A1C7EDD6FFFFFFFBFEFC6DD094
-        4FC67F76D39BEEF9F2FFFFFFD2F1DE7AD49E77D39B44C3776ACF92FAFDFBFBFE
-        FCAFE5C47DD5A08AD9AAE0F5E8FFFFFFC3EBD345C37742C27542C27542C27542
-        C27542C27542C27542C27542C27542C27542C27542C27542C27542C27542C275
-        42C27542C27542C27542C27542C27542C27542C27542C27542C27542C2753FC1
-        733ABF6F34BD6B186737000000030E0776FF000000000100006C2C00AE4600AE
-        4600AE4600AE4600AE4600AE4600AE4600AE4600AE4600AE4600AE4600AE4600
-        AE4600AE4600AE4600AE4600AE4600AE4600AE4600AE4600AE4600AE4600AE46
-        00AE4600AE4600AE4600AE46BEEAD0FFFFFFD5F2E116B55600AE4600AE4600AE
-        4603AF48C9EED7FFFFFFFBFEFC14B4540BB14E2BBB65BFEAD0FDFEFEFFFFFFFF
-        FFFFFFFFFFFFFFFFE9F8EF7AD49E43C27542C275C5ECD5FFFFFFC4ECD4E3F6EA
-        FFFFFFFFFFFFFFFFFFF7FDF986D8A742C27542C2756DD095E6F7EDFFFFFFFFFF
-        FFFFFFFFFFFFFFFEFFFEBEEAD04BC57B7ED5A1FDFEFEFFFFFFFFFFFFFFFFFFFF
-        FFFFFEFFFE56C88443C27695DDB2F5FCF7FFFFFFFFFFFFFFFFFFFFFFFFDBF3E5
-        63CD8D42C27542C27542C27542C27542C27542C27542C27542C27542C27542C2
-        7542C27542C27542C27542C27542C27542C27542C27542C27542C27542C27542
-        C27542C27542C27542C27542C27542C27542C27542C275246B41000000060E09
-        76FF000000000100006D2C00AF4600AF4600AF4600AF4600AF4600AF4600AF46
-        00AF4600AF4600AF4600AF4600AF4600AF4600AF4600AF4600AF4600AF4600AF
-        4600AF4600AF4600AF4600AF4600AF4600AF4600AF4600AF4600AF46BEEBD0FF
-        FFFFD5F2E116B65600AF4600AF4600AF4646C578F7FCF9FFFFFFCDEFDB35BF6C
-        3DC27141C3754AC67B79D59DA9E4C0C0EBD1B8E9CB92DDAF5CCC8843C37642C3
-        7542C37589DAA9BFEBD077D49C58CA8593DDB0BFEBD0B3E7C872D29845C47742
-        C37542C37543C37657CA8488D9A8B5E8C9C0EBD1AFE6C483D8A44EC77E42C375
-        64CE8EBCEACEF7FCF9FFFFFFEAF8F0C1ECD2BDEACF4AC67B42C37544C47768CF
-        91A2E2BBC0EBD1B9E9CC8EDBAC57CA8542C37542C37542C37542C37542C37542
-        C37542C37542C37542C37542C37542C37542C37542C37542C37542C37542C375
-        42C37542C37542C37542C37542C37542C37542C37542C37542C37542C37542C3
-        7542C37542C375246B41000000060F0947FF000000000100006E2C00B04700B0
-        4700B04700B04700B04700B04700B04700B04700B04700B04700B04700B04700
-        B04700B04700B04700B04700B04700B04700B04700B04700B04700B04700B047
-        00B04700B04700B04700B047BEEBD0FFFFFFD5F2E116B75601B0471CB95B60CE
-        8CE2F6EAFFFFFFFDFEFD76D49C42C47642C47642C47642C47642C47642C47642
-        C47642C47642C47642C47642C47642C47642C47642C47642C47642C47642C476
-        42C47642C47642C47642C47642C47642C47642C47642C47642C47642C47642C4
-        7642C47642C47642C47642C47642C47642C47642C476E7F7EDFFFFFFC0EBD244
-        C57842C47642C47642C47642C47642C47642C47642C47642C47642C47642C476
-        42C47642C47642C47642C47642C47642C47642C47642C47642C47642C47642C4
-        7642C47642C47642C47642C47642C47642C47642C47642C47642C47642C47642
-        C47642C47642C47642C47642C47642C47642C47642C476246C41000000060F09
-        E9FF000000000100006E2C00B14700B14700B14700B14700B14700B14700B147
-        00B14700B14700B14700B14700B14700B14700B14700B14700B14700B14700B1
-        4700B14700B14700B14700B14700B14700B14700B14700B14700B147BEEBD0FF
-        FFFFF9FDFBE0F5E9DDF5E7E7F8EEF9FDFBFFFFFFF8FDFA97DFB344C57742C576
-        42C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642C5
-        7642C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642
-        C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642C576
-        42C57642C576DBF4E5FFFFFFB8E9CC44C67742C57642C57642C57642C57642C5
-        7642C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642
-        C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642C576
-        42C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642C5
-        7642C57642C576246C41000000060F0976FF000000000100006F2C00B24700B2
-        4700B24700B24700B24700B24700B24700B24700B24700B24700B24700B24700
-        B24700B24700B24700B24700B24700B24700B24700B24700B24700B24700B247
-        00B24700B24700B24706B44BB2E8C7FFFFFFFFFFFFFFFFFFFFFFFFF9FDFBE3F6
-        EAB8E9CC6AD29344C67842C57642C57642C57642C57642C57642C57642C57642
-        C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642C576
-        42C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642C5
-        7642C57642C57642C57642C57642C57642C57642C57651CA8157CC864EC97F42
-        C57742C57642C57642C57642C57642C57642C57642C57642C57642C57642C576
-        42C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642C5
-        7642C57642C57642C57642C57642C57642C57642C57642C57642C57642C57642
-        C57642C57642C57642C57642C57642C57642C57642C576246D41000000060F09
-        77FF000000000100006F2D00B34800B34800B34800B34800B34800B34800B348
-        00B34800B34800B34800B34800B34800B34800B34800B34800B34800B34800B3
-        4800B34800B34800B34800B34800B34801B3490FB75227BE643CC4724AC97D53
-        CB8353CB8353CB8353CB8351CB824CC97F44C77942C67742C67742C67742C677
-        42C67742C67742C67742C67742C67742C67742C67742C67742C67742C67742C6
-        7742C67742C67742C67742C67742C67742C67742C67742C67742C67742C67742
-        C67742C67742C67742C67742C67742C67742C67742C67742C67742C67742C677
-        42C67742C67742C67742C67742C67742C67742C67742C67742C67742C67742C6
-        7742C67742C67742C67742C67742C67742C67742C67742C67742C67742C67742
-        C67742C67742C67742C67742C67742C67742C67742C67742C67742C67742C677
-        42C67742C67742C67742C67742C67742C67742C67742C67742C67742C67742C6
-        7742C67742C677246D42000000060F0A00FF00000000010000461C00702D0070
-        2D00702D00702D00702D00702D00702D00702D00702D00702D00702D00702D00
-        702D00702D00702D00702D00702D00702D00702D00702D00702D00712D057231
-        19783F277C49297C4A297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C
-        4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B29
-        7C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B
-        297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C
-        4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B29
-        7C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B
-        297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C
-        4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B29
-        7C4B297C4B297C4B297C4B297C4B297C4B297C4B297C4B164529000000060F0A
-        4BFF051209000000000100000100000100000100000100000100000100000100
-        0001000001000001000001000001000001000001000001000001000001000001
-        0000010000010000010000010100010100010100010100010100010100010100
-        0101000101000101000101000101000101000101000101000101000101000101
-        0001010001010001010001010001010001010001010001010001010001010001
-        0100010100010100010100010100010100010100010100010100010100010100
-        0101000101000101000101000101000101000101000101000101000101000101
-        0001010001010001010001010001010001010001010001010001010001010001
-        0100010100010100010100010100010100010100010100010100010100010100
-        0101000101000101000101000101000101000101000101000101000101000101
-        0001010001010001010001010001010001010001010001010001010001010001
-        0100010100010100010000000013221901FF95A79C06130A0000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        0000000000000000000000000000000000000000000000000000000000000000
-        00000000000000000000000000000000000000000000000000000D1912A8B4AE
-        00FF}
-      OnClick = DonateClick
-    end
     object ToolBarMainButtons: TToolBar
       Left = 11
       Top = 2
-      Width = 786
+      Width = 896
       Height = 22
       Align = alNone
       AutoSize = True
@@ -2023,6 +1758,31 @@ object MainForm: TMainForm
         Left = 763
         Top = 0
         Action = actCancelOperation
+      end
+    end
+    object ToolBarDonate: TToolBar
+      Left = 863
+      Top = 2
+      Width = 0
+      Height = 22
+      Align = alRight
+      ButtonWidth = 67
+      Caption = 'Donate'
+      Images = VirtualImageListMain
+      List = True
+      ShowCaptions = True
+      TabOrder = 1
+      object btnDonate: TToolButton
+        Left = 0
+        Top = 0
+        Cursor = crHandPoint
+        Hint = 
+          'Send an arbitrary amount as donation to the author - per PayPal ' +
+          '(also supports credit cards)'
+        AutoSize = True
+        Caption = 'Donate'
+        ImageIndex = 185
+        OnClick = DonateClick
       end
     end
   end
