@@ -815,6 +815,7 @@ begin
   else if tabsTools.ActivePage = tabBulkTableEdit then
     FToolMode := tmBulkTableEdit;
   ResultGrid.Clear;
+  ResultGrid.TrySetFocus;
   FResults.Clear;
   FFindSeeResultSQL.Clear;
   Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
