@@ -6695,7 +6695,8 @@ var
   Proposal: TSynCompletionProposal;
 begin
   Proposal := Sender as TSynCompletionProposal;
-  Proposal.Title := Proposal.InsertItem(AIndex);
+  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then
+    Proposal.Title := Proposal.InsertItem(AIndex);
 end;
 
 
