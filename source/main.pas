@@ -7062,8 +7062,8 @@ begin
   // Paint error line with red background
   Edit := Sender as TSynMemo;
   LineText := Copy(Edit.Lines[Line-1], 1, 100);
-  Search := f_(MsgSQLError, [-1, '']);
-  Search := Copy(Search, 1, Pos('-1', Search)-1);
+  Search := _(MsgSQLError);
+  Search := Copy(Search, 1, Pos('%', Search)-1);
   //Logsql(LineText+' ::: '+Search);
   if LineText.Contains(Search) then begin
     Special := True;

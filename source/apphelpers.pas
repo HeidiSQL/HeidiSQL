@@ -2665,9 +2665,19 @@ end;
 
 
 function f_(const Pattern: string; const Args: array of const): string;
+var
+  TranslatedPattern: String;
 begin
   // Helper for translation, replacement for Format(_())
-  Result := Format(_(Pattern), Args);
+  try
+    TranslatedPattern := _(Pattern);
+    Result := Format(TranslatedPattern+' %s %d', Args);
+  except
+    on E:Exception do begin
+      MainForm.LogSQL(E.ClassName+' in translation string with invalid format arguments: "'+TranslatedPattern+'"', lcError);
+      Result := Format(Pattern, Args);
+    end;
+  end;
 end;
 
 
