@@ -2671,7 +2671,7 @@ begin
   // Helper for translation, replacement for Format(_())
   try
     TranslatedPattern := _(Pattern);
-    Result := Format(TranslatedPattern+' %s %d', Args);
+    Result := Format(TranslatedPattern, Args);
   except
     on E:Exception do begin
       MainForm.LogSQL(E.ClassName+' in translation string with invalid format arguments: "'+TranslatedPattern+'"', lcError);
