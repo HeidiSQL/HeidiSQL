@@ -145,12 +145,6 @@ begin
   memoRelease.Clear;
   memoBuild.Clear;
 
-  if RunningAsUwp then begin
-    raise Exception.Create(
-      f_('Please update %s through the Microsoft Store.', [APPNAME])
-      );
-  end;
-
   // Prepare download
   CheckfileDownload := THttpDownload.Create(Self);
   CheckfileDownload.TimeOut := 5;

@@ -2156,12 +2156,6 @@ begin
   FLastAppSettingsWrites := 0;
   FFormatSettings := TFormatSettings.Create('en-US');
 
-  if RunningAsUwp then begin
-    actUpdateCheck.Enabled := False;
-    actUpdateCheck.Hint := f_('Please update %s through the Microsoft Store.', [APPNAME]);
-    actWebDownloadpage.Hint := 'ms-windows-store://pdp/?PRODUCTID=9NXPRT2T0ZJF';
-  end;
-
   // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
 
@@ -2229,8 +2223,7 @@ begin
       // Report used app version, bits, and theme name (so we find mostly unused ones for removal)
       // Also report environment: WinDesktop, WinUWP or Wine
 
-      if RunningAsUwp then Environment := 'WinUWP'
-      else if IsWine then Environment := 'Wine'
+      if IsWine then Environment := 'Wine'
       else if AppSettings.PortableMode then Environment := 'WinDesktopPortable'
       else Environment := 'WinDesktop';
 

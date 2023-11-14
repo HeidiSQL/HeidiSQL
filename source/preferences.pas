@@ -342,11 +342,9 @@ begin
   AppSettings.WriteString(asDataFontName, comboDataFontName.Text);
   AppSettings.WriteInt(asDataFontSize, updownDataFontSize.Position);
   AppSettings.WriteBool(asLogToFile, chkLogToFile.Checked);
-  if not RunningAsUwp then begin
-    AppSettings.WriteBool(asUpdatecheck, chkUpdatecheck.Checked);
-    AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
-    AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
-  end;
+  AppSettings.WriteBool(asUpdatecheck, chkUpdatecheck.Checked);
+  AppSettings.WriteBool(asUpdatecheckBuilds, chkUpdatecheckBuilds.Checked);
+  AppSettings.WriteInt(asUpdatecheckInterval, updownUpdatecheckInterval.Position);
   AppSettings.WriteBool(asDoUsageStatistics, chkDoStatistics.Checked);
   AppSettings.WriteBool(asWheelZoom, chkWheelZoom.Checked);
   AppSettings.WriteBool(asDisplayBars, chkColorBars.Checked);
@@ -690,16 +688,10 @@ begin
   chkAutoReconnect.Checked := AppSettings.ReadBool(asAutoReconnect);;
   chkAllowMultiInstances.Checked := AppSettings.ReadBool(asAllowMultipleInstances);
   chkRestoreLastDB.Checked := AppSettings.ReadBool(asRestoreLastUsedDB);
-  if RunningAsUwp then begin
-    chkUpdatecheck.Enabled := False;
-    chkUpdatecheckBuilds.Enabled := False;
-    updownUpdatecheckInterval.Enabled := False;
-  end else begin
-    chkUpdatecheck.Checked := AppSettings.ReadBool(asUpdatecheck);
-    chkUpdatecheckBuilds.Checked := AppSettings.ReadBool(asUpdatecheckBuilds);
-    updownUpdatecheckInterval.Position := AppSettings.ReadInt(asUpdatecheckInterval);
-    chkUpdatecheckClick(Sender);
-  end;
+  chkUpdatecheck.Checked := AppSettings.ReadBool(asUpdatecheck);
+  chkUpdatecheckBuilds.Checked := AppSettings.ReadBool(asUpdatecheckBuilds);
+  updownUpdatecheckInterval.Position := AppSettings.ReadInt(asUpdatecheckInterval);
+  chkUpdatecheckClick(Sender);
   chkDoStatistics.Checked := AppSettings.ReadBool(asDoUsageStatistics);
   chkWheelZoom.Checked := AppSettings.ReadBool(asWheelZoom);
   chkColorBars.Checked := AppSettings.ReadBool(asDisplayBars);
