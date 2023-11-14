@@ -5639,7 +5639,7 @@ begin
           end;
         end;
       end;
-      if (not MaxLen.IsEmpty) and (MaxLen <> Col.DataType.DefaultSize.ToString) then
+      if (not MaxLen.IsEmpty) and ((MaxLen <> Col.DataType.DefaultSize.ToString) or Col.DataType.RequiresLength) then
         Col.LengthSet := MaxLen;
     end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
