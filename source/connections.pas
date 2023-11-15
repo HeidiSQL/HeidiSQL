@@ -492,7 +492,7 @@ begin
     Sess.AllDatabasesStr := editDatabases.Text;
     Sess.Comment := memoComment.Text;
     Sess.StartupScriptFilename := editStartupScript.Text;
-    Sess.SSHActive := chkSSHActive.Checked;
+    Sess.SSHActive := chkSSHActive.Enabled and chkSSHActive.Checked;
     Sess.SSHExe := comboSSHExe.Text;
     Sess.SSHHost := editSSHhost.Text;
     Sess.SSHPort := MakeInt(editSSHport.Text);
@@ -715,7 +715,7 @@ begin
     Result.AllDatabasesStr := editDatabases.Text;
     Result.LibraryOrProvider := comboLibrary.Text;
     Result.Comment := memoComment.Text;
-    Result.SSHActive := chkSSHActive.Checked;
+    Result.SSHActive := chkSSHActive.Enabled and chkSSHActive.Checked;
     Result.SSHHost := editSSHHost.Text;
     Result.SSHPort := MakeInt(editSSHPort.Text);
     Result.SSHUser := editSSHuser.Text;
