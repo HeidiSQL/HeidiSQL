@@ -2045,6 +2045,9 @@ object MainForm: TMainForm
       object N4: TMenuItem
         Caption = '-'
       end
+      object Resetpaneldimensions1: TMenuItem
+        Action = actResetPanelDimensions
+      end
       object MenuPreferences: TMenuItem
         Action = actPreferences
       end
@@ -3351,6 +3354,13 @@ object MainForm: TMainForm
       Caption = 'Sequal Suggest'
       ImageIndex = 206
       OnExecute = actSequalSuggestExecute
+    end
+    object actResetPanelDimensions: TAction
+      Category = 'Tools'
+      Caption = 'Reset panel dimensions'
+      Hint = 'Reset and fix overlapping panels in main window'
+      ImageIndex = 71
+      OnExecute = actResetPanelDimensionsExecute
     end
   end
   object menuConnections: TPopupMenu

@@ -782,6 +782,8 @@ type
     menuTabsInMultipleLines: TMenuItem;
     ToolBarDonate: TToolBar;
     btnDonate: TToolButton;
+    actResetPanelDimensions: TAction;
+    Resetpaneldimensions1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1185,6 +1187,7 @@ type
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
     procedure TimerCloseTabByButtonTimer(Sender: TObject);
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
+    procedure actResetPanelDimensionsExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2783,27 +2786,11 @@ begin
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
-var
-  Tab: TQueryTab;
-  ResizeResult: Boolean;
 begin
   // Window dimensions
   if WindowState <> wsMaximized then begin
     Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
     Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
-  end;
-
-  // Reset height of query memos and log panel if area between them is hidden through resize
-  ResizeResult := False;
-  for Tab in QueryTabs do begin
-    if Tab.pnlMemo.ClientToScreen(Tab.pnlMemo.ClientRect).Bottom > SynMemoSQLLog.ClientToScreen(SynMemoSQLLog.ClientRect).Top - 50 then begin
-      LogSQL('Reset height of query tab #'+Tab.Number.ToString+' to give result area vertical space.');
-      Tab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
-      ResizeResult := True;
-    end;
-  end;
-  if ResizeResult then begin
-    SynMemoSQLLog.Height := AppSettings.GetDefaultInt(asLogHeight);
   end;
 
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
@@ -12292,6 +12279,22 @@ begin
   end;
 end;
 
+
+procedure TMainForm.actResetPanelDimensionsExecute(Sender: TObject);
+var
+  Tab: TQueryTab;
+begin
+  // Reset probably overlapping panels to their default dimensions
+  pnlLeft.Width := AppSettings.GetDefaultInt(asDbtreewidth);
+  SynMemoSQLLog.Height := AppSettings.GetDefaultInt(asLogHeight);
+  for Tab in QueryTabs do begin
+    Tab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
+    Tab.pnlHelpers.Width := AppSettings.GetDefaultInt(asQueryhelperswidth);
+  end;
+  if pnlPreview.Visible then begin
+    pnlPreview.Height := AppSettings.GetDefaultInt(asDataPreviewHeight);
+  end;
+end;
 
 procedure TMainForm.menuRenameQueryTabClick(Sender: TObject);
 begin
