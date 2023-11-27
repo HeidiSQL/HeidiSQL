@@ -10928,25 +10928,24 @@ var
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
   ResultCol: Integer;
-  Conn: TDBConnection;
 begin
   if Column = -1 then
     Exit;
   ResultCol := Column -1;
-  if ResultCol < 0 then begin
-    Conn := ActiveConnection;
-    if Assigned(Conn) and (Conn.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground)) then
-      TargetCanvas.Brush.Color := Conn.Parameters.SessionColor
-    else
-      TargetCanvas.Brush.Color := clBtnFace;
-    TargetCanvas.FillRect(CellRect);
-    Exit;
-  end;
 
   r := GridResult(Sender);
   if (r=nil) or (not r.Connection.Active) then begin
     // This event (BeforeCellPaint) is the very first one to notice a broken connection
     Sender.Enabled := False;
+    Exit;
+  end;
+
+  if ResultCol < 0 then begin
+    if r.Connection.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then
+      TargetCanvas.Brush.Color := r.Connection.Parameters.SessionColor
+    else
+      TargetCanvas.Brush.Color := clBtnFace;
+    TargetCanvas.FillRect(CellRect);
     Exit;
   end;
 
