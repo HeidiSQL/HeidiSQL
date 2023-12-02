@@ -3567,6 +3567,7 @@ object MainForm: TMainForm
     Top = 152
   end
   object TimerHostUptime: TTimer
+    Interval = 20000
     OnTimer = TimerHostUptimeTimer
     Left = 687
     Top = 101
