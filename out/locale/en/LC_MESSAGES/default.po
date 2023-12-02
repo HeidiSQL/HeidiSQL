@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2023-11-26 12:25+0100\n"
+"PO-Revision-Date: 2023-12-02 14:00+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -2099,6 +2099,12 @@ msgstr "Set delimiter used in SQL execution"
 #: main.dfm:2355
 msgid "Apply filter"
 msgstr "Apply filter"
+
+msgid "Always generate filter"
+msgstr "Always generate filter"
+
+msgid "Generate filter based on this text, even if the current filter is not empty"
+msgstr "Generate filter based on this text, even if the current filter is not empty"
 
 #. MainForm..ActionList1..actRemoveFilter..Caption
 #: main.dfm:2362

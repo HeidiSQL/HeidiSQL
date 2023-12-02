@@ -784,6 +784,8 @@ type
     btnDonate: TToolButton;
     actResetPanelDimensions: TAction;
     Resetpaneldimensions1: TMenuItem;
+    popupApplyFilter: TPopupMenu;
+    menuAlwaysGenerateFilter: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1188,6 +1190,7 @@ type
     procedure TimerCloseTabByButtonTimer(Sender: TObject);
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
+    procedure menuAlwaysGenerateFilterClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2036,6 +2039,7 @@ begin
   actPreferencesLogging.OnExecute := actPreferences.OnExecute;
   actPreferencesData.ImageIndex := actPreferences.ImageIndex;
   actPreferencesData.OnExecute := actPreferences.OnExecute;
+  menuAlwaysGenerateFilter.Checked := AppSettings.ReadBool(asAlwaysGenerateFilter);
 
   pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
   pnlQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
@@ -5318,7 +5322,7 @@ var
 begin
   // If filter box is empty but filter generator box has text, most users expect
   // the filter to be auto generated on button click
-  if (SynMemoFilter.GetTextLen = 0)
+  if ((SynMemoFilter.GetTextLen = 0) or menuAlwaysGenerateFilter.Checked)
     and (editFilterSearch.Text <> '')
     and (Sender is TAction)
     and ((Sender as TAction).ActionComponent = btnFilterApply)
@@ -10840,6 +10844,12 @@ begin
   AppSettings.WriteBool(asDisplayObjectSizeColumn, Item.Checked);
 end;
 
+
+procedure TMainForm.menuAlwaysGenerateFilterClick(Sender: TObject);
+begin
+  // Store setting for toggled filter generation
+  AppSettings.WriteBool(asAlwaysGenerateFilter, menuAlwaysGenerateFilter.Checked);
+end;
 
 procedure TMainForm.menuAutoExpandClick(Sender: TObject);
 var

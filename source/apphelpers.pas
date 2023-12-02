@@ -231,7 +231,7 @@ type
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
-    asReformatter,
+    asReformatter, asAlwaysGenerateFilter,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3814,6 +3814,7 @@ begin
   InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
   InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
   InitSetting(asReformatter,                      'Reformatter',                           0);
+  InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
 
   // Default folder for snippets
   if FPortableMode then

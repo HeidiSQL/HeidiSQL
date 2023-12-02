@@ -1145,16 +1145,18 @@ object MainForm: TMainForm
             object btnFilterApply: TButton
               Left = 497
               Top = 41
-              Width = 76
+              Width = 89
               Height = 22
               Action = actApplyFilter
               Anchors = [akTop, akRight]
+              DropDownMenu = popupApplyFilter
+              Style = bsSplitButton
               TabOrder = 3
             end
             object btnFilterClear: TButton
-              Left = 577
+              Left = 592
               Top = 41
-              Width = 76
+              Width = 89
               Height = 22
               Action = actClearFilterEditor
               Anchors = [akTop, akRight]
@@ -1204,7 +1206,7 @@ object MainForm: TMainForm
             object editFilterSearch: TEdit
               Left = 497
               Top = 15
-              Width = 156
+              Width = 184
               Height = 22
               Anchors = [akTop, akRight]
               TabOrder = 2
@@ -25567,5 +25569,17 @@ object MainForm: TMainForm
     OnTimer = TimerCloseTabByButtonTimer
     Left = 761
     Top = 195
+  end
+  object popupApplyFilter: TPopupMenu
+    Left = 200
+    Top = 312
+    object menuAlwaysGenerateFilter: TMenuItem
+      AutoCheck = True
+      Caption = 'Always generate filter'
+      Hint = 
+        'Generate filter based on this text, even if the current filter i' +
+        's not empty'
+      OnClick = menuAlwaysGenerateFilterClick
+    end
   end
 end
