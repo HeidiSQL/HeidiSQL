@@ -815,6 +815,7 @@ begin
   else if tabsTools.ActivePage = tabBulkTableEdit then
     FToolMode := tmBulkTableEdit;
   ResultGrid.Clear;
+  ResultGrid.TrySetFocus;
   FResults.Clear;
   FFindSeeResultSQL.Clear;
   Triggers := TDBObjectList.Create(False); // False, so we can .Free that object afterwards without loosing the contained objects
@@ -1693,9 +1694,9 @@ begin
 
   // Table structure
   if chkExportTablesDrop.Checked or chkExportTablesCreate.Checked then begin
-    if menuExportAddComments.Checked then
+    if menuExportAddComments.Checked and (not FSecondExportPass) then
       Output('-- '+f_('Dumping structure for %s %s.%s', [_(LowerCase(DBObj.ObjType)), DBObj.Database, DBObj.Name])+CRLF, False, True, True, False, False);
-    if chkExportTablesDrop.Checked then begin
+    if chkExportTablesDrop.Checked and (not FSecondExportPass) then begin
       Struc := 'DROP '+UpperCase(DBObj.ObjType)+' IF EXISTS ';
       if ToDb then
         Struc := Struc + Quoter.QuoteIdent(FinalDbName)+'.';

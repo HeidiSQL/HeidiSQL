@@ -4,17 +4,22 @@
 #define ProgName "HeidiSQL"
 #define ProgNameLower LowerCase(ProgName)
 #define ProgExeName ProgNameLower + ".exe"
-#define ProgVersion GetFileVersion(AddBackslash(SourcePath) + ProgNameLower + "32.exe")
-; Take care: this takes the first 4(!) chars of the exe's version string, eg "10.0"
-#define ProgShortVersion Copy(ProgVersion, 1, 4)
 #define WebSite "https://www." + ProgNameLower + ".com/"
 #define OutDir "."
 #define ResourceDir OutDir + "\..\res\"
 #define SnippetsDir "{autodocs}\" + ProgName + "\Snippets"
+; Some effort to get the major.minor program version: "11.23"
+#define ProgVerMajor
+#define ProgVerMinor
+#define ProgVerRevision
+#define ProgVerBuild
+#define ProgVersion GetVersionComponents(AddBackslash(SourcePath) + ProgNameLower + "32.exe", ProgVerMajor, ProgVerMinor, ProgVerRevision, ProgVerBuild)
+#define ProgShortVersion Str(ProgVerMajor) + "." + Str(ProgVerMinor)
 
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
 Name: "hy"; MessagesFile: "compiler:Languages\Armenian.isl"
+Name: "bg"; MessagesFile: "compiler:Languages\Bulgarian.isl"
 Name: "ca"; MessagesFile: "compiler:Languages\Catalan.isl"
 Name: "co"; MessagesFile: "compiler:Languages\Corsican.isl"
 Name: "cs"; MessagesFile: "compiler:Languages\Czech.isl"
@@ -24,6 +29,7 @@ Name: "fi"; MessagesFile: "compiler:Languages\Finnish.isl"
 Name: "fr"; MessagesFile: "compiler:Languages\French.isl"
 Name: "de"; MessagesFile: "compiler:Languages\German.isl"
 Name: "he"; MessagesFile: "compiler:Languages\Hebrew.isl"
+Name: "hu"; MessagesFile: "compiler:Languages\Hungarian.isl"
 Name: "is"; MessagesFile: "compiler:Languages\Icelandic.isl"
 Name: "it"; MessagesFile: "compiler:Languages\Italian.isl"
 Name: "ja"; MessagesFile: "compiler:Languages\Japanese.isl"

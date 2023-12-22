@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
-  Vcl.Dialogs, Vcl.StdCtrls, SynEdit, SynMemo, SynRegExpr, Vcl.ComCtrls, Vcl.ExtCtrls, System.WideStrUtils,
+  Vcl.Dialogs, Vcl.StdCtrls, Vcl.Menus, SynEdit, SynMemo, SynRegExpr, Vcl.ComCtrls, Vcl.ExtCtrls, System.WideStrUtils,
   apphelpers, dbconnection, dbstructures, gnugettext, extra_controls;
 
 type
@@ -81,6 +81,7 @@ begin
     'DAY_HOUR|DAY_MINUTE|DAY_SECOND|HOUR_MINUTE|HOUR_SECOND|MINUTE_SECOND');
   grpState.Items := Explode('|', 'Enable|Disable|Disable on slave');
   FMainSynMemo := SynMemoBody;
+  btnSave.Hint := ShortCutToText(MainForm.actSaveSQL.ShortCut);
 end;
 
 

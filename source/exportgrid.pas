@@ -8,7 +8,23 @@ uses
   extra_controls, dbstructures, SynRegExpr, System.StrUtils, System.IOUtils;
 
 type
-  TGridExportFormat = (efExcel, efCSV, efHTML, efXML, efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate, efLaTeX, efTextile, efJiraTextile, efPHPArray, efMarkDown, efJSON);
+  TGridExportFormat = (
+    efExcel,
+    efCSV,
+    efHTML,
+    efXML,
+    efSQLInsert,
+    efSQLInsertIgnore,
+    efSQLReplace,
+    efSQLDeleteInsert,
+    efSQLUpdate,
+    efLaTeX,
+    efTextile,
+    efJiraTextile,
+    efPHPArray,
+    efMarkDown,
+    efJSON
+    );
 
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
@@ -85,11 +101,59 @@ type
   public
     { Public declarations }
     const FormatToFileExtension: Array[TGridExportFormat] of String =
-      (('csv'), ('csv'), ('html'), ('xml'), ('sql'), ('sql'), ('sql'), ('sql'), ('LaTeX'), ('textile'), ('jira-textile'), ('php'), ('md'), ('json'));
+      (
+        ('csv'),
+        ('csv'),
+        ('html'),
+        ('xml'),
+        ('sql'),
+        ('sql'),
+        ('sql'),
+        ('sql'),
+        ('sql'),
+        ('LaTeX'),
+        ('textile'),
+        ('jira-textile'),
+        ('php'),
+        ('md'),
+        ('json')
+        );
     const FormatToDescription: Array[TGridExportFormat] of String =
-      (('Excel CSV'), ('Delimited text'), ('HTML table'), ('XML'), ('SQL INSERTs'), ('SQL REPLACEs'), ('SQL DELETEs/INSERTs'), ('SQL UPDATEs'), ('LaTeX'), ('Textile'), ('Jira Textile'), ('PHP Array'), ('Markdown Here'), ('JSON'));
+      (
+        ('Excel CSV'),
+        ('Delimited text'),
+        ('HTML table'),
+        ('XML'),
+        ('SQL INSERTs'),
+        ('SQL INSERT IGNOREs'),
+        ('SQL REPLACEs'),
+        ('SQL DELETEs/INSERTs'),
+        ('SQL UPDATEs'),
+        ('LaTeX'),
+        ('Textile'),
+        ('Jira Textile'),
+        ('PHP Array'),
+        ('Markdown Here'),
+        ('JSON')
+        );
     const FormatToImageIndex: Array[TGridExportFormat] of Integer =
-      (49, 50, 32, 48, 201, 201, 201, 201, 153, 154, 154, 202, 199, 200);
+      (
+        49,  // Excel
+        50,  // CSV
+        32,  // HTML
+        48,  // XML
+        201, // SQL
+        201, // SQL
+        201, // SQL
+        201, // SQL
+        201, // SQL
+        153, // Latex
+        154, // Textile
+        154, // Jira
+        202, // PHP
+        199, // Markdown
+        200  // JSON
+      );
     const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TVirtualStringTree read FGrid write FGrid;
     property ExportFormat: TGridExportFormat read GetExportFormat write SetExportFormat;
@@ -819,7 +883,7 @@ begin
           tmp := tmp + 'UPDATE ' + GridData.Connection.QuoteIdent(Tablename) + ' SET ';
         end;
 
-        efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+        efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert: begin
           tmp := '';
           if ExportFormat = efSQLDeleteInsert then begin
             tmp := tmp + 'DELETE FROM ' + GridData.Connection.QuoteIdent(Tablename) + ' WHERE' + GridData.GetWhereClause + ';' + CRLF;
@@ -827,6 +891,8 @@ begin
 
           if ExportFormat in [efSQLInsert, efSQLDeleteInsert] then
             tmp := tmp + 'INSERT'
+          else if ExportFormat = efSQLInsertIgnore then
+            tmp := tmp + 'INSERT IGNORE'   
           else
             tmp := tmp + 'REPLACE';
           tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
@@ -936,7 +1002,7 @@ begin
               end;
             end;
 
-            efSQLInsert, efSQLReplace, efSQLDeleteInsert, efSQLUpdate: begin
+            efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert, efSQLUpdate: begin
               if GridData.ColIsVirtual(ResultCol) then
                 Data := ''
               else if GridData.IsNull(ResultCol) then
@@ -1008,7 +1074,7 @@ begin
         end;
         efXML:
           tmp := tmp + #9'</row>' + CRLF;
-        efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+        efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert: begin
           Delete(tmp, Length(tmp)-1, 2);
           tmp := tmp + ');' + CRLF;
         end;
@@ -1071,7 +1137,7 @@ begin
       // SynEdit's exporter is slow on large strings, see issue #2903
       if S.Size < 100*SIZE_KB then begin
         case ExportFormat of
-          efSQLInsert, efSQLReplace, efSQLDeleteInsert: begin
+          efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert: begin
             Exporter := TSynExporterHTML.Create(Self);
             Exporter.Highlighter := MainForm.SynSQLSynUsed;
             Exporter.ExportAll(Explode(CRLF, S.DataString));

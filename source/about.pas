@@ -8,7 +8,7 @@ interface
 
 uses
   Winapi.Windows, System.Classes, Vcl.Graphics, Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ExtCtrls, System.SysUtils, Vcl.ComCtrls, Vcl.Imaging.pngimage, gnugettext,
-  Vcl.Dialogs, SynRegExpr, Vcl.Menus, Vcl.ClipBrd, extra_controls, generic_types;
+  Vcl.Dialogs, SynRegExpr, Vcl.Menus, Vcl.ClipBrd, extra_controls, generic_types, System.StrUtils;
 
 type
   TAboutBox = class(TExtForm)
@@ -19,7 +19,6 @@ type
     lnklblWebpage: TLinkLabel;
     btnUpdateCheck: TButton;
     ImageHeidisql: TImage;
-    imgDonate: TImage;
     lblDonated: TLabel;
     editDonated: TEdit;
     btnDonatedOK: TButton;
@@ -27,6 +26,7 @@ type
     popupLabels: TPopupMenu;
     menuCopyLabel: TMenuItem;
     lblEnvironment: TLabel;
+    btnDonate: TButton;
     procedure OpenURL(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure editDonatedEnter(Sender: TObject);
@@ -71,8 +71,8 @@ begin
     nbTrue:
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
-  imgDonate.Visible := Check <> nbTrue;
-  MainForm.imgDonate.Visible := imgDonate.Visible;
+  btnDonate.Visible := Check <> nbTrue;
+  MainForm.ToolBarDonate.Visible := btnDonate.Visible;
   MainForm.FormResize(Self);
 end;
 
@@ -102,6 +102,8 @@ begin
 end;
 
 procedure TAboutBox.FormShow(Sender: TObject);
+var
+  OsMajor, OsMinor, OsBuild: Integer;
 begin
   Screen.Cursor := crHourGlass;
 
@@ -109,8 +111,9 @@ begin
   lblAppName.Font.Size := Round(lblAppName.Font.Size * 1.5);
   lblAppName.Font.Style := [fsBold];
 
-  imgDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
-  imgDonate.OnClick := MainForm.DonateClick;
+  btnDonate.Caption := f_('Donate to the %s project', [APPNAME]);
+  btnDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
+  btnDonate.OnClick := MainForm.DonateClick;
   editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text
@@ -122,19 +125,24 @@ begin
   lnklblCredits.Caption := '<a href="">'+lnklblCredits.Caption+'</a>';
   ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
   lblEnvironment.Caption := _('Environment:');
-  if RunningAsUwp then begin
-    lblEnvironment.Caption := lblEnvironment.Caption +
-      ' Windows v'+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion) +
-      ', Store Package ' + GetUwpFullName;
-  end else if IsWine then begin
+  if IsWine then begin
     lblEnvironment.Caption := lblEnvironment.Caption +
       ' Linux/Wine';
   end else begin
+    OsMajor := Win32MajorVersion;
+    OsMinor := Win32MinorVersion;
+    OsBuild := Win32BuildNumber;
+    if (OsMajor = 10) and (OsBuild >= 22000) then
+      OsMajor := 11;
     lblEnvironment.Caption := lblEnvironment.Caption +
-      ' Windows v'+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
+      ' Windows ' +
+      IntToStr(OsMajor) +
+      IfThen(OsMinor > 0, '.'+IntToStr(OsMinor), '') +
+      ' Build '+IntToStr(OsBuild);
   end;
 
   Screen.Cursor := crDefault;
+  btnClose.TrySetFocus;
 end;
 
 

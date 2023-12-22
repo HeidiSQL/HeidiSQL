@@ -1358,6 +1358,30 @@ object frmPreferences: TfrmPreferences
         Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
         Columns = <>
       end
+      object btnRemoveHotKey1: TButton
+        Left = 596
+        Top = 80
+        Width = 81
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = 'Remove'
+        ImageIndex = 26
+        Images = MainForm.VirtualImageListMain
+        TabOrder = 1
+        OnClick = btnRemoveHotKeyClick
+      end
+      object btnRemoveHotKey2: TButton
+        Left = 596
+        Top = 144
+        Width = 81
+        Height = 25
+        Anchors = [akTop, akRight]
+        Caption = 'Remove'
+        ImageIndex = 26
+        Images = MainForm.VirtualImageListMain
+        TabOrder = 2
+        OnClick = btnRemoveHotKeyClick
+      end
     end
     object tabFiles: TTabSheet
       Caption = 'Files and tabs'

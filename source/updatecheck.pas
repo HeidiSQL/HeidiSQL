@@ -17,10 +17,10 @@ type
     lblStatus: TLabel;
     memoRelease: TMemo;
     memoBuild: TMemo;
-    imgDonate: TImage;
     btnChangelog: TButton;
     popupDownloadRelease: TPopupMenu;
     CopydownloadURL1: TMenuItem;
+    btnDonate: TButton;
     procedure FormCreate(Sender: TObject);
     procedure btnBuildClick(Sender: TObject);
     procedure LinkLabelReleaseLinkClick(Sender: TObject; const Link: string;
@@ -67,8 +67,9 @@ uses main;
 procedure TfrmUpdateCheck.FormCreate(Sender: TObject);
 begin
   // Should be false by default. Callers can set this to True after Create()
-  imgDonate.OnClick := MainForm.DonateClick;
-  imgDonate.Visible := MainForm.HasDonated(False) = nbFalse;
+  btnDonate.OnClick := MainForm.DonateClick;
+  btnDonate.Visible := MainForm.HasDonated(False) = nbFalse;
+  btnDonate.Caption := f_('Donate to the %s project', [APPNAME]);
   HasSizeGrip := True;
   FRestartTaskName := 'yet_invalid';
 end;
@@ -118,6 +119,7 @@ begin
       Status(E.Message);
   end;
   Screen.Cursor := crDefault;
+  btnCancel.TrySetFocus;
 end;
 
 
@@ -142,12 +144,6 @@ begin
   btnBuild.Enabled := False;
   memoRelease.Clear;
   memoBuild.Clear;
-
-  if RunningAsUwp then begin
-    raise Exception.Create(
-      f_('Please update %s through the Microsoft Store.', [APPNAME])
-      );
-  end;
 
   // Prepare download
   CheckfileDownload := THttpDownload.Create(Self);

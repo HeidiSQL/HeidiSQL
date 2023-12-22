@@ -212,7 +212,7 @@ type
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
-    asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
+    asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asTabsInMultipleLines, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
@@ -231,7 +231,7 @@ type
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
-    asReformatter,
+    asReformatter, asAlwaysGenerateFilter,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -409,8 +409,6 @@ type
   function FileIsWritable(FilePath: String): Boolean;
   function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
   function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
-  function GetUwpFullName: String;
-  function RunningAsUwp: Boolean;
   function GetThemeColor(Color: TColor): TColor;
   function ThemeIsDark(ThemeName: String): Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
@@ -2665,9 +2663,19 @@ end;
 
 
 function f_(const Pattern: string; const Args: array of const): string;
+var
+  TranslatedPattern: String;
 begin
   // Helper for translation, replacement for Format(_())
-  Result := Format(_(Pattern), Args);
+  try
+    TranslatedPattern := _(Pattern);
+    Result := Format(TranslatedPattern, Args);
+  except
+    on E:Exception do begin
+      MainForm.LogSQL(E.ClassName+' in translation string with invalid format arguments: "'+TranslatedPattern+'"', lcError);
+      Result := Format(Pattern, Args);
+    end;
+  end;
 end;
 
 
@@ -2751,43 +2759,12 @@ end;
 
 
 function GetExecutableBits: Byte;
-const
-  kb32 = 1024 * 32;
-var
-  ExeFilename: String;
-  Buffer: Array[0..kb32-1] of Byte; // warning: assuming both headers are in there!
-  hFile: DWord;
-  bRead: DWord;
-  bToRead: DWord;
-  pDos: PImageDosHeader;
-  pNt: PImageNtHeaders;
 begin
+  {$IFDEF WIN64}
+  Result := 64;
+  {$ELSE}
   Result := 32;
-  ExeFilename := ParamStr(0);
-  hFile := CreateFile(pChar(ExeFilename), GENERIC_READ, FILE_SHARE_READ, NIL, OPEN_EXISTING, 0, 0);
-  if hFile <> INVALID_HANDLE_VALUE then try
-    bToRead := GetFileSize(hFile, NIL);
-    if bToRead > kb32 then
-      bToRead := kb32;
-    if not ReadFile(hFile, Buffer, bToRead, bRead, NIL) then
-      Exit;
-    if bRead = bToRead then begin
-      pDos := @Buffer[0];
-      if pDos.e_magic = IMAGE_DOS_SIGNATURE then begin
-        pNt := PImageNtHeaders(LongInt(pDos) + pDos._lfanew);
-        if pNt.Signature = IMAGE_NT_SIGNATURE then begin
-          if pNt.FileHeader.Machine and IMAGE_FILE_32BIT_MACHINE > 0 then
-            Result := 32
-          else
-            Result := 64
-        end;
-      end;
-    end;
-  except
-    on E:Exception do
-      MainForm.LogSQL('Could not detect executable architecture. Assuming '+Result.ToString+'bit: '+E.Message, lcError);
-  end;
-  CloseHandle(hFile);
+  {$ENDIF}
 end;
 
 
@@ -2860,32 +2837,6 @@ begin
     Result := hFile <> INVALID_HANDLE_VALUE;
     CloseHandle(hFile);
   end;
-end;
-
-
-function GetUwpFullName: String;
-var
-  Len: Cardinal;
-  Name: String;
-begin
-  // Detect current Microsoft Store package name
-  // See https://stackoverflow.com/questions/48549899/how-to-detect-universal-windows-platform-uwp-in-delphi
-  Result := '';
-  if (Win32MajorVersion > 6) or ((Win32MajorVersion = 6) and (Win32MinorVersion > 1)) then begin
-    // Windows 10, but not necessarily a Store App
-    Len := 0;
-    GetCurrentPackageFullName(Len, nil);
-    SetLength(Name, Len-1);
-    GetCurrentPackageFullName(Len, PWideChar(Name));
-    if not Name.IsEmpty then
-      Result := Trim(Name);
-  end;
-end;
-
-
-function RunningAsUwp: Boolean;
-begin
-  Result := GetUwpFullName <> '';
 end;
 
 
@@ -3863,6 +3814,7 @@ begin
   InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
   InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
   InitSetting(asReformatter,                      'Reformatter',                           0);
+  InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
 
   // Default folder for snippets
   if FPortableMode then
@@ -3876,6 +3828,7 @@ begin
   InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
   InitSetting(asTabCloseOnDoubleClick,            'TabCloseOnDoubleClick',                 0, True);
   InitSetting(asTabCloseOnMiddleClick,            'TabCloseOnMiddleClick',                 0, True);
+  InitSetting(asTabsInMultipleLines,              'TabsInMultipleLines',                   0, True);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);

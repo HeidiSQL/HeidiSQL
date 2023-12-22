@@ -657,7 +657,6 @@ type
     filterQueryHelpers: TButtonedEdit;
     TimerStoreTabs: TTimer;
     Duplicaterowwithkeys1: TMenuItem;
-    imgDonate: TImage;
     actGoToQueryResults: TAction;
     Switchtoqueryresults1: TMenuItem;
     actGoToDataMultiFilter: TAction;
@@ -780,6 +779,13 @@ type
     menuQueryExactRowCount: TMenuItem;
     menuCloseTabOnMiddleClick: TMenuItem;
     TimerCloseTabByButton: TTimer;
+    menuTabsInMultipleLines: TMenuItem;
+    ToolBarDonate: TToolBar;
+    btnDonate: TToolButton;
+    actResetPanelDimensions: TAction;
+    Resetpaneldimensions1: TMenuItem;
+    popupApplyFilter: TPopupMenu;
+    menuAlwaysGenerateFilter: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1182,6 +1188,9 @@ type
     procedure menuQueryExactRowCountClick(Sender: TObject);
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
     procedure TimerCloseTabByButtonTimer(Sender: TObject);
+    procedure menuTabsInMultipleLinesClick(Sender: TObject);
+    procedure actResetPanelDimensionsExecute(Sender: TObject);
+    procedure menuAlwaysGenerateFilterClick(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -2030,6 +2039,7 @@ begin
   actPreferencesLogging.OnExecute := actPreferences.OnExecute;
   actPreferencesData.ImageIndex := actPreferences.ImageIndex;
   actPreferencesData.OnExecute := actPreferences.OnExecute;
+  menuAlwaysGenerateFilter.Checked := AppSettings.ReadBool(asAlwaysGenerateFilter);
 
   pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
   pnlQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
@@ -2098,6 +2108,7 @@ begin
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
 
+  PageControlMain.MultiLine := AppSettings.ReadBool(asTabsInMultipleLines);
   SetMainTab(tabHost);
   FBtnAddTab := TSpeedButton.Create(PageControlMain);
   FBtnAddTab.Parent := PageControlMain;
@@ -2151,12 +2162,6 @@ begin
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
   FFormatSettings := TFormatSettings.Create('en-US');
-
-  if RunningAsUwp then begin
-    actUpdateCheck.Enabled := False;
-    actUpdateCheck.Hint := f_('Please update %s through the Microsoft Store.', [APPNAME]);
-    actWebDownloadpage.Hint := 'ms-windows-store://pdp/?PRODUCTID=9NXPRT2T0ZJF';
-  end;
 
   // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
@@ -2216,8 +2221,7 @@ begin
 
   // Probably hide image
   FHasDonatedDatabaseCheck := nbUnset;
-  imgDonate.Visible := HasDonated(True) <> nbTrue;
-  imgDonate.Repaint;
+  ToolBarDonate.Visible := HasDonated(True) <> nbTrue;
 
   // Call user statistics if checked in settings
   if AppSettings.ReadBool(asDoUsageStatistics) then begin
@@ -2226,8 +2230,7 @@ begin
       // Report used app version, bits, and theme name (so we find mostly unused ones for removal)
       // Also report environment: WinDesktop, WinUWP or Wine
 
-      if RunningAsUwp then Environment := 'WinUWP'
-      else if IsWine then Environment := 'Wine'
+      if IsWine then Environment := 'Wine'
       else if AppSettings.PortableMode then Environment := 'WinDesktopPortable'
       else Environment := 'WinDesktop';
 
@@ -2779,38 +2782,19 @@ begin
   FixQueryTabCloseButtons;
 
   // Right aligned button
-  if imgDonate.Visible then begin
-    imgDonate.Stretch := True;
-    imgDonate.Proportional := True;
-    imgDonate.Width := ScaleSize(129);
-    imgDonate.Height := ScaleSize(22);
-    imgDonate.Left := ControlBarMain.Width - imgDonate.Width;
+  if ToolBarDonate.Visible then begin
+    ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
+    ToolBarDonate.Left := ControlBarMain.Width - ToolBarDonate.Width;
   end;
 
 end;
 
 procedure TMainForm.FormShow(Sender: TObject);
-var
-  Tab: TQueryTab;
-  ResizeResult: Boolean;
 begin
   // Window dimensions
   if WindowState <> wsMaximized then begin
     Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
     Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
-  end;
-
-  // Reset height of query memos and log panel if area between them is hidden through resize
-  ResizeResult := False;
-  for Tab in QueryTabs do begin
-    if Tab.pnlMemo.ClientToScreen(Tab.pnlMemo.ClientRect).Bottom > SynMemoSQLLog.ClientToScreen(SynMemoSQLLog.ClientRect).Top - 50 then begin
-      LogSQL('Reset height of query tab #'+Tab.Number.ToString+' to give result area vertical space.');
-      Tab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
-      ResizeResult := True;
-    end;
-  end;
-  if ResizeResult then begin
-    SynMemoSQLLog.Height := AppSettings.GetDefaultInt(asLogHeight);
   end;
 
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
@@ -5020,18 +5004,37 @@ end;
 procedure TMainForm.actSaveSQLExecute(Sender: TObject);
 var
   i: Integer;
+  ObjEditor: TDBObjectEditor;
+  Handled: Boolean;
 begin
-  if QueryTabs.ActiveTab.MemoFilename <> '' then begin
-    QueryTabs.ActiveTab.SaveContents(QueryTabs.ActiveTab.MemoFilename, False);
-    for i:=0 to QueryTabs.Count-1 do begin
-      if QueryTabs[i] = QueryTabs.ActiveTab then
-        continue;
-      if QueryTabs[i].MemoFilename = QueryTabs.ActiveTab.MemoFilename then
-        QueryTabs[i].Memo.Modified := True;
+  Handled := False;
+  if QueryTabs.HasActiveTab then begin
+    // Save SQL tab contents to file
+    if QueryTabs.ActiveTab.MemoFilename <> '' then begin
+      QueryTabs.ActiveTab.SaveContents(QueryTabs.ActiveTab.MemoFilename, False);
+      for i:=0 to QueryTabs.Count-1 do begin
+        if QueryTabs[i] = QueryTabs.ActiveTab then
+          continue;
+        if QueryTabs[i].MemoFilename = QueryTabs.ActiveTab.MemoFilename then
+          QueryTabs[i].Memo.Modified := True;
+      end;
+      ValidateQueryControls(Sender);
+    end else
+      actSaveSQLAsExecute(Sender);
+    Handled := True;
+  end
+  else if PageControlMain.ActivePage = tabEditor then begin
+    // Save table, procedure, etc.
+    ObjEditor := ActiveObjectEditor;
+    if Assigned(ObjEditor) and ObjEditor.Modified then begin
+      ObjEditor.ApplyModifications;
+      Handled := True;
     end;
-    ValidateQueryControls(Sender);
-  end else
-    actSaveSQLAsExecute(Sender);
+  end;
+  if not Handled then begin
+    MessageBeep(MB_ICONASTERISK);
+  end;
+
 end;
 
 
@@ -5319,7 +5322,7 @@ var
 begin
   // If filter box is empty but filter generator box has text, most users expect
   // the filter to be auto generated on button click
-  if (SynMemoFilter.GetTextLen = 0)
+  if ((SynMemoFilter.GetTextLen = 0) or menuAlwaysGenerateFilter.Checked)
     and (editFilterSearch.Text <> '')
     and (Sender is TAction)
     and ((Sender as TAction).ActionComponent = btnFilterApply)
@@ -6582,7 +6585,7 @@ var
   NotEmpty, HasSelection, HasConnection: Boolean;
   Tab: TQueryTab;
   cap: String;
-  InQueryTab: Boolean;
+  InQueryTab, InEditorTab: Boolean;
   Conn: TDBConnection;
 begin
   // Enable/disable TActions, according to the current window/connection state
@@ -6601,6 +6604,7 @@ begin
       SetTabCaption(Tab.TabSheet.PageIndex, cap);
   end;
   InQueryTab := QueryTabs.HasActiveTab;
+  InEditorTab := PageControlMain.ActivePage = tabEditor;
   Tab := QueryTabs.ActiveTab;
   NotEmpty := InQueryTab and (Tab.Memo.GetTextLen > 0);
   HasSelection := InQueryTab and Tab.Memo.SelAvail;
@@ -6611,7 +6615,7 @@ begin
   actExecuteCurrentQuery.Enabled := actExecuteQuery.Enabled;
   actExplainCurrentQuery.Enabled := actExecuteQuery.Enabled and (Conn.Parameters.NetTypeGroup in [ngMySQL, ngPgSQL, ngSQLite]);
   actSaveSQLAs.Enabled := InQueryTab and NotEmpty;
-  actSaveSQL.Enabled := actSaveSQLAs.Enabled and Tab.Memo.Modified;
+  actSaveSQL.Enabled := (actSaveSQLAs.Enabled and Tab.Memo.Modified) or InEditorTab;
   actSaveSQLselection.Enabled := InQueryTab and HasSelection;
   actSaveSQLSnippet.Enabled := InQueryTab and NotEmpty;
   actSaveSQLSelectionSnippet.Enabled := InQueryTab and HasSelection;
@@ -6675,7 +6679,8 @@ var
   Proposal: TSynCompletionProposal;
 begin
   Proposal := Sender as TSynCompletionProposal;
-  Proposal.Title := Proposal.InsertItem(AIndex);
+  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then
+    Proposal.Title := Proposal.InsertItem(AIndex);
 end;
 
 
@@ -7041,8 +7046,8 @@ begin
   // Paint error line with red background
   Edit := Sender as TSynMemo;
   LineText := Copy(Edit.Lines[Line-1], 1, 100);
-  Search := f_(MsgSQLError, [-1, '']);
-  Search := Copy(Search, 1, Pos('-1', Search)-1);
+  Search := _(MsgSQLError);
+  Search := Copy(Search, 1, Pos('%', Search)-1);
   //Logsql(LineText+' ::: '+Search);
   if LineText.Contains(Search) then begin
     Special := True;
@@ -9298,7 +9303,7 @@ begin
 
   end else begin
     // Values directly from a query result
-    CellText := StrEllipsis(Results.Col(Column), SIZE_KB*50);
+    CellText := StrEllipsis(Results.Col(Column, True), SIZE_KB*50);
   end;
 end;
 
@@ -9694,7 +9699,8 @@ begin
       SynSQLSynUsed.FunctionNames.EndUpdate;
     end;
 
-    if (FActiveDbObj.NodeType <> lntNone)
+    if (FActiveDbObj <> nil)
+      and (FActiveDbObj.NodeType <> lntNone)
       and (
         (PrevDBObj = nil)
         or (PrevDBObj.Connection <> FActiveDbObj.Connection)
@@ -10839,6 +10845,12 @@ begin
 end;
 
 
+procedure TMainForm.menuAlwaysGenerateFilterClick(Sender: TObject);
+begin
+  // Store setting for toggled filter generation
+  AppSettings.WriteBool(asAlwaysGenerateFilter, menuAlwaysGenerateFilter.Checked);
+end;
+
 procedure TMainForm.menuAutoExpandClick(Sender: TObject);
 var
   Item: TMenuItem;
@@ -10926,25 +10938,24 @@ var
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
   ResultCol: Integer;
-  Conn: TDBConnection;
 begin
   if Column = -1 then
     Exit;
   ResultCol := Column -1;
-  if ResultCol < 0 then begin
-    Conn := ActiveConnection;
-    if Assigned(Conn) and (Conn.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground)) then
-      TargetCanvas.Brush.Color := Conn.Parameters.SessionColor
-    else
-      TargetCanvas.Brush.Color := clBtnFace;
-    TargetCanvas.FillRect(CellRect);
-    Exit;
-  end;
 
   r := GridResult(Sender);
   if (r=nil) or (not r.Connection.Active) then begin
     // This event (BeforeCellPaint) is the very first one to notice a broken connection
     Sender.Enabled := False;
+    Exit;
+  end;
+
+  if ResultCol < 0 then begin
+    if r.Connection.Parameters.SessionColor <> AppSettings.GetDefaultInt(asTreeBackground) then
+      TargetCanvas.Brush.Color := r.Connection.Parameters.SessionColor
+    else
+      TargetCanvas.Brush.Color := clBtnFace;
+    TargetCanvas.FillRect(CellRect);
     Exit;
   end;
 
@@ -12234,6 +12245,12 @@ begin
   AppSettings.WriteBool(asTabCloseOnMiddleClick, menuCloseTabOnMiddleClick.Checked);
 end;
 
+procedure TMainForm.menuTabsInMultipleLinesClick(Sender: TObject);
+begin
+  AppSettings.WriteBool(asTabsInMultipleLines, menuTabsInMultipleLines.Checked);
+  PageControlMain.MultiLine := menuTabsInMultipleLines.Checked;
+end;
+
 procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
 var
   i: Integer;
@@ -12272,6 +12289,22 @@ begin
 end;
 
 
+procedure TMainForm.actResetPanelDimensionsExecute(Sender: TObject);
+var
+  Tab: TQueryTab;
+begin
+  // Reset probably overlapping panels to their default dimensions
+  pnlLeft.Width := AppSettings.GetDefaultInt(asDbtreewidth);
+  SynMemoSQLLog.Height := AppSettings.GetDefaultInt(asLogHeight);
+  for Tab in QueryTabs do begin
+    Tab.pnlMemo.Height := AppSettings.GetDefaultInt(asQuerymemoheight);
+    Tab.pnlHelpers.Width := AppSettings.GetDefaultInt(asQueryhelperswidth);
+  end;
+  if pnlPreview.Visible then begin
+    pnlPreview.Height := AppSettings.GetDefaultInt(asDataPreviewHeight);
+  end;
+end;
+
 procedure TMainForm.menuRenameQueryTabClick(Sender: TObject);
 begin
   // Rename tab by click on menu item (not by shortcut!)
@@ -12296,6 +12329,7 @@ begin
   menuRenameQueryTab.Enabled := IsQueryTab(PageIndexClick, True);
   menuCloseTabOnDblClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
   menuCloseTabOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
+  menuTabsInMultipleLines.Checked := AppSettings.ReadBool(asTabsInMultipleLines)
 end;
 
 
@@ -13310,6 +13344,7 @@ procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDel
 var
   Control: TWinControl;
   VT: TBaseVirtualTree;
+  PageControl: TPageControl;
 begin
   // Wheel scrolling only works in component which has focus. Help out by doing that by hand at least for any VirtualTree.
   // See http://www.delphipraxis.net/viewtopic.php?p=1113607
@@ -13321,6 +13356,18 @@ begin
     VT.OffsetY := VT.OffsetY + (WheelDelta div 2); // Don't know why, but WheelDelta is twice as big as it normally appears
     VT.UpdateScrollBars(True);
     Handled := True;
+  end else if Control is TPageControl then begin
+    // Scroll tabs horizontally per mouse wheel
+    PageControl := Control as TPageControl;
+    if PageControl.MultiLine then begin
+      Handled := False;
+    end
+    else begin
+      PageControl.ScrollTabs(WheelDelta div WHEEL_DELTA);
+      if PageControl = PageControlMain then
+        FixQueryTabCloseButtons;
+      Handled := True;
+    end;
   end else
     Handled := False;
 end;

@@ -673,6 +673,10 @@ begin
     editfilename.Text := Dialog.FileName;
     FFileEncoding := Mainform.GetEncodingByName(Dialog.Encodings[Dialog.EncodingIndex]);
     if FFileEncoding = nil then begin
+      MessageDialog(_('Auto detecting the encoding of a file is highly discouraged. You may experience data loss if the detection fails.') +
+        SLineBreak + SLineBreak +
+        _('To avoid this message select the correct encoding before pressing Open.'),
+        mtWarning, [mbOK]);
       TestStream := TFileStream.Create(Dialog.Filename, fmOpenRead or fmShareDenyNone);
       FFileEncoding := DetectEncoding(TestStream);
       TestStream.Free;

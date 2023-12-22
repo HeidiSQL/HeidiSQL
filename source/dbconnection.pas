@@ -5639,7 +5639,7 @@ begin
           end;
         end;
       end;
-      if (not MaxLen.IsEmpty) and (MaxLen <> Col.DataType.DefaultSize.ToString) then
+      if (not MaxLen.IsEmpty) and ((MaxLen <> Col.DataType.DefaultSize.ToString) or Col.DataType.RequiresLength) then
         Col.LengthSet := MaxLen;
     end;
     Col.Charset := ColQuery.Col('CHARACTER_SET_NAME');
@@ -10517,10 +10517,7 @@ begin
         // cdtNull:    not supported, but may be valid in MariaDB?
         // cdtAutoInc: not valid in ON UPDATE
         cdtExpression: begin
-          if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
-            Result := Result + ' ON UPDATE ('+OnUpdateText+')'
-          else
-            Result := Result + ' ON UPDATE '+OnUpdateText;
+          Result := Result + ' ON UPDATE '+OnUpdateText;
         end;
       end;
       Result := Result + ' ';

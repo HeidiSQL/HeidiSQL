@@ -419,9 +419,9 @@ begin
   end else begin
     Node := Grid.FocusedNode;
     if Backwards then
-      StartAtCol := Grid.Header.Columns.GetPreviousVisibleColumn(Grid.FocusedColumn)
+      StartAtCol := Grid.Header.Columns.GetPreviousVisibleColumn(Grid.FocusedColumn, True)
     else
-      StartAtCol := Grid.Header.Columns.GetNextVisibleColumn(Grid.FocusedColumn);
+      StartAtCol := Grid.Header.Columns.GetNextVisibleColumn(Grid.FocusedColumn, True);
     // Advance to next row if focused column is the very last column
     if StartAtCol = InvalidColumn then begin
       if Backwards then
@@ -440,9 +440,9 @@ begin
       StartAtCol := InvalidColumn;
     end else begin
       if Backwards then
-        Column := Grid.Header.Columns.GetLastVisibleColumn
+        Column := Grid.Header.Columns.GetLastVisibleColumn(True)
       else
-        Column := Grid.Header.Columns.GetFirstVisibleColumn;
+        Column := Grid.Header.Columns.GetFirstVisibleColumn(True);
     end;
 
     while Column >= 0 do begin
@@ -497,9 +497,9 @@ begin
 
       // Advance to next column
       if Backwards then
-        Column := Grid.Header.Columns.GetPreviousVisibleColumn(Column)
+        Column := Grid.Header.Columns.GetPreviousVisibleColumn(Column, True)
       else
-        Column := Grid.Header.Columns.GetNextVisibleColumn(Column);
+        Column := Grid.Header.Columns.GetNextVisibleColumn(Column, True);
     end;
 
     if Match and (not (ssoReplaceAll in Options)) then
