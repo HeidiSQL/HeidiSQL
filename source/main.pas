@@ -12368,8 +12368,12 @@ procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
 begin
   // Click on "tree favorites" main button
   AppSettings.ResetPath;
-  AppSettings.WriteBool(asFavoriteObjectsOnly, (Sender as TAction).Checked);
+  AppSettings.WriteBool(asFavoriteObjectsOnly, actFavoriteObjectsOnly.Checked);
   editDatabaseTableFilterChange(Sender);
+  if actFavoriteObjectsOnly.Checked then
+    actFavoriteObjectsOnly.ImageIndex := 112
+  else
+    actFavoriteObjectsOnly.ImageIndex := 113;
 end;
 
 

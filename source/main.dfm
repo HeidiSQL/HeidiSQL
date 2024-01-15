@@ -3028,7 +3028,7 @@ object MainForm: TMainForm
       AutoCheck = True
       Caption = 'Show only favorites'
       Hint = 'Show only favorite tree items'
-      ImageIndex = 112
+      ImageIndex = 113
       ImageName = 'icons8-star-filled'
       OnExecute = actFavoriteObjectsOnlyExecute
     end
