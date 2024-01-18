@@ -6902,6 +6902,7 @@ var
   obj: TDBObject;
   Results: TDBQuery;
   rx: TRegExpr;
+  SchemaBug41907Exists, DbNameMatches: Boolean;
 begin
   // Return a db's table list
   try
@@ -7066,8 +7067,14 @@ begin
     end;
   end;
   if Assigned(Results) then begin
+    // Work around old MySQL bug: https://bugs.mysql.com/bug.php?id=41907#c360194
+    // "Noted [fixed] in 5.1.57, 5.5.12, 5.6.3 changelogs."
+    SchemaBug41907Exists := (ServerVersionInt < 50157) or
+      ((ServerVersionInt >= 50500) and (ServerVersionInt < 50512)) or
+      ((ServerVersionInt >= 50600) and (ServerVersionInt < 50603));
     while not Results.Eof do begin
-      if Results.Col('Db') = db then begin
+      DbNameMatches := CompareText(Results.Col('Db'), db) = 0;
+      if (SchemaBug41907Exists and DbNameMatches) or (not SchemaBug41907Exists) then begin
         Obj := TDBObject.Create(Self);
         Cache.Add(obj);
         Obj.Name := Results.Col('Name');
