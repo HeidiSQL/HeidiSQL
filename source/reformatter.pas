@@ -63,6 +63,8 @@ begin
         FOutputCode := FormatSqlOnlineSqlformatOrg(FInputCode);
       end;
     end;
+    // Unify line breaks, so selection end will be correct:
+    FOutputCode := fixNewlines(FOutputCode);
     TimeElapsed := GetTickCount64 - StartTime;
     MainForm.LogSQL(f_('Code reformatted in %s, using formatter %s', [FormatTimeNumber(TimeElapsed/1000, True, 3), '#'+grpReformatter.ItemIndex.ToString]));
   except
