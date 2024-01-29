@@ -21,7 +21,8 @@ uses
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
   System.ImageList, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types, Sequal.Suggest;
+  SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types, Sequal.Suggest,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL;
 
 
 type
@@ -6139,7 +6140,7 @@ end;
 procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 begin
   // Remember current table after last column resizing so we can auto size them as long as this did not happen
-  if not (tsUpdating in TBaseVirtualTree(Sender.Treeview).TreeStates) then
+  if not TBaseVirtualTree(Sender.Treeview).IsUpdating then
     FDataGridColumnWidthsCustomized := True;
 end;
 

@@ -4,8 +4,9 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, SynEdit, SynMemo, Vcl.StdCtrls,
-  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, SynRegExpr, extra_controls,
-  dbconnection, apphelpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls;
+  Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees.BaseTree, VirtualTrees.Types, VirtualTrees, VirtualTrees.EditLink, SynRegExpr, extra_controls,
+  dbconnection, apphelpers, gnugettext, Vcl.Menus, Vcl.ExtCtrls,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.AncestorVCL;
 
 type
   TFrame = TDBObjectEditor;

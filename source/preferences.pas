@@ -13,7 +13,8 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, Vcl.ActnList, Vcl.StdActns, Vcl.Menus,
   dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, System.Generics.Collections,
-  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons, System.Actions;
+  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons, System.Actions,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL, VirtualTrees.Types;
 
 type
   TShortcutItemData = record

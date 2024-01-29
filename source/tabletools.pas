@@ -12,7 +12,8 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Buttons, Vcl.Dialogs, Vcl.StdActns,
   VirtualTrees, Vcl.ExtCtrls, Vcl.Graphics, SynRegExpr, System.Math, System.Generics.Collections, extra_controls,
   dbconnection, apphelpers, Vcl.Menus, gnugettext, System.DateUtils, System.Zip, System.UITypes, System.StrUtils, Winapi.Messages,
-  SynEdit, SynMemo, Vcl.ClipBrd, generic_types;
+  SynEdit, SynMemo, Vcl.ClipBrd, generic_types, VirtualTrees.Types, VirtualTrees.BaseAncestorVCL,
+  VirtualTrees.BaseTree, VirtualTrees.AncestorVCL;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);

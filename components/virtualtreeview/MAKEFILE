@@ -1,21 +1,30 @@
+# Program files folder
+PROGRAMFILESX64 = $(PROGRAMFILES)
+!IF EXIST("C:\Program Files (x86)")
+PROGRAMFILES = C:\Program Files (x86)
+PROGRAMFILESX64 = C:\Program Files
+!ENDIF
+
+# Default MS Build version
+!IF EXIST("$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe")
+BUILDEXE = "$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe"
+!ELSE IF EXIST("$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\msbuild.exe")
+BUILDEXE = "$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\msbuild.exe"
+!ELSE IF EXIST("$(PROGRAMFILESX64)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe")
+BUILDEXE = "$(PROGRAMFILESX64)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe"
+!ELSE IF EXIST("$(PROGRAMFILESX64)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe")
+BUILDEXE = "$(PROGRAMFILESX64)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe"
+!ELSE IF EXIST("$(PROGRAMFILESX64)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\msbuild.exe")
+BUILDEXE = "$(PROGRAMFILESX64)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\msbuild.exe"
+!ELSE 
+BUILDEXE = "msbuild.exe"
+!ENDIF
+
 PROJECT = VirtualTrees
 EMBARCADERO = $(PROGRAMFILES)\Embarcadero\RAD Studio
 STUDIO = $(PROGRAMFILES)\Embarcadero\Studio
 BDSCOMMONDIRMAIN = %PUBLIC%\Documents\Embarcadero\Studio
-# Default MS Build version
-!IF EXIST("$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe")
-BUILDEXE = "$(PROGRAMFILESX64)\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\msbuild.exe"
-!ELSE 
-!IF EXIST("$(PROGRAMFILES)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe")
-BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2019\Enterprise\MSBuild\Current\Bin\msbuild.exe"
-!ELSE
-!IF EXIST("$(PROGRAMFILES)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe")
-BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\msbuild.exe"
-!ELSE
-BUILDEXE = "$(PROGRAMFILES)\Microsoft Visual Studio\2017\BuildTools\MSBuild\15.0\Bin\msbuild.exe"
-!ENDIF
-!ENDIF
-!ENDIF
+
 BUILD = $(BUILDEXE) /t:Rebuild
 
 clean:  
@@ -23,6 +32,13 @@ clean:
 	DEL /S /Q .\*.HPP
 	DEL /S /Q .\*.DCU
 #TODO: Add demos and package folders
+	 
+12.0: Source\*.pas "Packages\RAD Studio 10.4+\$(PROJECT)R.dpk" "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj" "Packages\RAD Studio 10.4+\$(PROJECT)D.dpk" "Packages\RAD Studio 10.4+\$(PROJECT)D.dproj"
+	SET BDS=$(STUDIO)\23.0
+	$(BUILD) "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj"
+	$(BUILD) "Packages\RAD Studio 10.4+\$(PROJECT)D.dproj"
+	$(BUILD) /property:Platform=Win64 "Packages\RAD Studio 10.4+\$(PROJECT)R.dproj"
+	$(MAKE) _samples
 	 
 # build all packages for Delphi 10.4.   Note: The variable $@ is expanded to the build target name
 10.1 10.2 10.3 10.4+: Source\*.pas "Packages\RAD Studio $@\$(PROJECT)R.dpk" "Packages\RAD Studio $@\$(PROJECT)R.dproj" "Packages\RAD Studio $@\$(PROJECT)D.dpk" "Packages\RAD Studio $@\$(PROJECT)D.dproj"
@@ -46,7 +62,7 @@ clean:
 
 _samples: "Demos\Advanced\Advanced.exe" "Demos\Minimal\Minimal.exe" "Demos\Objects\Objects.exe" "Demos\OLE\OLE.exe"
 	
-_continuousbuilds: clean 10.4+
+_continuousbuilds: clean 12.0
 
 _release:
 #This small batch file is intended to create a source code release file of the VirtualTreeView as ZIP archive

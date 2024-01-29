@@ -1427,7 +1427,7 @@ begin
   else
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
   // Apply case insensitive incremental search event
-  if VT.IncrementalSearch <> VirtualTrees.isNone then
+  if VT.IncrementalSearch <> VirtualTrees.Types.isNone then
     VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;

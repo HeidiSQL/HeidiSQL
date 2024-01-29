@@ -5,7 +5,8 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, VirtualTrees, SynEdit, SynMemo, Vcl.Menus, gnugettext;
+  dbconnection, dbstructures, dbstructures.mysql, VirtualTrees, SynEdit, SynMemo, Vcl.Menus, gnugettext, VirtualTrees.BaseTree, VirtualTrees.Types,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.AncestorVCL;
 
 type
   TCopyTableForm = class(TExtForm)

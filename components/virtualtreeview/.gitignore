@@ -19,6 +19,7 @@
 # Backup files    #
 ###################
 *.~*
+__recovery
 
 # IDE Files	  #
 ###################
@@ -32,6 +33,7 @@
 *.rc
 *.res
 *.local
+*.dsv
 
 # Output Folders  #
 ###################

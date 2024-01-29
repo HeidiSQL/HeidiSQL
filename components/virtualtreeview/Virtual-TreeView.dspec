@@ -1,10 +1,10 @@
 {
   "metadata": {
     "id": "JAM.VirtualTreeView",
-    "version": "7.4.0",
+    "version": "8.0.0-alpha1",
     "description": "Virtual TreeView VCL Component",
     "authors": "Joachim Marder",
-    "projectUrl": "https://github.com/Virtual-TreeView/Virtual-TreeView",
+    "projectUrl": "https://github.com/JAM-Software/Virtual-TreeView",
     "license": "MPL-1.1, LGPL-2.0+",
     "copyright": "Various, See project page",
     "tags": "VCL, TreeView"
@@ -15,7 +15,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "17"
+        "libsuffix" : "170"
       }
     },
     {
@@ -23,7 +23,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "18"
+        "libsuffix" : "180"
       }
     },
     {
@@ -31,7 +31,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "19"
+        "libsuffix" : "190"
       }
     },
     {
@@ -39,7 +39,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "20"
+        "libsuffix" : "200"
       }
     },
     {
@@ -47,7 +47,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "21"
+        "libsuffix" : "210"
       }
     },
     {
@@ -55,7 +55,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "22"
+        "libsuffix" : "220"
       }
     },
     {
@@ -63,7 +63,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "23",
+        "libsuffix" : "230",
         "compiler" : "$compilerNoPoint$"      
       }
     },
@@ -72,7 +72,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "24"
+        "libsuffix" : "240"
       }
     },
     {
@@ -80,7 +80,7 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "25"
+        "libsuffix" : "250"
       }
     },
     {
@@ -88,17 +88,25 @@
       "platforms": "Win32, Win64",
       "template": "default",
       "variables" : {
-        "libsuffix" : "26"
+        "libsuffix" : "260"
       }
     },
     {
       "compiler": "10.4",
       "platforms": "Win32, Win64",
-      "template": "default",
+      "template": "10.4+",
       "variables" : {
-        "libsuffix" : "27"
+        "libsuffix" : "270"
       }
-    }
+    },
+    {
+      "compiler": "11.0",
+      "platforms": "Win32, Win64",
+      "template": "10.4+",
+      "variables" : {
+        "libsuffix" : "280"
+      }
+    }	
   ],
   "templates": [
     {
@@ -119,6 +127,63 @@
         },
         {
           "src": ".\\packages\\Rad Studio $compiler$\\**",
+          "flatten": false,
+          "dest": "packages\\Rad Studio $compiler$"
+        }
+      ],
+      "searchPaths": [
+        {
+          "path": "Source",
+          "source": true
+        }
+      ],
+      "build": [
+        {
+          "id": "VirtualTreesR",
+          "project": ".\\Packages\\Rad Studio $compiler$\\VirtualTreesR.dproj",
+          "buildForDesign": true,
+          "buildForDesignComment" : "when true, will also build win32 if the platform is not win32, so that other packages that need this for design will work"
+        },
+        {
+          "id": "VirtualTreesD",
+          "project": ".\\Packages\\Rad Studio $compiler$\\VirtualTreesD.dproj",
+          "designOnly" : true,
+          "designOnlyComment" : "designOnly forces compilation with win32 compiler"          
+        }
+      ],
+      "runtime": [
+        {
+          "buildId": "VirtualTreesR",
+          "src": "bin\\VirtualTreesR$libsuffix$.bpl",
+          "copyLocal": true
+        }
+      ],
+      "design": [
+        {
+          "buildId": "VirtualTreesD",
+          "src": "bin\\VirtualTreesD$libsuffix$.bpl",
+          "install": true
+        }
+      ]
+    },
+    {
+      "comment": "10.4+ versions share packages",
+      "name": "10.4+",
+      "source": [
+        {
+          "src": ".\\Source\\*.pas",
+          "dest": "Source"
+        },
+        {
+          "src": ".\\Source\\*.res",
+          "dest": "Source"
+        },
+        {
+          "src": ".\\Design\\*.*",
+          "dest": "Design"
+        },
+        {
+          "src": ".\\packages\\Rad Studio 10.4+\\**",
           "flatten": false,
           "dest": "packages\\Rad Studio $compiler$"
         }

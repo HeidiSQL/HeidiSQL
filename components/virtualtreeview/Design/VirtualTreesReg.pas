@@ -11,8 +11,7 @@ interface
 {$warn UNSAFE_CODE off}
 
 uses
-  Windows, Classes, DesignIntf, DesignEditors, VCLEditors, PropertyCategories,
-  ColnEdit, VirtualTrees, VirtualTrees.HeaderPopup;
+  DesignEditors;
 
 type
   TVirtualTreeEditor = class (TDefaultEditor)
@@ -27,8 +26,12 @@ procedure Register;
 implementation
 
 uses
-  StrEdit, Dialogs, TypInfo, SysUtils, Graphics, CommCtrl, ImgList, Controls,
-  VirtualTrees.ClipBoard, VirtualTrees.Actions;
+  WinApi.Windows, WinApi.CommCtrl,
+  System.TypInfo, System.SysUtils, System.Classes,
+  StrEdit,DesignIntf, VCLEditors, PropertyCategories, ColnEdit,
+  Vcl.Dialogs, Vcl.Graphics, Vcl.ImgList, Vcl.Controls,
+  VirtualTrees.ClipBoard, VirtualTrees.Actions, VirtualTrees, VirtualTrees.DrawTree,
+  VirtualTrees.HeaderPopup, VirtualTrees.BaseTree;
 
 type
   // The usual trick to make a protected property accessible in the ShowCollectionEditor call below.

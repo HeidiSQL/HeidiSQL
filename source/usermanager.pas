@@ -6,7 +6,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ComCtrls, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.ToolWin, Vcl.ClipBrd, System.Generics.Collections, System.Generics.Defaults, SynRegExpr, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, apphelpers, VirtualTrees, Vcl.Menus, gnugettext;
+  dbconnection, dbstructures, dbstructures.mysql, apphelpers, VirtualTrees.BaseTree, VirtualTrees.Types, VirtualTrees, VirtualTrees.EditLink, Vcl.Menus, gnugettext,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.AncestorVCL;
 
 {$I const.inc}
 
