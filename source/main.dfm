@@ -1242,7 +1242,6 @@ object MainForm: TMainForm
             Header.MainColumn = -1
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
             IncrementalSearch = isInitializedOnly
-            LineStyle = lsSolid
             PopupMenu = popupDataGrid
             TabOrder = 2
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
@@ -1470,7 +1469,6 @@ object MainForm: TMainForm
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoDisableAnimatedResize, hoAutoResizeInclCaption]
             Header.PopupMenu = popupListHeader
             IncrementalSearch = isAll
-            LineStyle = lsSolid
             PopupMenu = popupDataGrid
             TabOrder = 1
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]

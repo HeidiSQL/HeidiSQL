@@ -6088,6 +6088,7 @@ begin
     end;
 
     vt.EndUpdate;
+    ApplyFontToGrids;
 
     // Do not steel filter while writing filters
     if not SynMemoFilter.Focused then
