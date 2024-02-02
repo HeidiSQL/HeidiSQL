@@ -83,7 +83,7 @@ type
     public
       Name, OldName: String;
       IndexType, OldIndexType, Algorithm, Comment: String;
-      Columns, SubParts: TStringList;
+      Columns, SubParts, Collations: TStringList;
       Modified, Added: Boolean;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
@@ -6032,6 +6032,7 @@ begin
         NewKey.Comment := KeyQuery.Col('Index_comment', True);
       end;
       NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+      NewKey.Collations.Add(KeyQuery.Col('Collation', True));
       if NewKey.IndexType = TTableKey.SPATIAL then
         NewKey.SubParts.Add('') // Prevent "Incorrect prefix key"
       else
@@ -10646,14 +10647,17 @@ begin
   FConnection := AOwner;
   Columns := TStringList.Create;
   SubParts := TStringList.Create;
+  Collations := TStringList.Create;
   Columns.OnChange := Modification;
   Subparts.OnChange := Modification;
+  Collations.OnChange := Modification;
 end;
 
 destructor TTableKey.Destroy;
 begin
   FreeAndNil(Columns);
   FreeAndNil(SubParts);
+  FreeAndNil(Collations);
   inherited Destroy;
 end;
 
@@ -10671,6 +10675,7 @@ begin
     Comment := s.Comment;
     Columns.Assign(s.Columns);
     SubParts.Assign(s.SubParts);
+    Collations.Assign(s.Collations);
     Modified := s.Modified;
     Added := s.Added;
   end else
@@ -10714,6 +10719,9 @@ begin
     Result := Result + FConnection.QuoteIdent(Columns[i]);
     if SubParts[i] <> '' then
       Result := Result + '(' + SubParts[i] + ')';
+    // Collation / sort order, see issue #1512
+    if Collations[i].ToLower = 'd' then
+      Result := Result + ' DESC';
     Result := Result + ', ';
   end;
   if Columns.Count > 0 then

@@ -6,7 +6,8 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, VirtualTrees.Types, SynRegExpr, Winapi.ActiveX, Vcl.ExtCtrls, SynEdit,
   SynMemo, Vcl.Menus, Vcl.Clipbrd, System.Math, System.UITypes, System.Generics.Collections,
-  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, System.StrUtils, extra_controls;
+  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, System.StrUtils, extra_controls,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL;
 
 type
   TFrame = TDBObjectEditor;
@@ -1705,6 +1706,7 @@ begin
   treeIndexes.AddChild(Node);
   TblKey.Columns.Add(NewCol);
   TblKey.SubParts.Add(PartLength);
+  TblKey.Collations.Add('A');
   Modification(Sender);
   treeIndexes.Invalidate;
   SelectNode(treeIndexes, FKeys.Count-1, Node);
@@ -1733,6 +1735,7 @@ begin
       idx := treeIndexes.FocusedNode.Parent.Index;
       FKeys[idx].Columns.Delete(treeIndexes.FocusedNode.Index);
       FKeys[idx].SubParts.Delete(treeIndexes.FocusedNode.Index);
+      FKeys[idx].Collations.Delete(treeIndexes.FocusedNode.Index);
       treeIndexes.DeleteNode(treeIndexes.FocusedNode);
     end;
   end;
@@ -1800,6 +1803,7 @@ begin
         1: CellText := TblKey.IndexType;
         2: CellText := TblKey.Algorithm;
         3: CellText := TblKey.Comment;
+        4: CellText := ''; // Column collation
       end;
     end;
     1: begin
@@ -1807,7 +1811,12 @@ begin
       case Column of
         0: CellText := TblKey.Columns[Node.Index];
         1: CellText := TblKey.SubParts[Node.Index];
-        2: CellText := '';
+        2: CellText := ''; // Index algorithm
+        3: CellText := ''; // Index comment
+        4: begin
+          CellText := TblKey.Collations[Node.Index];
+          CellText := IfThen(CellText.ToLower = 'a', 'ASC', 'DESC');
+        end;
       end;
     end;
   end;
@@ -2040,6 +2049,7 @@ begin
         end;
       end;
     end;
+    4: Allowed := True; // Collation
   end;
 end;
 
@@ -2077,6 +2087,10 @@ begin
       ColNode := listColumns.GetNext(ColNode);
     end;
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
+    EditLink := EnumEditor;
+  end else if (Level = 1) and (Column = 4) then begin
+    EnumEditor := TEnumEditorLink.Create(VT, True, nil);
+    EnumEditor.ValueList := Explode(',', ',ASC,DESC');
     EditLink := EnumEditor;
   end else
     EditLink := TInplaceEditorLink.Create(VT, True, nil);
@@ -2122,6 +2136,12 @@ begin
              TblKey.Columns[Node.Index] := NewText;
          end;
          1: TblKey.SubParts[Node.Index] := NewText;
+         4: begin
+           if NewText.ToLower = 'asc' then
+             TblKey.Collations[Node.Index] := 'A'
+           else
+             TblKey.Collations[Node.Index] := 'D';
+         end;
        end;
        TblKey.Modified := True;
     end;
@@ -2232,6 +2252,7 @@ begin
     if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Col.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
       PartLength := '100';
     TblKey.Subparts.Insert(ColPos, PartLength);
+    TblKey.Collations.Insert(ColPos, 'A');
     IndexNode.States := IndexNode.States + [vsHasChildren, vsExpanded];
   end;
   Modification(Sender);
@@ -2269,6 +2290,7 @@ begin
   end;
   TblKey.Columns.Move(treeIndexes.FocusedNode.Index, NewIdx);
   TblKey.SubParts.Move(treeIndexes.FocusedNode.Index, NewIdx);
+  TblKey.Collations.Move(treeIndexes.FocusedNode.Index, NewIdx);
   Modification(treeIndexes);
   SelectNode(treeIndexes, NewIdx, treeIndexes.FocusedNode.Parent);
 end;
@@ -2486,8 +2508,10 @@ begin
     TblKey.IndexType := NewType;
     TblKey.Added := True;
     TblKey.Columns := NewParts;
-    for i:=0 to TblKey.Columns.Count do
+    for i:=0 to TblKey.Columns.Count do begin
       TblKey.SubParts.Add('');
+      TblKey.Collations.Add('A');
+    end;
     FKeys.Add(TblKey);
     PageControlMain.ActivePage := tabIndexes;
     treeIndexes.Repaint;
@@ -2500,6 +2524,7 @@ begin
       if TblKey.Columns.IndexOf(NewParts[i]) = -1 then begin
         TblKey.Columns.Add(NewParts[i]);
         TblKey.Subparts.Add('');
+        TblKey.Collations.Add('A');
       end;
     end;
     SelectNode(treeIndexes, Item.MenuIndex);

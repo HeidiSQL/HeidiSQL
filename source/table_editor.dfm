@@ -299,6 +299,11 @@ object frmTableEditor: TfrmTableEditor
             Position = 3
             Text = 'Comment'
             Width = 120
+          end
+          item
+            Position = 4
+            Text = 'Direction'
+            Width = 80
           end>
       end
       object tlbIndexes: TToolBar
