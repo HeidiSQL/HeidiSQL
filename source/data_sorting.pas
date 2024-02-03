@@ -26,6 +26,9 @@ type
     FColumnNames: TStringList;
     FSortItems: TSortItems;
     FOldOrderClause: String;
+    FDeleteTimer: TTimer;
+    FDeleteButtonPressed: TButton;
+    procedure DeleteTimerTimer(Sender: TObject);
     procedure comboColumnsChange(Sender: TObject);
     procedure btnOrderClick(Sender: TObject);
     procedure btnDeleteClick(Sender: TObject);
@@ -56,6 +59,11 @@ begin
   FSortItems := TSortItems.Create(True);
   FSortItems.Assign(MainForm.DataGridSortItems);
   FOldOrderClause := FSortItems.ComposeOrderClause(MainForm.ActiveConnection);
+
+  FDeleteTimer := TTimer.Create(Self);
+  FDeleteTimer.Interval := 100;
+  FDeleteTimer.Enabled := False;
+  FDeleteTimer.OnTimer := DeleteTimerTimer;
 
   // First creation of controls
   DisplaySortingControls(Sender);
@@ -236,11 +244,16 @@ end;
   Delete order column
 }
 procedure TfrmDataSorting.btnDeleteClick(Sender: TObject);
-var
-  btn: TButton;
 begin
-  btn := Sender as TButton;
-  FSortItems.Delete(btn.Tag-1);
+  FDeleteButtonPressed := Sender as TButton;
+  FDeleteTimer.Enabled := True;
+end;
+
+
+procedure TfrmDataSorting.DeleteTimerTimer(Sender: TObject);
+begin
+  FDeleteTimer.Enabled := False;
+  FSortItems.Delete(FDeleteButtonPressed.Tag-1);
   // Refresh controls
   DisplaySortingControls(Self);
   // Enables OK button
