@@ -6059,7 +6059,7 @@ begin
       Col.Text := '#';
       for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);
-        if coVisible in vt.Header.Columns[i].Options then
+        if coVisible in vt.Header.Columns[i+1].Options then
           Inc(VisibleColumns);
       end;
 
