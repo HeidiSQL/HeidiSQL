@@ -1345,8 +1345,13 @@ begin
       comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLFilenames, '')
     else
       comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportZIPFilenames, '');
-    if comboExportOutputTarget.Items.Count > 0 then
+    if comboExportOutputTarget.Items.Count > 0 then begin
       comboExportOutputTarget.ItemIndex := 0;
+      // Cut long file list down to 20 latest items
+      for i:=comboExportOutputTarget.Items.Count-1 downto 20 do begin
+        comboExportOutputTarget.Items.Delete(i);
+      end;
+    end;
     lblExportOutputTarget.Caption := _('Filename')+':';
     btnExportOutputTargetSelect.Enabled := True;
     btnExportOutputTargetSelect.ImageIndex := 51;
