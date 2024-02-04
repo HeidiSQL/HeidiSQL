@@ -452,6 +452,7 @@ uses
   WinApi.UxTheme,
   System.Math,
   System.SysUtils,
+  System.Generics.Defaults,
   Vcl.Forms,
   VirtualTrees.HeaderPopup,
   VirtualTrees.BaseTree,
@@ -4401,34 +4402,35 @@ procedure TVirtualTreeColumns.FixPositions;
 // Fixes column positions after loading from DFM or Bidi mode change.
 
 var
+  LColumnsByPos: TList<TVirtualTreeColumn>;
   I : Integer;
-  LoopAgain: Boolean;
 begin
-  // Fix positions that too large, see #1179
+  LColumnsByPos := TList<TVirtualTreeColumn>.Create;
   // Fix duplicate positions, see #1228
-  repeat
-    LoopAgain := False;
-    for I := 0 to Count - 1 do
-    begin
-      if Integer(Items[I].FPosition) >= Count then
+  try
+    LColumnsByPos.Capacity := Self.Count;
+    for I := 0 to Self.Count-1 do
+      LColumnsByPos.Add(Items[I]);
+
+    LColumnsByPos.Sort(
+      TComparer<TVirtualTreeColumn>.Construct(
+        function(const A, B: TVirtualTreeColumn): Integer
       begin
-        Items[I].Position := Count -1;
-        LoopAgain := True;
-      end;
-      if (i < Count -1) and (Items[I].Position = Items[I+1].FPosition) then
+          Result := CompareValue(A.Position, B.Position);
+          if Result = 0 then
+            Result := CompareValue(A.Index, B.Index);
+        end)
+    );
+    for I := 0 to LColumnsByPos.Count-1 do
       begin
-        if Items[I].FPosition > 0 then
-          Dec(Items[I].FPosition)
-        else
-          Inc(Items[I].FPosition);
-        LoopAgain := True;
+      LColumnsByPos[I].FPosition := I;
+      Self.FPositionToIndex[I] := LColumnsByPos[I].Index;
       end;
+  finally
+	  LColumnsByPos.Free;
     end; // for
-  until not LoopAgain;
 
   // Update position array
-  for I := 0 to Count - 1 do
-    FPositionToIndex[Items[I].Position] := I;
 
   FNeedPositionsFix := False;
   UpdatePositions(True);
