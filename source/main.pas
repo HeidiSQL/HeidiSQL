@@ -3391,7 +3391,7 @@ var
   History: TQueryHistory;
   HistoryItem: TQueryHistoryItem;
   Warnings: TDBQuery;
-  HistoryNum, MaxWarnings, RegItemsSize, KeepDays: Integer;
+  HistoryNum, RegItemsSize, KeepDays: Integer;
   DoDelete, ValueFound: Boolean;
   MinDate: TDateTime;
 
@@ -3491,20 +3491,14 @@ begin
       MsgText := MsgText + Warnings.Col('Level') + ': ' + Warnings.Col('Message') + CRLF;
       Warnings.Next;
     end;
-    MsgText := Trim(MsgText);
-    if (Warnings.RecordCount = Thread.WarningCount) or (Warnings.RecordCount < 5) then
-      MessageDialog(MsgTitle, MsgText, mtWarning, [mbOk], asQueryWarningsMessage)
-    else begin
-      MsgText := MsgText + CRLF+CRLF + _('Show all warnings in a new query tab?');
-      MaxWarnings := MakeInt(Thread.Connection.GetVar('SELECT @@max_error_count'));
-      if MaxWarnings < Thread.WarningCount then
-        MsgText := MsgText + CRLF+CRLF+ f_('The server variable %s is currently set to %d, so you won''t see all warnings.', ['@@max_error_count', MaxWarnings]);
-      if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo], asQueryWarningsMessage) = mrYes then begin
-        actNewQueryTab.Execute;
-        WarningsTab := QueryTabs[QueryTabs.Count-1];
-        WarningsTab.Memo.Text := 'SHOW WARNINGS';
-        actExecuteQueryExecute(WarningsTab);
-      end;
+    MsgText := Trim(MsgText) + SLineBreak +
+      SLineBreak +
+      _('Show all warnings in a new query tab?');
+    if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo], asQueryWarningsMessage) = mrYes then begin
+      actNewQueryTab.Execute;
+      WarningsTab := QueryTabs[QueryTabs.Count-1];
+      WarningsTab.Memo.Text := 'SHOW WARNINGS';
+      actExecuteQueryExecute(WarningsTab);
     end;
   end;
 

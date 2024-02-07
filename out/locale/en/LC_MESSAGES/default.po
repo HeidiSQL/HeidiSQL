@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2023-12-02 14:00+0100\n"
+"PO-Revision-Date: 2024-02-07 07:28+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.1\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -4482,10 +4482,6 @@ msgstr "First %s warnings:"
 #: main.pas:2361
 msgid "Show all warnings in a new query tab?"
 msgstr "Show all warnings in a new query tab?"
-
-#: main.pas:2364
-msgid "The server variable %s is currently set to %d, so you won't see all warnings."
-msgstr "The server variable %s is currently set to %d, so you won't see all warnings."
 
 #: main.pas:2379
 msgid "Updating query history ..."
