@@ -3830,7 +3830,7 @@ begin
   InitSetting(asTabCloseOnDoubleClick,            'TabCloseOnDoubleClick',                 0, True);
   InitSetting(asTabCloseOnMiddleClick,            'TabCloseOnMiddleClick',                 0, True);
   InitSetting(asTabsInMultipleLines,              'TabsInMultipleLines',                   0, True);
-  InitSetting(asTabIconsGrayscaleMode,            'TabIconsGrayscaleMode',                 2);
+  InitSetting(asTabIconsGrayscaleMode,            'TabIconsGrayscaleMode',                 1);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
   InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);
