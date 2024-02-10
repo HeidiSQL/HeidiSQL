@@ -636,7 +636,7 @@ object frmTableTools: TfrmTableTools
             'Database filter|A list of databases, separated by semicolon. Can' +
             ' contain regular expressions, e.g. "mydb;test.*;project\d+".'
           Images = MainForm.VirtualImageListMain
-          LeftButton.ImageIndex = 192
+          LeftButton.ImageIndex = 53
           LeftButton.Visible = True
           RightButton.ImageIndex = 193
           TabOrder = 0
@@ -653,7 +653,7 @@ object frmTableTools: TfrmTableTools
           Height = 22
           Hint = 'Table filter|Can contain regular expressions, e.g. "phpbb_\d"'
           Images = MainForm.VirtualImageListMain
-          LeftButton.ImageIndex = 192
+          LeftButton.ImageIndex = 53
           LeftButton.Visible = True
           RightButton.ImageIndex = 193
           TabOrder = 1
