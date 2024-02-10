@@ -20,7 +20,6 @@ type
   TfrmTableTools = class(TExtForm)
     btnCloseOrCancel: TButton;
     pnlTop: TPanel;
-    TreeObjects: TVirtualStringTree;
     spltHorizontally: TSplitter;
     pnlRight: TPanel;
     ResultGrid: TVirtualStringTree;
@@ -90,6 +89,11 @@ type
     memoFindText: TMemo;
     SynMemoFindText: TSynMemo;
     menuCopyMysqldumpCommand: TMenuItem;
+    pnlLeft: TPanel;
+    pnlLeftTop: TPanel;
+    editDatabaseFilter: TButtonedEdit;
+    editTableFilter: TButtonedEdit;
+    TreeObjects: TVirtualStringTree;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -137,6 +141,10 @@ type
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure btnExportOptionsClick(Sender: TObject);
     procedure menuCopyMysqldumpCommandClick(Sender: TObject);
+    procedure spltHorizontallyMoved(Sender: TObject);
+    procedure editDatabaseTableFilterChange(Sender: TObject);
+    procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
+    procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
   const
     StatusMsg = '%s %s ...';
   private
@@ -319,7 +327,7 @@ begin
   // Restore GUI setup
   Width := AppSettings.ReadIntDpiAware(asTableToolsWindowWidth, Self);
   Height := AppSettings.ReadIntDpiAware(asTableToolsWindowHeight, Self);
-  TreeObjects.Width := AppSettings.ReadIntDpiAware(asTableToolsTreeWidth, Self);
+  pnlLeft.Width := AppSettings.ReadIntDpiAware(asTableToolsTreeWidth, Self);
 
   // When this form is displayed the second time, databases may be deleted or filtered.
   // Also, checked nodes must be unchecked and unchecked nodes may need to be checked.
@@ -380,6 +388,14 @@ begin
 
   MainForm.SetupSynEditors(Self);
   MainForm.SynCompletionProposal.AddEditor(SynMemoFindText);
+
+  pnlLeftTop.Height := editDatabaseFilter.Height + 2;
+  // Fixes width of filter edits:
+  spltHorizontallyMoved(Self);
+  // Apply filters:
+  editDatabaseFilter.Text := MainForm.editDatabaseFilter.Text;
+  editTableFilter.Text := MainForm.editTableFilter.Text;
+
   ValidateControls(Sender);
 end;
 
@@ -465,7 +481,7 @@ begin
   // Save GUI setup
   AppSettings.WriteIntDpiAware(asTableToolsWindowWidth, Self, Width);
   AppSettings.WriteIntDpiAware(asTableToolsWindowHeight, Self, Height);
-  AppSettings.WriteIntDpiAware(asTableToolsTreeWidth, Self, TreeObjects.Width);
+  AppSettings.WriteIntDpiAware(asTableToolsTreeWidth, Self, pnlLeft.Width);
 end;
 
 
@@ -725,7 +741,7 @@ begin
   // Return list with checked objects from database node
   // The caller doesn't need to care whether type grouping in tree is activated
   Result := TDBObjectList.Create(False);
-  Child := TreeObjects.GetFirstChild(DBNode);
+  Child := TreeObjects.GetFirstVisibleChild(DBNode);
   while Assigned(Child) do begin
     if Child.CheckState in CheckedStates then begin
       ChildObj := TreeObjects.GetNodeData(Child);
@@ -733,13 +749,13 @@ begin
       case ChildObj.NodeType of
 
         lntGroup: begin
-          GrandChild := TreeObjects.GetFirstChild(Child);
+          GrandChild := TreeObjects.GetFirstVisibleChild(Child);
           while Assigned(GrandChild) do begin
             if GrandChild.CheckState in CheckedStates then begin
               GrandChildObj := TreeObjects.GetNodeData(GrandChild);
               Result.Add(GrandChildObj^);
             end;
-            GrandChild := TreeObjects.GetNextSibling(GrandChild);
+            GrandChild := TreeObjects.GetNextVisibleSibling(GrandChild);
           end;
         end
 
@@ -749,7 +765,7 @@ begin
 
       end;
     end;
-    Child := TreeObjects.GetNextSibling(Child);
+    Child := TreeObjects.GetNextVisibleSibling(Child);
   end;
 end;
 
@@ -831,7 +847,7 @@ begin
 
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
-    DBNode := TreeObjects.GetFirstChild(SessionNode);
+    DBNode := TreeObjects.GetFirstVisibleChild(SessionNode);
     while Assigned(DBNode) do begin
       if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
         Triggers.Clear;
@@ -868,7 +884,7 @@ begin
 
       end;
       if FCancelled then Break;
-      DBNode := TreeObjects.GetNextSibling(DBNode);
+      DBNode := TreeObjects.GetNextVisibleSibling(DBNode);
     end; // End of db item loop
     if FCancelled then Break;
     SessionNode := TreeObjects.GetNextSibling(SessionNode);
@@ -954,6 +970,84 @@ begin
   if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
   if chkForUpgrade.Enabled and chkForUpgrade.Checked then SQL := SQL + ' FOR UPGRADE';
   AddResults(SQL, DBObj.Connection);
+end;
+
+
+procedure TfrmTableTools.editDatabaseTableFilterKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if Key = #27 then
+    (Sender as TButtonedEdit).OnRightButtonClick(Sender);
+end;
+
+procedure TfrmTableTools.editDatabaseTableFilterRightButtonClick(Sender: TObject);
+begin
+  // Click on "clear" button of any TButtonedEdit control
+  TButtonedEdit(Sender).Clear;
+end;
+
+procedure TfrmTableTools.editDatabaseTableFilterChange(Sender: TObject);
+var
+  Node: PVirtualNode;
+  Obj: PDBObject;
+  rxdb, rxtable: TRegExpr;
+  NodeMatches: Boolean;
+  Errors: TStringList;
+begin
+  // Immediately apply database filter
+  MainForm.LogSQL('editDatabaseTableFilterChange', lcDebug);
+
+  rxdb := TRegExpr.Create;
+  rxdb.ModifierI := True;
+  rxdb.Expression := '('+StringReplace(editDatabaseFilter.Text, ';', '|', [rfReplaceAll])+')';
+  rxtable := TRegExpr.Create;
+  rxtable.ModifierI := True;
+  rxtable.Expression := '('+StringReplace(editTableFilter.Text, ';', '|', [rfReplaceAll])+')';
+
+  Errors := TStringList.Create;
+
+  TreeObjects.BeginUpdate;
+  Node := TreeObjects.GetFirst;
+  while Assigned(Node) do begin
+    Obj := TreeObjects.GetNodeData(Node);
+    NodeMatches := True;
+    try
+      case Obj.NodeType of
+        lntDb: begin
+          // Match against database filter
+          if editDatabaseFilter.Text <> '' then
+            NodeMatches := rxdb.Exec(TreeObjects.Text[Node, 0]);
+        end;
+        lntTable..lntEvent: begin
+          // Match against table filter
+          if editTableFilter.Text <> '' then
+            NodeMatches := rxtable.Exec(TreeObjects.Text[Node, 0]);
+          // no favorites supported on table tools dialog
+          //if actFavoriteObjectsOnly.Checked then
+            // Hide non-favorite object path
+            //NodeMatches := NodeMatches and (Obj.Connection.Favorites.IndexOf(Obj.Path) > -1);
+        end;
+      end;
+    except
+      on E:Exception do begin
+        // Log regex errors, but avoid duplicate messages
+        if Errors.IndexOf(E.Message) = -1 then begin
+          MainForm.LogSQL(E.Message);
+          Errors.Add(E.Message);
+        end;
+      end;
+    end;
+    TreeObjects.IsVisible[Node] := NodeMatches;
+
+    Node := TreeObjects.GetNextInitialized(Node);
+  end;
+  TreeObjects.EndUpdate;
+
+  rxdb.Free;
+  rxtable.Free;
+
+  editDatabaseFilter.RightButton.Visible := editDatabaseFilter.Text <> '';
+  editTableFilter.RightButton.Visible := editTableFilter.Text <> '';
 end;
 
 
@@ -1232,6 +1326,14 @@ begin
   end;
 end;
 
+
+procedure TfrmTableTools.spltHorizontallyMoved(Sender: TObject);
+begin
+  editDatabaseFilter.Left := 0;
+  editDatabaseFilter.Width := (pnlLeftTop.Width div 2) - 1;
+  editTableFilter.Width := editDatabaseFilter.Width;
+  editTableFilter.Left := editDatabaseFilter.Width + 1;
+end;
 
 procedure TfrmTableTools.UpdateResultGrid;
 var

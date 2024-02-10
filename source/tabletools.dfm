@@ -22,8 +22,8 @@ object frmTableTools: TfrmTableTools
   object lblCheckedSize: TLabel
     Left = 8
     Top = 355
-    Width = 70
-    Height = 13
+    Width = 79
+    Height = 14
     Anchors = [akLeft, akBottom]
     Caption = 'lblCheckedSize'
   end
@@ -54,68 +54,30 @@ object frmTableTools: TfrmTableTools
     BevelOuter = bvNone
     TabOrder = 0
     object spltHorizontally: TSplitter
-      Left = 144
+      Left = 185
       Top = 0
       Width = 4
       Height = 336
       Cursor = crSizeWE
       ResizeStyle = rsUpdate
-    end
-    object TreeObjects: TVirtualStringTree
-      Left = 0
-      Top = 0
-      Width = 144
-      Height = 336
-      Align = alLeft
-      Header.AutoSizeIndex = 0
-      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
-      Images = MainForm.VirtualImageListMain
-      IncrementalSearch = isInitializedOnly
-      PopupMenu = popupTree
-      TabOrder = 0
-      TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
-      TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
-      TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
-      OnBeforeCellPaint = TreeObjectsBeforeCellPaint
-      OnChange = TreeObjectsChange
-      OnChecked = TreeObjectsChecked
-      OnChecking = TreeObjectsChecking
-      OnExpanded = TreeObjectsExpanded
-      OnGetText = TreeObjectsGetText
-      OnPaintText = TreeObjectsPaintText
-      OnGetImageIndex = TreeObjectsGetImageIndex
-      OnGetNodeDataSize = TreeObjectsGetNodeDataSize
-      OnInitChildren = TreeObjectsInitChildren
-      OnInitNode = TreeObjectsInitNode
-      Touch.InteractiveGestures = [igPan, igPressAndTap]
-      Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
-      Columns = <
-        item
-          Position = 0
-          Text = 'Dummy, keeps compatibility to mainform.dbtree'
-          Width = 90
-        end
-        item
-          Alignment = taRightJustify
-          Position = 1
-          Text = 'Size'
-        end>
+      OnMoved = spltHorizontallyMoved
     end
     object pnlRight: TPanel
-      Left = 148
+      Left = 189
       Top = 0
-      Width = 600
+      Width = 559
       Height = 336
       Align = alClient
       BevelOuter = bvNone
-      TabOrder = 1
+      TabOrder = 0
       object ResultGrid: TVirtualStringTree
         Left = 0
         Top = 193
-        Width = 600
+        Width = 559
         Height = 143
         Align = alClient
         Header.AutoSizeIndex = -1
+        Header.Height = 14
         Header.Images = MainForm.VirtualImageListMain
         Header.MainColumn = -1
         Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
@@ -138,7 +100,7 @@ object frmTableTools: TfrmTableTools
       object tabsTools: TPageControl
         Left = 0
         Top = 0
-        Width = 600
+        Width = 559
         Height = 193
         ActivePage = tabSQLexport
         Align = alTop
@@ -150,27 +112,27 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 39
           ImageName = 'icons8-support'
           DesignSize = (
-            592
+            551
             164)
           object lblOperation: TLabel
             Left = 3
             Top = 14
-            Width = 52
-            Height = 13
+            Width = 58
+            Height = 14
             Caption = 'Operation:'
           end
           object lblOptions: TLabel
             Left = 3
             Top = 39
-            Width = 41
-            Height = 13
+            Width = 46
+            Height = 14
             Caption = 'Options:'
           end
           object comboOperation: TComboBox
             Left = 80
             Top = 11
-            Width = 508
-            Height = 21
+            Width = 467
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             TabOrder = 0
@@ -231,7 +193,7 @@ object frmTableTools: TfrmTableTools
             OnClick = ValidateControls
           end
           object btnHelpMaintenance: TButton
-            Left = 514
+            Left = 473
             Top = 38
             Width = 75
             Height = 25
@@ -255,36 +217,36 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 30
           ImageName = 'icons8-find'
           DesignSize = (
-            592
+            551
             164)
           object lblFindText: TLabel
             Left = 3
             Top = 27
-            Width = 60
-            Height = 13
+            Width = 70
+            Height = 14
             Caption = 'Text to find:'
           end
           object lblDataTypes: TLabel
             Left = 3
             Top = 90
-            Width = 114
-            Height = 13
+            Width = 131
+            Height = 14
             Anchors = [akLeft, akBottom]
             Caption = 'Search in column types:'
           end
           object lblMatchType: TLabel
             Left = 3
             Top = 140
-            Width = 58
-            Height = 13
+            Width = 66
+            Height = 14
             Anchors = [akLeft, akBottom]
             Caption = 'Match type:'
           end
           object comboDataTypes: TComboBox
             Left = 208
             Top = 87
-            Width = 381
-            Height = 21
+            Width = 340
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
             TabOrder = 0
@@ -292,7 +254,7 @@ object frmTableTools: TfrmTableTools
           object chkCaseSensitive: TCheckBox
             Left = 208
             Top = 114
-            Width = 381
+            Width = 340
             Height = 17
             Anchors = [akLeft, akRight, akBottom]
             Caption = 'Case sensitive'
@@ -301,8 +263,8 @@ object frmTableTools: TfrmTableTools
           object comboMatchType: TComboBox
             Left = 208
             Top = 137
-            Width = 381
-            Height = 21
+            Width = 340
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akRight, akBottom]
             ItemIndex = 0
@@ -318,7 +280,7 @@ object frmTableTools: TfrmTableTools
           object tabsTextType: TPageControl
             Left = 208
             Top = 3
-            Width = 381
+            Width = 340
             Height = 78
             ActivePage = tabSimpleText
             Anchors = [akLeft, akTop, akRight, akBottom]
@@ -329,8 +291,8 @@ object frmTableTools: TfrmTableTools
               object memoFindText: TMemo
                 Left = 0
                 Top = 0
-                Width = 373
-                Height = 50
+                Width = 332
+                Height = 49
                 Align = alClient
                 ScrollBars = ssVertical
                 TabOrder = 0
@@ -343,8 +305,8 @@ object frmTableTools: TfrmTableTools
               object SynMemoFindText: TSynMemo
                 Left = 0
                 Top = 0
-                Width = 373
-                Height = 50
+                Width = 332
+                Height = 49
                 SingleLineMode = False
                 Align = alClient
                 Font.Charset = DEFAULT_CHARSET
@@ -382,59 +344,59 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 9
           ImageName = 'icons8-outgoing-data-100'
           DesignSize = (
-            592
+            551
             164)
           object lblExportData: TLabel
             Left = 3
             Top = 50
-            Width = 27
-            Height = 13
+            Width = 29
+            Height = 14
             Caption = 'Data:'
           end
           object lblExportOutputType: TLabel
             Left = 3
             Top = 104
-            Width = 38
-            Height = 13
+            Width = 44
+            Height = 14
             Caption = 'Output:'
           end
           object lblExportDatabases: TLabel
             Left = 3
             Top = 4
-            Width = 63
-            Height = 13
+            Width = 69
+            Height = 14
             Caption = 'Database(s):'
           end
           object lblExportTables: TLabel
             Left = 3
             Top = 25
-            Width = 43
-            Height = 13
+            Width = 49
+            Height = 14
             Caption = 'Table(s):'
           end
           object lblExportOutputTarget: TLabel
             Left = 2
             Top = 130
-            Width = 46
-            Height = 13
+            Width = 51
+            Height = 14
             Caption = 'Filename:'
           end
           object lblInsertSize: TLabel
             Left = 3
             Top = 77
-            Width = 84
-            Height = 13
+            Width = 93
+            Height = 14
             Caption = 'Max INSERT size:'
           end
           object lblInsertSizeUnit: TLabel
             Left = 242
             Top = 77
-            Width = 115
-            Height = 13
+            Width = 134
+            Height = 14
             Caption = 'KB (0 = Single INSERTs)'
           end
           object btnExportOutputTargetSelect: TButton
-            Left = 566
+            Left = 525
             Top = 127
             Width = 23
             Height = 21
@@ -485,8 +447,8 @@ object frmTableTools: TfrmTableTools
           object comboExportData: TComboBox
             Left = 100
             Top = 47
-            Width = 489
-            Height = 21
+            Width = 448
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             TabOrder = 4
@@ -495,8 +457,8 @@ object frmTableTools: TfrmTableTools
           object comboExportOutputType: TComboBox
             Left = 100
             Top = 101
-            Width = 489
-            Height = 21
+            Width = 448
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
@@ -506,8 +468,8 @@ object frmTableTools: TfrmTableTools
           object comboExportOutputTarget: TComboBox
             Left = 100
             Top = 127
-            Width = 463
-            Height = 21
+            Width = 422
+            Height = 22
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
             ParentShowHint = False
@@ -520,7 +482,7 @@ object frmTableTools: TfrmTableTools
             Left = 100
             Top = 74
             Width = 120
-            Height = 21
+            Height = 22
             TabOrder = 5
             Text = '0'
           end
@@ -528,14 +490,14 @@ object frmTableTools: TfrmTableTools
             Left = 220
             Top = 74
             Width = 16
-            Height = 21
+            Height = 22
             Associate = editInsertSize
             Max = 2147483647
             TabOrder = 6
             Wrap = True
           end
           object btnExportOptions: TButton
-            Left = 464
+            Left = 423
             Top = 72
             Width = 125
             Height = 25
@@ -552,7 +514,7 @@ object frmTableTools: TfrmTableTools
           ImageIndex = 19
           ImageName = 'icons8-sheets-100'
           DesignSize = (
-            592
+            551
             164)
           object chkBulkTableEditDatabase: TCheckBox
             Left = 3
@@ -566,8 +528,8 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditDatabase: TComboBox
             Left = 208
             Top = 3
-            Width = 380
-            Height = 21
+            Width = 339
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
@@ -594,8 +556,8 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditCollation: TComboBox
             Left = 208
             Top = 49
-            Width = 380
-            Height = 21
+            Width = 339
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
@@ -615,8 +577,8 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditEngine: TComboBox
             Left = 208
             Top = 26
-            Width = 380
-            Height = 21
+            Width = 339
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             Enabled = False
@@ -634,8 +596,8 @@ object frmTableTools: TfrmTableTools
           object comboBulkTableEditCharset: TComboBox
             Left = 208
             Top = 72
-            Width = 380
-            Height = 21
+            Width = 339
+            Height = 22
             Style = csDropDownList
             Anchors = [akLeft, akTop, akRight]
             DropDownCount = 16
@@ -643,6 +605,105 @@ object frmTableTools: TfrmTableTools
             TabOrder = 8
           end
         end
+      end
+    end
+    object pnlLeft: TPanel
+      Left = 0
+      Top = 0
+      Width = 185
+      Height = 336
+      Align = alLeft
+      BevelOuter = bvNone
+      Caption = 'pnlLeft'
+      ShowCaption = False
+      TabOrder = 1
+      object pnlLeftTop: TPanel
+        Left = 0
+        Top = 0
+        Width = 185
+        Height = 29
+        Align = alTop
+        BevelOuter = bvNone
+        Caption = 'pnlLeftTop'
+        ShowCaption = False
+        TabOrder = 0
+        object editDatabaseFilter: TButtonedEdit
+          Left = 6
+          Top = 1
+          Width = 49
+          Height = 22
+          Hint = 
+            'Database filter|A list of databases, separated by semicolon. Can' +
+            ' contain regular expressions, e.g. "mydb;test.*;project\d+".'
+          Images = MainForm.VirtualImageListMain
+          LeftButton.ImageIndex = 192
+          LeftButton.Visible = True
+          RightButton.ImageIndex = 193
+          TabOrder = 0
+          Text = 'editDatabaseFilter'
+          TextHint = 'Database filter'
+          OnChange = editDatabaseTableFilterChange
+          OnKeyPress = editDatabaseTableFilterKeyPress
+          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
+        end
+        object editTableFilter: TButtonedEdit
+          Left = 61
+          Top = 1
+          Width = 68
+          Height = 22
+          Hint = 'Table filter|Can contain regular expressions, e.g. "phpbb_\d"'
+          Images = MainForm.VirtualImageListMain
+          LeftButton.ImageIndex = 192
+          LeftButton.Visible = True
+          RightButton.ImageIndex = 193
+          TabOrder = 1
+          Text = 'editTableFilter'
+          TextHint = 'Table filter'
+          OnChange = editDatabaseTableFilterChange
+          OnKeyPress = editDatabaseTableFilterKeyPress
+          OnRightButtonClick = editDatabaseTableFilterRightButtonClick
+        end
+      end
+      object TreeObjects: TVirtualStringTree
+        Left = 0
+        Top = 29
+        Width = 185
+        Height = 307
+        Align = alClient
+        Header.AutoSizeIndex = 0
+        Header.Height = 18
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+        Images = MainForm.VirtualImageListMain
+        IncrementalSearch = isInitializedOnly
+        PopupMenu = popupTree
+        TabOrder = 1
+        TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+        OnBeforeCellPaint = TreeObjectsBeforeCellPaint
+        OnChange = TreeObjectsChange
+        OnChecked = TreeObjectsChecked
+        OnChecking = TreeObjectsChecking
+        OnExpanded = TreeObjectsExpanded
+        OnGetText = TreeObjectsGetText
+        OnPaintText = TreeObjectsPaintText
+        OnGetImageIndex = TreeObjectsGetImageIndex
+        OnGetNodeDataSize = TreeObjectsGetNodeDataSize
+        OnInitChildren = TreeObjectsInitChildren
+        OnInitNode = TreeObjectsInitNode
+        Touch.InteractiveGestures = [igPan, igPressAndTap]
+        Touch.InteractiveGestureOptions = [igoPanSingleFingerHorizontal, igoPanSingleFingerVertical, igoPanInertia, igoPanGutter, igoParentPassthrough]
+        Columns = <
+          item
+            Position = 0
+            Text = 'Dummy, keeps compatibility to mainform.dbtree'
+            Width = 131
+          end
+          item
+            Alignment = taRightJustify
+            Position = 1
+            Text = 'Size'
+          end>
       end
     end
   end
