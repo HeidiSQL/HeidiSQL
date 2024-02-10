@@ -94,6 +94,7 @@ type
     editDatabaseFilter: TButtonedEdit;
     editTableFilter: TButtonedEdit;
     TreeObjects: TVirtualStringTree;
+    timerCalcSize: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -145,6 +146,7 @@ type
     procedure editDatabaseTableFilterChange(Sender: TObject);
     procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
     procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
+    procedure timerCalcSizeTimer(Sender: TObject);
   const
     StatusMsg = '%s %s ...';
   private
@@ -624,18 +626,13 @@ end;
 procedure TfrmTableTools.TreeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
   Obj: PDBObject;
-  ObjSize: Int64;
 begin
   // Track sum of checked objects size
   Obj := Sender.GetNodeData(Node);
-  ObjSize := Max(Obj.Size, 0);
-  if Node.CheckState in CheckedStates then
-    Inc(FObjectSizes, ObjSize)
-  else
-    Dec(FObjectSizes, ObjSize);
   if Obj.NodeType = lntDb then
     FillTargetDatabases;
-  ValidateControls(Sender);
+  timerCalcSize.Enabled := False;
+  timerCalcSize.Enabled := True;
 end;
 
 
@@ -1048,6 +1045,8 @@ begin
 
   editDatabaseFilter.RightButton.Visible := editDatabaseFilter.Text <> '';
   editTableFilter.RightButton.Visible := editTableFilter.Text <> '';
+  timerCalcSize.Enabled := False;
+  timerCalcSize.Enabled := True;
 end;
 
 
@@ -1333,6 +1332,32 @@ begin
   editDatabaseFilter.Width := (pnlLeftTop.Width div 2) - 1;
   editTableFilter.Width := editDatabaseFilter.Width;
   editTableFilter.Left := editDatabaseFilter.Width + 1;
+end;
+
+procedure TfrmTableTools.timerCalcSizeTimer(Sender: TObject);
+var
+  SessionNode, DBNode: PVirtualNode;
+  CheckedObjects: TDBObjectList;
+  DBObj: TDBObject;
+begin
+  // Calculate object sizes and display on label
+  timerCalcSize.Enabled := False;
+  SessionNode := TreeObjects.GetFirstChild(nil);
+  FObjectSizes := 0;
+  while Assigned(SessionNode) do begin
+    DBNode := TreeObjects.GetFirstVisibleChild(SessionNode);
+    while Assigned(DBNode) do begin
+      if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
+        CheckedObjects := GetCheckedObjects(DBNode);
+        for DBObj in CheckedObjects do begin
+          Inc(FObjectSizes, DBObj.Size);
+        end;
+      end;
+      DBNode := TreeObjects.GetNextVisibleSibling(DBNode);
+    end;
+    SessionNode := TreeObjects.GetNextVisibleSibling(SessionNode);
+  end;
+  ValidateControls(Sender);
 end;
 
 procedure TfrmTableTools.UpdateResultGrid;

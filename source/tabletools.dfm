@@ -765,4 +765,11 @@ object frmTableTools: TfrmTableTools
       OnClick = menuCopyMysqldumpCommandClick
     end
   end
+  object timerCalcSize: TTimer
+    Enabled = False
+    Interval = 200
+    OnTimer = timerCalcSizeTimer
+    Left = 264
+    Top = 352
+  end
 end
