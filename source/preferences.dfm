@@ -4,7 +4,7 @@ object frmPreferences: TfrmPreferences
   BorderIcons = [biSystemMenu]
   Caption = 'Preferences'
   ClientHeight = 482
-  ClientWidth = 708
+  ClientWidth = 712
   Color = clBtnFace
   Constraints.MinHeight = 480
   Constraints.MinWidth = 600
@@ -18,7 +18,7 @@ object frmPreferences: TfrmPreferences
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    708
+    712
     482)
   TextHeight = 14
   object pagecontrolMain: TPageControl
@@ -1429,6 +1429,19 @@ object frmPreferences: TfrmPreferences
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Close tab on middleclick'
         TabOrder = 3
+        OnClick = Modified
+      end
+      object radioGroupTabIconsGrayscaleMode: TRadioGroup
+        Left = 220
+        Top = 100
+        Width = 457
+        Height = 101
+        Caption = 'Grayscale inactive tab icons'
+        Items.Strings = (
+          'Color icons on all tabs'
+          'Grayscale icons on inactive query tabs only'
+          'Grayscale icons on every inactive tab')
+        TabOrder = 4
         OnClick = Modified
       end
     end

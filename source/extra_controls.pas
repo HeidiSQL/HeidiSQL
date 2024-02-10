@@ -422,22 +422,32 @@ class procedure TExtForm.PageControlTabHighlight(PageControl: TPageControl);
 var
   i, CurrentImage, CountOriginals: Integer;
   Images: TVirtualImageList;
+  GrayscaleMode: Integer;
+  IsQueryTab, DoGrayscale: Boolean;
 begin
   // Set grayscale icon on inactive tabs
   if not (PageControl.Images is TVirtualImageList) then
     Exit;
+  GrayscaleMode := AppSettings.ReadInt(asTabIconsGrayscaleMode);
+
   Images := PageControl.Images as TVirtualImageList;
   CountOriginals := Images.ImageCollection.Count;
 
   for i:=0 to PageControl.PageCount-1 do begin
     CurrentImage := PageControl.Pages[i].ImageIndex;
     if PageControl.ActivePageIndex = i then begin
-      if CurrentImage >= CountOriginals then
+      if CurrentImage >= CountOriginals then begin
+        // Grayscaled => Color
         PageControl.Pages[i].ImageIndex := CurrentImage - CountOriginals;
+      end;
     end
     else begin
-      if CurrentImage < CountOriginals then
-        PageControl.Pages[i].ImageIndex := CurrentImage + CountOriginals;
+      if CurrentImage < CountOriginals then begin
+        // Color => Grayscaled
+        IsQueryTab := (PageControl.Owner.Name = 'MainForm') and ExecRegExpr('^tabQuery\d*$', PageControl.Pages[i].Name);
+        if ((GrayscaleMode = 1) and IsQueryTab) or (GrayscaleMode = 2) then
+          PageControl.Pages[i].ImageIndex := CurrentImage + CountOriginals;
+      end;
     end;
   end;
 end;

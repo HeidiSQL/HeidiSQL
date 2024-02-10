@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-02-07 07:28+0100\n"
+"PO-Revision-Date: 2024-02-10 15:35+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -2775,6 +2775,18 @@ msgstr "Close tab on doubleclick"
 
 msgid "Close tab on middleclick"
 msgstr "Close tab on middleclick"
+
+msgid "Grayscale inactive tab icons"
+msgstr "Grayscale inactive tab icons"
+
+msgid "Color icons on all tabs"
+msgstr "Color icons on all tabs"
+
+msgid "Grayscale icons on inactive query tabs only"
+msgstr "Grayscale icons on inactive query tabs only"
+
+msgid "Grayscale icons on every inactive tab"
+msgstr "Grayscale icons on every inactive tab"
 
 msgid "Tabs in multiple lines"
 msgstr "Tabs in multiple lines"
