@@ -5555,21 +5555,20 @@ begin
     // Inexact fallback detection, wrong if MariaDB allows "0+1" as expression at some point
     Result := Result or Value.IsEmpty or IsInt(Value[1]);
   end else if FParameters.IsAnyMySQL then begin
-    if ServerVersionInt <= 80013 then begin
-      // Only MySQL case with expression in default value is as follows:
-      if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
-        Result := False;
-      end else begin
-        Result := True;
-      end;
+    // Only MySQL case with expression in default value is as follows:
+    if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
+      Result := False;
     end
-    else begin
-      // https://dev.mysql.com/doc/refman/8.0/en/data-type-defaults.html#data-type-defaults-explicit
-      // MySQL 8.0.13+ expect expressions to be wrapped in (..) when you create a table.
-      // But checking if first char is an opening parenthesis does not work here, as we get the expression
-      // from IS.COLUMNS, not from SHOW CREATE TABLE. So here's a workaround for distinguishing text
-      // from an expression:
-      Result := not Value.Contains('(');
+    else case ServerVersionInt of
+      0..80013: Result := True;
+      else begin
+        // https://dev.mysql.com/doc/refman/8.0/en/data-type-defaults.html#data-type-defaults-explicit
+        // MySQL 8.0.13+ expect expressions to be wrapped in (..) when you create a table.
+        // But checking if first char is an opening parenthesis does not work here, as we get the expression
+        // from IS.COLUMNS, not from SHOW CREATE TABLE. So here's a workaround for distinguishing text
+        // from an expression:
+        Result := not Value.Contains('(');
+      end;
     end;
   end else if FParameters.IsAnyPostgreSQL then begin
     // text only if starting with '
@@ -5655,10 +5654,10 @@ begin
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
     Col.OnUpdateType := cdtNothing;
-    if ColQuery.Col('COLUMN_DEFAULT').StartsWith('nextval(', True) then begin
+    if DefText.StartsWith('nextval(', True) then begin
       // PG auto increment
       Col.DefaultType := cdtAutoInc;
-      Col.DefaultText := ColQuery.Col('COLUMN_DEFAULT');
+      Col.DefaultText := DefText;
     end
     else if ExecRegExpr('\bauto_increment\b', ExtraText.ToLowerInvariant) then begin
       // MySQL auto increment
