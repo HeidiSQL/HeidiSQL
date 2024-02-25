@@ -6090,12 +6090,6 @@ begin
 
     DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, Int64(vt.RootNodeCount)-1);
     SelectNode(vt, DataGridFocusedNodeIndex);
-    for i:=0 to vt.Header.Columns.Count-1 do begin
-      if vt.Header.Columns[i].Text = DataGridFocusedColumnName then begin
-        vt.FocusedColumn := i;
-        break;
-      end;
-    end;
     if RefreshingData then begin
 
       if (FDataGridLastClickedColumnHeader >= 0) and (FDataGridLastClickedColumnHeader < vt.Header.Columns.Count) then begin // See issue #3309
@@ -6107,6 +6101,12 @@ begin
       end;
 
       vt.OffsetXY := OldScrollOffset;
+    end;
+    for i:=0 to vt.Header.Columns.Count-1 do begin
+      if vt.Header.Columns[i].Text = DataGridFocusedColumnName then begin
+        vt.FocusedColumn := i;
+        break;
+      end;
     end;
 
     // Reset remembered data for last clicked column header
