@@ -189,7 +189,8 @@ type
     chkTabCloseOnMiddleClick: TCheckBox;
     btnRemoveHotKey1: TButton;
     btnRemoveHotKey2: TButton;
-    radioGroupTabIconsGrayscaleMode: TRadioGroup;
+    comboTabIconsGrayscaleMode: TComboBox;
+    Label5: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -442,7 +443,7 @@ begin
   AppSettings.WriteBool(asRestoreTabs, chkRestoreTabs.Checked);
   AppSettings.WriteBool(asTabCloseOnDoubleClick, chkTabCloseOnDoubleClick.Checked);
   AppSettings.WriteBool(asTabCloseOnMiddleClick, chkTabCloseOnMiddleClick.Checked);
-  AppSettings.WriteInt(asTabIconsGrayscaleMode, radioGroupTabIconsGrayscaleMode.ItemIndex);
+  AppSettings.WriteInt(asTabIconsGrayscaleMode, comboTabIconsGrayscaleMode.ItemIndex);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -807,7 +808,7 @@ begin
   chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
   chkTabCloseOnDoubleClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
   chkTabCloseOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
-  radioGroupTabIconsGrayscaleMode.ItemIndex := AppSettings.ReadInt(asTabIconsGrayscaleMode);
+  comboTabIconsGrayscaleMode.ItemIndex := AppSettings.ReadInt(asTabIconsGrayscaleMode);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;
