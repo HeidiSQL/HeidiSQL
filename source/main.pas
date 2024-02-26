@@ -6090,23 +6090,25 @@ begin
 
     DataGridFocusedNodeIndex := Min(DataGridFocusedNodeIndex, Int64(vt.RootNodeCount)-1);
     SelectNode(vt, DataGridFocusedNodeIndex);
-    if RefreshingData then begin
-
-      if (FDataGridLastClickedColumnHeader >= 0) and (FDataGridLastClickedColumnHeader < vt.Header.Columns.Count) then begin // See issue #3309
-        // Horizontal offset based on the left side of a just sorted column
-        OldScrollOffset.X := -(vt.Header.Columns[FDataGridLastClickedColumnHeader].Left - FDataGridLastClickedColumnLeftPos);
-        // logsql('Fixing x-offset to '+OldScrollOffset.X.ToString +
-        //   ', FDataGridLastClickedColumnHeader:'+FDataGridLastClickedColumnHeader.ToString +
-        //   ', FDataGridLastClickedColumnLeftPos: '+FDataGridLastClickedColumnLeftPos.ToString);
-      end;
-
-      vt.OffsetXY := OldScrollOffset;
-    end;
     for i:=0 to vt.Header.Columns.Count-1 do begin
       if vt.Header.Columns[i].Text = DataGridFocusedColumnName then begin
         vt.FocusedColumn := i;
         break;
       end;
+    end;
+    if RefreshingData then begin
+
+      if (FDataGridLastClickedColumnHeader >= 0) and (FDataGridLastClickedColumnHeader < vt.Header.Columns.Count) then begin // See issue #3309
+        // Horizontal offset based on the left side of a just sorted column
+        OldScrollOffset.X := -(vt.Header.Columns[FDataGridLastClickedColumnHeader].Left - vt.OffsetX - FDataGridLastClickedColumnLeftPos);
+        // logsql('Fixing x-offset to '+OldScrollOffset.X.ToString +
+        //   ', FDataGridLastClickedColumnHeader:'+FDataGridLastClickedColumnHeader.ToString +
+        //   ', FDataGridLastClickedColumnLeftPos: '+FDataGridLastClickedColumnLeftPos.ToString +
+        //   ', vt.Header.Columns[FDataGridLastClickedColumnHeader].Left: '+vt.Header.Columns[FDataGridLastClickedColumnHeader].Left.ToString
+        //   );
+      end;
+
+      vt.OffsetXY := OldScrollOffset;
     end;
 
     // Reset remembered data for last clicked column header

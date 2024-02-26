@@ -1524,6 +1524,7 @@ end;
 function SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
 var
   OldFocus: PVirtualNode;
+  MinimumColumnIndex: TColumnIndex;
 begin
   if Node = VT.RootNode then
     Node := nil;
@@ -1536,7 +1537,9 @@ begin
     if ClearSelection then
       VT.ClearSelection;
     VT.FocusedNode := Node;
-    VT.FocusedColumn := VT.Header.Columns.GetFirstVisibleColumn(True);
+    MinimumColumnIndex := VT.Header.Columns.GetFirstVisibleColumn(True);
+    if VT.FocusedColumn < MinimumColumnIndex then
+      VT.FocusedColumn := MinimumColumnIndex;
     VT.Selected[Node] := True;
     VT.ScrollIntoView(Node, False);
     if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
