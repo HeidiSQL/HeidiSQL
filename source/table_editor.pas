@@ -449,7 +449,7 @@ var
   Batch: TSQLBatch;
   Query: TSQLSentence;
   i: Integer;
-  Rename: String;
+  Rename, ErrMessage, ErrMessageAdditional, InnodbStatus: String;
 begin
   // Check if all indexes have at least one column
   // If not, exit early
@@ -497,7 +497,16 @@ begin
     CreateCodeValid := False;
   except
     on E:EDbError do begin
-      ErrorDialog(E.Message);
+      ErrMessage := E.Message;
+      if DBObject.Connection.Parameters.IsAnyMySQL
+        and ContainsText(E.Message, 'constraint is incorrectly formed') then
+      begin
+        InnodbStatus := DBObject.Connection.GetVar('SHOW ENGINE INNODB STATUS', 'Status');
+        ErrMessageAdditional := RegExprGetMatch('\n([^\n]+with foreign key constraint failed[^\n]+)\n', InnodbStatus, 1, False, True);
+        if not ErrMessageAdditional.IsEmpty then
+          ErrMessage := ErrMessage + sLineBreak + sLineBreak + 'INNODB STATUS:' + sLineBreak + ErrMessageAdditional;
+      end;
+      ErrorDialog(ErrMessage);
       Result := mrAbort;
     end;
   end;
