@@ -498,11 +498,13 @@ begin
   except
     on E:EDbError do begin
       ErrMessage := E.Message;
+      // Help user with a cryptic error message, by getting details from INNODB STATUS
+      // See https://stackoverflow.com/questions/8434518/mysql-foreign-key-constraint-is-incorrectly-formed-error/64251639
       if DBObject.Connection.Parameters.IsAnyMySQL
-        and ContainsText(E.Message, 'constraint is incorrectly formed') then
+        and ContainsText(ErrMessage, 'constraint is incorrectly formed') then
       begin
         InnodbStatus := DBObject.Connection.GetVar('SHOW ENGINE INNODB STATUS', 'Status');
-        ErrMessageAdditional := RegExprGetMatch('\n([^\n]+with foreign key constraint failed[^\n]+)\n', InnodbStatus, 1, False, True);
+        ErrMessageAdditional := RegExprGetMatch('\n([^\n]+ constraint failed\.[^\n]+)\n', InnodbStatus, 1, False, True);
         if not ErrMessageAdditional.IsEmpty then
           ErrMessage := ErrMessage + sLineBreak + sLineBreak + 'INNODB STATUS:' + sLineBreak + ErrMessageAdditional;
       end;
