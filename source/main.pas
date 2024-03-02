@@ -7214,7 +7214,7 @@ begin
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
     LineText := SynMemoSQLLog.LineText;
     if AppSettings.ReadBool(asLogTimestamp) then
-      LineText := ReplaceRegExpr('\s*\[[^\]]+\]\s', LineText, '');
+      LineText := ReplaceRegExpr('^\s*\[[^\]]+\]\s', LineText, '');
     Tab.Memo.Text := LineText;
   end;
 end;
