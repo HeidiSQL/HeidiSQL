@@ -7207,11 +7207,15 @@ end;
 procedure TMainForm.Copylinetonewquerytab1Click(Sender: TObject);
 var
   Tab: TQueryTab;
+  LineText: String;
 begin
   // Create new query tab with current line in SQL log. This is for lazy mouse users.
   if actNewQueryTab.Execute then begin
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
-    Tab.Memo.Text := SynMemoSQLLog.LineText;
+    LineText := SynMemoSQLLog.LineText;
+    if AppSettings.ReadBool(asLogTimestamp) then
+      LineText := ReplaceRegExpr('\s*\[[^\]]+\]\s', LineText, '');
+    Tab.Memo.Text := LineText;
   end;
 end;
 
