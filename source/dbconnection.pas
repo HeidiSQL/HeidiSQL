@@ -5332,7 +5332,12 @@ begin
   if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then begin
     if Parameters.IsMariaDB and (ServerVersionInt >= 101001) then try
       // Issue #1917: MariaDB 10.10.1+ versions have additional collations in IS.COLLATION_CHARACTER_SET_APPLICABILITY
-      FCollationTable := GetResults('SELECT FULL_COLLATION_NAME AS '+QuoteIdent('Collation')+
+      FCollationTable := GetResults('SELECT'+
+        ' FULL_COLLATION_NAME AS '+QuoteIdent('Collation')+
+        ', null AS '+QuoteIdent('Charset')+
+        ', 0 AS '+QuoteIdent('Id')+
+        ', null AS '+QuoteIdent('Default')+
+        ', 0 AS '+QuoteIdent('Sortlen')+
         ' FROM '+QuoteIdent(InfSch)+'.COLLATION_CHARACTER_SET_APPLICABILITY'+
         ' ORDER BY '+QuoteIdent('Collation')
         );
