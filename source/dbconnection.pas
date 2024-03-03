@@ -2075,6 +2075,7 @@ begin
   FMaxRowsPerInsert := 10000;
   FCaseSensitivity := 0;
   FStringQuoteChar := '''';
+  FCollationTable := nil;
 end;
 
 
@@ -5328,8 +5329,19 @@ end;
 function TMySQLConnection.GetCollationTable: TDBQuery;
 begin
   inherited;
-  if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then
-    FCollationTable := GetResults('SHOW COLLATION');
+  if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then begin
+    if Parameters.IsMariaDB and (ServerVersionInt >= 101001) then try
+      // Issue #1917: MariaDB 10.10.1+ versions have additional collations in IS.COLLATION_CHARACTER_SET_APPLICABILITY
+      FCollationTable := GetResults('SELECT FULL_COLLATION_NAME AS '+QuoteIdent('Collation')+
+        ' FROM '+QuoteIdent(InfSch)+'.COLLATION_CHARACTER_SET_APPLICABILITY'+
+        ' ORDER BY '+QuoteIdent('Collation')
+        );
+    except
+      on E:EDbError do;
+    end;
+    if not Assigned(FCollationTable) then
+      FCollationTable := GetResults('SHOW COLLATION');
+  end;
   if Assigned(FCollationTable) then
     FCollationTable.First;
   Result := FCollationTable;
