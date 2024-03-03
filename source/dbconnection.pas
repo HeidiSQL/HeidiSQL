@@ -5334,9 +5334,9 @@ begin
       // Issue #1917: MariaDB 10.10.1+ versions have additional collations in IS.COLLATION_CHARACTER_SET_APPLICABILITY
       FCollationTable := GetResults('SELECT'+
         ' FULL_COLLATION_NAME AS '+QuoteIdent('Collation')+
-        ', null AS '+QuoteIdent('Charset')+
-        ', 0 AS '+QuoteIdent('Id')+
-        ', null AS '+QuoteIdent('Default')+
+        ', CHARACTER_SET_NAME AS '+QuoteIdent('Charset')+
+        ', ID AS '+QuoteIdent('Id')+
+        ', IS_DEFAULT AS '+QuoteIdent('Default')+
         ', 0 AS '+QuoteIdent('Sortlen')+
         ' FROM '+QuoteIdent(InfSch)+'.COLLATION_CHARACTER_SET_APPLICABILITY'+
         ' ORDER BY '+QuoteIdent('Collation')
