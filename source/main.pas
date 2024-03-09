@@ -9575,7 +9575,6 @@ procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualN
 var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
-  TabHostName: String;
   EnteringSession: Boolean;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
@@ -9712,12 +9711,8 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
-    if FActiveDbObj.Connection.Parameters.IsAnySQLite then // Prefer visible filename over visible left part of path
-      TabHostName := StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 60, False)
-    else
-      TabHostName := FActiveDbObj.Connection.Parameters.HostName;
 
-    SetTabCaption(tabHost.PageIndex, _('Host')+': '+TabHostName);
+    SetTabCaption(tabHost.PageIndex, FActiveDbObj.Connection.Parameters.SessionName);
     SetTabCaption(tabDatabase.PageIndex, _('Database')+': '+FActiveDbObj.Connection.Database);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
@@ -14410,6 +14405,7 @@ procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolea
 var
   MainTabIndex, QueryTabIndex: integer;
   pt: TPoint;
+  Conn: TDBConnection;
 begin
   // Show full filename in tab hint. See issue #3527
   // Code taken from http://www.delphipraxis.net/97988-tabsheet-hint-funktioniert-nicht.html
@@ -14417,8 +14413,15 @@ begin
     pt := PageControlMain.ScreenToClient(Mouse.CursorPos);
     MainTabIndex := GetMainTabAt(pt.X, pt.Y);
     QueryTabIndex := MainTabIndex - tabQuery.PageIndex;
-    if (QueryTabIndex >= 0) and (QueryTabIndex < QueryTabs.Count) then
+    if (QueryTabIndex >= 0) and (QueryTabIndex < QueryTabs.Count) then begin
       HintStr := QueryTabs[QueryTabIndex].MemoFilename;
+    end
+    else if MainTabIndex = tabHost.TabIndex then begin
+      Conn := ActiveConnection;
+      HintStr := Conn.Parameters.Hostname;
+      if Conn.Parameters.IsAnySQLite then
+        HintStr := StringReplace(HintStr, DELIM, SLineBreak, [rfReplaceAll]);
+    end;
     HintInfo.ReshowTimeout := 1000;
   end;
 end;
