@@ -2510,8 +2510,9 @@ begin
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
-          if HelpersWidth > 50 then
-            Tab.pnlHelpers.Width := HelpersWidth;
+          // Causes sporadic long-waiters:
+          //if HelpersWidth > 50 then
+          //  Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
@@ -2532,8 +2533,9 @@ begin
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
-          if HelpersWidth > 50 then
-            Tab.pnlHelpers.Width := HelpersWidth;
+          // Causes sporadic long-waiters:
+          //if HelpersWidth > 50 then
+          //  Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
@@ -14782,10 +14784,9 @@ begin
     if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
       MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
     Memo.UndoList.AddGroupBreak;
-    Memo.BeginUpdate;
     LineBreaks := ScanLineBreaks(Content);
     if ReplaceContent then begin
-      Memo.SelectAll;
+      Memo.Clear;
       MemoLineBreaks := LineBreaks;
     end else begin
       if (MemoLineBreaks <> lbsNone) and (MemoLineBreaks <> LineBreaks) then
@@ -14796,9 +14797,11 @@ begin
     if MemoLineBreaks = lbsMixed then
       MessageDialog(_('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).'), mtInformation, [mbOK]);
 
-    Memo.SelText := Content;
+    if ReplaceContent then
+      Memo.Text := Content
+    else
+      Memo.SelText := Content;
     Memo.SelStart := Memo.SelEnd;
-    Memo.EndUpdate;
     Memo.Modified := False;
     MemoFilename := Filepath;
     Result := True;
