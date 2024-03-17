@@ -6890,7 +6890,7 @@ begin
     if rx.Exec(CurrentQuery) then begin
       TableClauses := rx.Match[3];
       // Ensure tables in JOIN clause(s) are splitted by comma
-      TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
+      TableClauses := ReplaceRegExpr('\sJOIN\s', TableClauses, ',', [rroModifierI]);
       // Remove surrounding parentheses
       TableClauses := StringReplace(TableClauses, '(', ' ', [rfReplaceAll]);
       TableClauses := StringReplace(TableClauses, ')', ' ', [rfReplaceAll]);
