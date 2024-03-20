@@ -3282,6 +3282,7 @@ end;
 procedure TDBConnection.DoAfterConnect;
 var
   SQLFunctionsFileOrder: String;
+  MajorMinorVer, MajorVer: String;
 begin
   AppSettings.SessionPath := FParameters.SessionPath;
   AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
@@ -3294,20 +3295,23 @@ begin
     FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
   end;
 
+  MajorMinorVer := RegExprGetMatch('^(\d+\.\d+)', ServerVersionStr, 1);
+  MajorVer := RegExprGetMatch('^(\d+)\.', ServerVersionStr, 1);
+
   if FParameters.IsMariaDB then
-    SQLFunctionsFileOrder := 'mariadb,mysql'
+    SQLFunctionsFileOrder := 'mariadb'+MajorMinorVer+',mariadb'+MajorVer+',mariadb,mysql'
   else if FParameters.IsAnyMySQL then
-    SQLFunctionsFileOrder := 'mysql'
+    SQLFunctionsFileOrder := 'mysql'+MajorMinorVer+',mysql'+MajorVer+',mysql'
   else if FParameters.IsRedshift then
-    SQLFunctionsFileOrder := 'redshift,postgresql'
+    SQLFunctionsFileOrder := 'redshift'+MajorMinorVer+',redshift'+MajorVer+',redshift,postgresql'
   else if FParameters.IsAnyPostgreSQL then
-    SQLFunctionsFileOrder := 'postgresql'
+    SQLFunctionsFileOrder := 'postgresql'+MajorMinorVer+',postgresql'+MajorVer+',postgresql'
   else if FParameters.IsAnyMSSQL then
-    SQLFunctionsFileOrder := 'mssql'
+    SQLFunctionsFileOrder := 'mssql'+MajorMinorVer+',mssql'+MajorVer+',mssql'
   else if FParameters.IsAnySQLite then
-    SQLFunctionsFileOrder := 'sqlite'
+    SQLFunctionsFileOrder := 'sqlite'+MajorMinorVer+',sqlite'+MajorVer+',sqlite'
   else if FParameters.IsAnyInterbase then
-    SQLFunctionsFileOrder := 'interbase'
+    SQLFunctionsFileOrder := 'interbase'+MajorMinorVer+',interbase'+MajorVer+',interbase'
   else
     SQLFunctionsFileOrder := '';
   FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
@@ -10943,6 +10947,7 @@ begin
   TryFiles := Explode(',', SQLFunctionsFileOrder);
   for TryFile in TryFiles do begin
     IniFilePath := ExtractFilePath(Application.ExeName) + 'functions-'+TryFile+'.ini';
+    FOwner.Log(lcDebug, 'Trying '+IniFilePath);
     if FileExists(IniFilePath) then begin
       FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
       Ini := TMemIniFile.Create(IniFilePath);
