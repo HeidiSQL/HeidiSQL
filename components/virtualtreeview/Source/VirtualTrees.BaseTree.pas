@@ -6532,24 +6532,6 @@ end;
 
 procedure TBaseVirtualTree.WMHScroll(var Message: TWMHScroll);
 
-  //--------------- local functions -------------------------------------------
-
-  function GetRealScrollPosition: TDimension;
-
-  var
-    SI: TScrollInfo;
-    Bar: Integer;
-
-  begin
-    SI.cbSize := SizeOf(TScrollInfo);
-    SI.fMask := SIF_TRACKPOS;
-    Bar := SB_HORZ;
-    GetScrollInfo(Bar, SI);
-    Result := SI.nTrackPos;
-  end;
-
-  //--------------- end local functions ---------------------------------------
-
 var
   RTLFactor: Integer;
 
@@ -6582,9 +6564,11 @@ begin
       begin
         DoStateChange([tsThumbTracking]);
         if UseRightToLeftAlignment then
-          SetOffsetX(-FRangeX + ClientWidth + GetRealScrollPosition)
+          SetOffsetX(-FRangeX + ClientWidth + Message.Pos)
         else
-          SetOffsetX(-GetRealScrollPosition);
+          SetOffsetX(-Message.Pos);
+        // Fix unstyled scrollbar in some cases, while causing flicker:
+        UpdateScrollBars(True);
       end;
     SB_TOP:
       SetOffsetX(0);
