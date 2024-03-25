@@ -2759,7 +2759,7 @@ begin
     2: begin
       Key.ReferenceTable := NewText;
       if not Key.KeyNameWasCustomized then begin
-        Key.KeyName := 'FK_'+DBObject.Name+'_'+Key.ReferenceTable;
+        Key.KeyName := 'FK_'+editName.Text+'_'+Key.ReferenceTable;
         i := 1;
         NameInUse := True;
         while NameInUse do begin
@@ -2769,7 +2769,7 @@ begin
           end;
           if NameInUse then begin
             Inc(i);
-            Key.KeyName := 'FK_'+DBObject.Name+'_'+Key.ReferenceTable+'_'+IntToStr(i);
+            Key.KeyName := 'FK_'+editName.Text+'_'+Key.ReferenceTable+'_'+IntToStr(i);
           end;
         end;
 
