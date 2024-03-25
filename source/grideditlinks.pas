@@ -989,7 +989,7 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.ParentBackground := False;
-  FPanel.Height := 150;
+  FPanel.Height := TExtForm.ScaleSize(150, FParentForm);
   FPanel.OnExit := DoEndEdit;
 
   FCheckList := TCheckListBox.Create(FPanel);
@@ -1080,7 +1080,7 @@ begin
 
   FBtnOk.Width := (FPanel.Width - 3*margin) div 2;
   FBtnOk.Left := margin;
-  FBtnOk.Height := 24;
+  FBtnOk.Height := TExtForm.ScaleSize(24, FParentForm);
   FBtnOk.Top := FPanel.Height - 2*margin - FBtnOk.Height;
   FBtnOk.Enabled := FAllowEdit;
 
