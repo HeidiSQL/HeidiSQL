@@ -428,7 +428,8 @@ type
     spUSEQuery, spKillQuery, spKillProcess,
     spFuncLength, spFuncCeil, spFuncLeft, spFuncNow, spFuncLastAutoIncNumber,
     spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks,
-    spOrderAsc, spOrderDesc);
+    spOrderAsc, spOrderDesc,
+    spForeignKeyDrop);
 
   TDBConnection = class(TComponent)
     private
@@ -3081,6 +3082,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := 'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0';
       FSQLSpecifities[spEnableForeignKeyChecks] := 'SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1)';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3105,6 +3107,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
     ngPgSQL: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP SCHEMA %s';
@@ -3131,6 +3134,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP CONSTRAINT %s';
     end;
     ngSQLite: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3156,6 +3160,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
     ngInterbase: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3184,6 +3189,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
 
   end;

@@ -600,7 +600,7 @@ begin
   //   ALTER TABLE  statement. Separate statements are required."
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-      Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(FForeignKeys[i].OldKeyName));
+      Specs.Add(DBObject.Connection.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FForeignKeys[i].OldKeyName)]));
   end;
   FinishSpecs;
 
@@ -805,8 +805,9 @@ begin
       Specs.Add('ADD '+FKeys[i].SQLCode);
   end;
 
-  for i:=0 to FDeletedForeignKeys.Count-1 do
-    Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(FDeletedForeignKeys[i]));
+  for i:=0 to FDeletedForeignKeys.Count-1 do begin
+    Specs.Add(DBObject.Connection.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FDeletedForeignKeys[i])]));
+  end;
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
