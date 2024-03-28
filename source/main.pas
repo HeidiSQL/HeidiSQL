@@ -6806,7 +6806,7 @@ var
       if (Obj.Name.ToLowerInvariant = tblname.ToLowerInvariant) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := Obj.TableColumns;
         for Col in Columns do begin
-          DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '', DatatypeCategories[Col.DataType.Category].NullColor);
+          DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
           Proposal.AddItem(DisplayText, Col.Name);
           Inc(ColumnsInList);
         end;

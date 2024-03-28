@@ -2899,7 +2899,7 @@ end;
 function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
   LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
 const
-  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{5}\color{%s}%s';
+  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{10}\color{%s}\style{+i}%s';
 begin
   // Return formatted item string for a TSynCompletionProposal
   if LeftColor = -1 then LeftColor := clGrayText;
