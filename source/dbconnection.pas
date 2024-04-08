@@ -877,6 +877,7 @@ type
       function DatabaseName: String; virtual; abstract;
       function TableName: String; overload;
       function TableName(Column: Integer): String; overload; virtual; abstract;
+      function ResultName: String;
       function QuotedDbAndTableName: String;
       procedure DiscardModifications;
       procedure PrepareColumnAttributes;
@@ -9791,6 +9792,13 @@ begin
     Result := FConnection.QuotedDbAndTableName(DatabaseName, TableName);
 end;
 
+
+function TDBQuery.ResultName: String;
+begin
+  // Return name of query defined in a comment above the actual query
+  Result := RegExprGetMatch('--\s+name\:\s+(.+)[\r\n]', FSQL, 1, False, True);
+  Result := Trim(Result);
+end;
 
 function TDBQuery.GetKeyColumns: TStringList;
 var

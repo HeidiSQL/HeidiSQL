@@ -3330,15 +3330,13 @@ begin
     Tab.ResultTabs.Add(NewTab);
     NewTab.Results := Results;
     try
-      TabCaption := NewTab.Results.TableName;
-      // Add postfix to tab name so tab captions are unique
-      i := 1;
-      while Tab.tabsetQuery.Tabs.IndexOf(TabCaption) > -1 do begin
-        Inc(i);
-        TabCaption := NewTab.Results.TableName + ' #' + IntToStr(i);
+      TabCaption := NewTab.Results.ResultName;
+      if TabCaption.IsEmpty then
+        TabCaption := NewTab.Results.TableName;
+    except
+      on E:EDbError do begin
+        TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
       end;
-    except on E:EDbError do
-      TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
 
     TabCaption := TabCaption + ' (' + FormatNumber(Results.RecordCount) + 'r × ' + FormatNumber(Results.ColumnCount) + 'c)';
