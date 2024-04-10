@@ -654,7 +654,7 @@ begin
     Results := Conn.CollationTable;
     if Assigned(Results) then while not Results.Eof do begin
       if Results.Col('Collation') = comboCollation.Text then begin
-        Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset'));
+        Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset')+' COLLATE '+Conn.EscapeString(comboCollation.Text));
         break;
       end;
       Results.Next;
