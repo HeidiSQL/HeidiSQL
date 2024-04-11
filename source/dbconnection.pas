@@ -9740,6 +9740,7 @@ begin
     // Normal table column
     // Note: this is empty on data tab TEXT columns with LEFT(..) clause
     Result := FieldOrgTable;
+    StripNewLines(Result);
   end;
 end;
 
@@ -9796,7 +9797,7 @@ end;
 function TDBQuery.ResultName: String;
 begin
   // Return name of query defined in a comment above the actual query
-  Result := RegExprGetMatch('--\s+name\:\s+(.+)[\r\n]', FSQL, 1, False, True);
+  Result := RegExprGetMatch('--\s+name\:\s*([^\r\n]+)', FSQL, 1, False, True);
   Result := Trim(Result);
 end;
 
