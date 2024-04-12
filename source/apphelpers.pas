@@ -334,6 +334,7 @@ type
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function fixNewlines(txt: String): String;
+  procedure StripNewLines(var txt: String; Replacement: String=' ');
   function GetLineBreak(LineBreakIndex: TLineBreaks): String;
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   function GetShellFolder(FolderId: TGUID): String;
@@ -828,6 +829,12 @@ begin
   result := txt;
 end;
 
+procedure StripNewLines(var txt: String; Replacement: String=' ');
+begin
+  txt := StringReplace(txt, #13#10, Replacement, [rfReplaceAll]);
+  txt := StringReplace(txt, #13, Replacement, [rfReplaceAll]);
+  txt := StringReplace(txt, #10, Replacement, [rfReplaceAll]);
+end;
 
 function GetLineBreak(LineBreakIndex: TLineBreaks): String;
 begin

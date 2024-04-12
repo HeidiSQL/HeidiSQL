@@ -948,9 +948,7 @@ begin
 
           // Remove linebreaks, see #474
           if chkRemoveLinebreaks.Checked then begin
-            Data := StringReplace(Data, #13#10, ' ', [rfReplaceAll]);
-            Data := StringReplace(Data, #13, ' ', [rfReplaceAll]);
-            Data := StringReplace(Data, #10, ' ', [rfReplaceAll]);
+            StripNewLines(Data);
           end;
 
           case ExportFormat of
