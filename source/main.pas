@@ -6805,7 +6805,10 @@ var
         Columns := Obj.TableColumns;
         for Col in Columns do begin
           DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
-          Proposal.AddItem(DisplayText, Col.Name);
+          if CurrentInput.StartsWith(Conn.QuoteChar) then
+            Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
+          else
+            Proposal.AddItem(DisplayText, Col.Name);
           Inc(ColumnsInList);
         end;
         Columns.Free;
