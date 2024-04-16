@@ -5975,7 +5975,6 @@ begin
         NewKey.OldIndexType := NewKey.IndexType;
       end;
       NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
-      NewKey.SubParts.Add('');
     end;
     KeyQuery.Next;
   end;
@@ -6006,7 +6005,6 @@ begin
         NewKey.OldIndexType := NewKey.IndexType;
       end;
       NewKey.Columns.Add(ColQuery.Col('name'));
-      NewKey.SubParts.Add('');
       ColQuery.Next;
     end;
     ColQuery.Free;
@@ -6025,7 +6023,6 @@ begin
         'FROM pragma_index_info('+EscapeString(NewKey.Name)+')');
       while not ColQuery.Eof do begin
         NewKey.Columns.Add(ColQuery.Col('name'));
-        NewKey.SubParts.Add('');
         ColQuery.Next;
       end;
       ColQuery.Free;
@@ -6061,7 +6058,7 @@ begin
       NewKey.Columns.Add(KeyQuery.Col('Column_name'));
       NewKey.Collations.Add(KeyQuery.Col('Collation', True));
       if NewKey.IndexType = TTableKey.SPATIAL then
-        NewKey.SubParts.Add('') // Prevent "Incorrect prefix key"
+        NewKey.SubParts.Add('') // Keep in sync, prevent "Incorrect prefix key"
       else
         NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
       KeyQuery.Next;
@@ -6134,7 +6131,6 @@ begin
       NewKey.OldIndexType := NewKey.IndexType;
     end;
     NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
-    NewKey.SubParts.Add('');
     KeyQuery.Next;
   end;
   KeyQuery.Free;
@@ -6161,7 +6157,6 @@ begin
       NewKey.OldIndexType := NewKey.IndexType;
     end;
     NewKey.Columns.Add(ColQuery.Col('name'));
-    NewKey.SubParts.Add('');
     ColQuery.Next;
   end;
   ColQuery.Free;
@@ -6180,7 +6175,6 @@ begin
       'FROM '+QuoteIdent(Table.Database)+'.pragma_index_info('+EscapeString(NewKey.Name)+')');
     while not ColQuery.Eof do begin
       NewKey.Columns.Add(ColQuery.Col('name'));
-      NewKey.SubParts.Add('');
       ColQuery.Next;
     end;
     ColQuery.Free;
@@ -10752,10 +10746,10 @@ begin
   Result := Result + '(';
   for i:=0 to Columns.Count-1 do begin
     Result := Result + FConnection.QuoteIdent(Columns[i]);
-    if SubParts[i] <> '' then
+    if (SubParts.Count > i) and (SubParts[i] <> '') then
       Result := Result + '(' + SubParts[i] + ')';
     // Collation / sort order, see issue #1512
-    if Collations[i].ToLower = 'd' then
+    if (Collations.Count > i) and (Collations[i].ToLower = 'd') then
       Result := Result + ' DESC';
     Result := Result + ', ';
   end;
