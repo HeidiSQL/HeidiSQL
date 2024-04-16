@@ -333,6 +333,7 @@ type
     FDragImage                   : TVTDragImage;            //drag image management during header drag
     FLastWidth                   : TDimension;              //Used to adjust spring columns. This is the width of all visible columns, not the header rectangle.
     FRestoreSelectionColumnIndex : Integer;                 //The column that is used to implement the coRestoreSelection option
+    FWasDoubleClick              : Boolean;                 // The previous mouse message was for a double click, that allows us to process mouse-up-messages differently
     function GetMainColumn : TColumnIndex;
     function GetUseColumns : Boolean;
     function IsFontStored : Boolean;
@@ -1520,9 +1521,11 @@ begin
             CheckBoxHit := False;
           end;
         end;
+        fWasDoubleClick := False;
       end;
     WM_LBUTTONDBLCLK, WM_NCLBUTTONDBLCLK, WM_NCMBUTTONDBLCLK, WM_NCRBUTTONDBLCLK :
       begin
+        fWasDoubleClick := True;
         if Message.Msg <> WM_LBUTTONDBLCLK then
           with TWMNCLButtonDblClk(Message) do
             P := FOwner.ScreenToClient(Point(XCursor, YCursor))
@@ -1664,6 +1667,7 @@ begin
             HandleMessage := TVirtualTreeColumnsCracker(FColumns).HandleClick(P, TMouseButton.mbRight, True, False);
             TBaseVirtualTreeCracker(FOwner).DoHeaderMouseUp(TMouseButton.mbRight, GetShiftState, P.X, P.Y + FHeight);
           end;
+          fWasDoubleClick := False;
         end;
     //When the tree window has an active mouse capture then we only get "client-area" messages.
     WM_LBUTTONUP, WM_NCLBUTTONUP :
@@ -1729,6 +1733,7 @@ begin
           end;
           Result := True;
           Message.Result := 0;
+          fWasDoubleClick := False;
         end;
 
         case Message.Msg of
@@ -1742,14 +1747,17 @@ begin
               end;
               if FStates <> [] then
                 TBaseVirtualTreeCracker(FOwner).DoHeaderMouseUp(TMouseButton.mbLeft, KeysToShiftState(Keys), XPos, YPos);
+              fWasDoubleClick := False;
             end;
           WM_NCLBUTTONUP :
             begin
               with TWMNCLButtonUp(Message) do
                 P := FOwner.ScreenToClient(Point(XCursor, YCursor));
-              TVirtualTreeColumnsCracker(FColumns).HandleClick(P, TMouseButton.mbLeft, True, False);
+              if not fWasDoubleClick then
+                TVirtualTreeColumnsCracker(FColumns).HandleClick(P, TMouseButton.mbLeft, True, False);
               TBaseVirtualTreeCracker(FOwner).DoHeaderMouseUp(TMouseButton.mbLeft, GetShiftState, P.X, P.Y + FHeight);
               Result := True;
+              fWasDoubleClick := False;
             end;
         end;
 
@@ -4398,15 +4406,12 @@ end;
 //----------------------------------------------------------------------------------------------------------------------
 
 procedure TVirtualTreeColumns.FixPositions;
-
 // Fixes column positions after loading from DFM or Bidi mode change.
-
 var
   LColumnsByPos: TList<TVirtualTreeColumn>;
-  I : Integer;
+  I: Integer;
 begin
   LColumnsByPos := TList<TVirtualTreeColumn>.Create;
-  // Fix duplicate positions, see #1228
   try
     LColumnsByPos.Capacity := Self.Count;
     for I := 0 to Self.Count-1 do
@@ -4415,22 +4420,22 @@ begin
     LColumnsByPos.Sort(
       TComparer<TVirtualTreeColumn>.Construct(
         function(const A, B: TVirtualTreeColumn): Integer
-      begin
+        begin
           Result := CompareValue(A.Position, B.Position);
           if Result = 0 then
             Result := CompareValue(A.Index, B.Index);
         end)
     );
+
     for I := 0 to LColumnsByPos.Count-1 do
-      begin
+    begin
       LColumnsByPos[I].FPosition := I;
       Self.FPositionToIndex[I] := LColumnsByPos[I].Index;
-      end;
+    end;
+
   finally
 	  LColumnsByPos.Free;
-    end; // for
-
-  // Update position array
+  end;
 
   FNeedPositionsFix := False;
   UpdatePositions(True);
@@ -5262,7 +5267,7 @@ begin
       Result := FPositionToIndex[Position - 1]
     else
       Result := InvalidColumn;
-    Assert(Position <> Result, 'The previous column must not have the same position as the given column.');
+    Assert(Column <> Result, 'The previous column must not have the same position as the given column.');
   end;
 end;
 
