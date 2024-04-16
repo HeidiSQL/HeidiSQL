@@ -10739,9 +10739,15 @@ begin
   if IndexType = TTableKey.PRIMARY then
     Result := Result + 'PRIMARY KEY '
   else begin
-    if IndexType <> TTableKey.KEY then
+    if FConnection.Parameters.IsAnyPostgreSQL then begin
       Result := Result + IndexType + ' ';
-    Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
+    end
+    else begin
+      if IndexType <> TTableKey.KEY then
+        Result := Result + IndexType + ' ';
+      Result := Result + 'INDEX ';
+    end;
+    Result := Result + FConnection.QuoteIdent(Name) + ' ';
   end;
   Result := Result + '(';
   for i:=0 to Columns.Count-1 do begin
