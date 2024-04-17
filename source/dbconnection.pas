@@ -1087,7 +1087,7 @@ end;
 procedure TSecureShellCmd.Connect;
 var
   SshCmd, SshCmdDisplay, DialogTitle: String;
-  OutText, ErrorText, UserInput: String;
+  OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
@@ -1191,21 +1191,27 @@ begin
     end;
 
     if OutText <> '' then begin
+      // Prepend error text in the dialog, e.g. "Unable to use keyfile"
+      AllPipesText := OutText;
+      if not ErrorText.IsEmpty then begin
+        FConnection.Log(lcError, 'SSH: '+ErrorText);
+        AllPipesText := Trim('Error: ' + ErrorText + sLineBreak + AllPipesText);
+      end;
       if ExecRegExpr('login as\s*\:', OutText) then begin
         // Prompt for username
-        UserInput := InputBox(DialogTitle, OutText, '');
+        UserInput := InputBox(DialogTitle, AllPipesText, '');
         SendText(UserInput + CRLF);
       end else if ExecRegExpr('(password|Passphrase for key "[^"]+")\s*\:', OutText) then begin
         // Prompt for sensitive input. Send * as first char of prompt param so InputBox hides input characters
-        UserInput := InputBox(DialogTitle, #31+OutText, '');
+        UserInput := InputBox(DialogTitle, #31+AllPipesText, '');
         SendText(UserInput + CRLF);
       end else begin
         // Informational message box
         rx.Expression := '^[^\.]+\.';
         if rx.Exec(OutText) then begin // First words end with a dot - use it as caption
-          MessageDialog(DialogTitle + ': ' + rx.Match[0], OutText, mtInformation, [mbOK])
+          MessageDialog(DialogTitle + ': ' + rx.Match[0], AllPipesText, mtInformation, [mbOK])
         end else begin
-          MessageDialog(DialogTitle, OutText, mtInformation, [mbOK]);
+          MessageDialog(DialogTitle, AllPipesText, mtInformation, [mbOK]);
         end;
       end;
     end
