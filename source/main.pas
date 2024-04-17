@@ -10532,6 +10532,7 @@ begin
       end else
         NewText := NewText;
     end;
+    FClipboardHasNull := FClipboardHasNull and (Clipboard.TryAsText = '');
     IsNull := FGridPasting and FClipboardHasNull;
     Results.SetCol(ResultCol, NewText, IsNull, FGridEditFunctionMode);
   except
