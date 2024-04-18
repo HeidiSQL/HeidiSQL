@@ -2007,16 +2007,6 @@ begin
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);
 
-  // Fix node height on Virtual Trees for current DPI settings
-  FixVT(DBTree);
-  FixVT(ListDatabases);
-  FixVT(ListVariables);
-  FixVT(ListStatus);
-  FixVT(ListProcesses);
-  FixVT(ListCommandStats);
-  FixVT(ListTables);
-  FixVT(treeQueryHelpers);
-
   // Window position
   Left := AppSettings.ReadInt(asMainWinLeft);
   Top := AppSettings.ReadInt(asMainWinTop);
@@ -2813,6 +2803,16 @@ begin
   RestoreListSetup(ListProcesses);
   RestoreListSetup(ListCommandStats);
   RestoreListSetup(ListTables);
+
+  // Fix node height on Virtual Trees for current DPI settings
+  FixVT(DBTree);
+  FixVT(ListDatabases);
+  FixVT(ListVariables);
+  FixVT(ListStatus);
+  FixVT(ListProcesses);
+  FixVT(ListCommandStats);
+  FixVT(ListTables);
+  FixVT(treeQueryHelpers);
 
   // Manually set focus to tree - otherwise the database filter as the first
   // control catches focus on startup, which is ugly.
