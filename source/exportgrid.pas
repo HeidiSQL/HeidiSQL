@@ -29,7 +29,6 @@ type
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
     btnCancel: TButton;
-    grpFormat: TRadioGroup;
     grpSelection: TRadioGroup;
     grpOutput: TGroupBox;
     radioOutputCopyToClipboard: TRadioButton;
@@ -67,6 +66,8 @@ type
     editNull: TButtonedEdit;
     btnSetClipboardDefaults: TButton;
     chkRemoveLinebreaks: TCheckBox;
+    grpFormat: TGroupBox;
+    comboFormat: TComboBox;
     procedure FormCreate(Sender: TObject);
     procedure CalcSize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -81,7 +82,6 @@ type
     procedure FormShow(Sender: TObject);
     procedure grpFormatClick(Sender: TObject);
     procedure btnSetClipboardDefaultsClick(Sender: TObject);
-    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
@@ -179,15 +179,15 @@ begin
   comboEncoding.Items.Assign(MainForm.FileEncodings);
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
-  grpFormat.Items.Clear;
+  comboFormat.Items.Clear;
   for FormatDesc in FormatToDescription do
-    grpFormat.Items.Add(FormatDesc);
+    comboFormat.Items.Add(FormatDesc);
   SenderName := Owner.Name;
   FHiddenCopyMode := SenderName.StartsWith(CopyAsActionPrefix);
 
   if FHiddenCopyMode then begin
     radioOutputCopyToClipboard.Checked := True;
-    grpFormat.ItemIndex := Owner.Tag;
+    comboFormat.ItemIndex := Owner.Tag;
     grpSelection.ItemIndex := 0; // Always use selected cells in copy mode
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportClpColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportClpIncludeAutoInc);
@@ -200,7 +200,7 @@ begin
   end else begin
     radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);
     radioOutputFile.Checked := AppSettings.ReadBool(asGridExportOutputFile);
-    grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
+    comboFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
     grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
@@ -214,15 +214,6 @@ begin
   ValidateControls(Sender);
 end;
 
-
-procedure TfrmExportGrid.FormResize(Sender: TObject);
-begin
-  grpFormat.Width := Width div 3;
-  grpSelection.Left := grpFormat.Left + grpFormat.Width + 8;
-  grpSelection.Width := Width - grpSelection.Left - 24;
-  grpOptions.Left := grpSelection.Left;
-  grpOptions.Width := grpSelection.Width;
-end;
 
 procedure TfrmExportGrid.FormShow(Sender: TObject);
 begin
@@ -245,7 +236,7 @@ begin
     AppSettings.WriteString(asGridExportFilename, editFilename.Text);
     AppSettings.WriteString(asGridExportRecentFiles, Implode(DELIM, FRecentFiles));
     AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
-    AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
+    AppSettings.WriteInt(asGridExportFormat, comboFormat.ItemIndex);
     AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
     AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
     AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
@@ -320,13 +311,13 @@ end;
 
 function TfrmExportGrid.GetExportFormat: TGridExportFormat;
 begin
-  Result := TGridExportFormat(grpFormat.ItemIndex);
+  Result := TGridExportFormat(comboFormat.ItemIndex);
 end;
 
 
 procedure TfrmExportGrid.SetExportFormat(Value: TGridExportFormat);
 begin
-  grpFormat.ItemIndex := Integer(Value);
+  comboFormat.ItemIndex := Integer(Value);
 end;
 
 
@@ -387,7 +378,7 @@ begin
     Dialog.Filter := Dialog.Filter + FormatToDescription[ef] + ' (*.'+FormatToFileExtension[ef]+')|*.'+FormatToFileExtension[ef]+'|';
   Dialog.Filter := Dialog.Filter + _('All files')+' (*.*)|*.*';
   Dialog.OnTypeChange := SaveDialogTypeChange;
-  Dialog.FilterIndex := grpFormat.ItemIndex+1;
+  Dialog.FilterIndex := comboFormat.ItemIndex+1;
   Dialog.OnTypeChange(Dialog);
   if Dialog.Execute then begin
     editFilename.Text := Dialog.FileName;
