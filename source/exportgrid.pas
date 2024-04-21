@@ -23,7 +23,8 @@ type
     efJiraTextile,
     efPHPArray,
     efMarkDown,
-    efJSON
+    efJSON,
+    efJSONLines
     );
 
   TfrmExportGrid = class(TExtForm)
@@ -116,7 +117,8 @@ type
         ('jira-textile'),
         ('php'),
         ('md'),
-        ('json')
+        ('json'),
+        ('jsonl')
         );
     const FormatToDescription: Array[TGridExportFormat] of String =
       (
@@ -134,7 +136,8 @@ type
         ('Jira Textile'),
         ('PHP Array'),
         ('Markdown Here'),
-        ('JSON')
+        ('JSON'),
+        ('JSON Lines')
         );
     const FormatToImageIndex: Array[TGridExportFormat] of Integer =
       (
@@ -152,7 +155,8 @@ type
         154, // Jira
         202, // PHP
         199, // Markdown
-        200  // JSON
+        200, // JSON
+        200  // JSON Lines
       );
     const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TVirtualStringTree read FGrid write FGrid;
@@ -917,6 +921,13 @@ begin
             tmp := CRLF + #9#9 + '{' + CRLF
           else
             tmp := CRLF + #9#9 + '[' + CRLF
+        end;
+
+        efJSONLines: begin
+          if chkIncludeColumnNames.Checked then
+            tmp := '{'
+          else
+            tmp := '[';
         end
 
         else tmp := '';
@@ -1051,6 +1062,22 @@ begin
               end;
             end;
 
+            efJSONLines: begin
+              if chkIncludeColumnNames.Checked then
+                tmp := tmp + FormatPhp(Grid.Header.Columns[Col].Text) + ': ';
+              if GridData.IsNull(ResultCol) then
+                tmp := tmp + 'null, '
+              else begin
+                case GridData.DataType(ResultCol).Category of
+                  dtcInteger, dtcReal:
+                    tmp := tmp + Data;
+                  else
+                    tmp := tmp + FormatPhp(Data)
+                end;
+                tmp := tmp + ', ';
+              end;
+            end;
+
           end;
         end;
 
@@ -1085,6 +1112,13 @@ begin
             tmp := tmp + #9#9 + '},'
           else
             tmp := tmp + #9#9 + '],';
+        end;
+        efJSONLines: begin
+          Delete(tmp, length(tmp)-1,2);
+          if chkIncludeColumnNames.Checked then
+            tmp := tmp + '}' + #10
+          else
+            tmp := tmp + ']' + #10;
         end;
       end;
       S.WriteString(tmp);
