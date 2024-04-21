@@ -67,7 +67,7 @@ type
     btnSetClipboardDefaults: TButton;
     chkRemoveLinebreaks: TCheckBox;
     grpFormat: TGroupBox;
-    comboFormat: TComboBox;
+    comboFormat: TComboBoxEx;
     procedure FormCreate(Sender: TObject);
     procedure CalcSize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -170,8 +170,9 @@ uses main, apphelpers, dbconnection;
 
 procedure TfrmExportGrid.FormCreate(Sender: TObject);
 var
-  FormatDesc: String;
+  ef: TGridExportFormat;
   SenderName: String;
+  comboItem: TComboExItem;
 begin
   HasSizeGrip := True;
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
@@ -180,8 +181,11 @@ begin
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
   comboFormat.Items.Clear;
-  for FormatDesc in FormatToDescription do
-    comboFormat.Items.Add(FormatDesc);
+  for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
+    comboItem := TComboExItem.Create(comboFormat.ItemsEx);
+    comboItem.Caption := FormatToDescription[ef];
+    comboItem.ImageIndex := FormatToImageIndex[ef];
+  end;
   SenderName := Owner.Name;
   FHiddenCopyMode := SenderName.StartsWith(CopyAsActionPrefix);
 

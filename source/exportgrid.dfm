@@ -280,21 +280,30 @@ object frmExportGrid: TfrmExportGrid
     DesignSize = (
       558
       50)
-    object comboFormat: TComboBox
+    object comboFormat: TComboBoxEx
       Left = 8
       Top = 18
       Width = 540
-      Height = 22
-      Style = csDropDownList
+      Height = 23
+      ItemsEx = <
+        item
+          Caption = 'Excel CSV'
+          ImageIndex = 49
+          SelectedImageIndex = 49
+        end
+        item
+          Caption = 'CSV'
+          ImageIndex = 50
+          SelectedImageIndex = 50
+        end
+        item
+          Caption = '...'
+        end>
+      Style = csExDropDownList
       Anchors = [akLeft, akTop, akRight]
-      DropDownCount = 20
-      ItemIndex = 0
       TabOrder = 0
-      Text = 'Excel CSV'
-      Items.Strings = (
-        'Excel CSV'
-        'Delimited Text'
-        '...')
+      Images = MainForm.VirtualImageListMain
+      DropDownCount = 20
     end
   end
   object popupCSVchar: TPopupMenu
