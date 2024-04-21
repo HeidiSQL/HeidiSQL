@@ -80,7 +80,7 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure grpFormatClick(Sender: TObject);
+    procedure comboFormatSelect(Sender: TObject);
     procedure btnSetClipboardDefaultsClick(Sender: TObject);
   private
     { Private declarations }
@@ -325,7 +325,7 @@ begin
 end;
 
 
-procedure TfrmExportGrid.grpFormatClick(Sender: TObject);
+procedure TfrmExportGrid.comboFormatSelect(Sender: TObject);
 var
   Filename: String;
 begin

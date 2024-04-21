@@ -302,6 +302,7 @@ object frmExportGrid: TfrmExportGrid
       Style = csExDropDownList
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 0
+      OnSelect = comboFormatSelect
       Images = MainForm.VirtualImageListMain
       DropDownCount = 20
     end
