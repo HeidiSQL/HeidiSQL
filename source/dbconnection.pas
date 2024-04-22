@@ -5637,8 +5637,17 @@ begin
     Result.Add(Col);
     Col.Name := ColQuery.Col('COLUMN_NAME');
     Col.OldName := Col.Name;
-    // PG/MySQL use different fields:
-    dt := IfThen(ColQuery.ColExists('COLUMN_TYPE'), 'COLUMN_TYPE', 'DATA_TYPE');
+    // MySQL and most commonly used field:
+    if ColQuery.ColExists('COLUMN_TYPE') then
+      dt := 'COLUMN_TYPE'
+    // PostgreSQL:
+    else if ColQuery.ColExists('DATA_TYPE') then begin
+      // user defined types, like CITEXT:
+      if (ColQuery.Col('DATA_TYPE').ToLower = 'user-defined') and ColQuery.ColExists('UDT_NAME') then
+        dt := 'UDT_NAME'
+      else
+        dt := 'DATA_TYPE';
+    end;
     Col.ParseDatatype(ColQuery.Col(dt));
     // PG/MSSQL don't include length in data type
     if Col.LengthSet.IsEmpty and Col.DataType.HasLength then begin
