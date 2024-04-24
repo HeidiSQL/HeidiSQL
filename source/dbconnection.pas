@@ -2278,11 +2278,25 @@ var
   i: Integer;
   rx: TRegExpr;
   TypeFound: Boolean;
+  TypeOid: String;
 begin
   rx := TRegExpr.Create;
   TypeFound := False;
   for i:=0 to High(Datatypes) do begin
-    if Datatypes[i].NativeTypes = '' then
+    if Datatypes[i].NativeTypes = '?' then begin
+      // PG oid is set to be populated via '?'
+      Datatypes[i].NativeTypes := '';
+      try
+        TypeOid := GetVar('SELECT '+EscapeString(Datatypes[i].Name.ToLower)+'::regtype::oid');
+        if IsNumeric(TypeOid) then begin
+          Datatypes[i].NativeTypes := TypeOid;
+          Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
+        end;
+      except
+      end;
+    end;
+    // Skip if native ids / oid's are (still) empty
+    if Datatypes[i].NativeTypes.IsEmpty then
       Continue;
     rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
     if rx.Exec(IntToStr(NativeType)) then begin
@@ -2291,6 +2305,16 @@ begin
       break;
     end;
   end;
+
+  { Dynamically retrieve data type from pg_type.
+    Problematic because we would not know which TDBDatatypeIndex to assign.
+  if (not TypeFound) and Parameters.IsAnyPostgreSQL then begin
+    PgType := GetResults('SELECT * FROM '+QuoteIdent('pg_type')+' WHERE '+QuoteIdent('oid')+'='+NativeType.ToString);
+    if PgType.RecordCount = 1 then begin
+      SetLength(FDatatypes, Length(FDatatypes)+1);
+    end;
+  end;}
+
   if not TypeFound then begin
     // Fall back to unknown type
     Result := Datatypes[0];

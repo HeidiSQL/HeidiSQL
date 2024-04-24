@@ -236,7 +236,7 @@ var
     ),
     (
       Index:           dbdtCiText;
-      NativeTypes:     '24651';
+      NativeTypes:     '?';
       Name:            'CITEXT';
       Names:           'citext';
       Description:     'A case-insensitive character string type. Essentially, it internally calls lower when comparing values. Otherwise, it behaves almost exactly like text.';
