@@ -1204,7 +1204,7 @@ begin
   Editor.SetMaxLength(FMaxLength);
   Editor.TableColumn := FTableColumn;
   Editor.MemoText.ReadOnly := not FAllowEdit;
-  if Editor.ShowModal = mrOk then begin
+  if Editor.ShowModal = mrYes then begin
     FEdit.Text := Editor.GetText;
     DoEndEdit(Sender);
   end

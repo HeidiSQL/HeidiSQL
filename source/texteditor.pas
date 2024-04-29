@@ -86,8 +86,8 @@ type
   private
     { Private declarations }
     FModified: Boolean;
-    FStopping: Boolean;
     FClosingByApplyButton: Boolean;
+    FClosingByCancelButton: Boolean;
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
     FMaxLength: Integer;
@@ -430,11 +430,9 @@ end;
 
 
 procedure TfrmTextEditor.btnCancelClick(Sender: TObject);
-var
-  Action: TCloseAction;
 begin
-  Action := caNone;
-  FormClose(Self, Action);
+  FClosingByCancelButton := True;
+  Close;
 end;
 
 
@@ -501,20 +499,15 @@ end;
 
 
 procedure TfrmTextEditor.FormClose(Sender: TObject; var Action: TCloseAction);
-var
-  DoPost: Boolean;
 begin
-  if FStopping then
-    Exit;
-  FStopping := True;
-  if Modified and FClosingByApplyButton then
-    DoPost := True
-  else if Modified then
-    DoPost := MessageDialog(_('Apply modifications?'), mtConfirmation, [mbYes, mbNo]) = mrYes
-  else
-    DoPost := False;
-  if DoPost then
-    ModalResult := mrOk
+  if Modified then begin
+    if FClosingByCancelButton then
+      ModalResult := mrCancel
+    else if FClosingByApplyButton then
+      ModalResult := mrYes
+    else
+      ModalResult := MessageDialog(_('Apply modifications?'), mtConfirmation, [mbYes, mbNo]);
+  end
   else
     ModalResult := mrCancel;
 end;
