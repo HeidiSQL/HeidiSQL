@@ -1147,10 +1147,14 @@ end;
 
 destructor TInplaceEditorLink.Destroy;
 begin
-  if Assigned(FTextEditor) then
-    FTextEditor.Release;
-  if not ((csDestroying in FPanel.ComponentState) or (csCreating in FPanel.ControlState)) then
+  if Assigned(FTextEditor) then begin
+    FTextEditor.Free;
+  end;
+  if not ((csDestroying in FPanel.ComponentState) or (csCreating in FPanel.ControlState)) then begin
+    FEdit.Free;
+    FButton.Free;
     FPanel.Free;
+  end;
   inherited;
 end;
 
@@ -1173,8 +1177,9 @@ function TInplaceEditorLink.CancelEdit: Boolean;
 begin
   Result := inherited CancelEdit;
   if Result then begin
-    if Assigned(FTextEditor) then
+    if Assigned(FTextEditor) then begin
       FTextEditor.Close;
+    end;
   end;
 end;
 
@@ -1184,14 +1189,8 @@ var
 begin
   Result := not FStopping;
   if FStopping then Exit;
-  if Assigned(FTextEditor) then begin
-    NewText := FTextEditor.GetText;
-    FModified := FTextEditor.Modified;
-    FTextEditor.Close;
-  end else begin
-    NewText := FEdit.Text;
-    FModified := FEdit.Modified;
-  end;
+  NewText := FEdit.Text;
+  FModified := NewText <> FCellText;
   Result := EndEditHelper(NewText);
 end;
 
@@ -1218,7 +1217,13 @@ begin
   FTextEditor.SetMaxLength(FMaxLength);
   FTextEditor.TableColumn := FTableColumn;
   FTextEditor.MemoText.ReadOnly := not FAllowEdit;
-  FTextEditor.ShowModal;
+  if FTextEditor.ShowModal = mrOk then begin
+    FEdit.Text := FTextEditor.GetText;
+    DoEndEdit(Sender);
+  end
+  else begin
+    DoCancelEdit(Sender);
+  end;
 end;
 
 function TInplaceEditorLink.PrepareEdit(Tree: TBaseVirtualTree;

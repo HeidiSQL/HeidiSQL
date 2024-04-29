@@ -87,6 +87,7 @@ type
     { Private declarations }
     FModified: Boolean;
     FStopping: Boolean;
+    FClosingByApplyButton: Boolean;
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
     FMaxLength: Integer;
@@ -242,6 +243,7 @@ var
   i: Integer;
 begin
   HasSizeGrip := True;
+  FClosingByApplyButton := False;
   // Assign linebreak values to their menu item tags, to write less code later
   menuWindowsLB.Tag := Integer(lbsWindows);
   menuUnixLB.Tag := Integer(lbsUnix);
@@ -505,21 +507,23 @@ begin
   if FStopping then
     Exit;
   FStopping := True;
-  if Modified then
+  if Modified and FClosingByApplyButton then
+    DoPost := True
+  else if Modified then
     DoPost := MessageDialog(_('Apply modifications?'), mtConfirmation, [mbYes, mbNo]) = mrYes
   else
     DoPost := False;
   if DoPost then
-    TCustomVirtualStringTree(Owner).EndEditNode
+    ModalResult := mrOk
   else
-    TCustomVirtualStringTree(Owner).CancelEditNode;
+    ModalResult := mrCancel;
 end;
 
 
 procedure TfrmTextEditor.btnApplyClick(Sender: TObject);
 begin
-  FStopping := True;
-  TCustomVirtualStringTree(Owner).EndEditNode;
+  FClosingByApplyButton := True;
+  Close;
 end;
 
 
