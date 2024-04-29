@@ -10972,9 +10972,9 @@ begin
   clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
   isEven := Node.Index mod 2 = 0;
   if IsEven and (clEven <> clNone) then
-    cl := AppSettings.ReadInt(asRowBackgroundEven)
+    cl := clEven
   else if (not IsEven) and (clOdd <> clNone) then
-    cl := AppSettings.ReadInt(asRowBackgroundOdd)
+    cl := clOdd
   else
     cl := clNone;
 

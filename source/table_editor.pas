@@ -1103,9 +1103,9 @@ begin
   clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
   isEven := Node.Index mod 2 = 0;
   if IsEven and (clEven <> clNone) then
-    BgColor := AppSettings.ReadInt(asRowBackgroundEven)
+    BgColor := clEven
   else if (not IsEven) and (clOdd <> clNone) then
-    BgColor := AppSettings.ReadInt(asRowBackgroundOdd);
+    BgColor := clOdd;
 
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
