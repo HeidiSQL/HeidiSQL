@@ -2904,6 +2904,10 @@ begin
     AppSettings.DeleteValue(asFilter);
     LogSQL(f_('Data filter for %s deleted', [ActiveDbObj.Name]), lcInfo);
   end;
+  if AppSettings.ValueExists(asSort) then begin
+    AppSettings.DeleteValue(asSort);
+    LogSQL(f_('Sort order for %s deleted', [ActiveDbObj.Name]), lcInfo);
+  end;
 end;
 
 

@@ -3431,7 +3431,7 @@ object MainForm: TMainForm
       end
     end
     object menuClearDataTabFilter: TMenuItem
-      Caption = 'Clear data tab filter'
+      Caption = 'Clear data tab filter and sort order'
       OnClick = menuClearDataTabFilterClick
     end
     object N17: TMenuItem

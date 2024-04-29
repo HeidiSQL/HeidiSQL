@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-02-10 15:35+0100\n"
+"PO-Revision-Date: 2024-04-29 07:40+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -5764,13 +5764,17 @@ msgstr "The selected foreign column do not match the source columns data type an
 msgid "Foreign key mismatch"
 msgstr "Foreign key mismatch"
 
-#. Clear data tab filter
+#. Clear data tab filter and sort order
 msgid "Data filter for %s deleted"
 msgstr "Data filter for %s deleted"
 
-#. Clear data tab filter
-msgid "Clear data tab filter"
-msgstr "Clear data tab filter"
+#. Clear data tab filter and sort order
+msgid "Sort order for %s deleted"
+msgstr "Sort order for %s deleted"
+
+#. Clear data tab filter and sort order
+msgid "Clear data tab filter and sort order"
+msgstr "Clear data tab filter and sort order"
 
 msgid "Error when updating query history: %s"
 msgstr "Error when updating query history: %s"
