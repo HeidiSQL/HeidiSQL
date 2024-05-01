@@ -1192,6 +1192,9 @@ type
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
+    procedure ListStatusBeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1332,6 +1335,8 @@ type
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     property FocusedTables: TDBObjectList read FFocusedTables;
+    function GetAlternatingRowBackground(Node: PVirtualNode): TColor;
+    procedure PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
@@ -8864,6 +8869,8 @@ procedure TMainForm.ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCa
 var
   Obj: PDBObject;
 begin
+  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
+
   // Only paint bar in rows + size column
   if Column in [1, 2] then begin
     Obj := Sender.GetNodeData(Node);
@@ -8871,6 +8878,36 @@ begin
       1: PaintColorBar(Obj.Rows, FDBObjectsMaxRows, TargetCanvas, CellRect);
       2: PaintColorBar(Obj.Size, FDBObjectsMaxSize, TargetCanvas, CellRect);
     end;
+  end;
+end;
+
+
+function TMainForm.GetAlternatingRowBackground(Node: PVirtualNode): TColor;
+var
+  clEven, clOdd: TColor;
+  isEven: Boolean;
+begin
+  // Alternating row background. See issue #139
+  Result := clNone;
+  clEven := AppSettings.ReadInt(asRowBackgroundEven);
+  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
+  isEven := Node.Index mod 2 = 0;
+  if IsEven and (clEven <> clNone) then
+    Result := clEven
+  else if (not IsEven) and (clOdd <> clNone) then
+    Result := clOdd;
+end;
+
+
+procedure TMainForm.PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
+var
+  BgColor: TColor;
+begin
+  // Apply color
+  BgColor := GetAlternatingRowBackground(Node);
+  if BgColor <> clNone then begin
+    TargetCanvas.Brush.Color := BgColor;
+    TargetCanvas.FillRect(CellRect);
   end;
 end;
 
@@ -8928,6 +8965,13 @@ begin
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
 end;
 
+
+procedure TMainForm.ListStatusBeforeCellPaint(Sender: TBaseVirtualTree;
+  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+begin
+  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
+end;
 
 {***
   Apply a filter to a Virtual Tree.
@@ -9120,6 +9164,7 @@ var
   SessionVal, GlobalVal: String;
   vt: TVirtualStringTree;
 begin
+  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
   // Highlight cell if session variable is different to global variable
   vt := Sender as TVirtualStringTree;
   if Column = 1 then begin
@@ -10937,9 +10982,9 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
   r: TDBQuery;
-  cl, clNull, clEven, clOdd, clSameData: TColor;
+  cl, clNull, clSameData: TColor;
   RowNumber: PInt64;
-  isEven, FocusedIsNull, CurrentIsNull: Boolean;
+  FocusedIsNull, CurrentIsNull: Boolean;
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
   ResultCol: Integer;
@@ -10968,15 +11013,7 @@ begin
   RowNumber := Sender.GetNodeData(Node);
   r.RecNo := RowNumber^;
 
-  clEven := AppSettings.ReadInt(asRowBackgroundEven);
-  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
-  isEven := Node.Index mod 2 = 0;
-  if IsEven and (clEven <> clNone) then
-    cl := clEven
-  else if (not IsEven) and (clOdd <> clNone) then
-    cl := clOdd
-  else
-    cl := clNone;
+  cl := GetAlternatingRowBackground(Node);
 
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     // Focused cell
@@ -11184,6 +11221,7 @@ var
   Val, Max: Extended;
   LoopNode: PVirtualNode;
 begin
+  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
   // Display color bars
   if Column in [1,2,4..9] then begin
     vt := Sender as TVirtualStringTree;
@@ -11541,6 +11579,7 @@ procedure TMainForm.HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanv
 var
   vt: TVirtualStringTree;
 begin
+  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
   vt := Sender as TVirtualStringTree;
   if (Column = 5) and (vt = ListProcesses) then
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), FProcessListMaxTime, TargetCanvas, CellRect);

@@ -1093,19 +1093,9 @@ procedure TfrmTableEditor.listColumnsBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
-  clEven, clOdd, BgColor: TColor;
-  isEven: Boolean;
+  BgColor: TColor;
 begin
-  BgColor := clNone;
-
-  // Alternating row background. See issue #139
-  clEven := AppSettings.ReadInt(asRowBackgroundEven);
-  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
-  isEven := Node.Index mod 2 = 0;
-  if IsEven and (clEven <> clNone) then
-    BgColor := clEven
-  else if (not IsEven) and (clOdd <> clNone) then
-    BgColor := clOdd;
+  BgColor := MainForm.GetAlternatingRowBackground(Node);
 
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
