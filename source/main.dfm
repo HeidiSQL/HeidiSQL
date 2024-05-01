@@ -440,7 +440,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
-                OnBeforeCellPaint = ListDatabasesBeforeCellPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = ListDatabasesBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
                 OnDblClick = ListDatabasesDblClick
@@ -529,7 +529,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
-                OnBeforeCellPaint = ListVariablesBeforeCellPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = HostListBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
                 OnDblClick = ListVariablesDblClick
@@ -587,7 +587,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
-                OnBeforeCellPaint = ListStatusBeforeCellPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = HostListBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
                 OnGetText = HostListGetText

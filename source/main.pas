@@ -1028,9 +1028,6 @@ type
     procedure ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
-    procedure ListDatabasesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-      var ContentRect: TRect);
     procedure menuFetchDBitemsClick(Sender: TObject);
     procedure ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -1101,9 +1098,6 @@ type
     procedure editDatabaseTableFilterMenuClick(Sender: TObject);
     procedure editDatabaseTableFilterExit(Sender: TObject);
     procedure menuClearDataTabFilterClick(Sender: TObject);
-    procedure ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
     procedure DonateClick(Sender: TObject);
@@ -1192,9 +1186,6 @@ type
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
-    procedure ListStatusBeforeCellPaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -8966,13 +8957,6 @@ begin
 end;
 
 
-procedure TMainForm.ListStatusBeforeCellPaint(Sender: TBaseVirtualTree;
-  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-begin
-  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
-end;
-
 {***
   Apply a filter to a Virtual Tree.
 }
@@ -9154,28 +9138,6 @@ begin
   VirtualImageListMain.Add('', 0, VirtualImageListMain.ImageCollection.Count-1);
   // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
   VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);
-end;
-
-
-procedure TMainForm.ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
-  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-var
-  SessionVal, GlobalVal: String;
-  vt: TVirtualStringTree;
-begin
-  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
-  // Highlight cell if session variable is different to global variable
-  vt := Sender as TVirtualStringTree;
-  if Column = 1 then begin
-    SessionVal := vt.Text[Node, 1];
-    GlobalVal := vt.Text[Node, 2];
-    if SessionVal <> GlobalVal then begin
-      TargetCanvas.Brush.Color := clWebBlanchedAlmond;
-      TargetCanvas.Pen.Color := TargetCanvas.Brush.Color;
-      TargetCanvas.Rectangle(CellRect);
-    end;
-  end;
 end;
 
 
@@ -11213,32 +11175,6 @@ begin
 end;
 
 
-procedure TMainForm.ListDatabasesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-  var ContentRect: TRect);
-var
-  vt: TVirtualStringTree;
-  Val, Max: Extended;
-  LoopNode: PVirtualNode;
-begin
-  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
-  // Display color bars
-  if Column in [1,2,4..9] then begin
-    vt := Sender as TVirtualStringTree;
-    // Find out maximum value in column
-    LoopNode := vt.GetFirst;
-    Max := 1;
-    while Assigned(LoopNode) do begin
-      Val := MakeFloat(vt.Text[LoopNode, Column]);
-      if Val > Max then
-        Max := Val;
-      LoopNode := vt.GetNext(LoopNode);
-    end;
-    PaintColorBar(MakeFloat(vt.Text[Node, Column]), Max, TargetCanvas, CellRect);
-  end;
-end;
-
-
 procedure TMainForm.ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
@@ -11578,11 +11514,43 @@ procedure TMainForm.HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanv
   var ContentRect: TRect);
 var
   vt: TVirtualStringTree;
+  Val, Max: Extended;
+  LoopNode: PVirtualNode;
+  SessionVal, GlobalVal: String;
 begin
   PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
   vt := Sender as TVirtualStringTree;
-  if (Column = 5) and (vt = ListProcesses) then
+
+  if (Column in [1,2,4..9]) and (vt = ListDatabases) then begin
+    // Find out maximum value in column
+    LoopNode := vt.GetFirst;
+    Max := 1;
+    while Assigned(LoopNode) do begin
+      Val := MakeFloat(vt.Text[LoopNode, Column]);
+      if Val > Max then
+        Max := Val;
+      LoopNode := vt.GetNext(LoopNode);
+    end;
+    PaintColorBar(MakeFloat(vt.Text[Node, Column]), Max, TargetCanvas, CellRect);
+  end;
+
+  // Highlight cell if session variable is different to global variable
+  if (Column = 1) and (vt = ListVariables) then begin
+    SessionVal := vt.Text[Node, 1];
+    GlobalVal := vt.Text[Node, 2];
+    if SessionVal <> GlobalVal then begin
+      TargetCanvas.Brush.Color := clWebBlanchedAlmond;
+      TargetCanvas.Pen.Color := TargetCanvas.Brush.Color;
+      TargetCanvas.Rectangle(CellRect);
+    end;
+  end;
+
+  // Nothing special on Status tab
+
+  if (Column = 5) and (vt = ListProcesses) then begin
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), FProcessListMaxTime, TargetCanvas, CellRect);
+  end;
+
   if (Column = 4) and (vt = ListCommandStats) then begin
     // Only paint bar in percentage column
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), 100, TargetCanvas, CellRect);
