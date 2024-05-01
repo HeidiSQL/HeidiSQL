@@ -5211,8 +5211,9 @@ end;
 function TDBConnection.CleanIdent(Identifier: string): string;
 begin
   Result := Trim(Identifier);
-  Result := LowerCase(Result);
-  Result := ReplaceRegExpr('[^a-z0-9]', Result, '_');
+  // See issue #1947:
+  //Result := LowerCase(Result);
+  Result := ReplaceRegExpr('[^A-Za-z0-9]', Result, '_');
   Result := ReplaceRegExpr('_+', Result, '_');
 end;
 
