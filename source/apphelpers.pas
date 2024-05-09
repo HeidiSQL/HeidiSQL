@@ -1416,7 +1416,8 @@ begin
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
     VT.NodeHeight[Node] := VT.DefaultNodeHeight;
-    VT.MultiLine[Node] := MultiLineCount > 1;
+    // Nodes have vsMultiLine through InitNode event
+    // VT.MultiLine[Node] := MultiLineCount > 1;
     Node := VT.GetNextInitialized(Node);
   end;
   VT.EndUpdate;

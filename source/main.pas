@@ -6227,11 +6227,9 @@ procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: 
 var
   Idx: PInt64;
 begin
-  // Display multiline grid rows
-  if AppSettings.ReadInt(asGridRowLineCount) = 1 then
-    Exclude(Node.States, vsMultiLine)
-  else
-    Include(Node.States, vsMultiLine);
+  // Mark all nodes as multiline capable. Fixes painting issues with long lines.
+  // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
+  Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
@@ -10241,11 +10239,14 @@ var
 begin
   if Column = -1 then
     Exit;
+  if TextType <> ttNormal then
+    Exit;
   ResultCol := Column - 1;
   if ResultCol < 0 then begin
     CellText := (Node.Index +1).ToString;
     Exit;
   end;
+
   EditingAndFocused := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   Results := GridResult(Sender);
   if (Results = nil) or (not Results.Connection.Active) then begin
@@ -10255,6 +10256,7 @@ begin
   // Happens in some crashes, see issue #2462
   if ResultCol >= Results.ColumnCount then
     Exit;
+
   RowNumber := Sender.GetNodeData(Node);
   Results.RecNo := RowNumber^;
   if Results.IsNull(ResultCol) and (not EditingAndFocused) then
@@ -14310,6 +14312,7 @@ begin
       on E:Exception do
         ErrorDialog(E.Message);
     end;
+    Done := True;
   end;
 
   // Sort list tables in idle time, so ListTables.TreeOptions.AutoSort does not crash the list
@@ -14317,12 +14320,14 @@ begin
   if (PageControlMain.ActivePage = tabDatabase) and (not FListTablesSorted) then begin
     ListTables.SortTree(ListTables.Header.SortColumn, ListTables.Header.SortDirection);
     FListTablesSorted := True;
+    Done := True;
   end;
 
   // Re-enable refresh action when application is idle
   if (not actRefresh.Enabled) and (FRefreshActionDisabledAt < (GetTickCount - 1000)) then
   begin
     actRefresh.Enabled := True;
+    Done := True;
   end;
 
 end;
