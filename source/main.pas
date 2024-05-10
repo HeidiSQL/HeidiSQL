@@ -1765,8 +1765,9 @@ var
   Factor: Extended;
 begin
   // Moving window to different screen or user changed DPI setting for current screen
-  Factor := 100 / PixelsPerInch * NewDPI;
+  Factor := 100 / PixelsPerInchDesigned * NewDPI;
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
+  //LogSQL('PixelsPerInchDesigned:'+PixelsPerInchDesigned.ToString+' OldDPI:'+OldDPI.ToString+' NewDPI:'+NewDPI.ToString);
 end;
 
 
@@ -2774,6 +2775,7 @@ begin
   if ToolBarDonate.Visible then begin
     ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
     ToolBarDonate.Left := ControlBarMain.Width - ToolBarDonate.Width;
+    ToolBarDonate.Height := ToolBarDonate.Buttons[0].Height;
   end;
 
 end;

@@ -13,6 +13,7 @@ type
   TExtForm = class(TForm)
     private
       FSizeGrip: TSizeGripXP;
+      FPixelsPerInchDesigned: Integer;
       function GetHasSizeGrip: Boolean;
       procedure SetHasSizeGrip(Value: Boolean);
     protected
@@ -30,6 +31,7 @@ type
       function ScaleSize(x: Extended): Integer; overload;
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
+      property PixelsPerInchDesigned: Integer read FPixelsPerInchDesigned;
   end;
 
   // Modern file-open-dialog with high DPI support and encoding selector
@@ -95,6 +97,7 @@ var
 begin
   inherited;
 
+  FPixelsPerInchDesigned := 96;
   InheritFont(Font);
   HasSizeGrip := False;
 

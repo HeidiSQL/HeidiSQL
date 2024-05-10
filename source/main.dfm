@@ -1764,15 +1764,19 @@ object MainForm: TMainForm
     object ToolBarDonate: TToolBar
       Left = 863
       Top = 2
-      Width = 0
+      Width = 67
       Height = 22
       Align = alRight
+      AutoSize = True
       ButtonWidth = 67
       Caption = 'Donate'
+      EdgeInner = esNone
+      EdgeOuter = esNone
       Images = VirtualImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 1
+      Wrapable = False
       object btnDonate: TToolButton
         Left = 0
         Top = 0
@@ -1780,7 +1784,6 @@ object MainForm: TMainForm
         Hint = 
           'Send an arbitrary amount as donation to the author - per PayPal ' +
           '(also supports credit cards)'
-        AutoSize = True
         Caption = 'Donate'
         ImageIndex = 185
         OnClick = DonateClick
