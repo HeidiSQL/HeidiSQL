@@ -13141,6 +13141,7 @@ begin
   Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
+  Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
   if Editor <> SynMemoSQLLog then begin
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
