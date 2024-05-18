@@ -2379,6 +2379,13 @@ begin
     FinalPort := FParameters.Port;
 
     if FParameters.WantSSL then begin
+      // Define which TLS protocol versions are allowed BEFORE calling mysql_ssl_set().
+      // See https://www.heidisql.com/forum.php?t=27158
+      // See https://mariadb.com/kb/en/library/mysql_optionsv/
+      // See issue #1768
+      // See https://mariadb.com/kb/en/mysql_ssl_set/
+      SetOptionResult := FLib.mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
+      SetOptionResult := SetOptionResult + FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
       // mysql_ssl_set() wants nil, while PAnsiChar(AnsiString()) is never nil
       sslkey := nil;
       sslcert := nil;
@@ -2393,13 +2400,17 @@ begin
       if FParameters.SSLCipher <> '' then
         sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
       { TODO : Use Cipher and CAPath parameters }
-      FLib.mysql_ssl_set(FHandle,
+      SetOptionResult := SetOptionResult + FLib.mysql_ssl_set(FHandle,
         sslkey,
         sslcert,
         sslca,
         nil,
         sslcipher);
-      Log(lcInfo, _('SSL parameters successfully set.'));
+      if SetOptionResult = 0 then
+        Log(lcInfo, _('SSL parameters successfully set.'))
+      else
+        Log(lcError, f_('SSL parameters not fully set. Result: %d', [SetOptionResult]));
+      SetOptionResult := 0;
     end;
 
     case FParameters.NetType of
@@ -2450,12 +2461,6 @@ begin
     if SetOptionResult <> 0 then begin
       raise EDbError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
     end;
-
-    // Define which TLS protocol versions are allowed.
-    // See https://www.heidisql.com/forum.php?t=27158
-    // See https://mariadb.com/kb/en/library/mysql_optionsv/
-    FLib.mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then

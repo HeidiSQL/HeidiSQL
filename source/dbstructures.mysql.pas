@@ -358,7 +358,7 @@ type
     mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
     mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
     mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
-    mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
+    mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Integer; stdcall;
     mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
     mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;

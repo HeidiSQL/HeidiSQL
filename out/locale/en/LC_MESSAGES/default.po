@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-04-29 07:40+0200\n"
+"PO-Revision-Date: 2024-05-18 17:39+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.4.4\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -4000,6 +4000,9 @@ msgstr "Your %s is incompatible to %s, or your system is missing a dependent lib
 #: dbconnection.pas:1121
 msgid "SSL parameters successfully set."
 msgstr "SSL parameters successfully set."
+
+msgid "SSL parameters not fully set. Result: %d"
+msgstr "SSL parameters not fully set. Result: %d"
 
 #: dbconnection.pas:1151
 msgid "Attempt to create SSH process, waiting %ds for response ..."
