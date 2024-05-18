@@ -6358,10 +6358,11 @@ begin
       '   '+InfSch+'.constraint_column_usage AS ccu'+
       ' WHERE'+
       '   refc.constraint_schema = '+EscapeString(Table.Schema)+
-      '   AND refc.constraint_name = kcu.constraint_name'+
-      '   AND refc.constraint_schema = kcu.table_schema'+
-      '   AND ccu.constraint_name = refc.constraint_name'+
       '   AND kcu.table_name = '+EscapeString(Table.Name)+
+      '   AND kcu.constraint_name = refc.constraint_name'+
+      '   AND kcu.table_schema = refc.constraint_schema'+
+      '   AND ccu.constraint_name = refc.constraint_name'+
+      '   AND ccu.constraint_schema = refc.constraint_schema'+
       ' GROUP BY'+
       '   refc.constraint_name,'+
       '   refc.update_rule,'+
