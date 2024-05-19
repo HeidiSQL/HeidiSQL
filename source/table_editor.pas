@@ -575,7 +575,8 @@ var
   procedure FinishSpecs;
   begin
     if Specs.Count > 0 then begin
-      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + Implode(',' + CRLF + #9, Specs)) + ';' + CRLF;
+      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + sLineBreak +
+        CodeIndent + Implode(',' + sLineBreak + CodeIndent, Specs)) + ';' + sLineBreak;
       Specs.Clear;
     end;
   end;
@@ -847,7 +848,7 @@ begin
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    SQL := SQL + #9 + Col.SQLCode + ','+CRLF;
+    SQL := SQL + CodeIndent + Col.SQLCode + ',' + sLineBreak;
     Node := listColumns.GetNextSibling(Node);
   end;
 
@@ -855,17 +856,17 @@ begin
   for i:=0 to FKeys.Count-1 do begin
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
-      SQL := SQL + #9 + tmp + ','+CRLF;
+      SQL := SQL + CodeIndent + tmp + ',' + sLineBreak;
       Inc(IndexCount);
     end;
   end;
 
   for i:=0 to FForeignKeys.Count-1 do
-    SQL := SQL + #9 + FForeignKeys[i].SQLCode(True) + ','+CRLF;
+    SQL := SQL + CodeIndent + FForeignKeys[i].SQLCode(True) + ',' + sLineBreak;
 
   // Check constraints
   for Constraint in FCheckConstraints do begin
-    SQL := SQL + #9 + Constraint.SQLCode + ',' + sLineBreak;
+    SQL := SQL + CodeIndent + Constraint.SQLCode + ',' + sLineBreak;
   end;
 
   if Integer(listColumns.RootNodeCount) + IndexCount + FForeignKeys.Count > 0 then

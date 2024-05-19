@@ -357,12 +357,12 @@ var
   Column: TTableColumn;
   Key: TTableKey;
   ForeignKey: TForeignKey;
-const
-  ClausePattern: String = #9 + '%s,' + CRLF;
+  ClausePattern: String;
 begin
   // Compose and run CREATE query
 
   TargetTable := FConnection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
+  ClausePattern := CodeIndent + '%s,' + sLineBreak;
 
   // Watch out if target table exists
   try

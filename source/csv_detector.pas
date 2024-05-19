@@ -359,7 +359,7 @@ begin
   TableName := FConnection.CleanIdent(TableName);
   Result := 'CREATE TABLE '+FConnection.QuoteIdent(FLoadDataFrm.comboDatabase.Text)+'.'+FConnection.QuoteIdent(TableName)+' (' + sLineBreak;
   for Col in Columns do begin
-    Result := Result + #9 + Col.SQLCode;
+    Result := Result + CodeIndent + Col.SQLCode;
     if Col <> Columns.Last then
       Result := Result + ',';
     Result := Result + sLineBreak;

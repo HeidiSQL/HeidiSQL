@@ -560,18 +560,18 @@ begin
   comboSQLFontName.Sorted := True;
   updownCompletionProposalInterval.Min := 0;
   updownCompletionProposalInterval.Max := MaxInt;
-  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
-    #9'''String literal'' AS lit' + CRLF +
-    'FROM tableA AS ta' + CRLF +
-    'WHERE `columnA` IS NULL;' + CRLF +
-    CRLF +
-    '-- A comment' + CRLF +
-    '# Old style comment' + CRLF +
-    '/* Multi line comment */' + CRLF +
-    CRLF +
-    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB (' + CRLF +
-    #9'id INT,' + CRLF +
-    #9'name VARCHAR(30) DEFAULT "standard"' + CRLF +
+  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + sLineBreak +
+    CodeIndent + '''String literal'' AS lit' + sLineBreak +
+    'FROM tableA AS ta' + sLineBreak +
+    'WHERE `columnA` IS NULL;' + sLineBreak +
+    sLineBreak +
+    '-- A comment' + sLineBreak +
+    '# Old style comment' + sLineBreak +
+    '/* Multi line comment */' + sLineBreak +
+    sLineBreak +
+    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB (' + sLineBreak +
+    CodeIndent + 'id INT,' + sLineBreak +
+    CodeIndent + 'name VARCHAR(30) DEFAULT "standard"' + sLineBreak +
     ')';
   SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin

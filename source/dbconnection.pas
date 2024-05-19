@@ -4077,25 +4077,25 @@ begin
       Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
       TableCols := Obj.GetTableColumns;
       for TableCol in TableCols do begin
-        Result := Result + CRLF + #9 + TableCol.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableCol.SQLCode + ',';
       end;
       TableCols.Free;
 
       TableKeys := Obj.GetTableKeys;
       for TableKey in TableKeys do begin
-        Result := Result + CRLF + #9 + TableKey.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableKey.SQLCode + ',';
       end;
       TableKeys.Free;
 
       TableForeignKeys := Obj.GetTableForeignKeys;
       for TableForeignKey in TableForeignKeys do begin
-        Result := Result + CRLF + #9 + TableForeignKey.SQLCode(True) + ',';
+        Result := Result + sLineBreak + CodeIndent + TableForeignKey.SQLCode(True) + ',';
       end;
       TableForeignKeys.Free;
 
       TableCheckConstraints := Obj.GetTableCheckConstraints;
       for TableCheckConstraint in TableCheckConstraints do begin
-        Result := Result + CRLF + #9 + TableCheckConstraint.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableCheckConstraint.SQLCode + ',';
       end;
       TableCheckConstraints.Free;
 
