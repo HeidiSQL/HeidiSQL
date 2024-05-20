@@ -303,23 +303,21 @@ type
     MYSQL_OPT_MAX_ALLOWED_PACKET,
     MYSQL_OPT_NET_BUFFER_LENGTH,
     MYSQL_OPT_TLS_VERSION,
-    MYSQL_OPT_SSL_MODE,
-    MYSQL_OPT_GET_SERVER_PUBLIC_KEY,
 
     // MariaDB specific
     MYSQL_PROGRESS_CALLBACK=5999,
     MYSQL_OPT_NONBLOCK,
     // MariaDB Connector/C specific
     MYSQL_DATABASE_DRIVER=7000,
-    MARIADB_OPT_SSL_FP,                // deprecated, use MARIADB_OPT_TLS_PEER_FP instead
-    MARIADB_OPT_SSL_FP_LIST,           // deprecated, use MARIADB_OPT_TLS_PEER_FP_LIST instead
-    MARIADB_OPT_TLS_PASSPHRASE,        // passphrase for encrypted certificates
+    MARIADB_OPT_SSL_FP,             // deprecated, use MARIADB_OPT_TLS_PEER_FP instead
+    MARIADB_OPT_SSL_FP_LIST,        // deprecated, use MARIADB_OPT_TLS_PEER_FP_LIST instead
+    MARIADB_OPT_TLS_PASSPHRASE,     // passphrase for encrypted certificates
     MARIADB_OPT_TLS_CIPHER_STRENGTH,
     MARIADB_OPT_TLS_VERSION,
-    MARIADB_OPT_TLS_PEER_FP,           // single finger print for server certificate verification
-    MARIADB_OPT_TLS_PEER_FP_LIST,      // finger print white list for server certificate verification
+    MARIADB_OPT_TLS_PEER_FP,            // single finger print for server certificate verification
+    MARIADB_OPT_TLS_PEER_FP_LIST,       // finger print white list for server certificate verification
     MARIADB_OPT_CONNECTION_READ_ONLY,
-    MYSQL_OPT_CONNECT_ATTRS,           // for mysql_get_optionv
+    MYSQL_OPT_CONNECT_ATTRS,        // for mysql_get_optionv
     MARIADB_OPT_USERDATA,
     MARIADB_OPT_CONNECTION_HANDLER,
     MARIADB_OPT_PORT,
@@ -333,7 +331,14 @@ type
     MARIADB_OPT_MULTI_RESULTS,
     MARIADB_OPT_MULTI_STATEMENTS,
     MARIADB_OPT_INTERACTIVE,
-    MARIADB_OPT_PROXY_HEADER
+    MARIADB_OPT_PROXY_HEADER,
+    MARIADB_OPT_IO_WAIT,
+    MARIADB_OPT_SKIP_READ_RESPONSE,
+    MARIADB_OPT_RESTRICTED_AUTH,
+    MARIADB_OPT_RPL_REGISTER_REPLICA,
+    MARIADB_OPT_STATUS_CALLBACK,
+    MARIADB_OPT_SERVER_PLUGINS,
+    MARIADB_OPT_BULK_UNIT_RESULTS
     );
 
   TMySQLLib = class(TDbLib)

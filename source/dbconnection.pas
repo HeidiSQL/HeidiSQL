@@ -2359,7 +2359,6 @@ var
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
-  sslca, sslkey, sslcert, sslcipher: PAnsiChar;
   PluginDir: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
@@ -2379,33 +2378,25 @@ begin
     FinalPort := FParameters.Port;
 
     if FParameters.WantSSL then begin
-      // Define which TLS protocol versions are allowed BEFORE calling mysql_ssl_set().
+      // Define which TLS protocol versions are allowed.
       // See https://www.heidisql.com/forum.php?t=27158
       // See https://mariadb.com/kb/en/library/mysql_optionsv/
       // See issue #1768
-      // See https://mariadb.com/kb/en/mysql_ssl_set/
       SetOptionResult := FLib.mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-      SetOptionResult := SetOptionResult + FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-      // mysql_ssl_set() wants nil, while PAnsiChar(AnsiString()) is never nil
-      sslkey := nil;
-      sslcert := nil;
-      sslca := nil;
-      sslcipher := nil;
+      SetOptionResult := SetOptionResult +
+        FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar(AnsiString('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3')));
       if FParameters.SSLPrivateKey <> '' then
-        sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_KEY), PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
       if FParameters.SSLCertificate <> '' then
-        sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_CERT), PAnsiChar(AnsiString(FParameters.SSLCertificate)));
       if FParameters.SSLCACertificate <> '' then
-        sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_CA), PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
       if FParameters.SSLCipher <> '' then
-        sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
-      { TODO : Use Cipher and CAPath parameters }
-      SetOptionResult := SetOptionResult + FLib.mysql_ssl_set(FHandle,
-        sslkey,
-        sslcert,
-        sslca,
-        nil,
-        sslcipher);
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_CIPHER), PAnsiChar(AnsiString(FParameters.SSLCipher)));
       if SetOptionResult = 0 then
         Log(lcInfo, _('SSL parameters successfully set.'))
       else
