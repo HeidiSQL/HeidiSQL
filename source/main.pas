@@ -6231,7 +6231,8 @@ var
 begin
   // Mark all nodes as multiline capable. Fixes painting issues with long lines.
   // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
-  Include(Node.States, vsMultiLine);
+  if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
+    Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
