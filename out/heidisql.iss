@@ -114,6 +114,7 @@ Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: Is6
 Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql-6.1-64.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql-6.1-32.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libmysql-8.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-8.4.0.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 ; PostgreSQL:
 Source: "libpq-10-64.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq-10-32.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion

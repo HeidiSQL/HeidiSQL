@@ -88,7 +88,7 @@ type
     public
       property Handle: HMODULE read FHandle;
       property DllFile: String read FDllFile;
-      constructor Create(DllFile, DefaultDll: String);
+      constructor Create(DllFile, DefaultDll: String); virtual;
       destructor Destroy; override;
   end;
 

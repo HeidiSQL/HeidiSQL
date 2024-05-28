@@ -2382,21 +2382,23 @@ begin
       // See https://www.heidisql.com/forum.php?t=27158
       // See https://mariadb.com/kb/en/library/mysql_optionsv/
       // See issue #1768
-      SetOptionResult := FLib.mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
+      var TlsVersions := 'TLSv1,TLSv1.1,TLSv1.2,TLSv1.3';
+      //TlsVersions := 'TLSv1.1';
+      SetOptionResult := FLib.mysql_options(FHandle, FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(AnsiString(TlsVersions)));
       SetOptionResult := SetOptionResult +
-        FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar(AnsiString('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3')));
+        FLib.mysql_options(FHandle, FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(AnsiString(TlsVersions)));
       if FParameters.SSLPrivateKey <> '' then
         SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_KEY), PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
       if FParameters.SSLCertificate <> '' then
         SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_CERT), PAnsiChar(AnsiString(FParameters.SSLCertificate)));
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
       if FParameters.SSLCACertificate <> '' then
         SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_CA), PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
       if FParameters.SSLCipher <> '' then
         SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, Integer(MYSQL_OPT_SSL_CIPHER), PAnsiChar(AnsiString(FParameters.SSLCipher)));
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
       if SetOptionResult = 0 then
         Log(lcInfo, _('SSL parameters successfully set.'))
       else
@@ -2448,24 +2450,24 @@ begin
 
     // Point libmysql to the folder with client plugins
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
-    SetOptionResult := FLib.mysql_options(FHandle, Integer(MYSQL_PLUGIN_DIR), PAnsiChar(PluginDir));
+    SetOptionResult := FLib.mysql_options(FHandle, FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
     if SetOptionResult <> 0 then begin
       raise EDbError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
     end;
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
-      FLib.mysql_options(FHandle, Integer(MYSQL_ENABLE_CLEARTEXT_PLUGIN), PAnsiChar('1'));
+      FLib.mysql_options(FHandle, FLib.MYSQL_ENABLE_CLEARTEXT_PLUGIN, PAnsiChar('1'));
 
     // Tell server who we are
     if Assigned(FLib.mysql_optionsv) then
-      FLib.mysql_optionsv(FHandle, Integer(MYSQL_OPT_CONNECT_ATTR_ADD), 'program_name', APPNAME);
+      FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', APPNAME);
 
     // Seems to be still required on some systems, for importing CSV files
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_LOCAL_INFILE), PAnsiChar('1'));
+    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_LOCAL_INFILE, PAnsiChar('1'));
 
     // Ensure we have some connection timeout
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_CONNECT_TIMEOUT), @FParameters.QueryTimeout);
+    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_CONNECT_TIMEOUT, @FParameters.QueryTimeout);
 
     Connected := FLib.mysql_real_connect(
       FHandle,
