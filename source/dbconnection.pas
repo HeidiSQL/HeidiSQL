@@ -2359,7 +2359,7 @@ var
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
-  PluginDir: AnsiString;
+  PluginDir, TlsVersions: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
   SetOptionResult: Integer;
@@ -2382,11 +2382,11 @@ begin
       // See https://www.heidisql.com/forum.php?t=27158
       // See https://mariadb.com/kb/en/library/mysql_optionsv/
       // See issue #1768
-      var TlsVersions := 'TLSv1,TLSv1.1,TLSv1.2,TLSv1.3';
+      TlsVersions := 'TLSv1,TLSv1.1,TLSv1.2,TLSv1.3';
       //TlsVersions := 'TLSv1.1';
-      SetOptionResult := FLib.mysql_options(FHandle, FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(AnsiString(TlsVersions)));
+      SetOptionResult := FLib.mysql_options(FHandle, FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       SetOptionResult := SetOptionResult +
-        FLib.mysql_options(FHandle, FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(AnsiString(TlsVersions)));
+        FLib.mysql_options(FHandle, FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       if FParameters.SSLPrivateKey <> '' then
         SetOptionResult := SetOptionResult +
           FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
@@ -2403,7 +2403,6 @@ begin
         Log(lcInfo, _('SSL parameters successfully set.'))
       else
         Log(lcError, f_('SSL parameters not fully set. Result: %d', [SetOptionResult]));
-      SetOptionResult := 0;
     end;
 
     case FParameters.NetType of
@@ -2485,11 +2484,17 @@ begin
       FConnectionStarted := 0;
       FHandle := nil;
       EndSSHTunnel;
-      if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
+      if Error.Contains('SEC_E_ALGORITHM_MISMATCH') then begin
+        ErrorHint := f_('This is a known issue with older libraries. Try a newer %s in the session settings.',
+          ['libmysql']
+          );
+      end
+      else if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
           [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
           );
-      end else begin
+      end
+      else begin
         ErrorHint := '';
       end;
       raise EDbError.Create(Error, LastErrorCode, ErrorHint);

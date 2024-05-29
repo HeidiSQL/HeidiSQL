@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-05-18 17:39+0200\n"
+"PO-Revision-Date: 2024-05-29 07:19+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -4809,6 +4809,9 @@ msgstr "unknown"
 #. Give the user some hint what he can do with his SSL related connection error
 msgid "You could try the default library %s in your session settings. (Current: %s)"
 msgstr "You could try the default library %s in your session settings. (Current: %s)"
+
+msgid "This is a known issue with older libraries. Try a newer %s in the session settings."
+msgstr "This is a known issue with older libraries. Try a newer %s in the session settings."
 
 #: main.pas:5261
 msgid "Specify filter-value..."
