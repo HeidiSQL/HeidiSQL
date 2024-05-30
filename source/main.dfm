@@ -3357,6 +3357,7 @@ object MainForm: TMainForm
       Category = 'Tools'
       Caption = 'Sequal Suggest'
       ImageIndex = 206
+      Visible = False
       OnExecute = actSequalSuggestExecute
     end
     object actResetPanelDimensions: TAction
