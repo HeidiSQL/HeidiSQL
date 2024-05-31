@@ -416,7 +416,7 @@ begin
     '  </Settings>' + sLineBreak +
     '  <Actions Context="Author">' + sLineBreak +
     '    <Exec>' + sLineBreak +
-    '      <Command>' + ParamStr(0) + '</Command>' + sLineBreak +
+    '      <Command>"' + ParamStr(0) + '"</Command>' + sLineBreak +
     '      <Arguments>--runfrom=scheduler</Arguments>' + sLineBreak +
     '    </Exec>' + sLineBreak +
     '  </Actions>' + sLineBreak +
