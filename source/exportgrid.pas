@@ -704,47 +704,46 @@ begin
     case ExportFormat of
       efHTML: begin
         Header :=
-          '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
-          '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
-          '<html>' + CRLF +
-          '  <head>' + CRLF +
-          '    <title>' + TableName + '</title>' + CRLF +
-          '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
-          '    <meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + CRLF +
-          '    <style type="text/css">' + CRLF +
-          '      th, td {vertical-align: top;}' + CRLF +
-          '      table, td {border: 1px solid silver; padding: 2px;}' + CRLF +
-          '      table {border-collapse: collapse;}' + CRLF;
+          '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + sLineBreak +
+          CodeIndent + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + sLineBreak + sLineBreak +
+          '<html>' + sLineBreak +
+          CodeIndent + '<head>' + sLineBreak +
+          CodeIndent(2) + '<title>' + TableName + '</title>' + sLineBreak +
+          CodeIndent(2) + '<meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + sLineBreak +
+          CodeIndent(2) + '<meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + sLineBreak +
+          CodeIndent(2) + '<style type="text/css">' + sLineBreak +
+          CodeIndent(3) + 'th, td {vertical-align: top;}' + sLineBreak +
+          CodeIndent(3) + 'table, td {border: 1px solid silver; padding: 2px;}' + sLineBreak +
+          CodeIndent(3) + 'table {border-collapse: collapse;}' + sLineBreak;
         Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
           // Right-justify all cells to match the grid on screen.
           if Grid.Header.Columns[Col].Alignment = taRightJustify then
-            Header := Header + '      .col' + IntToStr(Col) + ' {text-align: right;}' + CRLF;
+            Header := Header + CodeIndent(3) + '.col' + IntToStr(Col) + ' {text-align: right;}' + sLineBreak;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Header := Header +
-          '    </style>' + CRLF +
-          '  </head>' + CRLF + CRLF +
-          '  <body>' + CRLF + CRLF;
+          CodeIndent(2) + '</style>' + sLineBreak +
+          CodeIndent + '</head>' + sLineBreak + sLineBreak +
+          CodeIndent + '<body>' + sLineBreak + sLineBreak;
         if chkIncludeQuery.Checked then
           Header := Header + '<p style="font-family: monospace; white-space: pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
-        Header := Header + '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF;
+        Header := Header + CodeIndent(2) + '<table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + sLineBreak;
         if chkIncludeColumnNames.Checked then begin
           Header := Header +
-            '      <thead>' + CRLF +
-            '        <tr>' + CRLF;
+            CodeIndent(3) + '<thead>' + sLineBreak +
+            CodeIndent(4) + '<tr>' + sLineBreak;
           Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
-              Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
+              Header := Header + CodeIndent(5) + '<th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + sLineBreak;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
           Header := Header +
-            '        </tr>' + CRLF +
-            '      </thead>' + CRLF;
+            CodeIndent(4) + '</tr>' + sLineBreak +
+            CodeIndent(3) + '</thead>' + sLineBreak;
         end;
-        Header := Header +
-          '      <tbody>' + CRLF;
+        Header := Header + CodeIndent(3) + '<tbody>' + sLineBreak;
       end;
 
       efExcel, efCSV: begin
@@ -868,12 +867,12 @@ begin
 
       efJSON: begin
         // JavaScript Object Notation
-        Header := '{' + CRLF;
+        Header := '{' + sLineBreak;
         if chkIncludeQuery.Checked then
-          Header := Header + #9 + '"query": '+FormatJson(GridData.SQL)+',' + CRLF
+          Header := Header + #9 + '"query": '+FormatJson(GridData.SQL)+',' + sLineBreak
         else
-          Header := Header + #9 + '"table": '+FormatJson(TableName)+',' + CRLF ;
-        Header := Header + #9 + '"rows":' + CRLF + #9 + '[';
+          Header := Header + #9 + '"table": '+FormatJson(TableName)+',' + sLineBreak;
+        Header := Header + #9 + '"rows":' + sLineBreak + #9 + '[';
       end;
 
     end;
@@ -896,9 +895,9 @@ begin
 
       // Row preamble
       case ExportFormat of
-        efHTML: tmp := '        <tr>' + CRLF;
+        efHTML: tmp := CodeIndent(4) + '<tr>' + sLineBreak;
 
-        efXML: tmp := #9'<row>' + CRLF;
+        efXML: tmp := CodeIndent + '<row>' + sLineBreak;
 
         efSQLUpdate: begin
           tmp := '';
@@ -914,7 +913,7 @@ begin
           if ExportFormat in [efSQLInsert, efSQLDeleteInsert] then
             tmp := tmp + 'INSERT'
           else if ExportFormat = efSQLInsertIgnore then
-            tmp := tmp + 'INSERT IGNORE'   
+            tmp := tmp + 'INSERT IGNORE'
           else
             tmp := tmp + 'REPLACE';
           tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
@@ -935,15 +934,15 @@ begin
 
         efTextile, efJiraTextile: tmp := TrimLeft(Separator);
 
-        efPHPArray: tmp := #9 + '['+CRLF;
+        efPHPArray: tmp := CodeIndent + '[' + sLineBreak;
 
         efMarkDown: tmp := '| ';
 
         efJSON: begin
           if chkIncludeColumnNames.Checked then
-            tmp := CRLF + #9#9 + '{' + CRLF
+            tmp := sLineBreak + CodeIndent(2) + '{' + sLineBreak
           else
-            tmp := CRLF + #9#9 + '[' + CRLF
+            tmp := sLineBreak + CodeIndent(2) + '[' + sLineBreak
         end;
 
         efJSONLines: begin
@@ -984,7 +983,7 @@ begin
             efHTML: begin
               // Escape HTML control characters in data.
               Data := HTMLSpecialChars(Data);
-              tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
+              tmp := tmp + CodeIndent(5) + '<td class="col' + IntToStr(Col) + '">' + Data + '</td>' + sLineBreak;
             end;
 
             efExcel, efCSV: begin
@@ -1017,7 +1016,7 @@ begin
 
             efXML: begin
               // Print cell start tag.
-              tmp := tmp + #9#9'<field';
+              tmp := tmp + CodeIndent(2) + '<field';
               if chkIncludeColumnNames.Checked then
                 tmp := tmp + ' name="' + HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '"';
               if GridData.IsNull(ResultCol) then
@@ -1063,13 +1062,13 @@ begin
               end;
 
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + #9#9 + FormatPhp(Grid.Header.Columns[Col].Text) + ' => ' + Data + ','+CRLF
+                tmp := tmp + CodeIndent(2) + FormatPhp(Grid.Header.Columns[Col].Text) + ' => ' + Data + ',' + sLineBreak
               else
-                tmp := tmp + #9#9 + Data + ','+CRLF;
+                tmp := tmp + CodeIndent(2) + Data + ',' + sLineBreak;
             end;
 
             efJSON: begin
-              tmp := tmp + #9#9#9;
+              tmp := tmp + CodeIndent(3);
               if chkIncludeColumnNames.Checked then
                 tmp := tmp + FormatJson(Grid.Header.Columns[Col].Text) + ': ';
               if GridData.IsNull(ResultCol) then
@@ -1110,13 +1109,13 @@ begin
       // Row epilogue
       case ExportFormat of
         efHTML:
-          tmp := tmp + '        </tr>' + CRLF;
+          tmp := tmp + CodeIndent(4) + '</tr>' + sLineBreak;
         efExcel, efCSV, efLaTeX, efTextile, efJiraTextile: begin
           Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
           tmp := tmp + Terminator;
         end;
         efXML:
-          tmp := tmp + #9'</row>' + CRLF;
+          tmp := tmp + CodeIndent + '</row>' + sLineBreak;
         efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert: begin
           Delete(tmp, Length(tmp)-1, 2);
           tmp := tmp + ');' + CRLF;
@@ -1126,15 +1125,15 @@ begin
           tmp := tmp + ' WHERE' + GridData.GetWhereClause + ';' + sLineBreak;
         end;
         efPHPArray:
-          tmp := tmp + #9 + '],' + CRLF;
+          tmp := tmp + CodeIndent + '],' + sLineBreak;
         efMarkDown:
           tmp := tmp + Terminator;
         efJSON: begin
           Delete(tmp, length(tmp)-2,2);
           if chkIncludeColumnNames.Checked then
-            tmp := tmp + #9#9 + '},'
+            tmp := tmp + CodeIndent(2) + '},'
           else
-            tmp := tmp + #9#9 + '],';
+            tmp := tmp + CodeIndent(2) + '],';
         end;
         efJSONLines: begin
           Delete(tmp, length(tmp)-1,2);
@@ -1153,14 +1152,14 @@ begin
     case ExportFormat of
       efHTML: begin
         tmp :=
-          '      </tbody>' + CRLF +
-          '    </table>' + CRLF + CRLF +
-          '    <p>' + CRLF +
-          '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
-          '      by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + CRLF +
-          '    </p>' + CRLF + CRLF +
-          '  </body>' + CRLF +
-          '</html>' + CRLF;
+          CodeIndent(3) + '</tbody>' + sLineBreak +
+          CodeIndent(2) + '</table>' + sLineBreak + sLineBreak +
+          CodeIndent(2) + '<p>' + sLineBreak +
+          CodeIndent(3) + '<em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
+          CodeIndent(3) + 'by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + sLineBreak +
+          CodeIndent(2) + '</p>' + sLineBreak + sLineBreak +
+          CodeIndent + '</body>' + sLineBreak +
+          '</html>' + sLineBreak;
       end;
       efXML: begin
         if chkIncludeQuery.Checked then
@@ -1175,7 +1174,7 @@ begin
       end;
       efJSON: begin
         S.Size := S.Size - 1;
-        tmp := CRLF + #9 + ']' + CRLF + '}';
+        tmp := sLineBreak + CodeIndent + ']' + sLineBreak + '}';
       end;
       else
         tmp := '';

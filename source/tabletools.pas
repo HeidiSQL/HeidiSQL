@@ -1863,7 +1863,7 @@ begin
                 // Prevent DEFAULT value from coming in, to fix errors due to multiple CURRENT_TIMESTAMP values
                 // See issue #2748
                 Column.DefaultType := cdtNothing;
-                Struc := Struc + CRLF + #9 + Column.SQLCode + ',';
+                Struc := Struc + sLineBreak + CodeIndent + Column.SQLCode + ',';
               end;
               Delete(Struc, Length(Struc), 1);
               Struc := Struc + CRLF + ') ENGINE=MyISAM';
@@ -1983,7 +1983,7 @@ begin
             BaseInsert := BaseInsert + Quoter.QuoteIdent(Data.ColumnNames[i]) + ', ';
         end;
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
-        BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
+        BaseInsert := BaseInsert + ') VALUES' + sLineBreak + CodeIndent + '(';
         while true do begin
           Output(BaseInsert, False, True, True, True, True);
           RowCountInChunk := 0;
@@ -1991,7 +1991,7 @@ begin
           while not Data.Eof do begin
             Row := '';
             if RowCountInChunk > 0 then
-              Row := Row + ','+CRLF+#9+'(';
+              Row := Row + ',' + sLineBreak + CodeIndent + '(';
             for i:=0 to Data.ColumnCount-1 do begin
               if Data.ColIsVirtual(i) then
                 Continue;

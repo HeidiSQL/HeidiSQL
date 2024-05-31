@@ -6231,7 +6231,8 @@ var
 begin
   // Mark all nodes as multiline capable. Fixes painting issues with long lines.
   // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
-  Include(Node.States, vsMultiLine);
+  if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
+    Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
@@ -13141,6 +13142,7 @@ begin
   Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
+  Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
   if Editor <> SynMemoSQLLog then begin
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
@@ -13253,24 +13255,24 @@ begin
 
 
   if MenuItem = menuQueryHelpersGenerateSelect then begin
-    sql := 'SELECT '+Implode(', ', ColumnNames)+CRLF+
-      #9'FROM '+ActiveDbObj.QuotedName(False);
+    sql := 'SELECT ' + Implode(', ', ColumnNames) + SLineBreak +
+      CodeIndent + 'FROM '+ActiveDbObj.QuotedName(False);
 
   end else if MenuItem = menuQueryHelpersGenerateInsert then begin
-    sql := 'INSERT INTO '+ActiveDbObj.QuotedName(False)+CRLF+
-      #9'('+Implode(', ', ColumnNames)+')'+CRLF+
-      #9'VALUES ('+Implode(', ', DefaultValues)+')';
+    sql := 'INSERT INTO ' + ActiveDbObj.QuotedName(False) + SLineBreak +
+      CodeIndent + '(' + Implode(', ', ColumnNames) + ')' + SLineBreak +
+      CodeIndent + 'VALUES (' + Implode(', ', DefaultValues) + ')';
 
   end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
-    sql := 'UPDATE '+ActiveDbObj.QuotedName(False)+CRLF+#9'SET'+CRLF;
+    sql := 'UPDATE ' + ActiveDbObj.QuotedName(False) + SLineBreak + CodeIndent + 'SET' + SLineBreak;
     if ColumnNames.Count > 0 then begin
       for i:=0 to ColumnNames.Count-1 do begin
-        sql := sql + #9#9 + ColumnNames[i] + '=' + DefaultValues[i] + ',' + CRLF;
+        sql := sql + CodeIndent(2) + ColumnNames[i] + '=' + DefaultValues[i] + ',' + SLineBreak;
       end;
       Delete(sql, Length(sql)-2, 1);
     end else
-      sql := sql + #9#9'??? # No column names selected!'+CRLF;
-    sql := sql + #9'WHERE ' + WhereClause;
+      sql := sql + CodeIndent(2) + '??? # No column names selected!' + SLineBreak;
+    sql := sql + CodeIndent + 'WHERE ' + WhereClause;
 
   end else if MenuItem = menuQueryHelpersGenerateDelete then begin
     sql := 'DELETE FROM '+ActiveDbObj.QuotedName(False)+' WHERE ' + WhereClause;

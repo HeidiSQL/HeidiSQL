@@ -241,10 +241,7 @@ begin
   HttpReq.Request.CharSet := 'utf-8';
   HttpReq.Request.UserAgent := apphelpers.UserAgent(Self);
   Parameters := TStringList.Create;
-  if AppSettings.ReadBool(asTabsToSpaces) then
-    Parameters.AddPair('indent', StringOfChar(' ', AppSettings.ReadInt(asTabWidth)))
-  else
-    Parameters.AddPair('indent', #9);
+  Parameters.AddPair('indent', CodeIndent);
   Parameters.AddPair('input', FInputCode);
   Result := HttpReq.Post(APPDOMAIN + 'sql-formatter.php', Parameters);
   if Result.IsEmpty then

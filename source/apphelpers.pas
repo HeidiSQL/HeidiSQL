@@ -422,6 +422,7 @@ type
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function UserAgent(OwnerComponent: TComponent): String;
+  function CodeIndent(Steps: Integer=1): String;
 
 var
   AppSettings: TAppSettings;
@@ -2392,7 +2393,7 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
-    rx.Expression := 'https?://\S+';
+    rx.Expression := 'https?://[^\s"]+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
@@ -2996,6 +2997,16 @@ begin
   else
     OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
   Result := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
+end;
+
+
+function CodeIndent(Steps: Integer=1): String;
+begin
+  // Provide tab or spaces for indentation, uniquely used for all SQL statements
+  if AppSettings.ReadBool(asTabsToSpaces) then
+    Result := StringOfChar(' ', AppSettings.ReadInt(asTabWidth) * Steps)
+  else
+    Result := StringOfChar(#9, Steps);
 end;
 
 

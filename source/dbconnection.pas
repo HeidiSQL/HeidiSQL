@@ -2359,8 +2359,7 @@ var
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
-  sslca, sslkey, sslcert, sslcipher: PAnsiChar;
-  PluginDir: AnsiString;
+  PluginDir, TlsVersions: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
   SetOptionResult: Integer;
@@ -2379,27 +2378,31 @@ begin
     FinalPort := FParameters.Port;
 
     if FParameters.WantSSL then begin
-      // mysql_ssl_set() wants nil, while PAnsiChar(AnsiString()) is never nil
-      sslkey := nil;
-      sslcert := nil;
-      sslca := nil;
-      sslcipher := nil;
+      // Define which TLS protocol versions are allowed.
+      // See https://www.heidisql.com/forum.php?t=27158
+      // See https://mariadb.com/kb/en/library/mysql_optionsv/
+      // See issue #1768
+      TlsVersions := 'TLSv1,TLSv1.1,TLSv1.2,TLSv1.3';
+      //TlsVersions := 'TLSv1.1';
+      SetOptionResult := FLib.mysql_options(FHandle, FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
+      SetOptionResult := SetOptionResult +
+        FLib.mysql_options(FHandle, FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       if FParameters.SSLPrivateKey <> '' then
-        sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
       if FParameters.SSLCertificate <> '' then
-        sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
       if FParameters.SSLCACertificate <> '' then
-        sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
       if FParameters.SSLCipher <> '' then
-        sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
-      { TODO : Use Cipher and CAPath parameters }
-      FLib.mysql_ssl_set(FHandle,
-        sslkey,
-        sslcert,
-        sslca,
-        nil,
-        sslcipher);
-      Log(lcInfo, _('SSL parameters successfully set.'));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
+      if SetOptionResult = 0 then
+        Log(lcInfo, _('SSL parameters successfully set.'))
+      else
+        Log(lcError, f_('SSL parameters not fully set. Result: %d', [SetOptionResult]));
     end;
 
     case FParameters.NetType of
@@ -2446,30 +2449,24 @@ begin
 
     // Point libmysql to the folder with client plugins
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
-    SetOptionResult := FLib.mysql_options(FHandle, Integer(MYSQL_PLUGIN_DIR), PAnsiChar(PluginDir));
+    SetOptionResult := FLib.mysql_options(FHandle, FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
     if SetOptionResult <> 0 then begin
       raise EDbError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
     end;
 
-    // Define which TLS protocol versions are allowed.
-    // See https://www.heidisql.com/forum.php?t=27158
-    // See https://mariadb.com/kb/en/library/mysql_optionsv/
-    FLib.mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
-      FLib.mysql_options(FHandle, Integer(MYSQL_ENABLE_CLEARTEXT_PLUGIN), PAnsiChar('1'));
+      FLib.mysql_options(FHandle, FLib.MYSQL_ENABLE_CLEARTEXT_PLUGIN, PAnsiChar('1'));
 
     // Tell server who we are
     if Assigned(FLib.mysql_optionsv) then
-      FLib.mysql_optionsv(FHandle, Integer(MYSQL_OPT_CONNECT_ATTR_ADD), 'program_name', APPNAME);
+      FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', APPNAME);
 
     // Seems to be still required on some systems, for importing CSV files
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_LOCAL_INFILE), PAnsiChar('1'));
+    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_LOCAL_INFILE, PAnsiChar('1'));
 
     // Ensure we have some connection timeout
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_CONNECT_TIMEOUT), @FParameters.QueryTimeout);
+    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_CONNECT_TIMEOUT, @FParameters.QueryTimeout);
 
     Connected := FLib.mysql_real_connect(
       FHandle,
@@ -2487,11 +2484,17 @@ begin
       FConnectionStarted := 0;
       FHandle := nil;
       EndSSHTunnel;
-      if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
+      if Error.Contains('SEC_E_ALGORITHM_MISMATCH') then begin
+        ErrorHint := f_('This is a known issue with older libraries. Try a newer %s in the session settings.',
+          ['libmysql']
+          );
+      end
+      else if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
           [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
           );
-      end else begin
+      end
+      else begin
         ErrorHint := '';
       end;
       raise EDbError.Create(Error, LastErrorCode, ErrorHint);
@@ -4072,25 +4075,25 @@ begin
       Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
       TableCols := Obj.GetTableColumns;
       for TableCol in TableCols do begin
-        Result := Result + CRLF + #9 + TableCol.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableCol.SQLCode + ',';
       end;
       TableCols.Free;
 
       TableKeys := Obj.GetTableKeys;
       for TableKey in TableKeys do begin
-        Result := Result + CRLF + #9 + TableKey.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableKey.SQLCode + ',';
       end;
       TableKeys.Free;
 
       TableForeignKeys := Obj.GetTableForeignKeys;
       for TableForeignKey in TableForeignKeys do begin
-        Result := Result + CRLF + #9 + TableForeignKey.SQLCode(True) + ',';
+        Result := Result + sLineBreak + CodeIndent + TableForeignKey.SQLCode(True) + ',';
       end;
       TableForeignKeys.Free;
 
       TableCheckConstraints := Obj.GetTableCheckConstraints;
       for TableCheckConstraint in TableCheckConstraints do begin
-        Result := Result + CRLF + #9 + TableCheckConstraint.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableCheckConstraint.SQLCode + ',';
       end;
       TableCheckConstraints.Free;
 
@@ -6358,10 +6361,11 @@ begin
       '   '+InfSch+'.constraint_column_usage AS ccu'+
       ' WHERE'+
       '   refc.constraint_schema = '+EscapeString(Table.Schema)+
-      '   AND refc.constraint_name = kcu.constraint_name'+
-      '   AND refc.constraint_schema = kcu.table_schema'+
-      '   AND ccu.constraint_name = refc.constraint_name'+
       '   AND kcu.table_name = '+EscapeString(Table.Name)+
+      '   AND kcu.constraint_name = refc.constraint_name'+
+      '   AND kcu.table_schema = refc.constraint_schema'+
+      '   AND ccu.constraint_name = refc.constraint_name'+
+      '   AND ccu.constraint_schema = refc.constraint_schema'+
       ' GROUP BY'+
       '   refc.constraint_name,'+
       '   refc.update_rule,'+

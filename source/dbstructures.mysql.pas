@@ -4,7 +4,7 @@
 interface
 
 uses
-  System.Classes, dbstructures;
+  System.Classes, System.SysUtils, dbstructures;
 
 
 const
@@ -259,83 +259,6 @@ type
   end;
   PMYSQL_RES = ^MYSQL_RES;
 
-  TMySQLOption = (
-    MYSQL_OPT_CONNECT_TIMEOUT,
-    MYSQL_OPT_COMPRESS,
-    MYSQL_OPT_NAMED_PIPE,
-    MYSQL_INIT_COMMAND,
-    MYSQL_READ_DEFAULT_FILE,
-    MYSQL_READ_DEFAULT_GROUP,
-    MYSQL_SET_CHARSET_DIR,
-    MYSQL_SET_CHARSET_NAME,
-    MYSQL_OPT_LOCAL_INFILE,
-    MYSQL_OPT_PROTOCOL,
-    MYSQL_SHARED_MEMORY_BASE_NAME,
-    MYSQL_OPT_READ_TIMEOUT,
-    MYSQL_OPT_WRITE_TIMEOUT,
-    MYSQL_OPT_USE_RESULT,
-    MYSQL_OPT_USE_REMOTE_CONNECTION,
-    MYSQL_OPT_USE_EMBEDDED_CONNECTION,
-    MYSQL_OPT_GUESS_CONNECTION,
-    MYSQL_SET_CLIENT_IP,
-    MYSQL_SECURE_AUTH,
-    MYSQL_REPORT_DATA_TRUNCATION,
-    MYSQL_OPT_RECONNECT,
-    MYSQL_OPT_SSL_VERIFY_SERVER_CERT,
-    MYSQL_PLUGIN_DIR,
-    MYSQL_DEFAULT_AUTH,
-    MYSQL_OPT_BIND,
-    MYSQL_OPT_SSL_KEY,
-    MYSQL_OPT_SSL_CERT,
-    MYSQL_OPT_SSL_CA,
-    MYSQL_OPT_SSL_CAPATH,
-    MYSQL_OPT_SSL_CIPHER,
-    MYSQL_OPT_SSL_CRL,
-    MYSQL_OPT_SSL_CRLPATH,
-    // Connection attribute options
-    MYSQL_OPT_CONNECT_ATTR_RESET,
-    MYSQL_OPT_CONNECT_ATTR_ADD,
-    MYSQL_OPT_CONNECT_ATTR_DELETE,
-    MYSQL_SERVER_PUBLIC_KEY,
-    MYSQL_ENABLE_CLEARTEXT_PLUGIN,
-    MYSQL_OPT_CAN_HANDLE_EXPIRED_PASSWORDS,
-    MYSQL_OPT_SSL_ENFORCE,
-    MYSQL_OPT_MAX_ALLOWED_PACKET,
-    MYSQL_OPT_NET_BUFFER_LENGTH,
-    MYSQL_OPT_TLS_VERSION,
-    MYSQL_OPT_SSL_MODE,
-    MYSQL_OPT_GET_SERVER_PUBLIC_KEY,
-
-    // MariaDB specific
-    MYSQL_PROGRESS_CALLBACK=5999,
-    MYSQL_OPT_NONBLOCK,
-    // MariaDB Connector/C specific
-    MYSQL_DATABASE_DRIVER=7000,
-    MARIADB_OPT_SSL_FP,                // deprecated, use MARIADB_OPT_TLS_PEER_FP instead
-    MARIADB_OPT_SSL_FP_LIST,           // deprecated, use MARIADB_OPT_TLS_PEER_FP_LIST instead
-    MARIADB_OPT_TLS_PASSPHRASE,        // passphrase for encrypted certificates
-    MARIADB_OPT_TLS_CIPHER_STRENGTH,
-    MARIADB_OPT_TLS_VERSION,
-    MARIADB_OPT_TLS_PEER_FP,           // single finger print for server certificate verification
-    MARIADB_OPT_TLS_PEER_FP_LIST,      // finger print white list for server certificate verification
-    MARIADB_OPT_CONNECTION_READ_ONLY,
-    MYSQL_OPT_CONNECT_ATTRS,           // for mysql_get_optionv
-    MARIADB_OPT_USERDATA,
-    MARIADB_OPT_CONNECTION_HANDLER,
-    MARIADB_OPT_PORT,
-    MARIADB_OPT_UNIXSOCKET,
-    MARIADB_OPT_PASSWORD,
-    MARIADB_OPT_HOST,
-    MARIADB_OPT_USER,
-    MARIADB_OPT_SCHEMA,
-    MARIADB_OPT_DEBUG,
-    MARIADB_OPT_FOUND_ROWS,
-    MARIADB_OPT_MULTI_RESULTS,
-    MARIADB_OPT_MULTI_STATEMENTS,
-    MARIADB_OPT_INTERACTIVE,
-    MARIADB_OPT_PROXY_HEADER
-    );
-
   TMySQLLib = class(TDbLib)
     mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
     mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
@@ -358,7 +281,6 @@ type
     mysql_ping: function(Handle: PMYSQL): Integer; stdcall;
     mysql_real_connect: function(Handle: PMYSQL; const Host, User, Passwd, Db: PAnsiChar; Port: Cardinal; const UnixSocket: PAnsiChar; ClientFlag: Cardinal): PMYSQL; stdcall;
     mysql_real_query: function(Handle: PMYSQL; const Query: PAnsiChar; Length: Cardinal): Integer; stdcall;
-    mysql_ssl_set: function(Handle: PMYSQL; const key, cert, CA, CApath, cipher: PAnsiChar): Byte; stdcall;
     mysql_stat: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_store_result: function(Handle: PMYSQL): PMYSQL_RES; stdcall;
     mysql_thread_id: function(Handle: PMYSQL): Cardinal; stdcall;
@@ -369,6 +291,19 @@ type
     mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
     protected
       procedure AssignProcedures; override;
+    public
+      MYSQL_OPT_LOCAL_INFILE,
+      MYSQL_OPT_CONNECT_TIMEOUT,
+      MARIADB_OPT_TLS_VERSION,
+      MYSQL_OPT_TLS_VERSION,
+      MYSQL_PLUGIN_DIR,
+      MYSQL_OPT_SSL_KEY,
+      MYSQL_OPT_SSL_CERT,
+      MYSQL_OPT_SSL_CA,
+      MYSQL_OPT_SSL_CIPHER,
+      MYSQL_OPT_CONNECT_ATTR_ADD,
+      MYSQL_ENABLE_CLEARTEXT_PLUGIN: Integer;
+      constructor Create(DllFile, DefaultDll: String); override;
   end;
 var
   MySQLKeywords: TStringList;
@@ -3137,6 +3072,35 @@ implementation
 uses apphelpers;
 
 
+constructor TMySQLLib.Create(DllFile, DefaultDll: String);
+begin
+  inherited;
+  // Some MYSQL_OPT_* constants were removed in MySQL 8.0, so the offsets differ between libmysql and libmariadb.
+  MYSQL_OPT_CONNECT_TIMEOUT := 0;
+  MYSQL_OPT_LOCAL_INFILE := 8;
+  MARIADB_OPT_TLS_VERSION := 7005;
+  if String(mysql_get_client_info).StartsWith('8.') then begin
+    MYSQL_PLUGIN_DIR := 16;
+    MYSQL_OPT_SSL_KEY := 19;
+    MYSQL_OPT_SSL_CERT := 20;
+    MYSQL_OPT_SSL_CA := 21;
+    MYSQL_OPT_SSL_CIPHER := 23;
+    MYSQL_OPT_CONNECT_ATTR_ADD := 27;
+    MYSQL_ENABLE_CLEARTEXT_PLUGIN := 30;
+    MYSQL_OPT_TLS_VERSION := 34;
+  end
+  else begin
+    MYSQL_PLUGIN_DIR := 22;
+    MYSQL_OPT_SSL_KEY := 25;
+    MYSQL_OPT_SSL_CERT := 26;
+    MYSQL_OPT_SSL_CA := 27;
+    MYSQL_OPT_SSL_CIPHER := 29;
+    MYSQL_OPT_CONNECT_ATTR_ADD := 33;
+    MYSQL_ENABLE_CLEARTEXT_PLUGIN := 36;
+    MYSQL_OPT_TLS_VERSION := 41;
+  end;
+end;
+
 procedure TMySQLLib.AssignProcedures;
 begin
   AssignProc(@mysql_affected_rows, 'mysql_affected_rows');
@@ -3160,7 +3124,6 @@ begin
   AssignProc(@mysql_optionsv, 'mysql_optionsv', False);
   AssignProc(@mysql_real_connect, 'mysql_real_connect');
   AssignProc(@mysql_real_query, 'mysql_real_query');
-  AssignProc(@mysql_ssl_set, 'mysql_ssl_set');
   AssignProc(@mysql_stat, 'mysql_stat');
   AssignProc(@mysql_store_result, 'mysql_store_result');
   AssignProc(@mysql_thread_id, 'mysql_thread_id');
