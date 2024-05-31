@@ -281,10 +281,20 @@ begin
   TExtForm.RestoreListSetup(treeIndexes);
   TExtForm.RestoreListSetup(listForeignKeys);
   TExtForm.RestoreListSetup(listCheckConstraints);
+  // Fix control width and position, broken when opening a second table. See issue #1959
+  comboCollation.Left := lblCollation.Left + TExtForm.ScaleSize(150, Self);
+  comboCollation.Width := comboRowFormat.Width;
+  comboCollation.Items := DBObject.Connection.CollationList;
+  chkCharsetConvert.Left := comboCollation.Left + comboCollation.Width + 10;
+  comboEngine.Left := comboCollation.Left;
+  comboEngine.Width := comboCollation.Width;
   comboEngine.Items := DBObject.Connection.TableEngines;
   comboEngine.Items.Insert(0, '<'+_('Server default')+'>');
   comboEngine.ItemIndex := 0;
-  comboCollation.Items := DBObject.Connection.CollationList;
+  memoUnionTables.Left := comboCollation.Left;
+  memoUnionTables.Width := comboCollation.Width;
+  comboInsertMethod.Left := comboCollation.Left;
+  comboInsertMethod.Width := comboCollation.Width;
   if DBObject.Connection.Parameters.IsMariaDB then begin
     with listColumns.Header do begin
       Columns[10].Options := Columns[10].Options + [coVisible];
