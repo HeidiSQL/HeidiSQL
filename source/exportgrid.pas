@@ -97,6 +97,7 @@ type
     procedure SelectRecentFile(Sender: TObject);
     procedure PutFilenamePlaceholder(Sender: TObject);
     function FormatExcelCsv(Text, Encloser: String; DataType: TDBDatatype): String;
+    function FormatJson(Text: String): String;
     function FormatPhp(Text: String): String;
     function FormatLatex(Text: String): String;
   public
@@ -578,7 +579,7 @@ begin
 end;
 
 
-function TfrmExportGrid.FormatPhp(Text: String): String;
+function TfrmExportGrid.FormatJson(Text: String): String;
 begin
   // String escaping for PHP output. Incompatible to TDBConnection.EscapeString.
   Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
@@ -587,6 +588,28 @@ begin
   Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
   Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
   Result := '"' + Result + '"';
+end;
+
+function TfrmExportGrid.FormatPhp(Text: String): String;
+begin
+  if Text.IndexOfAny([#10, #13, #9, #11, #27, #12]) > -1 then begin
+    // https://www.php.net/manual/it/language.types.string.php#language.types.string.syntax.double
+    Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
+    Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
+    Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
+    Result := StringReplace(Result, #11, '\v', [rfReplaceAll]);
+    Result := StringReplace(Result, #27, '\e', [rfReplaceAll]);
+    Result := StringReplace(Result, #12, '\f', [rfReplaceAll]);
+    Result := StringReplace(Result, '$', '\$', [rfReplaceAll]);
+    Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
+    Result := '"' + Result + '"';
+  end else begin
+    // https://www.php.net/manual/it/language.types.string.php#language.types.string.syntax.single
+    Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Text, '''', '\''', [rfReplaceAll]);
+    Result := '''' + Result + '''';
+  end;
 end;
 
 
@@ -802,9 +825,9 @@ begin
 
       efPHPArray: begin
         if radioOutputFile.Checked then
-          Header := '<?php'+CRLF+'$'+TableName+' = array('+CRLF
+          Header := '<?php'+CRLF+'$'+TableName+' = ['+CRLF
         else
-          Header := '$'+TableName+' = array('+CRLF;
+          Header := '$'+TableName+' = ['+CRLF;
       end;
 
       efMarkDown: begin
@@ -844,12 +867,12 @@ begin
 
       efJSON: begin
         // JavaScript Object Notation
-        Header := '{' + CRLF;
+        Header := '{' + sLineBreak;
         if chkIncludeQuery.Checked then
-          Header := Header + CodeIndent + '"query": '+FormatPhp(GridData.SQL)+',' + sLineBreak
+          Header := Header + #9 + '"query": '+FormatJson(GridData.SQL)+',' + sLineBreak
         else
-          Header := Header + CodeIndent + '"table": '+FormatPhp(TableName)+',' + sLineBreak ;
-        Header := Header + CodeIndent + '"rows":' + sLineBreak + CodeIndent + '[';
+          Header := Header + #9 + '"table": '+FormatJson(TableName)+',' + sLineBreak;
+        Header := Header + #9 + '"rows":' + sLineBreak + #9 + '[';
       end;
 
     end;
@@ -911,7 +934,7 @@ begin
 
         efTextile, efJiraTextile: tmp := TrimLeft(Separator);
 
-        efPHPArray: tmp := CodeIndent + 'array(' + sLineBreak;
+        efPHPArray: tmp := CodeIndent + '[' + sLineBreak;
 
         efMarkDown: tmp := '| ';
 
@@ -1027,7 +1050,7 @@ begin
 
             efPHPArray: begin
               if GridData.IsNull(ResultCol) then
-                Data := 'NULL'
+                Data := 'null'
               else case GridData.DataType(ResultCol).Category of
                 dtcInteger, dtcReal: begin
                   // Remove zeropadding to avoid octal => integer conversion in PHP
@@ -1047,7 +1070,7 @@ begin
             efJSON: begin
               tmp := tmp + CodeIndent(3);
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + FormatPhp(Grid.Header.Columns[Col].Text) + ': ';
+                tmp := tmp + FormatJson(Grid.Header.Columns[Col].Text) + ': ';
               if GridData.IsNull(ResultCol) then
                 tmp := tmp + 'null,' +CRLF
               else begin
@@ -1055,7 +1078,7 @@ begin
                   dtcInteger, dtcReal:
                     tmp := tmp + Data;
                   else
-                    tmp := tmp + FormatPhp(Data)
+                    tmp := tmp + FormatJson(Data)
                 end;
                 tmp := tmp + ',' + CRLF;
               end;
@@ -1063,7 +1086,7 @@ begin
 
             efJSONLines: begin
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + FormatPhp(Grid.Header.Columns[Col].Text) + ': ';
+                tmp := tmp + FormatJson(Grid.Header.Columns[Col].Text) + ': ';
               if GridData.IsNull(ResultCol) then
                 tmp := tmp + 'null, '
               else begin
@@ -1071,7 +1094,7 @@ begin
                   dtcInteger, dtcReal:
                     tmp := tmp + Data;
                   else
-                    tmp := tmp + FormatPhp(Data)
+                    tmp := tmp + FormatJson(Data)
                 end;
                 tmp := tmp + ', ';
               end;
@@ -1102,7 +1125,7 @@ begin
           tmp := tmp + ' WHERE' + GridData.GetWhereClause + ';' + sLineBreak;
         end;
         efPHPArray:
-          tmp := tmp + CodeIndent + '),' + sLineBreak;
+          tmp := tmp + CodeIndent + '],' + sLineBreak;
         efMarkDown:
           tmp := tmp + Terminator;
         efJSON: begin
@@ -1147,7 +1170,7 @@ begin
       efLaTeX:
         tmp := '\end{tabular}' + CRLF;
       efPHPArray: begin
-        tmp := ');' + CRLF;
+        tmp := '];' + CRLF;
       end;
       efJSON: begin
         S.Size := S.Size - 1;
