@@ -136,8 +136,20 @@ type
       ): Integer; cdecl;
     sqlite3_collation_needed: function(ppDb: Psqlite3; userData: Pointer; Func: TSQLiteCollationNeededCallback): Integer; cdecl;
     sqlite3_create_collation: function(ppDb: Psqlite3; const zName: PAnsiChar; eTextRep: Integer; pArg: Pointer; xCompare: TSQLiteCollation): Integer; cdecl;
+    // Additionally, for use in Multiple Ciphers library:
+    sqlite3_key: function(ppDb: Psqlite3; const pKey: Pointer; nKey: Integer): Integer; cdecl;
+    sqlite3mc_cipher_count: function(): Integer; cdecl;
+    sqlite3mc_cipher_name: function(cipherIndex: Integer): PAnsiChar; cdecl;
+    sqlite3mc_cipher_index: function(const cipherName: PAnsiChar): Integer; cdecl;
+    sqlite3mc_config: function(ppDb: Psqlite3; const paramName: PAnsiChar; newValue: Integer): Integer; cdecl;
+    sqlite3mc_config_cipher: function(ppDb: Psqlite3; const cipherName: PAnsiChar; const paramName: PAnsiChar; newValue: Integer): Integer; cdecl;
+    private
+      FWithMultipleCipherFunctions: Boolean;
     protected
       procedure AssignProcedures; override;
+    public
+      constructor Create(DllFile, DefaultDll: String); override;
+      constructor CreateWithMultipleCipherFunctions(DllFile, DefaultDll: String);
   end;
 
 var
@@ -322,6 +334,20 @@ var
 
 implementation
 
+
+constructor TSQLiteLib.Create(DllFile, DefaultDll: String);
+begin
+  FWithMultipleCipherFunctions := False;
+  inherited;
+end;
+
+constructor TSQLiteLib.CreateWithMultipleCipherFunctions(DllFile, DefaultDll: String);
+begin
+  FWithMultipleCipherFunctions := True;
+  inherited Create(DllFile, DefaultDll);
+end;
+
+
 procedure TSQLiteLib.AssignProcedures;
 begin
   AssignProc(@sqlite3_open, 'sqlite3_open');
@@ -350,6 +376,15 @@ begin
   AssignProc(@sqlite3_table_column_metadata, 'sqlite3_table_column_metadata');
   AssignProc(@sqlite3_collation_needed, 'sqlite3_collation_needed');
   AssignProc(@sqlite3_create_collation, 'sqlite3_create_collation');
+  if FWithMultipleCipherFunctions then begin
+    // Additionally, for use in Multiple Ciphers library:
+    AssignProc(@sqlite3_key, 'sqlite3_key', False);
+    AssignProc(@sqlite3mc_cipher_count, 'sqlite3mc_cipher_count');
+    AssignProc(@sqlite3mc_cipher_name, 'sqlite3mc_cipher_name');
+    AssignProc(@sqlite3mc_cipher_index, 'sqlite3mc_cipher_index');
+    AssignProc(@sqlite3mc_config, 'sqlite3mc_config');
+    AssignProc(@sqlite3mc_config_cipher, 'sqlite3mc_config_cipher');
+  end;
 end;
 
 end.

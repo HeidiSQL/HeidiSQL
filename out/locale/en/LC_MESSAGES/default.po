@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-05-29 07:19+0200\n"
+"PO-Revision-Date: 2024-06-05 16:41+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -314,6 +314,9 @@ msgstr "Flush tables"
 #: connections.dfm:276
 msgid "Databases:"
 msgstr "Databases:"
+
+msgid "Encryption parameters:"
+msgstr "Encryption parameters:"
 
 #. connform..PageControlDetails..tabSettings..chkCompressed..Caption
 #: connections.dfm:298
@@ -4087,6 +4090,9 @@ msgstr "Login to %s:"
 msgid "Connecting to %s via %s, username %s, using password: %s ..."
 msgstr "Connecting to %s via %s, username %s, using password: %s ..."
 
+msgid "Connecting to %s via %s, cipher %s, using encryption key: %s ..."
+msgstr "Connecting to %s via %s, cipher %s, using encryption key: %s ..."
+
 #: dbconnection.pas:1582
 msgid "Closing SSH process #%d ..."
 msgstr "Closing SSH process #%d ..."
@@ -6666,3 +6672,15 @@ msgstr "Reset panel dimensions"
 
 msgid "Reset and fix overlapping panels in main window"
 msgstr "Reset and fix overlapping panels in main window"
+
+msgid "Warning: Given cipher scheme name \"%s\" could not be found"
+msgstr "Warning: Given cipher scheme name \"%s\" could not be found"
+
+msgid "Warning: Configuring with cipher index %d failed"
+msgstr "Warning: Configuring with cipher index %d failed"
+
+msgid "Warning: Failed to set cipher encryption parameter \"%s\""
+msgstr "Warning: Failed to set cipher encryption parameter \"%s\""
+
+msgid "You have activated encryption on a probably non-encrypted database."
+msgstr "You have activated encryption on a probably non-encrypted database."

@@ -299,10 +299,11 @@ type
     ntInterbase_Local,
     ntFirebird_TCPIP,
     ntFirebird_Local,
-    ntMySQL_RDS
+    ntMySQL_RDS,
+    ntSQLiteEncrypted
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
-  TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
+  TNetTypeLibs = TDictionary<TNetType, TStringList>;
 
   TConnectionParameters = class(TObject)
     strict private
@@ -319,9 +320,10 @@ type
       FLogFileDdl: Boolean;
       FLogFileDml: Boolean;
       FLogFilePath: String;
-      class var FLibraries: TNetGroupLibs;
+      class var FLibraries: TNetTypeLibs;
       function GetImageIndex: Integer;
       function GetSessionName: String;
+      function GetAllDatabasesList: TStringList;
     public
       constructor Create; overload;
       constructor Create(SessionRegPath: String); overload;
@@ -376,6 +378,7 @@ type
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
       property CleartextPluginEnabled: Boolean read FCleartextPluginEnabled write FCleartextPluginEnabled;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
+      property AllDatabasesList: TStringList read GetAllDatabasesList;
       property LibraryOrProvider: String read FLibraryOrProvider write FLibraryOrProvider;
       property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
@@ -1635,6 +1638,7 @@ begin
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
       ntSQLite:                 Result := PrefixSqlite;
+      ntSQLiteEncrypted:        Result := PrefixSqlite+' (Encrypted)';
       ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP, experimental)';
       ntInterbase_Local:        Result := PrefixInterbase+' (Local, experimental)';
       ntFirebird_TCPIP:         Result := PrefixFirebird+' (TCP/IP, experimental)';
@@ -1675,7 +1679,7 @@ begin
       Result := ngMSSQL;
     ntPgSQL_TCPIP, ntPgSQL_SSHtunnel:
       Result := ngPgSQL;
-    ntSQLite:
+    ntSQLite, ntSQLiteEncrypted:
       Result := ngSQLite;
     ntInterbase_TCPIP, ntInterbase_Local, ntFirebird_TCPIP, ntFirebird_Local:
       Result := ngInterbase;
@@ -1884,7 +1888,12 @@ begin
     ngMySQL: Result := 'libmariadb.dll';
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
-    ngSQLite: Result := 'sqlite3.dll';
+    ngSQLite: begin
+      if NetType = ntSQLite then
+        Result := 'sqlite3.dll'
+      else
+        Result := 'sqlite3mc.dll';
+    end;
     ngInterbase: begin
       if IsInterbase then
         Result := IfThen(GetExecutableBits=64, 'ibclient64.dll', 'gds32.dll')
@@ -1979,10 +1988,10 @@ var
   Provider: String;
 begin
   if not Assigned(FLibraries) then begin
-    FLibraries := TNetGroupLibs.Create;
+    FLibraries := TNetTypeLibs.Create;
   end;
 
-  if not FLibraries.ContainsKey(NetTypeGroup) then begin
+  if not FLibraries.ContainsKey(NetType) then begin
     FoundLibs := TStringList.Create;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -1993,8 +2002,12 @@ begin
         rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)$');
       ngPgSQL:
         rx.Expression := '^libpq.*\.dll$';
-      ngSQLite:
-        rx.Expression := '^sqlite.*\.dll$';
+      ngSQLite: begin
+        if NetType = ntSQLite then
+          rx.Expression := '^sqlite.*\.dll$'
+        else
+          rx.Expression := '^sqlite3mc.*\.dll$';
+      end;
       ngInterbase:
         rx.Expression := '^(gds32|ibclient|fbclient).*\.dll$';
     end;
@@ -2026,9 +2039,9 @@ begin
       end;
     end;
     rx.Free;
-    FLibraries.Add(NetTypeGroup, FoundLibs);
+    FLibraries.Add(NetType, FoundLibs);
   end;
-  FLibraries.TryGetValue(NetTypeGroup, Result);
+  FLibraries.TryGetValue(NetType, Result);
 end;
 
 
@@ -2043,6 +2056,28 @@ begin
     Result := FSessionPath;
 end;
 
+
+function TConnectionParameters.GetAllDatabasesList: TStringList;
+var
+  rx: TRegExpr;
+  dbname: String;
+begin
+  Result := TStringList.Create;
+  if FAllDatabases <> '' then begin
+    rx := TRegExpr.Create;
+    rx.Expression := '[^;]+';
+    rx.ModifierG := True;
+    if rx.Exec(FAllDatabases) then while true do begin
+      // Add if not a duplicate
+      dbname := Trim(rx.Match[0]);
+      if Result.IndexOf(dbname) = -1 then
+        Result.Add(dbname);
+      if not rx.ExecNext then
+        break;
+    end;
+    rx.Free;
+  end;
+end;
 
 
 
@@ -2876,10 +2911,13 @@ end;
 procedure TSQLiteConnection.SetActive(Value: Boolean);
 var
   ConnectResult: Integer;
+  RawPassword: AnsiString;
   ErrorHint: String;
-  FileNames: TStringList;
-  MainFile, DbAlias: String;
-  i: Integer;
+  FileNames, EncryptionParams: TStringList;
+  MainFile, DbAlias, Param, ParamName: String;
+  i, SplitPos, ParamValue: Integer;
+  CipherIndex, ConfigResult: Integer;
+  ParamWasSet: Boolean;
 begin
   // Support multiple filenames, and use first one as main database
   FileNames := Explode(DELIM, Parameters.Hostname);
@@ -2894,6 +2932,54 @@ begin
 
     if ConnectResult = SQLITE_OK then begin
       FActive := True;
+      if Parameters.NetType = ntSQLiteEncrypted then begin
+        // Use encryption key
+        CipherIndex := FLib.sqlite3mc_cipher_index(PAnsiChar(AnsiString(Parameters.Username)));
+        if CipherIndex = -1 then
+          raise EDbError.Create(f_('Warning: Given cipher scheme name "%s" could not be found', [Parameters.Username]));
+        ConfigResult := FLib.sqlite3mc_config(FHandle, PAnsiChar('cipher'), CipherIndex);
+        if ConfigResult = -1 then
+          raise EDbError.Create(f_('Warning: Configuring with cipher index %d failed', [CipherIndex]));
+        // Set encryption parameters:
+        EncryptionParams := Parameters.AllDatabasesList;
+        for Param in EncryptionParams do begin
+          Log(lcDebug, 'Cipher encryption parameter: "'+Param+'"');
+          SplitPos := Param.IndexOf('=');
+          ParamWasSet := False;
+          if SplitPos > -1 then begin
+            ParamName := Copy(Param, 1, SplitPos);
+            ParamValue := StrToIntDef(Copy(Param, SplitPos+2, Length(Param)), -1);
+            if ParamValue > -1 then begin
+              ConfigResult := FLib.sqlite3mc_config_cipher(
+                FHandle,
+                PAnsiChar(AnsiString(Parameters.Username)),
+                PAnsiChar(AnsiString(ParamName)),
+                ParamValue
+                );
+              if ConfigResult <> -1 then
+                ParamWasSet := True;
+            end
+          end;
+          if not ParamWasSet then begin
+            Log(lcError, f_('Warning: Failed to set cipher encryption parameter "%s"', [Param]));
+          end;
+        end;
+        // Set the main database key
+        RawPassword := AnsiString(Parameters.Password);
+        FLib.sqlite3_key(FHandle, Pointer(RawPassword), Length(RawPassword));
+        // See https://utelle.github.io/SQLite3MultipleCiphers/docs/configuration/config_capi/
+        // "These functions return SQLITE_OK even if the provided key isn’t correct. This is because the key isn’t
+        // actually used until a subsequent attempt to read or write the database is made. To check whether the
+        // provided key was actually correct, you must execute a simple query like e.g. SELECT * FROM sqlite_master;
+        // and check whether that succeeds."
+        try
+          Query(ApplyLimitClause('SELECT', '* FROM sqlite_master', 1, 0));
+        except
+          on E:EDbError do
+            raise EDbError.Create(E.Message, 0, _('You have activated encryption on a probably non-encrypted database.'));
+        end;
+      end;
+
       FLib.sqlite3_collation_needed(FHandle, Self, SQLite_CollationNeededCallback);
       Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
       // Override "main" database name with custom one
@@ -3067,10 +3153,19 @@ begin
   end;
 
   // Prepare connection
-  if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-  Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
-    [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
-    ));
+  UsingPass := IfThen(FParameters.Password.IsEmpty, 'No', 'Yes');
+  case FParameters.NetTypeGroup of
+    ngSQLite: begin
+      Log(lcInfo, f_('Connecting to %s via %s, cipher %s, using encryption key: %s ...',
+        [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
+        ));
+    end;
+    else begin
+      Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
+        [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
+        ));
+    end;
+  end;
 
   FSQLSpecifities[spOrderAsc] := 'ASC';
   FSQLSpecifities[spOrderDesc] := 'DESC';
@@ -3285,7 +3380,10 @@ begin
   LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
-  FLib := TSQLiteLib.Create(LibraryPath, Parameters.DefaultLibrary);
+  if Parameters.NetType = ntSQLite then
+    FLib := TSQLiteLib.Create(LibraryPath, Parameters.DefaultLibrary)
+  else
+    FLib := TSQLiteLib.CreateWithMultipleCipherFunctions(LibraryPath, Parameters.DefaultLibrary);
   Log(lcDebug, FLib.DllFile + ' v' + ServerVersionUntouched + ' loaded.');
   inherited;
 end;
@@ -4661,26 +4759,12 @@ end;
 
 
 function TDBConnection.GetAllDatabases: TStringList;
-var
-  rx: TRegExpr;
-  dbname: String;
 begin
   // Get user passed delimited list
+  // Ignore value in case of ntSQLiteEncrypted, when AllDatabasesStr holds encryption parameters
   if not Assigned(FAllDatabases) then begin
-    if FParameters.AllDatabasesStr <> '' then begin
-      FAllDatabases := TStringList.Create;
-      rx := TRegExpr.Create;
-      rx.Expression := '[^;]+';
-      rx.ModifierG := True;
-      if rx.Exec(FParameters.AllDatabasesStr) then while true do begin
-        // Add if not a duplicate
-        dbname := Trim(rx.Match[0]);
-        if FAllDatabases.IndexOf(dbname) = -1 then
-          FAllDatabases.Add(dbname);
-        if not rx.ExecNext then
-          break;
-      end;
-      rx.Free;
+    if (FParameters.AllDatabasesStr <> '') and (not FParameters.IsAnySQLite) then begin
+      FAllDatabases := FParameters.AllDatabasesList;
       ApplyIgnoreDatabasePattern(FAllDatabases);
     end;
   end;

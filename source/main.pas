@@ -1397,6 +1397,8 @@ const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
   ErrorLineForeground: TColor = $00FFFFFF;
   ErrorLineBackground: TColor = $00000080;
+  WarningLineForeground: TColor = $00FFFFFF;
+  WarningLineBackground: TColor = $00006AFF;
 
 {$I const.inc}
 
@@ -7045,7 +7047,7 @@ var
   Edit: TSynMemo;
   LineText, Search: String;
 begin
-  // Paint error line with red background
+  // Paint error line with red background, or warning in orange
   Edit := Sender as TSynMemo;
   LineText := Copy(Edit.Lines[Line-1], 1, 100);
   Search := _(MsgSQLError);
@@ -7055,6 +7057,11 @@ begin
     Special := True;
     FG := ErrorLineForeground;
     BG := ErrorLineBackground;
+  end
+  else if LineText.Contains(_('Warning')+':') then begin
+    Special := True;
+    FG := WarningLineForeground;
+    BG := WarningLineBackground;
   end;
 end;
 

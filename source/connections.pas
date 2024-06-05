@@ -38,7 +38,7 @@ type
     editPort: TEdit;
     updownPort: TUpDown;
     editPassword: TEdit;
-    editUsername: TEdit;
+    editUsername: TButtonedEdit;
     editHost: TButtonedEdit;
     tabAdvanced: TTabSheet;
     tabStatistics: TTabSheet;
@@ -201,6 +201,7 @@ type
     procedure timerEditFilterDelayTimer(Sender: TObject);
     procedure chkSSHActiveClick(Sender: TObject);
     procedure PageControlDetailsChange(Sender: TObject);
+    procedure editUsernameRightButtonClick(Sender: TObject);
   private
     { Private declarations }
     FLoaded: Boolean;
@@ -208,6 +209,7 @@ type
     FServerVersion: String;
     FSettingsImportWaitTime: Cardinal;
     FPopupDatabases: TPopupMenu;
+    FPopupCiphers: TPopupMenu;
     FButtonAnimationStep: Integer;
     FLastSelectedNetTypeGroup: TNetTypeGroup;
     function GetSelectedNetType: TNetType;
@@ -220,6 +222,7 @@ type
     function NodeSessionNames(Node: PVirtualNode; var RegKey: String): TStringList;
     function GetWindowCaption: String;
     procedure MenuDatabasesClick(Sender: TObject);
+    procedure MenuCiphersClick(Sender: TObject);
     procedure WMNCLBUTTONDOWN(var Msg: TWMNCLButtonDown) ; message WM_NCLBUTTONDOWN;
     procedure WMNCLBUTTONUP(var Msg: TWMNCLButtonUp) ; message WM_NCLBUTTONUP;
     procedure RefreshBackgroundColors;
@@ -231,7 +234,7 @@ type
 
 implementation
 
-uses Main, apphelpers, grideditlinks;
+uses Main, apphelpers, grideditlinks, dbstructures.sqlite;
 
 {$I const.inc}
 
@@ -976,6 +979,7 @@ begin
   menuNewSessionInFolder.Enabled := InFolder;
   menuNewFolderInFolder.Enabled := InFolder;
   FreeAndNil(FPopupDatabases);
+  FreeAndNil(FPopupCiphers);
 
   if not SessionFocused then begin
     PageControlDetails.ActivePage := tabStart;
@@ -1310,6 +1314,43 @@ begin
 end;
 
 
+procedure Tconnform.MenuCiphersClick(Sender: TObject);
+begin
+  editUsername.Text := TMenuItem(Sender).Caption;
+end;
+
+
+procedure Tconnform.editUsernameRightButtonClick(Sender: TObject);
+var
+  Params: TConnectionParameters;
+  Item: TMenuItem;
+  LibraryPath: String;
+  Lib: TSQLiteLib;
+  p: TPoint;
+  i: Integer;
+begin
+  // Provide supported cipher names
+  if FPopupCiphers = nil then begin
+    FPopupCiphers := TPopupMenu.Create(Self);
+    FPopupCiphers.AutoHotkeys := maManual;
+    Params := CurrentParams;
+    LibraryPath := ExtractFilePath(ParamStr(0)) + Params.LibraryOrProvider;
+    // Throws EDbError on any failure:
+    Lib := TSQLiteLib.CreateWithMultipleCipherFunctions(LibraryPath, Params.DefaultLibrary);
+    for i:=1 to Lib.sqlite3mc_cipher_count() do begin
+      Item := TMenuItem.Create(FPopupCiphers);
+      Item.Caption := Utf8ToString(Lib.sqlite3mc_cipher_name(i));
+      Item.OnClick := MenuCiphersClick;
+      FPopupCiphers.Items.Add(Item);
+    end;
+
+  end;
+
+  p := editUsername.ClientToScreen(editUsername.ClientRect.BottomRight);
+  FPopupCiphers.Popup(p.X-editUsername.Images.Width, p.Y);
+end;
+
+
 procedure Tconnform.menuRenameClick(Sender: TObject);
 begin
   // Start node editor to rename a session
@@ -1320,6 +1361,7 @@ end;
 procedure Tconnform.comboNetTypeChange(Sender: TObject);
 var
   Params: TConnectionParameters;
+  Libs: TStringList;
 begin
   // Autoset default connection data as long as that was not modified by user
   // and only if net type group has now changed
@@ -1338,8 +1380,14 @@ begin
     if not editHost.Modified then
       editHost.Text := Params.DefaultHost;
     chkSSHActive.Checked := Params.DefaultSshActive;
+  end;
 
-    comboLibrary.Items := Params.GetLibraries;
+  // Populate libraries combobox. Required on each net group change, and also between
+  // SQLite and SQLite-encrypted.
+  Libs := Params.GetLibraries;
+  mainform.LogSQL(Libs.CommaText);
+  if Libs.Text <> comboLibrary.Items.Text then begin
+    comboLibrary.Items := Libs;
     comboLibrary.ItemIndex := comboLibrary.Items.IndexOf(Params.DefaultLibrary);
   end;
 
@@ -1459,16 +1507,26 @@ begin
 
     if SessionFocused then begin
       // Validate session GUI stuff on "Settings" tab:
+      lblHost.Caption := _('Hostname / IP:');
+      lblUsername.Caption := _('User')+':';
+      lblPassword.Caption := _('Password:');
+      lblDatabase.Caption := _('Databases')+':';
+      editDatabases.TextHint := _('Separated by semicolon');
       case Params.NetType of
         ntMySQL_NamedPipe: begin
           lblHost.Caption := _('Socket name:');
         end;
-        ntSQLite: begin
-          lblHost.Caption := _('Database filename(s)')+':';
-        end
-        else begin
-          lblHost.Caption := _('Hostname / IP:');
+        ntPgSQL_TCPIP, ntPgSQL_SSHtunnel: begin
+          lblDatabase.Caption := _('Database')+':';
+          editDatabases.TextHint := _('Single database name');
         end;
+        ntSQLite, ntSQLiteEncrypted: begin
+          lblHost.Caption := _('Database filename(s)')+':';
+          lblUsername.Caption := _('Cipher')+':';
+          lblPassword.Caption := _('Key:');
+          lblDatabase.Caption := _('Encryption parameters')+':';
+          editDatabases.TextHint := _('Example:') + ' kdf_iter=4000;legacy=1;...';
+        end
       end;
       editHost.RightButton.Visible := Params.IsAnySQLite;
       chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
@@ -1476,17 +1534,19 @@ begin
       lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase])
         and ((not chkLoginPrompt.Checked) or (not chkLoginPrompt.Enabled))
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
+      lblUsername.Enabled := lblUsername.Enabled or (Params.NetType = ntSQLiteEncrypted);
       editUsername.Enabled := lblUsername.Enabled;
+      editUsername.RightButton.Visible := Params.NetType = ntSQLiteEncrypted;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
       editPort.Enabled := lblPort.Enabled;
       updownPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
-      lblDatabase.Caption := IfThen(Params.IsAnyPostgreSQL, _('Database')+':', _('Databases')+':');
-      editDatabases.TextHint := IfThen(Params.IsAnyPostgreSQL, _('Single database name'), _('Separated by semicolon'));
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
+      lblDatabase.Enabled := lblDatabase.Enabled or (Params.NetType = ntSQLiteEncrypted);
       editDatabases.Enabled := lblDatabase.Enabled;
+      editDatabases.RightButton.Visible := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       // SSH tunnel tab:
       chkSSHActive.Enabled := Params.SshSupport;
       lblSSHExe.Enabled := Params.SSHActive;
