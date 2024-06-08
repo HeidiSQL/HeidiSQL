@@ -12327,6 +12327,10 @@ begin
   if pnlPreview.Visible then begin
     pnlPreview.Height := AppSettings.GetDefaultInt(asDataPreviewHeight);
   end;
+  AppSettings.DeleteValue(asCompletionProposalWidth);
+  AppSettings.DeleteValue(asCompletionProposalNbLinesInWindow);
+  SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
+  SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 end;
 
 procedure TMainForm.menuRenameQueryTabClick(Sender: TObject);
