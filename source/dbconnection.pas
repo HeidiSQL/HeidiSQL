@@ -9964,7 +9964,7 @@ begin
     Result := True;
   except
     on E:EDbError do begin
-      FConnection.Log(lcDebug, E.Message);
+      FConnection.Log(lcInfo, E.Message);
       Result := False;
     end;
   end;
