@@ -11955,7 +11955,7 @@ begin
       SetupSynEditors(ActiveObjectEditor);
     end;
     ActiveObjectEditor.Init(Obj);
-    UpdateFilterPanel(Self);
+    buttonedEditClear(editFilterVT);
   end;
 end;
 
