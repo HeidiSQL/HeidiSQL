@@ -2086,7 +2086,10 @@ begin
     FActionList1DefaultHints.Insert(i, Action.Hint);
   end;
 
-  // Size of completion proposal window
+  // Completion proposal window
+  // The proposal form gets scaled a second time when it shows its form with Scaled=True.
+  // We already store and restore the dimensions DPI aware.
+  SynCompletionProposal.Form.Scaled := False;
   SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);
   SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
   SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
