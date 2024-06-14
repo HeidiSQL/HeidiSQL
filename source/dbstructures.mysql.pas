@@ -311,7 +311,7 @@ var
 
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array [0..38] of TDBDatatype =
+  MySQLDatatypes: array [0..40] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -689,6 +689,39 @@ var
       HasDefault:      False;
       LoadPart:        False;
       Category:        dtcText;
+    ),
+    (
+      Index:           dbdtInet4;
+      NativeType:      255;
+      Name:            'INET4';
+      Description:     'INET4' + sLineBreak +
+        'INET4 is a data type to store IPv4 addresses, as 4-byte binary strings. '+
+        'It was added in MariaDB 10.10.0';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcText;
+      MinVersion:      10100;
+    ),
+    (
+      Index:           dbdtInet6;
+      NativeType:      255;
+      Name:            'INET6';
+      Description:     'INET6' + sLineBreak +
+        'The INET6 data type is intended for storage of IPv6 addresses, as well as ' +
+        'IPv4 addresses assuming conventional mapping of IPv4 addresses into IPv6 ' +
+        'addresses. ' + slineBreak +
+        'Both short and long IPv6 notation are permitted, according to RFC-5952. '+
+        'It was added in MariaDB 10.5.0';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      True;
+      LoadPart:        False;
+      Category:        dtcText;
+      MinVersion:      10050;
     ),
     (
       Index:           dbdtBinary;

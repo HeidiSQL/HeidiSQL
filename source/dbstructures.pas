@@ -6,7 +6,7 @@
 interface
 
 uses
-  gnugettext, Vcl.Graphics, Winapi.Windows, System.SysUtils;
+  gnugettext, Vcl.Graphics, Winapi.Windows, System.SysUtils, System.Classes;
 
 
 type
@@ -19,7 +19,7 @@ type
     dbdtJson, dbdtJsonB, dbdtCidr, dbdtInet, dbdtMacaddr,
     dbdtBinary, dbdtVarbinary, dbdtTinyblob, dbdtBlob, dbdtMediumblob, dbdtLongblob, dbdtImage,
     dbdtEnum, dbdtSet, dbdtBit, dbdtVarBit, dbdtBool, dbdtRegClass, dbdtRegProc, dbdtUnknown,
-    dbdtCursor, dbdtSqlvariant, dbdtTable, dbdtUniqueidentifier, dbdtHierarchyid, dbdtXML,
+    dbdtCursor, dbdtSqlvariant, dbdtTable, dbdtUniqueidentifier, dbdtInet4, dbdtInet6, dbdtHierarchyid, dbdtXML,
     dbdtPoint, dbdtLinestring, dbdtLineSegment, dbdtPolygon, dbdtGeometry, dbdtBox, dbdtPath, dbdtCircle, dbdtMultipoint, dbdtMultilinestring, dbdtMultipolygon, dbdtGeometrycollection
     );
 
@@ -45,6 +45,7 @@ type
     Format:          String;  // Used for date/time values when displaying and generating queries
     ValueMustMatch:  String;
     Category:        TDBDatatypeCategoryIndex;
+    MinVersion:      Integer;
   end;
 
   // Column type category structure
