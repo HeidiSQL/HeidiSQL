@@ -2222,7 +2222,14 @@ end;
 destructor TAdoDBConnection.Destroy;
 begin
   if Active then Active := False;
-  FreeAndNil(FAdoHandle);
+  try
+    FreeAndNil(FAdoHandle);
+  except
+    on E:Exception do begin
+      // Destroy > ClearRefs > GetDataSetCount throws some error, but max in Delphi 11.2 yet
+      Log(lcError, E.Message);
+    end;
+  end;
   inherited;
 end;
 
