@@ -148,7 +148,6 @@ type
     Label3: TLabel;
     cboxRowHighlightSameText: TColorBox;
     chkWheelZoom: TCheckBox;
-    chkQueryWarningsMessage: TCheckBox;
     chkAutoUppercase: TCheckBox;
     lblTheme: TLabel;
     comboTheme: TComboBox;
@@ -311,7 +310,6 @@ begin
   AppSettings.WriteBool(asAutoReconnect, chkAutoReconnect.Checked);
   AppSettings.WriteBool(asAllowMultipleInstances, chkAllowMultiInstances.Checked);
   AppSettings.WriteBool(asRestoreLastUsedDB, chkRestoreLastDB.Checked);
-  AppSettings.WriteBool(asQueryWarningsMessage, chkQueryWarningsMessage.Checked);
   AppSettings.WriteString(asFontName, comboSQLFontName.Text);
   AppSettings.WriteInt(asFontSize, updownSQLFontSize.Position);
   AppSettings.WriteInt(asTabWidth, updownSQLTabWidth.Position);
@@ -720,7 +718,6 @@ begin
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
   comboWebSearchBaseUrl.Text := AppSettings.ReadString(asWebSearchBaseUrl);
-  chkQueryWarningsMessage.Checked := AppSettings.ReadBool(asQueryWarningsMessage);
 
   // Logging
   updownLogLines.Position := AppSettings.ReadInt(asLogsqlnum);

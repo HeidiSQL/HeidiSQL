@@ -727,7 +727,7 @@ object frmPreferences: TfrmPreferences
         Width = 145
         Height = 22
         Style = csDropDownList
-        TabOrder = 15
+        TabOrder = 14
         OnChange = comboSQLColElementChange
       end
       object chkSQLBold: TCheckBox
@@ -736,7 +736,7 @@ object frmPreferences: TfrmPreferences
         Width = 61
         Height = 17
         Caption = 'Bold'
-        TabOrder = 16
+        TabOrder = 15
         OnClick = SQLFontChange
       end
       object chkSQLItalic: TCheckBox
@@ -745,7 +745,7 @@ object frmPreferences: TfrmPreferences
         Width = 50
         Height = 17
         Caption = 'Italic'
-        TabOrder = 17
+        TabOrder = 16
         OnClick = SQLFontChange
       end
       object cboxSQLColForeground: TColorBox
@@ -755,7 +755,7 @@ object frmPreferences: TfrmPreferences
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 18
+        TabOrder = 17
         OnChange = SQLFontChange
       end
       object cboxSQLColBackground: TColorBox
@@ -765,7 +765,7 @@ object frmPreferences: TfrmPreferences
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 19
+        TabOrder = 18
         OnChange = SQLFontChange
       end
       object SynMemoSQLSample: TSynMemo
@@ -782,7 +782,7 @@ object frmPreferences: TfrmPreferences
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        TabOrder = 20
+        TabOrder = 19
         OnClick = SynMemoSQLSampleClick
         CodeFolding.GutterShapeSize = 11
         CodeFolding.CollapsedLineColor = clGrayText
@@ -810,16 +810,6 @@ object frmPreferences: TfrmPreferences
         OnChange = SQLFontChange
         FontSmoothing = fsmNone
       end
-      object chkQueryWarningsMessage: TCheckBox
-        Left = 220
-        Top = 110
-        Width = 451
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Show query warnings dialog'
-        TabOrder = 12
-        OnClick = Modified
-      end
       object chkAutoUppercase: TCheckBox
         Left = 220
         Top = 133
@@ -827,7 +817,7 @@ object frmPreferences: TfrmPreferences
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Auto uppercase reserved words and functions'
-        TabOrder = 13
+        TabOrder = 12
         OnClick = Modified
       end
       object comboEditorColorsPreset: TComboBox
@@ -837,7 +827,7 @@ object frmPreferences: TfrmPreferences
         Height = 22
         Style = csDropDownList
         ItemIndex = 0
-        TabOrder = 14
+        TabOrder = 13
         Text = 'Current custom settings'
         OnChange = comboEditorColorsPresetChange
         Items.Strings = (

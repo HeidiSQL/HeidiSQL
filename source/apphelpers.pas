@@ -213,7 +213,7 @@ type
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
     asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asTabsInMultipleLines, asTabIconsGrayscaleMode,
-    asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
+    asWarnUnsafeUpdates, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
@@ -3864,7 +3864,6 @@ begin
   InitSetting(asTabsInMultipleLines,              'TabsInMultipleLines',                   0, True);
   InitSetting(asTabIconsGrayscaleMode,            'TabIconsGrayscaleMode',                 1);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
-  InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
   InitSetting(asCompletionProposalInterval,       'CompletionProposalInterval',            500);
