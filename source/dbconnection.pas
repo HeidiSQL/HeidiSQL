@@ -6102,6 +6102,8 @@ begin
         NewKey.OldIndexType := NewKey.IndexType;
       end;
       NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
+      NewKey.SubParts.Add('');
+      NewKey.Collations.Add('');
     end;
     KeyQuery.Next;
   end;
@@ -6132,6 +6134,8 @@ begin
         NewKey.OldIndexType := NewKey.IndexType;
       end;
       NewKey.Columns.Add(ColQuery.Col('name'));
+      NewKey.SubParts.Add('');
+      NewKey.Collations.Add('');
       ColQuery.Next;
     end;
     ColQuery.Free;
@@ -6150,6 +6154,8 @@ begin
         'FROM pragma_index_info('+EscapeString(NewKey.Name)+')');
       while not ColQuery.Eof do begin
         NewKey.Columns.Add(ColQuery.Col('name'));
+        NewKey.SubParts.Add('');
+        NewKey.Collations.Add('');
         ColQuery.Next;
       end;
       ColQuery.Free;
@@ -6258,6 +6264,8 @@ begin
       NewKey.OldIndexType := NewKey.IndexType;
     end;
     NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
+    NewKey.SubParts.Add('');
+    NewKey.Collations.Add('');
     KeyQuery.Next;
   end;
   KeyQuery.Free;
@@ -6284,6 +6292,8 @@ begin
       NewKey.OldIndexType := NewKey.IndexType;
     end;
     NewKey.Columns.Add(ColQuery.Col('name'));
+    NewKey.SubParts.Add('');
+    NewKey.Collations.Add('');
     ColQuery.Next;
   end;
   ColQuery.Free;
@@ -6302,6 +6312,8 @@ begin
       'FROM '+QuoteIdent(Table.Database)+'.pragma_index_info('+EscapeString(NewKey.Name)+')');
     while not ColQuery.Eof do begin
       NewKey.Columns.Add(ColQuery.Col('name'));
+      NewKey.SubParts.Add('');
+      NewKey.Collations.Add('');
       ColQuery.Next;
     end;
     ColQuery.Free;

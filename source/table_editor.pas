@@ -2542,7 +2542,7 @@ begin
     TblKey.IndexType := NewType;
     TblKey.Added := True;
     TblKey.Columns := NewParts;
-    for i:=0 to TblKey.Columns.Count do begin
+    for i:=0 to TblKey.Columns.Count-1 do begin
       TblKey.SubParts.Add('');
       TblKey.Collations.Add('A');
     end;
