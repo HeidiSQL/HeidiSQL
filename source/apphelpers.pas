@@ -3159,6 +3159,15 @@ begin
     end;
     FConnection.LockedByThread := nil;
     Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
+    // Show warnings and notes in log panel
+    if FConnection.WarningCount > 0 then begin
+      Warnings := FConnection.GetResults('SHOW WARNINGS');
+      while not Warnings.Eof do begin
+        FConnection.Log(lcError, Warnings.Col('Level') + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));
+        Warnings.Next;
+      end;
+      Warnings.Free;
+    end;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then

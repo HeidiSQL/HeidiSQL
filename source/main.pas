@@ -1397,8 +1397,10 @@ const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
   ErrorLineForeground: TColor = $00FFFFFF;
   ErrorLineBackground: TColor = $00000080;
-  WarningLineForeground: TColor = $00FFFFFF;
-  WarningLineBackground: TColor = $00006AFF;
+  WarningLineForeground: TColor = $00000000;
+  WarningLineBackground: TColor = $00B7CDFF;
+  NoteLineForeground: TColor = $00000000;
+  NoteLineBackground: TColor = $00D3F7FF;
 
 {$I const.inc}
 
@@ -3484,31 +3486,6 @@ begin
     Tab.treeHelpers.InvalidateChildren(ProfileNode, True);
     Thread.Connection.Query('SET profiling=0');
   end;
-
-  // Show warnings
-  if Thread.WarningCount > 0 then begin
-    MsgTitle := f_('Your query produced %s warnings.', [FormatNumber(Thread.WarningCount)]);
-    MsgText := '';
-    Warnings := Thread.Connection.GetResults('SHOW WARNINGS LIMIT 5');
-    if Warnings.RecordCount < 5 then
-      MsgText := MsgText + _('Warnings from last query:')+CRLF
-    else if Warnings.RecordCount < Thread.WarningCount then
-      MsgText := MsgText + f_('First %s warnings:', [FormatNumber(Warnings.RecordCount)])+CRLF;
-    while not Warnings.Eof do begin
-      MsgText := MsgText + Warnings.Col('Level') + ': ' + Warnings.Col('Message') + CRLF;
-      Warnings.Next;
-    end;
-    MsgText := Trim(MsgText) + SLineBreak +
-      SLineBreak +
-      _('Show all warnings in a new query tab?');
-    if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo], asQueryWarningsMessage) = mrYes then begin
-      actNewQueryTab.Execute;
-      WarningsTab := QueryTabs[QueryTabs.Count-1];
-      WarningsTab.Memo.Text := 'SHOW WARNINGS';
-      actExecuteQueryExecute(WarningsTab);
-    end;
-  end;
-
 
   // Store successful query packet in history if it's not a batch.
   // Assume that a bunch of up to 5 queries is not a batch.
@@ -7065,6 +7042,11 @@ begin
     Special := True;
     FG := WarningLineForeground;
     BG := WarningLineBackground;
+  end
+  else if LineText.Contains(_('Note')+':') then begin
+    Special := True;
+    FG := NoteLineForeground;
+    BG := NoteLineBackground;
   end;
 end;
 
