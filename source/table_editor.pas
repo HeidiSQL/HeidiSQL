@@ -2066,9 +2066,11 @@ begin
   VT := Sender as TVirtualStringtree;
   Allowed := False;
   if VT.GetNodeLevel(Node) = 0 then begin
-    // Disallow renaming primary key
-    if (Column <> 0) or (VT.Text[Node, 1] <> TTableKey.PRIMARY) then
+    // Disallow renaming primary key, and direction/collation of key node level
+    if (Column = 0) and (VT.Text[Node, 1] <> TTableKey.PRIMARY) then
       Allowed := True
+    else
+      Allowed := Column in [1,2,3];
   end else case Column of
     0: Allowed := True;
     1: begin
