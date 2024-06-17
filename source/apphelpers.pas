@@ -3554,7 +3554,8 @@ end;
 procedure TWinControlHelper.TrySetFocus;
 begin
   try
-    if Enabled and CanFocus then
+    if Enabled
+      and CanFocus then
       SetFocus;
   except
     on E:EInvalidOperation do
