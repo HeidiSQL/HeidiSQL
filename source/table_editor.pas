@@ -864,6 +864,8 @@ begin
 
   IndexCount := 0;
   for i:=0 to FKeys.Count-1 do begin
+    if not FKeys[0].InsideCreateCode then
+      Continue;
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
       SQL := SQL + CodeIndent + tmp + ',' + sLineBreak;
@@ -911,6 +913,8 @@ begin
     SQL := SQL +  '/*!50100 ' + SynMemoPartitions.Text + ' */';
   SQL := SQL + ';' + CRLF;
 
+  // Separate queries from here on
+
   if DBObject.Connection.Parameters.IsAnyPostgreSQL then begin
     Node := listColumns.GetFirst;
     while Assigned(Node) do begin
@@ -919,6 +923,15 @@ begin
         DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
         ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + CRLF;
       Node := listColumns.GetNextSibling(Node);
+    end;
+  end;
+
+  for i:=0 to FKeys.Count-1 do begin
+    if FKeys[i].InsideCreateCode then
+      Continue;
+    tmp := FKeys[i].SQLCode(editName.Text);
+    if tmp <> '' then begin
+      SQL := SQL + tmp + ';' + sLineBreak;
     end;
   end;
 

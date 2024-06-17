@@ -79,6 +79,7 @@ type
       SPATIAL = 'SPATIAL';
     private
       FConnection: TDBConnection;
+      FInsideCreateCode: Boolean;
       function GetImageIndex: Integer;
     public
       Name, OldName: String;
@@ -89,7 +90,8 @@ type
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
       procedure Modification(Sender: TObject);
-      function SQLCode: String;
+      function SQLCode(TableName: String=''): String;
+      property InsideCreateCode: Boolean read FInsideCreateCode;
       property ImageIndex: Integer read GetImageIndex;
       property Connection: TDBConnection read FConnection;
   end;
@@ -4179,7 +4181,8 @@ begin
 
       TableKeys := Obj.GetTableKeys;
       for TableKey in TableKeys do begin
-        Result := Result + sLineBreak + CodeIndent + TableKey.SQLCode + ',';
+        if TableKey.InsideCreateCode then
+          Result := Result + sLineBreak + CodeIndent + TableKey.SQLCode + ',';
       end;
       TableKeys.Free;
 
@@ -4196,7 +4199,17 @@ begin
       TableCheckConstraints.Free;
 
       Delete(Result, Length(Result), 1);
-      Result := Result + CRLF + ')';
+      Result := Result + sLineBreak + ')';
+
+      TableKeys := Obj.GetTableKeys;
+      for TableKey in TableKeys do begin
+        if not TableKey.InsideCreateCode then begin
+          if TableKeys.IndexOf(TableKey) = 0 then
+            Result := Result + ';';
+          Result := Result + sLineBreak + TableKey.SQLCode + ';';
+        end;
+      end;
+      TableKeys.Free;
 
     end;
 
@@ -10814,6 +10827,7 @@ constructor TTableKey.Create(AOwner: TDBConnection);
 begin
   inherited Create;
   FConnection := AOwner;
+  FInsideCreateCode := FConnection.Parameters.NetTypeGroup = ngMySQL;
   Columns := TStringList.Create;
   SubParts := TStringList.Create;
   Collations := TStringList.Create;
@@ -10868,7 +10882,7 @@ begin
   else Result := -1;
 end;
 
-function TTableKey.SQLCode: String;
+function TTableKey.SQLCode(TableName: String=''): String;
 var
   i: Integer;
 begin
@@ -10876,39 +10890,59 @@ begin
   // Supress SQL error  trying index creation with 0 column
   if Columns.Count = 0 then
     Exit;
-  if IndexType = TTableKey.PRIMARY then
-    Result := Result + 'PRIMARY KEY '
-  else begin
-    if FConnection.Parameters.IsAnyPostgreSQL then begin
-      Result := Result + IndexType + ' ';
-    end
+  if FInsideCreateCode then begin
+    // MySQL only (?)
+    if IndexType = TTableKey.PRIMARY then
+      Result := Result + 'PRIMARY KEY '
     else begin
-      if IndexType <> TTableKey.KEY then
+      if FConnection.Parameters.IsAnyPostgreSQL then begin
         Result := Result + IndexType + ' ';
-      Result := Result + 'INDEX ';
+      end
+      else begin
+        if IndexType <> TTableKey.KEY then
+          Result := Result + IndexType + ' ';
+        Result := Result + 'INDEX ';
+      end;
+      Result := Result + FConnection.QuoteIdent(Name) + ' ';
     end;
-    Result := Result + FConnection.QuoteIdent(Name) + ' ';
+    Result := Result + '(';
+    for i:=0 to Columns.Count-1 do begin
+      Result := Result + FConnection.QuoteIdent(Columns[i]);
+      if (SubParts.Count > i) and (SubParts[i] <> '') then
+        Result := Result + '(' + SubParts[i] + ')';
+      // Collation / sort order, see issue #1512
+      if (Collations.Count > i) and (Collations[i].ToLower = 'd') then
+        Result := Result + ' DESC';
+      Result := Result + ', ';
+    end;
+    if Columns.Count > 0 then
+      Delete(Result, Length(Result)-1, 2);
+
+    Result := Result + ')';
+
+    if Algorithm <> '' then
+      Result := Result + ' USING ' + Algorithm;
+
+    if not Comment.IsEmpty then
+      Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
+  end
+  else begin
+    // SQLite syntax:
+    // CREATE INDEX myindex ON table1 ("Column 1")
+    // TODO: test on PG, MS, IB
+    Result := 'CREATE ';
+    if IndexType <> TTableKey.KEY then
+      Result := Result + IndexType + ' ';
+    Result := Result + 'INDEX '+FConnection.QuoteIdent(Name)+' ON ' + FConnection.QuoteIdent(TableName) + ' (';
+    for i:=0 to Columns.Count-1 do begin
+      Result := Result + FConnection.QuoteIdent(Columns[i]);
+      Result := Result + ', ';
+    end;
+    if Columns.Count > 0 then
+      Delete(Result, Length(Result)-1, 2);
+    Result := Result + ')';
   end;
-  Result := Result + '(';
-  for i:=0 to Columns.Count-1 do begin
-    Result := Result + FConnection.QuoteIdent(Columns[i]);
-    if (SubParts.Count > i) and (SubParts[i] <> '') then
-      Result := Result + '(' + SubParts[i] + ')';
-    // Collation / sort order, see issue #1512
-    if (Collations.Count > i) and (Collations[i].ToLower = 'd') then
-      Result := Result + ' DESC';
-    Result := Result + ', ';
-  end;
-  if Columns.Count > 0 then
-    Delete(Result, Length(Result)-1, 2);
 
-  Result := Result + ')';
-
-  if Algorithm <> '' then
-    Result := Result + ' USING ' + Algorithm;
-
-  if not Comment.IsEmpty then
-    Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
 end;
 
 procedure TTableKeyList.Assign(Source: TTableKeyList);
