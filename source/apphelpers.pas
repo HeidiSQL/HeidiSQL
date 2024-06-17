@@ -3090,6 +3090,7 @@ var
   i, BatchStartOffset, ResultCount: Integer;
   PacketSize, MaxAllowedPacket: Int64;
   DoStoreResult, ErrorAborted, LogMaxResultsDone: Boolean;
+  Warnings: TDBQuery;
 begin
   inherited;
 
