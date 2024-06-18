@@ -479,12 +479,15 @@ begin
   else
     Batch := ComposeAlterStatement;
   try
-    for Query in Batch do
+    for Query in Batch do begin
       DBObject.Connection.Query(Query.SQL);
+      DBObject.Connection.ShowWarnings;
+    end;
     // Rename table
     if ObjectExists and (editName.Text <> DBObject.Name) then begin
       Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
       DBObject.Connection.Query(Rename);
+      DBObject.Connection.ShowWarnings;
     end;
     tabALTERcode.TabVisible := ObjectExists;
     if chkCharsetConvert.Checked then begin

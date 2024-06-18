@@ -592,6 +592,7 @@ type
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
       property WarningCount: Cardinal read FWarningCount;
+      procedure ShowWarnings; virtual;
       property LastQueryDuration: Cardinal read FLastQueryDuration;
       property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
@@ -670,6 +671,7 @@ type
       function MaxAllowedPacket: Int64; override;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      procedure ShowWarnings; override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -4775,6 +4777,27 @@ begin
       StrToIntDef(rx.Match[3], 0);
   end;
   rx.Free;
+end;
+
+
+procedure TDBConnection.ShowWarnings;
+begin
+  // Do nothing by default. SHOW WARNINGS is MySQL only.
+end;
+
+
+procedure TMySQLConnection.ShowWarnings;
+var
+  Warnings: TDBQuery;
+begin
+  if WarningCount > 0 then begin
+    Warnings := GetResults('SHOW WARNINGS');
+    while not Warnings.Eof do begin
+      Log(lcError, Warnings.Col('Level') + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));
+      Warnings.Next;
+    end;
+    Warnings.Free;
+  end;
 end;
 
 
@@ -9439,6 +9462,7 @@ begin
   if not IsVirtual then begin
     sql := GridQuery('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause);
     Connection.Query(sql);
+    Connection.ShowWarnings;
     if Connection.RowsAffected = 0 then
       raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
   end;
@@ -9557,6 +9581,7 @@ begin
     sql := sql + ' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause;
     sql := GridQuery('SELECT', sql);
     Data := Connection.GetResults(sql);
+    Connection.ShowWarnings;
     Result := Data.RecordCount = 1;
     if Result then begin
       if not Assigned(FCurrentUpdateRow) then
@@ -9680,6 +9705,7 @@ begin
     if RowModified then try
       if Row.Inserted then begin
         Connection.Query('INSERT INTO '+QuotedDbAndTableName+' ('+sqlInsertColumns+') VALUES ('+sqlInsertValues+')');
+        Connection.ShowWarnings;
         for i:=0 to ColumnCount-1 do begin
           ColAttr := ColAttributes(i);
           if Assigned(ColAttr) and (ColAttr.DefaultType = cdtAutoInc) then begin
@@ -9694,6 +9720,7 @@ begin
         sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
         sqlUpdate := GridQuery('UPDATE', sqlUpdate);
         Connection.Query(sqlUpdate);
+        Connection.ShowWarnings;
         if Connection.RowsAffected = 0 then begin
           raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');
           Result := False;

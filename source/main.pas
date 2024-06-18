@@ -4183,6 +4183,7 @@ begin
         try
           Conn.Query(Queries[i].SQL, False, lcScript);
           RowsAffected := RowsAffected + Conn.RowsAffected;
+          Conn.ShowWarnings;
         except
           on E:Exception do begin
             if actQueryStopOnErrors.Checked then
