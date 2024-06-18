@@ -5816,8 +5816,11 @@ begin
           end;
         end;
         dtcInteger: begin
-          if not ColQuery.IsNull('NUMERIC_PRECISION') then begin
-            MaxLen := ColQuery.Col('NUMERIC_PRECISION');
+          if (not ColQuery.IsNull('NUMERIC_PRECISION')) then begin
+            if Parameters.IsMySQL(True) and (ServerVersionInt >= 80017) then
+              // Integer display width is deprecated as of MySQL 8.0.17
+            else
+              MaxLen := ColQuery.Col('NUMERIC_PRECISION');
           end;
         end;
         dtcReal: begin
