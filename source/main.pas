@@ -3393,13 +3393,12 @@ end;
 
 procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
-  Tab, WarningsTab: TQueryTab;
-  MetaInfo, ErroneousSQL, RegName, MsgTitle, MsgText: String;
+  Tab: TQueryTab;
+  MetaInfo, ErroneousSQL, RegName: String;
   ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
   History: TQueryHistory;
   HistoryItem: TQueryHistoryItem;
-  Warnings: TDBQuery;
   HistoryNum, RegItemsSize, KeepDays: Integer;
   DoDelete, ValueFound: Boolean;
   MinDate: TDateTime;
