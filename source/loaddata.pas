@@ -300,7 +300,6 @@ procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   StartTickCount: Cardinal;
   i: Integer;
-  Warnings: TDBQuery;
 begin
   Screen.Cursor := crHourglass;
   StartTickCount := GetTickCount;
@@ -309,9 +308,11 @@ begin
   // Truncate table before importing
   if chkTruncateTable.Checked then try
     FConnection.Query('TRUNCATE TABLE ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
+    FConnection.ShowWarnings;
   except
     try
       FConnection.Query('DELETE FROM ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
+      FConnection.ShowWarnings;
     except
       on E:EDbError do
         ErrorDialog(_('Cannot truncate table'), E.Message);
@@ -335,20 +336,8 @@ begin
       1: ClientParse(Sender);
     end;
     MainForm.LogSQL(FormatNumber(FRowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
-    // SHOW WARNINGS is implemented as of MySQL 4.1.0
-    if FConnection.Parameters.IsAnyMySQL and (FConnection.ServerVersionInt >= 40100) then begin
-      Warnings := FConnection.GetResults('SHOW WARNINGS');
-      while not Warnings.Eof do begin
-        MainForm.LogSQL(Warnings.Col(0)+' ('+Warnings.Col(1)+'): '+Warnings.Col(2), lcError);
-        Warnings.Next;
-      end;
-      if Warnings.RecordCount > 0 then begin
-        ErrorDialog(f_('Your file was imported but the server returned %s warnings and/or notes. See the log panel for details.', [FormatNumber(Warnings.RecordCount)]));
-        ModalResult := mrNone;
-      end;
-    end;
     // Hint user if zero rows were detected in file
-    if (ModalResult <> mrNone) and (FRowCount = 0) then begin
+    if FRowCount = 0 then begin
       ErrorDialog(_('No rows were imported'),
         _('This can have several causes:')+CRLF+
         _(' - File is empty')+CRLF+
@@ -450,6 +439,7 @@ begin
 
 
   FConnection.Query(SQL);
+  FConnection.ShowWarnings;
   FRowCount := Max(FConnection.RowsAffected, 0);
 end;
 
@@ -571,6 +561,7 @@ var
         OutStream.Read(PAnsiChar(SA)^, ChunkSize);
         OutStream.Size := 0;
         FConnection.Query(UTF8ToString(SA), False, lcScript);
+        FConnection.ShowWarnings;
         SQL := '';
         RowCountInChunk := 0;
       end;

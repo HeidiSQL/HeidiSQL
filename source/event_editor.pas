@@ -231,6 +231,7 @@ begin
     sql := ComposeAlterStatement;
   try
     MainForm.ActiveConnection.Query(sql);
+    MainForm.ActiveConnection.ShowWarnings;
     DBObject.Name := editName.Text;
     DBObject.UnloadDetails;
     tabALTERcode.TabVisible := ObjectExists;

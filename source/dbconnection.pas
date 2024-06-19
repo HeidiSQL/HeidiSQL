@@ -4788,7 +4788,9 @@ procedure TMySQLConnection.ShowWarnings;
 var
   Warnings: TDBQuery;
 begin
-  if WarningCount > 0 then begin
+  // Log warnings
+  // SHOW WARNINGS is implemented as of MySQL 4.1.0
+  if (WarningCount > 0) and (ServerVersionInt >= 40100) then begin
     Warnings := GetResults('SHOW WARNINGS');
     while not Warnings.Eof do begin
       Log(lcError, Warnings.Col('Level') + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));

@@ -659,6 +659,7 @@ begin
     sql := sql + ')';
     try
       FConnection.Query(sql);
+      FConnection.ShowWarnings;
       Mainform.ProgressStep;
     except
       on E:EDbError do begin

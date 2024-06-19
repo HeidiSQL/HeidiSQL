@@ -377,6 +377,7 @@ begin
       Exit;
     end;
     FConnection.Query('DROP TABLE '+TargetTable);
+    FConnection.ShowWarnings;
   end;
 
   Screen.Cursor := crHourglass;
@@ -479,8 +480,11 @@ begin
   try
     MainForm.ShowStatusMsg(_('Creating table ...'));
     FConnection.Query(CreateCode);
-    if InsertCode <> '' then
+    FConnection.ShowWarnings;
+    if InsertCode <> '' then begin
       FConnection.Query(InsertCode);
+      FConnection.ShowWarnings;
+    end;
     // actRefresh takes care of whether the table editor is open
     // See also issue #1597
     MainForm.actRefresh.Execute
