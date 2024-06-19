@@ -1261,7 +1261,7 @@ begin
         end;
         CellText := _(CellText);
       end else if Assigned(Data.Action) then begin
-        CellText := MainForm.ActionList1DefaultCaptions[Data.Action.Index];
+        CellText := StripHotkey(MainForm.ActionList1DefaultCaptions[Data.Action.Index]);
       end;
     end;
   end;
