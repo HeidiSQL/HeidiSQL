@@ -1344,8 +1344,8 @@ begin
       Data := Tree.GetNodeData(Node);
       Msg := Format(MsgFormat, [
         ShortCutToText(RequestShortcut),
-        Tree.Text[Node, 0],
-        Tree.Text[NodeWantsIt, 0]
+        Tree.Text[Node.Parent, 0] + ' > ' + StripHotkey(Tree.Text[Node, 0]),
+        Tree.Text[NodeWantsIt.Parent, 0] + ' > ' + StripHotkey(Tree.Text[NodeWantsIt, 0])
         ]);
       if Node = NodeWantsIt then begin
         // Ignore requesting node
