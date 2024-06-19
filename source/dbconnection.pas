@@ -516,7 +516,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual; abstract;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetLockedByThread(Value: TThread); virtual;
@@ -768,7 +768,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -802,7 +801,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TInterbaseRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -6697,16 +6695,28 @@ begin
 end;
 
 
+function TDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a table
+  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
+  Result := MakeInt(Rows);
+end;
+
+
 function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
   // Get row number from a mysql table
-  if Parameters.IsProxySQLAdmin or ForceExact then
-    Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0)
-  else
+  if Parameters.IsProxySQLAdmin or ForceExact then begin
+    Result := inherited
+  end
+  else begin
     Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
-  Result := MakeInt(Rows);
+    Result := MakeInt(Rows);
+  end;
 end;
 
 
@@ -6739,26 +6749,6 @@ begin
     ' AND '+QuoteIdent('pg_namespace')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
     ' AND '+QuoteIdent('pg_class')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)
     );
-  Result := MakeInt(Rows);
-end;
-
-
-function TSQLiteConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
-var
-  Rows: String;
-begin
-  // Get row number from a table
-  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
-  Result := MakeInt(Rows);
-end;
-
-
-function TInterbaseConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
-var
-  Rows: String;
-begin
-  // Get row number from a table
-  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
   Result := MakeInt(Rows);
 end;
 
