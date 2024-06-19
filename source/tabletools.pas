@@ -1240,6 +1240,7 @@ var
 begin
   // Execute query and append results into grid
   Results := Connection.GetResults(SQL);
+  Connection.ShowWarnings;
   if Results = nil then
     Exit;
 

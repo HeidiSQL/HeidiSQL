@@ -1228,6 +1228,7 @@ begin
           Create := Create + ' IDENTIFIED BY '+FConnection.EscapeString(editPassword.Text);
       end;
       FConnection.Query(Create);
+      FConnection.ShowWarnings;
       PasswordSet := True;
     end;
 
@@ -1263,6 +1264,7 @@ begin
         Delete(Revoke, Length(Revoke)-1, 1);
         Revoke := 'REVOKE ' + Revoke + ' ON ' + OnObj + ' FROM ' + OrgUserHost;
         FConnection.Query(Revoke);
+        FConnection.ShowWarnings;
       end;
 
       // Grant privileges. Must be applied with USAGE for added users without specific privs.
@@ -1315,8 +1317,10 @@ begin
       if WithClauses.Count > 0 then
         Grant := Grant + ' WITH ' + Implode(' ', WithClauses);
 
-      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) or (RequireClause <> '') then
+      if P.Added or (P.AddedPrivs.Count > 0) or (WithClauses.Count > 0) or (RequireClause <> '') then begin
         FConnection.Query(Grant);
+        FConnection.ShowWarnings;
+      end;
 
       WithClauses.Free;
     end;
@@ -1327,6 +1331,7 @@ begin
         FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = '+FConnection.EscapeString(editPassword.Text))
       else
         FConnection.Query('SET PASSWORD FOR ' + OrgUserHost + ' = PASSWORD('+FConnection.EscapeString(editPassword.Text)+')');
+      FConnection.ShowWarnings;
     end;
 
     // Rename user
@@ -1343,6 +1348,7 @@ begin
         end;
         FreeAndNil(Tables);
       end;
+      FConnection.ShowWarnings;
     end;
 
     FConnection.Query('FLUSH PRIVILEGES');

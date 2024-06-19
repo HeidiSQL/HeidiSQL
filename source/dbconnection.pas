@@ -9465,6 +9465,7 @@ begin
   if not IsVirtual then begin
     sql := GridQuery('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause);
     Connection.Query(sql);
+    // TODO: resetting RowsAffected!?
     Connection.ShowWarnings;
     if Connection.RowsAffected = 0 then
       raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
@@ -9723,6 +9724,7 @@ begin
         sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
         sqlUpdate := GridQuery('UPDATE', sqlUpdate);
         Connection.Query(sqlUpdate);
+        // TODO: resetting RowsAffected!?
         Connection.ShowWarnings;
         if Connection.RowsAffected = 0 then begin
           raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');

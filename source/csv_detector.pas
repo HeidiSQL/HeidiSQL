@@ -377,6 +377,7 @@ begin
   try
     Screen.Cursor := crHourGlass;
     FConnection.Query(SynMemoCreateTable.Text);
+    FConnection.ShowWarnings;
     ModalResult := mrOk;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
