@@ -4787,16 +4787,21 @@ end;
 procedure TMySQLConnection.ShowWarnings;
 var
   Warnings: TDBQuery;
+  Info: String;
 begin
   // Log warnings
   // SHOW WARNINGS is implemented as of MySQL 4.1.0
   if (WarningCount > 0) and (ServerVersionInt >= 40100) then begin
     Warnings := GetResults('SHOW WARNINGS');
     while not Warnings.Eof do begin
-      Log(lcError, Warnings.Col('Level') + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));
+      Log(lcError, _(Warnings.Col('Level')) + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));
       Warnings.Next;
     end;
     Warnings.Free;
+  end;
+  Info := DecodeAPIString(FLib.mysql_info(FHandle));
+  if not Info.IsEmpty then begin
+    Log(lcInfo, _(SLogPrefixInfo) + ': ' + Info);
   end;
 end;
 

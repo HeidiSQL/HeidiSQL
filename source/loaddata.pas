@@ -439,8 +439,8 @@ begin
 
 
   FConnection.Query(SQL);
-  FConnection.ShowWarnings;
   FRowCount := Max(FConnection.RowsAffected, 0);
+  FConnection.ShowWarnings;
 end;
 
 
@@ -448,6 +448,7 @@ procedure Tloaddataform.ClientParse(Sender: TObject);
 var
   P, ContentLen, ProgressCharsPerStep, ProgressChars: Integer;
   IgnoreLines, ValueCount, PacketSize: Integer;
+  LineNum: Int64;
   RowCountInChunk: Int64;
   EnclLen, TermLen, LineTermLen: Integer;
   Contents: String;
@@ -541,13 +542,13 @@ var
   begin
     if SQL = '' then
       Exit;
-    Inc(FRowCount);
+    Inc(LineNum);
     for i:=ValueCount to FColumnCount do begin
       Value := 'NULL';
       AddValue;
     end;
     ValueCount := 0;
-    if FRowCount > IgnoreLines then begin
+    if LineNum > IgnoreLines then begin
       Delete(SQL, Length(SQL)-1, 2);
       StreamWrite(OutStream, SQL + ')');
       SQL := '';
@@ -561,6 +562,7 @@ var
         OutStream.Read(PAnsiChar(SA)^, ChunkSize);
         OutStream.Size := 0;
         FConnection.Query(UTF8ToString(SA), False, lcScript);
+        Inc(FRowCount, Max(FConnection.RowsAffected, 0));
         FConnection.ShowWarnings;
         SQL := '';
         RowCountInChunk := 0;
@@ -598,6 +600,7 @@ begin
   ProgressCharsPerStep := ContentLen div ProgressBarSteps;
   ProgressChars := 0;
   FRowCount := 0;
+  LineNum := 0;
   RowCountInChunk := 0;
   IgnoreLines := UpDownIgnoreLines.Position;
   ValueCount := 0;
@@ -639,7 +642,6 @@ begin
 
   Contents := '';
   FreeAndNil(OutStream);
-  FRowCount := Max(FRowCount-IgnoreLines, 0);
 
   if FConnection.Parameters.IsAnyMySQL then begin
     FConnection.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */');

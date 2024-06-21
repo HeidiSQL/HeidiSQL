@@ -274,6 +274,7 @@ type
     mysql_get_client_info: function: PAnsiChar; stdcall;
     mysql_get_server_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_init: function(Handle: PMYSQL): PMYSQL; stdcall;
+    mysql_info: function(Handle: PMYSQL): PAnsiChar; stdcall;
     mysql_num_fields: function(Result: PMYSQL_RES): Integer; stdcall;
     mysql_num_rows: function(Result: PMYSQL_RES): Int64; stdcall;
     mysql_options: function(Handle: PMYSQL; Option: Integer; arg: PAnsiChar): Integer; stdcall;
@@ -3150,6 +3151,7 @@ begin
   AssignProc(@mysql_get_client_info, 'mysql_get_client_info');
   AssignProc(@mysql_get_server_info, 'mysql_get_server_info');
   AssignProc(@mysql_init, 'mysql_init');
+  AssignProc(@mysql_info, 'mysql_info');
   AssignProc(@mysql_num_fields, 'mysql_num_fields');
   AssignProc(@mysql_num_rows, 'mysql_num_rows');
   AssignProc(@mysql_ping, 'mysql_ping');

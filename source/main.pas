@@ -1395,12 +1395,14 @@ var
 
 const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
-  ErrorLineForeground: TColor = $00FFFFFF;
-  ErrorLineBackground: TColor = $00000080;
+  ErrorLineForeground: TColor = $00000000;
+  ErrorLineBackground: TColor = $00D2B7FF;
   WarningLineForeground: TColor = $00000000;
   WarningLineBackground: TColor = $00B7CDFF;
   NoteLineForeground: TColor = $00000000;
   NoteLineBackground: TColor = $00D3F7FF;
+  InfoLineForeground: TColor = $00000000;
+  InfoLineBackground: TColor = $00C6FFEC;
 
 {$I const.inc}
 
@@ -7038,15 +7040,20 @@ begin
     FG := ErrorLineForeground;
     BG := ErrorLineBackground;
   end
-  else if LineText.Contains(_('Warning')+':') then begin
+  else if LineText.Contains(_(SLogPrefixWarning)+':') then begin
     Special := True;
     FG := WarningLineForeground;
     BG := WarningLineBackground;
   end
-  else if LineText.Contains(_('Note')+':') then begin
+  else if LineText.Contains(_(SLogPrefixNote)+':') then begin
     Special := True;
     FG := NoteLineForeground;
     BG := NoteLineBackground;
+  end
+  else if LineText.Contains(_(SLogPrefixInfo)+':') then begin
+    Special := True;
+    FG := InfoLineForeground;
+    BG := InfoLineBackground;
   end;
 end;
 
