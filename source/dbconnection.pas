@@ -5748,6 +5748,8 @@ begin
     if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
       Result := False;
     end
+    else if Tp.Index = dbdtBit then
+      Result := False
     else case ServerVersionInt of
       0..80013: Result := True;
       else begin
