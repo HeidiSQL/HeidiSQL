@@ -207,10 +207,9 @@ type
     FLoaded: Boolean;
     CreateCodeValid, AlterCodeValid: Boolean;
     FColumns: TTableColumnList;
-    FKeys: TTableKeyList;
+    FKeys, FDeletedKeys: TTableKeyList;
     FForeignKeys: TForeignKeyList;
     FCheckConstraints: TCheckConstraintList;
-    FDeletedKeys,
     FDeletedForeignKeys,
     FDeletedCheckConstraints: TStringList;
     FAlterRestrictedMessageDisplayed: Boolean;
@@ -250,7 +249,7 @@ begin
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
-  FDeletedKeys := TStringList.Create;
+  FDeletedKeys := TTableKeyList.Create;
   FDeletedForeignKeys := TStringList.Create;
   FDeletedCheckConstraints := TStringList.Create;
   FDeletedCheckConstraints.Duplicates := dupIgnore;
@@ -614,7 +613,7 @@ begin
   //   ALTER TABLE  statement. Separate statements are required."
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-      Specs.Add(DBObject.Connection.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FForeignKeys[i].OldKeyName)]));
+      Specs.Add(Conn.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FForeignKeys[i].OldKeyName)]));
   end;
   FinishSpecs;
 
@@ -800,14 +799,18 @@ begin
 
   // Drop indexes, also changed indexes, which will be readded below
   for i:=0 to FDeletedKeys.Count-1 do begin
-    if FDeletedKeys[i] = TTableKey.PRIMARY then
+    if not FDeletedKeys[i].InsideCreateCode then
+      Continue;
+    if FDeletedKeys[i].IndexType = TTableKey.PRIMARY then
       IndexSQL := 'PRIMARY KEY'
     else
-      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i]);
+      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i].OldName);
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
   for i:=0 to FKeys.Count-1 do begin
+    if not FKeys[i].InsideCreateCode then
+      Continue;
     if FKeys[i].Modified and (not FKeys[i].Added) then begin
       if FKeys[i].OldIndexType = TTableKey.PRIMARY then
         IndexSQL := 'PRIMARY KEY'
@@ -820,7 +823,7 @@ begin
   end;
 
   for i:=0 to FDeletedForeignKeys.Count-1 do begin
-    Specs.Add(DBObject.Connection.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FDeletedForeignKeys[i])]));
+    Specs.Add(Conn.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FDeletedForeignKeys[i])]));
   end;
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
@@ -838,6 +841,33 @@ begin
 
 
   FinishSpecs;
+
+  // Separate queries from here on
+
+  // Drop indexes, also changed indexes, which will be readded below
+  for i:=0 to FDeletedKeys.Count-1 do begin
+    if FDeletedKeys[i].InsideCreateCode then
+      Continue;
+    if FDeletedKeys[i].IndexType = TTableKey.PRIMARY then
+      IndexSQL := 'PRIMARY KEY'
+    else
+      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i].OldName);
+    AddQuery('DROP '+IndexSQL);
+  end;
+  // Add changed or added indexes
+  for i:=0 to FKeys.Count-1 do begin
+    if FKeys[i].InsideCreateCode then
+      Continue;
+    if FKeys[i].Modified and (not FKeys[i].Added) then begin
+      if FKeys[i].OldIndexType = TTableKey.PRIMARY then
+        IndexSQL := 'PRIMARY KEY'
+      else
+        IndexSQL := 'INDEX ' + Conn.QuoteIdent(FKeys[i].OldName);
+      AddQuery('DROP '+IndexSQL);
+    end;
+    if FKeys[i].Added or FKeys[i].Modified then
+      AddQuery(FKeys[i].SQLCode(DBObject.Name));
+  end;
 
   Result := TSQLBatch.Create;
   Result.SQL := SQL;
@@ -867,7 +897,7 @@ begin
 
   IndexCount := 0;
   for i:=0 to FKeys.Count-1 do begin
-    if not FKeys[0].InsideCreateCode then
+    if not FKeys[i].InsideCreateCode then
       Continue;
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
@@ -1765,6 +1795,7 @@ procedure TfrmTableEditor.btnRemoveIndexClick(Sender: TObject);
 var
   idx: Integer;
   NewSelectNode: PVirtualNode;
+  DeleteTblKey: TTableKey;
 begin
   // Remove index or part
   if treeIndexes.IsEditing then
@@ -1772,8 +1803,11 @@ begin
   case treeIndexes.GetNodeLevel(treeIndexes.FocusedNode) of
     0: begin
       idx := treeIndexes.FocusedNode.Index;
-      if not FKeys[idx].Added then
-        FDeletedKeys.Add(FKeys[idx].OldName);
+      if not FKeys[idx].Added then begin
+        DeleteTblKey := TTableKey.Create(DBObject.Connection);
+        DeleteTblKey.Assign(FKeys[idx]);
+        FDeletedKeys.Add(DeleteTblKey);
+      end;
       FKeys.Delete(idx);
       // Delete node although ReinitChildren would do the same, but the Repaint before
       // creates AVs in certain cases. See issue #2557
@@ -1798,7 +1832,7 @@ end;
 
 procedure TfrmTableEditor.btnClearIndexesClick(Sender: TObject);
 var
-  TblKey: TTableKey;
+  TblKey, DeleteTblKey: TTableKey;
 begin
   // Clear all indexes
   // Column data gets freed below - end any editor which could cause AV's
@@ -1807,8 +1841,11 @@ begin
   // Trigger ValidateIndexControls
   SelectNode(treeIndexes, nil);
   for TblKey in FKeys do begin
-    if not TblKey.Added then
-      FDeletedKeys.Add(TblKey.OldName);
+    if not TblKey.Added then begin
+      DeleteTblKey := TTableKey.Create(DBObject.Connection);
+      DeleteTblKey.Assign(TblKey);
+      FDeletedKeys.Add(TblKey);
+    end;
   end;
   FKeys.Clear;
   Modification(Sender);
