@@ -1766,7 +1766,7 @@ object MainForm: TMainForm
       Top = 2
       Width = 67
       Height = 22
-      Align = alRight
+      Align = alNone
       AutoSize = True
       ButtonWidth = 67
       Caption = 'Donate'
@@ -1780,7 +1780,6 @@ object MainForm: TMainForm
       object btnDonate: TToolButton
         Left = 0
         Top = 0
-        Cursor = crHandPoint
         Hint = 
           'Send an arbitrary amount as donation to the author - per PayPal ' +
           '(also supports credit cards)'

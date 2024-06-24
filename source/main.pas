@@ -2781,10 +2781,11 @@ begin
   FixQueryTabCloseButtons;
 
   // Right aligned button
+  // Do not set ToolBar.Align to alRight. See issue #1967
   if ToolBarDonate.Visible then begin
-    ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
+    //ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
     ToolBarDonate.Left := ControlBarMain.Width - ToolBarDonate.Width;
-    ToolBarDonate.Height := ToolBarDonate.Buttons[0].Height;
+    //ToolBarDonate.Buttons[0].Height := ToolBarMainButtons.Buttons[0].Height;
   end;
 
 end;
