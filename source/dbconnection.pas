@@ -79,7 +79,7 @@ type
       SPATIAL = 'SPATIAL';
     private
       FConnection: TDBConnection;
-      FInsideCreateCode: Boolean;
+      function GetInsideCreateCode: Boolean;
       function GetImageIndex: Integer;
     public
       Name, OldName: String;
@@ -91,7 +91,7 @@ type
       procedure Assign(Source: TPersistent); override;
       procedure Modification(Sender: TObject);
       function SQLCode(TableName: String=''): String;
-      property InsideCreateCode: Boolean read FInsideCreateCode;
+      property InsideCreateCode: Boolean read GetInsideCreateCode;
       property ImageIndex: Integer read GetImageIndex;
       property Connection: TDBConnection read FConnection;
   end;
@@ -10865,7 +10865,6 @@ constructor TTableKey.Create(AOwner: TDBConnection);
 begin
   inherited Create;
   FConnection := AOwner;
-  FInsideCreateCode := FConnection.Parameters.NetTypeGroup = ngMySQL;
   Columns := TStringList.Create;
   SubParts := TStringList.Create;
   Collations := TStringList.Create;
@@ -10920,6 +10919,20 @@ begin
   else Result := -1;
 end;
 
+function TTableKey.GetInsideCreateCode: Boolean;
+begin
+  case Connection.Parameters.NetTypeGroup of
+    ngMySQL: Result := True;
+    ngSQLite: begin
+      if IndexType = PRIMARY then
+        Result := True
+      else
+        Result := False;
+    end;
+    else Result := True;
+  end;
+end;
+
 function TTableKey.SQLCode(TableName: String=''): String;
 var
   i: Integer;
@@ -10928,8 +10941,7 @@ begin
   // Supress SQL error  trying index creation with 0 column
   if Columns.Count = 0 then
     Exit;
-  if FInsideCreateCode then begin
-    // MySQL only (?)
+  if InsideCreateCode then begin
     if IndexType = TTableKey.PRIMARY then
       Result := Result + 'PRIMARY KEY '
     else begin
