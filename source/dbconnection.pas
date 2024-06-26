@@ -843,6 +843,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); virtual; abstract;
+      procedure LogMetaInfo(NumResult: Integer);
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
@@ -8093,6 +8094,21 @@ begin
 end;
 
 
+procedure TDBQuery.LogMetaInfo(NumResult: Integer);
+var
+  MetaInfo: String;
+begin
+  // Debug log output after DBQuery.Execute with result
+  MetaInfo := 'Result #'+IntToStr(NumResult)+' fetched in ';
+  if Connection.LastQueryDuration < 60*1000 then
+    MetaInfo := MetaInfo + FormatNumber(Connection.LastQueryDuration/1000, 3) +' ' + _('sec.')
+  else
+    MetaInfo := MetaInfo + FormatTimeNumber(Connection.LastQueryDuration/1000, True);
+  if Connection.LastQueryNetworkDuration > 0 then
+    MetaInfo := MetaInfo + ' (+ '+FormatNumber(Connection.LastQueryNetworkDuration/1000, 3) +' ' + _('sec.') + ' ' + _('network') + ')';
+  Connection.Log(lcDebug, MetaInfo);
+end;
+
 procedure TMySQLQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, j, NumFields, NumResults: Integer;
@@ -8125,7 +8141,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.row_count;
@@ -8217,7 +8233,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.RecordCount;
@@ -8329,7 +8345,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + FConnection.Lib.PQntuples(LastResult);
@@ -8391,7 +8407,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.Count;
@@ -8474,7 +8490,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.RecordCount;
