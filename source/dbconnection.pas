@@ -1738,9 +1738,15 @@ end;
 
 
 function TConnectionParameters.IsMySQL(StrictDetect: Boolean): Boolean;
+var
+  MajorVersionNum: String;
 begin
   if StrictDetect then begin
-    Result := IsAnyMySQL and (ContainsText(ServerVersion, 'mysql') or IsMySQLonRDS);
+    MajorVersionNum := RegExprGetMatch('\b(\d+)\.\d+\.\d+', ServerVersion, 1);
+    Result := IsAnyMySQL and (not IsMariaDB) and (
+      (ContainsText(ServerVersion, 'mysql') or IsMySQLonRDS) // RDS is always MySQL, but does not contain "mysql"
+      or (StrToIntDef(MajorVersionNum, -1) in [3,4,5,8]) // MySQL 8.0 does not contain "mysql", but major version only exists in MySQL
+      );
   end else begin
     Result := IsAnyMySQL
       and (not IsMariaDB)
