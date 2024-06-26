@@ -1864,6 +1864,8 @@ begin
                 // Prevent DEFAULT value from coming in, to fix errors due to multiple CURRENT_TIMESTAMP values
                 // See issue #2748
                 Column.DefaultType := cdtNothing;
+                if Column.DataType.Index = dbdtVarchar then
+                  Column.LengthSet := '1';
                 Struc := Struc + sLineBreak + CodeIndent + Column.SQLCode + ',';
               end;
               Delete(Struc, Length(Struc), 1);
