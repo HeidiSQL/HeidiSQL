@@ -138,6 +138,8 @@ type
     timerEditFilterDelay: TTimer;
     comboSSHExe: TComboBox;
     chkSSHActive: TCheckBox;
+    comboSSLVerification: TComboBox;
+    lblSSLVerification: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -510,6 +512,7 @@ begin
     Sess.SSLCertificate := editSSLCertificate.Text;
     Sess.SSLCACertificate := editSSLCACertificate.Text;
     Sess.SSLCipher := editSSLCipher.Text;
+    Sess.SSLVerification := comboSSLVerification.ItemIndex;
     Sess.IgnoreDatabasePattern := editIgnoreDatabasePattern.Text;
     Sess.LogFileDdl := chkLogFileDdl.Checked;
     Sess.LogFileDml := chkLogFileDml.Checked;
@@ -733,6 +736,7 @@ begin
     Result.SSLCertificate := editSSLCertificate.Text;
     Result.SSLCACertificate := editSSLCACertificate.Text;
     Result.SSLCipher := editSSLCipher.Text;
+    Result.SSLVerification := comboSSLVerification.ItemIndex;
     Result.StartupScriptFilename := editStartupScript.Text;
     Result.Compressed := chkCompressed.Checked;
     Result.QueryTimeout := updownQueryTimeout.Position;
@@ -1033,6 +1037,7 @@ begin
     editSSLCertificate.Text := Sess.SSLCertificate;
     editSSLCACertificate.Text := Sess.SSLCACertificate;
     editSSLCipher.Text := Sess.SSLCipher;
+    comboSSLVerification.ItemIndex := Sess.SSLVerification;
     editIgnoreDatabasePattern.Text := Sess.IgnoreDatabasePattern;
     chkLogFileDdl.Checked := Sess.LogFileDdl;
     chkLogFileDml.Checked := Sess.LogFileDml;
@@ -1439,6 +1444,7 @@ begin
       or (Sess.SSLCertificate <> editSSLCertificate.Text)
       or (Sess.SSLCACertificate <> editSSLCACertificate.Text)
       or (Sess.SSLCipher <> editSSLCipher.Text)
+      or (Sess.SSLVerification <> comboSSLVerification.ItemIndex)
       or (Sess.IgnoreDatabasePattern <> editIgnoreDatabasePattern.Text)
       or (Sess.LogFileDdl <> chkLogFileDdl.Checked)
       or (Sess.LogFileDml <> chkLogFileDml.Checked)
@@ -1575,6 +1581,8 @@ begin
       editSSLCertificate.Enabled := Params.WantSSL;
       lblSSLcipher.Enabled := Params.WantSSL;
       editSSLcipher.Enabled := Params.WantSSL;
+      lblSSLVerification.Enabled := Params.WantSSL;
+      comboSSLVerification.Enabled := Params.WantSSL;
       lblQueryTimeout.Enabled := True;
       editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;

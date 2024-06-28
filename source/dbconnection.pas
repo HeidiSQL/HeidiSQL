@@ -314,7 +314,7 @@ type
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHExe, FSSHPrivateKey,
       FIgnoreDatabasePattern: String;
-      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
+      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive, FSSLVerification: Integer;
       FSSHActive, FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
@@ -403,6 +403,7 @@ type
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
       property SSLCipher: String read FSSLCipher write FSSLCipher;
+      property SSLVerification: Integer read FSSLVerification write FSSLVerification;
       property IgnoreDatabasePattern: String read FIgnoreDatabasePattern write FIgnoreDatabasePattern;
       property LogFileDdl: Boolean read FLogFileDdl write FLogFileDdl;
       property LogFileDml: Boolean read FLogFileDml write FLogFileDml;
@@ -1421,6 +1422,7 @@ begin
   FSSLCertificate := AppSettings.GetDefaultString(asSSLCert);
   FSSLCACertificate := AppSettings.GetDefaultString(asSSLCA);
   FSSLCipher := AppSettings.GetDefaultString(asSSLCipher);
+  FSSLVerification := AppSettings.GetDefaultInt(asSSLVerification);
   FStartupScriptFilename := AppSettings.GetDefaultString(asStartupScriptFilename);
   FQueryTimeout := AppSettings.GetDefaultInt(asQueryTimeout);
   FKeepAlive := AppSettings.GetDefaultInt(asKeepAlive);
@@ -1495,6 +1497,7 @@ begin
     FSSLCertificate := AppSettings.ReadString(asSSLCert);
     FSSLCACertificate := AppSettings.ReadString(asSSLCA);
     FSSLCipher := AppSettings.ReadString(asSSLCipher);
+    FSSLVerification := AppSettings.ReadInt(asSSLVerification);
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
     FQueryTimeout := AppSettings.ReadInt(asQueryTimeout);
     FKeepAlive := AppSettings.ReadInt(asKeepAlive);
@@ -1564,6 +1567,7 @@ begin
     AppSettings.WriteString(asSSLCert, FSSLCertificate);
     AppSettings.WriteString(asSSLCA, FSSLCACertificate);
     AppSettings.WriteString(asSSLCipher, FSSLCipher);
+    AppSettings.WriteInt(asSSLVerification, FSSLVerification);
     AppSettings.WriteString(asIgnoreDatabasePattern, FIgnoreDatabasePattern);
     AppSettings.WriteBool(asLogFileDdl, FLogFileDdl);
     AppSettings.WriteBool(asLogFileDml, FLogFileDml);
@@ -2406,7 +2410,7 @@ end;
 procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
-  ClientFlags, FinalPort: Integer;
+  ClientFlags, FinalPort, SSLoption: Integer;
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
@@ -2450,6 +2454,22 @@ begin
       if FParameters.SSLCipher <> '' then
         SetOptionResult := SetOptionResult +
           FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
+      if FParameters.SSLVerification in [1,2] then begin
+        // MySQL and MariaDB have different options for this
+        if FLib.MYSQL_OPT_SSL_MODE > TMySQLLib.INVALID_OPT then begin
+          if FParameters.SSLVerification = 1 then
+            SSLoption := FLib.SSL_MODE_VERIFY_CA
+          else
+            SSLoption := FLib.SSL_MODE_VERIFY_IDENTITY;
+          SetOptionResult := SetOptionResult +
+            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_MODE, @SSLoption);
+        end
+        else begin
+          SSLoption := 1;
+          SetOptionResult := SetOptionResult +
+            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @SSLoption);
+        end;
+      end;
       if SetOptionResult = 0 then
         Log(lcInfo, _('SSL parameters successfully set.'))
       else
@@ -2539,6 +2559,9 @@ begin
         ErrorHint := f_('This is a known issue with older libraries. Try a newer %s in the session settings.',
           ['libmysql']
           );
+      end
+      else if Error.Contains('certificate verif') then begin
+        ErrorHint := _('You might need to lower the certificate verification in the SSL settings.');
       end
       else if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',

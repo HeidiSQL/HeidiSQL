@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-06-05 16:41+0200\n"
+"PO-Revision-Date: 2024-06-28 15:35+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -438,6 +438,21 @@ msgstr "SSL certificate:"
 #. Session manager
 msgid "SSL cipher:"
 msgstr "SSL cipher:"
+
+msgid "Certificate verification"
+msgstr "Certificate verification"
+
+msgid "No verification (insecure)"
+msgstr "No verification (insecure)"
+
+msgid "Verify CA"
+msgstr "Verify CA"
+
+msgid "Verify CA and host name identity"
+msgstr "Verify CA and host name identity"
+
+msgid "You might need to lower the certificate verification in the SSL settings."
+msgstr "You might need to lower the certificate verification in the SSL settings."
 
 msgid "Path to key file"
 msgstr "Path to key file"

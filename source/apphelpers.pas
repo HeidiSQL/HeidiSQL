@@ -187,7 +187,7 @@ type
     asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort, asLibrary, asAllProviders,
     asSSHtunnelActive, asPlinkExecutable, asSshExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
-    asSSLCert, asSSLCA, asSSLCipher, asSSLWarnUnused, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
+    asSSLCert, asSSLCA, asSSLCipher, asSSLVerification, asSSLWarnUnused, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
     asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asFilterVT, asExportSQLCreateDatabases,
     asExportSQLCreateTables, asExportSQLDataHow, asExportSQLDataInsertSize, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLRemoveAutoIncrement, asExportSQLRemoveDefiner,
@@ -2539,7 +2539,7 @@ var
   rx: TRegExpr;
   ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
   SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher: String;
-  NetType, WindowsAuth, WantSSL, CleartextPluginEnabled: Integer;
+  NetType, WindowsAuth, WantSSL, CleartextPluginEnabled, SSLVerification: Integer;
   AbsentFiles: TStringList;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -2618,6 +2618,7 @@ begin
   SSLCACertificate := GetParamValue('sslca', 'sslcacertificate');
   SSLCertificate := GetParamValue('sslcert', 'sslcertificate');
   SSLCipher := GetParamValue('sslcip', 'sslcipher');
+  SSLVerification := StrToIntDef(GetParamValue('sslvrf', 'sslverification'), -1);
   // Leave out support for startup script, seems reasonable for command line connecting
 
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> '') or (Socket <> '') or (AllDatabases <> '') then begin
@@ -2654,6 +2655,8 @@ begin
       ConnectionParams.SSLCertificate := SSLCertificate;
     if SSLCipher <> '' then
       ConnectionParams.SSLCipher := SSLCipher;
+    if SSLVerification >= 0 then
+      ConnectionParams.SSLVerification := SSLVerification;
 
     if WindowsAuth in [0,1] then
       ConnectionParams.WindowsAuth := Boolean(WindowsAuth);
@@ -3724,6 +3727,7 @@ begin
   InitSetting(asSSLCert,                          'SSL_Cert',                              0, False, '', True);
   InitSetting(asSSLCA,                            'SSL_CA',                                0, False, '', True);
   InitSetting(asSSLCipher,                        'SSL_Cipher',                            0, False, '', True);
+  InitSetting(asSSLVerification,                  'SSL_Verification',                      2, False, '', True);
   InitSetting(asSSLWarnUnused,                    'SSL_WarnUnused',                        0, True);
   InitSetting(asNetType,                          'NetType',                               Integer(ntMySQL_TCPIP), False, '', True);
   InitSetting(asCompressed,                       'Compressed',                            0, False, '', True);

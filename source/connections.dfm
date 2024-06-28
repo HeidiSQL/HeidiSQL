@@ -763,6 +763,13 @@ object connform: Tconnform
         Height = 14
         Caption = 'SSL cipher:'
       end
+      object lblSSLVerification: TLabel
+        Left = 3
+        Top = 148
+        Width = 131
+        Height = 14
+        Caption = 'Certificate verification:'
+      end
       object chkWantSSL: TCheckBox
         Left = 190
         Top = 13
@@ -776,7 +783,7 @@ object connform: Tconnform
       object editSSLcipher: TEdit
         Left = 190
         Top = 117
-        Width = 320
+        Width = 324
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 4
@@ -787,7 +794,7 @@ object connform: Tconnform
       object editSSLCertificate: TButtonedEdit
         Left = 190
         Top = 90
-        Width = 320
+        Width = 324
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -803,7 +810,7 @@ object connform: Tconnform
       object editSSLCACertificate: TButtonedEdit
         Left = 190
         Top = 63
-        Width = 320
+        Width = 324
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -819,7 +826,7 @@ object connform: Tconnform
       object editSSLPrivateKey: TButtonedEdit
         Left = 190
         Top = 36
-        Width = 320
+        Width = 324
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -831,6 +838,20 @@ object connform: Tconnform
         OnDblClick = PickFile
         OnExit = editTrim
         OnRightButtonClick = PickFile
+      end
+      object comboSSLVerification: TComboBox
+        Left = 190
+        Top = 145
+        Width = 324
+        Height = 22
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 5
+        OnChange = Modification
+        Items.Strings = (
+          'No verification (insecure)'
+          'Verify CA'
+          'Verify CA and host name identity')
       end
     end
     object tabStatistics: TTabSheet

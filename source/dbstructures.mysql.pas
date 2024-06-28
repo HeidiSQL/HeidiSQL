@@ -290,6 +290,8 @@ type
     mysql_thread_init: function: Byte; stdcall;
     mysql_thread_end: procedure; stdcall;
     mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
+    const
+      INVALID_OPT = -1;
     protected
       procedure AssignProcedures; override;
     public
@@ -303,7 +305,11 @@ type
       MYSQL_OPT_SSL_CA,
       MYSQL_OPT_SSL_CIPHER,
       MYSQL_OPT_CONNECT_ATTR_ADD,
-      MYSQL_ENABLE_CLEARTEXT_PLUGIN: Integer;
+      MYSQL_ENABLE_CLEARTEXT_PLUGIN,
+      MYSQL_OPT_SSL_MODE,
+      MYSQL_OPT_SSL_VERIFY_SERVER_CERT: Integer;
+      SSL_MODE_VERIFY_CA,
+      SSL_MODE_VERIFY_IDENTITY: Integer;
       constructor Create(DllFile, DefaultDll: String); override;
   end;
 var
@@ -3113,6 +3119,10 @@ begin
   MYSQL_OPT_CONNECT_TIMEOUT := 0;
   MYSQL_OPT_LOCAL_INFILE := 8;
   MARIADB_OPT_TLS_VERSION := 7005;
+  MYSQL_OPT_SSL_MODE := INVALID_OPT;
+  MYSQL_OPT_SSL_VERIFY_SERVER_CERT := INVALID_OPT;
+  SSL_MODE_VERIFY_CA := 4;
+  SSL_MODE_VERIFY_IDENTITY := 5;
   if String(mysql_get_client_info).StartsWith('8.') then begin
     MYSQL_PLUGIN_DIR := 16;
     MYSQL_OPT_SSL_KEY := 19;
@@ -3122,8 +3132,10 @@ begin
     MYSQL_OPT_CONNECT_ATTR_ADD := 27;
     MYSQL_ENABLE_CLEARTEXT_PLUGIN := 30;
     MYSQL_OPT_TLS_VERSION := 34;
+    MYSQL_OPT_SSL_MODE := 35;
   end
   else begin
+    MYSQL_OPT_SSL_VERIFY_SERVER_CERT := 15;
     MYSQL_PLUGIN_DIR := 22;
     MYSQL_OPT_SSL_KEY := 25;
     MYSQL_OPT_SSL_CERT := 26;
