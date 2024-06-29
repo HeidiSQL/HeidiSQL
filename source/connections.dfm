@@ -850,8 +850,10 @@ object connform: Tconnform
         OnChange = Modification
         Items.Strings = (
           'No verification (insecure)'
-          'Verify CA'
-          'Verify CA and host name identity')
+          'Verify CA (insecure)'
+          
+            'Verify CA and host name identity (may fail with self-signed cert' +
+            's and wildcard cn)')
       end
     end
     object tabStatistics: TTabSheet
