@@ -931,9 +931,11 @@ begin
   TargetSess := Sender.GetNodeData(TargetNode);
   Accept := (Source = Sender)
     and Assigned(TargetSess)
-    and (Mode <> dmNowhere)
-    and (TargetNode <> ListSessions.FocusedNode.Parent);
-
+    and (Mode <> dmNowhere);
+  if Accept and (Mode = dmOnNode) and (TargetNode = ListSessions.FocusedNode.Parent) then
+    Accept := False;
+  if Accept and (Mode in [dmAbove, dmBelow]) and (TargetNode.Parent = ListSessions.FocusedNode.Parent) then
+    Accept := False;
   // Moving a folder into itself would create an infinite folder structure
   if Accept and TargetSess.IsFolder then
     Accept := Accept and (TargetNode <> ListSessions.FocusedNode);
