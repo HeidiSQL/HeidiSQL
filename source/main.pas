@@ -53,9 +53,12 @@ type
     Results: TDBQuery;
     Grid: TVirtualStringTree;
     FilterText: String;
+    private
+      FTabIndex: Integer;
     public
       constructor Create(AOwner: TQueryTab);
       destructor Destroy; override;
+      property TabIndex: Integer read FTabIndex;
   end;
   TResultTabs = TObjectList<TResultTab>;
   TQueryTab = class(TComponent)
@@ -3315,7 +3318,8 @@ var
   Tab: TQueryTab;
   NewTab: TResultTab;
   col: TVirtualTreeColumn;
-  TabCaption: String;
+  TabCaption, TabCaptions, BatchHead: String;
+  TabCaptionsList: TStringList;
   TabsetColor: TColor;
   Results: TDBQuery;
   i, HeaderPadding, HeaderLineBreaks: Integer;
@@ -3336,6 +3340,11 @@ begin
     Tab.tabsetQuery.UnselectedColor := clBtnFace;
   end;
 
+  // Get tab caption list from comment, similar to a name:xyz in a single query
+  BatchHead := Copy(Thread.Batch.SQL, 1, SIZE_KB);
+  TabCaptions := RegExprGetMatch('--\s+names\:\s*([^\r\n]+)', BatchHead, 1, False, True);
+  TabCaptionsList := Explode(',', TabCaptions);
+  LogSQL(TabCaptionsList.CommaText);
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
     NewTab := TResultTab.Create(Tab);
@@ -3343,17 +3352,19 @@ begin
     NewTab.Results := Results;
     try
       TabCaption := NewTab.Results.ResultName;
+      if TabCaption.IsEmpty and (TabCaptionsList.Count > NewTab.TabIndex) then
+        TabCaption := TabCaptionsList[NewTab.TabIndex];
       if TabCaption.IsEmpty then
         TabCaption := NewTab.Results.TableName;
     except
       on E:EDbError do begin
-        TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
+        TabCaption := _('Result')+' #'+IntToStr(NewTab.TabIndex+1);
       end;
     end;
-
+    TabCaption := Trim(TabCaption);
     TabCaption := TabCaption + ' (' + FormatNumber(Results.RecordCount) + 'r × ' + FormatNumber(Results.ColumnCount) + 'c)';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
-    NewTab.Grid.Name := Format('Tab%dGrid%d', [Tab.Number, Tab.ResultTabs.Count]);
+    NewTab.Grid.Name := Format('Tab%dGrid%d', [Tab.Number, NewTab.TabIndex+1]);
 
     NewTab.Grid.BeginUpdate;
     NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
@@ -15218,6 +15229,7 @@ begin
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
   FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+  FTabIndex := QueryTab.ResultTabs.Count; // Will be 0 for the first one, even if we're already creating the first one here!
 end;
 
 destructor TResultTab.Destroy;
