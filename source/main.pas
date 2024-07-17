@@ -3344,7 +3344,7 @@ begin
   BatchHead := Copy(Thread.Batch.SQL, 1, SIZE_KB);
   TabCaptions := RegExprGetMatch('--\s+names\:\s*([^\r\n]+)', BatchHead, 1, False, True);
   TabCaptionsList := Explode(',', TabCaptions);
-  LogSQL(TabCaptionsList.CommaText);
+  LogSQL('TabCaptionsList: '+TabCaptionsList.CommaText, lcDebug);
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
     NewTab := TResultTab.Create(Tab);
