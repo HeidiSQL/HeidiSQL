@@ -1,0 +1,61 @@
+package VirtualTreesR;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION ON}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO OFF}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES OFF}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE RELEASE}
+{$ENDIF IMPLICITBUILDING}
+{$LIBSUFFIX AUTO}
+{$RUNONLY}
+{$IMPLICITBUILD OFF}
+
+requires
+  vcl,
+  vclx;
+
+contains
+  VirtualTrees.Accessibility in '..\..\Source\VirtualTrees.Accessibility.pas',
+  VirtualTrees.AccessibilityFactory in '..\..\Source\VirtualTrees.AccessibilityFactory.pas',
+  VirtualTrees.Actions in '..\..\Source\VirtualTrees.Actions.pas',
+  VirtualTrees.Classes in '..\..\Source\VirtualTrees.Classes.pas',
+  VirtualTrees.ClipBoard in '..\..\Source\VirtualTrees.ClipBoard.pas',
+  VirtualTrees.Colors in '..\..\Source\VirtualTrees.Colors.pas',
+  VirtualTrees.DataObject in '..\..\Source\VirtualTrees.DataObject.pas',
+  VirtualTrees.DragImage in '..\..\Source\VirtualTrees.DragImage.pas',
+  VirtualTrees.DragnDrop in '..\..\Source\VirtualTrees.DragnDrop.pas',
+  VirtualTrees.DrawTree in '..\..\Source\VirtualTrees.DrawTree.pas',
+  VirtualTrees.EditLink in '..\..\Source\VirtualTrees.EditLink.pas',
+  VirtualTrees.Export in '..\..\Source\VirtualTrees.Export.pas',
+  VirtualTrees.Header in '..\..\Source\VirtualTrees.Header.pas',
+  VirtualTrees.HeaderPopup in '..\..\Source\VirtualTrees.HeaderPopup.pas',
+  VirtualTrees in '..\..\source\VirtualTrees.pas',
+  VirtualTrees.BaseTree in '..\..\source\VirtualTrees.BaseTree.pas',
+  VirtualTrees.AncestorVCL in '..\..\source\VirtualTrees.AncestorVCL.pas',
+  VirtualTrees.BaseAncestorVCL in '..\..\source\VirtualTrees.BaseAncestorVCL.pas',
+  VirtualTrees.StyleHooks in '..\..\Source\VirtualTrees.StyleHooks.pas',
+  VirtualTrees.Types in '..\..\Source\VirtualTrees.Types.pas',
+  VirtualTrees.Utils in '..\..\Source\VirtualTrees.Utils.pas',
+  VirtualTrees.WorkerThread in '..\..\Source\VirtualTrees.WorkerThread.pas';
+
+end.
+
