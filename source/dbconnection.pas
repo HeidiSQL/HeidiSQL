@@ -9944,15 +9944,10 @@ var
   Obj: TDBObject;
 begin
   Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
-  {Connection.Log(lcDebug, FColumnNames[Column]+':'+
-    '  org_table:'+Field.org_table+
-    '  table:'+Field.table+
-    '  table^=org_table^:'+(Field.table^ = Field.org_table^).ToInteger.ToString+
-    '  table=org_table:'+(Field.table = Field.org_table).ToInteger.ToString
-    );}
   FieldDb := FConnection.DecodeAPIString(Field.db);
   FieldTable := FConnection.DecodeAPIString(Field.table);
   FieldOrgTable := FConnection.DecodeAPIString(Field.org_table);
+  // Connection.Log(lcInfo, FColumnNames[Column]+': org_table:'+FieldOrgTable+'  table:'+FieldTable);
 
   if FieldTable <> FieldOrgTable then begin
     // Probably a VIEW, in which case we rely on the first column's table name.
@@ -9966,7 +9961,9 @@ begin
         end;
       end;
     end;
-  end else begin
+  end;
+
+  if Result.IsEmpty then begin
     // Normal table column
     // Note: this is empty on data tab TEXT columns with LEFT(..) clause
     Result := FieldOrgTable;
