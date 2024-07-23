@@ -10,7 +10,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.CheckLst,
-  SynRegExpr, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ToolWin, Vcl.ExtDlgs, System.Math, extra_controls,
+  SynRegExpr, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ToolWin, Vcl.ExtDlgs, System.Math, System.IOUtils, extra_controls,
   dbconnection, dbstructures, gnugettext;
 
 type
@@ -656,6 +656,8 @@ var
 begin
   AppSettings.ResetPath;
   Dialog := TExtFileOpenDialog.Create(Self);
+  Dialog.DefaultFolder := ExtractFilePath(editFilename.Text);
+  Dialog.FileName := ExtractFileName(editFilename.Text);
   Dialog.AddFileType('*.csv', _('CSV files'));
   Dialog.AddFileType('*.txt', _('Text files'));
   Dialog.AddFileType('*.*', _('All files'));
