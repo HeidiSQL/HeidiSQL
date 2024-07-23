@@ -53,6 +53,7 @@ type
     chkLocalNumbers: TCheckBox;
     chkTruncateTable: TCheckBox;
     btnCheckAll: TToolButton;
+    chkKeepDialogOpen: TCheckBox;
     const ProgressBarSteps=100;
     procedure FormCreate(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
@@ -104,6 +105,7 @@ begin
   updownIgnoreLines.Position := AppSettings.ReadInt(asCSVImportIgnoreLines);
   chkLowPriority.Checked := AppSettings.ReadBool(asCSVImportLowPriority);
   chkLocalNumbers.Checked := AppSettings.ReadBool(asCSVImportLocalNumbers);
+  chkKeepDialogOpen.Checked := AppSettings.ReadBool(asCSVKeepDialogOpen);
   // Uncheck critical "Truncate table" checkbox, to avoid accidental data removal
   chkTruncateTable.Checked := False;
   grpDuplicates.ItemIndex := AppSettings.ReadInt(asCSVImportDuplicateHandling);
@@ -172,6 +174,7 @@ begin
   AppSettings.WriteInt(asCSVImportIgnoreLines, updownIgnoreLines.Position);
   AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
   AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
+  AppSettings.WriteBool(asCSVKeepDialogOpen, chkKeepDialogOpen.Checked);
   AppSettings.WriteInt(asCSVImportDuplicateHandling, grpDuplicates.ItemIndex);
   AppSettings.WriteInt(asCSVImportParseMethod, grpParseMethod.ItemIndex);
 end;
@@ -330,6 +333,9 @@ begin
   FLineTerm := FConnection.UnescapeString(editLineTerminator.Text);
   FEscp := FConnection.UnescapeString(editFieldEscaper.Text);
 
+  if chkKeepDialogOpen.Checked then
+    ModalResult := mrNone;
+
   try
     case grpParseMethod.ItemIndex of
       0: ServerParse(Sender);
@@ -361,6 +367,9 @@ begin
       ErrorDialog(E.Message + sLineBreak + sLineBreak + editFilename.Text);
     end;
   end;
+
+  if ModalResult = mrNone then
+    btnCancel.Caption := _('Close');
 
   Mainform.ShowStatusMsg;
   MainForm.DisableProgress;

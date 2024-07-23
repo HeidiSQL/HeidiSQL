@@ -201,7 +201,7 @@ type
 
     asCSVImportSeparator, asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
     asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
-    asCSVImportDuplicateHandling, asCSVImportParseMethod,
+    asCSVImportDuplicateHandling, asCSVImportParseMethod, asCSVKeepDialogOpen,
     asUpdatecheck, asUpdatecheckBuilds, asUpdatecheckInterval, asUpdatecheckLastrun, asUpdateCheckWindowWidth, asUpdateCheckWindowHeight,
     asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
     asTableToolsFindTextTab, asTableToolsFindText, asTableToolsFindSQL, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
@@ -3784,7 +3784,7 @@ begin
   InitSetting(asCSVImportTerminator,              'CSVTerminator',                         0, False, '\r\n');
   InitSetting(asCSVImportFieldEscaper,            'CSVImportFieldEscaperV2',               0, False, '"');
   InitSetting(asCSVImportWindowWidth,             'CSVImportWindowWidth',                  530);
-  InitSetting(asCSVImportWindowHeight,            'CSVImportWindowHeight',                 530);
+  InitSetting(asCSVImportWindowHeight,            'CSVImportWindowHeight',                 550);
   InitSetting(asCSVImportFilename,                'loadfilename',                          0, False, '');
   InitSetting(asCSVImportFieldsEnclosedOptionally, 'CSVImportFieldsEnclosedOptionallyV2',  0, True);
   InitSetting(asCSVImportIgnoreLines,             'CSVImportIgnoreLines',                  1);
@@ -3792,6 +3792,7 @@ begin
   InitSetting(asCSVImportLocalNumbers,            'CSVImportLocalNumbers',                 0, False);
   InitSetting(asCSVImportDuplicateHandling,       'CSVImportDuplicateHandling',            2);
   InitSetting(asCSVImportParseMethod,             'CSVImportParseMethod',                  0);
+  InitSetting(asCSVKeepDialogOpen,                'CSVKeepDialogOpen',                     0, False);
   InitSetting(asUpdatecheck,                      'Updatecheck',                           0, False);
   InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
   InitSetting(asUpdatecheckInterval,              'UpdatecheckInterval',                   3);

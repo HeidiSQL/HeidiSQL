@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-06-29 09:34+0200\n"
+"PO-Revision-Date: 2024-07-23 19:36+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -1098,6 +1098,9 @@ msgstr "Input file contains local formatted numbers, e.g. 1.234,56 in Germany"
 #: loaddata.dfm:262
 msgid "Truncate destination table before import"
 msgstr "Truncate destination table before import"
+
+msgid "Keep dialog open after import"
+msgstr "Keep dialog open after import"
 
 #. loaddataform..grpDuplicates..Caption
 #: loaddata.dfm:272
