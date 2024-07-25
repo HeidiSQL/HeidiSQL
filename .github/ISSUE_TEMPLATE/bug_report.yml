@@ -1,0 +1,52 @@
+name: Bug report
+description: Create a report to help us improve
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Description
+      description: "A clear and concise description of what the bug is. Screenshots welcome!"
+      value: |
+        ### What where you trying to do?
+
+
+        ### What actually happened?
+
+
+        ### What did you expect to happen?
+
+
+    validations:
+      required: true
+  - type: input
+    id: heidisql_version
+    attributes:
+      label: HeidiSQL version
+      placeholder: "Example: 12.8.0.6908"
+    validations:
+      required: true
+  - type: input
+    id: database_software
+    attributes:
+      label: Database server version
+      description: "If not applicable or irrelevant, type '-'"
+      placeholder: "Example: MariaDB 10.3.27"
+    validations:
+      required: true
+  - type: textarea
+    id: error_log
+    attributes:
+      label: Error/Backtrace
+      description: If an error message was produced.
+      render: shell
+  - type: textarea
+    attributes:
+      label: Reproduction recipe
+      description: "Instructions for reproducing the problem"
+      placeholder: ""
+      value: |
+1. Go to ...
+2. Click on ....
+3. See error message: ...
+    validations:
+      required: true
