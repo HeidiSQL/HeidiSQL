@@ -11141,13 +11141,14 @@ begin
     RefTable := ReferenceTable.Substring(Length(ReferenceDb) + 1);
   end else begin
     RefDb := ReferenceTable.Substring(0, Pos('.', ReferenceTable)-1);
-    if not RefDb.IsEmpty then begin
+    if (not RefDb.IsEmpty) and (FConnection.FAllDatabases.IndexOf(RefDb) > -1) then begin
       RefTable := ReferenceTable.Substring(Length(RefDb)+1);
     end else begin
       RefDb := FConnection.Database;
       RefTable := ReferenceTable;
     end;
   end;
+  FConnection.Log(lcDebug, 'Find object "'+RefTable+'" in db "'+RefDb+'"');
   Result := FConnection.FindObject(RefDb, RefTable);
 end;
 
