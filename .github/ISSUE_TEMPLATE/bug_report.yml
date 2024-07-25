@@ -42,8 +42,7 @@ body:
   - type: textarea
     attributes:
       label: Reproduction recipe
-      description: "Instructions for reproducing the problem"
-      placeholder: ""
+      placeholder: "Instructions for reproducing the problem"
       value: |
         Go to ...
         Click on ....
