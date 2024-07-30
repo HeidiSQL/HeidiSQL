@@ -6817,6 +6817,7 @@ var
 begin
   Proposal := Sender as TSynCompletionProposal;
   Proposal.Font.Assign(Font);
+  Proposal.TitleFont.Size := Proposal.Font.Size;
   Proposal.ItemHeight := ScaleSize(PROPOSAL_ITEM_HEIGHT);
   Proposal.ClearList;
   Proposal.Columns[0].ColumnWidth := ScaleSize(100); // Kind of random value, but fits well
