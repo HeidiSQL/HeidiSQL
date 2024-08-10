@@ -27,6 +27,7 @@ type
     menuCopyLabel: TMenuItem;
     lblEnvironment: TLabel;
     btnDonate: TButton;
+    lnklblCompiler: TLinkLabel;
     procedure OpenURL(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure editDonatedEnter(Sender: TObject);
@@ -39,6 +40,7 @@ type
     procedure menuCopyLabelClick(Sender: TObject);
   private
     { Private declarations }
+    function GetDelphiVersion: String;
   public
     { Public declarations }
   end;
@@ -120,7 +122,10 @@ begin
   Caption := f_('About %s', [APPNAME]);
   lblAppName.Caption := APPNAME;
   lblAppVersion.Caption := _('Version') + ' ' + Mainform.AppVersion + ' (' + IntToStr(GetExecutableBits) + ' Bit)';
-  lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName));
+  lblAppCompiled.Caption := _('Compiled on:') + ' ' + DateTimeToStr(GetImageLinkTimeStamp(Application.ExeName)) + ' with';
+  lnklblCompiler.Top := lblAppCompiled.Top;
+  lnklblCompiler.Left := lblAppCompiled.Left + lblAppCompiled.Width + Canvas.TextWidth(' ');
+  lnklblCompiler.Caption := '<a href="https://www.embarcadero.com/products/delphi?utm_source='+APPNAME+'">'+GetDelphiVersion+'</a>';
   lnklblWebpage.Caption := '<a href="'+APPDOMAIN+'?place='+EncodeURLParam(lnklblWebpage.Name)+'">'+APPDOMAIN+'</a>';
   lnklblCredits.Caption := '<a href="">'+lnklblCredits.Caption+'</a>';
   ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
@@ -156,6 +161,22 @@ procedure TAboutBox.lnklblWebpageLinkClick(Sender: TObject; const Link: string;
   LinkType: TSysLinkType);
 begin
   ShellExec(Link);
+end;
+
+function TAboutBox.GetDelphiVersion: string;
+begin
+  {$IF Defined(VER360)}
+    // Oldest/first official version where this gets used
+    Result := '12';
+  {$ELSEIF Defined(VER350)}
+    Result := '11';
+  {$ELSEIF Defined(VER340)}
+    Result := '10.4';
+  {$ELSE}
+    Result := '10.3 or older';
+  {$ENDIF}
+
+  Result := 'Delphi ' + Result;
 end;
 
 end.
