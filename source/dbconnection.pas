@@ -9502,6 +9502,7 @@ procedure TDBQuery.DeleteRow;
 var
   sql: String;
   IsVirtual: Boolean;
+  TempRowsAffected: Int64;
 begin
   // Delete current row from result
   PrepareEditing;
@@ -9509,10 +9510,10 @@ begin
   if not IsVirtual then begin
     sql := GridQuery('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause);
     Connection.Query(sql);
-    // TODO: resetting RowsAffected!?
+    TempRowsAffected := Connection.RowsAffected;
     Connection.ShowWarnings;
-    if Connection.RowsAffected = 0 then
-      raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
+    if TempRowsAffected = 0 then
+      raise EDbError.Create(FormatNumber(TempRowsAffected)+' rows deleted when that should have been 1.');
   end;
   if Assigned(FCurrentUpdateRow) then begin
     FUpdateData.Remove(FCurrentUpdateRow);
@@ -9696,6 +9697,7 @@ end;
 function TDBQuery.SaveModifications: Boolean;
 var
   i: Integer;
+  TempRowsAffected: Int64;
   Row: TGridRow;
   Cell: TGridValue;
   sqlUpdate, sqlInsertColumns, sqlInsertValues, Val: String;
@@ -9768,10 +9770,10 @@ begin
         sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
         sqlUpdate := GridQuery('UPDATE', sqlUpdate);
         Connection.Query(sqlUpdate);
-        // TODO: resetting RowsAffected!?
+        TempRowsAffected := Connection.RowsAffected;
         Connection.ShowWarnings;
-        if Connection.RowsAffected = 0 then begin
-          raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');
+        if TempRowsAffected = 0 then begin
+          raise EDbError.Create(FormatNumber(TempRowsAffected)+' rows updated when that should have been 1.');
           Result := False;
         end;
       end;
