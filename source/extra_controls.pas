@@ -85,6 +85,17 @@ type
       property OnExit: TNotifyEvent read FOnExit write FOnExit;
   end;
 
+  TExtComboBox = class(TComboBox)
+    private
+      FcbHintIndex: Integer;
+      FHintWindow: THintWindow;
+    protected
+      procedure Change; override;
+      procedure DropDown; override;
+      procedure CloseUp; override;
+      procedure InitiateAction; override;
+  end;
+
 
 implementation
 
@@ -652,5 +663,61 @@ begin
   SynUnicode.TextRect(Canvas, r, BorderWidth + 1, BorderWidth + 1, Text);
 end;
 
+
+
+{ TExtComboBox }
+
+procedure TExtComboBox.Change;
+var
+  P: TPoint;
+  HintRect: TRect;
+  HintText: String;
+  HintWidth, Padding: Integer;
+begin
+  inherited;
+  if (ItemIndex > -1) and DroppedDown and GetCursorPos(P) then begin
+    HintText := Items[ItemIndex];
+    HintWidth := Canvas.TextWidth(HintText);
+    if HintWidth > Width then begin
+      Padding := TExtForm.ScaleSize(10, Self);
+      HintRect := Rect(
+        P.X + Padding,
+        P.Y + Padding * 2,
+        P.X + HintWidth + Padding * 3,
+        P.Y + Padding * 4
+        );
+      FHintWindow.ActivateHint(HintRect, HintText);
+    end;
+  end;
+end;
+
+procedure TExtComboBox.CloseUp;
+begin
+  inherited;
+  FHintWindow.Hide;
+  ControlStyle := ControlStyle - [csActionClient];
+end;
+
+procedure TExtComboBox.DropDown;
+begin
+  inherited;
+  if not Assigned(FHintWindow) then
+    FHintWindow := THintWindow.Create(Self);
+  FcbHintIndex := -1;
+  ControlStyle := ControlStyle + [csActionClient];
+end;
+
+procedure TExtComboBox.InitiateAction;
+var
+  Idx: Integer;
+begin
+  inherited;
+  Idx := ItemIndex;
+  if Idx <> FcbHintIndex then
+  begin
+    FcbHintIndex := ItemIndex;
+    Change;
+  end;
+end;
 
 end.

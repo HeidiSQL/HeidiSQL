@@ -107,7 +107,7 @@ type
 
   TEnumEditorLink = class(TBaseGridEditorLink)
   private
-    FCombo: TComboBox;
+    FCombo: TExtComboBox;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoSelect(Sender: TObject);
   public
@@ -884,7 +884,7 @@ begin
   inherited;
   AllowCustomText := False;
   ItemMustExist := False;
-  FCombo := TComboBox.Create(FParentForm);
+  FCombo := TExtComboBox.Create(FParentForm);
   FCombo.Hide;
   FCombo.Parent := FParentForm;
   FCombo.OnKeyDown := DoKeyDown;
