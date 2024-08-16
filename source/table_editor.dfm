@@ -872,6 +872,12 @@ object frmTableEditor: TfrmTableEditor
         Position = 11
         Text = 'Virtuality'
         Width = 100
+      end
+      item
+        Hint = 'Spatial reference system'
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 12
+        Text = 'SRID'
       end>
   end
   object btnSave: TButton

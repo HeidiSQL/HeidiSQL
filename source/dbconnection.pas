@@ -29,7 +29,7 @@ type
   TDBQueryList = TObjectList<TDBQuery>;
   TDBObject = class;
 
-  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpDefault, cpVirtuality, cpComment, cpCollation);
+  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpSRID, cpDefault, cpVirtuality, cpComment, cpCollation);
   TColumnParts = Set of TColumnPart;
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
   // General purpose editing status flag
@@ -51,6 +51,7 @@ type
       OnUpdateType: TColumnDefaultType;
       OnUpdateText: String;
       Comment, Charset, Collation, GenerationExpression, Virtuality: String;
+      SRID: Cardinal;
       constructor Create(AOwner: TDBConnection; Serialized: String='');
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
@@ -436,6 +437,7 @@ type
     spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks,
     spOrderAsc, spOrderDesc,
     spForeignKeyDrop);
+  TFeatureOrRequirement = (frSrid);
 
   TDBConnection = class(TComponent)
     private
@@ -623,6 +625,7 @@ type
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
       function IsNumeric(Text: String): Boolean;
       function IsHex(Text: String): Boolean;
+      function Has(Item: TFeatureOrRequirement): Boolean;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -5889,6 +5892,7 @@ begin
     Col.Virtuality := RegExprGetMatch('\b(\w+)\s+generated\b', ExtraText.ToLowerInvariant, 1);
     Col.Invisible := ExecRegExprI('\binvisible\b', ExtraText);
     Col.AllowNull := ColQuery.Col('IS_NULLABLE').ToLowerInvariant = 'yes';
+    Col.SRID := StrToUIntDef(ColQuery.Col('SRS_ID', True), 0);
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
     Col.OnUpdateType := cdtNothing;
@@ -6730,6 +6734,14 @@ begin
           Break;
       end;
     end;
+  end;
+end;
+
+function TDBConnection.Has(Item: TFeatureOrRequirement): Boolean;
+begin
+  case Item of
+    // SRID for spatial columns supported since MySQL 8.0
+    frSrid: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80000);
   end;
 end;
 
@@ -10634,6 +10646,7 @@ begin
   GenerationExpression := FromSerialized('Expression', '');
   Virtuality := FromSerialized('Virtuality', '');
   Invisible := FromSerialized('Invisible', '0').ToInteger.ToBoolean;
+  SRID := FromSerialized('SRID', '0').ToInteger;
   NumVal := FromSerialized('Status', Integer(esUntouched).ToString);
   FStatus := TEditingStatus(NumVal.ToInteger);
 
@@ -10670,6 +10683,7 @@ begin
     GenerationExpression := s.GenerationExpression;
     Virtuality := s.Virtuality;
     Invisible := s.Invisible;
+    SRID := s.SRID;
     FStatus := s.FStatus;
   end else
     inherited;
@@ -10763,6 +10777,11 @@ begin
     else if not FConnection.Parameters.IsAnyInterbase then
       Result := Result + 'NULL ';
   end;
+
+  if InParts(cpSRID) and (DataType.Category = dtcSpatial) and FConnection.Has(frSrid) then begin
+    Result := Result + 'SRID ' + SRID.ToString + ' ';
+  end;
+
 
   if InParts(cpDefault) and (not IsVirtual) then begin
     if DefaultType <> cdtNothing then begin

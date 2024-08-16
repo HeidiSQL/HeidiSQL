@@ -1337,6 +1337,7 @@ begin
     end;
     // No editing of collation allowed if "Convert data" was checked
     9: Result := not chkCharsetConvert.Checked;
+    12: Result := (Col.DataType.Category = dtcSpatial) and DBObject.Connection.Has(frSrid);
     else Result := True;
   end;
 
@@ -1395,6 +1396,10 @@ begin
     end;
     10: CellText := Col.GenerationExpression;
     11: CellText := Col.Virtuality;
+    12: begin
+      if (Col.DataType.Category = dtcSpatial) and (Col.Connection.Has(frSrid)) then
+        CellText := Col.SRID.ToString;
+    end;
   end;
 end;
 
@@ -1544,6 +1549,7 @@ begin
     9: Col.Collation := NewText;
     10: Col.GenerationExpression := NewText;
     11: Col.Virtuality := NewText;
+    12: Col.SRID := StrToUIntDef(NewText, 0);
   end;
   if WasModified then begin
     Col.Status := esModified;

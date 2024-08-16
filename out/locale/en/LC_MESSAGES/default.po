@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-07-23 19:36+0200\n"
+"PO-Revision-Date: 2024-08-16 12:20+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -3291,6 +3291,9 @@ msgstr "Expression"
 #: table_editor.dfm:167
 msgid "Virtuality"
 msgstr "Virtuality"
+
+msgid "Spatial reference system"
+msgstr "Spatial reference system"
 
 #. frmTableEditor..PageControlMain..tabBasic..Caption
 #: table_editor.dfm:183
