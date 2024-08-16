@@ -3817,7 +3817,6 @@ var
   ObjectList: TDBObjectList;
   Editor: TDBObjectEditor;
   Conn: TDBConnection;
-  DisableForeignKeys: Boolean;
 begin
   Conn := ActiveConnection;
 
@@ -3873,8 +3872,7 @@ begin
   if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtCriticalConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
-      DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014);
-      if DisableForeignKeys then
+      if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
@@ -3883,7 +3881,7 @@ begin
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
       end;
-      if DisableForeignKeys then
+      if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
       // Refresh ListTables + dbtree so the dropped tables are gone:
       Conn.ClearDbObjects(ActiveDatabase);
@@ -4887,10 +4885,7 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  if FActiveDbObj.Connection.Parameters.IsAnyMySQL
-    and (FActiveDbObj.Connection.ServerVersionInt >= 40100)
-    and (not FActiveDbObj.Connection.Parameters.IsProxySQLAdmin)
-    then begin
+  if FActiveDbObj.Connection.Has(frHelpKeyword) then begin
     if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
@@ -7778,7 +7773,7 @@ begin
   menuFetchDBitems.Enabled := (PageControlHost.ActivePage = tabDatabases) and (ListDatabases.SelectedCount > 0);
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and (ListProcesses.SelectedCount > 0);
   menuEditVariable.Enabled := False;
-  if ActiveConnection.ServerVersionInt >= 40003 then
+  if ActiveConnection.Has(frEditVariables) then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
   else
     menuEditVariable.Hint := _(SUnsupported);
@@ -7789,7 +7784,7 @@ procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   Obj: PDBObject;
   HasFocus, IsDb, IsObject: Boolean;
-  Version: Integer;
+  Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
   if PopupComponent(Sender) = DBtree then begin
@@ -7846,13 +7841,13 @@ begin
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
   end;
-  if (ActiveConnection <> nil) and (ActiveConnection.Parameters.IsAnyMySQL) then begin
-    Version := ActiveConnection.ServerVersionInt;
-    actCreateView.Enabled := actCreateView.Enabled and (Version >= 50001);
-    actCreateProcedure.Enabled := actCreateProcedure.Enabled and (Version >= 50003);
-    actCreateFunction.Enabled := actCreateFunction.Enabled and (Version >= 50003);
-    actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Version >= 50002);
-    actCreateEvent.Enabled := actCreateEvent.Enabled and (Version >= 50100);
+  Conn := ActiveConnection;
+  if (Conn <> nil) and (Conn.Parameters.IsAnyMySQL) then begin
+    actCreateView.Enabled := actCreateView.Enabled and Conn.Has(frCreateView);
+    actCreateProcedure.Enabled := actCreateProcedure.Enabled and Conn.Has(frCreateProcedure);
+    actCreateFunction.Enabled := actCreateFunction.Enabled and Conn.Has(frCreateFunction);
+    actCreateTrigger.Enabled := actCreateTrigger.Enabled and Conn.Has(frCreateTrigger);
+    actCreateEvent.Enabled := actCreateEvent.Enabled and Conn.Has(frCreateEvent);
   end;
 end;
 

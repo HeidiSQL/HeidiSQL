@@ -437,7 +437,12 @@ type
     spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks,
     spOrderAsc, spOrderDesc,
     spForeignKeyDrop);
-  TFeatureOrRequirement = (frSrid);
+  TFeatureOrRequirement = (frSrid, frTimezoneVar, frTemporalTypesFraction, frKillQuery,
+    frLockedTables, frShowCreateTrigger, frShowWarnings, frShowCollation, frShowCollationExtended,
+    frShowCharset, frIntegerDisplayWidth, frShowFunctionStatus, frShowProcedureStatus,
+    frShowTriggers, frShowEvents, frColumnDefaultParentheses, frForeignKeyChecksVar,
+    frHelpKeyword, frEditVariables, frCreateView, frCreateProcedure, frCreateFunction,
+    frCreateTrigger, frCreateEvent);
 
   TDBConnection = class(TComponent)
     private
@@ -3508,7 +3513,7 @@ begin
   inherited;
 
   // Set timezone offset to UTC
-  if (ServerVersionInt >= 40103) and Parameters.LocalTimeZone then begin
+  if Has(frTimezoneVar) and Parameters.LocalTimeZone then begin
     Minutes := 0;
     case GetTimeZoneInformation(TZI) of
       TIME_ZONE_ID_STANDARD: Minutes := (TZI.Bias + TZI.StandardBias);
@@ -3527,15 +3532,14 @@ begin
   end;
 
   // Support microseconds in some temporal datatypes of MariaDB 5.3+ and MySQL 5.6
-  if ((ServerVersionInt >= 50300) and Parameters.IsMariaDB) or
-    ((ServerVersionInt >= 50604) and (not Parameters.IsMariaDB)) then begin
+  if Has(frTemporalTypesFraction) then begin
     for i:=Low(FDatatypes) to High(FDatatypes) do begin
       if FDatatypes[i].Index in [dbdtDatetime, dbdtDatetime2, dbdtTime, dbdtTimestamp] then
         FDatatypes[i].HasLength := True;
     end;
   end;
 
-  if (ServerVersionInt >= 50000) and (not Parameters.IsMySQLonRDS) then begin
+  if Has(frKillQuery) then begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
   end;
 
@@ -3547,7 +3551,7 @@ begin
   except // silently fail if IS does not exist, on super old servers
   end;
 
-  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
+  if Has(frLockedTables) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
@@ -4387,7 +4391,7 @@ begin
         // SHOW CREATE TRIGGER was introduced in MySQL 5.1.21
         // See #111
         if Obj.NodeType = lntTrigger then
-          UseIt := UseIt and (ServerVersionInt >= 50121);
+          UseIt := UseIt and Has(frShowCreateTrigger);
         if UseIt then
           Queries.Add('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name));
       end;
@@ -4824,7 +4828,7 @@ var
 begin
   // Log warnings
   // SHOW WARNINGS is implemented as of MySQL 4.1.0
-  if (WarningCount > 0) and (ServerVersionInt >= 40100) then begin
+  if (WarningCount > 0) and Has(frShowWarnings) then begin
     Warnings := GetResults('SHOW WARNINGS');
     while not Warnings.Eof do begin
       Log(lcError, _(Warnings.Col('Level')) + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));
@@ -5539,8 +5543,8 @@ end;
 function TMySQLConnection.GetCollationTable: TDBQuery;
 begin
   inherited;
-  if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then begin
-    if Parameters.IsMariaDB and (ServerVersionInt >= 101001) then try
+  if (not Assigned(FCollationTable)) and Has(frShowCollation) then begin
+    if Has(frShowCollationExtended) then try
       // Issue #1917: MariaDB 10.10.1+ versions have additional collations in IS.COLLATION_CHARACTER_SET_APPLICABILITY
       FCollationTable := GetResults('SELECT'+
         ' FULL_COLLATION_NAME AS '+QuoteIdent('Collation')+
@@ -5621,7 +5625,7 @@ end;
 function TMySQLConnection.GetCharsetTable: TDBQuery;
 begin
   inherited;
-  if (not Assigned(FCharsetTable)) and (ServerVersionInt >= 40100) then
+  if (not Assigned(FCharsetTable)) and Has(frShowCharset) then
     FCharsetTable := GetResults('SHOW CHARSET');
   Result := FCharsetTable;
 end;
@@ -5856,11 +5860,9 @@ begin
           end;
         end;
         dtcInteger: begin
-          if (not ColQuery.IsNull('NUMERIC_PRECISION')) then begin
-            if Parameters.IsMySQL(True) and (ServerVersionInt >= 80017) then
-              // Integer display width is deprecated as of MySQL 8.0.17
-            else
-              MaxLen := ColQuery.Col('NUMERIC_PRECISION');
+          if (not ColQuery.IsNull('NUMERIC_PRECISION')) and Has(frIntegerDisplayWidth) then begin
+            // Integer display width is deprecated as of MySQL 8.0.17
+            MaxLen := ColQuery.Col('NUMERIC_PRECISION');
           end;
         end;
         dtcReal: begin
@@ -6739,9 +6741,37 @@ end;
 
 function TDBConnection.Has(Item: TFeatureOrRequirement): Boolean;
 begin
-  case Item of
-    // SRID for spatial columns supported since MySQL 8.0
-    frSrid: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80000);
+  case FParameters.NetTypeGroup of
+    ngMySQL:
+      case Item of
+        frSrid: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80000);
+        frTimezoneVar: Result := ServerVersionInt >= 40103;
+        frTemporalTypesFraction: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 50300)) or
+          (FParameters.IsMySQL(True) and (ServerVersionInt >= 50604));
+        frKillQuery: Result := (not FParameters.IsMySQLonRDS) and (ServerVersionInt >= 50000);
+        frLockedTables: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50124);
+        frShowCreateTrigger: Result := ServerVersionInt >= 50121;
+        frShowWarnings: Result := ServerVersionInt >= 40100;
+        frShowCollation: Result := ServerVersionInt >= 40100;
+        frShowCollationExtended: Result := FParameters.IsMariaDB and (ServerVersionInt >= 101001);
+        frShowCharset: Result := ServerVersionInt >= 40100;
+        frIntegerDisplayWidth: Result := (FParameters.IsMySQL(True) and (ServerVersionInt < 80017)) or
+          (not FParameters.IsMySQL(True));
+        frShowFunctionStatus: Result := (not Parameters.IsProxySQLAdmin) and (ServerVersionInt >= 50000);
+        frShowProcedureStatus: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50000);
+        frShowTriggers: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50010);
+        frShowEvents: Result := (not Parameters.IsProxySQLAdmin) and (ServerVersionInt >= 50100);
+        frColumnDefaultParentheses: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80013);
+        frForeignKeyChecksVar: Result := ServerVersionInt >= 40014;
+        frHelpKeyword: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 40100);
+        frEditVariables: Result := ServerVersionInt >= 40003;
+        frCreateView: Result := ServerVersionInt >= 50001;
+        frCreateProcedure: Result := ServerVersionInt >= 50003;
+        frCreateFunction: Result := ServerVersionInt >= 50003;
+        frCreateTrigger: Result := ServerVersionInt >= 50002;
+        frCreateEvent: Result := ServerVersionInt >= 50100;
+      end;
+    else Result := False;
   end;
 end;
 
@@ -7241,7 +7271,7 @@ begin
   end;
 
   // Stored functions
-  if (ServerVersionInt >= 50000) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowFunctionStatus) then try
     Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
     on E:EDbError do;
@@ -7262,7 +7292,7 @@ begin
   end;
 
   // Stored procedures
-  if (ServerVersionInt >= 50000) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowProcedureStatus) then try
     Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
     on E:EDbError do;
@@ -7283,7 +7313,7 @@ begin
   end;
 
   // Triggers
-  if (ServerVersionInt >= 50010) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowTriggers) then try
     Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
   except
     on E:EDbError do;
@@ -7303,7 +7333,7 @@ begin
   end;
 
   // Events
-  if (ServerVersionInt >= 50100) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowEvents) then try
     Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
       ' FROM '+InfSch+'.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
   except
@@ -10778,6 +10808,7 @@ begin
       Result := Result + 'NULL ';
   end;
 
+  // SRID for spatial columns supported since MySQL 8.0
   if InParts(cpSRID) and (DataType.Category = dtcSpatial) and FConnection.Has(frSrid) then begin
     Result := Result + 'SRID ' + SRID.ToString + ' ';
   end;
@@ -10796,7 +10827,7 @@ begin
           end;
         end;
         cdtExpression: begin
-          if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
+          if FConnection.Has(frColumnDefaultParentheses) then
             Result := Result + 'DEFAULT ('+DefaultText+')'
           else
             Result := Result + 'DEFAULT '+DefaultText;
