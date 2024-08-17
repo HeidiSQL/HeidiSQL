@@ -2,10 +2,10 @@ object loaddataform: Tloaddataform
   Left = 212
   Top = 111
   Caption = 'Import text file'
-  ClientHeight = 494
-  ClientWidth = 509
+  ClientHeight = 548
+  ClientWidth = 513
   Color = clBtnFace
-  Constraints.MinHeight = 530
+  Constraints.MinHeight = 550
   Constraints.MinWidth = 525
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -18,12 +18,12 @@ object loaddataform: Tloaddataform
   OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    509
-    494)
+    513
+    548)
   TextHeight = 14
   object btnImport: TButton
     Left = 345
-    Top = 461
+    Top = 515
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -36,7 +36,7 @@ object loaddataform: Tloaddataform
   end
   object btnCancel: TButton
     Left = 426
-    Top = 461
+    Top = 515
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -59,23 +59,23 @@ object loaddataform: Tloaddataform
     object lblFilename: TLabel
       Left = 10
       Top = 27
-      Width = 46
-      Height = 13
+      Width = 51
+      Height = 14
       Caption = 'Filename:'
       FocusControl = editFilename
     end
     object lblEncoding: TLabel
       Left = 10
       Top = 54
-      Width = 47
-      Height = 13
+      Width = 54
+      Height = 14
       Caption = 'Encoding:'
     end
     object editFilename: TButtonedEdit
       Left = 88
       Top = 24
       Width = 395
-      Height = 21
+      Height = 22
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.VirtualImageListMain
       RightButton.ImageIndex = 51
@@ -90,7 +90,7 @@ object loaddataform: Tloaddataform
       Left = 88
       Top = 51
       Width = 395
-      Height = 21
+      Height = 22
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
       DropDownCount = 16
@@ -112,36 +112,36 @@ object loaddataform: Tloaddataform
     object lblFieldTerminater: TLabel
       Left = 10
       Top = 26
-      Width = 97
-      Height = 13
+      Width = 110
+      Height = 14
       Caption = 'Fields terminated by'
     end
     object lblFieldEncloser: TLabel
       Left = 10
       Top = 51
-      Width = 87
-      Height = 13
+      Width = 98
+      Height = 14
       Caption = 'Fields enclosed by'
     end
     object lblFieldEscaper: TLabel
       Left = 10
       Top = 75
-      Width = 85
-      Height = 13
+      Width = 95
+      Height = 14
       Caption = 'Fields escaped by'
     end
     object lblLineTerminator: TLabel
       Left = 10
       Top = 100
-      Width = 94
-      Height = 13
+      Width = 108
+      Height = 14
       Caption = 'Lines terminated by'
     end
     object editFieldEscaper: TEdit
       Left = 145
       Top = 72
       Width = 49
-      Height = 21
+      Height = 22
       TabOrder = 3
       Text = '"'
     end
@@ -149,7 +149,7 @@ object loaddataform: Tloaddataform
       Left = 145
       Top = 48
       Width = 49
-      Height = 21
+      Height = 22
       TabOrder = 1
       Text = '"'
     end
@@ -157,7 +157,7 @@ object loaddataform: Tloaddataform
       Left = 145
       Top = 23
       Width = 49
-      Height = 21
+      Height = 22
       TabOrder = 0
       Text = ';'
     end
@@ -176,7 +176,7 @@ object loaddataform: Tloaddataform
       Left = 145
       Top = 97
       Width = 49
-      Height = 21
+      Height = 22
       TabOrder = 4
       Text = '\r\n'
     end
@@ -185,32 +185,32 @@ object loaddataform: Tloaddataform
     Left = 8
     Top = 98
     Width = 209
-    Height = 135
+    Height = 175
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Options'
     TabOrder = 1
     DesignSize = (
       209
-      135)
+      175)
     object lblIgnoreLinesCount: TLabel
       Left = 143
       Top = 26
-      Width = 21
-      Height = 13
+      Width = 23
+      Height = 14
       Caption = 'lines'
     end
     object lblIgnoreLines: TLabel
       Left = 10
       Top = 26
-      Width = 54
-      Height = 13
+      Width = 60
+      Height = 14
       Caption = 'Ignore first'
     end
     object updownIgnoreLines: TUpDown
       Left = 121
       Top = 23
       Width = 16
-      Height = 21
+      Height = 22
       Associate = editIgnoreLines
       Max = 32767
       Position = 1
@@ -220,7 +220,7 @@ object loaddataform: Tloaddataform
       Left = 88
       Top = 23
       Width = 33
-      Height = 21
+      Height = 22
       TabOrder = 0
       Text = '1'
     end
@@ -257,10 +257,19 @@ object loaddataform: Tloaddataform
       Caption = 'Truncate destination table before import'
       TabOrder = 4
     end
+    object chkKeepDialogOpen: TCheckBox
+      Left = 10
+      Top = 138
+      Width = 196
+      Height = 17
+      Anchors = [akLeft, akTop, akRight]
+      Caption = 'Keep dialog open after import'
+      TabOrder = 5
+    end
   end
   object grpDuplicates: TRadioGroup
     Left = 8
-    Top = 239
+    Top = 279
     Width = 209
     Height = 123
     Anchors = [akLeft, akTop, akRight]
@@ -274,9 +283,9 @@ object loaddataform: Tloaddataform
   end
   object grpParseMethod: TRadioGroup
     Left = 8
-    Top = 368
+    Top = 408
     Width = 209
-    Height = 87
+    Height = 101
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Method'
     ItemIndex = 0
@@ -291,39 +300,39 @@ object loaddataform: Tloaddataform
     Left = 223
     Top = 239
     Width = 278
-    Height = 216
+    Height = 270
     Anchors = [akTop, akRight, akBottom]
     Caption = 'Destination'
     TabOrder = 5
     DesignSize = (
       278
-      216)
+      270)
     object lblDatabase: TLabel
       Left = 10
       Top = 24
-      Width = 50
-      Height = 13
+      Width = 54
+      Height = 14
       Caption = 'Database:'
     end
     object lblTable: TLabel
       Left = 10
       Top = 48
-      Width = 30
-      Height = 13
+      Width = 34
+      Height = 14
       Caption = 'Table:'
     end
     object lblColumns: TLabel
       Left = 10
       Top = 72
-      Width = 44
-      Height = 13
+      Width = 49
+      Height = 14
       Caption = 'Columns:'
     end
     object comboDatabase: TComboBox
       Left = 112
       Top = 21
       Width = 156
-      Height = 21
+      Height = 22
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 0
@@ -333,7 +342,7 @@ object loaddataform: Tloaddataform
       Left = 112
       Top = 45
       Width = 156
-      Height = 21
+      Height = 22
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 1
@@ -343,9 +352,9 @@ object loaddataform: Tloaddataform
       Left = 112
       Top = 72
       Width = 153
-      Height = 129
+      Height = 183
       Anchors = [akLeft, akTop, akRight, akBottom]
-      ItemHeight = 13
+      ItemHeight = 14
       TabOrder = 2
       OnClick = chklistColumnsClick
     end
@@ -355,7 +364,7 @@ object loaddataform: Tloaddataform
       Width = 87
       Height = 66
       Align = alNone
-      ButtonWidth = 54
+      ButtonWidth = 59
       Caption = 'ToolBarColMove'
       Images = MainForm.VirtualImageListMain
       List = True

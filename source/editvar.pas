@@ -158,6 +158,7 @@ end;
 procedure TfrmEditVariable.btnOKClick(Sender: TObject);
 var
   sql, val: String;
+  Conn: TDBConnection;
 begin
   // Syntax taken from http://dev.mysql.com/doc/refman/4.1/en/using-system-variables.html
   sql := 'SET @@';
@@ -166,6 +167,8 @@ begin
   else
     sql := sql + 'global';
   sql := sql + '.' + FVar.Name + ' = ';
+
+  Conn := MainForm.ActiveConnection;
 
   case FVarType of
     vtNumeric: val := IntToStr(UpDownNumber.Position);
@@ -176,16 +179,17 @@ begin
       if ExecRegExpr('^\d+(\.\d*)?$', FVarValue) then
         val := editString.Text
       else
-        val := MainForm.ActiveConnection.EscapeString(editString.Text);
+        val := Conn.EscapeString(editString.Text);
     end;
     vtBoolean: val := IntToStr(Integer(radioBooleanOn.Checked));
-    vtEnum: val := MainForm.ActiveConnection.EscapeString(comboEnum.Text);
+    vtEnum: val := Conn.EscapeString(comboEnum.Text);
   end;
   sql := sql + val;
 
   // Set the value and keep the form open in any error case
   try
-    MainForm.ActiveConnection.Query(sql);
+    Conn.Query(sql);
+    Conn.ShowWarnings;
   except
     on E:EDbError do begin
       ModalResult := mrNone;

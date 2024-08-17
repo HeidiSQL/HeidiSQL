@@ -3,7 +3,7 @@ object AboutBox: TAboutBox
   Top = 105
   BorderStyle = bsDialog
   Caption = 'About'
-  ClientHeight = 327
+  ClientHeight = 371
   ClientWidth = 471
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,7 +16,7 @@ object AboutBox: TAboutBox
   OnShow = FormShow
   DesignSize = (
     471
-    327)
+    371)
   TextHeight = 14
   object lblAppName: TLabel
     Left = 117
@@ -40,7 +40,7 @@ object AboutBox: TAboutBox
   end
   object lblAppCompiled: TLabel
     Left = 117
-    Top = 62
+    Top = 63
     Width = 82
     Height = 14
     Caption = 'lblAppCompiled'
@@ -264,14 +264,14 @@ object AboutBox: TAboutBox
   end
   object lblDonated: TLabel
     Left = 117
-    Top = 153
+    Top = 171
     Width = 238
     Height = 14
     Caption = 'I have donated per following email address:'
   end
   object lblEnvironment: TLabel
     Left = 117
-    Top = 81
+    Top = 83
     Width = 80
     Height = 14
     Caption = 'lblEnvironment'
@@ -279,9 +279,9 @@ object AboutBox: TAboutBox
   end
   object lnklblWebpage: TLinkLabel
     Left = 117
-    Top = 100
-    Width = 83
-    Height = 19
+    Top = 103
+    Width = 104
+    Height = 24
     Caption = 'lnklblWebpage'
     TabOrder = 0
     UseVisualStyle = True
@@ -289,9 +289,9 @@ object AboutBox: TAboutBox
   end
   object lnklblCredits: TLinkLabel
     Left = 117
-    Top = 119
-    Width = 41
-    Height = 19
+    Top = 123
+    Width = 50
+    Height = 24
     Caption = 'Credits'
     TabOrder = 1
     UseVisualStyle = True
@@ -299,7 +299,7 @@ object AboutBox: TAboutBox
   end
   object btnClose: TButton
     Left = 353
-    Top = 294
+    Top = 338
     Width = 100
     Height = 25
     Anchors = [akRight, akBottom]
@@ -311,7 +311,7 @@ object AboutBox: TAboutBox
   end
   object btnUpdateCheck: TButton
     Left = 117
-    Top = 294
+    Top = 338
     Width = 230
     Height = 25
     Action = MainForm.actUpdateCheck
@@ -321,7 +321,7 @@ object AboutBox: TAboutBox
   end
   object editDonated: TEdit
     Left = 117
-    Top = 172
+    Top = 190
     Width = 180
     Height = 22
     TabOrder = 2
@@ -331,7 +331,7 @@ object AboutBox: TAboutBox
   end
   object btnDonatedOK: TButton
     Left = 303
-    Top = 171
+    Top = 189
     Width = 64
     Height = 25
     Caption = 'OK'
@@ -340,7 +340,7 @@ object AboutBox: TAboutBox
   end
   object btnDonate: TButton
     Left = 117
-    Top = 200
+    Top = 218
     Width = 336
     Height = 74
     Hint = 
@@ -353,6 +353,16 @@ object AboutBox: TAboutBox
       '(also supports credit cards)'
     Style = bsCommandLink
     TabOrder = 4
+  end
+  object lnklblCompiler: TLinkLabel
+    Left = 246
+    Top = 63
+    Width = 101
+    Height = 24
+    Caption = 'lnklblCompiler'
+    TabOrder = 7
+    UseVisualStyle = True
+    OnLinkClick = lnklblWebpageLinkClick
   end
   object popupLabels: TPopupMenu
     Images = MainForm.VirtualImageListMain

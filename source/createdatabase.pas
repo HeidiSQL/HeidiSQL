@@ -138,6 +138,7 @@ begin
   if modifyDB = '' then try
     sql := GetCreateStatement;
     FConnection.Query(sql);
+    FConnection.ShowWarnings;
     AppSettings.WriteString(asCreateDbCollation, comboCollation.Text);
     MainForm.RefreshTree;
     // Close form
@@ -154,6 +155,7 @@ begin
     if modifyDB = editDBName.Text then begin
       // Alter database
       FConnection.Query(sql);
+      FConnection.ShowWarnings;
     end else begin
       // Rename database
       ObjectsInOldDb := FConnection.GetDBObjects(modifyDB, True);
@@ -180,6 +182,7 @@ begin
       if AllDatabases.IndexOf(editDBName.Text) = -1 then begin
         // Target db does not exist - create it
         FConnection.Query(GetCreateStatement);
+        FConnection.ShowWarnings;
       end else begin
         if MessageDialog(f_('Database "%s" exists. But it does not contain objects with same names as in "%s", so it''s uncritical to move everything. Move all objects to "%s"?', [editDBName.Text, modifyDB, editDBName.Text]),
           mtConfirmation, [mbYes, mbCancel]) <> mrYes then
@@ -195,6 +198,7 @@ begin
         Delete(sql, Length(sql)-1, 2);
         sql := 'RENAME TABLE '+sql;
         FConnection.Query(sql);
+        FConnection.ShowWarnings;
         FConnection.ClearDbObjects(modifyDB);
         FConnection.ClearDbObjects(editDBName.Text);
       end;
@@ -202,6 +206,7 @@ begin
       ObjectsLeft := FConnection.GetDBObjects(modifyDB);
       if ObjectsLeft.Count = 0 then begin
         FConnection.Query('DROP DATABASE '+FConnection.QuoteIdent(modifyDB));
+        FConnection.ShowWarnings;
         MainForm.RefreshTree;
       end;
     end;

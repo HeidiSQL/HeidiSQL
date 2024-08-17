@@ -5,7 +5,8 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Winapi.ShellApi, System.Math, Vcl.Graphics, Vcl.ComCtrls, Vcl.ToolWin, extra_controls,
-  dbconnection, dbstructures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext, apphelpers;
+  dbconnection, dbstructures, VirtualTrees, grideditlinks, SynRegExpr, gnugettext, apphelpers, VirtualTrees.BaseTree, VirtualTrees.Types,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.AncestorVCL;
 
 type
   TColInfo = class
@@ -658,6 +659,7 @@ begin
     sql := sql + ')';
     try
       FConnection.Query(sql);
+      FConnection.ShowWarnings;
       Mainform.ProgressStep;
     except
       on E:EDbError do begin

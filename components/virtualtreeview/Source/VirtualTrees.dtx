@@ -105,13 +105,13 @@ If Reverse is True then a right-to-left column is being drawn, hence horizontal 
 X and Y describe the left upper corner of the line image rectangle, while H denotes its height (and width).
 
 @@TBaseVirtualTree.FAlignment
- 
+
 
 @@TBaseVirtualTree.FAnimationDuration
- 
+
 
 @@TBaseVirtualTree.FAnimationType
- 
+
 
 @@TBaseVirtualTree.FAutoExpandDelay
 amount of milliseconds to wait until a node is expanded if it is the
@@ -821,7 +821,7 @@ true size of the font
 
 
 @@TEnumFormatEtc
- 
+
 
 
 
@@ -908,7 +908,7 @@ Do nothing. Let the application paint the background.
 
 
 @@TScrollBarOptions
- 
+
 
 @@TScrollBarOptions.FScrollBars
 used to hide or show vertical and/or horizontal scrollbar
@@ -1129,7 +1129,7 @@ Description
 If this column is allowed to be clicked then it is also kept for later use.
 
 Summary
-Determines the column from the given position and returns it. 
+Determines the column from the given position and returns it.
 
 @@TVirtualTreeColumns.AdjustHoverColumn@TPoint
 Summary
@@ -2055,13 +2055,13 @@ Version 4.0.0
  For full document history see help file.
 
  Credits for their valuable assistance and code donations go to:
-   Freddy Ertl, Marian Aldenhövel, Thomas Bogenrieder, Jim Kuenemann, Werner Lehmann, Jens Treichler,
-   Paul Gallagher (IBO tree), Ondrej Kelle, Ronaldo Melo Ferraz, Heri Bender, Roland Bedürftig (BCB)
+   Freddy Ertl, Marian Aldenhï¿½vel, Thomas Bogenrieder, Jim Kuenemann, Werner Lehmann, Jens Treichler,
+   Paul Gallagher (IBO tree), Ondrej Kelle, Ronaldo Melo Ferraz, Heri Bender, Roland Bedï¿½rftig (BCB)
    Anthony Mills, Alexander Egorushkin (BCB), Mathias Torell (BCB), Frank van den Bergh, Vadim Sedulin, Peter Evans,
    Milan Vandrovec (BCB), Steve Moss (system check images), Joe White, David Clark (local node memory manager),
    Anders Thomsen, Igor Afanasyev, Eugene Programmer
  Beta testers:
-   Freddy Ertl, Hans-Jürgen Schnorrenberg, Werner Lehmann, Jim Kueneman, Vadim Sedulin, Moritz Franckenstein,
+   Freddy Ertl, Hans-Jï¿½rgen Schnorrenberg, Werner Lehmann, Jim Kueneman, Vadim Sedulin, Moritz Franckenstein,
    Wim van der Vegt, Franc v/d Westelaken
  Indirect contribution (via publicly accessible work of those persons):
    Alex Denissov, Hiroyuki Hori (MMXAsm expert)
@@ -2084,7 +2084,7 @@ Version 4.0.0
 
 
 @@Check button image indices
- 
+
 
 @@ckButtonHot
 <COMBINE Check button image indices>
@@ -4712,7 +4712,7 @@ written again and silently disappear.
 
 
 Another task of this method is to work around the problem that TCollection is not streamed correctly when using Visual
-Form Inheritance (VFI). 
+Form Inheritance (VFI).
 
 @@TBaseVirtualTree.Destroy
 Summary
@@ -5687,7 +5687,7 @@ Occasionally you may want to shorten the node text at a different position, for 
 and not the last folder or filename should be cut off but rather some mid level folders if possible.
 
 In the handler S must be processed (shortened) and returned in Result. If Done is set to true (default value is false)
-the tree view takes over the shortening. This is useful if not all nodes or columns need 
+the tree view takes over the shortening. This is useful if not all nodes or columns need
 
 @@TCustomVirtualStringTree.AdjustPaintCellRect@TVTPaintInfo@TColumnIndex
 Summary
@@ -5732,7 +5732,7 @@ Summary
 Options related to automatic actions.
 
 Description
-These options can be used to switch certain actions in a tree which happen automatically under certain circumstances. 
+These options can be used to switch certain actions in a tree which happen automatically under certain circumstances.
 
 @@TCustomVirtualTreeOptions.MiscOptions
 Summary
@@ -5753,7 +5753,7 @@ Summary
 Options related to painting.
 
 Description
-These options can be used to switch visual aspects of a tree. 
+These options can be used to switch visual aspects of a tree.
 
 @@TCustomVirtualTreeOptions.SelectionOptions
 Summary
@@ -6456,14 +6456,15 @@ a method resolution clause to avoid a name clash. The clause can look similar to
 <B>procedure</B> EditLinkSetBounds(R: TRect); <B>stdcall</B>;
 <B>procedure</B> IVTEditLink.SetBounds = EditLinkSetBounds;
 </CODE>
- 
+
 @@TCheckImageKind.ckSystemDefault
 System defined check images.
- @@THeaderState.hsResizing
+
+@@THeaderState.hsResizing
 multi column resizing in progress
- 
+
 @@THeaderState.hsColumnWidthTrackPending
 left button is down, user might want to start resize a column
- 
+
 @@THeaderState.hsColumnWidthTracking
 column resizing is in progress

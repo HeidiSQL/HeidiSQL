@@ -114,6 +114,7 @@ Source: "libmysql64.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: Is6
 Source: "libmysql32.dll"; DestDir: "{app}"; DestName: "libmysql.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql-6.1-64.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libmysql-6.1-32.dll"; DestDir: "{app}"; DestName: "libmysql-6.1.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "libmysql-8.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-8.4.0.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 ; PostgreSQL:
 Source: "libpq-10-64.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "libpq-10-32.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
@@ -135,6 +136,8 @@ Source: "libwinpthread-1-64.dll"; DestDir: "{app}"; DestName: "libwinpthread-1.d
 ; SQLite:
 Source: "sqlite3-64.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "sqlite3-32.dll"; DestDir: "{app}"; DestName: "sqlite3.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
+Source: "sqlite3mc-64.dll"; DestDir: "{app}"; DestName: "sqlite3mc.dll"; Check: Is64BitInstallMode; Flags: ignoreversion
+Source: "sqlite3mc-32.dll"; DestDir: "{app}"; DestName: "sqlite3mc.dll"; Check: not Is64BitInstallMode; Flags: ignoreversion
 ; Interbase/Firebird:
 Source: "ibclient64-14.1.dll"; DestDir: "{app}"; Check: Is64BitInstallMode; Flags: ignoreversion
 Source: "gds32-14.1.dll"; DestDir: "{app}"; Check: not Is64BitInstallMode; Flags: ignoreversion

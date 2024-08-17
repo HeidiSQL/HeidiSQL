@@ -81,85 +81,129 @@ object frmTableEditor: TfrmTableEditor
       Caption = 'Options'
       ImageIndex = 39
       ImageName = 'icons8-support'
-      DesignSize = (
-        686
-        121)
       object lblAutoinc: TLabel
         Left = 4
         Top = 6
-        Width = 77
-        Height = 13
+        Width = 86
+        Height = 15
         Caption = 'Auto increment:'
+      end
+      object lblCollation: TLabel
+        Left = 358
+        Top = 6
+        Width = 90
+        Height = 15
+        Caption = 'Default collation:'
       end
       object lblAvgRowLen: TLabel
         Left = 4
         Top = 29
-        Width = 99
-        Height = 13
+        Width = 106
+        Height = 15
         Caption = 'Average row length:'
       end
-      object lblInsertMethod: TLabel
-        Left = 294
-        Top = 98
-        Width = 79
-        Height = 13
-        Caption = 'INSERT method:'
-      end
-      object lblUnion: TLabel
-        Left = 294
-        Top = 52
-        Width = 63
-        Height = 13
-        Caption = 'Union tables:'
+      object lblEngine: TLabel
+        Left = 358
+        Top = 29
+        Width = 39
+        Height = 15
+        Caption = 'Engine:'
       end
       object lblMaxRows: TLabel
         Left = 4
         Top = 52
-        Width = 99
-        Height = 13
+        Width = 115
+        Height = 15
         Caption = 'Maximum row count:'
+      end
+      object lblUnion: TLabel
+        Left = 358
+        Top = 52
+        Width = 69
+        Height = 15
+        Caption = 'Union tables:'
       end
       object lblRowFormat: TLabel
         Left = 4
         Top = 98
-        Width = 60
-        Height = 13
+        Width = 65
+        Height = 15
         Caption = 'Row format:'
       end
-      object lblCollation: TLabel
-        Left = 294
-        Top = 6
-        Width = 81
-        Height = 13
-        Caption = 'Default collation:'
+      object lblInsertMethod: TLabel
+        Left = 358
+        Top = 98
+        Width = 84
+        Height = 15
+        Caption = 'INSERT method:'
       end
-      object lblEngine: TLabel
-        Left = 294
-        Top = 29
-        Width = 36
-        Height = 13
-        Caption = 'Engine:'
+      object editAutoInc: TEdit
+        Left = 178
+        Top = 3
+        Width = 155
+        Height = 23
+        TabOrder = 0
+        OnChange = editNumEditChange
+      end
+      object comboCollation: TComboBox
+        Left = 464
+        Top = 3
+        Width = 102
+        Height = 23
+        Style = csDropDownList
+        DropDownCount = 16
+        Sorted = True
+        TabOrder = 5
+        OnChange = chkCharsetConvertClick
+      end
+      object chkCharsetConvert: TCheckBox
+        Left = 574
+        Top = 5
+        Width = 107
+        Height = 17
+        Caption = 'Convert data'
+        TabOrder = 6
+        OnClick = chkCharsetConvertClick
       end
       object editAvgRowLen: TEdit
         Left = 178
         Top = 26
-        Width = 110
-        Height = 21
+        Width = 155
+        Height = 23
         TabOrder = 1
         OnChange = editNumEditChange
+      end
+      object comboEngine: TComboBox
+        Left = 464
+        Top = 26
+        Width = 221
+        Height = 23
+        Style = csDropDownList
+        TabOrder = 7
+        OnSelect = comboEngineSelect
       end
       object editMaxRows: TEdit
         Left = 178
         Top = 49
-        Width = 110
-        Height = 21
+        Width = 155
+        Height = 23
         TabOrder = 2
         OnChange = editNumEditChange
+      end
+      object memoUnionTables: TMemo
+        Left = 464
+        Top = 49
+        Width = 221
+        Height = 44
+        Lines.Strings = (
+          'memoUnion')
+        TabOrder = 8
+        OnChange = Modification
       end
       object chkChecksum: TCheckBox
         Left = 4
         Top = 75
-        Width = 189
+        Width = 190
         Height = 17
         Alignment = taLeftJustify
         Caption = 'Checksum for rows:'
@@ -169,72 +213,20 @@ object frmTableEditor: TfrmTableEditor
       object comboRowFormat: TComboBox
         Left = 178
         Top = 95
-        Width = 110
-        Height = 21
+        Width = 155
+        Height = 23
         Style = csDropDownList
         TabOrder = 4
         OnChange = Modification
       end
-      object memoUnionTables: TMemo
-        Left = 408
-        Top = 49
-        Width = 277
-        Height = 44
-        Anchors = [akLeft, akTop, akRight]
-        Lines.Strings = (
-          'memoUnion')
-        TabOrder = 7
-        OnChange = Modification
-      end
       object comboInsertMethod: TComboBox
-        Left = 408
+        Left = 464
         Top = 95
-        Width = 277
-        Height = 21
+        Width = 221
+        Height = 23
         Style = csDropDownList
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 8
-        OnClick = Modification
-      end
-      object editAutoInc: TEdit
-        Left = 178
-        Top = 3
-        Width = 110
-        Height = 21
-        TabOrder = 0
-        OnChange = editNumEditChange
-      end
-      object comboCollation: TComboBox
-        Left = 408
-        Top = 3
-        Width = 158
-        Height = 21
-        Style = csDropDownList
-        Anchors = [akLeft, akTop, akRight]
-        DropDownCount = 16
-        Sorted = True
-        TabOrder = 5
-        OnChange = chkCharsetConvertClick
-      end
-      object comboEngine: TComboBox
-        Left = 408
-        Top = 26
-        Width = 277
-        Height = 21
-        Style = csDropDownList
-        Anchors = [akLeft, akTop, akRight]
-        TabOrder = 6
-        OnSelect = comboEngineSelect
-      end
-      object chkCharsetConvert: TCheckBox
-        Left = 574
-        Top = 5
-        Width = 107
-        Height = 17
-        Anchors = [akTop, akRight]
-        Caption = 'Convert data'
         TabOrder = 9
-        OnClick = chkCharsetConvertClick
+        OnClick = Modification
       end
     end
     object tabIndexes: TTabSheet
@@ -299,6 +291,11 @@ object frmTableEditor: TfrmTableEditor
             Position = 3
             Text = 'Comment'
             Width = 120
+          end
+          item
+            Position = 4
+            Text = 'Direction'
+            Width = 80
           end>
       end
       object tlbIndexes: TToolBar
@@ -875,6 +872,12 @@ object frmTableEditor: TfrmTableEditor
         Position = 11
         Text = 'Virtuality'
         Width = 100
+      end
+      item
+        Hint = 'Spatial reference system'
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 12
+        Text = 'SRID'
       end>
   end
   object btnSave: TButton

@@ -6,7 +6,8 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls,
   Vcl.Buttons, SynMemo, SynEditHighlighter, SynHighlighterURI, extra_controls,
   SynURIOpener, SynEdit, VirtualTrees, Vcl.Graphics,
-  dbconnection, gnugettext;
+  dbconnection, gnugettext, VirtualTrees.BaseTree, VirtualTrees.Types,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.AncestorVCL;
 
 type
   TfrmSQLhelp = class(TExtForm)

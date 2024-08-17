@@ -12,14 +12,14 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Buttons, Vcl.Dialogs, Vcl.StdActns,
   VirtualTrees, Vcl.ExtCtrls, Vcl.Graphics, SynRegExpr, System.Math, System.Generics.Collections, extra_controls,
   dbconnection, apphelpers, Vcl.Menus, gnugettext, System.DateUtils, System.Zip, System.UITypes, System.StrUtils, Winapi.Messages,
-  SynEdit, SynMemo, Vcl.ClipBrd, generic_types;
+  SynEdit, SynMemo, Vcl.ClipBrd, generic_types, VirtualTrees.Types, VirtualTrees.BaseAncestorVCL,
+  VirtualTrees.BaseTree, VirtualTrees.AncestorVCL;
 
 type
   TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
   TfrmTableTools = class(TExtForm)
     btnCloseOrCancel: TButton;
     pnlTop: TPanel;
-    TreeObjects: TVirtualStringTree;
     spltHorizontally: TSplitter;
     pnlRight: TPanel;
     ResultGrid: TVirtualStringTree;
@@ -89,6 +89,12 @@ type
     memoFindText: TMemo;
     SynMemoFindText: TSynMemo;
     menuCopyMysqldumpCommand: TMenuItem;
+    pnlLeft: TPanel;
+    pnlLeftTop: TPanel;
+    editDatabaseFilter: TButtonedEdit;
+    editTableFilter: TButtonedEdit;
+    TreeObjects: TVirtualStringTree;
+    timerCalcSize: TTimer;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -136,6 +142,11 @@ type
     procedure TreeObjectsExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure btnExportOptionsClick(Sender: TObject);
     procedure menuCopyMysqldumpCommandClick(Sender: TObject);
+    procedure spltHorizontallyMoved(Sender: TObject);
+    procedure editDatabaseTableFilterChange(Sender: TObject);
+    procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
+    procedure editDatabaseTableFilterRightButtonClick(Sender: TObject);
+    procedure timerCalcSizeTimer(Sender: TObject);
   const
     StatusMsg = '%s %s ...';
   private
@@ -318,7 +329,7 @@ begin
   // Restore GUI setup
   Width := AppSettings.ReadIntDpiAware(asTableToolsWindowWidth, Self);
   Height := AppSettings.ReadIntDpiAware(asTableToolsWindowHeight, Self);
-  TreeObjects.Width := AppSettings.ReadIntDpiAware(asTableToolsTreeWidth, Self);
+  pnlLeft.Width := AppSettings.ReadIntDpiAware(asTableToolsTreeWidth, Self);
 
   // When this form is displayed the second time, databases may be deleted or filtered.
   // Also, checked nodes must be unchecked and unchecked nodes may need to be checked.
@@ -379,6 +390,14 @@ begin
 
   MainForm.SetupSynEditors(Self);
   MainForm.SynCompletionProposal.AddEditor(SynMemoFindText);
+
+  pnlLeftTop.Height := editDatabaseFilter.Height + 2;
+  // Fixes width of filter edits:
+  spltHorizontallyMoved(Self);
+  // Apply filters:
+  editDatabaseFilter.Text := MainForm.editDatabaseFilter.Text;
+  editTableFilter.Text := MainForm.editTableFilter.Text;
+
   ValidateControls(Sender);
 end;
 
@@ -464,7 +483,7 @@ begin
   // Save GUI setup
   AppSettings.WriteIntDpiAware(asTableToolsWindowWidth, Self, Width);
   AppSettings.WriteIntDpiAware(asTableToolsWindowHeight, Self, Height);
-  AppSettings.WriteIntDpiAware(asTableToolsTreeWidth, Self, TreeObjects.Width);
+  AppSettings.WriteIntDpiAware(asTableToolsTreeWidth, Self, pnlLeft.Width);
 end;
 
 
@@ -607,18 +626,13 @@ end;
 procedure TfrmTableTools.TreeObjectsChecked(Sender: TBaseVirtualTree; Node: PVirtualNode);
 var
   Obj: PDBObject;
-  ObjSize: Int64;
 begin
   // Track sum of checked objects size
   Obj := Sender.GetNodeData(Node);
-  ObjSize := Max(Obj.Size, 0);
-  if Node.CheckState in CheckedStates then
-    Inc(FObjectSizes, ObjSize)
-  else
-    Dec(FObjectSizes, ObjSize);
   if Obj.NodeType = lntDb then
     FillTargetDatabases;
-  ValidateControls(Sender);
+  timerCalcSize.Enabled := False;
+  timerCalcSize.Enabled := True;
 end;
 
 
@@ -724,7 +738,7 @@ begin
   // Return list with checked objects from database node
   // The caller doesn't need to care whether type grouping in tree is activated
   Result := TDBObjectList.Create(False);
-  Child := TreeObjects.GetFirstChild(DBNode);
+  Child := TreeObjects.GetFirstVisibleChild(DBNode);
   while Assigned(Child) do begin
     if Child.CheckState in CheckedStates then begin
       ChildObj := TreeObjects.GetNodeData(Child);
@@ -732,13 +746,13 @@ begin
       case ChildObj.NodeType of
 
         lntGroup: begin
-          GrandChild := TreeObjects.GetFirstChild(Child);
+          GrandChild := TreeObjects.GetFirstVisibleChild(Child);
           while Assigned(GrandChild) do begin
             if GrandChild.CheckState in CheckedStates then begin
               GrandChildObj := TreeObjects.GetNodeData(GrandChild);
               Result.Add(GrandChildObj^);
             end;
-            GrandChild := TreeObjects.GetNextSibling(GrandChild);
+            GrandChild := TreeObjects.GetNextVisibleSibling(GrandChild);
           end;
         end
 
@@ -748,7 +762,7 @@ begin
 
       end;
     end;
-    Child := TreeObjects.GetNextSibling(Child);
+    Child := TreeObjects.GetNextVisibleSibling(Child);
   end;
 end;
 
@@ -830,7 +844,7 @@ begin
 
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
-    DBNode := TreeObjects.GetFirstChild(SessionNode);
+    DBNode := TreeObjects.GetFirstVisibleChild(SessionNode);
     while Assigned(DBNode) do begin
       if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
         Triggers.Clear;
@@ -867,7 +881,7 @@ begin
 
       end;
       if FCancelled then Break;
-      DBNode := TreeObjects.GetNextSibling(DBNode);
+      DBNode := TreeObjects.GetNextVisibleSibling(DBNode);
     end; // End of db item loop
     if FCancelled then Break;
     SessionNode := TreeObjects.GetNextSibling(SessionNode);
@@ -953,6 +967,86 @@ begin
   if chkUseFrm.Enabled and chkUseFrm.Checked then SQL := SQL + ' USE_FRM';
   if chkForUpgrade.Enabled and chkForUpgrade.Checked then SQL := SQL + ' FOR UPGRADE';
   AddResults(SQL, DBObj.Connection);
+end;
+
+
+procedure TfrmTableTools.editDatabaseTableFilterKeyPress(Sender: TObject;
+  var Key: Char);
+begin
+  if Key = #27 then
+    (Sender as TButtonedEdit).OnRightButtonClick(Sender);
+end;
+
+procedure TfrmTableTools.editDatabaseTableFilterRightButtonClick(Sender: TObject);
+begin
+  // Click on "clear" button of any TButtonedEdit control
+  TButtonedEdit(Sender).Clear;
+end;
+
+procedure TfrmTableTools.editDatabaseTableFilterChange(Sender: TObject);
+var
+  Node: PVirtualNode;
+  Obj: PDBObject;
+  rxdb, rxtable: TRegExpr;
+  NodeMatches: Boolean;
+  Errors: TStringList;
+begin
+  // Immediately apply database filter
+  MainForm.LogSQL('editDatabaseTableFilterChange', lcDebug);
+
+  rxdb := TRegExpr.Create;
+  rxdb.ModifierI := True;
+  rxdb.Expression := '('+StringReplace(editDatabaseFilter.Text, ';', '|', [rfReplaceAll])+')';
+  rxtable := TRegExpr.Create;
+  rxtable.ModifierI := True;
+  rxtable.Expression := '('+StringReplace(editTableFilter.Text, ';', '|', [rfReplaceAll])+')';
+
+  Errors := TStringList.Create;
+
+  TreeObjects.BeginUpdate;
+  Node := TreeObjects.GetFirst;
+  while Assigned(Node) do begin
+    Obj := TreeObjects.GetNodeData(Node);
+    NodeMatches := True;
+    try
+      case Obj.NodeType of
+        lntDb: begin
+          // Match against database filter
+          if editDatabaseFilter.Text <> '' then
+            NodeMatches := rxdb.Exec(TreeObjects.Text[Node, 0]);
+        end;
+        lntTable..lntEvent: begin
+          // Match against table filter
+          if editTableFilter.Text <> '' then
+            NodeMatches := rxtable.Exec(TreeObjects.Text[Node, 0]);
+          // no favorites supported on table tools dialog
+          //if actFavoriteObjectsOnly.Checked then
+            // Hide non-favorite object path
+            //NodeMatches := NodeMatches and (Obj.Connection.Favorites.IndexOf(Obj.Path) > -1);
+        end;
+      end;
+    except
+      on E:Exception do begin
+        // Log regex errors, but avoid duplicate messages
+        if Errors.IndexOf(E.Message) = -1 then begin
+          MainForm.LogSQL(E.Message);
+          Errors.Add(E.Message);
+        end;
+      end;
+    end;
+    TreeObjects.IsVisible[Node] := NodeMatches;
+
+    Node := TreeObjects.GetNextInitialized(Node);
+  end;
+  TreeObjects.EndUpdate;
+
+  rxdb.Free;
+  rxtable.Free;
+
+  editDatabaseFilter.RightButton.Visible := editDatabaseFilter.Text <> '';
+  editTableFilter.RightButton.Visible := editTableFilter.Text <> '';
+  timerCalcSize.Enabled := False;
+  timerCalcSize.Enabled := True;
 end;
 
 
@@ -1146,6 +1240,7 @@ var
 begin
   // Execute query and append results into grid
   Results := Connection.GetResults(SQL);
+  Connection.ShowWarnings;
   if Results = nil then
     Exit;
 
@@ -1231,6 +1326,40 @@ begin
   end;
 end;
 
+
+procedure TfrmTableTools.spltHorizontallyMoved(Sender: TObject);
+begin
+  editDatabaseFilter.Left := 0;
+  editDatabaseFilter.Width := (pnlLeftTop.Width div 2) - 1;
+  editTableFilter.Width := editDatabaseFilter.Width;
+  editTableFilter.Left := editDatabaseFilter.Width + 1;
+end;
+
+procedure TfrmTableTools.timerCalcSizeTimer(Sender: TObject);
+var
+  SessionNode, DBNode: PVirtualNode;
+  CheckedObjects: TDBObjectList;
+  DBObj: TDBObject;
+begin
+  // Calculate object sizes and display on label
+  timerCalcSize.Enabled := False;
+  SessionNode := TreeObjects.GetFirstChild(nil);
+  FObjectSizes := 0;
+  while Assigned(SessionNode) do begin
+    DBNode := TreeObjects.GetFirstVisibleChild(SessionNode);
+    while Assigned(DBNode) do begin
+      if not (DBNode.CheckState in [csUncheckedNormal, csUncheckedPressed]) then begin
+        CheckedObjects := GetCheckedObjects(DBNode);
+        for DBObj in CheckedObjects do begin
+          Inc(FObjectSizes, DBObj.Size);
+        end;
+      end;
+      DBNode := TreeObjects.GetNextVisibleSibling(DBNode);
+    end;
+    SessionNode := TreeObjects.GetNextVisibleSibling(SessionNode);
+  end;
+  ValidateControls(Sender);
+end;
 
 procedure TfrmTableTools.UpdateResultGrid;
 var
@@ -1344,8 +1473,13 @@ begin
       comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportSQLFilenames, '')
     else
       comboExportOutputTarget.Items.Text := AppSettings.ReadString(asExportZIPFilenames, '');
-    if comboExportOutputTarget.Items.Count > 0 then
+    if comboExportOutputTarget.Items.Count > 0 then begin
       comboExportOutputTarget.ItemIndex := 0;
+      // Cut long file list down to 20 latest items
+      for i:=comboExportOutputTarget.Items.Count-1 downto 20 do begin
+        comboExportOutputTarget.Items.Delete(i);
+      end;
+    end;
     lblExportOutputTarget.Caption := _('Filename')+':';
     btnExportOutputTargetSelect.Enabled := True;
     btnExportOutputTargetSelect.ImageIndex := 51;
@@ -1730,7 +1864,9 @@ begin
                 // Prevent DEFAULT value from coming in, to fix errors due to multiple CURRENT_TIMESTAMP values
                 // See issue #2748
                 Column.DefaultType := cdtNothing;
-                Struc := Struc + CRLF + #9 + Column.SQLCode + ',';
+                if Column.DataType.Index = dbdtVarchar then
+                  Column.LengthSet := '1';
+                Struc := Struc + sLineBreak + CodeIndent + Column.SQLCode + ',';
               end;
               Delete(Struc, Length(Struc), 1);
               Struc := Struc + CRLF + ') ENGINE=MyISAM';
@@ -1850,7 +1986,7 @@ begin
             BaseInsert := BaseInsert + Quoter.QuoteIdent(Data.ColumnNames[i]) + ', ';
         end;
         Delete(BaseInsert, Length(BaseInsert)-1, 2);
-        BaseInsert := BaseInsert + ') VALUES'+CRLF+#9+'(';
+        BaseInsert := BaseInsert + ') VALUES' + sLineBreak + CodeIndent + '(';
         while true do begin
           Output(BaseInsert, False, True, True, True, True);
           RowCountInChunk := 0;
@@ -1858,7 +1994,7 @@ begin
           while not Data.Eof do begin
             Row := '';
             if RowCountInChunk > 0 then
-              Row := Row + ','+CRLF+#9+'(';
+              Row := Row + ',' + sLineBreak + CodeIndent + '(';
             for i:=0 to Data.ColumnCount-1 do begin
               if Data.ColIsVirtual(i) then
                 Continue;

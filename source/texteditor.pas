@@ -86,7 +86,8 @@ type
   private
     { Private declarations }
     FModified: Boolean;
-    FStopping: Boolean;
+    FClosingByApplyButton: Boolean;
+    FClosingByCancelButton: Boolean;
     FDetectedLineBreaks,
     FSelectedLineBreaks: TLineBreaks;
     FMaxLength: Integer;
@@ -242,6 +243,7 @@ var
   i: Integer;
 begin
   HasSizeGrip := True;
+  FClosingByApplyButton := False;
   // Assign linebreak values to their menu item tags, to write less code later
   menuWindowsLB.Tag := Integer(lbsWindows);
   menuUnixLB.Tag := Integer(lbsUnix);
@@ -428,11 +430,9 @@ end;
 
 
 procedure TfrmTextEditor.btnCancelClick(Sender: TObject);
-var
-  Action: TCloseAction;
 begin
-  Action := caNone;
-  FormClose(Self, Action);
+  FClosingByCancelButton := True;
+  Close;
 end;
 
 
@@ -499,27 +499,24 @@ end;
 
 
 procedure TfrmTextEditor.FormClose(Sender: TObject; var Action: TCloseAction);
-var
-  DoPost: Boolean;
 begin
-  if FStopping then
-    Exit;
-  FStopping := True;
-  if Modified then
-    DoPost := MessageDialog(_('Apply modifications?'), mtConfirmation, [mbYes, mbNo]) = mrYes
+  if Modified then begin
+    if FClosingByCancelButton then
+      ModalResult := mrCancel
+    else if FClosingByApplyButton then
+      ModalResult := mrYes
+    else
+      ModalResult := MessageDialog(_('Apply modifications?'), mtConfirmation, [mbYes, mbNo]);
+  end
   else
-    DoPost := False;
-  if DoPost then
-    TCustomVirtualStringTree(Owner).EndEditNode
-  else
-    TCustomVirtualStringTree(Owner).CancelEditNode;
+    ModalResult := mrCancel;
 end;
 
 
 procedure TfrmTextEditor.btnApplyClick(Sender: TObject);
 begin
-  FStopping := True;
-  TCustomVirtualStringTree(Owner).EndEditNode;
+  FClosingByApplyButton := True;
+  Close;
 end;
 
 

@@ -6,7 +6,7 @@
 interface
 
 uses
-  gnugettext, Vcl.Graphics, Winapi.Windows, System.SysUtils;
+  gnugettext, Vcl.Graphics, Winapi.Windows, System.SysUtils, System.Classes;
 
 
 type
@@ -15,11 +15,11 @@ type
   TDBDatatypeIndex = (dbdtTinyint, dbdtSmallint, dbdtMediumint, dbdtInt, dbdtUint, dbdtBigint, dbdtSerial, dbdtBigSerial,
     dbdtFloat, dbdtDouble, dbdtDecimal, dbdtNumeric, dbdtReal, dbdtDoublePrecision, dbdtMoney, dbdtSmallmoney,
     dbdtDate, dbdtTime, dbdtYear, dbdtDatetime, dbdtDatetime2, dbdtDatetimeOffset, dbdtSmalldatetime, dbdtTimestamp, dbdtInterval,
-    dbdtChar, dbdtNchar, dbdtVarchar, dbdtNvarchar, dbdtTinytext, dbdtText, dbdtNtext, dbdtMediumtext, dbdtLongtext,
+    dbdtChar, dbdtNchar, dbdtVarchar, dbdtNvarchar, dbdtTinytext, dbdtText, dbdtCiText, dbdtNtext, dbdtMediumtext, dbdtLongtext,
     dbdtJson, dbdtJsonB, dbdtCidr, dbdtInet, dbdtMacaddr,
     dbdtBinary, dbdtVarbinary, dbdtTinyblob, dbdtBlob, dbdtMediumblob, dbdtLongblob, dbdtImage,
     dbdtEnum, dbdtSet, dbdtBit, dbdtVarBit, dbdtBool, dbdtRegClass, dbdtRegProc, dbdtUnknown,
-    dbdtCursor, dbdtSqlvariant, dbdtTable, dbdtUniqueidentifier, dbdtHierarchyid, dbdtXML,
+    dbdtCursor, dbdtSqlvariant, dbdtTable, dbdtUniqueidentifier, dbdtInet4, dbdtInet6, dbdtHierarchyid, dbdtXML,
     dbdtPoint, dbdtLinestring, dbdtLineSegment, dbdtPolygon, dbdtGeometry, dbdtBox, dbdtPath, dbdtCircle, dbdtMultipoint, dbdtMultilinestring, dbdtMultipolygon, dbdtGeometrycollection
     );
 
@@ -45,6 +45,7 @@ type
     Format:          String;  // Used for date/time values when displaying and generating queries
     ValueMustMatch:  String;
     Category:        TDBDatatypeCategoryIndex;
+    MinVersion:      Integer;
   end;
 
   // Column type category structure
@@ -88,7 +89,7 @@ type
     public
       property Handle: HMODULE read FHandle;
       property DllFile: String read FDllFile;
-      constructor Create(DllFile, DefaultDll: String);
+      constructor Create(DllFile, DefaultDll: String); virtual;
       destructor Destroy; override;
   end;
 

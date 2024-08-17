@@ -4,7 +4,7 @@ object frmPreferences: TfrmPreferences
   BorderIcons = [biSystemMenu]
   Caption = 'Preferences'
   ClientHeight = 482
-  ClientWidth = 708
+  ClientWidth = 712
   Color = clBtnFace
   Constraints.MinHeight = 480
   Constraints.MinWidth = 600
@@ -18,13 +18,13 @@ object frmPreferences: TfrmPreferences
   OnCreate = FormCreate
   OnShow = FormShow
   DesignSize = (
-    708
+    712
     482)
   TextHeight = 14
   object pagecontrolMain: TPageControl
     Left = 8
     Top = 8
-    Width = 692
+    Width = 684
     Height = 435
     ActivePage = tabMisc
     Anchors = [akLeft, akTop, akRight, akBottom]
@@ -37,7 +37,7 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 137
       ImageName = 'icons8-settings'
       DesignSize = (
-        684
+        676
         406)
       object lblMySQLBinaries: TLabel
         Left = 8
@@ -68,7 +68,7 @@ object frmPreferences: TfrmPreferences
         Caption = 'GUI font: *'
       end
       object lblGUIFontSize: TLabel
-        Left = 648
+        Left = 640
         Top = 258
         Width = 12
         Height = 14
@@ -100,7 +100,7 @@ object frmPreferences: TfrmPreferences
       object chkAutoReconnect: TCheckBox
         Left = 220
         Top = 31
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Automatically reconnect to previously opened sessions on startup'
@@ -110,7 +110,7 @@ object frmPreferences: TfrmPreferences
       object chkRestoreLastDB: TCheckBox
         Left = 220
         Top = 54
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Restore last used database on startup'
@@ -154,7 +154,7 @@ object frmPreferences: TfrmPreferences
       object chkUpdateCheckBuilds: TCheckBox
         Left = 488
         Top = 77
-        Width = 191
+        Width = 183
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Also check for updated nightly builds'
@@ -165,7 +165,7 @@ object frmPreferences: TfrmPreferences
       object chkDoStatistics: TCheckBox
         Left = 220
         Top = 100
-        Width = 459
+        Width = 451
         Height = 17
         Hint = 
           'This option, if enabled, will cause HeidiSQL to ping heidisql.co' +
@@ -179,7 +179,7 @@ object frmPreferences: TfrmPreferences
       object chkAllowMultiInstances: TCheckBox
         Left = 220
         Top = 8
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Allow multiple application instances'
@@ -200,7 +200,7 @@ object frmPreferences: TfrmPreferences
       object editMySQLBinaries: TButtonedEdit
         Left = 220
         Top = 174
-        Width = 459
+        Width = 451
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -217,7 +217,7 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         Left = 220
         Top = 228
-        Width = 459
+        Width = 451
         Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -227,7 +227,7 @@ object frmPreferences: TfrmPreferences
       object editCustomSnippetsDirectory: TButtonedEdit
         Left = 220
         Top = 201
-        Width = 459
+        Width = 451
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Images = MainForm.VirtualImageListMain
@@ -244,7 +244,7 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         Left = 220
         Top = 255
-        Width = 346
+        Width = 338
         Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -253,7 +253,7 @@ object frmPreferences: TfrmPreferences
       end
       object editGUIFontSize: TEdit
         Tag = 1
-        Left = 573
+        Left = 565
         Top = 255
         Width = 50
         Height = 22
@@ -264,7 +264,7 @@ object frmPreferences: TfrmPreferences
       end
       object updownGUIFontSize: TUpDown
         Tag = 1
-        Left = 623
+        Left = 615
         Top = 255
         Width = 16
         Height = 22
@@ -278,7 +278,7 @@ object frmPreferences: TfrmPreferences
       object chkWheelZoom: TCheckBox
         Left = 220
         Top = 123
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Use Ctrl+Mousewheel for zooming'
@@ -289,7 +289,7 @@ object frmPreferences: TfrmPreferences
         Tag = 1
         Left = 220
         Top = 282
-        Width = 346
+        Width = 338
         Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -300,7 +300,7 @@ object frmPreferences: TfrmPreferences
       object comboIconPack: TComboBox
         Left = 220
         Top = 309
-        Width = 459
+        Width = 451
         Height = 22
         Style = csDropDownList
         Anchors = [akLeft, akTop, akRight]
@@ -310,7 +310,7 @@ object frmPreferences: TfrmPreferences
       object comboWebSearchBaseUrl: TComboBox
         Left = 220
         Top = 336
-        Width = 459
+        Width = 451
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         TabOrder = 19
@@ -327,7 +327,7 @@ object frmPreferences: TfrmPreferences
           'https://www.google.com/search?q=%query')
       end
       object chkThemePreview: TCheckBox
-        Left = 572
+        Left = 564
         Top = 284
         Width = 97
         Height = 17
@@ -342,7 +342,7 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 56
       ImageName = 'icons8-index'
       DesignSize = (
-        684
+        676
         406)
       object Label4: TLabel
         Left = 8
@@ -485,7 +485,7 @@ object frmPreferences: TfrmPreferences
       object editLogDir: TButtonedEdit
         Left = 361
         Top = 62
-        Width = 318
+        Width = 310
         Height = 22
         Anchors = [akLeft, akTop, akRight]
         Enabled = False
@@ -564,7 +564,7 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 57
       ImageName = 'icons8-play'
       DesignSize = (
-        684
+        676
         406)
       object lblFont: TLabel
         Left = 8
@@ -727,7 +727,7 @@ object frmPreferences: TfrmPreferences
         Width = 145
         Height = 22
         Style = csDropDownList
-        TabOrder = 15
+        TabOrder = 14
         OnChange = comboSQLColElementChange
       end
       object chkSQLBold: TCheckBox
@@ -736,7 +736,7 @@ object frmPreferences: TfrmPreferences
         Width = 61
         Height = 17
         Caption = 'Bold'
-        TabOrder = 16
+        TabOrder = 15
         OnClick = SQLFontChange
       end
       object chkSQLItalic: TCheckBox
@@ -745,7 +745,7 @@ object frmPreferences: TfrmPreferences
         Width = 50
         Height = 17
         Caption = 'Italic'
-        TabOrder = 17
+        TabOrder = 16
         OnClick = SQLFontChange
       end
       object cboxSQLColForeground: TColorBox
@@ -755,7 +755,7 @@ object frmPreferences: TfrmPreferences
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 18
+        TabOrder = 17
         OnChange = SQLFontChange
       end
       object cboxSQLColBackground: TColorBox
@@ -765,14 +765,14 @@ object frmPreferences: TfrmPreferences
         Height = 22
         NoneColorColor = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbCustomColor, cbPrettyNames, cbCustomColors]
-        TabOrder = 19
+        TabOrder = 18
         OnChange = SQLFontChange
       end
       object SynMemoSQLSample: TSynMemo
         AlignWithMargins = True
         Left = 371
         Top = 156
-        Width = 308
+        Width = 300
         Height = 223
         Cursor = crHandPoint
         SingleLineMode = False
@@ -782,7 +782,7 @@ object frmPreferences: TfrmPreferences
         Font.Height = -13
         Font.Name = 'Courier New'
         Font.Style = []
-        TabOrder = 20
+        TabOrder = 19
         OnClick = SynMemoSQLSampleClick
         CodeFolding.GutterShapeSize = 11
         CodeFolding.CollapsedLineColor = clGrayText
@@ -810,24 +810,14 @@ object frmPreferences: TfrmPreferences
         OnChange = SQLFontChange
         FontSmoothing = fsmNone
       end
-      object chkQueryWarningsMessage: TCheckBox
-        Left = 220
-        Top = 110
-        Width = 459
-        Height = 17
-        Anchors = [akLeft, akTop, akRight]
-        Caption = 'Show query warnings dialog'
-        TabOrder = 12
-        OnClick = Modified
-      end
       object chkAutoUppercase: TCheckBox
         Left = 220
         Top = 133
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Auto uppercase reserved words and functions'
-        TabOrder = 13
+        TabOrder = 12
         OnClick = Modified
       end
       object comboEditorColorsPreset: TComboBox
@@ -837,7 +827,7 @@ object frmPreferences: TfrmPreferences
         Height = 22
         Style = csDropDownList
         ItemIndex = 0
-        TabOrder = 14
+        TabOrder = 13
         Text = 'Current custom settings'
         OnChange = comboEditorColorsPresetChange
         Items.Strings = (
@@ -846,7 +836,7 @@ object frmPreferences: TfrmPreferences
       object chkCompletionProposalSearchOnMid: TCheckBox
         Left = 496
         Top = 87
-        Width = 183
+        Width = 175
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Find matches in the middle'
@@ -880,7 +870,7 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 41
       ImageName = 'icons8-data-grid'
       DesignSize = (
-        684
+        676
         406)
       object lblMaxColWidth: TLabel
         Left = 8
@@ -1105,7 +1095,7 @@ object frmPreferences: TfrmPreferences
       object chkLocalNumberFormat: TCheckBox
         Left = 220
         Top = 310
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Local number format'
@@ -1115,7 +1105,7 @@ object frmPreferences: TfrmPreferences
       object chkHintsOnResultTabs: TCheckBox
         Left = 220
         Top = 356
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Pop up SQL text over result tabs'
@@ -1161,7 +1151,7 @@ object frmPreferences: TfrmPreferences
       object chkLowercaseHex: TCheckBox
         Left = 220
         Top = 333
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Lowercase hexadecimal'
@@ -1187,7 +1177,7 @@ object frmPreferences: TfrmPreferences
       object chkShowRowId: TCheckBox
         Left = 220
         Top = 379
-        Width = 461
+        Width = 453
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show static row id column'
@@ -1200,7 +1190,7 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 33
       ImageName = 'icons8-compose'
       DesignSize = (
-        684
+        676
         406)
       object lblLineBreakStyle: TLabel
         Left = 3
@@ -1212,7 +1202,7 @@ object frmPreferences: TfrmPreferences
       object chkEditorBinary: TCheckBox
         Left = 220
         Top = 8
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable popup BLOB/HEX editor'
@@ -1222,7 +1212,7 @@ object frmPreferences: TfrmPreferences
       object chkEditorDatetime: TCheckBox
         Left = 220
         Top = 31
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable inplace date/time editor'
@@ -1232,7 +1222,7 @@ object frmPreferences: TfrmPreferences
       object chkPrefillDateTime: TCheckBox
         Left = 220
         Top = 54
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prefill empty date/time fields with current date/time'
@@ -1242,7 +1232,7 @@ object frmPreferences: TfrmPreferences
       object chkEditorEnum: TCheckBox
         Left = 220
         Top = 77
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable ENUM pulldown editor'
@@ -1252,7 +1242,7 @@ object frmPreferences: TfrmPreferences
       object chkEditorSet: TCheckBox
         Left = 220
         Top = 100
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Enable SET checkbox editor'
@@ -1262,7 +1252,7 @@ object frmPreferences: TfrmPreferences
       object chkReuseEditorConfiguration: TCheckBox
         Left = 220
         Top = 163
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Remember filters, sorting and column selection across sessions'
@@ -1272,7 +1262,7 @@ object frmPreferences: TfrmPreferences
       object chkForeignDropDown: TCheckBox
         Left = 220
         Top = 186
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Show values in foreign key columns'
@@ -1312,7 +1302,7 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 13
       ImageName = 'icons8-lightning-bolt-100'
       DesignSize = (
-        684
+        676
         406)
       object lblShortcut1: TLabel
         Left = 306
@@ -1324,7 +1314,7 @@ object frmPreferences: TfrmPreferences
       object lblShortcutHint: TLabel
         Left = 306
         Top = 3
-        Width = 375
+        Width = 367
         Height = 55
         Anchors = [akLeft, akTop, akRight]
         AutoSize = False
@@ -1344,7 +1334,25 @@ object frmPreferences: TfrmPreferences
         Width = 300
         Height = 406
         Align = alLeft
+        Colors.BorderColor = 15987699
+        Colors.DisabledColor = clGray
+        Colors.DropMarkColor = 15385233
+        Colors.DropTargetColor = 15385233
+        Colors.DropTargetBorderColor = 15385233
+        Colors.FocusedSelectionColor = 15385233
+        Colors.FocusedSelectionBorderColor = 15385233
+        Colors.GridLineColor = 15987699
+        Colors.HeaderHotColor = clBlack
+        Colors.HotColor = clBlack
+        Colors.SelectionRectangleBlendColor = 15385233
+        Colors.SelectionRectangleBorderColor = 15385233
+        Colors.SelectionTextColor = clBlack
+        Colors.TreeLineColor = 9471874
+        Colors.UnfocusedColor = clGray
+        Colors.UnfocusedSelectionColor = clWhite
+        Colors.UnfocusedSelectionBorderColor = clWhite
         Header.AutoSizeIndex = 0
+        Header.Height = 14
         Header.MainColumn = -1
         Images = MainForm.VirtualImageListMain
         TabOrder = 0
@@ -1359,7 +1367,7 @@ object frmPreferences: TfrmPreferences
         Columns = <>
       end
       object btnRemoveHotKey1: TButton
-        Left = 596
+        Left = 592
         Top = 80
         Width = 81
         Height = 25
@@ -1371,7 +1379,7 @@ object frmPreferences: TfrmPreferences
         OnClick = btnRemoveHotKeyClick
       end
       object btnRemoveHotKey2: TButton
-        Left = 596
+        Left = 592
         Top = 144
         Width = 81
         Height = 25
@@ -1388,12 +1396,19 @@ object frmPreferences: TfrmPreferences
       ImageIndex = 10
       ImageName = 'icons8-save-button-100'
       DesignSize = (
-        684
+        676
         406)
+      object Label5: TLabel
+        Left = 8
+        Top = 103
+        Width = 148
+        Height = 14
+        Caption = 'Grayscale inactive tab icons'
+      end
       object chkAskFileSave: TCheckBox
         Left = 220
         Top = 8
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Prompt to save modified files on tab close'
@@ -1405,7 +1420,7 @@ object frmPreferences: TfrmPreferences
       object chkRestoreTabs: TCheckBox
         Left = 220
         Top = 31
-        Width = 459
+        Width = 451
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Reopen previously used SQL files and unsaved content in tabs *'
@@ -1424,17 +1439,31 @@ object frmPreferences: TfrmPreferences
       object chkTabCloseOnMiddleClick: TCheckBox
         Left = 220
         Top = 77
-        Width = 457
+        Width = 453
         Height = 17
         Anchors = [akLeft, akTop, akRight]
         Caption = 'Close tab on middleclick'
         TabOrder = 3
         OnClick = Modified
       end
+      object comboTabIconsGrayscaleMode: TComboBox
+        Left = 220
+        Top = 100
+        Width = 451
+        Height = 22
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 4
+        OnClick = Modified
+        Items.Strings = (
+          'Color icons on all tabs'
+          'Grayscale icons on inactive query tabs only'
+          'Grayscale icons on every inactive tab')
+      end
     end
   end
   object btnCancel: TButton
-    Left = 545
+    Left = 537
     Top = 449
     Width = 75
     Height = 25
@@ -1445,7 +1474,7 @@ object frmPreferences: TfrmPreferences
     TabOrder = 2
   end
   object btnOK: TButton
-    Left = 465
+    Left = 457
     Top = 449
     Width = 75
     Height = 25
@@ -1457,7 +1486,7 @@ object frmPreferences: TfrmPreferences
     OnClick = Apply
   end
   object btnApply: TButton
-    Left = 625
+    Left = 617
     Top = 449
     Width = 75
     Height = 25

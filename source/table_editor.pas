@@ -6,7 +6,8 @@ uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Vcl.ComCtrls, Vcl.ToolWin, VirtualTrees, VirtualTrees.Types, SynRegExpr, Winapi.ActiveX, Vcl.ExtCtrls, SynEdit,
   SynMemo, Vcl.Menus, Vcl.Clipbrd, System.Math, System.UITypes, System.Generics.Collections,
-  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, System.StrUtils, extra_controls;
+  grideditlinks, dbstructures, dbstructures.mysql, dbconnection, apphelpers, gnugettext, System.StrUtils, extra_controls,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL;
 
 type
   TFrame = TDBObjectEditor;
@@ -206,10 +207,9 @@ type
     FLoaded: Boolean;
     CreateCodeValid, AlterCodeValid: Boolean;
     FColumns: TTableColumnList;
-    FKeys: TTableKeyList;
+    FKeys, FDeletedKeys: TTableKeyList;
     FForeignKeys: TForeignKeyList;
     FCheckConstraints: TCheckConstraintList;
-    FDeletedKeys,
     FDeletedForeignKeys,
     FDeletedCheckConstraints: TStringList;
     FAlterRestrictedMessageDisplayed: Boolean;
@@ -249,7 +249,7 @@ begin
   FColumns := TTableColumnList.Create;
   FKeys := TTableKeyList.Create;
   FForeignKeys := TForeignKeyList.Create;
-  FDeletedKeys := TStringList.Create;
+  FDeletedKeys := TTableKeyList.Create;
   FDeletedForeignKeys := TStringList.Create;
   FDeletedCheckConstraints := TStringList.Create;
   FDeletedCheckConstraints.Duplicates := dupIgnore;
@@ -280,10 +280,20 @@ begin
   TExtForm.RestoreListSetup(treeIndexes);
   TExtForm.RestoreListSetup(listForeignKeys);
   TExtForm.RestoreListSetup(listCheckConstraints);
+  // Fix control width and position, broken when opening a second table. See issue #1959
+  comboCollation.Left := lblCollation.Left + TExtForm.ScaleSize(150, Self);
+  comboCollation.Width := comboRowFormat.Width;
+  comboCollation.Items := DBObject.Connection.CollationList;
+  chkCharsetConvert.Left := comboCollation.Left + comboCollation.Width + 10;
+  comboEngine.Left := comboCollation.Left;
+  comboEngine.Width := comboCollation.Width;
   comboEngine.Items := DBObject.Connection.TableEngines;
   comboEngine.Items.Insert(0, '<'+_('Server default')+'>');
   comboEngine.ItemIndex := 0;
-  comboCollation.Items := DBObject.Connection.CollationList;
+  memoUnionTables.Left := comboCollation.Left;
+  memoUnionTables.Width := comboCollation.Width;
+  comboInsertMethod.Left := comboCollation.Left;
+  comboInsertMethod.Width := comboCollation.Width;
   if DBObject.Connection.Parameters.IsMariaDB then begin
     with listColumns.Header do begin
       Columns[10].Options := Columns[10].Options + [coVisible];
@@ -448,7 +458,7 @@ var
   Batch: TSQLBatch;
   Query: TSQLSentence;
   i: Integer;
-  Rename: String;
+  Rename, ErrMessage, ErrMessageAdditional, InnodbStatus: String;
 begin
   // Check if all indexes have at least one column
   // If not, exit early
@@ -468,12 +478,15 @@ begin
   else
     Batch := ComposeAlterStatement;
   try
-    for Query in Batch do
+    for Query in Batch do begin
       DBObject.Connection.Query(Query.SQL);
+      DBObject.Connection.ShowWarnings;
+    end;
     // Rename table
     if ObjectExists and (editName.Text <> DBObject.Name) then begin
       Rename := DBObject.Connection.GetSQLSpecifity(spRenameTable, [DBObject.QuotedName, DBObject.Connection.QuoteIdent(editName.Text)]);
       DBObject.Connection.Query(Rename);
+      DBObject.Connection.ShowWarnings;
     end;
     tabALTERcode.TabVisible := ObjectExists;
     if chkCharsetConvert.Checked then begin
@@ -496,7 +509,18 @@ begin
     CreateCodeValid := False;
   except
     on E:EDbError do begin
-      ErrorDialog(E.Message);
+      ErrMessage := E.Message;
+      // Help user with a cryptic error message, by getting details from INNODB STATUS
+      // See https://stackoverflow.com/questions/8434518/mysql-foreign-key-constraint-is-incorrectly-formed-error/64251639
+      if DBObject.Connection.Parameters.IsAnyMySQL
+        and ContainsText(ErrMessage, 'constraint is incorrectly formed') then
+      begin
+        InnodbStatus := DBObject.Connection.GetVar('SHOW ENGINE INNODB STATUS', 'Status');
+        ErrMessageAdditional := RegExprGetMatch('\n([^\n]+ constraint failed\.[^\n]+)\n', InnodbStatus, 1, False, True);
+        if not ErrMessageAdditional.IsEmpty then
+          ErrMessage := ErrMessage + sLineBreak + sLineBreak + 'INNODB STATUS:' + sLineBreak + ErrMessageAdditional;
+      end;
+      ErrorDialog(ErrMessage);
       Result := mrAbort;
     end;
   end;
@@ -563,7 +587,8 @@ var
   procedure FinishSpecs;
   begin
     if Specs.Count > 0 then begin
-      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + CRLF + #9 + Implode(',' + CRLF + #9, Specs)) + ';' + CRLF;
+      SQL := SQL + Trim('ALTER TABLE '+DBObject.QuotedName + sLineBreak +
+        CodeIndent + Implode(',' + sLineBreak + CodeIndent, Specs)) + ';' + sLineBreak;
       Specs.Clear;
     end;
   end;
@@ -588,7 +613,7 @@ begin
   //   ALTER TABLE  statement. Separate statements are required."
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Modified and (not FForeignKeys[i].Added) then
-      Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(FForeignKeys[i].OldKeyName));
+      Specs.Add(Conn.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FForeignKeys[i].OldKeyName)]));
   end;
   FinishSpecs;
 
@@ -642,7 +667,7 @@ begin
     Results := Conn.CollationTable;
     if Assigned(Results) then while not Results.Eof do begin
       if Results.Col('Collation') = comboCollation.Text then begin
-        Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset'));
+        Specs.Add('CONVERT TO CHARSET '+Results.Col('Charset')+' COLLATE '+Conn.EscapeString(comboCollation.Text));
         break;
       end;
       Results.Next;
@@ -774,14 +799,18 @@ begin
 
   // Drop indexes, also changed indexes, which will be readded below
   for i:=0 to FDeletedKeys.Count-1 do begin
-    if FDeletedKeys[i] = TTableKey.PRIMARY then
+    if not FDeletedKeys[i].InsideCreateCode then
+      Continue;
+    if FDeletedKeys[i].IndexType = TTableKey.PRIMARY then
       IndexSQL := 'PRIMARY KEY'
     else
-      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i]);
+      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i].OldName);
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
   for i:=0 to FKeys.Count-1 do begin
+    if not FKeys[i].InsideCreateCode then
+      Continue;
     if FKeys[i].Modified and (not FKeys[i].Added) then begin
       if FKeys[i].OldIndexType = TTableKey.PRIMARY then
         IndexSQL := 'PRIMARY KEY'
@@ -793,8 +822,9 @@ begin
       Specs.Add('ADD '+FKeys[i].SQLCode);
   end;
 
-  for i:=0 to FDeletedForeignKeys.Count-1 do
-    Specs.Add('DROP FOREIGN KEY '+Conn.QuoteIdent(FDeletedForeignKeys[i]));
+  for i:=0 to FDeletedForeignKeys.Count-1 do begin
+    Specs.Add(Conn.GetSQLSpecifity(spForeignKeyDrop, [Conn.QuoteIdent(FDeletedForeignKeys[i])]));
+  end;
   for i:=0 to FForeignKeys.Count-1 do begin
     if FForeignKeys[i].Added or FForeignKeys[i].Modified then
       Specs.Add('ADD '+FForeignKeys[i].SQLCode(True));
@@ -811,6 +841,33 @@ begin
 
 
   FinishSpecs;
+
+  // Separate queries from here on
+
+  // Drop indexes, also changed indexes, which will be readded below
+  for i:=0 to FDeletedKeys.Count-1 do begin
+    if FDeletedKeys[i].InsideCreateCode then
+      Continue;
+    if FDeletedKeys[i].IndexType = TTableKey.PRIMARY then
+      IndexSQL := 'PRIMARY KEY'
+    else
+      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i].OldName);
+    AddQuery('DROP '+IndexSQL);
+  end;
+  // Add changed or added indexes
+  for i:=0 to FKeys.Count-1 do begin
+    if FKeys[i].InsideCreateCode then
+      Continue;
+    if FKeys[i].Modified and (not FKeys[i].Added) then begin
+      if FKeys[i].OldIndexType = TTableKey.PRIMARY then
+        IndexSQL := 'PRIMARY KEY'
+      else
+        IndexSQL := 'INDEX ' + Conn.QuoteIdent(FKeys[i].OldName);
+      AddQuery('DROP '+IndexSQL);
+    end;
+    if FKeys[i].Added or FKeys[i].Modified then
+      AddQuery(FKeys[i].SQLCode(DBObject.Name));
+  end;
 
   Result := TSQLBatch.Create;
   Result.SQL := SQL;
@@ -834,25 +891,27 @@ begin
   Node := listColumns.GetFirst;
   while Assigned(Node) do begin
     Col := listColumns.GetNodeData(Node);
-    SQL := SQL + #9 + Col.SQLCode + ','+CRLF;
+    SQL := SQL + CodeIndent + Col.SQLCode + ',' + sLineBreak;
     Node := listColumns.GetNextSibling(Node);
   end;
 
   IndexCount := 0;
   for i:=0 to FKeys.Count-1 do begin
+    if not FKeys[i].InsideCreateCode then
+      Continue;
     tmp := FKeys[i].SQLCode;
     if tmp <> '' then begin
-      SQL := SQL + #9 + tmp + ','+CRLF;
+      SQL := SQL + CodeIndent + tmp + ',' + sLineBreak;
       Inc(IndexCount);
     end;
   end;
 
   for i:=0 to FForeignKeys.Count-1 do
-    SQL := SQL + #9 + FForeignKeys[i].SQLCode(True) + ','+CRLF;
+    SQL := SQL + CodeIndent + FForeignKeys[i].SQLCode(True) + ',' + sLineBreak;
 
   // Check constraints
   for Constraint in FCheckConstraints do begin
-    SQL := SQL + #9 + Constraint.SQLCode + ',' + sLineBreak;
+    SQL := SQL + CodeIndent + Constraint.SQLCode + ',' + sLineBreak;
   end;
 
   if Integer(listColumns.RootNodeCount) + IndexCount + FForeignKeys.Count > 0 then
@@ -887,6 +946,8 @@ begin
     SQL := SQL +  '/*!50100 ' + SynMemoPartitions.Text + ' */';
   SQL := SQL + ';' + CRLF;
 
+  // Separate queries from here on
+
   if DBObject.Connection.Parameters.IsAnyPostgreSQL then begin
     Node := listColumns.GetFirst;
     while Assigned(Node) do begin
@@ -895,6 +956,15 @@ begin
         DBObject.Connection.QuoteIdent(editName.Text)+'.'+DBObject.Connection.QuoteIdent(Col.Name)+
         ' IS '+DBObject.Connection.EscapeString(Col.Comment) + ';' + CRLF;
       Node := listColumns.GetNextSibling(Node);
+    end;
+  end;
+
+  for i:=0 to FKeys.Count-1 do begin
+    if FKeys[i].InsideCreateCode then
+      Continue;
+    tmp := FKeys[i].SQLCode(editName.Text);
+    if tmp <> '' then begin
+      SQL := SQL + tmp + ';' + sLineBreak;
     end;
   end;
 
@@ -1079,11 +1149,20 @@ end;
 procedure TfrmTableEditor.listColumnsBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+var
+  BgColor: TColor;
 begin
+  BgColor := MainForm.GetAlternatingRowBackground(Node);
+
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
   if (not CellEditingAllowed(Node, Column)) and (not (Column in [4, 5, 6])) then begin
-    TargetCanvas.Brush.Color := GetThemeColor(clBtnFace);
+    BgColor := clBtnFace;
+  end;
+
+  // Apply color
+  if BgColor <> clNone then begin
+    TargetCanvas.Brush.Color := BgColor;
     TargetCanvas.FillRect(CellRect);
   end;
 end;
@@ -1258,6 +1337,7 @@ begin
     end;
     // No editing of collation allowed if "Convert data" was checked
     9: Result := not chkCharsetConvert.Checked;
+    12: Result := (Col.DataType.Category = dtcSpatial) and DBObject.Connection.Has(frSrid);
     else Result := True;
   end;
 
@@ -1316,6 +1396,10 @@ begin
     end;
     10: CellText := Col.GenerationExpression;
     11: CellText := Col.Virtuality;
+    12: begin
+      if (Col.DataType.Category = dtcSpatial) and (Col.Connection.Has(frSrid)) then
+        CellText := Col.SRID.ToString;
+    end;
   end;
 end;
 
@@ -1465,6 +1549,7 @@ begin
     9: Col.Collation := NewText;
     10: Col.GenerationExpression := NewText;
     11: Col.Virtuality := NewText;
+    12: Col.SRID := StrToUIntDef(NewText, 0);
   end;
   if WasModified then begin
     Col.Status := esModified;
@@ -1705,6 +1790,7 @@ begin
   treeIndexes.AddChild(Node);
   TblKey.Columns.Add(NewCol);
   TblKey.SubParts.Add(PartLength);
+  TblKey.Collations.Add('A');
   Modification(Sender);
   treeIndexes.Invalidate;
   SelectNode(treeIndexes, FKeys.Count-1, Node);
@@ -1715,6 +1801,7 @@ procedure TfrmTableEditor.btnRemoveIndexClick(Sender: TObject);
 var
   idx: Integer;
   NewSelectNode: PVirtualNode;
+  DeleteTblKey: TTableKey;
 begin
   // Remove index or part
   if treeIndexes.IsEditing then
@@ -1722,8 +1809,11 @@ begin
   case treeIndexes.GetNodeLevel(treeIndexes.FocusedNode) of
     0: begin
       idx := treeIndexes.FocusedNode.Index;
-      if not FKeys[idx].Added then
-        FDeletedKeys.Add(FKeys[idx].OldName);
+      if not FKeys[idx].Added then begin
+        DeleteTblKey := TTableKey.Create(DBObject.Connection);
+        DeleteTblKey.Assign(FKeys[idx]);
+        FDeletedKeys.Add(DeleteTblKey);
+      end;
       FKeys.Delete(idx);
       // Delete node although ReinitChildren would do the same, but the Repaint before
       // creates AVs in certain cases. See issue #2557
@@ -1733,6 +1823,7 @@ begin
       idx := treeIndexes.FocusedNode.Parent.Index;
       FKeys[idx].Columns.Delete(treeIndexes.FocusedNode.Index);
       FKeys[idx].SubParts.Delete(treeIndexes.FocusedNode.Index);
+      FKeys[idx].Collations.Delete(treeIndexes.FocusedNode.Index);
       treeIndexes.DeleteNode(treeIndexes.FocusedNode);
     end;
   end;
@@ -1747,7 +1838,7 @@ end;
 
 procedure TfrmTableEditor.btnClearIndexesClick(Sender: TObject);
 var
-  TblKey: TTableKey;
+  TblKey, DeleteTblKey: TTableKey;
 begin
   // Clear all indexes
   // Column data gets freed below - end any editor which could cause AV's
@@ -1756,8 +1847,11 @@ begin
   // Trigger ValidateIndexControls
   SelectNode(treeIndexes, nil);
   for TblKey in FKeys do begin
-    if not TblKey.Added then
-      FDeletedKeys.Add(TblKey.OldName);
+    if not TblKey.Added then begin
+      DeleteTblKey := TTableKey.Create(DBObject.Connection);
+      DeleteTblKey.Assign(TblKey);
+      FDeletedKeys.Add(TblKey);
+    end;
   end;
   FKeys.Clear;
   Modification(Sender);
@@ -1800,6 +1894,7 @@ begin
         1: CellText := TblKey.IndexType;
         2: CellText := TblKey.Algorithm;
         3: CellText := TblKey.Comment;
+        4: CellText := ''; // Column collation
       end;
     end;
     1: begin
@@ -1807,7 +1902,12 @@ begin
       case Column of
         0: CellText := TblKey.Columns[Node.Index];
         1: CellText := TblKey.SubParts[Node.Index];
-        2: CellText := '';
+        2: CellText := ''; // Index algorithm
+        3: CellText := ''; // Index comment
+        4: begin
+          CellText := TblKey.Collations[Node.Index];
+          CellText := IfThen(CellText.ToLower = 'a', 'ASC', 'DESC');
+        end;
       end;
     end;
   end;
@@ -2025,9 +2125,11 @@ begin
   VT := Sender as TVirtualStringtree;
   Allowed := False;
   if VT.GetNodeLevel(Node) = 0 then begin
-    // Disallow renaming primary key
-    if (Column <> 0) or (VT.Text[Node, 1] <> TTableKey.PRIMARY) then
+    // Disallow renaming primary key, and direction/collation of key node level
+    if (Column = 0) and (VT.Text[Node, 1] <> TTableKey.PRIMARY) then
       Allowed := True
+    else
+      Allowed := Column in [1,2,3];
   end else case Column of
     0: Allowed := True;
     1: begin
@@ -2040,6 +2142,7 @@ begin
         end;
       end;
     end;
+    4: Allowed := True; // Collation
   end;
 end;
 
@@ -2077,6 +2180,10 @@ begin
       ColNode := listColumns.GetNext(ColNode);
     end;
     EnumEditor.AllowCustomText := True; // Allows adding a subpart in index parts: "TextCol(20)"
+    EditLink := EnumEditor;
+  end else if (Level = 1) and (Column = 4) then begin
+    EnumEditor := TEnumEditorLink.Create(VT, True, nil);
+    EnumEditor.ValueList := Explode(',', ',ASC,DESC');
     EditLink := EnumEditor;
   end else
     EditLink := TInplaceEditorLink.Create(VT, True, nil);
@@ -2122,6 +2229,12 @@ begin
              TblKey.Columns[Node.Index] := NewText;
          end;
          1: TblKey.SubParts[Node.Index] := NewText;
+         4: begin
+           if NewText.ToLower = 'asc' then
+             TblKey.Collations[Node.Index] := 'A'
+           else
+             TblKey.Collations[Node.Index] := 'D';
+         end;
        end;
        TblKey.Modified := True;
     end;
@@ -2232,6 +2345,7 @@ begin
     if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Col.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
       PartLength := '100';
     TblKey.Subparts.Insert(ColPos, PartLength);
+    TblKey.Collations.Insert(ColPos, 'A');
     IndexNode.States := IndexNode.States + [vsHasChildren, vsExpanded];
   end;
   Modification(Sender);
@@ -2269,6 +2383,7 @@ begin
   end;
   TblKey.Columns.Move(treeIndexes.FocusedNode.Index, NewIdx);
   TblKey.SubParts.Move(treeIndexes.FocusedNode.Index, NewIdx);
+  TblKey.Collations.Move(treeIndexes.FocusedNode.Index, NewIdx);
   Modification(treeIndexes);
   SelectNode(treeIndexes, NewIdx, treeIndexes.FocusedNode.Parent);
 end;
@@ -2486,8 +2601,10 @@ begin
     TblKey.IndexType := NewType;
     TblKey.Added := True;
     TblKey.Columns := NewParts;
-    for i:=0 to TblKey.Columns.Count do
+    for i:=0 to TblKey.Columns.Count-1 do begin
       TblKey.SubParts.Add('');
+      TblKey.Collations.Add('A');
+    end;
     FKeys.Add(TblKey);
     PageControlMain.ActivePage := tabIndexes;
     treeIndexes.Repaint;
@@ -2500,6 +2617,7 @@ begin
       if TblKey.Columns.IndexOf(NewParts[i]) = -1 then begin
         TblKey.Columns.Add(NewParts[i]);
         TblKey.Subparts.Add('');
+        TblKey.Collations.Add('A');
       end;
     end;
     SelectNode(treeIndexes, Item.MenuIndex);

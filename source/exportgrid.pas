@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms,
   Vcl.Dialogs, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.Menus, Vcl.ComCtrls, VirtualTrees, SynExportHTML, gnugettext, Vcl.ActnList,
-  extra_controls, dbstructures, SynRegExpr, System.StrUtils, System.IOUtils;
+  extra_controls, dbstructures, SynRegExpr, System.StrUtils, System.IOUtils, VirtualTrees.BaseTree, VirtualTrees.Types;
 
 type
   TGridExportFormat = (
@@ -23,13 +23,13 @@ type
     efJiraTextile,
     efPHPArray,
     efMarkDown,
-    efJSON
+    efJSON,
+    efJSONLines
     );
 
   TfrmExportGrid = class(TExtForm)
     btnOK: TButton;
     btnCancel: TButton;
-    grpFormat: TRadioGroup;
     grpSelection: TRadioGroup;
     grpOutput: TGroupBox;
     radioOutputCopyToClipboard: TRadioButton;
@@ -67,6 +67,8 @@ type
     editNull: TButtonedEdit;
     btnSetClipboardDefaults: TButton;
     chkRemoveLinebreaks: TCheckBox;
+    grpFormat: TGroupBox;
+    comboFormat: TComboBoxEx;
     procedure FormCreate(Sender: TObject);
     procedure CalcSize(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -79,9 +81,8 @@ type
     procedure ValidateControls(Sender: TObject);
     procedure btnOKClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
-    procedure grpFormatClick(Sender: TObject);
+    procedure comboFormatSelect(Sender: TObject);
     procedure btnSetClipboardDefaultsClick(Sender: TObject);
-    procedure FormResize(Sender: TObject);
   private
     { Private declarations }
     FCSVEditor: TButtonedEdit;
@@ -96,6 +97,7 @@ type
     procedure SelectRecentFile(Sender: TObject);
     procedure PutFilenamePlaceholder(Sender: TObject);
     function FormatExcelCsv(Text, Encloser: String; DataType: TDBDatatype): String;
+    function FormatJson(Text: String): String;
     function FormatPhp(Text: String): String;
     function FormatLatex(Text: String): String;
   public
@@ -116,7 +118,8 @@ type
         ('jira-textile'),
         ('php'),
         ('md'),
-        ('json')
+        ('json'),
+        ('jsonl')
         );
     const FormatToDescription: Array[TGridExportFormat] of String =
       (
@@ -134,7 +137,8 @@ type
         ('Jira Textile'),
         ('PHP Array'),
         ('Markdown Here'),
-        ('JSON')
+        ('JSON'),
+        ('JSON Lines')
         );
     const FormatToImageIndex: Array[TGridExportFormat] of Integer =
       (
@@ -152,7 +156,8 @@ type
         154, // Jira
         202, // PHP
         199, // Markdown
-        200  // JSON
+        200, // JSON
+        200  // JSON Lines
       );
     const CopyAsActionPrefix = 'actCopyAs';
     property Grid: TVirtualStringTree read FGrid write FGrid;
@@ -170,8 +175,9 @@ uses main, apphelpers, dbconnection;
 
 procedure TfrmExportGrid.FormCreate(Sender: TObject);
 var
-  FormatDesc: String;
+  ef: TGridExportFormat;
   SenderName: String;
+  comboItem: TComboExItem;
 begin
   HasSizeGrip := True;
   editFilename.Text := AppSettings.ReadString(asGridExportFilename);
@@ -179,15 +185,18 @@ begin
   comboEncoding.Items.Assign(MainForm.FileEncodings);
   comboEncoding.Items.Delete(0); // Remove "Auto detect"
   comboEncoding.ItemIndex := AppSettings.ReadInt(asGridExportEncoding);
-  grpFormat.Items.Clear;
-  for FormatDesc in FormatToDescription do
-    grpFormat.Items.Add(FormatDesc);
+  comboFormat.Items.Clear;
+  for ef:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
+    comboItem := TComboExItem.Create(comboFormat.ItemsEx);
+    comboItem.Caption := FormatToDescription[ef];
+    comboItem.ImageIndex := FormatToImageIndex[ef];
+  end;
   SenderName := Owner.Name;
   FHiddenCopyMode := SenderName.StartsWith(CopyAsActionPrefix);
 
   if FHiddenCopyMode then begin
     radioOutputCopyToClipboard.Checked := True;
-    grpFormat.ItemIndex := Owner.Tag;
+    comboFormat.ItemIndex := Owner.Tag;
     grpSelection.ItemIndex := 0; // Always use selected cells in copy mode
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportClpColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportClpIncludeAutoInc);
@@ -200,7 +209,7 @@ begin
   end else begin
     radioOutputCopyToClipboard.Checked := AppSettings.ReadBool(asGridExportOutputCopy);
     radioOutputFile.Checked := AppSettings.ReadBool(asGridExportOutputFile);
-    grpFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
+    comboFormat.ItemIndex := AppSettings.ReadInt(asGridExportFormat);
     grpSelection.ItemIndex := AppSettings.ReadInt(asGridExportSelection);
     chkIncludeColumnNames.Checked := AppSettings.ReadBool(asGridExportColumnNames);
     chkIncludeAutoIncrement.Checked := AppSettings.ReadBool(asGridExportIncludeAutoInc);
@@ -214,15 +223,6 @@ begin
   ValidateControls(Sender);
 end;
 
-
-procedure TfrmExportGrid.FormResize(Sender: TObject);
-begin
-  grpFormat.Width := Width div 3;
-  grpSelection.Left := grpFormat.Left + grpFormat.Width + 8;
-  grpSelection.Width := Width - grpSelection.Left - 24;
-  grpOptions.Left := grpSelection.Left;
-  grpOptions.Width := grpSelection.Width;
-end;
 
 procedure TfrmExportGrid.FormShow(Sender: TObject);
 begin
@@ -245,7 +245,7 @@ begin
     AppSettings.WriteString(asGridExportFilename, editFilename.Text);
     AppSettings.WriteString(asGridExportRecentFiles, Implode(DELIM, FRecentFiles));
     AppSettings.WriteInt(asGridExportEncoding, comboEncoding.ItemIndex);
-    AppSettings.WriteInt(asGridExportFormat, grpFormat.ItemIndex);
+    AppSettings.WriteInt(asGridExportFormat, comboFormat.ItemIndex);
     AppSettings.WriteInt(asGridExportSelection, grpSelection.ItemIndex);
     AppSettings.WriteBool(asGridExportColumnNames, chkIncludeColumnNames.Checked);
     AppSettings.WriteBool(asGridExportIncludeAutoInc, chkIncludeAutoIncrement.Checked);
@@ -320,17 +320,17 @@ end;
 
 function TfrmExportGrid.GetExportFormat: TGridExportFormat;
 begin
-  Result := TGridExportFormat(grpFormat.ItemIndex);
+  Result := TGridExportFormat(comboFormat.ItemIndex);
 end;
 
 
 procedure TfrmExportGrid.SetExportFormat(Value: TGridExportFormat);
 begin
-  grpFormat.ItemIndex := Integer(Value);
+  comboFormat.ItemIndex := Integer(Value);
 end;
 
 
-procedure TfrmExportGrid.grpFormatClick(Sender: TObject);
+procedure TfrmExportGrid.comboFormatSelect(Sender: TObject);
 var
   Filename: String;
 begin
@@ -387,7 +387,7 @@ begin
     Dialog.Filter := Dialog.Filter + FormatToDescription[ef] + ' (*.'+FormatToFileExtension[ef]+')|*.'+FormatToFileExtension[ef]+'|';
   Dialog.Filter := Dialog.Filter + _('All files')+' (*.*)|*.*';
   Dialog.OnTypeChange := SaveDialogTypeChange;
-  Dialog.FilterIndex := grpFormat.ItemIndex+1;
+  Dialog.FilterIndex := comboFormat.ItemIndex+1;
   Dialog.OnTypeChange(Dialog);
   if Dialog.Execute then begin
     editFilename.Text := Dialog.FileName;
@@ -579,7 +579,7 @@ begin
 end;
 
 
-function TfrmExportGrid.FormatPhp(Text: String): String;
+function TfrmExportGrid.FormatJson(Text: String): String;
 begin
   // String escaping for PHP output. Incompatible to TDBConnection.EscapeString.
   Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
@@ -588,6 +588,28 @@ begin
   Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
   Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
   Result := '"' + Result + '"';
+end;
+
+function TfrmExportGrid.FormatPhp(Text: String): String;
+begin
+  if Text.IndexOfAny([#10, #13, #9, #11, #27, #12]) > -1 then begin
+    // https://www.php.net/manual/it/language.types.string.php#language.types.string.syntax.double
+    Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
+    Result := StringReplace(Result, #13, '\r', [rfReplaceAll]);
+    Result := StringReplace(Result, #9, '\t', [rfReplaceAll]);
+    Result := StringReplace(Result, #11, '\v', [rfReplaceAll]);
+    Result := StringReplace(Result, #27, '\e', [rfReplaceAll]);
+    Result := StringReplace(Result, #12, '\f', [rfReplaceAll]);
+    Result := StringReplace(Result, '$', '\$', [rfReplaceAll]);
+    Result := StringReplace(Result, '"', '\"', [rfReplaceAll]);
+    Result := '"' + Result + '"';
+  end else begin
+    // https://www.php.net/manual/it/language.types.string.php#language.types.string.syntax.single
+    Result := StringReplace(Text, '\', '\\', [rfReplaceAll]);
+    Result := StringReplace(Text, '''', '\''', [rfReplaceAll]);
+    Result := '''' + Result + '''';
+  end;
 end;
 
 
@@ -682,47 +704,46 @@ begin
     case ExportFormat of
       efHTML: begin
         Header :=
-          '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + CRLF +
-          '  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + CRLF + CRLF +
-          '<html>' + CRLF +
-          '  <head>' + CRLF +
-          '    <title>' + TableName + '</title>' + CRLF +
-          '    <meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + CRLF +
-          '    <meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + CRLF +
-          '    <style type="text/css">' + CRLF +
-          '      th, td {vertical-align: top;}' + CRLF +
-          '      table, td {border: 1px solid silver; padding: 2px;}' + CRLF +
-          '      table {border-collapse: collapse;}' + CRLF;
+          '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + sLineBreak +
+          CodeIndent + '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">' + sLineBreak + sLineBreak +
+          '<html>' + sLineBreak +
+          CodeIndent + '<head>' + sLineBreak +
+          CodeIndent(2) + '<title>' + TableName + '</title>' + sLineBreak +
+          CodeIndent(2) + '<meta name="GENERATOR" content="'+ APPNAME+' '+Mainform.AppVersion + '">' + sLineBreak +
+          CodeIndent(2) + '<meta http-equiv="Content-Type" content="text/html; charset='+GetHTMLCharsetByEncoding(Encoding)+'" />' + sLineBreak +
+          CodeIndent(2) + '<style type="text/css">' + sLineBreak +
+          CodeIndent(3) + 'th, td {vertical-align: top;}' + sLineBreak +
+          CodeIndent(3) + 'table, td {border: 1px solid silver; padding: 2px;}' + sLineBreak +
+          CodeIndent(3) + 'table {border-collapse: collapse;}' + sLineBreak;
         Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
         while Col > NoColumn do begin
           // Right-justify all cells to match the grid on screen.
           if Grid.Header.Columns[Col].Alignment = taRightJustify then
-            Header := Header + '      .col' + IntToStr(Col) + ' {text-align: right;}' + CRLF;
+            Header := Header + CodeIndent(3) + '.col' + IntToStr(Col) + ' {text-align: right;}' + sLineBreak;
           Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
         end;
         Header := Header +
-          '    </style>' + CRLF +
-          '  </head>' + CRLF + CRLF +
-          '  <body>' + CRLF + CRLF;
+          CodeIndent(2) + '</style>' + sLineBreak +
+          CodeIndent + '</head>' + sLineBreak + sLineBreak +
+          CodeIndent + '<body>' + sLineBreak + sLineBreak;
         if chkIncludeQuery.Checked then
           Header := Header + '<p style="font-family: monospace; white-space: pre;">' + GridData.SQL + '</p>' + CRLF + CRLF;
-        Header := Header + '    <table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + CRLF;
+        Header := Header + CodeIndent(2) + '<table caption="' + TableName + ' (' + inttostr(NodeCount) + ' rows)">' + sLineBreak;
         if chkIncludeColumnNames.Checked then begin
           Header := Header +
-            '      <thead>' + CRLF +
-            '        <tr>' + CRLF;
+            CodeIndent(3) + '<thead>' + sLineBreak +
+            CodeIndent(4) + '<tr>' + sLineBreak;
           Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
           while Col > NoColumn do begin
             if Col <> ExcludeCol then
-              Header := Header + '          <th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + CRLF;
+              Header := Header + CodeIndent(5) + '<th class="col' + IntToStr(Col) + '">' + Grid.Header.Columns[Col].Text + '</th>' + sLineBreak;
             Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
           end;
           Header := Header +
-            '        </tr>' + CRLF +
-            '      </thead>' + CRLF;
+            CodeIndent(4) + '</tr>' + sLineBreak +
+            CodeIndent(3) + '</thead>' + sLineBreak;
         end;
-        Header := Header +
-          '      <tbody>' + CRLF;
+        Header := Header + CodeIndent(3) + '<tbody>' + sLineBreak;
       end;
 
       efExcel, efCSV: begin
@@ -804,9 +825,9 @@ begin
 
       efPHPArray: begin
         if radioOutputFile.Checked then
-          Header := '<?php'+CRLF+'$'+TableName+' = array('+CRLF
+          Header := '<?php'+CRLF+'$'+TableName+' = ['+CRLF
         else
-          Header := '$'+TableName+' = array('+CRLF;
+          Header := '$'+TableName+' = ['+CRLF;
       end;
 
       efMarkDown: begin
@@ -846,12 +867,12 @@ begin
 
       efJSON: begin
         // JavaScript Object Notation
-        Header := '{' + CRLF;
+        Header := '{' + sLineBreak;
         if chkIncludeQuery.Checked then
-          Header := Header + #9 + '"query": '+FormatPhp(GridData.SQL)+',' + CRLF
+          Header := Header + #9 + '"query": '+FormatJson(GridData.SQL)+',' + sLineBreak
         else
-          Header := Header + #9 + '"table": '+FormatPhp(TableName)+',' + CRLF ;
-        Header := Header + #9 + '"rows":' + CRLF + #9 + '[';
+          Header := Header + #9 + '"table": '+FormatJson(TableName)+',' + sLineBreak;
+        Header := Header + #9 + '"rows":' + sLineBreak + #9 + '[';
       end;
 
     end;
@@ -874,9 +895,9 @@ begin
 
       // Row preamble
       case ExportFormat of
-        efHTML: tmp := '        <tr>' + CRLF;
+        efHTML: tmp := CodeIndent(4) + '<tr>' + sLineBreak;
 
-        efXML: tmp := #9'<row>' + CRLF;
+        efXML: tmp := CodeIndent + '<row>' + sLineBreak;
 
         efSQLUpdate: begin
           tmp := '';
@@ -892,7 +913,7 @@ begin
           if ExportFormat in [efSQLInsert, efSQLDeleteInsert] then
             tmp := tmp + 'INSERT'
           else if ExportFormat = efSQLInsertIgnore then
-            tmp := tmp + 'INSERT IGNORE'   
+            tmp := tmp + 'INSERT IGNORE'
           else
             tmp := tmp + 'REPLACE';
           tmp := tmp + ' INTO '+GridData.Connection.QuoteIdent(Tablename);
@@ -913,15 +934,22 @@ begin
 
         efTextile, efJiraTextile: tmp := TrimLeft(Separator);
 
-        efPHPArray: tmp := #9 + 'array('+CRLF;
+        efPHPArray: tmp := CodeIndent + '[' + sLineBreak;
 
         efMarkDown: tmp := '| ';
 
         efJSON: begin
           if chkIncludeColumnNames.Checked then
-            tmp := CRLF + #9#9 + '{' + CRLF
+            tmp := sLineBreak + CodeIndent(2) + '{' + sLineBreak
           else
-            tmp := CRLF + #9#9 + '[' + CRLF
+            tmp := sLineBreak + CodeIndent(2) + '[' + sLineBreak
+        end;
+
+        efJSONLines: begin
+          if chkIncludeColumnNames.Checked then
+            tmp := '{'
+          else
+            tmp := '[';
         end
 
         else tmp := '';
@@ -948,16 +976,14 @@ begin
 
           // Remove linebreaks, see #474
           if chkRemoveLinebreaks.Checked then begin
-            Data := StringReplace(Data, #13#10, ' ', [rfReplaceAll]);
-            Data := StringReplace(Data, #13, ' ', [rfReplaceAll]);
-            Data := StringReplace(Data, #10, ' ', [rfReplaceAll]);
+            StripNewLines(Data);
           end;
 
           case ExportFormat of
             efHTML: begin
               // Escape HTML control characters in data.
               Data := HTMLSpecialChars(Data);
-              tmp := tmp + '          <td class="col' + IntToStr(Col) + '">' + Data + '</td>' + CRLF;
+              tmp := tmp + CodeIndent(5) + '<td class="col' + IntToStr(Col) + '">' + Data + '</td>' + sLineBreak;
             end;
 
             efExcel, efCSV: begin
@@ -990,7 +1016,7 @@ begin
 
             efXML: begin
               // Print cell start tag.
-              tmp := tmp + #9#9'<field';
+              tmp := tmp + CodeIndent(2) + '<field';
               if chkIncludeColumnNames.Checked then
                 tmp := tmp + ' name="' + HTMLSpecialChars(Grid.Header.Columns[Col].Text) + '"';
               if GridData.IsNull(ResultCol) then
@@ -1024,7 +1050,7 @@ begin
 
             efPHPArray: begin
               if GridData.IsNull(ResultCol) then
-                Data := 'NULL'
+                Data := 'null'
               else case GridData.DataType(ResultCol).Category of
                 dtcInteger, dtcReal: begin
                   // Remove zeropadding to avoid octal => integer conversion in PHP
@@ -1036,15 +1062,15 @@ begin
               end;
 
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + #9#9 + FormatPhp(Grid.Header.Columns[Col].Text) + ' => ' + Data + ','+CRLF
+                tmp := tmp + CodeIndent(2) + FormatPhp(Grid.Header.Columns[Col].Text) + ' => ' + Data + ',' + sLineBreak
               else
-                tmp := tmp + #9#9 + Data + ','+CRLF;
+                tmp := tmp + CodeIndent(2) + Data + ',' + sLineBreak;
             end;
 
             efJSON: begin
-              tmp := tmp + #9#9#9;
+              tmp := tmp + CodeIndent(3);
               if chkIncludeColumnNames.Checked then
-                tmp := tmp + FormatPhp(Grid.Header.Columns[Col].Text) + ': ';
+                tmp := tmp + FormatJson(Grid.Header.Columns[Col].Text) + ': ';
               if GridData.IsNull(ResultCol) then
                 tmp := tmp + 'null,' +CRLF
               else begin
@@ -1052,9 +1078,25 @@ begin
                   dtcInteger, dtcReal:
                     tmp := tmp + Data;
                   else
-                    tmp := tmp + FormatPhp(Data)
+                    tmp := tmp + FormatJson(Data)
                 end;
                 tmp := tmp + ',' + CRLF;
+              end;
+            end;
+
+            efJSONLines: begin
+              if chkIncludeColumnNames.Checked then
+                tmp := tmp + FormatJson(Grid.Header.Columns[Col].Text) + ': ';
+              if GridData.IsNull(ResultCol) then
+                tmp := tmp + 'null, '
+              else begin
+                case GridData.DataType(ResultCol).Category of
+                  dtcInteger, dtcReal:
+                    tmp := tmp + Data;
+                  else
+                    tmp := tmp + FormatJson(Data)
+                end;
+                tmp := tmp + ', ';
               end;
             end;
 
@@ -1067,13 +1109,13 @@ begin
       // Row epilogue
       case ExportFormat of
         efHTML:
-          tmp := tmp + '        </tr>' + CRLF;
+          tmp := tmp + CodeIndent(4) + '</tr>' + sLineBreak;
         efExcel, efCSV, efLaTeX, efTextile, efJiraTextile: begin
           Delete(tmp, Length(tmp)-Length(Separator)+1, Length(Separator));
           tmp := tmp + Terminator;
         end;
         efXML:
-          tmp := tmp + #9'</row>' + CRLF;
+          tmp := tmp + CodeIndent + '</row>' + sLineBreak;
         efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert: begin
           Delete(tmp, Length(tmp)-1, 2);
           tmp := tmp + ');' + CRLF;
@@ -1083,15 +1125,22 @@ begin
           tmp := tmp + ' WHERE' + GridData.GetWhereClause + ';' + sLineBreak;
         end;
         efPHPArray:
-          tmp := tmp + #9 + '),' + CRLF;
+          tmp := tmp + CodeIndent + '],' + sLineBreak;
         efMarkDown:
           tmp := tmp + Terminator;
         efJSON: begin
           Delete(tmp, length(tmp)-2,2);
           if chkIncludeColumnNames.Checked then
-            tmp := tmp + #9#9 + '},'
+            tmp := tmp + CodeIndent(2) + '},'
           else
-            tmp := tmp + #9#9 + '],';
+            tmp := tmp + CodeIndent(2) + '],';
+        end;
+        efJSONLines: begin
+          Delete(tmp, length(tmp)-1,2);
+          if chkIncludeColumnNames.Checked then
+            tmp := tmp + '}' + #10
+          else
+            tmp := tmp + ']' + #10;
         end;
       end;
       S.WriteString(tmp);
@@ -1103,14 +1152,14 @@ begin
     case ExportFormat of
       efHTML: begin
         tmp :=
-          '      </tbody>' + CRLF +
-          '    </table>' + CRLF + CRLF +
-          '    <p>' + CRLF +
-          '      <em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
-          '      by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + CRLF +
-          '    </p>' + CRLF + CRLF +
-          '  </body>' + CRLF +
-          '</html>' + CRLF;
+          CodeIndent(3) + '</tbody>' + sLineBreak +
+          CodeIndent(2) + '</table>' + sLineBreak + sLineBreak +
+          CodeIndent(2) + '<p>' + sLineBreak +
+          CodeIndent(3) + '<em>generated ' + DateToStr(now) + ' ' + TimeToStr(now) +
+          CodeIndent(3) + 'by <a href="'+APPDOMAIN+'">' + APPNAME + ' ' + Mainform.AppVersion + '</a></em>' + sLineBreak +
+          CodeIndent(2) + '</p>' + sLineBreak + sLineBreak +
+          CodeIndent + '</body>' + sLineBreak +
+          '</html>' + sLineBreak;
       end;
       efXML: begin
         if chkIncludeQuery.Checked then
@@ -1121,11 +1170,11 @@ begin
       efLaTeX:
         tmp := '\end{tabular}' + CRLF;
       efPHPArray: begin
-        tmp := ');' + CRLF;
+        tmp := '];' + CRLF;
       end;
       efJSON: begin
         S.Size := S.Size - 1;
-        tmp := CRLF + #9 + ']' + CRLF + '}';
+        tmp := sLineBreak + CodeIndent + ']' + sLineBreak + '}';
       end;
       else
         tmp := '';

@@ -440,7 +440,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
-                OnBeforeCellPaint = ListDatabasesBeforeCellPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = ListDatabasesBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
                 OnDblClick = ListDatabasesDblClick
@@ -529,7 +529,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
-                OnBeforeCellPaint = ListVariablesBeforeCellPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = HostListBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
                 OnDblClick = ListVariablesDblClick
@@ -587,6 +587,7 @@ object MainForm: TMainForm
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = HostListBeforePaint
                 OnCompareNodes = AnyGridCompareNodes
                 OnGetText = HostListGetText
@@ -1242,7 +1243,6 @@ object MainForm: TMainForm
             Header.MainColumn = -1
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
             IncrementalSearch = isInitializedOnly
-            LineStyle = lsSolid
             PopupMenu = popupDataGrid
             TabOrder = 2
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
@@ -1470,7 +1470,6 @@ object MainForm: TMainForm
             Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoOwnerDraw, hoShowHint, hoShowImages, hoDisableAnimatedResize, hoAutoResizeInclCaption]
             Header.PopupMenu = popupListHeader
             IncrementalSearch = isAll
-            LineStyle = lsSolid
             PopupMenu = popupDataGrid
             TabOrder = 1
             TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
@@ -1765,23 +1764,25 @@ object MainForm: TMainForm
     object ToolBarDonate: TToolBar
       Left = 863
       Top = 2
-      Width = 0
+      Width = 67
       Height = 22
-      Align = alRight
+      Align = alNone
+      AutoSize = True
       ButtonWidth = 67
       Caption = 'Donate'
+      EdgeInner = esNone
+      EdgeOuter = esNone
       Images = VirtualImageListMain
       List = True
       ShowCaptions = True
       TabOrder = 1
+      Wrapable = False
       object btnDonate: TToolButton
         Left = 0
         Top = 0
-        Cursor = crHandPoint
         Hint = 
           'Send an arbitrary amount as donation to the author - per PayPal ' +
           '(also supports credit cards)'
-        AutoSize = True
         Caption = 'Donate'
         ImageIndex = 185
         OnClick = DonateClick
@@ -3028,7 +3029,7 @@ object MainForm: TMainForm
       AutoCheck = True
       Caption = 'Show only favorites'
       Hint = 'Show only favorite tree items'
-      ImageIndex = 112
+      ImageIndex = 113
       ImageName = 'icons8-star-filled'
       OnExecute = actFavoriteObjectsOnlyExecute
     end
@@ -3355,6 +3356,7 @@ object MainForm: TMainForm
       Category = 'Tools'
       Caption = 'Sequal Suggest'
       ImageIndex = 206
+      Visible = False
       OnExecute = actSequalSuggestExecute
     end
     object actResetPanelDimensions: TAction
@@ -3433,7 +3435,7 @@ object MainForm: TMainForm
       end
     end
     object menuClearDataTabFilter: TMenuItem
-      Caption = 'Clear data tab filter'
+      Caption = 'Clear data tab filter and sort order'
       OnClick = menuClearDataTabFilterClick
     end
     object N17: TMenuItem

@@ -5,7 +5,9 @@ Virtual Treeview is a Delphi treeview control built from ground up. Many years o
 I don't use C++ Builder and my experience with it is very limited. This makes it difficult to take care about bugs that are reported in C++ Builder and to maintain the C++ Builder packages. I would be great if someone would volunteer to do this.
 
 ### Downloads
-**V7.6.x** official release for **RAD Studio XE3 to 10.4.2 Rio**: [JAM Software](https://www.jam-software.com/virtual-treeview/VirtualTreeView.zip) 
+**V7.6.x** official release for **Delphi XE3 to 11.3** and C++ Buildler 10.1 to 11.3: [JAM Software](https://www.jam-software.com/virtual-treeview/VirtualTreeView.zip) ([Changes](https://github.com/JAM-Software/Virtual-TreeView/releases/latest))
+
+In the master branch we develop **V8** that includes some **[breaking changes](https://github.com/JAM-Software/Virtual-TreeView/wiki/Breaking-Changes-in-upcoming-V8)**.
 
 An experimental **FireMonkey** port can be found here: [livius2/Virtual-TreeView](https://github.com/livius2/Virtual-TreeView)
 
@@ -15,7 +17,7 @@ For a **Delphi XE2** compatible fork see: [Fr0sT-Brutal/VirtualTreeView_mod/tree
 
 For a **Delphi XE** compatible fork see: [sglienke/Virtual-TreeView](https://github.com/sglienke/Virtual-TreeView)
 
-**V5.5.3** for **Delphi 7 to XE2**: [Download](http://www.jam-software.com/virtual-treeview/VirtualTreeViewV5.5.3.zip)
+**V5.5.3** for **Delphi 7 to XE2**: [Download](https://downloads.jam-software.de/virtual-treeview/VirtualTreeViewV5.5.3.zip)
 
 **V6 latest stable version** tested on Windows XP/2003 support: [GitHub](https://github.com/Virtual-TreeView/Virtual-TreeView/archive/V6_stable.zip)
 

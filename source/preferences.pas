@@ -13,7 +13,8 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, Vcl.ActnList, Vcl.StdActns, Vcl.Menus,
   dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, System.Generics.Collections,
-  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons, System.Actions;
+  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons, System.Actions,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL, VirtualTrees.Types;
 
 type
   TShortcutItemData = record
@@ -147,7 +148,6 @@ type
     Label3: TLabel;
     cboxRowHighlightSameText: TColorBox;
     chkWheelZoom: TCheckBox;
-    chkQueryWarningsMessage: TCheckBox;
     chkAutoUppercase: TCheckBox;
     lblTheme: TLabel;
     comboTheme: TComboBox;
@@ -188,6 +188,8 @@ type
     chkTabCloseOnMiddleClick: TCheckBox;
     btnRemoveHotKey1: TButton;
     btnRemoveHotKey2: TButton;
+    comboTabIconsGrayscaleMode: TComboBox;
+    Label5: TLabel;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -308,7 +310,6 @@ begin
   AppSettings.WriteBool(asAutoReconnect, chkAutoReconnect.Checked);
   AppSettings.WriteBool(asAllowMultipleInstances, chkAllowMultiInstances.Checked);
   AppSettings.WriteBool(asRestoreLastUsedDB, chkRestoreLastDB.Checked);
-  AppSettings.WriteBool(asQueryWarningsMessage, chkQueryWarningsMessage.Checked);
   AppSettings.WriteString(asFontName, comboSQLFontName.Text);
   AppSettings.WriteInt(asFontSize, updownSQLFontSize.Position);
   AppSettings.WriteInt(asTabWidth, updownSQLTabWidth.Position);
@@ -440,6 +441,7 @@ begin
   AppSettings.WriteBool(asRestoreTabs, chkRestoreTabs.Checked);
   AppSettings.WriteBool(asTabCloseOnDoubleClick, chkTabCloseOnDoubleClick.Checked);
   AppSettings.WriteBool(asTabCloseOnMiddleClick, chkTabCloseOnMiddleClick.Checked);
+  AppSettings.WriteInt(asTabIconsGrayscaleMode, comboTabIconsGrayscaleMode.ItemIndex);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -556,18 +558,18 @@ begin
   comboSQLFontName.Sorted := True;
   updownCompletionProposalInterval.Min := 0;
   updownCompletionProposalInterval.Max := MaxInt;
-  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + CRLF +
-    #9'''String literal'' AS lit' + CRLF +
-    'FROM tableA AS ta' + CRLF +
-    'WHERE `columnA` IS NULL;' + CRLF +
-    CRLF +
-    '-- A comment' + CRLF +
-    '# Old style comment' + CRLF +
-    '/* Multi line comment */' + CRLF +
-    CRLF +
-    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB (' + CRLF +
-    #9'id INT,' + CRLF +
-    #9'name VARCHAR(30) DEFAULT "standard"' + CRLF +
+  SynMemoSQLSample.Text := 'SELECT DATE_SUB(NOW(), INTERVAL 1 DAY),' + sLineBreak +
+    CodeIndent + '''String literal'' AS lit' + sLineBreak +
+    'FROM tableA AS ta' + sLineBreak +
+    'WHERE `columnA` IS NULL;' + sLineBreak +
+    sLineBreak +
+    '-- A comment' + sLineBreak +
+    '# Old style comment' + sLineBreak +
+    '/* Multi line comment */' + sLineBreak +
+    sLineBreak +
+    'CREATE TABLE /*!32312 IF NOT EXISTS*/ tableB (' + sLineBreak +
+    CodeIndent + 'id INT,' + sLineBreak +
+    CodeIndent + 'name VARCHAR(30) DEFAULT "standard"' + sLineBreak +
     ')';
   SynSQLSynSQLSample.TableNames.CommaText := 'tableA,tableB';
   for i:=0 to SynSQLSynSQLSample.AttrCount - 1 do begin
@@ -716,7 +718,6 @@ begin
   comboTheme.ItemIndex := comboTheme.Items.IndexOf(AppSettings.ReadString(asTheme));
   comboIconPack.ItemIndex := comboIconPack.Items.IndexOf(AppSettings.ReadString(asIconPack));
   comboWebSearchBaseUrl.Text := AppSettings.ReadString(asWebSearchBaseUrl);
-  chkQueryWarningsMessage.Checked := AppSettings.ReadBool(asQueryWarningsMessage);
 
   // Logging
   updownLogLines.Position := AppSettings.ReadInt(asLogsqlnum);
@@ -804,6 +805,7 @@ begin
   chkRestoreTabs.Checked := AppSettings.ReadBool(asRestoreTabs);
   chkTabCloseOnDoubleClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
   chkTabCloseOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
+  comboTabIconsGrayscaleMode.ItemIndex := AppSettings.ReadInt(asTabIconsGrayscaleMode);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;
@@ -1259,7 +1261,7 @@ begin
         end;
         CellText := _(CellText);
       end else if Assigned(Data.Action) then begin
-        CellText := MainForm.ActionList1DefaultCaptions[Data.Action.Index];
+        CellText := StripHotkey(MainForm.ActionList1DefaultCaptions[Data.Action.Index]);
       end;
     end;
   end;
@@ -1342,8 +1344,8 @@ begin
       Data := Tree.GetNodeData(Node);
       Msg := Format(MsgFormat, [
         ShortCutToText(RequestShortcut),
-        Tree.Text[Node, 0],
-        Tree.Text[NodeWantsIt, 0]
+        Tree.Text[Node.Parent, 0] + ' > ' + StripHotkey(Tree.Text[Node, 0]),
+        Tree.Text[NodeWantsIt.Parent, 0] + ' > ' + StripHotkey(Tree.Text[NodeWantsIt, 0])
         ]);
       if Node = NodeWantsIt then begin
         // Ignore requesting node

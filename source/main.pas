@@ -21,7 +21,8 @@ uses
   JumpList, System.Actions, System.UITypes, Vcl.Imaging.pngimage,
   System.ImageList, Vcl.Styles.Utils.Forms,
   Vcl.VirtualImageList, Vcl.BaseImageCollection, Vcl.ImageCollection, System.IniFiles, extra_controls,
-  SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types, Sequal.Suggest;
+  SynEditCodeFolding, SynEditStrConst, texteditor, System.Character, generic_types, Sequal.Suggest,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL;
 
 
 type
@@ -52,9 +53,12 @@ type
     Results: TDBQuery;
     Grid: TVirtualStringTree;
     FilterText: String;
+    private
+      FTabIndex: Integer;
     public
       constructor Create(AOwner: TQueryTab);
       destructor Destroy; override;
+      property TabIndex: Integer read FTabIndex;
   end;
   TResultTabs = TObjectList<TResultTab>;
   TQueryTab = class(TComponent)
@@ -1027,9 +1031,6 @@ type
     procedure ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
       var InitialStates: TVirtualNodeInitStates);
     procedure ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
-    procedure ListDatabasesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-      var ContentRect: TRect);
     procedure menuFetchDBitemsClick(Sender: TObject);
     procedure ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -1100,9 +1101,6 @@ type
     procedure editDatabaseTableFilterMenuClick(Sender: TObject);
     procedure editDatabaseTableFilterExit(Sender: TObject);
     procedure menuClearDataTabFilterClick(Sender: TObject);
-    procedure ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
-      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
     procedure DonateClick(Sender: TObject);
@@ -1331,6 +1329,8 @@ type
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     property FocusedTables: TDBObjectList read FFocusedTables;
+    function GetAlternatingRowBackground(Node: PVirtualNode): TColor;
+    procedure PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
@@ -1398,8 +1398,14 @@ var
 
 const
   CheckedStates = [csCheckedNormal, csCheckedPressed, csMixedNormal, csMixedPressed];
-  ErrorLineForeground: TColor = $00FFFFFF;
-  ErrorLineBackground: TColor = $00000080;
+  ErrorLineForeground: TColor = $00000000;
+  ErrorLineBackground: TColor = $00D2B7FF;
+  WarningLineForeground: TColor = $00000000;
+  WarningLineBackground: TColor = $00B7CDFF;
+  NoteLineForeground: TColor = $00000000;
+  NoteLineBackground: TColor = $00D3F7FF;
+  InfoLineForeground: TColor = $00000000;
+  InfoLineBackground: TColor = $00C6FFEC;
 
 {$I const.inc}
 
@@ -1768,8 +1774,9 @@ var
   Factor: Extended;
 begin
   // Moving window to different screen or user changed DPI setting for current screen
-  Factor := 100 / PixelsPerInch * NewDPI;
+  Factor := 100 / PixelsPerInchDesigned * NewDPI;
   LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(Factor)]));
+  //LogSQL('PixelsPerInchDesigned:'+PixelsPerInchDesigned.ToString+' OldDPI:'+OldDPI.ToString+' NewDPI:'+NewDPI.ToString);
 end;
 
 
@@ -2006,16 +2013,6 @@ begin
   // Enable auto completion in data tab, filter editor
   SynCompletionProposal.AddEditor(SynMemoFilter);
 
-  // Fix node height on Virtual Trees for current DPI settings
-  FixVT(DBTree);
-  FixVT(ListDatabases);
-  FixVT(ListVariables);
-  FixVT(ListStatus);
-  FixVT(ListProcesses);
-  FixVT(ListCommandStats);
-  FixVT(ListTables);
-  FixVT(treeQueryHelpers);
-
   // Window position
   Left := AppSettings.ReadInt(asMainWinLeft);
   Top := AppSettings.ReadInt(asMainWinTop);
@@ -2096,7 +2093,10 @@ begin
     FActionList1DefaultHints.Insert(i, Action.Hint);
   end;
 
-  // Size of completion proposal window
+  // Completion proposal window
+  // The proposal form gets scaled a second time when it shows its form with Scaled=True.
+  // We already store and restore the dimensions DPI aware.
+  SynCompletionProposal.Form.Scaled := False;
   SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);
   SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
   SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
@@ -2509,8 +2509,9 @@ begin
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
-          if HelpersWidth > 50 then
-            Tab.pnlHelpers.Width := HelpersWidth;
+          // Causes sporadic long-waiters:
+          //if HelpersWidth > 50 then
+          //  Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
@@ -2531,8 +2532,9 @@ begin
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
           if EditorHeight > 50 then
             Tab.pnlMemo.Height := EditorHeight;
-          if HelpersWidth > 50 then
-            Tab.pnlHelpers.Width := HelpersWidth;
+          // Causes sporadic long-waiters:
+          //if HelpersWidth > 50 then
+          //  Tab.pnlHelpers.Width := HelpersWidth;
           Tab.ListBindParams.AsText := BindParams;
           Tab.BindParamsActivated := Tab.ListBindParams.Count > 0;
           Tab.Memo.TopLine := EditorTopLine;
@@ -2782,9 +2784,11 @@ begin
   FixQueryTabCloseButtons;
 
   // Right aligned button
+  // Do not set ToolBar.Align to alRight. See issue #1967
   if ToolBarDonate.Visible then begin
-    ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
+    //ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
     ToolBarDonate.Left := ControlBarMain.Width - ToolBarDonate.Width;
+    //ToolBarDonate.Buttons[0].Height := ToolBarMainButtons.Buttons[0].Height;
   end;
 
 end;
@@ -2810,6 +2814,16 @@ begin
   RestoreListSetup(ListProcesses);
   RestoreListSetup(ListCommandStats);
   RestoreListSetup(ListTables);
+
+  // Fix node height on Virtual Trees for current DPI settings
+  FixVT(DBTree);
+  FixVT(ListDatabases);
+  FixVT(ListVariables);
+  FixVT(ListStatus);
+  FixVT(ListProcesses);
+  FixVT(ListCommandStats);
+  FixVT(ListTables);
+  FixVT(treeQueryHelpers);
 
   // Manually set focus to tree - otherwise the database filter as the first
   // control catches focus on startup, which is ugly.
@@ -2900,6 +2914,10 @@ begin
   if AppSettings.ValueExists(asFilter) then begin
     AppSettings.DeleteValue(asFilter);
     LogSQL(f_('Data filter for %s deleted', [ActiveDbObj.Name]), lcInfo);
+  end;
+  if AppSettings.ValueExists(asSort) then begin
+    AppSettings.DeleteValue(asSort);
+    LogSQL(f_('Sort order for %s deleted', [ActiveDbObj.Name]), lcInfo);
   end;
 end;
 
@@ -3300,7 +3318,8 @@ var
   Tab: TQueryTab;
   NewTab: TResultTab;
   col: TVirtualTreeColumn;
-  TabCaption: String;
+  TabCaption, TabCaptions, BatchHead: String;
+  TabCaptionsList: TStringList;
   TabsetColor: TColor;
   Results: TDBQuery;
   i, HeaderPadding, HeaderLineBreaks: Integer;
@@ -3321,26 +3340,31 @@ begin
     Tab.tabsetQuery.UnselectedColor := clBtnFace;
   end;
 
+  // Get tab caption list from comment, similar to a name:xyz in a single query
+  BatchHead := Copy(Thread.Batch.SQL, 1, SIZE_KB);
+  TabCaptions := RegExprGetMatch('--\s+names\:\s*([^\r\n]+)', BatchHead, 1, False, True);
+  TabCaptionsList := Explode(',', TabCaptions);
+  LogSQL('TabCaptionsList: '+TabCaptionsList.CommaText, lcDebug);
   // Create result tabs
   for Results in Thread.Connection.GetLastResults do begin
     NewTab := TResultTab.Create(Tab);
     Tab.ResultTabs.Add(NewTab);
     NewTab.Results := Results;
     try
-      TabCaption := NewTab.Results.TableName;
-      // Add postfix to tab name so tab captions are unique
-      i := 1;
-      while Tab.tabsetQuery.Tabs.IndexOf(TabCaption) > -1 do begin
-        Inc(i);
-        TabCaption := NewTab.Results.TableName + ' #' + IntToStr(i);
+      TabCaption := NewTab.Results.ResultName;
+      if TabCaption.IsEmpty and (TabCaptionsList.Count > NewTab.TabIndex) then
+        TabCaption := TabCaptionsList[NewTab.TabIndex];
+      if TabCaption.IsEmpty then
+        TabCaption := NewTab.Results.TableName;
+    except
+      on E:EDbError do begin
+        TabCaption := _('Result')+' #'+IntToStr(NewTab.TabIndex+1);
       end;
-    except on E:EDbError do
-      TabCaption := _('Result')+' #'+IntToStr(Tab.ResultTabs.Count);
     end;
-
+    TabCaption := Trim(TabCaption);
     TabCaption := TabCaption + ' (' + FormatNumber(Results.RecordCount) + 'r × ' + FormatNumber(Results.ColumnCount) + 'c)';
     Tab.tabsetQuery.Tabs.Add(TabCaption);
-    NewTab.Grid.Name := Format('Tab%dGrid%d', [Tab.Number, Tab.ResultTabs.Count]);
+    NewTab.Grid.Name := Format('Tab%dGrid%d', [Tab.Number, NewTab.TabIndex+1]);
 
     NewTab.Grid.BeginUpdate;
     NewTab.Grid.Header.Options := NewTab.Grid.Header.Options + [hoVisible];
@@ -3383,14 +3407,13 @@ end;
 
 procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
-  Tab, WarningsTab: TQueryTab;
-  MetaInfo, ErroneousSQL, RegName, MsgTitle, MsgText: String;
+  Tab: TQueryTab;
+  MetaInfo, ErroneousSQL, RegName: String;
   ProfileAllTime: Extended;
   ProfileNode: PVirtualNode;
   History: TQueryHistory;
   HistoryItem: TQueryHistoryItem;
-  Warnings: TDBQuery;
-  HistoryNum, MaxWarnings, RegItemsSize, KeepDays: Integer;
+  HistoryNum, RegItemsSize, KeepDays: Integer;
   DoDelete, ValueFound: Boolean;
   MinDate: TDateTime;
 
@@ -3476,37 +3499,6 @@ begin
     Tab.treeHelpers.InvalidateChildren(ProfileNode, True);
     Thread.Connection.Query('SET profiling=0');
   end;
-
-  // Show warnings
-  if Thread.WarningCount > 0 then begin
-    MsgTitle := f_('Your query produced %s warnings.', [FormatNumber(Thread.WarningCount)]);
-    MsgText := '';
-    Warnings := Thread.Connection.GetResults('SHOW WARNINGS LIMIT 5');
-    if Warnings.RecordCount < 5 then
-      MsgText := MsgText + _('Warnings from last query:')+CRLF
-    else if Warnings.RecordCount < Thread.WarningCount then
-      MsgText := MsgText + f_('First %s warnings:', [FormatNumber(Warnings.RecordCount)])+CRLF;
-    while not Warnings.Eof do begin
-      MsgText := MsgText + Warnings.Col('Level') + ': ' + Warnings.Col('Message') + CRLF;
-      Warnings.Next;
-    end;
-    MsgText := Trim(MsgText);
-    if (Warnings.RecordCount = Thread.WarningCount) or (Warnings.RecordCount < 5) then
-      MessageDialog(MsgTitle, MsgText, mtWarning, [mbOk], asQueryWarningsMessage)
-    else begin
-      MsgText := MsgText + CRLF+CRLF + _('Show all warnings in a new query tab?');
-      MaxWarnings := MakeInt(Thread.Connection.GetVar('SELECT @@max_error_count'));
-      if MaxWarnings < Thread.WarningCount then
-        MsgText := MsgText + CRLF+CRLF+ f_('The server variable %s is currently set to %d, so you won''t see all warnings.', ['@@max_error_count', MaxWarnings]);
-      if MessageDialog(MsgTitle, MsgText, mtWarning, [mbYes, mbNo], asQueryWarningsMessage) = mrYes then begin
-        actNewQueryTab.Execute;
-        WarningsTab := QueryTabs[QueryTabs.Count-1];
-        WarningsTab.Memo.Text := 'SHOW WARNINGS';
-        actExecuteQueryExecute(WarningsTab);
-      end;
-    end;
-  end;
-
 
   // Store successful query packet in history if it's not a batch.
   // Assume that a bunch of up to 5 queries is not a batch.
@@ -3825,7 +3817,6 @@ var
   ObjectList: TDBObjectList;
   Editor: TDBObjectEditor;
   Conn: TDBConnection;
-  DisableForeignKeys: Boolean;
 begin
   Conn := ActiveConnection;
 
@@ -3881,8 +3872,7 @@ begin
   if MessageDialog(f_('Drop %d object(s) in database "%s"?', [ObjectList.Count, Conn.Database]), msg, mtCriticalConfirmation, [mbok,mbcancel]) = mrOk then begin
     try
       // Disable foreign key checks to avoid SQL errors
-      DisableForeignKeys := (Conn.Parameters.NetTypeGroup = ngMySQL) and (Conn.ServerVersionInt >= 40014);
-      if DisableForeignKeys then
+      if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
       Editor := ActiveObjectEditor;
@@ -3891,7 +3881,7 @@ begin
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
       end;
-      if DisableForeignKeys then
+      if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
       // Refresh ListTables + dbtree so the dropped tables are gone:
       Conn.ClearDbObjects(ActiveDatabase);
@@ -4205,6 +4195,7 @@ begin
         try
           Conn.Query(Queries[i].SQL, False, lcScript);
           RowsAffected := RowsAffected + Conn.RowsAffected;
+          Conn.ShowWarnings;
         except
           on E:Exception do begin
             if actQueryStopOnErrors.Checked then
@@ -4894,10 +4885,7 @@ end;
 }
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
-  if FActiveDbObj.Connection.Parameters.IsAnyMySQL
-    and (FActiveDbObj.Connection.ServerVersionInt >= 40100)
-    and (not FActiveDbObj.Connection.Parameters.IsProxySQLAdmin)
-    then begin
+  if FActiveDbObj.Connection.Has(frHelpKeyword) then begin
     if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
@@ -6058,7 +6046,7 @@ begin
       Col.Text := '#';
       for i:=0 to WantedColumns.Count-1 do begin
         InitColumn(i, WantedColumns[i]);
-        if coVisible in vt.Header.Columns[i].Options then
+        if coVisible in vt.Header.Columns[i+1].Options then
           Inc(VisibleColumns);
       end;
 
@@ -6087,6 +6075,7 @@ begin
     end;
 
     vt.EndUpdate;
+    ApplyFontToGrids;
 
     // Do not steel filter while writing filters
     if not SynMemoFilter.Focused then
@@ -6104,10 +6093,12 @@ begin
 
       if (FDataGridLastClickedColumnHeader >= 0) and (FDataGridLastClickedColumnHeader < vt.Header.Columns.Count) then begin // See issue #3309
         // Horizontal offset based on the left side of a just sorted column
-        OldScrollOffset.X := -(vt.Header.Columns[FDataGridLastClickedColumnHeader].Left - FDataGridLastClickedColumnLeftPos);
+        OldScrollOffset.X := -(vt.Header.Columns[FDataGridLastClickedColumnHeader].Left - vt.OffsetX - FDataGridLastClickedColumnLeftPos);
         // logsql('Fixing x-offset to '+OldScrollOffset.X.ToString +
         //   ', FDataGridLastClickedColumnHeader:'+FDataGridLastClickedColumnHeader.ToString +
-        //   ', FDataGridLastClickedColumnLeftPos: '+FDataGridLastClickedColumnLeftPos.ToString);
+        //   ', FDataGridLastClickedColumnLeftPos: '+FDataGridLastClickedColumnLeftPos.ToString +
+        //   ', vt.Header.Columns[FDataGridLastClickedColumnHeader].Left: '+vt.Header.Columns[FDataGridLastClickedColumnHeader].Left.ToString
+        //   );
       end;
 
       vt.OffsetXY := OldScrollOffset;
@@ -6139,7 +6130,7 @@ end;
 procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 begin
   // Remember current table after last column resizing so we can auto size them as long as this did not happen
-  if not (tsUpdating in TBaseVirtualTree(Sender.Treeview).TreeStates) then
+  if not TBaseVirtualTree(Sender.Treeview).IsUpdating then
     FDataGridColumnWidthsCustomized := True;
 end;
 
@@ -6229,10 +6220,9 @@ procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: 
 var
   Idx: PInt64;
 begin
-  // Display multiline grid rows
-  if AppSettings.ReadInt(asGridRowLineCount) = 1 then
-    Exclude(Node.States, vsMultiLine)
-  else
+  // Mark all nodes as multiline capable. Fixes painting issues with long lines.
+  // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
+  if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
     Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
@@ -6806,8 +6796,11 @@ var
       if (Obj.Name.ToLowerInvariant = tblname.ToLowerInvariant) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := Obj.TableColumns;
         for Col in Columns do begin
-          DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, '', DatatypeCategories[Col.DataType.Category].NullColor);
-          Proposal.AddItem(DisplayText, Col.Name);
+          DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
+          if CurrentInput.StartsWith(Conn.QuoteChar) then
+            Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
+          else
+            Proposal.AddItem(DisplayText, Col.Name);
           Inc(ColumnsInList);
         end;
         Columns.Free;
@@ -6819,6 +6812,7 @@ var
 begin
   Proposal := Sender as TSynCompletionProposal;
   Proposal.Font.Assign(Font);
+  Proposal.TitleFont.Size := Proposal.Font.Size;
   Proposal.ItemHeight := ScaleSize(PROPOSAL_ITEM_HEIGHT);
   Proposal.ClearList;
   Proposal.Columns[0].ColumnWidth := ScaleSize(100); // Kind of random value, but fits well
@@ -6890,7 +6884,7 @@ begin
     if rx.Exec(CurrentQuery) then begin
       TableClauses := rx.Match[3];
       // Ensure tables in JOIN clause(s) are splitted by comma
-      TableClauses := StringReplace(TableClauses, 'JOIN', ',', [rfReplaceAll, rfIgnoreCase]);
+      TableClauses := ReplaceRegExpr('\sJOIN\s', TableClauses, ',', [rroModifierI]);
       // Remove surrounding parentheses
       TableClauses := StringReplace(TableClauses, '(', ' ', [rfReplaceAll]);
       TableClauses := StringReplace(TableClauses, ')', ' ', [rfReplaceAll]);
@@ -7043,7 +7037,7 @@ var
   Edit: TSynMemo;
   LineText, Search: String;
 begin
-  // Paint error line with red background
+  // Paint error line with red background, or warning in orange
   Edit := Sender as TSynMemo;
   LineText := Copy(Edit.Lines[Line-1], 1, 100);
   Search := _(MsgSQLError);
@@ -7053,6 +7047,21 @@ begin
     Special := True;
     FG := ErrorLineForeground;
     BG := ErrorLineBackground;
+  end
+  else if LineText.Contains(_(SLogPrefixWarning)+':') then begin
+    Special := True;
+    FG := WarningLineForeground;
+    BG := WarningLineBackground;
+  end
+  else if LineText.Contains(_(SLogPrefixNote)+':') then begin
+    Special := True;
+    FG := NoteLineForeground;
+    BG := NoteLineBackground;
+  end
+  else if LineText.Contains(_(SLogPrefixInfo)+':') then begin
+    Special := True;
+    FG := InfoLineForeground;
+    BG := InfoLineBackground;
   end;
 end;
 
@@ -7209,11 +7218,15 @@ end;
 procedure TMainForm.Copylinetonewquerytab1Click(Sender: TObject);
 var
   Tab: TQueryTab;
+  LineText: String;
 begin
   // Create new query tab with current line in SQL log. This is for lazy mouse users.
   if actNewQueryTab.Execute then begin
     Tab := QueryTabs[MainForm.QueryTabs.Count-1];
-    Tab.Memo.Text := SynMemoSQLLog.LineText;
+    LineText := SynMemoSQLLog.LineText;
+    if AppSettings.ReadBool(asLogTimestamp) then
+      LineText := ReplaceRegExpr('^\s*\[[^\]]+\]\s', LineText, '');
+    Tab.Memo.Text := LineText;
   end;
 end;
 
@@ -7760,7 +7773,7 @@ begin
   menuFetchDBitems.Enabled := (PageControlHost.ActivePage = tabDatabases) and (ListDatabases.SelectedCount > 0);
   Kill1.Enabled := (PageControlHost.ActivePage = tabProcessList) and (ListProcesses.SelectedCount > 0);
   menuEditVariable.Enabled := False;
-  if ActiveConnection.ServerVersionInt >= 40003 then
+  if ActiveConnection.Has(frEditVariables) then
     menuEditVariable.Enabled := (PageControlHost.ActivePage = tabVariables) and Assigned(ListVariables.FocusedNode)
   else
     menuEditVariable.Hint := _(SUnsupported);
@@ -7771,7 +7784,7 @@ procedure TMainForm.popupDBPopup(Sender: TObject);
 var
   Obj: PDBObject;
   HasFocus, IsDb, IsObject: Boolean;
-  Version: Integer;
+  Conn: TDBConnection;
 begin
   // DBtree and ListTables both use popupDB as menu
   if PopupComponent(Sender) = DBtree then begin
@@ -7828,13 +7841,13 @@ begin
     menuTreeCollapseAll.Enabled := False;
     menuTreeOptions.Enabled := False;
   end;
-  if (ActiveConnection <> nil) and (ActiveConnection.Parameters.IsAnyMySQL) then begin
-    Version := ActiveConnection.ServerVersionInt;
-    actCreateView.Enabled := actCreateView.Enabled and (Version >= 50001);
-    actCreateProcedure.Enabled := actCreateProcedure.Enabled and (Version >= 50003);
-    actCreateFunction.Enabled := actCreateFunction.Enabled and (Version >= 50003);
-    actCreateTrigger.Enabled := actCreateTrigger.Enabled and (Version >= 50002);
-    actCreateEvent.Enabled := actCreateEvent.Enabled and (Version >= 50100);
+  Conn := ActiveConnection;
+  if (Conn <> nil) and (Conn.Parameters.IsAnyMySQL) then begin
+    actCreateView.Enabled := actCreateView.Enabled and Conn.Has(frCreateView);
+    actCreateProcedure.Enabled := actCreateProcedure.Enabled and Conn.Has(frCreateProcedure);
+    actCreateFunction.Enabled := actCreateFunction.Enabled and Conn.Has(frCreateFunction);
+    actCreateTrigger.Enabled := actCreateTrigger.Enabled and Conn.Has(frCreateTrigger);
+    actCreateEvent.Enabled := actCreateEvent.Enabled and Conn.Has(frCreateEvent);
   end;
 end;
 
@@ -8855,6 +8868,8 @@ procedure TMainForm.ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCa
 var
   Obj: PDBObject;
 begin
+  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
+
   // Only paint bar in rows + size column
   if Column in [1, 2] then begin
     Obj := Sender.GetNodeData(Node);
@@ -8862,6 +8877,36 @@ begin
       1: PaintColorBar(Obj.Rows, FDBObjectsMaxRows, TargetCanvas, CellRect);
       2: PaintColorBar(Obj.Size, FDBObjectsMaxSize, TargetCanvas, CellRect);
     end;
+  end;
+end;
+
+
+function TMainForm.GetAlternatingRowBackground(Node: PVirtualNode): TColor;
+var
+  clEven, clOdd: TColor;
+  isEven: Boolean;
+begin
+  // Alternating row background. See issue #139
+  Result := clNone;
+  clEven := AppSettings.ReadInt(asRowBackgroundEven);
+  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
+  isEven := Node.Index mod 2 = 0;
+  if IsEven and (clEven <> clNone) then
+    Result := clEven
+  else if (not IsEven) and (clOdd <> clNone) then
+    Result := clOdd;
+end;
+
+
+procedure TMainForm.PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
+var
+  BgColor: TColor;
+begin
+  // Apply color
+  BgColor := GetAlternatingRowBackground(Node);
+  if BgColor <> clNone then begin
+    TargetCanvas.Brush.Color := BgColor;
+    TargetCanvas.FillRect(CellRect);
   end;
 end;
 
@@ -9101,27 +9146,6 @@ begin
   VirtualImageListMain.Add('', 0, VirtualImageListMain.ImageCollection.Count-1);
   // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
   VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);
-end;
-
-
-procedure TMainForm.ListVariablesBeforeCellPaint(Sender: TBaseVirtualTree;
-  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-var
-  SessionVal, GlobalVal: String;
-  vt: TVirtualStringTree;
-begin
-  // Highlight cell if session variable is different to global variable
-  vt := Sender as TVirtualStringTree;
-  if Column = 1 then begin
-    SessionVal := vt.Text[Node, 1];
-    GlobalVal := vt.Text[Node, 2];
-    if SessionVal <> GlobalVal then begin
-      TargetCanvas.Brush.Color := clWebBlanchedAlmond;
-      TargetCanvas.Pen.Color := TargetCanvas.Brush.Color;
-      TargetCanvas.Rectangle(CellRect);
-    end;
-  end;
 end;
 
 
@@ -9573,7 +9597,6 @@ procedure TMainForm.DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualN
 var
   DBObj, PrevDBObj, ParentDBObj: PDBObject;
   MainTabToActivate: TTabSheet;
-  TabHostName: String;
   EnteringSession: Boolean;
 begin
   // Set wanted main tab and call SetMainTab later, when all lists have been invalidated
@@ -9710,12 +9733,8 @@ begin
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
     if FActiveDbObj.NodeType = lntGroup then
       InvalidateVT(ListTables, VTREE_NOTLOADED, True);
-    if FActiveDbObj.Connection.Parameters.IsAnySQLite then // Prefer visible filename over visible left part of path
-      TabHostName := StrEllipsis(FActiveDbObj.Connection.Parameters.HostName, 60, False)
-    else
-      TabHostName := FActiveDbObj.Connection.Parameters.HostName;
 
-    SetTabCaption(tabHost.PageIndex, _('Host')+': '+TabHostName);
+    SetTabCaption(tabHost.PageIndex, FActiveDbObj.Connection.Parameters.SessionName);
     SetTabCaption(tabDatabase.PageIndex, _('Database')+': '+FActiveDbObj.Connection.Database);
     ShowStatusMsg(FActiveDbObj.Connection.Parameters.NetTypeName(False)+' '+FActiveDbObj.Connection.ServerVersionStr, 3);
   end else begin
@@ -10230,11 +10249,14 @@ var
 begin
   if Column = -1 then
     Exit;
+  if TextType <> ttNormal then
+    Exit;
   ResultCol := Column - 1;
   if ResultCol < 0 then begin
     CellText := (Node.Index +1).ToString;
     Exit;
   end;
+
   EditingAndFocused := Sender.IsEditing and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn);
   Results := GridResult(Sender);
   if (Results = nil) or (not Results.Connection.Active) then begin
@@ -10244,6 +10266,7 @@ begin
   // Happens in some crashes, see issue #2462
   if ResultCol >= Results.ColumnCount then
     Exit;
+
   RowNumber := Sender.GetNodeData(Node);
   Results.RecNo := RowNumber^;
   if Results.IsNull(ResultCol) and (not EditingAndFocused) then
@@ -10532,6 +10555,7 @@ begin
       end else
         NewText := NewText;
     end;
+    FClipboardHasNull := FClipboardHasNull and (Clipboard.TryAsText = '');
     IsNull := FGridPasting and FClipboardHasNull;
     Results.SetCol(ResultCol, NewText, IsNull, FGridEditFunctionMode);
   except
@@ -10932,9 +10956,9 @@ procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
   r: TDBQuery;
-  cl, clNull, clEven, clOdd, clSameData: TColor;
+  cl, clNull, clSameData: TColor;
   RowNumber: PInt64;
-  isEven, FocusedIsNull, CurrentIsNull: Boolean;
+  FocusedIsNull, CurrentIsNull: Boolean;
   FieldText, FocusedFieldText: String;
   VT: TVirtualStringTree;
   ResultCol: Integer;
@@ -10963,15 +10987,7 @@ begin
   RowNumber := Sender.GetNodeData(Node);
   r.RecNo := RowNumber^;
 
-  clEven := AppSettings.ReadInt(asRowBackgroundEven);
-  clOdd := AppSettings.ReadInt(asRowBackgroundOdd);
-  isEven := Node.Index mod 2 = 0;
-  if IsEven and (clEven <> clNone) then
-    cl := AppSettings.ReadInt(asRowBackgroundEven)
-  else if (not IsEven) and (clOdd <> clNone) then
-    cl := AppSettings.ReadInt(asRowBackgroundOdd)
-  else
-    cl := clNone;
+  cl := GetAlternatingRowBackground(Node);
 
   if (vsSelected in Node.States) and (Node = Sender.FocusedNode) and (Column = Sender.FocusedColumn) then begin
     // Focused cell
@@ -11167,31 +11183,6 @@ begin
       Results.SaveModifications;
       DisplayRowCountStats(Grid);
     end;
-  end;
-end;
-
-
-procedure TMainForm.ListDatabasesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-  var ContentRect: TRect);
-var
-  vt: TVirtualStringTree;
-  Val, Max: Extended;
-  LoopNode: PVirtualNode;
-begin
-  // Display color bars
-  if Column in [1,2,4..9] then begin
-    vt := Sender as TVirtualStringTree;
-    // Find out maximum value in column
-    LoopNode := vt.GetFirst;
-    Max := 1;
-    while Assigned(LoopNode) do begin
-      Val := MakeFloat(vt.Text[LoopNode, Column]);
-      if Val > Max then
-        Max := Val;
-      LoopNode := vt.GetNext(LoopNode);
-    end;
-    PaintColorBar(MakeFloat(vt.Text[Node, Column]), Max, TargetCanvas, CellRect);
   end;
 end;
 
@@ -11535,10 +11526,43 @@ procedure TMainForm.HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanv
   var ContentRect: TRect);
 var
   vt: TVirtualStringTree;
+  Val, Max: Extended;
+  LoopNode: PVirtualNode;
+  SessionVal, GlobalVal: String;
 begin
+  PaintAlternatingRowBackground(TargetCanvas, Node, CellRect);
   vt := Sender as TVirtualStringTree;
-  if (Column = 5) and (vt = ListProcesses) then
+
+  if (Column in [1,2,4..9]) and (vt = ListDatabases) then begin
+    // Find out maximum value in column
+    LoopNode := vt.GetFirst;
+    Max := 1;
+    while Assigned(LoopNode) do begin
+      Val := MakeFloat(vt.Text[LoopNode, Column]);
+      if Val > Max then
+        Max := Val;
+      LoopNode := vt.GetNext(LoopNode);
+    end;
+    PaintColorBar(MakeFloat(vt.Text[Node, Column]), Max, TargetCanvas, CellRect);
+  end;
+
+  // Highlight cell if session variable is different to global variable
+  if (Column = 1) and (vt = ListVariables) then begin
+    SessionVal := vt.Text[Node, 1];
+    GlobalVal := vt.Text[Node, 2];
+    if SessionVal <> GlobalVal then begin
+      TargetCanvas.Brush.Color := clWebBlanchedAlmond;
+      TargetCanvas.Pen.Color := TargetCanvas.Brush.Color;
+      TargetCanvas.Rectangle(CellRect);
+    end;
+  end;
+
+  // Nothing special on Status tab
+
+  if (Column = 5) and (vt = ListProcesses) then begin
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), FProcessListMaxTime, TargetCanvas, CellRect);
+  end;
+
   if (Column = 4) and (vt = ListCommandStats) then begin
     // Only paint bar in percentage column
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), 100, TargetCanvas, CellRect);
@@ -11931,7 +11955,7 @@ begin
       SetupSynEditors(ActiveObjectEditor);
     end;
     ActiveObjectEditor.Init(Obj);
-    UpdateFilterPanel(Self);
+    buttonedEditClear(editFilterVT);
   end;
 end;
 
@@ -12303,6 +12327,10 @@ begin
   if pnlPreview.Visible then begin
     pnlPreview.Height := AppSettings.GetDefaultInt(asDataPreviewHeight);
   end;
+  AppSettings.DeleteValue(asCompletionProposalWidth);
+  AppSettings.DeleteValue(asCompletionProposalNbLinesInWindow);
+  SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
+  SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 end;
 
 procedure TMainForm.menuRenameQueryTabClick(Sender: TObject);
@@ -12368,8 +12396,12 @@ procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
 begin
   // Click on "tree favorites" main button
   AppSettings.ResetPath;
-  AppSettings.WriteBool(asFavoriteObjectsOnly, (Sender as TAction).Checked);
+  AppSettings.WriteBool(asFavoriteObjectsOnly, actFavoriteObjectsOnly.Checked);
   editDatabaseTableFilterChange(Sender);
+  if actFavoriteObjectsOnly.Checked then
+    actFavoriteObjectsOnly.ImageIndex := 112
+  else
+    actFavoriteObjectsOnly.ImageIndex := 113;
 end;
 
 
@@ -13121,6 +13153,7 @@ begin
   Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
+  Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
   if Editor <> SynMemoSQLLog then begin
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
@@ -13233,24 +13266,24 @@ begin
 
 
   if MenuItem = menuQueryHelpersGenerateSelect then begin
-    sql := 'SELECT '+Implode(', ', ColumnNames)+CRLF+
-      #9'FROM '+ActiveDbObj.QuotedName(False);
+    sql := 'SELECT ' + Implode(', ', ColumnNames) + SLineBreak +
+      CodeIndent + 'FROM '+ActiveDbObj.QuotedName(False);
 
   end else if MenuItem = menuQueryHelpersGenerateInsert then begin
-    sql := 'INSERT INTO '+ActiveDbObj.QuotedName(False)+CRLF+
-      #9'('+Implode(', ', ColumnNames)+')'+CRLF+
-      #9'VALUES ('+Implode(', ', DefaultValues)+')';
+    sql := 'INSERT INTO ' + ActiveDbObj.QuotedName(False) + SLineBreak +
+      CodeIndent + '(' + Implode(', ', ColumnNames) + ')' + SLineBreak +
+      CodeIndent + 'VALUES (' + Implode(', ', DefaultValues) + ')';
 
   end else if MenuItem = menuQueryHelpersGenerateUpdate then begin
-    sql := 'UPDATE '+ActiveDbObj.QuotedName(False)+CRLF+#9'SET'+CRLF;
+    sql := 'UPDATE ' + ActiveDbObj.QuotedName(False) + SLineBreak + CodeIndent + 'SET' + SLineBreak;
     if ColumnNames.Count > 0 then begin
       for i:=0 to ColumnNames.Count-1 do begin
-        sql := sql + #9#9 + ColumnNames[i] + '=' + DefaultValues[i] + ',' + CRLF;
+        sql := sql + CodeIndent(2) + ColumnNames[i] + '=' + DefaultValues[i] + ',' + SLineBreak;
       end;
       Delete(sql, Length(sql)-2, 1);
     end else
-      sql := sql + #9#9'??? # No column names selected!'+CRLF;
-    sql := sql + #9'WHERE ' + WhereClause;
+      sql := sql + CodeIndent(2) + '??? # No column names selected!' + SLineBreak;
+    sql := sql + CodeIndent + 'WHERE ' + WhereClause;
 
   end else if MenuItem = menuQueryHelpersGenerateDelete then begin
     sql := 'DELETE FROM '+ActiveDbObj.QuotedName(False)+' WHERE ' + WhereClause;
@@ -14294,6 +14327,7 @@ begin
       on E:Exception do
         ErrorDialog(E.Message);
     end;
+    Done := True;
   end;
 
   // Sort list tables in idle time, so ListTables.TreeOptions.AutoSort does not crash the list
@@ -14301,12 +14335,14 @@ begin
   if (PageControlMain.ActivePage = tabDatabase) and (not FListTablesSorted) then begin
     ListTables.SortTree(ListTables.Header.SortColumn, ListTables.Header.SortDirection);
     FListTablesSorted := True;
+    Done := True;
   end;
 
   // Re-enable refresh action when application is idle
   if (not actRefresh.Enabled) and (FRefreshActionDisabledAt < (GetTickCount - 1000)) then
   begin
     actRefresh.Enabled := True;
+    Done := True;
   end;
 
 end;
@@ -14404,6 +14440,7 @@ procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolea
 var
   MainTabIndex, QueryTabIndex: integer;
   pt: TPoint;
+  Conn: TDBConnection;
 begin
   // Show full filename in tab hint. See issue #3527
   // Code taken from http://www.delphipraxis.net/97988-tabsheet-hint-funktioniert-nicht.html
@@ -14411,8 +14448,15 @@ begin
     pt := PageControlMain.ScreenToClient(Mouse.CursorPos);
     MainTabIndex := GetMainTabAt(pt.X, pt.Y);
     QueryTabIndex := MainTabIndex - tabQuery.PageIndex;
-    if (QueryTabIndex >= 0) and (QueryTabIndex < QueryTabs.Count) then
+    if (QueryTabIndex >= 0) and (QueryTabIndex < QueryTabs.Count) then begin
       HintStr := QueryTabs[QueryTabIndex].MemoFilename;
+    end
+    else if MainTabIndex = tabHost.TabIndex then begin
+      Conn := ActiveConnection;
+      HintStr := Conn.Parameters.Hostname;
+      if Conn.Parameters.IsAnySQLite then
+        HintStr := StringReplace(HintStr, DELIM, SLineBreak, [rfReplaceAll]);
+    end;
     HintInfo.ReshowTimeout := 1000;
   end;
 end;
@@ -14773,10 +14817,9 @@ begin
     if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
       MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
     Memo.UndoList.AddGroupBreak;
-    Memo.BeginUpdate;
     LineBreaks := ScanLineBreaks(Content);
     if ReplaceContent then begin
-      Memo.SelectAll;
+      Memo.Clear;
       MemoLineBreaks := LineBreaks;
     end else begin
       if (MemoLineBreaks <> lbsNone) and (MemoLineBreaks <> LineBreaks) then
@@ -14787,9 +14830,11 @@ begin
     if MemoLineBreaks = lbsMixed then
       MessageDialog(_('This file contains mixed linebreaks. They have been converted to Windows linebreaks (CR+LF).'), mtInformation, [mbOK]);
 
-    Memo.SelText := Content;
+    if ReplaceContent then
+      Memo.Text := Content
+    else
+      Memo.SelText := Content;
     Memo.SelStart := Memo.SelEnd;
-    Memo.EndUpdate;
     Memo.Modified := False;
     MemoFilename := Filepath;
     Result := True;
@@ -15180,6 +15225,7 @@ begin
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
   FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+  FTabIndex := QueryTab.ResultTabs.Count; // Will be 0 for the first one, even if we're already creating the first one here!
 end;
 
 destructor TResultTab.Destroy;

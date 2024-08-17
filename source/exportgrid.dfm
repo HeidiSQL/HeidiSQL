@@ -3,11 +3,11 @@ object frmExportGrid: TfrmExportGrid
   Top = 0
   BorderIcons = [biSystemMenu]
   Caption = 'Export grid rows'
-  ClientHeight = 445
-  ClientWidth = 373
+  ClientHeight = 412
+  ClientWidth = 574
   Color = clBtnFace
-  Constraints.MinHeight = 480
-  Constraints.MinWidth = 350
+  Constraints.MinHeight = 450
+  Constraints.MinWidth = 530
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -12
@@ -16,91 +16,69 @@ object frmExportGrid: TfrmExportGrid
   Position = poMainFormCenter
   OnClose = FormClose
   OnCreate = FormCreate
-  OnResize = FormResize
   OnShow = FormShow
   DesignSize = (
-    373
-    445)
+    574
+    412)
   TextHeight = 14
   object btnOK: TButton
-    Left = 209
-    Top = 412
+    Left = 410
+    Top = 379
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Caption = 'OK'
     Default = True
     ModalResult = 1
-    TabOrder = 0
+    TabOrder = 5
     OnClick = btnOKClick
   end
   object btnCancel: TButton
-    Left = 290
-    Top = 412
+    Left = 491
+    Top = 379
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
     Cancel = True
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 1
-  end
-  object grpFormat: TRadioGroup
-    Left = 8
-    Top = 112
-    Width = 137
-    Height = 294
-    Anchors = [akLeft, akTop, akBottom]
-    Caption = 'Output format'
-    ItemIndex = 0
-    Items.Strings = (
-      'Excel compatible'
-      'Delimited text'
-      'HTML table'
-      'XML'
-      'SQL INSERTs'
-      'SQL REPLACEs'
-      'LaTeX'
-      'Wiki markup'
-      'PHP Array')
-    TabOrder = 2
-    OnClick = grpFormatClick
+    TabOrder = 6
   end
   object grpSelection: TRadioGroup
-    Left = 151
-    Top = 112
-    Width = 214
+    Left = 8
+    Top = 168
+    Width = 558
     Height = 66
-    Anchors = [akTop, akRight]
+    Anchors = [akLeft, akTop, akRight]
     Caption = 'Row selection'
     ItemIndex = 1
     Items.Strings = (
       'Selected rows'
       'All loaded rows')
-    TabOrder = 3
+    TabOrder = 2
   end
   object grpOutput: TGroupBox
     Left = 8
     Top = 8
-    Width = 357
+    Width = 558
     Height = 98
     Anchors = [akLeft, akTop, akRight]
     Caption = 'Output target'
-    TabOrder = 4
+    TabOrder = 0
     DesignSize = (
-      357
+      558
       98)
     object lblEncoding: TLabel
       Left = 8
       Top = 72
-      Width = 47
-      Height = 13
+      Width = 54
+      Height = 14
       Caption = 'Encoding:'
     end
     object radioOutputCopyToClipboard: TRadioButton
       Left = 8
       Top = 18
-      Width = 335
+      Width = 540
       Height = 17
       Anchors = [akLeft, akTop, akRight]
       Caption = 'Copy to clipboard'
@@ -121,8 +99,8 @@ object frmExportGrid: TfrmExportGrid
     object editFilename: TButtonedEdit
       Left = 79
       Top = 42
-      Width = 264
-      Height = 21
+      Width = 469
+      Height = 22
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.VirtualImageListMain
       LeftButton.DropDownMenu = popupRecentFiles
@@ -139,152 +117,148 @@ object frmExportGrid: TfrmExportGrid
     object comboEncoding: TComboBox
       Left = 79
       Top = 69
-      Width = 264
-      Height = 21
+      Width = 469
+      Height = 22
       Style = csDropDownList
       Anchors = [akLeft, akTop, akRight]
       TabOrder = 3
     end
   end
   object grpOptions: TGroupBox
-    Left = 151
-    Top = 184
-    Width = 214
-    Height = 222
-    Anchors = [akTop, akRight, akBottom]
+    Left = 8
+    Top = 240
+    Width = 558
+    Height = 133
+    Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Options'
-    TabOrder = 5
+    TabOrder = 3
     DesignSize = (
-      214
-      222)
+      558
+      133)
     object lblSeparator: TLabel
-      Left = 6
-      Top = 116
-      Width = 76
-      Height = 13
+      Left = 279
+      Top = 18
+      Width = 83
+      Height = 14
       Caption = 'Field separator:'
     end
     object lblEncloser: TLabel
-      Left = 6
-      Top = 141
-      Width = 44
-      Height = 13
+      Left = 279
+      Top = 44
+      Width = 49
+      Height = 14
       Caption = 'Encloser:'
     end
     object lblTerminator: TLabel
-      Left = 6
-      Top = 167
-      Width = 76
-      Height = 13
+      Left = 279
+      Top = 71
+      Width = 87
+      Height = 14
       Caption = 'Line terminator:'
     end
     object lblNull: TLabel
-      Left = 6
-      Top = 194
-      Width = 57
-      Height = 13
+      Left = 279
+      Top = 97
+      Width = 64
+      Height = 14
       Caption = 'NULL value:'
     end
     object chkIncludeColumnNames: TCheckBox
-      Left = 6
+      Left = 8
       Top = 18
-      Width = 191
+      Width = 257
       Height = 17
-      Anchors = [akLeft, akTop, akRight]
       Caption = 'Include column names'
       Checked = True
       State = cbChecked
       TabOrder = 0
     end
     object editSeparator: TButtonedEdit
-      Left = 106
-      Top = 112
-      Width = 93
-      Height = 21
-      Anchors = [akLeft, akTop, akRight]
-      Images = MainForm.VirtualImageListMain
-      RightButton.DisabledImageIndex = 107
-      RightButton.ImageIndex = 108
-      RightButton.Visible = True
-      TabOrder = 3
-      Text = ';'
-      OnChange = editCSVChange
-      OnRightButtonClick = editCSVRightButtonClick
-    end
-    object editEncloser: TButtonedEdit
-      Left = 106
-      Top = 138
-      Width = 93
-      Height = 21
+      Left = 400
+      Top = 15
+      Width = 148
+      Height = 22
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.VirtualImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
       TabOrder = 4
+      Text = ';'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
-    object editTerminator: TButtonedEdit
-      Left = 106
-      Top = 164
-      Width = 93
-      Height = 21
+    object editEncloser: TButtonedEdit
+      Left = 400
+      Top = 41
+      Width = 148
+      Height = 22
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.VirtualImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
       TabOrder = 5
-      Text = '\r\n'
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
-    object chkIncludeAutoIncrement: TCheckBox
-      Left = 6
-      Top = 41
-      Width = 191
-      Height = 17
-      Anchors = [akLeft, akTop, akRight]
-      Caption = 'Include auto increment column'
-      TabOrder = 1
-    end
-    object chkIncludeQuery: TCheckBox
-      Left = 6
-      Top = 64
-      Width = 191
-      Height = 17
-      Anchors = [akLeft, akTop, akRight]
-      Caption = 'Include SQL query'
-      TabOrder = 2
-    end
-    object editNull: TButtonedEdit
-      Left = 106
-      Top = 191
-      Width = 93
-      Height = 21
+    object editTerminator: TButtonedEdit
+      Left = 400
+      Top = 68
+      Width = 148
+      Height = 22
       Anchors = [akLeft, akTop, akRight]
       Images = MainForm.VirtualImageListMain
       RightButton.DisabledImageIndex = 107
       RightButton.ImageIndex = 108
       RightButton.Visible = True
       TabOrder = 6
+      Text = '\r\n'
+      OnChange = editCSVChange
+      OnRightButtonClick = editCSVRightButtonClick
+    end
+    object chkIncludeAutoIncrement: TCheckBox
+      Left = 8
+      Top = 41
+      Width = 257
+      Height = 17
+      Caption = 'Include auto increment column'
+      TabOrder = 1
+    end
+    object chkIncludeQuery: TCheckBox
+      Left = 8
+      Top = 64
+      Width = 257
+      Height = 17
+      Caption = 'Include SQL query'
+      TabOrder = 2
+    end
+    object editNull: TButtonedEdit
+      Left = 400
+      Top = 94
+      Width = 148
+      Height = 22
+      Anchors = [akLeft, akTop, akRight]
+      Images = MainForm.VirtualImageListMain
+      RightButton.DisabledImageIndex = 107
+      RightButton.ImageIndex = 108
+      RightButton.Visible = True
+      TabOrder = 7
       OnChange = editCSVChange
       OnRightButtonClick = editCSVRightButtonClick
     end
     object chkRemoveLinebreaks: TCheckBox
-      Left = 6
+      Left = 8
       Top = 87
-      Width = 191
+      Width = 257
       Height = 17
-      Anchors = [akLeft, akTop, akRight]
       Caption = 'Remove linebreaks from contents'
-      TabOrder = 7
+      TabOrder = 3
     end
   end
   object btnSetClipboardDefaults: TButton
     Left = 8
-    Top = 412
+    Top = 379
     Width = 153
     Height = 25
     Anchors = [akLeft, akBottom]
@@ -292,12 +266,50 @@ object frmExportGrid: TfrmExportGrid
     ImageIndex = 4
     ImageName = 'icons8-paste-100'
     Images = MainForm.VirtualImageListMain
-    TabOrder = 6
+    TabOrder = 4
     OnClick = btnSetClipboardDefaultsClick
+  end
+  object grpFormat: TGroupBox
+    Left = 8
+    Top = 112
+    Width = 558
+    Height = 50
+    Anchors = [akLeft, akTop, akRight]
+    Caption = 'Output format'
+    TabOrder = 1
+    DesignSize = (
+      558
+      50)
+    object comboFormat: TComboBoxEx
+      Left = 8
+      Top = 18
+      Width = 540
+      Height = 23
+      ItemsEx = <
+        item
+          Caption = 'Excel CSV'
+          ImageIndex = 49
+          SelectedImageIndex = 49
+        end
+        item
+          Caption = 'CSV'
+          ImageIndex = 50
+          SelectedImageIndex = 50
+        end
+        item
+          Caption = '...'
+        end>
+      Style = csExDropDownList
+      Anchors = [akLeft, akTop, akRight]
+      TabOrder = 0
+      OnSelect = comboFormatSelect
+      Images = MainForm.VirtualImageListMain
+      DropDownCount = 20
+    end
   end
   object popupCSVchar: TPopupMenu
     AutoHotkeys = maManual
-    Left = 224
+    Left = 160
     Top = 6
     object menuCSVtab: TMenuItem
       Caption = 'Tab'
@@ -367,7 +379,7 @@ object frmExportGrid: TfrmExportGrid
   object popupRecentFiles: TPopupMenu
     AutoHotkeys = maManual
     OnPopup = popupRecentFilesPopup
-    Left = 312
+    Left = 248
     Top = 6
   end
 end

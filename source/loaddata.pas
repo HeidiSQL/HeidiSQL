@@ -10,7 +10,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.CheckLst,
-  SynRegExpr, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ToolWin, Vcl.ExtDlgs, System.Math, extra_controls,
+  SynRegExpr, Vcl.Buttons, Vcl.ExtCtrls, Vcl.ToolWin, Vcl.ExtDlgs, System.Math, System.IOUtils, extra_controls,
   dbconnection, dbstructures, gnugettext;
 
 type
@@ -53,6 +53,7 @@ type
     chkLocalNumbers: TCheckBox;
     chkTruncateTable: TCheckBox;
     btnCheckAll: TToolButton;
+    chkKeepDialogOpen: TCheckBox;
     const ProgressBarSteps=100;
     procedure FormCreate(Sender: TObject);
     procedure editFilenameChange(Sender: TObject);
@@ -104,6 +105,7 @@ begin
   updownIgnoreLines.Position := AppSettings.ReadInt(asCSVImportIgnoreLines);
   chkLowPriority.Checked := AppSettings.ReadBool(asCSVImportLowPriority);
   chkLocalNumbers.Checked := AppSettings.ReadBool(asCSVImportLocalNumbers);
+  chkKeepDialogOpen.Checked := AppSettings.ReadBool(asCSVKeepDialogOpen);
   // Uncheck critical "Truncate table" checkbox, to avoid accidental data removal
   chkTruncateTable.Checked := False;
   grpDuplicates.ItemIndex := AppSettings.ReadInt(asCSVImportDuplicateHandling);
@@ -172,6 +174,7 @@ begin
   AppSettings.WriteInt(asCSVImportIgnoreLines, updownIgnoreLines.Position);
   AppSettings.WriteBool(asCSVImportLowPriority, chkLowPriority.Checked);
   AppSettings.WriteBool(asCSVImportLocalNumbers, chkLocalNumbers.Checked);
+  AppSettings.WriteBool(asCSVKeepDialogOpen, chkKeepDialogOpen.Checked);
   AppSettings.WriteInt(asCSVImportDuplicateHandling, grpDuplicates.ItemIndex);
   AppSettings.WriteInt(asCSVImportParseMethod, grpParseMethod.ItemIndex);
 end;
@@ -300,7 +303,6 @@ procedure Tloaddataform.btnImportClick(Sender: TObject);
 var
   StartTickCount: Cardinal;
   i: Integer;
-  Warnings: TDBQuery;
 begin
   Screen.Cursor := crHourglass;
   StartTickCount := GetTickCount;
@@ -309,9 +311,11 @@ begin
   // Truncate table before importing
   if chkTruncateTable.Checked then try
     FConnection.Query('TRUNCATE TABLE ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
+    FConnection.ShowWarnings;
   except
     try
       FConnection.Query('DELETE FROM ' + FConnection.QuotedDbAndTableName(comboDatabase.Text, comboTable.Text));
+      FConnection.ShowWarnings;
     except
       on E:EDbError do
         ErrorDialog(_('Cannot truncate table'), E.Message);
@@ -329,26 +333,17 @@ begin
   FLineTerm := FConnection.UnescapeString(editLineTerminator.Text);
   FEscp := FConnection.UnescapeString(editFieldEscaper.Text);
 
+  if chkKeepDialogOpen.Checked then
+    ModalResult := mrNone;
+
   try
     case grpParseMethod.ItemIndex of
       0: ServerParse(Sender);
       1: ClientParse(Sender);
     end;
     MainForm.LogSQL(FormatNumber(FRowCount)+' rows imported in '+FormatNumber((GetTickcount-StartTickCount)/1000, 3)+' seconds.');
-    // SHOW WARNINGS is implemented as of MySQL 4.1.0
-    if FConnection.Parameters.IsAnyMySQL and (FConnection.ServerVersionInt >= 40100) then begin
-      Warnings := FConnection.GetResults('SHOW WARNINGS');
-      while not Warnings.Eof do begin
-        MainForm.LogSQL(Warnings.Col(0)+' ('+Warnings.Col(1)+'): '+Warnings.Col(2), lcError);
-        Warnings.Next;
-      end;
-      if Warnings.RecordCount > 0 then begin
-        ErrorDialog(f_('Your file was imported but the server returned %s warnings and/or notes. See the log panel for details.', [FormatNumber(Warnings.RecordCount)]));
-        ModalResult := mrNone;
-      end;
-    end;
     // Hint user if zero rows were detected in file
-    if (ModalResult <> mrNone) and (FRowCount = 0) then begin
+    if FRowCount = 0 then begin
       ErrorDialog(_('No rows were imported'),
         _('This can have several causes:')+CRLF+
         _(' - File is empty')+CRLF+
@@ -372,6 +367,9 @@ begin
       ErrorDialog(E.Message + sLineBreak + sLineBreak + editFilename.Text);
     end;
   end;
+
+  if ModalResult = mrNone then
+    btnCancel.Caption := _('Close');
 
   Mainform.ShowStatusMsg;
   MainForm.DisableProgress;
@@ -451,6 +449,7 @@ begin
 
   FConnection.Query(SQL);
   FRowCount := Max(FConnection.RowsAffected, 0);
+  FConnection.ShowWarnings;
 end;
 
 
@@ -458,6 +457,7 @@ procedure Tloaddataform.ClientParse(Sender: TObject);
 var
   P, ContentLen, ProgressCharsPerStep, ProgressChars: Integer;
   IgnoreLines, ValueCount, PacketSize: Integer;
+  LineNum: Int64;
   RowCountInChunk: Int64;
   EnclLen, TermLen, LineTermLen: Integer;
   Contents: String;
@@ -551,13 +551,13 @@ var
   begin
     if SQL = '' then
       Exit;
-    Inc(FRowCount);
+    Inc(LineNum);
     for i:=ValueCount to FColumnCount do begin
       Value := 'NULL';
       AddValue;
     end;
     ValueCount := 0;
-    if FRowCount > IgnoreLines then begin
+    if LineNum > IgnoreLines then begin
       Delete(SQL, Length(SQL)-1, 2);
       StreamWrite(OutStream, SQL + ')');
       SQL := '';
@@ -571,6 +571,8 @@ var
         OutStream.Read(PAnsiChar(SA)^, ChunkSize);
         OutStream.Size := 0;
         FConnection.Query(UTF8ToString(SA), False, lcScript);
+        Inc(FRowCount, Max(FConnection.RowsAffected, 0));
+        FConnection.ShowWarnings;
         SQL := '';
         RowCountInChunk := 0;
       end;
@@ -607,6 +609,7 @@ begin
   ProgressCharsPerStep := ContentLen div ProgressBarSteps;
   ProgressChars := 0;
   FRowCount := 0;
+  LineNum := 0;
   RowCountInChunk := 0;
   IgnoreLines := UpDownIgnoreLines.Position;
   ValueCount := 0;
@@ -648,7 +651,6 @@ begin
 
   Contents := '';
   FreeAndNil(OutStream);
-  FRowCount := Max(FRowCount-IgnoreLines, 0);
 
   if FConnection.Parameters.IsAnyMySQL then begin
     FConnection.Query('/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '''') */');
@@ -663,6 +665,8 @@ var
 begin
   AppSettings.ResetPath;
   Dialog := TExtFileOpenDialog.Create(Self);
+  Dialog.DefaultFolder := ExtractFilePath(editFilename.Text);
+  Dialog.FileName := ExtractFileName(editFilename.Text);
   Dialog.AddFileType('*.csv', _('CSV files'));
   Dialog.AddFileType('*.txt', _('Text files'));
   Dialog.AddFileType('*.*', _('All files'));

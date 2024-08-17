@@ -37,7 +37,7 @@ type
   end;
 
 var
-  PostgreSQLDatatypes: Array[0..37] of TDBDatatype =
+  PostgreSQLDatatypes: Array[0..38] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -227,6 +227,19 @@ var
       Name:            'TEXT';
       Names:           'text|int2vector|oidvector|bool';
       Description:     'Variable unlimited length.';
+      HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        True;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dbdtCiText;
+      NativeTypes:     '?';
+      Name:            'CITEXT';
+      Names:           'citext';
+      Description:     'A case-insensitive character string type. Essentially, it internally calls lower when comparing values. Otherwise, it behaves almost exactly like text.';
       HasLength:       False;
       RequiresLength:  False;
       HasBinary:       False;

@@ -68,7 +68,8 @@ interface
 uses
   System.Classes,
   Vcl.Menus,
-  VirtualTrees;
+  VirtualTrees.Types,
+  VirtualTrees.BaseTree;
 
 type
   TVTHeaderPopupOption = (
@@ -78,7 +79,7 @@ type
   );
   TVTHeaderPopupOptions = set of TVTHeaderPopupOption;
 
-  TColumnChangeEvent = procedure(const Sender: TBaseVirtualTree; const Column: TColumnIndex; Visible: Boolean) of object;
+  TColumnChangeEvent = procedure(const Sender: TObject; const Column: TColumnIndex; Visible: Boolean) of object;
 
   TVTHeaderPopupMenu = class(TPopupMenu)
   strict private
@@ -91,10 +92,10 @@ type
   strict protected
     procedure DoAddHeaderPopupItem(const Column: TColumnIndex; out Cmd: TAddPopupItemType); virtual;
     procedure DoColumnChange(Column: TColumnIndex; Visible: Boolean); virtual;
-    procedure OnMenuItemClick(Sender: TObject);
+    procedure OnMenuItemClick(Sender: TObject); virtual;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Popup(x, y: Integer); override;
+    procedure Popup(x, y: TDimension); override;
   published
     property Options: TVTHeaderPopupOptions read FOptions write FOptions default [poResizeToFitItem];
 
@@ -107,7 +108,9 @@ type
 implementation
 
 uses
-  Winapi.Windows, System.Types;
+  Winapi.Windows,
+  System.Types,
+  VirtualTrees.Header;
 
 resourcestring
   sResizeColumnToFit = 'Size &Column to Fit';
@@ -163,7 +166,7 @@ end;
 
 //----------------------------------------------------------------------------------------------------------------------
 
-procedure TVTHeaderPopupMenu.Popup(x, y: Integer);
+procedure TVTHeaderPopupMenu.Popup(x, y: TDimension);
 var
   ColPos: TColumnPosition;
   ColIdx: TColumnIndex;
@@ -212,7 +215,7 @@ begin
         with Columns[ColIdx] do
         begin
           if coVisible in Options then
-            Inc(VisibleCounter);
+            System.Inc(VisibleCounter);
           DoAddHeaderPopupItem(ColIdx, Cmd);
           if Cmd <> apHidden then
           begin
@@ -270,4 +273,3 @@ begin
 end;
 
 end.
-

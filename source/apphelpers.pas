@@ -187,7 +187,7 @@ type
     asUser, asPassword, asCleartextPluginEnabled, asWindowsAuth, asLoginPrompt, asPort, asLibrary, asAllProviders,
     asSSHtunnelActive, asPlinkExecutable, asSshExecutable, asSSHtunnelHost, asSSHtunnelHostPort, asSSHtunnelPort, asSSHtunnelUser,
     asSSHtunnelPassword, asSSHtunnelTimeout, asSSHtunnelPrivateKey, asSSLActive, asSSLKey,
-    asSSLCert, asSSLCA, asSSLCipher, asSSLWarnUnused, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
+    asSSLCert, asSSLCA, asSSLCipher, asSSLVerification, asSSLWarnUnused, asNetType, asCompressed, asLocalTimeZone, asQueryTimeout, asKeepAlive,
     asStartupScriptFilename, asDatabases, asComment, asDatabaseFilter, asTableFilter, asFilterVT, asExportSQLCreateDatabases,
     asExportSQLCreateTables, asExportSQLDataHow, asExportSQLDataInsertSize, asExportSQLFilenames, asExportZIPFilenames, asExportSQLDirectories,
     asExportSQLDatabase, asExportSQLServerDatabase, asExportSQLOutput, asExportSQLAddComments, asExportSQLRemoveAutoIncrement, asExportSQLRemoveDefiner,
@@ -201,7 +201,7 @@ type
 
     asCSVImportSeparator, asCSVImportEncloser, asCSVImportTerminator, asCSVImportFieldEscaper, asCSVImportWindowWidth, asCSVImportWindowHeight,
     asCSVImportFilename, asCSVImportFieldsEnclosedOptionally, asCSVImportIgnoreLines, asCSVImportLowPriority, asCSVImportLocalNumbers,
-    asCSVImportDuplicateHandling, asCSVImportParseMethod,
+    asCSVImportDuplicateHandling, asCSVImportParseMethod, asCSVKeepDialogOpen,
     asUpdatecheck, asUpdatecheckBuilds, asUpdatecheckInterval, asUpdatecheckLastrun, asUpdateCheckWindowWidth, asUpdateCheckWindowHeight,
     asTableToolsWindowWidth, asTableToolsWindowHeight, asTableToolsTreeWidth,
     asTableToolsFindTextTab, asTableToolsFindText, asTableToolsFindSQL, asTableToolsDatatype, asTableToolsFindCaseSensitive, asTableToolsFindMatchType, asFileImportWindowWidth, asFileImportWindowHeight,
@@ -212,7 +212,8 @@ type
     asCopyTableData, asCopyTableRecentFilter, asServerVersion, asServerVersionFull, asLastConnect,
     asConnectCount, asRefusedCount, asSessionCreated, asDoUsageStatistics,
     asLastUsageStatisticCall, asWheelZoom, asDisplayBars, asMySQLBinaries, asCustomSnippetsDirectory,
-    asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asTabsInMultipleLines, asWarnUnsafeUpdates, asQueryWarningsMessage, asQueryGridLongSortRowNum,
+    asPromptSaveFileOnTabClose, asRestoreTabs, asTabCloseOnDoubleClick, asTabCloseOnMiddleClick, asTabsInMultipleLines, asTabIconsGrayscaleMode,
+    asWarnUnsafeUpdates, asQueryGridLongSortRowNum,
     asCompletionProposal, asCompletionProposalInterval, asCompletionProposalSearchOnMid, asCompletionProposalWidth, asCompletionProposalNbLinesInWindow, asAutoUppercase,
     asTabsToSpaces, asFilterPanel, asAllowMultipleInstances, asFindDialogSearchHistory, asGUIFontName, asGUIFontSize,
     asTheme, asIconPack, asWebSearchBaseUrl,
@@ -333,6 +334,7 @@ type
   function IsFloat(Str: String): Boolean;
   function ScanLineBreaks(Text: String): TLineBreaks;
   function fixNewlines(txt: String): String;
+  procedure StripNewLines(var txt: String; Replacement: String=' ');
   function GetLineBreak(LineBreakIndex: TLineBreaks): String;
   procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   function GetShellFolder(FolderId: TGUID): String;
@@ -420,6 +422,7 @@ type
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function UserAgent(OwnerComponent: TComponent): String;
+  function CodeIndent(Steps: Integer=1): String;
 
 var
   AppSettings: TAppSettings;
@@ -827,6 +830,12 @@ begin
   result := txt;
 end;
 
+procedure StripNewLines(var txt: String; Replacement: String=' ');
+begin
+  txt := StringReplace(txt, #13#10, Replacement, [rfReplaceAll]);
+  txt := StringReplace(txt, #13, Replacement, [rfReplaceAll]);
+  txt := StringReplace(txt, #10, Replacement, [rfReplaceAll]);
+end;
 
 function GetLineBreak(LineBreakIndex: TLineBreaks): String;
 begin
@@ -1408,7 +1417,8 @@ begin
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
     VT.NodeHeight[Node] := VT.DefaultNodeHeight;
-    VT.MultiLine[Node] := MultiLineCount > 1;
+    // Nodes have vsMultiLine through InitNode event
+    // VT.MultiLine[Node] := MultiLineCount > 1;
     Node := VT.GetNextInitialized(Node);
   end;
   VT.EndUpdate;
@@ -1427,7 +1437,7 @@ begin
   else
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
   // Apply case insensitive incremental search event
-  if VT.IncrementalSearch <> VirtualTrees.isNone then
+  if VT.IncrementalSearch <> VirtualTrees.Types.isNone then
     VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
   VT.OnStartOperation := Mainform.AnyGridStartOperation;
   VT.OnEndOperation := Mainform.AnyGridEndOperation;
@@ -1523,6 +1533,7 @@ end;
 function SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
 var
   OldFocus: PVirtualNode;
+  MinimumColumnIndex: TColumnIndex;
 begin
   if Node = VT.RootNode then
     Node := nil;
@@ -1535,7 +1546,9 @@ begin
     if ClearSelection then
       VT.ClearSelection;
     VT.FocusedNode := Node;
-    VT.FocusedColumn := VT.Header.Columns.GetFirstVisibleColumn(True);
+    MinimumColumnIndex := VT.Header.Columns.GetFirstVisibleColumn(True);
+    if VT.FocusedColumn < MinimumColumnIndex then
+      VT.FocusedColumn := MinimumColumnIndex;
     VT.Selected[Node] := True;
     VT.ScrollIntoView(Node, False);
     if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
@@ -2380,7 +2393,7 @@ begin
     if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
-    rx.Expression := 'https?://\S+';
+    rx.Expression := 'https?://[^\s"]+';
     Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
@@ -2526,7 +2539,7 @@ var
   rx: TRegExpr;
   ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
   SSLPrivateKey, SSLCACertificate, SSLCertificate, SSLCipher: String;
-  NetType, WindowsAuth, WantSSL, CleartextPluginEnabled: Integer;
+  NetType, WindowsAuth, WantSSL, CleartextPluginEnabled, SSLVerification: Integer;
   AbsentFiles: TStringList;
 
   function GetParamValue(ShortName, LongName: String): String;
@@ -2605,6 +2618,7 @@ begin
   SSLCACertificate := GetParamValue('sslca', 'sslcacertificate');
   SSLCertificate := GetParamValue('sslcert', 'sslcertificate');
   SSLCipher := GetParamValue('sslcip', 'sslcipher');
+  SSLVerification := StrToIntDef(GetParamValue('sslvrf', 'sslverification'), -1);
   // Leave out support for startup script, seems reasonable for command line connecting
 
   if (Host <> '') or (User <> '') or (Pass <> '') or (Port <> '') or (Socket <> '') or (AllDatabases <> '') then begin
@@ -2641,6 +2655,8 @@ begin
       ConnectionParams.SSLCertificate := SSLCertificate;
     if SSLCipher <> '' then
       ConnectionParams.SSLCipher := SSLCipher;
+    if SSLVerification >= 0 then
+      ConnectionParams.SSLVerification := SSLVerification;
 
     if WindowsAuth in [0,1] then
       ConnectionParams.WindowsAuth := Boolean(WindowsAuth);
@@ -2895,7 +2911,7 @@ end;
 function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
   LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
 const
-  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{5}\color{%s}%s';
+  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{10}\color{%s}\style{+i}%s';
 begin
   // Return formatted item string for a TSynCompletionProposal
   if LeftColor = -1 then LeftColor := clGrayText;
@@ -2987,6 +3003,16 @@ begin
 end;
 
 
+function CodeIndent(Steps: Integer=1): String;
+begin
+  // Provide tab or spaces for indentation, uniquely used for all SQL statements
+  if AppSettings.ReadBool(asTabsToSpaces) then
+    Result := StringOfChar(' ', AppSettings.ReadInt(asTabWidth) * Steps)
+  else
+    Result := StringOfChar(#9, Steps);
+end;
+
+
 { Get SID of current Windows user, probably useful in the future
 function GetCurrentUserSID: string;
 type
@@ -3067,6 +3093,7 @@ var
   i, BatchStartOffset, ResultCount: Integer;
   PacketSize, MaxAllowedPacket: Int64;
   DoStoreResult, ErrorAborted, LogMaxResultsDone: Boolean;
+  Warnings: TDBQuery;
 begin
   inherited;
 
@@ -3136,6 +3163,7 @@ begin
     end;
     FConnection.LockedByThread := nil;
     Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
+    FConnection.ShowWarnings;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then
@@ -3531,7 +3559,8 @@ end;
 procedure TWinControlHelper.TrySetFocus;
 begin
   try
-    if Enabled and CanFocus then
+    if Enabled
+      and CanFocus then
       SetFocus;
   except
     on E:EInvalidOperation do
@@ -3698,6 +3727,7 @@ begin
   InitSetting(asSSLCert,                          'SSL_Cert',                              0, False, '', True);
   InitSetting(asSSLCA,                            'SSL_CA',                                0, False, '', True);
   InitSetting(asSSLCipher,                        'SSL_Cipher',                            0, False, '', True);
+  InitSetting(asSSLVerification,                  'SSL_Verification',                      2, False, '', True);
   InitSetting(asSSLWarnUnused,                    'SSL_WarnUnused',                        0, True);
   InitSetting(asNetType,                          'NetType',                               Integer(ntMySQL_TCPIP), False, '', True);
   InitSetting(asCompressed,                       'Compressed',                            0, False, '', True);
@@ -3754,7 +3784,7 @@ begin
   InitSetting(asCSVImportTerminator,              'CSVTerminator',                         0, False, '\r\n');
   InitSetting(asCSVImportFieldEscaper,            'CSVImportFieldEscaperV2',               0, False, '"');
   InitSetting(asCSVImportWindowWidth,             'CSVImportWindowWidth',                  530);
-  InitSetting(asCSVImportWindowHeight,            'CSVImportWindowHeight',                 530);
+  InitSetting(asCSVImportWindowHeight,            'CSVImportWindowHeight',                 550);
   InitSetting(asCSVImportFilename,                'loadfilename',                          0, False, '');
   InitSetting(asCSVImportFieldsEnclosedOptionally, 'CSVImportFieldsEnclosedOptionallyV2',  0, True);
   InitSetting(asCSVImportIgnoreLines,             'CSVImportIgnoreLines',                  1);
@@ -3762,6 +3792,7 @@ begin
   InitSetting(asCSVImportLocalNumbers,            'CSVImportLocalNumbers',                 0, False);
   InitSetting(asCSVImportDuplicateHandling,       'CSVImportDuplicateHandling',            2);
   InitSetting(asCSVImportParseMethod,             'CSVImportParseMethod',                  0);
+  InitSetting(asCSVKeepDialogOpen,                'CSVKeepDialogOpen',                     0, False);
   InitSetting(asUpdatecheck,                      'Updatecheck',                           0, False);
   InitSetting(asUpdatecheckBuilds,                'UpdatecheckBuilds',                     0, False);
   InitSetting(asUpdatecheckInterval,              'UpdatecheckInterval',                   3);
@@ -3829,8 +3860,8 @@ begin
   InitSetting(asTabCloseOnDoubleClick,            'TabCloseOnDoubleClick',                 0, True);
   InitSetting(asTabCloseOnMiddleClick,            'TabCloseOnMiddleClick',                 0, True);
   InitSetting(asTabsInMultipleLines,              'TabsInMultipleLines',                   0, True);
+  InitSetting(asTabIconsGrayscaleMode,            'TabIconsGrayscaleMode',                 1);
   InitSetting(asWarnUnsafeUpdates,                'WarnUnsafeUpdates',                     0, True);
-  InitSetting(asQueryWarningsMessage,             'QueryWarningsMessage',                  0, True);
   InitSetting(asQueryGridLongSortRowNum,          'QueryGridLongSortRowNum',               10000);
   InitSetting(asCompletionProposal,               'CompletionProposal',                    0, True);
   InitSetting(asCompletionProposalInterval,       'CompletionProposalInterval',            500);

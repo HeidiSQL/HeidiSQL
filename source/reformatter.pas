@@ -63,6 +63,8 @@ begin
         FOutputCode := FormatSqlOnlineSqlformatOrg(FInputCode);
       end;
     end;
+    // Unify line breaks, so selection end will be correct:
+    FOutputCode := fixNewlines(FOutputCode);
     TimeElapsed := GetTickCount64 - StartTime;
     MainForm.LogSQL(f_('Code reformatted in %s, using formatter %s', [FormatTimeNumber(TimeElapsed/1000, True, 3), '#'+grpReformatter.ItemIndex.ToString]));
   except
@@ -239,10 +241,7 @@ begin
   HttpReq.Request.CharSet := 'utf-8';
   HttpReq.Request.UserAgent := apphelpers.UserAgent(Self);
   Parameters := TStringList.Create;
-  if AppSettings.ReadBool(asTabsToSpaces) then
-    Parameters.AddPair('indent', StringOfChar(' ', AppSettings.ReadInt(asTabWidth)))
-  else
-    Parameters.AddPair('indent', #9);
+  Parameters.AddPair('indent', CodeIndent);
   Parameters.AddPair('input', FInputCode);
   Result := HttpReq.Post(APPDOMAIN + 'sql-formatter.php', Parameters);
   if Result.IsEmpty then

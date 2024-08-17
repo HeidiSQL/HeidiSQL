@@ -13,6 +13,7 @@ type
   TExtForm = class(TForm)
     private
       FSizeGrip: TSizeGripXP;
+      FPixelsPerInchDesigned: Integer;
       function GetHasSizeGrip: Boolean;
       procedure SetHasSizeGrip(Value: Boolean);
     protected
@@ -30,6 +31,7 @@ type
       function ScaleSize(x: Extended): Integer; overload;
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
+      property PixelsPerInchDesigned: Integer read FPixelsPerInchDesigned;
   end;
 
   // Modern file-open-dialog with high DPI support and encoding selector
@@ -83,6 +85,17 @@ type
       property OnExit: TNotifyEvent read FOnExit write FOnExit;
   end;
 
+  TExtComboBox = class(TComboBox)
+    private
+      FcbHintIndex: Integer;
+      FHintWindow: THintWindow;
+    protected
+      procedure Change; override;
+      procedure DropDown; override;
+      procedure CloseUp; override;
+      procedure InitiateAction; override;
+  end;
+
 
 implementation
 
@@ -95,6 +108,7 @@ var
 begin
   inherited;
 
+  FPixelsPerInchDesigned := 96;
   InheritFont(Font);
   HasSizeGrip := False;
 
@@ -422,22 +436,32 @@ class procedure TExtForm.PageControlTabHighlight(PageControl: TPageControl);
 var
   i, CurrentImage, CountOriginals: Integer;
   Images: TVirtualImageList;
+  GrayscaleMode: Integer;
+  IsQueryTab, DoGrayscale: Boolean;
 begin
   // Set grayscale icon on inactive tabs
   if not (PageControl.Images is TVirtualImageList) then
     Exit;
+  GrayscaleMode := AppSettings.ReadInt(asTabIconsGrayscaleMode);
+
   Images := PageControl.Images as TVirtualImageList;
   CountOriginals := Images.ImageCollection.Count;
 
   for i:=0 to PageControl.PageCount-1 do begin
     CurrentImage := PageControl.Pages[i].ImageIndex;
     if PageControl.ActivePageIndex = i then begin
-      if CurrentImage >= CountOriginals then
+      if CurrentImage >= CountOriginals then begin
+        // Grayscaled => Color
         PageControl.Pages[i].ImageIndex := CurrentImage - CountOriginals;
+      end;
     end
     else begin
-      if CurrentImage < CountOriginals then
-        PageControl.Pages[i].ImageIndex := CurrentImage + CountOriginals;
+      if CurrentImage < CountOriginals then begin
+        // Color => Grayscaled
+        IsQueryTab := (PageControl.Owner.Name = 'MainForm') and ExecRegExpr('^tabQuery\d*$', PageControl.Pages[i].Name);
+        if ((GrayscaleMode = 1) and IsQueryTab) or (GrayscaleMode = 2) then
+          PageControl.Pages[i].ImageIndex := CurrentImage + CountOriginals;
+      end;
     end;
   end;
 end;
@@ -639,5 +663,61 @@ begin
   SynUnicode.TextRect(Canvas, r, BorderWidth + 1, BorderWidth + 1, Text);
 end;
 
+
+
+{ TExtComboBox }
+
+procedure TExtComboBox.Change;
+var
+  P: TPoint;
+  HintRect: TRect;
+  HintText: String;
+  HintWidth, Padding: Integer;
+begin
+  inherited;
+  if (ItemIndex > -1) and DroppedDown and GetCursorPos(P) then begin
+    HintText := Items[ItemIndex];
+    HintWidth := Canvas.TextWidth(HintText);
+    if HintWidth > Width then begin
+      Padding := TExtForm.ScaleSize(10, Self);
+      HintRect := Rect(
+        P.X + Padding,
+        P.Y + Padding * 2,
+        P.X + HintWidth + Padding * 3,
+        P.Y + Padding * 4
+        );
+      FHintWindow.ActivateHint(HintRect, HintText);
+    end;
+  end;
+end;
+
+procedure TExtComboBox.CloseUp;
+begin
+  inherited;
+  FHintWindow.Hide;
+  ControlStyle := ControlStyle - [csActionClient];
+end;
+
+procedure TExtComboBox.DropDown;
+begin
+  inherited;
+  if not Assigned(FHintWindow) then
+    FHintWindow := THintWindow.Create(Self);
+  FcbHintIndex := -1;
+  ControlStyle := ControlStyle + [csActionClient];
+end;
+
+procedure TExtComboBox.InitiateAction;
+var
+  Idx: Integer;
+begin
+  inherited;
+  Idx := ItemIndex;
+  if Idx <> FcbHintIndex then
+  begin
+    FcbHintIndex := ItemIndex;
+    Change;
+  end;
+end;
 
 end.

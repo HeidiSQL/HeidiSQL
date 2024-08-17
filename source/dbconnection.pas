@@ -29,7 +29,7 @@ type
   TDBQueryList = TObjectList<TDBQuery>;
   TDBObject = class;
 
-  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpDefault, cpVirtuality, cpComment, cpCollation);
+  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpSRID, cpDefault, cpVirtuality, cpComment, cpCollation);
   TColumnParts = Set of TColumnPart;
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
   // General purpose editing status flag
@@ -51,6 +51,7 @@ type
       OnUpdateType: TColumnDefaultType;
       OnUpdateText: String;
       Comment, Charset, Collation, GenerationExpression, Virtuality: String;
+      SRID: Cardinal;
       constructor Create(AOwner: TDBConnection; Serialized: String='');
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
@@ -79,17 +80,19 @@ type
       SPATIAL = 'SPATIAL';
     private
       FConnection: TDBConnection;
+      function GetInsideCreateCode: Boolean;
       function GetImageIndex: Integer;
     public
       Name, OldName: String;
       IndexType, OldIndexType, Algorithm, Comment: String;
-      Columns, SubParts: TStringList;
+      Columns, SubParts, Collations: TStringList;
       Modified, Added: Boolean;
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
       procedure Modification(Sender: TObject);
-      function SQLCode: String;
+      function SQLCode(TableName: String=''): String;
+      property InsideCreateCode: Boolean read GetInsideCreateCode;
       property ImageIndex: Integer read GetImageIndex;
       property Connection: TDBConnection read FConnection;
   end;
@@ -299,10 +302,11 @@ type
     ntInterbase_Local,
     ntFirebird_TCPIP,
     ntFirebird_Local,
-    ntMySQL_RDS
+    ntMySQL_RDS,
+    ntSQLiteEncrypted
     );
   TNetTypeGroup = (ngMySQL, ngMSSQL, ngPgSQL, ngSQLite, ngInterbase);
-  TNetGroupLibs = TDictionary<TNetTypeGroup, TStringList>;
+  TNetTypeLibs = TDictionary<TNetType, TStringList>;
 
   TConnectionParameters = class(TObject)
     strict private
@@ -311,7 +315,7 @@ type
       FSessionPath, FSSLPrivateKey, FSSLCertificate, FSSLCACertificate, FSSLCipher, FServerVersion,
       FSSHHost, FSSHUser, FSSHPassword, FSSHExe, FSSHPrivateKey,
       FIgnoreDatabasePattern: String;
-      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive: Integer;
+      FPort, FSSHPort, FSSHLocalPort, FSSHTimeout, FCounter, FQueryTimeout, FKeepAlive, FSSLVerification: Integer;
       FSSHActive, FLoginPrompt, FCompressed, FLocalTimeZone, FFullTableStatus,
       FWindowsAuth, FWantSSL, FIsFolder, FCleartextPluginEnabled: Boolean;
       FSessionColor: TColor;
@@ -319,9 +323,10 @@ type
       FLogFileDdl: Boolean;
       FLogFileDml: Boolean;
       FLogFilePath: String;
-      class var FLibraries: TNetGroupLibs;
+      class var FLibraries: TNetTypeLibs;
       function GetImageIndex: Integer;
       function GetSessionName: String;
+      function GetAllDatabasesList: TStringList;
     public
       constructor Create; overload;
       constructor Create(SessionRegPath: String); overload;
@@ -376,6 +381,7 @@ type
       property WindowsAuth: Boolean read FWindowsAuth write FWindowsAuth;
       property CleartextPluginEnabled: Boolean read FCleartextPluginEnabled write FCleartextPluginEnabled;
       property AllDatabasesStr: String read FAllDatabases write FAllDatabases;
+      property AllDatabasesList: TStringList read GetAllDatabasesList;
       property LibraryOrProvider: String read FLibraryOrProvider write FLibraryOrProvider;
       property Comment: String read FComment write FComment;
       property StartupScriptFilename: String read FStartupScriptFilename write FStartupScriptFilename;
@@ -398,6 +404,7 @@ type
       property SSLCertificate: String read FSSLCertificate write FSSLCertificate;
       property SSLCACertificate: String read FSSLCACertificate write FSSLCACertificate;
       property SSLCipher: String read FSSLCipher write FSSLCipher;
+      property SSLVerification: Integer read FSSLVerification write FSSLVerification;
       property IgnoreDatabasePattern: String read FIgnoreDatabasePattern write FIgnoreDatabasePattern;
       property LogFileDdl: Boolean read FLogFileDdl write FLogFileDdl;
       property LogFileDml: Boolean read FLogFileDml write FLogFileDml;
@@ -428,7 +435,14 @@ type
     spUSEQuery, spKillQuery, spKillProcess,
     spFuncLength, spFuncCeil, spFuncLeft, spFuncNow, spFuncLastAutoIncNumber,
     spLockedTables, spDisableForeignKeyChecks, spEnableForeignKeyChecks,
-    spOrderAsc, spOrderDesc);
+    spOrderAsc, spOrderDesc,
+    spForeignKeyDrop);
+  TFeatureOrRequirement = (frSrid, frTimezoneVar, frTemporalTypesFraction, frKillQuery,
+    frLockedTables, frShowCreateTrigger, frShowWarnings, frShowCollation, frShowCollationExtended,
+    frShowCharset, frIntegerDisplayWidth, frShowFunctionStatus, frShowProcedureStatus,
+    frShowTriggers, frShowEvents, frColumnDefaultParentheses, frForeignKeyChecksVar,
+    frHelpKeyword, frEditVariables, frCreateView, frCreateProcedure, frCreateFunction,
+    frCreateTrigger, frCreateEvent);
 
   TDBConnection = class(TComponent)
     private
@@ -510,7 +524,7 @@ type
       function GetCurrentUserHostCombination: String;
       function GetAllUserHostCombinations: TStringList;
       function DecodeAPIString(a: AnsiString): String;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual; abstract;
+      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
       procedure SetLockedByThread(Value: TThread); virtual;
@@ -586,6 +600,7 @@ type
       property RowsFound: Int64 read FRowsFound;
       property RowsAffected: Int64 read FRowsAffected;
       property WarningCount: Cardinal read FWarningCount;
+      procedure ShowWarnings; virtual;
       property LastQueryDuration: Cardinal read FLastQueryDuration;
       property LastQueryNetworkDuration: Cardinal read FLastQueryNetworkDuration;
       property IsUnicode: Boolean read FIsUnicode;
@@ -615,6 +630,7 @@ type
       property SQLFunctions: TSQLFunctionList read FSQLFunctions;
       function IsNumeric(Text: String): Boolean;
       function IsHex(Text: String): Boolean;
+      function Has(Item: TFeatureOrRequirement): Boolean;
     published
       property Active: Boolean read FActive write SetActive default False;
       property Database: String read FDatabase write SetDatabase;
@@ -664,6 +680,7 @@ type
       function MaxAllowedPacket: Int64; override;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
+      procedure ShowWarnings; override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -760,7 +777,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TSQLiteRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -794,7 +810,6 @@ type
       procedure Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL); override;
       function Ping(Reconnect: Boolean): Boolean; override;
       function GetCreateCode(Obj: TDBObject): String; override;
-      function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       property LastRawResults: TInterbaseRawResults read FLastRawResults;
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
@@ -837,6 +852,7 @@ type
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure Execute(AddResult: Boolean=False; UseRawResult: Integer=-1); virtual; abstract;
+      procedure LogMetaInfo(NumResult: Integer);
       procedure First;
       procedure Next;
       function ColumnCount: Integer;
@@ -876,6 +892,7 @@ type
       function DatabaseName: String; virtual; abstract;
       function TableName: String; overload;
       function TableName(Column: Integer): String; overload; virtual; abstract;
+      function ResultName: String;
       function QuotedDbAndTableName: String;
       procedure DiscardModifications;
       procedure PrepareColumnAttributes;
@@ -1085,7 +1102,7 @@ end;
 procedure TSecureShellCmd.Connect;
 var
   SshCmd, SshCmdDisplay, DialogTitle: String;
-  OutText, ErrorText, UserInput: String;
+  OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
   StartupInfo: TStartupInfo;
   ExitCode: LongWord;
@@ -1189,21 +1206,27 @@ begin
     end;
 
     if OutText <> '' then begin
+      // Prepend error text in the dialog, e.g. "Unable to use keyfile"
+      AllPipesText := OutText;
+      if not ErrorText.IsEmpty then begin
+        FConnection.Log(lcError, 'SSH: '+ErrorText);
+        AllPipesText := Trim('Error: ' + ErrorText + sLineBreak + AllPipesText);
+      end;
       if ExecRegExpr('login as\s*\:', OutText) then begin
         // Prompt for username
-        UserInput := InputBox(DialogTitle, OutText, '');
+        UserInput := InputBox(DialogTitle, AllPipesText, '');
         SendText(UserInput + CRLF);
       end else if ExecRegExpr('(password|Passphrase for key "[^"]+")\s*\:', OutText) then begin
         // Prompt for sensitive input. Send * as first char of prompt param so InputBox hides input characters
-        UserInput := InputBox(DialogTitle, #31+OutText, '');
+        UserInput := InputBox(DialogTitle, #31+AllPipesText, '');
         SendText(UserInput + CRLF);
       end else begin
         // Informational message box
         rx.Expression := '^[^\.]+\.';
         if rx.Exec(OutText) then begin // First words end with a dot - use it as caption
-          MessageDialog(DialogTitle + ': ' + rx.Match[0], OutText, mtInformation, [mbOK])
+          MessageDialog(DialogTitle + ': ' + rx.Match[0], AllPipesText, mtInformation, [mbOK])
         end else begin
-          MessageDialog(DialogTitle, OutText, mtInformation, [mbOK]);
+          MessageDialog(DialogTitle, AllPipesText, mtInformation, [mbOK]);
         end;
       end;
     end
@@ -1407,6 +1430,7 @@ begin
   FSSLCertificate := AppSettings.GetDefaultString(asSSLCert);
   FSSLCACertificate := AppSettings.GetDefaultString(asSSLCA);
   FSSLCipher := AppSettings.GetDefaultString(asSSLCipher);
+  FSSLVerification := AppSettings.GetDefaultInt(asSSLVerification);
   FStartupScriptFilename := AppSettings.GetDefaultString(asStartupScriptFilename);
   FQueryTimeout := AppSettings.GetDefaultInt(asQueryTimeout);
   FKeepAlive := AppSettings.GetDefaultInt(asKeepAlive);
@@ -1481,6 +1505,7 @@ begin
     FSSLCertificate := AppSettings.ReadString(asSSLCert);
     FSSLCACertificate := AppSettings.ReadString(asSSLCA);
     FSSLCipher := AppSettings.ReadString(asSSLCipher);
+    FSSLVerification := AppSettings.ReadInt(asSSLVerification);
     FStartupScriptFilename := AppSettings.ReadString(asStartupScriptFilename);
     FQueryTimeout := AppSettings.ReadInt(asQueryTimeout);
     FKeepAlive := AppSettings.ReadInt(asKeepAlive);
@@ -1550,6 +1575,7 @@ begin
     AppSettings.WriteString(asSSLCert, FSSLCertificate);
     AppSettings.WriteString(asSSLCA, FSSLCACertificate);
     AppSettings.WriteString(asSSLCipher, FSSLCipher);
+    AppSettings.WriteInt(asSSLVerification, FSSLVerification);
     AppSettings.WriteString(asIgnoreDatabasePattern, FIgnoreDatabasePattern);
     AppSettings.WriteBool(asLogFileDdl, FLogFileDdl);
     AppSettings.WriteBool(asLogFileDml, FLogFileDml);
@@ -1627,6 +1653,7 @@ begin
       ntPgSQL_TCPIP:            Result := PrefixPostgres+' (TCP/IP)';
       ntPgSQL_SSHtunnel:        Result := PrefixPostgres+' (SSH tunnel)';
       ntSQLite:                 Result := PrefixSqlite;
+      ntSQLiteEncrypted:        Result := PrefixSqlite+' (Encrypted)';
       ntInterbase_TCPIP:        Result := PrefixInterbase+' (TCP/IP, experimental)';
       ntInterbase_Local:        Result := PrefixInterbase+' (Local, experimental)';
       ntFirebird_TCPIP:         Result := PrefixFirebird+' (TCP/IP, experimental)';
@@ -1667,7 +1694,7 @@ begin
       Result := ngMSSQL;
     ntPgSQL_TCPIP, ntPgSQL_SSHtunnel:
       Result := ngPgSQL;
-    ntSQLite:
+    ntSQLite, ntSQLiteEncrypted:
       Result := ngSQLite;
     ntInterbase_TCPIP, ntInterbase_Local, ntFirebird_TCPIP, ntFirebird_Local:
       Result := ngInterbase;
@@ -1724,9 +1751,15 @@ end;
 
 
 function TConnectionParameters.IsMySQL(StrictDetect: Boolean): Boolean;
+var
+  MajorVersionNum: String;
 begin
   if StrictDetect then begin
-    Result := IsAnyMySQL and (ContainsText(ServerVersion, 'mysql') or IsMySQLonRDS);
+    MajorVersionNum := RegExprGetMatch('\b(\d+)\.\d+\.\d+', ServerVersion, 1);
+    Result := IsAnyMySQL and (not IsMariaDB) and (
+      (ContainsText(ServerVersion, 'mysql') or IsMySQLonRDS) // RDS is always MySQL, but does not contain "mysql"
+      or (StrToIntDef(MajorVersionNum, -1) in [3,4,5,8]) // MySQL 8.0 does not contain "mysql", but major version only exists in MySQL
+      );
   end else begin
     Result := IsAnyMySQL
       and (not IsMariaDB)
@@ -1876,7 +1909,12 @@ begin
     ngMySQL: Result := 'libmariadb.dll';
     ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngPgSQL: Result := 'libpq.dll';
-    ngSQLite: Result := 'sqlite3.dll';
+    ngSQLite: begin
+      if NetType = ntSQLite then
+        Result := 'sqlite3.dll'
+      else
+        Result := 'sqlite3mc.dll';
+    end;
     ngInterbase: begin
       if IsInterbase then
         Result := IfThen(GetExecutableBits=64, 'ibclient64.dll', 'gds32.dll')
@@ -1971,10 +2009,10 @@ var
   Provider: String;
 begin
   if not Assigned(FLibraries) then begin
-    FLibraries := TNetGroupLibs.Create;
+    FLibraries := TNetTypeLibs.Create;
   end;
 
-  if not FLibraries.ContainsKey(NetTypeGroup) then begin
+  if not FLibraries.ContainsKey(NetType) then begin
     FoundLibs := TStringList.Create;
     rx := TRegExpr.Create;
     rx.ModifierI := True;
@@ -1985,8 +2023,12 @@ begin
         rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)$');
       ngPgSQL:
         rx.Expression := '^libpq.*\.dll$';
-      ngSQLite:
-        rx.Expression := '^sqlite.*\.dll$';
+      ngSQLite: begin
+        if NetType = ntSQLite then
+          rx.Expression := '^sqlite.*\.dll$'
+        else
+          rx.Expression := '^sqlite3mc.*\.dll$';
+      end;
       ngInterbase:
         rx.Expression := '^(gds32|ibclient|fbclient).*\.dll$';
     end;
@@ -2018,9 +2060,9 @@ begin
       end;
     end;
     rx.Free;
-    FLibraries.Add(NetTypeGroup, FoundLibs);
+    FLibraries.Add(NetType, FoundLibs);
   end;
-  FLibraries.TryGetValue(NetTypeGroup, Result);
+  FLibraries.TryGetValue(NetType, Result);
 end;
 
 
@@ -2035,6 +2077,28 @@ begin
     Result := FSessionPath;
 end;
 
+
+function TConnectionParameters.GetAllDatabasesList: TStringList;
+var
+  rx: TRegExpr;
+  dbname: String;
+begin
+  Result := TStringList.Create;
+  if FAllDatabases <> '' then begin
+    rx := TRegExpr.Create;
+    rx.Expression := '[^;]+';
+    rx.ModifierG := True;
+    if rx.Exec(FAllDatabases) then while true do begin
+      // Add if not a duplicate
+      dbname := Trim(rx.Match[0]);
+      if Result.IndexOf(dbname) = -1 then
+        Result.Add(dbname);
+      if not rx.ExecNext then
+        break;
+    end;
+    rx.Free;
+  end;
+end;
 
 
 
@@ -2075,6 +2139,7 @@ begin
   FMaxRowsPerInsert := 10000;
   FCaseSensitivity := 0;
   FStringQuoteChar := '''';
+  FCollationTable := nil;
 end;
 
 
@@ -2176,7 +2241,14 @@ end;
 destructor TAdoDBConnection.Destroy;
 begin
   if Active then Active := False;
-  FreeAndNil(FAdoHandle);
+  try
+    FreeAndNil(FAdoHandle);
+  except
+    on E:Exception do begin
+      // Destroy > ClearRefs > GetDataSetCount throws some error, but max in Delphi 11.2 yet
+      Log(lcError, E.Message);
+    end;
+  end;
   inherited;
 end;
 
@@ -2269,11 +2341,25 @@ var
   i: Integer;
   rx: TRegExpr;
   TypeFound: Boolean;
+  TypeOid: String;
 begin
   rx := TRegExpr.Create;
   TypeFound := False;
   for i:=0 to High(Datatypes) do begin
-    if Datatypes[i].NativeTypes = '' then
+    if Datatypes[i].NativeTypes = '?' then begin
+      // PG oid is set to be populated via '?'
+      Datatypes[i].NativeTypes := '';
+      try
+        TypeOid := GetVar('SELECT '+EscapeString(Datatypes[i].Name.ToLower)+'::regtype::oid');
+        if IsNumeric(TypeOid) then begin
+          Datatypes[i].NativeTypes := TypeOid;
+          Log(lcInfo, 'Found oid/NativeTypes of '+Datatypes[i].Name+' data type: '+Datatypes[i].NativeTypes);
+        end;
+      except
+      end;
+    end;
+    // Skip if native ids / oid's are (still) empty
+    if Datatypes[i].NativeTypes.IsEmpty then
       Continue;
     rx.Expression := '\b('+Datatypes[i].NativeTypes+')\b';
     if rx.Exec(IntToStr(NativeType)) then begin
@@ -2282,6 +2368,16 @@ begin
       break;
     end;
   end;
+
+  { Dynamically retrieve data type from pg_type.
+    Problematic because we would not know which TDBDatatypeIndex to assign.
+  if (not TypeFound) and Parameters.IsAnyPostgreSQL then begin
+    PgType := GetResults('SELECT * FROM '+QuoteIdent('pg_type')+' WHERE '+QuoteIdent('oid')+'='+NativeType.ToString);
+    if PgType.RecordCount = 1 then begin
+      SetLength(FDatatypes, Length(FDatatypes)+1);
+    end;
+  end;}
+
   if not TypeFound then begin
     // Fall back to unknown type
     Result := Datatypes[0];
@@ -2322,12 +2418,11 @@ end;
 procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
-  ClientFlags, FinalPort: Integer;
+  ClientFlags, FinalPort, SSLoption: Integer;
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
-  sslca, sslkey, sslcert, sslcipher: PAnsiChar;
-  PluginDir: AnsiString;
+  PluginDir, TlsVersions: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
   SetOptionResult: Integer;
@@ -2346,27 +2441,47 @@ begin
     FinalPort := FParameters.Port;
 
     if FParameters.WantSSL then begin
-      // mysql_ssl_set() wants nil, while PAnsiChar(AnsiString()) is never nil
-      sslkey := nil;
-      sslcert := nil;
-      sslca := nil;
-      sslcipher := nil;
+      // Define which TLS protocol versions are allowed.
+      // See https://www.heidisql.com/forum.php?t=27158
+      // See https://mariadb.com/kb/en/library/mysql_optionsv/
+      // See issue #1768
+      TlsVersions := 'TLSv1,TLSv1.1,TLSv1.2,TLSv1.3';
+      //TlsVersions := 'TLSv1.1';
+      SetOptionResult := FLib.mysql_options(FHandle, FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
+      SetOptionResult := SetOptionResult +
+        FLib.mysql_options(FHandle, FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       if FParameters.SSLPrivateKey <> '' then
-        sslkey := PAnsiChar(AnsiString(FParameters.SSLPrivateKey));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
       if FParameters.SSLCertificate <> '' then
-        sslcert := PAnsiChar(AnsiString(FParameters.SSLCertificate));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
       if FParameters.SSLCACertificate <> '' then
-        sslca := PAnsiChar(AnsiString(FParameters.SSLCACertificate));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
       if FParameters.SSLCipher <> '' then
-        sslcipher := PAnsiChar(AnsiString(FParameters.SSLCipher));
-      { TODO : Use Cipher and CAPath parameters }
-      FLib.mysql_ssl_set(FHandle,
-        sslkey,
-        sslcert,
-        sslca,
-        nil,
-        sslcipher);
-      Log(lcInfo, _('SSL parameters successfully set.'));
+        SetOptionResult := SetOptionResult +
+          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
+      if FParameters.SSLVerification in [1,2] then begin
+        // MySQL and MariaDB have different options for this
+        if FLib.MYSQL_OPT_SSL_MODE > TMySQLLib.INVALID_OPT then begin
+          if FParameters.SSLVerification = 1 then
+            SSLoption := FLib.SSL_MODE_VERIFY_CA
+          else
+            SSLoption := FLib.SSL_MODE_VERIFY_IDENTITY;
+          SetOptionResult := SetOptionResult +
+            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_MODE, @SSLoption);
+        end
+        else begin
+          SSLoption := 1;
+          SetOptionResult := SetOptionResult +
+            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @SSLoption);
+        end;
+      end;
+      if SetOptionResult = 0 then
+        Log(lcInfo, _('SSL parameters successfully set.'))
+      else
+        Log(lcError, f_('SSL parameters not fully set. Result: %d', [SetOptionResult]));
     end;
 
     case FParameters.NetType of
@@ -2413,30 +2528,24 @@ begin
 
     // Point libmysql to the folder with client plugins
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
-    SetOptionResult := FLib.mysql_options(FHandle, Integer(MYSQL_PLUGIN_DIR), PAnsiChar(PluginDir));
+    SetOptionResult := FLib.mysql_options(FHandle, FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
     if SetOptionResult <> 0 then begin
       raise EDbError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
     end;
 
-    // Define which TLS protocol versions are allowed.
-    // See https://www.heidisql.com/forum.php?t=27158
-    // See https://mariadb.com/kb/en/library/mysql_optionsv/
-    FLib.mysql_options(FHandle, Integer(MARIADB_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_TLS_VERSION), PAnsiChar('TLSv1,TLSv1.1,TLSv1.2,TLSv1.3'));
-
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
-      FLib.mysql_options(FHandle, Integer(MYSQL_ENABLE_CLEARTEXT_PLUGIN), PAnsiChar('1'));
+      FLib.mysql_options(FHandle, FLib.MYSQL_ENABLE_CLEARTEXT_PLUGIN, PAnsiChar('1'));
 
     // Tell server who we are
     if Assigned(FLib.mysql_optionsv) then
-      FLib.mysql_optionsv(FHandle, Integer(MYSQL_OPT_CONNECT_ATTR_ADD), 'program_name', APPNAME);
+      FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', APPNAME);
 
     // Seems to be still required on some systems, for importing CSV files
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_LOCAL_INFILE), PAnsiChar('1'));
+    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_LOCAL_INFILE, PAnsiChar('1'));
 
     // Ensure we have some connection timeout
-    FLib.mysql_options(FHandle, Integer(MYSQL_OPT_CONNECT_TIMEOUT), @FParameters.QueryTimeout);
+    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_CONNECT_TIMEOUT, @FParameters.QueryTimeout);
 
     Connected := FLib.mysql_real_connect(
       FHandle,
@@ -2454,11 +2563,20 @@ begin
       FConnectionStarted := 0;
       FHandle := nil;
       EndSSHTunnel;
-      if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
+      if Error.Contains('SEC_E_ALGORITHM_MISMATCH') then begin
+        ErrorHint := f_('This is a known issue with older libraries. Try a newer %s in the session settings.',
+          ['libmysql']
+          );
+      end
+      else if Error.Contains('certificate verif') then begin
+        ErrorHint := _('You might need to lower the certificate verification in the SSL settings.');
+      end
+      else if (FParameters.DefaultLibrary <> '') and (FParameters.LibraryOrProvider <> FParameters.DefaultLibrary) then begin
         ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
           [FParameters.DefaultLibrary, FParameters.LibraryOrProvider]
           );
-      end else begin
+      end
+      else begin
         ErrorHint := '';
       end;
       raise EDbError.Create(Error, LastErrorCode, ErrorHint);
@@ -2840,10 +2958,13 @@ end;
 procedure TSQLiteConnection.SetActive(Value: Boolean);
 var
   ConnectResult: Integer;
+  RawPassword: AnsiString;
   ErrorHint: String;
-  FileNames: TStringList;
-  MainFile, DbAlias: String;
-  i: Integer;
+  FileNames, EncryptionParams: TStringList;
+  MainFile, DbAlias, Param, ParamName: String;
+  i, SplitPos, ParamValue: Integer;
+  CipherIndex, ConfigResult: Integer;
+  ParamWasSet: Boolean;
 begin
   // Support multiple filenames, and use first one as main database
   FileNames := Explode(DELIM, Parameters.Hostname);
@@ -2858,6 +2979,54 @@ begin
 
     if ConnectResult = SQLITE_OK then begin
       FActive := True;
+      if Parameters.NetType = ntSQLiteEncrypted then begin
+        // Use encryption key
+        CipherIndex := FLib.sqlite3mc_cipher_index(PAnsiChar(AnsiString(Parameters.Username)));
+        if CipherIndex = -1 then
+          raise EDbError.Create(f_('Warning: Given cipher scheme name "%s" could not be found', [Parameters.Username]));
+        ConfigResult := FLib.sqlite3mc_config(FHandle, PAnsiChar('cipher'), CipherIndex);
+        if ConfigResult = -1 then
+          raise EDbError.Create(f_('Warning: Configuring with cipher index %d failed', [CipherIndex]));
+        // Set encryption parameters:
+        EncryptionParams := Parameters.AllDatabasesList;
+        for Param in EncryptionParams do begin
+          Log(lcDebug, 'Cipher encryption parameter: "'+Param+'"');
+          SplitPos := Param.IndexOf('=');
+          ParamWasSet := False;
+          if SplitPos > -1 then begin
+            ParamName := Copy(Param, 1, SplitPos);
+            ParamValue := StrToIntDef(Copy(Param, SplitPos+2, Length(Param)), -1);
+            if ParamValue > -1 then begin
+              ConfigResult := FLib.sqlite3mc_config_cipher(
+                FHandle,
+                PAnsiChar(AnsiString(Parameters.Username)),
+                PAnsiChar(AnsiString(ParamName)),
+                ParamValue
+                );
+              if ConfigResult <> -1 then
+                ParamWasSet := True;
+            end
+          end;
+          if not ParamWasSet then begin
+            Log(lcError, f_('Warning: Failed to set cipher encryption parameter "%s"', [Param]));
+          end;
+        end;
+        // Set the main database key
+        RawPassword := AnsiString(Parameters.Password);
+        FLib.sqlite3_key(FHandle, Pointer(RawPassword), Length(RawPassword));
+        // See https://utelle.github.io/SQLite3MultipleCiphers/docs/configuration/config_capi/
+        // "These functions return SQLITE_OK even if the provided key isn’t correct. This is because the key isn’t
+        // actually used until a subsequent attempt to read or write the database is made. To check whether the
+        // provided key was actually correct, you must execute a simple query like e.g. SELECT * FROM sqlite_master;
+        // and check whether that succeeds."
+        try
+          Query(ApplyLimitClause('SELECT', '* FROM sqlite_master', 1, 0));
+        except
+          on E:EDbError do
+            raise EDbError.Create(E.Message, 0, _('You have activated encryption on a probably non-encrypted database.'));
+        end;
+      end;
+
       FLib.sqlite3_collation_needed(FHandle, Self, SQLite_CollationNeededCallback);
       Query('PRAGMA busy_timeout='+(Parameters.QueryTimeout*1000).ToString);
       // Override "main" database name with custom one
@@ -3031,10 +3200,19 @@ begin
   end;
 
   // Prepare connection
-  if FParameters.Password <> '' then UsingPass := 'Yes' else UsingPass := 'No';
-  Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
-    [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
-    ));
+  UsingPass := IfThen(FParameters.Password.IsEmpty, 'No', 'Yes');
+  case FParameters.NetTypeGroup of
+    ngSQLite: begin
+      Log(lcInfo, f_('Connecting to %s via %s, cipher %s, using encryption key: %s ...',
+        [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
+        ));
+    end;
+    else begin
+      Log(lcInfo, f_('Connecting to %s via %s, username %s, using password: %s ...',
+        [FParameters.Hostname, FParameters.NetTypeName(True), FParameters.Username, UsingPass]
+        ));
+    end;
+  end;
 
   FSQLSpecifities[spOrderAsc] := 'ASC';
   FSQLSpecifities[spOrderDesc] := 'DESC';
@@ -3080,6 +3258,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := 'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0';
       FSQLSpecifities[spEnableForeignKeyChecks] := 'SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1)';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
     ngMSSQL: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3104,6 +3283,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
     ngPgSQL: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP SCHEMA %s';
@@ -3130,6 +3310,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP CONSTRAINT %s';
     end;
     ngSQLite: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3155,6 +3336,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
     ngInterbase: begin
       FSQLSpecifities[spDatabaseDrop] := 'DROP DATABASE %s';
@@ -3183,6 +3365,7 @@ begin
       FSQLSpecifities[spLockedTables] := '';
       FSQLSpecifities[spDisableForeignKeyChecks] := '';
       FSQLSpecifities[spEnableForeignKeyChecks] := '';
+      FSQLSpecifities[spForeignKeyDrop] := 'DROP FOREIGN KEY %s';
     end;
 
   end;
@@ -3244,7 +3427,10 @@ begin
   LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
-  FLib := TSQLiteLib.Create(LibraryPath, Parameters.DefaultLibrary);
+  if Parameters.NetType = ntSQLite then
+    FLib := TSQLiteLib.Create(LibraryPath, Parameters.DefaultLibrary)
+  else
+    FLib := TSQLiteLib.CreateWithMultipleCipherFunctions(LibraryPath, Parameters.DefaultLibrary);
   Log(lcDebug, FLib.DllFile + ' v' + ServerVersionUntouched + ' loaded.');
   inherited;
 end;
@@ -3281,6 +3467,7 @@ end;
 procedure TDBConnection.DoAfterConnect;
 var
   SQLFunctionsFileOrder: String;
+  MajorMinorVer, MajorVer: String;
 begin
   AppSettings.SessionPath := FParameters.SessionPath;
   AppSettings.WriteString(asServerVersionFull, FServerVersionUntouched);
@@ -3293,20 +3480,23 @@ begin
     FKeepAliveTimer.OnTimer := KeepAliveTimerEvent;
   end;
 
+  MajorMinorVer := RegExprGetMatch('^(\d+\.\d+)', ServerVersionStr, 1);
+  MajorVer := RegExprGetMatch('^(\d+)\.', ServerVersionStr, 1);
+
   if FParameters.IsMariaDB then
-    SQLFunctionsFileOrder := 'mariadb,mysql'
+    SQLFunctionsFileOrder := 'mariadb'+MajorMinorVer+',mariadb'+MajorVer+',mariadb,mysql'
   else if FParameters.IsAnyMySQL then
-    SQLFunctionsFileOrder := 'mysql'
+    SQLFunctionsFileOrder := 'mysql'+MajorMinorVer+',mysql'+MajorVer+',mysql'
   else if FParameters.IsRedshift then
-    SQLFunctionsFileOrder := 'redshift,postgresql'
+    SQLFunctionsFileOrder := 'redshift'+MajorMinorVer+',redshift'+MajorVer+',redshift,postgresql'
   else if FParameters.IsAnyPostgreSQL then
-    SQLFunctionsFileOrder := 'postgresql'
+    SQLFunctionsFileOrder := 'postgresql'+MajorMinorVer+',postgresql'+MajorVer+',postgresql'
   else if FParameters.IsAnyMSSQL then
-    SQLFunctionsFileOrder := 'mssql'
+    SQLFunctionsFileOrder := 'mssql'+MajorMinorVer+',mssql'+MajorVer+',mssql'
   else if FParameters.IsAnySQLite then
-    SQLFunctionsFileOrder := 'sqlite'
+    SQLFunctionsFileOrder := 'sqlite'+MajorMinorVer+',sqlite'+MajorVer+',sqlite'
   else if FParameters.IsAnyInterbase then
-    SQLFunctionsFileOrder := 'interbase'
+    SQLFunctionsFileOrder := 'interbase'+MajorMinorVer+',interbase'+MajorVer+',interbase'
   else
     SQLFunctionsFileOrder := '';
   FSQLFunctions := TSQLFunctionList.Create(Self, SQLFunctionsFileOrder);
@@ -3323,7 +3513,7 @@ begin
   inherited;
 
   // Set timezone offset to UTC
-  if (ServerVersionInt >= 40103) and Parameters.LocalTimeZone then begin
+  if Has(frTimezoneVar) and Parameters.LocalTimeZone then begin
     Minutes := 0;
     case GetTimeZoneInformation(TZI) of
       TIME_ZONE_ID_STANDARD: Minutes := (TZI.Bias + TZI.StandardBias);
@@ -3342,15 +3532,14 @@ begin
   end;
 
   // Support microseconds in some temporal datatypes of MariaDB 5.3+ and MySQL 5.6
-  if ((ServerVersionInt >= 50300) and Parameters.IsMariaDB) or
-    ((ServerVersionInt >= 50604) and (not Parameters.IsMariaDB)) then begin
+  if Has(frTemporalTypesFraction) then begin
     for i:=Low(FDatatypes) to High(FDatatypes) do begin
       if FDatatypes[i].Index in [dbdtDatetime, dbdtDatetime2, dbdtTime, dbdtTimestamp] then
         FDatatypes[i].HasLength := True;
     end;
   end;
 
-  if (ServerVersionInt >= 50000) and (not Parameters.IsMySQLonRDS) then begin
+  if Has(frKillQuery) then begin
     FSQLSpecifities[spKillQuery] := 'KILL QUERY %d';
   end;
 
@@ -3362,7 +3551,7 @@ begin
   except // silently fail if IS does not exist, on super old servers
   end;
 
-  if (ServerVersionInt >= 50124) and (not Parameters.IsProxySQLAdmin) then
+  if Has(frLockedTables) then
     FSQLSpecifities[spLockedTables] := 'SHOW OPEN TABLES FROM %s WHERE '+QuoteIdent('in_use')+'!=0';
 end;
 
@@ -4030,30 +4219,41 @@ begin
       Result := 'CREATE TABLE '+QuoteIdent(Obj.Name)+' (';
       TableCols := Obj.GetTableColumns;
       for TableCol in TableCols do begin
-        Result := Result + CRLF + #9 + TableCol.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableCol.SQLCode + ',';
       end;
       TableCols.Free;
 
       TableKeys := Obj.GetTableKeys;
       for TableKey in TableKeys do begin
-        Result := Result + CRLF + #9 + TableKey.SQLCode + ',';
+        if TableKey.InsideCreateCode then
+          Result := Result + sLineBreak + CodeIndent + TableKey.SQLCode + ',';
       end;
       TableKeys.Free;
 
       TableForeignKeys := Obj.GetTableForeignKeys;
       for TableForeignKey in TableForeignKeys do begin
-        Result := Result + CRLF + #9 + TableForeignKey.SQLCode(True) + ',';
+        Result := Result + sLineBreak + CodeIndent + TableForeignKey.SQLCode(True) + ',';
       end;
       TableForeignKeys.Free;
 
       TableCheckConstraints := Obj.GetTableCheckConstraints;
       for TableCheckConstraint in TableCheckConstraints do begin
-        Result := Result + CRLF + #9 + TableCheckConstraint.SQLCode + ',';
+        Result := Result + sLineBreak + CodeIndent + TableCheckConstraint.SQLCode + ',';
       end;
       TableCheckConstraints.Free;
 
       Delete(Result, Length(Result), 1);
-      Result := Result + CRLF + ')';
+      Result := Result + sLineBreak + ')';
+
+      TableKeys := Obj.GetTableKeys;
+      for TableKey in TableKeys do begin
+        if not TableKey.InsideCreateCode then begin
+          if TableKeys.IndexOf(TableKey) = 0 then
+            Result := Result + ';';
+          Result := Result + sLineBreak + TableKey.SQLCode + ';';
+        end;
+      end;
+      TableKeys.Free;
 
     end;
 
@@ -4191,7 +4391,7 @@ begin
         // SHOW CREATE TRIGGER was introduced in MySQL 5.1.21
         // See #111
         if Obj.NodeType = lntTrigger then
-          UseIt := UseIt and (ServerVersionInt >= 50121);
+          UseIt := UseIt and Has(frShowCreateTrigger);
         if UseIt then
           Queries.Add('SHOW CREATE '+UpperCase(Obj.ObjType)+' '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name));
       end;
@@ -4615,27 +4815,41 @@ begin
 end;
 
 
-function TDBConnection.GetAllDatabases: TStringList;
+procedure TDBConnection.ShowWarnings;
+begin
+  // Do nothing by default. SHOW WARNINGS is MySQL only.
+end;
+
+
+procedure TMySQLConnection.ShowWarnings;
 var
-  rx: TRegExpr;
-  dbname: String;
+  Warnings: TDBQuery;
+  Info: String;
+begin
+  // Log warnings
+  // SHOW WARNINGS is implemented as of MySQL 4.1.0
+  if (WarningCount > 0) and Has(frShowWarnings) then begin
+    Warnings := GetResults('SHOW WARNINGS');
+    while not Warnings.Eof do begin
+      Log(lcError, _(Warnings.Col('Level')) + ': ('+Warnings.Col('Code')+') ' + Warnings.Col('Message'));
+      Warnings.Next;
+    end;
+    Warnings.Free;
+  end;
+  Info := DecodeAPIString(FLib.mysql_info(FHandle));
+  if not Info.IsEmpty then begin
+    Log(lcInfo, _(SLogPrefixInfo) + ': ' + Info);
+  end;
+end;
+
+
+function TDBConnection.GetAllDatabases: TStringList;
 begin
   // Get user passed delimited list
+  // Ignore value in case of ntSQLiteEncrypted, when AllDatabasesStr holds encryption parameters
   if not Assigned(FAllDatabases) then begin
-    if FParameters.AllDatabasesStr <> '' then begin
-      FAllDatabases := TStringList.Create;
-      rx := TRegExpr.Create;
-      rx.Expression := '[^;]+';
-      rx.ModifierG := True;
-      if rx.Exec(FParameters.AllDatabasesStr) then while true do begin
-        // Add if not a duplicate
-        dbname := Trim(rx.Match[0]);
-        if FAllDatabases.IndexOf(dbname) = -1 then
-          FAllDatabases.Add(dbname);
-        if not rx.ExecNext then
-          break;
-      end;
-      rx.Free;
+    if (FParameters.AllDatabasesStr <> '') and (not FParameters.IsAnySQLite) then begin
+      FAllDatabases := FParameters.AllDatabasesList;
       ApplyIgnoreDatabasePattern(FAllDatabases);
     end;
   end;
@@ -5169,8 +5383,9 @@ end;
 function TDBConnection.CleanIdent(Identifier: string): string;
 begin
   Result := Trim(Identifier);
-  Result := LowerCase(Result);
-  Result := ReplaceRegExpr('[^a-z0-9]', Result, '_');
+  // See issue #1947:
+  //Result := LowerCase(Result);
+  Result := ReplaceRegExpr('[^A-Za-z0-9]', Result, '_');
   Result := ReplaceRegExpr('_+', Result, '_');
 end;
 
@@ -5328,8 +5543,24 @@ end;
 function TMySQLConnection.GetCollationTable: TDBQuery;
 begin
   inherited;
-  if (not Assigned(FCollationTable)) and (ServerVersionInt >= 40100) then
-    FCollationTable := GetResults('SHOW COLLATION');
+  if (not Assigned(FCollationTable)) and Has(frShowCollation) then begin
+    if Has(frShowCollationExtended) then try
+      // Issue #1917: MariaDB 10.10.1+ versions have additional collations in IS.COLLATION_CHARACTER_SET_APPLICABILITY
+      FCollationTable := GetResults('SELECT'+
+        ' FULL_COLLATION_NAME AS '+QuoteIdent('Collation')+
+        ', CHARACTER_SET_NAME AS '+QuoteIdent('Charset')+
+        ', ID AS '+QuoteIdent('Id')+
+        ', IS_DEFAULT AS '+QuoteIdent('Default')+
+        ', 0 AS '+QuoteIdent('Sortlen')+
+        ' FROM '+QuoteIdent(InfSch)+'.COLLATION_CHARACTER_SET_APPLICABILITY'+
+        ' ORDER BY '+QuoteIdent('Collation')
+        );
+    except
+      on E:EDbError do;
+    end;
+    if not Assigned(FCollationTable) then
+      FCollationTable := GetResults('SHOW COLLATION');
+  end;
   if Assigned(FCollationTable) then
     FCollationTable.First;
   Result := FCollationTable;
@@ -5394,7 +5625,7 @@ end;
 function TMySQLConnection.GetCharsetTable: TDBQuery;
 begin
   inherited;
-  if (not Assigned(FCharsetTable)) and (ServerVersionInt >= 40100) then
+  if (not Assigned(FCharsetTable)) and Has(frShowCharset) then
     FCharsetTable := GetResults('SHOW CHARSET');
   Result := FCharsetTable;
 end;
@@ -5555,21 +5786,22 @@ begin
     // Inexact fallback detection, wrong if MariaDB allows "0+1" as expression at some point
     Result := Result or Value.IsEmpty or IsInt(Value[1]);
   end else if FParameters.IsAnyMySQL then begin
-    if ServerVersionInt <= 80013 then begin
-      // Only MySQL case with expression in default value is as follows:
-      if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
-        Result := False;
-      end else begin
-        Result := True;
-      end;
+    // Only MySQL case with expression in default value is as follows:
+    if (Tp.Category = dtcTemporal) and Value.StartsWith('CURRENT_TIMESTAMP', True) then begin
+      Result := False;
     end
-    else begin
-      // https://dev.mysql.com/doc/refman/8.0/en/data-type-defaults.html#data-type-defaults-explicit
-      // MySQL 8.0.13+ expect expressions to be wrapped in (..) when you create a table.
-      // But checking if first char is an opening parenthesis does not work here, as we get the expression
-      // from IS.COLUMNS, not from SHOW CREATE TABLE. So here's a workaround for distinguishing text
-      // from an expression:
-      Result := not Value.Contains('(');
+    else if Tp.Index = dbdtBit then
+      Result := False
+    else case ServerVersionInt of
+      0..80013: Result := True;
+      else begin
+        // https://dev.mysql.com/doc/refman/8.0/en/data-type-defaults.html#data-type-defaults-explicit
+        // MySQL 8.0.13+ expect expressions to be wrapped in (..) when you create a table.
+        // But checking if first char is an opening parenthesis does not work here, as we get the expression
+        // from IS.COLUMNS, not from SHOW CREATE TABLE. So here's a workaround for distinguishing text
+        // from an expression:
+        Result := not Value.Contains('(');
+      end;
     end;
   end else if FParameters.IsAnyPostgreSQL then begin
     // text only if starting with '
@@ -5604,8 +5836,17 @@ begin
     Result.Add(Col);
     Col.Name := ColQuery.Col('COLUMN_NAME');
     Col.OldName := Col.Name;
-    // PG/MySQL use different fields:
-    dt := IfThen(ColQuery.ColExists('COLUMN_TYPE'), 'COLUMN_TYPE', 'DATA_TYPE');
+    // MySQL and most commonly used field:
+    if ColQuery.ColExists('COLUMN_TYPE') then
+      dt := 'COLUMN_TYPE'
+    // PostgreSQL:
+    else if ColQuery.ColExists('DATA_TYPE') then begin
+      // user defined types, like CITEXT:
+      if (ColQuery.Col('DATA_TYPE').ToLower = 'user-defined') and ColQuery.ColExists('UDT_NAME') then
+        dt := 'UDT_NAME'
+      else
+        dt := 'DATA_TYPE';
+    end;
     Col.ParseDatatype(ColQuery.Col(dt));
     // PG/MSSQL don't include length in data type
     if Col.LengthSet.IsEmpty and Col.DataType.HasLength then begin
@@ -5619,7 +5860,8 @@ begin
           end;
         end;
         dtcInteger: begin
-          if not ColQuery.IsNull('NUMERIC_PRECISION') then begin
+          if (not ColQuery.IsNull('NUMERIC_PRECISION')) and Has(frIntegerDisplayWidth) then begin
+            // Integer display width is deprecated as of MySQL 8.0.17
             MaxLen := ColQuery.Col('NUMERIC_PRECISION');
           end;
         end;
@@ -5652,13 +5894,14 @@ begin
     Col.Virtuality := RegExprGetMatch('\b(\w+)\s+generated\b', ExtraText.ToLowerInvariant, 1);
     Col.Invisible := ExecRegExprI('\binvisible\b', ExtraText);
     Col.AllowNull := ColQuery.Col('IS_NULLABLE').ToLowerInvariant = 'yes';
+    Col.SRID := StrToUIntDef(ColQuery.Col('SRS_ID', True), 0);
 
     DefText := ColQuery.Col('COLUMN_DEFAULT');
     Col.OnUpdateType := cdtNothing;
-    if ColQuery.Col('COLUMN_DEFAULT').StartsWith('nextval(', True) then begin
+    if DefText.StartsWith('nextval(', True) then begin
       // PG auto increment
       Col.DefaultType := cdtAutoInc;
-      Col.DefaultText := ColQuery.Col('COLUMN_DEFAULT');
+      Col.DefaultText := DefText;
     end
     else if ExecRegExpr('\bauto_increment\b', ExtraText.ToLowerInvariant) then begin
       // MySQL auto increment
@@ -5949,6 +6192,7 @@ begin
       end;
       NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
       NewKey.SubParts.Add('');
+      NewKey.Collations.Add('');
     end;
     KeyQuery.Next;
   end;
@@ -5980,6 +6224,7 @@ begin
       end;
       NewKey.Columns.Add(ColQuery.Col('name'));
       NewKey.SubParts.Add('');
+      NewKey.Collations.Add('');
       ColQuery.Next;
     end;
     ColQuery.Free;
@@ -5999,6 +6244,7 @@ begin
       while not ColQuery.Eof do begin
         NewKey.Columns.Add(ColQuery.Col('name'));
         NewKey.SubParts.Add('');
+        NewKey.Collations.Add('');
         ColQuery.Next;
       end;
       ColQuery.Free;
@@ -6032,8 +6278,9 @@ begin
         NewKey.Comment := KeyQuery.Col('Index_comment', True);
       end;
       NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+      NewKey.Collations.Add(KeyQuery.Col('Collation', True));
       if NewKey.IndexType = TTableKey.SPATIAL then
-        NewKey.SubParts.Add('') // Prevent "Incorrect prefix key"
+        NewKey.SubParts.Add('') // Keep in sync, prevent "Incorrect prefix key"
       else
         NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
       KeyQuery.Next;
@@ -6107,6 +6354,7 @@ begin
     end;
     NewKey.Columns.Add(KeyQuery.Col('COLUMN_NAME'));
     NewKey.SubParts.Add('');
+    NewKey.Collations.Add('');
     KeyQuery.Next;
   end;
   KeyQuery.Free;
@@ -6134,6 +6382,7 @@ begin
     end;
     NewKey.Columns.Add(ColQuery.Col('name'));
     NewKey.SubParts.Add('');
+    NewKey.Collations.Add('');
     ColQuery.Next;
   end;
   ColQuery.Free;
@@ -6153,6 +6402,7 @@ begin
     while not ColQuery.Eof do begin
       NewKey.Columns.Add(ColQuery.Col('name'));
       NewKey.SubParts.Add('');
+      NewKey.Collations.Add('');
       ColQuery.Next;
     end;
     ColQuery.Free;
@@ -6296,10 +6546,11 @@ begin
       '   '+InfSch+'.constraint_column_usage AS ccu'+
       ' WHERE'+
       '   refc.constraint_schema = '+EscapeString(Table.Schema)+
-      '   AND refc.constraint_name = kcu.constraint_name'+
-      '   AND refc.constraint_schema = kcu.table_schema'+
-      '   AND ccu.constraint_name = refc.constraint_name'+
       '   AND kcu.table_name = '+EscapeString(Table.Name)+
+      '   AND kcu.constraint_name = refc.constraint_name'+
+      '   AND kcu.table_schema = refc.constraint_schema'+
+      '   AND ccu.constraint_name = refc.constraint_name'+
+      '   AND ccu.constraint_schema = refc.constraint_schema'+
       ' GROUP BY'+
       '   refc.constraint_name,'+
       '   refc.update_rule,'+
@@ -6488,17 +6739,65 @@ begin
   end;
 end;
 
+function TDBConnection.Has(Item: TFeatureOrRequirement): Boolean;
+begin
+  case FParameters.NetTypeGroup of
+    ngMySQL:
+      case Item of
+        frSrid: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80000);
+        frTimezoneVar: Result := ServerVersionInt >= 40103;
+        frTemporalTypesFraction: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 50300)) or
+          (FParameters.IsMySQL(True) and (ServerVersionInt >= 50604));
+        frKillQuery: Result := (not FParameters.IsMySQLonRDS) and (ServerVersionInt >= 50000);
+        frLockedTables: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50124);
+        frShowCreateTrigger: Result := ServerVersionInt >= 50121;
+        frShowWarnings: Result := ServerVersionInt >= 40100;
+        frShowCollation: Result := ServerVersionInt >= 40100;
+        frShowCollationExtended: Result := FParameters.IsMariaDB and (ServerVersionInt >= 101001);
+        frShowCharset: Result := ServerVersionInt >= 40100;
+        frIntegerDisplayWidth: Result := (FParameters.IsMySQL(True) and (ServerVersionInt < 80017)) or
+          (not FParameters.IsMySQL(True));
+        frShowFunctionStatus: Result := (not Parameters.IsProxySQLAdmin) and (ServerVersionInt >= 50000);
+        frShowProcedureStatus: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50000);
+        frShowTriggers: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 50010);
+        frShowEvents: Result := (not Parameters.IsProxySQLAdmin) and (ServerVersionInt >= 50100);
+        frColumnDefaultParentheses: Result := FParameters.IsMySQL(True) and (ServerVersionInt >= 80013);
+        frForeignKeyChecksVar: Result := ServerVersionInt >= 40014;
+        frHelpKeyword: Result := (not FParameters.IsProxySQLAdmin) and (ServerVersionInt >= 40100);
+        frEditVariables: Result := ServerVersionInt >= 40003;
+        frCreateView: Result := ServerVersionInt >= 50001;
+        frCreateProcedure: Result := ServerVersionInt >= 50003;
+        frCreateFunction: Result := ServerVersionInt >= 50003;
+        frCreateTrigger: Result := ServerVersionInt >= 50002;
+        frCreateEvent: Result := ServerVersionInt >= 50100;
+      end;
+    else Result := False;
+  end;
+end;
+
+
+function TDBConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
+var
+  Rows: String;
+begin
+  // Get row number from a table
+  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
+  Result := MakeInt(Rows);
+end;
+
 
 function TMySQLConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
 var
   Rows: String;
 begin
   // Get row number from a mysql table
-  if Parameters.IsProxySQLAdmin or ForceExact then
-    Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0)
-  else
+  if Parameters.IsProxySQLAdmin or ForceExact then begin
+    Result := inherited
+  end
+  else begin
     Rows := GetVar('SHOW TABLE STATUS LIKE '+EscapeString(Obj.Name), 'Rows');
-  Result := MakeInt(Rows);
+    Result := MakeInt(Rows);
+  end;
 end;
 
 
@@ -6531,26 +6830,6 @@ begin
     ' AND '+QuoteIdent('pg_namespace')+'.'+QuoteIdent('nspname')+'='+EscapeString(Obj.Database)+
     ' AND '+QuoteIdent('pg_class')+'.'+QuoteIdent('relname')+'='+EscapeString(Obj.Name)
     );
-  Result := MakeInt(Rows);
-end;
-
-
-function TSQLiteConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
-var
-  Rows: String;
-begin
-  // Get row number from a table
-  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
-  Result := MakeInt(Rows);
-end;
-
-
-function TInterbaseConnection.GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64;
-var
-  Rows: String;
-begin
-  // Get row number from a table
-  Rows := GetVar('SELECT COUNT(*) FROM '+QuoteIdent(Obj.Database)+'.'+QuoteIdent(Obj.Name), 0);
   Result := MakeInt(Rows);
 end;
 
@@ -6902,6 +7181,7 @@ var
   obj: TDBObject;
   Results: TDBQuery;
   rx: TRegExpr;
+  SchemaBug41907Exists, DbNameMatches: Boolean;
 begin
   // Return a db's table list
   try
@@ -6991,7 +7271,7 @@ begin
   end;
 
   // Stored functions
-  if (ServerVersionInt >= 50000) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowFunctionStatus) then try
     Results := GetResults('SHOW FUNCTION STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
     on E:EDbError do;
@@ -7012,7 +7292,7 @@ begin
   end;
 
   // Stored procedures
-  if (ServerVersionInt >= 50000) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowProcedureStatus) then try
     Results := GetResults('SHOW PROCEDURE STATUS WHERE '+QuoteIdent('Db')+'='+EscapeString(db));
   except
     on E:EDbError do;
@@ -7033,7 +7313,7 @@ begin
   end;
 
   // Triggers
-  if (ServerVersionInt >= 50010) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowTriggers) then try
     Results := GetResults('SHOW TRIGGERS FROM '+QuoteIdent(db));
   except
     on E:EDbError do;
@@ -7053,7 +7333,7 @@ begin
   end;
 
   // Events
-  if (ServerVersionInt >= 50100) and (not Parameters.IsProxySQLAdmin) then try
+  if Has(frShowEvents) then try
     Results := GetResults('SELECT *, EVENT_SCHEMA AS '+QuoteIdent('Db')+', EVENT_NAME AS '+QuoteIdent('Name')+
       ' FROM '+InfSch+'.'+QuoteIdent('EVENTS')+' WHERE '+QuoteIdent('EVENT_SCHEMA')+'='+EscapeString(db))
   except
@@ -7066,8 +7346,14 @@ begin
     end;
   end;
   if Assigned(Results) then begin
+    // Work around old MySQL bug: https://bugs.mysql.com/bug.php?id=41907#c360194
+    // "Noted [fixed] in 5.1.57, 5.5.12, 5.6.3 changelogs."
+    SchemaBug41907Exists := (ServerVersionInt < 50157) or
+      ((ServerVersionInt >= 50500) and (ServerVersionInt < 50512)) or
+      ((ServerVersionInt >= 50600) and (ServerVersionInt < 50603));
     while not Results.Eof do begin
-      if Results.Col('Db') = db then begin
+      DbNameMatches := CompareText(Results.Col('Db'), db) = 0;
+      if (SchemaBug41907Exists and DbNameMatches) or (not SchemaBug41907Exists) then begin
         Obj := TDBObject.Create(Self);
         Cache.Add(obj);
         Obj.Name := Results.Col('Name');
@@ -7873,6 +8159,21 @@ begin
 end;
 
 
+procedure TDBQuery.LogMetaInfo(NumResult: Integer);
+var
+  MetaInfo: String;
+begin
+  // Debug log output after DBQuery.Execute with result
+  MetaInfo := 'Result #'+IntToStr(NumResult)+' fetched in ';
+  if Connection.LastQueryDuration < 60*1000 then
+    MetaInfo := MetaInfo + FormatNumber(Connection.LastQueryDuration/1000, 3) +' ' + _('sec.')
+  else
+    MetaInfo := MetaInfo + FormatTimeNumber(Connection.LastQueryDuration/1000, True);
+  if Connection.LastQueryNetworkDuration > 0 then
+    MetaInfo := MetaInfo + ' (+ '+FormatNumber(Connection.LastQueryNetworkDuration/1000, 3) +' ' + _('sec.') + ' ' + _('network') + ')';
+  Connection.Log(lcDebug, MetaInfo);
+end;
+
 procedure TMySQLQuery.Execute(AddResult: Boolean=False; UseRawResult: Integer=-1);
 var
   i, j, NumFields, NumResults: Integer;
@@ -7905,7 +8206,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.row_count;
@@ -7997,7 +8298,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.RecordCount;
@@ -8109,7 +8410,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + FConnection.Lib.PQntuples(LastResult);
@@ -8171,7 +8472,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.Count;
@@ -8254,7 +8555,7 @@ begin
     FEditingPrepared := False;
   end;
   if LastResult <> nil then begin
-    Connection.Log(lcDebug, 'Result #'+IntToStr(NumResults)+' fetched.');
+    LogMetaInfo(NumResults);
     SetLength(FResultList, NumResults);
     FResultList[NumResults-1] := LastResult;
     FRecordCount := FRecordCount + LastResult.RecordCount;
@@ -9243,6 +9544,7 @@ procedure TDBQuery.DeleteRow;
 var
   sql: String;
   IsVirtual: Boolean;
+  TempRowsAffected: Int64;
 begin
   // Delete current row from result
   PrepareEditing;
@@ -9250,8 +9552,10 @@ begin
   if not IsVirtual then begin
     sql := GridQuery('DELETE', 'FROM ' + QuotedDbAndTableName + ' WHERE ' + GetWhereClause);
     Connection.Query(sql);
-    if Connection.RowsAffected = 0 then
-      raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows deleted when that should have been 1.');
+    TempRowsAffected := Connection.RowsAffected;
+    Connection.ShowWarnings;
+    if TempRowsAffected = 0 then
+      raise EDbError.Create(FormatNumber(TempRowsAffected)+' rows deleted when that should have been 1.');
   end;
   if Assigned(FCurrentUpdateRow) then begin
     FUpdateData.Remove(FCurrentUpdateRow);
@@ -9368,6 +9672,7 @@ begin
     sql := sql + ' FROM '+QuotedDbAndTableName+' WHERE '+GetWhereClause;
     sql := GridQuery('SELECT', sql);
     Data := Connection.GetResults(sql);
+    Connection.ShowWarnings;
     Result := Data.RecordCount = 1;
     if Result then begin
       if not Assigned(FCurrentUpdateRow) then
@@ -9434,6 +9739,7 @@ end;
 function TDBQuery.SaveModifications: Boolean;
 var
   i: Integer;
+  TempRowsAffected: Int64;
   Row: TGridRow;
   Cell: TGridValue;
   sqlUpdate, sqlInsertColumns, sqlInsertValues, Val: String;
@@ -9491,6 +9797,7 @@ begin
     if RowModified then try
       if Row.Inserted then begin
         Connection.Query('INSERT INTO '+QuotedDbAndTableName+' ('+sqlInsertColumns+') VALUES ('+sqlInsertValues+')');
+        Connection.ShowWarnings;
         for i:=0 to ColumnCount-1 do begin
           ColAttr := ColAttributes(i);
           if Assigned(ColAttr) and (ColAttr.DefaultType = cdtAutoInc) then begin
@@ -9505,8 +9812,10 @@ begin
         sqlUpdate := QuotedDbAndTableName+' SET '+sqlUpdate+' WHERE '+GetWhereClause;
         sqlUpdate := GridQuery('UPDATE', sqlUpdate);
         Connection.Query(sqlUpdate);
-        if Connection.RowsAffected = 0 then begin
-          raise EDbError.Create(FormatNumber(Connection.RowsAffected)+' rows updated when that should have been 1.');
+        TempRowsAffected := Connection.RowsAffected;
+        Connection.ShowWarnings;
+        if TempRowsAffected = 0 then begin
+          raise EDbError.Create(FormatNumber(TempRowsAffected)+' rows updated when that should have been 1.');
           Result := False;
         end;
       end;
@@ -9679,15 +9988,10 @@ var
   Obj: TDBObject;
 begin
   Field := FConnection.Lib.mysql_fetch_field_direct(FCurrentResults, Column);
-  {Connection.Log(lcDebug, FColumnNames[Column]+':'+
-    '  org_table:'+Field.org_table+
-    '  table:'+Field.table+
-    '  table^=org_table^:'+(Field.table^ = Field.org_table^).ToInteger.ToString+
-    '  table=org_table:'+(Field.table = Field.org_table).ToInteger.ToString
-    );}
   FieldDb := FConnection.DecodeAPIString(Field.db);
   FieldTable := FConnection.DecodeAPIString(Field.table);
   FieldOrgTable := FConnection.DecodeAPIString(Field.org_table);
+  // Connection.Log(lcInfo, FColumnNames[Column]+': org_table:'+FieldOrgTable+'  table:'+FieldTable);
 
   if FieldTable <> FieldOrgTable then begin
     // Probably a VIEW, in which case we rely on the first column's table name.
@@ -9701,10 +10005,13 @@ begin
         end;
       end;
     end;
-  end else begin
+  end;
+
+  if Result.IsEmpty then begin
     // Normal table column
     // Note: this is empty on data tab TEXT columns with LEFT(..) clause
     Result := FieldOrgTable;
+    StripNewLines(Result);
   end;
 end;
 
@@ -9758,6 +10065,13 @@ begin
 end;
 
 
+function TDBQuery.ResultName: String;
+begin
+  // Return name of query defined in a comment above the actual query
+  Result := RegExprGetMatch('--\s+name\:\s*([^\r\n]+)', FSQL, 1, False, True);
+  Result := Trim(Result);
+end;
+
 function TDBQuery.GetKeyColumns: TStringList;
 var
   i: Integer;
@@ -9799,7 +10113,7 @@ begin
     Result := True;
   except
     on E:EDbError do begin
-      FConnection.Log(lcDebug, E.Message);
+      FConnection.Log(lcInfo, E.Message);
       Result := False;
     end;
   end;
@@ -10362,6 +10676,7 @@ begin
   GenerationExpression := FromSerialized('Expression', '');
   Virtuality := FromSerialized('Virtuality', '');
   Invisible := FromSerialized('Invisible', '0').ToInteger.ToBoolean;
+  SRID := FromSerialized('SRID', '0').ToInteger;
   NumVal := FromSerialized('Status', Integer(esUntouched).ToString);
   FStatus := TEditingStatus(NumVal.ToInteger);
 
@@ -10398,6 +10713,7 @@ begin
     GenerationExpression := s.GenerationExpression;
     Virtuality := s.Virtuality;
     Invisible := s.Invisible;
+    SRID := s.SRID;
     FStatus := s.FStatus;
   end else
     inherited;
@@ -10492,6 +10808,12 @@ begin
       Result := Result + 'NULL ';
   end;
 
+  // SRID for spatial columns supported since MySQL 8.0
+  if InParts(cpSRID) and (DataType.Category = dtcSpatial) and FConnection.Has(frSrid) then begin
+    Result := Result + 'SRID ' + SRID.ToString + ' ';
+  end;
+
+
   if InParts(cpDefault) and (not IsVirtual) then begin
     if DefaultType <> cdtNothing then begin
       case DefaultType of
@@ -10505,7 +10827,7 @@ begin
           end;
         end;
         cdtExpression: begin
-          if FConnection.Parameters.IsMySQL(True) and (FConnection.ServerVersionInt >= 80013) then
+          if FConnection.Has(frColumnDefaultParentheses) then
             Result := Result + 'DEFAULT ('+DefaultText+')'
           else
             Result := Result + 'DEFAULT '+DefaultText;
@@ -10639,14 +10961,17 @@ begin
   FConnection := AOwner;
   Columns := TStringList.Create;
   SubParts := TStringList.Create;
+  Collations := TStringList.Create;
   Columns.OnChange := Modification;
   Subparts.OnChange := Modification;
+  Collations.OnChange := Modification;
 end;
 
 destructor TTableKey.Destroy;
 begin
   FreeAndNil(Columns);
   FreeAndNil(SubParts);
+  FreeAndNil(Collations);
   inherited Destroy;
 end;
 
@@ -10664,6 +10989,7 @@ begin
     Comment := s.Comment;
     Columns.Assign(s.Columns);
     SubParts.Assign(s.SubParts);
+    Collations.Assign(s.Collations);
     Modified := s.Modified;
     Added := s.Added;
   end else
@@ -10687,7 +11013,21 @@ begin
   else Result := -1;
 end;
 
-function TTableKey.SQLCode: String;
+function TTableKey.GetInsideCreateCode: Boolean;
+begin
+  case Connection.Parameters.NetTypeGroup of
+    ngMySQL: Result := True;
+    ngSQLite: begin
+      if IndexType = PRIMARY then
+        Result := True
+      else
+        Result := False;
+    end;
+    else Result := True;
+  end;
+end;
+
+function TTableKey.SQLCode(TableName: String=''): String;
 var
   i: Integer;
 begin
@@ -10695,30 +11035,58 @@ begin
   // Supress SQL error  trying index creation with 0 column
   if Columns.Count = 0 then
     Exit;
-  if IndexType = TTableKey.PRIMARY then
-    Result := Result + 'PRIMARY KEY '
+  if InsideCreateCode then begin
+    if IndexType = TTableKey.PRIMARY then
+      Result := Result + 'PRIMARY KEY '
+    else begin
+      if FConnection.Parameters.IsAnyPostgreSQL then begin
+        Result := Result + IndexType + ' ';
+      end
+      else begin
+        if IndexType <> TTableKey.KEY then
+          Result := Result + IndexType + ' ';
+        Result := Result + 'INDEX ';
+      end;
+      Result := Result + FConnection.QuoteIdent(Name) + ' ';
+    end;
+    Result := Result + '(';
+    for i:=0 to Columns.Count-1 do begin
+      Result := Result + FConnection.QuoteIdent(Columns[i]);
+      if (SubParts.Count > i) and (SubParts[i] <> '') then
+        Result := Result + '(' + SubParts[i] + ')';
+      // Collation / sort order, see issue #1512
+      if (Collations.Count > i) and (Collations[i].ToLower = 'd') then
+        Result := Result + ' DESC';
+      Result := Result + ', ';
+    end;
+    if Columns.Count > 0 then
+      Delete(Result, Length(Result)-1, 2);
+
+    Result := Result + ')';
+
+    if Algorithm <> '' then
+      Result := Result + ' USING ' + Algorithm;
+
+    if not Comment.IsEmpty then
+      Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
+  end
   else begin
+    // SQLite syntax:
+    // CREATE INDEX myindex ON table1 ("Column 1")
+    // TODO: test on PG, MS, IB
+    Result := 'CREATE ';
     if IndexType <> TTableKey.KEY then
       Result := Result + IndexType + ' ';
-    Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
+    Result := Result + 'INDEX '+FConnection.QuoteIdent(Name)+' ON ' + FConnection.QuoteIdent(TableName) + ' (';
+    for i:=0 to Columns.Count-1 do begin
+      Result := Result + FConnection.QuoteIdent(Columns[i]);
+      Result := Result + ', ';
+    end;
+    if Columns.Count > 0 then
+      Delete(Result, Length(Result)-1, 2);
+    Result := Result + ')';
   end;
-  Result := Result + '(';
-  for i:=0 to Columns.Count-1 do begin
-    Result := Result + FConnection.QuoteIdent(Columns[i]);
-    if SubParts[i] <> '' then
-      Result := Result + '(' + SubParts[i] + ')';
-    Result := Result + ', ';
-  end;
-  if Columns.Count > 0 then
-    Delete(Result, Length(Result)-1, 2);
 
-  Result := Result + ')';
-
-  if Algorithm <> '' then
-    Result := Result + ' USING ' + Algorithm;
-
-  if not Comment.IsEmpty then
-    Result := Result + ' COMMENT ' + FConnection.EscapeString(Comment);
 end;
 
 procedure TTableKeyList.Assign(Source: TTableKeyList);
@@ -10825,13 +11193,14 @@ begin
     RefTable := ReferenceTable.Substring(Length(ReferenceDb) + 1);
   end else begin
     RefDb := ReferenceTable.Substring(0, Pos('.', ReferenceTable)-1);
-    if not RefDb.IsEmpty then begin
+    if (not RefDb.IsEmpty) and (FConnection.FAllDatabases.IndexOf(RefDb) > -1) then begin
       RefTable := ReferenceTable.Substring(Length(RefDb)+1);
     end else begin
       RefDb := FConnection.Database;
       RefTable := ReferenceTable;
     end;
   end;
+  FConnection.Log(lcDebug, 'Find object "'+RefTable+'" in db "'+RefDb+'"');
   Result := FConnection.FindObject(RefDb, RefTable);
 end;
 
@@ -10912,6 +11281,7 @@ begin
   TryFiles := Explode(',', SQLFunctionsFileOrder);
   for TryFile in TryFiles do begin
     IniFilePath := ExtractFilePath(Application.ExeName) + 'functions-'+TryFile+'.ini';
+    FOwner.Log(lcDebug, 'Trying '+IniFilePath);
     if FileExists(IniFilePath) then begin
       FOwner.Log(lcInfo, 'Reading function definitions from '+IniFilePath);
       Ini := TMemIniFile.Create(IniFilePath);

@@ -231,6 +231,7 @@ begin
     sql := ComposeAlterStatement;
   try
     MainForm.ActiveConnection.Query(sql);
+    MainForm.ActiveConnection.ShowWarnings;
     DBObject.Name := editName.Text;
     DBObject.UnloadDetails;
     tabALTERcode.TabVisible := ObjectExists;
@@ -272,7 +273,7 @@ begin
   Result := CreateOrAlter + ' ';
   if comboDefiner.Text <> '' then
     Result := Result + 'DEFINER='+DBObject.Connection.QuoteIdent(comboDefiner.Text, True, '@')+' ';
-  Result := Result + 'EVENT ' + DBObject.Connection.QuoteIdent(ObjName) + CRLF + #9 + 'ON SCHEDULE' + CRLF + #9#9;
+  Result := Result + 'EVENT ' + DBObject.Connection.QuoteIdent(ObjName) + sLineBreak + CodeIndent + 'ON SCHEDULE' + sLineBreak + CodeIndent(2);
   if radioOnce.Checked then begin
     d := dateOnce.DateTime;
     ReplaceTime(d, timeOnce.DateTime);
@@ -297,14 +298,14 @@ begin
   end;
 
   if chkDropAfterExpiration.Checked then
-    Result := Result + #9 + 'ON COMPLETION NOT PRESERVE'
+    Result := Result + CodeIndent + 'ON COMPLETION NOT PRESERVE'
   else
-    Result := Result + #9 + 'ON COMPLETION PRESERVE';
+    Result := Result + CodeIndent + 'ON COMPLETION PRESERVE';
   if ObjectExists and (DBObject.Name <> editName.Text) then
-    Result := Result + CRLF + #9 + 'RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text);
-  Result := Result + CRLF + #9 + UpperCase(grpState.Items[grpState.ItemIndex]);
-  Result := Result + CRLF + #9 + 'COMMENT ' + DBObject.Connection.EscapeString(editComment.Text);
-  Result := Result + CRLF + #9 + 'DO ' + SynMemoBody.Text;
+    Result := Result + sLineBreak + CodeIndent + 'RENAME TO ' + DBObject.Connection.QuoteIdent(editName.Text);
+  Result := Result + sLineBreak + CodeIndent + UpperCase(grpState.Items[grpState.ItemIndex]);
+  Result := Result + sLineBreak + CodeIndent + 'COMMENT ' + DBObject.Connection.EscapeString(editComment.Text);
+  Result := Result + sLineBreak + CodeIndent + 'DO ' + SynMemoBody.Text;
 end;
 
 

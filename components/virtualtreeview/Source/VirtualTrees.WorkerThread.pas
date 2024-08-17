@@ -4,7 +4,8 @@ interface
 
 uses
   System.Classes,
-  VirtualTrees;
+  VirtualTrees.Types,
+  VirtualTrees.BaseTree;
 
 type
   // internal worker thread
@@ -48,6 +49,7 @@ type
 
 var
   WorkerThread: TWorkerThread = nil;
+
 //----------------- TWorkerThread --------------------------------------------------------------------------------------
 
 class procedure TWorkerThread.EnsureCreated();
@@ -56,6 +58,8 @@ begin
     // Create worker thread, initialize it and send it to its wait loop.
     WorkerThread := TWorkerThread.Create();
 end;
+
+//----------------------------------------------------------------------------------------------------------------------
 
 class procedure TWorkerThread.Dispose(CanBlock: Boolean);
 var
@@ -70,6 +74,7 @@ begin
     LRef.Free;
 end;
 
+//----------------------------------------------------------------------------------------------------------------------
 
 class procedure TWorkerThread.AddThreadReference;
 begin

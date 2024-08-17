@@ -107,7 +107,7 @@ type
 
   TEnumEditorLink = class(TBaseGridEditorLink)
   private
-    FCombo: TComboBox;
+    FCombo: TExtComboBox;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure DoSelect(Sender: TObject);
   public
@@ -146,7 +146,6 @@ type
     FPanel: TPanel;
     FEdit: TEdit;
     FButton: TButton;
-    FTextEditor: TfrmTextEditor;
     FMaxLength: Integer;
     procedure DoKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure ButtonClick(Sender: TObject);
@@ -156,7 +155,6 @@ type
     constructor Create(Tree: TVirtualStringTree; AllowEdit: Boolean; Col: TTableColumn); override;
     destructor Destroy; override;
     function BeginEdit: Boolean; override;
-    function CancelEdit: Boolean; override;
     function EndEdit: Boolean; override;
     function PrepareEdit(Tree: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex): Boolean; override;
     procedure SetBounds(R: TRect); override;
@@ -886,7 +884,7 @@ begin
   inherited;
   AllowCustomText := False;
   ItemMustExist := False;
-  FCombo := TComboBox.Create(FParentForm);
+  FCombo := TExtComboBox.Create(FParentForm);
   FCombo.Hide;
   FCombo.Parent := FParentForm;
   FCombo.OnKeyDown := DoKeyDown;
@@ -989,7 +987,7 @@ begin
   FPanel.Hide;
   FPanel.Parent := FParentForm;
   FPanel.ParentBackground := False;
-  FPanel.Height := 150;
+  FPanel.Height := TExtForm.ScaleSize(150, FParentForm);
   FPanel.OnExit := DoEndEdit;
 
   FCheckList := TCheckListBox.Create(FPanel);
@@ -1080,7 +1078,7 @@ begin
 
   FBtnOk.Width := (FPanel.Width - 3*margin) div 2;
   FBtnOk.Left := margin;
-  FBtnOk.Height := 24;
+  FBtnOk.Height := TExtForm.ScaleSize(24, FParentForm);
   FBtnOk.Top := FPanel.Height - 2*margin - FBtnOk.Height;
   FBtnOk.Enabled := FAllowEdit;
 
@@ -1120,7 +1118,6 @@ constructor TInplaceEditorLink.Create(Tree: TVirtualStringTree; AllowEdit: Boole
 begin
   inherited;
   ButtonVisible := false;
-  FTextEditor := nil;
 
   FPanel := TPanel.Create(FParentForm);
   FPanel.Parent := FParentForm;
@@ -1147,10 +1144,11 @@ end;
 
 destructor TInplaceEditorLink.Destroy;
 begin
-  if Assigned(FTextEditor) then
-    FTextEditor.Release;
-  if not ((csDestroying in FPanel.ComponentState) or (csCreating in FPanel.ControlState)) then
+  if not ((csDestroying in FPanel.ComponentState) or (csCreating in FPanel.ControlState)) then begin
+    FEdit.Free;
+    FButton.Free;
     FPanel.Free;
+  end;
   inherited;
 end;
 
@@ -1169,14 +1167,6 @@ begin
   end;
 end;
 
-function TInplaceEditorLink.CancelEdit: Boolean;
-begin
-  Result := inherited CancelEdit;
-  if Result then begin
-    if Assigned(FTextEditor) then
-      FTextEditor.Close;
-  end;
-end;
 
 function TInplaceEditorLink.EndEdit: Boolean;
 var
@@ -1184,14 +1174,8 @@ var
 begin
   Result := not FStopping;
   if FStopping then Exit;
-  if Assigned(FTextEditor) then begin
-    NewText := FTextEditor.GetText;
-    FModified := FTextEditor.Modified;
-    FTextEditor.Close;
-  end else begin
-    NewText := FEdit.Text;
-    FModified := FEdit.Modified;
-  end;
+  NewText := FEdit.Text;
+  FModified := NewText <> FCellText;
   Result := EndEditHelper(NewText);
 end;
 
@@ -1204,21 +1188,30 @@ begin
 end;
 
 procedure TInplaceEditorLink.ButtonClick(Sender: TObject);
+var
+  Editor: TfrmTextEditor;
 begin
   if not FButton.Visible then Exit; // Button was invisible, but hotkey was pressed
-  FTextEditor := TfrmTextEditor.Create(FTree);
-  FTextEditor.SetFont(MainForm.SynMemoQuery.Font);
-  FTextEditor.SetText(FEdit.Text);
+  Editor := TfrmTextEditor.Create(FTree);
+  Editor.SetFont(MainForm.SynMemoQuery.Font);
+  Editor.SetText(FEdit.Text);
   if FEdit.HandleAllocated then begin
-    FTextEditor.MemoText.SelStart := FEdit.SelStart;
-    FTextEditor.MemoText.SelLength := FEdit.SelLength;
+    Editor.MemoText.SelStart := FEdit.SelStart;
+    Editor.MemoText.SelLength := FEdit.SelLength;
   end;
-  FTextEditor.SetTitleText(TitleText);
-  FTextEditor.Modified := FEdit.Modified;
-  FTextEditor.SetMaxLength(FMaxLength);
-  FTextEditor.TableColumn := FTableColumn;
-  FTextEditor.MemoText.ReadOnly := not FAllowEdit;
-  FTextEditor.ShowModal;
+  Editor.SetTitleText(TitleText);
+  Editor.Modified := FEdit.Modified;
+  Editor.SetMaxLength(FMaxLength);
+  Editor.TableColumn := FTableColumn;
+  Editor.MemoText.ReadOnly := not FAllowEdit;
+  if Editor.ShowModal = mrYes then begin
+    FEdit.Text := Editor.GetText;
+    DoEndEdit(Sender);
+  end
+  else begin
+    DoCancelEdit(Sender);
+  end;
+  Editor.Free;
 end;
 
 function TInplaceEditorLink.PrepareEdit(Tree: TBaseVirtualTree;

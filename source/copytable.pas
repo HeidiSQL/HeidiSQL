@@ -5,7 +5,8 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, extra_controls,
-  dbconnection, dbstructures, dbstructures.mysql, VirtualTrees, SynEdit, SynMemo, Vcl.Menus, gnugettext;
+  dbconnection, dbstructures, dbstructures.mysql, VirtualTrees, SynEdit, SynMemo, Vcl.Menus, gnugettext, VirtualTrees.BaseTree, VirtualTrees.Types,
+  VirtualTrees.BaseAncestorVCL, VirtualTrees.AncestorVCL;
 
 type
   TCopyTableForm = class(TExtForm)
@@ -356,12 +357,12 @@ var
   Column: TTableColumn;
   Key: TTableKey;
   ForeignKey: TForeignKey;
-const
-  ClausePattern: String = #9 + '%s,' + CRLF;
+  ClausePattern: String;
 begin
   // Compose and run CREATE query
 
   TargetTable := FConnection.QuotedDbAndTableName(comboDatabase.Text, editNewTablename.Text);
+  ClausePattern := CodeIndent + '%s,' + sLineBreak;
 
   // Watch out if target table exists
   try
@@ -376,6 +377,7 @@ begin
       Exit;
     end;
     FConnection.Query('DROP TABLE '+TargetTable);
+    FConnection.ShowWarnings;
   end;
 
   Screen.Cursor := crHourglass;
@@ -478,8 +480,11 @@ begin
   try
     MainForm.ShowStatusMsg(_('Creating table ...'));
     FConnection.Query(CreateCode);
-    if InsertCode <> '' then
+    FConnection.ShowWarnings;
+    if InsertCode <> '' then begin
       FConnection.Query(InsertCode);
+      FConnection.ShowWarnings;
+    end;
     // actRefresh takes care of whether the table editor is open
     // See also issue #1597
     MainForm.actRefresh.Execute

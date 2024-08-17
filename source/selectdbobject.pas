@@ -3,8 +3,9 @@ unit selectdbobject;
 interface
 
 uses
-  Winapi.Windows, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, VirtualTrees, VirtualTrees.Types, Vcl.Graphics, extra_controls,
-  dbconnection, gnugettext;
+  Winapi.Windows, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, VirtualTrees.BaseTree, VirtualTrees.Types, VirtualTrees, Vcl.Graphics, extra_controls,
+  dbconnection, gnugettext, VirtualTrees.BaseAncestorVCL,
+  VirtualTrees.AncestorVCL;
 
 type
   TfrmSelectDBObject = class(TExtForm)

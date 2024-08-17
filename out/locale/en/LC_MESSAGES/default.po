@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2023-12-02 14:00+0100\n"
+"PO-Revision-Date: 2024-08-16 12:20+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.1\n"
+"X-Generator: Poedit 3.4.4\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -315,6 +315,9 @@ msgstr "Flush tables"
 msgid "Databases:"
 msgstr "Databases:"
 
+msgid "Encryption parameters:"
+msgstr "Encryption parameters:"
+
 #. connform..PageControlDetails..tabSettings..chkCompressed..Caption
 #: connections.dfm:298
 msgid "Compressed client/server protocol"
@@ -435,6 +438,21 @@ msgstr "SSL certificate:"
 #. Session manager
 msgid "SSL cipher:"
 msgstr "SSL cipher:"
+
+msgid "Certificate verification"
+msgstr "Certificate verification"
+
+msgid "No verification (insecure)"
+msgstr "No verification (insecure)"
+
+msgid "Verify CA (insecure)"
+msgstr "Verify CA (insecure)"
+
+msgid "Verify CA and host name identity (may fail with self-signed certs and wildcard cn)"
+msgstr "Verify CA and host name identity (may fail with self-signed certs and wildcard cn)"
+
+msgid "You might need to lower the certificate verification in the SSL settings."
+msgstr "You might need to lower the certificate verification in the SSL settings."
 
 msgid "Path to key file"
 msgstr "Path to key file"
@@ -1080,6 +1098,9 @@ msgstr "Input file contains local formatted numbers, e.g. 1.234,56 in Germany"
 #: loaddata.dfm:262
 msgid "Truncate destination table before import"
 msgstr "Truncate destination table before import"
+
+msgid "Keep dialog open after import"
+msgstr "Keep dialog open after import"
 
 #. loaddataform..grpDuplicates..Caption
 #: loaddata.dfm:272
@@ -2776,6 +2797,18 @@ msgstr "Close tab on doubleclick"
 msgid "Close tab on middleclick"
 msgstr "Close tab on middleclick"
 
+msgid "Grayscale inactive tab icons"
+msgstr "Grayscale inactive tab icons"
+
+msgid "Color icons on all tabs"
+msgstr "Color icons on all tabs"
+
+msgid "Grayscale icons on inactive query tabs only"
+msgstr "Grayscale icons on inactive query tabs only"
+
+msgid "Grayscale icons on every inactive tab"
+msgstr "Grayscale icons on every inactive tab"
+
 msgid "Tabs in multiple lines"
 msgstr "Tabs in multiple lines"
 
@@ -3258,6 +3291,9 @@ msgstr "Expression"
 #: table_editor.dfm:167
 msgid "Virtuality"
 msgstr "Virtuality"
+
+msgid "Spatial reference system"
+msgstr "Spatial reference system"
 
 #. frmTableEditor..PageControlMain..tabBasic..Caption
 #: table_editor.dfm:183
@@ -3989,6 +4025,9 @@ msgstr "Your %s is incompatible to %s, or your system is missing a dependent lib
 msgid "SSL parameters successfully set."
 msgstr "SSL parameters successfully set."
 
+msgid "SSL parameters not fully set. Result: %d"
+msgstr "SSL parameters not fully set. Result: %d"
+
 #: dbconnection.pas:1151
 msgid "Attempt to create SSH process, waiting %ds for response ..."
 msgstr "Attempt to create SSH process, waiting %ds for response ..."
@@ -4071,6 +4110,9 @@ msgstr "Login to %s:"
 #: dbconnection.pas:1442
 msgid "Connecting to %s via %s, username %s, using password: %s ..."
 msgstr "Connecting to %s via %s, username %s, using password: %s ..."
+
+msgid "Connecting to %s via %s, cipher %s, using encryption key: %s ..."
+msgstr "Connecting to %s via %s, cipher %s, using encryption key: %s ..."
 
 #: dbconnection.pas:1582
 msgid "Closing SSH process #%d ..."
@@ -4483,10 +4525,6 @@ msgstr "First %s warnings:"
 msgid "Show all warnings in a new query tab?"
 msgstr "Show all warnings in a new query tab?"
 
-#: main.pas:2364
-msgid "The server variable %s is currently set to %d, so you won't see all warnings."
-msgstr "The server variable %s is currently set to %d, so you won't see all warnings."
-
 #: main.pas:2379
 msgid "Updating query history ..."
 msgstr "Updating query history ..."
@@ -4798,6 +4836,9 @@ msgstr "unknown"
 #. Give the user some hint what he can do with his SSL related connection error
 msgid "You could try the default library %s in your session settings. (Current: %s)"
 msgstr "You could try the default library %s in your session settings. (Current: %s)"
+
+msgid "This is a known issue with older libraries. Try a newer %s in the session settings."
+msgstr "This is a known issue with older libraries. Try a newer %s in the session settings."
 
 #: main.pas:5261
 msgid "Specify filter-value..."
@@ -5756,13 +5797,17 @@ msgstr "The selected foreign column do not match the source columns data type an
 msgid "Foreign key mismatch"
 msgstr "Foreign key mismatch"
 
-#. Clear data tab filter
+#. Clear data tab filter and sort order
 msgid "Data filter for %s deleted"
 msgstr "Data filter for %s deleted"
 
-#. Clear data tab filter
-msgid "Clear data tab filter"
-msgstr "Clear data tab filter"
+#. Clear data tab filter and sort order
+msgid "Sort order for %s deleted"
+msgstr "Sort order for %s deleted"
+
+#. Clear data tab filter and sort order
+msgid "Clear data tab filter and sort order"
+msgstr "Clear data tab filter and sort order"
 
 msgid "Error when updating query history: %s"
 msgstr "Error when updating query history: %s"
@@ -6648,3 +6693,15 @@ msgstr "Reset panel dimensions"
 
 msgid "Reset and fix overlapping panels in main window"
 msgstr "Reset and fix overlapping panels in main window"
+
+msgid "Warning: Given cipher scheme name \"%s\" could not be found"
+msgstr "Warning: Given cipher scheme name \"%s\" could not be found"
+
+msgid "Warning: Configuring with cipher index %d failed"
+msgstr "Warning: Configuring with cipher index %d failed"
+
+msgid "Warning: Failed to set cipher encryption parameter \"%s\""
+msgstr "Warning: Failed to set cipher encryption parameter \"%s\""
+
+msgid "You have activated encryption on a probably non-encrypted database."
+msgstr "You have activated encryption on a probably non-encrypted database."
