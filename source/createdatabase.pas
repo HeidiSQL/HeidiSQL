@@ -52,12 +52,15 @@ end;
 }
 procedure TCreateDatabaseForm.FormShow(Sender: TObject);
 var
-  ServerCollation, Collation, Charset, CreateCode: String;
+  ServerCollation, PreviousCollation, CurrentCollation: String;
+  Charset, CreateCode: String;
   CollationTable: TDBQuery;
   rx: TRegExpr;
 begin
   FConnection := MainForm.ActiveConnection;
   CollationTable := FConnection.CollationTable;
+  CurrentCollation := '';
+  PreviousCollation := AppSettings.ReadString(asCreateDbCollation);
 
   // Detect servers default collation
   case FConnection.Parameters.NetTypeGroup of
@@ -68,13 +71,9 @@ begin
   end;
   lblServerDefaultCollation.Caption := f_('Servers default: %s', [ServerCollation]);
 
-  if modifyDB = '' then begin
+  if modifyDB.IsEmpty then begin
     Caption := _('Create database ...');
     editDBName.Text := '';
-    Charset := '';
-    Collation := AppSettings.ReadString(asCreateDbCollation);
-    if Collation.IsEmpty then
-      Collation := ServerCollation;
   end
   else begin
     Caption := _('Alter database ...');
@@ -88,19 +87,19 @@ begin
       Charset := rx.Match[1];
     rx.Expression := '\sCOLLATE\s+(\w+)\b';
     if rx.Exec(CreateCode) then
-      Collation := rx.Match[1];
+      CurrentCollation := rx.Match[1];
     rx.Free;
     // Find default collation of given charset
-    if (Collation = '') and (Charset <> '') and Assigned(CollationTable) then begin
+    if (CurrentCollation = '') and (Charset <> '') and Assigned(CollationTable) then begin
       while not CollationTable.Eof do begin
         if (CollationTable.Col('Charset') = Charset) and (LowerCase(CollationTable.Col('Default')) = 'yes') then
-          Collation := CollationTable.Col('Collation');
+          CurrentCollation := CollationTable.Col('Collation');
         CollationTable.Next;
       end;
     end;
   end;
 
-  // Select collation in pulldown
+  // Populate collation combo box
   comboCollation.Enabled := Assigned(CollationTable);
   lblCollation.Enabled := comboCollation.Enabled;
   comboCollation.Clear;
@@ -110,9 +109,16 @@ begin
       comboCollation.Items.Add(CollationTable.Col('Collation'));
       CollationTable.Next;
     end;
-    comboCollation.ItemIndex := comboCollation.Items.IndexOf(Collation);
+    // Pre-select best fitting collation
+    comboCollation.ItemIndex := comboCollation.Items.IndexOf(CurrentCollation);
     if comboCollation.ItemIndex = -1 then
-      comboCollation.ItemIndex := 0;
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(PreviousCollation);
+    if comboCollation.ItemIndex = -1 then
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf(ServerCollation);
+    if comboCollation.ItemIndex = -1 then
+      comboCollation.ItemIndex := comboCollation.Items.IndexOf('utf8mb4_unicode_ci');
+    if comboCollation.ItemIndex = -1 then
+      comboCollation.ItemIndex := 0; // give up, use the first one
   end;
 
   editDBName.SetFocus;
@@ -135,7 +141,7 @@ var
   ObjectsInNewDb, ObjectsInOldDb: TDBObjectList;
   i, j: Integer;
 begin
-  if modifyDB = '' then try
+  if modifyDB.IsEmpty then try
     sql := GetCreateStatement;
     FConnection.Query(sql);
     FConnection.ShowWarnings;
