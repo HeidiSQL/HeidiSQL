@@ -22,6 +22,7 @@ type
     public
       constructor Create;
       function HostRequiresNameResolve: Boolean;
+      procedure ParseSSLSettings(GrantOrCreate: String);
   end;
   PUser = ^TUser;
   TUserList = TObjectList<TUser>;
@@ -167,7 +168,6 @@ type
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
-    procedure ParseSSLSettings(GrantOrCreate: String; User: TUser);
   public
     { Public declarations }
   end;
@@ -680,7 +680,7 @@ begin
 
         end;
 
-        ParseSSLSettings(rxGrant.Match[11], User^);
+        User.ParseSSLSettings(rxGrant.Match[11]);
 
         // WITH .. GRANT OPTION
         // MAX_QUERIES_PER_HOUR 20 MAX_UPDATES_PER_HOUR 10 MAX_CONNECTIONS_PER_HOUR 5 MAX_USER_CONNECTIONS 2
@@ -716,10 +716,16 @@ begin
     CreateUser := '';
     try
       CreateUser := FConnection.GetVar('SHOW CREATE USER '+UserHost);
-      ParseSSLSettings(CreateUser, User^);
+      User.ParseSSLSettings(CreateUser);
     except
       on E:EDbError do;
     end;
+
+    comboSSL.ItemIndex := User.SSL;
+    comboSSL.OnChange(comboSSL);
+    editCipher.Text := User.Cipher;
+    editIssuer.Text := User.Issuer;
+    editSubject.Text := User.Subject;
 
 
     // Generate grant code for column privs by hand
@@ -787,47 +793,6 @@ begin
   listUsers.OnHotChange(Sender, nil, Node);
 end;
 
-
-procedure TUserManagerForm.ParseSSLSettings(GrantOrCreate: String; User: TUser);
-var
-  rx: TRegExpr;
-  RequireClause: String;
-begin
-  // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
-  rx := TRegExpr.Create;
-  rx.ModifierI := True;
-  rx.Expression := '\sREQUIRE\s+(.+)';
-  if rx.Exec(GrantOrCreate) then begin
-    RequireClause := rx.Match[1];
-    User.SSL := 0;
-    User.Cipher := '';
-    User.Issuer := '';
-    User.Subject := '';
-    rx.Expression := '\bSSL\b';
-    if rx.Exec(RequireClause) then
-      User.SSL := 1;
-    rx.Expression := '\bX509\b';
-    if rx.Exec(RequireClause) then
-      User.SSL := 2;
-    rx.Expression := '\bCIPHER\s+''([^'']+)';
-    if rx.Exec(RequireClause) then
-      User.Cipher := rx.Match[1];
-    rx.Expression := '\bISSUER\s+''([^'']+)';
-    if rx.Exec(RequireClause) then
-      User.Issuer := rx.Match[1];
-    rx.Expression := '\bSUBJECT\s+''([^'']+)';
-    if rx.Exec(RequireClause) then
-      User.Subject := rx.Match[1];
-    if IsNotEmpty(User.Cipher) or IsNotEmpty(User.Issuer) or IsNotEmpty(User.Subject) then
-      User.SSL := 3;
-
-    comboSSL.ItemIndex := User.SSL;
-    comboSSL.OnChange(comboSSL);
-    editCipher.Text := User.Cipher;
-    editIssuer.Text := User.Issuer;
-    editSubject.Text := User.Subject;
-  end;
-end;
 
 procedure TUserManagerForm.listUsersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -1571,6 +1536,40 @@ begin
   rx.Free;
 end;
 
+procedure TUser.ParseSSLSettings(GrantOrCreate: String);
+var
+  rx: TRegExpr;
+  RequireClause: String;
+begin
+  // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.Expression := '\sREQUIRE\s+(.+)';
+  if rx.Exec(GrantOrCreate) then begin
+    RequireClause := rx.Match[1];
+    SSL := 0;
+    Cipher := '';
+    Issuer := '';
+    Subject := '';
+    rx.Expression := '\bSSL\b';
+    if rx.Exec(RequireClause) then
+      SSL := 1;
+    rx.Expression := '\bX509\b';
+    if rx.Exec(RequireClause) then
+      SSL := 2;
+    rx.Expression := '\bCIPHER\s+''([^'']+)';
+    if rx.Exec(RequireClause) then
+      Cipher := rx.Match[1];
+    rx.Expression := '\bISSUER\s+''([^'']+)';
+    if rx.Exec(RequireClause) then
+      Issuer := rx.Match[1];
+    rx.Expression := '\bSUBJECT\s+''([^'']+)';
+    if rx.Exec(RequireClause) then
+      Subject := rx.Match[1];
+    if IsNotEmpty(Cipher) or IsNotEmpty(Issuer) or IsNotEmpty(Subject) then
+      SSL := 3;
+  end;
+end;
 
 
 
