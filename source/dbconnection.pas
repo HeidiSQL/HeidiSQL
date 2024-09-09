@@ -7517,12 +7517,14 @@ procedure TSQLiteConnection.FetchDbObjects(db: String; var Cache: TDBObjectList)
 var
   obj: TDBObject;
   Results: TDBQuery;
+  TypeS: String;
 begin
   // Tables, views and procedures
   Results := nil;
   try
     Results := GetResults('SELECT * FROM '+QuoteIdent(db)+'.sqlite_master '+
-      'WHERE type IN('+EscapeString('table')+', '+EscapeString('view')+') AND name NOT LIKE '+EscapeString('sqlite_%'));
+      'WHERE type IN('+EscapeString('table')+', '+EscapeString('view')+', '+EscapeString('trigger')+') '+
+      'AND name NOT LIKE '+EscapeString('sqlite_%'));
   except
     on E:EDbError do;
   end;
@@ -7534,8 +7536,12 @@ begin
       obj.Created := Now;
       obj.Updated := Now;
       obj.Database := db;
-      if Results.Col('type').ToLowerInvariant = 'view' then begin
+      TypeS := Results.Col('type').ToLowerInvariant;
+      if TypeS = 'view' then begin
         obj.NodeType := lntView;
+        obj.FCreateCode := Results.Col('sql');
+      end else if TypeS = 'trigger' then begin
+        obj.NodeType := lntTrigger;
         obj.FCreateCode := Results.Col('sql');
       end else
         obj.NodeType := lntTable;
