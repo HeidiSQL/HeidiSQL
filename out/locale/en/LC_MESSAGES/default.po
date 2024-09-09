@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-08-16 12:20+0200\n"
+"PO-Revision-Date: 2024-09-09 17:37+0200\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.4\n"
+"X-Generator: Poedit 3.5\n"
 
 #. AboutBox..Caption
 #: about.dfm:5
@@ -6705,3 +6705,9 @@ msgstr "Warning: Failed to set cipher encryption parameter \"%s\""
 
 msgid "You have activated encryption on a probably non-encrypted database."
 msgstr "You have activated encryption on a probably non-encrypted database."
+
+msgid "Number of rows:"
+msgstr "Number of rows:"
+
+msgid "Amount of NULLs [percent]:"
+msgstr "Amount of NULLs [percent]:"

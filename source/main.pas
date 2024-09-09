@@ -790,6 +790,9 @@ type
     Resetpaneldimensions1: TMenuItem;
     popupApplyFilter: TPopupMenu;
     menuAlwaysGenerateFilter: TMenuItem;
+    actGenerateData: TAction;
+    Generatedata1: TMenuItem;
+    Generatedata2: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -2947,7 +2950,9 @@ begin
   else if Sender = actExportTables then
     FTableToolsDialog.ToolMode := tmSQLExport
   else if Sender = actBulkTableEdit then
-    FTableToolsDialog.ToolMode := tmBulkTableEdit;
+    FTableToolsDialog.ToolMode := tmBulkTableEdit
+  else if Sender = actGenerateData then
+    FTableToolsDialog.ToolMode := tmGenerateData;
   FTableToolsDialog.ShowModal;
   FreeAndNil(FTableToolsDialog);
 end;

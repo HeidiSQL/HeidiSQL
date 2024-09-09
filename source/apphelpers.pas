@@ -233,6 +233,7 @@ type
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asReformatter, asAlwaysGenerateFilter,
+    asGenerateDataNumRows, asGenerateDataNullAmount,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3846,6 +3847,8 @@ begin
   InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
   InitSetting(asReformatter,                      'Reformatter',                           0);
   InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
+  InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
+  InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
 
   // Default folder for snippets
   if FPortableMode then

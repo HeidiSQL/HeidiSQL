@@ -13,10 +13,10 @@ uses
   VirtualTrees, Vcl.ExtCtrls, Vcl.Graphics, SynRegExpr, System.Math, System.Generics.Collections, extra_controls,
   dbconnection, apphelpers, Vcl.Menus, gnugettext, System.DateUtils, System.Zip, System.UITypes, System.StrUtils, Winapi.Messages,
   SynEdit, SynMemo, Vcl.ClipBrd, generic_types, VirtualTrees.Types, VirtualTrees.BaseAncestorVCL,
-  VirtualTrees.BaseTree, VirtualTrees.AncestorVCL;
+  VirtualTrees.BaseTree, VirtualTrees.AncestorVCL, System.JSON, System.Variants;
 
 type
-  TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit);
+  TToolMode = (tmMaintenance, tmFind, tmSQLExport, tmBulkTableEdit, tmGenerateData);
   TfrmTableTools = class(TExtForm)
     btnCloseOrCancel: TButton;
     pnlTop: TPanel;
@@ -95,6 +95,13 @@ type
     editTableFilter: TButtonedEdit;
     TreeObjects: TVirtualStringTree;
     timerCalcSize: TTimer;
+    tabGenerateData: TTabSheet;
+    lblGenerateDataNumRows: TLabel;
+    editGenerateDataNumRows: TEdit;
+    updownGenerateDataNumRows: TUpDown;
+    lblGenerateDataNullAmount: TLabel;
+    editGenerateDataNullAmount: TEdit;
+    updownGenerateDataNullAmount: TUpDown;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure btnHelpMaintenanceClick(Sender: TObject);
@@ -180,6 +187,7 @@ type
     procedure DoFind(DBObj: TDBObject);
     procedure DoExport(DBObj: TDBObject);
     procedure DoBulkTableEdit(DBObj: TDBObject);
+    procedure DoGenerateData(DBObj: TDBObject);
   public
     { Public declarations }
     PreSelectObjects: TDBObjectList;
@@ -296,6 +304,10 @@ begin
   end;
   SessionPaths.Free;
   comboExportOutputTarget.Text := '';
+
+  // Generate data tab
+  updownGenerateDataNumRows.Position := AppSettings.ReadInt(asGenerateDataNumRows);
+  updownGenerateDataNullAmount.Position := AppSettings.ReadInt(asGenerateDataNullAmount);
 
   // Various
   FixVT(TreeObjects);
@@ -544,6 +556,11 @@ begin
       end;
     end;
 
+    tmGenerateData: begin
+      AppSettings.WriteInt(asGenerateDataNumRows, updownGenerateDataNumRows.Position);
+      AppSettings.WriteInt(asGenerateDataNullAmount, updownGenerateDataNullAmount.Position);
+    end;
+
   end;
 
 end;
@@ -606,7 +623,11 @@ begin
     OptionChecked := chkBulkTableEditDatabase.Checked or chkBulkTableEditEngine.Checked or chkBulkTableEditCollation.Checked
       or chkBulkTableEditCharset.Checked or chkBulkTableEditResetAutoinc.Checked;
     btnExecute.Enabled := SomeChecked and OptionChecked;
+  end else if tabsTools.ActivePage = tabGenerateData then begin
+    btnExecute.Caption := _('Generate');
+    btnExecute.Enabled := SomeChecked;
   end;
+
 end;
 
 
@@ -787,6 +808,7 @@ var
         tmFind: DoFind(DBObj);
         tmSQLExport: DoExport(DBObj);
         tmBulkTableEdit: DoBulkTableEdit(DBObj);
+        tmGenerateData: DoGenerateData(DBObj);
       end;
     except
       on E:EDbError do begin
@@ -827,7 +849,9 @@ begin
   else if tabsTools.ActivePage = tabSQLExport then
     FToolMode := tmSQLExport
   else if tabsTools.ActivePage = tabBulkTableEdit then
-    FToolMode := tmBulkTableEdit;
+    FToolMode := tmBulkTableEdit
+  else if tabsTools.ActivePage = tabGenerateData then
+    FToolMode := tmGenerateData;
   ResultGrid.Clear;
   ResultGrid.TrySetFocus;
   FResults.Clear;
@@ -1634,6 +1658,7 @@ begin
     tmFind: tabsTools.ActivePage := tabFind;
     tmSQLExport: tabsTools.ActivePage := tabSQLExport;
     tmBulkTableEdit: tabsTools.ActivePage := tabBulkTableEdit;
+    tmGenerateData: tabsTools.ActivePage := tabGenerateData;
   end;
 end;
 
@@ -2149,6 +2174,167 @@ begin
     LogRow[3] := f_('Selected operations cannot be applied to a %s', [_(LowerCase(DBObj.ObjType))]);
   end;
   UpdateResultGrid;
+end;
+
+
+procedure TfrmTableTools.DoGenerateData(DBObj: TDBObject);
+var
+  Columns: TTableColumnList;
+  Col: TTableColumn;
+  InsertSqlBase, InsertSql: String;
+  ColumnNamesSkipped, ColumnNamesQuoted, Values: TStringList;
+  i, j: Integer;
+  IntVal, MaxLen, MinLen: Integer;
+  FloatVal: Extended;
+  JsonText: TJSONString;
+  EnumValues: TStringList;
+  TextVal: String;
+begin
+  // Generate rows
+  if not (DBObj.NodeType in [lntTable, lntView]) then begin
+    AddNotes(DBObj, STRSKIPPED+'cannot insert rows in a '+LowerCase(DBObj.ObjType), '');
+    Exit;
+  end;
+  AddNotes(DBObj, 'Inserting '+FormatNumber(updownGenerateDataNumRows.Position)+' rows into '+DBObj.Name, '');
+  UpdateResultGrid;
+
+  Columns := DBObj.TableColumns;
+
+  InsertSqlBase := 'INSERT INTO ' + DBObj.QuotedDbAndTableName + ' ';
+  ColumnNamesQuoted := TStringList.Create;
+  ColumnNamesSkipped := TStringList.Create;
+  Values := TStringList.Create;
+  for Col in Columns do begin
+    if Col.DefaultType = cdtAutoInc then begin
+      ColumnNamesSkipped.Add(Col.Name);
+      Continue;
+    end;
+    if (Col.DefaultType = cdtExpression) and ExecRegExprI('^(NOW()|CURRENT_TIMESTAMP)', Col.DefaultText) then begin
+      ColumnNamesSkipped.Add(Col.Name);
+      Continue;
+    end;
+
+    ColumnNamesQuoted.Add(Col.Connection.QuoteIdent(Col.Name));
+  end;
+  InsertSqlBase := InsertSqlBase + '(' + Implode(', ', ColumnNamesQuoted) + ') VALUES ';
+
+  Randomize;
+
+  for i:=1 to updownGenerateDataNumRows.Position do begin
+    Values.Clear;
+    // Generate random values. Include some NULLs for columns which allow that.
+    for Col in Columns do begin
+      if ColumnNamesSkipped.Contains(Col.Name) then
+        Continue;
+
+      // https://www.delphipraxis.net/31059-warscheinlichkeit-random.html
+      if Col.AllowNull
+        and (updownGenerateDataNullAmount.Position > 0) // prevent division by zero
+        and (Random < (updownGenerateDataNullAmount.Position / 100))
+        then begin
+        Values.Add('NULL');
+        Continue;
+      end;
+
+      case Col.DataType.Category of
+        dtcInteger: begin
+          // Take care of overflow in RandomRange with signed integers
+          IntVal := 0;
+          case Col.DataType.Index of
+            dbdtTinyint:
+              IntVal := IfThen(Col.Unsigned, RandomRange(0, 256), RandomRange(-128, 128));
+            dbdtSmallint:
+              IntVal := IfThen(Col.Unsigned, RandomRange(0, 65535), RandomRange(-32768, 32768));
+            dbdtMediumint:
+              IntVal := IfThen(Col.Unsigned, RandomRange(0, 16777215), RandomRange(-8388608, 8388608));
+            dbdtUint:
+              IntVal := RandomRange(0, MaxInt);
+            dbdtInt, dbdtBigint:
+              IntVal := IfThen(Col.Unsigned, RandomRange(0, MaxInt), RandomRange(0 - MaxInt, MaxInt));
+          end;
+          Values.Add(IntVal.ToString);
+        end;
+
+        dtcReal: begin
+          FloatVal := 0;
+          case Col.DataType.Index of
+            dbdtFloat, dbdtDouble, dbdtDecimal, dbdtNumeric, dbdtReal, dbdtDoublePrecision, dbdtMoney, dbdtSmallmoney:
+              FloatVal := IfThen(Col.Unsigned, RandomRange(0, 100000), RandomRange(-100000, 100000)) + Random;
+          end;
+          Values.Add(FloatToStr(FloatVal, MainForm.FormatSettings));
+        end;
+
+        dtcText: begin
+          MaxLen := 0;
+          case Col.DataType.Index of
+            dbdtChar, dbdtVarchar:
+              MaxLen := StrToIntDef(Col.LengthSet, 1);
+            dbdtTinytext:
+              MaxLen := Trunc(Power(2, 8)) -1;
+            dbdtText, dbdtMediumtext, dbdtLongtext, dbdtJson, dbdtJsonB:
+              MaxLen := Trunc(Power(2, 16)) -1;
+          end;
+          TextVal := '';
+          MaxLen := RandomRange(1, MaxLen+1);
+          for j:=1 to MaxLen do begin
+            // Only printable characters
+            TextVal := TextVal + Chr(RandomRange(32, 127));
+          end;
+          if Col.DataType.Index in [dbdtJson, dbdtJsonB] then begin
+            JsonText := TJSONString.Create(TextVal);
+            TextVal := JsonText.ToJSON;
+            JsonText.Free;
+          end;
+          Values.Add(Col.Connection.EscapeString(TextVal));
+        end;
+
+        dtcBinary: ;
+
+        dtcTemporal: begin
+          TextVal := '';
+          case Col.DataType.Index of
+            dbdtDate, dbdtTime, dbdtYear, dbdtDatetime, dbdtDatetime2, dbdtTimestamp, dbdtInterval: begin
+              MinLen := Trunc(VarToDateTime('1971-01-01'));
+              MaxLen := Trunc(VarToDateTime('2035-01-01'));
+              FloatVal := RandomRange(MinLen, MaxLen) + Random;
+              TextVal := FormatDateTime(Col.DataType.Format, FloatVal, MainForm.FormatSettings);
+            end;
+
+            dbdtDatetimeOffset: ;
+            dbdtSmalldatetime: ;
+          end;
+          Values.Add(Col.Connection.EscapeString(TextVal));
+        end;
+
+        dtcSpatial: ;
+
+        dtcOther: begin
+          case Col.DataType.Index of
+            dbdtEnum, dbdtSet: begin
+              EnumValues := Col.ValueList;
+              IntVal := RandomRange(0, EnumValues.Count);
+              TextVal := EnumValues[IntVal];
+              EnumValues.Free;
+              Values.Add(Col.Connection.EscapeString(TextVal));
+            end;
+            dbdtBool: begin
+              IntVal := RandomRange(0, 2);
+              TextVal := IfThen(IntVal=0, 'true', 'false');
+              Values.Add(Col.Connection.EscapeString(TextVal));
+            end;
+            else
+              Values.Add('0');
+          end;
+        end;
+      end;
+    end;
+    InsertSql := InsertSqlBase + '(' + Implode(', ', Values) + ')';
+    DBObj.Connection.Query(InsertSql, False, lcScript);
+  end;
+
+  ColumnNamesQuoted.Free;
+  ColumnNamesSkipped.Free;
+  Values.Free;
 end;
 
 

@@ -2021,6 +2021,9 @@ object MainForm: TMainForm
       object Bulktableeditor1: TMenuItem
         Action = actBulkTableEdit
       end
+      object Generatedata1: TMenuItem
+        Action = actGenerateData
+      end
       object Launchcommandline1: TMenuItem
         Action = actLaunchCommandline
       end
@@ -2989,6 +2992,12 @@ object MainForm: TMainForm
       ImageName = 'icons8-data-backup'
       OnExecute = actSynchronizeDatabaseExecute
     end
+    object actGenerateData: TAction
+      Category = 'Tools'
+      Caption = 'Generate data'
+      ImageIndex = 130
+      OnExecute = actTableToolsExecute
+    end
     object actLaunchCommandline: TAction
       Category = 'Tools'
       Caption = 'Launch command line'
@@ -3452,6 +3461,9 @@ object MainForm: TMainForm
     end
     object menuBulkTableEdit: TMenuItem
       Action = actBulkTableEdit
+    end
+    object Generatedata2: TMenuItem
+      Action = actGenerateData
     end
     object N5a: TMenuItem
       Caption = '-'

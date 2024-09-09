@@ -605,6 +605,60 @@ object frmTableTools: TfrmTableTools
             TabOrder = 8
           end
         end
+        object tabGenerateData: TTabSheet
+          Caption = 'Generate data'
+          ImageIndex = 130
+          object lblGenerateDataNumRows: TLabel
+            Left = 3
+            Top = 6
+            Width = 92
+            Height = 14
+            Caption = 'Number of rows:'
+          end
+          object lblGenerateDataNullAmount: TLabel
+            Left = 2
+            Top = 34
+            Width = 126
+            Height = 14
+            Caption = 'Amount of NULLs [percent]:'
+          end
+          object editGenerateDataNumRows: TEdit
+            Left = 200
+            Top = 3
+            Width = 121
+            Height = 22
+            TabOrder = 0
+            Text = '1.000'
+          end
+          object updownGenerateDataNumRows: TUpDown
+            Left = 321
+            Top = 3
+            Width = 20
+            Height = 22
+            Associate = editGenerateDataNumRows
+            Min = 1
+            Max = 2147483647
+            Position = 1000
+            TabOrder = 1
+          end
+          object editGenerateDataNullAmount: TEdit
+            Left = 200
+            Top = 31
+            Width = 121
+            Height = 22
+            TabOrder = 2
+            Text = '10'
+          end
+          object updownGenerateDataNullAmount: TUpDown
+            Left = 321
+            Top = 31
+            Width = 20
+            Height = 22
+            Associate = editGenerateDataNullAmount
+            Position = 10
+            TabOrder = 3
+          end
+        end
       end
     end
     object pnlLeft: TPanel
