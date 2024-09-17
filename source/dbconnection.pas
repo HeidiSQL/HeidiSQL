@@ -540,6 +540,8 @@ type
       procedure Log(Category: TDBLogCategory; Msg: String);
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
+      function EscapeBin(BinValue: String): String; overload;
+      function EscapeBin(var ByteData: TBytes): String; overload;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function CleanIdent(Identifier: String): String;
@@ -860,9 +862,7 @@ type
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
-      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
-      function HexValue(BinValue: String): String; overload;
-      function HexValue(var ByteData: TBytes): String; overload;
+      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
       function DataType(Column: Integer): TDBDataType;
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
@@ -5295,6 +5295,53 @@ begin
 end;
 
 
+function TDBConnection.EscapeBin(BinValue: String): String;
+var
+  BinLen: Integer;
+  Ansi: AnsiString;
+begin
+  // Return a binary value as hex AnsiString
+  Ansi := AnsiString(BinValue);
+  BinLen := Length(Ansi);
+  if BinLen = 0 then begin
+    Result := EscapeString('');
+  end else begin
+    if IsHex(BinValue) then begin
+      Result := BinValue; // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
+  end;
+end;
+
+
+function TDBConnection.EscapeBin(var ByteData: TBytes): String;
+var
+  BinLen: Integer;
+  Ansi: AnsiString;
+begin
+  BinLen := Length(ByteData);
+  SetString(Ansi, PAnsiChar(ByteData), BinLen);
+  if BinLen = 0 then begin
+    Result := EscapeString('');
+  end else begin
+    if IsHex(String(Ansi)) then begin
+      Result := String(Ansi); // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
+  end;
+end;
+
+
 function TDBConnection.ExtractLiteral(var SQL: String; Prefix: String): String;
 var
   i, LitStart: Integer;
@@ -9134,56 +9181,11 @@ begin
   // Return a binary column value as hex AnsiString
   if FConnection.Parameters.IsAnyMysql then begin
     GetColBinData(Column, baData);
-    Result := HexValue(baData);
+    Result := FConnection.EscapeBin(baData);
   end else
-    Result := HexValue(Col(Column, IgnoreErrors));
+    Result := FConnection.EscapeBin(Col(Column, IgnoreErrors));
 end;
 
-
-function TDBQuery.HexValue(BinValue: String): String;
-var
-  BinLen: Integer;
-  Ansi: AnsiString;
-begin
-  // Return a binary value as hex AnsiString
-  Ansi := AnsiString(BinValue);
-  BinLen := Length(Ansi);
-  if BinLen = 0 then begin
-    Result := Connection.EscapeString('');
-  end else begin
-    if FConnection.IsHex(BinValue) then begin
-      Result := BinValue; // Already hex encoded
-    end else begin
-      SetLength(Result, BinLen*2);
-      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-      Result := '0x' + Result;
-    end;
-    if AppSettings.ReadBool(asLowercaseHex) then
-      Result := Result.ToLowerInvariant;
-  end;
-end;
-
-function TDBQuery.HexValue(var ByteData: TBytes): String;
-var
-  BinLen: Integer;
-  Ansi: AnsiString;
-begin
-  BinLen := Length(ByteData);
-  SetString(Ansi, PAnsiChar(ByteData), BinLen);
-  if BinLen = 0 then begin
-    Result := Connection.EscapeString('');
-  end else begin
-    if FConnection.IsHex(String(Ansi)) then begin
-      Result := String(Ansi); // Already hex encoded
-    end else begin
-      SetLength(Result, BinLen*2);
-      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-      Result := '0x' + Result;
-    end;
-    if AppSettings.ReadBool(asLowercaseHex) then
-      Result := Result.ToLowerInvariant;
-  end;
-end;
 
 function TDBQuery.DataType(Column: Integer): TDBDataType;
 var
@@ -9784,7 +9786,7 @@ begin
             Val := 'b' + Val;
         end;
         dtcBinary, dtcSpatial:
-          Val := HexValue(Cell.NewText);
+          Val := FConnection.EscapeBin(Cell.NewText);
         else begin
           if Datatype(i).Index in [dbdtNchar, dbdtNvarchar, dbdtNtext] then
             Val := 'N' + Connection.EscapeString(Cell.NewText)
@@ -10175,7 +10177,7 @@ begin
         dtcTemporal:
           Result := Result + '=' + Connection.EscapeString(Connection.GetDateTimeValue(ColVal, DataType(j).Index));
         dtcBinary, dtcSpatial:
-          Result := Result + '=' + HexValue(ColVal);
+          Result := Result + '=' + FConnection.EscapeBin(ColVal);
         else begin
           // Any other data type goes here, including text:
           case DataType(j).Index of

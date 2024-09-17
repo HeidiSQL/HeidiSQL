@@ -187,7 +187,9 @@ type
     procedure DoFind(DBObj: TDBObject);
     procedure DoExport(DBObj: TDBObject);
     procedure DoBulkTableEdit(DBObj: TDBObject);
+    procedure DoBeforeGenerateData(Sender: TObject);
     procedure DoGenerateData(DBObj: TDBObject);
+    procedure DoAfterGenerateData(Sender: TObject);
   public
     { Public declarations }
     PreSelectObjects: TDBObjectList;
@@ -866,6 +868,8 @@ begin
   MainForm.EnableProgress(100);
   FStartTimeAll := GetTickCount;
 
+  DoBeforeGenerateData(Sender);
+
   SessionNode := TreeObjects.GetFirstChild(nil);
   while Assigned(SessionNode) do begin
     DBNode := TreeObjects.GetFirstVisibleChild(SessionNode);
@@ -912,6 +916,8 @@ begin
   end;
 
   Conn := Mainform.ActiveConnection;
+
+  DoAfterGenerateData(Sender);
 
   if Assigned(ExportStream) then begin
     // For output to file or directory:
@@ -2177,6 +2183,32 @@ begin
 end;
 
 
+procedure TfrmTableTools.DoBeforeGenerateData(Sender: TObject);
+var
+  Conn: TDBConnection;
+begin
+  // Disable foreign key checks
+  if ToolMode <> tmGenerateData then
+    Exit;
+  Conn := MainForm.ActiveConnection;
+  if Conn.Has(frForeignKeyChecksVar) then
+    Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
+end;
+
+
+procedure TfrmTableTools.DoAfterGenerateData(Sender: TObject);
+var
+  Conn: TDBConnection;
+begin
+  // Disable foreign key checks
+  if ToolMode <> tmGenerateData then
+    Exit;
+  Conn := MainForm.ActiveConnection;
+  if Conn.Has(frForeignKeyChecksVar) then
+    Conn.Query('SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1)');
+end;
+
+
 procedure TfrmTableTools.DoGenerateData(DBObj: TDBObject);
 var
   Columns: TTableColumnList;
@@ -2189,6 +2221,7 @@ var
   JsonText: TJSONString;
   EnumValues: TStringList;
   TextVal: String;
+  BinVal: String;
 begin
   // Generate rows
   if not (DBObj.NodeType in [lntTable, lntView]) then begin
@@ -2288,7 +2321,24 @@ begin
           Values.Add(Col.Connection.EscapeString(TextVal));
         end;
 
-        dtcBinary: ;
+        dtcBinary: begin
+          MaxLen := 0;
+          case Col.DataType.Index of
+            dbdtBinary, dbdtVarbinary:
+              MaxLen := StrToIntDef(Col.LengthSet, 1);
+            dbdtTinyblob:
+              MaxLen := Trunc(Power(2, 8)) -1;
+            dbdtBlob, dbdtMediumblob, dbdtLongblob:
+              MaxLen := Trunc(Power(2, 16)) -1;
+          end;
+          BinVal := '';
+          MinLen := Min(16, MaxLen);
+          MaxLen := RandomRange(MinLen, MaxLen+1);
+          for j:=1 to MaxLen do begin
+            BinVal := BinVal + Chr(RandomRange(1, 256));
+          end;
+          Values.Add(Col.Connection.EscapeBin(BinVal));
+        end;
 
         dtcTemporal: begin
           TextVal := '';
