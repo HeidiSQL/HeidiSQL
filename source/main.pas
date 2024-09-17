@@ -6227,8 +6227,9 @@ var
 begin
   // Mark all nodes as multiline capable. Fixes painting issues with long lines.
   // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
-  if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
-    Include(Node.States, vsMultiLine);
+  // Disabled due to laggy performance with large grid contents
+  //if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
+  //  Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
@@ -9123,7 +9124,7 @@ begin
   for Grid in AllGrids do begin
     Grid.Font.Name := AppSettings.ReadString(asDataFontName);
     Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-    FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+    FixVT(Grid);
     if IncrementalSearchActive then
       Grid.IncrementalSearch := isInitializedOnly
     else
@@ -10939,8 +10940,8 @@ begin
     //       here if the query or connection dies.
     Rect := Tree.GetDisplayRect(Node, Column, True, True);
     ContentTextWidth := Rect.Right - Rect.Left;
-    if vsMultiLine in Node.States then
-      ContentTextWidth := Max(ContentTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, Column]));
+    //if vsMultiLine in Node.States then
+    //  ContentTextWidth := Max(ContentTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, Column]));
     ColTextWidth := Max(ColTextWidth, ContentTextWidth);
     inc(i);
     if i > 100 then break;
@@ -15229,7 +15230,7 @@ begin
   Grid.OnNewText := OrgGrid.OnNewText;
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
-  FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+  FixVT(Grid);
   FTabIndex := QueryTab.ResultTabs.Count; // Will be 0 for the first one, even if we're already creating the first one here!
 end;
 
