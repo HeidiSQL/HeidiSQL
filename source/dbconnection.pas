@@ -11080,9 +11080,8 @@ begin
       else begin
         if IndexType <> TTableKey.KEY then
           Result := Result + IndexType + ' ';
-        Result := Result + 'INDEX ';
+        Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
       end;
-      Result := Result + FConnection.QuoteIdent(Name) + ' ';
     end;
     Result := Result + '(';
     for i:=0 to Columns.Count-1 do begin
