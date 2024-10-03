@@ -1516,6 +1516,7 @@ var
   i: Integer;
   Infos: TStringList;
   HintText: String;
+  Conn: TDBConnection;
 begin
   // Display various server, client and connection related details in a hint
   if IsWine then
@@ -1536,8 +1537,9 @@ begin
     Exit;
   FLastHintControlIndex := i;
   if FLastHintControlIndex = 3 then begin
-    if ActiveConnection <> nil then begin
-      Infos := ActiveConnection.ConnectionInfo;
+    Conn := ActiveConnection;
+    if (Conn <> nil) and (Conn.LockedByThread = nil) then begin
+      Infos := Conn.ConnectionInfo;
       HintText := '';
       for i:=0 to Infos.Count-1 do begin
         HintText := HintText + Infos.Names[i] + ': ' + StrEllipsis(Infos.ValueFromIndex[i], 200) + CRLF;
