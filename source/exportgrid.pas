@@ -573,8 +573,9 @@ begin
   // Escape encloser characters inside data per de-facto CSV.
   if not Encloser.IsEmpty then
     Result := StringReplace(Result, Encloser, Encloser+Encloser, [rfReplaceAll]);
+  // Remove milliseconds from date/time values, unsupported by Excel. See issue #922
   if DataType.Category = dtcTemporal then begin
-    Result := ReplaceRegExpr('\.(\d+)$', Result, FormatSettings.DecimalSeparator + '$1', True);
+    Result := ReplaceRegExpr('\.(\d+)$', Result, '');
   end;
 end;
 
