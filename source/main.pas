@@ -5856,9 +5856,9 @@ var
   RefreshingData, IsKeyColumn, NeedFullColumns: Boolean;
   i, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
   ColMaxLen, Offset: Int64;
-  KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
-  WantedColumns: TTableColumnList;
-  c: TTableColumn;
+  ColWidths, WantedColumnOrgnames: TStringList;
+  KeyCols, WantedColumns: TTableColumnList;
+  c, ColumnInKey: TTableColumn;
   OldScrollOffset: TPoint;
   DBObj: TDBObject;
   rx: TRegExpr;
@@ -5938,7 +5938,8 @@ begin
     NeedFullColumns := False;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       c := SelectedTableColumns[i];
-      IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
+      ColumnInKey := KeyCols.FindByName(c.Name);
+      IsKeyColumn := Assigned(ColumnInKey);
       ColMaxLen := StrToInt64Def(c.LengthSet, 0);
       if (DatagridHiddenColumns.IndexOf(c.Name) = -1)
         or (IsKeyColumn)
@@ -13228,7 +13229,8 @@ var
   MenuItem: TMenuItem;
   sql, Val, WhereClause: String;
   i, idx: Integer;
-  ColumnNames, DefaultValues, KeyColumns: TStringList;
+  ColumnNames, DefaultValues: TStringList;
+  KeyColumns: TTableColumnList;
   Column: TTableColumn;
   Tree: TVirtualStringTree;
   Node: PVirtualNode;
@@ -13264,11 +13266,11 @@ begin
   KeyColumns := ActiveConnection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
   WhereClause := '';
   for i:=0 to KeyColumns.Count-1 do begin
-    idx := ColumnNames.IndexOf(ActiveConnection.QuoteIdent(KeyColumns[i], False));
+    idx := ColumnNames.IndexOf(ActiveConnection.QuoteIdent(KeyColumns[i].Name, False));
     if idx > -1 then begin
       if WhereClause <> '' then
         WhereClause := WhereClause + ' AND ';
-      WhereClause := WhereClause + ActiveConnection.QuoteIdent(KeyColumns[i], False)+'='+DefaultValues[idx];
+      WhereClause := WhereClause + ActiveConnection.QuoteIdent(KeyColumns[i].Name, False)+'='+DefaultValues[idx];
     end;
   end;
 

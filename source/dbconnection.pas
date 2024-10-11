@@ -68,6 +68,7 @@ type
   TTableColumnList = class(TObjectList<TTableColumn>)
     public
       procedure Assign(Source: TTableColumnList);
+      function FindByName(const Value: String): TTableColumn;
   end;
   TColumnCache = TDictionary<String,TTableColumnList>;
 
@@ -559,7 +560,7 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False; OnlyNodeType: TListNodeType=lntNone): TDBObjectList;
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
-      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TTableColumnList;
       function ConnectionInfo: TStringList; virtual;
       function GetLastResults: TDBQueryList; virtual;
       function GetCreateCode(Obj: TDBObject): String; virtual;
@@ -848,7 +849,7 @@ type
       procedure SetColumnOrgNames(Value: TStringList);
       procedure SetDBObject(Value: TDBObject);
       procedure CreateUpdateRow;
-      function GetKeyColumns: TStringList;
+      function GetKeyColumns: TTableColumnList;
       function GridQuery(QueryType, QueryBody: String): String;
     public
       constructor Create(AOwner: TComponent); override;
@@ -7714,19 +7715,25 @@ begin
 end;
 
 
-function TDBConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+function TDBConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TTableColumnList;
 var
-  i: Integer;
   AllowsNull: Boolean;
   Key: TTableKey;
   Col: TTableColumn;
+  ColName: String;
 begin
-  Result := TStringList.Create;
+  Result := TTableColumnList.Create;
   // Find best key for updates
   // 1. round: find a primary key
   for Key in Keys do begin
     if Key.IndexType = TTableKey.PRIMARY then
-      Result.Assign(Key.Columns);
+    begin
+      for ColName in Key.Columns do begin
+        Col := Columns.FindByName(ColName);
+        if Assigned(Col) then
+          Result.Add(Col);
+      end;
+    end;
   end;
   if Result.Count = 0 then begin
     // no primary key available -> 2. round: find a unique key
@@ -7735,16 +7742,18 @@ begin
         // We found a UNIQUE key - better than nothing. Check if one of the key
         // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
         AllowsNull := False;
-        for i:=0 to Key.Columns.Count-1 do begin
-          for Col in Columns do begin
-            if Col.Name = Key.Columns[i] then
-              AllowsNull := Col.AllowNull;
-            if AllowsNull then break;
-          end;
-          if AllowsNull then break;
+        for ColName in Key.Columns do begin
+          Col := Columns.FindByName(ColName);
+          AllowsNull := Assigned(Col) and Col.AllowNull;
+          if AllowsNull then
+            break; // Unusable, don't use this key
         end;
         if not AllowsNull then begin
-          Result.Assign(Key.Columns);
+          for ColName in Key.Columns do begin
+            Col := Columns.FindByName(ColName);
+            if Assigned(Col) then
+              Result.Add(Col);
+          end;
           break;
         end;
       end;
@@ -10080,7 +10089,7 @@ begin
   Result := Trim(Result);
 end;
 
-function TDBQuery.GetKeyColumns: TStringList;
+function TDBQuery.GetKeyColumns: TTableColumnList;
 var
   i: Integer;
 begin
@@ -10090,7 +10099,7 @@ begin
   if Result.Count = 0 then begin
     // No good key found. Just expect all columns to be present.
     for i:=0 to FColumns.Count-1 do
-      Result.Add(FColumns[i].Name);
+      Result.Add(FColumns[i]);
   end;
 end;
 
@@ -10098,14 +10107,14 @@ end;
 procedure TDBQuery.CheckEditable;
 var
   i: Integer;
-  KeyCols: TStringList;
+  KeyCols: TTableColumnList;
 begin
   KeyCols := GetKeyColumns;
   if KeyCols.Count = 0 then
     raise EDbError.Create(_(MSG_NOGRIDEDITING));
   // All column names must be present in order to send valid INSERT/UPDATE/DELETE queries
   for i:=0 to KeyCols.Count-1 do begin
-    if FColumnOrgNames.IndexOf(KeyCols[i]) = -1 then
+    if FColumnOrgNames.IndexOf(KeyCols[i].Name) = -1 then
       raise EDbError.Create(_(MSG_NOGRIDEDITING));
   end;
   for i:=0 to FColumnOrgNames.Count-1 do begin
@@ -10131,7 +10140,7 @@ end;
 function TDBQuery.GetWhereClause: String;
 var
   i, j: Integer;
-  NeededCols: TStringList;
+  NeededCols: TTableColumnList;
   ColVal: String;
   ColIsNull: Boolean;
 begin
@@ -10140,16 +10149,13 @@ begin
   Result := '';
 
   for i:=0 to NeededCols.Count-1 do begin
-    j := FColumnOrgNames.IndexOf(NeededCols[i]);
+    j := FColumnOrgNames.IndexOf(NeededCols[i].Name);
     if j = -1 then
       raise EDbError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i]]);
     if Result <> '' then
       Result := Result + ' AND';
-
-    Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
-    if (DataType(j).Index = dbdtJson) and (Self is TPGQuery) then begin
-      Result := Result + '::text';
-    end;
+    // See issue #769 and #2031 for why we need CastAsText
+    Result := Result + ' ' + NeededCols[i].CastAsText;
 
     if Modified(j) then begin
       ColVal := FCurrentUpdateRow[j].OldText;
@@ -10196,7 +10202,7 @@ end;
 
 function TDBQuery.GridQuery(QueryType, QueryBody: String): String;
 var
-  KeyColumns: TStringList;
+  KeyColumns: TTableColumnList;
 begin
   // Return automatic grid UPDATE/DELETE/SELECT, and apply LIMIT clause if no good key is present
   KeyColumns := Connection.GetKeyColumns(FColumns, FKeys);
@@ -10949,7 +10955,7 @@ begin
   Result := FConnection.QuoteIdent(Name);
   case FConnection.Parameters.NetTypeGroup of
     ngMySQL, ngSQLite: begin
-      if DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp] then
+      if DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp, dbdtJson, dbdtJsonB] then
         Result := 'CAST('+Result+' AS CHAR)';
     end;
     ngMSSQL: begin
@@ -10959,7 +10965,7 @@ begin
         Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     end;
     ngPgSQL: begin
-      if (DataType.Index = dbdtUnknown) or (DataType.Category = dtcBinary) then
+      if (DataType.Index in [dbdtUnknown, dbdtJson]) or (DataType.Category = dtcBinary) then
         Result := Result + '::text';
     end;
   end;
@@ -10983,6 +10989,20 @@ begin
     ItemCopy := TTableColumn.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
+  end;
+end;
+
+
+function TTableColumnList.FindByName(const Value: String): TTableColumn;
+var
+  Col: TTableColumn;
+begin
+  Result := nil;
+  for Col in Self do begin
+    if Col.Name = Value then begin
+      Result := Col;
+      break;
+    end;
   end;
 end;
 
