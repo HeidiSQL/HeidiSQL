@@ -68,6 +68,7 @@ type
   TTableColumnList = class(TObjectList<TTableColumn>)
     public
       procedure Assign(Source: TTableColumnList);
+      function FindByName(const Value: String): TTableColumn;
   end;
   TColumnCache = TDictionary<String,TTableColumnList>;
 
@@ -540,6 +541,8 @@ type
       procedure Log(Category: TDBLogCategory; Msg: String);
       function EscapeString(Text: String; ProcessJokerChars: Boolean=False; DoQuote: Boolean=True): String; overload;
       function EscapeString(Text: String; Datatype: TDBDatatype): String; overload;
+      function EscapeBin(BinValue: String): String; overload;
+      function EscapeBin(var ByteData: TBytes): String; overload;
       function QuoteIdent(Identifier: String; AlwaysQuote: Boolean=True; Glue: Char=#0): String;
       function DeQuoteIdent(Identifier: String; Glue: Char=#0): String;
       function CleanIdent(Identifier: String): String;
@@ -557,7 +560,7 @@ type
       function GetDBObjects(db: String; Refresh: Boolean=False; OnlyNodeType: TListNodeType=lntNone): TDBObjectList;
       function DbObjectsCached(db: String): Boolean;
       function ParseDateTime(Str: String): TDateTime;
-      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+      function GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TTableColumnList;
       function ConnectionInfo: TStringList; virtual;
       function GetLastResults: TDBQueryList; virtual;
       function GetCreateCode(Obj: TDBObject): String; virtual;
@@ -846,7 +849,7 @@ type
       procedure SetColumnOrgNames(Value: TStringList);
       procedure SetDBObject(Value: TDBObject);
       procedure CreateUpdateRow;
-      function GetKeyColumns: TStringList;
+      function GetKeyColumns: TTableColumnList;
       function GridQuery(QueryType, QueryBody: String): String;
     public
       constructor Create(AOwner: TComponent); override;
@@ -860,9 +863,7 @@ type
       function Col(Column: Integer; IgnoreErrors: Boolean=False): String; overload; virtual; abstract;
       function Col(ColumnName: String; IgnoreErrors: Boolean=False): String; overload;
       function ColumnLengths(Column: Integer): Int64; virtual;
-      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String; overload;
-      function HexValue(BinValue: String): String; overload;
-      function HexValue(var ByteData: TBytes): String; overload;
+      function HexValue(Column: Integer; IgnoreErrors: Boolean=False): String;
       function DataType(Column: Integer): TDBDataType;
       function MaxLength(Column: Integer): Int64;
       function ValueList(Column: Integer): TStringList;
@@ -5295,6 +5296,53 @@ begin
 end;
 
 
+function TDBConnection.EscapeBin(BinValue: String): String;
+var
+  BinLen: Integer;
+  Ansi: AnsiString;
+begin
+  // Return a binary value as hex AnsiString
+  Ansi := AnsiString(BinValue);
+  BinLen := Length(Ansi);
+  if BinLen = 0 then begin
+    Result := EscapeString('');
+  end else begin
+    if IsHex(BinValue) then begin
+      Result := BinValue; // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
+  end;
+end;
+
+
+function TDBConnection.EscapeBin(var ByteData: TBytes): String;
+var
+  BinLen: Integer;
+  Ansi: AnsiString;
+begin
+  BinLen := Length(ByteData);
+  SetString(Ansi, PAnsiChar(ByteData), BinLen);
+  if BinLen = 0 then begin
+    Result := EscapeString('');
+  end else begin
+    if IsHex(String(Ansi)) then begin
+      Result := String(Ansi); // Already hex encoded
+    end else begin
+      SetLength(Result, BinLen*2);
+      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
+      Result := '0x' + Result;
+    end;
+    if AppSettings.ReadBool(asLowercaseHex) then
+      Result := Result.ToLowerInvariant;
+  end;
+end;
+
+
 function TDBConnection.ExtractLiteral(var SQL: String; Prefix: String): String;
 var
   i, LitStart: Integer;
@@ -7517,12 +7565,14 @@ procedure TSQLiteConnection.FetchDbObjects(db: String; var Cache: TDBObjectList)
 var
   obj: TDBObject;
   Results: TDBQuery;
+  TypeS: String;
 begin
   // Tables, views and procedures
   Results := nil;
   try
     Results := GetResults('SELECT * FROM '+QuoteIdent(db)+'.sqlite_master '+
-      'WHERE type IN('+EscapeString('table')+', '+EscapeString('view')+') AND name NOT LIKE '+EscapeString('sqlite_%'));
+      'WHERE type IN('+EscapeString('table')+', '+EscapeString('view')+', '+EscapeString('trigger')+') '+
+      'AND name NOT LIKE '+EscapeString('sqlite_%'));
   except
     on E:EDbError do;
   end;
@@ -7534,8 +7584,12 @@ begin
       obj.Created := Now;
       obj.Updated := Now;
       obj.Database := db;
-      if Results.Col('type').ToLowerInvariant = 'view' then begin
+      TypeS := Results.Col('type').ToLowerInvariant;
+      if TypeS = 'view' then begin
         obj.NodeType := lntView;
+        obj.FCreateCode := Results.Col('sql');
+      end else if TypeS = 'trigger' then begin
+        obj.NodeType := lntTrigger;
         obj.FCreateCode := Results.Col('sql');
       end else
         obj.NodeType := lntTable;
@@ -7661,19 +7715,25 @@ begin
 end;
 
 
-function TDBConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TStringList;
+function TDBConnection.GetKeyColumns(Columns: TTableColumnList; Keys: TTableKeyList): TTableColumnList;
 var
-  i: Integer;
   AllowsNull: Boolean;
   Key: TTableKey;
   Col: TTableColumn;
+  ColName: String;
 begin
-  Result := TStringList.Create;
+  Result := TTableColumnList.Create;
   // Find best key for updates
   // 1. round: find a primary key
   for Key in Keys do begin
     if Key.IndexType = TTableKey.PRIMARY then
-      Result.Assign(Key.Columns);
+    begin
+      for ColName in Key.Columns do begin
+        Col := Columns.FindByName(ColName);
+        if Assigned(Col) then
+          Result.Add(Col);
+      end;
+    end;
   end;
   if Result.Count = 0 then begin
     // no primary key available -> 2. round: find a unique key
@@ -7682,16 +7742,18 @@ begin
         // We found a UNIQUE key - better than nothing. Check if one of the key
         // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
         AllowsNull := False;
-        for i:=0 to Key.Columns.Count-1 do begin
-          for Col in Columns do begin
-            if Col.Name = Key.Columns[i] then
-              AllowsNull := Col.AllowNull;
-            if AllowsNull then break;
-          end;
-          if AllowsNull then break;
+        for ColName in Key.Columns do begin
+          Col := Columns.FindByName(ColName);
+          AllowsNull := Assigned(Col) and Col.AllowNull;
+          if AllowsNull then
+            break; // Unusable, don't use this key
         end;
         if not AllowsNull then begin
-          Result.Assign(Key.Columns);
+          for ColName in Key.Columns do begin
+            Col := Columns.FindByName(ColName);
+            if Assigned(Col) then
+              Result.Add(Col);
+          end;
           break;
         end;
       end;
@@ -9128,56 +9190,11 @@ begin
   // Return a binary column value as hex AnsiString
   if FConnection.Parameters.IsAnyMysql then begin
     GetColBinData(Column, baData);
-    Result := HexValue(baData);
+    Result := FConnection.EscapeBin(baData);
   end else
-    Result := HexValue(Col(Column, IgnoreErrors));
+    Result := FConnection.EscapeBin(Col(Column, IgnoreErrors));
 end;
 
-
-function TDBQuery.HexValue(BinValue: String): String;
-var
-  BinLen: Integer;
-  Ansi: AnsiString;
-begin
-  // Return a binary value as hex AnsiString
-  Ansi := AnsiString(BinValue);
-  BinLen := Length(Ansi);
-  if BinLen = 0 then begin
-    Result := Connection.EscapeString('');
-  end else begin
-    if FConnection.IsHex(BinValue) then begin
-      Result := BinValue; // Already hex encoded
-    end else begin
-      SetLength(Result, BinLen*2);
-      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-      Result := '0x' + Result;
-    end;
-    if AppSettings.ReadBool(asLowercaseHex) then
-      Result := Result.ToLowerInvariant;
-  end;
-end;
-
-function TDBQuery.HexValue(var ByteData: TBytes): String;
-var
-  BinLen: Integer;
-  Ansi: AnsiString;
-begin
-  BinLen := Length(ByteData);
-  SetString(Ansi, PAnsiChar(ByteData), BinLen);
-  if BinLen = 0 then begin
-    Result := Connection.EscapeString('');
-  end else begin
-    if FConnection.IsHex(String(Ansi)) then begin
-      Result := String(Ansi); // Already hex encoded
-    end else begin
-      SetLength(Result, BinLen*2);
-      BinToHex(PAnsiChar(Ansi), PChar(Result), BinLen);
-      Result := '0x' + Result;
-    end;
-    if AppSettings.ReadBool(asLowercaseHex) then
-      Result := Result.ToLowerInvariant;
-  end;
-end;
 
 function TDBQuery.DataType(Column: Integer): TDBDataType;
 var
@@ -9778,7 +9795,7 @@ begin
             Val := 'b' + Val;
         end;
         dtcBinary, dtcSpatial:
-          Val := HexValue(Cell.NewText);
+          Val := FConnection.EscapeBin(Cell.NewText);
         else begin
           if Datatype(i).Index in [dbdtNchar, dbdtNvarchar, dbdtNtext] then
             Val := 'N' + Connection.EscapeString(Cell.NewText)
@@ -10072,7 +10089,7 @@ begin
   Result := Trim(Result);
 end;
 
-function TDBQuery.GetKeyColumns: TStringList;
+function TDBQuery.GetKeyColumns: TTableColumnList;
 var
   i: Integer;
 begin
@@ -10082,7 +10099,7 @@ begin
   if Result.Count = 0 then begin
     // No good key found. Just expect all columns to be present.
     for i:=0 to FColumns.Count-1 do
-      Result.Add(FColumns[i].Name);
+      Result.Add(FColumns[i]);
   end;
 end;
 
@@ -10090,14 +10107,14 @@ end;
 procedure TDBQuery.CheckEditable;
 var
   i: Integer;
-  KeyCols: TStringList;
+  KeyCols: TTableColumnList;
 begin
   KeyCols := GetKeyColumns;
   if KeyCols.Count = 0 then
     raise EDbError.Create(_(MSG_NOGRIDEDITING));
   // All column names must be present in order to send valid INSERT/UPDATE/DELETE queries
   for i:=0 to KeyCols.Count-1 do begin
-    if FColumnOrgNames.IndexOf(KeyCols[i]) = -1 then
+    if FColumnOrgNames.IndexOf(KeyCols[i].Name) = -1 then
       raise EDbError.Create(_(MSG_NOGRIDEDITING));
   end;
   for i:=0 to FColumnOrgNames.Count-1 do begin
@@ -10123,7 +10140,7 @@ end;
 function TDBQuery.GetWhereClause: String;
 var
   i, j: Integer;
-  NeededCols: TStringList;
+  NeededCols: TTableColumnList;
   ColVal: String;
   ColIsNull: Boolean;
 begin
@@ -10132,16 +10149,13 @@ begin
   Result := '';
 
   for i:=0 to NeededCols.Count-1 do begin
-    j := FColumnOrgNames.IndexOf(NeededCols[i]);
+    j := FColumnOrgNames.IndexOf(NeededCols[i].Name);
     if j = -1 then
       raise EDbError.CreateFmt(_('Cannot compose WHERE clause - column missing: %s'), [NeededCols[i]]);
     if Result <> '' then
       Result := Result + ' AND';
-
-    Result := Result + ' ' + Connection.QuoteIdent(FColumnOrgNames[j]);
-    if (DataType(j).Index = dbdtJson) and (Self is TPGQuery) then begin
-      Result := Result + '::text';
-    end;
+    // See issue #769 and #2031 for why we need CastAsText
+    Result := Result + ' ' + NeededCols[i].CastAsText;
 
     if Modified(j) then begin
       ColVal := FCurrentUpdateRow[j].OldText;
@@ -10169,7 +10183,7 @@ begin
         dtcTemporal:
           Result := Result + '=' + Connection.EscapeString(Connection.GetDateTimeValue(ColVal, DataType(j).Index));
         dtcBinary, dtcSpatial:
-          Result := Result + '=' + HexValue(ColVal);
+          Result := Result + '=' + FConnection.EscapeBin(ColVal);
         else begin
           // Any other data type goes here, including text:
           case DataType(j).Index of
@@ -10188,7 +10202,7 @@ end;
 
 function TDBQuery.GridQuery(QueryType, QueryBody: String): String;
 var
-  KeyColumns: TStringList;
+  KeyColumns: TTableColumnList;
 begin
   // Return automatic grid UPDATE/DELETE/SELECT, and apply LIMIT clause if no good key is present
   KeyColumns := Connection.GetKeyColumns(FColumns, FKeys);
@@ -10941,7 +10955,7 @@ begin
   Result := FConnection.QuoteIdent(Name);
   case FConnection.Parameters.NetTypeGroup of
     ngMySQL, ngSQLite: begin
-      if DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp] then
+      if DataType.Index in [dbdtUnknown, dbdtDate, dbdtDatetime, dbdtTime, dbdtTimestamp, dbdtJson, dbdtJsonB] then
         Result := 'CAST('+Result+' AS CHAR)';
     end;
     ngMSSQL: begin
@@ -10951,7 +10965,7 @@ begin
         Result := 'CAST('+Result+' AS NVARCHAR('+IntToStr(GRIDMAXDATA)+'))';
     end;
     ngPgSQL: begin
-      if (DataType.Index = dbdtUnknown) or (DataType.Category = dtcBinary) then
+      if (DataType.Index in [dbdtUnknown, dbdtJson]) or (DataType.Category = dtcBinary) then
         Result := Result + '::text';
     end;
   end;
@@ -10975,6 +10989,20 @@ begin
     ItemCopy := TTableColumn.Create(Item.Connection);
     ItemCopy.Assign(Item);
     Add(ItemCopy);
+  end;
+end;
+
+
+function TTableColumnList.FindByName(const Value: String): TTableColumn;
+var
+  Col: TTableColumn;
+begin
+  Result := nil;
+  for Col in Self do begin
+    if Col.Name = Value then begin
+      Result := Col;
+      break;
+    end;
   end;
 end;
 
@@ -11072,9 +11100,8 @@ begin
       else begin
         if IndexType <> TTableKey.KEY then
           Result := Result + IndexType + ' ';
-        Result := Result + 'INDEX ';
+        Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
       end;
-      Result := Result + FConnection.QuoteIdent(Name) + ' ';
     end;
     Result := Result + '(';
     for i:=0 to Columns.Count-1 do begin

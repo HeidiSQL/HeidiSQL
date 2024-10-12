@@ -19,7 +19,10 @@ type
     Username, Host, Password, Cipher, Issuer, Subject: String;
     MaxQueries, MaxUpdates, MaxConnections, MaxUserConnections, SSL: Integer;
     Problem: TUserProblem;
-    function HostRequiresNameResolve: Boolean;
+    public
+      constructor Create;
+      function HostRequiresNameResolve: Boolean;
+      procedure ParseSSLSettings(GrantOrCreate: String);
   end;
   PUser = ^TUser;
   TUserList = TObjectList<TUser>;
@@ -502,7 +505,7 @@ procedure TUserManagerForm.listUsersFocusChanged(Sender: TBaseVirtualTree; Node:
 var
   P, Ptmp, PCol: TPrivObj;
   User: PUser;
-  UserHost, RequireClause, WithClause, Msg: String;
+  UserHost, WithClause, Msg, CreateUser: String;
   Grants, AllPNames, Cols: TStringList;
   rxTemp, rxGrant: TRegExpr;
   i, j: Integer;
@@ -552,7 +555,7 @@ begin
         Grants.Add('GRANT USAGE ON *.* TO '+UserHost);
       end;
     end else try
-      Grants := FConnection.GetCol('SHOW GRANTS FOR '+FConnection.EscapeString(User.Username)+'@'+FConnection.EscapeString(User.Host));
+      Grants := FConnection.GetCol('SHOW GRANTS FOR '+UserHost);
     except
       on E:EDbError do begin
         Msg := E.Message;
@@ -677,37 +680,7 @@ begin
 
         end;
 
-        // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
-        rxTemp.Expression := '\sREQUIRE\s+(.+)';
-        if rxTemp.Exec(rxGrant.Match[11]) then begin
-          RequireClause := rxTemp.Match[1];
-          User.SSL := 0;
-          User.Cipher := '';
-          User.Issuer := '';
-          User.Subject := '';
-          rxTemp.Expression := '\bSSL\b';
-          if rxTemp.Exec(RequireClause) then
-            User.SSL := 1;
-          rxTemp.Expression := '\bX509\b';
-          if rxTemp.Exec(RequireClause) then
-            User.SSL := 2;
-          rxTemp.Expression := '\bCIPHER\s+''([^'']+)';
-          if rxTemp.Exec(RequireClause) then
-            User.Cipher := rxTemp.Match[1];
-          rxTemp.Expression := '\bISSUER\s+''([^'']+)';
-          if rxTemp.Exec(RequireClause) then
-            User.Issuer := rxTemp.Match[1];
-          rxTemp.Expression := '\bSUBJECT\s+''([^'']+)';
-          if rxTemp.Exec(RequireClause) then
-            User.Subject := rxTemp.Match[1];
-          if IsNotEmpty(User.Cipher) or IsNotEmpty(User.Issuer) or IsNotEmpty(User.Subject) then
-            User.SSL := 3;
-          comboSSL.ItemIndex := User.SSL;
-          comboSSL.OnChange(Sender);
-          editCipher.Text := User.Cipher;
-          editIssuer.Text := User.Issuer;
-          editSubject.Text := User.Subject;
-        end;
+        User.ParseSSLSettings(rxGrant.Match[11]);
 
         // WITH .. GRANT OPTION
         // MAX_QUERIES_PER_HOUR 20 MAX_UPDATES_PER_HOUR 10 MAX_CONNECTIONS_PER_HOUR 5 MAX_USER_CONNECTIONS 2
@@ -738,6 +711,22 @@ begin
           FPrivObjects.Remove(P);
       end;
     end;
+
+
+    CreateUser := '';
+    try
+      CreateUser := FConnection.GetVar('SHOW CREATE USER '+UserHost);
+      User.ParseSSLSettings(CreateUser);
+    except
+      on E:EDbError do;
+    end;
+
+    comboSSL.ItemIndex := User.SSL;
+    comboSSL.OnChange(comboSSL);
+    editCipher.Text := User.Cipher;
+    editIssuer.Text := User.Issuer;
+    editSubject.Text := User.Subject;
+
 
     // Generate grant code for column privs by hand
     for Ptmp in FPrivObjects do begin
@@ -1518,6 +1507,24 @@ begin
 end;
 
 
+{ TUser }
+
+constructor TUser.Create;
+begin
+  Username := '';
+  Host := '';
+  Password := '';
+  Cipher := '';
+  Issuer := '';
+  Subject := '';
+  MaxQueries := 0;
+  MaxUpdates := 0;
+  MaxConnections := 0;
+  MaxUserConnections := 0;
+  SSL := 0;
+  Problem := upNone;
+end;
+
 function TUser.HostRequiresNameResolve: Boolean;
 var
   rx: TRegExpr;
@@ -1529,6 +1536,40 @@ begin
   rx.Free;
 end;
 
+procedure TUser.ParseSSLSettings(GrantOrCreate: String);
+var
+  rx: TRegExpr;
+  RequireClause: String;
+begin
+  // REQUIRE SSL X509 ISSUER '456' SUBJECT '789' CIPHER '123' NONE
+  rx := TRegExpr.Create;
+  rx.ModifierI := True;
+  rx.Expression := '\sREQUIRE\s+(.+)';
+  if rx.Exec(GrantOrCreate) then begin
+    RequireClause := rx.Match[1];
+    SSL := 0;
+    Cipher := '';
+    Issuer := '';
+    Subject := '';
+    rx.Expression := '\bSSL\b';
+    if rx.Exec(RequireClause) then
+      SSL := 1;
+    rx.Expression := '\bX509\b';
+    if rx.Exec(RequireClause) then
+      SSL := 2;
+    rx.Expression := '\bCIPHER\s+''([^'']+)';
+    if rx.Exec(RequireClause) then
+      Cipher := rx.Match[1];
+    rx.Expression := '\bISSUER\s+''([^'']+)';
+    if rx.Exec(RequireClause) then
+      Issuer := rx.Match[1];
+    rx.Expression := '\bSUBJECT\s+''([^'']+)';
+    if rx.Exec(RequireClause) then
+      Subject := rx.Match[1];
+    if IsNotEmpty(Cipher) or IsNotEmpty(Issuer) or IsNotEmpty(Subject) then
+      SSL := 3;
+  end;
+end;
 
 
 

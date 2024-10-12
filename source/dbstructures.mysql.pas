@@ -679,7 +679,7 @@ var
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;
-      LoadPart:        False;
+      LoadPart:        True;
       Category:        dtcText;
     ),
     (

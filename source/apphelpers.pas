@@ -233,6 +233,7 @@ type
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asReformatter, asAlwaysGenerateFilter,
+    asGenerateDataNumRows, asGenerateDataNullAmount,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -361,7 +362,7 @@ type
   procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
-  procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
+  procedure FixVT(VT: TVirtualStringTree);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
@@ -1402,7 +1403,7 @@ begin
 end;
 
 
-procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
+procedure FixVT(VT: TVirtualStringTree);
 var
   SingleLineHeight: Integer;
   Node: PVirtualNode;
@@ -1410,15 +1411,12 @@ begin
   // This is called either in some early stage, or from preferences dialog
   VT.BeginUpdate;
   SingleLineHeight := GetTextHeight(VT.Font) + 7;
-  // Multiline nodes?
-  VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
+  VT.DefaultNodeHeight := SingleLineHeight;
   VT.Header.Height := SingleLineHeight;
   // Apply new height to multi line grid nodes
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
     VT.NodeHeight[Node] := VT.DefaultNodeHeight;
-    // Nodes have vsMultiLine through InitNode event
-    // VT.MultiLine[Node] := MultiLineCount > 1;
     Node := VT.GetNextInitialized(Node);
   end;
   VT.EndUpdate;
@@ -3093,7 +3091,6 @@ var
   i, BatchStartOffset, ResultCount: Integer;
   PacketSize, MaxAllowedPacket: Int64;
   DoStoreResult, ErrorAborted, LogMaxResultsDone: Boolean;
-  Warnings: TDBQuery;
 begin
   inherited;
 
@@ -3846,6 +3843,8 @@ begin
   InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
   InitSetting(asReformatter,                      'Reformatter',                           0);
   InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
+  InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
+  InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
 
   // Default folder for snippets
   if FPortableMode then

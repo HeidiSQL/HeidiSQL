@@ -790,6 +790,9 @@ type
     Resetpaneldimensions1: TMenuItem;
     popupApplyFilter: TPopupMenu;
     menuAlwaysGenerateFilter: TMenuItem;
+    actGenerateData: TAction;
+    Generatedata1: TMenuItem;
+    Generatedata2: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1513,6 +1516,7 @@ var
   i: Integer;
   Infos: TStringList;
   HintText: String;
+  Conn: TDBConnection;
 begin
   // Display various server, client and connection related details in a hint
   if IsWine then
@@ -1533,8 +1537,9 @@ begin
     Exit;
   FLastHintControlIndex := i;
   if FLastHintControlIndex = 3 then begin
-    if ActiveConnection <> nil then begin
-      Infos := ActiveConnection.ConnectionInfo;
+    Conn := ActiveConnection;
+    if (Conn <> nil) and (Conn.LockedByThread = nil) then begin
+      Infos := Conn.ConnectionInfo;
       HintText := '';
       for i:=0 to Infos.Count-1 do begin
         HintText := HintText + Infos.Names[i] + ': ' + StrEllipsis(Infos.ValueFromIndex[i], 200) + CRLF;
@@ -2947,7 +2952,9 @@ begin
   else if Sender = actExportTables then
     FTableToolsDialog.ToolMode := tmSQLExport
   else if Sender = actBulkTableEdit then
-    FTableToolsDialog.ToolMode := tmBulkTableEdit;
+    FTableToolsDialog.ToolMode := tmBulkTableEdit
+  else if Sender = actGenerateData then
+    FTableToolsDialog.ToolMode := tmGenerateData;
   FTableToolsDialog.ShowModal;
   FreeAndNil(FTableToolsDialog);
 end;
@@ -5849,9 +5856,9 @@ var
   RefreshingData, IsKeyColumn, NeedFullColumns: Boolean;
   i, ColWidth, VisibleColumns, MaximumRows, FullColumnCount: Integer;
   ColMaxLen, Offset: Int64;
-  KeyCols, ColWidths, WantedColumnOrgnames: TStringList;
-  WantedColumns: TTableColumnList;
-  c: TTableColumn;
+  ColWidths, WantedColumnOrgnames: TStringList;
+  KeyCols, WantedColumns: TTableColumnList;
+  c, ColumnInKey: TTableColumn;
   OldScrollOffset: TPoint;
   DBObj: TDBObject;
   rx: TRegExpr;
@@ -5931,7 +5938,8 @@ begin
     NeedFullColumns := False;
     for i:=0 to SelectedTableColumns.Count-1 do begin
       c := SelectedTableColumns[i];
-      IsKeyColumn := KeyCols.IndexOf(c.Name) > -1;
+      ColumnInKey := KeyCols.FindByName(c.Name);
+      IsKeyColumn := Assigned(ColumnInKey);
       ColMaxLen := StrToInt64Def(c.LengthSet, 0);
       if (DatagridHiddenColumns.IndexOf(c.Name) = -1)
         or (IsKeyColumn)
@@ -6222,8 +6230,9 @@ var
 begin
   // Mark all nodes as multiline capable. Fixes painting issues with long lines.
   // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
-  if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
-    Include(Node.States, vsMultiLine);
+  // Disabled due to laggy performance with large grid contents
+  //if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
+  //  Include(Node.States, vsMultiLine);
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
@@ -9118,7 +9127,7 @@ begin
   for Grid in AllGrids do begin
     Grid.Font.Name := AppSettings.ReadString(asDataFontName);
     Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-    FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+    FixVT(Grid);
     if IncrementalSearchActive then
       Grid.IncrementalSearch := isInitializedOnly
     else
@@ -10934,8 +10943,8 @@ begin
     //       here if the query or connection dies.
     Rect := Tree.GetDisplayRect(Node, Column, True, True);
     ContentTextWidth := Rect.Right - Rect.Left;
-    if vsMultiLine in Node.States then
-      ContentTextWidth := Max(ContentTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, Column]));
+    //if vsMultiLine in Node.States then
+    //  ContentTextWidth := Max(ContentTextWidth, Tree.Canvas.TextWidth(Tree.Text[Node, Column]));
     ColTextWidth := Max(ColTextWidth, ContentTextWidth);
     inc(i);
     if i > 100 then break;
@@ -13220,7 +13229,8 @@ var
   MenuItem: TMenuItem;
   sql, Val, WhereClause: String;
   i, idx: Integer;
-  ColumnNames, DefaultValues, KeyColumns: TStringList;
+  ColumnNames, DefaultValues: TStringList;
+  KeyColumns: TTableColumnList;
   Column: TTableColumn;
   Tree: TVirtualStringTree;
   Node: PVirtualNode;
@@ -13256,11 +13266,11 @@ begin
   KeyColumns := ActiveConnection.GetKeyColumns(SelectedTableColumns, SelectedTableKeys);
   WhereClause := '';
   for i:=0 to KeyColumns.Count-1 do begin
-    idx := ColumnNames.IndexOf(ActiveConnection.QuoteIdent(KeyColumns[i], False));
+    idx := ColumnNames.IndexOf(ActiveConnection.QuoteIdent(KeyColumns[i].Name, False));
     if idx > -1 then begin
       if WhereClause <> '' then
         WhereClause := WhereClause + ' AND ';
-      WhereClause := WhereClause + ActiveConnection.QuoteIdent(KeyColumns[i], False)+'='+DefaultValues[idx];
+      WhereClause := WhereClause + ActiveConnection.QuoteIdent(KeyColumns[i].Name, False)+'='+DefaultValues[idx];
     end;
   end;
 
@@ -15224,7 +15234,7 @@ begin
   Grid.OnNewText := OrgGrid.OnNewText;
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
-  FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
+  FixVT(Grid);
   FTabIndex := QueryTab.ResultTabs.Count; // Will be 0 for the first one, even if we're already creating the first one here!
 end;
 

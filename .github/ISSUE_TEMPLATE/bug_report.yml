@@ -6,16 +6,6 @@ body:
     attributes:
       label: Description
       description: "A clear and concise description of what the bug is. Screenshots welcome!"
-      value: |
-        ### What where you trying to do?
-
-
-        ### What actually happened?
-
-
-        ### What did you expect to happen?
-
-
     validations:
       required: true
   - type: input
@@ -29,23 +19,18 @@ body:
     id: database_software
     attributes:
       label: Database server version
-      description: "If not applicable or irrelevant, type '-'"
-      placeholder: "Example: MariaDB 10.3.27"
+      placeholder: "Example: MariaDB 10.3.27, or just '-' if irrelevant"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Reproduction recipe
+      placeholder: "Instructions for reproducing the problem"
     validations:
       required: true
   - type: textarea
     id: error_log
     attributes:
       label: Error/Backtrace
-      description: If an error message was produced.
+      placeholder: "Optional, attach or paste crash report here"
       render: shell
-  - type: textarea
-    attributes:
-      label: Reproduction recipe
-      placeholder: "Instructions for reproducing the problem"
-      value: |
-        Go to ...
-        Click on ....
-        See error message: ...
-    validations:
-      required: true
