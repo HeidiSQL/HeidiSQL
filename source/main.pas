@@ -3069,7 +3069,7 @@ begin
   AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
     item := TMenuItem.Create(menuConnections);
-    item.Caption := SessionPaths[i];
+    item.Caption := EscapeHotkeyPrefix(SessionPaths[i]);
     item.OnClick := SessionConnect;
     for Connection in Connections do begin
       if SessionPaths[i] = Connection.Parameters.SessionPath then begin
@@ -3096,7 +3096,7 @@ begin
   AppSettings.GetSessionPaths('', SessionPaths);
   for i:=0 to SessionPaths.Count-1 do begin
     Item := TMenuItem.Create(menuConnectTo);
-    Item.Caption := SessionPaths[i];
+    Item.Caption := EscapeHotkeyPrefix(SessionPaths[i]);
     Item.OnClick := SessionConnect;
     for Connection in Connections do begin
       if SessionPaths[i] = Connection.Parameters.SessionPath then begin
@@ -12855,6 +12855,8 @@ begin
   // Some cases pass -1 which triggers a "List index out of bounds" in below cast
   if PageIndex = -1 then
     Exit;
+  // Escape hotkey accelerator in name of session, database or table
+  Text := EscapeHotkeyPrefix(Text);
   Text := StrEllipsis(Text, 70);
   // Special case if passed text is empty: Reset query tab caption to "Query #123"
   if (PageIndex = tabQuery.PageIndex) and (Text = '') then

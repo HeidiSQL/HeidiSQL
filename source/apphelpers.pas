@@ -424,6 +424,7 @@ type
   function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function UserAgent(OwnerComponent: TComponent): String;
   function CodeIndent(Steps: Integer=1): String;
+  function EscapeHotkeyPrefix(Text: String): String;
 
 var
   AppSettings: TAppSettings;
@@ -3008,6 +3009,13 @@ begin
     Result := StringOfChar(' ', AppSettings.ReadInt(asTabWidth) * Steps)
   else
     Result := StringOfChar(#9, Steps);
+end;
+
+
+function EscapeHotkeyPrefix(Text: String): String;
+begin
+  // Issue #1992: Escape ampersand in caption of menus and tabs, preventing underlined hotkey generation
+  Result := StringReplace(Text, Vcl.Menus.cHotkeyPrefix, Vcl.Menus.cHotkeyPrefix + Vcl.Menus.cHotkeyPrefix, [rfReplaceAll]);
 end;
 
 
