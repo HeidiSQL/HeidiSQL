@@ -1226,21 +1226,21 @@ end;
 
 procedure TSysToolbarStyleHook.ApplyImageList;
 var
-  H: Cardinal;
+  H: LRESULT;
 begin
   H := SendMessage(Handle, TB_GETIMAGELIST, 0, 0);
   if (H <> 0) and (FImages = nil) then
   begin
     FImages := TImageList.Create(nil);
     FImages.ShareImages := True;
-    FImages.Handle := H;
+    FImages.Handle := THandle(H);
   end;
   H := SendMessage(Handle, TB_GETDISABLEDIMAGELIST, 0, 0);
   if (H <> 0) and (FDisabledImages = nil) then
   begin
     FDisabledImages := TImageList.Create(nil);
     FDisabledImages.ShareImages := True;
-    FDisabledImages.Handle := H;
+    FDisabledImages.Handle := THandle(H);
   end;
 end;
 
@@ -1826,7 +1826,9 @@ end;
 function TSysRichEditStyleHook.GetBorderSize: TRect;
 begin
   if SysControl.HasBorder then
-    Result := Rect(2, 2, 2, 2);
+    Result := Rect(2, 2, 2, 2)
+   else
+    Result := Rect(0, 0, 0, 0);
 end;
 
 procedure TSysRichEditStyleHook.UpdateColors;

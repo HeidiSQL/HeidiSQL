@@ -159,9 +159,9 @@ var
 begin
   LDetails := FStyle.GetElementDetails(twCaptionActive);
   if Assigned(Application.Mainform) then
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Application.MainForm.Monitor.PixelsPerInch{$IFEND})
   else
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Screen.PixelsPerInch{$IFEND});
   Result := LSize.cy;
 end;
 
@@ -172,9 +172,9 @@ var
 begin
   LDetails := FStyle.GetElementDetails(twFrameLeftActive);
   if Assigned(Application.Mainform) then
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Application.MainForm.Monitor.PixelsPerInch{$IFEND})
   else
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Screen.PixelsPerInch{$IFEND});
   Result := LSize.cx;
 end;
 
@@ -185,9 +185,9 @@ var
 begin
   LDetails  := FStyle.GetElementDetails(twFrameRightActive);
   if Assigned(Application.Mainform) then
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Application.MainForm.Monitor.PixelsPerInch{$IFEND})
   else
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Screen.PixelsPerInch{$IFEND});
   Result := LSize.cx;
 end;
 
@@ -198,9 +198,9 @@ var
 begin
   LDetails   := FStyle.GetElementDetails(twFrameBottomActive);
   if Assigned(Application.Mainform) then
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Application.MainForm.Monitor.PixelsPerInch)
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Application.MainForm.Monitor.PixelsPerInch{$IFEND})
   else
-    FStyle.GetElementSize(0, LDetails, esActual, LSize, Screen.PixelsPerInch);
+    FStyle.GetElementSize(0, LDetails, esActual, LSize{$IF (CompilerVersion >=33)}, Screen.PixelsPerInch{$IFEND});
   Result := LSize.cy;
 end;
 

@@ -257,12 +257,17 @@ uses
   Vcl.Direct2D,
   System.StrUtils,
   Winapi.D2D1,
-{$IFEND}  
+{$IFEND}
+{$IF CompilerVersion >= 36}
+  Vcl.StyleBitmap,
+  Vcl.StyleAPI,
+{$IFEND}
   Winapi.Messages,
 {$ENDIF}
-  Vcl.Dialogs, Vcl.Styles.Utils.Misc, Vcl.Styles.Utils.Graphics;
+  Vcl.Dialogs, Vcl.Styles.Utils.Misc,
+  Vcl.Styles.Utils.Graphics;
 
-{$IF (DEFINED (USE_VCL_STYLESAPI) AND (CompilerVersion >= 23))}
+{$IF (DEFINED (USE_VCL_STYLESAPI) AND (CompilerVersion >= 23) AND (CompilerVersion <= 35))}
 {$I '..\source\vcl\StyleUtils.inc'}
 {$I '..\source\vcl\StyleAPI.inc'}
 {$IFEND}
@@ -589,6 +594,20 @@ begin
 end;
 
 {$IFDEF USE_VCL_STYLESAPI}
+type
+  TseStyleHelper = class Helper for TseStyle
+  strict private
+    function  GetCleanCopy: TSeStyleSource;
+  public
+    property CleanCopy: TSeStyleSource read GetCleanCopy;
+  end;
+
+function TseStyleHelper.GetCleanCopy: TSeStyleSource;
+begin
+  with Self do
+    Result := FCleanCopy;
+end;
+
 { TVCLStyleExt }
 
 constructor TCustomStyleExt.Create(const FileName: string);
@@ -610,22 +629,22 @@ begin
   Stream.Size := 0;
   Stream.Position := 0;
 
-  TseStyle(Source).FCleanCopy.Name := TseStyle(Source).StyleSource.Name;
-  TseStyle(Source).FCleanCopy.Author := TseStyle(Source).StyleSource.Author;
-  TseStyle(Source).FCleanCopy.AuthorEMail := TseStyle(Source).StyleSource.AuthorEMail;
-  TseStyle(Source).FCleanCopy.AuthorURL := TseStyle(Source).StyleSource.AuthorURL;
-  TseStyle(Source).FCleanCopy.Version := TseStyle(Source).StyleSource.Version;
+  TseStyle(Source).CleanCopy.Name := TseStyle(Source).StyleSource.Name;
+  TseStyle(Source).CleanCopy.Author := TseStyle(Source).StyleSource.Author;
+  TseStyle(Source).CleanCopy.AuthorEMail := TseStyle(Source).StyleSource.AuthorEMail;
+  TseStyle(Source).CleanCopy.AuthorURL := TseStyle(Source).StyleSource.AuthorURL;
+  TseStyle(Source).CleanCopy.Version := TseStyle(Source).StyleSource.Version;
 
   // Replace the modified bitmaps
-  for I := 0 to TseStyle(Source).FCleanCopy.Bitmaps.Count - 1 do
-    TseStyle(Source).FCleanCopy.Bitmaps[I].Assign(TseStyle(Source).StyleSource.Bitmaps[I]);
+  for I := 0 to TseStyle(Source).CleanCopy.Bitmaps.Count - 1 do
+    TseStyle(Source).CleanCopy.Bitmaps[I].Assign(TseStyle(Source).StyleSource.Bitmaps[I]);
 
   // TseStyle(Source).StyleSource.SysColors.Assign(TseStyle(Source).SysColors);
 
   // Replace the modified colors
-  TseStyle(Source).FCleanCopy.SysColors.Assign(TseStyle(Source).SysColors);
-  TseStyle(Source).FCleanCopy.Colors.Assign(TseStyle(Source).Colors);
-  TseStyle(Source).FCleanCopy.Fonts.Assign(TseStyle(Source).Fonts);
+  TseStyle(Source).CleanCopy.SysColors.Assign(TseStyle(Source).SysColors);
+  TseStyle(Source).CleanCopy.Colors.Assign(TseStyle(Source).Colors);
+  TseStyle(Source).CleanCopy.Fonts.Assign(TseStyle(Source).Fonts);
 
   // ShowMessage(ColorToString(TseStyle(Source).SysColors[clWindow]));
   TseStyle(Source).SaveToStream(Stream);
@@ -1867,13 +1886,17 @@ end;
 initialization
 
 {$IFDEF USE_VCL_STYLESAPI}
+  {$IF CompilerVersion <= 35}
   InitStyleAPI;
+  {$IFEND}
 {$ENDIF}
 
 finalization
 
 {$IFDEF USE_VCL_STYLESAPI}
+  {$IF CompilerVersion <= 35}
   FinalizeStyleAPI;
+  {$IFEND}
 {$ENDIF}
 
 end.

@@ -272,7 +272,9 @@ end;
 function TSysEditStyleHook.GetBorderSize: TRect;
 begin
   if SysControl.HasBorder then
-    Result := Rect(2, 2, 2, 2);
+    Result := Rect(2, 2, 2, 2)
+   else
+    Result := Rect(0, 0, 0, 0);
 end;
 
 procedure TSysEditStyleHook.MouseEnter;
@@ -997,7 +999,9 @@ end;
 function TSysMemoStyleHook.GetBorderSize: TRect;
 begin
   if SysControl.HasBorder then
-    Result := Rect(2, 2, 2, 2);
+    Result := Rect(2, 2, 2, 2)
+   else
+    Result := Rect(0, 0, 0, 0);
 end;
 
 procedure TSysMemoStyleHook.UpdateColors;
