@@ -415,6 +415,7 @@ procedure TSysPopupStyleHook.DrawItem(Canvas: TCanvas; const Index: integer; con
 var
   LTextRect: TRect;
   DC: HDC;
+  LPixelsPerInch: Integer;
 
   procedure DrawSubMenu(const ItemRect: TRect);
   var
@@ -429,7 +430,7 @@ var
     if isDisabled in State then
       LSubMenuDetail := tmPopupSubMenuDisabled;
     LSubMenuDetails := StyleServices.GetElementDetails(LSubMenuDetail);
-    StyleServices.GetElementSize(DC, LSubMenuDetails, esActual, SubMenuSize);
+    StyleServices.GetElementSize(DC, LSubMenuDetails, esActual, SubMenuSize, LPixelsPerInch);
     if not RightToLeft then
       LSubMenuRect := Rect(ItemRect.Right - SubMenuSize.cx, ItemRect.Top, ItemRect.Right, ItemRect.Top + SubMenuSize.cy)
     else
@@ -439,7 +440,7 @@ var
       LBitmap.SetSize(SubMenuSize.Width, SubMenuSize.Height);
       LBitmap.Canvas.Brush.Color := clFuchsia;
       LBitmap.Canvas.FillRect(Rect(0, 0, SubMenuSize.Width, SubMenuSize.Height));
-      StyleServices.DrawElement(LBitmap.Canvas.Handle, LSubMenuDetails, Rect(0, 0, SubMenuSize.Width, SubMenuSize.Height));
+      StyleServices.DrawElement(LBitmap.Canvas.Handle, LSubMenuDetails, Rect(0, 0, SubMenuSize.Width, SubMenuSize.Height), nil, LPixelsPerInch);
       if RightToLeft then
       begin
         RotateBitmap(LBitmap, DegToRad(180), False, clFuchsia);
@@ -534,6 +535,10 @@ var
 
 
 begin
+  if Assigned(Application.Mainform) then
+    LPixelsPerInch := Application.MainForm.Monitor.PixelsPerInch
+  else
+    LPixelsPerInch := screen.PixelsPerInch;
   DisplayCheckedGlyph := True;
   ItemRect2 := ItemRect;
   ItemRect2.Top := ItemRect.Top - GetOffset(True); //add offset

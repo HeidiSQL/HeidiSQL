@@ -210,9 +210,11 @@ begin
       CheckMenuItem(FVCLStylesMenu, LSubMenuIndex, MF_BYPOSITION or MF_CHECKED);
 
     if SameText('Windows', s) then
+    begin
+      inc(LSubMenuIndex);
       AddMenuSeparatorHelper(FVCLStylesMenu, LSubMenuIndex);
+    end;
 
-    inc(LSubMenuIndex);
     inc(uIDNewItem);
     LMethodInfo := TMethodInfo.Create;
     LMethodInfo.Value1 := s;
