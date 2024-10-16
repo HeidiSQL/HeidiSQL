@@ -413,7 +413,7 @@ type
   function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
   function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
   function GetThemeColor(Color: TColor): TColor;
-  function ThemeIsDark(ThemeName: String): Boolean;
+  function ThemeIsDark(ThemeName: String=''): Boolean;
   function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
@@ -2393,7 +2393,10 @@ begin
       Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
     rx := TRegExpr.Create;
     rx.Expression := 'https?://[^\s"]+';
-    Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
+    if ThemeIsDark then
+      Dialog.Text := Msg
+    else // See issue #2036
+      Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
     rx.Free;
 
     // Main icon, and footer link
@@ -2863,13 +2866,15 @@ begin
 end;
 
 
-function ThemeIsDark(ThemeName: String): Boolean;
+function ThemeIsDark(ThemeName: String=''): Boolean;
 const
   DarkThemes: String = 'Amakrits,Aqua Graphite,Auric,Carbon,Charcoal Dark Slate,Cobalt XEMedia,Glossy,Glow,Golden Graphite,Material,Onyx Blue,Ruby Graphite,TabletDark,Windows10 Dark,Windows10 SlateGray';
 var
   DarkThemesList: TStringList;
 begin
   DarkThemesList := Explode(',', DarkThemes);
+  if ThemeName.IsEmpty then
+    ThemeName := TStyleManager.ActiveStyle.Name;
   Result := DarkThemesList.IndexOf(ThemeName) > -1;
   DarkThemesList.Free;
 end;
