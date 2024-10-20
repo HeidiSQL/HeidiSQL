@@ -165,6 +165,7 @@ type
     FPrivObjects: TPrivObjList;
     FPrivsGlobal, FPrivsDb, FPrivsTable, FPrivsRoutine, FPrivsColumn: TStringList;
     FConnection: TDBConnection;
+    FColorReadPriv, FColorWritePriv, FColorAdminPriv: TColor;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
@@ -254,6 +255,14 @@ begin
   FixVT(listUsers);
   FixVT(treePrivs);
   RestoreListSetup(listUsers);
+  FColorReadPriv := clGreen;
+  FColorWritePriv := clMaroon;
+  FColorAdminPriv := clNavy;
+  if ThemeIsDark then begin
+    FColorReadPriv := ColorAdjustBrightness(FColorReadPriv, 128);
+    FColorWritePriv := ColorAdjustBrightness(FColorWritePriv, 128);
+    FColorAdminPriv := ColorAdjustBrightness(FColorAdminPriv, 128);
+  end;
 
   FConnection := Mainform.ActiveConnection;
   Version := FConnection.ServerVersionInt;
@@ -1038,11 +1047,11 @@ begin
   if (Sender.GetNodeLevel(Node) = 1) and (not (vsSelected in Node.States)) then begin
     PrivName := FPrivObjects[Node.Parent.Index].AllPrivileges[Node.Index];
     if PrivsRead.IndexOf(PrivName) > -1 then
-      TargetCanvas.Font.Color := clGreen
+      TargetCanvas.Font.Color := FColorReadPriv
     else if PrivsWrite.IndexOf(PrivName) > -1 then
-      TargetCanvas.Font.Color := clMaroon
+      TargetCanvas.Font.Color := FColorWritePriv
     else if PrivsAdmin.IndexOf(PrivName) > -1 then
-      TargetCanvas.Font.Color := clNavy;
+      TargetCanvas.Font.Color := FColorAdminPriv;
   end;
 end;
 
