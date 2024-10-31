@@ -1850,7 +1850,7 @@ begin
     if not TblKey.Added then begin
       DeleteTblKey := TTableKey.Create(DBObject.Connection);
       DeleteTblKey.Assign(TblKey);
-      FDeletedKeys.Add(TblKey);
+      FDeletedKeys.Add(DeleteTblKey);
     end;
   end;
   FKeys.Clear;
