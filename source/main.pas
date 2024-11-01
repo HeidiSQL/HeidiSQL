@@ -12381,6 +12381,9 @@ begin
   end;
   if not IsQueryTab(PageIndex, False) then
     Exit;
+  // Cancel cell editor if active, preventing crash. See issue #2040
+  if ActiveGrid.IsEditing then
+    ActiveGrid.CancelEditNode;
   // Ask user if query content shall be saved to disk
   if not ConfirmTabClose(PageIndex, False) then
     Exit;
