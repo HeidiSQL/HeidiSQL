@@ -580,6 +580,7 @@ var
   i: Integer;
   Results: TDBQuery;
   Col, PreviousCol: PTableColumn;
+  TblKey: TTableKey;
   Constraint: TCheckConstraint;
   Node: PVirtualNode;
   Conn: TDBConnection;
@@ -798,28 +799,44 @@ begin
   end;
 
   // Drop indexes, also changed indexes, which will be readded below
-  for i:=0 to FDeletedKeys.Count-1 do begin
-    if not FDeletedKeys[i].InsideCreateCode then
+  for TblKey in FDeletedKeys do begin
+    if not TblKey.InsideCreateCode then
       Continue;
-    if FDeletedKeys[i].IndexType = TTableKey.PRIMARY then
-      IndexSQL := 'PRIMARY KEY'
-    else
-      IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i].OldName);
+    if Conn.Parameters.IsAnyPostgreSQL then begin
+      if TblKey.IsPrimary or TblKey.IsUnique then
+        IndexSQL := 'CONSTRAINT ' + TblKey.OldName
+      else // wrong:
+        IndexSQL := 'INDEX ' + Conn.QuoteIdent(TblKey.OldName);
+    end
+    else begin
+      if TblKey.IsPrimary then
+        IndexSQL := 'PRIMARY KEY'
+      else
+        IndexSQL := 'INDEX ' + Conn.QuoteIdent(TblKey.OldName);
+    end;
     Specs.Add('DROP '+IndexSQL);
   end;
   // Add changed or added indexes
-  for i:=0 to FKeys.Count-1 do begin
-    if not FKeys[i].InsideCreateCode then
+  for TblKey in FKeys do begin
+    if not TblKey.InsideCreateCode then
       Continue;
-    if FKeys[i].Modified and (not FKeys[i].Added) then begin
-      if FKeys[i].OldIndexType = TTableKey.PRIMARY then
-        IndexSQL := 'PRIMARY KEY'
-      else
-        IndexSQL := 'INDEX ' + Conn.QuoteIdent(FKeys[i].OldName);
+    if TblKey.Modified and (not TblKey.Added) then begin
+      if Conn.Parameters.IsAnyPostgreSQL then begin
+        if (TblKey.OldIndexType = TTableKey.PRIMARY) or (TblKey.OldIndexType = TTableKey.UNIQUE) then
+          IndexSQL := 'CONSTRAINT ' + TblKey.OldName
+        else // wrong:
+          IndexSQL := 'INDEX ' + Conn.QuoteIdent(TblKey.OldName);
+      end
+      else begin
+        if TblKey.OldIndexType = TTableKey.PRIMARY then
+          IndexSQL := 'PRIMARY KEY'
+        else
+          IndexSQL := 'INDEX ' + Conn.QuoteIdent(TblKey.OldName);
+      end;
       Specs.Add('DROP '+IndexSQL);
     end;
-    if FKeys[i].Added or FKeys[i].Modified then
-      Specs.Add('ADD '+FKeys[i].SQLCode);
+    if TblKey.Added or TblKey.Modified then
+      Specs.Add('ADD '+TblKey.SQLCode);
   end;
 
   for i:=0 to FDeletedForeignKeys.Count-1 do begin
@@ -848,7 +865,7 @@ begin
   for i:=0 to FDeletedKeys.Count-1 do begin
     if FDeletedKeys[i].InsideCreateCode then
       Continue;
-    if FDeletedKeys[i].IndexType = TTableKey.PRIMARY then
+    if FDeletedKeys[i].IsPrimary then
       IndexSQL := 'PRIMARY KEY'
     else
       IndexSQL := 'INDEX ' + Conn.QuoteIdent(FDeletedKeys[i].OldName);
@@ -1316,7 +1333,7 @@ begin
       // Do not allow NULL, and force NOT NULL, on primary key columns
       Result := True;
       for i:=0 to FKeys.Count-1 do begin
-        if (FKeys[i].IndexType = TTableKey.PRIMARY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
+        if FKeys[i].IsPrimary and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
           if Col.AllowNull then begin
             Col.AllowNull := False;
             Col.Status := esModified;
@@ -1432,7 +1449,7 @@ begin
   Col := Sender.GetNodeData(Node);
   // Bold font for primary key columns
   for i:=0 to FKeys.Count-1 do begin
-    if (FKeys[i].IndexType = TTableKey.PRIMARY) and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
+    if FKeys[i].IsPrimary and (FKeys[i].Columns.IndexOf(Col.Name) > -1) then begin
       TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold];
       break;
     end;
@@ -1887,7 +1904,7 @@ begin
     0: begin
       TblKey := FKeys[Node.Index];
       case Column of
-        0: if TblKey.IndexType = TTableKey.PRIMARY then
+        0: if TblKey.IsPrimary then
              CellText := TblKey.IndexType + ' KEY' // Fixed name "PRIMARY KEY", cannot be changed
            else
              CellText := TblKey.Name;
@@ -2472,7 +2489,7 @@ begin
   // Auto create submenu items for "Add to index" ...
   PrimaryKeyExists := False;
   for i:=0 to FKeys.Count-1 do begin
-    if FKeys[i].IndexType = TTableKey.PRIMARY then begin
+    if FKeys[i].IsPrimary then begin
       PrimaryKeyExists := True;
       IndexName := TTableKey.PRIMARY;
     end else

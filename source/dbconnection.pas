@@ -91,6 +91,11 @@ type
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
+      function IsPrimary: Boolean;
+      function IsIndex: Boolean;
+      function IsUnique: Boolean;
+      function IsFulltext: Boolean;
+      function IsSpatial: Boolean;
       procedure Modification(Sender: TObject);
       function SQLCode(TableName: String=''): String;
       property InsideCreateCode: Boolean read GetInsideCreateCode;
@@ -6327,7 +6332,7 @@ begin
       end;
       NewKey.Columns.Add(KeyQuery.Col('Column_name'));
       NewKey.Collations.Add(KeyQuery.Col('Collation', True));
-      if NewKey.IndexType = TTableKey.SPATIAL then
+      if NewKey.IsSpatial then
         NewKey.SubParts.Add('') // Keep in sync, prevent "Incorrect prefix key"
       else
         NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
@@ -7726,7 +7731,7 @@ begin
   // Find best key for updates
   // 1. round: find a primary key
   for Key in Keys do begin
-    if Key.IndexType = TTableKey.PRIMARY then
+    if Key.IsPrimary then
     begin
       for ColName in Key.Columns do begin
         Col := Columns.FindByName(ColName);
@@ -7738,7 +7743,7 @@ begin
   if Result.Count = 0 then begin
     // no primary key available -> 2. round: find a unique key
     for Key in Keys do begin
-      if Key.IndexType = TTableKey.UNIQUE then begin
+      if Key.IsUnique then begin
         // We found a UNIQUE key - better than nothing. Check if one of the key
         // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
         AllowsNull := False;
@@ -11051,6 +11056,32 @@ begin
     inherited;
 end;
 
+function TTableKey.IsPrimary: Boolean;
+begin
+  Result := IndexType = PRIMARY;
+end;
+
+function TTableKey.IsIndex: Boolean;
+begin
+  Result := IndexType = KEY;
+end;
+
+function TTableKey.IsUnique: Boolean;
+begin
+  Result := IndexType = UNIQUE;
+end;
+
+function TTableKey.IsFulltext: Boolean;
+begin
+  Result := IndexType = FULLTEXT;
+end;
+
+function TTableKey.IsSpatial: Boolean;
+begin
+  Result := IndexType = SPATIAL;
+end;
+
+
 procedure TTableKey.Modification(Sender: TObject);
 begin
   if not Added then
@@ -11060,20 +11091,20 @@ end;
 function TTableKey.GetImageIndex: Integer;
 begin
   // Detect key icon index for specified index
-  if IndexType = TTableKey.PRIMARY then Result := ICONINDEX_PRIMARYKEY
-  else if IndexType = TTableKey.KEY then Result := ICONINDEX_INDEXKEY
-  else if IndexType = TTableKey.UNIQUE then Result := ICONINDEX_UNIQUEKEY
-  else if IndexType = TTableKey.FULLTEXT then Result := ICONINDEX_FULLTEXTKEY
-  else if IndexType = TTableKey.SPATIAL then Result := ICONINDEX_SPATIALKEY
+  if IsPrimary then Result := ICONINDEX_PRIMARYKEY
+  else if IsIndex then Result := ICONINDEX_INDEXKEY
+  else if IsUnique then Result := ICONINDEX_UNIQUEKEY
+  else if IsFulltext then Result := ICONINDEX_FULLTEXTKEY
+  else if IsSpatial then Result := ICONINDEX_SPATIALKEY
   else Result := -1;
 end;
 
 function TTableKey.GetInsideCreateCode: Boolean;
 begin
-  case Connection.Parameters.NetTypeGroup of
+  case FConnection.Parameters.NetTypeGroup of
     ngMySQL: Result := True;
     ngSQLite: begin
-      if IndexType = PRIMARY then
+      if IsPrimary then
         Result := True
       else
         Result := False;
@@ -11091,7 +11122,7 @@ begin
   if Columns.Count = 0 then
     Exit;
   if InsideCreateCode then begin
-    if IndexType = TTableKey.PRIMARY then
+    if IsPrimary then
       Result := Result + 'PRIMARY KEY '
     else begin
       if FConnection.Parameters.IsAnyPostgreSQL then begin
