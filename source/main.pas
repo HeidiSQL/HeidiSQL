@@ -12373,6 +12373,7 @@ end;
 procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
+  Grid: TVirtualStringTree;
 begin
   // Special case: the very first tab gets cleared but not closed
   if PageIndex = tabQuery.PageIndex then begin
@@ -12382,8 +12383,9 @@ begin
   if not IsQueryTab(PageIndex, False) then
     Exit;
   // Cancel cell editor if active, preventing crash. See issue #2040
-  if ActiveGrid.IsEditing then
-    ActiveGrid.CancelEditNode;
+  Grid := ActiveGrid;
+  if Assigned(Grid) and Grid.IsEditing then
+    Grid.CancelEditNode;
   // Ask user if query content shall be saved to disk
   if not ConfirmTabClose(PageIndex, False) then
     Exit;
