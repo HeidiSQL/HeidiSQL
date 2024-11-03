@@ -11129,7 +11129,7 @@ begin
         Result := Result + IndexType + ' ';
       end
       else begin
-        if IndexType <> TTableKey.KEY then
+        if not IsIndex then
           Result := Result + IndexType + ' ';
         Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
       end;
@@ -11160,7 +11160,7 @@ begin
     // CREATE INDEX myindex ON table1 ("Column 1")
     // TODO: test on PG, MS, IB
     Result := 'CREATE ';
-    if IndexType <> TTableKey.KEY then
+    if not IsIndex then
       Result := Result + IndexType + ' ';
     Result := Result + 'INDEX '+FConnection.QuoteIdent(Name)+' ON ' + FConnection.QuoteIdent(TableName) + ' (';
     for i:=0 to Columns.Count-1 do begin

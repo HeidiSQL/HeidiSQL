@@ -798,7 +798,7 @@ begin
     end;
   end;
 
-  // Drop indexes, also changed indexes, which will be readded below
+  // Drop indexes
   for TblKey in FDeletedKeys do begin
     if not TblKey.InsideCreateCode then
       Continue;
@@ -816,7 +816,8 @@ begin
     end;
     Specs.Add('DROP '+IndexSQL);
   end;
-  // Add changed or added indexes
+
+  // Drop changed indexes, and add changed or added indexes
   for TblKey in FKeys do begin
     if not TblKey.InsideCreateCode then
       Continue;
@@ -1799,7 +1800,7 @@ begin
     end;
     if not ColExists then begin
       NewCol := Column.Name;
-      if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Column.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
+      if (not TblKey.IsFulltext) and (Column.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
         PartLength := '100';
       break;
     end;
@@ -2359,7 +2360,7 @@ begin
 
     TblKey.Columns.Insert(ColPos, ColName);
     PartLength := '';
-    if (TblKey.IndexType <> TTableKey.FULLTEXT) and (Col.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
+    if (not TblKey.IsFulltext) and (Col.DataType.Index in [dbdtTinyText, dbdtText, dbdtMediumText, dbdtLongText, dbdtTinyBlob, dbdtBlob, dbdtMediumBlob, dbdtLongBlob]) then
       PartLength := '100';
     TblKey.Subparts.Insert(ColPos, PartLength);
     TblKey.Collations.Insert(ColPos, 'A');
