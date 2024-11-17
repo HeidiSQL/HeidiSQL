@@ -661,6 +661,7 @@ type
       FLastRawResults: TMySQLRawResults;
       FStatementNum: Cardinal;
       procedure SetActive(Value: Boolean); override;
+      procedure SetOption(Option: Integer; Arg: PAnsiChar);
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
       function GetThreadId: Int64; override;
@@ -2425,13 +2426,13 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort, SSLoption: Integer;
+  VerifyServerCert: Byte;
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
   PluginDir, TlsVersions: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
-  SetOptionResult: Integer;
   UserNameSize: DWORD;
 begin
   if Value and (FHandle = nil) then begin
@@ -2453,41 +2454,42 @@ begin
       // See issue #1768
       TlsVersions := 'TLSv1,TLSv1.1,TLSv1.2,TLSv1.3';
       //TlsVersions := 'TLSv1.1';
-      SetOptionResult := FLib.mysql_options(FHandle, FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
-      SetOptionResult := SetOptionResult +
-        FLib.mysql_options(FHandle, FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
+      if FLib.MARIADB_OPT_TLS_VERSION <> FLib.INVALID_OPT then
+        SetOption(FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
+      SetOption(FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       if FParameters.SSLPrivateKey <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
+        SetOption(FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
       if FParameters.SSLCertificate <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
+        SetOption(FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
       if FParameters.SSLCACertificate <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
+        SetOption(FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
       if FParameters.SSLCipher <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
-      if FParameters.SSLVerification in [1,2] then begin
-        // MySQL and MariaDB have different options for this
-        if FLib.MYSQL_OPT_SSL_MODE > TMySQLLib.INVALID_OPT then begin
-          if FParameters.SSLVerification = 1 then
-            SSLoption := FLib.SSL_MODE_VERIFY_CA
-          else
-            SSLoption := FLib.SSL_MODE_VERIFY_IDENTITY;
-          SetOptionResult := SetOptionResult +
-            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_MODE, @SSLoption);
-        end
-        else begin
-          SSLoption := 1;
-          SetOptionResult := SetOptionResult +
-            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @SSLoption);
+        SetOption(FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
+      if FLib.MYSQL_OPT_SSL_MODE <> TMySQLLib.INVALID_OPT then begin
+        // MySQL
+        Log(lcInfo, 'SSL parameters for MySQL');
+        case FParameters.SSLVerification of
+          0: SSLoption := FLib.SSL_MODE_PREFERRED;
+          1: SSLoption := FLib.SSL_MODE_VERIFY_CA;
+          2: SSLoption := FLib.SSL_MODE_VERIFY_IDENTITY;
         end;
+        SetOption(FLib.MYSQL_OPT_SSL_MODE, @SSLoption);
+      end
+      else begin
+        // MariaDB
+        Log(lcInfo, 'SSL parameters for MariaDB');
+        case FParameters.SSLVerification of
+          0: VerifyServerCert := FLib.MYBOOL_FALSE;
+          1,2: VerifyServerCert := FLib.MYBOOL_TRUE;
+        end;
+        SetOption(FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @VerifyServerCert);
       end;
-      if SetOptionResult = 0 then
-        Log(lcInfo, _('SSL parameters successfully set.'))
-      else
-        Log(lcError, f_('SSL parameters not fully set. Result: %d', [SetOptionResult]));
+    end;
+
+    // libmariadb v3.4.0+ enables SSL by default, so we have to disable it.
+    // See https://mariadb.com/kb/en/mariadb-connector-c-3-4-0-release-notes/
+    if not FParameters.WantSSL then begin
+      SetOption(FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @(FLib.MYBOOL_FALSE));
     end;
 
     case FParameters.NetType of
@@ -2534,24 +2536,21 @@ begin
 
     // Point libmysql to the folder with client plugins
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
-    SetOptionResult := FLib.mysql_options(FHandle, FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
-    if SetOptionResult <> 0 then begin
-      raise EDbError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
-    end;
+    SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
-      FLib.mysql_options(FHandle, FLib.MYSQL_ENABLE_CLEARTEXT_PLUGIN, PAnsiChar('1'));
+      SetOption(FLib.MYSQL_ENABLE_CLEARTEXT_PLUGIN, @(FLib.MYBOOL_TRUE));
 
     // Tell server who we are
     if Assigned(FLib.mysql_optionsv) then
       FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', APPNAME);
 
     // Seems to be still required on some systems, for importing CSV files
-    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_LOCAL_INFILE, PAnsiChar('1'));
+    SetOption(FLib.MYSQL_OPT_LOCAL_INFILE, @(FLib.MYBOOL_TRUE));
 
     // Ensure we have some connection timeout
-    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_CONNECT_TIMEOUT, @FParameters.QueryTimeout);
+    SetOption(FLib.MYSQL_OPT_CONNECT_TIMEOUT, @(FParameters.QueryTimeout));
 
     Connected := FLib.mysql_real_connect(
       FHandle,
@@ -3183,6 +3182,17 @@ begin
       Log(lcInfo, f_(MsgDisconnect, [Parameters.Hostname, DateTimeToStr(Now)]));
     end;
   end;
+end;
+
+
+procedure TMySQLConnection.SetOption(Option: Integer; Arg: PAnsiChar);
+var
+  SetOptionResult: Integer;
+begin
+  // Set one of the MYSQL_* option and log a warning if that failed
+  SetOptionResult := FLib.mysql_options(FHandle, Option, Arg);
+  if SetOptionResult <> 0 then
+    Log(lcError, _(SLogPrefixWarning) + ': mysql_options(' + Option.ToString + ', ...) failed!');
 end;
 
 
