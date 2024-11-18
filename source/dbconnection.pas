@@ -2486,7 +2486,7 @@ begin
       end;
     end;
 
-    // libmariadb v3.4.0+ enables SSL by default, so we have to disable it.
+    // libmariadb v3.4.0+ enables MYSQL_OPT_SSL_VERIFY_SERVER_CERT by default, so we have to disable it.
     // See https://mariadb.com/kb/en/mariadb-connector-c-3-4-0-release-notes/
     if not FParameters.WantSSL then begin
       SetOption(FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @(FLib.MYBOOL_FALSE));

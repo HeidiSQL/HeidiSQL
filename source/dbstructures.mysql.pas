@@ -3120,18 +3120,33 @@ uses apphelpers;
 constructor TMySQLLib.Create(DllFile, DefaultDll: String);
 begin
   inherited;
-  // Some MYSQL_OPT_* constants were removed in MySQL 8.0, so the offsets differ between libmysql and libmariadb.
+  // MYSQL_OPT_* constants
   MYSQL_OPT_CONNECT_TIMEOUT := 0;
   MYSQL_OPT_LOCAL_INFILE := 8;
-  MARIADB_OPT_TLS_VERSION := 7005;
+  MYSQL_PLUGIN_DIR := 22;
+  MYSQL_OPT_SSL_KEY := 25;
+  MYSQL_OPT_SSL_CERT := 26;
+  MYSQL_OPT_SSL_CA := 27;
+  MYSQL_OPT_SSL_CIPHER := 29;
+  MYSQL_OPT_CONNECT_ATTR_ADD := 33;
+  MYSQL_ENABLE_CLEARTEXT_PLUGIN := 36;
+  MYSQL_OPT_TLS_VERSION := 41;
+  MARIADB_OPT_TLS_VERSION := INVALID_OPT;
   MYSQL_OPT_SSL_MODE := INVALID_OPT;
   MYSQL_OPT_SSL_VERIFY_SERVER_CERT := INVALID_OPT;
+  // Option values
   SSL_MODE_DISABLED := 1;
   SSL_MODE_PREFERRED := 2;
   SSL_MODE_REQUIRED := 3;
   SSL_MODE_VERIFY_CA := 4;
   SSL_MODE_VERIFY_IDENTITY := 5;
-  if String(mysql_get_client_info).StartsWith('8.') then begin
+  if ExtractFileName(FDllFile).StartsWith('libmariadb', True) then begin
+    // Differences in libmariadb
+    MYSQL_OPT_SSL_VERIFY_SERVER_CERT := 21;
+    MARIADB_OPT_TLS_VERSION := 7005;
+  end
+  else if String(mysql_get_client_info).StartsWith('8.') then begin
+    // Some constants were removed in MySQL 8.0, so the offsets differ
     MYSQL_PLUGIN_DIR := 16;
     MYSQL_OPT_SSL_KEY := 19;
     MYSQL_OPT_SSL_CERT := 20;
@@ -3141,17 +3156,6 @@ begin
     MYSQL_ENABLE_CLEARTEXT_PLUGIN := 30;
     MYSQL_OPT_TLS_VERSION := 34;
     MYSQL_OPT_SSL_MODE := 35;
-  end
-  else begin
-    MYSQL_OPT_SSL_VERIFY_SERVER_CERT := 21;
-    MYSQL_PLUGIN_DIR := 22;
-    MYSQL_OPT_SSL_KEY := 25;
-    MYSQL_OPT_SSL_CERT := 26;
-    MYSQL_OPT_SSL_CA := 27;
-    MYSQL_OPT_SSL_CIPHER := 29;
-    MYSQL_OPT_CONNECT_ATTR_ADD := 33;
-    MYSQL_ENABLE_CLEARTEXT_PLUGIN := 36;
-    MYSQL_OPT_TLS_VERSION := 41;
   end;
 end;
 

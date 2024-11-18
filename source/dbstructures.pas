@@ -81,9 +81,9 @@ type
     const
       LIB_PROC_ERROR: Cardinal = 1000;
     private
-      FDllFile: String;
       FHandle: HMODULE;
     protected
+      FDllFile: String;
       procedure AssignProc(var Proc: FARPROC; Name: PAnsiChar; Mandantory: Boolean=True);
       procedure AssignProcedures; virtual; abstract;
     public
