@@ -5,7 +5,7 @@ interface
 uses
   System.Classes, System.SysUtils, Winapi.Windows, System.Generics.Collections, System.Generics.Defaults,
   System.DateUtils, System.Types, System.Math, Vcl.Dialogs, Data.Win.ADODB, Data.DB, Data.DBCommon, System.Win.ComObj, Vcl.Graphics, Vcl.ExtCtrls, System.StrUtils,
-  System.AnsiStrings, Vcl.Controls, Vcl.Forms, System.IOUtils, System.IniFiles, System.Variants,
+  System.AnsiStrings, Vcl.Controls, Vcl.Forms, System.IOUtils, System.IniFiles, System.Variants, Rtti,
   SynRegExpr, gnugettext, generic_types,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
@@ -3188,11 +3188,31 @@ end;
 procedure TMySQLConnection.SetOption(Option: Integer; Arg: PAnsiChar);
 var
   SetOptionResult: Integer;
+  RttiContext: TRttiContext;
+  LibType: TRttiType;
+  LibField: TRttiField;
+  FieldName: String;
 begin
   // Set one of the MYSQL_* option and log a warning if that failed
   SetOptionResult := FLib.mysql_options(FHandle, Option, Arg);
-  if SetOptionResult <> 0 then
-    Log(lcError, _(SLogPrefixWarning) + ': mysql_options(' + Option.ToString + ', ...) failed!');
+  if SetOptionResult <> 0 then begin
+    FieldName := Option.ToString;
+    // Attempt to find readable name of option constant
+    RttiContext := TRttiContext.Create;
+    LibType := RttiContext.GetType(TypeInfo(TMySQLLib));
+    for LibField in LibType.GetFields do begin
+      // Skip assigned procedures
+      if LibField.FieldType = nil then
+        Continue;
+      if LibField.DataType.TypeKind = tkInteger then begin
+        if LibField.GetValue(FLib).AsInteger = Option then begin
+          FieldName := LibField.Name;
+        end;
+      end;
+    end;
+    RttiContext.Free;
+    Log(lcError, _(SLogPrefixWarning) + ': mysql_options(' + FieldName + ', ...) failed!');
+  end;
 end;
 
 
