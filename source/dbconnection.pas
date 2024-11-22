@@ -9633,12 +9633,23 @@ begin
     Row.Add(c);
     c.OldText := '';
     c.OldIsFunction := False;
-    c.OldIsNull := False;
+    c.OldIsNull := True;
     ColAttr := ColAttributes(i);
     if Assigned(ColAttr) then begin
-      c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtAutoInc, cdtExpression];
-      if ColAttr.DefaultType in [cdtText] then
-        c.OldText := FConnection.UnescapeString(ColAttr.DefaultText);
+      case ColAttr.DefaultType of
+        cdtText: begin
+          c.OldText := FConnection.UnescapeString(ColAttr.DefaultText);
+          c.OldIsNull := False;
+        end;
+        cdtExpression: begin
+          // Overtake expression, if it's a simple integer
+          if ColAttr.DefaultText = MakeInt(ColAttr.DefaultText).ToString then begin
+            c.OldText := ColAttr.DefaultText;
+            c.OldIsNull := False;
+          end;
+        end;
+      end;
+
     end;
     c.NewText := c.OldText;
     c.NewIsFunction := c.OldIsFunction;
