@@ -2985,13 +2985,6 @@ object MainForm: TMainForm
       ImageName = 'icons8-comments'
       OnExecute = actToggleCommentExecute
     end
-    object actSynchronizeDatabase: TAction
-      Category = 'Export/Import'
-      Caption = 'Synchronize database'
-      ImageIndex = 27
-      ImageName = 'icons8-data-backup'
-      OnExecute = actSynchronizeDatabaseExecute
-    end
     object actGenerateData: TAction
       Category = 'Tools'
       Caption = 'Generate data'

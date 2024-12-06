@@ -581,7 +581,6 @@ type
     actCancelOperation: TAction;
     actToggleComment: TAction;
     Uncomment1: TMenuItem;
-    actSynchronizeDatabase: TAction;
     Disconnect1: TMenuItem;
     N4: TMenuItem;
     ImportCSVfile1: TMenuItem;
@@ -1083,7 +1082,6 @@ type
     procedure actCancelOperationExecute(Sender: TObject);
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actToggleCommentExecute(Sender: TObject);
-    procedure actSynchronizeDatabaseExecute(Sender: TObject);
     procedure DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
@@ -4824,16 +4822,6 @@ begin
 
   // Show the window
   CallSQLHelpWithKeyword( keyword );
-end;
-
-
-procedure TMainForm.actSynchronizeDatabaseExecute(Sender: TObject);
-var
-  SyncForm: TfrmSyncDB;
-begin
-  SyncForm := TfrmSyncDB.Create(Self);
-  SyncForm.ShowModal;
-  SyncForm.Free;
 end;
 
 

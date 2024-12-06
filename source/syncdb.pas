@@ -100,7 +100,7 @@ var
   SessNode: PVirtualNode;
   SessionPaths: TStringList;
 begin
-  Caption := MainForm.actSynchronizeDatabase.Caption;
+  //Caption := MainForm.actSynchronizeDatabase.Caption;
   HasSizeGrip := True;
   FixVT(treeSource);
   FixVT(treeDifferences);
