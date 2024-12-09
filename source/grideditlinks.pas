@@ -5,7 +5,7 @@ unit grideditlinks;
 interface
 
 uses
-  Winapi.Windows, Vcl.Forms, Vcl.Graphics, Winapi.Messages, VirtualTrees, VirtualTrees.Types, Vcl.ComCtrls, System.SysUtils, System.Classes,
+  Winapi.Windows, Vcl.Forms, Vcl.Graphics, Winapi.Messages, VirtualTrees, VirtualTrees.BaseTree, VirtualTrees.Types, Vcl.ComCtrls, System.SysUtils, System.Classes,
   Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.CheckLst, Vcl.Controls, System.Types, Vcl.Dialogs, Vcl.Menus, Vcl.Mask, System.DateUtils, System.Math,
   dbconnection, dbstructures, apphelpers, texteditor, bineditor, gnugettext,
   System.StrUtils, System.UITypes, SynRegExpr, Vcl.Themes, extra_controls;
