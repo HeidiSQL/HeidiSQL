@@ -6775,7 +6775,10 @@ var
     dbname, tblname: String;
     Columns: TTableColumnList;
     Col: TTableColumn;
+    Keys: TTableKeyList;
+    Key: TTableKey;
     Obj: TDBObject;
+    ColumnIcon: Integer;
   begin
     dbname := '';
     tblname := LeftToken;
@@ -6792,8 +6795,18 @@ var
     for Obj in DBObjects do begin
       if (Obj.Name.ToLowerInvariant = tblname.ToLowerInvariant) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := Obj.TableColumns;
+        Keys := Obj.TableKeys;
         for Col in Columns do begin
-          DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
+          // Detect index icon, if any
+          ColumnIcon := ICONINDEX_FIELD;
+          for Key in Keys do begin
+            if Key.Columns.Contains(Col.Name) then begin
+              ColumnIcon := Key.ImageIndex;
+              Break;
+            end;
+          end;
+          // Put formatted text and icon into proposal
+          DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
           if CurrentInput.StartsWith(Conn.QuoteChar) then
             Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
           else
