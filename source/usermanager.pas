@@ -218,7 +218,7 @@ begin
     'CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
     'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
-    'REPLICATION SLAVE ADMIN,SET USER');
+    'REPLICATION SLAVE ADMIN,SET USER,REPLICA MONITOR');
 end;
 
 
@@ -310,18 +310,24 @@ begin
     PasswordLengthMatters := False;
   end;
   // See https://mariadb.com/kb/en/changes-improvements-in-mariadb-105/#privileges-made-more-granular
-  if FConnection.Parameters.IsMariaDB and (Version > 100502) then begin
-    i := FPrivsGlobal.IndexOf('REPLICATION CLIENT');
-    if i > -1 then
-      FPrivsGlobal.Delete(i);
-    FPrivsGlobal.Add('BINLOG ADMIN'); // replaces REPLICATION CLIENT
-    FPrivsGlobal.Add('BINLOG REPLAY');
-    FPrivsGlobal.Add('CONNECTION ADMIN');
-    FPrivsGlobal.Add('FEDERATED ADMIN');
-    FPrivsGlobal.Add('READ_ONLY ADMIN');
-    FPrivsGlobal.Add('REPLICATION MASTER ADMIN');
-    FPrivsGlobal.Add('REPLICATION SLAVE ADMIN');
-    FPrivsGlobal.Add('SET USER');
+  if FConnection.Parameters.IsMariaDB then begin
+    if Version > 100502 then begin
+      i := FPrivsGlobal.IndexOf('REPLICATION CLIENT');
+      if i > -1 then
+        FPrivsGlobal.Delete(i);
+      FPrivsGlobal.Add('BINLOG ADMIN'); // replaces REPLICATION CLIENT
+      FPrivsGlobal.Add('BINLOG REPLAY');
+      FPrivsGlobal.Add('CONNECTION ADMIN');
+      FPrivsGlobal.Add('FEDERATED ADMIN');
+      FPrivsGlobal.Add('READ_ONLY ADMIN');
+      FPrivsGlobal.Add('REPLICATION MASTER ADMIN');
+      FPrivsGlobal.Add('REPLICATION SLAVE ADMIN');
+      FPrivsGlobal.Add('SET USER');
+    end;
+    if Version >= 100509 then begin
+      FPrivsGlobal.Add('REPLICA MONITOR');
+    end;
+
   end;
 
   FPrivsTable.AddStrings(FPrivsColumn);
