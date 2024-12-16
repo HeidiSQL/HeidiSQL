@@ -9747,6 +9747,7 @@ begin
         FCurrentUpdateRow[i].NewIsNull := FCurrentUpdateRow[i].OldIsNull;
         FCurrentUpdateRow[i].OldIsFunction := False;
         FCurrentUpdateRow[i].NewIsFunction := FCurrentUpdateRow[i].OldIsFunction;
+        FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
       end;
       Data.Free;
     end;
