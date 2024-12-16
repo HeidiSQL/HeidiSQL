@@ -417,7 +417,7 @@ object frmTableEditor: TfrmTableEditor
         Margins.Bottom = 0
         Align = alClient
         EditDelay = 0
-        Header.AutoSizeIndex = 0
+        Header.AutoSizeIndex = -1
         Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
         Header.PopupMenu = MainForm.popupListHeader
         Images = MainForm.VirtualImageListMain
