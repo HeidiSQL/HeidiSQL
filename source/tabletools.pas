@@ -1914,6 +1914,8 @@ begin
               Struc := DBObj.GetCreateCode(False, menuExportRemoveDefiner.Checked);
               if ToDb then
                 Insert(Quoter.QuoteIdent(FinalDbName)+'.', Struc, Pos('VIEW', Struc) + 5 );
+              // Issue #2050: Add new line at end to support comments at the end of a view definition
+              Struc := Struc + sLineBreak;
             end;
           end;
 
