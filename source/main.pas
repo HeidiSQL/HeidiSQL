@@ -1190,6 +1190,9 @@ type
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
+    procedure SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
+      const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
+      var HintText: string);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -7132,6 +7135,27 @@ begin
 end;
 
 
+procedure TMainForm.SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
+  const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
+  var HintText: string);
+var
+  SQLFunc: TSQLFunction;
+  Conn: TDBConnection;
+begin
+  // Activate hint for SQL function in query editors
+  if TtkTokenKind(TokenType) = SynHighlighterSQL.tkFunction then begin
+    Conn := ActiveConnection;
+    if Assigned(Conn) then begin
+      for SQLFunc in ActiveConnection.SQLFunctions do begin
+        if SQLFunc.Name.ToUpper = Token.ToUpper then begin
+          HintText := SQLFunc.Name + SQLFunc.Declaration + sLineBreak + sLineBreak + SQLFunc.Description;
+          Break;
+        end;
+      end;
+    end;
+  end;
+end;
+
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 var
   Conn: TDBConnection;
@@ -12100,6 +12124,7 @@ begin
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
   QueryTab.Memo.Constraints := SynMemoQuery.Constraints;
+  QueryTab.Memo.HintMode := SynMemoQuery.HintMode;
   QueryTab.Memo.Left := SynMemoQuery.Left;
   QueryTab.Memo.Options := SynMemoQuery.Options;
   QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
@@ -12119,6 +12144,7 @@ begin
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
+  QueryTab.Memo.OnTokenHint := SynMemoQuery.OnTokenHint;
   QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
@@ -13185,8 +13211,10 @@ begin
   Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
   Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
+  Editor.HintMode := BaseEditor.HintMode;
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
   Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
+  Editor.OnTokenHint := BaseEditor.OnTokenHint;
   if Editor <> SynMemoSQLLog then begin
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
