@@ -6676,7 +6676,7 @@ begin
     if not SelectedFuncName.IsEmpty then begin
       for SQLFunc in ActiveConnection.SQLFunctions do begin
         if SQLFunc.Name.ToUpper = SelectedFuncName.ToUpper then begin
-          ShowStatusMsg(SQLFunc.Description, 0);
+          ShowStatusMsg(SQLFunc.Description.Replace(SLineBreak, ' '), 0);
           Break;
         end;
       end;

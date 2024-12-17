@@ -7,6 +7,7 @@ function finalizeEntries($iniEntries)
         '“' => '"',
         '”' => '"',
         '—' => '-',
+        '&nbsp;' => ' ',
     ];
     $numVersions = [];
     foreach($iniEntries as $iniEntry) {
@@ -42,7 +43,7 @@ function finalizeEntries($iniEntries)
 
         $entry .= "declaration=".$iniEntry['declaration'].NL
             . "category=".$iniEntry['category'].NL
-            . "description=".$descr;
+            . "description=".html_entity_decode($descr);
         $finalEntries[$section] = $entry;
     }
     ksort($finalEntries);
