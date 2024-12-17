@@ -6664,10 +6664,24 @@ procedure TMainForm.SynCompletionProposalChange(Sender: TObject;
   AIndex: Integer);
 var
   Proposal: TSynCompletionProposal;
+  SelectedFuncName: String;
+  SQLFunc: TSQLFunction;
 begin
   Proposal := Sender as TSynCompletionProposal;
-  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then
+  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then begin
     Proposal.Title := Proposal.InsertItem(AIndex);
+    // Show function description in hint panel
+    ShowStatusMsg('', 0);
+    SelectedFuncName := RegExprGetMatch('}function\\column\{\}\\color\{\w+\}([^\\]+)\\', Proposal.DisplayItem(AIndex), 1);
+    if not SelectedFuncName.IsEmpty then begin
+      for SQLFunc in ActiveConnection.SQLFunctions do begin
+        if SQLFunc.Name.ToUpper = SelectedFuncName.ToUpper then begin
+          ShowStatusMsg(SQLFunc.Description, 0);
+          Break;
+        end;
+      end;
+    end;
+  end;
 end;
 
 
@@ -6707,6 +6721,8 @@ begin
   end;
   rx.Free;
   Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
+  // Hide hint text added in .OnChange event
+  ShowStatusMsg('', 0);
 end;
 
 
