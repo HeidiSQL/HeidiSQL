@@ -14500,7 +14500,7 @@ end;
 
 procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 var
-  MainTabIndex, QueryTabIndex: integer;
+  MainTabIndex, QueryTabIndex, NewHideTimeout: integer;
   pt: TPoint;
   Conn: TDBConnection;
 begin
@@ -14520,6 +14520,12 @@ begin
         HintStr := StringReplace(HintStr, DELIM, SLineBreak, [rfReplaceAll]);
     end;
     HintInfo.ReshowTimeout := 1000;
+  end
+  else if HintInfo.HintControl is TSynMemo then begin
+    // Token hint displaying through SynEdit's OnTokenHint event
+    NewHideTimeout := Min(Length(HintStr) * 100, 60*1000);
+    if NewHideTimeout > HintInfo.HideTimeout then
+      HintInfo.HideTimeout := NewHideTimeout;
   end;
 end;
 
