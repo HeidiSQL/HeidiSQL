@@ -7141,17 +7141,37 @@ procedure TMainForm.SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
 var
   SQLFunc: TSQLFunction;
   Conn: TDBConnection;
+  AllObjects: TDBObjectList;
+  Obj: TDBObject;
 begin
   // Activate hint for SQL function in query editors
-  if TtkTokenKind(TokenType) = SynHighlighterSQL.tkFunction then begin
-    Conn := ActiveConnection;
-    if Assigned(Conn) then begin
-      for SQLFunc in ActiveConnection.SQLFunctions do begin
-        if SQLFunc.Name.ToUpper = Token.ToUpper then begin
-          HintText := SQLFunc.Name + SQLFunc.Declaration + sLineBreak + sLineBreak + SQLFunc.Description;
-          Break;
+  Conn := ActiveConnection;
+  if Assigned(Conn) then begin
+    case TtkTokenKind(TokenType) of
+
+      SynHighlighterSQL.tkFunction: begin
+        for SQLFunc in ActiveConnection.SQLFunctions do begin
+          if SQLFunc.Name.ToUpper = Token.ToUpper then begin
+            HintText := SQLFunc.Name + SQLFunc.Declaration + sLineBreak + sLineBreak + SQLFunc.Description;
+            Break;
+          end;
         end;
       end;
+
+      SynHighlighterSQL.tkTableName: begin
+        // Show some details from table listing cache
+        if Conn.DbObjectsCached(Conn.Database) then begin
+          AllObjects := Conn.GetDBObjects(Conn.Database);
+          for Obj in AllObjects do begin
+            if Obj.Name.ToLower = Token then begin
+              HintText := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
+                _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
+                _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen);
+            end;
+          end;
+        end;
+      end;
+
     end;
   end;
 end;
