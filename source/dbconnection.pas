@@ -2862,16 +2862,10 @@ end;
 
 procedure TPgConnection.SetActive(Value: Boolean);
 var
-  dbname, ConnInfo, Error: String;
+  dbname, ConnectionString, OptionValue, Error: String;
+  ConnectOptions: TStringList;
   FinalHost, ErrorHint: String;
-  FinalPort: Integer;
-
-  function EscapeConnectOption(Option: String): String;
-  begin
-    // See issue #704 and #1417, and docs: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
-    Result := StringReplace(Option, '\', '\\', [rfReplaceAll]);
-    Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
-  end;
+  FinalPort, i: Integer;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -2887,25 +2881,44 @@ begin
 
     StartSSHTunnel(FinalHost, FinalPort);
 
-    ConnInfo := 'host='''+EscapeConnectOption(FinalHost)+''' '+
-      'port='''+IntToStr(FinalPort)+''' '+
-      'user='''+EscapeConnectOption(FParameters.Username)+''' ' +
-      'password='''+EscapeConnectOption(FParameters.Password)+''' '+
-      'dbname='''+EscapeConnectOption(dbname)+''' '+
-      'application_name='''+EscapeConnectOption(APPNAME)+'''';
+    // Compose connection string
+    ConnectOptions := TStringList.Create;
+    ConnectOptions.Duplicates := dupIgnore;
+    ConnectOptions
+      .AddPair('host', FinalHost)
+      .AddPair('port', IntToStr(FinalPort))
+      .AddPair('user', FParameters.Username)
+      .AddPair('password', FParameters.Password)
+      .AddPair('dbname', dbname)
+      .AddPair('application_name', APPNAME)
+      .AddPair('sslmode', 'disable');
     if FParameters.WantSSL then begin
-      ConnInfo := ConnInfo + ' sslmode=''require''';
+      // Be aware .AddPair would add duplicates
+      case FParameters.SSLVerification of
+        0: ConnectOptions.Values['sslmode'] := 'require';
+        1: ConnectOptions.Values['sslmode'] := 'verify-ca';
+        2: ConnectOptions.Values['sslmode'] := 'verify-full';
+      end;
       if FParameters.SSLPrivateKey <> '' then
-        ConnInfo := ConnInfo + ' sslkey='''+EscapeConnectOption(FParameters.SSLPrivateKey)+'''';
+        ConnectOptions.AddPair('sslkey', FParameters.SSLPrivateKey);
       if FParameters.SSLCertificate <> '' then
-        ConnInfo := ConnInfo + ' sslcert='''+EscapeConnectOption(FParameters.SSLCertificate)+'''';
+        ConnectOptions.AddPair('sslcert', FParameters.SSLCertificate);
       if FParameters.SSLCACertificate <> '' then
-        ConnInfo := ConnInfo + ' sslrootcert='''+EscapeConnectOption(FParameters.SSLCACertificate)+'''';
+        ConnectOptions.AddPair('sslrootcert', FParameters.SSLCACertificate);
       //if FParameters.SSLCipher <> '' then ??
     end;
+    ConnectionString := '';
+    for i:=0 to ConnectOptions.Count-1 do begin
+      // Escape values. See issue #704 and #1417, and docs: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+      OptionValue := ConnectOptions.ValueFromIndex[i];
+      OptionValue := StringReplace(OptionValue, '\', '\\', [rfReplaceAll]);
+      OptionValue := StringReplace(OptionValue, '''', '\''', [rfReplaceAll]);
+      ConnectionString := ConnectionString + ConnectOptions.Names[i] + '=''' + OptionValue + ''' ';
+    end;
+    ConnectOptions.Free;
+    ConnectionString := ConnectionString.TrimRight;
 
-
-    FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
+    FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnectionString)));
     if FLib.PQstatus(FHandle) = CONNECTION_BAD then begin
       Error := LastErrorMsg;
       Log(lcError, Error);
