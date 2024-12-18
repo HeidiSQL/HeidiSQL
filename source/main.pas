@@ -7143,6 +7143,7 @@ var
   Conn: TDBConnection;
   AllObjects: TDBObjectList;
   Obj: TDBObject;
+  i: Integer;
 begin
   // Activate hint for SQL function in query editors
   Conn := ActiveConnection;
@@ -7163,12 +7164,23 @@ begin
         if Conn.DbObjectsCached(Conn.Database) then begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
           for Obj in AllObjects do begin
-            if Obj.Name.ToLower = Token then begin
+            if Obj.Name.ToLower = Token.ToLower then begin
               HintText := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
                 _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
                 _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen);
+              Break;
             end;
           end;
+        end;
+      end;
+
+      SynHighlighterSQL.tkDatatype: begin
+        for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
+          if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
+            HintText := Conn.Datatypes[i].Description;
+            Break;
+          end;
+
         end;
       end;
 
