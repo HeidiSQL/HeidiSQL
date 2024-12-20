@@ -1259,6 +1259,7 @@ type
     FMatchingBraceBackgroundColor: TColor;
     FSynEditInOnPaintTransient: Boolean;
     FExactRowCountMode: Boolean;
+    //FHelpData: TSimpleKeyValuePairs;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -7180,8 +7181,25 @@ begin
             HintText := Conn.Datatypes[i].Description;
             Break;
           end;
-
         end;
+      end;
+
+      { Keywords consist of more than one word too often, so this would be of zero help for the user:
+      SynHighlighterSQL.tkKey: begin
+        if Conn.Parameters.IsAnyMySQL then begin
+          if not Assigned(FHelpData) then
+            FHelpData := TSimpleKeyValuePairs.Create;
+          if not FHelpData.TryGetValue(Token, HintText) then begin
+            HintText := Conn.GetVar('HELP '+Conn.EscapeString(Token), 1);
+            if (HintText.ToUpper = 'Y') or (HintText.ToUpper = 'N') then
+              HintText := '';
+            FHelpData.Add(Token, HintText);
+          end;
+        end;
+      end; }
+
+      SynHighlighterSQL.tkString: begin
+        HintText := _('String:') + ' ' + FormatByteNumber(Length(Token));
       end;
 
     end;
