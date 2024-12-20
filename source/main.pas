@@ -875,7 +875,7 @@ type
     procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TStrings);
+    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TUnicodeStrings);
     procedure popupHostPopup(Sender: TObject);
     procedure popupDBPopup(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
