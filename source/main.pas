@@ -12574,6 +12574,8 @@ begin
     Node := DBtree.GetNextInitialized(Node);
   end;
   DBtree.EndUpdate;
+  // Fix scroll height of the tree. See issue #2063 and #2002
+  DBtree.Repaint;
 
   rxdb.Free;
   rxtable.Free;
