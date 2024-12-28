@@ -7145,6 +7145,9 @@ var
   AllObjects: TDBObjectList;
   Obj: TDBObject;
   i: Integer;
+  Parameters: TRoutineParamList;
+  Params: TStringList;
+  Param: TRoutineParam;
 begin
   // Activate hint for SQL function in query editors
   Conn := ActiveConnection;
@@ -7165,10 +7168,37 @@ begin
         if Conn.DbObjectsCached(Conn.Database) then begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
           for Obj in AllObjects do begin
-            if Obj.Name.ToLower = Token.ToLower then begin
+            if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
               HintText := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
                 _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
                 _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen);
+              Break;
+            end;
+          end;
+        end;
+      end;
+
+      SynHighlighterSQL.tkProcName: begin
+        // Show routine parameters, comment and body
+        if Conn.DbObjectsCached(Conn.Database) then begin
+          AllObjects := Conn.GetDBObjects(Conn.Database);
+          for Obj in AllObjects do begin
+            if (Obj.NodeType in [lntFunction, lntProcedure]) and (Obj.Name.ToLower = Token.ToLower) then begin
+              Parameters := TRoutineParamList.Create;
+              Conn.ParseRoutineStructure(Obj, Parameters);
+              HintText := _(Obj.ObjType) + ' ' + Obj.Name;
+              Params := TStringList.Create;
+              for Param in Parameters do begin
+                Params.Add(Param.Name + ' ['+Param.Datatype+']');
+              end;
+              HintText := HintText + '(' + Implode(', ', Params) + ')' + sLineBreak + sLineBreak;
+              if not Obj.Returns.IsEmpty then
+                HintText := HintText + 'Returns: ' + Obj.Returns + sLineBreak + sLineBreak;
+              if not Obj.Comment.IsEmpty then
+                HintText := HintText + Obj.Comment + sLineBreak + sLineBreak;
+              if not Obj.Body.IsEmpty then
+                HintText := HintText + StrEllipsis(Obj.Body, SIZE_KB);
+              HintText := Trim(HintText);
               Break;
             end;
           end;
