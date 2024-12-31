@@ -10578,6 +10578,7 @@ begin
       else
         SortOrder := sioAscending;
       FDataGridSortItems.AddNew(ColName, SortOrder);
+      LogSQL('Created sorting for column '+ColName+'/'+Integer(SortOrder).ToString+' in TMainForm.DataGridHeaderClick', lcDebug);
     end;
 
     // Refresh grid, and remember X scroll offset, so the just clicked column is still at the same place.
@@ -11274,6 +11275,7 @@ begin
           SortItem := FDataGridSortItems.AddNew;
           SortItem.Column := rx.Match[2];
           SortItem.Order := TSortItemOrder(StrToIntDef(rx.Match[1], 0));
+          LogSQL('Restored sorting for column '+SortItem.Column+'/'+Integer(SortItem.Order).ToString+' in TMainForm.HandleDataGridAttributes', lcDebug);
           Break;
         end;
       end;
