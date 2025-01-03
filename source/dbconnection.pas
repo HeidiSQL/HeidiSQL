@@ -63,6 +63,7 @@ type
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
       function AutoIncName: String;
+      function FullDataType: String;
   end;
   PTableColumn = ^TTableColumn;
   TTableColumnList = class(TObjectList<TTableColumn>)
@@ -11038,6 +11039,14 @@ begin
     ngPgSQL: Result := 'SERIAL';
     else Result := 'AUTO_INCREMENT';
   end;
+end;
+
+
+function TTableColumn.FullDataType: String;
+begin
+  Result := DataType.Name;
+  if not LengthSet.IsEmpty then
+    Result := Result + '(' + LengthSet + ')';
 end;
 
 

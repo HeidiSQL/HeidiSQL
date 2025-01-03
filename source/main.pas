@@ -1251,6 +1251,7 @@ type
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
+    FDefaultHintFontName: String;
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
     FEditorCommandStrings: TStringList;
@@ -1301,6 +1302,7 @@ type
     function InitTabsIniFile: TIniFile;
     procedure StoreTabs;
     function RestoreTabs: Boolean;
+    procedure SetHintFontByControl(Control: TWinControl=nil);
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -2169,6 +2171,7 @@ begin
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
   FFormatSettings := TFormatSettings.Create('en-US');
+  FDefaultHintFontName := Screen.HintFont.Name;
 
   // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
@@ -2579,6 +2582,20 @@ begin
         );
     end;
   end;
+end;
+
+
+procedure TMainForm.SetHintFontByControl(Control: TWinControl=nil);
+var
+  UseFontName: String;
+begin
+  // Set hint font name to match the underlying control
+  if Assigned(Control) and (Control is TSynMemo) then
+    UseFontName := TSynMemo(Control).Font.Name
+  else
+    UseFontName := FDefaultHintFontName;
+  if Screen.HintFont.Name <> UseFontName then
+    Screen.HintFont.Name := UseFontName;
 end;
 
 
@@ -7144,7 +7161,8 @@ var
   Conn: TDBConnection;
   AllObjects: TDBObjectList;
   Obj: TDBObject;
-  i: Integer;
+  i, ColumnNameChars: Integer;
+  Column: TTableColumn;
   Parameters: TRoutineParamList;
   Params: TStringList;
   Param: TRoutineParam;
@@ -7171,7 +7189,15 @@ begin
             if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
               HintText := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
                 _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
-                _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen);
+                _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen) + SLineBreak;
+              ColumnNameChars := 0;
+              for Column in Obj.TableColumns do begin
+                ColumnNameChars := Max(ColumnNameChars, Length(Column.Name));
+              end;
+              for Column in Obj.TableColumns do begin
+                HintText := HintText + Format('%s%'+ColumnNameChars.ToString+'s: %s', [SLineBreak, Column.Name, Column.FullDataType]);
+              end;
+
               Break;
             end;
           end;
@@ -7192,6 +7218,7 @@ begin
                 Params.Add(Param.Name + ' ['+Param.Datatype+']');
               end;
               HintText := HintText + '(' + Implode(', ', Params) + ')' + sLineBreak + sLineBreak;
+              Params.Free;
               if not Obj.Returns.IsEmpty then
                 HintText := HintText + 'Returns: ' + Obj.Returns + sLineBreak + sLineBreak;
               if not Obj.Comment.IsEmpty then
@@ -14587,10 +14614,11 @@ var
   MainTabIndex, QueryTabIndex, NewHideTimeout: integer;
   pt: TPoint;
   Conn: TDBConnection;
+  Editor: TSynMemo;
 begin
-  // Show full filename in tab hint. See issue #3527
-  // Code taken from http://www.delphipraxis.net/97988-tabsheet-hint-funktioniert-nicht.html
   if HintInfo.HintControl = PageControlMain then begin
+    // Show full filename in tab hint. See issue #3527
+    // Code taken from http://www.delphipraxis.net/97988-tabsheet-hint-funktioniert-nicht.html
     pt := PageControlMain.ScreenToClient(Mouse.CursorPos);
     MainTabIndex := GetMainTabAt(pt.X, pt.Y);
     QueryTabIndex := MainTabIndex - tabQuery.PageIndex;
@@ -14604,12 +14632,19 @@ begin
         HintStr := StringReplace(HintStr, DELIM, SLineBreak, [rfReplaceAll]);
     end;
     HintInfo.ReshowTimeout := 1000;
+    SetHintFontByControl;
   end
   else if HintInfo.HintControl is TSynMemo then begin
     // Token hint displaying through SynEdit's OnTokenHint event
+    Editor := TSynMemo(HintInfo.HintControl);
+    SetHintFontByControl(Editor);
     NewHideTimeout := Min(Length(HintStr) * 100, 60*1000);
     if NewHideTimeout > HintInfo.HideTimeout then
       HintInfo.HideTimeout := NewHideTimeout;
+  end
+  else begin
+    // Probably reset hint font
+    SetHintFontByControl;
   end;
 end;
 
