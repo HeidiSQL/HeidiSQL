@@ -320,6 +320,7 @@ end;
 
 function TfrmExportGrid.GetExportFormat: TGridExportFormat;
 begin
+  // This is slow, don't use in large loops
   Result := TGridExportFormat(comboFormat.ItemIndex);
 end;
 
@@ -646,6 +647,7 @@ var
   Exporter: TSynExporterHTML;
   Encoding: TEncoding;
   Bom: TBytes;
+  CurrentExportFormat: TGridExportFormat;
 begin
   Filename := GetOutputFilename(editFilename.Text, MainForm.ActiveDbObj);
 
@@ -677,6 +679,8 @@ begin
     ExcludeCol := NoColumn;
     if (not chkIncludeAutoIncrement.Checked) or (not chkIncludeAutoIncrement.Enabled) then
       ExcludeCol := GridData.AutoIncrementColumn + 1;
+    // Calling (Get)ExportFormat is slow, so we store it in a local variable
+    CurrentExportFormat := ExportFormat;
 
     if radioOutputCopyToClipboard.Checked then
       Encoding := TEncoding.UTF8
@@ -696,13 +700,13 @@ begin
     // although it should do so according to TUTF8Encoding.GetPreamble.
     // Now, only newer Excel versions need that BOM, so we add it explicitly here
     S := TStringStream.Create(Header, Encoding);
-    if (ExportFormat = efExcel) and (Encoding = TEncoding.UTF8) and radioOutputFile.Checked then begin
+    if (CurrentExportFormat = efExcel) and (Encoding = TEncoding.UTF8) and radioOutputFile.Checked then begin
       Bom := TBytes.Create($EF, $BB, $BF);
       S.Write(Bom, 3);
     end;
 
     Header := '';
-    case ExportFormat of
+    case CurrentExportFormat of
       efHTML: begin
         Header :=
           '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' + sLineBreak +
@@ -806,9 +810,9 @@ begin
       end;
 
       efTextile, efJiraTextile: begin
-        Separator := IfThen(ExportFormat=efTextile, ' |_. ', ' || ');
+        Separator := IfThen(CurrentExportFormat=efTextile, ' |_. ', ' || ');
         Encloser := '';
-        Terminator := IfThen(ExportFormat=efTextile, ' |', ' ||') + CRLF;
+        Terminator := IfThen(CurrentExportFormat=efTextile, ' |', ' ||') + CRLF;
         if chkIncludeColumnNames.Checked then begin
           Header := TrimLeft(Separator);
           Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
@@ -895,7 +899,7 @@ begin
       GridData.RecNo := RowNum^;
 
       // Row preamble
-      case ExportFormat of
+      case CurrentExportFormat of
         efHTML: tmp := CodeIndent(4) + '<tr>' + sLineBreak;
 
         efXML: tmp := CodeIndent + '<row>' + sLineBreak;
@@ -907,13 +911,13 @@ begin
 
         efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert: begin
           tmp := '';
-          if ExportFormat = efSQLDeleteInsert then begin
+          if CurrentExportFormat = efSQLDeleteInsert then begin
             tmp := tmp + 'DELETE FROM ' + GridData.Connection.QuoteIdent(Tablename) + ' WHERE' + GridData.GetWhereClause + ';' + CRLF;
           end;
 
-          if ExportFormat in [efSQLInsert, efSQLDeleteInsert] then
+          if CurrentExportFormat in [efSQLInsert, efSQLDeleteInsert] then
             tmp := tmp + 'INSERT'
-          else if ExportFormat = efSQLInsertIgnore then
+          else if CurrentExportFormat = efSQLInsertIgnore then
             tmp := tmp + 'INSERT IGNORE'
           else
             tmp := tmp + 'REPLACE';
@@ -971,7 +975,8 @@ begin
 
           // Keep formatted numeric values
           if (GridData.DataType(ResultCol).Category in [dtcInteger, dtcReal])
-            and (ExportFormat in [efExcel, efHTML, efMarkDown]) then begin
+            and (CurrentExportFormat in [efExcel, efHTML, efMarkDown])
+            then begin
             Data := FormatNumber(Data, False);
           end;
 
@@ -980,7 +985,7 @@ begin
             StripNewLines(Data);
           end;
 
-          case ExportFormat of
+          case CurrentExportFormat of
             efHTML: begin
               // Escape HTML control characters in data.
               Data := HTMLSpecialChars(Data);
@@ -1043,7 +1048,7 @@ begin
               else if Data = '' then
                 Data := GridData.Connection.EscapeString(Data);
               if not Data.IsEmpty then begin
-                if ExportFormat = efSQLUpdate then
+                if CurrentExportFormat = efSQLUpdate then
                   tmp := tmp + GridData.Connection.QuoteIdent(Grid.Header.Columns[Col].Text) + '=';
                 tmp := tmp + Data + ', ';
               end;
@@ -1108,7 +1113,7 @@ begin
       end;
 
       // Row epilogue
-      case ExportFormat of
+      case CurrentExportFormat of
         efHTML:
           tmp := tmp + CodeIndent(4) + '</tr>' + sLineBreak;
         efExcel, efCSV, efLaTeX, efTextile, efJiraTextile: begin
@@ -1150,7 +1155,7 @@ begin
     end;
 
     // Footer
-    case ExportFormat of
+    case CurrentExportFormat of
       efHTML: begin
         tmp :=
           CodeIndent(3) + '</tbody>' + sLineBreak +
@@ -1186,7 +1191,7 @@ begin
       HTML := nil;
       // SynEdit's exporter is slow on large strings, see issue #2903
       if S.Size < 100*SIZE_KB then begin
-        case ExportFormat of
+        case CurrentExportFormat of
           efSQLInsert, efSQLInsertIgnore, efSQLReplace, efSQLDeleteInsert: begin
             Exporter := TSynExporterHTML.Create(Self);
             Exporter.Highlighter := MainForm.SynSQLSynUsed;

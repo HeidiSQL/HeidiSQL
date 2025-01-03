@@ -184,18 +184,6 @@ var
       Category:        dtcReal;
     ),
     (
-      Index:           dbdtMoney;
-      NativeTypes:     '790';
-      Name:            'MONEY';
-      Description:     'Currency amount. Range: -92233720368547758.08 to +92233720368547758.07. Storage Size: 8 Bytes.';
-      HasLength:       True;
-      RequiresLength:  False;
-      HasBinary:       False;
-      HasDefault:      False;
-      LoadPart:        False;
-      Category:        dtcReal;
-    ),
-    (
       Index:           dbdtChar;
       NativeTypes:     '18|1042';
       Name:            'CHAR';
@@ -280,6 +268,18 @@ var
       Names:           'macaddr';
       Description:     'MAC addresses. Storage size: 6 bytes';
       HasLength:       False;
+      RequiresLength:  False;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
+      Category:        dtcText;
+    ),
+    (
+      Index:           dbdtMoney;
+      NativeTypes:     '790';
+      Name:            'MONEY';
+      Description:     'Currency amount. Range: -92233720368547758.08 to +92233720368547758.07. Storage Size: 8 Bytes.';
+      HasLength:       True;
       RequiresLength:  False;
       HasBinary:       False;
       HasDefault:      False;

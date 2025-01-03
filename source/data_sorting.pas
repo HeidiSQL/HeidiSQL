@@ -4,7 +4,7 @@ interface
 
 uses
   Winapi.Windows, System.SysUtils, System.Classes, Vcl.Controls, Vcl.Forms, Vcl.StdCtrls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Buttons,
-  Vcl.Graphics, apphelpers, gnugettext, extra_controls;
+  Vcl.Graphics, apphelpers, gnugettext, extra_controls, dbconnection;
 
 
 type
@@ -282,6 +282,7 @@ begin
     NewSortItem.Column := UnusedColumns[0]
   else
     NewSortItem.Column := FColumnNames[0];
+  MainForm.LogSQL('Created sorting for column '+NewSortItem.Column+'/'+Integer(NewSortItem.Order).ToString+' in TfrmDataSorting.btnAddColClick', lcDebug);
 
   // Refresh controls
   DisplaySortingControls(Sender);

@@ -165,6 +165,7 @@ type
     FPrivObjects: TPrivObjList;
     FPrivsGlobal, FPrivsDb, FPrivsTable, FPrivsRoutine, FPrivsColumn: TStringList;
     FConnection: TDBConnection;
+    FColorReadPriv, FColorWritePriv, FColorAdminPriv: TColor;
     procedure SetModified(Value: Boolean);
     property Modified: Boolean read FModified write SetModified;
     function GetPrivByNode(Node: PVirtualNode): TPrivObj;
@@ -217,7 +218,7 @@ begin
     'CREATE VIEW,INDEX,TRIGGER,EVENT,REFERENCES,CREATE TABLESPACE');
   PrivsAdmin := Explode(',', 'RELOAD,SHUTDOWN,REPLICATION CLIENT,REPLICATION SLAVE,SUPER,LOCK TABLES,GRANT,FILE,CREATE USER,'+
     'BINLOG ADMIN,BINLOG REPLAY,CONNECTION ADMIN,FEDERATED ADMIN,READ_ONLY ADMIN,REPLICATION MASTER ADMIN,'+
-    'REPLICATION SLAVE ADMIN,SET USER');
+    'REPLICATION SLAVE ADMIN,SET USER,SLAVE MONITOR');
 end;
 
 
@@ -254,6 +255,14 @@ begin
   FixVT(listUsers);
   FixVT(treePrivs);
   RestoreListSetup(listUsers);
+  FColorReadPriv := clGreen;
+  FColorWritePriv := clMaroon;
+  FColorAdminPriv := clNavy;
+  if ThemeIsDark then begin
+    FColorReadPriv := ColorAdjustBrightness(FColorReadPriv, 128);
+    FColorWritePriv := ColorAdjustBrightness(FColorWritePriv, 128);
+    FColorAdminPriv := ColorAdjustBrightness(FColorAdminPriv, 128);
+  end;
 
   FConnection := Mainform.ActiveConnection;
   Version := FConnection.ServerVersionInt;
@@ -301,18 +310,24 @@ begin
     PasswordLengthMatters := False;
   end;
   // See https://mariadb.com/kb/en/changes-improvements-in-mariadb-105/#privileges-made-more-granular
-  if FConnection.Parameters.IsMariaDB and (Version > 100502) then begin
-    i := FPrivsGlobal.IndexOf('REPLICATION CLIENT');
-    if i > -1 then
-      FPrivsGlobal.Delete(i);
-    FPrivsGlobal.Add('BINLOG ADMIN'); // replaces REPLICATION CLIENT
-    FPrivsGlobal.Add('BINLOG REPLAY');
-    FPrivsGlobal.Add('CONNECTION ADMIN');
-    FPrivsGlobal.Add('FEDERATED ADMIN');
-    FPrivsGlobal.Add('READ_ONLY ADMIN');
-    FPrivsGlobal.Add('REPLICATION MASTER ADMIN');
-    FPrivsGlobal.Add('REPLICATION SLAVE ADMIN');
-    FPrivsGlobal.Add('SET USER');
+  if FConnection.Parameters.IsMariaDB then begin
+    if Version > 100502 then begin
+      i := FPrivsGlobal.IndexOf('REPLICATION CLIENT');
+      if i > -1 then
+        FPrivsGlobal.Delete(i);
+      FPrivsGlobal.Add('BINLOG ADMIN'); // replaces REPLICATION CLIENT
+      FPrivsGlobal.Add('BINLOG REPLAY');
+      FPrivsGlobal.Add('CONNECTION ADMIN');
+      FPrivsGlobal.Add('FEDERATED ADMIN');
+      FPrivsGlobal.Add('READ_ONLY ADMIN');
+      FPrivsGlobal.Add('REPLICATION MASTER ADMIN');
+      FPrivsGlobal.Add('REPLICATION SLAVE ADMIN');
+      FPrivsGlobal.Add('SET USER');
+    end;
+    if Version >= 100509 then begin
+      FPrivsGlobal.Add('SLAVE MONITOR');
+    end;
+
   end;
 
   FPrivsTable.AddStrings(FPrivsColumn);
@@ -1038,11 +1053,11 @@ begin
   if (Sender.GetNodeLevel(Node) = 1) and (not (vsSelected in Node.States)) then begin
     PrivName := FPrivObjects[Node.Parent.Index].AllPrivileges[Node.Index];
     if PrivsRead.IndexOf(PrivName) > -1 then
-      TargetCanvas.Font.Color := clGreen
+      TargetCanvas.Font.Color := FColorReadPriv
     else if PrivsWrite.IndexOf(PrivName) > -1 then
-      TargetCanvas.Font.Color := clMaroon
+      TargetCanvas.Font.Color := FColorWritePriv
     else if PrivsAdmin.IndexOf(PrivName) > -1 then
-      TargetCanvas.Font.Color := clNavy;
+      TargetCanvas.Font.Color := FColorAdminPriv;
   end;
 end;
 

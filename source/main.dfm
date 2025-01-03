@@ -1348,6 +1348,7 @@ object MainForm: TMainForm
               Gutter.RightOffset = 0
               Gutter.ShowLineNumbers = True
               Highlighter = SynSQLSynUsed
+              HintMode = shmToken
               Options = [eoAutoIndent, eoAutoSizeMaxScrollWidth, eoDropFiles, eoGroupUndo, eoHideShowScrollbars, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
               RightEdge = 0
               TabWidth = 3
@@ -1356,6 +1357,7 @@ object MainForm: TMainForm
               OnReplaceText = SynMemoQueryReplaceText
               OnSpecialLineColors = SynMemoQuerySpecialLineColors
               OnStatusChange = SynMemoQueryStatusChange
+              OnTokenHint = SynMemoQueryTokenHint
               OnPaintTransient = SynMemoQueryPaintTransient
               OnScanForFoldRanges = SynMemoQueryScanForFoldRanges
               FontSmoothing = fsmNone
@@ -2984,13 +2986,6 @@ object MainForm: TMainForm
       ImageIndex = 165
       ImageName = 'icons8-comments'
       OnExecute = actToggleCommentExecute
-    end
-    object actSynchronizeDatabase: TAction
-      Category = 'Export/Import'
-      Caption = 'Synchronize database'
-      ImageIndex = 27
-      ImageName = 'icons8-data-backup'
-      OnExecute = actSynchronizeDatabaseExecute
     end
     object actGenerateData: TAction
       Category = 'Tools'

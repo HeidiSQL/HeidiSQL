@@ -5,7 +5,7 @@ interface
 uses
   System.Classes, System.SysUtils, Winapi.Windows, System.Generics.Collections, System.Generics.Defaults,
   System.DateUtils, System.Types, System.Math, Vcl.Dialogs, Data.Win.ADODB, Data.DB, Data.DBCommon, System.Win.ComObj, Vcl.Graphics, Vcl.ExtCtrls, System.StrUtils,
-  System.AnsiStrings, Vcl.Controls, Vcl.Forms, System.IOUtils, System.IniFiles, System.Variants,
+  System.AnsiStrings, Vcl.Controls, Vcl.Forms, System.IOUtils, System.IniFiles, System.Variants, Rtti,
   SynRegExpr, gnugettext, generic_types,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase,
   FireDAC.Stan.Intf, FireDAC.Stan.Option,
@@ -63,6 +63,7 @@ type
       property Status: TEditingStatus read FStatus write SetStatus;
       property Connection: TDBConnection read FConnection;
       function AutoIncName: String;
+      function FullDataType: String;
   end;
   PTableColumn = ^TTableColumn;
   TTableColumnList = class(TObjectList<TTableColumn>)
@@ -91,6 +92,11 @@ type
       constructor Create(AOwner: TDBConnection);
       destructor Destroy; override;
       procedure Assign(Source: TPersistent); override;
+      function IsPrimary: Boolean;
+      function IsIndex: Boolean;
+      function IsUnique: Boolean;
+      function IsFulltext: Boolean;
+      function IsSpatial: Boolean;
       procedure Modification(Sender: TObject);
       function SQLCode(TableName: String=''): String;
       property InsideCreateCode: Boolean read GetInsideCreateCode;
@@ -656,6 +662,7 @@ type
       FLastRawResults: TMySQLRawResults;
       FStatementNum: Cardinal;
       procedure SetActive(Value: Boolean); override;
+      procedure SetOption(Option: Integer; Arg: PAnsiChar);
       procedure DoBeforeConnect; override;
       procedure DoAfterConnect; override;
       function GetThreadId: Int64; override;
@@ -2420,13 +2427,13 @@ procedure TMySQLConnection.SetActive( Value: Boolean );
 var
   Connected: PMYSQL;
   ClientFlags, FinalPort, SSLoption: Integer;
+  VerifyServerCert: Byte;
   Error, StatusName: String;
   FinalHost, FinalSocket, FinalUsername, FinalPassword: String;
   ErrorHint: String;
   PluginDir, TlsVersions: AnsiString;
   Status: TDBQuery;
   PasswordChangeDialog: TfrmPasswordChange;
-  SetOptionResult: Integer;
   UserNameSize: DWORD;
 begin
   if Value and (FHandle = nil) then begin
@@ -2448,41 +2455,42 @@ begin
       // See issue #1768
       TlsVersions := 'TLSv1,TLSv1.1,TLSv1.2,TLSv1.3';
       //TlsVersions := 'TLSv1.1';
-      SetOptionResult := FLib.mysql_options(FHandle, FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
-      SetOptionResult := SetOptionResult +
-        FLib.mysql_options(FHandle, FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
+      if FLib.MARIADB_OPT_TLS_VERSION <> FLib.INVALID_OPT then
+        SetOption(FLib.MARIADB_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
+      SetOption(FLib.MYSQL_OPT_TLS_VERSION, PAnsiChar(TlsVersions));
       if FParameters.SSLPrivateKey <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
+        SetOption(FLib.MYSQL_OPT_SSL_KEY, PAnsiChar(AnsiString(FParameters.SSLPrivateKey)));
       if FParameters.SSLCertificate <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
+        SetOption(FLib.MYSQL_OPT_SSL_CERT, PAnsiChar(AnsiString(FParameters.SSLCertificate)));
       if FParameters.SSLCACertificate <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
+        SetOption(FLib.MYSQL_OPT_SSL_CA, PAnsiChar(AnsiString(FParameters.SSLCACertificate)));
       if FParameters.SSLCipher <> '' then
-        SetOptionResult := SetOptionResult +
-          FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
-      if FParameters.SSLVerification in [1,2] then begin
-        // MySQL and MariaDB have different options for this
-        if FLib.MYSQL_OPT_SSL_MODE > TMySQLLib.INVALID_OPT then begin
-          if FParameters.SSLVerification = 1 then
-            SSLoption := FLib.SSL_MODE_VERIFY_CA
-          else
-            SSLoption := FLib.SSL_MODE_VERIFY_IDENTITY;
-          SetOptionResult := SetOptionResult +
-            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_MODE, @SSLoption);
-        end
-        else begin
-          SSLoption := 1;
-          SetOptionResult := SetOptionResult +
-            FLib.mysql_options(FHandle, FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @SSLoption);
+        SetOption(FLib.MYSQL_OPT_SSL_CIPHER, PAnsiChar(AnsiString(FParameters.SSLCipher)));
+      if FLib.MYSQL_OPT_SSL_MODE <> TMySQLLib.INVALID_OPT then begin
+        // MySQL
+        Log(lcInfo, 'SSL parameters for MySQL');
+        case FParameters.SSLVerification of
+          0: SSLoption := FLib.SSL_MODE_PREFERRED;
+          1: SSLoption := FLib.SSL_MODE_VERIFY_CA;
+          2: SSLoption := FLib.SSL_MODE_VERIFY_IDENTITY;
         end;
+        SetOption(FLib.MYSQL_OPT_SSL_MODE, @SSLoption);
+      end
+      else begin
+        // MariaDB
+        Log(lcInfo, 'SSL parameters for MariaDB');
+        case FParameters.SSLVerification of
+          0: VerifyServerCert := FLib.MYBOOL_FALSE;
+          1,2: VerifyServerCert := FLib.MYBOOL_TRUE;
+        end;
+        SetOption(FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @VerifyServerCert);
       end;
-      if SetOptionResult = 0 then
-        Log(lcInfo, _('SSL parameters successfully set.'))
-      else
-        Log(lcError, f_('SSL parameters not fully set. Result: %d', [SetOptionResult]));
+    end;
+
+    // libmariadb v3.4.0+ enables MYSQL_OPT_SSL_VERIFY_SERVER_CERT by default, so we have to disable it.
+    // See https://mariadb.com/kb/en/mariadb-connector-c-3-4-0-release-notes/
+    if not FParameters.WantSSL then begin
+      SetOption(FLib.MYSQL_OPT_SSL_VERIFY_SERVER_CERT, @(FLib.MYBOOL_FALSE));
     end;
 
     case FParameters.NetType of
@@ -2529,24 +2537,21 @@ begin
 
     // Point libmysql to the folder with client plugins
     PluginDir := AnsiString(ExtractFilePath(ParamStr(0))+'plugins');
-    SetOptionResult := FLib.mysql_options(FHandle, FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
-    if SetOptionResult <> 0 then begin
-      raise EDbError.Create(f_('Plugin directory %s could not be set.', [PluginDir]));
-    end;
+    SetOption(FLib.MYSQL_PLUGIN_DIR, PAnsiChar(PluginDir));
 
     // Enable cleartext plugin
     if Parameters.CleartextPluginEnabled then
-      FLib.mysql_options(FHandle, FLib.MYSQL_ENABLE_CLEARTEXT_PLUGIN, PAnsiChar('1'));
+      SetOption(FLib.MYSQL_ENABLE_CLEARTEXT_PLUGIN, @(FLib.MYBOOL_TRUE));
 
     // Tell server who we are
     if Assigned(FLib.mysql_optionsv) then
       FLib.mysql_optionsv(FHandle, FLib.MYSQL_OPT_CONNECT_ATTR_ADD, 'program_name', APPNAME);
 
     // Seems to be still required on some systems, for importing CSV files
-    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_LOCAL_INFILE, PAnsiChar('1'));
+    SetOption(FLib.MYSQL_OPT_LOCAL_INFILE, @(FLib.MYBOOL_TRUE));
 
     // Ensure we have some connection timeout
-    FLib.mysql_options(FHandle, FLib.MYSQL_OPT_CONNECT_TIMEOUT, @FParameters.QueryTimeout);
+    SetOption(FLib.MYSQL_OPT_CONNECT_TIMEOUT, @(FParameters.QueryTimeout));
 
     Connected := FLib.mysql_real_connect(
       FHandle,
@@ -2858,16 +2863,10 @@ end;
 
 procedure TPgConnection.SetActive(Value: Boolean);
 var
-  dbname, ConnInfo, Error: String;
+  dbname, ConnectionString, OptionValue, Error: String;
+  ConnectOptions: TStringList;
   FinalHost, ErrorHint: String;
-  FinalPort: Integer;
-
-  function EscapeConnectOption(Option: String): String;
-  begin
-    // See issue #704 and #1417, and docs: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
-    Result := StringReplace(Option, '\', '\\', [rfReplaceAll]);
-    Result := StringReplace(Result, '''', '\''', [rfReplaceAll]);
-  end;
+  FinalPort, i: Integer;
 begin
   if Value then begin
     DoBeforeConnect;
@@ -2883,25 +2882,44 @@ begin
 
     StartSSHTunnel(FinalHost, FinalPort);
 
-    ConnInfo := 'host='''+EscapeConnectOption(FinalHost)+''' '+
-      'port='''+IntToStr(FinalPort)+''' '+
-      'user='''+EscapeConnectOption(FParameters.Username)+''' ' +
-      'password='''+EscapeConnectOption(FParameters.Password)+''' '+
-      'dbname='''+EscapeConnectOption(dbname)+''' '+
-      'application_name='''+EscapeConnectOption(APPNAME)+'''';
+    // Compose connection string
+    ConnectOptions := TStringList.Create;
+    ConnectOptions.Duplicates := dupIgnore;
+    ConnectOptions
+      .AddPair('host', FinalHost)
+      .AddPair('port', IntToStr(FinalPort))
+      .AddPair('user', FParameters.Username)
+      .AddPair('password', FParameters.Password)
+      .AddPair('dbname', dbname)
+      .AddPair('application_name', APPNAME)
+      .AddPair('sslmode', 'disable');
     if FParameters.WantSSL then begin
-      ConnInfo := ConnInfo + ' sslmode=''require''';
+      // Be aware .AddPair would add duplicates
+      case FParameters.SSLVerification of
+        0: ConnectOptions.Values['sslmode'] := 'require';
+        1: ConnectOptions.Values['sslmode'] := 'verify-ca';
+        2: ConnectOptions.Values['sslmode'] := 'verify-full';
+      end;
       if FParameters.SSLPrivateKey <> '' then
-        ConnInfo := ConnInfo + ' sslkey='''+EscapeConnectOption(FParameters.SSLPrivateKey)+'''';
+        ConnectOptions.AddPair('sslkey', FParameters.SSLPrivateKey);
       if FParameters.SSLCertificate <> '' then
-        ConnInfo := ConnInfo + ' sslcert='''+EscapeConnectOption(FParameters.SSLCertificate)+'''';
+        ConnectOptions.AddPair('sslcert', FParameters.SSLCertificate);
       if FParameters.SSLCACertificate <> '' then
-        ConnInfo := ConnInfo + ' sslrootcert='''+EscapeConnectOption(FParameters.SSLCACertificate)+'''';
+        ConnectOptions.AddPair('sslrootcert', FParameters.SSLCACertificate);
       //if FParameters.SSLCipher <> '' then ??
     end;
+    ConnectionString := '';
+    for i:=0 to ConnectOptions.Count-1 do begin
+      // Escape values. See issue #704 and #1417, and docs: https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+      OptionValue := ConnectOptions.ValueFromIndex[i];
+      OptionValue := StringReplace(OptionValue, '\', '\\', [rfReplaceAll]);
+      OptionValue := StringReplace(OptionValue, '''', '\''', [rfReplaceAll]);
+      ConnectionString := ConnectionString + ConnectOptions.Names[i] + '=''' + OptionValue + ''' ';
+    end;
+    ConnectOptions.Free;
+    ConnectionString := ConnectionString.TrimRight;
 
-
-    FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnInfo)));
+    FHandle := FLib.PQconnectdb(PAnsiChar(AnsiString(ConnectionString)));
     if FLib.PQstatus(FHandle) = CONNECTION_BAD then begin
       Error := LastErrorMsg;
       Log(lcError, Error);
@@ -3177,6 +3195,37 @@ begin
       FActive := False;
       Log(lcInfo, f_(MsgDisconnect, [Parameters.Hostname, DateTimeToStr(Now)]));
     end;
+  end;
+end;
+
+
+procedure TMySQLConnection.SetOption(Option: Integer; Arg: PAnsiChar);
+var
+  SetOptionResult: Integer;
+  RttiContext: TRttiContext;
+  LibType: TRttiType;
+  LibField: TRttiField;
+  FieldName: String;
+begin
+  // Set one of the MYSQL_* option and log a warning if that failed
+  SetOptionResult := FLib.mysql_options(FHandle, Option, Arg);
+  if SetOptionResult <> 0 then begin
+    FieldName := Option.ToString;
+    // Attempt to find readable name of option constant
+    RttiContext := TRttiContext.Create;
+    LibType := RttiContext.GetType(TypeInfo(TMySQLLib));
+    for LibField in LibType.GetFields do begin
+      // Skip assigned procedures
+      if LibField.FieldType = nil then
+        Continue;
+      if LibField.DataType.TypeKind = tkInteger then begin
+        if LibField.GetValue(FLib).AsInteger = Option then begin
+          FieldName := LibField.Name;
+        end;
+      end;
+    end;
+    RttiContext.Free;
+    Log(lcError, _(SLogPrefixWarning) + ': mysql_options(' + FieldName + ', ...) failed!');
   end;
 end;
 
@@ -6327,7 +6376,7 @@ begin
       end;
       NewKey.Columns.Add(KeyQuery.Col('Column_name'));
       NewKey.Collations.Add(KeyQuery.Col('Collation', True));
-      if NewKey.IndexType = TTableKey.SPATIAL then
+      if NewKey.IsSpatial then
         NewKey.SubParts.Add('') // Keep in sync, prevent "Incorrect prefix key"
       else
         NewKey.SubParts.Add(KeyQuery.Col('Sub_part'));
@@ -7726,7 +7775,7 @@ begin
   // Find best key for updates
   // 1. round: find a primary key
   for Key in Keys do begin
-    if Key.IndexType = TTableKey.PRIMARY then
+    if Key.IsPrimary then
     begin
       for ColName in Key.Columns do begin
         Col := Columns.FindByName(ColName);
@@ -7738,7 +7787,7 @@ begin
   if Result.Count = 0 then begin
     // no primary key available -> 2. round: find a unique key
     for Key in Keys do begin
-      if Key.IndexType = TTableKey.UNIQUE then begin
+      if Key.IsUnique then begin
         // We found a UNIQUE key - better than nothing. Check if one of the key
         // columns allows NULLs which makes it dangerous to use in UPDATES + DELETES.
         AllowsNull := False;
@@ -9598,12 +9647,23 @@ begin
     Row.Add(c);
     c.OldText := '';
     c.OldIsFunction := False;
-    c.OldIsNull := False;
+    c.OldIsNull := True;
     ColAttr := ColAttributes(i);
     if Assigned(ColAttr) then begin
-      c.OldIsNull := ColAttr.DefaultType in [cdtNull, cdtAutoInc, cdtExpression];
-      if ColAttr.DefaultType in [cdtText] then
-        c.OldText := FConnection.UnescapeString(ColAttr.DefaultText);
+      case ColAttr.DefaultType of
+        cdtText: begin
+          c.OldText := FConnection.UnescapeString(ColAttr.DefaultText);
+          c.OldIsNull := False;
+        end;
+        cdtExpression: begin
+          // Overtake expression, if it's a simple integer
+          if ColAttr.DefaultText = MakeInt(ColAttr.DefaultText).ToString then begin
+            c.OldText := ColAttr.DefaultText;
+            c.OldIsNull := False;
+          end;
+        end;
+      end;
+
     end;
     c.NewText := c.OldText;
     c.NewIsFunction := c.OldIsFunction;
@@ -9701,6 +9761,7 @@ begin
         FCurrentUpdateRow[i].NewIsNull := FCurrentUpdateRow[i].OldIsNull;
         FCurrentUpdateRow[i].OldIsFunction := False;
         FCurrentUpdateRow[i].NewIsFunction := FCurrentUpdateRow[i].OldIsFunction;
+        FColumnLengths[i] := Length(FCurrentUpdateRow[i].NewText);
       end;
       Data.Free;
     end;
@@ -10981,6 +11042,14 @@ begin
 end;
 
 
+function TTableColumn.FullDataType: String;
+begin
+  Result := DataType.Name;
+  if not LengthSet.IsEmpty then
+    Result := Result + '(' + LengthSet + ')';
+end;
+
+
 procedure TTableColumnList.Assign(Source: TTableColumnList);
 var
   Item, ItemCopy: TTableColumn;
@@ -11051,6 +11120,32 @@ begin
     inherited;
 end;
 
+function TTableKey.IsPrimary: Boolean;
+begin
+  Result := IndexType = PRIMARY;
+end;
+
+function TTableKey.IsIndex: Boolean;
+begin
+  Result := IndexType = KEY;
+end;
+
+function TTableKey.IsUnique: Boolean;
+begin
+  Result := IndexType = UNIQUE;
+end;
+
+function TTableKey.IsFulltext: Boolean;
+begin
+  Result := IndexType = FULLTEXT;
+end;
+
+function TTableKey.IsSpatial: Boolean;
+begin
+  Result := IndexType = SPATIAL;
+end;
+
+
 procedure TTableKey.Modification(Sender: TObject);
 begin
   if not Added then
@@ -11060,20 +11155,20 @@ end;
 function TTableKey.GetImageIndex: Integer;
 begin
   // Detect key icon index for specified index
-  if IndexType = TTableKey.PRIMARY then Result := ICONINDEX_PRIMARYKEY
-  else if IndexType = TTableKey.KEY then Result := ICONINDEX_INDEXKEY
-  else if IndexType = TTableKey.UNIQUE then Result := ICONINDEX_UNIQUEKEY
-  else if IndexType = TTableKey.FULLTEXT then Result := ICONINDEX_FULLTEXTKEY
-  else if IndexType = TTableKey.SPATIAL then Result := ICONINDEX_SPATIALKEY
+  if IsPrimary then Result := ICONINDEX_PRIMARYKEY
+  else if IsIndex then Result := ICONINDEX_INDEXKEY
+  else if IsUnique then Result := ICONINDEX_UNIQUEKEY
+  else if IsFulltext then Result := ICONINDEX_FULLTEXTKEY
+  else if IsSpatial then Result := ICONINDEX_SPATIALKEY
   else Result := -1;
 end;
 
 function TTableKey.GetInsideCreateCode: Boolean;
 begin
-  case Connection.Parameters.NetTypeGroup of
+  case FConnection.Parameters.NetTypeGroup of
     ngMySQL: Result := True;
     ngSQLite: begin
-      if IndexType = PRIMARY then
+      if IsPrimary then
         Result := True
       else
         Result := False;
@@ -11091,14 +11186,14 @@ begin
   if Columns.Count = 0 then
     Exit;
   if InsideCreateCode then begin
-    if IndexType = TTableKey.PRIMARY then
+    if IsPrimary then
       Result := Result + 'PRIMARY KEY '
     else begin
       if FConnection.Parameters.IsAnyPostgreSQL then begin
         Result := Result + IndexType + ' ';
       end
       else begin
-        if IndexType <> TTableKey.KEY then
+        if not IsIndex then
           Result := Result + IndexType + ' ';
         Result := Result + 'INDEX ' + FConnection.QuoteIdent(Name) + ' ';
       end;
@@ -11129,7 +11224,7 @@ begin
     // CREATE INDEX myindex ON table1 ("Column 1")
     // TODO: test on PG, MS, IB
     Result := 'CREATE ';
-    if IndexType <> TTableKey.KEY then
+    if not IsIndex then
       Result := Result + IndexType + ' ';
     Result := Result + 'INDEX '+FConnection.QuoteIdent(Name)+' ON ' + FConnection.QuoteIdent(TableName) + ' (';
     for i:=0 to Columns.Count-1 do begin

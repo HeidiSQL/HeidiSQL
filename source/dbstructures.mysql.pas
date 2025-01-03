@@ -292,6 +292,8 @@ type
     mysql_warning_count: function(Handle: PMYSQL): Cardinal; stdcall;
     const
       INVALID_OPT = -1;
+      MYBOOL_FALSE: Byte = 0;
+      MYBOOL_TRUE: Byte = 1;
     protected
       procedure AssignProcedures; override;
     public
@@ -308,6 +310,9 @@ type
       MYSQL_ENABLE_CLEARTEXT_PLUGIN,
       MYSQL_OPT_SSL_MODE,
       MYSQL_OPT_SSL_VERIFY_SERVER_CERT: Integer;
+      SSL_MODE_DISABLED,
+      SSL_MODE_PREFERRED,
+      SSL_MODE_REQUIRED,
       SSL_MODE_VERIFY_CA,
       SSL_MODE_VERIFY_IDENTITY: Integer;
       constructor Create(DllFile, DefaultDll: String); override;
@@ -3115,15 +3120,33 @@ uses apphelpers;
 constructor TMySQLLib.Create(DllFile, DefaultDll: String);
 begin
   inherited;
-  // Some MYSQL_OPT_* constants were removed in MySQL 8.0, so the offsets differ between libmysql and libmariadb.
+  // MYSQL_OPT_* constants
   MYSQL_OPT_CONNECT_TIMEOUT := 0;
   MYSQL_OPT_LOCAL_INFILE := 8;
-  MARIADB_OPT_TLS_VERSION := 7005;
+  MYSQL_PLUGIN_DIR := 22;
+  MYSQL_OPT_SSL_KEY := 25;
+  MYSQL_OPT_SSL_CERT := 26;
+  MYSQL_OPT_SSL_CA := 27;
+  MYSQL_OPT_SSL_CIPHER := 29;
+  MYSQL_OPT_CONNECT_ATTR_ADD := 33;
+  MYSQL_ENABLE_CLEARTEXT_PLUGIN := 36;
+  MYSQL_OPT_TLS_VERSION := 41;
+  MARIADB_OPT_TLS_VERSION := INVALID_OPT;
   MYSQL_OPT_SSL_MODE := INVALID_OPT;
   MYSQL_OPT_SSL_VERIFY_SERVER_CERT := INVALID_OPT;
+  // Option values
+  SSL_MODE_DISABLED := 1;
+  SSL_MODE_PREFERRED := 2;
+  SSL_MODE_REQUIRED := 3;
   SSL_MODE_VERIFY_CA := 4;
   SSL_MODE_VERIFY_IDENTITY := 5;
-  if String(mysql_get_client_info).StartsWith('8.') then begin
+  if ExtractFileName(FDllFile).StartsWith('libmariadb', True) then begin
+    // Differences in libmariadb
+    MYSQL_OPT_SSL_VERIFY_SERVER_CERT := 21;
+    MARIADB_OPT_TLS_VERSION := 7005;
+  end
+  else if String(mysql_get_client_info).StartsWith('8.') then begin
+    // Some constants were removed in MySQL 8.0, so the offsets differ
     MYSQL_PLUGIN_DIR := 16;
     MYSQL_OPT_SSL_KEY := 19;
     MYSQL_OPT_SSL_CERT := 20;
@@ -3133,17 +3156,6 @@ begin
     MYSQL_ENABLE_CLEARTEXT_PLUGIN := 30;
     MYSQL_OPT_TLS_VERSION := 34;
     MYSQL_OPT_SSL_MODE := 35;
-  end
-  else begin
-    MYSQL_OPT_SSL_VERIFY_SERVER_CERT := 15;
-    MYSQL_PLUGIN_DIR := 22;
-    MYSQL_OPT_SSL_KEY := 25;
-    MYSQL_OPT_SSL_CERT := 26;
-    MYSQL_OPT_SSL_CA := 27;
-    MYSQL_OPT_SSL_CIPHER := 29;
-    MYSQL_OPT_CONNECT_ATTR_ADD := 33;
-    MYSQL_ENABLE_CLEARTEXT_PLUGIN := 36;
-    MYSQL_OPT_TLS_VERSION := 41;
   end;
 end;
 

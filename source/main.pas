@@ -581,7 +581,6 @@ type
     actCancelOperation: TAction;
     actToggleComment: TAction;
     Uncomment1: TMenuItem;
-    actSynchronizeDatabase: TAction;
     Disconnect1: TMenuItem;
     N4: TMenuItem;
     ImportCSVfile1: TMenuItem;
@@ -876,7 +875,7 @@ type
     procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
       State: TDragState; var Accept: Boolean);
     procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
-    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TStrings);
+    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TUnicodeStrings);
     procedure popupHostPopup(Sender: TObject);
     procedure popupDBPopup(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
@@ -1083,7 +1082,6 @@ type
     procedure actCancelOperationExecute(Sender: TObject);
     procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actToggleCommentExecute(Sender: TObject);
-    procedure actSynchronizeDatabaseExecute(Sender: TObject);
     procedure DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
       var ContentRect: TRect);
@@ -1192,6 +1190,9 @@ type
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
+    procedure SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
+      const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
+      var HintText: string);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1250,6 +1251,7 @@ type
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
+    FDefaultHintFontName: String;
     FActionList1DefaultCaptions: TStringList;
     FActionList1DefaultHints: TStringList;
     FEditorCommandStrings: TStringList;
@@ -1258,6 +1260,7 @@ type
     FMatchingBraceBackgroundColor: TColor;
     FSynEditInOnPaintTransient: Boolean;
     FExactRowCountMode: Boolean;
+    //FHelpData: TSimpleKeyValuePairs;
 
     // Host subtabs backend structures
     FHostListResults: TDBQueryList;
@@ -1299,6 +1302,7 @@ type
     function InitTabsIniFile: TIniFile;
     procedure StoreTabs;
     function RestoreTabs: Boolean;
+    procedure SetHintFontByControl(Control: TWinControl=nil);
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
@@ -2167,6 +2171,7 @@ begin
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
   FFormatSettings := TFormatSettings.Create('en-US');
+  FDefaultHintFontName := Screen.HintFont.Name;
 
   // Now we are free to use certain methods, which are otherwise fired too early
   MainFormCreated := True;
@@ -2577,6 +2582,20 @@ begin
         );
     end;
   end;
+end;
+
+
+procedure TMainForm.SetHintFontByControl(Control: TWinControl=nil);
+var
+  UseFontName: String;
+begin
+  // Set hint font name to match the underlying control
+  if Assigned(Control) and (Control is TSynMemo) then
+    UseFontName := TSynMemo(Control).Font.Name
+  else
+    UseFontName := FDefaultHintFontName;
+  if Screen.HintFont.Name <> UseFontName then
+    Screen.HintFont.Name := UseFontName;
 end;
 
 
@@ -4827,16 +4846,6 @@ begin
 end;
 
 
-procedure TMainForm.actSynchronizeDatabaseExecute(Sender: TObject);
-var
-  SyncForm: TfrmSyncDB;
-begin
-  SyncForm := TfrmSyncDB.Create(Self);
-  SyncForm.ShowModal;
-  SyncForm.Free;
-end;
-
-
 procedure TMainForm.actSynEditCompletionProposeExecute(Sender: TObject);
 begin
   // Show completion proposal explicitely, without the use of its own ShortCut property,
@@ -6676,10 +6685,24 @@ procedure TMainForm.SynCompletionProposalChange(Sender: TObject;
   AIndex: Integer);
 var
   Proposal: TSynCompletionProposal;
+  SelectedFuncName: String;
+  SQLFunc: TSQLFunction;
 begin
   Proposal := Sender as TSynCompletionProposal;
-  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then
+  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then begin
     Proposal.Title := Proposal.InsertItem(AIndex);
+    // Show function description in hint panel
+    ShowStatusMsg('', 0);
+    SelectedFuncName := RegExprGetMatch('}function\\column\{\}\\color\{\w+\}([^\\]+)\\', Proposal.DisplayItem(AIndex), 1);
+    if not SelectedFuncName.IsEmpty then begin
+      for SQLFunc in ActiveConnection.SQLFunctions do begin
+        if SQLFunc.Name.ToUpper = SelectedFuncName.ToUpper then begin
+          ShowStatusMsg(SQLFunc.Description.Replace(SLineBreak, ' '), 0);
+          Break;
+        end;
+      end;
+    end;
+  end;
 end;
 
 
@@ -6719,6 +6742,8 @@ begin
   end;
   rx.Free;
   Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
+  // Hide hint text added in .OnChange event
+  ShowStatusMsg('', 0);
 end;
 
 
@@ -6787,7 +6812,10 @@ var
     dbname, tblname: String;
     Columns: TTableColumnList;
     Col: TTableColumn;
+    Keys: TTableKeyList;
+    Key: TTableKey;
     Obj: TDBObject;
+    ColumnIcon: Integer;
   begin
     dbname := '';
     tblname := LeftToken;
@@ -6804,8 +6832,18 @@ var
     for Obj in DBObjects do begin
       if (Obj.Name.ToLowerInvariant = tblname.ToLowerInvariant) and (Obj.NodeType in [lntTable, lntView]) then begin
         Columns := Obj.TableColumns;
+        Keys := Obj.TableKeys;
         for Col in Columns do begin
-          DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FIELD, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
+          // Detect index icon, if any
+          ColumnIcon := ICONINDEX_FIELD;
+          for Key in Keys do begin
+            if Key.Columns.Contains(Col.Name) then begin
+              ColumnIcon := Key.ImageIndex;
+              Break;
+            end;
+          end;
+          // Put formatted text and icon into proposal
+          DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
           if CurrentInput.StartsWith(Conn.QuoteChar) then
             Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
           else
@@ -7114,6 +7152,116 @@ begin
   end;
 end;
 
+
+procedure TMainForm.SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
+  const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
+  var HintText: string);
+var
+  SQLFunc: TSQLFunction;
+  Conn: TDBConnection;
+  AllObjects: TDBObjectList;
+  Obj: TDBObject;
+  i, ColumnNameChars: Integer;
+  Column: TTableColumn;
+  Parameters: TRoutineParamList;
+  Params: TStringList;
+  Param: TRoutineParam;
+begin
+  // Activate hint for SQL function in query editors
+  Conn := ActiveConnection;
+  if Assigned(Conn) then begin
+    case TtkTokenKind(TokenType) of
+
+      SynHighlighterSQL.tkFunction: begin
+        for SQLFunc in ActiveConnection.SQLFunctions do begin
+          if SQLFunc.Name.ToUpper = Token.ToUpper then begin
+            HintText := SQLFunc.Name + SQLFunc.Declaration + sLineBreak + sLineBreak + SQLFunc.Description;
+            Break;
+          end;
+        end;
+      end;
+
+      SynHighlighterSQL.tkTableName: begin
+        // Show some details from table listing cache
+        if Conn.DbObjectsCached(Conn.Database) then begin
+          AllObjects := Conn.GetDBObjects(Conn.Database);
+          for Obj in AllObjects do begin
+            if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
+              HintText := _(Obj.ObjType) + ' ' + Obj.Name + ':' + sLineBreak +
+                _('Rows') + ': ' + FormatNumber(Obj.Rows) + sLineBreak +
+                _('Size') + ': ' + FormatByteNumber(Obj.DataLen + Obj.IndexLen) + SLineBreak;
+              ColumnNameChars := 0;
+              for Column in Obj.TableColumns do begin
+                ColumnNameChars := Max(ColumnNameChars, Length(Column.Name));
+              end;
+              for Column in Obj.TableColumns do begin
+                HintText := HintText + Format('%s%'+ColumnNameChars.ToString+'s: %s', [SLineBreak, Column.Name, Column.FullDataType]);
+              end;
+
+              Break;
+            end;
+          end;
+        end;
+      end;
+
+      SynHighlighterSQL.tkProcName: begin
+        // Show routine parameters, comment and body
+        if Conn.DbObjectsCached(Conn.Database) then begin
+          AllObjects := Conn.GetDBObjects(Conn.Database);
+          for Obj in AllObjects do begin
+            if (Obj.NodeType in [lntFunction, lntProcedure]) and (Obj.Name.ToLower = Token.ToLower) then begin
+              Parameters := TRoutineParamList.Create;
+              Conn.ParseRoutineStructure(Obj, Parameters);
+              HintText := _(Obj.ObjType) + ' ' + Obj.Name;
+              Params := TStringList.Create;
+              for Param in Parameters do begin
+                Params.Add(Param.Name + ' ['+Param.Datatype+']');
+              end;
+              HintText := HintText + '(' + Implode(', ', Params) + ')' + sLineBreak + sLineBreak;
+              Params.Free;
+              if not Obj.Returns.IsEmpty then
+                HintText := HintText + 'Returns: ' + Obj.Returns + sLineBreak + sLineBreak;
+              if not Obj.Comment.IsEmpty then
+                HintText := HintText + Obj.Comment + sLineBreak + sLineBreak;
+              if not Obj.Body.IsEmpty then
+                HintText := HintText + StrEllipsis(Obj.Body, SIZE_KB);
+              HintText := Trim(HintText);
+              Break;
+            end;
+          end;
+        end;
+      end;
+
+      SynHighlighterSQL.tkDatatype: begin
+        for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
+          if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
+            HintText := Conn.Datatypes[i].Description;
+            Break;
+          end;
+        end;
+      end;
+
+      { Keywords consist of more than one word too often, so this would be of zero help for the user:
+      SynHighlighterSQL.tkKey: begin
+        if Conn.Parameters.IsAnyMySQL then begin
+          if not Assigned(FHelpData) then
+            FHelpData := TSimpleKeyValuePairs.Create;
+          if not FHelpData.TryGetValue(Token, HintText) then begin
+            HintText := Conn.GetVar('HELP '+Conn.EscapeString(Token), 1);
+            if (HintText.ToUpper = 'Y') or (HintText.ToUpper = 'N') then
+              HintText := '';
+            FHelpData.Add(Token, HintText);
+          end;
+        end;
+      end; }
+
+      SynHighlighterSQL.tkString: begin
+        HintText := _('String:') + ' ' + FormatByteNumber(Length(Token));
+      end;
+
+    end;
+  end;
+end;
 
 procedure TMainForm.TimerHostUptimeTimer(Sender: TObject);
 var
@@ -10457,6 +10605,7 @@ begin
       else
         SortOrder := sioAscending;
       FDataGridSortItems.AddNew(ColName, SortOrder);
+      LogSQL('Created sorting for column '+ColName+'/'+Integer(SortOrder).ToString+' in TMainForm.DataGridHeaderClick', lcDebug);
     end;
 
     // Refresh grid, and remember X scroll offset, so the just clicked column is still at the same place.
@@ -11153,6 +11302,7 @@ begin
           SortItem := FDataGridSortItems.AddNew;
           SortItem.Column := rx.Match[2];
           SortItem.Order := TSortItemOrder(StrToIntDef(rx.Match[1], 0));
+          LogSQL('Restored sorting for column '+SortItem.Column+'/'+Integer(SortItem.Order).ToString+' in TMainForm.HandleDataGridAttributes', lcDebug);
           Break;
         end;
       end;
@@ -12083,6 +12233,7 @@ begin
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
   QueryTab.Memo.Constraints := SynMemoQuery.Constraints;
+  QueryTab.Memo.HintMode := SynMemoQuery.HintMode;
   QueryTab.Memo.Left := SynMemoQuery.Left;
   QueryTab.Memo.Options := SynMemoQuery.Options;
   QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
@@ -12102,6 +12253,7 @@ begin
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
   QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
+  QueryTab.Memo.OnTokenHint := SynMemoQuery.OnTokenHint;
   QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
@@ -12373,6 +12525,7 @@ end;
 procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
+  Grid: TVirtualStringTree;
 begin
   // Special case: the very first tab gets cleared but not closed
   if PageIndex = tabQuery.PageIndex then begin
@@ -12381,6 +12534,10 @@ begin
   end;
   if not IsQueryTab(PageIndex, False) then
     Exit;
+  // Cancel cell editor if active, preventing crash. See issue #2040
+  Grid := ActiveGrid;
+  if Assigned(Grid) and Grid.IsEditing then
+    Grid.CancelEditNode;
   // Ask user if query content shall be saved to disk
   if not ConfirmTabClose(PageIndex, False) then
     Exit;
@@ -12476,6 +12633,8 @@ begin
     Node := DBtree.GetNextInitialized(Node);
   end;
   DBtree.EndUpdate;
+  // Fix scroll height of the tree. See issue #2063 and #2002
+  DBtree.Repaint;
 
   rxdb.Free;
   rxtable.Free;
@@ -13163,8 +13322,10 @@ begin
   Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
   Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
+  Editor.HintMode := BaseEditor.HintMode;
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
   Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
+  Editor.OnTokenHint := BaseEditor.OnTokenHint;
   if Editor <> SynMemoSQLLog then begin
     Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
@@ -14450,13 +14611,14 @@ end;
 
 procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 var
-  MainTabIndex, QueryTabIndex: integer;
+  MainTabIndex, QueryTabIndex, NewHideTimeout: integer;
   pt: TPoint;
   Conn: TDBConnection;
+  Editor: TSynMemo;
 begin
-  // Show full filename in tab hint. See issue #3527
-  // Code taken from http://www.delphipraxis.net/97988-tabsheet-hint-funktioniert-nicht.html
   if HintInfo.HintControl = PageControlMain then begin
+    // Show full filename in tab hint. See issue #3527
+    // Code taken from http://www.delphipraxis.net/97988-tabsheet-hint-funktioniert-nicht.html
     pt := PageControlMain.ScreenToClient(Mouse.CursorPos);
     MainTabIndex := GetMainTabAt(pt.X, pt.Y);
     QueryTabIndex := MainTabIndex - tabQuery.PageIndex;
@@ -14470,6 +14632,19 @@ begin
         HintStr := StringReplace(HintStr, DELIM, SLineBreak, [rfReplaceAll]);
     end;
     HintInfo.ReshowTimeout := 1000;
+    SetHintFontByControl;
+  end
+  else if HintInfo.HintControl is TSynMemo then begin
+    // Token hint displaying through SynEdit's OnTokenHint event
+    Editor := TSynMemo(HintInfo.HintControl);
+    SetHintFontByControl(Editor);
+    NewHideTimeout := Min(Length(HintStr) * 100, 60*1000);
+    if NewHideTimeout > HintInfo.HideTimeout then
+      HintInfo.HideTimeout := NewHideTimeout;
+  end
+  else begin
+    // Probably reset hint font
+    SetHintFontByControl;
   end;
 end;
 

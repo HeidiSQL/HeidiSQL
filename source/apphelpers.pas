@@ -10,7 +10,7 @@ interface
 
 uses
   System.Classes, System.SysUtils, Vcl.Graphics, Vcl.GraphUtil, Vcl.ClipBrd, Vcl.Dialogs, Vcl.Forms, Vcl.Controls, Winapi.ShellApi,
-  Winapi.Windows, Winapi.ShlObj, Winapi.ActiveX, VirtualTrees, VirtualTrees.Types, SynRegExpr, Winapi.Messages, System.Math,
+  Winapi.Windows, Winapi.ShlObj, Winapi.ActiveX, VirtualTrees, VirtualTrees.BaseTree, VirtualTrees.Types, SynRegExpr, Winapi.Messages, System.Math,
   System.Win.Registry, System.DateUtils, System.Generics.Collections, System.Contnrs, System.StrUtils, System.AnsiStrings, Winapi.TlHelp32, System.Types,
   dbconnection, dbstructures, dbstructures.mysql, SynMemo, Vcl.Menus, Winapi.WinInet, gnugettext, Vcl.Themes,
   System.Character, Vcl.ImgList, System.UITypes, Vcl.ActnList, Winapi.WinSock, System.IOUtils, Vcl.StdCtrls, Vcl.ComCtrls,
@@ -169,6 +169,8 @@ type
   public
     procedure TrySetFocus;
   end;
+
+  //TSimpleKeyValuePairs = TDictionary<String, String>;
 
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
@@ -2356,7 +2358,7 @@ var
       cap := _(BtnCaption);
       for i:=1 to Length(cap) do begin
         // Auto apply hotkey
-        if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and TCharacter.IsLetter(cap[i]) then begin
+        if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and cap[i].IsLetter then begin
           Hotkeys := Hotkeys + LowerCase(cap[i]);
           Insert('&', cap, i);
           break;
