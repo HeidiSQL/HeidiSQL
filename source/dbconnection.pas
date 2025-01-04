@@ -10101,18 +10101,21 @@ end;
 
 function TPGQuery.TableName(Column: Integer): String;
 var
-  FieldTypeOID: POid;
+  TableOid: POid;
 begin
   // Get table name from a result set
   // "123::regclass" results are quoted if they contain special characters
-  Result := EmptyStr;
-  FieldTypeOID := FConnection.Lib.PQftable(FCurrentResults, Column);
-  if not FConnection.RegClasses.ContainsKey(FieldTypeOID) then begin
-    Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
-    Result := FConnection.DeQuoteIdent(Result);
-    FConnection.RegClasses.Add(FieldTypeOID, Result);
+  TableOid := FConnection.Lib.PQftable(FCurrentResults, Column);
+  if TableOid = InvalidOid then begin
+    // 0 => not a simple reference to a table column, e.g. on SUBSTRING(col, 1, 256)
+    Result := EmptyStr;
+  end
+  else if FConnection.RegClasses.ContainsKey(TableOid) then begin
+    FConnection.RegClasses.TryGetValue(TableOid, Result);
   end else begin
-    FConnection.RegClasses.TryGetValue(FieldTypeOID, Result);
+    Result := FConnection.GetVar('SELECT '+IntToStr(TableOid)+'::regclass');
+    Result := FConnection.DeQuoteIdent(Result);
+    FConnection.RegClasses.Add(TableOid, Result);
   end;
 end;
 
