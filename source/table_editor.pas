@@ -107,7 +107,7 @@ type
     procedure btnMoveDownColumnClick(Sender: TObject);
     procedure listColumnsDragOver(Sender: TBaseVirtualTree; Source: TObject; Shift: TShiftState; State: TDragState;
 		  Pt: TPoint; Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
-    procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+    procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
 		  Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
     procedure listColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
 		  Column: TColumnIndex; TextType: TVSTTextType);
@@ -135,7 +135,7 @@ type
       Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
       var Effect: Integer; var Accept: Boolean);
     procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
-      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
+      DataObject: TVTDragDataObject; Formats: TFormatArray; Shift: TShiftState;
       Pt: TPoint; var Effect: Integer; Mode: TDropMode);
     procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure treeIndexesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
@@ -1146,7 +1146,7 @@ end;
 
 
 procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
-  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
   Node: PVirtualNode;
@@ -2294,7 +2294,7 @@ end;
 
 
 procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
-  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
   FocusedNode, TargetNode, IndexNode: PVirtualNode;

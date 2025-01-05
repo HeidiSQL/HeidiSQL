@@ -181,7 +181,7 @@ type
       Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
       var Effect: Integer; var Accept: Boolean);
     procedure ListSessionsDragDrop(Sender: TBaseVirtualTree; Source: TObject;
-      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
+      DataObject: TVTDragDataObject; Formats: TFormatArray; Shift: TShiftState;
       Pt: TPoint; var Effect: Integer; Mode: TDropMode);
     procedure btnMoreClick(Sender: TObject);
     procedure menuRenameClick(Sender: TObject);
@@ -866,7 +866,7 @@ end;
 
 
 procedure Tconnform.ListSessionsDragDrop(Sender: TBaseVirtualTree;
-  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
   TargetNode, ParentNode: PVirtualNode;
