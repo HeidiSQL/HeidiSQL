@@ -226,7 +226,8 @@ type
     const ColNumExpression = 10;
     const ColNumVirtuality = 11;
     const ColNumSrid = 12;
-    const ColNumsCheckboxes = [ColNumUnsigned, ColNumAllownull, ColNumZerofill];
+    const ColNumInvisible = 13;
+    const ColNumsCheckboxes = [ColNumUnsigned, ColNumAllownull, ColNumZerofill, ColNumInvisible];
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -1269,7 +1270,10 @@ begin
   // Paint checkbox image in certain columns
   // while restricting "Allow NULL" checkbox to numeric datatypes
   if (Column in ColNumsCheckboxes) then begin
-    Checked := (Col.Unsigned and (Column=ColNumUnsigned)) or (Col.AllowNull and (Column=ColNumAllownull)) or (Col.ZeroFill and (Column = ColNumZerofill));
+    Checked := (Col.Unsigned and (Column=ColNumUnsigned))
+      or (Col.AllowNull and (Column=ColNumAllownull))
+      or (Col.ZeroFill and (Column = ColNumZerofill))
+      or (Col.Invisible and (Column = ColNumInvisible));
     if CellEditingAllowed(Node, Column) then begin
       if Checked then ImageIndex := 128
       else ImageIndex := 127;
@@ -1377,6 +1381,8 @@ begin
 
     ColNumSrid: Result := (Col.DataType.Category = dtcSpatial) and DBObject.Connection.Has(frSrid);
 
+    ColNumInvisible: Result := DBObject.Connection.Has(frInvisibleColumns);
+
     else Result := True;
   end;
 
@@ -1414,7 +1420,10 @@ begin
 
     ColNumLengthSet: CellText := Col.LengthSet;
 
-    ColNumUnsigned, ColNumAllownull, ColNumZerofill: CellText := ''; // Checkbox
+    ColNumUnsigned,
+    ColNumAllownull,
+    ColNumZerofill,
+    ColNumInvisible: CellText := ''; // Checkbox
 
     ColNumDefault: begin
       case Col.DefaultType of
@@ -1590,7 +1599,7 @@ begin
       end;
     end;
 
-    // 4, 5, 6 are checkboxes - handled in OnClick
+    // 4, 5, 6, 13 are checkboxes - handled in OnClick
 
     ColNumDefault: begin
       // DefaultText/Type and OnUpdateText/Type are set in TColumnDefaultEditorLink.EndEdit
@@ -1691,6 +1700,13 @@ begin
 
       ColNumZerofill: begin
         Col.ZeroFill := not Col.ZeroFill;
+        Col.Status := esModified;
+        Modification(Sender);
+        VT.InvalidateNode(Node);
+      end;
+
+      ColNumInvisible: begin
+        Col.Invisible := not Col.Invisible;
         Col.Status := esModified;
         Modification(Sender);
         VT.InvalidateNode(Node);

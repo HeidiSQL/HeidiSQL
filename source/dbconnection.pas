@@ -29,7 +29,7 @@ type
   TDBQueryList = TObjectList<TDBQuery>;
   TDBObject = class;
 
-  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpSRID, cpDefault, cpVirtuality, cpComment, cpCollation);
+  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpSRID, cpDefault, cpVirtuality, cpComment, cpCollation, cpInvisible);
   TColumnParts = Set of TColumnPart;
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
   // General purpose editing status flag
@@ -449,7 +449,7 @@ type
     frShowCharset, frIntegerDisplayWidth, frShowFunctionStatus, frShowProcedureStatus,
     frShowTriggers, frShowEvents, frColumnDefaultParentheses, frForeignKeyChecksVar,
     frHelpKeyword, frEditVariables, frCreateView, frCreateProcedure, frCreateFunction,
-    frCreateTrigger, frCreateEvent);
+    frCreateTrigger, frCreateEvent, frInvisibleColumns);
 
   TDBConnection = class(TComponent)
     private
@@ -6867,6 +6867,8 @@ begin
         frCreateFunction: Result := ServerVersionInt >= 50003;
         frCreateTrigger: Result := ServerVersionInt >= 50002;
         frCreateEvent: Result := ServerVersionInt >= 50100;
+        frInvisibleColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100303)) or
+          (FParameters.IsMySQL(True) and (ServerVersionInt >= 80023));
       end;
     else Result := False;
   end;
@@ -10904,6 +10906,10 @@ begin
     if (DataType.Category in [dtcInteger, dtcReal]) and ZeroFill then
       Result := Result + ' ZEROFILL';
     Result := Result + ' '; // Add space after each part
+  end;
+
+  if InParts(cpInvisible) and Invisible and FConnection.Has(frInvisibleColumns) then begin
+    Result := Result + 'INVISIBLE ';
   end;
 
   if InParts(cpAllowNull) and (not IsVirtual) then begin
