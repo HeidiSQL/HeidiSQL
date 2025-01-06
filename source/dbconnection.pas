@@ -2028,7 +2028,7 @@ begin
       ngMySQL:
         rx.Expression := '^lib(mysql|mariadb).*\.dll$';
       ngMSSQL: // Allow unsupported ADODB providers per registry hack
-        rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)$');
+        rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)');
       ngPgSQL:
         rx.Expression := '^libpq.*\.dll$';
       ngSQLite: begin
@@ -2757,7 +2757,7 @@ begin
       'Data Source='+DataSource+';'+
       'Application Name='+AppName+';'
       ;
-    if Parameters.LibraryOrProvider = 'MSOLEDBSQL' then begin
+    if Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true) then begin
       // Issue #423: MSOLEDBSQL compatibility with new column types
       // See https://docs.microsoft.com/en-us/sql/connect/oledb/applications/using-ado-with-oledb-driver-for-sql-server?view=sql-server-2017
       // Do not use with old driver, see https://www.heidisql.com/forum.php?t=35208
