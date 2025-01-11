@@ -461,7 +461,7 @@ begin
         Inc(MatchCount);
 
         // Set focus on node and column
-        NodeSelected := SelectNode(Grid, Node, False);
+        NodeSelected := SelectNode(Grid, Node, not SelectedOnly);
         if not NodeSelected then
           Break;
         Grid.FocusedColumn := Column;
