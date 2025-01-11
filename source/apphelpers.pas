@@ -234,7 +234,7 @@ type
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
-    asReformatter, asAlwaysGenerateFilter,
+    asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter,
     asGenerateDataNumRows, asGenerateDataNullAmount,
     asUnused);
   TAppSetting = record
@@ -3857,6 +3857,7 @@ begin
   InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
   InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
   InitSetting(asReformatter,                      'Reformatter',                           0);
+  InitSetting(asReformatterNoDialog,              'ReformatterNoDialog',                   0);
   InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
   InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);

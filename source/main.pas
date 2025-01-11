@@ -13340,6 +13340,7 @@ procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
   m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
+  Done: Boolean;
 begin
   // Reformat SQL query
   m := ActiveSynMemo(False);
@@ -13356,7 +13357,14 @@ begin
   else begin
     frmReformatter := TfrmReformatter.Create(Self);
     frmReformatter.InputCode := m.SelText;
-    if frmReformatter.ShowModal = mrOk then begin
+    if AppSettings.ReadInt(asReformatterNoDialog) <> 0 then begin
+      frmReformatter.btnOkClick(Self);
+      Done := True;
+    end
+    else begin
+      Done := frmReformatter.ShowModal = mrOk;
+    end;
+    if Done then begin
       Screen.Cursor := crHourglass;
       m.UndoList.AddGroupBreak;
       m.SelText := frmReformatter.OutputCode;
