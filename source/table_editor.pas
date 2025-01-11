@@ -1944,6 +1944,7 @@ procedure TfrmTableEditor.treeIndexesGetImageIndex(Sender: TBaseVirtualTree;
   var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
   VT: TVirtualStringTree;
+  TblKey: TTableKey;
 begin
   // Icon image showing type of index
   VT := Sender as TVirtualStringTree;
@@ -1951,7 +1952,13 @@ begin
   if not (Kind in [ikNormal, ikSelected]) then Exit;
   case VT.GetNodeLevel(Node) of
     0: ImageIndex := FKeys[Node.Index].ImageIndex;
-    1: ImageIndex := 42;
+    1: begin
+      TblKey := FKeys[Node.Parent.Index];
+      if TblKey.IsExpression(Node.Index) then
+        ImageIndex := 13
+      else
+        ImageIndex := 42;
+    end;
   end;
 end;
 

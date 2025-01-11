@@ -97,6 +97,7 @@ type
       function IsUnique: Boolean;
       function IsFulltext: Boolean;
       function IsSpatial: Boolean;
+      function IsExpression(KeyPart: Integer): Boolean;
       procedure Modification(Sender: TObject);
       function SQLCode(TableName: String=''): String;
       property InsideCreateCode: Boolean read GetInsideCreateCode;
@@ -11168,6 +11169,11 @@ begin
   Result := IndexType = SPATIAL;
 end;
 
+function TTableKey.IsExpression(KeyPart: Integer): Boolean;
+begin
+  Result := Columns[KeyPart].StartsWith('(');
+end;
+
 
 procedure TTableKey.Modification(Sender: TObject);
 begin
@@ -11223,8 +11229,8 @@ begin
     end;
     Result := Result + '(';
     for i:=0 to Columns.Count-1 do begin
-      if Columns[i].StartsWith('(') then
-        Result := Result + Columns[i] // Functional key part with expression wrapped in parentheses
+      if IsExpression(i) then
+        Result := Result + Columns[i] // Don't quote functional key part
       else
         Result := Result + FConnection.QuoteIdent(Columns[i]);
       if (SubParts.Count > i) and (SubParts[i] <> '') then
