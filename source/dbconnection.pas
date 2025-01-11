@@ -852,7 +852,8 @@ type
       FDBObject: TDBObject;
       FFormatSettings: TFormatSettings;
       procedure SetRecNo(Value: Int64); virtual; abstract;
-      function ColumnExists(Column: Integer): Boolean;
+      function ColumnExists(Column: Integer): Boolean; overload;
+      function ColumnExists(ColumnName: String): Boolean; overload;
       procedure SetColumnOrgNames(Value: TStringList);
       procedure SetDBObject(Value: TDBObject);
       procedure CreateUpdateRow;
@@ -6374,7 +6375,14 @@ begin
           NewKey.Algorithm := KeyQuery.Col('Index_type');
         NewKey.Comment := KeyQuery.Col('Index_comment', True);
       end;
-      NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+      if KeyQuery.ColumnExists('Expression') and (not KeyQuery.IsNull('Expression')) then begin
+        // Functional key part: enclose expression within parentheses to distinguish them from columns (issue #1777)
+        NewKey.Columns.Add('('+KeyQuery.Col('Expression')+')');
+      end
+      else begin
+        // Normal column
+        NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+      end;
       NewKey.Collations.Add(KeyQuery.Col('Collation', True));
       if NewKey.IsSpatial then
         NewKey.SubParts.Add('') // Keep in sync, prevent "Incorrect prefix key"
@@ -9060,6 +9068,12 @@ begin
 end;
 
 
+function TDBQuery.ColumnExists(ColumnName: String): Boolean;
+begin
+  Result := FConnection.Active and ColumnNames.Contains(ColumnName);
+end;
+
+
 function TDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 begin
   Raise EDbError.Create(SNotImplemented);
@@ -11209,7 +11223,10 @@ begin
     end;
     Result := Result + '(';
     for i:=0 to Columns.Count-1 do begin
-      Result := Result + FConnection.QuoteIdent(Columns[i]);
+      if Columns[i].StartsWith('(') then
+        Result := Result + Columns[i] // Functional key part with expression wrapped in parentheses
+      else
+        Result := Result + FConnection.QuoteIdent(Columns[i]);
       if (SubParts.Count > i) and (SubParts[i] <> '') then
         Result := Result + '(' + SubParts[i] + ')';
       // Collation / sort order, see issue #1512
