@@ -3054,7 +3054,7 @@ begin
   finally
     listcolumns.EndUpdate;
   end;
-  listColumns.Invalidate;
+  listColumns.Repaint;
   Modification(Sender);
   ColsFromClp.Free;
 end;
