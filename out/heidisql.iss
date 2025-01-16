@@ -111,6 +111,7 @@ Source: "libmysql-8.4.0-64.dll"; DestDir: "{app}"; DestName: "libmysql-8.4.0.dll
 Source: "libpq-10-64.dll"; DestDir: "{app}"; DestName: "libpq-10.dll"; Flags: ignoreversion
 Source: "libpq-12-64.dll"; DestDir: "{app}"; DestName: "libpq-12.dll"; Flags: ignoreversion
 Source: "libpq-15-64.dll"; DestDir: "{app}"; DestName: "libpq-15.dll"; Flags: ignoreversion
+Source: "libpq-17-64.dll"; DestDir: "{app}"; DestName: "libpq-17.dll"; Flags: ignoreversion
 Source: "libintl-8-64.dll"; DestDir: "{app}"; DestName: "libintl-8.dll"; Flags: ignoreversion
 Source: "libintl-9-64.dll"; DestDir: "{app}"; DestName: "libintl-9.dll"; Flags: ignoreversion
 Source: "libssl-1_1-x64.dll"; DestDir: "{app}"; DestName: "libssl-1_1-x64.dll"; Flags: ignoreversion
