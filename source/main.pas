@@ -65,6 +65,7 @@ type
     const
       IdentBackupFilename = 'BackupFilename';
       IdentFilename = 'Filename';
+      IdentFileEncoding = 'FileEncoding';
       IdentCaption = 'Caption';
       IdentPid = 'pid';
       IdentEditorHeight = 'EditorHeight';
@@ -85,6 +86,7 @@ type
       FLastChange: TDateTime;
       FDirectoryWatchNotficationRunning: Boolean;
       FErrorLine: Integer;
+      FFileEncoding: String;
       procedure SetMemoFilename(Value: String);
       procedure SetQueryRunning(Value: Boolean);
       procedure TimerLastChangeOnTimer(Sender: TObject);
@@ -136,6 +138,7 @@ type
       destructor Destroy; override;
       class function GenerateUid: String;
       property ErrorLine: Integer read FErrorLine write SetErrorLine;
+      property FileEncoding: String read FFileEncoding write FFileEncoding;
   end;
   TQueryTabList = class(TObjectList<TQueryTab>)
     public
@@ -2147,7 +2150,7 @@ begin
   FGridCopying := False;
   FGridPasting := False;
 
-  FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
+  FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7,UTF-8-BOM');
 
   // Detect timezone offset in seconds, once
   case GetTimeZoneInformation(TZI) of
@@ -2417,6 +2420,8 @@ begin
         TabsIni.WriteInteger(Section, TQueryTab.IdentEditorTopLine, Tab.Memo.TopLine);
       if TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False) <> (Tab.TabSheet = Tab.TabSheet.PageControl.ActivePage) then
         TabsIni.WriteBool(Section, TQueryTab.IdentTabFocused, (Tab.TabSheet = Tab.TabSheet.PageControl.ActivePage));
+      if TabsIni.ReadString(Section, TQueryTab.IdentFileEncoding, 'UTF-8') <> Tab.FileEncoding then
+        TabsIni.WriteString(Section, TQueryTab.IdentFileEncoding, Tab.FileEncoding);
     end;
 
     // Tabs with deleted backup files don't get restored anyway. But a section from a closed user loaded tab
@@ -2465,6 +2470,7 @@ var
   BindParams: String;
   TabFocused: Boolean;
   TabLoadStart, TabLoadTime: UInt64;
+  Encoding: TEncoding;
 const
   SlowLoadMilliseconds = 5000;
 
@@ -2499,6 +2505,7 @@ begin
       BindParams := TabsIni.ReadString(Section, TQueryTab.IdentBindParams, '');
       EditorTopLine := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorTopLine, 1);
       TabFocused := TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False);
+      Encoding := GetEncodingByName(TabsIni.ReadString(Section, TQueryTab.IdentFileEncoding, 'UTF-8'));
 
       // Don't restore this tab if it belongs to a different running Heidi process
       if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid, APPNAME) then begin
@@ -2512,7 +2519,7 @@ begin
         if FileExists(BackupFilename) then begin
           Tab := GetOrCreateEmptyQueryTab(False);
           Tab.Uid := Section;
-          Tab.LoadContents(BackupFilename, True, UTF8NoBOMEncoding);
+          Tab.LoadContents(BackupFilename, True, Encoding);
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
           if not TabCaption.IsEmpty then
@@ -2536,7 +2543,7 @@ begin
         if FileExists(Filename) then begin
           Tab := GetOrCreateEmptyQueryTab(False);
           Tab.Uid := Section;
-          Tab.LoadContents(Filename, True, UTF8NoBOMEncoding);
+          Tab.LoadContents(Filename, True, Encoding);
           Tab.MemoFilename := Filename;
           if not TabCaption.IsEmpty then
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
@@ -13798,8 +13805,9 @@ begin
     2: Result := TEncoding.GetEncoding(437);
     3: Result := TEncoding.Unicode;
     4: Result := TEncoding.BigEndianUnicode;
-    5: Result := TEncoding.UTF8;
+    5: Result := UTF8NoBOMEncoding;
     6: Result := TEncoding.UTF7;
+    7: Result := TEncoding.UTF8;
   end;
 end;
 
@@ -13812,8 +13820,9 @@ begin
   else if (Encoding <> nil) and (Encoding.CodePage = 437) then idx := 2
   else if Encoding = TEncoding.Unicode then idx := 3
   else if Encoding = TEncoding.BigEndianUnicode then idx := 4
-  else if Encoding = TEncoding.UTF8 then idx := 5
+  else if Encoding = UTF8NoBOMEncoding then idx := 5
   else if Encoding = TEncoding.UTF7 then idx := 6
+  else if Encoding = TEncoding.UTF8 then idx := 7
   else idx := 0;
   Result := FileEncodings[idx];
 end;
@@ -13880,10 +13889,12 @@ begin
     Result := 'utf16le'
   else if Encoding = TEncoding.BigEndianUnicode then
     Result := 'utf16'
-  else if Encoding = TEncoding.UTF8 then
+  else if Encoding = UTF8NoBOMEncoding then
     Result := 'utf8'
   else if Encoding = TEncoding.UTF7 then
-    Result := 'utf7';
+    Result := 'utf7'
+  else if Encoding = TEncoding.UTF8 then
+    Result := 'utf8'
   // Auto-detection not supported here
 end;
 
@@ -14897,6 +14908,7 @@ begin
   TimerStatusUpdate.Enabled := False;
   TimerStatusUpdate.Interval := 100;
   TimerStatusUpdate.OnTimer := TimerStatusUpdateOnTimer;
+  FFileEncoding := 'UTF-8';
 end;
 
 
@@ -15036,6 +15048,8 @@ begin
     Memo.SelStart := Memo.SelEnd;
     Memo.Modified := False;
     MemoFilename := Filepath;
+    FileEncoding := MainForm.GetEncodingName(Encoding);
+    //showmessage(FileEncoding);
     Result := True;
   end;
 
@@ -15046,6 +15060,7 @@ end;
 procedure TQueryTab.SaveContents(Filename: String; OnlySelection: Boolean);
 var
   Text, LB, FileDir: String;
+  Encoding: TEncoding;
 begin
   Screen.Cursor := crHourGlass;
   MainForm.ShowStatusMsg(_('Saving file ...'));
@@ -15060,7 +15075,7 @@ begin
     FileDir := ExtractFilePath(Filename);
     if not DirectoryExists(FileDir) then
       ForceDirectories(FileDir);
-    SaveUnicodeFile(Filename, Text);
+    SaveUnicodeFile(Filename, Text, MainForm.GetEncodingByName(FFileEncoding));
     MemoFilename := Filename;
     Memo.Modified := False;
     LastSaveTime := GetTickCount;

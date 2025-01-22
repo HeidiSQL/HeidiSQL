@@ -355,7 +355,7 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   function GetTempDir: String;
-  procedure SaveUnicodeFile(Filename: String; Text: String);
+  procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding=nil);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   function DetectEncoding(Stream: TStream): TEncoding;
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
@@ -1211,11 +1211,13 @@ end;
 {**
   Save a textfile with unicode
 }
-procedure SaveUnicodeFile(Filename: String; Text: String);
+procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding=nil);
 var
   Writer: TStreamWriter;
 begin
-  Writer := TStreamWriter.Create(Filename, False, UTF8NoBOMEncoding);
+  if not Assigned(Encoding) then
+    Encoding := UTF8NoBOMEncoding;
+  Writer := TStreamWriter.Create(Filename, False, Encoding);
   Writer.Write(Text);
   Writer.Free;
 end;
