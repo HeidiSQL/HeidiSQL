@@ -535,7 +535,6 @@ type
       function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
-      procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
       procedure Drop(Obj: TDBObject); virtual;
       procedure PrefetchResults(SQL: String);
@@ -626,7 +625,8 @@ type
       function ResultCount: Integer;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property AllUserHostCombinations: TStringList read GetAllUserHostCombinations;
-      property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
+      function IsLockedByThread: Boolean;
+      procedure SetLockedByThread(Value: TThread); virtual;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
       property InfSch: String read FInfSch;
@@ -678,7 +678,6 @@ type
       function GetCreateViewCode(Database, Name: String): String;
       function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
-      procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -692,6 +691,7 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
       procedure ShowWarnings; override;
+      procedure SetLockedByThread(Value: TThread); override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -2421,6 +2421,11 @@ begin
   end;
 end;
 
+function TDBConnection.IsLockedByThread: Boolean;
+begin
+  Result := FLockedByThread <> nil;
+end;
+
 
 {**
   (Dis-)Connect to/from server
@@ -3783,7 +3788,7 @@ end;
 procedure TDBConnection.KeepAliveTimerEvent(Sender: TObject);
 begin
   // Ping server in intervals, without automatically reconnecting
-  if Active and (FLockedByThread = nil) then
+  if Active and (not IsLockedByThread) then
     Ping(False);
 end;
 
@@ -3793,7 +3798,7 @@ end;
 }
 procedure TDBConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+  if IsLockedByThread and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
     try
       FLockedByThread.WaitFor;
@@ -5123,7 +5128,7 @@ var
 begin
   // If in a thread, synchronize logging with the main thread. Logging within a thread
   // causes SynEdit to throw exceptions left and right.
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
+  if IsLockedByThread and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
     (FLockedByThread as TQueryThread).LogFromThread(Msg, Category);
     Exit;
   end;

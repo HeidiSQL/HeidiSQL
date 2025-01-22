@@ -3126,9 +3126,9 @@ begin
     end else begin
       // Concat queries up to a size of max_allowed_packet
       if MaxAllowedPacket = 0 then begin
-        FConnection.LockedByThread := Self;
+        FConnection.SetLockedByThread(Self);
         MaxAllowedPacket := FConnection.MaxAllowedPacket;
-        FConnection.LockedByThread := nil;
+        FConnection.SetLockedByThread(nil);
         // TODO: Log('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
       end;
       BatchStartOffset := FBatch[i].LeftOffset;
@@ -3151,7 +3151,7 @@ begin
     end;
     Synchronize(procedure begin MainForm.BeforeQueryExecution(Self); end);
     try
-      FConnection.LockedByThread := Self;
+      FConnection.SetLockedByThread(Self);
       DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
       if (not DoStoreResult) and (not LogMaxResultsDone) then begin
         // Inform user about preference setting for limiting result tabs
@@ -3176,7 +3176,7 @@ begin
         end;
       end;
     end;
-    FConnection.LockedByThread := nil;
+    FConnection.SetLockedByThread(nil);
     Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
     FConnection.ShowWarnings;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case

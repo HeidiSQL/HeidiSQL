@@ -1542,7 +1542,7 @@ begin
   FLastHintControlIndex := i;
   if FLastHintControlIndex = 3 then begin
     Conn := ActiveConnection;
-    if (Conn <> nil) and (Conn.LockedByThread = nil) then begin
+    if (Conn <> nil) and (not Conn.IsLockedByThread) then begin
       Infos := Conn.ConnectionInfo;
       HintText := '';
       for i:=0 to Infos.Count-1 do begin
@@ -7187,7 +7187,7 @@ begin
 
       SynHighlighterSQL.tkTableName: begin
         // Show some details from table listing cache
-        if Conn.DbObjectsCached(Conn.Database) then begin
+        if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
           for Obj in AllObjects do begin
             if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
@@ -7210,7 +7210,7 @@ begin
 
       SynHighlighterSQL.tkProcName: begin
         // Show routine parameters, comment and body
-        if Conn.DbObjectsCached(Conn.Database) then begin
+        if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
           for Obj in AllObjects do begin
             if (Obj.NodeType in [lntFunction, lntProcedure]) and (Obj.Name.ToLower = Token.ToLower) then begin
