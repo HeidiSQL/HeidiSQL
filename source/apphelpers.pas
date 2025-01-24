@@ -3949,7 +3949,7 @@ begin
   InitSetting(asColumnSelectorHeight,             'ColumnSelectorHeight',                  270, False, '');
   InitSetting(asDonatedEmail,                     'DonatedEmail',                          0, False, '');
   InitSetting(asFavoriteObjects,                  'FavoriteObjects',                       0, False, '', True);
-  InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False);
+  InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False); // No longer used
   InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True, '', True);
   InitSetting(asLineBreakStyle,                   'LineBreakStyle',                        Integer(lbsWindows));
   InitSetting(asPreferencesWindowWidth,           'PreferencesWindowWidth',                740);

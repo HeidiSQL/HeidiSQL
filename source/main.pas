@@ -2065,8 +2065,6 @@ begin
   LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
     actLogHorizontalScrollbar.Execute;
-  if AppSettings.ReadBool(asFavoriteObjectsOnly) then
-    actFavoriteObjectsOnly.Execute;
 
   // Data-Font:
   ApplyFontToGrids;
@@ -4405,6 +4403,7 @@ begin
     // Apply favorite object paths
     AppSettings.SessionPath := Params.SessionPath;
     Connection.Favorites.Text := AppSettings.ReadString(asFavoriteObjects);
+    actFavoriteObjectsOnly.Checked := False;
 
     // Tree node filtering needs a hit once when connected
     editDatabaseTableFilterChange(Self);
@@ -12572,8 +12571,6 @@ end;
 procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
 begin
   // Click on "tree favorites" main button
-  AppSettings.ResetPath;
-  AppSettings.WriteBool(asFavoriteObjectsOnly, actFavoriteObjectsOnly.Checked);
   editDatabaseTableFilterChange(Sender);
   if actFavoriteObjectsOnly.Checked then
     actFavoriteObjectsOnly.ImageIndex := 112
