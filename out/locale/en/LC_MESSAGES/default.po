@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2025-01-11 15:44+0100\n"
+"PO-Revision-Date: 2025-01-26 16:03+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -6708,6 +6708,9 @@ msgstr "Warning: Configuring with cipher index %d failed"
 
 msgid "Warning: Failed to set cipher encryption parameter \"%s\""
 msgstr "Warning: Failed to set cipher encryption parameter \"%s\""
+
+msgid "Info: Cipher encryption parameter \"%s\" set"
+msgstr "Info: Cipher encryption parameter \"%s\" set"
 
 msgid "You have activated encryption on a probably non-encrypted database."
 msgstr "You have activated encryption on a probably non-encrypted database."

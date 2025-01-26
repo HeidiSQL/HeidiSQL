@@ -3008,9 +3008,10 @@ begin
       if Parameters.NetType = ntSQLiteEncrypted then begin
         // Use encryption key
         CipherIndex := FLib.sqlite3mc_cipher_index(PAnsiChar(AnsiString(Parameters.Username)));
+        //Log(lcinfo, 'CipherIndex:'+CipherIndex.ToString);
         if CipherIndex = -1 then
           raise EDbError.Create(f_('Warning: Given cipher scheme name "%s" could not be found', [Parameters.Username]));
-        ConfigResult := FLib.sqlite3mc_config(FHandle, PAnsiChar('cipher'), CipherIndex);
+        ConfigResult := FLib.sqlite3mc_config(FHandle, PAnsiChar('default:cipher'), CipherIndex);
         if ConfigResult = -1 then
           raise EDbError.Create(f_('Warning: Configuring with cipher index %d failed', [CipherIndex]));
         // Set encryption parameters:
@@ -3033,9 +3034,10 @@ begin
                 ParamWasSet := True;
             end
           end;
-          if not ParamWasSet then begin
-            Log(lcError, f_('Warning: Failed to set cipher encryption parameter "%s"', [Param]));
-          end;
+          if not ParamWasSet then
+            Log(lcError, f_('Warning: Failed to set cipher encryption parameter "%s"', [Param]))
+          else
+            Log(lcInfo, f_('Info: Cipher encryption parameter "%s" set', [Param]));
         end;
         // Set the main database key
         RawPassword := AnsiString(Parameters.Password);
