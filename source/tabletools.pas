@@ -1639,7 +1639,8 @@ begin
       SaveDialog.Filter := _('SQL files')+' (*.sql)|*.sql|'+_('All files')+' (*.*)|*.*'
     else
       SaveDialog.Filter := _('ZIP files')+' (*.zip)|*.zip|'+_('All files')+' (*.*)|*.*';
-    SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+    // Don't prompt here if file exists, but later when exporting starts. See issue #835
+    // SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
     if SaveDialog.Execute then
       comboExportOutputTarget.Text := SaveDialog.FileName;
     SaveDialog.Free;
@@ -1775,6 +1776,14 @@ begin
   if not Assigned(ExportStream) then begin
     if ToFile then begin
       TargetFileName := GetOutputFilename(comboExportOutputTarget.Text, DBObj);
+      if FileExists(TargetFileName) then begin
+        case MessageDialog(f_('File already exists: %s'+sLineBreak+sLineBreak+'Overwrite it?', [TargetFileName]), mtConfirmation, [mbYes, mbCancel]) of
+          mrYes:;
+          mrCancel:
+            raise EFCreateError.CreateFmt(_('Export cancelled, file not overwritten: %s'), [TargetFileName]);
+        end;
+      end;
+
       FExportFileName := TargetFileName;
       if comboExportOutputType.Text = OUTPUT_FILE_COMPRESSED then
         TargetFileName := ChangeFileExt(TargetFileName, '_temp.sql');
