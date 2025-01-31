@@ -525,7 +525,7 @@ object MainForm: TMainForm
                 PopupMenu = popupHost
                 ShowHint = True
                 TabOrder = 0
-                TreeOptions.MiscOptions = [toToggleOnDblClick]
+                TreeOptions.MiscOptions = [toGridExtensions, toToggleOnDblClick]
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint

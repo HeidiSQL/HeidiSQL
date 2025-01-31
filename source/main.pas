@@ -8928,6 +8928,7 @@ var
   Tree: TVirtualStringTree;
   NewHint: String;
   Conn: TDBConnection;
+  ValIsNumber: Boolean;
 begin
   // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
   if IsWine then
@@ -8951,8 +8952,15 @@ begin
   end;
 
   if HintText.IsEmpty then begin
-    HintText := Tree.Text[Node, Column];
-    HintText := StrEllipsis(HintText, SIZE_KB);
+    try
+      ValIsNumber := IntToStr(MakeInt(Tree.Text[Node, Column])) = Tree.Text[Node, Column];
+    except
+      ValIsNumber := False;
+    end;
+    if ValIsNumber then
+      HintText := FormatNumber(Tree.Text[Node, Column])
+    else
+      HintText := StrEllipsis(Tree.Text[Node, Column], SIZE_KB);
   end;
   // See http://www.heidisql.com/forum.php?t=20458#p20548
   if Sender = DBtree then
