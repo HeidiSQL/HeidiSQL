@@ -4517,7 +4517,7 @@ begin
     except
       on E:Exception do begin
         FPortableModeReadOnly := True;
-        Raise Exception.Create(E.Message + CRLF + CRLF
+        Raise Exception.Create(E.ClassName + ': ' + E.Message + CRLF + CRLF
           + f_('Switching to read-only mode. Settings won''t be saved. Use the command line parameter %s to use a custom file path.', ['--psettings'])
           );
       end;
