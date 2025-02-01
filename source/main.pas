@@ -2371,7 +2371,7 @@ begin
   end;
   // Catch errors when file cannot be created
   if not FileExists(TabsIniFilename) then begin
-    SaveUnicodeFile(TabsIniFilename, '');
+    SaveUnicodeFile(TabsIniFilename, '', UTF8NoBOMEncoding);
   end;
   Result := TIniFile.Create(TabsIniFilename);
 end;
@@ -4943,7 +4943,8 @@ begin
       Screen.Cursor := crHourGlass;
       SaveUnicodeFile(
         Dialog.FileName,
-        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines)
+        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines),
+        UTF8NoBOMEncoding
         );
       Screen.Cursor := crDefault;
     end;
@@ -15144,7 +15145,7 @@ begin
     if Memo.GetTextLen < SIZE_MB*10 then begin
       MainForm.LogSQL('Saving backup file to "'+MemoBackupFilename+'"...', lcDebug);
       MainForm.ShowStatusMsg(_('Saving backup file...'));
-      SaveUnicodeFile(MemoBackupFilename, Memo.Text);
+      SaveUnicodeFile(MemoBackupFilename, Memo.Text, UTF8NoBOMEncoding);
     end else begin
       MainForm.LogSQL('Unsaved tab contents too large (> 10M) for creating a backup.', lcDebug);
     end;

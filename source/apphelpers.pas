@@ -355,7 +355,7 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   function GetTempDir: String;
-  procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding=nil);
+  procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   function DetectEncoding(Stream: TStream): TEncoding;
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
@@ -1211,12 +1211,10 @@ end;
 {**
   Save a textfile with unicode
 }
-procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding=nil);
+procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
 var
   Writer: TStreamWriter;
 begin
-  if not Assigned(Encoding) then
-    Encoding := UTF8NoBOMEncoding;
   Writer := TStreamWriter.Create(Filename, False, Encoding);
   Writer.Write(Text);
   Writer.Free;
@@ -4502,7 +4500,7 @@ begin
   // Save registry settings to file
   Content := '';
   ReadKeyToContent(FBasePath);
-  SaveUnicodeFile(FileName, Content);
+  SaveUnicodeFile(FileName, Content, UTF8NoBOMEncoding);
   Result := True;
 end;
 

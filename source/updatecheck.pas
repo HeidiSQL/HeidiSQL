@@ -207,7 +207,7 @@ begin
 
     if btnBuild.Enabled then begin
       TaskXmlFile := GetTempDir + APPNAME + '_task_restart.xml';
-      SaveUnicodeFile(TaskXmlFile, GetTaskXmlFileContents);
+      SaveUnicodeFile(TaskXmlFile, GetTaskXmlFileContents, UTF8NoBOMEncoding);
       FRestartTaskName := ValidFilename(ParamStr(0));
       ShellExec('schtasks', '', '/Create /TN "'+FRestartTaskName+'" /xml '+TaskXmlFile, True);
     end;
