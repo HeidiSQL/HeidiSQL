@@ -13,6 +13,7 @@ type
     btnCancel: TButton;
     btnOk: TButton;
     lblFormatProviderLink: TLinkLabel;
+    chkKeepAsking: TCheckBox;
     procedure btnOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -78,6 +79,12 @@ begin
     end;
 
   end;
+
+  if not chkKeepAsking.Checked then begin
+    // No dialog next time please
+    AppSettings.WriteInt(asReformatterNoDialog, grpReformatter.ItemIndex+1);
+  end;
+
   Screen.Cursor := crDefault;
 end;
 
