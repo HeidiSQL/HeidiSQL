@@ -1862,6 +1862,9 @@ object MainForm: TMainForm
       object Copywithtabstospaces1: TMenuItem
         Action = actCopyTabsToSpaces
       end
+      object actCopyGridNodes1: TMenuItem
+        Action = actCopyGridNodes
+      end
       object PasteItem: TMenuItem
         Action = actPaste
       end
@@ -3369,6 +3372,12 @@ object MainForm: TMainForm
       Hint = 'Reset and fix overlapping panels in main window'
       ImageIndex = 71
       OnExecute = actResetPanelDimensionsExecute
+    end
+    object actCopyGridNodes: TAction
+      Category = 'Various'
+      Caption = 'Copy all lines from listing or tree in CSV format'
+      ImageIndex = 3
+      OnExecute = actCopyGridNodesExecute
     end
   end
   object menuConnections: TPopupMenu

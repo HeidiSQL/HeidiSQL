@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2025-01-30 11:36+0100\n"
+"PO-Revision-Date: 2025-02-02 13:48+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -4959,6 +4959,15 @@ msgstr "Please select a non-readonly SQL editor first."
 
 msgid "No SQL editor focused. ActiveControl is %s"
 msgstr "No SQL editor focused. ActiveControl is %s"
+
+msgid "No listing or tree focused. ActiveControl is %s"
+msgstr "No listing or tree focused. ActiveControl is %s"
+
+msgid "Copy all lines from listing or tree in CSV format"
+msgstr "Copy all lines from listing or tree in CSV format"
+
+msgid "%s: %s lines copied to clipboard"
+msgstr "%s: %s lines copied to clipboard"
 
 #: main.pas:9768
 msgid "The current editor is empty."

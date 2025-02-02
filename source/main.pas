@@ -795,6 +795,8 @@ type
     actGenerateData: TAction;
     Generatedata1: TMenuItem;
     Generatedata2: TMenuItem;
+    actCopyGridNodes: TAction;
+    actCopyGridNodes1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1196,6 +1198,7 @@ type
     procedure SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
       const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
       var HintText: string);
+    procedure actCopyGridNodesExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -11805,6 +11808,87 @@ begin
 end;
 
 
+procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
+var
+  SenderControl: TComponent;
+  SenderName: String;
+  Grid: TVirtualStringTree;
+  Header, Body, Line, Data: String;
+  Separator, Encloser, Terminator: String;
+  Node: PVirtualNode;
+  Col: TColumnIndex;
+  Indent, NodesCopied: Integer;
+begin
+  // Copy tree nodes as CSV, from any VirtualTree, not only from data or result grids
+  // See issue #2083
+  SenderControl := PopupComponent(Sender);
+  if SenderControl=nil then
+    SenderControl := Screen.ActiveControl;
+
+  if not (SenderControl is TVirtualStringTree) then begin
+    if SenderControl=nil then
+      SenderName := 'nil'
+    else
+      SenderName := SenderControl.Name;
+    ErrorDialog(f_('No listing or tree focused. ActiveControl is %s', [SenderName]));
+    Exit;
+  end;
+
+  Screen.Cursor := crHourGlass;
+  Grid := TVirtualStringTree(SenderControl);
+  // Grid.CopyToClipboard; // Does nothing (?)
+
+  Separator := ';';
+  Encloser := '"';
+  Terminator := SLineBreak;
+
+  Header := '';
+  Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
+  while Col > NoColumn do begin
+    Data := Grid.Header.Columns[Col].Text;
+    Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+    if not Header.IsEmpty then
+      Header := Header + Separator;
+    Header := Header + Encloser + Data + Encloser;
+    Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+  end;
+  Header := Header + Terminator;
+
+  Body := '';
+  NodesCopied := 0;
+  Node := Grid.GetFirstInitialized;
+  while Assigned(Node) do begin
+    if Grid.IsVisible[Node] then begin
+      Line := '';
+      // One empty cell for each indentation level
+      for Indent := 1 to Grid.GetNodeLevel(Node) do begin
+        if not Line.IsEmpty then
+          Line := Line + Separator;
+        Line := Line + Encloser + Encloser;
+      end;
+      // Add data cells
+      Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
+      while Col > NoColumn do begin
+        Data := Grid.Text[Node, Col];
+        Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+        if not Line.IsEmpty then
+          Line := Line + Separator;
+        Line := Line + Encloser + Data + Encloser;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Body := Body + Line + Terminator;
+      Inc(NodesCopied);
+    end;
+    Node := Grid.GetNextInitialized(Node);
+  end;
+
+  Clipboard.TryAsText := Header + Body;
+
+  Screen.Cursor := crDefault;
+  LogSQL(f_('%s: %s lines copied to clipboard', [SLogPrefixInfo, FormatNumber(NodesCopied)]), lcInfo);
+  MessageBeep(MB_ICONASTERISK);
+end;
+
 procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
   CurrentControl: TWinControl;
@@ -15066,7 +15150,6 @@ end;
 procedure TQueryTab.SaveContents(Filename: String; OnlySelection: Boolean);
 var
   Text, LB, FileDir: String;
-  Encoding: TEncoding;
 begin
   Screen.Cursor := crHourGlass;
   MainForm.ShowStatusMsg(_('Saving file ...'));
