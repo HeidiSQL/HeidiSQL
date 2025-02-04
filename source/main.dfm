@@ -525,7 +525,7 @@ object MainForm: TMainForm
                 PopupMenu = popupHost
                 ShowHint = True
                 TabOrder = 0
-                TreeOptions.MiscOptions = [toToggleOnDblClick]
+                TreeOptions.MiscOptions = [toGridExtensions, toToggleOnDblClick]
                 TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
                 TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
@@ -1861,6 +1861,9 @@ object MainForm: TMainForm
       end
       object Copywithtabstospaces1: TMenuItem
         Action = actCopyTabsToSpaces
+      end
+      object actCopyGridNodes1: TMenuItem
+        Action = actCopyGridNodes
       end
       object PasteItem: TMenuItem
         Action = actPaste
@@ -3369,6 +3372,12 @@ object MainForm: TMainForm
       Hint = 'Reset and fix overlapping panels in main window'
       ImageIndex = 71
       OnExecute = actResetPanelDimensionsExecute
+    end
+    object actCopyGridNodes: TAction
+      Category = 'Various'
+      Caption = 'Copy all lines from listing or tree in CSV format'
+      ImageIndex = 3
+      OnExecute = actCopyGridNodesExecute
     end
   end
   object menuConnections: TPopupMenu

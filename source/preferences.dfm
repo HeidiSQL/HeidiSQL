@@ -1405,6 +1405,13 @@ object frmPreferences: TfrmPreferences
         Height = 14
         Caption = 'Grayscale inactive tab icons'
       end
+      object lblReformatter: TLabel
+        Left = 8
+        Top = 131
+        Width = 70
+        Height = 14
+        Caption = 'Reformatter:'
+      end
       object chkAskFileSave: TCheckBox
         Left = 220
         Top = 8
@@ -1459,6 +1466,15 @@ object frmPreferences: TfrmPreferences
           'Color icons on all tabs'
           'Grayscale icons on inactive query tabs only'
           'Grayscale icons on every inactive tab')
+      end
+      object comboReformatter: TComboBox
+        Left = 220
+        Top = 128
+        Width = 451
+        Height = 22
+        Style = csDropDownList
+        Anchors = [akLeft, akTop, akRight]
+        TabOrder = 5
       end
     end
   end

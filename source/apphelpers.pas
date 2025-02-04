@@ -234,7 +234,7 @@ type
     asThemePreviewWidth, asThemePreviewHeight, asThemePreviewTop, asThemePreviewLeft,
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
-    asReformatter, asAlwaysGenerateFilter,
+    asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter,
     asGenerateDataNumRows, asGenerateDataNullAmount,
     asUnused);
   TAppSetting = record
@@ -355,7 +355,7 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   function GetTempDir: String;
-  procedure SaveUnicodeFile(Filename: String; Text: String);
+  procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   function DetectEncoding(Stream: TStream): TEncoding;
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
@@ -364,7 +364,7 @@ type
   procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
-  procedure FixVT(VT: TVirtualStringTree);
+  procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
@@ -1211,11 +1211,11 @@ end;
 {**
   Save a textfile with unicode
 }
-procedure SaveUnicodeFile(Filename: String; Text: String);
+procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
 var
   Writer: TStreamWriter;
 begin
-  Writer := TStreamWriter.Create(Filename, False, UTF8NoBOMEncoding);
+  Writer := TStreamWriter.Create(Filename, False, Encoding);
   Writer.Write(Text);
   Writer.Free;
 end;
@@ -1406,7 +1406,7 @@ begin
 end;
 
 
-procedure FixVT(VT: TVirtualStringTree);
+procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
 var
   SingleLineHeight: Integer;
   Node: PVirtualNode;
@@ -1414,12 +1414,15 @@ begin
   // This is called either in some early stage, or from preferences dialog
   VT.BeginUpdate;
   SingleLineHeight := GetTextHeight(VT.Font) + 7;
-  VT.DefaultNodeHeight := SingleLineHeight;
+  // Multiline nodes?
+  VT.DefaultNodeHeight := SingleLineHeight * MultiLineCount;
   VT.Header.Height := SingleLineHeight;
   // Apply new height to multi line grid nodes
   Node := VT.GetFirstInitialized;
   while Assigned(Node) do begin
     VT.NodeHeight[Node] := VT.DefaultNodeHeight;
+    // Nodes have vsMultiLine through InitNode event
+    VT.MultiLine[Node] := MultiLineCount > 1;
     Node := VT.GetNextInitialized(Node);
   end;
   VT.EndUpdate;
@@ -3123,9 +3126,9 @@ begin
     end else begin
       // Concat queries up to a size of max_allowed_packet
       if MaxAllowedPacket = 0 then begin
-        FConnection.LockedByThread := Self;
+        FConnection.SetLockedByThread(Self);
         MaxAllowedPacket := FConnection.MaxAllowedPacket;
-        FConnection.LockedByThread := nil;
+        FConnection.SetLockedByThread(nil);
         // TODO: Log('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
       end;
       BatchStartOffset := FBatch[i].LeftOffset;
@@ -3148,7 +3151,7 @@ begin
     end;
     Synchronize(procedure begin MainForm.BeforeQueryExecution(Self); end);
     try
-      FConnection.LockedByThread := Self;
+      FConnection.SetLockedByThread(Self);
       DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
       if (not DoStoreResult) and (not LogMaxResultsDone) then begin
         // Inform user about preference setting for limiting result tabs
@@ -3173,7 +3176,7 @@ begin
         end;
       end;
     end;
-    FConnection.LockedByThread := nil;
+    FConnection.SetLockedByThread(nil);
     Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
     FConnection.ShowWarnings;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
@@ -3857,6 +3860,7 @@ begin
   InitSetting(asSequalSuggestPrompt,              'SequalSuggestPrompt',                   0, False, '');
   InitSetting(asSequalSuggestRecentPrompts,       'SequalSuggestRecentPrompts',            0, False, '');
   InitSetting(asReformatter,                      'Reformatter',                           0);
+  InitSetting(asReformatterNoDialog,              'ReformatterNoDialog',                   0);
   InitSetting(asAlwaysGenerateFilter,             'AlwaysGenerateFilter',                  0, False);
   InitSetting(asGenerateDataNumRows,              'GenerateDataNumRows',                   1000);
   InitSetting(asGenerateDataNullAmount,           'GenerateDataNullAmount',                10);
@@ -3943,7 +3947,7 @@ begin
   InitSetting(asColumnSelectorHeight,             'ColumnSelectorHeight',                  270, False, '');
   InitSetting(asDonatedEmail,                     'DonatedEmail',                          0, False, '');
   InitSetting(asFavoriteObjects,                  'FavoriteObjects',                       0, False, '', True);
-  InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False);
+  InitSetting(asFavoriteObjectsOnly,              'FavoriteObjectsOnly',                   0, False); // No longer used
   InitSetting(asFullTableStatus,                  'FullTableStatus',                       0, True, '', True);
   InitSetting(asLineBreakStyle,                   'LineBreakStyle',                        Integer(lbsWindows));
   InitSetting(asPreferencesWindowWidth,           'PreferencesWindowWidth',                740);
@@ -4496,7 +4500,7 @@ begin
   // Save registry settings to file
   Content := '';
   ReadKeyToContent(FBasePath);
-  SaveUnicodeFile(FileName, Content);
+  SaveUnicodeFile(FileName, Content, UTF8NoBOMEncoding);
   Result := True;
 end;
 
@@ -4511,7 +4515,7 @@ begin
     except
       on E:Exception do begin
         FPortableModeReadOnly := True;
-        Raise Exception.Create(E.Message + CRLF + CRLF
+        Raise Exception.Create(E.ClassName + ': ' + E.Message + CRLF + CRLF
           + f_('Switching to read-only mode. Settings won''t be saved. Use the command line parameter %s to use a custom file path.', ['--psettings'])
           );
       end;

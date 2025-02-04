@@ -65,6 +65,7 @@ type
     const
       IdentBackupFilename = 'BackupFilename';
       IdentFilename = 'Filename';
+      IdentFileEncoding = 'FileEncoding';
       IdentCaption = 'Caption';
       IdentPid = 'pid';
       IdentEditorHeight = 'EditorHeight';
@@ -85,6 +86,7 @@ type
       FLastChange: TDateTime;
       FDirectoryWatchNotficationRunning: Boolean;
       FErrorLine: Integer;
+      FFileEncoding: String;
       procedure SetMemoFilename(Value: String);
       procedure SetQueryRunning(Value: Boolean);
       procedure TimerLastChangeOnTimer(Sender: TObject);
@@ -136,6 +138,7 @@ type
       destructor Destroy; override;
       class function GenerateUid: String;
       property ErrorLine: Integer read FErrorLine write SetErrorLine;
+      property FileEncoding: String read FFileEncoding write FFileEncoding;
   end;
   TQueryTabList = class(TObjectList<TQueryTab>)
     public
@@ -792,6 +795,8 @@ type
     actGenerateData: TAction;
     Generatedata1: TMenuItem;
     Generatedata2: TMenuItem;
+    actCopyGridNodes: TAction;
+    actCopyGridNodes1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -1193,6 +1198,7 @@ type
     procedure SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
       const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
       var HintText: string);
+    procedure actCopyGridNodesExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -1542,7 +1548,7 @@ begin
   FLastHintControlIndex := i;
   if FLastHintControlIndex = 3 then begin
     Conn := ActiveConnection;
-    if (Conn <> nil) and (Conn.LockedByThread = nil) then begin
+    if (Conn <> nil) and (not Conn.IsLockedByThread) then begin
       Infos := Conn.ConnectionInfo;
       HintText := '';
       for i:=0 to Infos.Count-1 do begin
@@ -2062,8 +2068,6 @@ begin
   LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
     actLogHorizontalScrollbar.Execute;
-  if AppSettings.ReadBool(asFavoriteObjectsOnly) then
-    actFavoriteObjectsOnly.Execute;
 
   // Data-Font:
   ApplyFontToGrids;
@@ -2147,7 +2151,7 @@ begin
   FGridCopying := False;
   FGridPasting := False;
 
-  FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7');
+  FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7,UTF-8-BOM');
 
   // Detect timezone offset in seconds, once
   case GetTimeZoneInformation(TZI) of
@@ -2370,7 +2374,7 @@ begin
   end;
   // Catch errors when file cannot be created
   if not FileExists(TabsIniFilename) then begin
-    SaveUnicodeFile(TabsIniFilename, '');
+    SaveUnicodeFile(TabsIniFilename, '', UTF8NoBOMEncoding);
   end;
   Result := TIniFile.Create(TabsIniFilename);
 end;
@@ -2417,6 +2421,8 @@ begin
         TabsIni.WriteInteger(Section, TQueryTab.IdentEditorTopLine, Tab.Memo.TopLine);
       if TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False) <> (Tab.TabSheet = Tab.TabSheet.PageControl.ActivePage) then
         TabsIni.WriteBool(Section, TQueryTab.IdentTabFocused, (Tab.TabSheet = Tab.TabSheet.PageControl.ActivePage));
+      if TabsIni.ReadString(Section, TQueryTab.IdentFileEncoding, 'UTF-8') <> Tab.FileEncoding then
+        TabsIni.WriteString(Section, TQueryTab.IdentFileEncoding, Tab.FileEncoding);
     end;
 
     // Tabs with deleted backup files don't get restored anyway. But a section from a closed user loaded tab
@@ -2465,6 +2471,7 @@ var
   BindParams: String;
   TabFocused: Boolean;
   TabLoadStart, TabLoadTime: UInt64;
+  Encoding: TEncoding;
 const
   SlowLoadMilliseconds = 5000;
 
@@ -2499,6 +2506,7 @@ begin
       BindParams := TabsIni.ReadString(Section, TQueryTab.IdentBindParams, '');
       EditorTopLine := TabsIni.ReadInteger(Section, TQueryTab.IdentEditorTopLine, 1);
       TabFocused := TabsIni.ReadBool(Section, TQueryTab.IdentTabFocused, False);
+      Encoding := GetEncodingByName(TabsIni.ReadString(Section, TQueryTab.IdentFileEncoding, 'UTF-8'));
 
       // Don't restore this tab if it belongs to a different running Heidi process
       if (pid > 0) and (pid <> GetCurrentProcessId) and ProcessExists(pid, APPNAME) then begin
@@ -2512,7 +2520,7 @@ begin
         if FileExists(BackupFilename) then begin
           Tab := GetOrCreateEmptyQueryTab(False);
           Tab.Uid := Section;
-          Tab.LoadContents(BackupFilename, True, UTF8NoBOMEncoding);
+          Tab.LoadContents(BackupFilename, True, Encoding);
           Tab.MemoFilename := Filename;
           Tab.Memo.Modified := True;
           if not TabCaption.IsEmpty then
@@ -2536,7 +2544,7 @@ begin
         if FileExists(Filename) then begin
           Tab := GetOrCreateEmptyQueryTab(False);
           Tab.Uid := Section;
-          Tab.LoadContents(Filename, True, UTF8NoBOMEncoding);
+          Tab.LoadContents(Filename, True, Encoding);
           Tab.MemoFilename := Filename;
           if not TabCaption.IsEmpty then
             SetTabCaption(Tab.TabSheet.PageIndex, TabCaption);
@@ -4398,6 +4406,7 @@ begin
     // Apply favorite object paths
     AppSettings.SessionPath := Params.SessionPath;
     Connection.Favorites.Text := AppSettings.ReadString(asFavoriteObjects);
+    actFavoriteObjectsOnly.Checked := False;
 
     // Tree node filtering needs a hit once when connected
     editDatabaseTableFilterChange(Self);
@@ -4937,7 +4946,8 @@ begin
       Screen.Cursor := crHourGlass;
       SaveUnicodeFile(
         Dialog.FileName,
-        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines)
+        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines),
+        UTF8NoBOMEncoding
         );
       Screen.Cursor := crDefault;
     end;
@@ -6237,11 +6247,15 @@ procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: 
 var
   Idx: PInt64;
 begin
-  // Mark all nodes as multiline capable. Fixes painting issues with long lines.
+  // Display multiline grid rows
+  // Mark all nodes as multiline capable. Fixes painting issues with long lines. (?)
   // See issue #1897 and https://www.heidisql.com/forum.php?t=41502
-  // Disabled due to laggy performance with large grid contents
-  //if toGridExtensions in (Sender as TVirtualStringTree).TreeOptions.MiscOptions then
-  //  Include(Node.States, vsMultiLine);
+  // Laggy performance with large grid contents (?)
+  if AppSettings.ReadInt(asGridRowLineCount) = 1 then
+    Exclude(Node.States, vsMultiLine)
+  else
+    Include(Node.States, vsMultiLine);
+  Sender.NodeHeight[Node] := TVirtualStringTree(Sender).DefaultNodeHeight;
   // Node may have data already, if added via InsertRow
   if not (vsOnFreeNodeCallRequired in Node.States) then begin
     Idx := Sender.GetNodeData(Node);
@@ -7183,7 +7197,7 @@ begin
 
       SynHighlighterSQL.tkTableName: begin
         // Show some details from table listing cache
-        if Conn.DbObjectsCached(Conn.Database) then begin
+        if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
           for Obj in AllObjects do begin
             if (Obj.NodeType = lntTable) and (Obj.Name.ToLower = Token.ToLower) then begin
@@ -7206,7 +7220,7 @@ begin
 
       SynHighlighterSQL.tkProcName: begin
         // Show routine parameters, comment and body
-        if Conn.DbObjectsCached(Conn.Database) then begin
+        if (not Conn.IsLockedByThread) and Conn.DbObjectsCached(Conn.Database) then begin
           AllObjects := Conn.GetDBObjects(Conn.Database);
           for Obj in AllObjects do begin
             if (Obj.NodeType in [lntFunction, lntProcedure]) and (Obj.Name.ToLower = Token.ToLower) then begin
@@ -8918,6 +8932,7 @@ var
   Tree: TVirtualStringTree;
   NewHint: String;
   Conn: TDBConnection;
+  ValIsNumber: Boolean;
 begin
   // Disable tooltips on Wine, as they prevent users from clicking + editing clipped cells
   if IsWine then
@@ -8941,8 +8956,15 @@ begin
   end;
 
   if HintText.IsEmpty then begin
-    HintText := Tree.Text[Node, Column];
-    HintText := StrEllipsis(HintText, SIZE_KB);
+    try
+      ValIsNumber := IntToStr(MakeInt(Tree.Text[Node, Column])) = Tree.Text[Node, Column];
+    except
+      ValIsNumber := False;
+    end;
+    if ValIsNumber then
+      HintText := FormatNumber(Tree.Text[Node, Column])
+    else
+      HintText := StrEllipsis(Tree.Text[Node, Column], SIZE_KB);
   end;
   // See http://www.heidisql.com/forum.php?t=20458#p20548
   if Sender = DBtree then
@@ -9275,7 +9297,7 @@ begin
   for Grid in AllGrids do begin
     Grid.Font.Name := AppSettings.ReadString(asDataFontName);
     Grid.Font.Size := AppSettings.ReadInt(asDataFontSize);
-    FixVT(Grid);
+    FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
     if IncrementalSearchActive then
       Grid.IncrementalSearch := isInitializedOnly
     else
@@ -11786,6 +11808,87 @@ begin
 end;
 
 
+procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
+var
+  SenderControl: TComponent;
+  SenderName: String;
+  Grid: TVirtualStringTree;
+  Header, Body, Line, Data: String;
+  Separator, Encloser, Terminator: String;
+  Node: PVirtualNode;
+  Col: TColumnIndex;
+  Indent, NodesCopied: Integer;
+begin
+  // Copy tree nodes as CSV, from any VirtualTree, not only from data or result grids
+  // See issue #2083
+  SenderControl := PopupComponent(Sender);
+  if SenderControl=nil then
+    SenderControl := Screen.ActiveControl;
+
+  if not (SenderControl is TVirtualStringTree) then begin
+    if SenderControl=nil then
+      SenderName := 'nil'
+    else
+      SenderName := SenderControl.Name;
+    ErrorDialog(f_('No listing or tree focused. ActiveControl is %s', [SenderName]));
+    Exit;
+  end;
+
+  Screen.Cursor := crHourGlass;
+  Grid := TVirtualStringTree(SenderControl);
+  // Grid.CopyToClipboard; // Does nothing (?)
+
+  Separator := ';';
+  Encloser := '"';
+  Terminator := SLineBreak;
+
+  Header := '';
+  Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
+  while Col > NoColumn do begin
+    Data := Grid.Header.Columns[Col].Text;
+    Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+    if not Header.IsEmpty then
+      Header := Header + Separator;
+    Header := Header + Encloser + Data + Encloser;
+    Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+  end;
+  Header := Header + Terminator;
+
+  Body := '';
+  NodesCopied := 0;
+  Node := Grid.GetFirstInitialized;
+  while Assigned(Node) do begin
+    if Grid.IsVisible[Node] then begin
+      Line := '';
+      // One empty cell for each indentation level
+      for Indent := 1 to Grid.GetNodeLevel(Node) do begin
+        if not Line.IsEmpty then
+          Line := Line + Separator;
+        Line := Line + Encloser + Encloser;
+      end;
+      // Add data cells
+      Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
+      while Col > NoColumn do begin
+        Data := Grid.Text[Node, Col];
+        Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+        if not Line.IsEmpty then
+          Line := Line + Separator;
+        Line := Line + Encloser + Data + Encloser;
+        Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
+      end;
+      Body := Body + Line + Terminator;
+      Inc(NodesCopied);
+    end;
+    Node := Grid.GetNextInitialized(Node);
+  end;
+
+  Clipboard.TryAsText := Header + Body;
+
+  Screen.Cursor := crDefault;
+  LogSQL(f_('%s: %s lines copied to clipboard', [SLogPrefixInfo, FormatNumber(NodesCopied)]), lcInfo);
+  MessageBeep(MB_ICONASTERISK);
+end;
+
 procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
   CurrentControl: TWinControl;
@@ -12561,8 +12664,6 @@ end;
 procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
 begin
   // Click on "tree favorites" main button
-  AppSettings.ResetPath;
-  AppSettings.WriteBool(asFavoriteObjectsOnly, actFavoriteObjectsOnly.Checked);
   editDatabaseTableFilterChange(Sender);
   if actFavoriteObjectsOnly.Checked then
     actFavoriteObjectsOnly.ImageIndex := 112
@@ -13340,6 +13441,7 @@ procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
   m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
+  Done: Boolean;
 begin
   // Reformat SQL query
   m := ActiveSynMemo(False);
@@ -13356,7 +13458,14 @@ begin
   else begin
     frmReformatter := TfrmReformatter.Create(Self);
     frmReformatter.InputCode := m.SelText;
-    if frmReformatter.ShowModal = mrOk then begin
+    if AppSettings.ReadInt(asReformatterNoDialog) <> 0 then begin
+      frmReformatter.btnOkClick(Self);
+      Done := True;
+    end
+    else begin
+      Done := frmReformatter.ShowModal = mrOk;
+    end;
+    if Done then begin
       Screen.Cursor := crHourglass;
       m.UndoList.AddGroupBreak;
       m.SelText := frmReformatter.OutputCode;
@@ -13786,8 +13895,9 @@ begin
     2: Result := TEncoding.GetEncoding(437);
     3: Result := TEncoding.Unicode;
     4: Result := TEncoding.BigEndianUnicode;
-    5: Result := TEncoding.UTF8;
+    5: Result := UTF8NoBOMEncoding;
     6: Result := TEncoding.UTF7;
+    7: Result := TEncoding.UTF8;
   end;
 end;
 
@@ -13800,8 +13910,9 @@ begin
   else if (Encoding <> nil) and (Encoding.CodePage = 437) then idx := 2
   else if Encoding = TEncoding.Unicode then idx := 3
   else if Encoding = TEncoding.BigEndianUnicode then idx := 4
-  else if Encoding = TEncoding.UTF8 then idx := 5
+  else if Encoding = UTF8NoBOMEncoding then idx := 5
   else if Encoding = TEncoding.UTF7 then idx := 6
+  else if Encoding = TEncoding.UTF8 then idx := 7
   else idx := 0;
   Result := FileEncodings[idx];
 end;
@@ -13868,10 +13979,12 @@ begin
     Result := 'utf16le'
   else if Encoding = TEncoding.BigEndianUnicode then
     Result := 'utf16'
-  else if Encoding = TEncoding.UTF8 then
+  else if Encoding = UTF8NoBOMEncoding then
     Result := 'utf8'
   else if Encoding = TEncoding.UTF7 then
-    Result := 'utf7';
+    Result := 'utf7'
+  else if Encoding = TEncoding.UTF8 then
+    Result := 'utf8'
   // Auto-detection not supported here
 end;
 
@@ -14885,6 +14998,7 @@ begin
   TimerStatusUpdate.Enabled := False;
   TimerStatusUpdate.Interval := 100;
   TimerStatusUpdate.OnTimer := TimerStatusUpdateOnTimer;
+  FFileEncoding := 'UTF-8';
 end;
 
 
@@ -15024,6 +15138,8 @@ begin
     Memo.SelStart := Memo.SelEnd;
     Memo.Modified := False;
     MemoFilename := Filepath;
+    FileEncoding := MainForm.GetEncodingName(Encoding);
+    //showmessage(FileEncoding);
     Result := True;
   end;
 
@@ -15048,7 +15164,7 @@ begin
     FileDir := ExtractFilePath(Filename);
     if not DirectoryExists(FileDir) then
       ForceDirectories(FileDir);
-    SaveUnicodeFile(Filename, Text);
+    SaveUnicodeFile(Filename, Text, MainForm.GetEncodingByName(FFileEncoding));
     MemoFilename := Filename;
     Memo.Modified := False;
     LastSaveTime := GetTickCount;
@@ -15112,7 +15228,7 @@ begin
     if Memo.GetTextLen < SIZE_MB*10 then begin
       MainForm.LogSQL('Saving backup file to "'+MemoBackupFilename+'"...', lcDebug);
       MainForm.ShowStatusMsg(_('Saving backup file...'));
-      SaveUnicodeFile(MemoBackupFilename, Memo.Text);
+      SaveUnicodeFile(MemoBackupFilename, Memo.Text, UTF8NoBOMEncoding);
     end else begin
       MainForm.LogSQL('Unsaved tab contents too large (> 10M) for creating a backup.', lcDebug);
     end;
@@ -15411,7 +15527,7 @@ begin
   Grid.OnNewText := OrgGrid.OnNewText;
   Grid.OnPaintText := OrgGrid.OnPaintText;
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
-  FixVT(Grid);
+  FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
   FTabIndex := QueryTab.ResultTabs.Count; // Will be 0 for the first one, even if we're already creating the first one here!
 end;
 

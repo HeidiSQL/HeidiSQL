@@ -107,7 +107,7 @@ type
     procedure btnMoveDownColumnClick(Sender: TObject);
     procedure listColumnsDragOver(Sender: TBaseVirtualTree; Source: TObject; Shift: TShiftState; State: TDragState;
 		  Pt: TPoint; Mode: TDropMode; var Effect: Integer; var Accept: Boolean);
-    procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+    procedure listColumnsDragDrop(Sender: TBaseVirtualTree; Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
 		  Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
     procedure listColumnsPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
 		  Column: TColumnIndex; TextType: TVSTTextType);
@@ -135,7 +135,7 @@ type
       Shift: TShiftState; State: TDragState; Pt: TPoint; Mode: TDropMode;
       var Effect: Integer; var Accept: Boolean);
     procedure treeIndexesDragDrop(Sender: TBaseVirtualTree; Source: TObject;
-      DataObject: IDataObject; Formats: TFormatArray; Shift: TShiftState;
+      DataObject: TVTDragDataObject; Formats: TFormatArray; Shift: TShiftState;
       Pt: TPoint; var Effect: Integer; Mode: TDropMode);
     procedure treeIndexesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
     procedure treeIndexesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
@@ -213,6 +213,21 @@ type
     FDeletedForeignKeys,
     FDeletedCheckConstraints: TStringList;
     FAlterRestrictedMessageDisplayed: Boolean;
+    const ColNumCounter = 0;
+    const ColNumName = 1;
+    const ColNumDatatype = 2;
+    const ColNumLengthSet = 3;
+    const ColNumUnsigned = 4;
+    const ColNumAllownull = 5;
+    const ColNumZerofill = 6;
+    const ColNumDefault = 7;
+    const ColNumComment = 8;
+    const ColNumCollation = 9;
+    const ColNumExpression = 10;
+    const ColNumVirtuality = 11;
+    const ColNumSrid = 12;
+    const ColNumInvisible = 13;
+    const ColNumsCheckboxes = [ColNumUnsigned, ColNumAllownull, ColNumZerofill, ColNumInvisible];
     procedure ValidateColumnControls;
     procedure ValidateIndexControls;
     procedure MoveFocusedIndexPart(NewIdx: Cardinal);
@@ -1146,7 +1161,7 @@ end;
 
 
 procedure TfrmTableEditor.listColumnsDragDrop(Sender: TBaseVirtualTree;
-  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
   Node: PVirtualNode;
@@ -1174,7 +1189,7 @@ begin
 
   // Darken cell background to signalize it doesn't allow length/set
   // Exclude non editable checkbox columns - grey looks ugly there.
-  if (not CellEditingAllowed(Node, Column)) and (not (Column in [4, 5, 6])) then begin
+  if (not CellEditingAllowed(Node, Column)) and (not (Column in ColNumsCheckboxes)) then begin
     BgColor := clBtnFace;
   end;
 
@@ -1242,7 +1257,7 @@ begin
   Y := CellRect.Top + Integer(VT.NodeHeight[Node] div 2) - (VT.Images.Height div 2);
 
   // Paint one icon per index type of which this column is part of
-  if Column = 0 then begin
+  if Column = ColNumCounter then begin
     X := 0;
     ImageIndexes := GetKeyImageIndexes(Col^);
     for i in ImageIndexes do begin
@@ -1254,8 +1269,11 @@ begin
 
   // Paint checkbox image in certain columns
   // while restricting "Allow NULL" checkbox to numeric datatypes
-  if (Column in [4, 5, 6]) then begin
-    Checked := (Col.Unsigned and (Column=4)) or (Col.AllowNull and (Column=5)) or (Col.ZeroFill and (Column = 6));
+  if (Column in ColNumsCheckboxes) then begin
+    Checked := (Col.Unsigned and (Column=ColNumUnsigned))
+      or (Col.AllowNull and (Column=ColNumAllownull))
+      or (Col.ZeroFill and (Column = ColNumZerofill))
+      or (Col.Invisible and (Column = ColNumInvisible));
     if CellEditingAllowed(Node, Column) then begin
       if Checked then ImageIndex := 128
       else ImageIndex := 127;
@@ -1307,7 +1325,7 @@ procedure TfrmTableEditor.listColumnsEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
   // Allow text editing? Explicitely block that in checkbox columns 
-  Allowed := CellEditingAllowed(Node, Column) and (not (Column in [4,5,6]));
+  Allowed := CellEditingAllowed(Node, Column) and (not (Column in ColNumsCheckboxes));
 end;
 
 
@@ -1319,9 +1337,11 @@ begin
   Col := listColumns.GetNodeData(Node);
   case Column of
     // No editor for very first column and checkbox columns
-    0: Result := False;
-    3: Result := Col.DataType.HasLength;
-    4: begin
+    ColNumCounter: Result := False;
+
+    ColNumLengthSet: Result := Col.DataType.HasLength;
+
+    ColNumUnsigned: begin
       Result := (Col.DataType.Category in [dtcInteger, dtcReal])
         and (Col.DataType.Index <> dbdtBit)
         and (DBObject.Connection.Parameters.IsAnyMySQL);
@@ -1330,7 +1350,8 @@ begin
         Col.Status := esModified;
       end;
     end;
-    5: begin
+
+    ColNumAllownull: begin
       // Do not allow NULL, and force NOT NULL, on primary key columns
       Result := True;
       for i:=0 to FKeys.Count-1 do begin
@@ -1344,7 +1365,8 @@ begin
         end;
       end;
     end;
-    6: begin
+
+    ColNumZerofill: begin
       Result := (Col.DataType.Category in [dtcInteger, dtcReal])
         and (Col.DataType.Index <> dbdtBit)
         and (DBObject.Connection.Parameters.IsAnyMySQL);
@@ -1353,16 +1375,21 @@ begin
         Col.Status := esModified;
       end;
     end;
+
     // No editing of collation allowed if "Convert data" was checked
-    9: Result := not chkCharsetConvert.Checked;
-    12: Result := (Col.DataType.Category = dtcSpatial) and DBObject.Connection.Has(frSrid);
+    ColNumCollation: Result := not chkCharsetConvert.Checked;
+
+    ColNumSrid: Result := (Col.DataType.Category = dtcSpatial) and DBObject.Connection.Has(frSrid);
+
+    ColNumInvisible: Result := DBObject.Connection.Has(frInvisibleColumns);
+
     else Result := True;
   end;
 
   // SQLite does not support altering existing columns, except renaming. See issue #1256
   if ObjectExists and DBObject.Connection.Parameters.IsAnySQLite then begin
     if Col.Status in [esUntouched, esModified, esDeleted] then begin
-      Result := Result and (Column = 1);
+      Result := Result and (Column = ColNumName);
       if (not Result) and (not FAlterRestrictedMessageDisplayed) then begin
         MainForm.LogSQL(
           f_('Altering tables restricted. For details see %s', ['https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes']),
@@ -1385,12 +1412,20 @@ begin
   Col := Sender.GetNodeData(Node);
   CellText := '';
   case Column of
-    0: CellText := IntToStr(Node.Index+1);
-    1: CellText := Col.Name;
-    2: CellText := Col.DataType.Name;
-    3: CellText := Col.LengthSet;
-    4, 5, 6: CellText := ''; // Checkbox
-    7: begin
+    ColNumCounter: CellText := IntToStr(Node.Index+1);
+
+    ColNumName: CellText := Col.Name;
+
+    ColNumDatatype: CellText := Col.DataType.Name;
+
+    ColNumLengthSet: CellText := Col.LengthSet;
+
+    ColNumUnsigned,
+    ColNumAllownull,
+    ColNumZerofill,
+    ColNumInvisible: CellText := ''; // Checkbox
+
+    ColNumDefault: begin
       case Col.DefaultType of
         cdtNothing:      CellText := _('No default');
         cdtText:         CellText := Col.Connection.EscapeString(Col.DefaultText);
@@ -1406,15 +1441,20 @@ begin
         // cdtAutoInc: invalid here
       end;
     end;
-    8: CellText := Col.Comment;
-    9: begin
+
+    ColNumComment: CellText := Col.Comment;
+
+    ColNumCollation: begin
       CellText := Col.Collation;
       if (CellText <> '') and (chkCharsetConvert.Checked) then
         CellText := comboCollation.Text;
     end;
-    10: CellText := Col.GenerationExpression;
-    11: CellText := Col.Virtuality;
-    12: begin
+
+    ColNumExpression: CellText := Col.GenerationExpression;
+
+    ColNumVirtuality: CellText := Col.Virtuality;
+
+    ColNumSrid: begin
       if (Col.DataType.Category = dtcSpatial) and (Col.Connection.Has(frSrid)) then
         CellText := Col.SRID.ToString;
     end;
@@ -1463,11 +1503,11 @@ begin
   // Give datatype column specific color, as set in preferences
   TextColor := TargetCanvas.Font.Color;
   case Column of
-    0: TextColor := clGrayText;
+    ColNumCounter: TextColor := clGrayText;
 
-    2: TextColor := DatatypeCategories[Col.DataType.Category].Color;
+    ColNumDatatype: TextColor := DatatypeCategories[Col.DataType.Category].Color;
 
-    7: case Col.DefaultType of
+    ColNumDefault: case Col.DefaultType of
       cdtNothing, cdtNull:
         TextColor := DatatypeCategories[Col.DataType.Category].NullColor;
       else
@@ -1490,7 +1530,7 @@ begin
   Col := Sender.GetNodeData(Node);
   WasModified := True;
   case Column of
-    1: begin // Name of column
+    ColNumName: begin
       for i:=0 to FColumns.Count-1 do begin
         if (FColumns[i].Name = NewText) and (not (FColumns[i].Status in [esDeleted, esAddedDeleted])) then begin
           ErrorDialog(f_('Column "%s" already exists.', [NewText]));
@@ -1506,7 +1546,8 @@ begin
       treeIndexes.Invalidate;
       Col.Name := NewText;
     end;
-    2: begin // Data type
+
+    ColNumDatatype: begin
       Col.DataType := DBObject.Connection.GetDatatypeByName(NewText, False, Col.Name);
       // Reset length/set for column types which don't support that
       if not Col.DataType.HasLength then
@@ -1546,9 +1587,9 @@ begin
           end;
         end;
       end;
+    end;
 
-    end; // Length / Set
-    3: begin
+    ColNumLengthSet: begin
       if Col.DataType.RequiresLength and (NewText='') then begin
         WasModified := False;
         ErrorDialog(f_('Column data type %s requires a length/set', [Col.DataType.Name]));
@@ -1557,17 +1598,24 @@ begin
         Col.LengthCustomized := True;
       end;
     end;
-    // 4 + 5 are checkboxes - handled in OnClick
-    7: begin // Default value
+
+    // 4, 5, 6, 13 are checkboxes - handled in OnClick
+
+    ColNumDefault: begin
       // DefaultText/Type and OnUpdateText/Type are set in TColumnDefaultEditorLink.EndEdit
       if Col.DefaultType = cdtNull then
         Col.AllowNull := True;
     end;
-    8: Col.Comment := NewText;
-    9: Col.Collation := NewText;
-    10: Col.GenerationExpression := NewText;
-    11: Col.Virtuality := NewText;
-    12: Col.SRID := StrToUIntDef(NewText, 0);
+
+    ColNumComment: Col.Comment := NewText;
+
+    ColNumCollation: Col.Collation := NewText;
+
+    ColNumExpression: Col.GenerationExpression := NewText;
+
+    ColNumVirtuality: Col.Virtuality := NewText;
+
+    ColNumSrid: Col.SRID := StrToUIntDef(NewText, 0);
   end;
   if WasModified then begin
     Col.Status := esModified;
@@ -1613,7 +1661,7 @@ var
 begin
   // Space/click on checkbox column
   VT := Sender as TVirtualStringTree;
-  if (Ord(Key) = VK_SPACE) and (VT.FocusedColumn in [4, 5, 6]) then
+  if (Ord(Key) = VK_SPACE) and (VT.FocusedColumn in ColNumsCheckboxes) then
     vtHandleClickOrKeyPress(VT, VT.FocusedNode, VT.FocusedColumn, []);
 end;
 
@@ -1631,13 +1679,14 @@ begin
   if CellEditingAllowed(Node, Column) then begin
     Col := VT.GetNodeData(Node);
     case Column of
-      4: begin
+      ColNumUnsigned: begin
         Col.Unsigned := not Col.Unsigned;
         Col.Status := esModified;
         Modification(Sender);
         VT.InvalidateNode(Node);
       end;
-      5: begin
+
+      ColNumAllownull: begin
         Col.AllowNull := not Col.AllowNull;
         // Switch default value from NULL to Text if Allow Null is off
         if (not Col.AllowNull) and (Col.DefaultType = cdtNull) then begin
@@ -1648,12 +1697,21 @@ begin
         Modification(Sender);
         VT.InvalidateNode(Node);
       end;
-      6: begin
+
+      ColNumZerofill: begin
         Col.ZeroFill := not Col.ZeroFill;
         Col.Status := esModified;
         Modification(Sender);
         VT.InvalidateNode(Node);
       end;
+
+      ColNumInvisible: begin
+        Col.Invisible := not Col.Invisible;
+        Col.Status := esModified;
+        Modification(Sender);
+        VT.InvalidateNode(Node);
+      end;
+
       else begin
         // All other cells go into edit mode please
         // Explicitely done on OnClick, not in OnFocusChanged which seemed annoying for keyboard users
@@ -1678,11 +1736,12 @@ begin
   VT := Sender as TVirtualStringTree;
   Col := Sender.GetNodeData(Node);
   case Column of
-    2: begin // Datatype pulldown
+    ColNumDatatype: begin // Datatype pulldown
       DatatypeEditor := TDatatypeEditorLink.Create(VT, True, Col^);
       EditLink := DataTypeEditor;
       end;
-    9: begin // Collation pulldown
+
+    ColNumCollation: begin // Collation pulldown
       EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
       EnumEditor.AllowCustomText := True;
       EnumEditor.ItemMustExist := True;
@@ -1692,7 +1751,8 @@ begin
       EnumEditor.ValueList.Insert(0, '');
       EditLink := EnumEditor;
       end;
-    7: begin
+
+    ColNumDefault: begin
       DefaultEditor := TColumnDefaultEditorLink.Create(VT, True, Col^);
       DefaultEditor.DefaultType := Col.DefaultType;
       DefaultEditor.DefaultText := Col.DefaultText;
@@ -1700,7 +1760,8 @@ begin
       DefaultEditor.OnUpdateText := Col.OnUpdateText;
       EditLink := DefaultEditor;
     end;
-    11: begin // Virtuality pulldown
+
+    ColNumVirtuality: begin // Virtuality pulldown
       EnumEditor := TEnumEditorLink.Create(VT, True, Col^);
       EnumEditor.ValueList := TStringList.Create;
       if DBObject.Connection.Parameters.IsMariaDB then
@@ -1709,6 +1770,7 @@ begin
         EnumEditor.ValueList.CommaText := ',VIRTUAL,STORED';
       EditLink := EnumEditor;
     end
+
     else begin
       Edit := TInplaceEditorLink.Create(VT, True, Col^);
       Edit.TitleText := VT.Header.Columns[Column].Text;
@@ -1882,6 +1944,7 @@ procedure TfrmTableEditor.treeIndexesGetImageIndex(Sender: TBaseVirtualTree;
   var Ghosted: Boolean; var ImageIndex: TImageIndex);
 var
   VT: TVirtualStringTree;
+  TblKey: TTableKey;
 begin
   // Icon image showing type of index
   VT := Sender as TVirtualStringTree;
@@ -1889,7 +1952,13 @@ begin
   if not (Kind in [ikNormal, ikSelected]) then Exit;
   case VT.GetNodeLevel(Node) of
     0: ImageIndex := FKeys[Node.Index].ImageIndex;
-    1: ImageIndex := 42;
+    1: begin
+      TblKey := FKeys[Node.Parent.Index];
+      if TblKey.IsExpression(Node.Index) then
+        ImageIndex := 13
+      else
+        ImageIndex := 42;
+    end;
   end;
 end;
 
@@ -2294,7 +2363,7 @@ end;
 
 
 procedure TfrmTableEditor.treeIndexesDragDrop(Sender: TBaseVirtualTree;
-  Source: TObject; DataObject: IDataObject; Formats: TFormatArray;
+  Source: TObject; DataObject: TVTDragDataObject; Formats: TFormatArray;
   Shift: TShiftState; Pt: TPoint; var Effect: Integer; Mode: TDropMode);
 var
   FocusedNode, TargetNode, IndexNode: PVirtualNode;
@@ -2985,7 +3054,7 @@ begin
   finally
     listcolumns.EndUpdate;
   end;
-  listColumns.Invalidate;
+  listColumns.Repaint;
   Modification(Sender);
   ColsFromClp.Free;
 end;

@@ -13,6 +13,7 @@ type
     btnCancel: TButton;
     btnOk: TButton;
     lblFormatProviderLink: TLinkLabel;
+    chkKeepAsking: TCheckBox;
     procedure btnOkClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -78,6 +79,12 @@ begin
     end;
 
   end;
+
+  if not chkKeepAsking.Checked then begin
+    // No dialog next time please
+    AppSettings.WriteInt(asReformatterNoDialog, grpReformatter.ItemIndex+1);
+  end;
+
   Screen.Cursor := crDefault;
 end;
 
@@ -87,7 +94,13 @@ begin
   grpReformatter.Items.Add(_('Internal'));
   grpReformatter.Items.Add(f_('Online on %s', [APPDOMAIN]));
   grpReformatter.Items.Add(f_('Online on %s', ['sqlformat.org']));
-  grpReformatter.ItemIndex := AppSettings.ReadInt(asReformatter);
+  if AppSettings.ReadInt(asReformatterNoDialog) = 0 then begin
+    grpReformatter.ItemIndex := AppSettings.ReadInt(asReformatter);
+  end
+  else begin
+    // asReformatterNoDialog has the same items with an additional "always ask" item at index 0
+    grpReformatter.ItemIndex := AppSettings.ReadInt(asReformatterNoDialog) - 1;
+  end;
 end;
 
 procedure TfrmReformatter.FormDestroy(Sender: TObject);

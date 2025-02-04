@@ -878,6 +878,12 @@ object frmTableEditor: TfrmTableEditor
         Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
         Position = 12
         Text = 'SRID'
+      end
+      item
+        Hint = 'Hide in certain contexts'
+        Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+        Position = 13
+        Text = 'Invisible'
       end>
   end
   object btnSave: TButton

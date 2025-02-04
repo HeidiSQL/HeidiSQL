@@ -13,7 +13,7 @@ uses
   Vcl.StdCtrls, Vcl.ComCtrls, Vcl.ExtCtrls, SynEditHighlighter, SynHighlighterSQL,
   SynEdit, SynMemo, VirtualTrees, SynEditKeyCmds, Vcl.ActnList, Vcl.StdActns, Vcl.Menus,
   dbstructures, gnugettext, Vcl.Themes, Vcl.Styles, SynRegExpr, System.Generics.Collections,
-  Vcl.ImageCollection, extra_controls, theme_preview, Vcl.Buttons, System.Actions,
+  Vcl.ImageCollection, extra_controls, theme_preview, reformatter, Vcl.Buttons, System.Actions,
   VirtualTrees.BaseAncestorVCL, VirtualTrees.BaseTree, VirtualTrees.AncestorVCL, VirtualTrees.Types;
 
 type
@@ -190,6 +190,8 @@ type
     btnRemoveHotKey2: TButton;
     comboTabIconsGrayscaleMode: TComboBox;
     Label5: TLabel;
+    lblReformatter: TLabel;
+    comboReformatter: TComboBox;
     procedure FormShow(Sender: TObject);
     procedure Modified(Sender: TObject);
     procedure Apply(Sender: TObject);
@@ -442,6 +444,7 @@ begin
   AppSettings.WriteBool(asTabCloseOnDoubleClick, chkTabCloseOnDoubleClick.Checked);
   AppSettings.WriteBool(asTabCloseOnMiddleClick, chkTabCloseOnMiddleClick.Checked);
   AppSettings.WriteInt(asTabIconsGrayscaleMode, comboTabIconsGrayscaleMode.ItemIndex);
+  AppSettings.WriteInt(asReformatterNoDialog, comboReformatter.ItemIndex);
 
   // Set relevant properties in mainform
   MainForm.ApplyFontToGrids;
@@ -516,6 +519,7 @@ var
   Name: String;
   GridColorsPreset: TGridColorsPreset;
   IconPack: String;
+  Reformatter: TfrmReformatter;
 begin
   HasSizeGrip := True;
 
@@ -673,6 +677,11 @@ begin
   FShortcutCategories.Add(_('SQL editing'));
   TreeShortcutItems.RootNodeCount := FShortcutCategories.Count;
   comboLineBreakStyle.Items := Explode(',', _('Windows linebreaks')+','+_('UNIX linebreaks')+','+_('Mac OS linebreaks'));
+
+  comboReformatter.Items.Add(_('Always ask'));
+  Reformatter := TfrmReformatter.Create(Self);
+  comboReformatter.Items.AddStrings(Reformatter.grpReformatter.Items);
+  Reformatter.Free;
 end;
 
 
@@ -806,6 +815,7 @@ begin
   chkTabCloseOnDoubleClick.Checked := AppSettings.ReadBool(asTabCloseOnDoubleClick);
   chkTabCloseOnMiddleClick.Checked := AppSettings.ReadBool(asTabCloseOnMiddleClick);
   comboTabIconsGrayscaleMode.ItemIndex := AppSettings.ReadInt(asTabIconsGrayscaleMode);
+  comboReformatter.ItemIndex := AppSettings.ReadInt(asReformatterNoDialog);
 
   // Disable global shortcuts
   MainForm.ActionList1.State := asSuspended;

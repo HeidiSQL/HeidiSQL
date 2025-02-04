@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: HeidiSQL\n"
 "POT-Creation-Date: 2012-11-05 21:40\n"
-"PO-Revision-Date: 2024-09-13 18:26+0200\n"
+"PO-Revision-Date: 2025-02-02 13:48+0100\n"
 "Last-Translator: Ansgar Becker <anse@heidisql.com>\n"
 "Language-Team: English (http://www.transifex.com/projects/p/heidisql/language/en/)\n"
 "Language: en\n"
@@ -3295,6 +3295,12 @@ msgstr "Virtuality"
 msgid "Spatial reference system"
 msgstr "Spatial reference system"
 
+msgid "Invisible"
+msgstr "Invisible"
+
+msgid "Hide in certain contexts"
+msgstr "Hide in certain contexts"
+
 #. frmTableEditor..PageControlMain..tabBasic..Caption
 #: table_editor.dfm:183
 msgid "Basic"
@@ -4953,6 +4959,15 @@ msgstr "Please select a non-readonly SQL editor first."
 
 msgid "No SQL editor focused. ActiveControl is %s"
 msgstr "No SQL editor focused. ActiveControl is %s"
+
+msgid "No listing or tree focused. ActiveControl is %s"
+msgstr "No listing or tree focused. ActiveControl is %s"
+
+msgid "Copy all lines from listing or tree in CSV format"
+msgstr "Copy all lines from listing or tree in CSV format"
+
+msgid "%s: %s lines copied to clipboard"
+msgstr "%s: %s lines copied to clipboard"
 
 #: main.pas:9768
 msgid "The current editor is empty."
@@ -6703,6 +6718,9 @@ msgstr "Warning: Configuring with cipher index %d failed"
 msgid "Warning: Failed to set cipher encryption parameter \"%s\""
 msgstr "Warning: Failed to set cipher encryption parameter \"%s\""
 
+msgid "Info: Cipher encryption parameter \"%s\" set"
+msgstr "Info: Cipher encryption parameter \"%s\" set"
+
 msgid "You have activated encryption on a probably non-encrypted database."
 msgstr "You have activated encryption on a probably non-encrypted database."
 
@@ -6717,3 +6735,21 @@ msgstr "Generate"
 
 msgid "Generate data"
 msgstr "Generate data"
+
+msgid "Reformatter:"
+msgstr "Reformatter:"
+
+msgid "Always ask"
+msgstr "Always ask"
+
+msgid ""
+"File already exists: %s\n"
+"\n"
+"Overwrite it?"
+msgstr ""
+"File already exists: %s\n"
+"\n"
+"Overwrite it?"
+
+msgid "Export cancelled, file not overwritten: %s"
+msgstr "Export cancelled, file not overwritten: %s"

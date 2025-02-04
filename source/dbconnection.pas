@@ -29,7 +29,7 @@ type
   TDBQueryList = TObjectList<TDBQuery>;
   TDBObject = class;
 
-  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpSRID, cpDefault, cpVirtuality, cpComment, cpCollation);
+  TColumnPart = (cpAll, cpName, cpType, cpAllowNull, cpSRID, cpDefault, cpVirtuality, cpComment, cpCollation, cpInvisible);
   TColumnParts = Set of TColumnPart;
   TColumnDefaultType = (cdtNothing, cdtText, cdtNull, cdtAutoInc, cdtExpression);
   // General purpose editing status flag
@@ -97,6 +97,7 @@ type
       function IsUnique: Boolean;
       function IsFulltext: Boolean;
       function IsSpatial: Boolean;
+      function IsExpression(KeyPart: Integer): Boolean;
       procedure Modification(Sender: TObject);
       function SQLCode(TableName: String=''): String;
       property InsideCreateCode: Boolean read GetInsideCreateCode;
@@ -449,7 +450,7 @@ type
     frShowCharset, frIntegerDisplayWidth, frShowFunctionStatus, frShowProcedureStatus,
     frShowTriggers, frShowEvents, frColumnDefaultParentheses, frForeignKeyChecksVar,
     frHelpKeyword, frEditVariables, frCreateView, frCreateProcedure, frCreateFunction,
-    frCreateTrigger, frCreateEvent);
+    frCreateTrigger, frCreateEvent, frInvisibleColumns);
 
   TDBConnection = class(TComponent)
     private
@@ -534,7 +535,6 @@ type
       function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; virtual;
       procedure ClearCache(IncludeDBObjects: Boolean);
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); virtual; abstract;
-      procedure SetLockedByThread(Value: TThread); virtual;
       procedure KeepAliveTimerEvent(Sender: TObject);
       procedure Drop(Obj: TDBObject); virtual;
       procedure PrefetchResults(SQL: String);
@@ -625,7 +625,8 @@ type
       function ResultCount: Integer;
       property CurrentUserHostCombination: String read GetCurrentUserHostCombination;
       property AllUserHostCombinations: TStringList read GetAllUserHostCombinations;
-      property LockedByThread: TThread read FLockedByThread write SetLockedByThread;
+      function IsLockedByThread: Boolean;
+      procedure SetLockedByThread(Value: TThread); virtual;
       property Datatypes: TDBDataTypeArray read FDatatypes;
       property Favorites: TStringList read FFavorites;
       property InfSch: String read FInfSch;
@@ -677,7 +678,6 @@ type
       function GetCreateViewCode(Database, Name: String): String;
       function GetRowCount(Obj: TDBObject; ForceExact: Bool=False): Int64; override;
       procedure FetchDbObjects(db: String; var Cache: TDBObjectList); override;
-      procedure SetLockedByThread(Value: TThread); override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
@@ -691,6 +691,7 @@ type
       function GetTableColumns(Table: TDBObject): TTableColumnList; override;
       function GetTableKeys(Table: TDBObject): TTableKeyList; override;
       procedure ShowWarnings; override;
+      procedure SetLockedByThread(Value: TThread); override;
   end;
 
   TAdoRawResults = Array of _RecordSet;
@@ -852,7 +853,8 @@ type
       FDBObject: TDBObject;
       FFormatSettings: TFormatSettings;
       procedure SetRecNo(Value: Int64); virtual; abstract;
-      function ColumnExists(Column: Integer): Boolean;
+      function ColumnExists(Column: Integer): Boolean; overload;
+      function ColumnExists(ColumnName: String): Boolean; overload;
       procedure SetColumnOrgNames(Value: TStringList);
       procedure SetDBObject(Value: TDBObject);
       procedure CreateUpdateRow;
@@ -2028,7 +2030,7 @@ begin
       ngMySQL:
         rx.Expression := '^lib(mysql|mariadb).*\.dll$';
       ngMSSQL: // Allow unsupported ADODB providers per registry hack
-        rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)$');
+        rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)');
       ngPgSQL:
         rx.Expression := '^libpq.*\.dll$';
       ngSQLite: begin
@@ -2419,6 +2421,11 @@ begin
   end;
 end;
 
+function TDBConnection.IsLockedByThread: Boolean;
+begin
+  Result := FLockedByThread <> nil;
+end;
+
 
 {**
   (Dis-)Connect to/from server
@@ -2757,7 +2764,7 @@ begin
       'Data Source='+DataSource+';'+
       'Application Name='+AppName+';'
       ;
-    if Parameters.LibraryOrProvider = 'MSOLEDBSQL' then begin
+    if Parameters.LibraryOrProvider.StartsWith('MSOLEDBSQL', true) then begin
       // Issue #423: MSOLEDBSQL compatibility with new column types
       // See https://docs.microsoft.com/en-us/sql/connect/oledb/applications/using-ado-with-oledb-driver-for-sql-server?view=sql-server-2017
       // Do not use with old driver, see https://www.heidisql.com/forum.php?t=35208
@@ -3001,9 +3008,10 @@ begin
       if Parameters.NetType = ntSQLiteEncrypted then begin
         // Use encryption key
         CipherIndex := FLib.sqlite3mc_cipher_index(PAnsiChar(AnsiString(Parameters.Username)));
+        //Log(lcinfo, 'CipherIndex:'+CipherIndex.ToString);
         if CipherIndex = -1 then
           raise EDbError.Create(f_('Warning: Given cipher scheme name "%s" could not be found', [Parameters.Username]));
-        ConfigResult := FLib.sqlite3mc_config(FHandle, PAnsiChar('cipher'), CipherIndex);
+        ConfigResult := FLib.sqlite3mc_config(FHandle, PAnsiChar('default:cipher'), CipherIndex);
         if ConfigResult = -1 then
           raise EDbError.Create(f_('Warning: Configuring with cipher index %d failed', [CipherIndex]));
         // Set encryption parameters:
@@ -3026,9 +3034,10 @@ begin
                 ParamWasSet := True;
             end
           end;
-          if not ParamWasSet then begin
-            Log(lcError, f_('Warning: Failed to set cipher encryption parameter "%s"', [Param]));
-          end;
+          if not ParamWasSet then
+            Log(lcError, f_('Warning: Failed to set cipher encryption parameter "%s"', [Param]))
+          else
+            Log(lcInfo, f_('Info: Cipher encryption parameter "%s" set', [Param]));
         end;
         // Set the main database key
         RawPassword := AnsiString(Parameters.Password);
@@ -3781,7 +3790,7 @@ end;
 procedure TDBConnection.KeepAliveTimerEvent(Sender: TObject);
 begin
   // Ping server in intervals, without automatically reconnecting
-  if Active and (FLockedByThread = nil) then
+  if Active and (not IsLockedByThread) then
     Ping(False);
 end;
 
@@ -3791,7 +3800,7 @@ end;
 }
 procedure TDBConnection.Query(SQL: String; DoStoreResult: Boolean=False; LogCategory: TDBLogCategory=lcSQL);
 begin
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
+  if IsLockedByThread and (FLockedByThread.ThreadID <> GetCurrentThreadID) then begin
     Log(lcDebug, _('Waiting for running query to finish ...'));
     try
       FLockedByThread.WaitFor;
@@ -5121,7 +5130,7 @@ var
 begin
   // If in a thread, synchronize logging with the main thread. Logging within a thread
   // causes SynEdit to throw exceptions left and right.
-  if (FLockedByThread <> nil) and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
+  if IsLockedByThread and (FLockedByThread.ThreadID = GetCurrentThreadID) then begin
     (FLockedByThread as TQueryThread).LogFromThread(Msg, Category);
     Exit;
   end;
@@ -6374,7 +6383,14 @@ begin
           NewKey.Algorithm := KeyQuery.Col('Index_type');
         NewKey.Comment := KeyQuery.Col('Index_comment', True);
       end;
-      NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+      if KeyQuery.ColumnExists('Expression') and (not KeyQuery.IsNull('Expression')) then begin
+        // Functional key part: enclose expression within parentheses to distinguish them from columns (issue #1777)
+        NewKey.Columns.Add('('+KeyQuery.Col('Expression')+')');
+      end
+      else begin
+        // Normal column
+        NewKey.Columns.Add(KeyQuery.Col('Column_name'));
+      end;
       NewKey.Collations.Add(KeyQuery.Col('Collation', True));
       if NewKey.IsSpatial then
         NewKey.SubParts.Add('') // Keep in sync, prevent "Incorrect prefix key"
@@ -6867,6 +6883,8 @@ begin
         frCreateFunction: Result := ServerVersionInt >= 50003;
         frCreateTrigger: Result := ServerVersionInt >= 50002;
         frCreateEvent: Result := ServerVersionInt >= 50100;
+        frInvisibleColumns: Result := (FParameters.IsMariaDB and (ServerVersionInt >= 100303)) or
+          (FParameters.IsMySQL(True) and (ServerVersionInt >= 80023));
       end;
     else Result := False;
   end;
@@ -9058,6 +9076,12 @@ begin
 end;
 
 
+function TDBQuery.ColumnExists(ColumnName: String): Boolean;
+begin
+  Result := FConnection.Active and ColumnNames.Contains(ColumnName);
+end;
+
+
 function TDBQuery.GetColBinData(Column: Integer; var baData: TBytes): Boolean;
 begin
   Raise EDbError.Create(SNotImplemented);
@@ -10101,18 +10125,21 @@ end;
 
 function TPGQuery.TableName(Column: Integer): String;
 var
-  FieldTypeOID: POid;
+  TableOid: POid;
 begin
   // Get table name from a result set
   // "123::regclass" results are quoted if they contain special characters
-  Result := EmptyStr;
-  FieldTypeOID := FConnection.Lib.PQftable(FCurrentResults, Column);
-  if not FConnection.RegClasses.ContainsKey(FieldTypeOID) then begin
-    Result := FConnection.GetVar('SELECT '+IntToStr(FieldTypeOID)+'::regclass');
-    Result := FConnection.DeQuoteIdent(Result);
-    FConnection.RegClasses.Add(FieldTypeOID, Result);
+  TableOid := FConnection.Lib.PQftable(FCurrentResults, Column);
+  if TableOid = InvalidOid then begin
+    // 0 => not a simple reference to a table column, e.g. on SUBSTRING(col, 1, 256)
+    Result := EmptyStr;
+  end
+  else if FConnection.RegClasses.ContainsKey(TableOid) then begin
+    FConnection.RegClasses.TryGetValue(TableOid, Result);
   end else begin
-    FConnection.RegClasses.TryGetValue(FieldTypeOID, Result);
+    Result := FConnection.GetVar('SELECT '+IntToStr(TableOid)+'::regclass');
+    Result := FConnection.DeQuoteIdent(Result);
+    FConnection.RegClasses.Add(TableOid, Result);
   end;
 end;
 
@@ -10903,6 +10930,10 @@ begin
     Result := Result + ' '; // Add space after each part
   end;
 
+  if InParts(cpInvisible) and Invisible and FConnection.Has(frInvisibleColumns) then begin
+    Result := Result + 'INVISIBLE ';
+  end;
+
   if InParts(cpAllowNull) and (not IsVirtual) then begin
     if not AllowNull then
       Result := Result + 'NOT NULL '
@@ -11145,6 +11176,11 @@ begin
   Result := IndexType = SPATIAL;
 end;
 
+function TTableKey.IsExpression(KeyPart: Integer): Boolean;
+begin
+  Result := Columns[KeyPart].StartsWith('(');
+end;
+
 
 procedure TTableKey.Modification(Sender: TObject);
 begin
@@ -11200,7 +11236,10 @@ begin
     end;
     Result := Result + '(';
     for i:=0 to Columns.Count-1 do begin
-      Result := Result + FConnection.QuoteIdent(Columns[i]);
+      if IsExpression(i) then
+        Result := Result + Columns[i] // Don't quote functional key part
+      else
+        Result := Result + FConnection.QuoteIdent(Columns[i]);
       if (SubParts.Count > i) and (SubParts[i] <> '') then
         Result := Result + '(' + SubParts[i] + ')';
       // Collation / sort order, see issue #1512

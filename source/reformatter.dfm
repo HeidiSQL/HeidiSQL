@@ -3,7 +3,7 @@ object frmReformatter: TfrmReformatter
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Reformat SQL'
-  ClientHeight = 172
+  ClientHeight = 217
   ClientWidth = 503
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,13 +16,13 @@ object frmReformatter: TfrmReformatter
   OnDestroy = FormDestroy
   DesignSize = (
     503
-    172)
+    217)
   TextHeight = 15
   object grpReformatter: TRadioGroup
     Left = 8
     Top = 8
     Width = 487
-    Height = 125
+    Height = 128
     Anchors = [akLeft, akTop, akRight, akBottom]
     Caption = 'Select reformatter'
     ItemIndex = 0
@@ -35,7 +35,7 @@ object frmReformatter: TfrmReformatter
   end
   object btnCancel: TButton
     Left = 420
-    Top = 139
+    Top = 184
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -46,7 +46,7 @@ object frmReformatter: TfrmReformatter
   end
   object btnOk: TButton
     Left = 339
-    Top = 139
+    Top = 184
     Width = 75
     Height = 25
     Anchors = [akRight, akBottom]
@@ -59,12 +59,24 @@ object frmReformatter: TfrmReformatter
   object lblFormatProviderLink: TLinkLabel
     Left = 8
     Top = 142
-    Width = 121
-    Height = 19
+    Width = 149
+    Height = 24
+    Anchors = [akLeft, akBottom]
     Caption = 'lblFormatProviderLink'
     TabOrder = 3
     UseVisualStyle = True
     Visible = False
     OnLinkClick = lblFormatProviderLinkLinkClick
+  end
+  object chkKeepAsking: TCheckBox
+    Left = 8
+    Top = 188
+    Width = 257
+    Height = 17
+    Anchors = [akLeft, akRight, akBottom]
+    Caption = 'Keep asking this question.'
+    Checked = True
+    State = cbChecked
+    TabOrder = 4
   end
 end
