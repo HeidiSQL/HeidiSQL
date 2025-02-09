@@ -2197,7 +2197,7 @@ var
   LastSessions, FileNames: TStringlist;
   Connection: TDBConnection;
   LoadedParams, ConnectionParams: TConnectionParameters;
-  LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
+  LastUpdatecheck, LastStatsCall, LastConnect, LastWebOnceAction: TDateTime;
   UpdatecheckInterval, i: Integer;
   LastActiveSession, Environment, RunFrom: String;
   frm : TfrmUpdateCheck;
@@ -2280,6 +2280,14 @@ begin
   // Delete scheduled task from previous
   if RunFrom = 'scheduler' then begin
     DeleteRestartTask;
+  end;
+
+  if HasDonated(False) <> nbTrue then begin
+    LastWebOnceAction := StrToDateTimeDef(AppSettings.ReadString(asWebOnceAction), DateTimeNever);
+    if DaysBetween(Now, LastWebOnceAction) >= 1 then begin
+      apphelpers.ShellExec(APPDOMAIN + 'web-once');
+      AppSettings.WriteString(asWebOnceAction, DateTimeToStr(Now));
+    end;
   end;
 
   if ConnectionParams <> nil then begin
