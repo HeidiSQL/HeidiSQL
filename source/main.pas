@@ -7263,7 +7263,7 @@ begin
       SynHighlighterSQL.tkDatatype: begin
         for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
           if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
-            HintText := Conn.Datatypes[i].Description;
+            HintText := WrapText(Conn.Datatypes[i].Description, 100);
             Break;
           end;
         end;
