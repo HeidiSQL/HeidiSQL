@@ -161,10 +161,10 @@ function gen_sqlite(): string
 }
 
 
-function gen_mariadb()
+function gen_mysql(int $port)
 {
     // Insert your custom password and port
-    $mysqli = mysqli_connect('localhost', 'root', null, null, '3317');
+    $mysqli = mysqli_connect('localhost', 'root', null, null, $port);
     $query = mysqli_query($mysqli, "SELECT t.name, t.description, c.name AS categ
         FROM mysql.help_topic t, mysql.help_category c
         WHERE
@@ -273,6 +273,13 @@ function gen_pg(): string
     return finalizeEntries($iniEntries, true);
 }
 
+// SQLite:
 # echo gen_sqlite();
-echo gen_mariadb();
+
+// MySQL 8.3:
+echo gen_mysql(3308);
+// MariaDB 11.7:
+# echo gen_mysql(3317);
+
+// PostgreSQL:
 #echo gen_pg();
