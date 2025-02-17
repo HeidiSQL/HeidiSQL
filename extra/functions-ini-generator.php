@@ -276,8 +276,10 @@ function gen_pg(): string
 // SQLite:
 # echo gen_sqlite();
 
+// MySQL 5.7:
+echo gen_mysql(3334);
 // MySQL 8.3:
-echo gen_mysql(3308);
+#echo gen_mysql(3308);
 // MariaDB 11.7:
 # echo gen_mysql(3317);
 
