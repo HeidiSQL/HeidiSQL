@@ -97,6 +97,9 @@ begin
     // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
     gnugettext.TP_GlobalIgnoreClass(TFont);
 
+    // Enable padding in customized tooltips
+    HintWindowClass := TExtHintWindow;
+
     Application.Initialize;
     Application.Title := APPNAME;
     Application.UpdateFormatSettings := False;
