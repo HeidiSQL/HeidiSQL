@@ -2197,7 +2197,7 @@ var
   LastSessions, FileNames: TStringlist;
   Connection: TDBConnection;
   LoadedParams, ConnectionParams: TConnectionParameters;
-  LastUpdatecheck, LastStatsCall, LastConnect, LastWebOnceAction: TDateTime;
+  LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
   LastActiveSession, Environment, RunFrom: String;
   frm : TfrmUpdateCheck;
@@ -2216,9 +2216,6 @@ begin
       frm.btnCancel.Caption := _('Skip');
       try
         frm.ReadCheckFile;
-        if HasDonated(False) <> nbTrue then begin
-          apphelpers.ShellExec(APPDOMAIN + 'after-updatecheck?rev=' + AppVerRevision.ToString);
-        end;
         // Show the dialog if release is available, or - when wanted - build checks are activated
         if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
           or frm.LinkLabelRelease.Enabled then begin
@@ -2229,17 +2226,6 @@ begin
           LogSQL(f_('Error when checking for updates: %s', [E.Message]));
       end;
       frm.Free; // FormClose has no caFree, as it may not have been called
-    end;
-  end
-
-  else begin
-    // Automated updatecheck disabled
-    if HasDonated(False) <> nbTrue then begin
-      LastWebOnceAction := StrToDateTimeDef(AppSettings.ReadString(asWebOnceAction), DateTimeNever);
-      if DaysBetween(Now, LastWebOnceAction) >= 3 then begin
-        apphelpers.ShellExec(APPDOMAIN + 'web-once');
-        AppSettings.WriteString(asWebOnceAction, DateTimeToStr(Now));
-      end;
     end;
   end;
 
@@ -2294,6 +2280,9 @@ begin
   // Delete scheduled task from previous
   if RunFrom = 'scheduler' then begin
     DeleteRestartTask;
+    if HasDonated(False) <> nbTrue then begin
+      apphelpers.ShellExec(APPDOMAIN + 'after-updatecheck?rev=' + AppVerRevision.ToString);
+    end;
   end;
 
   if ConnectionParams <> nil then begin
