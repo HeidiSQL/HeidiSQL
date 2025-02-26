@@ -8,7 +8,7 @@ uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
   ComCtrls, ExtCtrls, SynEdit, SynHighlighterSQL, laz.VirtualTrees,
   RegExpr, Buttons, StdCtrls, fphttpclient, Math, LCLIntf,
-  Generics.Collections, Generics.Defaults,
+  Generics.Collections, Generics.Defaults, opensslsockets,
   dbconnection, dbstructures, dbstructures.mysql, generic_types;
 
 
