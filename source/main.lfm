@@ -1,7 +1,7 @@
 object MainForm: TMainForm
-  Left = 585
+  Left = 549
   Height = 500
-  Top = 289
+  Top = 272
   Width = 998
   Caption = 'MainForm'
   ClientHeight = 500
@@ -58,6 +58,11 @@ object MainForm: TMainForm
       Top = 2
       Action = actSessionManager
       Style = tbsDropDown
+    end
+    object ToolButtonDonate: TToolButton
+      Left = 45
+      Top = 2
+      Caption = 'ToolButtonDonate'
     end
   end
   inline SynMemoSQLLog: TSynEdit

@@ -17,7 +17,7 @@ uses
   dbconnection,
   //gnugettext
   dbstructures,
-  dbstructures.mysql
+  dbstructures.mysql, About, generic_types
   ;
 
 {$R *.res}
@@ -25,7 +25,7 @@ uses
 
 begin
   PostponedLogItems := TDBLogItems.Create(True);
-  //Application.MainFormOnTaskBar := True;
+  Application.MainFormOnTaskBar := True;
 
   // Use MySQL standard format for date/time variables: YYYY-MM-DD HH:MM:SS
   // Be aware that Delphi internally converts the slashes in ShortDateFormat to the DateSeparator

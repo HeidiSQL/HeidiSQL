@@ -12,7 +12,6 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
-      <Icon Value="0"/>
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
@@ -49,26 +48,38 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="source/main.pas"/>
+        <Filename Value="source\main.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
-        <Filename Value="source/apphelpers.pas"/>
+        <Filename Value="source\apphelpers.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="source/dbconnection.pas"/>
+        <Filename Value="source\dbconnection.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="source/dbstructures.pas"/>
+        <Filename Value="source\dbstructures.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="source/dbstructures.mysql.pas"/>
+        <Filename Value="source\dbstructures.mysql.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\about.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="AboutBox"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="About"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\generic_types.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
     </Units>

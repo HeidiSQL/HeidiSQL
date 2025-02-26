@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
-  StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd,
+  StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
+  Character,
   dbconnection, dbstructures;
 
 type
@@ -345,7 +346,7 @@ type
   function UnformatNumber(Val: String): String;
   function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
   function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
-  //procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
+  procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
   function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
   function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String; Overload;
   function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
@@ -381,7 +382,7 @@ type
   //function ParamBlobToStr(lpData: Pointer): String;
   //function ParamStrToBlob(out cbData: DWORD): Pointer;
   //function CheckForSecondInstance: Boolean;
-  //function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
+  function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
   //function KeyPressed(Code: Integer): Boolean;
   //function GeneratePassword(Len: Integer): String;
   //procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
@@ -394,10 +395,10 @@ type
   //function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
-  //function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
-  //function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
-  //function ErrorDialog(Msg: string): Integer; overload;
-  //function ErrorDialog(const Title, Msg: string): Integer; overload;
+  function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
+  function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
+  function ErrorDialog(Msg: string): Integer; overload;
+  function ErrorDialog(const Title, Msg: string): Integer; overload;
   //function GetLocaleString(const ResourceId: Integer): WideString;
   //function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   //procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
@@ -408,7 +409,7 @@ type
   //function GetSystemImageList: TImageList;
   //function GetSystemImageIndex(Filename: String): Integer;
   //function GetExecutableBits: Byte;
-  //procedure Help(Sender: TObject; Anchor: String);
+  procedure Help(Sender: TObject; Anchor: String);
   //function PortOpen(Port: Word): Boolean;
   //function IsValidFilePath(FilePath: String): Boolean;
   //function FileIsWritable(FilePath: String): Boolean;
@@ -419,8 +420,8 @@ type
   //function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   //procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
   //function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
-  //function PopupComponent(Sender: TObject): TComponent;
-  //function IsWine: Boolean;
+  function PopupComponent(Sender: TObject): TComponent;
+  function IsWine: Boolean;
   function DirSep: Char;
   //procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   //function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
@@ -432,7 +433,7 @@ var
   //AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
   SystemImageList: TImageList = nil;
-  //mtCriticalConfirmation: TMsgDlgType = mtCustom;
+  mtCriticalConfirmation: TMsgDlgType = mtCustom;
   //ConfirmIcon: TIcon;
   NumberChars: TSysCharSet;
   LibHandleUser32: THandle;
@@ -989,25 +990,27 @@ end;
 
 
 {***
-  Open URL or execute system command
-
-  @param string Command or URL to execute
-  @param string Working directory, only usefull is first param is a system command
+  Execute system command
+  Don't use for opening URL
 }
-{procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
+procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
 var
   Msg: String;
-  ShowCmd: Integer;
+  ShowOptions: TShowWindowOptions;
+  ProcessResult: String;
 begin
-  ShowCmd := IfThen(RunHidden, SW_HIDE, SW_SHOWNORMAL);
+  if RunHidden then
+    ShowOptions := swoHIDE
+  else
+    ShowOptions := swoNone;
   Msg := 'Executing shell command: "'+cmd+'"';
   if not path.IsEmpty then
     Msg := Msg + ' path: "'+path+'"';
   if not params.IsEmpty then
     Msg := Msg + ' params: "'+params+'"';
   MainForm.LogSQL(Msg, lcDebug);
-  ShellExecute(0, 'open', PChar(cmd), PChar(params), PChar(path), ShowCmd);
-end;}
+  Process.RunCommandInDir(path, cmd, [params], ProcessResult, [], ShowOptions);
+end;
 
 
 
@@ -2053,7 +2056,7 @@ begin
 end;}
 
 
-{function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
+function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
 begin
   Result := Comp;
   while True do begin
@@ -2069,7 +2072,7 @@ begin
     if (not Assigned(Result)) or (Result is TCustomForm) or (Result is TFrame) then
       break;
   end;
-end;}
+end;
 
 
 {function KeyPressed(Code: Integer): Boolean;
@@ -2317,13 +2320,13 @@ begin
 end;
 
 
-{function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
+function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
 begin
   Result := MessageDialog('', Msg, DlgType, Buttons);
-end;}
+end;
 
 
-{function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer;
+function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer;
 var
   m: String;
   Dialog: TTaskDialog;
@@ -2344,13 +2347,13 @@ var
     if ResourceId > 0 then begin
       // Prefer string from user32.dll
       // May be empty on Wine!
-      cap := GetLocaleString(ResourceId)
+      //cap := GetLocaleString(ResourceId)
     end;
     if cap.IsEmpty then begin
       cap := _(BtnCaption);
       for i:=1 to Length(cap) do begin
         // Auto apply hotkey
-        if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and cap[i].IsLetter then begin
+        if (Pos(LowerCase(cap[i]), Hotkeys) = 0) and IsLetter(cap[i]) then begin
           Hotkeys := Hotkeys + LowerCase(cap[i]);
           Insert('&', cap, i);
           break;
@@ -2364,137 +2367,97 @@ var
   end;
 begin
   // Remember current path and restore it later, so the caller does not try to read from the wrong path after this dialog
-  AppSettings.StorePath;
+  //AppSettings.StorePath;
 
-  if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
-    // Use modern task dialog on Vista and above
-    Dialog := TTaskDialog.Create(nil);
-    Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
-    Dialog.CommonButtons := [];
-    if Assigned(MainForm) then
-      Dialog.OnHyperlinkClicked := MainForm.TaskDialogHyperLinkClicked;
+  Dialog := TTaskDialog.Create(nil);
+  Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
+  Dialog.CommonButtons := [];
 
-    // Caption, title and text
-    case DlgType of
-      mtWarning: Dialog.Caption := _('Warning');
-      mtError: Dialog.Caption := _('Error');
-      mtInformation: Dialog.Caption := _('Information');
-      mtConfirmation, mtCustom: Dialog.Caption := _('Confirm');
+  // Caption, title and text
+  case DlgType of
+    mtWarning: Dialog.Caption := _('Warning');
+    mtError: Dialog.Caption := _('Error');
+    mtInformation: Dialog.Caption := _('Information');
+    mtConfirmation, mtCustom: Dialog.Caption := _('Confirm');
+  end;
+  if Title <> Dialog.Caption then
+    Dialog.Title := Title;
+  Dialog.Text := Msg;
+
+  // Main icon, and footer link
+  case DlgType of
+    mtWarning:
+      Dialog.MainIcon := tdiWarning;
+    mtError: begin
+      Dialog.MainIcon := tdiError;
+      Dialog.FooterText := FooterText;
+      Dialog.FooterIcon := tdiInformation;
     end;
-    if Title <> Dialog.Caption then
-      Dialog.Title := Title;
-    if Assigned(MainForm) and (MainForm.ActiveConnection <> nil) then
-      Dialog.Caption := MainForm.ActiveConnection.Parameters.SessionName + ': ' + Dialog.Caption;
-    rx := TRegExpr.Create;
-    rx.Expression := 'https?://[^\s"]+';
-    if ThemeIsDark then
-      Dialog.Text := Msg
-    else // See issue #2036
-      Dialog.Text := rx.Replace(Msg, '<a href="$0">$0</a>', True);
-    rx.Free;
-
-    // Main icon, and footer link
-    case DlgType of
-      mtWarning:
-        Dialog.MainIcon := tdiWarning;
-      mtError: begin
-        Dialog.MainIcon := tdiError;
-        WebSearchUrl := AppSettings.ReadString(asWebSearchBaseUrl);
-        WebSearchUrl := StringReplace(WebSearchUrl, '%q', EncodeURLParam(Copy(Msg, 1, 1000)), []);
-        rx := TRegExpr.Create;
-        rx.Expression := 'https?://(www\.)?([^/]+)/';
-        if rx.Exec(WebSearchUrl) then
-          WebSearchHost := rx.Match[2]
-        else
-          WebSearchHost := '[unknown host]';
-        rx.Free;
-        Dialog.FooterText := IfThen(FooterText.IsEmpty, '', FooterText + sLineBreak + sLineBreak) +
-          '<a href="'+WebSearchUrl+'">'+_('Find some help on this error')+' (=> '+WebSearchHost+')</a>';
-        Dialog.FooterIcon := tdiInformation;
-      end;
-      mtInformation:
-        Dialog.MainIcon := tdiInformation;
-      mtConfirmation, mtCustom: begin
-        Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
-        Dialog.CustomMainIcon := ConfirmIcon;
-      end;
-      else
-        Dialog.MainIcon := tdiNone;
+    mtInformation:
+      Dialog.MainIcon := tdiInformation;
+    mtConfirmation, mtCustom: begin
+      Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
+      Dialog.MainIcon := tdiQuestion;
     end;
-
-    // Add buttons
-    for MsgButton in Buttons do begin
-      case MsgButton of
-        mbYes:       AddButton('Yes', mrYes, 805);
-        mbNo:        AddButton('No', mrNo, 806);
-        mbOK:        AddButton('OK', mrOk, 800);
-        mbCancel:    AddButton('Cancel', mrCancel, 801);
-        mbAbort:     AddButton('Abort', mrAbort, 802);
-        mbRetry:     AddButton('Retry', mrRetry, 803);
-        mbIgnore:    AddButton('Ignore', mrIgnore, 804);
-        mbAll:       AddButton('All', mrAll);
-        mbNoToAll:   AddButton('No to all', mrNoToAll);
-        mbYesToAll:  AddButton('Yes to all', mrYesToAll);
-        mbClose:     AddButton('Close', mrClose, 807);
-      end;
-    end;
-
-    // Checkbox, s'il vous plait?
-    KeepAskingValue := True;
-    if KeepAskingSetting <> asUnused then begin
-      if (not (mbNo in Buttons)) and (Buttons <> [mbOK]) then
-        raise Exception.CreateFmt(_('Missing "No" button in %() call'), ['MessageDialog']);
-      KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting);
-      Dialog.Flags := Dialog.Flags + [tfVerificationFlagChecked];
-      if Buttons = [mbOK] then
-        Dialog.VerificationText := _('Keep showing this dialog.')
-      else
-        Dialog.VerificationText := _('Keep asking this question.');
-    end;
-
-    // Supress dialog and assume "No" if user disabled this dialog
-    if KeepAskingValue then begin
-      Dialog.Execute;
-      Result := Dialog.ModalResult;
-      if (KeepAskingSetting <> asUnused) and (not (tfVerificationFlagChecked in Dialog.Flags)) then
-        AppSettings.WriteBool(KeepAskingSetting, False);
-    end else
-      Result := mrNo;
-
-    Dialog.Free;
-  end else begin
-    // Backwards compatible dialog on Windows XP
-    m := Msg;
-    if not Title.IsEmpty then
-      m := Title + SLineBreak + SLineBreak + m;
-    if not FooterText.IsEmpty then
-      m := m + SLineBreak + SLineBreak + FooterText;
-
-    if KeepAskingSetting <> asUnused then
-      KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting)
     else
-      KeepAskingValue := True;
-
-    if KeepAskingValue then
-      Result := MessageDlg(m, DlgType, Buttons, 0)
-    else
-      Result := mrNo;
+      Dialog.MainIcon := tdiNone;
   end;
 
-  AppSettings.RestorePath;
-end;}
+  // Add buttons
+  for MsgButton in Buttons do begin
+    case MsgButton of
+      mbYes:       AddButton('Yes', mrYes, 805);
+      mbNo:        AddButton('No', mrNo, 806);
+      mbOK:        AddButton('OK', mrOk, 800);
+      mbCancel:    AddButton('Cancel', mrCancel, 801);
+      mbAbort:     AddButton('Abort', mrAbort, 802);
+      mbRetry:     AddButton('Retry', mrRetry, 803);
+      mbIgnore:    AddButton('Ignore', mrIgnore, 804);
+      mbAll:       AddButton('All', mrAll);
+      mbNoToAll:   AddButton('No to all', mrNoToAll);
+      mbYesToAll:  AddButton('Yes to all', mrYesToAll);
+      mbClose:     AddButton('Close', mrClose, 807);
+    end;
+  end;
+
+  // Checkbox, s'il vous plait?
+  KeepAskingValue := True;
+  if KeepAskingSetting <> asUnused then begin
+    if (not (mbNo in Buttons)) and (Buttons <> [mbOK]) then
+      raise Exception.CreateFmt(_('Missing "No" button in %() call'), ['MessageDialog']);
+    KeepAskingValue := True; //AppSettings.ReadBool(KeepAskingSetting);
+    Dialog.Flags := Dialog.Flags + [tfVerificationFlagChecked];
+    if Buttons = [mbOK] then
+      Dialog.VerificationText := _('Keep showing this dialog.')
+    else
+      Dialog.VerificationText := _('Keep asking this question.');
+  end;
+
+  // Supress dialog and assume "No" if user disabled this dialog
+  if KeepAskingValue then begin
+    Dialog.Execute;
+    Result := Dialog.ModalResult;
+    //if (KeepAskingSetting <> asUnused) and (not (tfVerificationFlagChecked in Dialog.Flags)) then
+    //  AppSettings.WriteBool(KeepAskingSetting, False);
+  end else
+    Result := mrNo;
+
+  Dialog.Free;
+
+  //AppSettings.RestorePath;
+end;
 
 
-{function ErrorDialog(Msg: string): Integer;
+function ErrorDialog(Msg: string): Integer;
 begin
   Result := MessageDialog('', Msg, mtError, [mbOK]);
-end;}
+end;
 
 
-{function ErrorDialog(const Title, Msg: string): Integer;
+function ErrorDialog(const Title, Msg: string): Integer;
 begin
   Result := MessageDialog(Title, Msg, mtError, [mbOK]);
-end;}
+end;
 
 
 {function GetLocaleString(const ResourceId: Integer): WideString;
@@ -2787,7 +2750,7 @@ begin}
 //end;
 
 
-{procedure Help(Sender: TObject; Anchor: String);
+procedure Help(Sender: TObject; Anchor: String);
 var
   Place: String;
 begin
@@ -2800,8 +2763,8 @@ begin
     Place := 'unhandled-'+Sender.ClassName;
   if not Anchor.IsEmpty then
     Anchor := '#'+Anchor;
-  ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
-end;}
+  LCLIntf.OpenURL(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
+end;
 
 
 {function PortOpen(Port: Word): Boolean;
@@ -2926,7 +2889,7 @@ const}
 end;}
 
 
-{function PopupComponent(Sender: TObject): TComponent;
+function PopupComponent(Sender: TObject): TComponent;
 var
   Menu: TObject;
 begin
@@ -2943,14 +2906,17 @@ begin
 
   if Menu is TPopupMenu then
     Result := (Menu as TPopupMenu).PopupComponent;
-end;}
+end;
 
 
-{function IsWine: Boolean;
+function IsWine: Boolean;
+{$IfDef WINDOWS}
 var
   NTHandle: THandle;
   wine_nt_to_unix_file_name: procedure(p1:pointer; p2:pointer); stdcall;
+{$EndIf}
 begin
+  {$IfDef WINDOWS}
   // Detect if we're running on Wine, not on native Windows
   // Idea taken from http://ruminatedrumblings.blogspot.com/2008/04/detecting-virtualized-environment.html
   if IsWineStored = -1 then begin
@@ -2962,8 +2928,12 @@ begin
     IsWineStored := IfThen(Assigned(wine_nt_to_unix_file_name), 1, 0);
     FreeLibrary(NTHandle);
   end;
+  {$EndIf}
+  {$IfDef LINUX}
+  IsWineStored := 0;
+  {$EndIf}
   Result := IsWineStored = 1;
-end;}
+end;
 
 
 function DirSep: Char;

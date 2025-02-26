@@ -7,9 +7,9 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
   ComCtrls, ExtCtrls, SynEdit, SynHighlighterSQL, laz.VirtualTrees,
-  RegExpr, Buttons, StdCtrls,
+  RegExpr, Buttons, StdCtrls, fphttpclient, Math, LCLIntf,
   Generics.Collections, Generics.Defaults,
-  dbconnection, dbstructures, dbstructures.mysql;
+  dbconnection, dbstructures, dbstructures.mysql, generic_types;
 
 
 type
@@ -228,6 +228,7 @@ type
     ToolBarTree: TToolBar;
     ToolBarMainButtons: TToolBar;
     ToolButton1: TToolButton;
+    ToolButtonDonate: TToolButton;
     //procedure actCreateDBObjectExecute(Sender: TObject);
     //procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
@@ -237,7 +238,7 @@ type
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
     //procedure FormShow(Sender: TObject);
-    //procedure FormResize(Sender: TObject);
+    procedure FormResize(Sender: TObject);
     //procedure AddEditorCommandMenu(const S: string);
     //procedure EditorCommandOnClick(Sender: TObject);
     //procedure actUserManagerExecute(Sender: TObject);
@@ -540,7 +541,7 @@ type
     //procedure menuClearDataTabFilterClick(Sender: TObject);
     //procedure actUnixTimestampColumnExecute(Sender: TObject);
     //procedure PopupQueryLoadPopup(Sender: TObject);
-    //procedure DonateClick(Sender: TObject);
+    procedure DonateClick(Sender: TObject);
     //procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
     //procedure ApplicationDeActivate(Sender: TObject);
     //procedure ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
@@ -681,7 +682,7 @@ type
     FTimeZoneOffset: Integer;
     FGridCopying: Boolean;
     FGridPasting: Boolean;
-    //FHasDonatedDatabaseCheck: TThreeStateBoolean;
+    FHasDonatedDatabaseCheck: TThreeStateBoolean;
     //FFocusedTables: TDBObjectList;
     FLastCaptionChange: Cardinal;
     FListTablesSorted: Boolean;
@@ -819,7 +820,7 @@ type
     //procedure ProgressStep;
     //procedure SetProgressState(State: TProgressbarState);
     //procedure TaskDialogHyperLinkClicked(Sender: TObject);
-    //function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
+    function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
     //procedure ApplyVTFilter(FromTimer: Boolean);
     //procedure ApplyFontToGrids;
     //procedure PrepareImageList;
@@ -856,7 +857,7 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, apphelpers;
+  FileInfo, winpeimagereader, elfreader, machoreader, apphelpers, About;
 
 {$R *.lfm}
 
@@ -1694,9 +1695,9 @@ begin
   SessionPaths := TStringList.Create;
   AppSettings.GetSessionPaths('', SessionPaths);}
 
-  {// Probably hide image
+  // Probably hide image
   FHasDonatedDatabaseCheck := nbUnset;
-  ToolBarDonate.Visible := HasDonated(True) <> nbTrue;}
+  //ToolBarDonate.Visible := HasDonated(True) <> nbTrue;
 
   {// Call user statistics if checked in settings
   if AppSettings.ReadBool(asDoUsageStatistics) then begin
@@ -2227,7 +2228,7 @@ begin
   Help(Sender, '');
 end;}
 
-{procedure TMainForm.FormResize(Sender: TObject);
+procedure TMainForm.FormResize(Sender: TObject);
 var
   PanelRect: TRect;
   w0, w1, w2, w3, w4, w5, w6: Integer;
@@ -2236,7 +2237,7 @@ var
   var
     MaxPixels: Integer;
   begin
-    MaxPixels := StatusBar.Canvas.TextWidth(SampleText) + VirtualImageListMain.Width + 20;
+    MaxPixels := StatusBar.Canvas.TextWidth(SampleText) + ImageListIcons8.Width + 20;
     Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
@@ -2265,7 +2266,7 @@ begin
   StatusBar.Panels[6].Width := w6;
 
   // Retreive the rectancle of the statuspanel (in our case the fifth panel)
-  if not IsWine then begin
+  {if not IsWine then begin
     SendMessage(StatusBar.Handle, SB_GETRECT, 5, Integer(@PanelRect));
     // Position the progressbar over the panel on the statusbar
     ProgressBarStatus.SetBounds(
@@ -2274,20 +2275,20 @@ begin
       PanelRect.Right-PanelRect.Left,
       PanelRect.Bottom-PanelRect.Top
       );
-  end;
+  end;}
 
-  lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
-  FixQueryTabCloseButtons;
+  {lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
+  FixQueryTabCloseButtons;}
 
   // Right aligned button
   // Do not set ToolBar.Align to alRight. See issue #1967
-  if ToolBarDonate.Visible then begin
+  {if ToolBarDonate.Visible then begin
     //ToolBarDonate.Width := ToolBarDonate.Buttons[0].Width;
     ToolBarDonate.Left := ControlBarMain.Width - ToolBarDonate.Width;
     //ToolBarDonate.Buttons[0].Height := ToolBarMainButtons.Buttons[0].Height;
-  end;
+  end;}
 
-end;}
+end;
 
 {procedure TMainForm.FormShow(Sender: TObject);
 begin
@@ -2607,7 +2608,7 @@ begin
 end;}
 
 
-{procedure TMainForm.DonateClick(Sender: TObject);
+procedure TMainForm.DonateClick(Sender: TObject);
 var
   Dialog: TWinControl;
   place: String;
@@ -2622,9 +2623,9 @@ begin
     ErrorDialog(f_('Could not determine parent form of this %s', [Sender.ClassName]))
   else begin
     place := LowerCase(Dialog.UnitName);
-    ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
+    OpenURL(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
   end;
-end;}
+end;
 
 
 {procedure TMainForm.actExportSettingsExecute(Sender: TObject);
@@ -14302,15 +14303,15 @@ begin
 end;}
 
 
-{function TMainForm.HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
+function TMainForm.HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
 var
   Email, CheckResult: String;
   rx: TRegExpr;
-  CheckWebpage: THttpDownload;
+  CheckWebpage: TFPHttpClient;
 begin
   Screen.Cursor := crHourGlass;
   if (FHasDonatedDatabaseCheck = nbUnset) or (ForceCheck) then begin
-    Email := AppSettings.ReadString(asDonatedEmail);
+    Email := ''; //AppSettings.ReadString(asDonatedEmail);
     if Email = '' then begin
       // Nothing to check, we know this is not valid
       FHasDonatedDatabaseCheck := nbFalse;
@@ -14321,11 +14322,9 @@ begin
       //   = 1 : Not a donor
       //   = 2 : Valid donor
       rx := TRegExpr.Create;
-      CheckWebpage := THttpDownload.Create(MainForm);
-      CheckWebpage.URL := APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email);
+      CheckWebpage := TFPHttpClient.Create(MainForm);
       try
-        CheckWebpage.SendRequest('');
-        CheckResult := CheckWebpage.LastContent;
+        CheckResult := CheckWebpage.Get(APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email));
         LogSQL('HTTP response: "'+CheckResult+'"', lcDebug);
         rx.Expression := '^\d';
         if rx.Exec(CheckResult) then begin
@@ -14346,7 +14345,7 @@ begin
   end;
   Result := FHasDonatedDatabaseCheck;
   Screen.Cursor := crDefault;
-end;}
+end;
 
 
 {procedure TMainForm.actPreviousResultExecute(Sender: TObject);
