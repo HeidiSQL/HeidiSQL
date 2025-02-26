@@ -88,7 +88,7 @@ type
     public
       property Handle: TLibHandle read FHandle;
       property DllFile: String read FDllFile;
-      constructor Create(DllFile_, DefaultDll: String); virtual;
+      constructor Create(UsedDllFile, HintDefaultDll: String); virtual;
       destructor Destroy; override;
   end;
 
@@ -148,13 +148,13 @@ end;
 
 { TDbLib }
 
-constructor TDbLib.Create(DllFile_, DefaultDll: String);
+constructor TDbLib.Create(UsedDllFile, HintDefaultDll: String);
 var
   msg, ErrorHint: String;
 begin
   // Load DLL as is (with or without path)
   inherited Create;
-  FDllFile := DllFile_;
+  FDllFile := UsedDllFile;
   if not FileExists(FDllFile) then begin
     msg := f_('File does not exist: %s', [FDllFile]) +
       sLineBreak + sLineBreak +
@@ -171,9 +171,9 @@ begin
     if GetLastOSError <> 0 then begin
       msg := msg + sLineBreak + sLineBreak + f_('Internal error %d: %s', [GetLastOSError, SysErrorMessage(GetLastOSError)]);
     end;
-    if (DefaultDll <> '') and (ExtractFileName(FDllFile) <> DefaultDll) then begin
+    if (HintDefaultDll <> '') and (ExtractFileName(FDllFile) <> HintDefaultDll) then begin
       ErrorHint := f_('You could try the default library %s in your session settings. (Current: %s)',
-        [DefaultDll, ExtractFileName(FDllFile)]
+        [HintDefaultDll, ExtractFileName(FDllFile)]
         );
     end else begin
       ErrorHint := '';

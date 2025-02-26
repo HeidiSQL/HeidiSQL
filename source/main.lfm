@@ -627,8 +627,15 @@ object MainForm: TMainForm
         Align = alClient
         DefaultText = 'Node'
         Header.AutoSizeIndex = 0
-        Header.Columns = <>
-        Header.MainColumn = -1
+        Header.Columns = <        
+          item
+            Position = 0
+            Text = 'Name'
+          end        
+          item
+            Position = 1
+            Text = 'Size'
+          end>
         TabOrder = 3
       end
     end
@@ -669,7 +676,105 @@ object MainForm: TMainForm
         TabOrder = 1
         object tabHost: TTabSheet
           Caption = 'Host'
+          ClientHeight = 283
+          ClientWidth = 772
           ImageIndex = 1
+          object PageControlHost: TPageControl
+            Left = 0
+            Height = 283
+            Top = 0
+            Width = 772
+            ActivePage = tabDatabases
+            Align = alClient
+            Images = ImageListIcons8
+            TabIndex = 0
+            TabOrder = 0
+            object tabDatabases: TTabSheet
+              Caption = 'Databases'
+              ClientHeight = 250
+              ClientWidth = 764
+              object ListDatabases: TLazVirtualStringTree
+                Left = 0
+                Height = 250
+                Top = 0
+                Width = 764
+                Align = alClient
+                DefaultText = 'Node'
+                Header.AutoSizeIndex = 0
+                Header.Columns = <                
+                  item
+                    Position = 0
+                    Text = 'Database'
+                    Width = 150
+                  end                
+                  item
+                    Position = 1
+                    Text = 'Size'
+                    Width = 80
+                  end                
+                  item
+                    Position = 2
+                    Text = 'Items'
+                    Width = 50
+                  end                
+                  item
+                    Position = 3
+                    Text = 'Last modification'
+                    Width = 50
+                  end                
+                  item
+                    Position = 4
+                    Text = 'Tables'
+                    Width = 50
+                  end                
+                  item
+                    Position = 5
+                    Text = 'Views'
+                    Width = 50
+                  end                
+                  item
+                    Position = 6
+                    Text = 'Functions'
+                    Width = 50
+                  end                
+                  item
+                    Position = 7
+                    Text = 'Procedures'
+                    Width = 50
+                  end                
+                  item
+                    Position = 8
+                    Text = 'Triggers'
+                    Width = 50
+                  end                
+                  item
+                    Position = 9
+                    Text = 'Events'
+                    Width = 50
+                  end                
+                  item
+                    Position = 10
+                    Text = 'Default collation'
+                    Width = 120
+                  end>
+                Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+                Images = ImageListIcons8
+                TabOrder = 0
+              end
+            end
+            object tabVariables: TTabSheet
+              Caption = 'Variables'
+            end
+            object tabStatus: TTabSheet
+              Caption = 'Status'
+            end
+            object tabProcesses: TTabSheet
+              Caption = 'Processes'
+            end
+            object tabCommandStats: TTabSheet
+              Caption = 'Command-Statistics'
+            end
+          end
         end
         object tabDatabase: TTabSheet
           Caption = 'Database'

@@ -260,7 +260,6 @@ type
   end;
   PMYSQL_RES = ^MYSQL_RES;
 
-  Tmgci = function: PAnsiChar; stdcall;
   TMySQLLib = class(TDbLib)
     mysql_affected_rows: function(Handle: PMYSQL): Int64; stdcall;
     mysql_character_set_name: function(Handle: PMYSQL): PAnsiChar; stdcall;
@@ -317,7 +316,7 @@ type
       SSL_MODE_REQUIRED,
       SSL_MODE_VERIFY_CA,
       SSL_MODE_VERIFY_IDENTITY: Integer;
-      constructor Create(DllFile_, DefaultDll: String); override;
+      constructor Create(UsedDllFile, HintDefaultDll: String); override;
   end;
 var
   MySQLKeywords: TStringList;
@@ -325,8 +324,7 @@ var
 
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array of TDBDatatype;
-  {MySQLDatatypes: array [0..41] of TDBDatatype =
+  MySQLDatatypes: array [0..41] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -1012,7 +1010,7 @@ var
       Category:        dtcSpatial;
     )
 
-  );}
+  );
 
 
   MySQLVariables: array [0..417] of TServerVariable =
@@ -3134,9 +3132,7 @@ implementation
 uses apphelpers;
 
 
-constructor TMySQLLib.Create(DllFile_, DefaultDll: String);
-var
-  BaseDll: String;
+constructor TMySQLLib.Create(UsedDllFile, HintDefaultDll: String);
 begin
   inherited;
   // MYSQL_OPT_* constants
@@ -3159,8 +3155,7 @@ begin
   SSL_MODE_REQUIRED := 3;
   SSL_MODE_VERIFY_CA := 4;
   SSL_MODE_VERIFY_IDENTITY := 5;
-  BaseDll := ExtractFileName(FDllFile);
-  if BaseDLL.StartsWith('libmariadb', True) then begin
+  if String(ExtractFileName(FDllFile)).StartsWith('libmariadb', True) then begin
     // Differences in libmariadb
     MYSQL_OPT_SSL_VERIFY_SERVER_CERT := 21;
     MARIADB_OPT_TLS_VERSION := 7005;

@@ -5,12 +5,13 @@ unit apphelpers;
 interface
 
 uses
-  Classes, SysUtils,
-  dbconnection;
+  Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
+  StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd,
+  dbconnection, dbstructures;
 
 type
 
-  {TSortItemOrder = (sioAscending, sioDescending);
+  TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)
     public
       Column: String;
@@ -23,14 +24,14 @@ type
       function ComposeOrderClause(Connection: TDBConnection): String;
       function FindByColumn(Column: String): TSortItem;
       procedure Assign(Source: TSortItems);
-  end;}
+  end;
 
   TLineBreaks = (lbsNone, lbsWindows, lbsUnix, lbsMac, lbsWide, lbsMixed);
 
-  {TUTF8NoBOMEncoding = class(TUTF8Encoding)
+  TUTF8NoBOMEncoding = class(TUTF8Encoding)
     public
       function GetPreamble: TBytes; override;
-  end;}
+  end;
 
   {TDBObjectEditor = class(TFrame)
     private
@@ -51,7 +52,7 @@ type
   end;
   TDBObjectEditorClass = class of TDBObjectEditor;}
 
-  {TSQLBatch = class;
+  TSQLBatch = class;
   TSQLSentence = class(TObject)
     private
       FOwner: TSQLBatch;
@@ -76,7 +77,7 @@ type
       property Size: Integer read GetSize;
       property SQL: String read FSQL write SetSQL;
       property SQLWithoutComments: String read GetSQLWithoutComments;
-  end; }
+  end;
 
   // Download
   {THttpDownload = class(TObject)
@@ -100,16 +101,16 @@ type
   end; }
 
   // Extended string list with support for empty values
-  {TExtStringList = class(TStringList)
+  TExtStringList = class(TStringList)
     private
       function GetValue(const Name: string): string;
       procedure SetValue(const Name, Value: string); reintroduce;
     public
       property Values[const Name: string]: string read GetValue write SetValue;
-  end;}
+  end;
 
   // Threading stuff
-  {TQueryThread = class(TThread)
+  TQueryThread = class(TThread)
   private
     FConnection: TDBConnection;
     FBatch: TSQLBatch;
@@ -126,6 +127,12 @@ type
     FRowsAffected: Int64;
     FRowsFound: Int64;
     FWarningCount: Int64;
+    FLogMsg: String;
+    FLogCategory: TDBLogCategory;
+    procedure BeforeQuery;
+    procedure AfterQuery;
+    procedure BatchFinished;
+    procedure Log;
   public
     property Connection: TDBConnection read FConnection;
     property Batch: TSQLBatch read FBatch;
@@ -143,24 +150,24 @@ type
     constructor Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
     procedure Execute; override;
     procedure LogFromThread(Msg: String; Category: TDBLogCategory);
-  end;}
+  end;
 
   {TSqlTranspiler = class(TObject)
     class function CreateTable(SQL: String; SourceDb, TargetDb: TDBConnection): String;
   end;}
 
-  {TClipboardHelper = class helper for TClipboard
+  TClipboardHelper = class helper for TClipboard
   private
     function GetTryAsText: String;
     procedure SetTryAsText(AValue: String);
   public
     property TryAsText: String read GetTryAsText write SetTryAsText;
-  end;}
+  end;
 
-  {TWinControlHelper = class helper for TWinControl
+  TWinControlHelper = class helper for TWinControl
   public
     procedure TrySetFocus;
-  end;}
+  end;
 
   //TSimpleKeyValuePairs = TDictionary<String, String>;
 
@@ -312,40 +319,40 @@ type
 
   function Implode(Separator: String; a: TStrings): String;
   function Explode(Separator, Text: String) :TStringList;
-  //procedure ExplodeQuotedList(Text: String; var List: TStringList);
-  //function StrEllipsis(const S: String; MaxLen: Integer; FromLeft: Boolean=True): String;
-  //function encrypt(str: String): String;
-  //function decrypt(str: String): String;
-  //function HTMLSpecialChars(str: String): String;
-  //function EncodeURLParam(const Value: String): String;
-  //procedure StreamWrite(S: TStream; Text: String = '');
-  //function _GetFileSize(Filename: String): Int64;
+  procedure ExplodeQuotedList(Text: String; var List: TStringList);
+  function StrEllipsis(const S: String; MaxLen: Integer; FromLeft: Boolean=True): String;
+  function encrypt(str: String): String;
+  function decrypt(str: String): String;
+  function HTMLSpecialChars(str: String): String;
+  function EncodeURLParam(const Value: String): String;
+  procedure StreamWrite(S: TStream; Text: String = '');
+  function _GetFileSize(Filename: String): Int64;
   //function DeleteFileWithUndo(sFileName: String): Boolean;
-  //function MakeInt(Str: String) : Int64;
-  //function MakeFloat(Str: String): Extended;
-  //function RoundCommercial(e: Extended): Int64;
-  //function CleanupNumber(Str: String): String;
-  //function IsInt(Str: String): Boolean;
-  //function IsFloat(Str: String): Boolean;
-  //function ScanLineBreaks(Text: String): TLineBreaks;
-  //function fixNewlines(txt: String): String;
-  //procedure StripNewLines(var txt: String; Replacement: String=' ');
-  //function GetLineBreak(LineBreakIndex: TLineBreaks): String;
-  //procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
+  function MakeInt(Str: String) : Int64;
+  function MakeFloat(Str: String): Extended;
+  function RoundCommercial(e: Extended): Int64;
+  function CleanupNumber(Str: String): String;
+  function IsInt(Str: String): Boolean;
+  function IsFloat(Str: String): Boolean;
+  function ScanLineBreaks(Text: String): TLineBreaks;
+  function fixNewlines(txt: String): String;
+  procedure StripNewLines(var txt: String; Replacement: String=' ');
+  function GetLineBreak(LineBreakIndex: TLineBreaks): String;
+  procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
   //function GetShellFolder(FolderId: TGUID): String;
-  //function ValidFilename(Str: String): String;
-  //function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
-  //function UnformatNumber(Val: String): String;
-  //function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
-  //function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
+  function ValidFilename(Str: String): String;
+  function FormatNumber( str: String; Thousands: Boolean=True): String; Overload;
+  function UnformatNumber(Val: String): String;
+  function FormatNumber( int: Int64; Thousands: Boolean=True): String; Overload;
+  function FormatNumber( flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
   //procedure ShellExec(cmd: String; path: String=''; params: String=''; RunHidden: Boolean=False);
-  //function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
-  //function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String; Overload;
-  //function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
-  //function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
-  //function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
-  //function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
-  //function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
+  function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
+  function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String; Overload;
+  function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String; Overload;
+  function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
+  function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
+  function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
+  function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   //function GetTempDir: String;
   //procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   //procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
@@ -354,11 +361,11 @@ type
   //function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   //function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
   //procedure StreamToClipboard(Text, HTML: TStream);
-  //function WideHexToBin(text: String): AnsiString;
-  //function BinToWideHex(bin: AnsiString): String;
+  function WideHexToBin(text: String): AnsiString;
+  function BinToWideHex(bin: AnsiString): String;
   //procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
   //function GetTextHeight(Font: TFont): Integer;
-  //function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
+  function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   //procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   //function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   //function SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
@@ -369,8 +376,8 @@ type
   //function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   //function DateBackFriendlyCaption(d: TDateTime): String;
   //function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
-  //function TruncDef(X: Real; Default: Int64): Int64;
-  //function GetLightness(AColor: TColor): Byte;
+  function TruncDef(X: Real; Default: Int64): Int64;
+  function GetLightness(AColor: TColor): Byte;
   //function ParamBlobToStr(lpData: Pointer): String;
   //function ParamStrToBlob(out cbData: DWORD): Pointer;
   //function CheckForSecondInstance: Boolean;
@@ -385,8 +392,8 @@ type
   //function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
   //function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
   //function GetImageLinkTimeStamp(const FileName: string): TDateTime;
-  //function IsEmpty(Str: String): Boolean;
-  //function IsNotEmpty(Str: String): Boolean;
+  function IsEmpty(Str: String): Boolean;
+  function IsNotEmpty(Str: String): Boolean;
   //function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer; overload;
   //function MessageDialog(const Title, Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons; KeepAskingSetting: TAppSettingIndex=asUnused; FooterText: String=''): Integer; overload;
   //function ErrorDialog(Msg: string): Integer; overload;
@@ -414,22 +421,22 @@ type
   //function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   //function PopupComponent(Sender: TObject): TComponent;
   //function IsWine: Boolean;
-  //function DirSep: Char;
+  function DirSep: Char;
   //procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   //function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
-  //function UserAgent(OwnerComponent: TComponent): String;
+  function UserAgent(OwnerComponent: TComponent): String;
   //function CodeIndent(Steps: Integer=1): String;
   //function EscapeHotkeyPrefix(Text: String): String;
 
 var
   //AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
-  //SystemImageList: TImageList = nil;
+  SystemImageList: TImageList = nil;
   //mtCriticalConfirmation: TMsgDlgType = mtCustom;
   //ConfirmIcon: TIcon;
   NumberChars: TSysCharSet;
   LibHandleUser32: THandle;
-  //UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
+  UTF8NoBOMEncoding: TUTF8NoBOMEncoding;
   DateTimeNever: TDateTime;
   IsWineStored: Integer = -1;
 
@@ -439,23 +446,23 @@ uses main; //, extra_controls;
 
 
 
-{function WideHexToBin(text: String): AnsiString;
+function WideHexToBin(text: String): AnsiString;
 var
   buf: AnsiString;
 begin
   buf := AnsiString(text);
   SetLength(Result, Length(text) div 2);
   HexToBin(PAnsiChar(buf), @Result[1], Length(Result));
-end;}
+end;
 
-{function BinToWideHex(bin: AnsiString): String;
+function BinToWideHex(bin: AnsiString): String;
 var
   buf: AnsiString;
 begin
   SetLength(buf, Length(bin) * 2);
   BinToHex(@bin[1], PAnsiChar(buf), Length(bin));
   Result := String(buf);
-end;}
+end;
 
 
 {***
@@ -510,7 +517,7 @@ end;
   @param integer Wished Length of string
   @return string
 }
-{function StrEllipsis(const S: String; MaxLen: Integer; FromLeft: Boolean=True): String;
+function StrEllipsis(const S: String; MaxLen: Integer; FromLeft: Boolean=True): String;
 begin
   Result := S;
   if Length(Result) <= MaxLen then
@@ -522,7 +529,7 @@ begin
     Result := Copy(Result, Length(Result)-MaxLen, Length(Result));
     Result := '…' + Result;
   end;
-end;}
+end;
 
 
 
@@ -532,7 +539,7 @@ end;}
   @param string Text to encrypt
   @return string Encrypted Text
 }
-{function encrypt(str: String) : String;
+function encrypt(str: String) : String;
 var
   i, salt, nr : integer;
   h : String;
@@ -550,7 +557,7 @@ begin
     result := result + h;
   end;
   result := result + inttostr(salt);
-end;}
+end;
 
 
 
@@ -560,7 +567,7 @@ end;}
   @param string Text to decrypt
   @return string Decrypted Text
 }
-{function decrypt(str: String) : String;
+function decrypt(str: String) : String;
 var
   j, salt, nr : integer;
 begin
@@ -576,24 +583,24 @@ begin
     result := result + chr(nr);
     inc(j, 2);
   end;
-end;}
+end;
 
 
-{function HTMLSpecialChars(str: String) : String;
+function HTMLSpecialChars(str: String) : String;
 begin
   // Convert critical HTML-characters to entities. Used in grid export.
   result := StringReplace(str, '&', '&amp;', [rfReplaceAll]);
   result := StringReplace(result, '<', '&lt;', [rfReplaceAll]);
   result := StringReplace(result, '>', '&gt;', [rfReplaceAll]);
-end;}
+end;
 
 
-{function EncodeURLParam(const Value: String): String;
+function EncodeURLParam(const Value: String): String;
 var
   c: Char;
-const}
-  //UnsafeChars: String = '*<>#%"{}|\^[]`?&+;';
-{begin
+const
+  UnsafeChars: String = '*<>#%"{}|\^[]`?&+;';
+begin
   // Encode critical chars in url parameter
   Result := '';
   for c in Value do begin
@@ -602,39 +609,28 @@ const}
     else
       Result := Result + c;
   end;
-end;}
+end;
 
 
 {**
   Write some UTF8 text to a file- or memorystream
 }
-{procedure StreamWrite(S: TStream; Text: String = '');
+procedure StreamWrite(S: TStream; Text: String = '');
 var
   utf8: AnsiString;
 begin
   utf8 := Utf8Encode(Text);
   S.Write(utf8[1], Length(utf8));
-end;}
+end;
 
 
 {***
   Return filesize of a given file
-  Partly taken from https://www.delphipraxis.net/194137-getfilesize-welches-ist-die-bessere-funktion-2.html
-  @param string Filename
-  @return int64 Size in bytes
 }
-{function _GetFileSize(Filename: String): Int64;
-var
-  Attr: TWin32FileAttributeData;
+function _GetFileSize(Filename: String): Int64;
 begin
-  FillChar(Attr, SizeOf(Attr), 0);
-  if GetFileAttributesEx(PChar(Filename), GetFileExInfoStandard, @Attr) then
-  begin
-    Result := Int64(Attr.nFileSizeHigh) shl 32 + Int64(Attr.nFileSizeLow);
-  end
-  else
-    Result := -1;
-end;}
+  Result := FileSize(Filename);
+end;
 
 
 {function DeleteFileWithUndo(sFileName: string): Boolean;
@@ -655,7 +651,7 @@ end;}
   @param string String-number
   @return int64
 }
-{function MakeInt(Str: String): Int64;
+function MakeInt(Str: String): Int64;
 begin
   // Result has to be of integer type
   try
@@ -663,10 +659,10 @@ begin
   except
     Result := 0;
   end;
-end;}
+end;
 
 
-{function CleanupNumber(Str: String): String;
+function CleanupNumber(Str: String): String;
 var
   i: Integer;
   HasDecimalSep: Boolean;
@@ -705,19 +701,19 @@ begin
   end;
   if (Result = '') or (Result = '-') then
     Result := '0';
-end;}
+end;
 
 
-{function IsInt(Str: String): Boolean;
+function IsInt(Str: String): Boolean;
 begin
   Result := IntToStr(MakeInt(Str)) = Str;
-end;}
+end;
 
 
-{function IsFloat(Str: String): Boolean;
+function IsFloat(Str: String): Boolean;
 begin
   Result := FloatToStr(MakeFloat(Str)) = Str;
-end;}
+end;
 
 
 {***
@@ -726,7 +722,7 @@ end;}
   @param String text representation of a number
   @return Extended
 }
-{function MakeFloat(Str: String): Extended;
+function MakeFloat(Str: String): Extended;
 var
   p_kb, p_mb, p_gb, p_tb, p_pb : Integer;
 begin
@@ -752,17 +748,17 @@ begin
     Result := Result * SIZE_TB
   else if (p_pb > 0) and (p_pb = Length(Str)-Length(NAME_PB)+1) then
     Result := Result * SIZE_PB;
-end;}
+end;
 
 
-{function RoundCommercial(e: Extended): Int64;
+function RoundCommercial(e: Extended): Int64;
 begin
   // "Kaufmännisch runden"
   // In contrast to Delphi's Round() which rounds *.5 to the next even number
   Result := Trunc(e);
   if Frac(e) >= 0.5 then
     Result := Result + 1;
-end;}
+end;
 
 
 {***
@@ -773,7 +769,7 @@ end;}
   @param string Text to test
   @return TLineBreaks
 }
-{function ScanLineBreaks(Text: String): TLineBreaks;
+function ScanLineBreaks(Text: String): TLineBreaks;
 var
   i, SeekSize: Integer;
   c: Char;
@@ -810,7 +806,7 @@ begin
     if Result = lbsMixed then
       break;
   until i > SeekSize;
-end;}
+end;
 
 
 {***
@@ -819,35 +815,35 @@ end;}
   @param string Text to fix
   @return string
 }
-{function fixNewlines(txt: String): String;
+function fixNewlines(txt: String): String;
 begin
   txt := StringReplace(txt, CRLF, #10, [rfReplaceAll]);
   txt := StringReplace(txt, #13, #10, [rfReplaceAll]);
   txt := StringReplace(txt, #10, CRLF, [rfReplaceAll]);
   result := txt;
-end;}
+end;
 
-{procedure StripNewLines(var txt: String; Replacement: String=' ');
+procedure StripNewLines(var txt: String; Replacement: String=' ');
 begin
   txt := StringReplace(txt, #13#10, Replacement, [rfReplaceAll]);
   txt := StringReplace(txt, #13, Replacement, [rfReplaceAll]);
   txt := StringReplace(txt, #10, Replacement, [rfReplaceAll]);
-end;}
+end;
 
-{function GetLineBreak(LineBreakIndex: TLineBreaks): String;
+function GetLineBreak(LineBreakIndex: TLineBreaks): String;
 begin
   case LineBreakIndex of
     lbsUnix: Result := LB_UNIX;
     lbsMac: Result := LB_MAC;
     else Result := CRLF;
   end;
-end;}
+end;
 
 
 {***
   Mangle input text so that SynEdit can load it.
 }
-{procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
+procedure RemoveNullChars(var Text: String; var HasNulls: Boolean);
 var
   i, Len: Integer;
 begin
@@ -859,7 +855,7 @@ begin
       HasNulls := True;
     end;
   end;
-end;}
+end;
 
 
 {***
@@ -887,21 +883,21 @@ end;}
   @param string Filename
   @return string
 }
-{function ValidFilename(Str: String): String;
+function ValidFilename(Str: String): String;
 var
   c: Char;
 begin
   Result := Str;
-  for c in TPath.GetInvalidFileNameChars do begin
+  {for c in TPath.GetInvalidFileNameChars do begin
     Result := StringReplace(Result, c, '_', [rfReplaceAll]);
-  end;
-end;}
+  end;}
+end;
 
 
 {**
   Unformat a formatted integer or float. Used for CSV export and composing WHERE clauses for grid editing.
 }
-{function UnformatNumber(Val: String): String;
+function UnformatNumber(Val: String): String;
 var
   i: Integer;
   HasDecim: Boolean;
@@ -930,7 +926,7 @@ begin
   end;
   if Result = '' then
     Result := '0';
-end;}
+end;
 
 
 {***
@@ -938,7 +934,7 @@ end;}
   @param string Text containing a number
   @return string
 }
-{function FormatNumber(str: String; Thousands: Boolean=True): String; Overload;
+function FormatNumber(str: String; Thousands: Boolean=True): String; Overload;
 var
   i, p, Left: Integer;
 begin
@@ -959,7 +955,7 @@ begin
         Insert(FormatSettings.ThousandSeparator, Result, i);
     end;
   end;
-end;}
+end;
 
 
 
@@ -969,10 +965,10 @@ end;}
   @param int64 Number to format
   @return string
 }
-{function FormatNumber(int: Int64; Thousands: Boolean=True): String; Overload;
+function FormatNumber(int: Int64; Thousands: Boolean=True): String; Overload;
 begin
   result := FormatNumber(IntToStr(int), Thousands);
-end;}
+end;
 
 
 
@@ -984,12 +980,12 @@ end;}
   @param integer Number of decimals
   @return string
 }
-{function FormatNumber(flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
+function FormatNumber(flt: Double; decimals: Integer = 0; Thousands: Boolean=True): String; Overload;
 begin
   Result := Format('%10.'+IntToStr(decimals)+'f', [flt]);
   Result := Trim(Result);
   Result := FormatNumber(Result, Thousands);
-end;}
+end;
 
 
 {***
@@ -1020,7 +1016,7 @@ end;}
   @param string Given text
   @return string First word-boundary
 }
-{function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
+function getFirstWord(text: String; MustStartWithWordChar: Boolean=True): String;
 var
   i : Integer;
   wordChars, wordCharsFirst : TSysCharSet;
@@ -1072,10 +1068,10 @@ begin
     end;
     inc(i);
   end;
-end;}
+end;
 
 
-{function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String;
+function RegExprGetMatch(Expression: String; var Input: String; ReturnMatchNum: Integer; DeleteFromSource, CaseInsensitive: Boolean): String;
 var
   rx: TRegExpr;
 begin
@@ -1093,17 +1089,17 @@ begin
     end;
   end;
   rx.Free;
-end;}
+end;
 
 
-{function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String;
+function RegExprGetMatch(Expression: String; Input: String; ReturnMatchNum: Integer): String;
 begin
   // Version without possibility to delete captured match from input
   Result := RegExprGetMatch(Expression, Input, ReturnMatchNum, False, False);
-end;}
+end;
 
 
-{function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
+function ExecRegExprI(const ARegExpr, AInputStr: RegExprString): Boolean;
 var
   r: TRegExpr;
 begin
@@ -1116,7 +1112,7 @@ begin
   finally
     r.Free;
   end;
-end;}
+end;
 
 
 {**
@@ -1126,7 +1122,7 @@ end;}
   @param Int64 Number of Bytes
   @param Byte Decimals to display when bytes is bigger than 1M
 }
-{function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
+function FormatByteNumber( Bytes: Int64; Decimals: Byte = 1 ): String; Overload;
 begin
   if Bytes >= FSIZE_PB then
     Result := FormatNumber( Bytes / SIZE_PB, Decimals ) + NAME_PB
@@ -1140,17 +1136,17 @@ begin
     Result := FormatNumber( Bytes / SIZE_KB, Decimals ) + NAME_KB
   else
     Result := FormatNumber( Bytes ) + NAME_BYTES
-end;}
+end;
 
 
 {**
   An overloaded function of the previous one which can
   take a string as input
 }
-{function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
+function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
 begin
   Result := FormatByteNumber( MakeInt(Bytes), Decimals );
-end;}
+end;
 
 
 {**
@@ -1158,7 +1154,7 @@ end;}
   @param Cardinal Number of seconds
   @result String 12:34:56.7
 }
-{function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
+function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
 var
   d, h, m, s, ms: Integer;
   msStr: String;
@@ -1189,7 +1185,7 @@ begin
       Result := Format('%.2d:%.2d h', [h, m]);
     end;
   end;
-end;}
+end;
 
 
 {function GetTempDir: String;
@@ -1458,7 +1454,7 @@ begin
 end;}
 
 
-{function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
+function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
 var
   Lightness: Byte;
 begin
@@ -1470,7 +1466,7 @@ begin
   else if (Lightness > 128) and (Shift > 0) then
     Shift := 0 - Abs(Shift);
   Result := ColorAdjustLuma(Col, Shift, true);
-end;}
+end;
 
 
 {procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
@@ -1680,17 +1676,17 @@ begin
 end;}
 
 
-{function TruncDef(X: Real; Default: Int64): Int64;
+function TruncDef(X: Real; Default: Int64): Int64;
 begin
   try
     Result := Trunc(X);
   except
     on EInvalidOp do Result := Default;
   end;
-end;}
+end;
 
 
-{procedure ExplodeQuotedList(Text: String; var List: TStringList);
+procedure ExplodeQuotedList(Text: String; var List: TStringList);
 var
   i: Integer;
   Quote: Char;
@@ -1718,10 +1714,10 @@ begin
     if Opened and (not Closed) then
       Item := Item + Text[i];
   end;
-end;}
+end;
 
 
-{function GetLightness(AColor: TColor): Byte;
+function GetLightness(AColor: TColor): Byte;
 var
   R, G, B: Byte;
   MaxValue, MinValue: Double;
@@ -1734,13 +1730,13 @@ begin
   MinValue := Min(Min(R,G),B);
   Lightness := (((MaxValue + MinValue) * 240) + 255 ) / 510;
   Result := Round(Lightness);
-end;}
+end;
 
 
 
 { *** TSortItem }
 
-{procedure TSortItem.Assign(Source: TPersistent);
+procedure TSortItem.Assign(Source: TPersistent);
 var
   SourceItem: TSortItem;
 begin
@@ -1751,21 +1747,21 @@ begin
   end
   else
     Inherited;
-end;}
+end;
 
 
 { *** TSortItems }
 
-{function TSortItems.AddNew(Column: String=''; Order: TSortItemOrder=sioAscending): TSortItem;
+function TSortItems.AddNew(Column: String=''; Order: TSortItemOrder=sioAscending): TSortItem;
 begin
   Result := TSortItem.Create;
   Result.Column := Column;
   Result.Order := Order;
   Add(Result);
-end;}
+end;
 
 
-{function TSortItems.ComposeOrderClause(Connection: TDBConnection): String;
+function TSortItems.ComposeOrderClause(Connection: TDBConnection): String;
 var
   SortItem: TSortItem;
   SortOrder: String;
@@ -1775,16 +1771,16 @@ begin
   for SortItem in Self do begin
     if Result <> '' then
       Result := Result + ', ';
-    if SortItem.Order = sioAscending then
-      SortOrder := Connection.GetSQLSpecifity(spOrderAsc)
-    else
-      SortOrder := Connection.GetSQLSpecifity(spOrderDesc);
-    Result := Result + Connection.QuoteIdent(SortItem.Column) + ' ' + SortOrder;
+    //if SortItem.Order = sioAscending then
+    //  SortOrder := Connection.GetSQLSpecifity(spOrderAsc)
+    //else
+    //  SortOrder := Connection.GetSQLSpecifity(spOrderDesc);
+    //Result := Result + Connection.QuoteIdent(SortItem.Column) + ' ' + SortOrder;
   end;
-end;}
+end;
 
 
-{function TSortItems.FindByColumn(Column: String): TSortItem;
+function TSortItems.FindByColumn(Column: String): TSortItem;
 var
   SortItem: TSortItem;
 begin
@@ -1795,10 +1791,10 @@ begin
       Break;
     end;
   end;
-end;}
+end;
 
 
-{procedure TSortItems.Assign(Source: TSortItems);
+procedure TSortItems.Assign(Source: TSortItems);
 var
   Item, ItemCopy: TSortItem;
 begin
@@ -1807,7 +1803,7 @@ begin
     ItemCopy := AddNew;
     ItemCopy.Assign(Item);
   end;
-end;}
+end;
 
 
 { *** TDBObjectEditor }
@@ -2308,17 +2304,17 @@ begin
 end;}
 
 
-{function IsEmpty(Str: String): Boolean;
+function IsEmpty(Str: String): Boolean;
 begin
   // Alternative version of "Str = ''"
   Result := Str = '';
-end;}
+end;
 
-{function IsNotEmpty(Str: String): Boolean;
+function IsNotEmpty(Str: String): Boolean;
 begin
   // Alternative version of "Str <> ''"
   Result := Str <> '';
-end;}
+end;
 
 
 {function MessageDialog(const Msg: string; DlgType: TMsgDlgType; Buttons: TMsgDlgButtons): Integer;
@@ -2970,13 +2966,10 @@ begin
 end;}
 
 
-{function DirSep: Char;
+function DirSep: Char;
 begin
-  if IsWine then
-    Result := '/'
-  else
-    Result := '\';
-end;}
+  Result := DirectorySeparator;
+end;
 
 {procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
 var
@@ -3000,16 +2993,22 @@ begin
 end;}
 
 
-{function UserAgent(OwnerComponent: TComponent): String;
+function UserAgent(OwnerComponent: TComponent): String;
 var
   OS: String;
 begin
-  if IsWine then
-    OS := 'Linux/Wine'
-  else
-    OS := 'Windows NT '+IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion);
+  OS := 'Unknown';
+  {$IfDef LINUX}
+  OS := 'Linux';
+  {$EndIf}
+  {$IfDef WINDOWS}
+  OS := 'Windows';
+  {$EndIf}
+  {$IfDef DARWIN}
+  OS := 'macOS';
+  {$EndIf}
   Result := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
-end;}
+end;
 
 
 {function CodeIndent(Steps: Integer=1): String;
@@ -3081,7 +3080,7 @@ end;}
 
 { Threading stuff }
 
-{constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
+constructor TQueryThread.Create(Connection: TDBConnection; Batch: TSQLBatch; TabNumber: Integer);
 begin
   inherited Create(False);
   FConnection := Connection;
@@ -3096,14 +3095,14 @@ begin
   FRowsFound := 0;
   FWarningCount := 0;
   FErrorMessage := '';
-  FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
-  FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
+  //FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
+  //FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
   FreeOnTerminate := True;
   Priority := tpNormal;
-end;}
+end;
 
 
-{procedure TQueryThread.Execute;
+procedure TQueryThread.Execute;
 var
   SQL: String;
   i, BatchStartOffset, ResultCount: Integer;
@@ -3126,9 +3125,9 @@ begin
     end else begin
       // Concat queries up to a size of max_allowed_packet
       if MaxAllowedPacket = 0 then begin
-        FConnection.SetLockedByThread(Self);
-        MaxAllowedPacket := FConnection.MaxAllowedPacket;
-        FConnection.SetLockedByThread(nil);
+        //FConnection.SetLockedByThread(Self);
+        //MaxAllowedPacket := FConnection.MaxAllowedPacket;
+        //FConnection.SetLockedByThread(nil);
         // TODO: Log('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
       end;
       BatchStartOffset := FBatch[i].LeftOffset;
@@ -3149,14 +3148,14 @@ begin
       end;
       FQueriesInPacket := i - FBatchPosition;
     end;
-    Synchronize(procedure begin MainForm.BeforeQueryExecution(Self); end);
+    Synchronize(BeforeQuery);
     try
-      FConnection.SetLockedByThread(Self);
+      {FConnection.SetLockedByThread(Self);
       DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
       if (not DoStoreResult) and (not LogMaxResultsDone) then begin
         // Inform user about preference setting for limiting result tabs
-        FConnection.Log(lcInfo,
-          f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)])
+        LogFromOutside(f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)]),
+          lcInfo
           );
         LogMaxResultsDone := True;
       end;
@@ -3167,7 +3166,7 @@ begin
       Inc(FQueryNetTime, FConnection.LastQueryNetworkDuration);
       Inc(FRowsAffected, FConnection.RowsAffected);
       Inc(FRowsFound, FConnection.RowsFound);
-      Inc(FWarningCount, FConnection.WarningCount);
+      Inc(FWarningCount, FConnection.WarningCount);}
     except
       on E:EDbError do begin
         if FStopOnErrors or (i = FBatch.Count - 1) then begin
@@ -3176,57 +3175,82 @@ begin
         end;
       end;
     end;
-    FConnection.SetLockedByThread(nil);
-    Synchronize(procedure begin MainForm.AfterQueryExecution(Self); end);
-    FConnection.ShowWarnings;
+    //FConnection.SetLockedByThread(nil);
+    Synchronize(AfterQuery);
+    //FConnection.ShowWarnings;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then
       break;
 	end;
 
-  Synchronize(procedure begin MainForm.FinishedQueryExecution(Self); end);
-end;}
+  Synchronize(BatchFinished);
+end;
 
 
-{procedure TQueryThread.LogFromThread(Msg: String; Category: TDBLogCategory);
+procedure TQueryThread.BeforeQuery;
 begin
-  Queue(procedure begin FConnection.Log(Category, Msg); end);
-end;}
+  //MainForm.BeforeQueryExecution(Self);
+end;
+
+procedure TQueryThread.LogFromThread(Msg: String; Category: TDBLogCategory);
+begin
+  FLogMsg := Msg;
+  FLogCategory := Category;
+  Queue(Log);
+end;
+
+
+procedure TQueryThread.Log;
+begin
+  //FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
+end;
+
+
+procedure TQueryThread.AfterQuery;
+begin
+  //MainForm.AfterQueryExecution(Self);
+end;
+
+
+procedure TQueryThread.BatchFinished;
+begin
+  //MainForm.FinishedQueryExecution(Self);
+end;
 
 
 { TSQLSentence }
 
-{constructor TSQLSentence.Create(Owner: TSQLBatch);
+constructor TSQLSentence.Create(Owner: TSQLBatch);
 begin
   // Use a back reference to the parent batch object, so we can extract SQL from it
   FOwner := Owner;
-end;}
+end;
 
 
-{function TSQLSentence.GetSize: Integer;
+function TSQLSentence.GetSize: Integer;
 begin
   Result := RightOffset - LeftOffset;
-end;}
+end;
 
 
-{function TSQLSentence.GetSQL: String;
+function TSQLSentence.GetSQL: String;
 begin
   // Result := Copy(FOwner.SQL, LeftOffset, RightOffset-LeftOffset);
   // Probably faster than Copy():
   SetString(Result, PChar(FOwner.SQL) +LeftOffset -1, RightOffset-LeftOffset);
-end;}
+end;
 
 
-{function TSQLSentence.GetSQLWithoutComments: String;
+function TSQLSentence.GetSQLWithoutComments: String;
 begin
   Result := FOwner.GetSQLWithoutComments(GetSQL);
-end;}
+end;
 
 
 { TSQLBatch }
 
-{function TSQLBatch.GetSize: Integer;
+function TSQLBatch.GetSize: Integer;
 var
   Query: TSQLSentence;
 begin
@@ -3234,10 +3258,10 @@ begin
   Result := 0;
   for Query in Self do
     Inc(Result, Query.Size);
-end;}
+end;
 
 
-{procedure TSQLBatch.SetSQL(Value: String);
+procedure TSQLBatch.SetSQL(Value: String);
 var
   i, AllLen, DelimLen, DelimStart, LastLeftOffset, RightOffset: Integer;
   c, n, LastStringEncloser: Char;
@@ -3328,14 +3352,14 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
-{function TSQLBatch.GetSQLWithoutComments: String;
+function TSQLBatch.GetSQLWithoutComments: String;
 begin
   Result := GetSQLWithoutComments(SQL);
-end;}
+end;
 
-{class function TSQLBatch.GetSQLWithoutComments(FullSQL: String): String;
+class function TSQLBatch.GetSQLWithoutComments(FullSQL: String): String;
 var
   InLineComment, InMultiLineComment: Boolean;
   AddCur: Boolean;
@@ -3382,7 +3406,7 @@ begin
       Result := Result + Cur;
     end;
   end;
-end;}
+end;
 
 { THttpDownload }
 
@@ -3484,20 +3508,20 @@ end;}
 { TExtStringList }
 // taken from https://stackoverflow.com/questions/33893377/can-i-prevent-tstringlist-removing-key-value-pair-when-value-set-to-empty
 
-{function TExtStringList.GetValue(const Name: string): string;
+function TExtStringList.GetValue(const Name: string): string;
 begin
   Result := Self.GetValue(Name);
-end;}
+end;
 
 
-{procedure TExtStringList.SetValue(const Name, Value: string);
+procedure TExtStringList.SetValue(const Name, Value: string);
 var
   I: Integer;
 begin
   I := IndexOfName(Name);
   if I < 0 then I := Add('');
   Put(I, Name + NameValueSeparator + Value);
-end;}
+end;
 
 
 { TSqlTranspiler }
@@ -3517,7 +3541,7 @@ end;}
 
 { TClipboardHelper }
 
-{function TClipboardHelper.GetTryAsText: String;
+function TClipboardHelper.GetTryAsText: String;
 var
   AttemptsLeft: Integer;
   Success: Boolean;
@@ -3542,9 +3566,9 @@ begin
   end;
   if not Success then
     MainForm.LogSQL(LastError, lcError);
-end;}
+end;
 
-{procedure TClipboardHelper.SetTryAsText(AValue: String);
+procedure TClipboardHelper.SetTryAsText(AValue: String);
 var
   AttemptsLeft: Integer;
   Success: Boolean;
@@ -3568,10 +3592,10 @@ begin
   end;
   if not Success then
     MainForm.LogSQL(LastError, lcError);
-end;}
+end;
 
 
-{procedure TWinControlHelper.TrySetFocus;
+procedure TWinControlHelper.TrySetFocus;
 begin
   try
     if Enabled
@@ -3579,9 +3603,9 @@ begin
       SetFocus;
   except
     on E:EInvalidOperation do
-      MessageBeep(MB_ICONWARNING);
+      Beep;
   end;
-end;}
+end;
 
 
 { TAppSettings }
@@ -4586,10 +4610,10 @@ end;}
 
 { TUTF8NoBOMEncoding }
 
-{function TUTF8NoBOMEncoding.GetPreamble: TBytes;
+function TUTF8NoBOMEncoding.GetPreamble: TBytes;
 begin
   SetLength(Result, 0);
-end;}
+end;
 
 
 initialization
@@ -4598,7 +4622,7 @@ NumberChars := ['0'..'9', FormatSettings.DecimalSeparator, FormatSettings.Thousa
 
 LibHandleUser32 := LoadLibrary('User32.dll');
 
-//UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
+UTF8NoBOMEncoding := TUTF8NoBOMEncoding.Create;
 
 DateTimeNever := MinDateTime;
 

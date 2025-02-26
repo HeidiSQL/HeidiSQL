@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
   ComCtrls, ExtCtrls, SynEdit, SynHighlighterSQL, laz.VirtualTrees,
-  RegExpr,
+  RegExpr, Buttons, StdCtrls,
   Generics.Collections, Generics.Defaults,
   dbconnection, dbstructures, dbstructures.mysql;
 
@@ -183,12 +183,16 @@ type
     function SetThumbnailClip(hwnd: HWND; var prcClip: TRect): HRESULT; stdcall;
   end;}
 
+  { TMainForm }
+
   TMainForm = class(TForm)
+    actGotoDbTree: TAction;
     actSessionManager: TAction;
     ActionList1: TActionList;
     actExitApplication: TAction;
     ImageListIcons8: TImageList;
     DBtree: TLazVirtualStringTree;
+    ListDatabases: TLazVirtualStringTree;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
     MenuItem2: TMenuItem;
@@ -198,6 +202,7 @@ type
     MenuItem6: TMenuItem;
     MenuItem7: TMenuItem;
     MenuItem8: TMenuItem;
+    PageControlHost: TPageControl;
     PageControlMain: TPageControl;
     Panel1: TPanel;
     Panel2: TPanel;
@@ -212,6 +217,11 @@ type
     SynSQLSynUsed: TSynSQLSyn;
     tabHost: TTabSheet;
     tabDatabase: TTabSheet;
+    tabDatabases: TTabSheet;
+    tabVariables: TTabSheet;
+    tabStatus: TTabSheet;
+    tabProcesses: TTabSheet;
+    tabCommandStats: TTabSheet;
     tabTable: TTabSheet;
     tabData: TTabSheet;
     tabQuery: TTabSheet;
@@ -638,65 +648,65 @@ type
     FLastTabNumberOnMouseUp: Integer;
     FLastMouseDownCloseButton: TObject;
     //FJumpList: TJumpList;
-    //// Filter text per tab for filter panel
-    //FFilterTextDatabases,
-    //FFilterTextEditor,
-    //FFilterTextVariables,
-    //FFilterTextStatus,
-    //FFilterTextProcessList,
-    //FFilterTextCommandStats,
-    //FFilterTextDatabase,
-    //FFilterTextData: String;
-    //FTreeRefreshInProgress: Boolean;
-    //FRefreshActionDisabledAt: Cardinal;
-    //FDataGridColumnWidthsCustomized: Boolean;
-    //FDataGridLastClickedColumnHeader: Integer;
-    //FDataGridLastClickedColumnLeftPos: Integer;
+    // Filter text per tab for filter panel
+    FFilterTextDatabases,
+    FFilterTextEditor,
+    FFilterTextVariables,
+    FFilterTextStatus,
+    FFilterTextProcessList,
+    FFilterTextCommandStats,
+    FFilterTextDatabase,
+    FFilterTextData: String;
+    FTreeRefreshInProgress: Boolean;
+    FRefreshActionDisabledAt: Cardinal;
+    FDataGridColumnWidthsCustomized: Boolean;
+    FDataGridLastClickedColumnHeader: Integer;
+    FDataGridLastClickedColumnLeftPos: Integer;
     //FDataGridSortItems: TSortItems;
-    //FSnippetFilenames: TStringList;
+    FSnippetFilenames: TStringList;
     //FConnections: TDBConnectionList;
-    //FTreeClickHistory: TNodeArray;
-    //FOperationTicker: Cardinal;
-    //FOperatingGrid: TBaseVirtualTree;
+    FTreeClickHistory: TNodeArray;
+    FOperationTicker: Cardinal;
+    FOperatingGrid: TBaseVirtualTree;
     //FActiveDbObj: TDBObject;
     //FActiveObjectGroup: TListNodeType;
-    //FBtnAddTab: TSpeedButton;
-    //FDBObjectsMaxSize: Int64;
-    //FDBObjectsMaxRows: Int64;
+    FBtnAddTab: TSpeedButton;
+    FDBObjectsMaxSize: Int64;
+    FDBObjectsMaxRows: Int64;
     //FSearchReplaceDialog: TfrmSearchReplace;
     //FCreateDatabaseDialog: TCreateDatabaseForm;
     //FTableToolsDialog: TfrmTableTools;
-    //FGridEditFunctionMode: Boolean;
-    //FClipboardHasNull: Boolean;
+    FGridEditFunctionMode: Boolean;
+    FClipboardHasNull: Boolean;
     FTimeZoneOffset: Integer;
-    //FGridCopying: Boolean;
-    //FGridPasting: Boolean;
+    FGridCopying: Boolean;
+    FGridPasting: Boolean;
     //FHasDonatedDatabaseCheck: TThreeStateBoolean;
     //FFocusedTables: TDBObjectList;
     FLastCaptionChange: Cardinal;
-    //FListTablesSorted: Boolean;
+    FListTablesSorted: Boolean;
     FLastPortableSettingsSave: Cardinal;
     FLastAppSettingsWrites: Integer;
     FFormatSettings: TFormatSettings;
     FDefaultHintFontName: String;
-    //FActionList1DefaultCaptions: TStringList;
-    //FActionList1DefaultHints: TStringList;
-    //FEditorCommandStrings: TStringList;
-    //FLastSelWordInEditor: String;
-    //FMatchingBraceForegroundColor: TColor;
-    //FMatchingBraceBackgroundColor: TColor;
-    //FSynEditInOnPaintTransient: Boolean;
-    //FExactRowCountMode: Boolean;
-    ////FHelpData: TSimpleKeyValuePairs;
-    //
-    //// Host subtabs backend structures
+    FActionList1DefaultCaptions: TStringList;
+    FActionList1DefaultHints: TStringList;
+    FEditorCommandStrings: TStringList;
+    FLastSelWordInEditor: String;
+    FMatchingBraceForegroundColor: TColor;
+    FMatchingBraceBackgroundColor: TColor;
+    FSynEditInOnPaintTransient: Boolean;
+    FExactRowCountMode: Boolean;
+    //FHelpData: TSimpleKeyValuePairs;
+
+    // Host subtabs backend structures
     //FHostListResults: TDBQueryList;
-    //FStatusServerUptime: Integer;
-    //FProcessListMaxTime: Int64;
-    //FCommandStatsQueryCount: Int64;
-    //FCommandStatsServerUptime: Integer;
-    //FVariableNames, FSessionVars, FGlobalVars: TStringList;
-    //
+    FStatusServerUptime: Integer;
+    FProcessListMaxTime: Int64;
+    FCommandStatsQueryCount: Int64;
+    FCommandStatsServerUptime: Integer;
+    FVariableNames, FSessionVars, FGlobalVars: TStringList;
+
     procedure SetDelimiter(Value: String);
     //procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     //procedure insertFunction(Sender: TObject);
@@ -733,25 +743,25 @@ type
   public
     //QueryTabs: TQueryTabList;
     //ActiveObjectEditor: TDBObjectEditor;
-    //FileEncodings: TStringList;
-    //ImportSettingsDone: Boolean;
-    //
+    FileEncodings: TStringList;
+    ImportSettingsDone: Boolean;
+
     //// Data grid related stuff
-    //DataGridHiddenColumns: TStringList;
-    //DataGridWantedRowCount: Int64;
+    DataGridHiddenColumns: TStringList;
+    DataGridWantedRowCount: Int64;
     //DataGridTable: TDBObject;
-    //DataGridFocusedCell: TStringList;
-    //DataGridFocusedNodeIndex: Int64;
-    //DataGridFocusedColumnName: String;
+    DataGridFocusedCell: TStringList;
+    DataGridFocusedNodeIndex: Int64;
+    DataGridFocusedColumnName: String;
     //DataGridResult: TDBQuery;
-    //DataGridFullRowMode: Boolean;
-    //DataLocalNumberFormat: Boolean;
+    DataGridFullRowMode: Boolean;
+    DataLocalNumberFormat: Boolean;
     //SelectedTableColumns: TTableColumnList;
     //SelectedTableKeys: TTableKeyList;
     //SelectedTableForeignKeys: TForeignKeyList;
     //SelectedTableTimestampColumns: TStringList;
-    //FilterPanelManuallyOpened: Boolean;
-    //
+    FilterPanelManuallyOpened: Boolean;
+
     //// Task button interface
     //TaskbarList: ITaskbarList;
     //TaskbarList2: ITaskbarList2;
@@ -1330,7 +1340,7 @@ var
   //EditorCommand: TSynEditorCommand;
   CmdCap: String;
   Lib: TMySQLLib;
-  test: String;
+  LibFile: String;
 begin
   {***
     OnCreate Event
@@ -1592,20 +1602,14 @@ begin
   FConnections := TDBConnectionList.Create;
   FConnections.OnNotify := ConnectionsNotify;}
 
-  {FTreeRefreshInProgress := False;
+  FTreeRefreshInProgress := False;
   FGridCopying := False;
-  FGridPasting := False;}
+  FGridPasting := False;
 
   {FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7,UTF-8-BOM');}
 
-  {// Detect timezone offset in seconds, once
-  case GetTimeZoneInformation(TZI) of
-    TIME_ZONE_ID_STANDARD: FTimeZoneOffset := (TZI.Bias + TZI.StandardBias);
-    TIME_ZONE_ID_DAYLIGHT: FTimeZoneOffset := (TZI.Bias + TZI.DaylightBias);
-    TIME_ZONE_ID_UNKNOWN: FTimeZoneOffset := TZI.Bias;
-    else RaiseLastOSError;
-  end;
-  FTimeZoneOffset := FTimeZoneOffset * 60;}
+  // Detect timezone offset in seconds, once
+  FTimeZoneOffset := GetLocalTimeOffset * 60;
 
   // Set noderoot for query helpers box
   {treeQueryHelpers.RootNodeCount := 7;}
@@ -1632,14 +1636,19 @@ begin
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
   LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
 
-  {Lib := TMySQLLib.Create(ExtractFilePath(Application.ExeName)+'libmariadb.dll', 'libmariadb.dll');
+  // Testwise load libmariadb on Linux and Windows
+  {$IfDef LINUX}
+  LibFile := 'libmariadb.so.3';
+  {$EndIf}
+  {$IfDef WINDOWS}
+  LibFile := 'libmariadb.dll';
+  {$EndIf}
+  Lib := TMySQLLib.Create(ExtractFilePath(Application.ExeName) + LibFile, LibFile);
   try
-     test := Lib.mysql_get_client_info;
-     LogSQL(test);
-     //ShowMessage(String(Lib.mysql_get_client_info));
+     LogSQL(Lib.DllFile + ' v'+Lib.mysql_get_client_info() + ' loaded');
   except on E:Exception do
-     ShowMessage('Wrong error: '+E.Message);
-  end;}
+     ShowMessage(E.Message);
+  end;
 end;
 
 
