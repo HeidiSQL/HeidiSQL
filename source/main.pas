@@ -248,7 +248,7 @@ type
     //procedure actTableToolsExecute(Sender: TObject);
     //procedure actPrintListExecute(Sender: TObject);
     //procedure actCopyTableExecute(Sender: TObject);
-    //procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
+    procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
     //procedure actExecuteQueryExecute(Sender: TObject);
     //procedure actCreateDatabaseExecute(Sender: TObject);
     //procedure actDataCancelChangesExecute(Sender: TObject);
@@ -296,7 +296,7 @@ type
     //procedure PageControlMainChange(Sender: TObject);
     //procedure PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
     //procedure PageControlHostChange(Sender: TObject);
-    //procedure ValidateControls(Sender: TObject);
+    procedure ValidateControls(Sender: TObject);
     //procedure ValidateQueryControls(Sender: TObject);
     //procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
     //  TargetCanvas: TCanvas);
@@ -665,7 +665,7 @@ type
     FDataGridLastClickedColumnLeftPos: Integer;
     //FDataGridSortItems: TSortItems;
     FSnippetFilenames: TStringList;
-    //FConnections: TDBConnectionList;
+    FConnections: TDBConnectionList;
     FTreeClickHistory: TNodeArray;
     FOperationTicker: Cardinal;
     FOperatingGrid: TBaseVirtualTree;
@@ -735,7 +735,7 @@ type
     //function RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
     //  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
     //procedure SetLogToFile(Value: Boolean);
-    //procedure StoreLastSessions;
+    procedure StoreLastSessions;
     //function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
     //function InitTabsIniFile: TIniFile;
     //procedure StoreTabs;
@@ -771,7 +771,7 @@ type
     //
     property AppVerRevision: Integer read FAppVerRevision;
     property AppVersion: String read FAppVersion;
-    //property Connections: TDBConnectionList read FConnections;
+    property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     //property FocusedTables: TDBObjectList read FFocusedTables;
     //function GetAlternatingRowBackground(Node: PVirtualNode): TColor;
@@ -783,7 +783,7 @@ type
     //procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
     //procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     //procedure SessionConnect(Sender: TObject);
-    //function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
+    function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
     //procedure ConnectionsNotify(Sender: TObject; const Item: TDBConnection; Action: TCollectionNotification);
     //function ActiveGrid: TVirtualStringTree;
     //function GridResult(Grid: TBaseVirtualTree): TDBQuery;
@@ -864,7 +864,7 @@ uses
 { TMainForm }
 
 
-{procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
+procedure TMainForm.ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
 var
   PanelRect: TRect;
 begin
@@ -876,16 +876,10 @@ begin
     if (PanelNr = 6) and (not IsWine) then begin
       // Immediately repaint this special panel, as it holds critical update messages,
       // while avoiding StatusBar.Repaint which refreshes all panels
-      SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
-      StatusBar.OnDrawPanel(StatusBar, StatusBar.Panels[PanelNr], PanelRect);
-      InvalidateRect(StatusBar.Handle, PanelRect, False);
-      // Alternatives:
-      //RedrawWindow(StatusBar.Handle, @PanelRect, 0, RDW_UPDATENOW);
-      //UpdateWindow(StatusBar.Handle);
-      //StatusBar.Repaint;
+      StatusBar.Repaint;
     end;
   end;
-end;}
+end;
 
 
 {procedure TMainForm.StatusBarClick(Sender: TObject);
@@ -1179,17 +1173,17 @@ begin
 end;}
 
 
-{procedure TMainForm.StoreLastSessions;
+procedure TMainForm.StoreLastSessions;
 var
   OpenSessions, SessionPaths, SortedSessions: TStringList;
   Connection: TDBConnection;
-  JumpTask: TJumpTask;
+  //JumpTask: TJumpTask;
   SessionPath: String;
   i: Integer;
   LastConnect: TDateTime;
 begin
   // Store names of open sessions
-  OpenSessions := TStringList.Create;
+  {OpenSessions := TStringList.Create;
   for Connection in Connections do
     OpenSessions.Add(Connection.Parameters.SessionPath);
   AppSettings.WriteString(asLastSessions, Implode(DELIM, OpenSessions));
@@ -1227,8 +1221,8 @@ begin
   except
     on E:Exception do
       LogSQL(E.Message, lcError);
-  end;
-end;}
+  end;}
+end;
 
 
 {procedure TMainForm.FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
@@ -1599,9 +1593,9 @@ begin
   SelectedTableForeignKeys := TForeignKeyList.Create;
   SelectedTableTimestampColumns := TStringList.Create;}
 
-  {// Set up connections list
+  // Set up connections list
   FConnections := TDBConnectionList.Create;
-  FConnections.OnNotify := ConnectionsNotify;}
+  //FConnections.OnNotify := ConnectionsNotify;
 
   FTreeRefreshInProgress := False;
   FGridCopying := False;
@@ -1654,19 +1648,19 @@ end;
 
 
 procedure TMainForm.AfterFormCreate;
-{var
+var
   LastSessions, FileNames: TStringlist;
   Connection: TDBConnection;
   LoadedParams, ConnectionParams: TConnectionParameters;
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
   LastActiveSession, Environment, RunFrom: String;
-  frm : TfrmUpdateCheck;
-  StatsCall: THttpDownload;
+  //frm : TfrmUpdateCheck;
+  //StatsCall: THttpDownload;
   SessionPaths: TStringlist;
   DlgResult: TModalResult;
-  Tab: TQueryTab;
-  SessionManager: TConnForm;}
+  //Tab: TQueryTab;
+  //SessionManager: TConnForm;
 begin
   {// Check for connection parameters on commandline or show connections form.
   if AppSettings.ReadBool(asUpdatecheck) then begin
@@ -1735,17 +1729,17 @@ begin
     end;
   end;}
 
-  {ConnectionParams := nil;
+  ConnectionParams := nil;
   RunFrom := '';
   ParseCommandLine(GetCommandLine, ConnectionParams, FileNames, RunFrom);
 
-  // Delete scheduled task from previous
+  {// Delete scheduled task from previous
   if RunFrom = 'scheduler' then begin
     DeleteRestartTask;
     if HasDonated(False) <> nbTrue then begin
       apphelpers.ShellExec(APPDOMAIN + 'after-updatecheck?rev=' + AppVerRevision.ToString);
     end;
-  end;
+  end;}
 
   if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
@@ -1754,7 +1748,7 @@ begin
     except on E:Exception do
       ErrorDialog(E.Message);
     end;
-  end else if AppSettings.ReadBool(asAutoReconnect) then begin
+  end;{ else if AppSettings.ReadBool(asAutoReconnect) then begin
     // Auto connection via preference setting
     // Do not autoconnect if we're in commandline mode and the connection was not successful
     LastSessions := Explode(DELIM, AppSettings.ReadString(asLastSessions));
@@ -2086,7 +2080,7 @@ begin
   //Dialog := TConnForm.Create(Self);
   //Dialog.ShowModal;
   //Dialog.Free;
-  ShowMessage('Showing session manager...');
+  MessageDialog('Showing session manager...', mtWarning, [mbCancel, mbAbort, mbAll, mbClose, mbIgnore]);
 end;
 
 {procedure TMainForm.actDisconnectExecute(Sender: TObject);
@@ -3793,7 +3787,7 @@ end;}
   Receive connection parameters and create a connection tree node
   Paremeters are either sent by connection-form or by commandline.
 }
-{function TMainform.InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
+function TMainform.InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
 var
   RestoreLastActiveDatabase: Boolean;
   StartupScript, LastActiveDatabase: String;
@@ -3803,9 +3797,9 @@ var
 begin
   Connection := Params.CreateConnection(Self);
   Connection.OnLog := LogSQL;
-  Connection.OnConnected := ConnectionReady;
+  {Connection.OnConnected := ConnectionReady;
   Connection.OnDatabaseChanged := DatabaseChanged;
-  Connection.OnObjectnamesChanged := ObjectnamesChanged;
+  Connection.OnObjectnamesChanged := ObjectnamesChanged;}
   try
     Connection.Active := True;
     // We have a connection
@@ -3821,7 +3815,7 @@ begin
       AppSettings.WriteString(asLastConnect, DateTimeToStr(Now));
     end;
 
-    if ActivateMe then begin
+    {if ActivateMe then begin
       // Set focus on last uses db. If not wanted or db is gone, go to root node at least
       RestoreLastActiveDatabase := AppSettings.ReadBool(asRestoreLastUsedDB);
       AppSettings.SessionPath := Params.SessionPath;
@@ -3839,7 +3833,7 @@ begin
         SelectNode(DBtree, SessionNode);
         DBtree.Expanded[SessionNode] := True;
       end;
-    end;
+    end;}
 
     // Process startup script
     StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
@@ -3871,10 +3865,10 @@ begin
     // Apply favorite object paths
     AppSettings.SessionPath := Params.SessionPath;
     Connection.Favorites.Text := AppSettings.ReadString(asFavoriteObjects);
-    actFavoriteObjectsOnly.Checked := False;
+    //actFavoriteObjectsOnly.Checked := False;
 
     // Tree node filtering needs a hit once when connected
-    editDatabaseTableFilterChange(Self);
+    //editDatabaseTableFilterChange(Self);
 
   except
     on E:EDbError do begin
@@ -3893,7 +3887,7 @@ begin
   StoreLastSessions;
   ValidateControls(Connection);
   ShowStatusMsg;
-end;}
+end;
 
 
 {procedure TMainForm.actDataDeleteExecute(Sender: TObject);
@@ -5986,11 +5980,11 @@ end;}
     - highlighted database changes
     ...
 }
-{procedure TMainForm.ValidateControls(Sender: TObject);
+procedure TMainForm.ValidateControls(Sender: TObject);
 var
   inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty, inGrid: Boolean;
   HasConnection, GridHasChanges, EnableTimestamp: Boolean;
-  Grid: TVirtualStringTree;
+  Grid: TLazVirtualStringTree;
   inSynMemo, inSynMemoEditable: Boolean;
   Results: TDBQuery;
   RowNum: PInt64;
@@ -5999,7 +5993,7 @@ var
   ResultCol: Integer;
 begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
-
+  {
   Grid := ActiveGrid;
   Conn := ActiveConnection;
   HasConnection := Conn <> nil;
@@ -6064,8 +6058,8 @@ begin
 
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
-  PageControlTabHighlight(PageControlMain);
-end;}
+  PageControlTabHighlight(PageControlMain);}
+end;
 
 
 {procedure TMainForm.ValidateQueryControls(Sender: TObject);

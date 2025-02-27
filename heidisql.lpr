@@ -11,13 +11,12 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   SysUtils,
-  Forms, main,
+  Forms,
   { you can add units after this }
-  apphelpers,
-  dbconnection,
-  //gnugettext
-  dbstructures,
-  dbstructures.mysql, About, generic_types
+  main, apphelpers, dbconnection, { gnugettext,}
+  dbstructures, dbstructures.mysql, About, generic_types,
+  dbstructures.interbase, dbstructures.mssql, dbstructures.postgresql,
+  dbstructures.sqlite, change_password, loginform
   ;
 
 {$R *.res}
@@ -34,7 +33,7 @@ begin
   DefaultFormatSettings.ShortDateFormat := 'yyyy/mm/dd';
   DefaultFormatSettings.LongTimeFormat := 'hh:nn:ss';
 
-  //AppSettings := TAppSettings.Create;
+  AppSettings := TAppSettings.Create;
   //SecondInstMsgId := RegisterWindowMessage(APPNAME);
   if false then begin // (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then begin
     //AppSettings.Free;

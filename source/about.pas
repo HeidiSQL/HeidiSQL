@@ -132,22 +132,11 @@ begin
   lnklblCredits.Font.Style := lnklblCredits.Font.Style + [fsUnderline];
 
   ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
-  lblEnvironment.Caption := _('Environment:');
-  if IsWine then begin
-    lblEnvironment.Caption := lblEnvironment.Caption +
-      ' Linux/Wine';
-  end else begin
-    OsMajor := Win32MajorVersion;
-    OsMinor := Win32MinorVersion;
-    OsBuild := Win32BuildNumber;
-    if (OsMajor = 10) and (OsBuild >= 22000) then
-      OsMajor := 11;
-    lblEnvironment.Caption := lblEnvironment.Caption +
-      ' Windows ' +
-      IntToStr(OsMajor) +
-      IfThen(OsMinor > 0, '.'+IntToStr(OsMinor), '') +
-      ' Build '+IntToStr(OsBuild);
-  end;
+  lblEnvironment.Caption := _('Environment:') +
+    {$IFDEF WINDOWS}'Windows'{$EndIf}
+    {$IFDEF LINUX}'Linux'{$EndIf}
+    {$IFDEF MACOS}'MacOS'{$EndIf}
+    ;
 
   Screen.Cursor := crDefault;
   btnClose.TrySetFocus;

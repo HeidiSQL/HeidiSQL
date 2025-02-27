@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character,
+  Character, DateUtils,
   dbconnection, dbstructures;
 
 type
@@ -245,13 +245,13 @@ type
     DefaultString, CurrentString: String;
     Synced: Boolean;
   end;
-  {TAppSettings = class(TObject)
+  TAppSettings = class(TObject)
     private
       FReads, FWrites: Integer;
       FBasePath: String;
       FSessionPath: String;
       FStoredPath: String;
-      FRegistry: TRegistry;
+      //FRegistry: TRegistry;
       FPortableMode: Boolean;
       FPortableModeReadOnly: Boolean;
       FRestoreTabsInitValue: Boolean;
@@ -314,7 +314,7 @@ type
       function DirnameHighlighters: String;
       // "Static" options, initialized in OnCreate only. For settings which need a restart to take effect.
       property RestoreTabsInitValue: Boolean read FRestoreTabsInitValue;
-  end;}
+  end;
 
 {$I const.inc}
 
@@ -355,11 +355,11 @@ type
   function FormatByteNumber( Bytes: String; Decimals: Byte = 1 ): String; Overload;
   function FormatTimeNumber(Seconds: Double; DisplaySeconds: Boolean; MilliSecondsPrecision: Integer=1): String;
   //function GetTempDir: String;
-  //procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
-  //procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
+  procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
+  procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
   //function DetectEncoding(Stream: TStream): TEncoding;
-  //function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
-  //function ReadTextfile(Filename: String; Encoding: TEncoding): String;
+  function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
+  function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   //function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
   //procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
@@ -384,14 +384,14 @@ type
   //function CheckForSecondInstance: Boolean;
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
   //function KeyPressed(Code: Integer): Boolean;
-  //function GeneratePassword(Len: Integer): String;
+  function GeneratePassword(Len: Integer): String;
   //procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
-  //function CharAtPos(Str: String; Pos: Integer): Char;
-  //function CompareAnyNode(Text1, Text2: String): Integer;
+  function CharAtPos(Str: String; Pos: Integer): Char;
+  function CompareAnyNode(Text1, Text2: String): Integer;
   //function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
   //function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
   //function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
-  //function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
   //function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
   function IsNotEmpty(Str: String): Boolean;
@@ -401,21 +401,21 @@ type
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   //function GetLocaleString(const ResourceId: Integer): WideString;
   //function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
-  //procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
+  procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   function _(const Pattern: string): string;
   function f_(const Pattern: string; const Args: array of const): string;
-  //function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
-  //function GetOutputFilenamePlaceholders: TStringList;
+  function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
+  function GetOutputFilenamePlaceholders: TStringList;
   //function GetSystemImageList: TImageList;
   //function GetSystemImageIndex(Filename: String): Integer;
-  //function GetExecutableBits: Byte;
+  function GetExecutableBits: Byte;
   procedure Help(Sender: TObject; Anchor: String);
   //function PortOpen(Port: Word): Boolean;
   //function IsValidFilePath(FilePath: String): Boolean;
   //function FileIsWritable(FilePath: String): Boolean;
   //function GetProductInfo(dwOSMajorVersion, dwOSMinorVersion, dwSpMajorVersion, dwSpMinorVersion: DWORD; out pdwReturnedProductType: DWORD): BOOL stdcall; external kernel32 delayed;
   //function GetCurrentPackageFullName(out Len: Cardinal; Name: PWideChar): Integer; stdcall; external kernel32 delayed;
-  //function GetThemeColor(Color: TColor): TColor;
+  function GetThemeColor(Color: TColor): TColor;
   //function ThemeIsDark(ThemeName: String=''): Boolean;
   //function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   //procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
@@ -426,11 +426,14 @@ type
   //procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
   //function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function UserAgent(OwnerComponent: TComponent): String;
-  //function CodeIndent(Steps: Integer=1): String;
+  function CodeIndent(Steps: Integer=1): String;
   //function EscapeHotkeyPrefix(Text: String): String;
+  function GetFileNameWithoutExtension(Filename: String): String;
+  function GetCommandLine: String;
+  function GetDynLibExtension: String;
 
 var
-  //AppSettings: TAppSettings;
+  AppSettings: TAppSettings;
   MutexHandle: THandle = 0;
   SystemImageList: TImageList = nil;
   mtCriticalConfirmation: TMsgDlgType = mtCustom;
@@ -1013,7 +1016,6 @@ begin
 end;
 
 
-
 {***
   Returns first word of a given text
   @param string Given text
@@ -1203,25 +1205,25 @@ end;}
 {**
   Save a textfile with unicode
 }
-{procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
+procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
 var
-  Writer: TStreamWriter;
+  Writer: TStringList;
 begin
-  Writer := TStreamWriter.Create(Filename, False, Encoding);
-  Writer.Write(Text);
-  Writer.Free;
-end;}
+  Writer := TStringList.Create;
+  Writer.Text := Text;
+  Writer.SaveToFile(Filename, Encoding);
+end;
 
 
-{procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
+procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
 var
   Header: TBytes;
   BomLen: Integer;
 begin
   // Open a textfile and return a stream. Detect its encoding if not passed by the caller
   Stream := TFileStream.Create(Filename, fmOpenRead or fmShareDenyNone);
-  if Encoding = nil then
-    Encoding := DetectEncoding(Stream);
+  //if Encoding = nil then
+  //  Encoding := DetectEncoding(Stream);
   // If the file contains a BOM, advance the stream's position
   BomLen := 0;
   if Length(Encoding.GetPreamble) > 0 then begin
@@ -1231,7 +1233,7 @@ begin
       BomLen := Length(Encoding.GetPreamble);
   end;
   Stream.Position := BomLen;
-end;}
+end;
 
 
 {**
@@ -1265,7 +1267,7 @@ begin
 end;}
 
 
-{function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
+function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
 const
   BufferPadding = 1;
 var
@@ -1304,10 +1306,10 @@ begin
   end;
 
   Result := TEncoding.Unicode.GetString(LBuffer);
-end;}
+end;
 
 
-{function ReadTextfile(Filename: String; Encoding: TEncoding): String;
+function ReadTextfile(Filename: String; Encoding: TEncoding): String;
 var
   Stream: TFileStream;
 begin
@@ -1315,7 +1317,7 @@ begin
   OpenTextfile(Filename, Stream, Encoding);
   Result := ReadTextfileChunk(Stream, Encoding);
   Stream.Free;
-end;}
+end;
 
 
 {function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
@@ -2085,7 +2087,7 @@ begin
 end;}
 
 
-{function GeneratePassword(Len: Integer): String;
+function GeneratePassword(Len: Integer): String;
 var
   i: Integer;
   CharTable: String;
@@ -2105,7 +2107,7 @@ begin
       CharTable := Consos;
     Result[i] := CharTable[Random(Length(CharTable)-1)+1];
   end;
-end;}
+end;
 
 
 {procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
@@ -2121,17 +2123,17 @@ begin
 end;}
 
 
-{function CharAtPos(Str: String; Pos: Integer): Char;
+function CharAtPos(Str: String; Pos: Integer): Char;
 begin
   // Access char in string without causing access violation
   if Length(Str) < Pos then
     Result := #0
   else
     Result := Str[Pos];
-end;}
+end;
 
 
-{function CompareAnyNode(Text1, Text2: String): Integer;
+function CompareAnyNode(Text1, Text2: String): Integer;
 var
   Number1, Number2 : Extended;
   a1, a2, b1, b2: Char;
@@ -2162,7 +2164,7 @@ begin
     // Compare Strings
     Result := CompareText(Text1, Text2);
   end;
-end;}
+end;
 
 
 {function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
@@ -2186,11 +2188,11 @@ begin
 end;}
 
 
-{function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
+function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
 begin
   // Sort TStringList items by their length
   Result := CompareValue(List[Index2].Length, List[Index1].Length);
-end;}
+end;
 
 
 {**
@@ -2493,7 +2495,7 @@ begin
 end;}
 
 
-{procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
+procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
 var
   rx: TRegExpr;
   ExeName, SessName, Host, Lib, Port, User, Pass, Socket, AllDatabases,
@@ -2505,11 +2507,11 @@ var
   begin
     // Return one command line switch. Doublequotes are not mandatory.
     Result := '';
-    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*\"([^\-][^\"]*)\"';
+    rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')[\s\=]\"([^\"]+)\"';
     if rx.Exec(CommandLine) then
       Result := rx.Match[2]
     else begin
-      rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')\s*\=?\s*([^\-]\S*)';
+      rx.Expression := '\s(\-'+ShortName+'|\-\-'+LongName+')[\s\=](\S+)';
       if rx.Exec(CommandLine) then
         Result := rx.Match[2];
     end;
@@ -2634,7 +2636,7 @@ begin
   AbsentFiles.Free;
 
   rx.Free;
-end;}
+end;
 
 
 function _(const Pattern: string): string;
@@ -2661,7 +2663,7 @@ begin
 end;
 
 
-{function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
+function GetOutputFilename(FilenameWithPlaceholders: String; DBObj: TDBObject): String;
 var
   Arguments: TExtStringList;
   Year, Month, Day, Hour, Min, Sec, MSec: Word;
@@ -2690,10 +2692,10 @@ begin
     Result := StringReplace(Result, '%'+Arguments.Names[i], Arguments.ValueFromIndex[i], [rfReplaceAll]);
   end;
   Arguments.Free;
-end;}
+end;
 
 
-{function GetOutputFilenamePlaceholders: TStringList;
+function GetOutputFilenamePlaceholders: TStringList;
 begin
   // Return a list with valid placeholder=>description pairs
   Result := TStringList.Create;
@@ -2708,7 +2710,7 @@ begin
   Result.Values['h'] := _('Hour');
   Result.Values['i'] := _('Minute');
   Result.Values['s'] := _('Second');
-end;}
+end;
 
 
 {function GetSystemImageList: TImageList;
@@ -2740,14 +2742,10 @@ begin
 end;}
 
 
-{function GetExecutableBits: Byte;
-begin}
-  //{$IFDEF WIN64}
-  //Result := 64;
-  //{$ELSE}
-  //Result := 32;
-  //{$ENDIF}
-//end;
+function GetExecutableBits: Byte;
+begin
+  Result := 64;
+end;
 
 
 procedure Help(Sender: TObject; Anchor: String);
@@ -2822,12 +2820,12 @@ begin
 end;}
 
 
-{function GetThemeColor(Color: TColor): TColor;
+function GetThemeColor(Color: TColor): TColor;
 begin
   // Not required with vcl-style-utils:
   // Result := TStyleManager.ActiveStyle.GetSystemColor(Color);
   Result := Color;
-end;}
+end;
 
 
 {function ThemeIsDark(ThemeName: String=''): Boolean;
@@ -2981,14 +2979,14 @@ begin
 end;
 
 
-{function CodeIndent(Steps: Integer=1): String;
+function CodeIndent(Steps: Integer=1): String;
 begin
   // Provide tab or spaces for indentation, uniquely used for all SQL statements
   if AppSettings.ReadBool(asTabsToSpaces) then
     Result := StringOfChar(' ', AppSettings.ReadInt(asTabWidth) * Steps)
   else
     Result := StringOfChar(#9, Steps);
-end;}
+end;
 
 
 {function EscapeHotkeyPrefix(Text: String): String;
@@ -2997,6 +2995,35 @@ begin
   Result := StringReplace(Text, Vcl.Menus.cHotkeyPrefix, Vcl.Menus.cHotkeyPrefix + Vcl.Menus.cHotkeyPrefix, [rfReplaceAll]);
 end;}
 
+function GetFileNameWithoutExtension(Filename: String): String;
+var
+  LastDotPos: Integer;
+begin
+  Result := ExtractFileName(Filename);
+  LastDotPos := Result.LastIndexOf('.');
+  if LastDotPos > -1 then
+    Result := Result.Substring(0, LastDotPos+1);
+end;
+
+function GetCommandLine: String;
+var
+  i: Integer;
+begin
+  Result := '';
+  for i:=0 to ParamCount do begin
+    Result := Result + ParamStr(i) + ' ';
+  end;
+  Result := Trim(Result);
+end;
+
+function GetDynLibExtension: String;
+begin
+  Result :=
+    {$IFDEF WINDOWS}'dll'{$EndIf}
+    {$IFDEF LINUX}'so'{$EndIf}
+    {$IFDEF MACOS}'dylib'{$EndIf}
+  ;
+end;
 
 { Get SID of current Windows user, probably useful in the future
 {function GetCurrentUserSID: string;
@@ -3580,7 +3607,7 @@ end;
 
 { TAppSettings }
 
-{constructor TAppSettings.Create;
+constructor TAppSettings.Create;
 var
   rx: TRegExpr;
   i: Integer;
@@ -3589,7 +3616,7 @@ var
   NewFileHandle: THandle;
 begin
   inherited;
-  FRegistry := TRegistry.Create;
+  //FRegistry := TRegistry.Create;
   FReads := 0;
   FWrites := 0;
 
@@ -3623,7 +3650,7 @@ begin
       NewFileHandle := FileCreate(FSettingsFile);
       FileClose(NewFileHandle);
     end;
-    FBasePath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetCurrentProcessId)+'\';
+    FBasePath := '\Software\' + APPNAME + ' Portable '+IntToStr(123 {GetCurrentProcessId})+'\';
     try
       ImportSettings(FSettingsFile);
     except
@@ -3958,14 +3985,14 @@ begin
   // Initialization values
   FRestoreTabsInitValue := ReadBool(asRestoreTabs);
 
-end;}
+end;
 
 
-{destructor TAppSettings.Destroy;
+destructor TAppSettings.Destroy;
 var
   AllKeys: TStringList;
   i: Integer;
-  Proc: TProcessEntry32;
+  //Proc: TProcessEntry32;
   ProcRuns: Boolean;
   SnapShot: THandle;
   rx: TRegExpr;
@@ -3977,11 +4004,11 @@ begin
     except
       // do nothing, even ShowMessage or ErrorDialog would trigger timer events followed by crashes;
     end;
-    FRegistry.CloseKey;
-    FRegistry.DeleteKey(FBasePath);
+    //FRegistry.CloseKey;
+    //FRegistry.DeleteKey(FBasePath);
 
     // Remove dead keys from instances which didn't close clean, e.g. because of an AV
-    SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
+    {SnapShot := CreateToolhelp32Snapshot(TH32CS_SnapProcess, 0);
     Proc.dwSize := Sizeof(Proc);
     FRegistry.OpenKeyReadOnly('\Software\');
     AllKeys := TStringList.Create;
@@ -4003,17 +4030,17 @@ begin
     FRegistry.CloseKey;
     CloseHandle(SnapShot);
     AllKeys.Free;
-    rx.Free;
+    rx.Free; }
   except
     on E:Exception do // Prefer ShowMessage, see http://www.heidisql.com/forum.php?t=14001
       ShowMessage('Error: '+E.Message);
   end;
-  FRegistry.Free;
+  //FRegistry.Free;
   inherited;
-end;}
+end;
 
 
-{procedure TAppSettings.InitSetting(Index: TAppSettingIndex; Name: String;
+procedure TAppSettings.InitSetting(Index: TAppSettingIndex; Name: String;
   DefaultInt: Integer=0; DefaultBool: Boolean=False; DefaultString: String='';
   Session: Boolean=False);
 begin
@@ -4023,37 +4050,37 @@ begin
   FSettings[Index].DefaultBool := DefaultBool;
   FSettings[Index].DefaultString := DefaultString;
   FSettings[Index].Synced := False;
-end;}
+end;
 
 
-{procedure TAppSettings.SetSessionPath(Value: String);
+procedure TAppSettings.SetSessionPath(Value: String);
 begin
   // Following calls may want to read or write some session specific setting
   if Value <> FSessionPath then begin
     FSessionPath := Value;
     PrepareRegistry;
   end;
-end;}
+end;
 
 
-{procedure TAppSettings.ResetPath;
+procedure TAppSettings.ResetPath;
 begin
   SessionPath := '';
-end;}
+end;
 
 
-{procedure TAppSettings.StorePath;
+procedure TAppSettings.StorePath;
 begin
   FStoredPath := SessionPath;
-end;}
+end;
 
-{procedure TAppSettings.RestorePath;
+procedure TAppSettings.RestorePath;
 begin
   SessionPath := FStoredPath;
-end;}
+end;
 
 
-{procedure TAppSettings.PrepareRegistry;
+procedure TAppSettings.PrepareRegistry;
 var
   Folder: String;
 begin
@@ -4061,7 +4088,7 @@ begin
   Folder := FBasePath;
   if FSessionPath <> '' then
     Folder := Folder + REGKEY_SESSIONS + '\' + FSessionPath;
-  if '\'+FRegistry.CurrentPath <> Folder then try
+  {if '\'+FRegistry.CurrentPath <> Folder then try
     FRegistry.OpenKey(Folder, True);
   except
     on E:Exception do begin
@@ -4069,33 +4096,33 @@ begin
       E.Message := E.Message + CRLF + CRLF + 'While trying to open registry key "'+Folder+'"';
       raise;
     end;
-  end;
-end;}
+  end;}
+end;
 
 
-{function TAppSettings.GetValueNames: TStringList;
+function TAppSettings.GetValueNames: TStringList;
 begin
   PrepareRegistry;
   Result := TStringList.Create;
-  FRegistry.GetValueNames(Result);
-end;}
+  //FRegistry.GetValueNames(Result);
+end;
 
 
-{function TAppSettings.GetValueName(Index: TAppSettingIndex): String;
+function TAppSettings.GetValueName(Index: TAppSettingIndex): String;
 begin
   Result := FSettings[Index].Name;
-end;}
+end;
 
 
-{function TAppSettings.GetKeyNames: TStringList;
+function TAppSettings.GetKeyNames: TStringList;
 begin
   PrepareRegistry;
   Result := TStringList.Create;
-  FRegistry.GetKeyNames(Result);
-end;}
+  //FRegistry.GetKeyNames(Result);
+end;
 
 
-{function TAppSettings.DeleteValue(Index: TAppSettingIndex; FormatName: String=''): Boolean;
+function TAppSettings.DeleteValue(Index: TAppSettingIndex; FormatName: String=''): Boolean;
 var
   ValueName: String;
 begin
@@ -4103,18 +4130,18 @@ begin
   ValueName := GetValueName(Index);
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
-  Result := FRegistry.DeleteValue(ValueName);
+  Result := True; //FRegistry.DeleteValue(ValueName);
   FSettings[Index].Synced := False;
-end;}
+end;
 
 
-{function TAppSettings.DeleteValue(ValueName: String): Boolean;
+function TAppSettings.DeleteValue(ValueName: String): Boolean;
 begin
-  Result := FRegistry.DeleteValue(ValueName);
-end;}
+  //Result := FRegistry.DeleteValue(ValueName);
+end;
 
 
-{procedure TAppSettings.DeleteCurrentKey;
+procedure TAppSettings.DeleteCurrentKey;
 var
   KeyPath: String;
 begin
@@ -4122,78 +4149,78 @@ begin
   // Note that, contrary to the documentation, .DeleteKey is done even when this key has subkeys
   PrepareRegistry;
   if FSessionPath.IsEmpty then
-    raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])
+     //raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])
   else begin
     KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
     ResetPath;
-    FRegistry.DeleteKey(KeyPath);
+    //FRegistry.DeleteKey(KeyPath);
   end;
-end;}
+end;
 
 
-{procedure TAppSettings.MoveCurrentKey(TargetPath: String);
+procedure TAppSettings.MoveCurrentKey(TargetPath: String);
 var
   KeyPath: String;
 begin
   PrepareRegistry;
   if FSessionPath.IsEmpty then
-    raise Exception.CreateFmt(_('No path set, won''t move root key %s'), [FRegistry.CurrentPath])
+    //raise Exception.CreateFmt(_('No path set, won''t move root key %s'), [FRegistry.CurrentPath])
   else begin
     KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
     ResetPath;
-    FRegistry.MoveKey(KeyPath, TargetPath, True);
+    //FRegistry.MoveKey(KeyPath, TargetPath, True);
   end;
-end;}
+end;
 
 
-{function TAppSettings.ValueExists(Index: TAppSettingIndex): Boolean;
+function TAppSettings.ValueExists(Index: TAppSettingIndex): Boolean;
 var
   ValueName: String;
 begin
   PrepareRegistry;
   ValueName := GetValueName(Index);
-  Result := FRegistry.ValueExists(ValueName);
-end;}
+  Result := True; //FRegistry.ValueExists(ValueName);
+end;
 
 
-{function TAppSettings.SessionPathExists(SessionPath: String): Boolean;
+function TAppSettings.SessionPathExists(SessionPath: String): Boolean;
 begin
-  Result := FRegistry.KeyExists(FBasePath + REGKEY_SESSIONS + '\' + SessionPath);
-end;}
+  Result := True; //FRegistry.KeyExists(FBasePath + REGKEY_SESSIONS + '\' + SessionPath);
+end;
 
 
-{function TAppSettings.IsEmptyKey: Boolean;
+function TAppSettings.IsEmptyKey: Boolean;
 var
   TestList: TStringList;
 begin
   TestList := GetValueNames;
-  Result := (not FRegistry.HasSubKeys) and (TestList.Count = 0);
+  Result := {(not FRegistry.HasSubKeys) and} (TestList.Count = 0);
   TestList.Free;
-end;}
+end;
 
 
-{function TAppSettings.GetDefaultInt(Index: TAppSettingIndex): Integer;
+function TAppSettings.GetDefaultInt(Index: TAppSettingIndex): Integer;
 begin
   // Return default integer value
   Result := FSettings[Index].DefaultInt;
-end;}
+end;
 
 
-{function TAppSettings.GetDefaultBool(Index: TAppSettingIndex): Boolean;
+function TAppSettings.GetDefaultBool(Index: TAppSettingIndex): Boolean;
 begin
   // Return default boolean value
   Result := FSettings[Index].DefaultBool;
-end;}
+end;
 
 
-{function TAppSettings.GetDefaultString(Index: TAppSettingIndex): String;
+function TAppSettings.GetDefaultString(Index: TAppSettingIndex): String;
 begin
   // Return default string value
   Result := FSettings[Index].DefaultString;
-end;}
+end;
 
 
-{procedure TAppSettings.Read(Index: TAppSettingIndex; FormatName: String;
+procedure TAppSettings.Read(Index: TAppSettingIndex; FormatName: String;
   DataType: TAppSettingDataType; var I: Integer; var B: Boolean; var S: String;
   DI: Integer; DB: Boolean; DS: String);
 var
@@ -4222,14 +4249,14 @@ begin
       adString: S := FSettings[Index].CurrentString;
       else raise Exception.CreateFmt(_(SUnsupportedSettingsDatatype), [FSettings[Index].Name]);
     end;
-  end else if FRegistry.ValueExists(ValueName) then begin
+  end else if true {FRegistry.ValueExists(ValueName)} then begin
     Inc(FReads);
-    case DataType of
+    {case DataType of
       adInt: I := FRegistry.ReadInteger(ValueName);
       adBool: B := FRegistry.ReadBool(ValueName);
       adString: S := FRegistry.ReadString(ValueName);
       else raise Exception.CreateFmt(_(SUnsupportedSettingsDatatype), [FSettings[Index].Name]);
-    end;
+    end;}
   end;
   if (FormatName = '') and (FSessionPath = '') then begin
     FSettings[Index].Synced := True;
@@ -4237,51 +4264,51 @@ begin
     FSettings[Index].CurrentBool := B;
     FSettings[Index].CurrentString := S;
   end;
-end;}
+end;
 
 
-{function TAppSettings.ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
+function TAppSettings.ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
 var
   S: String;
   B: Boolean;
 begin
   Read(Index, FormatName, adInt, Result, B, S, Default, False, '');
-end;}
+end;
 
 
-{function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
+function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
 begin
   Result := ReadInt(Index, FormatName, Default);
-  Result := Round(Result * AControl.ScaleFactor);
-end;}
+  //Result := Round(Result * AControl.ScaleFactor);
+end;
 
 
-{function TAppSettings.ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
+function TAppSettings.ReadBool(Index: TAppSettingIndex; FormatName: String=''; Default: Boolean=False): Boolean;
 var
   I: Integer;
   S: String;
 begin
   Read(Index, FormatName, adBool, I, Result, S, 0, Default, '');
-end;}
+end;
 
 
-{function TAppSettings.ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String;
+function TAppSettings.ReadString(Index: TAppSettingIndex; FormatName: String=''; Default: String=''): String;
 var
   I: Integer;
   B: Boolean;
 begin
   Read(Index, FormatName, adString, I, B, Result, 0, False, Default);
-end;}
+end;
 
 
-{function TAppSettings.ReadString(ValueName: String): String;
+function TAppSettings.ReadString(ValueName: String): String;
 begin
   PrepareRegistry;
-  Result := FRegistry.ReadString(ValueName);
-end;}
+  Result := ''; //FRegistry.ReadString(ValueName);
+end;
 
 
-{procedure TAppSettings.Write(Index: TAppSettingIndex; FormatName: String;
+procedure TAppSettings.Write(Index: TAppSettingIndex; FormatName: String;
   DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
 var
   ValueName: String;
@@ -4301,7 +4328,7 @@ begin
     adInt: begin
       SameAsCurrent := FSettings[Index].Synced and (I = FSettings[Index].CurrentInt);
       if not SameAsCurrent then begin
-        FRegistry.WriteInteger(ValueName, I);
+        //FRegistry.WriteInteger(ValueName, I);
         Inc(FWrites);
       end;
       FSettings[Index].CurrentInt := I;
@@ -4309,7 +4336,7 @@ begin
     adBool:  begin
       SameAsCurrent := FSettings[Index].Synced and (B = FSettings[Index].CurrentBool);
       if not SameAsCurrent then begin
-        FRegistry.WriteBool(ValueName, B);
+        //FRegistry.WriteBool(ValueName, B);
         Inc(FWrites);
       end;
       FSettings[Index].CurrentBool := B;
@@ -4317,7 +4344,7 @@ begin
     adString: begin
       SameAsCurrent := FSettings[Index].Synced and (S = FSettings[Index].CurrentString);
       if not SameAsCurrent then begin
-        FRegistry.WriteString(ValueName, S);
+        //FRegistry.WriteString(ValueName, S);
         Inc(FWrites);
       end;
       FSettings[Index].CurrentString := S;
@@ -4327,51 +4354,51 @@ begin
   end;
   if (FormatName = '') and (FSessionPath = '') then
     FSettings[Index].Synced := True;
-end;}
+end;
 
 
-{procedure TAppSettings.WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
+procedure TAppSettings.WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
 begin
   Write(Index, FormatName, adInt, Value, False, '');
-end;}
+end;
 
 
-{procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
+procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
 begin
-  Value := Round(Value / AControl.ScaleFactor);
+  Value := Round(Value {/ AControl.ScaleFactor});
   WriteInt(Index, Value, FormatName);
-end;}
+end;
 
 
-{procedure TAppSettings.WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
+procedure TAppSettings.WriteBool(Index: TAppSettingIndex; Value: Boolean; FormatName: String='');
 begin
   Write(Index, FormatName, adBool, 0, Value, '');
-end;}
+end;
 
 
-{procedure TAppSettings.WriteString(Index: TAppSettingIndex; Value: String; FormatName: String='');
+procedure TAppSettings.WriteString(Index: TAppSettingIndex; Value: String; FormatName: String='');
 begin
   Write(Index, FormatName, adString, 0, False, Value);
-end;}
+end;
 
 
-{procedure TAppSettings.WriteString(ValueName, Value: String);
+procedure TAppSettings.WriteString(ValueName, Value: String);
 begin
   PrepareRegistry;
-  FRegistry.WriteString(ValueName, Value);
-end;}
+  //FRegistry.WriteString(ValueName, Value);
+end;
 
 
-{function TAppSettings.GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
+function TAppSettings.GetSessionNames(ParentPath: String; var Folders: TStringList): TStringList;
 var
   i: Integer;
   CurPath: String;
 begin
   ResetPath;
   CurPath := FBasePath + REGKEY_SESSIONS + '\' + ParentPath;
-  FRegistry.OpenKey(CurPath, False);
+  //FRegistry.OpenKey(CurPath, False);
   Result := TStringList.Create;
-  FRegistry.GetKeyNames(Result);
+  {FRegistry.GetKeyNames(Result);
   for i:=Result.Count-1 downto 0 do begin
     // Issue #1111 describes a recursive endless loop, which may be caused by an empty key name here?
     if Result[i].IsEmpty then
@@ -4383,11 +4410,11 @@ begin
         Result.Delete(i);
       end;
     end;
-  end;
-end;}
+  end;}
+end;
 
 
-{procedure TAppSettings.GetSessionPaths(ParentPath: String; var Sessions: TStringList);
+procedure TAppSettings.GetSessionPaths(ParentPath: String; var Sessions: TStringList);
 var
   Folders, Names: TStringList;
   i: Integer;
@@ -4401,15 +4428,15 @@ begin
   Sessions.Sort;
   Names.Free;
   Folders.Free;
-end;}
+end;
 
 
-{procedure TAppSettings.ImportSettings(Filename: String);
+procedure TAppSettings.ImportSettings(Filename: String);
 var
   Content, Name, Value, KeyPath: String;
   Lines, Segments: TStringList;
   i: Integer;
-  DataType: TRegDataType;
+  //DataType: TRegDataType;
 begin
   // Load registry settings from file
 
@@ -4419,7 +4446,7 @@ begin
 
   Content := ReadTextfile(FileName, UTF8NoBOMEncoding);
   Lines := Explode(CRLF, Content);
-  for i:=0 to Lines.Count-1 do begin
+  {for i:=0 to Lines.Count-1 do begin
     // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
     Segments := Explode(DELIMITER, Lines[i]);
     if Segments.Count <> 3 then
@@ -4445,15 +4472,15 @@ begin
         ErrorDialog(Name+' has an unsupported data type.');
     end;
     Segments.Free;
-  end;
+  end;}
   Lines.Free;
-end;}
+end;
 
 
-{function TAppSettings.ExportSettings(Filename: String): Boolean;
+function TAppSettings.ExportSettings(Filename: String): Boolean;
 var
   Content, Value: String;
-  DataType: TRegDataType;
+  //DataType: TRegDataType;
 
   procedure ReadKeyToContent(Path: String);
   var
@@ -4462,7 +4489,7 @@ var
     SubPath: String;
   begin
     // Recursively read values in keys and their subkeys into "content" variable
-    FRegistry.OpenKey(Path, True);
+    {FRegistry.OpenKey(Path, True);
     SubPath := Copy(Path, Length(FBasePath)+1, MaxInt);
     Names := TStringList.Create;
     FRegistry.GetValueNames(Names);
@@ -4488,7 +4515,7 @@ var
     FRegistry.GetKeyNames(Names);
     for i:=0 to Names.Count-1 do
       ReadKeyToContent(Path + Names[i] + '\');
-    Names.Free;
+    Names.Free;}
   end;
 
 begin
@@ -4497,10 +4524,10 @@ begin
   ReadKeyToContent(FBasePath);
   SaveUnicodeFile(FileName, Content, UTF8NoBOMEncoding);
   Result := True;
-end;}
+end;
 
 
-{function TAppSettings.ExportSettings: Boolean;
+function TAppSettings.ExportSettings: Boolean;
 begin
   Result := False;
   if not FPortableModeReadOnly then begin
@@ -4516,28 +4543,28 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
 
-{function TAppSettings.DirnameUserAppData: String;
+function TAppSettings.DirnameUserAppData: String;
 begin
   // User folder for HeidiSQL's data (<user name>\Application Data)
-  Result := GetShellFolder(FOLDERID_RoamingAppData) + '\' + APPNAME + '\';
+  Result := GetAppConfigDir(False);
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
-end;}
+end;
 
 
-{function TAppSettings.DirnameUserDocuments: String;
+function TAppSettings.DirnameUserDocuments: String;
 begin
   // "HeidiSQL" folder under user's documents folder, e.g. c:\Users\Mike\Documents\HeidiSQL\
-  Result := GetShellFolder(FOLDERID_Documents) + '\' + APPNAME + '\';
+  Result := DirnameUserAppData;
   // Do not auto-create it, as we only use it for snippets which can also have a custom path.
-end;}
+end;
 
 
-{function TAppSettings.DirnameSnippets: String;
+function TAppSettings.DirnameSnippets: String;
 begin
   // Folder for snippets
   Result := ReadString(asCustomSnippetsDirectory);
@@ -4547,34 +4574,34 @@ begin
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
-end;}
+end;
 
 
-{function TAppSettings.DirnameBackups: String;
+function TAppSettings.DirnameBackups: String;
 begin
   // Create backup folder if it does not exist and return it
   if PortableMode then begin
-    Result := ExtractFilePath(Application.ExeName) + 'Backups\'
+    Result := ExtractFilePath(Application.ExeName) + 'Backups' + DirectorySeparator
   end else begin
-    Result := DirnameUserAppData + 'Backups\';
+    Result := DirnameUserAppData + 'Backups' + DirectorySeparator;
   end;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
-end;}
+end;
 
 
-{function TAppSettings.DirnameHighlighters: string;
+function TAppSettings.DirnameHighlighters: string;
 begin
   if PortableMode then begin
-    Result := ExtractFilePath(Application.ExeName) + 'Highlighters\'
+    Result := ExtractFilePath(Application.ExeName) + 'Highlighters' + DirectorySeparator
   end else begin
-    Result := DirnameUserAppData + 'Highlighters\';
+    Result := DirnameUserAppData + 'Highlighters' + DirectorySeparator;
   end;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
-end;}
+end;
 
 
 
