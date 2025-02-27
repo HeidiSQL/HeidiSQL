@@ -9,9 +9,6 @@ uses
   DateUtils, Types, Math, Dialogs, DB, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, Rtti, FileUtil,
   RegExpr, generic_types,
-  {$IFDEF WINDOWS}Windows,
-  {$ELSE}Unix, {$IFDEF LCLCarbon}MacOSAll, {$ENDIF}
-  {$ENDIF}
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
 
 
@@ -1113,7 +1110,7 @@ var
   SshCmd, SshCmdDisplay, DialogTitle: String;
   OutText, ErrorText, AllPipesText, UserInput: String;
   rx: TRegExpr;
-  StartupInfo: TStartupInfo;
+  //StartupInfo: TStartupInfo;
   ExitCode: LongWord;
   PortChecks: Integer;
   CheckIntervalMs: Integer;
@@ -3561,7 +3558,6 @@ end;
 
 procedure TMySQLConnection.DoAfterConnect;
 var
-  TZI: TTimeZoneInformation;
   Minutes, Hours, i: Integer;
   Offset: String;
   ObjNames: TStringList;
@@ -3570,13 +3566,7 @@ begin
 
   // Set timezone offset to UTC
   if Has(frTimezoneVar) and Parameters.LocalTimeZone then begin
-    Minutes := 0;
-    case GetTimeZoneInformation(TZI) of
-      TIME_ZONE_ID_STANDARD: Minutes := (TZI.Bias + TZI.StandardBias);
-      TIME_ZONE_ID_DAYLIGHT: Minutes := (TZI.Bias + TZI.DaylightBias);
-      TIME_ZONE_ID_UNKNOWN: Minutes := TZI.Bias;
-      else RaiseLastOSError;
-    end;
+    Minutes := GetLocalTimeOffset;
     Hours := Minutes div 60;
     Minutes := Minutes mod 60;
     if Hours < 0 then
@@ -4597,7 +4587,7 @@ begin
   if FThreadId = 0 then begin
     Ping(False);
     if FActive then // We return the application process id, as there is no connection pid in SQLite
-      FThreadID := GetCurrentProcessId;
+      FThreadID := GetProcessId;
   end;
   Result := FThreadID;
 end;
@@ -9103,7 +9093,7 @@ begin
 
     if Datatype(Column).Category in [dtcBinary, dtcSpatial] then begin
       SetLength(baData, Length(AnsiStr));
-      CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
+      //CopyMemory(baData, @AnsiStr[1], Length(AnsiStr));
       Result := True;
     end;
   end;

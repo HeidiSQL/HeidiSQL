@@ -3895,7 +3895,7 @@ begin
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044
-  InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, Win32MajorVersion >= 6);
+  InitSetting(asRestoreTabs,                      'RestoreTabs',                           0, True);
   InitSetting(asTabCloseOnDoubleClick,            'TabCloseOnDoubleClick',                 0, True);
   InitSetting(asTabCloseOnMiddleClick,            'TabCloseOnMiddleClick',                 0, True);
   InitSetting(asTabsInMultipleLines,              'TabsInMultipleLines',                   0, True);
