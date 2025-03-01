@@ -1630,20 +1630,6 @@ begin
   //LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
   LogSQL(f_('Timezone offset: %d', [FTimeZoneOffset]), lcDebug);
-
-  // Testwise load libmariadb on Linux and Windows
-  {$IfDef LINUX}
-  LibFile := 'libmariadb.so.3';
-  {$EndIf}
-  {$IfDef WINDOWS}
-  LibFile := 'libmariadb.dll';
-  {$EndIf}
-  Lib := TMySQLLib.Create(ExtractFilePath(Application.ExeName) + LibFile, LibFile);
-  try
-     LogSQL(Lib.DllFile + ' v'+Lib.mysql_get_client_info() + ' loaded');
-  except on E:Exception do
-     ShowMessage(E.Message);
-  end;
 end;
 
 
