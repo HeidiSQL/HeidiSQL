@@ -8,7 +8,8 @@ uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults,
   DateUtils, Types, Math, Dialogs, DB, Graphics, ExtCtrls, StrUtils,
   Controls, Forms, IniFiles, Variants, Rtti, FileUtil,
-  RegExpr, generic_types,
+  RegExpr, Process,
+  generic_types,
   dbstructures, dbstructures.mysql, dbstructures.mssql, dbstructures.postgresql, dbstructures.sqlite, dbstructures.interbase;
 
 
@@ -1909,18 +1910,17 @@ end;
 
 
 function TConnectionParameters.DefaultLibrary: String;
+var
+  AllLibs: TStringList;
 begin
   Result := '';
   case NetTypeGroup of
-    ngMySQL: Result := 'libmariadb.' + GetDynLibExtension;
-    ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
-    ngPgSQL: Result := 'libpq.' + GetDynLibExtension;
-    ngSQLite: begin
-      if NetType = ntSQLite then
-        Result := 'sqlite3.' + GetDynLibExtension
-      else
-        Result := 'sqlite3mc.' + GetDynLibExtension;
+    ngMySQL, ngPgSQL, ngSQLite: begin
+      AllLibs := GetLibraries;
+      if AllLibs.Count > 0 then
+        Result := AllLibs[0];
     end;
+    ngMSSQL: Result := 'MSOLEDBSQL'; // Prefer MSOLEDBSQL provider on newer systems
     ngInterbase: begin
       if IsInterbase then
         Result := IfThen(GetExecutableBits=64, 'ibclient64.', 'gds32.') + GetDynLibExtension
@@ -2011,7 +2011,8 @@ var
   rx: TRegExpr;
   DllPath, DllFile: String;
   Dlls, FoundLibs, Providers: TStringList;
-  Provider: String;
+  Provider, Env, LibMapOutput, LibMap: String;
+  LibMapLines: TStringList;
 begin
   if not Assigned(FLibraries) then begin
     FLibraries := TNetTypeLibs.Create;
@@ -2023,22 +2024,49 @@ begin
     rx.ModifierI := True;
     case NetTypeGroup of
       ngMySQL:
+        {$IfDef LINUX}
+        // libmariadb.so.0 (libc,...) => /lib/x86_64-linux-gnu/libmariadb.so
+        rx.Expression := '^\s*lib(mysqlclient|mariadb)[^=]+=>\s*(\S+)$';
+        {$EndIf}
+        {$IfDef WINDOWS}
         rx.Expression := '^lib(mysql|mariadb).*\.' + GetDynLibExtension;
+        {$EndIf}
       ngMSSQL: // Allow unsupported ADODB providers per registry hack
         rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)');
       ngPgSQL:
+        {$IfDef LINUX}
+        rx.Expression := '^\s*libpq[^=]+=>\s*(\S+)$';
+        {$EndIf}
+        {$IfDef WINDOWS}
         rx.Expression := '^libpq.*\.' + GetDynLibExtension;
+        {$EndIf}
       ngSQLite: begin
+        {$IfDef LINUX}
+        rx.Expression := '^\s*libsqlite3[^=]+=>\s*(\S+)$';
+        {$EndIf}
+        {$IfDef WINDOWS}
         if NetType = ntSQLite then
           rx.Expression := '^sqlite.*\.' + GetDynLibExtension
         else
           rx.Expression := '^sqlite3mc.*\.' + GetDynLibExtension;
+        {$EndIf}
       end;
       ngInterbase:
         rx.Expression := '^(gds32|ibclient|fbclient).*\.' + GetDynLibExtension;
     end;
     case NetTypeGroup of
       ngMySQL, ngPgSQL, ngSQLite, ngInterbase: begin
+        {$IfDef LINUX}
+        Process.RunCommand('ldconfig', ['-p'], LibMapOutput);
+        LibMapLines := Explode(sLineBreak, LibMapOutput);
+        for LibMap in LibMapLines do begin
+          if rx.Exec(LibMap) then begin
+            FoundLibs.Add(rx.Match[2]);
+          end;
+        end;
+        {$EndIf}
+        {$IfDef WINDOWS}
+        end;
         Dlls := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.' + GetDynLibExtension, False);
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);
@@ -2046,22 +2074,23 @@ begin
             FoundLibs.Add(DllFile);
           end;
         end;
+        {$EndIf}
       end;
-      ngMSSQL: begin
+      {ngMSSQL: begin
         try
           Providers := TStringList.Create;
-          {GetProviderNames(Providers);
+          GetProviderNames(Providers);
           for Provider in Providers do begin
             if rx.Exec(Provider) then begin
               FoundLibs.Add(Provider);
             end;
-          end;}
+          end;
           Providers.Free;
         except
           //on E:EOleSysError do
           //  ErrorDialog('OLE provider names not available.' + sLineBreak + E.Message);
         end;
-      end;
+      end;}
     end;
     rx.Free;
     FLibraries.Add(NetType, FoundLibs);
@@ -3431,7 +3460,7 @@ var
   LibraryPath: String;
 begin
   // Init libmysql before actually connecting.
-  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
+  LibraryPath := Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   FLib := TMySQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3446,7 +3475,7 @@ var
   msg: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
+  LibraryPath := Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   try
     FLib := TPostgreSQLLib.Create(LibraryPath, Parameters.DefaultLibrary);
@@ -3477,7 +3506,7 @@ var
   LibraryPath: String;
 begin
   // Init lib before actually connecting.
-  LibraryPath := ExtractFilePath(ParamStr(0)) + Parameters.LibraryOrProvider;
+  LibraryPath := Parameters.LibraryOrProvider;
   Log(lcDebug, f_('Loading library file %s ...', [LibraryPath]));
   // Throws EDbError on any failure:
   if Parameters.NetType = ntSQLite then

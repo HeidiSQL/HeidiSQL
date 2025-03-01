@@ -1015,7 +1015,6 @@ begin
   Process.RunCommandInDir(path, cmd, [params], ProcessResult, [], ShowOptions);
 end;
 
-
 {***
   Returns first word of a given text
   @param string Given text
@@ -3650,7 +3649,7 @@ begin
       NewFileHandle := FileCreate(FSettingsFile);
       FileClose(NewFileHandle);
     end;
-    FBasePath := '\Software\' + APPNAME + ' Portable '+IntToStr(123 {GetCurrentProcessId})+'\';
+    FBasePath := '\Software\' + APPNAME + ' Portable '+IntToStr(GetProcessId)+'\';
     try
       ImportSettings(FSettingsFile);
     except
@@ -3677,7 +3676,7 @@ begin
   InitSetting(asIgnoreDatabasePattern,            'IgnoreDatabasePattern',                 0, False, '', True);
   InitSetting(asLogFileDdl,                       'LogFileDdl',                            0, False, '', True);
   InitSetting(asLogFileDml,                       'LogFileDml',                            0, False, '', True);
-  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs\%session\%db\%y%m%d.sql', True);
+  InitSetting(asLogFilePath,                      'LogFilePath',                           0, False, DirnameUserAppData + 'Logs'+DirectorySeparator+'%session'+DirectorySeparator+'%db'+DirectorySeparator+'%y%m%d.sql', True);
   if Screen.Fonts.IndexOf('Consolas') > -1 then
     InitSetting(asFontName,                       'FontName',                              0, False, 'Consolas')
   else
@@ -3693,7 +3692,7 @@ begin
   InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(clInfoBk));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
-  InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs\');
+  InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs' + DirectorySeparator);
   InitSetting(asLogHorizontalScrollbar,           'LogHorizontalScrollbar',                0, False);
   InitSetting(asSQLColActiveLine,                 'SQLColActiveLine',                      0, False, 'clNone');
   InitSetting(asSQLColMatchingBraceForeground,    'SQLColMatchingBraceForeground',         0, False, 'clBlack');
@@ -3891,7 +3890,7 @@ begin
     DefaultSnippetsDirectory := ExtractFilePath(ParamStr(0))
   else
     DefaultSnippetsDirectory := DirnameUserDocuments;
-  DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets\';
+  DefaultSnippetsDirectory := DefaultSnippetsDirectory + 'Snippets' + DirectorySeparator;
   InitSetting(asCustomSnippetsDirectory,          'CustomSnippetsDirectory',               0, False, DefaultSnippetsDirectory);
   InitSetting(asPromptSaveFileOnTabClose,         'PromptSaveFileOnTabClose',              0, True);
   // Restore tabs feature crashes often on old XP systems, see https://www.heidisql.com/forum.php?t=34044

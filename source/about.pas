@@ -132,7 +132,7 @@ begin
   lnklblCredits.Font.Style := lnklblCredits.Font.Style + [fsUnderline];
 
   ImageHeidisql.Hint := APPDOMAIN+'?place='+EncodeURLParam(ImageHeidisql.Name);
-  lblEnvironment.Caption := _('Environment:') +
+  lblEnvironment.Caption := _('Environment:') + ' ' +
     {$IFDEF WINDOWS}'Windows'{$EndIf}
     {$IFDEF LINUX}'Linux'{$EndIf}
     {$IFDEF MACOS}'MacOS'{$EndIf}
@@ -155,7 +155,7 @@ end;
 
 function TAboutBox.GetCompilerVersion: string;
 begin
-  Result := 'Lazarus IDE v' + LazVersion.laz_version + ' & FreePascal v' + {$I %FPCVERSION%};
+  Result := 'Lazarus IDE v' + LazVersion.laz_version + ' and FreePascal v' + {$I %FPCVERSION%};
 end;
 
 end.
