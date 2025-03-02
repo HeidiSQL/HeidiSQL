@@ -200,7 +200,24 @@ type
     actMaintenance: TAction;
     actPrintList: TAction;
     actCopyTable: TAction;
+    btnSQLHelp: TToolButton;
+    Fullstatusrefresh1: TMenuItem;
+    menuAutoRefresh: TMenuItem;
+    menuAutoRefreshSetInterval: TMenuItem;
+    N10: TMenuItem;
+    TimerRefresh: TTimer;
+    ToolButton9: TToolButton;
+    tlbSep1: TToolButton;
+    ToolButton5: TToolButton;
+    ToolButton6: TToolButton;
+    ToolButton12: TToolButton;
+    tlbSep2: TToolButton;
+    ButtonRefresh: TToolButton;
+    ButtonImportTextfile: TToolButton;
+    ButtonExport: TToolButton;
+    ButtonUserManager: TToolButton;
     actUndo: TEditUndo;
+    ToolButton14: TToolButton;
     actExecuteQuery: TAction;
     actExecuteSelection: TAction;
     actExportData: TAction;
@@ -210,12 +227,18 @@ type
     actExportTables: TAction;
     actDropObjects: TAction;
     actLoadSQL: TAction;
+    tlbSep6: TToolButton;
     actCreateView: TAction;
+    ToolButton3: TToolButton;
     actDataFirst: TAction;
     actDataLast: TAction;
     actDataInsert: TAction;
     actDataDelete: TAction;
     actDataPostChanges: TAction;
+    ToolButton4: TToolButton;
+    ToolButton7: TToolButton;
+    ToolButton8: TToolButton;
+    ToolButton10: TToolButton;
     actCreateTable: TAction;
     actEmptyTables: TAction;
     actCreateDatabase: TAction;
@@ -249,14 +272,25 @@ type
     actQueryWordWrap: TAction;
     actQueryFind: TAction;
     actQueryReplace: TAction;
+    btnExecuteQuery: TToolButton;
+    btnLoadSQL: TToolButton;
+    btnSaveSQL: TToolButton;
+    btnSaveSQLSnippet: TToolButton;
+    btnQueryFind: TToolButton;
+    btnQueryReplace: TToolButton;
+    btnStopOnErrors: TToolButton;
+    btnQueryWordwrap: TToolButton;
     actSetDelimiter: TAction;
+    btnSetDelimiter: TToolButton;
     actDataCancelChanges: TAction;
+    ToolButton1: TToolButton;
     actRemoveFilter: TAction;
     actPreviousTab: TAction;
     actNextTab: TAction;
     actSelectAll: TAction;
     actSessionManager: TAction;
     actCreateProcedure: TAction;
+    btnExit: TToolButton;
     actNewQueryTab: TAction;
     actCloseQueryTab: TAction;
     actFilterPanel: TAction;
@@ -268,7 +302,9 @@ type
     actSelectInverse: TAction;
     actDataResetSorting: TAction;
     actReformatSQL: TAction;
+    btnReformatSQL: TToolButton;
     actBlobAsText: TAction;
+    btnBlobAsText: TToolButton;
     actQueryFindAgain: TAction;
     actDataShowNext: TAction;
     actDataShowAll: TAction;
@@ -279,6 +315,7 @@ type
     actDisconnect: TAction;
     actBatchInOneGo: TAction;
     actSingleQueries: TAction;
+    btnCancelOperation: TToolButton;
     actCancelOperation: TAction;
     actToggleComment: TAction;
     actLaunchCommandline: TAction;
@@ -330,6 +367,7 @@ type
     actQuickFilterClipboard5: TAction;
     actQuickFilterClipboard6: TAction;
     actCodeFolding: TAction;
+    ToolButton11: TToolButton;
     actCodeFoldingStartRegion: TAction;
     actCodeFoldingEndRegion: TAction;
     actCodeFoldingFoldSelection: TAction;
@@ -354,6 +392,11 @@ type
     DataGrid: TLazVirtualStringTree;
     lblFilterVTInfo: TLabel;
     lblFilterVT: TLabel;
+    menuConnections: TPopupMenu;
+    popupExecuteQuery: TPopupMenu;
+    PopupMenu1: TPopupMenu;
+    PopupQueryLoad: TPopupMenu;
+    popupRefresh: TPopupMenu;
     QueryGrid: TLazVirtualStringTree;
     btnCloseFilterPanel: TSpeedButton;
     spltQuery: TSplitter;
@@ -400,10 +443,8 @@ type
     tabQuery: TTabSheet;
     ToolBarTree: TToolBar;
     ToolBarMainButtons: TToolBar;
-    ToolButton1: TToolButton;
-    ToolButtonDonate: TToolButton;
     procedure actCreateDBObjectExecute(Sender: TObject);
-    //procedure menuConnectionsPopup(Sender: TObject);
+    procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     //procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     //procedure CMStyleChanged(var Msg: TMessage); message CM_STYLECHANGED;
@@ -480,8 +521,8 @@ type
     //    Column: TColumnIndex; NewText: String);
     //procedure TimerConnectedTimer(Sender: TObject);
     procedure QuickFilterClick(Sender: TObject);
-    //procedure AutoRefreshSetInterval(Sender: TObject);
-    //procedure AutoRefreshToggle(Sender: TObject);
+    procedure AutoRefreshSetInterval(Sender: TObject);
+    procedure AutoRefreshToggle(Sender: TObject);
     //procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
     //  State: TDragState; var Accept: Boolean);
     //procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
@@ -787,7 +828,7 @@ type
     //procedure FormAfterMonitorDpiChanged(Sender: TObject; OldDPI,
     //  NewDPI: Integer);
     //procedure menuCloseTabOnDblClickClick(Sender: TObject);
-    //procedure TimerRefreshTimer(Sender: TObject);
+    procedure TimerRefreshTimer(Sender: TObject);
     //procedure SynCompletionProposalChange(Sender: TObject; AIndex: Integer);
     //procedure SynMemoQuerySpecialLineColors(Sender: TObject; Line: Integer;
     //  var Special: Boolean; var FG, BG: TColor);
@@ -2660,8 +2701,8 @@ var
 begin
   // Print contents of a list or grid
   //f := TPrintlistForm.Create(Self);
-  f.ShowModal;
-  FreeAndNil(f);
+  //f.ShowModal;
+  //FreeAndNil(f);
 end;
 
 
@@ -2688,7 +2729,7 @@ begin
   actCopyTabsToSpaces.Enabled := actCopy.Enabled;
 end;
 
-{procedure TMainForm.menuConnectionsPopup(Sender: TObject);
+procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var
   i: integer;
   item: TMenuItem;
@@ -2716,7 +2757,7 @@ begin
   for i:=0 to SessionPaths.Count-1 do begin
     item := TMenuItem.Create(menuConnections);
     item.Caption := EscapeHotkeyPrefix(SessionPaths[i]);
-    item.OnClick := SessionConnect;
+    //item.OnClick := SessionConnect;
     for Connection in Connections do begin
       if SessionPaths[i] = Connection.Parameters.SessionPath then begin
         item.Checked := True;
@@ -2726,7 +2767,7 @@ begin
     menuConnections.Items.Add(item);
   end;
 
-end;}
+end;
 
 
 {procedure TMainForm.MainMenuFileClick(Sender: TObject);
@@ -6908,12 +6949,12 @@ begin
 end;}
 
 
-{procedure TMainForm.TimerRefreshTimer(Sender: TObject);
+procedure TMainForm.TimerRefreshTimer(Sender: TObject);
 begin
   // Auto-refreshing grid or list. Only if main form is active, to prevent issues like #669
   if Screen.ActiveForm = Self then
     actRefresh.Execute;
-end;}
+end;
 
 
 {procedure TMainForm.ListTablesEditing(Sender: TBaseVirtualTree;
@@ -7124,7 +7165,7 @@ begin
 end;}
 
 
-{procedure TMainForm.AutoRefreshSetInterval(Sender: TObject);
+procedure TMainForm.AutoRefreshSetInterval(Sender: TObject);
 var
   SecondsStr: String;
   Seconds: Extended;
@@ -7141,14 +7182,14 @@ begin
     else
       ErrorDialog(f_('Seconds must be between 0 and %d.', [maxint]));
   end;
-end;}
+end;
 
-{procedure TMainForm.AutoRefreshToggle(Sender: TObject);
+procedure TMainForm.AutoRefreshToggle(Sender: TObject);
 begin
   // enable autorefresh-timer
   TimerRefresh.Enabled := not TimerRefresh.Enabled;
   menuAutoRefresh.Checked := TimerRefresh.Enabled;
-end;}
+end;
 
 {procedure TMainForm.SynMemoQueryDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);

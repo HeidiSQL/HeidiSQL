@@ -52,18 +52,195 @@ object MainForm: TMainForm
     Caption = 'ToolBarMainButtons'
     Images = ImageListIcons8
     TabOrder = 1
-    object ToolButton1: TToolButton
+    object ToolButton9: TToolButton
       Left = 1
-      Hint = 'Display session manager'
       Top = 2
-      Caption = 'Session manager'
-      ImageIndex = 3
+      Action = actSessionManager
+      AutoSize = True
+      DropdownMenu = menuConnections
       Style = tbsDropDown
     end
-    object ToolButtonDonate: TToolButton
+    object btnExit: TToolButton
       Left = 45
       Top = 2
-      Caption = 'ToolButtonDonate'
+      Action = actDisconnect
+    end
+    object tlbSep1: TToolButton
+      Left = 74
+      Height = 28
+      Top = 2
+      Caption = 'tlbSep1'
+      ImageIndex = 2
+      Style = tbsSeparator
+    end
+    object ToolButton5: TToolButton
+      Left = 82
+      Top = 2
+      Action = actCopy
+      AutoSize = True
+    end
+    object ToolButton6: TToolButton
+      Left = 111
+      Top = 2
+      Action = actPaste
+      AutoSize = True
+    end
+    object ToolButton14: TToolButton
+      Left = 140
+      Hint = 'Undo'
+      Top = 2
+      Action = actUndo
+    end
+    object ToolButton12: TToolButton
+      Left = 169
+      Top = 2
+      Action = actPrintList
+    end
+    object tlbSep2: TToolButton
+      Left = 198
+      Height = 28
+      Top = 2
+      Caption = 'tlbSep2'
+      ImageIndex = 3
+      Style = tbsSeparator
+    end
+    object ButtonRefresh: TToolButton
+      Left = 206
+      Top = 2
+      Action = actRefresh
+      AutoSize = True
+      DropdownMenu = popupRefresh
+      Style = tbsDropDown
+    end
+    object ButtonUserManager: TToolButton
+      Left = 250
+      Top = 2
+      Action = actUserManager
+      AutoSize = True
+    end
+    object ButtonImportTextfile: TToolButton
+      Left = 279
+      Top = 2
+      Action = actImportCSV
+      AutoSize = True
+    end
+    object ButtonExport: TToolButton
+      Left = 308
+      Top = 2
+      Action = actExportTables
+      AutoSize = True
+    end
+    object tlbSep6: TToolButton
+      Left = 337
+      Height = 28
+      Top = 2
+      Caption = 'tlbSep6'
+      ImageIndex = 97
+      Style = tbsSeparator
+    end
+    object btnSQLHelp: TToolButton
+      Left = 345
+      Top = 2
+      Action = actSQLhelp
+    end
+    object ToolButton3: TToolButton
+      Left = 374
+      Top = 2
+      Action = actDataFirst
+    end
+    object ToolButton4: TToolButton
+      Left = 403
+      Top = 2
+      Action = actDataLast
+    end
+    object ToolButton7: TToolButton
+      Left = 432
+      Top = 2
+      Action = actDataInsert
+    end
+    object ToolButton8: TToolButton
+      Left = 461
+      Top = 2
+      Action = actDataDelete
+    end
+    object ToolButton10: TToolButton
+      Left = 490
+      Top = 2
+      Action = actDataPostChanges
+    end
+    object ToolButton1: TToolButton
+      Left = 519
+      Top = 2
+      Action = actDataCancelChanges
+    end
+    object btnExecuteQuery: TToolButton
+      Left = 548
+      Top = 2
+      Action = actExecuteQuery
+      DropdownMenu = popupExecuteQuery
+      Style = tbsDropDown
+    end
+    object btnLoadSQL: TToolButton
+      Left = 592
+      Top = 2
+      Action = actLoadSQL
+      DropdownMenu = PopupQueryLoad
+      Style = tbsDropDown
+    end
+    object btnSaveSQL: TToolButton
+      Left = 636
+      Top = 2
+      Action = actSaveSQL
+    end
+    object btnSaveSQLSnippet: TToolButton
+      Left = 665
+      Top = 2
+      Action = actSaveSQLSnippet
+    end
+    object btnQueryFind: TToolButton
+      Left = 694
+      Top = 2
+      Action = actQueryFind
+    end
+    object btnQueryReplace: TToolButton
+      Left = 723
+      Top = 2
+      Action = actQueryReplace
+    end
+    object btnReformatSQL: TToolButton
+      Left = 752
+      Top = 2
+      Action = actReformatSQL
+    end
+    object btnStopOnErrors: TToolButton
+      Left = 781
+      Top = 2
+      Action = actQueryStopOnErrors
+    end
+    object btnBlobAsText: TToolButton
+      Left = 810
+      Top = 2
+      Action = actBlobAsText
+    end
+    object btnQueryWordwrap: TToolButton
+      Left = 839
+      Top = 2
+      Action = actQueryWordWrap
+    end
+    object ToolButton11: TToolButton
+      Left = 868
+      Top = 2
+      Action = actCodeFolding
+    end
+    object btnSetDelimiter: TToolButton
+      Left = 897
+      Top = 2
+      Action = actSetDelimiter
+    end
+    object btnCancelOperation: TToolButton
+      Left = 926
+      Top = 2
+      Action = actCancelOperation
     end
   end
   inline SynMemoSQLLog: TSynEdit
@@ -17672,7 +17849,7 @@ object MainForm: TMainForm
     Top = 298
   end
   object SynCompletionProposal: TSynCompletion
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False
@@ -17688,5 +17865,52 @@ object MainForm: TMainForm
   object TimerFilterVT: TTimer
     Left = 50
     Top = 406
+  end
+  object menuConnections: TPopupMenu
+    Images = ImageListIcons8
+    OnPopup = menuConnectionsPopup
+    Left = 246
+    Top = 435
+  end
+  object popupRefresh: TPopupMenu
+    Images = ImageListIcons8
+    Left = 344
+    Top = 437
+    object Fullstatusrefresh1: TMenuItem
+      Action = actFullRefresh
+    end
+    object N10: TMenuItem
+      Caption = '-'
+    end
+    object menuAutoRefresh: TMenuItem
+      Caption = 'Auto refresh'
+      ShortCut = 16500
+      OnClick = AutoRefreshToggle
+    end
+    object menuAutoRefreshSetInterval: TMenuItem
+      Caption = 'Set interval ...'
+      OnClick = AutoRefreshSetInterval
+    end
+  end
+  object popupExecuteQuery: TPopupMenu
+    Images = ImageListIcons8
+    Left = 441
+    Top = 434
+  end
+  object PopupMenu1: TPopupMenu
+    Left = 551
+    Top = 433
+  end
+  object PopupQueryLoad: TPopupMenu
+    Images = ImageListIcons8
+    Left = 642
+    Top = 438
+  end
+  object TimerRefresh: TTimer
+    Enabled = False
+    Interval = 5000
+    OnTimer = TimerRefreshTimer
+    Left = 145
+    Top = 408
   end
 end

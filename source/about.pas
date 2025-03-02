@@ -71,7 +71,7 @@ begin
       MessageDialog(_('Thanks for donating!'), mtInformation, [mbOK]);
   end;
   btnDonate.Visible := Check <> nbTrue;
-  MainForm.ToolButtonDonate.Visible := btnDonate.Visible;
+  //MainForm.ToolButtonDonate.Visible := btnDonate.Visible;
   MainForm.FormResize(Self);
 end;
 
