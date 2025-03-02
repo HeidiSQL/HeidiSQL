@@ -849,10 +849,10 @@ object MainForm: TMainForm
         Height = 316
         Top = 0
         Width = 780
-        ActivePage = tabData
+        ActivePage = tabHost
         Align = alClient
         Images = ImageListIcons8
-        TabIndex = 3
+        TabIndex = 0
         TabOrder = 1
         object tabHost: TTabSheet
           Caption = 'Host'
@@ -873,6 +873,7 @@ object MainForm: TMainForm
               Caption = 'Databases'
               ClientHeight = 250
               ClientWidth = 764
+              ImageIndex = 5
               object ListDatabases: TLazVirtualStringTree
                 Left = 0
                 Height = 250
@@ -944,28 +945,35 @@ object MainForm: TMainForm
             end
             object tabVariables: TTabSheet
               Caption = 'Variables'
+              ImageIndex = 137
             end
             object tabStatus: TTabSheet
               Caption = 'Status'
+              ImageIndex = 13
             end
             object tabProcesslist: TTabSheet
               Caption = 'Processes'
+              ImageIndex = 57
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
+              ImageIndex = 145
             end
           end
         end
         object tabDatabase: TTabSheet
           Caption = 'Database'
+          ImageIndex = 5
         end
         object tabEditor: TTabSheet
           Caption = 'Table'
+          ImageIndex = 14
         end
         object tabData: TTabSheet
           Caption = 'Data'
           ClientHeight = 283
           ClientWidth = 772
+          ImageIndex = 41
           object DataGrid: TLazVirtualStringTree
             Left = 0
             Height = 283
@@ -983,6 +991,7 @@ object MainForm: TMainForm
           Caption = 'Query'
           ClientHeight = 283
           ClientWidth = 772
+          ImageIndex = 57
           object pnlQueryMemo: TPanel
             Left = 0
             Height = 130
@@ -1579,29 +1588,345 @@ object MainForm: TMainForm
     Images = ImageListIcons8
     Left = 48
     Top = 33
-    object MenuItem1: TMenuItem
+    object MainMenuFile: TMenuItem
       Caption = 'File'
-      object MenuItem8: TMenuItem
+      Hint = 'File related commands'
+      OnClick = MainMenuFileClick
+      object Sessionmanager1: TMenuItem
+        Action = actSessionManager
+      end
+      object menuConnectTo: TMenuItem
+        Caption = 'Connect to'
+      end
+      object FileNewItem: TMenuItem
+        Action = actNewWindow
+      end
+      object Newquerytab1: TMenuItem
+        Action = actNewQueryTab
+      end
+      object Closetab1: TMenuItem
+        Action = actCloseQueryTab
+      end
+      object Closeallquerytabs1: TMenuItem
+        Action = actCloseAllQueryTabs
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object LoadSQLfile2: TMenuItem
+        Action = actLoadSQL
+      end
+      object RunSQLfiles1: TMenuItem
+        Action = actRunSQL
+      end
+      object Save1: TMenuItem
+        Action = actSaveSQL
+      end
+      object Saveassnippet1: TMenuItem
+        Action = actSaveSQLSnippet
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object ExportSettings1: TMenuItem
+        Action = actExportSettings
+      end
+      object Importsettings1: TMenuItem
+        Action = actImportSettings
+      end
+      object N5: TMenuItem
+        Caption = '-'
+      end
+      object FileExitItem: TMenuItem
         Action = actExitApplication
+        ShortCut = 32883
       end
     end
-    object MenuItem2: TMenuItem
+    object MainMenuEdit: TMenuItem
       Caption = 'Edit'
+      Hint = 'Edit commands'
+      object Undo1: TMenuItem
+        Action = actUndo
+      end
+      object CopyItem: TMenuItem
+        Action = actCopy
+      end
+      object Copywithtabstospaces1: TMenuItem
+        Action = actCopyTabsToSpaces
+      end
+      object actCopyGridNodes1: TMenuItem
+        Action = actCopyGridNodes
+      end
+      object PasteItem: TMenuItem
+        Action = actPaste
+      end
+      object Cut1: TMenuItem
+        Action = actCut
+      end
+      object Movelinedown1: TMenuItem
+        Action = actSynMoveDown
+      end
+      object Movelineup1: TMenuItem
+        Action = actSynMoveUp
+      end
+      object N13: TMenuItem
+        Caption = '-'
+      end
+      object actSelectAll1: TMenuItem
+        Action = actSelectAll
+      end
+      object Inverseselection1: TMenuItem
+        Action = actSelectInverse
+      end
+      object actFindInVT1: TMenuItem
+        Action = actFilterPanel
+        AutoCheck = True
+      end
     end
-    object MenuItem3: TMenuItem
+    object MainMenuSearch: TMenuItem
       Caption = 'Search'
+      object Findtext1: TMenuItem
+        Action = actQueryFind
+      end
+      object actQueryFindAgain1: TMenuItem
+        Action = actQueryFindAgain
+      end
+      object Replacetext1: TMenuItem
+        Action = actQueryReplace
+      end
+      object actFindTextOnServer1: TMenuItem
+        Action = actFindTextOnServer
+      end
     end
-    object MenuItem4: TMenuItem
+    object MainMenuQuery: TMenuItem
       Caption = 'Query'
+      object Newquerytab2: TMenuItem
+        Action = actNewQueryTab
+      end
+      object Closequerytab1: TMenuItem
+        Action = actCloseQueryTab
+      end
+      object Renametab1: TMenuItem
+        Action = actRenameQueryTab
+      end
+      object Clear1: TMenuItem
+        Action = actClearQueryEditor
+      end
+      object N19: TMenuItem
+        Caption = '-'
+      end
+      object RunSQLfile1: TMenuItem
+        Action = actExecuteQuery
+      end
+      object RunSelection2: TMenuItem
+        Action = actExecuteSelection
+      end
+      object Runcurrentquery2: TMenuItem
+        Action = actExecuteCurrentQuery
+      end
+      object Sendbatchinonego1: TMenuItem
+        Action = actBatchInOneGo
+        AutoCheck = True
+      end
+      object Sendqueriesonebyone2: TMenuItem
+        Action = actSingleQueries
+        AutoCheck = True
+      end
+      object N18: TMenuItem
+        Caption = '-'
+      end
+      object Nextresulttab2: TMenuItem
+        Action = actNextResult
+      end
+      object Previousresulttab2: TMenuItem
+        Action = actPreviousResult
+      end
+      object N24: TMenuItem
+        Caption = '-'
+      end
+      object SetdelimiterusedinSQLexecution1: TMenuItem
+        Action = actSetDelimiter
+      end
+      object ReformatSQL3: TMenuItem
+        Action = actReformatSQL
+      end
+      object Wraplonglines1: TMenuItem
+        Action = actQueryWordWrap
+        AutoCheck = True
+      end
+      object Uncomment2: TMenuItem
+        Action = actToggleComment
+      end
+      object menuEditorCommands: TMenuItem
+        Caption = 'Editor commands'
+      end
+      object Folding1: TMenuItem
+        Caption = 'Code folding'
+        object Codefolding1: TMenuItem
+          Action = actCodeFolding
+          AutoCheck = True
+        end
+        object Insertregionstartmarker1: TMenuItem
+          Action = actCodeFoldingStartRegion
+        end
+        object Insertregionendmarker1: TMenuItem
+          Action = actCodeFoldingEndRegion
+        end
+        object Foldselection1: TMenuItem
+          Action = actCodeFoldingFoldSelection
+        end
+      end
+      object N20: TMenuItem
+        Caption = '-'
+      end
+      object Explaincurrentquery2: TMenuItem
+        Action = actExplainCurrentQuery
+      end
     end
-    object MenuItem5: TMenuItem
+    object MainMenuTools: TMenuItem
       Caption = 'Tools'
+      object Flush1: TMenuItem
+        Caption = 'Flush'
+        object MenuFlushHosts: TMenuItem
+          Action = actFlushHosts
+        end
+        object MenuFlushLogs: TMenuItem
+          Action = actFlushLogs
+        end
+        object FlushUserPrivileges1: TMenuItem
+          Action = actFlushPrivileges
+        end
+        object MenuFlushTables: TMenuItem
+          Action = actFlushTables
+        end
+        object MenuFlushTableswithreadlock: TMenuItem
+          Action = actFlushTableswithreadlock
+        end
+        object MenuFlushStatus: TMenuItem
+          Action = actFlushStatus
+        end
+      end
+      object N6: TMenuItem
+        Caption = '-'
+      end
+      object MenuUserManager: TMenuItem
+        Action = actUserManager
+      end
+      object menuMaintenance: TMenuItem
+        Action = actMaintenance
+      end
+      object Bulktableeditor1: TMenuItem
+        Action = actBulkTableEdit
+      end
+      object Generatedata1: TMenuItem
+        Action = actGenerateData
+      end
+      object Launchcommandline1: TMenuItem
+        Action = actLaunchCommandline
+      end
+      object SequalSuggest1: TMenuItem
+        Action = actSequalSuggest
+      end
+      object N7: TMenuItem
+        Caption = '-'
+      end
+      object ExportdatabaseasSQL1: TMenuItem
+        Action = actExportTables
+      end
+      object Exportgridrows1: TMenuItem
+        Action = actExportData
+      end
+      object N9: TMenuItem
+        Caption = '-'
+      end
+      object ImportCSVfile1: TMenuItem
+        Action = actImportCSV
+      end
+      object InsertfilesintoTEXTBLOBfields1: TMenuItem
+        Action = actInsertFiles
+      end
+      object N4: TMenuItem
+        Caption = '-'
+      end
+      object Resetpaneldimensions1: TMenuItem
+        Action = actResetPanelDimensions
+      end
+      object MenuPreferences: TMenuItem
+        Action = actPreferences
+      end
     end
-    object MenuItem6: TMenuItem
+    object MainMenuGoto: TMenuItem
       Caption = 'Go to'
+      object Previoustab1: TMenuItem
+        Action = actPreviousTab
+      end
+      object Nexttab1: TMenuItem
+        Action = actNextTab
+      end
+      object Previousresulttab1: TMenuItem
+        Action = actPreviousResult
+      end
+      object Nextresulttab1: TMenuItem
+        Action = actNextResult
+      end
+      object N16: TMenuItem
+        Caption = '-'
+      end
+      object actGotoFilter1: TMenuItem
+        Action = actGotoFilter
+      end
+      object actGotoDbTree1: TMenuItem
+        Action = actGotoDbTree
+      end
+      object Switchtoqueryresults1: TMenuItem
+        Action = actGoToQueryResults
+      end
+      object Datatabfilter1: TMenuItem
+        Action = actGoToDataMultiFilter
+      end
+      object actGotoTab11: TMenuItem
+        Action = actGotoTab1
+      end
+      object actGotoTab12: TMenuItem
+        Action = actGotoTab2
+      end
+      object actGotoTab31: TMenuItem
+        Action = actGotoTab3
+      end
+      object actGotoTab41: TMenuItem
+        Action = actGotoTab4
+      end
+      object actGotoTab51: TMenuItem
+        Action = actGotoTab5
+      end
     end
-    object MenuItem7: TMenuItem
+    object MainMenuHelp: TMenuItem
       Caption = 'Help'
+      Hint = 'Help topics'
+      object menuSQLHelp1: TMenuItem
+        Action = actSQLhelp
+      end
+      object menuReadme: TMenuItem
+        Action = actHelp
+      end
+      object N8: TMenuItem
+        Caption = '-'
+      end
+      object menuUpdateCheck: TMenuItem
+        Action = actUpdateCheck
+      end
+      object menuDownload: TMenuItem
+        Action = actWebDownloadpage
+      end
+      object menuSupportForum: TMenuItem
+        Action = actWebForum
+      end
+      object menuFeaturetracker: TMenuItem
+        Action = actWebChangelog
+      end
+      object menuAbout: TMenuItem
+        Action = actAboutBox
+      end
     end
   end
   object ActionList1: TActionList

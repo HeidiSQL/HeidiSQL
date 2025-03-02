@@ -188,16 +188,40 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
+    MainMenuFile: TMenuItem;
+    FileNewItem: TMenuItem;
+    MainMenuHelp: TMenuItem;
+    FollowForeignKey: TMenuItem;
+    N1: TMenuItem;
+    FileExitItem: TMenuItem;
+    menuAbout: TMenuItem;
+    MainMenuEdit: TMenuItem;
+    CopyItem: TMenuItem;
+    PasteItem: TMenuItem;
     ActionList1: TActionList;
     actFollowForeignKey: TAction;
     actCopy: TAction;
     actPaste: TAction;
     actNewWindow: TAction;
     actExitApplication: TAction;
+    MainMenuTools: TMenuItem;
+    FlushUserPrivileges1: TMenuItem;
+    N5: TMenuItem;
+    Flush1: TMenuItem;
+    MenuFlushLogs: TMenuItem;
+    MenuFlushHosts: TMenuItem;
+    MenuFlushTables: TMenuItem;
+    MenuFlushTableswithreadlock: TMenuItem;
+    MenuFlushStatus: TMenuItem;
+    N6: TMenuItem;
+    MenuUserManager: TMenuItem;
+    MenuPreferences: TMenuItem;
+    N7a: TMenuItem;
+    menuReadme: TMenuItem;
     actUserManager: TAction;
-
     actAboutBox: TAction;
     actMaintenance: TAction;
+    menuMaintenance: TMenuItem;
     actPrintList: TAction;
     actCopyTable: TAction;
     btnSQLHelp: TToolButton;
@@ -220,6 +244,9 @@ type
     ToolButton14: TToolButton;
     actExecuteQuery: TAction;
     actExecuteSelection: TAction;
+    ExportSettings1: TMenuItem;
+    Importsettings1: TMenuItem;
+    menuSupportForum: TMenuItem;
     actExportData: TAction;
     actExecuteCurrentQuery: TAction;
     actDataPreview: TAction;
@@ -227,7 +254,12 @@ type
     actExportTables: TAction;
     actDropObjects: TAction;
     actLoadSQL: TAction;
+    menuFeaturetracker: TMenuItem;
+    menuDownload: TMenuItem;
+    menuSQLHelp1: TMenuItem;
+    N8a: TMenuItem;
     tlbSep6: TToolButton;
+    menuUpdateCheck: TMenuItem;
     actCreateView: TAction;
     ToolButton3: TToolButton;
     actDataFirst: TAction;
@@ -246,6 +278,7 @@ type
     actRefresh: TAction;
     actImportCSV: TAction;
     actCut: TAction;
+    Cut1: TMenuItem;
     actExportSettings: TAction;
     actImportSettings: TAction;
     actPreferences: TAction;
@@ -285,8 +318,12 @@ type
     actDataCancelChanges: TAction;
     ToolButton1: TToolButton;
     actRemoveFilter: TAction;
+    menuRefreshDB: TMenuItem;
     actPreviousTab: TAction;
     actNextTab: TAction;
+    Nexttab1: TMenuItem;
+    Previoustab1: TMenuItem;
+    menuConnectTo: TMenuItem;
     actSelectAll: TAction;
     actSessionManager: TAction;
     actCreateProcedure: TAction;
@@ -408,14 +445,6 @@ type
     treeQueryHelpers: TLazVirtualStringTree;
     ListDatabases: TLazVirtualStringTree;
     MainMenu1: TMainMenu;
-    MenuItem1: TMenuItem;
-    MenuItem2: TMenuItem;
-    MenuItem3: TMenuItem;
-    MenuItem4: TMenuItem;
-    MenuItem5: TMenuItem;
-    MenuItem6: TMenuItem;
-    MenuItem7: TMenuItem;
-    MenuItem8: TMenuItem;
     PageControlHost: TPageControl;
     PageControlMain: TPageControl;
     Panel1: TPanel;
@@ -607,7 +636,7 @@ type
     //  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
     //procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
     //  Shift: TShiftState; X, Y: Integer);
-    //procedure MainMenuFileClick(Sender: TObject);
+    procedure MainMenuFileClick(Sender: TObject);
     //procedure HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     //procedure HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -2770,7 +2799,7 @@ begin
 end;
 
 
-{procedure TMainForm.MainMenuFileClick(Sender: TObject);
+procedure TMainForm.MainMenuFileClick(Sender: TObject);
 var
   Item: TMenuItem;
   i: Integer;
@@ -2784,7 +2813,7 @@ begin
   for i:=0 to SessionPaths.Count-1 do begin
     Item := TMenuItem.Create(menuConnectTo);
     Item.Caption := EscapeHotkeyPrefix(SessionPaths[i]);
-    Item.OnClick := SessionConnect;
+    //Item.OnClick := SessionConnect;
     for Connection in Connections do begin
       if SessionPaths[i] = Connection.Parameters.SessionPath then begin
         Item.Checked := True;
@@ -2793,13 +2822,13 @@ begin
     end;
     menuConnectTo.Add(Item);
   end;
-end;}
+end;
 
 
 procedure TMainForm.actWebbrowse(Sender: TObject);
 begin
   // Browse to URL (hint)
-  ShellExec( TAction(Sender).Hint );
+  OpenURL(TAction(Sender).Hint);
 end;
 
 
