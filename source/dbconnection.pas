@@ -2067,7 +2067,6 @@ begin
         end;
         {$EndIf}
         {$IfDef WINDOWS}
-        end;
         Dlls := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.' + GetDynLibExtension, False);
         for DllPath in Dlls do begin
           DllFile := ExtractFileName(DllPath);

@@ -7,10 +7,16 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character, DateUtils,
+  Character, DateUtils, laz.VirtualTrees, SynEdit,
   dbconnection, dbstructures;
 
 type
+
+  // Sync with main branch
+  TSynMemo = TSynEdit;
+  TVirtualStringTree = TLazVirtualStringTree;
+  TExtFileOpenDialog = class(TOpenDialog);
+  TExtFileSaveDialog = class(TSaveDialog);
 
   TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)
@@ -100,6 +106,7 @@ type
       property ContentLength: Integer read FContentLength;
       property LastContent: String read FLastContent;
   end; }
+
 
   // Extended string list with support for empty values
   TExtStringList = class(TStringList)
@@ -328,7 +335,7 @@ type
   function EncodeURLParam(const Value: String): String;
   procedure StreamWrite(S: TStream; Text: String = '');
   function _GetFileSize(Filename: String): Int64;
-  //function DeleteFileWithUndo(sFileName: String): Boolean;
+  function DeleteFileWithUndo(sFileName: String): Boolean;
   function MakeInt(Str: String) : Int64;
   function MakeFloat(Str: String): Extended;
   function RoundCommercial(e: Extended): Int64;
@@ -364,17 +371,17 @@ type
   //procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
-  //procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
-  //function GetTextHeight(Font: TFont): Integer;
+  procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
+  function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
   //procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
-  //function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
-  //function SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
-  //function SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
+  function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
+  function SelectNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
+  function SelectNode(VT: TLazVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
   //procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
   //procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
-  //function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
-  //function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+  function GetNextNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+  function GetPreviousNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   //function DateBackFriendlyCaption(d: TDateTime): String;
   //function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
   function TruncDef(X: Real; Default: Int64): Int64;
@@ -385,7 +392,7 @@ type
   function GetParentFormOrFrame(Comp: TWinControl): TWinControl;
   //function KeyPressed(Code: Integer): Boolean;
   function GeneratePassword(Len: Integer): String;
-  //procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
+  procedure InvalidateVT(VT: TLazVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   function CharAtPos(Str: String; Pos: Integer): Char;
   function CompareAnyNode(Text1, Text2: String): Integer;
   //function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
@@ -423,11 +430,11 @@ type
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
-  //procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
+  procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
   //function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
   function UserAgent(OwnerComponent: TComponent): String;
   function CodeIndent(Steps: Integer=1): String;
-  //function EscapeHotkeyPrefix(Text: String): String;
+  function EscapeHotkeyPrefix(Text: String): String;
   function GetFileNameWithoutExtension(Filename: String): String;
   function GetCommandLine: String;
   function GetDynLibExtension: String;
@@ -637,16 +644,17 @@ begin
 end;
 
 
-{function DeleteFileWithUndo(sFileName: string): Boolean;
-var
-  fos: TSHFileOpStruct;
+function DeleteFileWithUndo(sFileName: string): Boolean;
+//var
+//  fos: TSHFileOpStruct;
 begin
-  FillChar(fos, SizeOf(fos), 0);
+  {FillChar(fos, SizeOf(fos), 0);
   fos.wFunc := FO_DELETE;
   fos.pFrom := PChar(sFileName + #0);
   fos.fFlags := FOF_ALLOWUNDO or FOF_NOCONFIRMATION or FOF_SILENT;
-  Result := (0 = ShFileOperation(fos));
-end;}
+  Result := (0 = ShFileOperation(fos));}
+  Beep;
+end;
 
 
 {***
@@ -1007,6 +1015,7 @@ begin
   else
     ShowOptions := swoNone;
   Msg := 'Executing shell command: "'+cmd+'"';
+
   if not path.IsEmpty then
     Msg := Msg + ' path: "'+path+'"';
   if not params.IsEmpty then
@@ -1399,7 +1408,7 @@ begin
 end;}
 
 
-{procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
+procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
 var
   SingleLineHeight: Integer;
   Node: PVirtualNode;
@@ -1424,9 +1433,9 @@ begin
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
-  VT.OnGetHint := MainForm.AnyGridGetHint;
-  VT.OnScroll := MainForm.AnyGridScroll;
-  VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
+  //VT.OnGetHint := MainForm.AnyGridGetHint;
+  //VT.OnScroll := MainForm.AnyGridScroll;
+  //VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
 
   if toGridExtensions in VT.TreeOptions.MiscOptions then
@@ -1434,28 +1443,17 @@ begin
   else
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
   // Apply case insensitive incremental search event
-  if VT.IncrementalSearch <> VirtualTrees.Types.isNone then
-    VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
-  VT.OnStartOperation := Mainform.AnyGridStartOperation;
-  VT.OnEndOperation := Mainform.AnyGridEndOperation;
-end;}
+  //if VT.IncrementalSearch <> VirtualTrees.Types.isNone then
+  //  VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
+  //VT.OnStartOperation := Mainform.AnyGridStartOperation;
+  //VT.OnEndOperation := Mainform.AnyGridEndOperation;
+end;
 
 
-{function GetTextHeight(Font: TFont): Integer;
-var
-  DC: HDC;
-  SaveFont: HFont;
-  SysMetrics, Metrics: TTextMetric;
+function GetTextHeight(Font: TFont): Integer;
 begin
-  // Code taken from StdCtrls.TCustomEdit.AdjustHeight
-  DC := GetDC(0);
-  GetTextMetrics(DC, SysMetrics);
-  SaveFont := SelectObject(DC, Font.Handle);
-  GetTextMetrics(DC, Metrics);
-  SelectObject(DC, SaveFont);
-  ReleaseDC(0, DC);
-  Result := Metrics.tmHeight;
-end;}
+  Result := Font.GetTextHeight('Äy');
+end;
 
 
 function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
@@ -1487,7 +1485,7 @@ begin
 end;}
 
 
-{function FindNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
+function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
 var
   Node: PVirtualNode;
 begin
@@ -1511,10 +1509,10 @@ begin
     end;
     Node := VT.GetNextSibling(Node);
   end;
-end;}
+end;
 
 
-{function SelectNode(VT: TVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
+function SelectNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
 var
   Node: PVirtualNode;
 begin
@@ -1524,10 +1522,10 @@ begin
     Result := SelectNode(VT, Node)
   else
     Result := False;
-end;}
+end;
 
 
-{function SelectNode(VT: TVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
+function SelectNode(VT: TLazVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
 var
   OldFocus: PVirtualNode;
   MinimumColumnIndex: TColumnIndex;
@@ -1551,7 +1549,7 @@ begin
     if (OldFocus = Node) and Assigned(VT.OnFocusChanged) then
       VT.OnFocusChanged(VT, Node, VT.FocusedColumn);
   end;
-end;}
+end;
 
 
 {procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
@@ -1601,7 +1599,7 @@ begin
 end;}
 
 
-{function GetNextNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+function GetNextNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
 begin
   // Get next visible + selected node. Not possible with VTree's own functions.
   Result := CurrentNode;
@@ -1620,10 +1618,10 @@ begin
     if (not Assigned(Result)) or Tree.IsVisible[Result] then
       break;
   end;
-end;}
+end;
 
 
-{function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
+function GetPreviousNode(Tree: TVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
 begin
   // Get previous visible + selected node.
   Result := CurrentNode;
@@ -1644,7 +1642,7 @@ begin
     if (not Assigned(Result)) or Tree.IsVisible[Result] then
       break;
   end;
-end;}
+end;
 
 
 {function DateBackFriendlyCaption(d: TDateTime): String;
@@ -2109,7 +2107,7 @@ begin
 end;
 
 
-{procedure InvalidateVT(VT: TVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
+procedure InvalidateVT(VT: TLazVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
 begin
   // Avoid AVs in OnDestroy events
   if not Assigned(VT) then
@@ -2119,7 +2117,7 @@ begin
     VT.Repaint
   else
     VT.Invalidate;
-end;}
+end;
 
 
 function CharAtPos(Str: String; Pos: Integer): Char;
@@ -2938,17 +2936,17 @@ begin
   Result := DirectorySeparator;
 end;
 
-{procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList);
+procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
 var
   i: Integer;
 begin
   for i:=0 to BaseForm.ComponentCount-1 do begin
     if BaseForm.Components[i] is ClassType then
-      List.Add(BaseForm.Components[i] as ClassType)
+      List.Add(BaseForm.Components[i])
     else
       FindComponentInstances(BaseForm.Components[i], ClassType, List);
   end;
-end;}
+end;
 
 {function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
 begin
@@ -2988,11 +2986,11 @@ begin
 end;
 
 
-{function EscapeHotkeyPrefix(Text: String): String;
+function EscapeHotkeyPrefix(Text: String): String;
 begin
   // Issue #1992: Escape ampersand in caption of menus and tabs, preventing underlined hotkey generation
-  Result := StringReplace(Text, Vcl.Menus.cHotkeyPrefix, Vcl.Menus.cHotkeyPrefix + Vcl.Menus.cHotkeyPrefix, [rfReplaceAll]);
-end;}
+  Result := StringReplace(Text, Menus.cHotkeyPrefix, Menus.cHotkeyPrefix + Menus.cHotkeyPrefix, [rfReplaceAll]);
+end;
 
 function GetFileNameWithoutExtension(Filename: String): String;
 var

@@ -6,10 +6,12 @@ interface
 
 uses
   Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
-  ComCtrls, ExtCtrls, SynEdit, SynHighlighterSQL, laz.VirtualTrees,
-  RegExpr, Buttons, StdCtrls, fphttpclient, Math, LCLIntf,
-  Generics.Collections, Generics.Defaults, opensslsockets,
-  dbconnection, dbstructures, dbstructures.mysql, generic_types;
+  ComCtrls, ExtCtrls, LCLProc, DateUtils,
+  SynEdit, SynEditHighlighter, SynHighlighterSQL, SynGutterBase, SynCompletion, SynEditKeyCmds, SynEditTypes,
+  StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls, fphttpclient, Math,
+  LCLIntf, Generics.Collections, Generics.Defaults, opensslsockets, StdActns,
+  Clipbrd, dbconnection, dbstructures, dbstructures.mysql, generic_types,
+  apphelpers;
 
 
 type
@@ -34,7 +36,7 @@ type
     function Compare(constref Left, Right: TBindParam): Integer; override;
   end;
 
-  {// Query tabs and contained components
+  // Query tabs and contained components
   TQueryTab = class;
   TResultTab = class(TObject)
     Results: TDBQuery;
@@ -47,8 +49,8 @@ type
       destructor Destroy; override;
       property TabIndex: Integer read FTabIndex;
   end;
-  TResultTabs = TObjectList<TResultTab>;}
-  {TQueryTab = class(TComponent)
+  TResultTabs = TObjectList<TResultTab>;
+  TQueryTab = class(TComponent)
     const
       IdentBackupFilename = 'BackupFilename';
       IdentFilename = 'Filename';
@@ -89,16 +91,16 @@ type
       pnlMemo: TPanel;
       Memo: TSynMemo;
       pnlHelpers: TPanel;
-      filterHelpers: TButtonedEdit;
+      filterHelpers: TEdit;
       treeHelpers: TVirtualStringTree;
       MemoFileRenamed: Boolean;
       MemoLineBreaks: TLineBreaks;
-      DirectoryWatch: TDirectoryWatch;
+      //DirectoryWatch: TDirectoryWatch;
       MemofileModifiedTimer: TTimer;
       LastSaveTime: Cardinal;
       spltHelpers: TSplitter;
       spltQuery: TSplitter;
-      tabsetQuery: TTabSet;
+      tabsetQuery: TTabControl;
       TabSheet: TTabSheet;
       ResultTabs: TResultTabs;
       DoProfile: Boolean;
@@ -110,7 +112,7 @@ type
       TimerLastChange: TTimer;
       TimerStatusUpdate: TTimer;
       function GetActiveResultTab: TResultTab;
-      procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
+      //procedure DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
       procedure DirectoryWatchErrorHandler(const Sender: TObject; const ErrorCode: Integer; const ErrorMessage: string);
       procedure MemofileModifiedTimerNotify(Sender: TObject);
       function LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
@@ -135,7 +137,7 @@ type
       function HasActiveTab: Boolean;
       function TabByNumber(Number: Integer): TQueryTab;
       function TabByControl(Control: TWinControl): TQueryTab;
-  end;}
+  end;
 
   {TQueryHistoryItem = class(TObject)
     Time: TDateTime;
@@ -186,12 +188,181 @@ type
   { TMainForm }
 
   TMainForm = class(TForm)
-    actGotoDbTree: TAction;
-    actSessionManager: TAction;
     ActionList1: TActionList;
+    actFollowForeignKey: TAction;
+    actCopy: TAction;
+    actPaste: TAction;
+    actNewWindow: TAction;
     actExitApplication: TAction;
+    actUserManager: TAction;
+
+    actAboutBox: TAction;
+    actMaintenance: TAction;
+    actPrintList: TAction;
+    actCopyTable: TAction;
+    actUndo: TEditUndo;
+    actExecuteQuery: TAction;
+    actExecuteSelection: TAction;
+    actExportData: TAction;
+    actExecuteCurrentQuery: TAction;
+    actDataPreview: TAction;
+    actInsertFiles: TAction;
+    actExportTables: TAction;
+    actDropObjects: TAction;
+    actLoadSQL: TAction;
+    actCreateView: TAction;
+    actDataFirst: TAction;
+    actDataLast: TAction;
+    actDataInsert: TAction;
+    actDataDelete: TAction;
+    actDataPostChanges: TAction;
+    actCreateTable: TAction;
+    actEmptyTables: TAction;
+    actCreateDatabase: TAction;
+    actSQLhelp: TAction;
+    actRefresh: TAction;
+    actImportCSV: TAction;
+    actCut: TAction;
+    actExportSettings: TAction;
+    actImportSettings: TAction;
+    actPreferences: TAction;
+    actFlushHosts: TAction;
+    actFlushLogs: TAction;
+    actFlushPrivileges: TAction;
+    actFlushTables: TAction;
+    actFlushTableswithreadlock: TAction;
+    actFlushStatus: TAction;
+    actUpdateCheck: TAction;
+    actWebDownloadpage: TAction;
+    actWebForum: TAction;
+    actWebChangelog: TAction;
+    actHelp: TAction;
+    actSaveSQL: TAction;
+    actSaveSQLAs: TAction;
+    actSaveSQLselection: TAction;
+    actSaveSQLSnippet: TAction;
+    actSaveSQLSelectionSnippet: TAction;
+    actClearQueryEditor: TAction;
+    actClearFilterEditor: TAction;
+    actApplyFilter: TAction;
+    actQueryStopOnErrors: TAction;
+    actQueryWordWrap: TAction;
+    actQueryFind: TAction;
+    actQueryReplace: TAction;
+    actSetDelimiter: TAction;
+    actDataCancelChanges: TAction;
+    actRemoveFilter: TAction;
+    actPreviousTab: TAction;
+    actNextTab: TAction;
+    actSelectAll: TAction;
+    actSessionManager: TAction;
+    actCreateProcedure: TAction;
+    actNewQueryTab: TAction;
+    actCloseQueryTab: TAction;
+    actFilterPanel: TAction;
+    actFindTextOnServer: TAction;
+    actBulkTableEdit: TAction;
+    actCreateTrigger: TAction;
+    actDataDuplicateRowWithoutKeys: TAction;
+    actDataDuplicateRowWithKeys: TAction;
+    actSelectInverse: TAction;
+    actDataResetSorting: TAction;
+    actReformatSQL: TAction;
+    actBlobAsText: TAction;
+    actQueryFindAgain: TAction;
+    actDataShowNext: TAction;
+    actDataShowAll: TAction;
+    actRunRoutines: TAction;
+    actCreateEvent: TAction;
+    actDataSetNull: TAction;
+    actDataSaveBlobToFile: TAction;
+    actDisconnect: TAction;
+    actBatchInOneGo: TAction;
+    actSingleQueries: TAction;
+    actCancelOperation: TAction;
+    actToggleComment: TAction;
+    actLaunchCommandline: TAction;
+    actGridEditFunction: TAction;
+    actLogHorizontalScrollbar: TAction;
+    actGroupObjects: TAction;
+    actExplainCurrentQuery: TAction;
+    actUnixTimestampColumn: TAction;
+    actFavoriteObjectsOnly: TAction;
+    actFullRefresh: TAction;
+    actPreviousResult: TAction;
+    actNextResult: TAction;
+    actSaveSynMemoToTextfile: TAction;
+    actRunSQL: TAction;
+    actPreferencesLogging: TAction;
+    actPreferencesData: TAction;
+    actGotoDbTree: TAction;
+    actGotoFilter: TAction;
+    actGotoTab1: TAction;
+    actGotoTab2: TAction;
+    actGotoTab3: TAction;
+    actGotoTab4: TAction;
+    actGotoTab5: TAction;
+    actClearQueryLog: TAction;
+    actGoToQueryResults: TAction;
+    actGoToDataMultiFilter: TAction;
+    actDataOpenUrl: TAction;
+    actDetachDatabase: TAction;
+    actAttachDatabase: TAction;
+    actSynEditCompletionPropose: TAction;
+    actQuickFilterFocused1: TAction;
+    actQuickFilterFocused2: TAction;
+    actQuickFilterFocused3: TAction;
+    actQuickFilterFocused4: TAction;
+    actQuickFilterFocused5: TAction;
+    actQuickFilterFocused6: TAction;
+    actQuickFilterFocused7: TAction;
+    actQuickFilterPrompt1: TAction;
+    actQuickFilterPrompt2: TAction;
+    actQuickFilterPrompt3: TAction;
+    actQuickFilterPrompt4: TAction;
+    actQuickFilterPrompt5: TAction;
+    actQuickFilterNull: TAction;
+    actQuickFilterNotNull: TAction;
+    actQuickFilterClipboard1: TAction;
+    actQuickFilterClipboard2: TAction;
+    actQuickFilterClipboard3: TAction;
+    actQuickFilterClipboard4: TAction;
+    actQuickFilterClipboard5: TAction;
+    actQuickFilterClipboard6: TAction;
+    actCodeFolding: TAction;
+    actCodeFoldingStartRegion: TAction;
+    actCodeFoldingEndRegion: TAction;
+    actCodeFoldingFoldSelection: TAction;
+    actConnectionProperties: TAction;
+    actRenameQueryTab: TAction;
+    actNewQueryTabNofocus: TAction;
+    actCreateFunction: TAction;
+    actCloseAllQueryTabs: TAction;
+    actSynMoveDown: TAction;
+    actSynMoveUp: TAction;
+    actCopyTabsToSpaces: TAction;
+    actSequalSuggest: TAction;
+    actResetPanelDimensions: TAction;
+    actGenerateData: TAction;
+    actCopyGridNodes: TAction;
+    editFilterVT: TEdit;
+    filterQueryHelpers: TEdit;
+
+
     ImageListIcons8: TImageList;
     DBtree: TLazVirtualStringTree;
+    DataGrid: TLazVirtualStringTree;
+    lblFilterVTInfo: TLabel;
+    lblFilterVT: TLabel;
+    QueryGrid: TLazVirtualStringTree;
+    btnCloseFilterPanel: TSpeedButton;
+    spltQuery: TSplitter;
+    spltQueryHelpers: TSplitter;
+    SynCompletionProposal: TSynCompletion;
+    SynMemoQuery: TSynEdit;
+    tabsetQuery: TTabControl;
+    TimerFilterVT: TTimer;
+    treeQueryHelpers: TLazVirtualStringTree;
     ListDatabases: TLazVirtualStringTree;
     MainMenu1: TMainMenu;
     MenuItem1: TMenuItem;
@@ -206,6 +377,8 @@ type
     PageControlMain: TPageControl;
     Panel1: TPanel;
     Panel2: TPanel;
+    pnlQueryHelpers: TPanel;
+    pnlQueryMemo: TPanel;
     pnlPreview: TPanel;
     pnlFilterVT: TPanel;
     pnlLeft: TPanel;
@@ -220,16 +393,16 @@ type
     tabDatabases: TTabSheet;
     tabVariables: TTabSheet;
     tabStatus: TTabSheet;
-    tabProcesses: TTabSheet;
+    tabProcesslist: TTabSheet;
     tabCommandStats: TTabSheet;
-    tabTable: TTabSheet;
+    tabEditor: TTabSheet;
     tabData: TTabSheet;
     tabQuery: TTabSheet;
     ToolBarTree: TToolBar;
     ToolBarMainButtons: TToolBar;
     ToolButton1: TToolButton;
     ToolButtonDonate: TToolButton;
-    //procedure actCreateDBObjectExecute(Sender: TObject);
+    procedure actCreateDBObjectExecute(Sender: TObject);
     //procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     //procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
@@ -241,48 +414,48 @@ type
     procedure FormResize(Sender: TObject);
     //procedure AddEditorCommandMenu(const S: string);
     //procedure EditorCommandOnClick(Sender: TObject);
-    //procedure actUserManagerExecute(Sender: TObject);
-    //procedure actAboutBoxExecute(Sender: TObject);
-    //procedure actApplyFilterExecute(Sender: TObject);
-    //procedure actClearEditorExecute(Sender: TObject);
-    //procedure actTableToolsExecute(Sender: TObject);
-    //procedure actPrintListExecute(Sender: TObject);
-    //procedure actCopyTableExecute(Sender: TObject);
+    procedure actUserManagerExecute(Sender: TObject);
+    procedure actAboutBoxExecute(Sender: TObject);
+    procedure actApplyFilterExecute(Sender: TObject);
+    procedure actClearEditorExecute(Sender: TObject);
+    procedure actTableToolsExecute(Sender: TObject);
+    procedure actPrintListExecute(Sender: TObject);
+    procedure actCopyTableExecute(Sender: TObject);
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
-    //procedure actExecuteQueryExecute(Sender: TObject);
-    //procedure actCreateDatabaseExecute(Sender: TObject);
-    //procedure actDataCancelChangesExecute(Sender: TObject);
-    //procedure actExportDataExecute(Sender: TObject);
-    //procedure actDataPreviewExecute(Sender: TObject);
-    //procedure UpdatePreviewPanel;
-    //procedure actInsertFilesExecute(Sender: TObject);
-    //procedure actDataDeleteExecute(Sender: TObject);
-    //procedure actDataFirstExecute(Sender: TObject);
-    //procedure actDataInsertExecute(Sender: TObject);
-    //procedure actDataLastExecute(Sender: TObject);
-    //procedure actDataPostChangesExecute(Sender: TObject);
-    //procedure actDropObjectsExecute(Sender: TObject);
-    //procedure actEmptyTablesExecute(Sender: TObject);
-    //procedure actExportSettingsExecute(Sender: TObject);
-    //procedure actFlushExecute(Sender: TObject);
-    //procedure actImportCSVExecute(Sender: TObject);
-    //procedure actImportSettingsExecute(Sender: TObject);
-    //procedure actLoadSQLExecute(Sender: TObject);
-    //procedure actNewWindowExecute(Sender: TObject);
+    procedure actExecuteQueryExecute(Sender: TObject);
+    procedure actCreateDatabaseExecute(Sender: TObject);
+    procedure actDataCancelChangesExecute(Sender: TObject);
+    procedure actExportDataExecute(Sender: TObject);
+    procedure actDataPreviewExecute(Sender: TObject);
+    procedure UpdatePreviewPanel;
+    procedure actInsertFilesExecute(Sender: TObject);
+    procedure actDataDeleteExecute(Sender: TObject);
+    procedure actDataFirstExecute(Sender: TObject);
+    procedure actDataInsertExecute(Sender: TObject);
+    procedure actDataLastExecute(Sender: TObject);
+    procedure actDataPostChangesExecute(Sender: TObject);
+    procedure actDropObjectsExecute(Sender: TObject);
+    procedure actEmptyTablesExecute(Sender: TObject);
+    procedure actExportSettingsExecute(Sender: TObject);
+    procedure actFlushExecute(Sender: TObject);
+    procedure actImportCSVExecute(Sender: TObject);
+    procedure actImportSettingsExecute(Sender: TObject);
+    procedure actLoadSQLExecute(Sender: TObject);
+    procedure actNewWindowExecute(Sender: TObject);
     procedure actSessionManagerExecute(Sender: TObject);
-    //procedure actPreferencesExecute(Sender: TObject);
-    //procedure actQueryFindReplaceExecute(Sender: TObject);
-    //procedure actQueryStopOnErrorsExecute(Sender: TObject);
-    //procedure actQueryWordWrapExecute(Sender: TObject);
-    //procedure actHelpExecute(Sender: TObject);
-    //procedure actRefreshExecute(Sender: TObject);
-    //procedure actRemoveFilterExecute(Sender: TObject);
-    //procedure actSaveSQLExecute(Sender: TObject);
-    //procedure actSaveSQLAsExecute(Sender: TObject);
-    //procedure actSetDelimiterExecute(Sender: TObject);
-    //procedure actSQLhelpExecute(Sender: TObject);
-    //procedure actUpdateCheckExecute(Sender: TObject);
-    //procedure actWebbrowse(Sender: TObject);
+    procedure actPreferencesExecute(Sender: TObject);
+    procedure actQueryFindReplaceExecute(Sender: TObject);
+    procedure actQueryStopOnErrorsExecute(Sender: TObject);
+    procedure actQueryWordWrapExecute(Sender: TObject);
+    procedure actHelpExecute(Sender: TObject);
+    procedure actRefreshExecute(Sender: TObject);
+    procedure actRemoveFilterExecute(Sender: TObject);
+    procedure actSaveSQLExecute(Sender: TObject);
+    procedure actSaveSQLAsExecute(Sender: TObject);
+    procedure actSetDelimiterExecute(Sender: TObject);
+    procedure actSQLhelpExecute(Sender: TObject);
+    procedure actUpdateCheckExecute(Sender: TObject);
+    procedure actWebbrowse(Sender: TObject);
     //procedure popupQueryPopup(Sender: TObject);
     //procedure btnDataClick(Sender: TObject);
     //procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -297,7 +470,7 @@ type
     //procedure PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
     //procedure PageControlHostChange(Sender: TObject);
     procedure ValidateControls(Sender: TObject);
-    //procedure ValidateQueryControls(Sender: TObject);
+    procedure ValidateQueryControls(Sender: TObject);
     //procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
     //  TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
@@ -306,7 +479,7 @@ type
     //procedure ListTablesNewText(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //    Column: TColumnIndex; NewText: String);
     //procedure TimerConnectedTimer(Sender: TObject);
-    //procedure QuickFilterClick(Sender: TObject);
+    procedure QuickFilterClick(Sender: TObject);
     //procedure AutoRefreshSetInterval(Sender: TObject);
     //procedure AutoRefreshToggle(Sender: TObject);
     //procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
@@ -319,7 +492,7 @@ type
     //procedure QFvaluesClick(Sender: TObject);
     //procedure DataInsertValueClick(Sender: TObject);
     //procedure InsertValue(Sender: TObject);
-    //procedure actDataSetNullExecute(Sender: TObject);
+    procedure actDataSetNullExecute(Sender: TObject);
     //procedure AnyGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //    Column: TColumnIndex; out EditLink: IVTEditLink);
     //procedure AnyGridEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
@@ -350,7 +523,7 @@ type
     //    DropPosition: TPoint);
     //procedure AnyGridIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const SearchText: String;
     //  var Result: Integer);
-    //procedure SetMainTab(Page: TTabSheet);
+    procedure SetMainTab(Page: TTabSheet);
     //procedure DBtreeFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //  Column: TColumnIndex);
     //procedure DBtreeGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -378,7 +551,7 @@ type
     //  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
     //  var ContentRect: TRect);
     //procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
-    //procedure editFilterVTChange(Sender: TObject);
+    procedure editFilterVTChange(Sender: TObject);
     //procedure ListVariablesDblClick(Sender: TObject);
     //procedure menuEditVariableClick(Sender: TObject);
     //procedure menuTreeCollapseAllClick(Sender: TObject);
@@ -411,10 +584,10 @@ type
     //procedure ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
     //  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     //procedure AnyGridAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-    //procedure actFollowForeignKeyExecute(Sender: TObject);
-    //procedure actCopyOrCutExecute(Sender: TObject);
-    //procedure actPasteExecute(Sender: TObject);
-    //procedure actSelectAllExecute(Sender: TObject);
+    procedure actFollowForeignKeyExecute(Sender: TObject);
+    procedure actCopyOrCutExecute(Sender: TObject);
+    procedure actPasteExecute(Sender: TObject);
+    procedure actSelectAllExecute(Sender: TObject);
     //procedure EnumerateRecentFilters;
     //procedure LoadRecentFilter(Sender: TObject);
     //procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -423,41 +596,41 @@ type
     //procedure ListTablesDblClick(Sender: TObject);
     //procedure panelTopDblClick(Sender: TObject);
     //procedure PageControlMainMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
-    //procedure actNewQueryTabExecute(Sender: TObject);
-    //procedure actCloseQueryTabExecute(Sender: TObject);
+    procedure actNewQueryTabExecute(Sender: TObject);
+    procedure actCloseQueryTabExecute(Sender: TObject);
     //procedure menuCloseQueryTabClick(Sender: TObject);
-    //procedure CloseQueryTab(PageIndex: Integer);
+    procedure CloseQueryTab(PageIndex: Integer);
     //procedure CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     //procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     //function GetMainTabAt(X, Y: Integer): Integer;
-    //procedure FixQueryTabCloseButtons;
+    procedure FixQueryTabCloseButtons;
     //function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
-    //function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
-    //function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
+    function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
+    function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     //procedure popupMainTabsPopup(Sender: TObject);
     //procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    //procedure actFilterPanelExecute(Sender: TObject);
-    //procedure TimerFilterVTTimer(Sender: TObject);
+    procedure actFilterPanelExecute(Sender: TObject);
+    procedure TimerFilterVTTimer(Sender: TObject);
     //procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     //procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
-    //procedure actSelectInverseExecute(Sender: TObject);
+    procedure actSelectInverseExecute(Sender: TObject);
     //procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
     //  var Handled: Boolean);
-    //procedure actDataResetSortingExecute(Sender: TObject);
-    //procedure actReformatSQLExecute(Sender: TObject);
+    procedure actDataResetSortingExecute(Sender: TObject);
+    procedure actReformatSQLExecute(Sender: TObject);
     //procedure DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
     //  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
     //  var Allowed: Boolean);
-    //procedure actBlobAsTextExecute(Sender: TObject);
+    procedure actBlobAsTextExecute(Sender: TObject);
     //procedure SynMemoQueryReplaceText(Sender: TObject; const ASearch,
     //  AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
     //procedure SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas;
     //  TransientType: TTransientType);
-    //procedure actQueryFindAgainExecute(Sender: TObject);
+    procedure actQueryFindAgainExecute(Sender: TObject);
     //procedure AnyGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
     //procedure lblExplainProcessClick(Sender: TObject);
-    //procedure actDataShowNextExecute(Sender: TObject);
-    //procedure actDataShowAllExecute(Sender: TObject);
+    procedure actDataShowNextExecute(Sender: TObject);
+    procedure actDataShowAllExecute(Sender: TObject);
     //procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
     //  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     //procedure AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -474,7 +647,7 @@ type
     //procedure ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
     //procedure ListDatabasesDblClick(Sender: TObject);
-    //procedure actRunRoutinesExecute(Sender: TObject);
+    procedure actRunRoutinesExecute(Sender: TObject);
     //procedure AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     //procedure tabsetQueryClick(Sender: TObject);
     //procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
@@ -485,9 +658,9 @@ type
     //procedure StatusBarMouseLeave(Sender: TObject);
     //procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
     //procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
-    //procedure actDataPreviewUpdate(Sender: TObject);
+    procedure actDataPreviewUpdate(Sender: TObject);
     //procedure spltPreviewMoved(Sender: TObject);
-    //procedure actDataSaveBlobToFileExecute(Sender: TObject);
+    procedure actDataSaveBlobToFileExecute(Sender: TObject);
     //procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
     //procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
@@ -509,28 +682,28 @@ type
     //  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     //procedure treeQueryHelpersResize(Sender: TObject);
     //procedure ApplicationEvents1Deactivate(Sender: TObject);
-    //procedure actDisconnectExecute(Sender: TObject);
+    procedure actDisconnectExecute(Sender: TObject);
     //procedure menuEditObjectClick(Sender: TObject);
     //procedure Copylinetonewquerytab1Click(Sender: TObject);
-    //procedure actLogHorizontalScrollbarExecute(Sender: TObject);
-    //procedure actBatchInOneGoExecute(Sender: TObject);
-    //function GetFocusedObjects(Sender: TObject; NodeTypes: TListNodeTypes): TDBObjectList;
-    //function DBTreeClicked(Sender: TObject): Boolean;
-    //procedure actCancelOperationExecute(Sender: TObject);
+    procedure actLogHorizontalScrollbarExecute(Sender: TObject);
+    procedure actBatchInOneGoExecute(Sender: TObject);
+    function GetFocusedObjects(Sender: TObject; NodeTypes: TListNodeTypes): TDBObjectList;
+    function DBTreeClicked(Sender: TObject): Boolean;
+    procedure actCancelOperationExecute(Sender: TObject);
     //procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    //procedure actToggleCommentExecute(Sender: TObject);
+    procedure actToggleCommentExecute(Sender: TObject);
     //procedure DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
     //  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
     //  var ContentRect: TRect);
-    //procedure actLaunchCommandlineExecute(Sender: TObject);
+    procedure actLaunchCommandlineExecute(Sender: TObject);
     //procedure menuClearQueryHistoryClick(Sender: TObject);
-    //procedure actGridEditFunctionExecute(Sender: TObject);
+    procedure actGridEditFunctionExecute(Sender: TObject);
     //procedure ListVariablesPaintText(Sender: TBaseVirtualTree;
     //  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
     //  TextType: TVSTTextType);
     //procedure DBtreeExpanding(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //  var Allowed: Boolean);
-    //procedure actGroupObjectsExecute(Sender: TObject);
+    procedure actGroupObjectsExecute(Sender: TObject);
     //procedure popupSqlLogPopup(Sender: TObject);
     //procedure menuAutoExpandClick(Sender: TObject);
     //procedure pnlLeftResize(Sender: TObject);
@@ -539,7 +712,7 @@ type
     //procedure editDatabaseTableFilterMenuClick(Sender: TObject);
     //procedure editDatabaseTableFilterExit(Sender: TObject);
     //procedure menuClearDataTabFilterClick(Sender: TObject);
-    //procedure actUnixTimestampColumnExecute(Sender: TObject);
+    procedure actUnixTimestampColumnExecute(Sender: TObject);
     //procedure PopupQueryLoadPopup(Sender: TObject);
     procedure DonateClick(Sender: TObject);
     //procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
@@ -548,10 +721,10 @@ type
     //procedure DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
     //  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
     //  CellRect: TRect);
-    //procedure actFavoriteObjectsOnlyExecute(Sender: TObject);
+    procedure actFavoriteObjectsOnlyExecute(Sender: TObject);
     //procedure DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
     //  Shift: TShiftState; X, Y: Integer);
-    //procedure actFullRefreshExecute(Sender: TObject);
+    procedure actFullRefreshExecute(Sender: TObject);
     //procedure treeQueryHelpersEditing(Sender: TBaseVirtualTree;
     //  Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
     //procedure treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
@@ -562,30 +735,30 @@ type
     //  Node: PVirtualNode; Column: TColumnIndex; NewText: string);
     //procedure treeQueryHelpersChecking(Sender: TBaseVirtualTree;
     //  Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
-    //procedure actPreviousResultExecute(Sender: TObject);
-    //procedure actNextResultExecute(Sender: TObject);
-    //procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
+    procedure actPreviousResultExecute(Sender: TObject);
+    procedure actNextResultExecute(Sender: TObject);
+    procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
     //procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     //procedure buttonedEditClear(Sender: TObject);
     //procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
     //procedure DBtreeDblClick(Sender: TObject);
     //procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
     procedure actGotoDbTreeExecute(Sender: TObject);
-    //procedure actGotoFilterExecute(Sender: TObject);
-    //procedure actGotoTabNumberExecute(Sender: TObject);
+    procedure actGotoFilterExecute(Sender: TObject);
+    procedure actGotoTabNumberExecute(Sender: TObject);
     //procedure StatusBarClick(Sender: TObject);
     //procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
     //  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     //procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     //procedure filterQueryHelpersChange(Sender: TObject);
     //procedure TimerStoreTabsTimer(Sender: TObject);
-    //procedure actGoToQueryResultsExecute(Sender: TObject);
-    //procedure actGoToDataMultiFilterExecute(Sender: TObject);
-    //procedure actDataOpenUrlExecute(Sender: TObject);
+    procedure actGoToQueryResultsExecute(Sender: TObject);
+    procedure actGoToDataMultiFilterExecute(Sender: TObject);
+    procedure actDataOpenUrlExecute(Sender: TObject);
     //procedure ApplicationEvents1ShortCut(var Msg: TWMKey; var Handled: Boolean);
-    //procedure actDetachDatabaseExecute(Sender: TObject);
-    //procedure actAttachDatabaseExecute(Sender: TObject);
-    //procedure actSynEditCompletionProposeExecute(Sender: TObject);
+    procedure actDetachDatabaseExecute(Sender: TObject);
+    procedure actAttachDatabaseExecute(Sender: TObject);
+    procedure actSynEditCompletionProposeExecute(Sender: TObject);
     //procedure AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
     //  var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
     //procedure AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
@@ -593,21 +766,21 @@ type
     //procedure SynMemoQueryScanForFoldRanges(Sender: TObject;
     //  FoldRanges: TSynFoldRanges; LinesToScan: TStrings; FromLine,
     //  ToLine: Integer);
-    //procedure actCodeFoldingExecute(Sender: TObject);
-    //procedure actCodeFoldingStartRegionExecute(Sender: TObject);
-    //procedure actCodeFoldingEndRegionExecute(Sender: TObject);
-    //procedure actCodeFoldingFoldSelectionExecute(Sender: TObject);
-    //procedure actConnectionPropertiesExecute(Sender: TObject);
-    //procedure actRenameQueryTabExecute(Sender: TObject);
+    procedure actCodeFoldingExecute(Sender: TObject);
+    procedure actCodeFoldingStartRegionExecute(Sender: TObject);
+    procedure actCodeFoldingEndRegionExecute(Sender: TObject);
+    procedure actCodeFoldingFoldSelectionExecute(Sender: TObject);
+    procedure actConnectionPropertiesExecute(Sender: TObject);
+    procedure actRenameQueryTabExecute(Sender: TObject);
     //procedure menuRenameQueryTabClick(Sender: TObject);
     //procedure SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
-    //procedure actCloseAllQueryTabsExecute(Sender: TObject);
+    procedure actCloseAllQueryTabsExecute(Sender: TObject);
     //procedure menuCloseRightQueryTabsClick(Sender: TObject);
     //procedure popupFilterPopup(Sender: TObject);
-    //procedure actSynMoveDownExecute(Sender: TObject);
-    //procedure actSynMoveUpExecute(Sender: TObject);
-    //procedure actCopyTabsToSpacesExecute(Sender: TObject);
-    //procedure actCopyUpdate(Sender: TObject);
+    procedure actSynMoveDownExecute(Sender: TObject);
+    procedure actSynMoveUpExecute(Sender: TObject);
+    procedure actCopyTabsToSpacesExecute(Sender: TObject);
+    procedure actCopyUpdate(Sender: TObject);
     //procedure FormBeforeMonitorDpiChanged(Sender: TObject; OldDPI,
     //  NewDPI: Integer);
     //procedure menuToggleAllClick(Sender: TObject);
@@ -620,17 +793,17 @@ type
     //  var Special: Boolean; var FG, BG: TColor);
     //procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
     //  var Special: Boolean; var FG, BG: TColor);
-    //procedure actSequalSuggestExecute(Sender: TObject);
+    procedure actSequalSuggestExecute(Sender: TObject);
     //procedure menuQueryExactRowCountClick(Sender: TObject);
     //procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
     //procedure TimerCloseTabByButtonTimer(Sender: TObject);
     //procedure menuTabsInMultipleLinesClick(Sender: TObject);
-    //procedure actResetPanelDimensionsExecute(Sender: TObject);
+    procedure actResetPanelDimensionsExecute(Sender: TObject);
     //procedure menuAlwaysGenerateFilterClick(Sender: TObject);
     //procedure SynMemoQueryTokenHint(Sender: TObject; Coords: TBufferCoord;
     //  const Token: string; TokenType: Integer; Attri: TSynHighlighterAttributes;
     //  var HintText: string);
-    //procedure actCopyGridNodesExecute(Sender: TObject);
+    procedure actCopyGridNodesExecute(Sender: TObject);
   private
     // Executable file details
     FAppVerMajor: Integer;
@@ -663,14 +836,14 @@ type
     FDataGridColumnWidthsCustomized: Boolean;
     FDataGridLastClickedColumnHeader: Integer;
     FDataGridLastClickedColumnLeftPos: Integer;
-    //FDataGridSortItems: TSortItems;
+    FDataGridSortItems: TSortItems;
     FSnippetFilenames: TStringList;
     FConnections: TDBConnectionList;
     FTreeClickHistory: TNodeArray;
     FOperationTicker: Cardinal;
     FOperatingGrid: TBaseVirtualTree;
-    //FActiveDbObj: TDBObject;
-    //FActiveObjectGroup: TListNodeType;
+    FActiveDbObj: TDBObject;
+    FActiveObjectGroup: TListNodeType;
     FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
@@ -683,7 +856,7 @@ type
     FGridCopying: Boolean;
     FGridPasting: Boolean;
     FHasDonatedDatabaseCheck: TThreeStateBoolean;
-    //FFocusedTables: TDBObjectList;
+    FFocusedTables: TDBObjectList;
     FLastCaptionChange: Cardinal;
     FListTablesSorted: Boolean;
     FLastPortableSettingsSave: Cardinal;
@@ -701,7 +874,7 @@ type
     //FHelpData: TSimpleKeyValuePairs;
 
     // Host subtabs backend structures
-    //FHostListResults: TDBQueryList;
+    FHostListResults: TDBQueryList;
     FStatusServerUptime: Integer;
     FProcessListMaxTime: Int64;
     FCommandStatsQueryCount: Int64;
@@ -709,28 +882,28 @@ type
     FVariableNames, FSessionVars, FGlobalVars: TStringList;
 
     procedure SetDelimiter(Value: String);
-    //procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
+    procedure DisplayRowCountStats(Sender: TBaseVirtualTree);
     //procedure insertFunction(Sender: TObject);
-    //function GetActiveConnection: TDBConnection;
-    //function GetActiveDatabase: String;
-    //function GetCurrentQuery(Tab: TQueryTab): String;
-    //procedure SetActiveDatabase(db: String; Connection: TDBConnection);
-    //procedure SetActiveDBObj(Obj: TDBObject);
+    function GetActiveConnection: TDBConnection;
+    function GetActiveDatabase: String;
+    function GetCurrentQuery(Tab: TQueryTab): String;
+    procedure SetActiveDatabase(db: String; Connection: TDBConnection);
+    procedure SetActiveDBObj(Obj: TDBObject);
     //procedure ToggleFilterPanel(ForceVisible: Boolean = False);
     //procedure EnableDataTab(Enable: Boolean);
     //procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
-    //procedure PlaceObjectEditor(Obj: TDBObject);
-    //procedure SetTabCaption(PageIndex: Integer; Text: String);
-    //function ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
-    //function ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
-    //procedure UpdateFilterPanel(Sender: TObject);
+    procedure PlaceObjectEditor(Obj: TDBObject);
+    procedure SetTabCaption(PageIndex: Integer; Text: String);
+    function ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
+    function ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
+    procedure UpdateFilterPanel(Sender: TObject);
     //procedure ConnectionReady(Connection: TDBConnection; Database: String);
     //procedure DatabaseChanged(Connection: TDBConnection; Database: String);
     //procedure ObjectnamesChanged(Connection: TDBConnection; Database: String);
     //procedure UpdateLineCharPanel;
     //procedure SetSnippetFilenames;
     //function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
-    //procedure OperationRunning(Runs: Boolean);
+    procedure OperationRunning(Runs: Boolean);
     //function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
     //function RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
     //  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
@@ -742,7 +915,7 @@ type
     //function RestoreTabs: Boolean;
     //procedure SetHintFontByControl(Control: TWinControl=nil);
   public
-    //QueryTabs: TQueryTabList;
+    QueryTabs: TQueryTabList;
     //ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
     ImportSettingsDone: Boolean;
@@ -750,17 +923,17 @@ type
     //// Data grid related stuff
     DataGridHiddenColumns: TStringList;
     DataGridWantedRowCount: Int64;
-    //DataGridTable: TDBObject;
+    DataGridTable: TDBObject;
     DataGridFocusedCell: TStringList;
     DataGridFocusedNodeIndex: Int64;
     DataGridFocusedColumnName: String;
-    //DataGridResult: TDBQuery;
+    DataGridResult: TDBQuery;
     DataGridFullRowMode: Boolean;
     DataLocalNumberFormat: Boolean;
-    //SelectedTableColumns: TTableColumnList;
-    //SelectedTableKeys: TTableKeyList;
-    //SelectedTableForeignKeys: TForeignKeyList;
-    //SelectedTableTimestampColumns: TStringList;
+    SelectedTableColumns: TTableColumnList;
+    SelectedTableKeys: TTableKeyList;
+    SelectedTableForeignKeys: TForeignKeyList;
+    SelectedTableTimestampColumns: TStringList;
     FilterPanelManuallyOpened: Boolean;
 
     //// Task button interface
@@ -773,11 +946,11 @@ type
     property AppVersion: String read FAppVersion;
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
-    //property FocusedTables: TDBObjectList read FFocusedTables;
+    property FocusedTables: TDBObjectList read FFocusedTables;
     //function GetAlternatingRowBackground(Node: PVirtualNode): TColor;
     //procedure PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
     //procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
-    //procedure CallSQLHelpWithKeyword( keyword: String );
+    procedure CallSQLHelpWithKeyword( keyword: String );
     //procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     //procedure popupQueryLoadClick( sender: TObject );
     //procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
@@ -785,28 +958,28 @@ type
     //procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
     //procedure ConnectionsNotify(Sender: TObject; const Item: TDBConnection; Action: TCollectionNotification);
-    //function ActiveGrid: TVirtualStringTree;
-    //function GridResult(Grid: TBaseVirtualTree): TDBQuery;
-    //property ActiveConnection: TDBConnection read GetActiveConnection;
-    //property ActiveDatabase: String read GetActiveDatabase;
-    //property ActiveDbObj: TDBObject read FActiveDbObj write SetActiveDBObj;
+    function ActiveGrid: TVirtualStringTree;
+    function GridResult(Grid: TVirtualStringTree): TDBQuery;
+    property ActiveConnection: TDBConnection read GetActiveConnection;
+    property ActiveDatabase: String read GetActiveDatabase;
+    property ActiveDbObj: TDBObject read FActiveDbObj write SetActiveDBObj;
     property LogToFile: Boolean read FLogToFile write FLogToFile; //SetLogToFile;
-    //procedure RefreshTree(FocusNewObject: TDBObject=nil);
-    //function GetRootNode(Tree: TBaseVirtualTree; Connection: TDBConnection): PVirtualNode;
-    //function FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
-    //function FindDBNode(Tree: TBaseVirtualTree; Connection: TDBConnection; db: String): PVirtualNode;
+    procedure RefreshTree(FocusNewObject: TDBObject=nil);
+    function GetRootNode(Tree: TVirtualStringTree; Connection: TDBConnection): PVirtualNode;
+    function FindDBObjectNode(Tree: TVirtualStringTree; Obj: TDBObject): PVirtualNode;
+    function FindDBNode(Tree: TVirtualStringTree; Connection: TDBConnection; db: String): PVirtualNode;
     //procedure CalcNullColors;
     //procedure HandleDataGridAttributes(RefreshingData: Boolean);
-    //function GetRegKeyTable: String;
+    function GetRegKeyTable: String;
     //procedure UpdateEditorTab;
     //procedure SetWindowCaption;
     //procedure DefaultHandler(var Message); override;
-    //procedure SetupSynEditors; overload;
-    //procedure SetupSynEditors(BaseForm: TComponent); overload;
-    //procedure SetupSynEditor(Editor: TSynMemo);
-    //function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
+    procedure SetupSynEditors; overload;
+    procedure SetupSynEditors(BaseForm: TComponent); overload;
+    procedure SetupSynEditor(Editor: TSynMemo);
+    function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
     //procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
-    //property DataGridSortItems: TSortItems read FDataGridSortItems write FDataGridSortItems;
+    property DataGridSortItems: TSortItems read FDataGridSortItems write FDataGridSortItems;
     //function GetEncodingByName(Name: String): TEncoding;
     //function GetEncodingName(Encoding: TEncoding): String;
     //function GetCharsetByEncoding(Encoding: TEncoding): String;
@@ -814,14 +987,14 @@ type
     //procedure BeforeQueryExecution(Thread: TQueryThread);
     //procedure AfterQueryExecution(Thread: TQueryThread);
     //procedure FinishedQueryExecution(Thread: TQueryThread);
-    //procedure EnableProgress(MaxValue: Integer);
-    //procedure DisableProgress;
-    //procedure SetProgressPosition(Value: Integer);
-    //procedure ProgressStep;
+    procedure EnableProgress(MaxValue: Integer);
+    procedure DisableProgress;
+    procedure SetProgressPosition(Value: Integer);
+    procedure ProgressStep;
     //procedure SetProgressState(State: TProgressbarState);
     //procedure TaskDialogHyperLinkClicked(Sender: TObject);
     function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
-    //procedure ApplyVTFilter(FromTimer: Boolean);
+    procedure ApplyVTFilter(FromTimer: Boolean);
     //procedure ApplyFontToGrids;
     //procedure PrepareImageList;
     //property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
@@ -830,6 +1003,7 @@ type
     //property FormatSettings: TFormatSettings read FFormatSettings;
     //property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
     //property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
+    property VirtualImageListMain: TImageList read ImageListIcons8; // Sync with main branch
   end;
 
 var
@@ -857,7 +1031,7 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, apphelpers, About;
+  FileInfo, winpeimagereader, elfreader, machoreader, About;
 
 {$R *.lfm}
 
@@ -1024,7 +1198,7 @@ begin
   Close;
 end;
 
-{procedure TMainForm.actFlushExecute(Sender: TObject);
+procedure TMainForm.actFlushExecute(Sender: TObject);
 var
   FlushWhat: String;
 begin
@@ -1055,10 +1229,10 @@ begin
     on E:EDbError do
       ErrorDialog(E.Message);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actFullRefreshExecute(Sender: TObject);
+procedure TMainForm.actFullRefreshExecute(Sender: TObject);
 var
   OldFullTableStatusSetting: Boolean;
   Conn: TDBConnection;
@@ -1069,7 +1243,7 @@ begin
   Conn.Parameters.FullTableStatus := True;
   actRefresh.Execute;
   Conn.Parameters.FullTableStatus := OldFullTableStatusSetting;
-end;}
+end;
 
 
 procedure TMainForm.actGotoDbTreeExecute(Sender: TObject);
@@ -1078,13 +1252,13 @@ begin
 end;
 
 
-{procedure TMainForm.actGotoFilterExecute(Sender: TObject);
+procedure TMainForm.actGotoFilterExecute(Sender: TObject);
 begin
-  editTableFilter.SetFocus;
-end;}
+  //editTableFilter.SetFocus;
+end;
 
 
-{procedure TMainForm.actGoToQueryResultsExecute(Sender: TObject);
+procedure TMainForm.actGoToQueryResultsExecute(Sender: TObject);
 var
   Tab: TQueryTab;
   Grid: TVirtualStringTree;
@@ -1099,40 +1273,40 @@ begin
         if Grid.FocusedNode = nil then
           SelectNode(Grid, 0);
       end else begin
-        MessageBeep(MB_ICONASTERISK);
+        Beep;
       end;
     end else begin
       Tab.Memo.SetFocus;
     end;
   end else if PageControlMain.ActivePage = tabData then begin
     // Switch between data tab filter and result grid
-    if SynMemoFilter.Focused then begin
+    {if SynMemoFilter.Focused then begin
       DataGrid.SetFocus;
       if DataGrid.FocusedNode = nil then
         SelectNode(DataGrid, 0);
     end else begin
       ToggleFilterPanel(True);
       SynMemoFilter.TrySetFocus;
-    end;
+    end;}
   end else begin
-    MessageBeep(MB_ICONASTERISK);
+    Beep;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actGoToDataMultiFilterExecute(Sender: TObject);
+procedure TMainForm.actGoToDataMultiFilterExecute(Sender: TObject);
 begin
   // Go to multi column filter generator
   if PageControlMain.ActivePage = tabData then begin
-    ToggleFilterPanel(True);
-    editFilterSearch.TrySetFocus;
+    //ToggleFilterPanel(True);
+    //editFilterSearch.TrySetFocus;
   end else begin
-    MessageBeep(MB_ICONASTERISK);
+    Beep;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actGotoTabNumberExecute(Sender: TObject);
+procedure TMainForm.actGotoTabNumberExecute(Sender: TObject);
 var
   i, Visibles, WantedIndex: Integer;
 begin
@@ -1162,15 +1336,15 @@ begin
     end;
     Inc(i);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actGridEditFunctionExecute(Sender: TObject);
+procedure TMainForm.actGridEditFunctionExecute(Sender: TObject);
 begin
   // Insert SQL function in grid
   FGridEditFunctionMode := True;
   ActiveGrid.EditNode(ActiveGrid.FocusedNode, ActiveGrid.FocusedColumn);
-end;}
+end;
 
 
 procedure TMainForm.StoreLastSessions;
@@ -1325,8 +1499,8 @@ end;}
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   i, j, MonitorIndex: Integer;
-  //QueryTab: TQueryTab;
-  //Action, CopyAsAction: TAction;
+  QueryTab: TQueryTab;
+  Action, CopyAsAction: TAction;
   //ExportFormat: TGridExportFormat;
   VI: TVersionInfo;
   CopyAsMenu, CommandMenu: TMenuItem;
@@ -1450,7 +1624,7 @@ begin
   {Delimiter := AppSettings.ReadString(asDelimiter);}
 
   // Define static query tab as first one in our QueryTabs list
-  {QueryTab := TQueryTab.Create(Self);
+  QueryTab := TQueryTab.Create(Self);
   QueryTab.TabSheet := tabQuery;
   QueryTab.Number := 1;
   QueryTab.Uid := TQueryTab.GenerateUid;
@@ -1463,17 +1637,17 @@ begin
   QueryTab.spltHelpers := spltQueryHelpers;
   QueryTab.spltQuery := spltQuery;
   QueryTab.tabsetQuery := tabsetQuery;
-  InheritFont(QueryTab.tabsetQuery.Font);
+  //InheritFont(QueryTab.tabsetQuery.Font);
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
   QueryTabs := TQueryTabList.Create(True);
-  QueryTabs.Add(QueryTab);}
+  QueryTabs.Add(QueryTab);
 
   // Populate generic results for "Host" subtabs
-  {FHostListResults := TDBQueryList.Create(False);
+  FHostListResults := TDBQueryList.Create(False);
   for i:=0 to PageControlHost.PageCount-1 do begin
     FHostListResults.Add(nil);
-  end;}
+  end;
 
   // Enable auto completion in data tab, filter editor
   {SynCompletionProposal.AddEditor(SynMemoFilter);}
@@ -1531,11 +1705,11 @@ begin
   DatatypeCategories[dtcOther].Color := AppSettings.ReadInt(asFieldColorOther);
   CalcNullColors;}
 
-  {FDataGridSortItems := TSortItems.Create(True);}
+  FDataGridSortItems := TSortItems.Create(True);
 
   {DataLocalNumberFormat := AppSettings.ReadBool(asDataLocalNumberFormat);
-  DataGridTable := nil;
-  FActiveDbObj := nil;}
+  DataGridTable := nil;}
+  FActiveDbObj := nil;
 
   {// Database tree options
   actGroupObjects.Checked := AppSettings.ReadBool(asGroupTreeObjects);
@@ -1569,7 +1743,7 @@ begin
   ProgressBarStatus.Visible := False;}
 
   // SynMemo font, hightlighting and shortcuts
-  {SetupSynEditors;}
+  SetupSynEditors;
 
   {PageControlMain.MultiLine := AppSettings.ReadBool(asTabsInMultipleLines);
   SetMainTab(tabHost);
@@ -2069,12 +2243,12 @@ begin
   MessageDialog('Showing session manager...', mtWarning, [mbCancel, mbAbort, mbAll, mbClose, mbIgnore]);
 end;
 
-{procedure TMainForm.actDisconnectExecute(Sender: TObject);
+procedure TMainForm.actDisconnectExecute(Sender: TObject);
 var
   Connection: TDBConnection;
   Node: PVirtualNode;
   DlgResult: Integer;
-  Dialog: TConnForm;
+  //Dialog: TConnForm;
 begin
   // Disconnect active connection. If it's the last, exit application
   Connection := ActiveConnection;
@@ -2085,13 +2259,13 @@ begin
   // TODO: focus last session?
   SelectNode(DBtree, GetNextNode(DBtree, nil));
   if FConnections.Count = 0 then begin
-    Dialog := TConnForm.Create(Self);
+    {Dialog := TConnForm.Create(Self);
     DlgResult := Dialog.ShowModal;
     Dialog.Free;
     if DlgResult = mrCancel then
-      actExitApplication.Execute;
+      actExitApplication.Execute;}
   end;
-end;}
+end;
 
 
 {procedure TMainForm.ConnectionsNotify(Sender: TObject; const Item: TDBConnection; Action: TCollectionNotification);
@@ -2170,43 +2344,43 @@ begin
 end;}
 
 
-{procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
+procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
 begin
   // Create database:
-  FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
-  FCreateDatabaseDialog.ShowModal;
-  FreeAndNil(FCreateDatabaseDialog);
-end;}
+  //FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
+  //FCreateDatabaseDialog.ShowModal;
+  //FreeAndNil(FCreateDatabaseDialog);
+end;
 
 
-{procedure TMainForm.actImportCSVExecute(Sender: TObject);
-var
-  Dialog: Tloaddataform;
+procedure TMainForm.actImportCSVExecute(Sender: TObject);
+//var
+//  Dialog: Tloaddataform;
 begin
   // Import Textfile
-  Dialog := Tloaddataform.Create(Self);
-  Dialog.ShowModal;
-  Dialog.Free;
-end;}
+  //Dialog := Tloaddataform.Create(Self);
+  //Dialog.ShowModal;
+  //Dialog.Free;
+end;
 
-{procedure TMainForm.actPreferencesExecute(Sender: TObject);
+procedure TMainForm.actPreferencesExecute(Sender: TObject);
 begin
   // Preferences
-  frmPreferences := TfrmPreferences.Create(Self);
+  {frmPreferences := TfrmPreferences.Create(Self);
   if Sender = actPreferencesLogging then
     frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabLogging
   else if Sender = actPreferencesData then
     frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabGridFormatting;
   frmPreferences.ShowModal;
   frmPreferences.Free;
-  frmPreferences := nil; // Important in SetupSynEditors
-end;}
+  frmPreferences := nil; // Important in SetupSynEditors}
+end;
 
-{procedure TMainForm.actHelpExecute(Sender: TObject);
+procedure TMainForm.actHelpExecute(Sender: TObject);
 begin
   // Display help document
   Help(Sender, '');
-end;}
+end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 var
@@ -2217,7 +2391,7 @@ var
   var
     MaxPixels: Integer;
   begin
-    MaxPixels := StatusBar.Canvas.TextWidth(SampleText) + ImageListIcons8.Width + 20;
+    MaxPixels := StatusBar.Canvas.TextWidth(SampleText) + VirtualImageListMain.Width + 20;
     Result := Round(Min(MaxPixels, Width / 100 * MaxPercentage));
   end;
 begin
@@ -2337,16 +2511,16 @@ begin
   end;
 end;}
 
-{procedure TMainForm.actUserManagerExecute(Sender: TObject);
-var
-  Dialog: TUserManagerForm;
-begin
+procedure TMainForm.actUserManagerExecute(Sender: TObject);
+//var
+//  Dialog: TUserManagerForm;
+begin{
   Dialog := TUserManagerForm.Create(Self);
   Dialog.ShowModal;
-  Dialog.Free;
-end;}
+  Dialog.Free;}
+end;
 
-{procedure TMainForm.actAboutBoxExecute(Sender: TObject);
+procedure TMainForm.actAboutBoxExecute(Sender: TObject);
 var
   Box: TAboutBox;
 begin
@@ -2354,9 +2528,9 @@ begin
   Box := TAboutBox.Create(Self);
   Box.ShowModal;
   Box.Free;
-end;}
+end;
 
-{procedure TMainForm.actClearEditorExecute(Sender: TObject);
+procedure TMainForm.actClearEditorExecute(Sender: TObject);
 var
   m: TSynMemo;
 begin
@@ -2364,10 +2538,10 @@ begin
     m := QueryTabs.ActiveMemo
   end else if Sender = actClearQueryLog then begin
     m := SynMemoSQLLog;
-    m.Gutter.LineNumberStart := m.Gutter.LineNumberStart + m.Lines.Count;
+    //m.Gutter.LineNumberStart := m.Gutter.LineNumberStart + m.Lines.Count;
   end else begin
-    m := SynMemoFilter;
-    editFilterSearch.Clear;
+    //m := SynMemoFilter;
+    //editFilterSearch.Clear;
   end;
   m.SelectAll;
   m.SelText := '';
@@ -2378,10 +2552,10 @@ begin
     QueryTabs.ActiveTab.Memo.Modified := False;
     QueryTabs.ActiveTab.Uid := '';
   end;
-  if m = SynMemoFilter then begin
-    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-  end;
-end;}
+  //if m = SynMemoFilter then begin
+  //  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+  //end;
+end;
 
 
 {procedure TMainForm.menuClearDataTabFilterClick(Sender: TObject);
@@ -2399,13 +2573,13 @@ begin
 end;}
 
 
-{procedure TMainForm.actTableToolsExecute(Sender: TObject);
+procedure TMainForm.actTableToolsExecute(Sender: TObject);
 var
   Node: PVirtualNode;
   DBObj: PDBObject;
 begin
   // Show table tools dialog
-  FTableToolsDialog := TfrmTableTools.Create(Self);
+  {FTableToolsDialog := TfrmTableTools.Create(Self);
   FTableToolsDialog.PreSelectObjects.Clear;
   if DBTreeClicked(Sender) then
     FTableToolsDialog.PreSelectObjects.Add(ActiveDbObj)
@@ -2428,11 +2602,11 @@ begin
   else if Sender = actGenerateData then
     FTableToolsDialog.ToolMode := tmGenerateData;
   FTableToolsDialog.ShowModal;
-  FreeAndNil(FTableToolsDialog);
-end;}
+  FreeAndNil(FTableToolsDialog);}
+end;
 
 
-{procedure TMainForm.actUnixTimestampColumnExecute(Sender: TObject);
+procedure TMainForm.actUnixTimestampColumnExecute(Sender: TObject);
 var
   i: Integer;
   FocusedColumnName: String;
@@ -2440,7 +2614,7 @@ var
 begin
   // Mark focused column as UNIX timestamp column
   AppSettings.SessionPath := GetRegKeyTable;
-  GridColumn := DataGrid.Header.Columns[DataGrid.FocusedColumn];
+  //GridColumn := DataGrid.Header.Columns[DataGrid.FocusedColumn];
   FocusedColumnName := GridColumn.Text;
   i := SelectedTableTimestampColumns.IndexOf(FocusedColumnName);
   if i > -1 then
@@ -2460,7 +2634,7 @@ begin
 
   AppSettings.ResetPath;
   DataGrid.Invalidate;
-end;}
+end;
 
 
 {function TMainForm.HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
@@ -2480,39 +2654,39 @@ end;}
 {**
   Edit view
 }
-{procedure TMainForm.actPrintListExecute(Sender: TObject);
+procedure TMainForm.actPrintListExecute(Sender: TObject);
 var
   f: TForm;
 begin
   // Print contents of a list or grid
-  f := TPrintlistForm.Create(Self);
+  //f := TPrintlistForm.Create(Self);
   f.ShowModal;
   FreeAndNil(f);
-end;}
+end;
 
 
-{procedure TMainForm.actCopyTableExecute(Sender: TObject);
-var
-  Dialog: TCopyTableForm;
+procedure TMainForm.actCopyTableExecute(Sender: TObject);
+//var
+//  Dialog: TCopyTableForm;
 begin
   // copy table
-  Dialog := TCopyTableForm.Create(Self);
-  Dialog.ShowModal;
-  Dialog.Free;
-end;}
+  //Dialog := TCopyTableForm.Create(Self);
+  //Dialog.ShowModal;
+  //Dialog.Free;
+end;
 
 
-{procedure TMainForm.actCopyTabsToSpacesExecute(Sender: TObject);
+procedure TMainForm.actCopyTabsToSpacesExecute(Sender: TObject);
 begin
   // issue #1285: copy text with tabs converted to spaces
   actCopyOrCutExecute(Sender);
   Clipboard.TryAsText := StringReplace(Clipboard.TryAsText, #9, ' ', [rfReplaceAll]);
-end;}
+end;
 
-{procedure TMainForm.actCopyUpdate(Sender: TObject);
+procedure TMainForm.actCopyUpdate(Sender: TObject);
 begin
   actCopyTabsToSpaces.Enabled := actCopy.Enabled;
-end;}
+end;
 
 {procedure TMainForm.menuConnectionsPopup(Sender: TObject);
 var
@@ -2581,11 +2755,11 @@ begin
 end;}
 
 
-{procedure TMainForm.actWebbrowse(Sender: TObject);
+procedure TMainForm.actWebbrowse(Sender: TObject);
 begin
   // Browse to URL (hint)
   ShellExec( TAction(Sender).Hint );
-end;}
+end;
 
 
 procedure TMainForm.DonateClick(Sender: TObject);
@@ -2608,7 +2782,7 @@ begin
 end;
 
 
-{procedure TMainForm.actExportSettingsExecute(Sender: TObject);
+procedure TMainForm.actExportSettingsExecute(Sender: TObject);
 var
   Dialog: TSaveDialog;
 begin
@@ -2626,10 +2800,10 @@ begin
       ErrorDialog(E.Message);
   end;
   Dialog.Free;
-end;}
+end;
 
 
-{procedure TMainForm.actImportSettingsExecute(Sender: TObject);
+procedure TMainForm.actImportSettingsExecute(Sender: TObject);
 var
   Dialog: TOpenDialog;
 begin
@@ -2651,10 +2825,10 @@ begin
       ErrorDialog(E.Message);
   end;
   Dialog.Free;
-end;}
+end;
 
 
-{function TMainForm.GetCurrentQuery(Tab: TQueryTab): String;
+function TMainForm.GetCurrentQuery(Tab: TQueryTab): String;
 var
   BatchAll: TSQLBatch;
   Query, PrevQuery: TSQLSentence;
@@ -2678,10 +2852,10 @@ begin
     Tab.LeftOffsetInMemo := PrevQuery.LeftOffset;
   end;
   BatchAll.Free;
-end;}
+end;
 
 
-{procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
+procedure TMainForm.actExecuteQueryExecute(Sender: TObject);
 var
   ProfileNode: PVirtualNode;
   Batch: TSQLBatch;
@@ -2760,7 +2934,7 @@ begin
     Screen.Cursor := crHourGlass;
     EnableProgress(Batch.Count);
     Tab.ResultTabs.Clear;
-    Tab.tabsetQuery.Tabs.Clear;
+    //Tab.tabsetQuery.Tabs.Clear;
     FreeAndNil(Tab.QueryProfile);
     ProfileNode := FindNode(Tab.treeHelpers, TQueryTab.HelperNodeProfile, nil);
     Tab.DoProfile := Assigned(ProfileNode) and (Tab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
@@ -2781,7 +2955,7 @@ begin
   end;
 
   ValidateQueryControls(Sender);
-end;}
+end;
 
 
 
@@ -3091,19 +3265,19 @@ begin
 end;}
 
 
-{procedure TMainForm.actExportDataExecute(Sender: TObject);
-var
-  ExportDialog: TfrmExportGrid;
+procedure TMainForm.actExportDataExecute(Sender: TObject);
+//var
+//  ExportDialog: TfrmExportGrid;
 begin
   // Save data in current dataset into various text file formats
-  ExportDialog := TfrmExportGrid.Create(Self);
-  ExportDialog.Grid := ActiveGrid;
-  ExportDialog.ShowModal;
-  ExportDialog.Free;
-end;}
+  //ExportDialog := TfrmExportGrid.Create(Self);
+  //ExportDialog.Grid := ActiveGrid;
+  //ExportDialog.ShowModal;
+  //ExportDialog.Free;
+end;
 
 
-{procedure TMainForm.actDataPreviewUpdate(Sender: TObject);
+procedure TMainForm.actDataPreviewUpdate(Sender: TObject);
 var
   Grid: TVirtualStringTree;
 begin
@@ -3112,10 +3286,10 @@ begin
   (Sender as TAction).Enabled := (Grid <> nil)
     and (Grid.FocusedColumn <> NoColumn)
     and (GridResult(Grid).DataType(Grid.FocusedColumn-1).Category = dtcBinary)
-end;}
+end;
 
 
-{procedure TMainForm.actDataPreviewExecute(Sender: TObject);
+procedure TMainForm.actDataPreviewExecute(Sender: TObject);
 var
   MakeVisible: Boolean;
 begin
@@ -3126,10 +3300,10 @@ begin
   spltPreview.Visible := MakeVisible;
   if MakeVisible then
     UpdatePreviewPanel;
-end;}
+end;
 
 
-{procedure TMainForm.UpdatePreviewPanel;
+procedure TMainForm.UpdatePreviewPanel;
 var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
@@ -3150,7 +3324,7 @@ begin
     Exit;
   Screen.Cursor := crHourGlass;
   try
-    ShowStatusMsg(_('Loading contents into image viewer ...'));
+    {ShowStatusMsg(_('Loading contents into image viewer ...'));
     lblPreviewTitle.Caption := _('Loading ...');
     lblPreviewTitle.Repaint;
     imgPreview.Picture := nil;
@@ -3194,13 +3368,13 @@ begin
       end;
       FreeAndNil(ContentStream);
     end else
-      lblPreviewTitle.Caption := f_('No image detected, %s', [FormatByteNumber(StrLen)]);
+      lblPreviewTitle.Caption := f_('No image detected, %s', [FormatByteNumber(StrLen)]);}
   finally
-    lblPreviewTitle.Hint := lblPreviewTitle.Caption;
+    //lblPreviewTitle.Hint := lblPreviewTitle.Caption;
     ShowStatusMsg;
     Screen.Cursor := crDefault;
   end;
-end;}
+end;
 
 
 {procedure TMainForm.pnlLeftResize(Sender: TObject);
@@ -3236,7 +3410,7 @@ begin
 end;}
 
 
-{procedure TMainForm.actDataSaveBlobToFileExecute(Sender: TObject);
+procedure TMainForm.actDataSaveBlobToFileExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
@@ -3274,27 +3448,27 @@ begin
     Screen.Cursor := crDefault;
   end;
   Dialog.Free;
-end;}
+end;
 
 
-{procedure TMainForm.actInsertFilesExecute(Sender: TObject);
-var
-  Dialog: TfrmInsertFiles;
+procedure TMainForm.actInsertFilesExecute(Sender: TObject);
+//var
+//  Dialog: TfrmInsertFiles;
 begin
-  Dialog := TfrmInsertFiles.Create(Self);
-  Dialog.ShowModal;
-  Dialog.Free;
-end;}
+  //Dialog := TfrmInsertFiles.Create(Self);
+  //Dialog.ShowModal;
+  //Dialog.Free;
+end;
 
 // Drop Table(s)
-{procedure TMainForm.actDropObjectsExecute(Sender: TObject);
+procedure TMainForm.actDropObjectsExecute(Sender: TObject);
 var
   msg, db: String;
   Node: PVirtualNode;
   Obj: PDBObject;
   DBObject: TDBObject;
   ObjectList: TDBObjectList;
-  Editor: TDBObjectEditor;
+  //Editor: TDBObjectEditor;
   Conn: TDBConnection;
 begin
   Conn := ActiveConnection;
@@ -3327,12 +3501,12 @@ begin
     end;
   end else begin
     // Invoked from database tab
-    Node := GetNextNode(ListTables, nil, True);
+    {Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       Obj := ListTables.GetNodeData(Node);
       ObjectList.Add(Obj^);
       Node := GetNextNode(ListTables, Node, True);
-    end;
+    end;}
   end;
 
   // Fix actions temporarily enabled for popup menu.
@@ -3354,12 +3528,12 @@ begin
       if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
-      Editor := ActiveObjectEditor;
+      {Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
         DBObject.Drop;
         if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
           Editor.Modified := False;
-      end;
+      end;}
       if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
       // Refresh ListTables + dbtree so the dropped tables are gone:
@@ -3372,10 +3546,10 @@ begin
     end;
     ObjectList.Free;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
+procedure TMainForm.actLaunchCommandlineExecute(Sender: TObject);
 var
   path, p, log, cmd: String;
   sep: Char;
@@ -3414,18 +3588,18 @@ begin
       ShellExec(cmd, path, p);
     end;
   end;
-end;}
+end;
 
 
 // Load SQL-file, make sure that SheetQuery is activated
-{procedure TMainForm.actLoadSQLExecute(Sender: TObject);
+procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 var
   i, ProceedResult: Integer;
-  Dialog: TExtFileOpenDialog;
+  //Dialog: TExtFileOpenDialog;
   Encoding: TEncoding;
   Tab: TQueryTab;
 begin
-  AppSettings.ResetPath;
+  {AppSettings.ResetPath;
   Dialog := TExtFileOpenDialog.Create(Self);
   Dialog.Options := Dialog.Options + [fdoAllowMultiSelect];
   Dialog.AddFileType('*.sql', _('SQL files'));
@@ -3456,8 +3630,8 @@ begin
     end;
     AppSettings.WriteInt(asFileDialogEncoding, Dialog.EncodingIndex, Self.Name);
   end;
-  Dialog.Free;
-end;}
+  Dialog.Free;}
+end;
 
 
 {function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
@@ -3876,7 +4050,7 @@ begin
 end;
 
 
-{procedure TMainForm.actDataDeleteExecute(Sender: TObject);
+procedure TMainForm.actDataDeleteExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Node, FocusAfterDelete: PVirtualNode;
@@ -3899,7 +4073,7 @@ begin
       Node := GetNextNode(Grid, nil, True);
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
-        ShowStatusMsg(f_('Deleting row #%s of %s ...', [FormatNumber(ProgressBarStatus.Position+1), FormatNumber(ProgressBarStatus.Max)]));
+        //ShowStatusMsg(f_('Deleting row #%s of %s ...', [FormatNumber(ProgressBarStatus.Position+1), FormatNumber(ProgressBarStatus.Max)]));
         Results.RecNo := RowNum^;
         Results.DeleteRow;
         ProgressStep;
@@ -3924,26 +4098,26 @@ begin
       ValidateControls(Sender);
     end;
   except on E:EDbError do begin
-      SetProgressState(pbsError);
+      //SetProgressState(pbsError);
       ErrorDialog(_('Grid editing error'), E.Message);
     end;
   end;
   DisableProgress;
   ShowStatusMsg();
-end;}
+end;
 
 
-{procedure TMainForm.actUpdateCheckExecute(Sender: TObject);
-var
-  frm : TfrmUpdateCheck;
+procedure TMainForm.actUpdateCheckExecute(Sender: TObject);
+//var
+  //frm : TfrmUpdateCheck;
 begin
-  frm := TfrmUpdateCheck.Create(Self);
-  frm.ShowModal;
-  frm.Free; // FormClose has no caFree, as it may not have been called
-end;}
+  //frm := TfrmUpdateCheck.Create(Self);
+  //frm.ShowModal;
+  //frm.Free; // FormClose has no caFree, as it may not have been called
+end;
 
 
-{procedure TMainForm.actCreateDBObjectExecute(Sender: TObject);
+procedure TMainForm.actCreateDBObjectExecute(Sender: TObject);
 var
   Obj: TDBObject;
   a: TAction;
@@ -3963,10 +4137,10 @@ begin
   else if a = actCreateFunction then Obj.NodeType := lntFunction;
 
   PlaceObjectEditor(Obj);
-end;}
+end;
 
 
-{procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
+procedure TMainForm.actEmptyTablesExecute(Sender: TObject);
 var
   TableOrView: TDBObject;
   Objects: TDBObjectList;
@@ -3979,10 +4153,11 @@ begin
   // Delete rows from selected tables and views
 
   // See issue #3166
-  if (not DBtree.Focused) and (not ListTables.Focused) then
-    Exit;
+  //if (not DBtree.Focused) and (not ListTables.Focused) then
+  //  Exit;
 
   Objects := GetFocusedObjects(Sender, [lntTable, lntView]);
+  Names := '';
   for TableOrView in Objects do begin
     Names := Names + TableOrView.Name + ', ';
   end;
@@ -3994,22 +4169,17 @@ begin
     Conn := ActiveConnection;
     QueryDisableChecks := Conn.GetSQLSpecifity(spDisableForeignKeyChecks);
     QueryEnableChecks := Conn.GetSQLSpecifity(spEnableForeignKeyChecks);
-    if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
-      Dialog := TTaskDialog.Create(Self);
-      Dialog.Text := f_('Empty %d table(s) and/or view(s)?', [Objects.count]);
-      Dialog.CommonButtons := [tcbOk, tcbCancel];
-      Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
-      Dialog.CustomMainIcon := ConfirmIcon;
-      if not QueryDisableChecks.IsEmpty then
-        Dialog.VerificationText := _('Disable foreign key checks');
-      Dialog.Execute;
-      DialogResult := Dialog.ModalResult;
-      DisableForeignKeyChecks := tfVerificationFlagChecked in Dialog.Flags;
-      Dialog.Free;
-    end else begin
-      DialogResult := MessageDialog(f_('Empty %d table(s) and/or view(s)?', [Objects.count]), Names, mtConfirmation, [mbOk, mbCancel]);
-      DisableForeignKeyChecks := False;
-    end;
+    Dialog := TTaskDialog.Create(Self);
+    Dialog.Text := f_('Empty %d table(s) and/or view(s)?', [Objects.count]);
+    Dialog.CommonButtons := [tcbOk, tcbCancel];
+    Dialog.Flags := Dialog.Flags + [tfUseHiconMain];
+    //Dialog.CustomMainIcon := ConfirmIcon;
+    if not QueryDisableChecks.IsEmpty then
+      Dialog.VerificationText := _('Disable foreign key checks');
+    Dialog.Execute;
+    DialogResult := Dialog.ModalResult;
+    DisableForeignKeyChecks := tfVerificationFlagChecked in Dialog.Flags;
+    Dialog.Free;
     if DialogResult = mrOk then begin
       Screen.Cursor := crHourglass;
       EnableProgress(Objects.Count);
@@ -4024,7 +4194,7 @@ begin
           actRefresh.Execute;
         except
           on E:EDbError do begin
-            SetProgressState(pbsError);
+            //SetProgressState(pbsError);
             ErrorDialog(E.Message);
           end;
         end;
@@ -4039,26 +4209,26 @@ begin
       Screen.Cursor := crDefault;
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actBatchInOneGoExecute(Sender: TObject);
+procedure TMainForm.actBatchInOneGoExecute(Sender: TObject);
 begin
   //
-end;}
+end;
 
 
-{function TMainForm.DBTreeClicked(Sender: TObject): Boolean;
+function TMainForm.DBTreeClicked(Sender: TObject): Boolean;
 begin
   // Find out if user rightclicked in tree or in database tab,
   // which is a bit complex, so outsourced here.
   Result := DBTree.Focused
     or (PageControlMain.ActivePage <> tabDatabase)
     or (PopupComponent(Sender) = DBtree);
-end;}
+end;
 
 
-{function TMainForm.GetFocusedObjects(Sender: TObject; NodeTypes: TListNodeTypes): TDBObjectList;
+function TMainForm.GetFocusedObjects(Sender: TObject; NodeTypes: TListNodeTypes): TDBObjectList;
 var
   Node: PVirtualNode;
   pObj: PDBObject;
@@ -4070,18 +4240,18 @@ begin
     if ActiveDbObj.NodeType in NodeTypes then
       Result.Add(ActiveDbObj);
   end else begin
-    Node := GetNextNode(ListTables, nil, True);
+    {Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       pObj := ListTables.GetNodeData(Node);
       if pObj.NodeType in NodeTypes then
         Result.Add(pObj^);
       Node := GetNextNode(ListTables, Node, True);
-    end;
+    end;}
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
+procedure TMainForm.actRunRoutinesExecute(Sender: TObject);
 var
   Tab: TQueryTab;
   Query, ParamValues, ParamValue: String;
@@ -4147,21 +4317,21 @@ begin
     if Cancelled then
       Break;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actNewWindowExecute(Sender: TObject);
+procedure TMainForm.actNewWindowExecute(Sender: TObject);
 begin
   ShellExec( ExtractFileName(paramstr(0)), ExtractFilePath(paramstr(0)) );
-end;}
+end;
 
 
-{procedure TMainForm.actQueryFindReplaceExecute(Sender: TObject);
+procedure TMainForm.actQueryFindReplaceExecute(Sender: TObject);
 var
   OldDataLocalNumberFormat: Boolean;
 begin
   // Display search + replace dialog
-  if not Assigned(FSearchReplaceDialog) then
+  {if not Assigned(FSearchReplaceDialog) then
     FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
   if FSearchReplaceDialog.Visible then
     Exit;
@@ -4172,11 +4342,11 @@ begin
     FSearchReplaceDialog.ShowModal;
     DataLocalNumberFormat := OldDataLocalNumberFormat;
     ValidateControls(Sender);
-  end;
-end;}
+  end;}
+end;
 
 
-{procedure TMainForm.actQueryFindAgainExecute(Sender: TObject);
+procedure TMainForm.actQueryFindAgainExecute(Sender: TObject);
 var
   NeedDialog: Boolean;
   Editor: TSynMemo;
@@ -4184,7 +4354,7 @@ var
   OldDataLocalNumberFormat: Boolean;
 begin
   // F3 - search or replace again, using previous settings
-  NeedDialog := not Assigned(FSearchReplaceDialog);
+  {NeedDialog := not Assigned(FSearchReplaceDialog);
   if Assigned(FSearchReplaceDialog) then begin
     NeedDialog := NeedDialog or ((FSearchReplaceDialog.Grid = nil) and (FSearchReplaceDialog.Editor = nil));
     Editor := ActiveSynMemo(False);
@@ -4204,8 +4374,8 @@ begin
     Exclude(FSearchReplaceDialog.Options, ssoEntireScope);
     FSearchReplaceDialog.DoSearchReplace(Sender);
     DataLocalNumberFormat := OldDataLocalNumberFormat;
-  end;
-end;}
+  end;}
+end;
 
 
 {procedure TMainForm.SynMemoQueryReplaceText(Sender: TObject; const ASearch,
@@ -4221,7 +4391,7 @@ begin
 end;}
 
 
-{procedure TMainForm.actRefreshExecute(Sender: TObject);
+procedure TMainForm.actRefreshExecute(Sender: TObject);
 var
   tab1, tab2: TTabSheet;
   List: TVirtualStringTree;
@@ -4239,14 +4409,14 @@ begin
     tab2 := PageControlHost.ActivePage;
     if tab2 = tabDatabases then
       List := ListDatabases
-    else if tab2 = tabVariables then
+    {else if tab2 = tabVariables then
       List := ListVariables
     else if tab2 = tabStatus then
       List := ListStatus
     else if tab2 = tabProcessList then
       List := ListProcesses
     else
-      List := ListCommandStats;
+      List := ListCommandStats};
     InvalidateVT(List, VTREE_NOTLOADED_PURGECACHE, True);
   end else if tab1 = tabDatabase then begin
     OldDbObject := TDBObject.Create(FActiveDbObj.Connection);
@@ -4254,12 +4424,12 @@ begin
     RefreshTree(OldDbObject);
   end else if tab1 = tabEditor then begin
     RefreshTree;
-  end else if tab1 = tabData then
-    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-end;}
+  end {else if tab1 = tabData then
+    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False)};
+end;
 
 
-{procedure TMainForm.actSQLhelpExecute(Sender: TObject);
+procedure TMainForm.actSQLhelpExecute(Sender: TObject);
 var
   keyword: String;
   Tree: TVirtualStringTree;
@@ -4271,18 +4441,18 @@ begin
   // Query-Tab
   if ActiveControl is TSynMemo then begin
     SynMemo := TSynMemo(ActiveControl);
-    keyword := SynMemo.WordAtCursor;
+    keyword := SynMemo.GetWordAtRowCol(SynMemo.CaretXY);
     if keyword.IsEmpty then begin
       keyword := SynMemo.SelText;
     end;
   end
 
   // Data-Tab
-  else if (PageControlMain.ActivePage = tabData)
+  {else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
     keyword := SelectedTableFocusedColumn.DataType.Name;
 
-  end else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
+  end} else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
     // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
     Tree := QueryTabs.ActiveHelpersTree;
     if Assigned(Tree.FocusedNode)
@@ -4297,21 +4467,21 @@ begin
 
   // Show the window
   CallSQLHelpWithKeyword( keyword );
-end;}
+end;
 
 
-{procedure TMainForm.actSynEditCompletionProposeExecute(Sender: TObject);
+procedure TMainForm.actSynEditCompletionProposeExecute(Sender: TObject);
 begin
   // Show completion proposal explicitely, without the use of its own ShortCut property,
   // to support a customized shortcut, see
-  SynCompletionProposal.Editor := ActiveSynMemo(False);
+  {SynCompletionProposal.Editor := ActiveSynMemo(False);
   if Screen.ActiveControl is TCustomSynEdit then
     SynCompletionProposal.ActivateCompletion
   else
-    MessageBeep(MB_ICONEXCLAMATION);
-end;}
+    MessageBeep(MB_ICONEXCLAMATION);}
+end;
 
-{procedure TMainForm.actSynMoveDownExecute(Sender: TObject);
+procedure TMainForm.actSynMoveDownExecute(Sender: TObject);
 var
   Editor: TSynMemo;
 begin
@@ -4326,11 +4496,11 @@ begin
       Editor.OnChange(Editor);
     Editor.Repaint;
   end else begin
-    MessageBeep(MB_ICONERROR);
+    Beep;
   end;
-end;}
+end;
 
-{procedure TMainForm.actSynMoveUpExecute(Sender: TObject);
+procedure TMainForm.actSynMoveUpExecute(Sender: TObject);
 var
   Editor: TSynMemo;
 begin
@@ -4344,28 +4514,28 @@ begin
       Editor.OnChange(Editor);
     Editor.Repaint;
   end else begin
-    MessageBeep(MB_ICONERROR);
+    Beep;
   end;
-end;}
+end;
 
 {***
   Show SQL Help window directly using a keyword
   @param String SQL-keyword
   @see FieldeditForm.btnDatatypeHelp
 }
-{procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
+procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
   if FActiveDbObj.Connection.Has(frHelpKeyword) then begin
-    if not Assigned(SqlHelpDialog) then
+    {if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
-    SqlHelpDialog.Keyword := keyword;
+    SqlHelpDialog.Keyword := keyword;}
   end else
     ErrorDialog(_('SQL help not available.'), f_('HELP <keyword> requires %s or newer.', ['MySQL 4.1']));
-end;}
+end;
 
 
-{procedure TMainForm.actSaveSynMemoToTextfileExecute(Sender: TObject);
+procedure TMainForm.actSaveSynMemoToTextfileExecute(Sender: TObject);
 var
   Comp: TComponent;
   Memo: TSynMemo;
@@ -4382,27 +4552,27 @@ begin
     Memo := ActiveControl as TSynMemo;
   if Assigned(Memo) then begin
     Dialog := TExtFileSaveDialog.Create(Self);
-    Dialog.Options := Dialog.Options + [fdoOverWritePrompt];
-    Dialog.AddFileType('*.sql', _('SQL files'));
-    Dialog.AddFileType('*.*', _('All files'));
-    Dialog.DefaultExtension := 'sql';
-    Dialog.LineBreakIndex := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
+    Dialog.Options := Dialog.Options + [ofOverWritePrompt];
+    //Dialog.AddFileType('*.sql', _('SQL files'));
+    //Dialog.AddFileType('*.*', _('All files'));
+    Dialog.DefaultExt := 'sql';
+    //Dialog.LineBreakIndex := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
     if Dialog.Execute then begin
       Screen.Cursor := crHourGlass;
-      SaveUnicodeFile(
-        Dialog.FileName,
-        Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines),
-        UTF8NoBOMEncoding
-        );
+      //SaveUnicodeFile(
+      //  Dialog.FileName,
+      //  Implode(GetLineBreak(Dialog.LineBreakIndex), Memo.Lines),
+      //  UTF8NoBOMEncoding
+      //  );
       Screen.Cursor := crDefault;
     end;
   end else begin
     ErrorDialog(f_('No SQL editor focused. ActiveControl is %s', [ActiveControl.Name]));
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actSaveSQLAsExecute(Sender: TObject);
+procedure TMainForm.actSaveSQLAsExecute(Sender: TObject);
 var
   i: Integer;
   CanSave: TModalResult;
@@ -4421,16 +4591,16 @@ begin
     DefaultFilename := ExtractFileName(QueryTab.MemoFilename);
   DefaultFilename := DefaultFilename.Trim([' ', '*']);
   Dialog.FileName := ValidFilename(DefaultFilename);
-  Dialog.Options := Dialog.Options + [fdoOverwritePrompt];
+  Dialog.Options := Dialog.Options + [ofOverwritePrompt];
   if (Sender = actSaveSQLSnippet) or (Sender = actSaveSQLSelectionSnippet) then begin
-    Dialog.DefaultFolder := AppSettings.DirnameSnippets;
-    Dialog.Options := Dialog.Options + [fdoNoChangeDir];
+    Dialog.InitialDir := AppSettings.DirnameSnippets;
+    Dialog.Options := Dialog.Options + [ofNoChangeDir];
     Dialog.Title := _('Save snippet');
   end;
-  Dialog.AddFileType('*.sql', _('SQL files'));
-  Dialog.AddFileType('*.*', _('All files'));
-  Dialog.DefaultExtension := 'sql';
-  Dialog.LineBreakIndex := QueryTab.MemoLineBreaks;
+  //Dialog.AddFileType('*.sql', _('SQL files'));
+  //Dialog.AddFileType('*.*', _('All files'));
+  Dialog.DefaultExt := 'sql';
+  //Dialog.LineBreakIndex := QueryTab.MemoLineBreaks;
   while (CanSave = mrNo) and Dialog.Execute do begin
     // Save complete content or just the selected text,
     // depending on the tag of calling control
@@ -4445,7 +4615,7 @@ begin
   end;
   if CanSave = mrYes then begin
     OnlySelection := (Sender = actSaveSQLselection) or (Sender = actSaveSQLSelectionSnippet);
-    QueryTab.MemoLineBreaks := Dialog.LineBreakIndex;
+    //QueryTab.MemoLineBreaks := Dialog.LineBreakIndex;
     QueryTab.SaveContents(Dialog.FileName, OnlySelection);
     for i:=0 to QueryTabs.Count-1 do begin
       if QueryTabs[i] = QueryTab then
@@ -4454,16 +4624,16 @@ begin
         QueryTabs[i].Memo.Modified := True;
     end;
     ValidateQueryControls(Sender);
-    SetSnippetFilenames;
+    //SetSnippetFilenames;
   end;
   Dialog.Free;
-end;}
+end;
 
 
-{procedure TMainForm.actSaveSQLExecute(Sender: TObject);
+procedure TMainForm.actSaveSQLExecute(Sender: TObject);
 var
   i: Integer;
-  ObjEditor: TDBObjectEditor;
+  //ObjEditor: TDBObjectEditor;
   Handled: Boolean;
 begin
   Handled := False;
@@ -4484,35 +4654,35 @@ begin
   end
   else if PageControlMain.ActivePage = tabEditor then begin
     // Save table, procedure, etc.
-    ObjEditor := ActiveObjectEditor;
+    {ObjEditor := ActiveObjectEditor;
     if Assigned(ObjEditor) and ObjEditor.Modified then begin
       ObjEditor.ApplyModifications;
       Handled := True;
-    end;
+    end;}
   end;
   if not Handled then begin
-    MessageBeep(MB_ICONASTERISK);
+    Beep;
   end;
 
-end;}
+end;
 
 
-{procedure TMainForm.actQueryStopOnErrorsExecute(Sender: TObject);
+procedure TMainForm.actQueryStopOnErrorsExecute(Sender: TObject);
 begin
   // Weird fix: dummy routine to avoid the sending action getting disabled
-end;}
+end;
 
 
-{procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
+procedure TMainForm.actQueryWordWrapExecute(Sender: TObject);
 begin
   // SetupSynEditors applies all customizations to any SynEditor
   if (Sender as TAction).Checked then
     actCodeFolding.Checked := False;
   SetupSynEditors;
-end;}
+end;
 
 
-{procedure TMainForm.actCodeFoldingExecute(Sender: TObject);
+procedure TMainForm.actCodeFoldingExecute(Sender: TObject);
 begin
   // Activates code folding
   // Wordwrap does not work in conjunction with code folding.
@@ -4520,10 +4690,10 @@ begin
   if (Sender as TAction).Checked then
     actQueryWordWrap.Checked := False;
   SetupSynEditors;
-end;}
+end;
 
 
-{procedure TMainForm.actCodeFoldingStartRegionExecute(Sender: TObject);
+procedure TMainForm.actCodeFoldingStartRegionExecute(Sender: TObject);
 var
   Memo: TSynMemo;
 begin
@@ -4531,11 +4701,11 @@ begin
   if not actCodeFolding.Checked then
     actCodeFolding.Execute;
   Memo := ActiveSynMemo(False);
-  Memo.InsertLine(Memo.CaretXY, Memo.CaretXY, '#region ', True);
-end;}
+  Memo.InsertTextAtCaret('#region ');
+end;
 
 
-{procedure TMainForm.actConnectionPropertiesExecute(Sender: TObject);
+procedure TMainForm.actConnectionPropertiesExecute(Sender: TObject);
 var
   Conn: TDBConnection;
   i: Integer;
@@ -4551,10 +4721,10 @@ begin
     end;
     MessageDialog(Trim(InfoText), mtInformation, [mbOK]);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actCodeFoldingEndRegionExecute(Sender: TObject);
+procedure TMainForm.actCodeFoldingEndRegionExecute(Sender: TObject);
 var
   Memo: TSynMemo;
 begin
@@ -4562,11 +4732,11 @@ begin
   if not actCodeFolding.Checked then
     actCodeFolding.Execute;
   Memo := ActiveSynMemo(False);
-  Memo.InsertLine(Memo.CaretXY, Memo.CaretXY, '#endregion ', True);
-end;}
+  Memo.InsertTextAtCaret('#endregion ');
+end;
 
 
-{procedure TMainForm.actCodeFoldingFoldSelectionExecute(Sender: TObject);
+procedure TMainForm.actCodeFoldingFoldSelectionExecute(Sender: TObject);
 var
   Memo: TSynMemo;
   AfterText: String;
@@ -4577,7 +4747,7 @@ begin
   Memo := ActiveSynMemo(False);
   AfterText := IfThen(Memo.SelText.EndsWith(sLineBreak), '', sLineBreak);
   Memo.SelText := '#region ' + sLineBreak + Memo.SelText + AfterText + '#endregion' + sLineBreak;
-end;}
+end;
 
 
 {procedure TMainForm.PopupQueryLoadPopup(Sender: TObject);
@@ -4722,7 +4892,7 @@ end;}
 {**
   Change default delimiter for SQL execution
 }
-{procedure TMainForm.actSetDelimiterExecute(Sender: TObject);
+procedure TMainForm.actSetDelimiterExecute(Sender: TObject);
 var
   newVal: String;
   ok: Boolean;
@@ -4740,7 +4910,7 @@ begin
     end else // Cancel clicked
       ok := True;
   end;
-end;}
+end;
 
 
 {**
@@ -4773,7 +4943,7 @@ begin
 end;
 
 
-{procedure TMainForm.actApplyFilterExecute(Sender: TObject);
+procedure TMainForm.actApplyFilterExecute(Sender: TObject);
 var
   i: Integer;
   Filters: TStringList;
@@ -4781,7 +4951,7 @@ var
 begin
   // If filter box is empty but filter generator box has text, most users expect
   // the filter to be auto generated on button click
-  if ((SynMemoFilter.GetTextLen = 0) or menuAlwaysGenerateFilter.Checked)
+  {if ((SynMemoFilter.GetTextLen = 0) or menuAlwaysGenerateFilter.Checked)
     and (editFilterSearch.Text <> '')
     and (Sender is TAction)
     and ((Sender as TAction).ActionComponent = btnFilterApply)
@@ -4813,11 +4983,11 @@ begin
     FDataGridColumnWidthsCustomized := True;
   end else
     FDataGridColumnWidthsCustomized := False;
-  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-end;}
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);}
+end;
 
 
-{procedure TMainForm.actDataFirstExecute(Sender: TObject);
+procedure TMainForm.actDataFirstExecute(Sender: TObject);
 var
   Node: PVirtualNode;
 begin
@@ -4825,10 +4995,10 @@ begin
   if Assigned(Node) then
     SelectNode(ActiveGrid, Node);
   ValidateControls(Sender);
-end;}
+end;
 
 
-{procedure TMainForm.actDataInsertExecute(Sender: TObject);
+procedure TMainForm.actDataInsertExecute(Sender: TObject);
 var
   DupeNode, NewNode: PVirtualNode;
   Grid: TVirtualStringTree;
@@ -4878,36 +5048,36 @@ begin
   except on E:EDbError do
     ErrorDialog(_('Grid editing error'), E.Message);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actDataLastExecute(Sender: TObject);
+procedure TMainForm.actDataLastExecute(Sender: TObject);
 var
   Node: PVirtualNode;
   Grid: TVirtualStringTree;
 begin
   Grid := ActiveGrid;
   // Be sure to have all rows
-  if (Grid = DataGrid) and (DatagridWantedRowCount < AppSettings.ReadInt(asDatagridMaximumRows)) then
-    actDataShowAll.Execute;
+  //if (Grid = DataGrid) and (DatagridWantedRowCount < AppSettings.ReadInt(asDatagridMaximumRows)) then
+  //  actDataShowAll.Execute;
   Node := Grid.GetLast;
   if Assigned(Node) then
     SelectNode(Grid, Node);
   ValidateControls(Sender);
-end;}
+end;
 
 
-{procedure TMainForm.actDataOpenUrlExecute(Sender: TObject);
+procedure TMainForm.actDataOpenUrlExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
 begin
   // Open grid cell url in web browser
   Grid := ActiveGrid;
   ShellExec(Grid.Text[Grid.FocusedNode, Grid.FocusedColumn]);
-end;}
+end;
 
 
-{procedure TMainForm.actDataPostChangesExecute(Sender: TObject);
+procedure TMainForm.actDataPostChangesExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
@@ -4922,16 +5092,16 @@ begin
   if Assigned(Grid.FocusedNode) then
     Grid.InvalidateNode(Grid.FocusedNode);
   DisplayRowCountStats(Grid);
-end;}
+end;
 
-{procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
+procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
 begin
   actClearFilterEditor.Execute;
-  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-end;}
+  //InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+end;
 
 
-{procedure TMainForm.actDataCancelChangesExecute(Sender: TObject);
+procedure TMainForm.actDataCancelChangesExecute(Sender: TObject);
 var
   Grid: TVirtualStringTree;
   Results: TDBQuery;
@@ -4954,7 +5124,7 @@ begin
       Grid.InvalidateNode(Node);
     ValidateControls(Sender);
   end;
-end;}
+end;
 
 
 {**
@@ -5056,7 +5226,7 @@ begin
 end;
 
 
-{procedure TMainForm.actDataShowNextExecute(Sender: TObject);
+procedure TMainForm.actDataShowNextExecute(Sender: TObject);
 var
   OldRowCount: Int64;
 begin
@@ -5064,12 +5234,12 @@ begin
   OldRowCount := DatagridWantedRowCount;
   Inc(DatagridWantedRowCount, AppSettings.ReadInt(asDatagridRowsPerStep));
   DataGridWantedRowCount := Min(DataGridWantedRowCount, AppSettings.ReadInt(asDatagridMaximumRows));
-  InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
-  SelectNode(DataGrid, OldRowCount);
-end;}
+  //InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
+  //SelectNode(DataGrid, OldRowCount);
+end;
 
 
-{procedure TMainForm.actAttachDatabaseExecute(Sender: TObject);
+procedure TMainForm.actAttachDatabaseExecute(Sender: TObject);
 var
   Selector: TOpenDialog;
   OldFiles, NewFiles: TStringList;
@@ -5096,7 +5266,7 @@ begin
           NewFiles[i] := ExtractFileName(NewFiles[i]);
         if OldFiles.IndexOf(NewFiles[i]) = -1 then begin
           OldFiles.Add(NewFiles[i]);
-          DbAlias := TPath.GetFileNameWithoutExtension(NewFiles[i]);
+          DbAlias := GetFileNameWithoutExtension(NewFiles[i]);
           Conn.Query('ATTACH DATABASE '+Conn.EscapeString(NewFiles[i])+' AS '+Conn.QuoteIdent(DbAlias));
         end;
       end;
@@ -5109,9 +5279,9 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
-{procedure TMainForm.actDetachDatabaseExecute(Sender: TObject);
+procedure TMainForm.actDetachDatabaseExecute(Sender: TObject);
 var
   Obj: TDBObject;
   OldFiles: TStringList;
@@ -5132,7 +5302,7 @@ begin
     Obj.Connection.Query('DETACH DATABASE '+Obj.Connection.QuoteIdent(Obj.Database));
     OldFiles := Explode(DELIM, Obj.Connection.Parameters.Hostname);
     for i:=0 to OldFiles.Count-1 do begin
-      DbAlias := TPath.GetFileNameWithoutExtension(OldFiles[i]);
+      DbAlias := GetFileNameWithoutExtension(OldFiles[i]);
       if DbAlias = Obj.Database then begin
         OldFiles.Delete(i);
         Break;
@@ -5146,31 +5316,31 @@ begin
       ErrorDialog(E.Message);
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actDataShowAllExecute(Sender: TObject);
+procedure TMainForm.actDataShowAllExecute(Sender: TObject);
 begin
   // Remove LIMIT clause
   DatagridWantedRowCount := AppSettings.ReadInt(asDatagridMaximumRows);
-  InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
-end;}
+  //InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
+end;
 
 
-{function TMainForm.AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
+function TMainForm.AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
 var
   RowNum: PInt64;
   Data: TDBQuery;
 begin
   // Load remaining data on a partially loaded row in data grid
   Result := True;
-  if (Grid = DataGrid) and Assigned(Node) then begin
+  {if (Grid = DataGrid) and Assigned(Node) then begin
     RowNum := Grid.GetNodeData(Node);
     Data := GridResult(Grid);
     Data.RecNo := RowNum^;
     Result := Data.EnsureFullRow(False);
-  end;
-end;}
+  end;}
+end;
 
 
 {procedure TMainForm.DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
@@ -5612,7 +5782,7 @@ end;}
   Calculate + display total rowcount and found rows matching to filter
   in data-tab
 }
-{procedure TMainForm.DisplayRowCountStats(Sender: TBaseVirtualTree);
+procedure TMainForm.DisplayRowCountStats(Sender: TBaseVirtualTree);
 var
   DBObject: TDBObject;
   ObjInCache: PDBObject;
@@ -5620,7 +5790,7 @@ var
   cap: String;
   RowsTotal: Int64;
 begin
-  if Sender <> DataGrid then
+  {if Sender <> DataGrid then
     Exit; // Only data tab has a top label
 
   DBObject := ActiveDbObj;
@@ -5675,8 +5845,8 @@ begin
   end;
   lblDataTop.Caption := cap;
   lblDataTop.Hint := cap;
-  FExactRowCountMode := False;
-end;}
+  FExactRowCountMode := False;}
+end;
 
 
 {procedure TMainForm.menuQueryExactRowCountClick(Sender: TObject);
@@ -5970,7 +6140,7 @@ procedure TMainForm.ValidateControls(Sender: TObject);
 var
   inDataTab, inDataOrQueryTab, inDataOrQueryTabNotEmpty, inGrid: Boolean;
   HasConnection, GridHasChanges, EnableTimestamp: Boolean;
-  Grid: TLazVirtualStringTree;
+  Grid: TVirtualStringTree;
   inSynMemo, inSynMemoEditable: Boolean;
   Results: TDBQuery;
   RowNum: PInt64;
@@ -6048,7 +6218,7 @@ begin
 end;
 
 
-{procedure TMainForm.ValidateQueryControls(Sender: TObject);
+procedure TMainForm.ValidateQueryControls(Sender: TObject);
 var
   NotEmpty, HasSelection, HasConnection: Boolean;
   Tab: TQueryTab;
@@ -6103,7 +6273,7 @@ begin
     end;
   end;
 
-end;}
+end;
 
 
 {procedure TMainForm.KillProcess(Sender: TObject);
@@ -6834,7 +7004,7 @@ begin
 end;}
 
 
-{procedure TMainForm.QuickFilterClick(Sender: TObject);
+procedure TMainForm.QuickFilterClick(Sender: TObject);
 var
   Filter, Val, Col: String;
   TableCol: TTableColumn;
@@ -6842,7 +7012,7 @@ var
   Item: TMenuItem;
   Conn: TDBConnection;
   ShiftKeyPressed: Boolean;
-begin
+begin {
   // Set filter for "where..."-clause
   if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
     Exit;
@@ -6903,8 +7073,8 @@ begin
     end;
     ToggleFilterPanel(True);
     actApplyFilterExecute(Sender);
-  end;
-end;}
+  end;}
+end;
 
 
 {procedure TMainForm.popupQueryPopup(Sender: TObject);
@@ -7830,7 +8000,7 @@ begin
 end;}
 
 
-{function TMainForm.GetRootNode(Tree: TBaseVirtualTree; Connection: TDBConnection): PVirtualNode;
+function TMainForm.GetRootNode(Tree: TVirtualStringTree; Connection: TDBConnection): PVirtualNode;
 var
   SessionNode: PVirtualNode;
   SessionObj: PDBObject;
@@ -7845,18 +8015,18 @@ begin
     end;
     SessionNode := Tree.GetNextSibling(SessionNode);
   end;
-end;}
+end;
 
 
-{function TMainForm.GetActiveConnection: TDBConnection;
+function TMainForm.GetActiveConnection: TDBConnection;
 begin
   Result := nil;
   if Assigned(FActiveDBObj) and (FActiveDbObj <> nil) then
     Result := FActiveDbObj.Connection;
-end;}
+end;
 
 
-{function TMainForm.GetActiveDatabase: String;
+function TMainForm.GetActiveDatabase: String;
 begin
   // Find currently selected database in active connection
   Result := '';
@@ -7864,10 +8034,10 @@ begin
     and Assigned(FActiveDBObj)
     and Assigned(FActiveDBObj.Connection) then
     Result := FActiveDBObj.Connection.Database;
-end;}
+end;
 
 
-{procedure TMainForm.SetActiveDatabase(db: String; Connection: TDBConnection);
+procedure TMainForm.SetActiveDatabase(db: String; Connection: TDBConnection);
 var
   SessionNode, DBNode: PVirtualNode;
   DBObj: PDBObject;
@@ -7889,10 +8059,10 @@ begin
       DBNode := DBtree.GetNextSibling(DBNode);
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.SetActiveDBObj(Obj: TDBObject);
+procedure TMainForm.SetActiveDBObj(Obj: TDBObject);
 var
   FoundNode: PVirtualNode;
 begin
@@ -7903,10 +8073,10 @@ begin
     SelectNode(DBTree, FoundNode)
   else
     LogSQL(f_('Table node "%s" not found in tree.', [Obj.Name]), lcError);
-end;}
+end;
 
 
-{function TMainForm.FindDBObjectNode(Tree: TBaseVirtualTree; Obj: TDBObject): PVirtualNode;
+function TMainForm.FindDBObjectNode(Tree: TVirtualStringTree; Obj: TDBObject): PVirtualNode;
 var
   DbNode, ObjectNode, GroupedNode: PVirtualNode;
   DbObj, ObjectObj, GroupedObj: PDBObject;
@@ -7948,7 +8118,7 @@ begin
     end;
     DbNode := Tree.GetNextSibling(DbNode);
   end;
-end;}
+end;
 
 
 {**
@@ -8375,14 +8545,14 @@ begin
 end;}
 
 
-{procedure TMainForm.actLogHorizontalScrollbarExecute(Sender: TObject);
+procedure TMainForm.actLogHorizontalScrollbarExecute(Sender: TObject);
 begin
   // Toggle visibility of horizontal scrollbar
   if TAction(Sender).Checked then
     SynMemoSQLLog.ScrollBars := ssBoth
   else
     SynMemoSQLLog.ScrollBars := ssVertical;
-end;}
+end;
 
 
 {**
@@ -8548,13 +8718,13 @@ end;}
 {***
   Apply a filter to a Virtual Tree.
 }
-{procedure TMainForm.editFilterVTChange(Sender: TObject);
+procedure TMainForm.editFilterVTChange(Sender: TObject);
 begin
   // Reset typing timer
   TimerFilterVT.Enabled := False;
   TimerFilterVT.Enabled := True;
-  editFilterVT.RightButton.Visible := editFilterVT.Text <> '';
-end;}
+  //editFilterVT.RightButton.Visible := editFilterVT.Text <> '';
+end;
 
 
 {procedure TMainForm.editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
@@ -8564,17 +8734,17 @@ begin
 end;}
 
 
-{procedure TMainForm.TimerFilterVTTimer(Sender: TObject);
+procedure TMainForm.TimerFilterVTTimer(Sender: TObject);
 begin
   // Disable timer to avoid filtering in a loop
   TimerFilterVT.Enabled := False;
 
   // Code moved into this procedure in order to call it by different way
   ApplyVTFilter(True);
-end;}
+end;
 
 
-{procedure TMainForm.ApplyVTFilter(FromTimer: Boolean);
+procedure TMainForm.ApplyVTFilter(FromTimer: Boolean);
 var
   Node: PVirtualNode;
   VT: TVirtualStringTree;
@@ -8588,7 +8758,7 @@ var
   OldImageIndex: Integer;
 begin
   // Find the correct VirtualTree that shall be filtered
-  tab := PageControlMain.ActivePage;
+  {tab := PageControlMain.ActivePage;
   if tab = tabHost then
     tab := PageControlHost.ActivePage;
   VT := nil;
@@ -8672,8 +8842,8 @@ begin
     InvalidateVT(VT, VTREE_LOADED, true);
   DataLocalNumberFormat := OldDataLocalNumberFormat;
   editFilterVT.RightButton.ImageIndex := OldImageIndex;
-  rx.Free;
-end;}
+  rx.Free;}
+end;
 
 
 {procedure TMainForm.ApplyFontToGrids;
@@ -9551,7 +9721,7 @@ end;}
 {**
   Refresh the whole tree
 }
-{procedure TMainForm.RefreshTree(FocusNewObject: TDBObject=nil);
+procedure TMainForm.RefreshTree(FocusNewObject: TDBObject=nil);
 var
   DBNode: PVirtualNode;
   OnlyDBNode, Expanded: Boolean;
@@ -9606,20 +9776,20 @@ begin
   finally
     FTreeRefreshInProgress := False;
     // Tree node filtering needs a hit in special cases, e.g. after a db was dropped
-    if editDatabaseFilter.Text <> '' then
+    {if editDatabaseFilter.Text <> '' then
       editDatabaseFilter.OnChange(editDatabaseFilter);
     if editTableFilter.Text <> '' then
       editTableFilter.OnChange(editTableFilter);
     if editFilterVT.Text <> '' then
-      ApplyVTFilter(False);
+      ApplyVTFilter(False);}
   end;
-end;}
+end;
 
 
 {**
   Find a database node in the tree by passing its name
 }
-{function TMainForm.FindDBNode(Tree: TBaseVirtualTree; Connection: TDBConnection; db: String): PVirtualNode;
+function TMainForm.FindDBNode(Tree: TVirtualStringTree; Connection: TDBConnection; db: String): PVirtualNode;
 var
   DBObj: PDBObject;
   n, DBNode: PVirtualNode;
@@ -9635,7 +9805,7 @@ begin
     end;
     DBNode := Tree.GetNextSibling(DBNode);
   end;
-end;}
+end;
 
 
 {**
@@ -10047,7 +10217,7 @@ begin
 end;}
 
 
-{procedure TMainForm.actDataSetNullExecute(Sender: TObject);
+procedure TMainForm.actDataSetNullExecute(Sender: TObject);
 var
   RowNum: PInt64;
   Grid: TVirtualStringTree;
@@ -10066,7 +10236,7 @@ begin
   end;
   Grid.RepaintNode(Grid.FocusedNode);
   ValidateControls(Sender);
-end;}
+end;
 
 
 {procedure TMainForm.AnyGridMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
@@ -10472,11 +10642,11 @@ begin
 end;}
 
 
-{procedure TMainForm.actGroupObjectsExecute(Sender: TObject);
+procedure TMainForm.actGroupObjectsExecute(Sender: TObject);
 begin
   // Group tree objects by type
   RefreshTree(nil);
-end;}
+end;
 
 
 {procedure TMainForm.AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
@@ -10739,12 +10909,12 @@ begin
 end;}
 
 
-{function TMainForm.GetRegKeyTable: String;
+function TMainForm.GetRegKeyTable: String;
 begin
   // Return the slightly complex registry path to \Servers\CustomFolder\ActiveServer\curdb|curtable
   Result := ActiveDbObj.Connection.Parameters.SessionPath + '\' +
     ActiveDatabase + DELIM + ActiveDbObj.Name;
-end;}
+end;
 
 
 {procedure TMainForm.AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
@@ -11152,7 +11322,7 @@ begin
 end;}
 
 
-{procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
+procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
 var
   Results: TDBQuery;
   RowNum: PInt64;
@@ -11165,7 +11335,7 @@ var
   Filter: String;
   Conn: TDBConnection;
 begin
-  Results := GridResult(DataGrid);
+  {Results := GridResult(DataGrid);
   RowNum := DataGrid.GetNodeData(DataGrid.FocusedNode);
   Results.RecNo := RowNum^;
   FocusedColumnName := Results.ColumnOrgNames[DataGrid.FocusedColumn-1];
@@ -11205,11 +11375,11 @@ begin
   actApplyFilter.Execute;
   // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
   AppSettings.SessionPath := GetRegKeyTable;
-  AppSettings.WriteString(asFilter, Filter);
-end;}
+  AppSettings.WriteString(asFilter, Filter);}
+end;
 
 
-{procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
+procedure TMainForm.actCopyGridNodesExecute(Sender: TObject);
 var
   SenderControl: TComponent;
   SenderName: String;
@@ -11298,10 +11468,10 @@ begin
 
   Screen.Cursor := crDefault;
   LogSQL(f_('%s: %s lines copied to clipboard', [SLogPrefixInfo, FormatNumber(NodesCopied)]), lcInfo);
-  MessageBeep(MB_ICONASTERISK);
-end;}
+  Beep;
+end;
 
-{procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
+procedure TMainForm.actCopyOrCutExecute(Sender: TObject);
 var
   CurrentControl: TWinControl;
   SendingControl: TComponent;
@@ -11314,13 +11484,13 @@ var
   IsResultGrid, HasNulls: Boolean;
   ClpFormat: Word;
   ClpData: THandle;
-  APalette: HPalette;
-  Exporter: TSynExporterRTF;
+  //APalette: HPalette;
+  //Exporter: TSynExporterRTF;
   Results: TDBQuery;
   RowNum: PInt64;
-  ExportDialog: TfrmExportGrid;
+  //ExportDialog: TfrmExportGrid;
 begin
-  // Copy text from a focused control to clipboard
+  {// Copy text from a focused control to clipboard
   CurrentControl := Screen.ActiveControl;
   SendingControl := TAction(Sender).ActionComponent;
   SenderName := TAction(Sender).Name;
@@ -11405,11 +11575,11 @@ begin
       MessageBeep(MB_ICONASTERISK);
     end;
   end;
-  Screen.Cursor := crDefault;
-end;}
+  Screen.Cursor := crDefault;}
+end;
 
 
-{procedure TMainForm.actPasteExecute(Sender: TObject);
+procedure TMainForm.actPasteExecute(Sender: TObject);
 var
   Control: TWinControl;
   Edit: TCustomEdit;
@@ -11437,12 +11607,12 @@ begin
     end;
   end else if Control is TVirtualStringTree then begin
     Grid := Control as TVirtualStringTree;
-    if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
+    {if Assigned(Grid.FocusedNode) and (Grid = ActiveGrid) then begin
       FGridPasting := True;
       Grid.Text[Grid.FocusedNode, Grid.FocusedColumn] := Clipboard.TryAsText;
       Success := True;
       FGridPasting := False;
-    end;
+    end;}
   end else if Control is TSynMemo then begin
     SynMemo := TSynMemo(Control);
     if not SynMemo.ReadOnly then begin
@@ -11456,20 +11626,20 @@ begin
     end;
   end;
   if not Success then
-    MessageBeep(MB_ICONASTERISK);
-end;}
+    Beep;
+end;
 
 
-{procedure TMainForm.actSequalSuggestExecute(Sender: TObject);
-var
-  SequalSuggestForm: TSequalSuggestForm;
+procedure TMainForm.actSequalSuggestExecute(Sender: TObject);
+//var
+//  SequalSuggestForm: TSequalSuggestForm;
 begin
   // Show Sequal Suggest dialog
-  SequalSuggestForm := TSequalSuggestForm.Create(Self);
-  SequalSuggestForm.ShowModal;
-end;}
+  //SequalSuggestForm := TSequalSuggestForm.Create(Self);
+  //SequalSuggestForm.ShowModal;
+end;
 
-{procedure TMainForm.actSelectAllExecute(Sender: TObject);
+procedure TMainForm.actSelectAllExecute(Sender: TObject);
 var
   Control: TWinControl;
   Grid: TVirtualStringTree;
@@ -11499,11 +11669,11 @@ begin
     end;
   end;
   if not Success then
-    MessageBeep(MB_ICONASTERISK);
-end;}
+    Beep;
+end;
 
 
-{procedure TMainForm.actSelectInverseExecute(Sender: TObject);
+procedure TMainForm.actSelectInverseExecute(Sender: TObject);
 var
   Control: TWinControl;
   Grid: TVirtualStringTree;
@@ -11529,8 +11699,8 @@ begin
     end;
   end;
   if not Success then
-    MessageBeep(MB_ICONASTERISK);
-end;}
+    Beep;
+end;
 
 
 {procedure TMainForm.EnumerateRecentFilters;
@@ -11604,12 +11774,12 @@ begin
 end;}
 
 
-{procedure TMainForm.PlaceObjectEditor(Obj: TDBObject);
-var
-  EditorClass: TDBObjectEditorClass;
+procedure TMainForm.PlaceObjectEditor(Obj: TDBObject);
+//var
+//  EditorClass: TDBObjectEditorClass;
 begin
   // Place the relevant editor frame onto the editor tab, hide all others
-  if FTreeRefreshInProgress and Assigned(ActiveObjectEditor) then begin
+  {if FTreeRefreshInProgress and Assigned(ActiveObjectEditor) then begin
     ActiveObjectEditor.Init(Obj);
     UpdateFilterPanel(Self);
   end else begin
@@ -11630,8 +11800,8 @@ begin
     end;
     ActiveObjectEditor.Init(Obj);
     buttonedEditClear(editFilterVT);
-  end;
-end;}
+  end;}
+end;
 
 
 {procedure TMainForm.UpdateEditorTab;
@@ -11701,7 +11871,7 @@ begin
 end;}
 
 
-{procedure TMainForm.actNewQueryTabExecute(Sender: TObject);
+procedure TMainForm.actNewQueryTabExecute(Sender: TObject);
 var
   i: Integer;
   QueryTab, OldTab: TQueryTab;
@@ -11726,8 +11896,8 @@ begin
   QueryTab.CloseButton.Height := 16;
   QueryTab.CloseButton.Flat := True;
   VirtualImageListMain.GetBitmap(134, QueryTab.CloseButton.Glyph);
-  QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
-  QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
+  //QueryTab.CloseButton.OnMouseDown := CloseButtonOnMouseDown;
+  //QueryTab.CloseButton.OnMouseUp := CloseButtonOnMouseUp;
   SetTabCaption(QueryTab.TabSheet.PageIndex, '');
 
   // Dumb code which replicates all controls from tabQuery
@@ -11748,7 +11918,7 @@ begin
   QueryTab.Memo.Parent := QueryTab.pnlMemo;
   QueryTab.Memo.Align := SynMemoQuery.Align;
   QueryTab.Memo.Constraints := SynMemoQuery.Constraints;
-  QueryTab.Memo.HintMode := SynMemoQuery.HintMode;
+  //QueryTab.Memo.HintMode := SynMemoQuery.HintMode;
   QueryTab.Memo.Left := SynMemoQuery.Left;
   QueryTab.Memo.Options := SynMemoQuery.Options;
   QueryTab.Memo.PopupMenu := SynMemoQuery.PopupMenu;
@@ -11758,17 +11928,17 @@ begin
   QueryTab.Memo.Highlighter := SynMemoQuery.Highlighter;
   QueryTab.Memo.Gutter.Assign(SynMemoQuery.Gutter);
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
-  QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
+  //QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
-  QueryTab.Memo.OnSpecialLineColors := SynMemoQuery.OnSpecialLineColors;
+  //QueryTab.Memo.OnSpecialLineColors := SynMemoQuery.OnSpecialLineColors;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
   QueryTab.Memo.OnKeyPress := SynMemoQuery.OnKeyPress;
   QueryTab.Memo.OnMouseWheel := SynMemoQuery.OnMouseWheel;
   QueryTab.Memo.OnReplaceText := SynMemoQuery.OnReplaceText;
-  QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
-  QueryTab.Memo.OnTokenHint := SynMemoQuery.OnTokenHint;
+  //QueryTab.Memo.OnPaintTransient := SynMemoQuery.OnPaintTransient;
+  //QueryTab.Memo.OnTokenHint := SynMemoQuery.OnTokenHint;
   QueryTab.MemoLineBreaks := TLineBreaks(AppSettings.ReadInt(asLineBreakStyle));
   SynCompletionProposal.AddEditor(QueryTab.Memo);
 
@@ -11792,19 +11962,19 @@ begin
   else
     QueryTab.pnlHelpers.Width := AppSettings.GetDefaultInt(asQueryhelperswidth);
 
-  QueryTab.filterHelpers := TButtonedEdit.Create(QueryTab.pnlHelpers);
+  QueryTab.filterHelpers := TEdit.Create(QueryTab.pnlHelpers);
   QueryTab.filterHelpers.Name := filterQueryHelpers.Name + i.ToString;
   QueryTab.filterHelpers.Text := '';
   QueryTab.filterHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.filterHelpers.Align := filterQueryHelpers.Align;
   QueryTab.filterHelpers.TextHint := filterQueryHelpers.TextHint;
-  QueryTab.filterHelpers.Images := filterQueryHelpers.Images;
+  {QueryTab.filterHelpers.Images := filterQueryHelpers.Images;
   QueryTab.filterHelpers.LeftButton.Visible := filterQueryHelpers.LeftButton.Visible;
   QueryTab.filterHelpers.LeftButton.ImageIndex := filterQueryHelpers.LeftButton.ImageIndex;
   QueryTab.filterHelpers.RightButton.Visible := filterQueryHelpers.RightButton.Visible;
   QueryTab.filterHelpers.RightButton.ImageIndex := filterQueryHelpers.RightButton.ImageIndex;
   QueryTab.filterHelpers.OnChange := filterQueryHelpers.OnChange;
-  QueryTab.filterHelpers.OnRightButtonClick := filterQueryHelpers.OnRightButtonClick;
+  QueryTab.filterHelpers.OnRightButtonClick := filterQueryHelpers.OnRightButtonClick;}
 
   QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlHelpers);
   QueryTab.treeHelpers.Name := treeQueryHelpers.Name + i.ToString;
@@ -11855,7 +12025,7 @@ begin
 
   QueryTab.ResultTabs := TResultTabs.Create(True);
 
-  QueryTab.tabsetQuery := TTabSet.Create(QueryTab.TabSheet);
+  QueryTab.tabsetQuery := TTabControl.Create(QueryTab.TabSheet);
   QueryTab.tabsetQuery.Name := tabsetQuery.Name + i.ToString;
   QueryTab.tabsetQuery.Parent := QueryTab.TabSheet;
   // Prevent various problems with alignment of controls. See http://www.heidisql.com/forum.php?t=18924
@@ -11867,10 +12037,10 @@ begin
   QueryTab.tabsetQuery.TabHeight := tabsetQuery.TabHeight;
   QueryTab.tabsetQuery.Height := tabsetQuery.Height;
   QueryTab.tabsetQuery.TabPosition := tabsetQuery.TabPosition;
-  QueryTab.tabsetQuery.SoftTop := tabsetQuery.SoftTop;
-  QueryTab.tabsetQuery.DitherBackground := tabsetQuery.DitherBackground;
-  QueryTab.tabsetQuery.SelectedColor := tabsetQuery.SelectedColor;
-  QueryTab.tabsetQuery.UnselectedColor := tabsetQuery.UnselectedColor;
+  //QueryTab.tabsetQuery.SoftTop := tabsetQuery.SoftTop;
+  //QueryTab.tabsetQuery.DitherBackground := tabsetQuery.DitherBackground;
+  //QueryTab.tabsetQuery.SelectedColor := tabsetQuery.SelectedColor;
+  //QueryTab.tabsetQuery.UnselectedColor := tabsetQuery.UnselectedColor;
   QueryTab.tabsetQuery.OnClick := tabsetQuery.OnClick;
   QueryTab.tabsetQuery.OnGetImageIndex := tabsetQuery.OnGetImageIndex;
   QueryTab.tabsetQuery.OnMouseMove := tabsetQuery.OnMouseMove;
@@ -11883,7 +12053,7 @@ begin
     SetMainTab(QueryTab.TabSheet);
     QueryTab.Memo.TrySetFocus;
   end;
-end;}
+end;
 
 
 {procedure TMainForm.panelTopDblClick(Sender: TObject);
@@ -11901,11 +12071,11 @@ begin
 end;}
 
 
-{procedure TMainForm.actCloseQueryTabExecute(Sender: TObject);
+procedure TMainForm.actCloseQueryTabExecute(Sender: TObject);
 begin
   // Close active query tab by main action
   CloseQueryTab(PageControlMain.ActivePageIndex);
-end;}
+end;
 
 
 {procedure TMainForm.menuCloseQueryTabClick(Sender: TObject);
@@ -11951,7 +12121,7 @@ begin
   PageControlMain.MultiLine := menuTabsInMultipleLines.Checked;
 end;}
 
-{procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
+procedure TMainForm.actCloseAllQueryTabsExecute(Sender: TObject);
 var
   i: Integer;
 begin
@@ -11959,25 +12129,25 @@ begin
   for i:=PageControlMain.PageCount-1 downto tabQuery.PageIndex do begin
     CloseQueryTab(PageControlMain.Pages[i].PageIndex);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actRenameQueryTabExecute(Sender: TObject);
+procedure TMainForm.actRenameQueryTabExecute(Sender: TObject);
 var
   aPoint: TPoint;
   PageIndex: Integer;
   NewCaption: String;
 begin
   // Rename query tab
-  if Sender = menuRenameQueryTab then begin
+  {if Sender = menuRenameQueryTab then begin
     aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
     PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
-  end else begin
+  end else} begin
     PageIndex := PageControlMain.ActivePageIndex;
   end;
   if not IsQueryTab(PageIndex, True) then begin
     // Action may have been triggered through shortcut, and active tab is not a query tab
-    MessageBeep(MB_ICONASTERISK);
+    Beep;
   end else begin
     NewCaption := PageControlMain.Pages[PageIndex].Caption;
     NewCaption := NewCaption.Trim([' ', '*']);
@@ -11986,10 +12156,10 @@ begin
       ValidateQueryControls(Sender);
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actResetPanelDimensionsExecute(Sender: TObject);
+procedure TMainForm.actResetPanelDimensionsExecute(Sender: TObject);
 var
   Tab: TQueryTab;
 begin
@@ -12007,7 +12177,7 @@ begin
   AppSettings.DeleteValue(asCompletionProposalNbLinesInWindow);
   SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
   SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
-end;}
+end;
 
 {procedure TMainForm.menuRenameQueryTabClick(Sender: TObject);
 begin
@@ -12037,7 +12207,7 @@ begin
 end;}
 
 
-{procedure TMainForm.CloseQueryTab(PageIndex: Integer);
+procedure TMainForm.CloseQueryTab(PageIndex: Integer);
 var
   NewPageIndex: Integer;
   Grid: TVirtualStringTree;
@@ -12063,25 +12233,25 @@ begin
   if NewPageIndex >= PageIndex then
     Dec(NewPageIndex);
   // Avoid excessive flicker:
-  LockWindowUpdate(PageControlMain.Handle);
+  //LockWindowUpdate(PageControlMain.Handle);
   PageControlMain.Pages[PageIndex].Free;
   QueryTabs.Delete(PageIndex-tabQuery.PageIndex);
   PageControlMain.ActivePageIndex := NewPageIndex;
   FixQueryTabCloseButtons;
-  LockWindowUpdate(0);
+  //LockWindowUpdate(0);
   PageControlMain.OnChange(PageControlMain);
-end;}
+end;
 
 
-{procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
+procedure TMainForm.actFavoriteObjectsOnlyExecute(Sender: TObject);
 begin
   // Click on "tree favorites" main button
-  editDatabaseTableFilterChange(Sender);
+  //editDatabaseTableFilterChange(Sender);
   if actFavoriteObjectsOnly.Checked then
     actFavoriteObjectsOnly.ImageIndex := 112
   else
     actFavoriteObjectsOnly.ImageIndex := 113;
-end;}
+end;
 
 
 {procedure TMainForm.buttonedEditClear(Sender: TObject);
@@ -12358,7 +12528,7 @@ begin
 end;}
 
 
-{procedure TMainForm.FixQueryTabCloseButtons;
+procedure TMainForm.FixQueryTabCloseButtons;
 var
   i, PageIndex, VisiblePageIndex: Integer;
   Rect: TRect;
@@ -12366,7 +12536,7 @@ var
 begin
   // Fix positions of "Close" buttons on Query tabs
   // Avoid AV on Startup, when Mainform.OnResize is called once or twice implicitely.
-  if not Assigned(FBtnAddTab) then
+  {if not Assigned(FBtnAddTab) then
     Exit;
   for PageIndex:=tabQuery.PageIndex+1 to PageControlMain.PageCount-1 do begin
     VisiblePageIndex := PageIndex;
@@ -12387,8 +12557,8 @@ begin
   end;
   Rect := PageControlMain.TabRect(VisiblePageIndex);
   FBtnAddTab.Top := Rect.Top;
-  FBtnAddTab.Left := Rect.Right + 5;
-end;}
+  FBtnAddTab.Left := Rect.Right + 5;}
+end;
 
 
 {function TMainForm.GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
@@ -12420,7 +12590,7 @@ begin
 end;}
 
 
-{function TMainForm.ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
+function TMainForm.ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
 var
   Control: TWinControl;
 begin
@@ -12434,14 +12604,14 @@ begin
   end;
   if (not Assigned(Result)) and QueryTabs.HasActiveTab then
     Result := QueryTabs.ActiveMemo;
-  if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
-    Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
-  end;
+  //if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
+  //  Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
+  //end;
 
-end;}
+end;
 
 
-{function TMainForm.ActiveGrid: TVirtualStringTree;
+function TMainForm.ActiveGrid: TVirtualStringTree;
 begin
   // Return current data or query grid, if main form is active
   Result := nil;
@@ -12451,10 +12621,10 @@ begin
     Result := DataGrid
   else if (QueryTabs.ActiveTab <> nil) and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then
     Result := QueryTabs.ActiveTab.ActiveResultTab.Grid;
-end;}
+end;
 
 
-{function TMainForm.GridResult(Grid: TBaseVirtualTree): TDBQuery;
+function TMainForm.GridResult(Grid: TVirtualStringTree): TDBQuery;
 var
   QueryTab: TQueryTab;
   CurrentTab: TTabSheet;
@@ -12462,10 +12632,10 @@ var
 begin
   // All grids (data- and query-grids, also host subtabs) are placed directly on a TTabSheet
   Result := nil;
-  if Grid = DataGrid then begin
+  {if Grid = DataGrid then begin
     if DataGridResult<>nil then
       Result := DataGridResult;
-  end else if Assigned(Grid) then begin
+  end else} if Assigned(Grid) then begin
     CurrentTab := Grid.Parent as TTabSheet;
     if CurrentTab.Parent = PageControlHost then
       Result := FHostListResults[CurrentTab.PageIndex]
@@ -12480,10 +12650,10 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
 
-{function TMainForm.IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
+function TMainForm.IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
 var
   Min: Integer;
 begin
@@ -12491,7 +12661,7 @@ begin
   Min := tabQuery.PageIndex+1;
   if IncludeFixed then Dec(Min);
   Result := PageIndex >= Min;
-end;}
+end;
 
 {procedure TMainForm.SetWindowCaption;
 var
@@ -12507,17 +12677,17 @@ begin
 end;}
 
 
-{procedure TMainForm.SetMainTab(Page: TTabSheet);
+procedure TMainForm.SetMainTab(Page: TTabSheet);
 begin
   // Safely switch main tab
   if (Page <> nil) and (not FTreeRefreshInProgress) then begin
     PagecontrolMain.ActivePage := Page;
     PageControlMain.OnChange(Page);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
+procedure TMainForm.SetTabCaption(PageIndex: Integer; Text: String);
 var
   Tab: TQueryTab;
 begin
@@ -12547,10 +12717,10 @@ begin
   end;
   PageControlMain.Pages[PageIndex].Caption := Text;
   FixQueryTabCloseButtons;
-end;}
+end;
 
 
-{function TMainForm.ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
+function TMainForm.ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
 var
   Tab: TQueryTab;
 begin
@@ -12563,10 +12733,10 @@ begin
   end else begin
     Result := ConfirmTabClear(PageIndex, AppIsClosing);
   end;
-end;}
+end;
 
 
-{function TMainForm.ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
+function TMainForm.ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
 var
   msg: String;
   Tab: TQueryTab;
@@ -12605,14 +12775,14 @@ begin
       end
       else begin
         Dialog := TExtFileSaveDialog.Create(Self);
-        Dialog.Options := Dialog.Options + [fdoOverwritePrompt];
-        Dialog.AddFileType('*.sql', _('SQL files'));
-        Dialog.AddFileType('*.*', _('All files'));
-        Dialog.DefaultExtension := 'sql';
-        Dialog.LineBreakIndex := Tab.MemoLineBreaks;
+        Dialog.Options := Dialog.Options + [ofOverwritePrompt];
+        //Dialog.AddFileType('*.sql', _('SQL files'));
+        //Dialog.AddFileType('*.*', _('All files'));
+        Dialog.DefaultExt := 'sql';
+        //Dialog.LineBreakIndex := Tab.MemoLineBreaks;
         if Dialog.Execute then begin
           Tab.SaveContents(Dialog.FileName, False);
-          Tab.MemoLineBreaks := Dialog.LineBreakIndex;
+          //Tab.MemoLineBreaks := Dialog.LineBreakIndex;
         end;
         // The save dialog can be cancelled.
         Result := not Tab.Memo.Modified;
@@ -12643,10 +12813,10 @@ begin
   end;
 
   ValidateControls(Self);
-end;}
+end;
 
 
-{procedure TMainForm.actFilterPanelExecute(Sender: TObject);
+procedure TMainForm.actFilterPanelExecute(Sender: TObject);
 begin
   // (De-)activate or focus filter panel
   if Sender <> actFilterPanel then
@@ -12656,16 +12826,16 @@ begin
   if pnlFilterVT.Visible and editFilterVT.CanFocus and (Sender <> nil) then
     editFilterVT.SetFocus;
   UpdateFilterPanel(Sender);
-end;}
+end;
 
 
-{procedure TMainForm.UpdateFilterPanel(Sender: TObject);
+procedure TMainForm.UpdateFilterPanel(Sender: TObject);
 var
   tab: TTabSheet;
   f: String;
 begin
   // Called when active tab changes
-  pnlFilterVT.Enabled := (PageControlMain.ActivePage <> tabEditor) or (ActiveObjectEditor is TfrmTableEditor);
+  pnlFilterVT.Enabled := (PageControlMain.ActivePage <> tabEditor); // or (ActiveObjectEditor is TfrmTableEditor);
   lblFilterVT.Enabled := pnlFilterVT.Enabled;
   editFilterVT.Enabled := pnlFilterVT.Enabled;
   lblFilterVTInfo.Enabled := pnlFilterVT.Enabled;
@@ -12697,13 +12867,13 @@ begin
     else
       editFilterVTChange(Sender);
   end;
-end;}
+end;
 
 
-{procedure TMainform.SetupSynEditors;
+procedure TMainform.SetupSynEditors;
 var
   i, j: Integer;
-  Editors: TObjectList;
+  Editors: TObjectList<TSynEdit>;
   BaseEditor: TSynMemo;
   KeyStroke: TSynEditKeyStroke;
   Attri: TSynHighlighterAttributes;
@@ -12711,14 +12881,14 @@ var
 begin
   // Setup all known TSynMemo's
   // This version includes global settings for keyboard shortcut, highlighting and completion proposal
-  Editors := TObjectList.Create(False);
+  Editors := TObjectList<TSynEdit>.Create(False);
   BaseEditor := SynMemoQuery;
   for i:=0 to QueryTabs.Count-1 do
     Editors.Add(QueryTabs[i].Memo);
-  Editors.Add(SynMemoFilter);
-  Editors.Add(SynMemoProcessView);
-  Editors.Add(SynMemoSQLLog);
-  if Assigned(ActiveObjectEditor) then
+  //Editors.Add(SynMemoFilter);
+  //Editors.Add(SynMemoProcessView);
+  //Editors.Add(SynMemoSQLLog);
+  {if Assigned(ActiveObjectEditor) then
     FindComponentInstances(ActiveObjectEditor, TSynMemo, Editors);
   if Assigned(frmPreferences) then
     Editors.Add(frmPreferences.SynMemoSQLSample);
@@ -12731,7 +12901,7 @@ begin
   if Assigned(FTableToolsDialog) then
     Editors.Add(FTableToolsDialog.SynMemoFindText);
   if Assigned(frmCsvDetector) then
-    Editors.Add(frmCsvDetector.SynMemoCreateTable);
+    Editors.Add(frmCsvDetector.SynMemoCreateTable);}
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
@@ -12781,75 +12951,76 @@ begin
     Attri.IntegerStyle := AppSettings.ReadInt(asHighlighterStyle, Attri.Name, Attri.IntegerStyle);
   end;
   // Completion proposal
-  if AppSettings.ReadBool(asCompletionProposalSearchOnMid) then
+  {if AppSettings.ReadBool(asCompletionProposalSearchOnMid) then
     SynCompletionProposal.Options := SynCompletionProposal.Options + [scoLimitToMatchedTextAnywhere]
   else
-    SynCompletionProposal.Options := SynCompletionProposal.Options - [scoLimitToMatchedTextAnywhere];
-end;}
+    SynCompletionProposal.Options := SynCompletionProposal.Options - [scoLimitToMatchedTextAnywhere];}
+end;
 
 
-{procedure TMainForm.SetupSynEditors(BaseForm: TComponent);
+procedure TMainForm.SetupSynEditors(BaseForm: TComponent);
 var
-  Editors: TObjectList;
+  Editors: TObjectList<TComponent>;
   i: Integer;
 begin
   // Restore font, highlighter and shortcuts for all TSynMemo's in given base form
-  Editors := TObjectList.Create(False);
+  Editors := TObjectList<TComponent>.Create(False);
   FindComponentInstances(BaseForm, TSynMemo, Editors);
   for i:=0 to Editors.Count-1 do begin
     SetupSynEditor(Editors[i] as TSynMemo);
   end;
   Editors.Free;
-end;}
+end;
 
 
-{procedure TMainForm.SetupSynEditor(Editor: TSynMemo);
+procedure TMainForm.SetupSynEditor(Editor: TSynMemo);
 var
   BaseEditor: TSynMemo;
 begin
   LogSQL('Setting up TSynMemo "'+Editor.Name+'"', lcDebug);
   BaseEditor := SynMemoQuery;
   Editor.Color := GetThemeColor(clWindow);
-  Editor.ScrollHintColor := GetThemeColor(clInfoBk);
+  //Editor.ScrollHintColor := GetThemeColor(clInfoBk);
   Editor.Font.Name := AppSettings.ReadString(asFontName);
   Editor.Font.Size := AppSettings.ReadInt(asFontSize);
-  Editor.Gutter.BorderColor := GetThemeColor(clWindow);
-  Editor.Gutter.Font.Name := Editor.Font.Name;
-  Editor.Gutter.Font.Size := Editor.Font.Size;
-  Editor.Gutter.Font.Color := BaseEditor.Gutter.Font.Color;
-  Editor.Gutter.AutoSize := BaseEditor.Gutter.AutoSize;
-  Editor.Gutter.DigitCount := BaseEditor.Gutter.DigitCount;
-  Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
-  Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
-  Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
+  //Editor.Gutter.BorderColor := GetThemeColor(clWindow);
+  //Editor.Gutter.Font.Name := Editor.Font.Name;
+  //Editor.Gutter.Font.Size := Editor.Font.Size;
+  //Editor.Gutter.Font.Color := BaseEditor.Gutter.Font.Color;
+  //Editor.Gutter.AutoSize := BaseEditor.Gutter.AutoSize;
+  //Editor.Gutter.DigitCount := BaseEditor.Gutter.DigitCount;
+  //Editor.Gutter.LeftOffset := BaseEditor.Gutter.LeftOffset;
+  //Editor.Gutter.RightOffset := BaseEditor.Gutter.RightOffset;
+  //Editor.Gutter.ShowLineNumbers := BaseEditor.Gutter.ShowLineNumbers;
   if Editor <> SynMemoSQLLog then begin
-    Editor.WordWrap := actQueryWordWrap.Checked;
+    // Probably use TLazSynEditLineWrapPlugin?
+    {Editor.WordWrap := actQueryWordWrap.Checked;
     // Assignment of OnScanForFoldRanges event is required for UseCodeFolding
     Editor.OnScanForFoldRanges := BaseEditor.OnScanForFoldRanges;
-    Editor.UseCodeFolding := actCodeFolding.Checked;
+    Editor.UseCodeFolding := actCodeFolding.Checked;}
   end;
-  Editor.ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
+  //Editor.ActiveLineColor := StringToColor(AppSettings.ReadString(asSQLColActiveLine));
   Editor.Options := BaseEditor.Options;
   if Editor = SynMemoSQLLog then
     Editor.Options := Editor.Options + [eoRightMouseMovesCursor];
   Editor.TabWidth := AppSettings.ReadInt(asTabWidth);
-  Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
+  //Editor.MaxScrollWidth := BaseEditor.MaxScrollWidth;
   Editor.WantTabs := BaseEditor.WantTabs;
-  Editor.HintMode := BaseEditor.HintMode;
+  //Editor.HintMode := BaseEditor.HintMode;
   Editor.OnKeyPress := BaseEditor.OnKeyPress;
   Editor.OnMouseWheel := BaseEditor.OnMouseWheel;
-  Editor.OnTokenHint := BaseEditor.OnTokenHint;
+  //Editor.OnTokenHint := BaseEditor.OnTokenHint;
   if Editor <> SynMemoSQLLog then begin
-    Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
+    //Editor.OnPaintTransient := BaseEditor.OnPaintTransient;
   end;
   // Don't reapply shortcuts to base editor again, see issue 1600
   if Editor <> BaseEditor then begin
     Editor.Keystrokes := BaseEditor.KeyStrokes;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actReformatSQLExecute(Sender: TObject);
+procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
   m: TCustomSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
@@ -12865,7 +13036,7 @@ begin
   CursorPosEnd := m.SelEnd;
   if not m.SelAvail then
     m.SelectAll;
-  if m.SelLength = 0 then
+  {if m.SelLength = 0 then
     ErrorDialog(_('Cannot reformat'), _('The current editor is empty.'))
   else begin
     frmReformatter := TfrmReformatter.Create(Self);
@@ -12888,8 +13059,8 @@ begin
       Screen.Cursor := crDefault;
     end;
     frmReformatter.Free;
-  end;
-end;}
+  end;}
+end;
 
 
 {procedure TMainForm.PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
@@ -13100,11 +13271,11 @@ begin
 end;}
 
 
-{procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
+procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
 begin
   FDataGridSortItems.Clear;
   InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
-end;}
+end;
 
 
 {procedure TMainForm.WMCopyData(var Msg: TWMCopyData);
@@ -13154,11 +13325,11 @@ begin
 end;}
 
 
-{procedure TMainForm.actBlobAsTextExecute(Sender: TObject);
+procedure TMainForm.actBlobAsTextExecute(Sender: TObject);
 begin
   // Activate displaying BLOBs as text data, ignoring possible weird effects in grid updates/inserts
   DataGrid.InvalidateChildren(nil, True);
-end;}
+end;
 
 
 {procedure TMainForm.AnyGridScroll(Sender: TBaseVirtualTree; DeltaX, DeltaY: Integer);
@@ -13244,7 +13415,7 @@ begin
 end;}
 
 
-{procedure TMainForm.actCancelOperationExecute(Sender: TObject);
+procedure TMainForm.actCancelOperationExecute(Sender: TObject);
 var
   Killer: TDBConnection;
   KillCommand: String;
@@ -13275,10 +13446,10 @@ begin
       Killer.Free;
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.OperationRunning(Runs: Boolean);
+procedure TMainForm.OperationRunning(Runs: Boolean);
 begin
   if actCancelOperation.Enabled <> Runs then begin
     actCancelOperation.ImageIndex := 159;
@@ -13296,7 +13467,7 @@ begin
       FOperationTicker := GetTickCount;
     end;
   end;
-end;}
+end;
 
 
 {function TMainForm.GetEncodingByName(Name: String): TEncoding;
@@ -14174,7 +14345,7 @@ begin
 end;}
 
 
-{procedure TMainForm.actToggleCommentExecute(Sender: TObject);
+procedure TMainForm.actToggleCommentExecute(Sender: TObject);
 var
   Editor: TSynMemo;
   rx: TRegExpr;
@@ -14184,7 +14355,7 @@ var
 begin
   // Un/comment selected SQL
   Editor := ActiveSynMemo(False);
-  Editor.UndoList.AddGroupBreak;
+  //Editor.UndoList.AddGroupBreak;
   rx := TRegExpr.Create;
   rx.Expression := '^(\s*)(\-\- |#)?(.*)$';
   if not Editor.SelAvail then begin
@@ -14212,48 +14383,48 @@ begin
     if Assigned(Editor.OnStatusChange) then
       Editor.OnStatusChange(Editor, [scCaretX]);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.EnableProgress(MaxValue: Integer);
+procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
-  SetProgressState(pbsNormal);
-  ProgressBarStatus.Visible := True and (not IsWine);
+  //SetProgressState(pbsNormal);
+  //ProgressBarStatus.Visible := True and (not IsWine);
   SetProgressPosition(0);
-  ProgressBarStatus.Max := MaxValue;
-end;}
+  //ProgressBarStatus.Max := MaxValue;
+end;
 
 
-{procedure TMainForm.DisableProgress;
+procedure TMainForm.DisableProgress;
 begin
   // Hide global progress bar
   SetProgressPosition(0);
-  ProgressBarStatus.Hide;
-  if Assigned(TaskBarList3) then
-    TaskBarList3.SetProgressState(Handle, 0);
-end;}
+  //ProgressBarStatus.Hide;
+  //if Assigned(TaskBarList3) then
+  //  TaskBarList3.SetProgressState(Handle, 0);
+end;
 
 
-{procedure TMainForm.SetProgressPosition(Value: Integer);
+procedure TMainForm.SetProgressPosition(Value: Integer);
 begin
   // Advance progress bar and task progress position
   try
-    ProgressBarStatus.Position := Value;
+    //ProgressBarStatus.Position := Value;
   except
     // Silence "Floating point division by zero." - see https://www.heidisql.com/forum.php?t=26218
     on E:EZeroDivide do;
   end;
-  ProgressBarStatus.Repaint;
-  if Assigned(TaskBarList3) then
-    TaskBarList3.SetProgressValue(Handle, Value, ProgressBarStatus.Max);
-end;}
+  //ProgressBarStatus.Repaint;
+  //if Assigned(TaskBarList3) then
+  //  TaskBarList3.SetProgressValue(Handle, Value, ProgressBarStatus.Max);
+end;
 
 
-{procedure TMainForm.ProgressStep;
+procedure TMainForm.ProgressStep;
 begin
-  SetProgressPosition(ProgressBarStatus.Position+1);
-end;}
+  //SetProgressPosition(ProgressBarStatus.Position+1);
+end;
 
 
 {procedure TMainForm.SetProgressState(State: TProgressbarState);
@@ -14328,7 +14499,7 @@ begin
 end;
 
 
-{procedure TMainForm.actPreviousResultExecute(Sender: TObject);
+procedure TMainForm.actPreviousResultExecute(Sender: TObject);
 var
   Tab: TQueryTab;
 begin
@@ -14336,14 +14507,14 @@ begin
   Tab := QueryTabs.ActiveTab;
   if Tab <> nil then begin
     if Tab.tabsetQuery.TabIndex > 0 then
-      Tab.tabsetQuery.SelectNext(False)
+      //Tab.tabsetQuery.SelectNext(False)
     else
-      MessageBeep(MB_ICONEXCLAMATION);
+      Beep;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.actNextResultExecute(Sender: TObject);
+procedure TMainForm.actNextResultExecute(Sender: TObject);
 var
   Tab: TQueryTab;
 begin
@@ -14351,11 +14522,11 @@ begin
   Tab := QueryTabs.ActiveTab;
   if Tab <> nil then begin
     if Tab.tabsetQuery.TabIndex < Tab.tabsetQuery.Tabs.Count-1 then
-      Tab.tabsetQuery.SelectNext(True)
+      //Tab.tabsetQuery.SelectNext(True)
     else
-      MessageBeep(MB_ICONEXCLAMATION);
+      Beep;
   end;
-end;}
+end;
 
 
 {function TMainForm.SelectedTableFocusedColumn: TTableColumn;
@@ -14380,17 +14551,17 @@ end;}
 { TQueryTab }
 
 
-{constructor TQueryTab.Create;
+constructor TQueryTab.Create;
 begin
   // Creation of a new main query tab
-  DirectoryWatch := TDirectoryWatch.Create;
+  {DirectoryWatch := TDirectoryWatch.Create;
   DirectoryWatch.WatchSubTree := False;
   DirectoryWatch.OnNotify := DirectoryWatchNotify;
   DirectoryWatch.OnError := DirectoryWatchErrorHandler;
   // Do not trigger useless file deletion messages, see issue #2948
   DirectoryWatch.WatchActions := DirectoryWatch.WatchActions - [waRemoved];
   // Do not trigger file access. See https://www.heidisql.com/forum.php?t=15500
-  DirectoryWatch.WatchOptions := DirectoryWatch.WatchOptions - [woLastAccess];
+  DirectoryWatch.WatchOptions := DirectoryWatch.WatchOptions - [woLastAccess];}
   // Timer which postpones calling waModified event code until buffers have been saved
   MemofileModifiedTimer := TTimer.Create(Memo);
   MemofileModifiedTimer.Interval := 1000;
@@ -14409,20 +14580,20 @@ begin
   TimerStatusUpdate.Interval := 100;
   TimerStatusUpdate.OnTimer := TimerStatusUpdateOnTimer;
   FFileEncoding := 'UTF-8';
-end;}
+end;
 
 
-{destructor TQueryTab.Destroy;
+destructor TQueryTab.Destroy;
 begin
   ResultTabs.Clear;
-  DirectoryWatch.Free;
+  //DirectoryWatch.Free;
   ListBindParams.Free;
   TimerLastChange.Free;
   TimerStatusUpdate.Free;
-end;}
+end;
 
 
-{function TQueryTab.GetActiveResultTab: TResultTab;
+function TQueryTab.GetActiveResultTab: TResultTab;
 var
   idx: Integer;
 begin
@@ -14430,7 +14601,7 @@ begin
   idx := tabsetQuery.TabIndex;
   if (idx > -1) and (idx < ResultTabs.Count) then
     Result := ResultTabs[idx];
-end;}
+end;
 
 
 {procedure TQueryTab.DirectoryWatchNotify(const Sender: TObject; const Action: TWatchAction; const FileName: string);
@@ -14474,33 +14645,33 @@ begin
 end;}
 
 
-{procedure TQueryTab.DirectoryWatchErrorHandler(const Sender: TObject; const ErrorCode: Integer; const ErrorMessage: string);
+procedure TQueryTab.DirectoryWatchErrorHandler(const Sender: TObject; const ErrorCode: Integer; const ErrorMessage: string);
 begin
   MainForm.LogSQL(Format('File watcher (%d): %s', [ErrorCode, ErrorMessage]), lcError);
-end;}
+end;
 
 
-{procedure TQueryTab.MemofileModifiedTimerNotify(Sender: TObject);
+procedure TQueryTab.MemofileModifiedTimerNotify(Sender: TObject);
 var
   OldTopLine: Integer;
-  OldCursor: TBufferCoord;
+  //OldCursor: TBufferCoord;
 begin
   (Sender as TTimer).Enabled := False;
   if FDirectoryWatchNotficationRunning then
     Exit;
   FDirectoryWatchNotficationRunning := True;
   if MessageDialog(_('Reload file?'), f_('File was modified from outside: %s', [MemoFilename]), mtConfirmation, [mbYes, mbCancel]) = mrYes then begin
-    OldCursor := Memo.CaretXY;
+    //OldCursor := Memo.CaretXY;
     OldTopLine := Memo.TopLine;
     LoadContents(MemoFilename, True, nil);
-    Memo.CaretXY := OldCursor;
+    //Memo.CaretXY := OldCursor;
     Memo.TopLine := OldTopLine;
   end;
   FDirectoryWatchNotficationRunning := False;
-end;}
+end;
 
 
-{function TQueryTab.LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
+function TQueryTab.LoadContents(Filepath: String; ReplaceContent: Boolean; Encoding: TEncoding): Boolean;
 var
   Content: String;
   Filesize: Int64;
@@ -14525,9 +14696,9 @@ begin
   end;
 
   if LoadSuccess then begin
-    if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
-      MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
-    Memo.UndoList.AddGroupBreak;
+    //if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
+    //  MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
+    //Memo.UndoList.AddGroupBreak;
     LineBreaks := ScanLineBreaks(Content);
     if ReplaceContent then begin
       Memo.Clear;
@@ -14548,16 +14719,16 @@ begin
     Memo.SelStart := Memo.SelEnd;
     Memo.Modified := False;
     MemoFilename := Filepath;
-    FileEncoding := MainForm.GetEncodingName(Encoding);
+    //FileEncoding := MainForm.GetEncodingName(Encoding);
     //showmessage(FileEncoding);
     Result := True;
   end;
 
   Screen.Cursor := crDefault;
-end;}
+end;
 
 
-{procedure TQueryTab.SaveContents(Filename: String; OnlySelection: Boolean);
+procedure TQueryTab.SaveContents(Filename: String; OnlySelection: Boolean);
 var
   Text, LB, FileDir: String;
 begin
@@ -14574,7 +14745,7 @@ begin
     FileDir := ExtractFilePath(Filename);
     if not DirectoryExists(FileDir) then
       ForceDirectories(FileDir);
-    SaveUnicodeFile(Filename, Text, MainForm.GetEncodingByName(FFileEncoding));
+    //SaveUnicodeFile(Filename, Text, MainForm.GetEncodingByName(FFileEncoding));
     MemoFilename := Filename;
     Memo.Modified := False;
     LastSaveTime := GetTickCount;
@@ -14586,18 +14757,18 @@ begin
     end;
   end;
   MainForm.ShowStatusMsg;
-end;}
+end;
 
 
-{class function TQueryTab.GenerateUid: String;
+class function TQueryTab.GenerateUid: String;
 begin
   // Generate fresh unique id for a new tab
   // Keep it readable by using the date with milliseconds
   DateTimeToString(Result, 'yyyy-mm-dd_hh-nn-ss-zzz', Now);
-end;}
+end;
 
 
-{function TQueryTab.MemoBackupFilename: String;
+function TQueryTab.MemoBackupFilename: String;
 begin
   // Return filename for auto-backup feature
   if (MemoFilename <> '') and (not Memo.Modified) then begin
@@ -14607,10 +14778,10 @@ begin
       + ValidFilename(Format(BACKUP_FILEPATTERN, [Uid]))
       ;
   end;
-end;}
+end;
 
 
-{procedure TQueryTab.BackupUnsavedContent;
+procedure TQueryTab.BackupUnsavedContent;
 var
   LastFileBackup: TDateTime;
 begin
@@ -14644,10 +14815,10 @@ begin
     end;
   end;
   MainForm.ShowStatusMsg('');
-end;}
+end;
 
 
-{function TQueryTab.GetBindParamsActivated: Boolean;
+function TQueryTab.GetBindParamsActivated: Boolean;
 var
   Node: PVirtualNode;
 begin
@@ -14656,10 +14827,10 @@ begin
   Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
   if Assigned(Node) then
     Result := treeHelpers.CheckState[Node] in CheckedStates;
-end;}
+end;
 
 
-{procedure TQueryTab.SetBindParamsActivated(Value: Boolean);
+procedure TQueryTab.SetBindParamsActivated(Value: Boolean);
 var
   Node: PVirtualNode;
 begin
@@ -14669,40 +14840,40 @@ begin
     treeHelpers.CheckState[Node] := csCheckedNormal
   else
     treeHelpers.CheckState[Node] := csUncheckedNormal;
-end;}
+end;
 
 
-{procedure TQueryTab.SetErrorLine(Value: Integer);
+procedure TQueryTab.SetErrorLine(Value: Integer);
 begin
   if Value <> FErrorLine then begin
     FErrorLine := Value;
     Memo.Repaint;
   end;
-end;}
+end;
 
 
-{procedure TQueryTab.SetMemoFilename(Value: String);
+procedure TQueryTab.SetMemoFilename(Value: String);
 begin
   FMemoFilename := Value;
   MainForm.SetTabCaption(TabSheet.PageIndex, ExtractFilename(FMemoFilename));
   MainForm.ValidateQueryControls(Self);
-  if (FMemoFilename <> '') and FileExists(FMemoFilename) then begin
-    DirectoryWatch.Directory := ExtractFilePath(FMemoFilename);
-    DirectoryWatch.Start;
-  end else
-    DirectoryWatch.Stop;
-end;}
+  //if (FMemoFilename <> '') and FileExists(FMemoFilename) then begin
+  //  DirectoryWatch.Directory := ExtractFilePath(FMemoFilename);
+  //  DirectoryWatch.Start;
+  //end else
+  //  DirectoryWatch.Stop;
+end;
 
 
-{procedure TQueryTab.SetQueryRunning(Value: Boolean);
+procedure TQueryTab.SetQueryRunning(Value: Boolean);
 begin
   // Marker for query tab that it is currently executing and waiting for a query
   FQueryRunning := Value;
   TimerStatusUpdate.Enabled := Value;
-end;}
+end;
 
 
-{procedure TQueryTab.TimerLastChangeOnTimer(Sender: TObject);
+procedure TQueryTab.TimerLastChangeOnTimer(Sender: TObject);
 var
   rx: TRegExpr;
   BindParam: TBindParam;
@@ -14766,17 +14937,17 @@ begin
   ListBindParams.CleanToKeep;
 
   // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
-  MainForm.RefreshHelperNode(TQueryTab.HelperNodeBinding);
+  //MainForm.RefreshHelperNode(TQueryTab.HelperNodeBinding);
   if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
     Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
     treeHelpers.Expanded[Node] := True;
   end;
 
   MainForm.LogSQL(IntToStr(ListBindParams.Count) + ' bind parameters found.', lcDebug);
-end;}
+end;
 
 
-{procedure TQueryTab.TimerStatusUpdateOnTimer(Sender: TObject);
+procedure TQueryTab.TimerStatusUpdateOnTimer(Sender: TObject);
 var
   Msg, ElapsedMsg: String;
   Elapsed: Int64;
@@ -14794,12 +14965,12 @@ begin
     // See https://www.heidisql.com/forum.php?t=25418#p25484
     // See issue https://github.com/HeidiSQL/HeidiSQL/issues/490
   end;
-end;}
+end;
 
 
 { TQueryTabList }
 
-{function TQueryTabList.ActiveTab: TQueryTab;
+function TQueryTabList.ActiveTab: TQueryTab;
 var
   idx: Integer;
   FixedTab: TQueryTab;
@@ -14812,16 +14983,16 @@ begin
   idx := FixedTab.TabSheet.PageControl.ActivePageIndex - FixedTab.TabSheet.PageIndex;
   if (idx >= 0) and (idx < Self.Count) then
     Result := Self[idx];
-end;}
+end;
 
 
-{function TQueryTabList.HasActiveTab: Boolean;
+function TQueryTabList.HasActiveTab: Boolean;
 begin
   Result := ActiveTab <> nil;
-end;}
+end;
 
 
-{function TQueryTabList.ActiveMemo: TSynMemo;
+function TQueryTabList.ActiveMemo: TSynMemo;
 var
   Tab: TQueryTab;
 begin
@@ -14830,10 +15001,10 @@ begin
   Tab := ActiveTab;
   if Assigned(Tab) then
     Result := Tab.Memo;
-end;}
+end;
 
 
-{function TQueryTabList.ActiveHelpersTree: TVirtualStringTree;
+function TQueryTabList.ActiveHelpersTree: TVirtualStringTree;
 var
   Tab: TQueryTab;
 begin
@@ -14842,10 +15013,10 @@ begin
   Tab := ActiveTab;
   if Assigned(Tab) then
     Result := Tab.treeHelpers;
-end;}
+end;
 
 
-{function TQueryTabList.TabByNumber(Number: Integer): TQueryTab;
+function TQueryTabList.TabByNumber(Number: Integer): TQueryTab;
 var
   Tab: TQueryTab;
 begin
@@ -14857,10 +15028,10 @@ begin
       break;
     end;
   end;
-end;}
+end;
 
 
-{function TQueryTabList.TabByControl(Control: TWinControl): TQueryTab;
+function TQueryTabList.TabByControl(Control: TWinControl): TQueryTab;
 var
   Tab: TQueryTab;
 begin
@@ -14877,7 +15048,7 @@ begin
       Break;
     end;
   end;
-end;}
+end;
 
 
 
@@ -14885,7 +15056,7 @@ end;}
 
 { TResultTab }
 
-{constructor TResultTab.Create(AOwner: TQueryTab);
+constructor TResultTab.Create(AOwner: TQueryTab);
 var
   QueryTab: TQueryTab;
   OrgGrid: TVirtualStringTree;
@@ -14939,9 +15110,9 @@ begin
   Grid.OnStartOperation := OrgGrid.OnStartOperation;
   FixVT(Grid, AppSettings.ReadInt(asGridRowLineCount));
   FTabIndex := QueryTab.ResultTabs.Count; // Will be 0 for the first one, even if we're already creating the first one here!
-end;}
+end;
 
-{destructor TResultTab.Destroy;
+destructor TResultTab.Destroy;
 begin
   Results.Free;
   Grid.EndEditNode;
@@ -14949,7 +15120,7 @@ begin
   if not (csDestroying in Grid.ComponentState) then
     Grid.Free;
   inherited;
-end;}
+end;
 
 
 { TQueryHistory }
