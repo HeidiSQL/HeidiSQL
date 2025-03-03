@@ -18,6 +18,7 @@ type
   TExtFileOpenDialog = class(TOpenDialog);
   TExtFileSaveDialog = class(TSaveDialog);
   TImageIndex = Integer;
+  PInt = ^Integer;
 
   TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)
@@ -378,8 +379,8 @@ type
   function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   function SelectNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
   function SelectNode(VT: TLazVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
-  //procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
-  //procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
+  procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
+  procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
   function GetNextNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function GetPreviousNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   //function DateBackFriendlyCaption(d: TDateTime): String;
@@ -1552,7 +1553,7 @@ begin
 end;
 
 
-{procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
+procedure GetVTSelection(VT: TVirtualStringTree; var SelectedCaptions: TStringList; var FocusedCaption: String);
 var
   Node: PVirtualNode;
   InvalidationTag: Integer;
@@ -1570,10 +1571,10 @@ begin
     Node := GetNextNode(VT, Node, true);
   end;
   vt.Tag := InvalidationTag;
-end;}
+end;
 
 
-{procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
+procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
 var
   Node: PVirtualNode;
   idx: Integer;
@@ -1596,7 +1597,7 @@ begin
   if DoFocusChange and Assigned(VT.OnFocusChanged) then begin
     VT.OnFocusChanged(VT, VT.FocusedNode, VT.FocusedColumn);
   end;
-end;}
+end;
 
 
 function GetNextNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;

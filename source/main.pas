@@ -895,11 +895,11 @@ type
     procedure menuExploreClick(Sender: TObject);
     procedure menuInsertAtCursorClick(Sender: TObject);
     procedure menuLoadSnippetClick(Sender: TObject);
-    //procedure AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
-    //procedure AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
-    //    PVirtualNode; Column: TColumnIndex; var Result: Integer);
-    //procedure AnyGridHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
-    //    DropPosition: TPoint);
+    procedure AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+    procedure AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
+        PVirtualNode; Column: TColumnIndex; var Result: Integer);
+    procedure AnyGridHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
+        DropPosition: TPoint);
     //procedure AnyGridIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const SearchText: String;
     //  var Result: Integer);
     procedure SetMainTab(Page: TTabSheet);
@@ -923,15 +923,15 @@ type
     procedure editFilterSearchExit(Sender: TObject);
     procedure menuLogToFileClick(Sender: TObject);
     procedure menuOpenLogFolderClick(Sender: TObject);
-    //procedure AnyGridGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //    Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
-    //    HintText: String);
+    procedure AnyGridGetHint(Sender: TBaseVirtualTree; Node: PVirtualNode;
+        Column: TColumnIndex; var LineBreakStyle: TVTTooltipLineBreakStyle; var
+        HintText: String);
     //procedure ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
     //  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
     //  var ContentRect: TRect);
     //procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure editFilterVTChange(Sender: TObject);
-    //procedure ListVariablesDblClick(Sender: TObject);
+    procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
     procedure menuTreeCollapseAllClick(Sender: TObject);
     procedure menuTreeExpandAllClick(Sender: TObject);
@@ -946,14 +946,14 @@ type
     //procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
     //  Shift: TShiftState; X, Y: Integer);
     procedure MainMenuFileClick(Sender: TObject);
-    //procedure HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
-    //procedure HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
-    //procedure HostListBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-    //procedure HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-    //  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-    //  var ContentRect: TRect);
+    procedure HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure HostListBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
     //procedure ListTablesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     //procedure ListTablesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
     //  Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
@@ -962,7 +962,7 @@ type
     //  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     //procedure ListTablesInitNode(Sender: TBaseVirtualTree; ParentNode,
     //  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-    //procedure AnyGridAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure AnyGridAfterPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
     procedure actFollowForeignKeyExecute(Sender: TObject);
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
@@ -1010,24 +1010,24 @@ type
     procedure lblExplainProcessClick(Sender: TObject);
     procedure actDataShowNextExecute(Sender: TObject);
     procedure actDataShowAllExecute(Sender: TObject);
-    //procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
-    //  Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
+    procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
+      Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
     //procedure AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //  Column: TColumnIndex);
     //procedure ListTablesKeyPress(Sender: TObject; var Key: Char);
     procedure DBtreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    //procedure ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
-    //procedure ListDatabasesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
-    //procedure ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
-    //  var InitialStates: TVirtualNodeInitStates);
-    //procedure ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+    procedure ListDatabasesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
+    procedure ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     procedure menuFetchDBitemsClick(Sender: TObject);
-    //procedure ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
-    //procedure ListDatabasesDblClick(Sender: TObject);
+    procedure ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure ListDatabasesDblClick(Sender: TObject);
     procedure actRunRoutinesExecute(Sender: TObject);
-    //procedure AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+    procedure AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
     //procedure tabsetQueryClick(Sender: TObject);
     //procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
     //procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -1077,9 +1077,9 @@ type
     procedure actLaunchCommandlineExecute(Sender: TObject);
     procedure menuClearQueryHistoryClick(Sender: TObject);
     procedure actGridEditFunctionExecute(Sender: TObject);
-    //procedure ListVariablesPaintText(Sender: TBaseVirtualTree;
-    //  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-    //  TextType: TVSTTextType);
+    procedure ListVariablesPaintText(Sender: TBaseVirtualTree;
+      const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType);
     procedure DBtreeExpanding(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var Allowed: Boolean);
     procedure actGroupObjectsExecute(Sender: TObject);
@@ -1326,8 +1326,8 @@ type
     property Connections: TDBConnectionList read FConnections;
     property Delimiter: String read FDelimiter write SetDelimiter;
     property FocusedTables: TDBObjectList read FFocusedTables;
-    //function GetAlternatingRowBackground(Node: PVirtualNode): TColor;
-    //procedure PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
+    function GetAlternatingRowBackground(Node: PVirtualNode): TColor;
+    procedure PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure CallSQLHelpWithKeyword( keyword: String );
     //procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
@@ -1339,7 +1339,7 @@ type
     //procedure(ASender: TObject; constref AItem: T; AAction: TCollectionNotification)
     procedure ConnectionsNotify(Sender: TObject; constref Item: TDBConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
-    function GridResult(Grid: TVirtualStringTree): TDBQuery;
+    function GridResult(Grid: TBaseVirtualTree): TDBQuery;
     property ActiveConnection: TDBConnection read GetActiveConnection;
     property ActiveDatabase: String read GetActiveDatabase;
     property ActiveDbObj: TDBObject read FActiveDbObj write SetActiveDBObj;
@@ -6238,7 +6238,7 @@ begin
 end;
 
 
-{procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+procedure TMainForm.AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var
   Idx: PInt64;
@@ -6257,13 +6257,13 @@ begin
     Idx := Sender.GetNodeData(Node);
     Idx^ := Node.Index;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
+procedure TMainForm.AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
 begin
   NodeDataSize := SizeOf(Int64);
-end;}
+end;
 
 
 {***
@@ -8744,7 +8744,7 @@ end;
   A column header of a VirtualStringTree was clicked:
   Toggle the sort direction
 }
-{procedure TMainForm.AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+procedure TMainForm.AnyGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
   ConfirmResult: Integer;
   MsgStr: String;
@@ -8782,13 +8782,13 @@ begin
   Sender.SortColumn := HitInfo.Column;
   TBaseVirtualTree(Sender.Treeview).SortTree( HitInfo.Column, Sender.SortDirection );
   Screen.Cursor := crDefault;
-end;}
+end;
 
 
 {**
   Sorting a column of a VirtualTree by comparing two cells
 }
-{procedure TMainForm.AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1,
+procedure TMainForm.AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1,
     Node2: PVirtualNode; Column: TColumnIndex; var Result: Integer);
 var
   VT: TVirtualStringTree;
@@ -8796,13 +8796,13 @@ begin
   VT := Sender as TVirtualStringTree;
   if Assigned(Node1) and Assigned(Node2) then
     Result := CompareAnyNode(VT.Text[Node1, Column], VT.Text[Node2, Column]);
-end;}
+end;
 
 
 {**
   VirtualTree was painted. Adjust background color of sorted column.
 }
-{procedure TMainForm.AnyGridAfterPaint(Sender: TBaseVirtualTree;
+procedure TMainForm.AnyGridAfterPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas);
 var
   i: Integer;
@@ -8816,7 +8816,7 @@ begin
       NewColor := ColorAdjustBrightness(NewColor, COLORSHIFT_SORTCOLUMNS);
     h.Columns[i].Color := NewColor;
   end;
-end;}
+end;
 
 
 {**
@@ -8876,7 +8876,7 @@ end;}
 {**
   Display tooltips in VirtualTrees. Imitates default behaviour of TListView.
 }
-{procedure TMainForm.AnyGridGetHint(Sender: TBaseVirtualTree; Node:
+procedure TMainForm.AnyGridGetHint(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var LineBreakStyle:
     TVTTooltipLineBreakStyle; var HintText: String);
 var
@@ -8922,7 +8922,7 @@ begin
     LineBreakStyle := hlbForceSingleLine
   else
     LineBreakStyle := hlbForceMultiLine;
-end;}
+end;
 
 
 procedure TMainForm.actLogHorizontalScrollbarExecute(Sender: TObject);
@@ -8962,7 +8962,7 @@ end;
   We imitate the behaviour of various applications (fx Outlook) and
   hide this dragged column
 }
-{procedure TMainForm.AnyGridHeaderDraggedOut(Sender: TVTHeader; Column:
+procedure TMainForm.AnyGridHeaderDraggedOut(Sender: TVTHeader; Column:
     TColumnIndex; DropPosition: TPoint);
 var
   Remaining: TColumnsArray;
@@ -8974,7 +8974,7 @@ begin
     Sender.Columns[Column].Options := Sender.Columns[Column].Options - [coVisible];
   // Dynamic arrays are free'd when their scope ends, so this should not be required:
   SetLength(Remaining, 0);
-end;}
+end;
 
 
 {procedure TMainForm.AnyGridIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -9011,7 +9011,7 @@ begin
 end;}
 
 
-{function TMainForm.GetAlternatingRowBackground(Node: PVirtualNode): TColor;
+function TMainForm.GetAlternatingRowBackground(Node: PVirtualNode): TColor;
 var
   clEven, clOdd: TColor;
   isEven: Boolean;
@@ -9025,10 +9025,10 @@ begin
     Result := clEven
   else if (not IsEven) and (clOdd <> clNone) then
     Result := clOdd;
-end;}
+end;
 
 
-{procedure TMainForm.PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
+procedure TMainForm.PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
 var
   BgColor: TColor;
 begin
@@ -9038,7 +9038,7 @@ begin
     TargetCanvas.Brush.Color := BgColor;
     TargetCanvas.FillRect(CellRect);
   end;
-end;}
+end;
 
 
 procedure TMainForm.PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
@@ -9279,13 +9279,13 @@ begin
 end;}
 
 
-{procedure TMainForm.ListVariablesDblClick(Sender: TObject);
+procedure TMainForm.ListVariablesDblClick(Sender: TObject);
 begin
   menuEditVariable.Click;
-end;}
+end;
 
 
-{procedure TMainForm.ListVariablesPaintText(Sender: TBaseVirtualTree;
+procedure TMainForm.ListVariablesPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
 var
@@ -9319,11 +9319,11 @@ begin
       dcat := dtcText;
     TargetCanvas.Font.Color := DatatypeCategories[dcat].Color;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+procedure TMainForm.HostListGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
   Results: TDBQuery;
   Idx: PInt64;
@@ -9364,10 +9364,10 @@ begin
       else;
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+procedure TMainForm.HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   Idx: PInt64;
@@ -9459,7 +9459,7 @@ begin
     // Values directly from a query result
     CellText := StrEllipsis(Results.Col(Column, True), SIZE_KB*50);
   end;
-end;}
+end;
 
 
 {**
@@ -11315,7 +11315,7 @@ begin
 end;}
 
 
-{procedure TMainForm.ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+procedure TMainForm.ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
   i: Integer;
@@ -11344,20 +11344,20 @@ begin
   tabDatabases.Caption := _('Databases') + ' ('+FormatNumber(vt.RootNodeCount)+')';
   vt.Tag := VTREE_LOADED;
   Screen.Cursor := crDefault;
-end;}
+end;
 
 
-{procedure TMainForm.ListDatabasesDblClick(Sender: TObject);
+procedure TMainForm.ListDatabasesDblClick(Sender: TObject);
 begin
   // Select database on doubleclick
   // TODO: Have DBObjects bound to ListDatabases, so we can sort nodes without breaking references
   if Assigned(ListDatabases.FocusedNode) then
     SetActiveDatabase(ListDatabases.Text[ListDatabases.FocusedNode, 0], ActiveConnection);
-end;}
+end;
 
 
-{procedure TMainForm.ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+procedure TMainForm.ListDatabasesGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 var
   db: String;
   Conn: TDBConnection;
@@ -11372,18 +11372,18 @@ begin
     ikOverlay: if db = Conn.Database then ImageIndex := ICONINDEX_HIGHLIGHTMARKER;
   end;
   Ghosted := not Conn.DbObjectsCached(db);
-end;}
+end;
 
 
-{procedure TMainForm.ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree;
+procedure TMainForm.ListDatabasesGetNodeDataSize(Sender: TBaseVirtualTree;
   var NodeDataSize: Integer);
 begin
   // Tell VirtualTree we're using a simple integer as data
   NodeDataSize := SizeOf(Int64);
-end;}
+end;
 
 
-{procedure TMainForm.ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+procedure TMainForm.ListDatabasesInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
   var InitialStates: TVirtualNodeInitStates);
 var
   Idx: PInt;
@@ -11391,10 +11391,10 @@ begin
   // Integers mapped to the node's index so nodes can be sorted without losing their database name
   Idx := Sender.GetNodeData(Node);
   Idx^ := Node.Index;
-end;}
+end;
 
 
-{procedure TMainForm.ListDatabasesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+procedure TMainForm.ListDatabasesGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   Idx: PInt;
@@ -11448,10 +11448,10 @@ begin
     10: if Assigned(Objects) then CellText := Objects.Collation;
   end;
 
-end;}
+end;
 
 
-{procedure TMainForm.HostListBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+procedure TMainForm.HostListBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
   OldOffset: TPoint;
@@ -11646,10 +11646,10 @@ begin
   Tab.Caption := CleanTabCaption.Trim + ' (' + IntToStr(vt.RootNodeCount) + ')';
   // Restore selection
   SetVTSelection(vt, SelectedCaptions, FocusedCaption);
-end;}
+end;
 
 
-{procedure TMainForm.HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+procedure TMainForm.HostListBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
   Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
   var ContentRect: TRect);
 var
@@ -11679,7 +11679,7 @@ begin
     SessionVal := vt.Text[Node, 1];
     GlobalVal := vt.Text[Node, 2];
     if SessionVal <> GlobalVal then begin
-      TargetCanvas.Brush.Color := clWebBlanchedAlmond;
+      //TargetCanvas.Brush.Color := clWebBlanchedAlmond;
       TargetCanvas.Pen.Color := TargetCanvas.Brush.Color;
       TargetCanvas.Rectangle(CellRect);
     end;
@@ -11695,7 +11695,7 @@ begin
     // Only paint bar in percentage column
     PaintColorBar(MakeFloat(vt.Text[Node, Column]), 100, TargetCanvas, CellRect);
   end;
-end;}
+end;
 
 
 procedure TMainForm.actFollowForeignKeyExecute(Sender: TObject);
@@ -13000,7 +13000,7 @@ begin
 end;
 
 
-function TMainForm.GridResult(Grid: TVirtualStringTree): TDBQuery;
+function TMainForm.GridResult(Grid: TBaseVirtualTree): TDBQuery;
 var
   QueryTab: TQueryTab;
   CurrentTab: TTabSheet;

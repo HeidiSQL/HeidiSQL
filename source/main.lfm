@@ -849,6 +849,7 @@ object MainForm: TMainForm
         Top = 32
         Width = 212
         Align = alClient
+        Constraints.MinWidth = 40
         DefaultText = 'Node'
         Header.AutoSizeIndex = 0
         Header.Columns = <        
@@ -862,10 +863,15 @@ object MainForm: TMainForm
             Position = 1
             Text = 'Size'
           end>
-        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag]
+        HintMode = hmTooltip
         Images = ImageListIcons8
+        IncrementalSearch = isInitializedOnly
         PopupMenu = popupDB
+        ShowHint = True
         TabOrder = 3
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme]
+        TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
         OnAfterCellPaint = DBtreeAfterCellPaint
         OnBeforeCellPaint = DBtreeBeforeCellPaint
         OnChange = DBtreeChange
@@ -878,6 +884,7 @@ object MainForm: TMainForm
         OnGetText = DBtreeGetText
         OnPaintText = DBtreePaintText
         OnGetImageIndex = DBtreeGetImageIndex
+        OnGetHint = AnyGridGetHint
         OnGetNodeDataSize = DBtreeGetNodeDataSize
         OnInitChildren = DBtreeInitChildren
         OnInitNode = DBtreeInitNode
@@ -963,11 +970,11 @@ object MainForm: TMainForm
             Height = 283
             Top = 0
             Width = 772
-            ActivePage = tabDatabases
+            ActivePage = tabVariables
             Align = alClient
             Images = ImageListIcons8
             PopupMenu = popupHost
-            TabIndex = 0
+            TabIndex = 1
             TabOrder = 0
             OnChange = PageControlHostChange
             object tabDatabases: TTabSheet
@@ -1040,9 +1047,27 @@ object MainForm: TMainForm
                     Width = 120
                   end>
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+                Header.PopupMenu = popupListHeader
+                Header.SortColumn = 0
+                Images = VirtualImageListMain
+                PopupMenu = popupHost
+                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
                 Images = ImageListIcons8
                 PopupMenu = popupHost
                 TabOrder = 0
+                OnAfterPaint = AnyGridAfterPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
+                OnBeforePaint = ListDatabasesBeforePaint
+                OnCompareNodes = AnyGridCompareNodes
+                OnDblClick = ListDatabasesDblClick
+                OnGetText = ListDatabasesGetText
+                OnGetImageIndex = ListDatabasesGetImageIndex
+                OnGetHint = AnyGridGetHint
+                OnGetNodeDataSize = ListDatabasesGetNodeDataSize
+                OnHeaderClick = AnyGridHeaderClick
+                OnHeaderDraggedOut = AnyGridHeaderDraggedOut
+                OnInitNode = ListDatabasesInitNode
               end
             end
             object tabVariables: TTabSheet
@@ -1058,10 +1083,46 @@ object MainForm: TMainForm
                 Align = alClient
                 DefaultText = 'Node'
                 Header.AutoSizeIndex = 0
-                Header.Columns = <>
-                Header.MainColumn = -1
+                Header.Columns = <                
+                  item
+                    Position = 0
+                    Text = 'Variable'
+                    Width = 248
+                  end                
+                  item
+                    Position = 1
+                    Text = 'Session'
+                    Width = 200
+                  end                
+                  item
+                    Position = 2
+                    Text = 'Global'
+                    Width = 312
+                  end>
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+                Header.SortColumn = 0
+                Images = ImageListIcons8
+                ParentShowHint = False
                 PopupMenu = popupHost
+                ShowHint = True
                 TabOrder = 0
+                TreeOptions.MiscOptions = [toGridExtensions, toToggleOnDblClick]
+                TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
+                OnAfterPaint = AnyGridAfterPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
+                OnBeforePaint = HostListBeforePaint
+                OnCompareNodes = AnyGridCompareNodes
+                OnDblClick = ListVariablesDblClick
+                OnGetText = HostListGetText
+                OnPaintText = ListVariablesPaintText
+                OnGetImageIndex = HostListGetImageIndex
+                OnGetHint = AnyGridGetHint
+                OnGetNodeDataSize = AnyGridGetNodeDataSize
+                OnHeaderClick = AnyGridHeaderClick
+                OnHeaderDraggedOut = AnyGridHeaderDraggedOut
+                OnInitNode = AnyGridInitNode
               end
             end
             object tabStatus: TTabSheet
@@ -19488,7 +19549,7 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = -1
+    Position = 0
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False
