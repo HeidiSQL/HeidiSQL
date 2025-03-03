@@ -962,11 +962,11 @@ object MainForm: TMainForm
         Height = 316
         Top = 0
         Width = 780
-        ActivePage = tabHost
+        ActivePage = tabDatabase
         Align = alClient
         Images = ImageListIcons8
         PopupMenu = popupMainTabs
-        TabIndex = 0
+        TabIndex = 1
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
@@ -980,11 +980,11 @@ object MainForm: TMainForm
             Height = 283
             Top = 0
             Width = 772
-            ActivePage = tabVariables
+            ActivePage = tabCommandStats
             Align = alClient
             Images = ImageListIcons8
             PopupMenu = popupHost
-            TabIndex = 1
+            TabIndex = 4
             TabOrder = 0
             OnChange = PageControlHostChange
             object tabDatabases: TTabSheet
@@ -1059,6 +1059,7 @@ object MainForm: TMainForm
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
                 Header.SortColumn = 0
                 Images = ImageListIcons8
+                IncrementalSearch = isInitializedOnly
                 PopupMenu = popupHost
                 TabOrder = 0
                 TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
@@ -1110,6 +1111,7 @@ object MainForm: TMainForm
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
                 Header.SortColumn = 0
                 Images = ImageListIcons8
+                IncrementalSearch = isInitializedOnly
                 ParentShowHint = False
                 PopupMenu = popupHost
                 ShowHint = True
@@ -1863,11 +1865,147 @@ object MainForm: TMainForm
             Width = 772
             Align = alClient
             DefaultText = 'Node'
-            Header.AutoSizeIndex = 0
-            Header.Columns = <>
-            Header.MainColumn = -1
+            EditDelay = 500
+            Header.AutoSizeIndex = -1
+            Header.Columns = <            
+              item
+                Position = 0
+                Text = 'Name'
+                Width = 120
+              end            
+              item
+                Position = 1
+                Text = 'Rows'
+                Width = 70
+              end            
+              item
+                Position = 2
+                Text = 'Size'
+                Width = 70
+              end            
+              item
+                Position = 3
+                Text = 'Created'
+                Width = 120
+              end            
+              item
+                Position = 4
+                Text = 'Updated'
+                Width = 120
+              end            
+              item
+                Position = 5
+                Text = 'Engine'
+                Width = 70
+              end            
+              item
+                Position = 6
+                Text = 'Comment'
+                Width = 100
+              end            
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 7
+                Text = 'Version'
+              end            
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 8
+                Text = 'Row format'
+                Width = 70
+              end            
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 9
+                Text = 'Avg row length'
+                Width = 70
+              end            
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 10
+                Text = 'Max data length'
+                Width = 70
+              end            
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 11
+                Text = 'Index length'
+                Width = 70
+              end            
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 12
+                Text = 'Data free'
+                Width = 70
+              end            
+              item
+                Alignment = taRightJustify
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 13
+                Text = 'Auto increment'
+                Width = 90
+              end            
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 14
+                Text = 'Check time'
+                Width = 120
+              end            
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 15
+                Text = 'Collation'
+                Width = 70
+              end            
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 16
+                Text = 'Checksum'
+                Width = 70
+              end            
+              item
+                Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark]
+                Position = 17
+                Text = 'Create options'
+                Width = 70
+              end            
+              item
+                Position = 18
+                Text = 'Type'
+              end>
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+            Header.SortColumn = 0
+            HintMode = hmTooltip
+            Images = ImageListIcons8
+            IncrementalSearch = isInitializedOnly
+            ParentShowHint = False
             PopupMenu = popupDB
+            ShowHint = True
             TabOrder = 0
+            TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+            TreeOptions.MiscOptions = [toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+            TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+            TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect, toRightClickSelect]
+            OnAfterPaint = AnyGridAfterPaint
+            OnBeforeCellPaint = ListTablesBeforeCellPaint
+            OnBeforePaint = ListTablesBeforePaint
+            OnChange = ListTablesChange
+            OnCompareNodes = AnyGridCompareNodes
+            OnDblClick = ListTablesDblClick
+            OnEditing = ListTablesEditing
+            OnGetText = ListTablesGetText
+            OnGetImageIndex = ListTablesGetImageIndex
+            OnGetHint = AnyGridGetHint
+            OnGetNodeDataSize = ListTablesGetNodeDataSize
+            OnHeaderClick = AnyGridHeaderClick
+            OnHeaderDraggedOut = AnyGridHeaderDraggedOut
+            OnInitNode = ListTablesInitNode
+            OnKeyPress = ListTablesKeyPress
+            OnNewText = ListTablesNewText
           end
         end
         object tabEditor: TTabSheet

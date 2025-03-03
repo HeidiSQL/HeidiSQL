@@ -375,7 +375,7 @@ type
   procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
   function GetTextHeight(Font: TFont): Integer;
   function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
-  //procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
+  procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
   function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
   function SelectNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode=nil): Boolean; overload;
   function SelectNode(VT: TLazVirtualStringTree; Node: PVirtualNode; ClearSelection: Boolean=True): Boolean; overload;
@@ -383,8 +383,8 @@ type
   procedure SetVTSelection(VT: TVirtualStringTree; SelectedCaptions: TStringList; FocusedCaption: String);
   function GetNextNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
   function GetPreviousNode(Tree: TLazVirtualStringTree; CurrentNode: PVirtualNode; Selected: Boolean=False): PVirtualNode;
-  //function DateBackFriendlyCaption(d: TDateTime): String;
-  //function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
+  function DateBackFriendlyCaption(d: TDateTime): String;
+  function DateTimeToStrDef(DateTime: TDateTime; Default: String): String;
   function TruncDef(X: Real; Default: Int64): Int64;
   function GetLightness(AColor: TColor): Byte;
   //function ParamBlobToStr(lpData: Pointer): String;
@@ -1434,9 +1434,9 @@ begin
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
-  //VT.OnGetHint := MainForm.AnyGridGetHint;
-  //VT.OnScroll := MainForm.AnyGridScroll;
-  //VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
+  VT.OnGetHint := MainForm.AnyGridGetHint;
+  VT.OnScroll := MainForm.AnyGridScroll;
+  VT.OnMouseWheel := MainForm.AnyGridMouseWheel;
   VT.ShowHint := True;
 
   if toGridExtensions in VT.TreeOptions.MiscOptions then
@@ -1444,8 +1444,8 @@ begin
   else
     VT.HintMode := hmTooltip; // Just a quick tooltip for clipped nodes
   // Apply case insensitive incremental search event
-  //if VT.IncrementalSearch <> VirtualTrees.Types.isNone then
-  //  VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
+  if VT.IncrementalSearch <> laz.VirtualTrees.isNone then
+    VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
   //VT.OnStartOperation := Mainform.AnyGridStartOperation;
   //VT.OnEndOperation := Mainform.AnyGridEndOperation;
 end;
@@ -1472,7 +1472,7 @@ begin
 end;
 
 
-{procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
+procedure DeInitializeVTNodes(Sender: TBaseVirtualTree);
 var
   Node: PVirtualNode;
 begin
@@ -1483,7 +1483,7 @@ begin
     Node.States := Node.States - [vsInitialized];
     Node := Sender.GetNextInitialized(Node);
   end;
-end;}
+end;
 
 
 function FindNode(VT: TLazVirtualStringTree; idx: Int64; ParentNode: PVirtualNode): PVirtualNode;
@@ -1646,7 +1646,7 @@ begin
 end;
 
 
-{function DateBackFriendlyCaption(d: TDateTime): String;
+function DateBackFriendlyCaption(d: TDateTime): String;
 var
   MonthsAgo, DaysAgo, HoursAgo, MinutesAgo: Int64;
 begin
@@ -1663,10 +1663,10 @@ begin
   else if MinutesAgo = 1 then Result := f_('%s minute ago', [FormatNumber(MinutesAgo)])
   else if MinutesAgo > 0 then Result := f_('%s minutes ago', [FormatNumber(MinutesAgo)])
   else Result := _('less than a minute ago');
-end;}
+end;
 
 
-{function DateTimeToStrDef(DateTime: TDateTime; Default: String) : String;
+function DateTimeToStrDef(DateTime: TDateTime; Default: String) : String;
 begin
   try
     if DateTime = 0 then
@@ -1676,7 +1676,7 @@ begin
   except
     on EInvalidOp do Result := Default;
   end;
-end;}
+end;
 
 
 function TruncDef(X: Real; Default: Int64): Int64;
@@ -1774,11 +1774,11 @@ begin
   for SortItem in Self do begin
     if Result <> '' then
       Result := Result + ', ';
-    //if SortItem.Order = sioAscending then
-    //  SortOrder := Connection.GetSQLSpecifity(spOrderAsc)
-    //else
-    //  SortOrder := Connection.GetSQLSpecifity(spOrderDesc);
-    //Result := Result + Connection.QuoteIdent(SortItem.Column) + ' ' + SortOrder;
+    if SortItem.Order = sioAscending then
+      SortOrder := Connection.GetSQLSpecifity(spOrderAsc)
+    else
+      SortOrder := Connection.GetSQLSpecifity(spOrderDesc);
+    Result := Result + Connection.QuoteIdent(SortItem.Column) + ' ' + SortOrder;
   end;
 end;
 
@@ -2080,6 +2080,7 @@ var
   State: TKeyboardState;
 begin
   // Checks whether a key is pressed, defined by virtual key code
+  // Windows-only. Prefer "ssShift in GetKeyShiftState"
   GetKeyboardState(State);
   Result := (State[Code] and 128) <> 0;
 end;}
