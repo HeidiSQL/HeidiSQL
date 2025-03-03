@@ -7,6 +7,7 @@ object MainForm: TMainForm
   ClientHeight = 500
   ClientWidth = 998
   DesignTimePPI = 120
+  Font.Height = -15
   Menu = MainMenu1
   OnCreate = FormCreate
   Position = poMainFormCenter
@@ -61,49 +62,51 @@ object MainForm: TMainForm
       Style = tbsDropDown
     end
     object btnExit: TToolButton
-      Left = 30
+      Left = 45
       Top = 2
       Action = actDisconnect
     end
     object tlbSep1: TToolButton
-      Left = 59
+      Left = 74
+      Height = 28
       Top = 2
       Caption = 'tlbSep1'
       ImageIndex = 2
       Style = tbsSeparator
     end
     object ToolButton5: TToolButton
-      Left = 88
+      Left = 82
       Top = 2
       Action = actCopy
       AutoSize = True
     end
     object ToolButton6: TToolButton
-      Left = 117
+      Left = 111
       Top = 2
       Action = actPaste
       AutoSize = True
     end
     object ToolButton14: TToolButton
-      Left = 146
+      Left = 140
       Hint = 'Undo'
       Top = 2
       Action = actUndo
     end
     object ToolButton12: TToolButton
-      Left = 175
+      Left = 169
       Top = 2
       Action = actPrintList
     end
     object tlbSep2: TToolButton
-      Left = 204
+      Left = 198
+      Height = 28
       Top = 2
       Caption = 'tlbSep2'
       ImageIndex = 3
       Style = tbsSeparator
     end
     object ButtonRefresh: TToolButton
-      Left = 233
+      Left = 206
       Top = 2
       Action = actRefresh
       AutoSize = True
@@ -111,130 +114,131 @@ object MainForm: TMainForm
       Style = tbsDropDown
     end
     object ButtonUserManager: TToolButton
-      Left = 262
+      Left = 250
       Top = 2
       Action = actUserManager
       AutoSize = True
     end
     object ButtonImportTextfile: TToolButton
-      Left = 291
+      Left = 279
       Top = 2
       Action = actImportCSV
       AutoSize = True
     end
     object ButtonExport: TToolButton
-      Left = 320
+      Left = 308
       Top = 2
       Action = actExportTables
       AutoSize = True
     end
     object tlbSep6: TToolButton
-      Left = 349
+      Left = 337
+      Height = 28
       Top = 2
       Caption = 'tlbSep6'
       ImageIndex = 97
       Style = tbsSeparator
     end
     object btnSQLHelp: TToolButton
-      Left = 378
+      Left = 345
       Top = 2
       Action = actSQLhelp
     end
     object ToolButton3: TToolButton
-      Left = 407
+      Left = 374
       Top = 2
       Action = actDataFirst
     end
     object ToolButton4: TToolButton
-      Left = 436
+      Left = 403
       Top = 2
       Action = actDataLast
     end
     object ToolButton7: TToolButton
-      Left = 465
+      Left = 432
       Top = 2
       Action = actDataInsert
     end
     object ToolButton8: TToolButton
-      Left = 494
+      Left = 461
       Top = 2
       Action = actDataDelete
     end
     object ToolButton10: TToolButton
-      Left = 523
+      Left = 490
       Top = 2
       Action = actDataPostChanges
     end
     object ToolButton1: TToolButton
-      Left = 552
+      Left = 519
       Top = 2
       Action = actDataCancelChanges
     end
     object btnExecuteQuery: TToolButton
-      Left = 581
+      Left = 548
       Top = 2
       Action = actExecuteQuery
       DropdownMenu = popupExecuteQuery
     end
     object btnLoadSQL: TToolButton
-      Left = 610
+      Left = 577
       Top = 2
       Action = actLoadSQL
       DropdownMenu = PopupQueryLoad
       Style = tbsDropDown
     end
     object btnSaveSQL: TToolButton
-      Left = 639
+      Left = 621
       Top = 2
       Action = actSaveSQL
     end
     object btnSaveSQLSnippet: TToolButton
-      Left = 668
+      Left = 650
       Top = 2
       Action = actSaveSQLSnippet
     end
     object btnQueryFind: TToolButton
-      Left = 697
+      Left = 679
       Top = 2
       Action = actQueryFind
     end
     object btnQueryReplace: TToolButton
-      Left = 726
+      Left = 708
       Top = 2
       Action = actQueryReplace
     end
     object btnReformatSQL: TToolButton
-      Left = 755
+      Left = 737
       Top = 2
       Action = actReformatSQL
     end
     object btnStopOnErrors: TToolButton
-      Left = 784
+      Left = 766
       Top = 2
       Action = actQueryStopOnErrors
     end
     object btnBlobAsText: TToolButton
-      Left = 813
+      Left = 795
       Top = 2
       Action = actBlobAsText
     end
     object btnQueryWordwrap: TToolButton
-      Left = 842
+      Left = 824
       Top = 2
       Action = actQueryWordWrap
     end
     object ToolButton11: TToolButton
-      Left = 871
+      Left = 853
       Top = 2
       Action = actCodeFolding
     end
     object btnSetDelimiter: TToolButton
-      Left = 900
+      Left = 882
       Top = 2
       Action = actSetDelimiter
     end
     object btnCancelOperation: TToolButton
-      Left = 929
+      Left = 911
       Top = 2
       Action = actCancelOperation
     end
@@ -739,6 +743,7 @@ object MainForm: TMainForm
       ClientHeight = 355
       ClientWidth = 212
       TabOrder = 0
+      OnResize = pnlLeftResize
       object pnlPreview: TPanel
         Left = 0
         Height = 100
@@ -746,8 +751,54 @@ object MainForm: TMainForm
         Width = 212
         Align = alBottom
         BevelOuter = bvNone
+        ClientHeight = 100
+        ClientWidth = 212
         TabOrder = 0
         Visible = False
+        object ToolBarPreview: TToolBar
+          Left = 109
+          Height = 33
+          Top = 0
+          Width = 103
+          Align = alNone
+          Caption = 'ToolBarPreview'
+          Images = ImageListIcons8
+          TabOrder = 0
+          object btnPreviewCopy: TToolButton
+            Left = 1
+            Top = 2
+            Action = actCopy
+          end
+          object btnPreviewSaveToFile: TToolButton
+            Left = 30
+            Top = 2
+            Action = actDataSaveBlobToFile
+          end
+          object btnPreviewClose: TToolButton
+            Left = 59
+            Hint = 'Close preview'
+            Top = 2
+            Caption = 'btnPreviewClose'
+            ImageIndex = 26
+            OnClick = actDataPreviewExecute
+          end
+        end
+        object lblPreviewTitle: TLabel
+          Left = 8
+          Height = 20
+          Top = 0
+          Width = 96
+          AutoSize = False
+          Caption = 'Preview ...'
+          Layout = tlCenter
+        end
+        object imgPreview: TImage
+          Left = 8
+          Height = 64
+          Top = 32
+          Width = 201
+          Anchors = [akTop, akLeft, akRight, akBottom]
+        end
       end
       object spltPreview: TSplitter
         Cursor = crVSplit
@@ -756,6 +807,7 @@ object MainForm: TMainForm
         Top = 249
         Width = 212
         Align = alBottom
+        OnMoved = spltPreviewMoved
         ResizeAnchor = akBottom
         Visible = False
       end
@@ -763,7 +815,33 @@ object MainForm: TMainForm
         Left = 0
         Top = 0
         Width = 212
+        Images = ImageListIcons8
         TabOrder = 2
+        object editDatabaseFilter: TEdit
+          Left = 30
+          Height = 28
+          Hint = 'Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. "mydb;test.*;project\d+".'
+          Top = 2
+          Width = 79
+          TabOrder = 0
+          TextHint = 'Database filter'
+          OnChange = editDatabaseTableFilterChange
+        end
+        object btnTreeFavorites: TToolButton
+          Left = 1
+          Top = 2
+          Action = actFavoriteObjectsOnly
+        end
+        object editTableFilter: TEdit
+          Left = 109
+          Height = 28
+          Hint = 'Table filter|Can contain regular expressions, e.g. "phpbb_\d"'
+          Top = 2
+          Width = 100
+          TabOrder = 1
+          TextHint = 'Table filter'
+          OnChange = editDatabaseTableFilterChange
+        end
       end
       object DBtree: TLazVirtualStringTree
         Left = 0
@@ -777,13 +855,33 @@ object MainForm: TMainForm
           item
             Position = 0
             Text = 'Name'
+            Width = 145
           end        
           item
+            Alignment = taRightJustify
             Position = 1
             Text = 'Size'
           end>
+        Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+        Images = ImageListIcons8
         PopupMenu = popupDB
         TabOrder = 3
+        OnAfterCellPaint = DBtreeAfterCellPaint
+        OnBeforeCellPaint = DBtreeBeforeCellPaint
+        OnChange = DBtreeChange
+        OnDblClick = DBtreeDblClick
+        OnExpanded = DBtreeExpanded
+        OnExpanding = DBtreeExpanding
+        OnFocusChanged = DBtreeFocusChanged
+        OnFocusChanging = DBtreeFocusChanging
+        OnFreeNode = DBtreeFreeNode
+        OnGetText = DBtreeGetText
+        OnPaintText = DBtreePaintText
+        OnGetImageIndex = DBtreeGetImageIndex
+        OnGetNodeDataSize = DBtreeGetNodeDataSize
+        OnInitChildren = DBtreeInitChildren
+        OnInitNode = DBtreeInitNode
+        OnMouseUp = DBtreeMouseUp
       end
     end
     object spltDBtree: TSplitter
@@ -853,6 +951,8 @@ object MainForm: TMainForm
         PopupMenu = popupMainTabs
         TabIndex = 0
         TabOrder = 1
+        OnChange = PageControlMainChange
+        OnChanging = PageControlMainChanging
         object tabHost: TTabSheet
           Caption = 'Host'
           ClientHeight = 283
@@ -869,6 +969,7 @@ object MainForm: TMainForm
             PopupMenu = popupHost
             TabIndex = 0
             TabOrder = 0
+            OnChange = PageControlHostChange
             object tabDatabases: TTabSheet
               Caption = 'Databases'
               ClientHeight = 250
@@ -2799,8 +2900,8 @@ object MainForm: TMainForm
   end
   object MainMenu1: TMainMenu
     Images = ImageListIcons8
-    Left = 48
-    Top = 33
+    Left = 16
+    Top = 80
     object MainMenuFile: TMenuItem
       Caption = 'File'
       Hint = 'File related commands'
@@ -3144,8 +3245,8 @@ object MainForm: TMainForm
   end
   object ActionList1: TActionList
     Images = ImageListIcons8
-    Left = 48
-    Top = 120
+    Left = 56
+    Top = 80
     object actSessionManager: TAction
       Category = 'File'
       Caption = 'Session manager'
@@ -4261,8 +4362,8 @@ object MainForm: TMainForm
   end
   object ImageListIcons8: TImageList
     Scaled = True
-    Left = 50
-    Top = 209
+    Left = 96
+    Top = 80
     Bitmap = {
       4C7ACF00000010000000100000006EE800000000000078DAEC9D055C554BD7FF
       375D76613716228D226090221D8A41282226825820A282022A622328A0A84808
@@ -19383,8 +19484,8 @@ object MainForm: TMainForm
     Enabled = False
     KeyAttri.Foreground = clBlue
     SQLDialect = sqlMySQL
-    Left = 50
-    Top = 298
+    Left = 16
+    Top = 120
   end
   object SynCompletionProposal: TSynCompletion
     Position = -1
@@ -19397,23 +19498,23 @@ object MainForm: TMainForm
     EndOfTokenChr = '()[].'
     ExecCommandID = ecSynCompletionExecute
     ToggleReplaceWhole = False
-    Left = 192
-    Top = 298
+    Left = 56
+    Top = 120
   end
   object TimerFilterVT: TTimer
-    Left = 50
-    Top = 406
+    Left = 704
+    Top = 209
   end
   object menuConnections: TPopupMenu
     Images = ImageListIcons8
     OnPopup = menuConnectionsPopup
-    Left = 246
-    Top = 435
+    Left = 256
+    Top = 168
   end
   object popupRefresh: TPopupMenu
     Images = ImageListIcons8
-    Left = 344
-    Top = 437
+    Left = 298
+    Top = 168
     object Fullstatusrefresh1: TMenuItem
       Action = actFullRefresh
     end
@@ -19432,22 +19533,19 @@ object MainForm: TMainForm
   end
   object popupExecuteQuery: TPopupMenu
     Images = ImageListIcons8
-    Left = 441
-    Top = 434
-  end
-  object PopupMenu1: TPopupMenu
-    Left = 551
-    Top = 433
+    Left = 338
+    Top = 168
   end
   object PopupQueryLoad: TPopupMenu
     Images = ImageListIcons8
-    Left = 642
-    Top = 438
+    Left = 378
+    Top = 168
   end
   object popupDB: TPopupMenu
+    Images = ImageListIcons8
     OnPopup = popupDBPopup
-    Left = 272
-    Top = 152
+    Left = 336
+    Top = 216
     object menuEditObject: TMenuItem
       Caption = 'Edit'
       Hint = 'Edit selected object'
@@ -19570,9 +19668,10 @@ object MainForm: TMainForm
     end
   end
   object popupHost: TPopupMenu
+    Images = ImageListIcons8
     OnPopup = popupHostPopup
-    Left = 201
-    Top = 104
+    Left = 376
+    Top = 216
     object Copy2: TMenuItem
       Action = actCopy
     end
@@ -19614,10 +19713,17 @@ object MainForm: TMainForm
       Action = actRefresh
     end
   end
+  object TimerHostUptime: TTimer
+    Interval = 20000
+    OnTimer = TimerHostUptimeTimer
+    Left = 656
+    Top = 209
+  end
   object popupDataGrid: TPopupMenu
+    Images = ImageListIcons8
     OnPopup = popupDataGridPopup
-    Left = 200
-    Top = 248
+    Left = 456
+    Top = 216
     object Copy3: TMenuItem
       Action = actCopy
     end
@@ -19876,10 +19982,16 @@ object MainForm: TMainForm
       Action = actRefresh
     end
   end
+  object TimerConnected: TTimer
+    OnTimer = TimerConnectedTimer
+    Left = 656
+    Top = 168
+  end
   object popupSqlLog: TPopupMenu
+    Images = ImageListIcons8
     OnPopup = popupSqlLogPopup
-    Left = 272
-    Top = 200
+    Left = 498
+    Top = 168
     object Copy1: TMenuItem
       Action = actCopy
     end
@@ -19916,9 +20028,10 @@ object MainForm: TMainForm
     end
   end
   object popupQuery: TPopupMenu
+    Images = ImageListIcons8
     OnPopup = popupQueryPopup
-    Left = 344
-    Top = 104
+    Left = 296
+    Top = 216
     object MenuRun: TMenuItem
       Action = actExecuteQuery
     end
@@ -20003,8 +20116,9 @@ object MainForm: TMainForm
     end
   end
   object popupQueryHelpers: TPopupMenu
-    Left = 344
-    Top = 152
+    Images = ImageListIcons8
+    Left = 256
+    Top = 216
     object menuInsertAtCursor: TMenuItem
       Caption = 'Insert at cursor'
       Default = True
@@ -20064,9 +20178,10 @@ object MainForm: TMainForm
     end
   end
   object popupFilter: TPopupMenu
+    Images = ImageListIcons8
     OnPopup = popupFilterPopup
-    Left = 344
-    Top = 248
+    Left = 458
+    Top = 168
     object menuFilterCopy: TMenuItem
       Action = actCopy
     end
@@ -20093,10 +20208,11 @@ object MainForm: TMainForm
     end
   end
   object popupMainTabs: TPopupMenu
+    Images = ImageListIcons8
     AutoPopup = False
     OnPopup = popupMainTabsPopup
-    Left = 200
-    Top = 152
+    Left = 416
+    Top = 216
     object menuNewQueryTab: TMenuItem
       Action = actNewQueryTab
     end
@@ -20138,16 +20254,18 @@ object MainForm: TMainForm
     end
   end
   object popupDataTop: TPopupMenu
-    Left = 352
-    Top = 320
+    Images = ImageListIcons8
+    Left = 418
+    Top = 168
     object menuQueryExactRowCount: TMenuItem
       Caption = 'Query exact row count'
       OnClick = menuQueryExactRowCountClick
     end
   end
   object popupApplyFilter: TPopupMenu
-    Left = 200
-    Top = 312
+    Images = ImageListIcons8
+    Left = 498
+    Top = 216
     object menuAlwaysGenerateFilter: TMenuItem
       AutoCheck = True
       Caption = 'Always generate filter'
@@ -20159,7 +20277,7 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 5000
     OnTimer = TimerRefreshTimer
-    Left = 145
-    Top = 408
+    Left = 704
+    Top = 168
   end
 end

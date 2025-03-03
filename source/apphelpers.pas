@@ -17,6 +17,7 @@ type
   TVirtualStringTree = TLazVirtualStringTree;
   TExtFileOpenDialog = class(TOpenDialog);
   TExtFileSaveDialog = class(TSaveDialog);
+  TImageIndex = Integer;
 
   TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)
@@ -40,7 +41,7 @@ type
       function GetPreamble: TBytes; override;
   end;
 
-  {TDBObjectEditor = class(TFrame)
+  TDBObjectEditor = class(TFrame)
     private
       FModified: Boolean;
       procedure SetModified(Value: Boolean);
@@ -57,7 +58,7 @@ type
       property Modified: Boolean read FModified write SetModified;
       function ApplyModifications: TModalResult; virtual; abstract;
   end;
-  TDBObjectEditorClass = class of TDBObjectEditor;}
+  TDBObjectEditorClass = class of TDBObjectEditor;
 
   TSQLBatch = class;
   TSQLSentence = class(TObject)
@@ -106,7 +107,6 @@ type
       property ContentLength: Integer read FContentLength;
       property LastContent: String read FLastContent;
   end; }
-
 
   // Extended string list with support for empty values
   TExtStringList = class(TStringList)
@@ -1810,7 +1810,7 @@ end;
 
 { *** TDBObjectEditor }
 
-{constructor TDBObjectEditor.Create(AOwner: TComponent);
+constructor TDBObjectEditor.Create(AOwner: TComponent);
 begin
   inherited;
   // Do not set alClient via DFM! In conjunction with ExplicitXXX properties that
@@ -1818,25 +1818,25 @@ begin
   Align := alClient;
   FMainSynMemo := nil;
   DBObject := nil;
-  TranslateComponent(Self);
-end;}
+  //TranslateComponent(Self);
+end;
 
-{destructor TDBObjectEditor.Destroy;
+destructor TDBObjectEditor.Destroy;
 begin
   inherited;
-end;}
+end;
 
-{procedure TDBObjectEditor.SetModified(Value: Boolean);
+procedure TDBObjectEditor.SetModified(Value: Boolean);
 begin
   FModified := Value;
-end;}
+end;
 
-{function TDBObjectEditor.ObjectExists: Boolean;
+function TDBObjectEditor.ObjectExists: Boolean;
 begin
   Result := not DBObject.Name.IsEmpty;
-end;}
+end;
 
-{procedure TDBObjectEditor.Init(Obj: TDBObject);
+procedure TDBObjectEditor.Init(Obj: TDBObject);
 var
   editName: TWinControl;
   SynMemo: TSynMemo;
@@ -1847,7 +1847,7 @@ var
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
-  TExtForm.FixControls(Self);
+  //TExtForm.FixControls(Self);
   IsRefresh := Assigned(DBObject) and DBObject.IsSameAs(Obj);
   if IsRefresh and Assigned(FMainSynMemo) then
     FMainSynMemoPreviousTopLine := FMainSynMemo.TopLine
@@ -1855,7 +1855,7 @@ begin
     FMainSynMemoPreviousTopLine := 0;
   DBObject := TDBObject.Create(Obj.Connection);
   DBObject.Assign(Obj);
-  Mainform.UpdateEditorTab;
+  //Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
   // Enable user to start typing immediately when creating a new object
   if DBObject.Name = '' then begin
@@ -1907,9 +1907,9 @@ begin
 
   end;
 
-end;}
+end;
 
-{function TDBObjectEditor.DeInit: TModalResult;
+function TDBObjectEditor.DeInit: TModalResult;
 var
   Msg, ObjType: String;
 begin
@@ -1928,7 +1928,7 @@ begin
       mrNo: Modified := False;
     end;
   end;
-end;}
+end;
 
 
 
