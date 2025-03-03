@@ -602,6 +602,7 @@ type
     actGotoTab41: TMenuItem;
     actGotoTab51: TMenuItem;
     actClearQueryLog: TAction;
+    TimerStoreTabs: TTimer;
     Duplicaterowwithkeys1: TMenuItem;
     actGoToQueryResults: TAction;
     Switchtoqueryresults1: TMenuItem;
@@ -786,10 +787,10 @@ type
     procedure actExitApplicationExecute(Sender: TObject);
     //procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
     //procedure CMStyleChanged(var Msg: TMessage); message CM_STYLECHANGED;
-    //procedure FormDestroy(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure AfterFormCreate;
-    //procedure FormShow(Sender: TObject);
+    procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
     //procedure AddEditorCommandMenu(const S: string);
     //procedure EditorCommandOnClick(Sender: TObject);
@@ -929,7 +930,7 @@ type
     //procedure ListTablesBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
     //  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
     //  var ContentRect: TRect);
-    //procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
+    procedure ListProcessesFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex);
     procedure editFilterVTChange(Sender: TObject);
     procedure ListVariablesDblClick(Sender: TObject);
     procedure menuEditVariableClick(Sender: TObject);
@@ -1130,7 +1131,7 @@ type
     //  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     //procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     //procedure filterQueryHelpersChange(Sender: TObject);
-    //procedure TimerStoreTabsTimer(Sender: TObject);
+    procedure TimerStoreTabsTimer(Sender: TObject);
     procedure actGoToQueryResultsExecute(Sender: TObject);
     procedure actGoToDataMultiFilterExecute(Sender: TObject);
     procedure actDataOpenUrlExecute(Sender: TObject);
@@ -1817,10 +1818,10 @@ begin
     CanClose := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
 end;}
 
-{procedure TMainForm.FormDestroy(Sender: TObject);
+procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   // Destroy dialogs
-  FreeAndNil(FSearchReplaceDialog);
+  //FreeAndNil(FSearchReplaceDialog);
 
   StoreLastSessions;
 
@@ -1866,16 +1867,17 @@ begin
     AppSettings.WriteIntDpiAware(asMainWinWidth, Self, Width);
     AppSettings.WriteIntDpiAware(asMainWinHeight, Self, Height);
   end;
-  SaveListSetup(ListDatabases);
-  SaveListSetup(ListVariables);
-  SaveListSetup(ListStatus);
-  SaveListSetup(ListProcesses);
-  SaveListSetup(ListCommandStats);
-  SaveListSetup(ListTables);
+  //SaveListSetup(ListDatabases);
+  //SaveListSetup(ListVariables);
+  //SaveListSetup(ListStatus);
+  //SaveListSetup(ListProcesses);
+  //SaveListSetup(ListCommandStats);
+  //SaveListSetup(ListTables);
 
   LogToFile := False;
   AppSettings.Free;
-end;}
+end;
+
 procedure TMainForm.FormCreate(Sender: TObject);
 var
   i, j, MonitorIndex: Integer;
@@ -2606,11 +2608,11 @@ begin
 end;}
 
 
-{procedure TMainForm.TimerStoreTabsTimer(Sender: TObject);
+procedure TMainForm.TimerStoreTabsTimer(Sender: TObject);
 begin
   // Backup unsaved content every 10 seconds
-  StoreTabs;
-end;}
+  //StoreTabs;
+end;
 
 
 procedure TMainForm.actSessionManagerExecute(Sender: TObject);
@@ -2824,27 +2826,27 @@ begin
 
 end;
 
-{procedure TMainForm.FormShow(Sender: TObject);
+procedure TMainForm.FormShow(Sender: TObject);
 begin
   // Window dimensions
   if WindowState <> wsMaximized then begin
-    Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
-    Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
+    //Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
+    //Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
   end;
 
-  LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
+  {LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
   if TStyleManager.IsCustomStyleActive and (ScaleFactor<>1) then begin
     LogSQL(f_('Caution: Style "%s" selected and non-default DPI factor - be aware that some styles appear broken with high DPI settings!', [TStyleManager.ActiveStyle.Name]));
-  end;
+  end;}
 
 
   // Restore width of columns of all VirtualTrees
-  RestoreListSetup(ListDatabases);
+  {RestoreListSetup(ListDatabases);
   RestoreListSetup(ListVariables);
   RestoreListSetup(ListStatus);
   RestoreListSetup(ListProcesses);
   RestoreListSetup(ListCommandStats);
-  RestoreListSetup(ListTables);
+  RestoreListSetup(ListTables);}
 
   // Fix node height on Virtual Trees for current DPI settings
   FixVT(DBTree);
@@ -2870,7 +2872,7 @@ begin
 
   // Call once after all query tabs were created:
   ValidateControls(Sender);
-end;}
+end;
 
 {procedure TMainForm.AddEditorCommandMenu(const S: string);
 begin
@@ -4789,14 +4791,14 @@ begin
     tab2 := PageControlHost.ActivePage;
     if tab2 = tabDatabases then
       List := ListDatabases
-    {else if tab2 = tabVariables then
+    else if tab2 = tabVariables then
       List := ListVariables
     else if tab2 = tabStatus then
       List := ListStatus
     else if tab2 = tabProcessList then
       List := ListProcesses
     else
-      List := ListCommandStats};
+      List := ListCommandStats;
     InvalidateVT(List, VTREE_NOTLOADED_PURGECACHE, True);
   end else if tab1 = tabDatabase then begin
     OldDbObject := TDBObject.Create(FActiveDbObj.Connection);
@@ -4804,8 +4806,8 @@ begin
     RefreshTree(OldDbObject);
   end else if tab1 = tabEditor then begin
     RefreshTree;
-  end {else if tab1 = tabData then
-    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False)};
+  end else if tab1 = tabData then
+    InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -9066,7 +9068,7 @@ end;
   A row in the process list was selected. Fill SynMemoProcessView with
   the SQL of that row.
 }
-{procedure TMainForm.ListProcessesFocusChanged(Sender: TBaseVirtualTree;
+procedure TMainForm.ListProcessesFocusChanged(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex);
 var
   NodeFocused, EnableControls: Boolean;
@@ -9092,7 +9094,7 @@ begin
   pnlProcessView.Enabled := EnableControls;
   lblExplainProcess.Enabled := EnableControls and ActiveConnection.Parameters.IsAnyMySQL;
   menuExplainProcess.Enabled := lblExplainProcess.Enabled;
-end;}
+end;
 
 
 {***

@@ -1,16 +1,17 @@
 object MainForm: TMainForm
   Left = 549
-  Height = 500
+  Height = 0
   Top = 272
-  Width = 998
+  Width = 0
   Caption = 'MainForm'
-  ClientHeight = 500
-  ClientWidth = 998
+  ClientHeight = 0
+  ClientWidth = 0
   DesignTimePPI = 120
   Font.Height = -15
   Menu = MainMenu1
   OnCreate = FormCreate
   Position = poMainFormCenter
+  LCLVersion = '3.8.0.0'
   object StatusBar: TStatusBar
     Left = 0
     Height = 29
@@ -68,7 +69,7 @@ object MainForm: TMainForm
     end
     object tlbSep1: TToolButton
       Left = 74
-      Height = 28
+      Height = 8
       Top = 2
       Caption = 'tlbSep1'
       ImageIndex = 2
@@ -99,7 +100,7 @@ object MainForm: TMainForm
     end
     object tlbSep2: TToolButton
       Left = 198
-      Height = 28
+      Height = 8
       Top = 2
       Caption = 'tlbSep2'
       ImageIndex = 3
@@ -133,7 +134,7 @@ object MainForm: TMainForm
     end
     object tlbSep6: TToolButton
       Left = 337
-      Height = 28
+      Height = 8
       Top = 2
       Caption = 'tlbSep6'
       ImageIndex = 97
@@ -867,6 +868,7 @@ object MainForm: TMainForm
         HintMode = hmTooltip
         Images = ImageListIcons8
         IncrementalSearch = isInitializedOnly
+        ParentShowHint = False
         PopupMenu = popupDB
         ShowHint = True
         TabOrder = 3
@@ -1047,15 +1049,12 @@ object MainForm: TMainForm
                     Width = 120
                   end>
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
-                Header.PopupMenu = popupListHeader
                 Header.SortColumn = 0
-                Images = VirtualImageListMain
-                PopupMenu = popupHost
-                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
-                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
                 Images = ImageListIcons8
                 PopupMenu = popupHost
                 TabOrder = 0
+                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toGhostedIfUnfocused, toUseExplorerTheme, toHideTreeLinesIfThemed]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
                 OnAfterPaint = AnyGridAfterPaint
                 OnBeforeCellPaint = HostListBeforeCellPaint
                 OnBeforePaint = ListDatabasesBeforePaint
@@ -1138,9 +1137,53 @@ object MainForm: TMainForm
                 Align = alClient
                 DefaultText = 'Node'
                 Header.AutoSizeIndex = 0
-                Header.Columns = <>
-                Header.MainColumn = -1
+                Header.Columns = <                
+                  item
+                    Position = 0
+                    Text = 'Variable'
+                    Width = 248
+                  end                
+                  item
+                    Alignment = taRightJustify
+                    Position = 1
+                    Text = 'Value'
+                    Width = 312
+                  end                
+                  item
+                    Alignment = taRightJustify
+                    Position = 2
+                    Text = 'Avg per hour'
+                    Width = 100
+                  end                
+                  item
+                    Alignment = taRightJustify
+                    Position = 3
+                    Text = 'Avg per second'
+                    Width = 100
+                  end>
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+                Header.SortColumn = 0
+                HintMode = hmTooltip
+                Images = ImageListIcons8
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
+                PopupMenu = popupHost
+                ShowHint = True
                 TabOrder = 0
+                TreeOptions.MiscOptions = [toToggleOnDblClick]
+                TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toRightClickSelect]
+                OnAfterPaint = AnyGridAfterPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
+                OnBeforePaint = HostListBeforePaint
+                OnCompareNodes = AnyGridCompareNodes
+                OnGetText = HostListGetText
+                OnGetImageIndex = HostListGetImageIndex
+                OnGetHint = AnyGridGetHint
+                OnGetNodeDataSize = AnyGridGetNodeDataSize
+                OnHeaderClick = AnyGridHeaderClick
+                OnHeaderDraggedOut = AnyGridHeaderDraggedOut
+                OnInitNode = AnyGridInitNode
               end
             end
             object tabProcesslist: TTabSheet
@@ -1661,11 +1704,73 @@ object MainForm: TMainForm
                 Width = 764
                 Align = alClient
                 DefaultText = 'Node'
-                Header.AutoSizeIndex = 0
-                Header.Columns = <>
-                Header.MainColumn = -1
+                Images = ImageListIcons8
+                Header.AutoSizeIndex = 7
+                Header.Columns = <                
+                  item
+                    Alignment = taRightJustify
+                    Position = 0
+                    Text = 'id'
+                    Width = 70
+                  end                
+                  item
+                    Position = 1
+                    Text = 'User'
+                    Width = 80
+                  end                
+                  item
+                    Position = 2
+                    Text = 'Host'
+                    Width = 80
+                  end                
+                  item
+                    Position = 3
+                    Text = 'DB'
+                    Width = 80
+                  end                
+                  item
+                    Position = 4
+                    Text = 'Command'
+                    Width = 80
+                  end                
+                  item
+                    Position = 5
+                    Text = 'Time'
+                  end                
+                  item
+                    Position = 6
+                    Text = 'State'
+                  end                
+                  item
+                    Position = 7
+                    Text = 'Info'
+                    Width = 244
+                  end>
+                Header.Height = 20
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+                Header.SortColumn = 0
+                Header.SortDirection = sdDescending
+                HintMode = hmTooltip
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
                 PopupMenu = popupHost
+                ShowHint = True
                 TabOrder = 2
+                TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+                TreeOptions.PaintOptions = [toHotTrack, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+                OnAfterPaint = AnyGridAfterPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
+                OnBeforePaint = HostListBeforePaint
+                OnCompareNodes = AnyGridCompareNodes
+                OnFocusChanged = ListProcessesFocusChanged
+                OnGetText = HostListGetText
+                OnGetImageIndex = HostListGetImageIndex
+                OnGetHint = AnyGridGetHint
+                OnGetNodeDataSize = AnyGridGetNodeDataSize
+                OnHeaderClick = AnyGridHeaderClick
+                OnHeaderDraggedOut = AnyGridHeaderDraggedOut
+                OnInitNode = AnyGridInitNode
               end
             end
             object tabCommandStats: TTabSheet
@@ -1680,11 +1785,62 @@ object MainForm: TMainForm
                 Width = 764
                 Align = alClient
                 DefaultText = 'Node'
-                Header.AutoSizeIndex = 0
-                Header.Columns = <>
+                Header.AutoSizeIndex = 4
+                Header.Columns = <
+                  item
+                    Position = 0
+                    Text = 'Command-type'
+                    Width = 120
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 1
+                    Text = 'Total count'
+                    Width = 100
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 2
+                    Text = 'Average per hour'
+                    Width = 100
+                  end
+                  item
+                    Alignment = taRightJustify
+                    Position = 3
+                    Text = 'Average per second'
+                    Width = 100
+                  end
+                  item
+                    Position = 4
+                    Text = 'Percentage'
+                    Width = 252
+                  end>
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
+                Header.PopupMenu = popupListHeader
+                Header.SortColumn = 1
+                Header.SortDirection = sdDescending
+                HintMode = hmTooltip
+                Images = ImageListIcons8
+                IncrementalSearch = isInitializedOnly
+                ParentShowHint = False
                 Header.MainColumn = -1
                 PopupMenu = popupHost
+                ShowHint = True
                 TabOrder = 0
+                TreeOptions.MiscOptions = [toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning]
+                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect]
+                OnAfterPaint = AnyGridAfterPaint
+                OnBeforeCellPaint = HostListBeforeCellPaint
+                OnBeforePaint = HostListBeforePaint
+                OnCompareNodes = AnyGridCompareNodes
+                OnGetText = HostListGetText
+                OnGetImageIndex = HostListGetImageIndex
+                OnGetHint = AnyGridGetHint
+                OnGetNodeDataSize = AnyGridGetNodeDataSize
+                OnHeaderClick = AnyGridHeaderClick
+                OnHeaderDraggedOut = AnyGridHeaderDraggedOut
+                OnInitNode = AnyGridInitNode
               end
             end
           end
@@ -19549,7 +19705,7 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False
@@ -20340,5 +20496,12 @@ object MainForm: TMainForm
     OnTimer = TimerRefreshTimer
     Left = 704
     Top = 168
+  end
+  object TimerStoreTabs: TTimer
+    Enabled = False
+    Interval = 10000
+    OnTimer = TimerStoreTabsTimer
+    Left = 689
+    Top = 299
   end
 end
