@@ -61,51 +61,49 @@ object MainForm: TMainForm
       Style = tbsDropDown
     end
     object btnExit: TToolButton
-      Left = 45
+      Left = 30
       Top = 2
       Action = actDisconnect
     end
     object tlbSep1: TToolButton
-      Left = 74
-      Height = 28
+      Left = 59
       Top = 2
       Caption = 'tlbSep1'
       ImageIndex = 2
       Style = tbsSeparator
     end
     object ToolButton5: TToolButton
-      Left = 82
+      Left = 88
       Top = 2
       Action = actCopy
       AutoSize = True
     end
     object ToolButton6: TToolButton
-      Left = 111
+      Left = 117
       Top = 2
       Action = actPaste
       AutoSize = True
     end
     object ToolButton14: TToolButton
-      Left = 140
+      Left = 146
       Hint = 'Undo'
       Top = 2
       Action = actUndo
     end
     object ToolButton12: TToolButton
-      Left = 169
+      Left = 175
       Top = 2
       Action = actPrintList
     end
     object tlbSep2: TToolButton
-      Left = 198
-      Height = 28
+      Left = 204
       Top = 2
       Caption = 'tlbSep2'
       ImageIndex = 3
       Style = tbsSeparator
     end
     object ButtonRefresh: TToolButton
-      Left = 206
+      Left = 233
       Top = 2
       Action = actRefresh
       AutoSize = True
@@ -113,132 +111,130 @@ object MainForm: TMainForm
       Style = tbsDropDown
     end
     object ButtonUserManager: TToolButton
-      Left = 250
+      Left = 262
       Top = 2
       Action = actUserManager
       AutoSize = True
     end
     object ButtonImportTextfile: TToolButton
-      Left = 279
+      Left = 291
       Top = 2
       Action = actImportCSV
       AutoSize = True
     end
     object ButtonExport: TToolButton
-      Left = 308
+      Left = 320
       Top = 2
       Action = actExportTables
       AutoSize = True
     end
     object tlbSep6: TToolButton
-      Left = 337
-      Height = 28
+      Left = 349
       Top = 2
       Caption = 'tlbSep6'
       ImageIndex = 97
       Style = tbsSeparator
     end
     object btnSQLHelp: TToolButton
-      Left = 345
+      Left = 378
       Top = 2
       Action = actSQLhelp
     end
     object ToolButton3: TToolButton
-      Left = 374
+      Left = 407
       Top = 2
       Action = actDataFirst
     end
     object ToolButton4: TToolButton
-      Left = 403
+      Left = 436
       Top = 2
       Action = actDataLast
     end
     object ToolButton7: TToolButton
-      Left = 432
+      Left = 465
       Top = 2
       Action = actDataInsert
     end
     object ToolButton8: TToolButton
-      Left = 461
+      Left = 494
       Top = 2
       Action = actDataDelete
     end
     object ToolButton10: TToolButton
-      Left = 490
+      Left = 523
       Top = 2
       Action = actDataPostChanges
     end
     object ToolButton1: TToolButton
-      Left = 519
+      Left = 552
       Top = 2
       Action = actDataCancelChanges
     end
     object btnExecuteQuery: TToolButton
-      Left = 548
+      Left = 581
       Top = 2
       Action = actExecuteQuery
       DropdownMenu = popupExecuteQuery
-      Style = tbsDropDown
     end
     object btnLoadSQL: TToolButton
-      Left = 592
+      Left = 610
       Top = 2
       Action = actLoadSQL
       DropdownMenu = PopupQueryLoad
       Style = tbsDropDown
     end
     object btnSaveSQL: TToolButton
-      Left = 636
+      Left = 639
       Top = 2
       Action = actSaveSQL
     end
     object btnSaveSQLSnippet: TToolButton
-      Left = 665
+      Left = 668
       Top = 2
       Action = actSaveSQLSnippet
     end
     object btnQueryFind: TToolButton
-      Left = 694
+      Left = 697
       Top = 2
       Action = actQueryFind
     end
     object btnQueryReplace: TToolButton
-      Left = 723
+      Left = 726
       Top = 2
       Action = actQueryReplace
     end
     object btnReformatSQL: TToolButton
-      Left = 752
+      Left = 755
       Top = 2
       Action = actReformatSQL
     end
     object btnStopOnErrors: TToolButton
-      Left = 781
+      Left = 784
       Top = 2
       Action = actQueryStopOnErrors
     end
     object btnBlobAsText: TToolButton
-      Left = 810
+      Left = 813
       Top = 2
       Action = actBlobAsText
     end
     object btnQueryWordwrap: TToolButton
-      Left = 839
+      Left = 842
       Top = 2
       Action = actQueryWordWrap
     end
     object ToolButton11: TToolButton
-      Left = 868
+      Left = 871
       Top = 2
       Action = actCodeFolding
     end
     object btnSetDelimiter: TToolButton
-      Left = 897
+      Left = 900
       Top = 2
       Action = actSetDelimiter
     end
     object btnCancelOperation: TToolButton
-      Left = 926
+      Left = 929
       Top = 2
       Action = actCancelOperation
     end
@@ -255,6 +251,7 @@ object MainForm: TMainForm
     Font.Quality = fqCleartypeNatural
     ParentColor = False
     ParentFont = False
+    PopupMenu = popupSqlLog
     TabOrder = 2
     Gutter.Width = 0
     Gutter.MouseActions = <>
@@ -785,6 +782,7 @@ object MainForm: TMainForm
             Position = 1
             Text = 'Size'
           end>
+        PopupMenu = popupDB
         TabOrder = 3
       end
     end
@@ -852,6 +850,7 @@ object MainForm: TMainForm
         ActivePage = tabHost
         Align = alClient
         Images = ImageListIcons8
+        PopupMenu = popupMainTabs
         TabIndex = 0
         TabOrder = 1
         object tabHost: TTabSheet
@@ -867,6 +866,7 @@ object MainForm: TMainForm
             ActivePage = tabDatabases
             Align = alClient
             Images = ImageListIcons8
+            PopupMenu = popupHost
             TabIndex = 0
             TabOrder = 0
             object tabDatabases: TTabSheet
@@ -940,30 +940,611 @@ object MainForm: TMainForm
                   end>
                 Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
                 Images = ImageListIcons8
+                PopupMenu = popupHost
                 TabOrder = 0
               end
             end
             object tabVariables: TTabSheet
               Caption = 'Variables'
+              ClientHeight = 250
+              ClientWidth = 764
               ImageIndex = 137
+              object ListVariables: TLazVirtualStringTree
+                Left = 0
+                Height = 250
+                Top = 0
+                Width = 764
+                Align = alClient
+                DefaultText = 'Node'
+                Header.AutoSizeIndex = 0
+                Header.Columns = <>
+                Header.MainColumn = -1
+                PopupMenu = popupHost
+                TabOrder = 0
+              end
             end
             object tabStatus: TTabSheet
               Caption = 'Status'
+              ClientHeight = 250
+              ClientWidth = 764
               ImageIndex = 13
+              object ListStatus: TLazVirtualStringTree
+                Left = 0
+                Height = 250
+                Top = 0
+                Width = 764
+                Align = alClient
+                DefaultText = 'Node'
+                Header.AutoSizeIndex = 0
+                Header.Columns = <>
+                Header.MainColumn = -1
+                TabOrder = 0
+              end
             end
             object tabProcesslist: TTabSheet
               Caption = 'Processes'
+              ClientHeight = 250
+              ClientWidth = 764
               ImageIndex = 57
+              object pnlProcessViewBox: TPanel
+                Left = 0
+                Height = 69
+                Top = 181
+                Width = 764
+                Align = alBottom
+                BevelOuter = bvNone
+                ClientHeight = 69
+                ClientWidth = 764
+                TabOrder = 0
+                object pnlProcessView: TPanel
+                  Left = 0
+                  Height = 18
+                  Top = 0
+                  Width = 764
+                  Align = alTop
+                  ClientHeight = 18
+                  ClientWidth = 764
+                  TabOrder = 0
+                  object lblExplainProcess: TLabel
+                    Cursor = crHandPoint
+                    Left = 1
+                    Height = 16
+                    Top = 1
+                    Width = 120
+                    Align = alLeft
+                    Caption = 'Analyze this query'
+                  end
+                end
+                inline SynMemoProcessView: TSynEdit
+                  Left = 0
+                  Height = 51
+                  Top = 18
+                  Width = 764
+                  Align = alClient
+                  Font.Height = -13
+                  Font.Name = 'Courier New'
+                  Font.Pitch = fpFixed
+                  Font.Quality = fqNonAntialiased
+                  ParentColor = False
+                  ParentFont = False
+                  TabOrder = 1
+                  Gutter.Width = 0
+                  Gutter.MouseActions = <>
+                  RightGutter.Width = 0
+                  RightGutter.MouseActions = <>
+                  Highlighter = SynSQLSynUsed
+                  Keystrokes = <                  
+                    item
+                      Command = ecUp
+                      ShortCut = 38
+                    end                  
+                    item
+                      Command = ecSelUp
+                      ShortCut = 8230
+                    end                  
+                    item
+                      Command = ecScrollUp
+                      ShortCut = 16422
+                    end                  
+                    item
+                      Command = ecDown
+                      ShortCut = 40
+                    end                  
+                    item
+                      Command = ecSelDown
+                      ShortCut = 8232
+                    end                  
+                    item
+                      Command = ecScrollDown
+                      ShortCut = 16424
+                    end                  
+                    item
+                      Command = ecLeft
+                      ShortCut = 37
+                    end                  
+                    item
+                      Command = ecSelLeft
+                      ShortCut = 8229
+                    end                  
+                    item
+                      Command = ecWordLeft
+                      ShortCut = 16421
+                    end                  
+                    item
+                      Command = ecSelWordLeft
+                      ShortCut = 24613
+                    end                  
+                    item
+                      Command = ecRight
+                      ShortCut = 39
+                    end                  
+                    item
+                      Command = ecSelRight
+                      ShortCut = 8231
+                    end                  
+                    item
+                      Command = ecWordRight
+                      ShortCut = 16423
+                    end                  
+                    item
+                      Command = ecSelWordRight
+                      ShortCut = 24615
+                    end                  
+                    item
+                      Command = ecPageDown
+                      ShortCut = 34
+                    end                  
+                    item
+                      Command = ecSelPageDown
+                      ShortCut = 8226
+                    end                  
+                    item
+                      Command = ecPageBottom
+                      ShortCut = 16418
+                    end                  
+                    item
+                      Command = ecSelPageBottom
+                      ShortCut = 24610
+                    end                  
+                    item
+                      Command = ecPageUp
+                      ShortCut = 33
+                    end                  
+                    item
+                      Command = ecSelPageUp
+                      ShortCut = 8225
+                    end                  
+                    item
+                      Command = ecPageTop
+                      ShortCut = 16417
+                    end                  
+                    item
+                      Command = ecSelPageTop
+                      ShortCut = 24609
+                    end                  
+                    item
+                      Command = ecLineStart
+                      ShortCut = 36
+                    end                  
+                    item
+                      Command = ecSelLineStart
+                      ShortCut = 8228
+                    end                  
+                    item
+                      Command = ecEditorTop
+                      ShortCut = 16420
+                    end                  
+                    item
+                      Command = ecSelEditorTop
+                      ShortCut = 24612
+                    end                  
+                    item
+                      Command = ecLineEnd
+                      ShortCut = 35
+                    end                  
+                    item
+                      Command = ecSelLineEnd
+                      ShortCut = 8227
+                    end                  
+                    item
+                      Command = ecEditorBottom
+                      ShortCut = 16419
+                    end                  
+                    item
+                      Command = ecSelEditorBottom
+                      ShortCut = 24611
+                    end                  
+                    item
+                      Command = ecToggleMode
+                      ShortCut = 45
+                    end                  
+                    item
+                      Command = ecCopy
+                      ShortCut = 16429
+                    end                  
+                    item
+                      Command = ecPaste
+                      ShortCut = 8237
+                    end                  
+                    item
+                      Command = ecDeleteChar
+                      ShortCut = 46
+                    end                  
+                    item
+                      Command = ecCut
+                      ShortCut = 8238
+                    end                  
+                    item
+                      Command = ecDeleteLastChar
+                      ShortCut = 8
+                    end                  
+                    item
+                      Command = ecDeleteLastChar
+                      ShortCut = 8200
+                    end                  
+                    item
+                      Command = ecDeleteLastWord
+                      ShortCut = 16392
+                    end                  
+                    item
+                      Command = ecUndo
+                      ShortCut = 32776
+                    end                  
+                    item
+                      Command = ecRedo
+                      ShortCut = 40968
+                    end                  
+                    item
+                      Command = ecLineBreak
+                      ShortCut = 13
+                    end                  
+                    item
+                      Command = ecSelectAll
+                      ShortCut = 16449
+                    end                  
+                    item
+                      Command = ecCopy
+                      ShortCut = 16451
+                    end                  
+                    item
+                      Command = ecBlockIndent
+                      ShortCut = 24649
+                    end                  
+                    item
+                      Command = ecLineBreak
+                      ShortCut = 16461
+                    end                  
+                    item
+                      Command = ecInsertLine
+                      ShortCut = 16462
+                    end                  
+                    item
+                      Command = ecDeleteWord
+                      ShortCut = 16468
+                    end                  
+                    item
+                      Command = ecBlockUnindent
+                      ShortCut = 24661
+                    end                  
+                    item
+                      Command = ecPaste
+                      ShortCut = 16470
+                    end                  
+                    item
+                      Command = ecCut
+                      ShortCut = 16472
+                    end                  
+                    item
+                      Command = ecDeleteLine
+                      ShortCut = 16473
+                    end                  
+                    item
+                      Command = ecDeleteEOL
+                      ShortCut = 24665
+                    end                  
+                    item
+                      Command = ecUndo
+                      ShortCut = 16474
+                    end                  
+                    item
+                      Command = ecRedo
+                      ShortCut = 24666
+                    end                  
+                    item
+                      Command = ecGotoMarker0
+                      ShortCut = 16432
+                    end                  
+                    item
+                      Command = ecGotoMarker1
+                      ShortCut = 16433
+                    end                  
+                    item
+                      Command = ecGotoMarker2
+                      ShortCut = 16434
+                    end                  
+                    item
+                      Command = ecGotoMarker3
+                      ShortCut = 16435
+                    end                  
+                    item
+                      Command = ecGotoMarker4
+                      ShortCut = 16436
+                    end                  
+                    item
+                      Command = ecGotoMarker5
+                      ShortCut = 16437
+                    end                  
+                    item
+                      Command = ecGotoMarker6
+                      ShortCut = 16438
+                    end                  
+                    item
+                      Command = ecGotoMarker7
+                      ShortCut = 16439
+                    end                  
+                    item
+                      Command = ecGotoMarker8
+                      ShortCut = 16440
+                    end                  
+                    item
+                      Command = ecGotoMarker9
+                      ShortCut = 16441
+                    end                  
+                    item
+                      Command = ecSetMarker0
+                      ShortCut = 24624
+                    end                  
+                    item
+                      Command = ecSetMarker1
+                      ShortCut = 24625
+                    end                  
+                    item
+                      Command = ecSetMarker2
+                      ShortCut = 24626
+                    end                  
+                    item
+                      Command = ecSetMarker3
+                      ShortCut = 24627
+                    end                  
+                    item
+                      Command = ecSetMarker4
+                      ShortCut = 24628
+                    end                  
+                    item
+                      Command = ecSetMarker5
+                      ShortCut = 24629
+                    end                  
+                    item
+                      Command = ecSetMarker6
+                      ShortCut = 24630
+                    end                  
+                    item
+                      Command = ecSetMarker7
+                      ShortCut = 24631
+                    end                  
+                    item
+                      Command = ecSetMarker8
+                      ShortCut = 24632
+                    end                  
+                    item
+                      Command = ecSetMarker9
+                      ShortCut = 24633
+                    end                  
+                    item
+                      Command = EcFoldLevel1
+                      ShortCut = 41009
+                    end                  
+                    item
+                      Command = EcFoldLevel2
+                      ShortCut = 41010
+                    end                  
+                    item
+                      Command = EcFoldLevel3
+                      ShortCut = 41011
+                    end                  
+                    item
+                      Command = EcFoldLevel4
+                      ShortCut = 41012
+                    end                  
+                    item
+                      Command = EcFoldLevel5
+                      ShortCut = 41013
+                    end                  
+                    item
+                      Command = EcFoldLevel6
+                      ShortCut = 41014
+                    end                  
+                    item
+                      Command = EcFoldLevel7
+                      ShortCut = 41015
+                    end                  
+                    item
+                      Command = EcFoldLevel8
+                      ShortCut = 41016
+                    end                  
+                    item
+                      Command = EcFoldLevel9
+                      ShortCut = 41017
+                    end                  
+                    item
+                      Command = EcFoldLevel0
+                      ShortCut = 41008
+                    end                  
+                    item
+                      Command = EcFoldCurrent
+                      ShortCut = 41005
+                    end                  
+                    item
+                      Command = EcUnFoldCurrent
+                      ShortCut = 41003
+                    end                  
+                    item
+                      Command = EcToggleMarkupWord
+                      ShortCut = 32845
+                    end                  
+                    item
+                      Command = ecNormalSelect
+                      ShortCut = 24654
+                    end                  
+                    item
+                      Command = ecColumnSelect
+                      ShortCut = 24643
+                    end                  
+                    item
+                      Command = ecLineSelect
+                      ShortCut = 24652
+                    end                  
+                    item
+                      Command = ecTab
+                      ShortCut = 9
+                    end                  
+                    item
+                      Command = ecShiftTab
+                      ShortCut = 8201
+                    end                  
+                    item
+                      Command = ecMatchBracket
+                      ShortCut = 24642
+                    end                  
+                    item
+                      Command = ecColSelUp
+                      ShortCut = 40998
+                    end                  
+                    item
+                      Command = ecColSelDown
+                      ShortCut = 41000
+                    end                  
+                    item
+                      Command = ecColSelLeft
+                      ShortCut = 40997
+                    end                  
+                    item
+                      Command = ecColSelRight
+                      ShortCut = 40999
+                    end                  
+                    item
+                      Command = ecColSelPageDown
+                      ShortCut = 40994
+                    end                  
+                    item
+                      Command = ecColSelPageBottom
+                      ShortCut = 57378
+                    end                  
+                    item
+                      Command = ecColSelPageUp
+                      ShortCut = 40993
+                    end                  
+                    item
+                      Command = ecColSelPageTop
+                      ShortCut = 57377
+                    end                  
+                    item
+                      Command = ecColSelLineStart
+                      ShortCut = 40996
+                    end                  
+                    item
+                      Command = ecColSelLineEnd
+                      ShortCut = 40995
+                    end                  
+                    item
+                      Command = ecColSelEditorTop
+                      ShortCut = 57380
+                    end                  
+                    item
+                      Command = ecColSelEditorBottom
+                      ShortCut = 57379
+                    end>
+                  MouseActions = <>
+                  MouseTextActions = <>
+                  MouseSelActions = <>
+                  Lines.Strings = (
+                    'SynMemoProcessView'
+                  )
+                  VisibleSpecialChars = [vscSpace, vscTabAtLast]
+                  SelectedColor.BackPriority = 50
+                  SelectedColor.ForePriority = 50
+                  SelectedColor.FramePriority = 50
+                  SelectedColor.BoldPriority = 50
+                  SelectedColor.ItalicPriority = 50
+                  SelectedColor.UnderlinePriority = 50
+                  SelectedColor.StrikeOutPriority = 50
+                  BracketHighlightStyle = sbhsBoth
+                  BracketMatchColor.Background = clNone
+                  BracketMatchColor.Foreground = clNone
+                  BracketMatchColor.Style = [fsBold]
+                  FoldedCodeColor.Background = clNone
+                  FoldedCodeColor.Foreground = clGray
+                  FoldedCodeColor.FrameColor = clGray
+                  MouseLinkColor.Background = clNone
+                  MouseLinkColor.Foreground = clBlue
+                  LineHighlightColor.Background = clNone
+                  LineHighlightColor.Foreground = clNone
+                  inline SynLeftGutterPartList1: TSynGutterPartList
+                  end
+                end
+              end
+              object spltProcessList: TSplitter
+                Cursor = crVSplit
+                Left = 0
+                Height = 6
+                Top = 175
+                Width = 764
+                Align = alBottom
+                ResizeAnchor = akBottom
+              end
+              object ListProcesses: TLazVirtualStringTree
+                Left = 0
+                Height = 175
+                Top = 0
+                Width = 764
+                Align = alClient
+                DefaultText = 'Node'
+                Header.AutoSizeIndex = 0
+                Header.Columns = <>
+                Header.MainColumn = -1
+                PopupMenu = popupHost
+                TabOrder = 2
+              end
             end
             object tabCommandStats: TTabSheet
               Caption = 'Command-Statistics'
+              ClientHeight = 250
+              ClientWidth = 764
               ImageIndex = 145
+              object ListCommandStats: TLazVirtualStringTree
+                Left = 0
+                Height = 250
+                Top = 0
+                Width = 764
+                Align = alClient
+                DefaultText = 'Node'
+                Header.AutoSizeIndex = 0
+                Header.Columns = <>
+                Header.MainColumn = -1
+                PopupMenu = popupHost
+                TabOrder = 0
+              end
             end
           end
         end
         object tabDatabase: TTabSheet
           Caption = 'Database'
+          ClientHeight = 283
+          ClientWidth = 772
           ImageIndex = 5
+          object ListTables: TLazVirtualStringTree
+            Left = 0
+            Height = 283
+            Top = 0
+            Width = 772
+            Align = alClient
+            DefaultText = 'Node'
+            Header.AutoSizeIndex = 0
+            Header.Columns = <>
+            Header.MainColumn = -1
+            PopupMenu = popupDB
+            TabOrder = 0
+          end
         end
         object tabEditor: TTabSheet
           Caption = 'Table'
@@ -974,16 +1555,680 @@ object MainForm: TMainForm
           ClientHeight = 283
           ClientWidth = 772
           ImageIndex = 41
+          object lblSorryNoData: TLabel
+            Left = 0
+            Height = 192
+            Top = 91
+            Width = 772
+            Align = alClient
+            Alignment = taCenter
+            Caption = 'No data available for this item.'
+            Layout = tlCenter
+            WordWrap = True
+          end
+          object pnlDataTop: TPanel
+            Left = 0
+            Height = 25
+            Top = 0
+            Width = 772
+            Align = alTop
+            Alignment = taLeftJustify
+            BevelOuter = bvNone
+            BorderWidth = 1
+            ClientHeight = 25
+            ClientWidth = 772
+            TabOrder = 2
+            object lblDataTop: TLabel
+              Left = 1
+              Height = 23
+              Top = 1
+              Width = 215
+              Align = alLeft
+              Anchors = [akTop, akLeft, akRight, akBottom]
+              AutoSize = False
+              Caption = 'Data'
+              Layout = tlCenter
+              PopupMenu = popupDataTop
+            end
+            object tlbDataButtons: TToolBar
+              Left = 698
+              Height = 23
+              Top = 1
+              Width = 73
+              Align = alRight
+              AutoSize = True
+              ButtonHeight = 28
+              ButtonWidth = 72
+              Caption = 'tlbDataButtons'
+              List = True
+              ParentShowHint = False
+              ShowCaptions = True
+              ShowHint = True
+              TabOrder = 0
+              Wrapable = False
+              object tbtnDataNext: TToolButton
+                Left = 1
+                Top = 2
+                Action = actDataShowNext
+              end
+              object tbtnDataShowAll: TToolButton
+                Left = 1
+                Top = 31
+                Action = actDataShowAll
+              end
+              object ToolButton2: TToolButton
+                Left = 1
+                Top = 60
+                Caption = 'ToolButton2'
+                ImageIndex = 108
+              end
+              object tbtnDataSorting: TToolButton
+                Left = 1
+                Top = 89
+                AllowAllUp = True
+                Caption = 'Sorting'
+                ImageIndex = 107
+                OnClick = btnDataClick
+              end
+              object tbtnDataColumns: TToolButton
+                Left = 1
+                Top = 118
+                AllowAllUp = True
+                Caption = 'Columns'
+                ImageIndex = 107
+                OnClick = btnDataClick
+              end
+              object tbtnDataFilter: TToolButton
+                Left = 1
+                Top = 147
+                AllowAllUp = True
+                Caption = 'Filter'
+                ImageIndex = 107
+                OnClick = btnDataClick
+              end
+            end
+          end
+          object pnlFilter: TPanel
+            Left = 0
+            Height = 66
+            Top = 25
+            Width = 772
+            Align = alTop
+            BevelOuter = bvNone
+            ClientHeight = 66
+            ClientWidth = 772
+            TabOrder = 1
+            Visible = False
+            object lblTableFilter: TLabel
+              Left = 554
+              Height = 20
+              Top = 0
+              Width = 172
+              Anchors = [akTop, akRight]
+              Caption = 'Create multi column filter:'
+            end
+            object lblRecentFilters: TLabel
+              Left = 1
+              Height = 20
+              Top = 3
+              Width = 89
+              Caption = 'Recent filters:'
+            end
+            object btnFilterApply: TButton
+              Left = 585
+              Height = 22
+              Top = 41
+              Width = 89
+              Action = actApplyFilter
+              Anchors = [akTop, akRight]
+              TabOrder = 3
+            end
+            object btnFilterClear: TButton
+              Left = 680
+              Height = 22
+              Top = 41
+              Width = 89
+              Action = actClearFilterEditor
+              Anchors = [akTop, akRight]
+              TabOrder = 2
+            end
+            object editFilterSearch: TEdit
+              Left = 585
+              Height = 28
+              Top = 15
+              Width = 184
+              Anchors = [akTop, akRight]
+              TabOrder = 1
+              OnChange = editFilterSearchChange
+              OnEnter = editFilterSearchEnter
+              OnExit = editFilterSearchExit
+            end
+            object comboRecentFilters: TComboBox
+              Left = 77
+              Height = 28
+              Top = 0
+              Width = 505
+              Anchors = [akTop, akLeft, akRight]
+              AutoDropDown = True
+              DropDownCount = 20
+              ItemHeight = 20
+              Style = csDropDownList
+              TabOrder = 0
+              OnSelect = LoadRecentFilter
+            end
+            inline SynEdit1: TSynEdit
+              Left = 1
+              Height = 35
+              Top = 32
+              Width = 581
+              Font.Height = -13
+              Font.Name = 'Courier New'
+              Font.Pitch = fpFixed
+              Font.Quality = fqNonAntialiased
+              ParentColor = False
+              ParentFont = False
+              PopupMenu = popupFilter
+              TabOrder = 4
+              Gutter.Width = 68
+              Gutter.MouseActions = <>
+              RightGutter.Width = 0
+              RightGutter.MouseActions = <>
+              Keystrokes = <              
+                item
+                  Command = ecUp
+                  ShortCut = 38
+                end              
+                item
+                  Command = ecSelUp
+                  ShortCut = 8230
+                end              
+                item
+                  Command = ecScrollUp
+                  ShortCut = 16422
+                end              
+                item
+                  Command = ecDown
+                  ShortCut = 40
+                end              
+                item
+                  Command = ecSelDown
+                  ShortCut = 8232
+                end              
+                item
+                  Command = ecScrollDown
+                  ShortCut = 16424
+                end              
+                item
+                  Command = ecLeft
+                  ShortCut = 37
+                end              
+                item
+                  Command = ecSelLeft
+                  ShortCut = 8229
+                end              
+                item
+                  Command = ecWordLeft
+                  ShortCut = 16421
+                end              
+                item
+                  Command = ecSelWordLeft
+                  ShortCut = 24613
+                end              
+                item
+                  Command = ecRight
+                  ShortCut = 39
+                end              
+                item
+                  Command = ecSelRight
+                  ShortCut = 8231
+                end              
+                item
+                  Command = ecWordRight
+                  ShortCut = 16423
+                end              
+                item
+                  Command = ecSelWordRight
+                  ShortCut = 24615
+                end              
+                item
+                  Command = ecPageDown
+                  ShortCut = 34
+                end              
+                item
+                  Command = ecSelPageDown
+                  ShortCut = 8226
+                end              
+                item
+                  Command = ecPageBottom
+                  ShortCut = 16418
+                end              
+                item
+                  Command = ecSelPageBottom
+                  ShortCut = 24610
+                end              
+                item
+                  Command = ecPageUp
+                  ShortCut = 33
+                end              
+                item
+                  Command = ecSelPageUp
+                  ShortCut = 8225
+                end              
+                item
+                  Command = ecPageTop
+                  ShortCut = 16417
+                end              
+                item
+                  Command = ecSelPageTop
+                  ShortCut = 24609
+                end              
+                item
+                  Command = ecLineStart
+                  ShortCut = 36
+                end              
+                item
+                  Command = ecSelLineStart
+                  ShortCut = 8228
+                end              
+                item
+                  Command = ecEditorTop
+                  ShortCut = 16420
+                end              
+                item
+                  Command = ecSelEditorTop
+                  ShortCut = 24612
+                end              
+                item
+                  Command = ecLineEnd
+                  ShortCut = 35
+                end              
+                item
+                  Command = ecSelLineEnd
+                  ShortCut = 8227
+                end              
+                item
+                  Command = ecEditorBottom
+                  ShortCut = 16419
+                end              
+                item
+                  Command = ecSelEditorBottom
+                  ShortCut = 24611
+                end              
+                item
+                  Command = ecToggleMode
+                  ShortCut = 45
+                end              
+                item
+                  Command = ecCopy
+                  ShortCut = 16429
+                end              
+                item
+                  Command = ecPaste
+                  ShortCut = 8237
+                end              
+                item
+                  Command = ecDeleteChar
+                  ShortCut = 46
+                end              
+                item
+                  Command = ecCut
+                  ShortCut = 8238
+                end              
+                item
+                  Command = ecDeleteLastChar
+                  ShortCut = 8
+                end              
+                item
+                  Command = ecDeleteLastChar
+                  ShortCut = 8200
+                end              
+                item
+                  Command = ecDeleteLastWord
+                  ShortCut = 16392
+                end              
+                item
+                  Command = ecUndo
+                  ShortCut = 32776
+                end              
+                item
+                  Command = ecRedo
+                  ShortCut = 40968
+                end              
+                item
+                  Command = ecLineBreak
+                  ShortCut = 13
+                end              
+                item
+                  Command = ecSelectAll
+                  ShortCut = 16449
+                end              
+                item
+                  Command = ecCopy
+                  ShortCut = 16451
+                end              
+                item
+                  Command = ecBlockIndent
+                  ShortCut = 24649
+                end              
+                item
+                  Command = ecLineBreak
+                  ShortCut = 16461
+                end              
+                item
+                  Command = ecInsertLine
+                  ShortCut = 16462
+                end              
+                item
+                  Command = ecDeleteWord
+                  ShortCut = 16468
+                end              
+                item
+                  Command = ecBlockUnindent
+                  ShortCut = 24661
+                end              
+                item
+                  Command = ecPaste
+                  ShortCut = 16470
+                end              
+                item
+                  Command = ecCut
+                  ShortCut = 16472
+                end              
+                item
+                  Command = ecDeleteLine
+                  ShortCut = 16473
+                end              
+                item
+                  Command = ecDeleteEOL
+                  ShortCut = 24665
+                end              
+                item
+                  Command = ecUndo
+                  ShortCut = 16474
+                end              
+                item
+                  Command = ecRedo
+                  ShortCut = 24666
+                end              
+                item
+                  Command = ecGotoMarker0
+                  ShortCut = 16432
+                end              
+                item
+                  Command = ecGotoMarker1
+                  ShortCut = 16433
+                end              
+                item
+                  Command = ecGotoMarker2
+                  ShortCut = 16434
+                end              
+                item
+                  Command = ecGotoMarker3
+                  ShortCut = 16435
+                end              
+                item
+                  Command = ecGotoMarker4
+                  ShortCut = 16436
+                end              
+                item
+                  Command = ecGotoMarker5
+                  ShortCut = 16437
+                end              
+                item
+                  Command = ecGotoMarker6
+                  ShortCut = 16438
+                end              
+                item
+                  Command = ecGotoMarker7
+                  ShortCut = 16439
+                end              
+                item
+                  Command = ecGotoMarker8
+                  ShortCut = 16440
+                end              
+                item
+                  Command = ecGotoMarker9
+                  ShortCut = 16441
+                end              
+                item
+                  Command = ecSetMarker0
+                  ShortCut = 24624
+                end              
+                item
+                  Command = ecSetMarker1
+                  ShortCut = 24625
+                end              
+                item
+                  Command = ecSetMarker2
+                  ShortCut = 24626
+                end              
+                item
+                  Command = ecSetMarker3
+                  ShortCut = 24627
+                end              
+                item
+                  Command = ecSetMarker4
+                  ShortCut = 24628
+                end              
+                item
+                  Command = ecSetMarker5
+                  ShortCut = 24629
+                end              
+                item
+                  Command = ecSetMarker6
+                  ShortCut = 24630
+                end              
+                item
+                  Command = ecSetMarker7
+                  ShortCut = 24631
+                end              
+                item
+                  Command = ecSetMarker8
+                  ShortCut = 24632
+                end              
+                item
+                  Command = ecSetMarker9
+                  ShortCut = 24633
+                end              
+                item
+                  Command = EcFoldLevel1
+                  ShortCut = 41009
+                end              
+                item
+                  Command = EcFoldLevel2
+                  ShortCut = 41010
+                end              
+                item
+                  Command = EcFoldLevel3
+                  ShortCut = 41011
+                end              
+                item
+                  Command = EcFoldLevel4
+                  ShortCut = 41012
+                end              
+                item
+                  Command = EcFoldLevel5
+                  ShortCut = 41013
+                end              
+                item
+                  Command = EcFoldLevel6
+                  ShortCut = 41014
+                end              
+                item
+                  Command = EcFoldLevel7
+                  ShortCut = 41015
+                end              
+                item
+                  Command = EcFoldLevel8
+                  ShortCut = 41016
+                end              
+                item
+                  Command = EcFoldLevel9
+                  ShortCut = 41017
+                end              
+                item
+                  Command = EcFoldLevel0
+                  ShortCut = 41008
+                end              
+                item
+                  Command = EcFoldCurrent
+                  ShortCut = 41005
+                end              
+                item
+                  Command = EcUnFoldCurrent
+                  ShortCut = 41003
+                end              
+                item
+                  Command = EcToggleMarkupWord
+                  ShortCut = 32845
+                end              
+                item
+                  Command = ecNormalSelect
+                  ShortCut = 24654
+                end              
+                item
+                  Command = ecColumnSelect
+                  ShortCut = 24643
+                end              
+                item
+                  Command = ecLineSelect
+                  ShortCut = 24652
+                end              
+                item
+                  Command = ecTab
+                  ShortCut = 9
+                end              
+                item
+                  Command = ecShiftTab
+                  ShortCut = 8201
+                end              
+                item
+                  Command = ecMatchBracket
+                  ShortCut = 24642
+                end              
+                item
+                  Command = ecColSelUp
+                  ShortCut = 40998
+                end              
+                item
+                  Command = ecColSelDown
+                  ShortCut = 41000
+                end              
+                item
+                  Command = ecColSelLeft
+                  ShortCut = 40997
+                end              
+                item
+                  Command = ecColSelRight
+                  ShortCut = 40999
+                end              
+                item
+                  Command = ecColSelPageDown
+                  ShortCut = 40994
+                end              
+                item
+                  Command = ecColSelPageBottom
+                  ShortCut = 57378
+                end              
+                item
+                  Command = ecColSelPageUp
+                  ShortCut = 40993
+                end              
+                item
+                  Command = ecColSelPageTop
+                  ShortCut = 57377
+                end              
+                item
+                  Command = ecColSelLineStart
+                  ShortCut = 40996
+                end              
+                item
+                  Command = ecColSelLineEnd
+                  ShortCut = 40995
+                end              
+                item
+                  Command = ecColSelEditorTop
+                  ShortCut = 57380
+                end              
+                item
+                  Command = ecColSelEditorBottom
+                  ShortCut = 57379
+                end>
+              MouseActions = <>
+              MouseTextActions = <>
+              MouseSelActions = <>
+              Lines.Strings = (
+                'SynEdit1'
+              )
+              VisibleSpecialChars = [vscSpace, vscTabAtLast]
+              ScrollBars = ssNone
+              SelectedColor.BackPriority = 50
+              SelectedColor.ForePriority = 50
+              SelectedColor.FramePriority = 50
+              SelectedColor.BoldPriority = 50
+              SelectedColor.ItalicPriority = 50
+              SelectedColor.UnderlinePriority = 50
+              SelectedColor.StrikeOutPriority = 50
+              BracketHighlightStyle = sbhsBoth
+              BracketMatchColor.Background = clNone
+              BracketMatchColor.Foreground = clNone
+              BracketMatchColor.Style = [fsBold]
+              FoldedCodeColor.Background = clNone
+              FoldedCodeColor.Foreground = clGray
+              FoldedCodeColor.FrameColor = clGray
+              MouseLinkColor.Background = clNone
+              MouseLinkColor.Foreground = clBlue
+              LineHighlightColor.Background = clNone
+              LineHighlightColor.Foreground = clNone
+              inline SynLeftGutterPartList1: TSynGutterPartList
+                object SynGutterMarks1: TSynGutterMarks
+                  Width = 30
+                  MouseActions = <>
+                end
+                object SynGutterLineNumber1: TSynGutterLineNumber
+                  Width = 17
+                  MouseActions = <>
+                  MarkupInfo.Background = clBtnFace
+                  MarkupInfo.Foreground = clNone
+                  DigitCount = 2
+                  ShowOnlyLineNumbersMultiplesOf = 1
+                  ZeroStart = False
+                  LeadingZeros = False
+                end
+                object SynGutterChanges1: TSynGutterChanges
+                  Width = 5
+                  MouseActions = <>
+                  ModifiedColor = 59900
+                  SavedColor = clGreen
+                end
+                object SynGutterSeparator1: TSynGutterSeparator
+                  Width = 3
+                  MouseActions = <>
+                  MarkupInfo.Background = clWhite
+                  MarkupInfo.Foreground = clGray
+                end
+                object SynGutterCodeFolding1: TSynGutterCodeFolding
+                  Width = 13
+                  MouseActions = <>
+                  MarkupInfo.Background = clNone
+                  MarkupInfo.Foreground = clGray
+                  MouseActionsExpanded = <>
+                  MouseActionsCollapsed = <>
+                end
+              end
+            end
+          end
           object DataGrid: TLazVirtualStringTree
             Left = 0
-            Height = 283
-            Top = 0
+            Height = 192
+            Top = 91
             Width = 772
             Align = alClient
             DefaultText = 'Node'
             Header.AutoSizeIndex = 0
             Header.Columns = <>
             Header.MainColumn = -1
+            PopupMenu = popupDataGrid
             TabOrder = 0
           end
         end
@@ -1031,6 +2276,7 @@ object MainForm: TMainForm
                 Header.AutoSizeIndex = 0
                 Header.Columns = <>
                 Header.MainColumn = -1
+                PopupMenu = popupQueryHelpers
                 RootNodeCount = 6
                 TabOrder = 1
               end
@@ -1055,8 +2301,9 @@ object MainForm: TMainForm
               Font.Quality = fqNonAntialiased
               ParentColor = False
               ParentFont = False
+              PopupMenu = popupQuery
               TabOrder = 2
-              Gutter.Width = 68
+              Gutter.Width = 0
               Gutter.MouseActions = <>
               RightGutter.Width = 0
               RightGutter.MouseActions = <>
@@ -1508,40 +2755,6 @@ object MainForm: TMainForm
               LineHighlightColor.Background = clNone
               LineHighlightColor.Foreground = clNone
               inline SynLeftGutterPartList1: TSynGutterPartList
-                object SynGutterMarks1: TSynGutterMarks
-                  Width = 30
-                  MouseActions = <>
-                end
-                object SynGutterLineNumber1: TSynGutterLineNumber
-                  Width = 17
-                  MouseActions = <>
-                  MarkupInfo.Background = clBtnFace
-                  MarkupInfo.Foreground = clNone
-                  DigitCount = 2
-                  ShowOnlyLineNumbersMultiplesOf = 1
-                  ZeroStart = False
-                  LeadingZeros = False
-                end
-                object SynGutterChanges1: TSynGutterChanges
-                  Width = 5
-                  MouseActions = <>
-                  ModifiedColor = 59900
-                  SavedColor = clGreen
-                end
-                object SynGutterSeparator1: TSynGutterSeparator
-                  Width = 3
-                  MouseActions = <>
-                  MarkupInfo.Background = clWhite
-                  MarkupInfo.Foreground = clGray
-                end
-                object SynGutterCodeFolding1: TSynGutterCodeFolding
-                  Width = 13
-                  MouseActions = <>
-                  MarkupInfo.Background = clNone
-                  MarkupInfo.Foreground = clGray
-                  MouseActionsExpanded = <>
-                  MouseActionsCollapsed = <>
-                end
               end
             end
           end
@@ -18230,6 +19443,717 @@ object MainForm: TMainForm
     Images = ImageListIcons8
     Left = 642
     Top = 438
+  end
+  object popupDB: TPopupMenu
+    OnPopup = popupDBPopup
+    Left = 272
+    Top = 152
+    object menuEditObject: TMenuItem
+      Caption = 'Edit'
+      Hint = 'Edit selected object'
+      ImageIndex = 129
+      ShortCut = 32781
+      OnClick = menuEditObjectClick
+    end
+    object menuDeleteObject: TMenuItem
+      Action = actDropObjects
+    end
+    object Attach1: TMenuItem
+      Action = actAttachDatabase
+    end
+    object Detach1: TMenuItem
+      Action = actDetachDatabase
+    end
+    object menuEmptyTables: TMenuItem
+      Action = actEmptyTables
+    end
+    object Runroutines1: TMenuItem
+      Action = actRunRoutines
+    end
+    object menuCreateObject: TMenuItem
+      Caption = 'Create new'
+      ImageIndex = 130
+      object menuCreateDB: TMenuItem
+        Action = actCreateDatabase
+      end
+      object menuCreateTable: TMenuItem
+        Action = actCreateTable
+      end
+      object menuCreateTableCopy: TMenuItem
+        Action = actCopyTable
+      end
+      object menuCreateView: TMenuItem
+        Action = actCreateView
+      end
+      object menuCreateRoutine: TMenuItem
+        Action = actCreateProcedure
+      end
+      object Storedfunction1: TMenuItem
+        Action = actCreateFunction
+      end
+      object menuCreateTrigger: TMenuItem
+        Action = actCreateTrigger
+      end
+      object Event1: TMenuItem
+        Action = actCreateEvent
+      end
+    end
+    object menuClearDataTabFilter: TMenuItem
+      Caption = 'Clear data tab filter and sort order'
+      OnClick = menuClearDataTabFilterClick
+    end
+    object N17: TMenuItem
+      Caption = '-'
+    end
+    object menuExporttables: TMenuItem
+      Action = actExportTables
+    end
+    object menuMaintenance2: TMenuItem
+      Action = actMaintenance
+    end
+    object Findtextonserver1: TMenuItem
+      Action = actFindTextOnServer
+    end
+    object menuBulkTableEdit: TMenuItem
+      Action = actBulkTableEdit
+    end
+    object Generatedata2: TMenuItem
+      Action = actGenerateData
+    end
+    object N5a: TMenuItem
+      Caption = '-'
+    end
+    object menuTreeExpandAll: TMenuItem
+      Caption = 'Expand all'
+      ImageIndex = 87
+      OnClick = menuTreeExpandAllClick
+    end
+    object menuTreeCollapseAll: TMenuItem
+      Caption = 'Collapse all'
+      ImageIndex = 88
+      OnClick = menuTreeCollapseAllClick
+    end
+    object menuTreeOptions: TMenuItem
+      Caption = 'Tree style options'
+      object menuGroupObjects: TMenuItem
+        Action = actGroupObjects
+        AutoCheck = True
+      end
+      object menuShowSizeColumn: TMenuItem
+        Caption = 'Display size of objects'
+        OnClick = menuShowSizeColumnClick
+      end
+      object menuAutoExpand: TMenuItem
+        Caption = 'Auto expand on click'
+        OnClick = menuAutoExpandClick
+      end
+      object menuDoubleClickInsertsNodeText: TMenuItem
+        Caption = 'Doubleclick inserts node text'
+        OnClick = menuDoubleClickInsertsNodeTextClick
+      end
+      object actFavoriteObjectsOnly1: TMenuItem
+        Action = actFavoriteObjectsOnly
+        AutoCheck = True
+      end
+    end
+    object menuPrint: TMenuItem
+      Action = actPrintList
+    end
+    object menuRefreshDB: TMenuItem
+      Action = actRefresh
+    end
+    object Connectionproperties1: TMenuItem
+      Action = actConnectionProperties
+    end
+    object Disconnect1: TMenuItem
+      Action = actDisconnect
+    end
+  end
+  object popupHost: TPopupMenu
+    OnPopup = popupHostPopup
+    Left = 201
+    Top = 104
+    object Copy2: TMenuItem
+      Action = actCopy
+    end
+    object N26: TMenuItem
+      Caption = '-'
+    end
+    object menuFetchDBitems: TMenuItem
+      Caption = 'Fetch database items'
+      Enabled = False
+      OnClick = menuFetchDBitemsClick
+    end
+    object Kill1: TMenuItem
+      Caption = 'Kill Process(es)...'
+      Enabled = False
+      ImageIndex = 26
+      ShortCut = 46
+      OnClick = KillProcess
+    end
+    object menuEditVariable: TMenuItem
+      Caption = 'Edit ...'
+      ImageIndex = 33
+      ShortCut = 13
+      OnClick = menuEditVariableClick
+    end
+    object menuExplainProcess: TMenuItem
+      Caption = 'EXPLAIN query'
+      Enabled = False
+      Hint = 'Analyze selected process SQL'
+      ImageIndex = 39
+      OnClick = lblExplainProcessClick
+    end
+    object N1a: TMenuItem
+      Caption = '-'
+    end
+    object PrintList2: TMenuItem
+      Action = actPrintList
+    end
+    object Refresh1: TMenuItem
+      Action = actRefresh
+    end
+  end
+  object popupDataGrid: TPopupMenu
+    OnPopup = popupDataGridPopup
+    Left = 200
+    Top = 248
+    object Copy3: TMenuItem
+      Action = actCopy
+    end
+    object menuCopyAs: TMenuItem
+      Caption = 'Copy as'
+      ImageIndex = 155
+    end
+    object Paste2: TMenuItem
+      Action = actPaste
+    end
+    object DataInsertValue: TMenuItem
+      Caption = 'Insert value'
+      ImageIndex = 80
+      OnClick = DataInsertValueClick
+      object setNULL1: TMenuItem
+        Action = actDataSetNull
+      end
+      object InsertSQLfunction1: TMenuItem
+        Action = actGridEditFunction
+      end
+      object DataDefaultValue: TMenuItem
+        Caption = 'default'
+        ImageIndex = 28
+        OnClick = InsertValue
+      end
+      object N11: TMenuItem
+        Caption = '-'
+      end
+      object DataDateTime: TMenuItem
+        Caption = 'datetime'
+        Hint = 'Insert datetime-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataDate: TMenuItem
+        Caption = 'date'
+        Hint = 'Insert date-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataTime: TMenuItem
+        Caption = 'time'
+        Hint = 'Insert time-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataYear: TMenuItem
+        Caption = 'year'
+        Hint = 'Insert year-value'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object DataUnixTimestamp: TMenuItem
+        Caption = 'unix timestamp'
+        Hint = 'Insert UNIX timestamp'
+        ImageIndex = 80
+        OnClick = InsertValue
+      end
+      object N14: TMenuItem
+        Caption = '-'
+      end
+      object DataUtcDateTime: TMenuItem
+        Caption = 'utc datetime'
+        ImageIndex = 69
+        OnClick = InsertValue
+      end
+      object DataUtcDate: TMenuItem
+        Caption = 'utc date'
+        ImageIndex = 69
+        OnClick = InsertValue
+      end
+      object DataUtcTime: TMenuItem
+        Caption = 'utc time'
+        ImageIndex = 69
+        OnClick = InsertValue
+      end
+      object DataUtcUnixTimestamp: TMenuItem
+        Caption = 'utc unix timestamp'
+        ImageIndex = 69
+        OnClick = InsertValue
+      end
+      object N12: TMenuItem
+        Caption = '-'
+      end
+      object DataGUID: TMenuItem
+        Caption = 'GUID'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
+      object DataGUIDwobraces: TMenuItem
+        Caption = 'GUID without braces'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
+      object DataGUIDlowercase: TMenuItem
+        Caption = 'GUID lowercase'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
+      object DataGUIDlowercaseWobraces: TMenuItem
+        Caption = 'GUID lowercase without braces'
+        ImageIndex = 112
+        OnClick = InsertValue
+      end
+    end
+    object InsertfilesintoBLOBfields3: TMenuItem
+      Action = actInsertFiles
+    end
+    object SaveBLOBtofile1: TMenuItem
+      Action = actDataSaveBlobToFile
+    end
+    object Gridviewoptions1: TMenuItem
+      Caption = 'Grid view options'
+      object hisisaUNIXtimestampcolumn1: TMenuItem
+        Action = actUnixTimestampColumn
+        AutoCheck = True
+      end
+      object ViewasHTML1: TMenuItem
+        Action = actDataPreview
+      end
+      object ViewbinarydataastextinsteadofHEX2: TMenuItem
+        Action = actBlobAsText
+        AutoCheck = True
+      end
+      object Datapreferences1: TMenuItem
+        Action = actPreferencesData
+      end
+    end
+    object OpenURL1: TMenuItem
+      Action = actDataOpenUrl
+    end
+    object FollowForeignKey: TMenuItem
+      Action = actFollowForeignKey
+    end
+    object N4a: TMenuItem
+      Caption = '-'
+    end
+    object Insert1: TMenuItem
+      Action = actDataInsert
+    end
+    object Duplicaterow1: TMenuItem
+      Action = actDataDuplicateRowWithoutKeys
+    end
+    object Duplicaterowwithkeys1: TMenuItem
+      Action = actDataDuplicateRowWithKeys
+    end
+    object DataPost1: TMenuItem
+      Action = actDataPostChanges
+    end
+    object Cancelediting1: TMenuItem
+      Action = actDataCancelChanges
+    end
+    object Delete1: TMenuItem
+      Action = actDataDelete
+    end
+    object N6a: TMenuItem
+      Caption = '-'
+    end
+    object Resetsorting1: TMenuItem
+      Action = actDataResetSorting
+    end
+    object menuQuickFilter: TMenuItem
+      Caption = 'Quick Filter'
+      ImageIndex = 53
+      object menuQuickFilterFocused1: TMenuItem
+        Action = actQuickFilterFocused1
+      end
+      object menuQuickFilterFocused2: TMenuItem
+        Action = actQuickFilterFocused2
+      end
+      object menuQuickFilterFocused3: TMenuItem
+        Action = actQuickFilterFocused3
+      end
+      object menuQuickFilterFocused4: TMenuItem
+        Action = actQuickFilterFocused4
+      end
+      object menuQuickFilterFocused5: TMenuItem
+        Action = actQuickFilterFocused5
+      end
+      object menuQuickFilterFocused6: TMenuItem
+        Action = actQuickFilterFocused6
+      end
+      object menuQuickFilterFocused7: TMenuItem
+        Action = actQuickFilterFocused7
+      end
+      object QFvalues: TMenuItem
+        Caption = 'More values ...'
+        ImageIndex = 61
+        OnClick = QFvaluesClick
+      end
+      object N11a: TMenuItem
+        Caption = '-'
+      end
+      object menuQuickFilterPrompt1: TMenuItem
+        Action = actQuickFilterPrompt1
+      end
+      object menuQuickFilterPrompt2: TMenuItem
+        Action = actQuickFilterPrompt2
+      end
+      object menuQuickFilterPrompt3: TMenuItem
+        Action = actQuickFilterPrompt3
+      end
+      object menuQuickFilterPrompt4: TMenuItem
+        Action = actQuickFilterPrompt4
+      end
+      object menuQuickFilterPrompt5: TMenuItem
+        Action = actQuickFilterPrompt5
+      end
+      object menuQuickFilterPrompt6: TMenuItem
+        Action = actQuickFilterNull
+      end
+      object menuQuickFilterPrompt7: TMenuItem
+        Action = actQuickFilterNotNull
+      end
+      object N7a: TMenuItem
+        Caption = '-'
+      end
+      object menuQuickFilterClipboard1: TMenuItem
+        Action = actQuickFilterClipboard1
+      end
+      object menuQuickFilterClipboard2: TMenuItem
+        Action = actQuickFilterClipboard2
+      end
+      object menuQuickFilterClipboard3: TMenuItem
+        Action = actQuickFilterClipboard3
+      end
+      object menuQuickFilterClipboard4: TMenuItem
+        Action = actQuickFilterClipboard4
+      end
+      object menuQuickFilterClipboard5: TMenuItem
+        Action = actQuickFilterClipboard5
+      end
+      object menuQuickFilterClipboard6: TMenuItem
+        Action = actQuickFilterClipboard6
+      end
+      object N21: TMenuItem
+        Caption = '-'
+      end
+      object DropFilter1: TMenuItem
+        Action = actRemoveFilter
+      end
+    end
+    object Findtext2: TMenuItem
+      Action = actQueryFind
+    end
+    object N9a: TMenuItem
+      Caption = '-'
+    end
+    object Exportdata2: TMenuItem
+      Action = actExportData
+    end
+    object menuSQLhelpData: TMenuItem
+      Action = actSQLhelp
+    end
+    object Refresh3: TMenuItem
+      Action = actRefresh
+    end
+  end
+  object popupSqlLog: TPopupMenu
+    OnPopup = popupSqlLogPopup
+    Left = 272
+    Top = 200
+    object Copy1: TMenuItem
+      Action = actCopy
+    end
+    object Copylinetonewquerytab1: TMenuItem
+      Caption = 'Copy line to new query tab'
+      ImageIndex = 132
+      OnClick = Copylinetonewquerytab1Click
+    end
+    object Clear2: TMenuItem
+      Action = actClearQueryLog
+    end
+    object menuLogHorizontalScrollbar: TMenuItem
+      Action = actLogHorizontalScrollbar
+      AutoCheck = True
+    end
+    object Saveastextfile1: TMenuItem
+      Action = actSaveSynMemoToTextfile
+    end
+    object menuLogToFile: TMenuItem
+      Caption = 'Log to file'
+      OnClick = menuLogToFileClick
+    end
+    object menuOpenLogFolder: TMenuItem
+      Caption = 'Open log folder ...'
+      Enabled = False
+      ImageIndex = 51
+      OnClick = menuOpenLogFolderClick
+    end
+    object N15: TMenuItem
+      Caption = '-'
+    end
+    object Loggingpreferences1: TMenuItem
+      Action = actPreferencesLogging
+    end
+  end
+  object popupQuery: TPopupMenu
+    OnPopup = popupQueryPopup
+    Left = 344
+    Top = 104
+    object MenuRun: TMenuItem
+      Action = actExecuteQuery
+    end
+    object MenuRunSelection: TMenuItem
+      Action = actExecuteSelection
+    end
+    object MenuRunLine: TMenuItem
+      Action = actExecuteCurrentQuery
+    end
+    object menuQueryExplain: TMenuItem
+      Action = actExplainCurrentQuery
+    end
+    object MenuItem1: TMenuItem
+      Caption = '-'
+    end
+    object menuQueryCut: TMenuItem
+      Action = actCut
+    end
+    object menucopy: TMenuItem
+      Action = actCopy
+    end
+    object menupaste: TMenuItem
+      Action = actPaste
+    end
+    object menuQuerySelectall: TMenuItem
+      Action = actSelectAll
+    end
+    object menuclear: TMenuItem
+      Action = actClearQueryEditor
+    end
+    object ShowSQLcompletionproposal1: TMenuItem
+      Action = actSynEditCompletionPropose
+    end
+    object ReformatSQL1: TMenuItem
+      Action = actReformatSQL
+    end
+    object Uncomment1: TMenuItem
+      Action = actToggleComment
+    end
+    object N22: TMenuItem
+      Caption = '-'
+    end
+    object MenuFind: TMenuItem
+      Action = actQueryFind
+    end
+    object MenuReplace: TMenuItem
+      Action = actQueryReplace
+    end
+    object MenuItem2: TMenuItem
+      Caption = '-'
+    end
+    object menuload: TMenuItem
+      Action = actLoadSQL
+    end
+    object menuSaveSQL: TMenuItem
+      Action = actSaveSQL
+    end
+    object menusave: TMenuItem
+      Action = actSaveSQLAs
+    end
+    object menuSaveSelectionToFile: TMenuItem
+      Action = actSaveSQLselection
+    end
+    object menuSaveAsSnippet: TMenuItem
+      Action = actSaveSQLSnippet
+    end
+    object menuSaveSelectionAsSnippet: TMenuItem
+      Action = actSaveSQLSelectionSnippet
+    end
+    object N23: TMenuItem
+      Caption = '-'
+    end
+    object menuSQLhelp2: TMenuItem
+      Action = actSQLhelp
+    end
+    object SequalSuggest2: TMenuItem
+      Action = actSequalSuggest
+    end
+    object menuQueryInsertFunction: TMenuItem
+      Caption = 'Insert function'
+      ImageIndex = 13
+    end
+  end
+  object popupQueryHelpers: TPopupMenu
+    Left = 344
+    Top = 152
+    object menuInsertAtCursor: TMenuItem
+      Caption = 'Insert at cursor'
+      Default = True
+      ImageIndex = 52
+      OnClick = menuInsertAtCursorClick
+    end
+    object menuLoadSnippet: TMenuItem
+      Caption = 'Load'
+      Enabled = False
+      ImageIndex = 52
+      OnClick = menuLoadSnippetClick
+    end
+    object menuDeleteSnippet: TMenuItem
+      Caption = 'Delete ...'
+      Enabled = False
+      ImageIndex = 26
+      ShortCut = 46
+      OnClick = menuDeleteSnippetClick
+    end
+    object menuExplore: TMenuItem
+      Caption = 'Explore folder'
+      Enabled = False
+      ImageIndex = 51
+      OnClick = menuExploreClick
+    end
+    object menuHelp: TMenuItem
+      Action = actSQLhelp
+    end
+    object menuClearQueryHistory: TMenuItem
+      Caption = 'Clear query history ...'
+      Enabled = False
+      OnClick = menuClearQueryHistoryClick
+    end
+    object menuQueryHelpersGenerateSelect: TMenuItem
+      Caption = 'Generate SELECT ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
+    object menuQueryHelpersGenerateInsert: TMenuItem
+      Caption = 'Generate INSERT ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
+    object menuQueryHelpersGenerateUpdate: TMenuItem
+      Caption = 'Generate UPDATE ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
+    object menuQueryHelpersGenerateDelete: TMenuItem
+      Caption = 'Generate DELETE ...'
+      Enabled = False
+      ImageIndex = 114
+      OnClick = menuQueryHelpersGenerateStatementClick
+    end
+  end
+  object popupFilter: TPopupMenu
+    OnPopup = popupFilterPopup
+    Left = 344
+    Top = 248
+    object menuFilterCopy: TMenuItem
+      Action = actCopy
+    end
+    object menuFilterPaste: TMenuItem
+      Action = actPaste
+    end
+    object menuFilterClear: TMenuItem
+      Action = actClearFilterEditor
+    end
+    object N8a: TMenuItem
+      Caption = '-'
+    end
+    object menuFilterApply: TMenuItem
+      Action = actApplyFilter
+    end
+    object menuRecentFilters: TMenuItem
+      Caption = 'Recent filters'
+      Enabled = False
+      ImageIndex = 53
+    end
+    object menuFilterInsertFunction: TMenuItem
+      Caption = 'Insert function'
+      ImageIndex = 13
+    end
+  end
+  object popupMainTabs: TPopupMenu
+    AutoPopup = False
+    OnPopup = popupMainTabsPopup
+    Left = 200
+    Top = 152
+    object menuNewQueryTab: TMenuItem
+      Action = actNewQueryTab
+    end
+    object menuCloseQueryTab: TMenuItem
+      Caption = 'Close query tab'
+      ImageIndex = 133
+      OnClick = menuCloseQueryTabClick
+    end
+    object menuCloseRightQueryTabs: TMenuItem
+      Caption = 'Close query tabs to the right'
+      ImageIndex = 133
+      OnClick = menuCloseRightQueryTabsClick
+    end
+    object actCloseAllQueryTabs1: TMenuItem
+      Action = actCloseAllQueryTabs
+    end
+    object N25: TMenuItem
+      Caption = '-'
+    end
+    object menuRenameQueryTab: TMenuItem
+      Caption = 'Rename tab'
+      ImageIndex = 58
+      OnClick = menuRenameQueryTabClick
+    end
+    object menuCloseTabOnDblClick: TMenuItem
+      AutoCheck = True
+      Caption = 'Close tab on doubleclick'
+      OnClick = menuCloseTabOnDblClickClick
+    end
+    object menuCloseTabOnMiddleClick: TMenuItem
+      AutoCheck = True
+      Caption = 'Close tab on middleclick'
+      OnClick = menuCloseTabOnMiddleClickClick
+    end
+    object menuTabsInMultipleLines: TMenuItem
+      AutoCheck = True
+      Caption = 'Tabs in multiple lines'
+      OnClick = menuTabsInMultipleLinesClick
+    end
+  end
+  object popupDataTop: TPopupMenu
+    Left = 352
+    Top = 320
+    object menuQueryExactRowCount: TMenuItem
+      Caption = 'Query exact row count'
+      OnClick = menuQueryExactRowCountClick
+    end
+  end
+  object popupApplyFilter: TPopupMenu
+    Left = 200
+    Top = 312
+    object menuAlwaysGenerateFilter: TMenuItem
+      AutoCheck = True
+      Caption = 'Always generate filter'
+      Hint = 'Generate filter based on this text, even if the current filter is not empty'
+      OnClick = menuAlwaysGenerateFilterClick
+    end
   end
   object TimerRefresh: TTimer
     Enabled = False

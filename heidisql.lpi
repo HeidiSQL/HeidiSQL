@@ -108,6 +108,7 @@
         <Filename Value="source\change_password.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmPasswordChange"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>

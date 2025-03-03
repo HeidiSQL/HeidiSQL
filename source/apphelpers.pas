@@ -1429,7 +1429,7 @@ begin
   end;
   VT.EndUpdate;
   // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
-  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) and (Win32MajorVersion >= 6) then
+  if toUseExplorerTheme in VT.TreeOptions.PaintOptions then
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
