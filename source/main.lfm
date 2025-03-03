@@ -1,17 +1,16 @@
 object MainForm: TMainForm
   Left = 549
-  Height = 0
+  Height = 500
   Top = 272
-  Width = 0
+  Width = 998
   Caption = 'MainForm'
-  ClientHeight = 0
-  ClientWidth = 0
+  ClientHeight = 500
+  ClientWidth = 998
   DesignTimePPI = 120
   Font.Height = -15
   Menu = MainMenu1
   OnCreate = FormCreate
   Position = poMainFormCenter
-  LCLVersion = '3.8.0.0'
   object StatusBar: TStatusBar
     Left = 0
     Height = 29
@@ -69,7 +68,7 @@ object MainForm: TMainForm
     end
     object tlbSep1: TToolButton
       Left = 74
-      Height = 8
+      Height = 28
       Top = 2
       Caption = 'tlbSep1'
       ImageIndex = 2
@@ -100,7 +99,7 @@ object MainForm: TMainForm
     end
     object tlbSep2: TToolButton
       Left = 198
-      Height = 8
+      Height = 28
       Top = 2
       Caption = 'tlbSep2'
       ImageIndex = 3
@@ -134,7 +133,7 @@ object MainForm: TMainForm
     end
     object tlbSep6: TToolButton
       Left = 337
-      Height = 8
+      Height = 28
       Top = 2
       Caption = 'tlbSep6'
       ImageIndex = 97
@@ -827,6 +826,8 @@ object MainForm: TMainForm
           TabOrder = 0
           TextHint = 'Database filter'
           OnChange = editDatabaseTableFilterChange
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
         object btnTreeFavorites: TToolButton
           Left = 1
@@ -842,6 +843,8 @@ object MainForm: TMainForm
           TabOrder = 1
           TextHint = 'Table filter'
           OnChange = editDatabaseTableFilterChange
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
       end
       object DBtree: TLazVirtualStringTree
@@ -933,6 +936,9 @@ object MainForm: TMainForm
           Width = 237
           TabOrder = 0
           TextHint = 'Regular expression'
+          OnChange = editFilterVTChange
+          OnExit = editDatabaseTableFilterExit
+          OnKeyPress = editDatabaseTableFilterKeyPress
         end
         object lblFilterVTInfo: TLabel
           Left = 379
@@ -947,6 +953,8 @@ object MainForm: TMainForm
           Top = 4
           Width = 20
           Images = ImageListIcons8
+          ImageIndex = 134
+          OnClick = actFilterPanelExecute
         end
       end
       object PageControlMain: TPageControl
@@ -1704,7 +1712,6 @@ object MainForm: TMainForm
                 Width = 764
                 Align = alClient
                 DefaultText = 'Node'
-                Images = ImageListIcons8
                 Header.AutoSizeIndex = 7
                 Header.Columns = <                
                   item
@@ -1751,6 +1758,7 @@ object MainForm: TMainForm
                 Header.SortColumn = 0
                 Header.SortDirection = sdDescending
                 HintMode = hmTooltip
+                Images = ImageListIcons8
                 IncrementalSearch = isInitializedOnly
                 ParentShowHint = False
                 PopupMenu = popupHost
@@ -1786,44 +1794,42 @@ object MainForm: TMainForm
                 Align = alClient
                 DefaultText = 'Node'
                 Header.AutoSizeIndex = 4
-                Header.Columns = <
+                Header.Columns = <                
                   item
                     Position = 0
                     Text = 'Command-type'
                     Width = 120
-                  end
+                  end                
                   item
                     Alignment = taRightJustify
                     Position = 1
                     Text = 'Total count'
                     Width = 100
-                  end
+                  end                
                   item
                     Alignment = taRightJustify
                     Position = 2
                     Text = 'Average per hour'
                     Width = 100
-                  end
+                  end                
                   item
                     Alignment = taRightJustify
                     Position = 3
                     Text = 'Average per second'
                     Width = 100
-                  end
+                  end                
                   item
                     Position = 4
                     Text = 'Percentage'
-                    Width = 252
+                    Width = 340
                   end>
-                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize, hoAutoResizeInclCaption]
-                Header.PopupMenu = popupListHeader
+                Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
                 Header.SortColumn = 1
                 Header.SortDirection = sdDescending
                 HintMode = hmTooltip
                 Images = ImageListIcons8
                 IncrementalSearch = isInitializedOnly
                 ParentShowHint = False
-                Header.MainColumn = -1
                 PopupMenu = popupHost
                 ShowHint = True
                 TabOrder = 0
@@ -19705,7 +19711,7 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = -1
+    Position = 0
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False
@@ -19719,6 +19725,9 @@ object MainForm: TMainForm
     Top = 120
   end
   object TimerFilterVT: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = TimerFilterVTTimer
     Left = 704
     Top = 209
   end
@@ -20501,7 +20510,7 @@ object MainForm: TMainForm
     Enabled = False
     Interval = 10000
     OnTimer = TimerStoreTabsTimer
-    Left = 689
-    Top = 299
+    Left = 752
+    Top = 209
   end
 end

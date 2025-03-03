@@ -1090,7 +1090,7 @@ type
     procedure editDatabaseTableFilterChange(Sender: TObject);
     //procedure editDatabaseTableFilterLeftButtonClick(Sender: TObject);
     //procedure editDatabaseTableFilterMenuClick(Sender: TObject);
-    //procedure editDatabaseTableFilterExit(Sender: TObject);
+    procedure editDatabaseTableFilterExit(Sender: TObject);
     procedure menuClearDataTabFilterClick(Sender: TObject);
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
@@ -1119,10 +1119,10 @@ type
     procedure actNextResultExecute(Sender: TObject);
     procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
     //procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
-    //procedure buttonedEditClear(Sender: TObject);
+    procedure buttonedEditClear(Sender: TObject);
     procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
     procedure DBtreeDblClick(Sender: TObject);
-    //procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
+    procedure editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
     procedure actGotoDbTreeExecute(Sender: TObject);
     procedure actGotoFilterExecute(Sender: TObject);
     procedure actGotoTabNumberExecute(Sender: TObject);
@@ -2139,7 +2139,7 @@ begin
   FBtnAddTab.OnClick := actNewQueryTab.OnExecute;}
 
   // Filter panel
-  VirtualImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
+  //VirtualImageListMain.GetBitmap(134, btnCloseFilterPanel.Glyph);
   if AppSettings.ReadBool(asFilterPanel) then
     actFilterPanelExecute(nil);
   lblFilterVTInfo.Caption := '';
@@ -9109,11 +9109,11 @@ begin
 end;
 
 
-{procedure TMainForm.editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
+procedure TMainForm.editDatabaseTableFilterKeyPress(Sender: TObject; var Key: Char);
 begin
   if Key = #27 then
-    (Sender as TButtonedEdit).OnRightButtonClick(Sender);
-end;}
+    buttonedEditClear(Sender);
+end;
 
 
 procedure TMainForm.TimerFilterVTTimer(Sender: TObject);
@@ -9140,7 +9140,7 @@ var
   OldImageIndex: Integer;
 begin
   // Find the correct VirtualTree that shall be filtered
-  {tab := PageControlMain.ActivePage;
+  tab := PageControlMain.ActivePage;
   if tab = tabHost then
     tab := PageControlHost.ActivePage;
   VT := nil;
@@ -9162,11 +9162,11 @@ begin
   end else if tab = tabDatabase then begin
     VT := ListTables;
     FFilterTextDatabase := editFilterVT.Text;
-  end else if tab = tabEditor then begin
+  end {else if tab = tabEditor then begin
     if ActiveObjectEditor is TfrmTableEditor then
       VT := TfrmTableEditor(ActiveObjectEditor).listColumns;
     FFilterTextEditor := editFilterVT.Text;
-  end else if tab = tabData then begin
+  end} else if tab = tabData then begin
     VT := DataGrid;
     FFilterTextData := editFilterVT.Text;
   end else if QueryTabs.HasActiveTab and (QueryTabs.ActiveTab.ActiveResultTab <> nil) then begin
@@ -9192,9 +9192,9 @@ begin
   OldDataLocalNumberFormat := DataLocalNumberFormat;
   DataLocalNumberFormat := False;
   // Display hour glass instead of X icon
-  OldImageIndex := editFilterVT.RightButton.ImageIndex;
-  editFilterVT.RightButton.ImageIndex := 150;
-  editFilterVT.Repaint;
+  //OldImageIndex := editFilterVT.RightButton.ImageIndex;
+  //editFilterVT.RightButton.ImageIndex := 150;
+  //editFilterVT.Repaint;
 
   VT.BeginUpdate;
   while Assigned(Node) do begin
@@ -9223,8 +9223,8 @@ begin
   else
     InvalidateVT(VT, VTREE_LOADED, true);
   DataLocalNumberFormat := OldDataLocalNumberFormat;
-  editFilterVT.RightButton.ImageIndex := OldImageIndex;
-  rx.Free;}
+  //editFilterVT.RightButton.ImageIndex := OldImageIndex;
+  rx.Free;
 end;
 
 
@@ -12632,11 +12632,11 @@ begin
 end;
 
 
-{procedure TMainForm.buttonedEditClear(Sender: TObject);
+procedure TMainForm.buttonedEditClear(Sender: TObject);
 begin
   // Click on "clear" button of any TButtonedEdit control
-  TButtonedEdit(Sender).Clear;
-end;}
+  TEdit(Sender).Clear;
+end;
 
 
 procedure TMainForm.editDatabaseTableFilterChange(Sender: TObject);
@@ -12790,15 +12790,15 @@ begin
 end;}
 
 
-{procedure TMainForm.editDatabaseTableFilterExit(Sender: TObject);
+procedure TMainForm.editDatabaseTableFilterExit(Sender: TObject);
 var
   History: TStringList;
-  Edit: TButtonedEdit;
+  Edit: TEdit;
   i: Integer;
   Setting: TAppSettingIndex;
 begin
   // Add (move) custom filter text to (in) drop down history, if not empty
-  Edit := Sender as TButtonedEdit;
+  Edit := Sender as TEdit;
   AppSettings.SessionPath := '';
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
@@ -12820,7 +12820,7 @@ begin
   end;
   AppSettings.WriteString(Setting, History.Text);
   History.Free;
-end;}
+end;
 
 
 {procedure TMainForm.CloseButtonOnMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
