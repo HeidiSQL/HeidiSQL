@@ -30,6 +30,9 @@
     </RunParams>
     <RequiredPackages>
       <Item>
+        <PackageName Value="Printer4Lazarus"/>
+      </Item>
+      <Item>
         <PackageName Value="laz.virtualtreeview_package"/>
       </Item>
       <Item>
@@ -102,6 +105,7 @@
         <Filename Value="source\loginform.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmLogin"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
       <Unit>
@@ -114,6 +118,13 @@
       <Unit>
         <Filename Value="source\const.inc"/>
         <IsPartOfProject Value="True"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\printlist.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="printlistForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit>
     </Units>
   </ProjectOptions>

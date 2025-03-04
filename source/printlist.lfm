@@ -1,0 +1,82 @@
+object printlistForm: TprintlistForm
+  Left = 521
+  Height = 115
+  Top = 91
+  Width = 471
+  BorderStyle = bsDialog
+  Caption = 'Print List...'
+  ClientHeight = 115
+  ClientWidth = 471
+  Color = clBtnFace
+  DesignTimePPI = 120
+  Font.Color = clWindowText
+  Font.Height = -15
+  Font.Name = 'Tahoma'
+  OnShow = FormShow
+  Position = poMainFormCenter
+  object lblSelect: TLabel
+    Left = 10
+    Height = 18
+    Top = 14
+    Width = 89
+    Caption = '&Select printer:'
+    FocusControl = comboPrinters
+  end
+  object comboPrinters: TComboBox
+    Left = 102
+    Height = 26
+    Top = 10
+    Width = 258
+    ItemHeight = 18
+    Style = csDropDownList
+    TabOrder = 0
+    OnChange = comboPrintersChange
+  end
+  object btnConfigure: TButton
+    Left = 368
+    Height = 31
+    Top = 10
+    Width = 94
+    Caption = 'Configure'
+    TabOrder = 1
+    OnClick = btnConfigureClick
+  end
+  object btnCancel: TButton
+    Left = 367
+    Height = 31
+    Top = 74
+    Width = 94
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 3
+  end
+  object btnPrint: TButton
+    Left = 266
+    Height = 31
+    Top = 74
+    Width = 94
+    Anchors = [akRight, akBottom]
+    Caption = 'Print'
+    Default = True
+    ModalResult = 1
+    TabOrder = 2
+    OnClick = btnPrintClick
+  end
+  object chkPrintHeader: TCheckBox
+    Left = 102
+    Height = 22
+    Top = 45
+    Width = 258
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Print column headers'
+    Checked = True
+    State = cbChecked
+    TabOrder = 4
+  end
+  object PrinterSetup: TPrinterSetupDialog
+    Left = 10
+    Top = 40
+  end
+end

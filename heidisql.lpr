@@ -11,12 +11,12 @@ uses
   {$ENDIF}
   Interfaces, // this includes the LCL widgetset
   SysUtils,
-  Forms,
+  Forms, printer4lazarus,
   { you can add units after this }
   main, apphelpers, dbconnection, { gnugettext,}
   dbstructures, dbstructures.mysql, About, generic_types,
   dbstructures.interbase, dbstructures.mssql, dbstructures.postgresql,
-  dbstructures.sqlite, change_password, loginform
+  dbstructures.sqlite, change_password, loginform {, printlist (EnablePrint not defined) }
   ;
 
 {$R *.res}
