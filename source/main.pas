@@ -1444,7 +1444,7 @@ begin
     Msg := _(SIdle);
   if Msg <> StatusBar.Panels[PanelNr].Text then begin
     StatusBar.Panels[PanelNr].Text := Msg;
-    if (PanelNr = 6) and (not IsWine) then begin
+    if (PanelNr = 6) and IsWindow(StatusBar.Handle) then begin
       // Immediately repaint this special panel, as it holds critical update messages,
       // while avoiding StatusBar.Repaint which refreshes all panels
       SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
