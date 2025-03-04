@@ -15,22 +15,21 @@ object frmDataSorting: TfrmDataSorting
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
-  LCLVersion = '3.8.0.0'
   object pnlBevel: TPanel
     Left = 0
-    Height = 97
+    Height = 121
     Top = 0
-    Width = 204
+    Width = 255
     Align = alClient
     BorderWidth = 3
-    ClientHeight = 97
-    ClientWidth = 204
+    ClientHeight = 121
+    ClientWidth = 255
     ParentBackground = False
     TabOrder = 0
     object btnOK: TButton
       Left = 4
       Height = 31
-      Top = 61
+      Top = 85
       Width = 75
       Anchors = [akLeft, akBottom]
       Caption = 'OK'
@@ -43,7 +42,7 @@ object frmDataSorting: TfrmDataSorting
     object btnCancel: TButton
       Left = 85
       Height = 31
-      Top = 61
+      Top = 85
       Width = 75
       Anchors = [akLeft, akBottom]
       Cancel = True
@@ -55,7 +54,7 @@ object frmDataSorting: TfrmDataSorting
     object btnAddCol: TButton
       Left = 168
       Height = 31
-      Top = 61
+      Top = 85
       Width = 75
       Anchors = [akLeft, akBottom]
       Caption = 'Add Col'
@@ -63,9 +62,9 @@ object frmDataSorting: TfrmDataSorting
       OnClick = btnAddColClick
     end
     object btnReset: TSpeedButton
-      Left = 36
+      Left = 87
       Height = 31
-      Top = 25
+      Top = 49
       Width = 156
       Action = MainForm.actDataResetSorting
       Anchors = [akRight, akBottom]

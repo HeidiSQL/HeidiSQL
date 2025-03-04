@@ -4235,8 +4235,8 @@ begin
   ValueName := FSettings[Index].Name;
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
-  if FSettings[Index].Session and FSessionPath.IsEmpty then
-    raise Exception.Create(_('Attempt to read session setting without session path'));
+  //if FSettings[Index].Session and FSessionPath.IsEmpty then
+  //  raise Exception.Create(_('Attempt to read session setting without session path'));
   if (not FSettings[Index].Session) and (not FSessionPath.IsEmpty) then
     SessionPath := ''
   else

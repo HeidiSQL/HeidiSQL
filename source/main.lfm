@@ -2170,7 +2170,7 @@ object MainForm: TMainForm
               TabOrder = 0
               OnSelect = LoadRecentFilter
             end
-            inline SynEdit1: TSynEdit
+            inline SynMemoFilter: TSynEdit
               Left = 1
               Height = 35
               Top = 32
@@ -2612,7 +2612,7 @@ object MainForm: TMainForm
               MouseTextActions = <>
               MouseSelActions = <>
               Lines.Strings = (
-                'SynEdit1'
+                'SynMemoFilter'
               )
               VisibleSpecialChars = [vscSpace, vscTabAtLast]
               ScrollBars = ssNone
@@ -2634,6 +2634,7 @@ object MainForm: TMainForm
               MouseLinkColor.Foreground = clBlue
               LineHighlightColor.Background = clNone
               LineHighlightColor.Foreground = clNone
+              OnStatusChange = SynMemoFilterStatusChange
               inline SynLeftGutterPartList1: TSynGutterPartList
                 object SynGutterMarks1: TSynGutterMarks
                   Width = 30
@@ -2684,6 +2685,8 @@ object MainForm: TMainForm
             Header.MainColumn = -1
             PopupMenu = popupDataGrid
             TabOrder = 0
+            OnAdvancedHeaderDraw = AnyGridAdvancedHeaderDraw
+            OnBeforePaint = DataGridBeforePaint
           end
         end
         object tabQuery: TTabSheet

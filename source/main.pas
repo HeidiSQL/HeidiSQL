@@ -243,7 +243,7 @@ type
     menuAutoRefreshSetInterval: TMenuItem;
     N10: TMenuItem;
     spltProcessList: TSplitter;
-    SynEdit1: TSynEdit;
+    SynMemoFilter: TSynEdit;
     SynMemoProcessView: TSynEdit;
     TimerRefresh: TTimer;
     btnTreeFavorites: TToolButton;
@@ -368,7 +368,6 @@ type
     DropFilter1: TMenuItem;
     PrintList2: TMenuItem;
     N1a: TMenuItem;
-    SynMemoFilter: TSynMemo;
     Saveastextfile1: TMenuItem;
     Exportdata2: TMenuItem;
     N11a: TMenuItem;
@@ -850,8 +849,8 @@ type
     procedure PageControlHostChange(Sender: TObject);
     procedure ValidateControls(Sender: TObject);
     procedure ValidateQueryControls(Sender: TObject);
-    //procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
-    //  TargetCanvas: TCanvas);
+    procedure DataGridBeforePaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas);
     procedure LogSQL(Msg: String; Category: TDBLogCategory=lcInfo; Connection: TDBConnection=nil);
     procedure KillProcess(Sender: TObject);
     procedure TimerHostUptimeTimer(Sender: TObject);
@@ -967,7 +966,7 @@ type
     procedure actCopyOrCutExecute(Sender: TObject);
     procedure actPasteExecute(Sender: TObject);
     procedure actSelectAllExecute(Sender: TObject);
-    //procedure EnumerateRecentFilters;
+    procedure EnumerateRecentFilters;
     procedure LoadRecentFilter(Sender: TObject);
     procedure ListTablesEditing(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; var Allowed: Boolean);
@@ -1140,8 +1139,8 @@ type
     procedure actSynEditCompletionProposeExecute(Sender: TObject);
     //procedure AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
     //  var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
-    //procedure AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
-    //  var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
+    procedure AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
+      var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
     //procedure SynMemoQueryScanForFoldRanges(Sender: TObject;
     //  FoldRanges: TSynFoldRanges; LinesToScan: TStrings; FromLine,
     //  ToLine: Integer);
@@ -1269,8 +1268,8 @@ type
     procedure SetActiveDatabase(db: String; Connection: TDBConnection);
     procedure SetActiveDBObj(Obj: TDBObject);
     procedure ToggleFilterPanel(ForceVisible: Boolean = False);
-    //procedure EnableDataTab(Enable: Boolean);
-    //procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
+    procedure EnableDataTab(Enable: Boolean);
+    procedure AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
     procedure PlaceObjectEditor(Obj: TDBObject);
     procedure SetTabCaption(PageIndex: Integer; Text: String);
     function ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
@@ -1349,7 +1348,7 @@ type
     function FindDBObjectNode(Tree: TVirtualStringTree; Obj: TDBObject): PVirtualNode;
     function FindDBNode(Tree: TVirtualStringTree; Connection: TDBConnection; db: String): PVirtualNode;
     procedure CalcNullColors;
-    //procedure HandleDataGridAttributes(RefreshingData: Boolean);
+    procedure HandleDataGridAttributes(RefreshingData: Boolean);
     function GetRegKeyTable: String;
     //procedure UpdateEditorTab;
     procedure SetWindowCaption;
@@ -1411,7 +1410,7 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting;
+  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection;
 
 {$R *.lfm}
 
@@ -2031,7 +2030,7 @@ begin
   end;
 
   // Enable auto completion in data tab, filter editor
-  {SynCompletionProposal.AddEditor(SynMemoFilter);}
+  SynCompletionProposal.AddEditor(SynMemoFilter);
 
   // Window position
   {Left := AppSettings.ReadInt(asMainWinLeft);
@@ -5332,7 +5331,7 @@ var
 begin
   // If filter box is empty but filter generator box has text, most users expect
   // the filter to be auto generated on button click
-  {if ((SynMemoFilter.GetTextLen = 0) or menuAlwaysGenerateFilter.Checked)
+  if ((SynMemoFilter.GetTextLen = 0) or menuAlwaysGenerateFilter.Checked)
     and (editFilterSearch.Text <> '')
     and (Sender is TAction)
     and ((Sender as TAction).ActionComponent = btnFilterApply)
@@ -5364,7 +5363,7 @@ begin
     FDataGridColumnWidthsCustomized := True;
   end else
     FDataGridColumnWidthsCustomized := False;
-  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);}
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -5755,20 +5754,20 @@ begin
 end;}
 
 
-{procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
+procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
 var
   PaintArea, TextArea, IconArea, SortArea: TRect;
   SortText, ColCaption: String;
   TextSpace, ColSortIndex, NumCharTop: Integer;
-  ColSortDirection: VirtualTrees.TSortDirection;
+  ColSortDirection: laz.VirtualTrees.TSortDirection;
   Size: TSize;
   DC: HDC;
   DrawFormat: Cardinal;
 const
-  NumSortChars: Array of Char = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
+  NumSortChars: Array of String = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹','⁺'];
 
-  procedure GetSortIndex(Column: TVirtualTreeColumn; var SortIndex: Integer; var SortDirection: VirtualTrees.TSortDirection);
+  procedure GetSortIndex(Column: TVirtualTreeColumn; var SortIndex: Integer; var SortDirection: laz.VirtualTrees.TSortDirection);
   var
     SortItem: TSortItem;
   begin
@@ -5813,16 +5812,16 @@ begin
 
     if not (coWrapCaption in PaintInfo.Column.Options) then begin
       // Do we need to shorten the caption due to limited space?
-      GetTextExtentPoint32W(DC, PWideChar(ColCaption), Length(ColCaption), Size);
+      {GetTextExtentPoint32W(DC, PWideChar(ColCaption), Length(ColCaption), Size);
       TextSpace := TextArea.Right - TextArea.Left;
       if TextSpace < Size.cx then
-        ColCaption := VirtualTrees.Utils.ShortenString(DC, ColCaption, TextSpace);
+        ColCaption := laz.VirtualTrees.Utils.ShortenString(DC, ColCaption, TextSpace);}
     end;
 
     SetBkMode(DC, TRANSPARENT);
     SetTextColor(DC, ColorToRGB(clWindowText));
     DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
-    DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
+    //DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
   end;
 
   // Draw image, if any
@@ -5836,7 +5835,7 @@ begin
   end;
 
   // Paint sort icon and number
-  if hpeOverlay in Elements then begin
+  {if hpeOverlay in Elements then begin
     SortArea := PaintArea;
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then begin
@@ -5861,11 +5860,11 @@ begin
       SortText := IfThen(ColSortIndex<9, NumSortChars[ColSortIndex], NumSortChars[9]);
       PaintInfo.TargetCanvas.TextOut(SortArea.Left+9, SortArea.Top+NumCharTop, SortText);
     end;
-  end;
-end;}
+  end;}
+end;
 
 
-{procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
+procedure TMainForm.DataGridBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
 var
   vt: TVirtualStringTree;
   Select, FixedFilter: String;
@@ -5878,7 +5877,7 @@ var
   OldScrollOffset: TPoint;
   DBObj: TDBObject;
   rx: TRegExpr;
-  OldCursor: TBufferCoord;
+  OldCursor: TPoint;
   Col: TVirtualTreeColumn;
 
   procedure InitColumn(idx: Integer; TblCol: TTableColumn);
@@ -6148,7 +6147,7 @@ begin
   DataGridFullRowMode := False;
   Screen.Cursor := crDefault;
   ShowStatusMsg;
-end;}
+end;
 
 
 {procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
@@ -8517,7 +8516,7 @@ begin
     btn.Down := not btn.Down;
     if not btn.Down then Exit;
     if btn = tbtnDataColumns then
-      //frm := TfrmColumnSelection.Create(self)
+      frm := TfrmColumnSelection.Create(self)
     else if btn = tbtnDataSorting then
       frm := TfrmDataSorting.Create(self)
     else
@@ -10337,7 +10336,7 @@ begin
 end;
 
 
-{procedure TMainForm.EnableDataTab(Enable: Boolean);
+procedure TMainForm.EnableDataTab(Enable: Boolean);
 begin
   // Disable data grid to prevent accessing results of disconnected sessions
   // Also, no data for routines
@@ -10348,7 +10347,7 @@ begin
     lblSorryNoData.Parent := tabData
   else
     lblSorryNoData.Parent := DataGrid;
-end;}
+end;
 
 
 procedure TMainForm.editFilterSearchEnter(Sender: TObject);
@@ -11026,7 +11025,7 @@ begin
 end;
 
 
-{procedure TMainForm.AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
+procedure TMainForm.AutoCalcColWidth(Tree: TVirtualStringTree; Column: TColumnIndex);
 var
   Node: PVirtualNode;
   i, ColTextWidth, ContentTextWidth: Integer;
@@ -11076,7 +11075,7 @@ begin
   ColTextWidth := ColTextWidth + Tree.TextMargin*2 + 20;
   ColTextWidth := Min(ColTextWidth, AppSettings.ReadInt(asMaxColWidth));
   Col.Width := ColTextWidth;
-end;}
+end;
 
 
 {procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
@@ -11161,7 +11160,7 @@ begin
 end;}
 
 
-{procedure TMainForm.HandleDataGridAttributes(RefreshingData: Boolean);
+procedure TMainForm.HandleDataGridAttributes(RefreshingData: Boolean);
 var
   rx: TRegExpr;
   i: Integer;
@@ -11283,7 +11282,7 @@ begin
   end;
 
   AppSettings.ResetPath;
-end;}
+end;
 
 
 function TMainForm.GetRegKeyTable: String;
@@ -12080,7 +12079,7 @@ begin
 end;
 
 
-{procedure TMainForm.EnumerateRecentFilters;
+procedure TMainForm.EnumerateRecentFilters;
 var
   i: Integer;
   item: TMenuItem;
@@ -12125,7 +12124,7 @@ begin
     SynMemoFilter.Top := SynMemoFilter.Top + comboRecentFilters.Height;
     comboRecentFilters.ItemIndex := 0;
   end;
-end;}
+end;
 
 
 procedure TMainForm.LoadRecentFilter(Sender: TObject);
