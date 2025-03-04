@@ -962,11 +962,11 @@ object MainForm: TMainForm
         Height = 316
         Top = 0
         Width = 780
-        ActivePage = tabDatabase
+        ActivePage = tabData
         Align = alClient
         Images = ImageListIcons8
         PopupMenu = popupMainTabs
-        TabIndex = 1
+        TabIndex = 3
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
@@ -2019,8 +2019,8 @@ object MainForm: TMainForm
           ImageIndex = 41
           object lblSorryNoData: TLabel
             Left = 0
-            Height = 192
-            Top = 91
+            Height = 185
+            Top = 98
             Width = 772
             Align = alClient
             Alignment = taCenter
@@ -2030,19 +2030,19 @@ object MainForm: TMainForm
           end
           object pnlDataTop: TPanel
             Left = 0
-            Height = 25
+            Height = 32
             Top = 0
             Width = 772
             Align = alTop
             Alignment = taLeftJustify
             BevelOuter = bvNone
             BorderWidth = 1
-            ClientHeight = 25
+            ClientHeight = 32
             ClientWidth = 772
             TabOrder = 2
             object lblDataTop: TLabel
               Left = 1
-              Height = 23
+              Height = 30
               Top = 1
               Width = 215
               Align = alLeft
@@ -2053,56 +2053,48 @@ object MainForm: TMainForm
               PopupMenu = popupDataTop
             end
             object tlbDataButtons: TToolBar
-              Left = 698
-              Height = 23
+              Left = 392
+              Height = 30
               Top = 1
-              Width = 73
+              Width = 379
               Align = alRight
-              AutoSize = True
               ButtonHeight = 28
               ButtonWidth = 72
               Caption = 'tlbDataButtons'
+              Images = ImageListIcons8
               List = True
               ParentShowHint = False
               ShowCaptions = True
-              ShowHint = True
               TabOrder = 0
-              Wrapable = False
               object tbtnDataNext: TToolButton
                 Left = 1
                 Top = 2
                 Action = actDataShowNext
               end
               object tbtnDataShowAll: TToolButton
-                Left = 1
-                Top = 31
+                Left = 73
+                Top = 2
                 Action = actDataShowAll
               end
-              object ToolButton2: TToolButton
-                Left = 1
-                Top = 60
-                Caption = 'ToolButton2'
-                ImageIndex = 108
-              end
               object tbtnDataSorting: TToolButton
-                Left = 1
-                Top = 89
+                Left = 145
+                Top = 2
                 AllowAllUp = True
                 Caption = 'Sorting'
                 ImageIndex = 107
                 OnClick = btnDataClick
               end
               object tbtnDataColumns: TToolButton
-                Left = 1
-                Top = 118
+                Left = 217
+                Top = 2
                 AllowAllUp = True
                 Caption = 'Columns'
                 ImageIndex = 107
                 OnClick = btnDataClick
               end
               object tbtnDataFilter: TToolButton
-                Left = 1
-                Top = 147
+                Left = 289
+                Top = 2
                 AllowAllUp = True
                 Caption = 'Filter'
                 ImageIndex = 107
@@ -2113,7 +2105,7 @@ object MainForm: TMainForm
           object pnlFilter: TPanel
             Left = 0
             Height = 66
-            Top = 25
+            Top = 32
             Width = 772
             Align = alTop
             BevelOuter = bvNone
@@ -2682,8 +2674,8 @@ object MainForm: TMainForm
           end
           object DataGrid: TLazVirtualStringTree
             Left = 0
-            Height = 192
-            Top = 91
+            Height = 185
+            Top = 98
             Width = 772
             Align = alClient
             DefaultText = 'Node'
@@ -19849,7 +19841,7 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False

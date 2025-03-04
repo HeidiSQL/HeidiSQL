@@ -508,7 +508,6 @@ type
     actQueryFindAgain1: TMenuItem;
     Replacetext1: TMenuItem;
     menuExplainProcess: TMenuItem;
-    ToolButton2: TToolButton;
     tbtnDataShowAll: TToolButton;
     tbtnDataNext: TToolButton;
     actDataShowNext: TAction;
@@ -1412,7 +1411,7 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, About;
+  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting;
 
 {$R *.lfm}
 
@@ -8520,7 +8519,7 @@ begin
     if btn = tbtnDataColumns then
       //frm := TfrmColumnSelection.Create(self)
     else if btn = tbtnDataSorting then
-      //frm := TfrmDataSorting.Create(self)
+      frm := TfrmDataSorting.Create(self)
     else
       frm := TForm.Create(self); // Dummy fallback, should never get created
     // Position new form relative to btn's position

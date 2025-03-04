@@ -1,0 +1,76 @@
+object frmDataSorting: TfrmDataSorting
+  Left = 0
+  Height = 121
+  Top = 0
+  Width = 255
+  BorderStyle = bsNone
+  Caption = 'DataSortingForm'
+  ClientHeight = 121
+  ClientWidth = 255
+  Color = clBtnFace
+  DesignTimePPI = 120
+  Font.Color = clWindowText
+  Font.Height = -15
+  Font.Name = 'Tahoma'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDeactivate = FormDeactivate
+  LCLVersion = '3.8.0.0'
+  object pnlBevel: TPanel
+    Left = 0
+    Height = 97
+    Top = 0
+    Width = 204
+    Align = alClient
+    BorderWidth = 3
+    ClientHeight = 97
+    ClientWidth = 204
+    ParentBackground = False
+    TabOrder = 0
+    object btnOK: TButton
+      Left = 4
+      Height = 31
+      Top = 61
+      Width = 75
+      Anchors = [akLeft, akBottom]
+      Caption = 'OK'
+      Default = True
+      Enabled = False
+      ModalResult = 1
+      TabOrder = 0
+      OnClick = btnOKClick
+    end
+    object btnCancel: TButton
+      Left = 85
+      Height = 31
+      Top = 61
+      Width = 75
+      Anchors = [akLeft, akBottom]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+      OnClick = btnCancelClick
+    end
+    object btnAddCol: TButton
+      Left = 168
+      Height = 31
+      Top = 61
+      Width = 75
+      Anchors = [akLeft, akBottom]
+      Caption = 'Add Col'
+      TabOrder = 2
+      OnClick = btnAddColClick
+    end
+    object btnReset: TSpeedButton
+      Left = 36
+      Height = 31
+      Top = 25
+      Width = 156
+      Action = MainForm.actDataResetSorting
+      Anchors = [akRight, akBottom]
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 139
+    end
+  end
+end

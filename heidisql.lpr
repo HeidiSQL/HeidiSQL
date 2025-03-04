@@ -16,7 +16,7 @@ uses
   main, apphelpers, dbconnection, { gnugettext,}
   dbstructures, dbstructures.mysql, About, generic_types,
   dbstructures.interbase, dbstructures.mssql, dbstructures.postgresql,
-  dbstructures.sqlite, change_password, loginform {, printlist (EnablePrint not defined) }
+  dbstructures.sqlite, change_password, loginform, data_sorting, extra_controls {, printlist (EnablePrint not defined) }
   ;
 
 {$R *.res}
