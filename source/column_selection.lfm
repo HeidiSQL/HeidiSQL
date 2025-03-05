@@ -18,11 +18,10 @@ object frmColumnSelection: TfrmColumnSelection
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
-  LCLVersion = '3.8.0.0'
   object btnCancel: TButton
-    Left = 76
+    Left = 146
     Height = 31
-    Top = 202
+    Top = 264
     Width = 94
     Anchors = [akRight, akBottom]
     Cancel = True
@@ -32,9 +31,9 @@ object frmColumnSelection: TfrmColumnSelection
     OnClick = btnCancelClick
   end
   object btnOK: TButton
-    Left = -25
+    Left = 48
     Height = 31
-    Top = 202
+    Top = 264
     Width = 94
     Anchors = [akRight, akBottom]
     Caption = 'OK'
@@ -44,9 +43,9 @@ object frmColumnSelection: TfrmColumnSelection
   end
   object chkSort: TCheckBox
     Left = 10
-    Height = 17
-    Top = 152
-    Width = 160
+    Height = 22
+    Top = 200
+    Width = 230
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Sort alphabetically'
     TabOrder = 2
@@ -54,29 +53,29 @@ object frmColumnSelection: TfrmColumnSelection
   end
   object chkSelectAll: TCheckBox
     Left = 10
-    Height = 17
+    Height = 22
     Hint = 'Select / Deselect all'
     Top = 8
-    Width = 49
+    Width = 34
     Caption = 'All'
     TabOrder = 3
     OnClick = chkSelectAllClick
   end
   object chklistColumns: TCheckListBox
     Left = 10
-    Height = 102
+    Height = 153
     Top = 39
-    Width = 160
+    Width = 230
     Anchors = [akTop, akLeft, akRight, akBottom]
-    ItemHeight = 21
+    ItemHeight = 0
     TabOrder = 4
     OnClickCheck = chklistColumnsClickCheck
   end
   object editFilter: TEditButton
     Left = 79
-    Height = 21
+    Height = 26
     Top = 5
-    Width = 91
+    Width = 161
     Anchors = [akTop, akLeft, akRight]
     ButtonWidth = 29
     Images = MainForm.ImageListIcons8
@@ -91,9 +90,9 @@ object frmColumnSelection: TfrmColumnSelection
   end
   object chkShowRowId: TCheckBox
     Left = 10
-    Height = 17
-    Top = 181
-    Width = 160
+    Height = 22
+    Top = 229
+    Width = 230
     Anchors = [akLeft, akRight, akBottom]
     Caption = 'Show static row id column'
     TabOrder = 6
