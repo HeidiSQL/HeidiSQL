@@ -2679,14 +2679,46 @@ object MainForm: TMainForm
             Top = 98
             Width = 772
             Align = alClient
+            AutoScrollDelay = 50
             DefaultText = 'Node'
+            EditDelay = 0
             Header.AutoSizeIndex = 0
             Header.Columns = <>
+            Header.Images = ImageListIcons8
             Header.MainColumn = -1
+            Header.Options = [hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowHint, hoShowImages, hoVisible, hoDisableAnimatedResize]
+            IncrementalSearch = isInitializedOnly
             PopupMenu = popupDataGrid
             TabOrder = 0
+            TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+            TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toWheelPanning, toEditOnClick, toEditOnDblClick]
+            TreeOptions.PaintOptions = [toShowButtons, toShowDropmark, toShowHorzGridLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toAlwaysHideSelection]
+            TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+            WantTabs = True
             OnAdvancedHeaderDraw = AnyGridAdvancedHeaderDraw
+            OnAfterCellPaint = AnyGridAfterCellPaint
+            OnBeforeCellPaint = AnyGridBeforeCellPaint
             OnBeforePaint = DataGridBeforePaint
+            OnChange = AnyGridChange
+            OnColumnResize = DataGridColumnResize
+            OnCreateEditor = AnyGridCreateEditor
+            OnEditCancelled = AnyGridEditCancelled
+            OnEdited = AnyGridEdited
+            OnEditing = AnyGridEditing
+            OnEnter = ValidateControls
+            OnExit = ValidateControls
+            OnFocusChanged = AnyGridFocusChanged
+            OnFocusChanging = AnyGridFocusChanging
+            OnGetText = AnyGridGetText
+            OnPaintText = AnyGridPaintText
+            OnGetNodeDataSize = AnyGridGetNodeDataSize
+            OnHeaderClick = DataGridHeaderClick
+            OnHeaderDrawQueryElements = AnyGridHeaderDrawQueryElements
+            OnInitNode = AnyGridInitNode
+            OnKeyDown = AnyGridKeyDown
+            OnMouseUp = AnyGridMouseUp
+            OnMouseWheel = AnyGridMouseWheel
+            OnNewText = AnyGridNewText
           end
         end
         object tabQuery: TTabSheet
@@ -19844,7 +19876,7 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = -1
+    Position = 0
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False

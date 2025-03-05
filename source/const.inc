@@ -24,7 +24,7 @@ const
   LINEDELIMITER = '<|||>';
 
   COLORSHIFT_NULLFIELDS = 70; // Brightness adjustment to add to normal field colors for NULL values
-  COLORSHIFT_SORTCOLUMNS = 12; // Brightness adjustment to add to sorted column backgrounds
+  COLORSHIFT_SORTCOLUMNS = 10; // Brightness adjustment to add to sorted column backgrounds
 
   // Various iconindexes
   ICONINDEX_PRIMARYKEY = 25;

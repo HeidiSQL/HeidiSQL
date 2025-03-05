@@ -1459,14 +1459,14 @@ end;
 
 function ColorAdjustBrightness(Col: TColor; Shift: SmallInt): TColor;
 var
-  Lightness: Byte;
+  H, L, S: Byte;
 begin
   // If base color is bright, make bg color darker (grey), and vice versa, so that
   // colors work with high contrast mode for accessibility
-  Lightness := GetLightness(Col);
-  if (Lightness < 128) and (Shift < 0) then
+  ColorToHLS(Col, H, L, S);
+  if (L < 128) and (Shift < 0) then
     Shift := Abs(Shift)
-  else if (Lightness > 128) and (Shift > 0) then
+  else if (L > 128) and (Shift > 0) then
     Shift := 0 - Abs(Shift);
   Result := ColorAdjustLuma(Col, Shift, true);
 end;

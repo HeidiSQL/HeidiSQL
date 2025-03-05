@@ -5,14 +5,14 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, Dialogs, Menus, ActnList,
+  Classes, SysUtils, Forms, Controls, Graphics, GraphUtil, Dialogs, Menus, ActnList,
   ComCtrls, ExtCtrls, LCLProc, DateUtils, SynEdit, SynEditHighlighter,
   SynHighlighterSQL, SynGutterBase, SynCompletion, SynEditKeyCmds, SynEditTypes,
   SynGutter, SynGutterChanges, SynGutterCodeFolding, SynGutterLineNumber,
   SynGutterMarks, StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls,
   fphttpclient, Math, LCLIntf, Generics.Collections, Generics.Defaults,
   opensslsockets, StdActns, Clipbrd, Types, LCLType, dbconnection, dbstructures,
-  dbstructures.mysql, generic_types, apphelpers;
+  dbstructures.mysql, generic_types, apphelpers, extra_controls;
 
 
 type
@@ -188,7 +188,7 @@ type
 
   { TMainForm }
 
-  TMainForm = class(TForm)
+  TMainForm = class(TExtForm)
     editDatabaseFilter: TEdit;
     editTableFilter: TEdit;
     imgPreview: TImage;
@@ -871,25 +871,25 @@ type
     procedure DataInsertValueClick(Sender: TObject);
     procedure InsertValue(Sender: TObject);
     procedure actDataSetNullExecute(Sender: TObject);
-    //procedure AnyGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //    Column: TColumnIndex; out EditLink: IVTEditLink);
-    //procedure AnyGridEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
-    //procedure AnyGridEdited(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-    //    TColumnIndex);
-    //procedure AnyGridEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-    //    TColumnIndex; var Allowed: Boolean);
-    //procedure AnyGridFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
-    //    PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
-    //procedure AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-    //    TColumnIndex; TextType: TVSTTextType; var CellText: String);
-    //procedure DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
-    //procedure AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure AnyGridCreateEditor(Sender: TBaseVirtualTree; Node: PVirtualNode;
+        Column: TColumnIndex; out EditLink: IVTEditLink);
+    procedure AnyGridEditCancelled(Sender: TBaseVirtualTree; Column: TColumnIndex);
+    procedure AnyGridEdited(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex);
+    procedure AnyGridEditing(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex; var Allowed: Boolean);
+    procedure AnyGridFocusChanging(Sender: TBaseVirtualTree; OldNode, NewNode:
+        PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+    procedure AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex; TextType: TVSTTextType; var CellText: String);
+    procedure DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+    procedure AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure AnyGridMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer;
       MousePos: TPoint; var Handled: Boolean);
-    //procedure AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
-    //    TColumnIndex; NewText: String);
-    //procedure AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
-    //    TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column:
+        TColumnIndex; NewText: String);
+    procedure AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas:
+        TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure menuDeleteSnippetClick(Sender: TObject);
     procedure menuExploreClick(Sender: TObject);
     procedure menuInsertAtCursorClick(Sender: TObject);
@@ -935,15 +935,15 @@ type
     procedure menuTreeCollapseAllClick(Sender: TObject);
     procedure menuTreeExpandAllClick(Sender: TObject);
     procedure SynMemoFilterStatusChange(Sender: TObject; Changes: TSynStatusChanges);
-    //procedure AnyGridAfterCellPaint(Sender: TBaseVirtualTree;
-    //  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-    //  CellRect: TRect);
+    procedure AnyGridAfterCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellRect: TRect);
     procedure menuShowSizeColumnClick(Sender: TObject);
-    //procedure AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
-    //  TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-    //  CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
-    //procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
-    //  Shift: TShiftState; X, Y: Integer);
+    procedure AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
+      TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
+    procedure AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
     procedure MainMenuFileClick(Sender: TObject);
     procedure HostListGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
@@ -1011,8 +1011,8 @@ type
     procedure actDataShowAllExecute(Sender: TObject);
     procedure AnyGridInitNode(Sender: TBaseVirtualTree; ParentNode,
       Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
-    //procedure AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  Column: TColumnIndex);
+    procedure AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex);
     procedure ListTablesKeyPress(Sender: TObject; var Key: Char);
     procedure DBtreeFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
@@ -1039,7 +1039,7 @@ type
     procedure actDataPreviewUpdate(Sender: TObject);
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
-    //procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
+    procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
     //procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
     //  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     //procedure treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
@@ -1068,7 +1068,7 @@ type
     function GetFocusedObjects(Sender: TObject; NodeTypes: TListNodeTypes): TDBObjectList;
     function DBTreeClicked(Sender: TObject): Boolean;
     procedure actCancelOperationExecute(Sender: TObject);
-    //procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure actToggleCommentExecute(Sender: TObject);
     procedure DBtreeBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
@@ -1137,8 +1137,8 @@ type
     procedure actDetachDatabaseExecute(Sender: TObject);
     procedure actAttachDatabaseExecute(Sender: TObject);
     procedure actSynEditCompletionProposeExecute(Sender: TObject);
-    //procedure AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
-    //  var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
+    procedure AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
+      var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
     procedure AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
       var PaintInfo: THeaderPaintInfo; const Elements: THeaderPaintElements);
     //procedure SynMemoQueryScanForFoldRanges(Sender: TObject;
@@ -1287,7 +1287,7 @@ type
     //  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
     //procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
-    //function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
+    function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
     //function InitTabsIniFile: TIniFile;
     //procedure StoreTabs;
     //function RestoreTabs: Boolean;
@@ -1378,7 +1378,7 @@ type
     //procedure PrepareImageList;
     //property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
     //property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
-    //function SelectedTableFocusedColumn: TTableColumn;
+    function SelectedTableFocusedColumn: TTableColumn;
     //property FormatSettings: TFormatSettings read FFormatSettings;
     //property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
     //property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
@@ -3017,7 +3017,7 @@ begin
 end;
 
 
-{function TMainForm.HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
+function TMainForm.HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
 var
   ResultCol: Integer;
 begin
@@ -3028,7 +3028,7 @@ begin
     and (DataGridResult <> nil)
     and (DataGridResult.DataType(ResultCol).Category in [dtcInteger, dtcReal])
     and (SelectedTableTimestampColumns.IndexOf(DataGrid.Header.Columns[Column].Text) > -1);
-end;}
+end;
 
 
 {**
@@ -4828,11 +4828,11 @@ begin
   end
 
   // Data-Tab
-  {else if (PageControlMain.ActivePage = tabData)
+  else if (PageControlMain.ActivePage = tabData)
     and Assigned(DataGrid.FocusedNode) then begin
     keyword := SelectedTableFocusedColumn.DataType.Name;
 
-  end} else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
+  end else if ActiveControl = QueryTabs.ActiveHelpersTree then begin
     // Makes only sense if one of the nodes "SQL fn" or "SQL kw" was selected
     Tree := QueryTabs.ActiveHelpersTree;
     if Assigned(Tree.FocusedNode)
@@ -5438,8 +5438,8 @@ var
 begin
   Grid := ActiveGrid;
   // Be sure to have all rows
-  //if (Grid = DataGrid) and (DatagridWantedRowCount < AppSettings.ReadInt(asDatagridMaximumRows)) then
-  //  actDataShowAll.Execute;
+  if (Grid = DataGrid) and (DatagridWantedRowCount < AppSettings.ReadInt(asDatagridMaximumRows)) then
+    actDataShowAll.Execute;
   Node := Grid.GetLast;
   if Assigned(Node) then
     SelectNode(Grid, Node);
@@ -5477,7 +5477,7 @@ end;
 procedure TMainForm.actRemoveFilterExecute(Sender: TObject);
 begin
   actClearFilterEditor.Execute;
-  //InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
+  InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
 end;
 
 
@@ -5614,8 +5614,8 @@ begin
   OldRowCount := DatagridWantedRowCount;
   Inc(DatagridWantedRowCount, AppSettings.ReadInt(asDatagridRowsPerStep));
   DataGridWantedRowCount := Min(DataGridWantedRowCount, AppSettings.ReadInt(asDatagridMaximumRows));
-  //InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
-  //SelectNode(DataGrid, OldRowCount);
+  InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
+  SelectNode(DataGrid, OldRowCount);
 end;
 
 
@@ -5703,7 +5703,7 @@ procedure TMainForm.actDataShowAllExecute(Sender: TObject);
 begin
   // Remove LIMIT clause
   DatagridWantedRowCount := AppSettings.ReadInt(asDatagridMaximumRows);
-  //InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
+  InvalidateVT(DataGrid, VTREE_NOTLOADED, True);
 end;
 
 
@@ -5714,12 +5714,12 @@ var
 begin
   // Load remaining data on a partially loaded row in data grid
   Result := True;
-  {if (Grid = DataGrid) and Assigned(Node) then begin
+  if (Grid = DataGrid) and Assigned(Node) then begin
     RowNum := Grid.GetNodeData(Node);
     Data := GridResult(Grid);
     Data.RecNo := RowNum^;
     Result := Data.EnsureFullRow(False);
-  end;}
+  end;
 end;
 
 
@@ -5745,13 +5745,13 @@ begin
 end;}
 
 
-{procedure TMainForm.AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
+procedure TMainForm.AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
   var PaintInfo: THeaderPaintInfo; var Elements: THeaderPaintElements);
 begin
   // Tell the tree we want to paint most of the column header things ourselves
   // Only called when Header.OwnerDraw is True
-  Elements := [hpeHeaderGlyph, hpeText, hpeOverlay];
-end;}
+  Elements := [hpeHeaderGlyph, hpeText{, hpeOverlay}];
+end;
 
 
 procedure TMainForm.AnyGridAdvancedHeaderDraw(Sender: TVTHeader;
@@ -5795,13 +5795,13 @@ const
 begin
   // Paint specified elements on column header
 
-  PaintArea := PaintInfo.PaintRectangle;
+  PaintArea := PaintInfo.PaintRectangle; // somehow empty/nil
   PaintArea.Inflate(-PaintInfo.Column.Margin, 0);
   DC := PaintInfo.TargetCanvas.Handle;
 
   // Draw column name. Code taken from TVirtualTreeColumns.DrawButtonText and modified for our needs
   if hpeText in Elements then begin
-    ColCaption := PaintInfo.Column.Text;
+    {ColCaption := PaintInfo.Column.Text;
     // Leave space for icons
     TextArea := PaintArea;
     if PaintInfo.Column.ImageIndex > -1 then
@@ -5812,26 +5812,26 @@ begin
 
     if not (coWrapCaption in PaintInfo.Column.Options) then begin
       // Do we need to shorten the caption due to limited space?
-      {GetTextExtentPoint32W(DC, PWideChar(ColCaption), Length(ColCaption), Size);
+      GetTextExtentPoint32W(DC, PWideChar(ColCaption), Length(ColCaption), Size);
       TextSpace := TextArea.Right - TextArea.Left;
       if TextSpace < Size.cx then
-        ColCaption := laz.VirtualTrees.Utils.ShortenString(DC, ColCaption, TextSpace);}
+        ColCaption := laz.VirtualTrees.Utils.ShortenString(DC, ColCaption, TextSpace);
     end;
 
     SetBkMode(DC, TRANSPARENT);
     SetTextColor(DC, ColorToRGB(clWindowText));
     DrawFormat := DT_TOP or DT_NOPREFIX or DT_LEFT;
-    //DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);
+    //DrawTextW(DC, PWideChar(ColCaption), Length(ColCaption), TextArea, DrawFormat);}
   end;
 
   // Draw image, if any
   if (hpeHeaderGlyph in Elements) and (PaintInfo.Column.ImageIndex > -1) then begin
-    IconArea := PaintArea;
+    {IconArea := PaintArea;
     Inc(IconArea.Left, IconArea.Width - Sender.Images.Width);
     GetSortIndex(PaintInfo.Column, ColSortIndex, ColSortDirection);
     if ColSortIndex > -1 then
       Dec(IconArea.Left, Sender.Images.Width);
-    Sender.Images.Draw(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex);
+    Sender.Images.Draw(PaintInfo.TargetCanvas, IconArea.Left, IconArea.Top, PaintInfo.Column.ImageIndex);}
   end;
 
   // Paint sort icon and number
@@ -6150,12 +6150,12 @@ begin
 end;
 
 
-{procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
+procedure TMainForm.DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
 begin
   // Remember current table after last column resizing so we can auto size them as long as this did not happen
-  if not TBaseVirtualTree(Sender.Treeview).IsUpdating then
+  {if not TBaseVirtualTree(Sender.Treeview).IsUpdating then // replace with .FormIsUpdating?}
     FDataGridColumnWidthsCustomized := True;
-end;}
+end;
 
 
 {***
@@ -6170,7 +6170,7 @@ var
   cap: String;
   RowsTotal: Int64;
 begin
-  {if Sender <> DataGrid then
+  if Sender <> DataGrid then
     Exit; // Only data tab has a top label
 
   DBObject := ActiveDbObj;
@@ -6225,7 +6225,7 @@ begin
   end;
   lblDataTop.Caption := cap;
   lblDataTop.Hint := cap;
-  FExactRowCountMode := False;}
+  FExactRowCountMode := False;
 end;
 
 
@@ -6529,7 +6529,6 @@ var
   ResultCol: Integer;
 begin
   // When adding some new TAction here, be sure to apply this procedure to its OnUpdate event
-  {
   Grid := ActiveGrid;
   Conn := ActiveConnection;
   HasConnection := Conn <> nil;
@@ -6594,7 +6593,7 @@ begin
 
   ValidateQueryControls(Sender);
   UpdateLineCharPanel;
-  PageControlTabHighlight(PageControlMain);}
+  PageControlTabHighlight(PageControlMain);
 end;
 
 
@@ -7392,14 +7391,14 @@ var
   Item: TMenuItem;
   Conn: TDBConnection;
   ShiftKeyPressed: Boolean;
-begin {
+begin
   // Set filter for "where..."-clause
   if (PageControlMain.ActivePage <> tabData) or (DataGrid.FocusedColumn = NoColumn) then
     Exit;
 
   Filter := '';
   Conn := ActiveConnection;
-  ShiftKeyPressed := KeyPressed(VK_SHIFT);
+  ShiftKeyPressed := ssShift in GetKeyShiftState;
 
   if Sender is TAction then begin
     // Normal case for most quick filters
@@ -7441,7 +7440,7 @@ begin {
     if ExecRegExpr('\s+LIKE\s+''', Filter) then
       Filter := Filter + Conn.LikeClauseTail;
 
-    SynMemoFilter.UndoList.AddGroupBreak;
+    //SynMemoFilter.UndoList.AddGroupBreak;
     SynMemoFilter.SelectAll;
     if ShiftKeyPressed
       and (Pos(Filter, SynMemoFilter.Text) = 0) and (Pos(SynMemoFilter.Text, Filter) = 0)
@@ -7453,7 +7452,7 @@ begin {
     end;
     ToggleFilterPanel(True);
     actApplyFilterExecute(Sender);
-  end;}
+  end;
 end;
 
 
@@ -8809,6 +8808,8 @@ var
   h: TVTHeader;
   NewColor: TColor;
 begin
+  //logsql('GetLightness clWindow:'+GetLightness(clwindow).ToString);
+  //logsql('GetLightness clWindow:'+Color(clwindow).ToString);
   h := (Sender as TVirtualStringTree).Header;
   for i:=0 to h.Columns.Count-1 do begin
     NewColor := GetThemeColor(clWindow);
@@ -9056,7 +9057,7 @@ begin
   if (Value > 0) and (Max > 0) then begin
     BarWidth := Round(CellWidth / Max * Value);
     TargetCanvas.Brush.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, 20);
-    TargetCanvas.Pen.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, -40);
+    TargetCanvas.Pen.Color := ColorAdjustBrightness(TargetCanvas.Brush.Color, -20);
     TargetCanvas.RoundRect(CellRect.Left, CellRect.Top, CellRect.Left+BarWidth, CellRect.Bottom, 2, 2);
   end;
 end;
@@ -10367,7 +10368,7 @@ end;
 {**
   A grid cell fetches its text content
 }
-{procedure TMainForm.AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+procedure TMainForm.AnyGridGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   EditingAndFocused, IsScientific: Boolean;
@@ -10463,7 +10464,7 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
 
 procedure TMainForm.CalcNullColors;
@@ -10480,7 +10481,7 @@ end;
   Cell in data- or query grid gets painted. Colorize font. This procedure is
   called extremely often for repainting the grid cells. Keep it highly optimized.
 }
-{procedure TMainForm.AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+procedure TMainForm.AnyGridPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
 var
   cl: TColor;
@@ -10513,10 +10514,10 @@ begin
   else
     cl := DatatypeCategories[r.DataType(ResultCol).Category].Color;
   TargetCanvas.Font.Color := cl;
-end;}
+end;
 
 
-{procedure TMainForm.AnyGridAfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+procedure TMainForm.AnyGridAfterCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
   Node: PVirtualNode; Column: TColumnIndex; CellRect: TRect);
 var
   Results: TDBQuery;
@@ -10535,7 +10536,7 @@ begin
   Results.RecNo := RowNum^;
   if Results.Modified(ResultCol) then
     VirtualImageListMain.Draw(TargetCanvas, CellRect.Left, CellRect.Top, 111);
-end;}
+end;
 
 
 {**
@@ -10543,7 +10544,7 @@ end;}
   Left button: handle ORDER BY
   Right button: show column selection box
 }
-{procedure TMainForm.DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
+procedure TMainForm.DataGridHeaderClick(Sender: TVTHeader; HitInfo: TVTHeaderHitInfo);
 var
   frm: TForm;
   ColName: String;
@@ -10569,7 +10570,7 @@ begin
         FDataGridSortItems.Remove(SortItem);
     end
     else begin
-      if KeyPressed(VK_SHIFT) then
+      if ssShift in GetKeyShiftState then
         SortOrder := sioDescending
       else
         SortOrder := sioAscending;
@@ -10590,7 +10591,7 @@ begin
     // Display form
     frm.Show;
   end;
-end;}
+end;
 
 
 procedure TMainForm.actDataSetNullExecute(Sender: TObject);
@@ -10659,7 +10660,7 @@ end;
 {**
   Content of a grid cell was modified
 }
-{procedure TMainForm.AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
+procedure TMainForm.AnyGridNewText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex; NewText: String);
 var
   Results: TDBQuery;
   RowNum: PInt64;
@@ -10691,13 +10692,13 @@ begin
   end;
   FGridEditFunctionMode := False;
   ValidateControls(Sender);
-end;}
+end;
 
 
 {**
   DataGrid: node and/or column focus is about to change. See if we allow that.
 }
-{procedure TMainForm.AnyGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
+procedure TMainForm.AnyGridFocusChanging(Sender: TBaseVirtualTree; OldNode,
     NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed:
     Boolean);
 var
@@ -10722,10 +10723,10 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
+procedure TMainForm.AnyGridFocusChanged(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex);
 begin
   ValidateControls(Sender);
@@ -10736,18 +10737,18 @@ begin
   Sender.ScrollIntoView(Sender.FocusedNode, False, True);
   // Required for highlighting fields with same text
   Sender.Invalidate;
-end;}
+end;
 
 
-{procedure TMainForm.AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
+procedure TMainForm.AnyGridChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
 begin
   // Ensure "delete row" button state is valid, see issue #624
   ValidateControls(Sender);
   UpdateLineCharPanel;
-end;}
+end;
 
 
-{procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TMainForm.AnyGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 var
   g: TVirtualStringTree;
 begin
@@ -10774,10 +10775,10 @@ begin
     VK_DOWN: if g.FocusedNode = g.GetLast then actDataInsertExecute(actDataInsert);
     VK_NEXT: if (g = DataGrid) and (g.FocusedNode = g.GetLast) then actDataShowNext.Execute;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.AnyGridEditing(Sender: TBaseVirtualTree; Node:
+procedure TMainForm.AnyGridEditing(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
   Allowed := False;
@@ -10793,9 +10794,9 @@ begin
   except on E:EDbError do
     ErrorDialog(_('Grid editing error'), E.Message);
   end;
-end;}
+end;
 
-{procedure TMainForm.AnyGridEdited(Sender: TBaseVirtualTree; Node:
+procedure TMainForm.AnyGridEdited(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex);
 begin
   // Reassign Esc to "Cancel row editing" action
@@ -10803,27 +10804,27 @@ begin
     actDataCancelChanges.ShortCut := TextToShortcut('Esc');
     actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
   end;
-end;}
+end;
 
-{procedure TMainForm.AnyGridEditCancelled(Sender: TBaseVirtualTree; Column:
+procedure TMainForm.AnyGridEditCancelled(Sender: TBaseVirtualTree; Column:
     TColumnIndex);
 begin
   // Reassign Esc to "Cancel row editing" action
   actDataCancelChanges.ShortCut := TextToShortcut('Esc');
   actDataPostChanges.ShortCut := TextToShortcut('Ctrl+Enter');
-end;}
+end;
 
-{procedure TMainForm.AnyGridCreateEditor(Sender: TBaseVirtualTree; Node:
+procedure TMainForm.AnyGridCreateEditor(Sender: TBaseVirtualTree; Node:
     PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 const
   ForeignItemsLimit: Integer = 10000;
 var
   VT: TVirtualStringTree;
-  HexEditor: THexEditorLink;
+  {HexEditor: THexEditorLink;
   DateTimeEditor: TDateTimeEditorLink;
   EnumEditor: TEnumEditorLink;
   SetEditor: TSetEditorLink;
-  InplaceEditor: TInplaceEditorLink;
+  InplaceEditor: TInplaceEditorLink;}
   TypeCat: TDBDatatypeCategoryIndex;
   ForeignKey: TForeignKey;
   TblColumn: TTableColumn;
@@ -10883,7 +10884,7 @@ begin
 
         ForeignResults := Conn.GetResults(SQL);
         if ForeignResults.RecordCount < ForeignItemsLimit then begin
-          EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
+          {EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
           EditLink := EnumEditor;
           DisplayHex := (not actBlobAsText.Checked) and (ForeignResults.DataType(0).Category in [dtcBinary, dtcSpatial]);
           while not ForeignResults.Eof do begin
@@ -10898,7 +10899,7 @@ begin
                 EnumEditor.DisplayList.Add(ForeignResults.Col(0)+': '+ForeignResults.Col(1));
             end;
             ForeignResults.Next;
-          end;
+          end;}
         end else begin
           LogSQL(f_('Connected table has too many rows. Foreign key drop-down is limited to %d items.', [ForeignItemsLimit]), lcInfo);
         end;
@@ -10912,11 +10913,11 @@ begin
 
   FGridEditFunctionMode := FGridEditFunctionMode or Results.IsFunction(ResultCol);
   if FGridEditFunctionMode then begin
-    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
+    {EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
     for SQLFunc in Conn.SQLFunctions do
       EnumEditor.ValueList.Add(SQLFunc.Name + SQLFunc.Declaration);
     EnumEditor.AllowCustomText := True;
-    EditLink := EnumEditor;
+    EditLink := EnumEditor;}
   end;
 
   TypeCat := Results.DataType(ResultCol).Category;
@@ -10924,20 +10925,20 @@ begin
   if Assigned(EditLink) then
     // Editor was created above, do nothing now
   else if (Results.DataType(ResultCol).Index in [dbdtEnum, dbdtBool]) and AppSettings.ReadBool(asFieldEditorEnum) then begin
-    EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
+    {EnumEditor := TEnumEditorLink.Create(VT, AllowEdit, TblColumn);
     EnumEditor.ValueList := Results.ValueList(ResultCol);
-    EditLink := EnumEditor;
+    EditLink := EnumEditor;}
   end else if (TypeCat = dtcText) or ((TypeCat in [dtcBinary, dtcSpatial]) and actBlobAsText.Checked) then begin
-    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
+    {InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
     InplaceEditor.MaxLength := Results.MaxLength(ResultCol);
     InplaceEditor.TitleText := Results.ColumnOrgNames[ResultCol];
     InplaceEditor.ButtonVisible := True;
-    EditLink := InplaceEditor;
+    EditLink := InplaceEditor;}
   end else if (TypeCat in [dtcBinary, dtcSpatial]) and AppSettings.ReadBool(asFieldEditorBinary) then begin
-    HexEditor := THexEditorLink.Create(VT, AllowEdit, TblColumn);
+    {HexEditor := THexEditorLink.Create(VT, AllowEdit, TblColumn);
     HexEditor.MaxLength := Results.MaxLength(ResultCol);
     HexEditor.TitleText := Results.ColumnOrgNames[ResultCol];
-    EditLink := HexEditor;
+    EditLink := HexEditor;}
   end else if (TypeCat = dtcTemporal)
     and AppSettings.ReadBool(asFieldEditorDatetime)
     and Assigned(TblColumn) // Editor crashes without a column object (on joins), see #1024
@@ -10959,26 +10960,26 @@ begin
         NowText := NowText + '.' + StringOfChar('0', MicroSecondsPrecision);
       VT.Text[Node, Column] := NowText;
     end;
-    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
-    EditLink := DateTimeEditor;
+    {DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
+    EditLink := DateTimeEditor;}
   end else if AppSettings.ReadBool(asFieldEditorDatetime)
     and HandleUnixTimestampColumn(Sender, Column)
     and Assigned(TblColumn) // see above
     then begin
-    DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
-    EditLink := DateTimeEditor;
+    {DateTimeEditor := TDateTimeEditorLink.Create(VT, AllowEdit, TblColumn);
+    EditLink := DateTimeEditor;}
   end else if (Results.DataType(ResultCol).Index = dbdtSet) and AppSettings.ReadBool(asFieldEditorSet) then begin
-    SetEditor := TSetEditorLink.Create(VT, AllowEdit, TblColumn);
+    {SetEditor := TSetEditorLink.Create(VT, AllowEdit, TblColumn);
     SetEditor.ValueList := Results.ValueList(ResultCol);
-    EditLink := SetEditor;
+    EditLink := SetEditor;}
   end else begin
-    InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
+    {InplaceEditor := TInplaceEditorLink.Create(VT, AllowEdit, TblColumn);
     InplaceEditor.ButtonVisible := False;
-    EditLink := InplaceEditor;
+    EditLink := InplaceEditor;}
   end;
   Sender.FocusedNode := Node;
   Sender.FocusedColumn := Column;
-end;}
+end;
 
 
 procedure TMainForm.menuShowSizeColumnClick(Sender: TObject);
@@ -11078,7 +11079,7 @@ begin
 end;
 
 
-{procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
+procedure TMainForm.AnyGridBeforeCellPaint(Sender: TBaseVirtualTree;
   TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   CellPaintMode: TVTCellPaintMode; CellRect: TRect; var ContentRect: TRect);
 var
@@ -11121,10 +11122,10 @@ begin
     cl := GetThemeColor(clHighlight)
   end else if vsSelected in Node.States then begin
     // Selected but not focused cell
-    if VT.Color > ColorAdjustBrightness(clWhite, -29) then
-      cl := ColorAdjustBrightness(VT.Color, -29)
+    if VT.Color > ColorAdjustBrightness(clWindow, -20) then
+      cl := ColorAdjustBrightness(clWindow, -20)
     else
-      cl := ColorAdjustBrightness(VT.Color, 29);
+      cl := ColorAdjustBrightness(clWindow, 20);
   end else if r.IsNull(ResultCol) then begin
     // Cell with NULL value
     clNull := AppSettings.ReadInt(asFieldNullBackground);
@@ -11157,7 +11158,7 @@ begin
     end;
   end;
 
-end;}
+end;
 
 
 procedure TMainForm.HandleDataGridAttributes(RefreshingData: Boolean);
@@ -11293,7 +11294,7 @@ begin
 end;
 
 
-{procedure TMainForm.AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
+procedure TMainForm.AnyGridMouseUp(Sender: TObject; Button: TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 var
   Grid: TVirtualStringTree;
@@ -11312,7 +11313,7 @@ begin
       DisplayRowCountStats(Grid);
     end;
   end;
-end;}
+end;
 
 
 procedure TMainForm.ListDatabasesBeforePaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas);
@@ -11711,7 +11712,7 @@ var
   Filter: String;
   Conn: TDBConnection;
 begin
-  {Results := GridResult(DataGrid);
+  Results := GridResult(DataGrid);
   RowNum := DataGrid.GetNodeData(DataGrid.FocusedNode);
   Results.RecNo := RowNum^;
   FocusedColumnName := Results.ColumnOrgNames[DataGrid.FocusedColumn-1];
@@ -11751,7 +11752,7 @@ begin
   actApplyFilter.Execute;
   // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
   AppSettings.SessionPath := GetRegKeyTable;
-  AppSettings.WriteString(asFilter, Filter);}
+  AppSettings.WriteString(asFilter, Filter);
 end;
 
 
@@ -13008,10 +13009,10 @@ var
 begin
   // All grids (data- and query-grids, also host subtabs) are placed directly on a TTabSheet
   Result := nil;
-  {if Grid = DataGrid then begin
+  if Grid = DataGrid then begin
     if DataGridResult<>nil then
       Result := DataGridResult;
-  end else} if Assigned(Grid) then begin
+  end else if Assigned(Grid) then begin
     CurrentTab := Grid.Parent as TTabSheet;
     if CurrentTab.Parent = PageControlHost then
       Result := FHostListResults[CurrentTab.PageIndex]
@@ -14905,7 +14906,7 @@ begin
 end;
 
 
-{function TMainForm.SelectedTableFocusedColumn: TTableColumn;
+function TMainForm.SelectedTableFocusedColumn: TTableColumn;
 var
   Col: TTableColumn;
 begin
@@ -14919,7 +14920,7 @@ begin
       Break;
     end;
   end;
-end;}
+end;
 
 
 
