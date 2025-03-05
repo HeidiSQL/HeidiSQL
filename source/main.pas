@@ -442,6 +442,7 @@ type
     actSelectAll: TAction;
     actSelectAll1: TMenuItem;
     N13: TMenuItem;
+    ProgressBarStatus: TProgressBar;
     menuRecentFilters: TMenuItem;
     comboRecentFilters: TComboBox;
     lblRecentFilters: TLabel;
@@ -986,14 +987,14 @@ type
     function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
-    //procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
     //procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
     procedure actSelectInverseExecute(Sender: TObject);
-    //procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
-    //  var Handled: Boolean);
+    procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
+      var Handled: Boolean);
     procedure actDataResetSortingExecute(Sender: TObject);
     procedure actReformatSQLExecute(Sender: TObject);
     procedure DBtreeFocusChanging(Sender: TBaseVirtualTree; OldNode,
@@ -1797,7 +1798,7 @@ begin
 end;}
 
 
-{procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 var
   i: Integer;
 begin
@@ -1814,7 +1815,7 @@ begin
   // Unsaved modified table, trigger, view or routine?
   if Assigned(ActiveObjectEditor) then
     CanClose := not (ActiveObjectEditor.DeInit in [mrAbort, mrCancel]);
-end;}
+end;
 
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
@@ -2118,9 +2119,10 @@ begin
   SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
   SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);}
 
-  {// Place progressbar on the statusbar
-  ProgressBarStatus.Parent := StatusBar;
-  ProgressBarStatus.Visible := False;}
+  // Place progressbar on the statusbar
+  //ProgressBarStatus.Parent := StatusBar;
+  ProgressBarStatus.Visible := False;
+  ProgressBarStatus.Height := StatusBar.Height;
 
   // SynMemo font, hightlighting and shortcuts
   SetupSynEditors;
@@ -2764,8 +2766,9 @@ end;
 
 procedure TMainForm.FormResize(Sender: TObject);
 var
-  PanelRect: TRect;
+  //PanelRect: TRect;
   w0, w1, w2, w3, w4, w5, w6: Integer;
+  i, ProgressBarLeft: Integer;
 
   function CalcPanelWidth(SampleText: String; MaxPercentage: Integer): Integer;
   var
@@ -2810,9 +2813,16 @@ begin
       PanelRect.Bottom-PanelRect.Top
       );
   end;}
+  ProgressBarLeft := 0;
+  for i:=0 to 4 do begin
+    Inc(ProgressBarLeft, StatusBar.Panels.Items[i].Width);
+  end;
+  ProgressBarStatus.Left := ProgressBarLeft;
+  ProgressBarStatus.Top := StatusBar.Top;
+  ProgressBarStatus.Width := StatusBar.Panels[5].Width;
 
-  {lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
-  FixQueryTabCloseButtons;}
+  lblDataTop.Width := pnlDataTop.Width - tlbDataButtons.Width - 10;
+  {FixQueryTabCloseButtons;}
 
   // Right aligned button
   // Do not set ToolBar.Align to alRight. See issue #1967
@@ -4453,7 +4463,7 @@ begin
       Node := GetNextNode(Grid, nil, True);
       while Assigned(Node) do begin
         RowNum := Grid.GetNodeData(Node);
-        //ShowStatusMsg(f_('Deleting row #%s of %s ...', [FormatNumber(ProgressBarStatus.Position+1), FormatNumber(ProgressBarStatus.Max)]));
+        ShowStatusMsg(f_('Deleting row #%s of %s ...', [FormatNumber(ProgressBarStatus.Position+1), FormatNumber(ProgressBarStatus.Max)]));
         Results.RecNo := RowNum^;
         Results.DeleteRow;
         ProgressStep;
@@ -13614,18 +13624,19 @@ begin
 end;
 
 
-{procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
+procedure TMainForm.FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
   var Handled: Boolean);
-var
-  Control: TWinControl;
+{var
+  Control: TControl;
   VT: TBaseVirtualTree;
-  PageControl: TPageControl;
+  PageControl: TPageControl;}
 begin
   // Wheel scrolling only works in component which has focus. Help out by doing that by hand at least for any VirtualTree.
   // See http://www.delphipraxis.net/viewtopic.php?p=1113607
   // TODO: Does not work when a SynMemo has focus, probably related to the broken solution of this issue:
   // http://sourceforge.net/tracker/index.php?func=detail&aid=1574059&group_id=3221&atid=103221
-  Control := FindVCLWindow(MousePos);
+  // Likely not required with Lazarus
+  {Control := ControlAtPos(Mouse.CursorPos, True, True);
   if (Control is TBaseVirtualTree) and (not Control.Focused) and PtInRect(Control.ClientRect, Control.ScreenToClient(MousePos)) then begin
     VT := Control as TBaseVirtualTree;
     VT.OffsetY := VT.OffsetY + (WheelDelta div 2); // Don't know why, but WheelDelta is twice as big as it normally appears
@@ -13643,9 +13654,9 @@ begin
         FixQueryTabCloseButtons;
       Handled := True;
     end;
-  end else
+  end else}
     Handled := False;
-end;}
+end;
 
 
 procedure TMainForm.actDataResetSortingExecute(Sender: TObject);
@@ -14767,9 +14778,9 @@ procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
   //SetProgressState(pbsNormal);
-  //ProgressBarStatus.Visible := True and (not IsWine);
+  ProgressBarStatus.Visible := True{ and (not IsWine)};
   SetProgressPosition(0);
-  //ProgressBarStatus.Max := MaxValue;
+  ProgressBarStatus.Max := MaxValue;
 end;
 
 
@@ -14777,7 +14788,7 @@ procedure TMainForm.DisableProgress;
 begin
   // Hide global progress bar
   SetProgressPosition(0);
-  //ProgressBarStatus.Hide;
+  ProgressBarStatus.Hide;
   //if Assigned(TaskBarList3) then
   //  TaskBarList3.SetProgressState(Handle, 0);
 end;
@@ -14787,12 +14798,12 @@ procedure TMainForm.SetProgressPosition(Value: Integer);
 begin
   // Advance progress bar and task progress position
   try
-    //ProgressBarStatus.Position := Value;
+    ProgressBarStatus.Position := Value;
   except
     // Silence "Floating point division by zero." - see https://www.heidisql.com/forum.php?t=26218
     on E:EZeroDivide do;
   end;
-  //ProgressBarStatus.Repaint;
+  ProgressBarStatus.Repaint;
   //if Assigned(TaskBarList3) then
   //  TaskBarList3.SetProgressValue(Handle, Value, ProgressBarStatus.Max);
 end;
@@ -14800,7 +14811,7 @@ end;
 
 procedure TMainForm.ProgressStep;
 begin
-  //SetProgressPosition(ProgressBarStatus.Position+1);
+  SetProgressPosition(ProgressBarStatus.Position+1);
 end;
 
 

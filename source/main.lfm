@@ -9,7 +9,11 @@ object MainForm: TMainForm
   DesignTimePPI = 120
   Font.Height = -15
   Menu = MainMenu1
+  OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnMouseWheel = FormMouseWheel
+  OnShow = FormShow
   Position = poMainFormCenter
   object StatusBar: TStatusBar
     Left = 0
@@ -3285,6 +3289,14 @@ object MainForm: TMainForm
         end
       end
     end
+  end
+  object ProgressBarStatus: TProgressBar
+    Left = 744
+    Height = 25
+    Top = 472
+    Width = 125
+    Step = 1
+    TabOrder = 5
   end
   object MainMenu1: TMainMenu
     Images = ImageListIcons8
@@ -19876,7 +19888,7 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False
