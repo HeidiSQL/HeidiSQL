@@ -18,6 +18,7 @@ object frmColumnSelection: TfrmColumnSelection
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
+  LCLVersion = '3.8.0.0'
   object btnCancel: TButton
     Left = 146
     Height = 31
@@ -67,7 +68,7 @@ object frmColumnSelection: TfrmColumnSelection
     Top = 39
     Width = 230
     Anchors = [akTop, akLeft, akRight, akBottom]
-    ItemHeight = 0
+    ItemHeight = 21
     TabOrder = 4
     OnClickCheck = chklistColumnsClickCheck
   end

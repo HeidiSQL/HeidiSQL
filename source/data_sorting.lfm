@@ -15,6 +15,7 @@ object frmDataSorting: TfrmDataSorting
   OnClose = FormClose
   OnCreate = FormCreate
   OnDeactivate = FormDeactivate
+  LCLVersion = '3.8.0.0'
   object pnlBevel: TPanel
     Left = 0
     Height = 121

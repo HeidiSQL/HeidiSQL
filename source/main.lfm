@@ -46,7 +46,9 @@ object MainForm: TMainForm
         Style = psOwnerDraw
         Width = 250
       end>
+    ParentShowHint = False
     SimplePanel = False
+    ShowHint = True
   end
   object ToolBarMainButtons: TToolBar
     Left = 0
@@ -56,6 +58,8 @@ object MainForm: TMainForm
     AutoSize = True
     Caption = 'ToolBarMainButtons'
     Images = ImageListIcons8
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 1
     object ToolButton9: TToolButton
       Left = 1
@@ -767,6 +771,8 @@ object MainForm: TMainForm
           Align = alNone
           Caption = 'ToolBarPreview'
           Images = ImageListIcons8
+          ParentShowHint = False
+          ShowHint = True
           TabOrder = 0
           object btnPreviewCopy: TToolButton
             Left = 1
@@ -2069,6 +2075,7 @@ object MainForm: TMainForm
               List = True
               ParentShowHint = False
               ShowCaptions = True
+              ShowHint = True
               TabOrder = 0
               object tbtnDataNext: TToolButton
                 Left = 1
@@ -19888,7 +19895,7 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = -1
+    Position = 0
     LinesInWindow = 6
     SelectedColor = clHighlight
     CaseSensitive = False

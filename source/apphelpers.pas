@@ -12,13 +12,13 @@ uses
 
 type
 
-  // Sync with main branch
+  // Sync with main branch and Delphi structures
   TSynMemo = TSynEdit;
   TVirtualStringTree = TLazVirtualStringTree;
-  TExtFileOpenDialog = class(TOpenDialog);
   TExtFileSaveDialog = class(TSaveDialog);
   TImageIndex = Integer;
   PInt = ^Integer;
+  TProgressBarState = (pbsNormal, pbsError, pbsPaused);
 
   TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)
@@ -365,7 +365,7 @@ type
   //function GetTempDir: String;
   procedure SaveUnicodeFile(Filename: String; Text: String; Encoding: TEncoding);
   procedure OpenTextFile(const Filename: String; out Stream: TFileStream; var Encoding: TEncoding);
-  //function DetectEncoding(Stream: TStream): TEncoding;
+  function DetectEncoding(Stream: TStream): TEncoding;
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   //function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
@@ -454,7 +454,7 @@ var
 
 implementation
 
-uses main; //, extra_controls;
+uses main, extra_controls;
 
 
 
@@ -1255,12 +1255,13 @@ end;
   @see http://en.wikipedia.org/wiki/Byte_Order_Mark
   Could also do that with TEncoding.GetBufferEncoding, but that relies on the file having a BOM
 }
-{function DetectEncoding(Stream: TStream): TEncoding;
-var
+function DetectEncoding(Stream: TStream): TEncoding;
+{var
   SynEnc: TSynEncoding;
-  WithBOM: Boolean;
+  WithBOM: Boolean;}
 begin
-  SynEnc := SynUnicode.GetEncoding(Stream, WithBOM);
+  Result := TEncoding.UTF8
+  {SynEnc := SynUnicode.GetEncoding(Stream, WithBOM);
   case SynEnc of
     seUTF8: begin
       if WithBOM then
@@ -1272,8 +1273,8 @@ begin
     seUTF16BE: Result := TEncoding.BigEndianUnicode;
     seAnsi: Result := TEncoding.ANSI;
     else Result := UTF8NoBOMEncoding;
-  end;
-end;}
+  end;}
+end;
 
 
 function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
@@ -1848,7 +1849,7 @@ var
 begin
   Mainform.ShowStatusMsg(_('Initializing editor ...'));
   Mainform.LogSQL(Self.ClassName+'.Init, using object "'+Obj.Name+'"', lcDebug);
-  //TExtForm.FixControls(Self);
+  TExtForm.FixControls(Self);
   IsRefresh := Assigned(DBObject) and DBObject.IsSameAs(Obj);
   if IsRefresh and Assigned(FMainSynMemo) then
     FMainSynMemoPreviousTopLine := FMainSynMemo.TopLine

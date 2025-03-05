@@ -7,10 +7,10 @@ interface
 uses
   SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls, ExtCtrls,
-  Menus, Clipbrd, ComCtrls, Math;
+  Menus, Clipbrd, ComCtrls, Math, extra_controls;
 
 type
-  TfrmPasswordChange = class(TForm)
+  TfrmPasswordChange = class(TExtForm)
     lblHeading: TLabel;
     lblPassword: TLabel;
     lblRepeatPassword: TLabel;
@@ -59,7 +59,7 @@ uses main, apphelpers;
 
 procedure TfrmPasswordChange.FormCreate(Sender: TObject);
 begin
-  //HasSizeGrip := True;
+  HasSizeGrip := True;
 end;
 
 

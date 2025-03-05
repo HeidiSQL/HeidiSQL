@@ -12,6 +12,7 @@
       <XPManifest>
         <DpiAware Value="True"/>
       </XPManifest>
+      <Icon Value="0"/>
     </General>
     <VersionInfo>
       <UseVersionInfo Value="True"/>
@@ -141,6 +142,20 @@
         <Filename Value="source\column_selection.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmColumnSelection"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\loaddata.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="loaddataform"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\csv_detector.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmCsvDetector"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>

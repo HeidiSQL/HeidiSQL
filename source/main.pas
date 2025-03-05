@@ -1032,7 +1032,7 @@ type
     //procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
     //procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     //procedure tabsetQueryMouseLeave(Sender: TObject);
-    //procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
+    procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
     //procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     //procedure StatusBarMouseLeave(Sender: TObject);
     //procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
@@ -1360,9 +1360,9 @@ type
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
     //procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
     property DataGridSortItems: TSortItems read FDataGridSortItems write FDataGridSortItems;
-    //function GetEncodingByName(Name: String): TEncoding;
-    //function GetEncodingName(Encoding: TEncoding): String;
-    //function GetCharsetByEncoding(Encoding: TEncoding): String;
+    function GetEncodingByName(Name: String): TEncoding;
+    function GetEncodingName(Encoding: TEncoding): String;
+    function GetCharsetByEncoding(Encoding: TEncoding): String;
     //procedure RefreshHelperNode(NodeIndex: Cardinal);
     //procedure BeforeQueryExecution(Thread: TQueryThread);
     //procedure AfterQueryExecution(Thread: TQueryThread);
@@ -1371,7 +1371,7 @@ type
     procedure DisableProgress;
     procedure SetProgressPosition(Value: Integer);
     procedure ProgressStep;
-    //procedure SetProgressState(State: TProgressbarState);
+    procedure SetProgressState(State: TProgressbarState);
     //procedure TaskDialogHyperLinkClicked(Sender: TObject);
     function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
     procedure ApplyVTFilter(FromTimer: Boolean);
@@ -1380,7 +1380,7 @@ type
     //property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
     //property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
     function SelectedTableFocusedColumn: TTableColumn;
-    //property FormatSettings: TFormatSettings read FFormatSettings;
+    property FormatSettings: TFormatSettings read FFormatSettings;
     //property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
     //property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
     property VirtualImageListMain: TImageList read ImageListIcons8; // Sync with main branch
@@ -1411,7 +1411,7 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection;
+  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata;
 
 {$R *.lfm}
 
@@ -1487,7 +1487,7 @@ begin
 
 end;}
 
-{procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
+procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
   const Rect: TRect);
 var
   PanelRect: TRect;
@@ -1517,8 +1517,8 @@ begin
     VirtualImageListMain.Draw(StatusBar.Canvas, PanelRect.Left, PanelRect.Top, ImageIndex, true);
     OffsetRect(PanelRect, VirtualImageListMain.Width+2, 0);
   end;
-  DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, PanelRect, DT_SINGLELINE or DT_VCENTER);
-end;}
+  //DrawText(StatusBar.Canvas.Handle, PChar(Panel.Text), -1, PanelRect, DT_SINGLELINE or DT_VCENTER);
+end;
 
 
 {procedure TMainForm.StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -1634,7 +1634,7 @@ end;
 
 procedure TMainForm.actGotoFilterExecute(Sender: TObject);
 begin
-  //editTableFilter.SetFocus;
+  editTableFilter.SetFocus;
 end;
 
 
@@ -2157,7 +2157,7 @@ begin
   FGridCopying := False;
   FGridPasting := False;
 
-  {FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7,UTF-8-BOM');}
+  FileEncodings := Explode(',', _('Auto detect (may fail)')+',ANSI,ASCII,Unicode,Unicode Big Endian,UTF-8,UTF-7,UTF-8-BOM');
 
   // Detect timezone offset in seconds, once
   FTimeZoneOffset := GetLocalTimeOffset * 60;
@@ -2174,7 +2174,9 @@ begin
   FLastCaptionChange := 0;
   FLastPortableSettingsSave := 0;
   FLastAppSettingsWrites := 0;
-  //FFormatSettings := TFormatSettings.Create('en-US');
+  FFormatSettings := DefaultFormatSettings;
+  FFormatSettings.DecimalSeparator := '.';
+  FFormatSettings.ThousandSeparator := ' ';;
   FDefaultHintFontName := Screen.HintFont.Name;
 
   // Now we are free to use certain methods, which are otherwise fired too early
@@ -2736,13 +2738,13 @@ end;
 
 
 procedure TMainForm.actImportCSVExecute(Sender: TObject);
-//var
-//  Dialog: Tloaddataform;
+var
+  Dialog: Tloaddataform;
 begin
   // Import Textfile
-  //Dialog := Tloaddataform.Create(Self);
-  //Dialog.ShowModal;
-  //Dialog.Free;
+  Dialog := Tloaddataform.Create(Self);
+  Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
@@ -3739,7 +3741,7 @@ begin
       Graphic := TGIFImage.Create;
     end else if Copy(Header, 1, 2) = 'BM' then begin
       ImgType := 'BMP';
-      Graphic := TBitmap.Create;
+      Graphic := Graphics.TBitmap.Create;
     end else if Copy(Header, 2, 3) = 'PNG' then begin
       ImgType := 'PNG';
       Graphic := TPortableNetworkGraphic.Create;
@@ -3985,16 +3987,16 @@ end;
 procedure TMainForm.actLoadSQLExecute(Sender: TObject);
 var
   i, ProceedResult: Integer;
-  //Dialog: TExtFileOpenDialog;
+  Dialog: TExtFileOpenDialog;
   Encoding: TEncoding;
   Tab: TQueryTab;
 begin
-  {AppSettings.ResetPath;
+  AppSettings.ResetPath;
   Dialog := TExtFileOpenDialog.Create(Self);
-  Dialog.Options := Dialog.Options + [fdoAllowMultiSelect];
+  Dialog.Options := Dialog.Options + [ofAllowMultiSelect];
   Dialog.AddFileType('*.sql', _('SQL files'));
   Dialog.AddFileType('*.*', _('All files'));
-  Dialog.DefaultExtension := 'sql';
+  Dialog.DefaultExt := 'sql';
   Dialog.Encodings.Assign(FileEncodings);
   Dialog.EncodingIndex := AppSettings.ReadInt(asFileDialogEncoding, Self.Name);
   if Dialog.Execute then begin
@@ -4009,18 +4011,18 @@ begin
     end;
 
     if ProceedResult = mrYes then begin
-      if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
+      {if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
         for i:=0 to Dialog.Files.Count-1 do begin
           Tab := GetOrCreateEmptyQueryTab(False);
           Tab.LoadContents(Dialog.Files[i], True, Encoding);
           if i = Dialog.Files.Count-1 then
             SetMainTab(Tab.TabSheet);
         end;
-      end;
+      end;}
     end;
     AppSettings.WriteInt(asFileDialogEncoding, Dialog.EncodingIndex, Self.Name);
   end;
-  Dialog.Free;}
+  Dialog.Free;
 end;
 
 
@@ -4488,7 +4490,7 @@ begin
       ValidateControls(Sender);
     end;
   except on E:EDbError do begin
-      //SetProgressState(pbsError);
+      SetProgressState(pbsError);
       ErrorDialog(_('Grid editing error'), E.Message);
     end;
   end;
@@ -4543,8 +4545,8 @@ begin
   // Delete rows from selected tables and views
 
   // See issue #3166
-  //if (not DBtree.Focused) and (not ListTables.Focused) then
-  //  Exit;
+  if (not DBtree.Focused) and (not ListTables.Focused) then
+    Exit;
 
   Objects := GetFocusedObjects(Sender, [lntTable, lntView]);
   Names := '';
@@ -4584,7 +4586,7 @@ begin
           actRefresh.Execute;
         except
           on E:EDbError do begin
-            //SetProgressState(pbsError);
+            SetProgressState(pbsError);
             ErrorDialog(E.Message);
           end;
         end;
@@ -13858,7 +13860,7 @@ begin
 end;
 
 
-{function TMainForm.GetEncodingByName(Name: String): TEncoding;
+function TMainForm.GetEncodingByName(Name: String): TEncoding;
 begin
   Result := nil;
   case FileEncodings.IndexOf(Name) of
@@ -13870,10 +13872,10 @@ begin
     6: Result := TEncoding.UTF7;
     7: Result := TEncoding.UTF8;
   end;
-end;}
+end;
 
 
-{function TMainForm.GetEncodingName(Encoding: TEncoding): String;
+function TMainForm.GetEncodingName(Encoding: TEncoding): String;
 var
   idx: Integer;
 begin
@@ -13886,15 +13888,16 @@ begin
   else if Encoding = TEncoding.UTF8 then idx := 7
   else idx := 0;
   Result := FileEncodings[idx];
-end;}
+end;
 
 
-{function TMainForm.GetCharsetByEncoding(Encoding: TEncoding): String;
+function TMainForm.GetCharsetByEncoding(Encoding: TEncoding): String;
 begin
   Result := '';
   if Encoding = TEncoding.Default then begin
     // Listing taken from http://forge.mysql.com/worklog/task.php?id=1349
-    case GetACP of
+    // This would require to use the Windows unit, which would cause conflicts with Beep
+    {case GetACP of
       437: Result := 'cp850';
       850: Result := 'cp850';
       852: Result := 'cp852';
@@ -13943,7 +13946,7 @@ begin
       51950: Result := 'big5';
       54936: Result := 'gb18030';
       65001: Result := 'utf8';
-    end;
+    end;}
   end else if (Encoding <> nil) and (Encoding.CodePage = 437) then
     Result := 'ascii'
   else if Encoding = TEncoding.Unicode then
@@ -13957,7 +13960,7 @@ begin
   else if Encoding = TEncoding.UTF8 then
     Result := 'utf8'
   // Auto-detection not supported here
-end;}
+end;
 
 
 {procedure TMainForm.treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
@@ -14777,7 +14780,7 @@ end;
 procedure TMainForm.EnableProgress(MaxValue: Integer);
 begin
   // Initialize progres bar and button
-  //SetProgressState(pbsNormal);
+  SetProgressState(pbsNormal);
   ProgressBarStatus.Visible := True{ and (not IsWine)};
   SetProgressPosition(0);
   ProgressBarStatus.Max := MaxValue;
@@ -14815,14 +14818,14 @@ begin
 end;
 
 
-{procedure TMainForm.SetProgressState(State: TProgressbarState);
-var
-  Flag: Integer;
+procedure TMainForm.SetProgressState(State: TProgressbarState);
+//var
+//  Flag: Integer;
 begin
   // Set error or pause state in progress bar or task button
-  ProgressBarStatus.State := State;
+  //ProgressBarStatus.State := State;
   ProgressBarStatus.Repaint;
-  if Assigned(TaskBarList3) then begin
+  {if Assigned(TaskBarList3) then begin
     case State of
       pbsNormal: Flag := 2;
       pbsError: Flag := 4;
@@ -14830,8 +14833,8 @@ begin
       else Flag := 0;
     end;
     TaskBarList3.SetProgressState(Handle, Flag);
-  end;
-end;}
+  end;}
+end;
 
 
 {procedure TMainForm.TaskDialogHyperLinkClicked(Sender: TObject);

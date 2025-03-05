@@ -5,8 +5,8 @@ unit extra_controls;
 interface
 
 uses
-  Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd,
-  apphelpers, Graphics, Dialogs, ImgList, ComCtrls,
+  Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
+  Graphics, Dialogs, ImgList, ComCtrls,
   ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn,
   GraphUtil;
 
@@ -16,20 +16,20 @@ type
     private
       //FSizeGrip: TSizeGripXP;
       FPixelsPerInchDesigned: Integer;
-      //function GetHasSizeGrip: Boolean;
-      //procedure SetHasSizeGrip(Value: Boolean);
+      function GetHasSizeGrip: Boolean;
+      procedure SetHasSizeGrip(Value: Boolean);
     protected
-      //procedure DoShow; override;
+      procedure DoShow; override;
       //procedure DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
       //procedure DoAfterMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
-      procedure FilterNodesByEdit(Edit: TEditButton; Tree: TVirtualStringTree);
+      procedure FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
     public
       constructor Create(AOwner: TComponent); override;
       class procedure InheritFont(AFont: TFont);
-      //property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
-      //class procedure FixControls(ParentComp: TComponent);
-      class procedure SaveListSetup(List: TVirtualStringTree);
-      class procedure RestoreListSetup(List: TVirtualStringTree);
+      property HasSizeGrip: Boolean read GetHasSizeGrip write SetHasSizeGrip default False;
+      class procedure FixControls(ParentComp: TComponent);
+      class procedure SaveListSetup(List: TLazVirtualStringTree);
+      class procedure RestoreListSetup(List: TLazVirtualStringTree);
       function ScaleSize(x: Extended): Integer; overload;
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
@@ -37,22 +37,23 @@ type
   end;
 
   // Modern file-open-dialog with high DPI support and encoding selector
-  {TExtFileOpenDialog = class(TFileOpenDialog)
+  TExtFileOpenDialog = class(TOpenDialog)
     private
+      FFilters: TStringList;
       FEncodings: TStringList;
       FEncodingIndex: Cardinal;
       const idEncodingCombo = 1;
       procedure FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
     protected
-      procedure DoOnExecute; override;
-      function DoOnFileOkClick: Boolean; override;
+      //procedure DoOnExecute; override;
+      //function DoOnFileOkClick: Boolean; override;
     public
       constructor Create(AOwner: TComponent); override;
       destructor Destroy; override;
       procedure AddFileType(FileMask, DisplayName: String);
       property Encodings: TStringList read FEncodings write FEncodings;
       property EncodingIndex: Cardinal read FEncodingIndex write FEncodingIndex;
-  end;}
+  end;
 
   {TExtFileSaveDialog = class(TFileSaveDialog)
     private
@@ -121,12 +122,12 @@ begin
 
   FPixelsPerInchDesigned := DesignTimePPI;
   InheritFont(Font);
-  //HasSizeGrip := False;
+  HasSizeGrip := False;
 
   // Reduce flicker on Windows 10
   // See https://www.heidisql.com/forum.php?t=19141
   //if CheckWin32Version(6, 2) then begin
-  //  DoubleBuffered := True;
+  DoubleBuffered := True;
   //end;
 
   // Translation and related fixes
@@ -144,12 +145,12 @@ begin
 end;
 
 
-{procedure TExtForm.DoShow;
+procedure TExtForm.DoShow;
 begin
   // No need to fix anything
   FixControls(Self);
   inherited;
-end;}
+end;
 
 
 {procedure TExtForm.DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer);
@@ -167,11 +168,11 @@ begin
 end;}
 
 
-{class procedure TExtForm.FixControls(ParentComp: TComponent);
+class procedure TExtForm.FixControls(ParentComp: TComponent);
 var
   i: Integer;
 
-  procedure ProcessSingleComponent(Cmp: TComponent);
+  {procedure ProcessSingleComponent(Cmp: TComponent);
   begin
     if (Cmp is TButton) and (TButton(Cmp).Style = bsSplitButton) then begin
       // Work around broken dropdown (tool)button on Wine after translation:
@@ -184,33 +185,34 @@ var
       TToolButton(Cmp).Style := tbsButton;
       TToolButton(Cmp).Style := tbsDropDown;
     end;
-  end;
+  end;}
 begin
   // Passed component itself may also be some control to be fixed
   // e.g. TInplaceEditorLink.MainControl
-  ProcessSingleComponent(ParentComp);
+  {ProcessSingleComponent(ParentComp);
   for i:=0 to ParentComp.ComponentCount-1 do begin
     ProcessSingleComponent(ParentComp.Components[i]);
-  end;
-end;}
+  end;}
+end;
 
 
-{function TExtForm.GetHasSizeGrip: Boolean;
+function TExtForm.GetHasSizeGrip: Boolean;
 begin
-  Result := FSizeGrip <> nil;
-end;}
+  //Result := FSizeGrip <> nil;
+  Result := False;
+end;
 
 
-{procedure TExtForm.SetHasSizeGrip(Value: Boolean);
+procedure TExtForm.SetHasSizeGrip(Value: Boolean);
 begin
-  if Value then begin
+  {if Value then begin
     FSizeGrip := TSizeGripXP.Create(Self);
     FSizeGrip.Enabled := True;
   end else begin
     if FSizeGrip <> nil then
       FreeAndNil(FSizeGrip);
-  end;
-end;}
+  end;}
+end;
 
 
 class procedure TExtForm.InheritFont(AFont: TFont);
@@ -240,7 +242,7 @@ end;
 {**
   Save setup of a VirtualStringTree to registry
 }
-class procedure TExtForm.SaveListSetup( List: TVirtualStringTree );
+class procedure TExtForm.SaveListSetup( List: TLazVirtualStringTree);
 var
   i: Integer;
   ColWidth: Int64;
@@ -299,7 +301,7 @@ end;
 {**
   Restore setup of VirtualStringTree from registry
 }
-class procedure TExtForm.RestoreListSetup( List: TVirtualStringTree );
+class procedure TExtForm.RestoreListSetup( List: TLazVirtualStringTree );
 var
   i : Byte;
   colpos : Integer;
@@ -369,7 +371,7 @@ begin
 end;
 
 
-procedure TExtForm.FilterNodesByEdit(Edit: TEditButton; Tree: TVirtualStringTree);
+procedure TExtForm.FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
 var
   rx: TRegExpr;
   Node: PVirtualNode;
@@ -469,33 +471,45 @@ end;
 
 { TExtFileOpenDialog }
 
-{constructor TExtFileOpenDialog.Create(AOwner: TComponent);
+constructor TExtFileOpenDialog.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FEncodings := TStringList.Create;
   FEncodingIndex := 0;
+  FFilters := TStringList.Create;
 end;
 
 
 destructor TExtFileOpenDialog.Destroy;
 begin
   FEncodings.Free;
+  FFilters.Free;
   inherited;
 end;
 
 
 procedure TExtFileOpenDialog.AddFileType(FileMask, DisplayName: String);
 var
-  FileType: TFileTypeItem;
+  //FileType: TFileTypeItem;
+  i: Integer;
+  NewFilter: String;
 begin
   // Shorthand for callers
-  FileType := FileTypes.Add;
+  {FileType := FileTypes.Add;
   FileType.DisplayName := DisplayName;
-  FileType.FileMask := FileMask;
+  FileType.FileMask := FileMask;}
+  FFilters.Values[DisplayName] := FileMask;
+  NewFilter := '';
+  for i:=FFilters.Count-1 downto 0 do begin
+    NewFilter := NewFilter + Format('%s (%s)|%s', [FFilters.Names[i], FFilters.ValueFromIndex[i], FFilters.ValueFromIndex[i]]);
+    if i > 0 then
+      NewFilter := NewFilter + '|';
+  end;
+  Filter := NewFilter;
 end;
 
 
-procedure TExtFileOpenDialog.DoOnExecute;
+{procedure TExtFileOpenDialog.DoOnExecute;
 var
   iCustomize: IFileDialogCustomize;
   i: Integer;
@@ -517,7 +531,7 @@ begin
       iCustomize.EndVisualGroup;
     end;
   end;
-end;
+end;}
 
 
 procedure TExtFileOpenDialog.FileOkClickNoOp(Sender: TObject; var CanClose: Boolean);
@@ -526,7 +540,7 @@ begin
 end;
 
 
-function TExtFileOpenDialog.DoOnFileOkClick: Boolean;
+{function TExtFileOpenDialog.DoOnFileOkClick: Boolean;
 var
   iCustomize: IFileDialogCustomize;
 begin

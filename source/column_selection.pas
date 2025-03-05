@@ -47,7 +47,7 @@ uses main;
 
 procedure TfrmColumnSelection.FormCreate(Sender: TObject);
 begin
-  //HasSizeGrip := True;
+  HasSizeGrip := True;
   FCheckedColumns := TStringList.Create;
 end;
 
