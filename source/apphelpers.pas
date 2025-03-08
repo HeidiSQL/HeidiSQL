@@ -3690,7 +3690,7 @@ begin
   InitSetting(asLowercaseHex,                     'LowercaseHex',                          0, True);
   InitSetting(asHintsOnResultTabs,                'HintsOnResultTabs',                     0, True);
   InitSetting(asShowRowId,                        'ShowRowId',                             0, True);
-  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(clInfoBk));
+  InitSetting(asHightlightSameTextBackground,     'HightlightSameTextBackground',          GetThemeColor(NoteLineBackground));
   InitSetting(asLogsqlnum,                        'logsqlnum',                             300);
   InitSetting(asLogsqlwidth,                      'logsqlwidth',                           2000);
   InitSetting(asSessionLogsDirectory,             'SessionLogsDirectory',                  0, False, DirnameUserAppData + 'Sessionlogs' + DirectorySeparator);
