@@ -19,3 +19,7 @@ UF = both
 * UF if TButton has Images + ImageIndex: replace TButton => TSpeedButton (note: ModalResult not supported!)
 * U open unit, accept removal of unknown properties
 * U press Shift+F11 to add unit+form to project
+
+
+Later:
+* TUpDown has minimum Min value of 32768 and maximum Max of 32767. Remove and activate TEdit.NumbersOnly

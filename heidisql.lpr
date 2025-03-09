@@ -17,7 +17,7 @@ uses
   dbstructures, dbstructures.mysql, About, generic_types,
   dbstructures.interbase, dbstructures.mssql, dbstructures.postgresql,
   dbstructures.sqlite, change_password, loginform, data_sorting, extra_controls,
-  column_selection, loaddata, csv_detector, createdatabase {, printlist (EnablePrint not defined) }
+  column_selection, loaddata, csv_detector, createdatabase, editvar {, printlist (EnablePrint not defined) }
   ;
 
 {$R *.res}

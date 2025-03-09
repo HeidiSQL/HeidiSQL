@@ -1011,6 +1011,10 @@ var
   ShowOptions: TShowWindowOptions;
   ProcessResult: String;
 begin
+  if ExecRegExprI('^https?\://', cmd) then begin
+    LCLIntf.OpenURL(cmd);
+    Exit;
+  end;
   if RunHidden then
     ShowOptions := swoHIDE
   else
@@ -2761,7 +2765,7 @@ begin
     Place := 'unhandled-'+Sender.ClassName;
   if not Anchor.IsEmpty then
     Anchor := '#'+Anchor;
-  LCLIntf.OpenURL(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
+  ShellExec(APPDOMAIN+'help.php?place='+EncodeURLParam(Place)+Anchor);
 end;
 
 

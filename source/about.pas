@@ -52,7 +52,7 @@ uses
 
 procedure TAboutBox.OpenURL(Sender: TObject);
 begin
-  LCLIntf.OpenURL(TControl(Sender).Hint);
+  ShellExec(TControl(Sender).Hint);
 end;
 
 
@@ -150,7 +150,7 @@ end;
 
 procedure TAboutBox.lnklblWebpageClick(Sender: TObject);
 begin
-  LCLIntf.OpenURL((Sender as TLabel).Hint);
+  ShellExec((Sender as TLabel).Hint);
 end;
 
 function TAboutBox.GetCompilerVersion: string;

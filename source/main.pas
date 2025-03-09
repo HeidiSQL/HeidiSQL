@@ -1411,7 +1411,7 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata;
+  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar;
 
 {$R *.lfm}
 
@@ -3150,7 +3150,7 @@ end;
 procedure TMainForm.actWebbrowse(Sender: TObject);
 begin
   // Browse to URL (hint)
-  OpenURL(TAction(Sender).Hint);
+  ShellExec(TAction(Sender).Hint);
 end;
 
 
@@ -3169,7 +3169,7 @@ begin
     ErrorDialog(f_('Could not determine parent form of this %s', [Sender.ClassName]))
   else begin
     place := LowerCase(Dialog.UnitName);
-    OpenURL(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
+    ShellExec(APPDOMAIN + 'donatebutton.php?place=' + EncodeURLParam(place));
   end;
 end;
 
@@ -9479,10 +9479,10 @@ end;
   Edit a server variable
 }
 procedure TMainForm.menuEditVariableClick(Sender: TObject);
-//var
-//  Dialog: TfrmEditVariable;
+var
+  Dialog: TfrmEditVariable;
 begin
-  {Dialog := TfrmEditVariable.Create(Self);
+  Dialog := TfrmEditVariable.Create(Self);
   try
     try
       Dialog.VarName := ListVariables.Text[ListVariables.FocusedNode, 0];
@@ -9496,7 +9496,7 @@ begin
     end;
   finally
     Dialog.Free;
-  end;}
+  end;
 end;
 
 

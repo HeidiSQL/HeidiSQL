@@ -166,6 +166,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\editvar.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmEditVariable"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
