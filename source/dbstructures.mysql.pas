@@ -5,7 +5,7 @@
 interface
 
 uses
-  Classes, SysUtils, dbstructures;
+  Classes, SysUtils, Types, dbstructures;
 
 
 const
@@ -181,7 +181,7 @@ type
 
   // Added in Oct 2023, to fix usage of mysql_fetch_lengths(). See issue #1863
   PMYSQL_LENGTHS = ^TMYSQL_LENGTHS;
-  TMYSQL_LENGTHS = array[0..MaxInt div SizeOf(LongWord) - 1] of LongWord;
+  TMYSQL_LENGTHS = array[0..4095] of {$IfDef LINUX} qword {$Else} LongWord {$EndIf};
 
   MYSQL_ROW = array[0..$ffff] of PAnsiChar;
   PMYSQL_ROW = ^MYSQL_ROW;
