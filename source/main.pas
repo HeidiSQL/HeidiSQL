@@ -12,7 +12,7 @@ uses
   SynGutterMarks, StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls,
   fphttpclient, Math, LCLIntf, Generics.Collections, Generics.Defaults,
   opensslsockets, StdActns, Clipbrd, Types, LCLType, dbconnection, dbstructures,
-  dbstructures.mysql, generic_types, apphelpers, extra_controls;
+  dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase;
 
 
 type
@@ -1227,7 +1227,7 @@ type
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
     //FSearchReplaceDialog: TfrmSearchReplace;
-    //FCreateDatabaseDialog: TCreateDatabaseForm;
+    FCreateDatabaseDialog: TCreateDatabaseForm;
     //FTableToolsDialog: TfrmTableTools;
     FGridEditFunctionMode: Boolean;
     FClipboardHasNull: Boolean;
@@ -2731,9 +2731,9 @@ end;
 procedure TMainForm.actCreateDatabaseExecute(Sender: TObject);
 begin
   // Create database:
-  //FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
-  //FCreateDatabaseDialog.ShowModal;
-  //FreeAndNil(FCreateDatabaseDialog);
+  FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
+  FCreateDatabaseDialog.ShowModal;
+  FreeAndNil(FCreateDatabaseDialog);
 end;
 
 
@@ -12223,11 +12223,11 @@ begin
     Obj := DBtree.GetNodeData(DBtree.FocusedNode);
     case Obj.NodeType of
       lntDb: begin
-        {FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
+        FCreateDatabaseDialog := TCreateDatabaseForm.Create(Self);
         FCreateDatabaseDialog.modifyDB := ActiveDatabase;
         if FCreateDatabaseDialog.ShowModal = mrOk then
           RefreshTree;
-        FreeAndNil(FCreateDatabaseDialog);}
+        FreeAndNil(FCreateDatabaseDialog);
       end;
       lntTable..lntEvent:
         SetMainTab(tabEditor);

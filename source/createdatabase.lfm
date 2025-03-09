@@ -1,0 +1,179 @@
+object CreateDatabaseForm: TCreateDatabaseForm
+  Left = 0
+  Height = 284
+  Top = 0
+  Width = 396
+  BorderStyle = bsDialog
+  Caption = 'Create database ...'
+  ClientHeight = 284
+  ClientWidth = 396
+  Color = clBtnFace
+  DesignTimePPI = 120
+  Font.Color = clWindowText
+  Font.Height = -15
+  Font.Name = 'Tahoma'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  object lblDBName: TLabel
+    Left = 10
+    Height = 18
+    Top = 24
+    Width = 44
+    Caption = '&Name:'
+    FocusControl = editDBName
+  end
+  object lblCollation: TLabel
+    Left = 10
+    Height = 18
+    Top = 56
+    Width = 57
+    Caption = 'C&ollation:'
+    FocusControl = comboCollation
+  end
+  object lblCreateCode: TLabel
+    Left = 10
+    Height = 18
+    Top = 166
+    Width = 81
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'CREATE code'
+  end
+  object lblServerDefaultCollation: TLabel
+    Left = 120
+    Height = 18
+    Top = 86
+    Width = 103
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Servers default:'
+  end
+  object editDBName: TEdit
+    Left = 120
+    Height = 26
+    Top = 20
+    Width = 266
+    Anchors = [akTop, akLeft, akRight]
+    TabOrder = 0
+    TextHint = 'Enter database name'
+    OnChange = Modified
+  end
+  object btnOK: TButton
+    Left = 191
+    Height = 31
+    Top = 116
+    Width = 94
+    Anchors = [akTop, akRight]
+    Caption = 'OK'
+    Default = True
+    TabOrder = 2
+    OnClick = btnOKClick
+  end
+  object btnCancel: TButton
+    Left = 292
+    Height = 31
+    Top = 116
+    Width = 94
+    Anchors = [akTop, akRight]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 3
+  end
+  object comboCollation: TComboBox
+    Left = 120
+    Height = 26
+    Top = 52
+    Width = 266
+    Anchors = [akTop, akLeft, akRight]
+    DropDownCount = 16
+    ItemHeight = 18
+    Sorted = True
+    Style = csDropDownList
+    TabOrder = 1
+    OnChange = Modified
+  end
+  inline SynMemoCreateCode: TSynEdit
+    Left = 10
+    Height = 84
+    Top = 190
+    Width = 376
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
+    Font.Quality = fqCleartypeNatural
+    ParentColor = False
+    ParentFont = False
+    TabOrder = 4
+    Gutter.Visible = False
+    Gutter.Width = 72
+    Gutter.MouseActions = <>
+    RightGutter.Width = 0
+    RightGutter.MouseActions = <>
+    Keystrokes = <>
+    MouseActions = <>
+    MouseTextActions = <>
+    MouseSelActions = <>
+    Options = [eoAutoIndent, eoBracketHighlight, eoGroupUndo, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
+    VisibleSpecialChars = [vscSpace, vscTabAtLast]
+    ReadOnly = True
+    RightEdge = 0
+    ScrollBars = ssAutoVertical
+    SelectedColor.BackPriority = 50
+    SelectedColor.ForePriority = 50
+    SelectedColor.FramePriority = 50
+    SelectedColor.BoldPriority = 50
+    SelectedColor.ItalicPriority = 50
+    SelectedColor.UnderlinePriority = 50
+    SelectedColor.StrikeOutPriority = 50
+    BracketHighlightStyle = sbhsBoth
+    BracketMatchColor.Background = clNone
+    BracketMatchColor.Foreground = clNone
+    BracketMatchColor.Style = [fsBold]
+    FoldedCodeColor.Background = clNone
+    FoldedCodeColor.Foreground = clGray
+    FoldedCodeColor.FrameColor = clGray
+    MouseLinkColor.Background = clNone
+    MouseLinkColor.Foreground = clBlue
+    LineHighlightColor.Background = clNone
+    LineHighlightColor.Foreground = clNone
+    inline SynLeftGutterPartList1: TSynGutterPartList
+      object SynGutterMarks1: TSynGutterMarks
+        Width = 30
+        MouseActions = <>
+      end
+      object SynGutterLineNumber1: TSynGutterLineNumber
+        Width = 21
+        MouseActions = <>
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
+        DigitCount = 2
+        ShowOnlyLineNumbersMultiplesOf = 1
+        ZeroStart = False
+        LeadingZeros = False
+      end
+      object SynGutterChanges1: TSynGutterChanges
+        Width = 5
+        MouseActions = <>
+        ModifiedColor = 59900
+        SavedColor = clGreen
+      end
+      object SynGutterSeparator1: TSynGutterSeparator
+        Width = 3
+        MouseActions = <>
+        MarkupInfo.Background = clWhite
+        MarkupInfo.Foreground = clGray
+      end
+      object SynGutterCodeFolding1: TSynGutterCodeFolding
+        Width = 13
+        MouseActions = <>
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGray
+        MouseActionsExpanded = <>
+        MouseActionsCollapsed = <>
+      end
+    end
+  end
+end

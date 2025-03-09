@@ -10,6 +10,8 @@ UF = both
 * U TComboBoxEx exists? use comboex unit
 * F rename .dfm file extension to .lfm
 * F if form was designed in > 96 PPI: add "DesignTimePPI = xyz"
+* (F prefer using Lazarus IDE on 100% DPI?)
+* F decrease Constraints.Min/MaxWidth as these get scaled too much
 * UF replace TSynMemo => TSynEdit
 * UF replace TVirtualStringTree => TLazVirtualStringTree (+ use laz.VirtualTrees unit)
 * UF replace TVirtualStringTree|Columns => TLazVirtualStringTree|Header.Columns

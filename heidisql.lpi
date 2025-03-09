@@ -159,6 +159,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\createdatabase.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="CreateDatabaseForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
