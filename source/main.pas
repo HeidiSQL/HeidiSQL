@@ -791,8 +791,8 @@ type
     procedure AfterFormCreate;
     procedure FormShow(Sender: TObject);
     procedure FormResize(Sender: TObject);
-    //procedure AddEditorCommandMenu(const S: string);
-    //procedure EditorCommandOnClick(Sender: TObject);
+    procedure AddEditorCommandMenu(const S: string);
+    procedure EditorCommandOnClick(Sender: TObject);
     procedure actUserManagerExecute(Sender: TObject);
     procedure actAboutBoxExecute(Sender: TObject);
     procedure actApplyFilterExecute(Sender: TObject);
@@ -1377,8 +1377,8 @@ type
     procedure ApplyVTFilter(FromTimer: Boolean);
     procedure ApplyFontToGrids;
     //procedure PrepareImageList;
-    //property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
-    //property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
+    property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
+    property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
     function SelectedTableFocusedColumn: TTableColumn;
     property FormatSettings: TFormatSettings read FFormatSettings;
     //property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
@@ -1888,7 +1888,7 @@ var
   CopyAsMenu, CommandMenu: TMenuItem;
   //TZI: TTimeZoneInformation;
   //dti: TDBDatatypeCategoryIndex;
-  //EditorCommand: TSynEditorCommand;
+  EditorCommand: TSynEditorCommand;
   CmdCap: String;
   Lib: TMySQLLib;
   LibFile: String;
@@ -1988,7 +1988,7 @@ begin
     CmdCap := Copy(CmdCap, 3, Length(CmdCap)-2);
     // Insert spaces before uppercase chars
     for j:=Length(CmdCap) downto 1 do begin
-      if (j > 1) and CmdCap[j].IsUpper then
+      if (j > 1) and (CmdCap[j] = UpperCase(CmdCap[j])) then
         Insert(' ', CmdCap, j);
     end;
     CommandMenu.Caption := CmdCap;
@@ -2003,7 +2003,7 @@ begin
   end;}
 
 
-  {Delimiter := AppSettings.ReadString(asDelimiter);}
+  Delimiter := AppSettings.ReadString(asDelimiter);
 
   // Define static query tab as first one in our QueryTabs list
   QueryTab := TQueryTab.Create(Self);
@@ -2046,7 +2046,7 @@ begin
   MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
   MakeFullyVisible(Screen.Monitors[MonitorIndex]);}
 
-  {actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
+  actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
   actQueryWordWrap.Checked := AppSettings.ReadBool(asWrapLongLines);
   if AppSettings.ReadBool(asCodeFolding) and (not actCodeFolding.Checked) then
@@ -2057,9 +2057,9 @@ begin
   actPreferencesLogging.OnExecute := actPreferences.OnExecute;
   actPreferencesData.ImageIndex := actPreferences.ImageIndex;
   actPreferencesData.OnExecute := actPreferences.OnExecute;
-  menuAlwaysGenerateFilter.Checked := AppSettings.ReadBool(asAlwaysGenerateFilter); }
+  menuAlwaysGenerateFilter.Checked := AppSettings.ReadBool(asAlwaysGenerateFilter);
 
-  {pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
+  pnlQueryMemo.Height := AppSettings.ReadInt(asQuerymemoheight);
   pnlQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
   pnlLeft.Width := AppSettings.ReadInt(asDbtreewidth);
   pnlPreview.Height := AppSettings.ReadInt(asDataPreviewHeight);
@@ -2067,11 +2067,11 @@ begin
     actDataPreviewExecute(actDataPreview);
   SynMemoSQLLog.Height := Max(AppSettings.ReadInt(asLogHeight), spltTopBottom.MinSize);
   // Force status bar position to below log memo
-  StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
+  //StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   actDataShowNext.Hint := f_('Show next %s rows ...', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
   actAboutBox.Caption := f_('About %s', [APPNAME+' '+FAppVersion]);
   // Activate logging
-  LogToFile := AppSettings.ReadBool(asLogToFile);
+  {LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
     actLogHorizontalScrollbar.Execute;}
 
@@ -2102,7 +2102,7 @@ begin
   if AppSettings.ReadBool(asDoubleClickInsertsNodeText) then
     menuDoubleClickInsertsNodeText.Click;
 
-  {// Shortcuts
+  // Shortcuts
   FActionList1DefaultCaptions := TStringList.Create;
   FActionList1DefaultHints := TStringList.Create;
   for i:=0 to ActionList1.ActionCount-1 do begin
@@ -2110,15 +2110,15 @@ begin
     Action.ShortCut := AppSettings.ReadInt(asActionShortcut1, Action.Name, Action.ShortCut);
     FActionList1DefaultCaptions.Insert(i, Action.Caption);
     FActionList1DefaultHints.Insert(i, Action.Hint);
-  end;}
+  end;
 
-  {// Completion proposal window
+  // Completion proposal window
   // The proposal form gets scaled a second time when it shows its form with Scaled=True.
   // We already store and restore the dimensions DPI aware.
-  SynCompletionProposal.Form.Scaled := False;
-  SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);
+  {SynCompletionProposal.Form.Scaled := False;
+  SynCompletionProposal.TimerInterval := AppSettings.ReadInt(asCompletionProposalInterval);}
   SynCompletionProposal.Width := AppSettings.ReadInt(asCompletionProposalWidth);
-  SynCompletionProposal.NbLinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);}
+  SynCompletionProposal.LinesInWindow := AppSettings.ReadInt(asCompletionProposalNbLinesInWindow);
 
   // Place progressbar on the statusbar
   //ProgressBarStatus.Parent := StatusBar;
@@ -2164,7 +2164,7 @@ begin
   FTimeZoneOffset := GetLocalTimeOffset * 60;
 
   // Set noderoot for query helpers box
-  {treeQueryHelpers.RootNodeCount := 7;}
+  treeQueryHelpers.RootNodeCount := 7;
 
   // Initialize taskbar jump list
   {if not IsWine then begin
@@ -2185,6 +2185,7 @@ begin
 
   // Log some application details - useful when analyzing session logs
   LogSQL(f_('App path: "%s"', [Application.ExeName]), lcDebug);
+  LogSQL(f_('Configuration path: %s', [AppSettings.DirnameUserAppData]), lcInfo);
   LogSQL(f_('Version: "%s"', [AppVersion]), lcDebug);
   //LogSQL(f_('Theme: "%s"', [TStyleManager.ActiveStyle.Name]), lcDebug);
   LogSQL(f_('Pixels per inch on current monitor: %d', [Monitor.PixelsPerInch]), lcDebug);
@@ -2885,24 +2886,24 @@ begin
   ValidateControls(Sender);
 end;
 
-{procedure TMainForm.AddEditorCommandMenu(const S: string);
+procedure TMainForm.AddEditorCommandMenu(const S: string);
 begin
   FEditorCommandStrings.Add(S);
-end;}
+end;
 
-{procedure TMainForm.EditorCommandOnClick(Sender: TObject);
+procedure TMainForm.EditorCommandOnClick(Sender: TObject);
 var
   EditorCommand: TSynEditorCommand;
   Editor: TSynMemo;
 begin
-  EditorCommand := IndexToEditorCommand(TMenuItem(Sender).MenuIndex);
+  {EditorCommand := IndexToEditorCommand(TMenuItem(Sender).MenuIndex);
   Editor := ActiveSynMemo(False);
   if Assigned(Editor) then begin
     Editor.BeginUndoBlock;
     Editor.ExecuteCommand(EditorCommand, #0, nil);
     Editor.EndUndoBlock;
-  end;
-end;}
+  end;}
+end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
 //var
@@ -3894,12 +3895,12 @@ begin
     end;
   end else begin
     // Invoked from database tab
-    {Node := GetNextNode(ListTables, nil, True);
+    Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       Obj := ListTables.GetNodeData(Node);
       ObjectList.Add(Obj^);
       Node := GetNextNode(ListTables, Node, True);
-    end;}
+    end;
   end;
 
   // Fix actions temporarily enabled for popup menu.
@@ -3921,12 +3922,12 @@ begin
       if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0');
       // Compose and run DROP [TABLE|VIEW|...] queries
-      {Editor := ActiveObjectEditor;
+      //Editor := ActiveObjectEditor;
       for DBObject in ObjectList do begin
         DBObject.Drop;
-        if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
-          Editor.Modified := False;
-      end;}
+        //if Assigned(Editor) and Editor.Modified and Editor.DBObject.IsSameAs(DBObject) then
+        //  Editor.Modified := False;
+      end;
       if Conn.Has(frForeignKeyChecksVar) then
         Conn.Query('SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
       // Refresh ListTables + dbtree so the dropped tables are gone:

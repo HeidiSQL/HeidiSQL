@@ -3645,7 +3645,7 @@ begin
   end;
 
   // Switch to portable mode if lock file exists. File content is ignored.
-  FPortableMode := FileExists(PortableLockFile);
+  FPortableMode := False; //FileExists(PortableLockFile);
   FPortableModeReadOnly := False;
 
   if FPortableMode then begin
