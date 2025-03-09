@@ -1411,7 +1411,8 @@ const
 implementation
 
 uses
-  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar;
+  FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
+  copytable;
 
 {$R *.lfm}
 
@@ -3058,13 +3059,13 @@ end;
 
 
 procedure TMainForm.actCopyTableExecute(Sender: TObject);
-//var
-//  Dialog: TCopyTableForm;
+var
+  Dialog: TCopyTableForm;
 begin
   // copy table
-  //Dialog := TCopyTableForm.Create(Self);
-  //Dialog.ShowModal;
-  //Dialog.Free;
+  Dialog := TCopyTableForm.Create(Self);
+  Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 

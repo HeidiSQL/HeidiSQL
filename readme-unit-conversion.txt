@@ -17,6 +17,7 @@ UF = both
 * UF replace TVirtualStringTree|Columns => TLazVirtualStringTree|Header.Columns
 * UF replace TButtonedEdit => TEditButton (+ use EditBtn unit)
 * UF if TButton has Images + ImageIndex: replace TButton => TSpeedButton (note: ModalResult not supported!)
+* UF if TButton has Style + DropDownMenu: replace TButton => TSpeedButton with ImageIndex 108 and let OnClick activate the TPopupMenu
 * U open unit, accept removal of unknown properties
 * U press Shift+F11 to add unit+form to project
 

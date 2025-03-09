@@ -4282,6 +4282,7 @@ end;
 
 function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
 begin
+  // Todo: take a forms DesignTimePPI into account
   Result := ReadInt(Index, FormatName, Default);
   //Result := Round(Result * AControl.ScaleFactor);
 end;
