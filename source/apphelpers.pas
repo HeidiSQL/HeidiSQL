@@ -1239,12 +1239,12 @@ begin
   //  Encoding := DetectEncoding(Stream);
   // If the file contains a BOM, advance the stream's position
   BomLen := 0;
-  if Length(Encoding.GetPreamble) > 0 then begin
+  {if Length(Encoding.GetPreamble) > 0 then begin
     SetLength(Header, Length(Encoding.GetPreamble));
     Stream.ReadBuffer(Pointer(Header)^, Length(Header));
     if CompareMem(Header, Encoding.GetPreamble, SizeOf(Header)) then
       BomLen := Length(Encoding.GetPreamble);
-  end;
+  end;}
   Stream.Position := BomLen;
 end;
 
@@ -1306,6 +1306,7 @@ begin
     try
       SetLength(LBuffer, ChunkSize);
       Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
+      // Crashes in FPC:
       LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
       // Success, exit loop
       Break;

@@ -417,7 +417,8 @@ begin
   Tree.Invalidate;
   rx.Free;
 
-  Edit.Button.Visible := IsNotEmpty(Edit.Text);
+  // Hiding the button is not really supported by TEditButton, works dodgy
+  //Edit.Button.Visible := IsNotEmpty(Edit.Text);
 end;
 
 

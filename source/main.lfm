@@ -731,7 +731,7 @@ object MainForm: TMainForm
     AutoSnap = False
     ResizeAnchor = akBottom
   end
-  object Panel1: TPanel
+  object panelTop: TPanel
     Left = 0
     Height = 355
     Top = 30
@@ -742,6 +742,7 @@ object MainForm: TMainForm
     ClientHeight = 355
     ClientWidth = 998
     TabOrder = 4
+    OnDblClick = panelTopDblClick
     object pnlLeft: TPanel
       Left = 0
       Height = 355
@@ -913,7 +914,7 @@ object MainForm: TMainForm
       Top = 0
       Width = 6
     end
-    object Panel2: TPanel
+    object pnlRight: TPanel
       Left = 218
       Height = 355
       Top = 0
@@ -975,12 +976,17 @@ object MainForm: TMainForm
         Width = 780
         ActivePage = tabQuery
         Align = alClient
+        HotTrack = True
         Images = ImageListIcons8
         PopupMenu = popupMainTabs
         TabIndex = 4
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
+        OnCloseTabClicked = PageControlMainCloseTabClicked
+        OnContextPopup = PageControlMainContextPopup
+        OnMouseUp = PageControlMainMouseUp
+        Options = [nboShowCloseButtons, nboShowAddTabButton]
         object tabHost: TTabSheet
           Caption = 'Host'
           ClientHeight = 283
@@ -2758,14 +2764,22 @@ object MainForm: TMainForm
               ClientHeight = 130
               ClientWidth = 213
               TabOrder = 0
-              object filterQueryHelpers: TEdit
+              object filterQueryHelpers: TEditButton
                 Left = 0
                 Height = 28
                 Top = 0
                 Width = 213
                 Align = alTop
+                ButtonWidth = 23
+                Images = ImageListIcons8
+                ImageIndex = 193
+                MaxLength = 0
+                NumGlyphs = 1
+                OnButtonClick = buttonedEditClear
+                OnChange = filterQueryHelpersChange
+                PasswordChar = #0
                 TabOrder = 0
-                Text = 'filterQueryHelpers'
+                TextHint = 'Filter ...'
               end
               object treeQueryHelpers: TLazVirtualStringTree
                 Left = 0
@@ -2839,7 +2853,7 @@ object MainForm: TMainForm
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
               OnMouseWheel = AnySynMemoMouseWheel
-              Gutter.Width = 0
+              Gutter.Width = 30
               Gutter.MouseActions = <>
               RightGutter.Width = 0
               RightGutter.MouseActions = <>
@@ -3271,6 +3285,7 @@ object MainForm: TMainForm
               Lines.Strings = (
                 'SynMemoQuery'
               )
+              Options = [eoAutoIndent, eoBracketHighlight, eoGroupUndo, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
               VisibleSpecialChars = [vscSpace, vscTabAtLast]
               SelectedColor.BackPriority = 50
               SelectedColor.ForePriority = 50
@@ -3293,6 +3308,24 @@ object MainForm: TMainForm
               OnDropFiles = SynMemoQueryDropFiles
               OnSpecialLineColors = SynMemoQuerySpecialLineColors
               inline SynLeftGutterPartList1: TSynGutterPartList
+                object SynGutterLineNumber1: TSynGutterLineNumber
+                  Width = 17
+                  MouseActions = <>
+                  MarkupInfo.Background = clBtnFace
+                  MarkupInfo.Foreground = clNone
+                  DigitCount = 2
+                  ShowOnlyLineNumbersMultiplesOf = 1
+                  ZeroStart = False
+                  LeadingZeros = False
+                end
+                object SynGutterCodeFolding1: TSynGutterCodeFolding
+                  Width = 13
+                  MouseActions = <>
+                  MarkupInfo.Background = clNone
+                  MarkupInfo.Foreground = clGray
+                  MouseActionsExpanded = <>
+                  MouseActionsCollapsed = <>
+                end
               end
             end
           end
@@ -19927,7 +19960,16 @@ object MainForm: TMainForm
   object SynSQLSynUsed: TSynSQLSyn
     DefaultFilter = 'SQL Files (*.sql)|*.sql'
     Enabled = False
+    CommentAttri.Foreground = clGray
+    DataTypeAttri.Foreground = clMaroon
+    FunctionAttri.Foreground = clNavy
+    IdentifierAttri.Foreground = clOlive
     KeyAttri.Foreground = clBlue
+    NumberAttri.Foreground = clPurple
+    StringAttri.Foreground = clGreen
+    SymbolAttri.Foreground = clBlue
+    TableNameAttri.Foreground = clFuchsia
+    VariableAttri.Foreground = clPurple
     SQLDialect = sqlMySQL
     Left = 16
     Top = 120
@@ -20713,6 +20755,13 @@ object MainForm: TMainForm
       Caption = 'Query exact row count'
       OnClick = menuQueryExactRowCountClick
     end
+  end
+  object TimerCloseTabByButton: TTimer
+    Enabled = False
+    Interval = 100
+    OnTimer = TimerCloseTabByButtonTimer
+    Left = 752
+    Top = 168
   end
   object popupApplyFilter: TPopupMenu
     Images = ImageListIcons8

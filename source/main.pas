@@ -11,7 +11,7 @@ uses
   SynGutter, SynGutterChanges, SynGutterCodeFolding, SynGutterLineNumber,
   SynGutterMarks, StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls,
   fphttpclient, Math, LCLIntf, Generics.Collections, Generics.Defaults,
-  opensslsockets, StdActns, Clipbrd, Types, LCLType, dbconnection, dbstructures,
+  opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn, dbconnection, dbstructures,
   dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase, SynEditMarkupSpecialLine;
 
 
@@ -92,7 +92,7 @@ type
       pnlMemo: TPanel;
       Memo: TSynMemo;
       pnlHelpers: TPanel;
-      filterHelpers: TEdit;
+      filterHelpers: TEditButton;
       treeHelpers: TVirtualStringTree;
       MemoFileRenamed: Boolean;
       MemoLineBreaks: TLineBreaks;
@@ -724,6 +724,7 @@ type
     popupDataTop: TPopupMenu;
     menuQueryExactRowCount: TMenuItem;
     menuCloseTabOnMiddleClick: TMenuItem;
+    TimerCloseTabByButton: TTimer;
     menuTabsInMultipleLines: TMenuItem;
     actResetPanelDimensions: TAction;
     Resetpaneldimensions1: TMenuItem;
@@ -735,7 +736,7 @@ type
     actCopyGridNodes: TAction;
     actCopyGridNodes1: TMenuItem;
     editFilterVT: TEdit;
-    filterQueryHelpers: TEdit;
+    filterQueryHelpers: TEditButton;
 
 
     ImageListIcons8: TImageList;
@@ -756,8 +757,8 @@ type
     MainMenu1: TMainMenu;
     PageControlHost: TPageControl;
     PageControlMain: TPageControl;
-    Panel1: TPanel;
-    Panel2: TPanel;
+    panelTop: TPanel;
+    pnlRight: TPanel;
     pnlQueryHelpers: TPanel;
     pnlQueryMemo: TPanel;
     pnlPreview: TPanel;
@@ -800,6 +801,7 @@ type
     procedure actTableToolsExecute(Sender: TObject);
     procedure actPrintListExecute(Sender: TObject);
     procedure actCopyTableExecute(Sender: TObject);
+    procedure PageControlMainCloseTabClicked(Sender: TObject);
     procedure ShowStatusMsg(Msg: String=''; PanelNr: Integer=6);
     procedure actExecuteQueryExecute(Sender: TObject);
     procedure actCreateDatabaseExecute(Sender: TObject);
@@ -972,8 +974,8 @@ type
       Column: TColumnIndex; var Allowed: Boolean);
     procedure DBtreeChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     procedure ListTablesDblClick(Sender: TObject);
-    //procedure panelTopDblClick(Sender: TObject);
-    //procedure PageControlMainMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+    procedure panelTopDblClick(Sender: TObject);
+    procedure PageControlMainMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     procedure actNewQueryTabExecute(Sender: TObject);
     procedure actCloseQueryTabExecute(Sender: TObject);
     procedure menuCloseQueryTabClick(Sender: TObject);
@@ -989,7 +991,7 @@ type
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure actFilterPanelExecute(Sender: TObject);
     procedure TimerFilterVTTimer(Sender: TObject);
-    //procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+    procedure PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
     procedure menuQueryHelpersGenerateStatementClick(Sender: TObject);
     procedure actSelectInverseExecute(Sender: TObject);
     procedure FormMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; MousePos: TPoint;
@@ -1128,7 +1130,7 @@ type
     procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     //procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
-    //procedure filterQueryHelpersChange(Sender: TObject);
+    procedure filterQueryHelpersChange(Sender: TObject);
     procedure TimerStoreTabsTimer(Sender: TObject);
     procedure actGoToQueryResultsExecute(Sender: TObject);
     procedure actGoToDataMultiFilterExecute(Sender: TObject);
@@ -1174,7 +1176,7 @@ type
     procedure actSequalSuggestExecute(Sender: TObject);
     procedure menuQueryExactRowCountClick(Sender: TObject);
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
-    //procedure TimerCloseTabByButtonTimer(Sender: TObject);
+    procedure TimerCloseTabByButtonTimer(Sender: TObject);
     procedure menuTabsInMultipleLinesClick(Sender: TObject);
     procedure actResetPanelDimensionsExecute(Sender: TObject);
     procedure menuAlwaysGenerateFilterClick(Sender: TObject);
@@ -8511,11 +8513,11 @@ begin
 end;
 
 
-{procedure TMainForm.filterQueryHelpersChange(Sender: TObject);
+procedure TMainForm.filterQueryHelpersChange(Sender: TObject);
 begin
   // Filter nodes in query helpers
-  FilterNodesByEdit(Sender as TButtonedEdit, QueryTabs.ActiveHelpersTree);
-end;}
+  FilterNodesByEdit(Sender as TEditButton, QueryTabs.ActiveHelpersTree);
+end;
 
 
 {procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
@@ -12315,19 +12317,19 @@ begin
   else
     QueryTab.pnlHelpers.Width := AppSettings.GetDefaultInt(asQueryhelperswidth);
 
-  QueryTab.filterHelpers := TEdit.Create(QueryTab.pnlHelpers);
+  QueryTab.filterHelpers := TEditButton.Create(QueryTab.pnlHelpers);
   QueryTab.filterHelpers.Name := filterQueryHelpers.Name + i.ToString;
   QueryTab.filterHelpers.Text := '';
   QueryTab.filterHelpers.Parent := QueryTab.pnlHelpers;
   QueryTab.filterHelpers.Align := filterQueryHelpers.Align;
   QueryTab.filterHelpers.TextHint := filterQueryHelpers.TextHint;
-  {QueryTab.filterHelpers.Images := filterQueryHelpers.Images;
-  QueryTab.filterHelpers.LeftButton.Visible := filterQueryHelpers.LeftButton.Visible;
-  QueryTab.filterHelpers.LeftButton.ImageIndex := filterQueryHelpers.LeftButton.ImageIndex;
-  QueryTab.filterHelpers.RightButton.Visible := filterQueryHelpers.RightButton.Visible;
-  QueryTab.filterHelpers.RightButton.ImageIndex := filterQueryHelpers.RightButton.ImageIndex;
+  QueryTab.filterHelpers.Images := filterQueryHelpers.Images;
+  //QueryTab.filterHelpers.LeftButton.Visible := filterQueryHelpers.LeftButton.Visible;
+  //QueryTab.filterHelpers.LeftButton.ImageIndex := filterQueryHelpers.LeftButton.ImageIndex;
+  QueryTab.filterHelpers.Button.Visible := filterQueryHelpers.Button.Visible;
+  QueryTab.filterHelpers.ImageIndex := filterQueryHelpers.ImageIndex;
   QueryTab.filterHelpers.OnChange := filterQueryHelpers.OnChange;
-  QueryTab.filterHelpers.OnRightButtonClick := filterQueryHelpers.OnRightButtonClick;}
+  QueryTab.filterHelpers.OnButtonClick := filterQueryHelpers.OnButtonClick;
 
   QueryTab.treeHelpers := TVirtualStringTree.Create(QueryTab.pnlHelpers);
   QueryTab.treeHelpers.Name := treeQueryHelpers.Name + i.ToString;
@@ -12409,7 +12411,7 @@ begin
 end;
 
 
-{procedure TMainForm.panelTopDblClick(Sender: TObject);
+procedure TMainForm.panelTopDblClick(Sender: TObject);
 var
   aRect: TRect;
   aPoint: TPoint;
@@ -12421,7 +12423,7 @@ begin
   GetCursorPos(aPoint);
   if PtInRect(aRect, aPoint) then
     actNewQueryTab.Execute;
-end;}
+end;
 
 
 procedure TMainForm.actCloseQueryTabExecute(Sender: TObject);
@@ -12492,10 +12494,10 @@ var
   NewCaption: String;
 begin
   // Rename query tab
-  {if Sender = menuRenameQueryTab then begin
+  if Sender = menuRenameQueryTab then begin
     aPoint := PageControlMain.ScreenToClient(popupMainTabs.PopupPoint);
     PageIndex := GetMainTabAt(aPoint.X, aPoint.Y);
-  end else} begin
+  end else begin
     PageIndex := PageControlMain.ActivePageIndex;
   end;
   if not IsQueryTab(PageIndex, True) then begin
@@ -12817,8 +12819,14 @@ begin
   TimerCloseTabByButton.Enabled := True;
 end;}
 
+procedure TMainForm.PageControlMainCloseTabClicked(Sender: TObject);
+begin
+  logsql('PageControlMainCloseTabClicked');
+  //TimerCloseTabByButton.Enabled := True;
+end;
 
-{procedure TMainForm.TimerCloseTabByButtonTimer(Sender: TObject);
+
+procedure TMainForm.TimerCloseTabByButtonTimer(Sender: TObject);
 var
   i: Integer;
 begin
@@ -12830,10 +12838,10 @@ begin
       break;
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.PageControlMainMouseUp(Sender: TObject;
+procedure TMainForm.PageControlMainMouseUp(Sender: TObject;
   Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
 var
   CurTickcount: Cardinal;
@@ -12865,7 +12873,7 @@ begin
     end;
   end;
 
-end;}
+end;
 
 
 function TMainForm.GetMainTabAt(X, Y: Integer): Integer;
@@ -13336,6 +13344,7 @@ begin
   //Editor.ScrollHintColor := GetThemeColor(clInfoBk);
   Editor.Font.Name := AppSettings.ReadString(asFontName);
   Editor.Font.Size := AppSettings.ReadInt(asFontSize);
+  Editor.Font.Quality := fqCleartypeNatural;
   //Editor.Gutter.BorderColor := GetThemeColor(clWindow);
   //Editor.Gutter.Font.Name := Editor.Font.Name;
   //Editor.Gutter.Font.Size := Editor.Font.Size;
@@ -13416,20 +13425,21 @@ begin
 end;
 
 
-{procedure TMainForm.PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+procedure TMainForm.PageControlMainContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
 var
   ClickPoint: TPoint;
   TabsHeight: Integer;
 begin
   // Activate tab popup menu only when clicked on tabs area.
-  TabsHeight := (FBtnAddTab.Height+2) * PageControlMain.RowCount;
+  //TabsHeight := (FBtnAddTab.Height+2) * PageControlMain.RowCount;
+  TabsHeight := PageControlMain.TabHeight;
   if MousePos.Y <= TabsHeight then begin
     ClickPoint := PageControlMain.ClientToScreen(MousePos);
     popupMainTabs.Popup(ClickPoint.X, ClickPoint.Y);
     Handled := True;
   end else
     Handled := False;
-end;}
+end;
 
 
 procedure TMainForm.menuQueryHelpersGenerateStatementClick(Sender: TObject);

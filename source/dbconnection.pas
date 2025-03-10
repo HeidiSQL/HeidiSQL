@@ -3693,7 +3693,7 @@ function TMySQLConnection.Ping(Reconnect: Boolean): Boolean;
 var
   IsDead: Boolean;
 begin
-  Log(lcDebug, 'Ping server ...');
+  //Log(lcDebug, 'Ping server ...');
   IsDead := True;
   try
     IsDead := (FHandle=nil) or (FLib.mysql_ping(FHandle) <> 0);
@@ -8805,6 +8805,7 @@ var
   NumRows, WantedLocalRecNo: Int64;
   Row: TGridRow;
   RowFound: Boolean;
+  test: String;
 begin
   if Value = FRecNo then
     Exit;
@@ -8842,7 +8843,12 @@ begin
           FCurrentRow := FConnection.Lib.mysql_fetch_row(FCurrentResults);
           FCurrentUpdateRow := nil;
           // Remember length of column contents. Important for Col() so contents of cells with #0 chars are not cut off
+          //SetLength(LengthsPointer, Length(FColumnLengths));
           LengthsPointer := FConnection.Lib.mysql_fetch_lengths(FCurrentResults);
+          {test := '';
+          for j:=0 to 0 do begin
+            test := test + LengthsPointer[j].tostring + ' ';
+          end;}
           for j:=Low(FColumnLengths) to High(FColumnLengths) do
             FColumnLengths[j] := LengthsPointer^[j];
           break;
