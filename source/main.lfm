@@ -717,6 +717,7 @@ object MainForm: TMainForm
     MouseLinkColor.Foreground = clBlue
     LineHighlightColor.Background = clNone
     LineHighlightColor.Foreground = clNone
+    OnSpecialLineColors = SynMemoSQLLogSpecialLineColors
     inline SynLeftGutterPartList1: TSynGutterPartList
     end
   end
@@ -972,11 +973,11 @@ object MainForm: TMainForm
         Height = 316
         Top = 0
         Width = 780
-        ActivePage = tabData
+        ActivePage = tabQuery
         Align = alClient
         Images = ImageListIcons8
         PopupMenu = popupMainTabs
-        TabIndex = 3
+        TabIndex = 4
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
@@ -2774,11 +2775,43 @@ object MainForm: TMainForm
                 Align = alClient
                 DefaultText = 'Node'
                 Header.AutoSizeIndex = 0
-                Header.Columns = <>
-                Header.MainColumn = -1
+                Header.Columns = <                
+                  item
+                    Position = 0
+                    Text = 'Main column'
+                    Width = 88
+                  end                
+                  item
+                    Position = 1
+                    Text = 'Attributes'
+                    Width = 100
+                  end>
+                Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs]
+                Images = ImageListIcons8
+                IncrementalSearch = isVisibleOnly
                 PopupMenu = popupQueryHelpers
                 RootNodeCount = 6
                 TabOrder = 1
+                TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoSpanColumns, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+                TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toVariableNodeHeight, toEditOnClick]
+                TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+                TreeOptions.SelectionOptions = [toExtendedFocus, toFullRowSelect, toMultiSelect, toRightClickSelect]
+                OnBeforeCellPaint = treeQueryHelpersBeforeCellPaint
+                OnChecking = treeQueryHelpersChecking
+                OnContextPopup = treeQueryHelpersContextPopup
+                OnCreateEditor = treeQueryHelpersCreateEditor
+                OnDblClick = treeQueryHelpersDblClick
+                OnEditing = treeQueryHelpersEditing
+                OnFocusChanging = treeQueryHelpersFocusChanging
+                OnFreeNode = treeQueryHelpersFreeNode
+                OnGetText = treeQueryHelpersGetText
+                OnPaintText = treeQueryHelpersPaintText
+                OnGetImageIndex = treeQueryHelpersGetImageIndex
+                OnInitChildren = treeQueryHelpersInitChildren
+                OnInitNode = treeQueryHelpersInitNode
+                OnNewText = treeQueryHelpersNewText
+                OnNodeClick = treeQueryHelpersNodeClick
+                OnResize = treeQueryHelpersResize
               end
             end
             object spltQueryHelpers: TSplitter
@@ -2803,6 +2836,9 @@ object MainForm: TMainForm
               ParentFont = False
               PopupMenu = popupQuery
               TabOrder = 2
+              OnDragDrop = SynMemoQueryDragDrop
+              OnDragOver = SynMemoQueryDragOver
+              OnMouseWheel = AnySynMemoMouseWheel
               Gutter.Width = 0
               Gutter.MouseActions = <>
               RightGutter.Width = 0
@@ -3254,6 +3290,8 @@ object MainForm: TMainForm
               MouseLinkColor.Foreground = clBlue
               LineHighlightColor.Background = clNone
               LineHighlightColor.Foreground = clNone
+              OnDropFiles = SynMemoQueryDropFiles
+              OnSpecialLineColors = SynMemoQuerySpecialLineColors
               inline SynLeftGutterPartList1: TSynGutterPartList
               end
             end
@@ -19895,15 +19933,19 @@ object MainForm: TMainForm
     Top = 120
   end
   object SynCompletionProposal: TSynCompletion
-    Position = 0
+    OnExecute = SynCompletionProposalExecute
+    Position = -1
     LinesInWindow = 6
+    OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight
     CaseSensitive = False
     Width = 262
     AutoUseSingleIdent = True
     ShortCut = 16416
     EndOfTokenChr = '()[].'
+    OnCodeCompletion = SynCompletionProposalCodeCompletion
     ExecCommandID = ecSynCompletionExecute
+    Editor = SynMemoQuery
     ToggleReplaceWhole = False
     Left = 56
     Top = 120

@@ -12,7 +12,7 @@ uses
   SynGutterMarks, StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls,
   fphttpclient, Math, LCLIntf, Generics.Collections, Generics.Defaults,
   opensslsockets, StdActns, Clipbrd, Types, LCLType, dbconnection, dbstructures,
-  dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase;
+  dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase, SynEditMarkupSpecialLine;
 
 
 type
@@ -140,7 +140,7 @@ type
       function TabByControl(Control: TWinControl): TQueryTab;
   end;
 
-  {TQueryHistoryItem = class(TObject)
+  TQueryHistoryItem = class(TObject)
     Time: TDateTime;
     Database: String;
     SQL: String;
@@ -155,8 +155,8 @@ type
       property MaxDuration: Cardinal read FMaxDuration;
   end;
   TQueryHistoryItemComparer = class(TComparer<TQueryHistoryItem>)
-    function Compare(const Left, Right: TQueryHistoryItem): Integer; override;
-  end;}
+    function Compare(constref Left, Right: TQueryHistoryItem): Integer; override;
+  end;
 
   {ITaskbarList = interface(IUnknown)
     [SID_ITaskbarList]
@@ -840,11 +840,10 @@ type
     procedure ListTablesChange(Sender: TBaseVirtualTree; Node: PVirtualNode);
     //procedure SynCompletionProposalAfterCodeCompletion(Sender: TObject;
     //  const Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
-    //procedure SynCompletionProposalCodeCompletion(Sender: TObject;
-    //  var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
-    //procedure SynCompletionProposalExecute(Kind: SynCompletionType;
-    //  Sender: TObject; var CurrentInput: String; var x, y: Integer;
-    //  var CanExecute: Boolean);
+    procedure SynCompletionProposalCodeCompletion(var Value: string;
+      SourceValue: string; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char;
+      Shift: TShiftState);
+    procedure SynCompletionProposalExecute(Sender: TObject);
     procedure PageControlMainChange(Sender: TObject);
     procedure PageControlMainChanging(Sender: TObject; var AllowChange: Boolean);
     procedure PageControlHostChange(Sender: TObject);
@@ -861,10 +860,10 @@ type
     procedure QuickFilterClick(Sender: TObject);
     procedure AutoRefreshSetInterval(Sender: TObject);
     procedure AutoRefreshToggle(Sender: TObject);
-    //procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
-    //  State: TDragState; var Accept: Boolean);
-    //procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
-    //procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TUnicodeStrings);
+    procedure SynMemoQueryDragOver(Sender, Source: TObject; X, Y: Integer;
+      State: TDragState; var Accept: Boolean);
+    procedure SynMemoQueryDragDrop(Sender, Source: TObject; X, Y: Integer);
+    procedure SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer; AFiles: TStrings);
     procedure popupHostPopup(Sender: TObject);
     procedure popupDBPopup(Sender: TObject);
     procedure popupDataGridPopup(Sender: TObject);
@@ -983,7 +982,7 @@ type
     //procedure CloseButtonOnMouseUp(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
     function GetMainTabAt(X, Y: Integer): Integer;
     procedure FixQueryTabCloseButtons;
-    //function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
+    function GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
     function ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
     function IsQueryTab(PageIndex: Integer; IncludeFixed: Boolean): Boolean;
     procedure popupMainTabsPopup(Sender: TObject);
@@ -1041,25 +1040,25 @@ type
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
     procedure DataGridColumnResize(Sender: TVTHeader; Column: TColumnIndex);
-    //procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
-    //procedure treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
-    //  var InitialStates: TVirtualNodeInitStates);
-    //procedure treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  var ChildCount: Cardinal);
-    //procedure treeQueryHelpersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    //  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
-    //procedure treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
-    //  Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
-    //  var ContentRect: TRect);
-    //procedure treeQueryHelpersDblClick(Sender: TObject);
-    //procedure treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
-    //procedure treeQueryHelpersFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    //procedure treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
-    //  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
-    //procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
-    //  NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
-    //procedure treeQueryHelpersResize(Sender: TObject);
+    procedure treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode, Node: PVirtualNode;
+      var InitialStates: TVirtualNodeInitStates);
+    procedure treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      var ChildCount: Cardinal);
+    procedure treeQueryHelpersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
+    procedure treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
+      var ContentRect: TRect);
+    procedure treeQueryHelpersDblClick(Sender: TObject);
+    procedure treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint; var Handled: Boolean);
+    procedure treeQueryHelpersFreeNode(Sender: TBaseVirtualTree; Node: PVirtualNode);
+    procedure treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+    procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
+      NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
+    procedure treeQueryHelpersResize(Sender: TObject);
     //procedure ApplicationEvents1Deactivate(Sender: TObject);
     procedure actDisconnectExecute(Sender: TObject);
     procedure menuEditObjectClick(Sender: TObject);
@@ -1104,16 +1103,16 @@ type
     procedure DBtreeMouseUp(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure actFullRefreshExecute(Sender: TObject);
-    //procedure treeQueryHelpersEditing(Sender: TBaseVirtualTree;
-    //  Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
-    //procedure treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
-    //  Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
-    //procedure treeQueryHelpersNodeClick(Sender: TBaseVirtualTree;
-    //  const HitInfo: THitInfo);
-    //procedure treeQueryHelpersNewText(Sender: TBaseVirtualTree;
-    //  Node: PVirtualNode; Column: TColumnIndex; NewText: string);
-    //procedure treeQueryHelpersChecking(Sender: TBaseVirtualTree;
-    //  Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
+    procedure treeQueryHelpersEditing(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
+    procedure treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
+    procedure treeQueryHelpersNodeClick(Sender: TBaseVirtualTree;
+      const HitInfo: THitInfo);
+    procedure treeQueryHelpersNewText(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; Column: TColumnIndex; NewText: string);
+    procedure treeQueryHelpersChecking(Sender: TBaseVirtualTree;
+      Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
     procedure actPreviousResultExecute(Sender: TObject);
     procedure actNextResultExecute(Sender: TObject);
     procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
@@ -1126,8 +1125,8 @@ type
     procedure actGotoFilterExecute(Sender: TObject);
     procedure actGotoTabNumberExecute(Sender: TObject);
     //procedure StatusBarClick(Sender: TObject);
-    //procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
-    //  WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
+    procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
+      WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     //procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     //procedure filterQueryHelpersChange(Sender: TObject);
     procedure TimerStoreTabsTimer(Sender: TObject);
@@ -1167,11 +1166,11 @@ type
     //  NewDPI: Integer);
     procedure menuCloseTabOnDblClickClick(Sender: TObject);
     procedure TimerRefreshTimer(Sender: TObject);
-    //procedure SynCompletionProposalChange(Sender: TObject; AIndex: Integer);
-    //procedure SynMemoQuerySpecialLineColors(Sender: TObject; Line: Integer;
-    //  var Special: Boolean; var FG, BG: TColor);
-    //procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
-    //  var Special: Boolean; var FG, BG: TColor);
+    procedure SynCompletionProposalChange(Sender: TObject);
+    procedure SynMemoQuerySpecialLineColors(Sender: TObject; Line: Integer;
+      var Special: Boolean; var FG, BG: TColor);
+    procedure SynMemoSQLLogSpecialLineColors(Sender: TObject; Line: Integer;
+      var Special: Boolean; var FG, BG: TColor);
     procedure actSequalSuggestExecute(Sender: TObject);
     procedure menuQueryExactRowCountClick(Sender: TObject);
     procedure menuCloseTabOnMiddleClickClick(Sender: TObject);
@@ -1276,16 +1275,16 @@ type
     function ConfirmTabClose(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
     function ConfirmTabClear(PageIndex: Integer; AppIsClosing: Boolean): Boolean;
     procedure UpdateFilterPanel(Sender: TObject);
-    //procedure ConnectionReady(Connection: TDBConnection; Database: String);
-    //procedure DatabaseChanged(Connection: TDBConnection; Database: String);
-    //procedure ObjectnamesChanged(Connection: TDBConnection; Database: String);
+    procedure ConnectionReady(Connection: TDBConnection; Database: String);
+    procedure DatabaseChanged(Connection: TDBConnection; Database: String);
+    procedure ObjectnamesChanged(Connection: TDBConnection; Database: String);
     procedure UpdateLineCharPanel;
     procedure SetSnippetFilenames;
     function TreeClickHistoryPrevious(MayBeNil: Boolean=False): PVirtualNode;
     procedure OperationRunning(Runs: Boolean);
-    //function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
-    //function RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
-    //  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
+    function RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
+    function RunQueryFile(Filename: String; Encoding: TEncoding; Conn: TDBConnection;
+      FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
     //procedure SetLogToFile(Value: Boolean);
     procedure StoreLastSessions;
     function HandleUnixTimestampColumn(Sender: TBaseVirtualTree; Column: TColumnIndex): Boolean;
@@ -1330,7 +1329,7 @@ type
     procedure PaintAlternatingRowBackground(TargetCanvas: TCanvas; Node: PVirtualNode; CellRect: TRect);
     procedure PaintColorBar(Value, Max: Extended; TargetCanvas: TCanvas; CellRect: TRect);
     procedure CallSQLHelpWithKeyword( keyword: String );
-    //procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
+    procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     procedure popupQueryLoadClick( sender: TObject );
     //procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
     //procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
@@ -1358,12 +1357,12 @@ type
     procedure SetupSynEditors(BaseForm: TComponent); overload;
     procedure SetupSynEditor(Editor: TSynMemo);
     function AnyGridEnsureFullRow(Grid: TVirtualStringTree; Node: PVirtualNode): Boolean;
-    //procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
+    procedure DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
     property DataGridSortItems: TSortItems read FDataGridSortItems write FDataGridSortItems;
     function GetEncodingByName(Name: String): TEncoding;
     function GetEncodingName(Encoding: TEncoding): String;
     function GetCharsetByEncoding(Encoding: TEncoding): String;
-    //procedure RefreshHelperNode(NodeIndex: Cardinal);
+    procedure RefreshHelperNode(NodeIndex: Cardinal);
     //procedure BeforeQueryExecution(Thread: TQueryThread);
     //procedure AfterQueryExecution(Thread: TQueryThread);
     //procedure FinishedQueryExecution(Thread: TQueryThread);
@@ -1435,32 +1434,6 @@ begin
     end;
   end;
 end;
-
-
-{procedure TMainForm.StatusBarClick(Sender: TObject);
-var
-  Click: TPoint;
-  i: Integer;
-  PanelRect: TRect;
-begin
-  // Handle click events on specific statusbar panels
-  // Prevent SendMessage on Wine
-  if IsWine then
-    Exit;
-  Click := StatusBar.ScreenToClient(Mouse.CursorPos);
-  for i:=0 to StatusBar.Panels.Count-1 do begin
-    SendMessage(StatusBar.Handle, SB_GETRECT, i, Integer(@PanelRect));
-    if PtInRect(PanelRect, Click) then begin
-      // We found the clicked panel
-      case i of
-        3: actConnectionProperties.Execute;
-      end;
-      Break;
-    end;
-
-  end;
-
-end;}
 
 
 {procedure TMainForm.StatusBarClick(Sender: TObject);
@@ -2205,7 +2178,7 @@ var
   //StatsCall: THttpDownload;
   SessionPaths: TStringlist;
   DlgResult: TModalResult;
-  //Tab: TQueryTab;
+  Tab: TQueryTab;
   //SessionManager: TConnForm;
 begin
   {// Check for connection parameters on commandline or show connections form.
@@ -2279,13 +2252,13 @@ begin
   RunFrom := '';
   ParseCommandLine(GetCommandLine, ConnectionParams, FileNames, RunFrom);
 
-  {// Delete scheduled task from previous
+  // Delete scheduled task from previous
   if RunFrom = 'scheduler' then begin
-    DeleteRestartTask;
+    //DeleteRestartTask;
     if HasDonated(False) <> nbTrue then begin
       apphelpers.ShellExec(APPDOMAIN + 'after-updatecheck?rev=' + AppVerRevision.ToString);
     end;
-  end;}
+  end;
 
   if ConnectionParams <> nil then begin
     // Minimal parameter for command line mode is hostname
@@ -2340,7 +2313,7 @@ begin
     TimerStoreTabs.Enabled := RestoreTabs;
   end;}
 
-  {// Load SQL file(s) by command line
+  // Load SQL file(s) by command line
   if not RunQueryFiles(FileNames, nil, false) then begin
     for i:=0 to FileNames.Count-1 do begin
       Tab := GetOrCreateEmptyQueryTab(False);
@@ -2348,7 +2321,7 @@ begin
       if i = FileNames.Count-1 then
         SetMainTab(Tab.TabSheet);
     end;
-  end;}
+  end;
 
   MainFormAfterCreateDone := True;
 end;
@@ -2715,8 +2688,8 @@ begin
       rx.Free;
 
       //FreeAndNil(ActiveObjectEditor);
-      //RefreshHelperNode(TQueryTab.HelperNodeProfile);
-      //RefreshHelperNode(TQueryTab.HelperNodeColumns);
+      RefreshHelperNode(TQueryTab.HelperNodeProfile);
+      RefreshHelperNode(TQueryTab.HelperNodeColumns);
 
       // Last chance to access connection related properties before disconnecting
 
@@ -3696,7 +3669,6 @@ begin
     UpdatePreviewPanel;
 end;
 
-
 procedure TMainForm.UpdatePreviewPanel;
 var
   Grid: TVirtualStringTree;
@@ -4013,14 +3985,14 @@ begin
     end;
 
     if ProceedResult = mrYes then begin
-      {if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
+      if not RunQueryFiles(Dialog.Files, Encoding, Sender=actRunSQL) then begin
         for i:=0 to Dialog.Files.Count-1 do begin
           Tab := GetOrCreateEmptyQueryTab(False);
           Tab.LoadContents(Dialog.Files[i], True, Encoding);
           if i = Dialog.Files.Count-1 then
             SetMainTab(Tab.TabSheet);
         end;
-      end;}
+      end;
     end;
     AppSettings.WriteInt(asFileDialogEncoding, Dialog.EncodingIndex, Self.Name);
   end;
@@ -4028,7 +4000,7 @@ begin
 end;
 
 
-{function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
+function TMainForm.RunQueryFiles(Filenames: TStrings; Encoding: TEncoding; ForceRun: Boolean): Boolean;
 var
   i, FilesProcessed: Integer;
   Filesize, FilesizeSum, CurrentPosition: Int64;
@@ -4040,7 +4012,7 @@ var
   Btn: TTaskDialogButtonItem;
   DialogResult: TModalResult;
   Conn: TDBConnection;
-  ProgressDialog: IProgressDialog;
+  //ProgressDialog: IProgressDialog;
   Dummy: Pointer;
   TimeElapsed: Double;
   RunSuccess: Boolean;
@@ -4073,7 +4045,7 @@ begin
     if ForceRun then begin
       // Don't ask, just run files
       DialogResult := mrYes;
-    end else if (Win32MajorVersion >= 6) and StyleServices.Enabled then begin
+    end else begin
       Dialog := TTaskDialog.Create(Self);
       Dialog.Caption := _('Opening large files');
       Dialog.Text := f_('Selected files have a size of %s', [FormatByteNumber(FilesizeSum, 1)]);
@@ -4084,11 +4056,11 @@ begin
       Dialog.MainIcon := tdiWarning;
       Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
       Btn.Caption := _('Run file(s) directly');
-      Btn.CommandLinkHint := _('... without loading into the editor');
+      //Btn.CommandLinkHint := _('... without loading into the editor');
       Btn.ModalResult := mrYes;
       Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
       Btn.Caption := _('Load file(s) into the editor');
-      Btn.CommandLinkHint := _('Can cause large memory usage');
+      //Btn.CommandLinkHint := _('Can cause large memory usage');
       Btn.ModalResult := mrNo;
       Btn := TTaskDialogButtonItem(Dialog.Buttons.Add);
       Btn.Caption := _('Cancel');
@@ -4096,22 +4068,13 @@ begin
       Dialog.Execute;
       DialogResult := Dialog.ModalResult;
       Dialog.Free;
-    end else begin
-      msgtext := f_('One or more of the selected files are larger than %s:', [FormatByteNumber(RunFileSize, 0)]) + CRLF +
-        Implode(CRLF, PopupFileList) + CRLF + CRLF +
-        _('Just run these files to avoid loading them into the query-editor (= memory)?') + CRLF + CRLF +
-        _('Press') + CRLF +
-        _('  [Yes] to run file(s) without loading it into the editor') + CRLF +
-        _('  [No] to load file(s) into the query editor') + CRLF +
-        _('  [Cancel] to cancel file opening.');
-      DialogResult := MessageDialog(_('Execute query file(s)?'), msgtext, mtWarning, [mbYes, mbNo, mbCancel]);
     end;
 
     case DialogResult of
       mrYes: begin
         Result := True;
         // progress start
-        ProgressDialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
+        //ProgressDialog := CreateComObject(CLSID_ProgressDialog) as IProgressDialog;
         Dummy := nil;
         CurrentPosition := 0;
         FilesProcessed := 0;
@@ -4119,9 +4082,9 @@ begin
         Conn := ActiveConnection;
         RunSuccess := False;
         // PROGDLG_MODAL was used previously, but somehow that focuses some other application
-        ProgressDialog.StartProgressDialog(Handle, nil, PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
+        //ProgressDialog.StartProgressDialog(Handle, nil, PROGDLG_NOMINIMIZE or PROGDLG_AUTOTIME, Dummy);
         for i:=0 to Filenames.Count-1 do begin
-          RunSuccess := RunQueryFile(Filenames[i], Encoding, Conn, ProgressDialog, FilesizeSum, CurrentPosition);
+          RunSuccess := RunQueryFile(Filenames[i], Encoding, Conn, FilesizeSum, CurrentPosition);
           // Add filename to history menu
           if Pos(AppSettings.DirnameSnippets, Filenames[i]) = 0 then
             MainForm.AddOrRemoveFromQueryLoadHistory(Filenames[i], True, True);
@@ -4130,13 +4093,13 @@ begin
             Break;
         end;
         // progress end
-        ProgressDialog.StopProgressDialog;
+        //ProgressDialog.StopProgressDialog;
         TimeElapsed := GetTickCount64 - StartTime;
         LogSQL(f_('%s file(s) processed, in %s', [FormatNumber(FilesProcessed), FormatTimeNumber(TimeElapsed/1000, True)]));
         if RunSuccess then
-          MessageBeep(MB_OK)
+          Beep
         else
-          MessageBeep(MB_ICONERROR);
+          Beep;
       end;
       mrNo: Result := False;
       mrCancel: Result := True;
@@ -4147,11 +4110,11 @@ begin
     ErrorDialog(_('Could not load file(s):'), AbsentFiles.Text);
   AbsentFiles.Free;
   PopupFileList.Free;
-end;}
+end;
 
 
-{function TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding; Conn: TDBConnection;
-  ProgressDialog: IProgressDialog; FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
+function TMainForm.RunQueryFile(FileName: String; Encoding: TEncoding; Conn: TDBConnection;
+  FilesizeSum: Int64; var CurrentPosition: Int64): Boolean;
 var
   Dummy: Pointer;
   Stream: TFileStream;
@@ -4164,23 +4127,23 @@ var
   var
     MessageText: String;
   begin
-    ProgressDialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
+    //ProgressDialog.SetLine(1, PChar(_('Clean up ...')), False, Dummy);
     Queries.Free;
     try
       Stream.Free;
     except; // Eat error when stream wasn't yet created properly
     end;
     // BringToFront; // Not sure why I added this initially, but it steals focus from other applications
-    if ProgressDialog.HasUserCancelled then
-      MessageText := 'File "%s" partially executed, with %s queries and %s affected rows'
-    else
+    //if ProgressDialog.HasUserCancelled then
+    //  MessageText := 'File "%s" partially executed, with %s queries and %s affected rows'
+    //else
       MessageText := 'File "%s" executed, with %s queries and %s affected rows';
     LogSQL(f_(MessageText, [ExtractFileName(FileName), FormatNumber(QueryCount), FormatNumber(RowsAffected)]));
   end;
 
 begin
   // Import single SQL file and display progress dialog
-  ProgressDialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
+  //ProgressDialog.SetTitle(PChar(f_('Importing file %s', [ExtractFileName(FileName)])));
   Dummy := nil;
 
   Result := True;
@@ -4198,24 +4161,24 @@ begin
 
     OpenTextfile(FileName, Stream, Encoding);
     while Stream.Position < Stream.Size do begin
-      if ProgressDialog.HasUserCancelled then
-        Break;
+      //if ProgressDialog.HasUserCancelled then
+      //  Break;
 
       // Read lines from SQL file until buffer reaches a limit of some MB
       // This strategy performs vastly better than looping through each line
-      ProgressDialog.SetLine(1, PChar(_('Reading next chunk from file...')), False, Dummy);
+      //ProgressDialog.SetLine(1, PChar(_('Reading next chunk from file...')), False, Dummy);
       Lines := ReadTextfileChunk(Stream, Encoding, 20*SIZE_MB);
 
       // Split buffer into single queries
-      ProgressDialog.SetLine(1, PChar(_('Splitting queries...')), False, Dummy);
+      //ProgressDialog.SetLine(1, PChar(_('Splitting queries...')), False, Dummy);
       Queries.SQL := LinesRemain + Lines;
       Lines := '';
       LinesRemain := '';
 
       // Execute detected queries
       for i:=0 to Queries.Count-1 do begin
-        if ProgressDialog.HasUserCancelled then
-          Break;
+        //if ProgressDialog.HasUserCancelled then
+        //  Break;
         // Last line has to be processed in next loop if end of file is not reached
         if (i = Queries.Count-1) and (Stream.Position < Stream.Size) then begin
           LinesRemain := Queries[i].SQL;
@@ -4225,7 +4188,7 @@ begin
         Inc(CurrentPosition, Encoding.GetByteCount(Queries[i].SQL));
         if ErrorCount > 0 then
           ErrorNotice := '(' + FormatNumber(ErrorCount) + ' ' + _('Errors') + ')';
-        ProgressDialog.SetLine(1,
+        {ProgressDialog.SetLine(1,
           PChar(f_('Processing query #%s. %s', [FormatNumber(QueryCount), ErrorNotice])),
           False,
           Dummy
@@ -4235,7 +4198,7 @@ begin
           False,
           Dummy
           );
-        ProgressDialog.SetProgress64(CurrentPosition, FilesizeSum);
+        ProgressDialog.SetProgress64(CurrentPosition, FilesizeSum);}
 
         // Execute single query
         // Break or don't break loop, depending on the state of "Stop on errors" button
@@ -4254,10 +4217,10 @@ begin
 
       end;
     end;
-    if ProgressDialog.HasUserCancelled then begin
+    {if ProgressDialog.HasUserCancelled then begin
       LogSQL(_('Cancelled by user'));
       Result := False;
-    end;
+    end;}
     StopProgress;
     if ErrorCount > 0 then begin
       ErrorDialog(_('Errors'),
@@ -4268,8 +4231,8 @@ begin
 
   except
     on E:Exception do begin
-      if (E is EFileStreamError)
-        or (E is EEncodingError)
+      if {(E is EFileStreamError)
+        or} (E is EEncodingError)
         or (E is EReadError)
         then begin
         StopProgress;
@@ -4289,7 +4252,7 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
 
 {procedure TMainForm.SessionConnect(Sender: TObject);
@@ -4351,9 +4314,9 @@ var
 begin
   Connection := Params.CreateConnection(Self);
   Connection.OnLog := LogSQL;
-  {Connection.OnConnected := ConnectionReady;
+  Connection.OnConnected := ConnectionReady;
   Connection.OnDatabaseChanged := DatabaseChanged;
-  Connection.OnObjectnamesChanged := ObjectnamesChanged;}
+  Connection.OnObjectnamesChanged := ObjectnamesChanged;
   try
     Connection.Active := True;
     // We have a connection
@@ -5239,15 +5202,15 @@ begin
   end;
   FileList := TStringList.Create;
   FileList.Add(Filename);
-  {if not RunQueryFiles(FileList, nil, false) then begin
+  if not RunQueryFiles(FileList, nil, false) then begin
     Tab := GetOrCreateEmptyQueryTab(True);
     Tab.LoadContents(Filename, True, nil);
-  end;}
+  end;
   FileList.Free;
 end;
 
 
-{procedure TMainform.AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
+procedure TMainform.AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
 var
   i: Integer;
   newfilelist: TStringList;
@@ -5280,7 +5243,7 @@ begin
       break;
     AppSettings.WriteString(asSQLfile, newfilelist[i], IntToStr(i));
   end;
-end;}
+end;
 
 
 {**
@@ -5737,7 +5700,7 @@ begin
 end;
 
 
-{procedure TMainForm.DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
+procedure TMainForm.DataGridEnsureFullRows(Grid: TVirtualStringTree; SelectedOnly: Boolean);
 var
   Node: PVirtualNode;
   Results: TDBQuery;
@@ -5756,7 +5719,7 @@ begin
     end;
     Node := GetNextNode(Grid, Node, SelectedOnly);
   end;
-end;}
+end;
 
 
 procedure TMainForm.AnyGridHeaderDrawQueryElements(Sender: TVTHeader;
@@ -6295,9 +6258,9 @@ begin
   tab := PageControlMain.ActivePage;
   // Query helpers need a hit here, since RefreshHelperNode now only does its update on the active tab
   // See https://www.heidisql.com/forum.php?t=37961
-  //RefreshHelperNode(TQueryTab.HelperNodeColumns);
-  //RefreshHelperNode(TQueryTab.HelperNodeSnippets);
-  //RefreshHelperNode(TQueryTab.HelperNodeHistory);
+  RefreshHelperNode(TQueryTab.HelperNodeColumns);
+  RefreshHelperNode(TQueryTab.HelperNodeSnippets);
+  RefreshHelperNode(TQueryTab.HelperNodeHistory);
 
   // Move focus to relevant controls in order for them to receive keyboard events.
   // Do this only if the user clicked the new tab. Not on automatic tab changes.
@@ -6704,20 +6667,19 @@ begin
 end;
 
 
-{procedure TMainForm.SynCompletionProposalChange(Sender: TObject;
-  AIndex: Integer);
+procedure TMainForm.SynCompletionProposalChange(Sender: TObject);
 var
-  Proposal: TSynCompletionProposal;
+  Proposal: TSynCompletion;
   SelectedFuncName: String;
   SQLFunc: TSQLFunction;
 begin
-  Proposal := Sender as TSynCompletionProposal;
-  if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then begin
-    Proposal.Title := Proposal.InsertItem(AIndex);
+  Proposal := SynCompletionProposal;
+  //if (AIndex >= 0) and (AIndex < Proposal.ItemList.Count) then begin
+    //Proposal.Title := Proposal.InsertItem(AIndex);
     // Show function description in hint panel
-    ShowStatusMsg('', 0);}
-    //SelectedFuncName := RegExprGetMatch('}function\\column\{\}\\color\{\w+\}([^\\]+)\\', Proposal.DisplayItem(AIndex), 1);
-    {if not SelectedFuncName.IsEmpty then begin
+    ShowStatusMsg('', 0);
+    SelectedFuncName := ''; //RegExprGetMatch('}function\\column\{\}\\color\{\w+\}([^\\]+)\\', Proposal.DisplayItem(AIndex), 1);
+    if not SelectedFuncName.IsEmpty then begin
       for SQLFunc in ActiveConnection.SQLFunctions do begin
         if SQLFunc.Name.ToUpper = SelectedFuncName.ToUpper then begin
           ShowStatusMsg(SQLFunc.Description.Replace(SLineBreak, ' '), 0);
@@ -6725,24 +6687,25 @@ begin
         end;
       end;
     end;
-  end;
-end;}
+  //end;
+end;
 
 
 { Proposal about to insert a String into synmemo }
-{procedure TMainForm.SynCompletionProposalCodeCompletion(Sender: TObject;
-  var Value: String; Shift: TShiftState; Index: Integer; EndToken: Char);
+procedure TMainForm.SynCompletionProposalCodeCompletion(var Value: string;
+  SourceValue: string; var SourceStart, SourceEnd: TPoint; KeyChar: TUTF8Char;
+  Shift: TShiftState);
 var
-  Proposal: TSynCompletionProposal;
+  Proposal: TSynCompletion;
   rx: TRegExpr;
   ImageIndex, f: Integer;
   FunctionDeclaration: String;
 begin
-  Proposal := Sender as TSynCompletionProposal;
+  Proposal := SynCompletionProposal;
   // Surround identifiers with backticks if it is a column, table, routine, db
-  rx := TRegExpr.Create;}
-  //rx.Expression := '\\image\{(\d+)\}';
-  {if rx.Exec(Proposal.ItemList[Index]) then begin
+  rx := TRegExpr.Create;
+  rx.Expression := '\\image\{(\d+)\}';
+  if rx.Exec(Proposal.ItemList[{Proposal.Index}0]) then begin
     ImageIndex := MakeInt(rx.Match[1]);
     if not (ImageIndex in [ICONINDEX_KEYWORD, ICONINDEX_FUNCTION, 113]) then begin
       FunctionDeclaration := '';
@@ -6764,10 +6727,10 @@ begin
     end;
   end;
   rx.Free;
-  Proposal.Form.CurrentEditor.UndoList.AddGroupBreak;
+  //Proposal.Editor.UndoList.AddGroupBreak;
   // Hide hint text added in .OnChange event
   ShowStatusMsg('', 0);
-end;}
+end;
 
 
 {procedure TMainForm.SynCompletionProposalAfterCodeCompletion(Sender: TObject;
@@ -6783,9 +6746,7 @@ end;}
 
 
 { Proposal-Combobox pops up }
-{procedure TMainForm.SynCompletionProposalExecute(Kind: SynCompletionType;
-  Sender: TObject; var CurrentInput: String; var x, y: Integer;
-  var CanExecute: Boolean);
+procedure TMainForm.SynCompletionProposalExecute(Sender: TObject);
 var
   i, j, ImageIndex, ColumnsInList: Integer;
   Results: TDBQuery;
@@ -6795,12 +6756,12 @@ var
   rx: TRegExpr;
   Start, TokenTypeInt: Integer;
   Attri: TSynHighlighterAttributes;
-  Proposal: TSynCompletionProposal;
+  Proposal: TSynCompletion;
   Editor: TCustomSynEdit;
   Queries: TSQLBatch;
   Query: TSQLSentence;
   Conn: TDBConnection;
-  RoutineEditor: TfrmRoutineEditor;
+  //RoutineEditor: TfrmRoutineEditor;
   Param: TRoutineParam;
   DisplayText: String;
   SQLFunc: TSQLFunction;
@@ -6827,7 +6788,7 @@ var
     end;
 
     DisplayText := SynCompletionProposalPrettyText(Obj.ImageIndex, _(LowerCase(Obj.ObjType)), Obj.Name, FunctionDeclaration);
-    Proposal.AddItem(DisplayText, Obj.Name+FunctionDeclaration);
+    Proposal.ItemList.Add(DisplayText);
   end;
 
   procedure AddColumns(const LeftToken: String);
@@ -6860,17 +6821,18 @@ var
           // Detect index icon, if any
           ColumnIcon := ICONINDEX_FIELD;
           for Key in Keys do begin
-            if Key.Columns.Contains(Col.Name) then begin
+            if Key.Columns.IndexOf(Col.Name) > -1 then begin
               ColumnIcon := Key.ImageIndex;
               Break;
             end;
           end;
           // Put formatted text and icon into proposal
           DisplayText := SynCompletionProposalPrettyText(ColumnIcon, LowerCase(Col.DataType.Name), Col.Name, Col.Comment, DatatypeCategories[Col.DataType.Category].NullColor);
-          if CurrentInput.StartsWith(Conn.QuoteChar) then
-            Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
-          else
-            Proposal.AddItem(DisplayText, Col.Name);
+          //if CurrentInput.StartsWith(Conn.QuoteChar) then
+          //  Proposal.AddItem(DisplayText, Conn.QuoteChar + Col.Name)
+          //else
+          //  Proposal.AddItem(DisplayText, Col.Name);
+          Proposal.ItemList.Add(DisplayText);
           Inc(ColumnsInList);
         end;
         Columns.Free;
@@ -6880,23 +6842,23 @@ var
   end;
 
 begin
-  Proposal := Sender as TSynCompletionProposal;
-  Proposal.Font.Assign(Font);
+  Proposal := Sender as TSynCompletion;
+  {Proposal.Font.Assign(Font);
   Proposal.TitleFont.Size := Proposal.Font.Size;
   Proposal.ItemHeight := ScaleSize(PROPOSAL_ITEM_HEIGHT);
   Proposal.ClearList;
   Proposal.Columns[0].ColumnWidth := ScaleSize(100); // Kind of random value, but fits well
-  Proposal.Columns[1].ColumnWidth := ScaleSize(100);
+  Proposal.Columns[1].ColumnWidth := ScaleSize(100);}
   Conn := ActiveConnection;
-  Editor := Proposal.Form.CurrentEditor;
+  Editor := Proposal.Editor;
   Editor.GetHighlighterAttriAtRowColEx(Editor.PrevWordPos, Token, TokenTypeInt, Start, Attri);
-  CanExecute := AppSettings.ReadBool(asCompletionProposal) and
-    (not (TtkTokenKind(TokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment]));
-  if not CanExecute then
-    Exit;
+  //CanExecute := AppSettings.ReadBool(asCompletionProposal) and
+  //  (not (TtkTokenKind(TokenTypeInt) in [SynHighlighterSQL.tkString, SynHighlighterSQL.tkComment]));
+  //if not CanExecute then
+  //  Exit;
 
   // Work around for issue #2640. See ApplicationDeActivate
-  Proposal.Form.Enabled := True;
+  //Proposal.Form.Enabled := True;
 
   rx := TRegExpr.Create;
 
@@ -6918,7 +6880,7 @@ begin
       Results := Conn.GetResults('SHOW '+UpperCase(rx.Match[1])+' VARIABLES');
       while not Results.Eof do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_PRIMARYKEY, _('Variable'), Results.Col(0), StringReplace(Results.Col(1), '\', '\\', [rfReplaceAll]));
-        Proposal.AddItem(DisplayText, Results.Col(0));
+        Proposal.ItemList.Add(DisplayText);
         Results.Next;
       end;
     except
@@ -7015,7 +6977,7 @@ begin
       // All databases
       for i:=0 to Conn.AllDatabases.Count-1 do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_DB, _('database'), Conn.AllDatabases[i], '');
-        Proposal.AddItem(DisplayText, Conn.AllDatabases[i]);
+        Proposal.ItemList.Add(DisplayText);
       end;
 
       // Tables from current db
@@ -7032,18 +6994,18 @@ begin
       // Functions
       for SQLFunc in Conn.SQLFunctions do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FUNCTION, _('function'), SQLFunc.Name, SQLFunc.Declaration);
-        Proposal.AddItem(DisplayText, SQLFunc.Name + SQLFunc.Declaration);
+        Proposal.ItemList.Add(DisplayText);
       end;
 
 
       // Keywords
       for i:=0 to MySQLKeywords.Count-1 do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_KEYWORD, _('keyword'), MySQLKeywords[i], '');
-        Proposal.AddItem(DisplayText, MySQLKeywords[i]);
+        Proposal.ItemList.Add(DisplayText);
       end;
 
       // Procedure params
-      if GetParentFormOrFrame(Editor) is TfrmRoutineEditor then begin
+      {if GetParentFormOrFrame(Editor) is TfrmRoutineEditor then begin
         RoutineEditor := GetParentFormOrFrame(Editor) as TfrmRoutineEditor;
         for Param in RoutineEditor.Parameters do begin
           if Param.Context = 'IN' then ImageIndex := 120
@@ -7053,14 +7015,14 @@ begin
           DisplayText := SynCompletionProposalPrettyText(ImageIndex, Param.Datatype, Param.Name, '');
           Proposal.AddItem(DisplayText, Param.Name);
         end;
-      end;
+      end;}
 
     end;
 
   end;
   rx.Free;
 
-end;}
+end;
 
 
 {procedure TMainForm.SynMemoQueryScanForFoldRanges(Sender: TObject;
@@ -7082,7 +7044,7 @@ begin
 end;}
 
 
-{procedure TMainForm.SynMemoQuerySpecialLineColors(Sender: TObject;
+procedure TMainForm.SynMemoQuerySpecialLineColors(Sender: TObject;
   Line: Integer; var Special: Boolean; var FG, BG: TColor);
 var
   Edit: TSynMemo;
@@ -7098,10 +7060,10 @@ begin
     FG := ErrorLineForeground;
     BG := ErrorLineBackground;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.SynMemoSQLLogSpecialLineColors(Sender: TObject;
+procedure TMainForm.SynMemoSQLLogSpecialLineColors(Sender: TObject;
   Line: Integer; var Special: Boolean; var FG, BG: TColor);
 var
   Edit: TSynMemo;
@@ -7133,7 +7095,7 @@ begin
     FG := InfoLineForeground;
     BG := InfoLineBackground;
   end;
-end;}
+end;
 
 
 procedure TMainForm.SynMemoQueryStatusChange(Sender: TObject; Changes: TSynStatusChanges);
@@ -7543,7 +7505,7 @@ begin
   menuAutoRefresh.Checked := TimerRefresh.Enabled;
 end;
 
-{procedure TMainForm.SynMemoQueryDragOver(Sender, Source: TObject; X,
+procedure TMainForm.SynMemoQueryDragOver(Sender, Source: TObject; X,
   Y: Integer; State: TDragState; var Accept: Boolean);
 var
   src : TControl;
@@ -7562,10 +7524,10 @@ begin
   Memo.CaretY := y div Memo.LineHeight + Memo.TopLine;
   if not Memo.Focused then
     Memo.SetFocus;
-end;}
+end;
 
 
-{procedure TMainForm.SynMemoQueryDragDrop(Sender, Source: TObject; X,
+procedure TMainForm.SynMemoQueryDragDrop(Sender, Source: TObject; X,
   Y: Integer);
 var
   src : TControl;
@@ -7576,10 +7538,10 @@ var
   History: TQueryHistory;
 begin
   // dropping a tree node or listbox item into the query-memo
-  QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
+  //QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
   src := Source as TControl;
   Text := '';
-  ShiftPressed := KeyPressed(VK_SHIFT);
+  ShiftPressed := ssShift in GetKeyShiftState;
   Tree := QueryTabs.ActiveHelpersTree;
   // Check for allowed controls as source has already
   // been performed in OnDragOver. So, only do typecasting here.
@@ -7631,16 +7593,16 @@ begin
 
   if Text <> '' then begin
     QueryTabs.ActiveMemo.SelText := Text;
-    QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
+    //QueryTabs.ActiveMemo.UndoList.AddGroupBreak;
     // Requires to set focus, as doubleclick actions also call this procedure
     QueryTabs.ActiveMemo.SetFocus;
   end;
-end;}
+end;
 
 
 
-{procedure TMainForm.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
-  AFiles: TUnicodeStrings);
+procedure TMainForm.SynMemoQueryDropFiles(Sender: TObject; X, Y: Integer;
+  AFiles: TStrings);
 var
   i: Integer;
   Tab: TQueryTab;
@@ -7653,7 +7615,7 @@ begin
       Tab.LoadContents(AFiles[i], False, nil);
     end;
   end;
-end;}
+end;
 
 
 {procedure TMainForm.SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
@@ -7722,7 +7684,7 @@ begin
 end;}
 
 
-{procedure TMainForm.AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
+procedure TMainForm.AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
   WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
 var
   Editor: TSynEdit;
@@ -7730,7 +7692,7 @@ var
 begin
   // Change font size with MouseWheel
   // TODO: broken in high-dpi mode, just zooms in
-  if KeyPressed(VK_CONTROL) and AppSettings.ReadBool(asWheelZoom) then begin
+  if (ssCtrl in GetKeyShiftState) and AppSettings.ReadBool(asWheelZoom) then begin
     Editor := TSynEdit(Sender);
     NewFontSize := Editor.Font.Size;
     if WheelDelta > 0 then
@@ -7746,7 +7708,7 @@ begin
   end else begin
     Handled := False;
   end;
-end;}
+end;
 
 
 {procedure TMainForm.SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas; TransientType: TTransientType);
@@ -8721,7 +8683,7 @@ begin
     Screen.Cursor := crHourglass;
     AppSettings.SessionPath := PathToDelete;
     AppSettings.DeleteCurrentKey;
-    //RefreshHelperNode(TQueryTab.HelperNodeHistory);
+    RefreshHelperNode(TQueryTab.HelperNodeHistory);
     Screen.Cursor := crDefault;
   end;
   Values.Free;
@@ -9819,7 +9781,7 @@ begin
           if DataGrid.Tag = VTREE_LOADED then
             InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
           // Update the list of columns
-          //RefreshHelperNode(TQueryTab.HelperNodeColumns);
+          RefreshHelperNode(TQueryTab.HelperNodeColumns);
         except on E:EDbError do
           ErrorDialog(E.Message);
         end;
@@ -9844,8 +9806,8 @@ begin
     end;
     if EnteringSession then begin
       LogSQL(f_('Entering session "%s"', [FActiveDbObj.Connection.Parameters.SessionPath]), lcInfo);
-      //RefreshHelperNode(TQueryTab.HelperNodeHistory);
-      //RefreshHelperNode(TQueryTab.HelperNodeProfile);
+      RefreshHelperNode(TQueryTab.HelperNodeHistory);
+      RefreshHelperNode(TQueryTab.HelperNodeProfile);
       case FActiveDbObj.Connection.Parameters.NetTypeGroup of
         ngMySQL:
           SynSQLSynUsed.SQLDialect := sqlMySQL;
@@ -9971,15 +9933,15 @@ begin
 end;
 
 
-{procedure TMainForm.ConnectionReady(Connection: TDBConnection; Database: String);
+procedure TMainForm.ConnectionReady(Connection: TDBConnection; Database: String);
 begin
   // Manually trigger changed focused tree node, to display the right server vendor
   // and version. Also required on reconnects.
   DBtree.OnFocusChanged(DBtree, DBtree.FocusedNode, DBtree.FocusedColumn);
-end;}
+end;
 
 
-{procedure TMainForm.DatabaseChanged(Connection: TDBConnection; Database: String);
+procedure TMainForm.DatabaseChanged(Connection: TDBConnection; Database: String);
 begin
   // Immediately force db icons to repaint, so the user sees the active db state
   DBtree.Repaint;
@@ -9989,10 +9951,10 @@ begin
 
   if QueryTabs.ActiveHelpersTree <> nil then
     QueryTabs.ActiveHelpersTree.Invalidate;
-end;}
+end;
 
 
-{procedure TMainForm.ObjectnamesChanged(Connection: TDBConnection; Database: String);
+procedure TMainForm.ObjectnamesChanged(Connection: TDBConnection; Database: String);
 var
   DBObjects: TDBObjectList;
   Obj: TDBObject;
@@ -10002,7 +9964,7 @@ begin
   if (ActiveConnection <> Connection) or (Database <> Connection.Database) then
     Exit;
   SynSQLSynUsed.TableNames.Clear;
-  SynSQLSynUsed.ProcNames.Clear;
+  //SynSQLSynUsed.ProcNames.Clear;
   if Connection.DbObjectsCached(Database) then begin
     DBObjects := Connection.GetDBObjects(Database);
     TableNames := TStringList.Create;
@@ -10024,11 +9986,11 @@ begin
     TableNames.EndUpdate;
     ProcNames.EndUpdate;
     SynSQLSynUsed.TableNames.Text := TableNames.Text;
-    SynSQLSynUsed.ProcNames.Text := ProcNames.Text;
+    //SynSQLSynUsed.ProcNames.Text := ProcNames.Text;
     TableNames.Free;
     ProcNames.Free;
   end;
-end;}
+end;
 
 
 procedure TMainForm.DBtreeDblClick(Sender: TObject);
@@ -12952,7 +12914,7 @@ begin
 end;
 
 
-{function TMainForm.GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
+function TMainForm.GetOrCreateEmptyQueryTab(DoFocus: Boolean): TQueryTab;
 var
   i: Integer;
 begin
@@ -12978,7 +12940,7 @@ begin
       actNewQueryTabExecute(actNewQueryTabNofocus);
     Result := QueryTabs[QueryTabs.Count-1];
   end;
-end;}
+end;
 
 
 function TMainForm.ActiveSynMemo(AcceptReadOnlyMemo: Boolean): TSynMemo;
@@ -13965,7 +13927,7 @@ begin
 end;
 
 
-{procedure TMainForm.treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
+procedure TMainForm.treeQueryHelpersBeforeCellPaint(Sender: TBaseVirtualTree; TargetCanvas: TCanvas;
   Node: PVirtualNode; Column: TColumnIndex; CellPaintMode: TVTCellPaintMode; CellRect: TRect;
   var ContentRect: TRect);
 var
@@ -13992,10 +13954,10 @@ begin
       PaintColorBar(History[Node.Index].Duration, History.MaxDuration, TargetCanvas, CellRect);
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+procedure TMainForm.treeQueryHelpersPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
   Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
 var
   History: TQueryHistory;
@@ -14032,10 +13994,10 @@ begin
 
     end;
   
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersResize(Sender: TObject);
+procedure TMainForm.treeQueryHelpersResize(Sender: TObject);
 var
   Tree: TVirtualStringTree;
 begin
@@ -14046,19 +14008,19 @@ begin
     // Column count may be 0 in an early stage of creating a new query tab
     Tree.Header.Columns[1].Width := Max(Tree.Width div 3, 100);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersDblClick(Sender: TObject);
+procedure TMainForm.treeQueryHelpersDblClick(Sender: TObject);
 var
   m: TSynMemo;
 begin
   m := QueryTabs.ActiveMemo;
   m.DragDrop(Sender, m.CaretX, m.CaretY);
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersEditing(Sender: TBaseVirtualTree;
+procedure TMainForm.treeQueryHelpersEditing(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; var Allowed: Boolean);
 begin
   // If current column is value of Bind Param, we allow editing
@@ -14066,10 +14028,10 @@ begin
     and (Sender.FocusedNode.Parent.Index = TQueryTab.HelperNodeBinding) then begin
       Allowed := True;
     end
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
+procedure TMainForm.treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
   NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
 var
   Tree: TVirtualStringTree;
@@ -14085,10 +14047,10 @@ begin
     Tree.TreeOptions.SelectionOptions := Tree.TreeOptions.SelectionOptions - [toMultiSelect]
   end else
     Tree.TreeOptions.SelectionOptions := Tree.TreeOptions.SelectionOptions + [toMultiSelect];
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersFreeNode(Sender: TBaseVirtualTree;
+procedure TMainForm.treeQueryHelpersFreeNode(Sender: TBaseVirtualTree;
   Node: PVirtualNode);
 var
   Tab: TQueryTab;
@@ -14102,11 +14064,11 @@ begin
       Tab.HistoryDays.Delete(Node.Index);
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+procedure TMainForm.treeQueryHelpersGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: Integer);
 begin
   // Query helpers tree fetching node icon index
   if not (Kind in [ikNormal, ikSelected]) then
@@ -14136,10 +14098,10 @@ begin
          TQueryTab.HelperNodeBinding: ImageIndex := 42;
        end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+procedure TMainForm.treeQueryHelpersGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   History: TQueryHistory;
@@ -14181,8 +14143,8 @@ begin
                    if SelectedTableColumns.Count > Integer(Node.Index) then
                      CellText := SelectedTableColumns[Node.Index].Name;
                  lntFunction, lntProcedure:
-                   if Assigned(ActiveObjectEditor) then
-                     CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
+                   //if Assigned(ActiveObjectEditor) then
+                   //  CellText := TfrmRoutineEditor(ActiveObjectEditor).Parameters[Node.Index].Name;
                end;
              end;
              TQueryTab.HelperNodeFunctions: begin
@@ -14253,10 +14215,10 @@ begin
            end;
       end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode,
+procedure TMainForm.treeQueryHelpersInitNode(Sender: TBaseVirtualTree; ParentNode,
   Node: PVirtualNode; var InitialStates: TVirtualNodeInitStates);
 begin
   // Query helpers tree asking if plus/minus button should be displayed
@@ -14274,10 +14236,10 @@ begin
         Include(InitialStates, ivsHasChildren);
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersNewText(Sender: TBaseVirtualTree;
+procedure TMainForm.treeQueryHelpersNewText(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; NewText: string);
 var
   Tree: TVirtualStringTree;
@@ -14290,10 +14252,10 @@ begin
   QueryTab.ListBindParams.Items[Sender.FocusedNode.Index].Value := NewText;
 
   Tree.RepaintNode(Node);
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersNodeClick(Sender: TBaseVirtualTree;
+procedure TMainForm.treeQueryHelpersNodeClick(Sender: TBaseVirtualTree;
   const HitInfo: THitInfo);
 var
   Tree: TVirtualStringTree;
@@ -14302,10 +14264,10 @@ begin
   // If the column is clicked a parameter value, it goes directly into the edit mode
   if (HitInfo.HitNode.Parent.Index = TQueryTab.HelperNodeBinding) and (HitInfo.HitColumn = 1) then
     Tree.EditNode(Sender.FocusedNode,Sender.FocusedColumn);
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+procedure TMainForm.treeQueryHelpersInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
   var ChildCount: Cardinal);
 var
   QueryDay: String;
@@ -14326,7 +14288,7 @@ begin
                ChildCount := SelectedTableColumns.Count;
              lntFunction, lntProcedure:
                if Assigned(ActiveObjectEditor) then
-                 ChildCount := TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count
+                 ChildCount := 0; //TfrmRoutineEditor(ActiveObjectEditor).Parameters.Count
                else
                  ChildCount := 0;
            end;
@@ -14372,8 +14334,7 @@ begin
       else ChildCount := 0;
     end;
   end;
-end;}
-
+end;
 
 procedure TMainForm.SetSnippetFilenames;
 var
@@ -14398,11 +14359,11 @@ begin
       LogSQL(f_('Error with snippets directory: %s', [E.Message]), lcError);
     end;
   end;
-  //RefreshHelperNode(TQueryTab.HelperNodeSnippets);
+  RefreshHelperNode(TQueryTab.HelperNodeSnippets);
 end;
 
 
-{procedure TMainForm.treeQueryHelpersChecking(Sender: TBaseVirtualTree;
+procedure TMainForm.treeQueryHelpersChecking(Sender: TBaseVirtualTree;
   Node: PVirtualNode; var NewState: TCheckState; var Allowed: Boolean);
 var
   Tab: TQueryTab;
@@ -14440,10 +14401,10 @@ begin
 
   end;
 
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint;
+procedure TMainForm.treeQueryHelpersContextPopup(Sender: TObject; MousePos: TPoint;
   var Handled: Boolean);
 var
   Tree: TVirtualStringTree;
@@ -14499,23 +14460,23 @@ begin
       end;
     end;
   end;
-end;}
+end;
 
 
-{procedure TMainForm.treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
+procedure TMainForm.treeQueryHelpersCreateEditor(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Column: TColumnIndex; out EditLink: IVTEditLink);
 var
- InplaceEditor: TInplaceEditorLink;
+ //InplaceEditor: TInplaceEditorLink;
  VT: TVirtualStringTree;
 begin
   VT := Sender as TVirtualStringTree;
-  InplaceEditor := TInplaceEditorLink.Create(VT, True, nil);
-  InplaceEditor.ButtonVisible := true;
-  EditLink := InplaceEditor;
-end;}
+  //InplaceEditor := TInplaceEditorLink.Create(VT, True, nil);
+  //InplaceEditor.ButtonVisible := true;
+  //EditLink := InplaceEditor;
+end;
 
 
-{procedure TMainForm.RefreshHelperNode(NodeIndex: Cardinal);
+procedure TMainForm.RefreshHelperNode(NodeIndex: Cardinal);
 var
   Tab: TQueryTab;
   Node, Child: PVirtualNode;
@@ -14563,7 +14524,7 @@ begin
   end;
   ExpandedChildren.Free;
   Tab.treeHelpers.EndUpdate;
-end;}
+end;
 
 
 {procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
@@ -15330,7 +15291,7 @@ begin
   ListBindParams.CleanToKeep;
 
   // Refresh bind param tree node, so it displays its children. Expand it when it has params for the first time.
-  //MainForm.RefreshHelperNode(TQueryTab.HelperNodeBinding);
+  MainForm.RefreshHelperNode(TQueryTab.HelperNodeBinding);
   if (ParamCountBefore=0) and (ListBindParams.Count>0) then begin
     Node := FindNode(treeHelpers, TQueryTab.HelperNodeBinding, nil);
     treeHelpers.Expanded[Node] := True;
@@ -15518,7 +15479,7 @@ end;
 
 { TQueryHistory }
 
-{constructor TQueryHistory.Create(SessionPath: String);
+constructor TQueryHistory.Create(SessionPath: String);
 var
   ValueNames: TStringList;
   i, j, p: Integer;
@@ -15560,10 +15521,10 @@ begin
   Sort;
   ValueNames.Free;
   AppSettings.ResetPath;
-end;}
+end;
 
 
-{function TQueryHistoryItemComparer.Compare(const Left, Right: TQueryHistoryItem): Integer;
+function TQueryHistoryItemComparer.Compare(constref Left, Right: TQueryHistoryItem): Integer;
 begin
   // Simple sort method for a TDBObjectList
   if Left.Time > Right.Time then
@@ -15572,7 +15533,7 @@ begin
     Result := 0
   else
     Result := 1;
-end;}
+end;
 
 
 { TListBindParam }

@@ -396,9 +396,9 @@ type
   procedure InvalidateVT(VT: TLazVirtualStringTree; RefreshTag: Integer; ImmediateRepaint: Boolean);
   function CharAtPos(Str: String; Pos: Integer): Char;
   function CompareAnyNode(Text1, Text2: String): Integer;
-  //function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
-  //function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
-  //function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
+  function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
   function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
   //function GetImageLinkTimeStamp(const FileName: string): TDateTime;
   function IsEmpty(Str: String): Boolean;
@@ -427,7 +427,7 @@ type
   //function ThemeIsDark(ThemeName: String=''): Boolean;
   //function ProcessExists(pid: Cardinal; ExeNamePattern: String): Boolean;
   //procedure ToggleCheckBoxWithoutClick(chk: TCheckBox; State: Boolean);
-  //function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
+  function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String; LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
   function PopupComponent(Sender: TObject): TComponent;
   function IsWine: Boolean;
   function DirSep: Char;
@@ -2171,25 +2171,25 @@ begin
 end;
 
 
-{function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
+function StringListCompareAnythingAsc(List: TStringList; Index1, Index2: Integer): Integer;
 begin
   // Sort TStringList items, containing numbers or strings, ascending
   Result := CompareAnyNode(List[Index1], List[Index2]);
-end;}
+end;
 
 
-{function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
+function StringListCompareAnythingDesc(List: TStringList; Index1, Index2: Integer): Integer;
 begin
   // Sort TStringList items, containing numbers or strings, descending
   Result := CompareAnyNode(List[Index2], List[Index1]);
-end;}
+end;
 
 
-{function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
+function StringListCompareByValue(List: TStringList; Index1, Index2: Integer): Integer;
 begin
   // Sort TStringList items which are stored as name=value pairs
   Result := CompareAnyNode(List.ValueFromIndex[Index2], List.ValueFromIndex[Index1]);
-end;}
+end;
 
 
 function StringListCompareByLength(List: TStringList; Index1, Index2: Integer): Integer;
@@ -2878,17 +2878,17 @@ begin
 end;}
 
 
-{function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
+function SynCompletionProposalPrettyText(ImageIndex: Integer; LeftText, CenterText, RightText: String;
   LeftColor: TColor=-1; CenterColor: TColor=-1; RightColor: TColor=-1): String;
-const}
-//  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{10}\color{%s}\style{+i}%s';
-{begin
+const
+  LineFormat = '\image{%d}\hspace{5}\color{%s}%s\column{}\color{%s}%s\hspace{10}\color{%s}\style{+i}%s';
+begin
   // Return formatted item string for a TSynCompletionProposal
   if LeftColor = -1 then LeftColor := clGrayText;
   if CenterColor = -1 then CenterColor := clWindowText;
   if RightColor = -1 then RightColor := clGrayText;
   Result := Format(LineFormat, [ImageIndex, ColorToString(LeftColor), LeftText, ColorToString(CenterColor), CenterText, ColorToString(RightColor), RightText]);
-end;}
+end;
 
 
 function PopupComponent(Sender: TObject): TComponent;
