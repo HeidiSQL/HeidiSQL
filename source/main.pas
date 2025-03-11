@@ -11,7 +11,7 @@ uses
   SynGutter, SynGutterChanges, SynGutterCodeFolding, SynGutterLineNumber,
   SynGutterMarks, StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls,
   fphttpclient, Math, LCLIntf, Generics.Collections, Generics.Defaults,
-  opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn, dbconnection, dbstructures,
+  opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn, FileUtil, LMessages, dbconnection, dbstructures,
   dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase, SynEditMarkupSpecialLine;
 
 
@@ -92,7 +92,7 @@ type
       pnlMemo: TPanel;
       Memo: TSynMemo;
       pnlHelpers: TPanel;
-      filterHelpers: TButtonedEdit;
+      filterHelpers: TEditButton;
       treeHelpers: TVirtualStringTree;
       MemoFileRenamed: Boolean;
       MemoLineBreaks: TLineBreaks;
@@ -424,7 +424,7 @@ type
     pnlProcessView: TPanel;
     SynMemoProcessView: TSynMemo;
     pnlFilterVT: TPanel;
-    editFilterVT: TButtonedEdit;
+    editFilterVT: TEditButton;
     lblFilterVT: TLabel;
     lblFilterVTInfo: TLabel;
     menuEditVariable: TMenuItem;
@@ -599,8 +599,8 @@ type
     Save1: TMenuItem;
     Saveassnippet1: TMenuItem;
     ToolBarTree: TToolBar;
-    editDatabaseFilter: TEdit;
-    editTableFilter: TEdit;
+    editDatabaseFilter: TEditButton;
+    editTableFilter: TEditButton;
     btnTreeFavorites: TToolButton;
     actFavoriteObjectsOnly: TAction;
     ToolBarMainButtons: TToolBar;
@@ -645,7 +645,7 @@ type
     ImageListIcons8: TImageList;
     pnlQueryHelpers: TPanel;
     treeQueryHelpers: TVirtualStringTree;
-    filterQueryHelpers: TButtonedEdit;
+    filterQueryHelpers: TEditButton;
     TimerStoreTabs: TTimer;
     Duplicaterowwithkeys1: TMenuItem;
     actGoToQueryResults: TAction;
@@ -1027,10 +1027,10 @@ type
     procedure ListDatabasesDblClick(Sender: TObject);
     procedure actRunRoutinesExecute(Sender: TObject);
     procedure AnyGridGetNodeDataSize(Sender: TBaseVirtualTree; var NodeDataSize: Integer);
-    //procedure tabsetQueryClick(Sender: TObject);
-    //procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
-    //procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
-    //procedure tabsetQueryMouseLeave(Sender: TObject);
+    procedure tabsetQueryClick(Sender: TObject);
+    procedure tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer; var ImageIndex: Integer);
+    procedure tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+    procedure tabsetQueryMouseLeave(Sender: TObject);
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
     //procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     //procedure StatusBarMouseLeave(Sender: TObject);
@@ -1059,7 +1059,7 @@ type
     procedure treeQueryHelpersFocusChanging(Sender: TBaseVirtualTree; OldNode,
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex; var Allowed: Boolean);
     procedure treeQueryHelpersResize(Sender: TObject);
-    //procedure ApplicationEvents1Deactivate(Sender: TObject);
+    procedure ApplicationEvents1Deactivate(Sender: TObject);
     procedure actDisconnectExecute(Sender: TObject);
     procedure menuEditObjectClick(Sender: TObject);
     procedure Copylinetonewquerytab1Click(Sender: TObject);
@@ -1086,16 +1086,16 @@ type
     procedure menuAutoExpandClick(Sender: TObject);
     procedure pnlLeftResize(Sender: TObject);
     procedure editDatabaseTableFilterChange(Sender: TObject);
-    //procedure editDatabaseTableFilterLeftButtonClick(Sender: TObject);
-    //procedure editDatabaseTableFilterMenuClick(Sender: TObject);
+    procedure editDatabaseTableFilterLeftButtonClick(Sender: TObject);
+    procedure editDatabaseTableFilterMenuClick(Sender: TObject);
     procedure editDatabaseTableFilterExit(Sender: TObject);
     procedure menuClearDataTabFilterClick(Sender: TObject);
     procedure actUnixTimestampColumnExecute(Sender: TObject);
     procedure PopupQueryLoadPopup(Sender: TObject);
     procedure DonateClick(Sender: TObject);
     procedure DBtreeExpanded(Sender: TBaseVirtualTree; Node: PVirtualNode);
-    //procedure ApplicationDeActivate(Sender: TObject);
-    //procedure ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
+    procedure ApplicationDeActivate(Sender: TObject);
+    procedure ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
     procedure DBtreeAfterCellPaint(Sender: TBaseVirtualTree;
       TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
       CellRect: TRect);
@@ -1116,7 +1116,7 @@ type
     procedure actPreviousResultExecute(Sender: TObject);
     procedure actNextResultExecute(Sender: TObject);
     procedure actSaveSynMemoToTextfileExecute(Sender: TObject);
-    //procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+    procedure ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
     procedure buttonedEditClear(Sender: TObject);
     procedure menuDoubleClickInsertsNodeTextClick(Sender: TObject);
     procedure DBtreeDblClick(Sender: TObject);
@@ -1124,7 +1124,7 @@ type
     procedure actGotoDbTreeExecute(Sender: TObject);
     procedure actGotoFilterExecute(Sender: TObject);
     procedure actGotoTabNumberExecute(Sender: TObject);
-    //procedure StatusBarClick(Sender: TObject);
+    procedure StatusBarClick(Sender: TObject);
     procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
     //procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
@@ -1133,7 +1133,7 @@ type
     procedure actGoToQueryResultsExecute(Sender: TObject);
     procedure actGoToDataMultiFilterExecute(Sender: TObject);
     procedure actDataOpenUrlExecute(Sender: TObject);
-    //procedure ApplicationEvents1ShortCut(var Msg: TWMKey; var Handled: Boolean);
+    procedure ApplicationEvents1ShortCut(var Msg: TLMKey; var Handled: Boolean);
     procedure actDetachDatabaseExecute(Sender: TObject);
     procedure actAttachDatabaseExecute(Sender: TObject);
     procedure actSynEditCompletionProposeExecute(Sender: TObject);
@@ -1291,14 +1291,14 @@ type
     //function InitTabsIniFile: TIniFile;
     //procedure StoreTabs;
     //function RestoreTabs: Boolean;
-    //procedure SetHintFontByControl(Control: TWinControl=nil);
+    procedure SetHintFontByControl(Control: TWinControl=nil);
   public
     QueryTabs: TQueryTabList;
     ActiveObjectEditor: TDBObjectEditor;
     FileEncodings: TStringList;
     ImportSettingsDone: Boolean;
 
-    //// Data grid related stuff
+    // Data grid related stuff
     DataGridHiddenColumns: TStringList;
     DataGridWantedRowCount: Int64;
     DataGridTable: TDBObject;
@@ -1314,12 +1314,12 @@ type
     SelectedTableTimestampColumns: TStringList;
     FilterPanelManuallyOpened: Boolean;
 
-    //// Task button interface
-    //TaskbarList: ITaskbarList;
-    //TaskbarList2: ITaskbarList2;
-    //TaskbarList3: ITaskbarList3;
-    //TaskbarList4: ITaskbarList4;
-    //
+    // Task button interface
+    {TaskbarList: ITaskbarList;
+    TaskbarList2: ITaskbarList2;
+    TaskbarList3: ITaskbarList3;
+    TaskbarList4: ITaskbarList4;}
+
     property AppVerRevision: Integer read FAppVerRevision;
     property AppVersion: String read FAppVersion;
     property Connections: TDBConnectionList read FConnections;
@@ -1335,7 +1335,6 @@ type
     //procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     //procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
-    //procedure(ASender: TObject; constref AItem: T; AAction: TCollectionNotification)
     procedure ConnectionsNotify(Sender: TObject; constref Item: TDBConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
     function GridResult(Grid: TBaseVirtualTree): TDBQuery;
@@ -1350,7 +1349,7 @@ type
     procedure CalcNullColors;
     procedure HandleDataGridAttributes(RefreshingData: Boolean);
     function GetRegKeyTable: String;
-    //procedure UpdateEditorTab;
+    procedure UpdateEditorTab;
     procedure SetWindowCaption;
     //procedure DefaultHandler(var Message); override;
     procedure SetupSynEditors; overload;
@@ -1436,10 +1435,10 @@ begin
 end;
 
 
-{procedure TMainForm.StatusBarClick(Sender: TObject);
+procedure TMainForm.StatusBarClick(Sender: TObject);
 var
   Click: TPoint;
-  i: Integer;
+  i, j: Integer;
   PanelRect: TRect;
 begin
   // Handle click events on specific statusbar panels
@@ -1448,7 +1447,11 @@ begin
     Exit;
   Click := StatusBar.ScreenToClient(Mouse.CursorPos);
   for i:=0 to StatusBar.Panels.Count-1 do begin
-    SendMessage(StatusBar.Handle, SB_GETRECT, i, Integer(@PanelRect));
+    PanelRect := StatusBar.ClientRect;
+    for j:=0 to i-1 do begin
+      PanelRect.Left := PanelRect.Left + StatusBar.Panels[j].Width;
+    end;
+    PanelRect.Right := PanelRect.Left + StatusBar.Panels[i].Width;
     if PtInRect(PanelRect, Click) then begin
       // We found the clicked panel
       case i of
@@ -1459,7 +1462,7 @@ begin
 
   end;
 
-end;}
+end;
 
 procedure TMainForm.StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel;
   const Rect: TRect);
@@ -2323,6 +2326,9 @@ begin
     end;
   end;
 
+  Application.OnIdle := ApplicationEvents1Idle;
+  Application.OnDeactivate := ApplicationEvents1Deactivate;
+  Application.OnShortcut := ApplicationEvents1ShortCut;
   MainFormAfterCreateDone := True;
 end;
 
@@ -2571,7 +2577,7 @@ begin
 end;}
 
 
-{procedure TMainForm.SetHintFontByControl(Control: TWinControl=nil);
+procedure TMainForm.SetHintFontByControl(Control: TWinControl=nil);
 var
   UseFontName: String;
 begin
@@ -2582,7 +2588,7 @@ begin
     UseFontName := FDefaultHintFontName;
   if Screen.HintFont.Name <> UseFontName then
     Screen.HintFont.Name := UseFontName;
-end;}
+end;
 
 
 procedure TMainForm.TimerStoreTabsTimer(Sender: TObject);
@@ -3301,7 +3307,7 @@ begin
     Screen.Cursor := crHourGlass;
     EnableProgress(Batch.Count);
     Tab.ResultTabs.Clear;
-    //Tab.tabsetQuery.Tabs.Clear;
+    Tab.tabsetQuery.Tabs.Clear;
     FreeAndNil(Tab.QueryProfile);
     ProfileNode := FindNode(Tab.treeHelpers, TQueryTab.HelperNodeProfile, nil);
     Tab.DoProfile := Assigned(ProfileNode) and (Tab.treeHelpers.CheckState[ProfileNode] in CheckedStates);
@@ -3591,7 +3597,7 @@ begin
 end;}
 
 
-{procedure TMainForm.tabsetQueryClick(Sender: TObject);
+procedure TMainForm.tabsetQueryClick(Sender: TObject);
 var
   QueryTab: TQueryTab;
   i: Integer;
@@ -3616,10 +3622,10 @@ begin
   ValidateControls(Sender);
   Screen.Cursor := crDefault;
   ShowStatusMsg;
-end;}
+end;
 
 
-{procedure TMainForm.tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer;
+procedure TMainForm.tabsetQueryGetImageIndex(Sender: TObject; TabIndex: Integer;
   var ImageIndex: Integer);
 begin
   // Give result tabs of editable results a table icon
@@ -3629,7 +3635,7 @@ begin
   except
     ImageIndex := -1;
   end;
-end;}
+end;
 
 
 procedure TMainForm.actExportDataExecute(Sender: TObject);
@@ -8518,7 +8524,7 @@ begin
 end;
 
 
-{procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
+procedure TMainForm.tabsetQueryMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
 var
   idx, i: Integer;
   Tabs: TTabSet;
@@ -8533,7 +8539,7 @@ begin
     Exit;
   FLastHintMousepos := Point(X, Y);
   Tabs := Sender as TTabSet;
-  idx := Tabs.ItemAtPos(Point(X, Y), True);
+  idx := Tabs.IndexOfTabAt(X, Y);
   if (idx = -1) or (idx = FLastHintControlIndex) then
     Exit;
   FLastHintControlIndex := idx;
@@ -8555,22 +8561,22 @@ begin
     HintSQL[i] := StrEllipsis(HintSQL[i], 100);
     HintSQL[i] := StringReplace(HintSQL[i], #9, '    ', [rfReplaceAll]);
   end;
-  BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
-    FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF + CRLF +
-    Trim(StrEllipsis(HintSQL.Text, SIZE_KB));
-  Rect := Tabs.ItemRect(idx);
+  //BalloonHint1.Description := FormatNumber(ResultTab.Results.ColumnCount) + ' columns × ' +
+  //  FormatNumber(ResultTab.Results.RecordCount) + ' rows' + CRLF + CRLF +
+  //  Trim(StrEllipsis(HintSQL.Text, SIZE_KB));
+  Rect := Tabs.TabRect(idx);
   Org := Tabs.ClientOrigin;
   OffsetRect(Rect, Org.X, Org.Y);
-  BalloonHint1.ShowHint(Rect);
-end;}
+  //BalloonHint1.ShowHint(Rect);
+end;
 
 
-{procedure TMainForm.tabsetQueryMouseLeave(Sender: TObject);
+procedure TMainForm.tabsetQueryMouseLeave(Sender: TObject);
 begin
   // BalloonHint.HideAfter is -1, so it will stay forever if we wouldn't hide it at some point
-  BalloonHint1.HideHint;
+  //BalloonHint1.HideHint;
   FLastHintControlIndex := -1;
-end;}
+end;
 
 
 {**
@@ -12157,7 +12163,7 @@ begin
 end;
 
 
-{procedure TMainForm.UpdateEditorTab;
+procedure TMainForm.UpdateEditorTab;
 var
   Cap: String;
 begin
@@ -12170,7 +12176,7 @@ begin
   else
     Cap := Cap + ActiveObjectEditor.DBObject.Name;
   SetTabCaption(tabEditor.PageIndex, Cap);
-end;}
+end;
 
 
 procedure TMainForm.menuEditObjectClick(Sender: TObject);
@@ -12610,7 +12616,7 @@ end;
 procedure TMainForm.buttonedEditClear(Sender: TObject);
 begin
   // Click on "clear" button of any TButtonedEdit control
-  TEdit(Sender).Clear;
+  TEditButton(Sender).Clear;
 end;
 
 
@@ -12680,20 +12686,20 @@ begin
 end;
 
 
-{procedure TMainForm.editDatabaseTableFilterLeftButtonClick(Sender: TObject);
+procedure TMainForm.editDatabaseTableFilterLeftButtonClick(Sender: TObject);
 var
   Menu: TPopupMenu;
   Item: TMenuItem;
   P: TPoint;
-  Edit: TButtonedEdit;
+  Edit: TEditButton;
   History: TStringList;
   ItemText: String;
   Setting: TAppSettingIndex;
 begin
   // Create right menu with filter history
-  Edit := Sender as TButtonedEdit;
+  Edit := Sender as TEditButton;
   Menu := TPopupMenu.Create(Edit);
-  Menu.AutoHotkeys := maManual;
+  //Menu.AutoHotkeys := maManual;
   Menu.Images := VirtualImageListMain;
   AppSettings.SessionPath := '';
   if Edit = editDatabaseFilter then
@@ -12734,20 +12740,20 @@ begin
 
   P := Edit.ClientToScreen(Edit.ClientRect.TopLeft);
   Menu.Popup(p.X, p.Y+16);
-end;}
+end;
 
 
-{procedure TMainForm.editDatabaseTableFilterMenuClick(Sender: TObject);
+procedure TMainForm.editDatabaseTableFilterMenuClick(Sender: TObject);
 var
   Menu: TPopupMenu;
   Item: TMenuItem;
-  Edit: TButtonedEdit;
+  Edit: TEditButton;
   Setting: TAppSettingIndex;
 begin
   // Insert text from filter history menu
   Item := Sender as TMenuItem;
   Menu := Item.Owner as TPopupMenu;
-  Edit := Menu.Owner as TButtonedEdit;
+  Edit := Menu.Owner as TEditButton;
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
   else if Edit = editTableFilter then
@@ -12762,18 +12768,18 @@ begin
     2: AppSettings.DeleteValue(Setting);
   end;
   Menu.Free;
-end;}
+end;
 
 
 procedure TMainForm.editDatabaseTableFilterExit(Sender: TObject);
 var
   History: TStringList;
-  Edit: TEdit;
+  Edit: TEditButton;
   i: Integer;
   Setting: TAppSettingIndex;
 begin
   // Add (move) custom filter text to (in) drop down history, if not empty
-  Edit := Sender as TEdit;
+  Edit := Sender as TEditButton;
   AppSettings.SessionPath := '';
   if Edit = editDatabaseFilter then
     Setting := asDatabaseFilter
@@ -13198,10 +13204,10 @@ begin
   lblFilterVT.Enabled := pnlFilterVT.Enabled;
   editFilterVT.Enabled := pnlFilterVT.Enabled;
   lblFilterVTInfo.Enabled := pnlFilterVT.Enabled;
-  if pnlFilterVT.Enabled then
+  {if pnlFilterVT.Enabled then
     editFilterVT.Color := GetThemeColor(clWindow)
   else
-    editFilterVT.Color := GetThemeColor(clBtnFace);
+    editFilterVT.Color := GetThemeColor(clBtnFace);}
 
   tab := PageControlMain.ActivePage;
   if tab = tabHost then
@@ -14346,7 +14352,7 @@ end;
 
 procedure TMainForm.SetSnippetFilenames;
 var
-  Files: TStringDynArray;
+  Files: TStringList;
   Snip: String;
   i: Integer;
 begin
@@ -14355,12 +14361,13 @@ begin
     FSnippetFilenames := TStringList.Create;
   FSnippetFilenames.Clear;
   try
-    //Files := TDirectory.GetFiles(AppSettings.DirnameSnippets, '*.sql');
-    for i:=0 to Length(Files)-1 do begin
+    Files := FindAllFiles(AppSettings.DirnameSnippets, '*.sql', False);
+    for i:=0 to Files.Count-1 do begin
       Snip := ExtractFilename(Files[i]);
       Snip := Copy(Snip, 1, Length(Snip)-4);
       FSnippetFilenames.Add(snip);
     end;
+    Files.Free;
     FSnippetFilenames.Sort;
   except
     on E:Exception do begin
@@ -14535,14 +14542,14 @@ begin
 end;
 
 
-{procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
+procedure TMainForm.ApplicationEvents1Deactivate(Sender: TObject);
 begin
   // Force result tab balloon hint to disappear. Does not do so when mouse was moved too fast.
   tabsetQueryMouseLeave(Sender);
-end;}
+end;
 
 
-{procedure TMainForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
+procedure TMainForm.ApplicationEvents1Idle(Sender: TObject; var Done: Boolean);
 begin
   if AppSettings.PortableMode
     and (not AppSettings.PortableModeReadOnly)
@@ -14576,10 +14583,10 @@ begin
     Done := True;
   end;
 
-end;}
+end;
 
 
-{procedure TMainForm.ApplicationEvents1ShortCut(var Msg: TWMKey;
+procedure TMainForm.ApplicationEvents1ShortCut(var Msg: TLMKey;
   var Handled: Boolean);
 var
   SendingControl: TComponent;
@@ -14594,7 +14601,7 @@ begin
   // Support for Ctrl+Backspace shortcut in edit + combobox controls
   //LogSQL(msg.CharCode.ToString);
   Handled := False;
-  if (Msg.CharCode = VK_BACK) and KeyPressed(VK_CONTROL) then begin
+  if (Msg.CharCode = VK_BACK) and (ssCtrl in GetKeyShiftState) then begin
     SendingControl := Screen.ActiveControl;
     rx := TRegExpr.Create;
     rx.Expression := '\b\W*\w+\W*$';
@@ -14606,10 +14613,11 @@ begin
         Edit.SelStart := rx.MatchPos[0]-1;
         Edit.SelLength := LastStart - Edit.SelStart;
         // wParam=1 supports undo, in contrast to setting Edit.SelText
-        if IsWine then
+        {if IsWine then
           Edit.SelText := ''
         else
-          SendMessage(Edit.Handle, EM_REPLACESEL, 1, LongInt(PChar('')));
+          SendMessage(Edit.Handle, EM_REPLACESEL, 1, LongInt(PChar('')));}
+        Edit.SelText := ''
       end;
       Handled := True;
     end
@@ -14639,7 +14647,7 @@ begin
         or (Act = actQueryReplace)
         then begin
 
-        if PressedShortcut = Act.ShortCut then begin
+        if PressedShortcut = TAction(Act).ShortCut then begin
           Act.Execute;
           Handled := True;
           Break;
@@ -14649,25 +14657,25 @@ begin
     end;
 
   end;
-end;}
+end;
 
-{procedure TMainForm.ApplicationDeActivate(Sender: TObject);
+procedure TMainForm.ApplicationDeActivate(Sender: TObject);
 begin
   // Prevent completion window from showing up after Alt-Tab. See issue #2640
   // and issue #3342
   // Does not work for some reason in TApplicationEvents.OnDeactivate
   // Triggers an EAccessViolation when changing some VCL styles
   try
-    SynCompletionProposal.Form.Enabled := False;
+    SynCompletionProposal.Deactivate;
   except
     on E:EAccessViolation do
       LogSQL(E.Message, lcError);
   end;
   // Gets activated again in SynCompletionProposalExecute
-end;}
+end;
 
 
-{procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
+procedure TMainForm.ApplicationShowHint(var HintStr: string; var CanShow: Boolean; var HintInfo: THintInfo);
 var
   MainTabIndex, QueryTabIndex, NewHideTimeout: integer;
   pt: TPoint;
@@ -14704,7 +14712,7 @@ begin
     // Probably reset hint font
     SetHintFontByControl;
   end;
-end;}
+end;
 
 
 procedure TMainForm.actToggleCommentExecute(Sender: TObject);

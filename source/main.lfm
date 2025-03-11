@@ -28,27 +28,24 @@ object MainForm: TMainForm
         Width = 110
       end    
       item
-        Style = psOwnerDraw
         Width = 140
       end    
       item
-        Style = psOwnerDraw
         Width = 170
       end    
       item
         Width = 170
       end    
       item
-        Style = psOwnerDraw
         Width = 170
       end    
       item
-        Style = psOwnerDraw
         Width = 250
       end>
     ParentShowHint = False
     SimplePanel = False
     ShowHint = True
+    OnClick = StatusBarClick
   end
   object ToolBarMainButtons: TToolBar
     Left = 0
@@ -265,7 +262,7 @@ object MainForm: TMainForm
     ParentFont = False
     PopupMenu = popupSqlLog
     TabOrder = 2
-    Gutter.Width = 0
+    Gutter.Width = 17
     Gutter.MouseActions = <>
     RightGutter.Width = 0
     RightGutter.MouseActions = <>
@@ -719,6 +716,16 @@ object MainForm: TMainForm
     LineHighlightColor.Foreground = clNone
     OnSpecialLineColors = SynMemoSQLLogSpecialLineColors
     inline SynLeftGutterPartList1: TSynGutterPartList
+      object SynGutterLineNumber1: TSynGutterLineNumber
+        Width = 17
+        MouseActions = <>
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
+        DigitCount = 2
+        ShowOnlyLineNumbersMultiplesOf = 1
+        ZeroStart = False
+        LeadingZeros = False
+      end
     end
   end
   object spltTopBottom: TSplitter
@@ -829,34 +836,50 @@ object MainForm: TMainForm
         Width = 212
         Images = ImageListIcons8
         TabOrder = 2
-        object editDatabaseFilter: TEdit
+        object editDatabaseFilter: TEditButton
           Left = 30
           Height = 28
           Hint = 'Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. "mydb;test.*;project\d+".'
           Top = 2
           Width = 79
-          TabOrder = 0
-          TextHint = 'Database filter'
+          ButtonWidth = 23
+          Images = ImageListIcons8
+          ImageIndex = 191
+          MaxLength = 0
+          NumGlyphs = 1
+          OnButtonClick = editDatabaseTableFilterLeftButtonClick
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress
+          PasswordChar = #0
+          Spacing = 0
+          TabOrder = 0
+          TextHint = 'Database filter'
         end
         object btnTreeFavorites: TToolButton
           Left = 1
           Top = 2
           Action = actFavoriteObjectsOnly
         end
-        object editTableFilter: TEdit
+        object editTableFilter: TEditButton
           Left = 109
           Height = 28
           Hint = 'Table filter|Can contain regular expressions, e.g. "phpbb_\d"'
           Top = 2
           Width = 100
-          TabOrder = 1
-          TextHint = 'Table filter'
+          ButtonWidth = 23
+          Images = ImageListIcons8
+          ImageIndex = 192
+          MaxLength = 0
+          NumGlyphs = 1
+          OnButtonClick = editDatabaseTableFilterLeftButtonClick
           OnChange = editDatabaseTableFilterChange
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress
+          PasswordChar = #0
+          Spacing = 0
+          TabOrder = 1
+          TextHint = 'Table filter'
         end
       end
       object DBtree: TLazVirtualStringTree
@@ -941,16 +964,24 @@ object MainForm: TMainForm
           Width = 36
           Caption = 'Filter:'
         end
-        object editFilterVT: TEdit
+        object editFilterVT: TEditButton
           Left = 128
           Height = 28
           Top = 3
           Width = 237
-          TabOrder = 0
-          TextHint = 'Regular expression'
+          ButtonWidth = 23
+          Images = ImageListIcons8
+          ImageIndex = 192
+          MaxLength = 0
+          NumGlyphs = 1
+          OnButtonClick = editDatabaseTableFilterLeftButtonClick
           OnChange = editFilterVTChange
           OnExit = editDatabaseTableFilterExit
           OnKeyPress = editDatabaseTableFilterKeyPress
+          PasswordChar = #0
+          Spacing = 0
+          TabOrder = 0
+          TextHint = 'Regular expression'
         end
         object lblFilterVTInfo: TLabel
           Left = 379
@@ -2778,6 +2809,7 @@ object MainForm: TMainForm
                 OnButtonClick = buttonedEditClear
                 OnChange = filterQueryHelpersChange
                 PasswordChar = #0
+                Spacing = 0
                 TabOrder = 0
                 TextHint = 'Filter ...'
               end
@@ -3282,9 +3314,6 @@ object MainForm: TMainForm
               MouseActions = <>
               MouseTextActions = <>
               MouseSelActions = <>
-              Lines.Strings = (
-                'SynMemoQuery'
-              )
               Options = [eoAutoIndent, eoBracketHighlight, eoGroupUndo, eoKeepCaretX, eoShowScrollHint, eoTabIndent]
               VisibleSpecialChars = [vscSpace, vscTabAtLast]
               SelectedColor.BackPriority = 50
@@ -3344,12 +3373,11 @@ object MainForm: TMainForm
             Top = 136
             Width = 772
             Images = ImageListIcons8
-            TabIndex = 0
-            Tabs.Strings = (
-              'Tab1'
-              'Tab2'
-            )
+            OnChange = tabsetQueryClick
+            OnGetImageIndex = tabsetQueryGetImageIndex
             Align = alTop
+            OnMouseLeave = tabsetQueryMouseLeave
+            OnMouseMove = tabsetQueryMouseMove
             TabOrder = 2
           end
           object QueryGrid: TLazVirtualStringTree

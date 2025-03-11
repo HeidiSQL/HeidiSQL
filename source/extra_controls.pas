@@ -121,7 +121,7 @@ begin
   inherited;
 
   FPixelsPerInchDesigned := DesignTimePPI;
-  InheritFont(Font);
+  //InheritFont(Font);
   HasSizeGrip := False;
 
   // Reduce flicker on Windows 10

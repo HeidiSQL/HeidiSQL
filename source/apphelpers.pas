@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character, DateUtils, laz.VirtualTrees, SynEdit,
+  Character, DateUtils, laz.VirtualTrees, SynEdit, EditBtn, ComCtrls, SynCompletion,
   dbconnection, dbstructures;
 
 type
@@ -19,7 +19,6 @@ type
   TImageIndex = Integer;
   PInt = ^Integer;
   TProgressBarState = (pbsNormal, pbsError, pbsPaused);
-  TButtonedEdit = TEditButton;
   TTabSet = TTabControl;
   TSynCompletionProposal = TSynCompletion;
 
@@ -1865,7 +1864,7 @@ begin
     FMainSynMemoPreviousTopLine := 0;
   DBObject := TDBObject.Create(Obj.Connection);
   DBObject.Assign(Obj);
-  //Mainform.UpdateEditorTab;
+  Mainform.UpdateEditorTab;
   Screen.Cursor := crHourglass;
   // Enable user to start typing immediately when creating a new object
   if DBObject.Name = '' then begin
