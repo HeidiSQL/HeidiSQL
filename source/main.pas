@@ -1410,7 +1410,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable;
+  copytable, csv_detector;
 
 {$R *.lfm}
 
@@ -8164,8 +8164,8 @@ begin
     // Stop here
     if Act = actRemoveFilter then
       Break;
-    //if not Act.Hint.IsEmpty then
-    //  Act.Caption := StrEllipsis(Act.Hint, 100);
+    if not IsEmpty(Act.Hint) then
+      Act.Caption := StrEllipsis(Act.Hint, 100);
   end;
 
   actFollowForeignKey.Enabled := False;
@@ -10298,7 +10298,7 @@ const
 begin
   actClearFilterEditor.Enabled := (Sender as TSynMemo).GetTextLen > 0;
 
-  //LineCount := SynMemoFilter.DisplayLineCount;
+  LineCount := SynMemoFilter.LinesInWindow;
   LineCount := Min(LineCount, MaxDisplayLineCount);
   LineCount := Max(LineCount, MinDisplayLineCount);
   TextHeight := LineCount * SynMemoFilter.LineHeight + 10;
@@ -13250,23 +13250,23 @@ begin
   BaseEditor := SynMemoQuery;
   for i:=0 to QueryTabs.Count-1 do
     Editors.Add(QueryTabs[i].Memo);
-  //Editors.Add(SynMemoFilter);
-  //Editors.Add(SynMemoProcessView);
-  //Editors.Add(SynMemoSQLLog);
+  Editors.Add(SynMemoFilter);
+  Editors.Add(SynMemoProcessView);
+  Editors.Add(SynMemoSQLLog);
   {if Assigned(ActiveObjectEditor) then
-    FindComponentInstances(ActiveObjectEditor, TSynMemo, Editors);
-  if Assigned(frmPreferences) then
-    Editors.Add(frmPreferences.SynMemoSQLSample);
+    FindComponentInstances(ActiveObjectEditor, TSynMemo, Editors);}
+  {if Assigned(frmPreferences) then
+    Editors.Add(frmPreferences.SynMemoSQLSample);}
   if Assigned(FCreateDatabaseDialog) then
     Editors.Add(FCreateDatabaseDialog.SynMemoCreateCode);
-  if SqlHelpDialog <> nil then begin
+  {if SqlHelpDialog <> nil then begin
     Editors.Add(SqlHelpDialog.memoDescription);
     Editors.Add(SqlHelpDialog.MemoExample);
-  end;
-  if Assigned(FTableToolsDialog) then
-    Editors.Add(FTableToolsDialog.SynMemoFindText);
+  end;}
+  {if Assigned(FTableToolsDialog) then
+    Editors.Add(FTableToolsDialog.SynMemoFindText);}
   if Assigned(frmCsvDetector) then
-    Editors.Add(frmCsvDetector.SynMemoCreateTable);}
+    Editors.Add(frmCsvDetector.SynMemoCreateTable);
 
   if AppSettings.ReadBool(asTabsToSpaces) then
     BaseEditor.Options := BaseEditor.Options + [eoTabsToSpaces]
@@ -14666,7 +14666,8 @@ begin
   // Does not work for some reason in TApplicationEvents.OnDeactivate
   // Triggers an EAccessViolation when changing some VCL styles
   try
-    SynCompletionProposal.Deactivate;
+    if SynCompletionProposal.IsActive then
+        SynCompletionProposal.Deactivate;
   except
     on E:EAccessViolation do
       LogSQL(E.Message, lcError);

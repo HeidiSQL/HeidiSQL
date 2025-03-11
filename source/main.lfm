@@ -1005,12 +1005,12 @@ object MainForm: TMainForm
         Height = 316
         Top = 0
         Width = 780
-        ActivePage = tabQuery
+        ActivePage = tabData
         Align = alClient
         HotTrack = True
         Images = ImageListIcons8
         PopupMenu = popupMainTabs
-        TabIndex = 4
+        TabIndex = 3
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
@@ -2232,10 +2232,11 @@ object MainForm: TMainForm
               ParentFont = False
               PopupMenu = popupFilter
               TabOrder = 4
-              Gutter.Width = 68
+              Gutter.Width = 0
               Gutter.MouseActions = <>
               RightGutter.Width = 0
               RightGutter.MouseActions = <>
+              Highlighter = SynSQLSynUsed
               Keystrokes = <              
                 item
                   Command = ecUp
@@ -2660,9 +2661,7 @@ object MainForm: TMainForm
               MouseActions = <>
               MouseTextActions = <>
               MouseSelActions = <>
-              Lines.Strings = (
-                'SynMemoFilter'
-              )
+              Options = [eoAutoIndent, eoBracketHighlight, eoGroupUndo, eoSmartTabs, eoTabsToSpaces, eoTrimTrailingSpaces]
               VisibleSpecialChars = [vscSpace, vscTabAtLast]
               ScrollBars = ssNone
               SelectedColor.BackPriority = 50
@@ -2685,40 +2684,6 @@ object MainForm: TMainForm
               LineHighlightColor.Foreground = clNone
               OnStatusChange = SynMemoFilterStatusChange
               inline SynLeftGutterPartList1: TSynGutterPartList
-                object SynGutterMarks1: TSynGutterMarks
-                  Width = 30
-                  MouseActions = <>
-                end
-                object SynGutterLineNumber1: TSynGutterLineNumber
-                  Width = 17
-                  MouseActions = <>
-                  MarkupInfo.Background = clBtnFace
-                  MarkupInfo.Foreground = clNone
-                  DigitCount = 2
-                  ShowOnlyLineNumbersMultiplesOf = 1
-                  ZeroStart = False
-                  LeadingZeros = False
-                end
-                object SynGutterChanges1: TSynGutterChanges
-                  Width = 5
-                  MouseActions = <>
-                  ModifiedColor = 59900
-                  SavedColor = clGreen
-                end
-                object SynGutterSeparator1: TSynGutterSeparator
-                  Width = 3
-                  MouseActions = <>
-                  MarkupInfo.Background = clWhite
-                  MarkupInfo.Foreground = clGray
-                end
-                object SynGutterCodeFolding1: TSynGutterCodeFolding
-                  Width = 13
-                  MouseActions = <>
-                  MarkupInfo.Background = clNone
-                  MarkupInfo.Foreground = clGray
-                  MouseActionsExpanded = <>
-                  MouseActionsCollapsed = <>
-                end
               end
             end
           end
