@@ -19,6 +19,9 @@ type
   TImageIndex = Integer;
   PInt = ^Integer;
   TProgressBarState = (pbsNormal, pbsError, pbsPaused);
+  TButtonedEdit = TEditButton;
+  TTabSet = TTabControl;
+  TSynCompletionProposal = TSynCompletion;
 
   TSortItemOrder = (sioAscending, sioDescending);
   TSortItem = class(TPersistent)
