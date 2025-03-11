@@ -17,7 +17,8 @@ uses
   dbstructures, dbstructures.mysql, About, generic_types,
   dbstructures.interbase, dbstructures.mssql, dbstructures.postgresql,
   dbstructures.sqlite, change_password, loginform, data_sorting, extra_controls,
-  column_selection, loaddata, csv_detector, createdatabase, editvar, copytable {, printlist (EnablePrint not defined) }
+  column_selection, loaddata, csv_detector, createdatabase, editvar, copytable,
+  exportgrid {, printlist (EnablePrint not defined) }
   ;
 
 {$R *.res}
@@ -47,10 +48,10 @@ begin
     gnugettext.UseLanguage(AppLanguage);
     // First time translation via dxgettext.
     // Issue #3064: Ignore TFont, so "Default" on mainform for WinXP users does not get broken.
-    gnugettext.TP_GlobalIgnoreClass(TFont);
+    gnugettext.TP_GlobalIgnoreClass(TFont);}
 
     // Enable padding in customized tooltips
-    HintWindowClass := TExtHintWindow;}
+    //HintWindowClass := TExtHintWindow;
 
     RequireDerivedFormResource:=True;
   Application.Scaled:=True;

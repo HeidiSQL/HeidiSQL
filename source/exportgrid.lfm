@@ -1,0 +1,400 @@
+object frmExportGrid: TfrmExportGrid
+  Left = 0
+  Height = 515
+  Top = 0
+  Width = 630
+  BorderIcons = [biSystemMenu]
+  Caption = 'Export grid rows'
+  ClientHeight = 515
+  ClientWidth = 630
+  Color = clBtnFace
+  Constraints.MinHeight = 400
+  Constraints.MinWidth = 400
+  DesignTimePPI = 120
+  Font.Color = clWindowText
+  Font.Height = -15
+  Font.Name = 'Tahoma'
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poMainFormCenter
+  object btnOK: TButton
+    Left = 425
+    Height = 31
+    Top = 474
+    Width = 94
+    Anchors = [akRight, akBottom]
+    Caption = 'OK'
+    Default = True
+    ModalResult = 1
+    TabOrder = 5
+    OnClick = btnOKClick
+  end
+  object btnCancel: TButton
+    Left = 526
+    Height = 31
+    Top = 474
+    Width = 94
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 4
+  end
+  object grpSelection: TRadioGroup
+    Left = 10
+    Height = 82
+    Top = 210
+    Width = 610
+    Anchors = [akTop, akLeft, akRight]
+    AutoFill = True
+    Caption = 'Row selection'
+    ChildSizing.LeftRightSpacing = 6
+    ChildSizing.EnlargeHorizontal = crsHomogenousChildResize
+    ChildSizing.EnlargeVertical = crsHomogenousChildResize
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 1
+    ClientHeight = 59
+    ClientWidth = 606
+    ItemIndex = 1
+    Items.Strings = (
+      'Selected rows'
+      'All loaded rows'
+    )
+    ParentBackground = False
+    TabOrder = 2
+  end
+  object grpOutput: TGroupBox
+    Left = 10
+    Height = 122
+    Top = 10
+    Width = 610
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Output target'
+    ClientHeight = 99
+    ClientWidth = 606
+    ParentBackground = False
+    TabOrder = 0
+    object lblEncoding: TLabel
+      Left = 10
+      Height = 18
+      Top = 70
+      Width = 62
+      Caption = 'Encoding:'
+    end
+    object radioOutputCopyToClipboard: TRadioButton
+      Left = 10
+      Height = 22
+      Top = 2
+      Width = 584
+      Anchors = [akTop, akLeft, akRight]
+      Caption = 'Copy to clipboard'
+      Checked = True
+      TabOrder = 0
+      TabStop = True
+      OnClick = ValidateControls
+    end
+    object radioOutputFile: TRadioButton
+      Left = 10
+      Height = 22
+      Top = 34
+      Width = 41
+      Caption = 'File'
+      TabOrder = 1
+      OnClick = ValidateControls
+    end
+    object editFilename: TEditButton
+      Left = 99
+      Height = 26
+      Top = 32
+      Width = 495
+      Anchors = [akTop, akLeft, akRight]
+      ButtonWidth = 29
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 51
+      MaxLength = 0
+      NumGlyphs = 1
+      OnButtonClick = editFilenameRightButtonClick
+      OnChange = editFilenameChange
+      OnDblClick = editFilenameRightButtonClick
+      PasswordChar = #0
+      TabOrder = 2
+      TextHint = 'Doubleclick to select file'
+    end
+    object comboEncoding: TComboBox
+      Left = 99
+      Height = 26
+      Top = 66
+      Width = 495
+      Anchors = [akTop, akLeft, akRight]
+      ItemHeight = 18
+      Style = csDropDownList
+      TabOrder = 3
+    end
+  end
+  object grpOptions: TGroupBox
+    Left = 10
+    Height = 166
+    Top = 300
+    Width = 610
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = 'Options'
+    ClientHeight = 143
+    ClientWidth = 606
+    ParentBackground = False
+    TabOrder = 3
+    object lblSeparator: TLabel
+      Left = 349
+      Height = 18
+      Top = 9
+      Width = 100
+      Caption = 'Field separator:'
+    end
+    object lblEncloser: TLabel
+      Left = 349
+      Height = 18
+      Top = 42
+      Width = 58
+      Caption = 'Encloser:'
+    end
+    object lblTerminator: TLabel
+      Left = 349
+      Height = 18
+      Top = 76
+      Width = 102
+      Caption = 'Line terminator:'
+    end
+    object lblNull: TLabel
+      Left = 349
+      Height = 18
+      Top = 108
+      Width = 78
+      Caption = 'NULL value:'
+    end
+    object chkIncludeColumnNames: TCheckBox
+      Left = 10
+      Height = 22
+      Top = 9
+      Width = 168
+      Caption = 'Include column names'
+      Checked = True
+      State = cbChecked
+      TabOrder = 0
+    end
+    object editSeparator: TEditButton
+      Left = 500
+      Height = 26
+      Top = 6
+      Width = 94
+      Anchors = [akTop, akLeft, akRight]
+      ButtonWidth = 29
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 108
+      MaxLength = 0
+      NumGlyphs = 1
+      OnButtonClick = editCSVRightButtonClick
+      OnChange = editCSVChange
+      PasswordChar = #0
+      TabOrder = 4
+      Text = ';'
+    end
+    object editEncloser: TEditButton
+      Left = 500
+      Height = 26
+      Top = 38
+      Width = 94
+      Anchors = [akTop, akLeft, akRight]
+      ButtonWidth = 29
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 108
+      MaxLength = 0
+      NumGlyphs = 1
+      OnButtonClick = editCSVRightButtonClick
+      OnChange = editCSVChange
+      PasswordChar = #0
+      TabOrder = 5
+    end
+    object editTerminator: TEditButton
+      Left = 500
+      Height = 26
+      Top = 72
+      Width = 94
+      Anchors = [akTop, akLeft, akRight]
+      ButtonWidth = 29
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 108
+      MaxLength = 0
+      NumGlyphs = 1
+      OnButtonClick = editCSVRightButtonClick
+      OnChange = editCSVChange
+      PasswordChar = #0
+      TabOrder = 6
+      Text = '\r\n'
+    end
+    object chkIncludeAutoIncrement: TCheckBox
+      Left = 10
+      Height = 22
+      Top = 38
+      Width = 222
+      Caption = 'Include auto increment column'
+      TabOrder = 1
+    end
+    object chkIncludeQuery: TCheckBox
+      Left = 10
+      Height = 22
+      Top = 67
+      Width = 141
+      Caption = 'Include SQL query'
+      TabOrder = 2
+    end
+    object editNull: TEditButton
+      Left = 500
+      Height = 26
+      Top = 105
+      Width = 94
+      Anchors = [akTop, akLeft, akRight]
+      ButtonWidth = 29
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 108
+      MaxLength = 0
+      NumGlyphs = 1
+      OnButtonClick = editCSVRightButtonClick
+      OnChange = editCSVChange
+      PasswordChar = #0
+      TabOrder = 7
+    end
+    object chkRemoveLinebreaks: TCheckBox
+      Left = 10
+      Height = 22
+      Top = 96
+      Width = 240
+      Caption = 'Remove linebreaks from contents'
+      TabOrder = 3
+    end
+  end
+  object btnSetClipboardDefaults: TSpeedButton
+    Left = 10
+    Height = 31
+    Top = 474
+    Width = 191
+    Anchors = [akLeft, akBottom]
+    Caption = 'Save clipboard settings'
+    Images = MainForm.ImageListIcons8
+    ImageIndex = 4
+    OnClick = btnSetClipboardDefaultsClick
+  end
+  object grpFormat: TGroupBox
+    Left = 10
+    Height = 62
+    Top = 140
+    Width = 610
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Output format'
+    ClientHeight = 39
+    ClientWidth = 606
+    ParentBackground = False
+    TabOrder = 1
+    object comboFormat: TComboBoxEx
+      Left = 10
+      Height = 28
+      Top = 3
+      Width = 584
+      Anchors = [akTop, akLeft, akRight]
+      DropDownCount = 20
+      Images = MainForm.ImageListIcons8
+      ItemHeight = 20
+      ItemsEx = <      
+        item
+          Caption = 'Excel CSV'
+          ImageIndex = 49
+          SelectedImageIndex = 49
+        end      
+        item
+          Caption = 'CSV'
+          ImageIndex = 50
+          SelectedImageIndex = 50
+        end      
+        item
+          Caption = '...'
+        end>
+      OnSelect = comboFormatSelect
+      Style = csExDropDownList
+      TabOrder = 0
+    end
+  end
+  object popupCSVchar: TPopupMenu
+    Left = 200
+    Top = 8
+    object menuCSVtab: TMenuItem
+      Caption = 'Tab'
+      Hint = '\t'
+      OnClick = menuCSVClick
+    end
+    object menuCSVcomma: TMenuItem
+      Caption = 'Comma'
+      Hint = ','
+      OnClick = menuCSVClick
+    end
+    object menuCSVsemicolon: TMenuItem
+      Caption = 'Semicolon'
+      Hint = ';'
+      OnClick = menuCSVClick
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object menuCSVsinglequote: TMenuItem
+      Caption = 'Single quote'
+      Hint = ''''
+      OnClick = menuCSVClick
+    end
+    object menuCSVdoublequote: TMenuItem
+      Caption = 'Double quote'
+      Hint = '"'
+      OnClick = menuCSVClick
+    end
+    object N2: TMenuItem
+      Caption = '-'
+    end
+    object menuCSVwinlinebreak: TMenuItem
+      Caption = 'Windows linebreak'
+      Hint = '\r\n'
+      OnClick = menuCSVClick
+    end
+    object menuCSVunixlinebreak: TMenuItem
+      Caption = 'UNIX linebreak'
+      Hint = '\n'
+      OnClick = menuCSVClick
+    end
+    object menuCSVmaclinebreak: TMenuItem
+      Caption = 'Mac OS linebreak'
+      Hint = '\r'
+      OnClick = menuCSVClick
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object menuCSVnul: TMenuItem
+      Caption = 'NUL character'
+      Hint = '\0'
+      OnClick = menuCSVClick
+    end
+    object menuCSVbackspace: TMenuItem
+      Caption = 'Backspace'
+      Hint = '\b'
+      OnClick = menuCSVClick
+    end
+    object menuCSVcontrolz: TMenuItem
+      Caption = 'Control+Z'
+      Hint = '\Z'
+      OnClick = menuCSVClick
+    end
+  end
+  object popupRecentFiles: TPopupMenu
+    OnPopup = popupRecentFilesPopup
+    Left = 310
+    Top = 8
+  end
+end

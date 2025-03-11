@@ -18,6 +18,9 @@
       <UseVersionInfo Value="True"/>
       <MajorVersionNr Value="12"/>
       <MinorVersionNr Value="10"/>
+      <RevisionNr Value="1"/>
+      <BuildNr Value="1"/>
+      <Attributes pvaPreRelease="True"/>
     </VersionInfo>
     <BuildModes>
       <Item Name="Default" Default="True"/>
@@ -177,6 +180,13 @@
         <Filename Value="source\copytable.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="CopyTableForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\exportgrid.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmExportGrid"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>

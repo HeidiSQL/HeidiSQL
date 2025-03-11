@@ -371,7 +371,7 @@ type
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String; Encoding: TEncoding): String;
   //function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
-  //procedure StreamToClipboard(Text, HTML: TStream);
+  procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
   procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
@@ -410,7 +410,7 @@ type
   function ErrorDialog(Msg: string): Integer; overload;
   function ErrorDialog(const Title, Msg: string): Integer; overload;
   //function GetLocaleString(const ResourceId: Integer): WideString;
-  //function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
+  function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
   procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
   function _(const Pattern: string): string;
   function f_(const Pattern: string; const Args: array of const): string;
@@ -1350,71 +1350,25 @@ begin
 end;}
 
 
-{procedure StreamToClipboard(Text, HTML: TStream);
+procedure StreamToClipboard(Text, HTML: TStream);
 var
-  TextContent, HTMLContent, HTMLHeader, NullPos: AnsiString;
-  GlobalMem: HGLOBAL;
-  lp: PChar;
-  ClpLen: Integer;
-  CF_HTML: Word;
-  StartHTML, EndHTML, StartFragment, EndFragment: Integer;
-const
-  PosFormat: AnsiString = '%.10d';
-
-  procedure ReplacePos(Name: AnsiString; Value: Integer);
-  var NewPos: AnsiString;
-  begin
-    NewPos := Format(PosFormat, [Value]);
-    HTMLContent := StringReplace(HTMLContent, Name+':'+NullPos, Name+':'+NewPos, []);
-  end;
+  TextContent, HTMLContent: String;
 begin
   // Copy unicode text to clipboard
+  TextContent := '';
+  HTMLContent := '';
   if Assigned(Text) then begin
     SetLength(TextContent, Text.Size);
     Text.Position := 0;
-    Text.Read(PAnsiChar(TextContent)^, Text.Size);
-    Clipboard.TryAsText := Utf8ToString(TextContent);
-    SetString(TextContent, nil, 0);
+    Text.Read(PChar(TextContent)^, Length(TextContent));
   end;
-
   if Assigned(HTML) then begin
-    // If wanted, add a HTML portion, so formatted text can be pasted in WYSIWYG
-    // editors (mostly MS applications).
-    // Note that the content is UTF8 encoded ANSI. Using unicode variables results in raw
-    // text pasted in editors. TODO: Find out why and optimize redundant code away by a loop.
-    OpenClipBoard(0);
-    CF_HTML := RegisterClipboardFormat('HTML Format');
     SetLength(HTMLContent, HTML.Size);
     HTML.Position := 0;
-    HTML.Read(PAnsiChar(HTMLContent)^, HTML.Size);
-    if Pos(AnsiString('Version:'), HTMLContent) = 0 then begin
-      // Only required if header was not already prepended by SynEdit, e.g. in grid export of SQL Inserts
-      NullPos := Format(PosFormat, [0]);
-      HTMLHeader := 'Version:0.9' + sLineBreak +
-        'StartHTML:' + NullPos + sLineBreak +
-        'EndHTML:' + NullPos + sLineBreak +
-        'StartFragment:' + NullPos + sLineBreak +
-        'EndFragment:' + NullPos + sLineBreak;
-      StartHTML := Length(HTMLHeader);
-      HTMLContent := HTMLHeader + HTMLContent;
-      EndHTML := Length(HTMLContent);
-      StartFragment := Pos(AnsiString('<body>'), HTMLContent) + 6;
-      EndFragment := Pos(AnsiString('</body'), HTMLContent)-1;
-      ReplacePos('StartHTML', StartHTML);
-      ReplacePos('EndHTML', EndHTML);
-      ReplacePos('StartFragment', StartFragment);
-      ReplacePos('EndFragment', EndFragment);
-    end;
-    ClpLen := Length(HTMLContent) + 1;
-    GlobalMem := GlobalAlloc(GMEM_DDESHARE + GMEM_MOVEABLE, ClpLen);
-    lp := GlobalLock(GlobalMem);
-    Move(PAnsiChar(HTMLContent)^, lp[0], ClpLen);
-    SetString(HTMLContent, nil, 0);
-    GlobalUnlock(GlobalMem);
-    SetClipboardData(CF_HTML, GlobalMem);
-    CloseClipboard;
+    HTML.Read(PChar(HTMLContent)^, Length(HTMLContent));
   end;
-end;}
+  Clipboard.SetAsHtml(HTMLContent, TextContent);
+end;
 
 
 procedure FixVT(VT: TVirtualStringTree; MultiLineCount: Word=1);
@@ -2484,11 +2438,11 @@ begin
 end;}
 
 
-{function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
+function GetHTMLCharsetByEncoding(Encoding: TEncoding): String;
 begin
   Result := '';
   if Encoding = TEncoding.Default then
-    Result := 'Windows-'+IntToStr(GetACP)
+    Result := 'utf-8' // 'Windows-'+IntToStr(GetACP)
   else if Encoding.CodePage = 437 then
     Result := 'ascii'
   else if Encoding = TEncoding.Unicode then
@@ -2499,7 +2453,7 @@ begin
     Result := 'utf-8'
   else if Encoding = TEncoding.UTF7 then
     Result := 'utf-7';
-end;}
+end;
 
 
 procedure ParseCommandLine(CommandLine: String; var ConnectionParams: TConnectionParameters; var FileNames: TStringList; var RunFrom: String);
@@ -3796,7 +3750,7 @@ begin
   InitSetting(asExportSQLAddComments,             'ExportSQLAddComments',                  0, True);
   InitSetting(asExportSQLRemoveAutoIncrement,     'ExportSQLRemoveAutoIncrement',          0, False);
   InitSetting(asExportSQLRemoveDefiner,           'ExportSQLRemoveDefiner',                0, True);
-  InitSetting(asGridExportWindowWidth,            'GridExportWindowWidth',                 400);
+  InitSetting(asGridExportWindowWidth,            'GridExportWindowWidth',                 450);
   InitSetting(asGridExportWindowHeight,           'GridExportWindowHeight',                480);
   InitSetting(asGridExportOutputCopy,             'GridExportOutputCopy',                  0, True);
   InitSetting(asGridExportOutputFile,             'GridExportOutputFile',                  0, False);

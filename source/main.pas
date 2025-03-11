@@ -1410,7 +1410,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector;
+  copytable, csv_detector, exportgrid;
 
 {$R *.lfm}
 
@@ -1859,11 +1859,11 @@ var
   i, j, MonitorIndex: Integer;
   QueryTab: TQueryTab;
   Action, CopyAsAction: TAction;
-  //ExportFormat: TGridExportFormat;
+  ExportFormat: TGridExportFormat;
   VI: TVersionInfo;
   CopyAsMenu, CommandMenu: TMenuItem;
   //TZI: TTimeZoneInformation;
-  //dti: TDBDatatypeCategoryIndex;
+  dti: TDBDatatypeCategoryIndex;
   EditorCommand: TSynEditorCommand;
   CmdCap: String;
   Lib: TMySQLLib;
@@ -1940,7 +1940,7 @@ begin
   SetSnippetFilenames;
 
   // Dynamically create actions and menuitems in "Copy as" context menu
-  {for ExportFormat:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
+  for ExportFormat:=Low(TGridExportFormat) to High(TGridExportFormat) do begin
     CopyAsAction := TAction.Create(ActionList1);
     CopyAsAction.ActionList := ActionList1;
     CopyAsAction.Category := actExportData.Category;
@@ -1952,7 +1952,7 @@ begin
     CopyAsMenu := TMenuItem.Create(popupDataGrid);
     CopyAsMenu.Action := CopyAsAction;
     menuCopyAs.Add(CopyAsMenu);
-  end;}
+  end;
 
   // Generate submenu with SynEdit commands
   {FEditorCommandStrings := TStringList.Create;
@@ -3639,14 +3639,14 @@ end;
 
 
 procedure TMainForm.actExportDataExecute(Sender: TObject);
-//var
-//  ExportDialog: TfrmExportGrid;
+var
+  ExportDialog: TfrmExportGrid;
 begin
   // Save data in current dataset into various text file formats
-  //ExportDialog := TfrmExportGrid.Create(Self);
-  //ExportDialog.Grid := ActiveGrid;
-  //ExportDialog.ShowModal;
-  //ExportDialog.Free;
+  ExportDialog := TfrmExportGrid.Create(Self);
+  ExportDialog.Grid := ActiveGrid;
+  ExportDialog.ShowModal;
+  ExportDialog.Free;
 end;
 
 
@@ -11847,7 +11847,7 @@ var
   //Exporter: TSynExporterRTF;
   Results: TDBQuery;
   RowNum: PInt64;
-  //ExportDialog: TfrmExportGrid;
+  ExportDialog: TfrmExportGrid;
 begin
   {// Copy text from a focused control to clipboard
   CurrentControl := Screen.ActiveControl;
