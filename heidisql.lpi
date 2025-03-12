@@ -211,6 +211,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\searchreplace.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmSearchReplace"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

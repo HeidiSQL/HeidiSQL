@@ -12,7 +12,8 @@ uses
   SynGutterMarks, StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls,
   fphttpclient, Math, LCLIntf, Generics.Collections, Generics.Defaults,
   opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn, FileUtil, LMessages, dbconnection, dbstructures,
-  dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase, SynEditMarkupSpecialLine;
+  dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase, SynEditMarkupSpecialLine,
+  searchreplace;
 
 
 type
@@ -771,6 +772,8 @@ type
     menuCloseTabOnMiddleClick: TMenuItem;
     TimerCloseTabByButton: TTimer;
     menuTabsInMultipleLines: TMenuItem;
+    btnDonate: TToolButton;
+    ToolButton2: TToolButton;
     actResetPanelDimensions: TAction;
     Resetpaneldimensions1: TMenuItem;
     popupApplyFilter: TPopupMenu;
@@ -1000,8 +1003,8 @@ type
       NewNode: PVirtualNode; OldColumn, NewColumn: TColumnIndex;
       var Allowed: Boolean);
     procedure actBlobAsTextExecute(Sender: TObject);
-    //procedure SynMemoQueryReplaceText(Sender: TObject; const ASearch,
-    //  AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
+    procedure SynMemoQueryReplaceText(Sender: TObject; const ASearch,
+      AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
     //procedure SynMemoQueryPaintTransient(Sender: TObject; Canvas: TCanvas;
     //  TransientType: TTransientType);
     procedure actQueryFindAgainExecute(Sender: TObject);
@@ -1225,7 +1228,7 @@ type
     FBtnAddTab: TSpeedButton;
     FDBObjectsMaxSize: Int64;
     FDBObjectsMaxRows: Int64;
-    //FSearchReplaceDialog: TfrmSearchReplace;
+    FSearchReplaceDialog: TfrmSearchReplace;
     FCreateDatabaseDialog: TCreateDatabaseForm;
     //FTableToolsDialog: TfrmTableTools;
     FGridEditFunctionMode: Boolean;
@@ -1333,7 +1336,7 @@ type
     procedure popupQueryLoadClick( sender: TObject );
     //procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
     //procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
-    //procedure SessionConnect(Sender: TObject);
+    procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
     procedure ConnectionsNotify(Sender: TObject; constref Item: TDBConnection; Action: TCollectionNotification);
     function ActiveGrid: TVirtualStringTree;
@@ -1797,7 +1800,7 @@ end;
 procedure TMainForm.FormDestroy(Sender: TObject);
 begin
   // Destroy dialogs
-  //FreeAndNil(FSearchReplaceDialog);
+  FreeAndNil(FSearchReplaceDialog);
 
   StoreLastSessions;
 
@@ -1901,10 +1904,10 @@ begin
   menuQueryHelpersGenerateUpdate.Caption := f_('Generate %s ...', ['UPDATE']);
   menuQueryHelpersGenerateDelete.Caption := f_('Generate %s ...', ['DELETE']);
 
-  {// Translate data type categories
+  // Translate data type categories
   for dti:=Low(DatatypeCategories) to High(DatatypeCategories) do begin
     DatatypeCategories[dti].Name := _(DatatypeCategories[dti].Name);
-  end;}
+  end;
 
   // Detect version
   try
@@ -2011,7 +2014,7 @@ begin
   SynCompletionProposal.AddEditor(SynMemoFilter);
 
   // Window position
-  {Left := AppSettings.ReadInt(asMainWinLeft);
+  Left := AppSettings.ReadInt(asMainWinLeft);
   Top := AppSettings.ReadInt(asMainWinTop);
   // ... state
   if AppSettings.ReadBool(asMainWinMaximized) then
@@ -2020,7 +2023,7 @@ begin
   MonitorIndex := AppSettings.ReadInt(asMainWinOnMonitor);
   MonitorIndex := Max(0, MonitorIndex);
   MonitorIndex := Min(Screen.MonitorCount-1, MonitorIndex);
-  MakeFullyVisible(Screen.Monitors[MonitorIndex]);}
+  MakeFullyVisible(Screen.Monitors[MonitorIndex]);
 
   actQueryStopOnErrors.Checked := AppSettings.ReadBool(asStopOnErrorsInBatchMode);
   actBlobAsText.Checked := AppSettings.ReadBool(asDisplayBLOBsAsText);
@@ -2047,9 +2050,9 @@ begin
   actDataShowNext.Hint := f_('Show next %s rows ...', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
   actAboutBox.Caption := f_('About %s', [APPNAME+' '+FAppVersion]);
   // Activate logging
-  {LogToFile := AppSettings.ReadBool(asLogToFile);
+  LogToFile := AppSettings.ReadBool(asLogToFile);
   if AppSettings.ReadBool(asLogHorizontalScrollbar) then
-    actLogHorizontalScrollbar.Execute;}
+    actLogHorizontalScrollbar.Execute;
 
   // Data-Font:
   ApplyFontToGrids;
@@ -2169,6 +2172,9 @@ begin
 end;
 
 
+{**
+  Check for connection parameters on commandline or show connections form.
+}
 procedure TMainForm.AfterFormCreate;
 var
   LastSessions, FileNames: TStringlist;
@@ -2178,7 +2184,8 @@ var
   UpdatecheckInterval, i: Integer;
   LastActiveSession, Environment, RunFrom: String;
   //frm : TfrmUpdateCheck;
-  //StatsCall: THttpDownload;
+  StatsCall: TFPHTTPClient;
+  StatsURL: String;
   SessionPaths: TStringlist;
   DlgResult: TModalResult;
   Tab: TQueryTab;
@@ -2207,15 +2214,15 @@ begin
     end;
   end;}
 
-  {// Get all session names
+  // Get all session names
   SessionPaths := TStringList.Create;
-  AppSettings.GetSessionPaths('', SessionPaths);}
+  AppSettings.GetSessionPaths('', SessionPaths);
 
   // Probably hide image
   FHasDonatedDatabaseCheck := nbUnset;
-  //ToolBarDonate.Visible := HasDonated(True) <> nbTrue;
+  btnDonate.Visible := HasDonated(True) <> nbTrue;
 
-  {// Call user statistics if checked in settings
+  // Call user statistics if checked in settings
   if AppSettings.ReadBool(asDoUsageStatistics) then begin
     LastStatsCall := StrToDateTimeDef(AppSettings.ReadString(asLastUsageStatisticCall), DateTimeNever);
     if DaysBetween(Now, LastStatsCall) >= 30 then begin
@@ -2224,32 +2231,32 @@ begin
 
       if IsWine then Environment := 'Wine'
       else if AppSettings.PortableMode then Environment := 'WinDesktopPortable'
-      else Environment := 'WinDesktop';
+      else Environment := GetOS + 'Desktop';
 
-      StatsCall := THttpDownload.Create(Self);
-      StatsCall.URL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
+      StatsCall := TFPHTTPClient.Create(Self);
+      StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
         '&bits=' + IntToStr(GetExecutableBits) +
-        '&thm=' + EncodeURLParam(TStyleManager.ActiveStyle.Name) +
+        '&thm=' + //EncodeURLParam(TStyleManager.ActiveStyle.Name) +
         '&env=' + EncodeURLParam(Environment) +
-        '&winver=' + EncodeURLParam(IntToStr(Win32MajorVersion)+'.'+IntToStr(Win32MinorVersion));
+        '&winver=0';
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
         LastConnect := StrToDateTimeDef(AppSettings.ReadString(asLastConnect), DateTimeNever);
         if LastConnect > LastStatsCall then begin
-          StatsCall.URL := StatsCall.URL + '&s[]=' + IntToStr(AppSettings.ReadInt(asNetType)) + '-' + IntToStr(AppSettings.ReadInt(asServerVersion));
+          StatsURL := StatsURL + '&s[]=' + IntToStr(AppSettings.ReadInt(asNetType)) + '-' + IntToStr(AppSettings.ReadInt(asServerVersion));
         end;
       end;
       AppSettings.ResetPath;
       try
-        StatsCall.SendRequest('');
+        StatsCall.Get(StatsURL);
         AppSettings.WriteString(asLastUsageStatisticCall, DateTimeToStr(Now));
       except
         // Silently ignore it when the url could not be called over the network.
       end;
       FreeAndNil(StatsCall);
     end;
-  end;}
+  end;
 
   ConnectionParams := nil;
   RunFrom := '';
@@ -2270,7 +2277,7 @@ begin
     except on E:Exception do
       ErrorDialog(E.Message);
     end;
-  end;{ else if AppSettings.ReadBool(asAutoReconnect) then begin
+  end else if AppSettings.ReadBool(asAutoReconnect) then begin
     // Auto connection via preference setting
     // Do not autoconnect if we're in commandline mode and the connection was not successful
     LastSessions := Explode(DELIM, AppSettings.ReadString(asLastSessions));
@@ -2291,7 +2298,7 @@ begin
         end;
       end;
     end;
-  end;}
+  end;
 
   {// Display session manager
   if Connections.Count = 0 then begin
@@ -2821,8 +2828,8 @@ procedure TMainForm.FormShow(Sender: TObject);
 begin
   // Window dimensions
   if WindowState <> wsMaximized then begin
-    //Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
-    //Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
+    Width := AppSettings.ReadIntDpiAware(asMainWinWidth, Self);
+    Height := AppSettings.ReadIntDpiAware(asMainWinHeight, Self);
   end;
 
   {LogSQL(f_('Scaling controls to screen DPI: %d%%', [Round(ScaleFactor*100)]));
@@ -2832,12 +2839,12 @@ begin
 
 
   // Restore width of columns of all VirtualTrees
-  {RestoreListSetup(ListDatabases);
+  RestoreListSetup(ListDatabases);
   RestoreListSetup(ListVariables);
   RestoreListSetup(ListStatus);
   RestoreListSetup(ListProcesses);
   RestoreListSetup(ListCommandStats);
-  RestoreListSetup(ListTables);}
+  RestoreListSetup(ListTables);
 
   // Fix node height on Virtual Trees for current DPI settings
   FixVT(DBTree);
@@ -3089,7 +3096,7 @@ begin
   for i:=0 to SessionPaths.Count-1 do begin
     item := TMenuItem.Create(menuConnections);
     item.Caption := EscapeHotkeyPrefix(SessionPaths[i]);
-    //item.OnClick := SessionConnect;
+    item.OnClick := SessionConnect;
     for Connection in Connections do begin
       if SessionPaths[i] = Connection.Parameters.SessionPath then begin
         item.Checked := True;
@@ -3116,7 +3123,7 @@ begin
   for i:=0 to SessionPaths.Count-1 do begin
     Item := TMenuItem.Create(menuConnectTo);
     Item.Caption := EscapeHotkeyPrefix(SessionPaths[i]);
-    //Item.OnClick := SessionConnect;
+    Item.OnClick := SessionConnect;
     for Connection in Connections do begin
       if SessionPaths[i] = Connection.Parameters.SessionPath then begin
         Item.Checked := True;
@@ -4261,7 +4268,7 @@ begin
 end;
 
 
-{procedure TMainForm.SessionConnect(Sender: TObject);
+procedure TMainForm.SessionConnect(Sender: TObject);
 var
   SessionPath: String;
   Connection: TDBConnection;
@@ -4303,7 +4310,7 @@ begin
     Params := TConnectionParameters.Create(SessionPath);
     InitConnection(Params, True, Connection);
   end;
-end;}
+end;
 
 
 {**
@@ -4338,7 +4345,7 @@ begin
       AppSettings.WriteString(asLastConnect, DateTimeToStr(Now));
     end;
 
-    {if ActivateMe then begin
+    if ActivateMe then begin
       // Set focus on last uses db. If not wanted or db is gone, go to root node at least
       RestoreLastActiveDatabase := AppSettings.ReadBool(asRestoreLastUsedDB);
       AppSettings.SessionPath := Params.SessionPath;
@@ -4356,7 +4363,7 @@ begin
         SelectNode(DBtree, SessionNode);
         DBtree.Expanded[SessionNode] := True;
       end;
-    end;}
+    end;
 
     // Process startup script
     StartupScript := Trim(Connection.Parameters.StartupScriptFilename);
@@ -4603,13 +4610,13 @@ begin
     if ActiveDbObj.NodeType in NodeTypes then
       Result.Add(ActiveDbObj);
   end else begin
-    {Node := GetNextNode(ListTables, nil, True);
+    Node := GetNextNode(ListTables, nil, True);
     while Assigned(Node) do begin
       pObj := ListTables.GetNodeData(Node);
       if pObj.NodeType in NodeTypes then
         Result.Add(pObj^);
       Node := GetNextNode(ListTables, Node, True);
-    end;}
+    end;
   end;
 end;
 
@@ -4694,7 +4701,7 @@ var
   OldDataLocalNumberFormat: Boolean;
 begin
   // Display search + replace dialog
-  {if not Assigned(FSearchReplaceDialog) then
+  if not Assigned(FSearchReplaceDialog) then
     FSearchReplaceDialog := TfrmSearchReplace.Create(Self);
   if FSearchReplaceDialog.Visible then
     Exit;
@@ -4705,7 +4712,7 @@ begin
     FSearchReplaceDialog.ShowModal;
     DataLocalNumberFormat := OldDataLocalNumberFormat;
     ValidateControls(Sender);
-  end;}
+  end;
 end;
 
 
@@ -4717,7 +4724,7 @@ var
   OldDataLocalNumberFormat: Boolean;
 begin
   // F3 - search or replace again, using previous settings
-  {NeedDialog := not Assigned(FSearchReplaceDialog);
+  NeedDialog := not Assigned(FSearchReplaceDialog);
   if Assigned(FSearchReplaceDialog) then begin
     NeedDialog := NeedDialog or ((FSearchReplaceDialog.Grid = nil) and (FSearchReplaceDialog.Editor = nil));
     Editor := ActiveSynMemo(False);
@@ -4737,11 +4744,11 @@ begin
     Exclude(FSearchReplaceDialog.Options, ssoEntireScope);
     FSearchReplaceDialog.DoSearchReplace(Sender);
     DataLocalNumberFormat := OldDataLocalNumberFormat;
-  end;}
+  end;
 end;
 
 
-{procedure TMainForm.SynMemoQueryReplaceText(Sender: TObject; const ASearch,
+procedure TMainForm.SynMemoQueryReplaceText(Sender: TObject; const ASearch,
   AReplace: string; Line, Column: Integer; var Action: TSynReplaceAction);
 begin
   // Fires when "Replace all" in search dialog was pressed with activated "Prompt on replace"
@@ -4751,7 +4758,7 @@ begin
     mrNo: Action := raSkip;
     mrCancel: Action := raCancel;
   end;
-end;}
+end;
 
 
 procedure TMainForm.actRefreshExecute(Sender: TObject);
@@ -12289,7 +12296,7 @@ begin
   QueryTab.Memo.Font.Assign(SynMemoQuery.Font);
   //QueryTab.Memo.ActiveLineColor := SynMemoQuery.ActiveLineColor;
   QueryTab.Memo.OnStatusChange := SynMemoQuery.OnStatusChange;
-  //QueryTab.Memo.OnSpecialLineColors := SynMemoQuery.OnSpecialLineColors;
+  QueryTab.Memo.OnSpecialLineColors := SynMemoQuery.OnSpecialLineColors;
   QueryTab.Memo.OnDragDrop := SynMemoQuery.OnDragDrop;
   QueryTab.Memo.OnDragOver := SynMemoQuery.OnDragOver;
   QueryTab.Memo.OnDropFiles := SynMemoQuery.OnDropFiles;
@@ -13748,7 +13755,7 @@ begin
   end else if QueryTabs.HasActiveTab and QueryTabs.ActiveMemo.Focused then begin
     x := QueryTabs.ActiveMemo.CaretX;
     y := QueryTabs.ActiveMemo.CaretY;
-    AppendMsg := ' ('+FormatByteNumber(QueryTabs.ActiveMemo.GetTextLen)+')';
+    AppendMsg := ' ('+FormatByteNumber(Length(QueryTabs.ActiveMemo.Text))+')';
   end;
   if (x > -1) and (y > -1) then begin
     ShowStatusMsg('r'+FormatNumber(y)+' : c'+FormatNumber(x) + AppendMsg, 1)

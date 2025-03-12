@@ -435,6 +435,7 @@ type
   function DirSep: Char;
   procedure FindComponentInstances(BaseForm: TComponent; ClassType: TClass; var List: TObjectList<TComponent>);
   //function WebColorStrToColorDef(WebColor: string; Default: TColor): TColor;
+  function GetOS: String;
   function UserAgent(OwnerComponent: TComponent): String;
   function CodeIndent(Steps: Integer=1): String;
   function EscapeHotkeyPrefix(Text: String): String;
@@ -1284,12 +1285,8 @@ end;
 
 
 function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
-const
-  BufferPadding = 1;
 var
   DataLeft, StartPosition: Int64;
-  LBuffer: TBytes;
-  i: Integer;
 begin
   // Read a chunk or the complete contents out of a textfile, opened by OpenTextFile()
   if Stream.Size = 0 then begin
@@ -1302,27 +1299,8 @@ begin
   if (ChunkSize = 0) or (ChunkSize > DataLeft) then
     ChunkSize := DataLeft;
 
-  i := 0;
-  while True do begin
-    Inc(i);
-    try
-      SetLength(LBuffer, ChunkSize);
-      Stream.ReadBuffer(Pointer(LBuffer)^, ChunkSize);
-      // Crashes in FPC:
-      LBuffer := Encoding.Convert(Encoding, TEncoding.Unicode, LBuffer);
-      // Success, exit loop
-      Break;
-    except
-      on E:EEncodingError do begin
-        if i=10 then // Give up
-          Raise;
-        Stream.Position := StartPosition;
-        Inc(ChunkSize, BufferPadding);
-      end;
-    end;
-  end;
-
-  Result := TEncoding.Unicode.GetString(LBuffer);
+  SetLength(Result, ChunkSize);
+  Stream.Read(PChar(Result)^, ChunkSize);
 end;
 
 
@@ -2705,7 +2683,12 @@ end;}
 
 function GetExecutableBits: Byte;
 begin
+  {$IfDef CPU32}
+  Result := 32;
+  {$EndIf}
+  {$IfDef CPU64}
   Result := 64;
+  {$EndIf}
 end;
 
 
@@ -2914,21 +2897,23 @@ begin
 end;}
 
 
-function UserAgent(OwnerComponent: TComponent): String;
-var
-  OS: String;
+function GetOS: String;
 begin
-  OS := 'Unknown';
+  Result := 'Unknown';
   {$IfDef LINUX}
-  OS := 'Linux';
+  Result := 'Linux';
   {$EndIf}
   {$IfDef WINDOWS}
-  OS := 'Windows';
+  Result := 'Windows';
   {$EndIf}
   {$IfDef DARWIN}
-  OS := 'macOS';
+  Result := 'macOS';
   {$EndIf}
-  Result := APPNAME+'/'+MainForm.AppVersion+' ('+OS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
+end;
+
+function UserAgent(OwnerComponent: TComponent): String;
+begin
+  Result := APPNAME+'/'+MainForm.AppVersion+' ('+GetOS+'; '+ExtractFilename(Application.ExeName)+'; '+OwnerComponent.Name+')';
 end;
 
 

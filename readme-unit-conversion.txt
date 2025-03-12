@@ -8,6 +8,7 @@ UF = both
 * U remove unit prefixes, like System.Classes => Classes, Vcl.Graphics => Graphics
 * U rename {$R *.dfm} to {$R *.lfm}
 * U TComboBoxEx exists? use comboex unit
+* U replace TSynEdit.GetWordAtCursor => TSynEdit.GetWordAtRowCol(SynEdit.CaretXY)
 * F rename .dfm file extension to .lfm
 * F if form was designed in > 96 PPI: add "DesignTimePPI = xyz"
 * (F prefer using Lazarus IDE on 100% DPI?)
