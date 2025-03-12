@@ -1882,7 +1882,7 @@ begin
   Caption := APPNAME;
 
   // Load preferred ImageCollection into VirtualImageList
-  {PrepareImageList;
+  //PrepareImageList;
 
   if AppSettings.ReadBool(asToolbarShowCaptions) then begin
     for i:=0 to ToolBarMainButtons.ButtonCount-1 do begin
@@ -1891,12 +1891,12 @@ begin
       ToolBarMainButtons.Buttons[i].AutoSize := True;
       //ToolBarMainButtons.Buttons[i].AutoSize := False;
       //ToolBarMainButtons.Buttons[i].Width := 25;
-      ToolBarMainButtons.Buttons[i].Style := tbsTextButton;
+      //ToolBarMainButtons.Buttons[i].Style := tbsTextButton;
     end;
     //ToolBarMainButtons.AllowTextButtons := True;
     //ToolBarMainButtons.List := True;
     ToolBarMainButtons.ShowCaptions := true;
-  end;}
+  end;
 
   // Translate menu items
   menuQueryHelpersGenerateSelect.Caption := f_('Generate %s ...', ['SELECT']);
@@ -2042,6 +2042,7 @@ begin
   pnlQueryHelpers.Width := AppSettings.ReadInt(asQueryhelperswidth);
   pnlLeft.Width := AppSettings.ReadInt(asDbtreewidth);
   pnlPreview.Height := AppSettings.ReadInt(asDataPreviewHeight);
+  ToolBarTree.Height := editDatabaseFilter.Height + ToolBarTree.BorderWidth;
   if AppSettings.ReadBool(asDataPreviewEnabled) then
     actDataPreviewExecute(actDataPreview);
   SynMemoSQLLog.Height := Max(AppSettings.ReadInt(asLogHeight), spltTopBottom.MinSize);
