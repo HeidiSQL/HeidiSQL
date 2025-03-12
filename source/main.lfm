@@ -858,7 +858,9 @@ object MainForm: TMainForm
           Hint = 'Database filter|A list of databases, separated by semicolon. Can contain regular expressions, e.g. "mydb;test.*;project\d+".'
           Top = 2
           Width = 79
+          AutoSize = False
           ButtonWidth = 23
+          Flat = True
           Images = ImageListIcons8
           ImageIndex = 191
           MaxLength = 0
@@ -883,7 +885,9 @@ object MainForm: TMainForm
           Hint = 'Table filter|Can contain regular expressions, e.g. "phpbb_\d"'
           Top = 2
           Width = 100
+          AutoSize = False
           ButtonWidth = 23
+          Flat = True
           Images = ImageListIcons8
           ImageIndex = 192
           MaxLength = 0
@@ -985,7 +989,9 @@ object MainForm: TMainForm
           Height = 28
           Top = 3
           Width = 237
+          AutoSize = False
           ButtonWidth = 23
+          Flat = True
           Images = ImageListIcons8
           ImageIndex = 192
           MaxLength = 0
@@ -2781,8 +2787,10 @@ object MainForm: TMainForm
                 Height = 28
                 Top = 0
                 Width = 213
+                AutoSize = False
                 Align = alTop
                 ButtonWidth = 23
+                Flat = True
                 Images = ImageListIcons8
                 ImageIndex = 193
                 MaxLength = 0
