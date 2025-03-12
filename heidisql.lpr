@@ -18,7 +18,7 @@ uses
   dbstructures.interbase, dbstructures.mssql, dbstructures.postgresql,
   dbstructures.sqlite, change_password, loginform, data_sorting, extra_controls,
   column_selection, loaddata, csv_detector, createdatabase, editvar, copytable,
-  exportgrid, usermanager, selectdbobject {, printlist (EnablePrint not defined) }
+  exportgrid, usermanager, selectdbobject, reformatter {, printlist (EnablePrint not defined) }
   ;
 
 {$R *.res}

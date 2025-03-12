@@ -1410,7 +1410,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, selectdbobject;
+  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter;
 
 {$R *.lfm}
 
@@ -13388,7 +13388,7 @@ end;
 
 procedure TMainForm.actReformatSQLExecute(Sender: TObject);
 var
-  m: TCustomSynEdit;
+  m: TSynEdit;
   CursorPosStart, CursorPosEnd: Integer;
   Done: Boolean;
 begin
@@ -13402,7 +13402,7 @@ begin
   CursorPosEnd := m.SelEnd;
   if not m.SelAvail then
     m.SelectAll;
-  {if m.SelLength = 0 then
+  if not m.SelAvail then
     ErrorDialog(_('Cannot reformat'), _('The current editor is empty.'))
   else begin
     frmReformatter := TfrmReformatter.Create(Self);
@@ -13416,16 +13416,16 @@ begin
     end;
     if Done then begin
       Screen.Cursor := crHourglass;
-      m.UndoList.AddGroupBreak;
+      //m.UndoList.AddGroupBreak;
       m.SelText := frmReformatter.OutputCode;
       m.SelStart := CursorPosStart;
       if CursorPosEnd > CursorPosStart then
         m.SelEnd := CursorPosStart + Length(frmReformatter.OutputCode);
-      m.UndoList.AddGroupBreak;
+      //m.UndoList.AddGroupBreak;
       Screen.Cursor := crDefault;
     end;
     frmReformatter.Free;
-  end;}
+  end;
 end;
 
 

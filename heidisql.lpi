@@ -204,6 +204,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\reformatter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmReformatter"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
