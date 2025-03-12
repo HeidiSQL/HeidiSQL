@@ -235,7 +235,7 @@ type
     asCreateDbCollation, asRealTrailingZeros,
     asSequalSuggestWindowWidth, asSequalSuggestWindowHeight, asSequalSuggestPrompt, asSequalSuggestRecentPrompts,
     asReformatter, asReformatterNoDialog, asAlwaysGenerateFilter,
-    asGenerateDataNumRows, asGenerateDataNullAmount,
+    asGenerateDataNumRows, asGenerateDataNullAmount, asWebOnceAction,
     asUnused);
   TAppSetting = record
     Name: String;
@@ -3959,6 +3959,7 @@ begin
   InitSetting(asThemePreviewLeft,                 'ThemePreviewLeft',                      300);
   InitSetting(asCreateDbCollation,                'CreateDbCollation',                     0, False, '');
   InitSetting(asRealTrailingZeros,                'RealTrailingZeros',                     1);
+  InitSetting(asWebOnceAction,                    'WebOnceAction',                         0, False, DateToStr(DateTimeNever));
 
   // Initialization values
   FRestoreTabsInitValue := ReadBool(asRestoreTabs);

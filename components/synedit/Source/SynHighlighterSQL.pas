@@ -1042,7 +1042,7 @@ const
     'longtext,mediumblob,mediumint,mediumtext,multilinestring,multipoint,' +
     'multipolygon,national,numeric,point,polygon,precision,real,serial,' +
     'signed,smallint,string,text,time,timestamp,tinyblob,tinyint,tinytext,' +
-    'unicode,unsigned,varbinary,varchar,year,zerofill,' +
+    'unicode,unsigned,varbinary,varchar,vector,year,zerofill,' +
 
     // Row Formats
     'COMPACT,COMPRESSED,DISK,DYNAMIC,FIXED,REDUNDANT,' +

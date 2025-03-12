@@ -1444,7 +1444,7 @@ begin
     Msg := _(SIdle);
   if Msg <> StatusBar.Panels[PanelNr].Text then begin
     StatusBar.Panels[PanelNr].Text := Msg;
-    if (PanelNr = 6) and (not IsWine) then begin
+    if (PanelNr = 6) and IsWindow(StatusBar.Handle) then begin
       // Immediately repaint this special panel, as it holds critical update messages,
       // while avoiding StatusBar.Repaint which refreshes all panels
       SendMessage(StatusBar.Handle, SB_GETRECT, PanelNr, Integer(@PanelRect));
@@ -2207,8 +2207,8 @@ var
   Tab: TQueryTab;
   SessionManager: TConnForm;
 begin
-  // Do an updatecheck if checked in settings
   if AppSettings.ReadBool(asUpdatecheck) then begin
+    // Do an updatecheck if checked in settings
     LastUpdatecheck := StrToDateTimeDef(AppSettings.ReadString(asUpdatecheckLastrun), DateTimeNever);
     UpdatecheckInterval := AppSettings.ReadInt(asUpdatecheckInterval);
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
@@ -2280,6 +2280,9 @@ begin
   // Delete scheduled task from previous
   if RunFrom = 'scheduler' then begin
     DeleteRestartTask;
+    if HasDonated(False) <> nbTrue then begin
+      apphelpers.ShellExec(APPDOMAIN + 'after-updatecheck?rev=' + AppVerRevision.ToString);
+    end;
   end;
 
   if ConnectionParams <> nil then begin
@@ -6577,8 +6580,8 @@ begin
   actPreviousResult.Enabled := HasConnection and QueryTabs.HasActiveTab and Assigned(QueryTabs.ActiveTab.ActiveResultTab);
   actNextResult.Enabled := actPreviousResult.Enabled;
 
-  // Activate export-options if we're on Data- or Query-tab
-  actExportData.Enabled := HasConnection and inDataOrQueryTabNotEmpty;
+  // Activate export-options if we're in any list control
+  actExportData.Enabled := HasConnection;
   actDataSetNull.Enabled := HasConnection and inDataOrQueryTab and Assigned(Results) and Assigned(Grid.FocusedNode);
 
   // Help only supported on regular MySQL and MariaDB servers
@@ -7249,7 +7252,7 @@ begin
       SynHighlighterSQL.tkDatatype: begin
         for i:=Low(Conn.Datatypes) to High(Conn.Datatypes) do begin
           if Conn.Datatypes[i].Name.ToLower = Token.ToLower then begin
-            HintText := Conn.Datatypes[i].Description;
+            HintText := WrapText(Conn.Datatypes[i].Description, 100);
             Break;
           end;
         end;
@@ -11818,6 +11821,7 @@ var
   Node: PVirtualNode;
   Col: TColumnIndex;
   Indent, NodesCopied: Integer;
+  IsFirstCol: Boolean;
 begin
   // Copy tree nodes as CSV, from any VirtualTree, not only from data or result grids
   // See issue #2083
@@ -11838,18 +11842,21 @@ begin
   Grid := TVirtualStringTree(SenderControl);
   // Grid.CopyToClipboard; // Does nothing (?)
 
-  Separator := ';';
-  Encloser := '"';
+  Separator := #9;
+  Encloser := '';
   Terminator := SLineBreak;
 
   Header := '';
   Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
+  IsFirstCol := True;
   while Col > NoColumn do begin
     Data := Grid.Header.Columns[Col].Text;
-    Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-    if not Header.IsEmpty then
+    //Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+    if not IsFirstCol then
       Header := Header + Separator;
-    Header := Header + Encloser + Data + Encloser;
+    IsFirstCol := False;
+    //Header := Header + Encloser + Data + Encloser;
+    Header := Header + Data;
     Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
   end;
   Header := Header + Terminator;
@@ -11859,23 +11866,30 @@ begin
   Node := Grid.GetFirstInitialized;
   while Assigned(Node) do begin
     if Grid.IsVisible[Node] then begin
+      IsFirstCol := True;
       Line := '';
+
       // One empty cell for each indentation level
       for Indent := 1 to Grid.GetNodeLevel(Node) do begin
-        if not Line.IsEmpty then
+        if not IsFirstCol then
           Line := Line + Separator;
-        Line := Line + Encloser + Encloser;
+        IsFirstCol := False;
+        //Line := Line + Encloser + Encloser;
       end;
+
       // Add data cells
       Col := Grid.Header.Columns.GetFirstVisibleColumn(True);
       while Col > NoColumn do begin
         Data := Grid.Text[Node, Col];
-        Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
-        if not Line.IsEmpty then
+        //Data := StringReplace(Data, Encloser, Encloser+Encloser, [rfReplaceAll]);
+        if not IsFirstCol then
           Line := Line + Separator;
-        Line := Line + Encloser + Data + Encloser;
+        IsFirstCol := False;
+        //Line := Line + Encloser + Data + Encloser;
+        Line := Line + Data;
         Col := Grid.Header.Columns.GetNextVisibleColumn(Col);
       end;
+
       Body := Body + Line + Terminator;
       Inc(NodesCopied);
     end;

@@ -323,7 +323,7 @@ var
 
 
   // MySQL Data Type List and Properties
-  MySQLDatatypes: array [0..40] of TDBDatatype =
+  MySQLDatatypes: array [0..41] of TDBDatatype =
   (
     (
       Index:           dbdtUnknown;
@@ -832,6 +832,20 @@ var
       HasBinary:       False;
       HasDefault:      False;
       LoadPart:        True;
+      Category:        dtcBinary;
+    ),
+    (
+      Index:           dbdtVector;
+      NativeType:      253;
+      Name:            'VECTOR';
+      Description:     'VECTOR(N)' + sLineBreak +
+        'VECTOR data type with a built-in data validation. N is the number of dimensions ' +
+        'that all vector values in the column will have.';
+      HasLength:       True;
+      RequiresLength:  True;
+      HasBinary:       False;
+      HasDefault:      False;
+      LoadPart:        False;
       Category:        dtcBinary;
     ),
     (

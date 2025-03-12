@@ -328,6 +328,7 @@ end;
 procedure TfrmExportGrid.SetExportFormat(Value: TGridExportFormat);
 begin
   comboFormat.ItemIndex := Integer(Value);
+  ValidateControls(Self);
 end;
 
 

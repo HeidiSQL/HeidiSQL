@@ -1,7 +1,13 @@
 <?php
-define('NL', "\r\n");
 
-function finalizeEntries($iniEntries)
+const NL = "\r\n";
+
+/**
+ * @param array $iniEntries
+ * @param bool $doWordWrap Set to false if descriptions already contain line breaks, like in MySQL
+ * @return string
+ */
+function finalizeEntries(array $iniEntries, bool $doWordWrap): string
 {
     static $replaceMap = [
         '“' => '"',
@@ -38,8 +44,23 @@ function finalizeEntries($iniEntries)
         }
         $descr = $iniEntry['description'];
         $descr = strtr($descr, $replaceMap);
-        $descr = wordwrap($descr);
-        $descr = str_replace("\n", '\n', $descr);
+        // Limit description to 50 lines, if the rest is longer than 100 chars
+        $numLinebreaks = 0;
+        $lenDescr = strlen($descr);
+        for($i=0; $i<strlen($descr); $i++) {
+            if($descr[$i] == "\n") {
+                $numLinebreaks++;
+            }
+            if($numLinebreaks == 50 && $lenDescr > $i + 100) {
+                $descr = substr($descr, 0, $i+1) . ' ...';
+                break;
+            }
+        }
+        //die();
+        if($doWordWrap) {
+            $descr = wordwrap($descr);
+        }
+        $descr = str_replace(["\r\n", "\r", "\n"], '\n', $descr);
 
         $entry .= "declaration=".$iniEntry['declaration'].NL
             . "category=".$iniEntry['category'].NL
@@ -47,11 +68,12 @@ function finalizeEntries($iniEntries)
         $finalEntries[$section] = $entry;
     }
     ksort($finalEntries);
+    //var_dump($finalEntries);
     return implode(NL, $finalEntries);
 }
 
 
-function gen_sqlite()
+function gen_sqlite(): string
 {
     $urls = [
         'Aggregate Functions'=>'https://www.sqlite.org/lang_aggfunc.html',
@@ -135,14 +157,14 @@ function gen_sqlite()
         'description'=>'All five date and time functions take a time value as an argument. The time value is followed by zero or more modifiers. The strftime() function also takes a format string as its first argument.',
     ];
 
-    return finalizeEntries($iniEntries);
+    return finalizeEntries($iniEntries, true);
 }
 
 
-function gen_mysql()
+function gen_mysql(int $port)
 {
     // Insert your custom password and port
-    $mysqli = mysqli_connect('localhost', 'root', null, null, '3333');
+    $mysqli = mysqli_connect('localhost', 'root', null, null, $port);
     $query = mysqli_query($mysqli, "SELECT t.name, t.description, c.name AS categ
         FROM mysql.help_topic t, mysql.help_category c
         WHERE
@@ -157,26 +179,28 @@ function gen_mysql()
 
     while($row = mysqli_fetch_object($query)) {
         $name = $row->name;
-        $nameUpper = strtoupper($name);
-        if(!preg_match('#\w+#', $nameUpper)) {
+        // Exclude function names with spaces, or other non-word characters:
+        if(!preg_match('#^\w+$#', $name)) {
             //echo "10\n";
             continue;
         }
+        #echo $name."\n";
         $matchCount = preg_match(
-            '#^(Syntax\:[\r\n\s]+)?'.preg_quote($row->name).'\(([^\)]*)\)[^\r\n]*[\r\n](.*)$#si',
+            '#\b'.preg_quote($row->name).'\s?\[?\(([^\)]*)\)[^\r\n]*[\r\n](.*)$#is',
             $row->description,
             $matches);
         if(!$matchCount) {
             //echo "20\n";
             continue;
         }
-        $description = trim($matches[3]);
-        $declaration = trim($matches[2]);
-        if(preg_match('#^([^\.]+)\.#', $description, $matchesD)) {
-            $description = $matchesD[1];
-        }
-        $description = preg_replace('#[\r\n]#', ' ', $description);
+        $declaration = trim($matches[1]);
         $declaration = preg_replace('#[\r\n]#', ' ', $declaration);
+
+        $description = trim($matches[2]);
+        if(preg_match('#Description\s+\-+[\r\n](.+)#is', $description, $matchesD)) {
+            $description = trim($matchesD[1]);
+        }
+        //$description = preg_replace('#[\r\n]#', ' ', $description);
         #echo $row->name."\n".$matches[2]."\n".$matches[3]."\n\n";
         $iniEntries[] = [
             'name'=>$row->name,
@@ -186,11 +210,11 @@ function gen_mysql()
         ];
 
     }
-    return finalizeEntries($iniEntries);
+    return finalizeEntries($iniEntries, false);
 }
 
 
-function gen_pg()
+function gen_pg(): string
 {
     /*
      * https://www.postgresql.org/docs/current/functions-string.html
@@ -229,11 +253,11 @@ function gen_pg()
     foreach($categoryUrls as $category => $url) {
         $doc = file_get_contents($url);
         if(empty($doc)) {
-            throw new \RuntimeException("Could not read $url");
+            throw new RuntimeException("Could not read $url");
         }
         $numMatches = preg_match_all('#<p class="func_signature"><a\s*[^>]*></a>\s*<code class="function">(\w+)</code>\s*\(([^)]*)\).*</p>\s*<p>(.+)</p>#', $doc, $matches);
         if($numMatches === false) {
-            throw new \RuntimeException("Regexp error: ".preg_last_error());
+            throw new RuntimeException("Regexp error: ".preg_last_error());
         }
         #var_dump($matches);
         foreach($matches[1] as $i=>$name) {
@@ -246,9 +270,18 @@ function gen_pg()
         }
         #break;
     }
-    return finalizeEntries($iniEntries);
+    return finalizeEntries($iniEntries, true);
 }
 
+// SQLite:
 # echo gen_sqlite();
-#echo gen_mysql();
-echo gen_pg();
+
+// MySQL 5.7:
+echo gen_mysql(3334);
+// MySQL 8.3:
+#echo gen_mysql(3308);
+// MariaDB 11.7:
+# echo gen_mysql(3317);
+
+// PostgreSQL:
+#echo gen_pg();
