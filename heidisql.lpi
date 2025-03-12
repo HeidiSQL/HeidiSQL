@@ -190,6 +190,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\usermanager.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="UserManagerForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\selectdbobject.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmSelectDBObject"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

@@ -18,6 +18,7 @@ object frmExportGrid: TfrmExportGrid
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poMainFormCenter
+  LCLVersion = '3.8.0.0'
   object btnOK: TButton
     Left = 425
     Height = 31

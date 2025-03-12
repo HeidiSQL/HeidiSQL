@@ -1410,7 +1410,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid;
+  copytable, csv_detector, exportgrid, usermanager, selectdbobject;
 
 {$R *.lfm}
 
@@ -2885,12 +2885,12 @@ begin
 end;
 
 procedure TMainForm.actUserManagerExecute(Sender: TObject);
-//var
-//  Dialog: TUserManagerForm;
-begin{
+var
+  Dialog: TUserManagerForm;
+begin
   Dialog := TUserManagerForm.Create(Self);
   Dialog.ShowModal;
-  Dialog.Free;}
+  Dialog.Free;
 end;
 
 procedure TMainForm.actAboutBoxExecute(Sender: TObject);
@@ -9630,10 +9630,10 @@ begin
         ChildCount := DBObjects.Count;
       end;
     lntTable:
-      //if GetParentFormOrFrame(Sender) is TfrmSelectDBObject then begin
-      //  Columns := DBObj.TableColumns;
-      //  ChildCount := Columns.Count;
-      //end;
+      if GetParentFormOrFrame(Sender) is TfrmSelectDBObject then begin
+        Columns := DBObj.TableColumns;
+        ChildCount := Columns.Count;
+      end;
   end;
 end;
 
@@ -9680,15 +9680,15 @@ begin
         end else begin
           DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database);
           Item^ := DBObjects[Node.Index];
-          //if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
-          //  Include(InitialStates, ivsHasChildren);
+          if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+            Include(InitialStates, ivsHasChildren);
         end;
       end;
       lntGroup: begin
         DBObjects := ParentObj.Connection.GetDBObjects(ParentObj.Database, False, ParentObj.GroupType);
         Item^ := DBObjects[Node.Index];
-        //if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
-        //  Include(InitialStates, ivsHasChildren);
+        if (GetParentFormOrFrame(Sender) is TfrmSelectDBObject) and (Item.NodeType = lntTable) then
+          Include(InitialStates, ivsHasChildren);
       end;
       lntTable: begin
         Item^ := TDBObject.Create(ParentObj.Connection);
