@@ -38,7 +38,7 @@ begin
   AppSettings := TAppSettings.Create;
   //SecondInstMsgId := RegisterWindowMessage(APPNAME);
   if false then begin // (not AppSettings.ReadBool(asAllowMultipleInstances)) and CheckForSecondInstance then begin
-    //AppSettings.Free;
+    AppSettings.Free;
     Application.Terminate;
   end else begin
 

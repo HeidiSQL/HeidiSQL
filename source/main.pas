@@ -1717,7 +1717,7 @@ var
   LastConnect: TDateTime;
 begin
   // Store names of open sessions
-  {OpenSessions := TStringList.Create;
+  OpenSessions := TStringList.Create;
   for Connection in Connections do
     OpenSessions.Add(Connection.Parameters.SessionPath);
   AppSettings.WriteString(asLastSessions, Implode(DELIM, OpenSessions));
@@ -1726,7 +1726,7 @@ begin
     AppSettings.WriteString(asLastActiveSession, ActiveConnection.Parameters.SessionPath);
 
   // Recreate Win7 taskbar jump list with sessions used in the last month, ordered by the number of connects
-  if Assigned(FJumpList) then try
+  {if Assigned(FJumpList) then try
     FJumpList.Clear;
     SessionPaths := TStringList.Create;
     SortedSessions := TStringList.Create;
@@ -1846,12 +1846,12 @@ begin
     AppSettings.WriteIntDpiAware(asMainWinWidth, Self, Width);
     AppSettings.WriteIntDpiAware(asMainWinHeight, Self, Height);
   end;
-  //SaveListSetup(ListDatabases);
-  //SaveListSetup(ListVariables);
-  //SaveListSetup(ListStatus);
-  //SaveListSetup(ListProcesses);
-  //SaveListSetup(ListCommandStats);
-  //SaveListSetup(ListTables);
+  SaveListSetup(ListDatabases);
+  SaveListSetup(ListVariables);
+  SaveListSetup(ListStatus);
+  SaveListSetup(ListProcesses);
+  SaveListSetup(ListCommandStats);
+  SaveListSetup(ListTables);
 
   LogToFile := False;
   AppSettings.Free;
@@ -2047,7 +2047,7 @@ begin
     actDataPreviewExecute(actDataPreview);
   SynMemoSQLLog.Height := Max(AppSettings.ReadInt(asLogHeight), spltTopBottom.MinSize);
   // Force status bar position to below log memo
-  //StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
+  StatusBar.Top := SynMemoSQLLog.Top + SynMemoSQLLog.Height;
   actDataShowNext.Hint := f_('Show next %s rows ...', [FormatNumber(AppSettings.ReadInt(asDatagridRowsPerStep))]);
   actAboutBox.Caption := f_('About %s', [APPNAME+' '+FAppVersion]);
   // Activate logging
@@ -2192,28 +2192,29 @@ var
   Tab: TQueryTab;
   //SessionManager: TConnForm;
 begin
-  {// Check for connection parameters on commandline or show connections form.
+  // Check for connection parameters on commandline or show connections form.
   if AppSettings.ReadBool(asUpdatecheck) then begin
     // Do an updatecheck if checked in settings
     LastUpdatecheck := StrToDateTimeDef(AppSettings.ReadString(asUpdatecheckLastrun), DateTimeNever);
     UpdatecheckInterval := AppSettings.ReadInt(asUpdatecheckInterval);
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
-      frm := TfrmUpdateCheck.Create(Self);
-      frm.btnCancel.Caption := _('Skip');
+      //frm := TfrmUpdateCheck.Create(Self);
+      //frm.btnCancel.Caption := _('Skip');
       try
-        frm.ReadCheckFile;
+        //frm.ReadCheckFile;
         // Show the dialog if release is available, or - when wanted - build checks are activated
-        if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
-          or frm.LinkLabelRelease.Enabled then begin
-          frm.ShowModal;
-        end;
+        //if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
+        //  or frm.LinkLabelRelease.Enabled then begin
+        //  frm.ShowModal;
+        //end;
+        MessageDialog('update check dialog', mtInformation, [mbclose]);
       except
         on E:Exception do
           LogSQL(f_('Error when checking for updates: %s', [E.Message]));
       end;
-      frm.Free; // FormClose has no caFree, as it may not have been called
+      //frm.Free; // FormClose has no caFree, as it may not have been called
     end;
-  end;}
+  end;
 
   // Get all session names
   SessionPaths := TStringList.Create;
@@ -2689,14 +2690,14 @@ begin
       AppSettings.SessionPath := Item.Parameters.SessionPath;
       Keys := AppSettings.GetKeyNames;
       rx := TRegExpr.Create;
-      rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
+      rx.Expression := '^table' + QuoteRegExprMetaChars(DELIM) + '.+';
       for i:=0 to Keys.Count-1 do begin
         if rx.Exec(Keys[i]) then begin
-          AppSettings.SessionPath := Item.Parameters.SessionPath + '\' + Keys[i];
           NamesInKey := AppSettings.GetValueNames;
           if (NamesInKey.Count = 0) or ForceDeleteTableKey then begin
-            AppSettings.DeleteCurrentKey;
+            AppSettings.DeleteSection(Keys[i]);
           end;
+          NamesInKey.Free;
         end;
       end;
       rx.Free;
@@ -2942,7 +2943,8 @@ end;
 procedure TMainForm.menuClearDataTabFilterClick(Sender: TObject);
 begin
   // Same as "Clear filter" button, but *before* the data tab is activated
-  AppSettings.SessionPath := GetRegKeyTable;
+  AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
+  AppSettings.SetCurrentSection(GetRegKeyTable);
   if AppSettings.ValueExists(asFilter) then begin
     AppSettings.DeleteValue(asFilter);
     LogSQL(f_('Data filter for %s deleted', [ActiveDbObj.Name]), lcInfo);
@@ -2994,7 +2996,8 @@ var
   GridColumn: TVirtualTreeColumn;
 begin
   // Mark focused column as UNIX timestamp column
-  AppSettings.SessionPath := GetRegKeyTable;
+  AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
+  AppSettings.SetCurrentSection(GetRegKeyTable);
   GridColumn := DataGrid.Header.Columns[DataGrid.FocusedColumn];
   FocusedColumnName := GridColumn.Text;
   i := SelectedTableTimestampColumns.IndexOf(FocusedColumnName);
@@ -5334,7 +5337,8 @@ begin
     // Recreate recent filters list
     Filters := TStringList.Create;
     Filters.Add(Trim(SynMemoFilter.Text));
-    AppSettings.SessionPath := GetRegKeyTable+'\'+REGKEY_RECENTFILTERS;
+    AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
+    AppSettings.SetCurrentSection(GetRegKeyTable);
     // Add old filters
     for i:=1 to 20 do begin
       val := AppSettings.ReadString(asRecentFilter, IntToStr(i));
@@ -5509,10 +5513,10 @@ var
   LogIt: Boolean;
   LogItem: TDBLogItem;
 begin
-  //OldSettingsPath := AppSettings.SessionPath;
+  OldSettingsPath := AppSettings.SessionPath;
   LogItem := TDBLogItem.Create;
   LogItem.Category := Category;
-  if false then // AppSettings.ReadBool(asLogTimestamp) then
+  if AppSettings.ReadBool(asLogTimestamp) then
     LogItem.LineText := '['+FormatDateTime('hh:nn:ss.zzz', Now)+'] '+ Msg
   else
     LogItem.LineText := Msg;
@@ -5527,7 +5531,7 @@ begin
   for LogItem in PostponedLogItems do begin
 
     // Log only wanted events
-    {case LogItem.Category of
+    case LogItem.Category of
       lcError: LogIt := AppSettings.ReadBool(asLogErrors);
       lcUserFiredSQL: LogIt := AppSettings.ReadBool(asLogUserSQL);
       lcSQL: LogIt := AppSettings.ReadBool(asLogSQL);
@@ -5535,20 +5539,19 @@ begin
       lcInfo: LogIt := AppSettings.ReadBool(asLogInfos);
       lcDebug: LogIt := AppSettings.ReadBool(asLogDebug);
       else LogIt := False;
-    end;}
-    LogIt := True;
+    end;
 
     if LogIt then begin
       // Shorten very long messages
       Msg := LogItem.LineText;
       Len := Length(Msg);
-      MaxLineWidth := 0; // AppSettings.ReadInt(asLogsqlwidth);
+      MaxLineWidth := AppSettings.ReadInt(asLogsqlwidth);
       snip := (MaxLineWidth > 0) and (Len > MaxLineWidth);
       IsSQL := LogItem.Category in [lcSQL, lcUserFiredSQL];
       if snip then begin
         Msg :=
           Copy(Msg, 0, MaxLineWidth) +
-          '/* '+f_('large SQL query (%s), snipped at %s characters', [Len.ToString, MaxLineWidth.ToString]) + ' */';
+          '/* '+f_('large SQL query (%s), snipped at %s characters', [FormatByteNumber(Len), FormatNumber(MaxLineWidth)]) + ' */';
       end else if (not snip) and IsSQL then
         Msg := Msg + Delimiter;
       if not IsSQL then
@@ -5557,14 +5560,15 @@ begin
       SynMemoSQLLog.Lines.Add(Msg);
 
       // Delete first line(s) in SQL log and adjust LineNumberStart in gutter
-      {i := 0;
+      i := 0;
       while SynMemoSQLLog.Lines.Count > AppSettings.ReadInt(asLogsqlnum) do begin
         SynMemoSQLLog.Lines.Delete(0);
         Inc(i);
       end;
       // Increase first displayed number in gutter so it doesn't lie about the log entries
-      if i > 0 then
-        SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;}
+      // Lazarus Synedit has no LineNumberStart
+      //if i > 0 then
+      //  SynMemoSQLLog.Gutter.LineNumberStart := SynMemoSQLLog.Gutter.LineNumberStart + i;
 
       // Scroll to last line and repaint
       SynMemoSQLLog.CaretY := SynMemoSQLLog.Lines.Count;
@@ -5578,14 +5582,14 @@ begin
       if FLogToFile then
       try
         Sess := '';
-        //if LogItem.Connection <> nil then
-        //  Sess := LogItem.Connection.Parameters.SessionPath;
+        if LogItem.Connection <> nil then
+          Sess := LogItem.Connection.Parameters.SessionPath;
         WriteLn(FFileHandleSessionLog, Format('/* %s [%s] */ %s', [DateTimeToStr(Now), Sess, msg]));
       except
         on E:Exception do begin
           LogToFile := False;
-          //AppSettings.WriteBool(asLogToFile, False);
-          //ErrorDialog(_('Error writing to session log file.'), E.Message+CRLF+_('Filename')+': '+FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
+          AppSettings.WriteBool(asLogToFile, False);
+          ErrorDialog(_('Error writing to session log file.'), E.Message+CRLF+_('Filename')+': '+FFileNameSessionLog+CRLF+CRLF+_('Logging is disabled now.'));
         end;
       end;
     end;
@@ -5593,7 +5597,7 @@ begin
   PostponedLogItems.Clear;
 
   // Restore possibly overwritten session path
-  //AppSettings.SessionPath := OldSettingsPath;
+  AppSettings.SessionPath := OldSettingsPath;
 end;
 
 
@@ -8690,18 +8694,12 @@ var
 begin
   // Clear query history items in registry
   // Take care of MessageDialog, probably changing the current SessionPath
-  PathToDelete := ActiveConnection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
-  AppSettings.SessionPath := PathToDelete;
-  Values := AppSettings.GetValueNames;
   if MessageDialog(_('Clear query history?'), f_('%s history items will be deleted.', [FormatNumber(Values.Count)]), mtConfirmation, [mbYes, mbNo]) = mrYes then begin
     Screen.Cursor := crHourglass;
-    AppSettings.SessionPath := PathToDelete;
-    AppSettings.DeleteCurrentKey;
+    AppSettings.DeleteSection(REGKEY_QUERYHISTORY);
     RefreshHelperNode(TQueryTab.HelperNodeHistory);
     Screen.Cursor := crDefault;
   end;
-  Values.Free;
-  AppSettings.ResetPath;
 end;
 
 
@@ -9773,7 +9771,8 @@ begin
         SelectedTableColumns.Clear;
         SelectedTableKeys.Clear;
         SelectedTableForeignKeys.Clear;
-        AppSettings.SessionPath := GetRegKeyTable;
+        AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
+        AppSettings.SetCurrentSection(GetRegKeyTable);
         SelectedTableTimestampColumns.Text := AppSettings.ReadString(asTimestampColumns);
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
@@ -11202,7 +11201,8 @@ begin
       Inc(DataGridWantedRowCount, AppSettings.ReadInt(asDatagridRowsPerStep));
   end else begin
     // Save current attributes if grid gets refreshed
-    AppSettings.SessionPath := GetRegKeyTable;
+    AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
+    AppSettings.SetCurrentSection(GetRegKeyTable);
     if DataGridHiddenColumns.Count > 0 then
       AppSettings.WriteString(asHiddenColumns, DataGridHiddenColumns.DelimitedText)
     else if AppSettings.ValueExists(asHiddenColumns) then
@@ -11224,14 +11224,13 @@ begin
   end;
 
   // Auto remove registry spam if table folder is empty
-  if AppSettings.SessionPathExists(GetRegKeyTable) then begin
-    AppSettings.SessionPath := GetRegKeyTable;
-    if AppSettings.IsEmptyKey then
-      AppSettings.DeleteCurrentKey;
-  end;
+  AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
+  AppSettings.SetCurrentSection(GetRegKeyTable);
+  if AppSettings.IsEmptyKey then
+    AppSettings.DeleteSection(GetRegKeyTable);
 
   // Do nothing if table was not filtered yet
-  if not AppSettings.SessionPathExists(GetRegKeyTable) then
+  if AppSettings.GetKeyNames.IndexOf(GetRegKeyTable) = -1 then
     Exit;
 
   // Columns
@@ -11278,9 +11277,8 @@ end;
 
 function TMainForm.GetRegKeyTable: String;
 begin
-  // Return the slightly complex registry path to \Servers\CustomFolder\ActiveServer\curdb|curtable
-  Result := ActiveDbObj.Connection.Parameters.SessionPath + '\' +
-    ActiveDatabase + DELIM + ActiveDbObj.Name;
+  // Return the slightly complex ini section to table|curdb|curtable
+  Result := 'table' + DELIM + ActiveDatabase + DELIM + ActiveDbObj.Name;
 end;
 
 
@@ -11741,7 +11739,8 @@ begin
   ToggleFilterPanel(True);
   actApplyFilter.Execute;
   // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
-  AppSettings.SessionPath := GetRegKeyTable;
+  AppSettings.SessionPath := Conn.Parameters.SessionPath;
+  AppSettings.SetCurrentSection(GetRegKeyTable);
   AppSettings.WriteString(asFilter, Filter);
 end;
 
@@ -12083,29 +12082,28 @@ begin
     menuRecentFilters.Delete(i);
   comboRecentFilters.Items.Clear;
   // Enumerate recent filters from registry
-  Path := GetRegKeyTable+'\'+REGKEY_RECENTFILTERS;
-  if AppSettings.SessionPathExists(Path) then begin
-    AppSettings.SessionPath := Path;
-    rx := TRegExpr.Create;
-    rx.Expression := '\s+';
-    for i:=1 to 20 do begin
-      // Previously introduced bugs stored some other settings here, see issue #2127
-      item := TMenuItem.Create(popupFilter);
-      capt := AppSettings.ReadString(asRecentFilter, IntToStr(i));
-      if capt.IsEmpty then
-        Break;
-      capt := rx.Replace(capt, ' ', True);
-      item.Hint := capt;
-      item.Caption := StrEllipsis(capt, 50);
-      item.Tag := i;
-      item.OnClick := LoadRecentFilter;
-      menuRecentFilters.Add(item);
-      comboRecentFilters.Items.Add(capt);
-    end;
-    FreeAndNil(rx);
-    AppSettings.ResetPath;
-    menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
+  AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
+  AppSettings.SetCurrentSection(GetRegKeyTable);
+  rx := TRegExpr.Create;
+  rx.Expression := '\s+';
+  for i:=1 to 20 do begin
+    // Previously introduced bugs stored some other settings here, see issue #2127
+    item := TMenuItem.Create(popupFilter);
+    capt := AppSettings.ReadString(asRecentFilter, IntToStr(i));
+    if capt.IsEmpty then
+      Break;
+    capt := rx.Replace(capt, ' ', True);
+    item.Hint := capt;
+    item.Caption := StrEllipsis(capt, 50);
+    item.Tag := i;
+    item.OnClick := LoadRecentFilter;
+    menuRecentFilters.Add(item);
+    comboRecentFilters.Items.Add(capt);
   end;
+  FreeAndNil(rx);
+  AppSettings.ResetPath;
+  menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
+
   comboRecentFilters.Visible := comboRecentFilters.Items.Count > 0;
   lblRecentFilters.Visible := comboRecentFilters.Visible;
   SynMemoFilter.Height := pnlFilter.Height - 3;
@@ -12128,16 +12126,14 @@ begin
     key := (Sender as TMenuItem).Tag
   else
     key := (Sender as TComboBox).ItemIndex+1;
-  Path := GetRegKeyTable+'\'+REGKEY_RECENTFILTERS;
-  if AppSettings.SessionPathExists(Path) then begin
-    AppSettings.SessionPath := Path;
-    //SynMemoFilter.UndoList.AddGroupBreak;
-    SynMemoFilter.BeginUpdate;
-    SynMemoFilter.SelectAll;
-    SynMemoFilter.SelText := AppSettings.ReadString(asRecentFilter, IntToStr(key));
-    SynMemoFilter.EndUpdate;
-    AppSettings.ResetPath;
-  end;
+  AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
+  AppSettings.SetCurrentSection(GetRegKeyTable);
+  //SynMemoFilter.UndoList.AddGroupBreak;
+  SynMemoFilter.BeginUpdate;
+  SynMemoFilter.SelectAll;
+  SynMemoFilter.SelText := AppSettings.ReadString(asRecentFilter, IntToStr(key));
+  SynMemoFilter.EndUpdate;
+  AppSettings.ResetPath;
 end;
 
 
@@ -14841,7 +14837,7 @@ var
 begin
   Screen.Cursor := crHourGlass;
   if (FHasDonatedDatabaseCheck = nbUnset) or (ForceCheck) then begin
-    Email := ''; //AppSettings.ReadString(asDonatedEmail);
+    Email := AppSettings.ReadString(asDonatedEmail);
     if Email = '' then begin
       // Nothing to check, we know this is not valid
       FHasDonatedDatabaseCheck := nbFalse;
@@ -15153,7 +15149,7 @@ begin
   if (MemoFilename <> '') and (not Memo.Modified) then begin
     Result := '';
   end else begin
-    Result := IncludeTrailingBackslash(AppSettings.DirnameBackups)
+    Result := IncludeTrailingPathDelimiter(AppSettings.DirnameBackups)
       + ValidFilename(Format(BACKUP_FILEPATTERN, [Uid]))
       ;
   end;
@@ -15512,7 +15508,8 @@ var
   Item: TQueryHistoryItem;
 begin
   inherited Create(TQueryHistoryItemComparer.Create, True);
-  AppSettings.SessionPath := SessionPath + '\' + REGKEY_QUERYHISTORY;
+  AppSettings.SessionPath := SessionPath;
+  AppSettings.SetCurrentSection(REGKEY_QUERYHISTORY);
   ValueNames := AppSettings.GetValueNames;
   for i:=0 to ValueNames.Count-1 do begin
     j := StrToIntDef(ValueNames[i], -1);

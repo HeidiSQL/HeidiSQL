@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character, DateUtils, laz.VirtualTrees, SynEdit, EditBtn, ComCtrls, SynCompletion,
+  Character, DateUtils, laz.VirtualTrees, SynEdit, EditBtn, ComCtrls, SynCompletion, IniFiles,
   dbconnection, dbstructures;
 
 type
@@ -180,8 +180,14 @@ type
     procedure TrySetFocus;
   end;
 
+  TSynEditHelper = class helper for TSynEdit
+    public
+      function GetTextLen: Integer;
+  end;
+
   //TSimpleKeyValuePairs = TDictionary<String, String>;
 
+  TStringInifileDict = TDictionary<String, TIniFile>;
   TAppSettingDataType = (adInt, adBool, adString);
   TAppSettingIndex = (asHiddenColumns, asFilter, asSort, asDisplayedColumnsSorted, asLastSessions,
     asLastActiveSession, asAutoReconnect, asRestoreLastUsedDB, asLastUsedDB, asTreeBackground, asIgnoreDatabasePattern, asLogFileDdl, asLogFileDml, asLogFilePath,
@@ -259,15 +265,19 @@ type
     private
       FReads, FWrites: Integer;
       FBasePath: String;
+      FSessionsBasePath: String;
       FSessionPath: String;
       FStoredPath: String;
-      //FRegistry: TRegistry;
+      FIniFiles: TStringInifileDict;
+      FCurrentInifile: TIniFile;
+      FCurrentInifileSection: String;
       FPortableMode: Boolean;
       FPortableModeReadOnly: Boolean;
       FRestoreTabsInitValue: Boolean;
       FSettingsFile: String;
       FSettings: Array[TAppSettingIndex] of TAppSetting;
       const FPortableLockFileBase: String='portable.lock';
+      const FMainSection: String='main';
       procedure InitSetting(Index: TAppSettingIndex; Name: String;
         DefaultInt: Integer=0; DefaultBool: Boolean=False; DefaultString: String='';
         Session: Boolean=False);
@@ -278,6 +288,8 @@ type
         DI: Integer; DB: Boolean; DS: String);
       procedure Write(Index: TAppSettingIndex; FormatName: String;
         DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
+      function EscapeLinebreaks(S: String): String;
+      function UnescapeLinebreaks(S: String): String;
     public
       constructor Create;
       destructor Destroy; override;
@@ -301,7 +313,7 @@ type
       procedure GetSessionPaths(ParentPath: String; var Sessions: TStringList);
       function DeleteValue(Index: TAppSettingIndex; FormatName: String=''): Boolean; overload;
       function DeleteValue(ValueName: String): Boolean; overload;
-      procedure DeleteCurrentKey;
+      procedure DeleteSection(Section: String);
       procedure MoveCurrentKey(TargetPath: String);
       function ValueExists(Index: TAppSettingIndex): Boolean;
       function SessionPathExists(SessionPath: String): Boolean;
@@ -324,6 +336,7 @@ type
       function DirnameHighlighters: String;
       // "Static" options, initialized in OnCreate only. For settings which need a restart to take effect.
       property RestoreTabsInitValue: Boolean read FRestoreTabsInitValue;
+      procedure SetCurrentSection(Section: String='');
   end;
 
 {$I const.inc}
@@ -2308,7 +2321,7 @@ var
   end;
 begin
   // Remember current path and restore it later, so the caller does not try to read from the wrong path after this dialog
-  //AppSettings.StorePath;
+  AppSettings.StorePath;
 
   Dialog := TTaskDialog.Create(nil);
   Dialog.Flags := [tfEnableHyperlinks, tfAllowDialogCancellation];
@@ -2366,7 +2379,7 @@ begin
   if KeepAskingSetting <> asUnused then begin
     if (not (mbNo in Buttons)) and (Buttons <> [mbOK]) then
       raise Exception.CreateFmt(_('Missing "No" button in %() call'), ['MessageDialog']);
-    KeepAskingValue := True; //AppSettings.ReadBool(KeepAskingSetting);
+    KeepAskingValue := AppSettings.ReadBool(KeepAskingSetting);
     Dialog.Flags := Dialog.Flags + [tfVerificationFlagChecked];
     if Buttons = [mbOK] then
       Dialog.VerificationText := _('Keep showing this dialog.')
@@ -2378,14 +2391,14 @@ begin
   if KeepAskingValue then begin
     Dialog.Execute;
     Result := Dialog.ModalResult;
-    //if (KeepAskingSetting <> asUnused) and (not (tfVerificationFlagChecked in Dialog.Flags)) then
-    //  AppSettings.WriteBool(KeepAskingSetting, False);
+    if (KeepAskingSetting <> asUnused) and (not (tfVerificationFlagChecked in Dialog.Flags)) then
+      AppSettings.WriteBool(KeepAskingSetting, False);
   end else
     Result := mrNo;
 
   Dialog.Free;
 
-  //AppSettings.RestorePath;
+  AppSettings.RestorePath;
 end;
 
 
@@ -3543,6 +3556,12 @@ begin
 end;
 
 
+function TSynEditHelper.GetTextLen: Integer;
+begin
+  Result := Self.Text.Length;
+end;
+
+
 { TAppSettings }
 
 constructor TAppSettings.Create;
@@ -3554,7 +3573,9 @@ var
   NewFileHandle: THandle;
 begin
   inherited;
-  //FRegistry := TRegistry.Create;
+  FIniFiles := TStringInifileDict.Create;
+  FCurrentInifile := nil;
+  FCurrentInifileSection := '';
   FReads := 0;
   FWrites := 0;
 
@@ -3584,7 +3605,7 @@ begin
 
   if FPortableMode then begin
     // Create file if only the lock file exists
-    if not FileExists(FSettingsFile) then begin
+    {if not FileExists(FSettingsFile) then begin
       NewFileHandle := FileCreate(FSettingsFile);
       FileClose(NewFileHandle);
     end;
@@ -3594,9 +3615,10 @@ begin
     except
       on E:Exception do
         MessageDlg(E.Message, mtError, [mbOK], 0, mbOK);
-    end;
+    end;}
   end else begin
-    FBasePath := '\Software\' + APPNAME + '\';
+    FBasePath := DirnameUserAppData;
+    FSessionsBasePath := DirnameUserAppData + REGKEY_SESSIONS + DirectorySeparator;
     FSettingsFile := '';
   end;
 
@@ -3892,7 +3914,7 @@ begin
   InitSetting(asListColPositions,                 'ColPositions_%s',                       0, False, '');
   InitSetting(asListColSort,                      'ColSort_%s',                            0, False, '');
   InitSetting(asSessionFolder,                    'Folder',                                0, False, '', True);
-  InitSetting(asRecentFilter,                     '%s',                                    0, False, '', True);
+  InitSetting(asRecentFilter,                     'RecentFilters.%s',                      0, False, '', True);
   InitSetting(asTimestampColumns,                 'TimestampColumns',                      0, False, '', True);
   InitSetting(asDateTimeEditorCursorPos,          'DateTimeEditor_CursorPos_Type%s',       0);
   InitSetting(asAppLanguage,                      'Language',                              0, False, '');
@@ -3934,6 +3956,8 @@ var
   ProcRuns: Boolean;
   SnapShot: THandle;
   rx: TRegExpr;
+  IniName: String;
+  Inifile: TIniFile;
 begin
   // Export settings into textfile in portable mode.
   if FPortableMode then try
@@ -3973,7 +3997,11 @@ begin
     on E:Exception do // Prefer ShowMessage, see http://www.heidisql.com/forum.php?t=14001
       ShowMessage('Error: '+E.Message);
   end;
-  //FRegistry.Free;
+  for Inifile in FIniFiles.Values do begin
+    Inifile.UpdateFile;
+    Inifile.Free;
+  end;
+  FIniFiles.Free;
   inherited;
 end;
 
@@ -4020,21 +4048,33 @@ end;
 
 procedure TAppSettings.PrepareRegistry;
 var
-  Folder: String;
+  Folder, IniKey, IniPath: String;
+  FileSet: Boolean;
 begin
-  // Open the wanted registry path
-  Folder := FBasePath;
-  if FSessionPath <> '' then
-    Folder := Folder + REGKEY_SESSIONS + '\' + FSessionPath;
-  {if '\'+FRegistry.CurrentPath <> Folder then try
-    FRegistry.OpenKey(Folder, True);
-  except
-    on E:Exception do begin
-      // Recreate exception with a more useful message
-      E.Message := E.Message + CRLF + CRLF + 'While trying to open registry key "'+Folder+'"';
-      raise;
+  // Open the wanted ini file
+  if FSessionPath.IsEmpty then begin
+    IniKey := 'globals';
+    IniPath := FBasePath + IniKey + '.ini';
+  end
+  else begin
+    // Find and open session ini file
+    IniKey := FSessionPath;
+    IniPath := FSessionsBasePath + FSessionPath + '.ini';
+  end;
+
+  if (not Assigned(FCurrentInifile)) or (FCurrentInifile.FileName <> IniPath) then begin
+    FileSet := False;
+    if FIniFiles.ContainsKey(IniKey) then
+      FileSet := FIniFiles.TryGetValue(IniKey, FCurrentInifile);
+    if not FileSet then begin
+      FCurrentInifile := TIniFile.Create(IniPath, [{ifoEscapeLineFeeds}]);
+      FIniFiles.AddOrSetValue(IniKey, FCurrentInifile);
     end;
-  end;}
+    FCurrentInifileSection := FMainSection;
+
+    // probably creating object..
+    //mainform.LogSQL('Switched to '+FCurrentInifile.FileName+' ['+FCurrentInifileSection+']');
+  end;
 end;
 
 
@@ -4042,7 +4082,7 @@ function TAppSettings.GetValueNames: TStringList;
 begin
   PrepareRegistry;
   Result := TStringList.Create;
-  //FRegistry.GetValueNames(Result);
+  FCurrentInifile.ReadSection(FCurrentInifileSection, Result);
 end;
 
 
@@ -4054,9 +4094,10 @@ end;
 
 function TAppSettings.GetKeyNames: TStringList;
 begin
+  // needed for finding table|db|tablename sections
   PrepareRegistry;
   Result := TStringList.Create;
-  //FRegistry.GetKeyNames(Result);
+  FCurrentInifile.ReadSections(Result);
 end;
 
 
@@ -4068,18 +4109,18 @@ begin
   ValueName := GetValueName(Index);
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
-  Result := True; //FRegistry.DeleteValue(ValueName);
+  FCurrentInifile.DeleteKey(FCurrentInifileSection, ValueName);
   FSettings[Index].Synced := False;
 end;
 
 
 function TAppSettings.DeleteValue(ValueName: String): Boolean;
 begin
-  //Result := FRegistry.DeleteValue(ValueName);
+  FCurrentInifile.DeleteKey(FCurrentInifileSection, ValueName);
 end;
 
 
-procedure TAppSettings.DeleteCurrentKey;
+procedure TAppSettings.DeleteSection(Section: String);
 var
   KeyPath: String;
 begin
@@ -4089,9 +4130,8 @@ begin
   if FSessionPath.IsEmpty then
      //raise Exception.CreateFmt(_('No path set, won''t delete root key %s'), [FRegistry.CurrentPath])
   else begin
-    KeyPath := REGKEY_SESSIONS + '\' + FSessionPath;
-    ResetPath;
-    //FRegistry.DeleteKey(KeyPath);
+    FCurrentInifile.EraseSection(Section);
+    FCurrentInifileSection := FMainSection;
   end;
 end;
 
@@ -4114,16 +4154,19 @@ end;
 function TAppSettings.ValueExists(Index: TAppSettingIndex): Boolean;
 var
   ValueName: String;
+  ExistingValues: TStringList;
 begin
   PrepareRegistry;
   ValueName := GetValueName(Index);
-  Result := True; //FRegistry.ValueExists(ValueName);
+  ExistingValues := GetValueNames;
+  Result := ExistingValues.IndexOf(ValueName) > -1;
+  ExistingValues.Free;
 end;
 
 
 function TAppSettings.SessionPathExists(SessionPath: String): Boolean;
 begin
-  Result := True; //FRegistry.KeyExists(FBasePath + REGKEY_SESSIONS + '\' + SessionPath);
+  Result := FileExists(FSessionsBasePath + SessionPath + '.ini');
 end;
 
 
@@ -4132,7 +4175,7 @@ var
   TestList: TStringList;
 begin
   TestList := GetValueNames;
-  Result := {(not FRegistry.HasSubKeys) and} (TestList.Count = 0);
+  Result := TestList.Count = 0;
   TestList.Free;
 end;
 
@@ -4174,8 +4217,8 @@ begin
   ValueName := FSettings[Index].Name;
   if FormatName <> '' then
     ValueName := Format(ValueName, [FormatName]);
-  //if FSettings[Index].Session and FSessionPath.IsEmpty then
-  //  raise Exception.Create(_('Attempt to read session setting without session path'));
+  if FSettings[Index].Session and FSessionPath.IsEmpty then
+    raise Exception.Create(_('Attempt to read session setting without session path'));
   if (not FSettings[Index].Session) and (not FSessionPath.IsEmpty) then
     SessionPath := ''
   else
@@ -4189,12 +4232,12 @@ begin
     end;
   end else if true {FRegistry.ValueExists(ValueName)} then begin
     Inc(FReads);
-    {case DataType of
-      adInt: I := FRegistry.ReadInteger(ValueName);
-      adBool: B := FRegistry.ReadBool(ValueName);
-      adString: S := FRegistry.ReadString(ValueName);
+    case DataType of
+      adInt: I := FCurrentInifile.ReadInteger(FCurrentInifileSection, ValueName, I);
+      adBool: B := FCurrentInifile.ReadBool(FCurrentInifileSection, ValueName, B);
+      adString: S := UnescapeLinebreaks(FCurrentInifile.ReadString(FCurrentInifileSection, ValueName, S));
       else raise Exception.CreateFmt(_(SUnsupportedSettingsDatatype), [FSettings[Index].Name]);
-    end;}
+    end;
   end;
   if (FormatName = '') and (FSessionPath = '') then begin
     FSettings[Index].Synced := True;
@@ -4216,9 +4259,9 @@ end;
 
 function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TControl; FormatName: String=''; Default: Integer=0): Integer;
 begin
-  // Todo: take a forms DesignTimePPI into account
+  // take a forms DesignTimePPI into account
   Result := ReadInt(Index, FormatName, Default);
-  //Result := Round(Result * AControl.ScaleFactor);
+  Result := AControl.Scale96ToForm(Result);
 end;
 
 
@@ -4243,7 +4286,7 @@ end;
 function TAppSettings.ReadString(ValueName: String): String;
 begin
   PrepareRegistry;
-  Result := ''; //FRegistry.ReadString(ValueName);
+  Result := UnescapeLinebreaks(FCurrentInifile.ReadString(FCurrentInifileSection, ValueName, ''));
 end;
 
 
@@ -4267,7 +4310,7 @@ begin
     adInt: begin
       SameAsCurrent := FSettings[Index].Synced and (I = FSettings[Index].CurrentInt);
       if not SameAsCurrent then begin
-        //FRegistry.WriteInteger(ValueName, I);
+        FCurrentInifile.WriteInteger(FCurrentInifileSection, ValueName, I);
         Inc(FWrites);
       end;
       FSettings[Index].CurrentInt := I;
@@ -4275,7 +4318,7 @@ begin
     adBool:  begin
       SameAsCurrent := FSettings[Index].Synced and (B = FSettings[Index].CurrentBool);
       if not SameAsCurrent then begin
-        //FRegistry.WriteBool(ValueName, B);
+        FCurrentInifile.WriteBool(FCurrentInifileSection, ValueName, B);
         Inc(FWrites);
       end;
       FSettings[Index].CurrentBool := B;
@@ -4283,7 +4326,7 @@ begin
     adString: begin
       SameAsCurrent := FSettings[Index].Synced and (S = FSettings[Index].CurrentString);
       if not SameAsCurrent then begin
-        //FRegistry.WriteString(ValueName, S);
+        FCurrentInifile.WriteString(FCurrentInifileSection, ValueName, EscapeLinebreaks(S));
         Inc(FWrites);
       end;
       FSettings[Index].CurrentString := S;
@@ -4295,6 +4338,17 @@ begin
     FSettings[Index].Synced := True;
 end;
 
+function TAppSettings.EscapeLinebreaks(S: String): String;
+begin
+  Result := StringReplace(S, #13, '\r', [rfReplaceAll]);
+  Result := StringReplace(Result, #10, '\n', [rfReplaceAll]);
+end;
+
+function TAppSettings.UnescapeLinebreaks(S: String): String;
+begin
+  Result := StringReplace(S, '\r', #13, [rfReplaceAll]);
+  Result := StringReplace(Result, '\n', #10, [rfReplaceAll]);
+end;
 
 procedure TAppSettings.WriteInt(Index: TAppSettingIndex; Value: Integer; FormatName: String='');
 begin
@@ -4304,7 +4358,7 @@ end;
 
 procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
 begin
-  Value := Round(Value {/ AControl.ScaleFactor});
+  Value := AControl.ScaleFormTo96(Value);
   WriteInt(Index, Value, FormatName);
 end;
 
@@ -4324,7 +4378,7 @@ end;
 procedure TAppSettings.WriteString(ValueName, Value: String);
 begin
   PrepareRegistry;
-  //FRegistry.WriteString(ValueName, Value);
+  FCurrentInifile.WriteString(FCurrentInifileSection, ValueName, EscapeLinebreaks(Value));
 end;
 
 
@@ -4334,22 +4388,18 @@ var
   CurPath: String;
 begin
   ResetPath;
-  CurPath := FBasePath + REGKEY_SESSIONS + '\' + ParentPath;
-  //FRegistry.OpenKey(CurPath, False);
   Result := TStringList.Create;
-  {FRegistry.GetKeyNames(Result);
-  for i:=Result.Count-1 downto 0 do begin
-    // Issue #1111 describes a recursive endless loop, which may be caused by an empty key name here?
-    if Result[i].IsEmpty then
-      Continue;
-    // ... may also be caused by some non accessible key. Check result of .OpenKey before looking for "Folder" value:
-    if FRegistry.OpenKey(CurPath+'\'+Result[i], False) then begin
-      if FRegistry.ValueExists(GetValueName(asSessionFolder)) then begin
-        Folders.Add(Result[i]);
-        Result.Delete(i);
-      end;
-    end;
-  end;}
+  FindAllFiles(Result, FSessionsBasePath + ParentPath, '*.ini', False);
+  FindAllDirectories(Folders, FSessionsBasePath + ParentPath, False);
+  // Return without path, just the file names
+  for i:=0 to Result.Count-1 do begin
+    Result[i] := ExtractFileName(Result[i]);
+    Result[i] := ChangeFileExt(Result[i], '');
+  end;
+  for i:=0 to Folders.Count-1 do begin
+    Folders[i] := ExtractFileName(Folders[i]);
+    //showmessage(Folders[i]);
+  end;
 end;
 
 
@@ -4489,6 +4539,7 @@ function TAppSettings.DirnameUserAppData: String;
 begin
   // User folder for HeidiSQL's data (<user name>\Application Data)
   Result := GetAppConfigDir(False);
+  Result := IncludeTrailingPathDelimiter(Result);
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4509,7 +4560,7 @@ begin
   Result := ReadString(asCustomSnippetsDirectory);
   if Result.IsEmpty then
     Result := GetDefaultString(asCustomSnippetsDirectory);
-  Result := IncludeTrailingBackslash(Result);
+  Result := IncludeTrailingPathDelimiter(Result);
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4542,6 +4593,14 @@ begin
   end;
 end;
 
+
+procedure TAppSettings.SetCurrentSection(Section: String='');
+begin
+  if Section.IsEmpty then
+    FCurrentInifileSection := FMainSection
+  else
+    FCurrentInifileSection := Section;
+end;
 
 
 { TUTF8NoBOMEncoding }
