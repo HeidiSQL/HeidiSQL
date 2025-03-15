@@ -2637,8 +2637,6 @@ begin
       end;
       // mysql_character_set_name() reports utf8* if in fact we're on some latin* charset on v5.1 servers
       // See https://www.heidisql.com/forum.php?t=39278
-      FIsUnicode := CharacterSet.StartsWith('utf', True) and (ServerVersionInt >= 50500);
-      if not IsUnicode then
       try
         CharacterSet := 'utf8mb4';
       except
