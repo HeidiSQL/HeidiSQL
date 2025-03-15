@@ -14,6 +14,7 @@ object MainForm: TMainForm
   OnMouseWheel = FormMouseWheel
   OnShow = FormShow
   Position = poMainFormCenter
+  LCLVersion = '3.8.0.0'
   object StatusBar: TStatusBar
     Left = 0
     Height = 29
@@ -73,7 +74,7 @@ object MainForm: TMainForm
     end
     object tlbSep1: TToolButton
       Left = 74
-      Height = 28
+      Height = 8
       Top = 2
       Caption = 'tlbSep1'
       ImageIndex = 2
@@ -104,7 +105,7 @@ object MainForm: TMainForm
     end
     object tlbSep2: TToolButton
       Left = 198
-      Height = 28
+      Height = 8
       Top = 2
       Caption = 'tlbSep2'
       ImageIndex = 3
@@ -138,7 +139,7 @@ object MainForm: TMainForm
     end
     object tlbSep6: TToolButton
       Left = 337
-      Height = 28
+      Height = 8
       Top = 2
       Caption = 'tlbSep6'
       ImageIndex = 97
@@ -249,7 +250,7 @@ object MainForm: TMainForm
     end
     object ToolButton2: TToolButton
       Left = 940
-      Height = 28
+      Height = 5
       Top = 2
       Caption = 'ToolButton2'
       Style = tbsDivider
@@ -914,7 +915,7 @@ object MainForm: TMainForm
           item
             Position = 0
             Text = 'Name'
-            Width = 145
+            Width = 149
           end        
           item
             Alignment = taRightJustify
@@ -1164,7 +1165,7 @@ object MainForm: TMainForm
                   item
                     Position = 0
                     Text = 'Variable'
-                    Width = 248
+                    Width = 252
                   end                
                   item
                     Position = 1
@@ -1220,7 +1221,7 @@ object MainForm: TMainForm
                   item
                     Position = 0
                     Text = 'Variable'
-                    Width = 248
+                    Width = 252
                   end                
                   item
                     Alignment = taRightJustify
@@ -1822,7 +1823,7 @@ object MainForm: TMainForm
                   item
                     Position = 7
                     Text = 'Info'
-                    Width = 244
+                    Width = 248
                   end>
                 Header.Height = 20
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
@@ -1892,7 +1893,7 @@ object MainForm: TMainForm
                   item
                     Position = 4
                     Text = 'Percentage'
-                    Width = 340
+                    Width = 344
                   end>
                 Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
                 Header.SortColumn = 1
@@ -2813,7 +2814,7 @@ object MainForm: TMainForm
                   item
                     Position = 0
                     Text = 'Main column'
-                    Width = 88
+                    Width = 113
                   end                
                   item
                     Position = 1
@@ -19993,7 +19994,7 @@ object MainForm: TMainForm
   end
   object SynCompletionProposal: TSynCompletion
     OnExecute = SynCompletionProposalExecute
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight

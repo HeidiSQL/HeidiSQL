@@ -1,0 +1,1181 @@
+object connform: Tconnform
+  Left = 288
+  Height = 632
+  Top = 129
+  Width = 936
+  BorderIcons = [biSystemMenu, biHelp]
+  Caption = 'Session manager'
+  ClientHeight = 632
+  ClientWidth = 936
+  Color = clBtnFace
+  Constraints.MinHeight = 338
+  Constraints.MinWidth = 550
+  DesignTimePPI = 120
+  OnClose = FormClose
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnResize = FormResize
+  OnShow = FormShow
+  ShowHint = True
+  object splitterMain: TSplitter
+    Cursor = crSizeWE
+    Left = 250
+    Height = 584
+    Top = 0
+    Width = 10
+    OnMoved = splitterMainMoved
+  end
+  object PageControlDetails: TPageControl
+    Left = 260
+    Height = 584
+    Top = 0
+    Width = 676
+    ActivePage = tabStart
+    Align = alClient
+    Images = MainForm.ImageListIcons8
+    TabIndex = 0
+    TabOrder = 1
+    OnChange = PageControlDetailsChange
+    object tabStart: TTabSheet
+      Caption = 'Start'
+      ClientHeight = 551
+      ClientWidth = 668
+      ImageIndex = 112
+      object lblHelp: TLabel
+        Left = 0
+        Height = 201
+        Top = 0
+        Width = 668
+        Align = alTop
+        AutoSize = False
+        Caption = 'lblHelp'
+        WordWrap = True
+      end
+      object btnImportSettings: TSpeedButton
+        Left = 12
+        Height = 31
+        Top = 230
+        Width = 617
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Import settings ...'
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 101
+        OnClick = btnImportSettingsClick
+      end
+    end
+    object tabSettings: TTabSheet
+      Caption = 'Settings'
+      ClientHeight = 551
+      ClientWidth = 668
+      ImageIndex = 39
+      object lblPort: TLabel
+        Left = 4
+        Height = 20
+        Top = 249
+        Width = 29
+        Caption = 'Port:'
+        FocusControl = editPort
+      end
+      object lblPassword: TLabel
+        Left = 4
+        Height = 20
+        Top = 218
+        Width = 64
+        Caption = 'Password:'
+        FocusControl = editPassword
+      end
+      object lblHost: TLabel
+        Left = 4
+        Height = 20
+        Top = 95
+        Width = 97
+        Caption = 'Hostname / IP:'
+        FocusControl = editHost
+      end
+      object lblUsername: TLabel
+        Left = 4
+        Height = 20
+        Top = 186
+        Width = 32
+        Caption = 'User:'
+        FocusControl = editUsername
+      end
+      object lblNetworkType: TLabel
+        Left = 4
+        Height = 20
+        Top = 15
+        Width = 92
+        Caption = 'Network type:'
+      end
+      object lblDatabase: TLabel
+        Left = 4
+        Height = 20
+        Top = 309
+        Width = 72
+        Caption = 'Databases:'
+      end
+      object lblComment: TLabel
+        Left = 4
+        Height = 20
+        Top = 342
+        Width = 68
+        Caption = 'Comment:'
+      end
+      object lblLibrary: TLabel
+        Left = 4
+        Height = 20
+        Top = 49
+        Width = 48
+        Caption = 'Library:'
+      end
+      object chkCompressed: TCheckBox
+        Left = 238
+        Height = 24
+        Top = 276
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Compressed client/server protocol'
+        TabOrder = 9
+        OnClick = Modification
+      end
+      object editPort: TEdit
+        Left = 238
+        Height = 28
+        Top = 245
+        Width = 71
+        TabOrder = 7
+        Text = '0'
+        OnChange = Modification
+      end
+      object updownPort: TUpDown
+        Left = 309
+        Height = 28
+        Top = 245
+        Width = 20
+        Associate = editPort
+        Max = -1
+        Min = 0
+        Position = 0
+        TabOrder = 8
+        Thousands = False
+        Wrap = True
+      end
+      object editPassword: TEdit
+        Left = 238
+        Height = 28
+        Top = 214
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        EchoMode = emPassword
+        PasswordChar = '*'
+        TabOrder = 6
+        OnChange = Modification
+      end
+      object editUsername: TEditButton
+        Left = 238
+        Height = 28
+        Top = 182
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 75
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = editUsernameRightButtonClick
+        OnChange = Modification
+        OnExit = editTrim
+        PasswordChar = #0
+        TabOrder = 5
+      end
+      object editHost: TEditButton
+        Left = 238
+        Height = 28
+        Top = 91
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 75
+        MaxLength = 0
+        NumGlyphs = 1
+        OnChange = editHostChange
+        OnDblClick = editHostDblClick
+        OnExit = editTrim
+        PasswordChar = #0
+        TabOrder = 2
+      end
+      object comboNetType: TComboBoxEx
+        Left = 238
+        Height = 26
+        Top = 10
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        DropDownCount = 12
+        Images = MainForm.ImageListIcons8
+        ItemHeight = 20
+        ItemsEx = <>
+        OnChange = comboNetTypeChange
+        Style = csExDropDownList
+        TabOrder = 0
+      end
+      object chkLoginPrompt: TCheckBox
+        Left = 238
+        Height = 24
+        Top = 125
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Prompt for credentials'
+        TabOrder = 3
+        OnClick = chkLoginPromptClick
+      end
+      object chkWindowsAuth: TCheckBox
+        Left = 238
+        Height = 24
+        Top = 154
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Use Windows authentication'
+        Enabled = False
+        TabOrder = 4
+        OnClick = chkLoginPromptClick
+      end
+      object memoComment: TMemo
+        Left = 238
+        Height = 197
+        Top = 339
+        Width = 418
+        Anchors = [akTop, akLeft, akRight, akBottom]
+        ScrollBars = ssVertical
+        TabOrder = 11
+        OnChange = Modification
+      end
+      object editDatabases: TEditButton
+        Left = 238
+        Height = 28
+        Top = 305
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 75
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = editDatabasesRightButtonClick
+        OnChange = Modification
+        PasswordChar = #0
+        TabOrder = 10
+        TextHint = 'Separated by semicolon'
+      end
+      object comboLibrary: TComboBox
+        Left = 238
+        Height = 28
+        Top = 45
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ItemHeight = 20
+        Style = csDropDownList
+        TabOrder = 1
+        OnChange = Modification
+      end
+    end
+    object tabSSHtunnel: TTabSheet
+      Caption = 'SSH tunnel'
+      ClientHeight = 551
+      ClientWidth = 668
+      ImageIndex = 147
+      object lblSSHLocalPort: TLabel
+        Left = 4
+        Height = 20
+        Top = 252
+        Width = 70
+        Caption = 'Local port:'
+        FocusControl = editSSHlocalport
+      end
+      object lblSSHUser: TLabel
+        Left = 4
+        Height = 20
+        Top = 118
+        Width = 69
+        Caption = 'Username:'
+        FocusControl = editSSHUser
+      end
+      object lblSSHPassword: TLabel
+        Left = 4
+        Height = 20
+        Top = 151
+        Width = 64
+        Caption = 'Password:'
+        FocusControl = editSSHPassword
+      end
+      object lblSSHExe: TLabel
+        Left = 4
+        Height = 20
+        Top = 50
+        Width = 106
+        Caption = 'SSH executable:'
+      end
+      object lblSSHhost: TLabel
+        Left = 4
+        Height = 20
+        Top = 84
+        Width = 108
+        Caption = 'SSH host + port:'
+        FocusControl = editSSHhost
+      end
+      object lblSSHkeyfile: TLabel
+        Left = 4
+        Height = 20
+        Top = 219
+        Width = 99
+        Caption = 'Private key file:'
+        FocusControl = editSSHPrivateKey
+      end
+      object lblSSHTimeout: TLabel
+        Left = 4
+        Height = 20
+        Top = 185
+        Width = 86
+        Caption = 'SSH timeout:'
+      end
+      object editSSHlocalport: TEdit
+        Left = 238
+        Height = 28
+        Top = 249
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        NumbersOnly = True
+        TabOrder = 9
+        Text = 'editSSHlocalport'
+        OnChange = Modification
+      end
+      object editSSHUser: TEdit
+        Left = 238
+        Height = 28
+        Top = 114
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        TabOrder = 4
+        Text = 'editSSHUser'
+        TextHint = 'Your secure shell username'
+        OnChange = Modification
+        OnExit = editTrim
+      end
+      object editSSHPassword: TEdit
+        Left = 238
+        Height = 28
+        Top = 148
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        EchoMode = emPassword
+        PasswordChar = '*'
+        TabOrder = 5
+        Text = 'editSSHPassword'
+        TextHint = 'Your secure shell password'
+        OnChange = Modification
+      end
+      object editSSHhost: TEdit
+        Left = 238
+        Height = 28
+        Top = 80
+        Width = 320
+        Anchors = [akTop, akLeft, akRight]
+        TabOrder = 2
+        Text = 'editSSHhost'
+        OnChange = Modification
+        OnExit = editTrim
+      end
+      object editSSHport: TEdit
+        Left = 564
+        Height = 28
+        Top = 80
+        Width = 92
+        Anchors = [akTop, akRight]
+        NumbersOnly = True
+        TabOrder = 3
+        Text = 'editSSHport'
+        OnChange = Modification
+      end
+      object editSSHPrivateKey: TEditButton
+        Left = 238
+        Height = 28
+        Top = 215
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = PickFile
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnExit = editTrim
+        PasswordChar = #0
+        TabOrder = 8
+        Text = 'editSSHPrivateKey'
+        TextHint = 'Private key / identify file'
+      end
+      object editSSHTimeout: TEdit
+        Left = 238
+        Height = 28
+        Top = 181
+        Width = 75
+        TabOrder = 6
+        Text = '1'
+        OnChange = Modification
+      end
+      object updownSSHTimeout: TUpDown
+        Left = 313
+        Height = 28
+        Top = 181
+        Width = 21
+        Associate = editSSHTimeout
+        Min = 1
+        Position = 1
+        TabOrder = 7
+        Wrap = True
+      end
+      object comboSSHExe: TComboBox
+        Left = 238
+        Height = 28
+        Top = 45
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ItemHeight = 20
+        TabOrder = 1
+        Text = 'comboSSHExe'
+        OnChange = Modification
+      end
+      object chkSSHActive: TCheckBox
+        Left = 238
+        Height = 24
+        Top = 16
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Use SSH tunnel'
+        TabOrder = 0
+        OnClick = Modification
+      end
+    end
+    object tabAdvanced: TTabSheet
+      Caption = 'Advanced'
+      ClientHeight = 551
+      ClientWidth = 668
+      ImageIndex = 98
+      object lblStartupScript: TLabel
+        Left = 4
+        Height = 20
+        Top = 15
+        Width = 91
+        Caption = 'Startup script:'
+        FocusControl = editStartupScript
+      end
+      object lblQueryTimeout: TLabel
+        Left = 4
+        Height = 20
+        Top = 49
+        Width = 98
+        Caption = 'Query timeout:'
+      end
+      object lblKeepAlive: TLabel
+        Left = 4
+        Height = 20
+        Top = 82
+        Width = 141
+        Caption = 'Ping every X seconds:'
+      end
+      object lblBackgroundColor: TLabel
+        Left = 4
+        Height = 20
+        Top = 202
+        Width = 120
+        Caption = 'Background color:'
+      end
+      object lblIgnoreDatabasePattern: TLabel
+        Left = 4
+        Height = 20
+        Top = 238
+        Width = 152
+        Caption = 'Hide database pattern:'
+      end
+      object lblLogFile: TLabel
+        Left = 4
+        Height = 20
+        Top = 286
+        Width = 123
+        Caption = 'Log queries to file:'
+      end
+      object chkLocalTimeZone: TCheckBox
+        Left = 238
+        Height = 24
+        Hint = 'Use your client time zone in date/time SQL functions, e.g. NOW(), for MySQL 4.1.3+'
+        Top = 112
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Use own client time zone'
+        TabOrder = 5
+        OnClick = Modification
+      end
+      object chkCleartextPluginEnabled: TCheckBox
+        Left = 238
+        Height = 24
+        Hint = 'Send your password to the server in cleartext, for MySQL 5.5.47+'
+        Top = 170
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Enable cleartext authentication'
+        TabOrder = 7
+        OnClick = Modification
+      end
+      object editStartupScript: TEditButton
+        Left = 238
+        Height = 28
+        Top = 11
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = PickFile
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnExit = editTrim
+        PasswordChar = #0
+        TabOrder = 0
+      end
+      object chkFullTableStatus: TCheckBox
+        Left = 238
+        Height = 24
+        Hint = 'Disable to speed up internal queries on databases with many tables'
+        Top = 141
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Get full table status'
+        TabOrder = 6
+        OnClick = Modification
+      end
+      object editQueryTimeout: TEdit
+        Left = 238
+        Height = 28
+        Top = 45
+        Width = 112
+        NumbersOnly = True
+        TabOrder = 1
+        Text = '0'
+        OnChange = Modification
+      end
+      object updownQueryTimeout: TUpDown
+        Left = 350
+        Height = 28
+        Top = 45
+        Width = 20
+        Associate = editQueryTimeout
+        Max = -2
+        Min = 0
+        Position = 0
+        TabOrder = 2
+        Wrap = True
+      end
+      object editKeepAlive: TEdit
+        Left = 238
+        Height = 28
+        Top = 79
+        Width = 112
+        TabOrder = 3
+        Text = '0'
+        OnChange = Modification
+      end
+      object updownKeepAlive: TUpDown
+        Left = 350
+        Height = 28
+        Top = 79
+        Width = 20
+        Associate = editKeepAlive
+        Max = 20864
+        Min = 0
+        Position = 0
+        TabOrder = 4
+      end
+      object ColorBoxBackgroundColor: TColorBox
+        Left = 238
+        Height = 26
+        Top = 199
+        Width = 418
+        NoneColorColor = clNone
+        Selected = clNone
+        Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbIncludeDefault, cbCustomColor, cbPrettyNames, cbCustomColors]
+        OnGetColors = ColorBoxBackgroundColorGetColors
+        Anchors = [akTop, akLeft, akRight]
+        DropDownCount = 16
+        ItemHeight = 20
+        OnChange = Modification
+        TabOrder = 8
+      end
+      object editIgnoreDatabasePattern: TEdit
+        Left = 238
+        Height = 28
+        Top = 234
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        TabOrder = 9
+        TextHint = 'Regular expression'
+        OnChange = Modification
+      end
+      object chkLogFileDdl: TCheckBox
+        Left = 238
+        Height = 24
+        Top = 316
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'DDL queries (CREATE, ALTER, ...)'
+        TabOrder = 11
+        OnClick = Modification
+      end
+      object editLogFilePath: TEditButton
+        Left = 238
+        Height = 28
+        Top = 282
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Enabled = False
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = PickFile
+        OnChange = Modification
+        PasswordChar = #0
+        TabOrder = 10
+      end
+      object chkLogFileDml: TCheckBox
+        Left = 238
+        Height = 24
+        Top = 345
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'DML queries (INSERT, UPDATE, ...)'
+        TabOrder = 12
+        OnClick = Modification
+      end
+    end
+    object tabSSL: TTabSheet
+      Caption = 'SSL'
+      ClientHeight = 551
+      ClientWidth = 668
+      ImageIndex = 25
+      object lblSSLPrivateKey: TLabel
+        Left = 4
+        Height = 20
+        Top = 49
+        Width = 102
+        Caption = 'SSL private key:'
+        FocusControl = editSSLPrivateKey
+      end
+      object lblSSLCACertificate: TLabel
+        Left = 4
+        Height = 20
+        Top = 82
+        Width = 119
+        Caption = 'SSL CA certificate:'
+        FocusControl = editSSLCACertificate
+      end
+      object lblSSLCertificate: TLabel
+        Left = 4
+        Height = 20
+        Top = 116
+        Width = 96
+        Caption = 'SSL certificate:'
+        FocusControl = editSSLCertificate
+      end
+      object lblSSLcipher: TLabel
+        Left = 4
+        Height = 20
+        Top = 150
+        Width = 71
+        Caption = 'SSL cipher:'
+      end
+      object lblSSLVerification: TLabel
+        Left = 4
+        Height = 20
+        Top = 185
+        Width = 149
+        Caption = 'Certificate verification:'
+      end
+      object chkWantSSL: TCheckBox
+        Left = 238
+        Height = 24
+        Top = 16
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        Caption = 'Use SSL'
+        TabOrder = 0
+        OnClick = Modification
+      end
+      object editSSLcipher: TEdit
+        Left = 238
+        Height = 28
+        Top = 146
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        TabOrder = 4
+        TextHint = 'List of permissible ciphers to use for SSL encryption'
+        OnChange = Modification
+        OnExit = editTrim
+      end
+      object editSSLCertificate: TEditButton
+        Left = 238
+        Height = 28
+        Top = 112
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = PickFile
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnExit = editTrim
+        PasswordChar = #0
+        TabOrder = 3
+        TextHint = 'Path to certificate file'
+      end
+      object editSSLCACertificate: TEditButton
+        Left = 238
+        Height = 28
+        Top = 79
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = PickFile
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnExit = editTrim
+        PasswordChar = #0
+        TabOrder = 2
+        TextHint = 'Path to certificate authority file'
+      end
+      object editSSLPrivateKey: TEditButton
+        Left = 238
+        Height = 28
+        Top = 45
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 51
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = PickFile
+        OnChange = Modification
+        OnDblClick = PickFile
+        OnExit = editTrim
+        PasswordChar = #0
+        TabOrder = 1
+        TextHint = 'Path to key file'
+      end
+      object comboSSLVerification: TComboBox
+        Left = 238
+        Height = 28
+        Top = 181
+        Width = 418
+        Anchors = [akTop, akLeft, akRight]
+        ItemHeight = 20
+        Items.Strings = (
+          'No verification (insecure)'
+          'Verify CA (insecure)'
+          'Verify CA and host name identity (may fail with self-signed certs and wildcard cn)'
+        )
+        Style = csDropDownList
+        TabOrder = 5
+        OnChange = Modification
+      end
+    end
+    object tabStatistics: TTabSheet
+      Caption = 'Statistics'
+      ClientHeight = 551
+      ClientWidth = 668
+      ImageIndex = 145
+      object lblLastConnectLeft: TLabel
+        Left = 4
+        Height = 20
+        Top = 39
+        Width = 85
+        Caption = 'Last connect:'
+      end
+      object lblCounterLeft: TLabel
+        Left = 4
+        Height = 20
+        Top = 62
+        Width = 132
+        Caption = 'Successful connects:'
+      end
+      object lblCreatedLeft: TLabel
+        Left = 4
+        Height = 20
+        Top = 15
+        Width = 55
+        Caption = 'Created:'
+      end
+      object lblCreatedRight: TLabel
+        Left = 238
+        Height = 20
+        Top = 15
+        Width = 7
+        Caption = '?'
+      end
+      object lblCounterRight1: TLabel
+        Left = 238
+        Height = 20
+        Top = 62
+        Width = 7
+        Caption = '?'
+      end
+      object lblLastConnectRight: TLabel
+        Left = 238
+        Height = 20
+        Top = 39
+        Width = 7
+        Caption = '?'
+      end
+      object lblCounterRight2: TLabel
+        Left = 238
+        Height = 20
+        Top = 86
+        Width = 7
+        Caption = '?'
+      end
+      object lblCounterLeft2: TLabel
+        Left = 4
+        Height = 20
+        Top = 86
+        Width = 148
+        Caption = 'Unsuccessful connects:'
+      end
+    end
+  end
+  object pnlLeft: TPanel
+    Left = 0
+    Height = 584
+    Top = 0
+    Width = 250
+    Align = alLeft
+    BevelOuter = bvNone
+    ClientHeight = 584
+    ClientWidth = 250
+    Constraints.MinWidth = 125
+    ParentBackground = False
+    TabOrder = 2
+    object ListSessions: TLazVirtualStringTree
+      Left = 0
+      Height = 556
+      Top = 28
+      Width = 250
+      Align = alClient
+      DragMode = dmAutomatic
+      Header.AutoSizeIndex = -1
+      Header.Columns = <      
+        item
+          Position = 0
+          Text = 'Session name'
+          Width = 204
+        end      
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+          Position = 1
+          Text = 'Host'
+        end      
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 2
+          Text = 'User'
+        end      
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 3
+          Text = 'Version'
+        end      
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+          Position = 4
+          Text = 'Last connect'
+        end      
+        item
+          Alignment = taRightJustify
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coAllowFocus]
+          Position = 5
+          Text = 'Counter'
+        end      
+        item
+          Options = [coAllowClick, coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+          Position = 6
+          Text = 'Comment'
+          Width = 10
+        end>
+      Header.Height = 32
+      Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+      Header.SortColumn = 0
+      HintMode = hmTooltip
+      Images = MainForm.ImageListIcons8
+      IncrementalSearch = isAll
+      PopupMenu = popupSessions
+      TabOrder = 0
+      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoChangeScale]
+      TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toFullRowDrag]
+      TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+      TreeOptions.SelectionOptions = [toFullRowSelect, toRightClickSelect]
+      OnBeforeCellPaint = ListSessionsBeforeCellPaint
+      OnCreateEditor = ListSessionsCreateEditor
+      OnFocusChanged = ListSessionsFocusChanged
+      OnFocusChanging = ListSessionsFocusChanging
+      OnGetText = ListSessionsGetText
+      OnGetNodeDataSize = ListSessionsGetNodeDataSize
+      OnNewText = ListSessionsNewText
+      OnNodeDblClick = ListSessionsNodeDblClick
+      OnStructureChange = ListSessionsStructureChange
+    end
+    object editSearch: TEditButton
+      Left = 0
+      Height = 28
+      Top = 0
+      Width = 250
+      Align = alTop
+      ButtonWidth = 29
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 193
+      MaxLength = 0
+      NumGlyphs = 1
+      OnButtonClick = editSearchRightButtonClick
+      OnChange = editSearchChange
+      PasswordChar = #0
+      TabOrder = 1
+      TextHint = 'Filter'
+    end
+  end
+  object pnlBottom: TPanel
+    Left = 0
+    Height = 48
+    Top = 584
+    Width = 936
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 48
+    ClientWidth = 936
+    ParentBackground = False
+    TabOrder = 3
+    object btnSave: TSpeedButton
+      Left = 80
+      Height = 31
+      Top = 8
+      Width = 62
+      Caption = 'Save'
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 10
+      OnClick = btnSaveClick
+    end
+    object btnOpen: TButton
+      Left = 608
+      Height = 31
+      Top = 8
+      Width = 100
+      Anchors = [akTop, akRight]
+      Caption = 'Open'
+      Default = True
+      Enabled = False
+      TabOrder = 0
+      OnClick = btnOpenClick
+    end
+    object btnCancel: TButton
+      Left = 716
+      Height = 31
+      Top = 8
+      Width = 100
+      Anchors = [akTop, akRight]
+      Cancel = True
+      Caption = 'Cancel'
+      ModalResult = 2
+      TabOrder = 1
+    end
+    object btnNew: TSpeedButton
+      Left = 10
+      Height = 31
+      Top = 8
+      Width = 62
+      Caption = 'New'
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 45
+      OnClick = btnNewClick
+    end
+    object btnDelete: TSpeedButton
+      Left = 150
+      Height = 31
+      Top = 8
+      Width = 62
+      Caption = 'Delete'
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 46
+      OnClick = btnDeleteClick
+    end
+    object btnMore: TSpeedButton
+      Left = 823
+      Height = 31
+      Top = 8
+      Width = 100
+      Anchors = [akTop, akRight]
+      Caption = 'More'
+      OnClick = btnMoreClick
+    end
+  end
+  object popupSessions: TPopupMenu
+    Images = MainForm.ImageListIcons8
+    Left = 29
+    Top = 104
+    object menuRename: TMenuItem
+      Caption = 'Rename'
+      Enabled = False
+      ImageIndex = 58
+      ShortCut = 113
+      OnClick = menuRenameClick
+    end
+    object menuSave: TMenuItem
+      Caption = 'Save'
+      ImageIndex = 10
+      ShortCut = 16467
+      OnClick = btnSaveClick
+    end
+    object menuSaveAs: TMenuItem
+      Caption = 'Duplicate / save as ...'
+      ImageIndex = 10
+      ShortCut = 123
+      OnClick = btnSaveAsClick
+    end
+    object menuDelete: TMenuItem
+      Caption = 'Delete'
+      ImageIndex = 26
+      ShortCut = 46
+      OnClick = btnDeleteClick
+    end
+    object menuContextNewSessionInFolder: TMenuItem
+      Caption = 'New session'
+      ImageIndex = 72
+      OnClick = btnNewClick
+    end
+    object menuContextNewFolderInFolder: TMenuItem
+      Caption = 'New folder'
+      ImageIndex = 174
+      OnClick = btnNewClick
+    end
+    object Filter1: TMenuItem
+      Action = actFilter
+    end
+  end
+  object TimerStatistics: TTimer
+    Interval = 60000
+    OnTimer = TimerStatisticsTimer
+    Left = 30
+    Top = 44
+  end
+  object timerSettingsImport: TTimer
+    Enabled = False
+    OnTimer = timerSettingsImportTimer
+    Left = 138
+    Top = 44
+  end
+  object popupNew: TPopupMenu
+    Images = MainForm.ImageListIcons8
+    Left = 136
+    Top = 103
+    object menuNewSessionInRoot: TMenuItem
+      Caption = 'Session in root folder'
+      ImageIndex = 72
+      OnClick = btnNewClick
+    end
+    object menuNewSessionInFolder: TMenuItem
+      Caption = 'Session in selected folder'
+      ImageIndex = 72
+      OnClick = btnNewClick
+    end
+    object menuNewFolderInRoot: TMenuItem
+      Caption = 'Folder in root folder'
+      ImageIndex = 174
+      OnClick = btnNewClick
+    end
+    object menuNewFolderInFolder: TMenuItem
+      Caption = 'Folder in selected folder'
+      ImageIndex = 174
+      OnClick = btnNewClick
+    end
+  end
+  object popupMore: TPopupMenu
+    Images = MainForm.ImageListIcons8
+    Left = 30
+    Top = 180
+    object Preferences1: TMenuItem
+      Action = MainForm.actPreferences
+    end
+    object Checkforupdates1: TMenuItem
+      Action = MainForm.actUpdateCheck
+    end
+    object Importsettingsfile1: TMenuItem
+      Action = MainForm.actImportSettings
+    end
+    object Exportsettingsfile1: TMenuItem
+      Action = MainForm.actExportSettings
+    end
+    object menuMoreGeneralHelp: TMenuItem
+      Action = MainForm.actHelp
+    end
+    object About1: TMenuItem
+      Action = MainForm.actAboutBox
+    end
+  end
+  object TimerButtonAnimation: TTimer
+    Enabled = False
+    Interval = 200
+    OnTimer = TimerButtonAnimationTimer
+    Left = 140
+    Top = 180
+  end
+  object popupHost: TPopupMenu
+    Images = MainForm.ImageListIcons8
+    Left = 30
+    Top = 260
+    object menuFindDatabaseFiles: TMenuItem
+      Caption = 'Find database files...'
+      ImageIndex = 30
+      OnClick = FindAddDatabaseFilesClick
+    end
+    object menuAddDatabaseFiles: TMenuItem
+      Caption = 'Add database files...'
+      ImageIndex = 72
+      OnClick = FindAddDatabaseFilesClick
+    end
+  end
+  object ActionListConnections: TActionList
+    Images = MainForm.ImageListIcons8
+    Left = 140
+    Top = 260
+    object actFilter: TAction
+      Caption = 'Filter ...'
+      ImageIndex = 30
+      OnExecute = actFilterExecute
+      ShortCut = 16454
+    end
+  end
+  object timerEditFilterDelay: TTimer
+    Enabled = False
+    Interval = 500
+    OnTimer = timerEditFilterDelayTimer
+    Left = 30
+    Top = 340
+  end
+end

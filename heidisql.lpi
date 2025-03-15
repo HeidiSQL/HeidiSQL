@@ -218,6 +218,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\connections.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="connform"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

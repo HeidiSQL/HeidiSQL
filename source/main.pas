@@ -901,7 +901,7 @@ type
     procedure AnyGridCompareNodes(Sender: TBaseVirtualTree; Node1, Node2:
         PVirtualNode; Column: TColumnIndex; var Result: Integer);
     procedure AnyGridHeaderDraggedOut(Sender: TVTHeader; Column: TColumnIndex;
-        DropPosition: TPoint);
+        const DropPosition: TPoint);
     procedure AnyGridIncrementalSearch(Sender: TBaseVirtualTree; Node: PVirtualNode; const SearchText: String;
       var Result: Integer);
     procedure SetMainTab(Page: TTabSheet);
@@ -1413,7 +1413,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter;
+  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections;
 
 {$R *.lfm}
 
@@ -2190,7 +2190,7 @@ var
   SessionPaths: TStringlist;
   DlgResult: TModalResult;
   Tab: TQueryTab;
-  //SessionManager: TConnForm;
+  SessionManager: TConnForm;
 begin
   // Check for connection parameters on commandline or show connections form.
   if AppSettings.ReadBool(asUpdatecheck) then begin
@@ -2302,7 +2302,7 @@ begin
     end;
   end;
 
-  {// Display session manager
+  // Display session manager
   if Connections.Count = 0 then begin
     // Cannot be done in OnCreate because we need ready forms here:
     SessionManager := TConnForm.Create(Self);
@@ -2318,7 +2318,7 @@ begin
       Free;
       Exit;
     end;
-  end;}
+  end;
 
   {// Restore backup'ed query tabs
   if AppSettings.RestoreTabsInitValue then begin
@@ -2608,13 +2608,12 @@ end;
 
 
 procedure TMainForm.actSessionManagerExecute(Sender: TObject);
-//var
-  //Dialog: TConnForm;
+var
+  Dialog: TConnForm;
 begin
-  //Dialog := TConnForm.Create(Self);
-  //Dialog.ShowModal;
-  //Dialog.Free;
-  MessageDialog('Showing session manager...', mtWarning, [mbCancel, mbAbort, mbAll, mbClose, mbIgnore]);
+  Dialog := TConnForm.Create(Self);
+  Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 procedure TMainForm.actDisconnectExecute(Sender: TObject);
@@ -2622,7 +2621,7 @@ var
   Connection: TDBConnection;
   Node: PVirtualNode;
   DlgResult: Integer;
-  //Dialog: TConnForm;
+  Dialog: TConnForm;
 begin
   // Disconnect active connection. If it's the last, exit application
   Connection := ActiveConnection;
@@ -2633,11 +2632,11 @@ begin
   // TODO: focus last session?
   SelectNode(DBtree, GetNextNode(DBtree, nil));
   if FConnections.Count = 0 then begin
-    {Dialog := TConnForm.Create(Self);
+    Dialog := TConnForm.Create(Self);
     DlgResult := Dialog.ShowModal;
     Dialog.Free;
     if DlgResult = mrCancel then
-      actExitApplication.Execute;}
+      actExitApplication.Execute;
   end;
 end;
 
@@ -8952,7 +8951,7 @@ end;
   hide this dragged column
 }
 procedure TMainForm.AnyGridHeaderDraggedOut(Sender: TVTHeader; Column:
-    TColumnIndex; DropPosition: TPoint);
+    TColumnIndex; const DropPosition: TPoint);
 var
   Remaining: TColumnsArray;
 begin
