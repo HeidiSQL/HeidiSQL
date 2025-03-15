@@ -7,7 +7,6 @@ object MainForm: TMainForm
   ClientHeight = 500
   ClientWidth = 998
   DesignTimePPI = 120
-  Font.Height = -15
   Menu = MainMenu1
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
@@ -1027,12 +1026,12 @@ object MainForm: TMainForm
         Height = 316
         Top = 0
         Width = 780
-        ActivePage = tabQuery
+        ActivePage = tabHost
         Align = alClient
         HotTrack = True
         Images = ImageListIcons8
         PopupMenu = popupMainTabs
-        TabIndex = 4
+        TabIndex = 0
         TabOrder = 1
         OnChange = PageControlMainChange
         OnChanging = PageControlMainChanging
@@ -1050,11 +1049,11 @@ object MainForm: TMainForm
             Height = 283
             Top = 0
             Width = 772
-            ActivePage = tabCommandStats
+            ActivePage = tabDatabases
             Align = alClient
             Images = ImageListIcons8
             PopupMenu = popupHost
-            TabIndex = 4
+            TabIndex = 0
             TabOrder = 0
             OnChange = PageControlHostChange
             object tabDatabases: TTabSheet
@@ -19994,7 +19993,7 @@ object MainForm: TMainForm
   end
   object SynCompletionProposal: TSynCompletion
     OnExecute = SynCompletionProposalExecute
-    Position = -1
+    Position = 0
     LinesInWindow = 6
     OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight

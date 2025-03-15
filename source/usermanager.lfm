@@ -11,9 +11,6 @@ object UserManagerForm: TUserManagerForm
   Constraints.MinHeight = 188
   Constraints.MinWidth = 312
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnClose = FormClose
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate

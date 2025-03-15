@@ -8,9 +8,6 @@ object CopyTableForm: TCopyTableForm
   ClientWidth = 455
   Color = clBtnFace
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnClose = FormClose
   OnCreate = FormCreate
   OnResize = FormResize

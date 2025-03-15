@@ -10,9 +10,6 @@ object frmEditVariable: TfrmEditVariable
   Constraints.MinHeight = 270
   Constraints.MinWidth = 360
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow

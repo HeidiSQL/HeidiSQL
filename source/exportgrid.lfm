@@ -11,9 +11,6 @@ object frmExportGrid: TfrmExportGrid
   Constraints.MinHeight = 400
   Constraints.MinWidth = 400
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow

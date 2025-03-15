@@ -10,9 +10,6 @@ object frmSelectDBObject: TfrmSelectDBObject
   Constraints.MinHeight = 150
   Constraints.MinWidth = 125
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow

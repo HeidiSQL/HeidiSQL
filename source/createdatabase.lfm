@@ -9,9 +9,6 @@ object CreateDatabaseForm: TCreateDatabaseForm
   ClientWidth = 396
   Color = clBtnFace
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow

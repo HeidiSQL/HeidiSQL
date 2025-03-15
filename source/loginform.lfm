@@ -9,9 +9,6 @@ object frmLogin: TfrmLogin
   ClientWidth = 338
   Color = clBtnFace
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poScreenCenter

@@ -10,9 +10,6 @@ object loaddataform: Tloaddataform
   Constraints.MinHeight = 688
   Constraints.MinWidth = 656
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnClose = FormClose
   OnCreate = FormCreate
   OnResize = FormResize

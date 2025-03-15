@@ -13,6 +13,7 @@ UF = both
 * F if form was designed in > 96 PPI: add "DesignTimePPI = xyz"
 * (F prefer using Lazarus IDE on 100% DPI?)
 * F decrease Constraints.Min/MaxWidth as these get scaled too much
+* F remove all explicit Font properties, mainly Color, Height and Name, causing too small text on Linux
 * UF replace TSynMemo => TSynEdit
 * UF replace TVirtualStringTree => TLazVirtualStringTree (+ use laz.VirtualTrees unit)
 * UF replace TVirtualStringTree|Columns => TLazVirtualStringTree|Header.Columns

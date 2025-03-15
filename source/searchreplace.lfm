@@ -12,23 +12,21 @@ object frmSearchReplace: TfrmSearchReplace
   Constraints.MinWidth = 250
   DesignTimePPI = 120
   Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnClose = FormClose
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
   object lblSearch: TLabel
     Left = 10
-    Height = 18
+    Height = 20
     Top = 50
-    Width = 82
+    Width = 78
     Caption = '&Text to find:'
     FocusControl = comboSearch
   end
   object lblReplaceHint: TLabel
     Left = 112
-    Height = 18
+    Height = 20
     Top = 109
     Width = 324
     Anchors = [akTop, akLeft, akRight]
@@ -37,9 +35,9 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object lblSearchIn: TLabel
     Left = 10
-    Height = 18
+    Height = 20
     Top = 16
-    Width = 64
+    Width = 63
     Caption = 'Search in:'
   end
   object btnCancel: TButton
@@ -66,20 +64,20 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object chkReplace: TCheckBox
     Left = 10
-    Height = 22
+    Height = 24
     Top = 80
-    Width = 76
+    Width = 77
     Caption = '&Replace:'
     TabOrder = 3
     OnClick = chkReplaceClick
   end
   object comboSearch: TComboBox
     Left = 112
-    Height = 26
+    Height = 28
     Top = 46
     Width = 381
     Anchors = [akTop, akLeft, akRight]
-    ItemHeight = 18
+    ItemHeight = 20
     TabOrder = 1
     Text = 'comboSearch'
     TextHint = 'Enter text to find ...'
@@ -87,12 +85,12 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object comboReplace: TComboBox
     Left = 112
-    Height = 26
+    Height = 28
     Top = 78
     Width = 381
     Anchors = [akTop, akLeft, akRight]
     Enabled = False
-    ItemHeight = 18
+    ItemHeight = 20
     TabOrder = 4
     Text = 'comboReplace'
     TextHint = 'Enter replacement pattern ...'
@@ -105,31 +103,31 @@ object frmSearchReplace: TfrmSearchReplace
     Width = 522
     Anchors = [akTop, akLeft, akRight]
     Caption = '&Options'
-    ClientHeight = 63
+    ClientHeight = 61
     ClientWidth = 518
     ParentBackground = False
     TabOrder = 6
     object chkCaseSensitive: TCheckBox
       Left = 15
-      Height = 22
+      Height = 24
       Top = 0
-      Width = 113
+      Width = 112
       Caption = 'Case sensitive'
       TabOrder = 0
     end
     object chkWholeWords: TCheckBox
       Left = 15
-      Height = 22
+      Height = 24
       Top = 29
-      Width = 104
+      Width = 108
       Caption = 'Whole words'
       TabOrder = 1
     end
     object chkRegularExpression: TCheckBox
       Left = 230
-      Height = 22
+      Height = 24
       Top = 0
-      Width = 143
+      Width = 146
       Caption = 'Regular expression'
       ParentShowHint = False
       ShowHint = True
@@ -138,9 +136,9 @@ object frmSearchReplace: TfrmSearchReplace
     end
     object chkPromptOnReplace: TCheckBox
       Left = 230
-      Height = 22
+      Height = 24
       Top = 29
-      Width = 140
+      Width = 144
       Caption = 'Prompt on replace'
       TabOrder = 3
     end
@@ -160,7 +158,7 @@ object frmSearchReplace: TfrmSearchReplace
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 87
+    ClientHeight = 85
     ClientWidth = 146
     ItemIndex = 0
     Items.Strings = (
@@ -185,7 +183,7 @@ object frmSearchReplace: TfrmSearchReplace
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 87
+    ClientHeight = 85
     ClientWidth = 146
     ItemIndex = 1
     Items.Strings = (
@@ -210,7 +208,7 @@ object frmSearchReplace: TfrmSearchReplace
     ChildSizing.ShrinkVertical = crsScaleChilds
     ChildSizing.Layout = cclLeftToRightThenTopToBottom
     ChildSizing.ControlsPerLine = 1
-    ClientHeight = 87
+    ClientHeight = 85
     ClientWidth = 203
     ItemIndex = 0
     Items.Strings = (
@@ -234,11 +232,11 @@ object frmSearchReplace: TfrmSearchReplace
   end
   object comboSearchIn: TComboBox
     Left = 112
-    Height = 26
+    Height = 28
     Top = 12
     Width = 420
     Anchors = [akTop, akLeft, akRight]
-    ItemHeight = 18
+    ItemHeight = 20
     Style = csDropDownList
     TabOrder = 0
   end

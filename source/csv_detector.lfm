@@ -8,9 +8,6 @@ object frmCsvDetector: TfrmCsvDetector
   ClientWidth = 676
   Color = clBtnFace
   DesignTimePPI = 120
-  Font.Color = clWindowText
-  Font.Height = -15
-  Font.Name = 'Tahoma'
   OnCreate = FormCreate
   OnShow = FormShow
   Position = poOwnerFormCenter
