@@ -33,7 +33,7 @@ object connform: Tconnform
     ActivePage = tabStart
     Align = alClient
     Images = MainForm.ImageListIcons8
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     OnChange = PageControlDetailsChange
     object tabStart: TTabSheet
@@ -153,7 +153,7 @@ object connform: Tconnform
         Top = 245
         Width = 20
         Associate = editPort
-        Max = -1
+        Max = 32767
         Min = 0
         Position = 0
         TabOrder = 8
@@ -431,6 +431,7 @@ object connform: Tconnform
         Top = 181
         Width = 21
         Associate = editSSHTimeout
+        Max = 32767
         Min = 1
         Position = 1
         TabOrder = 7
@@ -573,7 +574,7 @@ object connform: Tconnform
         Top = 45
         Width = 20
         Associate = editQueryTimeout
-        Max = -2
+        Max = 32767
         Min = 0
         Position = 0
         TabOrder = 2
@@ -594,7 +595,7 @@ object connform: Tconnform
         Top = 79
         Width = 20
         Associate = editKeepAlive
-        Max = 20864
+        Max = 32767
         Min = 0
         Position = 0
         TabOrder = 4
@@ -938,6 +939,7 @@ object connform: Tconnform
       OnFocusChanged = ListSessionsFocusChanged
       OnFocusChanging = ListSessionsFocusChanging
       OnGetText = ListSessionsGetText
+      OnGetImageIndex = ListSessionsGetImageIndex
       OnGetNodeDataSize = ListSessionsGetNodeDataSize
       OnNewText = ListSessionsNewText
       OnNodeDblClick = ListSessionsNodeDblClick

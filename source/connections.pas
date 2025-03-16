@@ -1198,14 +1198,23 @@ end;
 procedure Tconnform.editTrim(Sender: TObject);
 var
   Edit: TCustomEdit;
+  EditButton: TEditButton;
   Trimmed: String;
 begin
   // Trim input
-  Edit := Sender as TCustomEdit;
-  Trimmed := Edit.Text;
-  Trimmed := Trimmed.Trim([' ', #9]);
-  if Edit.Text <> Trimmed then begin
-    Edit.Text := Trimmed;
+  if Sender is TCustomEdit then begin
+    Edit := Sender as TCustomEdit;
+    Trimmed := Edit.Text;
+    Trimmed := Trimmed.Trim([' ', #9]);
+    if Edit.Text <> Trimmed then
+      Edit.Text := Trimmed;
+  end
+  else if Sender is TEditButton then begin
+    EditButton := Sender as TEditButton;
+    Trimmed := EditButton.Text;
+    Trimmed := Trimmed.Trim([' ', #9]);
+    if EditButton.Text <> Trimmed then
+      EditButton.Text := Trimmed;
   end;
 end;
 
@@ -1538,7 +1547,7 @@ begin
           editDatabases.TextHint := _('Example:') + ' kdf_iter=4000;legacy=1;...';
         end
       end;
-      editHost.Button.Visible := Params.IsAnySQLite;
+      editHost.Button.Enabled := Params.IsAnySQLite;
       chkLoginPrompt.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL];
       chkWindowsAuth.Enabled := Params.IsAnyMSSQL or Params.IsAnyMySQL;
       lblUsername.Enabled := (Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase])
@@ -1546,7 +1555,7 @@ begin
         and ((not chkWindowsAuth.Checked) or (not chkWindowsAuth.Enabled));
       lblUsername.Enabled := lblUsername.Enabled or (Params.NetType = ntSQLiteEncrypted);
       editUsername.Enabled := lblUsername.Enabled;
-      editUsername.Button.Visible := Params.NetType = ntSQLiteEncrypted;
+      editUsername.Button.Enabled := Params.NetType = ntSQLiteEncrypted;
       lblPassword.Enabled := lblUsername.Enabled;
       editPassword.Enabled := lblUsername.Enabled;
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
@@ -1556,7 +1565,7 @@ begin
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       lblDatabase.Enabled := lblDatabase.Enabled or (Params.NetType = ntSQLiteEncrypted);
       editDatabases.Enabled := lblDatabase.Enabled;
-      editDatabases.Button.Visible := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
+      editDatabases.Button.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       // SSH tunnel tab:
       chkSSHActive.Enabled := Params.SshSupport;
       lblSSHExe.Enabled := Params.SSHActive;
