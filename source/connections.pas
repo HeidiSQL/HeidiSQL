@@ -661,7 +661,7 @@ var
   Sess: PConnectionParameters;
   Node, FocusNode: PVirtualNode;
 begin
-  {Node := ListSessions.FocusedNode;
+  Node := ListSessions.FocusedNode;
   Sess := ListSessions.GetNodeData(Node);
   if MessageDialog(f_('Delete session "%s"?', [Sess.SessionName]), mtConfirmation, [mbYes, mbCancel]) = mrYes then
   begin
@@ -676,8 +676,9 @@ begin
     ListSessions.DeleteNode(Node);
     SelectNode(ListSessions, FocusNode);
     ListSessions.SetFocus;
-  end;}
+  end;
 end;
+
 
 function Tconnform.SelectedSessionPath: String;
 var
@@ -833,7 +834,7 @@ begin
   RegKey := '';
   if Node <> ListSessions.RootNode then begin
     Sess := ListSessions.GetNodeData(Node);
-    RegKey := Sess.SessionPath + '\';
+    RegKey := AppSettings.AppendDelimiter(Sess.SessionPath);
   end;
 
   // Fetch from registry
@@ -910,7 +911,7 @@ begin
   else begin
     try
       AppSettings.SessionPath := FocusedSess.SessionPath;
-      AppSettings.MoveCurrentKey(REGKEY_SESSIONS+'\'+ParentKey+FocusedSess.SessionName);
+      AppSettings.MoveCurrentKey(AppSettings.AppendDelimiter(REGKEY_SESSIONS)+ParentKey+FocusedSess.SessionName);
       ListSessions.MoveTo(ListSessions.FocusedNode, TargetNode, AttachMode, False);
       FocusedSess.SessionPath := ParentKey+FocusedSess.SessionName;
     except
@@ -1060,6 +1061,7 @@ begin
   Screen.Cursor := crDefault;
 end;
 
+
 procedure Tconnform.RefreshBackgroundColors;
 begin
   // Trigger OnGetColors event
@@ -1141,7 +1143,7 @@ begin
     NewText := Sess.SessionName;
   end else begin
     AppSettings.SessionPath := Sess.SessionPath;
-    AppSettings.MoveCurrentKey(REGKEY_SESSIONS+'\'+ParentKey+NewText);
+    AppSettings.MoveCurrentKey(AppSettings.AppendDelimiter(REGKEY_SESSIONS)+ParentKey+NewText);
     // Also fix internal session names in main form, which gets used to store e.g. "lastuseddb" later
     for Connection in MainForm.Connections do begin
       if Connection.Parameters.SessionPath = Sess.SessionPath then

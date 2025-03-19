@@ -2689,14 +2689,14 @@ begin
       AppSettings.SessionPath := Item.Parameters.SessionPath;
       Keys := AppSettings.GetKeyNames;
       rx := TRegExpr.Create;
-      rx.Expression := '^table' + QuoteRegExprMetaChars(DELIM) + '.+';
+      rx.Expression := '.+'+QuoteRegExprMetaChars(DELIM)+'.+';
       for i:=0 to Keys.Count-1 do begin
         if rx.Exec(Keys[i]) then begin
+          AppSettings.SessionPath := AppSettings.AppendDelimiter(Item.Parameters.SessionPath) + Keys[i];
           NamesInKey := AppSettings.GetValueNames;
           if (NamesInKey.Count = 0) or ForceDeleteTableKey then begin
-            AppSettings.DeleteSection(Keys[i]);
+            AppSettings.DeleteCurrentKey;
           end;
-          NamesInKey.Free;
         end;
       end;
       rx.Free;
@@ -2942,8 +2942,7 @@ end;
 procedure TMainForm.menuClearDataTabFilterClick(Sender: TObject);
 begin
   // Same as "Clear filter" button, but *before* the data tab is activated
-  AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
-  AppSettings.SetCurrentSection(GetRegKeyTable);
+  AppSettings.SessionPath := GetRegKeyTable;
   if AppSettings.ValueExists(asFilter) then begin
     AppSettings.DeleteValue(asFilter);
     LogSQL(f_('Data filter for %s deleted', [ActiveDbObj.Name]), lcInfo);
@@ -2995,8 +2994,7 @@ var
   GridColumn: TVirtualTreeColumn;
 begin
   // Mark focused column as UNIX timestamp column
-  AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
-  AppSettings.SetCurrentSection(GetRegKeyTable);
+  AppSettings.SessionPath := GetRegKeyTable;
   GridColumn := DataGrid.Header.Columns[DataGrid.FocusedColumn];
   FocusedColumnName := GridColumn.Text;
   i := SelectedTableTimestampColumns.IndexOf(FocusedColumnName);
@@ -3569,7 +3567,7 @@ begin
     // Delete identical history items to avoid spam
     // Delete old items
     // Delete items which exceed a max datasize barrier
-    AppSettings.SessionPath := Thread.Connection.Parameters.SessionPath + '\' + REGKEY_QUERYHISTORY;
+    AppSettings.SessionPath := AppSettings.AppendDelimiter(Thread.Connection.Parameters.SessionPath) + REGKEY_QUERYHISTORY;
     MinDate := IncDay(Now, -KeepDays);
     RegItemsSize := Thread.Batch.Size;
     for HistoryItem in History do begin
@@ -5336,8 +5334,7 @@ begin
     // Recreate recent filters list
     Filters := TStringList.Create;
     Filters.Add(Trim(SynMemoFilter.Text));
-    AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
-    AppSettings.SetCurrentSection(GetRegKeyTable);
+    AppSettings.SessionPath := AppSettings.AppendDelimiter(GetRegKeyTable) + REGKEY_RECENTFILTERS;
     // Add old filters
     for i:=1 to 20 do begin
       val := AppSettings.ReadString(asRecentFilter, IntToStr(i));
@@ -8693,12 +8690,18 @@ var
 begin
   // Clear query history items in registry
   // Take care of MessageDialog, probably changing the current SessionPath
+  PathToDelete := AppSettings.AppendDelimiter(ActiveConnection.Parameters.SessionPath) + REGKEY_QUERYHISTORY;
+  AppSettings.SessionPath := PathToDelete;
+  Values := AppSettings.GetValueNames;
   if MessageDialog(_('Clear query history?'), f_('%s history items will be deleted.', [FormatNumber(Values.Count)]), mtConfirmation, [mbYes, mbNo]) = mrYes then begin
     Screen.Cursor := crHourglass;
-    AppSettings.DeleteSection(REGKEY_QUERYHISTORY);
+    AppSettings.SessionPath := PathToDelete;
+    AppSettings.DeleteCurrentKey;
     RefreshHelperNode(TQueryTab.HelperNodeHistory);
     Screen.Cursor := crDefault;
   end;
+  Values.Free;
+  AppSettings.ResetPath;
 end;
 
 
@@ -9770,8 +9773,7 @@ begin
         SelectedTableColumns.Clear;
         SelectedTableKeys.Clear;
         SelectedTableForeignKeys.Clear;
-        AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
-        AppSettings.SetCurrentSection(GetRegKeyTable);
+        AppSettings.SessionPath := GetRegKeyTable;
         SelectedTableTimestampColumns.Text := AppSettings.ReadString(asTimestampColumns);
         InvalidateVT(DataGrid, VTREE_NOTLOADED_PURGECACHE, False);
         try
@@ -11200,8 +11202,7 @@ begin
       Inc(DataGridWantedRowCount, AppSettings.ReadInt(asDatagridRowsPerStep));
   end else begin
     // Save current attributes if grid gets refreshed
-    AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
-    AppSettings.SetCurrentSection(GetRegKeyTable);
+    AppSettings.SessionPath := GetRegKeyTable;
     if DataGridHiddenColumns.Count > 0 then
       AppSettings.WriteString(asHiddenColumns, DataGridHiddenColumns.DelimitedText)
     else if AppSettings.ValueExists(asHiddenColumns) then
@@ -11223,13 +11224,14 @@ begin
   end;
 
   // Auto remove registry spam if table folder is empty
-  AppSettings.SessionPath := ActiveDbObj.Connection.Parameters.SessionPath;
-  AppSettings.SetCurrentSection(GetRegKeyTable);
-  if AppSettings.IsEmptyKey then
-    AppSettings.DeleteSection(GetRegKeyTable);
+  if AppSettings.SessionPathExists(GetRegKeyTable) then begin
+    AppSettings.SessionPath := GetRegKeyTable;
+    if AppSettings.IsEmptyKey then
+      AppSettings.DeleteCurrentKey;
+  end;
 
   // Do nothing if table was not filtered yet
-  if AppSettings.GetKeyNames.IndexOf(GetRegKeyTable) = -1 then
+  if not AppSettings.SessionPathExists(GetRegKeyTable) then
     Exit;
 
   // Columns
@@ -11276,8 +11278,9 @@ end;
 
 function TMainForm.GetRegKeyTable: String;
 begin
-  // Return the slightly complex ini section to table|curdb|curtable
-  Result := 'table' + DELIM + ActiveDatabase + DELIM + ActiveDbObj.Name;
+  // Return the slightly complex registry path to \Servers\CustomFolder\ActiveServer\curdb|curtable
+  Result := AppSettings.AppendDelimiter(ActiveDbObj.Connection.Parameters.SessionPath) +
+    ActiveDatabase + DELIM + ActiveDbObj.Name;
 end;
 
 
@@ -11738,8 +11741,7 @@ begin
   ToggleFilterPanel(True);
   actApplyFilter.Execute;
   // SynMemoFilter will be cleared and set value of asFilter (in HandleDataGridAttributes from DataGridBeforePaint)
-  AppSettings.SessionPath := Conn.Parameters.SessionPath;
-  AppSettings.SetCurrentSection(GetRegKeyTable);
+  AppSettings.SessionPath := GetRegKeyTable;
   AppSettings.WriteString(asFilter, Filter);
 end;
 
@@ -12081,28 +12083,29 @@ begin
     menuRecentFilters.Delete(i);
   comboRecentFilters.Items.Clear;
   // Enumerate recent filters from registry
-  AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
-  AppSettings.SetCurrentSection(GetRegKeyTable);
-  rx := TRegExpr.Create;
-  rx.Expression := '\s+';
-  for i:=1 to 20 do begin
-    // Previously introduced bugs stored some other settings here, see issue #2127
-    item := TMenuItem.Create(popupFilter);
-    capt := AppSettings.ReadString(asRecentFilter, IntToStr(i));
-    if capt.IsEmpty then
-      Break;
-    capt := rx.Replace(capt, ' ', True);
-    item.Hint := capt;
-    item.Caption := StrEllipsis(capt, 50);
-    item.Tag := i;
-    item.OnClick := LoadRecentFilter;
-    menuRecentFilters.Add(item);
-    comboRecentFilters.Items.Add(capt);
+  Path := AppSettings.AppendDelimiter(GetRegKeyTable) + REGKEY_RECENTFILTERS;
+  if AppSettings.SessionPathExists(Path) then begin
+    AppSettings.SessionPath := Path;
+    rx := TRegExpr.Create;
+    rx.Expression := '\s+';
+    for i:=1 to 20 do begin
+      // Previously introduced bugs stored some other settings here, see issue #2127
+      item := TMenuItem.Create(popupFilter);
+      capt := AppSettings.ReadString(asRecentFilter, IntToStr(i));
+      if capt.IsEmpty then
+        Break;
+      capt := rx.Replace(capt, ' ', True);
+      item.Hint := capt;
+      item.Caption := StrEllipsis(capt, 50);
+      item.Tag := i;
+      item.OnClick := LoadRecentFilter;
+      menuRecentFilters.Add(item);
+      comboRecentFilters.Items.Add(capt);
+    end;
+    FreeAndNil(rx);
+    AppSettings.ResetPath;
+    menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
   end;
-  FreeAndNil(rx);
-  AppSettings.ResetPath;
-  menuRecentFilters.Enabled := menuRecentFilters.Count > 0;
-
   comboRecentFilters.Visible := comboRecentFilters.Items.Count > 0;
   lblRecentFilters.Visible := comboRecentFilters.Visible;
   SynMemoFilter.Height := pnlFilter.Height - 3;
@@ -12125,14 +12128,16 @@ begin
     key := (Sender as TMenuItem).Tag
   else
     key := (Sender as TComboBox).ItemIndex+1;
-  AppSettings.SessionPath := ActiveConnection.Parameters.SessionPath;
-  AppSettings.SetCurrentSection(GetRegKeyTable);
-  //SynMemoFilter.UndoList.AddGroupBreak;
-  SynMemoFilter.BeginUpdate;
-  SynMemoFilter.SelectAll;
-  SynMemoFilter.SelText := AppSettings.ReadString(asRecentFilter, IntToStr(key));
-  SynMemoFilter.EndUpdate;
-  AppSettings.ResetPath;
+  Path := AppSettings.AppendDelimiter(GetRegKeyTable) + REGKEY_RECENTFILTERS;
+  if AppSettings.SessionPathExists(Path) then begin
+    AppSettings.SessionPath := Path;
+    //SynMemoFilter.UndoList.AddGroupBreak;
+    SynMemoFilter.BeginUpdate;
+    SynMemoFilter.SelectAll;
+    SynMemoFilter.SelText := AppSettings.ReadString(asRecentFilter, IntToStr(key));
+    SynMemoFilter.EndUpdate;
+    AppSettings.ResetPath;
+  end;
 end;
 
 
@@ -15507,8 +15512,7 @@ var
   Item: TQueryHistoryItem;
 begin
   inherited Create(TQueryHistoryItemComparer.Create, True);
-  AppSettings.SessionPath := SessionPath;
-  AppSettings.SetCurrentSection(REGKEY_QUERYHISTORY);
+  AppSettings.SessionPath := AppSettings.AppendDelimiter(SessionPath) + REGKEY_QUERYHISTORY;
   ValueNames := AppSettings.GetValueNames;
   for i:=0 to ValueNames.Count-1 do begin
     j := StrToIntDef(ValueNames[i], -1);
