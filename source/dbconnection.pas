@@ -2035,14 +2035,14 @@ begin
         rx.Expression := IfThen(AppSettings.ReadBool(asAllProviders), '^', '^(MSOLEDBSQL|SQLOLEDB)');
       ngPgSQL:
         {$IfDef LINUX}
-        rx.Expression := '^\s*libpq[^=]+=>\s*(\S+)$';
+        rx.Expression := '^\s*(libpq)[^=]+=>\s*(\S+)$';
         {$EndIf}
         {$IfDef WINDOWS}
         rx.Expression := '^libpq.*\.' + GetDynLibExtension;
         {$EndIf}
       ngSQLite: begin
         {$IfDef LINUX}
-        rx.Expression := '^\s*libsqlite3[^=]+=>\s*(\S+)$';
+        rx.Expression := '^\s*(libsqlite3)[^=]+=>\s*(\S+)$';
         {$EndIf}
         {$IfDef WINDOWS}
         if NetType = ntSQLite then
