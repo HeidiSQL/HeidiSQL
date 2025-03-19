@@ -320,12 +320,9 @@ end;
 
 
 procedure TCopyTableForm.btnRecentFiltersClick(Sender: TObject);
-var
-  btn: TControl;
 begin
   // A split button does not drop its menu down when the normal button area is clicked. Do that by hand.
-  btn := Sender as TControl;
-  popupRecentFilters.Popup(btn.ClientOrigin.X, btn.ClientOrigin.Y+btn.Height);
+  ShowPopup(Sender as TControl, popupRecentFilters);
 end;
 
 

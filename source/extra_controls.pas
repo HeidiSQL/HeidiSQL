@@ -7,11 +7,14 @@ interface
 uses
   Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
   Graphics, Dialogs, ImgList, ComCtrls,
-  ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn,
+  ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn, Menus,
   GraphUtil;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
+
+  { TExtForm }
+
   TExtForm = class(TForm)
     private
       //FSizeGrip: TSizeGripXP;
@@ -34,6 +37,7 @@ type
       class function ScaleSize(x: Extended; Control: TControl): Integer; overload;
       class procedure PageControlTabHighlight(PageControl: TPageControl);
       property PixelsPerInchDesigned: Integer read FPixelsPerInchDesigned;
+      procedure ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
   end;
 
   // Modern file-open-dialog with high DPI support and encoding selector
@@ -467,6 +471,11 @@ begin
       end;
     end;
   end;;
+end;
+
+procedure TExtForm.ShowPopup(ClickedControl: TControl; PopupMenu: TPopupMenu);
+begin
+  PopupMenu.Popup(ClickedControl.ClientOrigin.X, ClickedControl.ClientOrigin.Y + ClickedControl.Height);
 end;
 
 

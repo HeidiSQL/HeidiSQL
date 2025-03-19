@@ -39,7 +39,7 @@ object UserManagerForm: TUserManagerForm
     TabOrder = 0
     object lblUsers: TLabel
       Left = 0
-      Height = 18
+      Height = 20
       Top = 0
       Width = 280
       Align = alTop
@@ -48,8 +48,8 @@ object UserManagerForm: TUserManagerForm
     end
     object listUsers: TLazVirtualStringTree
       Left = 0
-      Height = 353
-      Top = 55
+      Height = 351
+      Top = 57
       Width = 280
       Align = alClient
       Header.AutoSizeIndex = 0
@@ -66,6 +66,7 @@ object UserManagerForm: TUserManagerForm
         end>
       Header.Height = 32
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+      Header.PopupMenu = MainForm.popupListHeader
       Header.SortColumn = 0
       Images = MainForm.ImageListIcons8
       IncrementalSearch = isAll
@@ -87,7 +88,7 @@ object UserManagerForm: TUserManagerForm
     object ToolBar1: TToolBar
       Left = 0
       Height = 37
-      Top = 18
+      Top = 20
       Width = 280
       AutoSize = True
       ButtonHeight = 35
@@ -202,34 +203,34 @@ object UserManagerForm: TUserManagerForm
       TabOrder = 0
       object tabCredentials: TTabSheet
         Caption = 'Credentials'
-        ClientHeight = 150
+        ClientHeight = 148
         ClientWidth = 486
         object lblUsername: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 12
-          Width = 77
+          Width = 73
           Caption = 'User &name:'
         end
         object lblFromHost: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 46
-          Width = 72
+          Width = 69
           Caption = 'From &host:'
           FocusControl = editFromHost
         end
         object lblPassword: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 80
-          Width = 66
+          Width = 64
           Caption = '&Password:'
           FocusControl = editPassword
         end
         object lblRepeatPassword: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 114
           Width = 117
           Caption = 'Repeat password:'
@@ -237,7 +238,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editRepeatPassword: TEdit
           Left = 220
-          Height = 26
+          Height = 28
           Top = 110
           Width = 260
           Anchors = [akTop, akLeft, akRight]
@@ -248,7 +249,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editPassword: TEditButton
           Left = 220
-          Height = 26
+          Height = 28
           Top = 76
           Width = 260
           Anchors = [akTop, akLeft, akRight]
@@ -265,7 +266,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editFromHost: TEditButton
           Left = 220
-          Height = 26
+          Height = 28
           Top = 42
           Width = 260
           Anchors = [akTop, akLeft, akRight]
@@ -281,7 +282,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editUsername: TEdit
           Left = 220
-          Height = 26
+          Height = 28
           Top = 9
           Width = 260
           Anchors = [akTop, akLeft, akRight]
@@ -291,40 +292,40 @@ object UserManagerForm: TUserManagerForm
       end
       object tabLimitations: TTabSheet
         Caption = 'Limitations'
-        ClientHeight = 150
+        ClientHeight = 148
         ClientWidth = 486
         ImageIndex = 1
         object lblMaxQueries: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 12
-          Width = 114
+          Width = 113
           Caption = 'Queries per hour:'
         end
         object lblMaxUpdates: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 46
-          Width = 119
+          Width = 118
           Caption = 'Updates per hour:'
         end
         object lblMaxConnections: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 80
-          Width = 143
+          Width = 144
           Caption = 'Connections per hour:'
         end
         object lblMaxUserConnections: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 114
-          Width = 171
+          Width = 175
           Caption = 'Simultaneous connections:'
         end
         object editMaxQueries: TEdit
           Left = 240
-          Height = 26
+          Height = 28
           Top = 9
           Width = 220
           Anchors = [akTop, akLeft, akRight]
@@ -335,7 +336,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editMaxUpdates: TEdit
           Left = 240
-          Height = 26
+          Height = 28
           Top = 42
           Width = 220
           Anchors = [akTop, akLeft, akRight]
@@ -346,7 +347,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editMaxConnections: TEdit
           Left = 240
-          Height = 26
+          Height = 28
           Top = 76
           Width = 220
           Anchors = [akTop, akLeft, akRight]
@@ -357,7 +358,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editMaxUserConnections: TEdit
           Left = 240
-          Height = 26
+          Height = 28
           Top = 110
           Width = 220
           Anchors = [akTop, akLeft, akRight]
@@ -368,7 +369,7 @@ object UserManagerForm: TUserManagerForm
         end
         object udMaxQueries: TUpDown
           Left = 460
-          Height = 26
+          Height = 28
           Top = 9
           Width = 21
           Anchors = [akTop, akRight]
@@ -382,7 +383,7 @@ object UserManagerForm: TUserManagerForm
         end
         object udMaxUpdates: TUpDown
           Left = 460
-          Height = 26
+          Height = 28
           Top = 42
           Width = 21
           Anchors = [akTop, akRight]
@@ -395,7 +396,7 @@ object UserManagerForm: TUserManagerForm
         end
         object udMaxConnections: TUpDown
           Left = 460
-          Height = 26
+          Height = 28
           Top = 76
           Width = 21
           Anchors = [akTop, akRight]
@@ -408,7 +409,7 @@ object UserManagerForm: TUserManagerForm
         end
         object udMaxUserConnections: TUpDown
           Left = 460
-          Height = 26
+          Height = 28
           Top = 110
           Width = 21
           Anchors = [akTop, akRight]
@@ -422,43 +423,43 @@ object UserManagerForm: TUserManagerForm
       end
       object tabSSL: TTabSheet
         Caption = 'SSL options'
-        ClientHeight = 150
+        ClientHeight = 148
         ClientWidth = 486
         ImageIndex = 2
         object lblCipher: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 45
-          Width = 45
+          Width = 46
           Caption = '&Cipher:'
           FocusControl = editCipher
         end
         object lblIssuer: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 78
-          Width = 46
+          Width = 40
           Caption = '&Issuer:'
           FocusControl = editIssuer
         end
         object lblSubject: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 111
-          Width = 53
+          Width = 52
           Caption = '&Subject:'
           FocusControl = editSubject
         end
         object lblSSL: TLabel
           Left = 4
-          Height = 18
+          Height = 20
           Top = 11
           Width = 81
           Caption = '&Require SSL:'
         end
         object editCipher: TEdit
           Left = 220
-          Height = 26
+          Height = 28
           Top = 41
           Width = 260
           Anchors = [akTop, akLeft, akRight]
@@ -468,7 +469,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editIssuer: TEdit
           Left = 220
-          Height = 26
+          Height = 28
           Top = 74
           Width = 260
           Anchors = [akTop, akLeft, akRight]
@@ -478,7 +479,7 @@ object UserManagerForm: TUserManagerForm
         end
         object editSubject: TEdit
           Left = 220
-          Height = 26
+          Height = 28
           Top = 108
           Width = 260
           Anchors = [akTop, akLeft, akRight]
@@ -488,11 +489,11 @@ object UserManagerForm: TUserManagerForm
         end
         object comboSSL: TComboBox
           Left = 220
-          Height = 26
+          Height = 28
           Top = 8
           Width = 260
           Anchors = [akTop, akLeft, akRight]
-          ItemHeight = 18
+          ItemHeight = 20
           Items.Strings = (
             'No SSL or X509 requirements'
             'Only permit SSL-encrypted connections'

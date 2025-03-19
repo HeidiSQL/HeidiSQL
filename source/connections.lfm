@@ -4,6 +4,7 @@ object connform: Tconnform
   Top = 129
   Width = 936
   BorderIcons = [biSystemMenu, biHelp]
+  BorderWidth = 10
   Caption = 'Session manager'
   ClientHeight = 632
   ClientWidth = 936
@@ -19,33 +20,33 @@ object connform: Tconnform
   ShowHint = True
   object splitterMain: TSplitter
     Cursor = crSizeWE
-    Left = 250
-    Height = 584
-    Top = 0
+    Left = 260
+    Height = 574
+    Top = 10
     Width = 10
     OnMoved = splitterMainMoved
   end
   object PageControlDetails: TPageControl
-    Left = 260
-    Height = 584
-    Top = 0
-    Width = 676
+    Left = 270
+    Height = 574
+    Top = 10
+    Width = 656
     ActivePage = tabStart
     Align = alClient
     Images = MainForm.ImageListIcons8
-    TabIndex = 1
+    TabIndex = 0
     TabOrder = 1
     OnChange = PageControlDetailsChange
     object tabStart: TTabSheet
       Caption = 'Start'
-      ClientHeight = 551
-      ClientWidth = 668
+      ClientHeight = 541
+      ClientWidth = 648
       ImageIndex = 112
       object lblHelp: TLabel
         Left = 0
         Height = 201
         Top = 0
-        Width = 668
+        Width = 648
         Align = alTop
         AutoSize = False
         Caption = 'lblHelp'
@@ -55,7 +56,7 @@ object connform: Tconnform
         Left = 12
         Height = 31
         Top = 230
-        Width = 617
+        Width = 597
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Import settings ...'
         Images = MainForm.ImageListIcons8
@@ -65,8 +66,8 @@ object connform: Tconnform
     end
     object tabSettings: TTabSheet
       Caption = 'Settings'
-      ClientHeight = 551
-      ClientWidth = 668
+      ClientHeight = 541
+      ClientWidth = 648
       ImageIndex = 39
       object lblPort: TLabel
         Left = 4
@@ -132,7 +133,7 @@ object connform: Tconnform
         Left = 238
         Height = 24
         Top = 276
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Compressed client/server protocol'
         TabOrder = 9
@@ -164,7 +165,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 214
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         EchoMode = emPassword
         PasswordChar = '*'
@@ -175,7 +176,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 182
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -192,7 +193,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 91
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -209,7 +210,7 @@ object connform: Tconnform
         Left = 238
         Height = 26
         Top = 10
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         DropDownCount = 12
         Images = MainForm.ImageListIcons8
@@ -223,7 +224,7 @@ object connform: Tconnform
         Left = 238
         Height = 24
         Top = 125
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Prompt for credentials'
         TabOrder = 3
@@ -233,7 +234,7 @@ object connform: Tconnform
         Left = 238
         Height = 24
         Top = 154
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Use Windows authentication'
         Enabled = False
@@ -242,9 +243,9 @@ object connform: Tconnform
       end
       object memoComment: TMemo
         Left = 238
-        Height = 197
+        Height = 187
         Top = 339
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight, akBottom]
         ScrollBars = ssVertical
         TabOrder = 11
@@ -254,7 +255,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 305
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -271,7 +272,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 45
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ItemHeight = 20
         Style = csDropDownList
@@ -281,8 +282,8 @@ object connform: Tconnform
     end
     object tabSSHtunnel: TTabSheet
       Caption = 'SSH tunnel'
-      ClientHeight = 551
-      ClientWidth = 668
+      ClientHeight = 541
+      ClientWidth = 648
       ImageIndex = 147
       object lblSSHLocalPort: TLabel
         Left = 4
@@ -342,7 +343,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 249
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         NumbersOnly = True
         TabOrder = 9
@@ -353,7 +354,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 114
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         TabOrder = 4
         Text = 'editSSHUser'
@@ -365,7 +366,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 148
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         EchoMode = emPassword
         PasswordChar = '*'
@@ -378,7 +379,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 80
-        Width = 320
+        Width = 300
         Anchors = [akTop, akLeft, akRight]
         TabOrder = 2
         Text = 'editSSHhost'
@@ -386,7 +387,7 @@ object connform: Tconnform
         OnExit = editTrim
       end
       object editSSHport: TEdit
-        Left = 564
+        Left = 544
         Height = 28
         Top = 80
         Width = 92
@@ -400,7 +401,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 215
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -441,7 +442,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 45
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ItemHeight = 20
         TabOrder = 1
@@ -452,7 +453,7 @@ object connform: Tconnform
         Left = 238
         Height = 24
         Top = 16
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Use SSH tunnel'
         TabOrder = 0
@@ -461,8 +462,8 @@ object connform: Tconnform
     end
     object tabAdvanced: TTabSheet
       Caption = 'Advanced'
-      ClientHeight = 551
-      ClientWidth = 668
+      ClientHeight = 541
+      ClientWidth = 648
       ImageIndex = 98
       object lblStartupScript: TLabel
         Left = 4
@@ -512,7 +513,7 @@ object connform: Tconnform
         Height = 24
         Hint = 'Use your client time zone in date/time SQL functions, e.g. NOW(), for MySQL 4.1.3+'
         Top = 112
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Use own client time zone'
         TabOrder = 5
@@ -523,7 +524,7 @@ object connform: Tconnform
         Height = 24
         Hint = 'Send your password to the server in cleartext, for MySQL 5.5.47+'
         Top = 170
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Enable cleartext authentication'
         TabOrder = 7
@@ -533,7 +534,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 11
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -552,7 +553,7 @@ object connform: Tconnform
         Height = 24
         Hint = 'Disable to speed up internal queries on databases with many tables'
         Top = 141
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Get full table status'
         TabOrder = 6
@@ -604,7 +605,7 @@ object connform: Tconnform
         Left = 238
         Height = 26
         Top = 199
-        Width = 418
+        Width = 398
         NoneColorColor = clNone
         Selected = clNone
         Style = [cbStandardColors, cbExtendedColors, cbSystemColors, cbIncludeNone, cbIncludeDefault, cbCustomColor, cbPrettyNames, cbCustomColors]
@@ -619,7 +620,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 234
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         TabOrder = 9
         TextHint = 'Regular expression'
@@ -629,7 +630,7 @@ object connform: Tconnform
         Left = 238
         Height = 24
         Top = 316
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'DDL queries (CREATE, ALTER, ...)'
         TabOrder = 11
@@ -639,7 +640,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 282
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Enabled = False
@@ -656,7 +657,7 @@ object connform: Tconnform
         Left = 238
         Height = 24
         Top = 345
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'DML queries (INSERT, UPDATE, ...)'
         TabOrder = 12
@@ -665,8 +666,8 @@ object connform: Tconnform
     end
     object tabSSL: TTabSheet
       Caption = 'SSL'
-      ClientHeight = 551
-      ClientWidth = 668
+      ClientHeight = 541
+      ClientWidth = 648
       ImageIndex = 25
       object lblSSLPrivateKey: TLabel
         Left = 4
@@ -710,7 +711,7 @@ object connform: Tconnform
         Left = 238
         Height = 24
         Top = 16
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         Caption = 'Use SSL'
         TabOrder = 0
@@ -720,7 +721,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 146
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         TabOrder = 4
         TextHint = 'List of permissible ciphers to use for SSL encryption'
@@ -731,7 +732,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 112
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -750,7 +751,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 79
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -769,7 +770,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 45
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
@@ -788,7 +789,7 @@ object connform: Tconnform
         Left = 238
         Height = 28
         Top = 181
-        Width = 418
+        Width = 398
         Anchors = [akTop, akLeft, akRight]
         ItemHeight = 20
         Items.Strings = (
@@ -803,8 +804,8 @@ object connform: Tconnform
     end
     object tabStatistics: TTabSheet
       Caption = 'Statistics'
-      ClientHeight = 551
-      ClientWidth = 668
+      ClientHeight = 541
+      ClientWidth = 648
       ImageIndex = 145
       object lblLastConnectLeft: TLabel
         Left = 4
@@ -865,20 +866,20 @@ object connform: Tconnform
     end
   end
   object pnlLeft: TPanel
-    Left = 0
-    Height = 584
-    Top = 0
+    Left = 10
+    Height = 574
+    Top = 10
     Width = 250
     Align = alLeft
     BevelOuter = bvNone
-    ClientHeight = 584
+    ClientHeight = 574
     ClientWidth = 250
     Constraints.MinWidth = 125
     ParentBackground = False
     TabOrder = 2
     object ListSessions: TLazVirtualStringTree
       Left = 0
-      Height = 556
+      Height = 546
       Top = 28
       Width = 250
       Align = alClient
@@ -924,6 +925,7 @@ object connform: Tconnform
         end>
       Header.Height = 32
       Header.Options = [hoAutoResize, hoColumnResize, hoDblClickResize, hoDrag, hoHotTrack, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+      Header.PopupMenu = MainForm.popupListHeader
       Header.SortColumn = 0
       HintMode = hmTooltip
       Images = MainForm.ImageListIcons8
@@ -964,14 +966,14 @@ object connform: Tconnform
     end
   end
   object pnlBottom: TPanel
-    Left = 0
-    Height = 48
+    Left = 10
+    Height = 38
     Top = 584
-    Width = 936
+    Width = 916
     Align = alBottom
     BevelOuter = bvNone
-    ClientHeight = 48
-    ClientWidth = 936
+    ClientHeight = 38
+    ClientWidth = 916
     ParentBackground = False
     TabOrder = 3
     object btnSave: TSpeedButton
@@ -985,7 +987,7 @@ object connform: Tconnform
       OnClick = btnSaveClick
     end
     object btnOpen: TButton
-      Left = 608
+      Left = 588
       Height = 31
       Top = 8
       Width = 100
@@ -997,7 +999,7 @@ object connform: Tconnform
       OnClick = btnOpenClick
     end
     object btnCancel: TButton
-      Left = 716
+      Left = 696
       Height = 31
       Top = 8
       Width = 100
@@ -1015,7 +1017,7 @@ object connform: Tconnform
       Caption = 'New'
       Images = MainForm.ImageListIcons8
       ImageIndex = 45
-      OnClick = btnNewClick
+      OnClick = btnNewDropdown
     end
     object btnDelete: TSpeedButton
       Left = 150
@@ -1028,7 +1030,7 @@ object connform: Tconnform
       OnClick = btnDeleteClick
     end
     object btnMore: TSpeedButton
-      Left = 823
+      Left = 803
       Height = 31
       Top = 8
       Width = 100

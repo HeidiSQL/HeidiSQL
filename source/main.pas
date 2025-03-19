@@ -5,15 +5,16 @@ unit main;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, Graphics, GraphUtil, Dialogs, Menus, ActnList,
-  ComCtrls, ExtCtrls, LCLProc, DateUtils, SynEdit, SynEditHighlighter,
+  Classes, SysUtils, Forms, Controls, Graphics, GraphUtil, Dialogs, Menus,
+  ActnList, ComCtrls, ExtCtrls, LCLProc, DateUtils, SynEdit, SynEditHighlighter,
   SynHighlighterSQL, SynGutterBase, SynCompletion, SynEditKeyCmds, SynEditTypes,
   SynGutter, SynGutterChanges, SynGutterCodeFolding, SynGutterLineNumber,
-  SynGutterMarks, StrUtils, laz.VirtualTrees, RegExpr, Buttons, StdCtrls,
-  fphttpclient, Math, LCLIntf, Generics.Collections, Generics.Defaults,
-  opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn, FileUtil, LMessages, dbconnection, dbstructures,
-  dbstructures.mysql, generic_types, apphelpers, extra_controls, createdatabase, SynEditMarkupSpecialLine,
-  searchreplace;
+  SynGutterMarks, StrUtils, laz.VirtualTrees, laz.VTHeaderPopup, RegExpr,
+  Buttons, StdCtrls, fphttpclient, Math, LCLIntf, Generics.Collections,
+  Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
+  FileUtil, LMessages, dbconnection, dbstructures, dbstructures.mysql,
+  generic_types, apphelpers, extra_controls, createdatabase,
+  SynEditMarkupSpecialLine, searchreplace;
 
 
 type
@@ -190,6 +191,7 @@ type
   { TMainForm }
 
   TMainForm = class(TExtForm)
+    popupListHeader: TLazVTHeaderPopupMenu;
     MainMenu1: TMainMenu;
     MainMenuFile: TMenuItem;
     FileNewItem: TMenuItem;
@@ -2315,8 +2317,9 @@ begin
       // when closing dialog via Alt+F4
     end;
     if DlgResult = mrCancel then begin
-      Free;
-      Exit;
+      //Free;
+      //Exit;
+      actExitApplicationExecute(nil);
     end;
   end;
 

@@ -231,15 +231,13 @@ end;
 
 procedure TfrmSearchReplace.btnWithDropDownClick(Sender: TObject);
 var
-  btn: TButton;
   Menu: TPopupMenu;
 begin
-  btn := Sender as TButton;
-  if btn = btnSearchHints then
+  if Sender = btnSearchHints then
     Menu := popupSearchHints
   else
     Menu := popupReplaceHints;
-  Menu.Popup(btn.ClientOrigin.X, btn.ClientOrigin.Y+btn.Height);
+  ShowPopup(Sender as TControl, Menu);
 end;
 
 

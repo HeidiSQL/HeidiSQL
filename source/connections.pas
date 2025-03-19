@@ -144,6 +144,7 @@ type
     chkSSHActive: TCheckBox;
     comboSSLVerification: TComboBox;
     lblSSLVerification: TLabel;
+    procedure btnNewDropdown(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure btnOpenClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -330,6 +331,11 @@ begin
   end;
   SetLength(ExeFiles, 0);}
   comboSSHExe.Items.Add('ssh.exe');
+end;
+
+procedure Tconnform.btnNewDropdown(Sender: TObject);
+begin
+  ShowPopup(btnNew, popupNew);
 end;
 
 
@@ -540,11 +546,8 @@ end;
 
 
 procedure Tconnform.btnMoreClick(Sender: TObject);
-var
-  btn: TSpeedButton;
 begin
-  btn := Sender as TSpeedButton;
-  popupMore.Popup(btn.ClientOrigin.X, btn.ClientOrigin.Y+btn.Height);
+  ShowPopup(btnMore, popupMore);
 end;
 
 
@@ -1628,25 +1631,25 @@ var
   HorizSpace, ButtonWidth: Integer;
 begin
   // Splitter resized - adjust width of bottom left buttons
-  ButtonWidth := Round((pnlLeft.Width - 2 * pnlLeft.Left) / 3);
+  ButtonWidth := Round((pnlLeft.Width - 2 * BorderWidth) / 3);
   btnNew.Width := ButtonWidth;
   btnSave.Width := ButtonWidth;
   btnDelete.Width := ButtonWidth;
-  btnNew.Left := pnlLeft.Left;
-  btnSave.Left := btnNew.Left + btnNew.Width + pnlLeft.Left;
-  btnDelete.Left := btnSave.Left + btnSave.Width + pnlLeft.Left;
+  btnNew.Left := 0;
+  btnSave.Left := btnNew.Left + btnNew.Width + BorderWidth;
+  btnDelete.Left := btnSave.Left + btnSave.Width + BorderWidth;
 
   // Resize bottom right buttons
-  HorizSpace := PageControlDetails.Width - 2 * pnlLeft.Left;
+  HorizSpace := PageControlDetails.Width - 2 * BorderWidth;
   ButtonWidth := Round(HorizSpace / 3);
   ButtonWidth := Max(ButtonWidth, ScaleSize(50));
   ButtonWidth := Min(ButtonWidth, ScaleSize(100));
   btnMore.Width := ButtonWidth;
   btnCancel.Width := ButtonWidth;
   btnOpen.Width := ButtonWidth;
-  btnmore.Left := PageControlDetails.Left + PageControlDetails.Width - btnMore.Width;
-  btnCancel.Left := btnMore.Left - btnMore.Width - pnlLeft.Left;
-  btnOpen.Left := btnCancel.Left - btnCancel.Width - pnlLeft.Left;
+  btnmore.Left := pnlBottom.Width - btnMore.Width;
+  btnCancel.Left := btnMore.Left - btnMore.Width - BorderWidth;
+  btnOpen.Left := btnCancel.Left - btnCancel.Width - BorderWidth;
 end;
 
 
