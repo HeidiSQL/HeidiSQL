@@ -2103,7 +2103,7 @@ function TConnectionParameters.GetSessionName: String;
 var
   LastBackSlash: Integer;
 begin
-  LastBackSlash := LastDelimiter(AppSettings.Delimiter, FSessionPath);
+  LastBackSlash := LastDelimiter(AppSettings.PathDelimiter, FSessionPath);
   if LastBackSlash > 0 then
     Result := Copy(FSessionPath, LastBackSlash+1, MaxInt)
   else

@@ -272,6 +272,7 @@ type
       FRestoreTabsInitValue: Boolean;
       FSettingsFile: String;
       FSettings: Array[TAppSettingIndex] of TAppSetting;
+      FDirnameUserAppData: String;
       const FPortableLockFileBase: String='portable.lock';
       procedure InitSetting(Index: TAppSettingIndex; Name: String;
         DefaultInt: Integer=0; DefaultBool: Boolean=False; DefaultString: String='';
@@ -284,7 +285,7 @@ type
       procedure Write(Index: TAppSettingIndex; FormatName: String;
         DataType: TAppSettingDataType; I: Integer; B: Boolean; S: String);
     public
-      const Delimiter: Char = '/';
+      const PathDelimiter: Char = '/';
       constructor Create;
       destructor Destroy; override;
       function ReadInt(Index: TAppSettingIndex; FormatName: String=''; Default: Integer=0): Integer;
@@ -3567,6 +3568,7 @@ var
   NewFileHandle: THandle;
 begin
   inherited;
+  FDirnameUserAppData := '';
   FRegistry := TJsonRegistry.Create(DirnameUserAppData + 'settings.json');
   FReads := 0;
   FWrites := 0;
@@ -3609,7 +3611,7 @@ begin
         MessageDlg(E.Message, mtError, [mbOK], 0, mbOK);
     end;
   end else begin
-    FBasePath := Delimiter;
+    FBasePath := PathDelimiter;
     FSettingsFile := '';
   end;
 
@@ -4039,7 +4041,7 @@ begin
   Folder := FBasePath;
   if FSessionPath <> '' then
     Folder := Folder + AppendDelimiter(REGKEY_SESSIONS) + FSessionPath;
-  if Delimiter+FRegistry.CurrentPath <> Folder then try
+  if PathDelimiter+FRegistry.CurrentPath <> Folder then try
     FRegistry.OpenKey(Folder, True);
   except
     on E:Exception do begin
@@ -4388,7 +4390,7 @@ var
   Content, Name, Value, KeyPath: String;
   Lines, Segments: TStringList;
   i: Integer;
-  //DataType: TRegDataType;
+  DataType: Integer;
 begin
   // Load registry settings from file
 
@@ -4398,14 +4400,16 @@ begin
 
   Content := ReadTextfile(FileName, UTF8NoBOMEncoding);
   Lines := Explode(CRLF, Content);
-  {for i:=0 to Lines.Count-1 do begin
+  for i:=0 to Lines.Count-1 do begin
     // Each line has 3 segments: reg path | data type | value. Continue if explode finds less or more than 3.
-    Segments := Explode(DELIMITER, Lines[i]);
+    Segments := Explode(LINEDELIMITER, Lines[i]);
     if Segments.Count <> 3 then
       continue;
+    // Windows registry to JSON path delimiter conversion: \ => /
+    Segments[0] := StringReplace(Segments[0], '\', PathDelimiter, [rfReplaceAll]);
     KeyPath := FBasePath + ExtractFilePath(Segments[0]);
     Name := ExtractFileName(Segments[0]);
-    DataType := TRegDataType(StrToInt(Segments[1]));
+    DataType := StrToIntDef(Segments[1], 0);
     FRegistry.OpenKey(KeyPath, True);
     if FRegistry.ValueExists(Name) then
       Continue; // Don't touch value if already there
@@ -4413,18 +4417,18 @@ begin
     if Segments.Count >= 3 then
       Value := Segments[2];
     case DataType of
-      rdString: begin
+      1: begin // String
         Value := StringReplace(Value, CHR13REPLACEMENT, #13, [rfReplaceAll]);
         Value := StringReplace(Value, CHR10REPLACEMENT, #10, [rfReplaceAll]);
         FRegistry.WriteString(Name, Value);
       end;
-      rdInteger:
+      3: // Integer
         FRegistry.WriteInteger(Name, MakeInt(Value));
-      rdBinary, rdUnknown, rdExpandString:
+      else
         ErrorDialog(Name+' has an unsupported data type.');
     end;
     Segments.Free;
-  end;}
+  end;
   Lines.Free;
 end;
 
@@ -4501,8 +4505,12 @@ end;
 function TAppSettings.DirnameUserAppData: String;
 begin
   // User folder for HeidiSQL's data (<user name>\Application Data)
-  Result := GetAppConfigDir(False);
-  Result := IncludeTrailingPathDelimiter(Result);
+  if FDirnameUserAppData.IsEmpty then begin
+    // GetAppConfigDir returns "/home/rick/.config/heidisql" only in a very early state. Later it takes the main form's caption into its folder name!
+    FDirnameUserAppData := GetAppConfigDir(False);
+    FDirnameUserAppData := IncludeTrailingPathDelimiter(FDirnameUserAppData);
+  end;
+  Result := FDirnameUserAppData;
   if not DirectoryExists(Result) then begin
     ForceDirectories(Result);
   end;
@@ -4560,8 +4568,8 @@ end;
 function TAppSettings.AppendDelimiter(Path: String): String;
 begin
   Result := Path;
-  if Result[Length(Result)] <> Delimiter then
-    Result := Result + Delimiter;
+  if Result[Length(Result)] <> PathDelimiter then
+    Result := Result + PathDelimiter;
 end;
 
 { TUTF8NoBOMEncoding }

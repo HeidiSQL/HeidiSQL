@@ -3194,11 +3194,12 @@ begin
   // Import settings from .txt or .reg file
   Dialog := TOpenDialog.Create(Self);
   Dialog.Title := f_('Import %s settings from file ...', [APPNAME]);
-  Dialog.Filter := _('Text files')+' (*.txt)|*.txt|'+_('Registry dump, deprecated')+' (*.reg)|*.reg|'+_('All files')+' (*.*)|*.*';
+  Dialog.Filter := _('Text files')+' (*.txt)|*.txt|'+_('All files')+' (*.*)|*.*';
   ImportSettingsDone := False;
   if Dialog.Execute then try
     if LowerCase(ExtractFileExt(Dialog.FileName)) = 'reg' then
-      ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
+      //ShellExec('regedit.exe', '', '"'+Dialog.FileName+'"')
+      ErrorDialog('Registry dumps not supported. Please use a txt file exported by '+APPNAME)
     else begin
       AppSettings.ImportSettings(Dialog.FileName);
       MessageDialog(f_('Settings successfully restored from %s', [Dialog.FileName]), mtInformation, [mbOK]);
