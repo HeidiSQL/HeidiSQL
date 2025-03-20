@@ -1415,7 +1415,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections;
+  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp;
 
 {$R *.lfm}
 
@@ -4903,10 +4903,10 @@ end;
 procedure TMainform.CallSQLHelpWithKeyword( keyword: String );
 begin
   if FActiveDbObj.Connection.Has(frHelpKeyword) then begin
-    {if not Assigned(SqlHelpDialog) then
+    if not Assigned(SqlHelpDialog) then
       SqlHelpDialog := TfrmSQLhelp.Create(Self);
     SqlHelpDialog.Show;
-    SqlHelpDialog.Keyword := keyword;}
+    SqlHelpDialog.Keyword := keyword;
   end else
     ErrorDialog(_('SQL help not available.'), f_('HELP <keyword> requires %s or newer.', ['MySQL 4.1']));
 end;
@@ -13273,10 +13273,10 @@ begin
     Editors.Add(frmPreferences.SynMemoSQLSample);}
   if Assigned(FCreateDatabaseDialog) then
     Editors.Add(FCreateDatabaseDialog.SynMemoCreateCode);
-  {if SqlHelpDialog <> nil then begin
+  if SqlHelpDialog <> nil then begin
     Editors.Add(SqlHelpDialog.memoDescription);
     Editors.Add(SqlHelpDialog.MemoExample);
-  end;}
+  end;
   {if Assigned(FTableToolsDialog) then
     Editors.Add(FTableToolsDialog.SynMemoFindText);}
   if Assigned(frmCsvDetector) then

@@ -229,6 +229,13 @@
         <Filename Value="source\jsonregistry.pas"/>
         <IsPartOfProject Value="True"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\sqlhelp.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmSQLhelp"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

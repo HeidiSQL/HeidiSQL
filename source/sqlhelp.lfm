@@ -1,0 +1,339 @@
+object frmSQLhelp: TfrmSQLhelp
+  Left = 0
+  Height = 444
+  Top = 0
+  Width = 728
+  BorderWidth = 10
+  Caption = 'Integrated SQL-help'
+  ClientHeight = 444
+  ClientWidth = 728
+  Color = clBtnFace
+  DesignTimePPI = 120
+  FormStyle = fsStayOnTop
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  object pnlMain: TPanel
+    Left = 10
+    Height = 382
+    Top = 10
+    Width = 708
+    Align = alClient
+    BevelOuter = bvNone
+    ClientHeight = 382
+    ClientWidth = 708
+    ParentBackground = False
+    TabOrder = 0
+    object Splitter1: TSplitter
+      Cursor = crSizeWE
+      Left = 191
+      Height = 382
+      Top = 0
+      Width = 10
+    end
+    object pnlLeft: TPanel
+      Left = 0
+      Height = 382
+      Top = 0
+      Width = 191
+      Align = alLeft
+      BevelOuter = bvNone
+      ClientHeight = 382
+      ClientWidth = 191
+      ParentBackground = False
+      TabOrder = 0
+      object editFilter: TEditButton
+        Left = 0
+        Height = 28
+        Top = 0
+        Width = 191
+        Align = alTop
+        ButtonWidth = 29
+        Images = MainForm.ImageListIcons8
+        ImageIndex = 193
+        MaxLength = 0
+        NumGlyphs = 1
+        OnButtonClick = editFilterRightButtonClick
+        OnChange = editFilterChange
+        PasswordChar = #0
+        TabOrder = 0
+        TextHint = 'Filter'
+      end
+      object treeTopics: TLazVirtualStringTree
+        Left = 0
+        Height = 354
+        Top = 28
+        Width = 191
+        Align = alClient
+        Constraints.MinWidth = 38
+        Header.AutoSizeIndex = 0
+        Header.Columns = <>
+        Header.MainColumn = -1
+        Images = MainForm.ImageListIcons8
+        TabOrder = 1
+        TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowRoot, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+        OnFocusChanged = treeTopicsFocusChanged
+        OnFreeNode = treeTopicsFreeNode
+        OnGetText = treeTopicsGetText
+        OnGetImageIndex = treeTopicsGetImageIndex
+        OnGetNodeDataSize = treeTopicsGetNodeDataSize
+        OnInitChildren = treeTopicsInitChildren
+        OnInitNode = treeTopicsInitNode
+      end
+    end
+    object pnlRight: TPanel
+      Left = 201
+      Height = 382
+      Top = 0
+      Width = 507
+      Align = alClient
+      BevelOuter = bvNone
+      ClientHeight = 382
+      ClientWidth = 507
+      ParentBackground = False
+      TabOrder = 1
+      object Splitter2: TSplitter
+        Cursor = crVSplit
+        Left = 0
+        Height = 10
+        Top = 212
+        Width = 507
+        Align = alTop
+        ResizeAnchor = akTop
+      end
+      object lblDescription: TLabel
+        Left = 0
+        Height = 20
+        Top = 1
+        Width = 507
+        Align = alTop
+        Caption = 'Description:'
+      end
+      object lblKeyword: TLabel
+        Left = 0
+        Height = 1
+        Top = 0
+        Width = 507
+        Align = alTop
+        ShowAccelChar = False
+      end
+      object lblExample: TLabel
+        Left = 0
+        Height = 20
+        Top = 222
+        Width = 507
+        Align = alTop
+        Caption = 'Example:'
+      end
+      inline memoDescription: TSynEdit
+        Left = 0
+        Height = 191
+        Top = 21
+        Width = 507
+        Align = alTop
+        Constraints.MinHeight = 38
+        Font.Height = -16
+        Font.Name = 'Courier New'
+        Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 0
+        OnKeyDown = memosKeyDown
+        Gutter.Visible = False
+        Gutter.Width = 72
+        Gutter.MouseActions = <>
+        RightGutter.Width = 0
+        RightGutter.MouseActions = <>
+        Keystrokes = <>
+        MouseActions = <>
+        MouseTextActions = <>
+        MouseSelActions = <>
+        Options = [eoAutoIndent, eoGroupUndo, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoDragDropEditing]
+        MouseOptions = [emDragDropEditing]
+        VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        ReadOnly = True
+        RightEdge = 0
+        SelectedColor.BackPriority = 50
+        SelectedColor.ForePriority = 50
+        SelectedColor.FramePriority = 50
+        SelectedColor.BoldPriority = 50
+        SelectedColor.ItalicPriority = 50
+        SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        BracketHighlightStyle = sbhsBoth
+        BracketMatchColor.Background = clNone
+        BracketMatchColor.Foreground = clNone
+        BracketMatchColor.Style = [fsBold]
+        FoldedCodeColor.Background = clNone
+        FoldedCodeColor.Foreground = clGray
+        FoldedCodeColor.FrameColor = clGray
+        MouseLinkColor.Background = clNone
+        MouseLinkColor.Foreground = clBlue
+        LineHighlightColor.Background = clNone
+        LineHighlightColor.Foreground = clNone
+        inline SynLeftGutterPartList1: TSynGutterPartList
+          object SynGutterMarks1: TSynGutterMarks
+            Width = 30
+            MouseActions = <>
+          end
+          object SynGutterLineNumber1: TSynGutterLineNumber
+            Width = 21
+            MouseActions = <>
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
+            DigitCount = 2
+            ShowOnlyLineNumbersMultiplesOf = 1
+            ZeroStart = False
+            LeadingZeros = False
+          end
+          object SynGutterChanges1: TSynGutterChanges
+            Width = 5
+            MouseActions = <>
+            ModifiedColor = 59900
+            SavedColor = clGreen
+          end
+          object SynGutterSeparator1: TSynGutterSeparator
+            Width = 3
+            MouseActions = <>
+            MarkupInfo.Background = clWhite
+            MarkupInfo.Foreground = clGray
+          end
+          object SynGutterCodeFolding1: TSynGutterCodeFolding
+            Width = 13
+            MouseActions = <>
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGray
+            MouseActionsExpanded = <>
+            MouseActionsCollapsed = <>
+          end
+        end
+      end
+      inline MemoExample: TSynEdit
+        Left = 0
+        Height = 140
+        Top = 242
+        Width = 507
+        Align = alClient
+        Constraints.MinHeight = 38
+        Font.Height = -16
+        Font.Name = 'Courier New'
+        Font.Pitch = fpFixed
+        Font.Quality = fqNonAntialiased
+        ParentColor = False
+        ParentFont = False
+        TabOrder = 1
+        OnKeyDown = memosKeyDown
+        Gutter.Visible = False
+        Gutter.Width = 72
+        Gutter.MouseActions = <>
+        RightGutter.Width = 0
+        RightGutter.MouseActions = <>
+        Keystrokes = <>
+        MouseActions = <>
+        MouseTextActions = <>
+        MouseSelActions = <>
+        Options = [eoAutoIndent, eoGroupUndo, eoShowScrollHint, eoSmartTabs, eoTabsToSpaces, eoDragDropEditing]
+        MouseOptions = [emDragDropEditing]
+        VisibleSpecialChars = [vscSpace, vscTabAtLast]
+        ReadOnly = True
+        RightEdge = 0
+        SelectedColor.BackPriority = 50
+        SelectedColor.ForePriority = 50
+        SelectedColor.FramePriority = 50
+        SelectedColor.BoldPriority = 50
+        SelectedColor.ItalicPriority = 50
+        SelectedColor.UnderlinePriority = 50
+        SelectedColor.StrikeOutPriority = 50
+        BracketHighlightStyle = sbhsBoth
+        BracketMatchColor.Background = clNone
+        BracketMatchColor.Foreground = clNone
+        BracketMatchColor.Style = [fsBold]
+        FoldedCodeColor.Background = clNone
+        FoldedCodeColor.Foreground = clGray
+        FoldedCodeColor.FrameColor = clGray
+        MouseLinkColor.Background = clNone
+        MouseLinkColor.Foreground = clBlue
+        LineHighlightColor.Background = clNone
+        LineHighlightColor.Foreground = clNone
+        inline SynLeftGutterPartList1: TSynGutterPartList
+          object SynGutterMarks1: TSynGutterMarks
+            Width = 30
+            MouseActions = <>
+          end
+          object SynGutterLineNumber1: TSynGutterLineNumber
+            Width = 21
+            MouseActions = <>
+            MarkupInfo.Background = clBtnFace
+            MarkupInfo.Foreground = clNone
+            DigitCount = 2
+            ShowOnlyLineNumbersMultiplesOf = 1
+            ZeroStart = False
+            LeadingZeros = False
+          end
+          object SynGutterChanges1: TSynGutterChanges
+            Width = 5
+            MouseActions = <>
+            ModifiedColor = 59900
+            SavedColor = clGreen
+          end
+          object SynGutterSeparator1: TSynGutterSeparator
+            Width = 3
+            MouseActions = <>
+            MarkupInfo.Background = clWhite
+            MarkupInfo.Foreground = clGray
+          end
+          object SynGutterCodeFolding1: TSynGutterCodeFolding
+            Width = 13
+            MouseActions = <>
+            MarkupInfo.Background = clNone
+            MarkupInfo.Foreground = clGray
+            MouseActionsExpanded = <>
+            MouseActionsCollapsed = <>
+          end
+        end
+      end
+    end
+  end
+  object pnlBottom: TPanel
+    Left = 10
+    Height = 42
+    Top = 392
+    Width = 708
+    Align = alBottom
+    BevelOuter = bvNone
+    ClientHeight = 42
+    ClientWidth = 708
+    ParentBackground = False
+    TabOrder = 1
+    object btnSearchOnline: TSpeedButton
+      Left = 444
+      Height = 31
+      Top = 8
+      Width = 129
+      Anchors = [akTop, akRight]
+      Caption = 'Search online'
+      Images = MainForm.ImageListIcons8
+      ImageIndex = 69
+      OnClick = ButtonOnlinehelpClick
+    end
+    object ButtonClose: TButton
+      Left = 580
+      Height = 31
+      Top = 8
+      Width = 128
+      Anchors = [akTop, akRight]
+      Cancel = True
+      Caption = 'Close'
+      Default = True
+      TabOrder = 0
+      OnClick = ButtonCloseClick
+    end
+  end
+  object timerSearch: TTimer
+    Interval = 500
+    OnTimer = DoSearch
+    Left = 10
+    Top = 400
+  end
+end
