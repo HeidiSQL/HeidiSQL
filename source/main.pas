@@ -786,6 +786,8 @@ type
     actCopyGridNodes: TAction;
     actCopyGridNodes1: TMenuItem;
     procedure actCreateDBObjectExecute(Sender: TObject);
+    procedure actNextTabExecute(Sender: TObject);
+    procedure actPreviousTabExecute(Sender: TObject);
     procedure menuConnectionsPopup(Sender: TObject);
     procedure actExitApplicationExecute(Sender: TObject);
     //procedure WMCopyData(var Msg: TWMCopyData); message WM_COPYDATA;
@@ -4514,6 +4516,16 @@ begin
   else if a = actCreateFunction then Obj.NodeType := lntFunction;
 
   PlaceObjectEditor(Obj);
+end;
+
+procedure TMainForm.actNextTabExecute(Sender: TObject);
+begin
+  PageControlMain.SelectNextPage(True);
+end;
+
+procedure TMainForm.actPreviousTabExecute(Sender: TObject);
+begin
+  PageControlMain.SelectNextPage(False);
 end;
 
 
@@ -14891,8 +14903,10 @@ begin
   // Go back to the result tab left to the active one
   Tab := QueryTabs.ActiveTab;
   if Tab <> nil then begin
-    if Tab.tabsetQuery.TabIndex > 0 then
-      //Tab.tabsetQuery.SelectNext(False)
+    if Tab.tabsetQuery.TabIndex > 0 then begin
+      Tab.tabsetQuery.TabIndex := Tab.tabsetQuery.TabIndex -1;
+      Tab.tabsetQuery.OnChange(Tab.tabsetQuery);
+    end
     else
       Beep;
   end;
@@ -14906,8 +14920,10 @@ begin
   // Advance to the next result tab
   Tab := QueryTabs.ActiveTab;
   if Tab <> nil then begin
-    if Tab.tabsetQuery.TabIndex < Tab.tabsetQuery.Tabs.Count-1 then
-      //Tab.tabsetQuery.SelectNext(True)
+    if Tab.tabsetQuery.TabIndex < Tab.tabsetQuery.Tabs.Count-1 then begin
+      Tab.tabsetQuery.TabIndex := Tab.tabsetQuery.TabIndex +1;
+      Tab.tabsetQuery.OnChange(Tab.tabsetQuery);
+    end
     else
       Beep;
   end;

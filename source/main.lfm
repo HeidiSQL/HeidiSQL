@@ -4340,6 +4340,7 @@ object MainForm: TMainForm
       Caption = '&Previous tab'
       Hint = 'Previous tab|Go back to the previous tab'
       ImageIndex = 117
+      OnExecute = actPreviousTabExecute
       ShortCut = 24585
     end
     object actNextTab: TAction
@@ -4347,6 +4348,7 @@ object MainForm: TMainForm
       Caption = '&Next tab'
       Hint = 'Next tab|Go to the next tab'
       ImageIndex = 116
+      OnExecute = actNextTabExecute
       ShortCut = 16393
     end
     object actSelectAll: TAction
@@ -20038,7 +20040,7 @@ object MainForm: TMainForm
   end
   object SynCompletionProposal: TSynCompletion
     OnExecute = SynCompletionProposalExecute
-    Position = 0
+    Position = -1
     LinesInWindow = 6
     OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight
