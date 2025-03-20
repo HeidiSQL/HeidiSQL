@@ -12,7 +12,7 @@ uses
   SynGutterMarks, StrUtils, laz.VirtualTrees, laz.VTHeaderPopup, RegExpr,
   Buttons, StdCtrls, fphttpclient, Math, LCLIntf, Generics.Collections,
   Generics.Defaults, opensslsockets, StdActns, Clipbrd, Types, LCLType, EditBtn,
-  FileUtil, LMessages, dbconnection, dbstructures, dbstructures.mysql,
+  FileUtil, LMessages, jsonconf, dbconnection, dbstructures, dbstructures.mysql,
   generic_types, apphelpers, extra_controls, createdatabase,
   SynEditMarkupSpecialLine, searchreplace;
 
@@ -1039,8 +1039,8 @@ type
     procedure StatusBarDrawPanel(StatusBar: TStatusBar; Panel: TStatusPanel; const Rect: TRect);
     //procedure StatusBarMouseMove(Sender: TObject; Shift: TShiftState; X, Y: Integer);
     //procedure StatusBarMouseLeave(Sender: TObject);
-    //procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
-    //procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+    procedure AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+    procedure AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
     procedure actDataPreviewUpdate(Sender: TObject);
     procedure spltPreviewMoved(Sender: TObject);
     procedure actDataSaveBlobToFileExecute(Sender: TObject);
@@ -1367,9 +1367,9 @@ type
     function GetEncodingName(Encoding: TEncoding): String;
     function GetCharsetByEncoding(Encoding: TEncoding): String;
     procedure RefreshHelperNode(NodeIndex: Cardinal);
-    //procedure BeforeQueryExecution(Thread: TQueryThread);
-    //procedure AfterQueryExecution(Thread: TQueryThread);
-    //procedure FinishedQueryExecution(Thread: TQueryThread);
+    procedure BeforeQueryExecution(Thread: TQueryThread);
+    procedure AfterQueryExecution(Thread: TQueryThread);
+    procedure FinishedQueryExecution(Thread: TQueryThread);
     procedure EnableProgress(MaxValue: Integer);
     procedure DisableProgress;
     procedure SetProgressPosition(Value: Integer);
@@ -3344,14 +3344,14 @@ end;
 
 
 
-{procedure TMainForm.BeforeQueryExecution(Thread: TQueryThread);
+procedure TMainForm.BeforeQueryExecution(Thread: TQueryThread);
 begin
   // Update GUI stuff
   SetProgressPosition(Thread.BatchPosition);
-end;}
+end;
 
 
-{procedure TMainForm.AfterQueryExecution(Thread: TQueryThread);
+procedure TMainForm.AfterQueryExecution(Thread: TQueryThread);
 var
   Tab: TQueryTab;
   NewTab: TResultTab;
@@ -3370,12 +3370,12 @@ begin
   // Use session color on result tabs
   TabsetColor := Thread.Connection.Parameters.SessionColor;
   if TabsetColor <> clNone then begin
-    Tab.tabsetQuery.SelectedColor := TabsetColor;
-    Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 20, False);
+    Tab.tabsetQuery.Color := TabsetColor;
+    //Tab.tabsetQuery.UnselectedColor := ColorAdjustLuma(TabsetColor, 20, False);
   end
   else begin
-    Tab.tabsetQuery.SelectedColor := clWindow;
-    Tab.tabsetQuery.UnselectedColor := clBtnFace;
+    Tab.tabsetQuery.Color := clWindow;
+    //Tab.tabsetQuery.UnselectedColor := clBtnFace;
   end;
 
   // Get tab caption list from comment, similar to a name:xyz in a single query
@@ -3436,14 +3436,16 @@ begin
     NewTab.Grid.EndUpdate;
     for i:=0 to NewTab.Grid.Header.Columns.Count-1 do
       AutoCalcColWidth(NewTab.Grid, i);
-    if Tab.tabsetQuery.TabIndex = -1 then
+    if Tab.ResultTabs.Count = 1 then begin
       Tab.tabsetQuery.TabIndex := 0;
+      Tab.tabsetQuery.OnChange(Tab.tabsetQuery);
+    end;
   end;
   ShowStatusMsg;
-end;}
+end;
 
 
-{procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
+procedure TMainForm.FinishedQueryExecution(Thread: TQueryThread);
 var
   Tab: TQueryTab;
   MetaInfo, ErroneousSQL, RegName: String;
@@ -3459,7 +3461,7 @@ var
   var
     rx: TRegExpr;
     SelStart, ErrorPos: Integer;
-    ErrorCoord: TBufferCoord;
+    ErrorCoord: TPoint;
   begin
     // Try to set memo cursor to the relevant position
     if Tab.LeftOffsetInMemo > 0 then
@@ -3483,10 +3485,10 @@ var
       ErrorPos := Pos(ErroneousSQL, Copy(Tab.Memo.Text, SelStart, SIZE_MB));
       if ErrorPos > 0 then begin
         Inc(SelStart, ErrorPos-1);
-        Tab.Memo.SelLength := 0;
+        Tab.Memo.ClearSelection;
         Tab.Memo.SelStart := SelStart;
         ErrorCoord := Tab.Memo.CharIndexToRowCol(SelStart);
-        Tab.ErrorLine := ErrorCoord.Line;
+        Tab.ErrorLine := ErrorCoord.Y;
       end;
     end;
   end;
@@ -3592,7 +3594,7 @@ begin
         Thread.Batch.SQL);
     except
       // Silence sporadic boring write errors. See http://www.heidisql.com/forum.php?t=13088
-      on E:ERegistryException do
+      on E:EJSONConfigError do
         LogSQL(f_('Error when updating query history: %s', [E.Message]), lcError);
     end;
 
@@ -3606,7 +3608,7 @@ begin
   OperationRunning(False);
   Screen.Cursor := crDefault;
   ShowStatusMsg;
-end;}
+end;
 
 
 procedure TMainForm.tabsetQueryClick(Sender: TObject);
@@ -6995,7 +6997,7 @@ begin
       // All databases
       for i:=0 to Conn.AllDatabases.Count-1 do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_DB, _('database'), Conn.AllDatabases[i], '');
-        Proposal.ItemList.Add(DisplayText);
+        Proposal.ItemList.Add(Conn.AllDatabases[i]);
       end;
 
       // Tables from current db
@@ -7012,14 +7014,14 @@ begin
       // Functions
       for SQLFunc in Conn.SQLFunctions do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_FUNCTION, _('function'), SQLFunc.Name, SQLFunc.Declaration);
-        Proposal.ItemList.Add(DisplayText);
+        Proposal.ItemList.Add(SQLFunc.Name + SQLFunc.Declaration);
       end;
 
 
       // Keywords
       for i:=0 to MySQLKeywords.Count-1 do begin
         DisplayText := SynCompletionProposalPrettyText(ICONINDEX_KEYWORD, _('keyword'), MySQLKeywords[i], '');
-        Proposal.ItemList.Add(DisplayText);
+        Proposal.ItemList.Add(MySQLKeywords[i]);
       end;
 
       // Procedure params
@@ -11854,14 +11856,14 @@ var
   DoCut, DoCopyRows: Boolean;
   IsResultGrid, HasNulls: Boolean;
   ClpFormat: Word;
-  ClpData: THandle;
+  //ClpData: THandle;
   //APalette: HPalette;
-  //Exporter: TSynExporterRTF;
+  //Exporter: TSynExporterHTML;
   Results: TDBQuery;
   RowNum: PInt64;
   ExportDialog: TfrmExportGrid;
 begin
-  {// Copy text from a focused control to clipboard
+  // Copy text from a focused control to clipboard
   CurrentControl := Screen.ActiveControl;
   SendingControl := TAction(Sender).ActionComponent;
   SenderName := TAction(Sender).Name;
@@ -11872,8 +11874,8 @@ begin
   try
     if SendingControl = btnPreviewCopy then begin
       if (imgPreview.Picture.Graphic <> nil) and (not imgPreview.Picture.Graphic.Empty) then begin
-        imgPreview.Picture.SaveToClipBoardFormat(ClpFormat, ClpData, APalette);
-        ClipBoard.SetAsHandle(ClpFormat, ClpData);
+        imgPreview.Picture.SaveToClipBoardFormat(ClpFormat);
+        //ClipBoard.SetAsHandle(ClpFormat, ClpData);
       end;
     end else if CurrentControl is TCustomEdit then begin
       Edit := TCustomEdit(CurrentControl);
@@ -11926,16 +11928,16 @@ begin
       SynMemo := CurrentControl as TSynMemo;
       if SynMemo.SelAvail then begin
         // Create both text and RTF clipboard format, so rich text applications can paste highlighted SQL
-        Clipboard.Open;
-        Clipboard.TryAsText := SynMemo.SelText;
-        Exporter := TSynExporterRTF.Create(Self);
-        Exporter.Highlighter := SynMemo.Highlighter;
-        Exporter.ExportAll(Explode(CRLF, SynMemo.SelText));
+        //Clipboard.Open;
+        //Clipboard.TryAsText := SynMemo.SelText;
+        //Exporter := TSynExporterHTML.Create(Self);
+        //Exporter.Highlighter := SynMemo.Highlighter;
+        //Exporter.ExportAll(Explode(sLineBreak, SynMemo.SelText));
         if DoCut then SynMemo.CutToClipboard
         else SynMemo.CopyToClipboard;
-        Exporter.CopyToClipboard;
-        Clipboard.Close;
-        Exporter.Free;
+        //Exporter.CopyToClipboard;
+        //Clipboard.Close;
+        //Exporter.Free;
       end;
     end else begin
       raise Exception.Create('Unhandled control in clipboard action: '+IfThen(Assigned(CurrentControl), CurrentControl.Name, 'nil'));
@@ -11943,10 +11945,10 @@ begin
   except
     on E:Exception do begin
       LogSQL(E.ClassName + ': ' + E.Message);
-      MessageBeep(MB_ICONASTERISK);
+      Beep;
     end;
   end;
-  Screen.Cursor := crDefault;}
+  Screen.Cursor := crDefault;
 end;
 
 
@@ -12412,7 +12414,7 @@ begin
   //QueryTab.tabsetQuery.DitherBackground := tabsetQuery.DitherBackground;
   //QueryTab.tabsetQuery.SelectedColor := tabsetQuery.SelectedColor;
   //QueryTab.tabsetQuery.UnselectedColor := tabsetQuery.UnselectedColor;
-  QueryTab.tabsetQuery.OnClick := tabsetQuery.OnClick;
+  QueryTab.tabsetQuery.OnChange := tabsetQuery.OnChange;
   QueryTab.tabsetQuery.OnGetImageIndex := tabsetQuery.OnGetImageIndex;
   QueryTab.tabsetQuery.OnMouseMove := tabsetQuery.OnMouseMove;
   QueryTab.tabsetQuery.OnMouseLeave := tabsetQuery.OnMouseLeave;
@@ -13768,7 +13770,7 @@ begin
     ShowStatusMsg('', 1);
 end;
 
-{procedure TMainForm.AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+procedure TMainForm.AnyGridStartOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
 begin
   // Display status message on long running sort operations
   if not MainFormCreated then begin
@@ -13781,10 +13783,10 @@ begin
     FOperatingGrid := Sender;
     OperationRunning(True);
   end;
-end;}
+end;
 
 
-{procedure TMainForm.AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
+procedure TMainForm.AnyGridEndOperation(Sender: TBaseVirtualTree; OperationKind: TVTOperationKind);
 begin
   // Reset status message after long running operations
   if OperationKind = okSortTree then begin
@@ -13792,7 +13794,7 @@ begin
     FOperatingGrid := nil;
     OperationRunning(False);
   end;
-end;}
+end;
 
 
 procedure TMainForm.actCancelOperationExecute(Sender: TObject);

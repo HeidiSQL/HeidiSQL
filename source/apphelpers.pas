@@ -3038,8 +3038,8 @@ begin
   FRowsFound := 0;
   FWarningCount := 0;
   FErrorMessage := '';
-  //FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
-  //FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
+  FBatchInOneGo := MainForm.actBatchInOneGo.Checked;
+  FStopOnErrors := MainForm.actQueryStopOnErrors.Checked;
   FreeOnTerminate := True;
   Priority := tpNormal;
 end;
@@ -3068,9 +3068,9 @@ begin
     end else begin
       // Concat queries up to a size of max_allowed_packet
       if MaxAllowedPacket = 0 then begin
-        //FConnection.SetLockedByThread(Self);
-        //MaxAllowedPacket := FConnection.MaxAllowedPacket;
-        //FConnection.SetLockedByThread(nil);
+        FConnection.SetLockedByThread(Self);
+        MaxAllowedPacket := FConnection.MaxAllowedPacket;
+        FConnection.SetLockedByThread(nil);
         // TODO: Log('Detected maximum allowed packet size: '+FormatByteNumber(MaxAllowedPacket), lcDebug);
       end;
       BatchStartOffset := FBatch[i].LeftOffset;
@@ -3093,11 +3093,11 @@ begin
     end;
     Synchronize(BeforeQuery);
     try
-      {FConnection.SetLockedByThread(Self);
+      FConnection.SetLockedByThread(Self);
       DoStoreResult := ResultCount < AppSettings.ReadInt(asMaxQueryResults);
       if (not DoStoreResult) and (not LogMaxResultsDone) then begin
         // Inform user about preference setting for limiting result tabs
-        LogFromOutside(f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)]),
+        LogFromThread(f_('Reached maximum number of result tabs (%d). To display more results, increase setting in Preferences > SQL', [AppSettings.ReadInt(asMaxQueryResults)]),
           lcInfo
           );
         LogMaxResultsDone := True;
@@ -3109,7 +3109,7 @@ begin
       Inc(FQueryNetTime, FConnection.LastQueryNetworkDuration);
       Inc(FRowsAffected, FConnection.RowsAffected);
       Inc(FRowsFound, FConnection.RowsFound);
-      Inc(FWarningCount, FConnection.WarningCount);}
+      Inc(FWarningCount, FConnection.WarningCount);
     except
       on E:EDbError do begin
         if FStopOnErrors or (i = FBatch.Count - 1) then begin
@@ -3118,14 +3118,14 @@ begin
         end;
       end;
     end;
-    //FConnection.SetLockedByThread(nil);
+    FConnection.SetLockedByThread(nil);
     Synchronize(AfterQuery);
-    //FConnection.ShowWarnings;
+    FConnection.ShowWarnings;
     // Check if FAborted is set by the main thread, to avoid proceeding the loop in case
     // FStopOnErrors is set to false
     if FAborted or ErrorAborted then
       break;
-	end;
+  end;
 
   Synchronize(BatchFinished);
 end;
@@ -3133,7 +3133,7 @@ end;
 
 procedure TQueryThread.BeforeQuery;
 begin
-  //MainForm.BeforeQueryExecution(Self);
+  MainForm.BeforeQueryExecution(Self);
 end;
 
 procedure TQueryThread.LogFromThread(Msg: String; Category: TDBLogCategory);
@@ -3146,19 +3146,19 @@ end;
 
 procedure TQueryThread.Log;
 begin
-  //FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
+  FConnection.OnLog(FLogMsg, FLogCategory, FConnection);
 end;
 
 
 procedure TQueryThread.AfterQuery;
 begin
-  //MainForm.AfterQueryExecution(Self);
+  MainForm.AfterQueryExecution(Self);
 end;
 
 
 procedure TQueryThread.BatchFinished;
 begin
-  //MainForm.FinishedQueryExecution(Self);
+  MainForm.FinishedQueryExecution(Self);
 end;
 
 
