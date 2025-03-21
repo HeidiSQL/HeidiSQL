@@ -1378,7 +1378,7 @@ begin
   end;
   VT.EndUpdate;
   // Disable hottracking in non-Vista mode, looks ugly in XP, but nice in Vista
-  if toUseExplorerTheme in VT.TreeOptions.PaintOptions then
+  if (toUseExplorerTheme in VT.TreeOptions.PaintOptions) {$IfDef WINDOWS} and true {$EndIf} then
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions + [toHotTrack]
   else
     VT.TreeOptions.PaintOptions := VT.TreeOptions.PaintOptions - [toHotTrack];
@@ -1394,14 +1394,14 @@ begin
   // Apply case insensitive incremental search event
   if VT.IncrementalSearch <> laz.VirtualTrees.isNone then
     VT.OnIncrementalSearch := Mainform.AnyGridIncrementalSearch;
-  //VT.OnStartOperation := Mainform.AnyGridStartOperation;
-  //VT.OnEndOperation := Mainform.AnyGridEndOperation;
+  VT.OnStartOperation := Mainform.AnyGridStartOperation;
+  VT.OnEndOperation := Mainform.AnyGridEndOperation;
 end;
 
 
 function GetTextHeight(Font: TFont): Integer;
 begin
-  Result := Font.GetTextHeight('Äy');
+  Result := MainForm.Canvas.TextHeight('Äy');
 end;
 
 
