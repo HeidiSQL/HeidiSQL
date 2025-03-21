@@ -1134,7 +1134,7 @@ type
     procedure StatusBarClick(Sender: TObject);
     procedure AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
       WheelDelta: Integer; MousePos: TPoint; var Handled: Boolean);
-    //procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
+    procedure SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
     procedure filterQueryHelpersChange(Sender: TObject);
     procedure TimerStoreTabsTimer(Sender: TObject);
     procedure actGoToQueryResultsExecute(Sender: TObject);
@@ -1338,8 +1338,8 @@ type
     procedure CallSQLHelpWithKeyword( keyword: String );
     procedure AddOrRemoveFromQueryLoadHistory(Filename: String; AddIt: Boolean; CheckIfFileExists: Boolean);
     procedure popupQueryLoadClick( sender: TObject );
-    //procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
-    //procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
+    procedure PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
+    procedure PopupQueryLoadRemoveAllFiles(Sender: TObject);
     procedure SessionConnect(Sender: TObject);
     function InitConnection(Params: TConnectionParameters; ActivateMe: Boolean; var Connection: TDBConnection): Boolean;
     procedure ConnectionsNotify(Sender: TObject; constref Item: TDBConnection; Action: TCollectionNotification);
@@ -2189,7 +2189,7 @@ var
   UpdatecheckInterval, i: Integer;
   LastActiveSession, Environment, RunFrom: String;
   //frm : TfrmUpdateCheck;
-  StatsCall: TFPHTTPClient;
+  StatsCall: THttpDownload;
   StatsURL: String;
   SessionPaths: TStringlist;
   DlgResult: TModalResult;
@@ -2239,7 +2239,7 @@ begin
       else if AppSettings.PortableMode then Environment := 'WinDesktopPortable'
       else Environment := GetOS + 'Desktop';
 
-      StatsCall := TFPHTTPClient.Create(Self);
+      StatsCall := THttpDownload.Create(Self);
       StatsURL := APPDOMAIN + 'savestats.php?c=' + IntToStr(FAppVerRevision) +
         '&bits=' + IntToStr(GetExecutableBits) +
         '&thm=' + //EncodeURLParam(TStyleManager.ActiveStyle.Name) +
@@ -5189,23 +5189,23 @@ begin
 
   Item := TMenuItem.Create(popupQueryLoad);
   Item.Caption := _('Remove absent files');
-  //Item.OnClick := PopupQueryLoadRemoveAbsentFiles;
+  Item.OnClick := PopupQueryLoadRemoveAbsentFiles;
   popupQueryLoad.Items.Add(Item);
 
   Item := TMenuItem.Create(popupQueryLoad);
   Item.Caption := _('Clear file list');
-  //Item.OnClick := PopupQueryLoadRemoveAllFiles;
+  Item.OnClick := PopupQueryLoadRemoveAllFiles;
   popupQueryLoad.Items.Add(Item);
 end;
 
 
-{procedure TMainform.PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
+procedure TMainform.PopupQueryLoadRemoveAbsentFiles(Sender: TObject);
 begin
   AddOrRemoveFromQueryLoadHistory('', False, True);
-end;}
+end;
 
 
-{procedure TMainform.PopupQueryLoadRemoveAllFiles(Sender: TObject);
+procedure TMainform.PopupQueryLoadRemoveAllFiles(Sender: TObject);
 var
   i: Integer;
 begin
@@ -5213,7 +5213,7 @@ begin
     if not AppSettings.DeleteValue(asSQLfile, IntToStr(i)) then
       break;
   end;
-end;}
+end;
 
 
 procedure TMainform.popupQueryLoadClick(Sender: TObject);
@@ -7650,12 +7650,12 @@ begin
 end;
 
 
-{procedure TMainForm.SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
+procedure TMainForm.SynMemoQueryKeyPress(Sender: TObject; var Key: Char);
 var
   Editor: TSynMemo;
   Token, Replacement: String;
   Attri: TSynHighlighterAttributes;
-  OldCaretXY, StartOfTokenRowCol, EndOfTokenRowCol, CurrentRowCol: TBufferCoord;
+  OldCaretXY, StartOfTokenRowCol, EndOfTokenRowCol, CurrentRowCol: TPoint;
   TokenTypeInt, Start, CurrentCharIndex: Integer;
   //OldSelStart, OldSelEnd: Integer;
   LineWithToken: String;
@@ -7666,7 +7666,7 @@ const
   IgnoreChars = [#8]; // Backspace, and probably more which should not trigger uppercase
 begin
   // Uppercase reserved words, functions and data types
-  if CharInSet(Key, WordChars) or CharInSet(Key, IgnoreChars) then
+  {if CharInSet(Key, WordChars) or CharInSet(Key, IgnoreChars) then
     Exit;
   if not AppSettings.ReadBool(asAutoUppercase) then
     Exit;
@@ -7675,13 +7675,13 @@ begin
   // Go one left on trailing line feed, after which PrevWordPos doesn't work
   Dec(CurrentCharIndex, 1);
   CurrentRowCol := Editor.CharIndexToRowCol(CurrentCharIndex);
-  StartOfTokenRowCol := Editor.PrevWordPosEx(CurrentRowCol);
+  StartOfTokenRowCol := Editor.PrevWordPos;
   Editor.GetHighlighterAttriAtRowColEx(StartOfTokenRowCol, Token, TokenTypeInt, Start, Attri);
   Replacement := UpperCase(Token);
 
   // Check if token is preceded by a dot, so it is most probably a table, column or some alias
-  LineWithToken := Editor.Lines[StartOfTokenRowCol.Line-1];
-  if (StartOfTokenRowCol.Char > 1) and (LineWithToken[StartOfTokenRowCol.Char-1] = '.') then begin
+  LineWithToken := Editor.Lines[StartOfTokenRowCol.Y-1];
+  if (StartOfTokenRowCol.X > 1) and (LineWithToken[StartOfTokenRowCol.X-1] = '.') then begin
     Exit;
   end;
 
@@ -7711,9 +7711,9 @@ begin
     Editor.CaretXY := OldCaretXY;
     //Editor.SelStart := OldSelStart; // breaks at least some undo steps
     //Editor.SelEnd := OldSelEnd;
-  end;
+  end;}
 
-end;}
+end;
 
 
 procedure TMainForm.AnySynMemoMouseWheel(Sender: TObject; Shift: TShiftState;
@@ -14855,7 +14855,7 @@ function TMainForm.HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
 var
   Email, CheckResult: String;
   rx: TRegExpr;
-  CheckWebpage: TFPHttpClient;
+  CheckWebpage: THttpDownload;
 begin
   Screen.Cursor := crHourGlass;
   if (FHasDonatedDatabaseCheck = nbUnset) or (ForceCheck) then begin
@@ -14870,7 +14870,7 @@ begin
       //   = 1 : Not a donor
       //   = 2 : Valid donor
       rx := TRegExpr.Create;
-      CheckWebpage := TFPHttpClient.Create(MainForm);
+      CheckWebpage := THttpDownload.Create(MainForm);
       try
         CheckResult := CheckWebpage.Get(APPDOMAIN + 'hasdonated.php?email='+EncodeURLParam(Email));
         LogSQL('HTTP response: "'+CheckResult+'"', lcDebug);
@@ -15097,8 +15097,8 @@ begin
   end;
 
   if LoadSuccess then begin
-    //if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
-    //  MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
+    if Pos(AppSettings.DirnameSnippets, Filepath) = 0 then
+      MainForm.AddOrRemoveFromQueryLoadHistory(Filepath, True, True);
     //Memo.UndoList.AddGroupBreak;
     LineBreaks := ScanLineBreaks(Content);
     if ReplaceContent then begin

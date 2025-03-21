@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character, DateUtils, laz.VirtualTrees, SynEdit, EditBtn, ComCtrls, SynCompletion,
+  Character, DateUtils, laz.VirtualTrees, SynEdit, EditBtn, ComCtrls, SynCompletion, fphttpclient,
   dbconnection, dbstructures, jsonregistry;
 
 type
@@ -91,25 +91,25 @@ type
   end;
 
   // Download
-  {THttpDownload = class(TObject)
-    private
-      FOwner: TComponent;
-      FURL: String;
-      FLastContent: String;
-      FBytesRead: Integer;
-      FContentLength: Integer;
-      FTimeOut: Cardinal;
-      FOnProgress: TNotifyEvent;
+  THttpDownload = class(TFPHttpClient)
+    //private
+    //  FOwner: TComponent;
+    //  FURL: String;
+    //  FLastContent: String;
+    //  FBytesRead: Integer;
+    //  FContentLength: Integer;
+    //  FTimeOut: Cardinal;
+    //  FOnProgress: TNotifyEvent;
     public
       constructor Create(Owner: TComponent);
-      procedure SendRequest(Filename: String);
-      property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
-      property URL: String read FURL write FURL;
-      property TimeOut: Cardinal read FTimeOut write FTimeOut;
-      property BytesRead: Integer read FBytesRead;
-      property ContentLength: Integer read FContentLength;
-      property LastContent: String read FLastContent;
-  end; }
+    //  procedure SendRequest(Filename: String);
+    //  property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
+    //  property URL: String read FURL write FURL;
+    //  property TimeOut: Cardinal read FTimeOut write FTimeOut;
+    //  property BytesRead: Integer read FBytesRead;
+    //  property ContentLength: Integer read FContentLength;
+    //  property LastContent: String read FLastContent;
+  end;
 
   // Extended string list with support for empty values
   TExtStringList = class(TStringList)
@@ -3353,13 +3353,11 @@ end;
 
 { THttpDownload }
 
-{constructor THttpDownload.Create(Owner: TComponent);
+constructor THttpDownload.Create(Owner: TComponent);
 begin
-  FBytesRead := -1;
-  FContentLength := -1;
-  FOwner := Owner;
-  FTimeOut := 10;
-end;}
+  inherited;
+  AddHeader('User-Agent', UserAgent(Owner));
+end;
 
 
 {procedure THttpDownload.SendRequest(Filename: String);

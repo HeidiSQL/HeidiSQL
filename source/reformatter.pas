@@ -241,12 +241,11 @@ end;
 
 function TfrmReformatter.FormatSqlOnlineHeidisql(SQL: String): String;
 var
-  HttpReq: TFPHTTPClient;
+  HttpReq: THttpDownload;
   Parameters, Response: TStringList;
 begin
-  HttpReq := TFPHTTPClient.Create(Self);
+  HttpReq := THttpDownload.Create(Self);
   HttpReq.RequestHeaders.Add('Content-Type: text/plain; charset=utf-8');
-  HttpReq.RequestHeaders.Add('User-Agent: ' + apphelpers.UserAgent(Self));
   Parameters := TStringList.Create;
   Parameters.AddPair('indent', CodeIndent);
   Parameters.AddPair('input', FInputCode);
@@ -261,15 +260,14 @@ end;
 
 function TfrmReformatter.FormatSqlOnlineSqlformatOrg(SQL: String): String;
 var
-  HttpReq: TFPHTTPClient;
+  HttpReq: THttpDownload;
   Parameters, Response: TStringList;
   JsonResponseStr: String;
   JsonParser: TJSONParser;
   JsonTmp: TJSONData;
 begin
-  HttpReq := TFPHTTPClient.Create(Self);
+  HttpReq := THttpDownload.Create(Self);
   HttpReq.RequestHeaders.Add('Content-Type: application/json; charset=utf-8');
-  HttpReq.RequestHeaders.Add('User-Agent: ' + apphelpers.UserAgent(Self));
   // Parameter documentation: https://sqlformat.org/api/
   Parameters := TStringList.Create;
   Parameters.AddPair('sql', FInputCode);

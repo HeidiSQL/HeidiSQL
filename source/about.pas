@@ -10,6 +10,9 @@ uses
   RegExpr, Buttons, StdCtrls, Clipbrd, LCLIntf, StrUtils, LazVersion;
 
 type
+
+  { TAboutBox }
+
   TAboutBox = class(TForm)
     btnClose: TButton;
     lblAppName: TLabel;
@@ -60,7 +63,7 @@ procedure TAboutBox.btnDonatedOKClick(Sender: TObject);
 var
   Check: TThreeStateBoolean;
 begin
-  //AppSettings.WriteString(asDonatedEmail, editDonated.Text);
+  AppSettings.WriteString(asDonatedEmail, editDonated.Text);
   Check := MainForm.HasDonated(True);
   case Check of
     nbUnset:
@@ -72,7 +75,7 @@ begin
   end;
   btnDonate.Visible := Check <> nbTrue;
   MainForm.btnDonate.Visible := btnDonate.Visible;
-  //MainForm.FormResize(Self);
+  MainForm.FormResize(Self);
 end;
 
 
@@ -101,13 +104,11 @@ begin
 end;
 
 procedure TAboutBox.FormShow(Sender: TObject);
-var
-  OsMajor, OsMinor, OsBuild: Integer;
 begin
   Screen.Cursor := crHourGlass;
 
   // Apply special font properties after form creation, as that disables ParentFont, which prevents InheritFont() to apply
-  lblAppName.Font.Size := Round(lblAppName.Font.Size * 1.5);
+  lblAppName.Font.Size := Round(Screen.SystemFont.Size * 1.5);
   lblAppName.Font.Style := [fsBold];
 
   btnDonate.Caption := f_('Donate to the %s project', [APPNAME]);

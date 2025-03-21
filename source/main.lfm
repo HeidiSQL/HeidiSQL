@@ -183,79 +183,82 @@ object MainForm: TMainForm
       Left = 548
       Top = 2
       Action = actExecuteQuery
+      AutoSize = True
       DropdownMenu = popupExecuteQuery
+      Style = tbsDropDown
     end
     object btnLoadSQL: TToolButton
-      Left = 577
+      Left = 592
       Top = 2
       Action = actLoadSQL
+      AutoSize = True
       DropdownMenu = PopupQueryLoad
       Style = tbsDropDown
     end
     object btnSaveSQL: TToolButton
-      Left = 621
+      Left = 636
       Top = 2
       Action = actSaveSQL
     end
     object btnSaveSQLSnippet: TToolButton
-      Left = 650
+      Left = 665
       Top = 2
       Action = actSaveSQLSnippet
     end
     object btnQueryFind: TToolButton
-      Left = 679
+      Left = 694
       Top = 2
       Action = actQueryFind
     end
     object btnQueryReplace: TToolButton
-      Left = 708
+      Left = 723
       Top = 2
       Action = actQueryReplace
     end
     object btnReformatSQL: TToolButton
-      Left = 737
+      Left = 752
       Top = 2
       Action = actReformatSQL
     end
     object btnStopOnErrors: TToolButton
-      Left = 766
+      Left = 781
       Top = 2
       Action = actQueryStopOnErrors
     end
     object btnBlobAsText: TToolButton
-      Left = 795
+      Left = 810
       Top = 2
       Action = actBlobAsText
     end
     object btnQueryWordwrap: TToolButton
-      Left = 824
+      Left = 839
       Top = 2
       Action = actQueryWordWrap
     end
     object ToolButton11: TToolButton
-      Left = 853
+      Left = 868
       Top = 2
       Action = actCodeFolding
     end
     object btnSetDelimiter: TToolButton
-      Left = 882
+      Left = 897
       Top = 2
       Action = actSetDelimiter
     end
     object btnCancelOperation: TToolButton
-      Left = 911
+      Left = 926
       Top = 2
       Action = actCancelOperation
     end
     object ToolButton2: TToolButton
-      Left = 940
+      Left = 955
       Height = 28
       Top = 2
       Caption = 'ToolButton2'
       Style = tbsDivider
     end
     object btnDonate: TToolButton
-      Left = 945
+      Left = 960
       Hint = 'Send an arbitrary amount as donation to the author - per PayPal (also supports credit cards)'
       Top = 2
       Caption = 'btnDonate'
@@ -2878,6 +2881,7 @@ object MainForm: TMainForm
               TabOrder = 2
               OnDragDrop = SynMemoQueryDragDrop
               OnDragOver = SynMemoQueryDragOver
+              OnKeyPress = SynMemoQueryKeyPress
               OnMouseWheel = AnySynMemoMouseWheel
               Gutter.Width = 30
               Gutter.MouseActions = <>
@@ -3329,6 +3333,7 @@ object MainForm: TMainForm
               LineHighlightColor.Background = clNone
               LineHighlightColor.Foreground = clNone
               OnDropFiles = SynMemoQueryDropFiles
+              OnReplaceText = SynMemoQueryReplaceText
               OnSpecialLineColors = SynMemoQuerySpecialLineColors
               OnStatusChange = SynMemoQueryStatusChange
               inline SynLeftGutterPartList1: TSynGutterPartList
@@ -20040,7 +20045,7 @@ object MainForm: TMainForm
   end
   object SynCompletionProposal: TSynCompletion
     OnExecute = SynCompletionProposalExecute
-    Position = -1
+    Position = 0
     LinesInWindow = 6
     OnPositionChanged = SynCompletionProposalChange
     SelectedColor = clHighlight
@@ -20093,9 +20098,30 @@ object MainForm: TMainForm
     Images = ImageListIcons8
     Left = 338
     Top = 168
+    object Run1: TMenuItem
+      Action = actExecuteQuery
+    end
+    object RunSelection1: TMenuItem
+      Action = actExecuteSelection
+    end
+    object Runcurrentquery1: TMenuItem
+      Action = actExecuteCurrentQuery
+    end
+    object N3: TMenuItem
+      Caption = '-'
+    end
+    object Sendqueriesonebyone1: TMenuItem
+      Action = actSingleQueries
+      AutoCheck = True
+    end
+    object Runbatchinonego1: TMenuItem
+      Action = actBatchInOneGo
+      AutoCheck = True
+    end
   end
   object PopupQueryLoad: TPopupMenu
     Images = ImageListIcons8
+    OnPopup = PopupQueryLoadPopup
     Left = 378
     Top = 168
   end
