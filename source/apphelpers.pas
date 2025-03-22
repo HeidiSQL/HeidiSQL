@@ -92,23 +92,8 @@ type
 
   // Download
   THttpDownload = class(TFPHttpClient)
-    //private
-    //  FOwner: TComponent;
-    //  FURL: String;
-    //  FLastContent: String;
-    //  FBytesRead: Integer;
-    //  FContentLength: Integer;
-    //  FTimeOut: Cardinal;
-    //  FOnProgress: TNotifyEvent;
     public
       constructor Create(Owner: TComponent);
-    //  procedure SendRequest(Filename: String);
-    //  property OnProgress: TNotifyEvent read FOnProgress write FOnProgress;
-    //  property URL: String read FURL write FURL;
-    //  property TimeOut: Cardinal read FTimeOut write FTimeOut;
-    //  property BytesRead: Integer read FBytesRead;
-    //  property ContentLength: Integer read FContentLength;
-    //  property LastContent: String read FLastContent;
   end;
 
   // Extended string list with support for empty values
@@ -4231,7 +4216,7 @@ function TAppSettings.ReadIntDpiAware(Index: TAppSettingIndex; AControl: TContro
 begin
   // take a forms DesignTimePPI into account
   Result := ReadInt(Index, FormatName, Default);
-  Result := AControl.Scale96ToForm(Result);
+  Result := AControl.ScaleDesignToForm(Result);
 end;
 
 
@@ -4317,7 +4302,7 @@ end;
 
 procedure TAppSettings.WriteIntDpiAware(Index: TAppSettingIndex; AControl: TControl; Value: Integer; FormatName: String='');
 begin
-  Value := AControl.ScaleFormTo96(Value);
+  Value := AControl.ScaleFormToDesign(Value);
   WriteInt(Index, Value, FormatName);
 end;
 

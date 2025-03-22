@@ -12,7 +12,7 @@ interface
 uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   laz.VirtualTrees, Menus, Graphics, Generics.Collections, extra_controls,
-  dbconnection, RegExpr, Types, GraphUtil, StrUtils,
+  dbconnection, RegExpr, Types, GraphUtil, StrUtils, FileUtil,
   Math, ActnList, StdActns, comboex, EditBtn, Buttons, colorbox;
 
 type
@@ -284,8 +284,20 @@ var
   ComboItem: TComboExItem;
   Placeholders: TStringList;
   i: Integer;
-  ExeFiles: TStringDynArray;
+  ExeFiles: TStringList;
 begin
+
+  Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
+  Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
+  Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);
+  Top := AppSettings.ReadInt(asSessionManagerWindowTop, '', Top);
+  // Move to visible area if window was on a now plugged off monitor previously
+  MakeFullyVisible;
+  pnlLeft.Width := AppSettings.ReadInt(asSessionManagerListWidth);
+  splitterMain.OnMoved(Sender);
+  FixVT(ListSessions);
+  RestoreListSetup(ListSessions);
+
   // Fix GUI stuff
   HasSizeGrip := True;
   Caption := GetWindowCaption;
@@ -322,14 +334,14 @@ begin
   editLogFilePath.Hint := FilenameHint;
 
   // Populate dropdown with supported SSH executables
-  {ExeFiles := TDirectory.GetFiles(ExtractFilePath(ParamStr(0)), '*.exe');
+  ExeFiles := FindAllFiles(ExtractFilePath(ParamStr(0)), '*.exe', False);
   for ExePath in ExeFiles do begin
     ExeFile := ExtractFileName(ExePath);
     if ExecRegExprI('([pk]link|putty)', ExeFile) then begin
       comboSSHExe.Items.Add(ExeFile);
     end;
   end;
-  SetLength(ExeFiles, 0);}
+  ExeFiles.Free;
   comboSSHExe.Items.Add('ssh.exe');
 end;
 
@@ -400,17 +412,6 @@ var
   PSess: PConnectionParameters;
   Node: PVirtualNode;
 begin
-  Width := AppSettings.ReadIntDpiAware(asSessionManagerWindowWidth, Self);
-  Height := AppSettings.ReadIntDpiAware(asSessionManagerWindowHeight, Self);
-  Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);
-  Top := AppSettings.ReadInt(asSessionManagerWindowTop, '', Top);
-  // Move to visible area if window was on a now plugged off monitor previously
-  MakeFullyVisible;
-  pnlLeft.Width := AppSettings.ReadIntDpiAware(asSessionManagerListWidth, Self);
-  splitterMain.OnMoved(Sender);
-  FixVT(ListSessions);
-  RestoreListSetup(ListSessions);
-
   // Init sessions tree
   RefreshSessions(nil);
 
