@@ -1417,7 +1417,7 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp;
+  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck;
 
 {$R *.lfm}
 
@@ -2188,7 +2188,7 @@ var
   LastUpdatecheck, LastStatsCall, LastConnect: TDateTime;
   UpdatecheckInterval, i: Integer;
   LastActiveSession, Environment, RunFrom: String;
-  //frm : TfrmUpdateCheck;
+  frm : TfrmUpdateCheck;
   StatsCall: THttpDownload;
   StatsURL: String;
   SessionPaths: TStringlist;
@@ -2202,21 +2202,20 @@ begin
     LastUpdatecheck := StrToDateTimeDef(AppSettings.ReadString(asUpdatecheckLastrun), DateTimeNever);
     UpdatecheckInterval := AppSettings.ReadInt(asUpdatecheckInterval);
     if DaysBetween(Now, LastUpdatecheck) >= UpdatecheckInterval then begin
-      //frm := TfrmUpdateCheck.Create(Self);
-      //frm.btnCancel.Caption := _('Skip');
+      frm := TfrmUpdateCheck.Create(Self);
+      frm.btnCancel.Caption := _('Skip');
       try
-        //frm.ReadCheckFile;
+        frm.ReadCheckFile;
         // Show the dialog if release is available, or - when wanted - build checks are activated
-        //if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
-        //  or frm.LinkLabelRelease.Enabled then begin
-        //  frm.ShowModal;
-        //end;
-        MessageDialog('update check dialog', mtInformation, [mbclose]);
+        if (AppSettings.ReadBool(asUpdatecheckBuilds) and frm.btnBuild.Enabled)
+          or frm.LinkLabelRelease.Enabled then begin
+          frm.ShowModal;
+        end;
       except
         on E:Exception do
           LogSQL(f_('Error when checking for updates: %s', [E.Message]));
       end;
-      //frm.Free; // FormClose has no caFree, as it may not have been called
+      frm.Free; // FormClose has no caFree, as it may not have been called
     end;
   end;
 
@@ -2244,7 +2243,7 @@ begin
         '&bits=' + IntToStr(GetExecutableBits) +
         '&thm=' + //EncodeURLParam(TStyleManager.ActiveStyle.Name) +
         '&env=' + EncodeURLParam(Environment) +
-        '&winver=0';
+        '&winver=';
       // Enumerate actively used server versions
       for i:=0 to SessionPaths.Count-1 do begin
         AppSettings.SessionPath := SessionPaths[i];
@@ -4487,12 +4486,12 @@ end;
 
 
 procedure TMainForm.actUpdateCheckExecute(Sender: TObject);
-//var
-  //frm : TfrmUpdateCheck;
+var
+  frm : TfrmUpdateCheck;
 begin
-  //frm := TfrmUpdateCheck.Create(Self);
-  //frm.ShowModal;
-  //frm.Free; // FormClose has no caFree, as it may not have been called
+  frm := TfrmUpdateCheck.Create(Self);
+  frm.ShowModal;
+  frm.Free; // FormClose has no caFree, as it may not have been called
 end;
 
 

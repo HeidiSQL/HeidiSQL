@@ -26,4 +26,4 @@ UF = both
 
 
 Later:
-* TUpDown has minimum Min value of 32768 and maximum Max of 32767. Remove and activate TEdit.NumbersOnly
+* TUpDown has minimum Min value of -32768 and maximum Max of 32767. Remove and activate TEdit.NumbersOnly

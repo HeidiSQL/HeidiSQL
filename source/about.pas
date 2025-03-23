@@ -114,7 +114,7 @@ begin
   btnDonate.Caption := f_('Donate to the %s project', [APPNAME]);
   btnDonate.Visible := MainForm.HasDonated(False) <> nbTrue;
   btnDonate.OnClick := MainForm.DonateClick;
-  editDonated.Text := ''; //AppSettings.ReadString(asDonatedEmail);
+  editDonated.Text := AppSettings.ReadString(asDonatedEmail);
 
   // Assign text
   Caption := f_('About %s', [APPNAME]);

@@ -236,6 +236,13 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\updatecheck.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmUpdateCheck"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

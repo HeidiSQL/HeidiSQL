@@ -12,6 +12,7 @@ object AboutBox: TAboutBox
   FormStyle = fsStayOnTop
   OnShow = FormShow
   Position = poOwnerFormCenter
+  LCLVersion = '3.8.0.0'
   object lblAppName: TLabel
     Left = 146
     Height = 20
@@ -306,6 +307,7 @@ object AboutBox: TAboutBox
     Height = 31
     Top = 345
     Width = 286
+    Action = MainForm.actUpdateCheck
     Anchors = [akLeft, akRight, akBottom]
     TabOrder = 1
   end

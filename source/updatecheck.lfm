@@ -1,0 +1,151 @@
+object frmUpdateCheck: TfrmUpdateCheck
+  Left = 0
+  Height = 505
+  Top = 0
+  Width = 450
+  Caption = 'Check for updates ...'
+  ClientHeight = 505
+  ClientWidth = 450
+  Color = clBtnFace
+  Constraints.MinHeight = 500
+  Constraints.MinWidth = 375
+  DesignTimePPI = 120
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  object lblStatus: TLabel
+    Left = 10
+    Height = 48
+    Top = 455
+    Width = 262
+    Anchors = [akLeft, akRight, akBottom]
+    AutoSize = False
+    Caption = 'lblStatus'
+    Layout = tlCenter
+    WordWrap = True
+  end
+  object btnCancel: TButton
+    Left = 308
+    Height = 31
+    Top = 464
+    Width = 132
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    Default = True
+    ModalResult = 2
+    TabOrder = 3
+  end
+  object groupBuild: TGroupBox
+    Left = 10
+    Height = 215
+    Top = 240
+    Width = 430
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = 'Nightly build'
+    ClientHeight = 190
+    ClientWidth = 426
+    ParentBackground = False
+    TabOrder = 2
+    object btnBuild: TButton
+      Left = 8
+      Height = 31
+      Top = 150
+      Width = 409
+      Anchors = [akLeft, akRight, akBottom]
+      Caption = 'Download nightly build'
+      Enabled = False
+      ModalResult = 1
+      TabOrder = 2
+      Visible = False
+      OnClick = btnBuildClick
+    end
+    object memoBuild: TMemo
+      Left = 8
+      Height = 90
+      Top = 20
+      Width = 409
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      BorderStyle = bsNone
+      Color = clBtnFace
+      Font.Color = clWindowText
+      Font.Height = -15
+      Font.Name = 'Courier New'
+      Lines.Strings = (
+        'memoBuild'
+      )
+      ParentFont = False
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 0
+    end
+    object btnChangelog: TButton
+      Left = 8
+      Height = 31
+      Top = 111
+      Width = 409
+      Anchors = [akLeft, akRight, akBottom]
+      Caption = 'View changelog'
+      TabOrder = 1
+      OnClick = btnChangelogClick
+    end
+  end
+  object groupRelease: TGroupBox
+    Left = 10
+    Height = 122
+    Top = 110
+    Width = 430
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Official release'
+    ClientHeight = 97
+    ClientWidth = 426
+    Enabled = False
+    ParentBackground = False
+    TabOrder = 1
+    object memoRelease: TMemo
+      Left = 8
+      Height = 41
+      Top = 20
+      Width = 409
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      BorderStyle = bsNone
+      Color = clBtnFace
+      Lines.Strings = (
+        'memoRelease'
+      )
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 0
+    end
+    object LinkLabelRelease: TLabel
+      Cursor = crHandPoint
+      Left = 8
+      Height = 20
+      Top = 72
+      Width = 151
+      Anchors = [akLeft, akBottom]
+      Caption = 'Download new release'
+      PopupMenu = popupDownloadRelease
+      OnClick = LinkLabelReleaseLinkClick
+    end
+  end
+  object btnDonate: TButton
+    Left = 10
+    Height = 92
+    Top = 10
+    Width = 430
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Donate'
+    TabOrder = 0
+  end
+  object popupDownloadRelease: TPopupMenu
+    Left = 40
+    Top = 145
+    object CopydownloadURL1: TMenuItem
+      Caption = 'Copy to clipboard'
+      ImageIndex = 3
+      OnClick = CopydownloadURL1Click
+    end
+  end
+end
