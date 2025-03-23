@@ -286,7 +286,11 @@ var
   i: Integer;
   ExeFiles: TStringList;
 begin
-
+  ArrangeControls(tabSettings);
+  ArrangeControls(tabSSHtunnel);
+  ArrangeControls(tabAdvanced);
+  ArrangeControls(tabSSL);
+  ArrangeControls(tabStatistics);
   Width := AppSettings.ReadInt(asSessionManagerWindowWidth);
   Height := AppSettings.ReadInt(asSessionManagerWindowHeight);
   Left := AppSettings.ReadInt(asSessionManagerWindowLeft, '', Left);

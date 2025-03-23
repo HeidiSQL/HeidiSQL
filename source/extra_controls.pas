@@ -6,12 +6,29 @@ interface
 
 uses
   Classes, SysUtils, Forms, Types, StdCtrls, Clipbrd, apphelpers,
-  Graphics, Dialogs, ImgList, ComCtrls,
+  Graphics, Dialogs, ImgList, ComCtrls, Generics.Collections, Generics.Defaults,
   ExtCtrls, laz.VirtualTrees, RegExpr, Controls, EditBtn, Menus,
-  GraphUtil;
+  GraphUtil, Math;
 
 type
   // Form with a sizegrip in the lower right corner, without the need for a statusbar
+
+  { TControlTopComparer }
+
+  TControlTopComparer = class(TComparer<TControl>)
+    function Compare(constref Left, Right: TControl): Integer; override;
+  end;
+
+  TControlRow = class(TObjectList<TControl>)
+    Height: Integer
+  end;
+
+  { TControlGrid }
+
+  TControlGrid = class(TObjectList<TControlRow>)
+    public
+      constructor Create(aParentControl: TControl);
+  end;
 
   { TExtForm }
 
@@ -26,6 +43,7 @@ type
       //procedure DoBeforeMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
       //procedure DoAfterMonitorDpiChanged(OldDPI, NewDPI: Integer); override;
       procedure FilterNodesByEdit(Edit: TEditButton; Tree: TLazVirtualStringTree);
+      procedure ArrangeControls(aParentControl: TControl);
     public
       constructor Create(AOwner: TComponent); override;
       class procedure InheritFont(AFont: TFont);
@@ -114,6 +132,69 @@ type
 
 
 implementation
+
+{ TControlComparer }
+
+function TControlTopComparer.Compare(constref Left, Right: TControl): Integer;
+begin
+  // Sort by Top position, so we can be sure if we find a first one in a row, there's no other above it
+  if Left.Top > Right.Top then
+    Result := 1
+  else if Left.Top = Right.Top then
+    Result := 0
+  else
+    Result := -1;
+end;
+
+{ TControlGrid }
+
+constructor TControlGrid.Create(aParentControl: TControl);
+const
+  yCoordStep = 10;
+var
+  y, i: Integer;
+  FoundControl: TControl;
+  ControlRow: TControlRow;
+  AllControls: TObjectList<TControl>;
+begin
+  OwnsObjects := True;
+  y := 0;
+  AllControls := TObjectList<TControl>.Create(TControlTopComparer.Create, False);
+  for i:=0 to aParentControl.Owner.ComponentCount-1 do begin
+    if aParentControl.Owner.Components[i] is TControl then begin
+      FoundControl := aParentControl.Owner.Components[i] as TControl;
+      if FoundControl.Parent = aParentControl then begin
+        AllControls.Add(FoundControl);
+      end;
+    end;
+  end;
+  AllControls.Sort;
+
+  while y < aParentControl.Height + 100 do begin
+    ControlRow := TControlRow.Create(False);
+    ControlRow.Height := 0;
+
+    for FoundControl in AllControls do begin
+      if (FoundControl.Top >= y) and (FoundControl.Top < y + yCoordStep) then begin
+        ControlRow.Add(FoundControl);
+        if ControlRow.Count = 1 then
+          y := FoundControl.Top;
+        ControlRow.Height := Max(ControlRow.Height, FoundControl.Height);
+      end;
+    end;
+
+    // Add to grid if controls exist
+    if ControlRow.Count = 0 then begin
+      ControlRow.Free;
+      Inc(y, 1);
+    end
+    else begin
+      Add(ControlRow);
+      Inc(y, yCoordStep);
+    end;
+
+  end;
+end;
 
 
 { TExtForm }
@@ -425,6 +506,39 @@ begin
   //Edit.Button.Visible := IsNotEmpty(Edit.Text);
 end;
 
+procedure TExtForm.ArrangeControls(aParentControl: TControl);
+const
+  PaddingPx = 6;
+  LabelMoveDown = 2;
+var
+  Grid: TControlGrid;
+  Row: TControlRow;
+  FoundControl: TControl;
+  NewTopPos: Integer;
+begin
+  // Reposition edits and combo boxes due to different height on different OS's
+  Grid := TControlGrid.Create(aParentControl);
+
+  NewTopPos := PaddingPx;
+  for Row in Grid do begin
+    for FoundControl in Row do begin
+      if (akBottom in FoundControl.Anchors) and (akTop in FoundControl.Anchors) then
+        FoundControl.Height := FoundControl.Height + (FoundControl.Top - NewTopPos);
+      if (FoundControl is TLabel) and (FoundControl.Left < 30) then begin
+        FoundControl.Top := NewTopPos + LabelMoveDown;
+        FoundControl.Left := PaddingPx;
+      end
+      else begin
+        FoundControl.Top := NewTopPos;
+      end;
+      if (akRight in FoundControl.Anchors) and (FoundControl.Left + FoundControl.Width > aParentControl.Width - 30) then begin
+        FoundControl.Width := aParentControl.Width - FoundControl.Left - PaddingPx;
+      end;
+    end;
+    Inc(NewTopPos, Row.Height + PaddingPx);
+  end;
+  Grid.Free;
+end;
 
 function TExtForm.ScaleSize(x: Extended): Integer;
 begin
