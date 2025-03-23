@@ -189,6 +189,7 @@ begin
       Inc(y, 1);
     end
     else begin
+      ControlRow.Height := aParentControl.ScaleDesignToForm(ControlRow.Height);
       Add(ControlRow);
       Inc(y, yCoordStep);
     end;

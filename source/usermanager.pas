@@ -278,6 +278,9 @@ var
   end;
 
 begin
+  ArrangeControls(tabCredentials);
+  ArrangeControls(tabLimitations);
+  ArrangeControls(tabSSL);
   Width := AppSettings.ReadIntDpiAware(asUsermanagerWindowWidth, Self);
   Height := AppSettings.ReadIntDpiAware(asUsermanagerWindowHeight, Self);
   pnlLeft.Width := AppSettings.ReadIntDpiAware(asUsermanagerListWidth, Self);
