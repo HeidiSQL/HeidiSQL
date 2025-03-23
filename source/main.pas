@@ -1417,7 +1417,8 @@ implementation
 
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
-  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck;
+  copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
+  insertfiles;
 
 {$R *.lfm}
 
@@ -3839,12 +3840,12 @@ end;
 
 
 procedure TMainForm.actInsertFilesExecute(Sender: TObject);
-//var
-//  Dialog: TfrmInsertFiles;
+var
+  Dialog: TfrmInsertFiles;
 begin
-  //Dialog := TfrmInsertFiles.Create(Self);
-  //Dialog.ShowModal;
-  //Dialog.Free;
+  Dialog := TfrmInsertFiles.Create(Self);
+  Dialog.ShowModal;
+  Dialog.Free;
 end;
 
 // Drop Table(s)

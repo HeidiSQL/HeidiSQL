@@ -1,0 +1,254 @@
+object frmInsertFiles: TfrmInsertFiles
+  Left = 262
+  Height = 614
+  Top = 131
+  Width = 639
+  BorderIcons = [biSystemMenu, biMinimize]
+  Caption = 'Insert files...'
+  ClientHeight = 614
+  ClientWidth = 639
+  Color = clBtnFace
+  Constraints.MinHeight = 250
+  Constraints.MinWidth = 250
+  DesignTimePPI = 120
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poOwnerFormCenter
+  object btnInsert: TButton
+    Left = 341
+    Height = 31
+    Top = 573
+    Width = 162
+    Anchors = [akRight, akBottom]
+    Caption = 'Import files'
+    Default = True
+    Enabled = False
+    ModalResult = 1
+    TabOrder = 1
+    OnClick = btnInsertClick
+  end
+  object btnCancel: TButton
+    Left = 510
+    Height = 31
+    Top = 573
+    Width = 119
+    Anchors = [akRight, akBottom]
+    Cancel = True
+    Caption = 'Cancel'
+    ModalResult = 2
+    TabOrder = 0
+  end
+  object grpSelectObject: TGroupBox
+    Left = 10
+    Height = 292
+    Top = 10
+    Width = 619
+    Anchors = [akTop, akLeft, akRight]
+    Caption = 'Target table and columns'
+    ClientHeight = 267
+    ClientWidth = 615
+    ParentBackground = False
+    TabOrder = 2
+    object lblTable: TLabel
+      Left = 12
+      Height = 20
+      Top = 8
+      Width = 107
+      Caption = 'Database, table:'
+    end
+    object lblFilecontents: TLabel
+      Left = 12
+      Height = 20
+      Top = 42
+      Width = 515
+      Caption = 'Column values (Hint: Assign "%filecontent%" value to a BLOB or TEXT column)'
+    end
+    object comboDBs: TComboBox
+      Left = 212
+      Height = 28
+      Top = 5
+      Width = 189
+      ItemHeight = 20
+      Style = csDropDownList
+      TabOrder = 0
+      OnChange = comboDBsChange
+    end
+    object comboTables: TComboBox
+      Left = 409
+      Height = 28
+      Top = 5
+      Width = 195
+      Anchors = [akTop, akLeft, akRight]
+      ItemHeight = 20
+      Style = csDropDownList
+      TabOrder = 1
+      OnChange = comboTablesChange
+    end
+    object ListColumns: TLazVirtualStringTree
+      Left = 12
+      Height = 189
+      Top = 66
+      Width = 592
+      Anchors = [akTop, akLeft, akRight]
+      EditDelay = 0
+      Header.AutoSizeIndex = 2
+      Header.Columns = <      
+        item
+          Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+          Position = 0
+          Text = 'Column'
+          Width = 125
+        end      
+        item
+          Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+          Position = 1
+          Text = 'Datatype'
+          Width = 100
+        end      
+        item
+          Options = [coDraggable, coEnabled, coParentBidiMode, coParentColor, coResizable, coShowDropMark, coVisible, coAllowFocus]
+          Position = 2
+          Text = 'Value'
+          Width = 363
+        end>
+      Header.Height = 32
+      Header.Images = MainForm.ImageListIcons8
+      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+      Header.PopupMenu = MainForm.popupListHeader
+      TabOrder = 2
+      TreeOptions.MiscOptions = [toAcceptOLEDrop, toEditable, toFullRepaintOnResize, toGridExtensions, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+      TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+      TreeOptions.SelectionOptions = [toExtendedFocus]
+      OnCreateEditor = ListColumnsCreateEditor
+      OnEditing = ListColumnsEditing
+      OnFreeNode = ListColumnsFreeNode
+      OnGetText = ListColumnsGetText
+      OnPaintText = ListColumnsPaintText
+      OnGetNodeDataSize = ListColumnsGetNodeDataSize
+      OnNewText = ListColumnsNewText
+    end
+  end
+  object GroupBox2: TGroupBox
+    Left = 10
+    Height = 255
+    Top = 310
+    Width = 619
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    Caption = 'Files to import'
+    ClientHeight = 230
+    ClientWidth = 615
+    ParentBackground = False
+    TabOrder = 3
+    object lblDropHint: TLabel
+      Left = 310
+      Height = 28
+      Top = 17
+      Width = 290
+      Anchors = [akTop, akLeft, akRight]
+      AutoSize = False
+      Caption = 'Hint: You can drop files from your Windows Explorer onto the list.'
+      Layout = tlCenter
+    end
+    object lblFileCount: TLabel
+      Left = 12
+      Height = 20
+      Top = 195
+      Width = 39
+      Anchors = [akLeft, akBottom]
+      Caption = '0 files'
+    end
+    object ListFiles: TLazVirtualStringTree
+      Left = 12
+      Height = 135
+      Top = 51
+      Width = 592
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      Header.AutoSizeIndex = 0
+      Header.Columns = <      
+        item
+          Position = 0
+          Text = 'Filename'
+          Width = 400
+        end      
+        item
+          CheckBox = True
+          Position = 1
+          Text = 'Binary'
+          Width = 88
+        end      
+        item
+          Alignment = taRightJustify
+          Position = 2
+          Text = 'Size'
+          Width = 100
+        end>
+      Header.Height = 32
+      Header.Options = [hoAutoResize, hoColumnResize, hoDrag, hoHotTrack, hoShowImages, hoShowSortGlyphs, hoVisible, hoDisableAnimatedResize]
+      Header.PopupMenu = MainForm.popupListHeader
+      Header.SortColumn = 0
+      TabOrder = 0
+      TreeOptions.AutoOptions = [toAutoDropExpand, toAutoScroll, toAutoScrollOnExpand, toAutoSort, toAutoTristateTracking, toAutoDeleteMovedNodes, toAutoChangeScale]
+      TreeOptions.MiscOptions = [toAcceptOLEDrop, toCheckSupport, toFullRepaintOnResize, toInitOnSave, toToggleOnDblClick, toWheelPanning, toEditOnClick]
+      TreeOptions.PaintOptions = [toHotTrack, toShowButtons, toShowDropmark, toShowTreeLines, toShowVertGridLines, toThemeAware, toUseBlendedImages, toUseExplorerTheme, toHideTreeLinesIfThemed]
+      TreeOptions.SelectionOptions = [toFullRowSelect, toMultiSelect]
+      OnAfterCellPaint = GridAfterCellPaint
+      OnBeforeCellPaint = ListFilesBeforeCellPaint
+      OnChange = ListFilesChange
+      OnClick = GridClick
+      OnCompareNodes = ListFilesCompareNodes
+      OnDblClick = ListFilesDblClick
+      OnFreeNode = ListFilesFreeNode
+      OnGetText = ListFilesGetText
+      OnGetImageIndex = ListFilesGetImageIndex
+      OnGetNodeDataSize = ListFilesGetNodeDataSize
+      OnHeaderClick = ListFilesHeaderClick
+      OnKeyPress = GridKeyPress
+      OnKeyUp = ListFilesKeyUp
+      OnStructureChange = ListFilesStructureChange
+    end
+    object ToolBar1: TToolBar
+      Left = 12
+      Height = 28
+      Top = 17
+      Width = 290
+      Align = alNone
+      ButtonHeight = 35
+      ButtonWidth = 82
+      Caption = 'ToolBarFiles'
+      Images = MainForm.ImageListIcons8
+      List = True
+      ShowCaptions = True
+      TabOrder = 1
+      object btnAddFiles: TToolButton
+        Left = 1
+        Top = 2
+        Caption = 'Add'
+        ImageIndex = 45
+        OnClick = btnAddFilesClick
+      end
+      object btnRemoveFiles: TToolButton
+        Left = 83
+        Top = 2
+        Caption = 'Remove'
+        Enabled = False
+        ImageIndex = 46
+        OnClick = btnRemoveFilesClick
+      end
+      object btnClearFiles: TToolButton
+        Left = 168
+        Top = 2
+        Caption = 'Clear'
+        Enabled = False
+        ImageIndex = 26
+        OnClick = btnRemoveFilesClick
+      end
+    end
+  end
+  object OpenDialog: TOpenDialog
+    Filter = 'All files (*.*)|*.*|Common images (*.jpg, *.gif, *.bmp, *.png)|*.jpg;*.gif;*.bmp;*.png'
+    Options = [ofHideReadOnly, ofAllowMultiSelect, ofFileMustExist, ofEnableSizing]
+    Left = 10
+    Top = 570
+  end
+end

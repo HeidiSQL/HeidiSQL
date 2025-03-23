@@ -380,7 +380,7 @@ type
   function DetectEncoding(Stream: TStream): TEncoding;
   function ReadTextfileChunk(Stream: TFileStream; Encoding: TEncoding; ChunkSize: Int64 = 0): String;
   function ReadTextfile(Filename: String; Encoding: TEncoding): String;
-  //function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
+  function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
   procedure StreamToClipboard(Text, HTML: TStream);
   function WideHexToBin(text: String): AnsiString;
   function BinToWideHex(bin: AnsiString): String;
@@ -1325,7 +1325,7 @@ begin
 end;
 
 
-{function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
+function ReadBinaryFile(Filename: String; MaxBytes: Int64): AnsiString;
 var
   Stream: TFileStream;
 begin
@@ -1335,7 +1335,7 @@ begin
   SetLength(Result, MaxBytes);
   Stream.Read(PAnsiChar(Result)^, Length(Result));
   Stream.Free;
-end;}
+end;
 
 
 procedure StreamToClipboard(Text, HTML: TStream);
