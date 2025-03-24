@@ -46,6 +46,7 @@ object frmTextEditor: TfrmTextEditor
       Align = alLeft
       AutoSize = True
       Caption = 'tlbStandard'
+      Images = MainForm.ImageListIcons8
       ParentShowHint = False
       ShowHint = True
       TabOrder = 0
@@ -233,6 +234,7 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupLinebreaks: TPopupMenu
+    Images = MainForm.ImageListIcons8
     Left = 10
     Top = 20
     object menuWindowsLB: TMenuItem
@@ -268,6 +270,7 @@ object frmTextEditor: TfrmTextEditor
     Top = 20
   end
   object popupEditor: TPopupMenu
+    Images = MainForm.ImageListIcons8
     Left = 300
     Top = 20
     object Selectall1: TMenuItem
@@ -296,6 +299,7 @@ object frmTextEditor: TfrmTextEditor
     end
   end
   object popupHighlighter: TPopupMenu
+    Images = MainForm.ImageListIcons8
     Left = 440
     Top = 40
     object menuCustomizeHighlighter: TMenuItem
