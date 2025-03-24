@@ -250,6 +250,20 @@
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
       </Unit>
+      <Unit>
+        <Filename Value="source\texteditor.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmTextEditor"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
+      <Unit>
+        <Filename Value="source\customize_highlighter.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="frmCustomizeHighlighter"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

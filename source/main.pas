@@ -1418,7 +1418,7 @@ implementation
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
-  insertfiles;
+  insertfiles, texteditor;
 
 {$R *.lfm}
 
@@ -12995,9 +12995,9 @@ begin
   end;
   if (not Assigned(Result)) and QueryTabs.HasActiveTab then
     Result := QueryTabs.ActiveMemo;
-  //if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
-  //  Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
-  //end;
+  if (not Assigned(Result)) and (Screen.ActiveForm is TfrmTextEditor) then begin
+    Result := TfrmTextEditor(Screen.ActiveForm).MemoText;
+  end;
 
 end;
 

@@ -19,8 +19,8 @@ uses
   dbstructures.sqlite, change_password, loginform, data_sorting, extra_controls,
   column_selection, loaddata, csv_detector, createdatabase, editvar, copytable,
   exportgrid, usermanager, selectdbobject, reformatter, searchreplace,
-  connections, jsonregistry, sqlhelp, updatecheck, insertfiles {, printlist (EnablePrint not defined) }
-  ;
+  connections, jsonregistry, sqlhelp, updatecheck, insertfiles, texteditor,
+  customize_highlighter;
 
 {$R *.res}
 {.$R resources.rc}

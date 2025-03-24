@@ -8,7 +8,7 @@ uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls,
   ExtCtrls, SynEdit, SynEditTypes, laz.VirtualTrees, RegExpr,
   SynEditRegexSearch, SynEditMiscClasses, SynEditSearch, extra_controls,
-  Menus{, texteditor};
+  Menus, texteditor;
 
 type
   TfrmSearchReplace = class(TExtForm)
@@ -123,7 +123,7 @@ begin
   AnySynMemo := MainForm.ActiveSynMemo(True);
   if Assigned(AnySynMemo) then begin
     IsEditorWritable := not AnySynMemo.ReadOnly; // Support views and procedure editors
-    IsGridTextEditor := False; //GetParentForm(AnySynMemo) is TfrmTextEditor; // Support grid text editor, read-only or not
+    IsGridTextEditor := GetParentForm(AnySynMemo) is TfrmTextEditor; // Support grid text editor, read-only or not
     if IsEditorWritable or IsGridTextEditor then
       UsedSynMemo := AnySynMemo;
   end;

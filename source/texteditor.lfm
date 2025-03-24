@@ -1,0 +1,316 @@
+object frmTextEditor: TfrmTextEditor
+  Left = 0
+  Height = 191
+  Top = 0
+  Width = 602
+  Caption = 'Text editor'
+  ClientHeight = 191
+  ClientWidth = 602
+  Color = clBtnFace
+  Constraints.MinHeight = 125
+  Constraints.MinWidth = 375
+  DesignTimePPI = 120
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  Position = poMainFormCenter
+  LCLVersion = '3.8.0.0'
+  object Panel1: TPanel
+    Left = 0
+    Height = 28
+    Top = 125
+    Width = 472
+    Align = alBottom
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    ClientHeight = 28
+    ClientWidth = 472
+    ParentBackground = False
+    TabOrder = 0
+    object lblTextLength: TLabel
+      Left = 409
+      Height = 16
+      Top = 3
+      Width = 76
+      Align = alLeft
+      Caption = 'lblTextLength'
+      Layout = tlCenter
+      ParentBidiMode = False
+    end
+    object tlbStandard: TToolBar
+      Left = 0
+      Height = 22
+      Top = 0
+      Width = 261
+      Align = alLeft
+      AutoSize = True
+      Caption = 'tlbStandard'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      Wrapable = False
+      object btnWrap: TToolButton
+        Left = 0
+        Hint = 'Wrap long lines'
+        Top = 0
+        Caption = 'Wrap long lines'
+        ImageIndex = 62
+        OnClick = btnWrapClick
+      end
+      object btnLinebreaks: TToolButton
+        Left = 29
+        Top = 0
+        Caption = 'Linebreaks'
+        DropdownMenu = popupLinebreaks
+        ImageIndex = 123
+        Style = tbsDropDown
+      end
+      object btnLoadText: TToolButton
+        Left = 81
+        Hint = 'Load textfile'
+        Top = 0
+        Caption = 'Load textfile'
+        ImageIndex = 52
+        OnClick = btnLoadTextClick
+      end
+      object btnCancel: TToolButton
+        Left = 110
+        Hint = 'Cancel'
+        Top = 0
+        Caption = 'Cancel'
+        ImageIndex = 26
+        OnClick = btnCancelClick
+      end
+      object btnApply: TToolButton
+        Left = 139
+        Hint = 'Apply changes'
+        Top = 0
+        Caption = 'Apply changes'
+        ImageIndex = 55
+        OnClick = btnApplyClick
+      end
+      object btnSeparator1: TToolButton
+        Left = 168
+        Top = 0
+        Width = 10
+        Caption = 'btnSeparator1'
+        ImageIndex = 60
+        Style = tbsSeparator
+      end
+      object btnSearchFind: TToolButton
+        Left = 178
+        Top = 0
+        Action = MainForm.actQueryFind
+      end
+      object btnSearchFindNext: TToolButton
+        Left = 206
+        Top = 0
+        Action = MainForm.actQueryFindAgain
+      end
+      object btnSearchReplace: TToolButton
+        Left = 235
+        Top = 0
+        Action = MainForm.actQueryReplace
+      end
+      object ToolButton1: TToolButton
+        Left = 264
+        Top = 0
+        Width = 10
+        Caption = 'ToolButton1'
+        ImageIndex = 60
+        Style = tbsSeparator
+      end
+      object btnCustomizeHighlighter: TToolButton
+        Left = 274
+        Top = 0
+        Caption = 'Customize highlighter'
+        DropdownMenu = popupHighlighter
+        ImageIndex = 39
+        OnClick = btnCustomizeHighlighterClick
+        Style = tbsDropDown
+      end
+    end
+    object comboHighlighter: TComboBox
+      Left = 261
+      Height = 22
+      Top = 0
+      Width = 181
+      Align = alLeft
+      ItemHeight = 0
+      Sorted = True
+      Style = csDropDownList
+      TabOrder = 1
+      OnSelect = comboHighlighterSelect
+    end
+  end
+  inline MemoText: TSynEdit
+    Left = 0
+    Height = 131
+    Top = 0
+    Width = 482
+    Align = alClient
+    Font.Color = clWindowText
+    Font.Height = -16
+    Font.Name = 'Courier New'
+    Font.Pitch = fpFixed
+    Font.Quality = fqNonAntialiased
+    ParentColor = False
+    ParentFont = False
+    PopupMenu = popupEditor
+    TabOrder = 1
+    OnClick = MemoTextClick
+    OnKeyDown = MemoTextKeyDown
+    Gutter.Width = 72
+    Gutter.MouseActions = <>
+    RightGutter.Width = 0
+    RightGutter.MouseActions = <>
+    Keystrokes = <>
+    MouseActions = <>
+    MouseTextActions = <>
+    MouseSelActions = <>
+    Lines.Strings = (
+      'MemoText'
+    )
+    Options = [eoAutoIndent, eoGroupUndo, eoShowScrollHint, eoSmartTabs, eoTabIndent, eoTabsToSpaces, eoDragDropEditing]
+    MouseOptions = [emDragDropEditing]
+    VisibleSpecialChars = [vscSpace, vscTabAtLast]
+    RightEdge = 0
+    SelectedColor.BackPriority = 50
+    SelectedColor.ForePriority = 50
+    SelectedColor.FramePriority = 50
+    SelectedColor.BoldPriority = 50
+    SelectedColor.ItalicPriority = 50
+    SelectedColor.UnderlinePriority = 50
+    SelectedColor.StrikeOutPriority = 50
+    BracketHighlightStyle = sbhsBoth
+    BracketMatchColor.Background = clNone
+    BracketMatchColor.Foreground = clNone
+    BracketMatchColor.Style = [fsBold]
+    FoldedCodeColor.Background = clNone
+    FoldedCodeColor.Foreground = clGray
+    FoldedCodeColor.FrameColor = clGray
+    MouseLinkColor.Background = clNone
+    MouseLinkColor.Foreground = clBlue
+    LineHighlightColor.Background = clNone
+    LineHighlightColor.Foreground = clNone
+    OnChange = MemoTextChange
+    inline SynLeftGutterPartList1: TSynGutterPartList
+      object SynGutterMarks1: TSynGutterMarks
+        Width = 30
+        MouseActions = <>
+      end
+      object SynGutterLineNumber1: TSynGutterLineNumber
+        Width = 21
+        MouseActions = <>
+        MarkupInfo.Background = clBtnFace
+        MarkupInfo.Foreground = clNone
+        DigitCount = 2
+        ShowOnlyLineNumbersMultiplesOf = 1
+        ZeroStart = False
+        LeadingZeros = False
+      end
+      object SynGutterChanges1: TSynGutterChanges
+        Width = 5
+        MouseActions = <>
+        ModifiedColor = 59900
+        SavedColor = clGreen
+      end
+      object SynGutterSeparator1: TSynGutterSeparator
+        Width = 3
+        MouseActions = <>
+        MarkupInfo.Background = clWhite
+        MarkupInfo.Foreground = clGray
+      end
+      object SynGutterCodeFolding1: TSynGutterCodeFolding
+        Width = 13
+        MouseActions = <>
+        MarkupInfo.Background = clNone
+        MarkupInfo.Foreground = clGray
+        MouseActionsExpanded = <>
+        MouseActionsCollapsed = <>
+      end
+    end
+  end
+  object popupLinebreaks: TPopupMenu
+    Left = 10
+    Top = 20
+    object menuWindowsLB: TMenuItem
+      Caption = 'Windows linebreaks'
+      ImageIndex = 123
+      OnClick = SelectLinebreaks
+    end
+    object menuUnixLB: TMenuItem
+      Caption = 'UNIX linebreaks'
+      ImageIndex = 125
+      OnClick = SelectLinebreaks
+    end
+    object menuMacLB: TMenuItem
+      Caption = 'Mac OS linebreaks'
+      ImageIndex = 124
+      OnClick = SelectLinebreaks
+    end
+    object menuWideLB: TMenuItem
+      Caption = 'Unicode linebreaks'
+      ImageIndex = 68
+      OnClick = SelectLinebreaks
+    end
+    object menuMixedLB: TMenuItem
+      Caption = 'Mixed linebreaks'
+      ImageIndex = 122
+      OnClick = SelectLinebreaks
+    end
+  end
+  object TimerMemoChange: TTimer
+    Interval = 200
+    OnTimer = TimerMemoChangeTimer
+    Left = 150
+    Top = 20
+  end
+  object popupEditor: TPopupMenu
+    Left = 300
+    Top = 20
+    object Selectall1: TMenuItem
+      Action = MainForm.actSelectAll
+    end
+    object Copy1: TMenuItem
+      Action = MainForm.actCopy
+    end
+    object Paste1: TMenuItem
+      Action = MainForm.actPaste
+    end
+    object Undo1: TMenuItem
+      Action = MainForm.actUndo
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object Findtext1: TMenuItem
+      Action = MainForm.actQueryFind
+    end
+    object Findorreplaceagain1: TMenuItem
+      Action = MainForm.actQueryFindAgain
+    end
+    object Replacetext1: TMenuItem
+      Action = MainForm.actQueryReplace
+    end
+  end
+  object popupHighlighter: TPopupMenu
+    Left = 440
+    Top = 40
+    object menuCustomizeHighlighter: TMenuItem
+      Caption = 'Customize highlighter'
+      ImageIndex = 39
+      OnClick = btnCustomizeHighlighterClick
+    end
+    object menuFormatCodeOnce: TMenuItem
+      Caption = 'Format code once'
+      OnClick = menuFormatCodeOnceClick
+    end
+    object menuAlwaysFormatCode: TMenuItem
+      AutoCheck = True
+      Caption = 'Always format code'
+      OnClick = menuAlwaysFormatCodeClick
+    end
+  end
+end
