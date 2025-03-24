@@ -1381,13 +1381,13 @@ type
     function HasDonated(ForceCheck: Boolean): TThreeStateBoolean;
     procedure ApplyVTFilter(FromTimer: Boolean);
     procedure ApplyFontToGrids;
-    //procedure PrepareImageList;
+    procedure PrepareImageList;
     property ActionList1DefaultCaptions: TStringList read FActionList1DefaultCaptions;
     property ActionList1DefaultHints: TStringList read FActionList1DefaultHints;
     function SelectedTableFocusedColumn: TTableColumn;
     property FormatSettings: TFormatSettings read FFormatSettings;
-    //property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
-    //property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
+    property MatchingBraceForegroundColor: TColor read FMatchingBraceForegroundColor write FMatchingBraceForegroundColor;
+    property MatchingBraceBackgroundColor: TColor read FMatchingBraceBackgroundColor write FMatchingBraceBackgroundColor;
     property VirtualImageListMain: TImageList read ImageListIcons8; // Sync with main branch
   end;
 
@@ -1418,7 +1418,7 @@ implementation
 uses
   FileInfo, winpeimagereader, elfreader, machoreader, About, data_sorting, column_selection, loaddata, editvar,
   copytable, csv_detector, exportgrid, usermanager, selectdbobject, reformatter, connections, sqlhelp, updatecheck,
-  insertfiles, texteditor;
+  insertfiles, texteditor, preferences;
 
 {$R *.lfm}
 
@@ -1887,7 +1887,7 @@ begin
   Caption := APPNAME;
 
   // Load preferred ImageCollection into VirtualImageList
-  //PrepareImageList;
+  PrepareImageList;
 
   if AppSettings.ReadBool(asToolbarShowCaptions) then begin
     for i:=0 to ToolBarMainButtons.ButtonCount-1 do begin
@@ -2744,14 +2744,14 @@ end;
 procedure TMainForm.actPreferencesExecute(Sender: TObject);
 begin
   // Preferences
-  {frmPreferences := TfrmPreferences.Create(Self);
+  frmPreferences := TfrmPreferences.Create(Self);
   if Sender = actPreferencesLogging then
     frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabLogging
   else if Sender = actPreferencesData then
     frmPreferences.pagecontrolMain.ActivePage := frmPreferences.tabGridFormatting;
   frmPreferences.ShowModal;
   frmPreferences.Free;
-  frmPreferences := nil; // Important in SetupSynEditors}
+  frmPreferences := nil; // Important in SetupSynEditors
 end;
 
 procedure TMainForm.actHelpExecute(Sender: TObject);
@@ -9267,12 +9267,12 @@ begin
 end;
 
 
-{procedure TMainForm.PrepareImageList;
-var
-  IconPack: String;
-  WantedImageCollection: TComponent;
+procedure TMainForm.PrepareImageList;
+//var
+//  IconPack: String;
+//  WantedImageCollection: TComponent;
 begin
-  // Load preferred ImageCollection into VirtualImageList
+  {// Load preferred ImageCollection into VirtualImageList
   VirtualImageListMain.Clear;
   IconPack := AppSettings.ReadString(asIconPack);
   WantedImageCollection := FindComponent('ImageCollection' + IconPack);
@@ -9284,8 +9284,8 @@ begin
   // Add all normal color icons from collection to virtual image list
   VirtualImageListMain.Add('', 0, VirtualImageListMain.ImageCollection.Count-1);
   // Add all icons again in disabled/grayscale mode, used in TExtForm.PageControlTabHighlight
-  VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);
-end;}
+  VirtualImageListMain.AddDisabled('', 0, VirtualImageListMain.ImageCollection.Count-1);}
+end;
 
 
 procedure TMainForm.ListVariablesDblClick(Sender: TObject);

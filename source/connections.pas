@@ -13,7 +13,7 @@ uses
   SysUtils, Classes, Controls, Forms, Dialogs, StdCtrls, ExtCtrls, ComCtrls,
   laz.VirtualTrees, Menus, Graphics, Generics.Collections, extra_controls,
   dbconnection, RegExpr, Types, GraphUtil, StrUtils, FileUtil,
-  Math, ActnList, StdActns, comboex, EditBtn, Buttons, colorbox;
+  Math, ActnList, StdActns, ComboEx, EditBtn, Buttons, ColorBox;
 
 type
 

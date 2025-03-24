@@ -7,7 +7,7 @@ interface
 uses
   Classes, SysUtils, Generics.Collections, Generics.Defaults, Controls, RegExpr, Math, FileUtil,
   StrUtils, Graphics, GraphUtil, LCLIntf, Forms, Clipbrd, Process, ActnList, Menus, Dialogs,
-  Character, DateUtils, laz.VirtualTrees, SynEdit, EditBtn, ComCtrls, SynCompletion, fphttpclient,
+  Character, DateUtils, laz.VirtualTrees, SynEdit, SynEditHighlighter, EditBtn, ComCtrls, SynCompletion, fphttpclient,
   dbconnection, dbstructures, jsonregistry;
 
 type
@@ -185,6 +185,10 @@ type
   TSynEditHelper = class helper for TSynEdit
     public
       function GetTextLen: Integer;
+  end;
+  TSynHighlighterAttributesHelper = class helper for TSynHighlighterAttributes
+    public
+      procedure AssignColorAndStyle(Source: TSynHighlighterAttributes);
   end;
 
   //TSimpleKeyValuePairs = TDictionary<String, String>;
@@ -3485,6 +3489,29 @@ begin
   Result := Self.Text.Length;
 end;
 
+procedure TSynHighlighterAttributesHelper.AssignColorAndStyle(Source: TSynHighlighterAttributes);
+var
+  bChanged: Boolean;
+begin
+  bChanged := False;
+  if Background <> Source.Background then
+  begin
+    Background := Source.Background;
+    bChanged := True;
+  end;
+  if Foreground <> Source.Foreground then
+  begin
+    Foreground := Source.Foreground;
+    bChanged := True;
+  end;
+  if Style <> Source.Style then
+  begin
+    Style := Source.Style;
+    bChanged := True;
+  end;
+  if bChanged then
+    Changed;
+end;
 
 { TAppSettings }
 
