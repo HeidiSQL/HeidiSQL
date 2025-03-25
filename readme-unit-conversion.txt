@@ -27,3 +27,4 @@ UF = both
 
 Later:
 * TUpDown has minimum Min value of -32768 and maximum Max of 32767. Remove and activate TEdit.NumbersOnly
+* New keyboard hotkey editor with checkboxes for Shift Alt Ctrl + comboBox for key

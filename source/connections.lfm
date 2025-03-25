@@ -31,10 +31,10 @@ object connform: Tconnform
     Height = 574
     Top = 10
     Width = 656
-    ActivePage = tabStart
+    ActivePage = tabSettings
     Align = alClient
     Images = MainForm.ImageListIcons8
-    TabIndex = 0
+    TabIndex = 1
     TabOrder = 1
     OnChange = PageControlDetailsChange
     object tabStart: TTabSheet
@@ -70,114 +70,138 @@ object connform: Tconnform
       ClientWidth = 648
       ImageIndex = 39
       object lblPort: TLabel
-        Left = 4
+        AnchorSideTop.Control = editPassword
+        AnchorSideTop.Side = asrBottom
+        Left = 6
         Height = 20
-        Top = 249
+        Top = 234
         Width = 29
+        BorderSpacing.Around = 6
         Caption = 'Port:'
         FocusControl = editPort
       end
       object lblPassword: TLabel
-        Left = 4
+        AnchorSideTop.Control = editUsername
+        AnchorSideTop.Side = asrBottom
+        Left = 6
         Height = 20
-        Top = 218
+        Top = 200
         Width = 64
+        BorderSpacing.Around = 6
         Caption = 'Password:'
         FocusControl = editPassword
       end
       object lblHost: TLabel
-        Left = 4
+        AnchorSideTop.Control = comboLibrary
+        AnchorSideTop.Side = asrBottom
+        Left = 6
         Height = 20
-        Top = 95
+        Top = 72
         Width = 97
+        BorderSpacing.Around = 6
         Caption = 'Hostname / IP:'
         FocusControl = editHost
       end
       object lblUsername: TLabel
-        Left = 4
+        AnchorSideTop.Control = chkWindowsAuth
+        AnchorSideTop.Side = asrBottom
+        Left = 6
         Height = 20
-        Top = 186
+        Top = 166
         Width = 32
+        BorderSpacing.Around = 6
         Caption = 'User:'
         FocusControl = editUsername
       end
       object lblNetworkType: TLabel
-        Left = 4
+        AnchorSideTop.Control = tabSettings
+        AnchorSideRight.Control = tabSettings
+        Left = 6
         Height = 20
-        Top = 15
+        Top = 6
         Width = 92
+        BorderSpacing.Around = 6
         Caption = 'Network type:'
       end
       object lblDatabase: TLabel
-        Left = 4
+        AnchorSideTop.Control = chkCompressed
+        AnchorSideTop.Side = asrBottom
+        Left = 6
         Height = 20
-        Top = 309
+        Top = 298
         Width = 72
+        BorderSpacing.Around = 6
         Caption = 'Databases:'
       end
       object lblComment: TLabel
-        Left = 4
+        AnchorSideTop.Control = editDatabases
+        AnchorSideTop.Side = asrBottom
+        Left = 6
         Height = 20
-        Top = 342
+        Top = 332
         Width = 68
+        BorderSpacing.Around = 6
         Caption = 'Comment:'
       end
       object lblLibrary: TLabel
-        Left = 4
+        AnchorSideTop.Control = comboNetType
+        AnchorSideTop.Side = asrBottom
+        Left = 6
         Height = 20
-        Top = 49
+        Top = 38
         Width = 48
+        BorderSpacing.Around = 6
         Caption = 'Library:'
       end
       object chkCompressed: TCheckBox
-        Left = 238
+        AnchorSideTop.Control = editPort
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 24
-        Top = 276
-        Width = 398
+        Top = 268
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         Caption = 'Compressed client/server protocol'
-        TabOrder = 9
+        TabOrder = 8
         OnClick = Modification
       end
       object editPort: TEdit
-        Left = 238
+        AnchorSideTop.Control = editPassword
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 28
-        Top = 245
+        Top = 234
         Width = 71
+        BorderSpacing.Around = 6
+        NumbersOnly = True
         TabOrder = 7
         Text = '0'
         OnChange = Modification
       end
-      object updownPort: TUpDown
-        Left = 309
-        Height = 28
-        Top = 245
-        Width = 20
-        Associate = editPort
-        Max = 32767
-        Min = 0
-        Position = 0
-        TabOrder = 8
-        Thousands = False
-        Wrap = True
-      end
       object editPassword: TEdit
-        Left = 238
+        AnchorSideTop.Control = editUsername
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 28
-        Top = 214
-        Width = 398
+        Top = 200
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         EchoMode = emPassword
         PasswordChar = '*'
         TabOrder = 6
         OnChange = Modification
       end
       object editUsername: TEditButton
-        Left = 238
+        AnchorSideTop.Control = chkWindowsAuth
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 28
-        Top = 182
-        Width = 398
+        Top = 166
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
         ImageIndex = 75
@@ -190,11 +214,15 @@ object connform: Tconnform
         TabOrder = 5
       end
       object editHost: TEditButton
-        Left = 238
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = comboLibrary
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 28
-        Top = 91
-        Width = 398
+        Top = 72
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
         ImageIndex = 75
@@ -207,11 +235,15 @@ object connform: Tconnform
         TabOrder = 2
       end
       object comboNetType: TComboBoxEx
-        Left = 238
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = tabSettings
+        AnchorSideRight.Side = asrBottom
+        Left = 242
         Height = 26
-        Top = 10
-        Width = 398
+        Top = 6
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         DropDownCount = 12
         Images = MainForm.ImageListIcons8
         ItemHeight = 20
@@ -221,42 +253,54 @@ object connform: Tconnform
         TabOrder = 0
       end
       object chkLoginPrompt: TCheckBox
-        Left = 238
+        AnchorSideTop.Control = editHost
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 24
-        Top = 125
-        Width = 398
+        Top = 106
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         Caption = 'Prompt for credentials'
         TabOrder = 3
         OnClick = chkLoginPromptClick
       end
       object chkWindowsAuth: TCheckBox
-        Left = 238
+        AnchorSideTop.Control = chkLoginPrompt
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 24
-        Top = 154
-        Width = 398
+        Top = 136
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         Caption = 'Use Windows authentication'
         Enabled = False
         TabOrder = 4
         OnClick = chkLoginPromptClick
       end
       object memoComment: TMemo
-        Left = 238
-        Height = 187
-        Top = 339
-        Width = 398
+        AnchorSideTop.Control = editDatabases
+        AnchorSideTop.Side = asrBottom
+        Left = 242
+        Height = 194
+        Top = 332
+        Width = 400
         Anchors = [akTop, akLeft, akRight, akBottom]
+        BorderSpacing.Around = 6
         ScrollBars = ssVertical
-        TabOrder = 11
+        TabOrder = 10
         OnChange = Modification
       end
       object editDatabases: TEditButton
-        Left = 238
+        AnchorSideTop.Control = chkCompressed
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 28
-        Top = 305
-        Width = 398
+        Top = 298
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         ButtonWidth = 29
         Images = MainForm.ImageListIcons8
         ImageIndex = 75
@@ -265,15 +309,19 @@ object connform: Tconnform
         OnButtonClick = editDatabasesRightButtonClick
         OnChange = Modification
         PasswordChar = #0
-        TabOrder = 10
+        TabOrder = 9
         TextHint = 'Separated by semicolon'
       end
       object comboLibrary: TComboBox
-        Left = 238
+        AnchorSideLeft.Side = asrBottom
+        AnchorSideTop.Control = comboNetType
+        AnchorSideTop.Side = asrBottom
+        Left = 242
         Height = 28
-        Top = 45
-        Width = 398
+        Top = 38
+        Width = 400
         Anchors = [akTop, akLeft, akRight]
+        BorderSpacing.Around = 6
         ItemHeight = 20
         Style = csDropDownList
         TabOrder = 1

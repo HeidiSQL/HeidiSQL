@@ -40,7 +40,6 @@ type
     lblNetworkType: TLabel;
     chkCompressed: TCheckBox;
     editPort: TEdit;
-    updownPort: TUpDown;
     editPassword: TEdit;
     editUsername: TEditButton;
     editHost: TEditButton;
@@ -411,12 +410,6 @@ var
   PSess: PConnectionParameters;
   Node: PVirtualNode;
 begin
-  ArrangeControls(tabSettings);
-  ArrangeControls(tabSSHtunnel);
-  ArrangeControls(tabAdvanced);
-  ArrangeControls(tabSSL);
-  ArrangeControls(tabStatistics);
-
   // Init sessions tree
   RefreshSessions(nil);
 
@@ -502,7 +495,7 @@ begin
     Sess.LoginPrompt := chkLoginPrompt.Checked;
     Sess.WindowsAuth := chkWindowsAuth.Checked;
     Sess.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
-    Sess.Port := updownPort.Position;
+    Sess.Port := StrToIntDef(editPort.Text, 0);
     Sess.NetType := SelectedNetType;
     Sess.Compressed := chkCompressed.Checked;
     Sess.QueryTimeout := updownQueryTimeout.Position;
@@ -728,8 +721,8 @@ begin
     Result.LoginPrompt := chkLoginPrompt.Checked;
     Result.WindowsAuth := chkWindowsAuth.Checked;
     Result.CleartextPluginEnabled := chkCleartextPluginEnabled.Checked;
-    if updownPort.Enabled then
-      Result.Port := updownPort.Position
+    if editPort.Enabled then
+      Result.Port := StrToIntDef(editPort.Text, 0)
     else
       Result.Port := 0;
     Result.AllDatabasesStr := editDatabases.Text;
@@ -1019,7 +1012,7 @@ begin
     chkLoginPrompt.Checked := Sess.LoginPrompt;
     chkWindowsAuth.Checked := Sess.WindowsAuth;
     chkCleartextPluginEnabled.Checked := Sess.CleartextPluginEnabled;
-    updownPort.Position := Sess.Port;
+    editPort.Text := Sess.Port.ToString;
     chkCompressed.Checked := Sess.Compressed;
     updownQueryTimeout.Position := Sess.QueryTimeout;
     updownKeepAlive.Position := Sess.KeepAlive;
@@ -1401,7 +1394,7 @@ begin
 
   if Params.NetTypeGroup <> FLastSelectedNetTypeGroup then begin
     if not editPort.Modified then
-      updownPort.Position := Params.DefaultPort;
+      editPort.Text := Params.DefaultPort.ToString;
     if not editUsername.Modified then
       editUsername.Text := Params.DefaultUsername;
     if not editIgnoreDatabasePattern.Modified then
@@ -1442,7 +1435,7 @@ begin
       or (Sess.LoginPrompt <> chkLoginPrompt.Checked)
       or (Sess.WindowsAuth <> chkWindowsAuth.Checked)
       or (Sess.CleartextPluginEnabled <> chkCleartextPluginEnabled.Checked)
-      or (Sess.Port <> updownPort.Position)
+      or (Sess.Port <> StrToIntDef(editPort.Text, 0))
       or (Sess.Compressed <> chkCompressed.Checked)
       or (Sess.QueryTimeout <> updownQueryTimeout.Position)
       or (Sess.KeepAlive <> updownKeepAlive.Position)
@@ -1571,7 +1564,6 @@ begin
       editPassword.Enabled := lblUsername.Enabled;
       lblPort.Enabled := Params.NetType in [ntMySQL_TCPIP, ntMySQL_SSHtunnel, ntMySQL_ProxySQLAdmin, ntMySQL_RDS, ntMSSQL_TCPIP, ntPgSQL_TCPIP, ntPgSQL_SSHtunnel, ntInterbase_TCPIP, ntFirebird_TCPIP];
       editPort.Enabled := lblPort.Enabled;
-      updownPort.Enabled := lblPort.Enabled;
       chkCompressed.Enabled := Params.IsAnyMySQL;
       lblDatabase.Enabled := Params.NetTypeGroup in [ngMySQL, ngMSSQL, ngPgSQL, ngInterbase];
       lblDatabase.Enabled := lblDatabase.Enabled or (Params.NetType = ntSQLiteEncrypted);
