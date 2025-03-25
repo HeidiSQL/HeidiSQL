@@ -70,7 +70,6 @@ type
     chkLoginPrompt: TCheckBox;
     lblSSHTimeout: TLabel;
     editSSHTimeout: TEdit;
-    updownSSHTimeout: TUpDown;
     chkWindowsAuth: TCheckBox;
     chkCleartextPluginEnabled: TCheckBox;
     splitterMain: TSplitter;
@@ -100,12 +99,10 @@ type
     memoComment: TMemo;
     lblQueryTimeout: TLabel;
     editQueryTimeout: TEdit;
-    updownQueryTimeout: TUpDown;
     menuMoreGeneralHelp: TMenuItem;
     menuRename: TMenuItem;
     lblKeepAlive: TLabel;
     editKeepAlive: TEdit;
-    updownKeepAlive: TUpDown;
     lblCounterRight2: TLabel;
     lblCounterLeft2: TLabel;
     TimerButtonAnimation: TTimer;
@@ -498,8 +495,8 @@ begin
     Sess.Port := StrToIntDef(editPort.Text, 0);
     Sess.NetType := SelectedNetType;
     Sess.Compressed := chkCompressed.Checked;
-    Sess.QueryTimeout := updownQueryTimeout.Position;
-    Sess.KeepAlive := updownKeepAlive.Position;
+    Sess.QueryTimeout := StrToIntDef(editQueryTimeout.Text, 0);
+    Sess.KeepAlive := StrToIntDef(editKeepAlive.Text, 0);
     Sess.LocalTimeZone := chkLocalTimeZone.Checked;
     Sess.FullTableStatus := chkFullTableStatus.Checked;
     Sess.SessionColor := ColorBoxBackgroundColor.Selected;
@@ -513,7 +510,7 @@ begin
     Sess.SSHPort := MakeInt(editSSHport.Text);
     Sess.SSHUser := editSSHUser.Text;
     Sess.SSHPassword := editSSHPassword.Text;
-    Sess.SSHTimeout := updownSSHTimeout.Position;
+    Sess.SSHTimeout := StrToIntDef(editSSHTimeout.Text, 0);
     Sess.SSHPrivateKey := editSSHPrivateKey.Text;
     Sess.SSHLocalPort := MakeInt(editSSHlocalport.Text);
     Sess.WantSSL := chkWantSSL.Checked;
@@ -733,7 +730,7 @@ begin
     Result.SSHPort := MakeInt(editSSHPort.Text);
     Result.SSHUser := editSSHuser.Text;
     Result.SSHPassword := editSSHpassword.Text;
-    Result.SSHTimeout := updownSSHTimeout.Position;
+    Result.SSHTimeout := StrToIntDef(editSSHTimeout.Text, 0);
     Result.SSHPrivateKey := editSSHPrivateKey.Text;
     Result.SSHLocalPort := MakeInt(editSSHlocalport.Text);
     Result.SSHExe := comboSSHExe.Text;
@@ -745,8 +742,8 @@ begin
     Result.SSLVerification := comboSSLVerification.ItemIndex;
     Result.StartupScriptFilename := editStartupScript.Text;
     Result.Compressed := chkCompressed.Checked;
-    Result.QueryTimeout := updownQueryTimeout.Position;
-    Result.KeepAlive := updownKeepAlive.Position;
+    Result.QueryTimeout := StrToIntDef(editQueryTimeout.Text, 0);
+    Result.KeepAlive := StrToIntDef(editKeepAlive.Text, 0);
     Result.LocalTimeZone := chkLocalTimeZone.Checked;
     Result.FullTableStatus := chkFullTableStatus.Checked;
     Result.SessionColor := ColorBoxBackgroundColor.Selected;
@@ -1014,8 +1011,8 @@ begin
     chkCleartextPluginEnabled.Checked := Sess.CleartextPluginEnabled;
     editPort.Text := Sess.Port.ToString;
     chkCompressed.Checked := Sess.Compressed;
-    updownQueryTimeout.Position := Sess.QueryTimeout;
-    updownKeepAlive.Position := Sess.KeepAlive;
+    editQueryTimeout.Text := Sess.QueryTimeout.ToString;
+    editKeepAlive.Text := Sess.KeepAlive.ToString;
     chkLocalTimeZone.Checked := Sess.LocalTimeZone;
     chkFullTableStatus.Checked := Sess.FullTableStatus;
     ColorBoxBackgroundColor.Items.Objects[0] := TObject(Sess.SessionColor);
@@ -1037,7 +1034,7 @@ begin
     editSSHport.Text := IntToStr(Sess.SSHPort);
     editSSHUser.Text := Sess.SSHUser;
     editSSHPassword.Text := Sess.SSHPassword;
-    updownSSHTimeout.Position := Sess.SSHTimeout;
+    editSSHTimeout.Text := Sess.SSHTimeout.ToString;
     editSSHPrivateKey.Text := Sess.SSHPrivateKey;
     editSSHlocalport.Text := IntToStr(Sess.SSHLocalPort);
     chkWantSSL.Checked := Sess.WantSSL;
@@ -1437,8 +1434,8 @@ begin
       or (Sess.CleartextPluginEnabled <> chkCleartextPluginEnabled.Checked)
       or (Sess.Port <> StrToIntDef(editPort.Text, 0))
       or (Sess.Compressed <> chkCompressed.Checked)
-      or (Sess.QueryTimeout <> updownQueryTimeout.Position)
-      or (Sess.KeepAlive <> updownKeepAlive.Position)
+      or (Sess.QueryTimeout <> StrToIntDef(editQueryTimeout.Text, 0))
+      or (Sess.KeepAlive <> StrToIntDef(editKeepAlive.Text, 0))
       or (Sess.LocalTimeZone <> chkLocalTimeZone.Checked)
       or (Sess.FullTableStatus <> chkFullTableStatus.Checked)
       or (Sess.SessionColor <> ColorBoxBackgroundColor.Selected)
@@ -1454,7 +1451,7 @@ begin
       or (IntToStr(Sess.SSHLocalPort) <> editSSHlocalport.Text)
       or (Sess.SSHUser <> editSSHUser.Text)
       or (Sess.SSHPassword <> editSSHPassword.Text)
-      or (Sess.SSHTimeout <> updownSSHTimeout.Position)
+      or (Sess.SSHTimeout <> StrToIntDef(editSSHTimeout.Text, 0))
       or (Sess.SSHPrivateKey <> editSSHPrivateKey.Text)
       or (Sess.WantSSL <> chkWantSSL.Checked)
       or (Sess.SSLPrivateKey <> editSSLPrivateKey.Text)
@@ -1582,7 +1579,6 @@ begin
       editSSHPassword.Enabled := Params.SSHActive;
       lblSSHTimeout.Enabled := Params.SSHActive;
       editSSHTimeout.Enabled := Params.SSHActive;
-      updownSSHTimeout.Enabled := Params.SSHActive;
       lblSSHkeyfile.Enabled := Params.SSHActive;
       editSSHPrivateKey.Enabled := Params.SSHActive;
       lblSSHLocalPort.Enabled := Params.SSHActive;
@@ -1601,7 +1597,6 @@ begin
       comboSSLVerification.Enabled := Params.WantSSL;
       lblQueryTimeout.Enabled := True;
       editQueryTimeout.Enabled := lblQueryTimeout.Enabled;
-      updownQueryTimeout.Enabled := lblQueryTimeout.Enabled;
       chkLocalTimeZone.Enabled := Params.NetTypeGroup = ngMySQL;
       chkFullTableStatus.Enabled := (Params.NetTypeGroup in [ngMySQL, ngPgSQL]) and (Params.NetType <> ntMySQL_ProxySQLAdmin);
       chkCleartextPluginEnabled.Enabled := Params.NetTypeGroup = ngMySQL;
