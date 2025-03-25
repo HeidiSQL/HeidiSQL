@@ -31,10 +31,10 @@ object connform: Tconnform
     Height = 574
     Top = 10
     Width = 656
-    ActivePage = tabStatistics
+    ActivePage = tabSettings
     Align = alClient
     Images = MainForm.ImageListIcons8
-    TabIndex = 5
+    TabIndex = 1
     TabOrder = 1
     OnChange = PageControlDetailsChange
     object tabStart: TTabSheet
@@ -600,11 +600,11 @@ object connform: Tconnform
         Caption = 'Hide database pattern:'
       end
       object lblLogFile: TLabel
-        AnchorSideTop.Control = lblIgnoreDatabasePattern
+        AnchorSideTop.Control = editIgnoreDatabasePattern
         AnchorSideTop.Side = asrBottom
         Left = 4
         Height = 20
-        Top = 256
+        Top = 264
         Width = 123
         BorderSpacing.Around = 6
         Caption = 'Log queries to file:'
@@ -679,6 +679,7 @@ object connform: Tconnform
         Top = 40
         Width = 112
         BorderSpacing.Around = 6
+        NumbersOnly = True
         TabOrder = 1
         Text = '0'
         OnChange = Modification
@@ -691,6 +692,7 @@ object connform: Tconnform
         Top = 74
         Width = 112
         BorderSpacing.Around = 6
+        NumbersOnly = True
         TabOrder = 2
         Text = '0'
         OnChange = Modification
